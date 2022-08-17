@@ -5,6 +5,20 @@ plugins {
 }
 
 android {
+    signingConfigs {
+        debug {
+            storeFile file('/home/spectre7/.android/keystore.jks')
+            storePassword '***REMOVED***'
+            keyAlias 'release'
+            keyPassword '***REMOVED***'
+        }
+        release {
+        storeFile file('/home/spectre7/.android/keystore')
+            storePassword '***REMOVED***'
+            keyAlias '***REMOVED***'
+            keyPassword '***REMOVED***'
+        }
+    }
     compileSdk 32
 
     defaultConfig {
@@ -48,7 +62,7 @@ android {
         compose true
     }
     composeOptions {
-        kotlinCompilerExtensionVersion compose_version
+        kotlinCompilerExtensionVersion "1.3.0"
     }
     packagingOptions {
         resources {
@@ -61,7 +75,7 @@ dependencies {
 
     implementation 'androidx.core:core-ktx:1.7.0'
     implementation "androidx.compose.ui:ui:$compose_version"
-    implementation 'androidx.compose.material3:material3:1.0.0-alpha01'
+    implementation 'androidx.compose.material3:material3:1.0.0-alpha10'
     implementation "androidx.compose.ui:ui-tooling-preview:$compose_version"
     implementation 'androidx.lifecycle:lifecycle-runtime-ktx:2.3.1'
     implementation 'androidx.activity:activity-compose:1.3.1'
@@ -74,4 +88,6 @@ dependencies {
 
     implementation "io.coil-kt:coil-compose:2.0.0-rc01"
     implementation "com.beust:klaxon:5.5"
+    implementation "com.google.accompanist:accompanist-pager:0.21.2-beta"
+    implementation "com.google.accompanist:accompanist-pager-indicators:0.21.2-beta"
 }

@@ -5,19 +5,19 @@ import com.beust.klaxon.*
 import com.spectre7.spmp.MainActivity
 import com.spectre7.spmp.R
 import com.spectre7.spmp.model.*
+import com.spectre7.spmp.ui.layout.ResourceType
 import java.io.BufferedReader
 import java.io.InputStreamReader
 import java.net.HttpURLConnection
 import java.net.URL
 import java.net.URLEncoder
-import java.text.SimpleDateFormat
 import java.time.Instant
 import java.util.*
-import kotlin.time.Duration.Companion.parseIsoString
+import kotlin.io.path.createTempDirectory
 
 class DataApi {
-
-    private class HTTPGetRequest(request_url: String) {
+    
+    class HTTPGetRequest(request_url: String) {
         private var requestURL: String = request_url
         private var params: String = ""
 
@@ -66,32 +66,21 @@ class DataApi {
         }
     }
 
-    private class GetChannelResponse(val items: List<ChannelItem>) {
-        class ChannelItem(
-            val id: String,
-            val contentDetails: ContentDetails
-        )
-        class ContentDetails(
-            val relatedPlaylists: RelatedPlaylists
-        )
-        class RelatedPlaylists(
-            val uploads: String
-        )
-
-        fun getUploadsPlaylistId(): String {
-            return items[0].contentDetails.relatedPlaylists.uploads
-        }
-    }
-
     private class GetPlaylistItemsResponse(val items: List<VideoItem>) {
         class VideoItem(val snippet: Snippet, val contentDetails: ContentDetails)
         class Snippet(val publishedAt: String, val channelId: String, val title: String, val description: String)
         class ContentDetails(val videoId: String)
 
         fun getSongList(): List<Song> {
+
             var ret: MutableList<Song> = mutableListOf()
             for (video: VideoItem in items) {
-                ret.add(Song(video.contentDetails.videoId, SongData(null, video.snippet.title, video.snippet.description), getArtist(video.snippet.channelId)!!, Date.from(Instant.parse(video.snippet.publishedAt))))
+//                if (MainActivity.youtube!!.isSongAvailable(video.contentDetails.videoId)) {
+                    ret.add(Song(video.contentDetails.videoId, SongData(null, video.snippet.title, video.snippet.description), getArtist(video.snippet.channelId)!!, Date.from(Instant.parse(video.snippet.publishedAt))))
+//                }
+//                else {
+//                    Log.d("", "Skip ${video.snippet.title}")
+//                }
             }
             return ret
         }
@@ -119,9 +108,9 @@ class DataApi {
             val statistics: Statistics,
             val localizations: Map<String, Localisation> = emptyMap()
         ) {
-            class Snippet(val title: String, val description: String, val publishedAt: String, val defaultLanguage: String? = null, val country: String? = null)
+            class Snippet(val title: String, val description: String = "", val publishedAt: String, val defaultLanguage: String? = null, val country: String? = null, val thumbnails: Thumbnails)
             class Statistics(val viewCount: String, val subscriberCount: String, val hiddenSubscriberCount: Boolean, val videoCount: String)
-            class Localisation(val title: String, val description: String)
+            class Localisation(val title: String = "", val description: String = "")
         }
 
         fun getChannel(): ChannelItem {
@@ -129,28 +118,12 @@ class DataApi {
         }
     }
 
+    class Thumbnails(val default: Thumbnail, val medium: Thumbnail, val high: Thumbnail)
+    class Thumbnail(val url: String)
+
     companion object {
 
-        fun getChannelSongs(channelId: String): List<Song> {
-            var request = HTTPGetRequest("https://www.googleapis.com/youtube/v3/channels")
-            request.addParam("key", MainActivity.getString(R.string.data_api_key))
-            request.addParam("part", "contentDetails")
-            request.addParam("id", channelId)
-
-            val playlist_id = Klaxon().parse<GetChannelResponse>(request.getResult())?.getUploadsPlaylistId()
-
-            if (playlist_id == null) {
-                return listOf()
-            }
-
-            request.reset("https://www.googleapis.com/youtube/v3/playlistItems")
-            request.addParam("key", MainActivity.getString(R.string.data_api_key))
-            request.addParam("part", "contentDetails,snippet")
-            request.addParam("playlistId", playlist_id)
-            request.addParam("maxResults", "50")
-
-            return Klaxon().parse<GetPlaylistItemsResponse>(request.getResult())?.getSongList() ?: emptyList()
-        }
+        private val klaxon: Klaxon = Klaxon()
 
         // TODO | Song and artist cache
         fun getSong(videoId: String): Song? {
@@ -159,7 +132,7 @@ class DataApi {
             request.addParam("part", "contentDetails,snippet,localizations")
             request.addParam("id", videoId)
 
-            val video = Klaxon().parse<VideoInfoResponse>(request.getResult())?.getVideo()
+            val video = klaxon.parse<VideoInfoResponse>(request.getResult())?.getVideo()
             if (video == null) {
                 return null
             }
@@ -167,7 +140,7 @@ class DataApi {
             return Song(videoId, SongData("", video.snippet.title, video.snippet.description), getArtist(video.snippet.channelId)!!, Date.from(Instant.parse(video.snippet.publishedAt)), java.time.Duration.parse(video.contentDetails.duration))
         }
 
-        val artistCache: MutableMap<String, Artist> = mutableMapOf()
+        private val artistCache: MutableMap<String, Artist> = mutableMapOf()
 
         fun getArtist(channelId: String): Artist? {
 
@@ -180,13 +153,18 @@ class DataApi {
             request.addParam("part", "contentDetails,snippet,localizations,statistics")
             request.addParam("id", channelId)
 
-            val channel = Klaxon().parse<ChannelInfoResponse>(request.getResult())?.getChannel()
+            Log.d("", request.getRequestURL())
+
+            val res = request.getResult()
+
+            val channel = klaxon.parse<ChannelInfoResponse>(res)?.getChannel()
             if (channel == null) {
                 return null
             }
 
             val ret = Artist(channelId, ArtistData(channel.snippet.defaultLanguage, channel.snippet.title, channel.snippet.description),
                 Date.from(Instant.parse(channel.snippet.publishedAt)),
+                channel.snippet.thumbnails.default.url,
                 channel.statistics.viewCount,
                 channel.statistics.subscriberCount,
                 channel.statistics.hiddenSubscriberCount,
@@ -194,6 +172,45 @@ class DataApi {
             )
 
             artistCache[channelId] = ret
+
+            return ret
+        }
+
+        data class SearchResults(val items: List<Result>) {
+            data class Result(val id: ResultId, val snippet: Snippet)
+            data class ResultId(val kind: String, val videoId: String = "", val channelId: String = "", val playlistId: String = "")
+            data class Snippet(val publishedAt: String, val channelId: String, val title: String, val description: String, val thumbnails: Thumbnails)
+        }
+
+        fun search(query: String, type: ResourceType, max_results: Int = 10, channel_id: String? = null): List<Previewable> {
+            val request = HTTPGetRequest("https://www.googleapis.com/youtube/v3/search")
+            request.addParam("key", MainActivity.getString(R.string.data_api_key))
+            request.addParam("part", "snippet")
+            request.addParam("type", when (type) {
+                ResourceType.SONG -> "video"
+                ResourceType.ARTIST -> "channel"
+                ResourceType.PLAYLIST -> "playlist"
+            })
+            request.addParam("q", query)
+            request.addParam("maxResults", max_results.toString())
+            request.addParam("safeSearch", "none")
+
+            if (channel_id != null) {
+                request.addParam("channelId", channel_id)
+            }
+
+            val results = klaxon.parse<SearchResults>(request.getResult())!!.items
+            val ret = mutableListOf<Previewable>()
+
+            for (result in results) {
+                when (result.id.kind) {
+                    "youtube#video" -> ret.add(Song(
+                        result.id.videoId, SongData(null, result.snippet.title, result.snippet.description), Artist.fromId(result.snippet.channelId)
+                    ))
+                    "youtube#channel" -> ret.add(Artist.fromId(result.id.channelId))
+                    "youtube#playlist" -> {} // TODO
+                }
+            }
 
             return ret
         }

@@ -9,6 +9,7 @@ import android.graphics.Bitmap
 import android.os.Binder
 import android.os.IBinder
 import android.support.v4.media.session.MediaSessionCompat
+import android.util.Log
 import android.widget.Toast
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.toArgb
@@ -21,7 +22,6 @@ import com.google.android.exoplayer2.ui.PlayerNotificationManager
 import com.spectre7.spmp.model.Song
 import kotlin.concurrent.thread
 
-
 fun sendToast(text: String) {
     Toast.makeText(MainActivity.instance!!, text, Toast.LENGTH_SHORT).show()
 }
@@ -31,8 +31,21 @@ class PlayerHost(private var context: Context) {
     private var service: PlayerService? = null
     private var service_bound: Boolean = false
     private var service_connection: ServiceConnection? = null
+    private var service_intent: Intent? = null
 
-    fun interact(action: (service: PlayerService) -> Any?) {
+    fun addListener(listener: Player.Listener) {
+        interact {
+            it.player.addListener(listener)
+        }
+    }
+
+    fun removeListener(listener: Player.Listener) {
+        interact {
+            it.player.removeListener(listener)
+        }
+    }
+
+    fun interact(action: (service: PlayerService) -> Unit) {
         if (service == null) {
             getService() {
                 action(service!!)
@@ -46,16 +59,17 @@ class PlayerHost(private var context: Context) {
     fun release() {
         if (service_connection != null) {
             context.unbindService(service_connection!!)
+            service_connection = null
         }
     }
 
-    private fun getService(on_connected: (() -> Any?)? = {}) {
-        val intent = Intent(context, PlayerService::class.java)
+    private fun getService(on_connected: (() -> Unit)? = {}) {
+        service_intent = Intent(context, PlayerService::class.java)
         if (!isServiceRunning()) {
-            context.startForegroundService(intent)
+            context.startForegroundService(service_intent)
         }
 
-        context.bindService(intent,
+        context.bindService(service_intent,
             object : ServiceConnection {
 
                 override fun onServiceConnected(className: ComponentName, binder: IBinder) {
@@ -86,7 +100,7 @@ class PlayerHost(private var context: Context) {
         val p_queue: MutableList<Song> = mutableListOf()
         var p_index: Int = 0
 
-        private lateinit var player: ExoPlayer
+        internal lateinit var player: ExoPlayer
         private val NOTIFICATION_ID = 2
         private val NOTIFICATION_CHANNEL_ID = "playback_channel"
         private var playerNotificationManager: PlayerNotificationManager? = null
@@ -114,12 +128,31 @@ class PlayerHost(private var context: Context) {
             media_session_connector!!.setPlayer(player)
         }
 
+        override fun onDestroy() {
+            playerNotificationManager?.setPlayer(null)
+            playerNotificationManager = null
+            media_session?.release()
+            player.release()
+
+            super.onDestroy()
+        }
+
         override fun onStartCommand(intent: Intent?, flags: Int, startId: Int): Int {
             addNotificationToPlayer()
+
+            when (intent?.getIntExtra("action", -1)) {
+                0 -> {
+                    stopForeground(true)
+                    stopSelf()
+
+                    // TODO
+                }
+            }
+
             return START_NOT_STICKY
         }
 
-        fun addToQueue(song: Song, i: Int = p_index + 1) {
+        fun addToQueue(song: Song, i: Int = p_queue.size, onFinished: (() -> Unit)? = null) {
             var index = i
             if (index < 0 || index > p_queue.size) {
                 index = p_queue.size
@@ -128,6 +161,7 @@ class PlayerHost(private var context: Context) {
             p_queue.add(index, song)
             song.getDownloadUrl {
                 player.addMediaItem(index, MediaItem.Builder().setUri(it).setTag(song).build())
+                onFinished?.invoke()
             }
         }
 
@@ -159,7 +193,6 @@ class PlayerHost(private var context: Context) {
                 p_index = p_queue.size - 1
             }
 
-            media_session?.isActive = true
             player.prepare()
             player.play()
 
@@ -176,7 +209,6 @@ class PlayerHost(private var context: Context) {
                 p_index = 0
             }
 
-            media_session?.isActive = true
             player.prepare()
 
             if (player.isPlaying) {
@@ -269,14 +301,14 @@ class PlayerHost(private var context: Context) {
                             context: Context,
                             instanceId: Int
                         ): MutableMap<String, NotificationCompat.Action> {
-                            val pendingIntent = PendingIntent.getActivity(
+                            val pendingIntent = PendingIntent.getService(
                                 context,
                                 1,
-                                Intent(context, MainActivity::class.java),
+                                Intent(context, PlayerService::class.java).putExtra("action", 0),
                                 PendingIntent.FLAG_IMMUTABLE
                             )
                             return mutableMapOf(
-                                Pair("CLOSE", NotificationCompat.Action(com.google.android.exoplayer2.R.drawable.exo_ic_fullscreen_exit, "namae", pendingIntent))
+                                Pair("CLOSE", NotificationCompat.Action(android.R.drawable.ic_menu_close_clear_cancel, "namae", pendingIntent))
                             )
                         }
 
@@ -306,15 +338,9 @@ class PlayerHost(private var context: Context) {
 
                 playerNotificationManager?.setPlayer(player)
                 playerNotificationManager?.setMediaSessionToken(media_session!!.sessionToken)
-            }
-        }
 
-        override fun onDestroy() {
-            playerNotificationManager?.setPlayer(null)
-            playerNotificationManager = null
-            media_session?.release()
-            player?.release()
-            super.onDestroy()
+                media_session?.isActive = true
+            }
         }
 
         private fun getNotificationChannel(): String{

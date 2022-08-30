@@ -61,9 +61,9 @@ fun SongPreview (song: Song, showArtist: Boolean = true) {
 
         IconButton(onClick = {
              MainActivity.instance!!.player.interact {
-                 it.addToQueue(song)
-                 it.play()
-                 sendToast(it.p_queue.size.toString())
+                 it.addToQueue(song) {
+                     it.play()
+                 }
              }
         }, modifier = Modifier.fillMaxWidth()) {
             Icon(Icons.Filled.PlayArrow, null, Modifier, MaterialTheme.colorScheme.onBackground)

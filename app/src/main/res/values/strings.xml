@@ -10,6 +10,9 @@
     <string name="playlists">Playlists</string>
     <string name="albums">Albums</string>
 
+    <string name="media_pause">Pause</string>
+    <string name="media_play">Play</string>
+
     <string name="player_service_name">Player Service</string>
 
 </resources>

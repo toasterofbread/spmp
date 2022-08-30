@@ -1,12 +1,13 @@
 package com.spectre7.spmp.api
 
 import android.annotation.SuppressLint
+import android.os.Handler
+import android.os.Looper
 import android.util.Log
 import android.util.SparseArray
-import at.huber.youtubeExtractor.VideoMeta
-import at.huber.youtubeExtractor.YouTubeExtractor
-import at.huber.youtubeExtractor.YtFile
 import com.beust.klaxon.*
+import com.chaquo.python.PyObject
+import com.chaquo.python.Python
 import com.spectre7.spmp.MainActivity
 import com.spectre7.spmp.R
 import com.spectre7.spmp.model.*
@@ -18,6 +19,7 @@ import java.net.URL
 import java.net.URLEncoder
 import java.time.Instant
 import java.util.*
+import kotlin.concurrent.thread
 
 
 class DataApi {
@@ -218,16 +220,20 @@ class DataApi {
             return klaxon.parse<SearchResults>(data)!!.items
         }
 
-        private class Extractor(val callback: (url: String?) -> Any?): YouTubeExtractor(MainActivity.instance!!.baseContext) {
-            override fun onExtractionComplete(ytFiles: SparseArray<YtFile>?, vMeta: VideoMeta?) {
-                callback(ytFiles?.get(140)?.url)
+        private val pytube: PyObject = Python.getInstance().getModule("pytube").getValue("YouTube")
+        fun getDownloadUrl(id: String, callback: (url: String?) -> Unit) {
+            thread {
+                val streams: List<PyObject> = pytube.call("https://youtube.com/watch?v=$id").getValue("streams").asList()
+                for (stream in streams) {
+                    if (stream.getValue("itag").toInt() == 140) {
+                        MainActivity.runInMainThread {
+                            callback(stream.getValue("url").toString())
+                        }
+                        break
+                    }
+                }
             }
         }
-
-        fun getDownloadUrl(id: String, callback: (url: String?) -> Any?) {
-            Extractor(callback).extract(id)
-        }
-
     }
 }
 

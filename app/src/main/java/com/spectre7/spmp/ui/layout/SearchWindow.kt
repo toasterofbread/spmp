@@ -172,6 +172,7 @@ fun SearchPage() {
     Column {
 
         Scaffold (
+            modifier = Modifier.fillMaxHeight(0.92f),
             topBar = {
                 var input by rememberSaveable { mutableStateOf("") }
 

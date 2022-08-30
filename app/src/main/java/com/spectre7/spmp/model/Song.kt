@@ -34,7 +34,7 @@ data class Song (
         return nativeData?.locale
     }
 
-    fun getDownloadUrl(callback: (url: String) -> Any?) {
+    fun getDownloadUrl(callback: (url: String) -> Unit) {
         DataApi.getDownloadUrl(getId()) {
             if (it == null) {
                 throw RuntimeException(getId())

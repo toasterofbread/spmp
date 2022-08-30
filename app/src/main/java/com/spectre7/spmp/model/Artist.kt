@@ -36,6 +36,10 @@ data class Artist (
         return id
     }
 
+    override fun getThumbUrl(): String {
+        return thumbnail_url
+    }
+
     @Composable
     override fun getPreview() {
         return ArtistPreview(this)

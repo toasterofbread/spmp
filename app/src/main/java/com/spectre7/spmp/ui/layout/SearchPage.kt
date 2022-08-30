@@ -1,5 +1,7 @@
 package com.spectre7.spmp.ui.layout
 
+import android.os.Process.THREAD_PRIORITY_BACKGROUND
+import android.os.Process.setThreadPriority
 import android.util.Log
 import androidx.compose.animation.ExperimentalAnimationApi
 import androidx.compose.foundation.background
@@ -35,7 +37,9 @@ import com.spectre7.spmp.api.DataApi
 import com.spectre7.spmp.model.Artist
 import com.spectre7.spmp.model.Previewable
 import com.spectre7.spmp.model.Song
+import com.spectre7.spmp.model.SongData
 import kotlin.concurrent.thread
+import android.os.Process;
 
 val SEARCH_FIELD_FONT_SIZE: TextUnit = 18.sp
 val TAB_TEXT_FONT_SIZE: TextUnit = 14.sp
@@ -76,21 +80,25 @@ fun SearchPage() {
         focusManager.clearFocus()
 
         thread {
+
+            setThreadPriority(THREAD_PRIORITY_BACKGROUND)
+
             // Perform search with passed query
             val search = DataApi.search(current_search_query!!, type)
 
             // Display new search results
             for (result in search) {
-                when (result) {
-                    is Song -> {
-                        result_tabs[ResourceType.SONG]?.add(result)
+                when (result.id.kind) {
+                    "youtube#video" -> {
+                        result_tabs[ResourceType.SONG]?.add(Song(
+                            result.id.videoId, SongData(null, result.snippet.title, result.snippet.description), Artist.fromId(result.snippet.channelId)
+                        ))
+                        result_tabs[ResourceType.SONG]?.add(Song(
+                            result.id.videoId + "1", SongData(null, result.snippet.title, result.snippet.description), Artist.fromId(result.snippet.channelId)
+                        ))
                     }
-                    is Artist -> {
-                        result_tabs[ResourceType.ARTIST]?.add(result)
-                    }
-                    else -> {
-                        // TODO
-                    }
+                    "youtube#channel" -> result_tabs[ResourceType.ARTIST]?.add(Artist.fromId(result.id.channelId))
+                    "youtube#playlist" -> {} // TODO
                 }
             }
         }

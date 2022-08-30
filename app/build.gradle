@@ -8,15 +8,15 @@ android {
     signingConfigs {
         debug {
             storeFile file('/home/spectre7/.android/keystore.jks')
-            storePassword 'oja1138'
-            keyAlias 'release'
-            keyPassword 'oja1138'
+            storePassword 'passwd'
+            keyAlias 'alias'
+            keyPassword 'passwd'
         }
         release {
         storeFile file('/home/spectre7/.android/keystore')
-            storePassword 'oja1138'
-            keyAlias 'key0'
-            keyPassword 'oja1138'
+            storePassword 'passwd'
+            keyAlias 'alias'
+            keyPassword 'passwd'
         }
     }
     compileSdk 32
@@ -90,4 +90,7 @@ dependencies {
     implementation "com.beust:klaxon:5.5"
     implementation "com.google.accompanist:accompanist-pager:0.21.2-beta"
     implementation "com.google.accompanist:accompanist-pager-indicators:0.21.2-beta"
+    implementation 'com.google.android.exoplayer:exoplayer:2.18.1'
+    implementation 'com.google.android.exoplayer:extension-mediasession:2.18.1'
+    implementation 'com.github.HaarigerHarald:android-youtubeExtractor:master-SNAPSHOT'
 }

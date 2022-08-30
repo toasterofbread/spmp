@@ -1,7 +1,7 @@
 <resources>
     <string name="app_name">SpMp</string>
     <string name="data_api_key">AIzaSyAm0nMoIUejG5rlqdk8TV4ugwUG8tMEx0Y</string>
-    <string name="yt_music_creds">
+    <string name="yt_music_creds">***REMOVED***
     </string>
 
     <string name="videos">Videos</string>
@@ -9,5 +9,7 @@
     <string name="artists">Artists</string>
     <string name="playlists">Playlists</string>
     <string name="albums">Albums</string>
+
+    <string name="player_service_name">Player Service</string>
 
 </resources>

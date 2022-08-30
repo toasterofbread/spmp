@@ -22,6 +22,8 @@ import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.*
 import coil.compose.rememberAsyncImagePainter
+import com.spectre7.spmp.MainActivity
+import com.spectre7.spmp.sendToast
 
 @Composable
 fun SongPreview (song: Song, showArtist: Boolean = true) {
@@ -57,7 +59,13 @@ fun SongPreview (song: Song, showArtist: Boolean = true) {
             }
         }
 
-        IconButton(onClick = { /* TODO */ }, modifier = Modifier.fillMaxWidth()) {
+        IconButton(onClick = {
+             MainActivity.instance!!.player.interact {
+                 it.addToQueue(song)
+                 it.play()
+                 sendToast(it.p_queue.size.toString())
+             }
+        }, modifier = Modifier.fillMaxWidth()) {
             Icon(Icons.Filled.PlayArrow, null, Modifier, MaterialTheme.colorScheme.onBackground)
         }
     }

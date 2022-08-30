@@ -5,6 +5,7 @@ import android.content.Context
 import android.content.Intent
 import android.content.ServiceConnection
 import android.os.Bundle
+import android.os.Handler
 import android.os.IBinder
 import android.os.Looper
 import android.util.Log
@@ -37,6 +38,8 @@ class MainActivity : ComponentActivity() {
         youtube = Api.YtMusicApi(getString(R.string.yt_music_creds))
 
         player = PlayerHost(this)
+
+        sendToast("isServiceRunning: " + player.isServiceRunning().toString())
 
 //        if (!player.isServiceRunning()) {
 //            player.interact {
@@ -73,6 +76,11 @@ class MainActivity : ComponentActivity() {
         fun getString(id: Int): String {
             return instance?.resources?.getString(id)!!
         }
-    }
 
+        fun runInMainThread(code: () -> Unit) {
+            Handler(Looper.getMainLooper()).post(Runnable {
+                code()
+            });
+        }
+    }
 }

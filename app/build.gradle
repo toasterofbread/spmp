@@ -40,6 +40,7 @@ android {
         python {
             pip {
                 install "ytmusicapi"
+                install "pytube"
             }
         }
 
@@ -71,6 +72,10 @@ android {
     }
 }
 
+configurations.all {
+    resolutionStrategy.cacheChangingModulesFor 0, 'seconds'
+}
+
 dependencies {
 
     implementation 'androidx.core:core-ktx:1.7.0'
@@ -92,5 +97,4 @@ dependencies {
     implementation "com.google.accompanist:accompanist-pager-indicators:0.21.2-beta"
     implementation 'com.google.android.exoplayer:exoplayer:2.18.1'
     implementation 'com.google.android.exoplayer:extension-mediasession:2.18.1'
-    implementation 'com.github.HaarigerHarald:android-youtubeExtractor:master-SNAPSHOT'
 }

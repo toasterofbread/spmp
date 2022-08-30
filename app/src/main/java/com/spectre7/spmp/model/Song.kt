@@ -1,8 +1,10 @@
 package com.spectre7.spmp.model
 
+import android.graphics.Bitmap
 import androidx.compose.runtime.Composable
 import com.spectre7.spmp.api.DataApi
 import com.spectre7.spmp.ui.components.SongPreview
+import java.lang.RuntimeException
 import java.time.Duration
 import java.util.Date
 
@@ -12,7 +14,7 @@ data class SongData (
     val desc: String
 )
 
-class Song (
+data class Song (
     private val id: String,
     val nativeData: SongData? = null,
     val artist: Artist,
@@ -21,6 +23,7 @@ class Song (
     val duration: Duration? = null,
     val listenCount: Int = 0
 ): Previewable() {
+
     companion object {
         fun fromId(video_id: String): Song {
             return DataApi.getSong(video_id)!!
@@ -31,7 +34,16 @@ class Song (
         return nativeData?.locale
     }
 
-    fun getThumbUrl(): String {
+    fun getDownloadUrl(callback: (url: String) -> Any?) {
+        DataApi.getDownloadUrl(getId()) {
+            if (it == null) {
+                throw RuntimeException(getId())
+            }
+            callback(it)
+        }
+    }
+
+    override fun getThumbUrl(): String {
         return "https://img.youtube.com/vi/$id/mqdefault.jpg"
     }
 

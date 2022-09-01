@@ -7,21 +7,28 @@ import java.net.URL
 
 abstract class Previewable {
 
-    private var thumbnail: Bitmap? = null
+    protected var thumbnail: Bitmap? = null
+    protected var thumbnail_hq: Bitmap? = null
 
-    fun thumbnailLoaded(): Boolean {
-        return thumbnail != null
+    fun thumbnailLoaded(hq: Boolean): Boolean {
+        return (if (hq) thumbnail_hq else thumbnail) != null
     }
 
-    fun loadThumbnail(): Bitmap {
-        if (!thumbnailLoaded()) {
-            thumbnail = BitmapFactory.decodeStream(URL(getThumbUrl()).openConnection().getInputStream())
+    open fun loadThumbnail(hq: Boolean): Bitmap {
+        if (!thumbnailLoaded(hq)) {
+            val thumb = BitmapFactory.decodeStream(URL(getThumbUrl(hq)).openConnection().getInputStream())!!
+            if (hq) {
+                thumbnail_hq = thumb
+            }
+            else {
+                thumbnail = thumb
+            }
         }
-        return thumbnail!!
+        return (if (hq) thumbnail_hq else thumbnail)!!
     }
 
     @Composable
-    abstract fun getPreview()
+    abstract fun Preview()
     abstract fun getId(): String
-    abstract fun getThumbUrl(): String
+    abstract fun getThumbUrl(hq: Boolean): String
 }

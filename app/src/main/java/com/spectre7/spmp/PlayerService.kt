@@ -261,12 +261,12 @@ class PlayerHost(private var context: Context) {
                         override fun getCurrentLargeIcon(player: Player, callback: PlayerNotificationManager.BitmapCallback): Bitmap? {
                             try {
                                 val song = player.getMediaItemAt(player.currentMediaItemIndex).localConfiguration!!.tag as Song
-                                if (song.thumbnailLoaded()) {
-                                    return song.loadThumbnail()
+                                if (song.thumbnailLoaded(false)) {
+                                    return song.loadThumbnail(false)
                                 }
 
                                 thread {
-                                    callback.onBitmap(song.loadThumbnail())
+                                    callback.onBitmap(song.loadThumbnail(false))
                                 }
 
                                 return null                            }

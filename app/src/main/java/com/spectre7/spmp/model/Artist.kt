@@ -20,6 +20,7 @@ data class Artist (
     val nativeData: ArtistData,
     val creationDate: Date,
     val thumbnail_url: String,
+    val thumbnail_hq_url: String,
 
     val viewCount: String,
     val subscriberCount: String,
@@ -36,12 +37,12 @@ data class Artist (
         return id
     }
 
-    override fun getThumbUrl(): String {
-        return thumbnail_url
+    override fun getThumbUrl(hq: Boolean): String {
+        return if (hq) thumbnail_hq_url else thumbnail_url
     }
 
     @Composable
-    override fun getPreview() {
+    override fun Preview() {
         return ArtistPreview(this)
     }
 

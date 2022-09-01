@@ -172,6 +172,7 @@ class DataApi {
             val ret = Artist(channelId, ArtistData(channel.snippet.defaultLanguage, channel.snippet.title, channel.snippet.description),
                 Date.from(Instant.parse(channel.snippet.publishedAt)),
                 channel.snippet.thumbnails.default.url,
+                channel.snippet.thumbnails.high.url,
                 channel.statistics.viewCount,
                 channel.statistics.subscriberCount,
                 channel.statistics.hiddenSubscriberCount,

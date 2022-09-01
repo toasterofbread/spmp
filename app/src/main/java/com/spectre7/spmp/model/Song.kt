@@ -1,10 +1,14 @@
 package com.spectre7.spmp.model
 
 import android.graphics.Bitmap
+import android.graphics.BitmapFactory
+import android.util.Log
 import androidx.compose.runtime.Composable
 import com.spectre7.spmp.api.DataApi
 import com.spectre7.spmp.ui.components.SongPreview
+import java.io.FileNotFoundException
 import java.lang.RuntimeException
+import java.net.URL
 import java.time.Duration
 import java.util.Date
 
@@ -43,8 +47,38 @@ data class Song (
         }
     }
 
-    override fun getThumbUrl(): String {
-        return "https://img.youtube.com/vi/$id/mqdefault.jpg"
+    override fun getThumbUrl(hq: Boolean): String {
+        return "https://img.youtube.com/vi/$id/${if (hq) "hqdefault" else "mqdefault"}.jpg"
+    }
+
+    override fun loadThumbnail(hq: Boolean): Bitmap {
+        if (!thumbnailLoaded(hq)) {
+            var thumb: Bitmap
+
+            if (hq) {
+                try {
+                    thumb = BitmapFactory.decodeStream(URL("https://img.youtube.com/vi/$id/maxresdefault.jpg").openConnection().getInputStream())!!
+                }
+                catch (e: FileNotFoundException) {
+                    thumb = BitmapFactory.decodeStream(URL(getThumbUrl(hq)).openConnection().getInputStream())!!
+
+                    // Crop thumbnail to 16:9
+                    val height = (thumb.width * (9f/16f)).toInt()
+                    thumb = Bitmap.createBitmap(thumb, 0, (thumb.height - height) / 2, thumb.width, height)
+                }
+            }
+            else {
+                thumb = BitmapFactory.decodeStream(URL(getThumbUrl(hq)).openConnection().getInputStream())!!
+            }
+
+            if (hq) {
+                thumbnail_hq = thumb
+            }
+            else {
+                thumbnail = thumb
+            }
+        }
+        return (if (hq) thumbnail_hq else thumbnail)!!
     }
 
     override fun getId(): String {
@@ -52,7 +86,7 @@ data class Song (
     }
 
     @Composable
-    override fun getPreview() {
+    override fun Preview() {
         return SongPreview(this)
     }
 }

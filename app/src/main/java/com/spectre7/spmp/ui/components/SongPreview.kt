@@ -33,7 +33,7 @@ fun SongPreview (song: Song, showArtist: Boolean = true) {
     ) {
 
         Image(
-            painter = rememberAsyncImagePainter(song.getThumbUrl()),
+            painter = rememberAsyncImagePainter(song.getThumbUrl(false)),
             contentDescription = null,
             contentScale = ContentScale.Crop,
             modifier = Modifier.size(40.dp).clip(RoundedCornerShape(20))

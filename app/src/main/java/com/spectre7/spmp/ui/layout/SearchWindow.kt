@@ -124,9 +124,9 @@ fun SearchPage() {
     @Composable
     fun SearchResultList(type: ResourceType, items: SnapshotStateList<Previewable>) {
         performSearch(type)
-        LazyColumn(Modifier.fillMaxWidth()) {
+        LazyColumn(Modifier.fillMaxSize()) {
             itemsIndexed(items = items, key = { _, item -> item.getId() }) { _, item ->
-                item.getPreview()
+                item.Preview()
             }
         }
     }
@@ -148,7 +148,7 @@ fun SearchPage() {
 
         Column(
             Modifier
-                .fillMaxSize(1.0f)
+                .fillMaxSize()
                 .padding(0.dp, 60.dp)) {
             TabRow(selectedTabIndex = tab_index, Modifier.fillMaxWidth()) {
                 result_tabs.keys.forEachIndexed { i, type ->

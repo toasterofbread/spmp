@@ -20,7 +20,7 @@ data class SongData (
 
 data class Song (
     private val id: String,
-    val nativeData: SongData? = null,
+    private val nativeData: SongData? = null,
     val artist: Artist,
     val uploadDate: Date? = null,
 
@@ -34,8 +34,41 @@ data class Song (
         }
     }
 
-    fun getDefaultLanguage(): String? {
-        return nativeData?.locale
+    // TODO add config
+    fun getTitle(): String {
+        var ret = nativeData!!.title
+
+//        if ("title_replacements" in api._config && ret in api._config.title_replacements) {
+//            return api._config.title_replacements[ret].trim();
+//        }
+
+        for (pair in listOf("[]", "{}")) {
+            while (true) {
+                val a = ret.indexOf(pair[0]);
+                if (a < 0) {
+                    break;
+                }
+
+                val b = ret.indexOf(pair[1]);
+                if (b < 0) {
+                    break;
+                }
+
+                val temp = ret;
+                ret = temp.slice(0 until a - 1) + temp.slice(b + 1 until temp.length);
+            }
+        }
+
+        for ((key, value) in mapOf("-" to "", "  " to "", artist.nativeData.name to "", "MV" to "")) {
+            if (key.isEmpty()) {
+                continue
+            }
+            while (ret.contains(key)) {
+                ret = ret.replace(key, value);
+            }
+        }
+
+        return ret.trim()
     }
 
     fun getDownloadUrl(callback: (url: String) -> Unit) {
@@ -86,7 +119,7 @@ data class Song (
     }
 
     @Composable
-    override fun Preview() {
-        return SongPreview(this)
+    override fun Preview(large: Boolean) {
+        return SongPreview(this, large)
     }
 }

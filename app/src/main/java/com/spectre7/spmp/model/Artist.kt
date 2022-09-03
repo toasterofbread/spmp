@@ -42,8 +42,8 @@ data class Artist (
     }
 
     @Composable
-    override fun Preview() {
-        return ArtistPreview(this)
+    override fun Preview(large: Boolean) {
+        return ArtistPreview(this, large)
     }
 
     fun getFormattedSubscriberCount(): String {

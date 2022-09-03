@@ -23,7 +23,7 @@ import com.spectre7.spmp.model.Song
 import kotlin.concurrent.thread
 
 fun sendToast(text: String) {
-    Toast.makeText(MainActivity.instance!!, text, Toast.LENGTH_SHORT).show()
+    Toast.makeText(MainActivity.context, text, Toast.LENGTH_SHORT).show()
 }
 
 class PlayerHost(private var context: Context) {
@@ -121,9 +121,9 @@ class PlayerHost(private var context: Context) {
 
         override fun onCreate() {
             super.onCreate()
-            player = ExoPlayer.Builder(MainActivity.instance!!.baseContext).build()
+            player = ExoPlayer.Builder(MainActivity.context).build()
             player.prepare()
-            media_session = MediaSessionCompat(MainActivity.instance!!, "spmp")
+            media_session = MediaSessionCompat(MainActivity.context, "spmp")
             media_session_connector = MediaSessionConnector(media_session!!)
             media_session_connector!!.setPlayer(player)
         }
@@ -224,16 +224,16 @@ class PlayerHost(private var context: Context) {
         private fun addNotificationToPlayer() {
             if (playerNotificationManager == null) {
                 playerNotificationManager = PlayerNotificationManager.Builder(
-                    MainActivity.instance!!.baseContext,
+                    MainActivity.context,
                     NOTIFICATION_ID,
                     getNotificationChannel(),
                     object : PlayerNotificationManager.MediaDescriptionAdapter {
 
                         override fun createCurrentContentIntent(player: Player): PendingIntent? {
                             return PendingIntent.getActivity(
-                                MainActivity.instance!!,
+                                MainActivity.context,
                                 1,
-                                Intent(MainActivity.instance!!, MainActivity::class.java),
+                                Intent(MainActivity.context, MainActivity::class.java),
                                 PendingIntent.FLAG_IMMUTABLE
                             )
                         }
@@ -251,7 +251,7 @@ class PlayerHost(private var context: Context) {
                         override fun getCurrentContentTitle(player: Player): String {
                             try {
                                 val song = player.getMediaItemAt(player.currentMediaItemIndex).localConfiguration!!.tag as Song
-                                return song.nativeData?.title ?: "Unknown"
+                                return song.getTitle()
                             }
                             catch (e: IndexOutOfBoundsException) {
                                 return "Unknown"
@@ -321,7 +321,7 @@ class PlayerHost(private var context: Context) {
                             action: String,
                             intent: Intent
                         ) {
-                            sendToast(action)
+//                            sendToast(action)
                         }
 
                     }

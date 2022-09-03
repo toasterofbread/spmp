@@ -31,11 +31,12 @@ import androidx.core.graphics.ColorUtils
 import androidx.palette.graphics.Palette
 import com.spectre7.spmp.MainActivity
 import com.spectre7.spmp.model.Song
+import com.spectre7.spmp.sendToast
 import java.lang.RuntimeException
 import kotlin.concurrent.thread
 
 fun getImage(id: Int): ImageBitmap {
-    return BitmapFactory.decodeResource(MainActivity.instance!!.resources, id).asImageBitmap()
+    return BitmapFactory.decodeResource(MainActivity.resources, id).asImageBitmap()
 }
 
 fun getPaletteColour(palette: Palette, type: Int): Color? {
@@ -59,6 +60,10 @@ fun getPaletteColour(palette: Palette, type: Int): Color? {
     return ret
 }
 
+fun isColorDark(colour: Color): Boolean {
+ return ColorUtils.calculateLuminance(colour.toArgb()) < 0.5;
+}
+
 val default_image = getImage(R.drawable.ic_menu_gallery)
 
 @Composable
@@ -68,7 +73,7 @@ fun NowPlaying(expanded: Boolean, p_song: Song?, p_playing: Boolean, p_position:
         if (p_song == null) {
             return "-----"
         }
-        return p_song.nativeData!!.title
+        return p_song.getTitle()
     }
 
     fun getSongArtist(): String {
@@ -78,10 +83,15 @@ fun NowPlaying(expanded: Boolean, p_song: Song?, p_playing: Boolean, p_position:
         return p_song.artist.nativeData.name
     }
 
-    val default_colour = MaterialTheme.colorScheme.secondaryContainer
+    val default_bg_colour = MaterialTheme.colorScheme.secondaryContainer
+    val default_on_bg_colour = MaterialTheme.colorScheme.onSecondaryContainer
+
     var thumbnail by remember { mutableStateOf(default_image) }
     var theme_palette by remember { mutableStateOf<Palette?>(null) }
     var palette_index by remember { mutableStateOf(2) }
+
+    var bg_colour: Color by remember { mutableStateOf(default_bg_colour) }
+    var on_bg_colour: Color by remember { mutableStateOf(default_on_bg_colour) }
 
     fun setThumbnail(thumb: ImageBitmap?) {
         if (thumb == null) {
@@ -112,11 +122,21 @@ fun NowPlaying(expanded: Boolean, p_song: Song?, p_playing: Boolean, p_position:
 
     LaunchedEffect(key1 = theme_palette, key2 = palette_index) {
         if (theme_palette == null) {
-            theme_colour.animateTo(default_colour)
+            bg_colour = default_bg_colour
+            on_bg_colour = default_on_bg_colour
         }
         else {
-            theme_colour.animateTo(getPaletteColour(theme_palette!!, palette_index) ?: default_colour)
+            val colour = getPaletteColour(theme_palette!!, palette_index)
+            if (colour == null) {
+                bg_colour = default_bg_colour
+                on_bg_colour = default_on_bg_colour
+            }
+            else {
+                bg_colour = colour
+                on_bg_colour = if (isColorDark(bg_colour)) Color.White else Color.Black // TODO
+            }
         }
+        theme_colour.animateTo(bg_colour)
     }
 
     LinearProgressIndicator(progress = p_position, modifier = Modifier
@@ -182,7 +202,7 @@ fun NowPlaying(expanded: Boolean, p_song: Song?, p_playing: Boolean, p_position:
                         )
 
                         IconButton(onClick = {
-                            MainActivity.instance!!.player.interact {
+                            MainActivity.player.interact {
                                 it.playPause()
                             }
                         }, modifier = Modifier.align(Alignment.CenterVertically)) {
@@ -202,6 +222,7 @@ fun NowPlaying(expanded: Boolean, p_song: Song?, p_playing: Boolean, p_position:
                     // Title text
                     Text(getSongTitle(),
                         fontSize = 17.sp,
+                        color = on_bg_colour,
                         textAlign = TextAlign.Center,
                         maxLines = 1,
                         overflow = TextOverflow.Ellipsis,
@@ -212,6 +233,7 @@ fun NowPlaying(expanded: Boolean, p_song: Song?, p_playing: Boolean, p_position:
                     // Artist text
                     Text(getSongArtist(),
                         fontSize = 12.sp,
+                        color = on_bg_colour,
                         textAlign = TextAlign.Center,
                         maxLines = 1,
                         overflow = TextOverflow.Ellipsis,
@@ -236,16 +258,20 @@ fun NowPlaying(expanded: Boolean, p_song: Song?, p_playing: Boolean, p_position:
                         onValueChangeFinished = {
                             slider_moving = false
                             old_p_position = p_position
-                            MainActivity.instance!!.player.interact {
+                            MainActivity.player.interact {
                                 it.player.seekTo((it.player.duration * slider_value).toLong())
                             }
                         }
                     )
 
-                    Row(horizontalArrangement = Arrangement.SpaceEvenly, modifier = Modifier.fillMaxWidth()) {
+                    Row(
+                        horizontalArrangement = Arrangement.SpaceEvenly,
+                        modifier = Modifier.fillMaxWidth(),
+                    ) {
 
                         val button_size = 75.dp
                         val button_ripple = rememberRipple(radius = 35.dp)
+                        val colour_filter = ColorFilter.tint(on_bg_colour)
 
                         // Previous
                         Image(
@@ -253,10 +279,11 @@ fun NowPlaying(expanded: Boolean, p_song: Song?, p_playing: Boolean, p_position:
                             Modifier
                                 .requiredSize(button_size)
                                 .clickable(
-                                    onClick = { MainActivity.instance!!.player.interact { it.player.seekToPreviousMediaItem() } },
+                                    onClick = { MainActivity.player.interact { it.player.seekToPreviousMediaItem() } },
                                     indication = button_ripple,
                                     interactionSource = remember { MutableInteractionSource() }
-                                )
+                                ),
+                            colorFilter = colour_filter
                         )
 
                         // Pause / play
@@ -265,10 +292,11 @@ fun NowPlaying(expanded: Boolean, p_song: Song?, p_playing: Boolean, p_position:
                             Modifier
                                 .requiredSize(button_size)
                                 .clickable(
-                                    onClick = { MainActivity.instance!!.player.interact { it.playPause() }; },
+                                    onClick = { MainActivity.player.interact { it.playPause() }; },
                                     indication = button_ripple,
                                     interactionSource = remember { MutableInteractionSource() }
-                                )
+                                ),
+                            colorFilter = colour_filter
                         )
 
                         // Next
@@ -277,10 +305,11 @@ fun NowPlaying(expanded: Boolean, p_song: Song?, p_playing: Boolean, p_position:
                             Modifier
                                 .requiredSize(button_size)
                                 .clickable(
-                                    onClick = { MainActivity.instance!!.player.interact { it.player.seekToNextMediaItem() } },
+                                    onClick = { MainActivity.player.interact { it.player.seekToNextMediaItem() } },
                                     indication = button_ripple,
                                     interactionSource = remember { MutableInteractionSource() }
-                                )
+                                ),
+                            colorFilter = colour_filter
                         )
                     }
                 }

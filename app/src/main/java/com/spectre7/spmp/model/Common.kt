@@ -28,7 +28,7 @@ abstract class Previewable {
     }
 
     @Composable
-    abstract fun Preview()
+    abstract fun Preview(large: Boolean)
     abstract fun getId(): String
     abstract fun getThumbUrl(hq: Boolean): String
 }

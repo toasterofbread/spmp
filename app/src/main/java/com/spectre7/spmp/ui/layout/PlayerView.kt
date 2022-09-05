@@ -35,6 +35,7 @@ import androidx.compose.ui.unit.sp
 import androidx.compose.ui.zIndex
 import com.google.android.exoplayer2.MediaItem
 import com.google.android.exoplayer2.Player
+import com.google.android.exoplayer2.Tracks
 import com.spectre7.spmp.MainActivity
 import com.spectre7.spmp.api.DataApi
 import com.spectre7.spmp.model.Song
@@ -64,6 +65,8 @@ class PlayerStatus {
     var position: Float by mutableStateOf(0.0f)
     var shuffle: Boolean by mutableStateOf(false)
     var repeat_mode: Int by mutableStateOf(Player.REPEAT_MODE_OFF)
+    var has_next: Boolean by mutableStateOf(false)
+    var has_previous: Boolean by mutableStateOf(false)
 }
 
 @OptIn(ExperimentalMaterialApi::class, ExperimentalMaterial3Api::class)
@@ -205,19 +208,21 @@ fun PlayerView() {
 
         val p_status by remember { mutableStateOf(PlayerStatus()) }
 
-//        val col = MaterialTheme.colorScheme.secondaryContainer
-//        val theme_colour = remember { Animatable(col) }
-
-        MainActivity.player.interact {
-            p_status.playing = it.player.isPlaying
-            p_status.position = it.player.currentPosition.toFloat() / it.player.duration.toFloat()
-            p_status.song = it.player.currentMediaItem?.localConfiguration?.tag as Song?
-            p_status.shuffle = it.player.shuffleModeEnabled
-            p_status.repeat_mode = it.player.repeatMode
+        LaunchedEffect(Unit) {
+            MainActivity.player.interact {
+                p_status.playing = it.player.isPlaying
+                p_status.position = it.player.currentPosition.toFloat() / it.player.duration.toFloat()
+                p_status.song = it.player.currentMediaItem?.localConfiguration?.tag as Song?
+                p_status.shuffle = it.player.shuffleModeEnabled
+                p_status.repeat_mode = it.player.repeatMode
+                p_status.has_next = it.player.hasNextMediaItem()
+                p_status.has_previous = it.player.hasPreviousMediaItem()
+            }
         }
 
         val listener = remember {
             object : Player.Listener {
+
                 override fun onMediaItemTransition(
                     media_item: MediaItem?,
                     reason: Int
@@ -236,6 +241,12 @@ fun PlayerView() {
                 override fun onRepeatModeChanged(repeat_mode: Int) {
                     p_status.repeat_mode = repeat_mode
                 }
+
+                override fun onEvents(player: Player, events: Player.Events) {
+                    p_status.has_previous = player.hasPreviousMediaItem()
+                    p_status.has_next = player.hasNextMediaItem()
+                }
+
             }
         }
 

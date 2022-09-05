@@ -20,26 +20,13 @@
       "filters": [
         {
           "filterType": "ABI",
-          "value": "arm64-v8a"
+          "value": "x86"
         }
       ],
       "attributes": [],
       "versionCode": 1,
       "versionName": "1.0",
-      "outputFile": "app-arm64-v8a-release.apk"
-    },
-    {
-      "type": "ONE_OF_MANY",
-      "filters": [
-        {
-          "filterType": "ABI",
-          "value": "armeabi-v7a"
-        }
-      ],
-      "attributes": [],
-      "versionCode": 1,
-      "versionName": "1.0",
-      "outputFile": "app-armeabi-v7a-release.apk"
+      "outputFile": "app-x86-release.apk"
     },
     {
       "type": "ONE_OF_MANY",
@@ -59,13 +46,26 @@
       "filters": [
         {
           "filterType": "ABI",
-          "value": "x86"
+          "value": "armeabi-v7a"
         }
       ],
       "attributes": [],
       "versionCode": 1,
       "versionName": "1.0",
-      "outputFile": "app-x86-release.apk"
+      "outputFile": "app-armeabi-v7a-release.apk"
+    },
+    {
+      "type": "ONE_OF_MANY",
+      "filters": [
+        {
+          "filterType": "ABI",
+          "value": "arm64-v8a"
+        }
+      ],
+      "attributes": [],
+      "versionCode": 1,
+      "versionName": "1.0",
+      "outputFile": "app-arm64-v8a-release.apk"
     }
   ],
   "elementType": "File"

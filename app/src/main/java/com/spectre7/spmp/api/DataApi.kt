@@ -9,6 +9,7 @@ import com.spectre7.spmp.model.ArtistData
 import com.spectre7.spmp.model.Song
 import com.spectre7.spmp.model.SongData
 import com.spectre7.spmp.ui.layout.ResourceType
+import com.spectre7.ytmusicapi.Api
 import okhttp3.*
 import okhttp3.MediaType.Companion.toMediaType
 import okhttp3.RequestBody.Companion.toRequestBody
@@ -161,8 +162,6 @@ class DataApi {
             request.addParam("part", "contentDetails,snippet,localizations,statistics")
             request.addParam("id", channelId)
 
-            Log.d("", request.getRequestURL())
-
             val res = request.getResult()
 
             val channel = klaxon.parse<ChannelInfoResponse>(res)?.getChannel()
@@ -269,14 +268,31 @@ class DataApi {
                 for (format in response.streamingData!!.adaptiveFormats) {
                     if (format.itag == 140) {
                         MainActivity.runInMainThread {
+                            Log.d("VIDEOURL", format.url)
                             callback(format.url)
                         }
                         break
                     }
                 }
-
             }
         }
+
+        fun getSongEquivalent(song: Song): String? {
+            return MainActivity.youtube.getSongEquivalent(song)
+        }
+
+        fun getArtistEquivalent(artist: Artist): String? {
+            return MainActivity.youtube.getArtistEquivalent(artist)
+        }
+
+        class GetSongLyricsResult() {
+
+        }
+
+        fun getSongLyrics(song: Song, callback: (Song.Lyrics?) -> Unit) {
+            return MainActivity.youtube.getSongLyrics(song, callback)
+        }
+
     }
 }
 

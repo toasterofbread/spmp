@@ -40,7 +40,7 @@ android {
         python {
             pip {
                 install "ytmusicapi"
-                install "pytube"
+                install "pykakasi"
             }
         }
 
@@ -120,10 +120,10 @@ dependencies {
     implementation "com.beust:klaxon:5.5"
     implementation "com.google.accompanist:accompanist-pager:0.21.2-beta"
     implementation "com.google.accompanist:accompanist-pager-indicators:0.21.2-beta"
+    implementation "com.google.accompanist:accompanist-systemuicontroller:0.21.2-beta"
     implementation 'com.google.android.exoplayer:exoplayer:2.18.1'
     implementation 'com.google.android.exoplayer:extension-mediasession:2.18.1'
     implementation 'androidx.palette:palette:1.0.0'
     implementation "com.github.krottv:compose-sliders:0.1.4"
-    implementation 'com.github.yausername.youtubedl-android:library:3a0252d'
-    implementation 'com.google.code.gson:gson:2.9.1'
+//    implementation 'com.github.spectreseven1138:android-compose-furigana:1.0.0'
 }

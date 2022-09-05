@@ -4,10 +4,9 @@ import android.app.*
 import android.content.*
 import android.graphics.Bitmap
 import android.os.Binder
-import android.os.Bundle
 import android.os.IBinder
+import android.os.Looper
 import android.support.v4.media.session.MediaSessionCompat
-import android.util.Log
 import android.widget.Toast
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.toArgb
@@ -23,11 +22,17 @@ import com.google.android.exoplayer2.audio.AudioAttributes
 import com.google.android.exoplayer2.ext.mediasession.MediaSessionConnector
 import com.google.android.exoplayer2.ui.PlayerNotificationManager
 import com.spectre7.spmp.model.Song
+import java.lang.NullPointerException
 import kotlin.concurrent.thread
 
-
 fun sendToast(text: String) {
-    Toast.makeText(MainActivity.context, text, Toast.LENGTH_SHORT).show()
+    try {
+        Toast.makeText(MainActivity.context, text, Toast.LENGTH_SHORT).show()
+    }
+    catch (e: NullPointerException) {
+        Looper.prepare()
+        Toast.makeText(MainActivity.context, text, Toast.LENGTH_SHORT).show()
+    }
 }
 
 class PlayerHost(private var context: Context) {

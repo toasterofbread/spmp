@@ -1,12 +1,11 @@
 package com.spectre7.spmp.ui.components
 
+import android.app.Activity
 import android.util.Log
 import android.graphics.drawable.VectorDrawable
 import androidx.compose.animation.*
 import androidx.compose.animation.core.*
-import androidx.compose.foundation.Image
-import androidx.compose.foundation.background
-import androidx.compose.foundation.clickable
+import androidx.compose.foundation.*
 import androidx.compose.foundation.interaction.MutableInteractionSource
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.shape.CircleShape
@@ -18,12 +17,16 @@ import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.alpha
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.draw.clipToBounds
 import androidx.compose.ui.graphics.*
 import androidx.compose.ui.graphics.painter.Painter
 import androidx.compose.ui.graphics.vector.rememberVectorPainter
 import androidx.compose.ui.layout.ContentScale
+import androidx.compose.ui.layout.Layout
+import androidx.compose.ui.layout.layoutId
+import androidx.compose.ui.platform.LocalView
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.text.style.TextOverflow
@@ -33,14 +36,18 @@ import androidx.compose.ui.window.PopupProperties
 import androidx.core.content.res.ResourcesCompat
 import androidx.core.graphics.ColorUtils
 import androidx.core.graphics.drawable.toBitmap
+import androidx.core.view.ViewCompat
 import androidx.palette.graphics.Palette
 import com.github.krottv.compose.sliders.DefaultThumb
 import com.github.krottv.compose.sliders.DefaultTrack
 import com.github.krottv.compose.sliders.SliderValueHorizontal
+import com.google.accompanist.systemuicontroller.rememberSystemUiController
 import com.google.android.exoplayer2.Player
 import com.spectre7.spmp.MainActivity
 import com.spectre7.spmp.R
 import com.spectre7.spmp.ui.layout.PlayerStatus
+import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.launch
 import java.lang.RuntimeException
 import kotlin.concurrent.thread
 
@@ -74,6 +81,7 @@ fun isColorDark(colour: Color): Boolean {
 }
 
 enum class ThemeMode { BACKGROUND, ELEMENTS }
+enum class OverlayMenu { NONE, MAIN, PALETTE, LYRICS }
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -94,6 +102,7 @@ fun NowPlaying(expanded: Boolean, p_status: PlayerStatus, background_colour: Ani
     }
 
     val theme_mode = ThemeMode.BACKGROUND
+    val systemui_controller = rememberSystemUiController()
 
     var thumbnail by remember { mutableStateOf<ImageBitmap?>(null) }
     var theme_palette by remember { mutableStateOf<Palette?>(null) }
@@ -146,8 +155,7 @@ fun NowPlaying(expanded: Boolean, p_status: PlayerStatus, background_colour: Ani
             if (colour == null) {
                 background_colour.animateTo(default_background_colour)
                 on_background_colour.animateTo(default_on_background_colour)
-            }
-            else {
+            } else {
 
                 when (theme_mode) {
                     ThemeMode.BACKGROUND -> {
@@ -163,6 +171,12 @@ fun NowPlaying(expanded: Boolean, p_status: PlayerStatus, background_colour: Ani
                 }
             }
         }
+    }
+
+    LaunchedEffect(key1 = expanded, key2 = background_colour.value) {
+        systemui_controller.setSystemBarsColor(
+            color = if (expanded) background_colour.value else default_background_colour
+        )
     }
 
     AnimatedVisibility(
@@ -202,7 +216,8 @@ fun NowPlaying(expanded: Boolean, p_status: PlayerStatus, background_colour: Ani
                 ) {
                     Card(
                         modifier = Modifier
-                            .fillMaxWidth(0.9f).fillMaxHeight(0.85f),
+                            .fillMaxWidth(0.9f)
+                            .fillMaxHeight(0.85f),
                         colors = CardDefaults.cardColors(
                             MaterialTheme.colorScheme.background, MaterialTheme.colorScheme.onBackground
                         )
@@ -224,9 +239,10 @@ fun NowPlaying(expanded: Boolean, p_status: PlayerStatus, background_colour: Ani
 
             Row(verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.SpaceEvenly, modifier = Modifier.fillMaxWidth()) {
 
-                var thumb_menu_visible by remember { mutableStateOf(false) }
+                var overlay_menu by remember { mutableStateOf(OverlayMenu.NONE) }
+
                 LaunchedEffect(expanded) {
-                    thumb_menu_visible = false
+                    overlay_menu = OverlayMenu.NONE
                 }
 
                 Box(Modifier.aspectRatio(1f)) {
@@ -243,8 +259,8 @@ fun NowPlaying(expanded: Boolean, p_status: PlayerStatus, background_colour: Ani
                                         indication = null,
                                         interactionSource = remember { MutableInteractionSource() }
                                     ) {
-                                        if (expanded) {
-                                            thumb_menu_visible = !thumb_menu_visible
+                                        if (expanded && (overlay_menu == OverlayMenu.NONE || overlay_menu == OverlayMenu.MAIN || overlay_menu == OverlayMenu.PALETTE)) {
+                                            overlay_menu = if (overlay_menu == OverlayMenu.NONE) OverlayMenu.MAIN else OverlayMenu.NONE
                                         }
                                     }
                             )
@@ -252,11 +268,67 @@ fun NowPlaying(expanded: Boolean, p_status: PlayerStatus, background_colour: Ani
                     }
 
                     // Thumbnail overlay menu
-                    androidx.compose.animation.AnimatedVisibility(thumb_menu_visible, enter = fadeIn(), exit = fadeOut()) {
-                        Box(Modifier.background(setColourAlpha(Color.DarkGray, 0.85), shape = RoundedCornerShape(5))) {
-                            Column(Modifier.fillMaxSize()) {
-                                PaletteSelector(theme_palette) { index, _ ->
-                                    palette_index = index
+                    androidx.compose.animation.AnimatedVisibility(overlay_menu != OverlayMenu.NONE, enter = fadeIn(), exit = fadeOut()) {
+                        Box(Modifier.background(setColourAlpha(Color.DarkGray, 0.85), shape = RoundedCornerShape(5)).fillMaxSize(), contentAlignment = Alignment.Center) {
+                            Crossfade(overlay_menu) { menu ->
+                                when (menu) {
+                                    OverlayMenu.MAIN ->
+                                        Column(
+                                            Modifier
+                                                .fillMaxSize()
+                                                .padding(20.dp), verticalArrangement = Arrangement.SpaceBetween) {
+                                            p_status.song?.artist?.Preview(false)
+
+                                            Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.SpaceEvenly) {
+
+                                                Box(
+                                                    Modifier
+                                                        .background(
+                                                            background_colour.value,
+                                                            CircleShape
+                                                        )
+                                                        .size(40.dp)
+                                                        .padding(8.dp)
+                                                        .clickable {
+                                                            overlay_menu = OverlayMenu.LYRICS
+                                                        }
+                                                ) {
+                                                    Image(
+                                                        painterResource(R.drawable.ic_music_note), "",
+                                                        colorFilter = ColorFilter.tint(on_background_colour.value)
+                                                    )
+                                                }
+
+                                                Box(
+                                                    Modifier
+                                                        .background(
+                                                            background_colour.value,
+                                                            CircleShape
+                                                        )
+                                                        .size(40.dp)
+                                                        .padding(8.dp)
+                                                        .clickable {
+                                                            overlay_menu = OverlayMenu.PALETTE
+                                                        }
+                                                ) {
+                                                    Image(
+                                                        painterResource(R.drawable.ic_palette), "",
+                                                        colorFilter = ColorFilter.tint(on_background_colour.value)
+                                                    )
+                                                }
+
+                                            }
+                                        }
+                                    OverlayMenu.PALETTE ->
+                                        PaletteSelector(theme_palette) { index, _ ->
+                                            palette_index = index
+                                            overlay_menu = OverlayMenu.NONE
+                                        }
+                                    OverlayMenu.LYRICS ->
+                                        if (p_status.song != null) {
+                                            LyricsDisplay(p_status.song!!, { overlay_menu = OverlayMenu.NONE })
+                                        }
+                                    OverlayMenu.NONE -> {}
                                 }
                             }
                         }
@@ -265,6 +337,7 @@ fun NowPlaying(expanded: Boolean, p_status: PlayerStatus, background_colour: Ani
                 }
 
                 AnimatedVisibility(visible = !expanded, enter = slideInHorizontally { -500 }, exit = ExitTransition.None) {
+
                     Row(horizontalArrangement = Arrangement.SpaceEvenly, modifier = Modifier.fillMaxWidth()) {
                         Text(
                             getSongTitle(),
@@ -296,33 +369,35 @@ fun NowPlaying(expanded: Boolean, p_status: PlayerStatus, background_colour: Ani
                 val button_size = 60.dp
 
                 @Composable
-                fun PlayerButton(painter: Painter, size: Dp = button_size, alpha: Float = 1f, c_filter: ColorFilter = colour_filter, label: String? = null, on_click: () -> Unit) {
+                fun PlayerButton(painter: Painter, size: Dp = button_size, alpha: Float = 1f, colour: Color = on_background_colour.value, label: String? = null, enabled: Boolean = true, on_click: () -> Unit) {
                     Box(
                         contentAlignment = Alignment.Center,
-                        modifier = Modifier.clickable(
-                            onClick = on_click,
-                            indication = rememberRipple(radius = 25.dp, bounded = false),
-                            interactionSource = remember { MutableInteractionSource() }
-                        )
+                        modifier = Modifier
+                            .clickable(
+                                onClick = on_click,
+                                indication = rememberRipple(radius = 25.dp, bounded = false),
+                                interactionSource = remember { MutableInteractionSource() },
+                                enabled = enabled
+                            )
+                            .alpha(if (enabled) 1.0f else 0.5f)
                     ) {
                         Image(
                             painter, "",
                             Modifier
                                 .requiredSize(size, button_size)
                                 .offset(y = if (label != null) (-7).dp else 0.dp),
-                            colorFilter = c_filter,
+                            colorFilter = ColorFilter.tint(colour),
                             alpha = alpha
                         )
-
                         if (label != null) {
-                            Text(label, color = on_background_colour.value, fontSize = 10.sp, modifier = Modifier.offset(y = (10).dp))
+                            Text(label, color = colour, fontSize = 10.sp, modifier = Modifier.offset(y = (10).dp))
                         }
                     }
                 }
 
                 @Composable
-                fun PlayerButton(image_id: Int, size: Dp = button_size, alpha: Float = 1f, c_filter: ColorFilter = colour_filter, label: String? = null, on_click: () -> Unit) {
-                    PlayerButton(painterResource(image_id), size, alpha, c_filter, label, on_click)
+                fun PlayerButton(image_id: Int, size: Dp = button_size, alpha: Float = 1f, colour: Color = on_background_colour.value, label: String? = null, enabled: Boolean = true, on_click: () -> Unit) {
+                    PlayerButton(painterResource(image_id), size, alpha, colour, label, enabled, on_click)
                 }
 
                 Column(verticalArrangement = Arrangement.spacedBy(35.dp)) {
@@ -392,15 +467,15 @@ fun NowPlaying(expanded: Boolean, p_status: PlayerStatus, background_colour: Ani
 
                         Spacer(Modifier.requiredWidth(utility_separation))
 
-                        PlayerButton(R.drawable.ic_skip_previous) {
+                        PlayerButton(R.drawable.ic_skip_previous, enabled = p_status.has_previous) {
                             MainActivity.player.interact { it.player.seekToPreviousMediaItem() }
                         }
 
-                        PlayerButton(if (p_status.playing) R.drawable.ic_pause else R.drawable.ic_play_arrow) {
+                        PlayerButton(if (p_status.playing) R.drawable.ic_pause else R.drawable.ic_play_arrow, enabled = p_status.song != null) {
                             MainActivity.player.interact { it.playPause() }
                         }
 
-                        PlayerButton(R.drawable.ic_skip_next) {
+                        PlayerButton(R.drawable.ic_skip_next, enabled = p_status.has_next) {
                             MainActivity.player.interact { it.player.seekToNextMediaItem() }
                         }
 
@@ -423,27 +498,42 @@ fun NowPlaying(expanded: Boolean, p_status: PlayerStatus, background_colour: Ani
                     }
 
                     Spacer(Modifier.weight(1f))
-                    val spacing = 55.dp
 
-                    Row(
-                        Modifier
-//                            .background(MaterialTheme.colorScheme.background, CircleShape)
-                            .requiredHeight(button_size * 0.8f)
-                            .padding(start = spacing, end = spacing)
-                            .align(Alignment.CenterHorizontally),
-                        horizontalArrangement = Arrangement.spacedBy(spacing)
-                    ) {
-                        PlayerButton(rememberVectorPainter(Icons.Filled.Edit), button_size * 0.4f, c_filter = ColorFilter.tint(on_background_colour.value), label = "Edit") {
+                    var selected by remember { mutableStateOf(1) }
+                    MultiSelector(
+                        3,
+                        selected,
+                        Modifier.requiredHeight(button_size * 0.8f),
+                        Modifier.aspectRatio(1f),
+                        colour = setColourAlpha(on_background_colour.value, 0.75),
+                        background_colour = background_colour.value,
+                        on_selected = { selected = it }
+                    ) { index ->
+                        Box(
+                            contentAlignment = Alignment.Center
+                        ) {
 
-                        }
-                        PlayerButton(rememberVectorPainter(Icons.Filled.Menu), button_size * 0.4f, c_filter = ColorFilter.tint(on_background_colour.value), label = "Lyrics") {
-                            menu_visible.targetState = !menu_visible.targetState
-                        }
-                        PlayerButton(rememberVectorPainter(Icons.Filled.Email), button_size * 0.4f, c_filter = ColorFilter.tint(on_background_colour.value), label = "Label") {
+                            val colour = if (index == selected) background_colour.value else on_background_colour.value
 
+                            Image(
+                                when(index) {
+                                    0 -> rememberVectorPainter(Icons.Filled.Menu)
+                                    1 -> rememberVectorPainter(Icons.Filled.PlayArrow)
+                                    else -> painterResource(R.drawable.ic_music_queue)
+                                }, "",
+                                Modifier
+                                    .requiredSize(button_size * 0.4f, button_size)
+                                    .offset(y = (-7).dp),
+                                colorFilter = ColorFilter.tint(colour)
+                            )
+                            Text(when (index) {
+                                0 -> "Salad bar"
+                                1 -> "Player"
+                                else -> "Queue"
+                          }, color = colour, fontSize = 10.sp, modifier = Modifier.offset(y = (10).dp))
                         }
+
                     }
-
 
                 }
             }
@@ -473,6 +563,176 @@ fun PaletteSelector(palette: Palette?, on_selected: (index: Int, colour: Color) 
                         )
                     ) {}
                 }
+            }
+        }
+    }
+}
+
+@Stable
+interface MultiSelectorState {
+    val selectedIndex: Float
+    val startCornerPercent: Int
+    val endCornerPercent: Int
+
+    fun selectOption(scope: CoroutineScope, index: Int)
+}
+
+@Stable
+class MultiSelectorStateImpl(
+    val option_count: Int,
+    selected_option: Int,
+) : MultiSelectorState {
+
+    override val selectedIndex: Float
+        get() = _selectedIndex.value
+    override val startCornerPercent: Int
+        get() = _startCornerPercent.value.toInt()
+    override val endCornerPercent: Int
+        get() = _endCornerPercent.value.toInt()
+
+    private var _selectedIndex = Animatable(selected_option.toFloat())
+    private var _startCornerPercent = Animatable(
+        if (selected_option == 0) {
+            50f
+        } else {
+            15f
+        }
+    )
+    private var _endCornerPercent = Animatable(
+        if (selected_option == option_count - 1) {
+            50f
+        } else {
+            15f
+        }
+    )
+
+    private val animationSpec = tween<Float>(
+        durationMillis = 150,
+        easing = FastOutSlowInEasing,
+    )
+
+    override fun selectOption(scope: CoroutineScope, index: Int) {
+        scope.launch {
+            _selectedIndex.animateTo(
+                targetValue = index.toFloat(),
+                animationSpec = animationSpec,
+            )
+        }
+        scope.launch {
+            _startCornerPercent.animateTo(
+                targetValue = if (index == 0) 50f else 15f,
+                animationSpec = animationSpec,
+            )
+        }
+        scope.launch {
+            _endCornerPercent.animateTo(
+                targetValue = if (index == option_count - 1) 50f else 15f,
+                animationSpec = animationSpec,
+            )
+        }
+    }
+}
+
+// 9
+@Composable
+fun rememberMultiSelectorState(
+    option_count: Int,
+    selected_option: Int,
+) = remember {
+    MultiSelectorStateImpl(
+        option_count,
+        selected_option,
+    )
+}
+
+enum class MultiSelectorOption {
+    Option,
+    Background,
+}
+
+@Composable
+fun MultiSelector(
+    option_count: Int,
+    selected_option: Int,
+    modifier: Modifier = Modifier,
+    selector_modifier: Modifier = Modifier,
+    rounding: Int = 50,
+    colour: Color = Color.Unspecified,
+    background_colour: Color = Color.Unspecified,
+    state: MultiSelectorState = rememberMultiSelectorState(
+        option_count = option_count,
+        selected_option = selected_option,
+    ),
+    on_selected: (Int) -> Unit,
+    get_option: @Composable (Int) -> Unit
+) {
+    require(option_count >= 2) { "This composable requires at least 2 options" }
+
+    LaunchedEffect(key1 = option_count, key2 = selected_option) {
+        state.selectOption(this, selected_option)
+    }
+
+    Layout(
+        modifier = modifier
+            .clip(shape = RoundedCornerShape(percent = rounding))
+            .background(if (background_colour == Color.Unspecified) MaterialTheme.colorScheme.background else background_colour)
+            .border(Dp.Hairline, Color.Black, RoundedCornerShape(percent = rounding)),
+        content = {
+
+            for (i in 0 until option_count) {
+                Box(
+                    modifier = selector_modifier
+                        .layoutId(MultiSelectorOption.Option)
+                        .clickable(
+                            indication = null,
+                            interactionSource = remember { MutableInteractionSource() }
+                        ) { on_selected(i) },
+                    contentAlignment = Alignment.Center,
+                ) {
+                    get_option(i)
+                }
+                Box(
+                    modifier = selector_modifier
+                        .layoutId(MultiSelectorOption.Background)
+                        .clip(
+                            shape = RoundedCornerShape(
+                                rounding
+//                                topStartPercent = state.startCornerPercent,
+//                                bottomStartPercent = state.startCornerPercent,
+//                                topEndPercent = state.endCornerPercent,
+//                                bottomEndPercent = state.endCornerPercent,
+                            )
+                        )
+                        .background(if (colour == Color.Unspecified) MaterialTheme.colorScheme.primary else colour)
+                )
+            }
+        }
+    ) { measurables, constraints ->
+        val optionWidth = constraints.maxWidth / option_count
+        val optionConstraints = Constraints.fixed(
+            width = optionWidth,
+            height = constraints.maxHeight,
+        )
+        val optionPlaceables = measurables
+            .filter { measurable -> measurable.layoutId == MultiSelectorOption.Option }
+            .map { measurable -> measurable.measure(optionConstraints) }
+        val backgroundPlaceable = measurables
+            .first { measurable -> measurable.layoutId == MultiSelectorOption.Background }
+            .measure(optionConstraints)
+        layout(
+            width = constraints.maxWidth,
+            height = constraints.maxHeight,
+        ) {
+            // 4
+            backgroundPlaceable.placeRelative(
+                x = (state.selectedIndex * optionWidth).toInt(),
+                y = 0,
+            )
+            optionPlaceables.forEachIndexed { index, placeable ->
+                placeable.placeRelative(
+                    x = optionWidth * index,
+                    y = 0,
+                )
             }
         }
     }

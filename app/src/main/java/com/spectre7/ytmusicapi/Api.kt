@@ -1,11 +1,13 @@
 package com.spectre7.ytmusicapi
 
+import android.util.Log
 import com.beust.klaxon.Klaxon
+import com.chaquo.python.PyException
 import com.chaquo.python.PyObject
 import com.chaquo.python.Python
 import com.spectre7.spmp.model.Artist
 import com.spectre7.spmp.model.Song
-import com.spectre7.spmp.ui.layout.ResourceType
+import kotlin.concurrent.thread
 
 class Api {
 
@@ -23,66 +25,52 @@ class Api {
             return json.callAttr("dumps", obj).toString()
         }
 
-        class SearchResult(
-            val resultType: String,
-            val videoId: String = "",
-            val browseId: String = ""
-        )
+        fun getSongEquivalent(song: Song): String? {
+            val lyrics = api.callAttr("get_watch_playlist", song.getId(), null, 1).callAttr("get", "lyrics")
+            if (lyrics != null) {
+                return lyrics.toString()
+            }
 
-        class SearchResultContainer {
-            val songs = mutableListOf<String>()
-            val videos = mutableListOf<String>()
-            val artists = mutableListOf<String>()
-            val albums = mutableListOf<String>()
-            val playlists = mutableListOf<String>()
+            val results = api.callAttr("search", song.getTitle(), "songs").asList()
+            for (video in results) {
+                Log.d("CANDIDATE", video.callAttr("get", "title").toString())
+                for (artist in video.callAttr("get", "artists").asList()) {
+
+                    Log.d("A", artist.callAttr("get", "id").toString())
+                    Log.d("B", song.artist.getEquivalent().toString())
+
+                    if (artist.callAttr("get", "id").toString() == song.artist.getEquivalent()) {
+                        val id = video.callAttr("get", "videoId").toString()
+
+                        Log.d("ID", id)
+
+                        val playlist = api.callAttr("get_watch_playlist", id, null, 1)
+
+                        Log.d("PLAYLIST", playlist.toString())
+
+                        return playlist.callAttr("get", "lyrics").toString()
+                    }
+                }
+            }
+            return null
         }
 
-//        fun search(query: String, type: ResourceType, scope: String? = null, limit: Int = 10, ignore_spelling: Boolean = false): SearchResultContainer {
-//            val results = klaxon.parseArray<SearchResult>(pyToJson(api.callAttr("search", query,
-//                when (type) {
-//                    ResourceType.SONG -> "songs"
-//                    ResourceType.VIDEO -> "videos"
-//                    ResourceType.ARTIST -> "artists"
-//                    ResourceType.ALBUM -> "albums"
-//                    ResourceType.PLAYLIST -> "playlists"
-//                }, scope, limit, ignore_spelling)))!!
-//
-//            val ret = SearchResultContainer()
-//
-//            for (result in results) {
-//                when (result.resultType) {
-//                    "song" -> ret.songs.add(result.videoId)
-//                    "video" -> ret.videos.add(result.videoId)
-//                    "artist" -> ret.artists.add(result.browseId)
-//                    "album" -> ret.albums.add(result.browseId)
-//                    "playlist" -> ret.playlists.add(result.browseId)
-//                }
-//            }
-//
-//            return ret
-//        }
-
-        data class ArtistSongList(val tracks: List<ArtistSongInfo>) {
-            data class ArtistSongInfo(val videoId: String, val duration: String, val isAvailable: Boolean, val artists: List<ArtistInfo>)
-            data class ArtistInfo(val id: String)
+        fun getArtistEquivalent(artist: Artist): String? {
+            val results = api.callAttr("search", artist.nativeData.name, "artists", null, 1, true).asList()
+            return results.first().callAttr("get", "browseId").toString()
         }
 
-        data class SongInfo(val playabilityStatus: PlayabilityStatus) {
-            data class PlayabilityStatus(val status: String)
-
-            fun isPlayable(): Boolean {
-                return playabilityStatus.status != "ERROR" && playabilityStatus.status != "UNPLAYABLE"
+        fun getSongLyrics(song: Song, callback: (Song.Lyrics?) -> Unit) {
+            thread {
+                try {
+                    val result = api.callAttr("get_lyrics", song.getEquivalent())
+                    callback(Song.Lyrics(result.callAttr("get", "lyrics").toString(), result.callAttr("get", "source").toString()))
+                }
+                catch (e: PyException) {
+                    callback(null)
+                }
             }
         }
 
-        fun getSong(video_id: String, signature_timestamp: Int? = null): SongInfo {
-            return Klaxon().parse<SongInfo>(pyToJson(api.callAttr("get_song", video_id, signature_timestamp)))!!
-        }
-
-        fun isSongAvailable(video_id: String): Boolean {
-            return getSong(video_id).isPlayable()
-        }
-
     }
-
 }

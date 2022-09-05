@@ -27,6 +27,16 @@ data class Artist (
     val hiddenSubscriberCount: Boolean,
     val videoCount: String
 ): Previewable() {
+
+    var equivalentId: String? = null
+
+    fun getEquivalent(): String? {
+        if (equivalentId == null) {
+            equivalentId = DataApi.getArtistEquivalent(this)
+        }
+        return equivalentId
+    }
+
     companion object {
         fun fromId(channel_id: String): Artist {
             return DataApi.getArtist(channel_id)!!

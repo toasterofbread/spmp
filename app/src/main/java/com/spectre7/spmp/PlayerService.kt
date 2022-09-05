@@ -1,26 +1,30 @@
 package com.spectre7.spmp
 
 import android.app.*
-import android.content.ComponentName
-import android.content.Context
-import android.content.Intent
-import android.content.ServiceConnection
+import android.content.*
 import android.graphics.Bitmap
 import android.os.Binder
+import android.os.Bundle
 import android.os.IBinder
 import android.support.v4.media.session.MediaSessionCompat
 import android.util.Log
 import android.widget.Toast
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.toArgb
+import android.view.KeyEvent
+import android.view.KeyEvent.ACTION_DOWN
 import androidx.core.app.NotificationCompat
+import androidx.media.session.MediaButtonReceiver
+import com.google.android.exoplayer2.C
 import com.google.android.exoplayer2.ExoPlayer
 import com.google.android.exoplayer2.MediaItem
 import com.google.android.exoplayer2.Player
+import com.google.android.exoplayer2.audio.AudioAttributes
 import com.google.android.exoplayer2.ext.mediasession.MediaSessionConnector
 import com.google.android.exoplayer2.ui.PlayerNotificationManager
 import com.spectre7.spmp.model.Song
 import kotlin.concurrent.thread
+
 
 fun sendToast(text: String) {
     Toast.makeText(MainActivity.context, text, Toast.LENGTH_SHORT).show()
@@ -121,11 +125,57 @@ class PlayerHost(private var context: Context) {
 
         override fun onCreate() {
             super.onCreate()
-            player = ExoPlayer.Builder(MainActivity.context).build()
+
+            player = ExoPlayer.Builder(MainActivity.context).setAudioAttributes(
+                AudioAttributes.Builder()
+                    .setUsage(C.USAGE_MEDIA)
+                    .setContentType(C.AUDIO_CONTENT_TYPE_MUSIC)
+                    .build(),
+                true
+            ).build()
+            player.playWhenReady = true;
             player.prepare()
+
             media_session = MediaSessionCompat(MainActivity.context, "spmp")
             media_session_connector = MediaSessionConnector(media_session!!)
             media_session_connector!!.setPlayer(player)
+            media_session!!.setMediaButtonReceiver(null)
+            media_session?.isActive = true
+
+            media_session!!.setCallback(object: MediaSessionCompat.Callback() {
+                override fun onMediaButtonEvent(event_intent: Intent?): Boolean {
+
+                    val event = event_intent?.extras?.get("android.intent.extra.KEY_EVENT") as KeyEvent?
+                    if (event == null || event.action != ACTION_DOWN) {
+                        return super.onMediaButtonEvent(event_intent)
+                    }
+
+                    when (event.keyCode) {
+                        KeyEvent.KEYCODE_MEDIA_PLAY_PAUSE -> {
+                            playPause()
+                        }
+                        KeyEvent.KEYCODE_MEDIA_PLAY -> {
+                            player.play()
+                        }
+                        KeyEvent.KEYCODE_MEDIA_PAUSE -> {
+                            player.pause()
+                        }
+                        KeyEvent.KEYCODE_MEDIA_NEXT -> {
+                            player.seekToNextMediaItem()
+                        }
+                        KeyEvent.KEYCODE_MEDIA_PREVIOUS -> {
+                            player.seekToPreviousMediaItem()
+                        }
+                        else -> {
+                            sendToast("Unhandled media event: ${event.keyCode}")
+                            return super.onMediaButtonEvent(event_intent)
+                        }
+                    }
+
+                    return true
+                }
+            })
+
         }
 
         override fun onDestroy() {
@@ -139,6 +189,8 @@ class PlayerHost(private var context: Context) {
 
         override fun onStartCommand(intent: Intent?, flags: Int, startId: Int): Int {
             addNotificationToPlayer()
+
+            MediaButtonReceiver.handleIntent(media_session, intent)
 
             when (intent?.getIntExtra("action", -1)) {
                 0 -> {
@@ -159,6 +211,7 @@ class PlayerHost(private var context: Context) {
             }
 
             p_queue.add(index, song)
+
             song.getDownloadUrl {
                 player.addMediaItem(index, MediaItem.Builder().setUri(it).setTag(song).build())
                 onFinished?.invoke()
@@ -338,8 +391,6 @@ class PlayerHost(private var context: Context) {
 
                 playerNotificationManager?.setPlayer(player)
                 playerNotificationManager?.setMediaSessionToken(media_session!!.sessionToken)
-
-                media_session?.isActive = true
             }
         }
 

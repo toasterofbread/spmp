@@ -4,6 +4,7 @@ import android.content.res.Resources
 import android.os.Bundle
 import android.os.Handler
 import android.os.Looper
+import android.util.Log
 import android.view.WindowManager
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
@@ -15,6 +16,11 @@ import com.chaquo.python.android.AndroidPlatform
 import com.spectre7.spmp.ui.layout.PlayerView
 import com.spectre7.spmp.ui.theme.MyApplicationTheme
 import com.spectre7.ytmusicapi.Api
+import com.yausername.youtubedl_android.YoutubeDL
+import com.yausername.youtubedl_android.YoutubeDLException
+
+
+
 
 
 class MainActivity : ComponentActivity() {
@@ -33,6 +39,11 @@ class MainActivity : ComponentActivity() {
         youtube = Api.YtMusicApi(getString(R.string.yt_music_creds))
         player = PlayerHost(this)
 
+        try {
+            YoutubeDL.getInstance().init(application)
+        } catch (e: YoutubeDLException) {
+            Log.e("TAG", "failed to initialize youtubedl-android", e)
+        }
         window.setFlags(
             WindowManager.LayoutParams.FLAG_LAYOUT_NO_LIMITS,
             WindowManager.LayoutParams.FLAG_LAYOUT_NO_LIMITS

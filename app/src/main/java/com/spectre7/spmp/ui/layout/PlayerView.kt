@@ -3,7 +3,6 @@ package com.spectre7.spmp.ui.layout
 import android.util.DisplayMetrics
 import android.util.Log
 import androidx.compose.animation.*
-import androidx.compose.animation.core.SpringSpec
 import androidx.compose.animation.core.tween
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
@@ -16,10 +15,7 @@ import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.material.ExperimentalMaterialApi
 import androidx.compose.material.FractionalThreshold
 import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.filled.KeyboardArrowDown
-import androidx.compose.material.icons.filled.KeyboardArrowUp
-import androidx.compose.material.icons.filled.Search
-import androidx.compose.material.icons.filled.Settings
+import androidx.compose.material.icons.filled.*
 import androidx.compose.material.rememberSwipeableState
 import androidx.compose.material.ripple.LocalRippleTheme
 import androidx.compose.material.ripple.RippleAlpha
@@ -28,6 +24,7 @@ import androidx.compose.material.swipeable
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.runtime.snapshots.SnapshotStateList
+import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.RectangleShape
@@ -60,6 +57,14 @@ fun getStatusBarHeight(): Float {
 
 const val MINIMISED_NOW_PLAYING_HEIGHT = 64f
 enum class OverlayPage {NONE, SEARCH}
+
+class PlayerStatus {
+    var song: Song? by mutableStateOf(null)
+    var playing: Boolean by mutableStateOf(false)
+    var position: Float by mutableStateOf(0.0f)
+    var shuffle: Boolean by mutableStateOf(false)
+    var repeat_mode: Int by mutableStateOf(Player.REPEAT_MODE_OFF)
+}
 
 @OptIn(ExperimentalMaterialApi::class, ExperimentalMaterial3Api::class)
 @Composable
@@ -106,26 +111,36 @@ fun PlayerView() {
 
         @Composable
         fun ActionMenu() {
-            Row(horizontalArrangement = Arrangement.End, modifier = Modifier
-                .fillMaxWidth()
-                .zIndex(1f)) {
 
+            Box(
+                contentAlignment = Alignment.BottomEnd,
+                modifier = Modifier
+                    .fillMaxSize()
+                    .zIndex(1f)
+                    .padding(15.dp)
+            ) {
                 var expand by remember { mutableStateOf(false) }
 
-                Column(
-                    Modifier
-                        .animateContentSize()
-                        .background(MaterialTheme.colorScheme.primary, shape = CircleShape)
+                IconButton(
+                    onClick = { expand = !expand },
+                    modifier = Modifier.background(MaterialTheme.colorScheme.primary, shape = CircleShape)
                 ) {
-                    IconButton(
-                        onClick = { expand = !expand },
-                    ) {
-                        Crossfade(targetState = expand) {
-                            Icon(if (it) Icons.Filled.KeyboardArrowUp else Icons.Filled.KeyboardArrowDown, "", tint = MaterialTheme.colorScheme.onPrimary)
-                        }
-                    }
+                    Icon(Icons.Filled.KeyboardArrowLeft, "", tint = MaterialTheme.colorScheme.onPrimary)
+                }
 
-                    if (expand) {
+                AnimatedVisibility(visible = expand, enter = expandHorizontally(tween(250)), exit = shrinkHorizontally(tween(250))) {
+                    Row(
+                        Modifier
+                            .background(MaterialTheme.colorScheme.primary, shape = CircleShape),
+                        horizontalArrangement = Arrangement.End
+                    ) {
+
+                        IconButton(onClick = {
+                            expand = false
+                        }) {
+                            Icon(Icons.Filled.Settings, "", tint = MaterialTheme.colorScheme.onPrimary)
+                        }
+
                         IconButton(onClick = {
                             expand = false
                             overlay_page = OverlayPage.SEARCH
@@ -134,34 +149,36 @@ fun PlayerView() {
                         }
 
                         IconButton(onClick = {
-                            expand = false
-                        }) {
-                            Icon(Icons.Filled.Settings, "", tint = MaterialTheme.colorScheme.onPrimary)
+                            expand = false }
+                        ) {
+                            Icon(Icons.Filled.KeyboardArrowRight, "", tint = MaterialTheme.colorScheme.onPrimary)
                         }
                     }
-
                 }
             }
         }
 
-        if (overlay_page == OverlayPage.NONE) {
+//        if (overlay_page == OverlayPage.NONE) {
             ActionMenu()
-        }
+//        }
 
         Column(Modifier.padding(10.dp)) {
 
             LazyColumn(Modifier.fillMaxSize(), verticalArrangement = Arrangement.spacedBy(20.dp)) {
 
                 item {
-                    SongList("もう一度聴く", songs, 2)
+//                    SongList("もう一度聴く", songs, 2)
+                    SongList("Listen again", songs, 2)
                 }
 
                 item {
-                    SongList("おすすめ", songs, 2)
+//                    SongList("おすすめ", songs, 2)
+                    SongList("Quick picks", songs, 2)
                 }
 
                 item {
-                    SongList("お気に入り", songs, 2)
+//                    SongList("お気に入り", songs, 2)
+                    SongList("Recommended MVs", songs, 2)
                 }
 
             }
@@ -185,17 +202,18 @@ fun PlayerView() {
             }
         }
 
-        var p_playing by remember { mutableStateOf(false) }
-        var p_position by remember { mutableStateOf(0f) }
-        var p_song by remember { mutableStateOf<Song?>(null) }
 
-        val col = MaterialTheme.colorScheme.secondaryContainer
-        val theme_colour = remember { Animatable(col) }
+        val p_status by remember { mutableStateOf(PlayerStatus()) }
+
+//        val col = MaterialTheme.colorScheme.secondaryContainer
+//        val theme_colour = remember { Animatable(col) }
 
         MainActivity.player.interact {
-            p_playing = it.player.isPlaying
-            p_position = it.player.currentPosition.toFloat() / it.player.duration.toFloat()
-            p_song = it.player.currentMediaItem?.localConfiguration?.tag as Song?
+            p_status.playing = it.player.isPlaying
+            p_status.position = it.player.currentPosition.toFloat() / it.player.duration.toFloat()
+            p_status.song = it.player.currentMediaItem?.localConfiguration?.tag as Song?
+            p_status.shuffle = it.player.shuffleModeEnabled
+            p_status.repeat_mode = it.player.repeatMode
         }
 
         val listener = remember {
@@ -204,11 +222,19 @@ fun PlayerView() {
                     media_item: MediaItem?,
                     reason: Int
                 ) {
-                    p_song = media_item?.localConfiguration?.tag as Song
+                    p_status.song = media_item?.localConfiguration?.tag as Song
                 }
 
                 override fun onIsPlayingChanged(is_playing: Boolean) {
-                    p_playing = is_playing
+                    p_status.playing = is_playing
+                }
+
+                override fun onShuffleModeEnabledChanged(shuffle_enabled: Boolean) {
+                    p_status.shuffle = shuffle_enabled
+                }
+
+                override fun onRepeatModeChanged(repeat_mode: Int) {
+                    p_status.repeat_mode = repeat_mode
                 }
             }
         }
@@ -223,7 +249,7 @@ fun PlayerView() {
         LaunchedEffect(Unit) {
             while (true) {
                 MainActivity.player.interact {
-                    p_position = it.player.currentPosition.toFloat() / it.player.duration.toFloat()
+                    p_status.position = it.player.currentPosition.toFloat() / it.player.duration.toFloat()
                 }
                 delay(100)
             }
@@ -238,6 +264,9 @@ fun PlayerView() {
             swipe_state.animateTo(if (swipe_state.currentValue == 0) 1 else 0)
         }
 
+        val default_background_colour = MaterialTheme.colorScheme.background
+        val background_colour = remember { Animatable(default_background_colour) }
+
         CompositionLocalProvider(LocalRippleTheme provides object : RippleTheme {
             @Composable
             override fun defaultColor(): Color = Color.Unspecified
@@ -251,8 +280,7 @@ fun PlayerView() {
             )
         }) {
             Card(colors = CardDefaults.cardColors(
-                containerColor = theme_colour.value,
-                contentColor = MaterialTheme.colorScheme.onSecondaryContainer
+                containerColor = background_colour.value
             ), modifier = Modifier
                 .fillMaxWidth()
                 .requiredHeight(swipe_state.offset.value.dp)
@@ -264,7 +292,7 @@ fun PlayerView() {
                     orientation = Orientation.Vertical,
                     reverseDirection = true
                 )
-                .clickable { switch = !switch }, shape = RectangleShape) {
+                .clickable(enabled = swipe_state.targetValue == 0) { switch = !switch }, shape = RectangleShape) {
 
                 CompositionLocalProvider(LocalRippleTheme provides object : RippleTheme {
                     @Composable override fun defaultColor(): Color = MaterialTheme.colorScheme.onSecondaryContainer
@@ -277,7 +305,7 @@ fun PlayerView() {
                     )
                 }) {
                     Column(Modifier.fillMaxSize()) {
-                        NowPlaying(swipe_state.targetValue == 1, p_song, p_playing, p_position, theme_colour)
+                        NowPlaying(swipe_state.targetValue == 1, p_status, background_colour)
                     }
                 }
             }

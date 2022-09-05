@@ -1,19 +1,20 @@
 package com.spectre7.spmp.api
 
-import android.annotation.SuppressLint
-import android.os.Handler
-import android.os.Looper
 import android.util.Log
-import android.util.SparseArray
-import com.beust.klaxon.*
-import com.chaquo.python.PyObject
-import com.chaquo.python.Python
+import com.beust.klaxon.Klaxon
 import com.spectre7.spmp.MainActivity
 import com.spectre7.spmp.R
-import com.spectre7.spmp.model.*
+import com.spectre7.spmp.model.Artist
+import com.spectre7.spmp.model.ArtistData
+import com.spectre7.spmp.model.Song
+import com.spectre7.spmp.model.SongData
 import com.spectre7.spmp.ui.layout.ResourceType
+import okhttp3.*
+import okhttp3.MediaType.Companion.toMediaType
+import okhttp3.RequestBody.Companion.toRequestBody
 import java.io.BufferedReader
 import java.io.InputStreamReader
+import java.lang.RuntimeException
 import java.net.HttpURLConnection
 import java.net.URL
 import java.net.URLEncoder
@@ -199,8 +200,6 @@ class DataApi {
                 ResourceType.PLAYLIST -> """{"kind":"youtube#searchListResponse","etag":"BM2y_hloSS5ytbL6TFDEXw2Ckz0","nextPageToken":"CAoQAA","regionCode":"NL","pageInfo":{"totalResults":15989,"resultsPerPage":10},"items":[{"kind":"youtube#searchResult","etag":"37w6wWybAAHNnIcoo6YVTYs0xEM","id":{"kind":"youtube#playlist","playlistId":"PLwBnYkSZTLgIGr1_6l5pesUY0TZZFIy_b"},"snippet":{"publishedAt":"2019-06-12T14:11:30Z","channelId":"UCB2tP2QfRG7hTra0KTOtTBg","title":"ツユ MV","description":"TUYU Music Video.","thumbnails":{"default":{"url":"https://i.ytimg.com/vi/TBoBfT-_sfM/default.jpg","width":120,"height":90},"medium":{"url":"https://i.ytimg.com/vi/TBoBfT-_sfM/mqdefault.jpg","width":320,"height":180},"high":{"url":"https://i.ytimg.com/vi/TBoBfT-_sfM/hqdefault.jpg","width":480,"height":360}},"channelTitle":"ツユ","liveBroadcastContent":"none","publishTime":"2019-06-12T14:11:30Z"}},{"kind":"youtube#searchResult","etag":"oGY-fePJLEy9YBqRAhnc-JYWcg0","id":{"kind":"youtube#playlist","playlistId":"PLYYLyJyK7RmFp0qHWXwyKyI6_-e9AilhS"},"snippet":{"publishedAt":"2020-05-06T00:47:18Z","channelId":"UCQpVZLfSlH_g9Swywys0eHA","title":"ツユメドレー","description":"","thumbnails":{"default":{"url":"https://i.ytimg.com/vi/5xfNTyy-Xhk/default.jpg","width":120,"height":90},"medium":{"url":"https://i.ytimg.com/vi/5xfNTyy-Xhk/mqdefault.jpg","width":320,"height":180},"high":{"url":"https://i.ytimg.com/vi/5xfNTyy-Xhk/hqdefault.jpg","width":480,"height":360}},"channelTitle":"すがさん。","liveBroadcastContent":"none","publishTime":"2020-05-06T00:47:18Z"}},{"kind":"youtube#searchResult","etag":"2tKuiNaxaMrkdETOA22GoPtLadY","id":{"kind":"youtube#playlist","playlistId":"PLAsBHK1reTZaPB6Dk47jGDJhgsQfqbEIJ"},"snippet":{"publishedAt":"2020-06-10T20:44:11Z","channelId":"UCLoecsegV_i2c3183UlbEHQ","title":"ツユ 全曲","description":"ツユのオフィシャルアカウントから投稿されたもののみです。","thumbnails":{"default":{"url":"https://i.ytimg.com/vi/D0ehC_8sQuU/default.jpg","width":120,"height":90},"medium":{"url":"https://i.ytimg.com/vi/D0ehC_8sQuU/mqdefault.jpg","width":320,"height":180},"high":{"url":"https://i.ytimg.com/vi/D0ehC_8sQuU/hqdefault.jpg","width":480,"height":360}},"channelTitle":"瀬端霞","liveBroadcastContent":"none","publishTime":"2020-06-10T20:44:11Z"}},{"kind":"youtube#searchResult","etag":"WPOn5CpDGUKZJs5iWgVfeb__4p8","id":{"kind":"youtube#playlist","playlistId":"PLDNjvlOWpHgpAVtH14iv1yll-4HwA6PA1"},"snippet":{"publishedAt":"2022-08-27T09:00:26Z","channelId":"UCnX4hfw41Zqc0_mE8AEFHiw","title":"ツユ","description":"","thumbnails":{"default":{"url":"https://i.ytimg.com/vi/UArb6-27kwM/default.jpg","width":120,"height":90},"medium":{"url":"https://i.ytimg.com/vi/UArb6-27kwM/mqdefault.jpg","width":320,"height":180},"high":{"url":"https://i.ytimg.com/vi/UArb6-27kwM/hqdefault.jpg","width":480,"height":360}},"channelTitle":"𝐆𝐧𝐞𝐢𝐒𝐬","liveBroadcastContent":"none","publishTime":"2022-08-27T09:00:26Z"}},{"kind":"youtube#searchResult","etag":"xjYPLYVZtUK9KJ0N6Y99nHc3S58","id":{"kind":"youtube#playlist","playlistId":"PLNXxEUczfoD-XwsElupA6McvfRu-gEOBa"},"snippet":{"publishedAt":"2021-07-16T09:15:57Z","channelId":"UC-mxWa9e8CewHAvsUGsHYxA","title":"TUYU (ツユ) Piano Arrangments","description":"oldfrenchguy's TUYU Piano Arrangments.","thumbnails":{"default":{"url":"https://i.ytimg.com/vi/oCGiKvJUvYw/default.jpg","width":120,"height":90},"medium":{"url":"https://i.ytimg.com/vi/oCGiKvJUvYw/mqdefault.jpg","width":320,"height":180},"high":{"url":"https://i.ytimg.com/vi/oCGiKvJUvYw/hqdefault.jpg","width":480,"height":360}},"channelTitle":"oldfrenchguy","liveBroadcastContent":"none","publishTime":"2021-07-16T09:15:57Z"}},{"kind":"youtube#searchResult","etag":"yRsoDjBwUSFZgShwzw_b0Kw9Rk8","id":{"kind":"youtube#playlist","playlistId":"PLFAYlFKp2kqadBcTRzRkvz8wkVLoRnaBs"},"snippet":{"publishedAt":"2020-08-30T14:36:21Z","channelId":"UCDukeCFjXSb9FQnkpJjIzJQ","title":"ツユ","description":"","thumbnails":{"default":{"url":"https://i.ytimg.com/vi/RJJQ2emN478/default.jpg","width":120,"height":90},"medium":{"url":"https://i.ytimg.com/vi/RJJQ2emN478/mqdefault.jpg","width":320,"height":180},"high":{"url":"https://i.ytimg.com/vi/RJJQ2emN478/hqdefault.jpg","width":480,"height":360}},"channelTitle":"ねむみある","liveBroadcastContent":"none","publishTime":"2020-08-30T14:36:21Z"}},{"kind":"youtube#searchResult","etag":"vl4dh3EPIzuHoFwVXLlG2SrxsKY","id":{"kind":"youtube#playlist","playlistId":"PLi3eTn_pS3k13BkxSZMAFohKmhtq4vLXj"},"snippet":{"publishedAt":"2020-10-22T05:09:35Z","channelId":"UCyz3im994KnGDo6ID9T901g","title":"[Haoto] ツユ - Piano Arrangements","description":"Playlist is sorted by UPLOAD order, not RELEASE order. On October 22nd, 2020, I finally made this playlist lol. I kept forgetting to.","thumbnails":{"default":{"url":"https://i.ytimg.com/vi/2a1Ra3nkBJI/default.jpg","width":120,"height":90},"medium":{"url":"https://i.ytimg.com/vi/2a1Ra3nkBJI/mqdefault.jpg","width":320,"height":180},"high":{"url":"https://i.ytimg.com/vi/2a1Ra3nkBJI/hqdefault.jpg","width":480,"height":360}},"channelTitle":"Haoto 葉音 - Anime on Piano","liveBroadcastContent":"none","publishTime":"2020-10-22T05:09:35Z"}},{"kind":"youtube#searchResult","etag":"F6k3uFx7FHF-nwd4aWzMb-sdW_Q","id":{"kind":"youtube#playlist","playlistId":"PLKqUGdYEtm-XY92Vkyqo2Wn6ykVsfyHRu"},"snippet":{"publishedAt":"2020-12-31T04:13:10Z","channelId":"UCz_wt22sn_ZE-xhTTIH1WKg","title":"ツユ　トピック","description":"","thumbnails":{"default":{"url":"https://i.ytimg.com/vi/NXzZik68hTE/default.jpg","width":120,"height":90},"medium":{"url":"https://i.ytimg.com/vi/NXzZik68hTE/mqdefault.jpg","width":320,"height":180},"high":{"url":"https://i.ytimg.com/vi/NXzZik68hTE/hqdefault.jpg","width":480,"height":360}},"channelTitle":"夜世","liveBroadcastContent":"none","publishTime":"2020-12-31T04:13:10Z"}},{"kind":"youtube#searchResult","etag":"YeuWwBjC7ZZP6tTVtQ7_Ixa14Ag","id":{"kind":"youtube#playlist","playlistId":"PLzOOAYPdJwZVrbYWY9HJuF3b3zIJv9SF0"},"snippet":{"publishedAt":"2022-02-03T10:33:40Z","channelId":"UCJJs_vvba7wE9yXLfQbj9AA","title":"ツユ","description":"","thumbnails":{"default":{"url":"https://i.ytimg.com/vi/NXzZik68hTE/default.jpg","width":120,"height":90},"medium":{"url":"https://i.ytimg.com/vi/NXzZik68hTE/mqdefault.jpg","width":320,"height":180},"high":{"url":"https://i.ytimg.com/vi/NXzZik68hTE/hqdefault.jpg","width":480,"height":360}},"channelTitle":"レックスたいちょう","liveBroadcastContent":"none","publishTime":"2022-02-03T10:33:40Z"}},{"kind":"youtube#searchResult","etag":"MGTunrtlBtJwSSOV4gyIweq7wLg","id":{"kind":"youtube#playlist","playlistId":"PLcgu28mP0Hc5Oa-32hD0fCwxE0yBWg02T"},"snippet":{"publishedAt":"2021-05-24T15:36:16Z","channelId":"UCmA90KgDT2HfzKW3kvrJEuw","title":"ツユ☔","description":"","thumbnails":{"default":{"url":"https://i.ytimg.com/vi/D0ehC_8sQuU/default.jpg","width":120,"height":90},"medium":{"url":"https://i.ytimg.com/vi/D0ehC_8sQuU/mqdefault.jpg","width":320,"height":180},"high":{"url":"https://i.ytimg.com/vi/D0ehC_8sQuU/hqdefault.jpg","width":480,"height":360}},"channelTitle":"槙-sin-","liveBroadcastContent":"none","publishTime":"2021-05-24T15:36:16Z"}}]}"""
             }
 
-            Log.d("", data)
-
 //            val request = HTTPGetRequest("https://www.googleapis.com/youtube/v3/search")
 //            request.addParam("key", MainActivity.getString(R.string.data_api_key))
 //            request.addParam("part", "snippet")
@@ -221,18 +220,61 @@ class DataApi {
             return klaxon.parse<SearchResults>(data)!!.items
         }
 
-        private val pytube: PyObject = Python.getInstance().getModule("pytube").getValue("YouTube")
+        class GetDownloadUrlResult(val playabilityStatus: PlayabilityStatus, val streamingData: StreamingData? = null) {
+            class StreamingData(val adaptiveFormats: List<Format>)
+            class Format(val itag: Int, val url: String)
+            class PlayabilityStatus(val status: String, val reason: String? = null)
+
+            fun isPlayable(): Boolean {
+                return playabilityStatus.status == "OK"
+            }
+
+            fun getError(): String {
+                return playabilityStatus.reason.toString()
+            }
+        }
+
         fun getDownloadUrl(id: String, callback: (url: String?) -> Unit) {
             thread {
-                val streams: List<PyObject> = pytube.call("https://youtube.com/watch?v=$id").getValue("streams").asList()
-                for (stream in streams) {
-                    if (stream.getValue("itag").toInt() == 140) {
+
+                val DEFAULT_CLIENT = """{"clientName":"ANDROID","clientVersion":"16.50","visitorData":null,"hl":"en"}"""
+                val NO_CONTENT_WARNING_CLIENT = """{"clientName":"TVHTML5_SIMPLY_EMBEDDED_PLAYER","clientVersion":"2.0","visitorData":null,"hl":"en"}"""
+
+                val http_client = OkHttpClient()
+
+                fun sendRequest(client: String): GetDownloadUrlResult {
+                    val body = """{"context":{"client":$client},"videoId":"$id","playlistId":null}""".toRequestBody("application/json; charset=utf-8".toMediaType())
+                    val request = Request.Builder()
+                        .url("https://www.youtube.com/youtubei/v1/player?key=AIzaSyAO_FJ2SlqU8Q4STEHLGCilw_Y9_11qcW8&prettyPrint=false")
+                        .post(body)
+                        .build()
+                    val response = http_client.newCall(request).execute()
+                    if (response.code != 200) {
+                        throw RuntimeException(response.body!!.string())
+                    }
+                    return klaxon.parse<GetDownloadUrlResult>(response.peekBody(1000000).string())!!
+                }
+
+                var response = sendRequest(DEFAULT_CLIENT)
+                if (!response.isPlayable()) {
+
+                    // TODO | Provide content warning to user?
+                    response = sendRequest(NO_CONTENT_WARNING_CLIENT)
+
+                    if (!response.isPlayable()) {
+                        throw RuntimeException(response.getError())
+                    }
+                }
+
+                for (format in response.streamingData!!.adaptiveFormats) {
+                    if (format.itag == 140) {
                         MainActivity.runInMainThread {
-                            callback(stream.getValue("url").toString())
+                            callback(format.url)
                         }
                         break
                     }
                 }
+
             }
         }
     }

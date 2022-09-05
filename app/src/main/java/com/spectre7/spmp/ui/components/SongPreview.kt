@@ -33,9 +33,7 @@ fun SongPreview (song: Song, large: Boolean) {
         Column(
             modifier = Modifier.padding(10.dp, 0.dp).clickable {
                 MainActivity.player.interact {
-                    it.addToQueue(song) {
-                        it.play()
-                    }
+                    it.addToQueue(song)
                 }
             }
         ) {

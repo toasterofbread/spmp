@@ -7,6 +7,7 @@ import androidx.compose.animation.core.tween
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.gestures.Orientation
+import androidx.compose.foundation.interaction.MutableInteractionSource
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.grid.GridCells
@@ -278,47 +279,23 @@ fun PlayerView() {
         val default_background_colour = MaterialTheme.colorScheme.background
         val background_colour = remember { Animatable(default_background_colour) }
 
-        CompositionLocalProvider(LocalRippleTheme provides object : RippleTheme {
-            @Composable
-            override fun defaultColor(): Color = Color.Unspecified
-
-            @Composable
-            override fun rippleAlpha(): RippleAlpha = RippleAlpha(
-                draggedAlpha = 0f,
-                focusedAlpha = 0f,
-                hoveredAlpha = 0f,
-                pressedAlpha = 0f,
+        Card(colors = CardDefaults.cardColors(
+            containerColor = background_colour.value
+        ), modifier = Modifier
+            .fillMaxWidth()
+            .requiredHeight(screen_height.dp)
+            .offset(y = (screen_height.dp / 2) - swipe_state.offset.value.dp)
+            .swipeable(
+                state = swipe_state,
+                anchors = swipe_anchors,
+                thresholds = { _, _ -> FractionalThreshold(0.2f) },
+                orientation = Orientation.Vertical,
+                reverseDirection = true
             )
-        }) {
-            Card(colors = CardDefaults.cardColors(
-                containerColor = background_colour.value
-            ), modifier = Modifier
-                .fillMaxWidth()
-                .requiredHeight(swipe_state.offset.value.dp)
-                .offset(y = swipe_state.offset.value.dp / -2)
-                .swipeable(
-                    state = swipe_state,
-                    anchors = swipe_anchors,
-                    thresholds = { _, _ -> FractionalThreshold(0.2f) },
-                    orientation = Orientation.Vertical,
-                    reverseDirection = true
-                )
-                .clickable(enabled = swipe_state.targetValue == 0) { switch = !switch }, shape = RectangleShape) {
+            .clickable(interactionSource = remember { MutableInteractionSource() }, enabled = swipe_state.targetValue == 0, indication = null) { switch = !switch }, shape = RectangleShape) {
 
-                CompositionLocalProvider(LocalRippleTheme provides object : RippleTheme {
-                    @Composable override fun defaultColor(): Color = MaterialTheme.colorScheme.onSecondaryContainer
-                    @Composable
-                    override fun rippleAlpha(): RippleAlpha = RippleAlpha(
-                        draggedAlpha = 0.25f,
-                        focusedAlpha = 0.25f,
-                        hoveredAlpha = 0.25f,
-                        pressedAlpha = 0.25f,
-                    )
-                }) {
-                    Column(Modifier.fillMaxSize()) {
-                        NowPlaying(swipe_state.targetValue == 1, p_status, background_colour)
-                    }
-                }
+            Column(Modifier.fillMaxSize()) {
+                NowPlaying(swipe_state.offset.value / screen_height, screen_height, p_status, background_colour)
             }
         }
     }

@@ -317,14 +317,18 @@ class PlayerHost(private var context: Context) {
                         }
 
                         override fun getCurrentLargeIcon(player: Player, callback: PlayerNotificationManager.BitmapCallback): Bitmap? {
+                            fun getCroppedThumbnail(image: Bitmap): Bitmap {
+                                return Bitmap.createBitmap(image, (image.width - image.height) / 2, 0, image.height, image.height)
+                            }
+
                             try {
                                 val song = player.getMediaItemAt(player.currentMediaItemIndex).localConfiguration!!.tag as Song
                                 if (song.thumbnailLoaded(false)) {
-                                    return song.loadThumbnail(false)
+                                    return getCroppedThumbnail(song.loadThumbnail(false))
                                 }
 
                                 thread {
-                                    callback.onBitmap(song.loadThumbnail(false))
+                                    callback.onBitmap(getCroppedThumbnail(song.loadThumbnail(false)))
                                 }
 
                                 return null                            }
@@ -378,9 +382,7 @@ class PlayerHost(private var context: Context) {
                             player: Player,
                             action: String,
                             intent: Intent
-                        ) {
-//                            sendToast(action)
-                        }
+                        ) {}
 
                     }
                 ).build()

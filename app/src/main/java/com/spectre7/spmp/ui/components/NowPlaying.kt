@@ -45,11 +45,15 @@ import com.google.accompanist.systemuicontroller.rememberSystemUiController
 import com.google.android.exoplayer2.Player
 import com.spectre7.spmp.MainActivity
 import com.spectre7.spmp.R
+import com.spectre7.spmp.ui.layout.MINIMISED_NOW_PLAYING_HEIGHT
 import com.spectre7.spmp.ui.layout.PlayerStatus
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.launch
 import java.lang.RuntimeException
 import kotlin.concurrent.thread
+import kotlin.math.max
+
+fun Boolean.toInt() = if (this) 1 else 0
 
 fun setColourAlpha(colour: Color, alpha: Double): Color {
     return Color(ColorUtils.setAlphaComponent(colour.toArgb(), (255 * alpha).toInt()))
@@ -83,9 +87,12 @@ fun isColorDark(colour: Color): Boolean {
 enum class ThemeMode { BACKGROUND, ELEMENTS }
 enum class OverlayMenu { NONE, MAIN, PALETTE, LYRICS }
 
-@OptIn(ExperimentalMaterial3Api::class)
 @Composable
-fun NowPlaying(expanded: Boolean, p_status: PlayerStatus, background_colour: Animatable<Color, AnimationVector4D>) {
+fun NowPlaying(_expansion: Float, max_height: Float, p_status: PlayerStatus, background_colour: Animatable<Color, AnimationVector4D>) {
+
+    val expansion = if (_expansion < 0.08f) 0.0f else _expansion
+    val exx = expansion == 1.0f
+    val inv_expansion = -expansion + 1.0f
 
     fun getSongTitle(): String {
         if (p_status.song == null) {
@@ -173,17 +180,13 @@ fun NowPlaying(expanded: Boolean, p_status: PlayerStatus, background_colour: Ani
         }
     }
 
-    LaunchedEffect(key1 = expanded, key2 = background_colour.value) {
+    LaunchedEffect(key1 = exx, key2 = background_colour.value) {
         systemui_controller.setSystemBarsColor(
-            color = if (expanded) background_colour.value else default_background_colour
+            color = if (exx) background_colour.value else default_background_colour
         )
     }
 
-    AnimatedVisibility(
-        visible = !expanded,
-        enter = fadeIn(),
-        exit = fadeOut()
-    ) {
+    if (expansion < 1.0f) {
         LinearProgressIndicator(
             progress = p_status.position,
             color = on_background_colour.value,
@@ -191,57 +194,64 @@ fun NowPlaying(expanded: Boolean, p_status: PlayerStatus, background_colour: Ani
             modifier = Modifier
                 .requiredHeight(2.dp)
                 .fillMaxWidth()
+                .alpha(inv_expansion)
         )
     }
 
-    val menu_visible = remember { MutableTransitionState(false) }
+//    val menu_visible = remember { MutableTransitionState(false) }
+//
+//    if (menu_visible.targetState || menu_visible.currentState) {
+//        Popup(
+//            alignment = Alignment.Center,
+//            properties = PopupProperties(
+//                excludeFromSystemGesture = false,
+//                focusable = true
+//            ),
+//            onDismissRequest = { menu_visible.targetState = false },
+//            offset = IntOffset(0, -60)
+//        ) {
+//            Box(Modifier.fillMaxWidth(), contentAlignment = Alignment.Center) {
+//                AnimatedVisibility(
+//                    visibleState = menu_visible,
+//                    enter = expandHorizontally(tween(150)) + slideInVertically(
+//                        initialOffsetY = { it / 8 }),
+//                    exit = shrinkHorizontally(tween(150)) + slideOutVertically(
+//                        targetOffsetY = { it / 8 })
+//                ) {
+//                    Card(
+//                        modifier = Modifier
+//                            .fillMaxWidth(0.9f)
+//                            .fillMaxHeight(0.85f),
+//                        colors = CardDefaults.cardColors(
+//                            MaterialTheme.colorScheme.background, MaterialTheme.colorScheme.onBackground
+//                        )
+//                    ) {
+//
+//                    }
+//                }
+//            }
+//        }
+//    }
 
-    if (menu_visible.targetState || menu_visible.currentState) {
-        Popup(
-            alignment = Alignment.Center,
-            properties = PopupProperties(
-                excludeFromSystemGesture = false,
-                focusable = true
-            ),
-            onDismissRequest = { menu_visible.targetState = false },
-            offset = IntOffset(0, -60)
-        ) {
-            Box(Modifier.fillMaxWidth(), contentAlignment = Alignment.Center) {
-                AnimatedVisibility(
-                    visibleState = menu_visible,
-                    enter = expandHorizontally(tween(150)) + slideInVertically(
-                        initialOffsetY = { it / 8 }),
-                    exit = shrinkHorizontally(tween(150)) + slideOutVertically(
-                        targetOffsetY = { it / 8 })
-                ) {
-                    Card(
-                        modifier = Modifier
-                            .fillMaxWidth(0.9f)
-                            .fillMaxHeight(0.85f),
-                        colors = CardDefaults.cardColors(
-                            MaterialTheme.colorScheme.background, MaterialTheme.colorScheme.onBackground
-                        )
-                    ) {
+    Box(Modifier.padding(10.dp + (15.dp * expansion))) {
 
-                    }
-                }
-            }
-        }
-    }
+        Column(verticalArrangement = Arrangement.Top, modifier = Modifier.fillMaxHeight()) {
 
-    Box(Modifier.padding(if (expanded) 25.dp else 10.dp)) {
+            Spacer(Modifier.requiredHeight(50.dp * expansion))
 
-        Column(verticalArrangement = Arrangement.SpaceEvenly, modifier = Modifier.fillMaxHeight()) {
+            val min_height_fraction = (MINIMISED_NOW_PLAYING_HEIGHT + 20f) / max_height
 
-            if (expanded) {
-                Spacer(Modifier.requiredHeight(50.dp))
-            }
-
-            Row(verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.SpaceEvenly, modifier = Modifier.fillMaxWidth()) {
+            Row(
+                verticalAlignment = Alignment.CenterVertically,
+                horizontalArrangement = Arrangement.SpaceEvenly,
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .fillMaxHeight(0.5f * max(expansion, min_height_fraction))
+            ) {
 
                 var overlay_menu by remember { mutableStateOf(OverlayMenu.NONE) }
 
-                LaunchedEffect(expanded) {
+                LaunchedEffect(expansion == 0.0f) {
                     overlay_menu = OverlayMenu.NONE
                 }
 
@@ -255,12 +265,13 @@ fun NowPlaying(expanded: Boolean, p_status: PlayerStatus, background_colour: Ani
                                     .aspectRatio(1f)
                                     .clip(RoundedCornerShape(5))
                                     .clickable(
-                                        enabled = expanded,
+                                        enabled = expansion == 1.0f,
                                         indication = null,
                                         interactionSource = remember { MutableInteractionSource() }
                                     ) {
-                                        if (expanded && (overlay_menu == OverlayMenu.NONE || overlay_menu == OverlayMenu.MAIN || overlay_menu == OverlayMenu.PALETTE)) {
-                                            overlay_menu = if (overlay_menu == OverlayMenu.NONE) OverlayMenu.MAIN else OverlayMenu.NONE
+                                        if (overlay_menu == OverlayMenu.NONE || overlay_menu == OverlayMenu.MAIN || overlay_menu == OverlayMenu.PALETTE) {
+                                            overlay_menu =
+                                                if (overlay_menu == OverlayMenu.NONE) OverlayMenu.MAIN else OverlayMenu.NONE
                                         }
                                     }
                             )
@@ -269,7 +280,13 @@ fun NowPlaying(expanded: Boolean, p_status: PlayerStatus, background_colour: Ani
 
                     // Thumbnail overlay menu
                     androidx.compose.animation.AnimatedVisibility(overlay_menu != OverlayMenu.NONE, enter = fadeIn(), exit = fadeOut()) {
-                        Box(Modifier.background(setColourAlpha(Color.DarkGray, 0.85), shape = RoundedCornerShape(5)).fillMaxSize(), contentAlignment = Alignment.Center) {
+                        Box(
+                            Modifier
+                                .background(
+                                    setColourAlpha(Color.DarkGray, 0.85),
+                                    shape = RoundedCornerShape(5)
+                                )
+                                .fillMaxSize(), contentAlignment = Alignment.Center) {
                             Crossfade(overlay_menu) { menu ->
                                 when (menu) {
                                     OverlayMenu.MAIN ->
@@ -333,27 +350,54 @@ fun NowPlaying(expanded: Boolean, p_status: PlayerStatus, background_colour: Ani
                             }
                         }
                     }
-
                 }
 
-                AnimatedVisibility(visible = !expanded, enter = slideInHorizontally { -500 }, exit = ExitTransition.None) {
+                Row(horizontalArrangement = Arrangement.End, modifier = Modifier
+                    .fillMaxWidth()
+                    ) {
 
-                    Row(horizontalArrangement = Arrangement.SpaceEvenly, modifier = Modifier.fillMaxWidth()) {
-                        Text(
-                            getSongTitle(),
-                            maxLines = 1,
-                            overflow = TextOverflow.Ellipsis,
-                            modifier = Modifier
-                                .align(Alignment.CenterVertically)
-                                .animateContentSize()
-                                .clipToBounds()
-                        )
+                    Spacer(Modifier.requiredWidth(10.dp))
 
-                        IconButton(onClick = {
-                            MainActivity.player.interact {
-                                it.playPause()
+                    Text(
+                        getSongTitle(),
+                        maxLines = 1,
+                        overflow = TextOverflow.Ellipsis,
+                        modifier = Modifier
+                            .align(Alignment.CenterVertically)
+                            .weight(1f)
+                            .fillMaxWidth()
+//                            .animateContentSize()
+//                            .clipToBounds()
+                    )
+
+                    AnimatedVisibility(
+                        p_status.has_previous,
+                        enter = expandHorizontally(),
+                        exit = shrinkHorizontally()
+                    ) {
+                        IconButton(
+                            onClick = {
+                                MainActivity.player.interact {
+                                    it.player.seekToPreviousMediaItem()
+                                }
                             }
-                        }, modifier = Modifier.align(Alignment.CenterVertically)) {
+                        ) {
+                            Image(
+                                painterResource(R.drawable.ic_skip_previous),
+                                "",
+                                colorFilter = colour_filter
+                            )
+                        }
+                    }
+
+                    AnimatedVisibility(p_status.song != null, enter = fadeIn(), exit = fadeOut()) {
+                        IconButton(
+                            onClick = {
+                                MainActivity.player.interact {
+                                    it.playPause()
+                                }
+                            }
+                        ) {
                             Image(
                                 painterResource(if (p_status.playing) R.drawable.ic_pause else R.drawable.ic_play_arrow),
                                 MainActivity.getString(if (p_status.playing) R.string.media_pause else R.string.media_play),
@@ -361,10 +405,31 @@ fun NowPlaying(expanded: Boolean, p_status: PlayerStatus, background_colour: Ani
                             )
                         }
                     }
+
+                    AnimatedVisibility(p_status.has_next, enter = expandHorizontally(), exit = shrinkHorizontally()) {
+                        IconButton(
+                            onClick = {
+                                MainActivity.player.interact {
+                                    it.player.seekToNextMediaItem()
+                                }
+                            }
+                        ) {
+                            Image(
+                                painterResource(R.drawable.ic_skip_next),
+                                "",
+                                colorFilter = colour_filter
+                            )
+                        }
+                    }
                 }
             }
 
-            AnimatedVisibility(visible = expanded, enter = fadeIn(), exit = fadeOut()) {
+            if (expansion > 0.0f)
+
+            Box(
+                Modifier
+                    .fillMaxHeight(expansion)
+                    .alpha(expansion)) {
 
                 val button_size = 60.dp
 
@@ -500,6 +565,7 @@ fun NowPlaying(expanded: Boolean, p_status: PlayerStatus, background_colour: Ani
                     Spacer(Modifier.weight(1f))
 
                     var selected by remember { mutableStateOf(1) }
+
                     MultiSelector(
                         3,
                         selected,
@@ -530,9 +596,8 @@ fun NowPlaying(expanded: Boolean, p_status: PlayerStatus, background_colour: Ani
                                 0 -> "Salad bar"
                                 1 -> "Player"
                                 else -> "Queue"
-                          }, color = colour, fontSize = 10.sp, modifier = Modifier.offset(y = (10).dp))
+                            }, color = colour, fontSize = 10.sp, modifier = Modifier.offset(y = (10).dp))
                         }
-
                     }
 
                 }

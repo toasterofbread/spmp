@@ -235,6 +235,7 @@ fun NowPlaying(_expansion: Float, max_height: Float, p_status: PlayerStatus, bac
 
     Box(Modifier.padding(10.dp + (15.dp * expansion))) {
 
+        // Main column
         Column(verticalArrangement = Arrangement.Top, modifier = Modifier.fillMaxHeight()) {
 
             Spacer(Modifier.requiredHeight(50.dp * expansion))
@@ -424,182 +425,178 @@ fun NowPlaying(_expansion: Float, max_height: Float, p_status: PlayerStatus, bac
                 }
             }
 
-            if (expansion > 0.0f)
+            val button_size = 60.dp
 
-            Box(
-                Modifier
-                    .fillMaxHeight(expansion)
-                    .alpha(expansion)) {
+            if (expansion > 0.0f) {
+                Spacer(Modifier.requiredHeight(30.dp))
 
-                val button_size = 60.dp
+                Box(Modifier.alpha(expansion).weight(1f), contentAlignment = Alignment.TopCenter) {
 
-                @Composable
-                fun PlayerButton(painter: Painter, size: Dp = button_size, alpha: Float = 1f, colour: Color = on_background_colour.value, label: String? = null, enabled: Boolean = true, on_click: () -> Unit) {
-                    Box(
-                        contentAlignment = Alignment.Center,
-                        modifier = Modifier
-                            .clickable(
-                                onClick = on_click,
-                                indication = rememberRipple(radius = 25.dp, bounded = false),
-                                interactionSource = remember { MutableInteractionSource() },
-                                enabled = enabled
+                    @Composable
+                    fun PlayerButton(painter: Painter, size: Dp = button_size, alpha: Float = 1f, colour: Color = on_background_colour.value, label: String? = null, enabled: Boolean = true, on_click: () -> Unit) {
+                        Box(
+                            contentAlignment = Alignment.Center,
+                            modifier = Modifier
+                                .clickable(
+                                    onClick = on_click,
+                                    indication = rememberRipple(radius = 25.dp, bounded = false),
+                                    interactionSource = remember { MutableInteractionSource() },
+                                    enabled = enabled
+                                )
+                                .alpha(if (enabled) 1.0f else 0.5f)
+                        ) {
+                            Image(
+                                painter, "",
+                                Modifier
+                                    .requiredSize(size, button_size)
+                                    .offset(y = if (label != null) (-7).dp else 0.dp),
+                                colorFilter = ColorFilter.tint(colour),
+                                alpha = alpha
                             )
-                            .alpha(if (enabled) 1.0f else 0.5f)
-                    ) {
-                        Image(
-                            painter, "",
-                            Modifier
-                                .requiredSize(size, button_size)
-                                .offset(y = if (label != null) (-7).dp else 0.dp),
-                            colorFilter = ColorFilter.tint(colour),
-                            alpha = alpha
-                        )
-                        if (label != null) {
-                            Text(label, color = colour, fontSize = 10.sp, modifier = Modifier.offset(y = (10).dp))
-                        }
-                    }
-                }
-
-                @Composable
-                fun PlayerButton(image_id: Int, size: Dp = button_size, alpha: Float = 1f, colour: Color = on_background_colour.value, label: String? = null, enabled: Boolean = true, on_click: () -> Unit) {
-                    PlayerButton(painterResource(image_id), size, alpha, colour, label, enabled, on_click)
-                }
-
-                Column(verticalArrangement = Arrangement.spacedBy(35.dp)) {
-                    Spacer(Modifier.weight(1f))
-
-                    Column(verticalArrangement = Arrangement.spacedBy(5.dp)) {
-
-                        // Title text
-                        Text(getSongTitle(),
-                            fontSize = 17.sp,
-                            color = on_background_colour.value,
-                            textAlign = TextAlign.Center,
-                            maxLines = 1,
-                            overflow = TextOverflow.Ellipsis,
-                            modifier = Modifier
-                                .fillMaxWidth()
-                                .animateContentSize())
-
-                        // Artist text
-                        Text(getSongArtist(),
-                            fontSize = 12.sp,
-                            color = on_background_colour.value,
-                            textAlign = TextAlign.Center,
-                            maxLines = 1,
-                            overflow = TextOverflow.Ellipsis,
-                            modifier = Modifier
-                                .fillMaxWidth()
-                                .animateContentSize())
-                    }
-
-                    var slider_moving by remember { mutableStateOf(false) }
-                    var slider_value by remember { mutableStateOf(0.0f) }
-                    var old_p_position by remember { mutableStateOf<Float?>(null) }
-
-                    LaunchedEffect(p_status.position) {
-                        if (!slider_moving && p_status.position != old_p_position) {
-                            slider_value = p_status.position
-                            old_p_position = null
-                        }
-                    }
-
-                    SliderValueHorizontal(
-                        value = slider_value,
-                        onValueChange = { slider_moving = true; slider_value = it },
-                        onValueChangeFinished = {
-                            slider_moving = false
-                            old_p_position = p_status.position
-                            MainActivity.player.interact {
-                                it.player.seekTo((it.player.duration * slider_value).toLong())
+                            if (label != null) {
+                                Text(label, color = colour, fontSize = 10.sp, modifier = Modifier.offset(y = (10).dp))
                             }
-                        },
-                        thumbSizeInDp = DpSize(12.dp, 12.dp),
-                        track = { a, b, c, d, e -> DefaultTrack(a, b, c, d, e, setColourAlpha(on_background_colour.value, 0.5), on_background_colour.value) },
-                        thumb = { a, b, c, d, e -> DefaultThumb(a, b, c, d, e, on_background_colour.value, 1f) }
-                    )
+                        }
+                    }
 
-                    Row(
-                        horizontalArrangement = Arrangement.Center,
-                        modifier = Modifier.fillMaxWidth(),
-                    ) {
+                    @Composable
+                    fun PlayerButton(image_id: Int, size: Dp = button_size, alpha: Float = 1f, colour: Color = on_background_colour.value, label: String? = null, enabled: Boolean = true, on_click: () -> Unit) {
+                        PlayerButton(painterResource(image_id), size, alpha, colour, label, enabled, on_click)
+                    }
 
-                        val utility_separation = 25.dp
+                    Column(verticalArrangement = Arrangement.spacedBy(35.dp)) {
 
-                        PlayerButton(R.drawable.ic_shuffle, button_size * 0.65f, if (p_status.shuffle) 1f else 0.25f) { MainActivity.player.interact {
-                            it.player.shuffleModeEnabled = !it.player.shuffleModeEnabled
-                        } }
+                        Column(verticalArrangement = Arrangement.spacedBy(5.dp)) {
 
-                        Spacer(Modifier.requiredWidth(utility_separation))
+                            // Title text
+                            Text(getSongTitle(),
+                                fontSize = 17.sp,
+                                color = on_background_colour.value,
+                                textAlign = TextAlign.Center,
+                                maxLines = 1,
+                                overflow = TextOverflow.Ellipsis,
+                                modifier = Modifier
+                                    .fillMaxWidth()
+                                    .animateContentSize())
 
-                        PlayerButton(R.drawable.ic_skip_previous, enabled = p_status.has_previous) {
-                            MainActivity.player.interact { it.player.seekToPreviousMediaItem() }
+                            // Artist text
+                            Text(getSongArtist(),
+                                fontSize = 12.sp,
+                                color = on_background_colour.value,
+                                textAlign = TextAlign.Center,
+                                maxLines = 1,
+                                overflow = TextOverflow.Ellipsis,
+                                modifier = Modifier
+                                    .fillMaxWidth()
+                                    .animateContentSize())
                         }
 
-                        PlayerButton(if (p_status.playing) R.drawable.ic_pause else R.drawable.ic_play_arrow, enabled = p_status.song != null) {
-                            MainActivity.player.interact { it.playPause() }
+                        var slider_moving by remember { mutableStateOf(false) }
+                        var slider_value by remember { mutableStateOf(0.0f) }
+                        var old_p_position by remember { mutableStateOf<Float?>(null) }
+
+                        LaunchedEffect(p_status.position) {
+                            if (!slider_moving && p_status.position != old_p_position) {
+                                slider_value = p_status.position
+                                old_p_position = null
+                            }
                         }
 
-                        PlayerButton(R.drawable.ic_skip_next, enabled = p_status.has_next) {
-                            MainActivity.player.interact { it.player.seekToNextMediaItem() }
-                        }
+                        SliderValueHorizontal(
+                            value = slider_value,
+                            onValueChange = { slider_moving = true; slider_value = it },
+                            onValueChangeFinished = {
+                                slider_moving = false
+                                old_p_position = p_status.position
+                                MainActivity.player.interact {
+                                    it.player.seekTo((it.player.duration * slider_value).toLong())
+                                }
+                            },
+                            thumbSizeInDp = DpSize(12.dp, 12.dp),
+                            track = { a, b, c, d, e -> DefaultTrack(a, b, c, d, e, setColourAlpha(on_background_colour.value, 0.5), on_background_colour.value) },
+                            thumb = { a, b, c, d, e -> DefaultThumb(a, b, c, d, e, on_background_colour.value, 1f) }
+                        )
 
-                        Spacer(Modifier.requiredWidth(utility_separation))
+                        Row(
+                            horizontalArrangement = Arrangement.Center,
+                            modifier = Modifier.fillMaxWidth().weight(1f),
+                        ) {
 
-                        PlayerButton(
-                            if (p_status.repeat_mode == Player.REPEAT_MODE_ONE) R.drawable.ic_repeat_one else R.drawable.ic_repeat,
-                            button_size * 0.65f,
-                            if (p_status.repeat_mode != Player.REPEAT_MODE_OFF) 1f else 0.25f) {
+                            val utility_separation = 25.dp
 
-                            MainActivity.player.interact {
-                                it.player.repeatMode = when (it.player.repeatMode) {
-                                    Player.REPEAT_MODE_ALL -> Player.REPEAT_MODE_ONE
-                                    Player.REPEAT_MODE_ONE -> Player.REPEAT_MODE_OFF
-                                    else -> Player.REPEAT_MODE_ALL
+                            PlayerButton(R.drawable.ic_shuffle, button_size * 0.65f, if (p_status.shuffle) 1f else 0.25f) { MainActivity.player.interact {
+                                it.player.shuffleModeEnabled = !it.player.shuffleModeEnabled
+                            } }
+
+                            Spacer(Modifier.requiredWidth(utility_separation))
+
+                            PlayerButton(R.drawable.ic_skip_previous, enabled = p_status.has_previous) {
+                                MainActivity.player.interact { it.player.seekToPreviousMediaItem() }
+                            }
+
+                            PlayerButton(if (p_status.playing) R.drawable.ic_pause else R.drawable.ic_play_arrow, enabled = p_status.song != null) {
+                                MainActivity.player.interact { it.playPause() }
+                            }
+
+                            PlayerButton(R.drawable.ic_skip_next, enabled = p_status.has_next) {
+                                MainActivity.player.interact { it.player.seekToNextMediaItem() }
+                            }
+
+                            Spacer(Modifier.requiredWidth(utility_separation))
+
+                            PlayerButton(
+                                if (p_status.repeat_mode == Player.REPEAT_MODE_ONE) R.drawable.ic_repeat_one else R.drawable.ic_repeat,
+                                button_size * 0.65f,
+                                if (p_status.repeat_mode != Player.REPEAT_MODE_OFF) 1f else 0.25f) {
+
+                                MainActivity.player.interact {
+                                    it.player.repeatMode = when (it.player.repeatMode) {
+                                        Player.REPEAT_MODE_ALL -> Player.REPEAT_MODE_ONE
+                                        Player.REPEAT_MODE_ONE -> Player.REPEAT_MODE_OFF
+                                        else -> Player.REPEAT_MODE_ALL
+                                    }
                                 }
                             }
                         }
-
                     }
+                }
+            }
 
-                    Spacer(Modifier.weight(1f))
+            var selected by remember { mutableStateOf(1) }
 
-                    var selected by remember { mutableStateOf(1) }
+            if (expansion > 0.0f)
 
-                    MultiSelector(
-                        3,
-                        selected,
-                        Modifier.requiredHeight(button_size * 0.8f),
-                        Modifier.aspectRatio(1f),
-                        colour = setColourAlpha(on_background_colour.value, 0.75),
-                        background_colour = background_colour.value,
-                        on_selected = { selected = it }
-                    ) { index ->
-                        Box(
-                            contentAlignment = Alignment.Center
-                        ) {
+            MultiSelector(
+                3,
+                selected,
+                Modifier.requiredHeight(button_size * 0.8f),
+                Modifier.aspectRatio(1f),
+                colour = setColourAlpha(on_background_colour.value, 0.75),
+                background_colour = background_colour.value,
+                on_selected = { selected = it }
+            ) { index ->
+                Box(
+                    contentAlignment = Alignment.Center
+                ) {
 
-                            val colour = if (index == selected) background_colour.value else on_background_colour.value
+                    val colour = if (index == selected) background_colour.value else on_background_colour.value
 
-                            Image(
-                                when(index) {
-                                    0 -> rememberVectorPainter(Icons.Filled.Menu)
-                                    1 -> rememberVectorPainter(Icons.Filled.PlayArrow)
-                                    else -> painterResource(R.drawable.ic_music_queue)
-                                }, "",
-                                Modifier
-                                    .requiredSize(button_size * 0.4f, button_size)
-                                    .offset(y = (-7).dp),
-                                colorFilter = ColorFilter.tint(colour)
-                            )
-                            Text(when (index) {
-                                0 -> "Salad bar"
-                                1 -> "Player"
-                                else -> "Queue"
-                            }, color = colour, fontSize = 10.sp, modifier = Modifier.offset(y = (10).dp))
-                        }
-                    }
-
+                    Image(
+                        when(index) {
+                            0 -> rememberVectorPainter(Icons.Filled.Menu)
+                            1 -> rememberVectorPainter(Icons.Filled.PlayArrow)
+                            else -> painterResource(R.drawable.ic_music_queue)
+                        }, "",
+                        Modifier
+                            .requiredSize(button_size * 0.4f, button_size)
+                            .offset(y = (-7).dp),
+                        colorFilter = ColorFilter.tint(colour)
+                    )
+                    Text(when (index) {
+                        0 -> "Salad bar"
+                        1 -> "Player"
+                        else -> "Queue"
+                    }, color = colour, fontSize = 10.sp, modifier = Modifier.offset(y = (10).dp))
                 }
             }
         }

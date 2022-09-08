@@ -104,10 +104,15 @@ class PlayerHost(private var context: Context) {
         return false
     }
 
+    class PlayerQueueListener() {
+        abstract fun onSongAdded(song: Song, index: Int)
+        abstract fun onSongRemoved(song: Song, index: Int) // TODO
+    }
+    
     class PlayerService : Service() {
 
         val p_queue: MutableList<Song> = mutableListOf()
-        var p_index: Int = 0
+        var queue_listener: PlayerQueueListener? = null
 
         internal lateinit var player: ExoPlayer
         private val NOTIFICATION_ID = 2
@@ -209,74 +214,48 @@ class PlayerHost(private var context: Context) {
             return START_NOT_STICKY
         }
 
-        fun addToQueue(song: Song, i: Int = p_queue.size, onFinished: (() -> Unit)? = null) {
-            var index = i
-            if (index < 0 || index > p_queue.size) {
-                index = p_queue.size
+        private fun onSongAdded(media_item: MediaItem) {
+            for (i in 0 until player.getMediaItemCount()) {
+                val item = player.getMediaItemAt(i)
+                if (item == media_item) {
+                    onSongAdded(item.localConfiguration!!.tag as Song, i)
+                    return                    
+                }
             }
+            throw RuntimeException()
+        }
 
-            p_queue.add(index, song)
+        private fun onSongAdded(song: Song, index: Int) {
+            queue_listener?.onSongAdded(song, index)
+        }
 
+        fun addToQueue(song: Song, i: Int? = null, onFinished: (() -> Unit)? = null) {
             song.getDownloadUrl {
-                player.addMediaItem(index, MediaItem.Builder().setUri(it).setTag(song).build())
+                val item = MediaItem.Builder().setUri(it).setTag(song).build()
+                if (i == null) {
+                    player.addMediaItem(item)
+                }
+                else {
+                    player.addMediaItem(index, item)
+                }
+
+                p_queue.add(index, song)
+                onSongAdded(item)
                 onFinished?.invoke()
             }
         }
 
-        fun replaceQueue(queue: List<Song>) {
-            p_queue.clear()
-            p_index = 0
-            player.clearMediaItems()
-
-            for ((i, song) in queue.withIndex()) {
-                p_queue.add(song)
-                song.getDownloadUrl() {
-                    player.addMediaItem(i, MediaItem.Builder().setUri(it).setTag(song).build())
-                }
-            }
-        }
-
-        fun play(index: Int? = null): Boolean {
-
-            if (p_queue.isEmpty()) {
-                p_index = 0
-                return false
-            }
-
-            if (index != null) {
-                p_index = index
-            }
-
-            if (p_index < 0 || p_index >= p_queue.size) {
-                p_index = p_queue.size - 1
-            }
-
-            player.prepare()
+        fun play(index: Int? = null) {
             player.play()
-
-            return true
         }
 
-        fun playPause(): Boolean {
-            if (p_queue.isEmpty()) {
-                p_index = -1
-                return false
-            }
-
-            if (p_index < 0 || p_index >= p_queue.size) {
-                p_index = 0
-            }
-
-            player.prepare()
-
+        fun playPause() {
             if (player.isPlaying) {
                 player.pause()
             }
             else {
                 player.play()
             }
-
-            return true
         }
 
         private fun addNotificationToPlayer() {

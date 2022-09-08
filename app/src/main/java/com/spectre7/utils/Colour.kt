@@ -1,5 +1,10 @@
 package com.spectre7.utils
 
+import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.graphics.toArgb
+import androidx.core.graphics.ColorUtils
+import androidx.palette.graphics.Palette
+
 fun setColourAlpha(colour: Color, alpha: Double): Color {
     return Color(ColorUtils.setAlphaComponent(colour.toArgb(), (255 * alpha).toInt()))
 }

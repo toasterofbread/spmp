@@ -62,6 +62,7 @@ enum class OverlayPage {NONE, SEARCH}
 
 class PlayerStatus {
     var song: Song? by mutableStateOf(null)
+    var queue: List<Song> by mutableStateListOf<Song>() // TODO Update queue
     var playing: Boolean by mutableStateOf(false)
     var position: Float by mutableStateOf(0.0f)
     var shuffle: Boolean by mutableStateOf(false)
@@ -218,6 +219,7 @@ fun PlayerView() {
                 p_status.repeat_mode = it.player.repeatMode
                 p_status.has_next = it.player.hasNextMediaItem()
                 p_status.has_previous = it.player.hasPreviousMediaItem()
+                p_status.queue = it.p_queue
             }
         }
 

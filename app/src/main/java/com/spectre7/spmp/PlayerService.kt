@@ -104,7 +104,7 @@ class PlayerHost(private var context: Context) {
         return false
     }
 
-    class PlayerQueueListener() {
+    abstract interface PlayerQueueListener {
         abstract fun onSongAdded(song: Song, index: Int)
         abstract fun onSongRemoved(song: Song, index: Int) // TODO
     }
@@ -215,7 +215,7 @@ class PlayerHost(private var context: Context) {
         }
 
         private fun onSongAdded(media_item: MediaItem) {
-            for (i in 0 until player.getMediaItemCount()) {
+            for (i in 0 until player.mediaItemCount) {
                 val item = player.getMediaItemAt(i)
                 if (item == media_item) {
                     onSongAdded(item.localConfiguration!!.tag as Song, i)
@@ -226,6 +226,7 @@ class PlayerHost(private var context: Context) {
         }
 
         private fun onSongAdded(song: Song, index: Int) {
+            p_queue.add(index, song)
             queue_listener?.onSongAdded(song, index)
         }
 
@@ -236,10 +237,9 @@ class PlayerHost(private var context: Context) {
                     player.addMediaItem(item)
                 }
                 else {
-                    player.addMediaItem(index, item)
+                    player.addMediaItem(i, item)
                 }
 
-                p_queue.add(index, song)
                 onSongAdded(item)
                 onFinished?.invoke()
             }

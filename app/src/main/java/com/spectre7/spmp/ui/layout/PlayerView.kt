@@ -62,6 +62,7 @@ enum class OverlayPage {NONE, SEARCH}
 
 class PlayerStatus {
     var song: Song? by mutableStateOf(null)
+    var queue: List<Song> by mutableStateOf(listOf())
     var playing: Boolean by mutableStateOf(false)
     var position: Float by mutableStateOf(0.0f)
     var shuffle: Boolean by mutableStateOf(false)
@@ -207,17 +208,16 @@ fun PlayerView() {
         }
 
 
-        val p_status by remember { mutableStateOf(PlayerStatus()) }
-
-        LaunchedEffect(Unit) {
+        val p_status by remember { mutableStateOf(PlayerStatus()) }.also { status ->
             MainActivity.player.interact {
-                p_status.playing = it.player.isPlaying
-                p_status.position = it.player.currentPosition.toFloat() / it.player.duration.toFloat()
-                p_status.song = it.player.currentMediaItem?.localConfiguration?.tag as Song?
-                p_status.shuffle = it.player.shuffleModeEnabled
-                p_status.repeat_mode = it.player.repeatMode
-                p_status.has_next = it.player.hasNextMediaItem()
-                p_status.has_previous = it.player.hasPreviousMediaItem()
+                status.value.playing = it.player.isPlaying
+                status.value.position = it.player.currentPosition.toFloat() / it.player.duration.toFloat()
+                status.value.song = it.player.currentMediaItem?.localConfiguration?.tag as Song?
+                status.value.shuffle = it.player.shuffleModeEnabled
+                status.value.repeat_mode = it.player.repeatMode
+                status.value.has_next = it.player.hasNextMediaItem()
+                status.value.has_previous = it.player.hasPreviousMediaItem()
+                status.value.queue = it.p_queue
             }
         }
 

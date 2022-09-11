@@ -10,3 +10,4 @@
 local.properties
 app/debug/
 app/release/
+.vscode

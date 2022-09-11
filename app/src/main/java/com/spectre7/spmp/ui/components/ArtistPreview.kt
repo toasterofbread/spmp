@@ -21,10 +21,10 @@ import coil.compose.rememberAsyncImagePainter
 import com.spectre7.spmp.model.Artist
 
 @Composable
-fun ArtistPreview (artist: Artist, large: Boolean) {
+fun ArtistPreview (artist: Artist, large: Boolean, modifier: Modifier = Modifier) {
     Row(
         verticalAlignment = Alignment.CenterVertically,
-        modifier = Modifier.padding(10.dp, 0.dp)
+        modifier = modifier.padding(10.dp, 0.dp)
     ) {
 
         Image(

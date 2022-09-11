@@ -42,30 +42,37 @@ class PlayerHost(private var context: Context) {
     private var service_connection: ServiceConnection? = null
     private var service_intent: Intent? = null
 
-    fun addListener(listener: Player.Listener) {
-        interact {
-            it.player.addListener(listener)
-        }
+    init {
+        PlayerHost.instance = this
     }
 
-    fun removeListener(listener: Player.Listener) {
-        interact {
-            it.player.removeListener(listener)
-        }
-    }
+    companion object {
+        private lateinit var instance: PlayerHost
+        private val service: PlayerService?
+            get() = instance.service
 
-    fun interact(action: (service: PlayerService) -> Unit) {
-        if (service == null) {
-            getService() {
+        fun release() {
+            instance.release()
+        }
+
+        fun interact(action: (player: ExoPlayer) -> Unit) {
+            interactService {
+                action(it.player)
+            }
+        }
+        fun interactService(action: (service: PlayerService) -> Unit) {
+            if (service == null) {
+                instance.getService() {
+                    action(service!!)
+                }
+            }
+            else {
                 action(service!!)
             }
         }
-        else {
-            action(service!!)
-        }
     }
 
-    fun release() {
+    private fun release() {
         if (service_connection != null) {
             context.unbindService(service_connection!!)
             service_connection = null
@@ -108,7 +115,7 @@ class PlayerHost(private var context: Context) {
         abstract fun onSongAdded(song: Song, index: Int)
         abstract fun onSongRemoved(song: Song, index: Int) // TODO
     }
-    
+
     class PlayerService : Service() {
 
         val p_queue: MutableList<Song> = mutableListOf()
@@ -219,7 +226,7 @@ class PlayerHost(private var context: Context) {
                 val item = player.getMediaItemAt(i)
                 if (item == media_item) {
                     onSongAdded(item.localConfiguration!!.tag as Song, i)
-                    return                    
+                    return
                 }
             }
             throw RuntimeException()
@@ -320,8 +327,8 @@ class PlayerHost(private var context: Context) {
                 ).setNotificationListener(
                     object : PlayerNotificationManager.NotificationListener {
                         override fun onNotificationPosted(notificationId: Int,
-                                                          notification: Notification,
-                                                          ongoing: Boolean) {
+                                                            notification: Notification,
+                                                            ongoing: Boolean) {
                             super.onNotificationPosted(notificationId, notification, ongoing)
 //                            if (!ongoing) {
 //                                stopForeground(false)
@@ -331,7 +338,7 @@ class PlayerHost(private var context: Context) {
 
                         }
                         override fun onNotificationCancelled(notificationId: Int,
-                                                             dismissedByUser: Boolean) {
+                                                                dismissedByUser: Boolean) {
                             super.onNotificationCancelled(notificationId, dismissedByUser)
                             stopSelf()
                         }

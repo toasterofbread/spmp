@@ -4,8 +4,10 @@ import android.graphics.Bitmap
 import android.graphics.BitmapFactory
 import android.util.Log
 import androidx.compose.runtime.Composable
+import androidx.compose.ui.Modifier
 import com.spectre7.spmp.api.DataApi
 import com.spectre7.spmp.ui.components.SongPreview
+import com.spectre7.spmp.PlayerHost
 import java.io.FileNotFoundException
 import java.lang.RuntimeException
 import java.net.URL
@@ -130,7 +132,7 @@ data class Song (
     }
 
     @Composable
-    override fun Preview(large: Boolean) {
-        return SongPreview(this, large)
+    override fun Preview(large: Boolean, modifier: Modifier) {
+        return SongPreview(this, large, modifier)
     }
 }

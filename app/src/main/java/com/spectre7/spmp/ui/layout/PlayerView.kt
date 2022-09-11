@@ -38,6 +38,7 @@ import com.google.android.exoplayer2.MediaItem
 import com.google.android.exoplayer2.Player
 import com.google.android.exoplayer2.Tracks
 import com.spectre7.spmp.MainActivity
+import com.spectre7.spmp.PlayerHost
 import com.spectre7.spmp.api.DataApi
 import com.spectre7.spmp.model.Song
 import com.spectre7.spmp.ui.components.NowPlaying
@@ -95,7 +96,7 @@ fun PlayerView() {
                     ) {
                         items(songs.size) {
                             Box(modifier = Modifier.requiredWidth(125.dp)) {
-                                songs[it].Preview(true)
+                                songs[it].Preview(true, Modifier)
                             }
                         }
                     }
@@ -207,18 +208,15 @@ fun PlayerView() {
             }
         }
 
-
         val p_status by remember { mutableStateOf(PlayerStatus()) }.also { status ->
-            MainActivity.player.interact {
-                status.value.playing = it.player.isPlaying
-                status.value.position = it.player.currentPosition.toFloat() / it.player.duration.toFloat()
-                status.value.song = it.player.currentMediaItem?.localConfiguration?.tag as Song?
-                status.value.shuffle = it.player.shuffleModeEnabled
-                status.value.repeat_mode = it.player.repeatMode
-                status.value.has_next = it.player.hasNextMediaItem()
-                status.value.has_previous = it.player.hasPreviousMediaItem()
-                status.value.queue = it.p_queue
-            }
+            // status.value.playing = PlayerHost.player.isPlaying
+            // status.value.position = PlayerHost.player.currentPosition.toFloat() / PlayerHost.player.duration.toFloat()
+            // status.value.song = PlayerHost.player.currentMediaItem?.localConfiguration?.tag as Song?
+            // status.value.shuffle = PlayerHost.player.shuffleModeEnabled
+            // status.value.repeat_mode = PlayerHost.player.repeatMode
+            // status.value.has_next = PlayerHost.player.hasNextMediaItem()
+            // status.value.has_previous = PlayerHost.player.hasPreviousMediaItem()
+            // status.value.queue = PlayerHost.service.p_queue
         }
 
         val listener = remember {
@@ -260,9 +258,7 @@ fun PlayerView() {
 
         LaunchedEffect(Unit) {
             while (true) {
-                MainActivity.player.interact {
-                    p_status.position = it.player.currentPosition.toFloat() / it.player.duration.toFloat()
-                }
+                p_status.position = PlayerHost.player.currentPosition.toFloat() / PlayerHost.player.duration.toFloat()
                 delay(100)
             }
         }

@@ -31,5 +31,12 @@ fun getPaletteColour(palette: Palette, type: Int): Color? {
 }
 
 fun isColorDark(colour: Color): Boolean {
- return ColorUtils.calculateLuminance(colour.toArgb()) < 0.5;
+    return ColorUtils.calculateLuminance(colour.toArgb()) < 0.5;
+}
+
+fun getContrastedColour(colour: Color): Color {
+    if (isColorDark(colour))
+        return Color.White
+    else
+        return Color.Black
 }

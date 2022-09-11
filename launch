@@ -1,0 +1,76 @@
+#!/usr/bin/python
+
+import subprocess
+import sys
+import os
+import select
+import time
+import argparse
+from spectre7 import utils
+
+def getAppPid(package: str):
+    return subprocess.getoutput(f"adb shell pidof -s {package}")
+
+def launch(gradle_task: str, package: str):
+
+    utils.clear()
+
+    if subprocess.run(["./gradlew", gradle_task]).returncode != 0:
+        return
+
+    if subprocess.run(["adb", "shell", "monkey", "-p", package, "1"]).returncode != 0:
+        return
+
+    utils.clear()
+
+    utils.log(f"Build successful. Starting app [{package}].")
+    time.sleep(1)
+
+    proc = subprocess.Popen(["adb", "logcat", f"--pid={getAppPid(package)}", "-v", "tag"], stdout=subprocess.PIPE)
+    error_occurred = False
+
+    while True:
+
+        if proc.stdout:
+            line = proc.stdout.readline()
+
+            if not line:
+                break
+
+            line = str(line.rstrip())[2:-1].replace("\\t", "\t")
+            tag = line[0]
+
+            line = f"[{tag}] " + line[2:]
+
+            if tag == "E":
+                if not error_occurred and line.startswith("E/AndroidRuntime: FATAL EXCEPTION:"):
+                    error_occurred = True
+                utils.printc("red", line)
+
+            elif error_occurred:
+                break
+
+            else:
+                print(line)
+
+        if select.select([sys.stdin, ], [], [], 0.0)[0]:
+            line = sys.stdin.readline()
+            if line:
+                os.system(line)
+                break
+
+    proc.kill()
+
+if __name__ == "__main__":
+
+    parser = argparse.ArgumentParser()
+    parser.add_argument("profile", type = str, choices = ["debug", "release"])
+
+    args = parser.parse_args()
+
+    match args.profile:
+        case "debug":
+            launch("installDebug", "com.spectre7.spmp.debug")
+        case "release":
+            launch("installRelease", "com.spectre7.spmp")
+

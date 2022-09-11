@@ -13,7 +13,7 @@ android {
             keyPassword 'passwd'
         }
         release {
-        storeFile file('/home/spectre7/.android/keystore')
+            storeFile file('/home/spectre7/.android/keystore.jks')
             storePassword 'passwd'
             keyAlias 'alias'
             keyPassword 'passwd'
@@ -60,6 +60,7 @@ android {
             shrinkResources true
             proguardFiles getDefaultProguardFile('proguard-android-optimize.txt'), 'proguard-rules.pro'
             manifestPlaceholders["appName"] = "SpMp"
+            signingConfig signingConfigs.release
         }
     }
 

@@ -38,6 +38,7 @@ import com.google.android.exoplayer2.MediaItem
 import com.google.android.exoplayer2.Player
 import com.google.android.exoplayer2.Tracks
 import com.spectre7.spmp.MainActivity
+import com.spectre7.spmp.PlayerHost
 import com.spectre7.spmp.api.DataApi
 import com.spectre7.spmp.model.Song
 import com.spectre7.spmp.ui.components.NowPlaying
@@ -95,7 +96,7 @@ fun PlayerView() {
                     ) {
                         items(songs.size) {
                             Box(modifier = Modifier.requiredWidth(125.dp)) {
-                                songs[it].Preview(true)
+                                songs[it].Preview(true, Modifier)
                             }
                         }
                     }
@@ -207,9 +208,8 @@ fun PlayerView() {
             }
         }
 
-
         val p_status by remember { mutableStateOf(PlayerStatus()) }.also { status ->
-            MainActivity.player.interact {
+            PlayerHost.interactService {
                 status.value.playing = it.player.isPlaying
                 status.value.position = it.player.currentPosition.toFloat() / it.player.duration.toFloat()
                 status.value.song = it.player.currentMediaItem?.localConfiguration?.tag as Song?
@@ -252,16 +252,20 @@ fun PlayerView() {
         }
 
         DisposableEffect(Unit) {
-            MainActivity.player.addListener(listener)
+            PlayerHost.interact {
+                it.addListener(listener)
+            }
             onDispose {
-                MainActivity.player.removeListener(listener)
+                PlayerHost.interact {
+                    it.removeListener(listener)
+                }
             }
         }
 
         LaunchedEffect(Unit) {
             while (true) {
-                MainActivity.player.interact {
-                    p_status.position = it.player.currentPosition.toFloat() / it.player.duration.toFloat()
+                PlayerHost.interact {
+                    p_status.position = it.currentPosition.toFloat() / it.duration.toFloat()
                 }
                 delay(100)
             }

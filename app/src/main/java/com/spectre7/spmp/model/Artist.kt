@@ -1,6 +1,7 @@
 package com.spectre7.spmp.model
 
 import androidx.compose.runtime.Composable
+import androidx.compose.ui.Modifier
 import com.spectre7.spmp.api.DataApi
 import com.spectre7.spmp.ui.components.ArtistPreview
 import java.util.*
@@ -52,8 +53,8 @@ data class Artist (
     }
 
     @Composable
-    override fun Preview(large: Boolean) {
-        return ArtistPreview(this, large)
+    override fun Preview(large: Boolean, modifier: Modifier) {
+        return ArtistPreview(this, large, modifier)
     }
 
     fun getFormattedSubscriberCount(): String {

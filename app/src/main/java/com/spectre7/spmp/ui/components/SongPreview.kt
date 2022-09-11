@@ -28,7 +28,9 @@ fun SongPreview (song: Song, large: Boolean, modifier: Modifier = Modifier) {
     if (large) {
         Column(
             modifier = modifier.padding(10.dp, 0.dp).clickable {
-                PlayerHost.player.addToQueue(song)
+                PlayerHost.interactService {
+                    it.addToQueue(song)
+                }
             }
         ) {
 
@@ -83,8 +85,10 @@ fun SongPreview (song: Song, large: Boolean, modifier: Modifier = Modifier) {
             }
 
             IconButton(onClick = {
-                PlayerHost.player.addToQueue(song) {
-                    PlayerHost.player.play()
+                PlayerHost.interactService {
+                    it.addToQueue(song) {
+                        it.play()
+                    }
                 }
             }, modifier = Modifier.fillMaxWidth()) {
                 Icon(Icons.Filled.PlayArrow, null, Modifier, MaterialTheme.colorScheme.onBackground)

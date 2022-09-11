@@ -30,7 +30,7 @@ class MainActivity : ComponentActivity() {
         }
 
         youtube = Api.YtMusicApi(getString(R.string.yt_music_creds))
-        player = PlayerHost(this)
+        PlayerHost(this)
 
         window.setFlags(
             WindowManager.LayoutParams.FLAG_LAYOUT_NO_LIMITS,
@@ -47,7 +47,7 @@ class MainActivity : ComponentActivity() {
     }
 
     override fun onDestroy() {
-        player.release()
+        PlayerHost.release()
         super.onDestroy()
     }
 
@@ -55,7 +55,6 @@ class MainActivity : ComponentActivity() {
 
         val context: MainActivity get() = instance!!
         val resources: Resources get() = context.resources
-        val player: PlayerHost get() = context.player
         val youtube: Api.YtMusicApi get() = context.youtube
 
         @JvmStatic

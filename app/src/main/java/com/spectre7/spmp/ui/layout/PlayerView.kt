@@ -209,14 +209,16 @@ fun PlayerView() {
         }
 
         val p_status by remember { mutableStateOf(PlayerStatus()) }.also { status ->
-            // status.value.playing = PlayerHost.player.isPlaying
-            // status.value.position = PlayerHost.player.currentPosition.toFloat() / PlayerHost.player.duration.toFloat()
-            // status.value.song = PlayerHost.player.currentMediaItem?.localConfiguration?.tag as Song?
-            // status.value.shuffle = PlayerHost.player.shuffleModeEnabled
-            // status.value.repeat_mode = PlayerHost.player.repeatMode
-            // status.value.has_next = PlayerHost.player.hasNextMediaItem()
-            // status.value.has_previous = PlayerHost.player.hasPreviousMediaItem()
-            // status.value.queue = PlayerHost.service.p_queue
+            PlayerHost.interactService {
+                status.value.playing = it.player.isPlaying
+                status.value.position = it.player.currentPosition.toFloat() / it.player.duration.toFloat()
+                status.value.song = it.player.currentMediaItem?.localConfiguration?.tag as Song?
+                status.value.shuffle = it.player.shuffleModeEnabled
+                status.value.repeat_mode = it.player.repeatMode
+                status.value.has_next = it.player.hasNextMediaItem()
+                status.value.has_previous = it.player.hasPreviousMediaItem()
+                status.value.queue = it.p_queue
+            }
         }
 
         val listener = remember {
@@ -250,15 +252,21 @@ fun PlayerView() {
         }
 
         DisposableEffect(Unit) {
-            MainActivity.player.addListener(listener)
+            PlayerHost.interact {
+                it.addListener(listener)
+            }
             onDispose {
-                MainActivity.player.removeListener(listener)
+                PlayerHost.interact {
+                    it.removeListener(listener)
+                }
             }
         }
 
         LaunchedEffect(Unit) {
             while (true) {
-                p_status.position = PlayerHost.player.currentPosition.toFloat() / PlayerHost.player.duration.toFloat()
+                PlayerHost.interact {
+                    p_status.position = it.currentPosition.toFloat() / it.duration.toFloat()
+                }
                 delay(100)
             }
         }

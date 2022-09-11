@@ -318,7 +318,9 @@ fun NowPlaying(_expansion: Float, max_height: Float, p_status: PlayerStatus, bac
                             AnimatedVisibility(p_status.has_previous, enter = expandHorizontally(), exit = shrinkHorizontally()) {
                                 IconButton(
                                     onClick = {
-                                        PlayerHost.player.seekToPreviousMediaItem()
+                                        PlayerHost.interact {
+                                            it.seekToPreviousMediaItem()
+                                        }
                                     }
                                 ) {
                                     Image(
@@ -332,7 +334,9 @@ fun NowPlaying(_expansion: Float, max_height: Float, p_status: PlayerStatus, bac
                             AnimatedVisibility(p_status.song != null, enter = fadeIn(), exit = fadeOut()) {
                                 IconButton(
                                     onClick = {
-                                        PlayerHost.player.playPause()
+                                        PlayerHost.interactService {
+                                            it.playPause()
+                                        }
                                     }
                                 ) {
                                     Image(
@@ -346,7 +350,9 @@ fun NowPlaying(_expansion: Float, max_height: Float, p_status: PlayerStatus, bac
                             AnimatedVisibility(p_status.has_next, enter = expandHorizontally(), exit = shrinkHorizontally()) {
                                 IconButton(
                                     onClick = {
-                                        PlayerHost.player.seekToNextMediaItem()
+                                        PlayerHost.interact {
+                                            it.seekToNextMediaItem()
+                                        }
                                     }
                                 ) {
                                     Image(
@@ -446,7 +452,9 @@ fun NowPlaying(_expansion: Float, max_height: Float, p_status: PlayerStatus, bac
                                     onValueChangeFinished = {
                                         slider_moving = false
                                         old_p_position = p_status.position
-                                        PlayerHost.player.seekTo((PlayerHost.player.duration * slider_value).toLong())
+                                        PlayerHost.interact {
+                                            it.seekTo((it.duration * slider_value).toLong())
+                                        }
                                     },
                                     thumbSizeInDp = DpSize(12.dp, 12.dp),
                                     track = { a, b, c, d, e -> DefaultTrack(a, b, c, d, e, setColourAlpha(on_background_colour.value, 0.5), on_background_colour.value) },
@@ -463,21 +471,29 @@ fun NowPlaying(_expansion: Float, max_height: Float, p_status: PlayerStatus, bac
                                     val utility_separation = 25.dp
 
                                     PlayerButton(R.drawable.ic_shuffle, button_size * 0.65f, if (p_status.shuffle) 1f else 0.25f) {
-                                        PlayerHost.player.shuffleModeEnabled = !PlayerHost.player.shuffleModeEnabled
+                                        PlayerHost.interact {
+                                            it.shuffleModeEnabled = !it.shuffleModeEnabled
+                                        }
                                     }
 
                                     Spacer(Modifier.requiredWidth(utility_separation))
 
                                     PlayerButton(R.drawable.ic_skip_previous, enabled = p_status.has_previous) {
-                                        PlayerHost.player.seekToPreviousMediaItem()
+                                        PlayerHost.interact {
+                                            it.seekToPreviousMediaItem()
+                                        }
                                     }
 
                                     PlayerButton(if (p_status.playing) R.drawable.ic_pause else R.drawable.ic_play_arrow, enabled = p_status.song != null) {
-                                        PlayerHost.player.playPause()
+                                        PlayerHost.interactService {
+                                            it.playPause()
+                                        }
                                     }
 
                                     PlayerButton(R.drawable.ic_skip_next, enabled = p_status.has_next) {
-                                        PlayerHost.player.seekToNextMediaItem()
+                                        PlayerHost.interact {
+                                            it.seekToNextMediaItem()
+                                        }
                                     }
 
                                     Spacer(Modifier.requiredWidth(utility_separation))
@@ -487,10 +503,12 @@ fun NowPlaying(_expansion: Float, max_height: Float, p_status: PlayerStatus, bac
                                         button_size * 0.65f,
                                         if (p_status.repeat_mode != Player.REPEAT_MODE_OFF) 1f else 0.25f) {
 
-                                        PlayerHost.player.repeatMode = when (PlayerHost.player.repeatMode) {
-                                            Player.REPEAT_MODE_ALL -> Player.REPEAT_MODE_ONE
-                                            Player.REPEAT_MODE_ONE -> Player.REPEAT_MODE_OFF
-                                            else -> Player.REPEAT_MODE_ALL
+                                        PlayerHost.interact {
+                                            it.repeatMode = when (it.repeatMode) {
+                                                Player.REPEAT_MODE_ALL -> Player.REPEAT_MODE_ONE
+                                                Player.REPEAT_MODE_ONE -> Player.REPEAT_MODE_OFF
+                                                else -> Player.REPEAT_MODE_ALL
+                                            }
                                         }
                                     }
                                 }
@@ -613,7 +631,9 @@ fun QueueTab(p_status: PlayerStatus, on_background_colour: Color) {
             }
         },
         onDragEnd = { from, to ->
-            PlayerHost.player.moveMediaItem(from, to)
+            PlayerHost.interact {
+                it.moveMediaItem(from, to)
+            }
         }
     )
 

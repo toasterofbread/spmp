@@ -1,6 +1,5 @@
 package com.spectre7.spmp
 
-import android.util.Log
 import android.app.*
 import android.content.*
 import android.graphics.Bitmap
@@ -38,96 +37,49 @@ fun sendToast(text: String) {
 
 class PlayerHost(private var context: Context) {
 
-    interface CustomPlayer: ExoPlayer {
-        fun playPause() {
-            if (player.isPlaying) {
-                player.pause()
-            }
-            else {
-                player.play()
-            }
-        }
-
-        fun addToQueue(song: Song, i: Int? = null, onFinished: (() -> Unit)? = null) {
-            song.getDownloadUrl {
-                val item = MediaItem.Builder().setUri(it).setTag(song).build()
-                if (i == null) {
-                    player.addMediaItem(item)
-                }
-                else {
-                    player.addMediaItem(i, item)
-                }
-
-                onSongAdded(item)
-                onFinished?.invoke()
-            }
-        }
-
-        private fun onSongAdded(media_item: MediaItem) {
-            for (i in 0 until player.mediaItemCount) {
-                val item = player.getMediaItemAt(i)
-                if (item == media_item) {
-                    onSongAdded(item.localConfiguration!!.tag as Song, i)
-                    return
-                }
-            }
-            throw RuntimeException()
-        }
-
-        private fun onSongAdded(song: Song, index: Int) {
-            PlayerHost.service.p_queue.add(index, song)
-            PlayerHost.service.queue_listener?.onSongAdded(song, index)
-        }
-    }
-
-    private lateinit var service: PlayerService
-    private val on_service_bound = mutableListOf<() -> Unit?>()
-
-    companion object {
-        val service: PlayerService
-            get() = MainActivity.player.service
-        val player: CustomPlayer
-            get() = service.player
-    }
-
+    private var service: PlayerService? = null
     private var service_bound: Boolean = false
     private var service_connection: ServiceConnection? = null
     private var service_intent: Intent? = null
 
     init {
-        getService()
+        PlayerHost.instance = this
     }
 
-    fun addListener(listener: Player.Listener) {
-        if (!service_bound) {
-            on_service_bound.add({
-                player.addListener(listener)
-            })
+    companion object {
+        private lateinit var instance: PlayerHost
+        private val service: PlayerService?
+            get() = instance.service
+
+        fun release() {
+            instance.release()
         }
-        else {
-            player.addListener(listener)
+
+        fun interact(action: (player: ExoPlayer) -> Unit) {
+            interactService {
+                action(it.player)
+            }
+        }
+        fun interactService(action: (service: PlayerService) -> Unit) {
+            if (service == null) {
+                instance.getService() {
+                    action(service!!)
+                }
+            }
+            else {
+                action(service!!)
+            }
         }
     }
 
-    fun removeListener(listener: Player.Listener) {
-        if (!service_bound) {
-            on_service_bound.add({
-                player.addListener(listener)
-            })
-        }
-        else {
-            player.removeListener(listener)
-        }
-    }
-
-    fun release() {
+    private fun release() {
         if (service_connection != null) {
             context.unbindService(service_connection!!)
             service_connection = null
         }
     }
 
-    private fun getService(on_connected: (() -> Unit)? = null) {
+    private fun getService(on_connected: (() -> Unit)? = {}) {
         service_intent = Intent(context, PlayerService::class.java)
         if (!isServiceRunning()) {
             context.startForegroundService(service_intent)
@@ -169,7 +121,7 @@ class PlayerHost(private var context: Context) {
         val p_queue: MutableList<Song> = mutableListOf()
         var queue_listener: PlayerQueueListener? = null
 
-        internal lateinit var player: CustomPlayer
+        internal lateinit var player: ExoPlayer
         private val NOTIFICATION_ID = 2
         private val NOTIFICATION_CHANNEL_ID = "playback_channel"
         private var playerNotificationManager: PlayerNotificationManager? = null
@@ -197,7 +149,7 @@ class PlayerHost(private var context: Context) {
                     .setContentType(C.AUDIO_CONTENT_TYPE_MUSIC)
                     .build(),
                 true
-            ).build() as CustomPlayer
+            ).build()
             player.playWhenReady = true;
             player.prepare()
 
@@ -217,7 +169,7 @@ class PlayerHost(private var context: Context) {
 
                     when (event.keyCode) {
                         KeyEvent.KEYCODE_MEDIA_PLAY_PAUSE -> {
-                            player.playPause()
+                            playPause()
                         }
                         KeyEvent.KEYCODE_MEDIA_PLAY -> {
                             player.play()
@@ -267,6 +219,50 @@ class PlayerHost(private var context: Context) {
             }
 
             return START_NOT_STICKY
+        }
+
+        private fun onSongAdded(media_item: MediaItem) {
+            for (i in 0 until player.mediaItemCount) {
+                val item = player.getMediaItemAt(i)
+                if (item == media_item) {
+                    onSongAdded(item.localConfiguration!!.tag as Song, i)
+                    return
+                }
+            }
+            throw RuntimeException()
+        }
+
+        private fun onSongAdded(song: Song, index: Int) {
+            p_queue.add(index, song)
+            queue_listener?.onSongAdded(song, index)
+        }
+
+        fun addToQueue(song: Song, i: Int? = null, onFinished: (() -> Unit)? = null) {
+            song.getDownloadUrl {
+                val item = MediaItem.Builder().setUri(it).setTag(song).build()
+                if (i == null) {
+                    player.addMediaItem(item)
+                }
+                else {
+                    player.addMediaItem(i, item)
+                }
+
+                onSongAdded(item)
+                onFinished?.invoke()
+            }
+        }
+
+        fun play(index: Int? = null) {
+            player.play()
+        }
+
+        fun playPause() {
+            if (player.isPlaying) {
+                player.pause()
+            }
+            else {
+                player.play()
+            }
         }
 
         private fun addNotificationToPlayer() {
@@ -331,8 +327,8 @@ class PlayerHost(private var context: Context) {
                 ).setNotificationListener(
                     object : PlayerNotificationManager.NotificationListener {
                         override fun onNotificationPosted(notificationId: Int,
-                                                          notification: Notification,
-                                                          ongoing: Boolean) {
+                                                            notification: Notification,
+                                                            ongoing: Boolean) {
                             super.onNotificationPosted(notificationId, notification, ongoing)
 //                            if (!ongoing) {
 //                                stopForeground(false)
@@ -342,7 +338,7 @@ class PlayerHost(private var context: Context) {
 
                         }
                         override fun onNotificationCancelled(notificationId: Int,
-                                                             dismissedByUser: Boolean) {
+                                                                dismissedByUser: Boolean) {
                             super.onNotificationCancelled(notificationId, dismissedByUser)
                             stopSelf()
                         }

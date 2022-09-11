@@ -215,7 +215,7 @@ fun SearchPage(set_overlay_page: (page: OverlayPage) -> Unit) {
 
         LazyColumn(Modifier.fillMaxSize().background(MaterialTheme.colorScheme.background)) {
             itemsIndexed(items = result_tabs.values.elementAt(tab_index), key = { _, item -> item.getId() }) { _, item ->
-                item.Preview(false)
+                item.Preview(false, Modifier)
             }
         }
     }

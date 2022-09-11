@@ -20,16 +20,15 @@ import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.*
 import coil.compose.rememberAsyncImagePainter
 import com.spectre7.spmp.MainActivity
+import com.spectre7.spmp.PlayerHost
 
 @Composable
-fun SongPreview (song: Song, large: Boolean) {
+fun SongPreview (song: Song, large: Boolean, modifier: Modifier = Modifier) {
 
     if (large) {
         Column(
-            modifier = Modifier.padding(10.dp, 0.dp).clickable {
-                MainActivity.player.interact {
-                    it.addToQueue(song)
-                }
+            modifier = modifier.padding(10.dp, 0.dp).clickable {
+                PlayerHost.player.addToQueue(song)
             }
         ) {
 
@@ -55,7 +54,7 @@ fun SongPreview (song: Song, large: Boolean) {
     else {
         Row(
             verticalAlignment = Alignment.CenterVertically,
-            modifier = Modifier.padding(10.dp, 0.dp)
+            modifier = modifier.padding(10.dp, 0.dp)
         ) {
 
             Image(
@@ -84,10 +83,8 @@ fun SongPreview (song: Song, large: Boolean) {
             }
 
             IconButton(onClick = {
-                MainActivity.player.interact {
-                    it.addToQueue(song) {
-                        it.play()
-                    }
+                PlayerHost.player.addToQueue(song) {
+                    PlayerHost.player.play()
                 }
             }, modifier = Modifier.fillMaxWidth()) {
                 Icon(Icons.Filled.PlayArrow, null, Modifier, MaterialTheme.colorScheme.onBackground)

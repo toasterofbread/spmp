@@ -3,7 +3,9 @@ package com.spectre7.spmp.model
 import android.graphics.Bitmap
 import android.graphics.BitmapFactory
 import androidx.compose.runtime.Composable
+import androidx.compose.ui.Modifier
 import java.net.URL
+import com.spectre7.spmp.sendToast
 
 abstract class Previewable {
 
@@ -27,8 +29,13 @@ abstract class Previewable {
         return (if (hq) thumbnail_hq else thumbnail)!!
     }
 
+    override fun equals(other: Any?): Boolean {
+        sendToast("EQ")
+        return other is Previewable && other.getId() == getId()
+    }
+
     @Composable
-    abstract fun Preview(large: Boolean)
+    abstract fun Preview(large: Boolean, modifier: Modifier)
     abstract fun getId(): String
     abstract fun getThumbUrl(hq: Boolean): String
 }

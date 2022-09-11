@@ -119,7 +119,7 @@ class PlayerHost(private var context: Context) {
     class PlayerService : Service() {
 
         val p_queue: MutableList<Song> = mutableListOf()
-        var queue_listener: PlayerQueueListener? = null
+        private var queue_listeners: MutableList<PlayerQueueListener> = mutableListOf()
 
         internal lateinit var player: ExoPlayer
         private val NOTIFICATION_ID = 2
@@ -234,7 +234,10 @@ class PlayerHost(private var context: Context) {
 
         private fun onSongAdded(song: Song, index: Int) {
             p_queue.add(index, song)
-            queue_listener?.onSongAdded(song, index)
+
+            for (listener in queue_listeners) {
+                listener.onSongAdded(song, index)
+            }
         }
 
         fun addToQueue(song: Song, i: Int? = null, onFinished: (() -> Unit)? = null) {
@@ -250,6 +253,14 @@ class PlayerHost(private var context: Context) {
                 onSongAdded(item)
                 onFinished?.invoke()
             }
+        }
+
+        fun addQueueListener(listener: PlayerQueueListener) {
+            queue_listeners.add(listener)
+        }
+
+        fun removeQueueListener(listener: PlayerQueueListener) {
+            queue_listeners.remove(listener)
         }
 
         fun play(index: Int? = null) {

@@ -17,11 +17,12 @@ import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import androidx.compose.ui.graphics.Color
 import coil.compose.rememberAsyncImagePainter
 import com.spectre7.spmp.model.Artist
 
 @Composable
-fun ArtistPreview (artist: Artist, large: Boolean, modifier: Modifier = Modifier) {
+fun ArtistPreview (artist: Artist, large: Boolean, colour: Color, modifier: Modifier = Modifier) {
     Row(
         verticalAlignment = Alignment.CenterVertically,
         modifier = modifier.padding(10.dp, 0.dp)
@@ -40,7 +41,7 @@ fun ArtistPreview (artist: Artist, large: Boolean, modifier: Modifier = Modifier
             Text(
                 artist.nativeData.name,
                 fontSize = 15.sp,
-                color = MaterialTheme.colorScheme.onBackground,
+                color = colour,
                 maxLines = 1,
                 overflow = TextOverflow.Ellipsis
             )
@@ -48,14 +49,14 @@ fun ArtistPreview (artist: Artist, large: Boolean, modifier: Modifier = Modifier
             Text(
                 "${artist.getFormattedSubscriberCount()} subscribers",
                 fontSize = 11.sp,
-                color = MaterialTheme.colorScheme.onBackground.copy(alpha=0.5f),
+                color = colour.copy(alpha=0.5f),
                 maxLines = 1,
                 overflow = TextOverflow.Ellipsis
             )
         }
 
         IconButton(onClick = { /* TODO */ }, modifier = Modifier.fillMaxWidth()) {
-            Icon(Icons.Filled.Info, null, Modifier, MaterialTheme.colorScheme.onBackground)
+            Icon(Icons.Filled.Info, null, Modifier, colour)
         }
     }
 }

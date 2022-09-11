@@ -63,6 +63,7 @@ enum class OverlayPage {NONE, SEARCH}
 
 class PlayerStatus {
     var song: Song? by mutableStateOf(null)
+    var index: Int by mutableStateOf(0)
     var queue: List<Song> by mutableStateOf(listOf())
     var playing: Boolean by mutableStateOf(false)
     var position: Float by mutableStateOf(0.0f)
@@ -96,7 +97,7 @@ fun PlayerView() {
                     ) {
                         items(songs.size) {
                             Box(modifier = Modifier.requiredWidth(125.dp)) {
-                                songs[it].Preview(true, Modifier)
+                                songs[it].Preview(true)
                             }
                         }
                     }
@@ -213,6 +214,7 @@ fun PlayerView() {
                 status.value.playing = it.player.isPlaying
                 status.value.position = it.player.currentPosition.toFloat() / it.player.duration.toFloat()
                 status.value.song = it.player.currentMediaItem?.localConfiguration?.tag as Song?
+                status.value.index = it.player.currentMediaItemIndex
                 status.value.shuffle = it.player.shuffleModeEnabled
                 status.value.repeat_mode = it.player.repeatMode
                 status.value.has_next = it.player.hasNextMediaItem()
@@ -246,6 +248,7 @@ fun PlayerView() {
                 override fun onEvents(player: Player, events: Player.Events) {
                     p_status.has_previous = player.hasPreviousMediaItem()
                     p_status.has_next = player.hasNextMediaItem()
+                    p_status.index = player.currentMediaItemIndex
                 }
 
             }

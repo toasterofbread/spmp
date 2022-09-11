@@ -4,6 +4,8 @@ import android.graphics.Bitmap
 import android.graphics.BitmapFactory
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.graphics.Color
+import androidx.compose.material3.MaterialTheme
 import java.net.URL
 import com.spectre7.spmp.sendToast
 
@@ -29,13 +31,19 @@ abstract class Previewable {
         return (if (hq) thumbnail_hq else thumbnail)!!
     }
 
-    override fun equals(other: Any?): Boolean {
-        sendToast("EQ")
-        return other is Previewable && other.getId() == getId()
+    @Composable
+    abstract fun Preview(large: Boolean, modifier: Modifier, colour: Color)
+
+    @Composable
+    fun Preview(large: Boolean, modifier: Modifier) {
+        Preview(large, modifier, MaterialTheme.colorScheme.onBackground)
     }
 
     @Composable
-    abstract fun Preview(large: Boolean, modifier: Modifier)
+    fun Preview(large: Boolean) {
+        Preview(large, Modifier, MaterialTheme.colorScheme.onBackground)
+    }
+
     abstract fun getId(): String
     abstract fun getThumbUrl(hq: Boolean): String
 }

@@ -1,5 +1,6 @@
 package com.spectre7.spmp.ui.components
 
+import android.util.Log
 import android.view.MotionEvent
 import androidx.compose.animation.*
 import androidx.compose.animation.core.*
@@ -241,7 +242,7 @@ fun NowPlaying(_expansion: Float, max_height: Float, p_status: PlayerStatus, bac
                                                     Modifier
                                                         .fillMaxSize()
                                                         .padding(20.dp), verticalArrangement = Arrangement.SpaceBetween) {
-                                                    p_status.song?.artist?.Preview(false, Modifier)
+                                                    p_status.song?.artist?.Preview(false)
 
                                                     Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.SpaceEvenly) {
 
@@ -589,15 +590,19 @@ fun QueueTab(p_status: PlayerStatus, on_background_colour: Color) {
 
     data class Item(val song: Song, val key: Int, val p_status: PlayerStatus) {
         @Composable
-        fun QueueElement(handle_modifier: Modifier) {
+        fun QueueElement(handle_modifier: Modifier, current: Boolean, index: Int, colour: Color) {
 
-            var modifier = if (song == p_status.song) Modifier.background(getContrastedColour(on_background_colour)) else Modifier
+            val modifier = if (current) Modifier.border(Dp.Hairline, colour, CircleShape) else Modifier
 
             Row(horizontalArrangement = Arrangement.End, verticalAlignment = Alignment.CenterVertically, modifier = modifier) {
-                song.Preview(false, Modifier.weight(1f))
+                song.Preview(false, Modifier.weight(1f).clickable {
+                    PlayerHost.interact {
+                        it.seekTo(index, 0)
+                    }
+                }, colour)
                 Image(rememberVectorPainter(Icons.Filled.Menu), "", modifier = handle_modifier
                     .requiredSize(30.dp),
-                    colorFilter = ColorFilter.tint(on_background_colour)
+                    colorFilter = ColorFilter.tint(colour)
                 )
             }
         }
@@ -624,6 +629,24 @@ fun QueueTab(p_status: PlayerStatus, on_background_colour: Color) {
         }
     }
 
+    var playing_key by remember { mutableStateOf<Int?>(null) }
+
+    // TODO
+    // LaunchedEffect(p_status.index) {
+    //     playing_key =
+    // }
+
+    DisposableEffect(Unit) {
+        PlayerHost.interactService {
+            it.addQueueListener(queue_listener)
+        }
+        onDispose {
+            PlayerHost.interactService {
+                it.removeQueueListener(queue_listener)
+            }
+        }
+    }
+
     val state = rememberReorderableLazyListState(
         onMove = { from, to ->
             song_items = song_items.toMutableList().apply {
@@ -634,6 +657,7 @@ fun QueueTab(p_status: PlayerStatus, on_background_colour: Color) {
             PlayerHost.interact {
                 it.moveMediaItem(from, to)
             }
+            playing_key = null
         }
     )
 
@@ -646,10 +670,14 @@ fun QueueTab(p_status: PlayerStatus, on_background_colour: Color) {
             val item = song_items[index]
             ReorderableItem(state, item.key) { is_dragging ->
                 LaunchedEffect(is_dragging) {
-                    if (is_dragging)
+                    if (is_dragging) {
                         vibrate(0.01)
+                        playing_key = song_items[p_status.index].key
+                    }
                 }
-                item.QueueElement(Modifier.detectReorder(state))
+
+                val current = if (playing_key != null) playing_key == item.key else p_status.index == index
+                item.QueueElement(Modifier.detectReorder(state), current, index, on_background_colour)
             }
         }
     }

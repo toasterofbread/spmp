@@ -48,10 +48,7 @@ import com.spectre7.spmp.ui.layout.MINIMISED_NOW_PLAYING_HEIGHT
 import com.spectre7.spmp.ui.layout.PlayerStatus
 import com.spectre7.spmp.ui.components.*
 import com.spectre7.utils.*
-import org.burnoutcrew.reorderable.ReorderableItem
-import org.burnoutcrew.reorderable.detectReorderAfterLongPress
-import org.burnoutcrew.reorderable.rememberReorderableLazyListState
-import org.burnoutcrew.reorderable.reorderable
+import org.burnoutcrew.reorderable.*
 import kotlin.concurrent.thread
 import kotlin.math.max
 
@@ -64,7 +61,6 @@ enum class NowPlayingTab { SALAD, PLAYER, QUEUE }
 fun NowPlaying(_expansion: Float, max_height: Float, p_status: PlayerStatus, background_colour: Animatable<Color, AnimationVector4D>) {
 
     val expansion = if (_expansion < 0.08f) 0.0f else _expansion
-    val exx = expansion == 1.0f
     val inv_expansion = -expansion + 1.0f
 
     fun getSongTitle(): String {
@@ -90,9 +86,6 @@ fun NowPlaying(_expansion: Float, max_height: Float, p_status: PlayerStatus, bac
 
     val default_background_colour = MaterialTheme.colorScheme.background
     val default_on_background_colour = MaterialTheme.colorScheme.onBackground
-
-    val default_on_dark_colour = Color.White
-    val default_on_light_colour = Color.Black
 
     val on_background_colour = remember { Animatable(default_on_background_colour) }
 
@@ -141,8 +134,7 @@ fun NowPlaying(_expansion: Float, max_height: Float, p_status: PlayerStatus, bac
                     NowPlayingThemeMode.BACKGROUND -> {
                         background_colour.animateTo(colour)
                         on_background_colour.animateTo(
-                            if (isColorDark(colour)) default_on_dark_colour
-                            else default_on_light_colour
+                            getContrastedColour(colour)
                         )
                     }
                     NowPlayingThemeMode.ELEMENTS -> {
@@ -153,9 +145,9 @@ fun NowPlaying(_expansion: Float, max_height: Float, p_status: PlayerStatus, bac
         }
     }
 
-    LaunchedEffect(key1 = exx, key2 = background_colour.value) {
+    LaunchedEffect(key1 = expansion >= 1.0f, key2 = background_colour.value) {
         systemui_controller.setSystemBarsColor(
-            color = if (exx) background_colour.value else default_background_colour
+            color = if (expansion >= 1.0f) background_colour.value else default_background_colour
         )
     }
 
@@ -173,343 +165,349 @@ fun NowPlaying(_expansion: Float, max_height: Float, p_status: PlayerStatus, bac
 
     Box(Modifier.padding(10.dp + (15.dp * expansion))) {
 
-        val tab_state = rememberPagerState(NowPlayingTab.PLAYER.ordinal)
+        // val tab_state = rememberPagerState(NowPlayingTab.PLAYER.ordinal)
         var current_tab by remember { mutableStateOf(NowPlayingTab.PLAYER) }
         val button_size = 60.dp
 
-        // scope.launch {
-        //     pagerState.scrollToPage(2)
+        // LaunchedEffect(current_tab) {
+        //     tab_state.animateScrollToPage(current_tab.ordinal)
         // }
 
-        Column(verticalArrangement = Arrangement.Top, modifier = Modifier.fillMaxHeight()) {
-            HorizontalPager(count = NowPlayingTab.values().size, state = tab_state) { page ->
-                val tab = NowPlayingTab.values()[page]
+        LaunchedEffect(expansion >= 1.0f) {
+            if (expansion < 1.0f) {
+                current_tab = NowPlayingTab.PLAYER
+                // tab_state.animateScrollToPage(current_tab.ordinal)
+            }
+        }
 
-                Column(verticalArrangement = Arrangement.Top, modifier = Modifier.fillMaxHeight()) {
-                    if (tab == NowPlayingTab.PLAYER) {
-                        Spacer(Modifier.requiredHeight(50.dp * expansion))
+        @Composable
+        fun Tab(tab: NowPlayingTab, modifier: Modifier = Modifier) {
+            Column(verticalArrangement = Arrangement.Top, modifier = modifier.fillMaxHeight()) {
+                if (tab == NowPlayingTab.PLAYER) {
+                    Spacer(Modifier.requiredHeight(50.dp * expansion))
 
-                        val min_height_fraction = (MINIMISED_NOW_PLAYING_HEIGHT + 20f) / max_height
+                    val min_height_fraction = (MINIMISED_NOW_PLAYING_HEIGHT + 20f) / max_height
 
-                        Row(
-                            verticalAlignment = Alignment.CenterVertically,
-                            horizontalArrangement = Arrangement.SpaceEvenly,
-                            modifier = Modifier
-                                .fillMaxWidth()
-                                .fillMaxHeight(0.5f * max(expansion, min_height_fraction))
-                        ) {
+                    Row(
+                        verticalAlignment = Alignment.CenterVertically,
+                        horizontalArrangement = Arrangement.SpaceEvenly,
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .fillMaxHeight(0.5f * max(expansion, min_height_fraction))
+                    ) {
 
-                            var overlay_menu by remember { mutableStateOf(NowPlayingOverlayMenu.NONE) }
+                        var overlay_menu by remember { mutableStateOf(NowPlayingOverlayMenu.NONE) }
 
-                            LaunchedEffect(expansion == 0.0f) {
-                                overlay_menu = NowPlayingOverlayMenu.NONE
+                        LaunchedEffect(expansion == 0.0f) {
+                            overlay_menu = NowPlayingOverlayMenu.NONE
+                        }
+
+                        Box(Modifier.aspectRatio(1f)) {
+                            Crossfade(thumbnail, animationSpec = tween(250)) { image ->
+                                if (image != null) {
+                                    Image(
+                                        image, "",
+                                        contentScale = ContentScale.Crop,
+                                        modifier = Modifier
+                                            .aspectRatio(1f)
+                                            .clip(RoundedCornerShape(5))
+                                            .clickable(
+                                                enabled = expansion == 1.0f,
+                                                indication = null,
+                                                interactionSource = remember { MutableInteractionSource() }
+                                            ) {
+                                                if (overlay_menu == NowPlayingOverlayMenu.NONE || overlay_menu == NowPlayingOverlayMenu.MAIN || overlay_menu == NowPlayingOverlayMenu.PALETTE) {
+                                                    overlay_menu =
+                                                        if (overlay_menu == NowPlayingOverlayMenu.NONE) NowPlayingOverlayMenu.MAIN else NowPlayingOverlayMenu.NONE
+                                                }
+                                            }
+                                    )
+                                }
                             }
 
-                            Box(Modifier.aspectRatio(1f)) {
-                                Crossfade(thumbnail, animationSpec = tween(250)) { image ->
-                                    if (image != null) {
-                                        Image(
-                                            image, "",
-                                            contentScale = ContentScale.Crop,
-                                            modifier = Modifier
-                                                .aspectRatio(1f)
-                                                .clip(RoundedCornerShape(5))
-                                                .clickable(
-                                                    enabled = expansion == 1.0f,
-                                                    indication = null,
-                                                    interactionSource = remember { MutableInteractionSource() }
-                                                ) {
-                                                    if (overlay_menu == NowPlayingOverlayMenu.NONE || overlay_menu == NowPlayingOverlayMenu.MAIN || overlay_menu == NowPlayingOverlayMenu.PALETTE) {
-                                                        overlay_menu =
-                                                            if (overlay_menu == NowPlayingOverlayMenu.NONE) NowPlayingOverlayMenu.MAIN else NowPlayingOverlayMenu.NONE
+                            // Thumbnail overlay menu
+                            androidx.compose.animation.AnimatedVisibility(overlay_menu != NowPlayingOverlayMenu.NONE, enter = fadeIn(), exit = fadeOut()) {
+                                Box(
+                                    Modifier
+                                        .background(
+                                            setColourAlpha(Color.DarkGray, 0.85),
+                                            shape = RoundedCornerShape(5)
+                                        )
+                                        .fillMaxSize(), contentAlignment = Alignment.Center) {
+                                    Crossfade(overlay_menu) { menu ->
+                                        when (menu) {
+                                            NowPlayingOverlayMenu.MAIN ->
+                                                Column(
+                                                    Modifier
+                                                        .fillMaxSize()
+                                                        .padding(20.dp), verticalArrangement = Arrangement.SpaceBetween) {
+                                                    p_status.song?.artist?.Preview(false, Modifier)
+
+                                                    Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.SpaceEvenly) {
+
+                                                        Box(
+                                                            Modifier
+                                                                .background(
+                                                                    background_colour.value,
+                                                                    CircleShape
+                                                                )
+                                                                .size(40.dp)
+                                                                .padding(8.dp)
+                                                                .clickable {
+                                                                    overlay_menu =
+                                                                        NowPlayingOverlayMenu.LYRICS
+                                                                }
+                                                        ) {
+                                                            Image(
+                                                                painterResource(R.drawable.ic_music_note), "",
+                                                                colorFilter = ColorFilter.tint(on_background_colour.value)
+                                                            )
+                                                        }
+
+                                                        Box(
+                                                            Modifier
+                                                                .background(
+                                                                    background_colour.value,
+                                                                    CircleShape
+                                                                )
+                                                                .size(40.dp)
+                                                                .padding(8.dp)
+                                                                .clickable {
+                                                                    overlay_menu =
+                                                                        NowPlayingOverlayMenu.PALETTE
+                                                                }
+                                                        ) {
+                                                            Image(
+                                                                painterResource(R.drawable.ic_palette), "",
+                                                                colorFilter = ColorFilter.tint(on_background_colour.value)
+                                                            )
+                                                        }
+
                                                     }
                                                 }
-                                        )
-                                    }
-                                }
-
-                                // Thumbnail overlay menu
-                                androidx.compose.animation.AnimatedVisibility(overlay_menu != NowPlayingOverlayMenu.NONE, enter = fadeIn(), exit = fadeOut()) {
-                                    Box(
-                                        Modifier
-                                            .background(
-                                                setColourAlpha(Color.DarkGray, 0.85),
-                                                shape = RoundedCornerShape(5)
-                                            )
-                                            .fillMaxSize(), contentAlignment = Alignment.Center) {
-                                        Crossfade(overlay_menu) { menu ->
-                                            when (menu) {
-                                                NowPlayingOverlayMenu.MAIN ->
-                                                    Column(
-                                                        Modifier
-                                                            .fillMaxSize()
-                                                            .padding(20.dp), verticalArrangement = Arrangement.SpaceBetween) {
-                                                        p_status.song?.artist?.Preview(false)
-
-                                                        Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.SpaceEvenly) {
-
-                                                            Box(
-                                                                Modifier
-                                                                    .background(
-                                                                        background_colour.value,
-                                                                        CircleShape
-                                                                    )
-                                                                    .size(40.dp)
-                                                                    .padding(8.dp)
-                                                                    .clickable {
-                                                                        overlay_menu =
-                                                                            NowPlayingOverlayMenu.LYRICS
-                                                                    }
-                                                            ) {
-                                                                Image(
-                                                                    painterResource(R.drawable.ic_music_note), "",
-                                                                    colorFilter = ColorFilter.tint(on_background_colour.value)
-                                                                )
-                                                            }
-
-                                                            Box(
-                                                                Modifier
-                                                                    .background(
-                                                                        background_colour.value,
-                                                                        CircleShape
-                                                                    )
-                                                                    .size(40.dp)
-                                                                    .padding(8.dp)
-                                                                    .clickable {
-                                                                        overlay_menu =
-                                                                            NowPlayingOverlayMenu.PALETTE
-                                                                    }
-                                                            ) {
-                                                                Image(
-                                                                    painterResource(R.drawable.ic_palette), "",
-                                                                    colorFilter = ColorFilter.tint(on_background_colour.value)
-                                                                )
-                                                            }
-
-                                                        }
-                                                    }
-                                                NowPlayingOverlayMenu.PALETTE ->
-                                                    PaletteSelector(theme_palette) { index, _ ->
-                                                        palette_index = index
-                                                        overlay_menu = NowPlayingOverlayMenu.NONE
-                                                    }
-                                                NowPlayingOverlayMenu.LYRICS ->
-                                                    if (p_status.song != null) {
-                                                        LyricsDisplay(p_status.song!!, { overlay_menu = NowPlayingOverlayMenu.NONE })
-                                                    }
-                                                NowPlayingOverlayMenu.NONE -> {}
-                                            }
+                                            NowPlayingOverlayMenu.PALETTE ->
+                                                PaletteSelector(theme_palette) { index, _ ->
+                                                    palette_index = index
+                                                    overlay_menu = NowPlayingOverlayMenu.NONE
+                                                }
+                                            NowPlayingOverlayMenu.LYRICS ->
+                                                if (p_status.song != null) {
+                                                    LyricsDisplay(p_status.song!!, { overlay_menu = NowPlayingOverlayMenu.NONE })
+                                                }
+                                            NowPlayingOverlayMenu.NONE -> {}
                                         }
-                                    }
-                                }
-                            }
-
-                            Row(horizontalArrangement = Arrangement.End, modifier = Modifier
-                                .fillMaxWidth()
-                            ) {
-
-                                Spacer(Modifier.requiredWidth(10.dp))
-
-                                Text(
-                                    getSongTitle(),
-                                    maxLines = 1,
-                                    overflow = TextOverflow.Ellipsis,
-                                    modifier = Modifier
-                                        .align(Alignment.CenterVertically)
-                                        .weight(1f)
-                                        .fillMaxWidth()
-                                )
-
-                                AnimatedVisibility(
-                                    p_status.has_previous,
-                                    enter = expandHorizontally(),
-                                    exit = shrinkHorizontally()
-                                ) {
-                                    IconButton(
-                                        onClick = {
-                                            MainActivity.player.interact {
-                                                it.player.seekToPreviousMediaItem()
-                                            }
-                                        }
-                                    ) {
-                                        Image(
-                                            painterResource(R.drawable.ic_skip_previous),
-                                            "",
-                                            colorFilter = colour_filter
-                                        )
-                                    }
-                                }
-
-                                AnimatedVisibility(p_status.song != null, enter = fadeIn(), exit = fadeOut()) {
-                                    IconButton(
-                                        onClick = {
-                                            MainActivity.player.interact {
-                                                it.playPause()
-                                            }
-                                        }
-                                    ) {
-                                        Image(
-                                            painterResource(if (p_status.playing) R.drawable.ic_pause else R.drawable.ic_play_arrow),
-                                            MainActivity.getString(if (p_status.playing) R.string.media_pause else R.string.media_play),
-                                            colorFilter = colour_filter
-                                        )
-                                    }
-                                }
-
-                                AnimatedVisibility(p_status.has_next, enter = expandHorizontally(), exit = shrinkHorizontally()) {
-                                    IconButton(
-                                        onClick = {
-                                            MainActivity.player.interact {
-                                                it.player.seekToNextMediaItem()
-                                            }
-                                        }
-                                    ) {
-                                        Image(
-                                            painterResource(R.drawable.ic_skip_next),
-                                            "",
-                                            colorFilter = colour_filter
-                                        )
                                     }
                                 }
                             }
                         }
 
-                        if (expansion > 0.0f) {
-                            Spacer(Modifier.requiredHeight(30.dp))
+                        Row(horizontalArrangement = Arrangement.End, modifier = Modifier.fillMaxWidth(inv_expansion * 0.9f)) {
 
-                            Box(
-                                Modifier
-                                    .alpha(expansion)
-                                    .weight(1f), contentAlignment = Alignment.TopCenter) {
+                            Spacer(Modifier.requiredWidth(10.dp))
 
-                                @Composable
-                                fun PlayerButton(painter: Painter, size: Dp = button_size, alpha: Float = 1f, colour: Color = on_background_colour.value, label: String? = null, enabled: Boolean = true, on_click: () -> Unit) {
-                                    Box(
-                                        contentAlignment = Alignment.Center,
-                                        modifier = Modifier
-                                            .clickable(
-                                                onClick = on_click,
-                                                indication = rememberRipple(
-                                                    radius = 25.dp,
-                                                    bounded = false
-                                                ),
-                                                interactionSource = remember { MutableInteractionSource() },
-                                                enabled = enabled
-                                            )
-                                            .alpha(if (enabled) 1.0f else 0.5f)
-                                    ) {
-                                        Image(
-                                            painter, "",
-                                            Modifier
-                                                .requiredSize(size, button_size)
-                                                .offset(y = if (label != null) (-7).dp else 0.dp),
-                                            colorFilter = ColorFilter.tint(colour),
-                                            alpha = alpha
-                                        )
-                                        if (label != null) {
-                                            Text(label, color = colour, fontSize = 10.sp, modifier = Modifier.offset(y = (10).dp))
+                            Text(
+                                getSongTitle(),
+                                maxLines = 1,
+                                overflow = TextOverflow.Ellipsis,
+                                modifier = Modifier
+                                    .align(Alignment.CenterVertically)
+                                    .weight(1f)
+                                    .fillMaxWidth()
+                            )
+
+                            AnimatedVisibility(p_status.has_previous, enter = expandHorizontally(), exit = shrinkHorizontally()) {
+                                IconButton(
+                                    onClick = {
+                                        PlayerHost.interact {
+                                            it.seekToPreviousMediaItem()
                                         }
                                     }
-                                }
-
-                                @Composable
-                                fun PlayerButton(image_id: Int, size: Dp = button_size, alpha: Float = 1f, colour: Color = on_background_colour.value, label: String? = null, enabled: Boolean = true, on_click: () -> Unit) {
-                                    PlayerButton(painterResource(image_id), size, alpha, colour, label, enabled, on_click)
-                                }
-
-                                Column(verticalArrangement = Arrangement.spacedBy(35.dp)) {
-
-                                    Column(verticalArrangement = Arrangement.spacedBy(5.dp)) {
-
-                                        // Title text
-                                        Text(getSongTitle(),
-                                            fontSize = 17.sp,
-                                            color = on_background_colour.value,
-                                            textAlign = TextAlign.Center,
-                                            maxLines = 1,
-                                            overflow = TextOverflow.Ellipsis,
-                                            modifier = Modifier
-                                                .fillMaxWidth()
-                                                .animateContentSize())
-
-                                        // Artist text
-                                        Text(getSongArtist(),
-                                            fontSize = 12.sp,
-                                            color = on_background_colour.value,
-                                            textAlign = TextAlign.Center,
-                                            maxLines = 1,
-                                            overflow = TextOverflow.Ellipsis,
-                                            modifier = Modifier
-                                                .fillMaxWidth()
-                                                .animateContentSize())
-                                    }
-
-                                    var slider_moving by remember { mutableStateOf(false) }
-                                    var slider_value by remember { mutableStateOf(0.0f) }
-                                    var old_p_position by remember { mutableStateOf<Float?>(null) }
-
-                                    LaunchedEffect(p_status.position) {
-                                        if (!slider_moving && p_status.position != old_p_position) {
-                                            slider_value = p_status.position
-                                            old_p_position = null
-                                        }
-                                    }
-
-                                    SliderValueHorizontal(
-                                        value = slider_value,
-                                        onValueChange = { slider_moving = true; slider_value = it },
-                                        onValueChangeFinished = {
-                                            slider_moving = false
-                                            old_p_position = p_status.position
-                                            MainActivity.player.interact {
-                                                it.player.seekTo((it.player.duration * slider_value).toLong())
-                                            }
-                                        },
-                                        thumbSizeInDp = DpSize(12.dp, 12.dp),
-                                        track = { a, b, c, d, e -> DefaultTrack(a, b, c, d, e, setColourAlpha(on_background_colour.value, 0.5), on_background_colour.value) },
-                                        thumb = { a, b, c, d, e -> DefaultThumb(a, b, c, d, e, on_background_colour.value, 1f) }
+                                ) {
+                                    Image(
+                                        painterResource(R.drawable.ic_skip_previous),
+                                        "",
+                                        colorFilter = colour_filter
                                     )
+                                }
+                            }
 
-                                    Row(
-                                        horizontalArrangement = Arrangement.Center,
+                            AnimatedVisibility(p_status.song != null, enter = fadeIn(), exit = fadeOut()) {
+                                IconButton(
+                                    onClick = {
+                                        PlayerHost.interactService {
+                                            it.playPause()
+                                        }
+                                    }
+                                ) {
+                                    Image(
+                                        painterResource(if (p_status.playing) R.drawable.ic_pause else R.drawable.ic_play_arrow),
+                                        MainActivity.getString(if (p_status.playing) R.string.media_pause else R.string.media_play),
+                                        colorFilter = colour_filter
+                                    )
+                                }
+                            }
+
+                            AnimatedVisibility(p_status.has_next, enter = expandHorizontally(), exit = shrinkHorizontally()) {
+                                IconButton(
+                                    onClick = {
+                                        PlayerHost.interact {
+                                            it.seekToNextMediaItem()
+                                        }
+                                    }
+                                ) {
+                                    Image(
+                                        painterResource(R.drawable.ic_skip_next),
+                                        "",
+                                        colorFilter = colour_filter
+                                    )
+                                }
+                            }
+                        }
+                    }
+
+                    if (expansion > 0.0f) {
+                        Spacer(Modifier.requiredHeight(30.dp))
+
+                        Box(
+                            Modifier
+                                .alpha(expansion)
+                                .weight(1f), contentAlignment = Alignment.TopCenter) {
+
+                            @Composable
+                            fun PlayerButton(painter: Painter, size: Dp = button_size, alpha: Float = 1f, colour: Color = on_background_colour.value, label: String? = null, enabled: Boolean = true, on_click: () -> Unit) {
+                                Box(
+                                    contentAlignment = Alignment.Center,
+                                    modifier = Modifier
+                                        .clickable(
+                                            onClick = on_click,
+                                            indication = rememberRipple(
+                                                radius = 25.dp,
+                                                bounded = false
+                                            ),
+                                            interactionSource = remember { MutableInteractionSource() },
+                                            enabled = enabled
+                                        )
+                                        .alpha(if (enabled) 1.0f else 0.5f)
+                                ) {
+                                    Image(
+                                        painter, "",
+                                        Modifier
+                                            .requiredSize(size, button_size)
+                                            .offset(y = if (label != null) (-7).dp else 0.dp),
+                                        colorFilter = ColorFilter.tint(colour),
+                                        alpha = alpha
+                                    )
+                                    if (label != null) {
+                                        Text(label, color = colour, fontSize = 10.sp, modifier = Modifier.offset(y = (10).dp))
+                                    }
+                                }
+                            }
+
+                            @Composable
+                            fun PlayerButton(image_id: Int, size: Dp = button_size, alpha: Float = 1f, colour: Color = on_background_colour.value, label: String? = null, enabled: Boolean = true, on_click: () -> Unit) {
+                                PlayerButton(painterResource(image_id), size, alpha, colour, label, enabled, on_click)
+                            }
+
+                            Column(verticalArrangement = Arrangement.spacedBy(35.dp)) {
+
+                                Column(verticalArrangement = Arrangement.spacedBy(5.dp)) {
+
+                                    // Title text
+                                    Text(getSongTitle(),
+                                        fontSize = 17.sp,
+                                        color = on_background_colour.value,
+                                        textAlign = TextAlign.Center,
+                                        maxLines = 1,
+                                        overflow = TextOverflow.Ellipsis,
                                         modifier = Modifier
                                             .fillMaxWidth()
-                                            .weight(1f),
-                                    ) {
+                                            .animateContentSize())
 
-                                        val utility_separation = 25.dp
+                                    // Artist text
+                                    Text(getSongArtist(),
+                                        fontSize = 12.sp,
+                                        color = on_background_colour.value,
+                                        textAlign = TextAlign.Center,
+                                        maxLines = 1,
+                                        overflow = TextOverflow.Ellipsis,
+                                        modifier = Modifier
+                                            .fillMaxWidth()
+                                            .animateContentSize())
+                                }
 
-                                        PlayerButton(R.drawable.ic_shuffle, button_size * 0.65f, if (p_status.shuffle) 1f else 0.25f) { MainActivity.player.interact {
-                                            it.player.shuffleModeEnabled = !it.player.shuffleModeEnabled
-                                        } }
+                                var slider_moving by remember { mutableStateOf(false) }
+                                var slider_value by remember { mutableStateOf(0.0f) }
+                                var old_p_position by remember { mutableStateOf<Float?>(null) }
 
-                                        Spacer(Modifier.requiredWidth(utility_separation))
+                                LaunchedEffect(p_status.position) {
+                                    if (!slider_moving && p_status.position != old_p_position) {
+                                        slider_value = p_status.position
+                                        old_p_position = null
+                                    }
+                                }
 
-                                        PlayerButton(R.drawable.ic_skip_previous, enabled = p_status.has_previous) {
-                                            MainActivity.player.interact { it.player.seekToPreviousMediaItem() }
+                                SliderValueHorizontal(
+                                    value = slider_value,
+                                    onValueChange = { slider_moving = true; slider_value = it },
+                                    onValueChangeFinished = {
+                                        slider_moving = false
+                                        old_p_position = p_status.position
+                                        PlayerHost.interact {
+                                            it.seekTo((it.duration * slider_value).toLong())
                                         }
+                                    },
+                                    thumbSizeInDp = DpSize(12.dp, 12.dp),
+                                    track = { a, b, c, d, e -> DefaultTrack(a, b, c, d, e, setColourAlpha(on_background_colour.value, 0.5), on_background_colour.value) },
+                                    thumb = { a, b, c, d, e -> DefaultThumb(a, b, c, d, e, on_background_colour.value, 1f) }
+                                )
 
-                                        PlayerButton(if (p_status.playing) R.drawable.ic_pause else R.drawable.ic_play_arrow, enabled = p_status.song != null) {
-                                            MainActivity.player.interact { it.playPause() }
+                                Row(
+                                    horizontalArrangement = Arrangement.Center,
+                                    modifier = Modifier
+                                        .fillMaxWidth()
+                                        .weight(1f),
+                                ) {
+
+                                    val utility_separation = 25.dp
+
+                                    PlayerButton(R.drawable.ic_shuffle, button_size * 0.65f, if (p_status.shuffle) 1f else 0.25f) {
+                                        PlayerHost.interact {
+                                            it.shuffleModeEnabled = !it.shuffleModeEnabled
                                         }
+                                    }
 
-                                        PlayerButton(R.drawable.ic_skip_next, enabled = p_status.has_next) {
-                                            MainActivity.player.interact { it.player.seekToNextMediaItem() }
+                                    Spacer(Modifier.requiredWidth(utility_separation))
+
+                                    PlayerButton(R.drawable.ic_skip_previous, enabled = p_status.has_previous) {
+                                        PlayerHost.interact {
+                                            it.seekToPreviousMediaItem()
                                         }
+                                    }
 
-                                        Spacer(Modifier.requiredWidth(utility_separation))
+                                    PlayerButton(if (p_status.playing) R.drawable.ic_pause else R.drawable.ic_play_arrow, enabled = p_status.song != null) {
+                                        PlayerHost.interactService {
+                                            it.playPause()
+                                        }
+                                    }
 
-                                        PlayerButton(
-                                            if (p_status.repeat_mode == Player.REPEAT_MODE_ONE) R.drawable.ic_repeat_one else R.drawable.ic_repeat,
-                                            button_size * 0.65f,
-                                            if (p_status.repeat_mode != Player.REPEAT_MODE_OFF) 1f else 0.25f) {
+                                    PlayerButton(R.drawable.ic_skip_next, enabled = p_status.has_next) {
+                                        PlayerHost.interact {
+                                            it.seekToNextMediaItem()
+                                        }
+                                    }
 
-                                            MainActivity.player.interact {
-                                                it.player.repeatMode = when (it.player.repeatMode) {
-                                                    Player.REPEAT_MODE_ALL -> Player.REPEAT_MODE_ONE
-                                                    Player.REPEAT_MODE_ONE -> Player.REPEAT_MODE_OFF
-                                                    else -> Player.REPEAT_MODE_ALL
-                                                }
+                                    Spacer(Modifier.requiredWidth(utility_separation))
+
+                                    PlayerButton(
+                                        if (p_status.repeat_mode == Player.REPEAT_MODE_ONE) R.drawable.ic_repeat_one else R.drawable.ic_repeat,
+                                        button_size * 0.65f,
+                                        if (p_status.repeat_mode != Player.REPEAT_MODE_OFF) 1f else 0.25f) {
+
+                                        PlayerHost.interact {
+                                            it.repeatMode = when (it.repeatMode) {
+                                                Player.REPEAT_MODE_ALL -> Player.REPEAT_MODE_ONE
+                                                Player.REPEAT_MODE_ONE -> Player.REPEAT_MODE_OFF
+                                                else -> Player.REPEAT_MODE_ALL
                                             }
                                         }
                                     }
@@ -517,11 +515,29 @@ fun NowPlaying(_expansion: Float, max_height: Float, p_status: PlayerStatus, bac
                             }
                         }
                     }
-                    else if (tab == NowPlayingTab.QUEUE) {
-                        QueueTab(p_status, Modifier.weight(1f))
-                    }
+                }
+                else if (tab == NowPlayingTab.QUEUE) {
+                    QueueTab(p_status, on_background_colour.value)
                 }
             }
+        }
+
+        Column(verticalArrangement = Arrangement.Top, modifier = Modifier.fillMaxHeight()) {
+
+            Box(Modifier.weight(1f)) {
+                Crossfade(current_tab, animationSpec = tween(100)) { tab ->
+                    Tab(tab)
+                }
+            }
+
+            // if (expansion >= 1.0f) {
+            //     HorizontalPager(count = NowPlayingTab.values().size, state = tab_state, modifier = Modifier.weight(1f)) { page ->
+            //         Tab(NowPlayingTab.values()[page])
+            //     }
+            // }
+            // else {
+            //     Tab(current_tab, Modifier.weight(1f))
+            // }
 
             if (expansion > 0.0f) {
                 MultiSelector(
@@ -567,51 +583,43 @@ fun NowPlaying(_expansion: Float, max_height: Float, p_status: PlayerStatus, bac
 
 @OptIn(ExperimentalComposeUiApi::class)
 @Composable
-fun QueueTab(p_status: PlayerStatus, modifier: Modifier = Modifier) {
+fun QueueTab(p_status: PlayerStatus, on_background_colour: Color) {
 
-    data class Item(val song: Song, var can_drag: Boolean = false)
+    var key_inc by remember { mutableStateOf(0) }
 
-    @Composable
-    fun QueueItem(item: Item) {
-        Row(horizontalArrangement = Arrangement.SpaceBetween) {
-            item.song.Preview(false)
-            IconButton(onClick = {}, modifier =
-            Modifier
-                .pointerInteropFilter {
-                    when (it.action) {
-                        MotionEvent.ACTION_DOWN -> {
-                            item.can_drag = true
-                        }
-                        MotionEvent.ACTION_UP -> {
-                            item.can_drag = false
-                        }
-                        else -> return@pointerInteropFilter false
-                    }
-                    true
-                }
-                .weight(1f)
-                .requiredWidth(10.dp)
-            ) {
-                Image(rememberVectorPainter(Icons.Filled.Menu), "")
+    data class Item(val song: Song, val key: Int, val p_status: PlayerStatus) {
+        @Composable
+        fun QueueElement(handle_modifier: Modifier) {
+
+            var modifier = if (song == p_status.song) Modifier.background(getContrastedColour(on_background_colour)) else Modifier
+
+            Row(horizontalArrangement = Arrangement.End, verticalAlignment = Alignment.CenterVertically, modifier = modifier) {
+                song.Preview(false, Modifier.weight(1f))
+                Image(rememberVectorPainter(Icons.Filled.Menu), "", modifier = handle_modifier
+                    .requiredSize(30.dp),
+                    colorFilter = ColorFilter.tint(on_background_colour)
+                )
             }
         }
     }
 
-    var song_items by remember { mutableStateOf(mutableListOf<Item>()) }.also {
-        if (it.value.isEmpty()) {
-            for (song in p_status.queue) {
-                it.value.add(Item(song, false))
-            }
+    var song_items by remember { mutableStateOf(
+        List(p_status.queue.size) {
+            Item(p_status.queue[it], key_inc++, p_status)
         }
-    }
+    ) }
 
     val queue_listener = remember {
         object : PlayerHost.PlayerQueueListener {
             override fun onSongAdded(song: Song, index: Int) {
-                song_items.add(index, Item(song))
+                song_items = song_items.toMutableList().apply {
+                    add(index, Item(song, key_inc++, p_status))
+                }
             }
             override fun onSongRemoved(song: Song, index: Int) {
-                song_items.removeAt(index)
+                song_items = song_items.toMutableList().apply {
+                    removeAt(index)
+                }
             }
         }
     }
@@ -622,29 +630,26 @@ fun QueueTab(p_status: PlayerStatus, modifier: Modifier = Modifier) {
                 add(to.index, removeAt(from.index))
             }
         },
-        canDragOver = { position ->
-            song_items[position.index].can_drag
+        onDragEnd = { from, to ->
+            PlayerHost.interact {
+                it.moveMediaItem(from, to)
+            }
         }
     )
 
     LazyColumn(
-        verticalArrangement = Arrangement.Top,
         state = state.listState,
-        modifier = modifier
+        modifier = Modifier
             .reorderable(state)
-            .detectReorderAfterLongPress(state)
-            .fillMaxHeight()
     ) {
-        items(song_items.size) { index ->
-            ReorderableItem(state, key = null) { isDragging ->
-                val elevation = animateDpAsState(if (isDragging) 16.dp else 0.dp)
-                Column(
-                    modifier = Modifier
-                        .shadow(elevation.value)
-                        .background(MaterialTheme.colorScheme.surface)
-                ) {
-                    QueueItem(song_items[index])
+        items(song_items.size, { song_items[it].key }) { index ->
+            val item = song_items[index]
+            ReorderableItem(state, item.key) { is_dragging ->
+                LaunchedEffect(is_dragging) {
+                    if (is_dragging)
+                        vibrate(0.01)
                 }
+                item.QueueElement(Modifier.detectReorder(state))
             }
         }
     }

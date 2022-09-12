@@ -18,7 +18,7 @@ import com.chaquo.python.Python
 import com.spectre7.spmp.R
 import com.spectre7.spmp.api.DataApi
 import com.spectre7.spmp.model.Song
-import com.spectre7.spmp.sendToast
+import com.spectre7.utils.sendToast
 import net.zerotask.libraries.android.compose.furigana.TextData
 import net.zerotask.libraries.android.compose.furigana.TextWithReading
 
@@ -75,7 +75,7 @@ val kakasi = Python.getInstance().getModule("pykakasi").callAttr("Kakasi")
 @Composable
 fun FuriganaText(text: String, show_furigana: Boolean) {
 
-    fun generateContent(text: String, content: MutableList<TextData>) {
+    fun generateContent(text: String, content: MutableList<TextData>): MutableList<TextData> {
         for (term in kakasi.callAttr("convert", text.replace("\n", "\\n").replace("\r", "\\r")).asList()) {
             fun getKey(key: String): String {
                 return term.callAttr("get", key).toString().replace("\\n", "\n").replace("\\r", "\r")
@@ -83,19 +83,17 @@ fun FuriganaText(text: String, show_furigana: Boolean) {
 
             val original = getKey("orig")
             val hiragana = getKey("hira")
+            val katakana = getKey("kana")
 
             content.add(TextData(
                 text = original,
-                reading = if (original != hiragana && original != getKey("kana")) hiragana else null
+                reading = if (original != hiragana && original != katakana) hiragana else null
             ))
         }
+        return content
     }
 
-    val text_content = remember(text) {
-        val list = mutableStateListOf<TextData>()
-        generateContent(text, list)
-        list
-    }
+    val text_content = remember(text) { generateContent(text, mutableStateListOf<TextData>()) }
 
     Crossfade(targetState = show_furigana) {
         TextWithReading(

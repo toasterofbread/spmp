@@ -5,13 +5,10 @@ import android.content.*
 import android.graphics.Bitmap
 import android.os.Binder
 import android.os.IBinder
-import android.os.Looper
 import android.support.v4.media.session.MediaSessionCompat
-import android.widget.Toast
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.toArgb
 import android.view.KeyEvent
-import android.view.KeyEvent.ACTION_DOWN
 import androidx.core.app.NotificationCompat
 import androidx.media.session.MediaButtonReceiver
 import com.google.android.exoplayer2.C
@@ -22,18 +19,8 @@ import com.google.android.exoplayer2.audio.AudioAttributes
 import com.google.android.exoplayer2.ext.mediasession.MediaSessionConnector
 import com.google.android.exoplayer2.ui.PlayerNotificationManager
 import com.spectre7.spmp.model.Song
-import java.lang.NullPointerException
+import com.spectre7.utils.sendToast
 import kotlin.concurrent.thread
-
-fun sendToast(text: String) {
-    try {
-        Toast.makeText(MainActivity.context, text, Toast.LENGTH_SHORT).show()
-    }
-    catch (e: NullPointerException) {
-        Looper.prepare()
-        Toast.makeText(MainActivity.context, text, Toast.LENGTH_SHORT).show()
-    }
-}
 
 class PlayerHost(private var context: Context) {
 
@@ -163,7 +150,7 @@ class PlayerHost(private var context: Context) {
                 override fun onMediaButtonEvent(event_intent: Intent?): Boolean {
 
                     val event = event_intent?.extras?.get("android.intent.extra.KEY_EVENT") as KeyEvent?
-                    if (event == null || event.action != ACTION_DOWN) {
+                    if (event == null || event.action != KeyEvent.ACTION_DOWN) {
                         return super.onMediaButtonEvent(event_intent)
                     }
 
@@ -214,7 +201,7 @@ class PlayerHost(private var context: Context) {
                     stopForeground(true)
                     stopSelf()
 
-                    // TODO
+                    // TODO | Stop service properly
                 }
             }
 

@@ -7,7 +7,6 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.material3.MaterialTheme
 import java.net.URL
-import com.spectre7.spmp.sendToast
 
 abstract class Previewable {
 

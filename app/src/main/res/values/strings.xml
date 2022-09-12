@@ -13,6 +13,10 @@
     <string name="media_pause">Pause</string>
     <string name="media_play">Play</string>
 
+    <string name="now_playing_player">Player</string>
+    <string name="now_playing_queue">Queue</string>
+    <string name="now_playing_related">Related</string>
+
     <string name="player_service_name">Player Service</string>
 
 </resources>

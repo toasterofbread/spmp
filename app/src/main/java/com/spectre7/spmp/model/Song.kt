@@ -41,7 +41,7 @@ data class Song (
         }
     }
 
-    // TODO add config
+    // TODO | Add config
     fun getTitle(): String {
         var ret = nativeData!!.title
 
@@ -135,6 +135,11 @@ data class Song (
     @Composable
     override fun Preview(large: Boolean, modifier: Modifier, colour: Color) {
         return SongPreview(this, large, colour, modifier)
+    }
+
+    @Composable
+    fun PreviewBasic(large: Boolean, modifier: Boolean, colour: Color) {
+        return SongPreview(this, large, colour, modifier, true)
     }
 
 }

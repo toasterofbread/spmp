@@ -44,7 +44,6 @@ import com.spectre7.spmp.ui.layout.MINIMISED_NOW_PLAYING_HEIGHT
 import com.spectre7.spmp.ui.layout.PlayerStatus
 import com.spectre7.spmp.ui.components.*
 import com.spectre7.utils.*
-import org.burnoutcrew.reorderable.*
 import kotlin.concurrent.thread
 import kotlin.math.max
 
@@ -429,7 +428,7 @@ fun NowPlaying(_expansion: Float, max_height: Float, p_status: PlayerStatus, bac
                                         modifier = Modifier
                                             .fillMaxWidth()
                                             .animateContentSize())
-                                    
+
                                 }
 
                                 var slider_moving by remember { mutableStateOf(false) }

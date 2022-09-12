@@ -23,9 +23,8 @@ import java.time.Instant
 import java.util.*
 import kotlin.concurrent.thread
 
-
 class DataApi {
-    
+
     class HTTPGetRequest(request_url: String) {
         private var requestURL: String = request_url
         private var params: String = ""

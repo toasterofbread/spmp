@@ -99,10 +99,57 @@ android {
     lintOptions {
         disable 'ByteOrderMark'
     }
+
+    sourceSets {
+        main {
+            assets.srcDirs = ['build/igo/assets/']
+        }
+    }
 }
 
 configurations.all {
     resolutionStrategy.cacheChangingModulesFor 0, 'seconds'
+}
+
+def download = { source, dest ->
+    File file = new File(dest)
+    file.parentFile.mkdirs()
+    if (!file.exists()) {
+        new URL(source).withInputStream { downloadStream ->
+            file.withOutputStream { fileOut ->
+                fileOut << downloadStream
+            }
+        }
+    }
+    return file
+}
+
+def igo = {
+
+    File jar = download("https://osdn.net/frs/redir.php?m=nchc&f=igo%2F55029%2Figo-0.4.5.jar", "$buildDir/igo/igo.jar")
+    File dict = download("https://altushost-swe.dl.sourceforge.net/project/mecab/mecab-ipadic/2.7.0-20070801/mecab-ipadic-2.7.0-20070801.tar.gz", "$buildDir/igo/dict.tar.gz")
+
+    copy {
+        from tarTree(resources.gzip(dict.absolutePath))
+        into jar.parentFile
+    }
+
+    File compiled_dict = new File("$buildDir/igo/assets/ipadic")
+    compiled_dict.parentFile.mkdirs()
+
+    if (!compiled_dict.exists()) {
+        javaexec {
+            main="net.reduls.igo.bin.BuildDic"
+            classpath = files(jar.absolutePath)
+            args = [
+                compiled_dict,
+                new File("$buildDir/igo/mecab-ipadic-2.7.0-20070801"),
+                "EUC-JP"
+            ]
+        }
+    }
+
+    return files(jar.absolutePath)
 }
 
 dependencies {
@@ -131,5 +178,8 @@ dependencies {
     implementation 'androidx.palette:palette:1.0.0'
     implementation "com.github.krottv:compose-sliders:0.1.4"
     implementation "org.burnoutcrew.composereorderable:reorderable:0.9.2"
+
+    implementation igo()
+
 //    implementation 'com.github.spectreseven1138:android-compose-furigana:1.0.0'
 }

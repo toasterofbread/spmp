@@ -138,7 +138,7 @@ data class Song (
     }
 
     @Composable
-    fun PreviewBasic(large: Boolean, modifier: Boolean, colour: Color) {
+    fun PreviewBasic(large: Boolean, modifier: Modifier, colour: Color) {
         return SongPreview(this, large, colour, modifier, true)
     }
 

@@ -1,5 +1,6 @@
 package com.spectre7.spmp.ui.components
 
+import android.util.Log
 import androidx.compose.animation.Crossfade
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.layout.*
@@ -19,8 +20,18 @@ import com.spectre7.spmp.R
 import com.spectre7.spmp.api.DataApi
 import com.spectre7.spmp.model.Song
 import com.spectre7.utils.sendToast
+import com.spectre7.spmp.MainActivity
 import net.zerotask.libraries.android.compose.furigana.TextData
 import net.zerotask.libraries.android.compose.furigana.TextWithReading
+import java.io.BufferedReader
+import java.io.InputStreamReader
+import net.reduls.igo.Morpheme
+import net.reduls.igo.Tagger
+import java.io.*;
+import java.net.*;
+import java.nio.file.*;
+import java.util.*;
+import java.util.stream.*;
 
 @Composable
 fun LyricsDisplay(song: Song, on_close_request: () -> Unit) {
@@ -74,6 +85,28 @@ val kakasi = Python.getInstance().getModule("pykakasi").callAttr("Kakasi")
 
 @Composable
 fun FuriganaText(text: String, show_furigana: Boolean) {
+
+    val path = MainActivity.context.getExternalFilesDir(null)
+    val dic = File(path, "ipadic")
+    dic.mkdirs()
+
+    val assets = MainActivity.context.getAssets()
+
+    for (file in assets.list("ipadic")!!) {
+        val dest = File(dic, file)
+        if (!dest.exists()) {
+            val s = assets.open("ipadic/$file")
+            dest.outputStream().use { fileOut ->
+                s.copyTo(fileOut)
+            }
+        }
+    }
+
+    val tagger = Tagger(dic.absolutePath)
+
+    for(m in tagger.parse("汚れなし")) {
+        sendToast("${m.surface} | ${m.feature} | ${m.start}")
+    }
 
     fun generateContent(text: String, content: MutableList<TextData>): MutableList<TextData> {
         for (term in kakasi.callAttr("convert", text.replace("\n", "\\n").replace("\r", "\\r")).asList()) {

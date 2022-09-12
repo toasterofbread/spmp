@@ -5,6 +5,7 @@ import android.graphics.BitmapFactory
 import android.util.Log
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.graphics.Color
 import com.spectre7.spmp.api.DataApi
 import com.spectre7.spmp.ui.components.SongPreview
 import com.spectre7.spmp.PlayerHost
@@ -132,7 +133,8 @@ data class Song (
     }
 
     @Composable
-    override fun Preview(large: Boolean, modifier: Modifier) {
-        return SongPreview(this, large, modifier)
+    override fun Preview(large: Boolean, modifier: Modifier, colour: Color) {
+        return SongPreview(this, large, colour, modifier)
     }
+
 }

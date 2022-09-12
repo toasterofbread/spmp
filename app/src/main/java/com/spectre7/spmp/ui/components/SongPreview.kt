@@ -17,13 +17,14 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.text.style.TextOverflow
+import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.unit.*
 import coil.compose.rememberAsyncImagePainter
 import com.spectre7.spmp.MainActivity
 import com.spectre7.spmp.PlayerHost
 
 @Composable
-fun SongPreview (song: Song, large: Boolean, modifier: Modifier = Modifier) {
+fun SongPreview (song: Song, large: Boolean, colour: Color, modifier: Modifier = Modifier) {
 
     if (large) {
         Column(
@@ -45,7 +46,7 @@ fun SongPreview (song: Song, large: Boolean, modifier: Modifier = Modifier) {
                 Text(
                     song.getTitle(),
                     fontSize = 12.sp,
-                    color = MaterialTheme.colorScheme.onBackground,
+                    color = colour,
                     maxLines = 2,
                     lineHeight = 14.sp,
                     overflow = TextOverflow.Ellipsis
@@ -70,7 +71,7 @@ fun SongPreview (song: Song, large: Boolean, modifier: Modifier = Modifier) {
                 Text(
                     song.getTitle(),
                     fontSize = 15.sp,
-                    color = MaterialTheme.colorScheme.onBackground,
+                    color = colour,
                     maxLines = 1,
                     overflow = TextOverflow.Ellipsis
                 )
@@ -78,7 +79,7 @@ fun SongPreview (song: Song, large: Boolean, modifier: Modifier = Modifier) {
                 Text(
                     song.artist.nativeData.name,
                     fontSize = 11.sp,
-                    color = MaterialTheme.colorScheme.onBackground.copy(alpha=0.5f),
+                    color = colour.copy(alpha=0.5f),
                     maxLines = 1,
                     overflow = TextOverflow.Ellipsis
                 )
@@ -91,7 +92,7 @@ fun SongPreview (song: Song, large: Boolean, modifier: Modifier = Modifier) {
                     }
                 }
             }, modifier = Modifier.fillMaxWidth()) {
-                Icon(Icons.Filled.PlayArrow, null, Modifier, MaterialTheme.colorScheme.onBackground)
+                Icon(Icons.Filled.PlayArrow, null, Modifier, colour)
             }
         }
     }

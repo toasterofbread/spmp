@@ -24,13 +24,13 @@ import com.spectre7.spmp.MainActivity
 import com.spectre7.spmp.PlayerHost
 
 @Composable
-fun SongPreview (song: Song, large: Boolean, colour: Color, modifier: Modifier = Modifier) {
+fun SongPreview (song: Song, large: Boolean, colour: Color, modifier: Modifier = Modifier, basic: Boolean = false) {
 
     if (large) {
         Column(
             modifier = modifier.padding(10.dp, 0.dp).clickable {
                 PlayerHost.interactService {
-                    it.addToQueue(song)
+                   it.playSong(song)
                 }
             }
         ) {
@@ -85,14 +85,16 @@ fun SongPreview (song: Song, large: Boolean, colour: Color, modifier: Modifier =
                 )
             }
 
-            IconButton(onClick = {
-                PlayerHost.interactService {
-                    it.addToQueue(song) {
-                        it.play()
+            if (!basic) {
+                IconButton(onClick = {
+                    PlayerHost.interactService {
+                        it.addToQueue(song) {
+                            it.play()
+                        }
                     }
+                }, modifier = Modifier.fillMaxWidth()) {
+                    Icon(Icons.Filled.PlayArrow, null, Modifier, colour)
                 }
-            }, modifier = Modifier.fillMaxWidth()) {
-                Icon(Icons.Filled.PlayArrow, null, Modifier, colour)
             }
         }
     }

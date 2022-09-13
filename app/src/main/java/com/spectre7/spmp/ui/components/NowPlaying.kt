@@ -7,8 +7,6 @@ import androidx.compose.animation.core.*
 import androidx.compose.foundation.*
 import androidx.compose.foundation.interaction.MutableInteractionSource
 import androidx.compose.foundation.layout.*
-import androidx.compose.foundation.lazy.LazyColumn
-import androidx.compose.foundation.lazy.itemsIndexed
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
@@ -17,7 +15,6 @@ import androidx.compose.material.ripple.rememberRipple
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
-import androidx.compose.ui.ExperimentalComposeUiApi
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.alpha
 import androidx.compose.ui.draw.clip
@@ -44,18 +41,19 @@ import com.spectre7.spmp.MainActivity
 import com.spectre7.spmp.PlayerHost
 import com.spectre7.spmp.R
 import com.spectre7.spmp.model.Song
-import com.spectre7.spmp.sendToast
 import com.spectre7.spmp.ui.layout.MINIMISED_NOW_PLAYING_HEIGHT
 import com.spectre7.spmp.ui.layout.PlayerStatus
 import com.spectre7.spmp.ui.components.*
 import com.spectre7.utils.*
-import org.burnoutcrew.reorderable.*
 import kotlin.concurrent.thread
 import kotlin.math.max
+import androidx.compose.ui.geometry.Offset
 
 enum class NowPlayingThemeMode { BACKGROUND, ELEMENTS }
 enum class NowPlayingOverlayMenu { NONE, MAIN, PALETTE, LYRICS }
-enum class NowPlayingTab { SALAD, PLAYER, QUEUE }
+enum class NowPlayingTab { RELATED, PLAYER, QUEUE }
+
+const val SEEK_CANCEL_THRESHOLD = 0.05f
 
 @OptIn(ExperimentalPagerApi::class)
 @Composable
@@ -166,18 +164,18 @@ fun NowPlaying(_expansion: Float, max_height: Float, p_status: PlayerStatus, bac
 
     Box(Modifier.padding(10.dp + (15.dp * expansion))) {
 
-        // val tab_state = rememberPagerState(NowPlayingTab.PLAYER.ordinal)
+        val tab_state = rememberPagerState(NowPlayingTab.PLAYER.ordinal)
         var current_tab by remember { mutableStateOf(NowPlayingTab.PLAYER) }
         val button_size = 60.dp
 
-        // LaunchedEffect(current_tab) {
-        //     tab_state.animateScrollToPage(current_tab.ordinal)
-        // }
+        LaunchedEffect(current_tab) {
+            tab_state.animateScrollToPage(current_tab.ordinal)
+        }
 
         LaunchedEffect(expansion >= 1.0f) {
             if (expansion < 1.0f) {
                 current_tab = NowPlayingTab.PLAYER
-                // tab_state.animateScrollToPage(current_tab.ordinal)
+                tab_state.animateScrollToPage(current_tab.ordinal)
             }
         }
 
@@ -434,11 +432,13 @@ fun NowPlaying(_expansion: Float, max_height: Float, p_status: PlayerStatus, bac
                                         modifier = Modifier
                                             .fillMaxWidth()
                                             .animateContentSize())
+
                                 }
 
                                 var slider_moving by remember { mutableStateOf(false) }
                                 var slider_value by remember { mutableStateOf(0.0f) }
                                 var old_p_position by remember { mutableStateOf<Float?>(null) }
+                                var slider_start_position by remember { mutableStateOf<Float?>(null) }
 
                                 LaunchedEffect(p_status.position) {
                                     if (!slider_moving && p_status.position != old_p_position) {
@@ -447,18 +447,108 @@ fun NowPlaying(_expansion: Float, max_height: Float, p_status: PlayerStatus, bac
                                     }
                                 }
 
+                                @Composable
+                                fun SeekTrack(
+                                    modifier: Modifier,
+                                    progress: Float,
+                                    enabled: Boolean,
+                                    track_colour: Color = Color(0xffD3B4F7),
+                                    progress_colour: Color = Color(0xff7000F8),
+                                    height: Dp = 4.dp,
+                                    highlight: Pair<Float, Float>? = null,
+                                    highlight_colour: Color = setColourAlpha(Color.Red, 0.2)
+                                ) {
+                                    Canvas(
+                                        Modifier
+                                            .then(modifier)
+                                            .height(height)
+                                    ) {
+
+                                        val isRtl = layoutDirection == LayoutDirection.Rtl
+                                        val slider_left = Offset(0f, center.y)
+                                        val slider_right = Offset(size.width, center.y)
+                                        val slider_start = if (isRtl) slider_right else slider_left
+                                        val slider_end = if (isRtl) slider_left else slider_right
+                                        drawLine(
+                                            track_colour,
+                                            slider_start,
+                                            slider_end,
+                                            size.height,
+                                            StrokeCap.Round,
+                                            alpha = if (enabled) 1f else 0.6f
+                                        )
+
+                                        val slider_value_end = Offset(
+                                            slider_start.x + (slider_end.x - slider_start.x) * progress,
+                                            center.y
+                                        )
+                                        val slider_value_start = Offset(
+                                            slider_start.x,
+                                            center.y
+                                        )
+                                        drawLine(
+                                            progress_colour,
+                                            slider_value_start,
+                                            slider_value_end,
+                                            size.height,
+                                            StrokeCap.Round,
+                                            alpha = if (enabled) 1f else 0.6f
+                                        )
+
+                                        if (highlight != null) {
+                                            drawLine(
+                                                highlight_colour,
+                                                Offset(size.width * highlight.first, center.y),
+                                                Offset(size.width * highlight.second, center.y),
+                                                size.height,
+                                                StrokeCap.Square,
+                                                alpha = if (enabled) 1f else 0.6f
+                                            )
+                                        }
+                                    }
+                                }
+
+                                // Song position seek bar
+                                var in_cancel_area by remember { mutableStateOf(false) }
+                                val highlight = if (slider_start_position != null) Pair(
+                                    slider_start_position!! - SEEK_CANCEL_THRESHOLD / 2.0f, slider_start_position!! + SEEK_CANCEL_THRESHOLD / 2.0f
+                                ) else null
+
                                 SliderValueHorizontal(
                                     value = slider_value,
-                                    onValueChange = { slider_moving = true; slider_value = it },
+                                    onValueChange = {
+                                        if (slider_start_position == null) {
+                                            slider_start_position = slider_value
+                                        }
+
+                                        slider_moving = true
+                                        slider_value = it
+
+                                        if (in_cancel_area != (slider_value >= slider_start_position!! - SEEK_CANCEL_THRESHOLD / 2.0 && slider_value <= slider_start_position!! + SEEK_CANCEL_THRESHOLD / 2.0)) {
+                                            in_cancel_area = !in_cancel_area
+                                            if (in_cancel_area) {
+                                                vibrate(0.01)
+                                            }
+                                        }
+
+                                    },
                                     onValueChangeFinished = {
                                         slider_moving = false
                                         old_p_position = p_status.position
-                                        PlayerHost.interact {
-                                            it.seekTo((it.duration * slider_value).toLong())
+                                        slider_start_position = null
+
+                                        if (!in_cancel_area) {
+                                            PlayerHost.interact {
+                                                it.seekTo((it.duration * slider_value).toLong())
+                                            }
+                                        }
+                                        else {
+                                            vibrate(0.01)
+                                            in_cancel_area = false
                                         }
                                     },
                                     thumbSizeInDp = DpSize(12.dp, 12.dp),
-                                    track = { a, b, c, d, e -> DefaultTrack(a, b, c, d, e, setColourAlpha(on_background_colour.value, 0.5), on_background_colour.value) },
+                                    track = { a, b, _, _, c -> SeekTrack(a, b, c, setColourAlpha(on_background_colour.value, 0.5), on_background_colour.value, highlight = highlight) },
                                     thumb = { a, b, c, d, e -> DefaultThumb(a, b, c, d, e, on_background_colour.value, 1f) }
                                 )
 
@@ -471,6 +561,7 @@ fun NowPlaying(_expansion: Float, max_height: Float, p_status: PlayerStatus, bac
 
                                     val utility_separation = 25.dp
 
+                                    // Toggle shuffle
                                     PlayerButton(R.drawable.ic_shuffle, button_size * 0.65f, if (p_status.shuffle) 1f else 0.25f) {
                                         PlayerHost.interact {
                                             it.shuffleModeEnabled = !it.shuffleModeEnabled
@@ -479,18 +570,21 @@ fun NowPlaying(_expansion: Float, max_height: Float, p_status: PlayerStatus, bac
 
                                     Spacer(Modifier.requiredWidth(utility_separation))
 
+                                    // Previous
                                     PlayerButton(R.drawable.ic_skip_previous, enabled = p_status.has_previous) {
                                         PlayerHost.interact {
                                             it.seekToPreviousMediaItem()
                                         }
                                     }
 
+                                    // Play / pause
                                     PlayerButton(if (p_status.playing) R.drawable.ic_pause else R.drawable.ic_play_arrow, enabled = p_status.song != null) {
                                         PlayerHost.interactService {
                                             it.playPause()
                                         }
                                     }
 
+                                    // Next
                                     PlayerButton(R.drawable.ic_skip_next, enabled = p_status.has_next) {
                                         PlayerHost.interact {
                                             it.seekToNextMediaItem()
@@ -499,11 +593,12 @@ fun NowPlaying(_expansion: Float, max_height: Float, p_status: PlayerStatus, bac
 
                                     Spacer(Modifier.requiredWidth(utility_separation))
 
+                                    // Cycle repeat mode
                                     PlayerButton(
                                         if (p_status.repeat_mode == Player.REPEAT_MODE_ONE) R.drawable.ic_repeat_one else R.drawable.ic_repeat,
                                         button_size * 0.65f,
-                                        if (p_status.repeat_mode != Player.REPEAT_MODE_OFF) 1f else 0.25f) {
-
+                                        if (p_status.repeat_mode != Player.REPEAT_MODE_OFF) 1f else 0.25f
+                                    ) {
                                         PlayerHost.interact {
                                             it.repeatMode = when (it.repeatMode) {
                                                 Player.REPEAT_MODE_ALL -> Player.REPEAT_MODE_ONE
@@ -525,20 +620,20 @@ fun NowPlaying(_expansion: Float, max_height: Float, p_status: PlayerStatus, bac
 
         Column(verticalArrangement = Arrangement.Top, modifier = Modifier.fillMaxHeight()) {
 
-            Box(Modifier.weight(1f)) {
-                Crossfade(current_tab, animationSpec = tween(100)) { tab ->
-                    Tab(tab)
-                }
-            }
-
-            // if (expansion >= 1.0f) {
-            //     HorizontalPager(count = NowPlayingTab.values().size, state = tab_state, modifier = Modifier.weight(1f)) { page ->
-            //         Tab(NowPlayingTab.values()[page])
+            // Box(Modifier.weight(1f)) {
+            //     Crossfade(current_tab, animationSpec = tween(100)) { tab ->
+            //         Tab(tab)
             //     }
             // }
-            // else {
-            //     Tab(current_tab, Modifier.weight(1f))
-            // }
+
+            if (expansion >= 1.0f) {
+                HorizontalPager(count = NowPlayingTab.values().size, state = tab_state, modifier = Modifier.weight(1f)) { page ->
+                    Tab(NowPlayingTab.values()[page])
+                }
+            }
+            else {
+                Tab(current_tab, Modifier.weight(1f))
+            }
 
             if (expansion > 0.0f) {
                 MultiSelector(
@@ -563,7 +658,7 @@ fun NowPlaying(_expansion: Float, max_height: Float, p_status: PlayerStatus, bac
                             when(tab) {
                                 NowPlayingTab.PLAYER -> rememberVectorPainter(Icons.Filled.PlayArrow)
                                 NowPlayingTab.QUEUE -> painterResource(R.drawable.ic_music_queue)
-                                NowPlayingTab.SALAD -> rememberVectorPainter(Icons.Filled.Menu)
+                                NowPlayingTab.RELATED -> rememberVectorPainter(Icons.Filled.Menu)
                             }, "",
                             Modifier
                                 .requiredSize(button_size * 0.4f, button_size)
@@ -571,113 +666,12 @@ fun NowPlaying(_expansion: Float, max_height: Float, p_status: PlayerStatus, bac
                             colorFilter = ColorFilter.tint(colour)
                         )
                         Text(when (tab) {
-                            NowPlayingTab.PLAYER -> "Player"
-                            NowPlayingTab.QUEUE -> "Queue"
-                            NowPlayingTab.SALAD -> "Salad bar"
+                            NowPlayingTab.PLAYER -> MainActivity.getString(R.string.now_playing_player)
+                            NowPlayingTab.QUEUE -> MainActivity.getString(R.string.now_playing_queue)
+                            NowPlayingTab.RELATED -> MainActivity.getString(R.string.now_playing_related)
                         }, color = colour, fontSize = 10.sp, modifier = Modifier.offset(y = (10).dp))
                     }
                 }
-            }
-        }
-    }
-}
-
-@OptIn(ExperimentalComposeUiApi::class)
-@Composable
-fun QueueTab(p_status: PlayerStatus, on_background_colour: Color) {
-
-    var key_inc by remember { mutableStateOf(0) }
-
-    data class Item(val song: Song, val key: Int, val p_status: PlayerStatus) {
-        @Composable
-        fun QueueElement(handle_modifier: Modifier, current: Boolean, index: Int, colour: Color) {
-
-            val modifier = if (current) Modifier.border(Dp.Hairline, colour, CircleShape) else Modifier
-
-            Row(horizontalArrangement = Arrangement.End, verticalAlignment = Alignment.CenterVertically, modifier = modifier) {
-                song.Preview(false, Modifier.weight(1f).clickable {
-                    PlayerHost.interact {
-                        it.seekTo(index, 0)
-                    }
-                }, colour)
-                Image(rememberVectorPainter(Icons.Filled.Menu), "", modifier = handle_modifier
-                    .requiredSize(30.dp),
-                    colorFilter = ColorFilter.tint(colour)
-                )
-            }
-        }
-    }
-
-    var song_items by remember { mutableStateOf(
-        List(p_status.queue.size) {
-            Item(p_status.queue[it], key_inc++, p_status)
-        }
-    ) }
-
-    val queue_listener = remember {
-        object : PlayerHost.PlayerQueueListener {
-            override fun onSongAdded(song: Song, index: Int) {
-                song_items = song_items.toMutableList().apply {
-                    add(index, Item(song, key_inc++, p_status))
-                }
-            }
-            override fun onSongRemoved(song: Song, index: Int) {
-                song_items = song_items.toMutableList().apply {
-                    removeAt(index)
-                }
-            }
-        }
-    }
-
-    var playing_key by remember { mutableStateOf<Int?>(null) }
-
-    // TODO
-    // LaunchedEffect(p_status.index) {
-    //     playing_key =
-    // }
-
-    DisposableEffect(Unit) {
-        PlayerHost.interactService {
-            it.addQueueListener(queue_listener)
-        }
-        onDispose {
-            PlayerHost.interactService {
-                it.removeQueueListener(queue_listener)
-            }
-        }
-    }
-
-    val state = rememberReorderableLazyListState(
-        onMove = { from, to ->
-            song_items = song_items.toMutableList().apply {
-                add(to.index, removeAt(from.index))
-            }
-        },
-        onDragEnd = { from, to ->
-            PlayerHost.interact {
-                it.moveMediaItem(from, to)
-            }
-            playing_key = null
-        }
-    )
-
-    LazyColumn(
-        state = state.listState,
-        modifier = Modifier
-            .reorderable(state)
-    ) {
-        items(song_items.size, { song_items[it].key }) { index ->
-            val item = song_items[index]
-            ReorderableItem(state, item.key) { is_dragging ->
-                LaunchedEffect(is_dragging) {
-                    if (is_dragging) {
-                        vibrate(0.01)
-                        playing_key = song_items[p_status.index].key
-                    }
-                }
-
-                val current = if (playing_key != null) playing_key == item.key else p_status.index == index
-                item.QueueElement(Modifier.detectReorder(state), current, index, on_background_colour)
             }
         }
     }

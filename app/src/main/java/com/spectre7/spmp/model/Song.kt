@@ -9,6 +9,7 @@ import androidx.compose.ui.graphics.Color
 import com.spectre7.spmp.api.DataApi
 import com.spectre7.spmp.ui.components.SongPreview
 import com.spectre7.spmp.PlayerHost
+import com.spectre7.spmp.MainActivity
 import java.io.FileNotFoundException
 import java.lang.RuntimeException
 import java.net.URL
@@ -31,7 +32,8 @@ data class Song (
     val listenCount: Int = 0
 ): Previewable() {
 
-    var equivalentId: String? = null
+    private var counterpartId: String? = null
+    private var lyricsId: String? = null
 
     data class Lyrics(val lyrics: String, val source: String? = null)
 
@@ -41,7 +43,7 @@ data class Song (
         }
     }
 
-    // TODO add config
+    // TODO | Add config
     fun getTitle(): String {
         var ret = nativeData!!.title
 
@@ -78,11 +80,22 @@ data class Song (
         return ret.trim()
     }
 
-    fun getEquivalent(): String? {
-        if (equivalentId == null) {
-            equivalentId = DataApi.getSongEquivalent(this)
+    fun getCounterpartId(): String? {
+        if (counterpartId == null) {
+            counterpartId = MainActivity.youtube.getSongCounterpartId(this)
         }
-        return equivalentId
+        return counterpartId
+    }
+
+    fun getLyricsId(): String? {
+        if (lyricsId == null) {
+            lyricsId = MainActivity.youtube.getSongLyricsId(this)
+        }
+        return lyricsId
+    }
+
+    fun getLyrics(callback: (Lyrics?) -> Unit) {
+        MainActivity.youtube.getSongLyrics(this, callback)
     }
 
     fun getDownloadUrl(callback: (url: String) -> Unit) {
@@ -135,6 +148,11 @@ data class Song (
     @Composable
     override fun Preview(large: Boolean, modifier: Modifier, colour: Color) {
         return SongPreview(this, large, colour, modifier)
+    }
+
+    @Composable
+    fun PreviewBasic(large: Boolean, modifier: Modifier, colour: Color) {
+        return SongPreview(this, large, colour, modifier, true)
     }
 
 }

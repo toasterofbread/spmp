@@ -37,7 +37,7 @@ def launch(gradle_task: str, package: str):
             if not line:
                 break
 
-            line = str(line.rstrip())[2:-1].replace("\\t", "\t")
+            line = line.rstrip().decode().replace("\\t", "\t")
             tag = line[0]
 
             line = f"[{tag}] " + line[2:]

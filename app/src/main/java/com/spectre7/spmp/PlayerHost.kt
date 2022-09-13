@@ -5,13 +5,10 @@ import android.content.*
 import android.graphics.Bitmap
 import android.os.Binder
 import android.os.IBinder
-import android.os.Looper
 import android.support.v4.media.session.MediaSessionCompat
-import android.widget.Toast
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.toArgb
 import android.view.KeyEvent
-import android.view.KeyEvent.ACTION_DOWN
 import androidx.core.app.NotificationCompat
 import androidx.media.session.MediaButtonReceiver
 import com.google.android.exoplayer2.C
@@ -22,18 +19,8 @@ import com.google.android.exoplayer2.audio.AudioAttributes
 import com.google.android.exoplayer2.ext.mediasession.MediaSessionConnector
 import com.google.android.exoplayer2.ui.PlayerNotificationManager
 import com.spectre7.spmp.model.Song
-import java.lang.NullPointerException
+import com.spectre7.utils.sendToast
 import kotlin.concurrent.thread
-
-fun sendToast(text: String) {
-    try {
-        Toast.makeText(MainActivity.context, text, Toast.LENGTH_SHORT).show()
-    }
-    catch (e: NullPointerException) {
-        Looper.prepare()
-        Toast.makeText(MainActivity.context, text, Toast.LENGTH_SHORT).show()
-    }
-}
 
 class PlayerHost(private var context: Context) {
 
@@ -113,12 +100,12 @@ class PlayerHost(private var context: Context) {
 
     abstract interface PlayerQueueListener {
         abstract fun onSongAdded(song: Song, index: Int)
-        abstract fun onSongRemoved(song: Song, index: Int) // TODO
+        abstract fun onSongRemoved(song: Song, index: Int)
+        abstract fun onCleared()
     }
 
     class PlayerService : Service() {
 
-        val p_queue: MutableList<Song> = mutableListOf()
         private var queue_listeners: MutableList<PlayerQueueListener> = mutableListOf()
 
         internal lateinit var player: ExoPlayer
@@ -163,7 +150,7 @@ class PlayerHost(private var context: Context) {
                 override fun onMediaButtonEvent(event_intent: Intent?): Boolean {
 
                     val event = event_intent?.extras?.get("android.intent.extra.KEY_EVENT") as KeyEvent?
-                    if (event == null || event.action != ACTION_DOWN) {
+                    if (event == null || event.action != KeyEvent.ACTION_DOWN) {
                         return super.onMediaButtonEvent(event_intent)
                     }
 
@@ -214,11 +201,17 @@ class PlayerHost(private var context: Context) {
                     stopForeground(true)
                     stopSelf()
 
-                    // TODO
+                    // TODO | Stop service properly
                 }
             }
 
             return START_NOT_STICKY
+        }
+
+        private fun onSongAdded(song: Song, index: Int) {
+            for (listener in queue_listeners) {
+                listener.onSongAdded(song, index)
+            }
         }
 
         private fun onSongAdded(media_item: MediaItem) {
@@ -232,11 +225,36 @@ class PlayerHost(private var context: Context) {
             throw RuntimeException()
         }
 
-        private fun onSongAdded(song: Song, index: Int) {
-            p_queue.add(index, song)
-
+        private fun onSongRemoved(song: Song, index: Int) {
             for (listener in queue_listeners) {
-                listener.onSongAdded(song, index)
+                listener.onSongRemoved(song, index)
+            }
+        }
+
+        fun iterateSongs(action: (i: Int, song: Song) -> Unit) {
+            for (i in 0 until player.mediaItemCount) {
+                action(i, player.getMediaItemAt(i)?.localConfiguration?.tag as Song)
+            }
+        }
+
+        fun playSong(song: Song) {
+            clearQueue()
+            addToQueue(song) {
+                thread {
+                    for (id in MainActivity.youtube.getSongRadio(song.getId(), include_first = false)) {
+                        val song = Song.fromId(id)
+                        MainActivity.runInMainThread {
+                            addToQueue(song)
+                        }
+                    }
+                }
+            }
+        }
+
+        fun clearQueue() {
+            player.clearMediaItems()
+            for (listener in queue_listeners) {
+                listener.onCleared()
             }
         }
 

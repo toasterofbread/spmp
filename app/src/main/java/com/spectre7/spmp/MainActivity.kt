@@ -1,5 +1,6 @@
 package com.spectre7.spmp
 
+import android.util.Log
 import android.content.res.Resources
 import android.os.Bundle
 import android.os.Handler

@@ -59,12 +59,12 @@ fun getStatusBarHeight(): Float {
 }
 
 const val MINIMISED_NOW_PLAYING_HEIGHT = 64f
-enum class OverlayPage {NONE, SEARCH}
+enum class OverlayPage {NONE, SEARCH, SETTINGS}
 
 class PlayerStatus {
     var song: Song? by mutableStateOf(null)
     var index: Int by mutableStateOf(0)
-    var queue: List<Song> by mutableStateOf(listOf())
+    var queue: MutableList<Song> by mutableStateOf(mutableListOf())
     var playing: Boolean by mutableStateOf(false)
     var position: Float by mutableStateOf(0.0f)
     var shuffle: Boolean by mutableStateOf(false)
@@ -81,40 +81,6 @@ fun PlayerView() {
 
     @Composable
     fun MainPage() {
-
-        @Composable
-        fun SongList(label: String, songs: SnapshotStateList<Song>, rows: Int = 2) {
-            Card(
-                colors = CardDefaults.cardColors(containerColor = Color.Transparent, contentColor = MaterialTheme.colorScheme.onBackground),
-                modifier = Modifier.fillMaxWidth()
-            ) {
-                Column {
-                    Text(label, fontSize = 30.sp, fontWeight = FontWeight.Bold, modifier = Modifier.padding(10.dp))
-
-                    LazyHorizontalGrid(
-                        rows = GridCells.Fixed(rows),
-                        modifier = Modifier.requiredHeight(140.dp * rows)
-                    ) {
-                        items(songs.size) {
-                            Box(modifier = Modifier.requiredWidth(125.dp)) {
-                                songs[it].Preview(true)
-                            }
-                        }
-                    }
-                }
-            }
-        }
-
-        val songs = remember { mutableStateListOf<Song>() }
-
-        LaunchedEffect(Unit) {
-            thread {
-                for (result in DataApi.search("", ResourceType.SONG)) {
-                    songs.add(Song.fromId(result.id.videoId))
-                    Log.d("", result.id.videoId)
-                }
-            }
-        }
 
         @Composable
         fun ActionMenu() {
@@ -144,6 +110,7 @@ fun PlayerView() {
 
                         IconButton(onClick = {
                             expand = false
+                            overlay_page = OverlayPage.SETTINGS
                         }) {
                             Icon(Icons.Filled.Settings, "", tint = MaterialTheme.colorScheme.onPrimary)
                         }
@@ -165,26 +132,55 @@ fun PlayerView() {
             }
         }
 
-//        if (overlay_page == OverlayPage.NONE) {
-            ActionMenu()
-//        }
+        ActionMenu()
+
+        @Composable
+        fun SongList(label: String, songs: SnapshotStateList<Song>, rows: Int = 2) {
+            Card(
+                colors = CardDefaults.cardColors(containerColor = Color.Transparent, contentColor = MaterialTheme.colorScheme.onBackground),
+                modifier = Modifier.fillMaxWidth()
+            ) {
+                Column {
+                    Text(label, fontSize = 30.sp, fontWeight = FontWeight.Bold, modifier = Modifier.padding(10.dp))
+
+                    LazyHorizontalGrid(
+                        rows = GridCells.Fixed(rows),
+                        modifier = Modifier.requiredHeight(140.dp * rows)
+                    ) {
+                        items(songs.size) {
+                            Box(modifier = Modifier.requiredWidth(125.dp)) {
+                                songs[it].Preview(true)
+                            }
+                        }
+                    }
+                }
+            }
+        }
+
+        val vid = "4QXCPuwBz2E"
+        val songs = remember { mutableStateListOf<Song>() }
+
+        LaunchedEffect(Unit) {
+            thread {
+                for (song in MainActivity.youtube.getSongRadio(vid)) {
+                    songs.add(Song.fromId(song))
+                }
+            }
+        }
 
         Column(Modifier.padding(10.dp)) {
 
             LazyColumn(Modifier.fillMaxSize(), verticalArrangement = Arrangement.spacedBy(20.dp)) {
 
                 item {
-//                    SongList("もう一度聴く", songs, 2)
                     SongList("Listen again", songs, 2)
                 }
 
                 item {
-//                    SongList("おすすめ", songs, 2)
                     SongList("Quick picks", songs, 2)
                 }
 
                 item {
-//                    SongList("お気に入り", songs, 2)
                     SongList("Recommended MVs", songs, 2)
                 }
 
@@ -204,6 +200,7 @@ fun PlayerView() {
                     when (it) {
                         OverlayPage.NONE -> {}
                         OverlayPage.SEARCH -> SearchPage { overlay_page = it }
+                        OverlayPage.SETTINGS -> SettingsPage { overlay_page = it }
                     }
                 }
             }
@@ -219,7 +216,9 @@ fun PlayerView() {
                 status.value.repeat_mode = it.player.repeatMode
                 status.value.has_next = it.player.hasNextMediaItem()
                 status.value.has_previous = it.player.hasPreviousMediaItem()
-                status.value.queue = it.p_queue
+                it.iterateSongs { i, song ->
+                    status.value.queue.add(song)
+                }
             }
         }
 
@@ -230,7 +229,7 @@ fun PlayerView() {
                     media_item: MediaItem?,
                     reason: Int
                 ) {
-                    p_status.song = media_item?.localConfiguration?.tag as Song
+                    p_status.song = media_item?.localConfiguration?.tag as Song?
                 }
 
                 override fun onIsPlayingChanged(is_playing: Boolean) {
@@ -254,13 +253,29 @@ fun PlayerView() {
             }
         }
 
+        val queue_listener = remember {
+            object : PlayerHost.PlayerQueueListener {
+                override fun onSongAdded(song: Song, index: Int) {
+                    p_status.queue.add(index, song)
+                }
+                override fun onSongRemoved(song: Song, index: Int) {
+                    p_status.queue.removeAt(index)
+                }
+                override fun onCleared() {
+                    p_status.queue.clear()
+                }
+            }
+        }
+
         DisposableEffect(Unit) {
-            PlayerHost.interact {
-                it.addListener(listener)
+            PlayerHost.interactService {
+                it.player.addListener(listener)
+                it.addQueueListener(queue_listener)
             }
             onDispose {
-                PlayerHost.interact {
-                    it.removeListener(listener)
+                PlayerHost.interactService {
+                    it.player.removeListener(listener)
+                    it.removeQueueListener(queue_listener)
                 }
             }
         }

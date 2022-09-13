@@ -1,5 +1,6 @@
 package com.spectre7.spmp.ui.components
 
+import android.util.Log
 import androidx.compose.animation.Crossfade
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.layout.*
@@ -18,9 +19,19 @@ import com.chaquo.python.Python
 import com.spectre7.spmp.R
 import com.spectre7.spmp.api.DataApi
 import com.spectre7.spmp.model.Song
-import com.spectre7.spmp.sendToast
+import com.spectre7.utils.*
+import com.spectre7.spmp.MainActivity
 import net.zerotask.libraries.android.compose.furigana.TextData
 import net.zerotask.libraries.android.compose.furigana.TextWithReading
+import java.io.BufferedReader
+import java.io.InputStreamReader
+import net.reduls.igo.Morpheme
+import net.reduls.igo.Tagger
+import java.io.*;
+import java.net.*;
+import java.nio.file.*;
+import java.util.*;
+import java.util.stream.*;
 
 @Composable
 fun LyricsDisplay(song: Song, on_close_request: () -> Unit) {
@@ -30,7 +41,7 @@ fun LyricsDisplay(song: Song, on_close_request: () -> Unit) {
 
     LaunchedEffect(song.getId()) {
         lyrics = null
-        DataApi.getSongLyrics(song) {
+        song.getLyrics {
             lyrics = it
             if (lyrics == null) {
                 sendToast("Lyrics unavailable")
@@ -70,12 +81,40 @@ fun LyricsDisplay(song: Song, on_close_request: () -> Unit) {
 
 }
 
+fun prepareIgoDict(): String {
+    val path = MainActivity.context.getExternalFilesDir(null)
+    val dict = File(path, "ipadic")
+    dict.mkdirs()
+
+    val assets = MainActivity.context.getAssets()
+
+    for (file in assets.list("ipadic")!!) {
+        val dest = File(dict, file)
+        if (!dest.exists()) {
+            val s = assets.open("ipadic/$file")
+            dest.outputStream().use { fileOut ->
+                s.copyTo(fileOut)
+            }
+        }
+    }
+
+    return dict.absolutePath
+}
+
 val kakasi = Python.getInstance().getModule("pykakasi").callAttr("Kakasi")
 
 @Composable
-fun FuriganaText(text: String, show_furigana: Boolean) {
+fun FuriganaText(text: String, show_furigana: Boolean, trim_okurigana: Boolean = true) {
 
-    fun generateContent(text: String, content: MutableList<TextData>) {
+    // TODO | Consider replacing Kakasi with Igo
+    // val dict_path = prepareIgoDict()
+    // for(m in Tagger(dict_path).parse("汚れなし")) {
+    //     Log.d("IGO SURFACE", m.surface)
+    //     Log.d("IGO FEATURE", m.feature)
+    //     Log.d("IGO START", m.start.toString())
+    // }
+
+    fun generateContent(text: String, content: MutableList<TextData>): MutableList<TextData> {
         for (term in kakasi.callAttr("convert", text.replace("\n", "\\n").replace("\r", "\\r")).asList()) {
             fun getKey(key: String): String {
                 return term.callAttr("get", key).toString().replace("\\n", "\n").replace("\\r", "\r")
@@ -84,18 +123,48 @@ fun FuriganaText(text: String, show_furigana: Boolean) {
             val original = getKey("orig")
             val hiragana = getKey("hira")
 
-            content.add(TextData(
-                text = original,
-                reading = if (original != hiragana && original != getKey("kana")) hiragana else null
-            ))
+            if (original != hiragana && original != getKey("kana")) {
+                if (trim_okurigana && original.hasKanjiAndHiragana()) {
+                    var trim_amount: Int = 0
+                    for (i in 1 until hiragana.length + 1) {
+                        if (original[original.length - i].isKanji() || original[original.length - i] != hiragana[hiragana.length - i]) {
+                            trim_amount = i - 1
+                            break
+                        }
+                    }
+
+                    if (trim_amount != 0) {
+                        content.add(TextData(
+                            text = original.slice(0 until original.length - trim_amount),
+                            reading = hiragana.slice(0 until hiragana.length - trim_amount)
+                        ))
+
+                        content.add(TextData(
+                            text = original.slice(original.length - trim_amount until original.length),
+                            reading = null
+                        ))
+                    }
+                }
+                else {
+                    content.add(TextData(
+                        text = original,
+                        reading = hiragana
+                    ))
+                }
+            }
+            else {
+                content.add(TextData(
+                    text = original,
+                    reading = null
+                ))
+            }
+
+
         }
+        return content
     }
 
-    val text_content = remember(text) {
-        val list = mutableStateListOf<TextData>()
-        generateContent(text, list)
-        list
-    }
+    val text_content = remember(text) { generateContent(text, mutableStateListOf<TextData>()) }
 
     Crossfade(targetState = show_furigana) {
         TextWithReading(

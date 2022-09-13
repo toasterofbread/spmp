@@ -99,9 +99,9 @@ class PlayerHost(private var context: Context) {
     }
 
     abstract interface PlayerQueueListener {
-        abstract fun onSongAdded(song: Song, index: Int) {}
-        abstract fun onSongRemoved(song: Song, index: Int) {}
-        abstract fun onCleared() {}
+        abstract fun onSongAdded(song: Song, index: Int)
+        abstract fun onSongRemoved(song: Song, index: Int)
+        abstract fun onCleared()
     }
 
     class PlayerService : Service() {
@@ -231,12 +231,22 @@ class PlayerHost(private var context: Context) {
             }
         }
 
+        fun iterateSongs(action: (i: Int, song: Song) -> Unit) {
+            for (i in 0 until player.mediaItemCount) {
+                action(i, player.getMediaItemAt(i)?.localConfiguration?.tag as Song)
+            }
+        }
+
         fun playSong(song: Song) {
-            thread {
-                clearQueue()
-                addToQueue(song)
-                for (id in MainActivity.youtube.getSongRadio(song)) {
-                    addToQueue(Song.fromId(id))
+            clearQueue()
+            addToQueue(song) {
+                thread {
+                    for (id in MainActivity.youtube.getSongRadio(song.getId(), include_first = false)) {
+                        val song = Song.fromId(id)
+                        MainActivity.runInMainThread {
+                            addToQueue(song)
+                        }
+                    }
                 }
             }
         }

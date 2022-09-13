@@ -23,7 +23,9 @@ import androidx.compose.foundation.border
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.Image
 import androidx.compose.material.icons.filled.*
+import androidx.compose.material3.*
 import org.burnoutcrew.reorderable.*
+import com.google.android.exoplayer2.C
 
 @OptIn(ExperimentalComposeUiApi::class)
 @Composable
@@ -42,7 +44,7 @@ fun QueueTab(p_status: PlayerStatus, on_background_colour: Color) {
             Row(horizontalArrangement = Arrangement.End, verticalAlignment = Alignment.CenterVertically, modifier = modifier) {
                 song.PreviewBasic(false, Modifier.weight(1f).clickable {
                     PlayerHost.interact {
-                        it.seekTo(index, 0)
+                        it.seekTo(index, C.TIME_UNSET)
                     }
                 }, colour)
 

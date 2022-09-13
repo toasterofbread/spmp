@@ -5,6 +5,7 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import com.spectre7.spmp.api.DataApi
 import com.spectre7.spmp.ui.components.ArtistPreview
+import com.spectre7.spmp.MainActivity
 import java.util.*
 
 data class ArtistData (
@@ -30,11 +31,11 @@ data class Artist (
     val videoCount: String
 ): Previewable() {
 
-    var counterpartId: String? = null
+    private var counterpartId: String? = null
 
     fun getCounterpartId(): String? {
         if (counterpartId == null) {
-            counterpartId = DataApi.getArtistCounterpartId(this)
+            counterpartId = MainActivity.youtube.getArtistCounterpartId(this)
         }
         return counterpartId
     }

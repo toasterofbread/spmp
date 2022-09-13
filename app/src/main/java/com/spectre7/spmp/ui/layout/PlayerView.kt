@@ -162,7 +162,7 @@ fun PlayerView() {
 
         LaunchedEffect(Unit) {
             thread {
-                for (song in MainActivity.youtube.getSongRadio(song)) {
+                for (song in MainActivity.youtube.getSongRadio(vid)) {
                     songs.add(Song.fromId(song))
                 }
             }
@@ -200,6 +200,7 @@ fun PlayerView() {
                     when (it) {
                         OverlayPage.NONE -> {}
                         OverlayPage.SEARCH -> SearchPage { overlay_page = it }
+                        OverlayPage.SETTINGS -> SettingsPage { overlay_page = it }
                     }
                 }
             }
@@ -215,8 +216,8 @@ fun PlayerView() {
                 status.value.repeat_mode = it.player.repeatMode
                 status.value.has_next = it.player.hasNextMediaItem()
                 status.value.has_previous = it.player.hasPreviousMediaItem()
-                for (item in it.p_queue) {
-                    status.value.queue.add(item?.localConfiguration?.tag as Song)
+                it.iterateSongs { i, song ->
+                    status.value.queue.add(song)
                 }
             }
         }
@@ -228,7 +229,7 @@ fun PlayerView() {
                     media_item: MediaItem?,
                     reason: Int
                 ) {
-                    p_status.song = media_item?.localConfiguration?.tag as Song
+                    p_status.song = media_item?.localConfiguration?.tag as Song?
                 }
 
                 override fun onIsPlayingChanged(is_playing: Boolean) {

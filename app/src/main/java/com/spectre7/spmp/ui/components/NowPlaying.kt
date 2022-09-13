@@ -1,5 +1,6 @@
 package com.spectre7.spmp.ui.components
 
+import android.util.Log
 import android.view.MotionEvent
 import androidx.compose.animation.*
 import androidx.compose.animation.core.*
@@ -46,10 +47,13 @@ import com.spectre7.spmp.ui.components.*
 import com.spectre7.utils.*
 import kotlin.concurrent.thread
 import kotlin.math.max
+import androidx.compose.ui.geometry.Offset
 
 enum class NowPlayingThemeMode { BACKGROUND, ELEMENTS }
 enum class NowPlayingOverlayMenu { NONE, MAIN, PALETTE, LYRICS }
 enum class NowPlayingTab { RELATED, PLAYER, QUEUE }
+
+const val SEEK_CANCEL_THRESHOLD = 0.05f
 
 @OptIn(ExperimentalPagerApi::class)
 @Composable
@@ -434,6 +438,7 @@ fun NowPlaying(_expansion: Float, max_height: Float, p_status: PlayerStatus, bac
                                 var slider_moving by remember { mutableStateOf(false) }
                                 var slider_value by remember { mutableStateOf(0.0f) }
                                 var old_p_position by remember { mutableStateOf<Float?>(null) }
+                                var slider_start_position by remember { mutableStateOf<Float?>(null) }
 
                                 LaunchedEffect(p_status.position) {
                                     if (!slider_moving && p_status.position != old_p_position) {
@@ -442,19 +447,108 @@ fun NowPlaying(_expansion: Float, max_height: Float, p_status: PlayerStatus, bac
                                     }
                                 }
 
+                                @Composable
+                                fun SeekTrack(
+                                    modifier: Modifier,
+                                    progress: Float,
+                                    enabled: Boolean,
+                                    track_colour: Color = Color(0xffD3B4F7),
+                                    progress_colour: Color = Color(0xff7000F8),
+                                    height: Dp = 4.dp,
+                                    highlight: Pair<Float, Float>? = null,
+                                    highlight_colour: Color = setColourAlpha(Color.Red, 0.2)
+                                ) {
+                                    Canvas(
+                                        Modifier
+                                            .then(modifier)
+                                            .height(height)
+                                    ) {
+
+                                        val isRtl = layoutDirection == LayoutDirection.Rtl
+                                        val slider_left = Offset(0f, center.y)
+                                        val slider_right = Offset(size.width, center.y)
+                                        val slider_start = if (isRtl) slider_right else slider_left
+                                        val slider_end = if (isRtl) slider_left else slider_right
+                                        drawLine(
+                                            track_colour,
+                                            slider_start,
+                                            slider_end,
+                                            size.height,
+                                            StrokeCap.Round,
+                                            alpha = if (enabled) 1f else 0.6f
+                                        )
+
+                                        val slider_value_end = Offset(
+                                            slider_start.x + (slider_end.x - slider_start.x) * progress,
+                                            center.y
+                                        )
+                                        val slider_value_start = Offset(
+                                            slider_start.x,
+                                            center.y
+                                        )
+                                        drawLine(
+                                            progress_colour,
+                                            slider_value_start,
+                                            slider_value_end,
+                                            size.height,
+                                            StrokeCap.Round,
+                                            alpha = if (enabled) 1f else 0.6f
+                                        )
+
+                                        if (highlight != null) {
+                                            drawLine(
+                                                highlight_colour,
+                                                Offset(size.width * highlight.first, center.y),
+                                                Offset(size.width * highlight.second, center.y),
+                                                size.height,
+                                                StrokeCap.Square,
+                                                alpha = if (enabled) 1f else 0.6f
+                                            )
+                                        }
+                                    }
+                                }
+
                                 // Song position seek bar
+                                var in_cancel_area by remember { mutableStateOf(false) }
+                                val highlight = if (slider_start_position != null) Pair(
+                                    slider_start_position!! - SEEK_CANCEL_THRESHOLD / 2.0f, slider_start_position!! + SEEK_CANCEL_THRESHOLD / 2.0f
+                                ) else null
+
                                 SliderValueHorizontal(
                                     value = slider_value,
-                                    onValueChange = { slider_moving = true; slider_value = it },
+                                    onValueChange = {
+                                        if (slider_start_position == null) {
+                                            slider_start_position = slider_value
+                                        }
+
+                                        slider_moving = true
+                                        slider_value = it
+
+                                        if (in_cancel_area != (slider_value >= slider_start_position!! - SEEK_CANCEL_THRESHOLD / 2.0 && slider_value <= slider_start_position!! + SEEK_CANCEL_THRESHOLD / 2.0)) {
+                                            in_cancel_area = !in_cancel_area
+                                            if (in_cancel_area) {
+                                                vibrate(0.01)
+                                            }
+                                        }
+
+                                    },
                                     onValueChangeFinished = {
                                         slider_moving = false
                                         old_p_position = p_status.position
-                                        PlayerHost.interact {
-                                            it.seekTo((it.duration * slider_value).toLong())
+                                        slider_start_position = null
+
+                                        if (!in_cancel_area) {
+                                            PlayerHost.interact {
+                                                it.seekTo((it.duration * slider_value).toLong())
+                                            }
+                                        }
+                                        else {
+                                            vibrate(0.01)
+                                            in_cancel_area = false
                                         }
                                     },
                                     thumbSizeInDp = DpSize(12.dp, 12.dp),
-                                    track = { a, b, c, d, e -> DefaultTrack(a, b, c, d, e, setColourAlpha(on_background_colour.value, 0.5), on_background_colour.value) },
+                                    track = { a, b, _, _, c -> SeekTrack(a, b, c, setColourAlpha(on_background_colour.value, 0.5), on_background_colour.value, highlight = highlight) },
                                     thumb = { a, b, c, d, e -> DefaultThumb(a, b, c, d, e, on_background_colour.value, 1f) }
                                 )
 

@@ -59,7 +59,7 @@ fun getStatusBarHeight(): Float {
 }
 
 const val MINIMISED_NOW_PLAYING_HEIGHT = 64f
-enum class OverlayPage {NONE, SEARCH}
+enum class OverlayPage {NONE, SEARCH, SETTINGS}
 
 class PlayerStatus {
     var song: Song? by mutableStateOf(null)
@@ -110,6 +110,7 @@ fun PlayerView() {
 
                         IconButton(onClick = {
                             expand = false
+                            overlay_page = OverlayPage.SETTINGS
                         }) {
                             Icon(Icons.Filled.Settings, "", tint = MaterialTheme.colorScheme.onPrimary)
                         }
@@ -164,10 +165,6 @@ fun PlayerView() {
                 for (song in MainActivity.youtube.getSongRadio(song)) {
                     songs.add(Song.fromId(song))
                 }
-
-                // for (result in DataApi.search("", ResourceType.SONG)) {
-                //     songs.add(Song.fromId(result.id.videoId))
-                // }
             }
         }
 

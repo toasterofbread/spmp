@@ -24,7 +24,7 @@ class Api {
             if (counterpart == null) {
                 return null
             }
-            return counterpart.callAttr("get", "videoId")
+            return counterpart.callAttr("get", "videoId").toString()
         }
 
         fun getArtistCounterpartId(artist: Artist): String? {
@@ -46,7 +46,7 @@ class Api {
                 return ret
             }
 
-            return getLyricsid(song.getCounterpartId())
+            return getLyricsId(song.getCounterpartId())
         }
 
         fun getSongLyrics(song: Song, callback: (Song.Lyrics?) -> Unit) {
@@ -61,10 +61,11 @@ class Api {
             }
         }
 
-        fun getSongRadio(song: Song, limit: Int = 25): List<String> {
-            val radio = api.callAttr("get_watch_playlist", song.getId(), null, limit).callAttr("get", "tracks").asList()
-            return List(radio.size) {
-                radio[it].callAttr("get", "videoId")
+        fun getSongRadio(song_id: String, limit: Int = 25, include_first: Boolean = true): List<String> {
+            val radio = api.callAttr("get_watch_playlist", song_id, null, limit).callAttr("get", "tracks").asList()
+            val offset = if (include_first) 0 else 1
+            return List(radio.size - offset) {
+                radio[it + offset].callAttr("get", "videoId").toString()
             }
         }
 

@@ -99,13 +99,13 @@ class PlayerHost(private var context: Context) {
     }
 
     abstract interface PlayerQueueListener {
-        abstract fun onSongAdded(song: Song, index: Int)
-        abstract fun onSongRemoved(song: Song, index: Int) // TODO
+        abstract fun onSongAdded(song: Song, index: Int) {}
+        abstract fun onSongRemoved(song: Song, index: Int) {}
+        abstract fun onCleared() {}
     }
 
     class PlayerService : Service() {
 
-        val p_queue: MutableList<Song> = mutableListOf()
         private var queue_listeners: MutableList<PlayerQueueListener> = mutableListOf()
 
         internal lateinit var player: ExoPlayer
@@ -208,6 +208,12 @@ class PlayerHost(private var context: Context) {
             return START_NOT_STICKY
         }
 
+        private fun onSongAdded(song: Song, index: Int) {
+            for (listener in queue_listeners) {
+                listener.onSongAdded(song, index)
+            }
+        }
+
         private fun onSongAdded(media_item: MediaItem) {
             for (i in 0 until player.mediaItemCount) {
                 val item = player.getMediaItemAt(i)
@@ -219,11 +225,26 @@ class PlayerHost(private var context: Context) {
             throw RuntimeException()
         }
 
-        private fun onSongAdded(song: Song, index: Int) {
-            p_queue.add(index, song)
-
+        private fun onSongRemoved(song: Song, index: Int) {
             for (listener in queue_listeners) {
-                listener.onSongAdded(song, index)
+                listener.onSongRemoved(song, index)
+            }
+        }
+
+        fun playSong(song: Song) {
+            thread {
+                clearQueue()
+                addToQueue(song)
+                for (id in MainActivity.youtube.getSongRadio(song)) {
+                    addToQueue(Song.fromId(id))
+                }
+            }
+        }
+
+        fun clearQueue() {
+            player.clearMediaItems()
+            for (listener in queue_listeners) {
+                listener.onCleared()
             }
         }
 

@@ -31,7 +31,8 @@ data class Song (
     val listenCount: Int = 0
 ): Previewable() {
 
-    var equivalentId: String? = null
+    var counterpartId: String? = null
+    var lyricsId: String? = null
 
     data class Lyrics(val lyrics: String, val source: String? = null)
 
@@ -78,11 +79,22 @@ data class Song (
         return ret.trim()
     }
 
-    fun getEquivalent(): String? {
-        if (equivalentId == null) {
-            equivalentId = DataApi.getSongEquivalent(this)
+    fun getCounterpartId(): String? {
+        if (counterpartId == null) {
+            counterpartId = MainActivity.youtube.getSongCounterpartId(this)
         }
-        return equivalentId
+        return counterpartId
+    }
+
+    fun getLyricsId(): String? {
+        if (lyricsId == null) {
+            lyricsId = MainActivity.youtube.getSongLyricsId(this)
+        }
+        return lyricsId
+    }
+
+    fun getLyrics(callback: (Lyrics?) -> Unit) {
+        MainActivity.youtube.getSongLyrics(this, callback)
     }
 
     fun getDownloadUrl(callback: (url: String) -> Unit) {

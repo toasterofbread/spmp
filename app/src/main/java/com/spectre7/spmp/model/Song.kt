@@ -9,6 +9,7 @@ import androidx.compose.ui.graphics.Color
 import com.spectre7.spmp.api.DataApi
 import com.spectre7.spmp.ui.components.SongPreview
 import com.spectre7.spmp.PlayerHost
+import com.spectre7.spmp.MainActivity
 import java.io.FileNotFoundException
 import java.lang.RuntimeException
 import java.net.URL
@@ -31,8 +32,8 @@ data class Song (
     val listenCount: Int = 0
 ): Previewable() {
 
-    var counterpartId: String? = null
-    var lyricsId: String? = null
+    private var counterpartId: String? = null
+    private var lyricsId: String? = null
 
     data class Lyrics(val lyrics: String, val source: String? = null)
 

@@ -179,7 +179,8 @@ dependencies {
     implementation "com.github.krottv:compose-sliders:0.1.4"
     implementation "org.burnoutcrew.composereorderable:reorderable:0.9.2"
 
-    implementation igo()
+    // implementation igo()
+    implementation "com.github.sile:gomoku:v0.0.7"
 
 //    implementation 'com.github.spectreseven1138:android-compose-furigana:1.0.0'
 }

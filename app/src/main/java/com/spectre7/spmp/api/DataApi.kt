@@ -276,23 +276,6 @@ class DataApi {
                 }
             }
         }
-
-        fun getSongEquivalent(song: Song): String? {
-            return MainActivity.youtube.getSongEquivalent(song)
-        }
-
-        fun getArtistEquivalent(artist: Artist): String? {
-            return MainActivity.youtube.getArtistEquivalent(artist)
-        }
-
-        class GetSongLyricsResult() {
-
-        }
-
-        fun getSongLyrics(song: Song, callback: (Song.Lyrics?) -> Unit) {
-            return MainActivity.youtube.getSongLyrics(song, callback)
-        }
-
     }
 }
 

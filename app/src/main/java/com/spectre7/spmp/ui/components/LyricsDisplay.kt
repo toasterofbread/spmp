@@ -25,8 +25,8 @@ import net.zerotask.libraries.android.compose.furigana.TextData
 import net.zerotask.libraries.android.compose.furigana.TextWithReading
 import java.io.BufferedReader
 import java.io.InputStreamReader
-import net.reduls.igo.Morpheme
-import net.reduls.igo.Tagger
+import net.reduls.gomoku.Morpheme
+import net.reduls.gomoku.Tagger
 import java.io.*;
 import java.net.*;
 import java.nio.file.*;
@@ -41,7 +41,7 @@ fun LyricsDisplay(song: Song, on_close_request: () -> Unit) {
 
     LaunchedEffect(song.getId()) {
         lyrics = null
-        DataApi.getSongLyrics(song) {
+        song.getLyrics {
             lyrics = it
             if (lyrics == null) {
                 sendToast("Lyrics unavailable")
@@ -81,19 +81,15 @@ fun LyricsDisplay(song: Song, on_close_request: () -> Unit) {
 
 }
 
-val kakasi = Python.getInstance().getModule("pykakasi").callAttr("Kakasi")
-
-@Composable
-fun FuriganaText(text: String, show_furigana: Boolean) {
-
+fun prepareIgoDict(): String {
     val path = MainActivity.context.getExternalFilesDir(null)
-    val dic = File(path, "ipadic")
-    dic.mkdirs()
+    val dict = File(path, "ipadic")
+    dict.mkdirs()
 
     val assets = MainActivity.context.getAssets()
 
     for (file in assets.list("ipadic")!!) {
-        val dest = File(dic, file)
+        val dest = File(dict, file)
         if (!dest.exists()) {
             val s = assets.open("ipadic/$file")
             dest.outputStream().use { fileOut ->
@@ -102,10 +98,18 @@ fun FuriganaText(text: String, show_furigana: Boolean) {
         }
     }
 
-    val tagger = Tagger(dic.absolutePath)
+    return dict.absolutePath
+}
 
-    for(m in tagger.parse("汚れなし")) {
-        sendToast("${m.surface} | ${m.feature} | ${m.start}")
+val kakasi = Python.getInstance().getModule("pykakasi").callAttr("Kakasi")
+
+@Composable
+fun FuriganaText(text: String, show_furigana: Boolean) {
+
+    // val dict_path = prepareIgoDict()
+
+    for(m in Tagger.parse("汚れなし")) {
+        sendToast("surface: ${m.surface}\nfeature: ${m.feature}\nstart: ${m.start}")
     }
 
     fun generateContent(text: String, content: MutableList<TextData>): MutableList<TextData> {

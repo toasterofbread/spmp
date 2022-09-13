@@ -30,13 +30,13 @@ data class Artist (
     val videoCount: String
 ): Previewable() {
 
-    var equivalentId: String? = null
+    var counterpartId: String? = null
 
-    fun getEquivalent(): String? {
-        if (equivalentId == null) {
-            equivalentId = DataApi.getArtistEquivalent(this)
+    fun getCounterpartId(): String? {
+        if (counterpartId == null) {
+            counterpartId = DataApi.getArtistCounterpartId(this)
         }
-        return equivalentId
+        return counterpartId
     }
 
     companion object {

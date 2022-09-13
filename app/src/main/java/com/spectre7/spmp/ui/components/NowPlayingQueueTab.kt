@@ -24,7 +24,6 @@ import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.Image
 import androidx.compose.material.icons.filled.*
 import org.burnoutcrew.reorderable.*
-// import androidx.compose.foundation.lazy.itemsIndexed
 
 @OptIn(ExperimentalComposeUiApi::class)
 @Composable
@@ -80,6 +79,9 @@ fun QueueTab(p_status: PlayerStatus, on_background_colour: Color) {
                 song_items = song_items.toMutableList().apply {
                     removeAt(index)
                 }
+            }
+            override fun onCleared() {
+                song_items = emptyList()
             }
         }
     }
@@ -138,6 +140,40 @@ fun QueueTab(p_status: PlayerStatus, on_background_colour: Color) {
                     }
                 }
             }
+        }
+    }
+
+    Row(modifier = Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.SpaceEvenly, verticalAlignment = Alignment.CenterVertically) {
+        Button(
+            onClick = {
+                PlayerHost.interactService {
+                    it.clearQueue()
+                }
+            },
+            colors = ButtonDefaults.buttonColors(
+                containerColor = Color.Transparent
+            )
+        ) {
+            Text(
+                text = "Clear",
+                color = on_background_colour
+            )
+        }
+
+        Button(
+            onClick = {
+                PlayerHost.interactService {
+                    // TODO
+                }
+            },
+            colors = ButtonDefaults.buttonColors(
+                containerColor = Color.Transparent
+            )
+        ) {
+            Text(
+                text = "Shuffle",
+                color = on_background_colour
+            )
         }
     }
 }

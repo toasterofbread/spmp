@@ -1,9 +1,9 @@
 package com.spectre7.ytmusicapi
 
+// TODO : Merge with DataApi
+
 import android.util.Log
-import com.beust.klaxon.Klaxon
 import com.chaquo.python.PyException
-import com.chaquo.python.PyObject
 import com.chaquo.python.Python
 import com.spectre7.spmp.model.Artist
 import com.spectre7.spmp.model.Song
@@ -13,63 +13,63 @@ class Api {
 
     class YtMusicApi(private val credentials: String) {
 
-        private val json = Python.getInstance().getModule("json")
-        private val api: PyObject = Python.getInstance().getModule("ytmusicapi").callAttr("YTMusic")
-        private val klaxon: Klaxon = Klaxon()
+        private val api = Python.getInstance().getModule("ytmusicapi").callAttr("YTMusic")
 
         init {
             api.callAttr("setup", null, credentials)
         }
 
-        private fun pyToJson(obj: PyObject): String {
-            return json.callAttr("dumps", obj).toString()
+        fun getSongCounterpartId(song: Song): String? {
+            val counterpart = api.callAttr("get_watch_playlist", song.getId(), null, 1).callAttr("get", "tracks").asList().first().callAttr("get", "conuterpart")
+            if (counterpart == null) {
+                return null
+            }
+            return counterpart.callAttr("get", "videoId")
         }
 
-        fun getSongEquivalent(song: Song): String? {
-            val lyrics = api.callAttr("get_watch_playlist", song.getId(), null, 1).callAttr("get", "lyrics")
-            if (lyrics != null) {
-                return lyrics.toString()
-            }
-
-            val results = api.callAttr("search", song.getTitle(), "songs").asList()
-            for (video in results) {
-                Log.d("CANDIDATE", video.callAttr("get", "title").toString())
-                for (artist in video.callAttr("get", "artists").asList()) {
-
-                    Log.d("A", artist.callAttr("get", "id").toString())
-                    Log.d("B", song.artist.getEquivalent().toString())
-
-                    if (artist.callAttr("get", "id").toString() == song.artist.getEquivalent()) {
-                        val id = video.callAttr("get", "videoId").toString()
-
-                        Log.d("ID", id)
-
-                        val playlist = api.callAttr("get_watch_playlist", id, null, 1)
-
-                        Log.d("PLAYLIST", playlist.toString())
-
-                        return playlist.callAttr("get", "lyrics").toString()
-                    }
-                }
-            }
-            return null
-        }
-
-        fun getArtistEquivalent(artist: Artist): String? {
+        fun getArtistCounterpartId(artist: Artist): String? {
             val results = api.callAttr("search", artist.nativeData.name, "artists", null, 1, true).asList()
             return results.first().callAttr("get", "browseId").toString()
+        }
+
+        fun getSongLyricsId(song: Song): String? {
+            fun getLyricsId(video_id: String?): String? {
+                val lyrics = api.callAttr("get_watch_playlist", video_id, null, 1).callAttr("get", "lyrics")
+                if (lyrics != null) {
+                    return lyrics.toString()
+                }
+                return null
+            }
+
+            val ret = getLyricsId(song.getId())
+            if (ret != null) {
+                return ret
+            }
+
+            return getLyricsid(song.getCounterpartId())
         }
 
         fun getSongLyrics(song: Song, callback: (Song.Lyrics?) -> Unit) {
             thread {
                 try {
-                    val result = api.callAttr("get_lyrics", song.getEquivalent())
-                    callback(Song.Lyrics(result.callAttr("get", "lyrics").toString(), result.callAttr("get", "source").toString()))
+                    val lyrics = api.callAttr("get_lyrics", song.getLyricsId())
+                    callback(Song.Lyrics(lyrics.callAttr("get", "lyrics").toString(), lyrics.callAttr("get", "source").toString()))
                 }
                 catch (e: PyException) {
                     callback(null)
                 }
             }
+        }
+
+        fun getSongRadio(song: Song, limit: Int = 25): List<String> {
+            val radio = api.callAttr("get_watch_playlist", song.getId(), null, limit).callAttr("get", "tracks").asList()
+            return List(radio.size) {
+                radio[it].callAttr("get", "videoId")
+            }
+        }
+
+        fun getSongRelated(song: Song) {
+            // TODO : https://ytmusicapi.readthedocs.io/en/latest/reference.html#ytmusicapi.YTMusic.get_watch_playlist
         }
 
     }

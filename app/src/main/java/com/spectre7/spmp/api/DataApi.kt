@@ -27,8 +27,7 @@ import com.chaquo.python.Python
 
 class DataApi {
 
-    class HTTPGetRequest(request_url: String) {
-        private var requestURL: String = request_url
+    class HTTPGetRequest(private var request_url: String) {
         private var params: String = ""
 
         fun addParam(name: String, value: String) {
@@ -39,7 +38,7 @@ class DataApi {
         }
 
         fun getRequestURL(): String {
-            var ret: String = requestURL
+            var ret: String = request_url
             if (params.isNotEmpty()) {
                 ret += "?$params"
             }
@@ -52,15 +51,14 @@ class DataApi {
 
             with(URL(getRequestURL()).openConnection() as HttpURLConnection) {
                 requestMethod = "GET"
-                println("Response Code : $responseCode")
 
                 BufferedReader(InputStreamReader(inputStream)).use {
                     val response = StringBuffer()
 
-                    var inputLine = it.readLine()
-                    while (inputLine != null) {
-                        response.append(inputLine)
-                        inputLine = it.readLine()
+                    var input_lint = it.readLine()
+                    while (input_lint != null) {
+                        response.append(input_lint)
+                        input_lint = it.readLine()
                     }
                     it.close()
                     resp = response
@@ -70,8 +68,8 @@ class DataApi {
             return resp.toString()
         }
 
-        fun reset(request_url: String) {
-            requestURL = request_url
+        fun reset(new_request_url: String) {
+            request_url = new_request_url
             params = ""
         }
     }

@@ -2,6 +2,7 @@ package net.zerotask.libraries.android.compose.furigana
 
 import androidx.compose.animation.Crossfade
 import androidx.compose.foundation.layout.*
+import androidx.compose.foundation.background
 import androidx.compose.foundation.text.InlineTextContent
 import androidx.compose.foundation.text.appendInlineContent
 import androidx.compose.material3.LocalTextStyle
@@ -43,14 +44,18 @@ fun TextWithReading(
     softWrap: Boolean = true,
     maxLines: Int = Int.MAX_VALUE,
     onTextLayout: (TextLayoutResult) -> Unit = {},
-    style: TextStyle = LocalTextStyle.current
+    style: TextStyle = LocalTextStyle.current,
+    highlight_index: Int = -1,
+    highlight_modifier: Modifier = Modifier.background(Color.Red)
 ) {
 
     val dataWithReadings = remember(textContent) {
         calculateAnnotatedString(
             textContent = textContent,
             showReadings = true,
-            fontSize = if (fontSize == TextUnit.Unspecified) style.fontSize else fontSize
+            fontSize = if (fontSize == TextUnit.Unspecified) style.fontSize else fontSize,
+            highlight_index = highlight_index,
+            highlight_modifier = highlight_modifier
         )
     }
 
@@ -58,7 +63,9 @@ fun TextWithReading(
         calculateAnnotatedString(
             textContent = textContent,
             showReadings = false,
-            fontSize = if (fontSize == TextUnit.Unspecified) style.fontSize else fontSize
+            fontSize = if (fontSize == TextUnit.Unspecified) style.fontSize else fontSize,
+            highlight_index = highlight_index,
+            highlight_modifier = highlight_modifier
         )
     }
 
@@ -84,17 +91,29 @@ fun TextWithReading(
     )
 }
 
-fun calculateAnnotatedString(textContent: List<TextData>, showReadings: Boolean, fontSize: TextUnit):
+fun calculateAnnotatedString(textContent: List<TextData>, showReadings: Boolean, fontSize: TextUnit, highlight_index: Int, highlight_modifier: Modifier):
         Pair<AnnotatedString, Map<String, InlineTextContent>> {
     val inlineContent = mutableMapOf<String, InlineTextContent>()
 
     return buildAnnotatedString {
-        for (elem in textContent) {
+
+        var current_highlight_elem = 0
+        var highlight_elem_index: Int? = null
+        var total_length = 0
+
+        for (i in 0 until textContent.size) {
+            val elem = textContent[i]
             val text = elem.text
+            total_length += text.length
+
+            if (highlight_elem_index == null && highlight_index < total_length) {
+                highlight_elem_index = i
+            }
+
             val reading = elem.reading
 
             // If there is not reading available, simply add the text and move to the next element.
-            if (reading == null) {
+            if (reading == null && highlight_index < 0) {
                 append(text)
                 continue
             }
@@ -120,7 +139,7 @@ fun calculateAnnotatedString(textContent: List<TextData>, showReadings: Boolean,
                         verticalArrangement = Arrangement.Bottom,
                     ) {
                         Box(modifier = Modifier.requiredHeight(boxHeight + 3.dp)) {
-                            if (showReadings) {
+                            if (showReadings && reading != null) {
                                 Text(
                                     modifier = Modifier.wrapContentWidth(unbounded = true),
                                     text = reading,
@@ -128,7 +147,7 @@ fun calculateAnnotatedString(textContent: List<TextData>, showReadings: Boolean,
                                 )
                             }
                         }
-                        Text(text = text, fontSize = fontSize)
+                        Text(text = text, fontSize = fontSize, modifier = if (current_highlight_elem++ == highlight_elem_index) highlight_modifier else Modifier)
                     }
                 }
             )
@@ -142,7 +161,7 @@ internal fun PreviewTextWithReading() {
     val textContent = listOf(
         TextData(text = "このルールを"),
         TextData(text = "守", reading = "まも"),
-        TextData(text = "るらない"),
+        TextData(text = "らない"),
         TextData(text = "人", reading = "ひと"),
         TextData(text = "は"),
         TextData(text = "旅行", reading = "りょこう"),
@@ -160,7 +179,7 @@ internal fun PreviewTextWithoutReading() {
     val textContent = listOf(
         TextData(text = "このルールを"),
         TextData(text = "守", reading = "まも"),
-        TextData(text = "るらない"),
+        TextData(text = "らない"),
         TextData(text = "人", reading = "ひと"),
         TextData(text = "は"),
         TextData(text = "旅行", reading = "りょこう"),

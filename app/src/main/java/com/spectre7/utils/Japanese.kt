@@ -9,10 +9,6 @@ fun Char.isKanji(): Boolean = Character.UnicodeBlock.of(this) == CJK_UNIFIED_IDE
 fun Char.isHiragana(): Boolean = Character.UnicodeBlock.of(this) == HIRAGANA
 fun Char.isKatakana(): Boolean = Character.UnicodeBlock.of(this) == KATAKANA
 
-fun Char.isKatakana(): Boolean {
-    return isHalfWidthKatakana() || isFullWidthKatakana()
-}
-
 fun Char.isHalfWidthKatakana(): Boolean {
     return ('\uff66' <= this) && (this <= '\uff9d')
 }
@@ -24,7 +20,7 @@ fun Char.isFullWidthKatakana(): Boolean {
 fun Char.toHiragana(): Char {
     if (isFullWidthKatakana()) {
         return (this - 0x60)
-    } 
+    }
     else if (isHalfWidthKatakana()) {
         return (this - 0xcf25)
     }

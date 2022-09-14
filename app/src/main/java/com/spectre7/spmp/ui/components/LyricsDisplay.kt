@@ -5,6 +5,7 @@ import androidx.compose.animation.Crossfade
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
+import androidx.compose.foundation.background
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
@@ -25,13 +26,12 @@ import net.zerotask.libraries.android.compose.furigana.TextData
 import net.zerotask.libraries.android.compose.furigana.TextWithReading
 import java.io.BufferedReader
 import java.io.InputStreamReader
-// import net.reduls.igo.Morpheme
-// import net.reduls.igo.Tagger
 import java.io.*;
 import java.net.*;
 import java.nio.file.*;
 import java.util.*;
 import java.util.stream.*;
+import com.spectre7.ptl.Ptl
 
 @Composable
 fun LyricsDisplay(song: Song, on_close_request: () -> Unit) {
@@ -60,7 +60,7 @@ fun LyricsDisplay(song: Song, on_close_request: () -> Unit) {
                         CircularProgressIndicator()
                     }
                     else {
-                        FuriganaText(it.lyrics, show_furigana)
+                        FuriganaText(it.lyrics, show_furigana, highlight_index = 5, highlight_modifier = Modifier.background(Color.Red))
                     }
                 }
             }
@@ -81,37 +81,38 @@ fun LyricsDisplay(song: Song, on_close_request: () -> Unit) {
 
 }
 
-fun prepareIgoDict(): String {
-    val path = MainActivity.context.getExternalFilesDir(null)
-    val dict = File(path, "ipadic")
-    dict.mkdirs()
+val kakasi = Python.getInstance().getModule("pykakasi").callAttr("Kakasi")
 
-    val assets = MainActivity.context.getAssets()
-
-    for (file in assets.list("ipadic")!!) {
-        val dest = File(dict, file)
-        if (!dest.exists()) {
-            val s = assets.open("ipadic/$file")
-            dest.outputStream().use { fileOut ->
-                s.copyTo(fileOut)
+fun trimOkurigana(original: String, furigana: String): List<Pair<String, String?>> {
+    if (original.hasKanjiAndHiragana()) {
+        var trim_amount: Int = 0
+        for (i in 1 until furigana.length + 1) {
+            if (original[original.length - i].isKanji() || original[original.length - i] != furigana[furigana.length - i]) {
+                trim_amount = i - 1
+                break
             }
+        }
+
+        if (trim_amount != 0) {
+            return listOf(
+                Pair(original.slice(0 until original.length - trim_amount), furigana.slice(0 until furigana.length - trim_amount)),
+                Pair(original.slice(original.length - trim_amount until original.length), null)
+            )
         }
     }
 
-    return dict.absolutePath
+    return listOf(
+        Pair(original, furigana)
+    )
 }
 
-val kakasi = Python.getInstance().getModule("pykakasi").callAttr("Kakasi")
-
 @Composable
-fun FuriganaText(text: String, show_furigana: Boolean, trim_okurigana: Boolean = true) {
+fun FuriganaText(text: String, show_furigana: Boolean, trim_okurigana: Boolean = true, highlight_index: Int = -1, highlight_modifier: Modifier? = null) {
 
-    fun generateContent(text: String): MutableList<TextData> {
-
+    val text_content = remember(text) {
         val content: MutableList<TextData> = mutableStateListOf<TextData>()
 
         for (term in kakasi.callAttr("convert", text.replace("\n", "\\n").replace("\r", "\\r")).asList()) {
-
             fun getKey(key: String): String {
                 return term.callAttr("get", key).toString().replace("\\n", "\n").replace("\\r", "\r")
             }
@@ -120,24 +121,11 @@ fun FuriganaText(text: String, show_furigana: Boolean, trim_okurigana: Boolean =
             val hira = getKey("hira")
 
             if (orig != hira && orig != getKey("kana")) {
-                if (trim_okurigana && orig.hasKanjiAndHiragana()) {
-                    var trim_amount: Int = 0
-                    for (i in 1 until hira.length + 1) {
-                        if (orig[orig.length - i].isKanji() || orig[orig.length - i] != hira[hira.length - i]) {
-                            trim_amount = i - 1
-                            break
-                        }
-                    }
-
-                    if (trim_amount != 0) {
+                if (trim_okurigana) {
+                    for (pair in trimOkurigana(orig, hira)) {
                         content.add(TextData(
-                            text = orig.slice(0 until orig.length - trim_amount),
-                            reading = hira.slice(0 until hira.length - trim_amount)
-                        ))
-
-                        content.add(TextData(
-                            text = orig.slice(orig.length - trim_amount until orig.length),
-                            reading = null
+                            text = pair.first,
+                            reading = pair.second
                         ))
                     }
                 }
@@ -154,13 +142,10 @@ fun FuriganaText(text: String, show_furigana: Boolean, trim_okurigana: Boolean =
                     reading = null
                 ))
             }
-
-
         }
-        return content
-    }
 
-    val text_content = remember(text) { generateContent(text) }
+        content
+    }
 
     Crossfade(targetState = show_furigana) {
         TextWithReading(
@@ -169,7 +154,9 @@ fun FuriganaText(text: String, show_furigana: Boolean, trim_okurigana: Boolean =
             textAlign = TextAlign.Left,
             lineHeight = 42.sp,
             fontSize = 20.sp,
-            modifier = Modifier.padding(20.dp)
+            modifier = Modifier.padding(20.dp),
+            highlight_index = highlight_index,
+            highlight_modifier = if (highlight_index < 0) Modifier else highlight_modifier!!
         )
     }
 }

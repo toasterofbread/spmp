@@ -17,6 +17,9 @@
     <string name="now_playing_queue">Queue</string>
     <string name="now_playing_related">Related</string>
 
+    <string name="show_furigana">Show furigana</string>
+    <string name="lyrics_unavailable">Lyrics unavailable</string>
+
     <string name="player_service_name">Player Service</string>
 
 </resources>

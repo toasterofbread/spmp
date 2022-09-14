@@ -44,7 +44,7 @@ fun LyricsDisplay(song: Song, on_close_request: () -> Unit) {
         song.getLyrics {
             lyrics = it
             if (lyrics == null) {
-                sendToast("Lyrics unavailable")
+                sendToast(MainActivity.getString(R.string.lyrics_unavailable))
                 on_close_request()
             }
         }
@@ -70,7 +70,7 @@ fun LyricsDisplay(song: Song, on_close_request: () -> Unit) {
 
             Row(verticalAlignment = Alignment.CenterVertically) {
                 Switch(checked = show_furigana, onCheckedChange = { show_furigana = it })
-                Text("Show furigana")
+                Text(MainActivity.getString(R.string.show_furigana))
             }
 
             IconButton(onClick = on_close_request) {
@@ -107,7 +107,9 @@ fun prepareIgoDict(): String {
 fun FuriganaText(text: String, show_furigana: Boolean, trim_okurigana: Boolean = true) {
 
     // TODO | Consider replacing Kakasi with Igo
-    fun generateContent(text: String, content: MutableList<TextData>): MutableList<TextData> {
+    fun generateContent(text: String): MutableList<TextData> {
+
+        val content: MutableList<TextData> = mutableStateListOf<TextData>()
 
         data class Term(val orig: String, val furi: String, kata: String) {
             val changed: Boolean = orig != furi && orig != kata
@@ -180,7 +182,7 @@ fun FuriganaText(text: String, show_furigana: Boolean, trim_okurigana: Boolean =
         return content
     }
 
-    val text_content = remember(text) { generateContent(text, mutableStateListOf<TextData>()) }
+    val text_content = remember(text) { generateContent(text) }
 
     Crossfade(targetState = show_furigana) {
         TextWithReading(

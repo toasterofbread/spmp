@@ -9,6 +9,28 @@ fun Char.isKanji(): Boolean = Character.UnicodeBlock.of(this) == CJK_UNIFIED_IDE
 fun Char.isHiragana(): Boolean = Character.UnicodeBlock.of(this) == HIRAGANA
 fun Char.isKatakana(): Boolean = Character.UnicodeBlock.of(this) == KATAKANA
 
+fun Char.isKatakana(): Boolean {
+    return isHalfWidthKatakana() || isFullWidthKatakana()
+}
+
+fun Char.isHalfWidthKatakana(): Boolean {
+    return ('\uff66' <= this) && (this <= '\uff9d')
+}
+
+fun Char.isFullWidthKatakana(): Boolean {
+    return ('\u30a1' <= this) && (this <= '\u30fe')
+}
+
+fun Char.toHiragana(): Char {
+    if (isFullWidthKatakana()) {
+        return (this - 0x60)
+    } 
+    else if (isHalfWidthKatakana()) {
+        return (this - 0xcf25)
+    }
+    return this;
+}
+
 fun Char.jpType(): JpCharType {
     return when(Character.UnicodeBlock.of(this)) {
         CJK_UNIFIED_IDEOGRAPHS -> JpCharType.KANJI
@@ -37,4 +59,12 @@ fun String.hasKanjiAndHiragana(): Boolean {
         }
     }
     return false
+}
+
+fun String.toHiragana(): String {
+    val ret = StringBuilder()
+    for (char in this) {
+        ret.append(char.toHiragana())
+    }
+    return ret.toString()
 }

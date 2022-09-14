@@ -101,33 +101,49 @@ fun prepareIgoDict(): String {
     return dict.absolutePath
 }
 
-val kakasi = Python.getInstance().getModule("pykakasi").callAttr("Kakasi")
+// val kakasi = Python.getInstance().getModule("pykakasi").callAttr("Kakasi")
 
 @Composable
 fun FuriganaText(text: String, show_furigana: Boolean, trim_okurigana: Boolean = true) {
 
     // TODO | Consider replacing Kakasi with Igo
-    // val dict_path = prepareIgoDict()
-    // for(m in Tagger(dict_path).parse("汚れなし")) {
-    //     Log.d("IGO SURFACE", m.surface)
-    //     Log.d("IGO FEATURE", m.feature)
-    //     Log.d("IGO START", m.start.toString())
-    // }
-
     fun generateContent(text: String, content: MutableList<TextData>): MutableList<TextData> {
-        for (term in kakasi.callAttr("convert", text.replace("\n", "\\n").replace("\r", "\\r")).asList()) {
-            fun getKey(key: String): String {
-                return term.callAttr("get", key).toString().replace("\\n", "\n").replace("\\r", "\r")
+
+        data class Term(val orig: String, val furi: String, kata: String) {
+            val changed: Boolean = orig != furi && orig != kata
+        }
+
+        fun getTerms(text: String): List<Term> {
+
+            // Igo
+            val terms = Tagger(prepareIgoDict()).parse(text)
+            
+            // Kakasi
+            // val terms = kakasi.callAttr("convert", text.replace("\n", "\\n").replace("\r", "\\r")).asList()
+
+            val ret = List(terms.size) {
+                val term = terms[i]
+
+                // Igo
+                Term(term.surface, kata.toHiragana(), term.feature.split(",", 8)[7])
+
+                // Kakasi
+                // fun getKey(key: String): String {
+                //     return term.callAttr("get", key).toString().replace("\\n", "\n").replace("\\r", "\r")
+                // }
+                // Term(getKey("orig"), getKey("hira"), getKey("kana"))
             }
+            
+            return ret
+        }
 
-            val original = getKey("orig")
-            val hiragana = getKey("hira")
+        for (term in getTerms(text)) {
 
-            if (original != hiragana && original != getKey("kana")) {
-                if (trim_okurigana && original.hasKanjiAndHiragana()) {
+            if (term.changed) {
+                if (trim_okurigana && term.orig.hasKanjiAndHiragana()) {
                     var trim_amount: Int = 0
-                    for (i in 1 until hiragana.length + 1) {
-                        if (original[original.length - i].isKanji() || original[original.length - i] != hiragana[hiragana.length - i]) {
+                    for (i in 1 until term.furi.length + 1) {
+                        if (term.orig[term.orig.length - i].isKanji() || term.orig[term.orig.length - i] != term.furi[term.furi.length - i]) {
                             trim_amount = i - 1
                             break
                         }
@@ -135,26 +151,26 @@ fun FuriganaText(text: String, show_furigana: Boolean, trim_okurigana: Boolean =
 
                     if (trim_amount != 0) {
                         content.add(TextData(
-                            text = original.slice(0 until original.length - trim_amount),
-                            reading = hiragana.slice(0 until hiragana.length - trim_amount)
+                            text = term.orig.slice(0 until term.orig.length - trim_amount),
+                            reading = term.furi.slice(0 until term.furi.length - trim_amount)
                         ))
 
                         content.add(TextData(
-                            text = original.slice(original.length - trim_amount until original.length),
+                            text = term.orig.slice(term.orig.length - trim_amount until term.orig.length),
                             reading = null
                         ))
                     }
                 }
                 else {
                     content.add(TextData(
-                        text = original,
-                        reading = hiragana
+                        text = term.orig,
+                        reading = term.furi
                     ))
                 }
             }
             else {
                 content.add(TextData(
-                    text = original,
+                    text = term.orig,
                     reading = null
                 ))
             }

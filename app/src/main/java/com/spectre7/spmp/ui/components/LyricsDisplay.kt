@@ -25,8 +25,8 @@ import net.zerotask.libraries.android.compose.furigana.TextData
 import net.zerotask.libraries.android.compose.furigana.TextWithReading
 import java.io.BufferedReader
 import java.io.InputStreamReader
-import net.reduls.igo.Morpheme
-import net.reduls.igo.Tagger
+// import net.reduls.igo.Morpheme
+// import net.reduls.igo.Tagger
 import java.io.*;
 import java.net.*;
 import java.nio.file.*;
@@ -44,7 +44,7 @@ fun LyricsDisplay(song: Song, on_close_request: () -> Unit) {
         song.getLyrics {
             lyrics = it
             if (lyrics == null) {
-                sendToast("Lyrics unavailable")
+                sendToast(MainActivity.getString(R.string.lyrics_unavailable))
                 on_close_request()
             }
         }
@@ -70,7 +70,7 @@ fun LyricsDisplay(song: Song, on_close_request: () -> Unit) {
 
             Row(verticalAlignment = Alignment.CenterVertically) {
                 Switch(checked = show_furigana, onCheckedChange = { show_furigana = it })
-                Text("Show furigana")
+                Text(MainActivity.getString(R.string.show_furigana))
             }
 
             IconButton(onClick = on_close_request) {
@@ -106,28 +106,24 @@ val kakasi = Python.getInstance().getModule("pykakasi").callAttr("Kakasi")
 @Composable
 fun FuriganaText(text: String, show_furigana: Boolean, trim_okurigana: Boolean = true) {
 
-    // TODO | Consider replacing Kakasi with Igo
-    // val dict_path = prepareIgoDict()
-    // for(m in Tagger(dict_path).parse("汚れなし")) {
-    //     Log.d("IGO SURFACE", m.surface)
-    //     Log.d("IGO FEATURE", m.feature)
-    //     Log.d("IGO START", m.start.toString())
-    // }
+    fun generateContent(text: String): MutableList<TextData> {
 
-    fun generateContent(text: String, content: MutableList<TextData>): MutableList<TextData> {
+        val content: MutableList<TextData> = mutableStateListOf<TextData>()
+
         for (term in kakasi.callAttr("convert", text.replace("\n", "\\n").replace("\r", "\\r")).asList()) {
+
             fun getKey(key: String): String {
                 return term.callAttr("get", key).toString().replace("\\n", "\n").replace("\\r", "\r")
             }
 
-            val original = getKey("orig")
-            val hiragana = getKey("hira")
+            val orig = getKey("orig")
+            val hira = getKey("hira")
 
-            if (original != hiragana && original != getKey("kana")) {
-                if (trim_okurigana && original.hasKanjiAndHiragana()) {
+            if (orig != hira && orig != getKey("kana")) {
+                if (trim_okurigana && orig.hasKanjiAndHiragana()) {
                     var trim_amount: Int = 0
-                    for (i in 1 until hiragana.length + 1) {
-                        if (original[original.length - i].isKanji() || original[original.length - i] != hiragana[hiragana.length - i]) {
+                    for (i in 1 until hira.length + 1) {
+                        if (orig[orig.length - i].isKanji() || orig[orig.length - i] != hira[hira.length - i]) {
                             trim_amount = i - 1
                             break
                         }
@@ -135,26 +131,26 @@ fun FuriganaText(text: String, show_furigana: Boolean, trim_okurigana: Boolean =
 
                     if (trim_amount != 0) {
                         content.add(TextData(
-                            text = original.slice(0 until original.length - trim_amount),
-                            reading = hiragana.slice(0 until hiragana.length - trim_amount)
+                            text = orig.slice(0 until orig.length - trim_amount),
+                            reading = hira.slice(0 until hira.length - trim_amount)
                         ))
 
                         content.add(TextData(
-                            text = original.slice(original.length - trim_amount until original.length),
+                            text = orig.slice(orig.length - trim_amount until orig.length),
                             reading = null
                         ))
                     }
                 }
                 else {
                     content.add(TextData(
-                        text = original,
-                        reading = hiragana
+                        text = orig,
+                        reading = hira
                     ))
                 }
             }
             else {
                 content.add(TextData(
-                    text = original,
+                    text = orig,
                     reading = null
                 ))
             }
@@ -164,7 +160,7 @@ fun FuriganaText(text: String, show_furigana: Boolean, trim_okurigana: Boolean =
         return content
     }
 
-    val text_content = remember(text) { generateContent(text, mutableStateListOf<TextData>()) }
+    val text_content = remember(text) { generateContent(text) }
 
     Crossfade(targetState = show_furigana) {
         TextWithReading(

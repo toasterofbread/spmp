@@ -67,6 +67,7 @@ class PlayerStatus {
     var queue: MutableList<Song> by mutableStateOf(mutableListOf())
     var playing: Boolean by mutableStateOf(false)
     var position: Float by mutableStateOf(0.0f)
+    var duration: Float by mutableStateOf(0.0f)
     var shuffle: Boolean by mutableStateOf(false)
     var repeat_mode: Int by mutableStateOf(Player.REPEAT_MODE_OFF)
     var has_next: Boolean by mutableStateOf(false)
@@ -162,7 +163,7 @@ fun PlayerView() {
 
         LaunchedEffect(Unit) {
             thread {
-                for (song in MainActivity.youtube.getSongRadio(vid)) {
+                for (song in DataApi.getSongRadio(vid)) {
                     songs.add(Song.fromId(song))
                 }
             }
@@ -210,13 +211,14 @@ fun PlayerView() {
             PlayerHost.interactService {
                 status.value.playing = it.player.isPlaying
                 status.value.position = it.player.currentPosition.toFloat() / it.player.duration.toFloat()
+                status.value.duration = it.player.duration / 1000f
                 status.value.song = it.player.currentMediaItem?.localConfiguration?.tag as Song?
                 status.value.index = it.player.currentMediaItemIndex
                 status.value.shuffle = it.player.shuffleModeEnabled
                 status.value.repeat_mode = it.player.repeatMode
                 status.value.has_next = it.player.hasNextMediaItem()
                 status.value.has_previous = it.player.hasPreviousMediaItem()
-                it.iterateSongs { i, song ->
+                it.iterateSongs { _, song ->
                     status.value.queue.add(song)
                 }
             }
@@ -248,6 +250,7 @@ fun PlayerView() {
                     p_status.has_previous = player.hasPreviousMediaItem()
                     p_status.has_next = player.hasNextMediaItem()
                     p_status.index = player.currentMediaItemIndex
+                    p_status.duration = player.duration / 1000f
                 }
 
             }

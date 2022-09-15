@@ -291,7 +291,7 @@ fun NowPlaying(_expansion: Float, max_height: Float, p_status: PlayerStatus, bac
                                                 }
                                             NowPlayingOverlayMenu.LYRICS ->
                                                 if (p_status.song != null) {
-                                                    LyricsDisplay(p_status.song!!, { overlay_menu = NowPlayingOverlayMenu.NONE })
+                                                    LyricsDisplay(p_status.song!!, { overlay_menu = NowPlayingOverlayMenu.NONE }, p_status)
                                                 }
                                             NowPlayingOverlayMenu.NONE -> {}
                                         }

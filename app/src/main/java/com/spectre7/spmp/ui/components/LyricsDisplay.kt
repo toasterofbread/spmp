@@ -22,8 +22,10 @@ import com.spectre7.spmp.api.DataApi
 import com.spectre7.spmp.model.Song
 import com.spectre7.utils.*
 import com.spectre7.spmp.MainActivity
+import com.spectre7.spmp.ui.layout.PlayerStatus
 import net.zerotask.libraries.android.compose.furigana.TextData
 import net.zerotask.libraries.android.compose.furigana.TextWithReading
+import net.zerotask.libraries.android.compose.furigana.ModifierProvider
 import java.io.BufferedReader
 import java.io.InputStreamReader
 import java.io.*;
@@ -34,19 +36,44 @@ import java.util.stream.*;
 import com.spectre7.ptl.Ptl
 
 @Composable
-fun LyricsDisplay(song: Song, on_close_request: () -> Unit) {
+fun LyricsDisplay(song: Song, on_close_request: () -> Unit, p_status: PlayerStatus) {
 
     var lyrics: Song.Lyrics? by remember { mutableStateOf(null) }
     var show_furigana: Boolean by remember { mutableStateOf(false) }
 
+    var first_word: Ptl.TimedLyrics.Word? by remember { mutableStateOf(null) }
+    var current_word: Ptl.TimedLyrics.Word? by remember { mutableStateOf(null) }
+
     LaunchedEffect(song.getId()) {
         lyrics = null
+        current_word = null
+        first_word = null
         song.getLyrics {
-            lyrics = it
-            if (lyrics == null) {
+            if (it == null) {
                 sendToast(MainActivity.getString(R.string.lyrics_unavailable))
                 on_close_request()
             }
+            else {
+                lyrics = it
+                if (lyrics is Song.PTLyrics && (lyrics as Song.PTLyrics).getTimed() != null) {
+                    first_word = (lyrics as Song.PTLyrics).getTimed()!!.first_word
+                }
+            }
+        }
+    }
+
+    LaunchedEffect(p_status.position) {
+        if (first_word != null) {
+            val pos = p_status.duration * p_status.position
+            var word = first_word
+            do {
+                if (pos >= word!!.start_time && pos < word!!.end_time) {
+                    current_word = word
+                    break
+                }
+                word = word.next_word
+            } while(word != null)
+            println("${current_word?.index} | ${current_word?.text}")
         }
     }
 
@@ -60,7 +87,17 @@ fun LyricsDisplay(song: Song, on_close_request: () -> Unit) {
                         CircularProgressIndicator()
                     }
                     else {
-                        FuriganaText(it.lyrics, show_furigana, highlight_index = 5, highlight_modifier = Modifier.background(Color.Red))
+                        val provider = remember(current_word) {
+                            object : ModifierProvider {
+                                override fun getMainModifier(text: String, text_index: Int, term_index: Int): Modifier {
+                                    return if (current_word != null && current_word!!.index == term_index) Modifier.background(Color.Red) else Modifier
+                                }
+                                override fun getFuriModifier(text: String, text_index: Int, term_index: Int): Modifier {
+                                    return getMainModifier(text, text_index, term_index)
+                                }
+                            }
+                        }
+                        FuriganaText(it.getLyricsString(), show_furigana, modifier_provider = provider)
                     }
                 }
             }
@@ -107,7 +144,7 @@ fun trimOkurigana(original: String, furigana: String): List<Pair<String, String?
 }
 
 @Composable
-fun FuriganaText(text: String, show_furigana: Boolean, trim_okurigana: Boolean = true, highlight_index: Int = -1, highlight_modifier: Modifier? = null) {
+fun FuriganaText(text: String, show_furigana: Boolean, trim_okurigana: Boolean = true, modifier_provider: ModifierProvider? = null) {
 
     val text_content = remember(text) {
         val content: MutableList<TextData> = mutableStateListOf<TextData>()
@@ -155,8 +192,7 @@ fun FuriganaText(text: String, show_furigana: Boolean, trim_okurigana: Boolean =
             lineHeight = 42.sp,
             fontSize = 20.sp,
             modifier = Modifier.padding(20.dp),
-            highlight_index = highlight_index,
-            highlight_modifier = if (highlight_index < 0) Modifier else highlight_modifier!!
+            modifier_provider = modifier_provider
         )
     }
 }

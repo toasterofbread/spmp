@@ -31,13 +31,13 @@ data class Artist (
     val videoCount: String
 ): Previewable() {
 
-    private var counterpartId: String? = null
+    private var counterpart_id: String? = null
 
     fun getCounterpartId(): String? {
-        if (counterpartId == null) {
-            counterpartId = MainActivity.youtube.getArtistCounterpartId(this)
+        if (counterpart_id == null) {
+            counterpart_id = DataApi.getArtistCounterpartId(this)
         }
-        return counterpartId
+        return counterpart_id
     }
 
     companion object {

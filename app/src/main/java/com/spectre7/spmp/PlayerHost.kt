@@ -20,6 +20,7 @@ import com.google.android.exoplayer2.ext.mediasession.MediaSessionConnector
 import com.google.android.exoplayer2.ui.PlayerNotificationManager
 import com.spectre7.spmp.model.Song
 import com.spectre7.utils.sendToast
+import com.spectre7.spmp.api.DataApi
 import kotlin.concurrent.thread
 
 class PlayerHost(private var context: Context) {
@@ -241,7 +242,7 @@ class PlayerHost(private var context: Context) {
             clearQueue()
             addToQueue(song) {
                 thread {
-                    for (id in MainActivity.youtube.getSongRadio(song.getId(), include_first = false)) {
+                    for (id in DataApi.getSongRadio(song.getId(), include_first = false)) {
                         val song = Song.fromId(id)
                         MainActivity.runInMainThread {
                             addToQueue(song)

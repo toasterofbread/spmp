@@ -37,7 +37,7 @@ import com.google.accompanist.pager.HorizontalPager
 import com.google.accompanist.pager.rememberPagerState
 import com.google.accompanist.systemuicontroller.rememberSystemUiController
 import com.google.android.exoplayer2.Player
-import com.spectre7.spmp.MainActivity
+import com.spectre7.spmp.MainActivity.getString
 import com.spectre7.spmp.PlayerHost
 import com.spectre7.spmp.R
 import com.spectre7.spmp.model.Song
@@ -340,7 +340,7 @@ fun NowPlaying(_expansion: Float, max_height: Float, p_status: PlayerStatus, bac
                                 ) {
                                     Image(
                                         painterResource(if (p_status.playing) R.drawable.ic_pause else R.drawable.ic_play_arrow),
-                                        MainActivity.getString(if (p_status.playing) R.string.media_pause else R.string.media_play),
+                                        getString(if (p_status.playing) R.string.media_pause else R.string.media_play),
                                         colorFilter = colour_filter
                                     )
                                 }
@@ -666,9 +666,9 @@ fun NowPlaying(_expansion: Float, max_height: Float, p_status: PlayerStatus, bac
                             colorFilter = ColorFilter.tint(colour)
                         )
                         Text(when (tab) {
-                            NowPlayingTab.PLAYER -> MainActivity.getString(R.string.now_playing_player)
-                            NowPlayingTab.QUEUE -> MainActivity.getString(R.string.now_playing_queue)
-                            NowPlayingTab.RELATED -> MainActivity.getString(R.string.now_playing_related)
+                            NowPlayingTab.PLAYER -> getString(R.string.now_playing_player)
+                            NowPlayingTab.QUEUE -> getString(R.string.now_playing_queue)
+                            NowPlayingTab.RELATED -> getString(R.string.now_playing_related)
                         }, color = colour, fontSize = 10.sp, modifier = Modifier.offset(y = (10).dp))
                     }
                 }

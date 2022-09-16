@@ -3,6 +3,7 @@ package com.spectre7.spmp.api
 import android.util.Log
 import com.beust.klaxon.Klaxon
 import com.spectre7.spmp.MainActivity
+import com.spectre7.spmp.MainActivity.getString
 import com.spectre7.spmp.R
 import com.spectre7.spmp.model.Artist
 import com.spectre7.spmp.model.ArtistData
@@ -128,12 +129,12 @@ class DataApi {
 
         private val klaxon: Klaxon = Klaxon()
         private val ptl = Ptl()
-        private val api = Python.getInstance().getModule("ytmusicapi").callAttr("YTMusic").apply { callAttr("setup", null, MainActivity.getString(R.string.yt_music_creds)) }
+        private val api = Python.getInstance().getModule("ytmusicapi").callAttr("YTMusic").apply { callAttr("setup", null, getString(R.string.yt_music_creds)) }
 
         // TODO | Song and artist cache
         fun getSong(videoId: String): Song? {
             var request = HTTPGetRequest("https://www.googleapis.com/youtube/v3/videos")
-            request.addParam("key", MainActivity.getString(R.string.data_api_key))
+            request.addParam("key", getString(R.string.data_api_key))
             request.addParam("part", "contentDetails,snippet,localizations")
             request.addParam("id", videoId)
 
@@ -154,7 +155,7 @@ class DataApi {
             }
 
             var request = HTTPGetRequest("https://www.googleapis.com/youtube/v3/channels")
-            request.addParam("key", MainActivity.getString(R.string.data_api_key))
+            request.addParam("key", getString(R.string.data_api_key))
             request.addParam("part", "contentDetails,snippet,localizations,statistics")
             request.addParam("id", channelId)
 
@@ -196,7 +197,7 @@ class DataApi {
             // }
 
             val request = HTTPGetRequest("https://www.googleapis.com/youtube/v3/search")
-            request.addParam("key", MainActivity.getString(R.string.data_api_key))
+            request.addParam("key", getString(R.string.data_api_key))
             request.addParam("part", "snippet")
             request.addParam("type", when (type) {
                 ResourceType.SONG -> "video"

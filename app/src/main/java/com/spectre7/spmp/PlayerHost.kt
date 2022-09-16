@@ -21,6 +21,7 @@ import com.google.android.exoplayer2.ui.PlayerNotificationManager
 import com.spectre7.spmp.model.Song
 import com.spectre7.utils.sendToast
 import com.spectre7.spmp.api.DataApi
+import com.spectre7.spmp.MainActivity.getString
 import kotlin.concurrent.thread
 
 class PlayerHost(private var context: Context) {
@@ -420,7 +421,7 @@ class PlayerHost(private var context: Context) {
         private fun getNotificationChannel(): String{
             val channel = NotificationChannel(
                 NOTIFICATION_CHANNEL_ID,
-                MainActivity.getString(R.string.player_service_name),
+                getString(R.string.player_service_name),
                 NotificationManager.IMPORTANCE_NONE
             )
             (getSystemService(Context.NOTIFICATION_SERVICE) as NotificationManager).createNotificationChannel(channel)

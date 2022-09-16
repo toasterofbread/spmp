@@ -16,6 +16,10 @@ import com.chaquo.python.android.AndroidPlatform
 import com.spectre7.spmp.ui.layout.PlayerView
 import com.spectre7.spmp.ui.theme.MyApplicationTheme
 
+fun getString(id: Int): String {
+    return MainActivity.resources.getString(id)!!
+}
+
 class MainActivity : ComponentActivity() {
 
     lateinit var player: PlayerHost
@@ -56,10 +60,6 @@ class MainActivity : ComponentActivity() {
 
         @JvmStatic
         private var instance: MainActivity? = null
-
-        fun getString(id: Int): String {
-            return instance?.resources?.getString(id)!!
-        }
 
         fun runInMainThread(code: () -> Unit) {
             Handler(Looper.getMainLooper()).post {

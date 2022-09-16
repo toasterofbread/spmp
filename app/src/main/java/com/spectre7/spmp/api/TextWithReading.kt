@@ -2,6 +2,7 @@ package net.zerotask.libraries.android.compose.furigana
 
 import androidx.compose.animation.Crossfade
 import androidx.compose.foundation.layout.*
+import androidx.compose.foundation.background
 import androidx.compose.foundation.text.InlineTextContent
 import androidx.compose.foundation.text.appendInlineContent
 import androidx.compose.material3.LocalTextStyle
@@ -25,6 +26,11 @@ import androidx.compose.ui.unit.TextUnit
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.em
 
+interface ModifierProvider {
+    abstract fun getMainModifier(text: String, text_index: Int, term_index: Int): Modifier
+    abstract fun getFuriModifier(text: String, text_index: Int, term_index: Int): Modifier
+}
+
 @Composable
 fun TextWithReading(
     textContent: List<TextData>,
@@ -43,22 +49,25 @@ fun TextWithReading(
     softWrap: Boolean = true,
     maxLines: Int = Int.MAX_VALUE,
     onTextLayout: (TextLayoutResult) -> Unit = {},
-    style: TextStyle = LocalTextStyle.current
+    style: TextStyle = LocalTextStyle.current,
+    modifier_provider: ModifierProvider? = null
 ) {
 
-    val dataWithReadings = remember(textContent) {
+    val dataWithReadings = remember(textContent, modifier_provider, style) {
         calculateAnnotatedString(
             textContent = textContent,
             showReadings = true,
-            fontSize = if (fontSize == TextUnit.Unspecified) style.fontSize else fontSize
+            fontSize = if (fontSize == TextUnit.Unspecified) style.fontSize else fontSize,
+            modifier_provider = modifier_provider
         )
     }
 
-    val dataWithoutReadings = remember(textContent) {
+    val dataWithoutReadings = remember(textContent, modifier_provider, style) {
         calculateAnnotatedString(
             textContent = textContent,
             showReadings = false,
-            fontSize = if (fontSize == TextUnit.Unspecified) style.fontSize else fontSize
+            fontSize = if (fontSize == TextUnit.Unspecified) style.fontSize else fontSize,
+            modifier_provider = modifier_provider
         )
     }
 
@@ -84,17 +93,21 @@ fun TextWithReading(
     )
 }
 
-fun calculateAnnotatedString(textContent: List<TextData>, showReadings: Boolean, fontSize: TextUnit):
+fun calculateAnnotatedString(textContent: List<TextData>, showReadings: Boolean, fontSize: TextUnit, modifier_provider: ModifierProvider?):
         Pair<AnnotatedString, Map<String, InlineTextContent>> {
     val inlineContent = mutableMapOf<String, InlineTextContent>()
 
     return buildAnnotatedString {
+
+        var child_index = 0
+        var children_length = 0
+
         for (elem in textContent) {
             val text = elem.text
             val reading = elem.reading
 
             // If there is not reading available, simply add the text and move to the next element.
-            if (reading == null) {
+            if (reading == null && modifier_provider == null) {
                 append(text)
                 continue
             }
@@ -119,8 +132,9 @@ fun calculateAnnotatedString(textContent: List<TextData>, showReadings: Boolean,
                         horizontalAlignment = Alignment.CenterHorizontally,
                         verticalArrangement = Arrangement.Bottom,
                     ) {
-                        Box(modifier = Modifier.requiredHeight(boxHeight + 3.dp)) {
-                            if (showReadings) {
+                        children_length += text.length
+                        Box(modifier = (modifier_provider?.getFuriModifier(text, children_length, child_index++) ?: Modifier).requiredHeight(boxHeight + 3.dp)) {
+                            if (showReadings && reading != null) {
                                 Text(
                                     modifier = Modifier.wrapContentWidth(unbounded = true),
                                     text = reading,
@@ -128,7 +142,7 @@ fun calculateAnnotatedString(textContent: List<TextData>, showReadings: Boolean,
                                 )
                             }
                         }
-                        Text(text = text, fontSize = fontSize)
+                        Text(text = text, fontSize = fontSize, modifier = modifier_provider?.getMainModifier(text, children_length, child_index++) ?: Modifier)
                     }
                 }
             )
@@ -142,7 +156,7 @@ internal fun PreviewTextWithReading() {
     val textContent = listOf(
         TextData(text = "このルールを"),
         TextData(text = "守", reading = "まも"),
-        TextData(text = "るらない"),
+        TextData(text = "らない"),
         TextData(text = "人", reading = "ひと"),
         TextData(text = "は"),
         TextData(text = "旅行", reading = "りょこう"),
@@ -160,7 +174,7 @@ internal fun PreviewTextWithoutReading() {
     val textContent = listOf(
         TextData(text = "このルールを"),
         TextData(text = "守", reading = "まも"),
-        TextData(text = "るらない"),
+        TextData(text = "らない"),
         TextData(text = "人", reading = "ひと"),
         TextData(text = "は"),
         TextData(text = "旅行", reading = "りょこう"),

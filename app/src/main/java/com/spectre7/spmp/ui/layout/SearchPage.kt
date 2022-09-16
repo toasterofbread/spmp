@@ -28,7 +28,7 @@ import androidx.compose.ui.text.input.ImeAction
 import androidx.compose.ui.unit.TextUnit
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
-import com.spectre7.spmp.MainActivity
+import com.spectre7.spmp.MainActivity.getString
 import com.spectre7.spmp.R
 import com.spectre7.spmp.api.DataApi
 import com.spectre7.spmp.model.Artist
@@ -194,9 +194,9 @@ fun SearchPage(set_overlay_page: (page: OverlayPage) -> Unit) {
 
     fun getReadableType(type: ResourceType): String {
         return when (type) {
-            ResourceType.SONG -> MainActivity.getString(R.string.songs)
-            ResourceType.ARTIST -> MainActivity.getString(R.string.artists)
-            ResourceType.PLAYLIST -> MainActivity.getString(R.string.playlists)
+            ResourceType.SONG -> getString(R.string.songs)
+            ResourceType.ARTIST -> getString(R.string.artists)
+            ResourceType.PLAYLIST -> getString(R.string.playlists)
         }
     }
 

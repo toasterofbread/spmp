@@ -41,13 +41,13 @@ fun LyricsDisplay(song: Song, on_close_request: () -> Unit, p_status: PlayerStat
     var lyrics: Song.Lyrics? by remember { mutableStateOf(null) }
     var show_furigana: Boolean by remember { mutableStateOf(false) }
 
-    var first_word: Ptl.TimedLyrics.Word? by remember { mutableStateOf(null) }
-    var current_word: Ptl.TimedLyrics.Word? by remember { mutableStateOf(null) }
+    var t_first_word: Ptl.TimedLyrics.Word? by remember { mutableStateOf(null) }
+    var t_current_word: Ptl.TimedLyrics.Word? by remember { mutableStateOf(null) }
 
     LaunchedEffect(song.getId()) {
         lyrics = null
-        current_word = null
-        first_word = null
+        t_current_word = null
+        t_first_word = null
         song.getLyrics {
             if (it == null) {
                 sendToast(MainActivity.getString(R.string.lyrics_unavailable))
@@ -56,24 +56,24 @@ fun LyricsDisplay(song: Song, on_close_request: () -> Unit, p_status: PlayerStat
             else {
                 lyrics = it
                 if (lyrics is Song.PTLyrics && (lyrics as Song.PTLyrics).getTimed() != null) {
-                    first_word = (lyrics as Song.PTLyrics).getTimed()!!.first_word
+                    t_first_word = (lyrics as Song.PTLyrics).getTimed()!!.t_first_word
                 }
             }
         }
     }
 
     LaunchedEffect(p_status.position) {
-        if (first_word != null) {
+        if (t_first_word != null) {
             val pos = p_status.duration * p_status.position
-            var word = first_word
+            var word = t_first_word
             do {
                 if (pos >= word!!.start_time && pos < word!!.end_time) {
-                    current_word = word
+                    t_current_word = word
                     break
                 }
                 word = word.next_word
             } while(word != null)
-            println("${current_word?.index} | ${current_word?.text}")
+            println("${t_current_word?.index} | ${t_current_word?.text}")
         }
     }
 
@@ -87,10 +87,15 @@ fun LyricsDisplay(song: Song, on_close_request: () -> Unit, p_status: PlayerStat
                         CircularProgressIndicator()
                     }
                     else {
-                        val provider = remember(current_word) {
+                        val provider = remember(t_current_word) {
                             object : ModifierProvider {
                                 override fun getMainModifier(text: String, text_index: Int, term_index: Int): Modifier {
-                                    return if (current_word != null && current_word!!.index == term_index) Modifier.background(Color.Red) else Modifier
+                                    if (t_current_word != null && text_index >= t_current_word!!.index && text_index < t_current_word!!.index - t_current_word!!.text.length) {
+                                        return Modifier.background(Color.Red)
+                                    }
+                                    else {
+                                        return modifier
+                                    }
                                 }
                                 override fun getFuriModifier(text: String, text_index: Int, term_index: Int): Modifier {
                                     return getMainModifier(text, text_index, term_index)

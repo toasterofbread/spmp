@@ -21,7 +21,7 @@ import com.spectre7.spmp.R
 import com.spectre7.spmp.api.DataApi
 import com.spectre7.spmp.model.Song
 import com.spectre7.utils.*
-import com.spectre7.spmp.MainActivity
+import com.spectre7.spmp.MainActivity.getString
 import com.spectre7.spmp.ui.layout.PlayerStatus
 import net.zerotask.libraries.android.compose.furigana.TextData
 import net.zerotask.libraries.android.compose.furigana.TextWithReading
@@ -50,7 +50,7 @@ fun LyricsDisplay(song: Song, on_close_request: () -> Unit, p_status: PlayerStat
         t_first_word = null
         song.getLyrics {
             if (it == null) {
-                sendToast(MainActivity.getString(R.string.lyrics_unavailable))
+                sendToast(getString(R.string.lyrics_unavailable))
                 on_close_request()
             }
             else {
@@ -65,14 +65,51 @@ fun LyricsDisplay(song: Song, on_close_request: () -> Unit, p_status: PlayerStat
     LaunchedEffect(p_status.position) {
         if (t_first_word != null) {
             val pos = p_status.duration * p_status.position
-            var word = t_first_word
-            do {
-                if (pos >= word!!.start_time && pos < word!!.end_time) {
-                    t_current_word = word
-                    break
+            
+            // If no current word
+            if (current_word == null) {
+                var word = t_first_word
+                do {
+                    if (pos >= word!!.start_time && pos < word!!.end_time) {
+                        t_current_word = word
+                        break
+                    }
+                    else if (pos < word!!.start_time) {
+                        break
+                    }
+                    word = word.next_word
+                } while(word != null)
+            }
+            // If playback is ahead of current word
+            else if (pos >= current_word.end_time) {
+                var word = current_word.next_word
+                while(word != null) {
+                    if (pos >= word!!.start_time && pos < word!!.end_time) {
+                        t_current_word = word
+                        break
+                    }
+                    else if (pos < word!!.start_time) {
+                        break
+                    }
+                    word = word.next_word
                 }
-                word = word.next_word
-            } while(word != null)
+            }
+            // If playback is behind current word
+            else if (pos < current_word.start_time) {
+                var word = current_word.prev_word
+                while(word != null) {
+                    if (pos >= word!!.start_time && pos < word!!.end_time) {
+                        t_current_word = word
+                        break
+                    }
+                    else if (pos >= word!!.end_time) {
+                        break
+                    }
+                    word = word.prev_word
+                }
+            }
+
+
             println("${t_current_word?.index} | ${t_current_word?.text}")
         }
     }
@@ -112,7 +149,7 @@ fun LyricsDisplay(song: Song, on_close_request: () -> Unit, p_status: PlayerStat
 
             Row(verticalAlignment = Alignment.CenterVertically) {
                 Switch(checked = show_furigana, onCheckedChange = { show_furigana = it })
-                Text(MainActivity.getString(R.string.show_furigana))
+                Text(getString(R.string.show_furigana))
             }
 
             IconButton(onClick = on_close_request) {
@@ -148,21 +185,24 @@ fun trimOkurigana(original: String, furigana: String): List<Pair<String, String?
     )
 }
 
+fun getFuriganaTerms(text: String): List<Tuple<String, String, String>> {
+    val ret = mutableListOf<Tuple<String, String, String>>()
+    fun getKey(term: PyObject, key: String): String {
+        return term.callAttr("get", key).toString().replace("\\n", "\n").replace("\\r", "\r")
+    }
+    for (term in kakasi.callAttr("convert", text.replace("\n", "\\n").replace("\r", "\\r")).asList()) {
+        ret.add(Tuple(getKey(term, "orig"), getKey(term, "hira"), getKey(term, "kana")))
+    }
+}
+
 @Composable
 fun FuriganaText(text: String, show_furigana: Boolean, trim_okurigana: Boolean = true, modifier_provider: ModifierProvider? = null) {
 
     val text_content = remember(text) {
         val content: MutableList<TextData> = mutableStateListOf<TextData>()
 
-        for (term in kakasi.callAttr("convert", text.replace("\n", "\\n").replace("\r", "\\r")).asList()) {
-            fun getKey(key: String): String {
-                return term.callAttr("get", key).toString().replace("\\n", "\n").replace("\\r", "\r")
-            }
-
-            val orig = getKey("orig")
-            val hira = getKey("hira")
-
-            if (orig != hira && orig != getKey("kana")) {
+        for (orig, hira, kata in getFuriganaTerms(text)) {
+            if (orig != hira && orig != kata) {
                 if (trim_okurigana) {
                     for (pair in trimOkurigana(orig, hira)) {
                         content.add(TextData(

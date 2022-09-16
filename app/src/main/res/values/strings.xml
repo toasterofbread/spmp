@@ -22,4 +22,7 @@
 
     <string name="player_service_name">Player Service</string>
 
+    <string name="lyrics_source_youtube">YouTube</string>
+    <string name="lyrics_source_petitlyrics">PetitLyrics</string>
+
 </resources>

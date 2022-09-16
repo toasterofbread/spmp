@@ -15,12 +15,10 @@ import com.chaquo.python.Python
 import com.chaquo.python.android.AndroidPlatform
 import com.spectre7.spmp.ui.layout.PlayerView
 import com.spectre7.spmp.ui.theme.MyApplicationTheme
-import com.spectre7.ytmusicapi.Api
 
 class MainActivity : ComponentActivity() {
 
     lateinit var player: PlayerHost
-    lateinit var youtube: Api.YtMusicApi
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -30,7 +28,6 @@ class MainActivity : ComponentActivity() {
             Python.start(AndroidPlatform(this))
         }
 
-        youtube = Api.YtMusicApi(getString(R.string.yt_music_creds))
         PlayerHost(this)
 
         window.setFlags(
@@ -56,7 +53,6 @@ class MainActivity : ComponentActivity() {
 
         val context: MainActivity get() = instance!!
         val resources: Resources get() = context.resources
-        val youtube: Api.YtMusicApi get() = context.youtube
 
         @JvmStatic
         private var instance: MainActivity? = null

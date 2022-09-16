@@ -10,7 +10,6 @@ import com.spectre7.spmp.model.Song
 import com.spectre7.spmp.model.SongData
 import com.spectre7.spmp.ui.layout.ResourceType
 import com.spectre7.utils.*
-import com.spectre7.ytmusicapi.Api
 import okhttp3.*
 import okhttp3.MediaType.Companion.toMediaType
 import okhttp3.RequestBody.Companion.toRequestBody
@@ -24,11 +23,12 @@ import java.time.Instant
 import java.util.*
 import kotlin.concurrent.thread
 import com.chaquo.python.Python
+import com.chaquo.python.PyException
+import com.spectre7.ptl.Ptl
 
 class DataApi {
 
-    class HTTPGetRequest(request_url: String) {
-        private var requestURL: String = request_url
+    class HTTPGetRequest(private var request_url: String) {
         private var params: String = ""
 
         fun addParam(name: String, value: String) {
@@ -39,7 +39,7 @@ class DataApi {
         }
 
         fun getRequestURL(): String {
-            var ret: String = requestURL
+            var ret: String = request_url
             if (params.isNotEmpty()) {
                 ret += "?$params"
             }
@@ -52,15 +52,14 @@ class DataApi {
 
             with(URL(getRequestURL()).openConnection() as HttpURLConnection) {
                 requestMethod = "GET"
-                println("Response Code : $responseCode")
 
                 BufferedReader(InputStreamReader(inputStream)).use {
                     val response = StringBuffer()
 
-                    var inputLine = it.readLine()
-                    while (inputLine != null) {
-                        response.append(inputLine)
-                        inputLine = it.readLine()
+                    var input_lint = it.readLine()
+                    while (input_lint != null) {
+                        response.append(input_lint)
+                        input_lint = it.readLine()
                     }
                     it.close()
                     resp = response
@@ -70,8 +69,8 @@ class DataApi {
             return resp.toString()
         }
 
-        fun reset(request_url: String) {
-            requestURL = request_url
+        fun reset(new_request_url: String) {
+            request_url = new_request_url
             params = ""
         }
     }
@@ -82,15 +81,9 @@ class DataApi {
         class ContentDetails(val videoId: String)
 
         fun getSongList(): List<Song> {
-
             var ret: MutableList<Song> = mutableListOf()
             for (video: VideoItem in items) {
-//                if (MainActivity.youtube!!.isSongAvailable(video.contentDetails.videoId)) {
-                    ret.add(Song(video.contentDetails.videoId, SongData(null, video.snippet.title, video.snippet.description), getArtist(video.snippet.channelId)!!, Date.from(Instant.parse(video.snippet.publishedAt))))
-//                }
-//                else {
-//                    Log.d("", "Skip ${video.snippet.title}")
-//                }
+                ret.add(Song(video.contentDetails.videoId, SongData(null, video.snippet.title, video.snippet.description), getArtist(video.snippet.channelId)!!, Date.from(Instant.parse(video.snippet.publishedAt))))
             }
             return ret
         }
@@ -134,6 +127,8 @@ class DataApi {
     companion object {
 
         private val klaxon: Klaxon = Klaxon()
+        private val ptl = Ptl()
+        private val api = Python.getInstance().getModule("ytmusicapi").callAttr("YTMusic").apply { callAttr("setup", null, MainActivity.getString(R.string.yt_music_creds)) }
 
         // TODO | Song and artist cache
         fun getSong(videoId: String): Song? {
@@ -291,6 +286,74 @@ class DataApi {
                 }
             }
         }
+
+        fun getSongPTLyricsId(song: Song): Int? {
+            return ptl.findLyricsId(song.getTitle(), song.artist.nativeData.name)
+        }
+
+        fun getSongYTLyricsId(song: Song): String? {
+            fun getLyricsId(video_id: String?): String? {
+                val lyrics = api.callAttr("get_watch_playlist", video_id, null, 1).callAttr("get", "lyrics")
+                if (lyrics != null) {
+                    return lyrics.toString()
+                }
+                return null
+            }
+
+            val ret = getLyricsId(song.getId())
+            if (ret != null) {
+                return ret
+            }
+
+            return getLyricsId(song.getCounterpartId())
+        }
+
+        fun getSongLyrics(song: Song, callback: (Song.Lyrics?) -> Unit) {
+            thread {
+                val pt_id = song.getPTLyricsId()
+                if (pt_id != null) {
+                    val lyrics = ptl.getLyrics(pt_id)
+                    if (lyrics != null) {
+                        callback(Song.PTLyrics(lyrics))
+                        return@thread
+                    }
+                }
+
+                try {
+                    val lyrics = api.callAttr("get_lyrics", song.getYTLyricsId())
+                    callback(Song.YTLyrics(lyrics.callAttr("get", "lyrics").toString(), lyrics.callAttr("get", "source").toString()))
+                }
+                catch (e: PyException) {
+                    callback(null)
+                }
+            }
+        }
+
+        fun getSongCounterpartId(song: Song): String? {
+            val counterpart = api.callAttr("get_watch_playlist", song.getId(), null, 1).callAttr("get", "tracks").asList().first().callAttr("get", "conuterpart")
+            if (counterpart == null) {
+                return null
+            }
+            return counterpart.callAttr("get", "videoId").toString()
+        }
+
+        fun getArtistCounterpartId(artist: Artist): String? {
+            val results = api.callAttr("search", artist.nativeData.name, "artists", null, 1, true).asList()
+            return results.first().callAttr("get", "browseId").toString()
+        }
+
+        fun getSongRadio(song_id: String, limit: Int = 25, include_first: Boolean = true): List<String> {
+            val radio = api.callAttr("get_watch_playlist", song_id, null, limit).callAttr("get", "tracks").asList()
+            val offset = if (include_first) 0 else 1
+            return List(radio.size - offset) {
+                radio[it + offset].callAttr("get", "videoId").toString()
+            }
+        }
+
+        fun getSongRelated(song: Song) {
+            // TODO : https://ytmusicapi.readthedocs.io/en/latest/reference.html#ytmusicapi.YTMusic.get_watch_playlist
+        }
+
     }
 }
 

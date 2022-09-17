@@ -17,6 +17,7 @@ import java.time.Duration
 import java.util.Date
 import com.spectre7.ptl.Ptl
 import com.spectre7.spmp.R
+import com.spectre7.utils.getString
 
 data class SongData (
     val locale: String?,

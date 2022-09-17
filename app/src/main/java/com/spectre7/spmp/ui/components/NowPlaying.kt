@@ -37,7 +37,7 @@ import com.google.accompanist.pager.HorizontalPager
 import com.google.accompanist.pager.rememberPagerState
 import com.google.accompanist.systemuicontroller.rememberSystemUiController
 import com.google.android.exoplayer2.Player
-import com.spectre7.spmp.MainActivity.getString
+import com.spectre7.utils.getString
 import com.spectre7.spmp.PlayerHost
 import com.spectre7.spmp.R
 import com.spectre7.spmp.model.Song
@@ -76,7 +76,7 @@ fun NowPlaying(_expansion: Float, max_height: Float, p_status: PlayerStatus, bac
         return p_status.song!!.artist.nativeData.name
     }
 
-    val theme_mode = NowPlayingThemeMode.BACKGROUND
+    val theme_mode = NowPlayingThemeMode.ELEMENTS
     val systemui_controller = rememberSystemUiController()
 
     var thumbnail by remember { mutableStateOf<ImageBitmap?>(null) }

@@ -28,7 +28,7 @@ import androidx.compose.ui.text.input.ImeAction
 import androidx.compose.ui.unit.TextUnit
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
-import com.spectre7.spmp.MainActivity.getString
+import com.spectre7.utils.getString
 import com.spectre7.spmp.R
 import com.spectre7.spmp.api.DataApi
 import com.spectre7.spmp.model.Artist
@@ -124,7 +124,7 @@ fun SearchPage(set_overlay_page: (page: OverlayPage) -> Unit) {
         set_overlay_page(OverlayPage.NONE)
     }
 
-    BackHandler(){
+    BackHandler {
         navigateBack()
     }
 

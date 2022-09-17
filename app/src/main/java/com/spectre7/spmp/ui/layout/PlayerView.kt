@@ -201,7 +201,7 @@ fun PlayerView() {
                     when (it) {
                         OverlayPage.NONE -> {}
                         OverlayPage.SEARCH -> SearchPage { overlay_page = it }
-                        OverlayPage.SETTINGS -> SettingsPage { overlay_page = it }
+                        OverlayPage.SETTINGS -> PrefsPage { overlay_page = it }
                     }
                 }
             }

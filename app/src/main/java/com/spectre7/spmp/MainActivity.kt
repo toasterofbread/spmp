@@ -15,9 +15,15 @@ import com.chaquo.python.Python
 import com.chaquo.python.android.AndroidPlatform
 import com.spectre7.spmp.ui.layout.PlayerView
 import com.spectre7.spmp.ui.theme.MyApplicationTheme
+import androidx.compose.animation.core.Animatable
+import androidx.compose.material3.MaterialTheme
+import androidx.compose.ui.graphics.Color
+import androidx.compose.animation.core.AnimationVector4D
 
-fun getString(id: Int): String {
-    return MainActivity.resources.getString(id)!!
+abstract class Theme {
+    abstract var background_colour: Animatable<Color, AnimationVector4D>// = Animatable(MaterialTheme.colorScheme.background)
+    abstract var on_background_colour: Animatable<Color, AnimationVector4D>// = Animatable(MaterialTheme.colorScheme.onBackground)
+    abstract var accent_colour: Animatable<Color, AnimationVector4D>// = Animatable(MaterialTheme.colorScheme.primary)
 }
 
 class MainActivity : ComponentActivity() {

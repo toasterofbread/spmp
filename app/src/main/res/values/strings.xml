@@ -44,8 +44,8 @@
     <string name="setting_d_audio_quality_mobile">Quality of audio to stream over mobile data connections</string>
     <string name="audio_quality_139">Low (ID: 139)</string>
     <string name="audio_quality_140">Standard (ID: 140)</string>
-    
+
     <string name="setting_t_auto_download_threshold">Auto download view threshold</string>
-    <string name="setting_d_auto_download_threshold">Songs you've listened to at least this many times will be downloaded automatically when on WiFi</string>
+    <string name="setting_d_auto_download_threshold">Songs you\'ve listened to at least this many times will be downloaded automatically when on WiFi</string>
 
 </resources>

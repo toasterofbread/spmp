@@ -4,9 +4,14 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.toArgb
 import androidx.core.graphics.ColorUtils
 import androidx.palette.graphics.Palette
+import kotlin.math.min
 
 fun setColourAlpha(colour: Color, alpha: Double): Color {
     return Color(ColorUtils.setAlphaComponent(colour.toArgb(), (255 * alpha).toInt()))
+}
+
+fun offsetColourRGB(colour: Color, offset: Double): Color {
+    return Color(min(1f, colour.red + offset.toFloat()), min(1f, colour.green + offset.toFloat()), min(1f, colour.blue + offset.toFloat()))
 }
 
 fun getPaletteColour(palette: Palette, type: Int): Color? {

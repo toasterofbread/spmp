@@ -21,7 +21,7 @@ import com.google.android.exoplayer2.ui.PlayerNotificationManager
 import com.spectre7.spmp.model.Song
 import com.spectre7.utils.sendToast
 import com.spectre7.spmp.api.DataApi
-import com.spectre7.spmp.MainActivity.getString
+import com.spectre7.utils.getString
 import kotlin.concurrent.thread
 
 class PlayerHost(private var context: Context) {

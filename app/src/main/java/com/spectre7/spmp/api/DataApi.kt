@@ -3,7 +3,7 @@ package com.spectre7.spmp.api
 import android.util.Log
 import com.beust.klaxon.Klaxon
 import com.spectre7.spmp.MainActivity
-import com.spectre7.spmp.MainActivity.getString
+import com.spectre7.utils.getString
 import com.spectre7.spmp.R
 import com.spectre7.spmp.model.Artist
 import com.spectre7.spmp.model.ArtistData

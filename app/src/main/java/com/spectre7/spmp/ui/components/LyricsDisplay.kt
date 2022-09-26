@@ -140,7 +140,11 @@ fun LyricsDisplay(song: Song, on_close_request: () -> Unit, p_status: PlayerStat
                                 }
                             }
                         }
-                        FuriganaText(it.getLyricsString(), show_furigana, modifier_provider = provider)
+
+                        Column {
+                            FuriganaText(it.getLyricsString(), show_furigana, modifier_provider = provider)
+                            Text(getString(R.string.lyrics_source_prefix) + it.getSource(), textAlign = TextAlign.Left, modifier = Modifier.fillMaxWidth())
+                        }
                     }
                 }
             }

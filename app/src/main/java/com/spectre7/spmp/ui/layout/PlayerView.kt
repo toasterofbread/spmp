@@ -94,18 +94,20 @@ fun PlayerView() {
                     .padding(15.dp)
             ) {
                 var expand by remember { mutableStateOf(false) }
+                val background_colour = MainActivity.getTheme().getAccent()
+                val element_colour = MainActivity.getTheme().getOnAccent()
 
                 IconButton(
                     onClick = { expand = !expand },
-                    modifier = Modifier.background(MaterialTheme.colorScheme.primary, shape = CircleShape)
+                    modifier = Modifier.background(background_colour, shape = CircleShape)
                 ) {
-                    Icon(Icons.Filled.KeyboardArrowLeft, "", tint = MaterialTheme.colorScheme.onPrimary)
+                    Icon(Icons.Filled.KeyboardArrowLeft, "", tint = element_colour)
                 }
 
                 AnimatedVisibility(visible = expand, enter = expandHorizontally(tween(250)), exit = shrinkHorizontally(tween(250))) {
                     Row(
                         Modifier
-                            .background(MaterialTheme.colorScheme.primary, shape = CircleShape),
+                            .background(background_colour, shape = CircleShape),
                         horizontalArrangement = Arrangement.End
                     ) {
 
@@ -113,20 +115,20 @@ fun PlayerView() {
                             expand = false
                             overlay_page = OverlayPage.SETTINGS
                         }) {
-                            Icon(Icons.Filled.Settings, "", tint = MaterialTheme.colorScheme.onPrimary)
+                            Icon(Icons.Filled.Settings, "", tint = element_colour)
                         }
 
                         IconButton(onClick = {
                             expand = false
                             overlay_page = OverlayPage.SEARCH
                         }) {
-                            Icon(Icons.Filled.Search, "", tint = MaterialTheme.colorScheme.onPrimary)
+                            Icon(Icons.Filled.Search, "", tint = element_colour)
                         }
 
                         IconButton(onClick = {
                             expand = false }
                         ) {
-                            Icon(Icons.Filled.KeyboardArrowRight, "", tint = MaterialTheme.colorScheme.onPrimary)
+                            Icon(Icons.Filled.KeyboardArrowRight, "", tint = element_colour)
                         }
                     }
                 }
@@ -301,11 +303,8 @@ fun PlayerView() {
             swipe_state.animateTo(if (swipe_state.currentValue == 0) 1 else 0)
         }
 
-        val default_background_colour = MaterialTheme.colorScheme.background
-        val background_colour = remember { Animatable(default_background_colour) }
-
         Card(colors = CardDefaults.cardColors(
-            containerColor = background_colour.value
+            containerColor = MainActivity.getTheme().getBackground(true)
         ), modifier = Modifier
             .fillMaxWidth()
             .requiredHeight(screen_height.dp)
@@ -320,7 +319,7 @@ fun PlayerView() {
             .clickable(interactionSource = remember { MutableInteractionSource() }, enabled = swipe_state.targetValue == 0, indication = null) { switch = !switch }, shape = RectangleShape) {
 
             Column(Modifier.fillMaxSize()) {
-                NowPlaying(swipe_state.offset.value / screen_height, screen_height, p_status, background_colour)
+                NowPlaying(swipe_state.offset.value / screen_height, screen_height, p_status)
             }
         }
     }

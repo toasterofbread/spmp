@@ -12,6 +12,7 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.ColorFilter
+import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
@@ -63,6 +64,8 @@ fun LyricsDisplay(song: Song, on_close_request: () -> Unit, p_status: PlayerStat
         }
     }
 
+    val text_positions = remember { mutableStateListOf<Offset>() }
+
     LaunchedEffect(p_status.position) {
         if (t_first_word != null) {
             val pos = p_status.duration * p_status.position
@@ -110,8 +113,11 @@ fun LyricsDisplay(song: Song, on_close_request: () -> Unit, p_status: PlayerStat
                 }
             }
 
-
-            println("${t_current_word?.index} | ${t_current_word?.text}")
+            println(text_positions.size)
+            if (text_positions.size > 0){
+                println("${text_positions[0].x}, ${text_positions[0].x}")
+            }
+            // println("${t_current_word?.index} | ${t_current_word?.text}")
         }
     }
 
@@ -125,24 +131,8 @@ fun LyricsDisplay(song: Song, on_close_request: () -> Unit, p_status: PlayerStat
                         CircularProgressIndicator()
                     }
                     else {
-                        val provider = remember(t_current_word) {
-                            object : ModifierProvider {
-                                override fun getMainModifier(text: String, text_index: Int, term_index: Int): Modifier {
-                                    if (t_current_word != null && text_index >= t_current_word!!.index && text_index < t_current_word!!.index - t_current_word!!.text.length) {
-                                        return Modifier.background(Color.Red)
-                                    }
-                                    else {
-                                        return Modifier
-                                    }
-                                }
-                                override fun getFuriModifier(text: String, text_index: Int, term_index: Int): Modifier {
-                                    return getMainModifier(text, text_index, term_index)
-                                }
-                            }
-                        }
-
                         Column {
-                            FuriganaText(it.getLyricsString(), show_furigana, modifier_provider = provider)
+                            FuriganaText(it.getLyricsString(), show_furigana, text_positions = text_positions)
                             Text(getString(R.string.lyrics_source_prefix) + it.getSource(), textAlign = TextAlign.Left, modifier = Modifier.fillMaxWidth())
                         }
                     }
@@ -202,7 +192,7 @@ fun getFuriganaTerms(text: String): List<Triple<String, String, String>> {
 }
 
 @Composable
-fun FuriganaText(text: String, show_furigana: Boolean, trim_okurigana: Boolean = true, modifier_provider: ModifierProvider? = null) {
+fun FuriganaText(text: String, show_furigana: Boolean, trim_okurigana: Boolean = true, modifier_provider: ModifierProvider? = null, text_positions: MutableList<Offset>? = null) {
 
     val text_content = remember(text) {
         val content: MutableList<TextData> = mutableStateListOf<TextData>()
@@ -243,7 +233,8 @@ fun FuriganaText(text: String, show_furigana: Boolean, trim_okurigana: Boolean =
             lineHeight = 42.sp,
             fontSize = 20.sp,
             modifier = Modifier.padding(20.dp),
-            modifier_provider = modifier_provider
+            modifier_provider = modifier_provider,
+            text_positions = text_positions
         )
     }
 }

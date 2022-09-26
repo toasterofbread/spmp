@@ -48,6 +48,7 @@ import com.spectre7.utils.*
 import kotlin.concurrent.thread
 import kotlin.math.max
 import androidx.compose.ui.geometry.Offset
+import com.spectre7.spmp.MainActivity
 
 enum class NowPlayingThemeMode { BACKGROUND, ELEMENTS }
 enum class NowPlayingOverlayMenu { NONE, MAIN, PALETTE, LYRICS }
@@ -57,7 +58,7 @@ const val SEEK_CANCEL_THRESHOLD = 0.05f
 
 @OptIn(ExperimentalPagerApi::class)
 @Composable
-fun NowPlaying(_expansion: Float, max_height: Float, p_status: PlayerStatus, background_colour: Animatable<Color, AnimationVector4D>) {
+fun NowPlaying(_expansion: Float, max_height: Float, p_status: PlayerStatus) {
 
     val expansion = if (_expansion < 0.08f) 0.0f else _expansion
     val inv_expansion = -expansion + 1.0f
@@ -76,7 +77,7 @@ fun NowPlaying(_expansion: Float, max_height: Float, p_status: PlayerStatus, bac
         return p_status.song!!.artist.nativeData.name
     }
 
-    val theme_mode = NowPlayingThemeMode.ELEMENTS
+    val theme_mode = NowPlayingThemeMode.BACKGROUND
     val systemui_controller = rememberSystemUiController()
 
     var thumbnail by remember { mutableStateOf<ImageBitmap?>(null) }
@@ -84,11 +85,8 @@ fun NowPlaying(_expansion: Float, max_height: Float, p_status: PlayerStatus, bac
     var palette_index by remember { mutableStateOf(2) }
 
     val default_background_colour = MaterialTheme.colorScheme.background
-    val default_on_background_colour = MaterialTheme.colorScheme.onBackground
 
-    val on_background_colour = remember { Animatable(default_on_background_colour) }
-
-    val colour_filter = ColorFilter.tint(on_background_colour.value)
+    val colour_filter = ColorFilter.tint(MainActivity.getTheme().getOnBackground(true))
 
     fun setThumbnail(thumb: ImageBitmap?) {
         if (thumb == null) {
@@ -119,42 +117,43 @@ fun NowPlaying(_expansion: Float, max_height: Float, p_status: PlayerStatus, bac
 
     LaunchedEffect(key1 = theme_palette, key2 = palette_index) {
         if (theme_palette == null) {
-            background_colour.animateTo(default_background_colour)
-            on_background_colour.animateTo(default_on_background_colour)
+            MainActivity.getTheme().setBackground(true, null)
+            MainActivity.getTheme().setOnBackground(true, null)
+            MainActivity.getTheme().setAccent(null)
         }
         else {
             val colour = getPaletteColour(theme_palette!!, palette_index)
+            MainActivity.getTheme().setAccent(colour)
             if (colour == null) {
-                background_colour.animateTo(default_background_colour)
-                on_background_colour.animateTo(default_on_background_colour)
+                MainActivity.getTheme().setBackground(true, null)
+                MainActivity.getTheme().setOnBackground(true, null)
             } else {
-
                 when (theme_mode) {
                     NowPlayingThemeMode.BACKGROUND -> {
-                        background_colour.animateTo(colour)
-                        on_background_colour.animateTo(
+                        MainActivity.getTheme().setBackground(true, colour)
+                        MainActivity.getTheme().setOnBackground(true,
                             getContrastedColour(colour)
                         )
                     }
                     NowPlayingThemeMode.ELEMENTS -> {
-                        on_background_colour.animateTo(colour)
+                        MainActivity.getTheme().setOnBackground(true, colour)
                     }
                 }
             }
         }
     }
 
-    LaunchedEffect(key1 = expansion >= 1.0f, key2 = background_colour.value) {
+    LaunchedEffect(key1 = expansion >= 1.0f, key2 = MainActivity.getTheme().getBackground(true)) {
         systemui_controller.setSystemBarsColor(
-            color = if (expansion >= 1.0f) background_colour.value else default_background_colour
+            color = if (expansion >= 1.0f) MainActivity.getTheme().getBackground(true) else default_background_colour
         )
     }
 
     if (expansion < 1.0f) {
         LinearProgressIndicator(
             progress = p_status.position,
-            color = on_background_colour.value,
-            trackColor = setColourAlpha(on_background_colour.value, 0.5),
+            color = MainActivity.getTheme().getOnBackground(true),
+            trackColor = setColourAlpha(MainActivity.getTheme().getOnBackground(true), 0.5),
             modifier = Modifier
                 .requiredHeight(2.dp)
                 .fillMaxWidth()
@@ -247,7 +246,7 @@ fun NowPlaying(_expansion: Float, max_height: Float, p_status: PlayerStatus, bac
                                                         Box(
                                                             Modifier
                                                                 .background(
-                                                                    background_colour.value,
+                                                                    MainActivity.getTheme().getBackground(true),
                                                                     CircleShape
                                                                 )
                                                                 .size(40.dp)
@@ -259,14 +258,14 @@ fun NowPlaying(_expansion: Float, max_height: Float, p_status: PlayerStatus, bac
                                                         ) {
                                                             Image(
                                                                 painterResource(R.drawable.ic_music_note), "",
-                                                                colorFilter = ColorFilter.tint(on_background_colour.value)
+                                                                colorFilter = ColorFilter.tint(MainActivity.getTheme().getOnBackground(true))
                                                             )
                                                         }
 
                                                         Box(
                                                             Modifier
                                                                 .background(
-                                                                    background_colour.value,
+                                                                    MainActivity.getTheme().getBackground(true),
                                                                     CircleShape
                                                                 )
                                                                 .size(40.dp)
@@ -278,7 +277,7 @@ fun NowPlaying(_expansion: Float, max_height: Float, p_status: PlayerStatus, bac
                                                         ) {
                                                             Image(
                                                                 painterResource(R.drawable.ic_palette), "",
-                                                                colorFilter = ColorFilter.tint(on_background_colour.value)
+                                                                colorFilter = ColorFilter.tint(MainActivity.getTheme().getOnBackground(true))
                                                             )
                                                         }
 
@@ -373,7 +372,7 @@ fun NowPlaying(_expansion: Float, max_height: Float, p_status: PlayerStatus, bac
                                 .weight(1f), contentAlignment = Alignment.TopCenter) {
 
                             @Composable
-                            fun PlayerButton(painter: Painter, size: Dp = button_size, alpha: Float = 1f, colour: Color = on_background_colour.value, label: String? = null, enabled: Boolean = true, on_click: () -> Unit) {
+                            fun PlayerButton(painter: Painter, size: Dp = button_size, alpha: Float = 1f, colour: Color = MainActivity.getTheme().getOnBackground(true), label: String? = null, enabled: Boolean = true, on_click: () -> Unit) {
                                 Box(
                                     contentAlignment = Alignment.Center,
                                     modifier = Modifier
@@ -403,7 +402,7 @@ fun NowPlaying(_expansion: Float, max_height: Float, p_status: PlayerStatus, bac
                             }
 
                             @Composable
-                            fun PlayerButton(image_id: Int, size: Dp = button_size, alpha: Float = 1f, colour: Color = on_background_colour.value, label: String? = null, enabled: Boolean = true, on_click: () -> Unit) {
+                            fun PlayerButton(image_id: Int, size: Dp = button_size, alpha: Float = 1f, colour: Color = MainActivity.getTheme().getOnBackground(true), label: String? = null, enabled: Boolean = true, on_click: () -> Unit) {
                                 PlayerButton(painterResource(image_id), size, alpha, colour, label, enabled, on_click)
                             }
 
@@ -414,7 +413,7 @@ fun NowPlaying(_expansion: Float, max_height: Float, p_status: PlayerStatus, bac
                                     // Title text
                                     Text(getSongTitle(),
                                         fontSize = 17.sp,
-                                        color = on_background_colour.value,
+                                        color = MainActivity.getTheme().getOnBackground(true),
                                         textAlign = TextAlign.Center,
                                         maxLines = 1,
                                         overflow = TextOverflow.Ellipsis,
@@ -425,7 +424,7 @@ fun NowPlaying(_expansion: Float, max_height: Float, p_status: PlayerStatus, bac
                                     // Artist text
                                     Text(getSongArtist(),
                                         fontSize = 12.sp,
-                                        color = on_background_colour.value,
+                                        color = MainActivity.getTheme().getOnBackground(true),
                                         textAlign = TextAlign.Center,
                                         maxLines = 1,
                                         overflow = TextOverflow.Ellipsis,
@@ -548,8 +547,8 @@ fun NowPlaying(_expansion: Float, max_height: Float, p_status: PlayerStatus, bac
                                         }
                                     },
                                     thumbSizeInDp = DpSize(12.dp, 12.dp),
-                                    track = { a, b, _, _, c -> SeekTrack(a, b, c, setColourAlpha(on_background_colour.value, 0.5), on_background_colour.value, highlight = highlight) },
-                                    thumb = { a, b, c, d, e -> DefaultThumb(a, b, c, d, e, on_background_colour.value, 1f) }
+                                    track = { a, b, _, _, c -> SeekTrack(a, b, c, setColourAlpha(MainActivity.getTheme().getOnBackground(true), 0.5), MainActivity.getTheme().getOnBackground(true), highlight = highlight) },
+                                    thumb = { a, b, c, d, e -> DefaultThumb(a, b, c, d, e, MainActivity.getTheme().getOnBackground(true), 1f) }
                                 )
 
                                 Row(
@@ -613,7 +612,7 @@ fun NowPlaying(_expansion: Float, max_height: Float, p_status: PlayerStatus, bac
                     }
                 }
                 else if (tab == NowPlayingTab.QUEUE) {
-                    QueueTab(p_status, on_background_colour.value)
+                    QueueTab(p_status, MainActivity.getTheme().getOnBackground(true))
                 }
             }
         }
@@ -641,8 +640,8 @@ fun NowPlaying(_expansion: Float, max_height: Float, p_status: PlayerStatus, bac
                     current_tab.ordinal,
                     Modifier.requiredHeight(button_size * 0.8f),
                     Modifier.aspectRatio(1f),
-                    colour = setColourAlpha(on_background_colour.value, 0.75),
-                    background_colour = background_colour.value,
+                    colour = setColourAlpha(MainActivity.getTheme().getOnBackground(true), 0.75),
+                    background_colour = MainActivity.getTheme().getBackground(true),
                     on_selected = { current_tab = NowPlayingTab.values()[it] }
                 ) { index ->
 
@@ -652,7 +651,7 @@ fun NowPlaying(_expansion: Float, max_height: Float, p_status: PlayerStatus, bac
                         contentAlignment = Alignment.Center
                     ) {
 
-                        val colour = if (tab == current_tab) background_colour.value else on_background_colour.value
+                        val colour = if (tab == current_tab) MainActivity.getTheme().getBackground(true) else MainActivity.getTheme().getOnBackground(true)
 
                         Image(
                             when(tab) {

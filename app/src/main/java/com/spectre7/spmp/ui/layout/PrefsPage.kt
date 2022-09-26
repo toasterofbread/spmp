@@ -17,23 +17,28 @@ import com.spectre7.composesettings.ui.*
 import com.spectre7.composesettings.model.*
 import androidx.activity.compose.BackHandler
 import androidx.compose.ui.graphics.Color
+import com.spectre7.spmp.MainActivity
+import com.spectre7.utils.Theme
+import androidx.compose.ui.zIndex
 
 @Composable
 fun PrefsPage(set_overlay_page: (page: OverlayPage) -> Unit) {
 
     val main_page = remember { SettingsPage("Preferences", listOf(
-        SettingsGroup("Theming")
-    )) }
+        SettingsGroup("Theming"),
+        SettingsValueToggle(SettinsValueState(false), "Hello World", "Subtitle text text subtitle text")
+    ))}
 
     val interface_state = object : SettingsInterfaceState() {
-        override fun getThemeColour(): Color {
-            return Color.Red
+        override fun getTheme(): Theme {
+            return MainActivity.getTheme()
         }
     }
 
     interface_state.current_page = main_page
 
-    SettingsInterface(interface_state, Modifier.fillMaxSize().background(MaterialTheme.colorScheme.background))
+    SettingsInterface(interface_state, Modifier.fillMaxSize().background(Color.Red).zIndex(100f))
+    // SettingsInterface(interface_state, Modifier.fillMaxSize().background(MaterialTheme.colorScheme.background).zIndex(100f))
 
     BackHandler {
         set_overlay_page(OverlayPage.NONE)

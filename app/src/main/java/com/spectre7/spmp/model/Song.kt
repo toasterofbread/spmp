@@ -48,6 +48,9 @@ data class Song (
             return lyrics
         }
         override fun getSource(): String {
+            if (source != null) {
+                return source.removePrefix("Source: ") + getString(R.string.lyrics_source_via_youtubemusic)
+            }
             return source ?: getString(R.string.lyrics_source_youtube)
         }
     }

@@ -132,7 +132,7 @@ fun calculateAnnotatedString(textContent: List<TextData>, showReadings: Boolean,
                         horizontalAlignment = Alignment.CenterHorizontally,
                         verticalArrangement = Arrangement.Bottom,
                     ) {
-                        children_length += text.length
+                        children_length += text.length + 1
                         Box(modifier = (modifier_provider?.getFuriModifier(text, children_length, child_index++) ?: Modifier).requiredHeight(boxHeight + 3.dp)) {
                             if (showReadings && reading != null) {
                                 Text(

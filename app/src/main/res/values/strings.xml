@@ -22,7 +22,32 @@
 
     <string name="player_service_name">Player Service</string>
 
+    <string name="lyrics_source_prefix">Lyrics source: </string>
+    <string name="lyrics_source_via_youtubemusic"> (via YouTube Music)</string>
     <string name="lyrics_source_youtube">YouTube</string>
     <string name="lyrics_source_petitlyrics">PetitLyrics</string>
+
+    <!-- Settings -->
+    <string name="setting_t_lang_app">App language</string>
+    <string name="setting_d_lang_app">Language for UI text</string>
+    <string name="setting_t_lang_data">Data language</string>
+    <string name="setting_d_lang_data">Language for song/artist metadata</string>
+    <string name="lang_system">System</string>
+    <string name="lang_native">Native</string>
+
+    <string name="setting_t_theme_mode">Now playing theme mode</string>
+    <string name="setting_d_theme_mode">Method to use for colouring the now playing interface</string>
+    <string name="theme_mode_background">Background</string>
+    <string name="theme_mode_elements">Elements</string>
+
+    <string name="setting_t_audio_quality_wifi">Audio quality (WiFi)</string>
+    <string name="setting_d_audio_quality_wifi">Quality of audio to stream over WiFI connections</string>
+    <string name="setting_t_audio_quality_mobile">Audio quality (Mobile data)</string>
+    <string name="setting_d_audio_quality_mobile">Quality of audio to stream over mobile data connections</string>
+    <string name="audio_quality_139">Low (ID: 139)</string>
+    <string name="audio_quality_140">Standard (ID: 140)</string>
+
+    <string name="setting_t_auto_download_threshold">Auto download view threshold</string>
+    <string name="setting_d_auto_download_threshold">Songs you\'ve listened to at least this many times will be downloaded automatically when on WiFi</string>
 
 </resources>

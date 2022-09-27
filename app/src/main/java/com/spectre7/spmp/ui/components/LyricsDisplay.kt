@@ -12,16 +12,18 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.ColorFilter
+import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.chaquo.python.Python
+import com.chaquo.python.PyObject
 import com.spectre7.spmp.R
 import com.spectre7.spmp.api.DataApi
 import com.spectre7.spmp.model.Song
 import com.spectre7.utils.*
-import com.spectre7.spmp.MainActivity
+import com.spectre7.utils.getString
 import com.spectre7.spmp.ui.layout.PlayerStatus
 import net.zerotask.libraries.android.compose.furigana.TextData
 import net.zerotask.libraries.android.compose.furigana.TextWithReading
@@ -41,39 +43,81 @@ fun LyricsDisplay(song: Song, on_close_request: () -> Unit, p_status: PlayerStat
     var lyrics: Song.Lyrics? by remember { mutableStateOf(null) }
     var show_furigana: Boolean by remember { mutableStateOf(false) }
 
-    var first_word: Ptl.TimedLyrics.Word? by remember { mutableStateOf(null) }
-    var current_word: Ptl.TimedLyrics.Word? by remember { mutableStateOf(null) }
+    var t_first_word: Ptl.TimedLyrics.Word? by remember { mutableStateOf(null) }
+    var t_current_word: Ptl.TimedLyrics.Word? by remember { mutableStateOf(null) }
 
     LaunchedEffect(song.getId()) {
         lyrics = null
-        current_word = null
-        first_word = null
+        t_current_word = null
+        t_first_word = null
         song.getLyrics {
             if (it == null) {
-                sendToast(MainActivity.getString(R.string.lyrics_unavailable))
+                sendToast(getString(R.string.lyrics_unavailable))
                 on_close_request()
             }
             else {
                 lyrics = it
                 if (lyrics is Song.PTLyrics && (lyrics as Song.PTLyrics).getTimed() != null) {
-                    first_word = (lyrics as Song.PTLyrics).getTimed()!!.first_word
+                    t_first_word = (lyrics as Song.PTLyrics).getTimed()!!.first_word
                 }
             }
         }
     }
 
+    val text_positions = remember { mutableStateListOf<Offset>() }
+
     LaunchedEffect(p_status.position) {
-        if (first_word != null) {
+        if (t_first_word != null) {
             val pos = p_status.duration * p_status.position
-            var word = first_word
-            do {
-                if (pos >= word!!.start_time && pos < word!!.end_time) {
-                    current_word = word
-                    break
+
+            // If no current word
+            if (t_current_word == null) {
+                var word = t_first_word
+                do {
+                    if (pos >= word!!.start_time && pos < word!!.end_time) {
+                        t_current_word = word
+                        break
+                    }
+                    else if (pos < word!!.start_time) {
+                        break
+                    }
+                    word = word.next_word
+                } while(word != null)
+            }
+            // If playback is ahead of current word
+            else if (pos >= t_current_word!!.end_time) {
+                var word = t_current_word!!.next_word
+                while(word != null) {
+                    if (pos >= word!!.start_time && pos < word!!.end_time) {
+                        t_current_word = word
+                        break
+                    }
+                    else if (pos < word!!.start_time) {
+                        break
+                    }
+                    word = word.next_word
                 }
-                word = word.next_word
-            } while(word != null)
-            println("${current_word?.index} | ${current_word?.text}")
+            }
+            // If playback is behind current word
+            else if (pos < t_current_word!!.start_time) {
+                var word = t_current_word!!.prev_word
+                while(word != null) {
+                    if (pos >= word!!.start_time && pos < word!!.end_time) {
+                        t_current_word = word
+                        break
+                    }
+                    else if (pos >= word!!.end_time) {
+                        break
+                    }
+                    word = word.prev_word
+                }
+            }
+
+            println(text_positions.size)
+            if (text_positions.size > 0){
+                println("${text_positions[0].x}, ${text_positions[0].x}")
+            }
+            // println("${t_current_word?.index} | ${t_current_word?.text}")
         }
     }
 
@@ -87,17 +131,10 @@ fun LyricsDisplay(song: Song, on_close_request: () -> Unit, p_status: PlayerStat
                         CircularProgressIndicator()
                     }
                     else {
-                        val provider = remember(current_word) {
-                            object : ModifierProvider {
-                                override fun getMainModifier(text: String, text_index: Int, term_index: Int): Modifier {
-                                    return if (current_word != null && current_word!!.index == term_index) Modifier.background(Color.Red) else Modifier
-                                }
-                                override fun getFuriModifier(text: String, text_index: Int, term_index: Int): Modifier {
-                                    return getMainModifier(text, text_index, term_index)
-                                }
-                            }
+                        Column {
+                            FuriganaText(it.getLyricsString(), show_furigana, text_positions = text_positions)
+                            Text(getString(R.string.lyrics_source_prefix) + it.getSource(), textAlign = TextAlign.Left, modifier = Modifier.fillMaxWidth())
                         }
-                        FuriganaText(it.getLyricsString(), show_furigana, modifier_provider = provider)
                     }
                 }
             }
@@ -107,7 +144,7 @@ fun LyricsDisplay(song: Song, on_close_request: () -> Unit, p_status: PlayerStat
 
             Row(verticalAlignment = Alignment.CenterVertically) {
                 Switch(checked = show_furigana, onCheckedChange = { show_furigana = it })
-                Text(MainActivity.getString(R.string.show_furigana))
+                Text(getString(R.string.show_furigana))
             }
 
             IconButton(onClick = on_close_request) {
@@ -143,21 +180,25 @@ fun trimOkurigana(original: String, furigana: String): List<Pair<String, String?
     )
 }
 
+fun getFuriganaTerms(text: String): List<Triple<String, String, String>> {
+    val ret = mutableListOf<Triple<String, String, String>>()
+    fun getKey(term: PyObject, key: String): String {
+        return term.callAttr("get", key).toString().replace("\\n", "\n").replace("\\r", "\r")
+    }
+    for (term in kakasi.callAttr("convert", text.replace("\n", "\\n").replace("\r", "\\r")).asList()) {
+        ret.add(Triple(getKey(term, "orig"), getKey(term, "hira"), getKey(term, "kana")))
+    }
+    return ret
+}
+
 @Composable
-fun FuriganaText(text: String, show_furigana: Boolean, trim_okurigana: Boolean = true, modifier_provider: ModifierProvider? = null) {
+fun FuriganaText(text: String, show_furigana: Boolean, trim_okurigana: Boolean = true, modifier_provider: ModifierProvider? = null, text_positions: MutableList<Offset>? = null) {
 
     val text_content = remember(text) {
         val content: MutableList<TextData> = mutableStateListOf<TextData>()
 
-        for (term in kakasi.callAttr("convert", text.replace("\n", "\\n").replace("\r", "\\r")).asList()) {
-            fun getKey(key: String): String {
-                return term.callAttr("get", key).toString().replace("\\n", "\n").replace("\\r", "\r")
-            }
-
-            val orig = getKey("orig")
-            val hira = getKey("hira")
-
-            if (orig != hira && orig != getKey("kana")) {
+        for ((orig, hira, kata) in getFuriganaTerms(text)) {
+            if (orig != hira && orig != kata) {
                 if (trim_okurigana) {
                     for (pair in trimOkurigana(orig, hira)) {
                         content.add(TextData(
@@ -192,7 +233,8 @@ fun FuriganaText(text: String, show_furigana: Boolean, trim_okurigana: Boolean =
             lineHeight = 42.sp,
             fontSize = 20.sp,
             modifier = Modifier.padding(20.dp),
-            modifier_provider = modifier_provider
+            modifier_provider = modifier_provider,
+            text_positions = text_positions
         )
     }
 }

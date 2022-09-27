@@ -17,6 +17,7 @@ import java.time.Duration
 import java.util.Date
 import com.spectre7.ptl.Ptl
 import com.spectre7.spmp.R
+import com.spectre7.utils.getString
 
 data class SongData (
     val locale: String?,
@@ -47,7 +48,10 @@ data class Song (
             return lyrics
         }
         override fun getSource(): String {
-            return source ?: MainActivity.getString(R.string.lyrics_source_youtube)
+            if (source != null) {
+                return source.removePrefix("Source: ") + getString(R.string.lyrics_source_via_youtubemusic)
+            }
+            return source ?: getString(R.string.lyrics_source_youtube)
         }
     }
     class PTLyrics(val lyrics: Ptl.Lyrics): Lyrics {
@@ -76,7 +80,7 @@ data class Song (
         override fun getLyricsString(): String = lyrics_string
 
         override fun getSource(): String {
-            return MainActivity.getString(R.string.lyrics_source_petitlyrics)
+            return getString(R.string.lyrics_source_petitlyrics)
         }
 
         fun getStatic(): Ptl.StaticLyrics? {

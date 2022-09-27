@@ -24,9 +24,12 @@ import androidx.compose.ui.zIndex
 @Composable
 fun PrefsPage(set_overlay_page: (page: OverlayPage) -> Unit) {
 
+    val slider_state = SettingsValueState(0.5f)
+
     val main_page = remember { SettingsPage("Preferences", listOf(
         SettingsGroup("Theming"),
-        SettingsValueToggle(SettinsValueState(false), "Hello World", "Subtitle text text subtitle text")
+        SettingsValueToggle(SettingsValueState(false), "Hello World", "Subtitle text text subtitle text")
+        SettingsValueSlider(slider_state, slider_state.value.toString() + "!!!"  "Hello World", "Subtitle text text subtitle text")
     ))}
 
     val interface_state = object : SettingsInterfaceState() {
@@ -37,11 +40,11 @@ fun PrefsPage(set_overlay_page: (page: OverlayPage) -> Unit) {
 
     interface_state.current_page = main_page
 
-    SettingsInterface(interface_state, Modifier.fillMaxSize().background(Color.Red).zIndex(100f))
-    // SettingsInterface(interface_state, Modifier.fillMaxSize().background(MaterialTheme.colorScheme.background).zIndex(100f))
+    Box(Modifier.pointerInput(Unit) {}) {
+        SettingsInterface(interface_state, Modifier.fillMaxSize().background(MaterialTheme.colorScheme.background).zIndex(100f))
+    }
 
     BackHandler {
         set_overlay_page(OverlayPage.NONE)
     }
-
 }

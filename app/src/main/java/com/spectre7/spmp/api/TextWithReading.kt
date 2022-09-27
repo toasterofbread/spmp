@@ -25,6 +25,9 @@ import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.TextUnit
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.em
+import androidx.compose.ui.geometry.Offset
+import androidx.compose.ui.layout.positionInRoot
+import androidx.compose.ui.layout.onPlaced
 
 interface ModifierProvider {
     abstract fun getMainModifier(text: String, text_index: Int, term_index: Int): Modifier
@@ -50,7 +53,8 @@ fun TextWithReading(
     maxLines: Int = Int.MAX_VALUE,
     onTextLayout: (TextLayoutResult) -> Unit = {},
     style: TextStyle = LocalTextStyle.current,
-    modifier_provider: ModifierProvider? = null
+    modifier_provider: ModifierProvider? = null,
+    text_positions: MutableList<Offset>? = null
 ) {
 
     val dataWithReadings = remember(textContent, modifier_provider, style) {
@@ -58,7 +62,8 @@ fun TextWithReading(
             textContent = textContent,
             showReadings = true,
             fontSize = if (fontSize == TextUnit.Unspecified) style.fontSize else fontSize,
-            modifier_provider = modifier_provider
+            modifier_provider = modifier_provider,
+            text_positions = text_positions
         )
     }
 
@@ -67,7 +72,8 @@ fun TextWithReading(
             textContent = textContent,
             showReadings = false,
             fontSize = if (fontSize == TextUnit.Unspecified) style.fontSize else fontSize,
-            modifier_provider = modifier_provider
+            modifier_provider = modifier_provider,
+            text_positions = text_positions
         )
     }
 
@@ -93,24 +99,26 @@ fun TextWithReading(
     )
 }
 
-fun calculateAnnotatedString(textContent: List<TextData>, showReadings: Boolean, fontSize: TextUnit, modifier_provider: ModifierProvider?):
+fun calculateAnnotatedString(textContent: List<TextData>, showReadings: Boolean, fontSize: TextUnit, modifier_provider: ModifierProvider?, text_positions: MutableList<Offset>?):
         Pair<AnnotatedString, Map<String, InlineTextContent>> {
     val inlineContent = mutableMapOf<String, InlineTextContent>()
 
     return buildAnnotatedString {
 
         var child_index = 0
-        var children_length = 0
+        // var children_length = 0
 
         for (elem in textContent) {
             val text = elem.text
             val reading = elem.reading
 
-            // If there is not reading available, simply add the text and move to the next element.
-            if (reading == null && modifier_provider == null) {
-                append(text)
-                continue
-            }
+            text_positions?.add(Offset(0f, 0f))
+
+            // // If there is not reading available, simply add the text and move to the next element.
+            // if (reading == null && modifier_provider == null) {
+            //     append(text)
+            //     continue
+            // }
 
             // Words larger than one character/kanji need a small amount of additional space in their
             // x-dimension.
@@ -127,13 +135,27 @@ fun calculateAnnotatedString(textContent: List<TextData>, showReadings: Boolean,
                     val readingFontSize = fontSize / 2
                     val boxHeight = with(LocalDensity.current) { readingFontSize.toDp() }
 
+                    val index = remember { child_index++ }
+                    val column_modifier = remember(text_positions == null) {
+                        Modifier.fillMaxHeight().run {
+                            if (text_positions != null) {
+                                onPlaced { coords ->
+                                    println("POSITIONED ${coords.positionInRoot()}")
+                                    text_positions[index] = coords.positionInRoot()
+                                }
+                            }
+                            else {
+                                this
+                            }
+                        }
+                    }
+
                     Column(
-                        modifier = Modifier.fillMaxHeight(),
+                        modifier = column_modifier,
                         horizontalAlignment = Alignment.CenterHorizontally,
                         verticalArrangement = Arrangement.Bottom,
                     ) {
-                        children_length += text.length
-                        Box(modifier = (modifier_provider?.getFuriModifier(text, children_length, child_index++) ?: Modifier).requiredHeight(boxHeight + 3.dp)) {
+                        Box(modifier = Modifier.requiredHeight(boxHeight + 3.dp)) {
                             if (showReadings && reading != null) {
                                 Text(
                                     modifier = Modifier.wrapContentWidth(unbounded = true),
@@ -142,7 +164,7 @@ fun calculateAnnotatedString(textContent: List<TextData>, showReadings: Boolean,
                                 )
                             }
                         }
-                        Text(text = text, fontSize = fontSize, modifier = modifier_provider?.getMainModifier(text, children_length, child_index++) ?: Modifier)
+                        Text(text = text, fontSize = fontSize)
                     }
                 }
             )

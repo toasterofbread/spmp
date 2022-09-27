@@ -15,14 +15,22 @@ import com.chaquo.python.Python
 import com.chaquo.python.android.AndroidPlatform
 import com.spectre7.spmp.ui.layout.PlayerView
 import com.spectre7.spmp.ui.theme.MyApplicationTheme
+import com.spectre7.utils.getContrastedColour
+import com.spectre7.utils.Theme
+import androidx.compose.material3.MaterialTheme
+import androidx.compose.runtime.remember
+import androidx.compose.ui.graphics.Color
+import androidx.compose.animation.Animatable
 
 class MainActivity : ComponentActivity() {
 
     lateinit var player: PlayerHost
+    lateinit var theme: Theme
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         instance = this
+
 
         if (!Python.isStarted()) {
             Python.start(AndroidPlatform(this))
@@ -37,6 +45,7 @@ class MainActivity : ComponentActivity() {
 
         setContent {
             MyApplicationTheme {
+                theme = Theme.default()
                 Surface(modifier = Modifier.fillMaxSize()) {
                     PlayerView()
                 }
@@ -50,16 +59,15 @@ class MainActivity : ComponentActivity() {
     }
 
     companion object {
-
         val context: MainActivity get() = instance!!
         val resources: Resources get() = context.resources
 
+        fun getTheme(): Theme {
+            return context.theme
+        }
+
         @JvmStatic
         private var instance: MainActivity? = null
-
-        fun getString(id: Int): String {
-            return instance?.resources?.getString(id)!!
-        }
 
         fun runInMainThread(code: () -> Unit) {
             Handler(Looper.getMainLooper()).post {

@@ -6,6 +6,8 @@ import android.os.Bundle
 import android.os.Handler
 import android.os.Looper
 import android.view.WindowManager
+import android.content.SharedPreferences
+import android.content.Context
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
 import androidx.compose.foundation.layout.*
@@ -61,6 +63,7 @@ class MainActivity : ComponentActivity() {
     companion object {
         val context: MainActivity get() = instance!!
         val resources: Resources get() = context.resources
+        val prefs: SharedPreferences get() = context.getDefaultSharedPreferences(Context.MODE_PRIVATE)
 
         fun getTheme(): Theme {
             return context.theme

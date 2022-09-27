@@ -64,7 +64,7 @@ fun LyricsDisplay(song: Song, on_close_request: () -> Unit, p_status: PlayerStat
         }
     }
 
-    val text_positions = remember { mutableStateListOf<Offset>() }
+    val text_positions = remember { mutableStateListOf<Pair<Int, Offset>>() }
 
     LaunchedEffect(p_status.position) {
         if (t_first_word != null) {
@@ -112,11 +112,6 @@ fun LyricsDisplay(song: Song, on_close_request: () -> Unit, p_status: PlayerStat
                     word = word.prev_word
                 }
             }
-
-            println(text_positions.size)
-            if (text_positions.size > 0){
-                println("${text_positions[0].x}, ${text_positions[0].x}")
-            }
             // println("${t_current_word?.index} | ${t_current_word?.text}")
         }
     }
@@ -131,6 +126,10 @@ fun LyricsDisplay(song: Song, on_close_request: () -> Unit, p_status: PlayerStat
                         CircularProgressIndicator()
                     }
                     else {
+                        if (t_current_word != null) {
+                            Box(Modifier.requiredSize(25.dp).background(Color.Red).offset(text_positions[t_current_word!!.index]))
+                        }
+
                         Column {
                             FuriganaText(it.getLyricsString(), show_furigana, text_positions = text_positions)
                             Text(getString(R.string.lyrics_source_prefix) + it.getSource(), textAlign = TextAlign.Left, modifier = Modifier.fillMaxWidth())
@@ -141,7 +140,6 @@ fun LyricsDisplay(song: Song, on_close_request: () -> Unit, p_status: PlayerStat
         })
 
         Row(Modifier.fillMaxWidth().padding(horizontal = 20.dp), horizontalArrangement = Arrangement.SpaceBetween) {
-
             Row(verticalAlignment = Alignment.CenterVertically) {
                 Switch(checked = show_furigana, onCheckedChange = { show_furigana = it })
                 Text(getString(R.string.show_furigana))
@@ -152,10 +150,7 @@ fun LyricsDisplay(song: Song, on_close_request: () -> Unit, p_status: PlayerStat
             }
         }
     }
-
 }
-
-val kakasi = Python.getInstance().getModule("pykakasi").callAttr("Kakasi")
 
 fun trimOkurigana(original: String, furigana: String): List<Pair<String, String?>> {
     if (original.hasKanjiAndHiragana()) {
@@ -180,6 +175,7 @@ fun trimOkurigana(original: String, furigana: String): List<Pair<String, String?
     )
 }
 
+val kakasi = Python.getInstance().getModule("pykakasi").callAttr("Kakasi")
 fun getFuriganaTerms(text: String): List<Triple<String, String, String>> {
     val ret = mutableListOf<Triple<String, String, String>>()
     fun getKey(term: PyObject, key: String): String {
@@ -192,7 +188,7 @@ fun getFuriganaTerms(text: String): List<Triple<String, String, String>> {
 }
 
 @Composable
-fun FuriganaText(text: String, show_furigana: Boolean, trim_okurigana: Boolean = true, modifier_provider: ModifierProvider? = null, text_positions: MutableList<Offset>? = null) {
+fun FuriganaText(text: String, show_furigana: Boolean, trim_okurigana: Boolean = true, modifier_provider: ModifierProvider? = null, text_positions: MutableList<Pair<Int, Offset>>? = null) {
 
     val text_content = remember(text) {
         val content: MutableList<TextData> = mutableStateListOf<TextData>()

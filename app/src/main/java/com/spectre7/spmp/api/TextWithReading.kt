@@ -54,7 +54,7 @@ fun TextWithReading(
     onTextLayout: (TextLayoutResult) -> Unit = {},
     style: TextStyle = LocalTextStyle.current,
     modifier_provider: ModifierProvider? = null,
-    text_positions: MutableList<Offset>? = null
+    text_positions: MutableList<Pair<Int, Offset>>? = null
 ) {
 
     val dataWithReadings = remember(textContent, modifier_provider, style) {
@@ -99,20 +99,20 @@ fun TextWithReading(
     )
 }
 
-fun calculateAnnotatedString(textContent: List<TextData>, showReadings: Boolean, fontSize: TextUnit, modifier_provider: ModifierProvider?, text_positions: MutableList<Offset>?):
+fun calculateAnnotatedString(textContent: List<TextData>, showReadings: Boolean, fontSize: TextUnit, modifier_provider: ModifierProvider?, text_positions: MutableList<Pair<Int, Offset>>?):
         Pair<AnnotatedString, Map<String, InlineTextContent>> {
     val inlineContent = mutableMapOf<String, InlineTextContent>()
 
     return buildAnnotatedString {
 
         var child_index = 0
-        // var children_length = 0
+        var children_length = 0
 
         for (elem in textContent) {
             val text = elem.text
             val reading = elem.reading
 
-            text_positions?.add(Offset(0f, 0f))
+            text_positions?.add(Pair(0, Offset(0f, 0f)))
 
             // // If there is not reading available, simply add the text and move to the next element.
             // if (reading == null && modifier_provider == null) {
@@ -134,14 +134,19 @@ fun calculateAnnotatedString(textContent: List<TextData>, showReadings: Boolean,
                 children = {
                     val readingFontSize = fontSize / 2
                     val boxHeight = with(LocalDensity.current) { readingFontSize.toDp() }
-
                     val index = remember { child_index++ }
+                    
+                    LaunchedEffect(Unit) {
+                        text_positions[index].first = children_length
+                        children_length += text.length
+                    }
+                    
                     val column_modifier = remember(text_positions == null) {
                         Modifier.fillMaxHeight().run {
                             if (text_positions != null) {
                                 onPlaced { coords ->
                                     println("POSITIONED ${coords.positionInRoot()}")
-                                    text_positions[index] = coords.positionInRoot()
+                                    text_positions[index].second = coords.positionInRoot()
                                 }
                             }
                             else {

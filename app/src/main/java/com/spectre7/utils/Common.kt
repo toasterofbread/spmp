@@ -25,3 +25,7 @@ fun sendToast(text: String) {
         Toast.makeText(MainActivity.context, text, Toast.LENGTH_SHORT).show()
     }
 }
+
+fun getString(id: Int): String {
+    return MainActivity.resources.getString(id)!!
+}

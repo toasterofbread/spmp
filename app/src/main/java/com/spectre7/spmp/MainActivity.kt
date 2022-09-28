@@ -63,7 +63,7 @@ class MainActivity : ComponentActivity() {
     companion object {
         val context: MainActivity get() = instance!!
         val resources: Resources get() = context.resources
-        val prefs: SharedPreferences get() = context.getDefaultSharedPreferences(Context.MODE_PRIVATE)
+        val prefs: SharedPreferences get() = context.getSharedPreferences("com.spectre7.spmp.PREFERENCES", Context.MODE_PRIVATE)
 
         fun getTheme(): Theme {
             return context.theme

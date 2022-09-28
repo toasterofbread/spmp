@@ -106,6 +106,10 @@ class Theme private constructor(
         return getContrastedColour(getAccent())
     }
 
+    fun getVibrantAccent(): Color {
+        return offsetColourRGB(getAccent(), if (getBackground(false).isDark()) 0.5 else -0.5)
+    }
+
     companion object {
         @Composable
         fun default(): Theme {

@@ -20,28 +20,25 @@ import androidx.compose.ui.graphics.Color
 import com.spectre7.spmp.MainActivity
 import com.spectre7.utils.Theme
 import androidx.compose.ui.zIndex
+import androidx.compose.ui.input.pointer.pointerInput
+
+enum class Page { ROOT }
 
 @Composable
 fun PrefsPage(set_overlay_page: (page: OverlayPage) -> Unit) {
 
-    val slider_state = SettingsValueState(0.5f)
-
-    val main_page = remember { SettingsPage("Preferences", listOf(
-        SettingsGroup("Theming"),
-        SettingsValueToggle(SettingsValueState(false), "Hello World", "Subtitle text text subtitle text")
-        SettingsValueSlider(slider_state, slider_state.value.toString() + "!!!"  "Hello World", "Subtitle text text subtitle text")
-    ))}
-
-    val interface_state = object : SettingsInterfaceState() {
-        override fun getTheme(): Theme {
-            return MainActivity.getTheme()
-        }
-    }
-
-    interface_state.current_page = main_page
+    val slider_state = remember { SettingsValueState(0.5f, "slider", MainActivity.prefs) }
 
     Box(Modifier.pointerInput(Unit) {}) {
-        SettingsInterface(interface_state, Modifier.fillMaxSize().background(MaterialTheme.colorScheme.background).zIndex(100f))
+        SettingsInterface(MainActivity.getTheme(), Page.ROOT, {
+            when (it) {
+                Page.ROOT -> SettingsPage("Preferences", listOf(
+                    SettingsGroup("Theming"),
+                    SettingsValueToggle(SettingsValueState(false, "toggle", MainActivity.prefs), "Hello World", "Subtitle text text subtitle text"),
+                    SettingsValueSlider(slider_state, "Hello World - ${slider_state.value}", "Subtitle text text subtitle text")
+                ), Modifier.fillMaxSize().background(MainActivity.getTheme().getBackground(false)))
+            }
+        }).Interface()
     }
 
     BackHandler {

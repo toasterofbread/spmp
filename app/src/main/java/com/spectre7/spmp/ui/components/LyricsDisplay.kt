@@ -25,9 +25,7 @@ import com.spectre7.spmp.model.Song
 import com.spectre7.utils.*
 import com.spectre7.utils.getString
 import com.spectre7.spmp.ui.layout.PlayerStatus
-import net.zerotask.libraries.android.compose.furigana.TextData
-import net.zerotask.libraries.android.compose.furigana.TextWithReading
-import net.zerotask.libraries.android.compose.furigana.ModifierProvider
+import net.zerotask.libraries.android.compose.furigana.*
 import java.io.BufferedReader
 import java.io.InputStreamReader
 import java.io.*;
@@ -64,7 +62,7 @@ fun LyricsDisplay(song: Song, on_close_request: () -> Unit, p_status: PlayerStat
         }
     }
 
-    val text_positions = remember { mutableStateListOf<Pair<Int, Offset>>() }
+    val text_positions = remember { mutableStateListOf<TermInfo>() }
 
     LaunchedEffect(p_status.position) {
         if (t_first_word != null) {
@@ -127,7 +125,8 @@ fun LyricsDisplay(song: Song, on_close_request: () -> Unit, p_status: PlayerStat
                     }
                     else {
                         if (t_current_word != null) {
-                            Box(Modifier.requiredSize(25.dp).background(Color.Red).offset(text_positions[t_current_word!!.index]))
+                            val position = text_positions[t_current_word!!.index].position
+                            Box(Modifier.requiredSize(25.dp).background(Color.Red).offset(position.x.dp, position.y.dp))
                         }
 
                         Column {
@@ -188,7 +187,7 @@ fun getFuriganaTerms(text: String): List<Triple<String, String, String>> {
 }
 
 @Composable
-fun FuriganaText(text: String, show_furigana: Boolean, trim_okurigana: Boolean = true, modifier_provider: ModifierProvider? = null, text_positions: MutableList<Pair<Int, Offset>>? = null) {
+fun FuriganaText(text: String, show_furigana: Boolean, trim_okurigana: Boolean = true, modifier_provider: ModifierProvider? = null, text_positions: MutableList<TermInfo>? = null) {
 
     val text_content = remember(text) {
         val content: MutableList<TextData> = mutableStateListOf<TextData>()

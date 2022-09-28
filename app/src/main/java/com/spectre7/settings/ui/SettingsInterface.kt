@@ -26,9 +26,20 @@ abstract class SettingsInterfaceState(initial_page: SettingsPage? = null) {
     abstract fun getTheme(): Theme
 }
 
-@Composable
-fun SettingsInterface(state: SettingsInterfaceState, modifier: Modifier = Modifier) {
-    // Crossfade(state.current_page) {
-        state.current_page?.GetPage(modifier.padding(30.dp))
-    // }
+class SettingsInterface<PageState>(val theme: Theme, initial_page: PageState, val page: (PageState) -> SettingsPage) {
+    var page_state by mutableStateOf(initial_page)
+
+    @Composable
+    fun Interface() {
+        // Crossfade(page_state) {
+            page(page_state).Page<PageState>({ page_state = it })
+        // }
+    }
 }
+
+// @Composable
+// fun SettingsInterface(state: SettingsInterfaceState, modifier: Modifier = Modifier) {
+//     // Crossfade(state.current_page) {
+//         state.current_page?.GetPage(modifier.padding(30.dp))
+//     // }
+// }

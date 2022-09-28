@@ -13,16 +13,19 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.ui.unit.dp
 
-class SettingsPage(val title: String, val items: List<SettingsItem>) {
+class SettingsPage(val title: String, val items: List<SettingsItem>, val modifier: Modifier = Modifier) {
     internal var interface_state: SettingsInterfaceState? = null
 
     @Composable
-    fun GetPage(modifier: Modifier = Modifier) {
+    fun<PageState> Page(set_page: (PageState) -> Unit) {
         Column(modifier) {
             Text(title, fontSize = 30.sp, fontWeight = FontWeight.Bold)
             Spacer(Modifier.requiredHeight(50.dp))
-            for (item in items) {
-                item.GetItem(interface_state?.getTheme() ?: Theme.default())
+
+            Column(verticalArrangement = Arrangement.spacedBy(20.dp)) {
+                for (item in items) {
+                    item.GetItem(interface_state?.getTheme() ?: Theme.default())
+                }
             }
         }
     }

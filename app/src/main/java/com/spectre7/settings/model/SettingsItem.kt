@@ -1,15 +1,19 @@
 package com.spectre7.composesettings.model
 
-import androidx.compose.runtime.*
 import com.spectre7.utils.*
-import androidx.compose.ui.unit.Dp
-import androidx.compose.ui.graphics.Color
+import androidx.compose.runtime.*
 import androidx.compose.material3.*
-import androidx.compose.ui.unit.sp
-import androidx.compose.foundation.layout.*
 import androidx.compose.ui.*
+import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.unit.*
 import androidx.compose.foundation.*
+import androidx.compose.foundation.layout.*
+import android.content.SharedPreferences
 import android.util.Log
+import kotlin.reflect.KClass
+import com.github.krottv.compose.sliders.DefaultThumb
+import com.github.krottv.compose.sliders.DefaultTrack
+import com.github.krottv.compose.sliders.SliderValueHorizontal
 
 abstract class SettingsItem {
     @Composable
@@ -19,14 +23,13 @@ abstract class SettingsItem {
 class SettingsGroup(var title: String?): SettingsItem() {
     @Composable
     override fun GetItem(theme: Theme) {
-        val colour = offsetColourRGB(theme.getAccent(), if (theme.getBackground(false).isDark()) 0.5 else -0.5)
         if (title != null) {
-            Text(title!!.uppercase(), color = colour, fontSize = 15.sp)
+            Text(title!!.uppercase(), color = theme.getVibrantAccent(), fontSize = 15.sp)
         }
     }
 }
 
-class SettingsValueState<T>(initial_value: T, val key: String) {
+class SettingsValueState<T>(initial_value: T, val key: String, val prefs: SharedPreferences) {
     private var _value: T by mutableStateOf(getInitialValue(initial_value))
     internal var autosave: Boolean = true
 
@@ -39,30 +42,29 @@ class SettingsValueState<T>(initial_value: T, val key: String) {
             }
         }
 
+    // private inline fun<reified Type: Any> getClass(): KClass<Type> {
+    //     return Type::class
+    // }
+
     private fun getInitialValue(default: T): T {
-        if (MainActivity.prefs.contains(key)) {
-            return when (T::class) {
-                Boolean::class -> MainActivity.prefs.getBoolean(key)
-                Float::class -> MainActivity.prefs.getFloat(key)
-                Int::class -> MainActivity.prefs.getInt(key)
-                Long::class -> MainActivity.prefs.getLong(key)
-                String::class -> MainActivity.prefs.getString(key)
-                else -> throw java.lang.ClassCastException()
-            }
-        }
-        else {
-            return default
-        }
+        return when (default!!::class) {
+            Boolean::class -> prefs.getBoolean(key, default as Boolean)
+            Float::class -> prefs.getFloat(key, default as Float)
+            Int::class -> prefs.getInt(key, default as Int)
+            Long::class -> prefs.getLong(key, default as Long)
+            String::class -> prefs.getString(key, default as String)
+            else -> throw java.lang.ClassCastException()
+        } as T
     }
 
     internal fun save() {
-        with (MainActivity.prefs.edit()) {
-            when (T::class) {
-                Boolean::class -> putBoolean(key, _value)
-                Float::class -> putFloat(key, _value)
-                Int::class -> putInt(key, _value)
-                Long::class -> putLong(key, _value)
-                String::class -> putString(key, _value)
+        with (prefs.edit()) {
+            when (value!!::class) {
+                Boolean::class -> putBoolean(key, value as Boolean)
+                Float::class -> putFloat(key, value as Float)
+                Int::class -> putInt(key, value as Int)
+                Long::class -> putLong(key, value as Long)
+                String::class -> putString(key, value as String)
                 else -> throw java.lang.ClassCastException()
             }
             apply()
@@ -87,45 +89,47 @@ class SettingsValueToggle(
                     Text(subtitle, color = theme.getOnBackground(false).setAlpha(0.75))
                 }
             }
-            Switch(checked = state.value, onCheckedChange = {state.value = it})
+            Switch(checked = state.value, onCheckedChange = {state.value = it}, colors = SwitchDefaults.colors(
+                checkedThumbColor = theme.getVibrantAccent(),
+                checkedTrackColor = theme.getVibrantAccent().setAlpha(0.5)
+            ))
         }
     }
 }
 
 class SettingsValueSlider(
     val state: SettingsValueState<Float>,
-    val value_label: String = state.value.toString(),
     val title: String?,
-    val subtitle: String?
+    val subtitle: String?,
 ): SettingsItem() {
 
     @Composable
     override fun GetItem(theme: Theme) {
-        Row() {
-            Column(Modifier.fillMaxWidth().weight(1f)) {
-                if (title != null) {
-                    Text(title)
-                }
-                if (subtitle != null) {
-                    Text(subtitle, color = theme.getOnBackground(false).setAlpha(0.75))
-                }
+        Column(Modifier.fillMaxWidth()) {
+            if (title != null) {
+                Text(title)
+            }
+            if (subtitle != null) {
+                Text(subtitle, color = theme.getOnBackground(false).setAlpha(0.75))
             }
 
+            Spacer(Modifier.requiredHeight(10.dp))
+
             state.autosave = false
-            Row(Modifier.fillMaxWidth()) {
+            Row(Modifier.fillMaxWidth().weight(1f)) {
                 SliderValueHorizontal(
                     value = state.value,
                     onValueChange = {
-                        state.value
+                        state.value = it
                     },
-                    onValueChangeFinished {
+                    onValueChangeFinished = {
                         state.save()
                     },
                     thumbSizeInDp = DpSize(12.dp, 12.dp),
-                    track = { a, b, c, d, e -> DefaultTrack(a, b, c, d, e, theme.getOnBackground(true).setAlpha(0.5), theme.getOnBackground(true).setAlpha(0.75), highlight = highlight) },
-                    thumb = { a, b, c, d, e -> DefaultThumb(a, b, c, d, e, theme.getOnBackground(true), 1f) }
+                    track = { a, b, c, d, e -> DefaultTrack(a, b, c, d, e, theme.getVibrantAccent().setAlpha(0.5), theme.getVibrantAccent()) },
+                    thumb = { a, b, c, d, e -> DefaultThumb(a, b, c, d, e, theme.getVibrantAccent(), 1f) },
+                    modifier = Modifier.weight(1f)
                 )
-                Text(value_label)
             }
         }
     }

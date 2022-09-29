@@ -48,7 +48,7 @@ enum class ResourceType {
 
 @OptIn(ExperimentalComposeUiApi::class)
 @Composable
-fun SearchPage(set_overlay_page: (page: OverlayPage) -> Unit) {
+fun SearchPage(setOverlayPage: (page: OverlayPage) -> Unit) {
 
     var tab_index by remember { mutableStateOf(0) }
     val keyboardController = LocalSoftwareKeyboardController.current
@@ -121,7 +121,7 @@ fun SearchPage(set_overlay_page: (page: OverlayPage) -> Unit) {
         focusManager.clearFocus()
         keyboardController?.hide()
 
-        set_overlay_page(OverlayPage.NONE)
+        setOverlayPage(OverlayPage.NONE)
     }
 
     BackHandler {

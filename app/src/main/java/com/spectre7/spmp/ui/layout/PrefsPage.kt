@@ -22,10 +22,10 @@ import com.spectre7.utils.Theme
 import androidx.compose.ui.zIndex
 import androidx.compose.ui.input.pointer.pointerInput
 
-enum class Page { ROOT }
+enum class Page { ROOT, OTHER }
 
 @Composable
-fun PrefsPage(set_overlay_page: (page: OverlayPage) -> Unit) {
+fun PrefsPage(setOverlayPage: (page: OverlayPage) -> Unit) {
 
     val slider_state = remember { SettingsValueState(0.5f, "slider", MainActivity.prefs) }
 
@@ -34,14 +34,25 @@ fun PrefsPage(set_overlay_page: (page: OverlayPage) -> Unit) {
             when (it) {
                 Page.ROOT -> SettingsPage("Preferences", listOf(
                     SettingsGroup("Theming"),
-                    SettingsValueToggle(SettingsValueState(false, "toggle", MainActivity.prefs), "Hello World", "Subtitle text text subtitle text"),
-                    SettingsValueSlider(slider_state, "Hello World - ${slider_state.value}", "Subtitle text text subtitle text")
+                    SettingsItemToggle(SettingsValueState(false, "toggle", MainActivity.prefs), "Hello World", "Subtitle text text subtitle text"),
+                    SettingsItemSlider(slider_state, "Hello World - ${slider_state.value}", "Subtitle text text subtitle text"),
+                    SettingsItemSubpage("Other page", "Subtitle!", Page.OTHER)
+                ), Modifier.fillMaxSize().background(MainActivity.getTheme().getBackground(false)))
+                Page.OTHER -> SettingsPage("Other Preferences", listOf(
+                    SettingsGroup("Theming"),
+                    SettingsItemToggle(SettingsValueState(false, "toggle", MainActivity.prefs), "Hello World", "Subtitle text text subtitle text"),
+                    SettingsItemSlider(slider_state, "Hello World - ${slider_state.value}", "Subtitle text text subtitle text"),
+                    SettingsItemSubpage("Root page", "Other subtitle!", Page.ROOT)
                 ), Modifier.fillMaxSize().background(MainActivity.getTheme().getBackground(false)))
             }
         }).Interface()
     }
 
     BackHandler {
-        set_overlay_page(OverlayPage.NONE)
+        PlayerHost.interact {
+            // Volume adjustment test
+            it.setVolume(it.getVolume() + 0.1)
+        }
+        // setOverlayPage(OverlayPage.NONE)
     }
 }

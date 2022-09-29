@@ -51,7 +51,7 @@ import androidx.compose.ui.geometry.Offset
 import com.spectre7.spmp.MainActivity
 
 enum class NowPlayingThemeMode { BACKGROUND, ELEMENTS }
-enum class NowPlayingOverlayMenu { NONE, MAIN, PALETTE, LYRICS }
+enum class NowPlayingOverlayMenu { NONE, MAIN, PALETTE, LYRICS, DOWNLOAD }
 enum class NowPlayingTab { RELATED, PLAYER, QUEUE }
 
 const val SEEK_CANCEL_THRESHOLD = 0.05f
@@ -214,6 +214,7 @@ fun NowPlaying(_expansion: Float, max_height: Float, p_status: PlayerStatus) {
                                                 indication = null,
                                                 interactionSource = remember { MutableInteractionSource() }
                                             ) {
+                                                // TODO Make this less hardcoded
                                                 if (overlay_menu == NowPlayingOverlayMenu.NONE || overlay_menu == NowPlayingOverlayMenu.MAIN || overlay_menu == NowPlayingOverlayMenu.PALETTE) {
                                                     overlay_menu =
                                                         if (overlay_menu == NowPlayingOverlayMenu.NONE) NowPlayingOverlayMenu.MAIN else NowPlayingOverlayMenu.NONE
@@ -243,18 +244,18 @@ fun NowPlaying(_expansion: Float, max_height: Float, p_status: PlayerStatus) {
 
                                                     Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.SpaceEvenly) {
 
-                                                        Box(
+                                                        Button(
                                                             Modifier
                                                                 .background(
                                                                     MainActivity.getTheme().getBackground(true),
                                                                     CircleShape
                                                                 )
                                                                 .size(40.dp)
-                                                                .padding(8.dp)
-                                                                .clickable {
-                                                                    overlay_menu =
-                                                                        NowPlayingOverlayMenu.LYRICS
-                                                                }
+                                                                .padding(8.dp),
+                                                            onClick = {
+                                                                overlay_menu =
+                                                                    NowPlayingOverlayMenu.LYRICS
+                                                            }
                                                         ) {
                                                             Image(
                                                                 painterResource(R.drawable.ic_music_note), "",
@@ -262,21 +263,41 @@ fun NowPlaying(_expansion: Float, max_height: Float, p_status: PlayerStatus) {
                                                             )
                                                         }
 
-                                                        Box(
+                                                        Button(
                                                             Modifier
                                                                 .background(
                                                                     MainActivity.getTheme().getBackground(true),
                                                                     CircleShape
                                                                 )
                                                                 .size(40.dp)
-                                                                .padding(8.dp)
-                                                                .clickable {
-                                                                    overlay_menu =
-                                                                        NowPlayingOverlayMenu.PALETTE
-                                                                }
+                                                                .padding(8.dp),
+                                                            onClick = {
+                                                                overlay_menu =
+                                                                    NowPlayingOverlayMenu.PALETTE
+                                                            }
                                                         ) {
                                                             Image(
                                                                 painterResource(R.drawable.ic_palette), "",
+                                                                colorFilter = ColorFilter.tint(MainActivity.getTheme().getOnBackground(true))
+                                                            )
+                                                        }
+
+                                                        Button(
+                                                            Modifier
+                                                                .background(
+                                                                    MainActivity.getTheme().getBackground(true),
+                                                                    CircleShape
+                                                                )
+                                                                .size(40.dp)
+                                                                .padding(8.dp),
+                                                            onClick = {
+                                                                overlay_menu =
+                                                                    NowPlayingOverlayMenu.DOWNLOAD
+                                                            }
+                                                        ) {
+                                                            Image(
+                                                                // TODO Add download icon
+                                                                painterResource(R.drawable.ic_download), "",
                                                                 colorFilter = ColorFilter.tint(MainActivity.getTheme().getOnBackground(true))
                                                             )
                                                         }
@@ -291,6 +312,10 @@ fun NowPlaying(_expansion: Float, max_height: Float, p_status: PlayerStatus) {
                                             NowPlayingOverlayMenu.LYRICS ->
                                                 if (p_status.song != null) {
                                                     LyricsDisplay(p_status.song!!, { overlay_menu = NowPlayingOverlayMenu.NONE }, p_status)
+                                                }
+                                            NowPlayingOverlayMenu.DOWNLOAD ->
+                                                if (p_status.song != null) {
+                                                    DownloadMenu(p_status.song!!, { overlay_menu = NowPlayingOverlayMenu.NONE })
                                                 }
                                             NowPlayingOverlayMenu.NONE -> {}
                                         }

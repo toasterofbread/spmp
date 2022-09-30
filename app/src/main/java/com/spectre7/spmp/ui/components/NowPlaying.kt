@@ -245,7 +245,7 @@ fun NowPlaying(_expansion: Float, max_height: Float, p_status: PlayerStatus) {
                                                     Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.SpaceEvenly) {
 
                                                         Button(
-                                                            Modifier
+                                                            modifier = Modifier
                                                                 .background(
                                                                     MainActivity.getTheme().getBackground(true),
                                                                     CircleShape
@@ -264,7 +264,7 @@ fun NowPlaying(_expansion: Float, max_height: Float, p_status: PlayerStatus) {
                                                         }
 
                                                         Button(
-                                                            Modifier
+                                                            modifier = Modifier
                                                                 .background(
                                                                     MainActivity.getTheme().getBackground(true),
                                                                     CircleShape
@@ -283,7 +283,7 @@ fun NowPlaying(_expansion: Float, max_height: Float, p_status: PlayerStatus) {
                                                         }
 
                                                         Button(
-                                                            Modifier
+                                                            modifier = Modifier
                                                                 .background(
                                                                     MainActivity.getTheme().getBackground(true),
                                                                     CircleShape
@@ -297,7 +297,7 @@ fun NowPlaying(_expansion: Float, max_height: Float, p_status: PlayerStatus) {
                                                         ) {
                                                             Image(
                                                                 // TODO Add download icon
-                                                                painterResource(R.drawable.ic_download), "",
+                                                                painterResource(R.drawable.ic_play_arrow), "",
                                                                 colorFilter = ColorFilter.tint(MainActivity.getTheme().getOnBackground(true))
                                                             )
                                                         }

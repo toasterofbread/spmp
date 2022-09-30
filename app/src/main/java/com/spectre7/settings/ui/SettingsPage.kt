@@ -2,6 +2,7 @@ package com.spectre7.composesettings.ui
 
 import com.spectre7.composesettings.model.*
 import com.spectre7.utils.Theme
+import com.spectre7.spmp.R
 import androidx.compose.runtime.*
 import androidx.compose.material3.*
 import androidx.compose.foundation.layout.Column
@@ -14,12 +15,13 @@ import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.ui.unit.dp
 import androidx.activity.compose.BackHandler
 import androidx.compose.ui.res.painterResource
+import androidx.compose.foundation.Image
 
 class SettingsPage(val title: String, val items: List<SettingsItem>, val modifier: Modifier = Modifier) {
     internal var interface_state: SettingsInterfaceState? = null
 
     @Composable
-    fun<PageState> Page(openPage: (PageState) -> Unit, goBack: () -> Unit) {
+    fun Page(openPage: (Int) -> Unit, goBack: () -> Unit) {
         Column(modifier) {
             // Top bar
             Row(horizontalArrangement = Arrangement.SpaceBetween) {
@@ -39,6 +41,8 @@ class SettingsPage(val title: String, val items: List<SettingsItem>, val modifie
             }
         }
 
-        BackHandler(goBack)
+        BackHandler {
+            goBack()
+        }
     }
 }

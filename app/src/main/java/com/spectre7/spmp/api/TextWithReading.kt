@@ -35,19 +35,8 @@ interface ModifierProvider {
     abstract fun getFuriModifier(text: String, text_index: Int, term_index: Int): Modifier
 }
 
-class TermInfo {
-    var index: Int
-    var position: Offset
-
-    constructor(i: Int, p: Offset) {
-        index = i
-        position = p
-    }
-
-    constructor() {
-        index = 0
-        position = Offset(0f, 0f)
-    }
+class TermInfo(val text: String, val data: Any?) {
+    var position: Offset = Offset(0f, 0f)
 }
 
 @Composable
@@ -128,7 +117,7 @@ fun calculateAnnotatedString(textContent: List<TextData>, showReadings: Boolean,
             val text = elem.text
             val reading = elem.reading
 
-            text_positions?.add(TermInfo())
+            text_positions?.add(TermInfo(text, elem.data))
 
             // // If there is not reading available, simply add the text and move to the next element.
             // if (reading == null && modifier_provider == null) {
@@ -152,12 +141,12 @@ fun calculateAnnotatedString(textContent: List<TextData>, showReadings: Boolean,
                     val boxHeight = with(LocalDensity.current) { readingFontSize.toDp() }
                     val index = remember { child_index++ }
 
-                    LaunchedEffect(Unit) {
-                        if (text_positions != null) {
-                            text_positions[index].index = children_length
-                            children_length += text.length
-                        }
-                    }
+                    // LaunchedEffect(Unit) {
+                    //     if (text_positions != null) {
+                    //         text_positions[index].index = children_length
+                    //         children_length += text.length
+                    //     }
+                    // }
 
                     val column_modifier = remember(text_positions == null) {
                         Modifier.fillMaxHeight().run {

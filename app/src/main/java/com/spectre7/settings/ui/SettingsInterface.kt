@@ -26,21 +26,24 @@ abstract class SettingsInterfaceState(initial_page: SettingsPage? = null) {
     abstract fun getTheme(): Theme
 }
 
-class SettingsInterface<PageState>(val theme: Theme, val root_page: PageState, val page: (PageState) -> SettingsPage) {
-    var page_state by mutableStateOf(root_page)
-    val page_stack = mutableListOf<PageState>()
+class SettingsInterface(val theme: Theme, val root_page: Int, val page: (Int) -> SettingsPage, val onBackPressed: () -> Unit = {}) {
+    var current_page by mutableStateOf(root_page)
+    private val page_stack = mutableListOf<Int>()
 
     @Composable
     fun Interface() {
-        // Crossfade(page_state) {
-            page(page_state).Page<PageState>({ 
-                page_stack.add(page_state)
-                page_state = it 
+        Crossfade(current_page) {
+            page(it).Page({
+                page_stack.add(current_page)
+                current_page = it
             }, {
                 if (page_stack.size > 0) {
-                    page_state = page_stack.removeLast()
+                    current_page = page_stack.removeLast()
+                }
+                else {
+                    onBackPressed()
                 }
             })
-        // }
+        }
     }
 }

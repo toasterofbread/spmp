@@ -34,6 +34,8 @@ import java.nio.file.*;
 import java.util.*;
 import java.util.stream.*;
 import com.spectre7.ptl.Ptl
+import androidx.compose.foundation.Canvas
+import androidx.compose.ui.geometry.Rect
 
 @Composable
 fun LyricsDisplay(song: Song, on_close_request: () -> Unit, p_status: PlayerStatus) {
@@ -63,55 +65,82 @@ fun LyricsDisplay(song: Song, on_close_request: () -> Unit, p_status: PlayerStat
     }
 
     val text_positions = remember { mutableStateListOf<TermInfo>() }
+    var overlay_term: TermInfo? by remember { mutableStateOf(null) }
 
     LaunchedEffect(p_status.position) {
+
         if (t_first_word != null) {
             val pos = p_status.duration * p_status.position
 
-            // If no current word
-            if (t_current_word == null) {
-                var word = t_first_word
-                do {
-                    if (pos >= word!!.start_time && pos < word!!.end_time) {
-                        t_current_word = word
-                        break
-                    }
-                    else if (pos < word!!.start_time) {
-                        break
-                    }
-                    word = word.next_word
-                } while(word != null)
-            }
-            // If playback is ahead of current word
-            else if (pos >= t_current_word!!.end_time) {
-                var word = t_current_word!!.next_word
-                while(word != null) {
-                    if (pos >= word!!.start_time && pos < word!!.end_time) {
-                        t_current_word = word
-                        break
-                    }
-                    else if (pos < word!!.start_time) {
-                        break
-                    }
-                    word = word.next_word
+            var word = t_first_word
+
+            do {
+                if (pos >= word!!.start_time && pos < word!!.end_time) {
+                    t_current_word = word
+                    break
                 }
-            }
-            // If playback is behind current word
-            else if (pos < t_current_word!!.start_time) {
-                var word = t_current_word!!.prev_word
-                while(word != null) {
-                    if (pos >= word!!.start_time && pos < word!!.end_time) {
-                        t_current_word = word
-                        break
-                    }
-                    else if (pos >= word!!.end_time) {
-                        break
-                    }
-                    word = word.prev_word
-                }
-            }
-            // println("${t_current_word?.index} | ${t_current_word?.text}")
+                word = word!!.next_word
+            } while (word != null)
+
+            // // If no current word
+            // if (t_current_word == null) {
+            //     var word = t_first_word
+            //     do {
+            //         if (pos >= word!!.start_time && pos < word.end_time) {
+            //             t_current_word = word
+            //             break
+            //         }
+            //         else if (pos < word.start_time) {
+            //             break
+            //         }
+            //         word = word.next_word
+            //     } while(word != null)
+            // }
+            // // If playback is ahead of current word
+            // else if (pos >= t_current_word!!.end_time) {
+            //     var word = t_current_word!!.next_word
+            //     while(word != null) {
+            //         if (pos >= word.start_time && pos < word.end_time) {
+            //             t_current_word = word
+            //             break
+            //         }
+            //         else if (pos < word.start_time) {
+            //             break
+            //         }
+            //         word = word.next_word
+            //     }
+            // }
+            // // If playback is behind current word
+            // else if (pos < t_current_word!!.start_time) {
+            //     var word = t_current_word!!.prev_word
+            //     while(word != null) {
+            //         if (pos >= word.start_time && pos < word.end_time) {
+            //             t_current_word = word
+            //             break
+            //         }
+            //         else if (pos >= word.end_time) {
+            //             break
+            //         }
+            //         word = word.prev_word
+            //     }
+            // }
         }
+
+        overlay_term = null
+        if (t_current_word != null) {
+            for (term in text_positions) {
+                val word = term.data as Ptl.TimedLyrics.Word?
+                if (word == null) {
+                    break
+                }
+
+                if (word.index == t_current_word!!.index) {
+                    overlay_term = term
+                    break
+                }
+            }
+        }
+
     }
 
     Column(verticalArrangement = Arrangement.Bottom) {
@@ -119,19 +148,54 @@ fun LyricsDisplay(song: Song, on_close_request: () -> Unit, p_status: PlayerStat
             .weight(1f)
             .fillMaxSize(), horizontalAlignment = Alignment.CenterHorizontally, content = {
             item {
-                Crossfade(targetState = lyrics) {
-                    if (it == null) {
-                        CircularProgressIndicator()
-                    }
-                    else {
-                        if (t_current_word != null) {
-                            val position = text_positions[t_current_word!!.index].position
-                            Box(Modifier.requiredSize(25.dp).background(Color.Red).offset(position.x.dp, position.y.dp))
+                Box {
+                    if (overlay_term != null) {
+                        // val position = text_positions[t_current_word!!.index].position
+                        println("${overlay_term!!.text} | ${t_current_word!!.text}")
+
+                        val offset = Offset(-450f, -200f)
+
+                        Canvas(modifier = Modifier.fillMaxSize()) {
+                            drawRect(Color.Red, overlay_term!!.position + offset, Rect(0f, 0f, 50f, 50f).size)
+                            drawRect(Color.Blue, overlay_term!!.position + offset, Rect(0f, 0f, 10f, 10f).size)
+
+                            val canvasWidth = size.width
+                            val canvasHeight = size.height
+
+                            drawLine(
+                                start = Offset(x = canvasWidth, y = 0f),
+                                end = Offset(x = 0f, y = canvasHeight),
+                                color = Color.Green,
+                                strokeWidth = 5F
+                            )
                         }
 
-                        Column {
-                            FuriganaText(it.getLyricsString(), show_furigana, text_positions = text_positions)
-                            Text(getString(R.string.lyrics_source_prefix) + it.getSource(), textAlign = TextAlign.Left, modifier = Modifier.fillMaxWidth())
+                        // Box(Modifier.requiredSize(25.dp).background(Color.Red).offset(position.x.dp, position.y.dp))
+                    }
+
+                    Crossfade(targetState = lyrics) {
+                        if (it == null) {
+                            CircularProgressIndicator()
+                        }
+                        else {
+                            Column {
+                                if (it is Song.PTLyrics && it.getTimed() != null) {
+                                    val terms = mutableListOf<Pair<String, Ptl.TimedLyrics.Word>>()
+
+                                    for (line in it.getTimed()!!.lines) {
+                                        for (word in line.words) {
+                                            terms.add(Pair(word.text, word))
+                                        }
+                                    }
+
+                                    FuriganaText(terms, show_furigana, text_positions = text_positions)
+                                }
+                                else {
+                                    FuriganaText(listOf(Pair(it.getLyricsString(), null)), show_furigana, text_positions = text_positions)
+                                }
+
+                                Text(getString(R.string.lyrics_source_prefix) + it.getSource(), textAlign = TextAlign.Left, modifier = Modifier.fillMaxWidth())
+                            }
                         }
                     }
                 }
@@ -187,33 +251,38 @@ fun getFuriganaTerms(text: String): List<Triple<String, String, String>> {
 }
 
 @Composable
-fun FuriganaText(text: String, show_furigana: Boolean, trim_okurigana: Boolean = true, modifier_provider: ModifierProvider? = null, text_positions: MutableList<TermInfo>? = null) {
+fun FuriganaText(terms: List<Pair<String, Any?>>, show_furigana: Boolean, trim_okurigana: Boolean = true, modifier_provider: ModifierProvider? = null, text_positions: MutableList<TermInfo>? = null) {
 
-    val text_content = remember(text) {
+    val text_content = remember(terms) {
         val content: MutableList<TextData> = mutableStateListOf<TextData>()
 
-        for ((orig, hira, kata) in getFuriganaTerms(text)) {
-            if (orig != hira && orig != kata) {
-                if (trim_okurigana) {
-                    for (pair in trimOkurigana(orig, hira)) {
+        for (term in terms) {
+            for ((orig, hira, kata) in getFuriganaTerms(term.first)) {
+                if (orig != hira && orig != kata) {
+                    if (trim_okurigana) {
+                        for (pair in trimOkurigana(orig, hira)) {
+                            content.add(TextData(
+                                text = pair.first,
+                                reading = pair.second,
+                                data = term.second
+                            ))
+                        }
+                    }
+                    else {
                         content.add(TextData(
-                            text = pair.first,
-                            reading = pair.second
+                            text = orig,
+                            reading = hira,
+                            data = term.second
                         ))
                     }
                 }
                 else {
                     content.add(TextData(
                         text = orig,
-                        reading = hira
+                        reading = null,
+                        data = term.second
                     ))
                 }
-            }
-            else {
-                content.add(TextData(
-                    text = orig,
-                    reading = null
-                ))
             }
         }
 

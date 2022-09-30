@@ -15,14 +15,14 @@ import com.github.krottv.compose.sliders.DefaultThumb
 import com.github.krottv.compose.sliders.DefaultTrack
 import com.github.krottv.compose.sliders.SliderValueHorizontal
 
-abstract class SettingsItem<PageState> {
+abstract class SettingsItem {
     @Composable
-    abstract fun GetItem(theme: Theme, open_page: (PageState) -> Unit)
+    abstract fun GetItem(theme: Theme, open_page: (Int) -> Unit)
 }
 
-class SettingsGroup<PageState>(var title: String?): SettingsItem<PageState>() {
+class SettingsGroup(var title: String?): SettingsItem() {
     @Composable
-    override fun GetItem(theme: Theme, open_page: (PageState) -> Unit) {
+    override fun GetItem(theme: Theme, open_page: (Int) -> Unit) {
         if (title != null) {
             Text(title!!.uppercase(), color = theme.getVibrantAccent(), fontSize = 15.sp)
         }
@@ -68,14 +68,14 @@ class SettingsValueState<T>(initial_value: T, val key: String, val prefs: Shared
     }
 }
 
-class SettingsItemToggle<PageState>(
+class SettingsItemToggle(
     val state: SettingsValueState<Boolean>,
     val title: String?,
     val subtitle: String?
-): SettingsItem<PageState>() {
+): SettingsItem() {
 
     @Composable
-    override fun GetItem(theme: Theme, open_page: (PageState) -> Unit) {
+    override fun GetItem(theme: Theme, open_page: (Int) -> Unit) {
         Row() {
             Column(Modifier.fillMaxWidth().weight(1f)) {
                 if (title != null) {
@@ -93,14 +93,14 @@ class SettingsItemToggle<PageState>(
     }
 }
 
-class SettingsItemSlider<PageState>(
+class SettingsItemSlider(
     val state: SettingsValueState<Float>,
     val title: String?,
     val subtitle: String?,
-): SettingsItem<PageState>() {
+): SettingsItem() {
 
     @Composable
-    override fun GetItem(theme: Theme, open_page: (PageSttae) -> Unit) {
+    override fun GetItem(theme: Theme, open_page: (Int) -> Unit) {
         Column(Modifier.fillMaxWidth()) {
             if (title != null) {
                 Text(title)
@@ -112,7 +112,7 @@ class SettingsItemSlider<PageState>(
             Spacer(Modifier.requiredHeight(10.dp))
 
             state.autosave = false
-            Row(Modifier.fillMaxWidth().weight(1f)) {
+            Row(Modifier.fillMaxWidth()) {
                 SliderValueHorizontal(
                     value = state.value,
                     onValueChange = {
@@ -124,25 +124,25 @@ class SettingsItemSlider<PageState>(
                     thumbSizeInDp = DpSize(12.dp, 12.dp),
                     track = { a, b, c, d, e -> DefaultTrack(a, b, c, d, e, theme.getVibrantAccent().setAlpha(0.5), theme.getVibrantAccent()) },
                     thumb = { a, b, c, d, e -> DefaultThumb(a, b, c, d, e, theme.getVibrantAccent(), 1f) },
-                    modifier = Modifier.weight(1f)
+                    // modifier = Modifier.weight(1f)
                 )
             }
         }
     }
 }
 
-class SettingsItemSubpage<PageState>(
+class SettingsItemSubpage(
     val title: String,
     val subtitle: String?,
-    val target_page: PageState,
-): SettingsItem<PageState>() {
+    val target_page: Int,
+): SettingsItem() {
 
     @Composable
-    override fun GetItem(theme: Theme, open_page: (PageState) -> Unit) {
+    override fun GetItem(theme: Theme, open_page: (Int) -> Unit) {
         Button(modifier = Modifier.fillMaxWidth(), onClick = {
             open_page(target_page)
         }) {
-            Column {
+            Column(Modifier.weight(1f)) {
                 Text(title)
                 if (subtitle != null) {
                     Text(subtitle)

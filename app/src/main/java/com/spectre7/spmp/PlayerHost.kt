@@ -10,6 +10,7 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.toArgb
 import android.view.KeyEvent
 import androidx.core.app.NotificationCompat
+import android.support.v4.media.MediaMetadataCompat
 import androidx.media.session.MediaButtonReceiver
 import com.google.android.exoplayer2.C
 import com.google.android.exoplayer2.ExoPlayer
@@ -115,6 +116,7 @@ class PlayerHost(private var context: Context) {
         private val NOTIFICATION_CHANNEL_ID = "playback_channel"
         private var playerNotificationManager: PlayerNotificationManager? = null
 
+        private val metadata_builder: MediaMetadataCompat.Builder = MediaMetadataCompat.Builder()
         private var media_session: MediaSessionCompat? = null
         private var media_session_connector: MediaSessionConnector? = null
 
@@ -197,6 +199,8 @@ class PlayerHost(private var context: Context) {
             addNotificationToPlayer()
 
             MediaButtonReceiver.handleIntent(media_session, intent)
+
+            println(intent)
 
             when (intent?.getIntExtra("action", -1)) {
                 0 -> {
@@ -335,17 +339,19 @@ class PlayerHost(private var context: Context) {
 
                         override fun getCurrentLargeIcon(player: Player, callback: PlayerNotificationManager.BitmapCallback): Bitmap? {
                             fun getCroppedThumbnail(image: Bitmap): Bitmap {
-                                return Bitmap.createBitmap(image, (image.width - image.height) / 2, 0, image.height, image.height)
+                                metadata_builder.putBitmap(MediaMetadataCompat.METADATA_KEY_ALBUM_ART, image)
+                                media_session!!.setMetadata(metadata_builder.build())
+                                return image
                             }
 
                             try {
                                 val song = player.getMediaItemAt(player.currentMediaItemIndex).localConfiguration!!.tag as Song
-                                if (song.thumbnailLoaded(false)) {
-                                    return getCroppedThumbnail(song.loadThumbnail(false))
+                                if (song.thumbnailLoaded(true)) {
+                                    return getCroppedThumbnail(song.loadThumbnail(true))
                                 }
 
                                 thread {
-                                    callback.onBitmap(getCroppedThumbnail(song.loadThumbnail(false)))
+                                    callback.onBitmap(getCroppedThumbnail(song.loadThumbnail(true)))
                                 }
 
                                 return null                            }
@@ -374,35 +380,39 @@ class PlayerHost(private var context: Context) {
                             stopSelf()
                         }
                     }
-                ).setCustomActionReceiver(
-                    object : PlayerNotificationManager.CustomActionReceiver {
-                        override fun createCustomActions(
-                            context: Context,
-                            instanceId: Int
-                        ): MutableMap<String, NotificationCompat.Action> {
-                            val pendingIntent = PendingIntent.getService(
-                                context,
-                                1,
-                                Intent(context, PlayerService::class.java).putExtra("action", 0),
-                                PendingIntent.FLAG_IMMUTABLE
-                            )
-                            return mutableMapOf(
-                                Pair("CLOSE", NotificationCompat.Action(android.R.drawable.ic_menu_close_clear_cancel, "namae", pendingIntent))
-                            )
-                        }
+                )
+                // .setCustomActionReceiver(
+                //     object : PlayerNotificationManager.CustomActionReceiver {
+                //         override fun createCustomActions(
+                //             context: Context,
+                //             instanceId: Int
+                //         ): MutableMap<String, NotificationCompat.Action> {
+                //             val pendingIntent = PendingIntent.getService(
+                //                 context,
+                //                 1,
+                //                 Intent(context, PlayerService::class.java).putExtra("action", 0),
+                //                 PendingIntent.FLAG_IMMUTABLE
+                //             )
+                //             return mutableMapOf(
+                //                 Pair("Play", NotificationCompat.Action(android.R.drawable.ic_menu_close_clear_cancel, "namae", pendingIntent))
+                //             )
+                //         }
 
-                        override fun getCustomActions(player: Player): MutableList<String> {
-                            return mutableListOf("CLOSE")
-                        }
+                //         override fun getCustomActions(player: Player): MutableList<String> {
+                //             return mutableListOf("Play")
+                //         }
 
-                        override fun onCustomAction(
-                            player: Player,
-                            action: String,
-                            intent: Intent
-                        ) {}
+                //         override fun onCustomAction(
+                //             player: Player,
+                //             action: String,
+                //             intent: Intent
+                //         ) {
+                //             println(action)
+                //         }
 
-                    }
-                ).build()
+                //     }
+                // )
+                .build()
 
                 playerNotificationManager?.setUseFastForwardAction(false)
                 playerNotificationManager?.setUseRewindAction(false)

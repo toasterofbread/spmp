@@ -44,12 +44,16 @@ fun LyricsDisplay(song: Song, on_close_request: () -> Unit, p_status: PlayerStat
     var show_furigana: Boolean by remember { mutableStateOf(false) }
 
     var t_first_word: Ptl.TimedLyrics.Word? by remember { mutableStateOf(null) }
-    var t_current_word: Ptl.TimedLyrics.Word? by remember { mutableStateOf(null) }
+
+    var t_word_start by remember { mutableStateOf(-1) }
+    var t_word_end by remember { mutableStateOf(-1) }
+    val text_positions = remember { mutableStateListOf<TermInfo>() }
+    val overlay_terms: MutableList<TermInfo> = remember { mutableStateListOf() }
 
     LaunchedEffect(song.getId()) {
         lyrics = null
-        t_current_word = null
         t_first_word = null
+        overlay_terms.clear()
         song.getLyrics {
             if (it == null) {
                 sendToast(getString(R.string.lyrics_unavailable))
@@ -64,23 +68,60 @@ fun LyricsDisplay(song: Song, on_close_request: () -> Unit, p_status: PlayerStat
         }
     }
 
-    val text_positions = remember { mutableStateListOf<TermInfo>() }
-    var overlay_term: TermInfo? by remember { mutableStateOf(null) }
-
     LaunchedEffect(p_status.position) {
 
         if (t_first_word != null) {
-            val pos = p_status.duration * p_status.position
+            val pos = (p_status.duration * p_status.position) + 0.15
 
             var word = t_first_word
 
-            do {
+            var start = -1
+            var end = -1
+
+            while(true) {
                 if (pos >= word!!.start_time && pos < word!!.end_time) {
-                    t_current_word = word
+                    if (t_word_start == word.index) {
+                        break
+                    }
+                    start = word.index
+                }
+                else if (start != -1) {
+                    t_word_end = word.index - 1
                     break
                 }
+
+                if (word.next_word == null) {
+                    if (start != -1) {
+                        end = word.index
+                    }
+                    break
+                }
+
                 word = word!!.next_word
-            } while (word != null)
+            }
+
+            if (start != t_word_start || end != t_word_end) {
+                t_word_start = start
+                t_word_end = end
+
+                overlay_terms.clear()
+                if (t_word_start != -1) {
+                    for (term in text_positions) {
+                        val word = term.data as Ptl.TimedLyrics.Word?
+                        if (word == null) {
+                            break
+                        }
+
+                        if (word.index >= t_word_start && word.index <= t_word_end) {
+                            overlay_terms.add(term)
+                        }
+                        else if (word.index > t_word_end) {
+                            break
+                        }
+                    }
+                }
+            }
+
 
             // // If no current word
             // if (t_current_word == null) {
@@ -125,22 +166,6 @@ fun LyricsDisplay(song: Song, on_close_request: () -> Unit, p_status: PlayerStat
             //     }
             // }
         }
-
-        overlay_term = null
-        if (t_current_word != null) {
-            for (term in text_positions) {
-                val word = term.data as Ptl.TimedLyrics.Word?
-                if (word == null) {
-                    break
-                }
-
-                if (word.index == t_current_word!!.index) {
-                    overlay_term = term
-                    break
-                }
-            }
-        }
-
     }
 
     Column(verticalArrangement = Arrangement.Bottom) {
@@ -149,28 +174,12 @@ fun LyricsDisplay(song: Song, on_close_request: () -> Unit, p_status: PlayerStat
             .fillMaxSize(), horizontalAlignment = Alignment.CenterHorizontally, content = {
             item {
                 Box {
-                    if (overlay_term != null) {
-                        // val position = text_positions[t_current_word!!.index].position
-                        println("${overlay_term!!.text} | ${t_current_word!!.text}")
-
-                        val offset = Offset(-450f, -200f)
-
-                        Canvas(modifier = Modifier.fillMaxSize()) {
-                            drawRect(Color.Red, overlay_term!!.position + offset, Rect(0f, 0f, 50f, 50f).size)
-                            drawRect(Color.Blue, overlay_term!!.position + offset, Rect(0f, 0f, 10f, 10f).size)
-
-                            val canvasWidth = size.width
-                            val canvasHeight = size.height
-
-                            drawLine(
-                                start = Offset(x = canvasWidth, y = 0f),
-                                end = Offset(x = 0f, y = canvasHeight),
-                                color = Color.Green,
-                                strokeWidth = 5F
-                            )
+                    val offset = Offset(-75f, -150f)
+                    Canvas(modifier = Modifier.fillMaxSize()) {
+                        for (term in overlay_terms) {
+                            drawRect(Color.Red, term.position + offset, Rect(0f, 0f, 50f, 50f).size)
+                            drawRect(Color.Blue, term.position + offset, Rect(0f, 0f, 10f, 10f).size)
                         }
-
-                        // Box(Modifier.requiredSize(25.dp).background(Color.Red).offset(position.x.dp, position.y.dp))
                     }
 
                     Crossfade(targetState = lyrics) {

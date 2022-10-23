@@ -98,6 +98,15 @@ fun NowPlaying(_expansion: Float, max_height: Float, p_status: PlayerStatus) {
         thumbnail = thumb
         Palette.from(thumbnail!!.asAndroidBitmap()).generate {
             theme_palette = it
+
+            if (theme_palette != null) {
+                for (i in (2 until 5) + (0 until 2)) {
+                    if (getPaletteColour(theme_palette!!, i) != null) {
+                        palette_index = i
+                        break
+                    }
+                }
+            }
         }
     }
 
@@ -265,10 +274,10 @@ fun NowPlaying(_expansion: Float, max_height: Float, p_status: PlayerStatus) {
 
                                                         Button(
                                                             modifier = Modifier
-                                                                .background(
-                                                                    MainActivity.getTheme().getBackground(true),
-                                                                    CircleShape
-                                                                )
+                                                                // .background(
+                                                                //     MainActivity.getTheme().getBackground(true),
+                                                                //     CircleShape
+                                                                // )
                                                                 .size(40.dp)
                                                                 .padding(8.dp),
                                                             onClick = {
@@ -278,7 +287,7 @@ fun NowPlaying(_expansion: Float, max_height: Float, p_status: PlayerStatus) {
                                                         ) {
                                                             Image(
                                                                 painterResource(R.drawable.ic_palette), "",
-                                                                colorFilter = ColorFilter.tint(MainActivity.getTheme().getOnBackground(true))
+                                                                // colorFilter = ColorFilter.tint(MainActivity.getTheme().getOnBackground(true))
                                                             )
                                                         }
 
@@ -331,6 +340,7 @@ fun NowPlaying(_expansion: Float, max_height: Float, p_status: PlayerStatus) {
                             Text(
                                 getSongTitle(),
                                 maxLines = 1,
+                                color = MainActivity.getTheme().getOnBackground(true),
                                 overflow = TextOverflow.Ellipsis,
                                 modifier = Modifier
                                     .align(Alignment.CenterVertically)

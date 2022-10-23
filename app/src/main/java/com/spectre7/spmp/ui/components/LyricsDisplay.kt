@@ -140,7 +140,6 @@ fun LyricsDisplay(song: Song, on_close_request: () -> Unit, p_status: PlayerStat
                     Canvas(modifier = Modifier.fillMaxSize()) {
                         for (term in overlay_terms) {
                             drawRect(Color.Red, term.position + offset, Rect(0f, 0f, 50f, 50f).size)
-                            drawRect(Color.Blue, term.position + offset, Rect(0f, 0f, 10f, 10f).size)
                         }
                     }
 

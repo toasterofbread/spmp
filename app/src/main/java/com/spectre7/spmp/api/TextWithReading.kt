@@ -152,7 +152,6 @@ fun calculateAnnotatedString(textContent: List<TextData>, showReadings: Boolean,
                         Modifier.fillMaxHeight().run {
                             if (text_positions != null) {
                                 onPlaced { coords ->
-                                    println("POSITIONED ${coords.positionInRoot()}")
                                     text_positions[index].position = coords.positionInRoot()
                                 }
                             }

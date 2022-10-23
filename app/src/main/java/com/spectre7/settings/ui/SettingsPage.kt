@@ -18,25 +18,17 @@ import androidx.compose.ui.res.painterResource
 import androidx.compose.foundation.Image
 
 class SettingsPage(val title: String, val items: List<SettingsItem>, val modifier: Modifier = Modifier) {
-    internal var interface_state: SettingsInterfaceState? = null
-
     @Composable
-    fun Page(openPage: (Int) -> Unit, goBack: () -> Unit) {
+    fun Page(settings_interface: SettingsInterface, openPage: (Int) -> Unit, goBack: () -> Unit) {
         Column(modifier) {
-            // Top bar
-            Row(horizontalArrangement = Arrangement.SpaceBetween) {
-                Text(title, fontSize = 30.sp, fontWeight = FontWeight.Bold)
-                IconButton(onClick = goBack) {
-                    Image(painterResource(R.drawable.ic_close), "")
-                }
-            }
+            Text(title, fontSize = 30.sp, fontWeight = FontWeight.Bold)
 
             Spacer(Modifier.requiredHeight(50.dp))
 
             // Page items
             Column(verticalArrangement = Arrangement.spacedBy(20.dp)) {
                 for (item in items) {
-                    item.GetItem(interface_state?.getTheme() ?: Theme.default(), openPage)
+                    item.GetItem(settings_interface.theme, openPage)
                 }
             }
         }

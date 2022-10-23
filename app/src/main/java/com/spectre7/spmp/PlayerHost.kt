@@ -245,16 +245,37 @@ class PlayerHost(private var context: Context) {
 
         fun playSong(song: Song) {
             clearQueue()
+
             addToQueue(song) {
                 thread {
-                    for (id in DataApi.getSongRadio(song.getId(), include_first = false)) {
-                        val song = Song.fromId(id)
+                    Song.batchFromId(DataApi.getSongRadio(song.getId(), false)) { i, song ->
                         MainActivity.runInMainThread {
-                            addToQueue(song)
+                            if (song != null) {
+                                println(song.getTitle())
+                                addToQueue(song, i + 1)
+                            }
                         }
                     }
                 }
             }
+
+            // thread {
+            //     val radio = DataApi.getSongRadio(song.getId())
+            //     val songs = mutableListOf<Song>()
+            //     for (i in 0 until radio.size) {
+            //         Song.fromId(radio[i]) {
+            //             println(i.toString() + " | " + it.getTitle())
+            //             songs.add(it)
+            //             if (songs.size == radio.size) {
+            //                 MainActivity.runInMainThread {
+            //                     for (song in songs) {
+            //                         addToQueue(song, i)
+            //                     }
+            //                 }
+            //             }
+            //         }
+            //     }
+            // }
         }
 
         fun clearQueue() {

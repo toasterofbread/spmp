@@ -141,7 +141,8 @@ class SettingsItemSubpage(
     override fun GetItem(theme: Theme, open_page: (Int) -> Unit) {
         Button(modifier = Modifier.fillMaxWidth(), onClick = {
             open_page(target_page)
-        }) {
+        }, colors = ButtonDefaults.buttonColors(theme.getAccent(), theme.getOnAccent())
+        ) {
             Column(Modifier.weight(1f)) {
                 Text(title)
                 if (subtitle != null) {

@@ -36,6 +36,7 @@ import java.util.stream.*;
 import com.spectre7.ptl.Ptl
 import androidx.compose.foundation.Canvas
 import androidx.compose.ui.geometry.Rect
+import kotlin.concurrent.thread
 
 @Composable
 fun LyricsDisplay(song: Song, on_close_request: () -> Unit, p_status: PlayerStatus) {
@@ -71,41 +72,44 @@ fun LyricsDisplay(song: Song, on_close_request: () -> Unit, p_status: PlayerStat
     LaunchedEffect(p_status.position) {
 
         if (t_first_word != null) {
-            val pos = (p_status.duration * p_status.position) + 0.15
 
-            var word = t_first_word
+            thread {
+                val pos = (p_status.duration * p_status.position) + 0.15
 
-            var start = -1
-            var end = -1
+                var word = t_first_word
 
-            while(true) {
-                if (pos >= word!!.start_time && pos < word!!.end_time) {
-                    if (t_word_start == word.index) {
+                var start = -1
+                var end = -1
+
+                while(true) {
+                    if (pos >= word!!.start_time && pos < word!!.end_time) {
+                        if (start == -1) {
+                            if (t_word_start == word.index) {
+                                break
+                            }
+                            start = word.index
+                        }
+                    }
+                    else if (start != -1) {
+                        end = word.index - 1
                         break
                     }
-                    start = word.index
-                }
-                else if (start != -1) {
-                    t_word_end = word.index - 1
-                    break
-                }
 
-                if (word.next_word == null) {
-                    if (start != -1) {
-                        end = word.index
+                    if (word.next_word == null) {
+                        if (start != -1) {
+                            end = word.index
+                        }
+                        break
                     }
-                    break
+
+                    word = word!!.next_word
                 }
 
-                word = word!!.next_word
-            }
+                if ((start != t_word_start || end != t_word_end) && start != -1 && end != -1) {
+                    t_word_start = start
+                    t_word_end = end
 
-            if (start != t_word_start || end != t_word_end) {
-                t_word_start = start
-                t_word_end = end
-
-                overlay_terms.clear()
-                if (t_word_start != -1) {
+                    overlay_terms.clear()
                     for (term in text_positions) {
                         val word = term.data as Ptl.TimedLyrics.Word?
                         if (word == null) {
@@ -113,7 +117,9 @@ fun LyricsDisplay(song: Song, on_close_request: () -> Unit, p_status: PlayerStat
                         }
 
                         if (word.index >= t_word_start && word.index <= t_word_end) {
-                            overlay_terms.add(term)
+                            if (term.text.trim().length > 0) {
+                                overlay_terms.add(term)
+                            }
                         }
                         else if (word.index > t_word_end) {
                             break
@@ -121,50 +127,6 @@ fun LyricsDisplay(song: Song, on_close_request: () -> Unit, p_status: PlayerStat
                     }
                 }
             }
-
-
-            // // If no current word
-            // if (t_current_word == null) {
-            //     var word = t_first_word
-            //     do {
-            //         if (pos >= word!!.start_time && pos < word.end_time) {
-            //             t_current_word = word
-            //             break
-            //         }
-            //         else if (pos < word.start_time) {
-            //             break
-            //         }
-            //         word = word.next_word
-            //     } while(word != null)
-            // }
-            // // If playback is ahead of current word
-            // else if (pos >= t_current_word!!.end_time) {
-            //     var word = t_current_word!!.next_word
-            //     while(word != null) {
-            //         if (pos >= word.start_time && pos < word.end_time) {
-            //             t_current_word = word
-            //             break
-            //         }
-            //         else if (pos < word.start_time) {
-            //             break
-            //         }
-            //         word = word.next_word
-            //     }
-            // }
-            // // If playback is behind current word
-            // else if (pos < t_current_word!!.start_time) {
-            //     var word = t_current_word!!.prev_word
-            //     while(word != null) {
-            //         if (pos >= word.start_time && pos < word.end_time) {
-            //             t_current_word = word
-            //             break
-            //         }
-            //         else if (pos >= word.end_time) {
-            //             break
-            //         }
-            //         word = word.prev_word
-            //     }
-            // }
         }
     }
 
@@ -192,8 +154,14 @@ fun LyricsDisplay(song: Song, on_close_request: () -> Unit, p_status: PlayerStat
                                     val terms = mutableListOf<Pair<String, Ptl.TimedLyrics.Word>>()
 
                                     for (line in it.getTimed()!!.lines) {
-                                        for (word in line.words) {
-                                            terms.add(Pair(word.text, word))
+                                        for (i in 0 until line.words.size) {
+                                            val word = line.words[i]
+                                            if (i + 1 == line.words.size) {
+                                                terms.add(Pair(word.text + "\n", word))
+                                            }
+                                            else {
+                                                terms.add(Pair(word.text, word))
+                                            }
                                         }
                                     }
 

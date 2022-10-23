@@ -166,7 +166,9 @@ fun PlayerView() {
         LaunchedEffect(Unit) {
             thread {
                 for (song in DataApi.getSongRadio(vid)) {
-                    songs.add(Song.fromId(song))
+                    Song.fromId(song) {
+                        songs.add(it)
+                    }
                 }
             }
         }

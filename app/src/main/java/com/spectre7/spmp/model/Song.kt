@@ -93,8 +93,14 @@ data class Song (
     }
 
     companion object {
-        fun fromId(video_id: String): Song {
-            return DataApi.getSong(video_id)!!
+        fun fromId(song_id: String, callback: (Song) -> Unit) {
+            DataApi.getSong(song_id) {
+                callback(it!!)
+            }
+        }
+
+        fun batchFromId(song_ids: List<String>, callback: (Int, Song?) -> Unit) {
+            DataApi.batchGetSongs(song_ids, callback)
         }
     }
 

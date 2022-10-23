@@ -30,8 +30,8 @@ fun SongPreview (song: Song, large: Boolean, colour: Color, modifier: Modifier =
         Column(
             modifier = modifier.padding(10.dp, 0.dp).clickable {
                 PlayerHost.interactService {
-                    // it.playSong(song)
-                    it.addToQueue(song)
+                    it.playSong(song)
+                    // it.addToQueue(song)
                 }
             }
         ) {

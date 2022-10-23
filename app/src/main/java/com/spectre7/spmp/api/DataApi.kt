@@ -2,6 +2,9 @@ package com.spectre7.spmp.api
 
 import android.util.Log
 import com.beust.klaxon.Klaxon
+import com.beust.klaxon.JsonObject
+import com.beust.klaxon.Parser
+import java.util.zip.GZIPInputStream
 import com.spectre7.spmp.MainActivity
 import com.spectre7.utils.getString
 import com.spectre7.spmp.R
@@ -26,6 +29,9 @@ import kotlin.concurrent.thread
 import com.chaquo.python.Python
 import com.chaquo.python.PyException
 import com.spectre7.ptl.Ptl
+import kotlinx.coroutines.sync.Mutex
+import kotlinx.coroutines.sync.withLock
+import kotlinx.coroutines.runBlocking
 
 class DataApi {
 
@@ -131,19 +137,98 @@ class DataApi {
         private val ptl = Ptl()
         private val api = Python.getInstance().getModule("ytmusicapi").callAttr("YTMusic").apply { callAttr("setup", null, getString(R.string.yt_music_creds)) }
 
-        // TODO | Song and artist cache
-        fun getSong(videoId: String): Song? {
-            var request = HTTPGetRequest("https://www.googleapis.com/youtube/v3/videos")
-            request.addParam("key", getString(R.string.data_api_key))
-            request.addParam("part", "contentDetails,snippet,localizations")
-            request.addParam("id", videoId)
+        private val song_request_queue = mutableListOf<Pair<String, MutableList<(Song?) -> Unit>>>()
+        private var song_request_count = 0
+        private val max_song_requests = 5
+        private val song_request_mutex = Mutex()
 
-            val video = klaxon.parse<VideoInfoResponse>(request.getResult())?.getVideo()
-            if (video == null) {
-                return null
+        // TODO | Song and artist cache
+        fun getSong(song_id: String, callback: (Song?) -> Unit) {
+            for (request in song_request_queue) {
+                if (request.first == song_id) {
+                    request.second.add(callback)
+                    return
+                }
             }
 
-            return Song(videoId, SongData("", video.snippet.title, video.snippet.description), getArtist(video.snippet.channelId)!!, Date.from(Instant.parse(video.snippet.publishedAt)), java.time.Duration.parse(video.contentDetails.duration))
+            song_request_queue.add(Pair(song_id, mutableListOf(callback)))
+
+            updateSongRequests()
+        }
+
+        fun batchGetSongs(song_ids: List<String>, callback: (Int, Song?) -> Unit) {
+            var added = false
+            runBlocking {
+                song_request_mutex.withLock {
+
+                    val buffer = mutableMapOf<Int, Song?>()
+                    var head = 0
+
+                    fun getCallback(index: Int): (Song?) -> Unit {
+                        return {
+                            buffer.put(index, it)
+                            while (buffer.containsKey(head)) {
+                                callback(head, buffer[head++])
+                            }
+                        }
+                    }
+
+                    for (i in 0 until song_ids.size) {
+                        val song_id = song_ids[i]
+                        var skip = false
+                        for (request in song_request_queue) {
+                            if (request.first == song_id) {
+                                request.second.add(getCallback(i))
+                                skip = true
+                                break
+                            }
+                        }
+
+                        if (!skip) {
+                            song_request_queue.add(Pair(song_id, mutableListOf(getCallback(i))))
+                            added = true
+                        }
+                    }
+                }
+            }
+
+            if (added) {
+                updateSongRequests()
+            }
+        }
+
+        private fun updateSongRequests() {
+            runBlocking {
+                song_request_mutex.withLock {
+                    while (song_request_count < max_song_requests && song_request_queue.isNotEmpty()) {
+                        song_request_count++
+
+                        val song_request = song_request_queue.removeFirst()
+                        thread {
+                            var ret: Song? = null
+
+                            var request = HTTPGetRequest("https://www.googleapis.com/youtube/v3/videos")
+                            request.addParam("key", getString(R.string.data_api_key))
+                            request.addParam("part", "contentDetails,snippet,localizations")
+                            request.addParam("id", song_request.first)
+
+                            val video = klaxon.parse<VideoInfoResponse>(request.getResult())?.getVideo()
+                            if (video != null) {
+                                ret = Song(song_request.first, SongData("", video.snippet.title, video.snippet.description), getArtist(video.snippet.channelId)!!, Date.from(Instant.parse(video.snippet.publishedAt)), java.time.Duration.parse(video.contentDetails.duration))
+                            }
+
+                            for (callback in song_request.second) {
+                                callback(ret)
+                            }
+
+                            MainActivity.runInMainThread {
+                                song_request_count--
+                                updateSongRequests()
+                            }
+                        }
+                    }
+                }
+            }
         }
 
         private val artistCache: MutableMap<String, Artist> = mutableMapOf()
@@ -343,18 +428,79 @@ class DataApi {
             return results.first().callAttr("get", "browseId").toString()
         }
 
-        fun getSongRadio(song_id: String, limit: Int = 25, include_first: Boolean = true): List<String> {
-            val radio = api.callAttr("get_watch_playlist", song_id, null, limit).callAttr("get", "tracks").asList()
+        fun getSongRadio(song_id: String, include_first: Boolean = true, limit: Int = 25): List<String> {
+            val body = """
+            {
+                "enablePersistentPlaylistPanel": true,
+                "isAudioOnly": true,
+                "tunerSettingValue": "AUTOMIX_SETTING_NORMAL",
+                "videoId": "${song_id}",
+                "playlistId": "RDAMVM${song_id}",
+                "watchEndpointMusicSupportedConfigs": {
+                    "watchEndpointMusicConfig": {
+                        "hasPersistentPlaylistPanel": true,
+                        "musicVideoType": "MUSIC_VIDEO_TYPE_ATV"
+                    }
+
+                },
+                "context" : {
+                    "client": {
+                        "clientName": "WEB_REMIX",
+                        "clientVersion": "1.20221023.01.00",
+                        "hl": "ja"
+                    },
+                    "user": {}
+                }
+            }
+            """
+
+            val request = Request.Builder()
+                .url("https://music.youtube.com/youtubei/v1/next?alt=json&key=AIzaSyC9XL3ZjWddXya6X74dJoCTL-WEYFDNX30")
+                .header("user-agent", "Mozilla/5.0 (Windows NT 10.0; Win64; x64; rv:88.0) Gecko/20100101 Firefox/88.0")
+                .addHeader("accept", "*/*")
+                .addHeader("accept-encoding", "gzip, deflate")
+                .addHeader("content-encoding", "gzip")
+                .addHeader("origin", "https://music.youtube.com")
+                .addHeader("X-Goog-Visitor-Id", "CgtUYXUtLWtyZ3ZvTSj3pNWaBg%3D%3D")
+                .post(body.toRequestBody("application/json".toMediaType()))
+                .build()
+
+            val client = OkHttpClient().newBuilder()
+                .addInterceptor(object : Interceptor {
+                    override fun intercept(chain: Interceptor.Chain): Response {
+                        val original = chain.request();
+                        val authorized = original.newBuilder()
+                            .addHeader("Cookie", "CONSENT=YES+1")
+                            .build();
+                        return chain.proceed(authorized);
+                    }
+                })
+                .build()
+
+            val response = client.newCall(request).execute()
+
+            val songs = (Parser.default().parse(GZIPInputStream(response.body!!.byteStream())) as JsonObject)
+                .obj("contents")!!
+                .obj("singleColumnMusicWatchNextResultsRenderer")!!
+                .obj("tabbedRenderer")!!
+                .obj("watchNextTabbedResultsRenderer")!!
+                .array<JsonObject>("tabs")!![0]
+                .obj("tabRenderer")!!
+                .obj("content")!!
+                .obj("musicQueueRenderer")!!
+                .obj("content")!!
+                .obj("playlistPanelRenderer")!!
+                .array<JsonObject>("contents")!!
+
             val offset = if (include_first) 0 else 1
-            return List(radio.size - offset) {
-                radio[it + offset].callAttr("get", "videoId").toString()
+            return List(songs.size - offset) {
+                songs[it + offset].obj("playlistPanelVideoRenderer")!!.string("videoId")!!
             }
         }
 
         fun getSongRelated(song: Song) {
             // TODO : https://ytmusicapi.readthedocs.io/en/latest/reference.html#ytmusicapi.YTMusic.get_watch_playlist
         }
-
     }
 }
 

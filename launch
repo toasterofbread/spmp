@@ -37,7 +37,12 @@ def launch(gradle_task: str, package: str):
             if not line:
                 break
 
-            line = line.rstrip().decode().replace("\\t", "\t")
+            try:
+                line = line.rstrip().decode().replace("\\t", "\t")
+            except UnicodeDecodeError:
+                print(line)
+                continue
+
             tag = line[0]
 
             line = f"[{tag}] " + line[2:]

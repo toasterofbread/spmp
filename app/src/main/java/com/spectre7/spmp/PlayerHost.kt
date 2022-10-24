@@ -52,7 +52,7 @@ class PlayerHost(private var context: Context) {
         }
         fun interactService(action: (service: PlayerService) -> Unit) {
             if (service == null) {
-                instance.getService() {
+                instance.getService {
                     action(service!!)
                 }
             }
@@ -101,10 +101,10 @@ class PlayerHost(private var context: Context) {
         return false
     }
 
-    abstract interface PlayerQueueListener {
-        abstract fun onSongAdded(song: Song, index: Int)
-        abstract fun onSongRemoved(song: Song, index: Int)
-        abstract fun onCleared()
+    interface PlayerQueueListener {
+        fun onSongAdded(song: Song, index: Int)
+        fun onSongRemoved(song: Song, index: Int)
+        fun onCleared()
     }
 
     class PlayerService : Service() {
@@ -141,7 +141,7 @@ class PlayerHost(private var context: Context) {
                     .build(),
                 true
             ).build()
-            player.playWhenReady = true;
+            player.playWhenReady = true
             player.prepare()
 
             media_session = MediaSessionCompat(MainActivity.context, "spmp")
@@ -239,7 +239,7 @@ class PlayerHost(private var context: Context) {
 
         fun iterateSongs(action: (i: Int, song: Song) -> Unit) {
             for (i in 0 until player.mediaItemCount) {
-                action(i, player.getMediaItemAt(i)?.localConfiguration?.tag as Song)
+                action(i, player.getMediaItemAt(i).localConfiguration?.tag as Song)
             }
         }
 

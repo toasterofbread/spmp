@@ -468,11 +468,11 @@ class DataApi {
             val client = OkHttpClient().newBuilder()
                 .addInterceptor(object : Interceptor {
                     override fun intercept(chain: Interceptor.Chain): Response {
-                        val original = chain.request();
+                        val original = chain.request()
                         val authorized = original.newBuilder()
                             .addHeader("Cookie", "CONSENT=YES+1")
-                            .build();
-                        return chain.proceed(authorized);
+                            .build()
+                        return chain.proceed(authorized)
                     }
                 })
                 .build()

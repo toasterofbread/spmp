@@ -29,31 +29,41 @@ enum class Page { ROOT, OTHER }
 @Composable
 fun PrefsPage(setOverlayPage: (page: OverlayPage) -> Unit) {
 
-    val slider_state = remember { SettingsValueState(0.5f, "slider", MainActivity.prefs) }
     val settings_interface: SettingsInterface = remember { SettingsInterface(MainActivity.getTheme(), Page.ROOT.ordinal, {
         when (Page.values()[it]) {
+
             Page.ROOT -> SettingsPage("Preferences", listOf(
+
                 SettingsGroup("Theming"),
-                SettingsItemToggle(SettingsValueState(false, "toggle", MainActivity.prefs), "Hello World", "Subtitle text text subtitle text"),
-                SettingsItemSubpage("Other page", "Subtitle!", Page.OTHER.ordinal),
-                SettingsItemSlider(slider_state, "Hello World - ${slider_state.value}", "Subtitle text text subtitle text"),
+
+                SettingsItemToggle(SettingsValueState(true, "theme-nowplaying-background", MainActivity.prefs), "Themed now playing background", "Apply colour theme to the now playing menu background"),
+
             ), Modifier.fillMaxSize())
-            Page.OTHER -> SettingsPage("Other Preferences", listOf(
-                SettingsGroup("Theming"),
-                SettingsItemToggle(SettingsValueState(false, "toggle", MainActivity.prefs), "Hello World", "Subtitle text text subtitle text"),
-                SettingsItemSlider(slider_state, "Hello World - ${slider_state.value}", "Subtitle text text subtitle text"),
-                SettingsItemSubpage("Root page", "Other subtitle!", Page.ROOT.ordinal)
-            ), Modifier.fillMaxSize())
+            else -> {
+                null
+            }
         }
     }, {
         setOverlayPage(OverlayPage.NONE)
     }) }
 
-    Box(Modifier.background(MainActivity.getTheme().getBackground(false)).padding(20.dp).pointerInput(Unit) {}) {
-        settings_interface.Interface()
+    BoxWithConstraints(
+        Modifier
+            .background(
+                MainActivity
+                    .getTheme()
+                    .getBackground(false)
+            )
+            .padding(20.dp)
+            .pointerInput(Unit) {}) {
+        LazyColumn(Modifier.fillMaxHeight()) {
+            item {
+                settings_interface.Interface()
+            }
+        }
     }
 
     PlayerHost.interact {
-        it.setVolume(it.getVolume() * 0.95f)
+        it.volume = it.volume * 0.95f
     }
 }

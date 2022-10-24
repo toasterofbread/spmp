@@ -1,54 +1,49 @@
 package com.spectre7.spmp.ui.components
 
-import android.util.Log
-import android.view.MotionEvent
 import androidx.compose.animation.*
-import androidx.compose.animation.core.*
+import androidx.compose.animation.core.tween
 import androidx.compose.foundation.*
 import androidx.compose.foundation.interaction.MutableInteractionSource
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.filled.*
+import androidx.compose.material.icons.filled.Menu
+import androidx.compose.material.icons.filled.PlayArrow
 import androidx.compose.material.ripple.rememberRipple
-import androidx.compose.material3.*
+import androidx.compose.material3.IconButton
+import androidx.compose.material3.LinearProgressIndicator
+import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.Text
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.alpha
 import androidx.compose.ui.draw.clip
-import androidx.compose.ui.draw.shadow
+import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.graphics.*
 import androidx.compose.ui.graphics.painter.Painter
 import androidx.compose.ui.graphics.vector.rememberVectorPainter
-import androidx.compose.ui.input.pointer.pointerInteropFilter
 import androidx.compose.ui.layout.ContentScale
+import androidx.compose.ui.platform.LocalConfiguration
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.*
 import androidx.palette.graphics.Palette
 import com.github.krottv.compose.sliders.DefaultThumb
-import com.github.krottv.compose.sliders.DefaultTrack
 import com.github.krottv.compose.sliders.SliderValueHorizontal
-import com.google.accompanist.pager.ExperimentalPagerApi
-import com.google.accompanist.pager.HorizontalPager
-import com.google.accompanist.pager.rememberPagerState
 import com.google.accompanist.systemuicontroller.rememberSystemUiController
 import com.google.android.exoplayer2.Player
-import com.spectre7.utils.getString
+import com.spectre7.spmp.MainActivity
 import com.spectre7.spmp.PlayerHost
 import com.spectre7.spmp.R
-import com.spectre7.spmp.model.Song
 import com.spectre7.spmp.ui.layout.MINIMISED_NOW_PLAYING_HEIGHT
 import com.spectre7.spmp.ui.layout.PlayerStatus
-import com.spectre7.spmp.ui.components.*
 import com.spectre7.utils.*
 import kotlin.concurrent.thread
 import kotlin.math.max
-import androidx.compose.ui.geometry.Offset
-import com.spectre7.spmp.MainActivity
+import androidx.compose.ui.platform.LocalDensity
 
 enum class NowPlayingThemeMode { BACKGROUND, ELEMENTS }
 enum class NowPlayingOverlayMenu { NONE, MAIN, PALETTE, LYRICS, DOWNLOAD }
@@ -56,7 +51,6 @@ enum class NowPlayingTab { RELATED, PLAYER, QUEUE }
 
 const val SEEK_CANCEL_THRESHOLD = 0.05f
 
-@OptIn(ExperimentalPagerApi::class)
 @Composable
 fun NowPlaying(_expansion: Float, max_height: Float, p_status: PlayerStatus) {
 
@@ -77,7 +71,7 @@ fun NowPlaying(_expansion: Float, max_height: Float, p_status: PlayerStatus) {
         return p_status.song!!.artist.nativeData.name
     }
 
-    val theme_mode = NowPlayingThemeMode.BACKGROUND
+    val theme_mode = if (MainActivity.prefs.getBoolean("theme-nowplaying-background", true)) NowPlayingThemeMode.BACKGROUND else NowPlayingThemeMode.ELEMENTS
     val systemui_controller = rememberSystemUiController()
 
     var thumbnail by remember { mutableStateOf<ImageBitmap?>(null) }
@@ -124,7 +118,7 @@ fun NowPlaying(_expansion: Float, max_height: Float, p_status: PlayerStatus) {
         }
     }
 
-    LaunchedEffect(key1 = theme_palette, key2 = palette_index) {
+    LaunchedEffect(key1 = theme_palette, key2 = palette_index, key3 = theme_mode) {
         if (theme_palette == null) {
             MainActivity.getTheme().setBackground(true, null)
             MainActivity.getTheme().setOnBackground(true, null)
@@ -145,6 +139,7 @@ fun NowPlaying(_expansion: Float, max_height: Float, p_status: PlayerStatus) {
                         )
                     }
                     NowPlayingThemeMode.ELEMENTS -> {
+                        MainActivity.getTheme().setBackground(true, null)
                         MainActivity.getTheme().setOnBackground(true, colour)
                     }
                 }
@@ -170,20 +165,29 @@ fun NowPlaying(_expansion: Float, max_height: Float, p_status: PlayerStatus) {
         )
     }
 
-    Box(Modifier.padding(10.dp + (15.dp * expansion))) {
+    val main_padding = 10.dp + (15.dp * expansion)
+    val screen_width_dp = LocalConfiguration.current.screenWidthDp.dp
+    val screen_width_px = with(LocalDensity.current) { screen_width_dp.roundToPx() }
+    val main_padding_px = with(LocalDensity.current) { main_padding.roundToPx() }
 
-        val tab_state = rememberPagerState(NowPlayingTab.PLAYER.ordinal)
+    Box(Modifier.padding(main_padding)) {
+
         var current_tab by remember { mutableStateOf(NowPlayingTab.PLAYER) }
         val button_size = 60.dp
 
+        fun getTabScrollTarget(): Int {
+            return current_tab.ordinal * (screen_width_px - (main_padding_px * 2))
+        }
+        val tab_scroll_state = rememberScrollState(getTabScrollTarget())
+
         LaunchedEffect(current_tab) {
-            tab_state.animateScrollToPage(current_tab.ordinal)
+            tab_scroll_state.animateScrollTo(getTabScrollTarget())
         }
 
         LaunchedEffect(expansion >= 1.0f) {
             if (expansion < 1.0f) {
                 current_tab = NowPlayingTab.PLAYER
-                tab_state.animateScrollToPage(current_tab.ordinal)
+                tab_scroll_state.scrollTo(getTabScrollTarget())
             }
         }
 
@@ -253,18 +257,20 @@ fun NowPlaying(_expansion: Float, max_height: Float, p_status: PlayerStatus) {
 
                                                     Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.SpaceEvenly) {
 
-                                                        Button(
+                                                        Box(
                                                             modifier = Modifier
                                                                 .background(
-                                                                    MainActivity.getTheme().getBackground(true),
+                                                                    MainActivity
+                                                                        .getTheme()
+                                                                        .getBackground(true),
                                                                     CircleShape
                                                                 )
                                                                 .size(40.dp)
-                                                                .padding(8.dp),
-                                                            onClick = {
-                                                                overlay_menu =
-                                                                    NowPlayingOverlayMenu.LYRICS
-                                                            }
+                                                                .padding(8.dp)
+                                                                .clickable {
+                                                                    overlay_menu =
+                                                                        NowPlayingOverlayMenu.LYRICS
+                                                                }
                                                         ) {
                                                             Image(
                                                                 painterResource(R.drawable.ic_music_note), "",
@@ -272,41 +278,44 @@ fun NowPlaying(_expansion: Float, max_height: Float, p_status: PlayerStatus) {
                                                             )
                                                         }
 
-                                                        Button(
-                                                            modifier = Modifier
-                                                                // .background(
-                                                                //     MainActivity.getTheme().getBackground(true),
-                                                                //     CircleShape
-                                                                // )
-                                                                .size(40.dp)
-                                                                .padding(8.dp),
-                                                            onClick = {
-                                                                overlay_menu =
-                                                                    NowPlayingOverlayMenu.PALETTE
-                                                            }
-                                                        ) {
-                                                            Image(
-                                                                painterResource(R.drawable.ic_palette), "",
-                                                                // colorFilter = ColorFilter.tint(MainActivity.getTheme().getOnBackground(true))
-                                                            )
-                                                        }
-
-                                                        Button(
+                                                        Box(
                                                             modifier = Modifier
                                                                 .background(
-                                                                    MainActivity.getTheme().getBackground(true),
+                                                                    MainActivity
+                                                                        .getTheme()
+                                                                        .getBackground(true),
                                                                     CircleShape
                                                                 )
                                                                 .size(40.dp)
-                                                                .padding(8.dp),
-                                                            onClick = {
-                                                                overlay_menu =
-                                                                    NowPlayingOverlayMenu.DOWNLOAD
-                                                            }
+                                                                .padding(8.dp)
+                                                                .clickable {
+                                                                    overlay_menu =
+                                                                        NowPlayingOverlayMenu.PALETTE
+                                                                }
                                                         ) {
                                                             Image(
-                                                                // TODO Add download icon
-                                                                painterResource(R.drawable.ic_play_arrow), "",
+                                                                painterResource(R.drawable.ic_palette), "",
+                                                                colorFilter = ColorFilter.tint(MainActivity.getTheme().getOnBackground(true))
+                                                            )
+                                                        }
+
+                                                        Box(
+                                                            modifier = Modifier
+                                                                .background(
+                                                                    MainActivity
+                                                                        .getTheme()
+                                                                        .getBackground(true),
+                                                                    CircleShape
+                                                                )
+                                                                .size(40.dp)
+                                                                .padding(8.dp)
+                                                                .clickable {
+                                                                    overlay_menu =
+                                                                        NowPlayingOverlayMenu.DOWNLOAD
+                                                                }
+                                                        ) {
+                                                            Image(
+                                                                painterResource(R.drawable.ic_download), "",
                                                                 colorFilter = ColorFilter.tint(MainActivity.getTheme().getOnBackground(true))
                                                             )
                                                         }
@@ -654,15 +663,11 @@ fun NowPlaying(_expansion: Float, max_height: Float, p_status: PlayerStatus) {
 
         Column(verticalArrangement = Arrangement.Top, modifier = Modifier.fillMaxHeight()) {
 
-            // Box(Modifier.weight(1f)) {
-            //     Crossfade(current_tab, animationSpec = tween(100)) { tab ->
-            //         Tab(tab)
-            //     }
-            // }
-
             if (expansion >= 1.0f) {
-                HorizontalPager(count = NowPlayingTab.values().size, state = tab_state, modifier = Modifier.weight(1f)) { page ->
-                    Tab(NowPlayingTab.values()[page])
+                Row(Modifier.horizontalScroll(tab_scroll_state, false).requiredWidth(screen_width_dp * 3).weight(1f)) {
+                    for (page in 0 until NowPlayingTab.values().size) {
+                        Tab(NowPlayingTab.values()[page], Modifier.requiredWidth(screen_width_dp - (main_padding * 2)))
+                    }
                 }
             }
             else {

@@ -27,5 +27,5 @@ fun sendToast(text: String) {
 }
 
 fun getString(id: Int): String {
-    return MainActivity.resources.getString(id)!!
+    return MainActivity.resources.getString(id)
 }

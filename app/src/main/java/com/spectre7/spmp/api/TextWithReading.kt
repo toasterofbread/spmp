@@ -31,8 +31,8 @@ import androidx.compose.ui.layout.onPlaced
 import androidx.compose.runtime.LaunchedEffect
 
 interface ModifierProvider {
-    abstract fun getMainModifier(text: String, text_index: Int, term_index: Int): Modifier
-    abstract fun getFuriModifier(text: String, text_index: Int, term_index: Int): Modifier
+    fun getMainModifier(text: String, text_index: Int, term_index: Int): Modifier
+    fun getFuriModifier(text: String, text_index: Int, term_index: Int): Modifier
 }
 
 class TermInfo(val text: String, val data: Any?) {

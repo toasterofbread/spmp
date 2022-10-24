@@ -28,11 +28,11 @@ import com.spectre7.spmp.ui.layout.PlayerStatus
 import net.zerotask.libraries.android.compose.furigana.*
 import java.io.BufferedReader
 import java.io.InputStreamReader
-import java.io.*;
-import java.net.*;
-import java.nio.file.*;
-import java.util.*;
-import java.util.stream.*;
+import java.io.*
+import java.net.*
+import java.nio.file.*
+import java.util.*
+import java.util.stream.*
 import com.spectre7.ptl.Ptl
 import androidx.compose.foundation.Canvas
 import androidx.compose.ui.geometry.Rect
@@ -82,7 +82,7 @@ fun LyricsDisplay(song: Song, on_close_request: () -> Unit, p_status: PlayerStat
                 var end = -1
 
                 while(true) {
-                    if (pos >= word!!.start_time && pos < word!!.end_time) {
+                    if (pos >= word!!.start_time && pos < word.end_time) {
                         if (start == -1) {
                             if (t_word_start == word.index) {
                                 break
@@ -102,7 +102,7 @@ fun LyricsDisplay(song: Song, on_close_request: () -> Unit, p_status: PlayerStat
                         break
                     }
 
-                    word = word!!.next_word
+                    word = word.next_word
                 }
 
                 if ((start != t_word_start || end != t_word_end) && start != -1 && end != -1) {

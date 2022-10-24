@@ -114,18 +114,18 @@ data class Song (
 
         for (pair in listOf("[]", "{}")) {
             while (true) {
-                val a = ret.indexOf(pair[0]);
+                val a = ret.indexOf(pair[0])
                 if (a < 0) {
-                    break;
+                    break
                 }
 
-                val b = ret.indexOf(pair[1]);
+                val b = ret.indexOf(pair[1])
                 if (b < 0) {
-                    break;
+                    break
                 }
 
-                val temp = ret;
-                ret = temp.slice(0 until a - 1) + temp.slice(b + 1 until temp.length);
+                val temp = ret
+                ret = temp.slice(0 until a - 1) + temp.slice(b + 1 until temp.length)
             }
         }
 
@@ -134,7 +134,7 @@ data class Song (
                 continue
             }
             while (ret.contains(key)) {
-                ret = ret.replace(key, value);
+                ret = ret.replace(key, value)
             }
         }
 

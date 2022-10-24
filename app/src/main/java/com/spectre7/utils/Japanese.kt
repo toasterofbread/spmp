@@ -24,7 +24,7 @@ fun Char.toHiragana(): Char {
     else if (isHalfWidthKatakana()) {
         return (this - 0xcf25)
     }
-    return this;
+    return this
 }
 
 fun Char.jpType(): JpCharType {

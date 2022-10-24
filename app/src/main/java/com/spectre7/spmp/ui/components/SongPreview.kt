@@ -43,7 +43,7 @@ fun SongPreview (song: Song, large: Boolean, colour: Color, modifier: Modifier =
                 modifier = Modifier.size(100.dp).clip(RoundedCornerShape(10))
             )
 
-            Column() {
+            Column {
                 Text(
                     song.getTitle(),
                     fontSize = 12.sp,

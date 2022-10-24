@@ -48,7 +48,7 @@ fun Color.isDark(): Boolean {
 }
 
 fun isColorDark(colour: Color): Boolean {
-    return ColorUtils.calculateLuminance(colour.toArgb()) < 0.5;
+    return ColorUtils.calculateLuminance(colour.toArgb()) < 0.5
 }
 
 fun Color.getContrasted(): Color {

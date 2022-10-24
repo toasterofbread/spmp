@@ -46,14 +46,14 @@ import kotlinx.coroutines.delay
 import kotlin.concurrent.thread
 
 fun convertPixelsToDp(px: Int): Float {
-    return px.toFloat() / (MainActivity.resources.displayMetrics.densityDpi.toFloat() / DisplayMetrics.DENSITY_DEFAULT);
+    return px.toFloat() / (MainActivity.resources.displayMetrics.densityDpi.toFloat() / DisplayMetrics.DENSITY_DEFAULT)
 }
 
 fun getStatusBarHeight(): Float {
-    var ret = 0;
-    val resourceId: Int = MainActivity.resources.getIdentifier("status_bar_height", "dimen", "android");
+    var ret = 0
+    val resourceId: Int = MainActivity.resources.getIdentifier("status_bar_height", "dimen", "android")
     if (resourceId > 0) {
-        ret = MainActivity.resources.getDimensionPixelSize(resourceId);
+        ret = MainActivity.resources.getDimensionPixelSize(resourceId)
     }
     return convertPixelsToDp(ret)
 }

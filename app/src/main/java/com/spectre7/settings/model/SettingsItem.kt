@@ -4,13 +4,17 @@ import com.spectre7.utils.*
 import androidx.compose.runtime.*
 import androidx.compose.material3.*
 import androidx.compose.ui.*
-import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.unit.*
-import androidx.compose.foundation.*
 import androidx.compose.foundation.layout.*
 import android.content.SharedPreferences
-import android.util.Log
-import kotlin.reflect.KClass
+import androidx.compose.foundation.background
+import androidx.compose.foundation.border
+import androidx.compose.foundation.clickable
+import androidx.compose.foundation.interaction.MutableInteractionSource
+import androidx.compose.foundation.shape.CircleShape
+import androidx.compose.ui.graphics.Color
+import androidx.compose.animation.Animatable
+import androidx.compose.animation.core.TweenSpec
 import com.github.krottv.compose.sliders.DefaultThumb
 import com.github.krottv.compose.sliders.DefaultTrack
 import com.github.krottv.compose.sliders.SliderValueHorizontal
@@ -76,8 +80,11 @@ class SettingsItemToggle(
 
     @Composable
     override fun GetItem(theme: Theme, open_page: (Int) -> Unit) {
-        Row() {
-            Column(Modifier.fillMaxWidth().weight(1f)) {
+        Row {
+            Column(
+                Modifier
+                    .fillMaxWidth()
+                    .weight(1f)) {
                 if (title != null) {
                     Text(title)
                 }
@@ -126,6 +133,78 @@ class SettingsItemSlider(
                     thumb = { a, b, c, d, e -> DefaultThumb(a, b, c, d, e, theme.getVibrantAccent(), 1f) },
                     // modifier = Modifier.weight(1f)
                 )
+            }
+        }
+    }
+}
+
+class SettingsItemMultipleChoice(
+    val state: SettingsValueState<Int>,
+    val title: String?,
+    val subtitle: String?,
+    val choice_amount: Int,
+    val radio_style: Boolean,
+    val get_choice: (Int) -> String,
+): SettingsItem() {
+
+    @OptIn(ExperimentalMaterial3Api::class)
+    @Composable
+    override fun GetItem(theme: Theme, open_page: (Int) -> Unit) {
+        Column {
+            Column(
+                Modifier
+                    .fillMaxWidth()
+                    .weight(1f)) {
+                if (title != null) {
+                    Text(title)
+                }
+                if (subtitle != null) {
+                    Text(subtitle, color = theme.getOnBackground(false).setAlpha(0.75))
+                }
+
+                Spacer(Modifier.height(10.dp))
+
+                if (radio_style) {
+                    Column(Modifier.padding(start = 15.dp), verticalArrangement = Arrangement.spacedBy(10.dp)) {
+                        for (i in 0 until choice_amount) {
+                            Row(
+                                verticalAlignment = Alignment.CenterVertically,
+                                horizontalArrangement = Arrangement.SpaceBetween,
+                                modifier = Modifier.border(1.dp, theme.getOnBackground(true), CircleShape).fillMaxWidth().padding(horizontal = 10.dp).clickable(remember { MutableInteractionSource() }, null) { state.value = i }
+                            ) {
+                                Text(get_choice(i), color = theme.getOnAccent())
+                                RadioButton(i == state.value, onClick = { state.value = i }, colors = RadioButtonDefaults.colors(theme.getVibrantAccent()))
+                            }
+                        }
+                    }
+                }
+                else {
+                    Column(Modifier.padding(start = 15.dp), verticalArrangement = Arrangement.spacedBy(10.dp)) {
+                        for (i in 0 until choice_amount) {
+
+                            val colour = remember(i) { Animatable(if (state.value == i) theme.getVibrantAccent() else Color.Transparent) }
+                            LaunchedEffect(state.value, theme.getAccent()) {
+                                colour.animateTo(if (state.value == i) theme.getAccent() else Color.Transparent, TweenSpec(150))
+                            }
+
+                            Box(
+                                contentAlignment = Alignment.CenterStart,
+                                modifier = Modifier
+                                    .border(1.dp, theme.getOnBackground(true), CircleShape)
+                                    .fillMaxWidth()
+                                    .height(40.dp)
+                                    .clickable(remember { MutableInteractionSource() }, null) {
+                                        state.value = i
+                                    }
+                                    .background(colour.value, CircleShape)
+                            ) {
+                                Box(Modifier.padding(horizontal = 10.dp)) {
+                                    Text(get_choice(i), color = theme.getOnAccent())
+                                }
+                            }
+                        }
+                    }
+                }
             }
         }
     }

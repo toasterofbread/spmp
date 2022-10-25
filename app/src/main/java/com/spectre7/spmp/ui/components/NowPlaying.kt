@@ -1,5 +1,6 @@
 package com.spectre7.spmp.ui.components
 
+import androidx.activity.compose.BackHandler
 import androidx.compose.animation.*
 import androidx.compose.animation.core.tween
 import androidx.compose.foundation.*
@@ -44,6 +45,7 @@ import com.spectre7.utils.*
 import kotlin.concurrent.thread
 import kotlin.math.max
 import androidx.compose.ui.platform.LocalDensity
+import com.spectre7.spmp.model.Song
 
 enum class NowPlayingThemeMode { BACKGROUND, ELEMENTS }
 enum class NowPlayingOverlayMenu { NONE, MAIN, PALETTE, LYRICS, DOWNLOAD }
@@ -52,7 +54,7 @@ enum class NowPlayingTab { RELATED, PLAYER, QUEUE }
 const val SEEK_CANCEL_THRESHOLD = 0.05f
 
 @Composable
-fun NowPlaying(_expansion: Float, max_height: Float, p_status: PlayerStatus) {
+fun NowPlaying(_expansion: Float, max_height: Float, p_status: PlayerStatus, close: () -> Unit) {
 
     val expansion = if (_expansion < 0.08f) 0.0f else _expansion
     val inv_expansion = -expansion + 1.0f
@@ -61,7 +63,7 @@ fun NowPlaying(_expansion: Float, max_height: Float, p_status: PlayerStatus) {
         if (p_status.song == null) {
             return "-----"
         }
-        return p_status.song!!.getTitle()
+        return p_status.song!!.title
     }
 
     fun getSongArtist(): String {
@@ -76,72 +78,76 @@ fun NowPlaying(_expansion: Float, max_height: Float, p_status: PlayerStatus) {
 
     var thumbnail by remember { mutableStateOf<ImageBitmap?>(null) }
     var theme_palette by remember { mutableStateOf<Palette?>(null) }
-    var palette_index by remember { mutableStateOf(2) }
+
+    var theme_colour by remember { mutableStateOf<Color?>(null) }
+    fun setThemeColour(value: Color?) {
+        theme_colour = value
+        p_status.song?.theme_colour = theme_colour
+    }
 
     val default_background_colour = MaterialTheme.colorScheme.background
-
     val colour_filter = ColorFilter.tint(MainActivity.getTheme().getOnBackground(true))
 
-    fun setThumbnail(thumb: ImageBitmap?) {
+    fun setThumbnail(thumb: ImageBitmap?, on_finished: () -> Unit) {
         if (thumb == null) {
             thumbnail = null
             theme_palette = null
+            theme_colour = null
             return
         }
 
         thumbnail = thumb
         Palette.from(thumbnail!!.asAndroidBitmap()).generate {
             theme_palette = it
+            on_finished()
+        }
+    }
 
-            if (theme_palette != null) {
+    LaunchedEffect(p_status.song?.getId()) {
+        val on_finished = {
+            if (p_status.song!!.theme_colour != null) {
+                theme_colour = p_status.song!!.theme_colour
+            }
+            else if (theme_palette != null) {
                 for (i in (2 until 5) + (0 until 2)) {
-                    if (getPaletteColour(theme_palette!!, i) != null) {
-                        palette_index = i
+                    theme_colour = getPaletteColour(theme_palette!!, i)
+                    if (theme_colour != null) {
                         break
                     }
                 }
             }
         }
-    }
 
-    LaunchedEffect(p_status.song?.getId()) {
         if (p_status.song == null) {
-            setThumbnail(null)
+            setThumbnail(null, {})
+            theme_colour = null
         }
         else if (p_status.song!!.thumbnailLoaded(true)) {
-            setThumbnail(p_status.song!!.loadThumbnail(true).asImageBitmap())
+            setThumbnail(p_status.song!!.loadThumbnail(true).asImageBitmap(), on_finished)
         }
         else {
             thread {
-                setThumbnail(p_status.song!!.loadThumbnail(true).asImageBitmap())
+                setThumbnail(p_status.song!!.loadThumbnail(true).asImageBitmap(), on_finished)
             }
         }
     }
 
-    LaunchedEffect(key1 = theme_palette, key2 = palette_index, key3 = theme_mode) {
-        if (theme_palette == null) {
+    LaunchedEffect(key1 = theme_colour, key2 = theme_mode) {
+        MainActivity.getTheme().setAccent(theme_colour)
+        if (theme_colour == null) {
             MainActivity.getTheme().setBackground(true, null)
             MainActivity.getTheme().setOnBackground(true, null)
-            MainActivity.getTheme().setAccent(null)
-        }
-        else {
-            val colour = getPaletteColour(theme_palette!!, palette_index)
-            MainActivity.getTheme().setAccent(colour)
-            if (colour == null) {
-                MainActivity.getTheme().setBackground(true, null)
-                MainActivity.getTheme().setOnBackground(true, null)
-            } else {
-                when (theme_mode) {
-                    NowPlayingThemeMode.BACKGROUND -> {
-                        MainActivity.getTheme().setBackground(true, colour)
-                        MainActivity.getTheme().setOnBackground(true,
-                            getContrastedColour(colour)
-                        )
-                    }
-                    NowPlayingThemeMode.ELEMENTS -> {
-                        MainActivity.getTheme().setBackground(true, null)
-                        MainActivity.getTheme().setOnBackground(true, colour)
-                    }
+        } else {
+            when (theme_mode) {
+                NowPlayingThemeMode.BACKGROUND -> {
+                    MainActivity.getTheme().setBackground(true, theme_colour)
+                    MainActivity.getTheme().setOnBackground(true,
+                        getContrastedColour(theme_colour!!)
+                    )
+                }
+                NowPlayingThemeMode.ELEMENTS -> {
+                    MainActivity.getTheme().setBackground(true, null)
+                    MainActivity.getTheme().setOnBackground(true, theme_colour)
                 }
             }
         }
@@ -187,12 +193,22 @@ fun NowPlaying(_expansion: Float, max_height: Float, p_status: PlayerStatus) {
         LaunchedEffect(expansion >= 1.0f) {
             if (expansion < 1.0f) {
                 current_tab = NowPlayingTab.PLAYER
-                tab_scroll_state.scrollTo(getTabScrollTarget())
             }
+            tab_scroll_state.scrollTo(getTabScrollTarget())
         }
 
         @Composable
         fun Tab(tab: NowPlayingTab, modifier: Modifier = Modifier) {
+
+            BackHandler(tab == current_tab && expansion >= 1f) {
+                if (tab == NowPlayingTab.PLAYER) {
+                    close()
+                }
+                else {
+                    current_tab = NowPlayingTab.PLAYER
+                }
+            }
+
             Column(verticalArrangement = Arrangement.Top, modifier = modifier.fillMaxHeight()) {
                 if (tab == NowPlayingTab.PLAYER) {
                     Spacer(Modifier.requiredHeight(50.dp * expansion))
@@ -324,7 +340,7 @@ fun NowPlaying(_expansion: Float, max_height: Float, p_status: PlayerStatus) {
                                                 }
                                             NowPlayingOverlayMenu.PALETTE ->
                                                 PaletteSelector(theme_palette) { index, _ ->
-                                                    palette_index = index
+                                                    setThemeColour(getPaletteColour(theme_palette!!, index))
                                                     overlay_menu = NowPlayingOverlayMenu.NONE
                                                 }
                                             NowPlayingOverlayMenu.LYRICS ->
@@ -664,7 +680,11 @@ fun NowPlaying(_expansion: Float, max_height: Float, p_status: PlayerStatus) {
         Column(verticalArrangement = Arrangement.Top, modifier = Modifier.fillMaxHeight()) {
 
             if (expansion >= 1.0f) {
-                Row(Modifier.horizontalScroll(tab_scroll_state, false).requiredWidth(screen_width_dp * 3).weight(1f)) {
+                Row(
+                    Modifier
+                        .horizontalScroll(tab_scroll_state, false)
+                        .requiredWidth(screen_width_dp * 3)
+                        .weight(1f)) {
                     for (page in 0 until NowPlayingTab.values().size) {
                         Tab(NowPlayingTab.values()[page], Modifier.requiredWidth(screen_width_dp - (main_padding * 2)))
                     }

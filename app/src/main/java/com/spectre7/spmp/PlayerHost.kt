@@ -332,7 +332,7 @@ class PlayerHost(private var context: Context) {
                         override fun getCurrentContentTitle(player: Player): String {
                             try {
                                 val song = player.getMediaItemAt(player.currentMediaItemIndex).localConfiguration!!.tag as Song
-                                return song.getTitle()
+                                return song.title
                             }
                             catch (e: IndexOutOfBoundsException) {
                                 return "Unknown"

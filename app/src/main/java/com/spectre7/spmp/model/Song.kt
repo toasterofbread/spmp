@@ -1,29 +1,106 @@
 package com.spectre7.spmp.model
 
+import android.content.SharedPreferences
 import android.graphics.Bitmap
 import android.graphics.BitmapFactory
-import android.util.Log
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.graphics.toArgb
+import androidx.core.content.edit
+import com.beust.klaxon.Converter
+import com.spectre7.ptl.Ptl
+import com.spectre7.spmp.MainActivity
+import com.spectre7.spmp.R
 import com.spectre7.spmp.api.DataApi
 import com.spectre7.spmp.ui.components.SongPreview
-import com.spectre7.spmp.PlayerHost
-import com.spectre7.spmp.MainActivity
+import com.spectre7.utils.getString
 import java.io.FileNotFoundException
-import java.lang.RuntimeException
 import java.net.URL
 import java.time.Duration
-import java.util.Date
-import com.spectre7.ptl.Ptl
-import com.spectre7.spmp.R
-import com.spectre7.utils.getString
+import java.util.*
+import com.beust.klaxon.Klaxon
+import com.beust.klaxon.Json
+import com.beust.klaxon.JsonValue
 
 data class SongData (
     val locale: String?,
     val title: String,
     val desc: String
 )
+
+class DataRegistry(var songs: MutableMap<String, SongEntry> = mutableMapOf()) {
+    init {
+        for (song in songs) {
+            song.value.id = song.key
+        }
+    }
+
+    data class SongEntry(val overrides: SongOverrides = SongOverrides()) {
+        @Json(ignored = true) lateinit var id: String
+
+        fun isDefault(): Boolean {
+            return overrides.isDefault()
+        }
+    }
+
+    data class SongOverrides(
+        var title: String? = null,
+        var theme_colour: Int? = null
+    ) {
+        fun isDefault(): Boolean {
+            return title == null && theme_colour == null
+        }
+    }
+
+    fun getSongEntry(song_id: String): SongEntry {
+        val ret = songs.getOrDefault(song_id, null)
+        if (ret != null) {
+            return ret
+        }
+
+        return SongEntry().apply {
+            id = song_id
+            songs[id] = this
+        }
+    }
+
+    fun save(prefs: SharedPreferences) {
+        prefs.edit {
+            val temp = songs
+            songs = mutableMapOf()
+
+            for (song in temp) {
+                if (!song.value.isDefault()) {
+                    songs[song.key] = song.value
+                }
+            }
+
+            println("SAVE | $songs")
+            println("SAVE | $temp")
+
+            putString("data_registry", Klaxon().toJsonString(this@DataRegistry))
+            println(Klaxon().toJsonString(this@DataRegistry))
+
+            songs = temp
+            println("SAVED")
+        }
+    }
+
+    companion object {
+        fun load(prefs: SharedPreferences): DataRegistry {
+            val data = prefs.getString("data_registry", null)
+            if (data == null) {
+                return DataRegistry()
+            }
+            else {
+                val ret = Klaxon().parse<DataRegistry>(data)!!
+                println("$ret | ${ret.songs}")
+                return ret
+            }
+        }
+    }
+}
 
 data class Song (
     private val id: String,
@@ -38,6 +115,57 @@ data class Song (
     private var counterpart_id: String? = null
     private var yt_lyrics_id: String? = null
     private var pt_lyrics_id: Int? = null
+    private val registry_entry: DataRegistry.SongEntry
+
+    init {
+        if (registry == null) {
+            registry = DataRegistry.load(MainActivity.prefs)
+        }
+
+        registry_entry = registry!!.getSongEntry(getId())
+    }
+
+    var theme_colour: Color?
+        get() = if (registry_entry.overrides.theme_colour == null) null else Color(registry_entry.overrides.theme_colour!!)
+        set(value) { registry_entry.overrides.theme_colour = value?.toArgb(); println("SET | ${value?.toArgb()}"); registry!!.save(MainActivity.prefs) }
+
+    var title: String
+        get() {
+            if (registry_entry.overrides.title != null) {
+                return registry_entry.overrides.title!!
+            }
+
+            var ret = nativeData!!.title
+
+            for (pair in listOf("[]", "{}")) {
+                while (true) {
+                    val a = ret.indexOf(pair[0])
+                    if (a < 0) {
+                        break
+                    }
+
+                    val b = ret.indexOf(pair[1])
+                    if (b < 0) {
+                        break
+                    }
+
+                    val temp = ret
+                    ret = temp.slice(0 until a - 1) + temp.slice(b + 1 until temp.length)
+                }
+            }
+
+            for ((key, value) in mapOf("-" to "", "  " to "", artist.nativeData.name to "", "MV" to "")) {
+                if (key.isEmpty()) {
+                    continue
+                }
+                while (ret.contains(key)) {
+                    ret = ret.replace(key, value)
+                }
+            }
+
+            return ret.trim()
+        }
+        set(value) { registry_entry.overrides.title = value; registry!!.save(MainActivity.prefs) }
 
     interface Lyrics {
         fun getLyricsString(): String
@@ -93,6 +221,8 @@ data class Song (
     }
 
     companion object {
+        private var registry: DataRegistry? = null
+
         fun fromId(song_id: String, callback: (Song) -> Unit) {
             DataApi.getSong(song_id) {
                 callback(it!!)
@@ -102,43 +232,6 @@ data class Song (
         fun batchFromId(song_ids: List<String>, callback: (Int, Song?) -> Unit) {
             DataApi.batchGetSongs(song_ids, callback)
         }
-    }
-
-    // TODO | Add config
-    fun getTitle(): String {
-        var ret = nativeData!!.title
-
-//        if ("title_replacements" in api._config && ret in api._config.title_replacements) {
-//            return api._config.title_replacements[ret].trim();
-//        }
-
-        for (pair in listOf("[]", "{}")) {
-            while (true) {
-                val a = ret.indexOf(pair[0])
-                if (a < 0) {
-                    break
-                }
-
-                val b = ret.indexOf(pair[1])
-                if (b < 0) {
-                    break
-                }
-
-                val temp = ret
-                ret = temp.slice(0 until a - 1) + temp.slice(b + 1 until temp.length)
-            }
-        }
-
-        for ((key, value) in mapOf("-" to "", "  " to "", artist.nativeData.name to "", "MV" to "")) {
-            if (key.isEmpty()) {
-                continue
-            }
-            while (ret.contains(key)) {
-                ret = ret.replace(key, value)
-            }
-        }
-
-        return ret.trim()
     }
 
     fun getCounterpartId(): String? {

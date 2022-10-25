@@ -1,37 +1,37 @@
 package com.spectre7.spmp.api
 
-import android.util.Log
-import com.beust.klaxon.Klaxon
 import com.beust.klaxon.JsonObject
+import com.beust.klaxon.Klaxon
 import com.beust.klaxon.Parser
-import java.util.zip.GZIPInputStream
+import com.chaquo.python.PyException
+import com.chaquo.python.Python
+import com.spectre7.ptl.Ptl
 import com.spectre7.spmp.MainActivity
-import com.spectre7.utils.getString
 import com.spectre7.spmp.R
 import com.spectre7.spmp.model.Artist
 import com.spectre7.spmp.model.ArtistData
 import com.spectre7.spmp.model.Song
 import com.spectre7.spmp.model.SongData
 import com.spectre7.spmp.ui.layout.ResourceType
-import com.spectre7.utils.*
-import okhttp3.*
+import com.spectre7.utils.getString
+import kotlinx.coroutines.runBlocking
+import kotlinx.coroutines.sync.Mutex
+import kotlinx.coroutines.sync.withLock
+import okhttp3.Interceptor
 import okhttp3.MediaType.Companion.toMediaType
+import okhttp3.OkHttpClient
+import okhttp3.Request
 import okhttp3.RequestBody.Companion.toRequestBody
+import okhttp3.Response
 import java.io.BufferedReader
 import java.io.InputStreamReader
-import java.lang.RuntimeException
 import java.net.HttpURLConnection
 import java.net.URL
 import java.net.URLEncoder
 import java.time.Instant
 import java.util.*
+import java.util.zip.GZIPInputStream
 import kotlin.concurrent.thread
-import com.chaquo.python.Python
-import com.chaquo.python.PyException
-import com.spectre7.ptl.Ptl
-import kotlinx.coroutines.sync.Mutex
-import kotlinx.coroutines.sync.withLock
-import kotlinx.coroutines.runBlocking
 
 class DataApi {
 
@@ -374,7 +374,7 @@ class DataApi {
         }
 
         fun getSongPTLyricsId(song: Song): Int? {
-            return ptl.findLyricsId(song.getTitle(), song.artist.nativeData.name)
+            return ptl.findLyricsId(song.title, song.artist.nativeData.name)
         }
 
         fun getSongYTLyricsId(song: Song): String? {

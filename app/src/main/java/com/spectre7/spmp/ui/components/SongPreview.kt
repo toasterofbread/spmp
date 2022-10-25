@@ -45,7 +45,7 @@ fun SongPreview (song: Song, large: Boolean, colour: Color, modifier: Modifier =
 
             Column {
                 Text(
-                    song.getTitle(),
+                    song.title,
                     fontSize = 12.sp,
                     color = colour,
                     maxLines = 2,
@@ -70,7 +70,7 @@ fun SongPreview (song: Song, large: Boolean, colour: Color, modifier: Modifier =
 
             Column(Modifier.padding(10.dp).fillMaxWidth(0.9f)) {
                 Text(
-                    song.getTitle(),
+                    song.title,
                     fontSize = 15.sp,
                     color = colour,
                     maxLines = 1,

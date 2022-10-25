@@ -43,6 +43,7 @@ import com.spectre7.spmp.api.DataApi
 import com.spectre7.spmp.model.Song
 import com.spectre7.spmp.ui.components.NowPlaying
 import kotlinx.coroutines.delay
+import kotlinx.coroutines.runBlocking
 import kotlin.concurrent.thread
 
 fun convertPixelsToDp(px: Int): Float {
@@ -321,7 +322,7 @@ fun PlayerView() {
             .clickable(interactionSource = remember { MutableInteractionSource() }, enabled = swipe_state.targetValue == 0, indication = null) { switch = !switch }, shape = RectangleShape) {
 
             Column(Modifier.fillMaxSize()) {
-                NowPlaying(swipe_state.offset.value / screen_height, screen_height, p_status)
+                NowPlaying(swipe_state.offset.value / screen_height, screen_height, p_status) { switch = false }
             }
         }
     }

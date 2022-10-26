@@ -8,7 +8,8 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.toArgb
 import androidx.core.content.edit
-import com.beust.klaxon.Converter
+import com.beust.klaxon.Json
+import com.beust.klaxon.Klaxon
 import com.spectre7.ptl.Ptl
 import com.spectre7.spmp.MainActivity
 import com.spectre7.spmp.R
@@ -19,9 +20,6 @@ import java.io.FileNotFoundException
 import java.net.URL
 import java.time.Duration
 import java.util.*
-import com.beust.klaxon.Klaxon
-import com.beust.klaxon.Json
-import com.beust.klaxon.JsonValue
 
 data class SongData (
     val locale: String?,
@@ -76,21 +74,15 @@ class DataRegistry(var songs: MutableMap<String, SongEntry> = mutableMapOf()) {
                 }
             }
 
-            println("SAVE | $songs")
-            println("SAVE | $temp")
-
             putString("data_registry", Klaxon().toJsonString(this@DataRegistry))
-            println(Klaxon().toJsonString(this@DataRegistry))
-
             songs = temp
-            println("SAVED")
         }
     }
 
     companion object {
         fun load(prefs: SharedPreferences): DataRegistry {
             val data = prefs.getString("data_registry", null)
-            if (data == null) {
+            if (data == null || data == "{}") {
                 return DataRegistry()
             }
             else {

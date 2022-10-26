@@ -1,65 +1,107 @@
 package com.spectre7.spmp.ui.components
 
-import com.spectre7.spmp.ui.layout.PlayerStatus
-import com.spectre7.spmp.model.Song
-import com.spectre7.spmp.PlayerHost
-import com.spectre7.utils.vibrate
-import androidx.compose.ui.Modifier
-import androidx.compose.ui.Alignment
-import androidx.compose.material.icons.Icons
-import androidx.compose.ui.ExperimentalComposeUiApi
-import androidx.compose.foundation.shape.CircleShape
-import androidx.compose.foundation.lazy.LazyColumn
+import androidx.compose.animation.core.Animatable
+import androidx.compose.animation.core.calculateTargetValue
+import androidx.compose.animation.splineBasedDecay
+import androidx.compose.foundation.Image
+import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
-import androidx.compose.ui.graphics.vector.rememberVectorPainter
-import androidx.compose.runtime.Composable
-import androidx.compose.runtime.remember
+import androidx.compose.foundation.gestures.Orientation
+import androidx.compose.foundation.gestures.awaitFirstDown
+import androidx.compose.foundation.gestures.horizontalDrag
+import androidx.compose.foundation.layout.*
+import androidx.compose.foundation.lazy.LazyColumn
+import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.material.ExperimentalMaterialApi
+import androidx.compose.material.FractionalThreshold
+import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.Menu
+import androidx.compose.material.rememberSwipeableState
+import androidx.compose.material.swipeable
+import androidx.compose.material3.Button
+import androidx.compose.material3.ButtonDefaults
+import androidx.compose.material3.Text
 import androidx.compose.runtime.*
-import androidx.compose.ui.unit.Dp
-import androidx.compose.ui.unit.dp
+import androidx.compose.ui.Alignment
+import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.ColorFilter
-import androidx.compose.foundation.border
-import androidx.compose.foundation.layout.*
-import androidx.compose.foundation.Image
-import androidx.compose.material.icons.filled.*
-import androidx.compose.material3.*
-import org.burnoutcrew.reorderable.*
+import androidx.compose.ui.graphics.vector.rememberVectorPainter
+import androidx.compose.ui.input.pointer.consumePositionChange
+import androidx.compose.ui.input.pointer.pointerInput
+import androidx.compose.ui.input.pointer.positionChange
+import androidx.compose.ui.input.pointer.util.VelocityTracker
+import androidx.compose.ui.platform.LocalConfiguration
+import androidx.compose.ui.platform.LocalDensity
+import androidx.compose.ui.unit.IntOffset
+import androidx.compose.ui.unit.dp
 import com.google.android.exoplayer2.C
+import com.spectre7.spmp.PlayerHost
+import com.spectre7.spmp.model.Song
+import com.spectre7.spmp.ui.layout.PlayerStatus
+import com.spectre7.utils.getContrasted
+import com.spectre7.utils.vibrate
+import org.burnoutcrew.reorderable.ReorderableItem
+import org.burnoutcrew.reorderable.detectReorder
+import org.burnoutcrew.reorderable.rememberReorderableLazyListState
+import org.burnoutcrew.reorderable.reorderable
+import kotlin.math.roundToInt
 
-@OptIn(ExperimentalComposeUiApi::class)
 @Composable
 fun QueueTab(p_status: PlayerStatus, on_background_colour: Color) {
 
     var key_inc by remember { mutableStateOf(0) }
+    val v_removed = remember { mutableStateListOf<Int>() }
 
     data class Item(val song: Song, val key: Int, val p_status: PlayerStatus) {
+
+        @OptIn(ExperimentalMaterialApi::class)
         @Composable
         fun QueueElement(handle_modifier: Modifier, current: Boolean, index: Int, colour: Color, on_remove_request: () -> Unit) {
 
-            val modifier = Modifier.padding(end = 10.dp).run<Modifier, Modifier> {
-                if (current) this.border(Dp.Hairline, colour, CircleShape) else this
+            val swipe_state = rememberSwipeableState(1)
+            val max_offset = with(LocalDensity.current) { LocalConfiguration.current.screenWidthDp.dp.toPx() }
+            val anchors = mapOf(-max_offset to 0, 0f to 1, max_offset to 2)
+
+            LaunchedEffect(swipe_state.currentValue) {
+                if (swipe_state.currentValue != 1) {
+                    on_remove_request()
+                }
             }
 
-            Row(horizontalArrangement = Arrangement.End, verticalAlignment = Alignment.CenterVertically, modifier = modifier) {
-                song.PreviewBasic(false, Modifier.weight(1f).clickable {
-                    PlayerHost.interact {
-                        it.seekTo(index, C.TIME_UNSET)
-                    }
-                }, colour)
+            Box((if (current) Modifier.background(colour, RoundedCornerShape(45)) else Modifier).offset {
+                IntOffset(swipe_state.offset.value.roundToInt(), 0)
+            }) {
+                Row(
+                    horizontalArrangement = Arrangement.End,
+                    verticalAlignment = Alignment.CenterVertically,
+                    modifier = Modifier.padding(start = 10.dp, end = 20.dp)
+                ) {
+                    val content_colour = if (current) colour.getContrasted() else colour
+                    song.PreviewBasic(
+                        false,
+                        Modifier
+                            .weight(1f)
+                            .clickable {
+                                PlayerHost.interact {
+                                    it.seekTo(index, C.TIME_UNSET)
+                                }
+                            }
+                            .swipeable(
+                                swipe_state,
+                                anchors,
+                                Orientation.Horizontal,
+                                thresholds = { _, _ -> FractionalThreshold(0.2f) }
+                            ),
+                        content_colour
+                    )
 
-                // Remove button
-                Image(rememberVectorPainter(Icons.Filled.Clear), "", modifier = Modifier
-                    .requiredSize(25.dp)
-                    .clickable(onClick = on_remove_request),
-                    colorFilter = ColorFilter.tint(colour)
-                )
-
-                // Drag handle
-                Image(rememberVectorPainter(Icons.Filled.Menu), "", modifier = handle_modifier
-                    .requiredSize(25.dp),
-                    colorFilter = ColorFilter.tint(colour)
-                )
+                    // Drag handle
+                    Image(rememberVectorPainter(Icons.Filled.Menu), "", modifier = handle_modifier
+                        .requiredSize(25.dp),
+                        colorFilter = ColorFilter.tint(content_colour)
+                    )
+                }
             }
         }
     }
@@ -78,8 +120,16 @@ fun QueueTab(p_status: PlayerStatus, on_background_colour: Color) {
                 }
             }
             override fun onSongRemoved(song: Song, index: Int) {
-                song_items = song_items.toMutableList().apply {
-                    removeAt(index)
+                println("REMOVED | $index | ${song.title}")
+
+                val i = v_removed.indexOf(index)
+                if (i != -1) {
+                    v_removed.removeAt(i)
+                }
+                else {
+                    song_items = song_items.toMutableList().apply {
+                        removeAt(index)
+                    }
                 }
             }
             override fun onCleared() {
@@ -113,10 +163,12 @@ fun QueueTab(p_status: PlayerStatus, on_background_colour: Color) {
             }
         },
         onDragEnd = { from, to ->
-            PlayerHost.interact {
-                it.moveMediaItem(from, to)
+            if (from != to) {
+                PlayerHost.interact {
+                    it.moveMediaItem(from, to)
+                }
+                playing_key = null
             }
-            playing_key = null
         }
     )
 
@@ -137,8 +189,12 @@ fun QueueTab(p_status: PlayerStatus, on_background_colour: Color) {
 
                 val current = if (playing_key != null) playing_key == item.key else p_status.index == index
                 item.QueueElement(Modifier.detectReorder(state), current, index, on_background_colour) {
+                    v_removed.add(index)
                     song_items = song_items.toMutableList().apply {
                         removeAt(index)
+                    }
+                    PlayerHost.interactService {
+                        it.removeFromQueue(index)
                     }
                 }
             }

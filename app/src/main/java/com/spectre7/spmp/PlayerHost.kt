@@ -281,6 +281,12 @@ class PlayerHost(private var context: Context) {
             }
         }
 
+        fun removeFromQueue(index: Int) {
+            val song = player.getMediaItemAt(index).localConfiguration!!.tag as Song
+            player.removeMediaItem(index)
+            onSongRemoved(song, index)
+        }
+
         fun addQueueListener(listener: PlayerQueueListener) {
             queue_listeners.add(listener)
         }

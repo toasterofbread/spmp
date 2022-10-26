@@ -1,5 +1,6 @@
 package com.spectre7.utils
 
+import android.annotation.SuppressLint
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.toArgb
 import androidx.core.graphics.ColorUtils
@@ -18,8 +19,26 @@ fun setColourAlpha(colour: Color, alpha: Double): Color {
     return Color(ColorUtils.setAlphaComponent(colour.toArgb(), (255 * alpha).toInt()))
 }
 
-fun offsetColourRGB(colour: Color, offset: Double): Color {
-    return Color((colour.red + offset.toFloat()).coerceIn(0f..1f), (colour.green + offset.toFloat()).coerceIn(0f..1f), (colour.blue + offset.toFloat()).coerceIn(0f..1f))
+fun offsetColourRGB(colour: Color, offset: Double, clip: Boolean = true): Color {
+    var final_offset = offset.toFloat()
+    if (clip) {
+        for (value in listOf(colour.red, colour.green, colour.blue)) {
+            val final = value + final_offset
+            if (final > 1.0) {
+                final_offset = 1f - value
+            }
+            else if (final < 0.0) {
+                final_offset = -value
+            }
+        }
+    }
+
+    return Color(
+        (colour.red + final_offset).coerceIn(0f..1f),
+        (colour.green + final_offset).coerceIn(0f..1f),
+        (colour.blue + final_offset).coerceIn(0f..1f),
+        colour.alpha
+    )
 }
 
 fun getPaletteColour(palette: Palette, type: Int): Color? {
@@ -51,6 +70,10 @@ fun isColorDark(colour: Color): Boolean {
     return ColorUtils.calculateLuminance(colour.toArgb()) < 0.5
 }
 
+fun Color.contrastAgainst(against: Color): Color {
+    return offsetColourRGB(this, if (against.isDark()) 0.5 else -0.5)
+}
+
 fun Color.getContrasted(): Color {
     return getContrastedColour(this)
 }
@@ -71,11 +94,12 @@ class Theme private constructor(
 
     private val accent: Animatable<Color, AnimationVector4D>,
 
-    private var default_t_background: Color,
-    private var default_t_on_background: Color,
-    private var default_n_background: Color,
-    private var default_n_on_background: Color,
-    private var default_accent: Color,
+    // TODO | Proper access methods for default colours
+    var default_t_background: Color,
+    var default_t_on_background: Color,
+    var default_n_background: Color,
+    var default_n_on_background: Color,
+    var default_accent: Color,
 ) {
 
     suspend fun setBackground(themed: Boolean, value: Color?) {
@@ -107,15 +131,16 @@ class Theme private constructor(
     }
 
     fun getVibrantAccent(): Color {
-        return offsetColourRGB(getAccent(), if (getBackground(false).isDark()) 0.5 else -0.5)
+        return getAccent().contrastAgainst(getBackground(false))
     }
 
     companion object {
         @Composable
         fun default(): Theme {
-            return Theme.create(MaterialTheme.colorScheme.background, MaterialTheme.colorScheme.onBackground, MaterialTheme.colorScheme.primary)
+            return create(MaterialTheme.colorScheme.background, MaterialTheme.colorScheme.onBackground, MaterialTheme.colorScheme.primary)
         }
 
+        @SuppressLint("UnrememberedAnimatable")
         @Composable
         fun create(background: Color, on_background: Color, accent: Color): Theme {
             return Theme(

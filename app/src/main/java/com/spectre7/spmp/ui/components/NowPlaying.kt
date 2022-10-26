@@ -197,7 +197,7 @@ fun NowPlaying(_expansion: Float, max_height: Float, p_status: PlayerStatus, clo
         )
     }
 
-    val main_padding = 10.dp + (15.dp * expansion)
+    val main_padding = 10.dp
     val screen_width_dp = LocalConfiguration.current.screenWidthDp.dp
     val screen_width_px = with(LocalDensity.current) { screen_width_dp.roundToPx() }
     val main_padding_px = with(LocalDensity.current) { main_padding.roundToPx() }
@@ -225,7 +225,6 @@ fun NowPlaying(_expansion: Float, max_height: Float, p_status: PlayerStatus, clo
 
         @Composable
         fun Tab(tab: NowPlayingTab, modifier: Modifier = Modifier) {
-
             BackHandler(tab == current_tab && expansion >= 1f) {
                 if (tab == NowPlayingTab.PLAYER) {
                     close()
@@ -235,7 +234,14 @@ fun NowPlaying(_expansion: Float, max_height: Float, p_status: PlayerStatus, clo
                 }
             }
 
-            Column(verticalArrangement = Arrangement.Top, modifier = modifier.fillMaxHeight()) {
+            Column(verticalArrangement = Arrangement.Top, modifier = modifier.fillMaxHeight().run {
+                if (tab == NowPlayingTab.PLAYER) {
+                    padding(15.dp * expansion)
+                }
+                else {
+                    padding(top = 20.dp)
+                }
+            }) {
                 if (tab == NowPlayingTab.PLAYER) {
                     Spacer(Modifier.requiredHeight(50.dp * expansion))
 

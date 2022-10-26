@@ -1,23 +1,23 @@
 package com.spectre7.composesettings.model
 
-import com.spectre7.utils.*
-import androidx.compose.runtime.*
-import androidx.compose.material3.*
-import androidx.compose.ui.*
-import androidx.compose.ui.unit.*
-import androidx.compose.foundation.layout.*
 import android.content.SharedPreferences
+import androidx.compose.animation.Animatable
+import androidx.compose.animation.core.TweenSpec
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.interaction.MutableInteractionSource
+import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.shape.CircleShape
+import androidx.compose.material3.*
+import androidx.compose.runtime.*
+import androidx.compose.ui.*
 import androidx.compose.ui.graphics.Color
-import androidx.compose.animation.Animatable
-import androidx.compose.animation.core.TweenSpec
+import androidx.compose.ui.unit.*
 import com.github.krottv.compose.sliders.DefaultThumb
 import com.github.krottv.compose.sliders.DefaultTrack
 import com.github.krottv.compose.sliders.SliderValueHorizontal
+import com.spectre7.utils.*
 
 abstract class SettingsItem {
     @Composable
@@ -167,7 +167,7 @@ class SettingsItemMultipleChoice(
                             Row(
                                 verticalAlignment = Alignment.CenterVertically,
                                 horizontalArrangement = Arrangement.SpaceBetween,
-                                modifier = Modifier.border(1.dp, theme.getOnBackground(false), CircleShape).fillMaxWidth().padding(horizontal = 10.dp).clickable(remember { MutableInteractionSource() }, null) { state.value = i }
+                                modifier = Modifier.border(Dp.Hairline, theme.getOnBackground(false), CircleShape).fillMaxWidth().padding(horizontal = 10.dp).clickable(remember { MutableInteractionSource() }, null) { state.value = i }
                             ) {
                                 Text(get_choice(i), color = theme.getOnAccent())
                                 RadioButton(i == state.value, onClick = { state.value = i }, colors = RadioButtonDefaults.colors(theme.getVibrantAccent()))

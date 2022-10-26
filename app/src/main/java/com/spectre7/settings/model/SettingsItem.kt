@@ -28,7 +28,7 @@ class SettingsGroup(var title: String?): SettingsItem() {
     @Composable
     override fun GetItem(theme: Theme, open_page: (Int) -> Unit) {
         if (title != null) {
-            Text(title!!.uppercase(), color = theme.getVibrantAccent(), fontSize = 15.sp)
+            Text(title!!.uppercase(), color = theme.getVibrantAccent(), fontSize = 20.sp)
         }
     }
 }
@@ -80,7 +80,7 @@ class SettingsItemToggle(
 
     @Composable
     override fun GetItem(theme: Theme, open_page: (Int) -> Unit) {
-        Row {
+        Row(verticalAlignment = Alignment.CenterVertically) {
             Column(
                 Modifier
                     .fillMaxWidth()
@@ -151,15 +151,12 @@ class SettingsItemMultipleChoice(
     @Composable
     override fun GetItem(theme: Theme, open_page: (Int) -> Unit) {
         Column {
-            Column(
-                Modifier
-                    .fillMaxWidth()
-                    .weight(1f)) {
+            Column(Modifier.fillMaxWidth()) {
                 if (title != null) {
                     Text(title)
                 }
                 if (subtitle != null) {
-                    Text(subtitle, color = theme.getOnBackground(false).setAlpha(0.75))
+                    Text(subtitle, color = theme.getOnBackground(false).setAlpha(0.75), fontSize = 15.sp)
                 }
 
                 Spacer(Modifier.height(10.dp))
@@ -170,7 +167,7 @@ class SettingsItemMultipleChoice(
                             Row(
                                 verticalAlignment = Alignment.CenterVertically,
                                 horizontalArrangement = Arrangement.SpaceBetween,
-                                modifier = Modifier.border(1.dp, theme.getOnBackground(true), CircleShape).fillMaxWidth().padding(horizontal = 10.dp).clickable(remember { MutableInteractionSource() }, null) { state.value = i }
+                                modifier = Modifier.border(1.dp, theme.getOnBackground(false), CircleShape).fillMaxWidth().padding(horizontal = 10.dp).clickable(remember { MutableInteractionSource() }, null) { state.value = i }
                             ) {
                                 Text(get_choice(i), color = theme.getOnAccent())
                                 RadioButton(i == state.value, onClick = { state.value = i }, colors = RadioButtonDefaults.colors(theme.getVibrantAccent()))
@@ -190,7 +187,7 @@ class SettingsItemMultipleChoice(
                             Box(
                                 contentAlignment = Alignment.CenterStart,
                                 modifier = Modifier
-                                    .border(1.dp, theme.getOnBackground(true), CircleShape)
+                                    .border(1.dp, theme.getOnBackground(false), CircleShape)
                                     .fillMaxWidth()
                                     .height(40.dp)
                                     .clickable(remember { MutableInteractionSource() }, null) {
@@ -199,7 +196,7 @@ class SettingsItemMultipleChoice(
                                     .background(colour.value, CircleShape)
                             ) {
                                 Box(Modifier.padding(horizontal = 10.dp)) {
-                                    Text(get_choice(i), color = theme.getOnAccent())
+                                    Text(get_choice(i), color = if (state.value == i) theme.getOnAccent() else theme.getOnBackground(false))
                                 }
                             }
                         }

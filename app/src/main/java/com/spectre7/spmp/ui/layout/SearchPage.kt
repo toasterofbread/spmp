@@ -37,7 +37,9 @@ import com.spectre7.spmp.model.Song
 import com.spectre7.spmp.model.SongData
 import kotlin.concurrent.thread
 import androidx.activity.compose.BackHandler
-import androidx.compose.ui.zIndex
+import androidx.compose.material3.TabRowDefaults.tabIndicatorOffset
+import com.spectre7.spmp.MainActivity
+import com.spectre7.utils.setAlpha
 
 val SEARCH_FIELD_FONT_SIZE: TextUnit = 18.sp
 val TAB_TEXT_FONT_SIZE: TextUnit = 14.sp
@@ -136,13 +138,13 @@ fun SearchPage(setOverlayPage: (page: OverlayPage) -> Unit) {
                 value = input,
                 onValueChange = { text ->  input = text },
                 singleLine = true,
-                textStyle = LocalTextStyle.current.copy(fontSize = SEARCH_FIELD_FONT_SIZE, color = MaterialTheme.colorScheme.onPrimary),
+                textStyle = LocalTextStyle.current.copy(fontSize = SEARCH_FIELD_FONT_SIZE, color = MainActivity.theme.getOnAccent()),
                 modifier = Modifier.height(45.dp),
                 decorationBox = { innerTextField ->
                     Row(
                         Modifier
                             .background(
-                                MaterialTheme.colorScheme.primary,
+                                MainActivity.theme.getAccent(),
                                 RoundedCornerShape(percent = 35)
                             )
                             .padding(10.dp)
@@ -157,7 +159,7 @@ fun SearchPage(setOverlayPage: (page: OverlayPage) -> Unit) {
 
                             // Query hint
                             if (input.isEmpty()) {
-                                Text("Search query", fontSize = SEARCH_FIELD_FONT_SIZE, color = MaterialTheme.colorScheme.onPrimary)
+                                Text("Search query", fontSize = SEARCH_FIELD_FONT_SIZE, color = MainActivity.theme.getOnAccent())
                             }
 
                             // Text input
@@ -166,7 +168,7 @@ fun SearchPage(setOverlayPage: (page: OverlayPage) -> Unit) {
 
                         // Clear field button
                         IconButton(onClick = { input = "" }, Modifier.fillMaxWidth()) {
-                            Icon(Icons.Filled.Clear, null, Modifier, MaterialTheme.colorScheme.onPrimary)
+                            Icon(Icons.Filled.Clear, null, Modifier, MainActivity.theme.getOnAccent())
                         }
                     }
                 },
@@ -201,19 +203,31 @@ fun SearchPage(setOverlayPage: (page: OverlayPage) -> Unit) {
     }
 
     Column(Modifier.fillMaxSize()) {
-        TabRow(selectedTabIndex = tab_index, Modifier.fillMaxWidth()) {
+        TabRow(
+            selectedTabIndex = tab_index,
+            modifier = Modifier.fillMaxWidth(),
+            indicator = @Composable { tabPositions ->
+                TabRowDefaults.Indicator(
+                    Modifier.tabIndicatorOffset(tabPositions[tab_index]),
+                    color = MainActivity.theme.getVibrantAccent()
+                )
+            }
+        ) {
             result_tabs.keys.forEachIndexed { i, type ->
                 Tab(selected = tab_index == i, onClick = {
                     tab_index = i
                 }, text = {
                     Text(text = getReadableType(type), fontSize = TAB_TEXT_FONT_SIZE)
-                })
+                },
+                    selectedContentColor = MainActivity.theme.getVibrantAccent(),
+                    unselectedContentColor = MainActivity.theme.getVibrantAccent().setAlpha(0.75)
+                )
             }
         }
 
         performSearch(result_tabs.keys.elementAt(tab_index))
 
-        LazyColumn(Modifier.fillMaxSize().background(MaterialTheme.colorScheme.background)) {
+        LazyColumn(Modifier.fillMaxSize().background(MainActivity.theme.getBackground(false))) {
             itemsIndexed(items = result_tabs.values.elementAt(tab_index), key = { _, item -> item.getId() }) { _, item ->
                 item.Preview(false)
             }

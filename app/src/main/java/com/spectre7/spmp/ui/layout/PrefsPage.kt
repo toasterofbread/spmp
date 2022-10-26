@@ -22,6 +22,7 @@ import com.spectre7.spmp.MainActivity
 import com.spectre7.utils.Theme
 import androidx.compose.ui.zIndex
 import androidx.compose.ui.input.pointer.pointerInput
+import androidx.compose.ui.platform.LocalConfiguration
 import com.spectre7.spmp.PlayerHost
 
 enum class Page { ROOT, OTHER }
@@ -29,14 +30,45 @@ enum class Page { ROOT, OTHER }
 @Composable
 fun PrefsPage(setOverlayPage: (page: OverlayPage) -> Unit) {
 
-    val settings_interface: SettingsInterface = remember { SettingsInterface(MainActivity.getTheme(), Page.ROOT.ordinal, {
+    val settings_interface: SettingsInterface = remember { SettingsInterface(MainActivity.theme, Page.ROOT.ordinal, {
         when (Page.values()[it]) {
 
             Page.ROOT -> SettingsPage("Preferences", listOf(
 
                 SettingsGroup("Theming"),
 
-                SettingsItemToggle(SettingsValueState(true, "theme-nowplaying-background", MainActivity.prefs), "Themed now playing background", "Apply colour theme to the now playing menu background"),
+                SettingsItemMultipleChoice(
+                    SettingsValueState(0, "accent_colour_source", MainActivity.prefs),
+                    "Accent colour", null,
+                    2, false
+                ) { choice ->
+                    when (choice) {
+                        0 -> {
+                            "From thumbnail"
+                        }
+                        else ->  {
+                            "From system theme"
+                        }
+                    }
+                },
+
+                SettingsItemMultipleChoice(
+                    SettingsValueState(0, "np_theme_mode", MainActivity.prefs),
+                    "Now playing theme mode", null,
+                    3, false
+                ) { choice ->
+                  when (choice) {
+                      0 -> {
+                          "Colour background with accent"
+                      }
+                      1 -> {
+                          "Colour elements with accent"
+                      }
+                      else -> {
+                          "Don't use accent"
+                      }
+                  }
+                },
 
             ), Modifier.fillMaxSize())
             else -> {
@@ -51,14 +83,14 @@ fun PrefsPage(setOverlayPage: (page: OverlayPage) -> Unit) {
         Modifier
             .background(
                 MainActivity
-                    .getTheme()
+                    .theme
                     .getBackground(false)
             )
             .padding(20.dp)
             .pointerInput(Unit) {}) {
         LazyColumn(Modifier.fillMaxHeight()) {
             item {
-                settings_interface.Interface()
+                settings_interface.Interface(Modifier.requiredHeight(LocalConfiguration.current.screenHeightDp.dp))
             }
         }
     }

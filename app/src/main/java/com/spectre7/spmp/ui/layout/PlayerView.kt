@@ -95,8 +95,8 @@ fun PlayerView() {
                     .padding(15.dp)
             ) {
                 var expand by remember { mutableStateOf(false) }
-                val background_colour = MainActivity.getTheme().getAccent()
-                val element_colour = MainActivity.getTheme().getOnAccent()
+                val background_colour = MainActivity.theme.getAccent()
+                val element_colour = MainActivity.theme.getOnAccent()
 
                 IconButton(
                     onClick = { expand = !expand },
@@ -307,7 +307,7 @@ fun PlayerView() {
         }
 
         Card(colors = CardDefaults.cardColors(
-            containerColor = MainActivity.getTheme().getBackground(true)
+            containerColor = MainActivity.theme.getBackground(true)
         ), modifier = Modifier
             .fillMaxWidth()
             .requiredHeight(screen_height.dp)

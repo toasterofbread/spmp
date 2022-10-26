@@ -56,10 +56,7 @@ class MainActivity : ComponentActivity() {
         val context: MainActivity get() = instance!!
         val resources: Resources get() = context.resources
         val prefs: SharedPreferences get() = context.getSharedPreferences("com.spectre7.spmp.PREFERENCES", Context.MODE_PRIVATE)
-
-        fun getTheme(): Theme {
-            return context.theme
-        }
+        val theme: Theme get() = context.theme
 
         @JvmStatic
         private var instance: MainActivity? = null

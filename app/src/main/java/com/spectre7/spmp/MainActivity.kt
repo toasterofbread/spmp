@@ -1,22 +1,25 @@
 package com.spectre7.spmp
 
+import android.content.Context
+import android.content.SharedPreferences
 import android.content.res.Resources
 import android.os.Bundle
 import android.os.Handler
 import android.os.Looper
 import android.view.WindowManager
-import android.content.SharedPreferences
-import android.content.Context
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
-import androidx.compose.foundation.layout.*
+import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.material3.Surface
 import androidx.compose.ui.Modifier
 import com.chaquo.python.Python
 import com.chaquo.python.android.AndroidPlatform
+import com.spectre7.spmp.api.DataApi
 import com.spectre7.spmp.ui.layout.PlayerView
 import com.spectre7.spmp.ui.theme.MyApplicationTheme
 import com.spectre7.utils.Theme
+import kotlinx.coroutines.runBlocking
+import kotlin.concurrent.thread
 
 class MainActivity : ComponentActivity() {
 
@@ -40,6 +43,7 @@ class MainActivity : ComponentActivity() {
         setContent {
             MyApplicationTheme {
                 theme = Theme.default()
+
                 Surface(modifier = Modifier.fillMaxSize()) {
                     PlayerView()
                 }

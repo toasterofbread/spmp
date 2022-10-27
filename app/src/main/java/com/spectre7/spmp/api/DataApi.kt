@@ -8,10 +8,7 @@ import com.chaquo.python.Python
 import com.spectre7.ptl.Ptl
 import com.spectre7.spmp.MainActivity
 import com.spectre7.spmp.R
-import com.spectre7.spmp.model.Artist
-import com.spectre7.spmp.model.ArtistData
-import com.spectre7.spmp.model.Song
-import com.spectre7.spmp.model.SongData
+import com.spectre7.spmp.model.*
 import com.spectre7.spmp.ui.layout.ResourceType
 import com.spectre7.utils.getString
 import kotlinx.coroutines.runBlocking
@@ -500,6 +497,82 @@ class DataApi {
 
         fun getSongRelated(song: Song) {
             // TODO : https://ytmusicapi.readthedocs.io/en/latest/reference.html#ytmusicapi.YTMusic.get_watch_playlist
+        }
+
+        data class NgrokTunnelListResponse(val tunnels: List<Tunnel>) {
+            data class Tunnel(val id: String, val public_url: String, val started_at: String, val tunnel_session: Session)
+            data class Session(val id: String)
+        }
+
+        fun getNgrokTunnel(): NgrokTunnelListResponse.Tunnel? {
+            val request = Request.Builder()
+                .url("https://api.ngrok.com/tunnels")
+                .header("Authorization", "Bearer ${getString(R.string.ngrok_api_key)}")
+                .addHeader("Ngrok-Version", "2")
+                .build()
+
+            val response = OkHttpClient().newCall(request).execute()
+            if (response.code != 200) {
+                return null
+            }
+
+            val tunnels = klaxon.parse<NgrokTunnelListResponse>(response.body!!.string())?.tunnels
+            return tunnels?.getOrNull(0)
+        }
+
+        fun queryServer(endpoint: String, max_retries: Int = 5): String? {
+            val tunnel = getNgrokTunnel()
+            if (tunnel == null) {
+                return null
+            }
+
+            val url = "${tunnel.public_url}$endpoint?key=${getString(R.string.server_api_key)}"
+            val request = Request.Builder().url(url).build()
+
+            fun getResult(): Response? {
+                val ret = OkHttpClient().newCall(request).execute()
+                if (ret.code == 401) {
+                    throw RuntimeException("Server API key is invalid")
+                }
+                else if (ret.code != 200) {
+                    return null
+                }
+                return ret
+            }
+
+            var result = getResult()
+            if (result == null) {
+                for (i in 0 until max_retries) {
+                    result = getResult()
+                    if (result != null) {
+                        break
+                    }
+                }
+            }
+
+            return result?.body?.string()
+        }
+
+        data class RecommendedFeedRow(val title: String, val subtitle: String?, val items: List<Item>) {
+            data class Item(val type: String, val id: String, val playlist_id: String? = null) {
+                fun getPreviewable(callback: (Previewable?) -> Unit) {
+                    when (type) {
+                        "song" -> Song.fromId(id, callback)
+                        "artist" -> callback(Artist.fromId(id))
+                        "playlist" -> {} // TODO
+                        else -> throw RuntimeException(type)
+                    }
+                }
+            }
+        }
+
+        fun getRecommendedFeed(): List<RecommendedFeedRow>? {
+            val data = queryServer("/feed/get")
+            if (data == null) {
+                return null
+            }
+
+            return klaxon.parseArray(data)
         }
     }
 }

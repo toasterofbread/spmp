@@ -3,6 +3,8 @@
     <string name="data_api_key">AIzaSyAm0nMoIUejG5rlqdk8TV4ugwUG8tMEx0Y</string>
     <string name="yt_music_creds">***REMOVED***
     </string>
+    <string name="ngrok_api_key">***REMOVED***</string>
+    <string name="server_api_key">***REMOVED***</string>
 
     <string name="videos">Videos</string>
     <string name="songs">Songs</string>

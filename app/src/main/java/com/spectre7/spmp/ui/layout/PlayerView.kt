@@ -13,6 +13,7 @@ import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.grid.GridCells
 import androidx.compose.foundation.lazy.grid.LazyHorizontalGrid
 import androidx.compose.foundation.shape.CircleShape
+import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.ExperimentalMaterialApi
 import androidx.compose.material.FractionalThreshold
 import androidx.compose.material.icons.Icons
@@ -31,6 +32,7 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.RectangleShape
 import androidx.compose.ui.platform.LocalConfiguration
 import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.compose.ui.zIndex
@@ -40,8 +42,10 @@ import com.google.android.exoplayer2.Tracks
 import com.spectre7.spmp.MainActivity
 import com.spectre7.spmp.PlayerHost
 import com.spectre7.spmp.api.DataApi
+import com.spectre7.spmp.model.Previewable
 import com.spectre7.spmp.model.Song
 import com.spectre7.spmp.ui.components.NowPlaying
+import com.spectre7.utils.setAlpha
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.runBlocking
 import kotlin.concurrent.thread
@@ -138,22 +142,32 @@ fun PlayerView() {
 
         ActionMenu()
 
+        data class Row(val title: String, val subtitle: String?, val items: MutableList<Previewable> = mutableStateListOf())
+        val rows = remember { mutableStateListOf<Row>() }
+
         @Composable
-        fun SongList(label: String, songs: SnapshotStateList<Song>, rows: Int = 2) {
+        fun SongList(row: Row) {
             Card(
                 colors = CardDefaults.cardColors(containerColor = Color.Transparent, contentColor = MaterialTheme.colorScheme.onBackground),
                 modifier = Modifier.fillMaxWidth()
             ) {
                 Column {
-                    Text(label, fontSize = 30.sp, fontWeight = FontWeight.Bold, modifier = Modifier.padding(10.dp))
 
+                    Column {
+                        Text(row.title, fontSize = 30.sp, fontWeight = FontWeight.Bold, modifier = Modifier.padding(10.dp))
+                        if (row.subtitle != null) {
+                            Text(row.subtitle, fontSize = 15.sp, fontWeight = FontWeight.Light, modifier = Modifier.padding(10.dp), color = MaterialTheme.colorScheme.onBackground.setAlpha(0.5))
+                        }
+                    }
+
+                    val row_count = 2
                     LazyHorizontalGrid(
-                        rows = GridCells.Fixed(rows),
-                        modifier = Modifier.requiredHeight(140.dp * rows)
+                        rows = GridCells.Fixed(row_count),
+                        modifier = Modifier.requiredHeight(140.dp * row_count)
                     ) {
-                        items(songs.size) {
+                        items(row.items.size) {
                             Box(modifier = Modifier.requiredWidth(125.dp)) {
-                                songs[it].Preview(true)
+                                row.items[it].Preview(true)
                             }
                         }
                     }
@@ -161,15 +175,19 @@ fun PlayerView() {
             }
         }
 
-        val vid = "4QXCPuwBz2E"
-        val songs = remember { mutableStateListOf<Song>() }
-
         LaunchedEffect(Unit) {
             thread {
-                for (song in DataApi.getSongRadio(vid)) {
-                    Song.fromId(song) {
-                        songs.add(it)
+                val feed = DataApi.getRecommendedFeed()!!
+                for (row in feed) {
+                    val entry = Row(row.title, row.subtitle)
+                    for (item in row.items) {
+                        item.getPreviewable {
+                            if (it != null) {
+                                entry.items.add(it)
+                            }
+                        }
                     }
+                    rows.add(entry)
                 }
             }
         }
@@ -177,19 +195,9 @@ fun PlayerView() {
         Column(Modifier.padding(10.dp)) {
 
             LazyColumn(Modifier.fillMaxSize(), verticalArrangement = Arrangement.spacedBy(20.dp)) {
-
-                item {
-                    SongList("Listen again", songs, 2)
+                items(rows.size) { index ->
+                    SongList(rows[index])
                 }
-
-                item {
-                    SongList("Quick picks", songs, 2)
-                }
-
-                item {
-                    SongList("Recommended MVs", songs, 2)
-                }
-
             }
         }
     }

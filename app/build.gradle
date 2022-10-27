@@ -95,6 +95,8 @@ android {
         resources {
             excludes += '/META-INF/{AL2.0,LGPL2.1}'
         }
+        exclude 'META-INF/DEPENDENCIES'
+        exclude 'mozilla/public-suffix-list.txt'
     }
 
     lintOptions {
@@ -184,6 +186,9 @@ dependencies {
     // Ptl
     implementation files("../../ptl/lib/build/libs/ptl.jar")
     implementation 'org.jsoup:jsoup:1.15.3'
+
+//    implementation 'org.seleniumhq.selenium:selenium-java:2.41.0'
+//    implementation 'com.github.bonigarcia:webdrivermanager:webdrivermanager-5.3.0'
 
     // implementation igo()
     // implementation 'com.github.spectreseven1138:android-compose-furigana:1.0.0'

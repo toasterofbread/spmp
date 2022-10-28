@@ -43,12 +43,11 @@ HEADERS = {
 }
 
 def getSeleniumDriver(headers: dict, headless: bool = True):
-
     options = webdriver.FirefoxOptions()
     options.binary_location = FIREFOX_PATH
     options.headless = headless
 
-    ret = webdriver.Firefox(options = options)
+    ret = webdriver.Firefox(options = options, service_log_path = "/dev/null")
 
     def interceptor(request):
         for key in headers:
@@ -165,7 +164,6 @@ def main():
             else:
                 abort(401)
         return decoratedFunction
-
 
     @app.route("/")
     def info():

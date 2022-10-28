@@ -520,13 +520,13 @@ class DataApi {
             return tunnels?.getOrNull(0)
         }
 
-        fun queryServer(endpoint: String, max_retries: Int = 5): String? {
-            val tunnel = getNgrokTunnel()
-            if (tunnel == null) {
+        fun queryServer(endpoint: String, max_retries: Int = 5, tunnel: NgrokTunnelListResponse.Tunnel? = null): String? {
+            val _tunnel = tunnel ?: getNgrokTunnel()
+            if (_tunnel == null) {
                 return null
             }
 
-            val url = "${tunnel.public_url}$endpoint?key=${getString(R.string.server_api_key)}"
+            val url = "${_tunnel.public_url}$endpoint?key=${getString(R.string.server_api_key)}"
             val request = Request.Builder().url(url).build()
 
             fun getResult(): Response? {
@@ -568,11 +568,23 @@ class DataApi {
 
         fun getRecommendedFeed(): List<RecommendedFeedRow>? {
             val data = queryServer("/feed/get")
-            if (data == null) {
-                return null
+            if (data != null) {
+                return klaxon.parseArray(data)
             }
-
-            return klaxon.parseArray(data)
+            else {
+                // TODO (this is temporary, maybe use radio of recent songs?)
+                // If server fetch fails, use fallback method
+                val songs = listOf(
+                    Pair("XqKbuEDvaf8", "Quick picks"),
+                    Pair("wPS_x6FiBx0", "Listen again"),
+                    Pair("rgNdeflYdYw", "Listen again"),
+                    Pair("KnPUJwZNV8Y", "Listen again"),
+                )
+                return List(songs.size) { song ->
+                    val radio = getSongRadio(songs[song].first)
+                    RecommendedFeedRow(songs[song].second, "(fallback)", List(radio.size) { RecommendedFeedRow.Item("song", radio[it]) })
+                }
+            }
         }
     }
 }

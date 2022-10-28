@@ -12,6 +12,7 @@ from threading import Thread, Lock
 from apscheduler.schedulers.background import BackgroundScheduler
 import atexit
 from functools import wraps
+from argparse import ArgumentParser
 
 PORT = 3232
 API_KEY = "6d5ff86c7ee15d07e0d7398b1cb0e9d1"
@@ -147,6 +148,14 @@ def main():
 
     cached_feed = None
     refresh_mutex = Lock()
+
+    parser = ArgumentParser("SPMP Server")
+    parser.add_argument("-f", "--firefox", type=str, help="Path to a Firefox executable")
+    args = parser.parse_args()
+
+    if args.firefox is not None:
+        global FIREFOX_PATH
+        FIREFOX_PATH = args.firefox
 
     def requireKey(func):
         @wraps(func)

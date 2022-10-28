@@ -1,18 +1,24 @@
-import json
-from selenium.webdriver.common.by import By
-from selenium.webdriver.support.wait import WebDriverWait
-from selenium.webdriver.support import expected_conditions as EC
-from seleniumwire import webdriver
-from bs4 import BeautifulSoup
-from urllib.parse import parse_qs
-from flask import Flask, request, abort
-import subprocess
-from time import time, sleep
-from threading import Thread, Lock
-from apscheduler.schedulers.background import BackgroundScheduler
 import atexit
-from functools import wraps
+import json
+import multiprocessing as mp
+import subprocess
+import sys
 from argparse import ArgumentParser
+from functools import wraps
+from threading import Thread
+from time import sleep, time
+from urllib.parse import parse_qs
+import psutil
+import requests
+from apscheduler.schedulers.background import BackgroundScheduler
+from bs4 import BeautifulSoup
+from flask import Flask, abort, request
+from selenium.webdriver.common.by import By
+from selenium.webdriver.support import expected_conditions as EC
+from selenium.webdriver.support.wait import WebDriverWait
+from seleniumwire import webdriver
+from spectre7 import utils
+from urllib3.exceptions import ProtocolError
 
 PORT = 3232
 API_KEY = "6d5ff86c7ee15d07e0d7398b1cb0e9d1"
@@ -42,9 +48,9 @@ HEADERS = {
     'te': 'trailers',
 }
 
-def getSeleniumDriver(headers: dict, headless: bool = True):
+def getSeleniumDriver(headers: dict, firefox_path: str = FIREFOX_PATH, headless: bool = True):
     options = webdriver.FirefoxOptions()
-    options.binary_location = FIREFOX_PATH
+    options.binary_location = firefox_path
     options.headless = headless
 
     ret = webdriver.Firefox(options = options, service_log_path = "/dev/null")
@@ -57,11 +63,11 @@ def getSeleniumDriver(headers: dict, headless: bool = True):
 
     return ret
 
-def scrapeYTMusicHome(headers: dict, rows: int = -1) -> list[dict]:
+def scrapeYTMusicHome(headers: dict, rows: int = -1, firefox_path: str = FIREFOX_PATH) -> list[dict]:
     if rows == 0:
         return []
 
-    driver = getSeleniumDriver(headers)
+    driver = getSeleniumDriver(headers, firefox_path)
     driver.get("https://music.youtube.com")
 
     def getBrowseItemPlaylistId(browse_id: str):
@@ -141,95 +147,176 @@ def scrapeYTMusicHome(headers: dict, rows: int = -1) -> list[dict]:
     driver.close()
     return ret
 
-def main():
-    app = Flask("SpMp Server")
-    start_time = time()
+def getNgrokUrl():
+    result = requests.get("https://api.ngrok.com/tunnels", headers={"Authorization": "Bearer 2GjOoO6u94PEfptejpFRyUeN7zZ_2Qxdi89uuva6mieFf4Yg1", "Ngrok-Version": "2"})
+    return json.loads(result.text)["tunnels"][0]["public_url"]
 
-    cached_feed = None
-    refresh_mutex = Lock()
+def requireKey(func):
+    @wraps(func)
+    def decoratedFunction(*args, **kwargs):
+        if request.remote_addr == "127.0.0.1" or (request.args.get("key") and request.args.get("key") == API_KEY):
+            return func(*args, **kwargs)
+        else:
+            abort(401)
+    return decoratedFunction
 
-    parser = ArgumentParser("SPMP Server")
-    parser.add_argument("-f", "--firefox", type=str, help="Path to a Firefox executable")
-    args = parser.parse_args()
+def isMutexLocked(mutex):
+    locked = mutex.acquire(blocking=False)
+    if locked == False:
+        return True
+    else:
+        mutex.release()
+        return False
 
-    if args.firefox is not None:
-        global FIREFOX_PATH
-        FIREFOX_PATH = args.firefox
+class Server:
 
-    def requireKey(func):
-        @wraps(func)
-        def decoratedFunction(*args, **kwargs):
-            if request.args.get("key") and request.args.get("key") == API_KEY:
-                return func(*args, **kwargs)
-            else:
-                abort(401)
-        return decoratedFunction
+    def __init__(self, port: int, firefox_path: str = FIREFOX_PATH):
+        self.port = port
+        self.firefox_path = firefox_path
 
-    @app.route("/")
-    def info():
-        return "Hello World!"
+        self.app = Flask("SpMp Server")
+        self.start_time = 0
+        self.restart_queue = None
 
-    @app.route("/status")
-    def status():
-        return json.dumps({
-            "uptime": int(time() - start_time)
-        })
+        manager = mp.Manager()
+        self.refresh_mutex = manager.Lock()
+        self.cached_feed = manager.Value("l", [])
+        self.cached_feed_set = manager.Value("b", False)
 
-    @app.route("/feed/get")
-    @requireKey
-    def getFeed():
-        if cached_feed is None:
-            refresh_mutex.acquire()
-            refresh_mutex.release()
-        return json.dumps(cached_feed)
+        @self.app.route("/")
+        def index():
+            return "Hello World!"
 
-    @app.route("/feed/getlatest")
-    @requireKey
-    def getLatestFeed():
-        if refresh_mutex.locked():
-            refresh_mutex.acquire()
-            refresh_mutex.release()
-        return json.dumps(cached_feed)
+        @self.app.route("/status/")
+        def status():
+            return json.dumps({
+                "uptime": int(time() - self.start_time)
+            })
 
-    @app.route("/feed/getrefreshed")
-    @requireKey
-    def getRefreshedFeed():
-        if not refresh_mutex.locked():
-            refreshFeed()
+        @self.app.route("/restart/")
+        @requireKey
+        def _restart():
+            self.restart()
+            return "Restarting"
 
-        refresh_mutex.acquire()
-        refresh_mutex.release()
+        @self.app.route("/update/")
+        @requireKey
+        def update():
+            subprocess.getoutput("git fetch")
+            if (subprocess.getoutput(f"git diff --stat main origin/main") == ""):
+                return "Already running the latest version"
+            subprocess.getoutput("git pull")
+            self.restart()
+            return "Updated and restarting"
 
-        return json.dumps(cached_feed)
+        @self.app.route("/feed/")
+        @requireKey
+        def feed():
+            if not self.cached_feed_set.get():
+                self.refresh_mutex.acquire()
+                self.refresh_mutex.release()
+            return json.dumps(self.cached_feed.get())
 
-    @app.route("/feed/refresh")
-    @requireKey
-    def _refreshFeed():
-        return refreshFeed()
+        @self.app.route("/feed/latest/")
+        @requireKey
+        def latestFeed():
+            if isMutexLocked(self.refresh_mutex):
+                self.refresh_mutex.acquire()
+                self.refresh_mutex.release()
+            return json.dumps(self.cached_feed.get())
 
-    def refreshFeed():
-        if refresh_mutex.locked():
+        @self.app.route("/feed/refreshed/")
+        @requireKey
+        def refreshedFeed():
+            if not isMutexLocked(self.refresh_mutex):
+                self.refreshFeed()
+
+            self.refresh_mutex.acquire()
+            self.refresh_mutex.release()
+
+            return json.dumps(self.cached_feed.get())
+
+        @self.app.route("/feed/refresh/")
+        @requireKey
+        def refreshFeed():
+            return self.refreshFeed()
+
+    def refreshFeed(self):
+        if isMutexLocked(self.refresh_mutex):
             return json.dumps({"result": 1, "error": "Already refreshing"})
 
         def thread():
-            nonlocal cached_feed
-            refresh_mutex.acquire()
-            cached_feed = scrapeYTMusicHome(HEADERS, RECOMMENDED_ROWS)
-            refresh_mutex.release()
+            try:
+                self.refresh_mutex.acquire()
+                utils.log("Refreshing feed...")
+                self.cached_feed.set(scrapeYTMusicHome(HEADERS, RECOMMENDED_ROWS, self.firefox_path))
+                self.cached_feed_set.set(True)
+                utils.log("Feed refresh completed")
+                self.refresh_mutex.release()
+            except ProtocolError as e:
+                try:
+                    print(e)
+                except:
+                    pass
 
         Thread(target=thread).start()
         return json.dumps({"result": 0})
 
-    refreshFeed()
+    def start(self):
+        self.start_time = time()
+        sys.stdout = open("/dev/null", "w")
+        # sys.stderr = sys.stdout
 
-    scheduler = BackgroundScheduler()
-    scheduler.add_job(func=refreshFeed, trigger="interval", seconds = 60 * 60 * 6)
-    scheduler.start()
+        self.scheduler = BackgroundScheduler()
+        self.scheduler.add_job(func=self.refreshFeed, trigger="interval", seconds = 60 * 60 * 6)
+        self.scheduler.start()
+        atexit.register(self.scheduler.shutdown)
 
-    atexit.register(lambda : scheduler.shutdown())
+        def run(queue):
+            self.restart_queue = queue
+            self.app.run(port = PORT)
 
-    subprocess.Popen(["ngrok", "http", str(PORT)], stdout=open("/dev/null"))
-    app.run(port = PORT)
+        self.ngrok_process = subprocess.Popen(f"exec ngrok http {self.port}", shell=True, stdout=open("/dev/null", "w"))
+
+        q = mp.Queue()
+        app_process = mp.Process(target=run, args=(q,))
+        app_process.start()
+
+        for msg in (
+            f"Running locally on http://127.0.0.1:{self.port}",
+            f"Public URL is {getNgrokUrl()}"
+        ):
+            utils.info(f"* {msg}")
+
+        self.refreshFeed()
+
+        # Wait for restart request
+        while True:
+            try:
+                sleep(1)
+            except KeyboardInterrupt:
+                utils.info("\nExiting...")
+                exit()
+
+            if not q.empty():
+                break
+
+        app_process.terminate()
+        subprocess.call([sys.executable] + sys.argv)
+
+    def restart(self):
+        self.scheduler.shutdown()
+        psutil.Process(self.ngrok_process.pid).kill()
+        self.restart_queue.put("foo")
+        utils.log("Restarting...")
+
+def main():
+    parser = ArgumentParser("SPMP Server")
+    parser.add_argument("-f", "--firefox", type=str, help="Path to a Firefox executable")
+    args = parser.parse_args()
+
+    server = Server(PORT, args.firefox if args.firefox else FIREFOX_PATH)
+    server.start()
 
 if __name__ == "__main__":
     main()

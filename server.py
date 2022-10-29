@@ -19,6 +19,7 @@ from selenium.webdriver.support.wait import WebDriverWait
 from seleniumwire import webdriver
 from spectre7 import utils
 from urllib3.exceptions import ProtocolError
+from waitress import serve
 
 PORT = 3232
 API_KEY = "***REMOVED***"
@@ -63,7 +64,7 @@ def getSeleniumDriver(headers: dict, firefox_path: str = FIREFOX_PATH, headless:
 
     return ret
 
-def scrapeYTMusicHome(headers: dict, rows: int = -1, firefox_path: str = FIREFOX_PATH) -> list[dict]:
+def scrapeYTMusicHome(headers: dict, rows: int = -1, firefox_path: str = FIREFOX_PATH) -> list:
     if rows == 0:
         return []
 
@@ -274,7 +275,7 @@ class Server:
 
         def run(queue):
             self.restart_queue = queue
-            self.app.run(port = PORT)
+            serve(self.app, host="0.0.0.0", port = PORT)
 
         self.ngrok_process = subprocess.Popen(f"exec ngrok http {self.port}", shell=True, stdout=open("/dev/null", "w"))
 

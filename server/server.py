@@ -136,18 +136,18 @@ class Server:
         @self.app.route("/lyrics")
         #@self.requireKey
         def lyrics():
-          title = request.args.get("title")
-          artist = request.args.get("artist")
+            title = request.args.get("title")
+            artist = request.args.get("artist")
 
-          if title is None:
-            abort(Response("Missing title parameter", 400))
-          
-          id = Lyrics.findLyricsId(title, artist)
-          if id is None:
-            abort(Response("Query doesn't match any songs"), 404)
-            
-          lyrics = Lyrics.getLyrics(id)
-          return json.dumps(lyrics.getFurigana())
+            if title is None:
+                abort(Response("Missing title parameter", 400))
+
+            id = Lyrics.findLyricsId(title, artist)
+            if id is None:
+                abort(Response("Query doesn't match any songs"), 404)
+
+            lyrics = Lyrics.getLyrics(id)
+            return json.dumps(lyrics.getFurigana())
 
     def requireKey(self, func):
         @wraps(func)
@@ -214,7 +214,7 @@ class Server:
             utils.info(f"* {msg}")
 
         if refresh_feed:
-          self.refreshFeed()
+            self.refreshFeed()
 
         # Wait for restart request
         restart = False

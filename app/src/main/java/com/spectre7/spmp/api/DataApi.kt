@@ -567,7 +567,7 @@ class DataApi {
         }
 
         fun getRecommendedFeed(): List<RecommendedFeedRow>? {
-            val data = queryServer("/feed/get")
+            val data = queryServer("/feed")
             if (data != null) {
                 return klaxon.parseArray(data)
             }

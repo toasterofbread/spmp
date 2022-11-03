@@ -6,7 +6,17 @@ from xmltodict import parse as parseXml
 
 class Lyrics:
 
-    def getFurigana(self):
+    def getText(self) -> str:
+        if isinstance(self, StaticLyrics):
+            return self.text
+        else:
+            assert(isinstance(self, TimedLyrics))
+            ret = ""
+            for line in self.lines:
+                ret += line.text + "\n"
+            return ret
+
+    def getFuriganaData(self):
         kakasi = Kakasi()
         ret = []
 
@@ -47,7 +57,7 @@ class Lyrics:
         def getKey(term, key: str) -> str:
             return term[key].replace("\\n", "\n").replace("\\r", "\r")
 
-        for line in [line.text for line in self.lines] if type(self) == TimedLyrics else self.text.split("\n"):
+        for line in [line.text for line in self.lines] if isinstance(self, TimedLyrics) else self.getText().split("\n"):
 
             line_data = []
             ret.append(line_data)
@@ -65,6 +75,62 @@ class Lyrics:
 
         return ret
 
+    def getWithFurigana(self) -> list:
+        ret = []
+
+        if not isinstance(self, TimedLyrics):
+            return ["Static"]
+
+        furigana = self.getFuriganaData()
+
+        for line_i in range(len(self.lines)):
+            furi_line: list = furigana[line_i]
+            lyr_line = self.lines[line_i]
+
+            line_entry = []
+            ret.append(line_entry)
+
+            borrow = 0
+
+            for word in lyr_line.words:
+                terms: list[dict[str, str | None]] = []
+                i = len(word.text) - borrow
+                borrow = max(0, borrow - len(word.text))
+
+                while i > 0:
+                    orig = furi_line[0][0]
+                    furi = furi_line[0][1] if len(furi_line[0]) > 1 else None
+
+                    if len(orig.strip()) == 0:
+                        furi_line.pop(0)
+                        continue
+
+                    # Term fits into word
+                    if len(orig) <= i:
+                        i -= len(orig)
+                        terms.append({"text": orig, "furi": furi})
+                        furi_line.pop(0)
+
+                    # Term doesn't fit into word
+                    else:
+
+                        # Term has no furigana, so we can disect it
+                        if furi is None:
+                            terms.append({"text": orig[:i], "furi": None})
+                            furi_line[0][0] = orig[i:]
+                        else:
+                            terms.append({"text": orig, "furi": furi})
+                            furi_line.pop(0)
+                            borrow = len(orig) - i
+
+                        i = 0
+
+                if len(terms) > 0:
+                    word_entry = {"subterms": terms, "start": word.start_time, "end": word.end_time}
+                    line_entry.append(word_entry)
+
+        return ret
+
 class StaticLyrics(Lyrics):
     def __init__(self, text: str):
         self.text = text
@@ -75,7 +141,7 @@ class TimedLyrics(Lyrics):
         prev_line = None
         index = 0
 
-        self.lines = []
+        self.lines: list[TimedLyrics.Line] = []
         self.first_word: TimedLyrics.Word | None = None
 
         for line_data in parseXml(xml_data)["wsy"]["line"]:
@@ -111,7 +177,7 @@ class TimedLyrics(Lyrics):
             index = _index
 
             self.text: str = data["linestring"]
-            self.words = []
+            self.words: list[TimedLyrics.Word] = []
             self.next_line: TimedLyrics.Line | None = None
             self.prev_line: TimedLyrics.Line | None = None
 
@@ -133,7 +199,7 @@ class TimedLyrics(Lyrics):
                     word.prev_word = prev_word
                     prev_word = word
 
-def getLyricsData(song_id: int, lyrics_type: int) -> str:
+def getLyricsData(song_id: int, lyrics_type: int) -> str | None:
     if lyrics_type <= 0 or lyrics_type > 3:
         raise RuntimeError()
 
@@ -148,31 +214,40 @@ def getLyricsData(song_id: int, lyrics_type: int) -> str:
 
     response.raise_for_status()
 
-    lyrics_data: str = parseXml(
-        response.text)["response"]["songs"]["song"]["lyricsData"]
-    return base64.b64decode(lyrics_data).decode("utf-8")
+    try:
+        lyrics_data: str = parseXml(response.text)["response"]["songs"]["song"]["lyricsData"]
+        return base64.b64decode(lyrics_data).decode("utf-8")
+    except KeyError:
+        return None
 
 def getLyrics(song_id: int) -> Lyrics:
-    ret: Lyrics | None = None
+    data = getLyricsData(song_id, 3)
+    if data is None:
+        data = getLyricsData(song_id, 1)
+        assert(data)
 
-    # try:
-    ret = TimedLyrics(getLyricsData(song_id, 3))
-    # catch (e: SAXParseException):
-    #         ret = StaticLyrics(getLyricsData(song_id, 1))
-
-    return ret
+    return TimedLyrics(data)
 
 def findLyricsId(title: str, artist = None):
     params = {"title": title}
     if artist is not None:
         params["artist"] = artist
 
-    response = requests.get("https://petitlyrics.com/search_lyrics",
-                                                    params=params)
-    response.raise_for_status()
+    id_prefix = "				<a href=\"/lyrics/"
 
-    id_index = response.text.find("				<a href=\"/lyrics/")
-    if id_index < 0:
-        return None
+    def getId():
+        response = requests.get("https://petitlyrics.com/search_lyrics", params=params)
+        response.raise_for_status()
 
-    return int(response.text[id_index + 21:][:7])
+        id_start = response.text.find(id_prefix)
+        if id_start < 0:
+            return None
+
+        id_end = response.text.find("\"", id_start + len(id_prefix) + 1)
+        return int(response.text[id_start + len(id_prefix) : id_end])
+
+    ret = getId()
+    if ret is None and artist is not None:
+        params.pop("artist")
+        return getId()
+    return ret

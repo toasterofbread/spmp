@@ -62,15 +62,15 @@ fun LyricsDisplay(song: Song, on_close_request: () -> Unit, p_status: PlayerStat
             }
             else {
                 lyrics = it
-                if (lyrics is Song.PTLyrics && (lyrics as Song.PTLyrics).getTimed() != null) {
-                    t_first_word = (lyrics as Song.PTLyrics).getTimed()!!.first_word
-                }
+//                if (lyrics is Song.PTLyrics && (lyrics as Song.PTLyrics).getTimed() != null) {
+//                    t_first_word = (lyrics as Song.PTLyrics).getTimed()!!.first_word
+//                }
             }
         }
     }
 
     LaunchedEffect(p_status.position) {
-
+        return@LaunchedEffect
         if (t_first_word != null) {
 
             thread {
@@ -149,28 +149,45 @@ fun LyricsDisplay(song: Song, on_close_request: () -> Unit, p_status: PlayerStat
                         }
                         else {
                             Column {
-                                if (it is Song.PTLyrics && it.getTimed() != null) {
-                                    val terms = mutableListOf<Pair<String, Ptl.TimedLyrics.Word>>()
+                                val terms = mutableListOf<TextData>()
+                                for (line in it.lyrics) {
+                                    for (i in line.indices) {
+                                        val term = line[i]
+                                        for (j in term.subterms.indices) {
+                                            val subterm = term.subterms[j]
 
-                                    for (line in it.getTimed()!!.lines) {
-                                        for (i in 0 until line.words.size) {
-                                            val word = line.words[i]
-                                            if (i + 1 == line.words.size) {
-                                                terms.add(Pair(word.text + "\n", word))
+                                            if (j + 1 == term.subterms.size && i + 1 == line.size) {
+                                                terms.add(TextData(subterm.text + "aaa\n", subterm.furi, term))
                                             }
                                             else {
-                                                terms.add(Pair(word.text, word))
+                                                terms.add(TextData(subterm.text, subterm.furi, term))
                                             }
                                         }
                                     }
-
-                                    FuriganaText(terms, show_furigana, text_positions = text_positions)
                                 }
-                                else {
-                                    FuriganaText(listOf(Pair(it.getLyricsString(), null)), show_furigana, text_positions = text_positions)
-                                }
+//                                if (it is Song.PTLyrics && it.getTimed() != null) {
+//                                    val terms = mutableListOf<Pair<String, Ptl.TimedLyrics.Word>>()
+//
+//                                    for (line in it.getTimed()!!.lines) {
+//                                        for (i in 0 until line.words.size) {
+//                                            val word = line.words[i]
+//                                            if (i + 1 == line.words.size) {
+//                                                terms.add(Pair(word.text + "\n", word))
+//                                            }
+//                                            else {
+//                                                terms.add(Pair(word.text, word))
+//                                            }
+//                                        }
+//                                    }
+//
+//                                    FuriganaText(terms, show_furigana, text_positions = text_positions)
+//                                }
+//                                else {
+//                                    FuriganaText(listOf(Pair(it.getLyricsString(), null)), show_furigana, text_positions = text_positions)
+//                                }
 
-                                Text(getString(R.string.lyrics_source_prefix) + it.getSource(), textAlign = TextAlign.Left, modifier = Modifier.fillMaxWidth())
+                                FuriganaText(terms, show_furigana, text_positions = text_positions)
+                                Text(getString(R.string.lyrics_source_prefix) + it.source, textAlign = TextAlign.Left, modifier = Modifier.fillMaxWidth())
                             }
                         }
                     }
@@ -227,47 +244,47 @@ fun getFuriganaTerms(text: String): List<Triple<String, String, String>> {
 }
 
 @Composable
-fun FuriganaText(terms: List<Pair<String, Any?>>, show_furigana: Boolean, trim_okurigana: Boolean = true, modifier_provider: ModifierProvider? = null, text_positions: MutableList<TermInfo>? = null) {
+fun FuriganaText(terms: List<TextData>, show_furigana: Boolean, trim_okurigana: Boolean = true, modifier_provider: ModifierProvider? = null, text_positions: MutableList<TermInfo>? = null) {
 
-    val text_content = remember(terms) {
-        val content: MutableList<TextData> = mutableStateListOf<TextData>()
-
-        for (term in terms) {
-            for ((orig, hira, kata) in getFuriganaTerms(term.first)) {
-                if (orig != hira && orig != kata) {
-                    if (trim_okurigana) {
-                        for (pair in trimOkurigana(orig, hira)) {
-                            content.add(TextData(
-                                text = pair.first,
-                                reading = pair.second,
-                                data = term.second
-                            ))
-                        }
-                    }
-                    else {
-                        content.add(TextData(
-                            text = orig,
-                            reading = hira,
-                            data = term.second
-                        ))
-                    }
-                }
-                else {
-                    content.add(TextData(
-                        text = orig,
-                        reading = null,
-                        data = term.second
-                    ))
-                }
-            }
-        }
-
-        content
-    }
+//    val text_content = remember(terms) {
+//        val content: MutableList<TextData> = mutableStateListOf<TextData>()
+//
+//        for (term in terms) {
+//            for ((orig, hira, kata) in getFuriganaTerms(term.first)) {
+//                if (orig != hira && orig != kata) {
+//                    if (trim_okurigana) {
+//                        for (pair in trimOkurigana(orig, hira)) {
+//                            content.add(TextData(
+//                                text = pair.first,
+//                                reading = pair.second,
+//                                data = term.second
+//                            ))
+//                        }
+//                    }
+//                    else {
+//                        content.add(TextData(
+//                            text = orig,
+//                            reading = hira,
+//                            data = term.second
+//                        ))
+//                    }
+//                }
+//                else {
+//                    content.add(TextData(
+//                        text = orig,
+//                        reading = null,
+//                        data = term.second
+//                    ))
+//                }
+//            }
+//        }
+//
+//        content
+//    }
 
     Crossfade(targetState = show_furigana) {
         TextWithReading(
-            text_content,
+            terms,
             showReadings = it,
             textAlign = TextAlign.Left,
             lineHeight = 42.sp,

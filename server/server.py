@@ -10,7 +10,8 @@ from urllib3.exceptions import ProtocolError
 import json
 from functools import wraps
 import requests
-from flask import Flask, abort, request, Response
+from flask import Flask, abort, jsonify, request
+from flask.wrappers import Response
 from time import time, sleep
 from scrapeytmusic import scrapeYTMusicHome
 from waitress import serve
@@ -51,6 +52,11 @@ def isMutexLocked(mutex):
     else:
         mutex.release()
         return False
+
+def error(code: int, message: str):
+    response = jsonify(message)
+    response.status_code = code
+    return response
 
 class Server:
 
@@ -134,7 +140,7 @@ class Server:
             return self.refreshFeed()
 
         @self.app.route("/lyrics")
-        #@self.requireKey
+        @self.requireKey
         def lyrics():
             title = request.args.get("title")
             artist = request.args.get("artist")
@@ -144,14 +150,19 @@ class Server:
 
             id = Lyrics.findLyricsId(title, artist)
             if id is None:
-                abort(Response("Query doesn't match any songs"), 404)
+                return error(404, "Query doesn't match any songs")
 
             lyrics = Lyrics.getLyrics(id)
-            return json.dumps(lyrics.getFurigana())
+            return json.dumps({
+                "lyrics": lyrics.getWithFurigana(),
+                "source": "PetitLyrics", # TODO
+                "timed": True
+            })
 
     def requireKey(self, func):
         @wraps(func)
         def decoratedFunction(*args, **kwargs):
+            utils.log(f"Request recieved with url {request.url}")
             if request.args.get("key") and request.args.get("key") == self.api_key:
                 return func(*args, **kwargs)
             else:
@@ -187,7 +198,7 @@ class Server:
 
     def start(self, refresh_feed: bool = True):
         self.start_time = time()
-        sys.stdout = open("/dev/null", "w")
+        # sys.stdout = open("/dev/null", "w")
         # sys.stderr = sys.stdout
 
         self.scheduler = BackgroundScheduler()
@@ -237,11 +248,13 @@ class Server:
     def restart(self):
         self.scheduler.shutdown()
         psutil.Process(self.ngrok_process.pid).kill()
-        self.restart_queue.put(True)
+        if self.restart_queue is not None:
+            self.restart_queue.put(True)
         utils.log("Restarting...")
 
     def stop(self):
         self.scheduler.shutdown()
         psutil.Process(self.ngrok_process.pid).kill()
-        self.restart_queue.put(False)
+        if self.restart_queue is not None:
+            self.restart_queue.put(False)
         utils.log("Stopping...")

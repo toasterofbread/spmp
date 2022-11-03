@@ -3,7 +3,6 @@ package com.spectre7.spmp.api
 import com.beust.klaxon.JsonObject
 import com.beust.klaxon.Klaxon
 import com.beust.klaxon.Parser
-import com.chaquo.python.PyException
 import com.chaquo.python.Python
 import com.spectre7.ptl.Ptl
 import com.spectre7.spmp.MainActivity
@@ -14,12 +13,9 @@ import com.spectre7.utils.getString
 import kotlinx.coroutines.runBlocking
 import kotlinx.coroutines.sync.Mutex
 import kotlinx.coroutines.sync.withLock
-import okhttp3.Interceptor
+import okhttp3.*
 import okhttp3.MediaType.Companion.toMediaType
-import okhttp3.OkHttpClient
-import okhttp3.Request
 import okhttp3.RequestBody.Companion.toRequestBody
-import okhttp3.Response
 import java.io.BufferedReader
 import java.io.InputStreamReader
 import java.net.HttpURLConnection
@@ -27,8 +23,10 @@ import java.net.URL
 import java.net.URLEncoder
 import java.time.Instant
 import java.util.*
+import java.util.concurrent.TimeUnit
 import java.util.zip.GZIPInputStream
 import kotlin.concurrent.thread
+
 
 class DataApi {
 
@@ -133,6 +131,7 @@ class DataApi {
         private val klaxon: Klaxon = Klaxon()
         private val ptl = Ptl()
         private val api = Python.getInstance().getModule("ytmusicapi").callAttr("YTMusic").apply { callAttr("setup", null, getString(R.string.yt_music_creds)) }
+        private var ngrok_tunnel: NgrokTunnelListResponse.Tunnel? = null
 
         private val song_request_queue = mutableListOf<Pair<String, MutableList<(Song?) -> Unit>>>()
         private var song_request_count = 0
@@ -393,21 +392,14 @@ class DataApi {
 
         fun getSongLyrics(song: Song, callback: (Song.Lyrics?) -> Unit) {
             thread {
-                val pt_id = song.getPTLyricsId()
-                if (pt_id != null) {
-                    val lyrics = ptl.getLyrics(pt_id)
-                    if (lyrics != null) {
-                        callback(Song.PTLyrics(lyrics))
-                        return@thread
-                    }
-                }
+                val params = mapOf("title" to song.title, "artist" to song.artist.nativeData.name)
+                val result = queryServer("/lyrics", parameters = params)
 
-                try {
-                    val lyrics = api.callAttr("get_lyrics", song.getYTLyricsId())
-                    callback(Song.YTLyrics(lyrics.callAttr("get", "lyrics").toString(), lyrics.callAttr("get", "source").toString()))
-                }
-                catch (e: PyException) {
+                if (result == null) {
                     callback(null)
+                }
+                else {
+                    callback(klaxon.parse<Song.Lyrics>(result))
                 }
             }
         }
@@ -500,11 +492,16 @@ class DataApi {
         }
 
         data class NgrokTunnelListResponse(val tunnels: List<Tunnel>) {
-            data class Tunnel(val id: String, val public_url: String, val started_at: String, val tunnel_session: Session)
+            data class Tunnel(val id: String, val public_url: String, val started_at: String, val tunnel_session: Session, var from_cache: Boolean = false)
             data class Session(val id: String)
         }
 
-        fun getNgrokTunnel(): NgrokTunnelListResponse.Tunnel? {
+        fun getNgrokTunnel(no_cache: Boolean = false): NgrokTunnelListResponse.Tunnel? {
+            if (ngrok_tunnel != null && !no_cache) {
+                ngrok_tunnel!!.from_cache = true
+                return ngrok_tunnel
+            }
+
             val request = Request.Builder()
                 .url("https://api.ngrok.com/tunnels")
                 .header("Authorization", "Bearer ${getString(R.string.ngrok_api_key)}")
@@ -513,26 +510,42 @@ class DataApi {
 
             val response = OkHttpClient().newCall(request).execute()
             if (response.code != 200) {
+                ngrok_tunnel = null
                 return null
             }
 
             val tunnels = klaxon.parse<NgrokTunnelListResponse>(response.body!!.string())?.tunnels
-            return tunnels?.getOrNull(0)
+            ngrok_tunnel = tunnels?.getOrNull(0)
+            return ngrok_tunnel
         }
 
-        fun queryServer(endpoint: String, max_retries: Int = 5, tunnel: NgrokTunnelListResponse.Tunnel? = null): String? {
-            val _tunnel = tunnel ?: getNgrokTunnel()
+        fun queryServer(endpoint: String, tunnel: NgrokTunnelListResponse.Tunnel? = null, parameters: Map<String, String> = mapOf(), max_retries: Int = 5, timeout: Long = 10): String? {
+            var _tunnel = tunnel ?: getNgrokTunnel()
             if (_tunnel == null) {
                 return null
             }
 
-            val url = "${_tunnel.public_url}$endpoint?key=${getString(R.string.server_api_key)}"
-            val request = Request.Builder().url(url).build()
+            fun getRequest(tunnel: NgrokTunnelListResponse.Tunnel): Request {
+                var url = "${tunnel.public_url}$endpoint?key=${getString(R.string.server_api_key)}"
+                for (param in parameters) {
+                    url += "&${URLEncoder.encode(param.key, "UTF-8")}=${URLEncoder.encode(param.value, "UTF-8")}"
+                }
+                return Request.Builder().url(url).build()
+            }
+
+            var request = getRequest(_tunnel)
 
             fun getResult(): Response? {
-                val ret = OkHttpClient().newCall(request).execute()
+                val ret = OkHttpClient.Builder().readTimeout(timeout, TimeUnit.SECONDS).build().newCall(request).execute()
                 if (ret.code == 401) {
                     throw RuntimeException("Server API key is invalid")
+                }
+                else if (ret.code == 404 && _tunnel!!.from_cache) {
+                    _tunnel = getNgrokTunnel(false)
+                    if (_tunnel != null) {
+                        request = getRequest(_tunnel!!)
+                    }
+                    return null
                 }
                 else if (ret.code != 200) {
                     return null
@@ -544,7 +557,7 @@ class DataApi {
             if (result == null) {
                 for (i in 0 until max_retries) {
                     result = getResult()
-                    if (result != null) {
+                    if (result != null || _tunnel == null) {
                         break
                     }
                 }
@@ -567,7 +580,7 @@ class DataApi {
         }
 
         fun getRecommendedFeed(): List<RecommendedFeedRow>? {
-            val data = queryServer("/feed")
+            val data = queryServer("/feed", timeout=30)
             if (data != null) {
                 return klaxon.parseArray(data)
             }

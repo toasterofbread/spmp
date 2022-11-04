@@ -62,8 +62,7 @@ class Lyrics:
             line_data = []
             ret.append(line_data)
 
-            for term in kakasi.convert(
-                    line.replace("\n", "\\n").replace("\r", "\\r")):
+            for term in kakasi.convert(line.replace("\n", "\\n").replace("\r", "\\r")):
 
                 orig = getKey(term, "orig")
                 hira = getKey(term, "hira")
@@ -84,12 +83,16 @@ class Lyrics:
         furigana = self.getFuriganaData()
 
         for line_i in range(len(self.lines)):
-            furi_line: list = furigana[line_i]
-            lyr_line = self.lines[line_i]
 
             line_entry = []
             ret.append(line_entry)
 
+            lyr_line = self.lines[line_i]
+            if lyr_line.is_space:
+                line_entry.append({"subterms": [{"text": "", "furi": None}], "start": -1, "end": -1})
+                continue
+
+            furi_line: list = furigana[line_i]
             borrow = 0
 
             for word in lyr_line.words:
@@ -146,19 +149,19 @@ class TimedLyrics(Lyrics):
 
         for line_data in parseXml(xml_data)["wsy"]["line"]:
             line = TimedLyrics.Line(line_data, index)
-            if len(line.words) > 0:
-                self.lines.append(line)
-                index += len(line.text)
-                if prev_line != None:
-                    prev_line.next_line = line
-                    prev_line.words[-1].next_word = line.words[0]
-                    line.words[0].prev_word = prev_line.words[-1]
 
-                line.prev_line = prev_line
-                prev_line = line
+            self.lines.append(line)
+            index += len(line.text)
+            if prev_line != None:
+                prev_line.next_line = line
+                prev_line.words[-1].next_word = line.words[0]
+                line.words[0].prev_word = prev_line.words[-1]
 
-                if self.first_word == None:
-                    self.first_word = line.words[0]
+            line.prev_line = prev_line
+            prev_line = line
+
+            if self.first_word == None:
+                self.first_word = line.words[0]
 
     class Word:
 
@@ -173,10 +176,8 @@ class TimedLyrics(Lyrics):
     class Line:
 
         def __init__(self, data: dict, _index: int):
-            prev_word: TimedLyrics.Word | None = None
-            index = _index
-
             self.text: str = data["linestring"]
+            self.is_space = self.text == None
             self.words: list[TimedLyrics.Word] = []
             self.next_line: TimedLyrics.Line | None = None
             self.prev_line: TimedLyrics.Line | None = None
@@ -184,20 +185,29 @@ class TimedLyrics(Lyrics):
             self.lines: list = []
             self.first_word: TimedLyrics.Word | None = None
 
-            for word_data in data["word"] if type(
-                    data["word"]) == list else [data["word"]]:
-                if word_data["wordstring"] is None:
-                    continue
+            if self.is_space:
+                self.words.append(TimedLyrics.Word({
+                    "wordstring": "\n",
+                    "starttime": -1,
+                    "endtime": -1
+                }, _index))
+                self.text = "\n"
+            else:
+                index = _index
+                prev_word: TimedLyrics.Word | None = None
+                for word_data in data["word"] if isinstance(data["word"], list) else [data["word"]]:
+                    if word_data["wordstring"] is None:
+                        continue
 
-                word = TimedLyrics.Word(word_data, index)
-                if len(word.text) > 0:
-                    self.words.append(word)
-                    index += len(word.text)
-                    if prev_word != None:
-                        prev_word.next_word = word
+                    word = TimedLyrics.Word(word_data, index)
+                    if len(word.text) > 0:
+                        self.words.append(word)
+                        index += len(word.text)
+                        if prev_word != None:
+                            prev_word.next_word = word
 
-                    word.prev_word = prev_word
-                    prev_word = word
+                        word.prev_word = prev_word
+                        prev_word = word
 
 def getLyricsData(song_id: int, lyrics_type: int) -> str | None:
     if lyrics_type <= 0 or lyrics_type > 3:

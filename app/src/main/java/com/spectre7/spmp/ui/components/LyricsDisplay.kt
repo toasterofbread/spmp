@@ -1,45 +1,50 @@
 package com.spectre7.spmp.ui.components
 
-import android.util.Log
+import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.animation.Crossfade
-import androidx.compose.foundation.Image
+import androidx.compose.animation.fadeIn
+import androidx.compose.animation.fadeOut
+import androidx.compose.foundation.Canvas
+import androidx.compose.foundation.background
+import androidx.compose.foundation.clickable
+import androidx.compose.foundation.interaction.MutableInteractionSource
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
-import androidx.compose.foundation.background
+import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.Close
+import androidx.compose.material.icons.filled.Info
+import androidx.compose.material.ripple.rememberRipple
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.graphics.Color
-import androidx.compose.ui.graphics.ColorFilter
 import androidx.compose.ui.geometry.Offset
-import androidx.compose.ui.res.painterResource
+import androidx.compose.ui.geometry.Rect
+import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
+import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
-import com.chaquo.python.Python
+import androidx.compose.ui.zIndex
 import com.chaquo.python.PyObject
-import com.spectre7.spmp.R
-import com.spectre7.spmp.api.DataApi
-import com.spectre7.spmp.model.Song
-import com.spectre7.utils.*
-import com.spectre7.utils.getString
-import com.spectre7.spmp.ui.layout.PlayerStatus
-import net.zerotask.libraries.android.compose.furigana.*
-import java.io.BufferedReader
-import java.io.InputStreamReader
-import java.io.*
-import java.net.*
-import java.nio.file.*
-import java.util.*
-import java.util.stream.*
+import com.chaquo.python.Python
 import com.spectre7.ptl.Ptl
-import androidx.compose.foundation.Canvas
-import androidx.compose.ui.geometry.Rect
+import com.spectre7.spmp.MainActivity
+import com.spectre7.spmp.R
+import com.spectre7.spmp.model.Song
+import com.spectre7.spmp.ui.layout.PlayerStatus
+import com.spectre7.utils.getString
+import com.spectre7.utils.hasKanjiAndHiragana
+import com.spectre7.utils.isKanji
+import com.spectre7.utils.sendToast
+import net.zerotask.libraries.android.compose.furigana.TermInfo
+import net.zerotask.libraries.android.compose.furigana.TextData
+import net.zerotask.libraries.android.compose.furigana.TextWithReading
 import kotlin.concurrent.thread
 
 @Composable
-fun LyricsDisplay(song: Song, on_close_request: () -> Unit, p_status: PlayerStatus) {
+fun LyricsDisplay(song: Song, on_close_request: () -> Unit, p_status: PlayerStatus, size: Dp, open_shutter_menu: (@Composable () -> Unit) -> Unit) {
 
     var lyrics: Song.Lyrics? by remember { mutableStateOf(null) }
     var show_furigana: Boolean by remember { mutableStateOf(false) }
@@ -130,24 +135,68 @@ fun LyricsDisplay(song: Song, on_close_request: () -> Unit, p_status: PlayerStat
         }
     }
 
+    AnimatedVisibility(lyrics != null, Modifier.zIndex(10f), enter = fadeIn(), exit = fadeOut()) {
+        PillMenu(
+            3,
+            { index ->
+                when (index) {
+                    0 -> ActionButton(Icons.Filled.Close, on_close_request)
+                    1 -> ActionButton(Icons.Filled.Info) {
+                        open_shutter_menu {
+                            if (lyrics != null) {
+                                Column(Modifier.fillMaxWidth(), horizontalAlignment = Alignment.Start) {
+                                    Text("Lyrics info", fontSize = 20.sp, fontWeight = FontWeight.Light)
+                                    Spacer(Modifier.height(20.dp))
+                                    Text(getString(R.string.lyrics_source_prefix) + lyrics!!.source, color = Color.White)
+                                }
+                            }
+                        }
+                    }
+                    2 -> Box(
+                        Modifier.size(48.dp),
+                        contentAlignment = Alignment.Center
+                    ) {
+                        Text("ふ", color = content_colour, fontSize = 20.sp, modifier = Modifier
+                            .offset(y = (-5).dp)
+                            .clickable(
+                                remember { MutableInteractionSource() },
+                                rememberRipple(bounded = false, radius = 20.dp),
+                                onClick = {
+                                    show_furigana = !show_furigana
+                                    close()
+                                })
+                        )
+                    }
+                }
+            },
+            null,
+            MainActivity.theme.getAccent(),
+            MainActivity.theme.getOnAccent(),
+            vertical = true, top = true
+        )
+    }
+
     Column(verticalArrangement = Arrangement.Bottom) {
         LazyColumn(modifier = Modifier
             .weight(1f)
             .fillMaxSize(), horizontalAlignment = Alignment.CenterHorizontally, content = {
             item {
                 Box {
-                    val offset = Offset(-75f, -150f)
-                    Canvas(modifier = Modifier.fillMaxSize()) {
-                        for (term in overlay_terms) {
-                            drawRect(Color.Red, term.position + offset, Rect(0f, 0f, 50f, 50f).size)
-                        }
-                    }
-
                     Crossfade(targetState = lyrics) {
                         if (it == null) {
-                            CircularProgressIndicator()
+                            Column(Modifier.size(size), horizontalAlignment = Alignment.CenterHorizontally, verticalArrangement = Arrangement.Center) {
+                                Text("Loading lyrics", fontWeight = FontWeight.Light) // TODO
+                                Spacer(Modifier.height(20.dp))
+                                LinearProgressIndicator(color = MainActivity.theme.getAccent(), trackColor = MainActivity.theme.getOnAccent())
+                            }
                         }
                         else {
+                            val offset = Offset(-75f, -150f)
+                            Canvas(modifier = Modifier.fillMaxSize()) {
+                                for (term in overlay_terms) {
+                                    drawRect(Color.Red, term.position + offset, Rect(0f, 0f, 50f, 50f).size)
+                                }
+                            }
                             Column {
                                 val terms = mutableListOf<TextData>()
                                 for (line in it.lyrics) {
@@ -157,7 +206,7 @@ fun LyricsDisplay(song: Song, on_close_request: () -> Unit, p_status: PlayerStat
                                             val subterm = term.subterms[j]
 
                                             if (j + 1 == term.subterms.size && i + 1 == line.size) {
-                                                terms.add(TextData(subterm.text + "aaa\n", subterm.furi, term))
+                                                terms.add(TextData(subterm.text + "\n", subterm.furi, term))
                                             }
                                             else {
                                                 terms.add(TextData(subterm.text, subterm.furi, term))
@@ -165,46 +214,14 @@ fun LyricsDisplay(song: Song, on_close_request: () -> Unit, p_status: PlayerStat
                                         }
                                     }
                                 }
-//                                if (it is Song.PTLyrics && it.getTimed() != null) {
-//                                    val terms = mutableListOf<Pair<String, Ptl.TimedLyrics.Word>>()
-//
-//                                    for (line in it.getTimed()!!.lines) {
-//                                        for (i in 0 until line.words.size) {
-//                                            val word = line.words[i]
-//                                            if (i + 1 == line.words.size) {
-//                                                terms.add(Pair(word.text + "\n", word))
-//                                            }
-//                                            else {
-//                                                terms.add(Pair(word.text, word))
-//                                            }
-//                                        }
-//                                    }
-//
-//                                    FuriganaText(terms, show_furigana, text_positions = text_positions)
-//                                }
-//                                else {
-//                                    FuriganaText(listOf(Pair(it.getLyricsString(), null)), show_furigana, text_positions = text_positions)
-//                                }
 
                                 FuriganaText(terms, show_furigana, text_positions = text_positions)
-                                Text(getString(R.string.lyrics_source_prefix) + it.source, textAlign = TextAlign.Left, modifier = Modifier.fillMaxWidth())
                             }
                         }
                     }
                 }
             }
         })
-
-        Row(Modifier.fillMaxWidth().padding(horizontal = 20.dp), horizontalArrangement = Arrangement.SpaceBetween) {
-            Row(verticalAlignment = Alignment.CenterVertically) {
-                Switch(checked = show_furigana, onCheckedChange = { show_furigana = it })
-                Text(getString(R.string.show_furigana))
-            }
-
-            IconButton(onClick = on_close_request) {
-                Image(painterResource(R.drawable.ic_close), "", colorFilter = ColorFilter.tint(Color.White))
-            }
-        }
     }
 }
 
@@ -244,44 +261,7 @@ fun getFuriganaTerms(text: String): List<Triple<String, String, String>> {
 }
 
 @Composable
-fun FuriganaText(terms: List<TextData>, show_furigana: Boolean, trim_okurigana: Boolean = true, modifier_provider: ModifierProvider? = null, text_positions: MutableList<TermInfo>? = null) {
-
-//    val text_content = remember(terms) {
-//        val content: MutableList<TextData> = mutableStateListOf<TextData>()
-//
-//        for (term in terms) {
-//            for ((orig, hira, kata) in getFuriganaTerms(term.first)) {
-//                if (orig != hira && orig != kata) {
-//                    if (trim_okurigana) {
-//                        for (pair in trimOkurigana(orig, hira)) {
-//                            content.add(TextData(
-//                                text = pair.first,
-//                                reading = pair.second,
-//                                data = term.second
-//                            ))
-//                        }
-//                    }
-//                    else {
-//                        content.add(TextData(
-//                            text = orig,
-//                            reading = hira,
-//                            data = term.second
-//                        ))
-//                    }
-//                }
-//                else {
-//                    content.add(TextData(
-//                        text = orig,
-//                        reading = null,
-//                        data = term.second
-//                    ))
-//                }
-//            }
-//        }
-//
-//        content
-//    }
-
+fun FuriganaText(terms: List<TextData>, show_furigana: Boolean, text_positions: MutableList<TermInfo>? = null) {
     Crossfade(targetState = show_furigana) {
         TextWithReading(
             terms,
@@ -289,8 +269,8 @@ fun FuriganaText(terms: List<TextData>, show_furigana: Boolean, trim_okurigana: 
             textAlign = TextAlign.Left,
             lineHeight = 42.sp,
             fontSize = 20.sp,
+            color = Color.White,
             modifier = Modifier.padding(20.dp),
-            modifier_provider = modifier_provider,
             text_positions = text_positions
         )
     }

@@ -159,57 +159,9 @@ data class Song (
         }
         set(value) { registry_entry.overrides.title = value; registry!!.save(MainActivity.prefs) }
 
-    interface Lyrics {
-        fun getLyricsString(): String
-        fun getSource(): String
-    }
-    class YTLyrics(private val lyrics: String, private val source: String? = null): Lyrics {
-        override fun getLyricsString(): String {
-            return lyrics
-        }
-        override fun getSource(): String {
-            if (source != null) {
-                return source.removePrefix("Source: ") + getString(R.string.lyrics_source_via_youtubemusic)
-            }
-            return source ?: getString(R.string.lyrics_source_youtube)
-        }
-    }
-    class PTLyrics(val lyrics: Ptl.Lyrics): Lyrics {
-        private val lyrics_string: String
-
-        init {
-            if (lyrics is Ptl.StaticLyrics) {
-                lyrics_string = lyrics.text
-            }
-            else {
-                val ret = StringBuilder()
-                val lines = (lyrics as Ptl.TimedLyrics).lines
-                for (i in 0 until lines.size) {
-                    for (word in lines[i].words) {
-                        ret.append(word.text)
-                    }
-
-                    if (i < lines.size - 1) {
-                        ret.append("\n")
-                    }
-                }
-                lyrics_string = ret.toString()
-            }
-        }
-
-        override fun getLyricsString(): String = lyrics_string
-
-        override fun getSource(): String {
-            return getString(R.string.lyrics_source_petitlyrics)
-        }
-
-        fun getStatic(): Ptl.StaticLyrics? {
-            return lyrics as Ptl.StaticLyrics?
-        }
-
-        fun getTimed(): Ptl.TimedLyrics? {
-            return lyrics as Ptl.TimedLyrics?
-        }
+    data class Lyrics(val source: String, val timed: Boolean, val lyrics: List<List<Term>>) {
+        data class Term(val subterms: List<Subterm>, val start: Float, val end: Float)
+        data class Subterm(val text: String, val furi: String?)
     }
 
     companion object {

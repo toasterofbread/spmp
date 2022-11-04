@@ -77,9 +77,9 @@ class Server:
 
         @self.app.route("/status/")
         def status():
-            return json.dumps({
+            return {
                 "uptime": int(time() - self.start_time)
-            })
+            }
 
         @self.app.route("/restart/")
         @self.requireKey
@@ -109,7 +109,7 @@ class Server:
             if not self.cached_feed_set.get():
                 self.refresh_mutex.acquire()
                 self.refresh_mutex.release()
-            return json.dumps(self.cached_feed.get())
+            return self.cached_feed.get()
 
         @self.app.route("/feed/latest/")
         @self.requireKey
@@ -117,7 +117,7 @@ class Server:
             if isMutexLocked(self.refresh_mutex):
                 self.refresh_mutex.acquire()
                 self.refresh_mutex.release()
-            return json.dumps(self.cached_feed.get())
+            return self.cached_feed.get()
 
         @self.app.route("/feed/refreshed/")
         @self.requireKey
@@ -128,7 +128,7 @@ class Server:
             self.refresh_mutex.acquire()
             self.refresh_mutex.release()
 
-            return json.dumps(self.cached_feed.get())
+            return self.cached_feed.get()
 
         @self.app.route("/feed/refresh/")
         @self.requireKey
@@ -149,11 +149,11 @@ class Server:
                 return error(404, "Query doesn't match any songs")
 
             lyrics = Lyrics.getLyrics(id)
-            return json.dumps({
+            return {
                 "lyrics": lyrics.getWithFurigana(),
                 "source": "PetitLyrics", # TODO
                 "timed": True
-            })
+            }
 
         @self.app.route("/youtubeapi/<endpoint>/")
         @self.requireKey
@@ -170,8 +170,10 @@ class Server:
             if response.status_code != 200:
                 return error(response.status_code, f"{response.reason}\n{response.text}")
 
-            self.setYtApiCache(url, response.text)
-            return response.text
+            data = json.loads(response.text)
+          
+            self.setYtApiCache(url, data)
+            return data
 
     def requireKey(self, func):
         @wraps(func)
@@ -185,7 +187,7 @@ class Server:
 
     def refreshFeed(self):
         if isMutexLocked(self.refresh_mutex):
-            return json.dumps({"result": 1, "error": "Already refreshing"})
+            return {"result": 1, "error": "Already refreshing"}
 
         def thread():
             try:
@@ -208,7 +210,7 @@ class Server:
                     pass
 
         Thread(target=thread).start()
-        return json.dumps({"result": 0})
+        return {"result": 0}
 
     def start(self, refresh_feed: bool = True):
         self.start_time = time()
@@ -283,10 +285,10 @@ class Server:
             self.saveYtApiCache()
             return None
 
-        return json.dumps(cached["data"])
+        return cached["data"]
 
-    def setYtApiCache(self, url: str, data: str):
-        self._yt_api_cache[url] = {"data": json.loads(data), "time": int(time())}
+    def setYtApiCache(self, url: str, data):
+        self._yt_api_cache[url] = {"data": data, "time": int(time())}
         self.saveYtApiCache()
 
     def saveYtApiCache(self):

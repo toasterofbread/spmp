@@ -1,10 +1,7 @@
 package com.spectre7.spmp.ui.layout
 
 import android.util.DisplayMetrics
-import android.util.Log
-import androidx.compose.animation.*
-import androidx.compose.animation.core.tween
-import androidx.compose.foundation.background
+import androidx.compose.animation.Crossfade
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.gestures.Orientation
 import androidx.compose.foundation.interaction.MutableInteractionSource
@@ -12,42 +9,33 @@ import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.grid.GridCells
 import androidx.compose.foundation.lazy.grid.LazyHorizontalGrid
-import androidx.compose.foundation.shape.CircleShape
-import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.ExperimentalMaterialApi
 import androidx.compose.material.FractionalThreshold
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.*
 import androidx.compose.material.rememberSwipeableState
-import androidx.compose.material.ripple.LocalRippleTheme
-import androidx.compose.material.ripple.RippleAlpha
-import androidx.compose.material.ripple.RippleTheme
 import androidx.compose.material.swipeable
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
-import androidx.compose.runtime.snapshots.SnapshotStateList
-import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.RectangleShape
 import androidx.compose.ui.platform.LocalConfiguration
 import androidx.compose.ui.text.font.FontWeight
-import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
-import androidx.compose.ui.zIndex
 import com.google.android.exoplayer2.MediaItem
 import com.google.android.exoplayer2.Player
-import com.google.android.exoplayer2.Tracks
 import com.spectre7.spmp.MainActivity
 import com.spectre7.spmp.PlayerHost
 import com.spectre7.spmp.api.DataApi
 import com.spectre7.spmp.model.Previewable
 import com.spectre7.spmp.model.Song
 import com.spectre7.spmp.ui.components.NowPlaying
+import com.spectre7.spmp.ui.components.PillMenu
+import com.spectre7.utils.getContrasted
 import com.spectre7.utils.setAlpha
 import kotlinx.coroutines.delay
-import kotlinx.coroutines.runBlocking
 import kotlin.concurrent.thread
 
 fun convertPixelsToDp(px: Int): Float {
@@ -88,59 +76,25 @@ fun PlayerView() {
     @Composable
     fun MainPage() {
 
-        @Composable
-        fun ActionMenu() {
-
-            Box(
-                contentAlignment = Alignment.BottomEnd,
-                modifier = Modifier
-                    .fillMaxSize()
-                    .zIndex(1f)
-                    .padding(15.dp)
-            ) {
-                var expand by remember { mutableStateOf(false) }
-                val background_colour = MainActivity.theme.getAccent()
-                val element_colour = MainActivity.theme.getOnAccent()
-
-                IconButton(
-                    onClick = { expand = !expand },
-                    modifier = Modifier.background(background_colour, shape = CircleShape)
+        PillMenu(
+            2,
+            { index ->
+                ActionButton(
+                    when (index) {
+                        0 -> Icons.Filled.Settings
+                        else -> Icons.Filled.Search
+                    }
                 ) {
-                    Icon(Icons.Filled.KeyboardArrowLeft, "", tint = element_colour)
-                }
-
-                AnimatedVisibility(visible = expand, enter = expandHorizontally(tween(250)), exit = shrinkHorizontally(tween(250))) {
-                    Row(
-                        Modifier
-                            .background(background_colour, shape = CircleShape),
-                        horizontalArrangement = Arrangement.End
-                    ) {
-
-                        IconButton(onClick = {
-                            expand = false
-                            overlay_page = OverlayPage.SETTINGS
-                        }) {
-                            Icon(Icons.Filled.Settings, "", tint = element_colour)
-                        }
-
-                        IconButton(onClick = {
-                            expand = false
-                            overlay_page = OverlayPage.SEARCH
-                        }) {
-                            Icon(Icons.Filled.Search, "", tint = element_colour)
-                        }
-
-                        IconButton(onClick = {
-                            expand = false }
-                        ) {
-                            Icon(Icons.Filled.KeyboardArrowRight, "", tint = element_colour)
-                        }
+                    when (index) {
+                        0 -> overlay_page = OverlayPage.SETTINGS
+                        else -> overlay_page = OverlayPage.SEARCH
                     }
                 }
-            }
-        }
-
-        ActionMenu()
+            },
+            remember { mutableStateOf(false) },
+            MainActivity.theme.getVibrantAccent(),
+            MainActivity.theme.getVibrantAccent().getContrasted()
+        )
 
         data class Row(val title: String, val subtitle: String?, val items: MutableList<Previewable> = mutableStateListOf())
         val rows = remember { mutableStateListOf<Row>() }

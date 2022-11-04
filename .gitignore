@@ -12,3 +12,4 @@ app/debug/
 app/release/
 .vscode
 */__pycache__/
+server/*.json

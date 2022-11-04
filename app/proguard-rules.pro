@@ -7,3 +7,4 @@
 -keep class com.spectre7.spmp.**
 
 -keep class com.spectre7.spmp.api.DataApi$* { *; }
+-keep class com.spectre7.spmp.model.Song$* { *; }

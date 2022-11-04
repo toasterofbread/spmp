@@ -10,17 +10,17 @@ import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.KeyboardArrowUp
 import androidx.compose.material.icons.filled.Menu
 import androidx.compose.material.icons.filled.PlayArrow
 import androidx.compose.material.ripple.rememberRipple
-import androidx.compose.material3.IconButton
-import androidx.compose.material3.LinearProgressIndicator
-import androidx.compose.material3.Text
+import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.alpha
 import androidx.compose.ui.draw.clip
+import androidx.compose.ui.draw.clipToBounds
 import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.graphics.*
 import androidx.compose.ui.graphics.painter.Painter
@@ -287,6 +287,9 @@ fun NowPlaying(_expansion: Float, max_height: Float, p_status: PlayerStatus, clo
 
                             // Thumbnail overlay menu
                             androidx.compose.animation.AnimatedVisibility(overlay_menu != NowPlayingOverlayMenu.NONE, enter = fadeIn(), exit = fadeOut()) {
+                                var get_shutter_menu by remember { mutableStateOf<(@Composable () -> Unit)?>(null) }
+                                var shutter_menu_open by remember { mutableStateOf(false) }
+
                                 Box(
                                     Modifier
                                         .background(
@@ -305,69 +308,41 @@ fun NowPlaying(_expansion: Float, max_height: Float, p_status: PlayerStatus, clo
 
                                                     Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.SpaceEvenly) {
 
+                                                        val button_modifier = Modifier
+                                                            .background(
+                                                                MainActivity.theme.getAccent(),
+                                                                CircleShape
+                                                            )
+                                                            .size(40.dp)
+                                                            .padding(8.dp)
+                                                        val button_colour = ColorFilter.tint(MainActivity.theme.getOnAccent())
+
                                                         Box(
-                                                            modifier = Modifier
-                                                                .background(
-                                                                    MainActivity
-                                                                        .theme
-                                                                        .getBackground(true),
-                                                                    CircleShape
-                                                                )
-                                                                .size(40.dp)
-                                                                .padding(8.dp)
-                                                                .clickable {
-                                                                    overlay_menu =
-                                                                        NowPlayingOverlayMenu.LYRICS
-                                                                }
+                                                            button_modifier.clickable { overlay_menu = NowPlayingOverlayMenu.LYRICS }
                                                         ) {
                                                             Image(
                                                                 painterResource(R.drawable.ic_music_note), "",
-                                                                colorFilter = ColorFilter.tint(MainActivity.theme.getOnBackground(true))
+                                                                colorFilter = button_colour
                                                             )
                                                         }
 
                                                         Box(
-                                                            modifier = Modifier
-                                                                .background(
-                                                                    MainActivity
-                                                                        .theme
-                                                                        .getBackground(true),
-                                                                    CircleShape
-                                                                )
-                                                                .size(40.dp)
-                                                                .padding(8.dp)
-                                                                .clickable {
-                                                                    overlay_menu =
-                                                                        NowPlayingOverlayMenu.PALETTE
-                                                                }
+                                                            button_modifier.clickable { overlay_menu = NowPlayingOverlayMenu.PALETTE }
                                                         ) {
                                                             Image(
                                                                 painterResource(R.drawable.ic_palette), "",
-                                                                colorFilter = ColorFilter.tint(MainActivity.theme.getOnBackground(true))
+                                                                colorFilter = button_colour
                                                             )
                                                         }
 
                                                         Box(
-                                                            modifier = Modifier
-                                                                .background(
-                                                                    MainActivity
-                                                                        .theme
-                                                                        .getBackground(true),
-                                                                    CircleShape
-                                                                )
-                                                                .size(40.dp)
-                                                                .padding(8.dp)
-                                                                .clickable {
-                                                                    overlay_menu =
-                                                                        NowPlayingOverlayMenu.DOWNLOAD
-                                                                }
+                                                            button_modifier.clickable { overlay_menu = NowPlayingOverlayMenu.DOWNLOAD }
                                                         ) {
                                                             Image(
                                                                 painterResource(R.drawable.ic_download), "",
-                                                                colorFilter = ColorFilter.tint(MainActivity.theme.getOnBackground(true))
+                                                                colorFilter = button_colour
                                                             )
                                                         }
-
                                                     }
                                                 }
                                             NowPlayingOverlayMenu.PALETTE ->
@@ -377,13 +352,49 @@ fun NowPlaying(_expansion: Float, max_height: Float, p_status: PlayerStatus, clo
                                                 }
                                             NowPlayingOverlayMenu.LYRICS ->
                                                 if (p_status.song != null) {
-                                                    LyricsDisplay(p_status.song!!, { overlay_menu = NowPlayingOverlayMenu.NONE }, p_status)
+                                                    LyricsDisplay(p_status.song!!, { overlay_menu = NowPlayingOverlayMenu.NONE }, p_status, (screen_width_dp - (main_padding * 2) - (15.dp * expansion * 2)).value * 0.9.dp) {
+                                                        get_shutter_menu = it
+                                                        shutter_menu_open = true
+                                                    }
                                                 }
                                             NowPlayingOverlayMenu.DOWNLOAD ->
                                                 if (p_status.song != null) {
-                                                    DownloadMenu(p_status.song!!, { overlay_menu = NowPlayingOverlayMenu.NONE })
+                                                    DownloadMenu(p_status.song!!) { overlay_menu = NowPlayingOverlayMenu.NONE }
                                                 }
                                             NowPlayingOverlayMenu.NONE -> {}
+                                        }
+                                    }
+                                }
+
+                                androidx.compose.animation.AnimatedVisibility(
+                                    shutter_menu_open,
+                                    enter = expandVertically(tween(200)),
+                                    exit = shrinkVertically(tween(200))
+                                ) {
+                                    val padding = 15.dp
+                                    val background = if (theme_mode == ThemeMode.BACKGROUND) MainActivity.theme.getBackground(false) else MainActivity.theme.getAccent()
+                                    Column(
+                                        Modifier
+                                            .background(
+                                                background,
+                                                RoundedCornerShape(5)
+                                            )
+                                            .padding(start = padding, top = padding, end = padding)
+                                            .fillMaxSize(),
+                                        verticalArrangement = Arrangement.SpaceBetween,
+                                        horizontalAlignment = Alignment.CenterHorizontally
+                                    ) {
+                                        CompositionLocalProvider(
+                                            LocalContentColor provides background.getContrasted()
+                                        ) {
+                                            get_shutter_menu?.invoke()
+                                            IconButton(onClick = { shutter_menu_open = false }) {
+                                                Icon(
+                                                    Icons.Filled.KeyboardArrowUp, "",
+                                                    tint = background.getContrasted(),
+                                                    modifier = Modifier.size(50.dp)
+                                                )
+                                            }
                                         }
                                     }
                                 }

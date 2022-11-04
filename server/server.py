@@ -3,144 +3,29 @@ import multiprocessing as mp
 import subprocess
 from threading import Thread
 import sys
+from urllib.parse import urlencode
 import psutil
 from apscheduler.schedulers.background import BackgroundScheduler
 from spectre7 import utils
 from urllib3.exceptions import ProtocolError
 import json
+from json import JSONDecodeError
 from functools import wraps
 import requests
-from flask import Flask, abort, request
+from flask import Flask, abort, jsonify, request
+from flask.wrappers import Response
 from time import time, sleep
 from scrapeytmusic import scrapeYTMusicHome
-import lyrics
 from waitress import serve
+import lyrics as Lyrics
+from os import path
 
 RECOMMENDED_ROWS = 10
-HEADERS = {
-    'user-agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64; rv:88.0) Gecko/20100101 Firefox/88.0',
-    'accept': '*/*',
-    'accept-language': 'ja',
-    'content-type': 'application/json',
-    'x-goog-visitor-id': 'Cgt1TjR0ckUtOVNXOCiKnOmaBg%3D%3D',
-    'x-youtube-client-name': '67',
-    'x-youtube-client-version': '1.20221019.01.00',
-    'authorization': 'SAPISIDHASH 1666862603_ad3286857ed8177c1e0f0f16fc678aaff93ad310',
-    'x-goog-authuser': '1',
-    'x-origin': 'https://music.youtube.com',
-    'origin': 'https://music.youtube.com',
-    'alt-used': 'music.youtube.com',
-    'connection': 'keep-alive',
-    'cookie': 'PREF=tz=Europe.London&f6=40000400&f5=30000&f7=1&repeat=NONE&volume=60&f3=8&autoplay=true; __Secure-3PSIDCC=AIKkIs1HzUCBLGiDGnM7upTqnkIuJFGKsO09NZKhr-6HF3VwRiHeeGNYNNo2Lhk1dduN8P27ZXy9; s_gl=GB; LOGIN_INFO=AFmmF2swRAIgZ035p6PjI532M15GF53l6UlfPen5HwkDpu7ZEle29vACIGNtXbi8xtRJ7Y8pT1tqah7SqKR_GnzcwOryhVxgUeXF:QUQ3MjNmel9JRGpUeGowRmpmM3picUpNalFleGFibkRYV1dubXdXenQyam9Ib3RWY3MtTVhUZmxDb1pFMUhoVElZUEdqS2JPcW5kT0dpaTN3emRUUUo5SU9ZRFFyVnlyZW9aYlF5dmVCQ1puYjRMRkd4OXFXb0s2Nlk4a1NtNVlfb3QydENNZDJ4bWlfSDVlZnZONHNSRk95dGxyeWZpV1dn; CONSENT=PENDING+281; __Secure-YEC=Cgt2ZlpYajN4dVdLZyjSmpuaBg%3D%3D; SIDCC=AIKkIs2pSVZXshn1zeCzrzL3mlIC6VAAgWfoULSkTBWcrht_9EMrkr8D9EQZYcCiKRDa8ejUTw; __Secure-1PSIDCC=AIKkIs0_imP3kQ3wfQWUyWhD_IKDL_QYExRxV4Ou7EpSO75uDq-4J6t3VhJOJGx1dM0zGdI3cpc; VISITOR_INFO1_LIVE=uN4trE-9SW8; wide=1; __Secure-3PSID=PwhomEhQTZ77kJmEhSDm0D3ui-d5WWiRyRhTGsP7BAyxF_dlxCTncdVXtBbp04fUJlDtPw.; __Secure-3PAPISID=qMwfMfR_YyoT3NGb/AzFZpb4NqFXud3Nwr; YSC=8LddSzq-F84; SID=PwhomEhQTZ77kJmEhSDm0D3ui-d5WWiRyRhTGsP7BAyxF_dlBdrU3vl6GPsCr1ylPTr4KQ.; __Secure-1PSID=PwhomEhQTZ77kJmEhSDm0D3ui-d5WWiRyRhTGsP7BAyxF_dlKcjSgx1HUrI2I9zInQMtxw.; HSID=Aco1DxTh4I1ySKm8Q; SSID=A1vzE52cm5ko7nyff; APISID=W6YIE8FP4wiEER0O/AbLbtnGAFqeU0gqza; SAPISID=qMwfMfR_YyoT3NGb/AzFZpb4NqFXud3Nwr; __Secure-1PAPISID=qMwfMfR_YyoT3NGb/AzFZpb4NqFXud3Nwr',
-    'sec-fetch-dest': 'empty',
-    'sec-fetch-mode': 'same-origin',
-    'sec-fetch-site': 'same-origin',
-    'pragma': 'no-cache',
-    'cache-control': 'no-cache',
-    'te': 'trailers',
-}
+YT_API_CACHE_LIFETIME = 24 * 60 * 60
+YT_API_CACHE_PATH = path.join(path.dirname(__file__), "ytapicache.json")
 
-def getSeleniumDriver(headers: dict, firefox_path: str = FIREFOX_PATH, headless: bool = True):
-    options = webdriver.FirefoxOptions()
-    options.binary_location = firefox_path
-    options.headless = headless
-
-    ret = webdriver.Firefox(options = options, service_log_path = "/dev/null")
-
-    def interceptor(request):
-        for key in headers:
-            del request.headers[key]
-            request.headers[key] = headers[key]
-    ret.request_interceptor = interceptor
-
-    return ret
-
-def scrapeYTMusicHome(headers: dict, rows: int = -1, firefox_path: str = FIREFOX_PATH) -> list:
-    if rows == 0:
-        return []
-
-    driver = getSeleniumDriver(headers, firefox_path)
-    driver.get("https://music.youtube.com")
-
-    def getBrowseItemPlaylistId(browse_id: str):
-        driver.get(f"https://music.youtube.com/browse/{browse_id}")
-        WebDriverWait(driver, 10).until(EC.url_contains("https://music.youtube.com/playlist?list="))
-        ret = driver.current_url
-        return ret
-
-    def getSectionCount():
-        sections = driver.find_element(value = "contents").find_elements(By.XPATH, "*")
-        return len(sections)
-
-    prev_height = driver.execute_script("return document.body.scrollHeight")
-    while rows > 0 and getSectionCount() < rows:
-        driver.execute_script("window.scrollTo(0, document.body.scrollHeight);")
-        sleep(0.5)
-
-        height = driver.execute_script("return document.body.scrollHeight")
-        if height == prev_height:
-            break
-        prev_height = height
-
-    soup = BeautifulSoup(driver.page_source, "html.parser")
-    ret = []
-
-    for section in soup.find_all("div", class_="style-scope ytmusic-section-list-renderer", id="contents")[0].find_all(recursive=False, limit = rows if rows > 0 else None):
-
-        details = section.find("div", id="details").find("yt-formatted-string", recursive=False)
-        details_a = details.find("a")
-        title = details.text if details_a is None else details_a.text
-
-        subtitle = section.find("h2", id="content-group")["aria-label"]
-        if subtitle == title:
-            subtitle = None
-        else:
-            subtitle = subtitle[:-(len(title) + 1)]
-
-        entry = {
-            "title": details.text if details_a is None else details_a.text,
-            "subtitle": subtitle,
-            "items": []
-        }
-        ret.append(entry)
-
-        for item in section.find("ul", id="items").find_all(recursive=False):
-            item_entry = {}
-            entry["items"].append(item_entry)
-
-            href: str = item.find("a")["href"]
-
-            if href.startswith("channel/"):
-                type_ = "artist"
-                id = href[8:]
-            elif href.startswith("watch?v="):
-                type_ = "song"
-
-                q = parse_qs(href[6:])
-                id = q["v"][0]
-
-                if "list" in q:
-                    item_entry["playlist_id"] = q["list"][0]
-
-            elif href.startswith("playlist"):
-                type_ = "playlist"
-                id = href[14:]
-
-            elif href.startswith("browse"):
-                type_ = "playlist"
-                id = getBrowseItemPlaylistId(href[7:])
-
-            else:
-                raise RuntimeError(href)
-
-            item_entry["type"] = type_
-            item_entry["id"] = id
-
-    driver.close()
-    return ret
-
-def getNgrokUrl():
-    result = requests.get("https://api.ngrok.com/tunnels", headers={"Authorization": "Bearer 2GjOoO6u94PEfptejpFRyUeN7zZ_2Qxdi89uuva6mieFf4Yg1", "Ngrok-Version": "2"})
+def getNgrokUrl(headers: dict):
+    result = requests.get("https://api.ngrok.com/tunnels", headers=headers)
     return json.loads(result.text)["tunnels"][0]["public_url"]
 
 def isMutexLocked(mutex):
@@ -151,12 +36,21 @@ def isMutexLocked(mutex):
         mutex.release()
         return False
 
+def error(code: int, message: str):
+    response = jsonify(message)
+    response.status_code = code
+    return response
+
 class Server:
 
-    def __init__(self, port: int, firefox_path: str, api_key: str):
+    def __init__(self, port: int, firefox_path: str, creds: dict):
         self.port = port
         self.firefox_path = firefox_path
-        self.api_key = api_key
+
+        self.api_key = creds["api_key"]
+        self.ytapi_key = creds["ytapi_key"]
+        self.ytm_headers = creds["ytm_headers"]
+        self.ngrok_headers = creds["ngrok_headers"]
 
         self.app = Flask("SpMp Server")
         self.start_time = 0
@@ -167,6 +61,15 @@ class Server:
         self.cached_feed = manager.Value("l", [])
         self.cached_feed_set = manager.Value("b", False)
         self.exiting = manager.Value("b", False)
+
+        self._yt_api_cache = {}
+        if path.isfile(YT_API_CACHE_PATH):
+            f = open(YT_API_CACHE_PATH, "r")
+            try:
+                self._yt_api_cache = json.loads(f.read())
+            except JSONDecodeError as e:
+                utils.warn(f"Parsing YtApi cache file at {YT_API_CACHE_PATH} failed (ignoring)\n{e.msg}")
+            f.close()
 
         @self.app.route("/")
         def index():
@@ -232,13 +135,52 @@ class Server:
         def refreshFeed():
             return self.refreshFeed()
 
+        @self.app.route("/lyrics/")
+        @self.requireKey
+        def lyrics():
+            title = request.args.get("title")
+            artist = request.args.get("artist")
+
+            if title is None:
+                return error(400, "Missing title parameter")
+
+            id = Lyrics.findLyricsId(title, artist)
+            if id is None:
+                return error(404, "Query doesn't match any songs")
+
+            lyrics = Lyrics.getLyrics(id)
+            return json.dumps({
+                "lyrics": lyrics.getWithFurigana(),
+                "source": "PetitLyrics", # TODO
+                "timed": True
+            })
+
+        @self.app.route("/youtubeapi/<endpoint>/")
+        @self.requireKey
+        def youtubeApi(endpoint: str):
+            params = dict(request.args)
+            params["key"] = self.ytapi_key
+            url = f"https://www.googleapis.com/youtube/v3/{endpoint}?" + urlencode(params)
+
+            cached = self.getYtApiCache(url)
+            if cached is not None:
+                return cached
+
+            response = requests.get(url)
+            if response.status_code != 200:
+                return error(response.status_code, f"{response.reason}\n{response.text}")
+
+            self.setYtApiCache(url, response.text)
+            return response.text
+
     def requireKey(self, func):
         @wraps(func)
         def decoratedFunction(*args, **kwargs):
+            utils.log(f"Request recieved with url {request.url}")
             if request.args.get("key") and request.args.get("key") == self.api_key:
                 return func(*args, **kwargs)
             else:
-                abort(401)
+                abort(Response("Missing or invalid key parameter", 401))
         return decoratedFunction
 
     def refreshFeed(self):
@@ -250,7 +192,7 @@ class Server:
                 self.refresh_mutex.acquire()
                 utils.log("Refreshing feed...")
 
-                feed = scrapeYTMusicHome(HEADERS, self.firefox_path, shouldCancel = lambda : self.exiting.get())
+                feed = scrapeYTMusicHome(self.ytm_headers, self.firefox_path, shouldCancel = lambda : self.exiting.get())
                 if feed is not None:
                     self.cached_feed.set(feed)
                     self.cached_feed_set.set(True)
@@ -268,9 +210,9 @@ class Server:
         Thread(target=thread).start()
         return json.dumps({"result": 0})
 
-    def start(self):
+    def start(self, refresh_feed: bool = True):
         self.start_time = time()
-        sys.stdout = open("/dev/null", "w")
+        # sys.stdout = open("/dev/null", "w")
         # sys.stderr = sys.stdout
 
         self.scheduler = BackgroundScheduler()
@@ -292,11 +234,12 @@ class Server:
 
         for msg in (
             f"Running locally on http://127.0.0.1:{self.port}",
-            f"Public URL is {getNgrokUrl()}"
+            f"Public URL is {getNgrokUrl(self.ngrok_headers)}"
         ):
             utils.info(f"* {msg}")
 
-        self.refreshFeed()
+        if refresh_feed:
+            self.refreshFeed()
 
         # Wait for restart request
         restart = False
@@ -319,11 +262,34 @@ class Server:
     def restart(self):
         self.scheduler.shutdown()
         psutil.Process(self.ngrok_process.pid).kill()
-        self.restart_queue.put(True)
+        if self.restart_queue is not None:
+            self.restart_queue.put(True)
         utils.log("Restarting...")
 
     def stop(self):
         self.scheduler.shutdown()
         psutil.Process(self.ngrok_process.pid).kill()
-        self.restart_queue.put(False)
+        if self.restart_queue is not None:
+            self.restart_queue.put(False)
         utils.log("Stopping...")
+
+    def getYtApiCache(self, url: str):
+        cached = self._yt_api_cache.get(url)
+        if cached is None:
+            return None
+
+        if time() - cached["time"] > YT_API_CACHE_LIFETIME:
+            self._yt_api_cache.pop(url)
+            self.saveYtApiCache()
+            return None
+
+        return json.dumps(cached["data"])
+
+    def setYtApiCache(self, url: str, data: str):
+        self._yt_api_cache[url] = {"data": json.loads(data), "time": int(time())}
+        self.saveYtApiCache()
+
+    def saveYtApiCache(self):
+        f = open(YT_API_CACHE_PATH, "w")
+        f.write(json.dumps(self._yt_api_cache))
+        f.close()

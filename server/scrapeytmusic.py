@@ -11,17 +11,21 @@ def getSeleniumDriver(headers: dict, firefox_path: str, headless: bool = True):
     options.binary_location = firefox_path
     options.headless = headless
 
-    ret = webdriver.Firefox(options = options, service_log_path = "/dev/null")
+    ret = webdriver.Firefox(options=options, service_log_path="/dev/null")
 
     def interceptor(request):
         for key in headers:
             del request.headers[key]
             request.headers[key] = headers[key]
+
     ret.request_interceptor = interceptor
 
     return ret
 
-def scrapeYTMusicHome(headers: dict, firefox_path: str, rows: int = 5, shouldCancel = lambda : bool(False)) -> list[dict] | None:
+def scrapeYTMusicHome(headers: dict,
+                                            firefox_path: str,
+                                            rows: int = 5,
+                                            shouldCancel=lambda: bool(False)):
     if rows == 0:
         return []
 
@@ -33,12 +37,14 @@ def scrapeYTMusicHome(headers: dict, firefox_path: str, rows: int = 5, shouldCan
 
     def getBrowseItemPlaylistId(browse_id: str):
         driver.get(f"https://music.youtube.com/browse/{browse_id}")
-        WebDriverWait(driver, 10).until(EC.url_contains("https://music.youtube.com/playlist?list="))
+        WebDriverWait(driver, 10).until(
+            EC.url_contains("https://music.youtube.com/playlist?list="))
         ret = driver.current_url
         return ret
 
     def getSectionCount():
-        sections = driver.find_element(value = "contents").find_elements(By.XPATH, "*")
+        sections = driver.find_element(value="contents").find_elements(
+            By.XPATH, "*")
         return len(sections)
 
     prev_height = driver.execute_script("return document.body.scrollHeight")
@@ -57,7 +63,9 @@ def scrapeYTMusicHome(headers: dict, firefox_path: str, rows: int = 5, shouldCan
     soup = BeautifulSoup(driver.page_source, "html.parser")
     ret = []
 
-    for section in soup.find_all("div", class_="style-scope ytmusic-section-list-renderer", id="contents")[0].find_all(recursive=False, limit = rows if rows > 0 else None):
+    for section in soup.find_all(
+            "div", class_="style-scope ytmusic-section-list-renderer",
+            id="contents")[0].find_all(recursive=False, limit=rows if rows > 0 else None):
 
         details = section.find("div", id="details").find("yt-formatted-string", recursive=False)
         details_a = details.find("a")

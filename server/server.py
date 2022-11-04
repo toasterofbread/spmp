@@ -19,10 +19,12 @@ from scrapeytmusic import scrapeYTMusicHome
 from waitress import serve
 import lyrics as Lyrics
 from os import path
+from gh_md_to_html import main as markdown
 
 RECOMMENDED_ROWS = 10
-YT_API_CACHE_LIFETIME = 24 * 60 * 60
-YT_API_CACHE_PATH = path.join(path.dirname(__file__), "ytapicache.json")
+CACHE_LIFETIME = 24 * 60 * 60
+CACHE_PATH = path.join(path.dirname(__file__), "cache.json")
+PAGE_ROOT = path.abspath(path.join(path.dirname(__file__), "pages"))
 
 def getNgrokUrl(headers: dict):
     result = requests.get("https://api.ngrok.com/tunnels", headers=headers)
@@ -62,18 +64,50 @@ class Server:
         self.cached_feed_set = manager.Value("b", False)
         self.exiting = manager.Value("b", False)
 
-        self._yt_api_cache = {}
-        if path.isfile(YT_API_CACHE_PATH):
-            f = open(YT_API_CACHE_PATH, "r")
+        self._cache = {"yt": {}, "lyrics": {}}
+        if path.isfile(CACHE_PATH):
+            f = open(CACHE_PATH, "r")
             try:
-                self._yt_api_cache = json.loads(f.read())
+                self._cache = json.loads(f.read())
             except JSONDecodeError as e:
-                utils.warn(f"Parsing YtApi cache file at {YT_API_CACHE_PATH} failed (ignoring)\n{e.msg}")
+                utils.warn(f"Parsing cache file at {CACHE_PATH} failed (ignoring)\n{e.msg}")
             f.close()
 
         @self.app.route("/")
         def index():
-            return "Hello World!"
+            md = markdown("server/pages/index.md", enable_image_downloading=False, website_root=PAGE_ROOT)
+
+            f = open(path.join(PAGE_ROOT, "github-markdown-css/github-css.css"), "r")
+            css = f.read()
+            f.close()
+          
+            return md.replace(
+              """<link href="/github-markdown-css/github-css.css" rel="stylesheet"/>""", 
+              f"<style>{css}</style>"
+            )
+
+        @self.app.route("/<resource>/")
+        def indexResource(resource: str):
+  
+          resource = path.abspath(path.join(PAGE_ROOT, resource))
+          if not resource.startswith(PAGE_ROOT):
+            utils.err(f"GET | {resource}")
+            abort(403)
+          
+          if not path.isfile(resource):
+            utils.err(f"GET | {resource}")
+            abort(404)
+
+          utils.log(f"GET | {resource}")
+  
+          f = open(resource, "rb")
+          data = f.read()
+          f.close()
+          return data
+
+        @self.app.route("/<resource>/<subresource>/")
+        def indexSubResource(resource: str, subresource: str):
+          return indexResource(path.join(resource, subresource))
 
         @self.app.route("/status/")
         def status():
@@ -85,13 +119,13 @@ class Server:
         @self.requireKey
         def _restart():
             self.restart()
-            return "Restarting..."
+            return 0
 
         @self.app.route("/stop/")
         @self.requireKey
         def _stop():
             self.stop()
-            return "Stopping..."
+            return 0
 
         @self.app.route("/update/")
         @self.requireKey
@@ -148,12 +182,17 @@ class Server:
             if id is None:
                 return error(404, "Query doesn't match any songs")
 
-            lyrics = Lyrics.getLyrics(id)
-            return {
-                "lyrics": lyrics.getWithFurigana(),
+            cached = self.getCache("lyrics", id)
+            if cached is not None:
+              return cached
+
+            lyrics = {
+                "lyrics": Lyrics.getLyrics(id).getWithFurigana(),
                 "source": "PetitLyrics", # TODO
                 "timed": True
             }
+            self.setCache("lyrics", id, lyrics)
+            return lyrics
 
         @self.app.route("/youtubeapi/<endpoint>/")
         @self.requireKey
@@ -162,7 +201,7 @@ class Server:
             params["key"] = self.ytapi_key
             url = f"https://www.googleapis.com/youtube/v3/{endpoint}?" + urlencode(params)
 
-            cached = self.getYtApiCache(url)
+            cached = self.getCache("yt", url)
             if cached is not None:
                 return cached
 
@@ -172,7 +211,7 @@ class Server:
 
             data = json.loads(response.text)
           
-            self.setYtApiCache(url, data)
+            self.setCache("yt", url, data)
             return data
 
     def requireKey(self, func):
@@ -275,23 +314,23 @@ class Server:
             self.restart_queue.put(False)
         utils.log("Stopping...")
 
-    def getYtApiCache(self, url: str):
-        cached = self._yt_api_cache.get(url)
+    def getCache(self, dir: str, id):
+        cached = self._cache[dir].get(id)
         if cached is None:
             return None
 
-        if time() - cached["time"] > YT_API_CACHE_LIFETIME:
-            self._yt_api_cache.pop(url)
-            self.saveYtApiCache()
+        if time() - cached["time"] > CACHE_LIFETIME:
+            self._cache[dir].pop(id)
+            self.saveCache()
             return None
 
         return cached["data"]
 
-    def setYtApiCache(self, url: str, data):
-        self._yt_api_cache[url] = {"data": data, "time": int(time())}
-        self.saveYtApiCache()
+    def setCache(self, dir: str, id, data):
+        self._cache[dir][id] = {"data": data, "time": int(time())}
+        self.saveCache()
 
-    def saveYtApiCache(self):
-        f = open(YT_API_CACHE_PATH, "w")
-        f.write(json.dumps(self._yt_api_cache))
+    def saveCache(self):
+        f = open(CACHE_PATH, "w")
+        f.write(json.dumps(self._cache))
         f.close()

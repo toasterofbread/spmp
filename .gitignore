@@ -14,3 +14,5 @@ app/release/
 */__pycache__/
 server/*.json
 venv/
+server/pages/github-markdown-css/
+server/pages/*.html

@@ -3,7 +3,6 @@ from server import Server
 from os import path
 from spectre7 import utils
 import json
-from json import JSONDecodeError
 
 DEFAULT_CREDENTIALS_PATH = path.join(path.dirname(__file__), "credentials.json")
 DEFAULT_PORT = 3232

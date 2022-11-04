@@ -1,0 +1,12 @@
+psutil
+flask
+selenium
+selenium-wire
+apscheduler
+waitress
+requests
+bs4
+pykakasi
+unicodeblock
+xmltodict
+

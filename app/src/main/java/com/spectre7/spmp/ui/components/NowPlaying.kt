@@ -76,7 +76,7 @@ fun NowPlaying(_expansion: Float, max_height: Float, p_status: PlayerStatus, clo
     }
 
     val systemui_controller = rememberSystemUiController()
-    
+
     var thumbnail by remember { mutableStateOf<ImageBitmap?>(null) }
     var theme_palette by remember { mutableStateOf<Palette?>(null) }
 

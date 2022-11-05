@@ -36,8 +36,8 @@ fun sendToast(text: String) {
     }
 }
 
-fun getString(id: Int): String {
-    return MainActivity.resources.getString(id)
+fun getString(id: Int, context: Context = MainActivity.context): String {
+    return context.resources.getString(id)
 }
 
 @Composable

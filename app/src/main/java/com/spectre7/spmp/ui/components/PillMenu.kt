@@ -46,7 +46,9 @@ fun PillMenu(
     content_colour: Color,
     top: Boolean = false,
     left: Boolean = false,
-    vertical: Boolean = false
+    vertical: Boolean = false,
+    container_modifier: Modifier = Modifier.fillMaxSize(),
+    modifier: Modifier = Modifier
 ) {
 
     val alignment: Alignment
@@ -110,8 +112,7 @@ fun PillMenu(
 
     Box(
         contentAlignment = alignment,
-        modifier = Modifier
-            .fillMaxSize()
+        modifier = container_modifier
             .zIndex(1f)
             .padding(15.dp)
     ) {
@@ -162,14 +163,14 @@ fun PillMenu(
 
             if (vertical) {
                 Column(
-                    Modifier.background(background_colour, shape = CircleShape),
-                    verticalArrangement = if (align_start) Arrangement.Top else Arrangement.Bottom, horizontalAlignment = Alignment.CenterHorizontally
+                    modifier.background(background_colour, shape = CircleShape),
+                    verticalArrangement = Arrangement.SpaceEvenly, horizontalAlignment = Alignment.CenterHorizontally
                 ) { content() }
             }
             else {
                 Row(
-                    Modifier.background(background_colour, shape = CircleShape),
-                    horizontalArrangement = if (align_start) Arrangement.Start else Arrangement.End, verticalAlignment = Alignment.CenterVertically
+                    modifier.background(background_colour, shape = CircleShape),
+                    horizontalArrangement = Arrangement.SpaceEvenly, verticalAlignment = Alignment.CenterVertically
                 ) { content() }
             }
         }

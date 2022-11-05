@@ -169,7 +169,10 @@ data class Song (
 
         fun fromId(song_id: String, callback: (Song) -> Unit) {
             DataApi.getSong(song_id) {
-                callback(it!!)
+                if (it == null) {
+                    throw RuntimeException(song_id)
+                }
+                callback(it)
             }
         }
 

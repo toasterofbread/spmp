@@ -68,7 +68,13 @@ class Lyrics:
                 hira = getKey(term, "hira")
 
                 if orig != hira:
-                    line_data += trimOkurigana(orig, hira)
+                    terms = trimOkurigana(orig, hira)
+                    for i in range(len(terms)):
+                        if len(terms[i]) > 0:
+                            match terms[i][0]:
+                                case "日": terms[i][1] = "ひ"
+                                case "君": terms[i][1] = "きみ"
+                    line_data += terms
                 else:
                     line_data.append([orig])
 

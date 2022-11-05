@@ -10,8 +10,10 @@ import androidx.compose.runtime.Composable
 import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.geometry.Offset
+import androidx.compose.ui.geometry.Rect
+import androidx.compose.ui.geometry.Size
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.layout.SubcomposeLayout
 import androidx.compose.ui.layout.onPlaced
 import androidx.compose.ui.layout.positionInRoot
 import androidx.compose.ui.platform.LocalDensity
@@ -23,12 +25,29 @@ import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.text.style.TextDecoration
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.tooling.preview.Preview
-import androidx.compose.ui.unit.TextUnit
-import androidx.compose.ui.unit.dp
-import androidx.compose.ui.unit.em
+import androidx.compose.ui.unit.*
 
 class TermInfo(val text: String, val data: Any?) {
-    var position: Offset = Offset(0f, 0f)
+    var rect: Rect = Rect(0f, 0f, 0f, 0f)
+}
+
+@Composable
+fun MeasureUnconstrainedView(
+    viewToMeasure: @Composable () -> Unit,
+    content: @Composable (width: Int, height: Int) -> Unit,
+) {
+    SubcomposeLayout { constraints ->
+        val measured = subcompose("viewToMeasure", viewToMeasure)[0]
+            .measure(Constraints())
+
+        val contentPlaceable = subcompose("content") {
+            content(measured.width, measured.height)
+        }[0].measure(constraints)
+
+        layout(contentPlaceable.width, contentPlaceable.height) {
+            contentPlaceable.place(0, 0)
+        }
+    }
 }
 
 @Composable
@@ -61,7 +80,6 @@ fun TextWithReading(
         return buildAnnotatedString {
 
             var child_index = 0
-            var children_length = 0
 
             for (elem in textContent) {
                 val text = elem.text
@@ -91,43 +109,43 @@ fun TextWithReading(
                         val boxHeight = with(LocalDensity.current) { readingFontSize.toDp() }
                         val index = remember { child_index++ }
 
-                        // LaunchedEffect(Unit) {
-                        //     if (text_positions != null) {
-                        //         text_positions[index].index = children_length
-                        //         children_length += text.length
-                        //     }
-                        // }
-
-                        val column_modifier = remember(text_positions == null) {
-                            Modifier.fillMaxHeight().run {
-                                if (text_positions != null) {
-                                    onPlaced { coords ->
-                                        text_positions[index].position = coords.positionInRoot()
-                                    }
-                                }
-                                else {
-                                    this
-                                }
-                            }
-                        }
-
-                        Column(
-                            modifier = column_modifier,
-                            horizontalAlignment = Alignment.CenterHorizontally,
-                            verticalArrangement = Arrangement.Bottom,
-                        ) {
-                            Box(modifier = Modifier.requiredHeight(boxHeight + 3.dp)) {
-                                if (showReadings && reading != null) {
-                                    Text(
-                                        modifier = Modifier.wrapContentWidth(unbounded = true),
-                                        text = reading,
-                                        style = TextStyle.Default.copy(fontSize = readingFontSize),
-                                        color = color
-                                    )
-                                }
-                            }
+                        val textElement = @Composable {
                             Text(text = text, fontSize = _fontSize, color = color)
                         }
+
+                        MeasureUnconstrainedView(textElement) { width: Int, height: Int ->
+                            val column_modifier = remember(text_positions == null) {
+                                Modifier.fillMaxHeight().run {
+                                    if (text_positions != null) {
+                                        onPlaced { coords ->
+                                            text_positions[index].rect = Rect(coords.positionInRoot(), Size(width.toFloat(), height.toFloat()))
+                                        }
+                                    }
+                                    else {
+                                        this
+                                    }
+                                }
+                            }
+
+                            Column(
+                                modifier = column_modifier,
+                                horizontalAlignment = Alignment.CenterHorizontally,
+                                verticalArrangement = Arrangement.Bottom,
+                            ) {
+                                Box(modifier = Modifier.requiredHeight(boxHeight + 3.dp)) {
+                                    if (showReadings && reading != null) {
+                                        Text(
+                                            modifier = Modifier.wrapContentWidth(unbounded = true),
+                                            text = reading,
+                                            style = TextStyle.Default.copy(fontSize = readingFontSize),
+                                            color = color
+                                        )
+                                    }
+                                }
+                                textElement()
+                            }
+                        }
+
                     }
                 )
             }

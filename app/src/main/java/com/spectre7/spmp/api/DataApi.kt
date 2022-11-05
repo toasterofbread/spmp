@@ -348,7 +348,7 @@ class DataApi {
         fun getSongLyrics(song: Song, callback: (Song.Lyrics?) -> Unit) {
             thread {
                 val params = mapOf("title" to song.title, "artist" to song.artist.nativeData.name)
-                val result = queryServer("/lyrics", parameters = params)
+                val result = queryServer("/lyrics", parameters = params, max_retries = 15)
 
                 if (result == null) {
                     callback(null)
@@ -500,7 +500,14 @@ class DataApi {
             var request = getRequest(_tunnel)
 
             fun getResult(): Response? {
-                val ret = OkHttpClient.Builder().readTimeout(timeout, TimeUnit.SECONDS).build().newCall(request).execute()
+                val ret: Response
+                try {
+                    ret = OkHttpClient.Builder().readTimeout(timeout, TimeUnit.SECONDS).build().newCall(request).execute()
+                }
+                catch (e: java.net.ConnectException) {
+                    println(e)
+                    return null
+                }
                 if (ret.code == 401) {
                     throw RuntimeException("Server API key is invalid")
                 }
@@ -527,7 +534,7 @@ class DataApi {
                 }
 
                 if (result == null && throw_on_fail) {
-                    throw RuntimeException("Request to server failed\nURL: ${request.url}")
+                    throw RuntimeException("Request to server failed. Request URL: ${request.url}")
                 }
             }
 
@@ -547,25 +554,9 @@ class DataApi {
             }
         }
 
-        fun getRecommendedFeed(): List<RecommendedFeedRow>? {
-            val data = queryServer("/feed", timeout=30)
-            if (data != null) {
-                return klaxon.parseArray(data)
-            }
-            else {
-                // TODO (this is temporary, maybe use radio of recent songs?)
-                // If server fetch fails, use fallback method
-                val songs = listOf(
-                    Pair("XqKbuEDvaf8", "Quick picks"),
-                    Pair("wPS_x6FiBx0", "Listen again"),
-                    Pair("rgNdeflYdYw", "Listen again"),
-                    Pair("KnPUJwZNV8Y", "Listen again"),
-                )
-                return List(songs.size) { song ->
-                    val radio = getSongRadio(songs[song].first)
-                    RecommendedFeedRow(songs[song].second, "(fallback)", List(radio.size) { RecommendedFeedRow.Item("song", radio[it]) })
-                }
-            }
+        fun getRecommendedFeed(): List<RecommendedFeedRow> {
+            val data = queryServer("/feed", timeout=30, throw_on_fail = true)!!
+            return klaxon.parseArray(data)!!
         }
     }
 }

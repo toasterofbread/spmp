@@ -20,6 +20,7 @@ import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.alpha
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.RectangleShape
 import androidx.compose.ui.platform.LocalConfiguration
@@ -27,6 +28,7 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import com.google.android.exoplayer2.ExoPlayer
 import com.google.android.exoplayer2.MediaItem
 import com.google.android.exoplayer2.Player
 import com.spectre7.spmp.MainActivity
@@ -35,15 +37,15 @@ import com.spectre7.spmp.R
 import com.spectre7.spmp.api.DataApi
 import com.spectre7.spmp.model.Previewable
 import com.spectre7.spmp.model.Song
-import com.spectre7.spmp.ui.components.NowPlaying
-import com.spectre7.spmp.ui.components.PillMenu
+import com.spectre7.spmp.ui.component.PillMenu
 import com.spectre7.utils.getContrasted
 import com.spectre7.utils.getString
 import com.spectre7.utils.setAlpha
 import kotlinx.coroutines.delay
-import java.net.UnknownHostException
 import java.util.concurrent.locks.ReentrantLock
 import kotlin.concurrent.thread
+import kotlinx.coroutines.launch
+import kotlinx.coroutines.suspendCancellableCoroutine
 
 fun convertPixelsToDp(px: Int): Float {
     return px.toFloat() / (MainActivity.resources.displayMetrics.densityDpi.toFloat() / DisplayMetrics.DENSITY_DEFAULT)
@@ -66,8 +68,8 @@ class PlayerStatus {
     var index: Int by mutableStateOf(0)
     var queue: MutableList<Song> by mutableStateOf(mutableListOf())
     var playing: Boolean by mutableStateOf(false)
-    var position: Float by mutableStateOf(0.0f)
-    var duration: Float by mutableStateOf(0.0f)
+    var position: Float by mutableStateOf(0f)
+    var duration: Float by mutableStateOf(0f)
     var shuffle: Boolean by mutableStateOf(false)
     var repeat_mode: Int by mutableStateOf(Player.REPEAT_MODE_OFF)
     var has_next: Boolean by mutableStateOf(false)
@@ -139,9 +141,7 @@ fun PlayerView() {
         val refresh_mutex = remember { ReentrantLock() }
         fun refreshFeed() {
 
-            println("REFRESH")
             if (refresh_mutex.isLocked) {
-                println("REFRESH LOCKED")
                 return
             }
 
@@ -217,22 +217,37 @@ fun PlayerView() {
 
                         AnimatedVisibility(expand) {
                             var msg = "Error: ${error.javaClass.simpleName}" +
-                                    "\nMessage: ${error.message}" +
-                                    "\nCause: ${error.cause}" +
-                                    "\nStack trace: ${error.stackTrace}"
-                            Text(
-                                msg,
-                                textAlign = TextAlign.Center,
-                                modifier = Modifier.fillMaxWidth(0.6f),
-                                fontSize = 15.sp
-                            )
+                                    "\n\nMessage: ${error.message}" +
+                                    "\n\nCause: ${error.cause}" +
+                                    "\n\nStack trace: ${error.stackTrace.asList()}"
+                            LazyColumn(Modifier.fillMaxHeight(0.4f)) {
+                                item {
+                                    Text(
+                                        msg,
+                                        textAlign = TextAlign.Left,
+                                        modifier = Modifier.fillMaxWidth(0.9f),
+                                        fontSize = 12.sp
+                                    )
+                                }
+                            }
                         }
                     }
                 }
                 else {
-                    LazyColumn(Modifier.fillMaxSize(), verticalArrangement = Arrangement.spacedBy(20.dp)) {
-                        items(rows.size) { index ->
-                            SongList(rows[index])
+                    Crossfade(rows.isNotEmpty()) { loaded ->
+                        if (loaded) {
+                            LazyColumn(Modifier.fillMaxSize(), verticalArrangement = Arrangement.spacedBy(20.dp)) {
+                                items(rows.size) { index ->
+                                    SongList(rows[index])
+                                }
+                            }
+                        }
+                        else {
+                            Column(Modifier.fillMaxSize(), verticalArrangement = Arrangement.Center, horizontalAlignment = Alignment.CenterHorizontally) {
+                                Text("Loading feed", Modifier.alpha(0.4f), fontSize = 12.sp, color = MainActivity.theme.getOnBackground(false))
+                                Spacer(Modifier.height(5.dp))
+                                LinearProgressIndicator(Modifier.alpha(0.4f).fillMaxWidth(0.35f), color = MainActivity.theme.getOnBackground(false))
+                            }
                         }
                     }
                 }
@@ -259,7 +274,7 @@ fun PlayerView() {
         }
 
         val p_status = remember { PlayerStatus() }.also { status ->
-            PlayerHost.interactService {
+            PlayerHost.service.also {
                 status.playing = it.player.isPlaying
                 status.position = it.player.currentPosition.toFloat() / it.player.duration.toFloat()
                 status.duration = it.player.duration / 1000f
@@ -273,6 +288,7 @@ fun PlayerView() {
                     status.queue.add(song)
                 }
             }
+            PlayerHost.p_status = status
         }
 
         val listener = remember {
@@ -322,24 +338,48 @@ fun PlayerView() {
         }
 
         DisposableEffect(Unit) {
-            PlayerHost.interactService {
-                it.player.addListener(listener)
-                it.addQueueListener(queue_listener)
+            PlayerHost.service.apply {
+                player.addListener(listener)
+                addQueueListener(queue_listener)
             }
+
             onDispose {
-                PlayerHost.interactService {
-                    it.player.removeListener(listener)
-                    it.removeQueueListener(queue_listener)
+                PlayerHost.service.apply {
+                    player.removeListener(listener)
+                    removeQueueListener(queue_listener)
                 }
             }
         }
 
+        var player by remember { mutableStateOf<ExoPlayer?>(null) }
         LaunchedEffect(Unit) {
-            while (true) {
-                PlayerHost.interact {
-                    p_status.position = it.currentPosition.toFloat() / it.duration.toFloat()
+            player = PlayerHost.service.player
+        }
+//
+//        LaunchedEffect(player) {
+//            if (player != null) {
+//                while (true) {
+//                    p_status.position = player!!.currentPosition.toFloat() / player!!.duration.toFloat()
+//                    delay(250)
+//                }
+//            }
+//        }
+
+        LaunchedEffect(Unit) {
+            val poll_job = launch {
+                while (true) {
+                    delay(100)
+                    if (player == null) {
+                        continue
+                    }
+                    p_status.position = player!!.currentPosition.toFloat() / player!!.duration.toFloat()
                 }
-                delay(100)
+            }
+            try {
+                suspendCancellableCoroutine<Nothing> {  }
+            }
+            finally {
+                poll_job.cancel()
             }
         }
 
@@ -372,7 +412,7 @@ fun PlayerView() {
             ) { switch = !switch }, shape = RectangleShape) {
 
             Column(Modifier.fillMaxSize()) {
-                NowPlaying(swipe_state.offset.value / screen_height, screen_height, p_status) { switch = false }
+                NowPlaying(swipe_state.offset.value / screen_height, screen_height) { switch = false }
             }
         }
     }

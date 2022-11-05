@@ -192,7 +192,7 @@ class Server:
                 "timed": True
             }
             self.setCache("lyrics", id, lyrics)
-            return jsonify(cached)
+            return jsonify(lyrics)
 
         @self.app.route("/youtubeapi/<endpoint>/")
         @self.requireKey

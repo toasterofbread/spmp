@@ -1,16 +1,19 @@
 package com.spectre7.spmp
 
 import android.app.*
-import android.content.*
+import android.content.ComponentName
+import android.content.Context
+import android.content.Intent
+import android.content.ServiceConnection
 import android.graphics.Bitmap
 import android.os.Binder
 import android.os.IBinder
+import android.support.v4.media.MediaMetadataCompat
 import android.support.v4.media.session.MediaSessionCompat
+import android.util.Log
+import android.view.KeyEvent
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.toArgb
-import android.view.KeyEvent
-import androidx.core.app.NotificationCompat
-import android.support.v4.media.MediaMetadataCompat
 import androidx.media.session.MediaButtonReceiver
 import com.google.android.exoplayer2.C
 import com.google.android.exoplayer2.ExoPlayer
@@ -19,11 +22,12 @@ import com.google.android.exoplayer2.Player
 import com.google.android.exoplayer2.audio.AudioAttributes
 import com.google.android.exoplayer2.ext.mediasession.MediaSessionConnector
 import com.google.android.exoplayer2.ui.PlayerNotificationManager
+import com.spectre7.spmp.api.DataApi
 import com.spectre7.spmp.model.Song
 import com.spectre7.utils.sendToast
-import com.spectre7.spmp.api.DataApi
-import com.spectre7.utils.getString
 import kotlin.concurrent.thread
+
+enum class SERVICE_INTENT_ACTIONS { STOP, BUTTON_VOLUME }
 
 class PlayerHost(private var context: Context) {
 
@@ -197,18 +201,30 @@ class PlayerHost(private var context: Context) {
 
         override fun onStartCommand(intent: Intent?, flags: Int, startId: Int): Int {
             addNotificationToPlayer()
-
             MediaButtonReceiver.handleIntent(media_session, intent)
 
-            println(intent)
-
-            when (intent?.getIntExtra("action", -1)) {
-                0 -> {
+            val action = intent?.getIntExtra("action", -1)
+            when (action) {
+                -1 -> {}
+                SERVICE_INTENT_ACTIONS.STOP.ordinal -> {
                     stopForeground(true)
                     stopSelf()
 
                     // TODO | Stop service properly
                 }
+                SERVICE_INTENT_ACTIONS.BUTTON_VOLUME.ordinal -> {
+                    val long = intent.getBooleanExtra("long", false)
+                    val key_code = intent.getIntExtra("key_code", -1)
+
+                    println("INTENT RECEIVED $key_code $long")
+
+                    when (key_code) {
+                        KeyEvent.KEYCODE_VOLUME_UP -> {}
+                        KeyEvent.KEYCODE_VOLUME_DOWN -> {}
+                        else -> TODO()
+                    }
+                }
+                else -> throw RuntimeException(action.toString())
             }
 
             return START_NOT_STICKY
@@ -398,7 +414,7 @@ class PlayerHost(private var context: Context) {
                 //             val pendingIntent = PendingIntent.getService(
                 //                 context,
                 //                 1,
-                //                 Intent(context, PlayerService::class.java).putExtra("action", 0),
+                //                 Intent(context, PlayerService::class.java).putExtra("action", SERVICE_INTENT_ACTIONS.STOP),
                 //                 PendingIntent.FLAG_IMMUTABLE
                 //             )
                 //             return mutableMapOf(

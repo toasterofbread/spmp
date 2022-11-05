@@ -80,34 +80,34 @@ class Server:
             f = open(path.join(PAGE_ROOT, "github-markdown-css/github-css.css"), "r")
             css = f.read()
             f.close()
-          
+
             return md.replace(
-              """<link href="/github-markdown-css/github-css.css" rel="stylesheet"/>""", 
-              f"<style>{css}</style>"
+                """<link href="/github-markdown-css/github-css.css" rel="stylesheet"/>""",
+                f"<style>{css}</style>"
             )
 
         @self.app.route("/<resource>/")
         def indexResource(resource: str):
-  
-          resource = path.abspath(path.join(PAGE_ROOT, resource))
-          if not resource.startswith(PAGE_ROOT):
-            utils.err(f"GET | {resource}")
-            abort(403)
-          
-          if not path.isfile(resource):
-            utils.err(f"GET | {resource}")
-            abort(404)
 
-          utils.log(f"GET | {resource}")
-  
-          f = open(resource, "rb")
-          data = f.read()
-          f.close()
-          return data
+            resource = path.abspath(path.join(PAGE_ROOT, resource))
+            if not resource.startswith(PAGE_ROOT):
+                utils.err(f"GET | {resource}")
+                abort(403)
+
+            if not path.isfile(resource):
+                utils.err(f"GET | {resource}")
+                abort(404)
+
+            utils.log(f"GET | {resource}")
+
+            f = open(resource, "rb")
+            data = f.read()
+            f.close()
+            return data
 
         @self.app.route("/<resource>/<subresource>/")
         def indexSubResource(resource: str, subresource: str):
-          return indexResource(path.join(resource, subresource))
+            return indexResource(path.join(resource, subresource))
 
         @self.app.route("/status/")
         def status():
@@ -119,13 +119,13 @@ class Server:
         @self.requireKey
         def _restart():
             self.restart()
-            return 0
+            return jsonify(0)
 
         @self.app.route("/stop/")
         @self.requireKey
         def _stop():
             self.stop()
-            return 0
+            return jsonify(0)
 
         @self.app.route("/update/")
         @self.requireKey
@@ -135,7 +135,7 @@ class Server:
                 return "Already running the latest version"
             subprocess.getoutput("git pull")
             self.restart()
-            return "Updated and restarting"
+            return jsonify("Updated and restarting")
 
         @self.app.route("/feed/")
         @self.requireKey
@@ -143,7 +143,7 @@ class Server:
             if not self.cached_feed_set.get():
                 self.refresh_mutex.acquire()
                 self.refresh_mutex.release()
-            return self.cached_feed.get()
+            return jsonify(self.cached_feed.get())
 
         @self.app.route("/feed/latest/")
         @self.requireKey
@@ -151,7 +151,7 @@ class Server:
             if isMutexLocked(self.refresh_mutex):
                 self.refresh_mutex.acquire()
                 self.refresh_mutex.release()
-            return self.cached_feed.get()
+            return jsonify(self.cached_feed.get())
 
         @self.app.route("/feed/refreshed/")
         @self.requireKey
@@ -162,12 +162,12 @@ class Server:
             self.refresh_mutex.acquire()
             self.refresh_mutex.release()
 
-            return self.cached_feed.get()
+            return jsonify(self.cached_feed.get())
 
         @self.app.route("/feed/refresh/")
         @self.requireKey
         def refreshFeed():
-            return self.refreshFeed()
+            return jsonify(self.refreshFeed())
 
         @self.app.route("/lyrics/")
         @self.requireKey
@@ -184,7 +184,7 @@ class Server:
 
             cached = self.getCache("lyrics", id)
             if cached is not None:
-              return cached
+                return jsonify(cached)
 
             lyrics = {
                 "lyrics": Lyrics.getLyrics(id).getWithFurigana(),
@@ -192,7 +192,7 @@ class Server:
                 "timed": True
             }
             self.setCache("lyrics", id, lyrics)
-            return lyrics
+            return jsonify(cached)
 
         @self.app.route("/youtubeapi/<endpoint>/")
         @self.requireKey
@@ -203,16 +203,16 @@ class Server:
 
             cached = self.getCache("yt", url)
             if cached is not None:
-                return cached
+                return jsonify(cached)
 
             response = requests.get(url)
             if response.status_code != 200:
                 return error(response.status_code, f"{response.reason}\n{response.text}")
 
             data = json.loads(response.text)
-          
+
             self.setCache("yt", url, data)
-            return data
+            return jsonify(data)
 
     def requireKey(self, func):
         @wraps(func)

@@ -1,6 +1,7 @@
 package com.spectre7.spmp.ui.layout
 
 import android.util.DisplayMetrics
+import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.animation.Crossfade
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.gestures.Orientation
@@ -17,25 +18,31 @@ import androidx.compose.material.rememberSwipeableState
 import androidx.compose.material.swipeable
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
+import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.RectangleShape
 import androidx.compose.ui.platform.LocalConfiguration
 import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.google.android.exoplayer2.MediaItem
 import com.google.android.exoplayer2.Player
 import com.spectre7.spmp.MainActivity
 import com.spectre7.spmp.PlayerHost
+import com.spectre7.spmp.R
 import com.spectre7.spmp.api.DataApi
 import com.spectre7.spmp.model.Previewable
 import com.spectre7.spmp.model.Song
 import com.spectre7.spmp.ui.components.NowPlaying
 import com.spectre7.spmp.ui.components.PillMenu
 import com.spectre7.utils.getContrasted
+import com.spectre7.utils.getString
 import com.spectre7.utils.setAlpha
 import kotlinx.coroutines.delay
+import java.net.UnknownHostException
+import java.util.concurrent.locks.ReentrantLock
 import kotlin.concurrent.thread
 
 fun convertPixelsToDp(px: Int): Float {
@@ -129,28 +136,105 @@ fun PlayerView() {
             }
         }
 
-        LaunchedEffect(Unit) {
+        val refresh_mutex = remember { ReentrantLock() }
+        fun refreshFeed() {
+
+            println("REFRESH")
+            if (refresh_mutex.isLocked) {
+                println("REFRESH LOCKED")
+                return
+            }
+
+            MainActivity.network.onRetry()
+
             thread {
-                val feed = DataApi.getRecommendedFeed()!!
-                for (row in feed) {
-                    val entry = Row(row.title, row.subtitle)
-                    for (item in row.items) {
-                        item.getPreviewable {
-                            if (it != null) {
-                                entry.items.add(it)
+                refresh_mutex.lock()
+                try {
+                    rows.clear()
+                    val feed = DataApi.getRecommendedFeed()!!
+                    for (row in feed) {
+                        val entry = Row(row.title, row.subtitle)
+                        for (item in row.items) {
+                            item.getPreviewable {
+                                if (it != null) {
+                                    entry.items.add(it)
+                                }
                             }
                         }
+                        rows.add(entry)
                     }
-                    rows.add(entry)
                 }
+                catch (e: Exception) {
+                    MainActivity.network.onError(e)
+                }
+                refresh_mutex.unlock()
             }
         }
 
-        Column(Modifier.padding(10.dp)) {
+        LaunchedEffect(Unit) {
+            refreshFeed()
+        }
 
-            LazyColumn(Modifier.fillMaxSize(), verticalArrangement = Arrangement.spacedBy(20.dp)) {
-                items(rows.size) { index ->
-                    SongList(rows[index])
+        Column(Modifier.padding(10.dp)) {
+            Crossfade(targetState = MainActivity.network.error) { error ->
+                if (error != null) {
+                    var expand by remember { mutableStateOf(false) }
+                    Column(Modifier.fillMaxSize(), horizontalAlignment = Alignment.CenterHorizontally, verticalArrangement = Arrangement.Center) {
+                        Icon(Icons.Filled.CloudOff, "", Modifier.size(50.dp))
+
+                        PillMenu(
+                            3,
+                            {
+                                when (it) {
+                                    0 -> ActionButton(Icons.Filled.Refresh) {
+                                        if (rows.isEmpty()) {
+                                            refreshFeed()
+                                        }
+                                        else {
+                                            MainActivity.network.onRetry()
+                                        }
+                                    }
+                                    1 -> {
+                                        Text(
+                                            getString(R.string.generic_network_error),
+                                            textAlign = TextAlign.Center,
+                                            fontSize = 15.sp,
+                                            color = MainActivity.theme.getOnAccent(),
+                                            modifier = Modifier.clickable {
+                                                expand = !expand
+                                            }
+                                        )
+                                    }
+                                    2 -> ActionButton(Icons.Filled.Info) { expand = !expand }
+                                }
+                            },
+                            null,
+                            MainActivity.theme.getAccent(),
+                            MainActivity.theme.getOnAccent(),
+                            container_modifier = Modifier,
+                            modifier = Modifier.weight(1f)
+                        )
+
+                        AnimatedVisibility(expand) {
+                            var msg = "Error: ${error.javaClass.simpleName}" +
+                                    "\nMessage: ${error.message}" +
+                                    "\nCause: ${error.cause}" +
+                                    "\nStack trace: ${error.stackTrace}"
+                            Text(
+                                msg,
+                                textAlign = TextAlign.Center,
+                                modifier = Modifier.fillMaxWidth(0.6f),
+                                fontSize = 15.sp
+                            )
+                        }
+                    }
+                }
+                else {
+                    LazyColumn(Modifier.fillMaxSize(), verticalArrangement = Arrangement.spacedBy(20.dp)) {
+                        items(rows.size) { index ->
+                            SongList(rows[index])
+                        }
+                    }
                 }
             }
         }
@@ -174,19 +258,19 @@ fun PlayerView() {
             }
         }
 
-        val p_status by remember { mutableStateOf(PlayerStatus()) }.also { status ->
+        val p_status = remember { PlayerStatus() }.also { status ->
             PlayerHost.interactService {
-                status.value.playing = it.player.isPlaying
-                status.value.position = it.player.currentPosition.toFloat() / it.player.duration.toFloat()
-                status.value.duration = it.player.duration / 1000f
-                status.value.song = it.player.currentMediaItem?.localConfiguration?.tag as Song?
-                status.value.index = it.player.currentMediaItemIndex
-                status.value.shuffle = it.player.shuffleModeEnabled
-                status.value.repeat_mode = it.player.repeatMode
-                status.value.has_next = it.player.hasNextMediaItem()
-                status.value.has_previous = it.player.hasPreviousMediaItem()
+                status.playing = it.player.isPlaying
+                status.position = it.player.currentPosition.toFloat() / it.player.duration.toFloat()
+                status.duration = it.player.duration / 1000f
+                status.song = it.player.currentMediaItem?.localConfiguration?.tag as Song?
+                status.index = it.player.currentMediaItemIndex
+                status.shuffle = it.player.shuffleModeEnabled
+                status.repeat_mode = it.player.repeatMode
+                status.has_next = it.player.hasNextMediaItem()
+                status.has_previous = it.player.hasPreviousMediaItem()
                 it.iterateSongs { _, song ->
-                    status.value.queue.add(song)
+                    status.queue.add(song)
                 }
             }
         }
@@ -281,7 +365,11 @@ fun PlayerView() {
                 orientation = Orientation.Vertical,
                 reverseDirection = true
             )
-            .clickable(interactionSource = remember { MutableInteractionSource() }, enabled = swipe_state.targetValue == 0, indication = null) { switch = !switch }, shape = RectangleShape) {
+            .clickable(
+                interactionSource = remember { MutableInteractionSource() },
+                enabled = swipe_state.targetValue == 0,
+                indication = null
+            ) { switch = !switch }, shape = RectangleShape) {
 
             Column(Modifier.fillMaxSize()) {
                 NowPlaying(swipe_state.offset.value / screen_height, screen_height, p_status) { switch = false }

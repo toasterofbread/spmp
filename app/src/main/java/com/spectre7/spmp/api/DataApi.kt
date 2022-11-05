@@ -3,6 +3,8 @@ package com.spectre7.spmp.api
 import com.beust.klaxon.JsonObject
 import com.beust.klaxon.Klaxon
 import com.beust.klaxon.Parser
+import com.chaquo.python.PyException
+import com.chaquo.python.PyObject
 import com.chaquo.python.Python
 import com.spectre7.ptl.Ptl
 import com.spectre7.spmp.MainActivity
@@ -16,10 +18,6 @@ import kotlinx.coroutines.sync.withLock
 import okhttp3.*
 import okhttp3.MediaType.Companion.toMediaType
 import okhttp3.RequestBody.Companion.toRequestBody
-import java.io.BufferedReader
-import java.io.InputStreamReader
-import java.net.HttpURLConnection
-import java.net.URL
 import java.net.URLEncoder
 import java.time.Instant
 import java.util.*
@@ -27,8 +25,13 @@ import java.util.concurrent.TimeUnit
 import java.util.zip.GZIPInputStream
 import kotlin.concurrent.thread
 
-
 class DataApi {
+
+    init {
+        MainActivity.network.addRetryCallback {
+            updateSongRequests()
+        }
+    }
 
     private class VideoInfoResponse(val items: List<VideoItem>) {
         class VideoItem(
@@ -67,9 +70,23 @@ class DataApi {
 
     companion object {
 
+        private var _ytapi: PyObject? = null
+        private val ytapi: PyObject?
+            get() {
+                if (_ytapi != null) {
+                    return _ytapi
+                }
+
+                try {
+                    _ytapi = Python.getInstance().getModule("ytmusicapi").callAttr("YTMusic").apply { callAttr("setup", null, getString(R.string.yt_music_creds)) }
+                }
+                catch (_: PyException) {}
+
+                return _ytapi
+            }
+
         private val klaxon: Klaxon = Klaxon()
         private val ptl = Ptl()
-        private val api = Python.getInstance().getModule("ytmusicapi").callAttr("YTMusic").apply { callAttr("setup", null, getString(R.string.yt_music_creds)) }
         private var ngrok_tunnel: NgrokTunnelListResponse.Tunnel? = null
 
         private val song_request_queue = mutableListOf<Pair<String, MutableList<(Song?) -> Unit>>>()
@@ -142,16 +159,21 @@ class DataApi {
                         thread {
                             var ret: Song? = null
 
-                            val result = queryServer("/youtubeapi/videos", mapOf(
-                                "part" to "contentDetails,snippet,localizations",
-                                "id" to song_request.first
-                            ))
-
-                            if (result != null) {
+                            try {
+                                val result = queryServer("/youtubeapi/videos", mapOf(
+                                    "part" to "contentDetails,snippet,localizations",
+                                    "id" to song_request.first
+                                ), throw_on_fail = true)!!
                                 val video = klaxon.parse<VideoInfoResponse>(result)?.getVideo()
                                 if (video != null) {
                                     ret = Song(song_request.first, SongData("", video.snippet.title, video.snippet.description), getArtist(video.snippet.channelId)!!, Date.from(Instant.parse(video.snippet.publishedAt)), java.time.Duration.parse(video.contentDetails.duration))
                                 }
+                            }
+                            catch (e: Exception) {
+                                MainActivity.network.onError(e)
+                                song_request_queue.add(song_request)
+                                song_request_count--
+                                return@thread
                             }
 
                             for (callback in song_request.second) {
@@ -308,7 +330,7 @@ class DataApi {
 
         fun getSongYTLyricsId(song: Song): String? {
             fun getLyricsId(video_id: String?): String? {
-                val lyrics = api.callAttr("get_watch_playlist", video_id, null, 1).callAttr("get", "lyrics")
+                val lyrics = ytapi?.callAttr("get_watch_playlist", video_id, null, 1)?.callAttr("get", "lyrics")
                 if (lyrics != null) {
                     return lyrics.toString()
                 }
@@ -338,7 +360,10 @@ class DataApi {
         }
 
         fun getSongCounterpartId(song: Song): String? {
-            val counterpart = api.callAttr("get_watch_playlist", song.getId(), null, 1).callAttr("get", "tracks").asList().first().callAttr("get", "conuterpart")
+            if (ytapi == null) {
+                return null
+            }
+            val counterpart = ytapi!!.callAttr("get_watch_playlist", song.getId(), null, 1).callAttr("get", "tracks").asList().first().callAttr("get", "conuterpart")
             if (counterpart == null) {
                 return null
             }
@@ -346,7 +371,10 @@ class DataApi {
         }
 
         fun getArtistCounterpartId(artist: Artist): String? {
-            val results = api.callAttr("search", artist.nativeData.name, "artists", null, 1, true).asList()
+            if (ytapi == null) {
+                return null
+            }
+            val results = ytapi!!.callAttr("search", artist.nativeData.name, "artists", null, 1, true).asList()
             return results.first().callAttr("get", "browseId").toString()
         }
 
@@ -452,9 +480,12 @@ class DataApi {
             return ngrok_tunnel
         }
 
-        fun queryServer(endpoint: String, parameters: Map<String, String> = mapOf(), tunnel: NgrokTunnelListResponse.Tunnel? = null, max_retries: Int = 5, timeout: Long = 10): String? {
+        fun queryServer(endpoint: String, parameters: Map<String, String> = mapOf(), throw_on_fail: Boolean = false, tunnel: NgrokTunnelListResponse.Tunnel? = null, max_retries: Int = 5, timeout: Long = 10): String? {
             var _tunnel = tunnel ?: getNgrokTunnel()
             if (_tunnel == null) {
+                if (throw_on_fail) {
+                    throw RuntimeException("Failed to get Ngrok tunnel. Is the server running?")
+                }
                 return null
             }
 
@@ -493,6 +524,10 @@ class DataApi {
                     if (result != null || _tunnel == null) {
                         break
                     }
+                }
+
+                if (result == null && throw_on_fail) {
+                    throw RuntimeException("Request to server failed\nURL: ${request.url}")
                 }
             }
 

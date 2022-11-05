@@ -10,12 +10,9 @@ import androidx.compose.ui.graphics.toArgb
 import androidx.core.content.edit
 import com.beust.klaxon.Json
 import com.beust.klaxon.Klaxon
-import com.spectre7.ptl.Ptl
 import com.spectre7.spmp.MainActivity
-import com.spectre7.spmp.R
 import com.spectre7.spmp.api.DataApi
-import com.spectre7.spmp.ui.components.SongPreview
-import com.spectre7.utils.getString
+import com.spectre7.spmp.ui.component.SongPreview
 import java.io.FileNotFoundException
 import java.net.URL
 import java.time.Duration

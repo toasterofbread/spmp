@@ -1,4 +1,4 @@
-package com.spectre7.spmp.ui.components
+package com.spectre7.spmp.ui.component
 
 import androidx.compose.animation.core.Animatable
 import androidx.compose.animation.core.FastOutSlowInEasing

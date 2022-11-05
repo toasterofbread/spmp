@@ -1,11 +1,10 @@
-package com.spectre7.spmp.ui.components
+package com.spectre7.spmp.ui.layout
 
 import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.animation.Crossfade
 import androidx.compose.animation.fadeIn
 import androidx.compose.animation.fadeOut
 import androidx.compose.foundation.Canvas
-import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.interaction.MutableInteractionSource
 import androidx.compose.foundation.layout.*
@@ -14,12 +13,14 @@ import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Close
 import androidx.compose.material.icons.filled.Info
 import androidx.compose.material.ripple.rememberRipple
-import androidx.compose.material3.*
+import androidx.compose.material3.LinearProgressIndicator
+import androidx.compose.material3.Text
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.geometry.Rect
+import androidx.compose.ui.geometry.Size
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
@@ -27,39 +28,27 @@ import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.compose.ui.zIndex
-import com.chaquo.python.PyObject
-import com.chaquo.python.Python
-import com.spectre7.ptl.Ptl
 import com.spectre7.spmp.MainActivity
+import com.spectre7.spmp.PlayerHost
 import com.spectre7.spmp.R
 import com.spectre7.spmp.model.Song
-import com.spectre7.spmp.ui.layout.PlayerStatus
+import com.spectre7.spmp.ui.component.PillMenu
 import com.spectre7.utils.getString
-import com.spectre7.utils.hasKanjiAndHiragana
-import com.spectre7.utils.isKanji
 import com.spectre7.utils.sendToast
 import net.zerotask.libraries.android.compose.furigana.TermInfo
 import net.zerotask.libraries.android.compose.furigana.TextData
 import net.zerotask.libraries.android.compose.furigana.TextWithReading
-import kotlin.concurrent.thread
 
 @Composable
-fun LyricsDisplay(song: Song, on_close_request: () -> Unit, p_status: PlayerStatus, size: Dp, open_shutter_menu: (@Composable () -> Unit) -> Unit) {
+fun LyricsDisplay(song: Song, on_close_request: () -> Unit, size: Dp, open_shutter_menu: (@Composable () -> Unit) -> Unit) {
 
     var lyrics: Song.Lyrics? by remember { mutableStateOf(null) }
     var show_furigana: Boolean by remember { mutableStateOf(false) }
 
-    var t_first_word: Ptl.TimedLyrics.Word? by remember { mutableStateOf(null) }
-
-    var t_word_start by remember { mutableStateOf(-1) }
-    var t_word_end by remember { mutableStateOf(-1) }
     val text_positions = remember { mutableStateListOf<TermInfo>() }
-    val overlay_terms: MutableList<TermInfo> = remember { mutableStateListOf() }
 
     LaunchedEffect(song.getId()) {
         lyrics = null
-        t_first_word = null
-        overlay_terms.clear()
         song.getLyrics {
             if (it == null) {
                 sendToast(getString(R.string.lyrics_unavailable))
@@ -67,70 +56,6 @@ fun LyricsDisplay(song: Song, on_close_request: () -> Unit, p_status: PlayerStat
             }
             else {
                 lyrics = it
-//                if (lyrics is Song.PTLyrics && (lyrics as Song.PTLyrics).getTimed() != null) {
-//                    t_first_word = (lyrics as Song.PTLyrics).getTimed()!!.first_word
-//                }
-            }
-        }
-    }
-
-    LaunchedEffect(p_status.position) {
-        return@LaunchedEffect
-        if (t_first_word != null) {
-
-            thread {
-                val pos = (p_status.duration * p_status.position) + 0.15
-
-                var word = t_first_word
-
-                var start = -1
-                var end = -1
-
-                while(true) {
-                    if (pos >= word!!.start_time && pos < word.end_time) {
-                        if (start == -1) {
-                            if (t_word_start == word.index) {
-                                break
-                            }
-                            start = word.index
-                        }
-                    }
-                    else if (start != -1) {
-                        end = word.index - 1
-                        break
-                    }
-
-                    if (word.next_word == null) {
-                        if (start != -1) {
-                            end = word.index
-                        }
-                        break
-                    }
-
-                    word = word.next_word
-                }
-
-                if ((start != t_word_start || end != t_word_end) && start != -1 && end != -1) {
-                    t_word_start = start
-                    t_word_end = end
-
-                    overlay_terms.clear()
-                    for (term in text_positions) {
-                        val word = term.data as Ptl.TimedLyrics.Word?
-                        if (word == null) {
-                            break
-                        }
-
-                        if (word.index >= t_word_start && word.index <= t_word_end) {
-                            if (term.text.trim().length > 0) {
-                                overlay_terms.add(term)
-                            }
-                        }
-                        else if (word.index > t_word_end) {
-                            break
-                        }
-                    }
-                }
             }
         }
     }
@@ -169,10 +94,10 @@ fun LyricsDisplay(song: Song, on_close_request: () -> Unit, p_status: PlayerStat
                     }
                 }
             },
-            null,
+            remember { mutableStateOf(false) },
             MainActivity.theme.getAccent(),
             MainActivity.theme.getOnAccent(),
-            vertical = true, top = true
+            vertical = true
         )
     }
 
@@ -191,12 +116,7 @@ fun LyricsDisplay(song: Song, on_close_request: () -> Unit, p_status: PlayerStat
                             }
                         }
                         else {
-                            val offset = Offset(-75f, -150f)
-                            Canvas(modifier = Modifier.fillMaxSize()) {
-                                for (term in overlay_terms) {
-                                    drawRect(Color.Red, term.position + offset, Rect(0f, 0f, 50f, 50f).size)
-                                }
-                            }
+                            TimingOverlay(it, text_positions, song.getId())
                             Column {
                                 val terms = mutableListOf<TextData>()
                                 for (line in it.lyrics) {
@@ -225,41 +145,6 @@ fun LyricsDisplay(song: Song, on_close_request: () -> Unit, p_status: PlayerStat
     }
 }
 
-fun trimOkurigana(original: String, furigana: String): List<Pair<String, String?>> {
-    if (original.hasKanjiAndHiragana()) {
-        var trim_amount: Int = 0
-        for (i in 1 until furigana.length + 1) {
-            if (original[original.length - i].isKanji() || original[original.length - i] != furigana[furigana.length - i]) {
-                trim_amount = i - 1
-                break
-            }
-        }
-
-        if (trim_amount != 0) {
-            return listOf(
-                Pair(original.slice(0 until original.length - trim_amount), furigana.slice(0 until furigana.length - trim_amount)),
-                Pair(original.slice(original.length - trim_amount until original.length), null)
-            )
-        }
-    }
-
-    return listOf(
-        Pair(original, furigana)
-    )
-}
-
-val kakasi = Python.getInstance().getModule("pykakasi").callAttr("Kakasi")
-fun getFuriganaTerms(text: String): List<Triple<String, String, String>> {
-    val ret = mutableListOf<Triple<String, String, String>>()
-    fun getKey(term: PyObject, key: String): String {
-        return term.callAttr("get", key).toString().replace("\\n", "\n").replace("\\r", "\r")
-    }
-    for (term in kakasi.callAttr("convert", text.replace("\n", "\\n").replace("\r", "\\r")).asList()) {
-        ret.add(Triple(getKey(term, "orig"), getKey(term, "hira"), getKey(term, "kana")))
-    }
-    return ret
-}
-
 @Composable
 fun FuriganaText(terms: List<TextData>, show_furigana: Boolean, text_positions: MutableList<TermInfo>? = null) {
     Crossfade(targetState = show_furigana) {
@@ -273,5 +158,42 @@ fun FuriganaText(terms: List<TextData>, show_furigana: Boolean, text_positions: 
             modifier = Modifier.padding(20.dp),
             text_positions = text_positions
         )
+    }
+}
+
+@Composable
+fun TimingOverlay(lyrics: Song.Lyrics, text_positions: List<TermInfo>, reset_state: Any) {
+    val overlay_terms: MutableList<TermInfo> = remember { mutableStateListOf() }
+
+    Canvas(modifier = Modifier.fillMaxSize()) {
+        for (term in overlay_terms) {
+            drawRect(Color.Red, term.rect.topLeft + Offset(-80f, -160f), term.rect.size)
+        }
+    }
+
+    LaunchedEffect(reset_state) {
+        overlay_terms.clear()
+    }
+
+    val p_status = PlayerHost.p_status
+    LaunchedEffect(p_status.position) {
+        val pos = (p_status.duration * p_status.position)
+
+        val lines = lyrics.lyrics
+        var term_index = 0
+
+        overlay_terms.clear()
+        for (i in lines.indices) {
+            val line = lines[i]
+            for (j in line.indices) {
+                val term = line[j]
+                for (subterm in term.subterms) {
+                    if (pos >= term.start && pos < term.end) {
+                        overlay_terms.add(text_positions[term_index])
+                    }
+                    term_index++
+                }
+            }
+        }
     }
 }

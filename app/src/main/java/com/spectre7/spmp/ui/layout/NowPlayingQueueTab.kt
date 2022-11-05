@@ -1,14 +1,9 @@
-package com.spectre7.spmp.ui.components
+package com.spectre7.spmp.ui.layout
 
-import androidx.compose.animation.core.Animatable
-import androidx.compose.animation.core.calculateTargetValue
-import androidx.compose.animation.splineBasedDecay
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.gestures.Orientation
-import androidx.compose.foundation.gestures.awaitFirstDown
-import androidx.compose.foundation.gestures.horizontalDrag
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.shape.RoundedCornerShape
@@ -27,10 +22,6 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.ColorFilter
 import androidx.compose.ui.graphics.vector.rememberVectorPainter
-import androidx.compose.ui.input.pointer.consumePositionChange
-import androidx.compose.ui.input.pointer.pointerInput
-import androidx.compose.ui.input.pointer.positionChange
-import androidx.compose.ui.input.pointer.util.VelocityTracker
 import androidx.compose.ui.platform.LocalConfiguration
 import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.unit.IntOffset
@@ -38,7 +29,6 @@ import androidx.compose.ui.unit.dp
 import com.google.android.exoplayer2.C
 import com.spectre7.spmp.PlayerHost
 import com.spectre7.spmp.model.Song
-import com.spectre7.spmp.ui.layout.PlayerStatus
 import com.spectre7.utils.getContrasted
 import com.spectre7.utils.vibrate
 import org.burnoutcrew.reorderable.ReorderableItem
@@ -83,9 +73,7 @@ fun QueueTab(p_status: PlayerStatus, on_background_colour: Color) {
                         Modifier
                             .weight(1f)
                             .clickable {
-                                PlayerHost.interact {
-                                    it.seekTo(index, C.TIME_UNSET)
-                                }
+                                PlayerHost.player.seekTo(index, C.TIME_UNSET)
                             }
                             .swipeable(
                                 swipe_state,
@@ -146,13 +134,9 @@ fun QueueTab(p_status: PlayerStatus, on_background_colour: Color) {
     // }
 
     DisposableEffect(Unit) {
-        PlayerHost.interactService {
-            it.addQueueListener(queue_listener)
-        }
+        PlayerHost.service.addQueueListener(queue_listener)
         onDispose {
-            PlayerHost.interactService {
-                it.removeQueueListener(queue_listener)
-            }
+            PlayerHost.service.removeQueueListener(queue_listener)
         }
     }
 
@@ -164,9 +148,7 @@ fun QueueTab(p_status: PlayerStatus, on_background_colour: Color) {
         },
         onDragEnd = { from, to ->
             if (from != to) {
-                PlayerHost.interact {
-                    it.moveMediaItem(from, to)
-                }
+                PlayerHost.player.moveMediaItem(from, to)
                 playing_key = null
             }
         }
@@ -193,9 +175,7 @@ fun QueueTab(p_status: PlayerStatus, on_background_colour: Color) {
                     song_items = song_items.toMutableList().apply {
                         removeAt(index)
                     }
-                    PlayerHost.interactService {
-                        it.removeFromQueue(index)
-                    }
+                    PlayerHost.service.removeFromQueue(index)
                 }
             }
         }
@@ -204,9 +184,7 @@ fun QueueTab(p_status: PlayerStatus, on_background_colour: Color) {
     Row(modifier = Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.SpaceEvenly, verticalAlignment = Alignment.CenterVertically) {
         Button(
             onClick = {
-                PlayerHost.interactService {
-                    it.clearQueue()
-                }
+                PlayerHost.service.clearQueue()
             },
             colors = ButtonDefaults.buttonColors(
                 containerColor = Color.Transparent
@@ -220,9 +198,8 @@ fun QueueTab(p_status: PlayerStatus, on_background_colour: Color) {
 
         Button(
             onClick = {
-                PlayerHost.interactService {
-                    // TODO
-                }
+                // TODO
+//                PlayerHost.service.
             },
             colors = ButtonDefaults.buttonColors(
                 containerColor = Color.Transparent

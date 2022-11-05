@@ -4,8 +4,7 @@ import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import com.spectre7.spmp.api.DataApi
-import com.spectre7.spmp.ui.components.ArtistPreview
-import com.spectre7.spmp.MainActivity
+import com.spectre7.spmp.ui.component.ArtistPreview
 import java.util.*
 
 data class ArtistData (

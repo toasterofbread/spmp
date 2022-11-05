@@ -1,4 +1,4 @@
-package com.spectre7.spmp.ui.components
+package com.spectre7.spmp.ui.component
 
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.clickable
@@ -8,7 +8,6 @@ import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.PlayArrow
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
-import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import com.spectre7.spmp.model.Song
 import androidx.compose.runtime.Composable
@@ -20,7 +19,6 @@ import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.unit.*
 import coil.compose.rememberAsyncImagePainter
-import com.spectre7.spmp.MainActivity
 import com.spectre7.spmp.PlayerHost
 
 @Composable
@@ -29,10 +27,7 @@ fun SongPreview (song: Song, large: Boolean, colour: Color, modifier: Modifier =
     if (large) {
         Column(
             modifier = modifier.padding(10.dp, 0.dp).clickable {
-                PlayerHost.interactService {
-                    it.playSong(song)
-                    // it.addToQueue(song)
-                }
+                PlayerHost.service.playSong(song)
             }
         ) {
 
@@ -88,10 +83,8 @@ fun SongPreview (song: Song, large: Boolean, colour: Color, modifier: Modifier =
 
             if (!basic) {
                 IconButton(onClick = {
-                    PlayerHost.interactService {
-                        it.addToQueue(song) {
-                            it.play()
-                        }
+                    PlayerHost.service.addToQueue(song) {
+                        PlayerHost.service.play()
                     }
                 }, modifier = Modifier.fillMaxWidth()) {
                     Icon(Icons.Filled.PlayArrow, null, Modifier, colour)

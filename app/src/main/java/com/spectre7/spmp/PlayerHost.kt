@@ -10,8 +10,10 @@ import android.os.Binder
 import android.os.IBinder
 import android.support.v4.media.MediaMetadataCompat
 import android.support.v4.media.session.MediaSessionCompat
-import android.util.Log
 import android.view.KeyEvent
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.toArgb
 import androidx.media.session.MediaButtonReceiver
@@ -24,45 +26,41 @@ import com.google.android.exoplayer2.ext.mediasession.MediaSessionConnector
 import com.google.android.exoplayer2.ui.PlayerNotificationManager
 import com.spectre7.spmp.api.DataApi
 import com.spectre7.spmp.model.Song
+import com.spectre7.spmp.ui.layout.PlayerStatus
 import com.spectre7.utils.sendToast
 import kotlin.concurrent.thread
 
 enum class SERVICE_INTENT_ACTIONS { STOP, BUTTON_VOLUME }
 
-class PlayerHost(private var context: Context) {
+class PlayerHost {
 
-    private var service: PlayerService? = null
-    private var service_bound: Boolean = false
+    private lateinit var service: PlayerService
+    private var service_connected by mutableStateOf(false)
+
     private var service_connection: ServiceConnection? = null
     private var service_intent: Intent? = null
+    private val context: Context
+        get() = MainActivity.context
 
     init {
-        PlayerHost.instance = this
+        instance = this
+        getService()
     }
 
     companion object {
         private lateinit var instance: PlayerHost
-        private val service: PlayerService?
+
+        lateinit var p_status: PlayerStatus
+
+        val service: PlayerService
             get() = instance.service
+        val player: ExoPlayer
+            get() = service.player
+        val service_connected: Boolean
+            get() = instance.service_connected
 
         fun release() {
             instance.release()
-        }
-
-        fun interact(action: (player: ExoPlayer) -> Unit) {
-            interactService {
-                action(it.player)
-            }
-        }
-        fun interactService(action: (service: PlayerService) -> Unit) {
-            if (service == null) {
-                instance.getService {
-                    action(service!!)
-                }
-            }
-            else {
-                action(service!!)
-            }
         }
     }
 
@@ -79,17 +77,20 @@ class PlayerHost(private var context: Context) {
             context.startForegroundService(service_intent)
         }
 
+        println("binding service")
+
         context.bindService(service_intent,
             object : ServiceConnection {
 
                 override fun onServiceConnected(className: ComponentName, binder: IBinder) {
+                    println("service connected")
                     service = (binder as PlayerService.PlayerBinder).getService()
-                    service_bound = true
+                    service_connected = true
                     on_connected?.invoke()
                 }
 
                 override fun onServiceDisconnected(arg0: ComponentName) {
-                    service_bound = false
+                    service_connected = false
                 }
 
             }, 0)

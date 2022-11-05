@@ -33,7 +33,7 @@ class MainActivity : ComponentActivity() {
             Python.start(AndroidPlatform(this))
         }
 
-        PlayerHost(this)
+        PlayerHost()
 
         window.setFlags(
             WindowManager.LayoutParams.FLAG_LAYOUT_NO_LIMITS,
@@ -45,7 +45,9 @@ class MainActivity : ComponentActivity() {
                 theme = Theme.default()
 
                 Surface(modifier = Modifier.fillMaxSize()) {
-                    PlayerView()
+                    if (PlayerHost.service_connected) {
+                        PlayerView()
+                    }
                 }
             }
         }

@@ -94,8 +94,4 @@ fun PrefsPage(setOverlayPage: (page: OverlayPage) -> Unit) {
             }
         }
     }
-
-    PlayerHost.interact {
-        it.volume = it.volume * 0.95f
-    }
 }

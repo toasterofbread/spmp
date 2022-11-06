@@ -7,9 +7,11 @@ import androidx.compose.material3.LocalTextStyle
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.geometry.Rect
 import androidx.compose.ui.geometry.Size
 import androidx.compose.ui.graphics.Color
@@ -28,7 +30,7 @@ import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.*
 
 class TermInfo(val text: String, val data: Any?) {
-    var rect: Rect = Rect(0f, 0f, 0f, 0f)
+    var rect: Rect = Rect.Zero
 }
 
 @Composable
@@ -85,8 +87,6 @@ fun TextWithReading(
                 val text = elem.text
                 val reading = elem.reading
 
-                text_positions?.add(TermInfo(text, elem.data))
-
                 // // If there is not reading available, simply add the text and move to the next element.
                 // if (reading == null && modifier_provider == null) {
                 //     append(text)
@@ -113,12 +113,22 @@ fun TextWithReading(
                             Text(text = text, fontSize = _fontSize, color = color)
                         }
 
-                        MeasureUnconstrainedView(textElement) { width: Int, height: Int ->
+                        MeasureUnconstrainedView({
+                            Column(
+                                modifier = Modifier.fillMaxHeight(),
+                                horizontalAlignment = Alignment.CenterHorizontally,
+                                verticalArrangement = Arrangement.Bottom,
+                            ) {
+                                textElement()
+                            }
+                        }) { width: Int, _height: Int ->
                             val column_modifier = remember(text_positions == null) {
                                 Modifier.fillMaxHeight().run {
                                     if (text_positions != null) {
                                         onPlaced { coords ->
-                                            text_positions[index].rect = Rect(coords.positionInRoot(), Size(width.toFloat(), height.toFloat()))
+                                            if (text_positions[index].rect.isEmpty) {
+                                                text_positions[index].rect = Rect(coords.positionInRoot() - Offset(115f, 165f), Size(width.toFloat(), 70f))
+                                            }
                                         }
                                     }
                                     else {
@@ -153,6 +163,9 @@ fun TextWithReading(
     }
 
     val dataWithReadings = remember(textContent, style) {
+        for (elem in textContent) {
+            text_positions?.add(TermInfo(elem.text, elem.data))
+        }
         calculateAnnotatedString(true)
     }
 

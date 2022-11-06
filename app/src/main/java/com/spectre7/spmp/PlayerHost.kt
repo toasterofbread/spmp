@@ -7,6 +7,7 @@ import android.content.Intent
 import android.content.ServiceConnection
 import android.graphics.Bitmap
 import android.os.Binder
+import android.os.Build
 import android.os.IBinder
 import android.support.v4.media.MediaMetadataCompat
 import android.support.v4.media.session.MediaSessionCompat
@@ -77,13 +78,10 @@ class PlayerHost {
             context.startForegroundService(service_intent)
         }
 
-        println("binding service")
-
         context.bindService(service_intent,
             object : ServiceConnection {
 
                 override fun onServiceConnected(className: ComponentName, binder: IBinder) {
-                    println("service connected")
                     service = (binder as PlayerService.PlayerBinder).getService()
                     service_connected = true
                     on_connected?.invoke()
@@ -364,9 +362,14 @@ class PlayerHost {
 
                         override fun getCurrentLargeIcon(player: Player, callback: PlayerNotificationManager.BitmapCallback): Bitmap? {
                             fun getCroppedThumbnail(image: Bitmap): Bitmap {
-                                metadata_builder.putBitmap(MediaMetadataCompat.METADATA_KEY_ALBUM_ART, image)
-                                media_session!!.setMetadata(metadata_builder.build())
-                                return image
+                                if (Build.VERSION.SDK_INT >= 33) {
+                                    metadata_builder.putBitmap(MediaMetadataCompat.METADATA_KEY_ALBUM_ART, image)
+                                    media_session!!.setMetadata(metadata_builder.build())
+                                    return image
+                                }
+                                else {
+                                    return Bitmap.createBitmap(image, (image.width - image.height) / 2, 0, image.height, image.height)
+                                }
                             }
 
                             try {

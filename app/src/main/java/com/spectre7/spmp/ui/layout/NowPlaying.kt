@@ -200,6 +200,7 @@ fun NowPlaying(_expansion: Float, max_height: Float, close: () -> Unit) {
     val screen_width_dp = LocalConfiguration.current.screenWidthDp.dp
     val screen_width_px = with(LocalDensity.current) { screen_width_dp.roundToPx() }
     val main_padding_px = with(LocalDensity.current) { main_padding.roundToPx() }
+    var seek_state by remember { mutableStateOf(-1f) }
 
     Box(Modifier.padding(main_padding)) {
 
@@ -349,7 +350,7 @@ fun NowPlaying(_expansion: Float, max_height: Float, close: () -> Unit) {
                                                 }
                                             NowPlayingOverlayMenu.LYRICS ->
                                                 if (p_status.song != null) {
-                                                    LyricsDisplay(p_status.song!!, { overlay_menu = NowPlayingOverlayMenu.NONE }, (screen_width_dp - (main_padding * 2) - (15.dp * expansion * 2)).value * 0.9.dp) {
+                                                    LyricsDisplay(p_status.song!!, { overlay_menu = NowPlayingOverlayMenu.NONE }, (screen_width_dp - (main_padding * 2) - (15.dp * expansion * 2)).value * 0.9.dp, seek_state) {
                                                         get_shutter_menu = it
                                                         shutter_menu_open = true
                                                     }
@@ -529,6 +530,7 @@ fun NowPlaying(_expansion: Float, max_height: Float, close: () -> Unit) {
 
                                 SeekBar {
                                     PlayerHost.player.seekTo((PlayerHost.player.duration * it).toLong())
+                                    seek_state = it
                                 }
 
                                 Row(
@@ -781,7 +783,7 @@ fun SeekBar(seek: (Float) -> Unit) {
             }
         },
         onValueChangeFinished = {
-            if (cancel_area_side == 0) {
+            if (cancel_area_side == 0 && grab_start_position != null) {
                 vibrate(0.01)
             }
             else {

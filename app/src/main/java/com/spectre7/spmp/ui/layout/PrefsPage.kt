@@ -33,42 +33,69 @@ fun PrefsPage(setOverlayPage: (page: OverlayPage) -> Unit) {
     val settings_interface: SettingsInterface = remember { SettingsInterface(MainActivity.theme, Page.ROOT.ordinal, {
         when (Page.values()[it]) {
 
-            Page.ROOT -> SettingsPage("Preferences", listOf(
+            Page.ROOT -> SettingsPage(getString(R.string.s_page_preferences), listOf(
 
-                SettingsGroup("Theming"),
+                SettingsGroup("General"),
+
+                SettingsItemDropdown(
+                    SettingsValueState("ja", "localisation_code", MainActivity.prefs),
+                    "Data language", "Language used for song and artist titles, etc. (if available)",
+                    listOf("ja", "en")
+                ),
+
+                SettingsGroup(getString(R.string.s_group_theming)),
 
                 SettingsItemMultipleChoice(
                     SettingsValueState(0, "accent_colour_source", MainActivity.prefs),
-                    "Accent colour", null,
+                    getString(R.string.s_key_accent_source), null,
                     2, false
                 ) { choice ->
                     when (choice) {
                         0 -> {
-                            "From thumbnail"
+                            getString(R.string.s_option_accent_thumbnail)
                         }
                         else ->  {
-                            "From system theme"
+                            getString(R.string.s_option_accent_system)
                         }
                     }
                 },
 
                 SettingsItemMultipleChoice(
                     SettingsValueState(0, "np_theme_mode", MainActivity.prefs),
-                    "Now playing theme mode", null,
+                    getString(R.string.s_key_np_theme_mode), null,
                     3, false
                 ) { choice ->
                   when (choice) {
                       0 -> {
-                          "Colour background with accent"
+                          getString(R.string.s_option_np_accent_background)
                       }
                       1 -> {
-                          "Colour elements with accent"
+                          getString(R.string.s_option_np_accent_elements)
                       }
                       else -> {
-                          "Don't use accent"
+                          getString(R.string.s_option_np_accent_none)
                       }
                   }
                 },
+
+                SettingsGroup(getString(R.string.s_group_lyrics)),
+
+                SettingsItemToggle(
+                    SettingsValueState(true, "lyrics_follow_enabled", MainActivity.prefs),
+                    "Follow current line", "When displaying timed lyrics, scroll to the current line automatically"
+                ),
+
+                SettingsItemSlider(
+                    SettingsValueState(0.5f, "lyrics_follow_offset", MainActivity.prefs),
+                    "Followed line position", "When scrolling to the current line, position within the view to place the line",
+                    "Top", "Bottom", steps = 5
+                ),
+
+                SettingsItemToggle(
+                    SettingsValueState(true, "lyrics_default_furigana", MainActivity.prefs),
+                    "Show furigana by default", null
+                )
+
 
             ), Modifier.fillMaxSize())
             else -> {
@@ -86,12 +113,7 @@ fun PrefsPage(setOverlayPage: (page: OverlayPage) -> Unit) {
                     .theme
                     .getBackground(false)
             )
-            .padding(20.dp)
             .pointerInput(Unit) {}) {
-        LazyColumn(Modifier.fillMaxHeight()) {
-            item {
-                settings_interface.Interface(Modifier.requiredHeight(LocalConfiguration.current.screenHeightDp.dp))
-            }
-        }
+        settings_interface.Interface(Modifier.requiredHeight(LocalConfiguration.current.screenHeightDp.dp - MINIMISED_NOW_PLAYING_HEIGHT.dp))
     }
 }

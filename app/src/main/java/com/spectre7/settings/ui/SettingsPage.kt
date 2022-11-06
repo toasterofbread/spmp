@@ -1,35 +1,27 @@
 package com.spectre7.composesettings.ui
 
-import com.spectre7.composesettings.model.*
-import com.spectre7.utils.Theme
-import com.spectre7.spmp.R
-import androidx.compose.runtime.*
-import androidx.compose.material3.*
-import androidx.compose.foundation.layout.Column
+import androidx.activity.compose.BackHandler
+import androidx.compose.foundation.layout.*
+import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.ArrowBack
+import androidx.compose.material.icons.filled.Close
+import androidx.compose.material3.Icon
+import androidx.compose.material3.IconButton
+import androidx.compose.material3.Text
+import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.text.font.FontWeight
-import androidx.compose.ui.unit.*
-import androidx.compose.foundation.layout.*
-import androidx.compose.ui.graphics.Color
-import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.ui.unit.dp
-import androidx.activity.compose.BackHandler
-import androidx.compose.ui.res.painterResource
-import androidx.compose.foundation.Image
+import androidx.compose.ui.unit.sp
+import com.spectre7.composesettings.model.SettingsItem
 
 class SettingsPage(val title: String, val items: List<SettingsItem>, val modifier: Modifier = Modifier) {
     @Composable
     fun Page(settings_interface: SettingsInterface, openPage: (Int) -> Unit, goBack: () -> Unit) {
-        Column(modifier) {
-            Text(title, fontSize = 30.sp, fontWeight = FontWeight.Bold)
-
-            Spacer(Modifier.requiredHeight(50.dp))
-
-            // Page items
-            Column(verticalArrangement = Arrangement.spacedBy(20.dp)) {
-                for (item in items) {
-                    item.GetItem(settings_interface.theme, openPage)
-                }
+        // Page items
+        Column(verticalArrangement = Arrangement.spacedBy(20.dp)) {
+            for (item in items) {
+                item.GetItem(settings_interface.theme, openPage)
             }
         }
 
@@ -37,4 +29,15 @@ class SettingsPage(val title: String, val items: List<SettingsItem>, val modifie
             goBack()
         }
     }
+
+    @Composable
+    fun TitleBar(settings_interface: SettingsInterface, is_root: Boolean, goBack: () -> Unit) {
+        Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.SpaceBetween) {
+            Text(title, fontSize = 30.sp, fontWeight = FontWeight.Bold)
+//            IconButton(goBack) {
+//                Icon(if (is_root) Icons.Filled.Close else Icons.Filled.ArrowBack, "", Modifier.size(30.dp), tint = settings_interface.theme.getOnBackground(false))
+//            }
+        }
+    }
+
 }

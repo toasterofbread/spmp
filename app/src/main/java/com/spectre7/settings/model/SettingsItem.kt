@@ -2,18 +2,26 @@ package com.spectre7.composesettings.model
 
 import android.content.SharedPreferences
 import androidx.compose.animation.Animatable
+import androidx.compose.animation.Crossfade
 import androidx.compose.animation.core.TweenSpec
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
+import androidx.compose.foundation.gestures.detectTapGestures
 import androidx.compose.foundation.interaction.MutableInteractionSource
 import androidx.compose.foundation.layout.*
-import androidx.compose.foundation.shape.CircleShape
+import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.ArrowDropDown
+import androidx.compose.material.icons.filled.KeyboardArrowRight
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.*
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.input.pointer.pointerInput
+import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.*
+import androidx.compose.ui.window.Popup
 import com.github.krottv.compose.sliders.DefaultThumb
 import com.github.krottv.compose.sliders.DefaultTrack
 import com.github.krottv.compose.sliders.SliderValueHorizontal
@@ -27,8 +35,9 @@ abstract class SettingsItem {
 class SettingsGroup(var title: String?): SettingsItem() {
     @Composable
     override fun GetItem(theme: Theme, open_page: (Int) -> Unit) {
+        Spacer(Modifier.requiredHeight(20.dp))
         if (title != null) {
-            Text(title!!.uppercase(), color = theme.getVibrantAccent(), fontSize = 20.sp)
+            Text(title!!.uppercase(), color = theme.getVibrantAccent(), fontSize = 20.sp, fontWeight = FontWeight.Light)
         }
     }
 }
@@ -104,6 +113,9 @@ class SettingsItemSlider(
     val state: SettingsValueState<Float>,
     val title: String?,
     val subtitle: String?,
+    val min_label: String? = null,
+    val max_label: String? = null,
+    val steps: Int = 0
 ): SettingsItem() {
 
     @Composable
@@ -119,7 +131,10 @@ class SettingsItemSlider(
             Spacer(Modifier.requiredHeight(10.dp))
 
             state.autosave = false
-            Row(Modifier.fillMaxWidth()) {
+            Row(Modifier.fillMaxWidth(), verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(10.dp)) {
+                if (min_label != null) {
+                    Text(min_label, fontSize = 12.sp)
+                }
                 SliderValueHorizontal(
                     value = state.value,
                     onValueChange = {
@@ -129,10 +144,14 @@ class SettingsItemSlider(
                         state.save()
                     },
                     thumbSizeInDp = DpSize(12.dp, 12.dp),
-                    track = { a, b, c, d, e -> DefaultTrack(a, b, c, d, e, theme.getVibrantAccent().setAlpha(0.5), theme.getVibrantAccent()) },
+                    track = { a, b, c, d, e -> DefaultTrack(a, b, c, d, e, theme.getVibrantAccent().setAlpha(0.5), theme.getVibrantAccent(), colorTickProgress = theme.getVibrantAccent().getContrasted().setAlpha(0.5)) },
                     thumb = { a, b, c, d, e -> DefaultThumb(a, b, c, d, e, theme.getVibrantAccent(), 1f) },
-                    // modifier = Modifier.weight(1f)
+                    steps = steps,
+                    modifier = Modifier.weight(1f)
                 )
+                if (max_label != null) {
+                    Text(max_label, fontSize = 12.sp)
+                }
             }
         }
     }
@@ -167,7 +186,14 @@ class SettingsItemMultipleChoice(
                             Row(
                                 verticalAlignment = Alignment.CenterVertically,
                                 horizontalArrangement = Arrangement.SpaceBetween,
-                                modifier = Modifier.border(Dp.Hairline, theme.getOnBackground(false), CircleShape).fillMaxWidth().padding(horizontal = 10.dp).clickable(remember { MutableInteractionSource() }, null) { state.value = i }
+                                modifier = Modifier
+                                    .border(Dp.Hairline, theme.getOnBackground(false), RoundedCornerShape(16.dp))
+                                    .fillMaxWidth()
+                                    .padding(horizontal = 10.dp)
+                                    .clickable(
+                                        remember { MutableInteractionSource() },
+                                        null
+                                    ) { state.value = i }
                             ) {
                                 Text(get_choice(i), color = theme.getOnAccent())
                                 RadioButton(i == state.value, onClick = { state.value = i }, colors = RadioButtonDefaults.colors(theme.getVibrantAccent()))
@@ -187,16 +213,96 @@ class SettingsItemMultipleChoice(
                             Box(
                                 contentAlignment = Alignment.CenterStart,
                                 modifier = Modifier
-                                    .border(1.dp, theme.getOnBackground(false), CircleShape)
+                                    .border(Dp.Hairline, theme.getOnBackground(false), RoundedCornerShape(16.dp))
                                     .fillMaxWidth()
                                     .height(40.dp)
                                     .clickable(remember { MutableInteractionSource() }, null) {
                                         state.value = i
                                     }
-                                    .background(colour.value, CircleShape)
+                                    .background(colour.value, RoundedCornerShape(16.dp))
                             ) {
                                 Box(Modifier.padding(horizontal = 10.dp)) {
                                     Text(get_choice(i), color = if (state.value == i) theme.getOnAccent() else theme.getOnBackground(false))
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+        }
+    }
+}
+
+class SettingsItemDropdown(
+    val state: SettingsValueState<String>,
+    val title: String,
+    val subtitle: String?,
+    val items: List<String>,
+): SettingsItem() {
+
+    @Composable
+    override fun GetItem(theme: Theme, open_page: (Int) -> Unit) {
+
+        Row(verticalAlignment = Alignment.CenterVertically) {
+
+            Column(Modifier.fillMaxWidth().weight(1f)) {
+                Text(title)
+                if (subtitle != null) {
+                    Text(subtitle, color = theme.getOnBackground(false).setAlpha(0.75))
+                }
+            }
+
+            var open by remember { mutableStateOf(false) }
+
+            Button({ open = !open }, Modifier.requiredHeight(40.dp), shape = RoundedCornerShape(16.dp)) {
+                Text(state.value, color = theme.getOnAccent())
+                Icon(
+                    Icons.Filled.ArrowDropDown,
+                    null,
+                    tint = theme.getOnAccent()
+                )
+            }
+
+            Popup(Alignment.TopEnd, onDismissRequest = { open = false }) {
+                Crossfade(open) {
+                    Row(Modifier.fillMaxWidth().offset((-20).dp), horizontalArrangement = Arrangement.End) {
+                        Box(
+                            Modifier.background(theme.getAccent(), RoundedCornerShape(16.dp)), contentAlignment = Alignment.TopEnd
+                        ) {
+                            if (it) {
+                                Column(
+                                    Modifier
+                                        .width(100.dp)
+                                        .padding(10.dp)
+                                        .pointerInput(Unit) {
+                                            detectTapGestures(onTap = {
+
+                                            })
+                                        },
+                                    verticalArrangement = Arrangement.spacedBy(10.dp)
+                                ) {
+                                    for (item in items) {
+                                        Row(
+                                            verticalAlignment = Alignment.CenterVertically,
+                                            modifier = Modifier
+                                                .height(30.dp).fillMaxWidth()
+                                                .clickable {
+                                                    open = false
+                                                    state.value = item
+                                                }
+                                        ) {
+                                            Icon(
+                                                Icons.Filled.KeyboardArrowRight,
+                                                null,
+                                                tint = theme.getOnAccent()
+                                            )
+                                            Text(
+                                                item,
+                                                color = theme.getOnAccent(),
+                                                fontWeight = FontWeight.Medium
+                                            )
+                                        }
+                                    }
                                 }
                             }
                         }

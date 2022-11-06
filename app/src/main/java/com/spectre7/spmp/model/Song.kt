@@ -158,7 +158,20 @@ data class Song (
 
     data class Lyrics(val source: String, val timed: Boolean, val lyrics: List<List<Term>>) {
         data class Term(val subterms: List<Subterm>, val start: Float, val end: Float)
-        data class Subterm(val text: String, val furi: String?)
+        data class Subterm(val text: String, val furi: String?) {
+            var index: Int = -1
+        }
+
+        init {
+            var index = 0
+            for (line in lyrics) {
+                for (term in line) {
+                    for (subterm in term.subterms) {
+                        subterm.index = index++
+                    }
+                }
+            }
+        }
     }
 
     companion object {

@@ -348,7 +348,7 @@ class DataApi {
         fun getSongLyrics(song: Song, callback: (Song.Lyrics?) -> Unit) {
             thread {
                 val params = mapOf("title" to song.title, "artist" to song.artist.nativeData.name)
-                val result = queryServer("/lyrics", parameters = params, max_retries = 15)
+                val result = queryServer("/lyrics", parameters = params)
 
                 if (result == null) {
                     callback(null)
@@ -480,7 +480,7 @@ class DataApi {
             return ngrok_tunnel
         }
 
-        fun queryServer(endpoint: String, parameters: Map<String, String> = mapOf(), throw_on_fail: Boolean = false, tunnel: NgrokTunnelListResponse.Tunnel? = null, max_retries: Int = 5, timeout: Long = 10): String? {
+        fun queryServer(endpoint: String, parameters: Map<String, String> = mapOf(), throw_on_fail: Boolean = true, tunnel: NgrokTunnelListResponse.Tunnel? = null, max_retries: Int = 5, timeout: Long = 10): String? {
             var _tunnel = tunnel ?: getNgrokTunnel()
             if (_tunnel == null) {
                 if (throw_on_fail) {
@@ -491,6 +491,14 @@ class DataApi {
 
             fun getRequest(tunnel: NgrokTunnelListResponse.Tunnel): Request {
                 var url = "${tunnel.public_url}$endpoint?key=${getString(R.string.server_api_key)}"
+
+                if (!parameters.containsKey("localisation")) {
+                    val loc = MainActivity.prefs.getString("localisation_code", null)
+                    if (loc != null) {
+                        url += "&localisation=$loc"
+                    }
+                }
+
                 for (param in parameters) {
                     url += "&${URLEncoder.encode(param.key, "UTF-8")}=${URLEncoder.encode(param.value, "UTF-8")}"
                 }
@@ -498,44 +506,44 @@ class DataApi {
             }
 
             var request = getRequest(_tunnel)
+            var result: Response? = null
+            var cancel: Boolean = false
+            var exception: Exception? = null
 
-            fun getResult(): Response? {
-                val ret: Response
-                try {
-                    ret = OkHttpClient.Builder().readTimeout(timeout, TimeUnit.SECONDS).build().newCall(request).execute()
-                }
-                catch (e: java.net.ConnectException) {
-                    println(e)
-                    return null
-                }
+            fun getResult(): Response {
+                val ret: Response = OkHttpClient.Builder().readTimeout(timeout, TimeUnit.SECONDS).build().newCall(request).execute()
                 if (ret.code == 401) {
-                    throw RuntimeException("Server API key is invalid")
+                    cancel = true
+                    throw RuntimeException("Server API key is invalid (401)")
                 }
                 else if (ret.code == 404 && _tunnel!!.from_cache) {
                     _tunnel = getNgrokTunnel(true)
                     if (_tunnel != null) {
                         request = getRequest(_tunnel!!)
                     }
-                    return null
+                    cancel = true
+                    throw RuntimeException("Ngrok tunnel may be invalid (404)")
                 }
                 else if (ret.code != 200) {
-                    return null
+                    throw RuntimeException("${ret.body?.string()} (${ret.code})")
                 }
                 return ret
             }
 
-            var result = getResult()
-            if (result == null) {
-                for (i in 0 until max_retries) {
+            for (i in 0 until max_retries + 1) {
+                try {
                     result = getResult()
-                    if (result != null || _tunnel == null) {
-                        break
-                    }
                 }
+                catch(e: Exception) {
+                    exception = e
+                }
+                if (result != null || _tunnel == null || cancel) {
+                    break
+                }
+            }
 
-                if (result == null && throw_on_fail) {
-                    throw RuntimeException("Request to server failed. Request URL: ${request.url}")
-                }
+            if (result == null && throw_on_fail) {
+                throw RuntimeException("Request to server failed. ${exception?.message}. Request URL: ${request.url}.")
             }
 
             return result?.body?.string()

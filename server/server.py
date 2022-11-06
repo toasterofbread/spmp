@@ -20,6 +20,7 @@ from waitress import serve
 import lyrics as Lyrics
 from os import path
 from gh_md_to_html import main as markdown
+from ytapi import YtApi
 
 RECOMMENDED_ROWS = 10
 CACHE_LIFETIME = 24 * 60 * 60
@@ -37,11 +38,6 @@ def isMutexLocked(mutex):
     else:
         mutex.release()
         return False
-
-def error(code: int, message: str):
-    response = jsonify(message)
-    response.status_code = code
-    return response
 
 class Server:
 
@@ -63,6 +59,8 @@ class Server:
         self.cached_feed = manager.Value("l", [])
         self.cached_feed_set = manager.Value("b", False)
         self.exiting = manager.Value("b", False)
+
+        YtApi(self.app, self)
 
         self._cache = {"yt": {}, "lyrics": {}}
         if path.isfile(CACHE_PATH):
@@ -141,6 +139,8 @@ class Server:
         @self.requireKey
         def feed():
             if not self.cached_feed_set.get():
+                if not isMutexLocked(self.refresh_mutex):
+                    self.refreshFeed()
                 self.refresh_mutex.acquire()
                 self.refresh_mutex.release()
             return jsonify(self.cached_feed.get())
@@ -176,11 +176,11 @@ class Server:
             artist = request.args.get("artist")
 
             if title is None:
-                return error(400, "Missing title parameter")
+                return self.errorResponse(400, "Missing title parameter")
 
             id = Lyrics.findLyricsId(title, artist)
             if id is None:
-                return error(404, "Query doesn't match any songs")
+                return self.errorResponse(404, "Query doesn't match any songs")
 
             cached = self.getCache("lyrics", id)
             if cached is not None:
@@ -193,26 +193,6 @@ class Server:
             }
             self.setCache("lyrics", id, lyrics)
             return jsonify(lyrics)
-
-        @self.app.route("/youtubeapi/<endpoint>/")
-        @self.requireKey
-        def youtubeApi(endpoint: str):
-            params = dict(request.args)
-            params["key"] = self.ytapi_key
-            url = f"https://www.googleapis.com/youtube/v3/{endpoint}?" + urlencode(params)
-
-            cached = self.getCache("yt", url)
-            if cached is not None:
-                return jsonify(cached)
-
-            response = requests.get(url)
-            if response.status_code != 200:
-                return error(response.status_code, f"{response.reason}\n{response.text}")
-
-            data = json.loads(response.text)
-
-            self.setCache("yt", url, data)
-            return jsonify(data)
 
     def requireKey(self, func):
         @wraps(func)
@@ -334,3 +314,8 @@ class Server:
         f = open(CACHE_PATH, "w")
         f.write(json.dumps(self._cache))
         f.close()
+
+    def errorResponse(self, code: int, message: str):
+        response = jsonify(message)
+        response.status_code = code
+        return response

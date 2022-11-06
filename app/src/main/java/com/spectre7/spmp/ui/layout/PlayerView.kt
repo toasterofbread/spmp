@@ -41,11 +41,12 @@ import com.spectre7.spmp.ui.component.PillMenu
 import com.spectre7.utils.getContrasted
 import com.spectre7.utils.getString
 import com.spectre7.utils.setAlpha
+import com.spectre7.utils.toInt
 import kotlinx.coroutines.delay
-import java.util.concurrent.locks.ReentrantLock
-import kotlin.concurrent.thread
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.suspendCancellableCoroutine
+import java.util.concurrent.locks.ReentrantLock
+import kotlin.concurrent.thread
 
 fun convertPixelsToDp(px: Int): Float {
     return px.toFloat() / (MainActivity.resources.displayMetrics.densityDpi.toFloat() / DisplayMetrics.DENSITY_DEFAULT)
@@ -66,7 +67,7 @@ enum class OverlayPage {NONE, SEARCH, SETTINGS}
 class PlayerStatus {
     var song: Song? by mutableStateOf(null)
     var index: Int by mutableStateOf(0)
-    var queue: MutableList<Song> by mutableStateOf(mutableListOf())
+    var queue: MutableList<Song> = mutableStateListOf()
     var playing: Boolean by mutableStateOf(false)
     var position: Float by mutableStateOf(0f)
     var duration: Float by mutableStateOf(0f)
@@ -79,30 +80,32 @@ class PlayerStatus {
 @OptIn(ExperimentalMaterialApi::class, ExperimentalMaterial3Api::class)
 @Composable
 fun PlayerView() {
-
     var overlay_page by remember { mutableStateOf(OverlayPage.NONE) }
 
     @Composable
     fun MainPage() {
 
         PillMenu(
-            2,
-            { index ->
+            if (overlay_page != OverlayPage.NONE) 1 else 2,
+            { index, action_count ->
                 ActionButton(
+                    if (action_count == 1) Icons.Filled.Close else
                     when (index) {
                         0 -> Icons.Filled.Settings
                         else -> Icons.Filled.Search
                     }
                 ) {
+                    overlay_page = if (action_count == 1) OverlayPage.NONE else
                     when (index) {
-                        0 -> overlay_page = OverlayPage.SETTINGS
-                        else -> overlay_page = OverlayPage.SEARCH
+                        0 -> OverlayPage.SETTINGS
+                        else -> OverlayPage.SEARCH
                     }
                 }
             },
-            remember { mutableStateOf(false) },
+            if (overlay_page == OverlayPage.NONE) remember { mutableStateOf(false) } else null,
             MainActivity.theme.getVibrantAccent(),
-            MainActivity.theme.getVibrantAccent().getContrasted()
+            MainActivity.theme.getVibrantAccent().getContrasted(),
+            top = overlay_page == OverlayPage.SETTINGS
         )
 
         data class Row(val title: String, val subtitle: String?, val items: MutableList<Previewable> = mutableStateListOf())
@@ -184,8 +187,8 @@ fun PlayerView() {
 
                         PillMenu(
                             3,
-                            {
-                                when (it) {
+                            { index, _action_count ->
+                                when (index) {
                                     0 -> ActionButton(Icons.Filled.Refresh) {
                                         if (rows.isEmpty()) {
                                             refreshFeed()
@@ -216,7 +219,7 @@ fun PlayerView() {
                         )
 
                         AnimatedVisibility(expand) {
-                            var msg = "Error: ${error.javaClass.simpleName}" +
+                            val msg = "Error: ${error.javaClass.simpleName}" +
                                     "\n\nMessage: ${error.message}" +
                                     "\n\nCause: ${error.cause}" +
                                     "\n\nStack trace: ${error.stackTrace.asList()}"
@@ -293,7 +296,6 @@ fun PlayerView() {
 
         val listener = remember {
             object : Player.Listener {
-
                 override fun onMediaItemTransition(
                     media_item: MediaItem?,
                     reason: Int
@@ -319,7 +321,6 @@ fun PlayerView() {
                     p_status.index = player.currentMediaItemIndex
                     p_status.duration = player.duration / 1000f
                 }
-
             }
         }
 
@@ -355,15 +356,6 @@ fun PlayerView() {
         LaunchedEffect(Unit) {
             player = PlayerHost.service.player
         }
-//
-//        LaunchedEffect(player) {
-//            if (player != null) {
-//                while (true) {
-//                    p_status.position = player!!.currentPosition.toFloat() / player!!.duration.toFloat()
-//                    delay(250)
-//                }
-//            }
-//        }
 
         LaunchedEffect(Unit) {
             val poll_job = launch {
@@ -384,12 +376,12 @@ fun PlayerView() {
         }
 
         val screen_height = LocalConfiguration.current.screenHeightDp.toFloat() + getStatusBarHeight()
-        val swipe_state = rememberSwipeableState(1)
+        val swipe_state = rememberSwipeableState(0)
         val swipe_anchors = mapOf(MINIMISED_NOW_PLAYING_HEIGHT to 0, screen_height to 1)
 
-        var switch by remember { mutableStateOf(false) }
+        var switch: Boolean by remember { mutableStateOf(false) }
         LaunchedEffect(switch) {
-            swipe_state.animateTo(if (swipe_state.currentValue == 0) 1 else 0)
+            swipe_state.animateTo(switch.toInt())
         }
 
         Card(colors = CardDefaults.cardColors(
@@ -403,7 +395,7 @@ fun PlayerView() {
                 anchors = swipe_anchors,
                 thresholds = { _, _ -> FractionalThreshold(0.2f) },
                 orientation = Orientation.Vertical,
-                reverseDirection = true
+                reverseDirection = true,
             )
             .clickable(
                 interactionSource = remember { MutableInteractionSource() },

@@ -14,7 +14,6 @@ import com.spectre7.utils.getString as getResString
 class PlayerAccessibilityService: AccessibilityService() {
 
     private var custom_volume_enabled = false
-    private lateinit var KEY_CUSTOM_VOLUME_ENABLED: String
 
     private val pressed_time = mutableMapOf<Int, Long>(
         KEYCODE_VOLUME_UP to -1,
@@ -22,15 +21,14 @@ class PlayerAccessibilityService: AccessibilityService() {
     )
 
     private val prefs_change_listener = OnSharedPreferenceChangeListener { prefs, key ->
-        if (key == KEY_CUSTOM_VOLUME_ENABLED) {
-            custom_volume_enabled = prefs.getBoolean(KEY_CUSTOM_VOLUME_ENABLED, false)
+        if (key == "custom_volume_enabled") {
+            custom_volume_enabled = prefs.getBoolean("custom_volume_enabled", false)
             println(if (custom_volume_enabled) "ENABLED" else "DISABLED")
         }
     }
 
     override fun onCreate() {
         super.onCreate()
-        KEY_CUSTOM_VOLUME_ENABLED = getResString(R.string.s_key_custom_volume_enabled, this)
         getSharedPreferences("com.spectre7.spmp.PREFERENCES", Context.MODE_PRIVATE).registerOnSharedPreferenceChangeListener(prefs_change_listener)
     }
 

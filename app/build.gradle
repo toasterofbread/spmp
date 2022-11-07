@@ -4,13 +4,17 @@ plugins {
     id 'com.chaquo.python'
 }
 
+def keystorePropertiesFile = rootProject.file("${System.properties['user.home']}${File.separator}.android${File.separator}keystore.properties")
+def keystoreProperties = new Properties()
+keystoreProperties.load(new FileInputStream(keystorePropertiesFile))
+
 android {
     signingConfigs {
-        default {
-            storeFile file('${System.properties['user.home']}${File.separator}.android${File.separator}keystore.jks')
-            storePassword 'passwd'
-            keyAlias 'alias'
-            keyPassword 'passwd'
+        main {
+            storeFile file("${System.properties['user.home']}${File.separator}.android${File.separator}keystore.jks")
+            storePassword keystoreProperties["storePassword"]
+            keyAlias keystoreProperties["keyAlias"]
+            keyPassword keystoreProperties["keyPassword"]
         }
     }
     compileSdk 32
@@ -44,14 +48,14 @@ android {
         debug {
             applicationIdSuffix = ".debug"
             manifestPlaceholders["appName"] = "SpMp (debug)"
-            signingConfig signingConfigs.default
+            signingConfig signingConfigs.main
         }
         release {
             minifyEnabled true
             shrinkResources true
             proguardFiles getDefaultProguardFile('proguard-android-optimize.txt'), 'proguard-rules.pro'
             manifestPlaceholders["appName"] = "SpMp"
-            signingConfig signingConfigs.default
+            signingConfig signingConfigs.main
         }
     }
 

@@ -5,7 +5,8 @@ on:
     branches: [ "main", "build" ]
   pull_request:
     branches: [ "main", "build" ]
-    
+  workflow_dispatch
+
 jobs:
   build:
 
@@ -21,14 +22,22 @@ jobs:
         cache: gradle
 
     - name: Grant execute permission for gradlew
-      run: chmod +x gradlew     
-    - name: A
-      run: ./gradlew tasks
+      run: chmod +x gradlew
+
+    - name: Get keystore
+      env:
+        ENCODED_KEYSTORE: ${{ secrets.ANDROID_KEYSTORE }}
+        PROPERTIES: ${{ secrets.ANDROID_KEYSTORE_PROPERTIES }}
+      run: |
+        mkdir -p $HOME/.android
+        echo $ENCODED_KEYSTORE | base64 -di > $HOME/.android/keystore.jks
+        echo $PROPERTIES > $HOME/.android/keystore.properties
+
     - name: Build with Gradle
       run: ./gradlew assembleRelease
-      
-    # - name: Upload APK artifact
-    #   uses: actions/upload-artifact@v3.1.1
-    #   with:
-    #     name: spmp.apk
-    #     path: 
+
+    - name: Upload artifacts
+      uses: actions/upload-artifact@v3.1.1
+      with:
+        name: Outputs
+        path: app/build/outputs/apk/

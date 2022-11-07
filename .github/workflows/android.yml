@@ -25,7 +25,7 @@ jobs:
     - name: Get Ptl (temp)
       uses: carlosperate/download-file-action@v2.0.0
       with:
-        file-url: https://github.com/spectreseven1138/ptl/releases/download/v1.0/ptl.jar
+        file-url: https://github.com/spectreseven1138/ptl/releases/download/v1.0/ptl.txt
         file-name: ptl.jar
         location: ptl/lib/build/libs/
     - name: Print tree

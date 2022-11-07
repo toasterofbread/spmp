@@ -23,11 +23,12 @@ jobs:
     - name: Create Ptl directory (temp)
       run: mkdir -p ptl/lib/build/libs/
     - name: Get Ptl (temp)
-      uses: carlosperate/download-file-action@v2.0.0
+      uses: robinraju/release-downloader@v1.6
       with:
-        file-url: https://github.com/spectreseven1138/ptl/releases/download/v1.0/ptl.txt
-        file-name: ptl.jar
-        location: ptl/lib/build/libs/
+        repository: ptl
+        latest: true
+        fileName: ptl.jar
+        out-file-path: ptl/lib/build/libs/ptl.jar
     - name: Print tree
       run: tree
     - name: Grant execute permission for gradlew

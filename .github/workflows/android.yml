@@ -26,3 +26,9 @@ jobs:
     #   run: ./gradlew build
     - name: Get gradle tasks
       run: ./gradlew tasks
+
+    # - name: Upload APK artifact
+    #   uses: actions/upload-artifact@v3.1.1
+    #   with:
+    #     name: spmp.apk
+    #     path: 

@@ -526,7 +526,7 @@ class DataApi {
             return result?.body?.string()
         }
 
-        data class RecommendedFeedRow(val title: String, val subtitle: String?, val items: List<Item>) {
+        data class RecommendedFeedRow(val title: String, val subtitle: String?, val browse_id: String?, val items: List<Item>) {
             data class Item(val type: String, val id: String, val playlist_id: String? = null) {
                 fun getPreviewable(callback: (Previewable?) -> Unit) {
                     when (type) {

@@ -25,7 +25,7 @@ jobs:
     - name: Get Ptl (temp)
       uses: robinraju/release-downloader@v1.6
       with:
-        repository: ptl
+        repository: spectreseven1138/ptl
         latest: true
         fileName: ptl.jar
         out-file-path: ptl/lib/build/libs/ptl.jar

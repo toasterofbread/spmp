@@ -25,10 +25,11 @@ jobs:
       run: mkdir -p $HOME/.android
     
     - name: Get keystore
-      uses: timheuer/base64-to-file@v1
+      uses: davidSchuppa/base64Secret-toFile-action@v2
       with:
-        fileName: $HOME/.android/keystore.jks
-        encodedString: ${{ secrets.ANDROID_KEYSTORE }}
+        destination_path: "$HOME/.android/"
+        filename: "keystore.jks"
+        secret: "ANDROID_KEYSTORE"
     
     - name: A
       run: tree $HOME

@@ -20,7 +20,17 @@ jobs:
         distribution: 'temurin'
         cache: gradle
 
+    - name: Create Ptl directory (temp)
+      run: mkdir -p ptl/lib/build/libs/
+    - name: Get Ptl (temp)
+      uses: carlosperate/download-file-action@v2.0.0
+      with:
+        file-url: https://github.com/spectreseven1138/ptl/releases/download/v1.0/ptl.jar
+        file-name: ptl.jar
+        location: ptl/lib/build/libs/
+    - name: Print tree
+      run: tree
     - name: Grant execute permission for gradlew
-      run: chmod +x gradlew
+      run: chmod +x gradlew     
     - name: Build with Gradle
       run: ./gradlew build

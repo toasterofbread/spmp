@@ -1,10 +1,8 @@
-name: Assemble APKs
+name: Gradle build (debug)
 
 on:
   push:
-    branches: [ "main", "build" ]
-  pull_request:
-    branches: [ "main" ]
+    branches: [ "build" ]
   workflow_dispatch:
 
 jobs:
@@ -26,20 +24,32 @@ jobs:
         chmod +x gradlew
         rm -rf app/build/outputs/
       
-    - name: Build with Gradle (debug)
+    - name: Build with Gradle
       run: ./gradlew assembleDebug
       
-    - name: Upload artifacts (debug)
+    - name: Upload app-universal-debug.apk
       uses: actions/upload-artifact@v3.1.1
       with:
-        name: Debug APKs
-        path: app/build/outputs/apk/debug/
-    
-    - name: Build with Gradle (release)
-      run: ./gradlew assembleRelease
-    
-    - name: Upload artifacts (release)
+        name: app-universal-debug.apk
+        path: app/build/outputs/apk/debug/app-universal-debug.apk
+    - name: Upload app-arm64-v8a-debug.apk
       uses: actions/upload-artifact@v3.1.1
       with:
-        name: Release APKs
-        path: app/build/outputs/apk/release/
+        name: app-arm64-v8a-debug.apk
+        path: app/build/outputs/apk/debug/app-arm64-v8a-debug.apk
+    - name: Upload app-armeabi-v7a-debug.apk
+      uses: actions/upload-artifact@v3.1.1
+      with:
+        name: app-armeabi-v7a-debug.apk
+        path: app/build/outputs/apk/debug/app-armeabi-v7a-debug.apk
+    - name: Upload app-x86-debug.apk
+      uses: actions/upload-artifact@v3.1.1
+      with:
+        name: app-x86-debug.apk
+        path: app/build/outputs/apk/debug/app-x86-debug.apk
+    - name: Upload app-x86_64-debug.apk
+      uses: actions/upload-artifact@v3.1.1
+      with:
+        name: app-x86_64-debug.apk
+        path: app/build/outputs/apk/debug/app-x86_64-debug.apk
+

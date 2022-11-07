@@ -28,7 +28,7 @@ jobs:
         repository: spectreseven1138/ptl
         latest: true
         fileName: ptl.jar
-        out-file-path: ptl/lib/build/libs/ptl.jar
+        out-file-path: ptl/lib/build/libs/
         token: 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
     - name: Print tree
       run: tree

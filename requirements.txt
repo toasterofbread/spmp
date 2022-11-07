@@ -1,7 +1,5 @@
 psutil
 flask
-selenium
-selenium-wire
 apscheduler
 waitress
 requests

@@ -198,20 +198,6 @@ data class Song (
         return counterpart_id
     }
 
-    fun getYTLyricsId(): String? {
-        if (yt_lyrics_id == null) {
-            yt_lyrics_id = DataApi.getSongYTLyricsId(this)
-        }
-        return yt_lyrics_id
-    }
-
-    fun getPTLyricsId(): Int? {
-        if (pt_lyrics_id == null) {
-            pt_lyrics_id = DataApi.getSongPTLyricsId(this)
-        }
-        return pt_lyrics_id
-    }
-
     fun getLyrics(callback: (Lyrics?) -> Unit) {
         DataApi.getSongLyrics(this, callback)
     }

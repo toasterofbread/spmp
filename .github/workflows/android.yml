@@ -23,9 +23,9 @@ jobs:
     - name: Grant execute permission for gradlew
       run: chmod +x gradlew     
     - name: A
-      run: ./gradlew signingReport
+      run: ./gradlew tasks
     - name: Build with Gradle
-      run: ./gradlew build
+      run: ./gradlew assembleRelease
       
     # - name: Upload APK artifact
     #   uses: actions/upload-artifact@v3.1.1

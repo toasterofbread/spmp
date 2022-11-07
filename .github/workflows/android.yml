@@ -21,14 +21,14 @@ jobs:
         cache: gradle
 
     - name: Create Ptl directory (temp)
-      run: mkdir -p ptl/lib/build/libs/
+      run: mkdir -p /home/runner/work/spmp/ptl/lib/build/libs
     - name: Get Ptl (temp)
       uses: robinraju/release-downloader@v1.6
       with:
         repository: spectreseven1138/ptl
         latest: true
         fileName: ptl.jar
-        out-file-path: ptl/lib/build/libs/
+        out-file-path: /home/runner/work/spmp/ptl/lib/build/libs
         token: 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
     - name: Print tree
       run: tree

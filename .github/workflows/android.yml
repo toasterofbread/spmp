@@ -21,12 +21,17 @@ jobs:
         distribution: 'temurin'
         cache: gradle
 
+    - name: Prepare .android directory
+      run: mkdir -p $HOME/.android
+    
     - name: Get keystore
-      env:
-        ENCODED_KEYSTORE: ${{ secrets.ANDROID_KEYSTORE }}
-      run: |
-        mkdir -p $HOME/.android
-        echo $ENCODED_KEYSTORE | base64 -di > $HOME/.android/keystore.jks
+      uses: timheuer/base64-to-file@v1
+      with:
+        fileName: $HOME/.android/keystore.jks
+        encodedString: ${{ secrets.ANDROID_KEYSTORE }}
+    
+    - name: A
+      run: tree $HOME
 
     - name: Grant execute permission for gradlew
       run: chmod +x gradlew

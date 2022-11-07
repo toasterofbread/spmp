@@ -27,7 +27,7 @@ jobs:
     - name: Get keystore
       uses: davidSchuppa/base64Secret-toFile-action@v2
       with:
-        destination_path: "$HOME/.android/"
+        destination-path: "$HOME/.android/"
         filename: "keystore.jks"
         secret: ${{ secrets.ANDROID_KEYSTORE }}
     

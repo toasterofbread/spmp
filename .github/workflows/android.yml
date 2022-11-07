@@ -24,17 +24,18 @@ jobs:
     - name: Get keystore
       env:
         ENCODED_KEYSTORE: ${{ secrets.ANDROID_KEYSTORE }}
-        PROPERTIES: ${{ secrets.ANDROID_KEYSTORE_PROPERTIES }}
       run: |
         mkdir -p $HOME/.android
         echo $ENCODED_KEYSTORE | base64 -di > $HOME/.android/keystore.jks
-        echo $PROPERTIES > $HOME/.android/keystore.properties
 
     - name: Grant execute permission for gradlew
       run: chmod +x gradlew
 
     - name: Build with Gradle
       run: ./gradlew build
+      env:
+        SIGNING_KEY_PASSWORD: ${{ secrets.ANDROID_KEYSTORE_PASSWORD }}
+        SIGNING_STORE_PASSWORD: ${{ secrets.ANDROID_KEYSTORE_PASSWORD }}
 
     - name: Upload artifacts
       uses: actions/upload-artifact@v3.1.1

@@ -6,12 +6,6 @@ plugins {
 
 android {
     signingConfigs {
-        debug {
-            storeFile file('/home/spectre7/.android/keystore.jks')
-            storePassword 'passwd'
-            keyAlias 'alias'
-            keyPassword 'passwd'
-        }
         release {
             storeFile file('/home/spectre7/.android/keystore.jks')
             storePassword 'passwd'
@@ -40,7 +34,6 @@ android {
         python {
             pip {
                 install "ytmusicapi"
-                install "pykakasi"
                 install "yt-dlp"
             }
         }
@@ -51,10 +44,6 @@ android {
         debug {
             applicationIdSuffix = ".debug"
             manifestPlaceholders["appName"] = "SpMp (debug)"
-
-//            minifyEnabled true
-//            shrinkResources true
-//            proguardFiles getDefaultProguardFile('proguard-android-optimize.txt'), 'proguard-rules.pro'
         }
         release {
             minifyEnabled true
@@ -183,13 +172,4 @@ dependencies {
     implementation "com.github.krottv:compose-sliders:0.1.4"
     implementation "org.burnoutcrew.composereorderable:reorderable:0.9.2"
 
-    // Ptl
-    implementation files("../../ptl/lib/build/libs/ptl.jar")
-    implementation 'org.jsoup:jsoup:1.15.3'
-
-//    implementation 'org.seleniumhq.selenium:selenium-java:2.41.0'
-//    implementation 'com.github.bonigarcia:webdrivermanager:webdrivermanager-5.3.0'
-
-    // implementation igo()
-    // implementation 'com.github.spectreseven1138:android-compose-furigana:1.0.0'
 }

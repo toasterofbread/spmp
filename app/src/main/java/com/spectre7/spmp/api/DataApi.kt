@@ -6,7 +6,6 @@ import com.beust.klaxon.Parser
 import com.chaquo.python.PyException
 import com.chaquo.python.PyObject
 import com.chaquo.python.Python
-import com.spectre7.ptl.Ptl
 import com.spectre7.spmp.MainActivity
 import com.spectre7.spmp.R
 import com.spectre7.spmp.model.*
@@ -86,7 +85,6 @@ class DataApi {
             }
 
         private val klaxon: Klaxon = Klaxon()
-        private val ptl = Ptl()
         private var ngrok_tunnel: NgrokTunnelListResponse.Tunnel? = null
 
         private val song_request_queue = mutableListOf<Pair<String, MutableList<(Song?) -> Unit>>>()
@@ -322,27 +320,6 @@ class DataApi {
                     callback(url)
                 }
             }
-        }
-
-        fun getSongPTLyricsId(song: Song): Int? {
-            return ptl.findLyricsId(song.title, song.artist.nativeData.name)
-        }
-
-        fun getSongYTLyricsId(song: Song): String? {
-            fun getLyricsId(video_id: String?): String? {
-                val lyrics = ytapi?.callAttr("get_watch_playlist", video_id, null, 1)?.callAttr("get", "lyrics")
-                if (lyrics != null) {
-                    return lyrics.toString()
-                }
-                return null
-            }
-
-            val ret = getLyricsId(song.getId())
-            if (ret != null) {
-                return ret
-            }
-
-            return getLyricsId(song.getCounterpartId())
         }
 
         fun getSongLyrics(song: Song, callback: (Song.Lyrics?) -> Unit) {

@@ -6,8 +6,8 @@ plugins {
 
 android {
     signingConfigs {
-        release {
-            storeFile file('/home/spectre7/.android/keystore.jks')
+        default {
+            storeFile file('${System.properties['user.home']}${File.separator}.android${File.separator}keystore.jks')
             storePassword 'passwd'
             keyAlias 'alias'
             keyPassword 'passwd'
@@ -44,13 +44,14 @@ android {
         debug {
             applicationIdSuffix = ".debug"
             manifestPlaceholders["appName"] = "SpMp (debug)"
+            signingConfig signingConfigs.default
         }
         release {
             minifyEnabled true
             shrinkResources true
             proguardFiles getDefaultProguardFile('proguard-android-optimize.txt'), 'proguard-rules.pro'
             manifestPlaceholders["appName"] = "SpMp"
-            signingConfig signingConfigs.release
+            signingConfig signingConfigs.default
         }
     }
 
@@ -171,4 +172,5 @@ dependencies {
     implementation 'androidx.palette:palette:1.0.0'
     implementation "com.github.krottv:compose-sliders:0.1.4"
     implementation "org.burnoutcrew.composereorderable:reorderable:0.9.2"
+
 }

@@ -3,7 +3,6 @@ import multiprocessing as mp
 import subprocess
 from threading import Thread
 import sys
-from urllib.parse import urlencode
 import psutil
 from apscheduler.schedulers.background import BackgroundScheduler
 from spectre7 import utils
@@ -15,7 +14,6 @@ import requests
 from flask import Flask, abort, jsonify, request
 from flask.wrappers import Response
 from time import time, sleep
-from scrapeytmusic import scrapeYTMusicHome
 from waitress import serve
 import lyrics as Lyrics
 from os import path
@@ -41,9 +39,8 @@ def isMutexLocked(mutex):
 
 class Server:
 
-    def __init__(self, port: int, firefox_path: str, creds: dict):
+    def __init__(self, port: int, creds: dict):
         self.port = port
-        self.firefox_path = firefox_path
 
         self.api_key = creds["api_key"]
         self.ytapi_key = creds["ytapi_key"]
@@ -138,36 +135,116 @@ class Server:
         @self.app.route("/feed/")
         @self.requireKey
         def feed():
-            if not self.cached_feed_set.get():
-                if not isMutexLocked(self.refresh_mutex):
-                    self.refreshFeed()
-                self.refresh_mutex.acquire()
-                self.refresh_mutex.release()
-            return jsonify(self.cached_feed.get())
 
-        @self.app.route("/feed/latest/")
-        @self.requireKey
-        def latestFeed():
-            if isMutexLocked(self.refresh_mutex):
-                self.refresh_mutex.acquire()
-                self.refresh_mutex.release()
-            return jsonify(self.cached_feed.get())
+            def postRequest(ctoken: str | None) -> dict | Response:
+                response =  requests.post(
+                    "https://music.youtube.com/youtubei/v1/browse",
+                    params = {"ctoken": ctoken, "continuation": ctoken, "type": "next"} if ctoken is not None else {},
+                    headers = self.ytm_headers,
+                    json = {
+                        "context":{
+                            "client":{
+                                "hl": request.args.get("lang", "en"),
+                                "platform":"DESKTOP",
+                                "clientName":"WEB_REMIX",
+                                "clientVersion":"1.20221031.00.00-canary_control",
+                                "userAgent":"Mozilla/5.0 (X11; Linux x86_64; rv:105.0) Gecko/20100101 Firefox/105.0,gzip(gfe)",
+                                "acceptHeader":"text/html,application/xhtml+xml,application/xml;q=0.9,image/avif,image/webp,*/*;q=0.8",
+                            },
+                            "user":{
+                                "lockedSafetyMode": False
+                            },
+                            "request":{
+                                "useSsl": True,
+                                "internalExperimentFlags":[], "consistencyTokenJars":[]
+                            },
+                        }
+                    }
+                )
 
-        @self.app.route("/feed/refreshed/")
-        @self.requireKey
-        def refreshedFeed():
-            if not isMutexLocked(self.refresh_mutex):
-                self.refreshFeed()
+                if response.status_code != 200:
+                    return self.errorResponse(response.status_code, response.text)
 
-            self.refresh_mutex.acquire()
-            self.refresh_mutex.release()
+                if ctoken is not None:
+                    return response.json()["continuationContents"]["sectionListContinuation"]
+                else:
+                    return response.json()["contents"]["singleColumnBrowseResultsRenderer"]["tabs"][0]["tabRenderer"]["content"]["sectionListRenderer"]
 
-            return jsonify(self.cached_feed.get())
+            def processRows(rows: list):
+                ret = []
+                for row in rows:
+                    data = row["musicCarouselShelfRenderer"]
 
-        @self.app.route("/feed/refresh/")
-        @self.requireKey
-        def refreshFeed():
-            return jsonify(self.refreshFeed())
+                    items = []
+                    title = data["header"]["musicCarouselShelfBasicHeaderRenderer"]["title"]["runs"][0]
+                    entry = {
+                        "title": title["text"],
+                        "browse_id": title["navigationEndpoint"]["browseEndpoint"]["browseId"] if "navigationEndpoint" in title else None,
+                        "subtitle": title["strapline"]["runs"][0]["text"] if "strapline" in title else None,
+                        "items": items,
+                    }
+
+                    for item in data["contents"]:
+                        key = list(item.keys())[0]
+                        item = item[key]
+                        match key:
+                            case "musicTwoRowItemRenderer":
+                                item_entry = {}
+                                items.append(item_entry)
+                                try:
+                                    item_entry["id"] = item["navigationEndpoint"]["watchEndpoint"]["videoId"]
+                                    item_entry["type"] = "song"
+                                    try:
+                                        item_entry["playlist_id"] = item["navigationEndpoint"]["watchEndpoint"]["playlistId"]
+                                    except KeyError:
+                                        pass
+                                except KeyError:
+                                    try:
+                                        item_entry["id"] = item["navigationEndpoint"]["browseEndpoint"]["browseId"]
+                                        item_type = item["navigationEndpoint"]["browseEndpoint"]["browseEndpointContextSupportedConfigs"]["browseEndpointContextMusicConfig"]["pageType"]
+                                        match item_type:
+                                            case "MUSIC_PAGE_TYPE_ALBUM" | "MUSIC_PAGE_TYPE_PLAYLIST":
+                                                item_entry["type"] = "playlist"
+                                            case "MUSIC_PAGE_TYPE_ARTIST":
+                                                item_entry["type"] = "artist"
+                                            case _:
+                                                raise RuntimeError(item_type)
+                                    except KeyError:
+                                        raise RuntimeError(json.dumps(item, indent="\t"))
+                            case "musicResponsiveListItemRenderer":
+                                items.append({
+                                    "type": "song",
+                                    "id": item["playlistItemData"]["videoId"],
+                                    "playlist_id": None
+                                })
+                            case _:
+                                raise RuntimeError(key)
+
+                    if len(items) > 0:
+                        ret.append(entry)
+
+                return ret
+
+            try:
+                min_rows = int(request.args.get("minRows", -1))
+            except ValueError:
+                return self.errorResponse(400, "Invalid minRows parameter")
+
+            data = postRequest(None)
+            if isinstance(data, Response):
+                return data
+
+            rows = processRows(data["contents"])
+
+            while len(rows) < min_rows:
+                ctoken = data["continuations"][0]["nextContinuationData"]["continuation"]
+                data = postRequest(ctoken)
+                if isinstance(data, Response):
+                    return data
+
+                rows += processRows(data["contents"])
+
+            return jsonify(rows)
 
         @self.app.route("/lyrics/")
         @self.requireKey
@@ -204,42 +281,10 @@ class Server:
                 abort(Response("Missing or invalid key parameter", 401))
         return decoratedFunction
 
-    def refreshFeed(self):
-        if isMutexLocked(self.refresh_mutex):
-            return {"result": 1, "error": "Already refreshing"}
-
-        def thread():
-            try:
-                self.refresh_mutex.acquire()
-                utils.log("Refreshing feed...")
-
-                feed = scrapeYTMusicHome(self.ytm_headers, self.firefox_path, shouldCancel = lambda : self.exiting.get())
-                if feed is not None:
-                    self.cached_feed.set(feed)
-                    self.cached_feed_set.set(True)
-                    utils.log("Feed refresh completed")
-                else:
-                    utils.info("Feed refresh cancelled")
-
-                self.refresh_mutex.release()
-            except ProtocolError as e:
-                try:
-                    print(e)
-                except:
-                    pass
-
-        Thread(target=thread).start()
-        return {"result": 0}
-
-    def start(self, refresh_feed: bool = True):
+    def start(self,):
         self.start_time = time()
         # sys.stdout = open("/dev/null", "w")
         # sys.stderr = sys.stdout
-
-        self.scheduler = BackgroundScheduler()
-        self.scheduler.add_job(func=self.refreshFeed, trigger="interval", seconds = 60 * 60 * 6)
-        self.scheduler.start()
-        atexit.register(self.scheduler.shutdown)
 
         def run(queue):
             self.restart_queue = queue
@@ -258,9 +303,6 @@ class Server:
             f"Public URL is {getNgrokUrl(self.ngrok_headers)}"
         ):
             utils.info(f"* {msg}")
-
-        if refresh_feed:
-            self.refreshFeed()
 
         # Wait for restart request
         restart = False
@@ -281,14 +323,12 @@ class Server:
             subprocess.call([sys.executable] + sys.argv)
 
     def restart(self):
-        self.scheduler.shutdown()
         psutil.Process(self.ngrok_process.pid).kill()
         if self.restart_queue is not None:
             self.restart_queue.put(True)
         utils.log("Restarting...")
 
     def stop(self):
-        self.scheduler.shutdown()
         psutil.Process(self.ngrok_process.pid).kill()
         if self.restart_queue is not None:
             self.restart_queue.put(False)

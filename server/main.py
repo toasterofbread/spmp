@@ -10,8 +10,6 @@ DEFAULT_PORT = 3232
 def main():
 
     parser = ArgumentParser("SPMP Server")
-    parser.add_argument("-f", "--firefox", type=str, default="firefox", help="Path to a Firefox executable")
-    parser.add_argument("-s", "--safe", action="store_true")
     parser.add_argument("-p", "--port", type=str, default=DEFAULT_PORT)
     parser.add_argument("-c", "--credentials", type=str, dest="creds_path", default=DEFAULT_CREDENTIALS_PATH)
     args = parser.parse_args()
@@ -29,8 +27,8 @@ def main():
         utils.err(f"Parsing credentials file at {path.abspath(args.creds_path)} failed:\n" + e.msg)
         return
 
-    server = Server(args.port, args.firefox, creds)
-    server.start(not args.safe)
+    server = Server(args.port, creds)
+    server.start()
 
 if __name__ == "__main__":
     main()

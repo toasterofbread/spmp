@@ -91,7 +91,7 @@ class YtApi:
         @app.route("/youtubeapi/<endpoint>/")
         @server.requireKey
         def other(endpoint: str):
-            return server.errorResponse(404, "Unsupported endpoint")
+            return server.errorResponse(501, "Unsupported endpoint")
 
             # cached = server.getCache("yt", url)
             # if cached is not None:

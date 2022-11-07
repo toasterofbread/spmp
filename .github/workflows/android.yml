@@ -29,6 +29,7 @@ jobs:
         latest: true
         fileName: ptl.jar
         out-file-path: ptl/lib/build/libs/ptl.jar
+        token: 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
     - name: Print tree
       run: tree
     - name: Grant execute permission for gradlew

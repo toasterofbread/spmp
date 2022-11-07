@@ -1,0 +1,45 @@
+name: Assemble APKs
+
+on:
+  push:
+    branches: [ "main", "build" ]
+  pull_request:
+    branches: [ "main" ]
+  workflow_dispatch:
+
+jobs:
+  build:
+
+    runs-on: ubuntu-latest
+
+    steps:
+    - uses: actions/checkout@v3
+    - name: Set up JDK 11
+      uses: actions/setup-java@v3
+      with:
+        java-version: '11'
+        distribution: 'temurin'
+        cache: gradle
+
+    - name: Grant execute permission for gradlew
+      run: |
+        chmod +x gradlew
+        rm -rf app/build/outputs/
+      
+    - name: Build with Gradle (debug)
+      run: ./gradlew assembleDebug
+      
+    - name: Upload artifacts (debug)
+      uses: actions/upload-artifact@v3.1.1
+      with:
+        name: Debug APKs
+        path: app/build/outputs/apk/debug/
+    
+    - name: Build with Gradle (release)
+      run: ./gradlew assembleRelease
+    
+    - name: Upload artifacts (release)
+      uses: actions/upload-artifact@v3.1.1
+      with:
+        name: Release APKs
+        path: app/build/outputs/apk/release/

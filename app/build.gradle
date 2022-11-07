@@ -16,9 +16,11 @@ android {
             storeFile file("${System.properties['user.home']}${File.separator}.android${File.separator}keystore.jks")
 
             keyAlias "default"
+            if (keystoreProperties["keyAlias"] != null) {
+                keyAlias keystoreProperties["keyAlias"]
+            }
 
             storePassword keystoreProperties["storePassword"]
-            keyAlias keystoreProperties["keyAlias"]
             keyPassword keystoreProperties["keyPassword"]
 
             if (System.getenv("SIGNING_STORE_PASSWORD") != null) {

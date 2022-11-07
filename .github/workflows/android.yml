@@ -26,6 +26,7 @@ jobs:
     
     - name: Get keystore
       run: |
+        mkdir -p $HOME/.android
         echo "${{ secrets.ANDROID_KEYSTORE }}" > $HOME/.android/keystore.jks.asc
         gpg -d --passphrase "${{ secrets.ANDROID_KEYSTORE_PASSWORD }}" --batch $HOME/.android/keystore.jks.asc > $HOME/.android/keystore.jks
       

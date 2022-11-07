@@ -20,18 +20,16 @@ jobs:
         distribution: 'temurin'
         cache: gradle
 
-    - name: Create Ptl directory (temp)
-      run: mkdir -p ptl/lib/build/libs/
-    - name: Get Ptl (temp)
-      uses: robinraju/release-downloader@v1.6
-      with:
-        repository: spectreseven1138/ptl
-        latest: true
-        fileName: ptl.jar
-        out-file-path: ptl/lib/build/libs/ptl.jar
-    - name: Print tree
-      run: tree
     - name: Grant execute permission for gradlew
       run: chmod +x gradlew     
     - name: Build with Gradle
       run: ./gradlew build
+
+    - name: Print tree
+      run: tree
+
+    # - name: Upload APK artifact
+    #   uses: actions/upload-artifact@v3.1.1
+    #   with:
+    #     name: spmp.apk
+    #     path: 

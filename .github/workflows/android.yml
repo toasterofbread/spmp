@@ -30,12 +30,6 @@ jobs:
         echo $ENCODED_KEYSTORE | base64 -di > $HOME/.android/keystore.jks
         echo $PROPERTIES > $HOME/.android/keystore.properties
 
-    - name: A
-      run: |
-        tree
-        cat $HOME/.android/keystore.properties
-        echo "$HOME/.android/keystore.properties"
-
     - name: Grant execute permission for gradlew
       run: chmod +x gradlew
 

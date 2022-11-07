@@ -4,7 +4,7 @@ plugins {
     id 'com.chaquo.python'
 }
 
-def keystorePropertiesFile = rootProject.file("${System.properties['user.home']}${File.separator}.android${File.separator}keystore.properties")
+def keystorePropertiesFile = file("${System.properties['user.home']}${File.separator}.android${File.separator}keystore.properties")
 def keystoreProperties = new Properties()
 keystoreProperties.load(new FileInputStream(keystorePropertiesFile))
 

@@ -11,3 +11,4 @@ unicodeblock
 xmltodict
 markdown
 gh_md_to_html
+ytmusicapi

@@ -16,3 +16,4 @@ server/*.json
 venv/
 server/pages/github-markdown-css/
 server/pages/*.html
+nohup.out

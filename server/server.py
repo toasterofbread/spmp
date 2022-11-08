@@ -59,7 +59,7 @@ class Server:
 
         YtApi(self.app, self)
 
-        self._cache = {"yt": {}, "lyrics": {}}
+        self._cache = {}
         if path.isfile(CACHE_PATH):
             f = open(CACHE_PATH, "r")
             try:
@@ -68,7 +68,7 @@ class Server:
                 utils.warn(f"Parsing cache file at {CACHE_PATH} failed (ignoring)\n{e.msg}")
             f.close()
 
-        @self.app.route("/")
+        @self.route("/")
         def index():
             md = markdown("server/pages/index.md", enable_image_downloading=False, website_root=PAGE_ROOT)
 
@@ -81,7 +81,7 @@ class Server:
                 f"<style>{css}</style>"
             )
 
-        @self.app.route("/<resource>/")
+        @self.route("/<resource>/")
         def indexResource(resource: str):
 
             resource = path.abspath(path.join(PAGE_ROOT, resource))
@@ -100,30 +100,27 @@ class Server:
             f.close()
             return data
 
-        @self.app.route("/<resource>/<subresource>/")
+        @self.route("/<resource>/<subresource>/")
         def indexSubResource(resource: str, subresource: str):
             return indexResource(path.join(resource, subresource))
 
-        @self.app.route("/status/")
+        @self.route("/status/")
         def status():
             return {
                 "uptime": int(time() - self.start_time)
             }
 
-        @self.app.route("/restart/")
-        @self.requireKey
+        @self.route("/restart/", True)
         def _restart():
             self.restart()
             return jsonify(0)
 
-        @self.app.route("/stop/")
-        @self.requireKey
+        @self.route("/stop/", True)
         def _stop():
             self.stop()
             return jsonify(0)
 
-        @self.app.route("/update/")
-        @self.requireKey
+        @self.route("/update/", True)
         def update():
             subprocess.getoutput("git fetch")
             if (subprocess.getoutput(f"git diff --stat main origin/main") == ""):
@@ -132,122 +129,8 @@ class Server:
             self.restart()
             return jsonify("Updated and restarting")
 
-        @self.app.route("/feed/")
-        @self.requireKey
-        def feed():
-
-            def postRequest(ctoken: str | None) -> dict | Response:
-                response =  requests.post(
-                    "https://music.youtube.com/youtubei/v1/browse",
-                    params = {"ctoken": ctoken, "continuation": ctoken, "type": "next"} if ctoken is not None else {},
-                    headers = self.ytm_headers,
-                    json = {
-                        "context":{
-                            "client":{
-                                "hl": request.args.get("lang", "en"),
-                                "platform":"DESKTOP",
-                                "clientName":"WEB_REMIX",
-                                "clientVersion":"1.20221031.00.00-canary_control",
-                                "userAgent":"Mozilla/5.0 (X11; Linux x86_64; rv:105.0) Gecko/20100101 Firefox/105.0,gzip(gfe)",
-                                "acceptHeader":"text/html,application/xhtml+xml,application/xml;q=0.9,image/avif,image/webp,*/*;q=0.8",
-                            },
-                            "user":{
-                                "lockedSafetyMode": False
-                            },
-                            "request":{
-                                "useSsl": True,
-                                "internalExperimentFlags":[], "consistencyTokenJars":[]
-                            },
-                        }
-                    }
-                )
-
-                if response.status_code != 200:
-                    return self.errorResponse(response.status_code, response.text)
-
-                if ctoken is not None:
-                    return response.json()["continuationContents"]["sectionListContinuation"]
-                else:
-                    return response.json()["contents"]["singleColumnBrowseResultsRenderer"]["tabs"][0]["tabRenderer"]["content"]["sectionListRenderer"]
-
-            def processRows(rows: list):
-                ret = []
-                for row in rows:
-                    data = row["musicCarouselShelfRenderer"]
-
-                    items = []
-                    title = data["header"]["musicCarouselShelfBasicHeaderRenderer"]["title"]["runs"][0]
-                    entry = {
-                        "title": title["text"],
-                        "browse_id": title["navigationEndpoint"]["browseEndpoint"]["browseId"] if "navigationEndpoint" in title else None,
-                        "subtitle": title["strapline"]["runs"][0]["text"] if "strapline" in title else None,
-                        "items": items,
-                    }
-
-                    for item in data["contents"]:
-                        key = list(item.keys())[0]
-                        item = item[key]
-                        match key:
-                            case "musicTwoRowItemRenderer":
-                                item_entry = {}
-                                items.append(item_entry)
-                                try:
-                                    item_entry["id"] = item["navigationEndpoint"]["watchEndpoint"]["videoId"]
-                                    item_entry["type"] = "song"
-                                    try:
-                                        item_entry["playlist_id"] = item["navigationEndpoint"]["watchEndpoint"]["playlistId"]
-                                    except KeyError:
-                                        pass
-                                except KeyError:
-                                    try:
-                                        item_entry["id"] = item["navigationEndpoint"]["browseEndpoint"]["browseId"]
-                                        item_type = item["navigationEndpoint"]["browseEndpoint"]["browseEndpointContextSupportedConfigs"]["browseEndpointContextMusicConfig"]["pageType"]
-                                        match item_type:
-                                            case "MUSIC_PAGE_TYPE_ALBUM" | "MUSIC_PAGE_TYPE_PLAYLIST":
-                                                item_entry["type"] = "playlist"
-                                            case "MUSIC_PAGE_TYPE_ARTIST":
-                                                item_entry["type"] = "artist"
-                                            case _:
-                                                raise RuntimeError(item_type)
-                                    except KeyError:
-                                        raise RuntimeError(json.dumps(item, indent="\t"))
-                            case "musicResponsiveListItemRenderer":
-                                items.append({
-                                    "type": "song",
-                                    "id": item["playlistItemData"]["videoId"],
-                                    "playlist_id": None
-                                })
-                            case _:
-                                raise RuntimeError(key)
-
-                    if len(items) > 0:
-                        ret.append(entry)
-
-                return ret
-
-            try:
-                min_rows = int(request.args.get("minRows", -1))
-            except ValueError:
-                return self.errorResponse(400, "Invalid minRows parameter")
-
-            data = postRequest(None)
-            if isinstance(data, Response):
-                return data
-
-            rows = processRows(data["contents"])
-
-            while len(rows) < min_rows:
-                ctoken = data["continuations"][0]["nextContinuationData"]["continuation"]
-                data = postRequest(ctoken)
-                if isinstance(data, Response):
-                    return data
-
-                rows += processRows(data["contents"])
-
-            return jsonify(rows)
-
-        @self.app.route("/lyrics/")
-        @self.requireKey
+        @self.route("/lyrics/", True)
+        @self.cacheable
         def lyrics():
             title = request.args.get("title")
             artist = request.args.get("artist")
@@ -259,29 +142,53 @@ class Server:
             if id is None:
                 return self.errorResponse(404, "Query doesn't match any songs")
 
-            cached = self.getCache("lyrics", id)
-            if cached is not None:
-                return jsonify(cached)
-
             lyrics = {
                 "lyrics": Lyrics.getLyrics(id).getWithFurigana(),
                 "source": "PetitLyrics", # TODO
                 "timed": True
             }
-            self.setCache("lyrics", id, lyrics)
+
             return jsonify(lyrics)
 
-    def requireKey(self, func):
-        @wraps(func)
-        def decoratedFunction(*args, **kwargs):
-            utils.log(f"Request recieved with url {request.url}")
-            if request.args.get("key") and request.args.get("key") == self.api_key:
-                return func(*args, **kwargs)
-            else:
-                abort(Response("Missing or invalid key parameter", 401))
-        return decoratedFunction
+    def route(path: str, require_key: bool):
+        if not path.endswith("/"):
+            path += "/"
+        if not path.startswith("/"):
+            path = "/" + path
+        
+        def wrapper(func):
+            @wraps(func)
+            @server.route(path)
+            def decorated(*args, **kwargs):
+                utils.log(f"{'Authenticated' if (require_key) else 'Unauthenticated'} request recieved with url {request.url}")
+                if request.args.get("key") and request.args.get("key") == self.api_key:
+                    return func(*args, **kwargs)
+                else:
+                    return self.errorResponse(401, "Missing or invalid key parameter")
+                
+            return decorated
+        return wrapper
 
-    def start(self,):
+    def cacheable(self, func):
+        @wraps(func)
+        def decorated(*args, **kwargs):
+            params = dict(kwargs)
+            params.update(request.args)
+            key = func.__name__ + str(params)
+
+            if not request.args.get("noCached", None):
+                cached = server.getCache(key, url)
+                if cached is not None:
+                    return jsonify(cached)
+
+            ret: Response = func(*args, **kwargs)
+            if ret.status_code == 200:
+                server.setCache(key, url, ret.get_json())
+
+            return ret
+        return decorated
+
+    def start(self):
         self.start_time = time()
         # sys.stdout = open("/dev/null", "w")
         # sys.stderr = sys.stdout
@@ -335,6 +242,9 @@ class Server:
         utils.log("Stopping...")
 
     def getCache(self, dir: str, id):
+        if not dir in self._cache:
+            return None
+
         cached = self._cache[dir].get(id)
         if cached is None:
             return None
@@ -347,7 +257,12 @@ class Server:
         return cached["data"]
 
     def setCache(self, dir: str, id, data):
-        self._cache[dir][id] = {"data": data, "time": int(time())}
+        if not dir in self._cache:
+            obj = {}
+            self._cache[dir] = obj
+        else:
+            obj = self._cache[dir]
+        obj[id] = {"data": data, "time": int(time())}
         self.saveCache()
 
     def saveCache(self):

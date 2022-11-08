@@ -150,23 +150,25 @@ class Server:
 
             return jsonify(lyrics)
 
-    def route(path: str, require_key: bool):
+    def route(self, path: str, require_key: bool = False):
         if not path.endswith("/"):
             path += "/"
         if not path.startswith("/"):
             path = "/" + path
-        
+
+        require_key = False
+      
         def wrapper(func):
             @wraps(func)
-            @server.route(path)
             def decorated(*args, **kwargs):
                 utils.log(f"{'Authenticated' if (require_key) else 'Unauthenticated'} request recieved with url {request.url}")
-                if request.args.get("key") and request.args.get("key") == self.api_key:
+                if not require_key or (request.args.get("key") and request.args.get("key") == self.api_key):
                     return func(*args, **kwargs)
                 else:
                     return self.errorResponse(401, "Missing or invalid key parameter")
-                
-            return decorated
+
+            decorated.__name__ = func.__name__
+            return self.app.route(path)(decorated)
         return wrapper
 
     def cacheable(self, func):
@@ -174,16 +176,16 @@ class Server:
         def decorated(*args, **kwargs):
             params = dict(kwargs)
             params.update(request.args)
-            key = func.__name__ + str(params)
+            key = str(params)
 
             if not request.args.get("noCached", None):
-                cached = server.getCache(key, url)
+                cached = self.getCache(func.__name__, key)
                 if cached is not None:
                     return jsonify(cached)
 
             ret: Response = func(*args, **kwargs)
             if ret.status_code == 200:
-                server.setCache(key, url, ret.get_json())
+                self.setCache(func.__name__, key, ret.get_json())
 
             return ret
         return decorated

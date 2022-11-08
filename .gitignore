@@ -11,9 +11,10 @@ local.properties
 app/debug/
 app/release/
 .vscode
-*/__pycache__/
+**/__pycache__/
 server/*.json
 venv/
 server/pages/github-markdown-css/
 server/pages/*.html
 nohup.out
+server/spectre7/

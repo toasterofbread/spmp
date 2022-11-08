@@ -1,12 +1,5 @@
-import atexit
-import multiprocessing as mp
-import subprocess
-from threading import Thread
 import sys
-import psutil
-from apscheduler.schedulers.background import BackgroundScheduler
 from spectre7 import utils
-from urllib3.exceptions import ProtocolError
 import json
 from json import JSONDecodeError
 from functools import wraps
@@ -14,11 +7,12 @@ import requests
 from flask import Flask, abort, jsonify, request
 from flask.wrappers import Response
 from time import time, sleep
-from waitress import serve
+from werkzeug.serving import make_server as wserve
 import lyrics as Lyrics
 from os import path
 from gh_md_to_html import main as markdown
 from ytapi import YtApi
+from threading import Thread
 
 RECOMMENDED_ROWS = 10
 CACHE_LIFETIME = 24 * 60 * 60
@@ -39,8 +33,9 @@ def isMutexLocked(mutex):
 
 class Server:
 
-    def __init__(self, port: int, creds: dict):
+    def __init__(self, port: int, creds: dict, integrated: bool = False):
         self.port = port
+        self.integrated = integrated
 
         self.api_key = creds["api_key"]
         self.ytapi_key = creds["ytapi_key"]
@@ -48,19 +43,22 @@ class Server:
         self.ngrok_headers = creds["ngrok_headers"]
 
         self.app = Flask("SpMp Server")
+        self.server = None
         self.start_time = 0
         self.restart_queue = None
 
-        manager = mp.Manager()
-        self.refresh_mutex = manager.Lock()
-        self.cached_feed = manager.Value("l", [])
-        self.cached_feed_set = manager.Value("b", False)
-        self.exiting = manager.Value("b", False)
+        if not self.integrated:
+            import multiprocessing
+            manager = multiprocessing.Manager()
+            self.refresh_mutex = manager.Lock()
+            self.cached_feed = manager.Value("l", [])
+            self.cached_feed_set = manager.Value("b", False)
+            self.exiting = manager.Value("b", False)
 
         YtApi(self.app, self)
 
         self._cache = {}
-        if path.isfile(CACHE_PATH):
+        if not self.integrated and path.isfile(CACHE_PATH):
             f = open(CACHE_PATH, "r")
             try:
                 self._cache = json.loads(f.read())
@@ -68,7 +66,7 @@ class Server:
                 utils.warn(f"Parsing cache file at {CACHE_PATH} failed (ignoring)\n{e.msg}")
             f.close()
 
-        @self.route("/")
+        @self.route("/", disable_on_integrated=True)
         def index():
             md = markdown("server/pages/index.md", enable_image_downloading=False, website_root=PAGE_ROOT)
 
@@ -82,7 +80,7 @@ class Server:
             )
 
         @self.route("/<resource>/")
-        def indexResource(resource: str):
+        def indexResource(resource: str, disable_on_integrated=True):
 
             resource = path.abspath(path.join(PAGE_ROOT, resource))
             if not resource.startswith(PAGE_ROOT):
@@ -100,28 +98,27 @@ class Server:
             f.close()
             return data
 
-        @self.route("/<resource>/<subresource>/")
+        @self.route("/<resource>/<subresource>/", disable_on_integrated=True)
         def indexSubResource(resource: str, subresource: str):
             return indexResource(path.join(resource, subresource))
 
-        @self.route("/status/")
+        @self.route("/status/", disable_on_integrated=True)
         def status():
             return {
                 "uptime": int(time() - self.start_time)
             }
 
-        @self.route("/restart/", True)
+        @self.route("/restart/", True, True)
         def _restart():
-            self.restart()
-            return jsonify(0)
+            return jsonify(self.restart())
 
-        @self.route("/stop/", True)
+        @self.route("/stop/", True, True)
         def _stop():
-            self.stop()
-            return jsonify(0)
+            return jsonify(self.stop())
 
-        @self.route("/update/", True)
+        @self.route("/update/", True, True)
         def update():
+            import subprocess
             subprocess.getoutput("git fetch")
             if (subprocess.getoutput(f"git diff --stat main origin/main") == ""):
                 return "Already running the latest version"
@@ -129,8 +126,8 @@ class Server:
             self.restart()
             return jsonify("Updated and restarting")
 
-        @self.route("/lyrics/", True)
         @self.cacheable
+        @self.route("/lyrics/", True)
         def lyrics():
             title = request.args.get("title")
             artist = request.args.get("artist")
@@ -150,18 +147,20 @@ class Server:
 
             return jsonify(lyrics)
 
-    def route(self, path: str, require_key: bool = False):
+    def route(self, path: str, require_key: bool = False, disable_on_integrated: bool = False):
         if not path.endswith("/"):
             path += "/"
         if not path.startswith("/"):
             path = "/" + path
 
-        require_key = False
-      
         def wrapper(func):
             @wraps(func)
             def decorated(*args, **kwargs):
-                utils.log(f"{'Authenticated' if (require_key) else 'Unauthenticated'} request recieved with url {request.url}")
+                if self.integrated and disable_on_integrated:
+                    utils.warn(f"Request received, but is disabled on integrated server. URL: {request.url}")
+                    return self.errorResponse(501, "Endpoint disabled on integrated server")
+
+                utils.log(f"{'Authenticated' if (require_key) else 'Unauthenticated'} request recieved with URL {request.url}")
                 if not require_key or (request.args.get("key") and request.args.get("key") == self.api_key):
                     return func(*args, **kwargs)
                 else:
@@ -181,6 +180,7 @@ class Server:
             if not request.args.get("noCached", None):
                 cached = self.getCache(func.__name__, key)
                 if cached is not None:
+                    utils.info("Using cached value")
                     return jsonify(cached)
 
             ret: Response = func(*args, **kwargs)
@@ -195,50 +195,61 @@ class Server:
         # sys.stdout = open("/dev/null", "w")
         # sys.stderr = sys.stdout
 
-        def run(queue):
+        self.server = wserve(app = self.app, host = "0.0.0.0", port = self.port, threaded = True)
+
+        if not self.integrated:
+            import subprocess, multiprocessing
+            ngrok_process = subprocess.Popen(f"exec ngrok http {self.port}", shell=True, stdout=open("/dev/null", "w"))
+            q = multiprocessing.Queue()
+        else:
+            ngrok_process = None
+            q = None
+
+        def run(server, queue):
             self.restart_queue = queue
-            serve(self.app, host="0.0.0.0", port = self.port)
+            server.serve_forever()
 
-        self.ngrok_process = subprocess.Popen(f"exec ngrok http {self.port}", shell=True, stdout=open("/dev/null", "w"))
+        thread = Thread(target=run, args=(self.server, q))
+        thread.start()
 
-        q = mp.Queue()
-        app_process = mp.Process(target=run, args=(q,))
-        app_process.start()
+        sleep(0.5)
 
-        sleep(1)
+        utils.info(f"* Running locally on http://127.0.0.1:{self.port}")
+        if self.integrated:
+            utils.info("* Running in integrated mode, no public URL available")
+        else:
+            utils.info(f"* Public URL is {getNgrokUrl(self.ngrok_headers)}")
 
-        for msg in (
-            f"Running locally on http://127.0.0.1:{self.port}",
-            f"Public URL is {getNgrokUrl(self.ngrok_headers)}"
-        ):
-            utils.info(f"* {msg}")
-
-        # Wait for restart request
-        restart = False
-        while True:
+        if not self.integrated:
             try:
-                sleep(1)
+                thread.join()
             except KeyboardInterrupt:
                 utils.info("\nExiting...")
                 exit()
 
-            if not q.empty():
-                self.exiting.set(True)
-                restart = q.get(True)
-                break
+            self.exiting.set(True)
 
-        app_process.terminate()
-        if restart:
-            subprocess.call([sys.executable] + sys.argv)
+            import psutil, subprocess
+            psutil.Process(ngrok_process.pid).kill() # type: ignore
+
+            if q.get(True): # type: ignore
+                try:
+                    subprocess.call([sys.executable] + sys.argv)
+                except KeyboardInterrupt:
+                    exit()
 
     def restart(self):
-        psutil.Process(self.ngrok_process.pid).kill()
+        if self.server:
+            self.server.shutdown()
+        if self.integrated:
+            return
         if self.restart_queue is not None:
             self.restart_queue.put(True)
         utils.log("Restarting...")
 
     def stop(self):
-        psutil.Process(self.ngrok_process.pid).kill()
+        if self.server:
+            self.server.shutdown()
         if self.restart_queue is not None:
             self.restart_queue.put(False)
         utils.log("Stopping...")
@@ -268,6 +279,9 @@ class Server:
         self.saveCache()
 
     def saveCache(self):
+        if self.integrated:
+            return
+
         f = open(CACHE_PATH, "w")
         f.write(json.dumps(self._cache))
         f.close()
@@ -276,3 +290,6 @@ class Server:
         response = jsonify(message)
         response.status_code = code
         return response
+
+    def getPort(self):
+        return self.port

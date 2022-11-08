@@ -69,8 +69,8 @@ class MainActivity : ComponentActivity() {
     }
 
     override fun onDestroy() {
-        PlayerHost.release()
         super.onDestroy()
+        PlayerHost.release()
     }
 
     companion object {

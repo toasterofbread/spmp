@@ -1,4 +1,3 @@
-psutil
 flask
 apscheduler
 waitress
@@ -10,3 +9,6 @@ xmltodict
 markdown
 gh_md_to_html
 ytmusicapi
+mutagen
+termcolor
+# psutil required for non-integrated server

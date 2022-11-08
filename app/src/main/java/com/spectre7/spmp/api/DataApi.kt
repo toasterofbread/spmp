@@ -7,6 +7,7 @@ import com.chaquo.python.PyException
 import com.chaquo.python.PyObject
 import com.chaquo.python.Python
 import com.spectre7.spmp.MainActivity
+import com.spectre7.spmp.PlayerHost
 import com.spectre7.spmp.R
 import com.spectre7.spmp.model.*
 import com.spectre7.spmp.ui.layout.ResourceType
@@ -14,9 +15,12 @@ import com.spectre7.utils.getString
 import kotlinx.coroutines.runBlocking
 import kotlinx.coroutines.sync.Mutex
 import kotlinx.coroutines.sync.withLock
-import okhttp3.*
+import okhttp3.Interceptor
 import okhttp3.MediaType.Companion.toMediaType
+import okhttp3.OkHttpClient
+import okhttp3.Request
 import okhttp3.RequestBody.Companion.toRequestBody
+import okhttp3.Response
 import java.net.URLEncoder
 import java.time.Instant
 import java.util.*
@@ -85,7 +89,7 @@ class DataApi {
             }
 
         private val klaxon: Klaxon = Klaxon()
-        private var ngrok_tunnel: NgrokTunnelListResponse.Tunnel? = null
+        private var cached_server_url: String? = null
 
         private val song_request_queue = mutableListOf<Pair<String, MutableList<(Song?) -> Unit>>>()
         private var song_request_count = 0
@@ -264,7 +268,7 @@ class DataApi {
             }
         }
 
-        val ytd = Python.getInstance().getModule("yt_dlp").callAttr("YoutubeDL")
+//        val ytd = Python.getInstance().getModule("yt_dlp").callAttr("YoutubeDL")
 
         fun getDownloadUrl(id: String, callback: (url: String?) -> Unit) {
             thread {
@@ -306,13 +310,13 @@ class DataApi {
                     url = attemptGetDownloadUrl(NO_CONTENT_WARNING_CLIENT)
                     if (url == null) {
                         // Use yt-dlp as a catch-all backup (it's too slow to use all the time)
-                        val formats = ytd.callAttr("extract_info", id, false).callAttr("get", "formats").asList()
-                        for (format in formats) {
-                            if (format.callAttr("get", "format_id").toString() == "140") {
-                                url = format.callAttr("get", "url").toString()
-                                break
-                            }
-                        }
+//                        val formats = ytd.callAttr("extract_info", id, false).callAttr("get", "formats").asList()
+//                        for (format in formats) {
+//                            if (format.callAttr("get", "format_id").toString() == "140") {
+//                                url = format.callAttr("get", "url").toString()
+//                                break
+//                            }
+//                        }
                     }
                 }
 
@@ -325,13 +329,19 @@ class DataApi {
         fun getSongLyrics(song: Song, callback: (Song.Lyrics?) -> Unit) {
             thread {
                 val params = mapOf("title" to song.title, "artist" to song.artist.nativeData.name)
-                val result = queryServer("/lyrics", parameters = params)
 
-                if (result == null) {
-                    callback(null)
+                try {
+                    val result = queryServer("/lyrics", parameters = params)
+                    if (result == null) {
+                        callback(null)
+                    }
+                    else {
+                        callback(klaxon.parse<Song.Lyrics>(result))
+                    }
                 }
-                else {
-                    callback(klaxon.parse<Song.Lyrics>(result))
+                catch (e: Exception) {
+                    MainActivity.network.onError(e)
+                    callback(null)
                 }
             }
         }
@@ -440,15 +450,22 @@ class DataApi {
             }
         }
 
+        data class ServerAccessPoint(val url: String, val from_cache: Boolean)
+
         data class NgrokTunnelListResponse(val tunnels: List<Tunnel>) {
             data class Tunnel(val id: String, val public_url: String, val started_at: String, val tunnel_session: Session, var from_cache: Boolean = false)
             data class Session(val id: String)
         }
 
-        fun getNgrokTunnel(no_cache: Boolean = false): NgrokTunnelListResponse.Tunnel? {
-            if (ngrok_tunnel != null && !no_cache) {
-                ngrok_tunnel!!.from_cache = true
-                return ngrok_tunnel
+        fun getServer(no_cache: Boolean = false): ServerAccessPoint? {
+
+            val integrated = PlayerHost.service.getIntegratedServerAddress()
+            if (integrated != null) {
+                return ServerAccessPoint(integrated, false)
+            }
+
+            if (cached_server_url != null && !no_cache) {
+                return ServerAccessPoint(cached_server_url!!, true)
             }
 
             val request = Request.Builder()
@@ -459,26 +476,34 @@ class DataApi {
 
             val response = OkHttpClient().newCall(request).execute()
             if (response.code != 200) {
-                ngrok_tunnel = null
+                cached_server_url = null
                 return null
             }
 
-            val tunnels = klaxon.parse<NgrokTunnelListResponse>(response.body!!.string())?.tunnels
-            ngrok_tunnel = tunnels?.getOrNull(0)
-            return ngrok_tunnel
+            val tunnel = klaxon.parse<NgrokTunnelListResponse>(response.body!!.string())?.tunnels?.getOrNull(0)
+            cached_server_url = tunnel?.public_url
+            return if (tunnel != null) ServerAccessPoint(tunnel.public_url, false) else null
         }
 
-        fun queryServer(endpoint: String, parameters: Map<String, String> = mapOf(), throw_on_fail: Boolean = true, tunnel: NgrokTunnelListResponse.Tunnel? = null, max_retries: Int = 5, timeout: Long = 10): String? {
-            var _tunnel = tunnel ?: getNgrokTunnel()
-            if (_tunnel == null) {
+        fun queryServer(endpoint: String, parameters: Map<String, String> = mapOf(), throw_on_fail: Boolean = true, server_access_point: ServerAccessPoint? = null, max_retries: Int = 5, timeout: Long = 10): String? {
+            var server = server_access_point ?: getServer()
+            if (server == null) {
                 if (throw_on_fail) {
                     throw RuntimeException("Failed to get Ngrok tunnel. Is the server running?")
                 }
                 return null
             }
 
-            fun getRequest(tunnel: NgrokTunnelListResponse.Tunnel): Request {
-                var url = "${tunnel.public_url}$endpoint?key=${getString(R.string.server_api_key)}"
+            var formatted_endpoint = endpoint
+            if (!formatted_endpoint.startsWith('/')) {
+                formatted_endpoint = "/$formatted_endpoint"
+            }
+            if (!formatted_endpoint.endsWith('/')) {
+                formatted_endpoint += '/'
+            }
+
+            fun getRequest(server: ServerAccessPoint): Request {
+                var url = "${server.url}$formatted_endpoint?key=${getString(R.string.server_api_key)}"
 
                 for (key in listOf("data_lang", "interface_lang")) {
                     if (!parameters.containsKey(key)) {
@@ -492,10 +517,10 @@ class DataApi {
                 for (param in parameters) {
                     url += "&${URLEncoder.encode(param.key, "UTF-8")}=${URLEncoder.encode(param.value, "UTF-8")}"
                 }
-                return Request.Builder().url(url).build()
+                return Request.Builder().url(url).header("Connection", "close").build()
             }
 
-            var request = getRequest(_tunnel)
+            var request = getRequest(server)
             var result: Response? = null
             var cancel: Boolean = false
             var exception: Exception? = null
@@ -506,10 +531,10 @@ class DataApi {
                     cancel = true
                     throw RuntimeException("Server API key is invalid (401)")
                 }
-                else if (ret.code == 404 && _tunnel!!.from_cache) {
-                    _tunnel = getNgrokTunnel(true)
-                    if (_tunnel != null) {
-                        request = getRequest(_tunnel!!)
+                else if (ret.code == 404 && server!!.from_cache) {
+                    server = getServer(true)
+                    if (server != null) {
+                        request = getRequest(server!!)
                     }
                     cancel = true
                     throw RuntimeException("Ngrok tunnel may be invalid (404)")
@@ -527,7 +552,7 @@ class DataApi {
                 catch(e: Exception) {
                     exception = e
                 }
-                if (result != null || _tunnel == null || cancel) {
+                if (result != null || server == null || cancel) {
                     break
                 }
             }

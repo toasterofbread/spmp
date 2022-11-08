@@ -103,7 +103,7 @@ android {
 
     sourceSets {
         main {
-            assets.srcDirs = ['build/igo/assets/']
+            assets.srcDirs = ['src/main/assets']
         }
     }
 }

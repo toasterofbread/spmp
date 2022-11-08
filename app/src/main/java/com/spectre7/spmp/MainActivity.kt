@@ -15,6 +15,8 @@ import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
+import com.beust.klaxon.JsonObject
+import com.beust.klaxon.Klaxon
 import com.chaquo.python.Python
 import com.chaquo.python.android.AndroidPlatform
 import com.spectre7.spmp.ui.layout.PlayerView
@@ -24,6 +26,7 @@ import com.spectre7.utils.Theme
 class MainActivity : ComponentActivity() {
 
     lateinit var theme: Theme
+    lateinit var languages: Map<String, Map<String, String>>
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -32,6 +35,18 @@ class MainActivity : ComponentActivity() {
         if (!Python.isStarted()) {
             Python.start(AndroidPlatform(this))
         }
+
+        val data = resources.assets.open("languages.json").bufferedReader()
+
+        val langs = mutableMapOf<String, Map<String, String>>()
+        for (item in Klaxon().parseJsonObject(data).entries) {
+            val map = mutableMapOf<String, String>()
+            for (subitem in (item.value as JsonObject).entries) {
+                map[subitem.key] = subitem.value.toString()
+            }
+            langs[item.key] = map
+        }
+        languages = langs
 
         PlayerHost()
 
@@ -105,6 +120,7 @@ class MainActivity : ComponentActivity() {
         val resources: Resources get() = context.resources
         val prefs: SharedPreferences get() = context.getSharedPreferences("com.spectre7.spmp.PREFERENCES", Context.MODE_PRIVATE)
         val theme: Theme get() = context.theme
+        val languages: Map<String, Map<String, String>> get() = context.languages
 
         @JvmStatic
         private var instance: MainActivity? = null

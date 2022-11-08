@@ -151,7 +151,11 @@ fun LyricsDisplay(song: Song, on_close_request: () -> Unit, size: Dp, seek_state
                                     TextWithReading(
                                         terms,
                                         showReadings = it,
-                                        textAlign = TextAlign.Left,
+                                        textAlign = when (MainActivity.prefs.getInt("lyrics_text_alignment", 0)) {
+                                            0 -> TextAlign.Left
+                                            1 -> TextAlign.Center
+                                            else -> TextAlign.Right
+                                        },
                                         lineHeight = 42.sp,
                                         fontSize = 20.sp,
                                         color = Color.White,

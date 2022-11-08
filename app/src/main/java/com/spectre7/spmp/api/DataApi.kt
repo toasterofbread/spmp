@@ -158,7 +158,7 @@ class DataApi {
                             var ret: Song? = null
 
                             try {
-                                val result = queryServer("/youtubeapi/videos", mapOf(
+                                val result = queryServer("/yt/videos", mapOf(
                                     "part" to "contentDetails,snippet,localizations",
                                     "id" to song_request.first
                                 ), throw_on_fail = true)!!
@@ -196,7 +196,7 @@ class DataApi {
                 return artistCache.getValue(channelId)
             }
 
-            val result = queryServer("/youtubeapi/channels", mapOf(
+            val result = queryServer("/yt/channels", mapOf(
                 "part" to "contentDetails,snippet,localizations,statistics",
                 "id" to channelId
             ))
@@ -246,7 +246,7 @@ class DataApi {
             if (channel_id != null) {
                 parameters.put("channelId", channel_id)
             }
-            val result = queryServer("/youtubeapi/search", parameters)
+            val result = queryServer("/yt/search", parameters)
             return klaxon.parse<SearchResults>(result!!)!!.items
         }
 
@@ -434,7 +434,7 @@ class DataApi {
             data class Item(val snippet: Language)
             data class LanguageResponse(val items: List<Item>)
 
-            val response = klaxon.parse<LanguageResponse>(queryServer("/youtubeapi/i18nLanguages", mapOf("part" to "snippet"))!!)!!
+            val response = klaxon.parse<LanguageResponse>(queryServer("/yt/i18nLanguages", mapOf("part" to "snippet"))!!)!!
             return List(response.items.size) { i ->
                 response.items[i].snippet
             }

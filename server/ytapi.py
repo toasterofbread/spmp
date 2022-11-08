@@ -13,7 +13,6 @@ class YtApi:
     def __init__(self, app: Flask, server):
 
         def ytApiEndpoint(endpoint: str, make_route: bool = False):
-
             def wrapper(func):
 
                 def function(*args, **kwargs):
@@ -206,6 +205,9 @@ class YtApi:
             rows = processRows(data["contents"])
 
             while len(rows) < min_rows:
+                continuations = data.get("continuations", None)
+                if continuations is None:
+                  break
                 ctoken = data["continuations"][0]["nextContinuationData"]["continuation"]
                 data = postRequest(ctoken)
                 if isinstance(data, Response):

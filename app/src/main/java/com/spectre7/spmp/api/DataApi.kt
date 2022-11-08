@@ -429,6 +429,17 @@ class DataApi {
             // TODO : https://ytmusicapi.readthedocs.io/en/latest/reference.html#ytmusicapi.YTMusic.get_watch_playlist
         }
 
+        data class Language(val hl: String, val name: String)
+        fun getLanguageList(): List<Language> {
+            data class Item(val snippet: Language)
+            data class LanguageResponse(val items: List<Item>)
+
+            val response = klaxon.parse<LanguageResponse>(queryServer("/youtubeapi/i18nLanguages", mapOf("part" to "snippet"))!!)!!
+            return List(response.items.size) { i ->
+                response.items[i].snippet
+            }
+        }
+
         data class NgrokTunnelListResponse(val tunnels: List<Tunnel>) {
             data class Tunnel(val id: String, val public_url: String, val started_at: String, val tunnel_session: Session, var from_cache: Boolean = false)
             data class Session(val id: String)
@@ -469,10 +480,12 @@ class DataApi {
             fun getRequest(tunnel: NgrokTunnelListResponse.Tunnel): Request {
                 var url = "${tunnel.public_url}$endpoint?key=${getString(R.string.server_api_key)}"
 
-                if (!parameters.containsKey("localisation")) {
-                    val loc = MainActivity.prefs.getString("localisation_code", null)
-                    if (loc != null) {
-                        url += "&localisation=$loc"
+                for (key in listOf("data_lang", "interface_lang")) {
+                    if (!parameters.containsKey(key)) {
+                        val value = MainActivity.prefs.getString(key, null)
+                        if (value != null) {
+                            url += "&$key=$value"
+                        }
                     }
                 }
 

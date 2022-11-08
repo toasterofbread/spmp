@@ -37,7 +37,7 @@ class YtApi:
         @ytApiEndpoint("videos")
         def videos():
             params = dict(request.args)
-            loc = params.pop("localisation", None)
+            # loc = params.pop("localisation", None)
 
             params["key"] = server.ytapi_key
             url = f"https://www.googleapis.com/youtube/v3/videos?" + urlencode(params)
@@ -63,24 +63,10 @@ class YtApi:
             params = dict(request.args)
             params["key"] = server.ytapi_key
 
-            if "id" in params:
-                params["id"] = self.ensureCorrectChannelId(params["id"])
+            # if "id" in params:
+            #     params["id"] = self.ensureCorrectChannelId(params["id"])
 
             url = f"https://www.googleapis.com/youtube/v3/channels?" + urlencode(params)
-
-            response = requests.get(url)
-            if response.status_code != 200:
-                return server.errorResponse(response.status_code, f"{response.reason}\n{response.text}")
-
-            return jsonify(response.json())
-
-        @app.route("/youtubeapi/search/")
-        @ytApiEndpoint("search")
-        @server.requireKey
-        def search():
-            params = dict(request.args)
-            params["key"] = server.ytapi_key
-            url = f"https://www.googleapis.com/youtube/v3/search?" + urlencode(params)
 
             response = requests.get(url)
             if response.status_code != 200:
@@ -91,20 +77,20 @@ class YtApi:
         @app.route("/youtubeapi/<endpoint>/")
         @server.requireKey
         def other(endpoint: str):
-            return server.errorResponse(501, "Unsupported endpoint")
 
-            # cached = server.getCache("yt", url)
-            # if cached is not None:
-            #     return jsonify(cached)
+            @ytApiEndpoint(endpoint)
+            def wrapped():
+                params = dict(request.args)
+                params["key"] = server.ytapi_key
+                url = f"https://www.googleapis.com/youtube/v3/{endpoint}?" + urlencode(params)
 
-            # response = requests.get(url)
-            # if response.status_code != 200:
-            #     return server.errorResponse(response.status_code, f"{response.reason}\n{response.text}")
+                response = requests.get(url)
+                if response.status_code != 200:
+                    return server.errorResponse(response.status_code, f"{response.reason}\n{response.text}")
 
-            # data = json.loads(response.text)
+                return jsonify(response.json())
 
-            # server.setCache("yt", url, data)
-            # return jsonify(data)
+            return wrapped()
 
     def ensureCorrectChannelId(self, channel_id: str):
         try:

@@ -41,7 +41,7 @@ class YtApi:
                     @wraps(func)
                     def decorated(*args, **kwargs):
                         return function(*args, **kwargs)
-                
+
                 return decorated
             return wrapper
 
@@ -196,7 +196,7 @@ class YtApi:
             try:
                 min_rows = int(request.args.get("minRows", -1))
             except ValueError:
-                return self.errorResponse(400, "Invalid minRows parameter")
+                return server.errorResponse(400, "Invalid minRows parameter")
 
             data = postRequest(None)
             if isinstance(data, Response):
@@ -207,7 +207,7 @@ class YtApi:
             while len(rows) < min_rows:
                 continuations = data.get("continuations", None)
                 if continuations is None:
-                  break
+                    break
                 ctoken = data["continuations"][0]["nextContinuationData"]["continuation"]
                 data = postRequest(ctoken)
                 if isinstance(data, Response):

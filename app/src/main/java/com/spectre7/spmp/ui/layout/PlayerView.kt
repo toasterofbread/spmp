@@ -38,12 +38,10 @@ import com.spectre7.spmp.api.DataApi
 import com.spectre7.spmp.model.Previewable
 import com.spectre7.spmp.model.Song
 import com.spectre7.spmp.ui.component.PillMenu
-import com.spectre7.utils.getContrasted
-import com.spectre7.utils.getString
-import com.spectre7.utils.setAlpha
-import com.spectre7.utils.toInt
+import com.spectre7.utils.*
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
+import kotlinx.coroutines.runBlocking
 import kotlinx.coroutines.suspendCancellableCoroutine
 import java.util.concurrent.locks.ReentrantLock
 import kotlin.concurrent.thread
@@ -185,17 +183,21 @@ fun PlayerView() {
                     Column(Modifier.fillMaxSize(), horizontalAlignment = Alignment.CenterHorizontally, verticalArrangement = Arrangement.Center) {
                         Icon(Icons.Filled.CloudOff, "", Modifier.size(50.dp))
 
+                        fun refresh() {
+                            if (rows.isEmpty()) {
+                                refreshFeed()
+                            }
+                            else {
+                                MainActivity.network.onRetry()
+                            }
+                        }
+
                         PillMenu(
-                            3,
-                            { index, _action_count ->
+                            if (PlayerHost.service.getIntegratedServerAddress() == null) 4 else 3,
+                            { index, _ ->
                                 when (index) {
                                     0 -> ActionButton(Icons.Filled.Refresh) {
-                                        if (rows.isEmpty()) {
-                                            refreshFeed()
-                                        }
-                                        else {
-                                            MainActivity.network.onRetry()
-                                        }
+                                        refresh()
                                     }
                                     1 -> {
                                         Text(
@@ -209,6 +211,15 @@ fun PlayerView() {
                                         )
                                     }
                                     2 -> ActionButton(Icons.Filled.Info) { expand = !expand }
+                                    3 -> ActionButton(Icons.Filled.DownloadForOffline) {
+                                        sendToast("Starting integrated server...")
+                                        thread {
+                                            runBlocking {
+                                                PlayerHost.service.startIntegratedServer()
+                                            }
+                                            refresh()
+                                        }
+                                    }
                                 }
                             },
                             null,

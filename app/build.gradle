@@ -41,8 +41,10 @@ android {
         python {
             pip {
                 install "ytmusicapi"
-                install "pykakasi"
-                install "yt-dlp"
+                install "-r", "../server/requirements.txt"
+            }
+            python {
+                version "3.10"
             }
         }
 
@@ -103,7 +105,8 @@ android {
 
     sourceSets {
         main {
-            assets.srcDirs = ['src/main/assets']
+            assets.srcDirs = ["src/main/assets"]
+            python.srcDir "../server/"
         }
     }
 }

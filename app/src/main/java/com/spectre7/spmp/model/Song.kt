@@ -116,7 +116,7 @@ data class Song (
 
     var theme_colour: Color?
         get() = if (registry_entry.overrides.theme_colour == null) null else Color(registry_entry.overrides.theme_colour!!)
-        set(value) { registry_entry.overrides.theme_colour = value?.toArgb(); println("SET | ${value?.toArgb()}"); registry!!.save(MainActivity.prefs) }
+        set(value) { registry_entry.overrides.theme_colour = value?.toArgb(); registry!!.save(MainActivity.prefs) }
 
     var title: String
         get() {

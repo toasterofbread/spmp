@@ -18,6 +18,8 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.toArgb
 import androidx.media.session.MediaButtonReceiver
+import com.chaquo.python.PyObject
+import com.chaquo.python.Python
 import com.google.android.exoplayer2.C
 import com.google.android.exoplayer2.ExoPlayer
 import com.google.android.exoplayer2.MediaItem
@@ -29,6 +31,7 @@ import com.spectre7.spmp.api.DataApi
 import com.spectre7.spmp.model.Song
 import com.spectre7.spmp.ui.layout.PlayerStatus
 import com.spectre7.utils.sendToast
+import kotlinx.coroutines.sync.Mutex
 import kotlin.concurrent.thread
 
 enum class SERVICE_INTENT_ACTIONS { STOP, BUTTON_VOLUME }
@@ -40,8 +43,7 @@ class PlayerHost {
 
     private var service_connection: ServiceConnection? = null
     private var service_intent: Intent? = null
-    private val context: Context
-        get() = MainActivity.context
+    private val context: Context get() = MainActivity.context
 
     init {
         instance = this
@@ -49,8 +51,7 @@ class PlayerHost {
     }
 
     companion object {
-        private lateinit var instance: PlayerHost
-
+        lateinit var instance: PlayerHost
         lateinit var p_status: PlayerStatus
 
         val service: PlayerService
@@ -78,23 +79,22 @@ class PlayerHost {
             context.startForegroundService(service_intent)
         }
 
-        context.bindService(service_intent,
-            object : ServiceConnection {
+        service_connection = object : ServiceConnection {
+            override fun onServiceConnected(className: ComponentName, binder: IBinder) {
+                service = (binder as PlayerService.PlayerBinder).getService()
+                service_connected = true
+                on_connected?.invoke()
+            }
 
-                override fun onServiceConnected(className: ComponentName, binder: IBinder) {
-                    service = (binder as PlayerService.PlayerBinder).getService()
-                    service_connected = true
-                    on_connected?.invoke()
-                }
+            override fun onServiceDisconnected(arg0: ComponentName) {
+                service_connected = false
+            }
 
-                override fun onServiceDisconnected(arg0: ComponentName) {
-                    service_connected = false
-                }
-
-            }, 0)
+        }
+        context.bindService(service_intent, service_connection!!, 0)
     }
 
-    fun isServiceRunning(): Boolean {
+    private fun isServiceRunning(): Boolean {
         val manager = context.getSystemService(Context.ACTIVITY_SERVICE) as ActivityManager?
         for (service in manager!!.getRunningServices(Int.MAX_VALUE)) {
             if (PlayerService::class.java.name == service.service.className) {
@@ -122,6 +122,9 @@ class PlayerHost {
         private val metadata_builder: MediaMetadataCompat.Builder = MediaMetadataCompat.Builder()
         private var media_session: MediaSessionCompat? = null
         private var media_session_connector: MediaSessionConnector? = null
+
+        private var integrated_server: PyObject? = null
+        private val integrated_server_start_mutex = Mutex()
 
         private val binder = PlayerBinder()
         inner class PlayerBinder: Binder() {
@@ -194,8 +197,38 @@ class PlayerHost {
             playerNotificationManager = null
             media_session?.release()
             player.release()
+            stopIntegratedServer()
 
             super.onDestroy()
+        }
+
+        fun getIntegratedServerAddress(): String? {
+            if (integrated_server == null) {
+                return null
+            }
+            return "http://127.0.0.1:${integrated_server!!.callAttr("getPort")}"
+        }
+
+        suspend fun startIntegratedServer(): Boolean {
+            if (integrated_server != null || integrated_server_start_mutex.isLocked) {
+                return false
+            }
+            integrated_server_start_mutex.lock()
+            integrated_server = Python.getInstance().getModule("main").callAttr("runServer", true)
+            integrated_server_start_mutex.unlock()
+
+            return true
+        }
+
+        fun stopIntegratedServer(): Boolean {
+            if (integrated_server == null) {
+                return false
+            }
+
+            integrated_server!!.callAttr("stop")
+            integrated_server!!.close()
+            integrated_server = null
+            return true
         }
 
         override fun onStartCommand(intent: Intent?, flags: Int, startId: Int): Int {

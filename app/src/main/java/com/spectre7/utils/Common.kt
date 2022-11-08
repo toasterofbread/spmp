@@ -40,13 +40,13 @@ fun vibrate(duration: Double) {
     vibrator.vibrate(VibrationEffect.createOneShot((duration * 1000.0).toLong(), VibrationEffect.DEFAULT_AMPLITUDE))
 }
 
-fun sendToast(text: String) {
+fun sendToast(text: String, length: Int = Toast.LENGTH_SHORT) {
     try {
-        Toast.makeText(MainActivity.context, text, Toast.LENGTH_SHORT).show()
+        Toast.makeText(MainActivity.context, text, length).show()
     }
     catch (e: NullPointerException) {
         Looper.prepare()
-        Toast.makeText(MainActivity.context, text, Toast.LENGTH_SHORT).show()
+        Toast.makeText(MainActivity.context, text, length).show()
     }
 }
 

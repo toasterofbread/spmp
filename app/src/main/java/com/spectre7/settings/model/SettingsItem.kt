@@ -234,10 +234,11 @@ class SettingsItemMultipleChoice(
 }
 
 class SettingsItemDropdown(
-    val state: SettingsValueState<String>,
+    val state: SettingsValueState<Int>,
     val title: String,
     val subtitle: String?,
-    val items: List<String>,
+    val item_count: Int,
+    val getItem: (Int) -> String
 ): SettingsItem() {
 
     @Composable
@@ -255,7 +256,7 @@ class SettingsItemDropdown(
             var open by remember { mutableStateOf(false) }
 
             Button({ open = !open }, Modifier.requiredHeight(40.dp), shape = RoundedCornerShape(16.dp)) {
-                Text(state.value, color = theme.getOnAccent())
+                Text(getItem(state.value), color = theme.getOnAccent())
                 Icon(
                     Icons.Filled.ArrowDropDown,
                     null,
@@ -281,14 +282,15 @@ class SettingsItemDropdown(
                                         },
                                     verticalArrangement = Arrangement.spacedBy(10.dp)
                                 ) {
-                                    for (item in items) {
+                                    for (i in 0 until item_count) {
+                                        val item = getItem(i)
                                         Row(
                                             verticalAlignment = Alignment.CenterVertically,
                                             modifier = Modifier
                                                 .height(30.dp).fillMaxWidth()
                                                 .clickable {
                                                     open = false
-                                                    state.value = item
+                                                    state.value = i
                                                 }
                                         ) {
                                             Icon(

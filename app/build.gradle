@@ -129,18 +129,6 @@ def download = { source, dest ->
     return file
 }
 
-def executeSdkCommand = { cmd ->
-    new ByteArrayOutputStream().withStream { os ->
-        ExecResult result = exec {
-            executable = 'cmd'
-            workingDir = "${System.getenv("ANDROID_HOME")}/tools"
-            args = ['/c', cmd]
-            standardOutput = os
-        }
-        return os.toString()
-    }
-}
-
 task preparePythonDependencies(type: Exec) {
     workingDir '.'
 

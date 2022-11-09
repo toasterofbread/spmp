@@ -206,7 +206,7 @@ class PlayerHost {
             if (integrated_server == null) {
                 return null
             }
-            return "http://127.0.0.1:${integrated_server!!.callAttr("getPort")}"
+            return "http://localhost:${integrated_server!!.callAttr("getPort")}"
         }
 
         suspend fun startIntegratedServer(): Boolean {

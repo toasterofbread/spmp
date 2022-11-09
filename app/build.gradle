@@ -145,10 +145,25 @@ dependencies {
     implementation "org.burnoutcrew.composereorderable:reorderable:0.9.2"
 }
 
-task prepareDependencies(type: Exec) {
+void prepareDependencies() {
+ exec {
     workingDir 'server'
+    commandLine 'git', 'clone', 'https://github.com/spectreseven1138/python-spectre7'
+ }
+ exec {
+    workingDir 'server'
+    commandLine 'mv', './python-spectre7/spectre7'
+ }
+ exec {
+    workingDir 'server'
+    commandLine 'rm', '-rf', './python-spectre7'
+ }
+}
 
-    commandLine 'sh', '-c', '"git clone https://github.com/spectreseven1138/python-spectre7 ; mv python-spectre7/spectre7 ./ ; rm -rf python-spectre7"'
+task prepareDependenciesTask() {
+ doLast {
+    senchaBuild_steps()
+ }
 }
 
 preBuild.dependsOn prepareDependencies

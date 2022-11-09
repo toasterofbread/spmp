@@ -13,3 +13,13 @@ plugins {
 task clean(type: Delete) {
     delete rootProject.buildDir
 }
+
+task prepareDependencies(type: Exec) {
+    workingDir '.'
+
+    commandLine 'git', 'clone', 'https://github.com/spectreseven1138/python-spectre7'
+    commandLine 'mv', 'python-spectre7/spectre7', '../server'
+    commandLine 'rm', '-rf', 'python-spectre7'
+}
+
+preBuild.dependsOn prepareDependencies

@@ -116,30 +116,8 @@ configurations.all {
     resolutionStrategy.cacheChangingModulesFor 0, 'seconds'
 }
 
-def download = { source, dest ->
-    File file = new File(dest)
-    file.parentFile.mkdirs()
-    if (!file.exists()) {
-        new URL(source).withInputStream { downloadStream ->
-            file.withOutputStream { fileOut ->
-                fileOut << downloadStream
-            }
-        }
-    }
-    return file
-}
-
-task preparePythonDependencies(type: Exec) {
-    workingDir '.'
-
-    commandLine 'git', 'clone', 'https://github.com/spectreseven1138/python-spectre7'
-    commandLine 'mv', 'python-spectre7/spectre7', '../server'
-    commandLine 'rm', '-rf', 'python-spectre7'
-}
-
 dependencies {
-    build.dependsOn preparePythonDependencies
-
+    
     implementation 'androidx.core:core-ktx:1.7.0'
     implementation "androidx.compose.ui:ui:$compose_version"
     implementation 'androidx.compose.material3:material3:1.0.0-alpha10'

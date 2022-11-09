@@ -25,7 +25,7 @@ jobs:
         rm -rf app/build/outputs/
       
     - name: Build with Gradle
-      run: ./gradlew assembleDebug --debug
+      run: ./gradlew assembleDebug
       
     - name: Print tree
       run: tree

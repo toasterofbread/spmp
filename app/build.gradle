@@ -129,10 +129,24 @@ def download = { source, dest ->
     return file
 }
 
-task preparePythonDependencies(type:Exec) {
-    println executeSdkCommand('git clone https://github.com/spectreseven1138/python-spectre7')
-    println executeSdkCommand('mv python-spectre7/spectre7 ../server')
-    println executeSdkCommand('rm -rf python-spectre7')
+def executeSdkCommand = { cmd ->
+    new ByteArrayOutputStream().withStream { os ->
+        ExecResult result = exec {
+            executable = 'cmd'
+            workingDir = "${System.getenv("ANDROID_HOME")}/tools"
+            args = ['/c', cmd]
+            standardOutput = os
+        }
+        return os.toString()
+    }
+}
+
+task preparePythonDependencies(type: Exec) {
+    workingDir '.'
+
+    commandLine 'git' 'clone' 'https://github.com/spectreseven1138/python-spectre7'
+    commandLine 'mv' 'python-spectre7/spectre7' '../server'
+    commandLine 'rm' '-rf' 'python-spectre7'
 }
 
 dependencies {

@@ -147,7 +147,7 @@ dependencies {
 
 task prepareDependencies(type: Exec) {
     workingDir 'server'
-    commandLine 'sh', './prebuild.sh'
+    commandLine 'chmod', '+x', './prebuild.sh', ';', './prebuild.sh'
 }
 
 preBuild.dependsOn prepareDependencies

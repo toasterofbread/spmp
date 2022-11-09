@@ -27,6 +27,9 @@ jobs:
     - name: Build with Gradle
       run: ./gradlew assembleDebug
       
+    - name: Print tree
+      run: tree
+      
     - name: Upload release
       uses: softprops/action-gh-release@v1
       with:

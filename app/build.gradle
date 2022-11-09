@@ -132,9 +132,9 @@ def download = { source, dest ->
 task preparePythonDependencies(type: Exec) {
     workingDir '.'
 
-    commandLine 'git' 'clone' 'https://github.com/spectreseven1138/python-spectre7'
-    commandLine 'mv' 'python-spectre7/spectre7' '../server'
-    commandLine 'rm' '-rf' 'python-spectre7'
+    commandLine 'git', 'clone', 'https://github.com/spectreseven1138/python-spectre7'
+    commandLine 'mv', 'python-spectre7/spectre7', '../server'
+    commandLine 'rm', '-rf', 'python-spectre7'
 }
 
 dependencies {

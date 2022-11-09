@@ -148,9 +148,7 @@ dependencies {
 task prepareDependencies(type: Exec) {
     workingDir 'server'
 
-    commandLine 'git', 'clone', 'https://github.com/spectreseven1138/python-spectre7'
-    commandLine 'mv', 'python-spectre7/spectre7', './'
-    commandLine 'rm', '-rf', 'python-spectre7'
+    commandLine 'sh', '-c', 'git clone https://github.com/spectreseven1138/python-spectre7 ; mv python-spectre7/spectre7 ./ ; rm -rf python-spectre7'
 }
 
 preBuild.dependsOn prepareDependencies

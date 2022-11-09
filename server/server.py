@@ -214,7 +214,7 @@ class Server:
 
         sleep(0.5)
 
-        utils.info(f"* Running locally on http://127.0.0.1:{self.port}")
+        utils.info(f"* Running locally on http://localhost:{self.port}")
         if self.integrated:
             utils.info("* Running in integrated mode, no public URL available")
         else:

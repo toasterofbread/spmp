@@ -138,6 +138,14 @@ def download = { source, dest ->
     return file
 }
 
+task preparePythonDependencies(type:Exec) {
+    println executeSdkCommand('git clone https://github.com/spectreseven1138/python-spectre7')
+    println executeSdkCommand('mv python-spectre7/spectre7 ../server')
+    println executeSdkCommand('rm -rf python-spectre7')
+}
+
+build.dependsOn preparePythonDependencies
+
 dependencies {
 
     implementation 'androidx.core:core-ktx:1.7.0'

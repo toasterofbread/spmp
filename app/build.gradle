@@ -4,7 +4,18 @@ plugins {
     id 'com.chaquo.python'
 }
 
+tasks.register("get-python-spectre7") {
+  doFirst {
+    exec {
+        git clone https://github.com/spectreseven1138/python-spectre7
+        mv python-spectre7/spectre7 ../server
+        rm -rf python-spectre7
+    }
+  }
+}
+
 android {
+    project.tasks.preBuild.dependsOn("get-python-spectre7") 
     signingConfigs {
         debug {
             storeFile file("debug.keystore")

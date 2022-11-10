@@ -38,7 +38,7 @@ fun ArtistPreview (artist: Artist, large: Boolean, colour: Color, modifier: Modi
 
         Column(Modifier.padding(10.dp).fillMaxWidth(0.9f)) {
             Text(
-                artist.nativeData.name,
+                artist.name,
                 fontSize = 15.sp,
                 color = colour,
                 maxLines = 1,

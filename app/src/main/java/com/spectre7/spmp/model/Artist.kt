@@ -5,6 +5,7 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import com.spectre7.spmp.api.DataApi
 import com.spectre7.spmp.ui.component.ArtistPreview
+import java.time.Instant
 import java.util.*
 
 data class ArtistData (
@@ -17,31 +18,30 @@ data class ArtistData (
     }
 }
 
-data class Artist (
-    private val id: String,
-    val nativeData: ArtistData,
-    val creationDate: Date,
-    val thumbnail_url: String,
-    val thumbnail_hq_url: String,
+class Artist private constructor (
+    private val id: String
+): YtItem() {
 
-    val viewCount: String,
-    val subscriberCount: String,
-    val hiddenSubscriberCount: Boolean,
-    val videoCount: String
-): Previewable() {
-
-    private var counterpart_id: String? = null
-
-    fun getCounterpartId(): String? {
-        if (counterpart_id == null) {
-            counterpart_id = DataApi.getArtistCounterpartId(this)
-        }
-        return counterpart_id
-    }
+    // Data
+    lateinit var name: String
+    lateinit var description: String
+    lateinit var creationDate: Date
+    lateinit var thumbnail_url: String
+    lateinit var thumbnail_hq_url: String
+    lateinit var viewCount: String
+    lateinit var subscriberCount: String
+    lateinit var videoCount: String
+    var hiddenSubscriberCount: Boolean = false
 
     companion object {
-        fun fromId(channel_id: String): Artist {
-            return DataApi.getArtist(channel_id)!!
+        private val artists: MutableMap<String, Artist> = mutableMapOf()
+
+        fun fromId(id: String): Artist {
+            return artists.getOrElse(id) {
+                val ret = Artist(id)
+                artists[id] = ret
+                return ret
+            }
         }
     }
 
@@ -51,6 +51,23 @@ data class Artist (
 
     override fun getThumbUrl(hq: Boolean): String {
         return if (hq) thumbnail_hq_url else thumbnail_url
+    }
+
+    override fun initWithData(data: ServerInfoResponse, onFinished: () -> Unit) {
+        name = data.snippet.title
+        description = data.snippet.description!!
+        creationDate = Date.from(Instant.parse(data.snippet.publishedAt))
+
+        thumbnail_url = data.snippet.thumbnails.default.url
+        thumbnail_hq_url = data.snippet.thumbnails.high.url
+
+        viewCount = data.statistics.viewCount
+        subscriberCount = data.statistics.subscriberCount!!
+        hiddenSubscriberCount = data.statistics.hiddenSubscriberCount
+        videoCount = data.statistics.videoCount!!
+
+        loaded = true
+        onFinished()
     }
 
     @Composable

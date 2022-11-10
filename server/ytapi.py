@@ -12,52 +12,30 @@ class YtApi:
 
     def __init__(self, app: Flask, server):
 
-        def ytApiEndpoint(endpoint: str, make_route: bool = False):
-            def wrapper(func):
+        if not server.integrated:
+            from yt_dlp import YoutubeDL
+            self.ytd = YoutubeDL()
+        else:
+            self.ytd = None
 
-                def function(*args, **kwargs):
-                    params = dict(request.args)
-                    params["key"] = server.ytapi_key
-                    url = f"https://www.googleapis.com/youtube/v3/{endpoint}?" + urlencode(params)
+        def requestVideoInfo(params: dict) -> dict | Response:
 
-                    cached = server.getCache("yt", url)
-                    if cached is not None:
-                        return jsonify(cached)
+            try:
+                cache = server.getCache("requestVideoInfo", params["id"])
+            except KeyError:
+                return server.errorResponse(400)
 
-                    ret: Response = func(*args, **kwargs)
-                    if ret.status_code == 200:
-                        server.setCache("yt", url, ret.get_json())
-
-                    return ret
-
-                if make_route:
-                    @server.route(f"/yt/{endpoint}/", True)
-                    @server.cacheable
-                    @wraps(func)
-                    def decorated(*args, **kwargs):
-                        return function(*args, **kwargs)
-                else:
-                    @server.cacheable
-                    @wraps(func)
-                    def decorated(*args, **kwargs):
-                        return function(*args, **kwargs)
-
-                return decorated
-            return wrapper
-
-        @ytApiEndpoint("videos")
-        def videos():
-            params = dict(request.args)
-            # loc = params.pop("localisation", None)
+            if cache is not None:
+                utils.info("Using cached video info")
+                return cache
 
             params["key"] = server.ytapi_key
             url = f"https://www.googleapis.com/youtube/v3/videos?" + urlencode(params)
-
             response = requests.get(url)
             if response.status_code != 200:
                 return server.errorResponse(response.status_code, f"{response.reason}\n{response.text}")
 
-            data = response.json()
+            ret = response.json()["items"][0]
             # if loc:
             #     for item in data["items"]:
             #         if "snippet" in item and "localizations" in item and loc in item["localizations"]:
@@ -65,11 +43,28 @@ class YtApi:
             #             for key in localisation:
             #                 item["snippet"][key] = localisation[key]
 
-            return jsonify(data)
+            server.setCache("requestVideoInfo", params["id"], ret)
 
-        @ytApiEndpoint("channels")
-        def channels():
-            params = dict(request.args)
+            return ret
+
+        @server.route("/yt/videos", True)
+        def videos():
+            result = requestVideoInfo(dict(request.args))
+            if isinstance(result, Response):
+                return result
+            return jsonify(result)
+
+        def requestChannelInfo(params: dict) -> dict | Response:
+
+            try:
+                cache = server.getCache("requestChannelInfo", params["id"])
+            except KeyError:
+                return server.errorResponse(400)
+
+            if cache is not None:
+                utils.info("Using cached channel info")
+                return cache
+
             params["key"] = server.ytapi_key
 
             # if "id" in params:
@@ -81,24 +76,100 @@ class YtApi:
             if response.status_code != 200:
                 return server.errorResponse(response.status_code, f"{response.reason}\n{response.text}")
 
-            return jsonify(response.json())
+            ret = response.json()["items"][0]
+            server.setCache("requestChannelInfo", params["id"], ret)
+            return ret
+
+        @server.route("/yt/channels", True)
+        def channels():
+            result = requestChannelInfo(dict(request.args))
+            if isinstance(result, Response):
+                return result
+            return jsonify(result)
 
         @server.route("/yt/<endpoint>/", True)
+        @server.cacheable
         def other(endpoint: str):
+            params = dict(request.args)
+            params["key"] = server.ytapi_key
+            url = f"https://www.googleapis.com/youtube/v3/{endpoint}?" + urlencode(params)
 
-            @ytApiEndpoint(endpoint, False)
-            def wrapped():
-                params = dict(request.args)
-                params["key"] = server.ytapi_key
-                url = f"https://www.googleapis.com/youtube/v3/{endpoint}?" + urlencode(params)
+            response = requests.get(url)
+            if response.status_code != 200:
+                return server.errorResponse(response.status_code, f"{response.reason}\n{response.text}")
 
-                response = requests.get(url)
+            return jsonify(response.json())
+
+        @server.route("/yt/streamurl", True)
+        def streamUrl():
+            id = request.args.get("id")
+            if id is None:
+                return server.errorResponse(400)
+
+            DEFAULT_CLIENT = {"clientName":"ANDROID","clientVersion":"16.50","visitorData":None,"hl":"en"}
+            NO_CONTENT_WARNING_CLIENT = {"clientName":"TVHTML5_SIMPLY_EMBEDDED_PLAYER","clientVersion":"2.0","visitorData":None,"hl":"en"}
+
+            for client in (DEFAULT_CLIENT, NO_CONTENT_WARNING_CLIENT):
+                response = requests.post(f"https://www.youtube.com/youtubei/v1/player?key=AIzaSyAO_FJ2SlqU8Q4STEHLGCilw_Y9_11qcW8", json = {
+                        "context": {
+                            "client": client
+                        },
+                        "videoId": id,
+                        "playlistId": None
+                    }
+                )
+
                 if response.status_code != 200:
-                    return server.errorResponse(response.status_code, f"{response.reason}\n{response.text}")
+                    return server.errorResponse(response.status_code, response.reason)
 
-                return jsonify(response.json())
+                data = response.json()
+                if data["playabilityStatus"]["status"] == "OK":
+                    for format in data["streamingData"]["adaptiveFormats"]:
+                        if format["itag"] == 140:
+                            return jsonify(format["url"])
 
-            return wrapped()
+            if self.ytd is not None:
+                info = self.ytd.extract_info(id, False)
+                if info is not None:
+                    for format in info["formats"]:
+                        if format["format_id"] == "140":
+                            return jsonify(format["url"])
+
+            return server.errorResponse(404)
+
+        @server.route("/yt/batch/", True, methods = ["POST"])
+        def batch():
+            try:
+                data = json.loads(request.data)
+            except json.JSONDecodeError as e:
+                return server.errorResponse(400, e.msg)
+
+            if not isinstance(data, list):
+                return server.errorResponse(400, "Data must be a JSON list")
+
+            ret = []
+
+            try:
+                for item in data:
+                    params = dict(request.args)
+                    params["id"] = item["id"]
+                    match item["type"]:
+                        case "video":
+                            result = requestVideoInfo(params)
+                        case "channel":
+                            result = requestChannelInfo(params)
+                        case _:
+                            return server.errorResponse(400, f"Invalid item type: {item['type']}")
+
+                    if isinstance(result, Response):
+                        return result
+
+                    result["type"] = item["type"]
+                    ret.append(result)
+            except KeyError as e:
+                return server.errorResponse(400)
+
+            return jsonify(ret)
 
         @server.route("/feed/", True)
         @server.cacheable

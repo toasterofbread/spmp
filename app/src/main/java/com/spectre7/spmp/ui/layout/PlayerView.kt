@@ -29,20 +29,15 @@ import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.google.android.exoplayer2.ExoPlayer
-import com.google.android.exoplayer2.MediaItem
 import com.google.android.exoplayer2.Player
 import com.spectre7.spmp.MainActivity
 import com.spectre7.spmp.PlayerHost
 import com.spectre7.spmp.R
 import com.spectre7.spmp.api.DataApi
-import com.spectre7.spmp.model.Previewable
-import com.spectre7.spmp.model.Song
+import com.spectre7.spmp.model.YtItem
 import com.spectre7.spmp.ui.component.PillMenu
 import com.spectre7.utils.*
-import kotlinx.coroutines.delay
-import kotlinx.coroutines.launch
 import kotlinx.coroutines.runBlocking
-import kotlinx.coroutines.suspendCancellableCoroutine
 import java.util.concurrent.locks.ReentrantLock
 import kotlin.concurrent.thread
 
@@ -61,19 +56,6 @@ fun getStatusBarHeight(): Float {
 
 const val MINIMISED_NOW_PLAYING_HEIGHT = 64f
 enum class OverlayPage {NONE, SEARCH, SETTINGS}
-
-class PlayerStatus {
-    var song: Song? by mutableStateOf(null)
-    var index: Int by mutableStateOf(0)
-    var queue: MutableList<Song> = mutableStateListOf()
-    var playing: Boolean by mutableStateOf(false)
-    var position: Float by mutableStateOf(0f)
-    var duration: Float by mutableStateOf(0f)
-    var shuffle: Boolean by mutableStateOf(false)
-    var repeat_mode: Int by mutableStateOf(Player.REPEAT_MODE_OFF)
-    var has_next: Boolean by mutableStateOf(false)
-    var has_previous: Boolean by mutableStateOf(false)
-}
 
 @OptIn(ExperimentalMaterialApi::class, ExperimentalMaterial3Api::class)
 @Composable
@@ -106,7 +88,7 @@ fun PlayerView() {
             top = overlay_page == OverlayPage.SETTINGS
         )
 
-        data class Row(val title: String, val subtitle: String?, val items: MutableList<Previewable> = mutableStateListOf())
+        data class Row(val title: String, val subtitle: String?, val items: MutableList<YtItem> = mutableStateListOf())
         val rows = remember { mutableStateListOf<Row>() }
 
         @Composable
@@ -141,7 +123,6 @@ fun PlayerView() {
 
         val refresh_mutex = remember { ReentrantLock() }
         fun refreshFeed() {
-
             if (refresh_mutex.isLocked) {
                 return
             }
@@ -152,18 +133,19 @@ fun PlayerView() {
                 refresh_mutex.lock()
                 try {
                     rows.clear()
-                    val feed = DataApi.getRecommendedFeed()!!
+                    val feed = DataApi.getRecommendedFeed()
                     for (row in feed) {
                         val entry = Row(row.title, row.subtitle)
                         for (item in row.items) {
                             item.getPreviewable {
-                                if (it != null) {
-                                    entry.items.add(it)
+                                it?.loadData(false) { loaded ->
+                                    entry.items.add(loaded)
                                 }
                             }
                         }
                         rows.add(entry)
                     }
+                    DataApi.processYtItemLoadQueue()
                 }
                 catch (e: Exception) {
                     MainActivity.network.onError(e)
@@ -287,103 +269,10 @@ fun PlayerView() {
             }
         }
 
-        val p_status = remember { PlayerStatus() }.also { status ->
-            PlayerHost.service.also {
-                status.playing = it.player.isPlaying
-                status.position = it.player.currentPosition.toFloat() / it.player.duration.toFloat()
-                status.duration = it.player.duration / 1000f
-                status.song = it.player.currentMediaItem?.localConfiguration?.tag as Song?
-                status.index = it.player.currentMediaItemIndex
-                status.shuffle = it.player.shuffleModeEnabled
-                status.repeat_mode = it.player.repeatMode
-                status.has_next = it.player.hasNextMediaItem()
-                status.has_previous = it.player.hasPreviousMediaItem()
-                it.iterateSongs { _, song ->
-                    status.queue.add(song)
-                }
-            }
-            PlayerHost.p_status = status
-        }
-
-        val listener = remember {
-            object : Player.Listener {
-                override fun onMediaItemTransition(
-                    media_item: MediaItem?,
-                    reason: Int
-                ) {
-                    p_status.song = media_item?.localConfiguration?.tag as Song?
-                }
-
-                override fun onIsPlayingChanged(is_playing: Boolean) {
-                    p_status.playing = is_playing
-                }
-
-                override fun onShuffleModeEnabledChanged(shuffle_enabled: Boolean) {
-                    p_status.shuffle = shuffle_enabled
-                }
-
-                override fun onRepeatModeChanged(repeat_mode: Int) {
-                    p_status.repeat_mode = repeat_mode
-                }
-
-                override fun onEvents(player: Player, events: Player.Events) {
-                    p_status.has_previous = player.hasPreviousMediaItem()
-                    p_status.has_next = player.hasNextMediaItem()
-                    p_status.index = player.currentMediaItemIndex
-                    p_status.duration = player.duration / 1000f
-                }
-            }
-        }
-
-        val queue_listener = remember {
-            object : PlayerHost.PlayerQueueListener {
-                override fun onSongAdded(song: Song, index: Int) {
-                    p_status.queue.add(index, song)
-                }
-                override fun onSongRemoved(song: Song, index: Int) {
-                    p_status.queue.removeAt(index)
-                }
-                override fun onCleared() {
-                    p_status.queue.clear()
-                }
-            }
-        }
-
-        DisposableEffect(Unit) {
-            PlayerHost.service.apply {
-                player.addListener(listener)
-                addQueueListener(queue_listener)
-            }
-
-            onDispose {
-                PlayerHost.service.apply {
-                    player.removeListener(listener)
-                    removeQueueListener(queue_listener)
-                }
-            }
-        }
 
         var player by remember { mutableStateOf<ExoPlayer?>(null) }
         LaunchedEffect(Unit) {
             player = PlayerHost.service.player
-        }
-
-        LaunchedEffect(Unit) {
-            val poll_job = launch {
-                while (true) {
-                    delay(100)
-                    if (player == null) {
-                        continue
-                    }
-                    p_status.position = player!!.currentPosition.toFloat() / player!!.duration.toFloat()
-                }
-            }
-            try {
-                suspendCancellableCoroutine<Nothing> {  }
-            }
-            finally {
-                poll_job.cancel()
-            }
         }
 
         val screen_height = LocalConfiguration.current.screenHeightDp.toFloat() + getStatusBarHeight()

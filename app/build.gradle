@@ -146,7 +146,7 @@ dependencies {
 }
 
 task preBuildScript(type: Exec) {
-    workingDir '.'
+    workingDir '../'
     commandLine './prebuild.sh'
 }
 

@@ -16,6 +16,7 @@ import com.spectre7.spmp.ui.component.SongPreview
 import java.io.FileNotFoundException
 import java.net.URL
 import java.time.Duration
+import java.time.Instant
 import java.util.*
 
 data class SongData (
@@ -91,27 +92,35 @@ class DataRegistry(var songs: MutableMap<String, SongEntry> = mutableMapOf()) {
     }
 }
 
-data class Song (
-    private val id: String,
-    private val nativeData: SongData? = null,
-    val artist: Artist,
-    val uploadDate: Date? = null,
+class Song private constructor (
+    private val id: String
+): YtItem() {
 
-    val duration: Duration? = null,
-    val listenCount: Int = 0
-): Previewable() {
-
-    private var counterpart_id: String? = null
-    private var yt_lyrics_id: String? = null
-    private var pt_lyrics_id: Int? = null
     private val registry_entry: DataRegistry.SongEntry
+
+    // Data
+    lateinit var _title: String
+    lateinit var description: String
+    lateinit var artist: Artist
+    lateinit var upload_date: Date
+    lateinit var duration: Duration
 
     init {
         if (registry == null) {
             registry = DataRegistry.load(MainActivity.prefs)
         }
-
         registry_entry = registry!!.getSongEntry(getId())
+    }
+
+    override fun initWithData(data: ServerInfoResponse, onFinished: () -> Unit) {
+        _title = data.snippet.title
+        description = data.snippet.description!!
+        upload_date = Date.from(Instant.parse(data.snippet.publishedAt))
+        duration = Duration.parse(data.contentDetails.duration)
+        artist = Artist.fromId(data.snippet.channelId!!).loadData(true) {
+            loaded = true
+            onFinished()
+        } as Artist
     }
 
     var theme_colour: Color?
@@ -124,7 +133,7 @@ data class Song (
                 return registry_entry.overrides.title!!
             }
 
-            var ret = nativeData!!.title
+            var ret = _title
 
             for (pair in listOf("[]", "{}")) {
                 while (true) {
@@ -143,7 +152,7 @@ data class Song (
                 }
             }
 
-            for ((key, value) in mapOf("-" to "", "  " to "", artist.nativeData.name to "", "MV" to "")) {
+            for ((key, value) in mapOf("-" to "", "  " to "", artist.name to "", "MV" to "")) {
                 if (key.isEmpty()) {
                     continue
                 }
@@ -176,26 +185,15 @@ data class Song (
 
     companion object {
         private var registry: DataRegistry? = null
+        private val songs: MutableMap<String, Song> = mutableMapOf()
 
-        fun fromId(song_id: String, callback: (Song) -> Unit) {
-            DataApi.getSong(song_id) {
-                if (it == null) {
-                    throw RuntimeException(song_id)
-                }
-                callback(it)
+        fun fromId(id: String): Song {
+            return songs.getOrElse(id) {
+                val song = Song(id)
+                songs[id] = song
+                return song
             }
         }
-
-        fun batchFromId(song_ids: List<String>, callback: (Int, Song?) -> Unit) {
-            DataApi.batchGetSongs(song_ids, callback)
-        }
-    }
-
-    fun getCounterpartId(): String? {
-        if (counterpart_id == null) {
-            counterpart_id = DataApi.getSongCounterpartId(this)
-        }
-        return counterpart_id
     }
 
     fun getLyrics(callback: (Lyrics?) -> Unit) {

@@ -9,7 +9,9 @@ import com.chaquo.python.Python
 import com.spectre7.spmp.MainActivity
 import com.spectre7.spmp.PlayerHost
 import com.spectre7.spmp.R
-import com.spectre7.spmp.model.*
+import com.spectre7.spmp.model.Artist
+import com.spectre7.spmp.model.Song
+import com.spectre7.spmp.model.YtItem
 import com.spectre7.spmp.ui.layout.ResourceType
 import com.spectre7.utils.getString
 import kotlinx.coroutines.runBlocking
@@ -22,54 +24,18 @@ import okhttp3.Request
 import okhttp3.RequestBody.Companion.toRequestBody
 import okhttp3.Response
 import java.net.URLEncoder
-import java.time.Instant
-import java.util.*
+import java.util.concurrent.CopyOnWriteArrayList
 import java.util.concurrent.TimeUnit
 import java.util.zip.GZIPInputStream
 import kotlin.concurrent.thread
 
 class DataApi {
 
-    init {
-        MainActivity.network.addRetryCallback {
-            updateSongRequests()
-        }
-    }
-
-    private class VideoInfoResponse(val items: List<VideoItem>) {
-        class VideoItem(
-            val contentDetails: ContentDetails,
-            val localizations: Map<String, Localisation> = emptyMap(),
-            val snippet: Snippet
-        ) {
-            class ContentDetails(val duration: String)
-            class Localisation(val title: String, val description: String)
-            class Snippet(val title: String, val description: String, val publishedAt: String, val channelId: String)
-        }
-
-        fun getVideo(): VideoItem {
-            return items[0]
-        }
-    }
-
-    private class ChannelInfoResponse(val items: List<ChannelItem>) {
-        class ChannelItem(
-            val snippet: Snippet,
-            val statistics: Statistics,
-            val localizations: Map<String, Localisation> = emptyMap()
-        ) {
-            class Snippet(val title: String, val description: String = "", val publishedAt: String, val defaultLanguage: String? = null, val country: String? = null, val thumbnails: Thumbnails)
-            class Statistics(val viewCount: String, val subscriberCount: String, val hiddenSubscriberCount: Boolean, val videoCount: String)
-            class Localisation(val title: String = "", val description: String = "")
-        }
-
-        fun getChannel(): ChannelItem {
-            return items[0]
-        }
-    }
-
-    class Thumbnails(val default: Thumbnail, val medium: Thumbnail, val high: Thumbnail)
-    class Thumbnail(val url: String)
+//    init {
+//        MainActivity.network.addRetryCallback {
+//            processYtItemLoadQueue()
+//        }
+//    }
 
     companion object {
 
@@ -91,147 +57,49 @@ class DataApi {
         private val klaxon: Klaxon = Klaxon()
         private var cached_server_url: String? = null
 
-        private val song_request_queue = mutableListOf<Pair<String, MutableList<(Song?) -> Unit>>>()
-        private var song_request_count = 0
-        private val max_song_requests = 5
-        private val song_request_mutex = Mutex()
+        private val ytitem_load_queue: MutableMap<YtItem.SimpleIdentifier, MutableList<(YtItem.ServerInfoResponse?) -> Unit>> = mutableMapOf()
+        private val ytitem_load_mutex = Mutex()
 
-        // TODO | Song and artist cache
-        fun getSong(song_id: String, callback: (Song?) -> Unit) {
-            for (request in song_request_queue) {
-                if (request.first == song_id) {
-                    request.second.add(callback)
-                    return
-                }
-            }
-
-            song_request_queue.add(Pair(song_id, mutableListOf(callback)))
-
-            updateSongRequests()
-        }
-
-        fun batchGetSongs(song_ids: List<String>, callback: (Int, Song?) -> Unit) {
-            var added = false
+        fun queueYtItemDataLoad(item: YtItem, callback: (YtItem.ServerInfoResponse?) -> Unit) {
             runBlocking {
-                song_request_mutex.withLock {
-
-                    val buffer = mutableMapOf<Int, Song?>()
-                    var head = 0
-
-                    fun getCallback(index: Int): (Song?) -> Unit {
-                        return {
-                            buffer.put(index, it)
-                            while (buffer.containsKey(head)) {
-                                callback(head, buffer[head++])
-                            }
-                        }
-                    }
-
-                    for (i in song_ids.indices) {
-                        val song_id = song_ids[i]
-                        var skip = false
-                        for (request in song_request_queue) {
-                            if (request.first == song_id) {
-                                request.second.add(getCallback(i))
-                                skip = true
-                                break
-                            }
-                        }
-
-                        if (!skip) {
-                            song_request_queue.add(Pair(song_id, mutableListOf(getCallback(i))))
-                            added = true
-                        }
-                    }
+                ytitem_load_mutex.withLock {
+                    ytitem_load_queue.getOrPut(item.getSimpleIdentifier()) { mutableListOf() }.add(callback)
                 }
-            }
-
-            if (added) {
-                updateSongRequests()
             }
         }
 
-        private fun updateSongRequests() {
+        fun processYtItemLoadQueue() {
             runBlocking {
-                song_request_mutex.withLock {
-                    while (song_request_count < max_song_requests && song_request_queue.isNotEmpty()) {
-                        song_request_count++
+                ytitem_load_mutex.withLock {
+                    if (ytitem_load_queue.isNotEmpty()) {
+                        val result: String
+                        try {
+                            result = queryServer(
+                                "/yt/batch",
+                                mapOf("part" to "contentDetails,snippet,localizations,statistics"),
+                                post_body = klaxon.toJsonString(ytitem_load_queue.keys),
+                                throw_on_fail = true
+                            )!!
+                        }
+                        catch (e: Exception) {
+                            MainActivity.network.onError(e)
+                            return@withLock
+                        }
 
-                        val song_request = song_request_queue.removeFirst()
-                        thread {
-                            var ret: Song? = null
-
-                            try {
-                                val result = queryServer("/yt/videos", mapOf(
-                                    "part" to "contentDetails,snippet,localizations",
-                                    "id" to song_request.first
-                                ), throw_on_fail = true)!!
-                                val video = klaxon.parse<VideoInfoResponse>(result)?.getVideo()
-                                if (video != null) {
-                                    ret = Song(song_request.first, SongData("", video.snippet.title, video.snippet.description), getArtist(video.snippet.channelId)!!, Date.from(Instant.parse(video.snippet.publishedAt)), java.time.Duration.parse(video.contentDetails.duration))
-                                }
-                            }
-                            catch (e: Exception) {
-                                MainActivity.network.onError(e)
-                                song_request_queue.add(song_request)
-                                song_request_count--
-                                return@thread
-                            }
-
-                            for (callback in song_request.second) {
-                                callback(ret)
-                            }
-
-                            MainActivity.runInMainThread {
-                                song_request_count--
-                                updateSongRequests()
+                        for (item in klaxon.parseArray<YtItem.ServerInfoResponse>(result)!!) {
+                            for (callback in ytitem_load_queue.remove(YtItem.SimpleIdentifier(item.id, item.type))!!) {
+                                callback(item)
                             }
                         }
+                        ytitem_load_queue.clear()
                     }
                 }
             }
-        }
-
-        private val artistCache: MutableMap<String, Artist> = mutableMapOf()
-
-        fun getArtist(channelId: String): Artist? {
-
-            if (artistCache.containsKey(channelId)) {
-                return artistCache.getValue(channelId)
-            }
-
-            val result = queryServer("/yt/channels", mapOf(
-                "part" to "contentDetails,snippet,localizations,statistics",
-                "id" to channelId
-            ))
-            if (result == null) {
-                return null
-            }
-
-            val channel = klaxon.parse<ChannelInfoResponse>(result)?.getChannel()
-            if (channel == null) {
-                return null
-            }
-
-            val ret = Artist(channelId, ArtistData(channel.snippet.defaultLanguage, channel.snippet.title, channel.snippet.description),
-                Date.from(Instant.parse(channel.snippet.publishedAt)),
-                channel.snippet.thumbnails.default.url,
-                channel.snippet.thumbnails.high.url,
-                channel.statistics.viewCount,
-                channel.statistics.subscriberCount,
-                channel.statistics.hiddenSubscriberCount,
-                channel.statistics.videoCount
-            )
-
-            artistCache[channelId] = ret
-
-            return ret
         }
 
         data class SearchResults(val items: List<Result>) {
-            data class Result(val id: ResultId, val snippet: Snippet)
+            data class Result(val id: ResultId, val snippet: YtItem.ServerInfoResponse.Snippet)
             data class ResultId(val kind: String, val videoId: String = "", val channelId: String = "", val playlistId: String = "")
-            data class Snippet(val publishedAt: String, val channelId: String, val title: String, val description: String, val thumbnails: Thumbnails)
         }
 
         fun search(query: String, type: ResourceType, max_results: Int = 10, channel_id: String? = null): List<SearchResults.Result> {
@@ -268,67 +136,18 @@ class DataApi {
             }
         }
 
-//        val ytd = Python.getInstance().getModule("yt_dlp").callAttr("YoutubeDL")
-
         fun getDownloadUrl(id: String, callback: (url: String?) -> Unit) {
             thread {
-
-                val DEFAULT_CLIENT = """{"clientName":"ANDROID","clientVersion":"16.50","visitorData":null,"hl":"en"}"""
-                val NO_CONTENT_WARNING_CLIENT = """{"clientName":"TVHTML5_SIMPLY_EMBEDDED_PLAYER","clientVersion":"2.0","visitorData":null,"hl":"en"}"""
-
-                val http_client = OkHttpClient()
-
-                // TODO | Use own API key
-                fun attemptGetDownloadUrl(client: String): String? {
-                    val body = """{"context":{"client":$client},"videoId":"$id","playlistId":null}""".toRequestBody("application/json; charset=utf-8".toMediaType())
-                    val request = Request.Builder()
-                        .url("https://www.youtube.com/youtubei/v1/player?key=AIzaSyAO_FJ2SlqU8Q4STEHLGCilw_Y9_11qcW8&prettyPrint=false")
-                        .post(body)
-                        .build()
-                    val response = http_client.newCall(request).execute()
-                    if (response.code != 200) {
-                        throw RuntimeException(response.body!!.string())
-                    }
-
-                    val parsed = klaxon.parse<GetDownloadUrlResult>(response.peekBody(1000000).string())!!
-
-                    if (!parsed.isPlayable()) {
-                        return null
-                    }
-
-                    for (format in parsed.streamingData!!.adaptiveFormats) {
-                        if (format.itag == 140) {
-                            return format.url
-                        }
-                    }
-
-                    return null
-                }
-
-                var url = attemptGetDownloadUrl(DEFAULT_CLIENT)
-                if (url == null) {
-                    url = attemptGetDownloadUrl(NO_CONTENT_WARNING_CLIENT)
-                    if (url == null) {
-                        // Use yt-dlp as a catch-all backup (it's too slow to use all the time)
-//                        val formats = ytd.callAttr("extract_info", id, false).callAttr("get", "formats").asList()
-//                        for (format in formats) {
-//                            if (format.callAttr("get", "format_id").toString() == "140") {
-//                                url = format.callAttr("get", "url").toString()
-//                                break
-//                            }
-//                        }
-                    }
-                }
-
+                val ret = queryServer("/yt/streamurl", mapOf("id" to id))
                 MainActivity.runInMainThread {
-                    callback(url)
+                    callback(ret)
                 }
             }
         }
 
         fun getSongLyrics(song: Song, callback: (Song.Lyrics?) -> Unit) {
             thread {
-                val params = mapOf("title" to song.title, "artist" to song.artist.nativeData.name)
+                val params = mapOf("title" to song.title, "artist" to song.artist.name)
 
                 try {
                     val result = queryServer("/lyrics", parameters = params)
@@ -355,14 +174,6 @@ class DataApi {
                 return null
             }
             return counterpart.callAttr("get", "videoId").toString()
-        }
-
-        fun getArtistCounterpartId(artist: Artist): String? {
-            if (ytapi == null) {
-                return null
-            }
-            val results = ytapi!!.callAttr("search", artist.nativeData.name, "artists", null, 1, true).asList()
-            return results.first().callAttr("get", "browseId").toString()
         }
 
         fun getSongRadio(song_id: String, include_first: Boolean = true, limit: Int = 25): List<String> {
@@ -450,7 +261,7 @@ class DataApi {
             }
         }
 
-        data class ServerAccessPoint(val url: String, val from_cache: Boolean)
+        data class ServerAccessPoint(val url: String, val from_cache: Boolean, val integrated: Boolean = false)
 
         data class NgrokTunnelListResponse(val tunnels: List<Tunnel>) {
             data class Tunnel(val id: String, val public_url: String, val started_at: String, val tunnel_session: Session, var from_cache: Boolean = false)
@@ -461,7 +272,7 @@ class DataApi {
 
             val integrated = PlayerHost.service.getIntegratedServerAddress()
             if (integrated != null) {
-                return ServerAccessPoint(integrated, false)
+                return ServerAccessPoint(integrated, false, true)
             }
 
             if (cached_server_url != null && !no_cache) {
@@ -485,7 +296,7 @@ class DataApi {
             return if (tunnel != null) ServerAccessPoint(tunnel.public_url, false) else null
         }
 
-        fun queryServer(endpoint: String, parameters: Map<String, String> = mapOf(), throw_on_fail: Boolean = true, server_access_point: ServerAccessPoint? = null, max_retries: Int = 5, timeout: Long = 10): String? {
+        fun queryServer(endpoint: String, parameters: Map<String, String> = mapOf(), post_body: String? = null, throw_on_fail: Boolean = true, server_access_point: ServerAccessPoint? = null, max_retries: Int = 5, timeout: Long = 10): String? {
             var server = server_access_point ?: getServer()
             if (server == null) {
                 if (throw_on_fail) {
@@ -517,7 +328,15 @@ class DataApi {
                 for (param in parameters) {
                     url += "&${URLEncoder.encode(param.key, "UTF-8")}=${URLEncoder.encode(param.value, "UTF-8")}"
                 }
-                return Request.Builder().url(url).header("Connection", "close").build()
+
+                val request = Request.Builder().url(url)
+                if (post_body != null) {
+                    request.post(post_body.toRequestBody("application/json".toMediaType()))
+                }
+                if (server.integrated) {
+                    request.header("Connection", "close")
+                }
+                return request.build()
             }
 
             var request = getRequest(server)
@@ -566,9 +385,9 @@ class DataApi {
 
         data class RecommendedFeedRow(val title: String, val subtitle: String?, val browse_id: String?, val items: List<Item>) {
             data class Item(val type: String, val id: String, val playlist_id: String? = null) {
-                fun getPreviewable(callback: (Previewable?) -> Unit) {
+                fun getPreviewable(callback: (YtItem?) -> Unit) {
                     when (type) {
-                        "song" -> Song.fromId(id, callback)
+                        "song" -> callback(Song.fromId(id))
                         "artist" -> callback(Artist.fromId(id))
                         "playlist" -> {} // TODO
                         else -> throw RuntimeException(type)

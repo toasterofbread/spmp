@@ -147,7 +147,7 @@ class Server:
 
             return jsonify(lyrics)
 
-    def route(self, path: str, require_key: bool = False, disable_on_integrated: bool = False):
+    def route(self, path: str, require_key: bool = False, disable_on_integrated: bool = False, **kwargs):
         if not path.endswith("/"):
             path += "/"
         if not path.startswith("/"):
@@ -167,7 +167,7 @@ class Server:
                     return self.errorResponse(401, "Missing or invalid key parameter")
 
             decorated.__name__ = func.__name__
-            return self.app.route(path)(decorated)
+            return self.app.route(path, **kwargs)(decorated)
         return wrapper
 
     def cacheable(self, func):
@@ -175,17 +175,17 @@ class Server:
         def decorated(*args, **kwargs):
             params = dict(kwargs)
             params.update(request.args)
-            key = str(params)
+            key = json.dumps(params)
 
             if not request.args.get("noCached", None):
-                cached = self.getCache(func.__name__, key)
+                cached = self.getCache(request.path, key)
                 if cached is not None:
                     utils.info("Using cached value")
                     return jsonify(cached)
 
             ret: Response = func(*args, **kwargs)
             if ret.status_code == 200:
-                self.setCache(func.__name__, key, ret.get_json())
+                self.setCache(request.path, key, ret.get_json())
 
             return ret
         return decorated
@@ -254,27 +254,27 @@ class Server:
             self.restart_queue.put(False)
         utils.log("Stopping...")
 
-    def getCache(self, dir: str, id):
-        if not dir in self._cache:
+    def getCache(self, group: str, id):
+        if not group in self._cache:
             return None
 
-        cached = self._cache[dir].get(id)
+        cached = self._cache[group].get(id)
         if cached is None:
             return None
 
         if time() - cached["time"] > CACHE_LIFETIME:
-            self._cache[dir].pop(id)
+            self._cache[group].pop(id)
             self.saveCache()
             return None
 
         return cached["data"]
 
-    def setCache(self, dir: str, id, data):
-        if not dir in self._cache:
+    def setCache(self, group: str, id, data):
+        if not group in self._cache:
             obj = {}
-            self._cache[dir] = obj
+            self._cache[group] = obj
         else:
-            obj = self._cache[dir]
+            obj = self._cache[group]
         obj[id] = {"data": data, "time": int(time())}
         self.saveCache()
 
@@ -286,7 +286,9 @@ class Server:
         f.write(json.dumps(self._cache))
         f.close()
 
-    def errorResponse(self, code: int, message: str):
+    def errorResponse(self, code: int, message: str | None = None):
+        if message is None:
+            message = f"An error occurred ({code})"
         response = jsonify(message)
         response.status_code = code
         return response

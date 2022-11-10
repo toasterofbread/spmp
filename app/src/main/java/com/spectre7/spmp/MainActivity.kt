@@ -84,6 +84,7 @@ class MainActivity : ComponentActivity() {
 
             fun onError(e: Exception) {
                 error = e
+                throw e
                 for (callback in error_callbacks) {
                     callback()
                 }
@@ -125,10 +126,8 @@ class MainActivity : ComponentActivity() {
         @JvmStatic
         private var instance: MainActivity? = null
 
-        fun runInMainThread(code: () -> Unit) {
-            Handler(Looper.getMainLooper()).post {
-                code()
-            }
+        fun runInMainThread(action: () -> Unit) {
+            Handler(Looper.getMainLooper()).post(action)
         }
     }
 }

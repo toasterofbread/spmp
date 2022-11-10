@@ -32,7 +32,7 @@ import com.spectre7.utils.getString
 import com.spectre7.spmp.R
 import com.spectre7.spmp.api.DataApi
 import com.spectre7.spmp.model.Artist
-import com.spectre7.spmp.model.Previewable
+import com.spectre7.spmp.model.YtItem
 import com.spectre7.spmp.model.Song
 import com.spectre7.spmp.model.SongData
 import kotlin.concurrent.thread
@@ -56,7 +56,7 @@ fun SearchPage(setOverlayPage: (page: OverlayPage) -> Unit) {
     val keyboardController = LocalSoftwareKeyboardController.current
     val focusManager = LocalFocusManager.current
     val focusRequester = remember { FocusRequester() }
-    val result_tabs: MutableMap<ResourceType, SnapshotStateList<Previewable>> = mutableMapOf()
+    val result_tabs: MutableMap<ResourceType, SnapshotStateList<YtItem>> = mutableMapOf()
 
     var current_search_query: String? = null
 
@@ -88,14 +88,15 @@ fun SearchPage(setOverlayPage: (page: OverlayPage) -> Unit) {
             for (result in search) {
                 when (result.id.kind) {
                     "youtube#video" -> {
-                        result_tabs[ResourceType.SONG]?.add(Song(
-                            result.id.videoId, SongData(null, result.snippet.title, result.snippet.description), Artist.fromId(result.snippet.channelId)
-                        ))
-                        result_tabs[ResourceType.SONG]?.add(Song(
-                            result.id.videoId + "1", SongData(null, result.snippet.title, result.snippet.description), Artist.fromId(result.snippet.channelId)
-                        ))
+                        Song.fromId(result.id.videoId).loadData {
+                            result_tabs[ResourceType.SONG]?.add(it as Song)
+                        }
                     }
-                    "youtube#channel" -> result_tabs[ResourceType.ARTIST]?.add(Artist.fromId(result.id.channelId))
+                    "youtube#channel" -> {
+                        Artist.fromId(result.id.channelId).loadData {
+                            result_tabs[ResourceType.ARTIST]?.add(it as Artist)
+                        }
+                    }
                     "youtube#playlist" -> {} // TODO
                 }
             }

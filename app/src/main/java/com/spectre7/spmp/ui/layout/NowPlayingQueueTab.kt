@@ -38,12 +38,12 @@ import org.burnoutcrew.reorderable.reorderable
 import kotlin.math.roundToInt
 
 @Composable
-fun QueueTab(p_status: PlayerStatus, on_background_colour: Color) {
+fun QueueTab(on_background_colour: Color) {
 
     var key_inc by remember { mutableStateOf(0) }
     val v_removed = remember { mutableStateListOf<Int>() }
 
-    data class Item(val song: Song, val key: Int, val p_status: PlayerStatus) {
+    data class Item(val song: Song, val key: Int) {
 
         @OptIn(ExperimentalMaterialApi::class)
         @Composable
@@ -94,37 +94,39 @@ fun QueueTab(p_status: PlayerStatus, on_background_colour: Color) {
         }
     }
 
-    var song_items by remember { mutableStateOf(
-        List(p_status.queue.size) {
-            Item(p_status.queue[it], key_inc++, p_status)
+    var song_items by remember(PlayerHost.status.m_queue) { mutableStateOf(
+        List(PlayerHost.status.m_queue.size) {
+            Item(PlayerHost.status.m_queue[it], key_inc++)
         }
     ) }
 
-    val queue_listener = remember {
-        object : PlayerHost.PlayerQueueListener {
-            override fun onSongAdded(song: Song, index: Int) {
-                song_items = song_items.toMutableList().apply {
-                    add(index, Item(song, key_inc++, p_status))
-                }
-            }
-            override fun onSongRemoved(song: Song, index: Int) {
-                println("REMOVED | $index | ${song.title}")
-
-                val i = v_removed.indexOf(index)
-                if (i != -1) {
-                    v_removed.removeAt(i)
-                }
-                else {
-                    song_items = song_items.toMutableList().apply {
-                        removeAt(index)
-                    }
-                }
-            }
-            override fun onCleared() {
-                song_items = emptyList()
-            }
-        }
+    LaunchedEffect(PlayerHost.status.m_queue) {
+        println("UPDATEDDDDD")
     }
+
+//    val queue_listener = remember {
+//        object : PlayerHost.PlayerQueueListener {
+//            override fun onSongAdded(song: Song, index: Int) {
+//                song_items = song_items.toMutableList().apply {
+//                    add(index, Item(song, key_inc++))
+//                }
+//            }
+//            override fun onSongRemoved(song: Song, index: Int) {
+//                val i = v_removed.indexOf(index)
+//                if (i != -1) {
+//                    v_removed.removeAt(i)
+//                }
+//                else {
+//                    song_items = song_items.toMutableList().apply {
+//                        removeAt(index)
+//                    }
+//                }
+//            }
+//            override fun onCleared() {
+//                song_items = emptyList()
+//            }
+//        }
+//    }
 
     var playing_key by remember { mutableStateOf<Int?>(null) }
 
@@ -133,12 +135,12 @@ fun QueueTab(p_status: PlayerStatus, on_background_colour: Color) {
     //     playing_key =
     // }
 
-    DisposableEffect(Unit) {
-        PlayerHost.service.addQueueListener(queue_listener)
-        onDispose {
-            PlayerHost.service.removeQueueListener(queue_listener)
-        }
-    }
+//    DisposableEffect(Unit) {
+//        PlayerHost.service.addQueueListener(queue_listener)
+//        onDispose {
+//            PlayerHost.service.removeQueueListener(queue_listener)
+//        }
+//    }
 
     val state = rememberReorderableLazyListState(
         onMove = { from, to ->
@@ -165,11 +167,11 @@ fun QueueTab(p_status: PlayerStatus, on_background_colour: Color) {
                 LaunchedEffect(is_dragging) {
                     if (is_dragging) {
                         vibrate(0.01)
-                        playing_key = song_items[p_status.index].key
+                        playing_key = song_items[PlayerHost.status.index].key
                     }
                 }
 
-                val current = if (playing_key != null) playing_key == item.key else p_status.index == index
+                val current = if (playing_key != null) playing_key == item.key else PlayerHost.status.m_index == index
                 item.QueueElement(Modifier.detectReorder(state), current, index, on_background_colour) {
                     v_removed.add(index)
                     song_items = song_items.toMutableList().apply {

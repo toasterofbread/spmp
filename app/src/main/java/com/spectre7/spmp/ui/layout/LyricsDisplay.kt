@@ -211,11 +211,10 @@ fun TimingOverlay(lyrics: Song.Lyrics, text_positions: List<TermInfo>, full_line
         scrollTo(highlight_position_y)
     }
 
-    val p_status = PlayerHost.p_status
-    LaunchedEffect(p_status.position, full_line) {
+    LaunchedEffect(PlayerHost.status.m_position, full_line) {
 
         val terms = mutableListOf<Song.Lyrics.Subterm>()
-        val pos = (p_status.duration * p_status.position)
+        val pos = (PlayerHost.status.duration * PlayerHost.status.position)
         var finished = false
 
         for (line in lyrics.lyrics) {

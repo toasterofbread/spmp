@@ -73,7 +73,7 @@ fun SongPreview (song: Song, large: Boolean, colour: Color, modifier: Modifier =
                 )
 
                 Text(
-                    song.artist.nativeData.name,
+                    song.artist.name,
                     fontSize = 11.sp,
                     color = colour.copy(alpha=0.5f),
                     maxLines = 1,

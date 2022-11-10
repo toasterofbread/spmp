@@ -58,20 +58,12 @@ fun NowPlaying(_expansion: Float, max_height: Float, close: () -> Unit) {
     val expansion = if (_expansion < 0.08f) 0.0f else _expansion
     val inv_expansion = -expansion + 1.0f
 
-    val p_status = remember { PlayerHost.p_status }
-
     fun getSongTitle(): String {
-        if (p_status.song == null) {
-            return "-----"
-        }
-        return p_status.song!!.title
+        return PlayerHost.status.song?.title ?: "-----"
     }
 
     fun getSongArtist(): String {
-        if (p_status.song == null) {
-            return "---"
-        }
-        return p_status.song!!.artist.nativeData.name
+        return PlayerHost.status.song?.artist?.name ?: "---"
     }
 
     val systemui_controller = rememberSystemUiController()
@@ -82,7 +74,7 @@ fun NowPlaying(_expansion: Float, max_height: Float, close: () -> Unit) {
     var theme_colour by remember { mutableStateOf<Color?>(null) }
     fun setThemeColour(value: Color?) {
         theme_colour = value
-        p_status.song?.theme_colour = theme_colour
+        PlayerHost.status.song?.theme_colour = theme_colour
     }
 
     val colour_filter = ColorFilter.tint(MainActivity.theme.getOnBackground(true))
@@ -123,10 +115,11 @@ fun NowPlaying(_expansion: Float, max_height: Float, close: () -> Unit) {
         }
     }
 
-    LaunchedEffect(p_status.song?.getId()) {
+    LaunchedEffect(PlayerHost.status.m_song) {
+        val song = PlayerHost.status.song
         val on_finished = {
-            if (p_status.song!!.theme_colour != null) {
-                theme_colour = p_status.song!!.theme_colour
+            if (song!!.theme_colour != null) {
+                theme_colour = song!!.theme_colour
             }
             else if (theme_palette != null) {
                 for (i in (2 until 5) + (0 until 2)) {
@@ -138,16 +131,16 @@ fun NowPlaying(_expansion: Float, max_height: Float, close: () -> Unit) {
             }
         }
 
-        if (p_status.song == null) {
+        if (song == null) {
             setThumbnail(null, {})
             theme_colour = null
         }
-        else if (p_status.song!!.thumbnailLoaded(true)) {
-            setThumbnail(p_status.song!!.loadThumbnail(true).asImageBitmap(), on_finished)
+        else if (song!!.thumbnailLoaded(true)) {
+            setThumbnail(song!!.loadThumbnail(true).asImageBitmap(), on_finished)
         }
         else {
             thread {
-                setThumbnail(p_status.song!!.loadThumbnail(true).asImageBitmap(), on_finished)
+                setThumbnail(song!!.loadThumbnail(true).asImageBitmap(), on_finished)
             }
         }
     }
@@ -186,7 +179,7 @@ fun NowPlaying(_expansion: Float, max_height: Float, close: () -> Unit) {
 
     if (expansion < 1.0f) {
         LinearProgressIndicator(
-            progress = p_status.position,
+            progress = PlayerHost.status.m_position,
             color = MainActivity.theme.getOnBackground(true),
             trackColor = setColourAlpha(MainActivity.theme.getOnBackground(true), 0.5),
             modifier = Modifier
@@ -302,7 +295,8 @@ fun NowPlaying(_expansion: Float, max_height: Float, close: () -> Unit) {
                                                     Modifier
                                                         .fillMaxSize()
                                                         .padding(20.dp), verticalArrangement = Arrangement.SpaceBetween) {
-                                                    p_status.song?.artist?.Preview(false)
+
+                                                    PlayerHost.status.m_song?.artist?.Preview(false)
 
                                                     Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.SpaceEvenly) {
 
@@ -349,15 +343,15 @@ fun NowPlaying(_expansion: Float, max_height: Float, close: () -> Unit) {
                                                     overlay_menu = NowPlayingOverlayMenu.NONE
                                                 }
                                             NowPlayingOverlayMenu.LYRICS ->
-                                                if (p_status.song != null) {
-                                                    LyricsDisplay(p_status.song!!, { overlay_menu = NowPlayingOverlayMenu.NONE }, (screen_width_dp - (main_padding * 2) - (15.dp * expansion * 2)).value * 0.9.dp, seek_state) {
+                                                if (PlayerHost.status.m_song != null) {
+                                                    LyricsDisplay(PlayerHost.status.song!!, { overlay_menu = NowPlayingOverlayMenu.NONE }, (screen_width_dp - (main_padding * 2) - (15.dp * expansion * 2)).value * 0.9.dp, seek_state) {
                                                         get_shutter_menu = it
                                                         shutter_menu_open = true
                                                     }
                                                 }
                                             NowPlayingOverlayMenu.DOWNLOAD ->
-                                                if (p_status.song != null) {
-                                                    DownloadMenu(p_status.song!!) { overlay_menu = NowPlayingOverlayMenu.NONE }
+                                                if (PlayerHost.status.m_song != null) {
+                                                    DownloadMenu(PlayerHost.status.song!!) { overlay_menu = NowPlayingOverlayMenu.NONE }
                                                 }
                                             NowPlayingOverlayMenu.NONE -> {}
                                         }
@@ -414,7 +408,7 @@ fun NowPlaying(_expansion: Float, max_height: Float, close: () -> Unit) {
                                     .fillMaxWidth()
                             )
 
-                            AnimatedVisibility(p_status.has_previous, enter = expandHorizontally(), exit = shrinkHorizontally()) {
+                            AnimatedVisibility(PlayerHost.status.m_has_previous, enter = expandHorizontally(), exit = shrinkHorizontally()) {
                                 IconButton(
                                     onClick = {
                                         PlayerHost.player.seekToPreviousMediaItem()
@@ -428,21 +422,21 @@ fun NowPlaying(_expansion: Float, max_height: Float, close: () -> Unit) {
                                 }
                             }
 
-                            AnimatedVisibility(p_status.song != null, enter = fadeIn(), exit = fadeOut()) {
+                            AnimatedVisibility(PlayerHost.status.m_song != null, enter = fadeIn(), exit = fadeOut()) {
                                 IconButton(
                                     onClick = {
                                         PlayerHost.service.playPause()
                                     }
                                 ) {
                                     Image(
-                                        painterResource(if (p_status.playing) R.drawable.ic_pause else R.drawable.ic_play_arrow),
-                                        getString(if (p_status.playing) R.string.media_pause else R.string.media_play),
+                                        painterResource(if (PlayerHost.status.m_playing) R.drawable.ic_pause else R.drawable.ic_play_arrow),
+                                        getString(if (PlayerHost.status.m_playing) R.string.media_pause else R.string.media_play),
                                         colorFilter = colour_filter
                                     )
                                 }
                             }
 
-                            AnimatedVisibility(p_status.has_next, enter = expandHorizontally(), exit = shrinkHorizontally()) {
+                            AnimatedVisibility(PlayerHost.status.m_has_next, enter = expandHorizontally(), exit = shrinkHorizontally()) {
                                 IconButton(
                                     onClick = {
                                         PlayerHost.player.seekToNextMediaItem()
@@ -543,24 +537,24 @@ fun NowPlaying(_expansion: Float, max_height: Float, close: () -> Unit) {
                                     val utility_separation = 25.dp
 
                                     // Toggle shuffle
-                                    PlayerButton(R.drawable.ic_shuffle, button_size * 0.65f, if (p_status.shuffle) 1f else 0.25f) {
+                                    PlayerButton(R.drawable.ic_shuffle, button_size * 0.65f, if (PlayerHost.status.m_shuffle) 1f else 0.25f) {
                                         PlayerHost.player.shuffleModeEnabled = !PlayerHost.player.shuffleModeEnabled
                                     }
 
                                     Spacer(Modifier.requiredWidth(utility_separation))
 
                                     // Previous
-                                    PlayerButton(R.drawable.ic_skip_previous, enabled = p_status.has_previous) {
+                                    PlayerButton(R.drawable.ic_skip_previous, enabled = PlayerHost.status.m_has_previous) {
                                         PlayerHost.player.seekToPreviousMediaItem()
                                     }
 
                                     // Play / pause
-                                    PlayerButton(if (p_status.playing) R.drawable.ic_pause else R.drawable.ic_play_arrow, enabled = p_status.song != null) {
+                                    PlayerButton(if (PlayerHost.status.m_playing) R.drawable.ic_pause else R.drawable.ic_play_arrow, enabled = PlayerHost.status.m_song != null) {
                                         PlayerHost.service.playPause()
                                     }
 
                                     // Next
-                                    PlayerButton(R.drawable.ic_skip_next, enabled = p_status.has_next) {
+                                    PlayerButton(R.drawable.ic_skip_next, enabled = PlayerHost.status.m_has_next) {
                                         PlayerHost.player.seekToNextMediaItem()
                                     }
 
@@ -568,9 +562,9 @@ fun NowPlaying(_expansion: Float, max_height: Float, close: () -> Unit) {
 
                                     // Cycle repeat mode
                                     PlayerButton(
-                                        if (p_status.repeat_mode == Player.REPEAT_MODE_ONE) R.drawable.ic_repeat_one else R.drawable.ic_repeat,
+                                        if (PlayerHost.status.m_repeat_mode == Player.REPEAT_MODE_ONE) R.drawable.ic_repeat_one else R.drawable.ic_repeat,
                                         button_size * 0.65f,
-                                        if (p_status.repeat_mode != Player.REPEAT_MODE_OFF) 1f else 0.25f
+                                        if (PlayerHost.status.m_repeat_mode != Player.REPEAT_MODE_OFF) 1f else 0.25f
                                     ) {
                                         PlayerHost.player.repeatMode = when (PlayerHost.player.repeatMode) {
                                             Player.REPEAT_MODE_ALL -> Player.REPEAT_MODE_ONE
@@ -584,7 +578,7 @@ fun NowPlaying(_expansion: Float, max_height: Float, close: () -> Unit) {
                     }
                 }
                 else if (tab == NowPlayingTab.QUEUE) {
-                    QueueTab(p_status, MainActivity.theme.getOnBackground(true))
+                    QueueTab(MainActivity.theme.getOnBackground(true))
                 }
             }
         }
@@ -687,7 +681,6 @@ fun NowPlaying(_expansion: Float, max_height: Float, close: () -> Unit) {
 
 @Composable
 fun SeekBar(seek: (Float) -> Unit) {
-    val p_status = remember { PlayerHost.p_status }
     var position_override by remember { mutableStateOf<Float?>(null) }
     var old_position by remember { mutableStateOf<Float?>(null) }
     var grab_start_position by remember { mutableStateOf<Float?>(null) }
@@ -754,7 +747,7 @@ fun SeekBar(seek: (Float) -> Unit) {
 
     fun getSliderValue(): Float {
         if (position_override != null && old_position != null) {
-            if (p_status.position != old_position) {
+            if (PlayerHost.status.m_position != old_position) {
                 old_position = null
                 position_override = null
             }
@@ -762,14 +755,14 @@ fun SeekBar(seek: (Float) -> Unit) {
                 return position_override!!
             }
         }
-        return position_override ?: p_status.position
+        return position_override ?: PlayerHost.status.m_position
     }
 
     SliderValueHorizontal(
         value = getSliderValue(),
         onValueChange = {
             if (grab_start_position == null) {
-                grab_start_position = p_status.position
+                grab_start_position = PlayerHost.status.position
             }
 
             position_override = it
@@ -789,7 +782,7 @@ fun SeekBar(seek: (Float) -> Unit) {
             else {
                 seek(position_override!!)
             }
-            old_position = p_status.position
+            old_position = PlayerHost.status.position
             grab_start_position = null
             cancel_area_side = null
         },

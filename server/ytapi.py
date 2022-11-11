@@ -100,8 +100,7 @@ class YtApi:
 
             return jsonify(response.json())
 
-        @server.route("/yt/streamurl", True)
-        def streamUrl():
+        def requestStreamUrl(id: str) -> str | Response:
             id = request.args.get("id")
             if id is None:
                 return server.errorResponse(400)
@@ -126,16 +125,27 @@ class YtApi:
                 if data["playabilityStatus"]["status"] == "OK":
                     for format in data["streamingData"]["adaptiveFormats"]:
                         if format["itag"] == 140:
-                            return jsonify(format["url"])
+                            return format["url"]
 
             if self.ytd is not None:
                 info = self.ytd.extract_info(id, False)
                 if info is not None:
                     for format in info["formats"]:
                         if format["format_id"] == "140":
-                            return jsonify(format["url"])
+                            return format["url"]
 
             return server.errorResponse(404)
+
+        @server.route("/yt/streamurl", True)
+        def streamUrl():
+            id = request.args.get("id")
+            if id is None:
+                return server.errorResponse(400)
+
+            result = requestStreamUrl(id)
+            if isinstance(result, Response):
+                return result
+            return jsonify(result)
 
         @server.route("/yt/batch/", True, methods = ["POST"])
         def batch():
@@ -165,6 +175,11 @@ class YtApi:
                         return result
 
                     result["type"] = item["type"]
+
+                    if item.get("get_stream_url"):
+                        url = requestStreamUrl(item["id"])
+                        result["stream_url"] = url if isinstance(url, str) else None
+
                     ret.append(result)
             except KeyError as e:
                 return server.errorResponse(400)

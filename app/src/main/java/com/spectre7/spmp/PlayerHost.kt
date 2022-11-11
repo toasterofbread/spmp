@@ -383,7 +383,7 @@ class PlayerHost {
                 thread {
                     val radio = DataApi.getSongRadio(song.getId(), false)
                     for (i in radio.indices) {
-                        Song.fromId(radio[i]).loadData(false) {
+                        Song.fromId(radio[i]).loadData(false, true) {
                             MainActivity.runInMainThread {
                                 addToQueue(song, i + 1)
                             }
@@ -402,7 +402,7 @@ class PlayerHost {
         }
 
         fun addToQueue(song: Song, i: Int? = null, onFinished: (() -> Unit)? = null) {
-            song.getDownloadUrl {
+            song.getStreamUrl {
                 val item = MediaItem.Builder().setUri(it).setTag(song).build()
                 if (i == null) {
                     player.addMediaItem(item)

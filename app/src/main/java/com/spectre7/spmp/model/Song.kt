@@ -104,6 +104,7 @@ class Song private constructor (
     lateinit var artist: Artist
     lateinit var upload_date: Date
     lateinit var duration: Duration
+    var stream_url: String? = null
 
     init {
         if (registry == null) {
@@ -117,6 +118,7 @@ class Song private constructor (
         description = data.snippet.description!!
         upload_date = Date.from(Instant.parse(data.snippet.publishedAt))
         duration = Duration.parse(data.contentDetails.duration)
+        stream_url = data.stream_url
         artist = Artist.fromId(data.snippet.channelId!!).loadData(true) {
             loaded = true
             onFinished()
@@ -200,12 +202,17 @@ class Song private constructor (
         DataApi.getSongLyrics(this, callback)
     }
 
-    fun getDownloadUrl(callback: (url: String) -> Unit) {
-        DataApi.getDownloadUrl(getId()) {
-            if (it == null) {
-                throw RuntimeException(getId())
+    fun getStreamUrl(callback: (url: String) -> Unit) {
+        if (stream_url != null) {
+            callback(stream_url)
+        }
+        else {
+            DataApi.getStreamUrl(getId()) {
+                if (it == null) {
+                    throw RuntimeException(getId())
+                }
+                callback(it)
             }
-            callback(it)
         }
     }
 

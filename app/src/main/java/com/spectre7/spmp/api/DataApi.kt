@@ -57,13 +57,28 @@ class DataApi {
         private val klaxon: Klaxon = Klaxon()
         private var cached_server_url: String? = null
 
-        private val ytitem_load_queue: MutableMap<YtItem.SimpleIdentifier, MutableList<(YtItem.ServerInfoResponse?) -> Unit>> = mutableMapOf()
+        data class YtItemLoadQueueKey(val id: String, val type: String, val get_stream_url: Boolean) {
+            companion object {
+                fun from(item: YtItem, get_stream_url: Boolean): YtItemLoadQueueKey {
+                    return YtItemLoadQueueKey(
+                        item.getId(),
+                        when (item) {
+                            is Song -> "video"
+                            is Artist -> "channel"
+                            else -> throw RuntimeError(item.toString())
+                        },
+                        get_stream_url
+                    )
+                }
+            }
+        }
+        private val ytitem_load_queue: MutableMap<YtItemLoadQueueKey, MutableList<(YtItem.ServerInfoResponse?) -> Unit>> = mutableMapOf()
         private val ytitem_load_mutex = Mutex()
 
-        fun queueYtItemDataLoad(item: YtItem, callback: (YtItem.ServerInfoResponse?) -> Unit) {
+        fun queueYtItemDataLoad(item: YtItem, get_stream_url: Boolean, callback: (YtItem.ServerInfoResponse?) -> Unit) {
             runBlocking {
-                ytitem_load_mutex.withLock {
-                    ytitem_load_queue.getOrPut(item.getSimpleIdentifier()) { mutableListOf() }.add(callback)
+                synchronized(ytitem_load_queue) {
+                    ytitem_load_queue.getOrPut(YtItemLoadQueueKey.from(item, get_stream_url)) { mutableListOf() }.add(callback)
                 }
             }
         }
@@ -71,27 +86,34 @@ class DataApi {
         fun processYtItemLoadQueue() {
             runBlocking {
                 ytitem_load_mutex.withLock {
-                    if (ytitem_load_queue.isNotEmpty()) {
-                        val result: String
-                        try {
-                            result = queryServer(
-                                "/yt/batch",
-                                mapOf("part" to "contentDetails,snippet,localizations,statistics"),
-                                post_body = klaxon.toJsonString(ytitem_load_queue.keys),
-                                throw_on_fail = true
-                            )!!
-                        }
-                        catch (e: Exception) {
-                            MainActivity.network.onError(e)
+                
+                    val items: Map<YtItemLoadQueueKey, MutableList<(YtItem.ServerInfoResponse?) -> Unit>>
+                    synchronized(ytitem_load_queue) {
+                        if (ytitem_load_queue.isEmpty()) {
                             return@withLock
                         }
-
-                        for (item in klaxon.parseArray<YtItem.ServerInfoResponse>(result)!!) {
-                            for (callback in ytitem_load_queue.remove(YtItem.SimpleIdentifier(item.id, item.type))!!) {
-                                callback(item)
-                            }
-                        }
+                        items = ytitem_load_queue.toMap()
                         ytitem_load_queue.clear()
+                    }
+
+                    val result: String
+                    try {
+                        result = queryServer(
+                            "/yt/batch",
+                            mapOf("part" to "contentDetails,snippet,localizations,statistics"),
+                            post_body = klaxon.toJsonString(items.keys),
+                            throw_on_fail = true
+                        )!!
+                    }
+                    catch (e: Exception) {
+                        MainActivity.network.onError(e)
+                        return@withLock
+                    }
+
+                    for (item in klaxon.parseArray<YtItem.ServerInfoResponse>(result)!!) {
+                        for (callback in items.remove(YtItemLoadQueueKey(item.id, item.type, item.stream_url != "none"))!!) {
+                            callback(item)
+                        }
                     }
                 }
             }
@@ -136,7 +158,7 @@ class DataApi {
             }
         }
 
-        fun getDownloadUrl(id: String, callback: (url: String?) -> Unit) {
+        fun getStreamUrl(id: String, callback: (url: String?) -> Unit) {
             thread {
                 val ret = queryServer("/yt/streamurl", mapOf("id" to id))
                 MainActivity.runInMainThread {

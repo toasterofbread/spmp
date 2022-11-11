@@ -1,4 +1,4 @@
-package com.spectre7.spmp.ui.layout
+package com.spectre7.spmp.ui.layout.nowplaying
 
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Row

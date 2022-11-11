@@ -1,4 +1,4 @@
-package com.spectre7.spmp.ui.layout
+package com.spectre7.spmp.ui.layout.nowplaying
 
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
@@ -36,9 +36,10 @@ import org.burnoutcrew.reorderable.detectReorder
 import org.burnoutcrew.reorderable.rememberReorderableLazyListState
 import org.burnoutcrew.reorderable.reorderable
 import kotlin.math.roundToInt
+import com.spectre7.spmp.MainActivity
 
 @Composable
-fun QueueTab(on_background_colour: Color) {
+fun QueueTab() {
 
     var key_inc by remember { mutableStateOf(0) }
     val v_removed = remember { mutableStateListOf<Int>() }
@@ -158,8 +159,7 @@ fun QueueTab(on_background_colour: Color) {
 
     LazyColumn(
         state = state.listState,
-        modifier = Modifier
-            .reorderable(state)
+        modifier = Modifier.reorderable(state).weight(1f)
     ) {
         items(song_items.size, { song_items[it].key }) { index ->
             val item = song_items[index]
@@ -172,7 +172,7 @@ fun QueueTab(on_background_colour: Color) {
                 }
 
                 val current = if (playing_key != null) playing_key == item.key else PlayerHost.status.m_index == index
-                item.QueueElement(Modifier.detectReorder(state), current, index, on_background_colour) {
+                item.QueueElement(Modifier.detectReorder(state), current, index, MainActivity.theme.getBackgroundColour(true)) {
                     v_removed.add(index)
                     song_items = song_items.toMutableList().apply {
                         removeAt(index)
@@ -182,6 +182,8 @@ fun QueueTab(on_background_colour: Color) {
             }
         }
     }
+
+    Spacer(Modifier.fillMaxHeight().weight(1f))
 
     Row(modifier = Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.SpaceEvenly, verticalAlignment = Alignment.CenterVertically) {
         Button(
@@ -194,7 +196,7 @@ fun QueueTab(on_background_colour: Color) {
         ) {
             Text(
                 text = "Clear",
-                color = on_background_colour
+                color = MainActivity.theme.getBackgroundColour(true)
             )
         }
 
@@ -209,7 +211,7 @@ fun QueueTab(on_background_colour: Color) {
         ) {
             Text(
                 text = "Shuffle",
-                color = on_background_colour
+                color = MainActivity.theme.getBackgroundColour(true)
             )
         }
     }

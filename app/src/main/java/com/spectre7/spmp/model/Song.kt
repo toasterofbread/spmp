@@ -204,7 +204,7 @@ class Song private constructor (
 
     fun getStreamUrl(callback: (url: String) -> Unit) {
         if (stream_url != null) {
-            callback(stream_url)
+            callback(stream_url!!)
         }
         else {
             DataApi.getStreamUrl(getId()) {

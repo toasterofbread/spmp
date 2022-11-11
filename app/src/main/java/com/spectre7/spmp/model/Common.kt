@@ -21,6 +21,7 @@ abstract class YtItem {
     class ServerInfoResponse(
         val id: String,
         var type: String = "",
+        val stream_url: String? = "none",
         val snippet: Snippet,
         val statistics: Statistics,
         val contentDetails: ContentDetails,
@@ -32,15 +33,6 @@ abstract class YtItem {
         data class Localisation(val title: String? = null, val description: String? = null)
         data class Thumbnails(val default: Thumbnail, val medium: Thumbnail, val high: Thumbnail)
         data class Thumbnail(val url: String)
-    }
-
-    data class SimpleIdentifier(val id: String, val type: String)
-
-    fun getSimpleIdentifier(): SimpleIdentifier {
-        return SimpleIdentifier(getId(), when (this) {
-            is Song -> "video"
-            else -> "channel"
-        })
     }
 
     fun thumbnailLoaded(hq: Boolean): Boolean {
@@ -73,7 +65,7 @@ abstract class YtItem {
         Preview(large, Modifier, MaterialTheme.colorScheme.onBackground)
     }
 
-    fun loadData(process_queue: Boolean = true, onFinished: ((YtItem) -> Unit)? = null): YtItem {
+    fun loadData(process_queue: Boolean = true, get_stream_url: Boolean = false, onFinished: ((YtItem) -> Unit)? = null): YtItem {
         if (loaded) {
             onFinished?.invoke(this)
         }
@@ -89,7 +81,7 @@ abstract class YtItem {
             }
 
             thread {
-                DataApi.queueYtItemDataLoad(this) {
+                DataApi.queueYtItemDataLoad(this, get_stream_url) {
                     initWithData(it!!) {
                         for (callback in on_loaded_callbacks!!) {
                             callback()

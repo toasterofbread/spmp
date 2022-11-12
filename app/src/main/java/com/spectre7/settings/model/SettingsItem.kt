@@ -2,26 +2,21 @@ package com.spectre7.composesettings.model
 
 import android.content.SharedPreferences
 import androidx.compose.animation.Animatable
-import androidx.compose.animation.Crossfade
 import androidx.compose.animation.core.TweenSpec
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
-import androidx.compose.foundation.gestures.detectTapGestures
 import androidx.compose.foundation.interaction.MutableInteractionSource
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.ArrowDropDown
-import androidx.compose.material.icons.filled.KeyboardArrowRight
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.*
 import androidx.compose.ui.graphics.Color
-import androidx.compose.ui.input.pointer.pointerInput
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.*
-import androidx.compose.ui.window.Popup
 import com.github.krottv.compose.sliders.DefaultThumb
 import com.github.krottv.compose.sliders.DefaultTrack
 import com.github.krottv.compose.sliders.SliderValueHorizontal
@@ -238,7 +233,8 @@ class SettingsItemDropdown(
     val title: String,
     val subtitle: String?,
     val item_count: Int,
-    val getItem: (Int) -> String
+    val getButtonItem: ((Int) -> String)? = null,
+    val getItem: (Int) -> String,
 ): SettingsItem() {
 
     @Composable
@@ -256,7 +252,7 @@ class SettingsItemDropdown(
             var open by remember { mutableStateOf(false) }
 
             Button({ open = !open }, Modifier.requiredHeight(40.dp), shape = RoundedCornerShape(16.dp)) {
-                Text(getItem(state.value), color = theme.getOnAccent())
+                Text(getButtonItem?.invoke(state.value) ?: getItem(state.value), color = theme.getOnAccent())
                 Icon(
                     Icons.Filled.ArrowDropDown,
                     null,
@@ -264,53 +260,72 @@ class SettingsItemDropdown(
                 )
             }
 
-            Popup(Alignment.TopEnd, onDismissRequest = { open = false }) {
-                Crossfade(open) {
-                    Row(Modifier.fillMaxWidth().offset((-20).dp), horizontalArrangement = Arrangement.End) {
-                        Box(
-                            Modifier.background(theme.getAccent(), RoundedCornerShape(16.dp)), contentAlignment = Alignment.TopEnd
-                        ) {
-                            if (it) {
-                                Column(
-                                    Modifier
-                                        .width(100.dp)
-                                        .padding(10.dp)
-                                        .pointerInput(Unit) {
-                                            detectTapGestures(onTap = {
-
-                                            })
-                                        },
-                                    verticalArrangement = Arrangement.spacedBy(10.dp)
-                                ) {
-                                    for (i in 0 until item_count) {
-                                        val item = getItem(i)
-                                        Row(
-                                            verticalAlignment = Alignment.CenterVertically,
-                                            modifier = Modifier
-                                                .height(30.dp).fillMaxWidth()
-                                                .clickable {
-                                                    open = false
-                                                    state.value = i
-                                                }
-                                        ) {
-                                            Icon(
-                                                Icons.Filled.KeyboardArrowRight,
-                                                null,
-                                                tint = theme.getOnAccent()
-                                            )
-                                            Text(
-                                                item,
-                                                color = theme.getOnAccent(),
-                                                fontWeight = FontWeight.Medium
-                                            )
-                                        }
-                                    }
-                                }
-                            }
+            Box(contentAlignment = Alignment.CenterEnd) {
+                MaterialTheme(
+                    shapes = MaterialTheme.shapes.copy(extraSmall = RoundedCornerShape(16.dp))
+                ){
+                    DropdownMenu(
+                        open,
+                        { open = false },
+                        Modifier.size(200.dp, 200.dp),
+                        offset = DpOffset(50.dp, 0.dp)
+                    ) {
+                        for (i in 0 until item_count) {
+                            DropdownMenuItem(onClick = { state.value = i; open = false }, text = {
+                                Text(getItem(i))
+                            })
                         }
                     }
                 }
             }
+
+//            Popup(Alignment.TopEnd, onDismissRequest = { open = false }) {
+//                Crossfade(open) {
+//                    Row(Modifier.fillMaxWidth().offset((-20).dp), horizontalArrangement = Arrangement.End) {
+//                        Box(
+//                            Modifier.background(theme.getAccent(), RoundedCornerShape(16.dp)), contentAlignment = Alignment.TopEnd
+//                        ) {
+//                            if (it) {
+//                                LazyColumn(
+//                                    Modifier
+//                                        .width(100.dp)
+//                                        .padding(10.dp)
+//                                        .pointerInput(Unit) {
+//                                            detectTapGestures(onTap = {
+//
+//                                            })
+//                                        },
+//                                    verticalArrangement = Arrangement.spacedBy(10.dp)
+//                                ) {
+//                                    items(item_count) { i ->
+//                                        val item = getItem(i)
+//                                        Row(
+//                                            verticalAlignment = Alignment.CenterVertically,
+//                                            modifier = Modifier
+//                                                .height(30.dp).fillMaxWidth()
+//                                                .clickable {
+//                                                    open = false
+//                                                    state.value = i
+//                                                }
+//                                        ) {
+//                                            Icon(
+//                                                Icons.Filled.KeyboardArrowRight,
+//                                                null,
+//                                                tint = theme.getOnAccent()
+//                                            )
+//                                            Text(
+//                                                item,
+//                                                color = theme.getOnAccent(),
+//                                                fontWeight = FontWeight.Medium
+//                                            )
+//                                        }
+//                                    }
+//                                }
+//                            }
+//                        }
+//                    }
+//                }
+//            }
         }
     }
 }

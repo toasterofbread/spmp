@@ -117,7 +117,6 @@ configurations.all {
 
 
 dependencies {
-
     implementation 'androidx.core:core-ktx:1.7.0'
     implementation "androidx.compose.ui:ui:$compose_version"
     implementation 'androidx.compose.material3:material3:1.0.0-alpha10'
@@ -143,6 +142,7 @@ dependencies {
     implementation 'androidx.palette:palette:1.0.0'
     implementation "com.github.krottv:compose-sliders:0.1.4"
     implementation "org.burnoutcrew.composereorderable:reorderable:0.9.2"
+    implementation "com.github.spectreseven1138:android-compose-furigana:custom-SNAPSHOT"
 }
 
 task preBuildScript(type: Exec) {

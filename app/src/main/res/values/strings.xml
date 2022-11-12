@@ -1,16 +1,17 @@
 <resources>
-    <string name="app_name">SpMp</string>
-    <string name="data_api_key">AIzaSyAm0nMoIUejG5rlqdk8TV4ugwUG8tMEx0Y</string>
-    <string name="yt_music_creds">***REMOVED***
+    <string name="app_name" translatable="false">SpMp</string>
+    <string name="yt_music_creds" translatable="false">***REMOVED***
     </string>
-    <string name="ngrok_api_key">***REMOVED***</string>
-    <string name="server_api_key">***REMOVED***</string>
+    <string name="ngrok_api_key" translatable="false">***REMOVED***</string>
+    <string name="server_api_key" translatable="false">***REMOVED***</string>
 
     <string name="videos">Videos</string>
     <string name="songs">Songs</string>
     <string name="artists">Artists</string>
     <string name="playlists">Playlists</string>
     <string name="albums">Albums</string>
+
+    <string name="loading_feed">Loading feed</string>
 
     <string name="media_pause">Pause</string>
     <string name="media_play">Play</string>
@@ -32,6 +33,13 @@
     <string name="generic_network_error">A network error occurred</string>
 
     <string name="s_page_preferences">Preferences</string>
+
+    <string name="s_group_general">General</string>
+    <string name="s_key_interface_lang">Interface language</string>
+    <string name="s_sub_interface_lang">Language used for interface text</string>
+    <string name="s_key_data_lang">Data language</string>
+    <string name="s_sub_data_lang">Language used for song and artist titles, etc. (if available)</string>
+
     <string name="s_group_theming">Theming</string>
 
     <string name="s_key_accent_source">Accent colour</string>
@@ -44,29 +52,5 @@
     <string name="s_option_np_accent_none">Don\'t use accent colour</string>
 
     <string name="s_group_lyrics">Lyrics</string>
-
-
-    <!-- Settings -->
-<!--    <string name="setting_t_lang_app">App language</string>-->
-<!--    <string name="setting_d_lang_app">Language for UI text</string>-->
-<!--    <string name="setting_t_lang_data">Data language</string>-->
-<!--    <string name="setting_d_lang_data">Language for song/artist metadata</string>-->
-<!--    <string name="lang_system">System</string>-->
-<!--    <string name="lang_native">Native</string>-->
-
-<!--    <string name="setting_t_theme_mode">Now playing theme mode</string>-->
-<!--    <string name="setting_d_theme_mode">Method to use for colouring the now playing interface</string>-->
-<!--    <string name="theme_mode_background">Background</string>-->
-<!--    <string name="theme_mode_elements">Elements</string>-->
-
-<!--    <string name="setting_t_audio_quality_wifi">Audio quality (WiFi)</string>-->
-<!--    <string name="setting_d_audio_quality_wifi">Quality of audio to stream over WiFI connections</string>-->
-<!--    <string name="setting_t_audio_quality_mobile">Audio quality (Mobile data)</string>-->
-<!--    <string name="setting_d_audio_quality_mobile">Quality of audio to stream over mobile data connections</string>-->
-<!--    <string name="audio_quality_139">Low (ID: 139)</string>-->
-<!--    <string name="audio_quality_140">Standard (ID: 140)</string>-->
-
-<!--    <string name="setting_t_auto_download_threshold">Auto download view threshold</string>-->
-<!--    <string name="setting_d_auto_download_threshold">Songs you\'ve listened to at least this many times will be downloaded automatically when on WiFi</string>-->
 
 </resources>

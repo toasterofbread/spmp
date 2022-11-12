@@ -7,6 +7,25 @@ import json
 from bs4 import BeautifulSoup
 from ytmusicapi import YTMusic
 from spectre7 import utils
+from threading import Thread
+
+from datetime import datetime as time
+
+class ThreadWithReturnValue(Thread):
+    def __init__(self, group=None, target=None, name=None, args=(), kwargs={}, Verbose=None):
+        Thread.__init__(self, group, target, name, args, kwargs)
+        self._return = None
+
+    def run(self):
+        try:
+            if self._target is not None: # type: ignore
+                self._return = self._target(*self._args, **self._kwargs) # type: ignore
+        finally:
+            del self._target, self._args, self._kwargs # type: ignore
+
+    def join(self, *args):
+        Thread.join(self, *args)
+        return self._return
 
 class YtApi:
 
@@ -19,31 +38,44 @@ class YtApi:
             self.ytd = None
 
         def requestVideoInfo(params: dict) -> dict | Response:
+            language: str | None = params.get("dataLang", None)
 
             try:
-                cache = server.getCache("requestVideoInfo", params["id"])
+                cache = server.getCache("requestVideoInfo", params["id"] + str(language))
             except KeyError:
                 return server.errorResponse(400)
 
             if cache is not None:
-                utils.info("Using cached video info")
                 return cache
 
             params["key"] = server.ytapi_key
+
+            remove_localisations = False
+            if language is not None and "part" in params and not "localizations" in params["part"]:
+                params["part"] += ",localizations"
+                remove_localisations = True
+
             url = f"https://www.googleapis.com/youtube/v3/videos?" + urlencode(params)
             response = requests.get(url)
             if response.status_code != 200:
                 return server.errorResponse(response.status_code, f"{response.reason}\n{response.text}")
 
-            ret = response.json()["items"][0]
-            # if loc:
-            #     for item in data["items"]:
-            #         if "snippet" in item and "localizations" in item and loc in item["localizations"]:
-            #             localisation = item["localizations"][loc]
-            #             for key in localisation:
-            #                 item["snippet"][key] = localisation[key]
+            ret: dict = response.json()["items"][0]
 
-            server.setCache("requestVideoInfo", params["id"], ret)
+            if language is not None and "snippet" in ret and "localizations" in ret and language in ret["localizations"]:
+                localisation = ret["localizations"].get(language, None)
+                if localisation is None:
+                    if "-" in language:
+                        localisation = ret["localizations"].get(language.split("-", 1)[0])
+
+                if localisation is not None:
+                    for key in localisation:
+                        ret["snippet"][key] = localisation[key]
+
+            if remove_localisations:
+                ret.pop("localizations", None)
+
+            server.setCache("requestVideoInfo", params["id"] + str(language), ret)
 
             return ret
 
@@ -100,12 +132,7 @@ class YtApi:
 
             return jsonify(response.json())
 
-        @server.route("/yt/streamurl", True)
-        def streamUrl():
-            id = request.args.get("id")
-            if id is None:
-                return server.errorResponse(400)
-
+        def requestStreamUrl(id: str) -> str | Response:
             DEFAULT_CLIENT = {"clientName":"ANDROID","clientVersion":"16.50","visitorData":None,"hl":"en"}
             NO_CONTENT_WARNING_CLIENT = {"clientName":"TVHTML5_SIMPLY_EMBEDDED_PLAYER","clientVersion":"2.0","visitorData":None,"hl":"en"}
 
@@ -126,16 +153,27 @@ class YtApi:
                 if data["playabilityStatus"]["status"] == "OK":
                     for format in data["streamingData"]["adaptiveFormats"]:
                         if format["itag"] == 140:
-                            return jsonify(format["url"])
+                            return format["url"]
 
             if self.ytd is not None:
                 info = self.ytd.extract_info(id, False)
                 if info is not None:
                     for format in info["formats"]:
                         if format["format_id"] == "140":
-                            return jsonify(format["url"])
+                            return format["url"]
 
             return server.errorResponse(404)
+
+        @server.route("/yt/streamurl", True)
+        def streamUrl():
+            id = request.args.get("id")
+            if id is None:
+                return server.errorResponse(400)
+
+            result = requestStreamUrl(id)
+            if isinstance(result, Response):
+                return result
+            return jsonify(result)
 
         @server.route("/yt/batch/", True, methods = ["POST"])
         def batch():
@@ -147,12 +185,10 @@ class YtApi:
             if not isinstance(data, list):
                 return server.errorResponse(400, "Data must be a JSON list")
 
-            ret = []
-
-            try:
-                for item in data:
-                    params = dict(request.args)
+            def handleRequest(item: dict, params: dict):
+                try:
                     params["id"] = item["id"]
+
                     match item["type"]:
                         case "video":
                             result = requestVideoInfo(params)
@@ -165,9 +201,34 @@ class YtApi:
                         return result
 
                     result["type"] = item["type"]
+
+                    if item.get("get_stream_url"):
+                        url = requestStreamUrl(item["id"])
+                        result["stream_url"] = url if isinstance(url, str) else None
+
+                    return result
+                except KeyError as e:
+                    return server.errorResponse(400, str(e))
+
+            threads: list[ThreadWithReturnValue] = []
+            ret = []
+
+            for item in data:
+                thread = ThreadWithReturnValue(target = handleRequest, args = (item, dict(request.args)))
+                threads.append(thread)
+                thread.start()
+
+            error = None
+
+            for thread in threads:
+                result = thread.join()
+                if isinstance(result, Response):
+                    error = result
+                else:
                     ret.append(result)
-            except KeyError as e:
-                return server.errorResponse(400)
+
+            if error is not None:
+                return error
 
             return jsonify(ret)
 
@@ -176,6 +237,7 @@ class YtApi:
         def feed():
 
             def postRequest(ctoken: str | None) -> dict | Response:
+                utils.log(request.args.get("interfaceLang", "bruh"))
                 response =  requests.post(
                     "https://music.youtube.com/youtubei/v1/browse",
                     params = {"ctoken": ctoken, "continuation": ctoken, "type": "next"} if ctoken is not None else {},
@@ -183,7 +245,7 @@ class YtApi:
                     json = {
                         "context":{
                             "client":{
-                                "hl": request.args.get("lang", "en"),
+                                "hl": request.args.get("interfaceLang", "en"),
                                 "platform":"DESKTOP",
                                 "clientName":"WEB_REMIX",
                                 "clientVersion":"1.20221031.00.00-canary_control",

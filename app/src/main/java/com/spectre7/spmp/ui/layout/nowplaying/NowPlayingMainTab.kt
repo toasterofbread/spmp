@@ -1,14 +1,168 @@
 package com.spectre7.spmp.ui.layout.nowplaying
 
-import androidx.compose.runtime.Composable
+import android.content.SharedPreferences
+import androidx.compose.animation.*
+import androidx.compose.animation.core.tween
+import androidx.compose.foundation.Image
+import androidx.compose.foundation.background
+import androidx.compose.foundation.clickable
+import androidx.compose.foundation.interaction.MutableInteractionSource
+import androidx.compose.foundation.layout.*
+import androidx.compose.foundation.shape.CircleShape
+import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.KeyboardArrowUp
+import androidx.compose.material.ripple.rememberRipple
+import androidx.compose.material3.Icon
+import androidx.compose.material3.IconButton
+import androidx.compose.material3.LocalContentColor
+import androidx.compose.material3.Text
+import androidx.compose.runtime.*
+import androidx.compose.ui.Alignment
+import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.alpha
+import androidx.compose.ui.draw.clip
+import androidx.compose.ui.graphics.*
+import androidx.compose.ui.graphics.painter.Painter
+import androidx.compose.ui.layout.ContentScale
+import androidx.compose.ui.platform.LocalConfiguration
+import androidx.compose.ui.platform.LocalDensity
+import androidx.compose.ui.res.painterResource
+import androidx.compose.ui.text.style.TextAlign
+import androidx.compose.ui.text.style.TextOverflow
+import androidx.compose.ui.unit.Dp
+import androidx.compose.ui.unit.dp
+import androidx.compose.ui.unit.sp
+import androidx.compose.ui.unit.times
+import androidx.palette.graphics.Palette
+import com.google.android.exoplayer2.Player
+import com.spectre7.spmp.MainActivity
+import com.spectre7.spmp.PlayerHost
+import com.spectre7.spmp.R
+import com.spectre7.spmp.ui.layout.DownloadMenu
+import com.spectre7.spmp.ui.layout.LyricsDisplay
+import com.spectre7.spmp.ui.layout.MINIMISED_NOW_PLAYING_HEIGHT
+import com.spectre7.utils.*
+import kotlin.concurrent.thread
+import kotlin.math.max
 
 enum class NowPlayingOverlayMenu { NONE, MAIN, PALETTE, LYRICS, DOWNLOAD }
 
-const val OVERLAY_MENU_ANIMATION_DURATION = 0.2f
+const val OVERLAY_MENU_ANIMATION_DURATION: Int = 200
 
 @Composable
-fun MainTab() {
+fun MainTab(weight_modifier: Modifier, expansion: Float, max_height: Float, thumbnail: ImageBitmap?, _setThumbnail: (ImageBitmap?) -> Unit) {
     Spacer(Modifier.requiredHeight(50.dp * expansion))
+
+    var theme_colour by remember { mutableStateOf<Color?>(null) }
+    fun setThemeColour(value: Color?) {
+        theme_colour = value
+        PlayerHost.status.song?.theme_colour = theme_colour
+    }
+
+    val screen_width_dp = LocalConfiguration.current.screenWidthDp.dp
+
+    val colour_filter = ColorFilter.tint(MainActivity.theme.getOnBackground(true))
+    var seek_state by remember { mutableStateOf(-1f) }
+    var theme_palette by remember { mutableStateOf<Palette?>(null) }
+    var accent_colour_source by remember { mutableStateOf(AccentColourSource.values()[MainActivity.prefs.getInt("accent_colour_source", 0)]) }
+    var theme_mode by remember { mutableStateOf(ThemeMode.values()[MainActivity.prefs.getInt("np_theme_mode", 0)]) }
+
+    fun setThumbnail(thumb: ImageBitmap?, on_finished: () -> Unit) {
+        _setThumbnail(thumb)
+        if (thumbnail == null) {
+            theme_palette = null
+            theme_colour = null
+        }
+        else {
+            Palette.from(thumbnail.asAndroidBitmap()).generate {
+                theme_palette = it
+                on_finished()
+            }
+        }
+    }
+
+    fun getSongTitle(): String {
+        return PlayerHost.status.song?.title ?: "-----"
+    }
+
+    fun getSongArtist(): String {
+        return PlayerHost.status.song?.artist?.name ?: "---"
+    }
+
+    val prefs_listener = remember {
+        SharedPreferences.OnSharedPreferenceChangeListener { prefs, key ->
+            if (key == "accent_colour_source") {
+                accent_colour_source =
+                    AccentColourSource.values()[prefs.getInt("accent_colour_source", 0)]
+            } else if (key == "np_theme_mode") {
+                theme_mode = ThemeMode.values()[prefs.getInt("np_theme_mode", 0)]
+            }
+        }
+    }
+
+    DisposableEffect(Unit) {
+        MainActivity.prefs.registerOnSharedPreferenceChangeListener(prefs_listener)
+        onDispose {
+            MainActivity.prefs.unregisterOnSharedPreferenceChangeListener(prefs_listener)
+        }
+    }
+
+    LaunchedEffect(key1 = theme_colour, key2 = accent_colour_source, key3 = theme_mode) {
+
+        MainActivity.theme.setAccent(if (accent_colour_source == AccentColourSource.SYSTEM) null else theme_colour)
+
+        val accent = MainActivity.theme.getAccent()
+
+        if (theme_colour == null) {
+            MainActivity.theme.setBackground(true, null)
+            MainActivity.theme.setOnBackground(true, null)
+        }
+        else if (theme_mode == ThemeMode.BACKGROUND) {
+            MainActivity.theme.setBackground(true, accent)
+            MainActivity.theme.setOnBackground(true,
+                getContrastedColour(accent)
+            )
+        }
+        else if (theme_mode == ThemeMode.ELEMENTS) {
+            MainActivity.theme.setBackground(true, null)
+            MainActivity.theme.setOnBackground(true, accent.contrastAgainst(MainActivity.theme.getBackground(true)))
+        }
+        else {
+            MainActivity.theme.setBackground(true, null)
+            MainActivity.theme.setOnBackground(true, null)
+        }
+    }
+
+    LaunchedEffect(PlayerHost.status.m_song) {
+        val song = PlayerHost.status.song
+        val on_finished = {
+            if (song!!.theme_colour != null) {
+                theme_colour = song.theme_colour
+            }
+            else if (theme_palette != null) {
+                for (i in (2 until 5) + (0 until 2)) {
+                    theme_colour = getPaletteColour(theme_palette!!, i)
+                    if (theme_colour != null) {
+                        break
+                    }
+                }
+            }
+        }
+
+        if (song == null) {
+            setThumbnail(null, {})
+            theme_colour = null
+        }
+        else if (song.thumbnailLoaded(true)) {
+            setThumbnail(song.loadThumbnail(true).asImageBitmap(), on_finished)
+        }
+        else {
+            thread {
+                setThumbnail(song.loadThumbnail(true).asImageBitmap(), on_finished)
+            }
+        }
+    }
 
     Row(
         verticalAlignment = Alignment.CenterVertically,
@@ -120,7 +274,7 @@ fun MainTab() {
                                 }
                             NowPlayingOverlayMenu.LYRICS ->
                                 if (PlayerHost.status.m_song != null) {
-                                    LyricsDisplay(PlayerHost.status.song!!, { overlay_menu = NowPlayingOverlayMenu.NONE }, (screen_width_dp - (main_padding * 2) - (15.dp * expansion * 2)).value * 0.9.dp, seek_state) {
+                                    LyricsDisplay(PlayerHost.status.song!!, { overlay_menu = NowPlayingOverlayMenu.NONE }, (screen_width_dp - (NOW_PLAYING_MAIN_PADDING * 2) - (15.dp * expansion * 2)).value * 0.9.dp, seek_state) {
                                         get_shutter_menu = it
                                         shutter_menu_open = true
                                     }
@@ -169,7 +323,7 @@ fun MainTab() {
             }
         }
 
-        Row(horizontalArrangement = Arrangement.End, modifier = Modifier.fillMaxWidth(inv_expansion * 0.9f)) {
+        Row(horizontalArrangement = Arrangement.End, modifier = Modifier.fillMaxWidth(0.9f)) {
 
             Spacer(Modifier.requiredWidth(10.dp))
 
@@ -232,12 +386,12 @@ fun MainTab() {
         Spacer(Modifier.requiredHeight(30.dp))
 
         Box(
-            Modifier
-                .alpha(expansion)
-                .weight(1f), contentAlignment = Alignment.TopCenter) {
+            weight_modifier.alpha(expansion),
+            contentAlignment = Alignment.TopCenter
+        ) {
 
             @Composable
-            fun PlayerButton(painter: Painter, size: Dp = button_size, alpha: Float = 1f, colour: Color = MainActivity.theme.getOnBackground(true), label: String? = null, enabled: Boolean = true, on_click: () -> Unit) {
+            fun PlayerButton(painter: Painter, size: Dp = 60.dp, alpha: Float = 1f, colour: Color = MainActivity.theme.getOnBackground(true), label: String? = null, enabled: Boolean = true, on_click: () -> Unit) {
                 Box(
                     contentAlignment = Alignment.Center,
                     modifier = Modifier
@@ -255,7 +409,7 @@ fun MainTab() {
                     Image(
                         painter, "",
                         Modifier
-                            .requiredSize(size, button_size)
+                            .requiredSize(size, 60.dp)
                             .offset(y = if (label != null) (-7).dp else 0.dp),
                         colorFilter = ColorFilter.tint(colour),
                         alpha = alpha
@@ -267,7 +421,7 @@ fun MainTab() {
             }
 
             @Composable
-            fun PlayerButton(image_id: Int, size: Dp = button_size, alpha: Float = 1f, colour: Color = MainActivity.theme.getOnBackground(true), label: String? = null, enabled: Boolean = true, on_click: () -> Unit) {
+            fun PlayerButton(image_id: Int, size: Dp = 60.dp, alpha: Float = 1f, colour: Color = MainActivity.theme.getOnBackground(true), label: String? = null, enabled: Boolean = true, on_click: () -> Unit) {
                 PlayerButton(painterResource(image_id), size, alpha, colour, label, enabled, on_click)
             }
 
@@ -313,7 +467,7 @@ fun MainTab() {
                     val utility_separation = 25.dp
 
                     // Toggle shuffle
-                    PlayerButton(R.drawable.ic_shuffle, button_size * 0.65f, if (PlayerHost.status.m_shuffle) 1f else 0.25f) {
+                    PlayerButton(R.drawable.ic_shuffle, 60.dp * 0.65f, if (PlayerHost.status.m_shuffle) 1f else 0.25f) {
                         PlayerHost.player.shuffleModeEnabled = !PlayerHost.player.shuffleModeEnabled
                     }
 
@@ -339,7 +493,7 @@ fun MainTab() {
                     // Cycle repeat mode
                     PlayerButton(
                         if (PlayerHost.status.m_repeat_mode == Player.REPEAT_MODE_ONE) R.drawable.ic_repeat_one else R.drawable.ic_repeat,
-                        button_size * 0.65f,
+                        60.dp * 0.65f,
                         if (PlayerHost.status.m_repeat_mode != Player.REPEAT_MODE_OFF) 1f else 0.25f
                     ) {
                         PlayerHost.player.repeatMode = when (PlayerHost.player.repeatMode) {

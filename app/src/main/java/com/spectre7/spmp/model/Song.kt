@@ -163,7 +163,7 @@ class Song private constructor (
                 }
             }
 
-            return ret.trim()
+            return (ret as CharSequence).trim().trim('ㅤ').toString()
         }
         set(value) { registry_entry.overrides.title = value; registry!!.save(MainActivity.prefs) }
 

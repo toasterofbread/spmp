@@ -84,7 +84,6 @@ class MainActivity : ComponentActivity() {
 
             fun onError(e: Exception) {
                 error = e
-                throw e
                 for (callback in error_callbacks) {
                     callback()
                 }

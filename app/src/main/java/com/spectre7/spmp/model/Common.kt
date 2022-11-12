@@ -21,11 +21,11 @@ abstract class YtItem {
     class ServerInfoResponse(
         val id: String,
         var type: String = "",
-        val stream_url: String? = "none",
+        val stream_url: String? = null,
         val snippet: Snippet,
         val statistics: Statistics,
         val contentDetails: ContentDetails,
-        val localizations: Map<String, Localisation> = emptyMap()
+//        val localizations: Map<String, Localisation> = emptyMap()
     ) {
         data class Snippet(val title: String, val description: String? = null, val publishedAt: String, val channelId: String? = null, val defaultLanguage: String? = null, val country: String? = null, val thumbnails: Thumbnails)
         data class Statistics(val viewCount: String, val subscriberCount: String? = null, val hiddenSubscriberCount: Boolean = false, val videoCount: String? = null)

@@ -150,7 +150,7 @@ fun LyricsDisplay(song: Song, on_close_request: () -> Unit, size: Dp, seek_state
                                 Crossfade(targetState = show_furigana) {
                                     TextWithReading(
                                         terms,
-                                        showReadings = it,
+                                        show_readings = it,
                                         textAlign = when (MainActivity.prefs.getInt("lyrics_text_alignment", 0)) {
                                             0 -> TextAlign.Left
                                             1 -> TextAlign.Center

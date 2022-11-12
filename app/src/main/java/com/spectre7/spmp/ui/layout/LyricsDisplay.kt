@@ -150,7 +150,7 @@ fun LyricsDisplay(song: Song, on_close_request: () -> Unit, size: Dp, seek_state
                                 Crossfade(targetState = show_furigana) {
                                     TextWithReading(
                                         terms,
-                                        showReadings = it,
+                                        show_readings = it,
                                         textAlign = when (MainActivity.prefs.getInt("lyrics_text_alignment", 0)) {
                                             0 -> TextAlign.Left
                                             1 -> TextAlign.Center
@@ -213,6 +213,8 @@ fun TimingOverlay(lyrics: Song.Lyrics, text_positions: List<TermInfo>, full_line
 
     LaunchedEffect(PlayerHost.status.m_position, full_line) {
 
+        val offset = Offset(-115f, -165f)
+
         val terms = mutableListOf<Song.Lyrics.Subterm>()
         val pos = (PlayerHost.status.duration * PlayerHost.status.position)
         var finished = false
@@ -250,17 +252,17 @@ fun TimingOverlay(lyrics: Song.Lyrics, text_positions: List<TermInfo>, full_line
             val rect = text_positions[term.index].rect
 
             if (target_x == null || rect.left < target_x) {
-                target_x = rect.left
+                target_x = rect.left + offset.x
             }
             if (target_y == null || rect.top < target_y) {
-                target_y = rect.top
+                target_y = rect.top + offset.y
             }
 
             if (target_br_x == null || rect.right > target_br_x) {
-                target_br_x = rect.right
+                target_br_x = rect.right + offset.x
             }
             if (target_br_y == null || rect.bottom > target_br_y) {
-                target_br_y = rect.bottom
+                target_br_y = rect.bottom + offset.y
             }
         }
 

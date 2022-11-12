@@ -14,9 +14,8 @@ import com.spectre7.composesettings.ui.SettingsInterface
 import com.spectre7.composesettings.ui.SettingsPage
 import com.spectre7.spmp.MainActivity
 import com.spectre7.spmp.R
-import com.spectre7.spmp.api.DataApi
+import com.spectre7.utils.OnChangedEffect
 import com.spectre7.utils.getString
-import kotlin.concurrent.thread
 
 enum class Page { ROOT, OTHER }
 
@@ -24,12 +23,10 @@ enum class Page { ROOT, OTHER }
 fun PrefsPage(setOverlayPage: (page: OverlayPage) -> Unit) {
 
     val interface_lang = remember { SettingsValueState(0, "interface_lang", MainActivity.prefs) }
-    var languages by remember { mutableStateOf<List<DataApi.Companion.Language>?>(null) }
+    var language_data by remember { mutableStateOf(MainActivity.languages.values.elementAt(interface_lang.value)) }
 
-    LaunchedEffect(interface_lang.value) {
-        thread {
-            languages = DataApi.getLanguageList()
-        }
+    OnChangedEffect(interface_lang.value) {
+        language_data = MainActivity.languages.values.elementAt(interface_lang.value)
     }
 
     val settings_interface: SettingsInterface = remember { SettingsInterface(MainActivity.theme, Page.ROOT.ordinal, {
@@ -37,22 +34,30 @@ fun PrefsPage(setOverlayPage: (page: OverlayPage) -> Unit) {
 
             Page.ROOT -> SettingsPage(getString(R.string.s_page_preferences), listOf(
 
-                SettingsGroup("General"),
+                SettingsGroup(getString(R.string.s_group_general)),
 
                 SettingsItemDropdown(
                     interface_lang,
-                    "Interface language", "Language used for interface text",
-                    languages?.size ?: 0
+                    getString(R.string.s_key_interface_lang), getString(R.string.s_sub_interface_lang),
+                    MainActivity.languages.values.first().size,
+                    { i ->
+                        language_data.entries.elementAt(i).key
+                    }
                 ) { i ->
-                    languages!![i].name
+                    val language = language_data.entries.elementAt(i)
+                    "${language.key} / ${language.value}"
                 },
 
                 SettingsItemDropdown(
                     SettingsValueState(0, "data_lang", MainActivity.prefs),
-                    "Data language", "Language used for song and artist titles, etc. (if available)",
-                    languages?.size ?: 0
+                    getString(R.string.s_key_data_lang), getString(R.string.s_sub_data_lang),
+                    MainActivity.languages.values.first().size,
+                    { i ->
+                        language_data.entries.elementAt(i).key
+                    }
                 ) { i ->
-                    languages!![i].name
+                    val language = language_data.entries.elementAt(i)
+                    "${language.key} / ${language.value}"
                 },
 
                 SettingsGroup(getString(R.string.s_group_theming)),

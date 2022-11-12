@@ -1,8 +1,8 @@
 package com.spectre7.spmp.ui.layout
 
 import android.util.DisplayMetrics
-import androidx.compose.animation.AnimatedVisibility
-import androidx.compose.animation.Crossfade
+import androidx.compose.animation.*
+import androidx.compose.foundation.ExperimentalFoundationApi
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.gestures.Orientation
 import androidx.compose.foundation.interaction.MutableInteractionSource
@@ -29,13 +29,15 @@ import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.google.android.exoplayer2.ExoPlayer
-import com.google.android.exoplayer2.Player
 import com.spectre7.spmp.MainActivity
 import com.spectre7.spmp.PlayerHost
 import com.spectre7.spmp.R
 import com.spectre7.spmp.api.DataApi
 import com.spectre7.spmp.model.YtItem
+import com.spectre7.spmp.ui.component.AutoResizeText
+import com.spectre7.spmp.ui.component.FontSizeRange
 import com.spectre7.spmp.ui.component.PillMenu
+import com.spectre7.spmp.ui.layout.nowplaying.NowPlaying
 import com.spectre7.utils.*
 import kotlinx.coroutines.runBlocking
 import java.util.concurrent.locks.ReentrantLock
@@ -57,7 +59,9 @@ fun getStatusBarHeight(): Float {
 const val MINIMISED_NOW_PLAYING_HEIGHT = 64f
 enum class OverlayPage {NONE, SEARCH, SETTINGS}
 
-@OptIn(ExperimentalMaterialApi::class, ExperimentalMaterial3Api::class)
+@OptIn(ExperimentalMaterialApi::class, ExperimentalMaterial3Api::class,
+    ExperimentalFoundationApi::class
+)
 @Composable
 fun PlayerView() {
     var overlay_page by remember { mutableStateOf(OverlayPage.NONE) }
@@ -88,8 +92,30 @@ fun PlayerView() {
             top = overlay_page == OverlayPage.SETTINGS
         )
 
-        data class Row(val title: String, val subtitle: String?, val items: MutableList<YtItem> = mutableStateListOf())
+        data class Row(val title: String, val subtitle: String?, val items: MutableList<Pair<YtItem, Long>> = mutableStateListOf())
         val rows = remember { mutableStateListOf<Row>() }
+
+        @Composable
+        fun itemPreview(item: YtItem, animate_visibility: Boolean) {
+            Box(Modifier.requiredSize(125.dp), contentAlignment = Alignment.Center) {
+                if(animate_visibility) {
+                    var visible by remember { mutableStateOf(false) }
+                    LaunchedEffect(visible) {
+                        visible = true
+                    }
+                    AnimatedVisibility(
+                        visible,
+                        enter = fadeIn() + expandIn(expandFrom = Alignment.Center),
+                        exit = fadeOut() + shrinkOut(shrinkTowards = Alignment.Center)
+                    ) {
+                        item.Preview(true)
+                    }
+                }
+                else {
+                    item.Preview(true)
+                }
+            }
+        }
 
         @Composable
         fun SongList(row: Row) {
@@ -100,7 +126,16 @@ fun PlayerView() {
                 Column {
 
                     Column {
-                        Text(row.title, fontSize = 30.sp, fontWeight = FontWeight.Bold, modifier = Modifier.padding(10.dp))
+                        AutoResizeText(
+                            text = row.title,
+                            maxLines = 1,
+                            fontSizeRange = FontSizeRange(
+                                20.sp, 30.sp
+                            ),
+                            fontWeight = FontWeight.Bold,
+                            modifier = Modifier.padding(10.dp)
+                        )
+
                         if (row.subtitle != null) {
                             Text(row.subtitle, fontSize = 15.sp, fontWeight = FontWeight.Light, modifier = Modifier.padding(10.dp), color = MaterialTheme.colorScheme.onBackground.setAlpha(0.5))
                         }
@@ -111,10 +146,9 @@ fun PlayerView() {
                         rows = GridCells.Fixed(row_count),
                         modifier = Modifier.requiredHeight(140.dp * row_count)
                     ) {
-                        items(row.items.size) {
-                            Box(modifier = Modifier.requiredWidth(125.dp)) {
-                                row.items[it].Preview(true)
-                            }
+                        items(row.items.size, { row.items[it].first.getId() }) {
+                            val item = row.items[it]
+                            itemPreview(item.first, remember { System.currentTimeMillis() - item.second < 250})
                         }
                     }
                 }
@@ -139,7 +173,7 @@ fun PlayerView() {
                         for (item in row.items) {
                             item.getPreviewable {
                                 it?.loadData(false) { loaded ->
-                                    entry.items.add(loaded)
+                                    entry.items.add(Pair(loaded, System.currentTimeMillis()))
                                 }
                             }
                         }
@@ -175,7 +209,7 @@ fun PlayerView() {
                         }
 
                         PillMenu(
-                            if (PlayerHost.service.getIntegratedServerAddress() == null) 4 else 3,
+                            if (PlayerHost.service.getIntegratedServerAddress() == null) 3 else 2,
                             { index, _ ->
                                 when (index) {
                                     0 -> ActionButton(Icons.Filled.Refresh) {
@@ -192,8 +226,7 @@ fun PlayerView() {
                                             }
                                         )
                                     }
-                                    2 -> ActionButton(Icons.Filled.Info) { expand = !expand }
-                                    3 -> ActionButton(Icons.Filled.DownloadForOffline) {
+                                    2 -> ActionButton(Icons.Filled.DownloadForOffline) {
                                         sendToast("Starting integrated server...")
                                         thread {
                                             runBlocking {
@@ -218,6 +251,13 @@ fun PlayerView() {
                                     "\n\nStack trace: ${error.stackTrace.asList()}"
                             LazyColumn(Modifier.fillMaxHeight(0.4f)) {
                                 item {
+                                    Button({
+                                        throw error
+                                    }) {
+                                        Text("Throw error")
+                                    }
+                                }
+                                item {
                                     Text(
                                         msg,
                                         textAlign = TextAlign.Left,
@@ -240,9 +280,12 @@ fun PlayerView() {
                         }
                         else {
                             Column(Modifier.fillMaxSize(), verticalArrangement = Arrangement.Center, horizontalAlignment = Alignment.CenterHorizontally) {
-                                Text("Loading feed", Modifier.alpha(0.4f), fontSize = 12.sp, color = MainActivity.theme.getOnBackground(false))
+                                Text(getString(R.string.loading_feed), Modifier.alpha(0.4f), fontSize = 12.sp, color = MainActivity.theme.getOnBackground(false))
                                 Spacer(Modifier.height(5.dp))
-                                LinearProgressIndicator(Modifier.alpha(0.4f).fillMaxWidth(0.35f), color = MainActivity.theme.getOnBackground(false))
+                                LinearProgressIndicator(
+                                    Modifier
+                                        .alpha(0.4f)
+                                        .fillMaxWidth(0.35f), color = MainActivity.theme.getOnBackground(false))
                             }
                         }
                     }
@@ -251,9 +294,11 @@ fun PlayerView() {
         }
     }
 
-    Column(modifier = Modifier
-        .fillMaxSize()
-        .padding(top = getStatusBarHeight().dp)) {
+    Column(
+        Modifier
+            .fillMaxSize()
+            .padding(top = getStatusBarHeight().dp)
+    ) {
 
         Box(Modifier.padding(bottom = MINIMISED_NOW_PLAYING_HEIGHT.dp)) {
             MainPage()
@@ -269,7 +314,6 @@ fun PlayerView() {
             }
         }
 
-
         var player by remember { mutableStateOf<ExoPlayer?>(null) }
         LaunchedEffect(Unit) {
             player = PlayerHost.service.player
@@ -280,8 +324,15 @@ fun PlayerView() {
         val swipe_anchors = mapOf(MINIMISED_NOW_PLAYING_HEIGHT to 0, screen_height to 1)
 
         var switch: Boolean by remember { mutableStateOf(false) }
-        LaunchedEffect(switch) {
-            swipe_state.animateTo(switch.toInt())
+
+        OnChangedEffect(switch) {
+            if (swipe_state.targetValue == switch.toInt()) {
+                swipe_state.animateTo(if (swipe_state.targetValue == 1) 0 else 1)
+            }
+            else {
+                swipe_state.animateTo(switch.toInt())
+            }
+            println(swipe_state.targetValue)
         }
 
         Card(colors = CardDefaults.cardColors(
@@ -304,7 +355,7 @@ fun PlayerView() {
             ) { switch = !switch }, shape = RectangleShape) {
 
             Column(Modifier.fillMaxSize()) {
-                NowPlaying(swipe_state.offset.value / screen_height, screen_height) { switch = false }
+                NowPlaying(swipe_state.offset.value / screen_height, screen_height) { switch = !switch }
             }
         }
     }

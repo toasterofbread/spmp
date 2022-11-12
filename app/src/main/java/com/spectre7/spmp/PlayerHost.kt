@@ -26,12 +26,17 @@ import com.google.android.exoplayer2.Player
 import com.google.android.exoplayer2.audio.AudioAttributes
 import com.google.android.exoplayer2.ext.mediasession.MediaSessionConnector
 import com.google.android.exoplayer2.ui.PlayerNotificationManager
+import com.google.android.exoplayer2.util.MimeTypes
 import com.spectre7.spmp.api.DataApi
 import com.spectre7.spmp.model.Song
 import com.spectre7.utils.sendToast
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.runBlocking
 import kotlinx.coroutines.sync.Mutex
+import kotlinx.coroutines.sync.withLock
+import okhttp3.internal.notify
+import okhttp3.internal.notifyAll
+import okhttp3.internal.wait
 import kotlin.concurrent.thread
 
 enum class SERVICE_INTENT_ACTIONS { STOP, BUTTON_VOLUME }
@@ -78,11 +83,9 @@ class PlayerHost {
             service.addQueueListener(object : PlayerQueueListener {
                 override fun onSongAdded(song: Song, index: Int) {
                     m_queue.add(index, song)
-                    println("ADD $song")
                 }
                 override fun onSongRemoved(song: Song, index: Int) {
                     m_queue.removeAt(index)
-                    println("REMOVE $song")
                 }
                 override fun onCleared() {
                     m_queue.clear()
@@ -372,52 +375,88 @@ class PlayerHost {
 
         fun iterateSongs(action: (i: Int, song: Song) -> Unit) {
             for (i in 0 until player.mediaItemCount) {
-                action(i, player.getMediaItemAt(i).localConfiguration?.tag as Song)
+                action(i, getSong(i)!!)
             }
         }
 
-        fun playSong(song: Song) {
+        fun getSong(index: Int): Song? {
+            return try {
+                player.getMediaItemAt(index).localConfiguration?.tag as Song?
+            } catch (e: IndexOutOfBoundsException) {
+                null
+            }
+        }
+        
+        fun getCurrentSong(): Song? {
+            return getSong(player.currentMediaItemIndex)
+        }
+
+        fun playSong(song: Song, add_radio: Boolean = true) {
             clearQueue()
 
             addToQueue(song) {
-                thread {
-                    val radio = DataApi.getSongRadio(song.getId(), false)
-                    for (i in radio.indices) {
-                        Song.fromId(radio[i]).loadData(false) {
-                            MainActivity.runInMainThread {
-                                addToQueue(song, i + 1)
+                if (add_radio) {
+                    thread {
+                        val radio = DataApi.getSongRadio(song.getId(), false)
+                        for (i in radio.indices) {
+                            Song.fromId(radio[i]).loadData(
+                                process_queue = false,
+                                get_stream_url = true
+                            ) {
+                                MainActivity.runInMainThread {
+                                    addToQueue(it as Song)
+                                }
                             }
                         }
+                        DataApi.processYtItemLoadQueue()
                     }
-                    DataApi.processYtItemLoadQueue()
                 }
             }
         }
 
-        fun clearQueue() {
-            player.clearMediaItems()
-            for (listener in queue_listeners) {
-                listener.onCleared()
+        fun clearQueue(keep_current: Boolean = false): List<Pair<Song, Int>> {
+            val ret = mutableListOf<Pair<Song, Int>>()
+            if (keep_current) {
+                var i = 0
+                while (player.currentMediaItemIndex > 0) {
+                    ret.add(Pair(getSong(0)!!, i++))
+                    removeFromQueue(0)
+                }
+                while (player.mediaItemCount > 1) {
+                    ret.add(Pair(getSong(player.mediaItemCount - 1)!!, player.mediaItemCount - 1 + i))
+                    removeFromQueue(player.mediaItemCount - 1)
+                }
+            }
+            else {
+                iterateSongs { i, song ->
+                    ret.add(Pair(song, i))
+                }
+                player.clearMediaItems()
+                for (listener in queue_listeners) {
+                    listener.onCleared()
+                }
+            }
+            return ret.sortedBy {
+                it.second
             }
         }
 
         fun addToQueue(song: Song, i: Int? = null, onFinished: (() -> Unit)? = null) {
-            song.getDownloadUrl {
-                val item = MediaItem.Builder().setUri(it).setTag(song).build()
+            song.getStreamUrl { url ->
+                val item = MediaItem.Builder().setUri(url).setTag(song).build()
                 if (i == null) {
                     player.addMediaItem(item)
                 }
                 else {
                     player.addMediaItem(i, item)
                 }
-
                 onSongAdded(item)
                 onFinished?.invoke()
             }
         }
 
         fun removeFromQueue(index: Int) {
-            val song = player.getMediaItemAt(index).localConfiguration!!.tag as Song
+            val song = getSong(index)!!
             player.removeMediaItem(index)
             onSongRemoved(song, index)
         }
@@ -430,7 +469,7 @@ class PlayerHost {
             queue_listeners.remove(listener)
         }
 
-        fun play(index: Int? = null) {
+        fun play() {
             player.play()
         }
 
@@ -461,23 +500,11 @@ class PlayerHost {
                         }
 
                         override fun getCurrentContentText(player: Player): String? {
-                            try {
-                                val song = player.getMediaItemAt(player.currentMediaItemIndex).localConfiguration!!.tag as Song
-                                return song.artist.name
-                            }
-                            catch (e: IndexOutOfBoundsException) {
-                                return null
-                            }
+                            return getCurrentSong()?.artist?.name
                         }
 
                         override fun getCurrentContentTitle(player: Player): String {
-                            try {
-                                val song = player.getMediaItemAt(player.currentMediaItemIndex).localConfiguration!!.tag as Song
-                                return song.title
-                            }
-                            catch (e: IndexOutOfBoundsException) {
-                                return "Unknown"
-                            }
+                            return getCurrentSong()?.title ?: "Unknown"
                         }
 
                         override fun getCurrentLargeIcon(player: Player, callback: PlayerNotificationManager.BitmapCallback): Bitmap? {
@@ -493,7 +520,7 @@ class PlayerHost {
                             }
 
                             try {
-                                val song = player.getMediaItemAt(player.currentMediaItemIndex).localConfiguration!!.tag as Song
+                                val song = getCurrentSong()!!
                                 if (song.thumbnailLoaded(true)) {
                                     return getCroppedThumbnail(song.loadThumbnail(true))
                                 }

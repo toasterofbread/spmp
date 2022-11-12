@@ -1,0 +1,37 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="app_name">SpMp</string>
+    <string name="videos">動画</string>
+    <string name="songs">曲</string>
+    <string name="playlists">プレイリスト</string>
+    <string name="albums">アルバム</string>
+    <string name="media_pause">停止</string>
+    <string name="media_play">再生</string>
+    <string name="now_playing_related">関係</string>
+    <string name="lyrics_unavailable">歌詞が見つかりませんでした</string>
+    <string name="player_service_name">プレイヤーサービス</string>
+    <string name="lyrics_source_prefix">元:&#160;</string>
+    <string name="s_group_lyrics">歌詞</string>
+    <string name="lyrics_source_via_youtubemusic">" (YouTube Music より)"</string>
+    <string name="lyrics_source_youtube">YouTube</string>
+    <string name="lyrics_source_petitlyrics">プチリリ</string>
+    <string name="generic_network_error">ネットワークエラーが発生しました</string>
+    <string name="s_page_preferences">設定</string>
+    <string name="s_group_theming">テーマ</string>
+    <string name="s_key_accent_source">アクセント色</string>
+    <string name="s_option_accent_thumbnail">サムネールから</string>
+    <string name="s_option_accent_system">システムテーマから</string>
+    <string name="s_key_np_theme_mode">再生画面テーマモード</string>
+    <string name="s_option_np_accent_background">バックグラウンドをアクセント色で彩る</string>
+    <string name="s_option_np_accent_elements">エレメントをアクセント色で彩る</string>
+    <string name="s_option_np_accent_none">アクセント色不使用</string>
+    <string name="loading_feed">フィードをロード中</string>
+    <string name="now_playing_player">プレイヤー</string>
+    <string name="artists">アーティスト</string>
+    <string name="now_playing_queue">曲キュー</string>
+    <string name="s_group_general">一般</string>
+    <string name="s_key_interface_lang">インタフェース言語</string>
+    <string name="s_key_data_lang">データ言語</string>
+    <string name="s_sub_interface_lang">アプリのUIに使われる言語</string>
+    <string name="s_sub_data_lang">曲の名前などに使われる言語</string>
+</resources>

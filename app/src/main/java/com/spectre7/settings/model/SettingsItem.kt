@@ -182,7 +182,11 @@ class SettingsItemMultipleChoice(
                                 verticalAlignment = Alignment.CenterVertically,
                                 horizontalArrangement = Arrangement.SpaceBetween,
                                 modifier = Modifier
-                                    .border(Dp.Hairline, theme.getOnBackground(false), RoundedCornerShape(16.dp))
+                                    .border(
+                                        Dp.Hairline,
+                                        theme.getOnBackground(false),
+                                        RoundedCornerShape(16.dp)
+                                    )
                                     .fillMaxWidth()
                                     .padding(horizontal = 10.dp)
                                     .clickable(
@@ -208,7 +212,11 @@ class SettingsItemMultipleChoice(
                             Box(
                                 contentAlignment = Alignment.CenterStart,
                                 modifier = Modifier
-                                    .border(Dp.Hairline, theme.getOnBackground(false), RoundedCornerShape(16.dp))
+                                    .border(
+                                        Dp.Hairline,
+                                        theme.getOnBackground(false),
+                                        RoundedCornerShape(16.dp)
+                                    )
                                     .fillMaxWidth()
                                     .height(40.dp)
                                     .clickable(remember { MutableInteractionSource() }, null) {
@@ -242,7 +250,10 @@ class SettingsItemDropdown(
 
         Row(verticalAlignment = Alignment.CenterVertically) {
 
-            Column(Modifier.fillMaxWidth().weight(1f)) {
+            Column(
+                Modifier
+                    .fillMaxWidth()
+                    .weight(1f)) {
                 Text(title)
                 if (subtitle != null) {
                     Text(subtitle, color = theme.getOnBackground(false).setAlpha(0.75))
@@ -251,8 +262,16 @@ class SettingsItemDropdown(
 
             var open by remember { mutableStateOf(false) }
 
-            Button({ open = !open }, Modifier.requiredHeight(40.dp), shape = RoundedCornerShape(16.dp)) {
-                Text(getButtonItem?.invoke(state.value) ?: getItem(state.value), color = theme.getOnAccent())
+            Button(
+                { open = !open },
+                Modifier.requiredHeight(40.dp),
+                shape = RoundedCornerShape(16.dp),
+                colors = ButtonDefaults.buttonColors(
+                    containerColor = theme.getAccent(),
+                    contentColor = theme.getOnAccent()
+                )
+            ) {
+                Text(getButtonItem?.invoke(state.value) ?: getItem(state.value))
                 Icon(
                     Icons.Filled.ArrowDropDown,
                     null,

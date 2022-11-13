@@ -441,17 +441,41 @@ class PlayerHost {
             }
         }
 
-        fun addToQueue(song: Song, i: Int? = null, onFinished: (() -> Unit)? = null) {
+        fun addToQueue(song: Song, index: Int? = null, onFinished: (() -> Unit)? = null) {
             song.getStreamUrl { url ->
                 val item = MediaItem.Builder().setUri(url).setTag(song).build()
-                if (i == null) {
+                if (index == null) {
                     player.addMediaItem(item)
                 }
                 else {
-                    player.addMediaItem(i, item)
+                    player.addMediaItem(index, item)
                 }
                 onSongAdded(item)
                 onFinished?.invoke()
+            }
+        }
+
+        fun addMultipleToQueue(songs: List<Song>, index: Int, onFinished: (() -> Unit)? = null) {
+            if (songs.isEmpty()) {
+                onFinished?.invoke()
+                return
+            }
+
+            val loaded = MutableList<MediaItem?>(songs.size) { null }
+            var added = 0
+
+            for (song in songs.withIndex()) {
+                song.value.getStreamUrl {
+                    loaded[song.index] = MediaItem.Builder().setUri(it).setTag(song.value).build()
+
+                    if (++added == songs.size) {
+                        player.addMediaItems(index, loaded as MutableList<MediaItem>)
+                        for (item in loaded) {
+                            onSongAdded(item)
+                        }
+                        onFinished?.invoke()
+                    }
+                }
             }
         }
 
@@ -520,7 +544,7 @@ class PlayerHost {
                             }
 
                             try {
-                                val song = getCurrentSong()!!
+                                val song = getCurrentSong() ?: return null
                                 if (song.thumbnailLoaded(true)) {
                                     return getCroppedThumbnail(song.loadThumbnail(true))
                                 }

@@ -131,7 +131,7 @@ class Theme private constructor(
     }
 
     fun getVibrantAccent(): Color {
-        return getAccent().contrastAgainst(getBackground(false))
+        return accent.value.contrastAgainst(getBackground(false))
     }
 
     companion object {

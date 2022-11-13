@@ -1,4 +1,4 @@
-package com.spectre7.spmp.ui.layout
+package com.spectre7.spmp.ui.layout.nowplaying.overlay
 
 import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.animation.Crossfade
@@ -44,7 +44,7 @@ import net.zerotask.libraries.android.compose.furigana.TextWithReading
 import kotlin.math.abs
 
 @Composable
-fun LyricsDisplay(song: Song, on_close_request: () -> Unit, size: Dp, seek_state: Any, open_shutter_menu: (@Composable () -> Unit) -> Unit) {
+fun LyricsDisplay(song: Song, close: () -> Unit, size: Dp, seek_state: Any, open_shutter_menu: (@Composable () -> Unit) -> Unit) {
 
     var lyrics: Song.Lyrics? by remember { mutableStateOf(null) }
     var show_furigana: Boolean by remember { mutableStateOf(MainActivity.prefs.getBoolean("lyrics_default_furigana", true)) }
@@ -57,7 +57,7 @@ fun LyricsDisplay(song: Song, on_close_request: () -> Unit, size: Dp, seek_state
         song.getLyrics {
             if (it == null) {
                 sendToast(getString(R.string.lyrics_unavailable))
-                on_close_request()
+                close()
             }
             else {
                 lyrics = it
@@ -68,9 +68,9 @@ fun LyricsDisplay(song: Song, on_close_request: () -> Unit, size: Dp, seek_state
     AnimatedVisibility(lyrics != null, Modifier.zIndex(10f), enter = fadeIn(), exit = fadeOut()) {
         PillMenu(
             3,
-            { index, _action_count ->
+            { index, _ ->
                 when (index) {
-                    0 -> ActionButton(Icons.Filled.Close, on_close_request)
+                    0 -> ActionButton(Icons.Filled.Close, close)
                     1 -> ActionButton(Icons.Filled.Info) {
                         open_shutter_menu {
                             if (lyrics != null) {
@@ -93,7 +93,7 @@ fun LyricsDisplay(song: Song, on_close_request: () -> Unit, size: Dp, seek_state
                                 rememberRipple(bounded = false, radius = 20.dp),
                                 onClick = {
                                     show_furigana = !show_furigana
-                                    close()
+                                    this@PillMenu.close()
                                 })
                         )
                     }
@@ -194,10 +194,10 @@ fun TimingOverlay(lyrics: Song.Lyrics, text_positions: List<TermInfo>, full_line
     AnimatedVisibility(show_highlight && !highlight_unset) {
         Canvas(modifier = Modifier.fillMaxSize()) {
             if (highlight_instantly) {
-                drawRoundRect(Color.Red, Offset(highlight_position_x, highlight_position_y), Size(highlight_width, highlight_height), CornerRadius(25f, 25f))
+                drawRoundRect(MainActivity.theme.getBackground(true), Offset(highlight_position_x, highlight_position_y), Size(highlight_width, highlight_height), CornerRadius(25f, 25f))
             }
             else {
-                drawRoundRect(Color.Red, highlight_position_state.value, Size(highlight_size_state.value.x, highlight_size_state.value.y), CornerRadius(25f, 25f))
+                drawRoundRect(MainActivity.theme.getBackground(true), highlight_position_state.value, Size(highlight_size_state.value.x, highlight_size_state.value.y), CornerRadius(25f, 25f))
             }
         }
     }
@@ -213,7 +213,7 @@ fun TimingOverlay(lyrics: Song.Lyrics, text_positions: List<TermInfo>, full_line
 
     LaunchedEffect(PlayerHost.status.m_position, full_line) {
 
-        val offset = Offset(-115f, -165f)
+        val offset = Offset(-100f, -170f)
 
         val terms = mutableListOf<Song.Lyrics.Subterm>()
         val pos = (PlayerHost.status.duration * PlayerHost.status.position)

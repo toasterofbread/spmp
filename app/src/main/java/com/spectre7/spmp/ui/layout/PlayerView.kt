@@ -87,8 +87,8 @@ fun PlayerView() {
                 }
             },
             if (overlay_page == OverlayPage.NONE) remember { mutableStateOf(false) } else null,
-            MainActivity.theme.getVibrantAccent(),
-            MainActivity.theme.getVibrantAccent().getContrasted(),
+            MainActivity.theme.getAccent(),
+            MainActivity.theme.getAccent().getContrasted(),
             top = overlay_page == OverlayPage.SETTINGS
         )
 
@@ -332,7 +332,6 @@ fun PlayerView() {
             else {
                 swipe_state.animateTo(switch.toInt())
             }
-            println(swipe_state.targetValue)
         }
 
         Card(colors = CardDefaults.cardColors(

@@ -1,7 +1,6 @@
 package com.spectre7.spmp.ui.layout.nowplaying
 
-import androidx.compose.animation.AnimatedVisibility
-import androidx.compose.animation.animateContentSize
+import androidx.compose.animation.*
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
@@ -29,17 +28,19 @@ import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.unit.IntOffset
 import androidx.compose.ui.unit.dp
 import com.google.android.exoplayer2.C
+import com.spectre7.spmp.MainActivity
 import com.spectre7.spmp.PlayerHost
 import com.spectre7.spmp.model.Song
 import com.spectre7.utils.getContrasted
 import com.spectre7.utils.vibrate
+import kotlinx.coroutines.delay
+import kotlinx.coroutines.runBlocking
 import org.burnoutcrew.reorderable.ReorderableItem
 import org.burnoutcrew.reorderable.detectReorder
 import org.burnoutcrew.reorderable.rememberReorderableLazyListState
 import org.burnoutcrew.reorderable.reorderable
+import kotlin.concurrent.thread
 import kotlin.math.roundToInt
-import com.spectre7.spmp.MainActivity
-import com.spectre7.spmp.ui.component.PillMenu
 
 @Composable
 fun QueueTab(weight_modifier: Modifier) {
@@ -49,6 +50,8 @@ fun QueueTab(weight_modifier: Modifier) {
     val undo_list = remember { mutableStateListOf<() -> Unit>() }
 
     data class Item(val song: Song, val key: Int) {
+
+        val added_time = System.currentTimeMillis()
 
         @OptIn(ExperimentalMaterialApi::class)
         @Composable
@@ -175,42 +178,68 @@ fun QueueTab(weight_modifier: Modifier) {
                         }
                     }
 
-                    val current = if (playing_key != null) playing_key == item.key else PlayerHost.status.m_index == index
-                    item.QueueElement(Modifier.detectReorder(state), current, index, MainActivity.theme.getOnBackground(true)) {
-                        v_removed.add(index)
+                    Box(Modifier.height(50.dp)) {
+                        val remove_request = {
+                            v_removed.add(index)
 
-                        val song = song_items[index].song
-                        undo_list.add({
-                            PlayerHost.service.addToQueue(song, index)
-                        })
+                            undo_list.add({
+                                PlayerHost.service.addToQueue(item.song, index)
+                            })
 
-                        song_items = song_items.toMutableList().apply {
-                            removeAt(index)
+                            song_items = song_items.toMutableList().apply {
+                                removeAt(index)
+                            }
+                            PlayerHost.service.removeFromQueue(index)
                         }
-                        PlayerHost.service.removeFromQueue(index)
+
+                        val current = if (playing_key != null) playing_key == item.key else PlayerHost.status.m_index == index
+                        var visible by remember { mutableStateOf(false ) }
+                        LaunchedEffect(visible) {
+                            visible = true
+                        }
+
+                        AnimatedVisibility(
+                            visible,
+                            enter = if (System.currentTimeMillis() - item.added_time < 250)
+                                        fadeIn() + slideInHorizontally(initialOffsetX = { it / 2 })
+                                    else EnterTransition.None,
+                            exit = ExitTransition.None
+                        ) {
+                            item.QueueElement(Modifier.detectReorder(state), current, index, MainActivity.theme.getOnBackground(true), remove_request)
+                        }
                     }
                 }
             }
         }
 
-        Row(Modifier.align(Alignment.BottomCenter).padding(10.dp), horizontalArrangement = Arrangement.SpaceAround, verticalAlignment = Alignment.CenterVertically) {
+        Row(
+            Modifier
+                .align(Alignment.BottomCenter)
+                .padding(10.dp), horizontalArrangement = Arrangement.SpaceAround, verticalAlignment = Alignment.CenterVertically) {
             Row(
                 Modifier
                     .fillMaxWidth()
                     .weight(1f), horizontalArrangement = Arrangement.SpaceEvenly, verticalAlignment = Alignment.CenterVertically) {
                 Button(
                     onClick = {
+
+                        val index = PlayerHost.player.currentMediaItemIndex
                         val removed: List<Pair<Song, Int>> = PlayerHost.service.clearQueue(PlayerHost.status.m_queue.size > 1)
                         undo_list.add {
-//                            val before = mutableListOf<Song>()
-//
-//                            val current = PlayerHost.service.getCurrentSong()
-//                            if (current != null) {
-//
-//                            }
+                            val before = mutableListOf<Song>()
+                            val after = mutableListOf<Song>()
+                            for (item in removed.withIndex()) {
+                                if (item.value.second >= index) {
+                                    for (i in item.index until removed.size) {
+                                        after.add(removed[i].first)
+                                    }
+                                    break
+                                }
+                                before.add(item.value.first)
+                            }
 
-                            for (song in removed) {
-                                PlayerHost.service.addToQueue(song.first, song.second)
+                            PlayerHost.service.addMultipleToQueue(before, 0) {
+                                PlayerHost.service.addMultipleToQueue(after, index + 1)
                             }
                         }
                     },
@@ -243,8 +272,13 @@ fun QueueTab(weight_modifier: Modifier) {
 
             AnimatedVisibility(undo_list.isNotEmpty()) {
                 IconButton({
-                    undo_list.removeLast()()
-                }, Modifier.background(MainActivity.theme.getOnBackground(true), CircleShape).size(40.dp)) {
+                    if (undo_list.isNotEmpty()) {
+                        undo_list.removeLast()()
+                    }
+                },
+                    Modifier
+                        .background(MainActivity.theme.getOnBackground(true), CircleShape)
+                        .size(40.dp)) {
                     Icon(Icons.Filled.Undo, null, tint = MainActivity.theme.getOnBackground(true).getContrasted())
                 }
             }

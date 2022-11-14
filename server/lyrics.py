@@ -17,9 +17,6 @@ class Lyrics:
             return ret
 
     def getFuriganaData(self):
-        kakasi = Kakasi()
-        ret = []
-
         def hasKanjiAndHiragana(string: str):
             has_kanji = False
             has_hiragana = False
@@ -37,6 +34,12 @@ class Lyrics:
 
         def isKanji(char: str):
             return unicodeBlock.of(char) == "CJK_UNIFIED_IDEOGRAPHS"
+
+        def hasKanji(string: str):
+            for char in string:
+                if isKanji(char):
+                    return True
+            return False
 
         def trimOkurigana(original: str, furigana: str) -> list:
             if (hasKanjiAndHiragana(original)):
@@ -57,6 +60,9 @@ class Lyrics:
         def getKey(term, key: str) -> str:
             return term[key].replace("\\n", "\n").replace("\\r", "\r")
 
+        kakasi = Kakasi()
+        ret = []
+
         for line in [line.text for line in self.lines] if isinstance(self, TimedLyrics) else self.getText().split("\n"):
 
             line_data = []
@@ -67,13 +73,15 @@ class Lyrics:
                 orig = getKey(term, "orig")
                 hira = getKey(term, "hira")
 
-                if orig != hira:
+                if orig != hira and hasKanji(orig):
                     terms = trimOkurigana(orig, hira)
                     for i in range(len(terms)):
                         if len(terms[i]) > 0:
                             match terms[i][0]:
                                 case "日": terms[i][1] = "ひ"
                                 case "君": terms[i][1] = "きみ"
+                                case "色": terms[i][1] = "いろ"
+                                case "瞑": terms[i][1] = "つぶ"
                     line_data += terms
                 else:
                     line_data.append([orig])

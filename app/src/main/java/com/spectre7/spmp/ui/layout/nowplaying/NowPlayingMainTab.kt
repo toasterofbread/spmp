@@ -1,16 +1,19 @@
 package com.spectre7.spmp.ui.layout.nowplaying
 
 import android.content.SharedPreferences
+import androidx.activity.compose.BackHandler
 import androidx.compose.animation.*
 import androidx.compose.animation.core.tween
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
+import androidx.compose.foundation.gestures.detectTapGestures
 import androidx.compose.foundation.interaction.MutableInteractionSource
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.Edit
 import androidx.compose.material.icons.filled.KeyboardArrowUp
 import androidx.compose.material.ripple.rememberRipple
 import androidx.compose.material3.Icon
@@ -22,31 +25,30 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.alpha
 import androidx.compose.ui.draw.clip
+import androidx.compose.ui.geometry.Size
 import androidx.compose.ui.graphics.*
 import androidx.compose.ui.graphics.painter.Painter
+import androidx.compose.ui.input.pointer.pointerInput
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.platform.LocalConfiguration
-import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.text.style.TextOverflow
-import androidx.compose.ui.unit.Dp
-import androidx.compose.ui.unit.dp
-import androidx.compose.ui.unit.sp
-import androidx.compose.ui.unit.times
 import androidx.palette.graphics.Palette
 import com.google.android.exoplayer2.Player
 import com.spectre7.spmp.MainActivity
 import com.spectre7.spmp.PlayerHost
 import com.spectre7.spmp.R
-import com.spectre7.spmp.ui.layout.DownloadMenu
-import com.spectre7.spmp.ui.layout.LyricsDisplay
 import com.spectre7.spmp.ui.layout.MINIMISED_NOW_PLAYING_HEIGHT
+import com.spectre7.spmp.ui.layout.nowplaying.overlay.*
 import com.spectre7.utils.*
 import kotlin.concurrent.thread
 import kotlin.math.max
+import androidx.compose.ui.layout.onSizeChanged
+import androidx.compose.ui.unit.*
+import kotlin.math.min
 
-enum class NowPlayingOverlayMenu { NONE, MAIN, PALETTE, LYRICS, DOWNLOAD }
+enum class NowPlayingOverlayMenu { NONE, MAIN, PALETTE, LYRICS, DOWNLOAD, EDIT }
 
 const val OVERLAY_MENU_ANIMATION_DURATION: Int = 200
 
@@ -70,12 +72,12 @@ fun MainTab(weight_modifier: Modifier, expansion: Float, max_height: Float, thum
 
     fun setThumbnail(thumb: ImageBitmap?, on_finished: () -> Unit) {
         _setThumbnail(thumb)
-        if (thumbnail == null) {
+        if (thumb == null) {
             theme_palette = null
             theme_colour = null
         }
         else {
-            Palette.from(thumbnail.asAndroidBitmap()).generate {
+            Palette.from(thumb.asAndroidBitmap()).generate {
                 theme_palette = it
                 on_finished()
             }
@@ -173,6 +175,7 @@ fun MainTab(weight_modifier: Modifier, expansion: Float, max_height: Float, thum
     ) {
 
         var overlay_menu by remember { mutableStateOf(NowPlayingOverlayMenu.NONE) }
+        var colourpick_callback by remember { mutableStateOf<((Color?) -> Unit)?>(null) }
 
         LaunchedEffect(expansion == 0.0f) {
             overlay_menu = NowPlayingOverlayMenu.NONE
@@ -181,21 +184,54 @@ fun MainTab(weight_modifier: Modifier, expansion: Float, max_height: Float, thum
         Box(Modifier.aspectRatio(1f)) {
             Crossfade(thumbnail, animationSpec = tween(250)) { image ->
                 if (image != null) {
+                    var image_size by remember { mutableStateOf(IntSize(1, 1)) }
                     Image(
-                        image, "",
+                        image, null,
                         contentScale = ContentScale.Crop,
                         modifier = Modifier
                             .aspectRatio(1f)
                             .clip(RoundedCornerShape(5))
-                            .clickable(
-                                enabled = expansion == 1.0f,
-                                indication = null,
-                                interactionSource = remember { MutableInteractionSource() }
-                            ) {
-                                // TODO Make this less hardcoded
-                                if (overlay_menu == NowPlayingOverlayMenu.NONE || overlay_menu == NowPlayingOverlayMenu.MAIN || overlay_menu == NowPlayingOverlayMenu.PALETTE) {
-                                    overlay_menu =
-                                        if (overlay_menu == NowPlayingOverlayMenu.NONE) NowPlayingOverlayMenu.MAIN else NowPlayingOverlayMenu.NONE
+                            .onSizeChanged {
+                                image_size = it
+                            }
+                            .run {
+                                if (colourpick_callback == null) {
+                                    this.clickable(
+                                        enabled = expansion == 1.0f,
+                                        indication = null,
+                                        interactionSource = remember { MutableInteractionSource() }
+                                    ) {
+                                        // TODO | Make this less hardcoded
+                                        if (overlay_menu == NowPlayingOverlayMenu.NONE || overlay_menu == NowPlayingOverlayMenu.MAIN || overlay_menu == NowPlayingOverlayMenu.PALETTE) {
+                                            overlay_menu =
+                                                if (overlay_menu == NowPlayingOverlayMenu.NONE) NowPlayingOverlayMenu.MAIN else NowPlayingOverlayMenu.NONE
+                                        }
+                                    }
+                                }
+                                else {
+                                    this.pointerInput(Unit) {
+                                        detectTapGestures(
+                                            onTap = { offset ->
+                                                if (colourpick_callback != null) {
+                                                    val bitmap_size = min(image.width, image.height)
+                                                    var x = (offset.x / image_size.width) * bitmap_size
+                                                    var y = (offset.y / image_size.height) * bitmap_size
+
+                                                    if (image.width > image.height) {
+                                                        x += (image.width - image.height) / 2
+                                                    }
+                                                    else if (image.height > image.width) {
+                                                        y += (image.height - image.width) / 2
+                                                    }
+
+                                                    colourpick_callback?.invoke(
+                                                        Color(image.asAndroidBitmap().getPixel(x.toInt(), y.toInt()))
+                                                    )
+                                                    colourpick_callback = null
+                                                }
+                                            }
+                                        )
+                                    }
                                 }
                             }
                     )
@@ -219,6 +255,14 @@ fun MainTab(weight_modifier: Modifier, expansion: Float, max_height: Float, thum
                         )
                         .fillMaxSize(), contentAlignment = Alignment.Center) {
                     Crossfade(overlay_menu) { menu ->
+
+                        if (menu != NowPlayingOverlayMenu.NONE) {
+                            BackHandler {
+                                overlay_menu = NowPlayingOverlayMenu.NONE
+                                colourpick_callback = null
+                            }
+                        }
+
                         when (menu) {
                             NowPlayingOverlayMenu.MAIN ->
                                 Column(
@@ -243,7 +287,7 @@ fun MainTab(weight_modifier: Modifier, expansion: Float, max_height: Float, thum
                                             button_modifier.clickable { overlay_menu = NowPlayingOverlayMenu.LYRICS }
                                         ) {
                                             Image(
-                                                painterResource(R.drawable.ic_music_note), "",
+                                                painterResource(R.drawable.ic_music_note), null,
                                                 colorFilter = button_colour
                                             )
                                         }
@@ -252,7 +296,7 @@ fun MainTab(weight_modifier: Modifier, expansion: Float, max_height: Float, thum
                                             button_modifier.clickable { overlay_menu = NowPlayingOverlayMenu.PALETTE }
                                         ) {
                                             Image(
-                                                painterResource(R.drawable.ic_palette), "",
+                                                painterResource(R.drawable.ic_palette), null,
                                                 colorFilter = button_colour
                                             )
                                         }
@@ -261,15 +305,23 @@ fun MainTab(weight_modifier: Modifier, expansion: Float, max_height: Float, thum
                                             button_modifier.clickable { overlay_menu = NowPlayingOverlayMenu.DOWNLOAD }
                                         ) {
                                             Image(
-                                                painterResource(R.drawable.ic_download), "",
+                                                painterResource(R.drawable.ic_download), null,
                                                 colorFilter = button_colour
                                             )
+                                        }
+
+                                        Box(
+                                            button_modifier.clickable { overlay_menu = NowPlayingOverlayMenu.EDIT }
+                                        ) {
+                                            Icon(Icons.Filled.Edit, null, tint = MainActivity.theme.getOnAccent())
                                         }
                                     }
                                 }
                             NowPlayingOverlayMenu.PALETTE ->
-                                PaletteSelector(theme_palette) { index, _ ->
-                                    setThemeColour(getPaletteColour(theme_palette!!, index))
+                                PaletteSelectorMenu(theme_palette, {
+                                    colourpick_callback = it
+                                }) { colour ->
+                                    setThemeColour(colour)
                                     overlay_menu = NowPlayingOverlayMenu.NONE
                                 }
                             NowPlayingOverlayMenu.LYRICS ->
@@ -282,6 +334,10 @@ fun MainTab(weight_modifier: Modifier, expansion: Float, max_height: Float, thum
                             NowPlayingOverlayMenu.DOWNLOAD ->
                                 if (PlayerHost.status.m_song != null) {
                                     DownloadMenu(PlayerHost.status.song!!) { overlay_menu = NowPlayingOverlayMenu.NONE }
+                                }
+                            NowPlayingOverlayMenu.EDIT ->
+                                if (PlayerHost.status.m_song != null) {
+                                    EditMenu(PlayerHost.status.song!!) { overlay_menu = NowPlayingOverlayMenu.NONE }
                                 }
                             NowPlayingOverlayMenu.NONE -> {}
                         }
@@ -312,7 +368,7 @@ fun MainTab(weight_modifier: Modifier, expansion: Float, max_height: Float, thum
                             get_shutter_menu?.invoke()
                             IconButton(onClick = { shutter_menu_open = false }) {
                                 Icon(
-                                    Icons.Filled.KeyboardArrowUp, "",
+                                    Icons.Filled.KeyboardArrowUp, null,
                                     tint = background.getContrasted(),
                                     modifier = Modifier.size(50.dp)
                                 )
@@ -346,7 +402,7 @@ fun MainTab(weight_modifier: Modifier, expansion: Float, max_height: Float, thum
                 ) {
                     Image(
                         painterResource(R.drawable.ic_skip_previous),
-                        "",
+                        null,
                         colorFilter = colour_filter
                     )
                 }
@@ -374,7 +430,7 @@ fun MainTab(weight_modifier: Modifier, expansion: Float, max_height: Float, thum
                 ) {
                     Image(
                         painterResource(R.drawable.ic_skip_next),
-                        "",
+                        null,
                         colorFilter = colour_filter
                     )
                 }
@@ -407,7 +463,7 @@ fun MainTab(weight_modifier: Modifier, expansion: Float, max_height: Float, thum
                         .alpha(if (enabled) 1.0f else 0.5f)
                 ) {
                     Image(
-                        painter, "",
+                        painter, null,
                         Modifier
                             .requiredSize(size, 60.dp)
                             .offset(y = if (label != null) (-7).dp else 0.dp),

@@ -32,6 +32,7 @@ import com.spectre7.spmp.MainActivity
 import com.spectre7.spmp.PlayerHost
 import com.spectre7.spmp.R
 import com.spectre7.spmp.ui.component.MultiSelector
+import com.spectre7.spmp.ui.layout.getStatusBarHeight
 import com.spectre7.utils.getString
 import com.spectre7.utils.setColourAlpha
 import com.spectre7.utils.vibrate
@@ -48,29 +49,28 @@ val NOW_PLAYING_MAIN_PADDING = 10.dp
 @Composable
 fun NowPlaying(_expansion: Float, max_height: Float, close: () -> Unit) {
 
-    val expansion = if (_expansion < 0.08f) 0.0f else _expansion
+    val expansion = if (_expansion < 0.08f) 0f else _expansion
     val expanded = expansion >= EXPANDED_THRESHOLD
-    val inv_expansion = -expansion + 1.0f
+    val inv_expansion = 1f - expansion
 
     val systemui_controller = rememberSystemUiController()
+    val status_bar_height_percent = (getStatusBarHeight().value * 0.75) / max_height
 
-    LaunchedEffect(key1 = expanded, key2 = MainActivity.theme.getBackground(true)) {
+    LaunchedEffect(key1 = expansion, key2 = MainActivity.theme.getBackground(true)) {
         systemui_controller.setSystemBarsColor(
-            color = if (expanded) MainActivity.theme.getBackground(true) else MainActivity.theme.default_n_background
+            color = if (inv_expansion < status_bar_height_percent) MainActivity.theme.getBackground(true) else MainActivity.theme.default_n_background
         )
     }
 
-    if (!expanded) {
-        LinearProgressIndicator(
-            progress = PlayerHost.status.m_position,
-            color = MainActivity.theme.getOnBackground(true),
-            trackColor = setColourAlpha(MainActivity.theme.getOnBackground(true), 0.5),
-            modifier = Modifier
-                .requiredHeight(2.dp)
-                .fillMaxWidth()
-                .alpha(inv_expansion)
-        )
-    }
+    LinearProgressIndicator(
+        progress = PlayerHost.status.m_position,
+        color = MainActivity.theme.getOnBackground(true),
+        trackColor = setColourAlpha(MainActivity.theme.getOnBackground(true), 0.5),
+        modifier = Modifier
+            .requiredHeight(2.dp)
+            .fillMaxWidth()
+            .alpha(inv_expansion)
+    )
 
     val screen_width_dp = LocalConfiguration.current.screenWidthDp.dp
     val screen_width_px = with(LocalDensity.current) { screen_width_dp.roundToPx() }

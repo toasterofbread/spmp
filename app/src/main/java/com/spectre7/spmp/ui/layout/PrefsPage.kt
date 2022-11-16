@@ -22,7 +22,7 @@ enum class Page { ROOT, OTHER }
 @Composable
 fun PrefsPage(setOverlayPage: (page: OverlayPage) -> Unit) {
 
-    val interface_lang = remember { SettingsValueState(0, "interface_lang", MainActivity.prefs) }
+    val interface_lang = remember { SettingsValueState(MainActivity.languages.keys.indexOf("en"), "interface_lang", MainActivity.prefs) }
     var language_data by remember { mutableStateOf(MainActivity.languages.values.elementAt(interface_lang.value)) }
 
     OnChangedEffect(interface_lang.value) {
@@ -49,7 +49,7 @@ fun PrefsPage(setOverlayPage: (page: OverlayPage) -> Unit) {
                 },
 
                 SettingsItemDropdown(
-                    SettingsValueState(0, "data_lang", MainActivity.prefs),
+                    SettingsValueState(MainActivity.languages.keys.indexOf("en"), "data_lang", MainActivity.prefs),
                     getString(R.string.s_key_data_lang), getString(R.string.s_sub_data_lang),
                     MainActivity.languages.values.first().size,
                     { i ->

@@ -2,6 +2,7 @@ package com.spectre7.spmp.ui.layout
 
 import android.os.Process.THREAD_PRIORITY_BACKGROUND
 import android.os.Process.setThreadPriority
+import androidx.activity.compose.BackHandler
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
@@ -15,6 +16,7 @@ import androidx.compose.material.icons.filled.ArrowBack
 import androidx.compose.material.icons.filled.Clear
 import androidx.compose.material.icons.filled.Search
 import androidx.compose.material3.*
+import androidx.compose.material3.TabRowDefaults.tabIndicatorOffset
 import androidx.compose.runtime.*
 import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.snapshots.SnapshotStateList
@@ -28,18 +30,15 @@ import androidx.compose.ui.text.input.ImeAction
 import androidx.compose.ui.unit.TextUnit
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
-import com.spectre7.utils.getString
+import com.spectre7.spmp.MainActivity
 import com.spectre7.spmp.R
 import com.spectre7.spmp.api.DataApi
 import com.spectre7.spmp.model.Artist
-import com.spectre7.spmp.model.YtItem
 import com.spectre7.spmp.model.Song
-import com.spectre7.spmp.model.SongData
-import kotlin.concurrent.thread
-import androidx.activity.compose.BackHandler
-import androidx.compose.material3.TabRowDefaults.tabIndicatorOffset
-import com.spectre7.spmp.MainActivity
+import com.spectre7.spmp.model.YtItem
+import com.spectre7.utils.getString
 import com.spectre7.utils.setAlpha
+import kotlin.concurrent.thread
 
 val SEARCH_FIELD_FONT_SIZE: TextUnit = 18.sp
 val TAB_TEXT_FONT_SIZE: TextUnit = 14.sp

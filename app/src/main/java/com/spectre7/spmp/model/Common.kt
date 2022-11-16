@@ -20,6 +20,7 @@ abstract class YtItem {
 
     class ServerInfoResponse(
         val id: String,
+        var original_id: String? = null,
         var type: String = "",
         val stream_url: String? = null,
         val snippet: Snippet,
@@ -33,6 +34,12 @@ abstract class YtItem {
         data class Localisation(val title: String? = null, val description: String? = null)
         data class Thumbnails(val default: Thumbnail, val medium: Thumbnail, val high: Thumbnail)
         data class Thumbnail(val url: String)
+
+        init {
+            if (original_id == null) {
+                original_id = id
+            }
+        }
     }
 
     fun thumbnailLoaded(hq: Boolean): Boolean {

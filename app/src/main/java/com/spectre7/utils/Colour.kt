@@ -16,7 +16,7 @@ fun Color.setAlpha(alpha: Double): Color {
 }
 
 fun setColourAlpha(colour: Color, alpha: Double): Color {
-    return Color(ColorUtils.setAlphaComponent(colour.toArgb(), (255 * alpha).toInt()))
+    return colour.copy(alpha = alpha.toFloat())
 }
 
 fun offsetColourRGB(colour: Color, offset: Double, clip: Boolean = true): Color {
@@ -127,7 +127,7 @@ class Theme private constructor(
     }
 
     fun getOnAccent(): Color {
-        return getContrastedColour(getAccent())
+        return getAccent().getContrasted()
     }
 
     fun getVibrantAccent(): Color {

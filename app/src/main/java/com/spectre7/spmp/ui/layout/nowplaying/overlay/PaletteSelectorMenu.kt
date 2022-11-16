@@ -15,6 +15,8 @@ import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.unit.dp
 import androidx.palette.graphics.Palette
+import com.spectre7.spmp.MainActivity
+import com.spectre7.utils.getContrasted
 import com.spectre7.utils.getPaletteColour
 
 @Composable
@@ -27,7 +29,8 @@ fun PaletteSelectorMenu(palette: Palette?, requestColourPicker: ((Color?) -> Uni
             enter = fadeIn(),
             exit = fadeOut()
         ) {
-            Column(Modifier.fillMaxSize(), verticalArrangement = Arrangement.Center, horizontalAlignment = Alignment.CenterHorizontally) {
+            Column(Modifier.fillMaxSize(), verticalArrangement = Arrangement.SpaceEvenly, horizontalAlignment = Alignment.CenterHorizontally) {
+
                 Row(
                     Modifier.fillMaxWidth(),
                     verticalAlignment = Alignment.CenterVertically,
@@ -51,18 +54,22 @@ fun PaletteSelectorMenu(palette: Palette?, requestColourPicker: ((Color?) -> Uni
                     }
                 }
 
-                Spacer(Modifier.height(50.dp))
-
-                Button({
-                    colourpick_requested = true
-                    requestColourPicker {
-                        colourpick_requested = false
-                        if (it != null) {
-                            onColourSelected(it)
+                Button(
+                    {
+                        colourpick_requested = true
+                        requestColourPicker {
+                            colourpick_requested = false
+                            if (it != null) {
+                                onColourSelected(it)
+                            }
                         }
-                    }
-                }) {
-                    Text("Colour picker")
+                    },
+                    colors = ButtonDefaults.buttonColors(
+                        containerColor = MainActivity.theme.getOnBackground(true),
+                        contentColor = MainActivity.theme.getBackground(true)
+                    )
+                ) {
+                    Text("Pick from thumbnail")
                 }
             }
         }

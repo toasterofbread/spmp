@@ -3,20 +3,9 @@ package com.spectre7.spmp.model
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
-import com.spectre7.spmp.api.DataApi
 import com.spectre7.spmp.ui.component.ArtistPreview
 import java.time.Instant
 import java.util.*
-
-data class ArtistData (
-    val locale: String?,
-    var name: String,
-    val description: String
-) {
-    init {
-        name = name.removeSuffix(" - Topic")
-    }
-}
 
 class Artist private constructor (
     private val id: String

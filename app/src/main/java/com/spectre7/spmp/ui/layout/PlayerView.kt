@@ -1,5 +1,6 @@
 package com.spectre7.spmp.ui.layout
 
+import android.annotation.SuppressLint
 import android.util.DisplayMetrics
 import androidx.compose.animation.*
 import androidx.compose.foundation.ExperimentalFoundationApi
@@ -24,8 +25,10 @@ import androidx.compose.ui.draw.alpha
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.RectangleShape
 import androidx.compose.ui.platform.LocalConfiguration
+import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
+import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.google.android.exoplayer2.ExoPlayer
@@ -43,25 +46,27 @@ import kotlinx.coroutines.runBlocking
 import java.util.concurrent.locks.ReentrantLock
 import kotlin.concurrent.thread
 
-fun convertPixelsToDp(px: Int): Float {
-    return px.toFloat() / (MainActivity.resources.displayMetrics.densityDpi.toFloat() / DisplayMetrics.DENSITY_DEFAULT)
+@SuppressLint("InternalInsetResource")
+@Composable
+fun getStatusBarHeight(): Dp {
+    val resource_id: Int = MainActivity.resources.getIdentifier("status_bar_height", "dimen", "android")
+    if (resource_id > 0) {
+        with(LocalDensity.current) {
+            return MainActivity.resources.getDimensionPixelSize(resource_id).toDp()
+        }
+    }
+    throw RuntimeException()
 }
 
-fun getStatusBarHeight(): Float {
-    var ret = 0
-    val resourceId: Int = MainActivity.resources.getIdentifier("status_bar_height", "dimen", "android")
-    if (resourceId > 0) {
-        ret = MainActivity.resources.getDimensionPixelSize(resourceId)
-    }
-    return convertPixelsToDp(ret)
+@Composable
+fun getScreenHeight(): Float {
+    return LocalConfiguration.current.screenHeightDp.toFloat() + getStatusBarHeight().value
 }
 
 const val MINIMISED_NOW_PLAYING_HEIGHT = 64f
 enum class OverlayPage {NONE, SEARCH, SETTINGS}
 
-@OptIn(ExperimentalMaterialApi::class, ExperimentalMaterial3Api::class,
-    ExperimentalFoundationApi::class
-)
+@OptIn(ExperimentalMaterialApi::class, ExperimentalMaterial3Api::class)
 @Composable
 fun PlayerView() {
     var overlay_page by remember { mutableStateOf(OverlayPage.NONE) }
@@ -297,7 +302,7 @@ fun PlayerView() {
     Column(
         Modifier
             .fillMaxSize()
-            .padding(top = getStatusBarHeight().dp)
+            .padding(top = getStatusBarHeight())
     ) {
 
         Box(Modifier.padding(bottom = MINIMISED_NOW_PLAYING_HEIGHT.dp)) {
@@ -319,7 +324,7 @@ fun PlayerView() {
             player = PlayerHost.service.player
         }
 
-        val screen_height = LocalConfiguration.current.screenHeightDp.toFloat() + getStatusBarHeight()
+        val screen_height = getScreenHeight()
         val swipe_state = rememberSwipeableState(0)
         val swipe_anchors = mapOf(MINIMISED_NOW_PLAYING_HEIGHT to 0, screen_height to 1)
 

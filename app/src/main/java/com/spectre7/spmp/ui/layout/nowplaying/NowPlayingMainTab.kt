@@ -25,27 +25,29 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.alpha
 import androidx.compose.ui.draw.clip
-import androidx.compose.ui.geometry.Size
 import androidx.compose.ui.graphics.*
 import androidx.compose.ui.graphics.painter.Painter
 import androidx.compose.ui.input.pointer.pointerInput
 import androidx.compose.ui.layout.ContentScale
+import androidx.compose.ui.layout.onSizeChanged
 import androidx.compose.ui.platform.LocalConfiguration
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.text.style.TextOverflow
+import androidx.compose.ui.unit.*
 import androidx.palette.graphics.Palette
 import com.google.android.exoplayer2.Player
 import com.spectre7.spmp.MainActivity
 import com.spectre7.spmp.PlayerHost
 import com.spectre7.spmp.R
 import com.spectre7.spmp.ui.layout.MINIMISED_NOW_PLAYING_HEIGHT
-import com.spectre7.spmp.ui.layout.nowplaying.overlay.*
+import com.spectre7.spmp.ui.layout.nowplaying.overlay.DownloadMenu
+import com.spectre7.spmp.ui.layout.nowplaying.overlay.EditMenu
+import com.spectre7.spmp.ui.layout.nowplaying.overlay.LyricsDisplay
+import com.spectre7.spmp.ui.layout.nowplaying.overlay.PaletteSelectorMenu
 import com.spectre7.utils.*
 import kotlin.concurrent.thread
 import kotlin.math.max
-import androidx.compose.ui.layout.onSizeChanged
-import androidx.compose.ui.unit.*
 import kotlin.math.min
 
 enum class NowPlayingOverlayMenu { NONE, MAIN, PALETTE, LYRICS, DOWNLOAD, EDIT }
@@ -177,7 +179,7 @@ fun MainTab(weight_modifier: Modifier, expansion: Float, max_height: Float, thum
         var overlay_menu by remember { mutableStateOf(NowPlayingOverlayMenu.NONE) }
         var colourpick_callback by remember { mutableStateOf<((Color?) -> Unit)?>(null) }
 
-        LaunchedEffect(expansion == 0.0f) {
+        LaunchedEffect(expansion > 0f) {
             overlay_menu = NowPlayingOverlayMenu.NONE
         }
 
@@ -247,99 +249,131 @@ fun MainTab(weight_modifier: Modifier, expansion: Float, max_height: Float, thum
                 var get_shutter_menu by remember { mutableStateOf<(@Composable () -> Unit)?>(null) }
                 var shutter_menu_open by remember { mutableStateOf(false) }
 
-                Box(
-                    Modifier
-                        .background(
-                            setColourAlpha(Color.DarkGray, 0.85),
-                            shape = RoundedCornerShape(5)
-                        )
-                        .fillMaxSize(), contentAlignment = Alignment.Center) {
-                    Crossfade(overlay_menu) { menu ->
+                Box(Modifier.alpha(expansion)) {
+                    Box(
+                        Modifier
+                            .background(
+                                setColourAlpha(Color.DarkGray, 0.85),
+                                shape = RoundedCornerShape(5)
+                            )
+                            .fillMaxSize(),
+                        contentAlignment = Alignment.Center
+                    ) {
+                        Crossfade(overlay_menu) { menu ->
 
-                        if (menu != NowPlayingOverlayMenu.NONE) {
-                            BackHandler {
-                                overlay_menu = NowPlayingOverlayMenu.NONE
-                                colourpick_callback = null
-                            }
-                        }
-
-                        when (menu) {
-                            NowPlayingOverlayMenu.MAIN ->
-                                Column(
-                                    Modifier
-                                        .fillMaxSize()
-                                        .padding(20.dp), verticalArrangement = Arrangement.SpaceBetween) {
-
-                                    PlayerHost.status.m_song?.artist?.Preview(false)
-
-                                    Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.SpaceEvenly) {
-
-                                        val button_modifier = Modifier
-                                            .background(
-                                                MainActivity.theme.getAccent(),
-                                                CircleShape
-                                            )
-                                            .size(40.dp)
-                                            .padding(8.dp)
-                                        val button_colour = ColorFilter.tint(MainActivity.theme.getOnAccent())
-
-                                        Box(
-                                            button_modifier.clickable { overlay_menu = NowPlayingOverlayMenu.LYRICS }
-                                        ) {
-                                            Image(
-                                                painterResource(R.drawable.ic_music_note), null,
-                                                colorFilter = button_colour
-                                            )
-                                        }
-
-                                        Box(
-                                            button_modifier.clickable { overlay_menu = NowPlayingOverlayMenu.PALETTE }
-                                        ) {
-                                            Image(
-                                                painterResource(R.drawable.ic_palette), null,
-                                                colorFilter = button_colour
-                                            )
-                                        }
-
-                                        Box(
-                                            button_modifier.clickable { overlay_menu = NowPlayingOverlayMenu.DOWNLOAD }
-                                        ) {
-                                            Image(
-                                                painterResource(R.drawable.ic_download), null,
-                                                colorFilter = button_colour
-                                            )
-                                        }
-
-                                        Box(
-                                            button_modifier.clickable { overlay_menu = NowPlayingOverlayMenu.EDIT }
-                                        ) {
-                                            Icon(Icons.Filled.Edit, null, tint = MainActivity.theme.getOnAccent())
-                                        }
-                                    }
-                                }
-                            NowPlayingOverlayMenu.PALETTE ->
-                                PaletteSelectorMenu(theme_palette, {
-                                    colourpick_callback = it
-                                }) { colour ->
-                                    setThemeColour(colour)
+                            if (menu != NowPlayingOverlayMenu.NONE) {
+                                BackHandler {
                                     overlay_menu = NowPlayingOverlayMenu.NONE
+                                    colourpick_callback = null
                                 }
-                            NowPlayingOverlayMenu.LYRICS ->
-                                if (PlayerHost.status.m_song != null) {
-                                    LyricsDisplay(PlayerHost.status.song!!, { overlay_menu = NowPlayingOverlayMenu.NONE }, (screen_width_dp - (NOW_PLAYING_MAIN_PADDING * 2) - (15.dp * expansion * 2)).value * 0.9.dp, seek_state) {
-                                        get_shutter_menu = it
-                                        shutter_menu_open = true
+                            }
+
+                            when (menu) {
+                                NowPlayingOverlayMenu.MAIN ->
+                                    Column(
+                                        Modifier
+                                            .fillMaxSize()
+                                            .padding(20.dp),
+                                        verticalArrangement = Arrangement.SpaceBetween
+                                    ) {
+
+                                        PlayerHost.status.m_song?.artist?.Preview(false)
+
+                                        Row(
+                                            Modifier.fillMaxWidth(),
+                                            horizontalArrangement = Arrangement.SpaceEvenly
+                                        ) {
+
+                                            val button_modifier = Modifier
+                                                .background(
+                                                    MainActivity.theme.getAccent(),
+                                                    CircleShape
+                                                )
+                                                .size(40.dp)
+                                                .padding(8.dp)
+                                            val button_colour =
+                                                ColorFilter.tint(MainActivity.theme.getOnAccent())
+
+                                            Box(
+                                                button_modifier.clickable {
+                                                    overlay_menu = NowPlayingOverlayMenu.LYRICS
+                                                }
+                                            ) {
+                                                Image(
+                                                    painterResource(R.drawable.ic_music_note), null,
+                                                    colorFilter = button_colour
+                                                )
+                                            }
+
+                                            Box(
+                                                button_modifier.clickable {
+                                                    overlay_menu = NowPlayingOverlayMenu.PALETTE
+                                                }
+                                            ) {
+                                                Image(
+                                                    painterResource(R.drawable.ic_palette), null,
+                                                    colorFilter = button_colour
+                                                )
+                                            }
+
+                                            Box(
+                                                button_modifier.clickable {
+                                                    overlay_menu = NowPlayingOverlayMenu.DOWNLOAD
+                                                }
+                                            ) {
+                                                Image(
+                                                    painterResource(R.drawable.ic_download), null,
+                                                    colorFilter = button_colour
+                                                )
+                                            }
+
+                                            Box(
+                                                button_modifier.clickable {
+                                                    overlay_menu = NowPlayingOverlayMenu.EDIT
+                                                }
+                                            ) {
+                                                Icon(
+                                                    Icons.Filled.Edit,
+                                                    null,
+                                                    tint = MainActivity.theme.getOnAccent()
+                                                )
+                                            }
+                                        }
                                     }
-                                }
-                            NowPlayingOverlayMenu.DOWNLOAD ->
-                                if (PlayerHost.status.m_song != null) {
-                                    DownloadMenu(PlayerHost.status.song!!) { overlay_menu = NowPlayingOverlayMenu.NONE }
-                                }
-                            NowPlayingOverlayMenu.EDIT ->
-                                if (PlayerHost.status.m_song != null) {
-                                    EditMenu(PlayerHost.status.song!!) { overlay_menu = NowPlayingOverlayMenu.NONE }
-                                }
-                            NowPlayingOverlayMenu.NONE -> {}
+                                NowPlayingOverlayMenu.PALETTE ->
+                                    PaletteSelectorMenu(theme_palette, {
+                                        colourpick_callback = it
+                                    }) { colour ->
+                                        setThemeColour(colour)
+                                        overlay_menu = NowPlayingOverlayMenu.NONE
+                                    }
+                                NowPlayingOverlayMenu.LYRICS ->
+                                    if (PlayerHost.status.m_song != null) {
+                                        LyricsDisplay(
+                                            PlayerHost.status.song!!,
+                                            { overlay_menu = NowPlayingOverlayMenu.NONE },
+                                            (screen_width_dp - (NOW_PLAYING_MAIN_PADDING * 2) - (15.dp * expansion * 2)).value * 0.9.dp,
+                                            seek_state
+                                        ) {
+                                            get_shutter_menu = it
+                                            shutter_menu_open = true
+                                        }
+                                    }
+                                NowPlayingOverlayMenu.DOWNLOAD ->
+                                    if (PlayerHost.status.m_song != null) {
+                                        DownloadMenu(PlayerHost.status.song!!) {
+                                            overlay_menu = NowPlayingOverlayMenu.NONE
+                                        }
+                                    }
+                                NowPlayingOverlayMenu.EDIT ->
+                                    if (PlayerHost.status.m_song != null) {
+                                        EditMenu(PlayerHost.status.song!!, {
+                                            get_shutter_menu = it
+                                            shutter_menu_open = true
+                                        }) { overlay_menu = NowPlayingOverlayMenu.NONE }
+                                    }
+                                NowPlayingOverlayMenu.NONE -> {}
+                            }
                         }
                     }
                 }

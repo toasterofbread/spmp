@@ -21,7 +21,6 @@ import okhttp3.*
 import okhttp3.MediaType.Companion.toMediaType
 import okhttp3.RequestBody.Companion.toRequestBody
 import java.net.URLEncoder
-import java.util.concurrent.CopyOnWriteArrayList
 import java.util.concurrent.TimeUnit
 import java.util.zip.GZIPInputStream
 import kotlin.concurrent.thread
@@ -112,7 +111,7 @@ class DataApi {
                     }
 
                     for (item in klaxon.parseArray<YtItem.ServerInfoResponse>(result.byteStream())!!) {
-                        for (callback in items.remove(YtItemLoadQueueKey(item.id, item.type))!!) {
+                        for (callback in items.remove(YtItemLoadQueueKey(item.original_id!!, item.type))!!) {
                             callback(item)
                         }
                     }
@@ -349,7 +348,7 @@ class DataApi {
 
             for (key in listOf(Pair("data_lang", "dataLang"), Pair("interface_lang", "interfaceLang"))) {
                 if (!parameters.containsKey(key.second)) {
-                    val value = MainActivity.languages.keys.elementAt(MainActivity.prefs.getInt(key.first, 0))
+                    val value = MainActivity.languages.keys.elementAt(MainActivity.prefs.getInt(key.first, MainActivity.languages.keys.indexOf("en")))
                     url_suffix += "&${key.second}=$value"
                 }
             }

@@ -31,7 +31,7 @@ class ActionGetter(
             action()
             close()
         }) {
-            Icon(icon, "", tint = MainActivity.theme.getOnAccent())
+            Icon(icon, "", tint = content_colour)
         }
     }
 }
@@ -52,7 +52,7 @@ private data class PillMenuParams(
 @Composable
 fun PillMenu(
     action_count: Int,
-    getAction: @Composable ActionGetter.(Int, Int) -> Unit,
+    getAction: @Composable ActionGetter.(i: Int, action_count: Int) -> Unit,
     expand_state: MutableState<Boolean>?,
     background_colour: Color,
     content_colour: Color,

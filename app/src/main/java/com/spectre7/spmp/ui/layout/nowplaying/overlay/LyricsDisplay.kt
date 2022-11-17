@@ -44,7 +44,7 @@ import net.zerotask.libraries.android.compose.furigana.TextWithReading
 import kotlin.math.abs
 
 @Composable
-fun LyricsDisplay(song: Song, close: () -> Unit, size: Dp, seek_state: Any, open_shutter_menu: (@Composable () -> Unit) -> Unit) {
+fun LyricsDisplay(song: Song, close: () -> Unit, size: Dp, seek_state: Any, openShutterMenu: (@Composable () -> Unit) -> Unit) {
 
     var lyrics: Song.Lyrics? by remember { mutableStateOf(null) }
     var show_furigana: Boolean by remember { mutableStateOf(MainActivity.prefs.getBoolean("lyrics_default_furigana", true)) }
@@ -72,7 +72,7 @@ fun LyricsDisplay(song: Song, close: () -> Unit, size: Dp, seek_state: Any, open
                 when (index) {
                     0 -> ActionButton(Icons.Filled.Close, close)
                     1 -> ActionButton(Icons.Filled.Info) {
-                        open_shutter_menu {
+                        openShutterMenu {
                             if (lyrics != null) {
                                 Column(Modifier.fillMaxWidth(), horizontalAlignment = Alignment.Start) {
                                     Text("Lyrics info", fontSize = 20.sp, fontWeight = FontWeight.Light)

@@ -1,10 +1,17 @@
+from abc import ABC, abstractmethod
 import base64
 import requests
 from pykakasi import Kakasi
 from unicodeblock import blocks as unicodeBlock
 from xmltodict import parse as parseXml
 
-class Lyrics:
+class Lyrics(ABC):
+
+    def isTimed(self) -> bool:
+        return isinstance(self, TimedLyrics)
+
+    def getSource(self) -> str:
+        return "PetitLyrics"
 
     def getText(self) -> str:
         if isinstance(self, StaticLyrics):
@@ -16,7 +23,7 @@ class Lyrics:
                 ret += line.text + "\n"
             return ret
 
-    def getFuriganaData(self):
+    def _getFuriganaData(self):
         def hasKanjiAndHiragana(string: str):
             has_kanji = False
             has_hiragana = False
@@ -82,75 +89,34 @@ class Lyrics:
                                 case "君": terms[i][1] = "きみ"
                                 case "色": terms[i][1] = "いろ"
                                 case "瞑": terms[i][1] = "つぶ"
+                                case "足": terms[i][1] = "あし"
                     line_data += terms
                 else:
                     line_data.append([orig])
 
         return ret
 
+    @abstractmethod
     def getWithFurigana(self) -> list:
-        ret = []
-
-        if not isinstance(self, TimedLyrics):
-            return ["Static"]
-
-        furigana = self.getFuriganaData()
-
-        for line_i in range(len(self.lines)):
-
-            line_entry = []
-            ret.append(line_entry)
-
-            lyr_line = self.lines[line_i]
-            if lyr_line.is_space:
-                line_entry.append({"subterms": [{"text": "", "furi": None}], "start": -1, "end": -1})
-                continue
-
-            furi_line: list = furigana[line_i]
-            borrow = 0
-
-            for word in lyr_line.words:
-                terms: list[dict[str, str | None]] = []
-                i = len(word.text) - borrow
-                borrow = max(0, borrow - len(word.text))
-
-                while i > 0:
-                    orig = furi_line[0][0]
-                    furi = furi_line[0][1] if len(furi_line[0]) > 1 else None
-
-                    if len(orig.strip()) == 0:
-                        furi_line.pop(0)
-                        continue
-
-                    # Term fits into word
-                    if len(orig) <= i:
-                        i -= len(orig)
-                        terms.append({"text": orig, "furi": furi})
-                        furi_line.pop(0)
-
-                    # Term doesn't fit into word
-                    else:
-
-                        # Term has no furigana, so we can disect it
-                        if furi is None:
-                            terms.append({"text": orig[:i], "furi": None})
-                            furi_line[0][0] = orig[i:]
-                        else:
-                            terms.append({"text": orig, "furi": furi})
-                            furi_line.pop(0)
-                            borrow = len(orig) - i
-
-                        i = 0
-
-                if len(terms) > 0:
-                    word_entry = {"subterms": terms, "start": word.start_time, "end": word.end_time}
-                    line_entry.append(word_entry)
-
-        return ret
+        raise NotImplementedError
 
 class StaticLyrics(Lyrics):
     def __init__(self, text: str):
         self.text = text
+
+    def getWithFurigana(self) -> list:
+        ret = []
+
+        for line in self._getFuriganaData():
+            terms = []
+            for term in line:
+                if term[0] == "" or (term[0] == "\r" and len(line) > 1):
+                    continue
+                terms.append({"subterms": [{"text": term[0], "furi": term[1] if len(term) > 1 else None}]})
+            if len(terms) > 0:
+                ret.append(terms)
+
+        return ret
 
 class TimedLyrics(Lyrics):
 
@@ -223,6 +189,62 @@ class TimedLyrics(Lyrics):
                         word.prev_word = prev_word
                         prev_word = word
 
+    def getWithFurigana(self) -> list:
+        ret = []
+        furigana = self._getFuriganaData()
+
+        for line_i in range(len(self.lines)):
+
+            line_entry = []
+            ret.append(line_entry)
+
+            lyr_line = self.lines[line_i]
+            if lyr_line.is_space:
+                line_entry.append({"subterms": [{"text": "", "furi": None}], "start": -1, "end": -1})
+                continue
+
+            furi_line: list = furigana[line_i]
+            borrow = 0
+
+            for word in lyr_line.words:
+                terms: list[dict[str, str | None]] = []
+                i = len(word.text) - borrow
+                borrow = max(0, borrow - len(word.text))
+
+                while i > 0:
+                    orig = furi_line[0][0]
+                    furi = furi_line[0][1] if len(furi_line[0]) > 1 else None
+
+                    if len(orig.strip()) == 0:
+                        furi_line.pop(0)
+                        continue
+
+                    # Term fits into word
+                    if len(orig) <= i:
+                        i -= len(orig)
+                        terms.append({"text": orig, "furi": furi})
+                        furi_line.pop(0)
+
+                    # Term doesn't fit into word
+                    else:
+
+                        # Term has no furigana, so we can disect it
+                        if furi is None:
+                            terms.append({"text": orig[:i], "furi": None})
+                            furi_line[0][0] = orig[i:]
+                        else:
+                            terms.append({"text": orig, "furi": furi})
+                            furi_line.pop(0)
+                            borrow = len(orig) - i
+
+                        i = 0
+
+                if len(terms) > 0:
+                    word_entry = {"subterms": terms, "start": word.start_time, "end": word.end_time}
+                    line_entry.append(word_entry)
+
+        return ret
+
 def getLyricsData(song_id: int, lyrics_type: int) -> str | None:
     if lyrics_type <= 0 or lyrics_type > 3:
         raise RuntimeError()
@@ -244,13 +266,19 @@ def getLyricsData(song_id: int, lyrics_type: int) -> str | None:
     except KeyError:
         return None
 
-def getLyrics(song_id: int) -> Lyrics:
+def getLyrics(song_id: int) -> Lyrics | None:
     data = getLyricsData(song_id, 3)
-    if data is None:
-        data = getLyricsData(song_id, 1)
-        assert(data)
 
-    return TimedLyrics(data)
+    if data is None:
+        return None
+
+    return TimedLyrics(data) if data.startswith("<wsy>") and data.endswith("</wsy>") else StaticLyrics(data)
+
+    # data = getLyricsData(song_id, 1)
+    # if data is not None:
+    #     return StaticLyrics(data)
+
+    # return None
 
 def findLyricsId(title: str, artist = None):
     params = {"title": title}

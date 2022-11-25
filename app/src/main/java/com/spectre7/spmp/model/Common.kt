@@ -14,25 +14,25 @@ abstract class YtItem {
     protected var thumbnail: Bitmap? = null
     protected var thumbnail_hq: Bitmap? = null
 
-    var loaded: Boolean = false
-    private var on_loaded_callbacks: MutableList<() -> Unit>? = null
-    val loading: Boolean get() = !loaded && on_loaded_callbacks != null
+    private var thumbnails: ServerInfoResponse.Thumbnails? = null
 
-    class ServerInfoResponse(
+    var loaded: Boolean = false
+    private var on_loaded_callbacks: MutableList<(Boolean) -> Unit>? = null
+
+    data class ServerInfoResponse(
         val id: String,
         var original_id: String? = null,
         var type: String = "",
         val stream_url: String? = null,
-        val snippet: Snippet,
-        val statistics: Statistics,
-        val contentDetails: ContentDetails,
-//        val localizations: Map<String, Localisation> = emptyMap()
+        val snippet: Snippet? = null,
+        val statistics: Statistics? = null,
+        val contentDetails: ContentDetails? = null,
+        val error: String? = null,
     ) {
         data class Snippet(val title: String, val description: String? = null, val publishedAt: String, val channelId: String? = null, val defaultLanguage: String? = null, val country: String? = null, val thumbnails: Thumbnails)
         data class Statistics(val viewCount: String, val subscriberCount: String? = null, val hiddenSubscriberCount: Boolean = false, val videoCount: String? = null)
         data class ContentDetails(val duration: String? = null)
-        data class Localisation(val title: String? = null, val description: String? = null)
-        data class Thumbnails(val default: Thumbnail, val medium: Thumbnail, val high: Thumbnail)
+        data class Thumbnails(val default: Thumbnail? = null, val medium: Thumbnail? = null, val high: Thumbnail? = null)
         data class Thumbnail(val url: String)
 
         init {
@@ -72,28 +72,41 @@ abstract class YtItem {
         Preview(large, Modifier, MaterialTheme.colorScheme.onBackground)
     }
 
-    fun loadData(process_queue: Boolean = true, get_stream_url: Boolean = false, onFinished: ((YtItem) -> Unit)? = null): YtItem {
+    fun loadData(process_queue: Boolean = true, get_stream_url: Boolean = false, onFinished: ((YtItem?) -> Unit)? = null): YtItem {
         if (loaded) {
             onFinished?.invoke(this)
         }
-        else if (loading) {
+        else if (on_loaded_callbacks != null) {
             if (onFinished != null) {
-                on_loaded_callbacks?.add { onFinished(this) }
+                on_loaded_callbacks?.add { onFinished(if (it) this else null) }
             }
         }
         else {
             on_loaded_callbacks = mutableListOf()
             if (onFinished != null) {
-                on_loaded_callbacks!!.add { onFinished(this) }
+                on_loaded_callbacks!!.add { onFinished(if (it) this else null) }
             }
 
             thread {
                 DataApi.queueYtItemDataLoad(this, get_stream_url) {
-                    initWithData(it!!) {
+                    if (it == null) {
+                        throw RuntimeException("Server info response is null (id: ${getId()})")
+                    }
+
+                    fun callCallbacks(success: Boolean) {
                         for (callback in on_loaded_callbacks!!) {
-                            callback()
+                            callback(success)
                         }
                         on_loaded_callbacks = null
+                    }
+
+                    try {
+                        initWithData(it) {
+                            callCallbacks(true)
+                        }
+                    }
+                    catch (_: RuntimeException) {
+                        callCallbacks(false)
                     }
                 }
                 if (process_queue) {
@@ -105,6 +118,13 @@ abstract class YtItem {
     }
 
     abstract fun getId(): String
-    abstract fun getThumbUrl(hq: Boolean): String
-    abstract fun initWithData(data: ServerInfoResponse, onFinished: () -> Unit)
+
+    fun getThumbUrl(hq: Boolean): String? {
+        return (if (hq) thumbnails?.high else thumbnails?.medium)?.url
+    }
+
+    open fun initWithData(data: ServerInfoResponse, onFinished: () -> Unit) {
+        thumbnails = data.snippet?.thumbnails
+        onFinished()
+    }
 }

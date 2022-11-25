@@ -139,13 +139,18 @@ class Server:
             if id is None:
                 return self.errorResponse(404, "Query doesn't match any songs")
 
-            lyrics = {
-                "lyrics": Lyrics.getLyrics(id).getWithFurigana(),
-                "source": "PetitLyrics", # TODO
-                "timed": True
+            lyrics = Lyrics.getLyrics(id)
+
+            if lyrics is None:
+                return self.errorResponse(404, f"Failed to fetch lyrics data (id: {id})")
+
+            ret = {
+                "lyrics": lyrics.getWithFurigana(),
+                "source": lyrics.getSource(),
+                "is_timed": lyrics.isTimed()
             }
 
-            return jsonify(lyrics)
+            return jsonify(ret)
 
     def route(self, path: str, require_key: bool = False, disable_on_integrated: bool = False, **kwargs):
         if not path.endswith("/"):
@@ -286,12 +291,16 @@ class Server:
         f.write(json.dumps(self._cache))
         f.close()
 
-    def errorResponse(self, code: int, message: str | None = None):
+    def errorResponse(self, code: int, message = None):
         if message is None:
             message = f"An error occurred ({code})"
-        response = jsonify(message)
-        response.status_code = code
-        return response
+
+        ret =  Response(
+            json.dumps(message, indent="\t") + "\n",
+            mimetype="application/json"
+        )
+        ret.status_code = code
+        return ret
 
     def getPort(self):
         return self.port

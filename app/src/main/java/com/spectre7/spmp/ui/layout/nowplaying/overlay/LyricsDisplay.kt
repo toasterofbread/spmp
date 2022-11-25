@@ -10,6 +10,7 @@ import androidx.compose.foundation.clickable
 import androidx.compose.foundation.interaction.MutableInteractionSource
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
+import androidx.compose.foundation.lazy.LazyListState
 import androidx.compose.foundation.lazy.rememberLazyListState
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Close
@@ -49,7 +50,6 @@ fun LyricsDisplay(song: Song, close: () -> Unit, size: Dp, seek_state: Any, open
     var lyrics: Song.Lyrics? by remember { mutableStateOf(null) }
     var show_furigana: Boolean by remember { mutableStateOf(MainActivity.prefs.getBoolean("lyrics_default_furigana", true)) }
 
-    val text_positions = remember { mutableStateListOf<TermInfo>() }
     val scroll_state = rememberLazyListState()
 
     LaunchedEffect(song.getId()) {
@@ -121,54 +121,60 @@ fun LyricsDisplay(song: Song, close: () -> Unit, size: Dp, seek_state: Any, open
                             }
                         }
                         else {
-                            val size_px = with(LocalDensity.current) { size.toPx() }
-                            TimingOverlay(it, text_positions, false, seek_state) { position ->
-                                if (MainActivity.prefs.getBoolean("lyrics_follow_enabled", true)) {
-                                    val offset = size_px * MainActivity.prefs.getFloat("lyrics_follow_offset", 0.5f)
-                                    scroll_state.animateScrollToItem(0, (position - offset).toInt())
-                                }
-                            }
-                            Column {
-                                val terms = remember { mutableListOf<TextData>().apply {
-                                    for (line in it.lyrics) {
-                                        for (i in line.indices) {
-                                            val term = line[i]
-                                            for (j in term.subterms.indices) {
-                                                val subterm = term.subterms[j]
-
-                                                if (j + 1 == term.subterms.size && i + 1 == line.size) {
-                                                    add(TextData(subterm.text + "\n", subterm.furi, term))
-                                                }
-                                                else {
-                                                    add(TextData(subterm.text, subterm.furi, term))
-                                                }
-                                            }
-                                        }
-                                    }
-                                } }
-
-                                Crossfade(targetState = show_furigana) {
-                                    TextWithReading(
-                                        terms,
-                                        show_readings = it,
-                                        textAlign = when (MainActivity.prefs.getInt("lyrics_text_alignment", 0)) {
-                                            0 -> TextAlign.Left
-                                            1 -> TextAlign.Center
-                                            else -> TextAlign.Right
-                                        },
-                                        lineHeight = 42.sp,
-                                        fontSize = 20.sp,
-                                        color = Color.White,
-                                        modifier = Modifier.padding(20.dp),
-                                        text_positions = text_positions
-                                    )
-                                }
-                            }
+                            CoreLyricsDisplay(size, seek_state, it, scroll_state, show_furigana)
                         }
                     }
                 }
             }
         })
+    }
+}
+
+@Composable
+fun CoreLyricsDisplay(size: Dp, seek_state: Any, lyrics: Song.Lyrics, scroll_state: LazyListState, show_furigana: Boolean) {
+    val text_positions = remember { mutableStateListOf<TermInfo>() }
+    val size_px = with(LocalDensity.current) { size.toPx() }
+    TimingOverlay(lyrics, text_positions, false, seek_state) { position ->
+        if (MainActivity.prefs.getBoolean("lyrics_follow_enabled", true)) {
+            val offset = size_px * MainActivity.prefs.getFloat("lyrics_follow_offset", 0.5f)
+            scroll_state.animateScrollToItem(0, (position - offset).toInt())
+        }
+    }
+    Column {
+        val terms = remember { mutableListOf<TextData>().apply {
+            for (line in lyrics.lyrics) {
+                for (i in line.indices) {
+                    val term = line[i]
+                    for (j in term.subterms.indices) {
+                        val subterm = term.subterms[j]
+
+                        if (j + 1 == term.subterms.size && i + 1 == line.size) {
+                            add(TextData(subterm.text + "\n", subterm.furi, term))
+                        }
+                        else {
+                            add(TextData(subterm.text, subterm.furi, term))
+                        }
+                    }
+                }
+            }
+        } }
+
+        Crossfade(targetState = show_furigana) {
+            TextWithReading(
+                terms,
+                show_readings = it,
+                textAlign = when (MainActivity.prefs.getInt("lyrics_text_alignment", 0)) {
+                    0 -> TextAlign.Left
+                    1 -> TextAlign.Center
+                    else -> TextAlign.Right
+                },
+                lineHeight = 42.sp,
+                fontSize = 20.sp,
+                color = Color.White,
+                modifier = Modifier.padding(20.dp),
+                text_positions = text_positions
+            )
+        }
     }
 }
 
@@ -213,6 +219,10 @@ fun TimingOverlay(lyrics: Song.Lyrics, text_positions: List<TermInfo>, full_line
 
     LaunchedEffect(PlayerHost.status.m_position, full_line) {
 
+        if (!lyrics.isTimed()) {
+            return@LaunchedEffect
+        }
+
         val offset = Offset(-100f, -170f)
 
         val terms = mutableListOf<Song.Lyrics.Subterm>()
@@ -221,7 +231,7 @@ fun TimingOverlay(lyrics: Song.Lyrics, text_positions: List<TermInfo>, full_line
 
         for (line in lyrics.lyrics) {
             for (term in line) {
-                if (pos >= term.start && pos < term.end) {
+                if (pos >= term.start!! && pos < term.end!!) {
                     if (full_line) {
                         for (_term in line) {
                             for (subterm in _term.subterms) {

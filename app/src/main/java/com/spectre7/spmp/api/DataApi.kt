@@ -10,6 +10,7 @@ import com.spectre7.spmp.MainActivity
 import com.spectre7.spmp.PlayerHost
 import com.spectre7.spmp.R
 import com.spectre7.spmp.model.Artist
+import com.spectre7.spmp.model.Playlist
 import com.spectre7.spmp.model.Song
 import com.spectre7.spmp.model.YtItem
 import com.spectre7.spmp.ui.layout.ResourceType
@@ -61,6 +62,7 @@ class DataApi {
                         when (item) {
                             is Song -> "video"
                             is Artist -> "channel"
+                            is Playlist -> "playlist"
                             else -> throw RuntimeException(item.toString())
                         }
                     ).also {
@@ -173,7 +175,7 @@ class DataApi {
                 val params = mapOf("title" to song.title, "artist" to song.artist.name)
 
                 try {
-                    val result = queryServer("/lyrics", parameters = params)
+                    val result = queryServer("/lyrics", parameters = params, max_retries = 1)
                     if (result == null) {
                         callback(null)
                     }
@@ -416,13 +418,13 @@ class DataApi {
 
         data class RecommendedFeedRow(val title: String, val subtitle: String?, val browse_id: String?, val items: List<Item>) {
             data class Item(val type: String, val id: String, val playlist_id: String? = null) {
-                fun getPreviewable(callback: (YtItem?) -> Unit) {
+                fun getPreviewable(): YtItem {
                     when (type) {
-                        "song" -> callback(Song.fromId(id))
-                        "artist" -> callback(Artist.fromId(id))
-                        "playlist" -> {} // TODO
-                        else -> throw RuntimeException(type)
+                        "song" -> return Song.fromId(id)
+                        "artist" -> return Artist.fromId(id)
+                        "playlist" -> return Playlist.fromId(id)
                     }
+                    throw RuntimeException(type)
                 }
             }
         }

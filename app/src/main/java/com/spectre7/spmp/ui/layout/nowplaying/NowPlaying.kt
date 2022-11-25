@@ -47,30 +47,19 @@ const val EXPANDED_THRESHOLD = 0.9f
 val NOW_PLAYING_MAIN_PADDING = 10.dp
 
 @Composable
-fun NowPlaying(_expansion: Float, max_height: Float, close: () -> Unit) {
-
-    val expansion = if (_expansion < 0.08f) 0f else _expansion
+fun NowPlaying(expansion: Float, max_height: Float, close: () -> Unit) {
     val expanded = expansion >= EXPANDED_THRESHOLD
-    val inv_expansion = 1f - expansion
 
     val systemui_controller = rememberSystemUiController()
     val status_bar_height_percent = (getStatusBarHeight().value * 0.75) / max_height
 
     LaunchedEffect(key1 = expansion, key2 = MainActivity.theme.getBackground(true)) {
         systemui_controller.setSystemBarsColor(
-            color = if (inv_expansion < status_bar_height_percent) MainActivity.theme.getBackground(true) else MainActivity.theme.default_n_background
+            color = if (1f - expansion < status_bar_height_percent) MainActivity.theme.getBackground(true) else MainActivity.theme.default_n_background
         )
     }
 
-    LinearProgressIndicator(
-        progress = PlayerHost.status.m_position,
-        color = MainActivity.theme.getOnBackground(true),
-        trackColor = setColourAlpha(MainActivity.theme.getOnBackground(true), 0.5),
-        modifier = Modifier
-            .requiredHeight(2.dp)
-            .fillMaxWidth()
-            .alpha(inv_expansion)
-    )
+    MinimisedProgressBar(expansion)
 
     val screen_width_dp = LocalConfiguration.current.screenWidthDp.dp
     val screen_width_px = with(LocalDensity.current) { screen_width_dp.roundToPx() }
@@ -291,5 +280,18 @@ fun SeekBar(seek: (Float) -> Unit) {
         thumbSizeInDp = DpSize(12.dp, 12.dp),
         track = { a, b, _, _, c -> SeekTrack(a, b, c, setColourAlpha(MainActivity.theme.getOnBackground(true), 0.5), MainActivity.theme.getOnBackground(true)) },
         thumb = { a, b, c, d, e -> DefaultThumb(a, b, c, d, e, MainActivity.theme.getOnBackground(true), 1f) }
+    )
+}
+
+@Composable
+fun MinimisedProgressBar(expansion: Float) {
+    LinearProgressIndicator(
+        progress = PlayerHost.status.m_position,
+        color = MainActivity.theme.getOnBackground(true),
+        trackColor = setColourAlpha(MainActivity.theme.getOnBackground(true), 0.5),
+        modifier = Modifier
+            .requiredHeight(2.dp)
+            .fillMaxWidth()
+            .alpha(1f - expansion)
     )
 }

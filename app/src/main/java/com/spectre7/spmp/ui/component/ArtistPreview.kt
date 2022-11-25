@@ -12,11 +12,11 @@ import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
+import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
-import androidx.compose.ui.graphics.Color
 import coil.compose.rememberAsyncImagePainter
 import com.spectre7.spmp.model.Artist
 
@@ -28,7 +28,7 @@ fun ArtistPreview (artist: Artist, large: Boolean, colour: Color, modifier: Modi
     ) {
 
         Image(
-            painter = rememberAsyncImagePainter(artist.thumbnail_url),
+            painter = rememberAsyncImagePainter(artist.getThumbUrl(false)),
             contentDescription = null,
             contentScale = ContentScale.Crop,
             modifier = Modifier

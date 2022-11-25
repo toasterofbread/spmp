@@ -160,14 +160,17 @@ class Song private constructor (
     }
 
     override fun initWithData(data: ServerInfoResponse, onFinished: () -> Unit) {
-        _title = data.snippet.title
+        _title = data.snippet!!.title
         description = data.snippet.description!!
         upload_date = Date.from(Instant.parse(data.snippet.publishedAt))
-        duration = Duration.parse(data.contentDetails.duration)
+        duration = Duration.parse(data.contentDetails!!.duration)
         stream_url = data.stream_url
         artist = Artist.fromId(data.snippet.channelId!!).loadData(true) {
+            if (it == null) {
+                throw RuntimeException("Song artist is null (song: $id, artist: ${data.snippet.channelId})")
+            }
             loaded = true
-            onFinished()
+            super.initWithData(data, onFinished)
         } as Artist
     }
 
@@ -219,9 +222,9 @@ class Song private constructor (
         }
         set(value) { registry.overrides.title = value }
 
-    data class Lyrics(val source: String, val timed: Boolean, val lyrics: List<List<Term>>) {
-        data class Term(val subterms: List<Subterm>, val start: Float, val end: Float)
-        data class Subterm(val text: String, val furi: String?) {
+    data class Lyrics(val source: String, val is_timed: Boolean?, val lyrics: List<List<Term>>) {
+        data class Term(val subterms: List<Subterm>, val start: Float? = null, val end: Float? = null)
+        data class Subterm(val text: String, val furi: String? = null) {
             var index: Int = -1
         }
 
@@ -229,11 +232,16 @@ class Song private constructor (
             var index = 0
             for (line in lyrics) {
                 for (term in line) {
+                    assert(!isTimed() || (term.start != null && term.end != null))
                     for (subterm in term.subterms) {
                         subterm.index = index++
                     }
                 }
             }
+        }
+
+        fun isTimed(): Boolean {
+            return is_timed!!
         }
     }
 
@@ -266,10 +274,6 @@ class Song private constructor (
                 callback(it)
             }
         }
-    }
-
-    override fun getThumbUrl(hq: Boolean): String {
-        return "https://img.youtube.com/vi/$id/${if (hq) "hqdefault" else "mqdefault"}.jpg"
     }
 
     override fun loadThumbnail(hq: Boolean): Bitmap {
@@ -315,5 +319,4 @@ class Song private constructor (
     fun PreviewBasic(large: Boolean, modifier: Modifier, colour: Color) {
         return SongPreview(this, large, colour, modifier, true)
     }
-
 }

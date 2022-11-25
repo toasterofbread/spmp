@@ -34,6 +34,7 @@ import com.spectre7.spmp.MainActivity
 import com.spectre7.spmp.R
 import com.spectre7.spmp.api.DataApi
 import com.spectre7.spmp.model.Artist
+import com.spectre7.spmp.model.Playlist
 import com.spectre7.spmp.model.Song
 import com.spectre7.spmp.model.YtItem
 import com.spectre7.utils.getString
@@ -88,15 +89,25 @@ fun SearchPage(setOverlayPage: (page: OverlayPage) -> Unit) {
                 when (result.id.kind) {
                     "youtube#video" -> {
                         Song.fromId(result.id.videoId).loadData {
-                            result_tabs[ResourceType.SONG]?.add(it as Song)
+                            if (it != null) {
+                                result_tabs[ResourceType.SONG]?.add(it as Song)
+                            }
                         }
                     }
                     "youtube#channel" -> {
                         Artist.fromId(result.id.channelId).loadData {
-                            result_tabs[ResourceType.ARTIST]?.add(it as Artist)
+                            if (it != null) {
+                                result_tabs[ResourceType.ARTIST]?.add(it as Artist)
+                            }
                         }
                     }
-                    "youtube#playlist" -> {} // TODO
+                    "youtube#playlist" -> {
+                        Playlist.fromId(result.id.playlistId).loadData {
+                            if (it != null) {
+                                result_tabs[ResourceType.PLAYLIST]?.add(it as Playlist)
+                            }
+                        }
+                    }
                 }
             }
         }

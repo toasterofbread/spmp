@@ -15,8 +15,6 @@ class Artist private constructor (
     lateinit var name: String
     lateinit var description: String
     lateinit var creationDate: Date
-    lateinit var thumbnail_url: String
-    lateinit var thumbnail_hq_url: String
     lateinit var viewCount: String
     lateinit var subscriberCount: String
     lateinit var videoCount: String
@@ -38,25 +36,18 @@ class Artist private constructor (
         return id
     }
 
-    override fun getThumbUrl(hq: Boolean): String {
-        return if (hq) thumbnail_hq_url else thumbnail_url
-    }
-
     override fun initWithData(data: ServerInfoResponse, onFinished: () -> Unit) {
-        name = data.snippet.title
+        name = data.snippet!!.title
         description = data.snippet.description!!
         creationDate = Date.from(Instant.parse(data.snippet.publishedAt))
 
-        thumbnail_url = data.snippet.thumbnails.default.url
-        thumbnail_hq_url = data.snippet.thumbnails.high.url
-
-        viewCount = data.statistics.viewCount
+        viewCount = data.statistics!!.viewCount
         subscriberCount = data.statistics.subscriberCount!!
         hiddenSubscriberCount = data.statistics.hiddenSubscriberCount
         videoCount = data.statistics.videoCount!!
 
         loaded = true
-        onFinished()
+        super.initWithData(data, onFinished)
     }
 
     @Composable

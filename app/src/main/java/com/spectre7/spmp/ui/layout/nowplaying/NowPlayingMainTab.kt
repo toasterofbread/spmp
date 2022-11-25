@@ -413,7 +413,10 @@ fun MainTab(weight_modifier: Modifier, expansion: Float, max_height: Float, thum
             }
         }
 
-        Row(horizontalArrangement = Arrangement.End, modifier = Modifier.fillMaxWidth(0.9f)) {
+        Row(
+            Modifier.fillMaxWidth(0.9f * (1f - expansion)),
+            horizontalArrangement = Arrangement.End
+        ) {
 
             Spacer(Modifier.requiredWidth(10.dp))
 

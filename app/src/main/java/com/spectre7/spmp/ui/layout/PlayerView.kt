@@ -1,9 +1,7 @@
 package com.spectre7.spmp.ui.layout
 
 import android.annotation.SuppressLint
-import android.util.DisplayMetrics
 import androidx.compose.animation.*
-import androidx.compose.foundation.ExperimentalFoundationApi
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.gestures.Orientation
 import androidx.compose.foundation.interaction.MutableInteractionSource
@@ -176,8 +174,8 @@ fun PlayerView() {
                     for (row in feed) {
                         val entry = Row(row.title, row.subtitle)
                         for (item in row.items) {
-                            item.getPreviewable {
-                                it?.loadData(false) { loaded ->
+                            item.getPreviewable().loadData(false) { loaded ->
+                                if (loaded != null) {
                                     entry.items.add(Pair(loaded, System.currentTimeMillis()))
                                 }
                             }

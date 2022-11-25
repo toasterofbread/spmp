@@ -400,8 +400,10 @@ class PlayerHost {
                                 process_queue = false,
                                 get_stream_url = true
                             ) {
-                                MainActivity.runInMainThread {
-                                    addToQueue(it as Song)
+                                if (it != null) {
+                                    MainActivity.runInMainThread {
+                                        addToQueue(it as Song)
+                                    }
                                 }
                             }
                         }

@@ -9,7 +9,7 @@ from ytmusicapi import YTMusic
 from spectre7 import utils
 from threading import Thread
 
-from datetime import datetime as time
+USER_AGENT = "Mozilla/5.0 (X11; Linux x86_64; rv:105.0) Gecko/20100101 Firefox/105.0"
 
 class ThreadWithReturnValue(Thread):
     def __init__(self, group=None, target=None, name=None, args=(), kwargs={}, Verbose=None):
@@ -86,7 +86,9 @@ class YtApi:
             url = f"https://www.googleapis.com/youtube/v3/videos?" + urlencode(params)
             response = requests.get(url)
             if response.status_code != 200:
-                return server.errorResponse(response.status_code, f"{response.reason}\n{response.text}")
+                message: dict = {"reason": response.reason}
+                message.update(json.loads(response.text))
+                return server.errorResponse(response.status_code, message)
 
             ret: dict = response.json()["items"][0]
 
@@ -135,7 +137,9 @@ class YtApi:
 
             response = requests.get(url)
             if response.status_code != 200:
-                return server.errorResponse(response.status_code, f"{response.reason}\n{response.text}")
+                message: dict = {"reason": response.reason}
+                message.update(json.loads(response.text))
+                return server.errorResponse(response.status_code, message)
 
             ret = response.json()["items"][0]
             localiseData(ret, language)
@@ -151,6 +155,59 @@ class YtApi:
         @server.route("/yt/channels", True)
         def channels():
             result = requestChannelInfo(dict(request.args))
+            if isinstance(result, Response):
+                return result
+            return jsonify(result)
+
+        def requestPlaylistInfo(params: dict) -> dict | Response:
+            if not "id" in params:
+                return server.errorResponse(400)
+
+            language: str | None = params.get("dataLang", None)
+
+            cache = server.getCache("requestPlaylistInfo", params["id"] + str(language))
+            if cache is not None:
+                utils.info("Using cached playlist info")
+                return cache
+
+            remove_localisations = False
+            params["key"] = server.ytapi_key
+
+            if "part" in params:
+                part: list[str] = params["part"].split(",")
+                for item in list(part):
+                    if not item.strip() in ("contentDetails", "id", "localizations", "player", "snippet", "status"):
+                        part.remove(item)
+                params["part"] = ",".join(part)
+
+                if language is not None and not "localizations" in params["part"]:
+                    params["part"] += ",localizations"
+                    remove_localisations = True
+
+            url = f"https://www.googleapis.com/youtube/v3/playlists?" + urlencode(params)
+
+            response = requests.get(url)
+            if response.status_code != 200:
+                message: dict = {"reason": response.reason}
+                message.update(json.loads(response.text))
+                return server.errorResponse(response.status_code, message)
+
+            try:
+                ret = response.json()["items"][0]
+                localiseData(ret, language)
+
+                if remove_localisations:
+                    ret.pop("localizations", None)
+
+                server.setCache("requestPlaylistInfo", params["id"], ret)
+
+                return ret
+            except IndexError:
+                return {"id": params["id"], "error": "No playlist found"}
+
+        @server.route("/yt/playlists")
+        def playlists():
+            result = requestPlaylistInfo(dict(request.args))
             if isinstance(result, Response):
                 return result
             return jsonify(result)
@@ -230,6 +287,8 @@ class YtApi:
                             result = requestVideoInfo(params)
                         case "channel":
                             result = requestChannelInfo(params)
+                        case "playlist":
+                            result = requestPlaylistInfo(params)
                         case _:
                             return server.errorResponse(400, f"Invalid item type: {item['type']}")
 
@@ -282,11 +341,11 @@ class YtApi:
                         "context":{
                             "client":{
                                 "hl": request.args.get("interfaceLang", "en"),
-                                "platform":"DESKTOP",
-                                "clientName":"WEB_REMIX",
-                                "clientVersion":"1.20221031.00.00-canary_control",
-                                "userAgent":"Mozilla/5.0 (X11; Linux x86_64; rv:105.0) Gecko/20100101 Firefox/105.0,gzip(gfe)",
-                                "acceptHeader":"text/html,application/xhtml+xml,application/xml;q=0.9,image/avif,image/webp,*/*;q=0.8",
+                                "platform": "DESKTOP",
+                                "clientName": "WEB_REMIX",
+                                "clientVersion": "1.20221031.00.00-canary_control",
+                                "userAgent": USER_AGENT,
+                                "acceptHeader": "text/html,application/xhtml+xml,application/xml;q=0.9,image/avif,image/webp,*/*;q=0.8",
                             },
                             "user":{
                                 "lockedSafetyMode": False
@@ -327,7 +386,6 @@ class YtApi:
                         match key:
                             case "musicTwoRowItemRenderer":
                                 item_entry = {}
-                                items.append(item_entry)
                                 try:
                                     item_entry["id"] = item["navigationEndpoint"]["watchEndpoint"]["videoId"]
                                     item_entry["type"] = "song"
@@ -337,17 +395,45 @@ class YtApi:
                                         pass
                                 except KeyError:
                                     try:
-                                        item_entry["id"] = item["navigationEndpoint"]["browseEndpoint"]["browseId"]
-                                        item_type = item["navigationEndpoint"]["browseEndpoint"]["browseEndpointContextSupportedConfigs"]["browseEndpointContextMusicConfig"]["pageType"]
-                                        match item_type:
-                                            case "MUSIC_PAGE_TYPE_ALBUM" | "MUSIC_PAGE_TYPE_PLAYLIST":
-                                                item_entry["type"] = "playlist"
-                                            case "MUSIC_PAGE_TYPE_ARTIST":
-                                                item_entry["type"] = "artist"
-                                            case _:
-                                                raise RuntimeError(item_type)
+                                        if "watchPlaylistEndpoint" in item["navigationEndpoint"]:
+                                            item_entry["type"] = "playlist"
+                                            item_entry["id"] = item["navigationEndpoint"]["watchPlaylistEndpoint"]["playlistId"]
+                                        else:
+                                            item_type = item["navigationEndpoint"]["browseEndpoint"]["browseEndpointContextSupportedConfigs"]["browseEndpointContextMusicConfig"]["pageType"]
+                                            match item_type:
+                                                case "MUSIC_PAGE_TYPE_ALBUM" | "MUSIC_PAGE_TYPE_PLAYLIST":
+                                                    item_entry["type"] = "playlist"
+                                                case "MUSIC_PAGE_TYPE_ARTIST":
+                                                    item_entry["type"] = "artist"
+                                                case _:
+                                                    raise RuntimeError(item_type)
+
+                                            item_entry["id"] = item["navigationEndpoint"]["browseEndpoint"]["browseId"]
+
+                                            # if item_entry["id"] == "LM" or "RDTMAK5uy_" in item_entry["id"]:
+                                            #     item_entry = None
+                                            if item_entry["id"].startswith("MPREb_"):
+                                                r = requests.get(
+                                                    f"https://music.youtube.com/browse/{item_entry['id']}",
+                                                    headers = {
+                                                        "Cookie": "CONSENT=YES+1",
+                                                        "User-Agent": USER_AGENT
+                                                    }
+                                                )
+                                                r.raise_for_status()
+
+                                                target = "urlCanonical\\x22:\\x22https:\\/\\/music.youtube.com\\/playlist?list\\x3d"
+                                                pos = r.text.find(target) + len(target)
+                                                end = r.text.find("\\", pos + 1)
+
+                                                item_entry["id"] = r.text[pos:end]
+
                                     except KeyError:
                                         raise RuntimeError(json.dumps(item, indent="\t"))
+
+                                if item_entry is not None:
+                                    items.append(item_entry)
+
                             case "musicResponsiveListItemRenderer":
                                 items.append({
                                     "type": "song",

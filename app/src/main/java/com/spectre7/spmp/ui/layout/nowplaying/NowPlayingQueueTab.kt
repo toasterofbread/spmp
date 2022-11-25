@@ -55,7 +55,7 @@ fun QueueTab(weight_modifier: Modifier) {
 
         @OptIn(ExperimentalMaterialApi::class)
         @Composable
-        fun QueueElement(handle_modifier: Modifier, current: Boolean, index: Int, colour: Color, on_remove_request: () -> Unit) {
+        fun QueueElement(handle_modifier: Modifier, current: Boolean, index: Int, on_remove_request: () -> Unit) {
 
             val swipe_state = rememberSwipeableState(1)
             val max_offset = with(LocalDensity.current) { LocalConfiguration.current.screenWidthDp.dp.toPx() }
@@ -67,7 +67,7 @@ fun QueueTab(weight_modifier: Modifier) {
                 }
             }
 
-            Box((if (current) Modifier.background(colour, RoundedCornerShape(45)) else Modifier).offset {
+            Box((if (current) Modifier.background(MainActivity.theme.getOnBackground(true), RoundedCornerShape(45)) else Modifier).offset {
                 IntOffset(swipe_state.offset.value.roundToInt(), 0)
             }) {
                 Row(
@@ -75,7 +75,7 @@ fun QueueTab(weight_modifier: Modifier) {
                     verticalAlignment = Alignment.CenterVertically,
                     modifier = Modifier.padding(start = 10.dp, end = 20.dp)
                 ) {
-                    val content_colour = if (current) colour.getContrasted() else colour
+                    val content_colour = if (current) MainActivity.theme.getBackground(true) else MainActivity.theme.getOnBackground(true)
                     song.PreviewBasic(
                         false,
                         Modifier
@@ -205,7 +205,7 @@ fun QueueTab(weight_modifier: Modifier) {
                                     else EnterTransition.None,
                             exit = ExitTransition.None
                         ) {
-                            item.QueueElement(Modifier.detectReorder(state), current, index, MainActivity.theme.getOnBackground(true), remove_request)
+                            item.QueueElement(Modifier.detectReorder(state), current, index, remove_request)
                         }
                     }
                 }
@@ -249,7 +249,7 @@ fun QueueTab(weight_modifier: Modifier) {
                 ) {
                     Text(
                         text = "Clear",
-                        color = MainActivity.theme.getOnBackground(true).getContrasted()
+                        color = MainActivity.theme.getBackground(true)
                     )
                 }
 
@@ -264,7 +264,7 @@ fun QueueTab(weight_modifier: Modifier) {
                 ) {
                     Text(
                         text = "Shuffle",
-                        color = MainActivity.theme.getOnBackground(true).getContrasted()
+                        color = MainActivity.theme.getBackground(true)
                     )
                 }
 
@@ -279,7 +279,7 @@ fun QueueTab(weight_modifier: Modifier) {
                     Modifier
                         .background(MainActivity.theme.getOnBackground(true), CircleShape)
                         .size(40.dp)) {
-                    Icon(Icons.Filled.Undo, null, tint = MainActivity.theme.getOnBackground(true).getContrasted())
+                    Icon(Icons.Filled.Undo, null, tint = MainActivity.theme.getBackground(true))
                 }
             }
         }

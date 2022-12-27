@@ -9,3 +9,4 @@
 -keep class com.spectre7.spmp.api.DataApi$* { *; }
 -keep class com.spectre7.spmp.model.Song$* { *; }
 -keep class com.spectre7.spmp.model.YtItem$* { *; }
+-keep class com.spectre7.spmp.model.DataRegistry$* { *; }

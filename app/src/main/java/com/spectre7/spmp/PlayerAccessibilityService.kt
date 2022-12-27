@@ -5,11 +5,14 @@ import android.accessibilityservice.AccessibilityServiceInfo
 import android.content.Context
 import android.content.Intent
 import android.content.SharedPreferences.OnSharedPreferenceChangeListener
+import android.media.AudioManager
+import android.media.AudioManager.STREAM_MUSIC
+import android.media.AudioManager.STREAM_VOICE_CALL
 import android.view.KeyEvent
 import android.view.KeyEvent.*
 import android.view.ViewConfiguration.getLongPressTimeout
 import android.view.accessibility.AccessibilityEvent
-import com.spectre7.utils.getString as getResString
+
 
 class PlayerAccessibilityService: AccessibilityService() {
 
@@ -47,11 +50,11 @@ class PlayerAccessibilityService: AccessibilityService() {
                 pressed_time[event.keyCode] = System.currentTimeMillis()
             }
             else if (event.action == ACTION_UP) {
-                val serviceIntent = Intent(this, PlayerHost.PlayerService::class.java)
-                serviceIntent.putExtra("action", SERVICE_INTENT_ACTIONS.BUTTON_VOLUME.ordinal)
-                serviceIntent.putExtra("key_code", event.keyCode)
-                serviceIntent.putExtra("long", (System.currentTimeMillis() - pressed_time[event.keyCode]!!) >= getLongPressTimeout())
-                startService(serviceIntent)
+                val intent = Intent(this, PlayerHost.PlayerService::class.java)
+                intent.putExtra("action", SERVICE_INTENT_ACTIONS.BUTTON_VOLUME.ordinal)
+                intent.putExtra("key_code", event.keyCode)
+                intent.putExtra("long", (System.currentTimeMillis() - pressed_time[event.keyCode]!!) >= getLongPressTimeout())
+                startService(intent)
             }
             return true
         }

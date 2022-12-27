@@ -49,12 +49,14 @@ class PlayerHost {
 
     init {
         instance = this
-        getService() {
-            status = PlayerStatus(service, player)
+        getService {
+            status = PlayerStatus(it)
         }
     }
 
-    class PlayerStatus internal constructor(val service: PlayerService, val player: ExoPlayer) {
+    class PlayerStatus internal constructor(service: PlayerService) {
+        private var player: ExoPlayer
+
         val playing: Boolean get() = player.isPlaying
         val position: Float get() = player.currentPosition.toFloat() / player.duration.toFloat()
         val duration: Float get() = player.duration / 1000f
@@ -77,6 +79,7 @@ class PlayerHost {
         var m_has_previous: Boolean by mutableStateOf(false)
 
         init {
+            player = service.player
             service.addQueueListener(object : PlayerQueueListener {
                 override fun onSongAdded(song: Song, index: Int) {
                     m_queue.add(index, song)
@@ -89,39 +92,37 @@ class PlayerHost {
                 }
             })
 
-            player.addListener(object : Player.Listener {
-                    override fun onMediaItemTransition(
-                        media_item: MediaItem?,
-                        reason: Int
-                    ) {
-                        m_song = media_item?.localConfiguration?.tag as Song?
-                    }
-
-                    override fun onIsPlayingChanged(is_playing: Boolean) {
-                        m_playing = is_playing
-                    }
-
-                    override fun onShuffleModeEnabledChanged(shuffle_enabled: Boolean) {
-                        m_shuffle = shuffle_enabled
-                    }
-
-                    override fun onRepeatModeChanged(repeat_mode: Int) {
-                        m_repeat_mode = repeat_mode
-                    }
-
-                    override fun onEvents(player: Player, events: Player.Events) {
-                        m_has_previous = player.hasPreviousMediaItem()
-                        m_has_next = player.hasNextMediaItem()
-                        m_index = player.currentMediaItemIndex
-                        m_duration = duration
-                    }
+             player.addListener(object : Player.Listener {
+                override fun onMediaItemTransition(
+                    media_item: MediaItem?,
+                    reason: Int
+                ) {
+                    m_song = media_item?.localConfiguration?.tag as Song?
                 }
-            )
+
+                override fun onIsPlayingChanged(is_playing: Boolean) {
+                    m_playing = is_playing
+                }
+
+                override fun onShuffleModeEnabledChanged(shuffle_enabled: Boolean) {
+                    m_shuffle = shuffle_enabled
+                }
+
+                override fun onRepeatModeChanged(repeat_mode: Int) {
+                    m_repeat_mode = repeat_mode
+                }
+
+                override fun onEvents(player: Player, events: Player.Events) {
+                    m_has_previous = player.hasPreviousMediaItem()
+                    m_has_next = player.hasNextMediaItem()
+                    m_index = player.currentMediaItemIndex
+                    m_duration = duration
+                }
+            })
 
             service.iterateSongs { _, song ->
                 m_queue.add(song)
             }
-
             thread {
                 runBlocking {
                     while (true) {
@@ -158,17 +159,15 @@ class PlayerHost {
         }
     }
 
-    private fun getService(on_connected: (() -> Unit)? = {}) {
+    private fun getService(on_connected: ((PlayerService) -> Unit)? = {}) {
         service_intent = Intent(context, PlayerService::class.java)
-        if (!isServiceRunning()) {
-            context.startForegroundService(service_intent)
-        }
+        context.startService(service_intent)
 
         service_connection = object : ServiceConnection {
             override fun onServiceConnected(className: ComponentName, binder: IBinder) {
                 service = (binder as PlayerService.PlayerBinder).getService()
                 service_connected = true
-                on_connected?.invoke()
+                on_connected?.invoke(service)
             }
 
             override fun onServiceDisconnected(arg0: ComponentName) {
@@ -177,16 +176,6 @@ class PlayerHost {
 
         }
         context.bindService(service_intent, service_connection!!, 0)
-    }
-
-    private fun isServiceRunning(): Boolean {
-        val manager = context.getSystemService(Context.ACTIVITY_SERVICE) as ActivityManager?
-        for (service in manager!!.getRunningServices(Int.MAX_VALUE)) {
-            if (PlayerService::class.java.name == service.service.className) {
-                return true
-            }
-        }
-        return false
     }
 
     interface PlayerQueueListener {
@@ -317,7 +306,6 @@ class PlayerHost {
         }
 
         override fun onStartCommand(intent: Intent?, flags: Int, startId: Int): Int {
-            addNotificationToPlayer()
             MediaButtonReceiver.handleIntent(media_session, intent)
 
             val action = intent?.getIntExtra("action", -1)
@@ -333,13 +321,22 @@ class PlayerHost {
                     val long = intent.getBooleanExtra("long", false)
                     val key_code = intent.getIntExtra("key_code", -1)
 
-                    println("INTENT RECEIVED $key_code $long")
+                    val vol_ch = 0.1f
+
 
                     when (key_code) {
-                        KeyEvent.KEYCODE_VOLUME_UP -> {}
-                        KeyEvent.KEYCODE_VOLUME_DOWN -> {}
+                        KeyEvent.KEYCODE_VOLUME_UP -> {
+                            if (long) player.seekToNextMediaItem()
+                            else player.volume = player.volume + vol_ch
+                        }
+                        KeyEvent.KEYCODE_VOLUME_DOWN -> {
+                            if (long) player.seekToPreviousMediaItem()
+                            else player.volume = player.volume - vol_ch
+                        }
                         else -> TODO()
                     }
+
+                    println("$key_code | $long | ${player.volume}")
                 }
                 else -> throw RuntimeException(action.toString())
             }
@@ -450,6 +447,7 @@ class PlayerHost {
                     player.addMediaItem(index, item)
                 }
                 onSongAdded(item)
+                addNotificationToPlayer()
                 onFinished?.invoke()
             }
         }
@@ -527,7 +525,7 @@ class PlayerHost {
                         }
 
                         override fun getCurrentContentTitle(player: Player): String {
-                            return getCurrentSong()?.title ?: "Unknown"
+                            return getCurrentSong()?.title ?: "NULL"
                         }
 
                         override fun getCurrentLargeIcon(player: Player, callback: PlayerNotificationManager.BitmapCallback): Bitmap? {
@@ -617,9 +615,6 @@ class PlayerHost {
 
                 playerNotificationManager?.setUseNextActionInCompactView(true)
                 playerNotificationManager?.setUsePreviousActionInCompactView(true)
-
-                playerNotificationManager?.setColor(Color.Red.toArgb())
-                playerNotificationManager?.setColorized(true)
 
                 playerNotificationManager?.setPlayer(player)
                 playerNotificationManager?.setMediaSessionToken(media_session!!.sessionToken)

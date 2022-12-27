@@ -35,6 +35,7 @@ import androidx.compose.ui.zIndex
 import com.spectre7.spmp.MainActivity
 import com.spectre7.spmp.PlayerHost
 import com.spectre7.spmp.R
+import com.spectre7.spmp.model.Settings
 import com.spectre7.spmp.model.Song
 import com.spectre7.spmp.ui.component.PillMenu
 import com.spectre7.utils.getString
@@ -48,7 +49,7 @@ import kotlin.math.abs
 fun LyricsDisplay(song: Song, close: () -> Unit, size: Dp, seek_state: Any, openShutterMenu: (@Composable () -> Unit) -> Unit) {
 
     var lyrics: Song.Lyrics? by remember { mutableStateOf(null) }
-    var show_furigana: Boolean by remember { mutableStateOf(MainActivity.prefs.getBoolean("lyrics_default_furigana", true)) }
+    var show_furigana: Boolean by remember { mutableStateOf(Settings.prefs.getBoolean(Settings.KEY_LYRICS_DEFAULT_FURIGANA.name, true)) }
 
     val scroll_state = rememberLazyListState()
 
@@ -135,8 +136,8 @@ fun CoreLyricsDisplay(size: Dp, seek_state: Any, lyrics: Song.Lyrics, scroll_sta
     val text_positions = remember { mutableStateListOf<TermInfo>() }
     val size_px = with(LocalDensity.current) { size.toPx() }
     TimingOverlay(lyrics, text_positions, false, seek_state) { position ->
-        if (MainActivity.prefs.getBoolean("lyrics_follow_enabled", true)) {
-            val offset = size_px * MainActivity.prefs.getFloat("lyrics_follow_offset", 0.5f)
+        if (Settings.prefs.getBoolean(Settings.KEY_LYRICS_FOLLOW_ENABLED.name, true)) {
+            val offset = size_px * Settings.prefs.getFloat(Settings.KEY_LYRICS_FOLLOW_OFFSET.name, 0.5f)
             scroll_state.animateScrollToItem(0, (position - offset).toInt())
         }
     }
@@ -163,7 +164,7 @@ fun CoreLyricsDisplay(size: Dp, seek_state: Any, lyrics: Song.Lyrics, scroll_sta
             TextWithReading(
                 terms,
                 show_readings = it,
-                textAlign = when (MainActivity.prefs.getInt("lyrics_text_alignment", 0)) {
+                textAlign = when (Settings.prefs.getInt(Settings.KEY_LYRICS_TEXT_ALIGNMENT.name, 0)) {
                     0 -> TextAlign.Left
                     1 -> TextAlign.Center
                     else -> TextAlign.Right

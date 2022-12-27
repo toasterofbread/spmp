@@ -137,6 +137,7 @@ dependencies {
     implementation "com.google.accompanist:accompanist-pager:0.21.2-beta"
     implementation "com.google.accompanist:accompanist-pager-indicators:0.21.2-beta"
     implementation "com.google.accompanist:accompanist-systemuicontroller:0.21.2-beta"
+    implementation "com.google.accompanist:accompanist-swiperefresh:0.21.2-beta"
     implementation 'com.google.android.exoplayer:exoplayer:2.18.1'
     implementation 'com.google.android.exoplayer:extension-mediasession:2.18.1'
     implementation 'androidx.palette:palette:1.0.0'

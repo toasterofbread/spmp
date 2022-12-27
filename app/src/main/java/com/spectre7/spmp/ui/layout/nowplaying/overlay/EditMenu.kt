@@ -15,6 +15,7 @@ import androidx.compose.ui.geometry.Rect
 import androidx.compose.ui.geometry.Size
 import androidx.compose.ui.graphics.Outline
 import androidx.compose.ui.graphics.Shape
+import androidx.compose.ui.text.input.TextFieldValue
 import androidx.compose.ui.unit.*
 import androidx.compose.ui.zIndex
 import com.google.accompanist.pager.ExperimentalPagerApi
@@ -134,6 +135,9 @@ fun EditMenu(song: Song, openShutterMenu: (@Composable () -> Unit) -> Unit, clos
 
             HorizontalPager(2, state = tab_state) { page ->
                 Column {
+
+                    TextField(remember { mutableStateOf(TextFieldValue()) }.value, {})
+
                     if (page == 1) {
                         Switch(
                             checked = song.registry.overrides.lyrics_search_use_main_overrides,

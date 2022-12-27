@@ -14,15 +14,23 @@ import com.spectre7.composesettings.ui.SettingsInterface
 import com.spectre7.composesettings.ui.SettingsPage
 import com.spectre7.spmp.MainActivity
 import com.spectre7.spmp.R
+import com.spectre7.spmp.model.Settings
 import com.spectre7.utils.OnChangedEffect
 import com.spectre7.utils.getString
+import java.util.*
 
 enum class Page { ROOT, OTHER }
 
 @Composable
 fun PrefsPage(setOverlayPage: (page: OverlayPage) -> Unit) {
 
-    val interface_lang = remember { SettingsValueState(MainActivity.languages.keys.indexOf("en"), "interface_lang", MainActivity.prefs) }
+    val interface_lang = remember {
+        SettingsValueState<Int>(
+            Settings.KEY_LANG_UI.name,
+            Settings.prefs,
+            Settings.getDefaultProvider()
+        )
+    }
     var language_data by remember { mutableStateOf(MainActivity.languages.values.elementAt(interface_lang.value)) }
 
     OnChangedEffect(interface_lang.value) {
@@ -49,7 +57,7 @@ fun PrefsPage(setOverlayPage: (page: OverlayPage) -> Unit) {
                 },
 
                 SettingsItemDropdown(
-                    SettingsValueState(MainActivity.languages.keys.indexOf("en"), "data_lang", MainActivity.prefs),
+                    SettingsValueState(Settings.KEY_LANG_DATA.name, Settings.prefs, Settings.getDefaultProvider()),
                     getString(R.string.s_key_data_lang), getString(R.string.s_sub_data_lang),
                     MainActivity.languages.values.first().size,
                     { i ->
@@ -63,7 +71,7 @@ fun PrefsPage(setOverlayPage: (page: OverlayPage) -> Unit) {
                 SettingsGroup(getString(R.string.s_group_theming)),
 
                 SettingsItemMultipleChoice(
-                    SettingsValueState(0, "accent_colour_source", MainActivity.prefs),
+                    SettingsValueState(Settings.KEY_ACCENT_COLOUR_SOURCE.name, Settings.prefs, Settings.getDefaultProvider()),
                     getString(R.string.s_key_accent_source), null,
                     2, false
                 ) { choice ->
@@ -78,7 +86,7 @@ fun PrefsPage(setOverlayPage: (page: OverlayPage) -> Unit) {
                 },
 
                 SettingsItemMultipleChoice(
-                    SettingsValueState(0, "np_theme_mode", MainActivity.prefs),
+                    SettingsValueState(Settings.KEY_NOWPLAYING_THEME_MODE.name, Settings.prefs, Settings.getDefaultProvider()),
                     getString(R.string.s_key_np_theme_mode), null,
                     3, false
                 ) { choice ->
@@ -98,23 +106,23 @@ fun PrefsPage(setOverlayPage: (page: OverlayPage) -> Unit) {
                 SettingsGroup(getString(R.string.s_group_lyrics)),
 
                 SettingsItemToggle(
-                    SettingsValueState(true, "lyrics_follow_enabled", MainActivity.prefs),
+                    SettingsValueState(Settings.KEY_LYRICS_FOLLOW_ENABLED.name, Settings.prefs, Settings.getDefaultProvider()),
                     "Follow current line", "When displaying timed lyrics, scroll to the current line automatically"
                 ),
 
                 SettingsItemSlider(
-                    SettingsValueState(0.5f, "lyrics_follow_offset", MainActivity.prefs),
+                    SettingsValueState(Settings.KEY_LYRICS_FOLLOW_OFFSET.name, Settings.prefs, Settings.getDefaultProvider()),
                     "Followed line position", "When scrolling to the current line, position within the view to place the line",
                     "Top", "Bottom", steps = 5
                 ),
 
                 SettingsItemToggle(
-                    SettingsValueState(true, "lyrics_default_furigana", MainActivity.prefs),
+                    SettingsValueState(Settings.KEY_LYRICS_DEFAULT_FURIGANA.name, Settings.prefs, Settings.getDefaultProvider()),
                     "Show furigana by default", null
                 ),
 
                 SettingsItemDropdown(
-                    SettingsValueState(0, "lyrics_text_alignment", MainActivity.prefs),
+                    SettingsValueState(Settings.KEY_LYRICS_TEXT_ALIGNMENT.name, Settings.prefs, Settings.getDefaultProvider()),
                     "Text alignment", null, 3
                 ) { i ->
                     when (i) {

@@ -40,6 +40,7 @@ import com.google.android.exoplayer2.Player
 import com.spectre7.spmp.MainActivity
 import com.spectre7.spmp.PlayerHost
 import com.spectre7.spmp.R
+import com.spectre7.spmp.model.Settings
 import com.spectre7.spmp.ui.layout.MINIMISED_NOW_PLAYING_HEIGHT
 import com.spectre7.spmp.ui.layout.nowplaying.overlay.DownloadMenu
 import com.spectre7.spmp.ui.layout.nowplaying.overlay.EditMenu
@@ -69,8 +70,8 @@ fun MainTab(weight_modifier: Modifier, expansion: Float, max_height: Float, thum
     val colour_filter = ColorFilter.tint(MainActivity.theme.getOnBackground(true))
     var seek_state by remember { mutableStateOf(-1f) }
     var theme_palette by remember { mutableStateOf<Palette?>(null) }
-    var accent_colour_source by remember { mutableStateOf(AccentColourSource.values()[MainActivity.prefs.getInt("accent_colour_source", 0)]) }
-    var theme_mode by remember { mutableStateOf(ThemeMode.values()[MainActivity.prefs.getInt("np_theme_mode", 0)]) }
+    var accent_colour_source by remember { mutableStateOf(AccentColourSource.values()[Settings.prefs.getInt(Settings.KEY_ACCENT_COLOUR_SOURCE.name, 0)]) }
+    var theme_mode by remember { mutableStateOf(ThemeMode.values()[Settings.prefs.getInt(Settings.KEY_NOWPLAYING_THEME_MODE.name, 0)]) }
 
     fun setThumbnail(thumb: ImageBitmap?, on_finished: () -> Unit) {
         _setThumbnail(thumb)
@@ -106,9 +107,9 @@ fun MainTab(weight_modifier: Modifier, expansion: Float, max_height: Float, thum
     }
 
     DisposableEffect(Unit) {
-        MainActivity.prefs.registerOnSharedPreferenceChangeListener(prefs_listener)
+        Settings.prefs.registerOnSharedPreferenceChangeListener(prefs_listener)
         onDispose {
-            MainActivity.prefs.unregisterOnSharedPreferenceChangeListener(prefs_listener)
+            Settings.prefs.unregisterOnSharedPreferenceChangeListener(prefs_listener)
         }
     }
 
@@ -276,7 +277,6 @@ fun MainTab(weight_modifier: Modifier, expansion: Float, max_height: Float, thum
                                             .padding(20.dp),
                                         verticalArrangement = Arrangement.SpaceBetween
                                     ) {
-
                                         PlayerHost.status.m_song?.artist?.Preview(false)
 
                                         Row(

@@ -9,12 +9,10 @@ import com.chaquo.python.Python
 import com.spectre7.spmp.MainActivity
 import com.spectre7.spmp.PlayerHost
 import com.spectre7.spmp.R
-import com.spectre7.spmp.model.Artist
-import com.spectre7.spmp.model.Playlist
-import com.spectre7.spmp.model.Song
-import com.spectre7.spmp.model.YtItem
+import com.spectre7.spmp.model.*
 import com.spectre7.spmp.ui.layout.ResourceType
 import com.spectre7.utils.getString
+import com.spectre7.utils.toInt
 import kotlinx.coroutines.runBlocking
 import kotlinx.coroutines.sync.Mutex
 import kotlinx.coroutines.sync.withLock
@@ -201,7 +199,7 @@ class DataApi {
             return counterpart.callAttr("get", "videoId").toString()
         }
 
-        fun getSongRadio(song_id: String, include_first: Boolean = true, limit: Int = 25): List<String> {
+        fun getSongRadio(song_id: String, include_first: Boolean = true): List<String> {
             val body = """
             {
                 "enablePersistentPlaylistPanel": true,
@@ -348,9 +346,9 @@ class DataApi {
 
             var url_suffix = "$formatted_endpoint?key=${getString(R.string.server_api_key)}"
 
-            for (key in listOf(Pair("data_lang", "dataLang"), Pair("interface_lang", "interfaceLang"))) {
+            for (key in listOf(Pair(Settings.KEY_LANG_DATA, "dataLang"), Pair(Settings.KEY_LANG_UI, "interfaceLang"))) {
                 if (!parameters.containsKey(key.second)) {
-                    val value = MainActivity.languages.keys.elementAt(MainActivity.prefs.getInt(key.first, MainActivity.languages.keys.indexOf("en")))
+                    val value = MainActivity.languages.keys.elementAt(Settings.get(key.first))
                     url_suffix += "&${key.second}=$value"
                 }
             }
@@ -429,8 +427,8 @@ class DataApi {
             }
         }
 
-        fun getRecommendedFeed(): List<RecommendedFeedRow> {
-            val data = queryServer("/feed", timeout=30, throw_on_fail = true)!!
+        fun getRecommendedFeed(allow_cached: Boolean = true): List<RecommendedFeedRow> {
+            val data = queryServer("/feed", mapOf("noCache" to (!allow_cached).toInt().toString()), timeout=30, throw_on_fail = true)!!
             return klaxon.parseArray(data.byteStream())!!
         }
     }

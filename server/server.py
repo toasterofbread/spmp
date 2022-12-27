@@ -19,9 +19,17 @@ CACHE_LIFETIME = 24 * 60 * 60
 CACHE_PATH = path.join(path.dirname(__file__), "cache.json")
 PAGE_ROOT = path.abspath(path.join(path.dirname(__file__), "pages"))
 
-def getNgrokUrl(headers: dict):
-    result = requests.get("https://api.ngrok.com/tunnels", headers=headers)
-    return json.loads(result.text)["tunnels"][0]["public_url"]
+def getNgrokUrl(headers: dict, timeout: int = 5):
+    while timeout > 0:
+        try:
+            result = requests.get("https://api.ngrok.com/tunnels", headers=headers)
+            return json.loads(result.text)["tunnels"][0]["public_url"]
+        except IndexError as e:
+            sleep(1)
+
+            timeout -= 1
+            if timeout <= 0:
+                raise e
 
 def isMutexLocked(mutex):
     locked = mutex.acquire(blocking=False)
@@ -46,14 +54,6 @@ class Server:
         self.server = None
         self.start_time = 0
         self.restart_queue = None
-
-        if not self.integrated:
-            import multiprocessing
-            manager = multiprocessing.Manager()
-            self.refresh_mutex = manager.Lock()
-            self.cached_feed = manager.Value("l", [])
-            self.cached_feed_set = manager.Value("b", False)
-            self.exiting = manager.Value("b", False)
 
         YtApi(self.app, self)
 
@@ -182,7 +182,7 @@ class Server:
             params.update(request.args)
             key = json.dumps(params)
 
-            if not request.args.get("noCached", None):
+            if request.args.get("noCache", None) == "1":
                 cached = self.getCache(request.path, key)
                 if cached is not None:
                     utils.info("Using cached value")
@@ -231,8 +231,6 @@ class Server:
             except KeyboardInterrupt:
                 utils.info("\nExiting...")
                 exit()
-
-            self.exiting.set(True)
 
             import psutil, subprocess
             psutil.Process(ngrok_process.pid).kill() # type: ignore

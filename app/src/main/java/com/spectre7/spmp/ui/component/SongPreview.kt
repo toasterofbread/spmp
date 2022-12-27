@@ -34,7 +34,7 @@ fun SongPreview (song: Song, large: Boolean, colour: Color, modifier: Modifier =
         Column(
             modifier.padding(10.dp, 0.dp).clickable {
                 PlayerHost.service.playSong(song)
-            },
+            }.aspectRatio(0.8f),
             horizontalAlignment = Alignment.CenterHorizontally,
             verticalArrangement = Arrangement.spacedBy(5.dp)
         ) {

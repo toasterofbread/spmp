@@ -20,6 +20,7 @@ import androidx.compose.ui.unit.*
 import com.github.krottv.compose.sliders.DefaultThumb
 import com.github.krottv.compose.sliders.DefaultTrack
 import com.github.krottv.compose.sliders.SliderValueHorizontal
+import com.spectre7.spmp.model.Settings
 import com.spectre7.utils.*
 
 abstract class SettingsItem {
@@ -37,20 +38,25 @@ class SettingsGroup(var title: String?): SettingsItem() {
     }
 }
 
-class SettingsValueState<T>(initial_value: T, val key: String, val prefs: SharedPreferences) {
-    private var _value: T by mutableStateOf(getInitialValue(initial_value))
+class SettingsValueState<T>(
+    val key: String,
+    private val prefs: SharedPreferences,
+    private val default_provider: (String) -> T
+) {
+    private var _value: T by mutableStateOf(getInitialValue())
     internal var autosave: Boolean = true
 
     var value: T
         get() = _value
-        set(new_value: T) {
+        set(new_value) {
             _value = new_value
             if (autosave) {
                 save()
             }
         }
 
-    private fun getInitialValue(default: T): T {
+    private fun getInitialValue(): T {
+        val default = default_provider(key)
         return when (default!!::class) {
             Boolean::class -> prefs.getBoolean(key, default as Boolean)
             Float::class -> prefs.getFloat(key, default as Float)

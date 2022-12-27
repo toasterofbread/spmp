@@ -86,7 +86,7 @@ class DataRegistry(var songs: MutableMap<String, SongEntry> = mutableMapOf()) {
                 state.value = value
 
                 property.set(this, value)
-                Song.song_registry!!.save(MainActivity.prefs)
+                Song.song_registry!!.save(Settings.prefs)
             }
 
             fun isDefault(): Boolean {
@@ -154,7 +154,7 @@ class Song private constructor (
 
     init {
         if (song_registry == null) {
-            song_registry = DataRegistry.load(MainActivity.prefs)
+            song_registry = DataRegistry.load(Settings.prefs)
         }
         registry = song_registry!!.getSongEntry(getId())
     }
@@ -165,13 +165,14 @@ class Song private constructor (
         upload_date = Date.from(Instant.parse(data.snippet.publishedAt))
         duration = Duration.parse(data.contentDetails!!.duration)
         stream_url = data.stream_url
-        artist = Artist.fromId(data.snippet.channelId!!).loadData(true) {
+        Artist.fromId(data.snippet.channelId!!).loadData(true) {
             if (it == null) {
                 throw RuntimeException("Song artist is null (song: $id, artist: ${data.snippet.channelId})")
             }
             loaded = true
+            artist = it as Artist
             super.initWithData(data, onFinished)
-        } as Artist
+        }
     }
 
     var theme_colour: Color?

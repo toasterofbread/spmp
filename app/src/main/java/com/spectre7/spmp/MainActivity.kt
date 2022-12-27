@@ -19,9 +19,12 @@ import com.beust.klaxon.JsonObject
 import com.beust.klaxon.Klaxon
 import com.chaquo.python.Python
 import com.chaquo.python.android.AndroidPlatform
+import com.spectre7.spmp.model.Settings
 import com.spectre7.spmp.ui.layout.PlayerView
 import com.spectre7.spmp.ui.theme.MyApplicationTheme
 import com.spectre7.utils.Theme
+import java.util.*
+
 
 class MainActivity : ComponentActivity() {
 
@@ -32,21 +35,30 @@ class MainActivity : ComponentActivity() {
         super.onCreate(savedInstanceState)
         instance = this
 
+        languages = loadLanguages()
+
+        fun updateLanguage(lang: Int) {
+            println("SET LANG ${MainActivity.languages.keys.elementAt(lang)}")
+
+            val myLocale = Locale(MainActivity.languages.keys.elementAt(lang))
+            val conf = resources.configuration
+            conf.setLocale(myLocale)
+//            Locale.setDefault(myLocale)
+            conf.setLayoutDirection(myLocale)
+            resources.updateConfiguration(conf, resources.displayMetrics)
+        }
+
+        Settings.prefs.registerOnSharedPreferenceChangeListener { _, key: String ->
+            if (key == Settings.KEY_LANG_UI.name) {
+                updateLanguage(Settings.get(Settings.KEY_LANG_UI))
+            }
+        }
+
+        updateLanguage(Settings.get(Settings.KEY_LANG_UI))
+
         if (!Python.isStarted()) {
             Python.start(AndroidPlatform(this))
         }
-
-        val data = resources.assets.open("languages.json").bufferedReader()
-
-        val langs = mutableMapOf<String, Map<String, String>>()
-        for (item in Klaxon().parseJsonObject(data).entries) {
-            val map = mutableMapOf<String, String>()
-            for (subitem in (item.value as JsonObject).entries) {
-                map[subitem.key] = subitem.value.toString()
-            }
-            langs[item.key] = map
-        }
-        languages = langs
 
         PlayerHost()
 
@@ -71,6 +83,19 @@ class MainActivity : ComponentActivity() {
     override fun onDestroy() {
         super.onDestroy()
         PlayerHost.release()
+    }
+
+    private fun loadLanguages(): MutableMap<String, Map<String, String>> {
+        val data = resources.assets.open("languages.json").bufferedReader()
+        val ret = mutableMapOf<String, Map<String, String>>()
+        for (item in Klaxon().parseJsonObject(data).entries) {
+            val map = mutableMapOf<String, String>()
+            for (subitem in (item.value as JsonObject).entries) {
+                map[subitem.key] = subitem.value.toString()
+            }
+            ret[item.key] = map
+        }
+        return ret
     }
 
     companion object {

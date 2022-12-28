@@ -63,55 +63,28 @@ fun NowPlaying(expansion: Float, max_height: Float, close: () -> Unit) {
 
     val screen_width_dp = LocalConfiguration.current.screenWidthDp.dp
     val screen_width_px = with(LocalDensity.current) { screen_width_dp.roundToPx() }
-    val NOW_PLAYING_MAIN_PADDING_px = with(LocalDensity.current) { NOW_PLAYING_MAIN_PADDING.roundToPx() }
+    val main_padding_px = with(LocalDensity.current) { NOW_PLAYING_MAIN_PADDING.roundToPx() }
 
-    var thumbnail by remember { mutableStateOf<ImageBitmap?>(null) }
+    val thumbnail = remember { mutableStateOf<ImageBitmap?>(null) }
 
     Box(Modifier.padding(NOW_PLAYING_MAIN_PADDING)) {
 
-        var current_tab by remember { mutableStateOf(NowPlayingTab.PLAYER) }
+        val current_tab = remember { mutableStateOf(NowPlayingTab.PLAYER) }
 
         fun getTabScrollTarget(): Int {
-            return current_tab.ordinal * (screen_width_px - (NOW_PLAYING_MAIN_PADDING_px * 2))
+            return current_tab.value.ordinal * (screen_width_px - (main_padding_px * 2))
         }
         val tab_scroll_state = rememberScrollState(getTabScrollTarget())
 
-        LaunchedEffect(current_tab) {
+        LaunchedEffect(current_tab.value) {
+            println("got ${current_tab.value}")
             tab_scroll_state.animateScrollTo(getTabScrollTarget())
         }
 
         LaunchedEffect(expanded) {
             if (!expanded) {
-                current_tab = NowPlayingTab.PLAYER
-            }
-            tab_scroll_state.scrollTo(getTabScrollTarget())
-        }
-
-        @Composable
-        fun Tab(tab: NowPlayingTab, modifier: Modifier = Modifier) {
-            BackHandler(tab == current_tab && expanded) {
-                if (tab == NowPlayingTab.PLAYER) {
-                    close()
-                }
-                else {
-                    current_tab = NowPlayingTab.PLAYER
-                }
-            }
-
-            Column(verticalArrangement = Arrangement.Top, modifier = modifier.fillMaxHeight().run {
-                if (tab == NowPlayingTab.PLAYER) {
-                    padding(15.dp * expansion)
-                }
-                else {
-                    padding(top = 20.dp)
-                }
-            }) {
-                if (tab == NowPlayingTab.PLAYER) {
-                    MainTab(Modifier.weight(1f), expansion, max_height, thumbnail) { thumbnail = it }
-                }
-                else if (tab == NowPlayingTab.QUEUE) {
-                    QueueTab(Modifier.weight(1f))
-                }
+                current_tab.value = NowPlayingTab.PLAYER
+//                tab_scroll_state.scrollTo(getTabScrollTarget())
             }
         }
 
@@ -124,47 +97,20 @@ fun NowPlaying(expansion: Float, max_height: Float, close: () -> Unit) {
                     .weight(1f)
             ) {
                 for (page in 0 until NowPlayingTab.values().size) {
-                    Tab(NowPlayingTab.values()[page], Modifier.requiredWidth(screen_width_dp - (NOW_PLAYING_MAIN_PADDING * 2)))
+                    Tab(
+                        NowPlayingTab.values()[page],
+                        current_tab,
+                        expansion,
+                        max_height,
+                        thumbnail,
+                        close,
+                        Modifier.requiredWidth(screen_width_dp - (NOW_PLAYING_MAIN_PADDING * 2))
+                    )
                 }
             }
 
             if (expansion > 0.0f) {
-                MultiSelector(
-                    3,
-                    current_tab.ordinal,
-                    Modifier.requiredHeight(60.dp * 0.8f),
-                    Modifier.aspectRatio(1f),
-                    colour = setColourAlpha(MainActivity.theme.getOnBackground(true), 0.75),
-                    background_colour = MainActivity.theme.getBackground(true),
-                    on_selected = { current_tab = NowPlayingTab.values()[it] }
-                ) { index ->
-
-                    val tab = NowPlayingTab.values()[index]
-
-                    Box(
-                        contentAlignment = Alignment.Center
-                    ) {
-
-                        val colour = if (tab == current_tab) MainActivity.theme.getBackground(true) else MainActivity.theme.getOnBackground(true)
-
-                        Image(
-                            when(tab) {
-                                NowPlayingTab.PLAYER -> rememberVectorPainter(Icons.Filled.PlayArrow)
-                                NowPlayingTab.QUEUE -> painterResource(R.drawable.ic_music_queue)
-                                NowPlayingTab.RELATED -> rememberVectorPainter(Icons.Filled.Menu)
-                            }, "",
-                            Modifier
-                                .requiredSize(60.dp * 0.4f, 60.dp)
-                                .offset(y = (-7).dp),
-                            colorFilter = ColorFilter.tint(colour)
-                        )
-                        Text(when (tab) {
-                            NowPlayingTab.PLAYER -> getString(R.string.now_playing_player)
-                            NowPlayingTab.QUEUE -> getString(R.string.now_playing_queue)
-                            NowPlayingTab.RELATED -> getString(R.string.now_playing_related)
-                        }, color = colour, fontSize = 10.sp, modifier = Modifier.offset(y = (10).dp))
-                    }
-                }
+                TabSelector(current_tab)
             }
         }
     }
@@ -294,4 +240,80 @@ fun MinimisedProgressBar(expansion: Float) {
             .fillMaxWidth()
             .alpha(1f - expansion)
     )
+}
+
+@Composable
+fun TabSelector(current_tab: MutableState<NowPlayingTab>) {
+    MultiSelector(
+        3,
+        current_tab.value.ordinal,
+        Modifier.requiredHeight(60.dp * 0.8f),
+        Modifier.aspectRatio(1f),
+        colour = setColourAlpha(MainActivity.theme.getOnBackground(true), 0.75),
+        background_colour = MainActivity.theme.getBackground(true),
+        on_selected = { current_tab.value = NowPlayingTab.values()[it]; println("set ${current_tab.value}") }
+    ) { index ->
+
+        val tab = NowPlayingTab.values()[index]
+
+        Box(
+            contentAlignment = Alignment.Center
+        ) {
+
+            val colour = if (tab == current_tab.value) MainActivity.theme.getBackground(true) else MainActivity.theme.getOnBackground(true)
+
+            Image(
+                when(tab) {
+                    NowPlayingTab.PLAYER -> rememberVectorPainter(Icons.Filled.PlayArrow)
+                    NowPlayingTab.QUEUE -> painterResource(R.drawable.ic_music_queue)
+                    NowPlayingTab.RELATED -> rememberVectorPainter(Icons.Filled.Menu)
+                }, "",
+                Modifier
+                    .requiredSize(60.dp * 0.4f, 60.dp)
+                    .offset(y = (-7).dp),
+                colorFilter = ColorFilter.tint(colour)
+            )
+            Text(when (tab) {
+                NowPlayingTab.PLAYER -> getString(R.string.now_playing_player)
+                NowPlayingTab.QUEUE -> getString(R.string.now_playing_queue)
+                NowPlayingTab.RELATED -> getString(R.string.now_playing_related)
+            }, color = colour, fontSize = 10.sp, modifier = Modifier.offset(y = (10).dp))
+        }
+    }
+}
+
+@Composable
+fun Tab(
+    tab: NowPlayingTab,
+    open_tab: MutableState<NowPlayingTab>,
+    expansion: Float,
+    max_height: Float,
+    thumbnail: MutableState<ImageBitmap?>,
+    close: () -> Unit,
+    modifier: Modifier = Modifier
+) {
+    BackHandler(tab == open_tab.value && expansion >= EXPANDED_THRESHOLD) {
+        if (tab == NowPlayingTab.PLAYER) {
+            close()
+        }
+        else {
+            open_tab.value = NowPlayingTab.PLAYER
+        }
+    }
+
+    Column(verticalArrangement = Arrangement.Top, modifier = modifier.fillMaxHeight().run {
+        if (tab == NowPlayingTab.PLAYER) {
+            padding(15.dp * expansion)
+        }
+        else {
+            padding(top = 20.dp)
+        }
+    }) {
+        if (tab == NowPlayingTab.PLAYER) {
+            MainTab(Modifier.weight(1f), expansion, max_height, thumbnail.value) { thumbnail.value = it }
+        }
+        else if (tab == NowPlayingTab.QUEUE) {
+            QueueTab(Modifier.weight(1f))
+        }
+    }
 }

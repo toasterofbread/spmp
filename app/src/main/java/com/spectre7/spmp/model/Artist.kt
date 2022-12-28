@@ -8,7 +8,7 @@ import java.time.Instant
 import java.util.*
 
 class Artist private constructor (
-    private val id: String
+    private val _id: String
 ): YtItem() {
 
     // Data
@@ -32,8 +32,8 @@ class Artist private constructor (
         }
     }
 
-    override fun getId(): String {
-        return id
+    override fun _getId(): String {
+        return _id
     }
 
     override fun initWithData(data: ServerInfoResponse, onFinished: () -> Unit) {

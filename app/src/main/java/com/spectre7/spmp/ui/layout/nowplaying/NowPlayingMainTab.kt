@@ -1,5 +1,6 @@
 package com.spectre7.spmp.ui.layout.nowplaying
 
+import android.content.Intent
 import android.content.SharedPreferences
 import androidx.activity.compose.BackHandler
 import androidx.compose.animation.*
@@ -13,8 +14,7 @@ import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.filled.Edit
-import androidx.compose.material.icons.filled.KeyboardArrowUp
+import androidx.compose.material.icons.filled.*
 import androidx.compose.material.ripple.rememberRipple
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
@@ -30,8 +30,10 @@ import androidx.compose.ui.graphics.painter.Painter
 import androidx.compose.ui.input.pointer.pointerInput
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.layout.onSizeChanged
+import androidx.compose.ui.platform.LocalClipboardManager
 import androidx.compose.ui.platform.LocalConfiguration
 import androidx.compose.ui.res.painterResource
+import androidx.compose.ui.text.AnnotatedString
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.*
@@ -41,7 +43,9 @@ import com.spectre7.spmp.MainActivity
 import com.spectre7.spmp.PlayerHost
 import com.spectre7.spmp.R
 import com.spectre7.spmp.model.Settings
+import com.spectre7.spmp.model.Song
 import com.spectre7.spmp.ui.layout.MINIMISED_NOW_PLAYING_HEIGHT
+import com.spectre7.spmp.ui.layout.OverlayPage
 import com.spectre7.spmp.ui.layout.nowplaying.overlay.DownloadMenu
 import com.spectre7.spmp.ui.layout.nowplaying.overlay.EditMenu
 import com.spectre7.spmp.ui.layout.nowplaying.overlay.LyricsDisplay
@@ -96,12 +100,11 @@ fun MainTab(weight_modifier: Modifier, expansion: Float, max_height: Float, thum
     }
 
     val prefs_listener = remember {
-        SharedPreferences.OnSharedPreferenceChangeListener { prefs, key ->
-            if (key == "accent_colour_source") {
-                accent_colour_source =
-                    AccentColourSource.values()[prefs.getInt("accent_colour_source", 0)]
-            } else if (key == "np_theme_mode") {
-                theme_mode = ThemeMode.values()[prefs.getInt("np_theme_mode", 0)]
+        SharedPreferences.OnSharedPreferenceChangeListener { _, key ->
+            if (key == Settings.KEY_ACCENT_COLOUR_SOURCE.name) {
+                accent_colour_source = AccentColourSource.values()[Settings.get(Settings.KEY_ACCENT_COLOUR_SOURCE)]
+            } else if (key == Settings.KEY_NOWPLAYING_THEME_MODE.name) {
+                theme_mode = ThemeMode.values()[Settings.get(Settings.KEY_NOWPLAYING_THEME_MODE)]
             }
         }
     }
@@ -241,14 +244,19 @@ fun MainTab(weight_modifier: Modifier, expansion: Float, max_height: Float, thum
                 }
             }
 
+            var get_shutter_menu by remember { mutableStateOf<(@Composable () -> Unit)?>(null) }
+            var shutter_menu_open by remember { mutableStateOf(false) }
+            LaunchedEffect(expansion >= EXPANDED_THRESHOLD) {
+                shutter_menu_open = false
+                overlay_menu = NowPlayingOverlayMenu.NONE
+            }
+
             // Thumbnail overlay menu
             androidx.compose.animation.AnimatedVisibility(
                 overlay_menu != NowPlayingOverlayMenu.NONE,
                 enter = fadeIn(tween(OVERLAY_MENU_ANIMATION_DURATION)),
                 exit = fadeOut(tween(OVERLAY_MENU_ANIMATION_DURATION))
             ) {
-                var get_shutter_menu by remember { mutableStateOf<(@Composable () -> Unit)?>(null) }
-                var shutter_menu_open by remember { mutableStateOf(false) }
 
                 Box(Modifier.alpha(expansion)) {
                     Box(
@@ -271,74 +279,11 @@ fun MainTab(weight_modifier: Modifier, expansion: Float, max_height: Float, thum
 
                             when (menu) {
                                 NowPlayingOverlayMenu.MAIN ->
-                                    Column(
-                                        Modifier
-                                            .fillMaxSize()
-                                            .padding(20.dp),
-                                        verticalArrangement = Arrangement.SpaceBetween
-                                    ) {
-                                        PlayerHost.status.m_song?.artist?.Preview(false)
-
-                                        Row(
-                                            Modifier.fillMaxWidth(),
-                                            horizontalArrangement = Arrangement.SpaceEvenly
-                                        ) {
-
-                                            val button_modifier = Modifier
-                                                .background(
-                                                    MainActivity.theme.getAccent(),
-                                                    CircleShape
-                                                )
-                                                .size(40.dp)
-                                                .padding(8.dp)
-                                            val button_colour =
-                                                ColorFilter.tint(MainActivity.theme.getOnAccent())
-
-                                            Box(
-                                                button_modifier.clickable {
-                                                    overlay_menu = NowPlayingOverlayMenu.LYRICS
-                                                }
-                                            ) {
-                                                Image(
-                                                    painterResource(R.drawable.ic_music_note), null,
-                                                    colorFilter = button_colour
-                                                )
-                                            }
-
-                                            Box(
-                                                button_modifier.clickable {
-                                                    overlay_menu = NowPlayingOverlayMenu.PALETTE
-                                                }
-                                            ) {
-                                                Image(
-                                                    painterResource(R.drawable.ic_palette), null,
-                                                    colorFilter = button_colour
-                                                )
-                                            }
-
-                                            Box(
-                                                button_modifier.clickable {
-                                                    overlay_menu = NowPlayingOverlayMenu.DOWNLOAD
-                                                }
-                                            ) {
-                                                Image(
-                                                    painterResource(R.drawable.ic_download), null,
-                                                    colorFilter = button_colour
-                                                )
-                                            }
-
-                                            Box(
-                                                button_modifier.clickable {
-                                                    overlay_menu = NowPlayingOverlayMenu.EDIT
-                                                }
-                                            ) {
-                                                Icon(
-                                                    Icons.Filled.Edit,
-                                                    null,
-                                                    tint = MainActivity.theme.getOnAccent()
-                                                )
-                                            }
-                                        }
+                                    mainOverlayMenu({
+                                        overlay_menu = it
+                                    }) {
+                                        shutter_menu_open = true
+                                        get_shutter_menu = it
                                     }
                                 NowPlayingOverlayMenu.PALETTE ->
                                     PaletteSelectorMenu(theme_palette, {
@@ -385,21 +330,27 @@ fun MainTab(weight_modifier: Modifier, expansion: Float, max_height: Float, thum
                 ) {
                     val padding = 15.dp
                     val background = if (theme_mode == ThemeMode.BACKGROUND) MainActivity.theme.getBackground(false) else MainActivity.theme.getAccent()
-                    Column(
-                        Modifier
-                            .background(
-                                background,
-                                RoundedCornerShape(5)
-                            )
-                            .padding(start = padding, top = padding, end = padding)
-                            .fillMaxSize(),
-                        verticalArrangement = Arrangement.SpaceBetween,
-                        horizontalAlignment = Alignment.CenterHorizontally
+                    CompositionLocalProvider(
+                        LocalContentColor provides background.getContrasted()
                     ) {
-                        CompositionLocalProvider(
-                            LocalContentColor provides background.getContrasted()
+                        Column(
+                            Modifier
+                                .background(
+                                    background.setAlpha(0.9),
+                                    RoundedCornerShape(5)
+                                )
+                                .padding(start = padding, top = padding, end = padding)
+                                .fillMaxSize(),
+                            horizontalAlignment = Alignment.CenterHorizontally,
+                            verticalArrangement = Arrangement.SpaceBetween
                         ) {
-                            get_shutter_menu?.invoke()
+                            Column(
+                                Modifier.fillMaxHeight().weight(1f),
+                                horizontalAlignment = Alignment.CenterHorizontally,
+                                verticalArrangement = Arrangement.Center
+                            ) {
+                                get_shutter_menu?.invoke()
+                            }
                             IconButton(onClick = { shutter_menu_open = false }) {
                                 Icon(
                                     Icons.Filled.KeyboardArrowUp, null,
@@ -596,6 +547,123 @@ fun MainTab(weight_modifier: Modifier, expansion: Float, max_height: Float, thum
                         }
                     }
                 }
+            }
+        }
+    }
+}
+
+@Composable
+fun mainOverlayMenu(setOverlayMenu: (NowPlayingOverlayMenu) -> Unit, openShutterMenu: (@Composable () -> Unit) -> Unit) {
+    Column(
+        Modifier
+            .fillMaxSize()
+            .padding(20.dp),
+        verticalArrangement = Arrangement.SpaceBetween
+    ) {
+        PlayerHost.status.m_song?.artist?.Preview(false)
+
+        Row(
+            Modifier.fillMaxWidth(),
+            horizontalArrangement = Arrangement.SpaceEvenly
+        ) {
+
+            val button_modifier = Modifier
+                .background(
+                    MainActivity.theme.getAccent(),
+                    CircleShape
+                )
+                .size(40.dp)
+                .padding(8.dp)
+            val button_colour =
+                ColorFilter.tint(MainActivity.theme.getOnAccent())
+
+            Box(
+                button_modifier.clickable {
+                    setOverlayMenu(NowPlayingOverlayMenu.LYRICS)
+                }
+            ) {
+                Image(
+                    painterResource(R.drawable.ic_music_note), null,
+                    colorFilter = button_colour
+                )
+            }
+
+            Box(
+                button_modifier.clickable {
+                    setOverlayMenu(NowPlayingOverlayMenu.PALETTE)
+                }
+            ) {
+                Image(
+                    painterResource(R.drawable.ic_palette), null,
+                    colorFilter = button_colour
+                )
+            }
+
+            Box(
+                button_modifier.clickable {
+                    setOverlayMenu(NowPlayingOverlayMenu.DOWNLOAD)
+                }
+            ) {
+                Image(
+                    painterResource(R.drawable.ic_download), null,
+                    colorFilter = button_colour
+                )
+            }
+
+            Box(
+                button_modifier.clickable {
+                    setOverlayMenu(NowPlayingOverlayMenu.EDIT)
+                }
+            ) {
+                Icon(
+                    Icons.Filled.Edit,
+                    null,
+                    tint = MainActivity.theme.getOnAccent()
+                )
+            }
+
+            Box(
+                button_modifier.clickable { openShutterMenu {
+                    if (PlayerHost.status.m_song != null) {
+                        val song: Song = remember { PlayerHost.status.m_song!! }
+
+                        @Composable
+                        fun infoField(name: String, value: String) {
+                            Text("$name: $value")
+
+                            val clipboard = LocalClipboardManager.current
+                            IconButton(onClick = {
+                                clipboard.setText(AnnotatedString(value))
+                                sendToast("Copied $name to clipboard")
+                            }) {
+                                Icon(Icons.Filled.ContentCopy, null)
+                            }
+
+                            val share_intent = Intent.createChooser(Intent().apply {
+                                action = Intent.ACTION_SEND
+                                putExtra(Intent.EXTRA_TEXT, value)
+                                type = "text/plain"
+                            }, null)
+                            IconButton(onClick = {
+                                MainActivity.context.startActivity(share_intent)
+                            }) {
+                                Icon(Icons.Filled.Share, null)
+                            }
+                        }
+
+                        Column {
+                            Row(verticalAlignment = Alignment.CenterVertically) {
+                                infoField("ID", song.id)
+                            }
+                        }
+                    }
+                }}
+            ) {
+                Icon(
+                    Icons.Filled.Info,
+                    null,
+                    tint = MainActivity.theme.getOnAccent()
+                )
             }
         }
     }

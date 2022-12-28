@@ -13,6 +13,7 @@ from os import path
 from gh_md_to_html import main as markdown
 from ytapi import YtApi
 from threading import Thread
+from urllib.parse import urlencode
 
 RECOMMENDED_ROWS = 10
 CACHE_LIFETIME = 24 * 60 * 60
@@ -302,3 +303,25 @@ class Server:
 
     def getPort(self):
         return self.port
+
+    def formatEndpoint(self, endpoint: str) -> str:
+        if not endpoint.startswith("/"):
+            endpoint = "/" + endpoint
+        if not endpoint.endswith("/"):
+            endpoint += "/"
+        return endpoint
+
+    def performRequest(self, endpoint: str, params, post_body: str | None, max_retries: int, timeout: int) -> str | None:
+
+        params = {entry.getKey(): entry.getValue() for entry in params.entrySet().toArray()}
+        params["key"] = self.api_key
+
+        client = self.app.test_client()
+
+        # TODO | Timeout and retries
+        if post_body is None:
+            response = client.get(self.formatEndpoint(endpoint), query_string = urlencode(params))
+        else:
+            response = client.post(self.formatEndpoint(endpoint), query_string = urlencode(params), data = post_body)
+
+        return response.data.decode("utf-8")

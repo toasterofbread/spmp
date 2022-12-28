@@ -5,6 +5,15 @@ from pykakasi import Kakasi
 from unicodeblock import blocks as unicodeBlock
 from xmltodict import parse as parseXml
 
+TERM_FURI_REPLACEMENTS = {
+    "日": "ひ",
+    "君": "きみ",
+    "色": "いろ",
+    "瞑": "つぶ",
+    "足": "あし",
+    "角": "かど"
+}
+
 class Lyrics(ABC):
 
     def isTimed(self) -> bool:
@@ -83,13 +92,12 @@ class Lyrics(ABC):
                 if orig != hira and hasKanji(orig):
                     terms = trimOkurigana(orig, hira)
                     for i in range(len(terms)):
-                        if len(terms[i]) > 0:
-                            match terms[i][0]:
-                                case "日": terms[i][1] = "ひ"
-                                case "君": terms[i][1] = "きみ"
-                                case "色": terms[i][1] = "いろ"
-                                case "瞑": terms[i][1] = "つぶ"
-                                case "足": terms[i][1] = "あし"
+                        if len(terms[i]) == 0:
+                            continue
+                        replacement = TERM_FURI_REPLACEMENTS.get(terms[i][0])
+                        if replacement is not None:
+                            terms[i][1] = replacement
+
                     line_data += terms
                 else:
                     line_data.append([orig])
@@ -263,11 +271,16 @@ def getLyricsData(song_id: int, lyrics_type: int) -> str | None:
     try:
         lyrics_data: str = parseXml(response.text)["response"]["songs"]["song"]["lyricsData"]
         return base64.b64decode(lyrics_data).decode("utf-8")
-    except KeyError:
+    except (KeyError, UnicodeDecodeError):
         return None
 
 def getLyrics(song_id: int) -> Lyrics | None:
-    data = getLyricsData(song_id, 3)
+
+    data = None
+    for i in range(3, 0, -1):
+        data = getLyricsData(song_id, i)
+        if data is not None:
+            break
 
     if data is None:
         return None

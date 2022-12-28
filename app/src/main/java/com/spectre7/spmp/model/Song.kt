@@ -139,7 +139,7 @@ class DataRegistry(var songs: MutableMap<String, SongEntry> = mutableMapOf()) {
 }
 
 class Song private constructor (
-    private val id: String
+    private val _id: String
 ): YtItem() {
 
     val registry: DataRegistry.SongEntry
@@ -156,7 +156,7 @@ class Song private constructor (
         if (song_registry == null) {
             song_registry = DataRegistry.load(Settings.prefs)
         }
-        registry = song_registry!!.getSongEntry(getId())
+        registry = song_registry!!.getSongEntry(id)
     }
 
     override fun initWithData(data: ServerInfoResponse, onFinished: () -> Unit) {
@@ -268,9 +268,9 @@ class Song private constructor (
             callback(stream_url!!)
         }
         else {
-            DataApi.getStreamUrl(getId()) {
+            DataApi.getStreamUrl(id) {
                 if (it == null) {
-                    throw RuntimeException(getId())
+                    throw RuntimeException(id)
                 }
                 callback(it)
             }
@@ -307,8 +307,8 @@ class Song private constructor (
         return (if (hq) thumbnail_hq else thumbnail)!!
     }
 
-    override fun getId(): String {
-        return id
+    override fun _getId(): String {
+        return _id
     }
 
     @Composable

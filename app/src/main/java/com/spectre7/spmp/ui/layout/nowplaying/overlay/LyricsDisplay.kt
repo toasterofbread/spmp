@@ -53,7 +53,7 @@ fun LyricsDisplay(song: Song, close: () -> Unit, size: Dp, seek_state: Any, open
 
     val scroll_state = rememberLazyListState()
 
-    LaunchedEffect(song.getId()) {
+    LaunchedEffect(song.id) {
         lyrics = null
         song.getLyrics {
             if (it == null) {

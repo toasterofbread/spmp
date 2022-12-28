@@ -239,7 +239,7 @@ fun SearchPage(setOverlayPage: (page: OverlayPage) -> Unit) {
         performSearch(result_tabs.keys.elementAt(tab_index))
 
         LazyColumn(Modifier.fillMaxSize().background(MainActivity.theme.getBackground(false))) {
-            itemsIndexed(items = result_tabs.values.elementAt(tab_index), key = { _, item -> item.getId() }) { _, item ->
+            itemsIndexed(items = result_tabs.values.elementAt(tab_index), key = { _, item -> item.id }) { _, item ->
                 item.Preview(false)
             }
         }

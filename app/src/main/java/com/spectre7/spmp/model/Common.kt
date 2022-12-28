@@ -19,6 +19,8 @@ abstract class YtItem {
     var loaded: Boolean = false
     private var on_loaded_callbacks: MutableList<(Boolean) -> Unit>? = null
 
+    val id: String get() { return _getId() }
+
     data class ServerInfoResponse(
         val id: String,
         var original_id: String? = null,
@@ -90,7 +92,7 @@ abstract class YtItem {
             thread {
                 DataApi.queueYtItemDataLoad(this, get_stream_url) {
                     if (it == null) {
-                        throw RuntimeException("Server info response is null (id: ${getId()})")
+                        throw RuntimeException("Server info response is null (id: $id)")
                     }
 
                     fun callCallbacks(success: Boolean) {
@@ -117,7 +119,7 @@ abstract class YtItem {
         return this
     }
 
-    abstract fun getId(): String
+    abstract fun _getId(): String
 
     fun getThumbUrl(hq: Boolean): String? {
         return (if (hq) thumbnails?.high else thumbnails?.medium)?.url

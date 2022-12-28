@@ -49,14 +49,14 @@ class DataApi {
             }
 
         private val klaxon: Klaxon = Klaxon()
-        private var cached_server_url: String? = null
+        private var server: ServerAccessPoint? = null
 
         data class YtItemLoadQueueKey(val id: String, val type: String) {
             var get_stream_url: Boolean = false
             companion object {
                 fun from(item: YtItem, get_stream_url: Boolean): YtItemLoadQueueKey {
                     return YtItemLoadQueueKey(
-                        item.getId(),
+                        item.id,
                         when (item) {
                             is Song -> "video"
                             is Artist -> "channel"
@@ -93,7 +93,7 @@ class DataApi {
                         ytitem_load_queue.clear()
                     }
 
-                    val result: ResponseBody
+                    val result: String
                     try {
                         result = queryServer(
                             "/yt/batch",
@@ -110,7 +110,7 @@ class DataApi {
                         return@withLock
                     }
 
-                    for (item in klaxon.parseArray<YtItem.ServerInfoResponse>(result.byteStream())!!) {
+                    for (item in klaxon.parseArray<YtItem.ServerInfoResponse>(result)!!) {
                         for (callback in items.remove(YtItemLoadQueueKey(item.original_id!!, item.type))!!) {
                             callback(item)
                         }
@@ -141,7 +141,7 @@ class DataApi {
                 parameters.put("channelId", channel_id)
             }
             val result = queryServer("/yt/search", parameters)
-            return klaxon.parse<SearchResults>(result!!.byteStream())!!.items
+            return klaxon.parse<SearchResults>(result!!)!!.items
         }
 
         class GetDownloadUrlResult(val playabilityStatus: PlayabilityStatus, val streamingData: StreamingData? = null) {
@@ -160,7 +160,7 @@ class DataApi {
 
         fun getStreamUrl(id: String, callback: (url: String?) -> Unit) {
             thread {
-                val result = queryServer("/yt/streamurl", mapOf("id" to id))!!.string()
+                val result = queryServer("/yt/streamurl", mapOf("id" to id))!!
                 data class URL(val url: String)
                 MainActivity.runInMainThread {
                     callback(klaxon.parse<URL>("{\"url\": $result}")?.url)
@@ -173,12 +173,12 @@ class DataApi {
                 val params = mapOf("title" to song.title, "artist" to song.artist.name)
 
                 try {
-                    val result = queryServer("/lyrics", parameters = params, max_retries = 1)
+                    val result = queryServer("/lyrics", params, max_retries = 1)
                     if (result == null) {
                         callback(null)
                     }
                     else {
-                        callback(klaxon.parse<Song.Lyrics>(result.byteStream()))
+                        callback(klaxon.parse<Song.Lyrics>(result))
                     }
                 }
                 catch (e: Exception) {
@@ -192,7 +192,7 @@ class DataApi {
             if (ytapi == null) {
                 return null
             }
-            val counterpart = ytapi!!.callAttr("get_watch_playlist", song.getId(), null, 1).callAttr("get", "tracks").asList().first().callAttr("get", "conuterpart")
+            val counterpart = ytapi!!.callAttr("get_watch_playlist", song.id, null, 1).callAttr("get", "tracks").asList().first().callAttr("get", "conuterpart")
             if (counterpart == null) {
                 return null
             }
@@ -278,140 +278,251 @@ class DataApi {
             data class Item(val snippet: Language)
             data class LanguageResponse(val items: List<Item>)
 
-            val response = klaxon.parse<LanguageResponse>(queryServer("/yt/i18nLanguages", mapOf("part" to "snippet"))!!.byteStream())!!
+            val response = klaxon.parse<LanguageResponse>(queryServer("/yt/i18nLanguages", mapOf("part" to "snippet"))!!)!!
             return List(response.items.size) { i ->
                 response.items[i].snippet
             }
         }
 
-        data class ServerAccessPoint(val url: String, val from_cache: Boolean, val integrated: Boolean = false)
+        class ServerAccessPoint {
+            private var url: String? = null
+            private var integrated_server: PyObject? = null
+
+            init {
+                refresh()
+            }
+
+            private fun refresh() {
+                integrated_server = PlayerHost.service.getIntegratedServer()
+                if (integrated_server != null) {
+                    url = null
+                    return
+                }
+
+                val request = Request.Builder()
+                    .url("https://api.ngrok.com/tunnels")
+                    .header("Authorization", "Bearer ${getString(R.string.ngrok_api_key)}")
+                    .addHeader("Ngrok-Version", "2")
+                    .build()
+
+                val response = OkHttpClient().newCall(request).execute()
+                if (response.code != 200) {
+                    throw RuntimeException()
+                }
+
+                val tunnels = klaxon.parse<NgrokTunnelListResponse>(response.body!!.string())?.tunnels
+                url = tunnels?.get(0)?.public_url
+
+                if (url == null) {
+                    throw RuntimeException()
+                }
+            }
+
+            private fun getRequest(endpoint: String, params: Map<String, String>, post_body: String?): Request {
+                var formatted_endpoint = endpoint
+                if (!formatted_endpoint.startsWith('/')) {
+                    formatted_endpoint = "/$formatted_endpoint"
+                }
+                if (!formatted_endpoint.endsWith('/')) {
+                    formatted_endpoint += '/'
+                }
+
+                var request_url = "$url$formatted_endpoint?key=${getString(R.string.server_api_key)}"
+                for (param in params) {
+                    request_url += "&${URLEncoder.encode(param.key, "UTF-8")}=${URLEncoder.encode(param.value, "UTF-8")}"
+                }
+
+                val request = Request.Builder().url(request_url)
+                if (post_body != null) {
+                    request.post(post_body.toRequestBody("application/json".toMediaType()))
+                }
+
+                return request.build()
+            }
+
+            fun performRequest(
+                endpoint: String,
+                params: Map<String, String>,
+                post_body: String? = null,
+                throw_on_fail: Boolean = true,
+                max_retries: Int = 5,
+                timeout: Long = 10,
+                allow_refresh: Boolean = true
+            ): String? {
+
+                if (integrated_server != null) {
+                    var formatted_endpoint = endpoint
+                    if (!formatted_endpoint.startsWith('/')) {
+                        formatted_endpoint = "/$formatted_endpoint"
+                    }
+                    if (!formatted_endpoint.endsWith('/')) {
+                        formatted_endpoint += '/'
+                    }
+
+                    val ret = integrated_server!!.callAttr("performRequest", formatted_endpoint, params, post_body, max_retries, timeout)?.toString()
+                    if (ret == null && throw_on_fail) {
+                        throw RuntimeException()
+                    }
+                    return ret
+                }
+
+                var error: String? = null
+                var request: Request = getRequest(endpoint, params, post_body)
+                var refreshed: Boolean = false
+
+                fun request(): String? {
+                    val ret: Response = OkHttpClient.Builder().readTimeout(timeout, TimeUnit.SECONDS).build().newCall(request).execute()
+                    if (ret.code == 401) {
+                        error = "Server API key is invalid (401)"
+                    }
+                    else if (ret.code == 404) {
+                        if (allow_refresh && !refreshed) {
+                            refresh()
+                            refreshed = true
+                            request = getRequest(endpoint, params, post_body)
+                            return null
+                        }
+                        else {
+                            error = "Ngrok tunnel may be invalid (404)"
+                            return null
+                        }
+                    }
+                    else if (ret.code != 200) {
+                        error = "${ret.body?.string()} (${ret.code})"
+                    }
+
+                    return ret.body!!.string()
+                }
+
+                var result: String? = null
+                for (i in 0 until max_retries + 1) {
+                    error = null
+                    result = request()
+                    if (result != null) {
+                        break
+                    }
+                }
+
+                if (error != null && throw_on_fail) {
+                    throw RuntimeException("Request to server failed. $error. Request URL: ${request.url}")
+                }
+
+                return result
+            }
+        }
 
         data class NgrokTunnelListResponse(val tunnels: List<Tunnel>) {
             data class Tunnel(val id: String, val public_url: String, val started_at: String, val tunnel_session: Session, var from_cache: Boolean = false)
             data class Session(val id: String)
         }
 
-        fun getServer(no_cache: Boolean = false): ServerAccessPoint? {
-
-            val integrated = PlayerHost.service.getIntegratedServerAddress()
-            if (integrated != null) {
-                return ServerAccessPoint(integrated, false, true)
-            }
-
-            if (cached_server_url != null && !no_cache) {
-                return ServerAccessPoint(cached_server_url!!, true)
-            }
-
-            val request = Request.Builder()
-                .url("https://api.ngrok.com/tunnels")
-                .header("Authorization", "Bearer ${getString(R.string.ngrok_api_key)}")
-                .addHeader("Ngrok-Version", "2")
-                .build()
-
-            val response = OkHttpClient().newCall(request).execute()
-            if (response.code != 200) {
-                cached_server_url = null
-                return null
-            }
-
-            val tunnel = klaxon.parse<NgrokTunnelListResponse>(response.body!!.string())?.tunnels?.getOrNull(0)
-            cached_server_url = tunnel?.public_url
-            return if (tunnel != null) ServerAccessPoint(tunnel.public_url, false) else null
-        }
-
         fun queryServer(
             endpoint: String,
-            parameters: Map<String, String> = mapOf(),
+            params: Map<String, String> = mapOf(),
             post_body: String? = null,
             throw_on_fail: Boolean = true,
-            server_access_point: ServerAccessPoint? = null,
             max_retries: Int = 5,
             timeout: Long = 10
-        ): ResponseBody? {
-            var server = server_access_point ?: getServer()
+        ): String? {
+
             if (server == null) {
-                if (throw_on_fail) {
-                    throw RuntimeException("Failed to get Ngrok tunnel. Is the server running?")
-                }
-                return null
-            }
-
-            var formatted_endpoint = endpoint
-            if (!formatted_endpoint.startsWith('/')) {
-                formatted_endpoint = "/$formatted_endpoint"
-            }
-            if (!formatted_endpoint.endsWith('/')) {
-                formatted_endpoint += '/'
-            }
-
-            var url_suffix = "$formatted_endpoint?key=${getString(R.string.server_api_key)}"
-
-            for (key in listOf(Pair(Settings.KEY_LANG_DATA, "dataLang"), Pair(Settings.KEY_LANG_UI, "interfaceLang"))) {
-                if (!parameters.containsKey(key.second)) {
-                    val value = MainActivity.languages.keys.elementAt(Settings.get(key.first))
-                    url_suffix += "&${key.second}=$value"
-                }
-            }
-
-            for (param in parameters) {
-                url_suffix += "&${URLEncoder.encode(param.key, "UTF-8")}=${URLEncoder.encode(param.value, "UTF-8")}"
-            }
-
-            fun getRequest(server: ServerAccessPoint): Request {
-                val url = "${server.url}$url_suffix"
-
-                val request = Request.Builder().url(url)
-                if (post_body != null) {
-                    request.post(post_body.toRequestBody("application/json".toMediaType()))
-                }
-                if (server.integrated) {
-                    request.header("Connection", "close")
-                }
-                return request.build()
-            }
-
-            var request = getRequest(server)
-            var result: Response? = null
-            var cancel: Boolean = false
-            var exception: Exception? = null
-
-            fun getResult(): Response {
-                val ret: Response = OkHttpClient.Builder().readTimeout(timeout, TimeUnit.SECONDS).build().newCall(request).execute()
-                if (ret.code == 401) {
-                    cancel = true
-                    throw RuntimeException("Server API key is invalid (401)")
-                }
-                else if (ret.code == 404 && server!!.from_cache) {
-                    server = getServer(true)
-                    if (server != null) {
-                        request = getRequest(server!!)
-                    }
-                    cancel = true
-                    throw RuntimeException("Ngrok tunnel may be invalid (404)")
-                }
-                else if (ret.code != 200) {
-                    throw RuntimeException("${ret.body?.string()} (${ret.code})")
-                }
-                return ret
-            }
-
-            for (i in 0 until max_retries + 1) {
                 try {
-                    result = getResult()
+                    server = ServerAccessPoint()
                 }
-                catch(e: Exception) {
-                    exception = e
-                }
-                if (result != null || server == null || cancel) {
-                    break
+                catch (e: Exception) {
+                    if (throw_on_fail) {
+                        throw e
+                    }
+                    return null
                 }
             }
 
-            if (result == null && throw_on_fail) {
-                throw RuntimeException("Request to server failed. ${exception?.message}. Request URL: ${request.url}.")
-            }
+            return server!!.performRequest(endpoint, params, post_body, throw_on_fail, max_retries, timeout)
 
-            return result?.body
+//            var server = server_access_point ?: getServer()
+//            if (server == null) {
+//                if (throw_on_fail) {
+//                    throw RuntimeException("Failed to get Ngrok tunnel. Is the server running?")
+//                }
+//                return null
+//            }
+//
+//            var formatted_endpoint = endpoint
+//            if (!formatted_endpoint.startsWith('/')) {
+//                formatted_endpoint = "/$formatted_endpoint"
+//            }
+//            if (!formatted_endpoint.endsWith('/')) {
+//                formatted_endpoint += '/'
+//            }
+//
+//            var url_suffix = "$formatted_endpoint?key=${getString(R.string.server_api_key)}"
+//
+//            for (key in listOf(Pair(Settings.KEY_LANG_DATA, "dataLang"), Pair(Settings.KEY_LANG_UI, "interfaceLang"))) {
+//                if (!parameters.containsKey(key.second)) {
+//                    val value = MainActivity.languages.keys.elementAt(Settings.get(key.first))
+//                    url_suffix += "&${key.second}=$value"
+//                }
+//            }
+//
+//            for (param in parameters) {
+//                url_suffix += "&${URLEncoder.encode(param.key, "UTF-8")}=${URLEncoder.encode(param.value, "UTF-8")}"
+//            }
+//
+//            fun getRequest(server: ServerAccessPoint): Request {
+//                val url = "${server.url}$url_suffix"
+//
+//                val request = Request.Builder().url(url)
+//                if (post_body != null) {
+//                    request.post(post_body.toRequestBody("application/json".toMediaType()))
+//                }
+//                if (server.integrated) {
+//                    request.header("Connection", "close")
+//                }
+//                return request.build()
+//            }
+//
+//            var request = getRequest(server)
+//            var result: Response? = null
+//            var cancel: Boolean = false
+//            var exception: Exception? = null
+//
+//            fun getResult(): Response {
+//                val ret: Response = OkHttpClient.Builder().readTimeout(timeout, TimeUnit.SECONDS).build().newCall(request).execute()
+//                if (ret.code == 401) {
+//                    cancel = true
+//                    throw RuntimeException("Server API key is invalid (401)")
+//                }
+//                else if (ret.code == 404 && server!!.from_cache) {
+//                    server = getServer(true)
+//                    if (server != null) {
+//                        request = getRequest(server!!)
+//                    }
+//                    cancel = true
+//                    throw RuntimeException("Ngrok tunnel may be invalid (404)")
+//                }
+//                else if (ret.code != 200) {
+//                    throw RuntimeException("${ret.body?.string()} (${ret.code})")
+//                }
+//                return ret
+//            }
+//
+//            for (i in 0 until max_retries + 1) {
+//                try {
+//                    result = getResult()
+//                }
+//                catch(e: Exception) {
+//                    exception = e
+//                }
+//                if (result != null || server == null || cancel) {
+//                    break
+//                }
+//            }
+//
+//            if (result == null && throw_on_fail) {
+//                throw RuntimeException("Request to server failed. ${exception?.message}. Request URL: ${request.url}.")
+//            }
+//
+//            return result?.body
         }
 
         data class RecommendedFeedRow(val title: String, val subtitle: String?, val browse_id: String?, val items: List<Item>) {
@@ -428,8 +539,8 @@ class DataApi {
         }
 
         fun getRecommendedFeed(allow_cached: Boolean = true): List<RecommendedFeedRow> {
-            val data = queryServer("/feed", mapOf("noCache" to (!allow_cached).toInt().toString()), timeout=30, throw_on_fail = true)!!
-            return klaxon.parseArray(data.byteStream())!!
+            val data = queryServer("/feed", mapOf("noCache" to (!allow_cached).toInt().toString()), timeout=30)!!
+            return klaxon.parseArray(data)!!
         }
     }
 }

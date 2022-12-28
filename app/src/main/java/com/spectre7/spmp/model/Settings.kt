@@ -14,7 +14,9 @@ enum class Settings {
     KEY_LYRICS_FOLLOW_ENABLED,
     KEY_LYRICS_FOLLOW_OFFSET,
     KEY_LYRICS_DEFAULT_FURIGANA,
-    KEY_LYRICS_TEXT_ALIGNMENT;
+    KEY_LYRICS_TEXT_ALIGNMENT,
+
+    KEY_ACC_;
 
     companion object {
         val prefs: SharedPreferences get() = MainActivity.prefs

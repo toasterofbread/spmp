@@ -199,6 +199,9 @@ class PlayerHost {
 
         private var integrated_server: PyObject? = null
         private val integrated_server_start_mutex = Mutex()
+        fun getIntegratedServer(): PyObject? {
+            return integrated_server
+        }
 
         private val binder = PlayerBinder()
         inner class PlayerBinder: Binder() {
@@ -274,13 +277,6 @@ class PlayerHost {
             stopIntegratedServer()
 
             super.onDestroy()
-        }
-
-        fun getIntegratedServerAddress(): String? {
-            if (integrated_server == null) {
-                return null
-            }
-            return "http://localhost:${integrated_server!!.callAttr("getPort")}"
         }
 
         suspend fun startIntegratedServer(): Boolean {
@@ -391,7 +387,7 @@ class PlayerHost {
             addToQueue(song) {
                 if (add_radio) {
                     thread {
-                        val radio = DataApi.getSongRadio(song.getId(), false)
+                        val radio = DataApi.getSongRadio(song.id, false)
                         for (i in radio.indices) {
                             Song.fromId(radio[i]).loadData(
                                 process_queue = false,

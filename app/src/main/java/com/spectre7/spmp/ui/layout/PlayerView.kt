@@ -108,7 +108,7 @@ data class YtItemRow(val title: String, val subtitle: String?, val type: TYPE, v
             rows = GridCells.Fixed(row_count),
             modifier = Modifier.requiredHeight(140.dp * row_count)
         ) {
-            items(items.size, { items[it].first.getId() }) {
+            items(items.size, { items[it].first.id }) {
                 val item = items[it]
                 ItemPreview(item.first, 130.dp, remember { System.currentTimeMillis() - item.second < 250})
             }
@@ -175,7 +175,7 @@ data class YtItemRow(val title: String, val subtitle: String?, val type: TYPE, v
     }
 
     fun add(item: YtItem?) {
-        if (item != null && items.firstOrNull { it.first.getId() == item.getId() } == null) {
+        if (item != null && items.firstOrNull { it.first.id == item.id } == null) {
             items.add(Pair(item, System.currentTimeMillis()))
         }
     }
@@ -364,7 +364,7 @@ fun MainPage(_rows: List<YtItemRow>, refreshFeed: (allow_cache: Boolean, onFinis
                     }
 
                     PillMenu(
-                        if (PlayerHost.service.getIntegratedServerAddress() == null) 3 else 2,
+                        if (PlayerHost.service.getIntegratedServer() == null) 3 else 2,
                         { index, _ ->
                             when (index) {
                                 0 -> ActionButton(Icons.Filled.Refresh) {

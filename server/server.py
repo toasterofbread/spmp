@@ -311,14 +311,13 @@ class Server:
             endpoint += "/"
         return endpoint
 
-    def performRequest(self, endpoint: str, params, post_body: str | None, max_retries: int, timeout: int) -> str | None:
+    def performRequest(self, endpoint: str, params, post_body: str | None) -> str | None:
 
         params = {entry.getKey(): entry.getValue() for entry in params.entrySet().toArray()}
         params["key"] = self.api_key
 
         client = self.app.test_client()
 
-        # TODO | Timeout and retries
         if post_body is None:
             response = client.get(self.formatEndpoint(endpoint), query_string = urlencode(params))
         else:

@@ -16,13 +16,14 @@ enum class Settings {
     KEY_LYRICS_DEFAULT_FURIGANA,
     KEY_LYRICS_TEXT_ALIGNMENT,
 
-    KEY_ACC_;
+    // Accessibility Service
+    KEY_ACC_VOL_INTERCEPT_MODE;
 
     companion object {
         val prefs: SharedPreferences get() = MainActivity.prefs
 
         fun <T> get(enum_key: Settings, default: T? = null): T {
-            val default_value: T = default ?: getDefault(enum_key.name)
+            val default_value: T = default ?: getDefault(enum_key)
             return when (default_value!!::class) {
                 Boolean::class -> prefs.getBoolean(enum_key.name, default_value as Boolean)
                 Float::class -> prefs.getFloat(enum_key.name, default_value as Float)
@@ -33,22 +34,22 @@ enum class Settings {
             } as T
         }
 
-        fun <T> getDefault(key: String): T {
-            return when (key) {
-                KEY_LANG_UI.name, KEY_LANG_DATA.name -> MainActivity.languages.keys.indexOf(Locale.getDefault().language)
-                KEY_ACCENT_COLOUR_SOURCE.name -> 0
-                KEY_NOWPLAYING_THEME_MODE.name -> 0
-                KEY_LYRICS_FOLLOW_ENABLED.name -> true
-                KEY_LYRICS_FOLLOW_OFFSET.name -> 0.5f
-                KEY_LYRICS_DEFAULT_FURIGANA.name -> true
-                KEY_LYRICS_TEXT_ALIGNMENT.name -> 0
-                else -> TODO()
+        fun <T> getDefault(enum_key: Settings): T {
+            return when (enum_key) {
+                KEY_LANG_UI, KEY_LANG_DATA -> MainActivity.languages.keys.indexOf(Locale.getDefault().language)
+                KEY_ACCENT_COLOUR_SOURCE -> 0
+                KEY_NOWPLAYING_THEME_MODE -> 0
+                KEY_LYRICS_FOLLOW_ENABLED -> true
+                KEY_LYRICS_FOLLOW_OFFSET -> 0.5f
+                KEY_LYRICS_DEFAULT_FURIGANA -> true
+                KEY_LYRICS_TEXT_ALIGNMENT -> 0
+                KEY_ACC_VOL_INTERCEPT_MODE -> 0
             } as T
         }
 
         fun <T> getDefaultProvider(): (String) -> T {
             return { key: String ->
-                getDefault(key)
+                getDefault(values().first { it.name == key })
             }
         }
     }

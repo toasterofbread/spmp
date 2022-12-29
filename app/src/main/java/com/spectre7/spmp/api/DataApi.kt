@@ -359,7 +359,7 @@ class DataApi {
                         formatted_endpoint += '/'
                     }
 
-                    val ret = integrated_server!!.callAttr("performRequest", formatted_endpoint, params, post_body, max_retries, timeout)?.toString()
+                    val ret = integrated_server!!.callAttr("performRequest", formatted_endpoint, params, post_body)?.toString()
                     if (ret == null && throw_on_fail) {
                         throw RuntimeException()
                     }

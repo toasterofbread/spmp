@@ -19,7 +19,7 @@ import com.spectre7.utils.OnChangedEffect
 import com.spectre7.utils.getString
 import java.util.*
 
-enum class Page { ROOT, OTHER }
+enum class Page { ROOT, ACCESSIBILITY_SERVICE }
 
 @Composable
 fun PrefsPage(setOverlayPage: (page: OverlayPage) -> Unit) {
@@ -132,10 +132,19 @@ fun PrefsPage(setOverlayPage: (page: OverlayPage) -> Unit) {
                     }
                 },
 
+                SettingsGroup(getString(R.string.s_group_other)),
+
+                SettingsItemSubpage(
+                    getString(R.string.s_page_accessibility_service),
+                    null,
+                    Page.ACCESSIBILITY_SERVICE.ordinal
+                )
+
             ), Modifier.fillMaxSize())
-            else -> {
-                null
-            }
+
+            Page.ACCESSIBILITY_SERVICE -> SettingsPage(getString(R.string.s_page_accessibility_service), listOf(
+
+            ), Modifier.fillMaxSize())
         }
     }, {
         setOverlayPage(OverlayPage.NONE)

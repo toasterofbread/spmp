@@ -56,5 +56,8 @@
     <string name="s_option_np_accent_none">Don\'t use accent colour</string>
 
     <string name="s_group_lyrics">Lyrics</string>
+    <string name="s_group_other">Other</string>
+
+    <string name="s_page_accessibility_service">Preferences</string>
 
 </resources>

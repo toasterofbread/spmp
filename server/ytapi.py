@@ -4,12 +4,12 @@ from flask import Flask, request, jsonify
 from flask.wrappers import Response
 import requests
 import json
-from bs4 import BeautifulSoup
 from ytmusicapi import YTMusic
 from spectre7 import utils
 from threading import Thread
 
 USER_AGENT = "Mozilla/5.0 (X11; Linux x86_64; rv:105.0) Gecko/20100101 Firefox/105.0"
+DEFAULT_LANGUAGE = "en"
 
 class ThreadWithReturnValue(Thread):
     def __init__(self, group=None, target=None, name=None, args=(), kwargs={}, Verbose=None):
@@ -31,13 +31,14 @@ class YtApi:
 
     def __init__(self, app: Flask, server):
 
+        self.server = server
+        self.ytmusic = YTMusic()
+
         if not server.integrated:
             from yt_dlp import YoutubeDL
             self.ytd = YoutubeDL()
         else:
             self.ytd = None
-
-        self.ytmusic = YTMusic()
 
         def localiseData(data: dict, language: str | None):
             if language is None or not "snippet" in data or not "localizations" in data:
@@ -150,6 +151,10 @@ class YtApi:
             server.setCache("requestChannelInfo", params["id"], ret)
 
             ret["original_id"] = original_id
+
+            if "snippet" in ret:
+                ret["snippet"].update(self.getMusicChannelInfo(params["id"], language or DEFAULT_LANGUAGE))
+
             return ret
 
         @server.route("/yt/channels", True)
@@ -226,8 +231,8 @@ class YtApi:
             return jsonify(response.json())
 
         def requestStreamUrl(id: str) -> str | Response:
-            DEFAULT_CLIENT = {"clientName":"ANDROID","clientVersion":"16.50","visitorData":None,"hl":"en"}
-            NO_CONTENT_WARNING_CLIENT = {"clientName":"TVHTML5_SIMPLY_EMBEDDED_PLAYER","clientVersion":"2.0","visitorData":None,"hl":"en"}
+            DEFAULT_CLIENT = {"clientName":"ANDROID","clientVersion":"16.50","visitorData":None,"hl":DEFAULT_LANGUAGE}
+            NO_CONTENT_WARNING_CLIENT = {"clientName":"TVHTML5_SIMPLY_EMBEDDED_PLAYER","clientVersion":"2.0","visitorData":None,"hl":DEFAULT_LANGUAGE}
 
             for client in (DEFAULT_CLIENT, NO_CONTENT_WARNING_CLIENT):
                 response = requests.post(f"https://www.youtube.com/youtubei/v1/player?key=AIzaSyAO_FJ2SlqU8Q4STEHLGCilw_Y9_11qcW8", json = {
@@ -340,7 +345,7 @@ class YtApi:
                     json = {
                         "context":{
                             "client":{
-                                "hl": request.args.get("interfaceLang", "en"),
+                                "hl": request.args.get("interfaceLang", DEFAULT_LANGUAGE),
                                 "platform": "DESKTOP",
                                 "clientName": "WEB_REMIX",
                                 "clientVersion": "1.20221031.00.00-canary_control",
@@ -494,3 +499,28 @@ class YtApi:
     #                 return parse_qs(urlparse(url).query)["q"][0] == "https://support.google.com/youtube/answer/2579942"
     #     except (IndexError, KeyError):
     #         return False
+
+    def getMusicChannelInfo(self, channel_id: str, hl: str) -> dict:
+        response = requests.post(
+            "https://music.youtube.com/youtubei/v1/browse",
+            json = {"browseId": channel_id, "context": {"client": {"clientName": "WEB_REMIX", "clientVersion": "1.20221228.01.00", "hl": hl}, "user": {}}},
+            headers = {"Cookie": "CONSENT=YES+1"}
+        )
+
+        if response.status_code != 200:
+            return {}
+
+        try:
+            data = response.json()["header"]["musicImmersiveHeaderRenderer"]
+        except (requests.exceptions.JSONDecodeError, KeyError):
+            return {}
+
+        ret = {}
+        for key in ("title", "description"):
+            if key in data:
+                try:
+                    ret[key] = data[key]["runs"][0]["text"]
+                except (KeyError, IndexError):
+                    pass
+
+        return ret

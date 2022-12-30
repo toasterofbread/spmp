@@ -20,7 +20,6 @@ import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.ColorFilter
 import androidx.compose.ui.graphics.vector.rememberVectorPainter
 import androidx.compose.ui.platform.LocalConfiguration
@@ -29,17 +28,13 @@ import androidx.compose.ui.unit.IntOffset
 import androidx.compose.ui.unit.dp
 import com.google.android.exoplayer2.C
 import com.spectre7.spmp.MainActivity
-import com.spectre7.spmp.PlayerHost
+import com.spectre7.spmp.PlayerServiceHost
 import com.spectre7.spmp.model.Song
-import com.spectre7.utils.getContrasted
 import com.spectre7.utils.vibrate
-import kotlinx.coroutines.delay
-import kotlinx.coroutines.runBlocking
 import org.burnoutcrew.reorderable.ReorderableItem
 import org.burnoutcrew.reorderable.detectReorder
 import org.burnoutcrew.reorderable.rememberReorderableLazyListState
 import org.burnoutcrew.reorderable.reorderable
-import kotlin.concurrent.thread
 import kotlin.math.roundToInt
 
 @Composable
@@ -81,7 +76,7 @@ fun QueueTab(weight_modifier: Modifier) {
                         Modifier
                             .weight(1f)
                             .clickable {
-                                PlayerHost.player.seekTo(index, C.TIME_UNSET)
+                                PlayerServiceHost.player.seekTo(index, C.TIME_UNSET)
                             }
                             .swipeable(
                                 swipe_state,
@@ -103,13 +98,13 @@ fun QueueTab(weight_modifier: Modifier) {
     }
 
     var song_items by remember { mutableStateOf(
-        List(PlayerHost.status.m_queue.size) {
-            Item(PlayerHost.status.m_queue[it], key_inc++)
+        List(PlayerServiceHost.status.m_queue.size) {
+            Item(PlayerServiceHost.status.m_queue[it], key_inc++)
         }
     ) }
 
     val queue_listener = remember {
-        object : PlayerHost.PlayerQueueListener {
+        object : PlayerServiceHost.PlayerQueueListener {
             override fun onSongAdded(song: Song, index: Int) {
                 song_items = song_items.toMutableList().apply {
                     add(index, Item(song, key_inc++))
@@ -140,9 +135,9 @@ fun QueueTab(weight_modifier: Modifier) {
     // }
 
     DisposableEffect(Unit) {
-        PlayerHost.service.addQueueListener(queue_listener)
+        PlayerServiceHost.service.addQueueListener(queue_listener)
         onDispose {
-            PlayerHost.service.removeQueueListener(queue_listener)
+            PlayerServiceHost.service.removeQueueListener(queue_listener)
         }
     }
 
@@ -154,7 +149,7 @@ fun QueueTab(weight_modifier: Modifier) {
         },
         onDragEnd = { from, to ->
             if (from != to) {
-                PlayerHost.player.moveMediaItem(from, to)
+                PlayerServiceHost.player.moveMediaItem(from, to)
                 playing_key = null
             }
         }
@@ -174,7 +169,7 @@ fun QueueTab(weight_modifier: Modifier) {
                     LaunchedEffect(is_dragging) {
                         if (is_dragging) {
                             vibrate(0.01)
-                            playing_key = song_items[PlayerHost.status.index].key
+                            playing_key = song_items[PlayerServiceHost.status.index].key
                         }
                     }
 
@@ -183,16 +178,16 @@ fun QueueTab(weight_modifier: Modifier) {
                             v_removed.add(index)
 
                             undo_list.add({
-                                PlayerHost.service.addToQueue(item.song, index)
+                                PlayerServiceHost.service.addToQueue(item.song, index)
                             })
 
                             song_items = song_items.toMutableList().apply {
                                 removeAt(index)
                             }
-                            PlayerHost.service.removeFromQueue(index)
+                            PlayerServiceHost.service.removeFromQueue(index)
                         }
 
-                        val current = if (playing_key != null) playing_key == item.key else PlayerHost.status.m_index == index
+                        val current = if (playing_key != null) playing_key == item.key else PlayerServiceHost.status.m_index == index
                         var visible by remember { mutableStateOf(false ) }
                         LaunchedEffect(visible) {
                             visible = true
@@ -223,8 +218,8 @@ fun QueueTab(weight_modifier: Modifier) {
                 Button(
                     onClick = {
 
-                        val index = PlayerHost.player.currentMediaItemIndex
-                        val removed: List<Pair<Song, Int>> = PlayerHost.service.clearQueue(PlayerHost.status.m_queue.size > 1)
+                        val index = PlayerServiceHost.player.currentMediaItemIndex
+                        val removed: List<Pair<Song, Int>> = PlayerServiceHost.service.clearQueue(PlayerServiceHost.status.m_queue.size > 1)
                         undo_list.add {
                             val before = mutableListOf<Song>()
                             val after = mutableListOf<Song>()
@@ -238,8 +233,8 @@ fun QueueTab(weight_modifier: Modifier) {
                                 before.add(item.value.first)
                             }
 
-                            PlayerHost.service.addMultipleToQueue(before, 0) {
-                                PlayerHost.service.addMultipleToQueue(after, index + 1)
+                            PlayerServiceHost.service.addMultipleToQueue(before, 0) {
+                                PlayerServiceHost.service.addMultipleToQueue(after, index + 1)
                             }
                         }
                     },

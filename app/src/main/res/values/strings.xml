@@ -56,8 +56,44 @@
     <string name="s_option_np_accent_none">Don\'t use accent colour</string>
 
     <string name="s_group_lyrics">Lyrics</string>
+
+    <string name="s_key_lyrics_follow_enabled">Follow current line</string>
+    <string name="s_sub_lyrics_follow_enabled">When displaying timed lyrics, scroll to the current line automatically</string>
+
+    <string name="s_key_lyrics_follow_offset">Followed line position</string>
+    <string name="s_sub_lyrics_follow_offset">When scrolling to the current line, position within the view to place the line</string>
+    <string name="s_option_lyrics_follow_offset_top">Top</string>
+    <string name="s_option_lyrics_follow_offset_bottom">Bottom</string>
+
+    <string name="s_key_lyrics_default_furigana">Show furigana by default</string>
+
+    <string name="s_key_lyrics_text_alignment">Text alignment</string>
+    <string name="s_option_lyrics_text_alignment_left">Left</string>
+    <string name="s_option_lyrics_text_alignment_center">Center</string>
+    <string name="s_option_lyrics_text_alignment_right">Right</string>
+
     <string name="s_group_other">Other</string>
 
-    <string name="s_page_accessibility_service">Preferences</string>
+    <string name="s_page_acc_service">Accessibility service</string>
+
+    <string name="s_acc_service_enabled">Service is enabled</string>
+    <string name="s_acc_service_disabled">Service is disabled</string>
+    <string name="s_acc_service_enable">Enable</string>
+    <string name="s_acc_service_disable">Disable</string>
+
+    <string name="s_key_vol_intercept_mode">Volume intercept mode</string>
+    <string name="s_sub_vol_intercept_mode">The accessibility service can intercept volume key presses and use them to change SpMp\'s volume instead of the system volume</string>
+    <string name="s_option_vol_intercept_mode_always">When media session is active</string>
+    <string name="s_option_vol_intercept_mode_app">When the app is open</string>
+    <string name="s_option_vol_intercept_mode_never">Never</string>
+
+    <string name="s_key_acc_screen_off">Enable while screen is off</string>
+    <string name="s_sub_acc_screen_off">Requires root privledges</string>
+
+    <string name="s_key_vol_intercept_notification">Volume change notification</string>
+    <string name="s_sub_vol_intercept_notification">Show an on-screen popup when the service intercepts a volume key press</string>
+
+    <string name="err_root_not_granted">Could not get root privledges</string>
+    <string name="err_secure_settings_grant_failed">Granting secure settings permission failed</string>
 
 </resources>

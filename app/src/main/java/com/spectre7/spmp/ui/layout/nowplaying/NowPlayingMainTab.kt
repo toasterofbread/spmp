@@ -40,12 +40,11 @@ import androidx.compose.ui.unit.*
 import androidx.palette.graphics.Palette
 import com.google.android.exoplayer2.Player
 import com.spectre7.spmp.MainActivity
-import com.spectre7.spmp.PlayerHost
+import com.spectre7.spmp.PlayerServiceHost
 import com.spectre7.spmp.R
 import com.spectre7.spmp.model.Settings
 import com.spectre7.spmp.model.Song
 import com.spectre7.spmp.ui.layout.MINIMISED_NOW_PLAYING_HEIGHT
-import com.spectre7.spmp.ui.layout.OverlayPage
 import com.spectre7.spmp.ui.layout.nowplaying.overlay.DownloadMenu
 import com.spectre7.spmp.ui.layout.nowplaying.overlay.EditMenu
 import com.spectre7.spmp.ui.layout.nowplaying.overlay.LyricsDisplay
@@ -66,7 +65,7 @@ fun MainTab(weight_modifier: Modifier, expansion: Float, max_height: Float, thum
     var theme_colour by remember { mutableStateOf<Color?>(null) }
     fun setThemeColour(value: Color?) {
         theme_colour = value
-        PlayerHost.status.song?.theme_colour = theme_colour
+        PlayerServiceHost.status.song?.theme_colour = theme_colour
     }
 
     val screen_width_dp = LocalConfiguration.current.screenWidthDp.dp
@@ -92,11 +91,11 @@ fun MainTab(weight_modifier: Modifier, expansion: Float, max_height: Float, thum
     }
 
     fun getSongTitle(): String {
-        return PlayerHost.status.song?.title ?: "-----"
+        return PlayerServiceHost.status.song?.title ?: "-----"
     }
 
     fun getSongArtist(): String {
-        return PlayerHost.status.song?.artist?.name ?: "---"
+        return PlayerServiceHost.status.song?.artist?.name ?: "---"
     }
 
     val prefs_listener = remember {
@@ -142,8 +141,8 @@ fun MainTab(weight_modifier: Modifier, expansion: Float, max_height: Float, thum
         }
     }
 
-    LaunchedEffect(PlayerHost.status.m_song) {
-        val song = PlayerHost.status.song
+    LaunchedEffect(PlayerServiceHost.status.m_song) {
+        val song = PlayerServiceHost.status.song
         val on_finished = {
             if (song!!.theme_colour != null) {
                 theme_colour = song.theme_colour
@@ -293,9 +292,9 @@ fun MainTab(weight_modifier: Modifier, expansion: Float, max_height: Float, thum
                                         overlay_menu = NowPlayingOverlayMenu.NONE
                                     }
                                 NowPlayingOverlayMenu.LYRICS ->
-                                    if (PlayerHost.status.m_song != null) {
+                                    if (PlayerServiceHost.status.m_song != null) {
                                         LyricsDisplay(
-                                            PlayerHost.status.song!!,
+                                            PlayerServiceHost.status.song!!,
                                             { overlay_menu = NowPlayingOverlayMenu.NONE },
                                             (screen_width_dp - (NOW_PLAYING_MAIN_PADDING * 2) - (15.dp * expansion * 2)).value * 0.9.dp,
                                             seek_state
@@ -305,14 +304,14 @@ fun MainTab(weight_modifier: Modifier, expansion: Float, max_height: Float, thum
                                         }
                                     }
                                 NowPlayingOverlayMenu.DOWNLOAD ->
-                                    if (PlayerHost.status.m_song != null) {
-                                        DownloadMenu(PlayerHost.status.song!!) {
+                                    if (PlayerServiceHost.status.m_song != null) {
+                                        DownloadMenu(PlayerServiceHost.status.song!!) {
                                             overlay_menu = NowPlayingOverlayMenu.NONE
                                         }
                                     }
                                 NowPlayingOverlayMenu.EDIT ->
-                                    if (PlayerHost.status.m_song != null) {
-                                        EditMenu(PlayerHost.status.song!!, {
+                                    if (PlayerServiceHost.status.m_song != null) {
+                                        EditMenu(PlayerServiceHost.status.song!!, {
                                             get_shutter_menu = it
                                             shutter_menu_open = true
                                         }) { overlay_menu = NowPlayingOverlayMenu.NONE }
@@ -382,10 +381,10 @@ fun MainTab(weight_modifier: Modifier, expansion: Float, max_height: Float, thum
                     .fillMaxWidth()
             )
 
-            AnimatedVisibility(PlayerHost.status.m_has_previous, enter = expandHorizontally(), exit = shrinkHorizontally()) {
+            AnimatedVisibility(PlayerServiceHost.status.m_has_previous, enter = expandHorizontally(), exit = shrinkHorizontally()) {
                 IconButton(
                     onClick = {
-                        PlayerHost.player.seekToPreviousMediaItem()
+                        PlayerServiceHost.player.seekToPreviousMediaItem()
                     }
                 ) {
                     Image(
@@ -396,24 +395,24 @@ fun MainTab(weight_modifier: Modifier, expansion: Float, max_height: Float, thum
                 }
             }
 
-            AnimatedVisibility(PlayerHost.status.m_song != null, enter = fadeIn(), exit = fadeOut()) {
+            AnimatedVisibility(PlayerServiceHost.status.m_song != null, enter = fadeIn(), exit = fadeOut()) {
                 IconButton(
                     onClick = {
-                        PlayerHost.service.playPause()
+                        PlayerServiceHost.service.playPause()
                     }
                 ) {
                     Image(
-                        painterResource(if (PlayerHost.status.m_playing) R.drawable.ic_pause else R.drawable.ic_play_arrow),
-                        getString(if (PlayerHost.status.m_playing) R.string.media_pause else R.string.media_play),
+                        painterResource(if (PlayerServiceHost.status.m_playing) R.drawable.ic_pause else R.drawable.ic_play_arrow),
+                        getString(if (PlayerServiceHost.status.m_playing) R.string.media_pause else R.string.media_play),
                         colorFilter = colour_filter
                     )
                 }
             }
 
-            AnimatedVisibility(PlayerHost.status.m_has_next, enter = expandHorizontally(), exit = shrinkHorizontally()) {
+            AnimatedVisibility(PlayerServiceHost.status.m_has_next, enter = expandHorizontally(), exit = shrinkHorizontally()) {
                 IconButton(
                     onClick = {
-                        PlayerHost.player.seekToNextMediaItem()
+                        PlayerServiceHost.player.seekToNextMediaItem()
                     }
                 ) {
                     Image(
@@ -497,7 +496,7 @@ fun MainTab(weight_modifier: Modifier, expansion: Float, max_height: Float, thum
                 }
 
                 SeekBar {
-                    PlayerHost.player.seekTo((PlayerHost.player.duration * it).toLong())
+                    PlayerServiceHost.player.seekTo((PlayerServiceHost.player.duration * it).toLong())
                     seek_state = it
                 }
 
@@ -511,36 +510,36 @@ fun MainTab(weight_modifier: Modifier, expansion: Float, max_height: Float, thum
                     val utility_separation = 25.dp
 
                     // Toggle shuffle
-                    PlayerButton(R.drawable.ic_shuffle, 60.dp * 0.65f, if (PlayerHost.status.m_shuffle) 1f else 0.25f) {
-                        PlayerHost.player.shuffleModeEnabled = !PlayerHost.player.shuffleModeEnabled
+                    PlayerButton(R.drawable.ic_shuffle, 60.dp * 0.65f, if (PlayerServiceHost.status.m_shuffle) 1f else 0.25f) {
+                        PlayerServiceHost.player.shuffleModeEnabled = !PlayerServiceHost.player.shuffleModeEnabled
                     }
 
                     Spacer(Modifier.requiredWidth(utility_separation))
 
                     // Previous
-                    PlayerButton(R.drawable.ic_skip_previous, enabled = PlayerHost.status.m_has_previous) {
-                        PlayerHost.player.seekToPreviousMediaItem()
+                    PlayerButton(R.drawable.ic_skip_previous, enabled = PlayerServiceHost.status.m_has_previous) {
+                        PlayerServiceHost.player.seekToPreviousMediaItem()
                     }
 
                     // Play / pause
-                    PlayerButton(if (PlayerHost.status.m_playing) R.drawable.ic_pause else R.drawable.ic_play_arrow, enabled = PlayerHost.status.m_song != null) {
-                        PlayerHost.service.playPause()
+                    PlayerButton(if (PlayerServiceHost.status.m_playing) R.drawable.ic_pause else R.drawable.ic_play_arrow, enabled = PlayerServiceHost.status.m_song != null) {
+                        PlayerServiceHost.service.playPause()
                     }
 
                     // Next
-                    PlayerButton(R.drawable.ic_skip_next, enabled = PlayerHost.status.m_has_next) {
-                        PlayerHost.player.seekToNextMediaItem()
+                    PlayerButton(R.drawable.ic_skip_next, enabled = PlayerServiceHost.status.m_has_next) {
+                        PlayerServiceHost.player.seekToNextMediaItem()
                     }
 
                     Spacer(Modifier.requiredWidth(utility_separation))
 
                     // Cycle repeat mode
                     PlayerButton(
-                        if (PlayerHost.status.m_repeat_mode == Player.REPEAT_MODE_ONE) R.drawable.ic_repeat_one else R.drawable.ic_repeat,
+                        if (PlayerServiceHost.status.m_repeat_mode == Player.REPEAT_MODE_ONE) R.drawable.ic_repeat_one else R.drawable.ic_repeat,
                         60.dp * 0.65f,
-                        if (PlayerHost.status.m_repeat_mode != Player.REPEAT_MODE_OFF) 1f else 0.25f
+                        if (PlayerServiceHost.status.m_repeat_mode != Player.REPEAT_MODE_OFF) 1f else 0.25f
                     ) {
-                        PlayerHost.player.repeatMode = when (PlayerHost.player.repeatMode) {
+                        PlayerServiceHost.player.repeatMode = when (PlayerServiceHost.player.repeatMode) {
                             Player.REPEAT_MODE_ALL -> Player.REPEAT_MODE_ONE
                             Player.REPEAT_MODE_ONE -> Player.REPEAT_MODE_OFF
                             else -> Player.REPEAT_MODE_ALL
@@ -560,7 +559,7 @@ fun mainOverlayMenu(setOverlayMenu: (NowPlayingOverlayMenu) -> Unit, openShutter
             .padding(20.dp),
         verticalArrangement = Arrangement.SpaceBetween
     ) {
-        PlayerHost.status.m_song?.artist?.Preview(false)
+        PlayerServiceHost.status.m_song?.artist?.Preview(false)
 
         Row(
             Modifier.fillMaxWidth(),
@@ -624,8 +623,8 @@ fun mainOverlayMenu(setOverlayMenu: (NowPlayingOverlayMenu) -> Unit, openShutter
 
             Box(
                 button_modifier.clickable { openShutterMenu {
-                    if (PlayerHost.status.m_song != null) {
-                        val song: Song = remember { PlayerHost.status.m_song!! }
+                    if (PlayerServiceHost.status.m_song != null) {
+                        val song: Song = remember { PlayerServiceHost.status.m_song!! }
 
                         @Composable
                         fun infoField(name: String, value: String) {

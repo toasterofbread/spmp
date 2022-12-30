@@ -1,7 +1,9 @@
 package com.spectre7.composesettings.model
 
+import android.content.Context
 import android.content.SharedPreferences
 import androidx.compose.animation.Animatable
+import androidx.compose.animation.Crossfade
 import androidx.compose.animation.core.TweenSpec
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
@@ -20,10 +22,11 @@ import androidx.compose.ui.unit.*
 import com.github.krottv.compose.sliders.DefaultThumb
 import com.github.krottv.compose.sliders.DefaultTrack
 import com.github.krottv.compose.sliders.SliderValueHorizontal
-import com.spectre7.spmp.model.Settings
 import com.spectre7.utils.*
 
 abstract class SettingsItem {
+    lateinit var context: Context
+
     @Composable
     abstract fun GetItem(theme: Theme, open_page: (Int) -> Unit)
 }
@@ -85,7 +88,8 @@ class SettingsValueState<T>(
 class SettingsItemToggle(
     val state: SettingsValueState<Boolean>,
     val title: String?,
-    val subtitle: String?
+    val subtitle: String?,
+    val checker: ((target: Boolean, (allowChange: Boolean) -> Unit) -> Unit)? = null
 ): SettingsItem() {
 
     @Composable
@@ -102,10 +106,30 @@ class SettingsItemToggle(
                     Text(subtitle, color = theme.getOnBackground(false).setAlpha(0.75))
                 }
             }
-            Switch(checked = state.value, onCheckedChange = {state.value = it}, colors = SwitchDefaults.colors(
-                checkedThumbColor = theme.getVibrantAccent(),
-                checkedTrackColor = theme.getVibrantAccent().setAlpha(0.5)
-            ))
+
+            Switch(
+                state.value,
+                null,
+                Modifier.clickable(
+                    interactionSource = remember { MutableInteractionSource() },
+                    indication = null
+                ) {
+                    if (checker == null) {
+                        state.value = !state.value
+                        return@clickable
+                    }
+
+                    checker.invoke(!state.value) { allow_change ->
+                        if (allow_change) {
+                            state.value = !state.value
+                        }
+                    }
+                },
+                colors = SwitchDefaults.colors(
+                    checkedThumbColor = theme.getVibrantAccent(),
+                    checkedTrackColor = theme.getVibrantAccent().setAlpha(0.5)
+                )
+            )
         }
     }
 }
@@ -371,6 +395,58 @@ class SettingsItemSubpage(
                 Text(title)
                 if (subtitle != null) {
                     Text(subtitle)
+                }
+            }
+        }
+    }
+}
+
+class SettingsItemAccessibilityService(
+    val text_enabled: String,
+    val text_disabled: String,
+    val button_enable: String,
+    val button_disable: String,
+    val service_bridge: AccessibilityServiceBridge
+): SettingsItem() {
+    interface AccessibilityServiceBridge {
+        fun addEnabledListener(listener: (Boolean) -> Unit, context: Context)
+        fun removeEnabledListener(listener: (Boolean) -> Unit, context: Context)
+        fun isEnabled(context: Context): Boolean
+        fun setEnabled(enabled: Boolean)
+    }
+
+    @Composable
+    override fun GetItem(theme: Theme, open_page: (Int) -> Unit) {
+        var service_enabled: Boolean by remember { mutableStateOf(service_bridge.isEnabled(context)) }
+        val listener: (Boolean) -> Unit = { service_enabled = it }
+        DisposableEffect(Unit) {
+            service_bridge.addEnabledListener(listener, context)
+            onDispose {
+                service_bridge.removeEnabledListener(listener, context)
+            }
+        }
+
+        val shape = RoundedCornerShape(35)
+
+        Crossfade(service_enabled) { enabled ->
+            CompositionLocalProvider(LocalContentColor provides if (enabled) theme.getOnBackground(false) else theme.getOnAccent()) {
+                Row(
+                    Modifier
+                        .background(
+                            if (enabled) theme.getBackground(false) else theme.getAccent(),
+                            shape
+                        )
+                        .border(Dp.Hairline, theme.getAccent(), shape)
+                        .padding(start = 20.dp, end = 20.dp)
+                        .fillMaxWidth(),
+                    horizontalArrangement = Arrangement.SpaceBetween, verticalAlignment = Alignment.CenterVertically
+                ) {
+                    Text(if (enabled) text_enabled else text_disabled)
+                    Button({ service_bridge.setEnabled(!enabled) },
+                        colors = ButtonDefaults.buttonColors(if (enabled) theme.getAccent() else theme.getBackground(false), if (enabled) theme.getOnAccent() else theme.getOnBackground(false))
+                    ) {
+                        Text(if (enabled) button_disable else button_enable)
+                    }
                 }
             }
         }

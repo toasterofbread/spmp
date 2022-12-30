@@ -33,7 +33,7 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.compose.ui.zIndex
 import com.spectre7.spmp.MainActivity
-import com.spectre7.spmp.PlayerHost
+import com.spectre7.spmp.PlayerServiceHost
 import com.spectre7.spmp.R
 import com.spectre7.spmp.model.Settings
 import com.spectre7.spmp.model.Song
@@ -218,7 +218,7 @@ fun TimingOverlay(lyrics: Song.Lyrics, text_positions: List<TermInfo>, full_line
         scrollTo(highlight_position_y)
     }
 
-    LaunchedEffect(PlayerHost.status.m_position, full_line) {
+    LaunchedEffect(PlayerServiceHost.status.m_position, full_line) {
 
         if (!lyrics.isTimed()) {
             return@LaunchedEffect
@@ -227,7 +227,7 @@ fun TimingOverlay(lyrics: Song.Lyrics, text_positions: List<TermInfo>, full_line
         val offset = Offset(-100f, -170f)
 
         val terms = mutableListOf<Song.Lyrics.Subterm>()
-        val pos = (PlayerHost.status.duration * PlayerHost.status.position)
+        val pos = (PlayerServiceHost.status.duration * PlayerServiceHost.status.position)
         var finished = false
 
         for (line in lyrics.lyrics) {

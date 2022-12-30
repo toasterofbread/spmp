@@ -15,15 +15,11 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.layout.ContentScale
-import androidx.compose.ui.layout.onPlaced
-import androidx.compose.ui.layout.positionInParent
-import androidx.compose.ui.text.font.FontWeight
-import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import coil.compose.rememberAsyncImagePainter
-import com.spectre7.spmp.PlayerHost
+import com.spectre7.spmp.PlayerServiceHost
 import com.spectre7.spmp.model.Song
 import com.spectre7.utils.setAlpha
 
@@ -33,7 +29,7 @@ fun SongPreview (song: Song, large: Boolean, colour: Color, modifier: Modifier =
     if (large) {
         Column(
             modifier.padding(10.dp, 0.dp).clickable {
-                PlayerHost.service.playSong(song)
+                PlayerServiceHost.service.playSong(song)
             }.aspectRatio(0.8f),
             horizontalAlignment = Alignment.CenterHorizontally,
             verticalArrangement = Arrangement.spacedBy(5.dp)
@@ -88,8 +84,8 @@ fun SongPreview (song: Song, large: Boolean, colour: Color, modifier: Modifier =
 
             if (!basic) {
                 IconButton(onClick = {
-                    PlayerHost.service.addToQueue(song) {
-                        PlayerHost.service.play()
+                    PlayerServiceHost.service.addToQueue(song) {
+                        PlayerServiceHost.service.play()
                     }
                 }, modifier = Modifier.fillMaxWidth()) {
                     Icon(Icons.Filled.PlayArrow, null, Modifier, colour)

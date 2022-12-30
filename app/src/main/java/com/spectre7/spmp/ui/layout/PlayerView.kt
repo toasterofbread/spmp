@@ -37,7 +37,7 @@ import com.google.accompanist.swiperefresh.SwipeRefresh
 import com.google.accompanist.swiperefresh.rememberSwipeRefreshState
 import com.google.android.exoplayer2.ExoPlayer
 import com.spectre7.spmp.MainActivity
-import com.spectre7.spmp.PlayerHost
+import com.spectre7.spmp.PlayerServiceHost
 import com.spectre7.spmp.R
 import com.spectre7.spmp.api.DataApi
 import com.spectre7.spmp.model.Artist
@@ -286,7 +286,7 @@ fun PlayerView() {
 
         var player by remember { mutableStateOf<ExoPlayer?>(null) }
         LaunchedEffect(Unit) {
-            player = PlayerHost.service.player
+            player = PlayerServiceHost.service.player
         }
 
         val screen_height = getScreenHeight()
@@ -364,7 +364,7 @@ fun MainPage(_rows: List<YtItemRow>, refreshFeed: (allow_cache: Boolean, onFinis
                     }
 
                     PillMenu(
-                        if (PlayerHost.service.getIntegratedServer() == null) 3 else 2,
+                        if (PlayerServiceHost.service.getIntegratedServer() == null) 3 else 2,
                         { index, _ ->
                             when (index) {
                                 0 -> ActionButton(Icons.Filled.Refresh) {
@@ -385,7 +385,7 @@ fun MainPage(_rows: List<YtItemRow>, refreshFeed: (allow_cache: Boolean, onFinis
                                     sendToast("Starting integrated server...")
                                     thread {
                                         runBlocking {
-                                            PlayerHost.service.startIntegratedServer()
+                                            PlayerServiceHost.service.startIntegratedServer()
                                         }
                                         refresh()
                                     }

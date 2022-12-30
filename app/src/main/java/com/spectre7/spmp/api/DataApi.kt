@@ -7,7 +7,7 @@ import com.chaquo.python.PyException
 import com.chaquo.python.PyObject
 import com.chaquo.python.Python
 import com.spectre7.spmp.MainActivity
-import com.spectre7.spmp.PlayerHost
+import com.spectre7.spmp.PlayerServiceHost
 import com.spectre7.spmp.R
 import com.spectre7.spmp.model.*
 import com.spectre7.spmp.ui.layout.ResourceType
@@ -293,7 +293,7 @@ class DataApi {
             }
 
             private fun refresh() {
-                integrated_server = PlayerHost.service.getIntegratedServer()
+                integrated_server = PlayerServiceHost.service.getIntegratedServer()
                 if (integrated_server != null) {
                     url = null
                     return

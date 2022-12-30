@@ -1,5 +1,6 @@
 package com.spectre7.composesettings.ui
 
+import android.content.Context
 import androidx.compose.animation.Crossfade
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
@@ -14,7 +15,7 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
 import com.spectre7.utils.Theme
 
-class SettingsInterface(val theme: Theme, val root_page: Int, val getPage: (Int) -> SettingsPage?, val onBackPressed: () -> Unit = {}) {
+class SettingsInterface(val theme: Theme, val root_page: Int, val getPage: (Int) -> SettingsPage?, val context: Context, val onBackPressed: () -> Unit = {}) {
     var current_page by mutableStateOf(root_page)
     private val page_stack = mutableListOf<Int>()
 

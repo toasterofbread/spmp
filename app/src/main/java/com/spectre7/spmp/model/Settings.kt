@@ -2,6 +2,7 @@ package com.spectre7.spmp.model
 
 import android.content.SharedPreferences
 import com.spectre7.spmp.MainActivity
+import com.spectre7.spmp.PlayerAccessibilityService
 import java.util.Locale
 
 enum class Settings {
@@ -16,20 +17,24 @@ enum class Settings {
     KEY_LYRICS_DEFAULT_FURIGANA,
     KEY_LYRICS_TEXT_ALIGNMENT,
 
+    KEY_VOLUME_STEPS,
+
     // Accessibility Service
-    KEY_ACC_VOL_INTERCEPT_MODE;
+    KEY_ACC_VOL_INTERCEPT_MODE,
+    KEY_ACC_VOL_INTERCEPT_NOTIFICATION,
+    KEY_ACC_SCREEN_OFF;
 
     companion object {
         val prefs: SharedPreferences get() = MainActivity.prefs
 
-        fun <T> get(enum_key: Settings, default: T? = null): T {
+        fun <T> get(enum_key: Settings, default: T? = null, preferences: SharedPreferences = prefs): T {
             val default_value: T = default ?: getDefault(enum_key)
             return when (default_value!!::class) {
-                Boolean::class -> prefs.getBoolean(enum_key.name, default_value as Boolean)
-                Float::class -> prefs.getFloat(enum_key.name, default_value as Float)
-                Int::class -> prefs.getInt(enum_key.name, default_value as Int)
-                Long::class -> prefs.getLong(enum_key.name, default_value as Long)
-                String::class -> prefs.getString(enum_key.name, default_value as String)
+                Boolean::class -> preferences.getBoolean(enum_key.name, default_value as Boolean)
+                Float::class -> preferences.getFloat(enum_key.name, default_value as Float)
+                Int::class -> preferences.getInt(enum_key.name, default_value as Int)
+                Long::class -> preferences.getLong(enum_key.name, default_value as Long)
+                String::class -> preferences.getString(enum_key.name, default_value as String)
                 else -> throw java.lang.ClassCastException()
             } as T
         }
@@ -43,7 +48,10 @@ enum class Settings {
                 KEY_LYRICS_FOLLOW_OFFSET -> 0.5f
                 KEY_LYRICS_DEFAULT_FURIGANA -> true
                 KEY_LYRICS_TEXT_ALIGNMENT -> 0
-                KEY_ACC_VOL_INTERCEPT_MODE -> 0
+                KEY_VOLUME_STEPS -> 50
+                KEY_ACC_VOL_INTERCEPT_MODE -> PlayerAccessibilityService.VOLUME_INTERCEPT_MODE.NEVER.ordinal
+                KEY_ACC_VOL_INTERCEPT_NOTIFICATION -> false
+                KEY_ACC_SCREEN_OFF -> false
             } as T
         }
 

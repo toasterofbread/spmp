@@ -29,7 +29,7 @@ import com.github.krottv.compose.sliders.DefaultThumb
 import com.github.krottv.compose.sliders.SliderValueHorizontal
 import com.google.accompanist.systemuicontroller.rememberSystemUiController
 import com.spectre7.spmp.MainActivity
-import com.spectre7.spmp.PlayerHost
+import com.spectre7.spmp.PlayerServiceHost
 import com.spectre7.spmp.R
 import com.spectre7.spmp.ui.component.MultiSelector
 import com.spectre7.spmp.ui.layout.getStatusBarHeight
@@ -77,7 +77,6 @@ fun NowPlaying(expansion: Float, max_height: Float, close: () -> Unit) {
         val tab_scroll_state = rememberScrollState(getTabScrollTarget())
 
         LaunchedEffect(current_tab.value) {
-            println("got ${current_tab.value}")
             tab_scroll_state.animateScrollTo(getTabScrollTarget())
         }
 
@@ -184,7 +183,7 @@ fun SeekBar(seek: (Float) -> Unit) {
 
     fun getSliderValue(): Float {
         if (position_override != null && old_position != null) {
-            if (PlayerHost.status.m_position != old_position) {
+            if (PlayerServiceHost.status.m_position != old_position) {
                 old_position = null
                 position_override = null
             }
@@ -192,14 +191,14 @@ fun SeekBar(seek: (Float) -> Unit) {
                 return position_override!!
             }
         }
-        return position_override ?: PlayerHost.status.m_position
+        return position_override ?: PlayerServiceHost.status.m_position
     }
 
     SliderValueHorizontal(
         value = getSliderValue(),
         onValueChange = {
             if (grab_start_position == null) {
-                grab_start_position = PlayerHost.status.position
+                grab_start_position = PlayerServiceHost.status.position
             }
 
             position_override = it
@@ -219,7 +218,7 @@ fun SeekBar(seek: (Float) -> Unit) {
             else {
                 seek(position_override!!)
             }
-            old_position = PlayerHost.status.position
+            old_position = PlayerServiceHost.status.position
             grab_start_position = null
             cancel_area_side = null
         },
@@ -232,7 +231,7 @@ fun SeekBar(seek: (Float) -> Unit) {
 @Composable
 fun MinimisedProgressBar(expansion: Float) {
     LinearProgressIndicator(
-        progress = PlayerHost.status.m_position,
+        progress = PlayerServiceHost.status.m_position,
         color = MainActivity.theme.getOnBackground(true),
         trackColor = setColourAlpha(MainActivity.theme.getOnBackground(true), 0.5),
         modifier = Modifier
@@ -251,7 +250,7 @@ fun TabSelector(current_tab: MutableState<NowPlayingTab>) {
         Modifier.aspectRatio(1f),
         colour = setColourAlpha(MainActivity.theme.getOnBackground(true), 0.75),
         background_colour = MainActivity.theme.getBackground(true),
-        on_selected = { current_tab.value = NowPlayingTab.values()[it]; println("set ${current_tab.value}") }
+        on_selected = { current_tab.value = NowPlayingTab.values()[it] }
     ) { index ->
 
         val tab = NowPlayingTab.values()[index]

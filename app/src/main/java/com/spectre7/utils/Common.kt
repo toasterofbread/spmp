@@ -21,13 +21,13 @@ fun vibrate(duration: Double) {
     vibrator.vibrate(VibrationEffect.createOneShot((duration * 1000.0).toLong(), VibrationEffect.DEFAULT_AMPLITUDE))
 }
 
-fun sendToast(text: String, length: Int = Toast.LENGTH_SHORT) {
+fun sendToast(text: String, length: Int = Toast.LENGTH_SHORT, context: Context = MainActivity.context) {
     try {
-        Toast.makeText(MainActivity.context, text, length).show()
+        Toast.makeText(context, text, length).show()
     }
-    catch (e: NullPointerException) {
+    catch (_: NullPointerException) {
         Looper.prepare()
-        Toast.makeText(MainActivity.context, text, length).show()
+        Toast.makeText(context, text, length).show()
     }
 }
 
@@ -59,4 +59,10 @@ fun OnChangedEffect(key: Any, block: suspend () -> Unit) {
             block()
         }
     }
+}
+
+fun getAppName(context: Context): String {
+    val info = context.applicationInfo
+    val string_id = info.labelRes
+    return if (string_id == 0) info.nonLocalizedLabel.toString() else context.getString(string_id)
 }

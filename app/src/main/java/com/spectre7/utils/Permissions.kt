@@ -10,7 +10,7 @@ import androidx.activity.ComponentActivity
 import androidx.activity.result.ActivityResultLauncher
 import androidx.activity.result.contract.ActivityResultContracts
 import com.spectre7.spmp.MainActivity
-import com.topjohnwu.superuser.Shell
+import kotlin.concurrent.thread
 
 class Permissions {
 
@@ -63,11 +63,13 @@ class Permissions {
                 }
 
                 Manifest.permission.WRITE_SECURE_SETTINGS -> {
-                    getRootShell({ callback(GrantError.ROOT_NOT_GRANTED, null) }) { shell ->
-                        val result = shell.newJob().add("pm grant ${context.packageName} ${Manifest.permission.WRITE_SECURE_SETTINGS}").exec()
+                    runAsRootAndWait(
+                        "pm grant ${context.packageName} ${Manifest.permission.WRITE_SECURE_SETTINGS}",
+                        { callback(GrantError.ROOT_NOT_GRANTED, null) }
+                    ) { result ->
                         callback(
-                            if (result.isSuccess) GrantError.OK else GrantError.SHELL_ERROR,
-                            result.err.joinToString("\n")
+                            if (result == 0) GrantError.OK else GrantError.SHELL_ERROR,
+                            if (result == 0) null else getStderr()
                         )
                     }
                 }
@@ -83,18 +85,63 @@ class Permissions {
             }
         }
 
-        // TODO | Figure this out (seems inconsistent)
-        fun getRootShell(onFail: (() -> Unit)? = null, callback: (Shell) -> Unit) {
-            Shell.getShell { shell ->
-                if (!shell.isRoot) {
-                    // Close shell so that root access can be requested again
-                    shell.close()
-                    onFail?.invoke()
+        fun requestRootPermission(callback: (granted: Boolean) -> Unit) {
+            runAsRootAndWait("ls", { callback(false) }) {
+                callback(true)
+            }
+        }
+
+        fun runAsRoot(command: String): Process {
+            return Runtime.getRuntime().exec(arrayOf("su", "-c", command))
+        }
+
+        class OutputProvider(private val _process: Process) {
+            fun getStdout(): String {
+                val stream = _process.inputStream
+                val ret = stream.bufferedReader().readText()
+                stream.close()
+                return ret
+            }
+
+            fun getStderr(): String {
+                val stream = _process.errorStream
+                val ret = stream.bufferedReader().readText()
+                stream.close()
+                return ret
+            }
+        }
+
+        fun runAsRootAndWait(
+            command: String,
+            onRootNotGranted: () -> Unit,
+            block: Boolean = false,
+            callback: OutputProvider.(result: Int) -> Unit
+        ): Process? {
+
+            val process = runAsRoot(command)
+
+            fun run(): Int {
+                val result = process.waitFor()
+                if (result == 13) {
+                    onRootNotGranted()
+                    return result
                 }
-                else {
-                    callback(shell)
+                callback(OutputProvider(process), result)
+                return result
+            }
+
+            if (block) {
+                if (run() != 0) {
+                    return null
                 }
             }
+            else {
+                thread {
+                    run()
+                }
+            }
+
+            return process
         }
     }
 }

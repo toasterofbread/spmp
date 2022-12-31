@@ -28,7 +28,6 @@ import com.spectre7.spmp.model.Settings
 import com.spectre7.spmp.ui.layout.PlayerView
 import com.spectre7.spmp.ui.theme.MyApplicationTheme
 import com.spectre7.utils.Theme
-import com.topjohnwu.superuser.Shell
 import java.util.*
 
 class MainActivity : ComponentActivity() {
@@ -103,10 +102,6 @@ class MainActivity : ComponentActivity() {
     }
 
     companion object {
-
-        init {
-            Shell.setDefaultBuilder(Shell.Builder.create().setTimeout(10))
-        }
 
         @JvmStatic
         private var instance: MainActivity? = null

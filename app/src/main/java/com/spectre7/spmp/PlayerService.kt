@@ -4,6 +4,8 @@ import android.app.*
 import android.content.*
 import android.graphics.Bitmap
 import android.graphics.PixelFormat
+import android.media.AudioFocusRequest
+import android.media.AudioManager
 import android.os.Binder
 import android.os.Build
 import android.support.v4.media.MediaMetadataCompat
@@ -136,7 +138,7 @@ class PlayerService : Service() {
                 .setUsage(C.USAGE_MEDIA)
                 .setContentType(C.AUDIO_CONTENT_TYPE_MUSIC)
                 .build(),
-            true
+            false
         ).build()
         player.playWhenReady = true
         player.prepare()
@@ -160,7 +162,7 @@ class PlayerService : Service() {
                         playPause()
                     }
                     KeyEvent.KEYCODE_MEDIA_PLAY -> {
-                        player.play()
+                        play()
                     }
                     KeyEvent.KEYCODE_MEDIA_PAUSE -> {
                         player.pause()
@@ -499,7 +501,24 @@ class PlayerService : Service() {
     }
 
     fun play() {
-        player.play()
+
+        val focus_request = AudioFocusRequest.Builder(AudioManager.AUDIOFOCUS_GAIN).setOnAudioFocusChangeListener({
+            println("FOCUS CHANGED $it")
+        }).build()
+
+        val manager = getSystemService(Context.AUDIO_SERVICE) as AudioManager
+        when (manager.requestAudioFocus(focus_request)) {
+            AudioManager.AUDIOFOCUS_REQUEST_FAILED -> {
+                println("FAILED")
+            }
+            AudioManager.AUDIOFOCUS_REQUEST_GRANTED -> {
+                player.play()
+                println("GRANTED")
+            }
+            AudioManager.AUDIOFOCUS_REQUEST_DELAYED -> {
+                println("DELAYED")
+            }
+        }
     }
 
     fun playPause() {
@@ -507,7 +526,7 @@ class PlayerService : Service() {
             player.pause()
         }
         else {
-            player.play()
+            play()
         }
     }
 

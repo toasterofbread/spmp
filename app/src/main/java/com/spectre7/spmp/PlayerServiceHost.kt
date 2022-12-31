@@ -118,18 +118,26 @@ class PlayerServiceHost {
     }
 
     companion object {
-        lateinit var instance: PlayerServiceHost
+        private var instance: PlayerServiceHost? = null
         lateinit var status: PlayerStatus
 
         val service: PlayerService
-            get() = instance.service
+            get() = instance!!.service
         val player: ExoPlayer
             get() = service.player
         val service_connected: Boolean
-            get() = instance.service_connected
+            get() = instance?.service_connected ?: false
+
+        fun isRunningAndFocused(): Boolean {
+            if (instance == null) {
+                return false
+            }
+
+            return false
+        }
 
         fun release() {
-            instance.release()
+            instance?.release()
         }
     }
 

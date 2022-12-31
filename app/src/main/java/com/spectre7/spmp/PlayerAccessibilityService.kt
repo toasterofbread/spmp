@@ -103,18 +103,17 @@ class PlayerAccessibilityService : AccessibilityService(), LifecycleOwner {
         }
 
 
-        if (volume_intercept_mode == VOLUME_INTERCEPT_MODE.APP_OPEN) {
-
-        }
-        // VOLUME_INTERCEPT_MODE.ALWAYS
-        else {
-
-        }
-
         if (event.keyCode == KEYCODE_VOLUME_UP || event.keyCode == KEYCODE_VOLUME_DOWN) {
-            val session = getSystemService(Context.MEDIA_SESSION_SERVICE) as MediaSessionManager
-            val sessions = session.getActiveSessions(ComponentName(this, NotificationListenerService::class.java))
-            println(sessions)
+            if (volume_intercept_mode == VOLUME_INTERCEPT_MODE.APP_OPEN) {
+                if (!MainActivity.isInForeground()) {
+                    return false
+                }
+            }
+            // VOLUME_INTERCEPT_MODE.ALWAYS
+            else if (!PlayerServiceHost.isRunningAndFocused()) {
+                return false
+            }
+
             onVolumeKeyPressed(event.keyCode == KEYCODE_VOLUME_UP, event.action == ACTION_DOWN)
             return true
         }

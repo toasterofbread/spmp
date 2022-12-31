@@ -337,7 +337,6 @@ class YtApi:
         def feed():
 
             def postRequest(ctoken: str | None) -> dict | Response:
-                utils.log(request.args.get("interfaceLang", "bruh"))
                 response =  requests.post(
                     "https://music.youtube.com/youtubei/v1/browse",
                     params = {"ctoken": ctoken, "continuation": ctoken, "type": "next"} if ctoken is not None else {},

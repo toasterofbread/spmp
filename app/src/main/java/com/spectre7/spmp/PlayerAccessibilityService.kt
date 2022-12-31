@@ -4,26 +4,32 @@ import android.Manifest
 import android.accessibilityservice.AccessibilityService
 import android.accessibilityservice.AccessibilityServiceInfo
 import android.app.AlertDialog
-import android.content.Context
-import android.content.Intent
+import android.content.*
 import android.content.SharedPreferences.OnSharedPreferenceChangeListener
-import android.content.pm.PackageManager.PERMISSION_GRANTED
 import android.database.ContentObserver
+import android.media.session.MediaSessionManager
 import android.os.Handler
+import android.service.notification.NotificationListenerService
 import android.view.KeyEvent
 import android.view.KeyEvent.*
 import android.view.ViewConfiguration.getLongPressTimeout
 import android.view.accessibility.AccessibilityEvent
+import androidx.lifecycle.Lifecycle
+import androidx.lifecycle.LifecycleOwner
+import androidx.lifecycle.LifecycleRegistry
+import androidx.lifecycle.lifecycleScope
 import androidx.localbroadcastmanager.content.LocalBroadcastManager
 import com.spectre7.spmp.model.Settings
 import com.spectre7.utils.Permissions
 import com.spectre7.utils.getString
 import com.spectre7.utils.sendToast
+import kotlinx.coroutines.*
 import java.lang.ref.WeakReference
 import kotlin.collections.set
 import android.provider.Settings as AndroidSettings
 
-class PlayerAccessibilityService : AccessibilityService() {
+
+class PlayerAccessibilityService : AccessibilityService(), LifecycleOwner {
 
     enum class VOLUME_INTERCEPT_MODE {
         ALWAYS,
@@ -31,40 +37,71 @@ class PlayerAccessibilityService : AccessibilityService() {
         NEVER
     }
     private lateinit var volume_intercept_mode: VOLUME_INTERCEPT_MODE
+    private var listen_while_screen_off: Boolean = false
 
     private val prefs_change_listener = OnSharedPreferenceChangeListener { prefs, key ->
         when (key) {
             Settings.KEY_ACC_VOL_INTERCEPT_MODE.name -> {
-                volume_intercept_mode = VOLUME_INTERCEPT_MODE.values()[Settings.get(Settings.KEY_ACC_VOL_INTERCEPT_MODE, preferences = prefs)]
+                volume_intercept_mode = VOLUME_INTERCEPT_MODE.values()[Settings.get(Settings.KEY_ACC_VOL_INTERCEPT_MODE, prefs)]
+            }
+            Settings.KEY_ACC_SCREEN_OFF.name -> {
+                listen_while_screen_off = Settings.get(Settings.KEY_ACC_SCREEN_OFF, prefs)
+                if (!listen_while_screen_off) {
+                    screen_off_listener.stopListening()
+                }
             }
         }
     }
 
-    private val pressed_time = mutableMapOf<Int, Long>(
-        KEYCODE_VOLUME_UP to -1,
-        KEYCODE_VOLUME_DOWN to -1
+    private lateinit var lifecycle_registry: LifecycleRegistry
+    private val screen_off_listener = ScreenOffListener { volume_up, key_down ->
+        onVolumeKeyPressed(volume_up, key_down)
+    }
+    private val broadcast_receiver = object : BroadcastReceiver() {
+        override fun onReceive(context: Context, intent: Intent) {
+            when (intent.action) {
+                Intent.ACTION_SCREEN_ON -> screen_off_listener.stopListening()
+                Intent.ACTION_SCREEN_OFF -> if (listen_while_screen_off) screen_off_listener.startListening(lifecycleScope)
+            }
+        }
+    }
+
+    private val pressed_time = mutableMapOf<Boolean, Long?>(
+        true to null,
+        false to null
     )
 
     override fun onCreate() {
         super.onCreate()
+        instance = WeakReference(this)
+
+        lifecycle_registry = LifecycleRegistry(this)
+        lifecycle_registry.currentState = Lifecycle.State.CREATED
 
         val prefs = MainActivity.getSharedPreferences(this)
-        volume_intercept_mode = VOLUME_INTERCEPT_MODE.values()[Settings.get(Settings.KEY_ACC_VOL_INTERCEPT_MODE, preferences = prefs)]
         prefs.registerOnSharedPreferenceChangeListener(prefs_change_listener)
-        
-        instance = WeakReference(this)
+        volume_intercept_mode = VOLUME_INTERCEPT_MODE.values()[Settings.get(Settings.KEY_ACC_VOL_INTERCEPT_MODE, prefs)]
+        listen_while_screen_off = Settings.get(Settings.KEY_ACC_SCREEN_OFF, prefs)
+
+        val filter = IntentFilter()
+        filter.addAction(Intent.ACTION_SCREEN_ON)
+        filter.addAction(Intent.ACTION_SCREEN_OFF)
+        registerReceiver(broadcast_receiver, filter)
     }
 
     override fun onDestroy() {
         super.onDestroy()
-        MainActivity.getSharedPreferences(this).unregisterOnSharedPreferenceChangeListener(prefs_change_listener)
         instance = null
+
+        MainActivity.getSharedPreferences(this).unregisterOnSharedPreferenceChangeListener(prefs_change_listener)
+        unregisterReceiver(broadcast_receiver)
     }
 
     override fun onKeyEvent(event: KeyEvent?): Boolean {
         if (event == null || volume_intercept_mode == VOLUME_INTERCEPT_MODE.NEVER) {
             return false
         }
+
 
         if (volume_intercept_mode == VOLUME_INTERCEPT_MODE.APP_OPEN) {
 
@@ -75,24 +112,32 @@ class PlayerAccessibilityService : AccessibilityService() {
         }
 
         if (event.keyCode == KEYCODE_VOLUME_UP || event.keyCode == KEYCODE_VOLUME_DOWN) {
-            if (event.action == ACTION_DOWN) {
-                pressed_time[event.keyCode] = System.currentTimeMillis()
-            }
-            else if (event.action == ACTION_UP) {
-                onVolumePressIntercepted(event.keyCode == KEYCODE_VOLUME_UP, (System.currentTimeMillis() - pressed_time[event.keyCode]!!) >= getLongPressTimeout())
-            }
+            val session = getSystemService(Context.MEDIA_SESSION_SERVICE) as MediaSessionManager
+            val sessions = session.getActiveSessions(ComponentName(this, NotificationListenerService::class.java))
+            println(sessions)
+            onVolumeKeyPressed(event.keyCode == KEYCODE_VOLUME_UP, event.action == ACTION_DOWN)
             return true
         }
 
         return false
     }
 
-    private fun onVolumePressIntercepted(up: Boolean, long: Boolean) {
-        val intent = Intent(PlayerService::class.java.canonicalName)
-        intent.putExtra("action", SERVICE_INTENT_ACTIONS.BUTTON_VOLUME.ordinal)
-        intent.putExtra("up", up)
-        intent.putExtra("long", long)
-        LocalBroadcastManager.getInstance(this).sendBroadcast(intent)
+    private fun onVolumeKeyPressed(volume_up: Boolean, key_down: Boolean) {
+        if (key_down) {
+            pressed_time[volume_up] = System.currentTimeMillis()
+        }
+        else {
+            val intent = Intent(PlayerService::class.java.canonicalName)
+            intent.putExtra("action", SERVICE_INTENT_ACTIONS.BUTTON_VOLUME.ordinal)
+            intent.putExtra("up", volume_up)
+
+            val pressed = pressed_time[volume_up]
+            val long = if (pressed == null) false else (System.currentTimeMillis() - pressed) >= getLongPressTimeout()
+            intent.putExtra("long", long)
+            pressed_time[volume_up] = null
+
+            LocalBroadcastManager.getInstance(this).sendBroadcast(intent)
+        }
     }
 
     override fun onAccessibilityEvent(p0: AccessibilityEvent?) {}
@@ -106,7 +151,33 @@ class PlayerAccessibilityService : AccessibilityService() {
         serviceInfo = info
     }
 
-    companion object: ListenableAccessibilityService(PlayerAccessibilityService::class.java.canonicalName as String) {
+    companion object {
+        private var enabled_listeners: MutableMap<(Boolean) -> Unit, ContentObserver> = mutableMapOf()
+
+        fun addEnabledListener(listener: (Boolean) -> Unit, context: Context) {
+            val observer: ContentObserver = object : ContentObserver(Handler(context.mainLooper)) {
+                override fun onChange(selfChange: Boolean) {
+                    super.onChange(selfChange)
+                    listener(isEnabled(context))
+                }
+            }
+
+            val uri = AndroidSettings.Secure.getUriFor(AndroidSettings.Secure.ENABLED_ACCESSIBILITY_SERVICES)
+            context.contentResolver.registerContentObserver(uri, false, observer)
+
+            enabled_listeners[listener] = observer
+        }
+
+        fun removeEnabledListener(listener: (Boolean) -> Unit, context: Context) {
+            val observer = enabled_listeners.remove(listener) ?: return
+            context.contentResolver.unregisterContentObserver(observer)
+        }
+
+        fun isEnabled(context: Context): Boolean {
+            val enabled_services = AndroidSettings.Secure.getString(context.contentResolver, AndroidSettings.Secure.ENABLED_ACCESSIBILITY_SERVICES)
+            return enabled_services.contains("${context.packageName}/${PlayerAccessibilityService::class.java.canonicalName}")
+        }
+
         private var instance: WeakReference<PlayerAccessibilityService>? = null
         fun disable() {
             if (instance != null && instance!!.get() != null) {
@@ -160,32 +231,59 @@ class PlayerAccessibilityService : AccessibilityService() {
             }
         }
     }
+
+    override fun getLifecycle(): Lifecycle {
+        return lifecycle_registry
+    }
 }
 
-open class ListenableAccessibilityService(private val class_name: String) {
-    private var enabled_listeners: MutableMap<(Boolean) -> Unit, ContentObserver> = mutableMapOf()
+class ScreenOffListener(private val onVolumeKeyPressed: (volume_up: Boolean, key_down: Boolean) -> Unit) {
+    private var job: Job? = null
 
-    fun addEnabledListener(listener: (Boolean) -> Unit, context: Context) {
-        val observer: ContentObserver = object : ContentObserver(Handler(context.mainLooper)) {
-            override fun onChange(selfChange: Boolean) {
-                super.onChange(selfChange)
-                listener(isEnabled(context))
+    fun startListening(scope: CoroutineScope): Boolean {
+        try {
+            job = scope.launch(Dispatchers.IO) {
+                val stream = Permissions.runAsRoot("getevent -lq").inputStream
+                var line: String? = null
+
+                fun isKeyDown(): Boolean {
+                    if (line == null) {
+                        return false
+                    }
+                    return line!!.substring(53, line!!.indexOf(' ', 54)) != "UP"
+                }
+
+                while (stream.bufferedReader().readLine().also { line = it } != null && isActive) {
+                    if (line == null) {
+                        continue
+                    }
+
+                    val start = 32
+                    val end = line!!.indexOf(' ', start + 1)
+
+                    when (line!!.subSequence(start, end)) {
+                        "KEY_VOLUMEUP" -> {
+                            onVolumeKeyPressed(true, isKeyDown())
+                        }
+                        "KEY_VOLUMEDOWN" -> {
+                            onVolumeKeyPressed(false, isKeyDown())
+                        }
+                    }
+                }
+
+                stream.close()
             }
+
+        } catch (e: Exception) {
+            job?.cancel()
+            return false
         }
 
-        val uri = AndroidSettings.Secure.getUriFor(AndroidSettings.Secure.ENABLED_ACCESSIBILITY_SERVICES)
-        context.contentResolver.registerContentObserver(uri, false, observer)
-
-        enabled_listeners[listener] = observer
+        return true
     }
 
-    fun removeEnabledListener(listener: (Boolean) -> Unit, context: Context) {
-        val observer = enabled_listeners.remove(listener) ?: return
-        context.contentResolver.unregisterContentObserver(observer)
-    }
-
-    fun isEnabled(context: Context): Boolean {
-        val enabled_services = AndroidSettings.Secure.getString(context.contentResolver, AndroidSettings.Secure.ENABLED_ACCESSIBILITY_SERVICES)
-        return enabled_services.contains("${context.packageName}/$class_name")
+    fun stopListening() {
+        job?.cancel()
+        job = null
     }
 }

@@ -20,6 +20,7 @@ import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
+import androidx.lifecycle.Lifecycle
 import com.beust.klaxon.JsonObject
 import com.beust.klaxon.Klaxon
 import com.chaquo.python.Python
@@ -86,6 +87,7 @@ class MainActivity : ComponentActivity() {
     override fun onDestroy() {
         super.onDestroy()
         PlayerServiceHost.release()
+        instance = null
     }
 
     private fun loadLanguages(): MutableMap<String, Map<String, String>> {
@@ -102,7 +104,6 @@ class MainActivity : ComponentActivity() {
     }
 
     companion object {
-
         @JvmStatic
         private var instance: MainActivity? = null
 
@@ -119,6 +120,13 @@ class MainActivity : ComponentActivity() {
 
         fun getSharedPreferences(context: Context): SharedPreferences {
             return context.getSharedPreferences("com.spectre7.spmp.PREFERENCES", Context.MODE_PRIVATE)
+        }
+
+        fun isInForeground(): Boolean {
+            if (instance == null) {
+                return false
+            }
+            return instance!!.lifecycle.currentState.isAtLeast(Lifecycle.State.STARTED)
         }
     }
 }

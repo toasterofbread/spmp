@@ -4,8 +4,6 @@ import android.app.*
 import android.content.*
 import android.graphics.Bitmap
 import android.graphics.PixelFormat
-import android.media.AudioFocusRequest
-import android.media.AudioManager
 import android.os.Binder
 import android.os.Build
 import android.support.v4.media.MediaMetadataCompat
@@ -138,9 +136,9 @@ class PlayerService : Service() {
                 .setUsage(C.USAGE_MEDIA)
                 .setContentType(C.AUDIO_CONTENT_TYPE_MUSIC)
                 .build(),
-            false
+            true
         ).build()
-        player.playWhenReady = true
+        player.playWhenReady = false
         player.prepare()
 
         media_session = MediaSessionCompat(MainActivity.context, "spmp")
@@ -501,23 +499,11 @@ class PlayerService : Service() {
     }
 
     fun play() {
-
-        val focus_request = AudioFocusRequest.Builder(AudioManager.AUDIOFOCUS_GAIN).setOnAudioFocusChangeListener({
-            println("FOCUS CHANGED $it")
-        }).build()
-
-        val manager = getSystemService(Context.AUDIO_SERVICE) as AudioManager
-        when (manager.requestAudioFocus(focus_request)) {
-            AudioManager.AUDIOFOCUS_REQUEST_FAILED -> {
-                println("FAILED")
-            }
-            AudioManager.AUDIOFOCUS_REQUEST_GRANTED -> {
-                player.play()
-                println("GRANTED")
-            }
-            AudioManager.AUDIOFOCUS_REQUEST_DELAYED -> {
-                println("DELAYED")
-            }
+        if (player.playbackState == Player.STATE_ENDED) {
+            player.seekTo(0)
+        }
+        else {
+            player.play()
         }
     }
 

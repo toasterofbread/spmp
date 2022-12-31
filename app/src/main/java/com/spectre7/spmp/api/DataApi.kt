@@ -29,7 +29,9 @@ class DataApi {
     companion object {
         init {
             MainActivity.network.addRetryCallback {
-                processYtItemLoadQueue()
+                thread {
+                    processYtItemLoadQueue()
+                }
             }
         }
 
@@ -437,7 +439,14 @@ class DataApi {
                 }
             }
 
-            return server!!.performRequest(endpoint, params, post_body, throw_on_fail, max_retries, timeout)
+            val localised_params: MutableMap<String, String> = HashMap(params)
+            for (key in listOf(Pair(Settings.KEY_LANG_DATA, "dataLang"), Pair(Settings.KEY_LANG_UI, "interfaceLang"))) {
+                if (!localised_params.containsKey(key.second)) {
+                    localised_params[key.second] = MainActivity.languages.keys.elementAt(Settings.get(key.first))
+                }
+            }
+
+            return server!!.performRequest(endpoint, localised_params, post_body, throw_on_fail, max_retries, timeout)
 
 //            var server = server_access_point ?: getServer()
 //            if (server == null) {

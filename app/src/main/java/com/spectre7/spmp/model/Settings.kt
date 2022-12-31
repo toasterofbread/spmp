@@ -27,7 +27,7 @@ enum class Settings {
     companion object {
         val prefs: SharedPreferences get() = MainActivity.prefs
 
-        fun <T> get(enum_key: Settings, default: T? = null, preferences: SharedPreferences = prefs): T {
+        fun <T> get(enum_key: Settings, preferences: SharedPreferences = prefs, default: T? = null): T {
             val default_value: T = default ?: getDefault(enum_key)
             return when (default_value!!::class) {
                 Boolean::class -> preferences.getBoolean(enum_key.name, default_value as Boolean)

@@ -25,7 +25,6 @@ import com.spectre7.utils.OnChangedEffect
 import com.spectre7.utils.Permissions
 import com.spectre7.utils.getString
 import com.spectre7.utils.sendToast
-import com.topjohnwu.superuser.Shell
 
 enum class Page { ROOT, ACCESSIBILITY_SERVICE }
 
@@ -192,11 +191,11 @@ fun PrefsPage(setOverlayPage: (page: OverlayPage) -> Unit) {
                             val dialog = AlertDialog.Builder(MainActivity.context)
                             dialog.setCancelable(true)
                             dialog.setTitle("Enabling accessibility service")
-//                            dialog.setMessage("")
-                            dialog.setNeutralButton("Use root") { _, _ ->
+                            dialog.setMessage("Service can be enabled automatically by granting write secure settings permission using root")
+                            dialog.setPositiveButton("Use root") { _, _ ->
                                 PlayerAccessibilityService.enable(MainActivity.context, true)
                             }
-                            dialog.setPositiveButton("Enable manually") { _, _ ->
+                            dialog.setNeutralButton("Enable manually") { _, _ ->
                                 PlayerAccessibilityService.enable(MainActivity.context, false)
                             }
                             dialog.setNegativeButton("Cancel") { _, _ -> }
@@ -229,9 +228,7 @@ fun PrefsPage(setOverlayPage: (page: OverlayPage) -> Unit) {
                         return@SettingsItemToggle
                     }
 
-                    Permissions.getRootShell({ sendToast(getString(R.string.err_root_not_granted)) }) {
-                        allowChange(true)
-                    }
+                    Permissions.requestRootPermission(allowChange)
                 },
 
                 SettingsItemToggle(

@@ -18,3 +18,6 @@ dependencyResolutionManagement {
 
 rootProject.name = "SpMp"
 include ':app'
+
+gradle.ext.exoplayerModulePrefix = "exoplayer-"
+apply from: file("app/src/thirdparty/ExoPlayer/core_settings.gradle")

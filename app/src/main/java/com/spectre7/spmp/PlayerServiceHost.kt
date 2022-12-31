@@ -133,7 +133,12 @@ class PlayerServiceHost {
                 return false
             }
 
-            return false
+            println("FOCUS ${player.audioFocusState}")
+            if (player.audioFocusState != Player.AUDIO_FOCUS_STATE_HAVE_FOCUS) {
+                return false
+            }
+
+            return true
         }
 
         fun release() {

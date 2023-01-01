@@ -12,6 +12,8 @@ import androidx.compose.material.ripple.RippleAlpha
 import androidx.compose.material.ripple.RippleTheme
 import androidx.compose.runtime.*
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.layout.SubcomposeLayout
+import androidx.compose.ui.unit.Constraints
 import com.spectre7.spmp.MainActivity
 
 fun Boolean.toInt() = if (this) 1 else 0
@@ -65,4 +67,22 @@ fun getAppName(context: Context): String {
     val info = context.applicationInfo
     val string_id = info.labelRes
     return if (string_id == 0) info.nonLocalizedLabel.toString() else context.getString(string_id)
+}
+
+@Composable
+fun MeasureUnconstrainedView(
+    viewToMeasure: @Composable () -> Unit,
+    content: @Composable (width: Int, height: Int) -> Unit,
+) {
+    SubcomposeLayout { constraints ->
+        val measurement = subcompose("viewToMeasure", viewToMeasure)[0].measure(Constraints())
+
+        val contentPlaceable = subcompose("content") {
+            content(measurement.width, measurement.height)
+        }[0].measure(constraints)
+
+        layout(contentPlaceable.width, contentPlaceable.height) {
+            contentPlaceable.place(0, 0)
+        }
+    }
 }

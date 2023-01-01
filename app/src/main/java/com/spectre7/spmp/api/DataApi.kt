@@ -170,18 +170,40 @@ class DataApi {
             }
         }
 
+        fun getLyrics(id: String): Song.Lyrics? {
+            val result = queryServer(
+                "/lyrics",
+                mapOf("id" to id),
+                max_retries = 1
+            ) ?: return null
+            return klaxon.parse<Song.Lyrics>(result)
+        }
+
         fun getSongLyrics(song: Song, callback: (Song.Lyrics?) -> Unit) {
             thread {
-                val params = mapOf("title" to song.title, "artist" to song.artist.name)
-
                 try {
-                    val result = queryServer("/lyrics", params, max_retries = 1)
-                    if (result == null) {
-                        callback(null)
+                    val id = song.registry.overrides.lyrics_id
+                    val ret: Song.Lyrics?
+
+                    if (id != null) {
+                        ret = getLyrics(id)
                     }
                     else {
-                        callback(klaxon.parse<Song.Lyrics>(result))
+                        val result = queryServer(
+                            "/lyrics_search",
+                            mapOf("title" to song.title, "artist" to song.artist.name),
+                            max_retries = 1
+                        )
+                        if (result == null) {
+                            callback(null)
+                            return@thread
+                        }
+
+                        ret = klaxon.parse<Song.Lyrics>(result)
                     }
+
+                    song.registry.overrides.lyrics_id = ret?.id
+                    callback(ret)
                 }
                 catch (e: Exception) {
                     MainActivity.network.onError(e)

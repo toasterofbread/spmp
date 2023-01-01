@@ -30,7 +30,9 @@ class DataRegistry(var songs: MutableMap<String, SongEntry> = mutableMapOf()) {
         }
     }
 
-    data class SongEntry(val overrides: SongOverrides = SongOverrides()) {
+    data class SongEntry(
+        val overrides: SongOverrides = SongOverrides()
+    ) {
         @Json(ignored = true) lateinit var id: String
 
         fun isDefault(): Boolean {
@@ -39,31 +41,21 @@ class DataRegistry(var songs: MutableMap<String, SongEntry> = mutableMapOf()) {
 
         data class SongOverrides(
             var _title: String? = null,
-            var _lyrics_search_title: String? = null,
-            var _lyrics_search_artist: String? = null,
-            var _lyrics_search_use_main_overrides: Boolean = true,
-            var _theme_colour: Int? = null
+            var _theme_colour: Int? = null,
+            var _lyrics_id: String? = null
         ) {
 
             var title: String?
                 get() = getMutableState<String?>("_title").value
                 set(value) = set("_title", value)
 
-            var lyrics_search_title: String?
-                get() = getMutableState<String?>("_lyrics_search_title").value
-                set(value) = set("_lyrics_search_title", value)
-
-            var lyrics_search_artist: String?
-                get() = getMutableState<String?>("_lyrics_search_artist").value
-                set(value) = set("_lyrics_search_artist", value)
-
-            var lyrics_search_use_main_overrides: Boolean
-                get() = getMutableState<Boolean>("_lyrics_search_use_main_overrides").value
-                set(value) = set("_lyrics_search_use_main_overrides", value)
-
             var theme_colour: Int?
                 get() = getMutableState<Int?>("_theme_colour").value
                 set(value) = set("_theme_colour", value)
+
+            var lyrics_id: String?
+                get() = getMutableState<String?>("_lyrics_id").value
+                set(value) = set("_lyrics_id", value)
 
             private val mutable_states = mutableMapOf<String, MutableState<*>>()
 
@@ -223,7 +215,12 @@ class Song private constructor (
         }
         set(value) { registry.overrides.title = value }
 
-    data class Lyrics(val source: String, val is_timed: Boolean?, val lyrics: List<List<Term>>) {
+    data class Lyrics(
+        val source: String,
+        val id: String,
+        val is_timed: Boolean?,
+        val lyrics: List<List<Term>>
+    ) {
         data class Term(val subterms: List<Subterm>, val start: Float? = null, val end: Float? = null)
         data class Subterm(val text: String, val furi: String? = null) {
             var index: Int = -1

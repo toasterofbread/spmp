@@ -7,9 +7,7 @@ import android.app.AlertDialog
 import android.content.*
 import android.content.SharedPreferences.OnSharedPreferenceChangeListener
 import android.database.ContentObserver
-import android.media.session.MediaSessionManager
 import android.os.Handler
-import android.service.notification.NotificationListenerService
 import android.view.KeyEvent
 import android.view.KeyEvent.*
 import android.view.ViewConfiguration.getLongPressTimeout
@@ -27,7 +25,6 @@ import kotlinx.coroutines.*
 import java.lang.ref.WeakReference
 import kotlin.collections.set
 import android.provider.Settings as AndroidSettings
-
 
 class PlayerAccessibilityService : AccessibilityService(), LifecycleOwner {
 
@@ -101,7 +98,6 @@ class PlayerAccessibilityService : AccessibilityService(), LifecycleOwner {
         if (event == null || volume_intercept_mode == VOLUME_INTERCEPT_MODE.NEVER) {
             return false
         }
-
 
         if (event.keyCode == KEYCODE_VOLUME_UP || event.keyCode == KEYCODE_VOLUME_DOWN) {
             if (volume_intercept_mode == VOLUME_INTERCEPT_MODE.APP_OPEN) {

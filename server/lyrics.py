@@ -16,6 +16,12 @@ TERM_FURI_REPLACEMENTS = {
 
 class Lyrics(ABC):
 
+    def __init__(self, id: str):
+        self.id = id
+
+    def getId(self) -> str:
+        return self.id
+
     def isTimed(self) -> bool:
         return isinstance(self, TimedLyrics)
 
@@ -109,7 +115,8 @@ class Lyrics(ABC):
         raise NotImplementedError
 
 class StaticLyrics(Lyrics):
-    def __init__(self, text: str):
+    def __init__(self, id: str, text: str):
+        super().__init__(id)
         self.text = text
 
     def getWithFurigana(self) -> list:
@@ -128,7 +135,8 @@ class StaticLyrics(Lyrics):
 
 class TimedLyrics(Lyrics):
 
-    def __init__(self, xml_data: str):
+    def __init__(self, id: str, xml_data: str):
+        super().__init__(id)
         prev_line = None
         index = 0
 
@@ -274,18 +282,34 @@ def getLyricsData(song_id: int, lyrics_type: int) -> str | None:
     except (KeyError, UnicodeDecodeError):
         return None
 
-def getLyrics(song_id: int) -> Lyrics | None:
+def getLyrics(lyrics_id: str) -> Lyrics | None:
 
-    data = None
-    for i in range(3, 0, -1):
-        data = getLyricsData(song_id, i)
-        if data is not None:
-            break
-
-    if data is None:
+    split = lyrics_id.split(":")
+    if len(split) != 2:
         return None
 
-    return TimedLyrics(data) if data.startswith("<wsy>") and data.endswith("</wsy>") else StaticLyrics(data)
+    method = split[0]
+    id = split[1]
+
+    match (method):
+        case "ptl":
+            data = None
+            try:
+                song_id = int(id)
+            except ValueError:
+                return None
+
+            for i in range(3, 0, -1):
+                data = getLyricsData(song_id, i)
+                if data is not None:
+                    break
+
+            if data is None:
+                return None
+
+            return TimedLyrics(lyrics_id, data) if data.startswith("<wsy>") and data.endswith("</wsy>") else StaticLyrics(lyrics_id, data)
+        case _:
+            return None
 
     # data = getLyricsData(song_id, 1)
     # if data is not None:
@@ -293,7 +317,7 @@ def getLyrics(song_id: int) -> Lyrics | None:
 
     # return None
 
-def findLyricsId(title: str, artist = None):
+def searchForLyrics(title: str, artist = None) -> str | None:
     params = {"title": title}
     if artist is not None:
         params["artist"] = artist
@@ -309,7 +333,7 @@ def findLyricsId(title: str, artist = None):
             return None
 
         id_end = response.text.find("\"", id_start + len(id_prefix) + 1)
-        return int(response.text[id_start + len(id_prefix) : id_end])
+        return f"ptl:{response.text[id_start + len(id_prefix) : id_end]}"
 
     ret = getId()
     if ret is None and artist is not None:

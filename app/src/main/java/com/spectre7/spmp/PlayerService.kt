@@ -502,9 +502,7 @@ class PlayerService : Service() {
         if (player.playbackState == Player.STATE_ENDED) {
             player.seekTo(0)
         }
-        else {
-            player.play()
-        }
+        player.play()
     }
 
     fun playPause() {

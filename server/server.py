@@ -128,25 +128,38 @@ class Server:
             return jsonify("Updated and restarting")
 
         @self.cacheable
-        @self.route("/lyrics/", True)
-        def lyrics():
+        @self.route("/lyrics_search/", True)
+        def lyricsSearch():
             title = request.args.get("title")
             artist = request.args.get("artist")
 
             if title is None:
                 return self.errorResponse(400, "Missing title parameter")
 
-            id = Lyrics.findLyricsId(title, artist)
-            if id is None:
+            lyrics_id = Lyrics.searchForLyrics(title, artist)
+            if lyrics_id is None:
                 return self.errorResponse(404, "Query doesn't match any songs")
 
-            lyrics = Lyrics.getLyrics(id)
+            return getLyricsData(lyrics_id)
+
+        @self.cacheable
+        @self.route("/lyrics/", True)
+        def lyrics():
+            lyrics_id = request.args.get("id")
+            if lyrics_id is None:
+                return self.errorResponse(400, "Missing id parameter")
+
+            return getLyricsData(lyrics_id)
+
+        def getLyricsData(lyrics_id: str):
+            lyrics = Lyrics.getLyrics(lyrics_id)
 
             if lyrics is None:
                 return self.errorResponse(404, f"Failed to fetch lyrics data (id: {id})")
 
             ret = {
                 "lyrics": lyrics.getWithFurigana(),
+                "id": lyrics.getId(),
                 "source": lyrics.getSource(),
                 "is_timed": lyrics.isTimed()
             }

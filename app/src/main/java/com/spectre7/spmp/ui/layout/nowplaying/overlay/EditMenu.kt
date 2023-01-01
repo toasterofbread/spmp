@@ -3,7 +3,10 @@ package com.spectre7.spmp.ui.layout.nowplaying.overlay
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.foundation.text.KeyboardActions
+import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.Check
 import androidx.compose.material.icons.filled.Close
 import androidx.compose.material.icons.filled.Info
 import androidx.compose.material3.*
@@ -15,7 +18,10 @@ import androidx.compose.ui.geometry.Rect
 import androidx.compose.ui.geometry.Size
 import androidx.compose.ui.graphics.Outline
 import androidx.compose.ui.graphics.Shape
+import androidx.compose.ui.platform.LocalFocusManager
+import androidx.compose.ui.text.input.ImeAction
 import androidx.compose.ui.text.input.TextFieldValue
+import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.*
 import androidx.compose.ui.zIndex
 import com.google.accompanist.pager.ExperimentalPagerApi
@@ -36,19 +42,34 @@ fun EditMenu(song: Song, openShutterMenu: (@Composable () -> Unit) -> Unit, clos
     val tab_state = rememberPagerState()
     val scope = rememberCoroutineScope()
 
+    var main_title = remember { mutableStateOf(TextFieldValue()) }
+    var main_artist_id = remember { mutableStateOf(TextFieldValue()) }
+
+    var lyrics_title = remember { mutableStateOf(TextFieldValue()) }
+    var lyrics_artist = remember { mutableStateOf(TextFieldValue()) }
+
+    var lyrics_use_main by remember { mutableStateOf(false) }
+
     Box(Modifier.fillMaxSize()) {
 
         PillMenu(
-            action_count = 2,
+            action_count = 3,
             getAction = { i, _ ->
-                if (i == 0)
-                    ActionButton(Icons.Filled.Info) {
-                        openShutterMenu {
-                            Text(getString(R.string.song_details_edit_info))
+                when (i) {
+                    0 ->  {
+                        ActionButton(Icons.Filled.Check) {
+
                         }
                     }
-                else
-                    ActionButton(Icons.Filled.Close, close)
+                    1 -> {
+                        ActionButton(Icons.Filled.Info) {
+                            openShutterMenu {
+                                Text(getString(R.string.song_details_edit_info))
+                            }
+                        }
+                    }
+                    else -> ActionButton(Icons.Filled.Close, close)
+                }
             },
             expand_state = null,
             background_colour = MainActivity.theme.getAccent(),
@@ -134,14 +155,43 @@ fun EditMenu(song: Song, openShutterMenu: (@Composable () -> Unit) -> Unit, clos
             }
 
             HorizontalPager(2, state = tab_state) { page ->
-                Column {
+                Column(Modifier.padding(start = 10.dp, end = 10.dp).fillMaxHeight(0.8f), verticalArrangement = Arrangement.SpaceAround) {
+                    val focus = LocalFocusManager.current
 
-                    TextField(remember { mutableStateOf(TextFieldValue()) }.value, {})
+                    @Composable
+                    fun Field(state: MutableState<TextFieldValue>, placeholder: String, label: String) {
+                        TextField(
+                            state.value,
+                            { state.value = it },
+                            singleLine = true,
+                            placeholder = {
+                                Text(placeholder, softWrap = false, overflow = TextOverflow.Ellipsis)
+                            },
+                            label = {
+                                Text(label)
+                            },
+                            keyboardOptions = KeyboardOptions(imeAction = ImeAction.Done),
+                            keyboardActions = KeyboardActions(onDone = {
+                                focus.clearFocus()
+                            })
+                        )
+                    }
+
+                    when (page) {
+                        0 -> {
+                            Field(main_title, song.title, "Title")
+                            Field(main_artist_id, song.artist.id, "Artist ID")
+                        }
+                        else -> {
+                            Field(lyrics_title, song.title, "Title")
+                            Field(lyrics_artist, song.artist.name, "Artist")
+                        }
+                    }
 
                     if (page == 1) {
                         Switch(
-                            checked = song.registry.overrides.lyrics_search_use_main_overrides,
-                            onCheckedChange = { song.registry.overrides.lyrics_search_use_main_overrides = it }
+                            lyrics_use_main,
+                            { lyrics_use_main = it }
                         )
                     }
                 }

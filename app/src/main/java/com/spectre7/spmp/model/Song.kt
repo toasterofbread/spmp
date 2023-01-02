@@ -216,11 +216,41 @@ class Song private constructor (
         set(value) { registry.overrides.title = value }
 
     data class Lyrics(
-        val source: String,
+        val source: Source,
         val id: String,
         val is_timed: Boolean?,
         val lyrics: List<List<Term>>
     ) {
+        enum class Source {
+            PETITLYRICS;
+
+            val readable: String
+                get() = when (this) {
+                    PETITLYRICS -> "PetitLyrics"
+                }
+
+            val colour: Color
+                get() = when (this) {
+                    PETITLYRICS -> Color(0xFFBD0A0F)
+                }
+
+            val string_code: String
+                get() = when (this) {
+                    PETITLYRICS -> "ptl"
+                }
+
+            companion object {
+                fun getFromString(string_code: String): Source {
+                    for (source in values()) {
+                        if (source.string_code == string_code) {
+                            return source
+                        }
+                    }
+                    throw NotImplementedError(string_code)
+                }
+            }
+        }
+
         data class Term(val subterms: List<Subterm>, val start: Float? = null, val end: Float? = null)
         data class Subterm(val text: String, val furi: String? = null) {
             var index: Int = -1

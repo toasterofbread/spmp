@@ -47,7 +47,7 @@ import com.spectre7.spmp.model.Song
 import com.spectre7.spmp.ui.layout.MINIMISED_NOW_PLAYING_HEIGHT
 import com.spectre7.spmp.ui.layout.nowplaying.overlay.DownloadMenu
 import com.spectre7.spmp.ui.layout.nowplaying.overlay.EditMenu
-import com.spectre7.spmp.ui.layout.nowplaying.overlay.LyricsDisplay
+import com.spectre7.spmp.ui.layout.nowplaying.overlay.lyrics.LyricsDisplay
 import com.spectre7.spmp.ui.layout.nowplaying.overlay.PaletteSelectorMenu
 import com.spectre7.utils.*
 import kotlin.concurrent.thread

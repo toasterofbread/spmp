@@ -1,8 +1,6 @@
 package com.spectre7.spmp.api
 
-import com.beust.klaxon.JsonObject
-import com.beust.klaxon.Klaxon
-import com.beust.klaxon.Parser
+import com.beust.klaxon.*
 import com.chaquo.python.PyException
 import com.chaquo.python.PyObject
 import com.chaquo.python.Python
@@ -25,6 +23,17 @@ import java.util.zip.GZIPInputStream
 import kotlin.concurrent.thread
 
 class DataApi {
+
+    data class LyricsSearchResult(
+        val id: String,
+        val name: String,
+        val artist_id: String?,
+        val artist_name: String?,
+        val album_id: String?,
+        val album_name: String?
+    ) {
+        val source: Song.Lyrics.Source = Song.Lyrics.Source.getFromString(id.split(':', limit = 2)[0])
+    }
 
     companion object {
         init {
@@ -172,38 +181,78 @@ class DataApi {
 
         fun getLyrics(id: String): Song.Lyrics? {
             val result = queryServer(
-                "/lyrics",
+                "/get_lyrics/",
                 mapOf("id" to id),
-                max_retries = 1
+                max_retries = 1,
+                throw_on_fail = false
             ) ?: return null
-            return klaxon.parse<Song.Lyrics>(result)
+
+            return klaxon.converter(object : Converter {
+                override fun canConvert(cls: Class<*>): Boolean {
+                    return cls == Song.Lyrics.Source::class.java
+                }
+
+                override fun fromJson(jv: JsonValue): Any? {
+                    if (jv.string == null) {
+                        return null
+                    }
+                    return Song.Lyrics.Source.getFromString(jv.string!!.split(':', limit = 2)[0])
+                }
+
+                override fun toJson(value: Any): String {
+                    return (value as Song.Lyrics.Source).string_code
+                }
+
+            }).parse<Song.Lyrics>(result)
         }
 
         fun getSongLyrics(song: Song, callback: (Song.Lyrics?) -> Unit) {
             thread {
+                val id = song.registry.overrides.lyrics_id
+                val ret: Song.Lyrics?
+
+                if (id != null) {
+                    ret = getLyrics(id)
+                }
+                else {
+                    val result = queryServer(
+                        "/search_and_get_lyrics/",
+                        mapOf("title" to song.title, "artist" to song.artist.name),
+                        max_retries = 1,
+                        throw_on_fail = false
+                    )
+                    if (result == null) {
+                        callback(null)
+                        return@thread
+                    }
+
+                    ret = klaxon.parse<Song.Lyrics>(result)
+                }
+
+                song.registry.overrides.lyrics_id = ret?.id
+                callback(ret)
+            }
+        }
+
+        fun searchForLyrics(title: String, artist: String?, callback: (List<LyricsSearchResult>?) -> Unit) {
+            thread {
                 try {
-                    val id = song.registry.overrides.lyrics_id
-                    val ret: Song.Lyrics?
-
-                    if (id != null) {
-                        ret = getLyrics(id)
-                    }
-                    else {
-                        val result = queryServer(
-                            "/lyrics_search",
-                            mapOf("title" to song.title, "artist" to song.artist.name),
-                            max_retries = 1
-                        )
-                        if (result == null) {
-                            callback(null)
-                            return@thread
-                        }
-
-                        ret = klaxon.parse<Song.Lyrics>(result)
+                    val params = mutableMapOf("title" to title)
+                    if (artist != null) {
+                        params["artist"] = artist
                     }
 
-                    song.registry.overrides.lyrics_id = ret?.id
-                    callback(ret)
+                    val result = queryServer(
+                        "/search_lyrics/",
+                        params,
+                        max_retries = 1
+                    )
+                    if (result == null) {
+                        callback(null)
+                        return@thread
+                    }
+
+                    callback(klaxon.parseArray(result))
                 }
                 catch (e: Exception) {
                     MainActivity.network.onError(e)
@@ -446,7 +495,7 @@ class DataApi {
             post_body: String? = null,
             throw_on_fail: Boolean = true,
             max_retries: Int = 5,
-            timeout: Long = 10
+            timeout: Long = 20
         ): String? {
 
             if (server == null) {

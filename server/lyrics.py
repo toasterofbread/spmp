@@ -26,7 +26,7 @@ class Lyrics(ABC):
         return isinstance(self, TimedLyrics)
 
     def getSource(self) -> str:
-        return "PetitLyrics"
+        return self.getId().split("/")[0]
 
     def getText(self) -> str:
         if isinstance(self, StaticLyrics):
@@ -227,7 +227,7 @@ class TimedLyrics(Lyrics):
                 i = len(word.text) - borrow
                 borrow = max(0, borrow - len(word.text))
 
-                while i > 0:
+                while i > 0 and len(furi_line) > 0:
                     orig = furi_line[0][0]
                     furi = furi_line[0][1] if len(furi_line[0]) > 1 else None
 
@@ -317,26 +317,70 @@ def getLyrics(lyrics_id: str) -> Lyrics | None:
 
     # return None
 
-def searchForLyrics(title: str, artist = None) -> str | None:
+def searchForLyrics(title: str, artist: str | None = None) -> list[dict[str, str]]:
+
     params = {"title": title}
     if artist is not None:
         params["artist"] = artist
 
-    id_prefix = "				<a href=\"/lyrics/"
+    # Replace all whitespace with the standard character
+    for key in params:
+        new = ""
+        for char in params[key]:
+            if char.isspace():
+                new += " "
+            else:
+                new += char
+        params[key] = new
 
-    def getId():
+    result_start = "<a href=\"/lyrics/"
+    result_end = "</a>"
+
+    def getResults():
         response = requests.get("https://petitlyrics.com/search_lyrics", params=params)
         response.raise_for_status()
+        data = response.text
 
-        id_start = response.text.find(id_prefix)
-        if id_start < 0:
-            return None
+        ret = []
+        result = {}
 
-        id_end = response.text.find("\"", id_start + len(id_prefix) + 1)
-        return f"ptl:{response.text[id_start + len(id_prefix) : id_end]}"
+        start = data.find(result_start)
+        while start != -1:
+            href = data[start + len(result_start) : data.find("\"", start + len(result_start) + 1)]
+            end = data.find(result_end, start + len(result_start))
 
-    ret = getId()
-    if ret is None and artist is not None:
+            try:
+                # If first char is an int, this is the start of a new result
+                result_id = int(href)
+
+                if "id" in result:
+                    ret.append(result)
+                    result = {}
+                else:
+                    result.clear()
+
+                parsed = parseXml(data[start : end + len(result_end)])
+                result["id"] = f"ptl:{result_id}"
+                result["name"] = parsed["a"]["span"]["#text"]
+
+            except ValueError:
+                split = href.split("/")
+
+                if split[0] in ("artist", "album") and len(split) > 1 and len(split[1]) != 0:
+                    parsed = parseXml(data[start : end + len(result_end)])
+
+                    result[f"{split[0]}_id"] = split[1]
+                    result[f"{split[0]}_name"] = parsed["a"]["span"]["#text"]
+
+            start = data.find(result_start, end + len(result_end))
+
+        if "id" in result:
+            ret.append(result)
+
+        return ret
+
+    ret = getResults()
+    if len(ret) == 0 and artist is not None:
         params.pop("artist")
-        return getId()
+        return getResults()
     return ret

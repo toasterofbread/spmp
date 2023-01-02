@@ -1,4 +1,4 @@
-package com.spectre7.spmp.ui.layout.nowplaying.overlay
+package com.spectre7.spmp.ui.layout.nowplaying.overlay.lyrics
 
 import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.animation.Crossfade
@@ -12,7 +12,7 @@ import androidx.compose.foundation.lazy.LazyListState
 import androidx.compose.foundation.lazy.rememberLazyListState
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Close
-import androidx.compose.material.icons.filled.Edit
+import androidx.compose.material.icons.filled.Search
 import androidx.compose.material.ripple.rememberRipple
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
@@ -31,8 +31,6 @@ import com.spectre7.spmp.R
 import com.spectre7.spmp.model.Settings
 import com.spectre7.spmp.model.Song
 import com.spectre7.spmp.ui.component.PillMenu
-import com.spectre7.spmp.ui.layout.nowplaying.overlay.lyrics.LyricsEditMenu
-import com.spectre7.spmp.ui.layout.nowplaying.overlay.lyrics.LyricsTimingOverlay
 import com.spectre7.utils.getString
 import com.spectre7.utils.sendToast
 import net.zerotask.libraries.android.compose.furigana.TermInfo
@@ -62,25 +60,12 @@ fun LyricsDisplay(song: Song, close: () -> Unit, size: Dp, seek_state: Any, open
     }
 
     AnimatedVisibility(lyrics != null && !edit_menu_open, Modifier.zIndex(10f), enter = fadeIn(), exit = fadeOut()) {
-//        PillMenu(
-//            2,
-//            { index, _ ->
-//                    0 -> ActionButton(Icons.Filled.Check) {} // Save changes
-//                when (index) {
-//                    1 -> ActionButton(Icons.Filled.Close) { edit_menu_open = false }
-//                }
-//            },
-//            null,
-//            MainActivity.theme.getAccent(),
-//            MainActivity.theme.getOnAccent(),
-//            vertical = false
-//        )
         PillMenu(
             3,
             { index, _ ->
                 when (index) {
                     0 -> ActionButton(Icons.Filled.Close, close)
-                    1 -> ActionButton(Icons.Filled.Edit) { edit_menu_open = true }
+                    1 -> ActionButton(Icons.Filled.Search) { edit_menu_open = true }
                     2 -> Box(
                         Modifier.size(48.dp),
                         contentAlignment = Alignment.Center
@@ -107,7 +92,7 @@ fun LyricsDisplay(song: Song, close: () -> Unit, size: Dp, seek_state: Any, open
 
     Crossfade(edit_menu_open) { edit ->
         if (edit) {
-            LyricsEditMenu(song, lyrics) { edit_menu_open = false }
+            LyricsSearchMenu(song, lyrics) { edit_menu_open = false }
         }
         else {
             ScrollingLyricsDisplay(size, seek_state, lyrics, scroll_state, show_furigana)

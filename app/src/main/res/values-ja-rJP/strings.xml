@@ -35,4 +35,7 @@
     <string name="s_sub_interface_lang">アプリのUIに使われる言語</string>
     <string name="s_sub_data_lang">曲の名前などに使われる言語</string>
     <string name="s_group_other">その他</string>
+    <string name="album">アルバム</string>
+    <string name="artist">アーティスト</string>
+    <string name="song_name">曲名</string>
 </resources>

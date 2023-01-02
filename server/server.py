@@ -128,7 +128,16 @@ class Server:
             return jsonify("Updated and restarting")
 
         @self.cacheable
-        @self.route("/lyrics_search/", True)
+        @self.route("/get_lyrics/", True)
+        def lyricsGet():
+            lyrics_id = request.args.get("id")
+            if lyrics_id is None:
+                return self.errorResponse(400, "Missing id parameter")
+
+            return getLyricsData(lyrics_id)
+
+        @self.cacheable
+        @self.route("/search_lyrics/", True)
         def lyricsSearch():
             title = request.args.get("title")
             artist = request.args.get("artist")
@@ -136,20 +145,22 @@ class Server:
             if title is None:
                 return self.errorResponse(400, "Missing title parameter")
 
-            lyrics_id = Lyrics.searchForLyrics(title, artist)
-            if lyrics_id is None:
-                return self.errorResponse(404, "Query doesn't match any songs")
-
-            return getLyricsData(lyrics_id)
+            return jsonify(Lyrics.searchForLyrics(title, artist))
 
         @self.cacheable
-        @self.route("/lyrics/", True)
-        def lyrics():
-            lyrics_id = request.args.get("id")
-            if lyrics_id is None:
-                return self.errorResponse(400, "Missing id parameter")
+        @self.route("/search_and_get_lyrics/", True)
+        def lyricsSearchAndGet():
+            title = request.args.get("title")
+            artist = request.args.get("artist")
 
-            return getLyricsData(lyrics_id)
+            if title is None:
+                return self.errorResponse(400, "Missing title parameter")
+
+            lyrics = Lyrics.searchForLyrics(title, artist)
+            if len(lyrics) == 0:
+                return self.errorResponse(404, "Query doesn't match any songs")
+
+            return getLyricsData(lyrics[0]["id"])
 
         def getLyricsData(lyrics_id: str):
             lyrics = Lyrics.getLyrics(lyrics_id)

@@ -1,5 +1,6 @@
 package com.spectre7.spmp.ui.layout.nowplaying.overlay.lyrics
 
+import androidx.activity.compose.BackHandler
 import androidx.compose.animation.Crossfade
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
@@ -9,29 +10,27 @@ import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.text.KeyboardActions
 import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.filled.Check
 import androidx.compose.material.icons.filled.Close
+import androidx.compose.material.icons.filled.Edit
+import androidx.compose.material.icons.filled.Search
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.clip
 import androidx.compose.ui.platform.LocalFocusManager
 import androidx.compose.ui.text.input.ImeAction
 import androidx.compose.ui.text.input.TextFieldValue
 import androidx.compose.ui.unit.dp
 import com.spectre7.spmp.MainActivity
+import com.spectre7.spmp.R
 import com.spectre7.spmp.api.DataApi
 import com.spectre7.spmp.model.Song
 import com.spectre7.utils.setAlpha
-import kotlin.concurrent.thread
+import kotlinx.coroutines.sync.Mutex
 
-@OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun LyricsSearchMenu(song: Song, lyrics: Song.Lyrics?, close: () -> Unit) {
-
-    val source_options = Song.Lyrics.Source.values()
-    var source_menu_open by remember { mutableStateOf(false) }
-    var selected_source by remember { mutableStateOf(source_options[0]) }
 
     val lyrics_id: String?
     if (song.registry.overrides.lyrics_id != null) {
@@ -43,8 +42,6 @@ fun LyricsSearchMenu(song: Song, lyrics: Song.Lyrics?, close: () -> Unit) {
     else {
         lyrics_id = null
     }
-
-    var show_finder by remember { mutableStateOf(false) }
 
     val ToolButton = @Composable { onClick: () -> Unit, modifier: Modifier, content: @Composable () -> Unit ->
         Box(
@@ -72,97 +69,150 @@ fun LyricsSearchMenu(song: Song, lyrics: Song.Lyrics?, close: () -> Unit) {
         unfocusedIndicatorColor = MainActivity.theme.getOnAccent().setAlpha(0.5)
     )
 
-    Crossfade(show_finder) { finder ->
-        Column(
-            Modifier.fillMaxSize().padding(15.dp),
-            verticalArrangement = Arrangement.SpaceEvenly,
-            horizontalAlignment = Alignment.CenterHorizontally
-        ) {
-            if (finder) {
-                when (selected_source) {
-                    Song.Lyrics.Source.PETITLYRICS -> LyricsFinder(song, text_field_colours, Modifier, ToolButton) {
-                        show_finder = false
-                    }
-                }
-            }
-            else {
+    val check_mutex = remember { Mutex() }
+    val focus = LocalFocusManager.current
+
+    var title = remember { mutableStateOf(TextFieldValue(song.title)) }
+    var artist = remember { mutableStateOf(TextFieldValue(song.artist.name)) }
+
+    var search_requested by remember { mutableStateOf(false) }
+    var search_results: List<DataApi.LyricsSearchResult>? by remember { mutableStateOf(null) }
+    var edit_page_open by remember { mutableStateOf(false) }
+
+    suspend fun performSearch() {
+        if (check_mutex.isLocked) {
+            return
+        }
+
+        check_mutex.lock()
+
+        DataApi.searchForLyrics(
+            title.value.text,
+            if (artist.value.text.trim().isEmpty()) null else artist.value.text
+        ) { results ->
+            edit_page_open = false
+            search_results = results ?: listOf()
+            check_mutex.unlock()
+        }
+    }
+
+    LaunchedEffect(Unit) {
+        performSearch()
+    }
+
+    LaunchedEffect(search_requested) {
+        if (search_requested) {
+            search_requested = false
+            performSearch()
+        }
+    }
+
+    BackHandler {
+        close()
+    }
+
+    Crossfade(edit_page_open) { edit_page ->
+        Column(Modifier.padding(15.dp), verticalArrangement = Arrangement.spacedBy(10.dp)) {
+            if (edit_page) {
                 Column(
                     Modifier
-                        .fillMaxHeight()
-                        .weight(1f), verticalArrangement = Arrangement.SpaceEvenly) {
+                        .fillMaxSize()
+                        .padding(15.dp)
+                        .weight(1f),
+                    horizontalAlignment = Alignment.CenterHorizontally,
+                    verticalArrangement = Arrangement.SpaceEvenly
+                ) {
+                    Box(
+                        Modifier
+                            .background(MainActivity.theme.getAccent(), CircleShape)
+                            .padding(10.dp)) {
+                        Text("Search for lyrics", color = MainActivity.theme.getOnAccent())
+                    }
 
-                    ExposedDropdownMenuBox(
-                        expanded = source_menu_open,
-                        onExpandedChange = {
-                            source_menu_open = !source_menu_open
-                        }
-                    ) {
+                    @Composable
+                    fun Field(state: MutableState<TextFieldValue>, label: String) {
                         TextField(
-                            readOnly = true,
-                            value = selected_source.readable,
-                            onValueChange = {},
-                            label = { Text("Lyrics source") },
+                            state.value,
+                            { state.value = it },
+                            label = { Text(label) },
+                            singleLine = true,
+                            keyboardOptions = KeyboardOptions(imeAction = ImeAction.Done),
+                            keyboardActions = KeyboardActions(onDone = {
+                                focus.clearFocus()
+                            }),
                             trailingIcon = {
-                                ExposedDropdownMenuDefaults.TrailingIcon(
-                                    expanded = source_menu_open
-                                )
+                                IconButton({ state.value = TextFieldValue() }) {
+                                    Icon(Icons.Filled.Close, null)
+                                }
                             },
                             colors = text_field_colours
                         )
-                        ExposedDropdownMenu(
-                            expanded = source_menu_open,
-                            onDismissRequest = {
-                                source_menu_open = false
-                            }
-                        ) {
-                            source_options.forEach { selected_option ->
-                                DropdownMenuItem(
-                                    onClick = {
-                                        selected_source = selected_option
-                                        source_menu_open = false
-                                    },
-                                    text = { Text(selected_option.readable) }
+                    }
+
+                    Field(title, com.spectre7.utils.getString(R.string.song_name))
+                    Field(artist, com.spectre7.utils.getString(R.string.artist))
+                }
+            }
+            else if (search_results != null) {
+                LyricsSearchResults(search_results!!) { index ->
+                    if (index != null) {
+                        val selected = search_results!![index]
+                    }
+                    search_results = null
+                }
+            }
+            else {
+                Box(
+                    Modifier
+                        .fillMaxSize()
+                        .weight(1f), contentAlignment = Alignment.Center) {
+                    CircularProgressIndicator(
+                        Modifier.requiredSize(22.dp),
+                        color = MainActivity.theme.getAccent(),
+                        strokeWidth = 3.dp
+                    )
+                }
+            }
+
+            Row(horizontalArrangement = Arrangement.spacedBy(10.dp), verticalAlignment = Alignment.CenterVertically) {
+                Button(
+                    close,
+                    Modifier
+                        .fillMaxWidth()
+                        .weight(1f),
+                    colors = ButtonDefaults.buttonColors(
+                        containerColor = MainActivity.theme.getAccent(),
+                        contentColor = MainActivity.theme.getOnAccent()
+                    )
+                ) {
+                    Text(com.spectre7.utils.getString(R.string.action_close))
+                }
+
+                IconButton(
+                    {
+                        if (edit_page_open) {
+                            search_requested = true
+                        }
+                        else {
+                            edit_page_open = true
+                        }
+                    },
+                    Modifier.background(MainActivity.theme.getAccent(), CircleShape).requiredSize(40.dp),
+                ) {
+                    Crossfade(if (check_mutex.isLocked) 0 else if (edit_page_open) 1 else 2) { icon ->
+                        when (icon) {
+                            0 -> CircularProgressIndicator(Modifier.requiredSize(22.dp), color = MainActivity.theme.getOnAccent(), strokeWidth = 3.dp)
+                            else -> {
+                                Icon(
+                                    if (icon == 1) Icons.Filled.Search else Icons.Filled.Edit,
+                                    null,
+                                    tint = MainActivity.theme.getOnAccent()
                                 )
                             }
                         }
-                    }
-
-                    val focus = LocalFocusManager.current
-                    var id_field_state by remember { mutableStateOf(TextFieldValue(lyrics_id ?: "")) }
-                    TextField(
-                        id_field_state,
-                        { id_field_state = it },
-                        singleLine = true,
-                        label = {
-                            Text("Lyrics ID")
-                        },
-                        keyboardOptions = KeyboardOptions(imeAction = ImeAction.Done),
-                        keyboardActions = KeyboardActions(onDone = {
-                            focus.clearFocus()
-                        }),
-                        colors = text_field_colours
-                    )
-                }
-
-                Row(horizontalArrangement = Arrangement.spacedBy(20.dp)) {
-                    ToolButton({}, Modifier) {
-                        Icon(Icons.Filled.Check, null, Modifier)
-                    }
-
-                    ToolButton(close, Modifier) {
-                        Icon(Icons.Filled.Close, null, Modifier)
-                    }
-
-                    ToolButton({ show_finder = true }, Modifier) {
-                        Text("Search for lyrics")
                     }
                 }
             }
         }
     }
 }
-
-//@Composable
-//private fun EditMenuToolbar(song: Song, close: () -> Unit, save: () -> Unit, modifier: Modifier = Modifier) {
-//
-//}

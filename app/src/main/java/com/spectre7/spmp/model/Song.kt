@@ -216,7 +216,6 @@ class Song private constructor (
         set(value) { registry.overrides.title = value }
 
     data class Lyrics(
-        val source: Source,
         val id: String,
         val is_timed: Boolean?,
         val lyrics: List<List<Term>>

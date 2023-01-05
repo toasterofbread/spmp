@@ -4,6 +4,7 @@ import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.animation.Crossfade
 import androidx.compose.animation.fadeIn
 import androidx.compose.animation.fadeOut
+import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.interaction.MutableInteractionSource
 import androidx.compose.foundation.layout.*
@@ -14,28 +15,27 @@ import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Close
 import androidx.compose.material.icons.filled.Search
 import androidx.compose.material.ripple.rememberRipple
-import androidx.compose.material3.*
+import androidx.compose.material3.LinearProgressIndicator
+import androidx.compose.material3.Text
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.LocalDensity
+import androidx.compose.ui.platform.LocalLayoutDirection
 import androidx.compose.ui.text.font.FontWeight
-import androidx.compose.ui.text.style.TextAlign
-import androidx.compose.ui.unit.Dp
-import androidx.compose.ui.unit.dp
-import androidx.compose.ui.unit.sp
+import androidx.compose.ui.unit.*
 import androidx.compose.ui.zIndex
 import com.spectre7.spmp.MainActivity
 import com.spectre7.spmp.R
 import com.spectre7.spmp.model.Settings
 import com.spectre7.spmp.model.Song
 import com.spectre7.spmp.ui.component.PillMenu
+import com.spectre7.utils.LongFuriganaText
 import com.spectre7.utils.getString
 import com.spectre7.utils.sendToast
 import net.zerotask.libraries.android.compose.furigana.TermInfo
 import net.zerotask.libraries.android.compose.furigana.TextData
-import net.zerotask.libraries.android.compose.furigana.TextWithReading
 
 @Composable
 fun LyricsDisplay(song: Song, close: () -> Unit, size: Dp, seek_state: Any, openShutterMenu: (@Composable () -> Unit) -> Unit) {
@@ -45,8 +45,9 @@ fun LyricsDisplay(song: Song, close: () -> Unit, size: Dp, seek_state: Any, open
 
     val scroll_state = rememberLazyListState()
     var edit_menu_open by remember { mutableStateOf(false) }
+    var reload_lyrics by remember { mutableStateOf(false) }
 
-    LaunchedEffect(song.id) {
+    LaunchedEffect(song.id, reload_lyrics) {
         lyrics = null
         song.getLyrics {
             if (it == null) {
@@ -92,7 +93,13 @@ fun LyricsDisplay(song: Song, close: () -> Unit, size: Dp, seek_state: Any, open
 
     Crossfade(edit_menu_open) { edit ->
         if (edit) {
-            LyricsSearchMenu(song, lyrics) { edit_menu_open = false }
+            LyricsSearchMenu(song, lyrics) { changed ->
+                edit_menu_open = false
+                if (changed) {
+                    lyrics = null
+                    reload_lyrics = !reload_lyrics
+                }
+            }
         }
         else {
             ScrollingLyricsDisplay(size, seek_state, lyrics, scroll_state, show_furigana)
@@ -102,25 +109,17 @@ fun LyricsDisplay(song: Song, close: () -> Unit, size: Dp, seek_state: Any, open
 
 @Composable
 fun ScrollingLyricsDisplay(size: Dp, seek_state: Any, lyrics: Song.Lyrics?, scroll_state: LazyListState, show_furigana: Boolean) {
-    LazyColumn(
-        Modifier.fillMaxSize(),
-        scroll_state,
-        horizontalAlignment = Alignment.CenterHorizontally,
-    ) {
-        item {
-            Box {
-                Crossfade(targetState = lyrics) {
-                    if (it == null) {
-                        Column(Modifier.size(size), horizontalAlignment = Alignment.CenterHorizontally, verticalArrangement = Arrangement.Center) {
-                            Text("Loading lyrics", fontWeight = FontWeight.Light) // TODO
-                            Spacer(Modifier.height(20.dp))
-                            LinearProgressIndicator(color = MainActivity.theme.getAccent(), trackColor = MainActivity.theme.getOnAccent())
-                        }
-                    }
-                    else {
-                        CoreLyricsDisplay(size, seek_state, it, scroll_state, show_furigana)
-                    }
+    Box {
+        Crossfade(targetState = lyrics) {
+            if (it == null) {
+                Column(Modifier.size(size), horizontalAlignment = Alignment.CenterHorizontally, verticalArrangement = Arrangement.Center) {
+                    Text("Loading lyrics", fontWeight = FontWeight.Light) // TODO
+                    Spacer(Modifier.height(20.dp))
+                    LinearProgressIndicator(color = MainActivity.theme.getAccent(), trackColor = MainActivity.theme.getOnAccent())
                 }
+            }
+            else {
+                CoreLyricsDisplay(size, seek_state, it, scroll_state, show_furigana)
             }
         }
     }
@@ -130,46 +129,61 @@ fun ScrollingLyricsDisplay(size: Dp, seek_state: Any, lyrics: Song.Lyrics?, scro
 fun CoreLyricsDisplay(size: Dp, seek_state: Any, lyrics: Song.Lyrics, scroll_state: LazyListState, show_furigana: Boolean) {
     val text_positions = remember { mutableStateListOf<TermInfo>() }
     val size_px = with(LocalDensity.current) { size.toPx() }
+
     LyricsTimingOverlay(lyrics, text_positions, false, seek_state) { position ->
         if (Settings.prefs.getBoolean(Settings.KEY_LYRICS_FOLLOW_ENABLED.name, true)) {
             val offset = size_px * Settings.prefs.getFloat(Settings.KEY_LYRICS_FOLLOW_OFFSET.name, 0.5f)
             scroll_state.animateScrollToItem(0, (position - offset).toInt())
         }
     }
-    Column {
-        val terms = remember { mutableListOf<TextData>().apply {
-            for (line in lyrics.lyrics) {
-                for (i in line.indices) {
-                    val term = line[i]
-                    for (j in term.subterms.indices) {
-                        val subterm = term.subterms[j]
 
-                        if (j + 1 == term.subterms.size && i + 1 == line.size) {
-                            add(TextData(subterm.text + "\n", subterm.furi, term))
-                        }
-                        else {
-                            add(TextData(subterm.text, subterm.furi, term))
-                        }
+    val terms = remember { mutableListOf<TextData>().apply {
+        for (line in lyrics.lyrics) {
+            for (i in line.indices) {
+                val term = line[i]
+                for (j in term.subterms.indices) {
+                    val subterm = term.subterms[j]
+
+                    if (j + 1 == term.subterms.size && i + 1 == line.size) {
+                        add(TextData(subterm.text + "\n", subterm.furi, term))
+                    }
+                    else {
+                        add(TextData(subterm.text, subterm.furi, term))
                     }
                 }
             }
-        } }
-
-        Crossfade(targetState = show_furigana) {
-            TextWithReading(
-                terms,
-                show_readings = it,
-                textAlign = when (Settings.prefs.getInt(Settings.KEY_LYRICS_TEXT_ALIGNMENT.name, 0)) {
-                    0 -> TextAlign.Left
-                    1 -> TextAlign.Center
-                    else -> TextAlign.Right
-                },
-                lineHeight = 42.sp,
-                fontSize = 20.sp,
-                color = Color.White,
-                modifier = Modifier.padding(20.dp),
-                text_positions = text_positions
-            )
         }
+    } }
+
+    Crossfade(targetState = show_furigana) { show_readings ->
+
+        LongFuriganaText(
+            terms,
+            show_readings,
+            font_size = 20.sp,
+
+            text_element = { is_reading: Boolean, text: String, font_size: TextUnit, modifier: Modifier ->
+                Text(
+                    text,
+                    modifier,
+                    fontSize = font_size,
+                    lineHeight = 42.sp,
+                    color = Color.White,
+                )
+            },
+
+            list_element = { content ->
+                LazyColumn(
+                    Modifier.fillMaxSize().padding(start = 20.dp, end = 20.dp),
+                    state = scroll_state,
+                    horizontalAlignment = when (Settings.get<Int>(Settings.KEY_LYRICS_TEXT_ALIGNMENT)) {
+                        0 -> if (LocalLayoutDirection.current == LayoutDirection.Ltr) Alignment.Start else Alignment.End
+                        1 -> Alignment.CenterHorizontally
+                        else -> if (LocalLayoutDirection.current == LayoutDirection.Ltr) Alignment.End else Alignment.Start
+                    },
+                    content = content
+                )
+            }
+        )
     }
 }

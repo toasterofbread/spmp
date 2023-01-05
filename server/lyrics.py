@@ -148,7 +148,7 @@ class TimedLyrics(Lyrics):
 
             self.lines.append(line)
             index += len(line.text)
-            if prev_line != None:
+            if prev_line is not None:
                 prev_line.next_line = line
                 prev_line.words[-1].next_word = line.words[0]
                 line.words[0].prev_word = prev_line.words[-1]
@@ -156,7 +156,7 @@ class TimedLyrics(Lyrics):
             line.prev_line = prev_line
             prev_line = line
 
-            if self.first_word == None:
+            if self.first_word is None:
                 self.first_word = line.words[0]
 
     class Word:
@@ -173,7 +173,7 @@ class TimedLyrics(Lyrics):
 
         def __init__(self, data: dict, _index: int):
             self.text: str = data["linestring"]
-            self.is_space = self.text == None
+            self.is_space = self.text is None
             self.words: list[TimedLyrics.Word] = []
             self.next_line: TimedLyrics.Line | None = None
             self.prev_line: TimedLyrics.Line | None = None
@@ -199,7 +199,7 @@ class TimedLyrics(Lyrics):
                     if len(word.text) > 0:
                         self.words.append(word)
                         index += len(word.text)
-                        if prev_word != None:
+                        if prev_word is not None:
                             prev_word.next_word = word
 
                         word.prev_word = prev_word

@@ -17,7 +17,6 @@ import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.draw.clip
 import androidx.compose.ui.platform.LocalFocusManager
 import androidx.compose.ui.text.input.ImeAction
 import androidx.compose.ui.text.input.TextFieldValue
@@ -30,32 +29,7 @@ import com.spectre7.utils.setAlpha
 import kotlinx.coroutines.sync.Mutex
 
 @Composable
-fun LyricsSearchMenu(song: Song, lyrics: Song.Lyrics?, close: () -> Unit) {
-
-    val lyrics_id: String?
-    if (song.registry.overrides.lyrics_id != null) {
-        lyrics_id = song.registry.overrides.lyrics_id
-    }
-    else if (lyrics != null) {
-        lyrics_id = lyrics.id
-    }
-    else {
-        lyrics_id = null
-    }
-
-    val ToolButton = @Composable { onClick: () -> Unit, modifier: Modifier, content: @Composable () -> Unit ->
-        Box(
-            modifier
-                .background(MainActivity.theme.getAccent(), CircleShape)
-                .padding(10.dp)
-                .clickable(remember { MutableInteractionSource() }, null, onClick = onClick),
-            contentAlignment = Alignment.Center
-        ) {
-            CompositionLocalProvider(LocalContentColor provides MainActivity.theme.getOnAccent()) {
-                content()
-            }
-        }
-    }
+fun LyricsSearchMenu(song: Song, lyrics: Song.Lyrics?, close: (changed: Boolean) -> Unit) {
 
     val text_field_colours = TextFieldDefaults.textFieldColors(
         containerColor = MainActivity.theme.getAccent().setAlpha(0.75),
@@ -108,7 +82,7 @@ fun LyricsSearchMenu(song: Song, lyrics: Song.Lyrics?, close: () -> Unit) {
     }
 
     BackHandler {
-        close()
+        close(false)
     }
 
     Crossfade(edit_page_open) { edit_page ->
@@ -156,7 +130,11 @@ fun LyricsSearchMenu(song: Song, lyrics: Song.Lyrics?, close: () -> Unit) {
             else if (search_results != null) {
                 LyricsSearchResults(search_results!!) { index ->
                     if (index != null) {
-                        val selected = search_results!![index]
+                        val new_id = search_results!![index].id
+                        if (new_id != song.registry.overrides.lyrics_id) {
+                            song.registry.overrides.lyrics_id = search_results!![index].id
+                            close(true)
+                        }
                     }
                     search_results = null
                 }
@@ -176,7 +154,7 @@ fun LyricsSearchMenu(song: Song, lyrics: Song.Lyrics?, close: () -> Unit) {
 
             Row(horizontalArrangement = Arrangement.spacedBy(10.dp), verticalAlignment = Alignment.CenterVertically) {
                 Button(
-                    close,
+                    { close(false) },
                     Modifier
                         .fillMaxWidth()
                         .weight(1f),

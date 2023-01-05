@@ -4,6 +4,7 @@ import android.app.*
 import android.content.*
 import android.graphics.Bitmap
 import android.graphics.PixelFormat
+import android.net.Uri
 import android.os.Binder
 import android.os.Build
 import android.support.v4.media.MediaMetadataCompat
@@ -448,6 +449,11 @@ class PlayerService : Service() {
     fun addToQueue(song: Song, index: Int? = null, onFinished: (() -> Unit)? = null) {
         song.getStreamUrl { url ->
             val item = MediaItem.Builder().setUri(url).setTag(song).build()
+
+            // val param = MediaItem.LocalConfiguration::class.java.getField("uri")
+            // param.isAccessible = true
+            // param.set(item.localConfiguration, Uri.parse(url))
+
             if (index == null) {
                 player.addMediaItem(item)
             }

@@ -172,7 +172,7 @@ class Server:
                 "lyrics": lyrics.getWithFurigana(),
                 "id": lyrics.getId(),
                 "source": lyrics.getSource(),
-                "is_timed": lyrics.isTimed()
+                "sync": lyrics.getSyncType()
             }
 
             return jsonify(ret)

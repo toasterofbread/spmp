@@ -20,6 +20,7 @@ import androidx.compose.ui.unit.sp
 import com.spectre7.spmp.MainActivity
 import com.spectre7.spmp.R
 import com.spectre7.spmp.api.DataApi
+import com.spectre7.spmp.model.Song
 import com.spectre7.utils.getContrasted
 import com.spectre7.utils.getString
 import com.spectre7.utils.setAlpha
@@ -67,10 +68,28 @@ internal fun ColumnScope.LyricsSearchResults(results: List<DataApi.LyricsSearchR
 
                             val shape = RoundedCornerShape(16)
 
-                            Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.SpaceBetween, verticalAlignment = Alignment.CenterVertically) {
+                            Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.spacedBy(20.dp), verticalAlignment = Alignment.CenterVertically) {
                                 Text(result.name, color = MainActivity.theme.getOnAccent())
+
+                                @Composable
+                                fun text(text: String, colour: Color) {
+                                    Text(
+                                        text,
+                                        Modifier.padding(5.dp),
+                                        color = colour,
+                                        fontSize = 10.sp,
+                                        softWrap = false
+                                    )
+                                }
+
+                                Spacer(Modifier.fillMaxWidth().weight(1f))
+
+                                val sync_colour = if (result.sync_type == Song.Lyrics.SyncType.NONE) Color.LightGray else Color.Magenta
+                                Box(Modifier.background(sync_colour, CircleShape)) {
+                                    text(result.sync_type.readable, sync_colour.getContrasted())
+                                }
                                 Box(Modifier.background(result.source.colour, CircleShape)) {
-                                    Text(result.source.readable, Modifier.padding(5.dp), color = result.source.colour.getContrasted(), fontSize = 12.sp)
+                                    text(result.source.readable, result.source.colour.getContrasted())
                                 }
                             }
 

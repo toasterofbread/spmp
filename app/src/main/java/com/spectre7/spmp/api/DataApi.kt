@@ -27,12 +27,15 @@ class DataApi {
     data class LyricsSearchResult(
         val id: String,
         val name: String,
-        val artist_id: String?,
-        val artist_name: String?,
-        val album_id: String?,
-        val album_name: String?
+        val sync: Int,
+        val artist_id: String? = null,
+        val artist_name: String? = null,
+        val album_id: String? = null,
+        val album_name: String? = null
     ) {
         val source: Song.Lyrics.Source = Song.Lyrics.Source.getFromString(id.split(':', limit = 2)[0])
+        val sync_type: Song.Lyrics.SyncType
+            get() = Song.Lyrics.SyncType.values()[sync]
     }
 
     companion object {

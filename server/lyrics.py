@@ -4,6 +4,8 @@ import requests
 from pykakasi import Kakasi
 from unicodeblock import blocks as unicodeBlock
 from xmltodict import parse as parseXml
+from html import unescape
+from spectre7 import utils
 
 TERM_FURI_REPLACEMENTS = {
     "日": "ひ",
@@ -21,9 +23,6 @@ class Lyrics(ABC):
 
     def getId(self) -> str:
         return self.id
-
-    def isTimed(self) -> bool:
-        return isinstance(self, TimedLyrics)
 
     def getSource(self) -> str:
         return self.getId().split("/")[0]
@@ -111,6 +110,10 @@ class Lyrics(ABC):
         return ret
 
     @abstractmethod
+    def getSyncType(self) -> int:
+        raise NotImplementedError
+
+    @abstractmethod
     def getWithFurigana(self) -> list:
         raise NotImplementedError
 
@@ -118,6 +121,9 @@ class StaticLyrics(Lyrics):
     def __init__(self, id: str, text: str):
         super().__init__(id)
         self.text = text
+
+    def getSyncType(self) -> int:
+        return 0
 
     def getWithFurigana(self) -> list:
         ret = []
@@ -135,8 +141,10 @@ class StaticLyrics(Lyrics):
 
 class TimedLyrics(Lyrics):
 
-    def __init__(self, id: str, xml_data: str):
+    def __init__(self, id: str, sync_type: int, xml_data: str):
         super().__init__(id)
+        self.sync_type = sync_type
+
         prev_line = None
         index = 0
 
@@ -205,6 +213,9 @@ class TimedLyrics(Lyrics):
                         word.prev_word = prev_word
                         prev_word = word
 
+    def getSyncType(self) -> int:
+        return self.sync_type
+
     def getWithFurigana(self) -> list:
         ret = []
         furigana = self._getFuriganaData()
@@ -261,15 +272,15 @@ class TimedLyrics(Lyrics):
 
         return ret
 
-def getLyricsData(song_id: int, lyrics_type: int) -> str | None:
-    if lyrics_type <= 0 or lyrics_type > 3:
+def getLyricsData(song_id: int, sync_type: int) -> str | None:
+    if sync_type <= 0 or sync_type > 3:
         raise RuntimeError()
 
     response = requests.post(
         "https://p1.petitlyrics.com/api/GetPetitLyricsData.php",
         data={
             "key_lyricsId": song_id,
-            "lyricsType": lyrics_type,
+            "lyricsType": sync_type,
             "terminalType": "10",
             "clientAppId": "on354007"
         })
@@ -293,21 +304,18 @@ def getLyrics(lyrics_id: str) -> Lyrics | None:
 
     match (method):
         case "ptl":
-            data = None
             try:
                 song_id = int(id)
             except ValueError:
                 return None
 
-            for i in range(3, 0, -1):
-                data = getLyricsData(song_id, i)
+            for lyrics_type in range(3, 0, -1):
+                data = getLyricsData(song_id, lyrics_type)
                 if data is not None:
-                    break
+                    return TimedLyrics(lyrics_id, lyrics_type, data) if data.startswith("<wsy>") and data.endswith("</wsy>") else StaticLyrics(lyrics_id, data)
 
-            if data is None:
-                return None
+            return None
 
-            return TimedLyrics(lyrics_id, data) if data.startswith("<wsy>") and data.endswith("</wsy>") else StaticLyrics(lyrics_id, data)
         case _:
             return None
 
@@ -335,6 +343,7 @@ def searchForLyrics(title: str, artist: str | None = None) -> list[dict[str, str
 
     result_start = "<a href=\"/lyrics/"
     result_end = "</a>"
+    sync_type_start = "<span class=\"lyrics-list-sync "
 
     def getResults():
         response = requests.get("https://petitlyrics.com/search_lyrics", params=params)
@@ -344,13 +353,23 @@ def searchForLyrics(title: str, artist: str | None = None) -> list[dict[str, str
         ret = []
         result = {}
 
-        start = data.find(result_start)
-        while start != -1:
-            href = data[start + len(result_start) : data.find("\"", start + len(result_start) + 1)]
-            end = data.find(result_end, start + len(result_start))
+        for line in data.split("\n"):
+            line = unescape(line.strip())
 
-            try:
-                # If first char is an int, this is the start of a new result
+            if not line.startswith(result_start):
+                if "id" in result and not "sync" in result and line.startswith(sync_type_start):
+                    sync_type = line[len(sync_type_start) : line.find("\"", len(sync_type_start))]
+                    try:
+                        result["sync"] = ("text", "line_sync", "text_sync").index(sync_type)
+                    except ValueError:
+                        utils.info(f"Unknown lyrics sync type: {sync_type}")
+                continue
+
+            href = line[len(result_start) : line.find("\"", len(result_start) + 1)]
+            end = line.find(result_end, len(result_start) + len(href))
+
+            # If href end is an int, this is the start of a new result
+            if href.isdigit():
                 result_id = int(href)
 
                 if "id" in result:
@@ -359,20 +378,19 @@ def searchForLyrics(title: str, artist: str | None = None) -> list[dict[str, str
                 else:
                     result.clear()
 
-                parsed = parseXml(data[start : end + len(result_end)])
+                print(line[: end + len(result_end)])
+                parsed = parseXml(line[: end + len(result_end)])
                 result["id"] = f"ptl:{result_id}"
                 result["name"] = parsed["a"]["span"]["#text"]
 
-            except ValueError:
+            else:
                 split = href.split("/")
 
                 if split[0] in ("artist", "album") and len(split) > 1 and len(split[1]) != 0:
-                    parsed = parseXml(data[start : end + len(result_end)])
+                    parsed = parseXml(line[: end + len(result_end)])
 
                     result[f"{split[0]}_id"] = split[1]
                     result[f"{split[0]}_name"] = parsed["a"]["span"]["#text"]
-
-            start = data.find(result_start, end + len(result_end))
 
         if "id" in result:
             ret.append(result)

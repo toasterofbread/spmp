@@ -44,7 +44,7 @@ fun LyricsDisplay(song: Song, close: () -> Unit, size: Dp, seek_state: Any, open
     var show_furigana: Boolean by remember { mutableStateOf(Settings.prefs.getBoolean(Settings.KEY_LYRICS_DEFAULT_FURIGANA.name, true)) }
 
     val scroll_state = rememberLazyListState()
-    var edit_menu_open by remember { mutableStateOf(false) }
+    var search_menu_open by remember { mutableStateOf(false) }
     var reload_lyrics by remember { mutableStateOf(false) }
 
     LaunchedEffect(song.id, reload_lyrics) {
@@ -52,7 +52,7 @@ fun LyricsDisplay(song: Song, close: () -> Unit, size: Dp, seek_state: Any, open
         song.getLyrics {
             if (it == null) {
                 sendToast(getString(R.string.lyrics_unavailable))
-                close()
+                search_menu_open = true
             }
             else {
                 lyrics = it
@@ -60,13 +60,13 @@ fun LyricsDisplay(song: Song, close: () -> Unit, size: Dp, seek_state: Any, open
         }
     }
 
-    AnimatedVisibility(lyrics != null && !edit_menu_open, Modifier.zIndex(10f), enter = fadeIn(), exit = fadeOut()) {
+    AnimatedVisibility(lyrics != null && !search_menu_open, Modifier.zIndex(10f), enter = fadeIn(), exit = fadeOut()) {
         PillMenu(
             3,
             { index, _ ->
                 when (index) {
                     0 -> ActionButton(Icons.Filled.Close, close)
-                    1 -> ActionButton(Icons.Filled.Search) { edit_menu_open = true }
+                    1 -> ActionButton(Icons.Filled.Search) { search_menu_open = true }
                     2 -> Box(
                         Modifier.size(48.dp),
                         contentAlignment = Alignment.Center
@@ -91,10 +91,10 @@ fun LyricsDisplay(song: Song, close: () -> Unit, size: Dp, seek_state: Any, open
         )
     }
 
-    Crossfade(edit_menu_open) { edit ->
+    Crossfade(search_menu_open) { edit ->
         if (edit) {
             LyricsSearchMenu(song, lyrics) { changed ->
-                edit_menu_open = false
+                search_menu_open = false
                 if (changed) {
                     lyrics = null
                     reload_lyrics = !reload_lyrics
@@ -161,28 +161,43 @@ fun CoreLyricsDisplay(size: Dp, seek_state: Any, lyrics: Song.Lyrics, scroll_sta
             terms,
             show_readings,
             font_size = 20.sp,
+            line_spacing = 25.dp,
+            space_wrapped_lines = false,
 
             text_element = { is_reading: Boolean, text: String, font_size: TextUnit, modifier: Modifier ->
                 Text(
                     text,
                     modifier,
                     fontSize = font_size,
-                    lineHeight = 42.sp,
                     color = Color.White,
                 )
             },
 
             list_element = { content ->
                 LazyColumn(
-                    Modifier.fillMaxSize().padding(start = 20.dp, end = 20.dp),
+                    Modifier
+                        .fillMaxSize()
+                        .padding(start = 20.dp, end = 20.dp),
                     state = scroll_state,
                     horizontalAlignment = when (Settings.get<Int>(Settings.KEY_LYRICS_TEXT_ALIGNMENT)) {
                         0 -> if (LocalLayoutDirection.current == LayoutDirection.Ltr) Alignment.Start else Alignment.End
                         1 -> Alignment.CenterHorizontally
                         else -> if (LocalLayoutDirection.current == LayoutDirection.Ltr) Alignment.End else Alignment.Start
-                    },
-                    content = content
-                )
+                    }
+                ) {
+                    val add_spacing: Boolean = Settings.get(Settings.KEY_LYRICS_EXTRA_PADDING)
+                    if (add_spacing) {
+                        item {
+                            Spacer(Modifier.requiredHeight(size * 1.1f))
+                        }
+                    }
+                    content()
+                    if (add_spacing) {
+                        item {
+                            Spacer(Modifier.requiredHeight(size * 1.1f))
+                        }
+                    }
+                }
             }
         )
     }

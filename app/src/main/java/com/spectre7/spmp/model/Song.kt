@@ -13,8 +13,10 @@ import androidx.core.content.edit
 import com.beust.klaxon.Json
 import com.beust.klaxon.Klaxon
 import com.spectre7.spmp.MainActivity
+import com.spectre7.spmp.R
 import com.spectre7.spmp.api.DataApi
 import com.spectre7.spmp.ui.component.SongPreview
+import com.spectre7.utils.getString
 import java.io.FileNotFoundException
 import java.net.URL
 import java.time.Duration
@@ -217,15 +219,16 @@ class Song private constructor (
 
     data class Lyrics(
         val id: String,
-        val is_timed: Boolean?,
+        val sync: Int,
         val lyrics: List<List<Term>>
     ) {
+
         enum class Source {
             PETITLYRICS;
 
             val readable: String
                 get() = when (this) {
-                    PETITLYRICS -> "PetitLyrics"
+                    PETITLYRICS -> getString(R.string.lyrics_source_petitlyrics)
                 }
 
             val colour: Color
@@ -250,25 +253,37 @@ class Song private constructor (
             }
         }
 
+        enum class SyncType {
+            NONE,
+            LINE_SYNC,
+            WORD_SYNC;
+
+            val readable: String
+                get() = when (this) {
+                    NONE -> getString(R.string.lyrics_sync_none)
+                    LINE_SYNC -> getString(R.string.lyrics_sync_line)
+                    WORD_SYNC -> getString(R.string.lyrics_sync_word)
+                }
+        }
+
         data class Term(val subterms: List<Subterm>, val start: Float? = null, val end: Float? = null)
         data class Subterm(val text: String, val furi: String? = null) {
             var index: Int = -1
         }
 
+        val sync_type: SyncType
+            get() = SyncType.values()[sync]
+
         init {
             var index = 0
             for (line in lyrics) {
                 for (term in line) {
-                    assert(!isTimed() || (term.start != null && term.end != null))
+                    assert(sync_type == SyncType.NONE || (term.start != null && term.end != null))
                     for (subterm in term.subterms) {
                         subterm.index = index++
                     }
                 }
             }
-        }
-
-        fun isTimed(): Boolean {
-            return is_timed!!
         }
     }
 

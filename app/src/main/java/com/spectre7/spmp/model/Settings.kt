@@ -16,6 +16,7 @@ enum class Settings {
     KEY_LYRICS_FOLLOW_OFFSET,
     KEY_LYRICS_DEFAULT_FURIGANA,
     KEY_LYRICS_TEXT_ALIGNMENT,
+    KEY_LYRICS_EXTRA_PADDING,
 
     KEY_VOLUME_STEPS,
 
@@ -48,6 +49,7 @@ enum class Settings {
                 KEY_LYRICS_FOLLOW_OFFSET -> 0.5f
                 KEY_LYRICS_DEFAULT_FURIGANA -> true
                 KEY_LYRICS_TEXT_ALIGNMENT -> 0
+                KEY_LYRICS_EXTRA_PADDING -> false
                 KEY_VOLUME_STEPS -> 50
                 KEY_ACC_VOL_INTERCEPT_MODE -> PlayerAccessibilityService.VOLUME_INTERCEPT_MODE.NEVER.ordinal
                 KEY_ACC_VOL_INTERCEPT_NOTIFICATION -> false

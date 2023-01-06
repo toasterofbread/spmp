@@ -1,5 +1,6 @@
 package com.spectre7.utils
 
+import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.LazyListScope
@@ -13,15 +14,14 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.geometry.Rect
 import androidx.compose.ui.geometry.Size
+import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.layout.onPlaced
 import androidx.compose.ui.layout.positionInRoot
 import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.text.AnnotatedString
 import androidx.compose.ui.text.Placeholder
 import androidx.compose.ui.text.PlaceholderVerticalAlign
-import androidx.compose.ui.unit.TextUnit
-import androidx.compose.ui.unit.dp
-import androidx.compose.ui.unit.em
+import androidx.compose.ui.unit.*
 import net.zerotask.libraries.android.compose.furigana.TermInfo
 import net.zerotask.libraries.android.compose.furigana.TextData
 import okio.ByteString.Companion.encodeUtf8
@@ -29,8 +29,10 @@ import okio.ByteString.Companion.encodeUtf8
 @Composable
 fun LongFuriganaText(
     text_content: List<TextData>,
-    show_readings: Boolean = false,
-    modifier: Modifier = Modifier,
+    show_readings: Boolean = true,
+    line_spacing: Dp = 0.dp,
+    space_wrapped_lines: Boolean = true,
+    column_modifier: Modifier = Modifier,
     font_size: TextUnit = TextUnit.Unspecified,
     text_positions: MutableList<TermInfo>? = null,
 
@@ -39,6 +41,7 @@ fun LongFuriganaText(
 ) {
 
     val _font_size = if (font_size == TextUnit.Unspecified) LocalTextStyle.current.fontSize else font_size
+    val reading_font_size = _font_size / 2
 
     fun calculateAnnotatedString(show_readings: Boolean): List<Pair<AnnotatedString, Map<String, InlineTextContent>>> {
         var child_index = 0
@@ -64,7 +67,6 @@ fun LongFuriganaText(
                     placeholderVerticalAlign = PlaceholderVerticalAlign.Bottom,
                 ),
                 children = {
-                    val reading_font_size = _font_size / 2
                     val box_height = with(LocalDensity.current) { reading_font_size.toDp() }
                     val term = remember { text_positions?.getOrNull(child_index++) }
 
@@ -107,8 +109,8 @@ fun LongFuriganaText(
                             verticalArrangement = Arrangement.Bottom,
                         ) {
                             Box(modifier = Modifier.requiredHeight(box_height + 3.dp)) {
-                                if (show_readings) {
-                                    TextElement(true, reading ?: "", reading_font_size, Modifier.wrapContentWidth(unbounded = true))
+                                if (show_readings && reading != null) {
+                                    TextElement(true, reading, reading_font_size, Modifier.wrapContentWidth(unbounded = true))
                                 }
                             }
                             TextElement(false, text, font_size, Modifier)
@@ -149,7 +151,7 @@ fun LongFuriganaText(
         return ret
     }
 
-    val dataWithReadings = remember(text_content) {
+    val data_with_readings = remember(text_content) {
         if (text_positions != null) {
             text_positions.clear()
             for (elem in text_content) {
@@ -159,24 +161,34 @@ fun LongFuriganaText(
         calculateAnnotatedString(true)
     }
 
-    val dataWithoutReadings = remember(text_content) {
+    val data_without_readings = remember(text_content) {
         calculateAnnotatedString(false)
     }
 
-    val data = if (show_readings) dataWithReadings else dataWithoutReadings
+    val text_data = if (show_readings) data_with_readings else data_without_readings
+
+    var text_line_height = _font_size.value + reading_font_size.value + 10
+    if (space_wrapped_lines) {
+        text_line_height += with(LocalDensity.current) { line_spacing.toSp() }.value
+    }
 
     (list_element ?: { content ->
-        LazyColumn {
+        LazyColumn(column_modifier) {
             content()
         }
     }) {
-        items(data.size) { i ->
-            val item = data[i]
+        items(text_data.size) { i ->
+            val item = text_data[i]
+
+            if (i > 0) {
+                Spacer(Modifier.requiredHeight(line_spacing))
+            }
+
             Text(
                 item.first,
-                modifier,
                 fontSize = _font_size,
                 inlineContent = item.second,
+                lineHeight = text_line_height.sp
             )
         }
     }

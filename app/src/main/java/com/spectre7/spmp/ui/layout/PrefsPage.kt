@@ -141,6 +141,11 @@ fun PrefsPage(setOverlayPage: (page: OverlayPage) -> Unit) {
                     }
                 },
 
+                SettingsItemToggle(
+                    SettingsValueState(Settings.KEY_LYRICS_EXTRA_PADDING.name, Settings.prefs, Settings.getDefaultProvider()),
+                    getString(R.string.s_key_lyrics_extra_padding), getString(R.string.s_sub_lyrics_extra_padding)
+                ),
+
                 SettingsGroup(getString(R.string.s_group_other)),
 
                 SettingsItemSubpage(

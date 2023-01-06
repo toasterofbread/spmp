@@ -33,9 +33,11 @@
     <string name="player_service_name">Player Service</string>
 
     <string name="lyrics_source_prefix">Source:&#160;</string>
-    <string name="lyrics_source_via_youtubemusic"> (via YouTube Music)</string>
-    <string name="lyrics_source_youtube">YouTube</string>
     <string name="lyrics_source_petitlyrics">PetitLyrics</string>
+
+    <string name="lyrics_sync_none">No sync</string>
+    <string name="lyrics_sync_line">Line sync</string>
+    <string name="lyrics_sync_word">Word sync</string>
 
     <string name="accessibility_service_description">TODO Desc</string>
     <string name="generic_network_error">A network error occurred</string>
@@ -79,6 +81,9 @@
     <string name="s_option_lyrics_text_alignment_left">Left</string>
     <string name="s_option_lyrics_text_alignment_center">Center</string>
     <string name="s_option_lyrics_text_alignment_right">Right</string>
+
+    <string name="s_key_lyrics_extra_padding">Extra padding</string>
+    <string name="s_sub_lyrics_extra_padding">Add extra padding above and below lyrics for increased scrolling range</string>
 
     <string name="s_group_other">Other</string>
 

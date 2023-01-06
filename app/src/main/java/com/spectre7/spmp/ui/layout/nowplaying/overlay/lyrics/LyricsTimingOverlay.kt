@@ -65,7 +65,7 @@ fun LyricsTimingOverlay(lyrics: Song.Lyrics, text_positions: List<TermInfo>, ful
 
     LaunchedEffect(PlayerServiceHost.status.m_position, full_line) {
 
-        if (!lyrics.isTimed()) {
+        if (lyrics.sync_type == Song.Lyrics.SyncType.NONE) {
             return@LaunchedEffect
         }
 

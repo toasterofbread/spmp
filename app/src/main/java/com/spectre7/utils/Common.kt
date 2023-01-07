@@ -2,6 +2,7 @@ package com.spectre7.utils
 
 // TODO | Move to separate repository
 
+import android.annotation.SuppressLint
 import android.content.Context
 import android.os.Looper
 import android.os.VibrationEffect
@@ -13,7 +14,9 @@ import androidx.compose.material.ripple.RippleTheme
 import androidx.compose.runtime.*
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.layout.SubcomposeLayout
+import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.unit.Constraints
+import androidx.compose.ui.unit.Dp
 import com.spectre7.spmp.MainActivity
 
 fun Boolean.toInt() = if (this) 1 else 0
@@ -85,4 +88,16 @@ fun MeasureUnconstrainedView(
             contentPlaceable.place(0, 0)
         }
     }
+}
+
+@SuppressLint("InternalInsetResource")
+@Composable
+fun getStatusBarHeight(context: Context): Dp {
+    val resource_id: Int = context.resources.getIdentifier("status_bar_height", "dimen", "android")
+    if (resource_id > 0) {
+        with(LocalDensity.current) {
+            return context.resources.getDimensionPixelSize(resource_id).toDp()
+        }
+    }
+    throw RuntimeException()
 }

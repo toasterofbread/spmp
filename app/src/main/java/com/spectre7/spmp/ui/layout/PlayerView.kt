@@ -1,6 +1,5 @@
 package com.spectre7.spmp.ui.layout
 
-import android.annotation.SuppressLint
 import androidx.compose.animation.*
 import androidx.compose.foundation.ExperimentalFoundationApi
 import androidx.compose.foundation.clickable
@@ -25,7 +24,6 @@ import androidx.compose.ui.draw.alpha
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.RectangleShape
 import androidx.compose.ui.platform.LocalConfiguration
-import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.Dp
@@ -55,21 +53,9 @@ import java.util.concurrent.locks.ReentrantLock
 import kotlin.concurrent.thread
 import kotlin.math.ceil
 
-@SuppressLint("InternalInsetResource")
-@Composable
-fun getStatusBarHeight(): Dp {
-    val resource_id: Int = MainActivity.resources.getIdentifier("status_bar_height", "dimen", "android")
-    if (resource_id > 0) {
-        with(LocalDensity.current) {
-            return MainActivity.resources.getDimensionPixelSize(resource_id).toDp()
-        }
-    }
-    throw RuntimeException()
-}
-
 @Composable
 fun getScreenHeight(): Float {
-    return LocalConfiguration.current.screenHeightDp.toFloat() + getStatusBarHeight().value
+    return LocalConfiguration.current.screenHeightDp.toFloat() + getStatusBarHeight(MainActivity.context).value
 }
 
 const val MINIMISED_NOW_PLAYING_HEIGHT = 64f
@@ -189,7 +175,7 @@ fun PlayerView() {
     Column(
         Modifier
             .fillMaxSize()
-            .padding(top = getStatusBarHeight())
+            .padding(top = getStatusBarHeight(MainActivity.context))
     ) {
 
         Box(Modifier.padding(bottom = MINIMISED_NOW_PLAYING_HEIGHT.dp)) {

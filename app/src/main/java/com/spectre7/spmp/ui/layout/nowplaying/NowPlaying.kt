@@ -32,7 +32,7 @@ import com.spectre7.spmp.MainActivity
 import com.spectre7.spmp.PlayerServiceHost
 import com.spectre7.spmp.R
 import com.spectre7.spmp.ui.component.MultiSelector
-import com.spectre7.spmp.ui.layout.getStatusBarHeight
+import com.spectre7.utils.getStatusBarHeight
 import com.spectre7.utils.getString
 import com.spectre7.utils.setColourAlpha
 import com.spectre7.utils.vibrate
@@ -51,7 +51,7 @@ fun NowPlaying(expansion: Float, max_height: Float, close: () -> Unit) {
     val expanded = expansion >= EXPANDED_THRESHOLD
 
     val systemui_controller = rememberSystemUiController()
-    val status_bar_height_percent = (getStatusBarHeight().value * 0.75) / max_height
+    val status_bar_height_percent = (getStatusBarHeight(MainActivity.context).value * 0.75) / max_height
 
     LaunchedEffect(key1 = expansion, key2 = MainActivity.theme.getBackground(true)) {
         systemui_controller.setSystemBarsColor(

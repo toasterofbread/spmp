@@ -75,7 +75,7 @@ class PlayerService : Service() {
     internal lateinit var player: ExoPlayer
     private val NOTIFICATION_ID = 2
     private val NOTIFICATION_CHANNEL_ID = "playback_channel"
-    private var playerNotificationManager: PlayerNotificationManager? = null
+    private var notification_manager: PlayerNotificationManager? = null
 
     private val metadata_builder: MediaMetadataCompat.Builder = MediaMetadataCompat.Builder()
     private var media_session: MediaSessionCompat? = null
@@ -128,6 +128,8 @@ class PlayerService : Service() {
     override fun onUnbind(intent: Intent?): Boolean {
         return super.onUnbind(intent)
     }
+
+    var active_queue_index: Int by mutableStateOf(0)
 
     override fun onCreate() {
         super.onCreate()
@@ -220,8 +222,8 @@ class PlayerService : Service() {
     }
 
     override fun onDestroy() {
-        playerNotificationManager?.setPlayer(null)
-        playerNotificationManager = null
+        notification_manager?.setPlayer(null)
+        notification_manager = null
         media_session?.release()
         player.release()
         stopIntegratedServer()
@@ -446,7 +448,7 @@ class PlayerService : Service() {
         }
     }
 
-    fun addToQueue(song: Song, index: Int? = null, onFinished: (() -> Unit)? = null) {
+    fun addToQueue(song: Song, index: Int? = null, is_active_queue: Boolean = false, onFinished: ((index: Int) -> Unit)? = null) {
         song.getStreamUrl { url ->
             val item = MediaItem.Builder().setUri(url).setTag(song).build()
 
@@ -454,15 +456,24 @@ class PlayerService : Service() {
             // param.isAccessible = true
             // param.set(item.localConfiguration, Uri.parse(url))
 
+            val added_index: Int
+
             if (index == null) {
                 player.addMediaItem(item)
+                added_index = player.mediaItemCount - 1
             }
             else {
                 player.addMediaItem(index, item)
+                added_index = if (index < player.mediaItemCount) index else player.mediaItemCount - 1
             }
+
+            if (is_active_queue) {
+                active_queue_index = added_index
+            }
+
             onSongAdded(item)
             addNotificationToPlayer()
-            onFinished?.invoke()
+            onFinished?.invoke(added_index)
         }
     }
 
@@ -521,8 +532,8 @@ class PlayerService : Service() {
     }
 
     private fun addNotificationToPlayer() {
-        if (playerNotificationManager == null) {
-            playerNotificationManager = PlayerNotificationManager.Builder(
+        if (notification_manager == null) {
+            notification_manager = PlayerNotificationManager.Builder(
                 MainActivity.context,
                 NOTIFICATION_ID,
                 getNotificationChannel(),
@@ -627,14 +638,14 @@ class PlayerService : Service() {
                 // )
                 .build()
 
-            playerNotificationManager?.setUseFastForwardAction(false)
-            playerNotificationManager?.setUseRewindAction(false)
+            notification_manager?.setUseFastForwardAction(false)
+            notification_manager?.setUseRewindAction(false)
 
-            playerNotificationManager?.setUseNextActionInCompactView(true)
-            playerNotificationManager?.setUsePreviousActionInCompactView(true)
+            notification_manager?.setUseNextActionInCompactView(true)
+            notification_manager?.setUsePreviousActionInCompactView(true)
 
-            playerNotificationManager?.setPlayer(player)
-            playerNotificationManager?.setMediaSessionToken(media_session!!.sessionToken)
+            notification_manager?.setPlayer(player)
+            notification_manager?.setMediaSessionToken(media_session!!.sessionToken)
         }
     }
 

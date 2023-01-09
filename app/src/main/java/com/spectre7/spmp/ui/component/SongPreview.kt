@@ -1,5 +1,7 @@
 package com.spectre7.spmp.ui.component
 
+import android.content.Intent
+import android.net.Uri
 import android.view.WindowManager
 import androidx.compose.animation.core.*
 import androidx.compose.foundation.*
@@ -35,7 +37,6 @@ import com.spectre7.utils.Marquee
 import com.spectre7.utils.getStatusBarHeight
 import com.spectre7.utils.setAlpha
 import kotlinx.coroutines.coroutineScope
-import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
 
 @OptIn(ExperimentalFoundationApi::class)
@@ -340,21 +341,61 @@ private fun LongPressPopup(
                                 .fillMaxWidth()
                                 .weight(1f))
 
-                        Row(verticalAlignment = Alignment.CenterVertically) {
-
+                        Row(verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(30.dp)) {
                             val button_padding = PaddingValues(0.dp)
-                            Button({ }, contentPadding = button_padding) {
+                            val button_modifier = Modifier.size(30.dp)
+
+                            Button(
+                                {
+                                    PlayerServiceHost.service.updateActiveQueueIndex(-1)
+                                },
+                                button_modifier,
+                                contentPadding = button_padding
+                            ) {
                                 Text("-")
                             }
-                            Button({ }, contentPadding = button_padding) {
+                            Button(
+                                {
+                                    PlayerServiceHost.service.updateActiveQueueIndex(1)
+                                },
+                                button_modifier,
+                                contentPadding = button_padding
+                            ) {
                                 Text("+")
                             }
                         }
                     }
                 }
 
-                ActionButton(Icons.Filled.Download, "Download") { }
-                ActionButton(Icons.Filled.Share, "Share") { }
+                val share_intent = remember(song.url) {
+                    Intent.createChooser(Intent().apply {
+                        action = Intent.ACTION_SEND
+                        putExtra(Intent.EXTRA_TITLE, song.title)
+                        putExtra(Intent.EXTRA_TEXT, song.url)
+                        type = "text/plain"
+                    }, null)
+                }
+
+                val open_intent: Intent? = remember(song.url) {
+                    val intent = Intent(Intent.ACTION_VIEW, Uri.parse(song.url))
+                    if (intent.resolveActivity(MainActivity.context.packageManager) == null) {
+                        null
+                    }
+                    else {
+                        intent
+                    }
+                }
+
+                ActionButton(Icons.Filled.Download, "Download") { } // TODO
+                ActionButton(Icons.Filled.Share, "Share") {
+                    MainActivity.context.startActivity(share_intent)
+                }
+
+                if (open_intent != null) {
+                    ActionButton(Icons.Filled.OpenWith, "Open") {
+                        MainActivity.context.startActivity(open_intent)
+                    }
+                }
             }
 
             if (!fully_open) {

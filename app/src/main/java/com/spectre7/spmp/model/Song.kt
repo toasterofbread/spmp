@@ -352,6 +352,10 @@ class Song private constructor (
         return _id
     }
 
+    override fun _getUrl(): String {
+        return "https://music.youtube.com/watch?v=$id"
+    }
+
     @Composable
     override fun Preview(large: Boolean, modifier: Modifier, colour: Color) {
         return SongPreview(this, large, colour, modifier)

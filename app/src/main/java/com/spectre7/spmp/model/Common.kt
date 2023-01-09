@@ -19,7 +19,8 @@ abstract class YtItem {
     var loaded: Boolean = false
     private var on_loaded_callbacks: MutableList<(Boolean) -> Unit>? = null
 
-    val id: String get() { return _getId() }
+    val id: String get() = _getId()
+    val url: String get() = _getUrl()
 
     data class ServerInfoResponse(
         val id: String,
@@ -120,6 +121,7 @@ abstract class YtItem {
     }
 
     abstract fun _getId(): String
+    abstract fun _getUrl(): String
 
     fun getThumbUrl(hq: Boolean): String? {
         return (if (hq) thumbnails?.high else thumbnails?.medium)?.url

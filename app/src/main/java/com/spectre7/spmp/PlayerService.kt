@@ -131,6 +131,10 @@ class PlayerService : Service() {
 
     var active_queue_index: Int by mutableStateOf(0)
 
+    fun updateActiveQueueIndex(delta: Int) {
+        active_queue_index = (active_queue_index + delta).coerceIn(0, player.mediaItemCount - 1)
+    }
+
     override fun onCreate() {
         super.onCreate()
 

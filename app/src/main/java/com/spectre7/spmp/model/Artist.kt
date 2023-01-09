@@ -36,6 +36,10 @@ class Artist private constructor (
         return _id
     }
 
+    override fun _getUrl(): String {
+        return "https://music.youtube.com/channel/$id"
+    }
+
     override fun initWithData(data: ServerInfoResponse, onFinished: () -> Unit) {
         name = data.snippet!!.title
         description = data.snippet.description!!

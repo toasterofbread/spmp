@@ -40,12 +40,12 @@ class Playlist private constructor (
         return "https://music.youtube.com/playlist?list=$id"
     }
 
-    override fun initWithData(data: ServerInfoResponse, onFinished: () -> Unit) {
+    override fun subInitWithData(data: ServerInfoResponse, onFinished: () -> Unit) {
         if (data.snippet == null) {
             throw RuntimeException("Data snippet is null\n$data")
         }
         title = data.snippet.title
         upload_date = Date.from(Instant.parse(data.snippet.publishedAt))
-        super.initWithData(data, onFinished)
+        onFinished()
     }
 }

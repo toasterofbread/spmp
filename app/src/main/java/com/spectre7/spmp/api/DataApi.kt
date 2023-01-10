@@ -38,6 +38,15 @@ class DataApi {
             get() = Song.Lyrics.SyncType.values()[sync]
     }
 
+    data class RadioResult(
+        val radio: List<Radio>,
+        val videos: Map<String, YtItem.ServerInfoResponse> = mapOf(),
+        val channels: Map<String, YtItem.ServerInfoResponse> = mapOf()
+    ) {
+        data class Radio(val playlistPanelVideoRenderer: PlaylistPanelVideoRenderer)
+        data class PlaylistPanelVideoRenderer(val videoId: String)
+    }
+
     companion object {
         init {
             MainActivity.network.addRetryCallback {
@@ -275,73 +284,30 @@ class DataApi {
             return counterpart.callAttr("get", "videoId").toString()
         }
 
-        fun getSongRadio(song_id: String, include_first: Boolean = true): List<String> {
-            val body = """
-            {
-                "enablePersistentPlaylistPanel": true,
-                "isAudioOnly": true,
-                "tunerSettingValue": "AUTOMIX_SETTING_NORMAL",
-                "videoId": "${song_id}",
-                "playlistId": "RDAMVM${song_id}",
-                "watchEndpointMusicSupportedConfigs": {
-                    "watchEndpointMusicConfig": {
-                        "hasPersistentPlaylistPanel": true,
-                        "musicVideoType": "MUSIC_VIDEO_TYPE_ATV"
-                    }
+        fun getSongRadio(song_id: String, include_first: Boolean = true, load_data: Boolean = false, callback: (List<String>) -> Unit) {
+            val result = klaxon.parse<RadioResult>(queryServer("/yt/radio/", mapOf("id" to song_id, "load_data" to load_data.toString()), timeout=30)!!)!!
 
-                },
-                "context" : {
-                    "client": {
-                        "clientName": "WEB_REMIX",
-                        "clientVersion": "1.20221023.01.00",
-                        "hl": "ja"
-                    },
-                    "user": {}
+            var loading = result.channels.size + result.videos.size
+            val onLoaded = {
+                if (--loading <= 0) {
+                    val offset = if (include_first) 0 else 1
+                    callback(List(result.radio.size - offset) {
+                        result.radio[it + offset].playlistPanelVideoRenderer.videoId
+                    })
                 }
             }
-            """
 
-            val request = Request.Builder()
-                .url("https://music.youtube.com/youtubei/v1/next?alt=json&key=AIzaSyC9XL3ZjWddXya6X74dJoCTL-WEYFDNX30")
-                .header("user-agent", "Mozilla/5.0 (Windows NT 10.0; Win64; x64; rv:88.0) Gecko/20100101 Firefox/88.0")
-                .addHeader("accept", "*/*")
-                .addHeader("accept-encoding", "gzip, deflate")
-                .addHeader("content-encoding", "gzip")
-                .addHeader("origin", "https://music.youtube.com")
-                .addHeader("X-Goog-Visitor-Id", "CgtUYXUtLWtyZ3ZvTSj3pNWaBg%3D%3D")
-                .post(body.toRequestBody("application/json".toMediaType()))
-                .build()
+            if (loading == 0) {
+                onLoaded()
+            }
 
-            val client = OkHttpClient().newBuilder()
-                .addInterceptor(object : Interceptor {
-                    override fun intercept(chain: Interceptor.Chain): Response {
-                        val original = chain.request()
-                        val authorized = original.newBuilder()
-                            .addHeader("Cookie", "CONSENT=YES+1")
-                            .build()
-                        return chain.proceed(authorized)
-                    }
-                })
-                .build()
+            // Video init depends on channel, so init channels first
+            for (channel in result.channels) {
+                Artist.fromId(channel.key).initWithData(channel.value, onLoaded)
+            }
 
-            val response = client.newCall(request).execute()
-
-            val songs = (Parser.default().parse(GZIPInputStream(response.body!!.byteStream())) as JsonObject)
-                .obj("contents")!!
-                .obj("singleColumnMusicWatchNextResultsRenderer")!!
-                .obj("tabbedRenderer")!!
-                .obj("watchNextTabbedResultsRenderer")!!
-                .array<JsonObject>("tabs")!![0]
-                .obj("tabRenderer")!!
-                .obj("content")!!
-                .obj("musicQueueRenderer")!!
-                .obj("content")!!
-                .obj("playlistPanelRenderer")!!
-                .array<JsonObject>("contents")!!
-
-            val offset = if (include_first) 0 else 1
-            return List(songs.size - offset) {
-                songs[it + offset].obj("playlistPanelVideoRenderer")!!.string("videoId")!!
+            for (video in result.videos) {
+                Song.fromId(video.key).initWithData(video.value, onLoaded)
             }
         }
 

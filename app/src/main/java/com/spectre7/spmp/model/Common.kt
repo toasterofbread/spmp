@@ -16,7 +16,11 @@ abstract class YtItem {
 
     private var thumbnails: ServerInfoResponse.Thumbnails? = null
 
-    var loaded: Boolean = false
+    private var _loaded: Boolean = false
+    var loaded: Boolean
+        get() = _loaded
+        private set(value) { _loaded = value }
+
     private var on_loaded_callbacks: MutableList<(Boolean) -> Unit>? = null
 
     val id: String get() = _getId()
@@ -127,8 +131,16 @@ abstract class YtItem {
         return (if (hq) thumbnails?.high else thumbnails?.medium)?.url
     }
 
-    open fun initWithData(data: ServerInfoResponse, onFinished: () -> Unit) {
+    fun initWithData(data: ServerInfoResponse, onFinished: () -> Unit) {
+        if (loaded) {
+            onFinished()
+        }
         thumbnails = data.snippet?.thumbnails
-        onFinished()
+        subInitWithData(data) {
+            loaded = true
+            onFinished()
+        }
     }
+
+    protected abstract fun subInitWithData(data: ServerInfoResponse, onFinished: () -> Unit)
 }

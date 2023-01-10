@@ -406,20 +406,21 @@ class PlayerService : Service() {
         addToQueue(song) {
             if (add_radio) {
                 thread {
-                    val radio = DataApi.getSongRadio(song.id, false)
-                    for (i in radio.indices) {
-                        Song.fromId(radio[i]).loadData(
-                            process_queue = false,
-                            get_stream_url = true
-                        ) {
-                            if (it != null) {
-                                MainActivity.runInMainThread {
-                                    addToQueue(it as Song)
+                    DataApi.getSongRadio(song.id, false, load_data = true) { radio ->
+                        for (i in radio.indices) {
+                            Song.fromId(radio[i]).loadData(
+                                process_queue = false,
+                                get_stream_url = true
+                            ) {
+                                if (it != null) {
+                                    MainActivity.runInMainThread {
+                                        addToQueue(it as Song)
+                                    }
                                 }
                             }
                         }
+                        DataApi.processYtItemLoadQueue()
                     }
-                    DataApi.processYtItemLoadQueue()
                 }
             }
         }

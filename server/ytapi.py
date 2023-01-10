@@ -1,5 +1,4 @@
-from functools import wraps
-from urllib.parse import urlencode, urlparse, parse_qs
+from urllib.parse import urlencode
 from flask import Flask, request, jsonify
 from flask.wrappers import Response
 import requests
@@ -7,6 +6,8 @@ import json
 from ytmusicapi import YTMusic
 from spectre7 import utils
 from threading import Thread
+
+from datetime import datetime
 
 USER_AGENT = "Mozilla/5.0 (X11; Linux x86_64; rv:105.0) Gecko/20100101 Firefox/105.0"
 DEFAULT_LANGUAGE = "en"
@@ -275,6 +276,8 @@ class YtApi:
 
         @server.route("/yt/batch/", True, methods = ["POST"])
         def batch():
+            start = datetime.now()
+
             try:
                 data = json.loads(request.data)
             except json.JSONDecodeError as e:
@@ -330,7 +333,126 @@ class YtApi:
             if error is not None:
                 return error
 
+            utils.info(f"Batch request with {len(data)} requests took {(datetime.now() - start).microseconds / 1000000} seconds")
+
             return jsonify(ret)
+
+        @server.route("/yt/radio/", False)
+        def radio():
+            video_id = request.args.get("id")
+            load_data = request.args.get("load_data", False)
+
+            body = {
+                "enablePersistentPlaylistPanel": True,
+                "isAudioOnly": True,
+                "tunerSettingValue": "AUTOMIX_SETTING_NORMAL",
+                "videoId": video_id,
+                "playlistId": f"RDAMVM{video_id}",
+                "watchEndpointMusicSupportedConfigs": {
+                    "watchEndpointMusicConfig": {
+                        "hasPersistentPlaylistPanel": True,
+                        "musicVideoType": "MUSIC_VIDEO_TYPE_ATV"
+                    }
+
+                },
+                "context" : {
+                    "client": {
+                        "clientName": "WEB_REMIX",
+                        "clientVersion": "1.20221023.01.00",
+                        "hl": "ja"
+                    },
+                    "user": {}
+                }
+            }
+
+            response = requests.post(
+                "https://music.youtube.com/youtubei/v1/next",
+                params = {"alt": "json", "key": "AIzaSyC9XL3ZjWddXya6X74dJoCTL-WEYFDNX30"},
+                headers = {
+                    "accept": "*/*",
+                    "accept-encoding": "gzip, deflate",
+                    "content-encoding": "gzip",
+                    "origin": "https://music.youtube.com",
+                    "X-Goog-Visitor-Id": "CgtUYXUtLWtyZ3ZvTSj3pNWaBg%3D%3D",
+                    "Content-type": "application/json"
+                },
+                cookies = {"CONSENT": "YES+1"},
+                data = json.dumps(body)
+            )
+
+            response.raise_for_status()
+
+            def get(cont, keys: tuple):
+                ret = cont
+                for key in keys:
+                    if key is None:
+                        ret = next(iter(ret.values()))
+                    else:
+                        try:
+                            ret = ret[key]
+                        except (IndexError, KeyError):
+                            return None
+                return ret
+
+            radio = get(response.json(), (
+                "contents",
+                None, # singleColumnMusicWatchNextResultsRenderer
+                None, # tabbedRenderer
+                None, # watchNextTabbedResultsRenderer
+                None, # tabs
+                0,
+                None, # tabRenderer
+                "content",
+                None, # musicQueueRenderer
+                None, # content
+                None, # playlistPanelRenderer
+                "contents"
+            ))
+
+            if not load_data or radio is None:
+                return jsonify({"radio": radio})
+
+            request_params = {"dataLang": request.args.get("dataLang", None), "part": "contentDetails,snippet,statistics"}
+
+            videos = {}
+            channels = {}
+
+            for video in radio:
+                request_params["id"] = video["playlistPanelVideoRenderer"]["videoId"]
+
+                thread = ThreadWithReturnValue(target = requestVideoInfo, args = (request_params.copy(),))
+                thread.start()
+                videos[request_params["id"]] = thread
+
+                # Get video artist
+                for item in get(video, (None, "menu", None, "items")) or (): # Menu
+                    item = get(item, (None, "navigationEndpoint", "browseEndpoint"))
+
+                    if item is not None and item["browseEndpointContextSupportedConfigs"]["browseEndpointContextMusicConfig"]["pageType"] == "MUSIC_PAGE_TYPE_ARTIST":
+
+                        if not item["browseId"] in channels:
+                            request_params["id"] = item["browseId"]
+
+                            thread = ThreadWithReturnValue(target = requestChannelInfo, args = (request_params.copy(),))
+                            thread.start()
+                            channels[item["browseId"]] = thread
+
+                        break
+
+            error = None
+
+            for cont in (videos, channels):
+                for key in cont:
+                    result = cont[key].join()
+                    if isinstance(result, Response):
+                        error = result
+                    else:
+                        cont[key] = result
+
+            if error is not None:
+                return error
+
+            return jsonify({"radio": radio, "videos": videos, "channels": channels})
 
         @server.route("/feed/", True)
         @server.cacheable

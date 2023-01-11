@@ -212,45 +212,47 @@ fun PlayerView() {
                         feed_refresh_mutex.lock()
                         try {
                             main_page_rows.clear()
-                            val feed = DataApi.getRecommendedFeed(allow_cached)
 
-                            val artist_row =
-                                YtItemRow("Recommended Artists", null, YtItemRow.TYPE.LONG)
-                            val playlist_row =
-                                YtItemRow("Recommended playlists", null, YtItemRow.TYPE.SQUARE)
+                            DataApi.getRecommendedFeed(allow_cached) { feed ->
+                                val artist_row =
+                                    YtItemRow("Recommended Artists", null, YtItemRow.TYPE.LONG)
+                                val playlist_row =
+                                    YtItemRow("Recommended playlists", null, YtItemRow.TYPE.SQUARE)
 
-                            for (row in feed) {
-                                val entry =
-                                    YtItemRow(row.title, row.subtitle, YtItemRow.TYPE.SQUARE)
-                                var entry_added = false
+                                for (row in feed) {
+                                    val entry =
+                                        YtItemRow(row.title, row.subtitle, YtItemRow.TYPE.SQUARE)
+                                    var entry_added = false
 
-                                for (item in row.items) {
-                                    item.getPreviewable().loadData(false) { loaded ->
-                                        when (loaded) {
-                                            is Song -> {
-                                                if (!entry_added) {
-                                                    entry_added = true
+                                    for (item in row.items) {
+                                        item.getPreviewable().loadData(false) { loaded ->
+                                            when (loaded) {
+                                                is Song -> {
+                                                    if (!entry_added) {
+                                                        entry_added = true
+                                                    }
+                                                    entry.add(loaded)
+                                                    artist_row.add(loaded.artist)
                                                 }
-                                                entry.add(loaded)
-                                                artist_row.add(loaded.artist)
+                                                is Artist -> artist_row.add(loaded)
+                                                is Playlist -> playlist_row.add(loaded)
                                             }
-                                            is Artist -> artist_row.add(loaded)
-                                            is Playlist -> playlist_row.add(loaded)
                                         }
                                     }
+                                    main_page_rows.add(entry)
                                 }
-                                main_page_rows.add(entry)
-                            }
 
-                            main_page_rows.add(artist_row)
-                            main_page_rows.add(playlist_row)
-                            DataApi.processYtItemLoadQueue()
-                            onFinished(true)
+                                main_page_rows.add(artist_row)
+                                main_page_rows.add(playlist_row)
+                                DataApi.processYtItemLoadQueue()
+                                feed_refresh_mutex.unlock()
+                                onFinished(true)
+                            }
                         } catch (e: Exception) {
                             MainActivity.network.onError(e)
+                            feed_refresh_mutex.unlock()
                             onFinished(false)
                         }
-                        feed_refresh_mutex.unlock()
                     }
                 }
             }

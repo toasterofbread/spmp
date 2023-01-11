@@ -7,7 +7,7 @@ from ytmusicapi import YTMusic
 from spectre7 import utils
 from threading import Thread
 
-from datetime import datetime
+# TODO | Should probably split this
 
 USER_AGENT = "Mozilla/5.0 (X11; Linux x86_64; rv:105.0) Gecko/20100101 Firefox/105.0"
 DEFAULT_LANGUAGE = "en"
@@ -81,7 +81,10 @@ class YtApi:
             params["key"] = server.ytapi_key
 
             remove_localisations = False
-            if language is not None and "part" in params and not "localizations" in params["part"]:
+
+            if not "part" in params:
+                params["part"] = "contentDetails,snippet,statistics"
+            elif language is not None and not "localizations" in params["part"]:
                 params["part"] += ",localizations"
                 remove_localisations = True
 
@@ -131,7 +134,9 @@ class YtApi:
             params["key"] = server.ytapi_key
 
             remove_localisations = False
-            if language is not None and "part" in params and not "localizations" in params["part"]:
+            if not "part" in params:
+                params["part"] = "contentDetails,snippet,statistics"
+            elif language is not None and not "localizations" in params["part"]:
                 params["part"] += ",localizations"
                 remove_localisations = True
 
@@ -189,6 +194,11 @@ class YtApi:
                 if language is not None and not "localizations" in params["part"]:
                     params["part"] += ",localizations"
                     remove_localisations = True
+            else:
+                params["part"] = "contentDetails,snippet"
+
+            if not "playlistId" in params and "id" in params:
+                params["playlistId"] = params["id"]
 
             url = f"https://www.googleapis.com/youtube/v3/playlists?" + urlencode(params)
 
@@ -276,7 +286,6 @@ class YtApi:
 
         @server.route("/yt/batch/", True, methods = ["POST"])
         def batch():
-            start = datetime.now()
 
             try:
                 data = json.loads(request.data)
@@ -333,14 +342,12 @@ class YtApi:
             if error is not None:
                 return error
 
-            utils.info(f"Batch request with {len(data)} requests took {(datetime.now() - start).microseconds / 1000000} seconds")
-
             return jsonify(ret)
 
         @server.route("/yt/radio/", False)
         def radio():
             video_id = request.args.get("id")
-            load_data = request.args.get("load_data", False)
+            load_data: bool = request.args.get("loadData", "0") == "1"
 
             body = {
                 "enablePersistentPlaylistPanel": True,
@@ -458,6 +465,13 @@ class YtApi:
         @server.cacheable
         def feed():
 
+            load_data: bool = request.args.get("loadData", "0") == "1"
+
+            try:
+                min_rows = int(request.args.get("minRows", -1))
+            except ValueError:
+                return server.errorResponse(400, "Invalid minRows parameter")
+
             def postRequest(ctoken: str | None) -> dict | Response:
                 response =  requests.post(
                     "https://music.youtube.com/youtubei/v1/browse",
@@ -574,11 +588,6 @@ class YtApi:
 
                 return ret
 
-            try:
-                min_rows = int(request.args.get("minRows", -1))
-            except ValueError:
-                return server.errorResponse(400, "Invalid minRows parameter")
-
             data = postRequest(None)
             if isinstance(data, Response):
                 return data
@@ -596,7 +605,71 @@ class YtApi:
 
                 rows += processRows(data["contents"])
 
-            return jsonify(rows)
+            ret = {"feed": rows}
+
+            if not load_data:
+                return jsonify(ret)
+
+            videos = []
+            channels = []
+            playlists = []
+
+            for row in rows:
+                for item in row["items"]:
+                    match item["type"]:
+                        case "song":
+                            videos.append(item["id"])
+                        case "artist":
+                            channels.append(item["id"])
+                        case _:
+                            playlists.append(item["id"])
+
+            data = fetchData(videos, channels, playlists)
+
+            if isinstance(data, Response):
+                return data
+
+            ret.update(data)
+            return jsonify(ret)
+
+        def fetchData(video_ids: list[str], channel_ids: list[str], playlist_ids: list[str]) -> dict | Response:
+            request_params = {"dataLang": request.args.get("dataLang", None)}
+
+            containers = {
+                "videos": {},
+                "channels": {},
+                "playlists": {}
+            }
+
+            def fetchIds(container: str, ids: list[str], requester):
+                if len(ids) == 0:
+                    containers.pop(container)
+                    return
+
+                for id in ids:
+                    request_params["id"] = id
+                    thread = ThreadWithReturnValue(target = requester, args = (request_params.copy(),))
+                    thread.start()
+                    containers[container][id] = thread
+
+            fetchIds("videos", video_ids, requestVideoInfo)
+            fetchIds("channels", channel_ids, requestChannelInfo)
+            fetchIds("playlists", playlist_ids, requestPlaylistInfo)
+
+            error = None
+
+            for container in containers.values():
+                for id, thread in container.items():
+                    result = thread.join()
+                    if isinstance(result, Response):
+                        error = result
+                    else:
+                        container[id] = result
+
+            if error is not None:
+                return error
+
+            return containers
 
     def ensureCorrectChannelId(self, channel_id: str):
         try:

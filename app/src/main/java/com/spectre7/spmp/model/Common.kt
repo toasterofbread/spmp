@@ -27,14 +27,14 @@ abstract class YtItem {
     val url: String get() = _getUrl()
 
     data class ServerInfoResponse(
-        val id: String,
+        val id: String = "",
         var original_id: String? = null,
         var type: String = "",
         val stream_url: String? = null,
         val snippet: Snippet? = null,
         val statistics: Statistics? = null,
         val contentDetails: ContentDetails? = null,
-        val error: String? = null,
+        val error: String? = null
     ) {
         data class Snippet(val title: String, val description: String? = null, val publishedAt: String, val channelId: String? = null, val defaultLanguage: String? = null, val country: String? = null, val thumbnails: Thumbnails)
         data class Statistics(val viewCount: String, val subscriberCount: String? = null, val hiddenSubscriberCount: Boolean = false, val videoCount: String? = null)

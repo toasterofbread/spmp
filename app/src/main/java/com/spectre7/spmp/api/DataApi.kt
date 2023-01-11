@@ -38,12 +38,7 @@ class DataApi {
             get() = Song.Lyrics.SyncType.values()[sync]
     }
 
-    data class RadioResult(
-        val radio: List<Radio>,
-        val videos: Map<String, YtItem.ServerInfoResponse> = mapOf(),
-        val channels: Map<String, YtItem.ServerInfoResponse> = mapOf()
-    ) {
-        data class Radio(val playlistPanelVideoRenderer: PlaylistPanelVideoRenderer)
+    data class RadioResult(val playlistPanelVideoRenderer: PlaylistPanelVideoRenderer) {
         data class PlaylistPanelVideoRenderer(val videoId: String)
     }
 
@@ -54,6 +49,49 @@ class DataApi {
                     processYtItemLoadQueue()
                 }
             }
+        }
+
+        private fun loadMediaItemsFromDataResult(data: String, onFinished: (data: Any) -> Unit) {
+            val klaxon = Klaxon()
+            val result = klaxon.parseJsonObject(klaxon.toReader(data.byteInputStream()))
+
+            val videos = result.getOrDefault("videos", JsonObject()) as JsonObject
+            val channels = result.getOrDefault("channels", JsonObject()) as JsonObject
+            val playlists = result.getOrDefault("playlists", JsonObject()) as JsonObject
+
+            var loading = videos.size + channels.size + playlists.size
+            val onLoaded = {
+                if (--loading <= 0) {
+                    for (item in result) {
+                        when (item.key) {
+                            "videos", "channels", "playlists" -> {}
+                            else -> {
+                                onFinished(item.value!!)
+                                break
+                            }
+                        }
+                    }
+                }
+            }
+
+            if (loading == 0) {
+                onLoaded()
+                return
+            }
+
+            // Video init depends on channel, so init channels first
+            for (channel in channels) {
+                Artist.fromId(channel.key).initWithData(klaxon.parseFromJsonObject(channel.value as JsonObject)!!, onLoaded)
+            }
+
+            for (video in videos) {
+                Song.fromId(video.key).initWithData(klaxon.parseFromJsonObject(video.value as JsonObject)!!, onLoaded)
+            }
+
+            for (playlist in playlists) {
+                Playlist.fromId(playlist.key).initWithData(klaxon.parseFromJsonObject(playlist.value as JsonObject)!!, onLoaded)
+            }
+
         }
 
         private var _ytapi: PyObject? = null
@@ -285,29 +323,14 @@ class DataApi {
         }
 
         fun getSongRadio(song_id: String, include_first: Boolean = true, load_data: Boolean = false, callback: (List<String>) -> Unit) {
-            val result = klaxon.parse<RadioResult>(queryServer("/yt/radio/", mapOf("id" to song_id, "load_data" to load_data.toString()), timeout=30)!!)!!
-
-            var loading = result.channels.size + result.videos.size
-            val onLoaded = {
-                if (--loading <= 0) {
-                    val offset = if (include_first) 0 else 1
-                    callback(List(result.radio.size - offset) {
-                        result.radio[it + offset].playlistPanelVideoRenderer.videoId
-                    })
-                }
-            }
-
-            if (loading == 0) {
-                onLoaded()
-            }
-
-            // Video init depends on channel, so init channels first
-            for (channel in result.channels) {
-                Artist.fromId(channel.key).initWithData(channel.value, onLoaded)
-            }
-
-            for (video in result.videos) {
-                Song.fromId(video.key).initWithData(video.value, onLoaded)
+            loadMediaItemsFromDataResult(
+                queryServer("/yt/radio/", mapOf("id" to song_id, "load_data" to load_data.toInt().toString()), timeout=30)!!
+            ) { data ->
+                val result = klaxon.parseFromJsonArray<RadioResult>(data as JsonArray<*>)!!
+                val offset = if (include_first) 0 else 1
+                callback(List(result.size - offset) {
+                    result[it + offset].playlistPanelVideoRenderer.videoId
+                })
             }
         }
 
@@ -587,9 +610,15 @@ class DataApi {
             }
         }
 
-        fun getRecommendedFeed(allow_cached: Boolean = true): List<RecommendedFeedRow> {
-            val data = queryServer("/feed", mapOf("noCache" to (!allow_cached).toInt().toString()), timeout=30)!!
-            return klaxon.parseArray(data)!!
+        fun getRecommendedFeed(allow_cached: Boolean = true, load_data: Boolean = true, callback: (List<RecommendedFeedRow>) -> Unit) {
+            loadMediaItemsFromDataResult(
+                queryServer("/feed", mapOf(
+                    "noCache" to (!allow_cached).toInt().toString(),
+                    "loadData" to load_data.toInt().toString()
+                ), timeout=30)!!
+            ) {
+                callback(klaxon.parseFromJsonArray(it as JsonArray<*>)!!)
+            }
         }
     }
 }

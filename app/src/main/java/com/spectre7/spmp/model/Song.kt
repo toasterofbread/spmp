@@ -153,13 +153,13 @@ class Song private constructor (
         registry = song_registry!!.getSongEntry(id)
     }
 
-    override fun subInitWithData(data: ServerInfoResponse, onFinished: () -> Unit) {
+    override fun subInitWithData(data: ServerInfoResponse, process_queue: Boolean, onFinished: () -> Unit) {
         _title = data.snippet!!.title
         description = data.snippet.description!!
         upload_date = Date.from(Instant.parse(data.snippet.publishedAt))
         duration = Duration.parse(data.contentDetails!!.duration)
         stream_url = data.stream_url
-        Artist.fromId(data.snippet.channelId!!).loadData(true) {
+        Artist.fromId(data.snippet.channelId!!).loadData(process_queue) {
             if (it == null) {
                 throw RuntimeException("Song artist is null (song: $id, artist: ${data.snippet.channelId})")
             }

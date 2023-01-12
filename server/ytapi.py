@@ -69,13 +69,15 @@ class YtApi:
 
         def requestVideoInfo(params: dict) -> dict | Response:
             language: str | None = params.get("dataLang", None)
+            cache_key = params["id"] + str(language)
 
             try:
-                cache = server.getCache("requestVideoInfo", params["id"] + str(language))
+                cache = server.getCache("requestVideoInfo", cache_key)
             except KeyError:
                 return server.errorResponse(400)
 
             if cache is not None:
+                utils.info("requestVideoInfo using cached value")
                 return cache
 
             params["key"] = server.ytapi_key
@@ -102,7 +104,7 @@ class YtApi:
             if remove_localisations:
                 ret.pop("localizations", None)
 
-            server.setCache("requestVideoInfo", params["id"] + str(language), ret)
+            server.setCache("requestVideoInfo", cache_key, ret)
 
             return ret
 
@@ -118,6 +120,7 @@ class YtApi:
                 return server.errorResponse(400)
 
             language: str | None = params.get("dataLang", None)
+            cache_key = params["id"] + str(language)
 
             original_id = params["id"]
             params["id"] = self.ensureCorrectChannelId(original_id)
@@ -125,9 +128,9 @@ class YtApi:
             if params["id"] is None:
                 raise RuntimeError()
 
-            cache = server.getCache("requestChannelInfo", params["id"] + str(language))
+            cache = server.getCache("requestChannelInfo", cache_key)
             if cache is not None:
-                utils.info("Using cached channel info")
+                utils.info("requestChannelInfo using cached value")
                 cache["original_id"] = original_id
                 return cache
 
@@ -154,7 +157,7 @@ class YtApi:
             if remove_localisations:
                 ret.pop("localizations", None)
 
-            server.setCache("requestChannelInfo", params["id"], ret)
+            server.setCache("requestChannelInfo", cache_key, ret)
 
             ret["original_id"] = original_id
 
@@ -175,10 +178,11 @@ class YtApi:
                 return server.errorResponse(400)
 
             language: str | None = params.get("dataLang", None)
+            cache_key = params["id"] + str(language)
 
-            cache = server.getCache("requestPlaylistInfo", params["id"] + str(language))
+            cache = server.getCache("requestPlaylistInfo", cache_key)
             if cache is not None:
-                utils.info("Using cached playlist info")
+                utils.info("requestPlaylistInfo using cached value")
                 return cache
 
             remove_localisations = False
@@ -215,7 +219,7 @@ class YtApi:
                 if remove_localisations:
                     ret.pop("localizations", None)
 
-                server.setCache("requestPlaylistInfo", params["id"], ret)
+                server.setCache("requestPlaylistInfo", cache_key, ret)
 
                 return ret
             except IndexError:
@@ -324,6 +328,8 @@ class YtApi:
 
             threads: list[ThreadWithReturnValue] = []
             ret = []
+
+            print(data)
 
             for item in data:
                 thread = ThreadWithReturnValue(target = handleRequest, args = (item, dict(request.args)))
@@ -635,37 +641,59 @@ class YtApi:
         def fetchData(video_ids: list[str], channel_ids: list[str], playlist_ids: list[str]) -> dict | Response:
             request_params = {"dataLang": request.args.get("dataLang", None)}
 
-            containers = {
-                "videos": {},
-                "channels": {},
-                "playlists": {}
-            }
+            containers = {}
 
-            def fetchIds(container: str, ids: list[str], requester):
+            def fetchIds(container_key: str, ids: list[str], requester):
                 if len(ids) == 0:
-                    containers.pop(container)
                     return
 
+                if not container_key in containers:
+                    container = {}
+                    containers[container_key] = container
+                else:
+                    container = containers[container_key]
+
                 for id in ids:
+                    if id in container:
+                        continue
+
                     request_params["id"] = id
                     thread = ThreadWithReturnValue(target = requester, args = (request_params.copy(),))
                     thread.start()
-                    containers[container][id] = thread
+                    container[id] = thread
+
+            def joinThreads():
+                error = None
+                for container in containers.values():
+                    for id, thread in container.items():
+                        if not isinstance(thread, ThreadWithReturnValue):
+                            continue
+                        result = thread.join()
+                        if isinstance(result, Response):
+                            error = result
+                        else:
+                            container[id] = result
+                return error
 
             fetchIds("videos", video_ids, requestVideoInfo)
             fetchIds("channels", channel_ids, requestChannelInfo)
             fetchIds("playlists", playlist_ids, requestPlaylistInfo)
 
-            error = None
+            error = joinThreads()
+            if error is not None:
+                return error
 
-            for container in containers.values():
-                for id, thread in container.items():
-                    result = thread.join()
-                    if isinstance(result, Response):
-                        error = result
-                    else:
-                        container[id] = result
+            video_channel_ids = []
 
+            for video in containers.get("videos", {}).values():
+                snippet = video.get("snippet")
+                if snippet is None:
+                    continue
+                video_channel_ids.append(snippet["channelId"])
+
+            fetchIds("channels", video_channel_ids, requestChannelInfo)
+
+            error = joinThreads()
             if error is not None:
                 return error
 

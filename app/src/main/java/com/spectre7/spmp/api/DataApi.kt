@@ -22,6 +22,25 @@ import java.util.concurrent.TimeUnit
 import java.util.zip.GZIPInputStream
 import kotlin.concurrent.thread
 
+class TimedReceiver(val start: Long, val label: String) {
+    fun finishTiming(extra: String = "") {
+        val end = System.currentTimeMillis()
+        println("$label $extra took ${(end - start) / 1000.0} seconds")
+    }
+}
+
+fun <T> Timed(label: String, uses_callback: Boolean = false, body: TimedReceiver.() -> T): T {
+    val start = System.currentTimeMillis()
+    val receiver = TimedReceiver(start, label)
+
+    val ret = body(receiver)
+    if (!uses_callback) {
+        receiver.finishTiming()
+    }
+
+    return ret
+}
+
 class DataApi {
 
     data class LyricsSearchResult(
@@ -63,13 +82,11 @@ class DataApi {
             val onLoaded = {
                 if (--loading <= 0) {
                     for (item in result) {
-                        when (item.key) {
-                            "videos", "channels", "playlists" -> {}
-                            else -> {
-                                onFinished(item.value!!)
-                                break
-                            }
+                        if (item.key == "videos" || item.key == "channels" || item.key == "playlists") {
+                            continue
                         }
+                        onFinished(item.value!!)
+                        break
                     }
                 }
             }
@@ -81,17 +98,20 @@ class DataApi {
 
             // Video init depends on channel, so init channels first
             for (channel in channels) {
-                Artist.fromId(channel.key).initWithData(klaxon.parseFromJsonObject(channel.value as JsonObject)!!, onLoaded)
+                Artist.fromId(channel.key).initWithData(klaxon.parseFromJsonObject(channel.value as JsonObject)!!, false, onLoaded)
             }
 
             for (video in videos) {
-                Song.fromId(video.key).initWithData(klaxon.parseFromJsonObject(video.value as JsonObject)!!, onLoaded)
+                Song.fromId(video.key).initWithData(klaxon.parseFromJsonObject(video.value as JsonObject)!!, false, onLoaded)
             }
 
             for (playlist in playlists) {
-                Playlist.fromId(playlist.key).initWithData(klaxon.parseFromJsonObject(playlist.value as JsonObject)!!, onLoaded)
+                Playlist.fromId(playlist.key).initWithData(klaxon.parseFromJsonObject(playlist.value as JsonObject)!!, false, onLoaded)
             }
 
+            thread {
+                processYtItemLoadQueue()
+            }
         }
 
         private var _ytapi: PyObject? = null
@@ -488,7 +508,7 @@ class DataApi {
             throw_on_fail: Boolean = true,
             max_retries: Int = 5,
             timeout: Long = 20
-        ): String? {
+        ): String? = Timed("queryServer", true) {
 
             if (server == null) {
                 try {
@@ -498,7 +518,7 @@ class DataApi {
                     if (throw_on_fail) {
                         throw e
                     }
-                    return null
+                    return@Timed null
                 }
             }
 
@@ -509,7 +529,9 @@ class DataApi {
                 }
             }
 
-            return server!!.performRequest(endpoint, localised_params, post_body, throw_on_fail, max_retries, timeout)
+            val ret = server!!.performRequest(endpoint, localised_params, post_body, throw_on_fail, max_retries, timeout)
+            finishTiming(endpoint)
+            return@Timed ret
 
 //            var server = server_access_point ?: getServer()
 //            if (server == null) {
@@ -610,14 +632,16 @@ class DataApi {
             }
         }
 
-        fun getRecommendedFeed(allow_cached: Boolean = true, load_data: Boolean = true, callback: (List<RecommendedFeedRow>) -> Unit) {
+        fun getRecommendedFeed(allow_cached: Boolean = true, load_data: Boolean = true, callback: (List<RecommendedFeedRow>) -> Unit) = Timed("getRecommendedFeed", true) {
             loadMediaItemsFromDataResult(
                 queryServer("/feed", mapOf(
                     "noCache" to (!allow_cached).toInt().toString(),
                     "loadData" to load_data.toInt().toString()
                 ), timeout=30)!!
             ) {
-                callback(klaxon.parseFromJsonArray(it as JsonArray<*>)!!)
+                val ret = klaxon.parseFromJsonArray<RecommendedFeedRow>(it as JsonArray<*>)!!
+                finishTiming()
+                callback(ret)
             }
         }
     }

@@ -40,7 +40,7 @@ class Artist private constructor (
         return "https://music.youtube.com/channel/$id"
     }
 
-    override fun subInitWithData(data: ServerInfoResponse, onFinished: () -> Unit) {
+    override fun subInitWithData(data: ServerInfoResponse, process_queue: Boolean, onFinished: () -> Unit) {
         name = data.snippet!!.title
         description = data.snippet.description!!
         creationDate = Date.from(Instant.parse(data.snippet.publishedAt))

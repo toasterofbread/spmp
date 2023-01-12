@@ -131,16 +131,17 @@ abstract class YtItem {
         return (if (hq) thumbnails?.high else thumbnails?.medium)?.url
     }
 
-    fun initWithData(data: ServerInfoResponse, onFinished: () -> Unit) {
+    fun initWithData(data: ServerInfoResponse, process_queue: Boolean = true, onFinished: () -> Unit) {
         if (loaded) {
             onFinished()
+            return
         }
         thumbnails = data.snippet?.thumbnails
-        subInitWithData(data) {
+        subInitWithData(data, process_queue) {
             loaded = true
             onFinished()
         }
     }
 
-    protected abstract fun subInitWithData(data: ServerInfoResponse, onFinished: () -> Unit)
+    protected abstract fun subInitWithData(data: ServerInfoResponse, process_queue: Boolean, onFinished: () -> Unit)
 }

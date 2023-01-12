@@ -207,7 +207,7 @@ class Server:
             params.update(request.args)
             key = json.dumps(params)
 
-            if request.args.get("noCache", None) == "1":
+            if request.args.get("noCache", None) != "1":
                 cached = self.getCache(request.path, key)
                 if cached is not None:
                     utils.info("Using cached value")

@@ -167,6 +167,9 @@ data class YtItemRow(val title: String, val subtitle: String?, val type: TYPE, v
     }
 }
 
+val feed_refresh_mutex = ReentrantLock()
+var a = false
+
 @OptIn(ExperimentalMaterialApi::class, ExperimentalMaterial3Api::class)
 @Composable
 fun PlayerView() {
@@ -204,11 +207,12 @@ fun PlayerView() {
             )
 
             val main_page_rows = remember { mutableStateListOf<YtItemRow>() }
-            val feed_refresh_mutex = remember { ReentrantLock() }
+
             val refreshFeed: (Boolean, (success: Boolean) -> Unit) -> Unit = { allow_cached, onFinished ->
                 if (!feed_refresh_mutex.isLocked) {
                     MainActivity.network.onRetry()
                     thread {
+                        println("LOCK")
                         feed_refresh_mutex.lock()
                         try {
                             main_page_rows.clear()
@@ -245,11 +249,20 @@ fun PlayerView() {
                                 main_page_rows.add(artist_row)
                                 main_page_rows.add(playlist_row)
                                 DataApi.processYtItemLoadQueue()
+                                println("UNLOCK A")
+
+                                if (a) {
+                                    println("breakpoint")
+                                }
+                                a = true
+
                                 feed_refresh_mutex.unlock()
                                 onFinished(true)
                             }
                         } catch (e: Exception) {
+                            throw e
                             MainActivity.network.onError(e)
+                            println("UNLOCK B")
                             feed_refresh_mutex.unlock()
                             onFinished(false)
                         }

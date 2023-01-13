@@ -14,12 +14,13 @@ import com.spectre7.utils.toInt
 import kotlinx.coroutines.runBlocking
 import kotlinx.coroutines.sync.Mutex
 import kotlinx.coroutines.sync.withLock
-import okhttp3.*
 import okhttp3.MediaType.Companion.toMediaType
+import okhttp3.OkHttpClient
+import okhttp3.Request
 import okhttp3.RequestBody.Companion.toRequestBody
+import okhttp3.Response
 import java.net.URLEncoder
 import java.util.concurrent.TimeUnit
-import java.util.zip.GZIPInputStream
 import kotlin.concurrent.thread
 
 class TimedReceiver(val start: Long, val label: String) {
@@ -133,9 +134,8 @@ class DataApi {
         private var server: ServerAccessPoint? = null
 
         data class YtItemLoadQueueKey(val id: String, val type: String) {
-            var get_stream_url: Boolean = false
             companion object {
-                fun from(item: YtItem, get_stream_url: Boolean): YtItemLoadQueueKey {
+                fun from(item: YtItem): YtItemLoadQueueKey {
                     return YtItemLoadQueueKey(
                         item.id,
                         when (item) {
@@ -144,19 +144,17 @@ class DataApi {
                             is Playlist -> "playlist"
                             else -> throw RuntimeException(item.toString())
                         }
-                    ).also {
-                        it.get_stream_url = get_stream_url
-                    }
+                    )
                 }
             }
         }
         private val ytitem_load_queue: MutableMap<YtItemLoadQueueKey, MutableList<(YtItem.ServerInfoResponse?) -> Unit>> = mutableMapOf()
         private val ytitem_load_mutex = Mutex()
 
-        fun queueYtItemDataLoad(item: YtItem, get_stream_url: Boolean, callback: (YtItem.ServerInfoResponse?) -> Unit) {
+        fun queueYtItemDataLoad(item: YtItem, callback: (YtItem.ServerInfoResponse?) -> Unit) {
             runBlocking {
                 synchronized(ytitem_load_queue) {
-                    ytitem_load_queue.getOrPut(YtItemLoadQueueKey.from(item, get_stream_url)) { mutableListOf() }.add(callback)
+                    ytitem_load_queue.getOrPut(YtItemLoadQueueKey.from(item)) { mutableListOf() }.add(callback)
                 }
             }
         }
@@ -174,24 +172,21 @@ class DataApi {
                         ytitem_load_queue.clear()
                     }
 
-                    val result: String
-                    try {
-                        result = queryServer(
-                            "/yt/batch",
-                            mapOf("part" to "contentDetails,snippet,statistics"),
-                            post_body = klaxon.toJsonString(items.keys),
-                            throw_on_fail = true
-                        )!!
-                    }
-                    catch (e: Exception) {
+                    val result = requestServer(
+                        "/yt/batch",
+                        mapOf("part" to "contentDetails,snippet,statistics"),
+                        post_body = klaxon.toJsonString(items.keys)
+                    )
+
+                    if (!result.success) {
                         synchronized(ytitem_load_queue) {
                             ytitem_load_queue.putAll(items)
                         }
-                        MainActivity.network.onError(e)
+                        MainActivity.network.onError(RuntimeException(result.getErrorMessage()))
                         return@withLock
                     }
 
-                    for (item in klaxon.parseArray<YtItem.ServerInfoResponse>(result)!!) {
+                    for (item in klaxon.parseArray<YtItem.ServerInfoResponse>(result.body)!!) {
                         for (callback in items.remove(YtItemLoadQueueKey(item.original_id!!, item.type))!!) {
                             callback(item)
                         }
@@ -205,8 +200,7 @@ class DataApi {
             data class ResultId(val kind: String, val videoId: String = "", val channelId: String = "", val playlistId: String = "")
         }
 
-        fun search(query: String, type: ResourceType, max_results: Int = 10, channel_id: String? = null): List<SearchResults.Result> {
-
+        fun search(request: String, type: ResourceType, max_results: Int = 10, channel_id: String? = null): List<SearchResults.Result> {
             val parameters = mutableMapOf(
                 "part" to "snippet",
                 "type" to when (type) {
@@ -214,15 +208,16 @@ class DataApi {
                     ResourceType.ARTIST -> "channel"
                     ResourceType.PLAYLIST -> "playlist"
                 },
-                "q" to query,
+                "q" to request,
                 "maxResults" to max_results.toString(),
                 "safeSearch" to "none"
             )
             if (channel_id != null) {
                 parameters.put("channelId", channel_id)
             }
-            val result = queryServer("/yt/search", parameters)
-            return klaxon.parse<SearchResults>(result!!)!!.items
+            val result = requestServer("/yt/search", parameters)
+            result.throwStatus()
+            return klaxon.parse<SearchResults>(result.body)!!.items
         }
 
         class GetDownloadUrlResult(val playabilityStatus: PlayabilityStatus, val streamingData: StreamingData? = null) {
@@ -239,23 +234,23 @@ class DataApi {
             }
         }
 
-        fun getStreamUrl(id: String, callback: (url: String?) -> Unit) {
-            thread {
-                val result = queryServer("/yt/streamurl", mapOf("id" to id))!!
-                data class URL(val url: String)
-                MainActivity.runInMainThread {
-                    callback(klaxon.parse<URL>("{\"url\": $result}")?.url)
-                }
-            }
+        fun getStreamUrl(id: String): String? {
+            val result = requestServer("/yt/streamurl", mapOf("id" to id))!!
+            data class URL(val url: String)
+            return klaxon.parse<URL>("{\"url\": $result}")?.url
         }
 
         fun getLyrics(id: String): Song.Lyrics? {
-            val result = queryServer(
+            val result = requestServer(
                 "/get_lyrics/",
                 mapOf("id" to id),
                 max_retries = 1,
                 throw_on_fail = false
-            ) ?: return null
+            )
+
+            if (!result.success) {
+                return null
+            }
 
             return klaxon.converter(object : Converter {
                 override fun canConvert(cls: Class<*>): Boolean {
@@ -273,7 +268,7 @@ class DataApi {
                     return (value as Song.Lyrics.Source).string_code
                 }
 
-            }).parse<Song.Lyrics>(result)
+            }).parse<Song.Lyrics>(result.body)
         }
 
         fun getSongLyrics(song: Song, callback: (Song.Lyrics?) -> Unit) {
@@ -285,18 +280,18 @@ class DataApi {
                     ret = getLyrics(id)
                 }
                 else {
-                    val result = queryServer(
+                    val result = requestServer(
                         "/search_and_get_lyrics/",
                         mapOf("title" to song.title, "artist" to song.artist.name),
                         max_retries = 1,
                         throw_on_fail = false
                     )
-                    if (result == null) {
+                    if (!result.success) {
                         callback(null)
                         return@thread
                     }
 
-                    ret = klaxon.parse<Song.Lyrics>(result)
+                    ret = klaxon.parse<Song.Lyrics>(result.body)
                 }
 
                 song.registry.overrides.lyrics_id = ret?.id
@@ -312,17 +307,17 @@ class DataApi {
                         params["artist"] = artist
                     }
 
-                    val result = queryServer(
+                    val result = requestServer(
                         "/search_lyrics/",
                         params,
                         max_retries = 1
                     )
-                    if (result == null) {
+                    if (!result.success) {
                         callback(null)
                         return@thread
                     }
 
-                    callback(klaxon.parseArray(result))
+                    callback(klaxon.parseArray(result.body))
                 }
                 catch (e: Exception) {
                     MainActivity.network.onError(e)
@@ -331,26 +326,26 @@ class DataApi {
             }
         }
 
-        fun getSongCounterpartId(song: Song): String? {
-            if (ytapi == null) {
-                return null
-            }
-            val counterpart = ytapi!!.callAttr("get_watch_playlist", song.id, null, 1).callAttr("get", "tracks").asList().first().callAttr("get", "conuterpart")
-            if (counterpart == null) {
-                return null
-            }
-            return counterpart.callAttr("get", "videoId").toString()
-        }
+        fun getSongRadio(
+            song_id: String,
+            include_first: Boolean = true,
+            load_data: Boolean = false,
+            callback: (ServerRequestDataResult<List<String>>) -> Unit
+        ) {
+            val result = requestServer("/yt/radio/", mapOf("id" to song_id, "load_data" to load_data.toInt().toString()), timeout=30)
 
-        fun getSongRadio(song_id: String, include_first: Boolean = true, load_data: Boolean = false, callback: (List<String>) -> Unit) {
-            loadMediaItemsFromDataResult(
-                queryServer("/yt/radio/", mapOf("id" to song_id, "load_data" to load_data.toInt().toString()), timeout=30)!!
-            ) { data ->
-                val result = klaxon.parseFromJsonArray<RadioResult>(data as JsonArray<*>)!!
+            if (!result.success) {
+                callback(ServerRequestDataResult(result, null))
+                return
+            }
+
+            loadMediaItemsFromDataResult(result.body) { data ->
+                val items = klaxon.parseFromJsonArray<RadioResult>(data as JsonArray<*>)!!
                 val offset = if (include_first) 0 else 1
-                callback(List(result.size - offset) {
-                    result[it + offset].playlistPanelVideoRenderer.videoId
-                })
+                val radio = List(items.size - offset) {
+                    items[it + offset].playlistPanelVideoRenderer.videoId
+                }
+                callback(ServerRequestDataResult(result, radio))
             }
         }
 
@@ -359,13 +354,46 @@ class DataApi {
         }
 
         data class Language(val hl: String, val name: String)
-        fun getLanguageList(): List<Language> {
-            data class Item(val snippet: Language)
-            data class LanguageResponse(val items: List<Item>)
 
-            val response = klaxon.parse<LanguageResponse>(queryServer("/yt/i18nLanguages", mapOf("part" to "snippet"))!!)!!
-            return List(response.items.size) { i ->
-                response.items[i].snippet
+        open class ServerRequestResult(
+            val body: String,
+            val status: Int,
+            val endpoint: String?
+        ) {
+            val success: Boolean
+                get() = status == 200
+            
+            fun getErrorMessage(): String {
+                return "Server request failed ($status, $endpoint):\n$body"
+            }
+
+            fun getException(): Exception {
+                return RuntimeException(getErrorMessage())
+            }
+
+            fun throwStatus() {
+                if (!success) {
+                    throw getException()
+                }
+            }
+
+            companion object {
+                val NO_SERVER = ServerRequestResult("No server available", 404, null)
+            }
+        }
+
+        class ServerRequestDataResult<DataType>(
+            result: ServerRequestResult,
+            data: DataType?
+        ): ServerRequestResult(result.body, result.status, result.endpoint) {
+            private var _data: DataType? = data
+            val result: DataType
+                get() = _data!!
+
+            init {
+                if (success && _data == null) {
+                    throw IllegalArgumentException()
+                }
             }
         }
 
@@ -375,6 +403,28 @@ class DataApi {
 
             init {
                 refresh()
+            }
+
+            fun isIntegrated(): Boolean {
+                return integrated_server != null
+            }
+
+            fun getExternalRequestUrl(endpoint: String, params: Map<String, String>? = null): String {
+                var formatted_endpoint = endpoint
+                if (!formatted_endpoint.startsWith('/')) {
+                    formatted_endpoint = "/$formatted_endpoint"
+                }
+                if (!formatted_endpoint.endsWith('/')) {
+                    formatted_endpoint += '/'
+                }
+
+                var ret = "$url$formatted_endpoint?key=${getString(R.string.server_api_key)}"
+                if (params != null) {
+                    for (param in params) {
+                        ret += "&${URLEncoder.encode(param.key, "UTF-8")}=${URLEncoder.encode(param.value, "UTF-8")}"
+                    }
+                }
+                return ret
             }
 
             private fun refresh() {
@@ -404,20 +454,8 @@ class DataApi {
             }
 
             private fun getRequest(endpoint: String, params: Map<String, String>, post_body: String?): Request {
-                var formatted_endpoint = endpoint
-                if (!formatted_endpoint.startsWith('/')) {
-                    formatted_endpoint = "/$formatted_endpoint"
-                }
-                if (!formatted_endpoint.endsWith('/')) {
-                    formatted_endpoint += '/'
-                }
 
-                var request_url = "$url$formatted_endpoint?key=${getString(R.string.server_api_key)}"
-                for (param in params) {
-                    request_url += "&${URLEncoder.encode(param.key, "UTF-8")}=${URLEncoder.encode(param.value, "UTF-8")}"
-                }
-
-                val request = Request.Builder().url(request_url)
+                val request = Request.Builder().url(getExternalRequestUrl(endpoint, params))
                 if (post_body != null) {
                     request.post(post_body.toRequestBody("application/json".toMediaType()))
                 }
@@ -429,13 +467,12 @@ class DataApi {
                 endpoint: String,
                 params: Map<String, String>,
                 post_body: String? = null,
-                throw_on_fail: Boolean = true,
                 max_retries: Int = 5,
                 timeout: Long = 10,
                 allow_refresh: Boolean = true
-            ): String? {
+            ): ServerRequestResult {
 
-                if (integrated_server != null) {
+                if (isIntegrated()) {
                     var formatted_endpoint = endpoint
                     if (!formatted_endpoint.startsWith('/')) {
                         formatted_endpoint = "/$formatted_endpoint"
@@ -444,21 +481,21 @@ class DataApi {
                         formatted_endpoint += '/'
                     }
 
-                    val ret = integrated_server!!.callAttr("performRequest", formatted_endpoint, params, post_body)?.toString()
-                    if (ret == null && throw_on_fail) {
-                        throw RuntimeException()
-                    }
-                    return ret
+                    val result = integrated_server!!.callAttr("performRequest", formatted_endpoint, params, post_body)?.toString()
+                    return ServerRequestResult(result ?: "Request to integrated server failed", if (result != null) 200 else 500, endpoint)
                 }
 
-                var error: String? = null
+                var status: Int = 200
+                var error_msg: String? = null
+
                 var request: Request = getRequest(endpoint, params, post_body)
                 var refreshed: Boolean = false
 
                 fun request(): String? {
                     val ret: Response = OkHttpClient.Builder().readTimeout(timeout, TimeUnit.SECONDS).build().newCall(request).execute()
+                    status = ret.code
                     if (ret.code == 401) {
-                        error = "Server API key is invalid (401)"
+                        error_msg = "Server API key is invalid"
                     }
                     else if (ret.code == 404) {
                         if (allow_refresh && !refreshed) {
@@ -468,12 +505,13 @@ class DataApi {
                             return null
                         }
                         else {
-                            error = "Ngrok tunnel may be invalid (404)"
+                            error_msg = "Ngrok tunnel may be invalid (404)"
                             return null
                         }
                     }
                     else if (ret.code != 200) {
-                        error = "${ret.body?.string()} (${ret.code})"
+                        error_msg = "${ret.body?.string()} (${ret.code})"
+                        return null
                     }
 
                     return ret.body!!.string()
@@ -481,18 +519,16 @@ class DataApi {
 
                 var result: String? = null
                 for (i in 0 until max_retries + 1) {
-                    error = null
+                    error_msg = null
+                    status = 200
+
                     result = request()
                     if (result != null) {
                         break
                     }
                 }
 
-                if (error != null && throw_on_fail) {
-                    throw RuntimeException("Request to server failed. $error. Request URL: ${request.url}")
-                }
-
-                return result
+                return ServerRequestResult(error_msg ?: result ?: "Failed after $max_retries retries", status, endpoint)
             }
         }
 
@@ -501,25 +537,30 @@ class DataApi {
             data class Session(val id: String)
         }
 
-        fun queryServer(
+        fun getServer(): ServerAccessPoint? {
+            if (server == null) {
+                try {
+                    server = ServerAccessPoint()
+                }
+                catch (e: Exception) {
+                    return null
+                }
+            }
+            return server
+        }
+        
+        fun requestServer(
             endpoint: String,
             params: Map<String, String> = mapOf(),
             post_body: String? = null,
             throw_on_fail: Boolean = true,
             max_retries: Int = 5,
             timeout: Long = 20
-        ): String? = Timed("queryServer", true) {
+        ): ServerRequestResult = Timed("requestServer", true) {
 
+            server = getServer()
             if (server == null) {
-                try {
-                    server = ServerAccessPoint()
-                }
-                catch (e: Exception) {
-                    if (throw_on_fail) {
-                        throw e
-                    }
-                    return@Timed null
-                }
+                return@Timed ServerRequestResult.NO_SERVER
             }
 
             val localised_params: MutableMap<String, String> = HashMap(params)
@@ -529,8 +570,13 @@ class DataApi {
                 }
             }
 
-            val ret = server!!.performRequest(endpoint, localised_params, post_body, throw_on_fail, max_retries, timeout)
+            val ret = server!!.performRequest(endpoint, localised_params, post_body, max_retries, timeout)
             finishTiming(endpoint)
+
+            if (throw_on_fail) {
+                ret.throwStatus()
+            }
+
             return@Timed ret
 
 //            var server = server_access_point ?: getServer()
@@ -632,16 +678,21 @@ class DataApi {
             }
         }
 
-        fun getRecommendedFeed(allow_cached: Boolean = true, load_data: Boolean = true, callback: (List<RecommendedFeedRow>) -> Unit) = Timed("getRecommendedFeed", true) {
-            loadMediaItemsFromDataResult(
-                queryServer("/feed", mapOf(
-                    "noCache" to (!allow_cached).toInt().toString(),
-                    "loadData" to load_data.toInt().toString()
-                ), timeout=30)!!
-            ) {
+        fun getRecommendedFeed(allow_cached: Boolean = true, load_data: Boolean = true, callback: (ServerRequestDataResult<List<RecommendedFeedRow>>) -> Unit) = Timed("getRecommendedFeed", true) {
+            val result = requestServer("/feed", mapOf(
+                "noCache" to (!allow_cached).toInt().toString(),
+                "loadData" to load_data.toInt().toString()
+            ), timeout=30)
+
+            if (!result.success) {
+                callback(ServerRequestDataResult(result, null))
+                return@Timed
+            }
+
+            loadMediaItemsFromDataResult(result.body) {
                 val ret = klaxon.parseFromJsonArray<RecommendedFeedRow>(it as JsonArray<*>)!!
                 finishTiming()
-                callback(ret)
+                callback(ServerRequestDataResult(result, ret))
             }
         }
     }

@@ -12,7 +12,6 @@ import androidx.compose.ui.graphics.toArgb
 import androidx.core.content.edit
 import com.beust.klaxon.Json
 import com.beust.klaxon.Klaxon
-import com.spectre7.spmp.MainActivity
 import com.spectre7.spmp.R
 import com.spectre7.spmp.api.DataApi
 import com.spectre7.spmp.ui.component.SongPreview
@@ -22,6 +21,7 @@ import java.net.URL
 import java.time.Duration
 import java.time.Instant
 import java.util.*
+import kotlin.concurrent.thread
 import kotlin.reflect.KMutableProperty1
 import kotlin.reflect.jvm.isAccessible
 
@@ -308,11 +308,9 @@ class Song private constructor (
             callback(stream_url!!)
         }
         else {
-            DataApi.getStreamUrl(id) {
-                if (it == null) {
-                    throw RuntimeException(id)
-                }
-                callback(it)
+            thread {
+                val url = DataApi.getStreamUrl(id) ?: throw RuntimeException(id)
+                callback(url)
             }
         }
     }

@@ -79,7 +79,7 @@ abstract class YtItem {
         Preview(large, Modifier, MaterialTheme.colorScheme.onBackground)
     }
 
-    fun loadData(process_queue: Boolean = true, get_stream_url: Boolean = false, onFinished: ((YtItem?) -> Unit)? = null): YtItem {
+    fun loadData(process_queue: Boolean = true, onFinished: ((YtItem?) -> Unit)? = null): YtItem {
         if (loaded) {
             onFinished?.invoke(this)
         }
@@ -95,7 +95,7 @@ abstract class YtItem {
             }
 
             thread {
-                DataApi.queueYtItemDataLoad(this, get_stream_url) {
+                DataApi.queueYtItemDataLoad(this) {
                     if (it == null) {
                         throw RuntimeException("Server info response is null (id: $id)")
                     }

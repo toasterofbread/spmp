@@ -168,7 +168,6 @@ data class YtItemRow(val title: String, val subtitle: String?, val type: TYPE, v
 }
 
 val feed_refresh_mutex = ReentrantLock()
-var a = false
 
 @OptIn(ExperimentalMaterialApi::class, ExperimentalMaterial3Api::class)
 @Composable
@@ -212,59 +211,52 @@ fun PlayerView() {
                 if (!feed_refresh_mutex.isLocked) {
                     MainActivity.network.onRetry()
                     thread {
-                        println("LOCK")
                         feed_refresh_mutex.lock()
-                        try {
-                            main_page_rows.clear()
+                        main_page_rows.clear()
 
-                            DataApi.getRecommendedFeed(allow_cached) { feed ->
-                                val artist_row =
-                                    YtItemRow("Recommended Artists", null, YtItemRow.TYPE.LONG)
-                                val playlist_row =
-                                    YtItemRow("Recommended playlists", null, YtItemRow.TYPE.SQUARE)
+                        DataApi.getRecommendedFeed(allow_cached) { result ->
 
-                                for (row in feed) {
-                                    val entry =
-                                        YtItemRow(row.title, row.subtitle, YtItemRow.TYPE.SQUARE)
-                                    var entry_added = false
+                            if (!result.success) {
+                                MainActivity.network.onError(result.getException())
+                                feed_refresh_mutex.unlock()
+                                onFinished(false)
+                                return@getRecommendedFeed
+                            }
 
-                                    for (item in row.items) {
-                                        item.getPreviewable().loadData(false) { loaded ->
-                                            when (loaded) {
-                                                is Song -> {
-                                                    if (!entry_added) {
-                                                        entry_added = true
-                                                    }
-                                                    entry.add(loaded)
-                                                    artist_row.add(loaded.artist)
+                            val artist_row =
+                                YtItemRow("Recommended Artists", null, YtItemRow.TYPE.LONG)
+                            val playlist_row =
+                                YtItemRow("Recommended playlists", null, YtItemRow.TYPE.SQUARE)
+
+                            for (row in result.result) {
+                                val entry =
+                                    YtItemRow(row.title, row.subtitle, YtItemRow.TYPE.SQUARE)
+                                var entry_added = false
+
+                                for (item in row.items) {
+                                    item.getPreviewable().loadData(false) { loaded ->
+                                        when (loaded) {
+                                            is Song -> {
+                                                if (!entry_added) {
+                                                    entry_added = true
                                                 }
-                                                is Artist -> artist_row.add(loaded)
-                                                is Playlist -> playlist_row.add(loaded)
+                                                entry.add(loaded)
+                                                artist_row.add(loaded.artist)
                                             }
+                                            is Artist -> artist_row.add(loaded)
+                                            is Playlist -> playlist_row.add(loaded)
                                         }
                                     }
-                                    main_page_rows.add(entry)
                                 }
-
-                                main_page_rows.add(artist_row)
-                                main_page_rows.add(playlist_row)
-                                DataApi.processYtItemLoadQueue()
-                                println("UNLOCK A")
-
-                                if (a) {
-                                    println("breakpoint")
-                                }
-                                a = true
-
-                                feed_refresh_mutex.unlock()
-                                onFinished(true)
+                                main_page_rows.add(entry)
                             }
-                        } catch (e: Exception) {
-                            throw e
-                            MainActivity.network.onError(e)
-                            println("UNLOCK B")
+
+                            main_page_rows.add(artist_row)
+                            main_page_rows.add(playlist_row)
+                            DataApi.processYtItemLoadQueue()
+
                             feed_refresh_mutex.unlock()
-                            onFinished(false)
+                            onFinished(true)
                         }
                     }
                 }

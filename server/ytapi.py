@@ -1,5 +1,5 @@
 from urllib.parse import urlencode
-from flask import Flask, request, jsonify
+from flask import Flask, request, jsonify, redirect
 from flask.wrappers import Response
 import requests
 import json
@@ -13,7 +13,7 @@ USER_AGENT = "Mozilla/5.0 (X11; Linux x86_64; rv:105.0) Gecko/20100101 Firefox/1
 DEFAULT_LANGUAGE = "en"
 
 class ThreadWithReturnValue(Thread):
-    def __init__(self, group=None, target=None, name=None, args=(), kwargs={}, Verbose=None):
+    def __init__(self, group=None, target=None, name=None, args=(), kwargs={}):
         Thread.__init__(self, group, target, name, args, kwargs)
         self._return = None
 
@@ -283,10 +283,13 @@ class YtApi:
             if id is None:
                 return server.errorResponse(400)
 
+            redirect_to_stream = request.args.get("redirect", "0") == "1"
+
             result = requestStreamUrl(id)
             if isinstance(result, Response):
                 return result
-            return jsonify(result)
+
+            return redirect(result) if redirect_to_stream else jsonify(result)
 
         @server.route("/yt/batch/", True, methods = ["POST"])
         def batch():
@@ -294,6 +297,7 @@ class YtApi:
             try:
                 data = json.loads(request.data)
             except json.JSONDecodeError as e:
+                print("AAAAAAAAA")
                 return server.errorResponse(400, e.msg)
 
             if not isinstance(data, list):
@@ -318,12 +322,13 @@ class YtApi:
 
                     result["type"] = item["type"]
 
-                    if item.get("get_stream_url"):
-                        url = requestStreamUrl(item["id"])
-                        result["stream_url"] = url if isinstance(url, str) else None
+                    # if item.get("get_stream_url"):
+                    #     url = requestStreamUrl(item["id"])
+                    #     result["stream_url"] = url if isinstance(url, str) else None
 
                     return result
                 except KeyError as e:
+                    print("BBBBBBBB")
                     return server.errorResponse(400, str(e))
 
             threads: list[ThreadWithReturnValue] = []

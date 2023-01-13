@@ -7,6 +7,7 @@ import android.graphics.PixelFormat
 import android.net.Uri
 import android.os.Binder
 import android.os.Build
+import android.os.Looper
 import android.support.v4.media.MediaMetadataCompat
 import android.support.v4.media.session.MediaSessionCompat
 import android.view.KeyEvent
@@ -51,6 +52,7 @@ import com.chaquo.python.Python
 import com.google.android.exoplayer2.C
 import com.google.android.exoplayer2.ExoPlayer
 import com.google.android.exoplayer2.MediaItem
+import com.google.android.exoplayer2.MediaItem.LocalConfiguration.UriProvider
 import com.google.android.exoplayer2.Player
 import com.google.android.exoplayer2.audio.AudioAttributes
 import com.google.android.exoplayer2.ext.mediasession.MediaSessionConnector
@@ -62,7 +64,9 @@ import com.spectre7.utils.sendToast
 import com.spectre7.utils.setAlpha
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.launch
+import kotlinx.coroutines.runBlocking
 import kotlinx.coroutines.sync.Mutex
+import kotlinx.coroutines.sync.withLock
 import kotlin.concurrent.thread
 import kotlin.math.roundToInt
 
@@ -406,11 +410,15 @@ class PlayerService : Service() {
         addToQueue(song) {
             if (add_radio) {
                 thread {
-                    DataApi.getSongRadio(song.id, false, load_data = true) { radio ->
-                        for (i in radio.indices) {
-                            Song.fromId(radio[i]).loadData(
-                                process_queue = false,
-                                get_stream_url = true
+                    DataApi.getSongRadio(song.id, false, load_data = true) { result ->
+
+                        if (!result.success) {
+                            return@getSongRadio
+                        }
+
+                        for (i in result.result.indices) {
+                            Song.fromId(result.result[i]).loadData(
+                                process_queue = false
                             ) {
                                 if (it != null) {
                                     MainActivity.runInMainThread {
@@ -454,32 +462,36 @@ class PlayerService : Service() {
     }
 
     fun addToQueue(song: Song, index: Int? = null, is_active_queue: Boolean = false, onFinished: ((index: Int) -> Unit)? = null) {
-        song.getStreamUrl { url ->
-            val item = MediaItem.Builder().setUri(url).setTag(song).build()
-
-            // val param = MediaItem.LocalConfiguration::class.java.getField("uri")
-            // param.isAccessible = true
-            // param.set(item.localConfiguration, Uri.parse(url))
-
-            val added_index: Int
-
-            if (index == null) {
-                player.addMediaItem(item)
-                added_index = player.mediaItemCount - 1
-            }
-            else {
-                player.addMediaItem(index, item)
-                added_index = if (index < player.mediaItemCount) index else player.mediaItemCount - 1
+        val item = MediaItem.Builder().setTag(song).setUri {
+            val server = DataApi.getServer() ?: return@setUri Uri.EMPTY
+            if (server.isIntegrated()) {
+                return@setUri Uri.parse(DataApi.getStreamUrl(song.id)!!)
             }
 
-            if (is_active_queue) {
-                active_queue_index = added_index
-            }
+            return@setUri Uri.parse(server.getExternalRequestUrl("/yt/streamurl", mapOf( "redirect" to "1", "id" to song.id )))
+        }.build()
 
-            onSongAdded(item)
-            addNotificationToPlayer()
-            onFinished?.invoke(added_index)
+        val added_index: Int
+
+        if (index == null) {
+            player.addMediaItem(item)
+            added_index = player.mediaItemCount - 1
         }
+        else {
+            player.addMediaItem(index, item)
+            added_index = if (index < player.mediaItemCount) index else player.mediaItemCount - 1
+        }
+
+        if (is_active_queue) {
+            active_queue_index = added_index
+        }
+
+        onSongAdded(item)
+        addNotificationToPlayer()
+        onFinished?.invoke(added_index)
+
+//        song.getStreamUrl { url ->
+//        }
     }
 
     fun addMultipleToQueue(songs: List<Song>, index: Int, onFinished: (() -> Unit)? = null) {

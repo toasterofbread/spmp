@@ -19,6 +19,7 @@ import okhttp3.OkHttpClient
 import okhttp3.Request
 import okhttp3.RequestBody.Companion.toRequestBody
 import okhttp3.Response
+import java.net.SocketTimeoutException
 import java.net.URLEncoder
 import java.util.concurrent.TimeUnit
 import kotlin.concurrent.thread
@@ -492,7 +493,16 @@ class DataApi {
                 var refreshed: Boolean = false
 
                 fun request(): String? {
-                    val ret: Response = OkHttpClient.Builder().readTimeout(timeout, TimeUnit.SECONDS).build().newCall(request).execute()
+                    val ret: Response
+                    try {
+                        ret = OkHttpClient.Builder().readTimeout(timeout, TimeUnit.SECONDS).build().newCall(request).execute()
+                    }
+                    catch (e: SocketTimeoutException) {
+                        status = 408
+                        error_msg = "Request timed out"
+                        return null
+                    }
+
                     status = ret.code
                     if (ret.code == 401) {
                         error_msg = "Server API key is invalid"

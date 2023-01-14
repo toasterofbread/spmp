@@ -7,7 +7,6 @@ import android.graphics.PixelFormat
 import android.net.Uri
 import android.os.Binder
 import android.os.Build
-import android.os.Looper
 import android.support.v4.media.MediaMetadataCompat
 import android.support.v4.media.session.MediaSessionCompat
 import android.view.KeyEvent
@@ -52,7 +51,6 @@ import com.chaquo.python.Python
 import com.google.android.exoplayer2.C
 import com.google.android.exoplayer2.ExoPlayer
 import com.google.android.exoplayer2.MediaItem
-import com.google.android.exoplayer2.MediaItem.LocalConfiguration.UriProvider
 import com.google.android.exoplayer2.Player
 import com.google.android.exoplayer2.audio.AudioAttributes
 import com.google.android.exoplayer2.ext.mediasession.MediaSessionConnector
@@ -64,9 +62,7 @@ import com.spectre7.utils.sendToast
 import com.spectre7.utils.setAlpha
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.launch
-import kotlinx.coroutines.runBlocking
 import kotlinx.coroutines.sync.Mutex
-import kotlinx.coroutines.sync.withLock
 import kotlin.concurrent.thread
 import kotlin.math.roundToInt
 

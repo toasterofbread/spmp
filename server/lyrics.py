@@ -312,7 +312,7 @@ def getLyrics(lyrics_id: str) -> Lyrics | None:
             for lyrics_type in range(3, 0, -1):
                 data = getLyricsData(song_id, lyrics_type)
                 if data is not None:
-                    return TimedLyrics(lyrics_id, lyrics_type, data) if data.startswith("<wsy>") and data.endswith("</wsy>") else StaticLyrics(lyrics_id, data)
+                    return TimedLyrics(lyrics_id, lyrics_type - 1, data) if data.startswith("<wsy>") and data.endswith("</wsy>") else StaticLyrics(lyrics_id, data)
 
             return None
 

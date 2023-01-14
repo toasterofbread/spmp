@@ -4,19 +4,22 @@ import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.animation.core.animateOffsetAsState
 import androidx.compose.foundation.Canvas
 import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.foundation.lazy.LazyListState
 import androidx.compose.runtime.*
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.geometry.CornerRadius
 import androidx.compose.ui.geometry.Offset
+import androidx.compose.ui.geometry.Rect
 import androidx.compose.ui.geometry.Size
 import com.spectre7.spmp.MainActivity
 import com.spectre7.spmp.PlayerServiceHost
 import com.spectre7.spmp.model.Song
 import net.zerotask.libraries.android.compose.furigana.TermInfo
+import java.lang.reflect.Field
 import kotlin.math.abs
 
 @Composable
-fun LyricsTimingOverlay(lyrics: Song.Lyrics, text_positions: List<TermInfo>, full_line: Boolean, seek_state: Any, scrollTo: suspend (Float) -> Unit) {
+fun LyricsTimingOverlay(lyrics: Song.Lyrics, text_positions: List<TermInfo>, full_line: Boolean, seek_state: Any, scroll_state: LazyListState, scrollTo: suspend (Float) -> Unit) {
 
     var show_highlight by remember { mutableStateOf(false) }
     var highlight_instantly by remember { mutableStateOf(false) }
@@ -36,6 +39,7 @@ fun LyricsTimingOverlay(lyrics: Song.Lyrics, text_positions: List<TermInfo>, ful
 
     AnimatedVisibility(show_highlight && !highlight_unset) {
         Canvas(modifier = Modifier.fillMaxSize()) {
+//            val offset = scroll_state.firstVisibleItemScrollOffset
             if (highlight_instantly) {
                 drawRoundRect(
                     MainActivity.theme.getBackground(true),
@@ -71,23 +75,23 @@ fun LyricsTimingOverlay(lyrics: Song.Lyrics, text_positions: List<TermInfo>, ful
 
         val offset = Offset(-100f, -170f)
 
-        val terms = mutableListOf<Song.Lyrics.Subterm>()
+        val terms = mutableListOf<Pair<Int, Song.Lyrics.Subterm>>()
         val pos = (PlayerServiceHost.status.duration * PlayerServiceHost.status.position)
         var finished = false
 
-        for (line in lyrics.lyrics) {
-            for (term in line) {
+        for (line in lyrics.lyrics.withIndex()) {
+            for (term in line.value) {
                 if (pos >= term.start!! && pos < term.end!!) {
                     if (full_line) {
-                        for (_term in line) {
+                        for (_term in line.value) {
                             for (subterm in _term.subterms) {
-                                terms.add(subterm)
+                                terms.add(line.index to subterm)
                             }
                         }
                         finished = true
                     } else {
                         for (subterm in term.subterms) {
-                            terms.add(subterm)
+                            terms.add(line.index to subterm)
                         }
                     }
                     break
@@ -104,7 +108,7 @@ fun LyricsTimingOverlay(lyrics: Song.Lyrics, text_positions: List<TermInfo>, ful
         var target_br_y: Float? = null
 
         for (term in terms) {
-            val rect = text_positions[term.index].rect
+            val rect = text_positions[term.second.index].rect
 
             if (target_x == null || rect.left < target_x) {
                 target_x = rect.left + offset.x

@@ -68,7 +68,7 @@ internal fun ColumnScope.LyricsSearchResults(results: List<DataApi.LyricsSearchR
 
                             val shape = RoundedCornerShape(16)
 
-                            Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.spacedBy(20.dp), verticalAlignment = Alignment.CenterVertically) {
+                            Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.spacedBy(10.dp), verticalAlignment = Alignment.CenterVertically) {
                                 Text(result.name, color = MainActivity.theme.getOnAccent())
 
                                 @Composable

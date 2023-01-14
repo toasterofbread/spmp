@@ -4,6 +4,7 @@ import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.LazyListScope
+import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.text.InlineTextContent
 import androidx.compose.foundation.text.appendInlineContent
 import androidx.compose.material3.LocalTextStyle
@@ -15,6 +16,7 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.geometry.Rect
 import androidx.compose.ui.geometry.Size
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.layout.onGloballyPositioned
 import androidx.compose.ui.layout.onPlaced
 import androidx.compose.ui.layout.positionInRoot
 import androidx.compose.ui.platform.LocalDensity
@@ -24,7 +26,6 @@ import androidx.compose.ui.text.PlaceholderVerticalAlign
 import androidx.compose.ui.unit.*
 import net.zerotask.libraries.android.compose.furigana.TermInfo
 import net.zerotask.libraries.android.compose.furigana.TextData
-import okio.ByteString.Companion.encodeUtf8
 
 @Composable
 fun LongFuriganaText(
@@ -35,6 +36,7 @@ fun LongFuriganaText(
     column_modifier: Modifier = Modifier,
     font_size: TextUnit = TextUnit.Unspecified,
     text_positions: MutableList<TermInfo>? = null,
+    highlight_term_range: IntRange? = null,
 
     text_element: (@Composable (is_reading: Boolean, text: String, font_size: TextUnit, modifier: Modifier) -> Unit)? = null,
     list_element: (@Composable (content: LazyListScope.() -> Unit) -> Unit)? = null,
@@ -43,11 +45,11 @@ fun LongFuriganaText(
     val _font_size = if (font_size == TextUnit.Unspecified) LocalTextStyle.current.fontSize else font_size
     val reading_font_size = _font_size / 2
 
-    fun calculateAnnotatedString(show_readings: Boolean): List<Pair<AnnotatedString, Map<String, InlineTextContent>>> {
-        var child_index = 0
-        var element_index = 0
+    var child_index = remember { 0 }
 
-        fun annotateString(elem: TextData, inline_content: MutableMap<String, InlineTextContent>, string: AnnotatedString.Builder) {
+    fun calculateAnnotatedString(show_readings: Boolean): List<Pair<AnnotatedString, Map<String, InlineTextContent>>> {
+
+        fun annotateString(elem: TextData, index: Int, inline_content: MutableMap<String, InlineTextContent>, string: AnnotatedString.Builder) {
             val text = elem.text.filterNot { it == '\n' }
             val reading = elem.reading
 
@@ -58,7 +60,8 @@ fun LongFuriganaText(
             // Words larger than one character/kanji need a small amount of additional space in their
             // x-dimension.
             val width = (text.length.toDouble() + (text.length - 1) * 0.05).em
-            string.appendInlineContent(text, text)
+            string.appendInlineContent(text, index.toString())
+
             inline_content[text] = InlineTextContent(
                 // TODO: find out why height and width need magic numbers.
                 placeholder = Placeholder(
@@ -67,15 +70,17 @@ fun LongFuriganaText(
                     placeholderVerticalAlign = PlaceholderVerticalAlign.Bottom,
                 ),
                 children = {
+                    val index = it.toInt()
                     val box_height = with(LocalDensity.current) { reading_font_size.toDp() }
-                    val term = remember { text_positions?.getOrNull(child_index++) }
+
+//                    val term_index = remember { child_index++ }
+//                    val term = remember { text_positions?.getOrNull(term_index) }
 
                     val TextElement = text_element ?: { _, text, font_size, modifier ->
                         Text(
                             text,
                             modifier = modifier,
                             fontSize = font_size
-//                            style = TextStyle.Default.copy(fontSize = reading_font_size)
                         )
                     }
 
@@ -90,16 +95,16 @@ fun LongFuriganaText(
                     }) { width: Int, _height: Int ->
                         val column_modifier = remember(text_positions == null) {
                             Modifier.fillMaxSize().run {
-                                if (text_positions != null) {
-                                    onPlaced { coords ->
-                                        if (term != null && term.rect.isEmpty) {
-                                            term.rect = Rect(coords.positionInRoot(), Size(width.toFloat(), 70f))
-                                        }
-                                    }
-                                }
-                                else {
+//                                if (text_positions != null) {
+//                                    onPlaced { coords ->
+//                                        if (term != null && term.rect.isEmpty) {
+//                                            term.rect = Rect(coords.positionInRoot(), Size(width.toFloat(), 70f))
+//                                        }
+//                                    }
+//                                }
+//                                else {
                                     this
-                                }
+//                                }
                             }
                         }
 
@@ -113,7 +118,10 @@ fun LongFuriganaText(
                                     TextElement(true, reading, reading_font_size, Modifier.wrapContentWidth(unbounded = true))
                                 }
                             }
-                            TextElement(false, text, font_size, Modifier)
+
+                            println("RECOMP $index")
+
+                            TextElement(false, text, font_size, if (highlight_term_range?.contains(index) == true) Modifier.background(Color.Green, CircleShape) else Modifier)
                         }
                     }
 
@@ -126,12 +134,11 @@ fun LongFuriganaText(
         var inline_content = mutableMapOf<String, InlineTextContent>()
         var string = AnnotatedString.Builder()
 
-        while (element_index < text_content.size) {
-            val element = text_content[element_index++]
-            annotateString(element, inline_content, string)
+        for (element in text_content.withIndex()) {
+            annotateString(element.value, element.index, inline_content, string)
 
             var first = true
-            for (char in element.text) {
+            for (char in element.value.text) {
                 if (char != '\n') {
                     continue
                 }
@@ -151,7 +158,7 @@ fun LongFuriganaText(
         return ret
     }
 
-    val data_with_readings = remember(text_content) {
+    val data_with_readings = remember(text_content, highlight_term_range) {
         if (text_positions != null) {
             text_positions.clear()
             for (elem in text_content) {

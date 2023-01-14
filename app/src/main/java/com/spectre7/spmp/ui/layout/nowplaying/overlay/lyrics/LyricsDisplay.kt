@@ -6,6 +6,7 @@ import androidx.compose.animation.fadeIn
 import androidx.compose.animation.fadeOut
 import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
+import androidx.compose.foundation.gestures.scrollBy
 import androidx.compose.foundation.interaction.MutableInteractionSource
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
@@ -27,6 +28,7 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.*
 import androidx.compose.ui.zIndex
 import com.spectre7.spmp.MainActivity
+import com.spectre7.spmp.PlayerServiceHost
 import com.spectre7.spmp.R
 import com.spectre7.spmp.model.Settings
 import com.spectre7.spmp.model.Song
@@ -130,11 +132,78 @@ fun CoreLyricsDisplay(size: Dp, seek_state: Any, lyrics: Song.Lyrics, scroll_sta
     val text_positions = remember { mutableStateListOf<TermInfo>() }
     val size_px = with(LocalDensity.current) { size.toPx() }
 
-    LyricsTimingOverlay(lyrics, text_positions, false, seek_state) { position ->
-        if (Settings.prefs.getBoolean(Settings.KEY_LYRICS_FOLLOW_ENABLED.name, true)) {
-            val offset = size_px * Settings.prefs.getFloat(Settings.KEY_LYRICS_FOLLOW_OFFSET.name, 0.5f)
-            scroll_state.animateScrollToItem(0, (position - offset).toInt())
+    val line_height = with (LocalDensity.current) { 20.sp.toPx() }
+    val line_spacing = with (LocalDensity.current) { 25.dp.toPx() }
+
+    val pos = (PlayerServiceHost.status.duration * PlayerServiceHost.status.m_position)
+    var range by remember { mutableStateOf(-1 .. -1) }
+
+    LaunchedEffect(pos) {
+        var finished = false
+        val full_line = true
+
+        var start = -1
+        var end = -1
+
+        for (line in lyrics.lyrics.withIndex()) {
+            for (term in line.value) {
+                if (pos >= term.start!! && pos < term.end!!) {
+                    if (full_line) {
+                        for (_term in line.value) {
+                            for (subterm in _term.subterms) {
+                                if (start == -1) {
+                                    start = subterm.index
+                                }
+                                if (end == -1 || end < subterm.index) {
+                                    end = subterm.index
+                                }
+                            }
+                        }
+                        finished = true
+                    } else {
+                        for (subterm in term.subterms) {
+                            if (start == -1) {
+                                start = subterm.index
+                            }
+                            if (end == -1 || end < subterm.index) {
+                                end = subterm.index
+                            }
+                        }
+                    }
+                    break
+                }
+            }
+            if (finished) {
+                break
+            }
         }
+
+        range = start .. end
+    }
+
+    println(range)
+
+//    val range = -1 .. -1
+
+//    LyricsTimingOverlay(lyrics, text_positions, false, seek_state, scroll_state) { position ->
+//        if (Settings.prefs.getBoolean(Settings.KEY_LYRICS_FOLLOW_ENABLED.name, true)) {
+//            val offset = size_px * Settings.prefs.getFloat(Settings.KEY_LYRICS_FOLLOW_OFFSET.name, 0.5f)
+//            scroll_state.animateScrollToItem(0, (position - offset).toInt())
+//        }
+//    }
+
+    val add_padding: Boolean = Settings.get(Settings.KEY_LYRICS_EXTRA_PADDING)
+    val padding_height = with (LocalDensity.current) {
+        if (add_padding) {
+            (size_px - line_height - line_spacing).toDp()
+        }
+        else {
+            line_height.toDp()
+        }
+    }
+
+    LaunchedEffect(Unit) {
+        scroll_state.scrollBy(if (add_padding) (size_px - line_height - (line_spacing * 2)) else (line_height - line_spacing))
     }
 
     val terms = remember { mutableListOf<TextData>().apply {
@@ -163,6 +232,8 @@ fun CoreLyricsDisplay(size: Dp, seek_state: Any, lyrics: Song.Lyrics, scroll_sta
             font_size = 20.sp,
             line_spacing = 25.dp,
             space_wrapped_lines = false,
+            text_positions = text_positions,
+            highlight_term_range = range,
 
             text_element = { is_reading: Boolean, text: String, font_size: TextUnit, modifier: Modifier ->
                 Text(
@@ -177,7 +248,7 @@ fun CoreLyricsDisplay(size: Dp, seek_state: Any, lyrics: Song.Lyrics, scroll_sta
                 LazyColumn(
                     Modifier
                         .fillMaxSize()
-                        .padding(start = 20.dp, end = 20.dp),
+                        .padding(horizontal = 20.dp),
                     state = scroll_state,
                     horizontalAlignment = when (Settings.get<Int>(Settings.KEY_LYRICS_TEXT_ALIGNMENT)) {
                         0 -> if (LocalLayoutDirection.current == LayoutDirection.Ltr) Alignment.Start else Alignment.End
@@ -185,17 +256,12 @@ fun CoreLyricsDisplay(size: Dp, seek_state: Any, lyrics: Song.Lyrics, scroll_sta
                         else -> if (LocalLayoutDirection.current == LayoutDirection.Ltr) Alignment.End else Alignment.Start
                     }
                 ) {
-                    val add_spacing: Boolean = Settings.get(Settings.KEY_LYRICS_EXTRA_PADDING)
-                    if (add_spacing) {
-                        item {
-                            Spacer(Modifier.requiredHeight(size * 1.1f))
-                        }
+                    item {
+                        Spacer(Modifier.requiredHeight(padding_height))
                     }
                     content()
-                    if (add_spacing) {
-                        item {
-                            Spacer(Modifier.requiredHeight(size * 1.1f))
-                        }
+                    item {
+                        Spacer(Modifier.requiredHeight(padding_height - if (add_padding) with (LocalDensity.current) { (line_spacing * 2).toDp() } else 0.dp))
                     }
                 }
             }

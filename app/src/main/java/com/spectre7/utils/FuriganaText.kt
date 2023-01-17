@@ -38,7 +38,7 @@ fun LongFuriganaText(
     text_positions: MutableList<TermInfo>? = null,
     highlight_term_range: IntRange? = null,
 
-    text_element: (@Composable (is_reading: Boolean, text: String, font_size: TextUnit, modifier: Modifier) -> Unit)? = null,
+    text_element: (@Composable (is_reading: Boolean, text: String, font_size: TextUnit, index: Int) -> Unit)? = null,
     list_element: (@Composable (content: LazyListScope.() -> Unit) -> Unit)? = null,
 ) {
 
@@ -76,10 +76,9 @@ fun LongFuriganaText(
 //                    val term_index = remember { child_index++ }
 //                    val term = remember { text_positions?.getOrNull(term_index) }
 
-                    val TextElement = text_element ?: { _, text, font_size, modifier ->
+                    val TextElement = text_element ?: { _, text, font_size, index ->
                         Text(
                             text,
-                            modifier = modifier,
                             fontSize = font_size
                         )
                     }
@@ -90,7 +89,7 @@ fun LongFuriganaText(
                             horizontalAlignment = Alignment.CenterHorizontally,
                             verticalArrangement = Arrangement.Bottom,
                         ) {
-                            TextElement(false, text, font_size, Modifier)
+                            TextElement(false, text, font_size, index)
                         }
                     }) { width: Int, _height: Int ->
                         val column_modifier = remember(text_positions == null) {
@@ -119,9 +118,7 @@ fun LongFuriganaText(
                                 }
                             }
 
-                            println("RECOMP $index")
-
-                            TextElement(false, text, font_size, if (highlight_term_range?.contains(index) == true) Modifier.background(Color.Green, CircleShape) else Modifier)
+                            TextElement(false, text, font_size, index)
                         }
                     }
 

@@ -15,33 +15,46 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
 import com.spectre7.utils.Theme
 
-class SettingsInterface(val theme: Theme, val root_page: Int, val getPage: (Int) -> SettingsPage?, val context: Context, val onBackPressed: () -> Unit = {}) {
-    var current_page by mutableStateOf(root_page)
+class SettingsInterface(
+    val theme: Theme, 
+    val root_page: Int, 
+    val getPage: (Int) -> SettingsPage?, 
+    val context: Context,
+    val onPageChanged: ((page: Int) -> Unit)? = null
+    val onCloseRequested: (() -> Unit)? = null
+) {
+    privatevar current_page by mutableStateOf(root_page)
     private val page_stack = mutableListOf<Int>()
+
+    fun goBack() {
+        if (page_stack.size > 0) {
+            val target_page = page_stack.removeLast()
+            if (target_page != current_page) {
+                current_page = page_stack.removeLast()
+                onPageChanged?.invoke(current_page)
+            }
+        }
+        else {
+            onCloseRequested?.invoke()
+        }
+    }
 
     @Composable
     fun Interface(modifier: Modifier = Modifier) {
         Crossfade(current_page, modifier = modifier) {
-
-            val goBack = {
-                if (page_stack.size > 0) {
-                    current_page = page_stack.removeLast()
-                }
-                else {
-                    onBackPressed()
-                }
-            }
-
             val page = getPage(it)
             Column(Modifier.padding(top = 18.dp, start = 20.dp, end = 20.dp)) {
-                page?.TitleBar(this@SettingsInterface, it == root_page, goBack)
+                page?.TitleBar(this@SettingsInterface, it == root_page, { goBack() })
                 LazyColumn(Modifier.fillMaxHeight()) {
                     item {
                         Box(Modifier.padding(bottom = 60.dp)) {
                             page?.Page(this@SettingsInterface, { target_page ->
-                                page_stack.add(current_page)
-                                current_page = target_page
-                            }, goBack)
+                                if (target_page != target_page) {
+                                    page_stack.add(current_page)
+                                    current_page = target_page
+                                    onPageChanged?.invoke(current_page)
+                                }
+                            }, { goBack() })
                         }
                     }
                 }

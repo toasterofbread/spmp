@@ -20,7 +20,7 @@ import androidx.compose.ui.zIndex
 import com.spectre7.spmp.MainActivity
 import com.spectre7.utils.NoRipple
 
-class ActionGetter(
+class PillMenuActionGetter(
     val background_colour: Color,
     val content_colour: Color,
     val close: () -> Unit
@@ -52,7 +52,7 @@ private data class PillMenuParams(
 @Composable
 fun PillMenu(
     action_count: Int,
-    getAction: @Composable ActionGetter.(i: Int, action_count: Int) -> Unit,
+    getAction: @Composable PillMenuActionGetter.(i: Int, action_count: Int) -> Unit,
     expand_state: MutableState<Boolean>?,
     background_colour: Color,
     content_colour: Color,
@@ -134,7 +134,7 @@ private fun InnerPillMenu(
     background_colour: Color,
     modifier: Modifier,
     container_modifier: Modifier,
-    getAction: @Composable ActionGetter.(Int, Int) -> Unit
+    getAction: @Composable PillMenuActionGetter.(Int, Int) -> Unit
 ) {
     Crossfade(params, Modifier.zIndex(1f)) {
         val (vertical, top, left, alignment, open_icon, close_icon, enter, exit, action_count, expand_state) = it
@@ -179,7 +179,7 @@ private fun InnerPillMenu(
                         closeButton()
                     }
 
-                    val getter = ActionGetter(background_colour, content_colour) { expand_state?.value = false }
+                    val getter = PillMenuActionGetter(background_colour, content_colour) { expand_state?.value = false }
                     for (i in 0 until action_count) {
                         getAction(getter, i, action_count)
                     }

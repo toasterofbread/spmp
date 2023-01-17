@@ -70,6 +70,8 @@ const val VOL_NOTIF_SHOW_DURATION: Long = 1000
 
 class PlayerService : Service() {
 
+    val session_started: Boolean get() = notification_manager != null
+
     private var queue_listeners: MutableList<PlayerServiceHost.PlayerQueueListener> = mutableListOf()
 
     internal lateinit var player: ExoPlayer
@@ -97,8 +99,6 @@ class PlayerService : Service() {
                 }
             }
         }
-
-
 
     // Volume notification
     private var vol_notif_enabled: Boolean = false
@@ -547,121 +547,122 @@ class PlayerService : Service() {
     }
 
     private fun addNotificationToPlayer() {
-        if (notification_manager == null) {
-            notification_manager = PlayerNotificationManager.Builder(
-                MainActivity.context,
-                NOTIFICATION_ID,
-                getNotificationChannel(),
-                object : PlayerNotificationManager.MediaDescriptionAdapter {
+        if (notification_manager != null) {
+            return
+        }
+        notification_manager = PlayerNotificationManager.Builder(
+            MainActivity.context,
+            NOTIFICATION_ID,
+            getNotificationChannel(),
+            object : PlayerNotificationManager.MediaDescriptionAdapter {
 
-                    override fun createCurrentContentIntent(player: Player): PendingIntent? {
-                        return PendingIntent.getActivity(
-                            MainActivity.context,
-                            1,
-                            Intent(MainActivity.context, MainActivity::class.java),
-                            PendingIntent.FLAG_IMMUTABLE
-                        )
-                    }
-
-                    override fun getCurrentContentText(player: Player): String? {
-                        return getCurrentSong()?.artist?.name
-                    }
-
-                    override fun getCurrentContentTitle(player: Player): String {
-                        return getCurrentSong()?.title ?: "NULL"
-                    }
-
-                    override fun getCurrentLargeIcon(player: Player, callback: PlayerNotificationManager.BitmapCallback): Bitmap? {
-                        fun getCroppedThumbnail(image: Bitmap): Bitmap {
-                            if (Build.VERSION.SDK_INT >= 33) {
-                                metadata_builder.putBitmap(MediaMetadataCompat.METADATA_KEY_ALBUM_ART, image)
-                                media_session!!.setMetadata(metadata_builder.build())
-                                return image
-                            }
-                            else {
-                                return Bitmap.createBitmap(image, (image.width - image.height) / 2, 0, image.height, image.height)
-                            }
-                        }
-
-                        try {
-                            val song = getCurrentSong() ?: return null
-                            if (song.thumbnailLoaded(true)) {
-                                return getCroppedThumbnail(song.loadThumbnail(true))
-                            }
-
-                            thread {
-                                callback.onBitmap(getCroppedThumbnail(song.loadThumbnail(true)))
-                            }
-
-                            return null                            }
-                        catch (e: IndexOutOfBoundsException) {
-                            return null
-                        }
-                    }
-
+                override fun createCurrentContentIntent(player: Player): PendingIntent? {
+                    return PendingIntent.getActivity(
+                        MainActivity.context,
+                        1,
+                        Intent(MainActivity.context, MainActivity::class.java),
+                        PendingIntent.FLAG_IMMUTABLE
+                    )
                 }
-            ).setNotificationListener(
-                object : PlayerNotificationManager.NotificationListener {
-                    override fun onNotificationPosted(notificationId: Int,
-                                                      notification: Notification,
-                                                      ongoing: Boolean) {
-                        super.onNotificationPosted(notificationId, notification, ongoing)
+
+                override fun getCurrentContentText(player: Player): String? {
+                    return getCurrentSong()?.artist?.name
+                }
+
+                override fun getCurrentContentTitle(player: Player): String {
+                    return getCurrentSong()?.title ?: "NULL"
+                }
+
+                override fun getCurrentLargeIcon(player: Player, callback: PlayerNotificationManager.BitmapCallback): Bitmap? {
+                    fun getCroppedThumbnail(image: Bitmap): Bitmap {
+                        if (Build.VERSION.SDK_INT >= 33) {
+                            metadata_builder.putBitmap(MediaMetadataCompat.METADATA_KEY_ALBUM_ART, image)
+                            media_session!!.setMetadata(metadata_builder.build())
+                            return image
+                        }
+                        else {
+                            return Bitmap.createBitmap(image, (image.width - image.height) / 2, 0, image.height, image.height)
+                        }
+                    }
+
+                    try {
+                        val song = getCurrentSong() ?: return null
+                        if (song.thumbnailLoaded(true)) {
+                            return getCroppedThumbnail(song.loadThumbnail(true))
+                        }
+
+                        thread {
+                            callback.onBitmap(getCroppedThumbnail(song.loadThumbnail(true)))
+                        }
+
+                        return null                            }
+                    catch (e: IndexOutOfBoundsException) {
+                        return null
+                    }
+                }
+
+            }
+        ).setNotificationListener(
+            object : PlayerNotificationManager.NotificationListener {
+                override fun onNotificationPosted(notificationId: Int,
+                                                notification: Notification,
+                                                ongoing: Boolean) {
+                    super.onNotificationPosted(notificationId, notification, ongoing)
 //                            if (!ongoing) {
 //                                stopForeground(false)
 //                            } else {
-                        startForeground(notificationId, notification)
+                    startForeground(notificationId, notification)
 //                            }
 
-                    }
-                    override fun onNotificationCancelled(notificationId: Int,
-                                                         dismissedByUser: Boolean) {
-                        super.onNotificationCancelled(notificationId, dismissedByUser)
-                        stopSelf()
-                    }
                 }
-            )
-                // .setCustomActionReceiver(
-                //     object : PlayerNotificationManager.CustomActionReceiver {
-                //         override fun createCustomActions(
-                //             context: Context,
-                //             instanceId: Int
-                //         ): MutableMap<String, NotificationCompat.Action> {
-                //             val pendingIntent = PendingIntent.getService(
-                //                 context,
-                //                 1,
-                //                 Intent(context, PlayerService::class.java).putExtra("action", SERVICE_INTENT_ACTIONS.STOP),
-                //                 PendingIntent.FLAG_IMMUTABLE
-                //             )
-                //             return mutableMapOf(
-                //                 Pair("Play", NotificationCompat.Action(android.R.drawable.ic_menu_close_clear_cancel, "namae", pendingIntent))
-                //             )
-                //         }
+                override fun onNotificationCancelled(notificationId: Int,
+                                                    dismissedByUser: Boolean) {
+                    super.onNotificationCancelled(notificationId, dismissedByUser)
+                    stopSelf()
+                }
+            }
+        )
+            // .setCustomActionReceiver(
+            //     object : PlayerNotificationManager.CustomActionReceiver {
+            //         override fun createCustomActions(
+            //             context: Context,
+            //             instanceId: Int
+            //         ): MutableMap<String, NotificationCompat.Action> {
+            //             val pendingIntent = PendingIntent.getService(
+            //                 context,
+            //                 1,
+            //                 Intent(context, PlayerService::class.java).putExtra("action", SERVICE_INTENT_ACTIONS.STOP),
+            //                 PendingIntent.FLAG_IMMUTABLE
+            //             )
+            //             return mutableMapOf(
+            //                 Pair("Play", NotificationCompat.Action(android.R.drawable.ic_menu_close_clear_cancel, "namae", pendingIntent))
+            //             )
+            //         }
 
-                //         override fun getCustomActions(player: Player): MutableList<String> {
-                //             return mutableListOf("Play")
-                //         }
+            //         override fun getCustomActions(player: Player): MutableList<String> {
+            //             return mutableListOf("Play")
+            //         }
 
-                //         override fun onCustomAction(
-                //             player: Player,
-                //             action: String,
-                //             intent: Intent
-                //         ) {
-                //             println(action)
-                //         }
+            //         override fun onCustomAction(
+            //             player: Player,
+            //             action: String,
+            //             intent: Intent
+            //         ) {
+            //             println(action)
+            //         }
 
-                //     }
-                // )
-                .build()
+            //     }
+            // )
+            .build()
 
-            notification_manager?.setUseFastForwardAction(false)
-            notification_manager?.setUseRewindAction(false)
+        notification_manager?.setUseFastForwardAction(false)
+        notification_manager?.setUseRewindAction(false)
 
-            notification_manager?.setUseNextActionInCompactView(true)
-            notification_manager?.setUsePreviousActionInCompactView(true)
+        notification_manager?.setUseNextActionInCompactView(true)
+        notification_manager?.setUsePreviousActionInCompactView(true)
 
-            notification_manager?.setPlayer(player)
-            notification_manager?.setMediaSessionToken(media_session!!.sessionToken)
-        }
+        notification_manager?.setPlayer(player)
+        notification_manager?.setMediaSessionToken(media_session!!.sessionToken)
     }
 
     private fun getNotificationChannel(): String{

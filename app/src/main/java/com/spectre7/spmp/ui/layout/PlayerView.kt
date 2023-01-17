@@ -33,7 +33,6 @@ import com.google.accompanist.pager.ExperimentalPagerApi
 import com.google.accompanist.pager.HorizontalPager
 import com.google.accompanist.swiperefresh.SwipeRefresh
 import com.google.accompanist.swiperefresh.rememberSwipeRefreshState
-import com.google.android.exoplayer2.ExoPlayer
 import com.spectre7.spmp.MainActivity
 import com.spectre7.spmp.PlayerServiceHost
 import com.spectre7.spmp.R
@@ -45,6 +44,7 @@ import com.spectre7.spmp.model.YtItem
 import com.spectre7.spmp.ui.component.AutoResizeText
 import com.spectre7.spmp.ui.component.FontSizeRange
 import com.spectre7.spmp.ui.component.PillMenu
+import com.spectre7.spmp.ui.component.PillMenuActionGetter
 import com.spectre7.spmp.ui.layout.nowplaying.NowPlaying
 import com.spectre7.utils.*
 import kotlinx.coroutines.runBlocking
@@ -173,6 +173,13 @@ val feed_refresh_mutex = ReentrantLock()
 @Composable
 fun PlayerView() {
     var overlay_page by remember { mutableStateOf(OverlayPage.NONE) }
+    var overlayPagePillAction: (@Composable PillMenuActionGetter.() -> Unit)? by remember { mutableStateOf(null) }
+
+    LaunchedEffect(overlay_page) {
+        if (overlay_page == OverlayPage.NONE) {
+            overlayPagePillAction = null
+        }
+    }
 
     Column(
         Modifier
@@ -185,24 +192,29 @@ fun PlayerView() {
             PillMenu(
                 if (overlay_page != OverlayPage.NONE) 1 else 2,
                 { index, action_count ->
-                    ActionButton(
-                        if (action_count == 1) Icons.Filled.Close else
-                            when (index) {
-                                0 -> Icons.Filled.Settings
-                                else -> Icons.Filled.Search
-                            }
-                    ) {
-                        overlay_page = if (action_count == 1) OverlayPage.NONE else
-                            when (index) {
-                                0 -> OverlayPage.SETTINGS
-                                else -> OverlayPage.SEARCH
-                            }
+                    if (overlay_page != OverlayPage.NONE && overlayPagePillAction != null) {
+                        overlayPagePillAction()
+                    }
+                    else {
+                        ActionButton(
+                            if (action_count == 1) Icons.Filled.Close else
+                                when (index) {
+                                    0 -> Icons.Filled.Settings
+                                    else -> Icons.Filled.Search
+                                }
+                        ) {
+                            overlay_page = if (action_count == 1) OverlayPage.NONE else
+                                when (index) {
+                                    0 -> OverlayPage.SETTINGS
+                                    else -> OverlayPage.SEARCH
+                                }
+                        }
                     }
                 },
                 if (overlay_page == OverlayPage.NONE) remember { mutableStateOf(false) } else null,
                 MainActivity.theme.getAccent(),
                 MainActivity.theme.getAccent().getContrasted(),
-                top = overlay_page == OverlayPage.SETTINGS
+                top = true
             )
 
             val main_page_rows = remember { mutableStateListOf<YtItemRow>() }
@@ -270,54 +282,54 @@ fun PlayerView() {
                 Column(Modifier.fillMaxSize()) {
                     when (it) {
                         OverlayPage.NONE -> MainPage(main_page_rows, refreshFeed)
-                        OverlayPage.SEARCH -> SearchPage { overlay_page = it }
-                        OverlayPage.SETTINGS -> PrefsPage { overlay_page = it }
+                        OverlayPage.SEARCH -> SearchPage({
+                            overlayPagePillAction = it
+                        }) { overlay_page = it }
+                        OverlayPage.SETTINGS -> PrefsPage({
+                            overlayPagePillAction = it
+                        }) { overlay_page = it }
                     }
                 }
             }
         }
 
-        var player by remember { mutableStateOf<ExoPlayer?>(null) }
-        LaunchedEffect(Unit) {
-            player = PlayerServiceHost.service.player
-        }
+        AnimatedVisibility(PlayerServiceHost.session_started) {
+            val screen_height = getScreenHeight()
+            val swipe_state = rememberSwipeableState(0)
 
-        val screen_height = getScreenHeight()
-        val swipe_state = rememberSwipeableState(0)
-        val swipe_anchors = mapOf(MINIMISED_NOW_PLAYING_HEIGHT to 0, screen_height to 1)
+            var switch: Boolean by remember { mutableStateOf(false) }
 
-        var switch: Boolean by remember { mutableStateOf(false) }
-
-        OnChangedEffect(switch) {
-            if (swipe_state.targetValue == switch.toInt()) {
-                swipe_state.animateTo(if (swipe_state.targetValue == 1) 0 else 1)
+            OnChangedEffect(switch) {
+                if (swipe_state.targetValue == switch.toInt()) {
+                    swipe_state.animateTo(if (swipe_state.targetValue == 1) 0 else 1)
+                }
+                else {
+                    swipe_state.animateTo(switch.toInt())
+                }
             }
-            else {
-                swipe_state.animateTo(switch.toInt())
-            }
-        }
 
-        Card(colors = CardDefaults.cardColors(
-            containerColor = MainActivity.theme.getBackground(true)
-        ), modifier = Modifier
-            .fillMaxWidth()
-            .requiredHeight(screen_height.dp)
-            .offset(y = (screen_height.dp / 2) - swipe_state.offset.value.dp)
-            .swipeable(
-                state = swipe_state,
-                anchors = swipe_anchors,
-                thresholds = { _, _ -> FractionalThreshold(0.2f) },
-                orientation = Orientation.Vertical,
-                reverseDirection = true,
-            )
-            .clickable(
-                interactionSource = remember { MutableInteractionSource() },
-                enabled = swipe_state.targetValue == 0,
-                indication = null
-            ) { switch = !switch }, shape = RectangleShape) {
+            Card(colors = CardDefaults.cardColors(
+                containerColor = MainActivity.theme.getBackground(true)
+            ), modifier = Modifier
+                .fillMaxWidth()
+                .requiredHeight(screen_height.dp)
+                .offset(y = (screen_height.dp / 2) - swipe_state.offset.value.dp)
+                .swipeable(
+                    state = swipe_state,
+                    anchors = mapOf(MINIMISED_NOW_PLAYING_HEIGHT to 0, screen_height to 1),
+                    thresholds = { _, _ -> FractionalThreshold(0.2f) },
+                    orientation = Orientation.Vertical,
+                    reverseDirection = true,
+                )
+                .clickable(
+                    interactionSource = remember { MutableInteractionSource() },
+                    enabled = swipe_state.targetValue == 0,
+                    indication = null
+                ) { switch = !switch }, shape = RectangleShape) {
 
-            Column(Modifier.fillMaxSize()) {
-                NowPlaying(swipe_state.offset.value / screen_height, screen_height) { switch = !switch }
+                Column(Modifier.fillMaxSize()) {
+                    NowPlaying(swipe_state.offset.value / screen_height, screen_height) { switch = !switch }
+                }
             }
         }
     }

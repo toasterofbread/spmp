@@ -30,11 +30,13 @@ import com.spectre7.spmp.ui.layout.PlayerView
 import com.spectre7.spmp.ui.theme.MyApplicationTheme
 import com.spectre7.utils.Theme
 import java.util.*
+import com.google.android.exoplayer2.database.ExoDatabaseProvider
 
 class MainActivity : ComponentActivity() {
 
     lateinit var theme: Theme
     lateinit var languages: Map<String, Map<String, String>>
+    lateinit var database: ExoDatabaseProvider = ExoDatabaseProvider(context)
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -113,6 +115,7 @@ class MainActivity : ComponentActivity() {
         val theme: Theme get() = context.theme
         val languages: Map<String, Map<String, String>> get() = context.languages
         val network = NetworkConnectivityManager()
+        val database: ExoDatabaseProvider get() = context.database
 
         fun runInMainThread(action: () -> Unit) {
             Handler(Looper.getMainLooper()).post(action)

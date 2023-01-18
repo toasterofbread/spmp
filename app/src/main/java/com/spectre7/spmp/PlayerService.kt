@@ -70,7 +70,8 @@ const val VOL_NOTIF_SHOW_DURATION: Long = 1000
 
 class PlayerService : Service() {
 
-    val session_started: Boolean get() = notification_manager != null
+    private var _session_started: Boolean by mutableStateOf(false)
+    val session_started: Boolean get() = _session_started
 
     private var queue_listeners: MutableList<PlayerServiceHost.PlayerQueueListener> = mutableListOf()
 
@@ -228,6 +229,7 @@ class PlayerService : Service() {
     }
 
     override fun onDestroy() {
+        _session_started = false
         notification_manager?.setPlayer(null)
         notification_manager = null
         media_session?.release()
@@ -663,6 +665,8 @@ class PlayerService : Service() {
 
         notification_manager?.setPlayer(player)
         notification_manager?.setMediaSessionToken(media_session!!.sessionToken)
+
+        _session_started = true
     }
 
     private fun getNotificationChannel(): String{

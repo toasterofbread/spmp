@@ -1,10 +1,8 @@
 package com.spectre7.utils
 
-import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.LazyListScope
-import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.text.InlineTextContent
 import androidx.compose.foundation.text.appendInlineContent
 import androidx.compose.material3.LocalTextStyle
@@ -13,12 +11,6 @@ import androidx.compose.runtime.Composable
 import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.geometry.Rect
-import androidx.compose.ui.geometry.Size
-import androidx.compose.ui.graphics.Color
-import androidx.compose.ui.layout.onGloballyPositioned
-import androidx.compose.ui.layout.onPlaced
-import androidx.compose.ui.layout.positionInRoot
 import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.text.AnnotatedString
 import androidx.compose.ui.text.Placeholder
@@ -38,7 +30,7 @@ fun LongFuriganaText(
     text_positions: MutableList<TermInfo>? = null,
     highlight_term_range: IntRange? = null,
 
-    text_element: (@Composable (is_reading: Boolean, text: String, font_size: TextUnit, index: Int) -> Unit)? = null,
+    text_element: (@Composable (is_reading: Boolean, text: String, font_size: TextUnit, index: Int, modifier: Modifier) -> Unit)? = null,
     list_element: (@Composable (content: LazyListScope.() -> Unit) -> Unit)? = null,
 ) {
 
@@ -76,9 +68,10 @@ fun LongFuriganaText(
 //                    val term_index = remember { child_index++ }
 //                    val term = remember { text_positions?.getOrNull(term_index) }
 
-                    val TextElement = text_element ?: { _, text, font_size, index ->
+                    val TextElement = text_element ?: { _, text, font_size, index, modifier ->
                         Text(
                             text,
+                            modifier,
                             fontSize = font_size
                         )
                     }
@@ -89,7 +82,7 @@ fun LongFuriganaText(
                             horizontalAlignment = Alignment.CenterHorizontally,
                             verticalArrangement = Arrangement.Bottom,
                         ) {
-                            TextElement(false, text, font_size, index)
+                            TextElement(false, text, font_size, index, Modifier)
                         }
                     }) { width: Int, _height: Int ->
                         val column_modifier = remember(text_positions == null) {
@@ -114,11 +107,11 @@ fun LongFuriganaText(
                         ) {
                             Box(modifier = Modifier.requiredHeight(box_height + 3.dp)) {
                                 if (show_readings && reading != null) {
-                                    TextElement(true, reading, reading_font_size, Modifier.wrapContentWidth(unbounded = true))
+                                    TextElement(true, reading, reading_font_size, index, Modifier.wrapContentWidth(unbounded = true))
                                 }
                             }
 
-                            TextElement(false, text, font_size, index)
+                            TextElement(false, text, font_size, index, Modifier)
                         }
                     }
 

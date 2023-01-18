@@ -19,19 +19,39 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.zIndex
 import com.spectre7.spmp.MainActivity
 import com.spectre7.utils.NoRipple
+import com.spectre7.utils.Theme
 
-class PillMenuActionGetter(
-    val background_colour: Color,
-    val content_colour: Color,
+class PillMenuActionGetter {
+    val background_colour: Color
+    val content_colour: Color
     val close: () -> Unit
-) {
+
+    constructor(
+        background_colour: Color,
+        content_colour: Color,
+        close: () -> Unit
+    ) {
+        this.background_colour = background_colour
+        this.content_colour = content_colour
+        this.close = close
+    }
+
+    constructor(
+        theme: Theme,
+        themed: Boolean = false
+    ) {
+        this.background_colour = theme.getBackground(themed)
+        this.content_colour = theme.getBackground(themed)
+        this.close = {}
+    }
+
     @Composable
     fun ActionButton(icon: ImageVector, action: () -> Unit) {
         IconButton(onClick = {
             action()
             close()
         }) {
-            Icon(icon, "", tint = content_colour)
+            Icon(icon, null, tint = content_colour)
         }
     }
 }

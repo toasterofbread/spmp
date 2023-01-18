@@ -4,6 +4,7 @@ import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.animation.Crossfade
 import androidx.compose.animation.fadeIn
 import androidx.compose.animation.fadeOut
+import androidx.compose.foundation.background
 import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.gestures.scrollBy
@@ -231,10 +232,10 @@ fun CoreLyricsDisplay(size: Dp, seek_state: Any, lyrics: Song.Lyrics, scroll_sta
             space_wrapped_lines = false,
             text_positions = text_positions,
 
-            text_element = { is_reading: Boolean, text: String, font_size: TextUnit, index: Int ->
+            text_element = { is_reading: Boolean, text: String, font_size: TextUnit, index: Int, modifier: Modifier ->
                 Text(
                     text,
-                    if (range.contains(index)) Modifier.background(MainActivity.getAccent(), CircleShape) else Modifier,
+                    if (range.contains(index)) modifier.background(MainActivity.theme.getAccent(), CircleShape) else modifier,
                     fontSize = font_size,
                     color = Color.White,
                 )

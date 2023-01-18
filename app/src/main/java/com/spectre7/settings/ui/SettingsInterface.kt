@@ -20,17 +20,17 @@ class SettingsInterface(
     val root_page: Int, 
     val getPage: (Int) -> SettingsPage?, 
     val context: Context,
-    val onPageChanged: ((page: Int) -> Unit)? = null
+    val onPageChanged: ((page: Int) -> Unit)? = null,
     val onCloseRequested: (() -> Unit)? = null
 ) {
-    privatevar current_page by mutableStateOf(root_page)
+    private var current_page by mutableStateOf(root_page)
     private val page_stack = mutableListOf<Int>()
 
     fun goBack() {
         if (page_stack.size > 0) {
             val target_page = page_stack.removeLast()
-            if (target_page != current_page) {
-                current_page = page_stack.removeLast()
+            if (current_page != target_page) {
+                current_page = target_page
                 onPageChanged?.invoke(current_page)
             }
         }
@@ -49,7 +49,7 @@ class SettingsInterface(
                     item {
                         Box(Modifier.padding(bottom = 60.dp)) {
                             page?.Page(this@SettingsInterface, { target_page ->
-                                if (target_page != target_page) {
+                                if (current_page != target_page) {
                                     page_stack.add(current_page)
                                     current_page = target_page
                                     onPageChanged?.invoke(current_page)

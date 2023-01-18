@@ -1,21 +1,21 @@
 package com.spectre7.spmp
 
-import com.google.android.exoplayer2.offline.DownloadService
-import com.google.android.exoplayer2.offline.DownloadManager
+import android.app.Notification
+import android.os.Environment.getExternalStorageDirectory
 import com.google.android.exoplayer2.offline.Download
+import com.google.android.exoplayer2.offline.DownloadManager
+import com.google.android.exoplayer2.offline.DownloadService
+import com.google.android.exoplayer2.scheduler.Requirements
+import com.google.android.exoplayer2.scheduler.Scheduler
 import com.google.android.exoplayer2.upstream.DefaultHttpDataSource
 import com.google.android.exoplayer2.upstream.cache.NoOpCacheEvictor
 import com.google.android.exoplayer2.upstream.cache.SimpleCache
-import com.google.android.exoplayer2.scheduler.PlatformScheduler
-import com.spectre7.utils.getString
-import com.spectre7.spmp.R
-import java.util.concurrent.Executors
 import java.io.File
 
-class PlayerDownloadService: DownloadService(DownloadService.FOREGROUND_NOTIFICATION_ID_NONE) {
+class PlayerDownloadService: DownloadService(FOREGROUND_NOTIFICATION_ID_NONE) {
     override fun getDownloadManager(): DownloadManager {
         val database = MainActivity.database
-        val path = File(MainActivity.context.getExternalStorageDirectory(), getString(R.string.app_name))
+        val path = File(getExternalStorageDirectory(), getString(R.string.app_name))
 
         val cache = SimpleCache(
             path,
@@ -27,29 +27,30 @@ class PlayerDownloadService: DownloadService(DownloadService.FOREGROUND_NOTIFICA
             this,
             database,
             cache,
-            DefaultHttpDataSource.Factory()
+            DefaultHttpDataSource.Factory(),
+            Runnable::run
         );
 
         ret.maxParallelDownloads = 5
-        ret.addListener { 
+        ret.addListener(
             object : DownloadManager.Listener {
                 override fun onDownloadRemoved(manager: DownloadManager, download: Download) {
                 }   
                 override fun onDownloadsPausedChanged(manager: DownloadManager, downloadsPaused: Boolean) {
                 }
-                override fun onDownloadChanged(manager: DownloadManager, download: Download) {
+                override fun onDownloadChanged(manager: DownloadManager, download: Download, finalException: Exception?) {
                 }
             }
-        }
+        )
 
         return ret
     }
 
-    override fun getScheduler(): Scheduler {
-        return PlatformScheduler(this, 1)
+    override fun getScheduler(): Scheduler? {
+        return null
     }
 
-    override fun getForegroundNotification(
+    override fun getForegroundNotification(downloads: MutableList<Download>, @Requirements.RequirementFlags notMetRequirements: Int): Notification {
         throw UnsupportedOperationException()
     }
 }

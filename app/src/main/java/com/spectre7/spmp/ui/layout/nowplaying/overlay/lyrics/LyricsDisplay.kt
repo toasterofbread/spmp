@@ -4,6 +4,7 @@ import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.animation.Crossfade
 import androidx.compose.animation.fadeIn
 import androidx.compose.animation.fadeOut
+import androidx.compose.foundation.background
 import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.gestures.scrollBy
@@ -12,6 +13,7 @@ import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.LazyListState
 import androidx.compose.foundation.lazy.rememberLazyListState
+import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Close
 import androidx.compose.material.icons.filled.Search
@@ -181,10 +183,6 @@ fun CoreLyricsDisplay(size: Dp, seek_state: Any, lyrics: Song.Lyrics, scroll_sta
         range = start .. end
     }
 
-    println(range)
-
-//    val range = -1 .. -1
-
 //    LyricsTimingOverlay(lyrics, text_positions, false, seek_state, scroll_state) { position ->
 //        if (Settings.prefs.getBoolean(Settings.KEY_LYRICS_FOLLOW_ENABLED.name, true)) {
 //            val offset = size_px * Settings.prefs.getFloat(Settings.KEY_LYRICS_FOLLOW_OFFSET.name, 0.5f)
@@ -233,12 +231,11 @@ fun CoreLyricsDisplay(size: Dp, seek_state: Any, lyrics: Song.Lyrics, scroll_sta
             line_spacing = 25.dp,
             space_wrapped_lines = false,
             text_positions = text_positions,
-            highlight_term_range = range,
 
-            text_element = { is_reading: Boolean, text: String, font_size: TextUnit, modifier: Modifier ->
+            text_element = { is_reading: Boolean, text: String, font_size: TextUnit, index: Int, modifier: Modifier ->
                 Text(
                     text,
-                    modifier,
+                    if (range.contains(index)) modifier.background(MainActivity.theme.getAccent(), CircleShape) else modifier,
                     fontSize = font_size,
                     color = Color.White,
                 )

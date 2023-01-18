@@ -73,7 +73,7 @@ class PlayerServiceHost {
                 }
             })
 
-             player.addListener(object : Player.Listener {
+            player.addListener(object : Player.Listener {
                 override fun onMediaItemTransition(
                     media_item: MediaItem?,
                     reason: Int
@@ -121,12 +121,10 @@ class PlayerServiceHost {
         private var instance: PlayerServiceHost? = null
         lateinit var status: PlayerStatus
 
-        val service: PlayerService
-            get() = instance!!.service
-        val player: ExoPlayer
-            get() = service.player
-        val service_connected: Boolean
-            get() = instance?.service_connected ?: false
+        val service: PlayerService get() = instance!!.service
+        val player: ExoPlayer get() = service.player
+        val service_connected: Boolean get() = instance?.service_connected ?: false
+        val session_started: Boolean get() = instance?.service?.session_started ?: false
 
         fun isRunningAndFocused(): Boolean {
             if (instance == null) {

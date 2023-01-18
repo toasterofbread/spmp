@@ -1,6 +1,7 @@
 package com.spectre7.spmp.ui.layout
 
 import androidx.compose.animation.*
+import androidx.compose.animation.core.Animatable
 import androidx.compose.foundation.ExperimentalFoundationApi
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.gestures.LocalOverScrollConfiguration
@@ -33,11 +34,11 @@ import com.google.accompanist.pager.ExperimentalPagerApi
 import com.google.accompanist.pager.HorizontalPager
 import com.google.accompanist.swiperefresh.SwipeRefresh
 import com.google.accompanist.swiperefresh.rememberSwipeRefreshState
-import com.google.android.exoplayer2.ExoPlayer
 import com.spectre7.spmp.MainActivity
 import com.spectre7.spmp.PlayerServiceHost
 import com.spectre7.spmp.R
 import com.spectre7.spmp.api.DataApi
+import com.spectre7.spmp.api.NewDataApi
 import com.spectre7.spmp.model.Artist
 import com.spectre7.spmp.model.Playlist
 import com.spectre7.spmp.model.Song
@@ -45,6 +46,7 @@ import com.spectre7.spmp.model.YtItem
 import com.spectre7.spmp.ui.component.AutoResizeText
 import com.spectre7.spmp.ui.component.FontSizeRange
 import com.spectre7.spmp.ui.component.PillMenu
+import com.spectre7.spmp.ui.component.PillMenuActionGetter
 import com.spectre7.spmp.ui.layout.nowplaying.NowPlaying
 import com.spectre7.utils.*
 import kotlinx.coroutines.runBlocking
@@ -173,36 +175,57 @@ val feed_refresh_mutex = ReentrantLock()
 @Composable
 fun PlayerView() {
     var overlay_page by remember { mutableStateOf(OverlayPage.NONE) }
+    var overlayPagePillAction: (@Composable PillMenuActionGetter.() -> Unit)? by remember { mutableStateOf(null) }
+    val minimised_now_playing_height = remember { Animatable(0f) }
 
-    Column(
-        Modifier
-            .fillMaxSize()
-            .padding(top = getStatusBarHeight(MainActivity.context))
-    ) {
+    LaunchedEffect(overlay_page) {
+        if (overlay_page == OverlayPage.NONE) {
+            overlayPagePillAction = null
+        }
+    }
 
-        Box(Modifier.padding(bottom = MINIMISED_NOW_PLAYING_HEIGHT.dp)) {
+    LaunchedEffect(PlayerServiceHost.session_started) {
+        if (PlayerServiceHost.session_started) {
+            minimised_now_playing_height.animateTo(MINIMISED_NOW_PLAYING_HEIGHT)
+        }
+    }
+
+    Column(Modifier.fillMaxSize()) {
+
+        Box(Modifier.padding(bottom = minimised_now_playing_height.value.dp)) {
 
             PillMenu(
                 if (overlay_page != OverlayPage.NONE) 1 else 2,
                 { index, action_count ->
-                    ActionButton(
-                        if (action_count == 1) Icons.Filled.Close else
-                            when (index) {
-                                0 -> Icons.Filled.Settings
-                                else -> Icons.Filled.Search
-                            }
-                    ) {
-                        overlay_page = if (action_count == 1) OverlayPage.NONE else
-                            when (index) {
-                                0 -> OverlayPage.SETTINGS
-                                else -> OverlayPage.SEARCH
-                            }
+                    if (overlay_page != OverlayPage.NONE && overlayPagePillAction != null) {
+                        overlayPagePillAction?.invoke(
+                            PillMenuActionGetter(
+                                MainActivity.theme.getAccent(),
+                                MainActivity.theme.getAccent().getContrasted(),
+                                {}
+                            )
+                        )
+                    }
+                    else {
+                        ActionButton(
+                            if (action_count == 1) Icons.Filled.Close else
+                                when (index) {
+                                    0 -> Icons.Filled.Settings
+                                    else -> Icons.Filled.Search
+                                }
+                        ) {
+                            overlay_page = if (action_count == 1) OverlayPage.NONE else
+                                when (index) {
+                                    0 -> OverlayPage.SETTINGS
+                                    else -> OverlayPage.SEARCH
+                                }
+                        }
                     }
                 },
                 if (overlay_page == OverlayPage.NONE) remember { mutableStateOf(false) } else null,
                 MainActivity.theme.getAccent(),
                 MainActivity.theme.getAccent().getContrasted(),
-                top = overlay_page == OverlayPage.SETTINGS
+                top = false
             )
 
             val main_page_rows = remember { mutableStateListOf<YtItemRow>() }
@@ -214,50 +237,49 @@ fun PlayerView() {
                         feed_refresh_mutex.lock()
                         main_page_rows.clear()
 
-                        DataApi.getRecommendedFeed(allow_cached) { result ->
+                        val feed_result = NewDataApi.getHomeFeed()
 
-                            if (!result.success) {
-                                MainActivity.network.onError(result.getException())
-                                feed_refresh_mutex.unlock()
-                                onFinished(false)
-                                return@getRecommendedFeed
-                            }
+                        if (!feed_result.success) {
+                            MainActivity.network.onError(feed_result.exception)
+                            feed_refresh_mutex.unlock()
+                            onFinished(false)
+                            return@thread
+                        }
 
-                            val artist_row =
-                                YtItemRow("Recommended Artists", null, YtItemRow.TYPE.LONG)
-                            val playlist_row =
-                                YtItemRow("Recommended playlists", null, YtItemRow.TYPE.SQUARE)
+                        val artist_row =
+                            YtItemRow("Recommended Artists", null, YtItemRow.TYPE.LONG)
+                        val playlist_row =
+                            YtItemRow("Recommended playlists", null, YtItemRow.TYPE.SQUARE)
 
-                            for (row in result.result) {
-                                val entry =
-                                    YtItemRow(row.title, row.subtitle, YtItemRow.TYPE.SQUARE)
-                                var entry_added = false
+                        for (row in feed_result.data) {
+                            val entry =
+                                YtItemRow(row.title, row.subtitle, YtItemRow.TYPE.SQUARE)
+                            var entry_added = false
 
-                                for (item in row.items) {
-                                    item.getPreviewable().loadData(false) { loaded ->
-                                        when (loaded) {
-                                            is Song -> {
-                                                if (!entry_added) {
-                                                    entry_added = true
-                                                }
-                                                entry.add(loaded)
-                                                artist_row.add(loaded.artist)
+                            for (item in row.items) {
+                                item.getPreviewable().loadData(false) { loaded ->
+                                    when (loaded) {
+                                        is Song -> {
+                                            if (!entry_added) {
+                                                entry_added = true
                                             }
-                                            is Artist -> artist_row.add(loaded)
-                                            is Playlist -> playlist_row.add(loaded)
+                                            entry.add(loaded)
+                                            artist_row.add(loaded.artist)
                                         }
+                                        is Artist -> artist_row.add(loaded)
+                                        is Playlist -> playlist_row.add(loaded)
                                     }
                                 }
-                                main_page_rows.add(entry)
                             }
-
-                            main_page_rows.add(artist_row)
-                            main_page_rows.add(playlist_row)
-                            DataApi.processYtItemLoadQueue()
-
-                            feed_refresh_mutex.unlock()
-                            onFinished(true)
+                            main_page_rows.add(entry)
                         }
+
+                        main_page_rows.add(artist_row)
+                        main_page_rows.add(playlist_row)
+                        DataApi.processYtItemLoadQueue()
+
+                        feed_refresh_mutex.unlock()
+                        onFinished(true)
                     }
                 }
             }
@@ -268,56 +290,59 @@ fun PlayerView() {
 
             Crossfade(targetState = overlay_page) {
                 Column(Modifier.fillMaxSize()) {
+                    if (it != OverlayPage.NONE) {
+                        Spacer(Modifier.requiredHeight(getStatusBarHeight(MainActivity.context)))
+                    }
                     when (it) {
                         OverlayPage.NONE -> MainPage(main_page_rows, refreshFeed)
-                        OverlayPage.SEARCH -> SearchPage { overlay_page = it }
-                        OverlayPage.SETTINGS -> PrefsPage { overlay_page = it }
+                        OverlayPage.SEARCH -> SearchPage({
+                            overlayPagePillAction = it
+                        }) { overlay_page = it }
+                        OverlayPage.SETTINGS -> PrefsPage({
+                            overlayPagePillAction = it
+                        }) { overlay_page = it }
                     }
                 }
             }
         }
 
-        var player by remember { mutableStateOf<ExoPlayer?>(null) }
-        LaunchedEffect(Unit) {
-            player = PlayerServiceHost.service.player
-        }
+        AnimatedVisibility(PlayerServiceHost.session_started, enter = slideInVertically(), exit = slideOutVertically()) {
+            val screen_height = getScreenHeight()
+            val swipe_state = rememberSwipeableState(0)
 
-        val screen_height = getScreenHeight()
-        val swipe_state = rememberSwipeableState(0)
-        val swipe_anchors = mapOf(MINIMISED_NOW_PLAYING_HEIGHT to 0, screen_height to 1)
+            var switch: Boolean by remember { mutableStateOf(false) }
 
-        var switch: Boolean by remember { mutableStateOf(false) }
-
-        OnChangedEffect(switch) {
-            if (swipe_state.targetValue == switch.toInt()) {
-                swipe_state.animateTo(if (swipe_state.targetValue == 1) 0 else 1)
+            OnChangedEffect(switch) {
+                if (swipe_state.targetValue == switch.toInt()) {
+                    swipe_state.animateTo(if (swipe_state.targetValue == 1) 0 else 1)
+                }
+                else {
+                    swipe_state.animateTo(switch.toInt())
+                }
             }
-            else {
-                swipe_state.animateTo(switch.toInt())
-            }
-        }
 
-        Card(colors = CardDefaults.cardColors(
-            containerColor = MainActivity.theme.getBackground(true)
-        ), modifier = Modifier
-            .fillMaxWidth()
-            .requiredHeight(screen_height.dp)
-            .offset(y = (screen_height.dp / 2) - swipe_state.offset.value.dp)
-            .swipeable(
-                state = swipe_state,
-                anchors = swipe_anchors,
-                thresholds = { _, _ -> FractionalThreshold(0.2f) },
-                orientation = Orientation.Vertical,
-                reverseDirection = true,
-            )
-            .clickable(
-                interactionSource = remember { MutableInteractionSource() },
-                enabled = swipe_state.targetValue == 0,
-                indication = null
-            ) { switch = !switch }, shape = RectangleShape) {
+            Card(colors = CardDefaults.cardColors(
+                containerColor = MainActivity.theme.getBackground(true)
+            ), modifier = Modifier
+                .fillMaxWidth()
+                .requiredHeight(screen_height.dp)
+                .offset(y = (screen_height.dp / 2) - swipe_state.offset.value.dp)
+                .swipeable(
+                    state = swipe_state,
+                    anchors = mapOf(MINIMISED_NOW_PLAYING_HEIGHT to 0, screen_height to 1),
+                    thresholds = { _, _ -> FractionalThreshold(0.2f) },
+                    orientation = Orientation.Vertical,
+                    reverseDirection = true,
+                )
+                .clickable(
+                    interactionSource = remember { MutableInteractionSource() },
+                    enabled = swipe_state.targetValue == 0,
+                    indication = null
+                ) { switch = !switch }, shape = RectangleShape) {
 
-            Column(Modifier.fillMaxSize()) {
-                NowPlaying(swipe_state.offset.value / screen_height, screen_height) { switch = !switch }
+                Column(Modifier.fillMaxSize()) {
+                    NowPlaying(swipe_state.offset.value / screen_height, screen_height) { switch = !switch }
+                }
             }
         }
     }
@@ -339,7 +364,7 @@ fun MainPage(_rows: List<YtItemRow>, refreshFeed: (allow_cache: Boolean, onFinis
                 }
             }
         },
-        Modifier.padding(10.dp)
+        Modifier.padding(horizontal = 10.dp)
     ) {
         Crossfade(targetState = MainActivity.network.error) { error ->
             if (error != null) {
@@ -424,6 +449,9 @@ fun MainPage(_rows: List<YtItemRow>, refreshFeed: (allow_cache: Boolean, onFinis
                             LocalOverScrollConfiguration provides null
                         ) {
                             LazyColumn(Modifier.fillMaxSize(), verticalArrangement = Arrangement.spacedBy(20.dp)) {
+                                item {
+                                    Spacer(Modifier.requiredHeight(getStatusBarHeight(MainActivity.context)))
+                                }
                                 items(rows.size) { index ->
                                     rows[index].ItemRow()
                                 }

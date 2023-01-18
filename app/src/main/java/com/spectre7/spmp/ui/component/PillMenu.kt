@@ -19,19 +19,39 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.zIndex
 import com.spectre7.spmp.MainActivity
 import com.spectre7.utils.NoRipple
+import com.spectre7.utils.Theme
 
-class ActionGetter(
-    val background_colour: Color,
-    val content_colour: Color,
+class PillMenuActionGetter {
+    val background_colour: Color
+    val content_colour: Color
     val close: () -> Unit
-) {
+
+    constructor(
+        background_colour: Color,
+        content_colour: Color,
+        close: () -> Unit
+    ) {
+        this.background_colour = background_colour
+        this.content_colour = content_colour
+        this.close = close
+    }
+
+    constructor(
+        theme: Theme,
+        themed: Boolean = false
+    ) {
+        this.background_colour = theme.getBackground(themed)
+        this.content_colour = theme.getBackground(themed)
+        this.close = {}
+    }
+
     @Composable
     fun ActionButton(icon: ImageVector, action: () -> Unit) {
         IconButton(onClick = {
             action()
             close()
         }) {
-            Icon(icon, "", tint = content_colour)
+            Icon(icon, null, tint = content_colour)
         }
     }
 }
@@ -52,7 +72,7 @@ private data class PillMenuParams(
 @Composable
 fun PillMenu(
     action_count: Int,
-    getAction: @Composable ActionGetter.(i: Int, action_count: Int) -> Unit,
+    getAction: @Composable PillMenuActionGetter.(i: Int, action_count: Int) -> Unit,
     expand_state: MutableState<Boolean>?,
     background_colour: Color,
     content_colour: Color,
@@ -134,7 +154,7 @@ private fun InnerPillMenu(
     background_colour: Color,
     modifier: Modifier,
     container_modifier: Modifier,
-    getAction: @Composable ActionGetter.(Int, Int) -> Unit
+    getAction: @Composable PillMenuActionGetter.(Int, Int) -> Unit
 ) {
     Crossfade(params, Modifier.zIndex(1f)) {
         val (vertical, top, left, alignment, open_icon, close_icon, enter, exit, action_count, expand_state) = it
@@ -179,7 +199,7 @@ private fun InnerPillMenu(
                         closeButton()
                     }
 
-                    val getter = ActionGetter(background_colour, content_colour) { expand_state?.value = false }
+                    val getter = PillMenuActionGetter(background_colour, content_colour) { expand_state?.value = false }
                     for (i in 0 until action_count) {
                         getAction(getter, i, action_count)
                     }

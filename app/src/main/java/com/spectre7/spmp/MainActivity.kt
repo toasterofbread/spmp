@@ -1,19 +1,14 @@
 package com.spectre7.spmp
 
-import android.Manifest
-import android.app.AlertDialog
 import android.content.Context
-import android.content.Intent
 import android.content.SharedPreferences
 import android.content.res.Resources
 import android.os.Bundle
 import android.os.Handler
 import android.os.Looper
-import android.provider.Settings.ACTION_MANAGE_OVERLAY_PERMISSION
 import android.view.WindowManager
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
-import androidx.activity.result.contract.ActivityResultContracts
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.material3.Surface
 import androidx.compose.runtime.getValue
@@ -25,18 +20,18 @@ import com.beust.klaxon.JsonObject
 import com.beust.klaxon.Klaxon
 import com.chaquo.python.Python
 import com.chaquo.python.android.AndroidPlatform
+import com.google.android.exoplayer2.database.StandaloneDatabaseProvider
 import com.spectre7.spmp.model.Settings
 import com.spectre7.spmp.ui.layout.PlayerView
 import com.spectre7.spmp.ui.theme.MyApplicationTheme
 import com.spectre7.utils.Theme
 import java.util.*
-import com.google.android.exoplayer2.database.ExoDatabaseProvider
 
 class MainActivity : ComponentActivity() {
 
     lateinit var theme: Theme
     lateinit var languages: Map<String, Map<String, String>>
-    lateinit var database: ExoDatabaseProvider = ExoDatabaseProvider(context)
+    lateinit var database: StandaloneDatabaseProvider
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -61,6 +56,8 @@ class MainActivity : ComponentActivity() {
         }
 
         updateLanguage(Settings.get(Settings.KEY_LANG_UI))
+
+        database = StandaloneDatabaseProvider(this)
 
         if (!Python.isStarted()) {
             Python.start(AndroidPlatform(this))
@@ -115,7 +112,7 @@ class MainActivity : ComponentActivity() {
         val theme: Theme get() = context.theme
         val languages: Map<String, Map<String, String>> get() = context.languages
         val network = NetworkConnectivityManager()
-        val database: ExoDatabaseProvider get() = context.database
+        val database get() = context.database
 
         fun runInMainThread(action: () -> Unit) {
             Handler(Looper.getMainLooper()).post(action)

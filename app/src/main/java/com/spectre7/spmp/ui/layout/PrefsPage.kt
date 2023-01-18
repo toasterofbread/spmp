@@ -9,6 +9,8 @@ import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.BoxWithConstraints
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.requiredHeight
+import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.ArrowBack
 import androidx.compose.runtime.*
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.input.pointer.pointerInput
@@ -47,7 +49,8 @@ fun PrefsPage(setPillAction: ((@Composable PillMenuActionGetter.() -> Unit)?) ->
 
     PlayerAccessibilityService.isEnabled(MainActivity.context)
 
-    val settings_interface: SettingsInterface = remember { 
+    lateinit var settings_interface: SettingsInterface
+    settings_interface = remember {
         SettingsInterface(
             MainActivity.theme, 
             Page.ROOT.ordinal, 
@@ -272,7 +275,7 @@ fun PrefsPage(setPillAction: ((@Composable PillMenuActionGetter.() -> Unit)?) ->
                 else {
                     setPillAction {
                         ActionButton(
-                            Icons.Filled.Back
+                            Icons.Filled.ArrowBack
                         ) {
                             settings_interface.goBack()
                         }

@@ -124,7 +124,7 @@ class PlayerServiceHost {
         val service: PlayerService get() = instance!!.service
         val player: ExoPlayer get() = service.player
         val service_connected: Boolean get() = instance?.service_connected ?: false
-        val session_started: Boolean get() = instance?.service.session_started ?: false
+        val session_started: Boolean get() = instance?.service?.session_started ?: false
 
         fun isRunningAndFocused(): Boolean {
             if (instance == null) {

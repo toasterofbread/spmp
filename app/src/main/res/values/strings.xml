@@ -4,6 +4,7 @@
     </string>
     <string name="ngrok_api_key" translatable="false">***REMOVED***</string>
     <string name="server_api_key" translatable="false">***REMOVED***</string>
+    <string name="yt_api_key" translatable="false">***REMOVED***</string>
 
     <string name="songs">Songs</string>
     <string name="song_name">Song name</string>

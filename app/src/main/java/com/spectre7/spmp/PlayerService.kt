@@ -56,6 +56,8 @@ import com.google.android.exoplayer2.audio.AudioAttributes
 import com.google.android.exoplayer2.ext.mediasession.MediaSessionConnector
 import com.google.android.exoplayer2.ui.PlayerNotificationManager
 import com.spectre7.spmp.api.DataApi
+import com.spectre7.spmp.api.getSongRadio
+import com.spectre7.spmp.api.getVideoDownloadUrl
 import com.spectre7.spmp.model.Settings
 import com.spectre7.spmp.model.Song
 import com.spectre7.utils.sendToast
@@ -411,23 +413,18 @@ class PlayerService : Service() {
             if (add_radio) {
                 thread {
                     val radio = getSongRadio(song.id)
-                    if (!result.success) {
+                    if (!radio.success) {
                         return@thread
                     }
 
                     for (id in radio.data) {
-                        Song.fromId(id).loadData(
-                            process_queue = false
-                        ) {
-                            if (it != null) {
-                                MainActivity.runInMainThread {
-                                    addToQueue(it as Song)
-                                }
+                        thread {
+                            val song = Song.fromId(id).loadData()
+                            MainActivity.runInMainThread {
+                                addToQueue(song as Song)
                             }
                         }
                     }
-
-                    DataApi.processYtItemLoadQueue()
                 }
             }
         }
@@ -462,16 +459,17 @@ class PlayerService : Service() {
 
     fun addToQueue(song: Song, index: Int? = null, is_active_queue: Boolean = false, onFinished: ((index: Int) -> Unit)? = null) {
         val item = MediaItem.Builder().setTag(song).setUri {
-            val server = DataApi.getServer() ?: return@setUri Uri.EMPTY
-            if (server.isIntegrated()) {
-                val url = getVideoDownloadUrl(song.id)
-                if (!url.success) {
-                    throw url.exception
-                }
-                return@setUri Uri.parse(url.data)
-            }
-
-            return@setUri Uri.parse(server.getExternalRequestUrl("/yt/streamurl", mapOf( "redirect" to "1", "id" to song.id )))
+            return@setUri Uri.parse(getVideoDownloadUrl(song.id).getDataOrThrow())
+//            val server = DataApi.getServer() ?: return@setUri Uri.EMPTY
+//            if (server.isIntegrated()) {
+//                val url = getVideoDownloadUrl(song.id)
+//                if (!url.success) {
+//                    throw url.exception
+//                }
+//                return@setUri Uri.parse(url.data)
+//            }
+//
+//            return@setUri Uri.parse(server.getExternalRequestUrl("/yt/streamurl", mapOf( "redirect" to "1", "id" to song.id )))
         }.build()
 
         val added_index: Int
@@ -506,7 +504,6 @@ class PlayerService : Service() {
         val loaded = MutableList<MediaItem?>(songs.size) { null }
         var added = 0
 
-        for (song in songs.withIndex()) {
         for (song in songs.withIndex()) {
             song.value.getStreamUrl {
                 loaded[song.index] = MediaItem.Builder().setUri(it).setTag(song.value).build()

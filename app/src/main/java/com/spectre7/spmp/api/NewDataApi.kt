@@ -1,47 +1,53 @@
 package com.spectre7.spmp.api
 
-import com.beust.klaxon.JsonObject
 import com.beust.klaxon.Klaxon
-import com.spectre7.spmp.MainActivity
-import com.spectre7.spmp.model.*
 import okhttp3.Headers
 import okhttp3.OkHttpClient
-import okhttp3.Request
 import okhttp3.Response
 import com.chaquo.python.Python
 
 const val USER_AGENT = "Mozilla/5.0 (X11; Linux x86_64; rv:105.0) Gecko/20100101 Firefox/105.0"
 
-data class Result<T> {
+class Result<T> private constructor() {
 
-    private val _data: T?,
+    private var _data: T? = null
+    private var _exception: Exception? = null
+
     val data: T get() = _data!!
-    
-    private val _exception: Exception? = null
-    val exception: Exception get() = error!!
+    val exception: Exception get() = _exception!!
+    val success: Boolean get() = _exception == null
 
-    constructor(data: T?, error: Exception) {
-        _data = data
-        _exception = error
-    }
-
-    constructor(data: T?, response: Response) {
-        _data = data
-        _exception = RuntimeException("${response.message}: ${response.body!!.string()}")
-    }
-
-    fun throw() {
+    fun getDataOrThrow(): T {
         if (!success) {
             throw exception
         }
+        return data
     }
 
-    val success: Boolean = error == null
+    companion object {
+        fun <T> success(data: T): Result<T> {
+            return Result<T>().also {
+                it._data = data
+            }
+        }
+
+        fun <T> failure(exception: Exception): Result<T> {
+            return Result<T>().also {
+                it._exception = exception
+            }
+        }
+
+        fun <T> failure(response: Response): Result<T> {
+            return Result<T>().also {
+                it._exception = RuntimeException("${response.message}: ${response.body!!.string()}")
+            }
+        }
+    }
 }
 
 internal val client = OkHttpClient()
 internal val klaxon: Klaxon = Klaxon()
-internal val ytd = Python.getInstance().getModule("yt_dlp").callAttr("YoutubeDL")
+//internal val ytd = Python.getInstance().getModule("yt_dlp").callAttr("YoutubeDL")
 
 internal fun getYTMHeaders(): Headers {
     val headers = Headers.Builder()

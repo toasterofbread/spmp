@@ -1,12 +1,15 @@
 package com.spectre7.spmp.api
 
+import com.beust.klaxon.JsonObject
+import com.spectre7.spmp.MainActivity
+import com.spectre7.spmp.model.*
 import okhttp3.Request
 import okhttp3.MediaType.Companion.toMediaType
 import okhttp3.RequestBody.Companion.toRequestBody
 
 data class HomeFeedRow(val title: String, val subtitle: String?, val browse_id: String?, val items: List<Item>) {
     data class Item(val type: String, val id: String, val playlist_id: String? = null) {
-        fun getPreviewable(): YtItem {
+        fun getPreviewable(): MediaItem {
             when (type) {
                 "song" -> return Song.fromId(id)
                 "artist" -> return Artist.fromId(id)
@@ -45,7 +48,7 @@ private class RawHomeFeedRow(
 
 fun getHomeFeed(min_rows: Int = -1): Result<List<HomeFeedRow>> {
 
-    var error: Result? = null
+    var error: Result<List<HomeFeedRow>>? = null
     fun postRequest(ctoken: String?): JsonObject? {
         val url = "https://music.youtube.com/youtubei/v1/browse"
         val request = Request.Builder()
@@ -55,7 +58,7 @@ fun getHomeFeed(min_rows: Int = -1): Result<List<HomeFeedRow>> {
                 {
                     "context":{
                         "client":{
-                            "hl": "${MainActivity.languages.keys.elementAt(Settings.get(Settings.KEY_LANG_UI))}",
+                            "hl": "${MainActivity.ui_language}",
                             "platform": "DESKTOP",
                             "clientName": "WEB_REMIX",
                             "clientVersion": "1.20221031.00.00-canary_control",
@@ -77,7 +80,7 @@ fun getHomeFeed(min_rows: Int = -1): Result<List<HomeFeedRow>> {
 
         val response = client.newCall(request).execute()
         if (response.code != 200) {
-            error = Result(null, response)
+            error = Result.failure(response)
             return null
         }
 
@@ -186,5 +189,5 @@ fun getHomeFeed(min_rows: Int = -1): Result<List<HomeFeedRow>> {
         rows.addAll(processRows(klaxon.parseFromJsonArray(data.array<JsonObject>("contents")!!)!!))
     }
 
-    return Result(rows)
+    return Result.success(rows)
 }

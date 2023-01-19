@@ -1,5 +1,6 @@
 package com.spectre7.spmp.api
 
+import com.beust.klaxon.JsonObject
 import okhttp3.Request
 import okhttp3.MediaType.Companion.toMediaType
 import okhttp3.RequestBody.Companion.toRequestBody
@@ -40,27 +41,31 @@ fun getSongRadio(id: String): Result<List<String>> {
     
     val response = client.newCall(request).execute()
     if (response.code != 200) {
-        return Result(null, response)
+        return Result.failure(response)
     }
 
-    class RadioItem(val playlistPanelVideoRenderer: PlaylistPanelVideoRenderer)
     class PlaylistPanelVideoRenderer(val videoId: String)
+    class RadioItem(val playlistPanelVideoRenderer: PlaylistPanelVideoRenderer)
 
+    fun JsonObject.first(): JsonObject {
+        return values.first() as JsonObject
+    }
+    
     val radio = klaxon.parseJsonObject(response.body!!.charStream())!!
         .obj("contents")!!
-        .values.first()!! // singleColumnMusicWatchNextResultsRenderer
-        .values.first()!! // tabbedRenderer
-        .values.first()!! // watchNextTabbedResultsRenderer
-        .values.first()!! // tabs
-        .values.first()!! // 0
-        .values.first()!! // tabRenderer
+        .first()  // singleColumnMusicWatchNextResultsRenderer
+        .first() // tabbedRenderer
+        .first() // watchNextTabbedResultsRenderer
+        .first() // tabs
+        .first() // 0
+        .first() // tabRenderer
         .obj("content")!!
-        .values.first()!! // musicQueueRenderer
-        .values.first()!! // content
-        .values.first()!! // playlistPanelRenderer
+        .first() // musicQueueRenderer
+        .first() // content
+        .first() // playlistPanelRenderer
         .array<RadioItem>("contents")!!
     
-    return Result(List(radio.size) { i ->
+    return Result.success(List(radio.size) { i ->
         radio[i].playlistPanelVideoRenderer.videoId
     })
 }

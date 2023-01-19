@@ -114,6 +114,9 @@ class MainActivity : ComponentActivity() {
         val network = NetworkConnectivityManager()
         val database get() = context.database
 
+        val ui_language: String get() = languages.keys.elementAt(Settings.get(Settings.KEY_LANG_UI))
+        val data_language: String get() = languages.keys.elementAt(Settings.get(Settings.KEY_LANG_DATA))
+
         fun runInMainThread(action: () -> Unit) {
             Handler(Looper.getMainLooper()).post(action)
         }

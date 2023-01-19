@@ -410,25 +410,24 @@ class PlayerService : Service() {
         addToQueue(song) {
             if (add_radio) {
                 thread {
-                    DataApi.getSongRadio(song.id, false, load_data = true) { result ->
+                    val radio = getSongRadio(song.id)
+                    if (!result.success) {
+                        return@thread
+                    }
 
-                        if (!result.success) {
-                            return@getSongRadio
-                        }
-
-                        for (i in result.result.indices) {
-                            Song.fromId(result.result[i]).loadData(
-                                process_queue = false
-                            ) {
-                                if (it != null) {
-                                    MainActivity.runInMainThread {
-                                        addToQueue(it as Song)
-                                    }
+                    for (id in radio.data) {
+                        Song.fromId(id).loadData(
+                            process_queue = false
+                        ) {
+                            if (it != null) {
+                                MainActivity.runInMainThread {
+                                    addToQueue(it as Song)
                                 }
                             }
                         }
-                        DataApi.processYtItemLoadQueue()
                     }
+
+                    DataApi.processYtItemLoadQueue()
                 }
             }
         }
@@ -465,7 +464,11 @@ class PlayerService : Service() {
         val item = MediaItem.Builder().setTag(song).setUri {
             val server = DataApi.getServer() ?: return@setUri Uri.EMPTY
             if (server.isIntegrated()) {
-                return@setUri Uri.parse(DataApi.getStreamUrl(song.id)!!)
+                val url = getVideoDownloadUrl(song.id)
+                if (!url.success) {
+                    throw url.exception
+                }
+                return@setUri Uri.parse(url.data)
             }
 
             return@setUri Uri.parse(server.getExternalRequestUrl("/yt/streamurl", mapOf( "redirect" to "1", "id" to song.id )))
@@ -503,6 +506,7 @@ class PlayerService : Service() {
         val loaded = MutableList<MediaItem?>(songs.size) { null }
         var added = 0
 
+        for (song in songs.withIndex()) {
         for (song in songs.withIndex()) {
             song.value.getStreamUrl {
                 loaded[song.index] = MediaItem.Builder().setUri(it).setTag(song.value).build()

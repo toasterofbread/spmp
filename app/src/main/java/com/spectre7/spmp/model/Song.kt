@@ -309,8 +309,10 @@ class Song private constructor (
         }
         else {
             thread {
-                val url = DataApi.getStreamUrl(id) ?: throw RuntimeException(id)
-                callback(url)
+                val url = getVideoDownloadUrl(id)
+                url.throw()
+                stream_url = url.data
+                callback(stream_url)
             }
         }
     }

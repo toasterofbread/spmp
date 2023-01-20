@@ -5,8 +5,15 @@ import okhttp3.Headers
 import okhttp3.OkHttpClient
 import okhttp3.Response
 import com.chaquo.python.Python
+import okhttp3.MediaType.Companion.toMediaType
+import okhttp3.RequestBody.Companion.toRequestBody
 
 const val USER_AGENT = "Mozilla/5.0 (X11; Linux x86_64; rv:105.0) Gecko/20100101 Firefox/105.0"
+
+internal val client = OkHttpClient()
+internal val klaxon: Klaxon = Klaxon()
+
+private var base_context: JsonObject? = null
 
 class Result<T> private constructor() {
 
@@ -45,10 +52,6 @@ class Result<T> private constructor() {
     }
 }
 
-internal val client = OkHttpClient()
-internal val klaxon: Klaxon = Klaxon()
-//internal val ytd = Python.getInstance().getModule("yt_dlp").callAttr("YoutubeDL")
-
 internal fun getYTMHeaders(): Headers {
     val headers = Headers.Builder()
     headers.add("user-agent", USER_AGENT)
@@ -72,4 +75,35 @@ internal fun getYTMHeaders(): Headers {
     headers.add("cache-control", "no-cache")
     headers.add("te", "trailers")
     return headers.build()
+}
+
+internal fun getYoutubeiRequestBody(body: String? = null): RequestBody {
+    if (base_context == null) {
+        base_context = klaxon.parseJsonObject(
+            """
+            {
+                "client":{
+                    "hl": "${MainActivity.ui_language}",
+                    "platform": "DESKTOP",
+                    "clientName": "WEB_REMIX",
+                    "clientVersion": "1.20221031.00.00-canary_control",
+                    "userAgent": "$USER_AGENT",
+                    "acceptHeader": "text/html,application/xhtml+xml,application/xml;q=0.9,image/avif,image/webp,*/*;q=0.8",
+                },
+                "user":{
+                    "lockedSafetyMode": false
+                },
+                "request":{
+                    "useSsl": true,
+                    "internalExperimentFlags": [],
+                    "consistencyTokenJars": []
+                }
+            }
+            """
+        )
+    }
+
+
+    val final_body = if (body != null) base_context + klaxon.parseJsonObject(body) else base_context
+    return klaxon.toJsonString(final_body).toRequestBody("application/json".toMediaType())
 }

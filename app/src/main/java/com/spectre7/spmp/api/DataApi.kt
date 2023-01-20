@@ -194,7 +194,7 @@ class DataApi {
         }
 
         fun getSongRelated(song: Song) {
-            // TODO : https://ytmusicapi.readthedocs.io/en/latest/reference.html#ytmusicapi.YTMusic.get_watch_playlist
+            // TODO : https://ytmusicapi.readthedocs.io/en/latest/reference.html#ytmusicapi.YTMusic.get_song_related
         }
     }
 }

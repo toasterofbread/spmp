@@ -2,10 +2,10 @@ package com.spectre7.spmp.api
 
 import com.beust.klaxon.JsonObject
 import okhttp3.Request
-import okhttp3.MediaType.Companion.toMediaType
-import okhttp3.RequestBody.Companion.toRequestBody
 
-fun getSongRadio(id: String): Result<List<String>> {
+data class RadioItem(val id: String, val browse_id: String, val browse_type: String)
+
+fun getSongRadio(id: String): Result<List<RadioItem>> {
     val request = Request.Builder()
         .url("https://music.youtube.com/youtubei/v1/next")
         .header("accept", "*/*")
@@ -15,7 +15,9 @@ fun getSongRadio(id: String): Result<List<String>> {
         .header("X-Goog-Visitor-Id", "CgtUYXUtLWtyZ3ZvTSj3pNWaBg%3D%3D")
         .header("Content-type", "application/json")
         .header("Cookie", "CONSENT=YES+1")
-        .post("""
+        .post(getYoutubeiRequestBody(
+        """
+        {
             "enablePersistentPlaylistPanel": true,
             "isAudioOnly": true,
             "tunerSettingValue": "AUTOMIX_SETTING_NORMAL",
@@ -26,17 +28,10 @@ fun getSongRadio(id: String): Result<List<String>> {
                     "hasPersistentPlaylistPanel": true,
                     "musicVideoType": "MUSIC_VIDEO_TYPE_ATV"
                 }
-
-            },
-            "context" : {
-                "client": {
-                    "clientName": "WEB_REMIX",
-                    "clientVersion": "1.20221023.01.00",
-                    "hl": "ja"
-                },
-                "user": {}
             }
-        """.toRequestBody("application/json".toMediaType()))
+        }
+        """
+        ))
         .build()
     
     val response = client.newCall(request).execute()
@@ -44,7 +39,9 @@ fun getSongRadio(id: String): Result<List<String>> {
         return Result.failure(response)
     }
 
-    class PlaylistPanelVideoRenderer(val videoId: String)
+    class Run(val navigationEndpoint: NavigationEndpoint)
+    class LongBylineText(val runs: List<Run>)
+    class PlaylistPanelVideoRenderer(val videoId: String, val longBylineText: LongBylineText)
     class RadioItem(val playlistPanelVideoRenderer: PlaylistPanelVideoRenderer)
 
     fun JsonObject.first(): JsonObject {
@@ -66,6 +63,8 @@ fun getSongRadio(id: String): Result<List<String>> {
         .array<RadioItem>("contents")!!
     
     return Result.success(List(radio.size) { i ->
-        radio[i].playlistPanelVideoRenderer.videoId
+        val item = radio[i]
+        val browse_endpoint = item.playlistPanelVideoRenderer.longBylineText.runs[0].navigationEndpoint.browseEndpoint
+        RadioItem(item.playlistPanelVideoRenderer.videoId, browse_endpoint.browseId, browse_endpoint.browseEndpointContextSupportedConfigs.browseEndpointContextMusicConfig.pageType)
     })
 }

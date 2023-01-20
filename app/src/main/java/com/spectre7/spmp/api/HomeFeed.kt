@@ -4,8 +4,6 @@ import com.beust.klaxon.JsonObject
 import com.spectre7.spmp.MainActivity
 import com.spectre7.spmp.model.*
 import okhttp3.Request
-import okhttp3.MediaType.Companion.toMediaType
-import okhttp3.RequestBody.Companion.toRequestBody
 
 data class HomeFeedRow(val title: String, val subtitle: String?, val browse_id: String?, val items: List<Item>) {
     data class Item(val type: String, val id: String, val playlist_id: String? = null) {
@@ -54,28 +52,7 @@ fun getHomeFeed(min_rows: Int = -1): Result<List<HomeFeedRow>> {
         val request = Request.Builder()
             .url(if (ctoken == null) url else "$url?ctoken=$ctoken&continuation=$ctoken&type=next")
             .headers(getYTMHeaders())
-            .post("""
-                {
-                    "context":{
-                        "client":{
-                            "hl": "${MainActivity.ui_language}",
-                            "platform": "DESKTOP",
-                            "clientName": "WEB_REMIX",
-                            "clientVersion": "1.20221031.00.00-canary_control",
-                            "userAgent": "$USER_AGENT",
-                            "acceptHeader": "text/html,application/xhtml+xml,application/xml;q=0.9,image/avif,image/webp,*/*;q=0.8",
-                        },
-                        "user":{
-                            "lockedSafetyMode": false
-                        },
-                        "request":{
-                            "useSsl": true,
-                            "internalExperimentFlags": [],
-                            "consistencyTokenJars": []
-                        }
-                    }
-                }
-            """.toRequestBody("application/json".toMediaType()))
+            .post(getYoutubeiRequestBody())
             .build()
 
         val response = client.newCall(request).execute()

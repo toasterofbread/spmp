@@ -107,3 +107,28 @@ internal fun getYoutubeiRequestBody(body: String? = null): RequestBody {
     val final_body = if (body != null) base_context + klaxon.parseJsonObject(body) else base_context
     return klaxon.toJsonString(final_body).toRequestBody("application/json".toMediaType())
 }
+
+internal fun convertBrowseId(browse_id: String): Result<String> {
+    if (!browse_id.startsWith("MPREb_")) {
+        return Result.success(browse_id)
+    }
+
+    val request = Request.Builder()
+        .url("https://music.youtube.com/browse/$browse_id")
+        .header("Cookie", "CONSENT=YES+1")
+        .header("User-Agent", USER_AGENT)
+        .build()
+
+    val result = client.newCall(request).execute()
+    if (result.code != 200) {
+        return Result.failure(result)
+    }
+
+    val text = result.body!!.string()
+
+    val target = "urlCanonical\\x22:\\x22https:\\/\\/music.youtube.com\\/playlist?list\\x3d"
+    val start = text.indexOf(target) + target.length
+    val end = text.indexOf("\\", start + 1)
+
+    return text.substring(start, end)
+}

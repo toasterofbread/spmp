@@ -417,9 +417,14 @@ class PlayerService : Service() {
                         return@thread
                     }
 
-                    for (id in radio.data) {
+                    for (item in radio.data) {
                         thread {
-                            val song = Song.fromId(id).loadData()
+                            val song = Song.fromId(item.id).loadData()
+                            song.setBrowseEndpoint(
+                                item.browse_id,
+                                item.browse_type
+                            )
+
                             MainActivity.runInMainThread {
                                 addToQueue(song as Song)
                             }

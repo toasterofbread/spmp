@@ -12,24 +12,6 @@ import java.net.URL
 import kotlin.concurrent.thread
 
 abstract class MediaItem {
-    protected var thumbnail: Bitmap? = null
-    protected var thumbnail_hq: Bitmap? = null
-
-    private var thumbnails: YTApiDataResponse.Thumbnails? = null
-
-    enum class LoadStatus {
-        NOT_LOADED,
-        LOADING,
-        LOADED
-    }
-    private var _load_status: LoadStatus = LoadStatus.NOT_LOADED
-    var load_status: LoadStatus
-        get() = _load_status
-        private set(value) { _load_status = value }
-    val loading_lock = Object()
-
-    val id: String get() = _getId()
-    val url: String get() = _getUrl()
 
     data class YTApiDataResponse(
         val id: String = "",
@@ -42,6 +24,63 @@ abstract class MediaItem {
         data class ContentDetails(val duration: String? = null)
         data class Thumbnails(val default: Thumbnail? = null, val medium: Thumbnail? = null, val high: Thumbnail? = null)
         data class Thumbnail(val url: String)
+    }
+
+    class BrowseEndpoint(val id: String, val type: Type) {
+        enum class Type {
+            CHANNEL,
+            ARTIST,
+            ALBUM
+        }
+    }
+
+    enum class LoadStatus {
+        NOT_LOADED,
+        LOADING,
+        LOADED
+    }
+
+    private var _load_status: LoadStatus = LoadStatus.NOT_LOADED
+    var load_status: LoadStatus
+        get() = _load_status
+        private set(value) { _load_status = value }
+    val loading_lock = Object()
+    
+    protected var thumbnail: Bitmap? = null
+    protected var thumbnail_hq: Bitmap? = null
+    private var thumbnails: YTApiDataResponse.Thumbnails? = null
+
+    val id: String get() = _getId()
+    val url: String get() = _getUrl()
+
+    private var _browse_endpoint: BrowseEndpoint? = null
+    var browse_endpoint: BrowseEndpoint?
+        get() = _browse_endpoint
+        private set(value) {
+            _browse_endpoint = value
+        }
+    
+    fun setBrowseEndpoint(id: String, type: BrowseEndpoint.Type): Boolean {
+        if (browse_endpoint == null) {
+            return false
+        }
+        browse_endpoint = BrowseEndpoint(id, type)
+    }
+
+    fun setBrowseEndpoint(id: String, type: String) {
+        if (browse_endpoint == null) {
+            return false
+        }
+
+        browse_endpoint = BrowseEndpoint(
+            id, 
+            when (type) {
+                "MUSIC_PAGE_TYPE_USER_CHANNEL" -> BrowseEndpoint.Type.CHANNEL
+                "MUSIC_PAGE_TYPE_ARTIST" -> BrowseEndpoint.Type.ARTIST
+                "MUSIC_PAGE_TYPE_ALBUM" -> BrowseEndpoint.Type.ALBUM
+                else -> throw NotImplementedError(type)
+            }
+        )
     }
 
     fun thumbnailLoaded(hq: Boolean): Boolean {
@@ -74,6 +113,13 @@ abstract class MediaItem {
         Preview(large, Modifier, MaterialTheme.colorScheme.onBackground)
     }
 
+    abstract fun _getId(): String
+    abstract fun _getUrl(): String
+
+    fun getThumbUrl(hq: Boolean): String? {
+        return (if (hq) thumbnails?.high else thumbnails?.medium)?.url
+    }
+
     fun loadData(): MediaItem {
         if (load_status == LoadStatus.LOADED) {
             return this
@@ -81,52 +127,6 @@ abstract class MediaItem {
 
         val result = loadMediaItemData(this)
         return result.getDataOrThrow()
-
-//        else if (on_loaded_callbacks != null) {
-//            if (onFinished != null) {
-//                on_loaded_callbacks?.add { onFinished(if (it) this else null) }
-//            }
-//        }
-//        else {
-//            on_loaded_callbacks = mutableListOf()
-//            if (onFinished != null) {
-//                on_loaded_callbacks!!.add { onFinished(if (it) this else null) }
-//            }
-//
-//            thread {
-//                DataApi.queueYtItemDataLoad(this) {
-//                    if (it == null) {
-//                        throw RuntimeException("Server info response is null (id: $id)")
-//                    }
-//
-//                    fun callCallbacks(success: Boolean) {
-//                        for (callback in on_loaded_callbacks!!) {
-//                            callback(success)
-//                        }
-//                        on_loaded_callbacks = null
-//                    }
-//
-//                    try {
-//                        initWithData(it)
-//                        callCallbacks(true)
-//                    }
-//                    catch (_: RuntimeException) {
-//                        callCallbacks(false)
-//                    }
-//                }
-//                if (process_queue) {
-//                    DataApi.processYtItemLoadQueue()
-//                }
-//            }
-//        }
-//        return this
-    }
-
-    abstract fun _getId(): String
-    abstract fun _getUrl(): String
-
-    fun getThumbUrl(hq: Boolean): String? {
-        return (if (hq) thumbnails?.high else thumbnails?.medium)?.url
     }
 
     fun initWithData(data: YTApiDataResponse) {

@@ -18,6 +18,12 @@ data class HomeFeedRow(val title: String, val subtitle: String?, val browse_id: 
     }
 }
 
+class WatchEndpoint(val videoId: String? = null, val playlistId: String? = null)
+class BrowseEndpointContextMusicConfig(val pageType: String)
+class BrowseEndpointContextSupportedConfigs(val browseEndpointContextMusicConfig: BrowseEndpointContextMusicConfig)
+class BrowseEndpoint(val browseId: String, val browseEndpointContextSupportedConfigs: BrowseEndpointContextSupportedConfigs? = null)
+class NavigationEndpoint(val watchEndpoint: WatchEndpoint? = null, val browseEndpoint: BrowseEndpoint? = null)
+
 private class RawHomeFeedRow(
     val musicCarouselShelfRenderer: MusicCarouselShelfRenderer
 ) {
@@ -31,11 +37,6 @@ private class RawHomeFeedRow(
     class ContentsItem(val musicTwoRowItemRenderer: MusicTwoRowItemRenderer? = null, val musicResponsiveListItemRenderer: MusicResponsiveListItemRenderer? = null)
 
     class MusicTwoRowItemRenderer(val navigationEndpoint: NavigationEndpoint)
-    class NavigationEndpoint(val watchEndpoint: WatchEndpoint? = null, val browseEndpoint: BrowseEndpoint? = null)
-    class WatchEndpoint(val videoId: String? = null, val playlistId: String? = null)
-    class BrowseEndpoint(val browseId: String, val browseEndpointContextSupportedConfigs: BrowseEndpointContextSupportedConfigs? = null)
-    class BrowseEndpointContextSupportedConfigs(val browseEndpointContextMusicConfig: BrowseEndpointContextMusicConfig)
-    class BrowseEndpointContextMusicConfig(val pageType: String)
 
     class MusicResponsiveListItemRenderer(val playlistItemData: PlaylistItemData)
     class PlaylistItemData(val videoId: String)
@@ -98,32 +99,9 @@ fun getHomeFeed(min_rows: Int = -1): Result<List<HomeFeedRow>> {
                     else -> throw NotImplementedError(_item.navigationEndpoint.browseEndpoint.browseEndpointContextSupportedConfigs!!.browseEndpointContextMusicConfig.pageType)
                 }
 
-                var item_id = _item.navigationEndpoint.browseEndpoint.browseId
-                if (item_id.startsWith("MPREb_")) {
-
-                    val request = Request.Builder()
-                        .url("https://music.youtube.com/browse/$item_id")
-                        .header("Cookie", "CONSENT=YES+1")
-                        .header("User-Agent", USER_AGENT)
-                        .build()
-
-                    val result = client.newCall(request).execute()
-                    if (result.code != 200) {
-                        throw RuntimeException("${result.message} | ${result.body?.string()}")
-                    }
-
-                    val text = result.body!!.string()
-
-                    val target = "urlCanonical\\x22:\\x22https:\\/\\/music.youtube.com\\/playlist?list\\x3d"
-                    val start = text.indexOf(target) + target.length
-                    val end = text.indexOf("\\", start + 1)
-
-                    item_id = text.substring(start, end)
-                }
-
                 return HomeFeedRow.Item(
                     item_type,
-                    item_id,
+                    convertBrowseId(_item.navigationEndpoint.browseEndpoint.browseId).getDataOrThrow(),
                     null
                 )
             }

@@ -22,6 +22,7 @@ import com.chaquo.python.Python
 import com.chaquo.python.android.AndroidPlatform
 import com.google.android.exoplayer2.database.StandaloneDatabaseProvider
 import com.spectre7.spmp.model.Settings
+import com.spectre7.spmp.model.Cache
 import com.spectre7.spmp.ui.layout.PlayerView
 import com.spectre7.spmp.ui.theme.MyApplicationTheme
 import com.spectre7.utils.Theme
@@ -29,6 +30,7 @@ import java.util.*
 
 class MainActivity : ComponentActivity() {
 
+    lateinit var prefs: SharedPreferences
     lateinit var theme: Theme
     lateinit var languages: Map<String, Map<String, String>>
     lateinit var database: StandaloneDatabaseProvider
@@ -37,6 +39,9 @@ class MainActivity : ComponentActivity() {
         super.onCreate(savedInstanceState)
         instance = this
 
+        prefs = getSharedPreferences(this)
+
+        Cache.init(this)
         languages = loadLanguages()
 
         fun updateLanguage(lang: Int) {
@@ -108,7 +113,7 @@ class MainActivity : ComponentActivity() {
 
         val context: MainActivity get() = instance!!
         val resources: Resources get() = context.resources
-        val prefs: SharedPreferences get() = getSharedPreferences(context)
+        val prefs: SharedPreferences get() = instance!!.prefs
         val theme: Theme get() = context.theme
         val languages: Map<String, Map<String, String>> get() = context.languages
         val network = NetworkConnectivityManager()

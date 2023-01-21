@@ -9,7 +9,7 @@ import java.util.*
 
 class Artist private constructor (
     private val _id: String
-): YtItem() {
+): MediaItem() {
 
     // Data
     lateinit var name: String
@@ -40,7 +40,7 @@ class Artist private constructor (
         return "https://music.youtube.com/channel/$id"
     }
 
-    override fun subInitWithData(data: ServerInfoResponse, process_queue: Boolean, onFinished: () -> Unit) {
+    override fun subInitWithData(data: YTApiDataResponse) {
         name = data.snippet!!.title
         description = data.snippet.description!!
         creationDate = Date.from(Instant.parse(data.snippet.publishedAt))
@@ -49,8 +49,6 @@ class Artist private constructor (
         subscriberCount = data.statistics.subscriberCount!!
         hiddenSubscriberCount = data.statistics.hiddenSubscriberCount
         videoCount = data.statistics.videoCount!!
-
-        onFinished()
     }
 
     @Composable

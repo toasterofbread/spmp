@@ -36,7 +36,7 @@ import com.spectre7.spmp.api.DataApi
 import com.spectre7.spmp.model.Artist
 import com.spectre7.spmp.model.Playlist
 import com.spectre7.spmp.model.Song
-import com.spectre7.spmp.model.YtItem
+import com.spectre7.spmp.model.MediaItem
 import com.spectre7.utils.getString
 import com.spectre7.utils.setAlpha
 import com.spectre7.spmp.ui.component.PillMenuActionGetter
@@ -57,7 +57,7 @@ fun SearchPage(setPillAction: ((@Composable PillMenuActionGetter.() -> Unit)?) -
     val keyboardController = LocalSoftwareKeyboardController.current
     val focusManager = LocalFocusManager.current
     val focusRequester = remember { FocusRequester() }
-    val result_tabs: MutableMap<ResourceType, SnapshotStateList<YtItem>> = mutableMapOf()
+    val result_tabs: MutableMap<ResourceType, SnapshotStateList<MediaItem>> = mutableMapOf()
 
     var current_search_query: String? = null
 
@@ -86,31 +86,31 @@ fun SearchPage(setPillAction: ((@Composable PillMenuActionGetter.() -> Unit)?) -
             val search = DataApi.search(current_search_query!!, type)
 
             // Display new search results
-            for (result in search) {
-                when (result.id.kind) {
-                    "youtube#video" -> {
-                        Song.fromId(result.id.videoId).loadData {
-                            if (it != null) {
-                                result_tabs[ResourceType.SONG]?.add(it as Song)
-                            }
-                        }
-                    }
-                    "youtube#channel" -> {
-                        Artist.fromId(result.id.channelId).loadData {
-                            if (it != null) {
-                                result_tabs[ResourceType.ARTIST]?.add(it as Artist)
-                            }
-                        }
-                    }
-                    "youtube#playlist" -> {
-                        Playlist.fromId(result.id.playlistId).loadData {
-                            if (it != null) {
-                                result_tabs[ResourceType.PLAYLIST]?.add(it as Playlist)
-                            }
-                        }
-                    }
-                }
-            }
+//            for (result in search) {
+//                when (result.id.kind) {
+//                    "youtube#video" -> {
+//                        Song.fromId(result.id.videoId).loadData {
+//                            if (it != null) {
+//                                result_tabs[ResourceType.SONG]?.add(it as Song)
+//                            }
+//                        }
+//                    }
+//                    "youtube#channel" -> {
+//                        Artist.fromId(result.id.channelId).loadData {
+//                            if (it != null) {
+//                                result_tabs[ResourceType.ARTIST]?.add(it as Artist)
+//                            }
+//                        }
+//                    }
+//                    "youtube#playlist" -> {
+//                        Playlist.fromId(result.id.playlistId).loadData {
+//                            if (it != null) {
+//                                result_tabs[ResourceType.PLAYLIST]?.add(it as Playlist)
+//                            }
+//                        }
+//                    }
+//                }
+//            }
         }
     }
 

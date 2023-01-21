@@ -37,12 +37,11 @@ import com.google.accompanist.swiperefresh.rememberSwipeRefreshState
 import com.spectre7.spmp.MainActivity
 import com.spectre7.spmp.PlayerServiceHost
 import com.spectre7.spmp.R
-import com.spectre7.spmp.api.DataApi
-import com.spectre7.spmp.api.NewDataApi
+import com.spectre7.spmp.api.getHomeFeed
 import com.spectre7.spmp.model.Artist
+import com.spectre7.spmp.model.MediaItem
 import com.spectre7.spmp.model.Playlist
 import com.spectre7.spmp.model.Song
-import com.spectre7.spmp.model.YtItem
 import com.spectre7.spmp.ui.component.AutoResizeText
 import com.spectre7.spmp.ui.component.FontSizeRange
 import com.spectre7.spmp.ui.component.PillMenu
@@ -63,12 +62,12 @@ fun getScreenHeight(): Float {
 const val MINIMISED_NOW_PLAYING_HEIGHT = 64f
 enum class OverlayPage { NONE, SEARCH, SETTINGS }
 
-data class YtItemRow(val title: String, val subtitle: String?, val type: TYPE, val items: MutableList<Pair<YtItem, Long>> = mutableStateListOf()) {
+data class YtItemRow(val title: String, val subtitle: String?, val type: TYPE, val items: MutableList<Pair<MediaItem, Long>> = mutableStateListOf()) {
 
     enum class TYPE { SQUARE, LONG }
 
     @Composable
-    private fun ItemPreview(item: YtItem, height: Dp, animate_visibility: Boolean, modifier: Modifier = Modifier) {
+    private fun ItemPreview(item: MediaItem, height: Dp, animate_visibility: Boolean, modifier: Modifier = Modifier) {
         Box(modifier.requiredHeight(height), contentAlignment = Alignment.Center) {
             if(animate_visibility) {
                 var visible by remember { mutableStateOf(false) }
@@ -162,7 +161,7 @@ data class YtItemRow(val title: String, val subtitle: String?, val type: TYPE, v
         }
     }
 
-    fun add(item: YtItem?) {
+    fun add(item: MediaItem?) {
         if (item != null && items.firstOrNull { it.first.id == item.id } == null) {
             items.add(Pair(item, System.currentTimeMillis()))
         }
@@ -237,7 +236,7 @@ fun PlayerView() {
                         feed_refresh_mutex.lock()
                         main_page_rows.clear()
 
-                        val feed_result = NewDataApi.getHomeFeed()
+                        val feed_result = getHomeFeed()
 
                         if (!feed_result.success) {
                             MainActivity.network.onError(feed_result.exception)
@@ -257,26 +256,28 @@ fun PlayerView() {
                             var entry_added = false
 
                             for (item in row.items) {
-                                item.getPreviewable().loadData(false) { loaded ->
-                                    when (loaded) {
-                                        is Song -> {
-                                            if (!entry_added) {
-                                                entry_added = true
+                                thread {
+                                    val previewable = item.getPreviewable().loadData()
+                                    synchronized(main_page_rows) {
+                                        when (previewable) {
+                                            is Song -> {
+                                                if (!entry_added) {
+                                                    entry_added = true
+                                                    main_page_rows.add(entry)
+                                                }
+                                                entry.add(previewable)
+                                                artist_row.add(previewable.artist)
                                             }
-                                            entry.add(loaded)
-                                            artist_row.add(loaded.artist)
+                                            is Artist -> artist_row.add(previewable)
+                                            is Playlist -> playlist_row.add(previewable)
                                         }
-                                        is Artist -> artist_row.add(loaded)
-                                        is Playlist -> playlist_row.add(loaded)
                                     }
                                 }
                             }
-                            main_page_rows.add(entry)
                         }
 
                         main_page_rows.add(artist_row)
                         main_page_rows.add(playlist_row)
-                        DataApi.processYtItemLoadQueue()
 
                         feed_refresh_mutex.unlock()
                         onFinished(true)

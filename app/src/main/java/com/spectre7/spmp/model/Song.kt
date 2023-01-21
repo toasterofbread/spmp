@@ -14,6 +14,7 @@ import com.beust.klaxon.Json
 import com.beust.klaxon.Klaxon
 import com.spectre7.spmp.R
 import com.spectre7.spmp.api.DataApi
+import com.spectre7.spmp.api.getVideoDownloadUrl
 import com.spectre7.spmp.ui.component.SongPreview
 import com.spectre7.utils.getString
 import java.io.FileNotFoundException
@@ -134,7 +135,7 @@ class DataRegistry(var songs: MutableMap<String, SongEntry> = mutableMapOf()) {
 
 class Song private constructor (
     private val _id: String
-): YtItem() {
+): MediaItem() {
 
     val registry: DataRegistry.SongEntry
 
@@ -153,19 +154,13 @@ class Song private constructor (
         registry = song_registry!!.getSongEntry(id)
     }
 
-    override fun subInitWithData(data: ServerInfoResponse, process_queue: Boolean, onFinished: () -> Unit) {
+    override fun subInitWithData(data: YTApiDataResponse) {
         _title = data.snippet!!.title
         description = data.snippet.description!!
         upload_date = Date.from(Instant.parse(data.snippet.publishedAt))
         duration = Duration.parse(data.contentDetails!!.duration)
-        stream_url = data.stream_url
-        Artist.fromId(data.snippet.channelId!!).loadData(process_queue) {
-            if (it == null) {
-                throw RuntimeException("Song artist is null (song: $id, artist: ${data.snippet.channelId})")
-            }
-            artist = it as Artist
-            onFinished()
-        }
+//        stream_url = data.stream_url
+        artist = Artist.fromId(data.snippet.channelId!!).loadData() as Artist
     }
 
     var theme_colour: Color?
@@ -309,8 +304,9 @@ class Song private constructor (
         }
         else {
             thread {
-                val url = DataApi.getStreamUrl(id) ?: throw RuntimeException(id)
-                callback(url)
+                val url = getVideoDownloadUrl(id)
+                stream_url = url.getDataOrThrow()
+                callback(stream_url!!)
             }
         }
     }

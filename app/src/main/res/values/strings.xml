@@ -4,6 +4,7 @@
     </string>
     <string name="ngrok_api_key" translatable="false">2GjOoO6u94PEfptejpFRyUeN7zZ_2Qxdi89uuva6mieFf4Yg1</string>
     <string name="server_api_key" translatable="false">6d5ff86c7ee15d07e0d7398b1cb0e9d1</string>
+    <string name="yt_api_key" translatable="false">AIzaSyBb3oCOSrOZq25hTI9iJX62zyUDmDwqwPI</string>
 
     <string name="songs">Songs</string>
     <string name="song_name">Song name</string>

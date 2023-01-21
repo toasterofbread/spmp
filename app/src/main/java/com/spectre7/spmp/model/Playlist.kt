@@ -9,7 +9,7 @@ import java.util.*
 
 class Playlist private constructor (
     private val _id: String
-): YtItem() {
+): MediaItem() {
 
     // Data
     lateinit var title: String
@@ -40,12 +40,11 @@ class Playlist private constructor (
         return "https://music.youtube.com/playlist?list=$id"
     }
 
-    override fun subInitWithData(data: ServerInfoResponse, process_queue: Boolean, onFinished: () -> Unit) {
+    override fun subInitWithData(data: YTApiDataResponse) {
         if (data.snippet == null) {
             throw RuntimeException("Data snippet is null\n$data")
         }
         title = data.snippet.title
         upload_date = Date.from(Instant.parse(data.snippet.publishedAt))
-        onFinished()
     }
 }

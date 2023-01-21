@@ -7,46 +7,80 @@ import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import com.spectre7.spmp.api.DataApi
+import com.spectre7.spmp.api.loadMediaItemData
 import java.net.URL
 import kotlin.concurrent.thread
 
-abstract class YtItem {
-    protected var thumbnail: Bitmap? = null
-    protected var thumbnail_hq: Bitmap? = null
+abstract class MediaItem {
 
-    private var thumbnails: ServerInfoResponse.Thumbnails? = null
-
-    private var _loaded: Boolean = false
-    var loaded: Boolean
-        get() = _loaded
-        private set(value) { _loaded = value }
-
-    private var on_loaded_callbacks: MutableList<(Boolean) -> Unit>? = null
-
-    val id: String get() = _getId()
-    val url: String get() = _getUrl()
-
-    data class ServerInfoResponse(
+    data class YTApiDataResponse(
         val id: String = "",
-        var original_id: String? = null,
-        var type: String = "",
-        val stream_url: String? = null,
         val snippet: Snippet? = null,
         val statistics: Statistics? = null,
         val contentDetails: ContentDetails? = null,
-        val error: String? = null
     ) {
         data class Snippet(val title: String, val description: String? = null, val publishedAt: String, val channelId: String? = null, val defaultLanguage: String? = null, val country: String? = null, val thumbnails: Thumbnails)
         data class Statistics(val viewCount: String, val subscriberCount: String? = null, val hiddenSubscriberCount: Boolean = false, val videoCount: String? = null)
         data class ContentDetails(val duration: String? = null)
         data class Thumbnails(val default: Thumbnail? = null, val medium: Thumbnail? = null, val high: Thumbnail? = null)
         data class Thumbnail(val url: String)
+    }
 
-        init {
-            if (original_id == null) {
-                original_id = id
-            }
+    class BrowseEndpoint(val id: String, val type: Type) {
+        enum class Type {
+            CHANNEL,
+            ARTIST,
+            ALBUM
         }
+    }
+
+    enum class LoadStatus {
+        NOT_LOADED,
+        LOADING,
+        LOADED
+    }
+
+    private var _load_status: LoadStatus = LoadStatus.NOT_LOADED
+    var load_status: LoadStatus
+        get() = _load_status
+        private set(value) { _load_status = value }
+    val loading_lock = Object()
+    
+    protected var thumbnail: Bitmap? = null
+    protected var thumbnail_hq: Bitmap? = null
+    private var thumbnails: YTApiDataResponse.Thumbnails? = null
+
+    val id: String get() = _getId()
+    val url: String get() = _getUrl()
+
+    private var _browse_endpoint: BrowseEndpoint? = null
+    var browse_endpoint: BrowseEndpoint?
+        get() = _browse_endpoint
+        private set(value) {
+            _browse_endpoint = value
+        }
+    
+    fun setBrowseEndpoint(id: String, type: BrowseEndpoint.Type): Boolean {
+        if (browse_endpoint == null) {
+            return false
+        }
+        browse_endpoint = BrowseEndpoint(id, type)
+    }
+
+    fun setBrowseEndpoint(id: String, type: String) {
+        if (browse_endpoint == null) {
+            return false
+        }
+
+        browse_endpoint = BrowseEndpoint(
+            id, 
+            when (type) {
+                "MUSIC_PAGE_TYPE_USER_CHANNEL" -> BrowseEndpoint.Type.CHANNEL
+                "MUSIC_PAGE_TYPE_ARTIST" -> BrowseEndpoint.Type.ARTIST
+                "MUSIC_PAGE_TYPE_ALBUM" -> BrowseEndpoint.Type.ALBUM
+                else -> throw NotImplementedError(type)
+            }
+        )
     }
 
     fun thumbnailLoaded(hq: Boolean): Boolean {
@@ -79,51 +113,6 @@ abstract class YtItem {
         Preview(large, Modifier, MaterialTheme.colorScheme.onBackground)
     }
 
-    fun loadData(process_queue: Boolean = true, onFinished: ((YtItem?) -> Unit)? = null): YtItem {
-        if (loaded) {
-            onFinished?.invoke(this)
-        }
-        else if (on_loaded_callbacks != null) {
-            if (onFinished != null) {
-                on_loaded_callbacks?.add { onFinished(if (it) this else null) }
-            }
-        }
-        else {
-            on_loaded_callbacks = mutableListOf()
-            if (onFinished != null) {
-                on_loaded_callbacks!!.add { onFinished(if (it) this else null) }
-            }
-
-            thread {
-                DataApi.queueYtItemDataLoad(this) {
-                    if (it == null) {
-                        throw RuntimeException("Server info response is null (id: $id)")
-                    }
-
-                    fun callCallbacks(success: Boolean) {
-                        for (callback in on_loaded_callbacks!!) {
-                            callback(success)
-                        }
-                        on_loaded_callbacks = null
-                    }
-
-                    try {
-                        initWithData(it) {
-                            callCallbacks(true)
-                        }
-                    }
-                    catch (_: RuntimeException) {
-                        callCallbacks(false)
-                    }
-                }
-                if (process_queue) {
-                    DataApi.processYtItemLoadQueue()
-                }
-            }
-        }
-        return this
-    }
-
     abstract fun _getId(): String
     abstract fun _getUrl(): String
 
@@ -131,17 +120,23 @@ abstract class YtItem {
         return (if (hq) thumbnails?.high else thumbnails?.medium)?.url
     }
 
-    fun initWithData(data: ServerInfoResponse, process_queue: Boolean = true, onFinished: () -> Unit) {
-        if (loaded) {
-            onFinished()
+    fun loadData(): MediaItem {
+        if (load_status == LoadStatus.LOADED) {
+            return this
+        }
+
+        val result = loadMediaItemData(this)
+        return result.getDataOrThrow()
+    }
+
+    fun initWithData(data: YTApiDataResponse) {
+        if (load_status == LoadStatus.LOADED) {
             return
         }
         thumbnails = data.snippet?.thumbnails
-        subInitWithData(data, process_queue) {
-            loaded = true
-            onFinished()
-        }
+        subInitWithData(data)
+        load_status = LoadStatus.LOADED
     }
 
-    protected abstract fun subInitWithData(data: ServerInfoResponse, process_queue: Boolean, onFinished: () -> Unit)
+    protected abstract fun subInitWithData(data: YTApiDataResponse)
 }

@@ -1,9 +1,12 @@
 package com.spectre7.spmp.api
 
+import com.beust.klaxon.JsonArray
 import com.beust.klaxon.JsonObject
+import com.spectre7.spmp.model.MediaItem
 import okhttp3.Request
+import java.util.zip.GZIPInputStream
 
-data class RadioItem(val id: String, val browse_id: String, val browse_type: String)
+data class RadioItem(val id: String, val browse_endpoints: List<MediaItem.BrowseEndpoint>)
 
 fun getSongRadio(id: String): Result<List<RadioItem>> {
     val request = Request.Builder()
@@ -39,32 +42,42 @@ fun getSongRadio(id: String): Result<List<RadioItem>> {
         return Result.failure(response)
     }
 
-    class Run(val navigationEndpoint: NavigationEndpoint)
+    class Run(val navigationEndpoint: NavigationEndpoint? = null)
     class LongBylineText(val runs: List<Run>)
     class PlaylistPanelVideoRenderer(val videoId: String, val longBylineText: LongBylineText)
     class RadioItem(val playlistPanelVideoRenderer: PlaylistPanelVideoRenderer)
 
-    fun JsonObject.first(): JsonObject {
-        return values.first() as JsonObject
+    fun <T> JsonObject.first(): T {
+        return values.first() as T
     }
-    
-    val radio = klaxon.parseJsonObject(response.body!!.charStream())!!
+
+    val radio = klaxon.parseJsonObject(GZIPInputStream(response.body!!.byteStream()).reader())
         .obj("contents")!!
-        .first()  // singleColumnMusicWatchNextResultsRenderer
-        .first() // tabbedRenderer
-        .first() // watchNextTabbedResultsRenderer
-        .first() // tabs
+        .first<JsonObject>()  // singleColumnMusicWatchNextResultsRenderer
+        .first<JsonObject>() // tabbedRenderer
+        .first<JsonObject>() // watchNextTabbedResultsRenderer
+        .first<JsonArray<JsonObject>>() // tabs
         .first() // 0
-        .first() // tabRenderer
+        .first<JsonObject>() // tabRenderer
         .obj("content")!!
-        .first() // musicQueueRenderer
-        .first() // content
-        .first() // playlistPanelRenderer
-        .array<RadioItem>("contents")!!
+        .first<JsonObject>() // musicQueueRenderer
+        .first<JsonObject>() // content
+        .first<JsonObject>() // playlistPanelRenderer
+        .array<JsonObject>("contents")!!
     
-    return Result.success(List(radio.size) { i ->
-        val item = radio[i]
-        val browse_endpoint = item.playlistPanelVideoRenderer.longBylineText.runs[0].navigationEndpoint.browseEndpoint
-        RadioItem(item.playlistPanelVideoRenderer.videoId, browse_endpoint.browseId, browse_endpoint.browseEndpointContextSupportedConfigs.browseEndpointContextMusicConfig.pageType)
+    return Result.success(List(radio.size - 1) { i ->
+        val item = klaxon.parseFromJsonObject<RadioItem>(radio[i + 1])!!
+
+        val browse_endpoints = mutableListOf<MediaItem.BrowseEndpoint>()
+        for (run in item.playlistPanelVideoRenderer.longBylineText.runs) {
+            if (run.navigationEndpoint != null) {
+                browse_endpoints.add(MediaItem.BrowseEndpoint(
+                    run.navigationEndpoint.browseEndpoint!!.browseId,
+                    run.navigationEndpoint.browseEndpoint.browseEndpointContextSupportedConfigs!!.browseEndpointContextMusicConfig.pageType
+                ))
+            }
+        }
+
+        RadioItem(item.playlistPanelVideoRenderer.videoId, browse_endpoints)
     })
 }

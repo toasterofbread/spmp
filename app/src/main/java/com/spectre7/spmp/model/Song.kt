@@ -22,7 +22,6 @@ import java.net.URL
 import java.time.Duration
 import java.time.Instant
 import java.util.*
-import kotlin.concurrent.thread
 import kotlin.reflect.KMutableProperty1
 import kotlin.reflect.jvm.isAccessible
 
@@ -139,13 +138,16 @@ class Song private constructor (
 
     val registry: DataRegistry.SongEntry
 
+    private var stream_url: String? = null
+    private var stream_url_loading: Boolean = false
+    private val stream_url_loaded_listeners: MutableList<(String) -> Unit> = mutableListOf()
+
     // Data
     private lateinit var _title: String
     lateinit var description: String
     lateinit var artist: Artist
     lateinit var upload_date: Date
     lateinit var duration: Duration
-    var stream_url: String? = null
 
     init {
         if (song_registry == null) {
@@ -159,7 +161,6 @@ class Song private constructor (
         description = data.snippet.description!!
         upload_date = Date.from(Instant.parse(data.snippet.publishedAt))
         duration = Duration.parse(data.contentDetails!!.duration)
-//        stream_url = data.stream_url
         artist = Artist.fromId(data.snippet.channelId!!).loadData() as Artist
     }
 
@@ -298,17 +299,28 @@ class Song private constructor (
         DataApi.getSongLyrics(this, callback)
     }
 
-    fun getStreamUrl(callback: (url: String) -> Unit) {
-        if (stream_url != null) {
-            callback(stream_url!!)
+    fun isStreamUrlLoaded(): Boolean {
+        return stream_url != null
+    }
+
+    fun addStreamUrlLoadedListener(listener: (String) -> Unit) {
+        stream_url_loaded_listeners.add(listener)
+    }
+
+    fun loadStreamUrl(): String {
+        return getVideoDownloadUrl(id, listOf(140)).getDataOrThrow()
+        if (stream_url_loading) {
+            throw RuntimeException()
         }
-        else {
-            thread {
-                val url = getVideoDownloadUrl(id)
-                stream_url = url.getDataOrThrow()
-                callback(stream_url!!)
+        if (stream_url == null) {
+            stream_url_loading = true
+            stream_url = getVideoDownloadUrl(id, listOf(140)).getDataOrThrow()
+            stream_url_loading = false
+            for (listener in stream_url_loaded_listeners) {
+                listener(stream_url!!)
             }
         }
+        return stream_url!!
     }
 
     override fun loadThumbnail(hq: Boolean): Bitmap {

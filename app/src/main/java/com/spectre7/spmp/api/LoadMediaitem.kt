@@ -5,6 +5,9 @@ import com.spectre7.spmp.R
 import com.spectre7.spmp.model.*
 import com.spectre7.utils.getString
 import okhttp3.Request
+import java.time.Duration
+
+private val CACHE_LIFETIME = Duration.ofDays(1)
 
 private class ApiResponse(val items: List<MediaItem.YTApiDataResponse>)
 
@@ -17,6 +20,14 @@ fun loadMediaItemData(item: MediaItem): Result<MediaItem> {
         if (item.load_status == MediaItem.LoadStatus.LOADING) {
             item.loading_lock.wait()
             return if (item.load_status == MediaItem.LoadStatus.LOADED) Result.success(item) else Result.failure(RuntimeException())
+        }
+
+        val cache_key = "d${item.id}${item.javaClass.simpleName}"
+        val cached = Cache.get(cache_key)
+        if (cached != null) {
+            item.initWithData(klaxon.parse<ApiResponse>(cached)!!.items.first())
+            item.loading_lock.notifyAll()
+            return Result.success(item)
         }
 
         val type: String
@@ -41,15 +52,15 @@ fun loadMediaItemData(item: MediaItem): Result<MediaItem> {
             .url("https://www.googleapis.com/youtube/v3/$type?part=$part&id=${item.id}&hl=${MainActivity.data_language}&key=${getString(R.string.yt_api_key)}")
             .build()
 
-        println("https://www.googleapis.com/youtube/v3/$type?part=contentDetails,snippet,statistics&id=${item.id}&hl=${MainActivity.data_language}&key=${getString(R.string.yt_api_key)}")
         val response = client.newCall(request).execute()
         if (response.code != 200) {
             return Result.failure(response)
         }
 
-        val str = response.body!!.string()
+        val response_body = response.body!!.string()
+        Cache.set(cache_key, response_body, CACHE_LIFETIME)
 
-        val data = klaxon.parse<ApiResponse>(str)!!
+        val data = klaxon.parse<ApiResponse>(response_body)!!
         item.initWithData(data.items.first())
         item.loading_lock.notifyAll()
 

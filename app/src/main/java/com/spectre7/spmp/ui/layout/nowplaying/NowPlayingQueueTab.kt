@@ -233,9 +233,8 @@ fun QueueTab(weight_modifier: Modifier) {
                                 before.add(item.value.first)
                             }
 
-                            PlayerServiceHost.service.addMultipleToQueue(before, 0) {
-                                PlayerServiceHost.service.addMultipleToQueue(after, index + 1)
-                            }
+                            PlayerServiceHost.service.addMultipleToQueue(before, 0)
+                            PlayerServiceHost.service.addMultipleToQueue(after, index + 1)
                         }
                     },
                     colors = ButtonDefaults.buttonColors(

@@ -4,6 +4,9 @@ import com.beust.klaxon.JsonObject
 import com.spectre7.spmp.MainActivity
 import com.spectre7.spmp.model.*
 import okhttp3.Request
+import java.time.Duration
+
+private val CACHE_LIFETIME = Duration.ofDays(1)
 
 data class HomeFeedRow(val title: String, val subtitle: String?, val browse_id: String?, val items: List<Item>) {
     data class Item(val type: String, val id: String, val playlist_id: String? = null) {
@@ -24,7 +27,7 @@ class BrowseEndpointContextSupportedConfigs(val browseEndpointContextMusicConfig
 class BrowseEndpoint(val browseId: String, val browseEndpointContextSupportedConfigs: BrowseEndpointContextSupportedConfigs? = null)
 class NavigationEndpoint(val watchEndpoint: WatchEndpoint? = null, val browseEndpoint: BrowseEndpoint? = null)
 
-private class RawHomeFeedRow(
+class RawHomeFeedRow(
     val musicCarouselShelfRenderer: MusicCarouselShelfRenderer
 ) {
     class MusicCarouselShelfRenderer(val header: Header, val contents: List<ContentsItem>)
@@ -45,7 +48,7 @@ private class RawHomeFeedRow(
     val items: List<ContentsItem> get() = musicCarouselShelfRenderer.contents
 }
 
-fun getHomeFeed(min_rows: Int = -1): Result<List<HomeFeedRow>> {
+fun getHomeFeed(min_rows: Int = -1, allow_cached: Boolean = true): Result<List<HomeFeedRow>> {
 
     var error: Result<List<HomeFeedRow>>? = null
     fun postRequest(ctoken: String?): JsonObject? {
@@ -129,10 +132,28 @@ fun getHomeFeed(min_rows: Int = -1): Result<List<HomeFeedRow>> {
         }
     }
 
-    var data = postRequest(null) ?: return error!!
-    val rows = processRows(klaxon.parseFromJsonArray(data.array<JsonObject>("contents")!!)!!).toMutableList()
+
+    var rows: MutableList<HomeFeedRow>? = null
+    var data: JsonObject? = null
+
+    val cache_key = "feed"
+    if (allow_cached) {
+        val cached = Cache.get(cache_key)
+        if (cached != null) {
+            rows = klaxon.parseArray<HomeFeedRow>(cached)?.toMutableList()
+        }
+    }
+
+    if (rows == null) {
+        data = postRequest(null) ?: return error!!
+        rows = processRows(klaxon.parseFromJsonArray(data.array<JsonObject>("contents")!!)!!).toMutableList()
+    }
 
     while (min_rows >= 1 && rows.size < min_rows) {
+        if (data == null) {
+            data = postRequest(null) ?: return error!!
+        }
+
         val ctoken = data
             .array<JsonObject>("continuations")
             ?.get(0)
@@ -143,6 +164,8 @@ fun getHomeFeed(min_rows: Int = -1): Result<List<HomeFeedRow>> {
         data = postRequest(ctoken) ?: return error!!
         rows.addAll(processRows(klaxon.parseFromJsonArray(data.array<JsonObject>("contents")!!)!!))
     }
+
+    Cache.set(cache_key, klaxon.toJsonString(rows), CACHE_LIFETIME)
 
     return Result.success(rows)
 }

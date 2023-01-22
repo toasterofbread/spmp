@@ -46,25 +46,32 @@ import androidx.savedstate.SavedStateRegistry
 import androidx.savedstate.SavedStateRegistryController
 import androidx.savedstate.SavedStateRegistryOwner
 import androidx.savedstate.setViewTreeSavedStateRegistryOwner
-import com.chaquo.python.PyObject
-import com.chaquo.python.Python
 import com.google.android.exoplayer2.C
 import com.google.android.exoplayer2.ExoPlayer
 import com.google.android.exoplayer2.MediaItem
 import com.google.android.exoplayer2.Player
 import com.google.android.exoplayer2.audio.AudioAttributes
+import com.google.android.exoplayer2.database.StandaloneDatabaseProvider
 import com.google.android.exoplayer2.ext.mediasession.MediaSessionConnector
+import com.google.android.exoplayer2.extractor.mkv.MatroskaExtractor
+import com.google.android.exoplayer2.extractor.mp4.FragmentedMp4Extractor
+import com.google.android.exoplayer2.source.DefaultMediaSourceFactory
 import com.google.android.exoplayer2.ui.PlayerNotificationManager
-import com.spectre7.spmp.api.DataApi
+import com.google.android.exoplayer2.upstream.DataSource
+import com.google.android.exoplayer2.upstream.DataSpec
+import com.google.android.exoplayer2.upstream.DefaultHttpDataSource
+import com.google.android.exoplayer2.upstream.ResolvingDataSource
+import com.google.android.exoplayer2.upstream.cache.CacheDataSource
+import com.google.android.exoplayer2.upstream.cache.NoOpCacheEvictor
+import com.google.android.exoplayer2.upstream.cache.SimpleCache
+import com.spectre7.spmp.api.DATA_API_USER_AGENT
 import com.spectre7.spmp.api.getSongRadio
-import com.spectre7.spmp.api.getVideoDownloadUrl
 import com.spectre7.spmp.model.Settings
 import com.spectre7.spmp.model.Song
 import com.spectre7.utils.sendToast
 import com.spectre7.utils.setAlpha
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.launch
-import kotlinx.coroutines.sync.Mutex
 import kotlin.concurrent.thread
 import kotlin.math.roundToInt
 
@@ -78,6 +85,8 @@ class PlayerService : Service() {
     private var queue_listeners: MutableList<PlayerServiceHost.PlayerQueueListener> = mutableListOf()
 
     internal lateinit var player: ExoPlayer
+    private lateinit var cache: SimpleCache
+
     private val NOTIFICATION_ID = 2
     private val NOTIFICATION_CHANNEL_ID = "playback_channel"
     private var notification_manager: PlayerNotificationManager? = null
@@ -117,11 +126,8 @@ class PlayerService : Service() {
     )
     private var vol_notif_instance: Int = 0
 
-    private var integrated_server: PyObject? = null
-    private val integrated_server_start_mutex = Mutex()
-    fun getIntegratedServer(): PyObject? {
-        return integrated_server
-    }
+    var stream_url_loader: Thread? = null
+    var stream_url_load_i: Int = -1
 
     private val binder = PlayerBinder()
     inner class PlayerBinder: Binder() {
@@ -143,13 +149,28 @@ class PlayerService : Service() {
     override fun onCreate() {
         super.onCreate()
 
-        player = ExoPlayer.Builder(MainActivity.context).setAudioAttributes(
-            AudioAttributes.Builder()
-                .setUsage(C.USAGE_MEDIA)
-                .setContentType(C.AUDIO_CONTENT_TYPE_MUSIC)
-                .build(),
-            true
-        ).build()
+        val cache_dir = cacheDir.resolve("exoplayer-cache")
+        if (!cache_dir.exists()) {
+            cache_dir.mkdir()
+        }
+        cache = SimpleCache(cache_dir, NoOpCacheEvictor(), StandaloneDatabaseProvider(this))
+
+        player = ExoPlayer.Builder(
+            MainActivity.context,
+            DefaultMediaSourceFactory(
+                createDataSourceFactory(),
+                { arrayOf(MatroskaExtractor(), FragmentedMp4Extractor()) }
+            )
+        )
+            .setAudioAttributes(
+                AudioAttributes.Builder()
+                    .setUsage(C.USAGE_MEDIA)
+                    .setContentType(C.AUDIO_CONTENT_TYPE_MUSIC)
+                    .build(),
+                true
+            )
+            .setUsePlatformDiagnostics(false)
+            .build()
         player.playWhenReady = false
         player.prepare()
 
@@ -230,13 +251,28 @@ class PlayerService : Service() {
         LocalBroadcastManager.getInstance(this).registerReceiver(broadcast_receiver, IntentFilter(PlayerService::class.java.canonicalName))
     }
 
+
+    private fun createDataSourceFactory(): DataSource.Factory {
+        return ResolvingDataSource.Factory(
+            CacheDataSource.Factory().setCache(cache).apply {
+                setUpstreamDataSourceFactory(
+                    DefaultHttpDataSource.Factory()
+                        .setConnectTimeoutMs(16000)
+                        .setReadTimeoutMs(8000)
+                        .setUserAgent(DATA_API_USER_AGENT)
+                )
+            }
+        ) { data_spec: DataSpec ->
+            data_spec.withUri(Uri.parse(Song.fromId(data_spec.uri.toString()).loadStreamUrl()))
+        }
+    }
+
     override fun onDestroy() {
         _session_started = false
         notification_manager?.setPlayer(null)
         notification_manager = null
         media_session?.release()
         player.release()
-        stopIntegratedServer()
 
         if (vol_notif.isShown) {
             MainActivity.context.windowManager.removeView(vol_notif)
@@ -277,7 +313,7 @@ class PlayerService : Service() {
 
                 println("$up | $long | ${player.volume}")
             }
-            else -> throw RuntimeException(action.toString())
+            else -> throw NotImplementedError(action.toString())
         }
     }
 
@@ -336,28 +372,6 @@ class PlayerService : Service() {
                 }
             }
         }
-    }
-
-    suspend fun startIntegratedServer(): Boolean {
-        if (integrated_server != null || integrated_server_start_mutex.isLocked) {
-            return false
-        }
-        integrated_server_start_mutex.lock()
-        integrated_server = Python.getInstance().getModule("main").callAttr("runServer", true)
-        integrated_server_start_mutex.unlock()
-
-        return true
-    }
-
-    fun stopIntegratedServer(): Boolean {
-        if (integrated_server == null) {
-            return false
-        }
-
-        integrated_server!!.callAttr("stop")
-        integrated_server!!.close()
-        integrated_server = null
-        return true
     }
 
     override fun onStartCommand(intent: Intent?, flags: Int, startId: Int): Int {
@@ -419,14 +433,13 @@ class PlayerService : Service() {
 
                     for (item in radio.data) {
                         thread {
-                            val song = Song.fromId(item.id).loadData()
-                            song.setBrowseEndpoint(
-                                item.browse_id,
-                                item.browse_type
-                            )
+                            val radio_song = Song.fromId(item.id).loadData()
+                            for (endpoint in item.browse_endpoints) {
+                                radio_song.addBrowseEndpoint(endpoint.id, endpoint.type)
+                            }
 
                             MainActivity.runInMainThread {
-                                addToQueue(song as Song)
+                                addToQueue(radio_song as Song)
                             }
                         }
                     }
@@ -463,22 +476,9 @@ class PlayerService : Service() {
     }
 
     fun addToQueue(song: Song, index: Int? = null, is_active_queue: Boolean = false, onFinished: ((index: Int) -> Unit)? = null) {
-        val item = MediaItem.Builder().setTag(song).setUri {
-            return@setUri Uri.parse(getVideoDownloadUrl(song.id).getDataOrThrow())
-//            val server = DataApi.getServer() ?: return@setUri Uri.EMPTY
-//            if (server.isIntegrated()) {
-//                val url = getVideoDownloadUrl(song.id)
-//                if (!url.success) {
-//                    throw url.exception
-//                }
-//                return@setUri Uri.parse(url.data)
-//            }
-//
-//            return@setUri Uri.parse(server.getExternalRequestUrl("/yt/streamurl", mapOf( "redirect" to "1", "id" to song.id )))
-        }.build()
+        val item = MediaItem.Builder().setTag(song).setUri(song.id).build()
 
         val added_index: Int
-
         if (index == null) {
             player.addMediaItem(item)
             added_index = player.mediaItemCount - 1
@@ -492,35 +492,21 @@ class PlayerService : Service() {
             active_queue_index = added_index
         }
 
-        onSongAdded(item)
+        onSongAdded(song, added_index)
         addNotificationToPlayer()
         onFinished?.invoke(added_index)
-
-//        song.getStreamUrl { url ->
-//        }
     }
 
-    fun addMultipleToQueue(songs: List<Song>, index: Int, onFinished: (() -> Unit)? = null) {
+    fun addMultipleToQueue(songs: List<Song>, index: Int) {
         if (songs.isEmpty()) {
-            onFinished?.invoke()
             return
         }
 
-        val loaded = MutableList<MediaItem?>(songs.size) { null }
-        var added = 0
-
         for (song in songs.withIndex()) {
-            song.value.getStreamUrl {
-                loaded[song.index] = MediaItem.Builder().setUri(it).setTag(song.value).build()
+            val item = MediaItem.Builder().setTag(song).setUri(song.value.id).build()
 
-                if (++added == songs.size) {
-                    player.addMediaItems(index, loaded as MutableList<MediaItem>)
-                    for (item in loaded) {
-                        onSongAdded(item)
-                    }
-                    onFinished?.invoke()
-                }
-            }
+            player.addMediaItem( index + song.index, item)
+            onSongAdded(song.value, if (index + song.index < player.mediaItemCount) index + song.index else player.mediaItemCount - 1)
         }
     }
 

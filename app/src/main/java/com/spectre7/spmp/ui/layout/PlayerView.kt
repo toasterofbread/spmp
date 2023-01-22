@@ -383,7 +383,7 @@ fun MainPage(_rows: List<YtItemRow>, refreshFeed: (allow_cache: Boolean, onFinis
                     }
 
                     PillMenu(
-                        if (PlayerServiceHost.service.getIntegratedServer() == null) 3 else 2,
+                        2,
                         { index, _ ->
                             when (index) {
                                 0 -> ActionButton(Icons.Filled.Refresh) {
@@ -399,15 +399,6 @@ fun MainPage(_rows: List<YtItemRow>, refreshFeed: (allow_cache: Boolean, onFinis
                                             expand = !expand
                                         }
                                     )
-                                }
-                                2 -> ActionButton(Icons.Filled.DownloadForOffline) {
-                                    sendToast("Starting integrated server...")
-                                    thread {
-                                        runBlocking {
-                                            PlayerServiceHost.service.startIntegratedServer()
-                                        }
-                                        refresh()
-                                    }
                                 }
                             }
                         },

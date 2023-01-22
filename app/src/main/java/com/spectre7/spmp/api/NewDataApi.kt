@@ -1,14 +1,13 @@
 package com.spectre7.spmp.api
 
+import com.beust.klaxon.JsonObject
 import com.beust.klaxon.Klaxon
-import okhttp3.Headers
-import okhttp3.OkHttpClient
-import okhttp3.Response
-import com.chaquo.python.Python
+import com.spectre7.spmp.MainActivity
+import okhttp3.*
 import okhttp3.MediaType.Companion.toMediaType
 import okhttp3.RequestBody.Companion.toRequestBody
 
-const val USER_AGENT = "Mozilla/5.0 (X11; Linux x86_64; rv:105.0) Gecko/20100101 Firefox/105.0"
+const val DATA_API_USER_AGENT = "Mozilla/5.0 (X11; Linux x86_64; rv:105.0) Gecko/20100101 Firefox/105.0"
 
 internal val client = OkHttpClient()
 internal val klaxon: Klaxon = Klaxon()
@@ -54,7 +53,7 @@ class Result<T> private constructor() {
 
 internal fun getYTMHeaders(): Headers {
     val headers = Headers.Builder()
-    headers.add("user-agent", USER_AGENT)
+    headers.add("user-agent", DATA_API_USER_AGENT)
     headers.add("accept", "*/*")
     headers.add("accept-language", "en")
     headers.add("content-type", "application/json")
@@ -82,29 +81,31 @@ internal fun getYoutubeiRequestBody(body: String? = null): RequestBody {
         base_context = klaxon.parseJsonObject(
             """
             {
-                "client":{
-                    "hl": "${MainActivity.ui_language}",
-                    "platform": "DESKTOP",
-                    "clientName": "WEB_REMIX",
-                    "clientVersion": "1.20221031.00.00-canary_control",
-                    "userAgent": "$USER_AGENT",
-                    "acceptHeader": "text/html,application/xhtml+xml,application/xml;q=0.9,image/avif,image/webp,*/*;q=0.8",
-                },
-                "user":{
-                    "lockedSafetyMode": false
-                },
-                "request":{
-                    "useSsl": true,
-                    "internalExperimentFlags": [],
-                    "consistencyTokenJars": []
+                "context": {
+                    "client":{
+                        "hl": "${MainActivity.ui_language}",
+                        "platform": "DESKTOP",
+                        "clientName": "WEB_REMIX",
+                        "clientVersion": "1.20221031.00.00-canary_control",
+                        "userAgent": "$DATA_API_USER_AGENT",
+                        "acceptHeader": "text/html,application/xhtml+xml,application/xml;q=0.9,image/avif,image/webp,*/*;q=0.8",
+                    },
+                    "user":{
+                        "lockedSafetyMode": false
+                    },
+                    "request":{
+                        "useSsl": true,
+                        "internalExperimentFlags": [],
+                        "consistencyTokenJars": []
+                    }
                 }
             }
-            """
+            """.reader()
         )
     }
 
 
-    val final_body = if (body != null) base_context + klaxon.parseJsonObject(body) else base_context
+    val final_body = if (body != null) base_context!! + klaxon.parseJsonObject(body.reader()) else base_context
     return klaxon.toJsonString(final_body).toRequestBody("application/json".toMediaType())
 }
 
@@ -116,7 +117,7 @@ internal fun convertBrowseId(browse_id: String): Result<String> {
     val request = Request.Builder()
         .url("https://music.youtube.com/browse/$browse_id")
         .header("Cookie", "CONSENT=YES+1")
-        .header("User-Agent", USER_AGENT)
+        .header("User-Agent", DATA_API_USER_AGENT)
         .build()
 
     val result = client.newCall(request).execute()
@@ -130,5 +131,5 @@ internal fun convertBrowseId(browse_id: String): Result<String> {
     val start = text.indexOf(target) + target.length
     val end = text.indexOf("\\", start + 1)
 
-    return text.substring(start, end)
+    return Result.success(text.substring(start, end))
 }

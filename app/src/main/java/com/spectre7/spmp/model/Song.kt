@@ -14,7 +14,8 @@ import com.beust.klaxon.Json
 import com.beust.klaxon.Klaxon
 import com.spectre7.spmp.R
 import com.spectre7.spmp.api.DataApi
-import com.spectre7.spmp.api.getVideoDownloadUrl
+import com.spectre7.spmp.api.getVideoFormats
+import com.spectre7.spmp.api.VideoFormat
 import com.spectre7.spmp.ui.component.SongPreview
 import com.spectre7.utils.getString
 import java.io.FileNotFoundException
@@ -135,6 +136,10 @@ class DataRegistry(var songs: MutableMap<String, SongEntry> = mutableMapOf()) {
 class Song private constructor (
     private val _id: String
 ): MediaItem() {
+
+    enum class AudioQuality {
+        LOW, MEDIUM, HIGH
+    }
 
     val registry: DataRegistry.SongEntry
 
@@ -308,13 +313,21 @@ class Song private constructor (
     }
 
     fun loadStreamUrl(): String {
-        return getVideoDownloadUrl(id, listOf(140)).getDataOrThrow()
         if (stream_url_loading) {
             throw RuntimeException()
         }
         if (stream_url == null) {
             stream_url_loading = true
-            stream_url = getVideoDownloadUrl(id, listOf(140)).getDataOrThrow()
+            
+            val formats = getVideoFormats(id, true).getDataOrThrow()
+            formats.sortByDescending { it.averageBitrate }
+
+            stream_url = when (Settings.getEnum<AudioQuality>(Settings.KEY_STREAM_AUDIO_QUALITY)) {
+                AudioQuality.HIGH -> formats.first().stream_url
+                AudioQuality.LOW -> formats.last().stream_url
+                AudioQuality.MEDIUM -> formats[formats.size / 2].stream_url
+            }
+
             stream_url_loading = false
             for (listener in stream_url_loaded_listeners) {
                 listener(stream_url!!)

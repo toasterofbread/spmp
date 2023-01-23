@@ -27,6 +27,8 @@ import com.spectre7.utils.*
 abstract class SettingsItem {
     lateinit var context: Context
 
+    abstract fun initialiseValueStates(prefs: SharedPreferences, default_provider: (String) -> T)
+
     @Composable
     abstract fun GetItem(theme: Theme, open_page: (Int) -> Unit)
 }
@@ -41,26 +43,33 @@ class SettingsGroup(var title: String?): SettingsItem() {
     }
 }
 
-class SettingsValueState<T>(
-    val key: String,
-    private val prefs: SharedPreferences,
-    private val default_provider: (String) -> T
-) {
-    private var _value: T by mutableStateOf(getInitialValue())
+class SettingsValueState<T>(val key: String) {
+
+    private lateinit var prefs: SharedPreferences
+    private var _value: T? by mutableStateOf(null)
     internal var autosave: Boolean = true
 
     var value: T
-        get() = _value
+        get() _value!!
         set(new_value) {
+            if (_value == null) {
+                throw IllegalStateException()
+            }
             _value = new_value
             if (autosave) {
                 save()
             }
         }
 
-    private fun getInitialValue(): T {
-        val default = default_provider(key)
-        return when (default!!::class) {
+    internal fun init(prefs: SharedPreferences, default_provider: (String) -> Any) {
+        if (_value != null) {
+            return
+        }
+
+        this.prefs = prefs
+
+        val default = default_provider(key) as T
+        _value = when (default!!::class) {
             Boolean::class -> prefs.getBoolean(key, default as Boolean)
             Float::class -> prefs.getFloat(key, default as Float)
             Int::class -> prefs.getInt(key, default as Int)
@@ -91,6 +100,10 @@ class SettingsItemToggle(
     val subtitle: String?,
     val checker: ((target: Boolean, (allowChange: Boolean) -> Unit) -> Unit)? = null
 ): SettingsItem() {
+
+    override fun initialiseValueStates(prefs: SharedPreferences, default_provider: (String) -> Any) {
+        state.init(prefs, default_provider)
+    }
 
     @Composable
     override fun GetItem(theme: Theme, open_page: (Int) -> Unit) {
@@ -143,6 +156,10 @@ class SettingsItemSlider(
     val steps: Int = 0
 ): SettingsItem() {
 
+    override fun initialiseValueStates(prefs: SharedPreferences, default_provider: (String) -> Any) {
+        state.init(prefs, default_provider)
+    }
+
     @Composable
     override fun GetItem(theme: Theme, open_page: (Int) -> Unit) {
         Column(Modifier.fillMaxWidth()) {
@@ -190,6 +207,10 @@ class SettingsItemMultipleChoice(
     val radio_style: Boolean,
     val get_choice: (Int) -> String,
 ): SettingsItem() {
+
+    override fun initialiseValueStates(prefs: SharedPreferences, default_provider: (String) -> Any) {
+        state.init(prefs, default_provider)
+    }
 
     @OptIn(ExperimentalMaterial3Api::class)
     @Composable
@@ -274,6 +295,10 @@ class SettingsItemDropdown(
     val getButtonItem: ((Int) -> String)? = null,
     val getItem: (Int) -> String,
 ): SettingsItem() {
+
+    override fun initialiseValueStates(prefs: SharedPreferences, default_provider: (String) -> Any) {
+        state.init(prefs, default_provider)
+    }
 
     @Composable
     override fun GetItem(theme: Theme, open_page: (Int) -> Unit) {
@@ -385,6 +410,8 @@ class SettingsItemSubpage(
     val target_page: Int,
 ): SettingsItem() {
 
+    override fun initialiseValueStates(prefs: SharedPreferences, default_provider: (String) -> Any) {}
+
     @Composable
     override fun GetItem(theme: Theme, open_page: (Int) -> Unit) {
         Button(modifier = Modifier.fillMaxWidth(), onClick = {
@@ -414,6 +441,8 @@ class SettingsItemAccessibilityService(
         fun isEnabled(context: Context): Boolean
         fun setEnabled(enabled: Boolean)
     }
+
+    override fun initialiseValueStates(prefs: SharedPreferences, default_provider: (String) -> Any) {}
 
     @Composable
     override fun GetItem(theme: Theme, open_page: (Int) -> Unit) {

@@ -18,26 +18,36 @@ private fun checkUrl(url: String): Boolean {
 
     val response = client.newCall(request).execute()
 
-    val is_audio = response.body!!.contentType().toString().startsWith("audio/")
+    val is_invalid = response.body!!.contentType().toString().startsWith("text/")
     response.close()
 
-    return response.code == 200 && is_audio
+    return response.code == 200 && !is_invalid
 }
 
-fun getVideoDownloadUrl(id: String, format_priority: List<Int>): Result<String> {
+data class VideoFormat(
+    val itag: Int,
+    val mimeType: String,
+    val averageBitrate: Long,
+    val quality: String,
+    val qualityLabel: String? = null,
+    val fps: Int? = null,
+    val audioQuality: String? = null,
+    private val signatureCypher: String
+) {
+    val audio_only: Boolean get() = mimeType.startswith("audio/")
+    lateinit var stream_url: String
+}
+
+fun getVideoFormats(id: String, audio_only: Boolean): Result<MutableList<VideoFormat>> {
 
     val RESPONSE_DATA_START = "ytInitialPlayerResponse = "
-    fun getUrl(): Result<String> {
-
-        if (format_priority.isEmpty()) {
-            throw RuntimeException()
-        }
-
-        val request = Request.Builder()
-            .url("https://www.youtube.com/watch?v=$id")
-            .header("Cookie", "CONSENT=YES+1")
-            .header("User-Agent", DATA_API_USER_AGENT)
-            .build()
+    val request = Request.Builder()
+        .url("https://www.youtube.com/watch?v=$id")
+        .header("Cookie", "CONSENT=YES+1")
+        .header("User-Agent", DATA_API_USER_AGENT)
+        .build()
+    
+    fun getFormats(): Result<MutableListOf<VideoFormat>> {
 
         val response = client.newCall(request).execute()
         if (response.code != 200) {
@@ -45,61 +55,49 @@ fun getVideoDownloadUrl(id: String, format_priority: List<Int>): Result<String> 
         }
 
         val html = response.body!!.string()
+
+        val decrypter_result = SignatureCypherDecrypter.fromPlayerPage(html)
+        if (!decrypter_result.success) {
+            return Result.failure(decrypter_result.exception)
+        }
+        val decrypter = decrypter_result.data
+
         val start = html.indexOf(RESPONSE_DATA_START) + RESPONSE_DATA_START.length
         val end = html.indexOf("};", start) + 1
+        val streaming_data = klaxon.parseJsonObject(html.substring(start, end).reader()).obj("streamingData")!!
 
-        val data = klaxon.parseJsonObject(html.substring(start, end).reader())
-        val streaming_data = data.obj("streamingData")!!
+        val ret = mutableListOf<VideoFormat>()
 
-        val found_formats: MutableMap<Int, JsonObject> = mutableMapOf()
+        for (group in listOf("adaptiveFormats", "formats")) {
+            for (format in streaming_data.array<JsonObject>("adaptiveFormats")!!) {
+                if (audio_only && !format.string("mimeType")!!.startswith("audio/")) {
+                    continue
+                }
+                
+                val parsed = klaxon.parseFromJsonObject(format)
+                parsed.stream_url = decrypter.decryptSignatureCypher(parsed.signatureCypher)
+                
+                if (ret.isEmpty() && !checkUrl(parsed.stream_url)) {
+                    return Result.success(ret)
+                }
 
-        val formats = streaming_data.array<JsonObject>("adaptiveFormats")!! + streaming_data.array<JsonObject>("formats")!!
-        for (format in formats) {
-            val itag: Int = format.int("itag")!!
-            val index = format_priority.indexOf(itag)
-
-            if (index == -1) {
-                continue
-            }
-
-            found_formats[itag] = format
-
-            if (index == 0) {
-                break
+                ret.add(parsed)
             }
         }
 
-        for (format in format_priority) {
-            val found = found_formats[format] ?: continue
-
-            val url = found.string("url")
-            if (url != null) {
-                return Result.success(found.string("url")!!)
-            }
-
-            val decrypter_result = SignatureCypherDecrypter.fromPlayerPage(html)
-            if (!decrypter_result.success) {
-                return Result.failure(decrypter_result.exception)
-            }
-
-            val decrypted = decrypter_result.data.decryptSignatureCypher(found.string("signatureCipher")!!)
-            return Result.success(decrypted)
-        }
-
-        return Result.failure(RuntimeException("Could not find a download url for video $id with itag in $format_priority"))
+        return Result.success(ret)
     }
 
     // For some reason the URL is occasionally invalid (GET either fails with 403 or yields the URL itself)
     // I can't tell why this occurs, but just getting the URL again always seems to produce a valid one
-    var i = 0
-    while (i++ < MAX_RETRIES) {
-        val url = getUrl()
-        if (!url.success || checkUrl(url.data)) {
-            return url
+    for (i in 0 until MAX_RETRIES) {
+        val formats = getUrl()
+        if (!formats.success || formats.data.isNotEmpty()) {
+            return formats
         }
     }
 
-    return Result.failure(RuntimeException("Could not find a download url for video $id with itag in $format_priority after $MAX_RETRIES"))
+    return Result.failure(RuntimeException("Could not load formats for video $id after $MAX_RETRIES"))
 }
 
 // Based on https://github.com/wayne931121/youtube_downloader

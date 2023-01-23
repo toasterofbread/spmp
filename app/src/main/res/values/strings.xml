@@ -86,6 +86,17 @@
     <string name="s_key_lyrics_extra_padding">Extra padding</string>
     <string name="s_sub_lyrics_extra_padding">Add extra padding above and below lyrics for increased scrolling range</string>
 
+    <string name="s_group_audio_video">Audio / Video</string>
+
+    <string name="s_key_stream_audio_quality">Stream audio quality</string>
+    <string name="s_sub_stream_audio_quality">Target audio quality when streaming music</string>
+    <string name="s_key_download_audio_quality">Download audio quality</string>
+    <string name="s_sub_download_audio_quality">Default target audio quality when downloading music</string>
+
+    <string name="s_option_audio_quality_high">Hight</string>
+    <string name="s_option_audio_quality_medium">Medium</string>
+    <string name="s_option_audio_quality_low">Low</string>
+
     <string name="s_group_other">Other</string>
 
     <string name="s_page_acc_service">Accessibility service</string>

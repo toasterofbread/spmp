@@ -40,6 +40,10 @@ fun vibrate(duration: Double) {
     vibrator.vibrate(VibrationEffect.createOneShot((duration * 1000.0).toLong(), VibrationEffect.DEFAULT_AMPLITUDE))
 }
 
+fun vibrateShort() {
+    vibrate(0.01)
+}
+
 fun sendToast(text: String, length: Int = Toast.LENGTH_SHORT, context: Context = MainActivity.context) {
     try {
         Toast.makeText(context, text, length).show()

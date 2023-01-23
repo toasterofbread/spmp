@@ -35,7 +35,7 @@ import com.spectre7.spmp.ui.component.MultiSelector
 import com.spectre7.utils.getStatusBarHeight
 import com.spectre7.utils.getString
 import com.spectre7.utils.setColourAlpha
-import com.spectre7.utils.vibrate
+import com.spectre7.utils.vibrateShort
 
 enum class AccentColourSource { THUMBNAIL, SYSTEM }
 enum class ThemeMode { BACKGROUND, ELEMENTS, NONE }
@@ -206,14 +206,14 @@ fun SeekBar(seek: (Float) -> Unit) {
             val side = if (it <= grab_start_position!! - SEEK_CANCEL_THRESHOLD / 2.0) -1 else if (it >= grab_start_position!! + SEEK_CANCEL_THRESHOLD / 2.0) 1 else 0
             if (side != cancel_area_side) {
                 if (side == 0 || side + (cancel_area_side ?: 0) == 0) {
-                    vibrate(0.01)
+                    vibrateShort()
                 }
                 cancel_area_side = side
             }
         },
         onValueChangeFinished = {
             if (cancel_area_side == 0 && grab_start_position != null) {
-                vibrate(0.01)
+                vibrateShort()
             }
             else {
                 seek(position_override!!)

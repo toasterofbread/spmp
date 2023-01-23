@@ -30,7 +30,7 @@ import com.google.android.exoplayer2.C
 import com.spectre7.spmp.MainActivity
 import com.spectre7.spmp.PlayerServiceHost
 import com.spectre7.spmp.model.Song
-import com.spectre7.utils.vibrate
+import com.spectre7.utils.vibrateShort
 import org.burnoutcrew.reorderable.ReorderableItem
 import org.burnoutcrew.reorderable.detectReorder
 import org.burnoutcrew.reorderable.rememberReorderableLazyListState
@@ -168,7 +168,7 @@ fun QueueTab(weight_modifier: Modifier) {
                 ReorderableItem(state, item.key) { is_dragging ->
                     LaunchedEffect(is_dragging) {
                         if (is_dragging) {
-                            vibrate(0.01)
+                            vibrateShort()
                             playing_key = song_items[PlayerServiceHost.status.index].key
                         }
                     }

@@ -5,7 +5,6 @@ import androidx.compose.animation.Crossfade
 import androidx.compose.animation.fadeIn
 import androidx.compose.animation.fadeOut
 import androidx.compose.foundation.background
-import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.gestures.scrollBy
 import androidx.compose.foundation.interaction.MutableInteractionSource
@@ -35,6 +34,7 @@ import com.spectre7.spmp.R
 import com.spectre7.spmp.model.Settings
 import com.spectre7.spmp.model.Song
 import com.spectre7.spmp.ui.component.PillMenu
+import com.spectre7.spmp.ui.layout.nowplaying.overlay.OverlayMenu
 import com.spectre7.utils.LongFuriganaText
 import com.spectre7.utils.getString
 import com.spectre7.utils.sendToast
@@ -45,10 +45,16 @@ class LyricsOverlayMenu(
     val size: Dp
 ): OverlayMenu() {
     
-    fun closeOnTap(): Boolean = false
+    override fun closeOnTap(): Boolean = false
 
     @Composable
-    fun Menu(song: Song, seek_state: Any, openShutterMenu: (@Composable () -> Unit) -> Unit, close: () -> Unit) {
+    override fun Menu(
+        song: Song,
+        expansion: Float,
+        openShutterMenu: (@Composable () -> Unit) -> Unit,
+        close: () -> Unit,
+        seek_state: Any
+    ) {
 
         var lyrics: Song.Lyrics? by remember { mutableStateOf(null) }
         var show_furigana: Boolean by remember { mutableStateOf(Settings.prefs.getBoolean(Settings.KEY_LYRICS_DEFAULT_FURIGANA.name, true)) }
@@ -88,7 +94,7 @@ class LyricsOverlayMenu(
                                     rememberRipple(bounded = false, radius = 20.dp),
                                     onClick = {
                                         show_furigana = !show_furigana
-                                        this@PillMenu.close()
+                                        this@PillMenu.toggle()
                                     })
                             )
                         }

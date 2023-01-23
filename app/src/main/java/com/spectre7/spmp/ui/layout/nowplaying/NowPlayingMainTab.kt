@@ -1,6 +1,7 @@
 package com.spectre7.spmp.ui.layout.nowplaying
 
-import android.content.Intent
+import MainOverlayMenu
+import com.spectre7.spmp.ui.layout.nowplaying.overlay.OverlayMenu
 import android.content.SharedPreferences
 import androidx.activity.compose.BackHandler
 import androidx.compose.animation.*
@@ -11,7 +12,6 @@ import androidx.compose.foundation.clickable
 import androidx.compose.foundation.gestures.detectTapGestures
 import androidx.compose.foundation.interaction.MutableInteractionSource
 import androidx.compose.foundation.layout.*
-import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.*
@@ -30,10 +30,8 @@ import androidx.compose.ui.graphics.painter.Painter
 import androidx.compose.ui.input.pointer.pointerInput
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.layout.onSizeChanged
-import androidx.compose.ui.platform.LocalClipboardManager
 import androidx.compose.ui.platform.LocalConfiguration
 import androidx.compose.ui.res.painterResource
-import androidx.compose.ui.text.AnnotatedString
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.*
@@ -43,12 +41,7 @@ import com.spectre7.spmp.MainActivity
 import com.spectre7.spmp.PlayerServiceHost
 import com.spectre7.spmp.R
 import com.spectre7.spmp.model.Settings
-import com.spectre7.spmp.model.Song
 import com.spectre7.spmp.ui.layout.MINIMISED_NOW_PLAYING_HEIGHT
-import com.spectre7.spmp.ui.layout.nowplaying.overlay.DownloadMenu
-import com.spectre7.spmp.ui.layout.nowplaying.overlay.EditMenu
-import com.spectre7.spmp.ui.layout.nowplaying.overlay.lyrics.LyricsDisplay
-import com.spectre7.spmp.ui.layout.nowplaying.overlay.PaletteSelectorMenu
 import com.spectre7.utils.*
 import kotlin.concurrent.thread
 import kotlin.math.max
@@ -184,6 +177,13 @@ fun MainTab(weight_modifier: Modifier, expansion: Float, max_height: Float, thum
             overlay_menu = null
         }
 
+        var get_shutter_menu by remember { mutableStateOf<(@Composable () -> Unit)?>(null) }
+        var shutter_menu_open by remember { mutableStateOf(false) }
+        LaunchedEffect(expansion >= EXPANDED_THRESHOLD) {
+            shutter_menu_open = false
+            overlay_menu = null
+        }
+
         Box(Modifier.aspectRatio(1f)) {
             Crossfade(thumbnail, animationSpec = tween(250)) { image ->
                 if (image != null) {
@@ -204,11 +204,17 @@ fun MainTab(weight_modifier: Modifier, expansion: Float, max_height: Float, thum
                                         indication = null,
                                         interactionSource = remember { MutableInteractionSource() }
                                     ) {
-                                        if (overlay_menu.closeOnTap()) {
-                                            overlay_menu = if (overlay_menu == null) MainOverlayMenu {
-                                                shutter_menu_open = true
-                                                get_shutter_menu = it
-                                            } else null
+                                        if (overlay_menu == null || overlay_menu!!.closeOnTap()) {
+                                            overlay_menu = if (overlay_menu == null) MainOverlayMenu(
+                                                { overlay_menu = it },
+                                                theme_palette,
+                                                { colourpick_callback = it },
+                                                {
+                                                    setThemeColour(it)
+                                                    overlay_menu = null
+                                                },
+                                                screen_width_dp
+                                            ) else null
                                         }
                                     }
                                 }
@@ -242,13 +248,6 @@ fun MainTab(weight_modifier: Modifier, expansion: Float, max_height: Float, thum
                 }
             }
 
-            var get_shutter_menu by remember { mutableStateOf<(@Composable () -> Unit)?>(null) }
-            var shutter_menu_open by remember { mutableStateOf(false) }
-            LaunchedEffect(expansion >= EXPANDED_THRESHOLD) {
-                shutter_menu_open = false
-                overlay_menu = null
-            }
-
             // Thumbnail overlay menu
             androidx.compose.animation.AnimatedVisibility(
                 overlay_menu != null,
@@ -276,14 +275,16 @@ fun MainTab(weight_modifier: Modifier, expansion: Float, max_height: Float, thum
 
                             menu?.Menu(
                                 PlayerServiceHost.status.song!!,
-                                seek_state,
+                                expansion,
                                 { 
                                     get_shutter_menu = it
                                     shutter_menu_open = true
-                                }
-                            ) {
-                                overlay_menu = null
-                            }
+                                },
+                                {
+                                    overlay_menu = null
+                                },
+                                seek_state
+                            )
                         }
                     }
                 }

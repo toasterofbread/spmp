@@ -23,6 +23,7 @@ import com.spectre7.spmp.MainActivity
 import com.spectre7.spmp.PlayerAccessibilityService
 import com.spectre7.spmp.R
 import com.spectre7.spmp.model.Settings
+import com.spectre7.spmp.model.Song
 import com.spectre7.utils.OnChangedEffect
 import com.spectre7.utils.Permissions
 import com.spectre7.utils.getString
@@ -34,13 +35,7 @@ enum class Page { ROOT, ACCESSIBILITY_SERVICE }
 @Composable
 fun PrefsPage(setPillAction: ((@Composable PillMenuActionGetter.() -> Unit)?) -> Unit, setOverlayPage: (page: OverlayPage) -> Unit) {
 
-    val interface_lang = remember {
-        SettingsValueState<Int>(
-            Settings.KEY_LANG_UI.name,
-            Settings.prefs,
-            Settings.getDefaultProvider()
-        )
-    }
+    val interface_lang = remember { SettingsValueState<Int>(Settings.KEY_LANG_UI.name).init(Settings.prefs, Settings.getDefaultProvider()) }
     var language_data by remember { mutableStateOf(MainActivity.languages.values.elementAt(interface_lang.value)) }
 
     OnChangedEffect(interface_lang.value) {

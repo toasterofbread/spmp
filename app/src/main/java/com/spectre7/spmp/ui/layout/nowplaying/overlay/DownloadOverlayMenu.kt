@@ -6,12 +6,18 @@ import androidx.compose.runtime.*
 import androidx.compose.ui.Modifier
 import com.spectre7.spmp.model.Song
 
-class DownloadOverlayMenu(): OverlayMenu() {
+class DownloadOverlayMenu: OverlayMenu() {
 
-    fun closeOnTap(): Boolean = false
+    override fun closeOnTap(): Boolean = false
     
     @Composable
-    fun Menu(song: Song, seek_state: Any, openShutterMenu: (@Composable () -> Unit) -> Unit, close: () -> Unit) {
+    override fun Menu(
+        song: Song,
+        expansion: Float,
+        openShutterMenu: (@Composable () -> Unit) -> Unit,
+        close: () -> Unit,
+        seek_state: Any
+    ) {
         Column(Modifier.fillMaxSize()) {
             Text("Download")
         }

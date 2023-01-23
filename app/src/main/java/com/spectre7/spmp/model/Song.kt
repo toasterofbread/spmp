@@ -179,6 +179,7 @@ class Song private constructor (
         }
         set(value) { registry.overrides.theme_colour = value?.toArgb() }
 
+    val original_title: String get() = _title
     var title: String
         get() {
             if (registry.overrides.title != null) {

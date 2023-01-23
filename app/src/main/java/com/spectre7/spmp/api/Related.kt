@@ -14,68 +14,74 @@ private data class RelatedItem(
     class IdItem(val id: String)
 }
 
-fun getMediaItemRelated(item: MediaItem): Result<List<RelatedGroup<MediaItem>>> {
+fun getMediaItemRelated(item: MediaItem): Result<List<List<RelatedGroup<MediaItem>>>> {
 
-    if (item.browse_endpoint == null) {
-        return Result.success(null)
-    }
-
-    val url = "https://music.youtube.com/youtubei/v1/browse"
-    val request = Request.Builder()
-        .url(if (ctoken == null) url else "$url?ctoken=$ctoken&continuation=$ctoken&type=next")
-        .headers(getYTMHeaders())
-        .post(getYoutubeiRequestBody(
-        """
+    var error: Result<List<List<RelatedGroup<MediaItem>>>>? = null
+    fun loadBrowseEndpoint(browse_endpoint: MediaItem.BrowseEndpoint): List<RelatedGroup<MediaItem>>? {
+        val request = Request.Builder()
+            .url("https://music.youtube.com/youtubei/v1/browse")
+            .headers(getYTMHeaders())
+            .post(getYoutubeiRequestBody(
+                """
             {
-                "browse": "${item.browse_endpoint.id}"
+                "browse": "${browse_endpoint.id}"
             }
         """
-        ))
-        .build()
-    
-    val response = client.newCall(request).execute()
-    if (response.code != 200) {
-        return Result.failure(response)
-    }
+            ))
+            .build()
 
-    val parsed = klaxon.parseArray<RelatedGroup<RelatedItem>>(response.body!!.charStream())!!
+        val response = client.newCall(request).execute()
+        if (response.code != 200) {
+            error = Result.failure(response)
+            return null
+        }
 
-    val ret = List(parsed.size) { i ->
-        val group = parsed[i]
-        
-        RelatedGroup(
-            group.title,
-            List(group.contents.size) { j ->
-                val item = group.contents[j]
+        val parsed = klaxon.parseArray<RelatedGroup<RelatedItem>>(response.body!!.charStream())!!
 
-                if (item.videoId != null) {
-                    Song.fromId(item.videoId).loadData()
-                }
-                else if (item.playlistId != null) {
-                    Playlist.fromId(item.playlistId).loadData()
-                }
-                else if (item.browseId != null) {
+        return List(parsed.size) { i ->
+            val group = parsed[i]
 
-                    val converted = convertBrowseId(item.browseId)
-                    if (!converted.success) {
-                        return Result.failure(converted.exception)
+            RelatedGroup(
+                group.title,
+                List(group.contents.size) { j ->
+                    val item = group.contents[j]
+
+                    if (item.videoId != null) {
+                        Song.fromId(item.videoId).loadData()
                     }
+                    else if (item.playlistId != null) {
+                        Playlist.fromId(item.playlistId).loadData()
+                    }
+                    else if (item.browseId != null) {
 
-                    val media_item: MediaItem
-                    if (converted.data == item.browseId) {
-                        media_item = Artist.fromId(item.data).apply { setBrowseEndpoint(item.browseId, MediaItem.BrowseEndpoint.Type.ARTIST) }
+                        val converted = convertBrowseId(item.browseId)
+                        if (!converted.success) {
+                            error = Result.failure(converted.exception)
+                            return null
+
+                        }
+
+                        val media_item: MediaItem
+                        if (converted.data == item.browseId) {
+                            media_item = Artist.fromId(converted.data).apply { addBrowseEndpoint(item.browseId, MediaItem.BrowseEndpoint.Type.ARTIST) }
+                        }
+                        else {
+                            media_item = Playlist.fromId(converted.data).apply { addBrowseEndpoint(item.browseId, MediaItem.BrowseEndpoint.Type.ALBUM) }
+                        }
+
+                        media_item.loadData()
                     }
                     else {
-                        media_item = Playlist.fromId(item.data).apply { setBrowseEndpoint(item.browseId, MediaItem.BrowseEndpoint.Type.ALBUM) }
+                        throw NotImplementedError(item.toString())
                     }
+                }
+            )
+        }
+    }
 
-                    media_item.loadData()
-                }
-                else {
-                    throw NotImplementedError(item)
-                }
-            }
-        )
+    val ret = mutableListOf<List<RelatedGroup<MediaItem>>>()
+    for (endpoint in item.browse_endpoints) {
+        ret.add(loadBrowseEndpoint(endpoint) ?: return error!!)
     }
 
     return Result.success(ret)

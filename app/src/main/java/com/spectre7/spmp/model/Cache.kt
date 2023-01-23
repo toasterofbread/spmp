@@ -18,8 +18,8 @@ class Cache {
         fun clean() {
             with (cache.edit()) {
                 val now = Instant.now()
-                for (item in cache.getAll()) {
-                    val parsed = parseCacheValue(item.value)
+                for (item in cache.all) {
+                    val parsed = parseCacheValue(item.value as String)
                     if (parsed.first.isBefore(now)) {
                         remove(item.key)
                     }
@@ -30,7 +30,7 @@ class Cache {
 
         fun reset() {
             with (cache.edit()) {
-                for (item in cache.getAll()) {
+                for (item in cache.all) {
                     remove(item.key)
                 }
                 apply()
@@ -38,15 +38,15 @@ class Cache {
         }
 
         fun set(key: String, value: String, lifetime: Duration?) {
-            val expiry: String = if (lifetime != null) Instant.now().plusSeconds(lifetime.toSeconds()).getEpochSecond().toString() else ""
+            val expiry: String = if (lifetime != null) Instant.now().plusSeconds(lifetime.toSeconds()).epochSecond.toString() else ""
             with (cache.edit()) {
-                putString(expiry.padStart(epoch_length, '0') + value)
+                putString(key, expiry.padStart(epoch_length, '0') + value)
                 apply()
             }
         }
 
-        fun get(key: String, default: String? = null) {
-            val value: String = cache.getString(key, null) ?: return default
+        fun get(key: String, default: () -> String?): String? {
+            val value: String = cache.getString(key, null) ?: return default()
             val parsed = parseCacheValue(value)
 
             if (parsed.first.isBefore(Instant.now())) {
@@ -55,10 +55,14 @@ class Cache {
                     remove(key)
                     apply()
                 }
-                return default
+                return default()
             }
 
             return parsed.second
+        }
+
+        fun get(key: String, default: String? = null): String? {
+            return get(key) { default }
         }
 
         private fun parseCacheValue(value: String): Pair<Instant, String> {

@@ -17,14 +17,13 @@ import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.unit.IntSize
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.zIndex
-import com.spectre7.spmp.MainActivity
 import com.spectre7.utils.NoRipple
 import com.spectre7.utils.Theme
 
 class PillMenuActionGetter {
     val background_colour: Color
     val content_colour: Color
-    val close: () -> Unit
+    val toggle: () -> Unit
 
     constructor(
         background_colour: Color,
@@ -33,7 +32,7 @@ class PillMenuActionGetter {
     ) {
         this.background_colour = background_colour
         this.content_colour = content_colour
-        this.close = close
+        this.toggle = close
     }
 
     constructor(
@@ -42,14 +41,14 @@ class PillMenuActionGetter {
     ) {
         this.background_colour = theme.getBackground(themed)
         this.content_colour = theme.getBackground(themed)
-        this.close = {}
+        this.toggle = {}
     }
 
     @Composable
     fun ActionButton(icon: ImageVector, action: () -> Unit) {
         IconButton(onClick = {
             action()
-            close()
+            toggle()
         }) {
             Icon(icon, null, tint = content_colour)
         }
@@ -61,8 +60,7 @@ private data class PillMenuParams(
     val top: Boolean,
     val left: Boolean,
     val alignment: Alignment,
-    val open_icon: ImageVector,
-    val close_icon: ImageVector,
+    val toggle_button: (@Composable PillMenuActionGetter.(modifier: Modifier) -> Unit)?,
     val enter: EnterTransition,
     val exit: ExitTransition,
     val action_count: Int,
@@ -80,45 +78,31 @@ fun PillMenu(
     left: Boolean = false,
     vertical: Boolean = false,
     container_modifier: Modifier = Modifier.fillMaxSize(),
+    toggle_button: (@Composable PillMenuActionGetter.(modifier: Modifier) -> Unit)? = null,
     modifier: Modifier = Modifier
 ) {
-
     val params = remember(top, left, vertical, action_count, expand_state != null) {
         val alignment: Alignment
-        val open_icon: ImageVector
-        val close_icon: ImageVector
         val enter: EnterTransition
         val exit: ExitTransition
 
         val tween = tween<IntSize>(250)
         if (vertical) {
             if (top) {
-                open_icon = Icons.Filled.KeyboardArrowDown
-                close_icon = Icons.Filled.KeyboardArrowUp
-
                 enter = expandVertically(tween, Alignment.Top)
                 exit = shrinkVertically(tween, Alignment.Top)
             }
             else {
-                open_icon = Icons.Filled.KeyboardArrowUp
-                close_icon = Icons.Filled.KeyboardArrowDown
-
                 enter = expandVertically(tween, Alignment.Bottom)
                 exit = shrinkVertically(tween, Alignment.Bottom)
             }
         }
         else {
             if (left) {
-                open_icon = Icons.Filled.KeyboardArrowRight
-                close_icon = Icons.Filled.KeyboardArrowLeft
-
                 enter = expandHorizontally(tween, Alignment.Start)
                 exit = shrinkHorizontally(tween, Alignment.Start)
             }
             else {
-                open_icon = Icons.Filled.KeyboardArrowLeft
-                close_icon = Icons.Filled.KeyboardArrowRight
-
                 enter = expandHorizontally(tween, Alignment.End)
                 exit = shrinkHorizontally(tween, Alignment.End)
             }
@@ -141,7 +125,7 @@ fun PillMenu(
             }
         }
 
-        PillMenuParams(vertical, top, left, alignment, open_icon, close_icon, enter, exit, action_count, expand_state)
+        PillMenuParams(vertical, top, left, alignment, toggle_button, enter, exit, action_count, expand_state)
     }
 
     InnerPillMenu(params, content_colour, background_colour, modifier, container_modifier, getAction)
@@ -157,8 +141,50 @@ private fun InnerPillMenu(
     getAction: @Composable PillMenuActionGetter.(Int, Int) -> Unit
 ) {
     Crossfade(params, Modifier.zIndex(1f)) {
-        val (vertical, top, left, alignment, open_icon, close_icon, enter, exit, action_count, expand_state) = it
+        val (vertical, top, left, alignment, toggle_button, enter, exit, action_count, expand_state) = it
         val align_start = (vertical && top) || (!vertical && left)
+
+        val getter = PillMenuActionGetter(background_colour, content_colour) { expand_state?.value = expand_state?.value != true }
+
+        @Composable
+        fun ToggleButton() {
+            if (toggle_button != null) {
+                toggle_button(getter, Modifier.background(background_colour, shape = CircleShape))
+            }
+            else {
+                NoRipple {
+                    val (open, close) = remember(top, left, vertical) {
+                        if (vertical) {
+                            if (top) {
+                                Pair(Icons.Filled.KeyboardArrowDown, Icons.Filled.KeyboardArrowUp)
+                            }
+                            else {
+                                Pair(Icons.Filled.KeyboardArrowUp, Icons.Filled.KeyboardArrowDown)
+                            }
+                        }
+                        else {
+                            if (left) {
+                                Pair(Icons.Filled.KeyboardArrowRight, Icons.Filled.KeyboardArrowLeft)
+                            }
+                            else {
+                                Pair(Icons.Filled.KeyboardArrowLeft, Icons.Filled.KeyboardArrowRight)
+                            }
+                        }
+                    }
+
+                    IconButton(
+                        onClick = {
+                            if (expand_state != null) expand_state.value = !expand_state.value
+                        },
+                        modifier = Modifier.background(background_colour, shape = CircleShape)
+                    ) {
+                        Crossfade(expand_state?.value == true) {
+                            Icon(if (it) close else open, null, tint = content_colour)
+                        }
+                    }
+                }
+            }
+        }
 
         Box(
             contentAlignment = alignment,
@@ -166,14 +192,7 @@ private fun InnerPillMenu(
         ) {
 
             if (expand_state != null) {
-                NoRipple {
-                    IconButton(
-                        onClick = { expand_state.value = !expand_state.value },
-                        modifier = Modifier.background(background_colour, shape = CircleShape)
-                    ) {
-                        Icon(open_icon, "", tint = content_colour)
-                    }
-                }
+                ToggleButton()
             }
 
             AnimatedVisibility(
@@ -183,29 +202,17 @@ private fun InnerPillMenu(
             ) {
 
                 @Composable
-                fun closeButton() {
-                    if (expand_state != null) {
-                        NoRipple {
-                            IconButton(onClick = { expand_state.value = false }) {
-                                Icon(close_icon, "", tint = content_colour)
-                            }
-                        }
-                    }
-                }
-
-                @Composable
                 fun content() {
                     if (align_start) {
-                        closeButton()
+                        ToggleButton()
                     }
 
-                    val getter = PillMenuActionGetter(background_colour, content_colour) { expand_state?.value = false }
                     for (i in 0 until action_count) {
                         getAction(getter, i, action_count)
                     }
 
                     if (!align_start) {
-                        closeButton()
+                        ToggleButton()
                     }
                 }
 

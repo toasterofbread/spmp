@@ -91,7 +91,7 @@
     <string name="s_key_stream_audio_quality">Stream audio quality</string>
     <string name="s_sub_stream_audio_quality">Target audio quality when streaming music</string>
     <string name="s_key_download_audio_quality">Download audio quality</string>
-    <string name="s_sub_download_audio_quality">Default target audio quality when downloading music</string>
+    <string name="s_sub_download_audio_quality">Default audio quality when downloading music</string>
 
     <string name="s_option_audio_quality_high">Hight</string>
     <string name="s_option_audio_quality_medium">Medium</string>

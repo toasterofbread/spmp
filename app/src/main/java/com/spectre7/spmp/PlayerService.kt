@@ -385,16 +385,16 @@ class PlayerService : Service() {
         }
     }
 
-    private fun onSongAdded(media_item: MediaItem) {
-        for (i in 0 until player.mediaItemCount) {
-            val item = player.getMediaItemAt(i)
-            if (item == media_item) {
-                onSongAdded(item.localConfiguration!!.tag as Song, i)
-                return
-            }
-        }
-        throw RuntimeException()
-    }
+//    private fun onSongAdded(media_item: MediaItem) {
+//        for (i in 0 until player.mediaItemCount) {
+//            val item = player.getMediaItemAt(i)
+//            if (item == media_item) {
+//                onSongAdded(item.localConfiguration!!.tag as Song, i)
+//                return
+//            }
+//        }
+//        throw RuntimeException()
+//    }
 
     private fun onSongRemoved(song: Song, index: Int) {
         for (listener in queue_listeners) {
@@ -409,10 +409,14 @@ class PlayerService : Service() {
     }
 
     fun getSong(index: Int): Song? {
-        return try {
-            player.getMediaItemAt(index).localConfiguration?.tag as Song?
-        } catch (e: IndexOutOfBoundsException) {
-            null
+        if (index >= player.mediaItemCount) {
+            return null
+        }
+
+        return when (val tag = player.getMediaItemAt(index).localConfiguration?.tag) {
+            is IndexedValue<*> -> tag.value as Song?
+            is Song? -> tag
+            else -> throw IllegalStateException()
         }
     }
 

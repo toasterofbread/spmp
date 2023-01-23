@@ -43,9 +43,9 @@ enum class Settings {
             } as T
         }
 
-        fun <T> getEnum(enum_key: String, preferences: SharedPreferences = prefs, default: T? = null): T {
-            val default_value: Int = default.ordinal ?: getDefault(enum_key)
-            return T.values()[preferences.getInt(enum_key.name, default_value)]
+        inline fun <reified T: Enum<T>> getEnum(enum_key: Settings, preferences: SharedPreferences = prefs, default: T? = null): T {
+            val default_value: Int = default?.ordinal ?: getDefault(enum_key)
+            return enumValues<T>()[preferences.getInt(enum_key.name, default_value)]
         }
 
         fun <T> getDefault(enum_key: Settings): T {

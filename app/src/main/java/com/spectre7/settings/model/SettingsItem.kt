@@ -27,13 +27,15 @@ import com.spectre7.utils.*
 abstract class SettingsItem {
     lateinit var context: Context
 
-    abstract fun initialiseValueStates(prefs: SharedPreferences, default_provider: (String) -> T)
+    abstract fun initialiseValueStates(prefs: SharedPreferences, default_provider: (String) -> Any)
 
     @Composable
     abstract fun GetItem(theme: Theme, open_page: (Int) -> Unit)
 }
 
 class SettingsGroup(var title: String?): SettingsItem() {
+    override fun initialiseValueStates(prefs: SharedPreferences, default_provider: (String) -> Any) {}
+
     @Composable
     override fun GetItem(theme: Theme, open_page: (Int) -> Unit) {
         Spacer(Modifier.requiredHeight(20.dp))
@@ -50,7 +52,7 @@ class SettingsValueState<T>(val key: String) {
     internal var autosave: Boolean = true
 
     var value: T
-        get() _value!!
+        get() = _value!!
         set(new_value) {
             if (_value == null) {
                 throw IllegalStateException()
@@ -61,9 +63,9 @@ class SettingsValueState<T>(val key: String) {
             }
         }
 
-    internal fun init(prefs: SharedPreferences, default_provider: (String) -> Any) {
+    fun init(prefs: SharedPreferences, default_provider: (String) -> Any): SettingsValueState<T> {
         if (_value != null) {
-            return
+            return this
         }
 
         this.prefs = prefs
@@ -77,6 +79,8 @@ class SettingsValueState<T>(val key: String) {
             String::class -> prefs.getString(key, default as String)
             else -> throw java.lang.ClassCastException()
         } as T
+
+        return this
     }
 
     internal fun save() {

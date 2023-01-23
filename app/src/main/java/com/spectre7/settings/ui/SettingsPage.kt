@@ -25,6 +25,7 @@ class SettingsPage(val title: String, val items: List<SettingsItem>, val modifie
 
             for (item in items) {
                 item.context = settings_interface.context
+                item.initialiseValueStates(settings_interface.prefs, settings_interface.default_provider)
                 item.GetItem(settings_interface.theme, openPage)
             }
         }

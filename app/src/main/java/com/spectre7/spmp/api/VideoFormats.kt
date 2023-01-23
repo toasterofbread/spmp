@@ -24,21 +24,22 @@ private fun checkUrl(url: String): Boolean {
     return response.code == 200 && !is_invalid
 }
 
-data class VideoFormat(
+data class VideoFormat (
     val itag: Int,
     val mimeType: String,
-    val averageBitrate: Long,
+    val averageBitrate: Int,
     val quality: String,
     val qualityLabel: String? = null,
     val fps: Int? = null,
     val audioQuality: String? = null,
-    private val signatureCypher: String
+    val signatureCipher: String? = null,
+    val url: String? = null
 ) {
-    val audio_only: Boolean get() = mimeType.startswith("audio/")
     lateinit var stream_url: String
+    val audio_only: Boolean get() = mimeType.startsWith("audio")
 }
 
-fun getVideoFormats(id: String, audio_only: Boolean): Result<MutableList<VideoFormat>> {
+fun getVideoFormats(id: String, selectFormat: (List<VideoFormat>) -> VideoFormat): Result<VideoFormat> {
 
     val RESPONSE_DATA_START = "ytInitialPlayerResponse = "
     val request = Request.Builder()
@@ -47,8 +48,7 @@ fun getVideoFormats(id: String, audio_only: Boolean): Result<MutableList<VideoFo
         .header("User-Agent", DATA_API_USER_AGENT)
         .build()
     
-    fun getFormats(): Result<MutableListOf<VideoFormat>> {
-
+    fun getFormats(itag: Int?): Result<Pair<SignatureCipherDecrypter, List<VideoFormat>>> {
         val response = client.newCall(request).execute()
         if (response.code != 200) {
             return Result.failure(response)
@@ -56,44 +56,56 @@ fun getVideoFormats(id: String, audio_only: Boolean): Result<MutableList<VideoFo
 
         val html = response.body!!.string()
 
-        val decrypter_result = SignatureCypherDecrypter.fromPlayerPage(html)
+        val decrypter_result = SignatureCipherDecrypter.fromPlayerPage(html)
         if (!decrypter_result.success) {
             return Result.failure(decrypter_result.exception)
         }
-        val decrypter = decrypter_result.data
 
         val start = html.indexOf(RESPONSE_DATA_START) + RESPONSE_DATA_START.length
         val end = html.indexOf("};", start) + 1
         val streaming_data = klaxon.parseJsonObject(html.substring(start, end).reader()).obj("streamingData")!!
 
-        val ret = mutableListOf<VideoFormat>()
-
-        for (group in listOf("adaptiveFormats", "formats")) {
-            for (format in streaming_data.array<JsonObject>("adaptiveFormats")!!) {
-                if (audio_only && !format.string("mimeType")!!.startswith("audio/")) {
-                    continue
+        if (itag != null) {
+            for (group in listOf("adaptiveFormats", "formats")) {
+                for (format in streaming_data.array<JsonObject>(group) ?: listOf()) {
+                    if (format.int("itag") == itag) {
+                        return Result.success(Pair(
+                            decrypter_result.data,
+                            listOf(klaxon.parseFromJsonObject(format)!!)
+                        ))
+                    }
                 }
-                
-                val parsed = klaxon.parseFromJsonObject(format)
-                parsed.stream_url = decrypter.decryptSignatureCypher(parsed.signatureCypher)
-                
-                if (ret.isEmpty() && !checkUrl(parsed.stream_url)) {
-                    return Result.success(ret)
-                }
-
-                ret.add(parsed)
             }
+            return Result.failure(RuntimeException(klaxon.toJsonString(streaming_data)))
         }
-
-        return Result.success(ret)
+        else {
+            return Result.success(Pair(
+                decrypter_result.data,
+                klaxon.parseFromJsonArray<VideoFormat>(streaming_data.array<JsonObject>("adaptiveFormats")!!)!!
+                + klaxon.parseFromJsonArray(streaming_data.array<JsonObject>("formats")!!)!!
+            ))
+        }
     }
+
+    var itag: Int? = null
 
     // For some reason the URL is occasionally invalid (GET either fails with 403 or yields the URL itself)
     // I can't tell why this occurs, but just getting the URL again always seems to produce a valid one
     for (i in 0 until MAX_RETRIES) {
-        val formats = getUrl()
-        if (!formats.success || formats.data.isNotEmpty()) {
-            return formats
+        val result = getFormats(itag)
+        if (!result.success) {
+            return Result.failure(result.exception)
+        }
+
+        val (decrypter, formats) = result.data
+
+        val selected_format = if (itag == null) selectFormat(formats) else formats.first()
+        itag = selected_format.itag
+
+        selected_format.stream_url = selected_format.url ?: decrypter.decryptSignatureCipher(selected_format.signatureCipher!!)
+
+        if (checkUrl(selected_format.stream_url)) {
+            return Result.success(selected_format)
         }
     }
 
@@ -101,7 +113,7 @@ fun getVideoFormats(id: String, audio_only: Boolean): Result<MutableList<VideoFo
 }
 
 // Based on https://github.com/wayne931121/youtube_downloader
-class SignatureCypherDecrypter(base_js: String) {
+class SignatureCipherDecrypter(base_js: String) {
     private val to_execute: MutableList<Pair<String, Int>> = mutableListOf()
     private val elements: MutableMap<String, (sig: MutableList<Char>, arg: Int) -> Unit> = mutableMapOf()
 
@@ -163,7 +175,7 @@ class SignatureCypherDecrypter(base_js: String) {
     }
 
     companion object {
-        fun fromPlayerPage(player_html: String): Result<SignatureCypherDecrypter> {
+        fun fromPlayerPage(player_html: String): Result<SignatureCipherDecrypter> {
             val url_start = player_html.indexOf("\"jsUrl\":\"") + 9
             val url_end = player_html.indexOf(".js\"", url_start) + 3
 
@@ -177,14 +189,14 @@ class SignatureCypherDecrypter(base_js: String) {
                 return Result.failure(response)
             }
 
-            return Result.success(SignatureCypherDecrypter(response.body!!.string()))
+            return Result.success(SignatureCipherDecrypter(response.body!!.string()))
         }
     }
 
-    fun decryptSignatureCypher(signature_cypher: String): String {
+    fun decryptSignatureCipher(signature_cipher: String): String {
         var url: String? = null
         var s: String? = null
-        for (param in signature_cypher.split('&')) {
+        for (param in signature_cipher.split('&')) {
             val split = param.split("=")
             when (split[0]) {
                 "url" -> url = URLDecoder.decode(split[1], "UTF-8")
@@ -192,12 +204,12 @@ class SignatureCypherDecrypter(base_js: String) {
             }
         }
 
-        val cypher_list = s!!.toMutableList()
+        val cipher_list = s!!.toMutableList()
         for (execute in to_execute) {
-            elements[execute.first]!!.invoke(cypher_list, execute.second)
+            elements[execute.first]!!.invoke(cipher_list, execute.second)
         }
 
-        val decrypted = URLEncoder.encode(cypher_list.joinToString(""), "UTF-8")
+        val decrypted = URLEncoder.encode(cipher_list.joinToString(""), "UTF-8")
         return url!! + "&alr=yes&sig=$decrypted"
     }
 }

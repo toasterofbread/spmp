@@ -16,7 +16,7 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.unit.dp
 import androidx.palette.graphics.Palette
 import com.spectre7.spmp.MainActivity
-import com.spectre7.utils.getContrasted
+import com.spectre7.spmp.model.Song
 import com.spectre7.utils.getPaletteColour
 
 class PaletteSelectorOverlayMenu(
@@ -25,10 +25,16 @@ class PaletteSelectorOverlayMenu(
     val onColourSelected: (Color) -> Unit
 ): OverlayMenu() {
 
-    fun closeOnTap(): Boolean = false
+    override fun closeOnTap(): Boolean = true
 
     @Composable
-    fun Menu(song: Song, seek_state: Any, openShutterMenu: (@Composable () -> Unit) -> Unit, close: () -> Unit) {
+    override fun Menu(
+        song: Song,
+        expansion: Float,
+        openShutterMenu: (@Composable () -> Unit) -> Unit,
+        close: () -> Unit,
+        seek_state: Any
+    ) {
         if (palette != null) {
             var colourpick_requested by remember { mutableStateOf(false) }
 

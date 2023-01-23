@@ -121,7 +121,7 @@ fun getStatusBarHeight(context: Context): Dp {
 }
 
 @Composable
-fun Marquee(autoscroll: Boolean = true, content: @Composable () -> Unit) {
+fun Marquee(autoscroll: Boolean = true, modifier: Modifier = Modifier, content: @Composable () -> Unit) {
     MeasureUnconstrainedView(viewToMeasure = content) { content_width: Int, _ ->
         val scroll_state = rememberScrollState()
 
@@ -144,7 +144,7 @@ fun Marquee(autoscroll: Boolean = true, content: @Composable () -> Unit) {
                 animation_state = !animation_state
             }
 
-            Row(Modifier.horizontalScroll(scroll_state, false)) {
+            Row(modifier.horizontalScroll(scroll_state, false)) {
                 content()
             }
         }
@@ -169,7 +169,7 @@ fun Marquee(autoscroll: Boolean = true, content: @Composable () -> Unit) {
             } }
 
             Row(
-                Modifier
+                modifier
                     .scrollable(
                         scroll_state,
                         Orientation.Horizontal,

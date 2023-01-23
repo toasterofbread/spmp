@@ -9,29 +9,32 @@ import android.os.Looper
 import android.view.WindowManager
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
+import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.Error
+import androidx.compose.material3.Icon
+import androidx.compose.material3.IconButton
 import androidx.compose.material3.Surface
-import androidx.compose.runtime.getValue
-import androidx.compose.runtime.mutableStateOf
-import androidx.compose.runtime.setValue
+import androidx.compose.material3.Text
+import androidx.compose.runtime.*
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.graphics.Color
 import androidx.lifecycle.Lifecycle
 import com.beust.klaxon.JsonObject
 import com.beust.klaxon.Klaxon
 import com.chaquo.python.Python
 import com.chaquo.python.android.AndroidPlatform
 import com.google.android.exoplayer2.database.StandaloneDatabaseProvider
-import com.spectre7.spmp.api.SignatureCypherDecrypter
 import com.spectre7.spmp.model.Settings
 import com.spectre7.spmp.model.Cache
+import com.spectre7.spmp.ui.component.PillMenu
 import com.spectre7.spmp.ui.layout.PlayerView
 import com.spectre7.spmp.ui.theme.MyApplicationTheme
+import com.spectre7.utils.NoRipple
 import com.spectre7.utils.Theme
-import okhttp3.OkHttp
-import okhttp3.OkHttpClient
-import okhttp3.Request
+import com.spectre7.utils.getContrasted
 import java.util.*
-import kotlin.concurrent.thread
 
 class MainActivity : ComponentActivity() {
 
@@ -88,6 +91,8 @@ class MainActivity : ComponentActivity() {
                     if (PlayerServiceHost.service_connected) {
                         PlayerView()
                     }
+
+                    error_manager.Indicator(Color.Red)
                 }
             }
         }
@@ -121,7 +126,7 @@ class MainActivity : ComponentActivity() {
         val prefs: SharedPreferences get() = instance!!.prefs
         val theme: Theme get() = context.theme
         val languages: Map<String, Map<String, String>> get() = context.languages
-        val network = NetworkConnectivityManager()
+        val error_manager = ErrorManager()
         val database get() = context.database
 
         val ui_language: String get() = languages.keys.elementAt(Settings.get(Settings.KEY_LANG_UI))
@@ -144,42 +149,37 @@ class MainActivity : ComponentActivity() {
     }
 }
 
-class NetworkConnectivityManager {
-    private val retry_callbacks = mutableListOf<() -> Unit>()
-    private val error_callbacks = mutableListOf<() -> Unit>()
+class ErrorManager {
+    private val current_errors = mutableStateMapOf<Throwable, (resolve: () -> Unit) -> Unit>()
 
-    var error by mutableStateOf<Exception?>(null)
-    val connected: Boolean get() = error == null
-
-    fun onError(e: Exception) {
-        error = e
-        for (callback in error_callbacks) {
-            callback()
+    @Composable
+    fun Indicator(colour: Color) {
+        AnimatedVisibility(current_errors.isNotEmpty()) {
+            PillMenu(
+                action_count = current_errors.size - 1,
+                getAction = { i, _ ->
+                    Text(current_errors.keys.elementAt(i).toString())
+                },
+                toggle_button = {
+                    NoRipple {
+                        IconButton({
+                            if (current_errors.size == 1) { println("what") } else toggle()
+                        }, it) {
+                            Icon(Icons.Filled.Error, null)
+                        }
+                    }
+                },
+                expand_state = remember { mutableStateOf(false) },
+                background_colour = colour,
+                content_colour = colour.getContrasted(),
+                top = false,
+                left = true,
+                vertical = true
+            )
         }
     }
-    fun onRetry() {
-        if (!connected) {
-            error = null
-            for (callback in retry_callbacks) {
-                callback()
-                if (!connected) {
-                    break
-                }
-            }
-        }
-    }
 
-    fun addErrorCallback(callback: () -> Unit) {
-        error_callbacks.add(callback)
-    }
-    fun removeErrorCallback(callback: () -> Unit) {
-        error_callbacks.remove(callback)
-    }
-
-    fun addRetryCallback(callback: () -> Unit) {
-        retry_callbacks.add(callback)
-    }
-    fun removeRetryCallback(callback: () -> Unit) {
-        retry_callbacks.remove(callback)
+    fun onError(e: Throwable, retry: (resolve: () -> Unit) -> Unit) {
+        current_errors[e] = retry
     }
 }

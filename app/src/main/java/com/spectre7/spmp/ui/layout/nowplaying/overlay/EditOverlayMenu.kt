@@ -36,21 +36,27 @@ import com.spectre7.utils.getString
 import kotlinx.coroutines.launch
 import kotlin.math.absoluteValue
 
-class EditOverlayMenu(): OverlayMenu() {
+class EditOverlayMenu: OverlayMenu() {
 
-    fun closeOnTap(): Boolean = false
+    override fun closeOnTap(): Boolean = false
 
     @OptIn(ExperimentalPagerApi::class)
     @Composable
-    fun Menu(song: Song, seek_state: Any, openShutterMenu: (@Composable () -> Unit) -> Unit, close: () -> Unit) {
+    override fun Menu(
+        song: Song,
+        expansion: Float,
+        openShutterMenu: (@Composable () -> Unit) -> Unit,
+        close: () -> Unit,
+        seek_state: Any
+    ) {
         val tab_state = rememberPagerState()
         val scope = rememberCoroutineScope()
 
-        var main_title = remember { mutableStateOf(TextFieldValue()) }
-        var main_artist_id = remember { mutableStateOf(TextFieldValue()) }
+        val main_title = remember { mutableStateOf(TextFieldValue()) }
+        val main_artist_id = remember { mutableStateOf(TextFieldValue()) }
 
-        var lyrics_title = remember { mutableStateOf(TextFieldValue()) }
-        var lyrics_artist = remember { mutableStateOf(TextFieldValue()) }
+        val lyrics_title = remember { mutableStateOf(TextFieldValue()) }
+        val lyrics_artist = remember { mutableStateOf(TextFieldValue()) }
 
         var lyrics_use_main by remember { mutableStateOf(false) }
 

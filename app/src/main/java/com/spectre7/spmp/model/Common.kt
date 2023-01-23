@@ -26,11 +26,36 @@ abstract class MediaItem {
         data class Thumbnail(val url: String)
     }
 
-    class BrowseEndpoint(val id: String, val type: Type) {
+    class BrowseEndpoint {
+
+        val id: String
+        val type: Type
+
+        constructor(id: String, type: Type) {
+            this.id = id
+            this.type = type
+        }
+
+        constructor(id: String, type_name: String) {
+            this.id = id
+            this.type = Type.fromString(type_name)
+        }
+
         enum class Type {
             CHANNEL,
             ARTIST,
-            ALBUM
+            ALBUM;
+
+            companion object {
+                fun fromString(type_name: String): Type {
+                    return when (type_name) {
+                        "MUSIC_PAGE_TYPE_USER_CHANNEL" -> CHANNEL
+                        "MUSIC_PAGE_TYPE_ARTIST" -> ARTIST
+                        "MUSIC_PAGE_TYPE_ALBUM" -> ALBUM
+                        else -> throw NotImplementedError(type_name)
+                    }
+                }
+            }
         }
     }
 
@@ -53,34 +78,22 @@ abstract class MediaItem {
     val id: String get() = _getId()
     val url: String get() = _getUrl()
 
-    private var _browse_endpoint: BrowseEndpoint? = null
-    var browse_endpoint: BrowseEndpoint?
-        get() = _browse_endpoint
-        private set(value) {
-            _browse_endpoint = value
+    private val _browse_endpoints = mutableListOf<BrowseEndpoint>()
+    val browse_endpoints: List<BrowseEndpoint>
+        get() = _browse_endpoints
+
+    fun addBrowseEndpoint(id: String, type: BrowseEndpoint.Type): Boolean {
+        for (endpoint in _browse_endpoints) {
+            if (endpoint.id == id && endpoint.type == type) {
+                return false
+            }
         }
-    
-    fun setBrowseEndpoint(id: String, type: BrowseEndpoint.Type): Boolean {
-        if (browse_endpoint == null) {
-            return false
-        }
-        browse_endpoint = BrowseEndpoint(id, type)
+        _browse_endpoints.add(BrowseEndpoint(id, type))
+        return true
     }
 
-    fun setBrowseEndpoint(id: String, type: String) {
-        if (browse_endpoint == null) {
-            return false
-        }
-
-        browse_endpoint = BrowseEndpoint(
-            id, 
-            when (type) {
-                "MUSIC_PAGE_TYPE_USER_CHANNEL" -> BrowseEndpoint.Type.CHANNEL
-                "MUSIC_PAGE_TYPE_ARTIST" -> BrowseEndpoint.Type.ARTIST
-                "MUSIC_PAGE_TYPE_ALBUM" -> BrowseEndpoint.Type.ALBUM
-                else -> throw NotImplementedError(type)
-            }
-        )
+    fun addBrowseEndpoint(id: String, type_name: String): Boolean {
+        return addBrowseEndpoint(id, BrowseEndpoint.Type.fromString(type_name))
     }
 
     fun thumbnailLoaded(hq: Boolean): Boolean {

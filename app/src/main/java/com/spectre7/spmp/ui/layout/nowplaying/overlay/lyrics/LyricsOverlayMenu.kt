@@ -77,7 +77,7 @@ class LyricsOverlayMenu(
         }
 
         AnimatedVisibility(lyrics != null && !search_menu_open, Modifier.zIndex(10f), enter = fadeIn(), exit = fadeOut()) {
-            PillMenu(
+            remember { PillMenu() }.PillMenu(
                 3,
                 { index, _ ->
                     when (index) {
@@ -94,7 +94,7 @@ class LyricsOverlayMenu(
                                     rememberRipple(bounded = false, radius = 20.dp),
                                     onClick = {
                                         show_furigana = !show_furigana
-                                        this@PillMenu.toggle()
+                                        is_open = !is_open
                                     })
                             )
                         }

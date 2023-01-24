@@ -29,6 +29,10 @@ class SettingsInterface(
     private var current_page by mutableStateOf(root_page)
     private val page_stack = mutableListOf<Int>()
 
+    fun resetKeysOnPage(page: Int = current_page) {
+        getPage(page)!!.resetKeys(this)
+    }
+
     fun goBack() {
         if (page_stack.size > 0) {
             val target_page = page_stack.removeLast()

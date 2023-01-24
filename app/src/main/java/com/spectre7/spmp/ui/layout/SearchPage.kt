@@ -39,7 +39,7 @@ import com.spectre7.spmp.model.Song
 import com.spectre7.spmp.model.MediaItem
 import com.spectre7.utils.getString
 import com.spectre7.utils.setAlpha
-import com.spectre7.spmp.ui.component.PillMenuActionGetter
+import com.spectre7.spmp.ui.component.PillMenu
 import kotlin.concurrent.thread
 
 val SEARCH_FIELD_FONT_SIZE: TextUnit = 18.sp
@@ -51,7 +51,7 @@ enum class ResourceType {
 
 @OptIn(ExperimentalComposeUiApi::class)
 @Composable
-fun SearchPage(setPillAction: ((@Composable PillMenuActionGetter.() -> Unit)?) -> Unit, setOverlayPage: (page: OverlayPage) -> Unit) {
+fun SearchPage(pill_menu: PillMenu, setOverlayPage: (page: OverlayPage) -> Unit) {
 
     var tab_index by remember { mutableStateOf(0) }
     val keyboardController = LocalSoftwareKeyboardController.current

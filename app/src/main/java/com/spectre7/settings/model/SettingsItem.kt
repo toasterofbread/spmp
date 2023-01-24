@@ -1,37 +1,58 @@
-package com.spectre7.composesettings.model
+package com.spectre7.settings.model
 
 import android.content.Context
 import android.content.SharedPreferences
 import androidx.compose.animation.Animatable
 import androidx.compose.animation.Crossfade
+import androidx.compose.animation.core.SpringSpec
 import androidx.compose.animation.core.TweenSpec
+import androidx.compose.animation.core.animateFloatAsState
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.interaction.MutableInteractionSource
 import androidx.compose.foundation.layout.*
+import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.ArrowDropDown
+import androidx.compose.material.icons.filled.Edit
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.*
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.graphics.graphicsLayer
+import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.*
-import com.github.krottv.compose.sliders.DefaultThumb
-import com.github.krottv.compose.sliders.DefaultTrack
-import com.github.krottv.compose.sliders.SliderValueHorizontal
+import com.github.krottv.compose.sliders.*
 import com.spectre7.utils.*
+import kotlin.math.roundToInt
 
 abstract class SettingsItem {
     lateinit var context: Context
+
+    private var initialised = false
+    fun initialise(context: Context, prefs: SharedPreferences, default_provider: (String) -> Any) {
+        if (initialised) {
+            return
+        }
+        this.context = context
+        initialiseValueStates(prefs, default_provider)
+        initialised = true
+    }
+
+    protected abstract fun initialiseValueStates(prefs: SharedPreferences, default_provider: (String) -> Any)
+    abstract fun resetValues()
 
     @Composable
     abstract fun GetItem(theme: Theme, open_page: (Int) -> Unit)
 }
 
 class SettingsGroup(var title: String?): SettingsItem() {
+    override fun initialiseValueStates(prefs: SharedPreferences, default_provider: (String) -> Any) {}
+    override fun resetValues() {}
+
     @Composable
     override fun GetItem(theme: Theme, open_page: (Int) -> Unit) {
         Spacer(Modifier.requiredHeight(20.dp))
@@ -41,26 +62,36 @@ class SettingsGroup(var title: String?): SettingsItem() {
     }
 }
 
-class SettingsValueState<T>(
-    val key: String,
-    private val prefs: SharedPreferences,
-    private val default_provider: (String) -> T
-) {
-    private var _value: T by mutableStateOf(getInitialValue())
-    internal var autosave: Boolean = true
+class SettingsValueState<T>(val key: String) {
+
+    var autosave: Boolean = true
+
+    private lateinit var prefs: SharedPreferences
+    private lateinit var defaultProvider: (String) -> Any
+    private var _value: T? by mutableStateOf(null)
 
     var value: T
-        get() = _value
+        get() = _value!!
         set(new_value) {
+            if (_value == null) {
+                throw IllegalStateException("State has not been initialised")
+            }
             _value = new_value
             if (autosave) {
                 save()
             }
         }
 
-    private fun getInitialValue(): T {
-        val default = default_provider(key)
-        return when (default!!::class) {
+    fun init(prefs: SharedPreferences, defaultProvider: (String) -> Any): SettingsValueState<T> {
+        if (_value != null) {
+            return this
+        }
+
+        this.prefs = prefs
+        this.defaultProvider = defaultProvider
+
+        val default = defaultProvider(key) as T
+        _value = when (default!!::class) {
             Boolean::class -> prefs.getBoolean(key, default as Boolean)
             Float::class -> prefs.getFloat(key, default as Float)
             Int::class -> prefs.getInt(key, default as Int)
@@ -68,9 +99,18 @@ class SettingsValueState<T>(
             String::class -> prefs.getString(key, default as String)
             else -> throw java.lang.ClassCastException()
         } as T
+
+        return this
     }
 
-    internal fun save() {
+    fun reset() {
+        value = defaultProvider(key) as T
+        if (!autosave) {
+            save()
+        }
+    }
+
+    fun save() {
         with (prefs.edit()) {
             when (value!!::class) {
                 Boolean::class -> putBoolean(key, value as Boolean)
@@ -91,6 +131,14 @@ class SettingsItemToggle(
     val subtitle: String?,
     val checker: ((target: Boolean, (allowChange: Boolean) -> Unit) -> Unit)? = null
 ): SettingsItem() {
+
+    override fun initialiseValueStates(prefs: SharedPreferences, default_provider: (String) -> Any) {
+        state.init(prefs, default_provider)
+    }
+
+    override fun resetValues() {
+        state.reset()
+    }
 
     @Composable
     override fun GetItem(theme: Theme, open_page: (Int) -> Unit) {
@@ -135,19 +183,116 @@ class SettingsItemToggle(
 }
 
 class SettingsItemSlider(
-    val state: SettingsValueState<Float>,
+    val state: SettingsValueState<out Number>,
     val title: String?,
     val subtitle: String?,
     val min_label: String? = null,
     val max_label: String? = null,
-    val steps: Int = 0
+    val steps: Int = 0,
+    val range: ClosedFloatingPointRange<Float> = 0f .. 1f,
+    val getValueText: ((value: Float) -> String?)? = { it.roundToInt().toString() }
 ): SettingsItem() {
+
+    private var is_int: Boolean = false
+    private var value_state by mutableStateOf(0f)
+
+    fun setValue(value: Float) {
+        value_state = value
+        if (is_int) {
+            (state as SettingsValueState<Int>).value = value.roundToInt()
+        } else {
+            (state as SettingsValueState<Float>).value = value
+        }
+    }
+
+    fun getValue(): Float {
+        return value_state
+    }
+
+    override fun initialiseValueStates(prefs: SharedPreferences, default_provider: (String) -> Any) {
+        state.init(prefs, default_provider)
+        value_state = state.value.toFloat()
+        is_int = when (default_provider(state.key)) {
+            is Float -> false
+            is Int -> true
+            else -> throw NotImplementedError(default_provider(state.key).javaClass.name)
+        }
+    }
+
+    override fun resetValues() {
+        state.reset()
+        value_state = state.value.toFloat()
+    }
 
     @Composable
     override fun GetItem(theme: Theme, open_page: (Int) -> Unit) {
+        var show_edit_dialog by remember { mutableStateOf(false) }
+
+        if (show_edit_dialog) {
+            var text by remember { mutableStateOf((if (is_int) getValue().roundToInt() else getValue()).toString()) }
+            var error by remember { mutableStateOf<String?>(null) }
+
+            AlertDialog(
+                {
+                    show_edit_dialog = false
+                },
+                confirmButton = {
+                    FilledTonalButton(
+                        {
+                            try {
+                                setValue(if (is_int) text.toInt().toFloat() else text.toFloat())
+                                show_edit_dialog = false
+                            }
+                            catch(_: NumberFormatException) {}
+                        },
+                        enabled = error == null
+                    ) {
+                        Text("Done")
+                    }
+                },
+                dismissButton = { TextButton( { show_edit_dialog = false } ) { Text("Cancel") } },
+                title = { Text(title ?: "Edit field") },
+                text = {
+                    OutlinedTextField(
+                        value = text,
+                        isError = error != null,
+                        label = {
+                            Crossfade(error) { error_text ->
+                                if (error_text != null) {
+                                    Text(error_text)
+                                }
+                            }
+                        },
+                        onValueChange = {
+                            text = it
+
+                            try {
+                                val value: Float = if (is_int) text.toInt().toFloat() else text.toFloat()
+                                if (!range.contains(value)) {
+                                    error = "Value is out of range ($range)"
+                                    return@OutlinedTextField
+                                }
+
+                                error = null
+                            }
+                            catch(_: NumberFormatException) {
+                                error = if (is_int) "Value is not an integer" else "Value is not a float"
+                            }
+                        },
+                        singleLine = true
+                    )
+                }
+            )
+        }
+
         Column(Modifier.fillMaxWidth()) {
             if (title != null) {
-                Text(title)
+                Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.SpaceBetween) {
+                    Text(title)
+                    IconButton({ show_edit_dialog = true }, Modifier.size(25.dp)) {
+                        Icon(Icons.Filled.Edit, null)
+                    }
+                }
             }
             if (subtitle != null) {
                 Text(subtitle, color = theme.getOnBackground(false).setAlpha(0.75))
@@ -161,18 +306,65 @@ class SettingsItemSlider(
                     Text(min_label, fontSize = 12.sp)
                 }
                 SliderValueHorizontal(
-                    value = state.value,
-                    onValueChange = {
-                        state.value = it
-                    },
+                    value = getValue(),
+                    onValueChange = { setValue(it) },
                     onValueChangeFinished = {
                         state.save()
                     },
                     thumbSizeInDp = DpSize(12.dp, 12.dp),
                     track = { a, b, c, d, e -> DefaultTrack(a, b, c, d, e, theme.getVibrantAccent().setAlpha(0.5), theme.getVibrantAccent(), colorTickProgress = theme.getVibrantAccent().getContrasted().setAlpha(0.5)) },
-                    thumb = { a, b, c, d, e -> DefaultThumb(a, b, c, d, e, theme.getVibrantAccent(), 1f) },
+                    thumb = { modifier, offset, interaction_source, enabled, thumb_size ->
+                        val colour = theme.getVibrantAccent()
+                        val scale_on_press = 1.15f
+                        val animation_spec = SpringSpec<Float>(0.65f)
+                        val value_text = getValueText?.invoke(getValue())
+
+                        if (value_text != null) {
+                            MeasureUnconstrainedView({ Text(value_text) }) { width, height ->
+
+                                var is_pressed by remember { mutableStateOf(false) }
+                                interaction_source.ListenOnPressed { is_pressed = it }
+                                val scale: Float by animateFloatAsState(
+                                    if (is_pressed) scale_on_press else 1f,
+                                    animationSpec = animation_spec
+                                )
+
+                                Column(
+                                    Modifier
+                                        .offset(with(LocalDensity.current) { offset - (width.toDp() / 2) + 12.dp })
+                                        .requiredHeight(55.dp)
+                                        .graphicsLayer(scale, scale),
+                                    verticalArrangement = Arrangement.Bottom,
+                                    horizontalAlignment = Alignment.CenterHorizontally
+                                ) {
+                                    Spacer(
+                                        Modifier
+                                            .size(12.dp)
+                                            .background(
+                                                if (enabled) colour else
+                                                    colour.setAlpha(0.6), CircleShape
+                                            )
+                                    )
+                                    Text(value_text)
+                                }
+                            }
+                        }
+                        else {
+                            DefaultThumb(
+                                modifier,
+                                offset,
+                                interaction_source,
+                                true,
+                                thumb_size,
+                                colour,
+                                scale_on_press,
+                                animation_spec
+                            )
+                        }
+                    },
                     steps = steps,
-                    modifier = Modifier.weight(1f)
+                    modifier = Modifier.weight(1f),
+                    valueRange = range
                 )
                 if (max_label != null) {
                     Text(max_label, fontSize = 12.sp)
@@ -190,6 +382,14 @@ class SettingsItemMultipleChoice(
     val radio_style: Boolean,
     val get_choice: (Int) -> String,
 ): SettingsItem() {
+
+    override fun initialiseValueStates(prefs: SharedPreferences, default_provider: (String) -> Any) {
+        state.init(prefs, default_provider)
+    }
+
+    override fun resetValues() {
+        state.reset()
+    }
 
     @OptIn(ExperimentalMaterial3Api::class)
     @Composable
@@ -274,6 +474,14 @@ class SettingsItemDropdown(
     val getButtonItem: ((Int) -> String)? = null,
     val getItem: (Int) -> String,
 ): SettingsItem() {
+
+    override fun initialiseValueStates(prefs: SharedPreferences, default_provider: (String) -> Any) {
+        state.init(prefs, default_provider)
+    }
+
+    override fun resetValues() {
+        state.reset()
+    }
 
     @Composable
     override fun GetItem(theme: Theme, open_page: (Int) -> Unit) {
@@ -385,6 +593,10 @@ class SettingsItemSubpage(
     val target_page: Int,
 ): SettingsItem() {
 
+    override fun initialiseValueStates(prefs: SharedPreferences, default_provider: (String) -> Any) {}
+
+    override fun resetValues() {}
+
     @Composable
     override fun GetItem(theme: Theme, open_page: (Int) -> Unit) {
         Button(modifier = Modifier.fillMaxWidth(), onClick = {
@@ -402,10 +614,10 @@ class SettingsItemSubpage(
 }
 
 class SettingsItemAccessibilityService(
-    val text_enabled: String,
-    val text_disabled: String,
-    val button_enable: String,
-    val button_disable: String,
+    val enabled_text: String,
+    val disabled_text: String,
+    val enable_button: String,
+    val disable_button: String,
     val service_bridge: AccessibilityServiceBridge
 ): SettingsItem() {
     interface AccessibilityServiceBridge {
@@ -414,6 +626,9 @@ class SettingsItemAccessibilityService(
         fun isEnabled(context: Context): Boolean
         fun setEnabled(enabled: Boolean)
     }
+
+    override fun initialiseValueStates(prefs: SharedPreferences, default_provider: (String) -> Any) {}
+    override fun resetValues() {}
 
     @Composable
     override fun GetItem(theme: Theme, open_page: (Int) -> Unit) {
@@ -441,11 +656,11 @@ class SettingsItemAccessibilityService(
                         .fillMaxWidth(),
                     horizontalArrangement = Arrangement.SpaceBetween, verticalAlignment = Alignment.CenterVertically
                 ) {
-                    Text(if (enabled) text_enabled else text_disabled)
+                    Text(if (enabled) enabled_text else disabled_text)
                     Button({ service_bridge.setEnabled(!enabled) },
                         colors = ButtonDefaults.buttonColors(if (enabled) theme.getAccent() else theme.getBackground(false), if (enabled) theme.getOnAccent() else theme.getOnBackground(false))
                     ) {
-                        Text(if (enabled) button_disable else button_enable)
+                        Text(if (enabled) disable_button else enable_button)
                     }
                 }
             }

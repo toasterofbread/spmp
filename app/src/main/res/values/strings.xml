@@ -55,6 +55,9 @@
     <string name="s_key_data_lang">Data language</string>
     <string name="s_sub_data_lang">Language used for song and artist titles, etc. (if available)</string>
 
+    <string name="s_key_vol_steps">Volume steps</string>
+    <string name="s_sub_vol_steps">Amount of steps when changing volume</string>
+
     <string name="s_group_theming">Theming</string>
 
     <string name="s_key_accent_source">Accent colour</string>
@@ -86,6 +89,17 @@
     <string name="s_key_lyrics_extra_padding">Extra padding</string>
     <string name="s_sub_lyrics_extra_padding">Add extra padding above and below lyrics for increased scrolling range</string>
 
+    <string name="s_group_audio_video">Audio / Video</string>
+
+    <string name="s_key_stream_audio_quality">Stream audio quality</string>
+    <string name="s_sub_stream_audio_quality">Target audio quality when streaming music</string>
+    <string name="s_key_download_audio_quality">Download audio quality</string>
+    <string name="s_sub_download_audio_quality">Default audio quality when downloading music</string>
+
+    <string name="s_option_audio_quality_high">Hight</string>
+    <string name="s_option_audio_quality_medium">Medium</string>
+    <string name="s_option_audio_quality_low">Low</string>
+
     <string name="s_group_other">Other</string>
 
     <string name="s_page_acc_service">Accessibility service</string>
@@ -100,7 +114,7 @@
     <string name="s_option_vol_intercept_mode_always">When media session is active</string>
     <string name="s_option_vol_intercept_mode_app">When the app is open</string>
     <string name="s_option_vol_intercept_mode_never">Never</string>
-
+    
     <string name="s_key_acc_screen_off">Enable while screen is off</string>
     <string name="s_sub_acc_screen_off">Requires root privledges</string>
 

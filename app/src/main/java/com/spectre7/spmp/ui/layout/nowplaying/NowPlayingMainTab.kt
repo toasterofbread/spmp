@@ -1,6 +1,7 @@
 package com.spectre7.spmp.ui.layout.nowplaying
 
-import android.content.Intent
+import MainOverlayMenu
+import com.spectre7.spmp.ui.layout.nowplaying.overlay.OverlayMenu
 import android.content.SharedPreferences
 import androidx.activity.compose.BackHandler
 import androidx.compose.animation.*
@@ -11,7 +12,6 @@ import androidx.compose.foundation.clickable
 import androidx.compose.foundation.gestures.detectTapGestures
 import androidx.compose.foundation.interaction.MutableInteractionSource
 import androidx.compose.foundation.layout.*
-import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.*
@@ -30,10 +30,8 @@ import androidx.compose.ui.graphics.painter.Painter
 import androidx.compose.ui.input.pointer.pointerInput
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.layout.onSizeChanged
-import androidx.compose.ui.platform.LocalClipboardManager
 import androidx.compose.ui.platform.LocalConfiguration
 import androidx.compose.ui.res.painterResource
-import androidx.compose.ui.text.AnnotatedString
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.*
@@ -43,18 +41,11 @@ import com.spectre7.spmp.MainActivity
 import com.spectre7.spmp.PlayerServiceHost
 import com.spectre7.spmp.R
 import com.spectre7.spmp.model.Settings
-import com.spectre7.spmp.model.Song
 import com.spectre7.spmp.ui.layout.MINIMISED_NOW_PLAYING_HEIGHT
-import com.spectre7.spmp.ui.layout.nowplaying.overlay.DownloadMenu
-import com.spectre7.spmp.ui.layout.nowplaying.overlay.EditMenu
-import com.spectre7.spmp.ui.layout.nowplaying.overlay.lyrics.LyricsDisplay
-import com.spectre7.spmp.ui.layout.nowplaying.overlay.PaletteSelectorMenu
 import com.spectre7.utils.*
 import kotlin.concurrent.thread
 import kotlin.math.max
 import kotlin.math.min
-
-enum class NowPlayingOverlayMenu { NONE, MAIN, PALETTE, LYRICS, DOWNLOAD, EDIT }
 
 const val OVERLAY_MENU_ANIMATION_DURATION: Int = 200
 
@@ -179,11 +170,18 @@ fun MainTab(weight_modifier: Modifier, expansion: Float, max_height: Float, thum
             .fillMaxHeight(0.5f * max(expansion, (MINIMISED_NOW_PLAYING_HEIGHT + 20f) / max_height))
     ) {
 
-        var overlay_menu by remember { mutableStateOf(NowPlayingOverlayMenu.NONE) }
+        var overlay_menu by remember { mutableStateOf<OverlayMenu?>(null) }
         var colourpick_callback by remember { mutableStateOf<((Color?) -> Unit)?>(null) }
 
         LaunchedEffect(expansion > 0f) {
-            overlay_menu = NowPlayingOverlayMenu.NONE
+            overlay_menu = null
+        }
+
+        var get_shutter_menu by remember { mutableStateOf<(@Composable () -> Unit)?>(null) }
+        var shutter_menu_open by remember { mutableStateOf(false) }
+        LaunchedEffect(expansion >= EXPANDED_THRESHOLD) {
+            shutter_menu_open = false
+            overlay_menu = null
         }
 
         Box(Modifier.aspectRatio(1f)) {
@@ -206,10 +204,17 @@ fun MainTab(weight_modifier: Modifier, expansion: Float, max_height: Float, thum
                                         indication = null,
                                         interactionSource = remember { MutableInteractionSource() }
                                     ) {
-                                        // TODO | Make this less hardcoded
-                                        if (overlay_menu == NowPlayingOverlayMenu.NONE || overlay_menu == NowPlayingOverlayMenu.MAIN || overlay_menu == NowPlayingOverlayMenu.PALETTE) {
-                                            overlay_menu =
-                                                if (overlay_menu == NowPlayingOverlayMenu.NONE) NowPlayingOverlayMenu.MAIN else NowPlayingOverlayMenu.NONE
+                                        if (overlay_menu == null || overlay_menu!!.closeOnTap()) {
+                                            overlay_menu = if (overlay_menu == null) MainOverlayMenu(
+                                                { overlay_menu = it },
+                                                theme_palette,
+                                                { colourpick_callback = it },
+                                                {
+                                                    setThemeColour(it)
+                                                    overlay_menu = null
+                                                },
+                                                screen_width_dp
+                                            ) else null
                                         }
                                     }
                                 }
@@ -243,16 +248,9 @@ fun MainTab(weight_modifier: Modifier, expansion: Float, max_height: Float, thum
                 }
             }
 
-            var get_shutter_menu by remember { mutableStateOf<(@Composable () -> Unit)?>(null) }
-            var shutter_menu_open by remember { mutableStateOf(false) }
-            LaunchedEffect(expansion >= EXPANDED_THRESHOLD) {
-                shutter_menu_open = false
-                overlay_menu = NowPlayingOverlayMenu.NONE
-            }
-
             // Thumbnail overlay menu
             androidx.compose.animation.AnimatedVisibility(
-                overlay_menu != NowPlayingOverlayMenu.NONE,
+                overlay_menu != null,
                 enter = fadeIn(tween(OVERLAY_MENU_ANIMATION_DURATION)),
                 exit = fadeOut(tween(OVERLAY_MENU_ANIMATION_DURATION))
             ) {
@@ -268,56 +266,25 @@ fun MainTab(weight_modifier: Modifier, expansion: Float, max_height: Float, thum
                         contentAlignment = Alignment.Center
                     ) {
                         Crossfade(overlay_menu) { menu ->
-
-                            if (menu != NowPlayingOverlayMenu.NONE) {
+                            if (menu != null) {
                                 BackHandler {
-                                    overlay_menu = NowPlayingOverlayMenu.NONE
+                                    overlay_menu = null
                                     colourpick_callback = null
                                 }
                             }
 
-                            when (menu) {
-                                NowPlayingOverlayMenu.MAIN ->
-                                    mainOverlayMenu({
-                                        overlay_menu = it
-                                    }) {
-                                        shutter_menu_open = true
-                                        get_shutter_menu = it
-                                    }
-                                NowPlayingOverlayMenu.PALETTE ->
-                                    PaletteSelectorMenu(theme_palette, {
-                                        colourpick_callback = it
-                                    }) { colour ->
-                                        setThemeColour(colour)
-                                        overlay_menu = NowPlayingOverlayMenu.NONE
-                                    }
-                                NowPlayingOverlayMenu.LYRICS ->
-                                    if (PlayerServiceHost.status.m_song != null) {
-                                        LyricsDisplay(
-                                            PlayerServiceHost.status.song!!,
-                                            { overlay_menu = NowPlayingOverlayMenu.NONE },
-                                            (screen_width_dp - (NOW_PLAYING_MAIN_PADDING * 2) - (15.dp * expansion * 2)).value * 0.9.dp,
-                                            seek_state
-                                        ) {
-                                            get_shutter_menu = it
-                                            shutter_menu_open = true
-                                        }
-                                    }
-                                NowPlayingOverlayMenu.DOWNLOAD ->
-                                    if (PlayerServiceHost.status.m_song != null) {
-                                        DownloadMenu(PlayerServiceHost.status.song!!) {
-                                            overlay_menu = NowPlayingOverlayMenu.NONE
-                                        }
-                                    }
-                                NowPlayingOverlayMenu.EDIT ->
-                                    if (PlayerServiceHost.status.m_song != null) {
-                                        EditMenu(PlayerServiceHost.status.song!!, {
-                                            get_shutter_menu = it
-                                            shutter_menu_open = true
-                                        }) { overlay_menu = NowPlayingOverlayMenu.NONE }
-                                    }
-                                NowPlayingOverlayMenu.NONE -> {}
-                            }
+                            menu?.Menu(
+                                PlayerServiceHost.status.song!!,
+                                expansion,
+                                { 
+                                    get_shutter_menu = it
+                                    shutter_menu_open = true
+                                },
+                                {
+                                    overlay_menu = null
+                                },
+                                seek_state
+                            )
                         }
                     }
                 }
@@ -546,123 +513,6 @@ fun MainTab(weight_modifier: Modifier, expansion: Float, max_height: Float, thum
                         }
                     }
                 }
-            }
-        }
-    }
-}
-
-@Composable
-fun mainOverlayMenu(setOverlayMenu: (NowPlayingOverlayMenu) -> Unit, openShutterMenu: (@Composable () -> Unit) -> Unit) {
-    Column(
-        Modifier
-            .fillMaxSize()
-            .padding(20.dp),
-        verticalArrangement = Arrangement.SpaceBetween
-    ) {
-        PlayerServiceHost.status.m_song?.artist?.Preview(false)
-
-        Row(
-            Modifier.fillMaxWidth(),
-            horizontalArrangement = Arrangement.SpaceEvenly
-        ) {
-
-            val button_modifier = Modifier
-                .background(
-                    MainActivity.theme.getAccent(),
-                    CircleShape
-                )
-                .size(40.dp)
-                .padding(8.dp)
-            val button_colour =
-                ColorFilter.tint(MainActivity.theme.getOnAccent())
-
-            Box(
-                button_modifier.clickable {
-                    setOverlayMenu(NowPlayingOverlayMenu.LYRICS)
-                }
-            ) {
-                Image(
-                    painterResource(R.drawable.ic_music_note), null,
-                    colorFilter = button_colour
-                )
-            }
-
-            Box(
-                button_modifier.clickable {
-                    setOverlayMenu(NowPlayingOverlayMenu.PALETTE)
-                }
-            ) {
-                Image(
-                    painterResource(R.drawable.ic_palette), null,
-                    colorFilter = button_colour
-                )
-            }
-
-            Box(
-                button_modifier.clickable {
-                    setOverlayMenu(NowPlayingOverlayMenu.DOWNLOAD)
-                }
-            ) {
-                Image(
-                    painterResource(R.drawable.ic_download), null,
-                    colorFilter = button_colour
-                )
-            }
-
-            Box(
-                button_modifier.clickable {
-                    setOverlayMenu(NowPlayingOverlayMenu.EDIT)
-                }
-            ) {
-                Icon(
-                    Icons.Filled.Edit,
-                    null,
-                    tint = MainActivity.theme.getOnAccent()
-                )
-            }
-
-            Box(
-                button_modifier.clickable { openShutterMenu {
-                    if (PlayerServiceHost.status.m_song != null) {
-                        val song: Song = remember { PlayerServiceHost.status.m_song!! }
-
-                        @Composable
-                        fun infoField(name: String, value: String) {
-                            Text("$name: $value")
-
-                            val clipboard = LocalClipboardManager.current
-                            IconButton(onClick = {
-                                clipboard.setText(AnnotatedString(value))
-                                sendToast("Copied $name to clipboard")
-                            }) {
-                                Icon(Icons.Filled.ContentCopy, null)
-                            }
-
-                            val share_intent = Intent.createChooser(Intent().apply {
-                                action = Intent.ACTION_SEND
-                                putExtra(Intent.EXTRA_TEXT, value)
-                                type = "text/plain"
-                            }, null)
-                            IconButton(onClick = {
-                                MainActivity.context.startActivity(share_intent)
-                            }) {
-                                Icon(Icons.Filled.Share, null)
-                            }
-                        }
-
-                        Column {
-                            Row(verticalAlignment = Alignment.CenterVertically) {
-                                infoField("ID", song.id)
-                            }
-                        }
-                    }
-                }}
-            ) {
-                Icon(
-                    Icons.Filled.Info,
-                    null,
-                    tint = MainActivity.theme.getOnAccent()
-                )
             }
         }
     }

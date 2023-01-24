@@ -28,12 +28,12 @@ import com.spectre7.utils.OnChangedEffect
 import com.spectre7.utils.Permissions
 import com.spectre7.utils.getString
 import com.spectre7.utils.sendToast
-import com.spectre7.spmp.ui.component.PillMenuActionGetter
+import com.spectre7.spmp.ui.component.PillMenu
 
 enum class Page { ROOT, ACCESSIBILITY_SERVICE }
 
 @Composable
-fun PrefsPage(setPillAction: ((@Composable PillMenuActionGetter.() -> Unit)?) -> Unit, setOverlayPage: (page: OverlayPage) -> Unit) {
+fun PrefsPage(pill_menu: PillMenu, setOverlayPage: (page: OverlayPage) -> Unit) {
 
     val interface_lang = remember { SettingsValueState<Int>(Settings.KEY_LANG_UI.name).init(Settings.prefs, Settings.getDefaultProvider()) }
     var language_data by remember { mutableStateOf(MainActivity.languages.values.elementAt(interface_lang.value)) }
@@ -43,6 +43,30 @@ fun PrefsPage(setPillAction: ((@Composable PillMenuActionGetter.() -> Unit)?) ->
     }
 
     PlayerAccessibilityService.isEnabled(MainActivity.context)
+
+    val pill_menu_action_overrider: @Composable PillMenu.(i: Int) -> Boolean = remember { { i ->
+        if (i == 0) {
+            ActionButton(
+                Icons.Filled.ArrowBack
+            ) {
+                settings_interface.goBack()
+            }
+            true
+        }
+        else {
+            false
+        }
+    } }
+
+    LaunchedEffect(Unit) {
+        pill_menu.addExtraAction {
+            ActionButton(
+                Icons.Filled.Clean
+            ) {
+                TODO("Reset current page values")
+            }
+        }
+    }
 
     lateinit var settings_interface: SettingsInterface
     settings_interface = remember {
@@ -82,6 +106,8 @@ fun PrefsPage(setPillAction: ((@Composable PillMenuActionGetter.() -> Unit)?) ->
                             val language = language_data.entries.elementAt(i)
                             "${language.key} / ${language.value}"
                         },
+
+                        Volume steps, // TODO
 
                         SettingsGroup(getString(R.string.s_group_theming)),
 
@@ -281,16 +307,10 @@ fun PrefsPage(setPillAction: ((@Composable PillMenuActionGetter.() -> Unit)?) ->
             }, 
             { page: Int ->
                 if (page == Page.ROOT.ordinal) {
-                    setPillAction(null)
+                    pill_menu.removeActionOverrider(pill_menu_action_overrider)
                 }
                 else {
-                    setPillAction {
-                        ActionButton(
-                            Icons.Filled.ArrowBack
-                        ) {
-                            settings_interface.goBack()
-                        }
-                    }
+                    pill_menu.addActionOverrider(pill_menu_action_overrider)
                 }
             },
             {

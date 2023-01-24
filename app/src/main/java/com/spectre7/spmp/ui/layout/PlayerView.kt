@@ -45,7 +45,6 @@ import com.spectre7.spmp.model.Song
 import com.spectre7.spmp.ui.component.AutoResizeText
 import com.spectre7.spmp.ui.component.FontSizeRange
 import com.spectre7.spmp.ui.component.PillMenu
-import com.spectre7.spmp.ui.component.PillMenuActionGetter
 import com.spectre7.spmp.ui.layout.nowplaying.NowPlaying
 import com.spectre7.utils.*
 import java.lang.Integer.min
@@ -173,12 +172,15 @@ val feed_refresh_mutex = ReentrantLock()
 @Composable
 fun PlayerView() {
     var overlay_page by remember { mutableStateOf(OverlayPage.NONE) }
-    var overlayPagePillAction: (@Composable PillMenuActionGetter.() -> Unit)? by remember { mutableStateOf(null) }
+    val pill_menu = remember { PillMenu(
+        top = false
+    ) }
     val minimised_now_playing_height = remember { Animatable(0f) }
 
     LaunchedEffect(overlay_page) {
         if (overlay_page == OverlayPage.NONE) {
-            overlayPagePillAction = null
+            pill_menu.clearExtraActions()
+            pill_menu.clearActionOverriders()
         }
     }
 
@@ -192,38 +194,26 @@ fun PlayerView() {
 
         Box(Modifier.padding(bottom = minimised_now_playing_height.value.dp)) {
 
-            PillMenu(
+            pill_menu.PillMenu(
                 if (overlay_page != OverlayPage.NONE) 1 else 2,
-                { index, action_count ->
-                    if (overlay_page != OverlayPage.NONE && overlayPagePillAction != null) {
-                        overlayPagePillAction?.invoke(
-                            PillMenuActionGetter(
-                                MainActivity.theme.getAccent(),
-                                MainActivity.theme.getAccent().getContrasted(),
-                                {}
-                            )
-                        )
-                    }
-                    else {
-                        ActionButton(
-                            if (action_count == 1) Icons.Filled.Close else
-                                when (index) {
-                                    0 -> Icons.Filled.Settings
-                                    else -> Icons.Filled.Search
-                                }
-                        ) {
-                            overlay_page = if (action_count == 1) OverlayPage.NONE else
-                                when (index) {
-                                    0 -> OverlayPage.SETTINGS
-                                    else -> OverlayPage.SEARCH
-                                }
-                        }
+                { index ->
+                    ActionButton(
+                        if (overlay_page != OverlayPage.NONE) Icons.Filled.Close else
+                            when (index) {
+                                0 -> Icons.Filled.Settings
+                                else -> Icons.Filled.Search
+                            }
+                    ) {
+                        overlay_page = if (overlay_page != OverlayPage.NONE) OverlayPage.NONE else
+                            when (index) {
+                                0 -> OverlayPage.SETTINGS
+                                else -> OverlayPage.SEARCH
+                            }
                     }
                 },
                 if (overlay_page == OverlayPage.NONE) remember { mutableStateOf(false) } else null,
                 MainActivity.theme.getAccent(),
                 MainActivity.theme.getAccent().getContrasted(),
-                top = false
             )
 
             val main_page_rows = remember { mutableStateListOf<YtItemRow>() }
@@ -297,12 +287,8 @@ fun PlayerView() {
                     }
                     when (it) {
                         OverlayPage.NONE -> MainPage(main_page_rows, refreshFeed)
-                        OverlayPage.SEARCH -> SearchPage({
-                            overlayPagePillAction = it
-                        }) { overlay_page = it }
-                        OverlayPage.SETTINGS -> PrefsPage({
-                            overlayPagePillAction = it
-                        }) { overlay_page = it }
+                        OverlayPage.SEARCH -> SearchPage(pill_menu) { overlay_page = it }
+                        OverlayPage.SETTINGS -> PrefsPage(pill_menu) { overlay_page = it }
                     }
                 }
             }

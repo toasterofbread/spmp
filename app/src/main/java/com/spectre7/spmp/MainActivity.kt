@@ -155,15 +155,15 @@ class ErrorManager {
     @Composable
     fun Indicator(colour: Color) {
         AnimatedVisibility(current_errors.isNotEmpty()) {
-            PillMenu(
+            remember{ PillMenu() }.PillMenu(
                 action_count = current_errors.size - 1,
                 getAction = { i, _ ->
                     Text(current_errors.keys.elementAt(i).toString())
                 },
-                toggle_button = {
+                toggleButton = {
                     NoRipple {
                         IconButton({
-                            if (current_errors.size == 1) { println("what") } else toggle()
+                            if (current_errors.size == 1) { println("what") } else is_open = !is_open
                         }, it) {
                             Icon(Icons.Filled.Error, null)
                         }

@@ -26,7 +26,6 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.RectangleShape
 import androidx.compose.ui.platform.LocalConfiguration
 import androidx.compose.ui.text.font.FontWeight
-import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
@@ -196,15 +195,15 @@ fun PlayerView() {
 
             pill_menu.PillMenu(
                 if (overlay_page != OverlayPage.NONE) 1 else 2,
-                { index ->
+                { index, action_count ->
                     ActionButton(
-                        if (overlay_page != OverlayPage.NONE) Icons.Filled.Close else
+                        if (action_count == 1) Icons.Filled.Close else
                             when (index) {
                                 0 -> Icons.Filled.Settings
                                 else -> Icons.Filled.Search
                             }
                     ) {
-                        overlay_page = if (overlay_page != OverlayPage.NONE) OverlayPage.NONE else
+                        overlay_page = if (action_count == 1) OverlayPage.NONE else
                             when (index) {
                                 0 -> OverlayPage.SETTINGS
                                 else -> OverlayPage.SEARCH

@@ -314,7 +314,7 @@ class PlayerService : Service() {
     }
 
     private fun getCustomVolumeChangeAmount(): Float {
-        return 1.0 / Settings.get<Int>(Settings.KEY_VOLUME_STEPS).toFloat()
+        return 1f / Settings.get<Int>(Settings.KEY_VOLUME_STEPS).toFloat()
     }
 
     private fun showVolumeNotification(increasing: Boolean, volume: Float) {

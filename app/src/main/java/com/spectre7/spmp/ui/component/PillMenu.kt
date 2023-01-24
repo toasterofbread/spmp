@@ -1,5 +1,6 @@
 package com.spectre7.spmp.ui.component
 
+import android.annotation.SuppressLint
 import androidx.compose.animation.*
 import androidx.compose.animation.core.tween
 import androidx.compose.foundation.background
@@ -18,74 +19,85 @@ import androidx.compose.ui.unit.IntSize
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.zIndex
 import com.spectre7.utils.NoRipple
-import com.spectre7.utils.Theme
 
 class PillMenu(
-    val action_count: Int = 0,
-    val getAction: @Composable PillMenu.(i: Int) -> Unit = {},
-    val expand_state: MutableState<Boolean>? = null,
-    val background_colour: Color = Color.Unspecified,
-    val content_colour: Color = Color.Unspecified,
-    val top: Boolean = false,
-    val left: Boolean = false,
-    val vertical: Boolean = false,
-    val container_modifier: Modifier = Modifier.fillMaxSize(),
-    val toggleButton: (@Composable PillMenu.(modifier: Modifier) -> Unit)? = null,
-    val modifier: Modifier = Modifier
+    private val action_count: Int = 0,
+    private val getAction: @Composable (Action.(i: Int, action_count: Int) -> Unit) = { _, _ -> },
+    private val expand_state: MutableState<Boolean>? = null,
+    private val background_colour: Color = Color.Unspecified,
+    private val content_colour: Color = Color.Unspecified,
+    private val top: Boolean = false,
+    private val left: Boolean = false,
+    private val vertical: Boolean = false,
+    private val container_modifier: Modifier = Modifier.fillMaxSize(),
+    private val toggleButton: (@Composable Action.(modifier: Modifier) -> Unit)? = null,
+    private val modifier: Modifier = Modifier
 ) {
 
-    val is_open: Boolean
+    var is_open: Boolean
         get() = expand_state?.value == true
         set(value) {
             expand_state?.value = value
         }
 
-    private val extra_actions = mutableListOf<@Composable PillMenu.() -> Unit>()
-    private val action_overriders = mutableListOf<@Composable PillMenu.(i: Int) -> Boolean>()
+    private val extra_actions = mutableStateListOf<@Composable Action.(action_count: Int) -> Unit>()
+    private val action_overriders = mutableStateListOf<@Composable Action.(i: Int) -> Boolean>()
 
-    fun addExtraAction(action: @Composable PillMenu.() -> Unit) {
+    fun addExtraAction(action: @Composable Action.(action_count: Int) -> Unit) {
         extra_actions.add(action)
     }
-    fun removeExtraAction(action: @Composable PillMenu.() -> Unit) {
+    fun removeExtraAction(action: @Composable Action.(action_count: Int) -> Unit) {
         extra_actions.remove(action)
     }
     fun clearExtraActions() {
         extra_actions.clear()
     }
 
-    fun addActionOverrider(overrider: @Composable PillMenu.(i: Int) -> Boolean) {
+    fun addActionOverrider(overrider: @Composable Action.(i: Int) -> Boolean) {
         action_overriders.add(overrider)
     }
-    fun removeActionOverrider(overrider: @Composable PillMenu.(i: Int) -> Boolean) {
+    fun removeActionOverrider(overrider: @Composable Action.(i: Int) -> Boolean) {
         action_overriders.remove(overrider)
     }
     fun clearActionOverriders() {
         action_overriders.clear()
     }
 
-    @Composable
-    fun ActionButton(icon: ImageVector, action: () -> Unit) {
-        IconButton(onClick = {
-            action()
-            is_open = !is_open
-        }) {
-            Icon(icon, null, tint = content_colour)
+    inner class Action(
+        val background_colour: Color,
+        val content_colour: Color
+    ) {
+        var is_open: Boolean
+            get() = this@PillMenu.is_open
+            set(value) {
+                this@PillMenu.is_open = value
+            }
+
+        @Composable
+        fun ActionButton(icon: ImageVector, action: () -> Unit) {
+            IconButton(onClick = {
+                is_open = false
+                action()
+            }) {
+                Icon(icon, null, tint = content_colour)
+            }
         }
     }
 
+    @SuppressLint("NotConstructor")
     @Composable
     fun PillMenu(
-        action_count: Int = action_count,
-        getAction: @Composable PillMenu.(i: Int) -> Unit = getAction,
+        action_count: Int = this.action_count,
+        getAction: @Composable() (Action.(i: Int, action_count: Int) -> Unit) = this.getAction,
         expand_state: MutableState<Boolean>?,
-        background_colour: Color = background_colour,
-        content_colour: Color = content_colour,
-        top: Boolean = top,
-        left: Boolean = left,
-        vertical: Boolean = vertical,
-        container_modifier: Modifier = ontainer_modifier,
-        toggleButton: (@Composable PillMenu.(modifier: Modifier) -> Unit)? = toggleButton,
-        modifier: Modifier = modifier,
+        background_colour: Color = this.background_colour,
+        content_colour: Color = this.content_colour,
+        top: Boolean = this.top,
+        left: Boolean = this.left,
+        vertical: Boolean = this.vertical,
+        container_modifier: Modifier = this.container_modifier,
+        toggleButton: (@Composable Action.(modifier: Modifier) -> Unit)? = this.toggleButton,
+        modifier: Modifier = this.modifier,
     ) {
         val params = remember(top, left, vertical, action_count, expand_state != null) {
             val alignment: Alignment
@@ -131,7 +143,7 @@ class PillMenu(
                 }
             }
 
-            PillMenuParams(vertical, top, left, alignment, toggleButton, enter, exit, action_count, expand_state)
+            CrossfadeParams(vertical, top, left, alignment, toggleButton, enter, exit, action_count, expand_state)
         }
 
         InnerPillMenu(params, content_colour, background_colour, modifier, container_modifier, getAction)
@@ -142,7 +154,7 @@ class PillMenu(
         val top: Boolean,
         val left: Boolean,
         val alignment: Alignment,
-        val toggleButton: (@Composable PillMenu.(modifier: Modifier) -> Unit)?,
+        val toggleButton: (@Composable Action.(modifier: Modifier) -> Unit)?,
         val enter: EnterTransition,
         val exit: ExitTransition,
         val action_count: Int,
@@ -151,13 +163,15 @@ class PillMenu(
 
     @Composable
     private fun InnerPillMenu(
-        params: PillMenuParams,
+        params: CrossfadeParams,
         content_colour: Color,
         background_colour: Color,
         modifier: Modifier,
         container_modifier: Modifier,
-        getAction: @Composable PillMenu.(i: Int) -> Unit
+        getAction: @Composable Action.(i: Int, action_count: Int) -> Unit
     ) {
+        val action = remember(background_colour, content_colour) { Action(background_colour, content_colour) }
+
         Crossfade(params, Modifier.zIndex(1f)) {
             val (vertical, top, left, alignment, toggleButton, enter, exit, action_count, expand_state) = it
             val align_start = (vertical && top) || (!vertical && left)
@@ -166,7 +180,7 @@ class PillMenu(
             fun ToggleButton() {
                 if (expand_state != null) {
                     if (toggleButton != null) {
-                        toggleButton(getter, Modifier.background(background_colour, shape = CircleShape))
+                        toggleButton(action, Modifier.background(background_colour, shape = CircleShape))
                     }
                     else {
                         NoRipple {
@@ -191,12 +205,12 @@ class PillMenu(
 
                             IconButton(
                                 onClick = {
-                                    if (expand_state != null) expand_state.value = !expand_state.value
+                                    expand_state.value = !expand_state.value
                                 },
                                 modifier = Modifier.background(background_colour, shape = CircleShape)
                             ) {
-                                Crossfade(expand_state?.value == true) {
-                                    Icon(if (it) close else open, null, tint = content_colour)
+                                Crossfade(expand_state.value) { expanded ->
+                                    Icon(if (expanded) close else open, null, tint = content_colour)
                                 }
                             }
                         }
@@ -222,26 +236,31 @@ class PillMenu(
                         if (align_start) {
                             ToggleButton()
                         }
+                        else {
+                            for (extra in extra_actions) {
+                                extra(action, action_count)
+                            }
+                        }
 
                         for (i in 0 until action_count) {
                             var overridden = false
                             for (overrider in action_overriders) {
-                                if (overrider(this, i)) {
+                                if (overrider(action, i)) {
                                     overridden = true
                                     break
                                 }
                             }
                             if (!overridden) {
-                                getAction(this, i)
+                                getAction(action, i, action_count)
                             }
-                        }
-
-                        for (extra in extra_actions) {
-                            extra(this)
                         }
 
                         if (!align_start) {
                             ToggleButton()
+                        } else {
+                            for (extra in extra_actions) {
+                                extra(action,  action_count)
+                            }
                         }
                     }
 

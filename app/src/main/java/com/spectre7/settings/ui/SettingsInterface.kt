@@ -1,6 +1,7 @@
 package com.spectre7.composesettings.ui
 
 import android.content.Context
+import android.content.SharedPreferences
 import androidx.compose.animation.Crossfade
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
@@ -16,15 +17,21 @@ import androidx.compose.ui.unit.dp
 import com.spectre7.utils.Theme
 
 class SettingsInterface(
-    val theme: Theme, 
-    val root_page: Int, 
-    val getPage: (Int) -> SettingsPage?, 
+    val theme: Theme,
+    val root_page: Int,
     val context: Context,
+    val prefs: SharedPreferences,
+    val default_provider: (String) -> Any,
+    val getPage: (Int) -> SettingsPage?,
     val onPageChanged: ((page: Int) -> Unit)? = null,
     val onCloseRequested: (() -> Unit)? = null
 ) {
     private var current_page by mutableStateOf(root_page)
     private val page_stack = mutableListOf<Int>()
+
+    fun resetKeysOnPage(page: Int = current_page) {
+        getPage(page)!!.resetKeys(this)
+    }
 
     fun goBack() {
         if (page_stack.size > 0) {

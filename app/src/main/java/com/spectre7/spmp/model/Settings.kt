@@ -17,6 +17,9 @@ enum class Settings {
     KEY_LYRICS_DEFAULT_FURIGANA,
     KEY_LYRICS_TEXT_ALIGNMENT,
     KEY_LYRICS_EXTRA_PADDING,
+    
+    KEY_STREAM_AUDIO_QUALITY,
+    KEY_DOWNLOAD_AUDIO_QUALITY,
 
     KEY_VOLUME_STEPS,
 
@@ -40,6 +43,11 @@ enum class Settings {
             } as T
         }
 
+        inline fun <reified T: Enum<T>> getEnum(enum_key: Settings, preferences: SharedPreferences = prefs, default: T? = null): T {
+            val default_value: Int = default?.ordinal ?: getDefault(enum_key)
+            return enumValues<T>()[preferences.getInt(enum_key.name, default_value)]
+        }
+
         fun <T> getDefault(enum_key: Settings): T {
             return when (enum_key) {
                 KEY_LANG_UI, KEY_LANG_DATA -> MainActivity.languages.keys.indexOf(Locale.getDefault().language)
@@ -50,6 +58,8 @@ enum class Settings {
                 KEY_LYRICS_DEFAULT_FURIGANA -> true
                 KEY_LYRICS_TEXT_ALIGNMENT -> 0
                 KEY_LYRICS_EXTRA_PADDING -> false
+                KEY_STREAM_AUDIO_QUALITY -> Song.AudioQuality.MEDIUM.ordinal
+                KEY_DOWNLOAD_AUDIO_QUALITY -> Song.AudioQuality.MEDIUM.ordinal
                 KEY_VOLUME_STEPS -> 50
                 KEY_ACC_VOL_INTERCEPT_MODE -> PlayerAccessibilityService.VOLUME_INTERCEPT_MODE.NEVER.ordinal
                 KEY_ACC_VOL_INTERCEPT_NOTIFICATION -> false

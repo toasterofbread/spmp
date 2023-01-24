@@ -26,7 +26,6 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.RectangleShape
 import androidx.compose.ui.platform.LocalConfiguration
 import androidx.compose.ui.text.font.FontWeight
-import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
@@ -45,10 +44,8 @@ import com.spectre7.spmp.model.Song
 import com.spectre7.spmp.ui.component.AutoResizeText
 import com.spectre7.spmp.ui.component.FontSizeRange
 import com.spectre7.spmp.ui.component.PillMenu
-import com.spectre7.spmp.ui.component.PillMenuActionGetter
 import com.spectre7.spmp.ui.layout.nowplaying.NowPlaying
 import com.spectre7.utils.*
-import kotlinx.coroutines.runBlocking
 import java.lang.Integer.min
 import java.util.concurrent.locks.ReentrantLock
 import kotlin.concurrent.thread
@@ -174,12 +171,15 @@ val feed_refresh_mutex = ReentrantLock()
 @Composable
 fun PlayerView() {
     var overlay_page by remember { mutableStateOf(OverlayPage.NONE) }
-    var overlayPagePillAction: (@Composable PillMenuActionGetter.() -> Unit)? by remember { mutableStateOf(null) }
+    val pill_menu = remember { PillMenu(
+        top = false
+    ) }
     val minimised_now_playing_height = remember { Animatable(0f) }
 
     LaunchedEffect(overlay_page) {
         if (overlay_page == OverlayPage.NONE) {
-            overlayPagePillAction = null
+            pill_menu.clearExtraActions()
+            pill_menu.clearActionOverriders()
         }
     }
 
@@ -193,45 +193,33 @@ fun PlayerView() {
 
         Box(Modifier.padding(bottom = minimised_now_playing_height.value.dp)) {
 
-            PillMenu(
+            pill_menu.PillMenu(
                 if (overlay_page != OverlayPage.NONE) 1 else 2,
                 { index, action_count ->
-                    if (overlay_page != OverlayPage.NONE && overlayPagePillAction != null) {
-                        overlayPagePillAction?.invoke(
-                            PillMenuActionGetter(
-                                MainActivity.theme.getAccent(),
-                                MainActivity.theme.getAccent().getContrasted(),
-                                {}
-                            )
-                        )
-                    }
-                    else {
-                        ActionButton(
-                            if (action_count == 1) Icons.Filled.Close else
-                                when (index) {
-                                    0 -> Icons.Filled.Settings
-                                    else -> Icons.Filled.Search
-                                }
-                        ) {
-                            overlay_page = if (action_count == 1) OverlayPage.NONE else
-                                when (index) {
-                                    0 -> OverlayPage.SETTINGS
-                                    else -> OverlayPage.SEARCH
-                                }
-                        }
+                    ActionButton(
+                        if (action_count == 1) Icons.Filled.Close else
+                            when (index) {
+                                0 -> Icons.Filled.Settings
+                                else -> Icons.Filled.Search
+                            }
+                    ) {
+                        overlay_page = if (action_count == 1) OverlayPage.NONE else
+                            when (index) {
+                                0 -> OverlayPage.SETTINGS
+                                else -> OverlayPage.SEARCH
+                            }
                     }
                 },
                 if (overlay_page == OverlayPage.NONE) remember { mutableStateOf(false) } else null,
                 MainActivity.theme.getAccent(),
                 MainActivity.theme.getAccent().getContrasted(),
-                top = false
             )
 
             val main_page_rows = remember { mutableStateListOf<YtItemRow>() }
 
-            val refreshFeed: (Boolean, (success: Boolean) -> Unit) -> Unit = { allow_cached, onFinished ->
+            lateinit var refreshFeed: (allow_cached: Boolean, onFinished: (success: Boolean) -> Unit) -> Unit
+            refreshFeed = { allow_cached: Boolean, onFinished: (success: Boolean) -> Unit ->
                 if (!feed_refresh_mutex.isLocked) {
-                    MainActivity.network.onRetry()
                     thread {
                         feed_refresh_mutex.lock()
                         main_page_rows.clear()
@@ -239,7 +227,9 @@ fun PlayerView() {
                         val feed_result = getHomeFeed()
 
                         if (!feed_result.success) {
-                            MainActivity.network.onError(feed_result.exception)
+                            MainActivity.error_manager.onError(feed_result.exception) { resolve ->
+                                refreshFeed(true) { if (it) resolve() }
+                            }
                             feed_refresh_mutex.unlock()
                             onFinished(false)
                             return@thread
@@ -296,12 +286,8 @@ fun PlayerView() {
                     }
                     when (it) {
                         OverlayPage.NONE -> MainPage(main_page_rows, refreshFeed)
-                        OverlayPage.SEARCH -> SearchPage({
-                            overlayPagePillAction = it
-                        }) { overlay_page = it }
-                        OverlayPage.SETTINGS -> PrefsPage({
-                            overlayPagePillAction = it
-                        }) { overlay_page = it }
+                        OverlayPage.SEARCH -> SearchPage(pill_menu) { overlay_page = it }
+                        OverlayPage.SETTINGS -> PrefsPage(pill_menu) { overlay_page = it }
                     }
                 }
             }
@@ -356,7 +342,7 @@ fun MainPage(_rows: List<YtItemRow>, refreshFeed: (allow_cache: Boolean, onFinis
     var rows: List<YtItemRow> by remember { mutableStateOf(_rows) }
 
     SwipeRefresh(
-        state = rememberSwipeRefreshState(_rows.isEmpty() && MainActivity.network.error == null),
+        state = rememberSwipeRefreshState(_rows.isEmpty()), // TODO
         onRefresh = {
             rows = _rows.toList()
             refreshFeed(false) { success ->
@@ -367,99 +353,29 @@ fun MainPage(_rows: List<YtItemRow>, refreshFeed: (allow_cache: Boolean, onFinis
         },
         Modifier.padding(horizontal = 10.dp)
     ) {
-        Crossfade(targetState = MainActivity.network.error) { error ->
-            if (error != null) {
-                var expand by remember { mutableStateOf(false) }
-                Column(Modifier.fillMaxSize(), horizontalAlignment = Alignment.CenterHorizontally, verticalArrangement = Arrangement.Center) {
-                    Icon(Icons.Filled.CloudOff, "", Modifier.size(50.dp))
-
-                    fun refresh() {
-                        if (rows.isEmpty()) {
-                            refreshFeed(true) {}
+        Crossfade(rows.isNotEmpty()) { loaded ->
+            if (loaded) {
+                CompositionLocalProvider(
+                    LocalOverScrollConfiguration provides null
+                ) {
+                    LazyColumn(Modifier.fillMaxSize(), verticalArrangement = Arrangement.spacedBy(20.dp)) {
+                        item {
+                            Spacer(Modifier.requiredHeight(getStatusBarHeight(MainActivity.context)))
                         }
-                        else {
-                            MainActivity.network.onRetry()
-                        }
-                    }
-
-                    PillMenu(
-                        2,
-                        { index, _ ->
-                            when (index) {
-                                0 -> ActionButton(Icons.Filled.Refresh) {
-                                    refresh()
-                                }
-                                1 -> {
-                                    Text(
-                                        getString(R.string.generic_network_error),
-                                        textAlign = TextAlign.Center,
-                                        fontSize = 15.sp,
-                                        color = MainActivity.theme.getOnAccent(),
-                                        modifier = Modifier.clickable {
-                                            expand = !expand
-                                        }
-                                    )
-                                }
-                            }
-                        },
-                        null,
-                        MainActivity.theme.getAccent(),
-                        MainActivity.theme.getOnAccent(),
-                        container_modifier = Modifier,
-                        modifier = Modifier.weight(1f)
-                    )
-
-                    AnimatedVisibility(expand) {
-                        val msg = "Error: ${error.javaClass.simpleName}" +
-                                "\n\nMessage: ${error.message}" +
-                                "\n\nCause: ${error.cause}" +
-                                "\n\nStack trace: ${error.stackTrace.asList()}"
-                        LazyColumn(Modifier.fillMaxHeight(0.4f)) {
-                            item {
-                                Button({
-                                    throw error
-                                }) {
-                                    Text("Throw error")
-                                }
-                            }
-                            item {
-                                Text(
-                                    msg,
-                                    textAlign = TextAlign.Left,
-                                    modifier = Modifier.fillMaxWidth(0.9f),
-                                    fontSize = 12.sp
-                                )
-                            }
+                        items(rows.size) { index ->
+                            rows[index].ItemRow()
                         }
                     }
                 }
             }
             else {
-                Crossfade(rows.isNotEmpty()) { loaded ->
-                    if (loaded) {
-                        CompositionLocalProvider(
-                            LocalOverScrollConfiguration provides null
-                        ) {
-                            LazyColumn(Modifier.fillMaxSize(), verticalArrangement = Arrangement.spacedBy(20.dp)) {
-                                item {
-                                    Spacer(Modifier.requiredHeight(getStatusBarHeight(MainActivity.context)))
-                                }
-                                items(rows.size) { index ->
-                                    rows[index].ItemRow()
-                                }
-                            }
-                        }
-                    }
-                    else {
-                        Column(Modifier.fillMaxSize(), verticalArrangement = Arrangement.Center, horizontalAlignment = Alignment.CenterHorizontally) {
-                            Text(getString(R.string.loading_feed), Modifier.alpha(0.4f), fontSize = 12.sp, color = MainActivity.theme.getOnBackground(false))
-                            Spacer(Modifier.height(5.dp))
-                            LinearProgressIndicator(
-                                Modifier
-                                    .alpha(0.4f)
-                                    .fillMaxWidth(0.35f), color = MainActivity.theme.getOnBackground(false))
-                        }
-                    }
+                Column(Modifier.fillMaxSize(), verticalArrangement = Arrangement.Center, horizontalAlignment = Alignment.CenterHorizontally) {
+                    Text(getString(R.string.loading_feed), Modifier.alpha(0.4f), fontSize = 12.sp, color = MainActivity.theme.getOnBackground(false))
+                    Spacer(Modifier.height(5.dp))
+                    LinearProgressIndicator(
+                        Modifier
+                            .alpha(0.4f)
+                            .fillMaxWidth(0.35f), color = MainActivity.theme.getOnBackground(false))
                 }
             }
         }

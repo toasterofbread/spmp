@@ -298,23 +298,23 @@ class PlayerService : Service() {
                 val long = intent.getBooleanExtra("long", false)
                 val up = intent.getBooleanExtra("up", false)
 
-                val vol_ch = 0.1f
-
                 if (long) {
                     if (up) player.seekToNextMediaItem()
                     else player.seekToPreviousMediaItem()
                 }
                 else {
-                    player.volume = player.volume + (if (up) vol_ch else -vol_ch)
+                    player.volume = player.volume + (if (up) getCustomVolumeChangeAmount() else -getCustomVolumeChangeAmount())
                     if (vol_notif_enabled) {
                         showVolumeNotification(up, player.volume)
                     }
                 }
-
-                println("$up | $long | ${player.volume}")
             }
             else -> throw NotImplementedError(action.toString())
         }
+    }
+
+    private fun getCustomVolumeChangeAmount(): Float {
+        return 1f / Settings.get<Int>(Settings.KEY_VOLUME_STEPS).toFloat()
     }
 
     private fun showVolumeNotification(increasing: Boolean, volume: Float) {
@@ -385,16 +385,16 @@ class PlayerService : Service() {
         }
     }
 
-    private fun onSongAdded(media_item: MediaItem) {
-        for (i in 0 until player.mediaItemCount) {
-            val item = player.getMediaItemAt(i)
-            if (item == media_item) {
-                onSongAdded(item.localConfiguration!!.tag as Song, i)
-                return
-            }
-        }
-        throw RuntimeException()
-    }
+//    private fun onSongAdded(media_item: MediaItem) {
+//        for (i in 0 until player.mediaItemCount) {
+//            val item = player.getMediaItemAt(i)
+//            if (item == media_item) {
+//                onSongAdded(item.localConfiguration!!.tag as Song, i)
+//                return
+//            }
+//        }
+//        throw RuntimeException()
+//    }
 
     private fun onSongRemoved(song: Song, index: Int) {
         for (listener in queue_listeners) {
@@ -409,10 +409,14 @@ class PlayerService : Service() {
     }
 
     fun getSong(index: Int): Song? {
-        return try {
-            player.getMediaItemAt(index).localConfiguration?.tag as Song?
-        } catch (e: IndexOutOfBoundsException) {
-            null
+        if (index >= player.mediaItemCount) {
+            return null
+        }
+
+        return when (val tag = player.getMediaItemAt(index).localConfiguration?.tag) {
+            is IndexedValue<*> -> tag.value as Song?
+            is Song? -> tag
+            else -> throw IllegalStateException()
         }
     }
 

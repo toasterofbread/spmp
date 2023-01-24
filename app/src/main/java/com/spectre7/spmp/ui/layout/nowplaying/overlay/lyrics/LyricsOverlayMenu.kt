@@ -5,7 +5,6 @@ import androidx.compose.animation.Crossfade
 import androidx.compose.animation.fadeIn
 import androidx.compose.animation.fadeOut
 import androidx.compose.foundation.background
-import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.gestures.scrollBy
 import androidx.compose.foundation.interaction.MutableInteractionSource
@@ -35,78 +34,92 @@ import com.spectre7.spmp.R
 import com.spectre7.spmp.model.Settings
 import com.spectre7.spmp.model.Song
 import com.spectre7.spmp.ui.component.PillMenu
+import com.spectre7.spmp.ui.layout.nowplaying.overlay.OverlayMenu
 import com.spectre7.utils.LongFuriganaText
 import com.spectre7.utils.getString
 import com.spectre7.utils.sendToast
 import net.zerotask.libraries.android.compose.furigana.TermInfo
 import net.zerotask.libraries.android.compose.furigana.TextData
 
-@Composable
-fun LyricsDisplay(song: Song, close: () -> Unit, size: Dp, seek_state: Any, openShutterMenu: (@Composable () -> Unit) -> Unit) {
+class LyricsOverlayMenu(
+    val size: Dp
+): OverlayMenu() {
+    
+    override fun closeOnTap(): Boolean = false
 
-    var lyrics: Song.Lyrics? by remember { mutableStateOf(null) }
-    var show_furigana: Boolean by remember { mutableStateOf(Settings.prefs.getBoolean(Settings.KEY_LYRICS_DEFAULT_FURIGANA.name, true)) }
+    @Composable
+    override fun Menu(
+        song: Song,
+        expansion: Float,
+        openShutterMenu: (@Composable () -> Unit) -> Unit,
+        close: () -> Unit,
+        seek_state: Any
+    ) {
 
-    val scroll_state = rememberLazyListState()
-    var search_menu_open by remember { mutableStateOf(false) }
-    var reload_lyrics by remember { mutableStateOf(false) }
+        var lyrics: Song.Lyrics? by remember { mutableStateOf(null) }
+        var show_furigana: Boolean by remember { mutableStateOf(Settings.prefs.getBoolean(Settings.KEY_LYRICS_DEFAULT_FURIGANA.name, true)) }
 
-    LaunchedEffect(song.id, reload_lyrics) {
-        lyrics = null
-        song.getLyrics {
-            if (it == null) {
-                sendToast(getString(R.string.lyrics_unavailable))
-                search_menu_open = true
-            }
-            else {
-                lyrics = it
+        val scroll_state = rememberLazyListState()
+        var search_menu_open by remember { mutableStateOf(false) }
+        var reload_lyrics by remember { mutableStateOf(false) }
+
+        LaunchedEffect(song.id, reload_lyrics) {
+            lyrics = null
+            song.getLyrics {
+                if (it == null) {
+                    sendToast(getString(R.string.lyrics_unavailable))
+                    search_menu_open = true
+                }
+                else {
+                    lyrics = it
+                }
             }
         }
-    }
 
-    AnimatedVisibility(lyrics != null && !search_menu_open, Modifier.zIndex(10f), enter = fadeIn(), exit = fadeOut()) {
-        PillMenu(
-            3,
-            { index, _ ->
-                when (index) {
-                    0 -> ActionButton(Icons.Filled.Close, close)
-                    1 -> ActionButton(Icons.Filled.Search) { search_menu_open = true }
-                    2 -> Box(
-                        Modifier.size(48.dp),
-                        contentAlignment = Alignment.Center
-                    ) {
-                        Text("ふ", color = content_colour, fontSize = 20.sp, modifier = Modifier
-                            .offset(y = (-5).dp)
-                            .clickable(
-                                remember { MutableInteractionSource() },
-                                rememberRipple(bounded = false, radius = 20.dp),
-                                onClick = {
-                                    show_furigana = !show_furigana
-                                    this@PillMenu.close()
-                                })
-                        )
+        AnimatedVisibility(lyrics != null && !search_menu_open, Modifier.zIndex(10f), enter = fadeIn(), exit = fadeOut()) {
+            remember { PillMenu() }.PillMenu(
+                3,
+                { index, _ ->
+                    when (index) {
+                        0 -> ActionButton(Icons.Filled.Close, close)
+                        1 -> ActionButton(Icons.Filled.Search) { search_menu_open = true }
+                        2 -> Box(
+                            Modifier.size(48.dp),
+                            contentAlignment = Alignment.Center
+                        ) {
+                            Text("ふ", color = content_colour, fontSize = 20.sp, modifier = Modifier
+                                .offset(y = (-5).dp)
+                                .clickable(
+                                    remember { MutableInteractionSource() },
+                                    rememberRipple(bounded = false, radius = 20.dp),
+                                    onClick = {
+                                        show_furigana = !show_furigana
+                                        is_open = !is_open
+                                    })
+                            )
+                        }
+                    }
+                },
+                remember { mutableStateOf(false) },
+                MainActivity.theme.getAccent(),
+                MainActivity.theme.getOnAccent(),
+                vertical = true
+            )
+        }
+
+        Crossfade(search_menu_open) { edit ->
+            if (edit) {
+                LyricsSearchMenu(song, lyrics) { changed ->
+                    search_menu_open = false
+                    if (changed) {
+                        lyrics = null
+                        reload_lyrics = !reload_lyrics
                     }
                 }
-            },
-            remember { mutableStateOf(false) },
-            MainActivity.theme.getAccent(),
-            MainActivity.theme.getOnAccent(),
-            vertical = true
-        )
-    }
-
-    Crossfade(search_menu_open) { edit ->
-        if (edit) {
-            LyricsSearchMenu(song, lyrics) { changed ->
-                search_menu_open = false
-                if (changed) {
-                    lyrics = null
-                    reload_lyrics = !reload_lyrics
-                }
             }
-        }
-        else {
-            ScrollingLyricsDisplay(size, seek_state, lyrics, scroll_state, show_furigana)
+            else {
+                ScrollingLyricsDisplay(size, seek_state, lyrics, scroll_state, show_furigana)
+            }
         }
     }
 }

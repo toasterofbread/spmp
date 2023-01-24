@@ -14,18 +14,21 @@ import com.beust.klaxon.Json
 import com.beust.klaxon.Klaxon
 import com.spectre7.spmp.R
 import com.spectre7.spmp.api.DataApi
-import com.spectre7.spmp.api.getVideoDownloadUrl
+import com.spectre7.spmp.api.getVideoFormats
+import com.spectre7.spmp.api.VideoFormat
 import com.spectre7.spmp.ui.component.SongPreview
 import com.spectre7.utils.getString
+import okhttp3.internal.filterList
 import java.io.FileNotFoundException
 import java.net.URL
 import java.time.Duration
 import java.time.Instant
 import java.util.*
+import java.util.concurrent.atomic.AtomicBoolean
 import kotlin.reflect.KMutableProperty1
 import kotlin.reflect.jvm.isAccessible
 
-class DataRegistry(var songs: MutableMap<String, SongEntry> = mutableMapOf()) {
+class DataRegistry private constructor(var songs: MutableMap<String, SongEntry> = mutableMapOf()) {
     init {
         for (song in songs) {
             song.value.id = song.key
@@ -62,6 +65,9 @@ class DataRegistry(var songs: MutableMap<String, SongEntry> = mutableMapOf()) {
             private val mutable_states = mutableMapOf<String, MutableState<*>>()
 
             private fun <T> getMutableState(name: String): MutableState<T> {
+                if (name == "_theme_colour") {
+                    {}
+                }
                 return mutable_states.getOrPut(name, {
                     val property = SongOverrides::class.members.first { it.name == name } as KMutableProperty1<SongOverrides, T>
                     property.isAccessible = true
@@ -89,8 +95,10 @@ class DataRegistry(var songs: MutableMap<String, SongEntry> = mutableMapOf()) {
         }
     }
 
+    @Synchronized
     fun getSongEntry(song_id: String): SongEntry {
         val ret = songs.getOrDefault(song_id, null)
+
         if (ret != null) {
             return ret
         }
@@ -101,6 +109,7 @@ class DataRegistry(var songs: MutableMap<String, SongEntry> = mutableMapOf()) {
         }
     }
 
+    @Synchronized
     fun save(prefs: SharedPreferences) {
         prefs.edit {
             val temp = songs
@@ -118,16 +127,20 @@ class DataRegistry(var songs: MutableMap<String, SongEntry> = mutableMapOf()) {
     }
 
     companion object {
-        fun load(prefs: SharedPreferences): DataRegistry {
-            val data = prefs.getString("data_registry", null)
-            if (data == null || data == "{}") {
-                return DataRegistry()
+        private var singleton: DataRegistry? = null
+
+        @Synchronized
+        fun getSingleton(prefs: SharedPreferences): DataRegistry {
+            if (singleton == null) {
+                val data = prefs.getString("data_registry", null)
+                singleton = if (data == null || data == "{}") {
+                    DataRegistry()
+                }
+                else {
+                    Klaxon().parse<DataRegistry>(data)!!
+                }
             }
-            else {
-                val ret = Klaxon().parse<DataRegistry>(data)!!
-                println("$ret | ${ret.songs}")
-                return ret
-            }
+            return singleton!!
         }
     }
 }
@@ -136,11 +149,15 @@ class Song private constructor (
     private val _id: String
 ): MediaItem() {
 
+    enum class AudioQuality {
+        LOW, MEDIUM, HIGH
+    }
+
     val registry: DataRegistry.SongEntry
 
     private var stream_url: String? = null
     private var stream_url_loading: Boolean = false
-    private val stream_url_loaded_listeners: MutableList<(String) -> Unit> = mutableListOf()
+    private val stream_url_load_lock = Object()
 
     // Data
     private lateinit var _title: String
@@ -150,9 +167,7 @@ class Song private constructor (
     lateinit var duration: Duration
 
     init {
-        if (song_registry == null) {
-            song_registry = DataRegistry.load(Settings.prefs)
-        }
+        song_registry = DataRegistry.getSingleton(Settings.prefs)
         registry = song_registry!!.getSongEntry(id)
     }
 
@@ -174,6 +189,7 @@ class Song private constructor (
         }
         set(value) { registry.overrides.theme_colour = value?.toArgb() }
 
+    val original_title: String get() = _title
     var title: String
         get() {
             if (registry.overrides.title != null) {
@@ -299,27 +315,40 @@ class Song private constructor (
         DataApi.getSongLyrics(this, callback)
     }
 
-    fun isStreamUrlLoaded(): Boolean {
-        return stream_url != null
-    }
-
-    fun addStreamUrlLoadedListener(listener: (String) -> Unit) {
-        stream_url_loaded_listeners.add(listener)
-    }
-
     fun loadStreamUrl(): String {
-        return getVideoDownloadUrl(id, listOf(140)).getDataOrThrow()
-        if (stream_url_loading) {
-            throw RuntimeException()
-        }
-        if (stream_url == null) {
-            stream_url_loading = true
-            stream_url = getVideoDownloadUrl(id, listOf(140)).getDataOrThrow()
-            stream_url_loading = false
-            for (listener in stream_url_loaded_listeners) {
-                listener(stream_url!!)
+        synchronized(stream_url_load_lock) {
+            if (stream_url != null) {
+                return stream_url!!
             }
+
+            if (stream_url_loading) {
+                stream_url_load_lock.wait()
+                return stream_url!!
+            }
+
+            stream_url_loading = true
         }
+
+        stream_url = getVideoFormats(id) { _formats ->
+            val formats = _formats.sortedByDescending { it.averageBitrate }
+            return@getVideoFormats when (Settings.getEnum<AudioQuality>(Settings.KEY_STREAM_AUDIO_QUALITY)) {
+                AudioQuality.HIGH -> formats.firstOrNull { it.audio_only } ?: formats.first()
+                AudioQuality.MEDIUM -> {
+                    val audio_formats = formats.filterList { audio_only }
+                    if (audio_formats.isNotEmpty()) {
+                        audio_formats[audio_formats.size / 2]
+                    }
+                    formats[formats.size / 2]
+                }
+                AudioQuality.LOW -> formats.lastOrNull { it.audio_only } ?: formats.last()
+            }
+        }.getDataOrThrow().stream_url
+
+        synchronized(stream_url_load_lock) {
+            stream_url_loading = false
+            stream_url_load_lock.notifyAll()
+        }
+
         return stream_url!!
     }
 

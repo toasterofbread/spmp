@@ -1,5 +1,6 @@
 package com.spectre7.spmp.ui.component
 
+import android.annotation.SuppressLint
 import androidx.compose.animation.*
 import androidx.compose.animation.core.tween
 import androidx.compose.foundation.background
@@ -17,209 +18,264 @@ import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.unit.IntSize
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.zIndex
-import com.spectre7.spmp.MainActivity
 import com.spectre7.utils.NoRipple
-import com.spectre7.utils.Theme
 
-class PillMenuActionGetter {
-    val background_colour: Color
-    val content_colour: Color
-    val close: () -> Unit
+class PillMenu(
+    private val action_count: Int = 0,
+    private val getAction: @Composable (Action.(i: Int, action_count: Int) -> Unit) = { _, _ -> },
+    private val expand_state: MutableState<Boolean>? = null,
+    private val background_colour: Color = Color.Unspecified,
+    private val content_colour: Color = Color.Unspecified,
+    private val top: Boolean = false,
+    private val left: Boolean = false,
+    private val vertical: Boolean = false,
+    private val container_modifier: Modifier = Modifier.fillMaxSize(),
+    private val toggleButton: (@Composable Action.(modifier: Modifier) -> Unit)? = null,
+    private val modifier: Modifier = Modifier
+) {
 
-    constructor(
-        background_colour: Color,
-        content_colour: Color,
-        close: () -> Unit
-    ) {
-        this.background_colour = background_colour
-        this.content_colour = content_colour
-        this.close = close
+    var is_open: Boolean
+        get() = expand_state?.value == true
+        set(value) {
+            expand_state?.value = value
+        }
+
+    private val extra_actions = mutableStateListOf<@Composable Action.(action_count: Int) -> Unit>()
+    private val action_overriders = mutableStateListOf<@Composable Action.(i: Int) -> Boolean>()
+
+    fun addExtraAction(action: @Composable Action.(action_count: Int) -> Unit) {
+        extra_actions.add(action)
+    }
+    fun removeExtraAction(action: @Composable Action.(action_count: Int) -> Unit) {
+        extra_actions.remove(action)
+    }
+    fun clearExtraActions() {
+        extra_actions.clear()
     }
 
-    constructor(
-        theme: Theme,
-        themed: Boolean = false
-    ) {
-        this.background_colour = theme.getBackground(themed)
-        this.content_colour = theme.getBackground(themed)
-        this.close = {}
+    fun addActionOverrider(overrider: @Composable Action.(i: Int) -> Boolean) {
+        action_overriders.add(overrider)
+    }
+    fun removeActionOverrider(overrider: @Composable Action.(i: Int) -> Boolean) {
+        action_overriders.remove(overrider)
+    }
+    fun clearActionOverriders() {
+        action_overriders.clear()
     }
 
+    inner class Action(
+        val background_colour: Color,
+        val content_colour: Color
+    ) {
+        var is_open: Boolean
+            get() = this@PillMenu.is_open
+            set(value) {
+                this@PillMenu.is_open = value
+            }
+
+        @Composable
+        fun ActionButton(icon: ImageVector, action: () -> Unit) {
+            IconButton(onClick = {
+                is_open = false
+                action()
+            }) {
+                Icon(icon, null, tint = content_colour)
+            }
+        }
+    }
+
+    @SuppressLint("NotConstructor")
     @Composable
-    fun ActionButton(icon: ImageVector, action: () -> Unit) {
-        IconButton(onClick = {
-            action()
-            close()
-        }) {
-            Icon(icon, null, tint = content_colour)
-        }
-    }
-}
+    fun PillMenu(
+        action_count: Int = this.action_count,
+        getAction: @Composable() (Action.(i: Int, action_count: Int) -> Unit) = this.getAction,
+        expand_state: MutableState<Boolean>?,
+        background_colour: Color = this.background_colour,
+        content_colour: Color = this.content_colour,
+        top: Boolean = this.top,
+        left: Boolean = this.left,
+        vertical: Boolean = this.vertical,
+        container_modifier: Modifier = this.container_modifier,
+        toggleButton: (@Composable Action.(modifier: Modifier) -> Unit)? = this.toggleButton,
+        modifier: Modifier = this.modifier,
+    ) {
+        val params = remember(top, left, vertical, action_count, expand_state != null) {
+            val alignment: Alignment
+            val enter: EnterTransition
+            val exit: ExitTransition
 
-private data class PillMenuParams(
-    val vertical: Boolean,
-    val top: Boolean,
-    val left: Boolean,
-    val alignment: Alignment,
-    val open_icon: ImageVector,
-    val close_icon: ImageVector,
-    val enter: EnterTransition,
-    val exit: ExitTransition,
-    val action_count: Int,
-    val expand_state: MutableState<Boolean>?
-)
-
-@Composable
-fun PillMenu(
-    action_count: Int,
-    getAction: @Composable PillMenuActionGetter.(i: Int, action_count: Int) -> Unit,
-    expand_state: MutableState<Boolean>?,
-    background_colour: Color,
-    content_colour: Color,
-    top: Boolean = false,
-    left: Boolean = false,
-    vertical: Boolean = false,
-    container_modifier: Modifier = Modifier.fillMaxSize(),
-    modifier: Modifier = Modifier
-) {
-
-    val params = remember(top, left, vertical, action_count, expand_state != null) {
-        val alignment: Alignment
-        val open_icon: ImageVector
-        val close_icon: ImageVector
-        val enter: EnterTransition
-        val exit: ExitTransition
-
-        val tween = tween<IntSize>(250)
-        if (vertical) {
-            if (top) {
-                open_icon = Icons.Filled.KeyboardArrowDown
-                close_icon = Icons.Filled.KeyboardArrowUp
-
-                enter = expandVertically(tween, Alignment.Top)
-                exit = shrinkVertically(tween, Alignment.Top)
+            val tween = tween<IntSize>(250)
+            if (vertical) {
+                if (top) {
+                    enter = expandVertically(tween, Alignment.Top)
+                    exit = shrinkVertically(tween, Alignment.Top)
+                }
+                else {
+                    enter = expandVertically(tween, Alignment.Bottom)
+                    exit = shrinkVertically(tween, Alignment.Bottom)
+                }
             }
             else {
-                open_icon = Icons.Filled.KeyboardArrowUp
-                close_icon = Icons.Filled.KeyboardArrowDown
-
-                enter = expandVertically(tween, Alignment.Bottom)
-                exit = shrinkVertically(tween, Alignment.Bottom)
-            }
-        }
-        else {
-            if (left) {
-                open_icon = Icons.Filled.KeyboardArrowRight
-                close_icon = Icons.Filled.KeyboardArrowLeft
-
-                enter = expandHorizontally(tween, Alignment.Start)
-                exit = shrinkHorizontally(tween, Alignment.Start)
-            }
-            else {
-                open_icon = Icons.Filled.KeyboardArrowLeft
-                close_icon = Icons.Filled.KeyboardArrowRight
-
-                enter = expandHorizontally(tween, Alignment.End)
-                exit = shrinkHorizontally(tween, Alignment.End)
-            }
-        }
-
-        if (top) {
-            if (left) {
-                alignment = Alignment.TopStart
-            }
-            else {
-                alignment = Alignment.TopEnd
-            }
-        }
-        else {
-            if (left) {
-                alignment = Alignment.BottomStart
-            }
-            else {
-                alignment = Alignment.BottomEnd
-            }
-        }
-
-        PillMenuParams(vertical, top, left, alignment, open_icon, close_icon, enter, exit, action_count, expand_state)
-    }
-
-    InnerPillMenu(params, content_colour, background_colour, modifier, container_modifier, getAction)
-}
-
-@Composable
-private fun InnerPillMenu(
-    params: PillMenuParams,
-    content_colour: Color,
-    background_colour: Color,
-    modifier: Modifier,
-    container_modifier: Modifier,
-    getAction: @Composable PillMenuActionGetter.(Int, Int) -> Unit
-) {
-    Crossfade(params, Modifier.zIndex(1f)) {
-        val (vertical, top, left, alignment, open_icon, close_icon, enter, exit, action_count, expand_state) = it
-        val align_start = (vertical && top) || (!vertical && left)
-
-        Box(
-            contentAlignment = alignment,
-            modifier = container_modifier.padding(15.dp)
-        ) {
-
-            if (expand_state != null) {
-                NoRipple {
-                    IconButton(
-                        onClick = { expand_state.value = !expand_state.value },
-                        modifier = Modifier.background(background_colour, shape = CircleShape)
-                    ) {
-                        Icon(open_icon, "", tint = content_colour)
-                    }
+                if (left) {
+                    enter = expandHorizontally(tween, Alignment.Start)
+                    exit = shrinkHorizontally(tween, Alignment.Start)
+                }
+                else {
+                    enter = expandHorizontally(tween, Alignment.End)
+                    exit = shrinkHorizontally(tween, Alignment.End)
                 }
             }
 
-            AnimatedVisibility(
-                visible = expand_state?.value ?: true,
-                enter = enter,
-                exit = exit
-            ) {
+            if (top) {
+                if (left) {
+                    alignment = Alignment.TopStart
+                }
+                else {
+                    alignment = Alignment.TopEnd
+                }
+            }
+            else {
+                if (left) {
+                    alignment = Alignment.BottomStart
+                }
+                else {
+                    alignment = Alignment.BottomEnd
+                }
+            }
 
-                @Composable
-                fun closeButton() {
-                    if (expand_state != null) {
+            CrossfadeParams(vertical, top, left, alignment, toggleButton, enter, exit, action_count, expand_state)
+        }
+
+        InnerPillMenu(params, content_colour, background_colour, modifier, container_modifier, getAction)
+    }
+
+    private data class CrossfadeParams(
+        val vertical: Boolean,
+        val top: Boolean,
+        val left: Boolean,
+        val alignment: Alignment,
+        val toggleButton: (@Composable Action.(modifier: Modifier) -> Unit)?,
+        val enter: EnterTransition,
+        val exit: ExitTransition,
+        val action_count: Int,
+        val expand_state: MutableState<Boolean>?
+    )
+
+    @Composable
+    private fun InnerPillMenu(
+        params: CrossfadeParams,
+        content_colour: Color,
+        background_colour: Color,
+        modifier: Modifier,
+        container_modifier: Modifier,
+        getAction: @Composable Action.(i: Int, action_count: Int) -> Unit
+    ) {
+        val action = remember(background_colour, content_colour) { Action(background_colour, content_colour) }
+
+        Crossfade(params, Modifier.zIndex(1f)) {
+            val (vertical, top, left, alignment, toggleButton, enter, exit, action_count, expand_state) = it
+            val align_start = (vertical && top) || (!vertical && left)
+
+            @Composable
+            fun ToggleButton() {
+                if (expand_state != null) {
+                    if (toggleButton != null) {
+                        toggleButton(action, Modifier.background(background_colour, shape = CircleShape))
+                    }
+                    else {
                         NoRipple {
-                            IconButton(onClick = { expand_state.value = false }) {
-                                Icon(close_icon, "", tint = content_colour)
+                            val (open, close) = remember(top, left, vertical) {
+                                if (vertical) {
+                                    if (top) {
+                                        Pair(Icons.Filled.KeyboardArrowDown, Icons.Filled.KeyboardArrowUp)
+                                    }
+                                    else {
+                                        Pair(Icons.Filled.KeyboardArrowUp, Icons.Filled.KeyboardArrowDown)
+                                    }
+                                }
+                                else {
+                                    if (left) {
+                                        Pair(Icons.Filled.KeyboardArrowRight, Icons.Filled.KeyboardArrowLeft)
+                                    }
+                                    else {
+                                        Pair(Icons.Filled.KeyboardArrowLeft, Icons.Filled.KeyboardArrowRight)
+                                    }
+                                }
+                            }
+
+                            IconButton(
+                                onClick = {
+                                    expand_state.value = !expand_state.value
+                                },
+                                modifier = Modifier.background(background_colour, shape = CircleShape)
+                            ) {
+                                Crossfade(expand_state.value) { expanded ->
+                                    Icon(if (expanded) close else open, null, tint = content_colour)
+                                }
                             }
                         }
                     }
                 }
+            }
 
-                @Composable
-                fun content() {
-                    if (align_start) {
-                        closeButton()
+            Box(
+                contentAlignment = alignment,
+                modifier = container_modifier.padding(15.dp)
+            ) {
+
+                ToggleButton()
+
+                AnimatedVisibility(
+                    visible = expand_state?.value ?: true,
+                    enter = enter,
+                    exit = exit
+                ) {
+
+                    @Composable
+                    fun content() {
+                        if (align_start) {
+                            ToggleButton()
+                        }
+                        else {
+                            for (extra in extra_actions) {
+                                extra(action, action_count)
+                            }
+                        }
+
+                        for (i in 0 until action_count) {
+                            var overridden = false
+                            for (overrider in action_overriders) {
+                                if (overrider(action, i)) {
+                                    overridden = true
+                                    break
+                                }
+                            }
+                            if (!overridden) {
+                                getAction(action, i, action_count)
+                            }
+                        }
+
+                        if (!align_start) {
+                            ToggleButton()
+                        } else {
+                            for (extra in extra_actions) {
+                                extra(action,  action_count)
+                            }
+                        }
                     }
 
-                    val getter = PillMenuActionGetter(background_colour, content_colour) { expand_state?.value = false }
-                    for (i in 0 until action_count) {
-                        getAction(getter, i, action_count)
+                    if (vertical) {
+                        Column(
+                            modifier.background(background_colour, shape = CircleShape),
+                            verticalArrangement = Arrangement.SpaceEvenly, horizontalAlignment = Alignment.CenterHorizontally
+                        ) { content() }
                     }
-
-                    if (!align_start) {
-                        closeButton()
+                    else {
+                        Row(
+                            modifier.background(background_colour, shape = CircleShape),
+                            horizontalArrangement = Arrangement.SpaceEvenly, verticalAlignment = Alignment.CenterVertically
+                        ) { content() }
                     }
-                }
-
-                if (vertical) {
-                    Column(
-                        modifier.background(background_colour, shape = CircleShape),
-                        verticalArrangement = Arrangement.SpaceEvenly, horizontalAlignment = Alignment.CenterHorizontally
-                    ) { content() }
-                }
-                else {
-                    Row(
-                        modifier.background(background_colour, shape = CircleShape),
-                        horizontalArrangement = Arrangement.SpaceEvenly, verticalAlignment = Alignment.CenterVertically
-                    ) { content() }
                 }
             }
         }

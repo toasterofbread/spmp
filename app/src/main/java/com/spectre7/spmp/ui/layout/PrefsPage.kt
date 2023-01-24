@@ -3,32 +3,31 @@ package com.spectre7.spmp.ui.layout
 import android.Manifest
 import android.app.AlertDialog
 import android.content.Context
-import android.content.Intent
-import android.content.pm.PackageManager
+import androidx.compose.animation.Crossfade
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.BoxWithConstraints
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.requiredHeight
 import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.filled.ArrowBack
+import androidx.compose.material.icons.filled.*
+import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.input.pointer.pointerInput
 import androidx.compose.ui.platform.LocalConfiguration
 import androidx.compose.ui.unit.dp
-import com.spectre7.composesettings.model.*
 import com.spectre7.composesettings.ui.SettingsInterface
 import com.spectre7.composesettings.ui.SettingsPage
+import com.spectre7.settings.model.*
 import com.spectre7.spmp.MainActivity
 import com.spectre7.spmp.PlayerAccessibilityService
 import com.spectre7.spmp.R
 import com.spectre7.spmp.model.Settings
 import com.spectre7.spmp.model.Song
+import com.spectre7.spmp.ui.component.PillMenu
 import com.spectre7.utils.OnChangedEffect
 import com.spectre7.utils.Permissions
 import com.spectre7.utils.getString
-import com.spectre7.utils.sendToast
-import com.spectre7.spmp.ui.component.PillMenu
 
 enum class Page { ROOT, ACCESSIBILITY_SERVICE }
 
@@ -42,9 +41,9 @@ fun PrefsPage(pill_menu: PillMenu, setOverlayPage: (page: OverlayPage) -> Unit) 
         language_data = MainActivity.languages.values.elementAt(interface_lang.value)
     }
 
-    PlayerAccessibilityService.isEnabled(MainActivity.context)
+    lateinit var settings_interface: SettingsInterface
 
-    val pill_menu_action_overrider: @Composable PillMenu.(i: Int) -> Boolean = remember { { i ->
+    val pill_menu_action_overrider: @Composable PillMenu.Action.(i: Int) -> Boolean = remember { { i ->
         if (i == 0) {
             ActionButton(
                 Icons.Filled.ArrowBack
@@ -58,17 +57,40 @@ fun PrefsPage(pill_menu: PillMenu, setOverlayPage: (page: OverlayPage) -> Unit) 
         }
     } }
 
+    var show_reset_confirmation by remember { mutableStateOf(false) }
+    if (show_reset_confirmation) {
+        AlertDialog(
+            { show_reset_confirmation = false },
+            confirmButton = {
+                FilledTonalButton(
+                    {
+                        settings_interface.resetKeysOnPage()
+                        show_reset_confirmation = false
+                    }
+                ) {
+                    Text("Yes")
+                }
+            },
+            dismissButton = { TextButton( { show_reset_confirmation = false } ) { Text("No") } },
+            title = { Text("Confirm") },
+            text = {
+                Text("Reset all values on this page?")
+            }
+        )
+    }
+
     LaunchedEffect(Unit) {
         pill_menu.addExtraAction {
-            ActionButton(
-                Icons.Filled.Clean
-            ) {
-                TODO("Reset current page values")
+            if (it == 1) {
+                ActionButton(
+                    Icons.Filled.CleaningServices
+                ) {
+                    show_reset_confirmation = true
+                }
             }
         }
     }
 
-    lateinit var settings_interface: SettingsInterface
     settings_interface = remember {
         SettingsInterface(
             MainActivity.theme, 
@@ -107,7 +129,14 @@ fun PrefsPage(pill_menu: PillMenu, setOverlayPage: (page: OverlayPage) -> Unit) 
                             "${language.key} / ${language.value}"
                         },
 
-                        Volume steps, // TODO
+                        SettingsItemSlider(
+                            SettingsValueState<Int>(Settings.KEY_VOLUME_STEPS.name),
+                            getString(R.string.s_key_vol_steps),
+                            getString(R.string.s_sub_vol_steps),
+                            "0",
+                            "100",
+                            range = 0f .. 100f
+                        ),
 
                         SettingsGroup(getString(R.string.s_group_theming)),
 
@@ -144,7 +173,8 @@ fun PrefsPage(pill_menu: PillMenu, setOverlayPage: (page: OverlayPage) -> Unit) 
                         SettingsItemSlider(
                             SettingsValueState(Settings.KEY_LYRICS_FOLLOW_OFFSET.name),
                             getString(R.string.s_key_lyrics_follow_offset), getString(R.string.s_sub_lyrics_follow_offset),
-                            getString(R.string.s_option_lyrics_follow_offset_top), getString(R.string.s_option_lyrics_follow_offset_bottom), steps = 5
+                            getString(R.string.s_option_lyrics_follow_offset_top), getString(R.string.s_option_lyrics_follow_offset_bottom), steps = 5,
+                            getValueText = null
                         ),
 
                         SettingsItemToggle(

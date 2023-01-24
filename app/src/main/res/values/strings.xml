@@ -56,7 +56,7 @@
     <string name="s_sub_data_lang">Language used for song and artist titles, etc. (if available)</string>
 
     <string name="s_key_vol_steps">Volume steps</string>
-    <string name="s_sub_vol_steps">Amount of steps when changing application volume</string>
+    <string name="s_sub_vol_steps">Amount of steps when changing volume</string>
 
     <string name="s_group_theming">Theming</string>
 

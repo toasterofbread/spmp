@@ -62,7 +62,7 @@ class EditOverlayMenu: OverlayMenu() {
 
         Box(Modifier.fillMaxSize()) {
 
-            PillMenu(
+            remember { PillMenu() }.PillMenu(
                 action_count = 3,
                 getAction = { i, _ ->
                     when (i) {

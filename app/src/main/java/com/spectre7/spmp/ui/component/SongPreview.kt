@@ -255,7 +255,7 @@ private fun LongPressPopup(
         val dialog = LocalView.current.parent as DialogWindowProvider
         dialog.window.clearFlags(WindowManager.LayoutParams.FLAG_DIM_BEHIND)
 
-        Box(Modifier.fillMaxSize().background(Color.Black.setAlpha(panel_alpha.value / 2.0))) {
+        Box(Modifier.fillMaxSize().clickable { close_requested = true }) {
 
             val shape = RoundedCornerShape(topStartPercent = 12, topEndPercent = 12)
             Column(
@@ -264,7 +264,8 @@ private fun LongPressPopup(
                     .background(MainActivity.theme.getBackground(false), shape)
                     .fillMaxWidth()
                     .align(Alignment.BottomCenter)
-                    .padding(25.dp),
+                    .padding(25.dp)
+                    .clickable {},
                 verticalArrangement = Arrangement.spacedBy(20.dp)
             ) {
                 Row(
@@ -317,8 +318,8 @@ private fun LongPressPopup(
                 Divider(thickness = Dp.Hairline)
 
                 @Composable
-                fun ActionButton(icon: ImageVector, label: String, onClick: () -> Unit) {
-                    Row(Modifier.clickable(onClick = onClick), horizontalArrangement = Arrangement.spacedBy(20.dp)) {
+                fun ActionButton(icon: ImageVector, label: String, modifier: Modifier = Modifier, onClick: () -> Unit) {
+                    Row(modifier.clickable(onClick = onClick), horizontalArrangement = Arrangement.spacedBy(20.dp)) {
                         Icon(icon, null)
                         Text(label, fontSize = 15.sp)
                     }
@@ -332,38 +333,42 @@ private fun LongPressPopup(
 
                 val queue_song = PlayerServiceHost.service.getSong(PlayerServiceHost.service.active_queue_index)
                 if (queue_song != null) {
-                    Row() {
-                        ActionButton(Icons.Filled.SubdirectoryArrowRight, "Play after ${queue_song.title}") {
-                            PlayerServiceHost.service.addToQueue(song, PlayerServiceHost.service.active_queue_index + 1, true)
-                        }
-                        Spacer(
-                            Modifier
-                                .fillMaxWidth()
-                                .weight(1f))
-
-                        Row(verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(30.dp)) {
-                            val button_padding = PaddingValues(0.dp)
-                            val button_modifier = Modifier.size(30.dp)
-
-                            Button(
-                                {
-                                    PlayerServiceHost.service.updateActiveQueueIndex(-1)
-                                },
-                                button_modifier,
-                                contentPadding = button_padding
-                            ) {
-                                Text("-")
+                    Column {
+                        Row {
+                            ActionButton(Icons.Filled.SubdirectoryArrowRight, "Play after", Modifier.fillMaxWidth().weight(1f)) {
+                                PlayerServiceHost.service.addToQueue(song, PlayerServiceHost.service.active_queue_index + 1, true)
                             }
-                            Button(
-                                {
-                                    PlayerServiceHost.service.updateActiveQueueIndex(1)
-                                },
-                                button_modifier,
-                                contentPadding = button_padding
-                            ) {
-                                Text("+")
+                            
+                            Row(verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(30.dp)) {
+                                val button_padding = PaddingValues(0.dp)
+                                val button_modifier = Modifier.size(30.dp)
+
+                                Button(
+                                    {
+                                        PlayerServiceHost.service.updateActiveQueueIndex(1)
+                                    },
+                                    button_modifier,
+                                    contentPadding = button_padding
+                                ) {
+                                    Text("+")
+                                }
+                                Button(
+                                    {
+                                        PlayerServiceHost.service.updateActiveQueueIndex(-1)
+                                    },
+                                    button_modifier,
+                                    contentPadding = button_padding
+                                ) {
+                                    Text("-")
+                                }
                             }
                         }
+
+                        queue_song.PreviewBasic(
+                            false,
+                            Modifier,
+                            MainActivity.theme.getOnBackground(false)
+                        )
                     }
                 }
 

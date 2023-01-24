@@ -298,23 +298,23 @@ class PlayerService : Service() {
                 val long = intent.getBooleanExtra("long", false)
                 val up = intent.getBooleanExtra("up", false)
 
-                val vol_ch = 0.1f
-
                 if (long) {
                     if (up) player.seekToNextMediaItem()
                     else player.seekToPreviousMediaItem()
                 }
                 else {
-                    player.volume = player.volume + (if (up) vol_ch else -vol_ch)
+                    player.volume = player.volume + (if (up) getCustomVolumeChangeAmount() else -getCustomVolumeChangeAmount())
                     if (vol_notif_enabled) {
                         showVolumeNotification(up, player.volume)
                     }
                 }
-
-                println("$up | $long | ${player.volume}")
             }
             else -> throw NotImplementedError(action.toString())
         }
+    }
+
+    private fun getCustomVolumeChangeAmount(): Float {
+        return 1.0 / Settings.get<Int>(Settings.KEY_VOLUME_STEPS).toFloat()
     }
 
     private fun showVolumeNotification(increasing: Boolean, volume: Float) {

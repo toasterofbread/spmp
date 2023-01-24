@@ -433,10 +433,10 @@ class SettingsItemSubpage(
 }
 
 class SettingsItemAccessibilityService(
-    val text_enabled: String,
-    val text_disabled: String,
-    val button_enable: String,
-    val button_disable: String,
+    val enabled_text: String,
+    val disabled_text: String,
+    val enable_button: String,
+    val disable_button: String,
     val service_bridge: AccessibilityServiceBridge
 ): SettingsItem() {
     interface AccessibilityServiceBridge {
@@ -474,11 +474,11 @@ class SettingsItemAccessibilityService(
                         .fillMaxWidth(),
                     horizontalArrangement = Arrangement.SpaceBetween, verticalAlignment = Alignment.CenterVertically
                 ) {
-                    Text(if (enabled) text_enabled else text_disabled)
+                    Text(if (enabled) enabled_text else disabled_text)
                     Button({ service_bridge.setEnabled(!enabled) },
                         colors = ButtonDefaults.buttonColors(if (enabled) theme.getAccent() else theme.getBackground(false), if (enabled) theme.getOnAccent() else theme.getOnBackground(false))
                     ) {
-                        Text(if (enabled) button_disable else button_enable)
+                        Text(if (enabled) disable_button else enable_button)
                     }
                 }
             }

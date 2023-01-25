@@ -16,6 +16,7 @@ import com.spectre7.spmp.R
 import com.spectre7.spmp.api.DataApi
 import com.spectre7.spmp.api.getVideoFormats
 import com.spectre7.spmp.api.VideoFormat
+import com.spectre7.spmp.api.getSongLyrics
 import com.spectre7.spmp.ui.component.SongPreview
 import com.spectre7.utils.getString
 import okhttp3.internal.filterList
@@ -25,6 +26,7 @@ import java.time.Duration
 import java.time.Instant
 import java.util.*
 import java.util.concurrent.atomic.AtomicBoolean
+import kotlin.concurrent.thread
 import kotlin.reflect.KMutableProperty1
 import kotlin.reflect.jvm.isAccessible
 
@@ -275,6 +277,21 @@ class Song private constructor (
                     LINE_SYNC -> getString(R.string.lyrics_sync_line)
                     WORD_SYNC -> getString(R.string.lyrics_sync_word)
                 }
+
+            companion object {
+                fun fromKey(key: String): SyncType {
+                    return when (key) {
+                        "text" -> NONE
+                        "line_sync" -> LINE_SYNC
+                        "text_sync" -> WORD_SYNC
+                        else -> throw NotImplementedError(key)
+                    }
+                }
+
+                fun byPriority(): List<SyncType> {
+                    return values().toList()//.reversed()
+                }
+            }
         }
 
         data class Term(val subterms: List<Subterm>, val start: Float? = null, val end: Float? = null)
@@ -312,7 +329,9 @@ class Song private constructor (
     }
 
     fun getLyrics(callback: (Lyrics?) -> Unit) {
-        DataApi.getSongLyrics(this, callback)
+        thread {
+            callback(getSongLyrics(this))
+        }
     }
 
     fun loadStreamUrl(): String {

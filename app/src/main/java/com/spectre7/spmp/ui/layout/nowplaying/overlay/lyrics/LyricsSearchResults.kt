@@ -20,13 +20,14 @@ import androidx.compose.ui.unit.sp
 import com.spectre7.spmp.MainActivity
 import com.spectre7.spmp.R
 import com.spectre7.spmp.api.DataApi
+import com.spectre7.spmp.api.LyricsSearchResult
 import com.spectre7.spmp.model.Song
 import com.spectre7.utils.getContrasted
 import com.spectre7.utils.getString
 import com.spectre7.utils.setAlpha
 
 @Composable
-internal fun ColumnScope.LyricsSearchResults(results: List<DataApi.LyricsSearchResult>, modifier: Modifier = Modifier, onFinished: (Int?) -> Unit) {
+internal fun ColumnScope.LyricsSearchResults(results: List<LyricsSearchResult>, modifier: Modifier = Modifier, onFinished: (Int?) -> Unit) {
 
     BackHandler {
         onFinished(null)
@@ -105,10 +106,10 @@ internal fun ColumnScope.LyricsSearchResults(results: List<DataApi.LyricsSearchR
                                     .fillMaxWidth()
                             ) {
                                 if (result.artist_name != null) {
-                                    Item(getString(R.string.artist), result.artist_name, MainActivity.theme.getOnAccent())
+                                    Item(getString(R.string.artist), result.artist_name!!, MainActivity.theme.getOnAccent())
                                 }
                                 if (result.album_name != null) {
-                                    Item(getString(R.string.album), result.album_name, MainActivity.theme.getOnAccent())
+                                    Item(getString(R.string.album), result.album_name!!, MainActivity.theme.getOnAccent())
                                 }
                             }
                         }

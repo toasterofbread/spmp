@@ -17,10 +17,10 @@ private var base_context: JsonObject? = null
 class Result<T> private constructor() {
 
     private var _data: T? = null
-    private var _exception: Exception? = null
+    private var _exception: Throwable? = null
 
     val data: T get() = _data!!
-    val exception: Exception get() = _exception!!
+    val exception: Throwable get() = _exception!!
     val success: Boolean get() = _exception == null
 
     fun getDataOrThrow(): T {
@@ -37,7 +37,7 @@ class Result<T> private constructor() {
             }
         }
 
-        fun <T> failure(exception: Exception): Result<T> {
+        fun <T> failure(exception: Throwable): Result<T> {
             return Result<T>().also {
                 it._exception = exception
             }

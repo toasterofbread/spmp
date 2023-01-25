@@ -24,9 +24,15 @@ import androidx.compose.ui.unit.dp
 import com.spectre7.spmp.MainActivity
 import com.spectre7.spmp.R
 import com.spectre7.spmp.api.DataApi
+import com.spectre7.spmp.api.LyricsSearchResult
+import com.spectre7.spmp.api.searchForLyrics
 import com.spectre7.spmp.model.Song
 import com.spectre7.utils.setAlpha
 import kotlinx.coroutines.sync.Mutex
+import kotlin.concurrent.thread
+
+val check_lock = Object()
+var checking by mutableStateOf(false)
 
 @Composable
 fun LyricsSearchMenu(song: Song, lyrics: Song.Lyrics?, close: (changed: Boolean) -> Unit) {
@@ -43,30 +49,30 @@ fun LyricsSearchMenu(song: Song, lyrics: Song.Lyrics?, close: (changed: Boolean)
         unfocusedIndicatorColor = MainActivity.theme.getOnAccent().setAlpha(0.5)
     )
 
-    val check_mutex = remember { Mutex() }
     val focus = LocalFocusManager.current
 
     var title = remember { mutableStateOf(TextFieldValue(song.title)) }
     var artist = remember { mutableStateOf(TextFieldValue(song.artist.name)) }
 
     var search_requested by remember { mutableStateOf(false) }
-    var search_results: List<DataApi.LyricsSearchResult>? by remember { mutableStateOf(null) }
+    var search_results: List<LyricsSearchResult>? by remember { mutableStateOf(null) }
     var edit_page_open by remember { mutableStateOf(false) }
 
-    suspend fun performSearch() {
-        if (check_mutex.isLocked) {
-            return
-        }
+    fun performSearch() {
+        thread {
+            synchronized(check_lock) {
+                if (checking) {
+                    return@thread
+                }
+                checking = true
+            }
 
-        check_mutex.lock()
+            search_results = searchForLyrics(title.value.text, if (artist.value.text.trim().isEmpty()) null else artist.value.text).getDataOrThrow()
 
-        DataApi.searchForLyrics(
-            title.value.text,
-            if (artist.value.text.trim().isEmpty()) null else artist.value.text
-        ) { results ->
-            edit_page_open = false
-            search_results = results ?: listOf()
-            check_mutex.unlock()
+            synchronized(check_lock) {
+                checking = false
+                edit_page_open = false
+            }
         }
     }
 
@@ -177,7 +183,7 @@ fun LyricsSearchMenu(song: Song, lyrics: Song.Lyrics?, close: (changed: Boolean)
                     },
                     Modifier.background(MainActivity.theme.getAccent(), CircleShape).requiredSize(40.dp),
                 ) {
-                    Crossfade(if (check_mutex.isLocked) 0 else if (edit_page_open) 1 else 2) { icon ->
+                    Crossfade(if (checking) 0 else if (edit_page_open) 1 else 2) { icon ->
                         when (icon) {
                             0 -> CircularProgressIndicator(Modifier.requiredSize(22.dp), color = MainActivity.theme.getOnAccent(), strokeWidth = 3.dp)
                             else -> {

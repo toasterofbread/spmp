@@ -97,6 +97,10 @@ android {
         }
         exclude 'META-INF/DEPENDENCIES'
         exclude 'mozilla/public-suffix-list.txt'
+
+        // For Kuromoji
+        pickFirst 'META-INF/CONTRIBUTORS.md'
+        pickFirst 'META-INF/LICENSE.md'
     }
 
     lintOptions {
@@ -147,6 +151,8 @@ dependencies {
     implementation project(":exoplayer-library-core")
     implementation project(":exoplayer-library-ui")
     implementation project(":exoplayer-extension-mediasession")
+
+    implementation group: 'com.atilika.kuromoji', name: 'kuromoji-ipadic', version: '0.9.0'
 }
 
 task preBuildScript(type: Exec) {

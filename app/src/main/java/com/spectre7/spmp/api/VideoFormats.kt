@@ -27,7 +27,7 @@ private fun checkUrl(url: String): Boolean {
 data class VideoFormat (
     val itag: Int,
     val mimeType: String,
-    val averageBitrate: Int,
+    val averageBitrate: Int = -1,
     val quality: String,
     val qualityLabel: String? = null,
     val fps: Int? = null,

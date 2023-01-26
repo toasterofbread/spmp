@@ -14,11 +14,11 @@ class Artist private constructor (
     // Data
     lateinit var name: String
     lateinit var description: String
-    lateinit var creationDate: Date
-    lateinit var viewCount: String
-    lateinit var subscriberCount: String
+    lateinit var creation_date: Date
+    lateinit var view_count: String
+    lateinit var subscriber_count: String
     lateinit var videoCount: String
-    var hiddenSubscriberCount: Boolean = false
+    var hidden_subscriber_count: Boolean = false
 
     companion object {
         private val artists: MutableMap<String, Artist> = mutableMapOf()
@@ -43,11 +43,11 @@ class Artist private constructor (
     override fun subInitWithData(data: YTApiDataResponse) {
         name = data.snippet!!.title
         description = data.snippet.description!!
-        creationDate = Date.from(Instant.parse(data.snippet.publishedAt))
+        creation_date = Date.from(Instant.parse(data.snippet.publishedAt))
 
-        viewCount = data.statistics!!.viewCount
-        subscriberCount = data.statistics.subscriberCount!!
-        hiddenSubscriberCount = data.statistics.hiddenSubscriberCount
+        view_count = data.statistics!!.view_count
+        subscriber_count = data.statistics.subscriber_count!!
+        hidden_subscriber_count = data.statistics.hidden_subscriber_count
         videoCount = data.statistics.videoCount!!
     }
 
@@ -57,7 +57,7 @@ class Artist private constructor (
     }
 
     fun getFormattedSubscriberCount(): String {
-        val subs = subscriberCount.toInt()
+        val subs = subscriber_count.toInt()
         if (subs >= 1000000) {
             return "${subs / 1000000}M"
         }

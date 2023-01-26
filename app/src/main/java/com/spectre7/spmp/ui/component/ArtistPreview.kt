@@ -17,20 +17,55 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import coil.compose.rememberAsyncImagePainter
 import com.spectre7.spmp.model.Artist
+import com.spectre7.spmp.model.Song
 import com.spectre7.utils.setAlpha
 
+@OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun ArtistPreviewSquare(
-    song: Song, 
-    content_colour: Color, 
-    modifier: Modifier = Modifier, 
+    artist: Artist,
+    content_colour: Color,
+    modifier: Modifier = Modifier,
     onLongClick: (() -> Unit)? = null,
     onClick: (() -> Unit)? = null
 ) {
     Card(
         modifier = modifier,
-        
-    )
+        onClick = {  },
+        colors = CardDefaults.cardColors(Color.Unspecified)
+    ) {
+        Row(
+            verticalAlignment = Alignment.CenterVertically,
+            horizontalArrangement = Arrangement.SpaceBetween
+        ) {
+            Image(
+                painter = rememberAsyncImagePainter(artist.getThumbUrl(false)),
+                contentDescription = null,
+                contentScale = ContentScale.Crop,
+                modifier = Modifier
+                    .size(100.dp)
+                    .clip(CircleShape)
+            )
+
+            Column(Modifier.padding(8.dp)) {
+                Text(
+                    artist.name,
+                    fontSize = 20.sp,
+                    color = content_colour,
+                    maxLines = 1,
+                    overflow = TextOverflow.Ellipsis
+                )
+
+                Text(
+                    "${artist.getFormattedSubscriberCount()} subscribers",
+                    fontSize = 15.sp,
+                    color = content_colour.setAlpha(0.5),
+                    maxLines = 1,
+                    overflow = TextOverflow.Ellipsis
+                )
+            }
+        }
+    }
 }
 
 @OptIn(ExperimentalMaterial3Api::class)

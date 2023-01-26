@@ -1,10 +1,41 @@
+@file:OptIn(ExperimentalMaterial3Api::class)
+
 package com.spectre7.spmp.ui.layout
 
+import android.content.Intent
+import androidx.compose.foundation.Image
+import androidx.compose.foundation.layout.*
+import androidx.compose.foundation.lazy.LazyColumn
+import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.ContentCopy
+import androidx.compose.material.icons.filled.Info
+import androidx.compose.material.icons.filled.Share
+import androidx.compose.material3.*
+import androidx.compose.runtime.*
+import androidx.compose.ui.Alignment
+import androidx.compose.ui.Modifier
+import androidx.compose.ui.layout.ContentScale
+import androidx.compose.ui.platform.LocalClipboardManager
+import androidx.compose.ui.text.AnnotatedString
+import androidx.compose.ui.unit.dp
+import androidx.compose.ui.unit.sp
+import coil.compose.rememberAsyncImagePainter
+import com.spectre7.spmp.MainActivity
 import com.spectre7.spmp.model.Artist
+import com.spectre7.spmp.ui.component.PillMenu
+import com.spectre7.utils.sendToast
 
 @Composable
 fun ArtistPage(pill_menu: PillMenu, artist: Artist) {
-    var show_info by remember{ mutableStateOf(false) }
+    var show_info by remember { mutableStateOf(false) }
+    val share_intent = remember(artist.url, artist.name) {
+        Intent.createChooser(Intent().apply {
+            action = Intent.ACTION_SEND
+            putExtra(Intent.EXTRA_TITLE, artist.name)
+            putExtra(Intent.EXTRA_TEXT, artist.url)
+            type = "text/plain"
+        }, null)
+    }
 
     LaunchedEffect(Unit) {
         pill_menu.addExtraAction {
@@ -12,14 +43,6 @@ fun ArtistPage(pill_menu: PillMenu, artist: Artist) {
                 ActionButton(
                     Icons.Filled.Share
                 ) {
-                    val share_intent = remember(song.url) {
-                        Intent.createChooser(Intent().apply {
-                            action = Intent.ACTION_SEND
-                            putExtra(Intent.EXTRA_TITLE, artist.name)
-                            putExtra(Intent.EXTRA_TEXT, artist.url)
-                            type = "text/plain"
-                        }, null)
-                    }
                     MainActivity.context.startActivity(share_intent)
                 }
             }
@@ -50,7 +73,7 @@ fun ArtistPage(pill_menu: PillMenu, artist: Artist) {
         LazyColumn(Modifier.fillMaxSize()) {
             item {
                 Box(
-                    Modifier.fillMaxWidth().aspectRatio(1f), 
+                    Modifier.fillMaxWidth().aspectRatio(1f),
                     contentAlignment = Alignment.BottomCenter
                 ) {
                     Text(artist.name, fontSize = 40.sp)
@@ -66,23 +89,17 @@ private fun InfoDialog(artist: Artist, close: () -> Unit) {
         close,
         confirmButton = {
             FilledTonalButton(
-                {
-                    try {
-                        setValue(if (is_int) text.toInt().toFloat() else text.toFloat())
-                        show_edit_dialog = false
-                    }
-                    catch(_: NumberFormatException) {}
-                },
-                enabled = error == null
+                close
             ) {
-                Text("Done")
+                Text("Close")
             }
         },
         title = { Text("Artist info") },
         text = {
+            @Composable
             fun InfoValue(name: String, value: String) {
                 Column {
-                    Text(name, style = MaterialTheme.typography.h1)
+                    Text(name, style = MaterialTheme.typography.labelLarge)
                     
                     Row(horizontalArrangement = Arrangement.SpaceBetween) {
                         Text(value)

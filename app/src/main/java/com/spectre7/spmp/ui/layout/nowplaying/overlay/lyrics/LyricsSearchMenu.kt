@@ -136,9 +136,10 @@ fun LyricsSearchMenu(song: Song, lyrics: Song.Lyrics?, close: (changed: Boolean)
             else if (search_results != null) {
                 LyricsSearchResults(search_results!!) { index ->
                     if (index != null) {
-                        val new_id = search_results!![index].id
-                        if (new_id != song.registry.overrides.lyrics_id) {
-                            song.registry.overrides.lyrics_id = search_results!![index].id
+                        val selected = search_results!![index]
+                        if (selected.id != song.registry.overrides.lyrics_id && selected.source.ordinal != song.registry.overrides.lyrics_source) {
+                            song.registry.overrides.lyrics_id = selected.id
+                            song.registry.overrides.lyrics_source = selected.source.ordinal
                             close(true)
                         }
                     }

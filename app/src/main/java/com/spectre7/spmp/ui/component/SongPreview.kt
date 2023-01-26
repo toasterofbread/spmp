@@ -1,8 +1,8 @@
+@file:OptIn(ExperimentalFoundationApi::class, ExperimentalFoundationApi::class)
+
 package com.spectre7.spmp.ui.component
 
-import android.content.Intent
-import android.net.Uri
-import android.view.WindowManager
+import androidx.compose.animation.Crossfade
 import androidx.compose.animation.core.*
 import androidx.compose.foundation.*
 import androidx.compose.foundation.interaction.MutableInteractionSource
@@ -13,39 +13,26 @@ import androidx.compose.material.icons.filled.*
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
-import androidx.compose.ui.ExperimentalComposeUiApi
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.draw.alpha
-import androidx.compose.ui.draw.clip
-import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.graphics.Color
-import androidx.compose.ui.graphics.Shape
-import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.layout.*
-import androidx.compose.ui.platform.LocalDensity
-import androidx.compose.ui.platform.LocalView
+import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.*
-import androidx.compose.ui.window.Dialog
-import androidx.compose.ui.window.DialogProperties
-import androidx.compose.ui.window.DialogWindowProvider
-import coil.compose.rememberAsyncImagePainter
 import com.spectre7.spmp.MainActivity
 import com.spectre7.spmp.PlayerServiceHost
+import com.spectre7.spmp.model.MediaItem
 import com.spectre7.spmp.model.Song
-import com.spectre7.utils.Marquee
-import com.spectre7.utils.getStatusBarHeight
+import com.spectre7.utils.getContrasted
 import com.spectre7.utils.setAlpha
-import kotlinx.coroutines.coroutineScope
-import kotlinx.coroutines.launch
 
 @Composable
 fun SongPreviewSquare(
     song: Song, 
     content_colour: Color, 
     modifier: Modifier = Modifier, 
-    onLongClick: (() -> Unit)? = null,
-    onClick: (() -> Unit)? = null
+    onClick: (() -> Unit)? = null,
+    onLongClick: (() -> Unit)? = null
 ) {
     var show_popup by remember { mutableStateOf(false) }
 
@@ -55,19 +42,17 @@ fun SongPreviewSquare(
             .combinedClickable(
                 interactionSource = remember { MutableInteractionSource() },
                 indication = null,
-                onClick = { 
+                onClick = {
                     if (onClick != null) {
                         onClick()
-                    }
-                    else {
+                    } else {
                         PlayerServiceHost.service.playSong(song)
                     }
                 },
                 onLongClick = {
                     if (onLongClick != null) {
                         onLongClick()
-                    }
-                    else {
+                    } else {
                         show_popup = true
                     }
                 }
@@ -103,8 +88,8 @@ fun SongPreviewLong(
     song: Song, 
     content_colour: Color, 
     modifier: Modifier = Modifier, 
-    onLongClick: (() -> Unit)? = null,
-    onClick: (() -> Unit)? = null
+    onClick: (() -> Unit)? = null,
+    onLongClick: (() -> Unit)? = null
 ) {
     var show_popup by remember { mutableStateOf(false) }
 
@@ -115,8 +100,8 @@ fun SongPreviewLong(
             .combinedClickable(
                 interactionSource = remember { MutableInteractionSource() },
                 indication = null,
-                onClick = {},
-                onLongClick = onLongPress
+                onClick = onClick ?: {},
+                onLongClick = onLongClick
             )
     ) {
         LongPressIconMenu(
@@ -137,7 +122,7 @@ fun SongPreviewLong(
             Text(
                 song.title,
                 fontSize = 15.sp,
-                color = colour,
+                color = content_colour,
                 maxLines = 1,
                 overflow = TextOverflow.Ellipsis
             )
@@ -145,26 +130,16 @@ fun SongPreviewLong(
             Text(
                 song.artist.name,
                 fontSize = 11.sp,
-                color = colour.setAlpha(0.5),
+                color = content_colour.setAlpha(0.5),
                 maxLines = 1,
                 overflow = TextOverflow.Ellipsis
             )
-        }
-
-        if (!basic) {
-            IconButton(onClick = {
-                PlayerServiceHost.service.addToQueue(song) {
-                    PlayerServiceHost.service.play()
-                }
-            }, modifier = Modifier.fillMaxWidth()) {
-                Icon(Icons.Filled.PlayArrow, null, Modifier, colour)
-            }
         }
     }
 }
 
 val longPressPopupActions: @Composable LongPressMenuActionProvider.(MediaItem) -> Unit = { song ->
-    if (!song is Song) {
+    if (song !is Song) {
         throw ClassCastException()
     }
 
@@ -177,41 +152,52 @@ val longPressPopupActions: @Composable LongPressMenuActionProvider.(MediaItem) -
     val queue_song = PlayerServiceHost.service.getSong(PlayerServiceHost.service.active_queue_index)
     if (queue_song != null) {
         Column {
-            Row {
-                ActionButton(Icons.Filled.SubdirectoryArrowRight, "Play after", Modifier.fillMaxWidth().weight(1f)) {
+            Row(verticalAlignment = Alignment.CenterVertically) {
+                ActionButton(Icons.Filled.SubdirectoryArrowRight, "Play after",
+                    Modifier
+                        .fillMaxWidth()
+                        .weight(1f)) {
                     PlayerServiceHost.service.addToQueue(song, PlayerServiceHost.service.active_queue_index + 1, true)
                 }
                 
-                Row(verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(30.dp)) {
+                Row(verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(10.dp)) {
                     val button_padding = PaddingValues(0.dp)
-                    val button_modifier = Modifier.size(30.dp)
+                    val button_modifier = Modifier.size(30.dp).fillMaxHeight().aspectRatio(1f).align(Alignment.CenterVertically)
+                    val button_colours = ButtonDefaults.buttonColors(
+                        containerColor = content_colour,
+                        contentColor = background_colour
+                    )
 
-                    Button(
-                        {
-                            PlayerServiceHost.service.updateActiveQueueIndex(1)
-                        },
-                        button_modifier,
-                        contentPadding = button_padding
-                    ) {
-                        Text("+")
-                    }
-                    Button(
+                    ElevatedButton(
                         {
                             PlayerServiceHost.service.updateActiveQueueIndex(-1)
                         },
                         button_modifier,
-                        contentPadding = button_padding
+                        contentPadding = button_padding,
+                        colors = button_colours,
                     ) {
-                        Text("-")
+                        Icon(Icons.Filled.Remove, null)
+                    }
+                    ElevatedButton(
+                        {
+                            PlayerServiceHost.service.updateActiveQueueIndex(1)
+                        },
+                        button_modifier,
+                        contentPadding = button_padding,
+                        colors = button_colours
+                    ) {
+                        Icon(Icons.Filled.Add, null)
                     }
                 }
             }
 
-            queue_song.PreviewBasic(
-                false,
-                Modifier,
-                MainActivity.theme.getOnBackground(false)
-            )
+            Crossfade(queue_song, animationSpec = tween(100)) {
+                it.PreviewLong(
+                    content_colour,
+                    null, null,
+                    Modifier
+                )
+            }
         }
     }
 

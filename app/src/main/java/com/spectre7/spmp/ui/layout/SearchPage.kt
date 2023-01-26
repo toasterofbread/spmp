@@ -239,9 +239,17 @@ fun SearchPage(pill_menu: PillMenu, setOverlayPage: (page: OverlayPage) -> Unit)
 
         performSearch(result_tabs.keys.elementAt(tab_index))
 
-        LazyColumn(Modifier.fillMaxSize().background(MainActivity.theme.getBackground(false))) {
+        LazyColumn(
+            Modifier
+                .fillMaxSize()
+                .background(MainActivity.theme.getBackground(false))) {
             itemsIndexed(items = result_tabs.values.elementAt(tab_index), key = { _, item -> item.id }) { _, item ->
-                item.Preview(false)
+                item.PreviewLong(
+                    content_colour = MainActivity.theme.getOnBackground(false),
+                    onClick = null,
+                    onLongClick = null,
+                    modifier = Modifier
+                )
             }
         }
     }

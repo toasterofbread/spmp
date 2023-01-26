@@ -3,7 +3,6 @@ package com.spectre7.spmp.model
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
-import com.spectre7.spmp.ui.component.ArtistPreview
 import java.time.Instant
 import java.util.*
 
@@ -32,6 +31,16 @@ class Artist private constructor (
         }
     }
 
+    @Composable
+    override fun PreviewSquare(content_colour: Color, onClick: (() -> Unit)?, onLongClick: (() -> Unit)?, modifier: Modifier) {
+        // TODO
+    }
+
+    @Composable
+    override fun PreviewLong(content_colour: Color, onClick: (() -> Unit)?, onLongClick: (() -> Unit)?, modifier: Modifier) {
+        // TODO
+    }
+
     override fun _getId(): String {
         return _id
     }
@@ -45,15 +54,10 @@ class Artist private constructor (
         description = data.snippet.description!!
         creation_date = Date.from(Instant.parse(data.snippet.publishedAt))
 
-        view_count = data.statistics!!.view_count
-        subscriber_count = data.statistics.subscriber_count!!
-        hidden_subscriber_count = data.statistics.hidden_subscriber_count
+        view_count = data.statistics!!.viewCount
+        subscriber_count = data.statistics.subscriberCount!!
+        hidden_subscriber_count = data.statistics.hiddenSubscriberCount
         videoCount = data.statistics.videoCount!!
-    }
-
-    @Composable
-    override fun Preview(large: Boolean, modifier: Modifier, colour: Color) {
-        return ArtistPreview(this, large, colour, modifier)
     }
 
     fun getFormattedSubscriberCount(): String {

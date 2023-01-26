@@ -19,6 +19,20 @@ import coil.compose.rememberAsyncImagePainter
 import com.spectre7.spmp.model.Artist
 import com.spectre7.utils.setAlpha
 
+@Composable
+fun ArtistPreviewSquare(
+    song: Song, 
+    content_colour: Color, 
+    modifier: Modifier = Modifier, 
+    onLongClick: (() -> Unit)? = null,
+    onClick: (() -> Unit)? = null
+) {
+    Card(
+        modifier = modifier,
+        
+    )
+}
+
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun ArtistPreview (artist: Artist, large: Boolean, colour: Color, modifier: Modifier = Modifier, icon_size: Dp = 40.dp, font_size: TextUnit = 15.sp) {

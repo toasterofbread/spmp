@@ -114,20 +114,21 @@ abstract class MediaItem {
     }
 
     @Composable
-    abstract fun Preview(large: Boolean, modifier: Modifier, colour: Color)
-
+    abstract fun PreviewSquare(onClick: () -> Unit, modifier: Modifier)
     @Composable
-    fun Preview(large: Boolean, modifier: Modifier) {
-        Preview(large, modifier, MaterialTheme.colorScheme.onBackground)
-    }
-
-    @Composable
-    fun Preview(large: Boolean) {
-        Preview(large, Modifier, MaterialTheme.colorScheme.onBackground)
-    }
+    abstract fun PreviewLong(onClick: () -> Unit, modifier: Modifier)
 
     abstract fun _getId(): String
     abstract fun _getUrl(): String
+
+    fun getArtist(): Artist? {
+        return when (this) {
+            is Artist -> this
+            is Song -> artist
+            is Playlist -> null // TODO?
+            else -> throw NotImplementedError(this.javaClass.name)
+        }
+    }
 
     fun getThumbUrl(hq: Boolean): String? {
         return (if (hq) thumbnails?.high else thumbnails?.medium)?.url

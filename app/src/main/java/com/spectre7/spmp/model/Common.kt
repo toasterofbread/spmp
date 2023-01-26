@@ -2,14 +2,20 @@ package com.spectre7.spmp.model
 
 import android.graphics.Bitmap
 import android.graphics.BitmapFactory
-import androidx.compose.material3.MaterialTheme
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
-import com.spectre7.spmp.api.DataApi
+import androidx.compose.ui.graphics.asAndroidBitmap
+import androidx.compose.ui.graphics.asImageBitmap
+import androidx.compose.ui.graphics.toArgb
+import androidx.palette.graphics.Palette
+import com.spectre7.spmp.MainActivity
 import com.spectre7.spmp.api.loadMediaItemData
+import com.spectre7.utils.getContrasted
 import java.net.URL
-import kotlin.concurrent.thread
 
 abstract class MediaItem {
 
@@ -71,9 +77,16 @@ abstract class MediaItem {
         private set(value) { _load_status = value }
     val loading_lock = Object()
     
-    protected var thumbnail: Bitmap? = null
-    protected var thumbnail_hq: Bitmap? = null
+    protected var thumbnail: Bitmap? by mutableStateOf(null)
+    protected var thumbnail_hq: Bitmap? by mutableStateOf(null)
+
     private var thumbnails: YTApiDataResponse.Thumbnails? = null
+    var thumbnail_palette: Palette? = null
+
+    protected val thumb_load_lock = Object()
+    protected var thumb_loading = false
+    protected val thumb_load_lock_hq = Object()
+    protected var thumb_loading_hq = false
 
     val id: String get() = _getId()
     val url: String get() = _getUrl()
@@ -97,31 +110,59 @@ abstract class MediaItem {
     }
 
     fun thumbnailLoaded(hq: Boolean): Boolean {
-        return (if (hq) thumbnail_hq else thumbnail) != null
+       return (if (hq) thumbnail_hq else thumbnail) != null
     }
 
     open fun loadThumbnail(hq: Boolean): Bitmap {
-        if (!thumbnailLoaded(hq)) {
-            val thumb = BitmapFactory.decodeStream(URL(getThumbUrl(hq)).openConnection().getInputStream())!!
-            if (hq) {
-                thumbnail_hq = thumb
+        val lock = if (hq) thumb_load_lock_hq else thumb_load_lock
+        synchronized(lock) {
+            if (if (hq) thumb_loading_hq else thumb_loading) {
+                lock.wait()
+                return (if (hq) thumbnail_hq else thumbnail)!!
             }
-            else {
-                thumbnail = thumb
+
+            if (thumbnailLoaded(hq)) {
+                return (if (hq) thumbnail_hq else thumbnail)!!
+            }
+
+            if (hq) {
+                thumb_loading_hq = true
+            } else {
+                thumb_loading = true
             }
         }
+
+        val thumb = BitmapFactory.decodeStream(URL(getThumbUrl(hq)).openConnection().getInputStream())!!
+        if (hq) {
+            thumbnail_hq = thumb
+        }
+        else {
+            thumbnail = thumb
+        }
+
+        thumbnail_palette = Palette.from(thumb.asImageBitmap().asAndroidBitmap()).clearFilters().generate()
+
+        synchronized(lock) {
+            if (hq) {
+                thumb_loading_hq = false
+            } else {
+                thumb_loading = false
+            }
+            lock.notifyAll()
+        }
+
         return (if (hq) thumbnail_hq else thumbnail)!!
     }
 
     @Composable
-    abstract fun PreviewSquare(onClick: () -> Unit, modifier: Modifier)
+    abstract fun PreviewSquare(content_colour: Color, onClick: (() -> Unit)?, onLongClick: (() -> Unit)?, modifier: Modifier)
     @Composable
-    abstract fun PreviewLong(onClick: () -> Unit, modifier: Modifier)
+    abstract fun PreviewLong(content_colour: Color, onClick: (() -> Unit)?, onLongClick: (() -> Unit)?, modifier: Modifier)
 
     abstract fun _getId(): String
     abstract fun _getUrl(): String
 
-    fun getArtist(): Artist? {
+    fun getAssociatedArtist(): Artist? {
         return when (this) {
             is Artist -> this
             is Song -> artist
@@ -153,4 +194,28 @@ abstract class MediaItem {
     }
 
     protected abstract fun subInitWithData(data: YTApiDataResponse)
+
+    companion object {
+        fun getDefaultPaletteColour(palette: Palette, default: Color): Color {
+            val unspecified = Color.Unspecified.toArgb()
+            var ret: Color? = null
+
+            fun apply(colour: Int): Boolean {
+                if (colour == unspecified) {
+                    return false
+                }
+                ret = Color(colour)
+                return true
+            }
+
+            if (apply(palette.getVibrantColor(unspecified))) { return ret!! }
+            if (apply(palette.getLightVibrantColor(unspecified))) { return ret!! }
+            if (apply(palette.getLightMutedColor(unspecified))) { return ret!! }
+            if (apply(palette.getDarkVibrantColor(unspecified))) { return ret!! }
+            if (apply(palette.getDarkMutedColor(unspecified))) { return ret!! }
+            if (apply(palette.getDominantColor(unspecified))) { return ret!! }
+
+            return default
+        }
+    }
 }

@@ -76,11 +76,11 @@ data class YtItemRow(val title: String, val subtitle: String?, val type: TYPE, v
                     enter = fadeIn() + expandIn(expandFrom = Alignment.Center),
                     exit = fadeOut() + shrinkOut(shrinkTowards = Alignment.Center)
                 ) {
-                    item.Preview(true)
+                    item.PreviewSquare(MainActivity.theme.getOnBackground(false), null, null, Modifier)
                 }
             }
             else {
-                item.Preview(true)
+                item.PreviewSquare(MainActivity.theme.getOnBackground(false), null, null, Modifier)
             }
         }
     }
@@ -236,9 +236,9 @@ fun PlayerView() {
                         }
 
                         val artist_row =
-                            YtItemRow("Recommended Artists", null, YtItemRow.TYPE.LONG)
+                            YtItemRow(getString(R.string.feed_row_artists), null, YtItemRow.TYPE.LONG)
                         val playlist_row =
-                            YtItemRow("Recommended playlists", null, YtItemRow.TYPE.SQUARE)
+                            YtItemRow(getString(R.string.feed_row_playlists), null, YtItemRow.TYPE.SQUARE)
 
                         for (row in feed_result.data) {
                             val entry =

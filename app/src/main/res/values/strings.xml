@@ -18,6 +18,9 @@
     <string name="albums">Albums</string>
     <string name="album">Album</string>
 
+    <string name="feed_row_artists">Recommended artists</string>
+    <string name="feed_row_playlists">Playlists</string>
+
     <string name="action_close">Close</string>
 
     <string name="loading_feed">Loading feed</string>

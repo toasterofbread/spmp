@@ -8,16 +8,18 @@ import androidx.compose.runtime.MutableState
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.graphics.asAndroidBitmap
+import androidx.compose.ui.graphics.asImageBitmap
 import androidx.compose.ui.graphics.toArgb
 import androidx.core.content.edit
+import androidx.palette.graphics.Palette
 import com.beust.klaxon.Json
 import com.beust.klaxon.Klaxon
 import com.spectre7.spmp.R
-import com.spectre7.spmp.api.DataApi
 import com.spectre7.spmp.api.getVideoFormats
-import com.spectre7.spmp.api.VideoFormat
 import com.spectre7.spmp.api.getSongLyrics
-import com.spectre7.spmp.ui.component.SongPreview
+import com.spectre7.spmp.ui.component.SongPreviewLong
+import com.spectre7.spmp.ui.component.SongPreviewSquare
 import com.spectre7.utils.getString
 import okhttp3.internal.filterList
 import java.io.FileNotFoundException
@@ -25,7 +27,6 @@ import java.net.URL
 import java.time.Duration
 import java.time.Instant
 import java.util.*
-import java.util.concurrent.atomic.AtomicBoolean
 import kotlin.concurrent.thread
 import kotlin.reflect.KMutableProperty1
 import kotlin.reflect.jvm.isAccessible
@@ -49,7 +50,8 @@ class DataRegistry private constructor(var songs: MutableMap<String, SongEntry> 
         data class SongOverrides(
             var _title: String? = null,
             var _theme_colour: Int? = null,
-            var _lyrics_id: String? = null
+            var _lyrics_id: Int? = null,
+            var _lyrics_source: Int? = null
         ) {
 
             var title: String?
@@ -60,16 +62,17 @@ class DataRegistry private constructor(var songs: MutableMap<String, SongEntry> 
                 get() = getMutableState<Int?>("_theme_colour").value
                 set(value) = set("_theme_colour", value)
 
-            var lyrics_id: String?
-                get() = getMutableState<String?>("_lyrics_id").value
+            var lyrics_id: Int?
+                get() = getMutableState<Int?>("_lyrics_id").value
                 set(value) = set("_lyrics_id", value)
+
+            var lyrics_source: Int?
+                get() = getMutableState<Int?>("_lyrics_source").value
+                set(value) = set("_lyrics_source", value)
 
             private val mutable_states = mutableMapOf<String, MutableState<*>>()
 
             private fun <T> getMutableState(name: String): MutableState<T> {
-                if (name == "_theme_colour") {
-                    {}
-                }
                 return mutable_states.getOrPut(name, {
                     val property = SongOverrides::class.members.first { it.name == name } as KMutableProperty1<SongOverrides, T>
                     property.isAccessible = true
@@ -231,8 +234,9 @@ class Song private constructor (
         set(value) { registry.overrides.title = value }
 
     data class Lyrics(
-        val id: String,
-        val sync: Int,
+        val id: Int,
+        val source: Source,
+        val sync_type: SyncType,
         val lyrics: List<List<Term>>
     ) {
 
@@ -298,9 +302,6 @@ class Song private constructor (
         data class Subterm(val text: String, val furi: String? = null) {
             var index: Int = -1
         }
-
-        val sync_type: SyncType
-            get() = SyncType.values()[sync]
 
         init {
             var index = 0
@@ -372,33 +373,70 @@ class Song private constructor (
     }
 
     override fun loadThumbnail(hq: Boolean): Bitmap {
-        if (!thumbnailLoaded(hq)) {
-            var thumb: Bitmap
-
-            if (hq) {
-                try {
-                    thumb = BitmapFactory.decodeStream(URL("https://img.youtube.com/vi/$id/maxresdefault.jpg").openConnection().getInputStream())!!
-                }
-                catch (e: FileNotFoundException) {
-                    thumb = BitmapFactory.decodeStream(URL(getThumbUrl(hq)).openConnection().getInputStream())!!
-
-                    // Crop thumbnail to 16:9
-                    val height = (thumb.width * (9f/16f)).toInt()
-                    thumb = Bitmap.createBitmap(thumb, 0, (thumb.height - height) / 2, thumb.width, height)
-                }
+        val lock = if (hq) thumb_load_lock_hq else thumb_load_lock
+        synchronized(lock) {
+            if (if (hq) thumb_loading_hq else thumb_loading) {
+                lock.wait()
+                return (if (hq) thumbnail_hq else thumbnail)!!
             }
-            else {
-                thumb = BitmapFactory.decodeStream(URL(getThumbUrl(hq)).openConnection().getInputStream())!!
+
+            if (thumbnailLoaded(hq)) {
+                return (if (hq) thumbnail_hq else thumbnail)!!
             }
 
             if (hq) {
-                thumbnail_hq = thumb
-            }
-            else {
-                thumbnail = thumb
+                thumb_loading_hq = true
+            } else {
+                thumb_loading = true
             }
         }
+
+        var thumb: Bitmap
+        if (hq) {
+            try {
+                thumb = BitmapFactory.decodeStream(URL("https://img.youtube.com/vi/$id/maxresdefault.jpg").openConnection().getInputStream())!!
+            }
+            catch (e: FileNotFoundException) {
+                thumb = BitmapFactory.decodeStream(URL(getThumbUrl(hq)).openConnection().getInputStream())!!
+
+                // Crop thumbnail to 16:9
+                val height = (thumb.width * (9f/16f)).toInt()
+                thumb = Bitmap.createBitmap(thumb, 0, (thumb.height - height) / 2, thumb.width, height)
+            }
+        }
+        else {
+            thumb = BitmapFactory.decodeStream(URL(getThumbUrl(hq)).openConnection().getInputStream())!!
+        }
+
+        if (hq) {
+            thumbnail_hq = thumb
+        }
+        else {
+            thumbnail = thumb
+        }
+
+        thumbnail_palette = Palette.from(thumb.asImageBitmap().asAndroidBitmap()).clearFilters().generate()
+
+        synchronized(lock) {
+            if (hq) {
+                thumb_loading_hq = false
+            } else {
+                thumb_loading = false
+            }
+            lock.notifyAll()
+        }
+
         return (if (hq) thumbnail_hq else thumbnail)!!
+    }
+
+    @Composable
+    override fun PreviewSquare(content_colour: Color, onClick: (() -> Unit)?, onLongClick: (() -> Unit)?, modifier: Modifier) {
+        SongPreviewSquare(this, content_colour, modifier, onClick, onLongClick)
+    }
+
+    @Composable
+    override fun PreviewLong(content_colour: Color, onClick: (() -> Unit)?, onLongClick: (() -> Unit)?, modifier: Modifier) {
+        SongPreviewLong(this, content_colour, modifier, onClick, onLongClick)
     }
 
     override fun _getId(): String {
@@ -409,13 +447,4 @@ class Song private constructor (
         return "https://music.youtube.com/watch?v=$id"
     }
 
-    @Composable
-    override fun Preview(large: Boolean, modifier: Modifier, colour: Color) {
-        return SongPreview(this, large, colour, modifier)
-    }
-
-    @Composable
-    fun PreviewBasic(large: Boolean, modifier: Modifier, colour: Color) {
-        return SongPreview(this, large, colour, modifier, true)
-    }
 }

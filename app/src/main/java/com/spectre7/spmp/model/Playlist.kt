@@ -3,7 +3,6 @@ package com.spectre7.spmp.model
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
-import com.spectre7.spmp.ui.component.PlaylistPreview
 import java.time.Instant
 import java.util.*
 
@@ -28,8 +27,13 @@ class Playlist private constructor (
     }
 
     @Composable
-    override fun Preview(large: Boolean, modifier: Modifier, colour: Color) {
-        return PlaylistPreview(this, large, colour, modifier)
+    override fun PreviewSquare(content_colour: Color, onClick: (() -> Unit)?, onLongClick: (() -> Unit)?, modifier: Modifier) {
+        // TODO
+    }
+
+    @Composable
+    override fun PreviewLong(content_colour: Color, onClick: (() -> Unit)?, onLongClick: (() -> Unit)?, modifier: Modifier) {
+        // TODO
     }
 
     override fun _getId(): String {

@@ -372,61 +372,24 @@ class Song private constructor (
         return stream_url!!
     }
 
-    override fun loadThumbnail(hq: Boolean): Bitmap {
-        val lock = if (hq) thumb_load_lock_hq else thumb_load_lock
-        synchronized(lock) {
-            if (if (hq) thumb_loading_hq else thumb_loading) {
-                lock.wait()
-                return (if (hq) thumbnail_hq else thumbnail)!!
-            }
+    override fun downloadThumbnail(quality: ThumbnailQuality): Bitmap {
+        when (quality) {
+            ThumbnailQuality.HIGH -> {
+                try {
+                    return BitmapFactory.decodeStream(URL("https://img.youtube.com/vi/$id/maxresdefault.jpg").openConnection().getInputStream())!!
+                }
+                catch (e: FileNotFoundException) {
+                    val thumb = BitmapFactory.decodeStream(URL(getThumbUrl(hq)).openConnection().getInputStream())!!
 
-            if (thumbnailLoaded(hq)) {
-                return (if (hq) thumbnail_hq else thumbnail)!!
+                    // Crop thumbnail to 16:9
+                    val height = (thumb.width * (9f/16f)).toInt()
+                    return = Bitmap.createBitmap(thumb, 0, (thumb.height - height) / 2, thumb.width, height)
+                }
             }
-
-            if (hq) {
-                thumb_loading_hq = true
-            } else {
-                thumb_loading = true
-            }
-        }
-
-        var thumb: Bitmap
-        if (hq) {
-            try {
-                thumb = BitmapFactory.decodeStream(URL("https://img.youtube.com/vi/$id/maxresdefault.jpg").openConnection().getInputStream())!!
-            }
-            catch (e: FileNotFoundException) {
-                thumb = BitmapFactory.decodeStream(URL(getThumbUrl(hq)).openConnection().getInputStream())!!
-
-                // Crop thumbnail to 16:9
-                val height = (thumb.width * (9f/16f)).toInt()
-                thumb = Bitmap.createBitmap(thumb, 0, (thumb.height - height) / 2, thumb.width, height)
+            ThumbnailQuality.LOW -> {
+                return BitmapFactory.decodeStream(URL(getThumbUrl(hq)).openConnection().getInputStream())!!
             }
         }
-        else {
-            thumb = BitmapFactory.decodeStream(URL(getThumbUrl(hq)).openConnection().getInputStream())!!
-        }
-
-        if (hq) {
-            thumbnail_hq = thumb
-        }
-        else {
-            thumbnail = thumb
-        }
-
-        thumbnail_palette = Palette.from(thumb.asImageBitmap().asAndroidBitmap()).clearFilters().generate()
-
-        synchronized(lock) {
-            if (hq) {
-                thumb_loading_hq = false
-            } else {
-                thumb_loading = false
-            }
-            lock.notifyAll()
-        }
-
-        return (if (hq) thumbnail_hq else thumbnail)!!
     }
 
     @Composable

@@ -17,7 +17,6 @@ import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.TextUnit
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
-import coil.compose.rememberAsyncImagePainter
 import com.spectre7.spmp.model.Artist
 import com.spectre7.spmp.model.Song
 import com.spectre7.utils.setAlpha

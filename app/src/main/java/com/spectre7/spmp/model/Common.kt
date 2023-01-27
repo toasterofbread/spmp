@@ -128,15 +128,16 @@ abstract class MediaItem {
         return thumb_states[quality].image != null
     }
 
-    fun getThumbnail(quality: ThumbnailQuality): Bitmap? {
+    fun getThumbnail(quality: ThumbnailQuality, onLoaded: (Bitmap) -> Unit = {}): Bitmap? {
         val state = thumb_states[quality]
         synchronized(state) {
             if (state.loading) {
+                onLoaded(state.image!!)
                 return state.image
             }
         }
         thread {
-            loadThumbnail(quality)
+            onLoaded(loadThumbnail(quality))
         }
         return state.image
     }

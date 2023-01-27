@@ -12,7 +12,7 @@ import org.xmlpull.v1.XmlPullParser
 import java.util.Base64
 
 fun getSongLyrics(song: Song): Song.Lyrics? {
-    val id = song.registry.overrides.lyrics_id
+    val id = song.registry.lyrics_id
     val ret: Song.Lyrics?
 
     if (id != null) {
@@ -29,8 +29,8 @@ fun getSongLyrics(song: Song): Song.Lyrics? {
         ret = getLyrics(lyrics.id, lyrics.source).getDataOrThrow()
     }
 
-    song.registry.overrides.lyrics_id = ret.id
-    song.registry.overrides.lyrics_source = ret.source.ordinal
+    song.registry.lyrics_id = ret.id
+    song.registry.lyrics_source = ret.source.ordinal
     return ret
 }
 

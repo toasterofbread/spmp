@@ -446,5 +446,4 @@ class Song private constructor (
     override fun _getUrl(): String {
         return "https://music.youtube.com/watch?v=$id"
     }
-
 }

@@ -1,3 +1,5 @@
+@file:OptIn(ExperimentalFoundationApi::class, ExperimentalFoundationApi::class)
+
 package com.spectre7.spmp.ui.component
 
 import androidx.compose.foundation.Image
@@ -20,92 +22,111 @@ import com.spectre7.spmp.model.Artist
 import com.spectre7.spmp.model.Song
 import com.spectre7.utils.setAlpha
 
-@OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun ArtistPreviewSquare(
-    artist: Artist,
-    content_colour: Color,
-    modifier: Modifier = Modifier,
-    onLongClick: (() -> Unit)? = null,
-    onClick: (() -> Unit)? = null
+    artist: Artist, 
+    content_colour: Color, 
+    modifier: Modifier = Modifier, 
+    onClick: (() -> Unit)? = null,
+    onLongClick: (() -> Unit)? = null
 ) {
-    Card(
-        modifier = modifier,
-        onClick = {  },
-        colors = CardDefaults.cardColors(Color.Unspecified)
-    ) {
-        Row(
-            verticalAlignment = Alignment.CenterVertically,
-            horizontalArrangement = Arrangement.SpaceBetween
-        ) {
-            Image(
-                painter = rememberAsyncImagePainter(artist.getThumbUrl(false)),
-                contentDescription = null,
-                contentScale = ContentScale.Crop,
-                modifier = Modifier
-                    .size(100.dp)
-                    .clip(CircleShape)
+    var show_popup by remember { mutableStateOf(false) }
+
+    Column(
+        modifier
+            .padding(10.dp, 0.dp)
+            .combinedClickable(
+                interactionSource = remember { MutableInteractionSource() },
+                indication = null,
+                onClick = {
+                    if (onClick != null) {
+                        onClick()
+                    } else {
+                        TODO("Open artist page")
+                    }
+                },
+                onLongClick = {
+                    if (onLongClick != null) {
+                        onLongClick()
+                    } else {
+                        show_popup = true
+                    }
+                }
             )
+            .aspectRatio(0.8f),
+        horizontalAlignment = Alignment.CenterHorizontally,
+        verticalArrangement = Arrangement.spacedBy(5.dp)
+    ) {
+        LongPressIconMenu(
+            showing = show_popup,
+            onDismissRequest = {
+                show_popup = false
+            },
+            media_item = artist,
+            _thumb_size = 100.dp,
+            thumb_shape = CircleShape,
+            actions = { TODO() }
+        )
 
-            Column(Modifier.padding(8.dp)) {
-                Text(
-                    artist.name,
-                    fontSize = 20.sp,
-                    color = content_colour,
-                    maxLines = 1,
-                    overflow = TextOverflow.Ellipsis
-                )
-
-                Text(
-                    "${artist.getFormattedSubscriberCount()} subscribers",
-                    fontSize = 15.sp,
-                    color = content_colour.setAlpha(0.5),
-                    maxLines = 1,
-                    overflow = TextOverflow.Ellipsis
-                )
-            }
-        }
+        Text(
+            artist.name,
+            fontSize = 12.sp,
+            color = content_colour,
+            maxLines = 1,
+            lineHeight = 14.sp,
+            overflow = TextOverflow.Ellipsis
+        )
     }
 }
 
-@OptIn(ExperimentalMaterial3Api::class)
 @Composable
-fun ArtistPreview (artist: Artist, large: Boolean, colour: Color, modifier: Modifier = Modifier, icon_size: Dp = 40.dp, font_size: TextUnit = 15.sp) {
-    Card(
-        modifier = modifier,
-        onClick = {  },
-        colors = CardDefaults.cardColors(Color.Unspecified)
+fun ArtistPreviewLong(
+    artist: Artist, 
+    content_colour: Color, 
+    modifier: Modifier = Modifier, 
+    onClick: (() -> Unit)? = null,
+    onLongClick: (() -> Unit)? = null
+) {
+    var show_popup by remember { mutableStateOf(false) }
+
+    Row(
+        verticalAlignment = Alignment.CenterVertically,
+        modifier = modifier
+            .padding(10.dp, 0.dp)
+            .combinedClickable(
+                interactionSource = remember { MutableInteractionSource() },
+                indication = null,
+                onClick = onClick ?: {},
+                onLongClick = onLongClick
+            )
     ) {
-        Row(
-            verticalAlignment = Alignment.CenterVertically,
-            horizontalArrangement = Arrangement.SpaceBetween
-        ) {
-            Image(
-                painter = rememberAsyncImagePainter(artist.getThumbUrl(false)),
-                contentDescription = null,
-                contentScale = ContentScale.Crop,
-                modifier = Modifier
-                    .size(icon_size)
-                    .clip(CircleShape)
+        LongPressIconMenu(
+            showing = show_popup,
+            onDismissRequest = {
+                show_popup = false
+            },
+            media_item = artist,
+            _thumb_size = 40.dp,
+            thumb_shape = CircleShape,
+            actions = { TODO() }
+        )
+
+        Column(Modifier.padding(8.dp)) {
+            Text(
+                artist.name,
+                fontSize = font_size,
+                color = colour,
+                maxLines = 1,
+                overflow = TextOverflow.Ellipsis
             )
 
-            Column(Modifier.padding(8.dp)) {
-                Text(
-                    artist.name,
-                    fontSize = font_size,
-                    color = colour,
-                    maxLines = 1,
-                    overflow = TextOverflow.Ellipsis
-                )
-
-                Text(
-                    "${artist.getFormattedSubscriberCount()} subscribers",
-                    fontSize = font_size * 0.75,
-                    color = colour.setAlpha(0.5),
-                    maxLines = 1,
-                    overflow = TextOverflow.Ellipsis
-                )
-            }
+            Text(
+                "${artist.getFormattedSubscriberCount()} subscribers",
+                fontSize = font_size * 0.75,
+                color = colour.setAlpha(0.5),
+                maxLines = 1,
+                overflow = TextOverflow.Ellipsis
+            )
         }
     }
 }

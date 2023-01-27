@@ -28,12 +28,12 @@ class Playlist private constructor (
 
     @Composable
     override fun PreviewSquare(content_colour: Color, onClick: (() -> Unit)?, onLongClick: (() -> Unit)?, modifier: Modifier) {
-        // TODO
+        PlaylistPreviewSquare(this, content_colour, modifier, onClick, onLongClick)
     }
 
     @Composable
     override fun PreviewLong(content_colour: Color, onClick: (() -> Unit)?, onLongClick: (() -> Unit)?, modifier: Modifier) {
-        // TODO
+        PlaylistPreviewLong(this, content_colour, modifier, onClick, onLongClick)
     }
 
     override fun _getId(): String {

@@ -50,6 +50,8 @@ class MainActivity : ComponentActivity() {
         prefs = getSharedPreferences(this)
 
         Cache.init(this)
+        Song.init(prefs)
+
         languages = loadLanguages()
 
         fun updateLanguage(lang: Int) {

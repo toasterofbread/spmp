@@ -131,8 +131,8 @@ fun LongPressIconMenu(
         }
 
         LaunchedEffect(Unit) {
-            if (media_item is Song && media_item.registry.overrides.theme_colour != null) {
-                background_colour = Color(media_item.registry.overrides.theme_colour!!)
+            if (media_item is Song && media_item.registry.theme_colour != null) {
+                background_colour = Color(media_item.registry.theme_colour!!)
                 on_background_colour = background_colour.getContrasted()
                 return@LaunchedEffect
             }

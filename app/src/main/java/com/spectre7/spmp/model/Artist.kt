@@ -7,8 +7,8 @@ import java.time.Instant
 import java.util.*
 
 class Artist private constructor (
-    private val _id: String
-): MediaItem() {
+    id: String
+): MediaItem(id) {
 
     // Data
     lateinit var name: String
@@ -39,10 +39,6 @@ class Artist private constructor (
     @Composable
     override fun PreviewLong(content_colour: Color, onClick: (() -> Unit)?, onLongClick: (() -> Unit)?, modifier: Modifier) {
         ArtistPreviewLong(this, content_colour, modifier, onClick, onLongClick)
-    }
-
-    override fun _getId(): String {
-        return _id
     }
 
     override fun _getUrl(): String {

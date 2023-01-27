@@ -45,110 +45,116 @@ import kotlin.concurrent.thread
 val SEARCH_FIELD_FONT_SIZE: TextUnit = 18.sp
 val TAB_TEXT_FONT_SIZE: TextUnit = 14.sp
 
-enum class ResourceType {
-    SONG, ARTIST, PLAYLIST
-}
-
-@OptIn(ExperimentalComposeUiApi::class)
 @Composable
 fun SearchPage(pill_menu: PillMenu, setOverlayPage: (page: OverlayPage) -> Unit) {
 
-    var tab_index by remember { mutableStateOf(0) }
-    val keyboardController = LocalSoftwareKeyboardController.current
-    val focusManager = LocalFocusManager.current
-    val focusRequester = remember { FocusRequester() }
-    val result_tabs: MutableMap<ResourceType, SnapshotStateList<MediaItem>> = mutableMapOf()
+    val focus_manager = LocalFocusManager.current
+    val keyboard_controller = LocalSoftwareKeyboardController.current
+    
+    var search_in_progress: Boolean by remember { mutableStateOf(false) }
+    val search_lock = remember { Object() }
 
-    var current_search_query: String? = null
+    var type_to_search: MediaItem.Type = MediaItem.Type.SONG
+    var query_text by remember { mutableStateOf("") }
 
-    val search_performed: MutableMap<ResourceType, Boolean> = mutableMapOf()
-    for (type in ResourceType.values()) {
-        search_performed[type] = false
-    }
-
-    fun performSearch(type: ResourceType) {
-
-        if (current_search_query == null || search_performed[type]!!) {
-            return
-        }
-
-        search_performed[type] = true
-
-        // Hide keyboard and clear search field focus
-        keyboardController?.hide()
-        focusManager.clearFocus()
-
-        thread {
-
-            setThreadPriority(THREAD_PRIORITY_BACKGROUND)
-
-            // Perform search with passed query
-            val search = DataApi.search(current_search_query!!, type)
-
-            // Display new search results
-//            for (result in search) {
-//                when (result.id.kind) {
-//                    "youtube#video" -> {
-//                        Song.fromId(result.id.videoId).loadData {
-//                            if (it != null) {
-//                                result_tabs[ResourceType.SONG]?.add(it as Song)
-//                            }
-//                        }
-//                    }
-//                    "youtube#channel" -> {
-//                        Artist.fromId(result.id.channelId).loadData {
-//                            if (it != null) {
-//                                result_tabs[ResourceType.ARTIST]?.add(it as Artist)
-//                            }
-//                        }
-//                    }
-//                    "youtube#playlist" -> {
-//                        Playlist.fromId(result.id.playlistId).loadData {
-//                            if (it != null) {
-//                                result_tabs[ResourceType.PLAYLIST]?.add(it as Playlist)
-//                            }
-//                        }
-//                    }
-//                }
-//            }
-        }
-    }
-
-    fun setSearchQuery(query: String?) {
-        for (type in ResourceType.values()) {
-            search_performed[type] = false
-        }
-
-        // Clear previous search results
-        for (results in result_tabs.values) {
-            results.clear()
-        }
-
-        current_search_query = query
-
-        if (current_search_query != null) {
-            performSearch(ResourceType.values()[tab_index])
-        }
-    }
-
-    fun navigateBack() {
-        focusManager.clearFocus()
-        keyboardController?.hide()
-
+    val found_results = remember { mutableStateListOf<MediaItem>() }
+    
+    fun goBack() {
+        focus_manager.clearFocus()
+        keyboard_controller?.hide()
         setOverlayPage(OverlayPage.NONE)
     }
 
-    BackHandler {
-        navigateBack()
+    fun performSearch(query: String, type: MediaItem.Type) {
+        synchronized(search_lock) {
+            if (search_in_progress) {
+                return
+            }
+            search_in_progress = true
+        }
+
+        thread {
+            val results = searchYoutube(query, type).getDataOrThrow()
+            
+            synchronized(search_lock) {
+                found_results.clear()
+
+                for (result in results) {
+                    when (result.id.kind) {
+                        "youtube#video" -> {
+                            found_results.add(Song.fromId(result.id.videoId).loadData())
+                        }
+                        "youtube#channel" -> {
+                            found_results.add(Artist.fromId(result.id.channelId).loadData())
+                        }
+                        "youtube#playlist" -> {
+                            found_results.add(Playlist.fromId(result.id.playlistId).loadData())
+                        }
+                        else -> throw NotImplementedError(result.id.kind)
+                    }
+                }
+
+                search_in_progress = false
+            }
+        }
     }
 
-    var input by rememberSaveable { mutableStateOf("") }
+    Column(Modifier.fillMaxSize()) {
+        // Search results
+        LazyColumn(Modifier.fillMaxHeight().weight(1f)) {
+            itemsIndexed(items = found_results, key = { _, item -> item.id }) { _, item ->
+                item.PreviewLong(
+                    content_colour = MainActivity.theme.getOnBackground(false),
+                    onClick = null,
+                    onLongClick = null,
+                    modifier = Modifier
+                )
+            }
+        }
 
-    SmallTopAppBar(
-        title = {
+        // Bottom bar
+        Row(Modifier.fillMaxWidth()) {
+
+            fun PillMenu.Action.resourceTypeAction(type: MediaItem.Type, action: () -> Unit) {
+                ActionButton(
+                    when (type) {
+                        MediaItem.Type.SONG     -> Icons.Filled.Song
+                        MediaItem.Type.ARTIST   -> Icons.Filled.Artist
+                        MediaItem.Type.PLAYLIST -> Icons.Filled.Playlist
+                    },
+                    action
+                )
+            }
+
+            val pill_menu = remember { 
+                PillMenu(
+                    action_count = MediaItem.Type.values().size - 1,
+                    getAction = { i, _ ->
+                        val type = MediaItem.Type.values().filter{ it != type_to_search }[i]
+                        resourceTypeAction(type) {
+                            type_to_search = type
+                        }
+                    },
+                    mutableStateOf(false),
+                    container_modifier = Modifier,
+                    vertical = true,
+                    top = true,
+                    toggleButton = { modifier ->
+                        Crossfade(type_to_search) { type ->
+                            resourceTypeAction(type) {
+                                is_open = !is_open
+                            }
+                        }
+                    }
+                ) 
+            }
+            
+            pill_menu.PillMenu()
+
+            // Query input field
             BasicTextField(
-                value = input,
-                onValueChange = { text ->  input = text },
+                value = query_text,
+                onValueChange = { query_text = it },
                 singleLine = true,
                 textStyle = LocalTextStyle.current.copy(fontSize = SEARCH_FIELD_FONT_SIZE, color = MainActivity.theme.getOnAccent()),
                 modifier = Modifier.height(45.dp),
@@ -171,7 +177,11 @@ fun SearchPage(pill_menu: PillMenu, setOverlayPage: (page: OverlayPage) -> Unit)
 
                             // Query hint
                             if (input.isEmpty()) {
-                                Text("Search query", fontSize = SEARCH_FIELD_FONT_SIZE, color = MainActivity.theme.getOnAccent())
+                                Text(when (type_to_search) {
+                                    MediaItem.Type.SONG -> "Search for songs"
+                                    MediaItem.Type.ARTIST -> "Search for artists"
+                                    MediaItem.Type.PLAYER -> "Search for playlists"
+                                }, fontSize = SEARCH_FIELD_FONT_SIZE, color = MainActivity.theme.getOnAccent())
                             }
 
                             // Text input
@@ -186,71 +196,34 @@ fun SearchPage(pill_menu: PillMenu, setOverlayPage: (page: OverlayPage) -> Unit)
                 },
                 keyboardOptions = KeyboardOptions(imeAction = ImeAction.Search),
                 keyboardActions = KeyboardActions(
-                    onSearch = { setSearchQuery(input) }
+                    onSearch = {
+                        if (!search_in_progress) {
+                            performSearch(query_text, type_to_search)
+                        }
+                    }
                 )
             )
-        },
-        navigationIcon = {
-            IconButton(onClick = { navigateBack() }) {
-                Icon(Icons.Filled.ArrowBack,"")
-            }
-        },
-        actions = {
-            IconButton(onClick = { setSearchQuery(input) }) {
-                Icon(Icons.Filled.Search, "")
-            }
-        }
-    )
 
-    for (type in ResourceType.values()) {
-        result_tabs[type] = remember { mutableStateListOf() }
-    }
+            // Search button / search indicator
+            Crossfade(search_in_progress) { in_progress -> 
+                if (!in_progress) {
+                    IconButton(onClick = {
+                        if (!search_in_progress) {
+                            performSearch(query_text, type_to_search)
+                        }
+                    }) {
+                        Icon(Icons.Filled.Search, null)
+                    }
+                }
+                else {
+                    CircularProgressIndicator()
+                }
+            }
 
-    fun getReadableType(type: ResourceType): String {
-        return when (type) {
-            ResourceType.SONG -> getString(R.string.songs)
-            ResourceType.ARTIST -> getString(R.string.artists)
-            ResourceType.PLAYLIST -> getString(R.string.playlists)
         }
     }
 
-    Column(Modifier.fillMaxSize()) {
-        TabRow(
-            selectedTabIndex = tab_index,
-            modifier = Modifier.fillMaxWidth(),
-            indicator = @Composable { tabPositions ->
-                TabRowDefaults.Indicator(
-                    Modifier.tabIndicatorOffset(tabPositions[tab_index]),
-                    color = MainActivity.theme.getVibrantAccent()
-                )
-            }
-        ) {
-            result_tabs.keys.forEachIndexed { i, type ->
-                Tab(selected = tab_index == i, onClick = {
-                    tab_index = i
-                }, text = {
-                    Text(text = getReadableType(type), fontSize = TAB_TEXT_FONT_SIZE)
-                },
-                    selectedContentColor = MainActivity.theme.getVibrantAccent(),
-                    unselectedContentColor = MainActivity.theme.getVibrantAccent().setAlpha(0.75)
-                )
-            }
-        }
-
-        performSearch(result_tabs.keys.elementAt(tab_index))
-
-        LazyColumn(
-            Modifier
-                .fillMaxSize()
-                .background(MainActivity.theme.getBackground(false))) {
-            itemsIndexed(items = result_tabs.values.elementAt(tab_index), key = { _, item -> item.id }) { _, item ->
-                item.PreviewLong(
-                    content_colour = MainActivity.theme.getOnBackground(false),
-                    onClick = null,
-                    onLongClick = null,
-                    modifier = Modifier
-                )
-            }
-        }
+    BackHandler {
+        goBack()
     }
 }

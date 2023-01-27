@@ -17,7 +17,11 @@ import com.spectre7.spmp.api.loadMediaItemData
 import com.spectre7.utils.getContrasted
 import java.net.URL
 
-abstract class MediaItem {
+abstract class MediaItem(val id: String) {
+
+    enum class Type {
+        SONG, ARTIST, PLAYLIST
+    }
 
     data class YTApiDataResponse(
         val id: String = "",
@@ -88,7 +92,6 @@ abstract class MediaItem {
     }
     private val thumb_states: Map<ThumbnailQuality, ThumbState>
 
-    val id: String get() = _getId()
     val url: String get() = _getUrl()
 
     private val _browse_endpoints = mutableListOf<BrowseEndpoint>()
@@ -177,7 +180,6 @@ abstract class MediaItem {
     @Composable
     abstract fun PreviewLong(content_colour: Color, onClick: (() -> Unit)?, onLongClick: (() -> Unit)?, modifier: Modifier)
 
-    abstract fun _getId(): String
     abstract fun _getUrl(): String
 
     fun getAssociatedArtist(): Artist? {

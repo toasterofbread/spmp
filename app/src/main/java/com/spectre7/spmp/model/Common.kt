@@ -33,7 +33,6 @@ abstract class MediaItem {
     }
 
     class BrowseEndpoint {
-
         val id: String
         val type: Type
 
@@ -76,17 +75,18 @@ abstract class MediaItem {
         get() = _load_status
         private set(value) { _load_status = value }
     val loading_lock = Object()
-    
-    protected var thumbnail: Bitmap? by mutableStateOf(null)
-    protected var thumbnail_hq: Bitmap? by mutableStateOf(null)
 
+    enum class ThumbnailQuality {
+        LOW, HIGH
+    }
     private var thumbnails: YTApiDataResponse.Thumbnails? = null
     var thumbnail_palette: Palette? = null
 
-    protected val thumb_load_lock = Object()
-    protected var thumb_loading = false
-    protected val thumb_load_lock_hq = Object()
-    protected var thumb_loading_hq = false
+    private class ThumbState {
+        var image: Bitmap? by mutableStateOf(null)
+        var loading by mutableStateOf(false)
+    }
+    private val thumb_states: Map<ThumbnailQuality, ThumbState>
 
     val id: String get() = _getId()
     val url: String get() = _getUrl()
@@ -94,6 +94,14 @@ abstract class MediaItem {
     private val _browse_endpoints = mutableListOf<BrowseEndpoint>()
     val browse_endpoints: List<BrowseEndpoint>
         get() = _browse_endpoints
+
+    init {
+        val states = mutableMapOf<ThumbnailQuality, ThumbState>()
+        for (quality in ThumbnailQuality.values()) {
+            states[quality] = ThumbState()
+        }
+        thumb_states = states
+    }
 
     fun addBrowseEndpoint(id: String, type: BrowseEndpoint.Type): Boolean {
         for (endpoint in _browse_endpoints) {
@@ -109,49 +117,58 @@ abstract class MediaItem {
         return addBrowseEndpoint(id, BrowseEndpoint.Type.fromString(type_name))
     }
 
-    fun thumbnailLoaded(hq: Boolean): Boolean {
-       return (if (hq) thumbnail_hq else thumbnail) != null
+    fun getThumbUrl(quality: ThumbnailQuality): String? {
+        return when (quality) {
+            ThumbnailQuality.HIGH -> thumbnails?.high
+            ThumbnailQuality.MEDIUM -> thumbnails?.medium
+        }?.url
     }
 
-    open fun loadThumbnail(hq: Boolean): Bitmap {
-        val lock = if (hq) thumb_load_lock_hq else thumb_load_lock
-        synchronized(lock) {
-            if (if (hq) thumb_loading_hq else thumb_loading) {
-                lock.wait()
-                return (if (hq) thumbnail_hq else thumbnail)!!
-            }
+    fun isThumbnailLoaded(quality: ThumbnailQuality): Boolean {
+        return thumb_states[quality].image != null
+    }
 
-            if (thumbnailLoaded(hq)) {
-                return (if (hq) thumbnail_hq else thumbnail)!!
-            }
-
-            if (hq) {
-                thumb_loading_hq = true
-            } else {
-                thumb_loading = true
+    fun getThumbnail(quality: ThumbnailQuality): Bitmap? {
+        val state = thumb_states[quality]
+        synchronized(state) {
+            if (state.loading) {
+                return state.image
             }
         }
-
-        val thumb = BitmapFactory.decodeStream(URL(getThumbUrl(hq)).openConnection().getInputStream())!!
-        if (hq) {
-            thumbnail_hq = thumb
+        thread {
+            loadThumbnail(quality)
         }
-        else {
-            thumbnail = thumb
-        }
+        return state.image
+    }
 
-        thumbnail_palette = Palette.from(thumb.asImageBitmap().asAndroidBitmap()).clearFilters().generate()
-
-        synchronized(lock) {
-            if (hq) {
-                thumb_loading_hq = false
-            } else {
-                thumb_loading = false
+    fun loadThumbnail(quality: ThumbnailQuality): Bitmap {
+        val state = thumb_states[quality]
+        synchronized(state) {
+            if (state.loading) {
+                state.wait()
+                return state.image!!
             }
-            lock.notifyAll()
+
+            if (state.image != null) {
+                return state.image!!
+            }
+
+            state.loading = true
         }
 
-        return (if (hq) thumbnail_hq else thumbnail)!!
+        state.image = downloadThumbnail()
+        thumbnail_palette = Palette.from(state.image.asImageBitmap().asAndroidBitmap()).clearFilters().generate()
+
+        synchronized(state) {
+            state.loading = false
+            state.notifyAll()
+        }
+
+        return state.image!!
+    }
+
+    protected open fun downloadThumbnail(quality: ThumbnailQuality): Bitmap {
+        return BitmapFactory.decodeStream(URL(getThumbUrl(quality)).openConnection().getInputStream())!!
     }
 
     @Composable
@@ -169,10 +186,6 @@ abstract class MediaItem {
             is Playlist -> null // TODO?
             else -> throw NotImplementedError(this.javaClass.name)
         }
-    }
-
-    fun getThumbUrl(hq: Boolean): String? {
-        return (if (hq) thumbnails?.high else thumbnails?.medium)?.url
     }
 
     fun loadData(): MediaItem {

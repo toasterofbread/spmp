@@ -137,7 +137,7 @@ fun MainTab(weight_modifier: Modifier, expansion: Float, max_height: Float, thum
     }
 
     fun loadThumbnail(song: Song) {
-        _setThumbnail(song.loadThumbnail(false).asImageBitmap())
+        _setThumbnail(song.loadThumbnail(MediaItem.ThumbnailQuality.LOW).asImageBitmap())
         theme_palette = song.thumbnail_palette
 
         if (song.theme_colour != null) {
@@ -159,7 +159,7 @@ fun MainTab(weight_modifier: Modifier, expansion: Float, max_height: Float, thum
             theme_palette = null
             theme_colour = null
         }
-        else if (song.thumbnailLoaded(true)) {
+        else if (song.isThumbnailLoaded(MediaItem.ThumbnailQuality.HIGH)) {
             loadThumbnail(song)
         }
         else {

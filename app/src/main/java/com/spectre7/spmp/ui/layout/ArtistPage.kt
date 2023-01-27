@@ -19,7 +19,6 @@ import androidx.compose.ui.platform.LocalClipboardManager
 import androidx.compose.ui.text.AnnotatedString
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
-import coil.compose.rememberAsyncImagePainter
 import com.spectre7.spmp.MainActivity
 import com.spectre7.spmp.model.Artist
 import com.spectre7.spmp.ui.component.PillMenu
@@ -63,12 +62,16 @@ fun ArtistPage(pill_menu: PillMenu, artist: Artist) {
     }
 
     Box(Modifier.fillMaxSize(), contentAlignment = Alignment.TopCenter) {
-        Image(
-            painter = rememberAsyncImagePainter(artist.getThumbUrl(true)),
-            contentDescription = null,
-            contentScale = ContentScale.Crop,
-            modifier = Modifier.fillMaxWidth().aspectRatio(1f)
-        )
+        Crossfade(artist.getThumbnail(MediaItem.ThumbnailQuality.HIGH)) { thumbnail -> 
+            if (thumbnail != null) {
+                Image(
+                    thumbnail.asImageBitmap(),
+                    contentDescription = null,
+                    contentScale = ContentScale.Crop,
+                    modifier = Modifier.fillMaxWidth().aspectRatio(1f)
+                )
+            }
+        }
 
         LazyColumn(Modifier.fillMaxSize()) {
             item {

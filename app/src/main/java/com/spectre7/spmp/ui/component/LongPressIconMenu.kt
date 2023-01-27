@@ -17,7 +17,6 @@ import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.OpenWith
 import androidx.compose.material.icons.filled.Share
-import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.Divider
 import androidx.compose.material3.Icon
 import androidx.compose.material3.Text
@@ -79,27 +78,18 @@ fun LongPressIconMenu(
     var thumb_position: Offset? by remember { mutableStateOf(null) }
     var thumb_size: IntSize? by remember { mutableStateOf(null) }
 
-    LaunchedEffect(media_item.id) {
-        if (!media_item.thumbnailLoaded(false)) {
-            thread {
-                media_item.loadThumbnail(false)
-            }
-        }
-    }
-
     @Composable
     fun Thumb(modifier: Modifier) {
-        if (media_item.thumbnailLoaded(false)) {
-            Image(
-                media_item.loadThumbnail(false).asImageBitmap(),
-                contentDescription = null,
-                contentScale = ContentScale.Crop,
-                modifier = modifier
-                    .clip(thumb_shape)
-            )
-        }
-        else {
-            CircularProgressIndicator()
+        Crossfade(media_item.getThumbnail(MediaItem.ThumbnailQuality.LOW)) { thumbnail ->
+            if (thumbnail != null) {
+                Image(
+                    thumbnail.asImageBitmap(),
+                    contentDescription = null,
+                    contentScale = ContentScale.Crop,
+                    modifier = modifier
+                        .clip(thumb_shape)
+                )
+            }
         }
     }
 
@@ -147,9 +137,9 @@ fun LongPressIconMenu(
                 return@LaunchedEffect
             }
 
-            if (!media_item.thumbnailLoaded(false) && !media_item.thumbnailLoaded(true)) {
+            if (!media_item.isThumbnailLoaded(MediaItem.ThumbnailQuality.LOW) && !media_item.isThumbnailLoaded(MediaItem.ThumbnailQuality.HIGH)) {
                 thread {
-                    media_item.loadThumbnail(false)
+                    media_item.loadThumbnail(MediaItem.ThumbnailQuality.LOW)
                     applyPalette(media_item.thumbnail_palette!!)
                 }
             }

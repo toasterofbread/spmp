@@ -585,12 +585,12 @@ class PlayerService : Service() {
 
                     try {
                         val song = getCurrentSong() ?: return null
-                        if (song.thumbnailLoaded(true)) {
-                            return getCroppedThumbnail(song.loadThumbnail(true))
+                        if (song.isThumbnailLoaded(MediaItem.ThumbnailQuality.HIGH)) {
+                            return getCroppedThumbnail(song.loadThumbnail(MediaItem.ThumbnailQuality.HIGH))
                         }
 
                         thread {
-                            callback.onBitmap(getCroppedThumbnail(song.loadThumbnail(true)))
+                            callback.onBitmap(getCroppedThumbnail(song.loadThumbnail(MediaItem.ThumbnailQuality.HIGH)))
                         }
 
                         return null                            }

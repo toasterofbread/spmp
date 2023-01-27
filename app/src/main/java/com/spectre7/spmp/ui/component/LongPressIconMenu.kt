@@ -138,8 +138,7 @@ fun LongPressIconMenu(
             }
 
             if (!media_item.isThumbnailLoaded(MediaItem.ThumbnailQuality.LOW) && !media_item.isThumbnailLoaded(MediaItem.ThumbnailQuality.HIGH)) {
-                thread {
-                    media_item.loadThumbnail(MediaItem.ThumbnailQuality.LOW)
+                media_item.getThumbnail(MediaItem.ThumbnailQuality.LOW) {
                     applyPalette(media_item.thumbnail_palette!!)
                 }
             }

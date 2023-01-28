@@ -44,6 +44,10 @@ import com.spectre7.spmp.model.Song
 import com.spectre7.spmp.ui.component.*
 import com.spectre7.spmp.ui.layout.nowplaying.NowPlaying
 import com.spectre7.utils.*
+import kotlinx.coroutines.Job
+import kotlinx.coroutines.joinAll
+import kotlinx.coroutines.launch
+import kotlinx.coroutines.runBlocking
 import java.lang.Integer.min
 import java.util.concurrent.locks.ReentrantLock
 import kotlin.concurrent.thread
@@ -58,6 +62,15 @@ const val MINIMISED_NOW_PLAYING_HEIGHT = 64f
 enum class OverlayPage { NONE, SEARCH, SETTINGS, MEDIAITEM }
 
 val feed_refresh_mutex = ReentrantLock()
+
+data class HomeRow(val title: String, val subtitle: String?, val items: MutableList<MediaItem> = mutableListOf()) {
+    fun add(item: MediaItem) {
+        if (items.any { it.id == item.id }) {
+            return
+        }
+        items.add(item)
+    }
+}
 
 @OptIn(ExperimentalMaterialApi::class, ExperimentalMaterial3Api::class)
 @Composable
@@ -109,7 +122,7 @@ fun PlayerView() {
                 MainActivity.theme.getAccent()
             )
 
-            val main_page_rows = remember { mutableStateListOf<MediaItemLayout>() }
+            val main_page_rows = remember { mutableStateListOf<HomeRow>() }
 
             lateinit var refreshFeed: (allow_cached: Boolean, onFinished: (success: Boolean) -> Unit) -> Unit
             refreshFeed = { allow_cached: Boolean, onFinished: (success: Boolean) -> Unit ->
@@ -129,52 +142,49 @@ fun PlayerView() {
                             return@thread
                         }
 
-                        val onItemClicked = { item: MediaItem ->
-                            when (item) {
-                                is Song -> {
-                                    PlayerServiceHost.service.playSong(item)
-                                }
-                                // Artist and Playlist
-                                else -> {
-                                    overlay_page = OverlayPage.MEDIAITEM
-                                    overlay_media_item = item
-                                }
-                            }
-                        }
+                        val artists = HomeRow(getString(R.string.feed_row_artists), null)
+                        val playlists = HomeRow(getString(R.string.feed_row_playlists), null)
 
-                        val artist_row = MediaItemGrid(getString(R.string.feed_row_artists), null, onItemClicked)
-                        val playlist_row = MediaItemGrid(getString(R.string.feed_row_playlists), null, onItemClicked)
+                        val rows = mutableListOf<HomeRow>()
 
-                        for (row in feed_result.data) {
-                            val entry = MediaItemGrid(row.title, row.subtitle, onItemClicked)
-                            var entry_added = false
+                        runBlocking {
+                            val jobs = mutableListOf<Job>()
+                            for (row in feed_result.data) {
+                                val entry = HomeRow(row.title, row.subtitle)
+                                rows.add(entry)
 
-                            for (item in row.items) {
-                                thread {
-                                    val previewable = item.toMediaItem().loadData()
-                                    synchronized(main_page_rows) {
-                                        when (previewable) {
+                                for (item in row.items) {
+                                    jobs.add(launch {
+                                        when (val previewable = item.toMediaItem().loadData()) {
                                             is Song -> {
-                                                if (!entry_added) {
-                                                    entry_added = true
-                                                    main_page_rows.add(entry)
-                                                }
-                                                entry.addItem(previewable)
-                                                artist_row.addItem(previewable.artist)
+                                                entry.add(previewable)
+                                                artists.add(previewable.artist)
                                             }
-                                            is Artist -> artist_row.addItem(previewable)
-                                            is Playlist -> playlist_row.addItem(previewable)
+                                            is Artist -> artists.add(previewable)
+                                            is Playlist -> playlists.add(previewable)
                                         }
-                                    }
+                                    })
                                 }
                             }
+
+                            jobs.joinAll()
+
+                            for (row in rows) {
+                                if (row.items.isNotEmpty()) {
+                                    main_page_rows.add(row)
+                                }
+                            }
+                            if (artists.items.isNotEmpty()) {
+                                main_page_rows.add(artists)
+                            }
+                            if (playlists.items.isNotEmpty()) {
+                                main_page_rows.add(playlists)
+                            }
+
+                            feed_refresh_mutex.unlock()
+                            onFinished(true)
                         }
 
-                        main_page_rows.add(artist_row)
-                        main_page_rows.add(playlist_row)
-
-                        feed_refresh_mutex.unlock()
-                        onFinished(true)
                     }
                 }
             }
@@ -183,18 +193,31 @@ fun PlayerView() {
                 refreshFeed(true) {}
             }
 
+            val onItemClicked = { item: MediaItem ->
+                when (item) {
+                    is Song -> PlayerServiceHost.service.playSong(item)
+                    else -> {
+                        overlay_page = OverlayPage.MEDIAITEM
+                        overlay_media_item = item
+                    }
+                }
+            }
+
             Crossfade(targetState = overlay_page) {
                 Column(Modifier.fillMaxSize()) {
                     if (it != OverlayPage.NONE && it != OverlayPage.MEDIAITEM) {
                         Spacer(Modifier.requiredHeight(getStatusBarHeight(MainActivity.context)))
                     }
                     when (it) {
-                        OverlayPage.NONE -> MainPage(main_page_rows, refreshFeed)
+                        OverlayPage.NONE -> MainPage(main_page_rows, refreshFeed, onItemClicked)
                         OverlayPage.SEARCH -> SearchPage(pill_menu) { overlay_page = OverlayPage.NONE }
                         OverlayPage.SETTINGS -> PrefsPage(pill_menu) { overlay_page = OverlayPage.NONE }
-                        OverlayPage.MEDIAITEM -> when (overlay_media_item!!) {
-                            is Artist -> ArtistPage(pill_menu, overlay_media_item as Artist) { overlay_page = OverlayPage.NONE }
-                            else -> throw NotImplementedError()
+                        OverlayPage.MEDIAITEM -> Crossfade(overlay_media_item) { item ->
+                            when (item) {
+                                null -> {}
+                                is Artist -> ArtistPage(pill_menu, item, { overlay_page = OverlayPage.NONE }, onItemClicked)
+                                else -> throw NotImplementedError()
+                            }
                         }
                     }
                 }
@@ -245,9 +268,12 @@ fun PlayerView() {
 
 @OptIn(ExperimentalFoundationApi::class)
 @Composable
-fun MainPage(_rows: List<MediaItemLayout>, refreshFeed: (allow_cache: Boolean, onFinished: (success: Boolean) -> Unit) -> Unit) {
-
-    var rows: List<MediaItemLayout> by remember { mutableStateOf(_rows) }
+fun MainPage(
+    _rows: List<HomeRow>,
+    refreshFeed: (allow_cache: Boolean, onFinished: (success: Boolean) -> Unit) -> Unit,
+    onMediaItemClicked: (MediaItem) -> Unit
+) {
+    var rows: List<HomeRow> by remember { mutableStateOf(_rows) }
 
     SwipeRefresh(
         state = rememberSwipeRefreshState(_rows.isEmpty()), // TODO
@@ -270,8 +296,9 @@ fun MainPage(_rows: List<MediaItemLayout>, refreshFeed: (allow_cache: Boolean, o
                         item {
                             Spacer(Modifier.requiredHeight(getStatusBarHeight(MainActivity.context)))
                         }
-                        items(rows.size) { index ->
-                            rows[index].Layout()
+                        items(rows.size) { i ->
+                            val row = rows[i]
+                            MediaItemGrid(row.title, row.subtitle, row.items, onClick = onMediaItemClicked)
                         }
                     }
                 }

@@ -4,8 +4,8 @@ import com.beust.klaxon.JsonObject
 import com.spectre7.spmp.model.MediaItem
 import okhttp3.Request
 
-data class MediaItemList(val title: String, val items: List<MediaItem>)
-class ArtistInfoItem(
+data class MediaItemList(val title: String, var items: List<MediaItem>)
+data class ArtistInfoItem(
     val items: MediaItemList?,
     val description: Triple<String, String, String>?
 )
@@ -18,7 +18,7 @@ fun getArtistInfo(artist_id: String): Result<List<ArtistInfoItem>> {
             {
                 "browseId": "$artist_id"
             }
-        """.trimIndent()))
+        """))
         .build()
 
     val response = client.newCall(request).execute()

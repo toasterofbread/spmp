@@ -9,7 +9,7 @@ import java.net.URLEncoder
 data class SearchResults(val items: List<Result>) {
     data class Result(val id: ResultId, val snippet: Snippet)
     data class ResultId(val kind: String, val videoId: String = "", val channelId: String = "", val playlistId: String = "")
-    data class Snippet(val publishedAt: String, val channelId: String, val title: String, val description: String, val thumbnails: MediaItem.YTApiDataResponse.Thumbnails)
+    data class Snippet(val publishedAt: String, val channelId: String, val title: String, val description: String, val thumbnails: Map<String, MediaItem.Thumbnail>)
 }
 
 fun searchYoutube(query: String, type: MediaItem.Type, max_results: Int = 10, channel_id: String? = null): Result<List<SearchResults.Result>> {

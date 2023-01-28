@@ -24,10 +24,12 @@
     <string name="action_close">Close</string>
     <string name="action_share">Share</string>
 
-    <string name="artist_details">Details</string>
-    <string name="artist_play">Play</string>
-    <string name="artist_shuffle">Shuffle</string>
-    <string name="artist_radio">Start radio</string>
+    <string name="artist_chip_play">Play</string>
+    <string name="artist_chip_shuffle">Shuffle</string>
+    <string name="artist_chip_radio">Start radio</string>
+    <string name="artist_chip_details">Details</string>
+    <string name="artist_chip_open">Open</string>
+    <string name="artist_info_label">Artist info</string>
 
     <string name="loading_feed">Loading feed</string>
 

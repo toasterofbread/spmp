@@ -57,8 +57,9 @@
     <string name="s_option_lyrics_follow_offset_bottom">下</string>
     <string name="s_sub_acc_screen_off">ルート許可が必要です</string>
     <string name="action_share">共有</string>
-    <string name="artist_details">情報</string>
-    <string name="artist_play">再生</string>
-    <string name="artist_radio">シャッフル</string>
-    <string name="artist_shuffle">ラジオを聴く</string>
+    <string name="artist_chip_details">情報</string>
+    <string name="artist_chip_play">再生</string>
+    <string name="artist_chip_radio">シャッフル</string>
+    <string name="artist_chip_shuffle">ラジオを聴く</string>
+    <string name="artist_chip_open">開く</string>
 </resources>

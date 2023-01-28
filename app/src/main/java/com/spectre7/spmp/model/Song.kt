@@ -15,7 +15,9 @@ import androidx.core.content.edit
 import androidx.palette.graphics.Palette
 import com.beust.klaxon.Json
 import com.beust.klaxon.Klaxon
+import com.spectre7.spmp.MainActivity
 import com.spectre7.spmp.R
+import com.spectre7.spmp.api.VideoData
 import com.spectre7.spmp.api.getVideoFormats
 import com.spectre7.spmp.api.getSongLyrics
 import com.spectre7.spmp.ui.component.SongPreviewLong
@@ -140,19 +142,20 @@ class Song private constructor (
     private var stream_url_loading: Boolean = false
     private val stream_url_load_lock = Object()
 
-    // Data
     private lateinit var _title: String
-    lateinit var description: String
+//    lateinit var description: String
     lateinit var artist: Artist
-    lateinit var upload_date: Date
+//    lateinit var upload_date: Date
     lateinit var duration: Duration
 
-    override fun subInitWithData(data: YTApiDataResponse) {
-        _title = data.snippet!!.title
-        description = data.snippet.description!!
-        upload_date = Date.from(Instant.parse(data.snippet.publishedAt))
-        duration = Duration.parse(data.contentDetails!!.duration)
-        artist = Artist.fromId(data.snippet.channelId!!).loadData() as Artist
+    override fun subInitWithData(data: Any) {
+        if (data !is VideoData) {
+            throw ClassCastException(data.javaClass.name)
+        }
+
+        _title = data.videoDetails.title
+        artist = Artist.fromId(data.videoDetails.channelId).loadData() as Artist
+        duration = Duration.ofSeconds(data.videoDetails.lengthSeconds.toLong())
     }
 
     var theme_colour: Color?
@@ -305,6 +308,7 @@ class Song private constructor (
             }
         }
 
+        @Synchronized
         fun fromId(id: String): Song {
             return songs.getOrElse(id) {
                 val song = Song(id)

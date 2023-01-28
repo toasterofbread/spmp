@@ -40,9 +40,12 @@ import com.google.android.exoplayer2.Player
 import com.spectre7.spmp.MainActivity
 import com.spectre7.spmp.PlayerServiceHost
 import com.spectre7.spmp.R
+import com.spectre7.spmp.model.MediaItem
 import com.spectre7.spmp.model.Settings
+import com.spectre7.spmp.model.Song
 import com.spectre7.spmp.ui.layout.MINIMISED_NOW_PLAYING_HEIGHT
 import com.spectre7.utils.*
+import kotlinx.coroutines.launch
 import kotlin.concurrent.thread
 import kotlin.math.max
 import kotlin.math.min
@@ -66,20 +69,6 @@ fun MainTab(weight_modifier: Modifier, expansion: Float, max_height: Float, thum
     var theme_palette by remember { mutableStateOf<Palette?>(null) }
     var accent_colour_source by remember { mutableStateOf(AccentColourSource.values()[Settings.prefs.getInt(Settings.KEY_ACCENT_COLOUR_SOURCE.name, 0)]) }
     var theme_mode by remember { mutableStateOf(ThemeMode.values()[Settings.prefs.getInt(Settings.KEY_NOWPLAYING_THEME_MODE.name, 0)]) }
-
-    fun setThumbnail(thumb: ImageBitmap?, on_finished: () -> Unit) {
-        _setThumbnail(thumb)
-        if (thumb == null) {
-            theme_palette = null
-            theme_colour = null
-        }
-        else {
-            Palette.from(thumb.asAndroidBitmap()).generate {
-                theme_palette = it
-                on_finished()
-            }
-        }
-    }
 
     fun getSongTitle(): String {
         return PlayerServiceHost.status.song?.title ?: "-----"
@@ -107,57 +96,75 @@ fun MainTab(weight_modifier: Modifier, expansion: Float, max_height: Float, thum
     }
 
     LaunchedEffect(key1 = theme_colour, key2 = accent_colour_source, key3 = theme_mode) {
-
         MainActivity.theme.setAccent(if (accent_colour_source == AccentColourSource.SYSTEM) null else theme_colour)
 
         val accent = MainActivity.theme.getAccent()
 
         if (theme_colour == null) {
-            MainActivity.theme.setBackground(true, null)
-            MainActivity.theme.setOnBackground(true, null)
+            launch {
+                MainActivity.theme.setBackground(true, null)
+            }
+            launch {
+                MainActivity.theme.setOnBackground(true, null)
+            }
         }
         else if (theme_mode == ThemeMode.BACKGROUND) {
-            MainActivity.theme.setBackground(true, accent)
-            MainActivity.theme.setOnBackground(true,
-                getContrastedColour(accent)
-            )
+            launch {
+                MainActivity.theme.setBackground(true, accent)
+            }
+            launch {
+                MainActivity.theme.setOnBackground(true,
+                    getContrastedColour(accent)
+                )
+            }
         }
         else if (theme_mode == ThemeMode.ELEMENTS) {
-            MainActivity.theme.setBackground(true, null)
-            MainActivity.theme.setOnBackground(true, accent.contrastAgainst(MainActivity.theme.getBackground(true)))
+            launch {
+                MainActivity.theme.setBackground(true, null)
+            }
+            launch {
+                MainActivity.theme.setOnBackground(true, accent.contrastAgainst(MainActivity.theme.getBackground(true)))
+            }
         }
         else {
-            MainActivity.theme.setBackground(true, null)
-            MainActivity.theme.setOnBackground(true, null)
+            launch {
+                MainActivity.theme.setBackground(true, null)
+            }
+            launch {
+                MainActivity.theme.setOnBackground(true, null)
+            }
+        }
+    }
+
+    fun loadThumbnail(song: Song) {
+        _setThumbnail(song.loadThumbnail(MediaItem.ThumbnailQuality.LOW).asImageBitmap())
+        theme_palette = song.thumbnail_palette
+
+        if (song.theme_colour != null) {
+            theme_colour = song.theme_colour
+        }
+        else if (theme_palette != null) {
+            theme_colour = MediaItem.getDefaultPaletteColour(theme_palette!!, Color.Unspecified)
+            if (theme_colour!!.isUnspecified) {
+                theme_colour = null
+            }
         }
     }
 
     LaunchedEffect(PlayerServiceHost.status.m_song) {
         val song = PlayerServiceHost.status.song
-        val on_finished = {
-            if (song!!.theme_colour != null) {
-                theme_colour = song.theme_colour
-            }
-            else if (theme_palette != null) {
-                for (i in (2 until 5) + (0 until 2)) {
-                    theme_colour = getPaletteColour(theme_palette!!, i)
-                    if (theme_colour != null) {
-                        break
-                    }
-                }
-            }
-        }
 
         if (song == null) {
-            setThumbnail(null, {})
+            _setThumbnail(null)
+            theme_palette = null
             theme_colour = null
         }
-        else if (song.thumbnailLoaded(true)) {
-            setThumbnail(song.loadThumbnail(true).asImageBitmap(), on_finished)
+        else if (song.isThumbnailLoaded(MediaItem.ThumbnailQuality.HIGH)) {
+            loadThumbnail(song)
         }
         else {
             thread {
-                setThumbnail(song.loadThumbnail(true).asImageBitmap(), on_finished)
+                loadThumbnail(song)
             }
         }
     }
@@ -276,7 +283,7 @@ fun MainTab(weight_modifier: Modifier, expansion: Float, max_height: Float, thum
                             menu?.Menu(
                                 PlayerServiceHost.status.song!!,
                                 expansion,
-                                { 
+                                {
                                     get_shutter_menu = it
                                     shutter_menu_open = true
                                 },

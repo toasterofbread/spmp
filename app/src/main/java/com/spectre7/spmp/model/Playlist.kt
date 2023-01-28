@@ -3,13 +3,15 @@ package com.spectre7.spmp.model
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
-import com.spectre7.spmp.ui.component.PlaylistPreview
+import com.spectre7.spmp.MainActivity
+import com.spectre7.spmp.ui.component.PlaylistPreviewLong
+import com.spectre7.spmp.ui.component.PlaylistPreviewSquare
 import java.time.Instant
 import java.util.*
 
 class Playlist private constructor (
-    private val _id: String
-): MediaItem() {
+    id: String
+): MediaItem(id) {
 
     // Data
     lateinit var title: String
@@ -18,6 +20,7 @@ class Playlist private constructor (
     companion object {
         private val playlists: MutableMap<String, Playlist> = mutableMapOf()
 
+        @Synchronized
         fun fromId(id: String): Playlist {
             return playlists.getOrElse(id) {
                 val playlist = Playlist(id)
@@ -28,23 +31,28 @@ class Playlist private constructor (
     }
 
     @Composable
-    override fun Preview(large: Boolean, modifier: Modifier, colour: Color) {
-        return PlaylistPreview(this, large, colour, modifier)
+    override fun PreviewSquare(content_colour: Color, onClick: (() -> Unit)?, onLongClick: (() -> Unit)?, modifier: Modifier) {
+        PlaylistPreviewSquare(this, content_colour, modifier, onClick, onLongClick)
     }
 
-    override fun _getId(): String {
-        return _id
+    @Composable
+    override fun PreviewLong(content_colour: Color, onClick: (() -> Unit)?, onLongClick: (() -> Unit)?, modifier: Modifier) {
+        PlaylistPreviewLong(this, content_colour, modifier, onClick, onLongClick)
     }
 
     override fun _getUrl(): String {
         return "https://music.youtube.com/playlist?list=$id"
     }
 
-    override fun subInitWithData(data: YTApiDataResponse) {
+    override fun subInitWithData(data: Any) {
+        if (data !is YTApiDataResponse) {
+            throw ClassCastException(data.javaClass.name)
+        }
         if (data.snippet == null) {
             throw RuntimeException("Data snippet is null\n$data")
         }
-        title = data.snippet.title
+
+        title = data.getLocalisation(MainActivity.data_language)?.title ?: data.snippet.title
         upload_date = Date.from(Instant.parse(data.snippet.publishedAt))
     }
 }

@@ -48,7 +48,7 @@ import androidx.savedstate.SavedStateRegistryOwner
 import androidx.savedstate.setViewTreeSavedStateRegistryOwner
 import com.google.android.exoplayer2.C
 import com.google.android.exoplayer2.ExoPlayer
-import com.google.android.exoplayer2.MediaItem
+import com.google.android.exoplayer2.MediaItem as ExoMediaItem
 import com.google.android.exoplayer2.Player
 import com.google.android.exoplayer2.audio.AudioAttributes
 import com.google.android.exoplayer2.database.StandaloneDatabaseProvider
@@ -66,6 +66,7 @@ import com.google.android.exoplayer2.upstream.cache.NoOpCacheEvictor
 import com.google.android.exoplayer2.upstream.cache.SimpleCache
 import com.spectre7.spmp.api.DATA_API_USER_AGENT
 import com.spectre7.spmp.api.getSongRadio
+import com.spectre7.spmp.model.MediaItem
 import com.spectre7.spmp.model.Settings
 import com.spectre7.spmp.model.Song
 import com.spectre7.utils.sendToast
@@ -480,7 +481,7 @@ class PlayerService : Service() {
     }
 
     fun addToQueue(song: Song, index: Int? = null, is_active_queue: Boolean = false, onFinished: ((index: Int) -> Unit)? = null) {
-        val item = MediaItem.Builder().setTag(song).setUri(song.id).build()
+        val item = ExoMediaItem.Builder().setTag(song).setUri(song.id).build()
 
         val added_index: Int
         if (index == null) {
@@ -507,7 +508,7 @@ class PlayerService : Service() {
         }
 
         for (song in songs.withIndex()) {
-            val item = MediaItem.Builder().setTag(song).setUri(song.value.id).build()
+            val item = ExoMediaItem.Builder().setTag(song).setUri(song.value.id).build()
 
             player.addMediaItem( index + song.index, item)
             onSongAdded(song.value, if (index + song.index < player.mediaItemCount) index + song.index else player.mediaItemCount - 1)
@@ -585,12 +586,12 @@ class PlayerService : Service() {
 
                     try {
                         val song = getCurrentSong() ?: return null
-                        if (song.thumbnailLoaded(true)) {
-                            return getCroppedThumbnail(song.loadThumbnail(true))
+                        if (song.isThumbnailLoaded(MediaItem.ThumbnailQuality.HIGH)) {
+                            return getCroppedThumbnail(song.loadThumbnail(MediaItem.ThumbnailQuality.HIGH))
                         }
 
                         thread {
-                            callback.onBitmap(getCroppedThumbnail(song.loadThumbnail(true)))
+                            callback.onBitmap(getCroppedThumbnail(song.loadThumbnail(MediaItem.ThumbnailQuality.HIGH)))
                         }
 
                         return null                            }

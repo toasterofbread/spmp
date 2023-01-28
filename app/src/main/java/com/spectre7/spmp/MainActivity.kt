@@ -28,6 +28,7 @@ import com.chaquo.python.android.AndroidPlatform
 import com.google.android.exoplayer2.database.StandaloneDatabaseProvider
 import com.spectre7.spmp.model.Settings
 import com.spectre7.spmp.model.Cache
+import com.spectre7.spmp.model.Song
 import com.spectre7.spmp.ui.component.PillMenu
 import com.spectre7.spmp.ui.layout.PlayerView
 import com.spectre7.spmp.ui.theme.MyApplicationTheme
@@ -50,6 +51,8 @@ class MainActivity : ComponentActivity() {
         prefs = getSharedPreferences(this)
 
         Cache.init(this)
+        Song.init(prefs)
+
         languages = loadLanguages()
 
         fun updateLanguage(lang: Int) {
@@ -170,8 +173,7 @@ class ErrorManager {
                     }
                 },
                 expand_state = remember { mutableStateOf(false) },
-                background_colour = colour,
-                content_colour = colour.getContrasted(),
+                _background_colour = colour,
                 top = false,
                 left = true,
                 vertical = true

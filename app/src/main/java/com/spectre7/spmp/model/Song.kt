@@ -8,15 +8,20 @@ import androidx.compose.runtime.MutableState
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.graphics.asAndroidBitmap
+import androidx.compose.ui.graphics.asImageBitmap
 import androidx.compose.ui.graphics.toArgb
 import androidx.core.content.edit
+import androidx.palette.graphics.Palette
 import com.beust.klaxon.Json
 import com.beust.klaxon.Klaxon
+import com.spectre7.spmp.MainActivity
 import com.spectre7.spmp.R
-import com.spectre7.spmp.api.DataApi
+import com.spectre7.spmp.api.VideoData
 import com.spectre7.spmp.api.getVideoFormats
-import com.spectre7.spmp.api.VideoFormat
-import com.spectre7.spmp.ui.component.SongPreview
+import com.spectre7.spmp.api.getSongLyrics
+import com.spectre7.spmp.ui.component.SongPreviewLong
+import com.spectre7.spmp.ui.component.SongPreviewSquare
 import com.spectre7.utils.getString
 import okhttp3.internal.filterList
 import java.io.FileNotFoundException
@@ -24,74 +29,69 @@ import java.net.URL
 import java.time.Duration
 import java.time.Instant
 import java.util.*
-import java.util.concurrent.atomic.AtomicBoolean
+import kotlin.concurrent.thread
 import kotlin.reflect.KMutableProperty1
 import kotlin.reflect.jvm.isAccessible
 
-class DataRegistry private constructor(var songs: MutableMap<String, SongEntry> = mutableMapOf()) {
+class DataRegistry constructor(var songs: MutableMap<String, SongEntry> = mutableMapOf()) {
     init {
         for (song in songs) {
             song.value.id = song.key
+            song.value.registry = this
         }
     }
 
     data class SongEntry(
-        val overrides: SongOverrides = SongOverrides()
+        var _title: String? = null,
+        var _theme_colour: Int? = null,
+        var _lyrics_id: Int? = null,
+        var _lyrics_source: Int? = null
     ) {
         @Json(ignored = true) lateinit var id: String
+        @Json(ignored = true) lateinit var registry: DataRegistry
 
         fun isDefault(): Boolean {
-            return overrides.isDefault()
+            return this == SongEntry()
         }
 
-        data class SongOverrides(
-            var _title: String? = null,
-            var _theme_colour: Int? = null,
-            var _lyrics_id: String? = null
-        ) {
+        var title: String?
+            get() = getMutableState<String?>("_title").value
+            set(value) = set("_title", value)
 
-            var title: String?
-                get() = getMutableState<String?>("_title").value
-                set(value) = set("_title", value)
+        var theme_colour: Int?
+            get() = getMutableState<Int?>("_theme_colour").value
+            set(value) = set("_theme_colour", value)
 
-            var theme_colour: Int?
-                get() = getMutableState<Int?>("_theme_colour").value
-                set(value) = set("_theme_colour", value)
+        var lyrics_id: Int?
+            get() = getMutableState<Int?>("_lyrics_id").value
+            set(value) = set("_lyrics_id", value)
 
-            var lyrics_id: String?
-                get() = getMutableState<String?>("_lyrics_id").value
-                set(value) = set("_lyrics_id", value)
+        var lyrics_source: Int?
+            get() = getMutableState<Int?>("_lyrics_source").value
+            set(value) = set("_lyrics_source", value)
 
-            private val mutable_states = mutableMapOf<String, MutableState<*>>()
+        private val mutable_states = mutableMapOf<String, MutableState<*>>()
 
-            private fun <T> getMutableState(name: String): MutableState<T> {
-                if (name == "_theme_colour") {
-                    {}
-                }
-                return mutable_states.getOrPut(name, {
-                    val property = SongOverrides::class.members.first { it.name == name } as KMutableProperty1<SongOverrides, T>
-                    property.isAccessible = true
-                    mutableStateOf(property.get(this))
-                }) as MutableState<T>
-            }
-
-            private fun <T> set(name: String, value: T) {
-                val property = SongOverrides::class.members.first { it.name == name } as KMutableProperty1<SongOverrides, T>
+        private fun <T> getMutableState(name: String): MutableState<T> {
+            return mutable_states.getOrPut(name, {
+                val property = SongEntry::class.members.first { it.name == name } as KMutableProperty1<SongEntry, T>
                 property.isAccessible = true
-                if (property.get(this) == value) {
-                    return
-                }
+                mutableStateOf(property.get(this))
+            }) as MutableState<T>
+        }
 
-                val state = getMutableState<T>(name)
-                state.value = value
-
-                property.set(this, value)
-                Song.song_registry!!.save(Settings.prefs)
+        private fun <T> set(name: String, value: T) {
+            val property = SongEntry::class.members.first { it.name == name } as KMutableProperty1<SongEntry, T>
+            property.isAccessible = true
+            if (property.get(this) == value) {
+                return
             }
 
-            fun isDefault(): Boolean {
-                return this == SongOverrides()
-            }
+            val state = getMutableState<T>(name)
+            state.value = value
+
+            property.set(this, value)
+            registry.save(Settings.prefs)
         }
     }
 
@@ -103,9 +103,10 @@ class DataRegistry private constructor(var songs: MutableMap<String, SongEntry> 
             return ret
         }
 
-        return SongEntry().apply {
-            id = song_id
-            songs[id] = this
+        return SongEntry().also { entry ->
+            entry.id = song_id
+            entry.registry = this
+            songs[song_id] = entry
         }
     }
 
@@ -125,29 +126,11 @@ class DataRegistry private constructor(var songs: MutableMap<String, SongEntry> 
             songs = temp
         }
     }
-
-    companion object {
-        private var singleton: DataRegistry? = null
-
-        @Synchronized
-        fun getSingleton(prefs: SharedPreferences): DataRegistry {
-            if (singleton == null) {
-                val data = prefs.getString("data_registry", null)
-                singleton = if (data == null || data == "{}") {
-                    DataRegistry()
-                }
-                else {
-                    Klaxon().parse<DataRegistry>(data)!!
-                }
-            }
-            return singleton!!
-        }
-    }
 }
 
 class Song private constructor (
-    private val _id: String
-): MediaItem() {
+    id: String
+): MediaItem(id) {
 
     enum class AudioQuality {
         LOW, MEDIUM, HIGH
@@ -159,41 +142,37 @@ class Song private constructor (
     private var stream_url_loading: Boolean = false
     private val stream_url_load_lock = Object()
 
-    // Data
     private lateinit var _title: String
-    lateinit var description: String
+//    lateinit var description: String
     lateinit var artist: Artist
-    lateinit var upload_date: Date
+//    lateinit var upload_date: Date
     lateinit var duration: Duration
 
-    init {
-        song_registry = DataRegistry.getSingleton(Settings.prefs)
-        registry = song_registry!!.getSongEntry(id)
-    }
+    override fun subInitWithData(data: Any) {
+        if (data !is VideoData) {
+            throw ClassCastException(data.javaClass.name)
+        }
 
-    override fun subInitWithData(data: YTApiDataResponse) {
-        _title = data.snippet!!.title
-        description = data.snippet.description!!
-        upload_date = Date.from(Instant.parse(data.snippet.publishedAt))
-        duration = Duration.parse(data.contentDetails!!.duration)
-        artist = Artist.fromId(data.snippet.channelId!!).loadData() as Artist
+        _title = data.videoDetails.title
+        artist = Artist.fromId(data.videoDetails.channelId).loadData() as Artist
+        duration = Duration.ofSeconds(data.videoDetails.lengthSeconds.toLong())
     }
 
     var theme_colour: Color?
         get() {
-            val value = registry.overrides.theme_colour
+            val value = registry.theme_colour
             if (value != null) {
                 return Color(value)
             }
             return null
         }
-        set(value) { registry.overrides.theme_colour = value?.toArgb() }
+        set(value) { registry.theme_colour = value?.toArgb() }
 
     val original_title: String get() = _title
     var title: String
         get() {
-            if (registry.overrides.title != null) {
-                return registry.overrides.title!!
+            if (registry.title != null) {
+                return registry.title!!
             }
 
             var ret = _title
@@ -226,11 +205,12 @@ class Song private constructor (
 
             return (ret as CharSequence).trim().trim('ㅤ').toString()
         }
-        set(value) { registry.overrides.title = value }
+        set(value) { registry.title = value }
 
     data class Lyrics(
-        val id: String,
-        val sync: Int,
+        val id: Int,
+        val source: Source,
+        val sync_type: SyncType,
         val lyrics: List<List<Term>>
     ) {
 
@@ -275,15 +255,27 @@ class Song private constructor (
                     LINE_SYNC -> getString(R.string.lyrics_sync_line)
                     WORD_SYNC -> getString(R.string.lyrics_sync_word)
                 }
+
+            companion object {
+                fun fromKey(key: String): SyncType {
+                    return when (key) {
+                        "text" -> NONE
+                        "line_sync" -> LINE_SYNC
+                        "text_sync" -> WORD_SYNC
+                        else -> throw NotImplementedError(key)
+                    }
+                }
+
+                fun byPriority(): List<SyncType> {
+                    return values().toList()//.reversed()
+                }
+            }
         }
 
         data class Term(val subterms: List<Subterm>, val start: Float? = null, val end: Float? = null)
         data class Subterm(val text: String, val furi: String? = null) {
             var index: Int = -1
         }
-
-        val sync_type: SyncType
-            get() = SyncType.values()[sync]
 
         init {
             var index = 0
@@ -298,10 +290,25 @@ class Song private constructor (
         }
     }
 
-    companion object {
-        internal var song_registry: DataRegistry? = null
-        private val songs: MutableMap<String, Song> = mutableMapOf()
+    init {
+        registry = song_registry.getSongEntry(id)
+    }
 
+    companion object {
+        private val songs: MutableMap<String, Song> = mutableMapOf()
+        lateinit var song_registry: DataRegistry
+
+        fun init(prefs: SharedPreferences) {
+            val data = prefs.getString("data_registry", null)
+            song_registry = if (data == null) {
+                DataRegistry()
+            }
+            else {
+                Klaxon().parse<DataRegistry>(data)!!
+            }
+        }
+
+        @Synchronized
         fun fromId(id: String): Song {
             return songs.getOrElse(id) {
                 val song = Song(id)
@@ -312,7 +319,9 @@ class Song private constructor (
     }
 
     fun getLyrics(callback: (Lyrics?) -> Unit) {
-        DataApi.getSongLyrics(this, callback)
+        thread {
+            callback(getSongLyrics(this))
+        }
     }
 
     fun loadStreamUrl(): String {
@@ -352,51 +361,37 @@ class Song private constructor (
         return stream_url!!
     }
 
-    override fun loadThumbnail(hq: Boolean): Bitmap {
-        if (!thumbnailLoaded(hq)) {
-            var thumb: Bitmap
-
-            if (hq) {
+    override fun downloadThumbnail(quality: ThumbnailQuality): Bitmap {
+        when (quality) {
+            ThumbnailQuality.HIGH -> {
                 try {
-                    thumb = BitmapFactory.decodeStream(URL("https://img.youtube.com/vi/$id/maxresdefault.jpg").openConnection().getInputStream())!!
+                    return BitmapFactory.decodeStream(URL("https://img.youtube.com/vi/$id/maxresdefault.jpg").openConnection().getInputStream())!!
                 }
                 catch (e: FileNotFoundException) {
-                    thumb = BitmapFactory.decodeStream(URL(getThumbUrl(hq)).openConnection().getInputStream())!!
+                    val thumb = BitmapFactory.decodeStream(URL(getThumbUrl(quality)).openConnection().getInputStream())!!
 
                     // Crop thumbnail to 16:9
                     val height = (thumb.width * (9f/16f)).toInt()
-                    thumb = Bitmap.createBitmap(thumb, 0, (thumb.height - height) / 2, thumb.width, height)
+                    return Bitmap.createBitmap(thumb, 0, (thumb.height - height) / 2, thumb.width, height)
                 }
             }
-            else {
-                thumb = BitmapFactory.decodeStream(URL(getThumbUrl(hq)).openConnection().getInputStream())!!
-            }
-
-            if (hq) {
-                thumbnail_hq = thumb
-            }
-            else {
-                thumbnail = thumb
+            ThumbnailQuality.LOW -> {
+                return BitmapFactory.decodeStream(URL(getThumbUrl(quality)).openConnection().getInputStream())!!
             }
         }
-        return (if (hq) thumbnail_hq else thumbnail)!!
     }
 
-    override fun _getId(): String {
-        return _id
+    @Composable
+    override fun PreviewSquare(content_colour: Color, onClick: (() -> Unit)?, onLongClick: (() -> Unit)?, modifier: Modifier) {
+        SongPreviewSquare(this, content_colour, modifier, onClick, onLongClick)
+    }
+
+    @Composable
+    override fun PreviewLong(content_colour: Color, onClick: (() -> Unit)?, onLongClick: (() -> Unit)?, modifier: Modifier) {
+        SongPreviewLong(this, content_colour, modifier, onClick, onLongClick)
     }
 
     override fun _getUrl(): String {
         return "https://music.youtube.com/watch?v=$id"
-    }
-
-    @Composable
-    override fun Preview(large: Boolean, modifier: Modifier, colour: Color) {
-        return SongPreview(this, large, colour, modifier)
-    }
-
-    @Composable
-    fun PreviewBasic(large: Boolean, modifier: Modifier, colour: Color) {
-        return SongPreview(this, large, colour, modifier, true)
     }
 }

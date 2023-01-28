@@ -33,12 +33,38 @@ abstract class MediaItem(val id: String) {
         val snippet: Snippet? = null,
         val statistics: Statistics? = null,
         val contentDetails: ContentDetails? = null,
+        val localizations: Map<String, LocalizedSnippet>? = null
     ) {
-        data class Snippet(val title: String, val description: String? = null, val publishedAt: String, val channelId: String? = null, val defaultLanguage: String? = null, val country: String? = null, val thumbnails: Thumbnails)
+        fun getLocalisation(lang: String): LocalizedSnippet? {
+            return localizations?.getOrElse(lang) {
+                for (loc in localizations) {
+                    if (loc.key.split('_').first() == lang) {
+                        return@getOrElse loc.value
+                    }
+                }
+                return@getOrElse null
+            }
+        }
+
+        data class Snippet(
+            val title: String,
+            val description: String? = null,
+            val publishedAt: String,
+            val channelId: String? = null,
+            val defaultLanguage: String? = null,
+            val country: String? = null,
+            val thumbnails: Map<String, Thumbnail>,
+            val localized: LocalizedSnippet? = null
+        )
+        data class LocalizedSnippet(val title: String? = null, var description: String? = null) {
+            init {
+                if (description?.isBlank() == true) {
+                    description = null
+                }
+            }
+        }
         data class Statistics(val viewCount: String, val subscriberCount: String? = null, val hiddenSubscriberCount: Boolean = false, val videoCount: String? = null)
         data class ContentDetails(val duration: String? = null)
-        data class Thumbnails(val default: Thumbnail? = null, val medium: Thumbnail? = null, val high: Thumbnail? = null)
-        data class Thumbnail(val url: String)
     }
 
     data class Serialisable(val type: Int, val id: String) {
@@ -102,7 +128,8 @@ abstract class MediaItem(val id: String) {
     enum class ThumbnailQuality {
         LOW, HIGH
     }
-    private var thumbnails: YTApiDataResponse.Thumbnails? = null
+    data class Thumbnail(val url: String, val width: Int, val height: Int)
+    private var thumbnails: List<Thumbnail>? = null
     var thumbnail_palette: Palette? = null
 
     private class ThumbState {
@@ -116,6 +143,15 @@ abstract class MediaItem(val id: String) {
     private val _browse_endpoints = mutableListOf<BrowseEndpoint>()
     val browse_endpoints: List<BrowseEndpoint>
         get() = _browse_endpoints
+
+    private var _is_valid: Boolean = true
+    var is_valid: Boolean
+        get() = _is_valid
+        private set(value) { _is_valid = value }
+
+    fun invalidate() {
+        is_valid = false
+    }
 
     init {
         val states = mutableMapOf<ThumbnailQuality, ThumbState>()
@@ -141,8 +177,8 @@ abstract class MediaItem(val id: String) {
 
     fun getThumbUrl(quality: ThumbnailQuality): String? {
         return when (quality) {
-            ThumbnailQuality.HIGH -> thumbnails?.high
-            ThumbnailQuality.LOW -> thumbnails?.medium
+            ThumbnailQuality.HIGH -> thumbnails?.maxByOrNull { it.width * it.height }
+            ThumbnailQuality.LOW -> thumbnails?.minByOrNull { it.width * it.height }
         }?.url
     }
 
@@ -224,16 +260,16 @@ abstract class MediaItem(val id: String) {
         return result.getDataOrThrow()
     }
 
-    fun initWithData(data: YTApiDataResponse) {
+    fun initWithData(data: Any, thumbnails: List<Thumbnail>?) {
         if (load_status == LoadStatus.LOADED) {
             return
         }
-        thumbnails = data.snippet?.thumbnails
+        this.thumbnails = thumbnails
         subInitWithData(data)
         load_status = LoadStatus.LOADED
     }
 
-    protected abstract fun subInitWithData(data: YTApiDataResponse)
+    protected abstract fun subInitWithData(data: Any)
 
     companion object {
         fun getDefaultPaletteColour(palette: Palette, default: Color): Color {

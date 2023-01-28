@@ -3,6 +3,8 @@ package com.spectre7.spmp.model
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
+import com.spectre7.spmp.MainActivity
+import com.spectre7.spmp.api.ArtistData
 import com.spectre7.spmp.ui.component.ArtistPreviewLong
 import com.spectre7.spmp.ui.component.ArtistPreviewSquare
 import java.time.Instant
@@ -24,6 +26,7 @@ class Artist private constructor (
     companion object {
         private val artists: MutableMap<String, Artist> = mutableMapOf()
 
+        @Synchronized
         fun fromId(id: String): Artist {
             return artists.getOrElse(id) {
                 val ret = Artist(id)
@@ -47,10 +50,18 @@ class Artist private constructor (
         return "https://music.youtube.com/channel/$id"
     }
 
-    override fun subInitWithData(data: YTApiDataResponse) {
-        name = data.snippet!!.title
-        description = data.snippet.description!!
-        creation_date = Date.from(Instant.parse(data.snippet.publishedAt))
+    override fun subInitWithData(data: Any) {
+        if (data !is YTApiDataResponse) {
+            throw ClassCastException(data.javaClass.name)
+        }
+
+        val snippet = data.snippet!!
+        val loc = data.getLocalisation(MainActivity.data_language)
+
+        name = loc?.title ?: snippet.title
+        description = loc?.description ?: snippet.description!!
+
+        creation_date = Date.from(Instant.parse(snippet.publishedAt))
 
         view_count = data.statistics!!.viewCount
         subscriber_count = data.statistics.subscriberCount!!

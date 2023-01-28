@@ -3,6 +3,7 @@
 package com.spectre7.spmp.ui.layout
 
 import android.content.Intent
+import android.net.Uri
 import androidx.activity.compose.BackHandler
 import androidx.compose.animation.Crossfade
 import androidx.compose.foundation.Image
@@ -35,18 +36,25 @@ import com.spectre7.spmp.api.ArtistInfoItem
 import com.spectre7.spmp.api.getArtistInfo
 import com.spectre7.spmp.model.Artist
 import com.spectre7.spmp.model.MediaItem
+import com.spectre7.spmp.ui.component.MediaItemGrid
 import com.spectre7.spmp.ui.component.PillMenu
 import com.spectre7.utils.Marquee
 import com.spectre7.utils.getString
 import com.spectre7.utils.sendToast
 import com.spectre7.utils.setAlpha
-import kotlinx.coroutines.coroutineScope
+import kotlinx.coroutines.*
 import java.util.regex.Pattern
 import kotlin.concurrent.thread
 
 @Composable
-fun ArtistPage(pill_menu: PillMenu, artist: Artist, close: () -> Unit) {
+fun ArtistPage(
+    pill_menu: PillMenu,
+    artist: Artist,
+    close: () -> Unit,
+    onItemClicked: (MediaItem) -> Unit
+) {
     var show_info by remember { mutableStateOf(false) }
+
     val share_intent = remember(artist.url, artist.name) {
         Intent.createChooser(Intent().apply {
             action = Intent.ACTION_SEND
@@ -54,6 +62,15 @@ fun ArtistPage(pill_menu: PillMenu, artist: Artist, close: () -> Unit) {
             putExtra(Intent.EXTRA_TEXT, artist.url)
             type = "text/plain"
         }, null)
+    }
+    val open_intent: Intent? = remember(artist.url) {
+        val intent = Intent(Intent.ACTION_VIEW, Uri.parse(artist.url))
+        if (intent.resolveActivity(MainActivity.context.packageManager) == null) {
+            null
+        }
+        else {
+            intent
+        }
     }
 
     val gradient_size = 0.35f
@@ -64,7 +81,29 @@ fun ArtistPage(pill_menu: PillMenu, artist: Artist, close: () -> Unit) {
 
     LaunchedEffect(Unit) {
         thread {
-            artist_rows = getArtistInfo(artist.id).getDataOrThrow()
+            runBlocking {
+                val jobs = mutableListOf<Job>()
+                val result = getArtistInfo(artist.id).getDataOrThrow()
+
+                for (row in result) {
+                    if (row.items == null) {
+                        continue
+                    }
+                    val items = mutableListOf<MediaItem>()
+                    for (item in row.items.items) {
+                        jobs.add(launch {
+                            item.loadData()
+                            if (item.is_valid) {
+                                items.add(item)
+                            }
+                        })
+                    }
+                    row.items.items = items
+                }
+
+                jobs.joinAll()
+                artist_rows = result
+            }
         }
     }
 
@@ -165,40 +204,65 @@ fun ArtistPage(pill_menu: PillMenu, artist: Artist, close: () -> Unit) {
                         }
                     }
 
-                    chip(getString(R.string.artist_play), Icons.Outlined.PlayArrow) { TODO() }
-                    chip(getString(R.string.artist_shuffle), Icons.Outlined.Shuffle) { TODO() }
-                    chip(getString(R.string.artist_radio), Icons.Outlined.Radio) { TODO() }
+                    chip(getString(R.string.artist_chip_play), Icons.Outlined.PlayArrow) { TODO() }
+                    chip(getString(R.string.artist_chip_shuffle), Icons.Outlined.Shuffle) { TODO() }
+                    chip(getString(R.string.artist_chip_radio), Icons.Outlined.Radio) { TODO() }
                     chip(getString(R.string.action_share), Icons.Outlined.Share) { MainActivity.context.startActivity(share_intent) }
-                    chip(getString(R.string.artist_details), Icons.Outlined.Info) { show_info = !show_info }
+                    chip(getString(R.string.artist_chip_open), Icons.Outlined.OpenInNew) { MainActivity.context.startActivity(open_intent) }
+                    chip(getString(R.string.artist_chip_details), Icons.Outlined.Info) { show_info = !show_info }
                 }
             }
 
             // Loaded items
             item {
-                Column(
-                    Modifier
-                        .background(background_colour)
-                        .fillMaxSize()
-                        .padding(content_padding)
-                ) {
-                    Crossfade(artist_rows) { rows ->
-                        if (rows == null) {
-                            Box(Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
-                                CircularProgressIndicator(color = accent_colour)
-                            }
+                Crossfade(artist_rows) { rows ->
+                    if (rows == null) {
+                        Box(Modifier.fillMaxSize().background(background_colour).padding(content_padding), contentAlignment = Alignment.Center) {
+                            CircularProgressIndicator(color = accent_colour)
                         }
-                        else {
+                    }
+                    else {
+                        Column(
+                            Modifier
+                                .background(background_colour)
+                                .fillMaxSize()
+                                .padding(content_padding)
+                        ) {
                             for (row in rows) {
-                                if (row.description != null) {
+                                if (row.items == null) {
                                     continue
                                 }
-                                ArtistInfoRow(row, accent_colour)
+
+                                MediaItemGrid(row.items.title, null, row.items.items, onClick = onItemClicked)
                             }
 
-                            // Display description last if included
-                            val description = rows.firstOrNull { it.description != null }
-                            if (description != null) {
-                                ArtistInfoRow(description, accent_colour)
+                            val description = rows.firstOrNull { it.description != null }?.description?.third ?: artist.description
+                            if (description.isNotBlank()) {
+                                ElevatedCard(Modifier.fillMaxWidth()) {
+                                    Column(Modifier.padding(10.dp), verticalArrangement = Arrangement.spacedBy(20.dp)) {
+                                        AssistChip(
+                                            { show_info = !show_info },
+                                            {
+                                                Text(getString(R.string.artist_info_label), style = MaterialTheme.typography.labelLarge)
+                                            },
+                                            leadingIcon = {
+                                                Icon(Icons.Outlined.Info, null)
+                                            },
+                                            colors = AssistChipDefaults.assistChipColors(
+                                                containerColor = MainActivity.theme.getBackground(false),
+                                                labelColor = MainActivity.theme.getOnBackground(false),
+                                                leadingIconContentColor = accent_colour
+                                            )
+                                        )
+
+                                        LinkifyText(
+                                            description,
+                                            MainActivity.theme.getOnBackground(false).setAlpha(0.8),
+                                            MainActivity.theme.getOnBackground(false),
+                                            MaterialTheme.typography.bodyMedium
+                                        )
+                                    }
+                                }
                             }
                         }
                     }
@@ -282,38 +346,6 @@ fun extractUrls(text: String): List<Triple<String, Int, Int>> {
         links.add(Triple(url, start, end))
     }
     return links
-}
-
-@Composable
-fun ColumnScope.ArtistInfoRow(item: ArtistInfoItem, accent_colour: Color) {
-    val desc = item.description
-    if (desc != null) {
-        ElevatedCard {
-            Column(Modifier.padding(10.dp), verticalArrangement = Arrangement.spacedBy(20.dp)) {
-                AssistChip(
-                    {},
-                    {
-                        Text(desc.first, style = MaterialTheme.typography.labelLarge)
-                    },
-                    leadingIcon = {
-                        Icon(Icons.Outlined.Info, null)
-                    },
-                    colors = AssistChipDefaults.assistChipColors(
-                        containerColor = MainActivity.theme.getBackground(false),
-                        labelColor = MainActivity.theme.getOnBackground(false),
-                        leadingIconContentColor = accent_colour
-                    )
-                )
-
-                LinkifyText(
-                    desc.third,
-                    MainActivity.theme.getOnBackground(false).setAlpha(0.8),
-                    MainActivity.theme.getOnBackground(false),
-                    MaterialTheme.typography.bodyMedium
-                )
-            }
-        }
-    }
 }
 
 @Composable

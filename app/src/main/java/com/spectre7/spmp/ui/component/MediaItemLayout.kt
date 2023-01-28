@@ -1,83 +1,84 @@
 package com.spectre7.spmp.ui.component
 
 import androidx.compose.animation.*
+import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.requiredHeight
+import androidx.compose.foundation.layout.requiredSize
 import androidx.compose.foundation.lazy.grid.GridCells
 import androidx.compose.foundation.lazy.grid.LazyHorizontalGrid
+import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.Text
 import androidx.compose.runtime.*
+import androidx.compose.runtime.snapshots.SnapshotStateList
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
 import com.spectre7.spmp.MainActivity
 import com.spectre7.spmp.model.MediaItem
 
-abstract class MediaItemLayout(
-    val title: String,
-    val subtitle: String?,
-    private val onItemClick: ((item: MediaItem) -> Unit)? = null,
-    private val onItemLongClick: ((item: MediaItem) -> Unit)? = null
+@Composable
+private fun ItemPreview(
+    item: MediaItem,
+    height: Dp,
+    animate: MutableState<Boolean>?,
+    modifier: Modifier = Modifier,
+    onItemClick: ((item: MediaItem) -> Unit)? = null,
+    onItemLongClick: ((item: MediaItem) -> Unit)? = null
 ) {
-    protected val items = mutableStateListOf<Pair<MediaItem, MutableState<Boolean>>>()
+    val onClick = if (onItemClick != null) { { onItemClick.invoke(item) } } else null
+    val onLongClick = if (onItemLongClick != null) { { onItemLongClick.invoke(item) } } else null
 
-    fun addItem(item: MediaItem): Boolean {
-        if (items.any { item == it.first }) {
-            return false
-        }
-        items.add(Pair(item, mutableStateOf(true)))
-        return true
-    }
-
-    @Composable
-    abstract fun Layout()
-
-    @Composable
-    protected fun ItemPreview(item: MediaItem, height: Dp, animate: MutableState<Boolean>, modifier: Modifier = Modifier) {
-        val onClick = if (onItemClick != null) { { onItemClick.invoke(item) } } else null
-        val onLongClick = if (onItemLongClick != null) { { onItemLongClick.invoke(item) } } else null
-
-        Box(modifier.requiredHeight(height), contentAlignment = Alignment.Center) {
-            if(animate.value) {
-                LaunchedEffect(Unit) {
-                    animate.value = false
-                }
-
-                var visible by remember { mutableStateOf(false) }
-                LaunchedEffect(visible) {
-                    visible = true
-                }
-                AnimatedVisibility(
-                    visible,
-                    enter = fadeIn() + expandIn(expandFrom = Alignment.Center),
-                    exit = fadeOut() + shrinkOut(shrinkTowards = Alignment.Center)
-                ) {
-                    item.PreviewSquare(MainActivity.theme.getOnBackground(false), onClick, onLongClick, Modifier)
-                }
+    Box(modifier.requiredHeight(height), contentAlignment = Alignment.Center) {
+        if(animate?.value == true) {
+            LaunchedEffect(Unit) {
+                animate.value = false
             }
-            else {
+
+            var visible by remember { mutableStateOf(false) }
+            LaunchedEffect(visible) {
+                visible = true
+            }
+            AnimatedVisibility(
+                visible,
+                enter = fadeIn() + expandIn(expandFrom = Alignment.Center),
+                exit = fadeOut() + shrinkOut(shrinkTowards = Alignment.Center)
+            ) {
                 item.PreviewSquare(MainActivity.theme.getOnBackground(false), onClick, onLongClick, Modifier)
             }
+        }
+        else {
+            item.PreviewSquare(MainActivity.theme.getOnBackground(false), onClick, onLongClick, Modifier)
         }
     }
 }
 
-class MediaItemGrid(
+@Composable
+fun MediaItemGrid(
     title: String,
     subtitle: String?,
+    items: List<MediaItem>,
+    modifier: Modifier = Modifier,
     onClick: ((item: MediaItem) -> Unit)? = null,
     onLongClick: ((item: MediaItem) -> Unit)? = null
-): MediaItemLayout(title, subtitle, onClick, onLongClick) {
-    @Composable
-    override fun Layout() {
-        val row_count = 2
+) {
+    val row_count = 2
+
+    Column(modifier) {
+        Text(title, style = MaterialTheme.typography.headlineMedium)
+//            if (subtitle != null) {
+            Text(subtitle ?: "Subtitle", style = MaterialTheme.typography.headlineSmall)
+//            }
         LazyHorizontalGrid(
             rows = GridCells.Fixed(row_count),
             modifier = Modifier.requiredHeight(140.dp * row_count)
         ) {
-            items(items.size, { items[it].first.id }) {
+            items(items.size, { items[it].id }) {
                 val item = items[it]
-                ItemPreview(item.first, 130.dp, item.second)
+                ItemPreview(item, 130.dp, null, Modifier, onClick, onLongClick)
             }
         }
     }

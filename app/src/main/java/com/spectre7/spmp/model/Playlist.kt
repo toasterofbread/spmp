@@ -3,6 +3,7 @@ package com.spectre7.spmp.model
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
+import com.spectre7.spmp.MainActivity
 import com.spectre7.spmp.ui.component.PlaylistPreviewLong
 import com.spectre7.spmp.ui.component.PlaylistPreviewSquare
 import java.time.Instant
@@ -19,6 +20,7 @@ class Playlist private constructor (
     companion object {
         private val playlists: MutableMap<String, Playlist> = mutableMapOf()
 
+        @Synchronized
         fun fromId(id: String): Playlist {
             return playlists.getOrElse(id) {
                 val playlist = Playlist(id)
@@ -42,11 +44,15 @@ class Playlist private constructor (
         return "https://music.youtube.com/playlist?list=$id"
     }
 
-    override fun subInitWithData(data: YTApiDataResponse) {
+    override fun subInitWithData(data: Any) {
+        if (data !is YTApiDataResponse) {
+            throw ClassCastException(data.javaClass.name)
+        }
         if (data.snippet == null) {
             throw RuntimeException("Data snippet is null\n$data")
         }
-        title = data.snippet.title
+
+        title = data.getLocalisation(MainActivity.data_language)?.title ?: data.snippet.title
         upload_date = Date.from(Instant.parse(data.snippet.publishedAt))
     }
 }

@@ -2,6 +2,7 @@ package com.spectre7.spmp.api
 
 import android.text.Html
 import android.util.Xml
+import com.atilika.kuromoji.ipadic.Tokenizer
 import com.spectre7.spmp.model.Song
 import com.spectre7.utils.hasKanjiAndHiragana
 import com.spectre7.utils.isKanji
@@ -67,7 +68,12 @@ fun getLyrics(lyrics_id: Int, lyrics_source: Song.Lyrics.Source): Result<Song.Ly
                     return Result.failure(data.exception)
                 }
 
-                TODO(data.data)
+                val tokens = Tokenizer().tokenize(data.data)
+                for (token in tokens) {
+                    println(token.allFeatures)
+                }
+
+                TODO()
             }
         }
     }

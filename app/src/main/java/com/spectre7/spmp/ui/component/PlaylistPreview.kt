@@ -1,27 +1,21 @@
 package com.spectre7.spmp.ui.component
 
-import androidx.compose.foundation.Image
-import androidx.compose.foundation.background
-import androidx.compose.foundation.clickable
+import androidx.compose.foundation.ExperimentalFoundationApi
+import androidx.compose.foundation.combinedClickable
+import androidx.compose.foundation.interaction.MutableInteractionSource
 import androidx.compose.foundation.layout.*
-import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
-import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.filled.PlaylistPlay
-import androidx.compose.material3.Icon
 import androidx.compose.material3.Text
-import androidx.compose.runtime.Composable
+import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
-import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.spectre7.spmp.model.Playlist
-import com.spectre7.utils.setAlpha
 
+@OptIn(ExperimentalFoundationApi::class)
 @Composable
 fun PlaylistPreviewSquare(
     playlist: Playlist, 
@@ -79,6 +73,7 @@ fun PlaylistPreviewSquare(
     }
 }
 
+@OptIn(ExperimentalFoundationApi::class)
 @Composable
 fun PlaylistPreviewLong(
     playlist: Playlist, 
@@ -114,8 +109,8 @@ fun PlaylistPreviewLong(
         Column(Modifier.padding(8.dp)) {
             Text(
                 playlist.title,
-                fontSize = font_size,
-                color = colour,
+                fontSize = 15.sp,
+                color = content_colour,
                 maxLines = 1,
                 overflow = TextOverflow.Ellipsis
             )

@@ -1,12 +1,17 @@
-@file:OptIn(ExperimentalFoundationApi::class, ExperimentalFoundationApi::class)
+@file:OptIn(ExperimentalFoundationApi::class, ExperimentalFoundationApi::class,
+    ExperimentalFoundationApi::class
+)
 
 package com.spectre7.spmp.ui.component
 
+import androidx.compose.foundation.ExperimentalFoundationApi
 import androidx.compose.foundation.Image
+import androidx.compose.foundation.combinedClickable
+import androidx.compose.foundation.interaction.MutableInteractionSource
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.material3.*
-import androidx.compose.runtime.Composable
+import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
@@ -40,8 +45,6 @@ fun ArtistPreviewSquare(
                 onClick = {
                     if (onClick != null) {
                         onClick()
-                    } else {
-                        TODO("Open artist page")
                     }
                 },
                 onLongClick = {
@@ -64,7 +67,7 @@ fun ArtistPreviewSquare(
             media_item = artist,
             _thumb_size = 100.dp,
             thumb_shape = CircleShape,
-            actions = { TODO() }
+            actions = { } // TODO
         )
 
         Text(
@@ -107,22 +110,22 @@ fun ArtistPreviewLong(
             media_item = artist,
             _thumb_size = 40.dp,
             thumb_shape = CircleShape,
-            actions = { TODO() }
+            actions = { } // TODO
         )
 
         Column(Modifier.padding(8.dp)) {
             Text(
                 artist.name,
-                fontSize = font_size,
-                color = colour,
+                fontSize = 15.sp,
+                color = content_colour,
                 maxLines = 1,
                 overflow = TextOverflow.Ellipsis
             )
 
             Text(
                 "${artist.getFormattedSubscriberCount()} subscribers",
-                fontSize = font_size * 0.75,
-                color = colour.setAlpha(0.5),
+                fontSize = 12.sp,
+                color = content_colour.setAlpha(0.5),
                 maxLines = 1,
                 overflow = TextOverflow.Ellipsis
             )

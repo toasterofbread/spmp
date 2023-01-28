@@ -19,7 +19,6 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.spectre7.spmp.MainActivity
 import com.spectre7.spmp.R
-import com.spectre7.spmp.api.DataApi
 import com.spectre7.spmp.api.LyricsSearchResult
 import com.spectre7.spmp.model.Song
 import com.spectre7.utils.getContrasted

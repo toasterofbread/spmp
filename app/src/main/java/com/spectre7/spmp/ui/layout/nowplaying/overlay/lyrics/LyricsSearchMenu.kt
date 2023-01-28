@@ -3,8 +3,6 @@ package com.spectre7.spmp.ui.layout.nowplaying.overlay.lyrics
 import androidx.activity.compose.BackHandler
 import androidx.compose.animation.Crossfade
 import androidx.compose.foundation.background
-import androidx.compose.foundation.clickable
-import androidx.compose.foundation.interaction.MutableInteractionSource
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.text.KeyboardActions
@@ -23,12 +21,10 @@ import androidx.compose.ui.text.input.TextFieldValue
 import androidx.compose.ui.unit.dp
 import com.spectre7.spmp.MainActivity
 import com.spectre7.spmp.R
-import com.spectre7.spmp.api.DataApi
 import com.spectre7.spmp.api.LyricsSearchResult
 import com.spectre7.spmp.api.searchForLyrics
 import com.spectre7.spmp.model.Song
 import com.spectre7.utils.setAlpha
-import kotlinx.coroutines.sync.Mutex
 import kotlin.concurrent.thread
 
 val check_lock = Object()

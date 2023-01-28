@@ -5,6 +5,7 @@ package com.spectre7.spmp.ui.component
 import android.content.Intent
 import android.net.Uri
 import android.view.WindowManager
+import androidx.compose.animation.Crossfade
 import androidx.compose.animation.core.Animatable
 import androidx.compose.animation.core.VectorConverter
 import androidx.compose.animation.core.tween
@@ -19,6 +20,7 @@ import androidx.compose.material.icons.filled.OpenWith
 import androidx.compose.material.icons.filled.Share
 import androidx.compose.material3.Divider
 import androidx.compose.material3.Icon
+import androidx.compose.material3.LocalContentColor
 import androidx.compose.material3.Text
 import androidx.compose.runtime.*
 import androidx.compose.ui.ExperimentalComposeUiApi
@@ -43,22 +45,27 @@ import com.spectre7.spmp.ui.layout.getScreenHeight
 import com.spectre7.utils.*
 import kotlinx.coroutines.coroutineScope
 import kotlinx.coroutines.launch
-import kotlin.concurrent.thread
 
 class LongPressMenuActionProvider(
     val content_colour: Color,
+    val accent_colour: Color,
     val background_colour: Color
 ) {
     @Composable
     fun ActionButton(icon: ImageVector, label: String, modifier: Modifier = Modifier, onClick: () -> Unit) =
-        ActionButton(icon, label, content_colour, modifier, onClick)
+        ActionButton(icon, label, accent_colour, modifier = modifier, onClick = onClick)
 
     companion object {
         @Composable
-        fun ActionButton(icon: ImageVector, label: String, content_colour: Color, modifier: Modifier = Modifier, onClick: () -> Unit) {
-            Row(modifier.clickable(onClick = onClick), horizontalArrangement = Arrangement.spacedBy(20.dp)) {
-                Icon(icon, null, tint = content_colour)
-                Text(label, fontSize = 15.sp, color = content_colour)
+        fun ActionButton(icon: ImageVector, label: String, icon_colour: Color = LocalContentColor.current, text_colour: Color = Color.Unspecified, modifier: Modifier = Modifier, onClick: () -> Unit) {
+            Row(
+                modifier
+                    .clickable(onClick = onClick)
+                    .fillMaxWidth(),
+                horizontalArrangement = Arrangement.spacedBy(20.dp)
+            ) {
+                Icon(icon, null, tint = icon_colour)
+                Text(label, fontSize = 15.sp, color = text_colour)
             }
         }
     }
@@ -122,18 +129,15 @@ fun LongPressIconMenu(
         var target_position: Offset? by remember { mutableStateOf(null) }
         var target_size: IntSize? by remember { mutableStateOf(null) }
 
-        var background_colour by remember { mutableStateOf(Color.Unspecified) }
-        var on_background_colour by remember { mutableStateOf(Color.Unspecified) }
+        var accent_colour by remember { mutableStateOf(Color.Unspecified) }
 
         fun applyPalette(palette: Palette) {
-            background_colour = MediaItem.getDefaultPaletteColour(palette, MainActivity.theme.getBackground(false))
-            on_background_colour = background_colour.getContrasted()
+            accent_colour = MediaItem.getDefaultPaletteColour(palette, MainActivity.theme.getBackground(false)).contrastAgainst(MainActivity.theme.getBackground(false), 0.2)
         }
 
         LaunchedEffect(Unit) {
             if (media_item is Song && media_item.registry.theme_colour != null) {
-                background_colour = Color(media_item.registry.theme_colour!!)
-                on_background_colour = background_colour.getContrasted()
+                accent_colour = Color(media_item.registry.theme_colour!!)
                 return@LaunchedEffect
             }
 
@@ -237,7 +241,7 @@ fun LongPressIconMenu(
                     Column(
                         Modifier
                             .alpha(panel_alpha.value)
-                            .background(background_colour, shape)
+                            .background(MainActivity.theme.getBackground(false), shape)
                             .fillMaxWidth()
                             .padding(25.dp),
                         verticalArrangement = Arrangement.spacedBy(20.dp)
@@ -273,7 +277,7 @@ fun LongPressIconMenu(
                                         Text(
                                             media_item.title,
                                             Modifier.fillMaxWidth(),
-                                            color = on_background_colour,
+                                            color = MainActivity.theme.getOnBackground(false),
                                             softWrap = false,
                                             overflow = TextOverflow.Ellipsis,
                                         )
@@ -283,21 +287,20 @@ fun LongPressIconMenu(
                                 val artist = media_item.getAssociatedArtist()
                                 if (artist != null) {
                                     Marquee(false) {
-                                        ArtistPreview(
-                                            artist,
-                                            false,
-                                            on_background_colour,
-                                            Modifier.fillMaxWidth(),
-                                            icon_size = 30.dp, font_size = 15.sp
+                                        artist.PreviewLong(
+                                            content_colour = MainActivity.theme.getOnBackground(false),
+                                            onClick = null,
+                                            onLongClick = null,
+                                            modifier = Modifier.fillMaxWidth()
                                         )
                                     }
                                 }
                             }
                         }
 
-                        Divider(thickness = Dp.Hairline, color = on_background_colour)
+                        Divider(thickness = Dp.Hairline, color = MainActivity.theme.getOnBackground(false))
 
-                        actions(LongPressMenuActionProvider(on_background_colour, background_colour), media_item)
+                        actions(LongPressMenuActionProvider(MainActivity.theme.getOnBackground(false), accent_colour, MainActivity.theme.getBackground(false)), media_item)
 
                         val share_intent = remember(media_item.url) {
                             Intent.createChooser(Intent().apply {
@@ -312,7 +315,7 @@ fun LongPressIconMenu(
                             }, null)
                         }
 
-                        LongPressMenuActionProvider.ActionButton(Icons.Filled.Share, "Share", on_background_colour) {
+                        LongPressMenuActionProvider.ActionButton(Icons.Filled.Share, "Share", accent_colour) {
                             MainActivity.context.startActivity(share_intent)
                         }
 
@@ -327,7 +330,7 @@ fun LongPressIconMenu(
                         }
 
                         if (open_intent != null) {
-                            LongPressMenuActionProvider.ActionButton(Icons.Filled.OpenWith, "Open externally", on_background_colour) {
+                            LongPressMenuActionProvider.ActionButton(Icons.Filled.OpenWith, "Open externally", accent_colour) {
                                 MainActivity.context.startActivity(open_intent)
                             }
                         }

@@ -1,8 +1,7 @@
 package com.spectre7.spmp.ui.layout
 
-import android.os.Process.THREAD_PRIORITY_BACKGROUND
-import android.os.Process.setThreadPriority
 import androidx.activity.compose.BackHandler
+import androidx.compose.animation.Crossfade
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
@@ -12,14 +11,9 @@ import androidx.compose.foundation.text.BasicTextField
 import androidx.compose.foundation.text.KeyboardActions
 import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.filled.ArrowBack
-import androidx.compose.material.icons.filled.Clear
-import androidx.compose.material.icons.filled.Search
+import androidx.compose.material.icons.filled.*
 import androidx.compose.material3.*
-import androidx.compose.material3.TabRowDefaults.tabIndicatorOffset
 import androidx.compose.runtime.*
-import androidx.compose.runtime.saveable.rememberSaveable
-import androidx.compose.runtime.snapshots.SnapshotStateList
 import androidx.compose.ui.ExperimentalComposeUiApi
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.focus.FocusRequester
@@ -31,26 +25,24 @@ import androidx.compose.ui.unit.TextUnit
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.spectre7.spmp.MainActivity
-import com.spectre7.spmp.R
-import com.spectre7.spmp.api.DataApi
+import com.spectre7.spmp.api.searchYoutube
 import com.spectre7.spmp.model.Artist
 import com.spectre7.spmp.model.Playlist
 import com.spectre7.spmp.model.Song
 import com.spectre7.spmp.model.MediaItem
-import com.spectre7.utils.getString
-import com.spectre7.utils.setAlpha
 import com.spectre7.spmp.ui.component.PillMenu
 import kotlin.concurrent.thread
 
 val SEARCH_FIELD_FONT_SIZE: TextUnit = 18.sp
-val TAB_TEXT_FONT_SIZE: TextUnit = 14.sp
 
+@OptIn(ExperimentalComposeUiApi::class)
 @Composable
-fun SearchPage(pill_menu: PillMenu, setOverlayPage: (page: OverlayPage) -> Unit) {
+fun SearchPage(pill_menu: PillMenu, close: () -> Unit) {
 
     val focus_manager = LocalFocusManager.current
+    val focus_requester = remember { FocusRequester() }
     val keyboard_controller = LocalSoftwareKeyboardController.current
-    
+
     var search_in_progress: Boolean by remember { mutableStateOf(false) }
     val search_lock = remember { Object() }
 
@@ -62,7 +54,7 @@ fun SearchPage(pill_menu: PillMenu, setOverlayPage: (page: OverlayPage) -> Unit)
     fun goBack() {
         focus_manager.clearFocus()
         keyboard_controller?.hide()
-        setOverlayPage(OverlayPage.NONE)
+        close()
     }
 
     fun performSearch(query: String, type: MediaItem.Type) {
@@ -115,18 +107,19 @@ fun SearchPage(pill_menu: PillMenu, setOverlayPage: (page: OverlayPage) -> Unit)
         // Bottom bar
         Row(Modifier.fillMaxWidth()) {
 
+            @Composable
             fun PillMenu.Action.resourceTypeAction(type: MediaItem.Type, action: () -> Unit) {
                 ActionButton(
                     when (type) {
-                        MediaItem.Type.SONG     -> Icons.Filled.Song
-                        MediaItem.Type.ARTIST   -> Icons.Filled.Artist
-                        MediaItem.Type.PLAYLIST -> Icons.Filled.Playlist
+                        MediaItem.Type.SONG     -> Icons.Filled.MusicNote
+                        MediaItem.Type.ARTIST   -> Icons.Filled.Person
+                        MediaItem.Type.PLAYLIST -> Icons.Filled.FeaturedPlayList
                     },
                     action
                 )
             }
 
-            val pill_menu = remember { 
+            val type_menu = remember {
                 PillMenu(
                     action_count = MediaItem.Type.values().size - 1,
                     getAction = { i, _ ->
@@ -148,8 +141,8 @@ fun SearchPage(pill_menu: PillMenu, setOverlayPage: (page: OverlayPage) -> Unit)
                     }
                 ) 
             }
-            
-            pill_menu.PillMenu()
+
+            type_menu.PillMenu()
 
             // Query input field
             BasicTextField(
@@ -168,7 +161,7 @@ fun SearchPage(pill_menu: PillMenu, setOverlayPage: (page: OverlayPage) -> Unit)
                             .padding(10.dp)
                             .fillMaxWidth()
                             .fillMaxHeight()
-                            .focusRequester(focusRequester),
+                            .focusRequester(focus_requester),
                         Arrangement.End
                     ) {
 
@@ -176,11 +169,11 @@ fun SearchPage(pill_menu: PillMenu, setOverlayPage: (page: OverlayPage) -> Unit)
                         Box(Modifier.fillMaxWidth(0.9f)) {
 
                             // Query hint
-                            if (input.isEmpty()) {
+                            if (query_text.isEmpty()) {
                                 Text(when (type_to_search) {
                                     MediaItem.Type.SONG -> "Search for songs"
                                     MediaItem.Type.ARTIST -> "Search for artists"
-                                    MediaItem.Type.PLAYER -> "Search for playlists"
+                                    MediaItem.Type.PLAYLIST -> "Search for playlists"
                                 }, fontSize = SEARCH_FIELD_FONT_SIZE, color = MainActivity.theme.getOnAccent())
                             }
 
@@ -189,7 +182,7 @@ fun SearchPage(pill_menu: PillMenu, setOverlayPage: (page: OverlayPage) -> Unit)
                         }
 
                         // Clear field button
-                        IconButton(onClick = { input = "" }, Modifier.fillMaxWidth()) {
+                        IconButton(onClick = { query_text = "" }, Modifier.fillMaxWidth()) {
                             Icon(Icons.Filled.Clear, null, Modifier, MainActivity.theme.getOnAccent())
                         }
                     }

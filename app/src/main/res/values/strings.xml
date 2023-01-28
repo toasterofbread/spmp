@@ -22,6 +22,12 @@
     <string name="feed_row_playlists">Playlists</string>
 
     <string name="action_close">Close</string>
+    <string name="action_share">Share</string>
+
+    <string name="artist_details">Details</string>
+    <string name="artist_play">Play</string>
+    <string name="artist_shuffle">Shuffle</string>
+    <string name="artist_radio">Start radio</string>
 
     <string name="loading_feed">Loading feed</string>
 

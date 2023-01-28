@@ -106,7 +106,12 @@ class MainOverlayMenu(
             }
 
             if (PlayerServiceHost.status.m_song != null) {
-                song.artist.Preview(false)
+                song.artist.PreviewLong(
+                    content_colour = Color.White,
+                    onClick = null,
+                    onLongClick = null,
+                    modifier = Modifier
+                )
 
                 val song = PlayerServiceHost.status.m_song!!
                 InfoField("Original title", song.original_title, false)

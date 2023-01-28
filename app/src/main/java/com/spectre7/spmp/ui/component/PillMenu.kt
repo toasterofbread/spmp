@@ -19,13 +19,14 @@ import androidx.compose.ui.unit.IntSize
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.zIndex
 import com.spectre7.utils.NoRipple
+import com.spectre7.utils.OnChangedEffect
+import com.spectre7.utils.getContrasted
 
 class PillMenu(
     private val action_count: Int = 0,
     private val getAction: @Composable (Action.(i: Int, action_count: Int) -> Unit) = { _, _ -> },
     private val expand_state: MutableState<Boolean>? = null,
-    private val background_colour: Color = Color.Unspecified,
-    private val content_colour: Color = Color.Unspecified,
+    private val _background_colour: Color = Color.Unspecified,
     private val top: Boolean = false,
     private val left: Boolean = false,
     private val vertical: Boolean = false,
@@ -42,6 +43,13 @@ class PillMenu(
 
     private val extra_actions = mutableStateListOf<@Composable Action.(action_count: Int) -> Unit>()
     private val action_overriders = mutableStateListOf<@Composable Action.(i: Int) -> Boolean>()
+
+    private val background_colour = Animatable(Color.Unspecified)
+    private var background_colour_override: Color? by mutableStateOf(null)
+
+    fun setBackgroundColourOverride(colour: Color?) {
+        background_colour_override = colour
+    }
 
     fun addExtraAction(action: @Composable Action.(action_count: Int) -> Unit) {
         extra_actions.add(action)
@@ -89,9 +97,8 @@ class PillMenu(
     fun PillMenu(
         action_count: Int = this.action_count,
         getAction: @Composable() (Action.(i: Int, action_count: Int) -> Unit) = this.getAction,
-        expand_state: MutableState<Boolean>?,
-        background_colour: Color = this.background_colour,
-        content_colour: Color = this.content_colour,
+        expand_state: MutableState<Boolean>? = this.expand_state,
+        _background_colour: Color = this._background_colour,
         top: Boolean = this.top,
         left: Boolean = this.left,
         vertical: Boolean = this.vertical,
@@ -99,6 +106,14 @@ class PillMenu(
         toggleButton: (@Composable Action.(modifier: Modifier) -> Unit)? = this.toggleButton,
         modifier: Modifier = this.modifier,
     ) {
+        LaunchedEffect(Unit) {
+            background_colour.snapTo(_background_colour)
+        }
+
+        LaunchedEffect(background_colour_override, _background_colour) {
+            background_colour.animateTo(background_colour_override ?: _background_colour)
+        }
+
         val params = remember(top, left, vertical, action_count, expand_state != null) {
             val alignment: Alignment
             val enter: EnterTransition
@@ -146,7 +161,7 @@ class PillMenu(
             CrossfadeParams(vertical, top, left, alignment, toggleButton, enter, exit, action_count, expand_state)
         }
 
-        InnerPillMenu(params, content_colour, background_colour, modifier, container_modifier, getAction)
+        InnerPillMenu(params, background_colour.value, modifier, container_modifier, getAction)
     }
 
     private data class CrossfadeParams(
@@ -164,13 +179,12 @@ class PillMenu(
     @Composable
     private fun InnerPillMenu(
         params: CrossfadeParams,
-        content_colour: Color,
         background_colour: Color,
         modifier: Modifier,
         container_modifier: Modifier,
         getAction: @Composable Action.(i: Int, action_count: Int) -> Unit
     ) {
-        val action = remember(background_colour, content_colour) { Action(background_colour, content_colour) }
+        val action = remember(background_colour) { Action(background_colour, background_colour.getContrasted()) }
 
         Crossfade(params, Modifier.zIndex(1f)) {
             val (vertical, top, left, alignment, toggleButton, enter, exit, action_count, expand_state) = it
@@ -210,7 +224,7 @@ class PillMenu(
                                 modifier = Modifier.background(background_colour, shape = CircleShape)
                             ) {
                                 Crossfade(expand_state.value) { expanded ->
-                                    Icon(if (expanded) close else open, null, tint = content_colour)
+                                    Icon(if (expanded) close else open, null, tint = background_colour.getContrasted())
                                 }
                             }
                         }

@@ -51,7 +51,7 @@ fun getPaletteColour(palette: Palette, type: Int): Color? {
             4 -> palette.getLightVibrantColor(Color.Unspecified.toArgb())
             5 -> palette.getLightMutedColor(Color.Unspecified.toArgb())
             6 -> palette.getMutedColor(Color.Unspecified.toArgb())
-            else -> throw RuntimeException("Invalid palette colour type '$type'")
+            else -> throw RuntimeException("Invalid palette colour type $type")
         }
     )
 
@@ -70,8 +70,8 @@ fun isColorDark(colour: Color): Boolean {
     return ColorUtils.calculateLuminance(colour.toArgb()) < 0.5
 }
 
-fun Color.contrastAgainst(against: Color): Color {
-    return offsetColourRGB(this, if (against.isDark()) 0.5 else -0.5)
+fun Color.contrastAgainst(against: Color, by: Double = 0.5): Color {
+    return offsetColourRGB(this, if (against.isDark()) by else -by)
 }
 
 fun Color.getContrasted(): Color {
@@ -85,7 +85,7 @@ fun getContrastedColour(colour: Color): Color {
         return Color.Black
 }
 
-class Theme private constructor(
+data class Theme private constructor(
     private val t_background: Animatable<Color, AnimationVector4D>,
     private val t_on_background: Animatable<Color, AnimationVector4D>,
 
@@ -101,6 +101,14 @@ class Theme private constructor(
     var default_n_on_background: Color,
     var default_accent: Color,
 ) {
+
+    suspend fun reset() {
+        t_background.snapTo(default_t_background)
+        t_on_background.snapTo(default_t_on_background)
+        n_background.snapTo(default_n_background)
+        n_on_background.snapTo(default_n_on_background)
+        accent.snapTo(default_accent)
+    }
 
     suspend fun setBackground(themed: Boolean, value: Color?) {
         (if (themed) t_background else n_background).animateTo(value ?: if (themed) default_t_background else default_n_background)
@@ -135,6 +143,7 @@ class Theme private constructor(
     }
 
     companion object {
+
         @Composable
         fun default(): Theme {
             return create(MaterialTheme.colorScheme.background, MaterialTheme.colorScheme.onBackground, MaterialTheme.colorScheme.primary)

@@ -32,7 +32,7 @@ import com.spectre7.utils.getString
 enum class Page { ROOT, ACCESSIBILITY_SERVICE }
 
 @Composable
-fun PrefsPage(pill_menu: PillMenu, setOverlayPage: (page: OverlayPage) -> Unit) {
+fun PrefsPage(pill_menu: PillMenu, close: () -> Unit) {
 
     val interface_lang = remember { SettingsValueState<Int>(Settings.KEY_LANG_UI.name).init(Settings.prefs, Settings.getDefaultProvider()) }
     var language_data by remember { mutableStateOf(MainActivity.languages.values.elementAt(interface_lang.value)) }
@@ -344,7 +344,7 @@ fun PrefsPage(pill_menu: PillMenu, setOverlayPage: (page: OverlayPage) -> Unit) 
                 }
             },
             {
-                setOverlayPage(OverlayPage.NONE)
+                close()
             }
         ) 
     }

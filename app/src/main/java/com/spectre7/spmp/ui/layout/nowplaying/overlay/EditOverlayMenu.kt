@@ -82,8 +82,7 @@ class EditOverlayMenu: OverlayMenu() {
                     }
                 },
                 expand_state = null,
-                background_colour = MainActivity.theme.getAccent(),
-                content_colour = MainActivity.theme.getOnAccent()
+                _background_colour = MainActivity.theme.getAccent(),
             )
 
             Column(

@@ -3,6 +3,8 @@ package com.spectre7.spmp.model
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
+import com.spectre7.spmp.ui.component.ArtistPreviewLong
+import com.spectre7.spmp.ui.component.ArtistPreviewSquare
 import java.time.Instant
 import java.util.*
 

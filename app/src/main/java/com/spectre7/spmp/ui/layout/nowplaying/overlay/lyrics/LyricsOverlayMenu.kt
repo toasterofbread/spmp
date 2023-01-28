@@ -102,7 +102,6 @@ class LyricsOverlayMenu(
                 },
                 remember { mutableStateOf(false) },
                 MainActivity.theme.getAccent(),
-                MainActivity.theme.getOnAccent(),
                 vertical = true
             )
         }

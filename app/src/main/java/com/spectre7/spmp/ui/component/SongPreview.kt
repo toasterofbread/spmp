@@ -15,15 +15,11 @@ import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
-import androidx.compose.ui.layout.*
-import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.*
-import com.spectre7.spmp.MainActivity
 import com.spectre7.spmp.PlayerServiceHost
 import com.spectre7.spmp.model.MediaItem
 import com.spectre7.spmp.model.Song
-import com.spectre7.utils.getContrasted
 import com.spectre7.utils.setAlpha
 
 @Composable
@@ -164,7 +160,7 @@ val longPressPopupActions: @Composable LongPressMenuActionProvider.(MediaItem) -
                     val button_padding = PaddingValues(0.dp)
                     val button_modifier = Modifier.size(30.dp).fillMaxHeight().aspectRatio(1f).align(Alignment.CenterVertically)
                     val button_colours = ButtonDefaults.buttonColors(
-                        containerColor = content_colour,
+                        containerColor = accent_colour,
                         contentColor = background_colour
                     )
 

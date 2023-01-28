@@ -1,9 +1,15 @@
 package com.spectre7.spmp.api
 
+import com.spectre7.spmp.R
+import com.spectre7.spmp.model.MediaItem
+import com.spectre7.utils.getString
+import okhttp3.Request
+import java.net.URLEncoder
+
 data class SearchResults(val items: List<Result>) {
     data class Result(val id: ResultId, val snippet: Snippet)
     data class ResultId(val kind: String, val videoId: String = "", val channelId: String = "", val playlistId: String = "")
-    data class Snippet(val publishedAt: String, val channelId: String, val title: String, val description: String, val thumbnails: Thumbnails)
+    data class Snippet(val publishedAt: String, val channelId: String, val title: String, val description: String, val thumbnails: MediaItem.YTApiDataResponse.Thumbnails)
 }
 
 fun searchYoutube(query: String, type: MediaItem.Type, max_results: Int = 10, channel_id: String? = null): Result<List<SearchResults.Result>> {
@@ -26,7 +32,7 @@ fun searchYoutube(query: String, type: MediaItem.Type, max_results: Int = 10, ch
         url += "&channelId=$channel_id"
     }
 
-    val request = Requests.Builder().url(url).build()
+    val request = Request.Builder().url(url).build()
     val response = client.newCall(request).execute()
     if (response.code != 200) {
         return Result.failure(response)

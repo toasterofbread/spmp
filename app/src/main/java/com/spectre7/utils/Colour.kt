@@ -70,8 +70,8 @@ fun isColorDark(colour: Color): Boolean {
     return ColorUtils.calculateLuminance(colour.toArgb()) < 0.5
 }
 
-fun Color.contrastAgainst(against: Color): Color {
-    return offsetColourRGB(this, if (against.isDark()) 0.5 else -0.5)
+fun Color.contrastAgainst(against: Color, by: Double = 0.5): Color {
+    return offsetColourRGB(this, if (against.isDark()) by else -by)
 }
 
 fun Color.getContrasted(): Color {

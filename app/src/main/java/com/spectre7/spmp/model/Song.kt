@@ -31,7 +31,7 @@ import kotlin.concurrent.thread
 import kotlin.reflect.KMutableProperty1
 import kotlin.reflect.jvm.isAccessible
 
-class DataRegistry private constructor(var songs: MutableMap<String, SongEntry> = mutableMapOf()) {
+class DataRegistry constructor(var songs: MutableMap<String, SongEntry> = mutableMapOf()) {
     init {
         for (song in songs) {
             song.value.id = song.key
@@ -101,9 +101,10 @@ class DataRegistry private constructor(var songs: MutableMap<String, SongEntry> 
             return ret
         }
 
-        return SongEntry().apply {
-            id = song_id
-            songs[id] = this
+        return SongEntry().also { entry ->
+            entry.id = song_id
+            entry.registry = this
+            songs[song_id] = entry
         }
     }
 
@@ -363,15 +364,15 @@ class Song private constructor (
                     return BitmapFactory.decodeStream(URL("https://img.youtube.com/vi/$id/maxresdefault.jpg").openConnection().getInputStream())!!
                 }
                 catch (e: FileNotFoundException) {
-                    val thumb = BitmapFactory.decodeStream(URL(getThumbUrl(hq)).openConnection().getInputStream())!!
+                    val thumb = BitmapFactory.decodeStream(URL(getThumbUrl(quality)).openConnection().getInputStream())!!
 
                     // Crop thumbnail to 16:9
                     val height = (thumb.width * (9f/16f)).toInt()
-                    return = Bitmap.createBitmap(thumb, 0, (thumb.height - height) / 2, thumb.width, height)
+                    return Bitmap.createBitmap(thumb, 0, (thumb.height - height) / 2, thumb.width, height)
                 }
             }
             ThumbnailQuality.LOW -> {
-                return BitmapFactory.decodeStream(URL(getThumbUrl(hq)).openConnection().getInputStream())!!
+                return BitmapFactory.decodeStream(URL(getThumbUrl(quality)).openConnection().getInputStream())!!
             }
         }
     }

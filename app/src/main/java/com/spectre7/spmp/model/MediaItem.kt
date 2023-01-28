@@ -12,15 +12,20 @@ import androidx.compose.ui.graphics.asAndroidBitmap
 import androidx.compose.ui.graphics.asImageBitmap
 import androidx.compose.ui.graphics.toArgb
 import androidx.palette.graphics.Palette
-import com.spectre7.spmp.MainActivity
 import com.spectre7.spmp.api.loadMediaItemData
-import com.spectre7.utils.getContrasted
 import java.net.URL
+import kotlin.concurrent.thread
 
+@Suppress("PLATFORM_CLASS_MAPPED_TO_KOTLIN")
 abstract class MediaItem(val id: String) {
-
     enum class Type {
         SONG, ARTIST, PLAYLIST
+    }
+    val type: Type get() = when(this) {
+        is Song -> Type.SONG
+        is Artist -> Type.ARTIST
+        is Playlist -> Type.PLAYLIST
+        else -> throw NotImplementedError(this.javaClass.name)
     }
 
     data class YTApiDataResponse(
@@ -34,6 +39,20 @@ abstract class MediaItem(val id: String) {
         data class ContentDetails(val duration: String? = null)
         data class Thumbnails(val default: Thumbnail? = null, val medium: Thumbnail? = null, val high: Thumbnail? = null)
         data class Thumbnail(val url: String)
+    }
+
+    data class Serialisable(val type: Int, val id: String) {
+        private val enum_type get() = Type.values()[type]
+        fun toMediaItem(): MediaItem {
+            when (enum_type) {
+                Type.SONG -> return Song.fromId(id)
+                Type.ARTIST -> return Artist.fromId(id)
+                Type.PLAYLIST -> return Playlist.fromId(id)
+            }
+        }
+    }
+    fun toSerialisable(): Serialisable {
+        return Serialisable(type.ordinal, id)
     }
 
     class BrowseEndpoint {
@@ -123,19 +142,24 @@ abstract class MediaItem(val id: String) {
     fun getThumbUrl(quality: ThumbnailQuality): String? {
         return when (quality) {
             ThumbnailQuality.HIGH -> thumbnails?.high
-            ThumbnailQuality.MEDIUM -> thumbnails?.medium
+            ThumbnailQuality.LOW -> thumbnails?.medium
         }?.url
     }
 
     fun isThumbnailLoaded(quality: ThumbnailQuality): Boolean {
-        return thumb_states[quality].image != null
+        return thumb_states[quality]!!.image != null
     }
 
     fun getThumbnail(quality: ThumbnailQuality, onLoaded: (Bitmap) -> Unit = {}): Bitmap? {
-        val state = thumb_states[quality]
+        val state = thumb_states[quality]!!
         synchronized(state) {
             if (state.loading) {
-                onLoaded(state.image!!)
+                thread {
+                    synchronized(state) {
+                        (state as Object).wait()
+                        onLoaded(state.image!!)
+                    }
+                }
                 return state.image
             }
         }
@@ -146,10 +170,10 @@ abstract class MediaItem(val id: String) {
     }
 
     fun loadThumbnail(quality: ThumbnailQuality): Bitmap {
-        val state = thumb_states[quality]
+        val state = thumb_states[quality]!!
         synchronized(state) {
             if (state.loading) {
-                state.wait()
+                (state as Object).wait()
                 return state.image!!
             }
 
@@ -160,12 +184,12 @@ abstract class MediaItem(val id: String) {
             state.loading = true
         }
 
-        state.image = downloadThumbnail()
-        thumbnail_palette = Palette.from(state.image.asImageBitmap().asAndroidBitmap()).clearFilters().generate()
+        state.image = downloadThumbnail(quality)
+        thumbnail_palette = Palette.from(state.image!!.asImageBitmap().asAndroidBitmap()).clearFilters().generate()
 
         synchronized(state) {
             state.loading = false
-            state.notifyAll()
+            (state as Object).notifyAll()
         }
 
         return state.image!!

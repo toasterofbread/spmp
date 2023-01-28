@@ -72,7 +72,7 @@ fun NoRipple(content: @Composable () -> Unit) {
 }
 
 @Composable
-fun OnChangedEffect(key: Any, block: suspend () -> Unit) {
+fun OnChangedEffect(key: Any?, block: suspend () -> Unit) {
     var launched by remember { mutableStateOf(false) }
     LaunchedEffect(key) {
         if (!launched) {

@@ -1,51 +1,88 @@
 package com.spectre7.spmp.api
 
 import com.beust.klaxon.JsonObject
-import com.spectre7.spmp.MainActivity
 import com.spectre7.spmp.model.*
 import okhttp3.Request
 import java.time.Duration
 
 private val CACHE_LIFETIME = Duration.ofDays(1)
 
-data class HomeFeedRow(val title: String, val subtitle: String?, val browse_id: String?, val items: List<Item>) {
-    data class Item(val type: String, val id: String, val playlist_id: String? = null) {
-        fun getPreviewable(): MediaItem {
-            when (type) {
-                "song" -> return Song.fromId(id)
-                "artist" -> return Artist.fromId(id)
-                "playlist" -> return Playlist.fromId(id)
-            }
-            throw RuntimeException(type)
-        }
+data class HomeFeedRow(
+    val title: String,
+    val subtitle: String?,
+    val browse_id: String?,
+    val items: List<MediaItem.Serialisable>
+)
+
+data class WatchEndpoint(val videoId: String? = null, val playlistId: String? = null)
+data class BrowseEndpointContextMusicConfig(val pageType: String)
+data class BrowseEndpointContextSupportedConfigs(val browseEndpointContextMusicConfig: BrowseEndpointContextMusicConfig)
+data class BrowseEndpoint(val browseId: String, val browseEndpointContextSupportedConfigs: BrowseEndpointContextSupportedConfigs? = null)
+data class NavigationEndpoint(val watchEndpoint: WatchEndpoint? = null, val browseEndpoint: BrowseEndpoint? = null)
+data class Header(val musicCarouselShelfBasicHeaderRenderer: MusicCarouselShelfBasicHeaderRenderer)
+data class MusicCarouselShelfBasicHeaderRenderer(val title: TextRuns)
+data class TextRuns(val runs: List<TextRun>? = null) {
+    val first_text: String get() = runs!![0].text
+}
+data class TextRun(val text: String, val strapline: TextRuns? = null, val navigationEndpoint: NavigationEndpoint? = null)
+
+data class MusicShelfRenderer(val title: TextRuns, val contents: List<ContentsItem>)
+data class MusicCarouselShelfRenderer(val header: Header, val contents: List<ContentsItem>)
+data class MusicDescriptionShelfRenderer(val header: TextRuns, val subheader: TextRuns, val description: TextRuns)
+
+data class MusicTwoRowItemRenderer(val navigationEndpoint: NavigationEndpoint)
+data class MusicResponsiveListItemRenderer(val playlistItemData: PlaylistItemData, val flexColumns: List<FlexColumn>? = null)
+data class PlaylistItemData(val videoId: String)
+data class FlexColumn(val musicResponsiveListItemFlexColumnRenderer: MusicResponsiveListItemFlexColumnRenderer)
+data class MusicResponsiveListItemFlexColumnRenderer(val text: TextRuns)
+
+data class YoutubeiShelf(
+    val musicShelfRenderer: MusicShelfRenderer? = null,
+    val musicCarouselShelfRenderer: MusicCarouselShelfRenderer? = null,
+    val musicDescriptionShelfRenderer: MusicDescriptionShelfRenderer? = null
+) {
+    init {
+        assert(musicShelfRenderer != null || musicCarouselShelfRenderer != null || musicDescriptionShelfRenderer != null)
+    }
+
+    val title: TextRun get() =
+        if (musicShelfRenderer != null) musicShelfRenderer.title.runs!![0]
+        else if (musicCarouselShelfRenderer != null) musicCarouselShelfRenderer.header.musicCarouselShelfBasicHeaderRenderer.title.runs!![0]
+        else musicDescriptionShelfRenderer!!.header.runs!![0]
+
+    val contents: List<ContentsItem> get() = musicShelfRenderer?.contents ?: musicCarouselShelfRenderer!!.contents
+
+    fun getRenderer(): Any {
+        return musicShelfRenderer ?: musicCarouselShelfRenderer ?: musicDescriptionShelfRenderer!!
     }
 }
 
-class WatchEndpoint(val videoId: String? = null, val playlistId: String? = null)
-class BrowseEndpointContextMusicConfig(val pageType: String)
-class BrowseEndpointContextSupportedConfigs(val browseEndpointContextMusicConfig: BrowseEndpointContextMusicConfig)
-class BrowseEndpoint(val browseId: String, val browseEndpointContextSupportedConfigs: BrowseEndpointContextSupportedConfigs? = null)
-class NavigationEndpoint(val watchEndpoint: WatchEndpoint? = null, val browseEndpoint: BrowseEndpoint? = null)
+data class ContentsItem(val musicTwoRowItemRenderer: MusicTwoRowItemRenderer? = null, val musicResponsiveListItemRenderer: MusicResponsiveListItemRenderer? = null) {
+    fun toMediaItem(): MediaItem {
+        if (musicTwoRowItemRenderer != null) {
+            val _item = musicTwoRowItemRenderer
 
-class RawHomeFeedRow(
-    val musicCarouselShelfRenderer: MusicCarouselShelfRenderer
-) {
-    class MusicCarouselShelfRenderer(val header: Header, val contents: List<ContentsItem>)
+            // Video
+            if (_item.navigationEndpoint.watchEndpoint?.videoId != null) {
+                return Song.fromId(_item.navigationEndpoint.watchEndpoint.videoId)
+            }
 
-    class Header(val musicCarouselShelfBasicHeaderRenderer: MusicCarouselShelfBasicHeaderRenderer)
-    class MusicCarouselShelfBasicHeaderRenderer(val title: Runs)
-    class Runs(val runs: List<Title>)
-    class Title(val text: String, val strapline: Runs? = null, val navigationEndpoint: NavigationEndpoint? = null)
+            val id = convertBrowseId(_item.navigationEndpoint.browseEndpoint!!.browseId).getDataOrThrow()
 
-    class ContentsItem(val musicTwoRowItemRenderer: MusicTwoRowItemRenderer? = null, val musicResponsiveListItemRenderer: MusicResponsiveListItemRenderer? = null)
-
-    class MusicTwoRowItemRenderer(val navigationEndpoint: NavigationEndpoint)
-
-    class MusicResponsiveListItemRenderer(val playlistItemData: PlaylistItemData)
-    class PlaylistItemData(val videoId: String)
-
-    val title: Title get() = musicCarouselShelfRenderer.header.musicCarouselShelfBasicHeaderRenderer.title.runs[0]
-    val items: List<ContentsItem> get() = musicCarouselShelfRenderer.contents
+            // Playlist or artist
+            return when (_item.navigationEndpoint.browseEndpoint.browseEndpointContextSupportedConfigs!!.browseEndpointContextMusicConfig.pageType) {
+                "MUSIC_PAGE_TYPE_ALBUM", "MUSIC_PAGE_TYPE_PLAYLIST" -> Playlist.fromId(id)
+                "MUSIC_PAGE_TYPE_ARTIST" -> Artist.fromId(id)
+                else -> throw NotImplementedError(_item.navigationEndpoint.browseEndpoint.browseEndpointContextSupportedConfigs!!.browseEndpointContextMusicConfig.pageType)
+            }
+        }
+        else if (musicResponsiveListItemRenderer != null) {
+            return Song.fromId(musicResponsiveListItemRenderer.playlistItemData.videoId)
+        }
+        else {
+            throw NotImplementedError()
+        }
+    }
 }
 
 fun getHomeFeed(min_rows: Int = -1, allow_cached: Boolean = true): Result<List<HomeFeedRow>> {
@@ -80,58 +117,28 @@ fun getHomeFeed(min_rows: Int = -1, allow_cached: Boolean = true): Result<List<H
         }
     }
 
-    fun processRows(rows: List<RawHomeFeedRow>): List<HomeFeedRow> {
+    fun processRows(rows: List<YoutubeiShelf>): List<HomeFeedRow> {
+        val ret = mutableListOf<HomeFeedRow>()
+        for (row in rows) {
+            val items: List<MediaItem.Serialisable> = when (row.getRenderer()) {
+                is MusicDescriptionShelfRenderer -> continue
+                is MusicShelfRenderer, is MusicCarouselShelfRenderer ->
+                    List(row.contents.size) { row.contents[it].toMediaItem().toSerialisable() }
+                else -> throw NotImplementedError()
+            }
 
-        fun getItem(item: RawHomeFeedRow.ContentsItem): HomeFeedRow.Item {
-            if (item.musicTwoRowItemRenderer != null) {
-                val _item = item.musicTwoRowItemRenderer
-
-                // Video
-                if (_item.navigationEndpoint.watchEndpoint?.videoId != null) {
-                    return HomeFeedRow.Item(
-                        "song",
-                        _item.navigationEndpoint.watchEndpoint.videoId,
-                        _item.navigationEndpoint.watchEndpoint.playlistId
-                    )
-                }
-
-                // Playlist or artist
-                val item_type = when (_item.navigationEndpoint.browseEndpoint!!.browseEndpointContextSupportedConfigs!!.browseEndpointContextMusicConfig.pageType) {
-                    "MUSIC_PAGE_TYPE_ALBUM", "MUSIC_PAGE_TYPE_PLAYLIST" -> "playlist"
-                    "MUSIC_PAGE_TYPE_ARTIST" -> "artist"
-                    else -> throw NotImplementedError(_item.navigationEndpoint.browseEndpoint.browseEndpointContextSupportedConfigs!!.browseEndpointContextMusicConfig.pageType)
-                }
-
-                return HomeFeedRow.Item(
-                    item_type,
-                    convertBrowseId(_item.navigationEndpoint.browseEndpoint.browseId).getDataOrThrow(),
-                    null
+            ret.add(
+                HomeFeedRow(
+                    row.title.text,
+                    row.title.strapline?.runs?.get(0)?.text,
+                    row.title.navigationEndpoint?.browseEndpoint?.browseId,
+                    items
                 )
-            }
-            else if (item.musicResponsiveListItemRenderer != null) {
-                return HomeFeedRow.Item(
-                    "song",
-                    item.musicResponsiveListItemRenderer.playlistItemData.videoId,
-                    null
-                )
-            }
-            else {
-                throw NotImplementedError()
-            }
-        }
-
-        return List(rows.size) { i ->
-            val row = rows[i]
-
-            HomeFeedRow(
-                row.title.text,
-                row.title.strapline?.runs?.get(0)?.text,
-                row.title.navigationEndpoint?.browseEndpoint?.browseId,
-                List(row.items.size) { j -> getItem(row.items[j]) }
             )
         }
-    }
 
+        return ret
+    }
 
     var rows: MutableList<HomeFeedRow>? = null
     var data: JsonObject? = null

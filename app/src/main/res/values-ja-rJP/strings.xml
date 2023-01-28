@@ -1,6 +1,5 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
-    <string name="app_name">SpMp</string>
     <string name="videos">動画</string>
     <string name="songs">曲</string>
     <string name="playlists">プレイリスト</string>
@@ -38,4 +37,29 @@
     <string name="album">アルバム</string>
     <string name="artist">アーティスト</string>
     <string name="song_name">曲名</string>
+    <string name="feed_row_artists">おすすめのアーティスト</string>
+    <string name="feed_row_playlists">プレイリスト</string>
+    <string name="err_root_not_granted">ルート許可を得ることができませんでした</string>
+    <string name="action_close">閉じる</string>
+    <string name="s_group_audio_video">音・動画</string>
+    <string name="s_key_acc_screen_off">画面がオフ状態でも有効にする</string>
+    <string name="s_key_download_audio_quality">ダウンロードの音質</string>
+    <string name="s_key_lyrics_default_furigana">ふりがなをデフォルトで表示する</string>
+    <string name="s_key_lyrics_text_alignment">歌詞のアラインメント</string>
+    <string name="s_key_stream_audio_quality">ストリームの音質</string>
+    <string name="s_option_audio_quality_low">低</string>
+    <string name="s_option_audio_quality_high">高</string>
+    <string name="s_option_audio_quality_medium">中</string>
+    <string name="s_option_lyrics_text_alignment_left">左</string>
+    <string name="s_option_lyrics_text_alignment_right">右</string>
+    <string name="s_option_lyrics_text_alignment_center">中</string>
+    <string name="s_option_lyrics_follow_offset_top">上</string>
+    <string name="s_option_lyrics_follow_offset_bottom">下</string>
+    <string name="s_sub_acc_screen_off">ルート許可が必要です</string>
+    <string name="action_share">共有</string>
+    <string name="artist_chip_details">情報</string>
+    <string name="artist_chip_play">再生</string>
+    <string name="artist_chip_radio">シャッフル</string>
+    <string name="artist_chip_shuffle">ラジオを聴く</string>
+    <string name="artist_chip_open">開く</string>
 </resources>

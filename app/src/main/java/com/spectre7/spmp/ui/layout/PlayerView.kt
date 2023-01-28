@@ -41,9 +41,7 @@ import com.spectre7.spmp.model.Artist
 import com.spectre7.spmp.model.MediaItem
 import com.spectre7.spmp.model.Playlist
 import com.spectre7.spmp.model.Song
-import com.spectre7.spmp.ui.component.AutoResizeText
-import com.spectre7.spmp.ui.component.FontSizeRange
-import com.spectre7.spmp.ui.component.PillMenu
+import com.spectre7.spmp.ui.component.*
 import com.spectre7.spmp.ui.layout.nowplaying.NowPlaying
 import com.spectre7.utils.*
 import java.lang.Integer.min
@@ -57,113 +55,7 @@ fun getScreenHeight(): Float {
 }
 
 const val MINIMISED_NOW_PLAYING_HEIGHT = 64f
-enum class OverlayPage { NONE, SEARCH, SETTINGS }
-
-data class YtItemRow(val title: String, val subtitle: String?, val type: TYPE, val items: MutableList<Pair<MediaItem, Long>> = mutableStateListOf()) {
-
-    enum class TYPE { SQUARE, LONG }
-
-    @Composable
-    private fun ItemPreview(item: MediaItem, height: Dp, animate_visibility: Boolean, modifier: Modifier = Modifier) {
-        Box(modifier.requiredHeight(height), contentAlignment = Alignment.Center) {
-            if(animate_visibility) {
-                var visible by remember { mutableStateOf(false) }
-                LaunchedEffect(visible) {
-                    visible = true
-                }
-                AnimatedVisibility(
-                    visible,
-                    enter = fadeIn() + expandIn(expandFrom = Alignment.Center),
-                    exit = fadeOut() + shrinkOut(shrinkTowards = Alignment.Center)
-                ) {
-                    item.Preview(true)
-                }
-            }
-            else {
-                item.Preview(true)
-            }
-        }
-    }
-
-    @Composable
-    private fun SquareList() {
-        val row_count = 2
-        LazyHorizontalGrid(
-            rows = GridCells.Fixed(row_count),
-            modifier = Modifier.requiredHeight(140.dp * row_count)
-        ) {
-            items(items.size, { items[it].first.id }) {
-                val item = items[it]
-                ItemPreview(item.first, 130.dp, remember { System.currentTimeMillis() - item.second < 250})
-            }
-        }
-    }
-
-    @OptIn(ExperimentalPagerApi::class)
-    @Composable
-    private fun LongList(rows: Int = 5, columns: Int = 1) {
-        HorizontalPager(ceil((items.size / rows.toFloat()) / columns.toFloat()).toInt()) { page ->
-            Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.SpaceEvenly) {
-                val start = page * rows * columns
-                for (column in 0 until columns) {
-                    Column(Modifier.weight(1f)) {
-                        for (i in start + rows * column until min(start + (rows * columns), start + (rows * (column + 1)))) {
-                            if (i < items.size) {
-                                val item = items[i]
-                                ItemPreview(item.first, 50.dp, remember { System.currentTimeMillis() - item.second < 250})
-                            }
-                            else {
-                                Spacer(Modifier.requiredHeight(50.dp))
-                            }
-                        }
-                    }
-                }
-            }
-        }
-    }
-
-    @OptIn(ExperimentalMaterial3Api::class)
-    @Composable
-    fun ItemRow() {
-        if (items.isEmpty()) {
-            return
-        }
-
-        Card(
-            colors = CardDefaults.cardColors(containerColor = Color.Transparent, contentColor = MaterialTheme.colorScheme.onBackground),
-            modifier = Modifier.fillMaxWidth()
-        ) {
-            Column {
-                Column {
-                    AutoResizeText(
-                        text = title,
-                        maxLines = 1,
-                        fontSizeRange = FontSizeRange(
-                            20.sp, 30.sp
-                        ),
-                        fontWeight = FontWeight.Bold,
-                        modifier = Modifier.padding(10.dp)
-                    )
-
-                    if (subtitle != null) {
-                        Text(subtitle, fontSize = 15.sp, fontWeight = FontWeight.Light, modifier = Modifier.padding(10.dp), color = MaterialTheme.colorScheme.onBackground.setAlpha(0.5))
-                    }
-                }
-
-                when (type) {
-                    TYPE.SQUARE -> SquareList()
-                    TYPE.LONG -> LongList(3, 2)
-                }
-            }
-        }
-    }
-
-    fun add(item: MediaItem?) {
-        if (item != null && items.firstOrNull { it.first.id == item.id } == null) {
-            items.add(Pair(item, System.currentTimeMillis()))
-        }
-    }
-}
+enum class OverlayPage { NONE, SEARCH, SETTINGS, MEDIAITEM }
 
 val feed_refresh_mutex = ReentrantLock()
 
@@ -171,6 +63,8 @@ val feed_refresh_mutex = ReentrantLock()
 @Composable
 fun PlayerView() {
     var overlay_page by remember { mutableStateOf(OverlayPage.NONE) }
+    var overlay_media_item: MediaItem? by remember { mutableStateOf(null) }
+
     val pill_menu = remember { PillMenu(
         top = false
     ) }
@@ -180,6 +74,7 @@ fun PlayerView() {
         if (overlay_page == OverlayPage.NONE) {
             pill_menu.clearExtraActions()
             pill_menu.clearActionOverriders()
+            pill_menu.setBackgroundColourOverride(null)
         }
     }
 
@@ -211,11 +106,10 @@ fun PlayerView() {
                     }
                 },
                 if (overlay_page == OverlayPage.NONE) remember { mutableStateOf(false) } else null,
-                MainActivity.theme.getAccent(),
-                MainActivity.theme.getAccent().getContrasted(),
+                MainActivity.theme.getAccent()
             )
 
-            val main_page_rows = remember { mutableStateListOf<YtItemRow>() }
+            val main_page_rows = remember { mutableStateListOf<MediaItemLayout>() }
 
             lateinit var refreshFeed: (allow_cached: Boolean, onFinished: (success: Boolean) -> Unit) -> Unit
             refreshFeed = { allow_cached: Boolean, onFinished: (success: Boolean) -> Unit ->
@@ -235,19 +129,29 @@ fun PlayerView() {
                             return@thread
                         }
 
-                        val artist_row =
-                            YtItemRow("Recommended Artists", null, YtItemRow.TYPE.LONG)
-                        val playlist_row =
-                            YtItemRow("Recommended playlists", null, YtItemRow.TYPE.SQUARE)
+                        val onItemClicked = { item: MediaItem ->
+                            when (item) {
+                                is Song -> {
+                                    PlayerServiceHost.service.playSong(item)
+                                }
+                                // Artist and Playlist
+                                else -> {
+                                    overlay_page = OverlayPage.MEDIAITEM
+                                    overlay_media_item = item
+                                }
+                            }
+                        }
+
+                        val artist_row = MediaItemGrid(getString(R.string.feed_row_artists), null, onItemClicked)
+                        val playlist_row = MediaItemGrid(getString(R.string.feed_row_playlists), null, onItemClicked)
 
                         for (row in feed_result.data) {
-                            val entry =
-                                YtItemRow(row.title, row.subtitle, YtItemRow.TYPE.SQUARE)
+                            val entry = MediaItemGrid(row.title, row.subtitle, onItemClicked)
                             var entry_added = false
 
                             for (item in row.items) {
                                 thread {
-                                    val previewable = item.getPreviewable().loadData()
+                                    val previewable = item.toMediaItem().loadData()
                                     synchronized(main_page_rows) {
                                         when (previewable) {
                                             is Song -> {
@@ -255,11 +159,11 @@ fun PlayerView() {
                                                     entry_added = true
                                                     main_page_rows.add(entry)
                                                 }
-                                                entry.add(previewable)
-                                                artist_row.add(previewable.artist)
+                                                entry.addItem(previewable)
+                                                artist_row.addItem(previewable.artist)
                                             }
-                                            is Artist -> artist_row.add(previewable)
-                                            is Playlist -> playlist_row.add(previewable)
+                                            is Artist -> artist_row.addItem(previewable)
+                                            is Playlist -> playlist_row.addItem(previewable)
                                         }
                                     }
                                 }
@@ -281,13 +185,17 @@ fun PlayerView() {
 
             Crossfade(targetState = overlay_page) {
                 Column(Modifier.fillMaxSize()) {
-                    if (it != OverlayPage.NONE) {
+                    if (it != OverlayPage.NONE && it != OverlayPage.MEDIAITEM) {
                         Spacer(Modifier.requiredHeight(getStatusBarHeight(MainActivity.context)))
                     }
                     when (it) {
                         OverlayPage.NONE -> MainPage(main_page_rows, refreshFeed)
-                        OverlayPage.SEARCH -> SearchPage(pill_menu) { overlay_page = it }
-                        OverlayPage.SETTINGS -> PrefsPage(pill_menu) { overlay_page = it }
+                        OverlayPage.SEARCH -> SearchPage(pill_menu) { overlay_page = OverlayPage.NONE }
+                        OverlayPage.SETTINGS -> PrefsPage(pill_menu) { overlay_page = OverlayPage.NONE }
+                        OverlayPage.MEDIAITEM -> when (overlay_media_item!!) {
+                            is Artist -> ArtistPage(pill_menu, overlay_media_item as Artist) { overlay_page = OverlayPage.NONE }
+                            else -> throw NotImplementedError()
+                        }
                     }
                 }
             }
@@ -337,9 +245,9 @@ fun PlayerView() {
 
 @OptIn(ExperimentalFoundationApi::class)
 @Composable
-fun MainPage(_rows: List<YtItemRow>, refreshFeed: (allow_cache: Boolean, onFinished: (success: Boolean) -> Unit) -> Unit) {
+fun MainPage(_rows: List<MediaItemLayout>, refreshFeed: (allow_cache: Boolean, onFinished: (success: Boolean) -> Unit) -> Unit) {
 
-    var rows: List<YtItemRow> by remember { mutableStateOf(_rows) }
+    var rows: List<MediaItemLayout> by remember { mutableStateOf(_rows) }
 
     SwipeRefresh(
         state = rememberSwipeRefreshState(_rows.isEmpty()), // TODO
@@ -363,7 +271,7 @@ fun MainPage(_rows: List<YtItemRow>, refreshFeed: (allow_cache: Boolean, onFinis
                             Spacer(Modifier.requiredHeight(getStatusBarHeight(MainActivity.context)))
                         }
                         items(rows.size) { index ->
-                            rows[index].ItemRow()
+                            rows[index].Layout()
                         }
                     }
                 }

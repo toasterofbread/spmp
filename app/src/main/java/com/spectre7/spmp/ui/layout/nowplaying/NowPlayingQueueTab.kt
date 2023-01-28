@@ -71,20 +71,18 @@ fun QueueTab(weight_modifier: Modifier) {
                     modifier = Modifier.padding(start = 10.dp, end = 20.dp)
                 ) {
                     val content_colour = if (current) MainActivity.theme.getBackground(true) else MainActivity.theme.getOnBackground(true)
-                    song.PreviewBasic(
-                        false,
+                    song.PreviewLong(
+                        content_colour,
+                        { PlayerServiceHost.player.seekTo(index, C.TIME_UNSET) },
+                        null,
                         Modifier
                             .weight(1f)
-                            .clickable {
-                                PlayerServiceHost.player.seekTo(index, C.TIME_UNSET)
-                            }
                             .swipeable(
                                 swipe_state,
                                 anchors,
                                 Orientation.Horizontal,
                                 thresholds = { _, _ -> FractionalThreshold(0.2f) }
-                            ),
-                        content_colour
+                            )
                     )
 
                     // Drag handle

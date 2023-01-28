@@ -39,7 +39,7 @@ enum class Settings {
                 Int::class -> preferences.getInt(enum_key.name, default_value as Int)
                 Long::class -> preferences.getLong(enum_key.name, default_value as Long)
                 String::class -> preferences.getString(enum_key.name, default_value as String)
-                else -> throw java.lang.ClassCastException()
+                else -> throw ClassCastException()
             } as T
         }
 

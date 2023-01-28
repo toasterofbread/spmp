@@ -97,7 +97,7 @@ class SettingsValueState<T>(val key: String) {
             Int::class -> prefs.getInt(key, default as Int)
             Long::class -> prefs.getLong(key, default as Long)
             String::class -> prefs.getString(key, default as String)
-            else -> throw java.lang.ClassCastException()
+            else -> throw ClassCastException()
         } as T
 
         return this
@@ -118,7 +118,7 @@ class SettingsValueState<T>(val key: String) {
                 Int::class -> putInt(key, value as Int)
                 Long::class -> putLong(key, value as Long)
                 String::class -> putString(key, value as String)
-                else -> throw java.lang.ClassCastException()
+                else -> throw ClassCastException()
             }
             apply()
         }

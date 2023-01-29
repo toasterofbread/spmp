@@ -29,6 +29,7 @@ import com.beust.klaxon.Klaxon
 import com.chaquo.python.Python
 import com.chaquo.python.android.AndroidPlatform
 import com.google.android.exoplayer2.database.StandaloneDatabaseProvider
+import com.spectre7.spmp.api.getLyrics
 import com.spectre7.spmp.model.Cache
 import com.spectre7.spmp.model.Settings
 import com.spectre7.spmp.model.Song
@@ -38,6 +39,7 @@ import com.spectre7.spmp.ui.theme.MyApplicationTheme
 import com.spectre7.utils.NoRipple
 import com.spectre7.utils.Theme
 import java.util.*
+import kotlin.concurrent.thread
 
 class MainActivity : ComponentActivity() {
 
@@ -87,6 +89,10 @@ class MainActivity : ComponentActivity() {
             WindowManager.LayoutParams.FLAG_LAYOUT_NO_LIMITS,
             WindowManager.LayoutParams.FLAG_LAYOUT_NO_LIMITS
         )
+
+        thread {
+            getLyrics(2893290, Song.Lyrics.Source.PETITLYRICS)
+        }
 
         setContent {
             MyApplicationTheme {

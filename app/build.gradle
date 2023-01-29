@@ -152,7 +152,7 @@ dependencies {
     implementation project(":exoplayer-library-ui")
     implementation project(":exoplayer-extension-mediasession")
 
-    implementation group: 'com.atilika.kuromoji', name: 'kuromoji-ipadic', version: '0.9.0'
+    implementation group: 'com.worksap.nlp', name: 'sudachi', version: '0.5.3'
 }
 
 task preBuildScript(type: Exec) {

@@ -2,15 +2,16 @@ package com.spectre7.spmp.api
 
 import android.text.Html
 import android.util.Xml
-import com.atilika.kuromoji.ipadic.Tokenizer
+import com.worksap.nlp.sudachi.Dictionary
 import com.spectre7.spmp.model.Song
 import com.spectre7.utils.hasKanjiAndHiragana
 import com.spectre7.utils.isKanji
+import com.worksap.nlp.sudachi.DictionaryFactory
 import okhttp3.MediaType.Companion.toMediaType
 import okhttp3.Request
 import okhttp3.RequestBody.Companion.toRequestBody
 import org.xmlpull.v1.XmlPullParser
-import java.util.Base64
+import java.util.*
 
 fun getSongLyrics(song: Song): Song.Lyrics? {
     val id = song.registry.lyrics_id
@@ -36,7 +37,6 @@ fun getSongLyrics(song: Song): Song.Lyrics? {
 }
 
 fun getLyricsData(lyrics_id: Int, sync_type: Song.Lyrics.SyncType): Result<String> {
-
     val body = "key_lyricsId=$lyrics_id&lyricsType=${sync_type.ordinal + 1}&terminalType=10&clientAppId=on354007".toRequestBody("application/x-www-form-urlencoded; charset=utf-8".toMediaType())
     val request = Request.Builder()
         .url("https://p1.petitlyrics.com/api/GetPetitLyricsData.php")
@@ -55,7 +55,198 @@ fun getLyricsData(lyrics_id: Int, sync_type: Song.Lyrics.SyncType): Result<Strin
     val start = xml.indexOf(START)
     val end = xml.indexOf(END, start + START.length)
 
-    return Result.success(String(Base64.getDecoder().decode(xml.substring(start + START.length, end))))
+    val decoded = Base64.getDecoder().decode(xml.substring(start + START.length, end))
+    return Result.success(String(decoded))
+}
+
+private data class LyricsTerm(val text: Text, val start: Float, val end: Float) {
+    data class Text(val text: String, var furigana: String? = null)
+}
+enum class T {
+    PART_OF_SPEECH_LEVEL_1,
+    PART_OF_SPEECH_LEVEL_2,
+    PART_OF_SPEECH_LEVEL_3,
+    PART_OF_SPEECH_LEVEL_4,
+    CONJUGATION_TYPE,
+    CONJUGATION_FORM,
+    BASE_FORM,
+    READING,
+    PRONUNCIATION,
+}
+
+private fun mergeAndFuriganiseTerms(terms: List<LyricsTerm>): List<LyricsTerm> {
+
+    val ret: MutableList<LyricsTerm> = mutableListOf()
+
+    var terms_text: String = ""
+    for (term in terms) {
+        terms_text += term.text.text
+    }
+
+    val tokens = DictionaryFactory().create().create().tokenize(terms_text)
+
+    var current_term: Int = 0
+    var term_head: Int = 0
+
+    println("+++++++++++++++++++++++++++++++++++")
+    println(terms_text)
+//    println(terms)
+//    println(tokens)
+
+    for (token in tokens) {
+        println("--------")
+        println(token.normalizedForm())
+        println(token.readingForm())
+        println(token.dictionaryForm())
+
+//        val token_base = if (token.reading.length < token.baseForm.length) token.baseForm.substring(token.reading.length) else token.baseForm
+//
+//        var text: String = ""
+//        var start: Float = Float.POSITIVE_INFINITY
+//        var end: Float = Float.NEGATIVE_INFINITY
+//
+//        println("+++++++++++++++++++++++++++++++++++++++")
+//        println("| " + token.compoundInformation)
+//        println("| " + token.baseForm)
+//        println("| " + token.reading)
+//        println("| " + token.pronunciation)
+//        println("| " + token.conjugationForm)
+//        println("| " + token.conjugationType)
+//        println("| " + token.transcriptionVariation)
+//        println("| " + token.allFeatures)
+//
+//        while (text.length < token_base.length) {
+////            println("---")
+////            println(current_term)
+////            println(term_head)
+////            println("${text.length} | $text")
+////            println("${token_base.length} | $token_base")
+//            val term = terms[current_term]
+//            start = min(start, term.start)
+//            end = max(end, term.end)
+//
+//            val needed = token_base.length - text.length
+//            if (needed < term.text.text.length - term_head) {
+//                text += term.text.text.substring(term_head, term_head + needed)
+//                term_head += needed
+//            }
+//            else {
+//                text += term.text.text
+//                term_head = 0
+//                current_term++
+//            }
+//        }
+//
+//        ret.add(LyricsTerm(LyricsTerm.Text(text, token.reading.toHiragana()), start, end))
+    }
+
+    return ret
+}
+
+private fun parseTimedLyrics(xml_data: String) {
+    val parser = Xml.newPullParser()
+    parser.setFeature(XmlPullParser.FEATURE_PROCESS_NAMESPACES, false)
+    parser.setInput(xml_data.reader())
+    parser.nextTag()
+
+    fun skip() {
+        if (parser.eventType != XmlPullParser.START_TAG) {
+            throw IllegalStateException()
+        }
+        var depth = 1
+        while (depth != 0) {
+            when (parser.next()) {
+                XmlPullParser.END_TAG -> depth--
+                XmlPullParser.START_TAG -> depth++
+            }
+        }
+    }
+
+    fun readText(tag: String): String {
+        parser.require(XmlPullParser.START_TAG, null, tag)
+
+        var result = ""
+        if (parser.next() == XmlPullParser.TEXT) {
+            result = parser.text
+            parser.nextTag()
+        }
+
+        parser.require(XmlPullParser.END_TAG, null, tag)
+        return result
+    }
+
+    fun parseTerm(): LyricsTerm? {
+        parser.require(XmlPullParser.START_TAG, null, "word")
+
+        var text: String? = null
+        var start: Float? = null
+        var end: Float? = null
+
+        while (parser.next() != XmlPullParser.END_TAG) {
+            if (parser.eventType != XmlPullParser.START_TAG) {
+                continue
+            }
+
+            when (parser.name) {
+                "wordstring" -> text = readText("wordstring")
+                "starttime" -> start = readText("starttime").toInt() / 1000f
+                "endtime" -> end = readText("endtime").toInt() / 1000f
+                else -> skip()
+            }
+        }
+
+        parser.require(XmlPullParser.END_TAG, null, "word")
+
+        if (text!!.isBlank()) {
+            return null
+        }
+
+        return LyricsTerm(LyricsTerm.Text(text), start!!, end!!)
+    }
+
+    val lines: MutableList<List<LyricsTerm>> = mutableListOf()
+
+    fun parseLine() {
+        parser.require(XmlPullParser.START_TAG, null, "line")
+
+        val terms: MutableList<LyricsTerm> = mutableListOf()
+        while (parser.next() != XmlPullParser.END_TAG) {
+            if (parser.eventType != XmlPullParser.START_TAG) {
+                continue
+            }
+
+            if (parser.name != "word") {
+                skip()
+                continue
+            }
+
+            val term = parseTerm()
+            if (term != null) {
+                terms.add(term)
+            }
+        }
+
+        parser.require(XmlPullParser.END_TAG, null, "line")
+        lines.add(mergeAndFuriganiseTerms(terms))
+    }
+
+    parser.require(XmlPullParser.START_TAG, null, "wsy")
+    while (parser.next() != XmlPullParser.END_TAG) {
+        if (parser.eventType != XmlPullParser.START_TAG) {
+            continue
+        }
+
+        if (parser.name != "line") {
+            skip()
+            continue
+        }
+
+        parseLine()
+    }
+
+    for (line in lines) {
+        println(line)
+    }
 }
 
 fun getLyrics(lyrics_id: Int, lyrics_source: Song.Lyrics.Source): Result<Song.Lyrics> {
@@ -68,12 +259,11 @@ fun getLyrics(lyrics_id: Int, lyrics_source: Song.Lyrics.Source): Result<Song.Ly
                     return Result.failure(data.exception)
                 }
 
-                val tokens = Tokenizer().tokenize(data.data)
-                for (token in tokens) {
-                    println(token.allFeatures)
+                if (data.data.startsWith("<wsy>")) {
+                    parseTimedLyrics(data.data)
                 }
 
-                TODO()
+                TODO(data.data)
             }
         }
     }

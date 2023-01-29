@@ -6,7 +6,9 @@ import com.spectre7.spmp.R
 import com.spectre7.spmp.model.*
 import com.spectre7.utils.getString
 import okhttp3.Request
+import okio.Path.Companion.toPath
 import java.io.BufferedReader
+import java.nio.file.Path
 import java.time.Duration
 
 private val CACHE_LIFETIME = Duration.ofDays(1)
@@ -57,7 +59,7 @@ fun loadMediaItemData(item: MediaItem): Result<MediaItem> {
             return if (item.load_status == MediaItem.LoadStatus.LOADED) Result.success(item) else Result.failure(RuntimeException())
         }
 
-        val cache_key = "d${item.id}${item.type.name}"
+        val cache_key = "MediaItemData/${item.type.name}/${item.id}"
         val response_body: BufferedReader
 
         val cached = Cache.get(cache_key)

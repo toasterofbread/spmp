@@ -1,18 +1,21 @@
 package com.spectre7.spmp.model
 
 import android.content.Context
+import com.spectre7.spmp.R
+import com.spectre7.utils.getString
 import java.io.BufferedReader
 import java.io.File
 import java.io.FileNotFoundException
 import java.time.Duration
 import java.time.Instant
+import kotlin.io.path.relativeTo
 
 class Cache {
     companion object {
         private lateinit var cache_dir: File
 
         fun init(context: Context) {
-            cache_dir = File(context.cacheDir, "cache")
+            cache_dir = File(context.cacheDir, getString(R.string.app_name, context))
 
             if (!cache_dir.exists()) {
                 cache_dir.mkdirs()
@@ -24,28 +27,30 @@ class Cache {
         }
 
         fun clean() {
-            val files = cache_dir.listFiles() ?: return
             val now = Instant.now()
-            for (file in files) {
+            for (file in cache_dir.walkTopDown()) {
+                if (file.isDirectory) {
+                    continue
+                }
+
                 val reader = file.bufferedReader()
                 val metadata = reader.readLine()
                 reader.close()
 
                 if (parseCacheMetadata(metadata).isBefore(now)) {
                     file.delete()
+                    println("Deleted expired cache file at ${file.toPath().relativeTo(cache_dir.toPath())}")
                 }
             }
         }
 
         fun reset() {
-            val files = cache_dir.listFiles() ?: return
-            for (file in files) {
-                file.delete()
-            }
+            cache_dir.deleteRecursively()
         }
 
-        fun set(key: String, value: BufferedReader, lifetime: Duration?) {
-            val file = File(cache_dir, key)
+        fun set(path: String, value: BufferedReader, lifetime: Duration?) {
+            val file = cache_dir.resolve(path)
+            file.parentFile?.mkdirs()
             file.createNewFile()
 
             val expiry: String = if (lifetime != null) Instant.now().plusSeconds(lifetime.toSeconds()).epochSecond.toString() else ""
@@ -57,14 +62,14 @@ class Cache {
             writer.close()
         }
 
-        fun setString(key: String, value: String, lifetime: Duration?) {
+        fun setString(path: String, value: String, lifetime: Duration?) {
             val reader = BufferedReader(value.reader())
-            set(key, reader, lifetime)
+            set(path, reader, lifetime)
             reader.close()
         }
 
-        fun get(key: String): BufferedReader? {
-            val file = File(cache_dir, key)
+        fun get(path: String): BufferedReader? {
+            val file = cache_dir.resolve(path)
             if (!file.exists()) {
                 return null
             }

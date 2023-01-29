@@ -267,7 +267,7 @@ class Song private constructor (
                 }
 
                 fun byPriority(): List<SyncType> {
-                    return values().toList()//.reversed()
+                    return values().toList().reversed()
                 }
             }
         }

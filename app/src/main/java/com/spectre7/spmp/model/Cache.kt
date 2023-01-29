@@ -1,72 +1,98 @@
 package com.spectre7.spmp.model
 
-import java.time.Instant
-import java.time.Duration
-import android.content.SharedPreferences
 import android.content.Context
+import java.io.BufferedReader
+import java.io.File
+import java.io.FileNotFoundException
+import java.time.Duration
+import java.time.Instant
 
 class Cache {
     companion object {
-        private lateinit var cache: SharedPreferences
-        private const val epoch_length = 10
+        private lateinit var cache_dir: File
 
         fun init(context: Context) {
-            cache = context.getSharedPreferences("com.spectre7.spmp.cache", Context.MODE_PRIVATE)
+            cache_dir = File(context.cacheDir, "cache")
+
+            if (!cache_dir.exists()) {
+                cache_dir.mkdirs()
+                if (!cache_dir.exists()) {
+                    throw FileNotFoundException("Could not create cache dir")
+                }
+            }
             clean()
         }
 
         fun clean() {
-            with (cache.edit()) {
-                val now = Instant.now()
-                for (item in cache.all) {
-                    val parsed = parseCacheValue(item.value as String)
-                    if (parsed.first.isBefore(now)) {
-                        remove(item.key)
-                    }
+            val files = cache_dir.listFiles() ?: return
+            val now = Instant.now()
+            for (file in files) {
+                val reader = file.bufferedReader()
+                val metadata = reader.readLine()
+                reader.close()
+
+                if (parseCacheMetadata(metadata).isBefore(now)) {
+                    file.delete()
                 }
-                apply()
             }
         }
 
         fun reset() {
-            with (cache.edit()) {
-                for (item in cache.all) {
-                    remove(item.key)
-                }
-                apply()
+            val files = cache_dir.listFiles() ?: return
+            for (file in files) {
+                file.delete()
             }
         }
 
-        fun set(key: String, value: String, lifetime: Duration?) {
+        fun set(key: String, value: BufferedReader, lifetime: Duration?) {
+            val file = File(cache_dir, key)
+            file.createNewFile()
+
             val expiry: String = if (lifetime != null) Instant.now().plusSeconds(lifetime.toSeconds()).epochSecond.toString() else ""
-            with (cache.edit()) {
-                putString(key, expiry.padStart(epoch_length, '0') + value)
-                apply()
+
+            val writer = file.writer()
+            writer.write(expiry + "\n")
+            value.copyTo(writer)
+            writer.flush()
+            writer.close()
+        }
+
+        fun setString(key: String, value: String, lifetime: Duration?) {
+            val reader = BufferedReader(value.reader())
+            set(key, reader, lifetime)
+            reader.close()
+        }
+
+        fun get(key: String): BufferedReader? {
+            val file = File(cache_dir, key)
+            if (!file.exists()) {
+                return null
             }
-        }
 
-        fun get(key: String, default: () -> String?): String? {
-            val value: String = cache.getString(key, null) ?: return default()
-            val parsed = parseCacheValue(value)
+            val reader = file.bufferedReader()
+            val expiry = parseCacheMetadata(reader.readLine())
 
-            if (parsed.first.isBefore(Instant.now())) {
-                // Cache has expired
-                with (cache.edit()) {
-                    remove(key)
-                    apply()
-                }
-                return default()
+            if (expiry.isBefore(Instant.now())) {
+                reader.close()
+                file.delete()
+                return null
             }
 
-            return parsed.second
+            return reader
         }
 
-        fun get(key: String, default: String? = null): String? {
-            return get(key) { default }
+        fun getString(key: String, default: () -> String?): String? {
+            val reader = get(key) ?: return default()
+            val ret = reader.readText()
+            reader.close()
+            return ret
         }
 
-        private fun parseCacheValue(value: String): Pair<Instant, String> {
-            return Pair(Instant.ofEpochSecond(value.substring(0, epoch_length).toLong()), value.substring(epoch_length))
+        private fun parseCacheMetadata(value: String): Instant {
+            if (value.isBlank()) {
+                return Instant.MAX
+            }
+            return Instant.ofEpochSecond(value.toLong())
         }
     }
 }

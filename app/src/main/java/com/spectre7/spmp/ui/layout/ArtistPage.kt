@@ -82,26 +82,28 @@ fun ArtistPage(
     LaunchedEffect(Unit) {
         thread {
             runBlocking {
-                val jobs = mutableListOf<Job>()
                 val result = getArtistInfo(artist.id).getDataOrThrow()
 
-                for (row in result) {
-                    if (row.items == null) {
-                        continue
-                    }
-                    val items = mutableListOf<MediaItem>()
-                    for (item in row.items.items) {
-                        jobs.add(launch {
-                            item.loadData()
-                            if (item.is_valid) {
-                                items.add(item)
+                withContext(Dispatchers.IO) { coroutineScope {
+                    for (row in result) {
+                        if (row.items == null) {
+                            continue
+                        }
+                        val items = mutableListOf<MediaItem>()
+                        for (item in row.items.items) {
+                            launch {
+                                item.loadData()
+                                if (item.is_valid) {
+                                    synchronized(items) {
+                                        items.add(item)
+                                    }
+                                }
                             }
-                        })
+                        }
+                        row.items.items = items
                     }
-                    row.items.items = items
-                }
+                }}
 
-                jobs.joinAll()
                 artist_rows = result
             }
         }
@@ -221,6 +223,7 @@ fun ArtistPage(
                             CircularProgressIndicator(color = accent_colour)
                         }
                     }
+
                     else {
                         Column(
                             Modifier
@@ -237,7 +240,7 @@ fun ArtistPage(
                             }
 
                             val description = rows.firstOrNull { it.description != null }?.description?.third ?: artist.description
-                            if (description.isNotBlank()) {
+                            if (description?.isNotBlank() == true) {
                                 ElevatedCard(Modifier.fillMaxWidth()) {
                                     Column(Modifier.padding(10.dp), verticalArrangement = Arrangement.spacedBy(20.dp)) {
                                         AssistChip(

@@ -11,6 +11,7 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.asAndroidBitmap
 import androidx.compose.ui.graphics.asImageBitmap
 import androidx.compose.ui.graphics.toArgb
+import androidx.compose.ui.unit.IntSize
 import androidx.palette.graphics.Palette
 import com.spectre7.spmp.api.loadMediaItemData
 import java.net.URL
@@ -53,7 +54,7 @@ abstract class MediaItem(val id: String) {
             val channelId: String? = null,
             val defaultLanguage: String? = null,
             val country: String? = null,
-            val thumbnails: Map<String, Thumbnail>,
+            val thumbnails: Map<String, ThumbnailProvider.Thumbnail>,
             val localized: LocalizedSnippet? = null
         )
         data class LocalizedSnippet(val title: String? = null, var description: String? = null) {
@@ -125,11 +126,40 @@ abstract class MediaItem(val id: String) {
         private set(value) { _load_status = value }
     val loading_lock = Object()
 
-    enum class ThumbnailQuality {
-        LOW, HIGH
+    abstract class ThumbnailProvider {
+        fun getThumbnail(quality: ThumbnailQuality): String? {
+            return when (this) {
+                is SetProvider -> {
+                    when (quality) {
+                        ThumbnailQuality.HIGH -> thumbnails.maxByOrNull { it.width * it.height }
+                        ThumbnailQuality.LOW -> thumbnails.minByOrNull { it.width * it.height }
+                    }?.url
+                }
+                is DynamicProvider -> {
+                    val target_size = quality.getTargetSize()
+                    provider(target_size.width, target_size.height)
+                }
+                else -> throw NotImplementedError(this.javaClass.name)
+            }
+        }
+
+        data class Thumbnail(val url: String, val width: Int, val height: Int)
+        data class SetProvider(val thumbnails: List<Thumbnail>): ThumbnailProvider()
+
+        data class DynamicProvider(val provider: (w: Int, h: Int) -> String): ThumbnailProvider()
     }
-    data class Thumbnail(val url: String, val width: Int, val height: Int)
-    private var thumbnails: List<Thumbnail>? = null
+
+    enum class ThumbnailQuality {
+        LOW, HIGH;
+
+        fun getTargetSize(): IntSize {
+            return when (this) {
+                LOW -> IntSize(180, 180)
+                HIGH -> IntSize(720, 720)
+            }
+        }
+    }
+    private var thumbnail_provider: ThumbnailProvider? = null
     var thumbnail_palette: Palette? = null
 
     private class ThumbState {
@@ -176,10 +206,7 @@ abstract class MediaItem(val id: String) {
     }
 
     fun getThumbUrl(quality: ThumbnailQuality): String? {
-        return when (quality) {
-            ThumbnailQuality.HIGH -> thumbnails?.maxByOrNull { it.width * it.height }
-            ThumbnailQuality.LOW -> thumbnails?.minByOrNull { it.width * it.height }
-        }?.url
+        return thumbnail_provider?.getThumbnail(quality)
     }
 
     fun isThumbnailLoaded(quality: ThumbnailQuality): Boolean {
@@ -260,11 +287,11 @@ abstract class MediaItem(val id: String) {
         return result.getDataOrThrow()
     }
 
-    fun initWithData(data: Any, thumbnails: List<Thumbnail>?) {
+    fun initWithData(data: Any, thumbnail_provider: ThumbnailProvider) {
         if (load_status == LoadStatus.LOADED) {
             return
         }
-        this.thumbnails = thumbnails
+        this.thumbnail_provider = thumbnail_provider
         subInitWithData(data)
         load_status = LoadStatus.LOADED
     }

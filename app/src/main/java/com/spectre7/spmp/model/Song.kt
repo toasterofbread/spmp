@@ -316,6 +316,10 @@ class Song private constructor (
                 return song
             }
         }
+
+        fun serialisable(id: String): Serialisable {
+            return Serialisable(Type.SONG.ordinal, id)
+        }
     }
 
     fun getLyrics(callback: (Lyrics?) -> Unit) {

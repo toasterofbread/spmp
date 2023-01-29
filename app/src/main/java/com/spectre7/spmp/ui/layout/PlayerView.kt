@@ -9,8 +9,6 @@ import androidx.compose.foundation.gestures.Orientation
 import androidx.compose.foundation.interaction.MutableInteractionSource
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
-import androidx.compose.foundation.lazy.grid.GridCells
-import androidx.compose.foundation.lazy.grid.LazyHorizontalGrid
 import androidx.compose.material.ExperimentalMaterialApi
 import androidx.compose.material.FractionalThreshold
 import androidx.compose.material.icons.Icons
@@ -22,15 +20,10 @@ import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.alpha
-import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.RectangleShape
 import androidx.compose.ui.platform.LocalConfiguration
-import androidx.compose.ui.text.font.FontWeight
-import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
-import com.google.accompanist.pager.ExperimentalPagerApi
-import com.google.accompanist.pager.HorizontalPager
 import com.google.accompanist.swiperefresh.SwipeRefresh
 import com.google.accompanist.swiperefresh.rememberSwipeRefreshState
 import com.spectre7.spmp.MainActivity
@@ -44,14 +37,11 @@ import com.spectre7.spmp.model.Song
 import com.spectre7.spmp.ui.component.*
 import com.spectre7.spmp.ui.layout.nowplaying.NowPlaying
 import com.spectre7.utils.*
-import kotlinx.coroutines.Job
-import kotlinx.coroutines.joinAll
-import kotlinx.coroutines.launch
-import kotlinx.coroutines.runBlocking
-import java.lang.Integer.min
+import kotlinx.coroutines.*
+import kotlinx.coroutines.sync.Semaphore
+import kotlinx.coroutines.sync.withPermit
 import java.util.concurrent.locks.ReentrantLock
 import kotlin.concurrent.thread
-import kotlin.math.ceil
 
 @Composable
 fun getScreenHeight(): Float {
@@ -146,45 +136,48 @@ fun PlayerView() {
                         val playlists = HomeRow(getString(R.string.feed_row_playlists), null)
 
                         val rows = mutableListOf<HomeRow>()
+                        val request_limit = Semaphore(10)
 
-                        runBlocking {
-                            val jobs = mutableListOf<Job>()
+                        runBlocking { withContext(Dispatchers.IO) { coroutineScope {
                             for (row in feed_result.data) {
                                 val entry = HomeRow(row.title, row.subtitle)
                                 rows.add(entry)
 
                                 for (item in row.items) {
-                                    jobs.add(launch {
-                                        when (val previewable = item.toMediaItem().loadData()) {
-                                            is Song -> {
-                                                entry.add(previewable)
-                                                artists.add(previewable.artist)
+                                    val media_item = item.toMediaItem()
+                                    launch {
+                                        request_limit.withPermit {
+                                            media_item.loadData()
+                                            synchronized(request_limit) {
+                                                when (media_item) {
+                                                    is Song -> {
+                                                        entry.add(media_item)
+                                                        artists.add(media_item.artist)
+                                                    }
+                                                    is Artist -> artists.add(media_item)
+                                                    is Playlist -> playlists.add(media_item)
+                                                }
                                             }
-                                            is Artist -> artists.add(previewable)
-                                            is Playlist -> playlists.add(previewable)
                                         }
-                                    })
+                                    }
                                 }
                             }
+                        }}}
 
-                            jobs.joinAll()
-
-                            for (row in rows) {
-                                if (row.items.isNotEmpty()) {
-                                    main_page_rows.add(row)
-                                }
+                        for (row in rows) {
+                            if (row.items.isNotEmpty()) {
+                                main_page_rows.add(row)
                             }
-                            if (artists.items.isNotEmpty()) {
-                                main_page_rows.add(artists)
-                            }
-                            if (playlists.items.isNotEmpty()) {
-                                main_page_rows.add(playlists)
-                            }
-
-                            feed_refresh_mutex.unlock()
-                            onFinished(true)
+                        }
+                        if (artists.items.isNotEmpty()) {
+                            main_page_rows.add(artists)
+                        }
+                        if (playlists.items.isNotEmpty()) {
+                            main_page_rows.add(playlists)
                         }
 
+                        feed_refresh_mutex.unlock()
+                        onFinished(true)
                     }
                 }
             }

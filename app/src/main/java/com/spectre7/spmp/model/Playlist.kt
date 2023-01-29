@@ -28,6 +28,10 @@ class Playlist private constructor (
                 return playlist
             }
         }
+
+        fun serialisable(id: String): Serialisable {
+            return Serialisable(Type.PLAYLIST.ordinal, id)
+        }
     }
 
     @Composable

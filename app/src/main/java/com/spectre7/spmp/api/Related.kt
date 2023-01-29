@@ -54,19 +54,12 @@ fun getMediaItemRelated(item: MediaItem): Result<List<List<RelatedGroup<MediaIte
                     }
                     else if (item.browseId != null) {
 
-                        val converted = convertBrowseId(item.browseId)
-                        if (!converted.success) {
-                            error = Result.failure(converted.exception)
-                            return null
-
-                        }
-
                         val media_item: MediaItem
-                        if (converted.data == item.browseId) {
-                            media_item = Artist.fromId(converted.data).apply { addBrowseEndpoint(item.browseId, MediaItem.BrowseEndpoint.Type.ARTIST) }
+                        if (!item.browseId.startsWith("MPREb_")) {
+                            media_item = Artist.fromId(item.browseId).apply { addBrowseEndpoint(item.browseId, MediaItem.BrowseEndpoint.Type.ARTIST) }
                         }
                         else {
-                            media_item = Playlist.fromId(converted.data).apply { addBrowseEndpoint(item.browseId, MediaItem.BrowseEndpoint.Type.ALBUM) }
+                            media_item = Playlist.fromId(item.browseId).apply { addBrowseEndpoint(item.browseId, MediaItem.BrowseEndpoint.Type.ALBUM) }
                         }
 
                         media_item.loadData()

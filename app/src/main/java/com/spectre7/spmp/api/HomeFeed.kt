@@ -3,6 +3,7 @@ package com.spectre7.spmp.api
 import com.beust.klaxon.JsonObject
 import com.spectre7.spmp.model.*
 import okhttp3.Request
+import java.io.BufferedReader
 import java.time.Duration
 
 private val CACHE_LIFETIME = Duration.ofDays(1)
@@ -19,8 +20,26 @@ data class BrowseEndpointContextMusicConfig(val pageType: String)
 data class BrowseEndpointContextSupportedConfigs(val browseEndpointContextMusicConfig: BrowseEndpointContextMusicConfig)
 data class BrowseEndpoint(val browseId: String, val browseEndpointContextSupportedConfigs: BrowseEndpointContextSupportedConfigs? = null)
 data class NavigationEndpoint(val watchEndpoint: WatchEndpoint? = null, val browseEndpoint: BrowseEndpoint? = null)
-data class Header(val musicCarouselShelfBasicHeaderRenderer: MusicCarouselShelfBasicHeaderRenderer)
-data class MusicCarouselShelfBasicHeaderRenderer(val title: TextRuns)
+data class Header(val musicCarouselShelfBasicHeaderRenderer: HeaderRenderer? = null, val musicImmersiveHeaderRenderer: HeaderRenderer? = null, val musicVisualHeaderRenderer: HeaderRenderer? = null) {
+    fun getRenderer(): HeaderRenderer {
+        return musicCarouselShelfBasicHeaderRenderer ?: musicImmersiveHeaderRenderer ?: musicVisualHeaderRenderer!!
+    }
+}
+
+//val thumbnails = (header.obj("thumbnail") ?: header.obj("foregroundThumbnail")!!)
+//    .obj("musicThumbnailRenderer")!!
+//    .obj("thumbnail")!!
+//    .array<JsonObject>("thumbnails")!!
+
+data class HeaderRenderer(val title: TextRuns, val description: TextRuns? = null, val thumbnail: Thumbnails? = null, val foregroundThumbnail: Thumbnails? = null) {
+    fun getThumbnails(): List<MediaItem.ThumbnailProvider.Thumbnail> {
+        return (thumbnail ?: foregroundThumbnail!!).musicThumbnailRenderer.thumbnail.thumbnails
+    }
+}
+data class Thumbnails(val musicThumbnailRenderer: MusicThumbnailRenderer)
+data class MusicThumbnailRenderer(val thumbnail: Thumbnail) {
+    data class Thumbnail(val thumbnails: List<MediaItem.ThumbnailProvider.Thumbnail>)
+}
 data class TextRuns(val runs: List<TextRun>? = null) {
     val first_text: String get() = runs!![0].text
 }
@@ -47,7 +66,7 @@ data class YoutubeiShelf(
 
     val title: TextRun get() =
         if (musicShelfRenderer != null) musicShelfRenderer.title.runs!![0]
-        else if (musicCarouselShelfRenderer != null) musicCarouselShelfRenderer.header.musicCarouselShelfBasicHeaderRenderer.title.runs!![0]
+        else if (musicCarouselShelfRenderer != null) musicCarouselShelfRenderer.header.getRenderer().title.runs!![0]
         else musicDescriptionShelfRenderer!!.header.runs!![0]
 
     val contents: List<ContentsItem> get() = musicShelfRenderer?.contents ?: musicCarouselShelfRenderer!!.contents
@@ -67,13 +86,13 @@ data class ContentsItem(val musicTwoRowItemRenderer: MusicTwoRowItemRenderer? = 
                 return Song.fromId(_item.navigationEndpoint.watchEndpoint.videoId)
             }
 
-            val id = convertBrowseId(_item.navigationEndpoint.browseEndpoint!!.browseId).getDataOrThrow()
+            val browse_id = _item.navigationEndpoint.browseEndpoint!!.browseId
 
             // Playlist or artist
             return when (_item.navigationEndpoint.browseEndpoint.browseEndpointContextSupportedConfigs!!.browseEndpointContextMusicConfig.pageType) {
-                "MUSIC_PAGE_TYPE_ALBUM", "MUSIC_PAGE_TYPE_PLAYLIST" -> Playlist.fromId(id)
-                "MUSIC_PAGE_TYPE_ARTIST" -> Artist.fromId(id)
-                else -> throw NotImplementedError(_item.navigationEndpoint.browseEndpoint.browseEndpointContextSupportedConfigs!!.browseEndpointContextMusicConfig.pageType)
+                "MUSIC_PAGE_TYPE_ALBUM", "MUSIC_PAGE_TYPE_PLAYLIST", "MUSIC_PAGE_TYPE_AUDIOBOOK" -> Playlist.fromId(browse_id)
+                "MUSIC_PAGE_TYPE_ARTIST" -> Artist.fromId(browse_id)
+                else -> throw NotImplementedError("$browse_id: ${_item.navigationEndpoint.browseEndpoint.browseEndpointContextSupportedConfigs.browseEndpointContextMusicConfig.pageType}")
             }
         }
         else if (musicResponsiveListItemRenderer != null) {
@@ -87,8 +106,7 @@ data class ContentsItem(val musicTwoRowItemRenderer: MusicTwoRowItemRenderer? = 
 
 fun getHomeFeed(min_rows: Int = -1, allow_cached: Boolean = true): Result<List<HomeFeedRow>> {
 
-    var error: Result<List<HomeFeedRow>>? = null
-    fun postRequest(ctoken: String?): JsonObject? {
+    fun postRequest(ctoken: String?): Result<BufferedReader> {
         val url = "https://music.youtube.com/youtubei/v1/browse"
         val request = Request.Builder()
             .url(if (ctoken == null) url else "$url?ctoken=$ctoken&continuation=$ctoken&type=next")
@@ -98,11 +116,16 @@ fun getHomeFeed(min_rows: Int = -1, allow_cached: Boolean = true): Result<List<H
 
         val response = client.newCall(request).execute()
         if (response.code != 200) {
-            error = Result.failure(response)
-            return null
+            return Result.failure(response)
         }
 
-        val parsed = klaxon.parseJsonObject(response.body!!.charStream())
+        return Result.success(BufferedReader(response.body!!.charStream()))
+    }
+
+    fun parseResponse(ctoken: String?, response_reader: BufferedReader): JsonObject {
+        val parsed = klaxon.parseJsonObject(response_reader)
+        response_reader.close()
+
         if (ctoken != null) {
             return parsed.obj("continuationContents")!!.obj("sectionListContinuation")!!
         }
@@ -140,27 +163,32 @@ fun getHomeFeed(min_rows: Int = -1, allow_cached: Boolean = true): Result<List<H
         return ret
     }
 
-    var rows: MutableList<HomeFeedRow>? = null
-    var data: JsonObject? = null
+    val rows: MutableList<HomeFeedRow>
+    var response_reader: BufferedReader? = null
+    var data: JsonObject
 
     val cache_key = "feed"
     if (allow_cached) {
-        val cached = Cache.get(cache_key)
-        if (cached != null) {
-            rows = klaxon.parseArray<HomeFeedRow>(cached)?.toMutableList()
-        }
+        response_reader = Cache.get(cache_key)
     }
 
-    if (rows == null) {
-        data = postRequest(null) ?: return error!!
-        rows = processRows(klaxon.parseFromJsonArray(data.array<JsonObject>("contents")!!)!!).toMutableList()
+    if (response_reader == null) {
+        val result = postRequest(null)
+        if (!result.success) {
+            return Result.failure(result.exception)
+        }
+
+        response_reader = result.data
+        Cache.set(cache_key, response_reader, CACHE_LIFETIME)
+        response_reader.close()
+
+        response_reader = Cache.get(cache_key)!!
     }
+
+    data = parseResponse(null, response_reader)
+    rows = processRows(klaxon.parseFromJsonArray(data.array<JsonObject>("contents")!!)!!).toMutableList()
 
     while (min_rows >= 1 && rows.size < min_rows) {
-        if (data == null) {
-            data = postRequest(null) ?: return error!!
-        }
-
         val ctoken = data
             .array<JsonObject>("continuations")
             ?.get(0)
@@ -168,11 +196,13 @@ fun getHomeFeed(min_rows: Int = -1, allow_cached: Boolean = true): Result<List<H
             ?.string("continuation")
             ?: break
 
-        data = postRequest(ctoken) ?: return error!!
+        val result = postRequest(ctoken)
+        if (!result.success) {
+            return Result.failure(result.exception)
+        }
+        data = parseResponse(ctoken, result.data)
         rows.addAll(processRows(klaxon.parseFromJsonArray(data.array<JsonObject>("contents")!!)!!))
     }
-
-    Cache.set(cache_key, klaxon.toJsonString(rows), CACHE_LIFETIME)
 
     return Result.success(rows)
 }

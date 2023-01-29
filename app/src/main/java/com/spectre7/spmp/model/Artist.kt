@@ -16,12 +16,13 @@ class Artist private constructor (
 
     // Data
     lateinit var name: String
-    lateinit var description: String
-    lateinit var creation_date: Date
-    lateinit var view_count: String
-    lateinit var subscriber_count: String
-    lateinit var videoCount: String
-    var hidden_subscriber_count: Boolean = false
+    var description: String? = null
+    lateinit var feed_rows: List<ArtistData.FeedRow>
+//    lateinit var creation_date: Date
+//    lateinit var view_count: String
+//    lateinit var subscriber_count: String
+//    lateinit var videoCount: String
+//    var hidden_subscriber_count: Boolean = false
 
     companion object {
         private val artists: MutableMap<String, Artist> = mutableMapOf()
@@ -33,6 +34,10 @@ class Artist private constructor (
                 artists[id] = ret
                 return ret
             }
+        }
+
+        fun serialisable(id: String): Serialisable {
+            return Serialisable(Type.ARTIST.ordinal, id)
         }
     }
 
@@ -51,35 +56,40 @@ class Artist private constructor (
     }
 
     override fun subInitWithData(data: Any) {
-        if (data !is YTApiDataResponse) {
+        if (data !is ArtistData) {
             throw ClassCastException(data.javaClass.name)
         }
 
-        val snippet = data.snippet!!
-        val loc = data.getLocalisation(MainActivity.data_language)
+        name = data.name
+        description = data.description
+        feed_rows = data.feed_rows
 
-        name = loc?.title ?: snippet.title
-        description = loc?.description ?: snippet.description!!
-
-        creation_date = Date.from(Instant.parse(snippet.publishedAt))
-
-        view_count = data.statistics!!.viewCount
-        subscriber_count = data.statistics.subscriberCount!!
-        hidden_subscriber_count = data.statistics.hiddenSubscriberCount
-        videoCount = data.statistics.videoCount!!
+//        val snippet = data.snippet!!
+//        val loc = data.getLocalisation(MainActivity.data_language)
+//
+//        name = loc?.title ?: snippet.title
+//        description = loc?.description ?: snippet.description!!
+//
+//        creation_date = Date.from(Instant.parse(snippet.publishedAt))
+//
+//        view_count = data.statistics!!.viewCount
+//        subscriber_count = data.statistics.subscriberCount!!
+//        hidden_subscriber_count = data.statistics.hiddenSubscriberCount
+//        videoCount = data.statistics.videoCount!!
     }
 
     fun getFormattedSubscriberCount(): String {
-        val subs = subscriber_count.toInt()
-        if (subs >= 1000000) {
-            return "${subs / 1000000}M"
-        }
-        else if (subs >= 1000) {
-            return "${subs / 1000}K"
-        }
-        else {
-            return "$subs"
-        }
+        return "Unknown"
+//        val subs = subscriber_count.toInt()
+//        if (subs >= 1000000) {
+//            return "${subs / 1000000}M"
+//        }
+//        else if (subs >= 1000) {
+//            return "${subs / 1000}K"
+//        }
+//        else {
+//            return "$subs"
+//        }
     }
 
 }

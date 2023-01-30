@@ -11,13 +11,22 @@ import androidx.compose.runtime.Composable
 import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.geometry.Rect
+import androidx.compose.ui.geometry.Size
+import androidx.compose.ui.layout.onPlaced
+import androidx.compose.ui.layout.positionInParent
+import androidx.compose.ui.layout.positionInRoot
 import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.text.AnnotatedString
 import androidx.compose.ui.text.Placeholder
 import androidx.compose.ui.text.PlaceholderVerticalAlign
 import androidx.compose.ui.unit.*
-import net.zerotask.libraries.android.compose.furigana.TermInfo
-import net.zerotask.libraries.android.compose.furigana.TextData
+
+data class TextData (
+    val text: String,
+    val reading: String? = null,
+    val data: Any? = null
+)
 
 @Composable
 fun LongFuriganaText(
@@ -27,7 +36,7 @@ fun LongFuriganaText(
     space_wrapped_lines: Boolean = true,
     column_modifier: Modifier = Modifier,
     font_size: TextUnit = TextUnit.Unspecified,
-    text_positions: MutableList<TermInfo>? = null,
+    receiveTermRect: ((TextData, Rect) -> Unit)? = null,
     highlight_term_range: IntRange? = null,
 
     text_element: (@Composable (is_reading: Boolean, text: String, font_size: TextUnit, index: Int, modifier: Modifier) -> Unit)? = null,
@@ -36,8 +45,6 @@ fun LongFuriganaText(
 
     val _font_size = if (font_size == TextUnit.Unspecified) LocalTextStyle.current.fontSize else font_size
     val reading_font_size = _font_size / 2
-
-    var child_index = remember { 0 }
 
     fun calculateAnnotatedString(show_readings: Boolean): List<Pair<AnnotatedString, Map<String, InlineTextContent>>> {
 
@@ -55,7 +62,6 @@ fun LongFuriganaText(
             string.appendInlineContent(text, index.toString())
 
             inline_content[text] = InlineTextContent(
-                // TODO: find out why height and width need magic numbers.
                 placeholder = Placeholder(
                     width = width,
                     height = 1.97.em,
@@ -65,9 +71,6 @@ fun LongFuriganaText(
                     val index = it.toInt()
                     val box_height = with(LocalDensity.current) { reading_font_size.toDp() }
 
-//                    val term_index = remember { child_index++ }
-//                    val term = remember { text_positions?.getOrNull(term_index) }
-
                     val TextElement = text_element ?: { _, text, font_size, index, modifier ->
                         Text(
                             text,
@@ -76,7 +79,7 @@ fun LongFuriganaText(
                         )
                     }
 
-                    net.zerotask.libraries.android.compose.furigana.MeasureUnconstrainedView({
+                    MeasureUnconstrainedView({
                         Column(
                             modifier = Modifier.fillMaxSize(),
                             horizontalAlignment = Alignment.CenterHorizontally,
@@ -85,18 +88,24 @@ fun LongFuriganaText(
                             TextElement(false, text, font_size, index, Modifier)
                         }
                     }) { width: Int, _height: Int ->
-                        val column_modifier = remember(text_positions == null) {
+                        val column_modifier = remember(receiveTermRect != null) {
                             Modifier.fillMaxSize().run {
-//                                if (text_positions != null) {
-//                                    onPlaced { coords ->
-//                                        if (term != null && term.rect.isEmpty) {
-//                                            term.rect = Rect(coords.positionInRoot(), Size(width.toFloat(), 70f))
-//                                        }
-//                                    }
-//                                }
-//                                else {
+                                if (receiveTermRect != null) {
+                                    onPlaced { coords ->
+                                        receiveTermRect(text_content[index],
+                                            Rect(
+                                                coords.localPositionOf(
+                                                    coords.parentCoordinates!!.parentCoordinates!!,
+                                                    coords.positionInRoot()
+                                                ),
+                                                Size(width.toFloat(), 70f)
+                                            )
+                                        )
+                                    }
+                                }
+                                else {
                                     this
-//                                }
+                                }
                             }
                         }
 
@@ -149,12 +158,6 @@ fun LongFuriganaText(
     }
 
     val data_with_readings = remember(text_content, highlight_term_range) {
-        if (text_positions != null) {
-            text_positions.clear()
-            for (elem in text_content) {
-                text_positions.add(TermInfo(elem.text, elem.data))
-            }
-        }
         calculateAnnotatedString(true)
     }
 
@@ -174,7 +177,7 @@ fun LongFuriganaText(
             content()
         }
     }) {
-        items(text_data.size) { i ->
+        items(text_data.size, { it }) { i ->
             val item = text_data[i]
 
             if (i > 0) {

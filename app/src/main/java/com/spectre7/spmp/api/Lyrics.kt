@@ -296,6 +296,12 @@ private fun parseTimedLyrics(data: String): List<List<Song.Lyrics.Term>> {
         ret.removeLast()
     }
 
+    for (line in ret.withIndex()) {
+        if (line.value.isEmpty()) {
+            ret[line.index] = listOf(Song.Lyrics.Term.EMPTY)
+        }
+    }
+
     return ret
 }
 

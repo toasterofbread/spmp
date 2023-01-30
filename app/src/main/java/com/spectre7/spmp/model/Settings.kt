@@ -79,7 +79,7 @@ enum class Settings {
                 KEY_STREAM_AUDIO_QUALITY -> Song.AudioQuality.MEDIUM.ordinal
                 KEY_DOWNLOAD_AUDIO_QUALITY -> Song.AudioQuality.MEDIUM.ordinal
 
-                KEY_STATS_ENABLED -> true,
+                KEY_STATS_ENABLED -> true
                 KEY_STATS_LISTEN_THRESHOLD -> 1f // Minutes or percentage
                 KEY_STATS_LISTEN_THRESHOLD_TYPE -> 0 // Absolute, percentage
                 

@@ -9,13 +9,11 @@ import androidx.compose.runtime.*
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.geometry.CornerRadius
 import androidx.compose.ui.geometry.Offset
-import androidx.compose.ui.geometry.Rect
 import androidx.compose.ui.geometry.Size
 import com.spectre7.spmp.MainActivity
 import com.spectre7.spmp.PlayerServiceHost
 import com.spectre7.spmp.model.Song
 import net.zerotask.libraries.android.compose.furigana.TermInfo
-import java.lang.reflect.Field
 import kotlin.math.abs
 
 @Composable
@@ -75,24 +73,20 @@ fun LyricsTimingOverlay(lyrics: Song.Lyrics, text_positions: List<TermInfo>, ful
 
         val offset = Offset(-100f, -170f)
 
-        val terms = mutableListOf<Pair<Int, Song.Lyrics.Subterm>>()
+        val terms = mutableListOf<Pair<Int, Song.Lyrics.Term>>()
         val pos = (PlayerServiceHost.status.duration * PlayerServiceHost.status.position)
         var finished = false
 
-        for (line in lyrics.lyrics.withIndex()) {
+        for (line in lyrics.lines.withIndex()) {
             for (term in line.value) {
                 if (pos >= term.start!! && pos < term.end!!) {
                     if (full_line) {
                         for (_term in line.value) {
-                            for (subterm in _term.subterms) {
-                                terms.add(line.index to subterm)
-                            }
+                            terms.add(line.index to term)
                         }
                         finished = true
                     } else {
-                        for (subterm in term.subterms) {
-                            terms.add(line.index to subterm)
-                        }
+                        terms.add(line.index to term)
                     }
                     break
                 }

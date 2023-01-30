@@ -153,35 +153,35 @@ fun CoreLyricsDisplay(size: Dp, seek_state: Any, lyrics: Song.Lyrics, scroll_sta
     var range by remember { mutableStateOf(-1 .. -1) }
 
     LaunchedEffect(pos) {
+        if (lyrics.sync_type == Song.Lyrics.SyncType.NONE) {
+            return@LaunchedEffect
+        }
+
         var finished = false
         val full_line = true
 
         var start = -1
         var end = -1
 
-        for (line in lyrics.lyrics.withIndex()) {
+        for (line in lyrics.lines.withIndex()) {
             for (term in line.value) {
                 if (pos >= term.start!! && pos < term.end!!) {
                     if (full_line) {
                         for (_term in line.value) {
-                            for (subterm in _term.subterms) {
-                                if (start == -1) {
-                                    start = subterm.index
-                                }
-                                if (end == -1 || end < subterm.index) {
-                                    end = subterm.index
-                                }
+                            if (start == -1) {
+                                start = term.index
+                            }
+                            if (end == -1 || end < term.index) {
+                                end = term.index
                             }
                         }
                         finished = true
                     } else {
-                        for (subterm in term.subterms) {
-                            if (start == -1) {
-                                start = subterm.index
-                            }
-                            if (end == -1 || end < subterm.index) {
-                                end = subterm.index
-                            }
+                        if (start == -1) {
+                            start = term.index
+                        }
+                        if (end == -1 || end < term.index) {
+                            end = term.index
                         }
                     }
                     break
@@ -217,7 +217,7 @@ fun CoreLyricsDisplay(size: Dp, seek_state: Any, lyrics: Song.Lyrics, scroll_sta
     }
 
     val terms = remember { mutableListOf<TextData>().apply {
-        for (line in lyrics.lyrics) {
+        for (line in lyrics.lines) {
             for (i in line.indices) {
                 val term = line[i]
                 for (j in term.subterms.indices) {

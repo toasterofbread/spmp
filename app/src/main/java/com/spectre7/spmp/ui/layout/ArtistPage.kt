@@ -85,7 +85,6 @@ fun ArtistPage(
                 withContext(Dispatchers.IO) { coroutineScope {
                     for (row in artist.feed_rows) {
                         for (item in row.items) {
-                            val media_item = item.toMediaItem()
                             launch {
                                 item.loadData()
                             }
@@ -220,14 +219,10 @@ fun ArtistPage(
                                 .padding(content_padding)
                         ) {
                             for (row in artist.feed_rows) {
-                                if (row.items == null) {
-                                    continue
-                                }
-
-                                MediaItemGrid(row.items.title, null, row.items.items, onClick = onItemClicked)
+                                MediaItemGrid(row.title, null, row.items, onClick = onItemClicked)
                             }
 
-                            val description = rows.firstOrNull { it.description != null }?.description?.third ?: artist.description
+                            val description = artist.description
                             if (description?.isNotBlank() == true) {
                                 ElevatedCard(Modifier.fillMaxWidth()) {
                                     Column(Modifier.padding(10.dp), verticalArrangement = Arrangement.spacedBy(20.dp)) {

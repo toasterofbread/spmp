@@ -8,14 +8,10 @@ import androidx.compose.runtime.MutableState
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
-import androidx.compose.ui.graphics.asAndroidBitmap
-import androidx.compose.ui.graphics.asImageBitmap
 import androidx.compose.ui.graphics.toArgb
 import androidx.core.content.edit
-import androidx.palette.graphics.Palette
 import com.beust.klaxon.Json
 import com.beust.klaxon.Klaxon
-import com.spectre7.spmp.MainActivity
 import com.spectre7.spmp.R
 import com.spectre7.spmp.api.VideoData
 import com.spectre7.spmp.api.getVideoFormats
@@ -23,12 +19,11 @@ import com.spectre7.spmp.api.getSongLyrics
 import com.spectre7.spmp.ui.component.SongPreviewLong
 import com.spectre7.spmp.ui.component.SongPreviewSquare
 import com.spectre7.utils.getString
+import com.spectre7.utils.toHiragana
 import okhttp3.internal.filterList
 import java.io.FileNotFoundException
 import java.net.URL
 import java.time.Duration
-import java.time.Instant
-import java.util.*
 import kotlin.concurrent.thread
 import kotlin.reflect.KMutableProperty1
 import kotlin.reflect.jvm.isAccessible
@@ -66,9 +61,12 @@ class DataRegistry constructor(var songs: MutableMap<String, SongEntry> = mutabl
             get() = getMutableState<Int?>("_lyrics_id").value
             set(value) = set("_lyrics_id", value)
 
-        var lyrics_source: Int?
-            get() = getMutableState<Int?>("_lyrics_source").value
-            set(value) = set("_lyrics_source", value)
+        var lyrics_source: Song.Lyrics.Source?
+            get() {
+                val value = getMutableState<Int?>("_lyrics_source").value ?: return null
+                return Song.Lyrics.Source.values()[value]
+            }
+            set(value) = set("_lyrics_source", value?.ordinal)
 
         private val mutable_states = mutableMapOf<String, MutableState<*>>()
 
@@ -211,7 +209,7 @@ class Song private constructor (
         val id: Int,
         val source: Source,
         val sync_type: SyncType,
-        val lyrics: List<List<Term>>
+        val lines: List<List<Term>>
     ) {
 
         enum class Source {
@@ -272,19 +270,30 @@ class Song private constructor (
             }
         }
 
-        data class Term(val subterms: List<Subterm>, val start: Float? = null, val end: Float? = null)
-        data class Subterm(val text: String, val furi: String? = null) {
-            var index: Int = -1
+        data class Term(val subterms: List<Text>, val start: Float? = null, val end: Float? = null, var index: Int = 0) {
+            data class Text(val text: String, var furi: String? = null) {
+                init {
+                    if (furi != null) {
+                        if (furi == "*") {
+                            this.furi = null
+                        }
+                        else {
+                            furi = furi!!.toHiragana()
+                            if (furi == text.toHiragana()) {
+                                furi = null
+                            }
+                        }
+                    }
+                }
+            }
         }
 
         init {
             var index = 0
-            for (line in lyrics) {
+            for (line in lines) {
                 for (term in line) {
                     assert(sync_type == SyncType.NONE || (term.start != null && term.end != null))
-                    for (subterm in term.subterms) {
-                        subterm.index = index++
-                    }
+                    term.index = index++
                 }
             }
         }

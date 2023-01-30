@@ -45,7 +45,13 @@ data class ArtistData(
     val description: String?,
     val feed_rows: List<FeedRow>
 ) {
-    data class FeedRow(val title: String, var items: List<MediaItem.Serialisable>)
+    data class FeedRow(val title: String, var items: List<MediaItem.Serialisable>) {
+        fun toMediaItemRow(): MediaItemRow {
+            return MediaItemRow(title, null, List(items.size) { i ->
+                items[i].toMediaItem()
+            })
+        }
+    }
 }
 
 fun loadMediaItemData(item: MediaItem): Result<MediaItem> {

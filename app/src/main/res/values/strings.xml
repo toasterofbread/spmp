@@ -22,7 +22,12 @@
     <string name="feed_row_playlists">Playlists</string>
 
     <string name="action_close">Close</string>
+    <string name="action_cancel">Cancel</string>
     <string name="action_share">Share</string>
+    <string name="action_confirm_action">Yes</string>
+    <string name="action_deny_action">No</string>
+    <string name="prompt_confirm_action">Please confirm</string>
+    <string name="prompt_confirm_settings_page_reset">Reset all values on this page?</string>
 
     <string name="artist_chip_play">Play</string>
     <string name="artist_chip_shuffle">Shuffle</string>
@@ -107,9 +112,30 @@
     <string name="s_key_download_audio_quality">Download audio quality</string>
     <string name="s_sub_download_audio_quality">Default audio quality when downloading music</string>
 
-    <string name="s_option_audio_quality_high">Hight</string>
+    <string name="s_option_audio_quality_high">High</string>
     <string name="s_option_audio_quality_medium">Medium</string>
     <string name="s_option_audio_quality_low">Low</string>
+
+    <string name="s_group_download">Downloads</string>
+
+    <string name="s_key_auto_download_threshold">Auto-download threshold</string>
+    <string name="s_sub_auto_download_threshold">Songs you have listened to at least this many times will be automatically downloaded</string>
+    <string name="s_key_auto_download_quality">Auto-download quality</string>
+    <string name="s_sub_auto_download_quality">Audio quality of auto-downloaded songs</string>
+    <string name="s_key_auto_download_size_limit">Auto-download size limit</string>
+    <string name="s_sub_auto_download_size_limit">This size will not be exceeded by auto-downloaded songs, if more space is needed the least listened to songs will be deleted first</string>
+
+    <string name="s_group_stats">Listen stats</string>
+    
+    <string name="s_key_enable_stats">Enable listen stats</string>
+    <string name="s_sub_enable_stats">If disabled, listen stats will not be recorded</string>
+    <string name="s_key_listen_count_threshold">Minimum listen time to count</string>
+    <string name="s_sub_listen_count_threshold">Song listen count will only be incremented when listened to for at least this long</string>
+    <string name="s_key_listen_count_type">Minimum listen time type</string>
+    <string name="s_option_listen_count_threshold_type_absolute">Absolute</string>
+    <string name="s_option_listen_count_threshold_type_percent">Percentage</string>
+    <string name="s_button_reset_stats">Reset listen stats</string>
+    <string name="s_confirm_reset_stats">All recorded stats will be deleted</string>
 
     <string name="s_group_other">Other</string>
 

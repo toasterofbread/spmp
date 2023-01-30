@@ -26,8 +26,6 @@ import androidx.compose.ui.graphics.Color
 import androidx.lifecycle.Lifecycle
 import com.beust.klaxon.JsonObject
 import com.beust.klaxon.Klaxon
-import com.chaquo.python.Python
-import com.chaquo.python.android.AndroidPlatform
 import com.google.android.exoplayer2.database.StandaloneDatabaseProvider
 import com.spectre7.spmp.api.getLyrics
 import com.spectre7.spmp.model.Cache
@@ -79,10 +77,6 @@ class MainActivity : ComponentActivity() {
 
         database = StandaloneDatabaseProvider(this)
 
-        if (!Python.isStarted()) {
-            Python.start(AndroidPlatform(this))
-        }
-
         PlayerServiceHost()
 
         window.setFlags(
@@ -90,6 +84,7 @@ class MainActivity : ComponentActivity() {
             WindowManager.LayoutParams.FLAG_LAYOUT_NO_LIMITS
         )
 
+        // TESTING
         thread {
             getLyrics(2893290, Song.Lyrics.Source.PETITLYRICS)
         }

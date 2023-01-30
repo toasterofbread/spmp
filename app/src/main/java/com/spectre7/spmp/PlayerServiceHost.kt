@@ -40,6 +40,7 @@ class PlayerServiceHost {
 
         val playing: Boolean get() = player.isPlaying
         val position: Float get() = player.currentPosition.toFloat() / player.duration.toFloat()
+        val position_seconds: Float get() = player.currentPosition / 1000f
         val duration: Float get() = player.duration / 1000f
         val song: Song? get() = player.currentMediaItem?.localConfiguration?.tag as Song?
         val index: Int get() = player.currentMediaItemIndex

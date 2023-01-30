@@ -22,6 +22,7 @@ import androidx.compose.material3.Text
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.geometry.Rect
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.platform.LocalLayoutDirection
@@ -36,10 +37,10 @@ import com.spectre7.spmp.model.Song
 import com.spectre7.spmp.ui.component.PillMenu
 import com.spectre7.spmp.ui.layout.nowplaying.overlay.OverlayMenu
 import com.spectre7.utils.LongFuriganaText
+import com.spectre7.utils.TextData
 import com.spectre7.utils.getString
 import com.spectre7.utils.sendToast
 import net.zerotask.libraries.android.compose.furigana.TermInfo
-import net.zerotask.libraries.android.compose.furigana.TextData
 
 class LyricsOverlayMenu(
     val size: Dp
@@ -143,64 +144,19 @@ fun ScrollingLyricsDisplay(size: Dp, seek_state: Any, lyrics: Song.Lyrics?, scro
 
 @Composable
 fun CoreLyricsDisplay(size: Dp, seek_state: Any, lyrics: Song.Lyrics, scroll_state: LazyListState, show_furigana: Boolean) {
-    val text_positions = remember { mutableStateListOf<TermInfo>() }
     val size_px = with(LocalDensity.current) { size.toPx() }
 
     val line_height = with (LocalDensity.current) { 20.sp.toPx() }
     val line_spacing = with (LocalDensity.current) { 25.dp.toPx() }
 
-    val pos = (PlayerServiceHost.status.duration * PlayerServiceHost.status.m_position)
-    var range by remember { mutableStateOf(-1 .. -1) }
-
-    LaunchedEffect(pos) {
-        if (lyrics.sync_type == Song.Lyrics.SyncType.NONE) {
-            return@LaunchedEffect
+    LyricsTimingOverlay(lyrics, false, seek_state, scroll_state) { position ->
+        if (!Settings.get<Boolean>(Settings.KEY_LYRICS_FOLLOW_ENABLED)) {
+            return@LyricsTimingOverlay
         }
 
-        var finished = false
-        val full_line = true
-
-        var start = -1
-        var end = -1
-
-        for (line in lyrics.lines.withIndex()) {
-            for (term in line.value) {
-                if (pos >= term.start!! && pos < term.end!!) {
-                    if (full_line) {
-                        for (_term in line.value) {
-                            if (start == -1) {
-                                start = term.index
-                            }
-                            if (end == -1 || end < term.index) {
-                                end = term.index
-                            }
-                        }
-                        finished = true
-                    } else {
-                        if (start == -1) {
-                            start = term.index
-                        }
-                        if (end == -1 || end < term.index) {
-                            end = term.index
-                        }
-                    }
-                    break
-                }
-            }
-            if (finished) {
-                break
-            }
-        }
-
-        range = start .. end
+        val offset = size_px * Settings.prefs.getFloat(Settings.KEY_LYRICS_FOLLOW_OFFSET.name, 0.5f)
+        scroll_state.animateScrollToItem(0, (position - offset).toInt())
     }
-
-//    LyricsTimingOverlay(lyrics, text_positions, false, seek_state, scroll_state) { position ->
-//        if (Settings.prefs.getBoolean(Settings.KEY_LYRICS_FOLLOW_ENABLED.name, true)) {
-//            val offset = size_px * Settings.prefs.getFloat(Settings.KEY_LYRICS_FOLLOW_OFFSET.name, 0.5f)
-//            scroll_state.animateScrollToItem(0, (position - offset).toInt())
-//        }
-//    }
 
     val add_padding: Boolean = Settings.get(Settings.KEY_LYRICS_EXTRA_PADDING)
     val padding_height = with (LocalDensity.current) {
@@ -218,16 +174,13 @@ fun CoreLyricsDisplay(size: Dp, seek_state: Any, lyrics: Song.Lyrics, scroll_sta
 
     val terms = remember { mutableListOf<TextData>().apply {
         for (line in lyrics.lines) {
-            for (i in line.indices) {
-                val term = line[i]
-                for (j in term.subterms.indices) {
-                    val subterm = term.subterms[j]
-
-                    if (j + 1 == term.subterms.size && i + 1 == line.size) {
-                        add(TextData(subterm.text + "\n", subterm.furi, term))
+            for (term in line.withIndex()) {
+                for (subterm in term.value.subterms.withIndex()) {
+                    if (subterm.index + 1 == term.value.subterms.size && term.index + 1 == line.size) {
+                        add(TextData(subterm.value.text + "\n", subterm.value.furi, term.value))
                     }
                     else {
-                        add(TextData(subterm.text, subterm.furi, term))
+                        add(TextData(subterm.value.text, subterm.value.furi, term.value))
                     }
                 }
             }
@@ -240,14 +193,16 @@ fun CoreLyricsDisplay(size: Dp, seek_state: Any, lyrics: Song.Lyrics, scroll_sta
             terms,
             show_readings,
             font_size = 20.sp,
-            line_spacing = 25.dp,
+            line_spacing = 5.dp,
             space_wrapped_lines = false,
-            text_positions = text_positions,
+            receiveTermRect = { term, rect ->
+                (term.data as Song.Lyrics.Term).data = rect
+            },
 
             text_element = { is_reading: Boolean, text: String, font_size: TextUnit, index: Int, modifier: Modifier ->
                 Text(
                     text,
-                    if (range.contains(index)) modifier.background(MainActivity.theme.getAccent(), CircleShape) else modifier,
+                    modifier,
                     fontSize = font_size,
                     color = Color.White,
                 )

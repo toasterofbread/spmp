@@ -271,6 +271,8 @@ class Song private constructor (
         }
 
         data class Term(val subterms: List<Text>, val start: Float? = null, val end: Float? = null, var index: Int = 0) {
+            var data: Any? = null
+
             data class Text(val text: String, var furi: String? = null) {
                 init {
                     if (furi != null) {
@@ -285,6 +287,12 @@ class Song private constructor (
                         }
                     }
                 }
+            }
+            val range: ClosedFloatingPointRange<Float>
+                get() = start!! .. end!!
+
+            companion object {
+                val EMPTY = Term(listOf(Text("")), -1f, -1f)
             }
         }
 

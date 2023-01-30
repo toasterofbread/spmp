@@ -84,9 +84,8 @@ class MainActivity : ComponentActivity() {
             WindowManager.LayoutParams.FLAG_LAYOUT_NO_LIMITS
         )
 
-        // TESTING
         thread {
-            getLyrics(2893290, Song.Lyrics.Source.PETITLYRICS)
+            getLyrics(3090737, Song.Lyrics.Source.PETITLYRICS)
         }
 
         setContent {

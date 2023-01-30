@@ -17,6 +17,16 @@ import com.spectre7.spmp.api.loadMediaItemData
 import java.net.URL
 import kotlin.concurrent.thread
 
+class MediaItemRow(val title: String, val subtitle: String?, val items: MutableList<MediaItem> = mutableListOf()) {
+    fun add(item: MediaItem): Boolean {
+        if (items.any { it.id == item.id }) {
+            return false
+        }
+        items.add(item)
+        return true
+    }
+}
+
 @Suppress("PLATFORM_CLASS_MAPPED_TO_KOTLIN")
 abstract class MediaItem(val id: String) {
     enum class Type {

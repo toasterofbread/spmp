@@ -53,15 +53,6 @@ enum class OverlayPage { NONE, SEARCH, SETTINGS, MEDIAITEM }
 
 val feed_refresh_mutex = ReentrantLock()
 
-data class HomeRow(val title: String, val subtitle: String?, val items: MutableList<MediaItem> = mutableListOf()) {
-    fun add(item: MediaItem) {
-        if (items.any { it.id == item.id }) {
-            return
-        }
-        items.add(item)
-    }
-}
-
 @OptIn(ExperimentalMaterialApi::class, ExperimentalMaterial3Api::class)
 @Composable
 fun PlayerView() {
@@ -112,7 +103,7 @@ fun PlayerView() {
                 MainActivity.theme.getAccent()
             )
 
-            val main_page_rows = remember { mutableStateListOf<HomeRow>() }
+            val main_page_rows = remember { mutableStateListOf<MediaItemRow>() }
 
             lateinit var refreshFeed: (allow_cached: Boolean, onFinished: (success: Boolean) -> Unit) -> Unit
             refreshFeed = { allow_cached: Boolean, onFinished: (success: Boolean) -> Unit ->
@@ -132,15 +123,15 @@ fun PlayerView() {
                             return@thread
                         }
 
-                        val artists = HomeRow(getString(R.string.feed_row_artists), null)
-                        val playlists = HomeRow(getString(R.string.feed_row_playlists), null)
+                        val artists = MediaItemRow(getString(R.string.feed_row_artists), null)
+                        val playlists = MediaItemRow(getString(R.string.feed_row_playlists), null)
 
-                        val rows = mutableListOf<HomeRow>()
+                        val rows = mutableListOf<MediaItemRow>()
                         val request_limit = Semaphore(10)
 
                         runBlocking { withContext(Dispatchers.IO) { coroutineScope {
                             for (row in feed_result.data) {
-                                val entry = HomeRow(row.title, row.subtitle)
+                                val entry = MediaItemRow(row.title, row.subtitle)
                                 rows.add(entry)
 
                                 for (item in row.items) {
@@ -262,11 +253,11 @@ fun PlayerView() {
 @OptIn(ExperimentalFoundationApi::class)
 @Composable
 fun MainPage(
-    _rows: List<HomeRow>,
+    _rows: List<MediaItemRow>,
     refreshFeed: (allow_cache: Boolean, onFinished: (success: Boolean) -> Unit) -> Unit,
     onMediaItemClicked: (MediaItem) -> Unit
 ) {
-    var rows: List<HomeRow> by remember { mutableStateOf(_rows) }
+    var rows: List<MediaItemRow> by remember { mutableStateOf(_rows) }
 
     SwipeRefresh(
         state = rememberSwipeRefreshState(_rows.isEmpty()), // TODO

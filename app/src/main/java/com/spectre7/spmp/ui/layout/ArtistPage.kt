@@ -32,8 +32,6 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.spectre7.spmp.MainActivity
 import com.spectre7.spmp.R
-import com.spectre7.spmp.api.ArtistInfoItem
-import com.spectre7.spmp.api.getArtistInfo
 import com.spectre7.spmp.model.Artist
 import com.spectre7.spmp.model.MediaItem
 import com.spectre7.spmp.ui.component.MediaItemGrid
@@ -77,34 +75,25 @@ fun ArtistPage(
     val background_colour = MainActivity.theme.getBackground(false)
     var accent_colour by remember { mutableStateOf(Color.Unspecified) }
 
-    var artist_rows: List<ArtistInfoItem>? by remember { mutableStateOf(null) }
+    var artist_rows_loaded: Boolean by remember { mutableStateOf(false) }
 
-    LaunchedEffect(Unit) {
+    LaunchedEffect(artist.id) {
+        artist_rows_loaded = false
+
         thread {
             runBlocking {
-                val result = getArtistInfo(artist.id).getDataOrThrow()
-
                 withContext(Dispatchers.IO) { coroutineScope {
-                    for (row in result) {
-                        if (row.items == null) {
-                            continue
-                        }
-                        val items = mutableListOf<MediaItem>()
-                        for (item in row.items.items) {
+                    for (row in artist.feed_rows) {
+                        for (item in row.items) {
+                            val media_item = item.toMediaItem()
                             launch {
                                 item.loadData()
-                                if (item.is_valid) {
-                                    synchronized(items) {
-                                        items.add(item)
-                                    }
-                                }
                             }
                         }
-                        row.items.items = items
                     }
                 }}
 
-                artist_rows = result
+                artist_rows_loaded = false
             }
         }
     }
@@ -217,13 +206,12 @@ fun ArtistPage(
 
             // Loaded items
             item {
-                Crossfade(artist_rows) { rows ->
-                    if (rows == null) {
+                Crossfade(artist_rows_loaded) { loaded ->
+                    if (!loaded) {
                         Box(Modifier.fillMaxSize().background(background_colour).padding(content_padding), contentAlignment = Alignment.Center) {
                             CircularProgressIndicator(color = accent_colour)
                         }
                     }
-
                     else {
                         Column(
                             Modifier
@@ -231,7 +219,7 @@ fun ArtistPage(
                                 .fillMaxSize()
                                 .padding(content_padding)
                         ) {
-                            for (row in rows) {
+                            for (row in artist.feed_rows) {
                                 if (row.items == null) {
                                     continue
                                 }

@@ -17,7 +17,7 @@ class Artist private constructor (
     // Data
     lateinit var name: String
     var description: String? = null
-    lateinit var feed_rows: List<ArtistData.FeedRow>
+    lateinit var feed_rows: List<MediaItemRow>
 //    lateinit var creation_date: Date
 //    lateinit var view_count: String
 //    lateinit var subscriber_count: String
@@ -62,7 +62,9 @@ class Artist private constructor (
 
         name = data.name
         description = data.description
-        feed_rows = data.feed_rows
+        feed_rows = List(data.feed_rows.size) { i ->
+            data.feed_rows[i].toMediaItemRow()
+        }
 
 //        val snippet = data.snippet!!
 //        val loc = data.getLocalisation(MainActivity.data_language)

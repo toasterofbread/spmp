@@ -68,13 +68,13 @@ fun PrefsPage(pill_menu: PillMenu, close: () -> Unit) {
                         show_reset_confirmation = false
                     }
                 ) {
-                    Text("Yes")
+                    Text(getString(R.string.action_confirm_action))
                 }
             },
-            dismissButton = { TextButton( { show_reset_confirmation = false } ) { Text("No") } },
-            title = { Text("Confirm") },
+            dismissButton = { TextButton( { show_reset_confirmation = false } ) { Text(getString(R.string.action_deny_action)) } },
+            title = { Text(getString(R.string.prompt_confirm_action)) },
             text = {
-                Text("Reset all values on this page?")
+                Text(getString(R.string.prompt_confirm_settings_page_reset))
             }
         )
     }
@@ -198,6 +198,15 @@ fun PrefsPage(pill_menu: PillMenu, close: () -> Unit) {
                             getString(R.string.s_key_lyrics_extra_padding), getString(R.string.s_sub_lyrics_extra_padding)
                         ),
 
+                        SettingsGroup(getString(R.string.s_group_download)),
+
+                        SettingsItemSlider(
+                            SettingsValueState(Settings.KEY_AUTO_DOWNLOAD_THRESHOLD.name),
+                            getString(R.string.s_key_auto_download_threshold), getString(R.string.s_sub_auto_download_threshold)
+                        ),
+
+                        TODO("Modularise me"),
+
                         SettingsGroup(getString(R.string.s_group_audio_video)),
 
                         SettingsItemDropdown(
@@ -279,7 +288,7 @@ fun PrefsPage(pill_menu: PillMenu, close: () -> Unit) {
                                     dialog.setNeutralButton("Enable manually") { _, _ ->
                                         PlayerAccessibilityService.enable(MainActivity.context, false)
                                     }
-                                    dialog.setNegativeButton("Cancel") { _, _ -> }
+                                    dialog.setNegativeButton(getString(R.string.action_cancel)) { _, _ -> }
                                     dialog.create().show()
                                 }
                             }

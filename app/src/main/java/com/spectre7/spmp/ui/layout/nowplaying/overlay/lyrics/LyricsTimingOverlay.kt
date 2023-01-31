@@ -71,7 +71,7 @@ fun LyricsTimingOverlay(
     }
 
     LaunchedEffect(highlight_position_y) {
-        scrollTo(highlight_position_y)
+//        scrollTo(highlight_position_y)
     }
 
     LaunchedEffect(PlayerServiceHost.status.m_position, full_line) {
@@ -81,7 +81,7 @@ fun LyricsTimingOverlay(
         }
 
         val terms = mutableListOf<Song.Lyrics.Term>()
-        val offset: Offset
+        var offset: Offset? = null
 
         for (item in scroll_state.layoutInfo.visibleItemsInfo) {
             if (item.key !is Int) {
@@ -119,20 +119,22 @@ fun LyricsTimingOverlay(
         var target_br_y: Float = Float.NaN
 
         for (term in terms) {
-            val rect = term.data as Rect
+            var rect = (term.data as Rect)
+            rect = rect.copy(left = rect.left, right = rect.right)
+            println("${rect.left} | ${rect.right} | ${term.subterms.first().text}")
 
-            if (target_x.isNaN || rect.left < target_x) {
-                target_x = offset.x + rect.left
+            if (target_x.isNaN() || rect.left < target_x) {
+                target_x = offset!!.x + rect.left
             }
-            if (target_y.isNaN || rect.top < target_y) {
-                target_y = offset.y + rect.top
+            if (target_y.isNaN() || rect.top < target_y) {
+                target_y = offset!!.y// + rect.top
             }
 
-            if (target_br_x.isNaN || rect.right > target_br_x) {
-                target_br_x = offset.x + rect.right
+            if (target_br_x.isNaN() || rect.right > target_br_x) {
+                target_br_x = offset!!.x + rect.right
             }
-            if (target_br_y.isNaN || rect.bottom > target_br_y) {
-                target_br_y = offset.y + rect.bottom
+            if (target_br_y.isNaN() || rect.bottom > target_br_y) {
+                target_br_y = offset!!.y// + rect.bottom
             }
         }
 

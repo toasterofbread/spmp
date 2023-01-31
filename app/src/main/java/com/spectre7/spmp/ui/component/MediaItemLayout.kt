@@ -58,7 +58,7 @@ private fun ItemPreview(
 
 @Composable
 fun MediaItemGrid(
-    title: String,
+    title: String?,
     subtitle: String?,
     items: List<MediaItem>,
     modifier: Modifier = Modifier,
@@ -68,10 +68,12 @@ fun MediaItemGrid(
     val row_count = 2
 
     Column(modifier) {
-        Text(title, style = MaterialTheme.typography.headlineMedium)
-//            if (subtitle != null) {
-            Text(subtitle ?: "Subtitle", style = MaterialTheme.typography.headlineSmall)
-//            }
+        if (title != null) {
+            Text(title, style = MaterialTheme.typography.headlineMedium)
+        }
+        if (subtitle != null) {
+            Text(subtitle, style = MaterialTheme.typography.headlineSmall)
+        }
         LazyHorizontalGrid(
             rows = GridCells.Fixed(row_count),
             modifier = Modifier.requiredHeight(140.dp * row_count)

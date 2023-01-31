@@ -101,145 +101,16 @@ fun PrefsPage(pill_menu: PillMenu, close: () -> Unit) {
             {
                 when (Page.values()[it]) {
 
-                    Page.ROOT -> SettingsPage(getString(R.string.s_page_preferences), listOf(
-
-                        SettingsGroup(getString(R.string.s_group_general)),
-
-                        SettingsItemDropdown(
-                            interface_lang,
-                            getString(R.string.s_key_interface_lang), getString(R.string.s_sub_interface_lang),
-                            MainActivity.languages.values.first().size,
-                            { i ->
-                                language_data.entries.elementAt(i).key
-                            }
-                        ) { i ->
-                            val language = language_data.entries.elementAt(i)
-                            "${language.key} / ${language.value}"
-                        },
-
-                        SettingsItemDropdown(
-                            SettingsValueState(Settings.KEY_LANG_DATA.name),
-                            getString(R.string.s_key_data_lang), getString(R.string.s_sub_data_lang),
-                            MainActivity.languages.values.first().size,
-                            { i ->
-                                language_data.entries.elementAt(i).key
-                            }
-                        ) { i ->
-                            val language = language_data.entries.elementAt(i)
-                            "${language.key} / ${language.value}"
-                        },
-
-                        SettingsItemSlider(
-                            SettingsValueState<Int>(Settings.KEY_VOLUME_STEPS.name),
-                            getString(R.string.s_key_vol_steps),
-                            getString(R.string.s_sub_vol_steps),
-                            "0",
-                            "100",
-                            range = 0f .. 100f
-                        ),
-
-                        SettingsGroup(getString(R.string.s_group_theming)),
-
-                        SettingsItemMultipleChoice(
-                            SettingsValueState(Settings.KEY_ACCENT_COLOUR_SOURCE.name),
-                            getString(R.string.s_key_accent_source), null,
-                            2, false
-                        ) { choice ->
-                            when (choice) {
-                                0 ->    getString(R.string.s_option_accent_thumbnail)
-                                else -> getString(R.string.s_option_accent_system)
-                            }
-                        },
-
-                        SettingsItemMultipleChoice(
-                            SettingsValueState(Settings.KEY_NOWPLAYING_THEME_MODE.name),
-                            getString(R.string.s_key_np_theme_mode), null,
-                            3, false
-                        ) { choice ->
-                            when (choice) {
-                                0 ->    getString(R.string.s_option_np_accent_background)
-                                1 ->    getString(R.string.s_option_np_accent_elements)
-                                else -> getString(R.string.s_option_np_accent_none)
-                            }
-                        },
-
-                        SettingsGroup(getString(R.string.s_group_lyrics)),
-
-                        SettingsItemToggle(
-                            SettingsValueState(Settings.KEY_LYRICS_FOLLOW_ENABLED.name),
-                            getString(R.string.s_key_lyrics_follow_enabled), getString(R.string.s_sub_lyrics_follow_enabled)
-                        ),
-
-                        SettingsItemSlider(
-                            SettingsValueState(Settings.KEY_LYRICS_FOLLOW_OFFSET.name),
-                            getString(R.string.s_key_lyrics_follow_offset), getString(R.string.s_sub_lyrics_follow_offset),
-                            getString(R.string.s_option_lyrics_follow_offset_top), getString(R.string.s_option_lyrics_follow_offset_bottom), steps = 5,
-                            getValueText = null
-                        ),
-
-                        SettingsItemToggle(
-                            SettingsValueState(Settings.KEY_LYRICS_DEFAULT_FURIGANA.name),
-                            getString(R.string.s_key_lyrics_default_furigana), null
-                        ),
-
-                        SettingsItemDropdown(
-                            SettingsValueState(Settings.KEY_LYRICS_TEXT_ALIGNMENT.name),
-                            getString(R.string.s_key_lyrics_text_alignment), null, 3
-                        ) { i ->
-                            when (i) {
-                                0 ->    getString(R.string.s_option_lyrics_text_alignment_left)
-                                1 ->    getString(R.string.s_option_lyrics_text_alignment_center)
-                                else -> getString(R.string.s_option_lyrics_text_alignment_right)
-                            }
-                        },
-
-                        SettingsItemToggle(
-                            SettingsValueState(Settings.KEY_LYRICS_EXTRA_PADDING.name),
-                            getString(R.string.s_key_lyrics_extra_padding), getString(R.string.s_sub_lyrics_extra_padding)
-                        ),
-
-                        SettingsGroup(getString(R.string.s_group_download)),
-
-                        SettingsItemSlider(
-                            SettingsValueState(Settings.KEY_AUTO_DOWNLOAD_THRESHOLD.name),
-                            getString(R.string.s_key_auto_download_threshold), getString(R.string.s_sub_auto_download_threshold)
-                        ),
-
-                        TODO("Modularise me"),
-
-                        SettingsGroup(getString(R.string.s_group_audio_video)),
-
-                        SettingsItemDropdown(
-                            SettingsValueState(Settings.KEY_STREAM_AUDIO_QUALITY.name),
-                            getString(R.string.s_key_stream_audio_quality), getString(R.string.s_sub_stream_audio_quality), 3
-                        ) { i ->
-                            when (i) {
-                                Song.AudioQuality.HIGH.ordinal ->   getString(R.string.s_option_audio_quality_high)
-                                Song.AudioQuality.MEDIUM.ordinal -> getString(R.string.s_option_audio_quality_medium)
-                                else ->                             getString(R.string.s_option_audio_quality_low)
-                            }
-                        },
-
-                        SettingsItemDropdown(
-                            SettingsValueState(Settings.KEY_DOWNLOAD_AUDIO_QUALITY.name),
-                            getString(R.string.s_key_download_audio_quality), getString(R.string.s_sub_download_audio_quality), 3
-                        ) { i ->
-                            when (i) {
-                                Song.AudioQuality.HIGH.ordinal ->   getString(R.string.s_option_audio_quality_high)
-                                Song.AudioQuality.MEDIUM.ordinal -> getString(R.string.s_option_audio_quality_medium)
-                                else ->                             getString(R.string.s_option_audio_quality_low)
-                            }
-                        },
-
-                        SettingsGroup(getString(R.string.s_group_other)),
-
-                        SettingsItemSubpage(
-                            getString(R.string.s_page_acc_service),
-                            null,
-                            Page.ACCESSIBILITY_SERVICE.ordinal
-                        )
-
-                    ), Modifier.fillMaxSize())
+                    Page.ROOT -> SettingsPage(
+                        getString(R.string.s_page_preferences),
+                        groupGeneral(interface_lang, language_data)
+                            + groupThemeing()
+                            + groupLyrics()
+                            + groupDownloads()
+                            + groupAudioVideo()
+                            + groupOther(), 
+                        Modifier.fillMaxSize()
+                    )
 
                     Page.ACCESSIBILITY_SERVICE -> SettingsPage(getString(R.string.s_page_acc_service), listOf(
 
@@ -368,4 +239,162 @@ fun PrefsPage(pill_menu: PillMenu, close: () -> Unit) {
             .pointerInput(Unit) {}) {
         settings_interface.Interface(Modifier.requiredHeight(LocalConfiguration.current.screenHeightDp.dp - MINIMISED_NOW_PLAYING_HEIGHT.dp))
     }
+}
+
+fun groupGeneral(interface_lang: SettingsValueState<Int>, language_data: Map<String, String>): List<SettingsItem> {
+    return listOf(
+        SettingsGroup(getString(R.string.s_group_general)),
+
+        SettingsItemDropdown(
+            interface_lang,
+            getString(R.string.s_key_interface_lang), getString(R.string.s_sub_interface_lang),
+            MainActivity.languages.values.first().size,
+            { i ->
+                language_data.entries.elementAt(i).key
+            }
+        ) { i ->
+            val language = language_data.entries.elementAt(i)
+            "${language.key} / ${language.value}"
+        },
+
+        SettingsItemDropdown(
+            SettingsValueState(Settings.KEY_LANG_DATA.name),
+            getString(R.string.s_key_data_lang), getString(R.string.s_sub_data_lang),
+            MainActivity.languages.values.first().size,
+            { i ->
+                language_data.entries.elementAt(i).key
+            }
+        ) { i ->
+            val language = language_data.entries.elementAt(i)
+            "${language.key} / ${language.value}"
+        },
+
+        SettingsItemSlider(
+            SettingsValueState<Int>(Settings.KEY_VOLUME_STEPS.name),
+            getString(R.string.s_key_vol_steps),
+            getString(R.string.s_sub_vol_steps),
+            "0",
+            "100",
+            range = 0f .. 100f
+        )
+    )
+}
+
+fun groupThemeing(): List<SettingsItem> {
+    return listOf(
+        SettingsGroup(getString(R.string.s_group_theming)),
+
+        SettingsItemMultipleChoice(
+            SettingsValueState(Settings.KEY_ACCENT_COLOUR_SOURCE.name),
+            getString(R.string.s_key_accent_source), null,
+            2, false
+        ) { choice ->
+            when (choice) {
+                0 ->    getString(R.string.s_option_accent_thumbnail)
+                else -> getString(R.string.s_option_accent_system)
+            }
+        },
+
+        SettingsItemMultipleChoice(
+            SettingsValueState(Settings.KEY_NOWPLAYING_THEME_MODE.name),
+            getString(R.string.s_key_np_theme_mode), null,
+            3, false
+        ) { choice ->
+            when (choice) {
+                0 ->    getString(R.string.s_option_np_accent_background)
+                1 ->    getString(R.string.s_option_np_accent_elements)
+                else -> getString(R.string.s_option_np_accent_none)
+            }
+        }
+    )
+}
+
+fun groupLyrics(): List<SettingsItem> {
+    return listOf(
+        SettingsGroup(getString(R.string.s_group_lyrics)),
+
+        SettingsItemToggle(
+            SettingsValueState(Settings.KEY_LYRICS_FOLLOW_ENABLED.name),
+            getString(R.string.s_key_lyrics_follow_enabled), getString(R.string.s_sub_lyrics_follow_enabled)
+        ),
+
+        SettingsItemSlider(
+            SettingsValueState(Settings.KEY_LYRICS_FOLLOW_OFFSET.name),
+            getString(R.string.s_key_lyrics_follow_offset), getString(R.string.s_sub_lyrics_follow_offset),
+            getString(R.string.s_option_lyrics_follow_offset_top), getString(R.string.s_option_lyrics_follow_offset_bottom), steps = 5,
+            getValueText = null
+        ),
+
+        SettingsItemToggle(
+            SettingsValueState(Settings.KEY_LYRICS_DEFAULT_FURIGANA.name),
+            getString(R.string.s_key_lyrics_default_furigana), null
+        ),
+
+        SettingsItemDropdown(
+            SettingsValueState(Settings.KEY_LYRICS_TEXT_ALIGNMENT.name),
+            getString(R.string.s_key_lyrics_text_alignment), null, 3
+        ) { i ->
+            when (i) {
+                0 ->    getString(R.string.s_option_lyrics_text_alignment_left)
+                1 ->    getString(R.string.s_option_lyrics_text_alignment_center)
+                else -> getString(R.string.s_option_lyrics_text_alignment_right)
+            }
+        },
+
+        SettingsItemToggle(
+            SettingsValueState(Settings.KEY_LYRICS_EXTRA_PADDING.name),
+            getString(R.string.s_key_lyrics_extra_padding), getString(R.string.s_sub_lyrics_extra_padding)
+        )
+    )
+}
+
+fun groupDownloads(): List<SettingsItem> {
+    return listOf(
+        SettingsGroup(getString(R.string.s_group_download)),
+
+        SettingsItemSlider(
+            SettingsValueState(Settings.KEY_AUTO_DOWNLOAD_THRESHOLD.name),
+            getString(R.string.s_key_auto_download_threshold), getString(R.string.s_sub_auto_download_threshold)
+        )
+    )
+}
+
+fun groupAudioVideo(): List<SettingsItem> {
+    return listOf(
+        SettingsGroup(getString(R.string.s_group_audio_video)),
+
+        SettingsItemDropdown(
+            SettingsValueState(Settings.KEY_STREAM_AUDIO_QUALITY.name),
+            getString(R.string.s_key_stream_audio_quality), getString(R.string.s_sub_stream_audio_quality), 3
+        ) { i ->
+            when (i) {
+                Song.AudioQuality.HIGH.ordinal ->   getString(R.string.s_option_audio_quality_high)
+                Song.AudioQuality.MEDIUM.ordinal -> getString(R.string.s_option_audio_quality_medium)
+                else ->                             getString(R.string.s_option_audio_quality_low)
+            }
+        },
+
+        SettingsItemDropdown(
+            SettingsValueState(Settings.KEY_DOWNLOAD_AUDIO_QUALITY.name),
+            getString(R.string.s_key_download_audio_quality), getString(R.string.s_sub_download_audio_quality), 3
+        ) { i ->
+            when (i) {
+                Song.AudioQuality.HIGH.ordinal ->   getString(R.string.s_option_audio_quality_high)
+                Song.AudioQuality.MEDIUM.ordinal -> getString(R.string.s_option_audio_quality_medium)
+                else ->                             getString(R.string.s_option_audio_quality_low)
+            }
+        }
+    )
+}
+
+fun groupOther(): List<SettingsItem> {
+    return listOf(
+        SettingsGroup(getString(R.string.s_group_other)),
+
+        SettingsItemSubpage(
+            getString(R.string.s_page_acc_service),
+            null,
+            Page.ACCESSIBILITY_SERVICE.ordinal
+        )
+    )
 }

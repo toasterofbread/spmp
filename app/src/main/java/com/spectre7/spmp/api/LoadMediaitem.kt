@@ -1,21 +1,19 @@
 package com.spectre7.spmp.api
 
 import android.util.JsonReader
-import com.spectre7.spmp.MainActivity
-import com.spectre7.spmp.R
 import com.spectre7.spmp.model.*
-import com.spectre7.utils.getString
 import okhttp3.Request
-import okio.Path.Companion.toPath
 import java.io.BufferedReader
-import java.nio.file.Path
 import java.time.Duration
 
 private val CACHE_LIFETIME = Duration.ofDays(1)
 
 private data class ApiResponse(val items: List<MediaItem.YTApiDataResponse>)
 
-data class VideoData(val videoDetails: VideoDetails, val streamingData: StreamingData? = null) {
+data class VideoData(
+    val videoDetails: VideoDetails,
+//    val streamingData: StreamingData? = null
+) {
     data class VideoDetails(
         val videoId: String,
         val title: String,
@@ -25,15 +23,16 @@ data class VideoData(val videoDetails: VideoDetails, val streamingData: Streamin
     ) {
         data class Thumbnails(val thumbnails: List<MediaItem.ThumbnailProvider.Thumbnail>)
     }
-    data class StreamingData(val formats: List<YoutubeVideoFormat>, val adaptiveFormats: List<YoutubeVideoFormat>)
+//    data class StreamingData(val formats: List<YoutubeVideoFormat>, val adaptiveFormats: List<YoutubeVideoFormat>)
 }
 
-data class ArtistData(
+data class BrowseData(
     val name: String,
     val description: String?,
-    val feed_rows: List<FeedRow>
+    val feed_rows: List<FeedRow>,
+    val id_replace: String? = null
 ) {
-    data class FeedRow(val title: String, var items: List<MediaItem.Serialisable>) {
+    data class FeedRow(val title: String?, var items: List<MediaItem.Serialisable>, val media_item: MediaItem.Serialisable? = null) {
         fun toMediaItemRow(): MediaItemRow {
             return MediaItemRow(title, null, MutableList(items.size) { i ->
                 items[i].toMediaItem()
@@ -42,18 +41,123 @@ data class ArtistData(
     }
 }
 
+private fun next(reader: JsonReader, key: String, is_array: Boolean?, action: () -> Unit) {
+    return next(reader, listOf(key), is_array, action)
+}
+
+private fun next(reader: JsonReader, keys: List<String>, is_array: Boolean?, action: () -> Unit) {
+    var found = false
+    while (reader.hasNext()) {
+        if (!found && keys.contains(reader.nextName())) {
+            found = true
+
+            when (is_array) {
+                true -> reader.beginArray()
+                false -> reader.beginObject()
+                else -> {}
+            }
+
+            action()
+
+            when (is_array) {
+                true -> reader.endArray()
+                false -> reader.endObject()
+                else -> {}
+            }
+        }
+        else {
+            reader.skipValue()
+        }
+    }
+    if (!found) {
+        throw RuntimeException("No key within $keys found (array: $is_array)")
+    }
+}
+
+private fun getActualArtistId(share_entity: String?): Result<String> {
+    val request: Request = Request.Builder()
+        .url("https://music.youtube.com/youtubei/v1/share/get_share_panel")
+        .headers(getYTMHeaders())
+        .post(getYoutubeiRequestBody("""
+            {
+                "serializedSharedEntity": "$share_entity"
+            }
+        """))
+        .build()
+
+    val response = client.newCall(request).execute()
+    if (response.code != 200) {
+        return Result.failure(response)
+    }
+
+    val stream = response.body!!.charStream()
+    val reader = JsonReader(stream)
+
+    var new_id: String? = null
+
+    reader.beginObject()
+    next(reader, "actions", true) {
+        while (reader.hasNext()) {
+            if (new_id != null) {
+                reader.skipValue()
+            }
+
+            reader.beginObject()
+            next(reader, "openPopupAction", false) {
+                next(reader, "popup", false) {
+                    next(reader, "unifiedSharePanelRenderer", false) {
+                        next(reader, "contents", true) {
+                            while (reader.hasNext()) {
+                                if (new_id != null) {
+                                    reader.skipValue()
+                                    continue
+                                }
+
+                                reader.beginObject()
+                                next(reader, "thirdPartyNetworkSection", false) {
+                                    next(reader, "copyLinkContainer", false) {
+                                        next(reader, "copyLinkRenderer", false) {
+                                            next(reader, "shortUrl", null) {
+                                                val url = reader.nextString()
+                                                val start = url.lastIndexOf('/') + 1
+                                                new_id = url.substring(start, url.indexOf('?', start))
+                                            }
+                                        }
+                                    }
+                                }
+                                reader.endObject()
+                            }
+                        }
+                    }
+                }
+            }
+            reader.endObject()
+        }
+    }
+    reader.endObject()
+
+    if (new_id == null) {
+        return Result.failure(RuntimeException("Could not get URL from share panel"))
+    }
+
+    return Result.success(new_id!!)
+}
+
 fun loadMediaItemData(item: MediaItem): Result<MediaItem> {
-    synchronized(item.loading_lock) {
+    val lock = item.loading_lock
+    val item_id = item.id
+
+    synchronized(lock) {
         if (item.load_status == MediaItem.LoadStatus.LOADED) {
-            return Result.success(item)
+            return Result.success(item.getOrReplacedWith())
         }
 
         if (item.load_status == MediaItem.LoadStatus.LOADING) {
-            item.loading_lock.wait()
-            return if (item.load_status == MediaItem.LoadStatus.LOADED) Result.success(item) else Result.failure(RuntimeException())
+            lock.wait()
+            return if (item.load_status == MediaItem.LoadStatus.LOADED) Result.success(item.getOrReplacedWith()) else Result.failure(RuntimeException())
         }
 
-        val cache_key = "MediaItemData/${item.type.name}/${item.id}"
+        val cache_key = "MediaItemData/${item.type.name}/$item_id"
         val response_body: BufferedReader
 
         val cached = Cache.get(cache_key)
@@ -61,40 +165,18 @@ fun loadMediaItemData(item: MediaItem): Result<MediaItem> {
             response_body = cached
         }
         else {
-            val request: Request
-            when (item) {
-                is Song -> {
-                    request = Request.Builder()
-                        .url("https://music.youtube.com/youtubei/v1/player")
-                        .headers(getYTMHeaders())
-                        .post(getYoutubeiRequestBody("""
-                            {
-                                "videoId": "${item.id}"
-                            }
-                        """))
-                        .build()
-                }
-                is Artist -> {
-                    request = Request.Builder()
-                        .url("https://music.youtube.com/youtubei/v1/browse")
-                        .headers(getYTMHeaders())
-                        .post(getYoutubeiRequestBody("""
-                            {
-                                "browseId": "${item.id}"
-                            }
-                        """))
-                        .build()
-                }
-                is Playlist -> {
-                    val type: String = "playlists"
-                    val part: String = "snippet,localizations"
+            val key = if (item is Song) "videoId" else "browseId"
+            val url = if (item is Song) "https://music.youtube.com/youtubei/v1/player" else "https://music.youtube.com/youtubei/v1/browse"
 
-                    request = Request.Builder()
-                        .url("https://www.googleapis.com/youtube/v3/$type?part=$part&id=${item.id}&hl=${MainActivity.data_language}&key=${getString(R.string.yt_api_key)}")
-                        .build()
-                }
-                else -> throw NotImplementedError()
-            }
+            val request: Request = Request.Builder()
+                .url(url)
+                .headers(getYTMHeaders())
+                .post(getYoutubeiRequestBody("""
+                    {
+                        "$key": "$item_id"
+                    }
+                """))
+                .build()
 
             val response = client.newCall(request).execute()
             if (response.code != 200) {
@@ -107,52 +189,52 @@ fun loadMediaItemData(item: MediaItem): Result<MediaItem> {
             response_body = Cache.get(cache_key)!!
         }
 
-        @Suppress("VARIABLE_WITH_REDUNDANT_INITIALIZER")
-        var thumbnail_provider: MediaItem.ThumbnailProvider? = null
+        val thumbnail_provider: MediaItem.ThumbnailProvider?
         val data: Any
 
-        when (item) {
-            is Song -> {
-                data = klaxon.parse<VideoData>(response_body)!!
-                thumbnail_provider = MediaItem.ThumbnailProvider.SetProvider(data.videoDetails.thumbnail.thumbnails)
+        val ret_item: MediaItem
+
+        if (item is Song) {
+            data = klaxon.parse<VideoData>(response_body)!!
+            thumbnail_provider = MediaItem.ThumbnailProvider.SetProvider(data.videoDetails.thumbnail.thumbnails)
+            ret_item = item
+        }
+        else {
+            val parser = BrowseResponseParser(response_body)
+            parser.parse()
+            data = parser.data!!
+            thumbnail_provider = parser.thumbnail_provider
+
+            if (data.id_replace != null) {
+                ret_item = item.replaceWithItemWithId(data.id_replace)
             }
-            is Artist -> {
-                val parser = ArtistBrowseResponseParser(response_body)
-                parser.parse()
-                data = parser.data!!
-                thumbnail_provider = parser.thumbnail_provider
-            }
-            else -> {
-                val parsed = klaxon.parse<ApiResponse>(response_body)!!
-                if (parsed.items.isEmpty()) {
-                    item.invalidate()
-                    return Result.success(item)
-                }
-                data = parsed.items.first()
-                thumbnail_provider = MediaItem.ThumbnailProvider.SetProvider(data.snippet!!.thumbnails.values.toList())
+            else {
+                ret_item = item
             }
         }
 
         response_body.close()
 
-        item.initWithData(data, thumbnail_provider!!)
-        item.loading_lock.notifyAll()
+        ret_item.initWithData(data, thumbnail_provider)
+        lock.notifyAll()
 
-        return Result.success(item)
+        return Result.success(ret_item)
     }
 }
 
-class ArtistBrowseResponseParser(private val response_body: BufferedReader) {
+class BrowseResponseParser(private val response_body: BufferedReader) {
     private lateinit var reader: JsonReader
 
-    var data: ArtistData? = null
+    var data: BrowseData? = null
     var thumbnail_provider: MediaItem.ThumbnailProvider? = null
+    var id_replace: String? = null
 
     fun parse() {
         reader = JsonReader(response_body)
         var title: String? = null
         var description: String? = null
-        val items = mutableListOf<ArtistData.FeedRow>()
+        val items = mutableListOf<BrowseData.FeedRow>()
+        var share_entity: String? = null
 
         reader.beginObject()
         while (reader.hasNext()) {
@@ -187,10 +269,24 @@ class ArtistBrowseResponseParser(private val response_body: BufferedReader) {
                     reader.endObject()
                 }
                 "header" -> {
-                    val header = parseHeaderObject(reader)
-                    title = header.first!!
-                    description = header.second
-                    thumbnail_provider = header.third!!
+                    val header = parseHeaderObject()
+                    title = header.title!!
+                    description = header.description
+                    thumbnail_provider = header.thumbnail_provider
+                    share_entity = header.share_entity
+                }
+                "microformat" -> {
+                    reader.beginObject()
+                    next(reader, "microformatDataRenderer", false) {
+                        next(reader, "urlCanonical", null) {
+                            val url = reader.nextString()
+                            val id_start = url.indexOf("?list=") + 6
+                            val id_end = url.indexOf('&', id_start)
+
+                            id_replace = if (id_end == -1) url.substring(id_start) else url.substring(id_start, id_end)
+                        }
+                    }
+                    reader.endObject()
                 }
                 else -> reader.skipValue()
             }
@@ -198,38 +294,14 @@ class ArtistBrowseResponseParser(private val response_body: BufferedReader) {
         reader.endObject()
         reader.close()
 
-        data = ArtistData(title!!, description, items)
+        if (share_entity != null) {
+            id_replace = getActualArtistId(share_entity).getDataOrThrow()
+        }
+
+        data = BrowseData(title!!, description, items, id_replace)
     }
 
-    private fun next(reader: JsonReader, key: String, is_array: Boolean?, action: () -> Unit) {
-        var found = false
-        while (reader.hasNext()) {
-            if (reader.nextName() == key) {
-                found = true
-
-                when (is_array) {
-                    true -> reader.beginArray()
-                    false -> reader.beginObject()
-                    else -> {}
-                }
-
-                action()
-
-                when (is_array) {
-                    true -> reader.endArray()
-                    false -> reader.endObject()
-                    else -> {}
-                }
-            }
-            else {
-                reader.skipValue()
-            }
-        }
-        if (!found) {
-            throw RuntimeException("Key '$key' not found (array: $is_array)")
-        }
-    }
-    private fun textRunText(reader: JsonReader): String? {
+    private fun textRunText(): String? {
         var ret: String? = null
         reader.beginObject()
         next(reader, "runs", true) {
@@ -242,24 +314,34 @@ class ArtistBrowseResponseParser(private val response_body: BufferedReader) {
         reader.endObject()
         return ret
     }
-    private fun parseHeaderObject(reader: JsonReader): Triple<String?, String?, MediaItem.ThumbnailProvider?> {
+
+    private data class HeaderObject(
+        val title: String?,
+        val description: String?,
+        val thumbnail_provider: MediaItem.ThumbnailProvider?,
+        val share_entity: String?
+    )
+
+    private fun parseHeaderObject(): HeaderObject {
         reader.beginObject()
 
         var title: String? = null
         var description: String? = null
         var thumbnail_provider: MediaItem.ThumbnailProvider? = null
+        var share_entity: String? = null
 
         while (reader.hasNext()) {
             when (reader.nextName()) {
-                "musicCarouselShelfBasicHeaderRenderer", "musicImmersiveHeaderRenderer", "musicVisualHeaderRenderer" -> {
+                "musicCarouselShelfBasicHeaderRenderer", "musicImmersiveHeaderRenderer", "musicVisualHeaderRenderer", "musicDetailHeaderRenderer" -> {
                     reader.beginObject()
                     while (reader.hasNext()) {
                         when (reader.nextName()) {
-                            "title" -> title = textRunText(reader)
-                            "description" -> description = textRunText(reader)
+                            "title" -> title = textRunText()
+                            "description" -> description = textRunText()
                             "thumbnail", "foregroundThumbnail" -> {
                                 reader.beginObject()
-                                next(reader, "musicThumbnailRenderer", false) {
+
+                                next(reader, listOf("musicThumbnailRenderer", "croppedSquareThumbnailRenderer"), false) {
                                     next(reader, "thumbnail", false) {
                                         next(reader, "thumbnails", true) {
                                             var thumbnails: MutableList<MediaItem.ThumbnailProvider.Thumbnail>? = null
@@ -283,10 +365,8 @@ class ArtistBrowseResponseParser(private val response_body: BufferedReader) {
                                                 reader.endObject()
 
                                                 if (thumbnails == null) {
-                                                    val height_str = height.toString()
-
                                                     val w_index = url.lastIndexOf("w$width") + 1
-                                                    val h_index = url.lastIndexOf("-h$height_str") + 2
+                                                    val h_index = url.lastIndexOf("-h$height") + 2
 
                                                     if (w_index == -1 || h_index == -1) {
                                                         thumbnails = mutableListOf()
@@ -294,7 +374,7 @@ class ArtistBrowseResponseParser(private val response_body: BufferedReader) {
                                                     }
                                                     else {
                                                         val url_a = url.substring(0, w_index)
-                                                        val url_b = url.substring(h_index + height_str.length)
+                                                        val url_b = url.substring(h_index + height.toString().length)
                                                         thumbnail_provider = MediaItem.ThumbnailProvider.DynamicProvider { w, h ->
                                                             return@DynamicProvider "$url_a$w-h$h$url_b"
                                                         }
@@ -311,6 +391,16 @@ class ArtistBrowseResponseParser(private val response_body: BufferedReader) {
                                         }
                                     }
                                 }
+
+                                reader.endObject()
+                            }
+                            "shareEndpoint" -> {
+                                reader.beginObject()
+                                next(reader, "shareEntityEndpoint", false) {
+                                    next(reader, "serializedShareEntity", null) {
+                                        share_entity = reader.nextString()
+                                    }
+                                }
                                 reader.endObject()
                             }
                             else -> reader.skipValue()
@@ -323,10 +413,10 @@ class ArtistBrowseResponseParser(private val response_body: BufferedReader) {
         }
         reader.endObject()
 
-        return Triple(title, description, thumbnail_provider)
+        return HeaderObject(title, description, thumbnail_provider, share_entity)
     }
 
-    private fun parseShelf(rows: MutableList<ArtistData.FeedRow>): String? {
+    private fun parseShelf(rows: MutableList<BrowseData.FeedRow>): String? {
         if (!reader.hasNext()) {
             throw RuntimeException("Shelf has no renderer")
         }
@@ -342,23 +432,24 @@ class ArtistBrowseResponseParser(private val response_body: BufferedReader) {
 
                     reader.beginObject()
                     next(reader, "description", null) {
-                        description = textRunText(reader)
+                        description = textRunText()
                     }
                     reader.endObject()
                 }
-                "musicShelfRenderer", "musicCarouselShelfRenderer" -> {
+                "musicShelfRenderer", "musicCarouselShelfRenderer", "musicPlaylistShelfRenderer" -> {
                     reader.beginObject()
 
                     var row_title: String? = null
                     val row_items: MutableList<MediaItem.Serialisable> = mutableListOf()
+                    var media_item: MediaItem.Serialisable? = null
 
                     while (reader.hasNext()) {
                         when (reader.nextName()) {
                             "title" -> {
-                                row_title = textRunText(reader)
+                                row_title = textRunText()
                             }
                             "header" -> {
-                                row_title = parseHeaderObject(reader).first
+                                row_title = parseHeaderObject().title
                             }
                             "contents" -> {
                                 reader.beginArray()
@@ -371,11 +462,14 @@ class ArtistBrowseResponseParser(private val response_body: BufferedReader) {
 
                                 reader.endArray()
                             }
+                            "playlistId" -> {
+                                media_item = Playlist.serialisable(reader.nextString())
+                            }
                             else -> reader.skipValue()
                         }
                     }
 
-                    rows.add(ArtistData.FeedRow(row_title!!, row_items))
+                    rows.add(BrowseData.FeedRow(row_title, row_items, media_item))
 
                     reader.endObject()
                 }
@@ -416,13 +510,7 @@ class ArtistBrowseResponseParser(private val response_body: BufferedReader) {
                     reader.endObject()
                 }
                 "musicResponsiveListItemRenderer" -> {
-                    reader.beginObject()
-                    next(reader, "playlistItemData", false) {
-                        next(reader, "videoId", null) {
-                            ret = Song.serialisable(reader.nextString())
-                        }
-                    }
-                    reader.endObject()
+                    ret = parseResponsiveListItemRenderer()
                 }
                 else -> reader.skipValue()
             }
@@ -456,4 +544,17 @@ class ArtistBrowseResponseParser(private val response_body: BufferedReader) {
             else -> throw NotImplementedError("$browse_id: $page_type")
         }
     }
+
+    private fun parseResponsiveListItemRenderer(): MediaItem.Serialisable {
+        var ret: MediaItem.Serialisable? = null
+        reader.beginObject()
+        next(reader, "playlistItemData", false) {
+            next(reader, "videoId", null) {
+                ret = Song.serialisable(reader.nextString())
+            }
+        }
+        reader.endObject()
+        return ret!!
+    }
 }
+

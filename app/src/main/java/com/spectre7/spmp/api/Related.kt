@@ -73,7 +73,7 @@ fun getMediaItemRelated(item: MediaItem): Result<List<List<RelatedGroup<MediaIte
     }
 
     val ret = mutableListOf<List<RelatedGroup<MediaItem>>>()
-    for (endpoint in item.browse_endpoints) {
+    for (endpoint in item.related_endpoints) {
         ret.add(loadBrowseEndpoint(endpoint) ?: return error!!)
     }
 

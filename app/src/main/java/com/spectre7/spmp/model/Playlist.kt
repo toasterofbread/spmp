@@ -3,11 +3,9 @@ package com.spectre7.spmp.model
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
-import com.spectre7.spmp.MainActivity
+import com.spectre7.spmp.api.BrowseData
 import com.spectre7.spmp.ui.component.PlaylistPreviewLong
 import com.spectre7.spmp.ui.component.PlaylistPreviewSquare
-import java.time.Instant
-import java.util.*
 
 class Playlist private constructor (
     id: String
@@ -15,7 +13,7 @@ class Playlist private constructor (
 
     // Data
     lateinit var title: String
-    lateinit var upload_date: Date
+    lateinit var feed_rows: List<MediaItemRow>
 
     companion object {
         private val playlists: MutableMap<String, Playlist> = mutableMapOf()
@@ -26,7 +24,7 @@ class Playlist private constructor (
                 val playlist = Playlist(id)
                 playlists[id] = playlist
                 return playlist
-            }
+            }.getOrReplacedWith() as Playlist
         }
 
         fun serialisable(id: String): Serialisable {
@@ -49,14 +47,13 @@ class Playlist private constructor (
     }
 
     override fun subInitWithData(data: Any) {
-        if (data !is YTApiDataResponse) {
+        if (data !is BrowseData) {
             throw ClassCastException(data.javaClass.name)
         }
-        if (data.snippet == null) {
-            throw RuntimeException("Data snippet is null\n$data")
-        }
 
-        title = data.getLocalisation(MainActivity.data_language)?.title ?: data.snippet.title
-        upload_date = Date.from(Instant.parse(data.snippet.publishedAt))
+        title = data.name
+        feed_rows = List(data.feed_rows.size) { i ->
+            data.feed_rows[i].toMediaItemRow()
+        }
     }
 }

@@ -562,7 +562,11 @@ class PlayerService : Service() {
                 }
 
                 override fun getCurrentLargeIcon(player: Player, callback: PlayerNotificationManager.BitmapCallback): Bitmap? {
-                    fun getCroppedThumbnail(image: Bitmap): Bitmap {
+                    fun getCroppedThumbnail(image: Bitmap?): Bitmap? {
+                        if (image == null) {
+                            return null
+                        }
+
                         if (Build.VERSION.SDK_INT >= 33) {
                             metadata_builder.putBitmap(MediaMetadataCompat.METADATA_KEY_ALBUM_ART, image)
                             media_session!!.setMetadata(metadata_builder.build())
@@ -580,10 +584,14 @@ class PlayerService : Service() {
                         }
 
                         thread {
-                            callback.onBitmap(getCroppedThumbnail(song.loadThumbnail(MediaItem.ThumbnailQuality.HIGH)))
+                            val cropped = getCroppedThumbnail(song.loadThumbnail(MediaItem.ThumbnailQuality.HIGH))
+                            if (cropped != null) {
+                                callback.onBitmap(cropped)
+                            }
                         }
 
-                        return null                            }
+                        return null
+                    }
                     catch (e: IndexOutOfBoundsException) {
                         return null
                     }

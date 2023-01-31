@@ -3,12 +3,9 @@ package com.spectre7.spmp.model
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
-import com.spectre7.spmp.MainActivity
-import com.spectre7.spmp.api.ArtistData
+import com.spectre7.spmp.api.BrowseData
 import com.spectre7.spmp.ui.component.ArtistPreviewLong
 import com.spectre7.spmp.ui.component.ArtistPreviewSquare
-import java.time.Instant
-import java.util.*
 
 class Artist private constructor (
     id: String
@@ -18,11 +15,6 @@ class Artist private constructor (
     lateinit var name: String
     var description: String? = null
     lateinit var feed_rows: List<MediaItemRow>
-//    lateinit var creation_date: Date
-//    lateinit var view_count: String
-//    lateinit var subscriber_count: String
-//    lateinit var videoCount: String
-//    var hidden_subscriber_count: Boolean = false
 
     companion object {
         private val artists: MutableMap<String, Artist> = mutableMapOf()
@@ -33,7 +25,7 @@ class Artist private constructor (
                 val ret = Artist(id)
                 artists[id] = ret
                 return ret
-            }
+            }.getOrReplacedWith() as Artist
         }
 
         fun serialisable(id: String): Serialisable {
@@ -56,7 +48,7 @@ class Artist private constructor (
     }
 
     override fun subInitWithData(data: Any) {
-        if (data !is ArtistData) {
+        if (data !is BrowseData) {
             throw ClassCastException(data.javaClass.name)
         }
 
@@ -65,19 +57,6 @@ class Artist private constructor (
         feed_rows = List(data.feed_rows.size) { i ->
             data.feed_rows[i].toMediaItemRow()
         }
-
-//        val snippet = data.snippet!!
-//        val loc = data.getLocalisation(MainActivity.data_language)
-//
-//        name = loc?.title ?: snippet.title
-//        description = loc?.description ?: snippet.description!!
-//
-//        creation_date = Date.from(Instant.parse(snippet.publishedAt))
-//
-//        view_count = data.statistics!!.viewCount
-//        subscriber_count = data.statistics.subscriberCount!!
-//        hidden_subscriber_count = data.statistics.hiddenSubscriberCount
-//        videoCount = data.statistics.videoCount!!
     }
 
     fun getFormattedSubscriberCount(): String {

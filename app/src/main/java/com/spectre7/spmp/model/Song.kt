@@ -14,6 +14,7 @@ import com.beust.klaxon.Json
 import com.beust.klaxon.Klaxon
 import com.spectre7.spmp.R
 import com.spectre7.spmp.api.VideoData
+import com.spectre7.spmp.api.YoutubeVideoFormat
 import com.spectre7.spmp.api.getVideoFormats
 import com.spectre7.spmp.api.getSongLyrics
 import com.spectre7.spmp.ui.component.SongPreviewLong
@@ -143,7 +144,6 @@ class Song private constructor (
     private lateinit var _title: String
     lateinit var artist: Artist
     lateinit var duration: Duration
-    private var streaming_formats: List<YoutubeVideoFormat>? = null
 
     override fun subInitWithData(data: Any) {
         if (data !is VideoData) {
@@ -153,10 +153,6 @@ class Song private constructor (
         _title = data.videoDetails.title
         artist = Artist.fromId(data.videoDetails.channelId).loadData() as Artist
         duration = Duration.ofSeconds(data.videoDetails.lengthSeconds.toLong())
-
-        if (data.streamingData != null) {
-            streaming_data = data.streamingData.formats + data.streamingData.adaptiveFormats
-        }
     }
 
     var theme_colour: Color?
@@ -333,7 +329,7 @@ class Song private constructor (
                 val song = Song(id)
                 songs[id] = song
                 return song
-            }
+            }.getOrReplacedWith() as Song
         }
 
         fun serialisable(id: String): Serialisable {
@@ -378,17 +374,12 @@ class Song private constructor (
             stream_url_loading = true
         }
 
-        val format: YoutubeVideoFormat
-        if (streaming_formats != null) {
-            println("Using preloaded streaming formats")
-            format = getWantedVideoFormat(streaming_formats)
-            format.loadStreamUrl(id)
-        }
-        else {
-            println("Getting new streaming formats")
-            format = getVideoFormats(id) { getWantedVideoFormat(it) }.getDataOrThrow()
-        }
+//        if (streaming_formats != null) {
+//            format = getWantedVideoFormat(streaming_formats!!)
+//            format.loadStreamUrl(id)
+//        }
 
+        val format: YoutubeVideoFormat = getVideoFormats(id) { getWantedVideoFormat(it) }.getDataOrThrow()
         stream_url = format.stream_url!!
 
         synchronized(stream_url_load_lock) {

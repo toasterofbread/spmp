@@ -171,26 +171,25 @@ abstract class MediaItem(id: String) {
     val loading_lock: Object get() = getOrReplacedWith()._loading_lock
 
     abstract class ThumbnailProvider {
-        fun getThumbnail(quality: ThumbnailQuality): String? {
-            return when (this) {
-                is SetProvider -> {
-                    when (quality) {
-                        ThumbnailQuality.HIGH -> thumbnails.maxByOrNull { it.width * it.height }
-                        ThumbnailQuality.LOW -> thumbnails.minByOrNull { it.width * it.height }
-                    }?.url
-                }
-                is DynamicProvider -> {
-                    val target_size = quality.getTargetSize()
-                    provider(target_size.width, target_size.height)
-                }
-                else -> throw NotImplementedError(this.javaClass.name)
+        abstract fun getThumbnail(quality: ThumbnailQuality): String?
+
+        data class SetProvider(val thumbnails: List<Thumbnail>): ThumbnailProvider() {
+            override fun getThumbnail(quality: ThumbnailQuality): String? {
+                return when (quality) {
+                    ThumbnailQuality.HIGH -> thumbnails.minByOrNull { it.width * it.height }
+                    ThumbnailQuality.LOW -> thumbnails.maxByOrNull { it.width * it.height }
+                }?.url
+            }
+        }
+
+        data class DynamicProvider(val provider: (w: Int, h: Int) -> String): ThumbnailProvider() {
+            override fun getThumbnail(quality: ThumbnailQuality): String? {
+                val target_size = quality.getTargetSize()
+                return provider(target_size.width, target_size.height)
             }
         }
 
         data class Thumbnail(val url: String, val width: Int, val height: Int)
-        data class SetProvider(val thumbnails: List<Thumbnail>): ThumbnailProvider()
-
-        data class DynamicProvider(val provider: (w: Int, h: Int) -> String): ThumbnailProvider()
     }
 
     enum class ThumbnailQuality {

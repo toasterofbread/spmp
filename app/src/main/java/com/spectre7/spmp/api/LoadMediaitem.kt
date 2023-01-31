@@ -25,19 +25,7 @@ data class VideoData(val videoDetails: VideoDetails, val streamingData: Streamin
     ) {
         data class Thumbnails(val thumbnails: List<MediaItem.ThumbnailProvider.Thumbnail>)
     }
-    data class StreamingData(val formats: List<Format>, val adaptiveFormats: List<Format>) {
-        data class Format(
-            val itag: Int,
-            val mimeType: String,
-            val bitrate: Int,
-            val quality: String,
-            val signatureCipher: String? = null,
-            val url: String? = null,
-            val averageBitrate: Int? = null,
-            val qualityLabel: String? = null,
-            val audioQuality: String? = null
-        )
-    }
+    data class StreamingData(val formats: List<YoutubeVideoFormat>, val adaptiveFormats: List<YoutubeVideoFormat>)
 }
 
 data class ArtistData(

@@ -141,10 +141,9 @@ class Song private constructor (
     private val stream_url_load_lock = Object()
 
     private lateinit var _title: String
-//    lateinit var description: String
     lateinit var artist: Artist
-//    lateinit var upload_date: Date
     lateinit var duration: Duration
+    private var streaming_formats: List<YoutubeVideoFormat>? = null
 
     override fun subInitWithData(data: Any) {
         if (data !is VideoData) {
@@ -154,6 +153,10 @@ class Song private constructor (
         _title = data.videoDetails.title
         artist = Artist.fromId(data.videoDetails.channelId).loadData() as Artist
         duration = Duration.ofSeconds(data.videoDetails.lengthSeconds.toLong())
+
+        if (data.streamingData != null) {
+            streaming_data = data.streamingData.formats + data.streamingData.adaptiveFormats
+        }
     }
 
     var theme_colour: Color?
@@ -270,7 +273,7 @@ class Song private constructor (
             }
         }
 
-        data class Term(val subterms: List<Text>, val start: Float? = null, val end: Float? = null, var index: Int = 0) {
+        data class Term(val subterms: List<Text>, val start: Float? = null, val end: Float? = null) {
             var data: Any? = null
 
             data class Text(val text: String, var furi: String? = null) {
@@ -288,6 +291,7 @@ class Song private constructor (
                     }
                 }
             }
+
             val range: ClosedFloatingPointRange<Float>
                 get() = start!! .. end!!
 
@@ -297,11 +301,9 @@ class Song private constructor (
         }
 
         init {
-            var index = 0
             for (line in lines) {
                 for (term in line) {
                     assert(sync_type == SyncType.NONE || (term.start != null && term.end != null))
-                    term.index = index++
                 }
             }
         }
@@ -345,6 +347,23 @@ class Song private constructor (
         }
     }
 
+    private fun getWantedVideoFormat(formats: List<YoutubeVideoFormat>): YoutubeVideoFormat {
+        val _formats = formats.sortedByDescending { it.bitrate }
+        return when (Settings.getEnum<AudioQuality>(Settings.KEY_STREAM_AUDIO_QUALITY)) {
+            AudioQuality.HIGH -> _formats.firstOrNull { it.audio_only } ?: _formats.first()
+            AudioQuality.MEDIUM -> {
+                val audio_formats = _formats.filterList { audio_only }
+                if (audio_formats.isNotEmpty()) {
+                    audio_formats[audio_formats.size / 2]
+                }
+                else {
+                    _formats[_formats.size / 2]
+                }
+            }
+            AudioQuality.LOW -> _formats.lastOrNull { it.audio_only } ?: _formats.last()
+        }
+    }
+
     fun loadStreamUrl(): String {
         synchronized(stream_url_load_lock) {
             if (stream_url != null) {
@@ -359,20 +378,18 @@ class Song private constructor (
             stream_url_loading = true
         }
 
-        stream_url = getVideoFormats(id) { _formats ->
-            val formats = _formats.sortedByDescending { it.averageBitrate }
-            return@getVideoFormats when (Settings.getEnum<AudioQuality>(Settings.KEY_STREAM_AUDIO_QUALITY)) {
-                AudioQuality.HIGH -> formats.firstOrNull { it.audio_only } ?: formats.first()
-                AudioQuality.MEDIUM -> {
-                    val audio_formats = formats.filterList { audio_only }
-                    if (audio_formats.isNotEmpty()) {
-                        audio_formats[audio_formats.size / 2]
-                    }
-                    formats[formats.size / 2]
-                }
-                AudioQuality.LOW -> formats.lastOrNull { it.audio_only } ?: formats.last()
-            }
-        }.getDataOrThrow().stream_url
+        val format: YoutubeVideoFormat
+        if (streaming_formats != null) {
+            println("Using preloaded streaming formats")
+            format = getWantedVideoFormat(streaming_formats)
+            format.loadStreamUrl(id)
+        }
+        else {
+            println("Getting new streaming formats")
+            format = getVideoFormats(id) { getWantedVideoFormat(it) }.getDataOrThrow()
+        }
+
+        stream_url = format.stream_url!!
 
         synchronized(stream_url_load_lock) {
             stream_url_loading = false
@@ -389,11 +406,11 @@ class Song private constructor (
                     return BitmapFactory.decodeStream(URL("https://img.youtube.com/vi/$id/maxresdefault.jpg").openConnection().getInputStream())!!
                 }
                 catch (e: FileNotFoundException) {
-                    val thumb = BitmapFactory.decodeStream(URL(getThumbUrl(quality)).openConnection().getInputStream())!!
+                    val image = BitmapFactory.decodeStream(URL(getThumbUrl(quality)).openConnection().getInputStream())!!
 
-                    // Crop thumbnail to 16:9
-                    val height = (thumb.width * (9f/16f)).toInt()
-                    return Bitmap.createBitmap(thumb, 0, (thumb.height - height) / 2, thumb.width, height)
+                    // Crop image to 16:9
+                    val height = (image.width * (9f/16f)).toInt()
+                    return Bitmap.createBitmap(image, 0, (image.height - height) / 2, image.width, height)
                 }
             }
             ThumbnailQuality.LOW -> {

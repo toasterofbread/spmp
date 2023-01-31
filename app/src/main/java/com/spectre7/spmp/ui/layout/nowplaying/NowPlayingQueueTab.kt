@@ -215,7 +215,6 @@ fun QueueTab(weight_modifier: Modifier) {
                     .weight(1f), horizontalArrangement = Arrangement.SpaceEvenly, verticalAlignment = Alignment.CenterVertically) {
                 Button(
                     onClick = {
-
                         val index = PlayerServiceHost.player.currentMediaItemIndex
                         val removed: List<Pair<Song, Int>> = PlayerServiceHost.service.clearQueue(PlayerServiceHost.status.m_queue.size > 1)
                         undo_list.add {

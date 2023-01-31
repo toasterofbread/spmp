@@ -365,16 +365,16 @@ class BrowseResponseParser(private val response_body: BufferedReader) {
                                                 reader.endObject()
 
                                                 if (thumbnails == null) {
-                                                    val w_index = url.lastIndexOf("w$width") + 1
-                                                    val h_index = url.lastIndexOf("-h$height") + 2
+                                                    val w_index = url.lastIndexOf("w$width")
+                                                    val h_index = url.lastIndexOf("-h$height")
 
                                                     if (w_index == -1 || h_index == -1) {
                                                         thumbnails = mutableListOf()
                                                         thumbnail_provider = MediaItem.ThumbnailProvider.SetProvider(thumbnails)
                                                     }
                                                     else {
-                                                        val url_a = url.substring(0, w_index)
-                                                        val url_b = url.substring(h_index + height.toString().length)
+                                                        val url_a = url.substring(0, w_index + 1)
+                                                        val url_b = url.substring(h_index + 2 + height.toString().length)
                                                         thumbnail_provider = MediaItem.ThumbnailProvider.DynamicProvider { w, h ->
                                                             return@DynamicProvider "$url_a$w-h$h$url_b"
                                                         }

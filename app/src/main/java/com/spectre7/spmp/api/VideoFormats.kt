@@ -46,8 +46,18 @@ data class YoutubeVideoFormat (
             return
         }
 
-        val decrypter = SignatureCipherDecrypter.fromNothing(video_id)
-        stream_url = decrypter.decryptSignatureCipher(signatureCipher!!)
+        for (i in 0 until MAX_RETRIES) {
+            val decrypter = SignatureCipherDecrypter.fromNothing("https://music.youtube.com/watch?v=$video_id", i == 0).getDataOrThrow()
+            stream_url = decrypter.decryptSignatureCipher(signatureCipher!!)
+            if (checkUrl(stream_url!!)) {
+                break
+            }
+
+            if (i + 1 == MAX_RETRIES) {
+                stream_url = null
+                throw RuntimeException("Could not load formats for video $video_id after $MAX_RETRIES attempts")
+            }
+        }
     }
 }
 
@@ -116,12 +126,12 @@ fun getVideoFormats(id: String, selectFormat: (List<YoutubeVideoFormat>) -> Yout
 
         selected_format.stream_url = selected_format.url ?: decrypter.decryptSignatureCipher(selected_format.signatureCipher!!)
 
-        if (checkUrl(selected_format.stream_url)) {
+        if (checkUrl(selected_format.stream_url!!)) {
             return Result.success(selected_format)
         }
     }
 
-    return Result.failure(RuntimeException("Could not load formats for video $id after $MAX_RETRIES"))
+    return Result.failure(RuntimeException("Could not load formats for video $id after $MAX_RETRIES attempts"))
 }
 
 // Based on https://github.com/wayne931121/youtube_downloader
@@ -206,13 +216,13 @@ class SignatureCipherDecrypter(base_js: String) {
             return Result.success(SignatureCipherDecrypter(response.body!!.string()))
         }
 
-        fun fromNothing(video_id: String): Result<SignatureCipherDecrypter> {
-            if (cached_instance != null) {
-                return Result.success(cached_instance)
+        fun fromNothing(player_url: String, allow_cached: Boolean = true): Result<SignatureCipherDecrypter> {
+            if (cached_instance != null && allow_cached) {
+                return Result.success(cached_instance!!)
             }
 
             val request = Request.Builder()
-                .url("https://www.youtube.com/watch?v=$video_id")
+                .url(player_url)
                 .header("Cookie", "CONSENT=YES+1")
                 .header("User-Agent", DATA_API_USER_AGENT)
                 .build()

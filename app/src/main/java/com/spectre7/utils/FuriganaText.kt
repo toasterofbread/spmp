@@ -95,7 +95,7 @@ fun LongFuriganaText(
                                         receiveTermRect(text_content[index],
                                             Rect(
                                                 coords.localPositionOf(
-                                                    coords.parentCoordinates!!.parentCoordinates!!,
+                                                    coords.parentCoordinates!!,
                                                     coords.positionInRoot()
                                                 ),
                                                 Size(width.toFloat(), 70f)

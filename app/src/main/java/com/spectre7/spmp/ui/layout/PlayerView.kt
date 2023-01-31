@@ -3,6 +3,7 @@ package com.spectre7.spmp.ui.layout
 import androidx.compose.animation.*
 import androidx.compose.animation.core.Animatable
 import androidx.compose.foundation.ExperimentalFoundationApi
+import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.gestures.LocalOverScrollConfiguration
 import androidx.compose.foundation.gestures.Orientation
@@ -56,6 +57,16 @@ fun PlayerView() {
     var overlay_page by remember { mutableStateOf(OverlayPage.NONE) }
     var overlay_media_item: MediaItem? by remember { mutableStateOf(null) }
 
+    val onMediaItemClicked: (MediaItem) -> Unit = { item ->
+        when (item) {
+            is Song -> PlayerServiceHost.service.playSong(item)
+            else -> {
+                overlay_page = OverlayPage.MEDIAITEM
+                overlay_media_item = item
+            }
+        }
+    }
+
     val pill_menu = remember { PillMenu(
         top = false
     ) }
@@ -75,7 +86,7 @@ fun PlayerView() {
         }
     }
 
-    Column(Modifier.fillMaxSize()) {
+    Column(Modifier.fillMaxSize().background(MainActivity.theme.getBackground(false))) {
 
         Box(Modifier.padding(bottom = minimised_now_playing_height.value.dp)) {
 
@@ -135,14 +146,14 @@ fun PlayerView() {
                                     val media_item = item.toMediaItem()
                                     launch {
                                         request_limit.withPermit {
-                                            media_item.loadData()
+                                            val loaded = media_item.getOrReplacedWith().loadData()
                                             synchronized(request_limit) {
-                                                when (media_item) {
+                                                when (loaded) {
                                                     is Song -> {
-                                                        entry.add(media_item)
-                                                        artists.add(media_item.artist)
+                                                        entry.add(loaded)
+                                                        artists.add(loaded.artist)
                                                     }
-                                                    is Artist -> artists.add(media_item)
+                                                    is Artist -> artists.add(loaded)
                                                     is Playlist -> playlists.add(media_item)
                                                 }
                                             }
@@ -174,29 +185,19 @@ fun PlayerView() {
                 refreshFeed(true) {}
             }
 
-            val onItemClicked = { item: MediaItem ->
-                when (item) {
-                    is Song -> PlayerServiceHost.service.playSong(item)
-                    else -> {
-                        overlay_page = OverlayPage.MEDIAITEM
-                        overlay_media_item = item
-                    }
-                }
-            }
-
             Crossfade(targetState = overlay_page) {
                 Column(Modifier.fillMaxSize()) {
                     if (it != OverlayPage.NONE && it != OverlayPage.MEDIAITEM) {
                         Spacer(Modifier.requiredHeight(getStatusBarHeight(MainActivity.context)))
                     }
                     when (it) {
-                        OverlayPage.NONE -> MainPage(main_page_rows, refreshFeed, onItemClicked)
+                        OverlayPage.NONE -> MainPage(main_page_rows, refreshFeed, onMediaItemClicked)
                         OverlayPage.SEARCH -> SearchPage(pill_menu) { overlay_page = OverlayPage.NONE }
                         OverlayPage.SETTINGS -> PrefsPage(pill_menu) { overlay_page = OverlayPage.NONE }
                         OverlayPage.MEDIAITEM -> Crossfade(overlay_media_item) { item ->
                             when (item) {
                                 null -> {}
-                                is Artist -> ArtistPage(pill_menu, item, { overlay_page = OverlayPage.NONE }, onItemClicked)
+                                is Artist -> ArtistPage(pill_menu, item, { overlay_page = OverlayPage.NONE }, onMediaItemClicked)
                                 else -> throw NotImplementedError()
                             }
                         }
@@ -240,7 +241,7 @@ fun PlayerView() {
                 ) { switch = !switch }, shape = RectangleShape) {
 
                 Column(Modifier.fillMaxSize()) {
-                    NowPlaying(swipe_state.offset.value / screen_height, screen_height) { switch = !switch }
+                    NowPlaying(swipe_state.offset.value / screen_height, screen_height, { switch = !switch }, onMediaItemClicked)
                 }
             }
         }

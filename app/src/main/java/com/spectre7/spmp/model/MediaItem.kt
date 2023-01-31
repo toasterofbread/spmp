@@ -17,7 +17,7 @@ import com.spectre7.spmp.api.loadMediaItemData
 import java.net.URL
 import kotlin.concurrent.thread
 
-class MediaItemRow(val title: String, val subtitle: String?, val items: MutableList<MediaItem> = mutableListOf()) {
+class MediaItemRow(val title: String?, val subtitle: String?, val items: MutableList<MediaItem> = mutableListOf()) {
     fun add(item: MediaItem): Boolean {
         if (items.any { it.id == item.id }) {
             return false
@@ -28,7 +28,39 @@ class MediaItemRow(val title: String, val subtitle: String?, val items: MutableL
 }
 
 @Suppress("PLATFORM_CLASS_MAPPED_TO_KOTLIN")
-abstract class MediaItem(val id: String) {
+abstract class MediaItem(id: String) {
+    private val _id: String = id
+    val id: String get() {
+        requireValid()
+        return _id
+    }
+
+    private var replaced_with: MediaItem? = null
+
+    fun getOrReplacedWith(): MediaItem {
+        return replaced_with?.getOrReplacedWith() ?: this
+    }
+
+    fun replaceWithItemWithId(new_id: String): MediaItem {
+        if (id == new_id) {
+            return this
+        }
+
+        if (replaced_with != null) {
+            throw IllegalStateException()
+        }
+
+        invalidate()
+
+        replaced_with = when (type) {
+            Type.SONG -> Song.fromId(new_id)
+            Type.ARTIST -> Artist.fromId(new_id)
+            Type.PLAYLIST -> Playlist.fromId(new_id)
+        }
+
+        return replaced_with!!
+    }
+
     enum class Type {
         SONG, ARTIST, PLAYLIST
     }
@@ -134,7 +166,9 @@ abstract class MediaItem(val id: String) {
     var load_status: LoadStatus
         get() = _load_status
         private set(value) { _load_status = value }
-    val loading_lock = Object()
+
+    private val _loading_lock = Object()
+    val loading_lock: Object get() = getOrReplacedWith()._loading_lock
 
     abstract class ThumbnailProvider {
         fun getThumbnail(quality: ThumbnailQuality): String? {
@@ -180,17 +214,22 @@ abstract class MediaItem(val id: String) {
 
     val url: String get() = _getUrl()
 
-    private val _browse_endpoints = mutableListOf<BrowseEndpoint>()
-    val browse_endpoints: List<BrowseEndpoint>
-        get() = _browse_endpoints
+    private val _related_endpoints = mutableListOf<BrowseEndpoint>()
+    val related_endpoints: List<BrowseEndpoint>
+        get() = _related_endpoints
 
-    private var _is_valid: Boolean = true
-    var is_valid: Boolean
-        get() = _is_valid
-        private set(value) { _is_valid = value }
+    private var invalidation_exception: Throwable? = null
+    val is_valid: Boolean
+        get() = invalidation_exception == null
 
-    fun invalidate() {
-        is_valid = false
+    private fun invalidate() {
+        invalidation_exception = RuntimeException()
+    }
+
+    fun requireValid() {
+        if (invalidation_exception != null) {
+            throw IllegalStateException("$this (replaced with $replaced_with) must be valid. Invalidated at cause.", invalidation_exception)
+        }
     }
 
     init {
@@ -202,12 +241,12 @@ abstract class MediaItem(val id: String) {
     }
 
     fun addBrowseEndpoint(id: String, type: BrowseEndpoint.Type): Boolean {
-        for (endpoint in _browse_endpoints) {
+        for (endpoint in _related_endpoints) {
             if (endpoint.id == id && endpoint.type == type) {
                 return false
             }
         }
-        _browse_endpoints.add(BrowseEndpoint(id, type))
+        _related_endpoints.add(BrowseEndpoint(id, type))
         return true
     }
 
@@ -223,14 +262,14 @@ abstract class MediaItem(val id: String) {
         return thumb_states[quality]!!.image != null
     }
 
-    fun getThumbnail(quality: ThumbnailQuality, onLoaded: (Bitmap) -> Unit = {}): Bitmap? {
+    fun getThumbnail(quality: ThumbnailQuality, onLoaded: (Bitmap?) -> Unit = {}): Bitmap? {
         val state = thumb_states[quality]!!
         synchronized(state) {
             if (state.loading) {
                 thread {
                     synchronized(state) {
                         (state as Object).wait()
-                        onLoaded(state.image!!)
+                        onLoaded(state.image)
                     }
                 }
                 return state.image
@@ -242,34 +281,37 @@ abstract class MediaItem(val id: String) {
         return state.image
     }
 
-    fun loadThumbnail(quality: ThumbnailQuality): Bitmap {
+    fun loadThumbnail(quality: ThumbnailQuality): Bitmap? {
         val state = thumb_states[quality]!!
         synchronized(state) {
             if (state.loading) {
                 (state as Object).wait()
-                return state.image!!
+                return state.image
             }
 
             if (state.image != null) {
-                return state.image!!
+                return state.image
             }
 
             state.loading = true
         }
 
         state.image = downloadThumbnail(quality)
-        thumbnail_palette = Palette.from(state.image!!.asImageBitmap().asAndroidBitmap()).clearFilters().generate()
+        if (state.image != null) {
+            thumbnail_palette = Palette.from(state.image!!.asImageBitmap().asAndroidBitmap()).clearFilters().generate()
+        }
 
         synchronized(state) {
             state.loading = false
             (state as Object).notifyAll()
         }
 
-        return state.image!!
+        return state.image
     }
 
-    protected open fun downloadThumbnail(quality: ThumbnailQuality): Bitmap {
-        return BitmapFactory.decodeStream(URL(getThumbUrl(quality)).openConnection().getInputStream())!!
+    protected open fun downloadThumbnail(quality: ThumbnailQuality): Bitmap? {
+        val url = getThumbUrl(quality) ?: return null
+        return BitmapFactory.decodeStream(URL(url).openConnection().getInputStream())
     }
 
     @Composable
@@ -297,7 +339,7 @@ abstract class MediaItem(val id: String) {
         return result.getDataOrThrow()
     }
 
-    fun initWithData(data: Any, thumbnail_provider: ThumbnailProvider) {
+    fun initWithData(data: Any, thumbnail_provider: ThumbnailProvider?) {
         if (load_status == LoadStatus.LOADED) {
             return
         }
@@ -330,5 +372,9 @@ abstract class MediaItem(val id: String) {
 
             return default
         }
+    }
+
+    override fun toString(): String {
+        return "MediaItem(type=$type, id=$_id)"
     }
 }

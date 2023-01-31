@@ -31,6 +31,7 @@ import com.google.accompanist.systemuicontroller.rememberSystemUiController
 import com.spectre7.spmp.MainActivity
 import com.spectre7.spmp.PlayerServiceHost
 import com.spectre7.spmp.R
+import com.spectre7.spmp.model.MediaItem
 import com.spectre7.spmp.ui.component.MultiSelector
 import com.spectre7.utils.getStatusBarHeight
 import com.spectre7.utils.getString
@@ -47,7 +48,7 @@ const val EXPANDED_THRESHOLD = 0.9f
 val NOW_PLAYING_MAIN_PADDING = 10.dp
 
 @Composable
-fun NowPlaying(expansion: Float, max_height: Float, close: () -> Unit) {
+fun NowPlaying(expansion: Float, max_height: Float, close: () -> Unit, onMediaItemClicked: (MediaItem) -> Unit) {
     val expanded = expansion >= EXPANDED_THRESHOLD
 
     val systemui_controller = rememberSystemUiController()
@@ -103,6 +104,7 @@ fun NowPlaying(expansion: Float, max_height: Float, close: () -> Unit) {
                         max_height,
                         thumbnail,
                         close,
+                        onMediaItemClicked,
                         Modifier.requiredWidth(screen_width_dp - (NOW_PLAYING_MAIN_PADDING * 2))
                     )
                 }
@@ -289,6 +291,7 @@ fun Tab(
     max_height: Float,
     thumbnail: MutableState<ImageBitmap?>,
     close: () -> Unit,
+    onMediaItemClicked: (MediaItem) -> Unit,
     modifier: Modifier = Modifier
 ) {
     BackHandler(tab == open_tab.value && expansion >= EXPANDED_THRESHOLD) {
@@ -309,7 +312,10 @@ fun Tab(
         }
     }) {
         if (tab == NowPlayingTab.PLAYER) {
-            MainTab(Modifier.weight(1f), expansion, max_height, thumbnail.value) { thumbnail.value = it }
+            MainTab(Modifier.weight(1f), expansion, max_height, thumbnail.value, { thumbnail.value = it }) {
+                onMediaItemClicked(it)
+                close()
+            }
         }
         else if (tab == NowPlayingTab.QUEUE) {
             QueueTab(Modifier.weight(1f))

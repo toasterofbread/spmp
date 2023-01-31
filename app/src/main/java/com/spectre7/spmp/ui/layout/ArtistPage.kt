@@ -27,6 +27,7 @@ import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.platform.LocalClipboardManager
 import androidx.compose.ui.platform.LocalUriHandler
 import androidx.compose.ui.text.*
+import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.text.style.TextDecoration
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
@@ -84,15 +85,29 @@ fun ArtistPage(
             runBlocking {
                 withContext(Dispatchers.IO) { coroutineScope {
                     for (row in artist.feed_rows) {
-                        for (item in row.items) {
+                        for (item in row.items.withIndex()) {
                             launch {
-                                item.loadData()
+                                val new_item = item.value.loadData()
+                                if (new_item != item.value) {
+                                    synchronized(row.items) {
+                                        row.items[item.index] = new_item
+                                    }
+                                }
                             }
                         }
                     }
                 }}
 
-                artist_rows_loaded = false
+                for (row in artist.feed_rows) {
+                    row.items.removeAll {
+                        if (!it.is_valid) {
+                            println("REMOVE ${it.id} | ${it.type}")
+                        }
+                        !it.is_valid
+                    }
+                }
+
+                artist_rows_loaded = true
             }
         }
     }
@@ -162,7 +177,9 @@ fun ArtistPage(
                         .padding(bottom = 20.dp),
                     contentAlignment = Alignment.BottomCenter
                 ) {
-                    Text(artist.name, fontSize = 40.sp)
+                    Marquee(false) {
+                        Text(artist.name, Modifier.fillMaxWidth(), textAlign = TextAlign.Center, fontSize = 40.sp, softWrap = false)
+                    }
                 }
             }
 
@@ -207,7 +224,11 @@ fun ArtistPage(
             item {
                 Crossfade(artist_rows_loaded) { loaded ->
                     if (!loaded) {
-                        Box(Modifier.fillMaxSize().background(background_colour).padding(content_padding), contentAlignment = Alignment.Center) {
+                        Box(
+                            Modifier
+                                .fillMaxSize()
+                                .background(background_colour)
+                                .padding(content_padding), contentAlignment = Alignment.Center) {
                             CircularProgressIndicator(color = accent_colour)
                         }
                     }

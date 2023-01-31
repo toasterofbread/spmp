@@ -146,7 +146,7 @@ data class Theme private constructor(
 
         @Composable
         fun default(): Theme {
-            return create(MaterialTheme.colorScheme.background, MaterialTheme.colorScheme.onBackground, MaterialTheme.colorScheme.primary)
+            return create(Color.Black, Color.White, Color(99, 54, 143))
         }
 
         @SuppressLint("UnrememberedAnimatable")

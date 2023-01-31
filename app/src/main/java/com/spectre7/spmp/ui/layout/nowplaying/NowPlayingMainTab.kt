@@ -53,7 +53,14 @@ import kotlin.math.min
 const val OVERLAY_MENU_ANIMATION_DURATION: Int = 200
 
 @Composable
-fun MainTab(weight_modifier: Modifier, expansion: Float, max_height: Float, thumbnail: ImageBitmap?, _setThumbnail: (ImageBitmap?) -> Unit) {
+fun MainTab(
+    weight_modifier: Modifier,
+    expansion: Float,
+    max_height: Float,
+    thumbnail: ImageBitmap?,
+    _setThumbnail: (ImageBitmap?) -> Unit,
+    onMediaItemClicked: (MediaItem) -> Unit
+) {
     Spacer(Modifier.requiredHeight(50.dp * expansion))
 
     var theme_colour by remember { mutableStateOf<Color?>(null) }
@@ -137,7 +144,7 @@ fun MainTab(weight_modifier: Modifier, expansion: Float, max_height: Float, thum
     }
 
     fun loadThumbnail(song: Song) {
-        _setThumbnail(song.loadThumbnail(MediaItem.ThumbnailQuality.LOW).asImageBitmap())
+        _setThumbnail(song.loadThumbnail(MediaItem.ThumbnailQuality.LOW)?.asImageBitmap())
         theme_palette = song.thumbnail_palette
 
         if (song.theme_colour != null) {
@@ -446,7 +453,8 @@ fun MainTab(weight_modifier: Modifier, expansion: Float, max_height: Float, thum
                 Column(verticalArrangement = Arrangement.spacedBy(5.dp)) {
 
                     // Title text
-                    Text(getSongTitle(),
+                    Text(
+                        getSongTitle(),
                         fontSize = 17.sp,
                         color = MainActivity.theme.getOnBackground(true),
                         textAlign = TextAlign.Center,
@@ -454,10 +462,15 @@ fun MainTab(weight_modifier: Modifier, expansion: Float, max_height: Float, thum
                         overflow = TextOverflow.Ellipsis,
                         modifier = Modifier
                             .fillMaxWidth()
-                            .animateContentSize())
+                            .animateContentSize()
+                            .clickable {
+                                onMediaItemClicked(PlayerServiceHost.status.song!!)
+                            }
+                    )
 
                     // Artist text
-                    Text(getSongArtist(),
+                    Text(
+                        getSongArtist(),
                         fontSize = 12.sp,
                         color = MainActivity.theme.getOnBackground(true),
                         textAlign = TextAlign.Center,
@@ -465,7 +478,11 @@ fun MainTab(weight_modifier: Modifier, expansion: Float, max_height: Float, thum
                         overflow = TextOverflow.Ellipsis,
                         modifier = Modifier
                             .fillMaxWidth()
-                            .animateContentSize())
+                            .animateContentSize()
+                            .clickable {
+                                onMediaItemClicked(PlayerServiceHost.status.song!!.artist)
+                            }
+                    )
 
                 }
 

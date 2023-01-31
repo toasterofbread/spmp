@@ -313,7 +313,7 @@ abstract class MediaItem(val id: String) {
             val unspecified = Color.Unspecified.toArgb()
             var ret: Color? = null
 
-            fun apply(colour: Int): Boolean {
+            fun tryColour(colour: Int): Boolean {
                 if (colour == unspecified) {
                     return false
                 }
@@ -321,12 +321,12 @@ abstract class MediaItem(val id: String) {
                 return true
             }
 
-            if (apply(palette.getVibrantColor(unspecified))) { return ret!! }
-            if (apply(palette.getLightVibrantColor(unspecified))) { return ret!! }
-            if (apply(palette.getLightMutedColor(unspecified))) { return ret!! }
-            if (apply(palette.getDarkVibrantColor(unspecified))) { return ret!! }
-            if (apply(palette.getDarkMutedColor(unspecified))) { return ret!! }
-            if (apply(palette.getDominantColor(unspecified))) { return ret!! }
+            if (tryColour(palette.getVibrantColor(unspecified))) { return ret!! }
+            if (tryColour(palette.getLightVibrantColor(unspecified))) { return ret!! }
+            if (tryColour(palette.getLightMutedColor(unspecified))) { return ret!! }
+            if (tryColour(palette.getDarkVibrantColor(unspecified))) { return ret!! }
+            if (tryColour(palette.getDarkMutedColor(unspecified))) { return ret!! }
+            if (tryColour(palette.getDominantColor(unspecified))) { return ret!! }
 
             return default
         }

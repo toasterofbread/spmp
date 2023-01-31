@@ -24,22 +24,34 @@ private fun checkUrl(url: String): Boolean {
     return response.code == 200 && !is_invalid
 }
 
-data class VideoFormat (
+data class YoutubeVideoFormat (
     val itag: Int,
     val mimeType: String,
-    val averageBitrate: Int = -1,
+    val bitrate: Int,
     val quality: String,
     val qualityLabel: String? = null,
-    val fps: Int? = null,
     val audioQuality: String? = null,
     val signatureCipher: String? = null,
     val url: String? = null
 ) {
-    lateinit var stream_url: String
+    var stream_url: String? = null
     val audio_only: Boolean get() = mimeType.startsWith("audio")
+
+    fun loadStreamUrl(video_id: String) {
+        if (stream_url != null) {
+            return
+        }
+        if (url != null) {
+            stream_url = url
+            return
+        }
+
+        val decrypter = SignatureCipherDecrypter.fromNothing(video_id)
+        stream_url = decrypter.decryptSignatureCipher(signatureCipher!!)
+    }
 }
 
-fun getVideoFormats(id: String, selectFormat: (List<VideoFormat>) -> VideoFormat): Result<VideoFormat> {
+fun getVideoFormats(id: String, selectFormat: (List<YoutubeVideoFormat>) -> YoutubeVideoFormat): Result<YoutubeVideoFormat> {
 
     val RESPONSE_DATA_START = "ytInitialPlayerResponse = "
     val request = Request.Builder()
@@ -48,7 +60,7 @@ fun getVideoFormats(id: String, selectFormat: (List<VideoFormat>) -> VideoFormat
         .header("User-Agent", DATA_API_USER_AGENT)
         .build()
     
-    fun getFormats(itag: Int?): Result<Pair<SignatureCipherDecrypter, List<VideoFormat>>> {
+    fun getFormats(itag: Int?): Result<Pair<SignatureCipherDecrypter, List<YoutubeVideoFormat>>> {
         val response = client.newCall(request).execute()
         if (response.code != 200) {
             return Result.failure(response)
@@ -76,12 +88,12 @@ fun getVideoFormats(id: String, selectFormat: (List<VideoFormat>) -> VideoFormat
                     }
                 }
             }
-            return Result.failure(RuntimeException(klaxon.toJsonString(streaming_data)))
+            return Result.failure(RuntimeException("$itag | ${klaxon.toJsonString(streaming_data)}"))
         }
         else {
             return Result.success(Pair(
                 decrypter_result.data,
-                klaxon.parseFromJsonArray<VideoFormat>(streaming_data.array<JsonObject>("adaptiveFormats")!!)!!
+                klaxon.parseFromJsonArray<YoutubeVideoFormat>(streaming_data.array<JsonObject>("adaptiveFormats")!!)!!
                 + klaxon.parseFromJsonArray(streaming_data.array<JsonObject>("formats")!!)!!
             ))
         }
@@ -175,6 +187,8 @@ class SignatureCipherDecrypter(base_js: String) {
     }
 
     companion object {
+        private var cached_instance: SignatureCipherDecrypter? = null
+
         fun fromPlayerPage(player_html: String): Result<SignatureCipherDecrypter> {
             val url_start = player_html.indexOf("\"jsUrl\":\"") + 9
             val url_end = player_html.indexOf(".js\"", url_start) + 3
@@ -190,6 +204,29 @@ class SignatureCipherDecrypter(base_js: String) {
             }
 
             return Result.success(SignatureCipherDecrypter(response.body!!.string()))
+        }
+
+        fun fromNothing(video_id: String): Result<SignatureCipherDecrypter> {
+            if (cached_instance != null) {
+                return Result.success(cached_instance)
+            }
+
+            val request = Request.Builder()
+                .url("https://www.youtube.com/watch?v=$video_id")
+                .header("Cookie", "CONSENT=YES+1")
+                .header("User-Agent", DATA_API_USER_AGENT)
+                .build()
+        
+            val response = client.newCall(request).execute()
+            if (response.code != 200) {
+                return Result.failure(response)
+            }
+
+            val result = fromPlayerPage(response.body!!.string())
+            if (result.success) {
+                cached_instance = result.data
+            }
+            return result
         }
     }
 

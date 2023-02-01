@@ -5,6 +5,7 @@
     <string name="ngrok_api_key" translatable="false">***REMOVED***</string>
     <string name="server_api_key" translatable="false">***REMOVED***</string>
     <string name="yt_api_key" translatable="false">***REMOVED***</string>
+    <string name="oauth_client_id" translatable="false">1029123928342-8las6c3oor0r3910mcsarl6vauoi96fg.apps.googleusercontent.com</string>
 
     <string name="songs">Songs</string>
     <string name="song_name">Song name</string>
@@ -31,7 +32,7 @@
 
     <string name="artist_chip_play">Play</string>
     <string name="artist_chip_shuffle">Shuffle</string>
-    <string name="artist_chip_radio">Start radio</string>
+    <string name="artist_chip_radio">Radio</string>
     <string name="artist_chip_details">Details</string>
     <string name="artist_chip_open">Open</string>
     <string name="artist_info_label">Artist info</string>

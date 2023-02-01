@@ -2,10 +2,7 @@ package com.spectre7.spmp.ui.component
 
 import androidx.compose.animation.*
 import androidx.compose.foundation.background
-import androidx.compose.foundation.layout.Box
-import androidx.compose.foundation.layout.Column
-import androidx.compose.foundation.layout.requiredHeight
-import androidx.compose.foundation.layout.requiredSize
+import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.grid.GridCells
 import androidx.compose.foundation.lazy.grid.LazyHorizontalGrid
 import androidx.compose.material3.MaterialTheme
@@ -23,7 +20,7 @@ import com.spectre7.spmp.model.MediaItem
 @Composable
 private fun ItemPreview(
     item: MediaItem,
-    height: Dp,
+    width: Dp,
     animate: MutableState<Boolean>?,
     modifier: Modifier = Modifier,
     onItemClick: ((item: MediaItem) -> Unit)? = null,
@@ -32,7 +29,7 @@ private fun ItemPreview(
     val onClick = if (onItemClick != null) { { onItemClick.invoke(item) } } else null
     val onLongClick = if (onItemLongClick != null) { { onItemLongClick.invoke(item) } } else null
 
-    Box(modifier.requiredHeight(height), contentAlignment = Alignment.Center) {
+    Box(modifier.requiredWidth(width), contentAlignment = Alignment.Center) {
         if(animate?.value == true) {
             LaunchedEffect(Unit) {
                 animate.value = false
@@ -65,22 +62,27 @@ fun MediaItemGrid(
     onClick: ((item: MediaItem) -> Unit)? = null,
     onLongClick: ((item: MediaItem) -> Unit)? = null
 ) {
-    val row_count = 2
+    val row_count = if (items.size <= 3) 1 else 2
+    val item_width = 125.dp
 
-    Column(modifier) {
-        if (title != null) {
-            Text(title, style = MaterialTheme.typography.headlineMedium)
+    Column(modifier, verticalArrangement = Arrangement.spacedBy(10.dp)) {
+
+        Column(Modifier.padding(horizontal = 20.dp)) {
+            if (title != null) {
+                Text(title, style = MaterialTheme.typography.headlineMedium)
+            }
+            if (subtitle != null) {
+                Text(subtitle, style = MaterialTheme.typography.headlineSmall)
+            }
         }
-        if (subtitle != null) {
-            Text(subtitle, style = MaterialTheme.typography.headlineSmall)
-        }
+
         LazyHorizontalGrid(
             rows = GridCells.Fixed(row_count),
-            modifier = Modifier.requiredHeight(140.dp * row_count)
+            modifier = Modifier.requiredHeight(item_width * row_count * 1.1f)
         ) {
             items(items.size, { items[it].id }) {
                 val item = items[it]
-                ItemPreview(item, 130.dp, null, Modifier, onClick, onLongClick)
+                ItemPreview(item, item_width, null, Modifier, onClick, onLongClick)
             }
         }
     }

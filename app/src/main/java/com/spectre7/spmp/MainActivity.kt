@@ -1,14 +1,18 @@
 package com.spectre7.spmp
 
 import android.content.Context
+import android.content.Intent
 import android.content.SharedPreferences
 import android.content.res.Resources
+import android.net.Uri
 import android.os.Bundle
 import android.os.Handler
 import android.os.Looper
 import android.view.WindowManager
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
+import androidx.activity.result.ActivityResultLauncher
+import androidx.activity.result.contract.ActivityResultContract
 import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.material.icons.Icons
@@ -27,7 +31,8 @@ import androidx.lifecycle.Lifecycle
 import com.beust.klaxon.JsonObject
 import com.beust.klaxon.Klaxon
 import com.google.android.exoplayer2.database.StandaloneDatabaseProvider
-import com.spectre7.spmp.api.getLyrics
+import com.spectre7.spmp.api.subscribeOrUnsubscribeArtist
+import com.spectre7.spmp.model.Artist
 import com.spectre7.spmp.model.Cache
 import com.spectre7.spmp.model.Settings
 import com.spectre7.spmp.model.Song
@@ -36,8 +41,10 @@ import com.spectre7.spmp.ui.layout.PlayerView
 import com.spectre7.spmp.ui.theme.MyApplicationTheme
 import com.spectre7.utils.NoRipple
 import com.spectre7.utils.Theme
+import net.openid.appauth.*
 import java.util.*
 import kotlin.concurrent.thread
+
 
 class MainActivity : ComponentActivity() {
 
@@ -45,6 +52,10 @@ class MainActivity : ComponentActivity() {
     lateinit var theme: Theme
     lateinit var languages: Map<String, Map<String, String>>
     lateinit var database: StandaloneDatabaseProvider
+
+    private lateinit var auth_service: AuthorizationService
+    private lateinit var auth_state: AuthState
+    private lateinit var auth_activity_launcher: ActivityResultLauncher<(AuthorizationException?) -> Unit>
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -56,7 +67,6 @@ class MainActivity : ComponentActivity() {
         Song.init(prefs)
 
         languages = loadLanguages()
-
         fun updateLanguage(lang: Int) {
             // TODO
             val myLocale = Locale(MainActivity.languages.keys.elementAt(lang))
@@ -66,14 +76,16 @@ class MainActivity : ComponentActivity() {
             conf.setLayoutDirection(myLocale)
             resources.updateConfiguration(conf, resources.displayMetrics)
         }
-
         Settings.prefs.registerOnSharedPreferenceChangeListener { _, key: String ->
             if (key == Settings.KEY_LANG_UI.name) {
                 updateLanguage(Settings.get(Settings.KEY_LANG_UI))
             }
         }
-
         updateLanguage(Settings.get(Settings.KEY_LANG_UI))
+
+        auth_state = loadAuthState()
+        auth_service = AuthorizationService(this)
+        auth_activity_launcher = createOauthActivityLauncher()
 
         database = StandaloneDatabaseProvider(this)
 
@@ -83,10 +95,6 @@ class MainActivity : ComponentActivity() {
             WindowManager.LayoutParams.FLAG_LAYOUT_NO_LIMITS,
             WindowManager.LayoutParams.FLAG_LAYOUT_NO_LIMITS
         )
-
-        thread {
-            getLyrics(3090737, Song.Lyrics.Source.PETITLYRICS)
-        }
 
         setContent {
             MyApplicationTheme {
@@ -106,7 +114,62 @@ class MainActivity : ComponentActivity() {
     override fun onDestroy() {
         super.onDestroy()
         PlayerServiceHost.release()
+        auth_service.dispose()
         instance = null
+    }
+
+    private fun loadAuthState(): AuthState {
+        val state_data = getSharedPreferences("auth", MODE_PRIVATE).getString("state", null)
+        if (state_data != null) {
+            return AuthState.jsonDeserialize(state_data)
+        }
+        else {
+            return AuthState(AuthorizationServiceConfiguration(
+                Uri.parse("https://accounts.google.com/o/oauth2/v2/auth"),
+                Uri.parse("https://www.googleapis.com/oauth2/v4/token")
+            ))
+        }
+    }
+
+    private fun saveAuthState(auth_state: AuthState) {
+        getSharedPreferences("auth", MODE_PRIVATE).edit()
+            .putString("state", auth_state.jsonSerializeString())
+            .apply()
+    }
+
+    private fun createOauthActivityLauncher(): ActivityResultLauncher<(AuthorizationException?) -> Unit> {
+        return registerForActivityResult(object : ActivityResultContract<(AuthorizationException?) -> Unit, Unit>() {
+            private lateinit var onFinished: (AuthorizationException?) -> Unit
+            
+            override fun createIntent(context: Context, onFinished: (AuthorizationException?) -> Unit): Intent {
+                this.onFinished = onFinished
+                
+                val auth_request_builder = AuthorizationRequest.Builder(
+                    auth_state.authorizationServiceConfiguration!!,
+                    com.spectre7.utils.getString(R.string.oauth_client_id),
+                    ResponseTypeValues.CODE,
+                    Uri.parse("${context.packageName}:/oauth2redirect")
+                )
+
+                val auth_request = auth_request_builder
+                    .setScope("https://www.googleapis.com/auth/youtube")
+                    .setUiLocales(ui_language)
+                    .build()
+
+                return auth_service.getAuthorizationRequestIntent(auth_request)
+            }
+
+            override fun parseResult(resultCode: Int, intent: Intent?) {
+                val exception = AuthorizationException.fromIntent(intent!!)
+                if (exception != null) {
+                    onFinished(exception)
+                    return
+                }
+
+                auth_state.update(AuthorizationResponse.fromIntent(intent), null)
+                onFinished(null)
+            }
+        }, {})
     }
 
     private fun loadLanguages(): MutableMap<String, Map<String, String>> {
@@ -133,6 +196,15 @@ class MainActivity : ComponentActivity() {
         val languages: Map<String, Map<String, String>> get() = context.languages
         val error_manager = ErrorManager()
         val database get() = context.database
+
+        val auth_state: AuthState get() = context.auth_state
+        val auth_service: AuthorizationService get() = context.auth_service
+        fun saveAuthState() {
+            context.saveAuthState(auth_state)
+        }
+        fun startAuthLogin(onFinished: (exception: AuthorizationException?) -> Unit) {
+            context.auth_activity_launcher.launch(onFinished)
+        }
 
         val ui_language: String get() = languages.keys.elementAt(Settings.get(Settings.KEY_LANG_UI))
         val data_language: String get() = languages.keys.elementAt(Settings.get(Settings.KEY_LANG_DATA))

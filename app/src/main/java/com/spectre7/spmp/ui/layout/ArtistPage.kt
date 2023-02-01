@@ -5,14 +5,19 @@ package com.spectre7.spmp.ui.layout
 import android.content.Intent
 import android.net.Uri
 import androidx.activity.compose.BackHandler
+import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.animation.Crossfade
+import androidx.compose.animation.animateContentSize
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
+import androidx.compose.foundation.clickable
 import androidx.compose.foundation.gestures.detectTapGestures
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.LazyRow
 import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.ArrowDropDown
+import androidx.compose.material.icons.filled.ArrowDropUp
 import androidx.compose.material.icons.filled.ContentCopy
 import androidx.compose.material.icons.filled.Share
 import androidx.compose.material.icons.outlined.*
@@ -24,11 +29,14 @@ import androidx.compose.ui.graphics.*
 import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.input.pointer.pointerInput
 import androidx.compose.ui.layout.ContentScale
+import androidx.compose.ui.layout.onSizeChanged
 import androidx.compose.ui.platform.LocalClipboardManager
+import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.platform.LocalUriHandler
 import androidx.compose.ui.text.*
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.text.style.TextDecoration
+import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.spectre7.spmp.MainActivity
@@ -37,10 +45,7 @@ import com.spectre7.spmp.model.Artist
 import com.spectre7.spmp.model.MediaItem
 import com.spectre7.spmp.ui.component.MediaItemGrid
 import com.spectre7.spmp.ui.component.PillMenu
-import com.spectre7.utils.Marquee
-import com.spectre7.utils.getString
-import com.spectre7.utils.sendToast
-import com.spectre7.utils.setAlpha
+import com.spectre7.utils.*
 import kotlinx.coroutines.*
 import java.util.regex.Pattern
 import kotlin.concurrent.thread
@@ -183,7 +188,7 @@ fun ArtistPage(
                 }
             }
 
-            val content_padding = 20.dp
+            val content_padding = 10.dp
 
             // Action bar
             item {
@@ -194,6 +199,7 @@ fun ArtistPage(
                     horizontalArrangement = Arrangement.spacedBy(10.dp),
                     contentPadding = PaddingValues(horizontal = content_padding)
                 ) {
+
                     fun chip(text: String, icon: ImageVector, onClick: () -> Unit) {
                         item {
                             ElevatedAssistChip(
@@ -211,12 +217,53 @@ fun ArtistPage(
                         }
                     }
 
-                    chip(getString(R.string.artist_chip_play), Icons.Outlined.PlayArrow) { TODO() }
                     chip(getString(R.string.artist_chip_shuffle), Icons.Outlined.Shuffle) { TODO() }
-                    chip(getString(R.string.artist_chip_radio), Icons.Outlined.Radio) { TODO() }
                     chip(getString(R.string.action_share), Icons.Outlined.Share) { MainActivity.context.startActivity(share_intent) }
                     chip(getString(R.string.artist_chip_open), Icons.Outlined.OpenInNew) { MainActivity.context.startActivity(open_intent) }
                     chip(getString(R.string.artist_chip_details), Icons.Outlined.Info) { show_info = !show_info }
+                }
+            }
+
+            item {
+                Row(Modifier.fillMaxWidth().background(background_colour).padding(start = 20.dp, bottom = 10.dp)) {
+                    @Composable
+                    fun Btn(text: String, icon: ImageVector, modifier: Modifier = Modifier, onClick: () -> Unit) {
+                        OutlinedButton(onClick = onClick, modifier.height(45.dp)) {
+                            Row(verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(10.dp)) {
+                                Icon(icon, null, tint = accent_colour)
+                                Text(text, softWrap = false, color = MainActivity.theme.getOnBackground(false))
+                            }
+                        }
+                    }
+
+                    Btn(getString(R.string.artist_chip_play), Icons.Outlined.PlayArrow, Modifier.fillMaxWidth(0.5f).weight(1f)) { TODO() }
+                    Spacer(Modifier.requiredWidth(20.dp))
+                    Btn(getString(R.string.artist_chip_radio), Icons.Outlined.Radio, Modifier.fillMaxWidth(1f).weight(1f)) { TODO() }
+
+                    Crossfade(artist.subscribed) { subscribed ->
+                        if (subscribed == null) {
+                            Spacer(Modifier.requiredWidth(20.dp))
+                        }
+                        else {
+                            Row {
+                                Spacer(Modifier.requiredWidth(10.dp))
+                                OutlinedIconButton(
+                                    {
+                                        artist.toggleSubscribe(
+                                            toggle_before_fetch = true,
+                                            notify_completion = true
+                                        )
+                                    },
+                                    colors = IconButtonDefaults.iconButtonColors(
+                                        containerColor = if (subscribed) accent_colour else MainActivity.theme.getBackground(false),
+                                        contentColor = if (subscribed) accent_colour.getContrasted() else MainActivity.theme.getOnBackground(false)
+                                    )
+                                ) {
+                                    Icon(if (subscribed) Icons.Outlined.Person else Icons.Outlined.PersonAdd, null)
+                                }
+                            }
+                        }
+                    }
                 }
             }
 
@@ -237,7 +284,8 @@ fun ArtistPage(
                             Modifier
                                 .background(background_colour)
                                 .fillMaxSize()
-                                .padding(content_padding)
+                                .padding(content_padding),
+                            verticalArrangement = Arrangement.spacedBy(30.dp)
                         ) {
                             for (row in artist.feed_rows) {
                                 MediaItemGrid(row.title, null, row.items, onClick = onItemClicked)
@@ -245,32 +293,69 @@ fun ArtistPage(
 
                             val description = artist.description
                             if (description?.isNotBlank() == true) {
-                                ElevatedCard(Modifier.fillMaxWidth()) {
+
+                                var expanded by remember { mutableStateOf(false) }
+                                var can_expand by remember { mutableStateOf(false) }
+                                val small_text_height = 200.dp
+                                val small_text_height_px = with ( LocalDensity.current ) { small_text_height.toPx().toInt() }
+
+                                ElevatedCard(
+                                    Modifier
+                                        .fillMaxWidth()
+                                        .animateContentSize(),
+                                    colors = CardDefaults.elevatedCardColors(
+                                        containerColor = MainActivity.theme.getOnBackground(false).setAlpha(0.05)
+                                    )
+                                ) {
                                     Column(Modifier.padding(10.dp), verticalArrangement = Arrangement.spacedBy(20.dp)) {
-                                        AssistChip(
-                                            { show_info = !show_info },
-                                            {
-                                                Text(getString(R.string.artist_info_label), style = MaterialTheme.typography.labelLarge)
-                                            },
-                                            leadingIcon = {
-                                                Icon(Icons.Outlined.Info, null)
-                                            },
-                                            colors = AssistChipDefaults.assistChipColors(
-                                                containerColor = MainActivity.theme.getBackground(false),
-                                                labelColor = MainActivity.theme.getOnBackground(false),
-                                                leadingIconContentColor = accent_colour
+                                        Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.SpaceBetween) {
+                                            AssistChip(
+                                                { show_info = !show_info },
+                                                {
+                                                    Text(getString(R.string.artist_info_label), style = MaterialTheme.typography.labelLarge)
+                                                },
+                                                leadingIcon = {
+                                                    Icon(Icons.Outlined.Info, null)
+                                                },
+                                                colors = AssistChipDefaults.assistChipColors(
+                                                    containerColor = MainActivity.theme.getBackground(false),
+                                                    labelColor = MainActivity.theme.getOnBackground(false),
+                                                    leadingIconContentColor = accent_colour
+                                                )
                                             )
-                                        )
+
+                                            if (can_expand) {
+                                                NoRipple {
+                                                    IconButton(
+                                                        { expanded = !expanded }
+                                                    ) {
+                                                        Icon(if (expanded) Icons.Filled.ArrowDropUp else Icons.Filled.ArrowDropDown,null)
+                                                    }
+                                                }
+                                            }
+                                        }
 
                                         LinkifyText(
                                             description,
                                             MainActivity.theme.getOnBackground(false).setAlpha(0.8),
                                             MainActivity.theme.getOnBackground(false),
-                                            MaterialTheme.typography.bodyMedium
+                                            MaterialTheme.typography.bodyMedium,
+                                            Modifier
+                                                .onSizeChanged { size ->
+                                                    if (size.height == small_text_height_px) {
+                                                        can_expand = true
+                                                    }
+                                                }
+                                                .animateContentSize()
+                                                .then(
+                                                    if (expanded) Modifier else Modifier.height(200.dp)
+                                                )
                                         )
                                     }
                                 }
                             }
+
+                            Spacer(Modifier.requiredHeight(50.dp))
                         }
                     }
                 }
@@ -311,7 +396,12 @@ fun LinkifyText(
             )
         }
     }
-    Text(text = annotatedString, color = colour, style = style, modifier = modifier.pointerInput(Unit) {
+    Text(
+        text = annotatedString,
+        color = colour,
+        style = style,
+        overflow = TextOverflow.Ellipsis,
+        modifier = modifier.pointerInput(Unit) {
         detectTapGestures { offsetPosition ->
             layoutResult.value?.let {
                 val position = it.getOffsetForPosition(offsetPosition)

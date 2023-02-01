@@ -1,11 +1,18 @@
 package com.spectre7.spmp.model
 
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import com.spectre7.spmp.api.BrowseData
+import com.spectre7.spmp.api.isSubscribedToArtist
+import com.spectre7.spmp.api.subscribeOrUnsubscribeArtist
 import com.spectre7.spmp.ui.component.ArtistPreviewLong
 import com.spectre7.spmp.ui.component.ArtistPreviewSquare
+import com.spectre7.utils.sendToast
+import kotlin.concurrent.thread
 
 class Artist private constructor (
     id: String
@@ -15,6 +22,9 @@ class Artist private constructor (
     lateinit var name: String
     var description: String? = null
     lateinit var feed_rows: List<MediaItemRow>
+    lateinit var subscribe_channel_id: String
+
+    var subscribed: Boolean? by mutableStateOf(null)
 
     companion object {
         private val artists: MutableMap<String, Artist> = mutableMapOf()
@@ -52,11 +62,12 @@ class Artist private constructor (
             throw ClassCastException(data.javaClass.name)
         }
 
-        name = data.name
+        name = data.name!!
         description = data.description
         feed_rows = List(data.feed_rows.size) { i ->
             data.feed_rows[i].toMediaItemRow()
         }
+        subscribe_channel_id = data.subscribe_channel_id ?: id
     }
 
     fun getFormattedSubscriberCount(): String {
@@ -71,6 +82,30 @@ class Artist private constructor (
 //        else {
 //            return "$subs"
 //        }
+    }
+
+    fun toggleSubscribe(toggle_before_fetch: Boolean = false, notify_failure: Boolean = false) {
+        thread {
+            if (subscribed == null) {
+                throw IllegalStateException()
+            }
+
+            val target = !subscribed!!
+
+            if (toggle_before_fetch) {
+                subscribed = target
+            }
+
+            subscribeOrUnsubscribeArtist(this, target).getDataOrThrow()
+            subscribed = isSubscribedToArtist(this).getNullableDataOrThrow()
+
+            if (notify_failure && subscribed != target) {
+                sendToast(
+                    if (target) "Subscribing to $name failed"
+                    else        "Unsubscribed from $name failed"
+                )
+            }
+        }
     }
 
 }

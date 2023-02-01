@@ -3,9 +3,13 @@ package com.spectre7.spmp.api
 import com.beust.klaxon.JsonObject
 import com.beust.klaxon.Klaxon
 import com.spectre7.spmp.MainActivity
-import okhttp3.*
+import net.openid.appauth.AuthorizationException
+import okhttp3.Headers
 import okhttp3.MediaType.Companion.toMediaType
+import okhttp3.OkHttpClient
+import okhttp3.RequestBody
 import okhttp3.RequestBody.Companion.toRequestBody
+import okhttp3.Response
 
 const val DATA_API_USER_AGENT = "Mozilla/5.0 (X11; Linux x86_64; rv:105.0) Gecko/20100101 Firefox/105.0"
 
@@ -19,15 +23,20 @@ class Result<T> private constructor() {
     private var _data: T? = null
     private var _exception: Throwable? = null
 
+    val nullable_data: T? get() = _data
     val data: T get() = _data!!
     val exception: Throwable get() = _exception!!
     val success: Boolean get() = _exception == null
 
     fun getDataOrThrow(): T {
+        return getNullableDataOrThrow()!!
+    }
+
+    fun getNullableDataOrThrow(): T? {
         if (!success) {
             throw exception
         }
-        return data
+        return nullable_data
     }
 
     companion object {
@@ -57,15 +66,15 @@ internal fun getYTMHeaders(): Headers {
     headers.add("accept", "*/*")
     headers.add("accept-language", "en")
     headers.add("content-type", "application/json")
-    headers.add("x-goog-visitor-id", "Cgt1TjR0ckUtOVNXOCiKnOmaBg%3D%3D")
+    headers.add("x-goog-visitor-id", "CgtTeVhTTl94clQ2YyimgumeBg%3D%3D")
     headers.add("x-youtube-client-name", "67")
     headers.add("x-youtube-client-version", "1.20221019.01.00")
-    headers.add("authorization", "SAPISIDHASH 1666862603_ad3286857ed8177c1e0f0f16fc678aaff93ad310")
     headers.add("x-goog-authuser", "1")
     headers.add("x-origin", "https://music.youtube.com")
     headers.add("origin", "https://music.youtube.com")
     headers.add("alt-used", "music.youtube.com")
     headers.add("connection", "keep-alive")
+    headers.add("authorization", "SAPISIDHASH 1675248141_d44fbb5137d2b0b742935593e96ccb67b3b5c37b")
     headers.add("cookie", "***REMOVED***")
     headers.add("sec-fetch-dest", "empty")
     headers.add("sec-fetch-mode", "same-origin")
@@ -108,27 +117,54 @@ internal fun getYoutubeiRequestBody(body: String? = null): RequestBody {
     return klaxon.toJsonString(final_body).toRequestBody("application/json".toMediaType())
 }
 
-//internal fun convertBrowseId(browse_id: String): Result<String> {
-//    if (!browse_id.startsWith("MPREb_")) {
-//        return Result.success(browse_id)
-//    }
-//
-//    val request = Request.Builder()
-//        .url("https://music.youtube.com/browse/$browse_id")
-//        .header("Cookie", "CONSENT=YES+1")
-//        .header("User-Agent", DATA_API_USER_AGENT)
-//        .build()
-//
-//    val result = client.newCall(request).execute()
-//    if (result.code != 200) {
-//        return Result.failure(result)
-//    }
-//
-//    val text = result.body!!.string()
-//
-//    val target = "urlCanonical\\x22:\\x22https:\\/\\/music.youtube.com\\/playlist?list\\x3d"
-//    val start = text.indexOf(target) + target.length
-//    val end = text.indexOf("\\", start + 1)
-//
-//    return Result.success(text.substring(start, end))
-//}
+fun getApiAuthHeaders(callback: (header: Headers) -> Unit) {
+    getAuthToken { token ->
+        callback(Headers.Builder().add("Authorization", "Bearer $token").build())
+    }
+}
+
+fun getAuthToken(callback: (String) -> Unit) {
+    val auth_state = MainActivity.auth_state
+    val auth_service = MainActivity.auth_service
+
+    fun onFinished() {
+        auth_state.performActionWithFreshTokens(auth_service) { token: String?, id: String?, exception: AuthorizationException? ->
+            if (exception != null) {
+                throw exception
+            }
+            callback(token!!)
+        }
+    }
+
+    fun requestToken() {
+        auth_service.performTokenRequest(
+            auth_state.lastAuthorizationResponse!!.createTokenExchangeRequest()
+        ) { response, exception ->
+            if (exception != null) {
+                throw exception
+            }
+
+            auth_state.update(response, null)
+            MainActivity.saveAuthState()
+
+            onFinished()
+        }
+    }
+
+    if (auth_state.refreshToken == null) {
+        MainActivity.startAuthLogin { exception ->
+            if (exception != null) {
+                throw exception
+            }
+            requestToken()
+        }
+        return
+    }
+
+    if (auth_state.needsTokenRefresh) {
+        requestToken()
+        return
+    }
+
+    onFinished()
+}

@@ -51,7 +51,7 @@ class Playlist private constructor (
             throw ClassCastException(data.javaClass.name)
         }
 
-        title = data.name
+        title = data.name!!
         feed_rows = List(data.feed_rows.size) { i ->
             data.feed_rows[i].toMediaItemRow()
         }

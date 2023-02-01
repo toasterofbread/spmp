@@ -59,7 +59,7 @@
     <string name="action_share">共有</string>
     <string name="artist_chip_details">情報</string>
     <string name="artist_chip_play">再生</string>
-    <string name="artist_chip_radio">シャッフル</string>
-    <string name="artist_chip_shuffle">ラジオを聴く</string>
+    <string name="artist_chip_radio">ラジオ</string>
+    <string name="artist_chip_shuffle">シャッフル</string>
     <string name="artist_chip_open">開く</string>
 </resources>

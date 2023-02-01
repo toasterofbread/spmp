@@ -42,11 +42,14 @@ abstract class MediaItem(id: String) {
     }
 
     fun replaceWithItemWithId(new_id: String): MediaItem {
-        if (id == new_id) {
+        if (_id == new_id) {
             return this
         }
 
         if (replaced_with != null) {
+            if (replaced_with!!.getOrReplacedWith()._id == new_id) {
+                return replaced_with!!.getOrReplacedWith()
+            }
             throw IllegalStateException()
         }
 
@@ -331,7 +334,7 @@ abstract class MediaItem(id: String) {
 
     fun loadData(): MediaItem {
         if (load_status == LoadStatus.LOADED) {
-            return this
+            return getOrReplacedWith()
         }
 
         val result = loadMediaItemData(this)

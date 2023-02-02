@@ -26,11 +26,11 @@ fun isSubscribedToArtist(artist: Artist): Result<Boolean?> {
     var ret: Result<Boolean?>? = null
 
     reader.beginObject()
-    next(reader, "header", false) {
-        next(reader, null, false) {
-            next(reader, "subscriptionButton", false, true) {
-                next(reader, "subscribeButtonRenderer", false) {
-                    next(reader, "subscribed", null) {
+    reader.next("header", false) {
+        reader.next(null, false) {
+            reader.next("subscriptionButton", false, true) {
+                reader.next("subscribeButtonRenderer", false) {
+                    reader.next("subscribed", null) {
                         ret = Result.success(reader.nextBoolean())
                     }
                 }

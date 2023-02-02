@@ -41,40 +41,44 @@ class BrowseData {
     }
 }
 
-fun next(reader: JsonReader, key: String, is_array: Boolean?, allow_none: Boolean = false, action: (key: String) -> Unit) {
-    return next(reader, listOf(key), is_array, allow_none, action)
-}
-
-fun next(reader: JsonReader, keys: List<String>?, is_array: Boolean?, allow_none: Boolean = false, action: (key: String) -> Unit) {
+fun JsonReader.next(keys: List<String>?, is_array: Boolean?, allow_none: Boolean = false, action: (key: String) -> Unit) {
     var found = false
 
-    while (reader.hasNext()) {
-        val name = reader.nextName()
+    while (hasNext()) {
+        val name = nextName()
         if (!found && (keys == null || keys.isEmpty() || keys.contains(name))) {
             found = true
 
             when (is_array) {
-                true -> reader.beginArray()
-                false -> reader.beginObject()
+                true -> beginArray()
+                false -> beginObject()
                 else -> {}
             }
 
             action(name)
 
             when (is_array) {
-                true -> reader.endArray()
-                false -> reader.endObject()
+                true -> endArray()
+                false -> endObject()
                 else -> {}
             }
         }
         else {
-            reader.skipValue()
+            skipValue()
         }
     }
 
     if (!allow_none && !found) {
         throw RuntimeException("No key within $keys found (array: $is_array)")
     }
+}
+
+fun JsonReader.next(key: String, is_array: Boolean?, allow_none: Boolean = false, action: (key: String) -> Unit) {
+    return reader.next(listOf(key), is_array, allow_none, action)
+}
+
+fun JsonReader.first(is_array: Boolean?, allow_none: Boolean = false, action: (key: String) -> Unit) {
+    return reader.next(null, is_array, allow_none, action)
 }
 
 private fun getActualArtistId(share_entity: String?): Result<String> {
@@ -99,17 +103,17 @@ private fun getActualArtistId(share_entity: String?): Result<String> {
     var new_id: String? = null
 
     reader.beginObject()
-    next(reader, "actions", true) {
+    reader.next("actions", true) {
         while (reader.hasNext()) {
             if (new_id != null) {
                 reader.skipValue()
             }
 
             reader.beginObject()
-            next(reader, "openPopupAction", false) {
-                next(reader, "popup", false) {
-                    next(reader, "unifiedSharePanelRenderer", false) {
-                        next(reader, "contents", true) {
+            reader.next("openPopupAction", false) {
+                reader.next("popup", false) {
+                    reader.next("unifiedSharePanelRenderer", false) {
+                        reader.next("contents", true) {
                             while (reader.hasNext()) {
                                 if (new_id != null) {
                                     reader.skipValue()
@@ -117,10 +121,10 @@ private fun getActualArtistId(share_entity: String?): Result<String> {
                                 }
 
                                 reader.beginObject()
-                                next(reader, "thirdPartyNetworkSection", false) {
-                                    next(reader, "copyLinkContainer", false) {
-                                        next(reader, "copyLinkRenderer", false) {
-                                            next(reader, "shortUrl", null) {
+                                reader.next("thirdPartyNetworkSection", false) {
+                                    reader.next("copyLinkContainer", false) {
+                                        reader.next("copyLinkRenderer", false) {
+                                            reader.next("shortUrl", null) {
                                                 val url = reader.nextString()
                                                 val start = url.lastIndexOf('/') + 1
                                                 new_id = url.substring(start, url.indexOf('?', start))
@@ -247,15 +251,15 @@ class BrowseResponseParser(private val response_body: BufferedReader) {
                 "contents" -> {
                     reader.beginObject()
 
-                    next(reader, "singleColumnBrowseResultsRenderer", false) {
-                        next(reader, "tabs", true) {
+                    reader.next("singleColumnBrowseResultsRenderer", false) {
+                        reader.next("tabs", true) {
                             assert(reader.hasNext())
                             reader.beginObject()
 
-                            next(reader, "tabRenderer", false) {
-                                next(reader, "content", false) {
-                                    next(reader, "sectionListRenderer", false) {
-                                        next(reader, "contents", true) {
+                            reader.next("tabRenderer", false) {
+                                reader.next("content", false) {
+                                    reader.next("sectionListRenderer", false) {
+                                        reader.next("contents", true) {
 
                                             while (reader.hasNext()) {
                                                 reader.beginObject()
@@ -278,8 +282,8 @@ class BrowseResponseParser(private val response_body: BufferedReader) {
                 }
                 "microformat" -> {
                     reader.beginObject()
-                    next(reader, "microformatDataRenderer", false) {
-                        next(reader, "urlCanonical", null) {
+                    reader.next("microformatDataRenderer", false) {
+                        reader.next("urlCanonical", null) {
                             val url = reader.nextString()
                             val id_start = url.indexOf("?list=") + 6
                             val id_end = url.indexOf('&', id_start)
@@ -299,9 +303,9 @@ class BrowseResponseParser(private val response_body: BufferedReader) {
     private fun textRunText(): String? {
         var ret: String? = null
         reader.beginObject()
-        next(reader, "runs", true) {
+        reader.next("runs", true) {
             reader.beginObject()
-            next(reader, "text", null) {
+            reader.next("text", null) {
                 ret = reader.nextString()
             }
             reader.endObject()
@@ -324,9 +328,9 @@ class BrowseResponseParser(private val response_body: BufferedReader) {
                             "thumbnail", "foregroundThumbnail" -> {
                                 reader.beginObject()
 
-                                next(reader, listOf("musicThumbnailRenderer", "croppedSquareThumbnailRenderer"), false) {
-                                    next(reader, "thumbnail", false) {
-                                        next(reader, "thumbnails", true) {
+                                reader.next(listOf("musicThumbnailRenderer", "croppedSquareThumbnailRenderer"), false) {
+                                    reader.next("thumbnail", false) {
+                                        reader.next("thumbnails", true) {
                                             var thumbnails: MutableList<MediaItem.ThumbnailProvider.Thumbnail>? = null
 
                                             while (reader.hasNext()) {
@@ -379,8 +383,8 @@ class BrowseResponseParser(private val response_body: BufferedReader) {
                             }
                             "shareEndpoint" -> {
                                 reader.beginObject()
-                                next(reader, "shareEntityEndpoint", false) {
-                                    next(reader, "serializedShareEntity", null) {
+                                reader.next("shareEntityEndpoint", false) {
+                                    reader.next("serializedShareEntity", null) {
                                         data.id_replace = getActualArtistId(reader.nextString()).getDataOrThrow()
                                     }
                                 }
@@ -388,14 +392,14 @@ class BrowseResponseParser(private val response_body: BufferedReader) {
                             }
                             "subscriptionButton" -> {
                                 reader.beginObject()
-                                next(reader, "subscribeButtonRenderer", false) {
-                                    next(reader, "serviceEndpoints", true) {
+                                reader.next("subscribeButtonRenderer", false) {
+                                    reader.next("serviceEndpoints", true) {
                                         while (reader.hasNext()) {
                                             reader.beginObject()
                                             while (reader.hasNext()) {
                                                 if (reader.nextName() == "subscribeEndpoint") {
                                                     reader.beginObject()
-                                                    next(reader, "channelIds", true) {
+                                                    reader.next("channelIds", true) {
                                                         while (reader.hasNext()) {
                                                             if (data.subscribe_channel_id == null) {
                                                                 data.subscribe_channel_id = reader.nextString()
@@ -445,7 +449,7 @@ class BrowseResponseParser(private val response_body: BufferedReader) {
                     }
 
                     reader.beginObject()
-                    next(reader, "description", null) {
+                    reader.next("description", null) {
                         description = textRunText()
                     }
                     reader.endObject()
@@ -504,12 +508,12 @@ class BrowseResponseParser(private val response_body: BufferedReader) {
                 "musicTwoRowItemRenderer" -> {
                     reader.beginObject()
 
-                    next(reader, "navigationEndpoint", false) {
+                    reader.next("navigationEndpoint", false) {
                         while (reader.hasNext()) {
                             when (reader.nextName()) {
                                 "watchEndpoint" -> {
                                     reader.beginObject()
-                                    next(reader, "videoId", null) {
+                                    reader.next("videoId", null) {
                                         ret = Song.serialisable(reader.nextString())
                                     }
                                     reader.endObject()
@@ -544,8 +548,8 @@ class BrowseResponseParser(private val response_body: BufferedReader) {
                 "browseId" -> browse_id = reader.nextString()
                 "browseEndpointContextSupportedConfigs" -> {
                     reader.beginObject()
-                    next(reader, "browseEndpointContextMusicConfig", false) {
-                        next(reader, "pageType", null) {
+                    reader.next("browseEndpointContextMusicConfig", false) {
+                        reader.next("pageType", null) {
                             page_type = reader.nextString()
                         }
                     }
@@ -570,7 +574,7 @@ class BrowseResponseParser(private val response_body: BufferedReader) {
             when (reader.nextName()) {
                 "playlistItemData" -> {
                     reader.beginObject()
-                    next(reader, "videoId", null) {
+                    reader.next("videoId", null) {
                         ret = Song.serialisable(reader.nextString())
                     }
                     reader.endObject()

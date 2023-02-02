@@ -80,12 +80,158 @@ const val VOL_NOTIF_SHOW_DURATION: Long = 1000
 
 class PlayerService : Service() {
 
-    private var _session_started: Boolean by mutableStateOf(false)
+    lateinit var player: ExoPlayer
+
     val session_started: Boolean get() = _session_started
+
+    var active_queue_index: Int by mutableStateOf(0)
+    fun updateActiveQueueIndex(delta: Int) {
+        active_queue_index = (active_queue_index + delta).coerceIn(0, player.mediaItemCount - 1)
+    }
+
+    fun getSong(index: Int): Song? {
+        if (index >= player.mediaItemCount) {
+            return null
+        }
+
+        return when (val tag = player.getMediaItemAt(index).localConfiguration?.tag) {
+            is IndexedValue<*> -> tag.value as Song?
+            is Song? -> tag
+            else -> throw IllegalStateException()
+        }
+    }
+
+    fun getCurrentSong(): Song? {
+        return getSong(player.currentMediaItemIndex)
+    }
+
+    fun playSong(song: Song, add_radio: Boolean = true) {
+        clearQueue()
+
+        addToQueue(song) {
+            if (add_radio) {
+                thread {
+                    val radio = getSongRadio(song.id)
+                    if (!radio.success) {
+                        return@thread
+                    }
+
+                    for (item in radio.data) {
+                        thread {
+                            val radio_song = Song.fromId(item.id).loadData()
+                            for (endpoint in item.browse_endpoints) {
+                                radio_song.addBrowseEndpoint(endpoint.id, endpoint.type)
+                            }
+
+                            MainActivity.runInMainThread {
+                                addToQueue(radio_song as Song)
+                            }
+                        }
+                    }
+                }
+            }
+        }
+    }
+
+    fun clearQueue(keep_current: Boolean = false): List<Pair<Song, Int>> {
+        val ret = mutableListOf<Pair<Song, Int>>()
+        if (keep_current) {
+            var i = 0
+            while (player.currentMediaItemIndex > 0) {
+                ret.add(Pair(getSong(0)!!, i++))
+                removeFromQueue(0)
+            }
+            while (player.mediaItemCount > 1) {
+                ret.add(Pair(getSong(player.mediaItemCount - 1)!!, player.mediaItemCount - 1 + i))
+                removeFromQueue(player.mediaItemCount - 1)
+            }
+        }
+        else {
+            iterateSongs { i, song ->
+                ret.add(Pair(song, i))
+            }
+            player.clearMediaItems()
+            for (listener in queue_listeners) {
+                listener.onCleared()
+            }
+        }
+        return ret.sortedBy {
+            it.second
+        }
+    }
+
+    fun addToQueue(song: Song, index: Int? = null, is_active_queue: Boolean = false, onFinished: ((index: Int) -> Unit)? = null) {
+        val item = ExoMediaItem.Builder().setTag(song).setUri(song.id).build()
+
+        val added_index: Int
+        if (index == null) {
+            player.addMediaItem(item)
+            added_index = player.mediaItemCount - 1
+        }
+        else {
+            player.addMediaItem(index, item)
+            added_index = if (index < player.mediaItemCount) index else player.mediaItemCount - 1
+        }
+
+        if (is_active_queue) {
+            active_queue_index = added_index
+        }
+
+        onSongAdded(song, added_index)
+        addNotificationToPlayer()
+        onFinished?.invoke(added_index)
+    }
+
+    fun addMultipleToQueue(songs: List<Song>, index: Int) {
+        if (songs.isEmpty()) {
+            return
+        }
+
+        for (song in songs.withIndex()) {
+            val item = ExoMediaItem.Builder().setTag(song).setUri(song.value.id).build()
+
+            player.addMediaItem( index + song.index, item)
+            onSongAdded(song.value, if (index + song.index < player.mediaItemCount) index + song.index else player.mediaItemCount - 1)
+        }
+    }
+
+    fun removeFromQueue(index: Int) {
+        val song = getSong(index)!!
+        player.removeMediaItem(index)
+        onSongRemoved(song, index)
+    }
+
+    fun addQueueListener(listener: PlayerServiceHost.PlayerQueueListener) {
+        queue_listeners.add(listener)
+    }
+
+    fun removeQueueListener(listener: PlayerServiceHost.PlayerQueueListener) {
+        queue_listeners.remove(listener)
+    }
+
+    fun play() {
+        if (player.playbackState == Player.STATE_ENDED) {
+            player.seekTo(0)
+        }
+        player.play()
+    }
+
+    fun playPause() {
+        if (player.isPlaying) {
+            player.pause()
+        }
+        else {
+            play()
+        }
+    }
+
+
+    // --- Internal ---
+    
+    private var _session_started: Boolean by mutableStateOf(false)
 
     private var queue_listeners: MutableList<PlayerServiceHost.PlayerQueueListener> = mutableListOf()
 
-    internal lateinit var player: ExoPlayer
     private lateinit var cache: SimpleCache
 
     private val NOTIFICATION_ID = 2
@@ -127,9 +273,6 @@ class PlayerService : Service() {
     )
     private var vol_notif_instance: Int = 0
 
-    var stream_url_loader: Thread? = null
-    var stream_url_load_i: Int = -1
-
     private val binder = PlayerBinder()
     inner class PlayerBinder: Binder() {
         fun getService(): PlayerService = this@PlayerService
@@ -139,12 +282,6 @@ class PlayerService : Service() {
     }
     override fun onUnbind(intent: Intent?): Boolean {
         return super.onUnbind(intent)
-    }
-
-    var active_queue_index: Int by mutableStateOf(0)
-
-    fun updateActiveQueueIndex(delta: Int) {
-        active_queue_index = (active_queue_index + delta).coerceIn(0, player.mediaItemCount - 1)
     }
 
     override fun onCreate() {
@@ -251,7 +388,6 @@ class PlayerService : Service() {
 
         LocalBroadcastManager.getInstance(this).registerReceiver(broadcast_receiver, IntentFilter(PlayerService::class.java.canonicalName))
     }
-
 
     private fun createDataSourceFactory(): DataSource.Factory {
         return ResolvingDataSource.Factory(
@@ -395,142 +531,6 @@ class PlayerService : Service() {
     fun iterateSongs(action: (i: Int, song: Song) -> Unit) {
         for (i in 0 until player.mediaItemCount) {
             action(i, getSong(i)!!)
-        }
-    }
-
-    fun getSong(index: Int): Song? {
-        if (index >= player.mediaItemCount) {
-            return null
-        }
-
-        return when (val tag = player.getMediaItemAt(index).localConfiguration?.tag) {
-            is IndexedValue<*> -> tag.value as Song?
-            is Song? -> tag
-            else -> throw IllegalStateException()
-        }
-    }
-
-    fun getCurrentSong(): Song? {
-        return getSong(player.currentMediaItemIndex)
-    }
-
-    fun playSong(song: Song, add_radio: Boolean = true) {
-        clearQueue()
-
-        addToQueue(song) {
-            if (add_radio) {
-                thread {
-                    val radio = getSongRadio(song.id)
-                    if (!radio.success) {
-                        return@thread
-                    }
-
-                    for (item in radio.data) {
-                        thread {
-                            val radio_song = Song.fromId(item.id).loadData()
-                            for (endpoint in item.browse_endpoints) {
-                                radio_song.addBrowseEndpoint(endpoint.id, endpoint.type)
-                            }
-
-                            MainActivity.runInMainThread {
-                                addToQueue(radio_song as Song)
-                            }
-                        }
-                    }
-                }
-            }
-        }
-    }
-
-    fun clearQueue(keep_current: Boolean = false): List<Pair<Song, Int>> {
-        val ret = mutableListOf<Pair<Song, Int>>()
-        if (keep_current) {
-            var i = 0
-            while (player.currentMediaItemIndex > 0) {
-                ret.add(Pair(getSong(0)!!, i++))
-                removeFromQueue(0)
-            }
-            while (player.mediaItemCount > 1) {
-                ret.add(Pair(getSong(player.mediaItemCount - 1)!!, player.mediaItemCount - 1 + i))
-                removeFromQueue(player.mediaItemCount - 1)
-            }
-        }
-        else {
-            iterateSongs { i, song ->
-                ret.add(Pair(song, i))
-            }
-            player.clearMediaItems()
-            for (listener in queue_listeners) {
-                listener.onCleared()
-            }
-        }
-        return ret.sortedBy {
-            it.second
-        }
-    }
-
-    fun addToQueue(song: Song, index: Int? = null, is_active_queue: Boolean = false, onFinished: ((index: Int) -> Unit)? = null) {
-        val item = ExoMediaItem.Builder().setTag(song).setUri(song.id).build()
-
-        val added_index: Int
-        if (index == null) {
-            player.addMediaItem(item)
-            added_index = player.mediaItemCount - 1
-        }
-        else {
-            player.addMediaItem(index, item)
-            added_index = if (index < player.mediaItemCount) index else player.mediaItemCount - 1
-        }
-
-        if (is_active_queue) {
-            active_queue_index = added_index
-        }
-
-        onSongAdded(song, added_index)
-        addNotificationToPlayer()
-        onFinished?.invoke(added_index)
-    }
-
-    fun addMultipleToQueue(songs: List<Song>, index: Int) {
-        if (songs.isEmpty()) {
-            return
-        }
-
-        for (song in songs.withIndex()) {
-            val item = ExoMediaItem.Builder().setTag(song).setUri(song.value.id).build()
-
-            player.addMediaItem( index + song.index, item)
-            onSongAdded(song.value, if (index + song.index < player.mediaItemCount) index + song.index else player.mediaItemCount - 1)
-        }
-    }
-
-    fun removeFromQueue(index: Int) {
-        val song = getSong(index)!!
-        player.removeMediaItem(index)
-        onSongRemoved(song, index)
-    }
-
-    fun addQueueListener(listener: PlayerServiceHost.PlayerQueueListener) {
-        queue_listeners.add(listener)
-    }
-
-    fun removeQueueListener(listener: PlayerServiceHost.PlayerQueueListener) {
-        queue_listeners.remove(listener)
-    }
-
-    fun play() {
-        if (player.playbackState == Player.STATE_ENDED) {
-            player.seekTo(0)
-        }
-        player.play()
-    }
-
-    fun playPause() {
-        if (player.isPlaying) {
-            player.pause()
-        }
-        else {
-            play()
         }
     }
 

@@ -13,10 +13,10 @@ import okhttp3.Response
 
 const val DATA_API_USER_AGENT = "Mozilla/5.0 (X11; Linux x86_64; rv:105.0) Gecko/20100101 Firefox/105.0"
 
-internal val client = OkHttpClient()
+internal val client: OkHttpClient = OkHttpClient()
 internal val klaxon: Klaxon = Klaxon()
 
-private var base_context: JsonObject? = null
+private var base_youtubei_context: JsonObject? = null
 
 class Result<T> private constructor() {
 
@@ -86,8 +86,8 @@ internal fun getYTMHeaders(): Headers {
 }
 
 internal fun getYoutubeiRequestBody(body: String? = null): RequestBody {
-    if (base_context == null) {
-        base_context = klaxon.parseJsonObject(
+    if (base_youtubei_context == null) {
+        base_youtubei_context = klaxon.parseJsonObject(
             """
             {
                 "context": {
@@ -113,7 +113,7 @@ internal fun getYoutubeiRequestBody(body: String? = null): RequestBody {
         )
     }
 
-    val final_body = if (body != null) base_context!! + klaxon.parseJsonObject(body.reader()) else base_context
+    val final_body = if (body != null) base_youtubei_context!! + klaxon.parseJsonObject(body.reader()) else base_youtubei_context
     return klaxon.toJsonString(final_body).toRequestBody("application/json".toMediaType())
 }
 

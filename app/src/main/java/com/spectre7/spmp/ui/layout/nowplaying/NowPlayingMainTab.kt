@@ -16,10 +16,7 @@ import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.*
 import androidx.compose.material.ripple.rememberRipple
-import androidx.compose.material3.Icon
-import androidx.compose.material3.IconButton
-import androidx.compose.material3.LocalContentColor
-import androidx.compose.material3.Text
+import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
@@ -76,13 +73,22 @@ fun MainTab(
     var theme_palette by remember { mutableStateOf<Palette?>(null) }
     var accent_colour_source by remember { mutableStateOf(AccentColourSource.values()[Settings.prefs.getInt(Settings.KEY_ACCENT_COLOUR_SOURCE.name, 0)]) }
     var theme_mode by remember { mutableStateOf(ThemeMode.values()[Settings.prefs.getInt(Settings.KEY_NOWPLAYING_THEME_MODE.name, 0)]) }
+    var loaded_song: Song? by remember { mutableStateOf(null) }
 
     fun getSongTitle(): String {
-        return PlayerServiceHost.status.song?.title ?: "-----"
+        val song = PlayerServiceHost.status.song
+        if (song == null || !song.loaded) {
+            return ""
+        }
+        return song.title
     }
 
     fun getSongArtist(): String {
-        return PlayerServiceHost.status.song?.artist?.name ?: "---"
+        val song = PlayerServiceHost.status.song
+        if (song == null || !song.loaded || !song.artist.loaded) {
+            return ""
+        }
+        return song.artist.name
     }
 
     val prefs_listener = remember {
@@ -156,15 +162,21 @@ fun MainTab(
                 theme_colour = null
             }
         }
+
+        loaded_song = song
     }
 
-    LaunchedEffect(PlayerServiceHost.status.m_song) {
+    LaunchedEffect(PlayerServiceHost.status.m_song, PlayerServiceHost.status.m_song?.loaded) {
         val song = PlayerServiceHost.status.song
+        if (loaded_song == song) {
+            return@LaunchedEffect
+        }
 
-        if (song == null) {
+        if (song == null || !song.loaded) {
             _setThumbnail(null)
             theme_palette = null
             theme_colour = null
+            loaded_song = null
         }
         else if (song.isThumbnailLoaded(MediaItem.ThumbnailQuality.HIGH)) {
             loadThumbnail(song)
@@ -200,7 +212,12 @@ fun MainTab(
 
         Box(Modifier.aspectRatio(1f)) {
             Crossfade(thumbnail, animationSpec = tween(250)) { image ->
-                if (image != null) {
+                if (image == null) {
+                    Box(Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
+                        CircularProgressIndicator(color = MainActivity.theme.getAccent())
+                    }
+                }
+                else {
                     var image_size by remember { mutableStateOf(IntSize(1, 1)) }
                     Image(
                         image, null,
@@ -325,7 +342,9 @@ fun MainTab(
                             verticalArrangement = Arrangement.SpaceBetween
                         ) {
                             Column(
-                                Modifier.fillMaxHeight().weight(1f),
+                                Modifier
+                                    .fillMaxHeight()
+                                    .weight(1f),
                                 horizontalAlignment = Alignment.CenterHorizontally,
                                 verticalArrangement = Arrangement.Center
                             ) {
@@ -480,7 +499,9 @@ fun MainTab(
                             .fillMaxWidth()
                             .animateContentSize()
                             .clickable {
-                                onMediaItemClicked(PlayerServiceHost.status.song!!.artist)
+                                if (PlayerServiceHost.status.song?.loaded == true) {
+                                    onMediaItemClicked(PlayerServiceHost.status.song!!.artist)
+                                }
                             }
                     )
 

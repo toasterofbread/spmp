@@ -31,6 +31,7 @@ import androidx.lifecycle.Lifecycle
 import com.beust.klaxon.JsonObject
 import com.beust.klaxon.Klaxon
 import com.google.android.exoplayer2.database.StandaloneDatabaseProvider
+import com.spectre7.spmp.api.DataApi
 import com.spectre7.spmp.api.subscribeOrUnsubscribeArtist
 import com.spectre7.spmp.model.Artist
 import com.spectre7.spmp.model.Cache
@@ -90,6 +91,7 @@ class MainActivity : ComponentActivity() {
         database = StandaloneDatabaseProvider(this)
 
         PlayerServiceHost()
+        DataApi.initialise()
 
         window.setFlags(
             WindowManager.LayoutParams.FLAG_LAYOUT_NO_LIMITS,
@@ -197,14 +199,14 @@ class MainActivity : ComponentActivity() {
         val error_manager = ErrorManager()
         val database get() = context.database
 
-        val auth_state: AuthState get() = context.auth_state
-        val auth_service: AuthorizationService get() = context.auth_service
-        fun saveAuthState() {
-            context.saveAuthState(auth_state)
-        }
-        fun startAuthLogin(onFinished: (exception: AuthorizationException?) -> Unit) {
-            context.auth_activity_launcher.launch(onFinished)
-        }
+//        val auth_state: AuthState get() = context.auth_state
+//        val auth_service: AuthorizationService get() = context.auth_service
+//        fun saveAuthState() {
+//            context.saveAuthState(auth_state)
+//        }
+//        fun startAuthLogin(onFinished: (exception: AuthorizationException?) -> Unit) {
+//            context.auth_activity_launcher.launch(onFinished)
+//        }
 
         val ui_language: String get() = languages.keys.elementAt(Settings.get(Settings.KEY_LANG_UI))
         val data_language: String get() = languages.keys.elementAt(Settings.get(Settings.KEY_LANG_DATA))

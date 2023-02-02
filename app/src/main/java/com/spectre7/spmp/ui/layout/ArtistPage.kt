@@ -251,7 +251,7 @@ fun ArtistPage(
                                     {
                                         artist.toggleSubscribe(
                                             toggle_before_fetch = true,
-                                            notify_completion = true
+                                            notify_failure = true
                                         )
                                     },
                                     colors = IconButtonDefaults.iconButtonColors(

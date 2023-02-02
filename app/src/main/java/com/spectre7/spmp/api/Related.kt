@@ -14,14 +14,14 @@ private data class RelatedItem(
     class IdItem(val id: String)
 }
 
-fun getMediaItemRelated(item: MediaItem): Result<List<List<RelatedGroup<MediaItem>>>> {
+fun getMediaItemRelated(item: MediaItem): DataApi.Result<List<List<RelatedGroup<MediaItem>>>> {
 
-    var error: Result<List<List<RelatedGroup<MediaItem>>>>? = null
+    var error: DataApi.Result<List<List<RelatedGroup<MediaItem>>>>? = null
     fun loadBrowseEndpoint(browse_endpoint: MediaItem.BrowseEndpoint): List<RelatedGroup<MediaItem>>? {
         val request = Request.Builder()
             .url("https://music.youtube.com/youtubei/v1/browse")
-            .headers(getYTMHeaders())
-            .post(getYoutubeiRequestBody(
+            .headers(DataApi.getYTMHeaders())
+            .post(DataApi.getYoutubeiRequestBody(
                 """
             {
                 "browse": "${browse_endpoint.id}"
@@ -30,13 +30,13 @@ fun getMediaItemRelated(item: MediaItem): Result<List<List<RelatedGroup<MediaIte
             ))
             .build()
 
-        val response = client.newCall(request).execute()
+        val response = DataApi.client.newCall(request).execute()
         if (response.code != 200) {
-            error = Result.failure(response)
+            error = DataApi.Result.failure(response)
             return null
         }
 
-        val parsed = klaxon.parseArray<RelatedGroup<RelatedItem>>(response.body!!.charStream())!!
+        val parsed = DataApi.klaxon.parseArray<RelatedGroup<RelatedItem>>(response.body!!.charStream())!!
 
         return List(parsed.size) { i ->
             val group = parsed[i]
@@ -77,5 +77,5 @@ fun getMediaItemRelated(item: MediaItem): Result<List<List<RelatedGroup<MediaIte
         ret.add(loadBrowseEndpoint(endpoint) ?: return error!!)
     }
 
-    return Result.success(ret)
+    return DataApi.Result.success(ret)
 }

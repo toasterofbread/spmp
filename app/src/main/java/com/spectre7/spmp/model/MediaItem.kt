@@ -165,10 +165,11 @@ abstract class MediaItem(id: String) {
         LOADED
     }
 
-    private var _load_status: LoadStatus = LoadStatus.NOT_LOADED
+    private var _load_status: LoadStatus by mutableStateOf(LoadStatus.NOT_LOADED)
     var load_status: LoadStatus
         get() = _load_status
         private set(value) { _load_status = value }
+    val loaded: Boolean get() = _load_status == LoadStatus.LOADED
 
     private val _loading_lock = Object()
     val loading_lock: Object get() = getOrReplacedWith()._loading_lock
@@ -284,6 +285,8 @@ abstract class MediaItem(id: String) {
     }
 
     fun loadThumbnail(quality: ThumbnailQuality): Bitmap? {
+        assert(loaded)
+
         val state = thumb_states[quality]!!
         synchronized(state) {
             if (state.loading) {

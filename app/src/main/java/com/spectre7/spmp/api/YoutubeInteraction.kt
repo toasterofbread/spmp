@@ -4,26 +4,26 @@ import android.util.JsonReader
 import com.spectre7.spmp.model.Artist
 import okhttp3.Request
 
-fun isSubscribedToArtist(artist: Artist): Result<Boolean?> {
+fun isSubscribedToArtist(artist: Artist): DataApi.Result<Boolean?> {
     val request: Request = Request.Builder()
         .url("https://music.youtube.com/youtubei/v1/browse")
-        .headers(getYTMHeaders())
-        .post(getYoutubeiRequestBody("""
+        .headers(DataApi.getYTMHeaders())
+        .post(DataApi.getYoutubeiRequestBody("""
                     {
                         "browseId": "${artist.id}"
                     }
                 """))
         .build()
 
-    val response = client.newCall(request).execute()
+    val response = DataApi.client.newCall(request).execute()
     if (response.code != 200) {
-        return Result.failure(response)
+        return DataApi.Result.failure(response)
     }
 
     val stream = response.body!!.charStream()
     val reader = JsonReader(stream)
 
-    var ret: Result<Boolean?>? = null
+    var ret: DataApi.Result<Boolean?>? = null
 
     reader.beginObject()
     reader.next("header", false) {
@@ -31,7 +31,7 @@ fun isSubscribedToArtist(artist: Artist): Result<Boolean?> {
             reader.next("subscriptionButton", false, true) {
                 reader.next("subscribeButtonRenderer", false) {
                     reader.next("subscribed", null) {
-                        ret = Result.success(reader.nextBoolean())
+                        ret = DataApi.Result.success(reader.nextBoolean())
                     }
                 }
             }
@@ -42,24 +42,24 @@ fun isSubscribedToArtist(artist: Artist): Result<Boolean?> {
     stream.close()
     reader.close()
 
-    return ret ?: Result.success(null)
+    return ret ?: DataApi.Result.success(null)
 }
 
-fun subscribeOrUnsubscribeArtist(artist: Artist, subscribe: Boolean): Result<Unit> {
+fun subscribeOrUnsubscribeArtist(artist: Artist, subscribe: Boolean): DataApi.Result<Unit> {
     val request: Request = Request.Builder()
         .url("https://music.youtube.com/youtubei/v1/subscription/${if (subscribe) "subscribe" else "unsubscribe"}")
-        .headers(getYTMHeaders())
-        .post(getYoutubeiRequestBody("""
+        .headers(DataApi.getYTMHeaders())
+        .post(DataApi.getYoutubeiRequestBody("""
             {
                 "channelIds": ["${artist.subscribe_channel_id}"]
             }
         """))
         .build()
 
-    val response = client.newCall(request).execute()
+    val response = DataApi.client.newCall(request).execute()
     if (response.code != 200) {
-        return Result.failure(response)
+        return DataApi.Result.failure(response)
     }
 
-    return Result.success(Unit)
+    return DataApi.Result.success(Unit)
 }

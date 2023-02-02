@@ -12,12 +12,21 @@ import androidx.compose.runtime.setValue
 import com.google.android.exoplayer2.ExoPlayer
 import com.google.android.exoplayer2.MediaItem
 import com.google.android.exoplayer2.Player
+import com.google.android.exoplayer2.MediaItem as ExoMediaItem
 import com.spectre7.spmp.model.Song
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.runBlocking
 import kotlin.concurrent.thread
 
 enum class SERVICE_INTENT_ACTIONS { STOP, BUTTON_VOLUME }
+
+fun ExoMediaItem.LocalConfiguration.getSong(): Song? {
+    return when (val tag = tag) {
+        is IndexedValue<*> -> tag.value as Song?
+        is Song? -> tag
+        else -> throw IllegalStateException()
+    }
+}
 
 class PlayerServiceHost {
 
@@ -42,7 +51,7 @@ class PlayerServiceHost {
         val position: Float get() = player.currentPosition.toFloat() / player.duration.toFloat()
         val position_seconds: Float get() = player.currentPosition / 1000f
         val duration: Float get() = player.duration / 1000f
-        val song: Song? get() = player.currentMediaItem?.localConfiguration?.tag as Song?
+        val song: Song? get() = player.currentMediaItem?.localConfiguration?.getSong()
         val index: Int get() = player.currentMediaItemIndex
         val shuffle: Boolean get() = player.shuffleModeEnabled
         val repeat_mode: Int get() = player.repeatMode
@@ -79,7 +88,7 @@ class PlayerServiceHost {
                     media_item: MediaItem?,
                     reason: Int
                 ) {
-                    m_song = media_item?.localConfiguration?.tag as Song?
+                    m_song = media_item?.localConfiguration?.getSong()
                 }
 
                 override fun onIsPlayingChanged(is_playing: Boolean) {
@@ -97,14 +106,15 @@ class PlayerServiceHost {
                 override fun onEvents(player: Player, events: Player.Events) {
                     m_has_previous = player.hasPreviousMediaItem()
                     m_has_next = player.hasNextMediaItem()
-                    m_index = player.currentMediaItemIndex
                     m_duration = duration
+                    m_index = player.currentMediaItemIndex
                 }
             })
 
             service.iterateSongs { _, song ->
                 m_queue.add(song)
             }
+
             thread {
                 runBlocking {
                     while (true) {

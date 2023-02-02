@@ -104,26 +104,26 @@ data class ContentsItem(val musicTwoRowItemRenderer: MusicTwoRowItemRenderer? = 
     }
 }
 
-fun getHomeFeed(min_rows: Int = -1, allow_cached: Boolean = true): Result<List<HomeFeedRow>> {
+fun getHomeFeed(min_rows: Int = -1, allow_cached: Boolean = true): DataApi.Result<List<HomeFeedRow>> {
 
-    fun postRequest(ctoken: String?): Result<BufferedReader> {
+    fun postRequest(ctoken: String?): DataApi.Result<BufferedReader> {
         val url = "https://music.youtube.com/youtubei/v1/browse"
         val request = Request.Builder()
             .url(if (ctoken == null) url else "$url?ctoken=$ctoken&continuation=$ctoken&type=next")
-            .headers(getYTMHeaders())
-            .post(getYoutubeiRequestBody())
+            .headers(DataApi.getYTMHeaders())
+            .post(DataApi.getYoutubeiRequestBody())
             .build()
 
-        val response = client.newCall(request).execute()
+        val response = DataApi.client.newCall(request).execute()
         if (response.code != 200) {
-            return Result.failure(response)
+            return DataApi.Result.failure(response)
         }
 
-        return Result.success(BufferedReader(response.body!!.charStream()))
+        return DataApi.Result.success(BufferedReader(response.body!!.charStream()))
     }
 
     fun parseResponse(ctoken: String?, response_reader: BufferedReader): JsonObject {
-        val parsed = klaxon.parseJsonObject(response_reader)
+        val parsed = DataApi.klaxon.parseJsonObject(response_reader)
         response_reader.close()
 
         if (ctoken != null) {
@@ -175,7 +175,7 @@ fun getHomeFeed(min_rows: Int = -1, allow_cached: Boolean = true): Result<List<H
     if (response_reader == null) {
         val result = postRequest(null)
         if (!result.success) {
-            return Result.failure(result.exception)
+            return DataApi.Result.failure(result.exception)
         }
 
         response_reader = result.data
@@ -186,7 +186,7 @@ fun getHomeFeed(min_rows: Int = -1, allow_cached: Boolean = true): Result<List<H
     }
 
     data = parseResponse(null, response_reader)
-    rows = processRows(klaxon.parseFromJsonArray(data.array<JsonObject>("contents")!!)!!).toMutableList()
+    rows = processRows(DataApi.klaxon.parseFromJsonArray(data.array<JsonObject>("contents")!!)!!).toMutableList()
 
     while (min_rows >= 1 && rows.size < min_rows) {
         val ctoken = data
@@ -198,11 +198,11 @@ fun getHomeFeed(min_rows: Int = -1, allow_cached: Boolean = true): Result<List<H
 
         val result = postRequest(ctoken)
         if (!result.success) {
-            return Result.failure(result.exception)
+            return DataApi.Result.failure(result.exception)
         }
         data = parseResponse(ctoken, result.data)
-        rows.addAll(processRows(klaxon.parseFromJsonArray(data.array<JsonObject>("contents")!!)!!))
+        rows.addAll(processRows(DataApi.klaxon.parseFromJsonArray(data.array<JsonObject>("contents")!!)!!))
     }
 
-    return Result.success(rows)
+    return DataApi.Result.success(rows)
 }

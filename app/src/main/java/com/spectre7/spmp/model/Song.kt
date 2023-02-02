@@ -13,7 +13,7 @@ import androidx.core.content.edit
 import com.beust.klaxon.Json
 import com.beust.klaxon.Klaxon
 import com.spectre7.spmp.R
-import com.spectre7.spmp.api.VideoData
+import com.spectre7.spmp.api.VideoDetails
 import com.spectre7.spmp.api.YoutubeVideoFormat
 import com.spectre7.spmp.api.getVideoFormats
 import com.spectre7.spmp.api.getSongLyrics
@@ -143,16 +143,14 @@ class Song private constructor (
 
     private lateinit var _title: String
     lateinit var artist: Artist
-    lateinit var duration: Duration
 
     override fun subInitWithData(data: Any) {
-        if (data !is VideoData) {
+        if (data !is VideoDetails) {
             throw ClassCastException(data.javaClass.name)
         }
 
-        _title = data.videoDetails.title
-        artist = Artist.fromId(data.videoDetails.channelId).loadData() as Artist
-        duration = Duration.ofSeconds(data.videoDetails.lengthSeconds.toLong())
+        _title = data.title
+        artist = Artist.fromId(data.channel_id).loadData() as Artist
     }
 
     var theme_colour: Color?
@@ -391,23 +389,21 @@ class Song private constructor (
     }
 
     override fun downloadThumbnail(quality: ThumbnailQuality): Bitmap {
-        when (quality) {
-            ThumbnailQuality.HIGH -> {
-                try {
-                    return BitmapFactory.decodeStream(URL("https://img.youtube.com/vi/$id/maxresdefault.jpg").openConnection().getInputStream())!!
-                }
-                catch (e: FileNotFoundException) {
-                    val image = BitmapFactory.decodeStream(URL(getThumbUrl(quality)).openConnection().getInputStream())!!
-
-                    // Crop image to 16:9
-                    val height = (image.width * (9f/16f)).toInt()
-                    return Bitmap.createBitmap(image, 0, (image.height - height) / 2, image.width, height)
-                }
+        lateinit var image: Bitmap
+        try {
+            val filename = when (quality) {
+                ThumbnailQuality.LOW -> "0"
+                ThumbnailQuality.HIGH -> "maxresdefault"
             }
-            ThumbnailQuality.LOW -> {
-                return BitmapFactory.decodeStream(URL(getThumbUrl(quality)).openConnection().getInputStream())!!
-            }
+            image = BitmapFactory.decodeStream(URL(getThumbUrl(quality) ?: "https://img.youtube.com/vi/$id/$filename.jpg").openConnection().getInputStream())!!
         }
+        catch (e: FileNotFoundException) {
+            image = BitmapFactory.decodeStream(URL("https://img.youtube.com/vi/$id/0.jpg").openConnection().getInputStream())!!
+        }
+
+        // Crop image to 16:9
+        val height = (image.width * (9f/16f)).toInt()
+        return Bitmap.createBitmap(image, 0, (image.height - height) / 2, image.width, height)
     }
 
     @Composable

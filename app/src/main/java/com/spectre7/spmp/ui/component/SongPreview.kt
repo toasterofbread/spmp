@@ -100,36 +100,41 @@ fun SongPreviewLong(
                 onLongClick = onLongClick
             )
     ) {
-        LongPressIconMenu(
-            showing = show_popup,
-            onDismissRequest = {
-                show_popup = false
-            },
-            media_item = song,
-            _thumb_size = 40.dp,
-            thumb_shape = RoundedCornerShape(20),
-            actions = longPressPopupActions
-        )
-
-        Column(
-            Modifier
-                .padding(10.dp)
-                .fillMaxWidth(0.9f)) {
-            Text(
-                song.title,
-                fontSize = 15.sp,
-                color = content_colour,
-                maxLines = 1,
-                overflow = TextOverflow.Ellipsis
+        if (!song.loaded) {
+            CircularProgressIndicator(color = content_colour)
+        }
+        else {
+            LongPressIconMenu(
+                showing = show_popup,
+                onDismissRequest = {
+                    show_popup = false
+                },
+                media_item = song,
+                _thumb_size = 40.dp,
+                thumb_shape = RoundedCornerShape(20),
+                actions = longPressPopupActions
             )
 
-            Text(
-                song.artist.name,
-                fontSize = 11.sp,
-                color = content_colour.setAlpha(0.5),
-                maxLines = 1,
-                overflow = TextOverflow.Ellipsis
-            )
+            Column(
+                Modifier
+                    .padding(10.dp)
+                    .fillMaxWidth(0.9f)) {
+                Text(
+                    song.title,
+                    fontSize = 15.sp,
+                    color = content_colour,
+                    maxLines = 1,
+                    overflow = TextOverflow.Ellipsis
+                )
+
+                Text(
+                    song.artist.name,
+                    fontSize = 11.sp,
+                    color = content_colour.setAlpha(0.5),
+                    maxLines = 1,
+                    overflow = TextOverflow.Ellipsis
+                )
+            }
         }
     }
 }
@@ -158,7 +163,11 @@ val longPressPopupActions: @Composable LongPressMenuActionProvider.(MediaItem) -
                 
                 Row(verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(10.dp)) {
                     val button_padding = PaddingValues(0.dp)
-                    val button_modifier = Modifier.size(30.dp).fillMaxHeight().aspectRatio(1f).align(Alignment.CenterVertically)
+                    val button_modifier = Modifier
+                        .size(30.dp)
+                        .fillMaxHeight()
+                        .aspectRatio(1f)
+                        .align(Alignment.CenterVertically)
                     val button_colours = ButtonDefaults.buttonColors(
                         containerColor = accent_colour,
                         contentColor = background_colour

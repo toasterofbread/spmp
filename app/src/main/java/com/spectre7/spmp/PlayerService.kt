@@ -65,14 +65,11 @@ import com.google.android.exoplayer2.upstream.cache.CacheDataSource
 import com.google.android.exoplayer2.upstream.cache.NoOpCacheEvictor
 import com.google.android.exoplayer2.upstream.cache.SimpleCache
 import com.spectre7.spmp.api.DATA_API_USER_AGENT
-import com.spectre7.spmp.api.getSongRadio
-import com.spectre7.spmp.model.MediaItem
-import com.spectre7.spmp.model.Settings
-import com.spectre7.spmp.model.Song
+import com.spectre7.spmp.api.RadioInstance
+import com.spectre7.spmp.model.*
 import com.spectre7.utils.sendToast
 import com.spectre7.utils.setAlpha
-import kotlinx.coroutines.CoroutineScope
-import kotlinx.coroutines.launch
+import kotlinx.coroutines.*
 import kotlin.concurrent.thread
 import kotlin.math.roundToInt
 
@@ -94,42 +91,37 @@ class PlayerService : Service() {
             return null
         }
 
-        return when (val tag = player.getMediaItemAt(index).localConfiguration?.tag) {
-            is IndexedValue<*> -> tag.value as Song?
-            is Song? -> tag
-            else -> throw IllegalStateException()
-        }
+        return player.getMediaItemAt(index).localConfiguration?.getSong()
     }
 
     fun getCurrentSong(): Song? {
-        return getSong(player.currentMediaItemIndex)
+        val song = getSong(player.currentMediaItemIndex)
+        if (song?.loaded == true) {
+            return song
+        }
+        return null
     }
 
-    fun playSong(song: Song, add_radio: Boolean = true) {
+    fun playSong(song: Song, start_radio: Boolean = true) {
         clearQueue()
 
-        addToQueue(song) {
-            if (add_radio) {
-                thread {
-                    val radio = getSongRadio(song.id)
-                    if (!radio.success) {
-                        return@thread
-                    }
+        addToQueue(song)
 
-                    for (item in radio.data) {
-                        thread {
-                            val radio_song = Song.fromId(item.id).loadData()
-                            for (endpoint in item.browse_endpoints) {
-                                radio_song.addBrowseEndpoint(endpoint.id, endpoint.type)
-                            }
+        if (!start_radio) {
+            return
+        }
 
-                            MainActivity.runInMainThread {
-                                addToQueue(radio_song as Song)
-                            }
-                        }
-                    }
-                }
-            }
+        thread {
+            addMultipleToQueueAndLoad(radio.startNewRadio(song), 1, true)
+        }
+    }
+
+    fun continueRadio() {
+        if (!radio.has_continuation) {
+            return
+        }
+        thread {
+            addMultipleToQueueAndLoad(radio.getRadioContinuation(), 1, false)
         }
     }
 
@@ -160,7 +152,7 @@ class PlayerService : Service() {
         }
     }
 
-    fun addToQueue(song: Song, index: Int? = null, is_active_queue: Boolean = false, onFinished: ((index: Int) -> Unit)? = null) {
+    fun addToQueue(song: Song, index: Int? = null, is_active_queue: Boolean = false): Int {
         val item = ExoMediaItem.Builder().setTag(song).setUri(song.id).build()
 
         val added_index: Int
@@ -179,20 +171,48 @@ class PlayerService : Service() {
 
         onSongAdded(song, added_index)
         addNotificationToPlayer()
-        onFinished?.invoke(added_index)
+
+        return added_index
     }
 
-    fun addMultipleToQueue(songs: List<Song>, index: Int) {
+    fun addMultipleToQueue(songs: List<Song>, index: Int = 0, skip_first: Boolean = false) {
         if (songs.isEmpty()) {
             return
         }
 
+        val index_offset = if (skip_first) -1 else 0
         for (song in songs.withIndex()) {
-            val item = ExoMediaItem.Builder().setTag(song).setUri(song.value.id).build()
+            if (skip_first && song.index == 0) {
+                continue
+            }
 
-            player.addMediaItem( index + song.index, item)
-            onSongAdded(song.value, if (index + song.index < player.mediaItemCount) index + song.index else player.mediaItemCount - 1)
+            val item = ExoMediaItem.Builder().setTag(song).setUri(song.value.id).build()
+            val item_index = index + song.index + index_offset
+
+            player.addMediaItem(item_index, item)
+            onSongAdded(song.value, if (item_index < player.mediaItemCount) item_index else player.mediaItemCount - 1)
         }
+
+        addNotificationToPlayer()
+    }
+
+    fun addMultipleToQueueAndLoad(songs: List<Song>, index: Int = 0, skip_first: Boolean = false) {
+        MainActivity.runInMainThread {
+            addMultipleToQueue(songs, index, skip_first)
+        }
+
+        runBlocking { withContext(Dispatchers.IO) { coroutineScope {
+            var skipped = !skip_first
+            for (song in songs) {
+                if (!skipped) {
+                    skipped = true
+                    continue
+                }
+                launch {
+                    song.loadData()
+                }
+            }
+        }}}
     }
 
     fun removeFromQueue(index: Int) {
@@ -227,12 +247,13 @@ class PlayerService : Service() {
 
 
     // --- Internal ---
-    
+
+    private val radio = RadioInstance()
+
+    private lateinit var cache: SimpleCache
     private var _session_started: Boolean by mutableStateOf(false)
 
     private var queue_listeners: MutableList<PlayerServiceHost.PlayerQueueListener> = mutableListOf()
-
-    private lateinit var cache: SimpleCache
 
     private val NOTIFICATION_ID = 2
     private val NOTIFICATION_CHANNEL_ID = "playback_channel"

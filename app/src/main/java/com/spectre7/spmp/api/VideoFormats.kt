@@ -16,7 +16,7 @@ private fun checkUrl(url: String): Boolean {
         .header("User-Agent", DATA_API_USER_AGENT)
         .build()
 
-    val response = client.newCall(request).execute()
+    val response = DataApi.client.newCall(request).execute()
 
     val is_invalid = response.body!!.contentType().toString().startsWith("text/")
     response.close()
@@ -61,7 +61,7 @@ data class YoutubeVideoFormat (
     }
 }
 
-fun getVideoFormats(id: String, selectFormat: (List<YoutubeVideoFormat>) -> YoutubeVideoFormat): Result<YoutubeVideoFormat> {
+fun getVideoFormats(id: String, selectFormat: (List<YoutubeVideoFormat>) -> YoutubeVideoFormat): DataApi.Result<YoutubeVideoFormat> {
 
     val RESPONSE_DATA_START = "ytInitialPlayerResponse = "
     val request = Request.Builder()
@@ -70,41 +70,41 @@ fun getVideoFormats(id: String, selectFormat: (List<YoutubeVideoFormat>) -> Yout
         .header("User-Agent", DATA_API_USER_AGENT)
         .build()
     
-    fun getFormats(itag: Int?): Result<Pair<SignatureCipherDecrypter, List<YoutubeVideoFormat>>> {
-        val response = client.newCall(request).execute()
+    fun getFormats(itag: Int?): DataApi.Result<Pair<SignatureCipherDecrypter, List<YoutubeVideoFormat>>> {
+        val response = DataApi.client.newCall(request).execute()
         if (response.code != 200) {
-            return Result.failure(response)
+            return DataApi.Result.failure(response)
         }
 
         val html = response.body!!.string()
 
         val decrypter_result = SignatureCipherDecrypter.fromPlayerPage(html)
         if (!decrypter_result.success) {
-            return Result.failure(decrypter_result.exception)
+            return DataApi.Result.failure(decrypter_result.exception)
         }
 
         val start = html.indexOf(RESPONSE_DATA_START) + RESPONSE_DATA_START.length
         val end = html.indexOf("};", start) + 1
-        val streaming_data = klaxon.parseJsonObject(html.substring(start, end).reader()).obj("streamingData")!!
+        val streaming_data = DataApi.klaxon.parseJsonObject(html.substring(start, end).reader()).obj("streamingData")!!
 
         if (itag != null) {
             for (group in listOf("adaptiveFormats", "formats")) {
                 for (format in streaming_data.array<JsonObject>(group) ?: listOf()) {
                     if (format.int("itag") == itag) {
-                        return Result.success(Pair(
+                        return DataApi.Result.success(Pair(
                             decrypter_result.data,
-                            listOf(klaxon.parseFromJsonObject(format)!!)
+                            listOf(DataApi.klaxon.parseFromJsonObject(format)!!)
                         ))
                     }
                 }
             }
-            return Result.failure(RuntimeException("$itag | ${klaxon.toJsonString(streaming_data)}"))
+            return DataApi.Result.failure(RuntimeException("$itag | ${DataApi.klaxon.toJsonString(streaming_data)}"))
         }
         else {
-            return Result.success(Pair(
+            return DataApi.Result.success(Pair(
                 decrypter_result.data,
-                klaxon.parseFromJsonArray<YoutubeVideoFormat>(streaming_data.array<JsonObject>("adaptiveFormats")!!)!!
-                + klaxon.parseFromJsonArray(streaming_data.array<JsonObject>("formats")!!)!!
+                DataApi.klaxon.parseFromJsonArray<YoutubeVideoFormat>(streaming_data.array<JsonObject>("adaptiveFormats")!!)!!
+                + DataApi.klaxon.parseFromJsonArray(streaming_data.array<JsonObject>("formats")!!)!!
             ))
         }
     }
@@ -116,7 +116,7 @@ fun getVideoFormats(id: String, selectFormat: (List<YoutubeVideoFormat>) -> Yout
     for (i in 0 until MAX_RETRIES) {
         val result = getFormats(itag)
         if (!result.success) {
-            return Result.failure(result.exception)
+            return DataApi.Result.failure(result.exception)
         }
 
         val (decrypter, formats) = result.data
@@ -127,11 +127,11 @@ fun getVideoFormats(id: String, selectFormat: (List<YoutubeVideoFormat>) -> Yout
         selected_format.stream_url = selected_format.url ?: decrypter.decryptSignatureCipher(selected_format.signatureCipher!!)
 
         if (checkUrl(selected_format.stream_url!!)) {
-            return Result.success(selected_format)
+            return DataApi.Result.success(selected_format)
         }
     }
 
-    return Result.failure(RuntimeException("Could not load formats for video $id after $MAX_RETRIES attempts"))
+    return DataApi.Result.failure(RuntimeException("Could not load formats for video $id after $MAX_RETRIES attempts"))
 }
 
 // Based on https://github.com/wayne931121/youtube_downloader
@@ -199,7 +199,7 @@ class SignatureCipherDecrypter(base_js: String) {
     companion object {
         private var cached_instance: SignatureCipherDecrypter? = null
 
-        fun fromPlayerPage(player_html: String): Result<SignatureCipherDecrypter> {
+        fun fromPlayerPage(player_html: String): DataApi.Result<SignatureCipherDecrypter> {
             val url_start = player_html.indexOf("\"jsUrl\":\"") + 9
             val url_end = player_html.indexOf(".js\"", url_start) + 3
 
@@ -208,17 +208,17 @@ class SignatureCipherDecrypter(base_js: String) {
                 .header("User-Agent", DATA_API_USER_AGENT)
                 .build()
 
-            val response = client.newCall(request).execute()
+            val response = DataApi.client.newCall(request).execute()
             if (response.code != 200) {
-                return Result.failure(response)
+                return DataApi.Result.failure(response)
             }
 
-            return Result.success(SignatureCipherDecrypter(response.body!!.string()))
+            return DataApi.Result.success(SignatureCipherDecrypter(response.body!!.string()))
         }
 
-        fun fromNothing(player_url: String, allow_cached: Boolean = true): Result<SignatureCipherDecrypter> {
+        fun fromNothing(player_url: String, allow_cached: Boolean = true): DataApi.Result<SignatureCipherDecrypter> {
             if (cached_instance != null && allow_cached) {
-                return Result.success(cached_instance!!)
+                return DataApi.Result.success(cached_instance!!)
             }
 
             val request = Request.Builder()
@@ -227,9 +227,9 @@ class SignatureCipherDecrypter(base_js: String) {
                 .header("User-Agent", DATA_API_USER_AGENT)
                 .build()
         
-            val response = client.newCall(request).execute()
+            val response = DataApi.client.newCall(request).execute()
             if (response.code != 200) {
-                return Result.failure(response)
+                return DataApi.Result.failure(response)
             }
 
             val result = fromPlayerPage(response.body!!.string())

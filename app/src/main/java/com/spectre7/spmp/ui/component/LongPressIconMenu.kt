@@ -46,10 +46,13 @@ import com.spectre7.utils.*
 import kotlinx.coroutines.coroutineScope
 import kotlinx.coroutines.launch
 
+const val LONG_PRESS_ICON_MENU_OPEN_ANIM_MS = 200
+
 class LongPressMenuActionProvider(
     val content_colour: Color,
     val accent_colour: Color,
-    val background_colour: Color
+    val background_colour: Color,
+    val player: PlayerViewContext
 ) {
     @Composable
     fun ActionButton(icon: ImageVector, label: String, modifier: Modifier = Modifier, onClick: () -> Unit) =
@@ -76,6 +79,7 @@ fun LongPressIconMenu(
     showing: Boolean,
     onDismissRequest: () -> Unit,
     media_item: MediaItem,
+    player: PlayerViewContext,
     _thumb_size: Dp,
     thumb_shape: Shape,
     actions: @Composable LongPressMenuActionProvider.(MediaItem) -> Unit,
@@ -118,7 +122,6 @@ fun LongPressIconMenu(
         val initial_pos = remember { with (density) { DpOffset(thumb_position!!.x.toDp(), thumb_position!!.y.toDp() - status_bar_height) } }
         val initial_size = remember { with (density) { DpSize(thumb_size!!.width.toDp(), thumb_size!!.height.toDp()) } }
 
-        val anim_duration = 200
         var fully_open by remember { mutableStateOf(false) }
 
         val pos = remember { Animatable(initial_pos, DpOffset.VectorConverter) }
@@ -176,17 +179,17 @@ fun LongPressIconMenu(
 
             coroutineScope {
                 launch {
-                    panel_alpha.animateTo(if (to_target) 1f else 0f, tween(anim_duration))
+                    panel_alpha.animateTo(if (to_target) 1f else 0f, tween(LONG_PRESS_ICON_MENU_OPEN_ANIM_MS))
                 }
 
                 val pos_job = launch {
-                    pos.animateTo(pos_target, tween(anim_duration))
+                    pos.animateTo(pos_target, tween(LONG_PRESS_ICON_MENU_OPEN_ANIM_MS))
                 }
                 val width_job = launch {
-                    width.animateTo(width_target, tween(anim_duration))
+                    width.animateTo(width_target, tween(LONG_PRESS_ICON_MENU_OPEN_ANIM_MS))
                 }
                 val height_job = launch {
-                    height.animateTo(height_target, tween(anim_duration))
+                    height.animateTo(height_target, tween(LONG_PRESS_ICON_MENU_OPEN_ANIM_MS))
                 }
 
                 pos_job.join()
@@ -300,7 +303,7 @@ fun LongPressIconMenu(
 
                         Divider(thickness = Dp.Hairline, color = MainActivity.theme.getOnBackground(false))
 
-                        actions(LongPressMenuActionProvider(MainActivity.theme.getOnBackground(false), accent_colour, MainActivity.theme.getBackground(false)), media_item)
+                        actions(LongPressMenuActionProvider(MainActivity.theme.getOnBackground(false), accent_colour, MainActivity.theme.getBackground(false), player), media_item)
 
                         val share_intent = remember(media_item.url) {
                             Intent.createChooser(Intent().apply {

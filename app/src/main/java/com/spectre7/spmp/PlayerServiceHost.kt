@@ -108,6 +108,10 @@ class PlayerServiceHost {
                     m_has_next = player.hasNextMediaItem()
                     m_duration = duration
                     m_index = player.currentMediaItemIndex
+
+                    if (player.currentMediaItemIndex > service.active_queue_index) {
+                        service.active_queue_index = player.currentMediaItemIndex
+                    }
                 }
             })
 
@@ -183,6 +187,7 @@ class PlayerServiceHost {
     interface PlayerQueueListener {
         fun onSongAdded(song: Song, index: Int)
         fun onSongRemoved(song: Song, index: Int)
+        fun onSongMoved(from: Int, to: Int)
         fun onCleared()
     }
 }

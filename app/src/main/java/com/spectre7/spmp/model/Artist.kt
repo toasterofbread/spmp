@@ -44,13 +44,13 @@ class Artist private constructor (
     }
 
     @Composable
-    override fun PreviewSquare(content_colour: Color, onClick: (() -> Unit)?, onLongClick: (() -> Unit)?, modifier: Modifier) {
-        ArtistPreviewSquare(this, content_colour, modifier, onClick, onLongClick)
+    override fun PreviewSquare(content_colour: Color, player: PlayerViewContext, enable_long_press_menu: Boolean, modifier: Modifier) {
+        ArtistPreviewSquare(this, content_colour, player, enable_long_press_menu, modifier)
     }
 
     @Composable
-    override fun PreviewLong(content_colour: Color, onClick: (() -> Unit)?, onLongClick: (() -> Unit)?, modifier: Modifier) {
-        ArtistPreviewLong(this, content_colour, modifier, onClick, onLongClick)
+    override fun PreviewLong(content_colour: Color, player: PlayerViewContext, enable_long_press_menu: Boolean, modifier: Modifier) {
+        ArtistPreviewLong(this, content_colour, player, enable_long_press_menu, modifier)
     }
 
     override fun _getUrl(): String {

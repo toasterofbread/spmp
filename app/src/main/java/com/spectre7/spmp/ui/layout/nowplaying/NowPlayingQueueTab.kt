@@ -119,6 +119,11 @@ fun QueueTab(weight_modifier: Modifier) {
                     }
                 }
             }
+            override fun onSongMoved(from: Int, to: Int) {
+                song_items = song_items.toMutableList().apply {
+                    add(to, removeAt(from))
+                }
+            }
             override fun onCleared() {
                 song_items = emptyList()
             }
@@ -216,7 +221,7 @@ fun QueueTab(weight_modifier: Modifier) {
                 Button(
                     onClick = {
                         val index = PlayerServiceHost.player.currentMediaItemIndex
-                        val removed: List<Pair<Song, Int>> = PlayerServiceHost.service.clearQueue(PlayerServiceHost.status.m_queue.size > 1)
+                        val removed: List<Pair<Song, Int>> = PlayerServiceHost.service.clearQueue(keep_current = PlayerServiceHost.status.m_queue.size > 1)
                         undo_list.add {
                             val before = mutableListOf<Song>()
                             val after = mutableListOf<Song>()
@@ -246,8 +251,7 @@ fun QueueTab(weight_modifier: Modifier) {
 
                 Button(
                     onClick = {
-                        // TODO
-        //                PlayerHost.service.
+                        PlayerHost.service.shuffleQueue()
                     },
                     colors = ButtonDefaults.buttonColors(
                         containerColor = MainActivity.theme.getOnBackground(true)

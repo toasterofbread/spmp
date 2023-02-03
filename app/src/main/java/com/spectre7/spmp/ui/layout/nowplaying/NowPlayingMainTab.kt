@@ -41,6 +41,7 @@ import com.spectre7.spmp.model.MediaItem
 import com.spectre7.spmp.model.Settings
 import com.spectre7.spmp.model.Song
 import com.spectre7.spmp.ui.layout.MINIMISED_NOW_PLAYING_HEIGHT
+import com.spectre7.spmp.ui.layout.PlayerViewContext
 import com.spectre7.utils.*
 import kotlinx.coroutines.launch
 import kotlin.concurrent.thread
@@ -56,7 +57,7 @@ fun MainTab(
     max_height: Float,
     thumbnail: ImageBitmap?,
     _setThumbnail: (ImageBitmap?) -> Unit,
-    onMediaItemClicked: (MediaItem) -> Unit
+    player: PlayerViewContext
 ) {
     Spacer(Modifier.requiredHeight(50.dp * expansion))
 
@@ -314,7 +315,8 @@ fun MainTab(
                                 {
                                     overlay_menu = null
                                 },
-                                seek_state
+                                seek_state,
+                                player
                             )
                         }
                     }
@@ -483,7 +485,7 @@ fun MainTab(
                             .fillMaxWidth()
                             .animateContentSize()
                             .clickable {
-                                onMediaItemClicked(PlayerServiceHost.status.song!!)
+                                player.onMediaItemClicked(PlayerServiceHost.status.song!!)
                             }
                     )
 
@@ -500,7 +502,7 @@ fun MainTab(
                             .animateContentSize()
                             .clickable {
                                 if (PlayerServiceHost.status.song?.loaded == true) {
-                                    onMediaItemClicked(PlayerServiceHost.status.song!!.artist)
+                                    player.onMediaItemClicked(PlayerServiceHost.status.song!!.artist)
                                 }
                             }
                     )

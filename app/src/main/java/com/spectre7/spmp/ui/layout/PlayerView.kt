@@ -51,35 +51,47 @@ enum class OverlayPage { NONE, SEARCH, SETTINGS, MEDIAITEM }
 
 val feed_refresh_mutex = ReentrantLock()
 
-abstract class PlayerViewContext {
-    abstract fun onMediaItemCLicked(item: MediaItem)
-    abstract fun onMediaItemLongClicked(item: MediaItem)
-    abstract fun openMediaItem(item: MediaItem)
+data class PlayerViewContext(
+    private val onClickedOverride: ((item: MediaItem) -> Unit)? = null,
+    private val onLongClickedOverride: ((item: MediaItem) -> Unit)? = null
+) {
+    var overlay_page by mutableStateOf(OverlayPage.NONE)
+    var overlay_media_item: MediaItem? by mutableStateOf(null)
+    
+    fun onMediaItemClicked(item: MediaItem) {
+        if (onClickedOverride != null) {
+            onClickedOverride.invoke(item)
+            return
+        }
+        when (item) {
+            is Song -> PlayerServiceHost.service.playSong(item)
+            else -> openMediaItem(item)
+        }
+    }
+    fun onMediaItemLongClicked(item: MediaItem) {
+        if (onLongClickedOverride != null) {
+            onLongClickedOverride.invoke(item)
+            return
+        }
+    }
+    fun openMediaItem(item: MediaItem) {
+        overlay_page = OverlayPage.MEDIAITEM
+        overlay_media_item = item
+    }
 }
 
 @OptIn(ExperimentalMaterialApi::class, ExperimentalMaterial3Api::class)
 @Composable
 fun PlayerView() {
-    var overlay_page by remember { mutableStateOf(OverlayPage.NONE) }
-    var overlay_media_item: MediaItem? by remember { mutableStateOf(null) }
-
-    val onMediaItemClicked: (MediaItem) -> Unit = { item ->
-        when (item) {
-            is Song -> PlayerServiceHost.service.playSong(item)
-            else -> {
-                overlay_page = OverlayPage.MEDIAITEM
-                overlay_media_item = item
-            }
-        }
-    }
+    val player = remember { PlayerViewContext() }
 
     val pill_menu = remember { PillMenu(
         top = false
     ) }
     val minimised_now_playing_height = remember { Animatable(0f) }
 
-    LaunchedEffect(overlay_page) {
-        if (overlay_page == OverlayPage.NONE) {
+    LaunchedEffect(player.overlay_page) {
+        if (player.overlay_page == OverlayPage.NONE) {
             pill_menu.clearExtraActions()
             pill_menu.clearActionOverriders()
             pill_menu.setBackgroundColourOverride(null)
@@ -97,7 +109,7 @@ fun PlayerView() {
         Box(Modifier.padding(bottom = minimised_now_playing_height.value.dp)) {
 
             pill_menu.PillMenu(
-                if (overlay_page != OverlayPage.NONE) 1 else 2,
+                if (player.overlay_page != OverlayPage.NONE) 1 else 2,
                 { index, action_count ->
                     ActionButton(
                         if (action_count == 1) Icons.Filled.Close else
@@ -106,14 +118,14 @@ fun PlayerView() {
                                 else -> Icons.Filled.Search
                             }
                     ) {
-                        overlay_page = if (action_count == 1) OverlayPage.NONE else
+                        player.overlay_page = if (action_count == 1) OverlayPage.NONE else
                             when (index) {
                                 0 -> OverlayPage.SETTINGS
                                 else -> OverlayPage.SEARCH
                             }
                     }
                 },
-                if (overlay_page == OverlayPage.NONE) remember { mutableStateOf(false) } else null,
+                if (player.overlay_page == OverlayPage.NONE) remember { mutableStateOf(false) } else null,
                 MainActivity.theme.getAccent()
             )
 
@@ -191,19 +203,19 @@ fun PlayerView() {
                 refreshFeed(true) {}
             }
 
-            Crossfade(targetState = overlay_page) {
+            Crossfade(targetState = player.overlay_page) {
                 Column(Modifier.fillMaxSize()) {
                     if (it != OverlayPage.NONE && it != OverlayPage.MEDIAITEM) {
                         Spacer(Modifier.requiredHeight(getStatusBarHeight(MainActivity.context)))
                     }
                     when (it) {
-                        OverlayPage.NONE -> MainPage(main_page_rows, refreshFeed, onMediaItemClicked)
-                        OverlayPage.SEARCH -> SearchPage(pill_menu) { overlay_page = OverlayPage.NONE }
-                        OverlayPage.SETTINGS -> PrefsPage(pill_menu) { overlay_page = OverlayPage.NONE }
-                        OverlayPage.MEDIAITEM -> Crossfade(overlay_media_item) { item ->
+                        OverlayPage.NONE -> MainPage(main_page_rows, refreshFeed, player)
+                        OverlayPage.SEARCH -> SearchPage(pill_menu, player) { player.overlay_page = OverlayPage.NONE }
+                        OverlayPage.SETTINGS -> PrefsPage(pill_menu) { player.overlay_page = OverlayPage.NONE }
+                        OverlayPage.MEDIAITEM -> Crossfade(player.overlay_media_item) { item ->
                             when (item) {
                                 null -> {}
-                                is Artist -> ArtistPage(pill_menu, item, { overlay_page = OverlayPage.NONE }, onMediaItemClicked)
+                                is Artist -> ArtistPage(pill_menu, item, { player.overlay_page = OverlayPage.NONE }, player)
                                 else -> throw NotImplementedError()
                             }
                         }
@@ -247,7 +259,7 @@ fun PlayerView() {
                 ) { switch = !switch }, shape = RectangleShape) {
 
                 Column(Modifier.fillMaxSize()) {
-                    NowPlaying(swipe_state.offset.value / screen_height, screen_height, { switch = !switch }, onMediaItemClicked)
+                    NowPlaying(swipe_state.offset.value / screen_height, screen_height, { switch = !switch }, player)
                 }
             }
         }
@@ -259,7 +271,7 @@ fun PlayerView() {
 fun MainPage(
     _rows: List<MediaItemRow>,
     refreshFeed: (allow_cache: Boolean, onFinished: (success: Boolean) -> Unit) -> Unit,
-    onMediaItemClicked: (MediaItem) -> Unit
+    player: PlayerViewContext
 ) {
     var rows: List<MediaItemRow> by remember { mutableStateOf(_rows) }
 
@@ -286,7 +298,7 @@ fun MainPage(
                         }
                         items(rows.size) { i ->
                             val row = rows[i]
-                            MediaItemGrid(row.title, row.subtitle, row.items, onClick = onMediaItemClicked)
+                            MediaItemGrid(row.title, row.subtitle, row.items, player)
                         }
                     }
                 }

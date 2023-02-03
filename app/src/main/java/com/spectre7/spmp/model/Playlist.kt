@@ -6,6 +6,7 @@ import androidx.compose.ui.graphics.Color
 import com.spectre7.spmp.api.BrowseData
 import com.spectre7.spmp.ui.component.PlaylistPreviewLong
 import com.spectre7.spmp.ui.component.PlaylistPreviewSquare
+import com.spectre7.spmp.ui.layout.PlayerViewContext
 
 class Playlist private constructor (
     id: String

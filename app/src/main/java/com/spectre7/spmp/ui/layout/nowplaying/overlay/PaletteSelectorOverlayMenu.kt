@@ -17,6 +17,7 @@ import androidx.compose.ui.unit.dp
 import androidx.palette.graphics.Palette
 import com.spectre7.spmp.MainActivity
 import com.spectre7.spmp.model.Song
+import com.spectre7.spmp.ui.layout.PlayerViewContext
 import com.spectre7.utils.getPaletteColour
 
 class PaletteSelectorOverlayMenu(
@@ -33,7 +34,8 @@ class PaletteSelectorOverlayMenu(
         expansion: Float,
         openShutterMenu: (@Composable () -> Unit) -> Unit,
         close: () -> Unit,
-        seek_state: Any
+        seek_state: Any,
+        player: PlayerViewContext
     ) {
         if (palette != null) {
             var colourpick_requested by remember { mutableStateOf(false) }

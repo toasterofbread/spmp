@@ -26,6 +26,7 @@ import androidx.palette.graphics.Palette
 import com.spectre7.spmp.MainActivity
 import com.spectre7.spmp.PlayerServiceHost
 import com.spectre7.spmp.model.Song
+import com.spectre7.spmp.ui.layout.PlayerViewContext
 import com.spectre7.spmp.ui.layout.nowplaying.NOW_PLAYING_MAIN_PADDING
 import com.spectre7.spmp.ui.layout.nowplaying.overlay.DownloadOverlayMenu
 import com.spectre7.spmp.ui.layout.nowplaying.overlay.OverlayMenu
@@ -52,7 +53,8 @@ class MainOverlayMenu(
         expansion: Float,
         openShutterMenu: (@Composable () -> Unit) -> Unit,
         close: () -> Unit,
-        seek_state: Any
+        seek_state: Any,
+        player: PlayerViewContext
     ) {
         Column(
             Modifier
@@ -108,9 +110,9 @@ class MainOverlayMenu(
             if (PlayerServiceHost.status.m_song != null) {
                 song.artist.PreviewLong(
                     content_colour = Color.White,
-                    onClick = null,
-                    onLongClick = null,
-                    modifier = Modifier
+                    player,
+                    true,
+                    Modifier
                 )
 
                 val song = PlayerServiceHost.status.m_song!!

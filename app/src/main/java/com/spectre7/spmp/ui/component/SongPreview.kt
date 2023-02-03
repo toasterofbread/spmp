@@ -20,6 +20,7 @@ import androidx.compose.ui.unit.*
 import com.spectre7.spmp.PlayerServiceHost
 import com.spectre7.spmp.model.MediaItem
 import com.spectre7.spmp.model.Song
+import com.spectre7.spmp.ui.layout.PlayerViewContext
 import com.spectre7.utils.setAlpha
 
 @Composable
@@ -39,14 +40,14 @@ fun SongPreviewSquare(
                 interactionSource = remember { MutableInteractionSource() },
                 indication = null,
                 onClick = {
-                    player.onMediaItemCLicked(artist)
+                    player.onMediaItemClicked(song)
                 },
                 onLongClick = {
                     if (enable_long_press_menu) {
                         show_popup = true
                     }
                     else {
-                        player.onMediaItemLongClicked(artist)
+                        player.onMediaItemLongClicked(song)
                     }
                 }
             )
@@ -79,8 +80,8 @@ fun SongPreviewSquare(
 
 @Composable
 fun SongPreviewLong(
-    song: Song, 
-    content_colour: Color, 
+    song: Song,
+    content_colour: Color,
     player: PlayerViewContext,
     enable_long_press_menu: Boolean = true,
     modifier: Modifier = Modifier
@@ -95,14 +96,14 @@ fun SongPreviewLong(
                 interactionSource = remember { MutableInteractionSource() },
                 indication = null,
                 onClick = {
-                    player.onMediaItemCLicked(artist)
+                    player.onMediaItemClicked(song)
                 },
                 onLongClick = {
                     if (enable_long_press_menu) {
                         show_popup = true
                     }
                     else {
-                        player.onMediaItemLongClicked(artist)
+                        player.onMediaItemLongClicked(song)
                     }
                 }
             )
@@ -147,7 +148,7 @@ fun SongPreviewLong(
     }
 }
 
-val longPressPopupActions: @Composable LongPressMenuActionProvider.(MediaItem) -> Unit = { song ->
+private val longPressPopupActions: @Composable LongPressMenuActionProvider.(MediaItem) -> Unit = { song ->
     if (song !is Song) {
         throw IllegalStateException()
     }
@@ -205,7 +206,8 @@ val longPressPopupActions: @Composable LongPressMenuActionProvider.(MediaItem) -
             Crossfade(queue_song, animationSpec = tween(100)) {
                 it.PreviewLong(
                     content_colour,
-                    null, null,
+                    player,
+                    false,
                     Modifier
                 )
             }

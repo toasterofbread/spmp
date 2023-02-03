@@ -5,6 +5,7 @@ import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Modifier
 import com.spectre7.spmp.model.Song
+import com.spectre7.spmp.ui.layout.PlayerViewContext
 
 class DownloadOverlayMenu: OverlayMenu() {
 
@@ -16,7 +17,8 @@ class DownloadOverlayMenu: OverlayMenu() {
         expansion: Float,
         openShutterMenu: (@Composable () -> Unit) -> Unit,
         close: () -> Unit,
-        seek_state: Any
+        seek_state: Any,
+        player: PlayerViewContext
     ) {
         Column(Modifier.fillMaxSize()) {
             Text("Download")

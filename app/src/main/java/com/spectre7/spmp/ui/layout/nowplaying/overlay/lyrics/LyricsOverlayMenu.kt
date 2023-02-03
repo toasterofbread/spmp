@@ -35,6 +35,7 @@ import com.spectre7.spmp.R
 import com.spectre7.spmp.model.Settings
 import com.spectre7.spmp.model.Song
 import com.spectre7.spmp.ui.component.PillMenu
+import com.spectre7.spmp.ui.layout.PlayerViewContext
 import com.spectre7.spmp.ui.layout.nowplaying.overlay.OverlayMenu
 import com.spectre7.utils.LongFuriganaText
 import com.spectre7.utils.TextData
@@ -54,7 +55,8 @@ class LyricsOverlayMenu(
         expansion: Float,
         openShutterMenu: (@Composable () -> Unit) -> Unit,
         close: () -> Unit,
-        seek_state: Any
+        seek_state: Any,
+        player: PlayerViewContext
     ) {
 
         var lyrics: Song.Lyrics? by remember { mutableStateOf(null) }

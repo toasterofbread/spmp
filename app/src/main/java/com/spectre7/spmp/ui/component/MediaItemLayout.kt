@@ -16,19 +16,16 @@ import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
 import com.spectre7.spmp.MainActivity
 import com.spectre7.spmp.model.MediaItem
+import com.spectre7.spmp.ui.layout.PlayerViewContext
 
 @Composable
 private fun ItemPreview(
     item: MediaItem,
     width: Dp,
     animate: MutableState<Boolean>?,
-    modifier: Modifier = Modifier,
-    onItemClick: ((item: MediaItem) -> Unit)? = null,
-    onItemLongClick: ((item: MediaItem) -> Unit)? = null
+    player: PlayerViewContext,
+    modifier: Modifier = Modifier
 ) {
-    val onClick = if (onItemClick != null) { { onItemClick.invoke(item) } } else null
-    val onLongClick = if (onItemLongClick != null) { { onItemLongClick.invoke(item) } } else null
-
     Box(modifier.requiredWidth(width), contentAlignment = Alignment.Center) {
         if(animate?.value == true) {
             LaunchedEffect(Unit) {
@@ -44,11 +41,11 @@ private fun ItemPreview(
                 enter = fadeIn() + expandIn(expandFrom = Alignment.Center),
                 exit = fadeOut() + shrinkOut(shrinkTowards = Alignment.Center)
             ) {
-                item.PreviewSquare(MainActivity.theme.getOnBackground(false), onClick, onLongClick, Modifier)
+                item.PreviewSquare(MainActivity.theme.getOnBackground(false), player, true, Modifier)
             }
         }
         else {
-            item.PreviewSquare(MainActivity.theme.getOnBackground(false), onClick, onLongClick, Modifier)
+            item.PreviewSquare(MainActivity.theme.getOnBackground(false), player, true, Modifier)
         }
     }
 }
@@ -58,9 +55,8 @@ fun MediaItemGrid(
     title: String?,
     subtitle: String?,
     items: List<MediaItem>,
-    modifier: Modifier = Modifier,
-    onClick: ((item: MediaItem) -> Unit)? = null,
-    onLongClick: ((item: MediaItem) -> Unit)? = null
+    player: PlayerViewContext,
+    modifier: Modifier = Modifier
 ) {
     val row_count = if (items.size <= 3) 1 else 2
     val item_width = 125.dp
@@ -82,7 +78,7 @@ fun MediaItemGrid(
         ) {
             items(items.size, { items[it].id }) {
                 val item = items[it]
-                ItemPreview(item, item_width, null, Modifier, onClick, onLongClick)
+                ItemPreview(item, item_width, null, player, Modifier)
             }
         }
     }

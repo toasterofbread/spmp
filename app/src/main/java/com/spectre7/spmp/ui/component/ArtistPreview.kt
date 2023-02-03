@@ -4,26 +4,27 @@
 
 package com.spectre7.spmp.ui.component
 
+import androidx.compose.animation.Crossfade
+import androidx.compose.animation.core.tween
 import androidx.compose.foundation.ExperimentalFoundationApi
-import androidx.compose.foundation.Image
 import androidx.compose.foundation.combinedClickable
 import androidx.compose.foundation.interaction.MutableInteractionSource
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.shape.CircleShape
+import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.*
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
-import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.text.style.TextOverflow
-import androidx.compose.ui.unit.Dp
-import androidx.compose.ui.unit.TextUnit
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import com.spectre7.spmp.PlayerServiceHost
 import com.spectre7.spmp.model.Artist
-import com.spectre7.spmp.model.Song
+import com.spectre7.spmp.model.MediaItem
+import com.spectre7.spmp.ui.layout.PlayerViewContext
 import com.spectre7.utils.setAlpha
 
 @Composable
@@ -43,7 +44,7 @@ fun ArtistPreviewSquare(
                 interactionSource = remember { MutableInteractionSource() },
                 indication = null,
                 onClick = {
-                    player.onMediaItemCLicked(artist)
+                    player.onMediaItemClicked(artist)
                 },
                 onLongClick = {
                     if (enable_long_press_menu) {
@@ -83,8 +84,8 @@ fun ArtistPreviewSquare(
 
 @Composable
 fun ArtistPreviewLong(
-    artist: Artist, 
-    content_colour: Color, 
+    artist: Artist,
+    content_colour: Color,
     player: PlayerViewContext,
     enable_long_press_menu: Boolean = true,
     modifier: Modifier = Modifier
@@ -99,7 +100,7 @@ fun ArtistPreviewLong(
                 interactionSource = remember { MutableInteractionSource() },
                 indication = null,
                 onClick = {
-                    player.onMediaItemCLicked(artist)
+                    player.onMediaItemClicked(artist)
                 },
                 onLongClick = {
                     if (enable_long_press_menu) {
@@ -143,7 +144,7 @@ fun ArtistPreviewLong(
     }
 }
 
-val longPressPopupActions: @Composable LongPressMenuActionProvider.(MediaItem) -> Unit = { artist ->
+private val longPressPopupActions: @Composable LongPressMenuActionProvider.(MediaItem) -> Unit = { artist ->
     if (artist !is Artist) {
         throw IllegalStateException()
     }
@@ -201,7 +202,8 @@ val longPressPopupActions: @Composable LongPressMenuActionProvider.(MediaItem) -
             Crossfade(queue_song, animationSpec = tween(100)) {
                 it.PreviewLong(
                     content_colour,
-                    null, null,
+                    player,
+                    false,
                     Modifier
                 )
             }
@@ -209,6 +211,6 @@ val longPressPopupActions: @Composable LongPressMenuActionProvider.(MediaItem) -
     }
 
     ActionButton(Icons.Filled.Person, "View artist") {
-        player.openMediaItem(song.artist)
+        player.openMediaItem(artist)
     }
 }

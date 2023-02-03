@@ -55,7 +55,7 @@ fun ArtistPage(
     pill_menu: PillMenu,
     artist: Artist,
     close: () -> Unit,
-    onItemClicked: (MediaItem) -> Unit
+    player: PlayerViewContext
 ) {
     var show_info by remember { mutableStateOf(false) }
 
@@ -288,7 +288,7 @@ fun ArtistPage(
                             verticalArrangement = Arrangement.spacedBy(30.dp)
                         ) {
                             for (row in artist.feed_rows) {
-                                MediaItemGrid(row.title, null, row.items, onClick = onItemClicked)
+                                MediaItemGrid(row.title, null, row.items, player)
                             }
 
                             val description = artist.description

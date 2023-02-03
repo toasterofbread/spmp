@@ -32,8 +32,6 @@ import com.beust.klaxon.JsonObject
 import com.beust.klaxon.Klaxon
 import com.google.android.exoplayer2.database.StandaloneDatabaseProvider
 import com.spectre7.spmp.api.DataApi
-import com.spectre7.spmp.api.subscribeOrUnsubscribeArtist
-import com.spectre7.spmp.model.Artist
 import com.spectre7.spmp.model.Cache
 import com.spectre7.spmp.model.Settings
 import com.spectre7.spmp.model.Song
@@ -44,8 +42,6 @@ import com.spectre7.utils.NoRipple
 import com.spectre7.utils.Theme
 import net.openid.appauth.*
 import java.util.*
-import kotlin.concurrent.thread
-
 
 class MainActivity : ComponentActivity() {
 
@@ -84,19 +80,21 @@ class MainActivity : ComponentActivity() {
         }
         updateLanguage(Settings.get(Settings.KEY_LANG_UI))
 
-        auth_state = loadAuthState()
-        auth_service = AuthorizationService(this)
-        auth_activity_launcher = createOauthActivityLauncher()
+//        auth_state = loadAuthState()
+//        auth_service = AuthorizationService(this)
+//        auth_activity_launcher = createOauthActivityLauncher()
 
         database = StandaloneDatabaseProvider(this)
 
-        PlayerServiceHost()
         DataApi.initialise()
 
         window.setFlags(
             WindowManager.LayoutParams.FLAG_LAYOUT_NO_LIMITS,
             WindowManager.LayoutParams.FLAG_LAYOUT_NO_LIMITS
         )
+
+        val service_host = PlayerServiceHost()
+        var service_started = false
 
         setContent {
             MyApplicationTheme {
@@ -106,8 +104,12 @@ class MainActivity : ComponentActivity() {
                     if (PlayerServiceHost.service_connected) {
                         PlayerView()
                     }
+                    else if (!service_started) {
+                        service_started = true
+                        service_host.startService({ service_started = false })
+                    }
 
-                    error_manager.Indicator(Color.Red)
+//                    error_manager.Indicator(Color.Red)
                 }
             }
         }
@@ -116,28 +118,28 @@ class MainActivity : ComponentActivity() {
     override fun onDestroy() {
         super.onDestroy()
         PlayerServiceHost.release()
-        auth_service.dispose()
+//        auth_service.dispose()
         instance = null
     }
 
-    private fun loadAuthState(): AuthState {
-        val state_data = getSharedPreferences("auth", MODE_PRIVATE).getString("state", null)
-        if (state_data != null) {
-            return AuthState.jsonDeserialize(state_data)
-        }
-        else {
-            return AuthState(AuthorizationServiceConfiguration(
-                Uri.parse("https://accounts.google.com/o/oauth2/v2/auth"),
-                Uri.parse("https://www.googleapis.com/oauth2/v4/token")
-            ))
-        }
-    }
+//    private fun loadAuthState(): AuthState {
+//        val state_data = getSharedPreferences("auth", MODE_PRIVATE).getString("state", null)
+//        if (state_data != null) {
+//            return AuthState.jsonDeserialize(state_data)
+//        }
+//        else {
+//            return AuthState(AuthorizationServiceConfiguration(
+//                Uri.parse("https://accounts.google.com/o/oauth2/v2/auth"),
+//                Uri.parse("https://www.googleapis.com/oauth2/v4/token")
+//            ))
+//        }
+//    }
 
-    private fun saveAuthState(auth_state: AuthState) {
-        getSharedPreferences("auth", MODE_PRIVATE).edit()
-            .putString("state", auth_state.jsonSerializeString())
-            .apply()
-    }
+//    private fun saveAuthState(auth_state: AuthState) {
+//        getSharedPreferences("auth", MODE_PRIVATE).edit()
+//            .putString("state", auth_state.jsonSerializeString())
+//            .apply()
+//    }
 
     private fun createOauthActivityLauncher(): ActivityResultLauncher<(AuthorizationException?) -> Unit> {
         return registerForActivityResult(object : ActivityResultContract<(AuthorizationException?) -> Unit, Unit>() {

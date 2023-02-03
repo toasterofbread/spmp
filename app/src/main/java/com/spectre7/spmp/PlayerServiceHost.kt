@@ -33,15 +33,14 @@ class PlayerServiceHost {
     private lateinit var service: PlayerService
     private var service_connected by mutableStateOf(false)
 
-    private var service_connection: ServiceConnection? = null
     private var service_intent: Intent? = null
+    private var service_connection: ServiceConnection? = null
+
     private val context: Context get() = MainActivity.context
 
     init {
+        assert(instance == null)
         instance = this
-        getService {
-            status = PlayerStatus(it)
-        }
     }
 
     class PlayerStatus internal constructor(service: PlayerService) {
@@ -77,6 +76,9 @@ class PlayerServiceHost {
                 }
                 override fun onSongRemoved(song: Song, index: Int) {
                     m_queue.removeAt(index)
+                }
+                override fun onSongMoved(from: Int, to: Int) {
+                    m_queue.add(to, m_queue.removeAt(from))
                 }
                 override fun onCleared() {
                     m_queue.clear()
@@ -165,22 +167,30 @@ class PlayerServiceHost {
         }
     }
 
-    private fun getService(on_connected: ((PlayerService) -> Unit)? = {}) {
-        service_intent = Intent(context, PlayerService::class.java)
-        context.startService(service_intent)
-
-        service_connection = object : ServiceConnection {
-            override fun onServiceConnected(className: ComponentName, binder: IBinder) {
-                service = (binder as PlayerService.PlayerBinder).getService()
-                service_connected = true
-                on_connected?.invoke(service)
-            }
-
-            override fun onServiceDisconnected(arg0: ComponentName) {
-                service_connected = false
-            }
-
+    fun startService(onConnected: (() -> Unit)? = null, onDisconnected: (() -> Unit)? = null) {
+        if (service_connected) {
+            println("ALREADY CONNECTED")
+            return
         }
+
+        if (service_intent == null) {
+            service_intent = Intent(context, PlayerService::class.java)
+            service_connection = object : ServiceConnection {
+                override fun onServiceConnected(className: ComponentName, binder: IBinder) {
+                    service = (binder as PlayerService.PlayerBinder).getService()
+                    status = PlayerStatus(service)
+                    service_connected = true
+                    onConnected?.invoke()
+                }
+
+                override fun onServiceDisconnected(arg0: ComponentName) {
+                    service_connected = false
+                    onDisconnected?.invoke()
+                }
+            }
+        }
+
+        context.startService(service_intent)
         context.bindService(service_intent, service_connection!!, 0)
     }
 

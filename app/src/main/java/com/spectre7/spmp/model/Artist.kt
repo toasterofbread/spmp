@@ -11,6 +11,7 @@ import com.spectre7.spmp.api.isSubscribedToArtist
 import com.spectre7.spmp.api.subscribeOrUnsubscribeArtist
 import com.spectre7.spmp.ui.component.ArtistPreviewLong
 import com.spectre7.spmp.ui.component.ArtistPreviewSquare
+import com.spectre7.spmp.ui.layout.PlayerViewContext
 import com.spectre7.utils.sendToast
 import kotlin.concurrent.thread
 

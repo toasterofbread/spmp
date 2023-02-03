@@ -1,4 +1,4 @@
 [submodule "app/src/thirdparty/ExoPlayer"]
 	path = app/src/thirdparty/ExoPlayer
 	url = https://github.com/spectreseven1138/ExoPlayer
-	branch = 2.18.2-custom
+	branch = 2.18.1-custom

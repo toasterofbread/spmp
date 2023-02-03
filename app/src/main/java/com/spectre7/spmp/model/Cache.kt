@@ -48,8 +48,13 @@ class Cache {
             cache_dir.deleteRecursively()
         }
 
-        fun set(path: String, value: BufferedReader, lifetime: Duration?) {
+        fun set(path: String, value: BufferedReader?, lifetime: Duration?) {
             val file = cache_dir.resolve(path)
+            if (value == null) {
+                file.delete()
+                return
+            }
+
             file.parentFile?.mkdirs()
             file.createNewFile()
 

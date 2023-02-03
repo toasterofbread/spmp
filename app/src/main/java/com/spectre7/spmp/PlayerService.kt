@@ -72,6 +72,8 @@ import com.spectre7.utils.setAlpha
 import kotlinx.coroutines.*
 import kotlin.concurrent.thread
 import kotlin.math.roundToInt
+import kotlin.random.Random
+import kotlin.random.nextInt
 
 const val VOL_NOTIF_SHOW_DURATION: Long = 1000
 
@@ -445,6 +447,7 @@ class PlayerService : Service() {
         notification_manager = null
         media_session?.release()
         player.release()
+        cache.release()
 
         if (vol_notif.isShown) {
             MainActivity.context.windowManager.removeView(vol_notif)

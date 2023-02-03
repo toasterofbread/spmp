@@ -19,12 +19,12 @@ import com.spectre7.spmp.api.getVideoFormats
 import com.spectre7.spmp.api.getSongLyrics
 import com.spectre7.spmp.ui.component.SongPreviewLong
 import com.spectre7.spmp.ui.component.SongPreviewSquare
+import com.spectre7.spmp.ui.layout.PlayerViewContext
 import com.spectre7.utils.getString
 import com.spectre7.utils.toHiragana
 import okhttp3.internal.filterList
 import java.io.FileNotFoundException
 import java.net.URL
-import java.time.Duration
 import kotlin.concurrent.thread
 import kotlin.reflect.KMutableProperty1
 import kotlin.reflect.jvm.isAccessible
@@ -150,7 +150,7 @@ class Song private constructor (
         }
 
         _title = data.title
-        artist = Artist.fromId(data.channel_id).loadData() as Artist
+        artist = Artist.fromId(data.channelId).loadData() as Artist
     }
 
     var theme_colour: Color?

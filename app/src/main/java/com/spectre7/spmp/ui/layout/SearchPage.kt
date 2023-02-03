@@ -37,7 +37,11 @@ val SEARCH_FIELD_FONT_SIZE: TextUnit = 18.sp
 
 @OptIn(ExperimentalComposeUiApi::class)
 @Composable
-fun SearchPage(pill_menu: PillMenu, close: () -> Unit) {
+fun SearchPage(
+    pill_menu: PillMenu,
+    player: PlayerViewContext,
+    close: () -> Unit
+) {
 
     val focus_manager = LocalFocusManager.current
     val focus_requester = remember { FocusRequester() }
@@ -96,10 +100,10 @@ fun SearchPage(pill_menu: PillMenu, close: () -> Unit) {
         LazyColumn(Modifier.fillMaxHeight().weight(1f)) {
             itemsIndexed(items = found_results, key = { _, item -> item.id }) { _, item ->
                 item.PreviewLong(
-                    content_colour = MainActivity.theme.getOnBackground(false),
-                    onClick = null,
-                    onLongClick = null,
-                    modifier = Modifier
+                    MainActivity.theme.getOnBackground(false),
+                    player,
+                    true,
+                    Modifier
                 )
             }
         }

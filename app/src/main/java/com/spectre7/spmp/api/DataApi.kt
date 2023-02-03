@@ -2,6 +2,7 @@ package com.spectre7.spmp.api
 
 import com.beust.klaxon.JsonObject
 import com.beust.klaxon.Klaxon
+import com.spectre7.spmp.BuildConfig
 import com.spectre7.spmp.MainActivity
 import net.openid.appauth.AuthorizationException
 import okhttp3.Headers
@@ -101,7 +102,7 @@ class DataApi {
 
         fun getNullableDataOrThrow(): T? {
             if (!success) {
-                throw exception
+                throw RuntimeException("DataApi action failed", exception)
             }
             return nullable_data
         }

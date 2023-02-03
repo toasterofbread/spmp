@@ -41,6 +41,7 @@ import androidx.compose.ui.window.DialogWindowProvider
 import androidx.palette.graphics.Palette
 import com.spectre7.spmp.MainActivity
 import com.spectre7.spmp.model.*
+import com.spectre7.spmp.ui.layout.PlayerViewContext
 import com.spectre7.spmp.ui.layout.getScreenHeight
 import com.spectre7.utils.*
 import kotlinx.coroutines.coroutineScope
@@ -292,9 +293,9 @@ fun LongPressIconMenu(
                                     Marquee(false) {
                                         artist.PreviewLong(
                                             content_colour = MainActivity.theme.getOnBackground(false),
-                                            onClick = null,
-                                            onLongClick = null,
-                                            modifier = Modifier.fillMaxWidth()
+                                            player,
+                                            false,
+                                            Modifier.fillMaxWidth()
                                         )
                                     }
                                 }

@@ -14,6 +14,7 @@ import androidx.compose.ui.graphics.toArgb
 import androidx.compose.ui.unit.IntSize
 import androidx.palette.graphics.Palette
 import com.spectre7.spmp.api.loadMediaItemData
+import com.spectre7.spmp.ui.layout.PlayerViewContext
 import java.net.URL
 import kotlin.concurrent.thread
 

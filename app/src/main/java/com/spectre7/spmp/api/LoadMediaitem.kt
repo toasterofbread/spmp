@@ -1,5 +1,6 @@
 package com.spectre7.spmp.api
 
+import android.provider.ContactsContract.Data
 import android.util.JsonReader
 import com.spectre7.spmp.model.*
 import okhttp3.Request
@@ -8,13 +9,13 @@ import java.time.Duration
 
 private val CACHE_LIFETIME = Duration.ofDays(1)
 
+data class PlayerData(val videoDetails: VideoDetails? = null)
+
 data class VideoDetails(
-    val video_id: String,
+    val videoId: String,
     val title: String,
-    val channel_id: String
-) {
-//    data class StreamingData(val formats: List<YoutubeVideoFormat>, val adaptiveFormats: List<YoutubeVideoFormat>)
-}
+    val channelId: String
+)
 
 class BrowseData {
     var name: String? = null
@@ -71,76 +72,6 @@ fun JsonReader.first(is_array: Boolean?, allow_none: Boolean = false, action: (k
     return next(null, is_array, allow_none, action)
 }
 
-private fun getActualArtistId(share_entity: String?): DataApi.Result<String> {
-    val request: Request = Request.Builder()
-        .url("https://music.youtube.com/youtubei/v1/share/get_share_panel")
-        .headers(DataApi.getYTMHeaders())
-        .post(DataApi.getYoutubeiRequestBody("""
-            {
-                "serializedSharedEntity": "$share_entity"
-            }
-        """))
-        .build()
-
-    val response = DataApi.client.newCall(request).execute()
-    if (response.code != 200) {
-        return DataApi.Result.failure(response)
-    }
-
-    val stream = response.body!!.charStream()
-    val reader = JsonReader(stream)
-
-    var new_id: String? = null
-
-    reader.beginObject()
-    reader.next("actions", true) {
-        while (reader.hasNext()) {
-            if (new_id != null) {
-                reader.skipValue()
-            }
-
-            reader.beginObject()
-            reader.next("openPopupAction", false) {
-                reader.next("popup", false) {
-                    reader.next("unifiedSharePanelRenderer", false) {
-                        reader.next("contents", true) {
-                            while (reader.hasNext()) {
-                                if (new_id != null) {
-                                    reader.skipValue()
-                                    continue
-                                }
-
-                                reader.beginObject()
-                                reader.next("thirdPartyNetworkSection", false) {
-                                    reader.next("copyLinkContainer", false) {
-                                        reader.next("copyLinkRenderer", false) {
-                                            reader.next("shortUrl", null) {
-                                                val url = reader.nextString()
-                                                val start = url.lastIndexOf('/') + 1
-                                                new_id = url.substring(start, url.indexOf('?', start))
-                                            }
-                                        }
-                                    }
-                                }
-                                reader.endObject()
-                            }
-                        }
-                    }
-                }
-            }
-            reader.endObject()
-        }
-    }
-    reader.endObject()
-
-    if (new_id == null) {
-        return DataApi.Result.failure(RuntimeException("Could not get URL from share panel"))
-    }
-
-    reader.close()
-    return DataApi.Result.success(new_id!!)
-}
-
 fun loadMediaItemData(item: MediaItem): DataApi.Result<MediaItem> {
     val lock = item.loading_lock
     val item_id = item.id
@@ -155,8 +86,8 @@ fun loadMediaItemData(item: MediaItem): DataApi.Result<MediaItem> {
             return if (item.load_status == MediaItem.LoadStatus.LOADED) DataApi.Result.success(item.getOrReplacedWith()) else DataApi.Result.failure(RuntimeException())
         }
 
+        var response_body: BufferedReader
         val cache_key = "MediaItemData/${item.type.name}/$item_id"
-        val response_body: BufferedReader
 
         val cached = Cache.get(cache_key)
         if (cached != null) {
@@ -190,59 +121,91 @@ fun loadMediaItemData(item: MediaItem): DataApi.Result<MediaItem> {
             response_body = Cache.get(cache_key)!!
         }
 
-        val thumbnail_provider: MediaItem.ThumbnailProvider?
-        val data: Any
+        fun finish(data: Any, thumbnail_provider: MediaItem.ThumbnailProvider? = null): DataApi.Result<MediaItem> {
+            if (item is Artist) {
+                item.subscribed = isSubscribedToArtist(item).getNullableDataOrThrow()
+            }
 
-        if (item is Song) {
-            val video = DataApi.klaxon.parse<YoutubeiNextResponse>(response_body)!!
-                .contents
-                .singleColumnMusicWatchNextResultsRenderer
-                .tabbedRenderer
-                .watchNextTabbedResultsRenderer
-                .tabs
-                .first()
-                .tabRenderer
-                .content!!
-                .musicQueueRenderer
-                .content
-                .playlistPanelRenderer
-                .contents
-                .first()
-                .playlistPanelVideoRenderer!!
+            item.initWithData(data, thumbnail_provider)
+            lock.notifyAll()
 
-            data = VideoDetails(
-                video.videoId,
-                video.title.first_text,
-                // Both of these are sometimes missing, no clue why
-                channel_id = video.longBylineText.runs?.firstOrNull()?.navigationEndpoint?.browseEndpoint?.browseId ?:
-                             video.menu.menuRenderer.getArtist()!!.menuNavigationItemRenderer!!.navigationEndpoint.browseEndpoint!!.browseId
-            )
-            thumbnail_provider = null
+            return DataApi.Result.success(item)
         }
-        else {
+
+        if (item !is Song) {
             val parser = BrowseResponseParser(response_body)
             parser.parse()
-            data = parser.data
-            thumbnail_provider = parser.thumbnail_provider
-
-//            if (data.id_replace != null) {
-//                ret_item = item.replaceWithItemWithId(data.id_replace!!)
-//            }
-//            else {
-//                ret_item = item
-//            }
+            response_body.close()
+            return finish(parser.data, parser.thumbnail_provider)
         }
 
+        var video_details = DataApi.klaxon.parse<PlayerData>(response_body)?.videoDetails
+        response_body.close()
+        if (video_details != null) {
+            return finish(video_details)
+        }
+
+        response_body = Cache.get(cache_key)!!
+        val video = DataApi.klaxon.parse<YoutubeiNextResponse>(response_body)!!
+            .contents
+            .singleColumnMusicWatchNextResultsRenderer
+            .tabbedRenderer
+            .watchNextTabbedResultsRenderer
+            .tabs
+            .first()
+            .tabRenderer
+            .content!!
+            .musicQueueRenderer
+            .content
+            .playlistPanelRenderer
+            .contents
+            .first()
+            .playlistPanelVideoRenderer!!
         response_body.close()
 
-        if (item is Artist) {
-            item.subscribed = isSubscribedToArtist(item).getNullableDataOrThrow()
+        val artist_run = video.longBylineText.runs!!.firstOrNull {
+            it.navigationEndpoint?.browseEndpoint?.browseEndpointContextSupportedConfigs?.browseEndpointContextMusicConfig?.pageType == "MUSIC_PAGE_TYPE_ARTIST"
         }
 
-        item.initWithData(data, thumbnail_provider)
-        lock.notifyAll()
+        if (artist_run != null) {
+            return finish(VideoDetails(video.videoId, video.title.first_text, artist_run.navigationEndpoint!!.browseEndpoint!!.browseId))
+        }
 
-        return DataApi.Result.success(item)
+        val album_run = video.longBylineText.runs.firstOrNull {
+            it.navigationEndpoint?.browseEndpoint?.browseEndpointContextSupportedConfigs?.browseEndpointContextMusicConfig?.pageType == "MUSIC_PAGE_TYPE_ALBUM"
+        }
+        if (album_run != null) {
+            val artist = Playlist.fromId(album_run.navigationEndpoint!!.browseEndpoint!!.browseId).loadData().getAssociatedArtist()
+            if (artist != null) {
+                return finish(VideoDetails(video.videoId, video.title.first_text, artist.id))
+            }
+        }
+
+        val menu_artist = video.menu.menuRenderer.getArtist()?.menuNavigationItemRenderer?.navigationEndpoint?.browseEndpoint?.browseId
+        if (menu_artist != null) {
+            return finish(VideoDetails(video.videoId, video.title.first_text, menu_artist))
+        }
+
+        // 'next' endpoint has no artist, use 'player' instead
+        val request: Request = Request.Builder()
+            .url("https://music.youtube.com/youtubei/v1/player")
+            .headers(DataApi.getYTMHeaders())
+            .post(DataApi.getYoutubeiRequestBody("""{ "videoId": "$item_id" }"""))
+            .build()
+
+        val response = DataApi.client.newCall(request).execute()
+        if (response.code != 200) {
+            return DataApi.Result.failure(response)
+        }
+
+        val reader = BufferedReader(response.body!!.charStream())
+        Cache.set(cache_key, reader, CACHE_LIFETIME)
+        reader.close()
+        response_body = Cache.get(cache_key)!!
+
+        video_details = DataApi.klaxon.parse<PlayerData>(response_body)!!.videoDetails!!
+        response_body.close()
+        return finish(video_details)
     }
 }
 
@@ -392,15 +355,6 @@ class BrowseResponseParser(private val response_body: BufferedReader) {
 
                                 reader.endObject()
                             }
-//                            "shareEndpoint" -> {
-//                                reader.beginObject()
-//                                reader.next("shareEntityEndpoint", false) {
-//                                    reader.next("serializedShareEntity", null) {
-//                                        data.id_replace = getActualArtistId(reader.nextString()).getDataOrThrow()
-//                                    }
-//                                }
-//                                reader.endObject()
-//                            }
                             "subscriptionButton" -> {
                                 reader.beginObject()
                                 reader.next("subscribeButtonRenderer", false) {

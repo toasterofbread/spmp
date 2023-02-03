@@ -31,6 +31,7 @@ import com.spectre7.spmp.MainActivity
 import com.spectre7.spmp.R
 import com.spectre7.spmp.model.Song
 import com.spectre7.spmp.ui.component.PillMenu
+import com.spectre7.spmp.ui.layout.PlayerViewContext
 import com.spectre7.utils.getContrasted
 import com.spectre7.utils.getString
 import kotlinx.coroutines.launch
@@ -47,7 +48,8 @@ class EditOverlayMenu: OverlayMenu() {
         expansion: Float,
         openShutterMenu: (@Composable () -> Unit) -> Unit,
         close: () -> Unit,
-        seek_state: Any
+        seek_state: Any,
+        player: PlayerViewContext
     ) {
         val tab_state = rememberPagerState()
         val scope = rememberCoroutineScope()

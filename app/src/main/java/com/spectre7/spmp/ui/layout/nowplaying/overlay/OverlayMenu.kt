@@ -2,6 +2,7 @@ package com.spectre7.spmp.ui.layout.nowplaying.overlay
 
 import androidx.compose.runtime.Composable
 import com.spectre7.spmp.model.Song
+import com.spectre7.spmp.ui.layout.PlayerViewContext
 
 abstract class OverlayMenu {
     @Composable
@@ -10,7 +11,8 @@ abstract class OverlayMenu {
         expansion: Float,
         openShutterMenu: (@Composable () -> Unit) -> Unit,
         close: () -> Unit,
-        seek_state: Any
+        seek_state: Any,
+        player: PlayerViewContext
     )
 
     abstract fun closeOnTap(): Boolean

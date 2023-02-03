@@ -30,6 +30,7 @@ import com.google.android.exoplayer2.C
 import com.spectre7.spmp.MainActivity
 import com.spectre7.spmp.PlayerServiceHost
 import com.spectre7.spmp.model.Song
+import com.spectre7.spmp.ui.layout.PlayerViewContext
 import com.spectre7.utils.vibrateShort
 import org.burnoutcrew.reorderable.ReorderableItem
 import org.burnoutcrew.reorderable.detectReorder
@@ -38,7 +39,7 @@ import org.burnoutcrew.reorderable.reorderable
 import kotlin.math.roundToInt
 
 @Composable
-fun QueueTab(weight_modifier: Modifier) {
+fun QueueTab(weight_modifier: Modifier, player: PlayerViewContext) {
 
     var key_inc by remember { mutableStateOf(0) }
     val v_removed = remember { mutableStateListOf<Int>() }
@@ -73,8 +74,8 @@ fun QueueTab(weight_modifier: Modifier) {
                     val content_colour = if (current) MainActivity.theme.getBackground(true) else MainActivity.theme.getOnBackground(true)
                     song.PreviewLong(
                         content_colour,
-                        { PlayerServiceHost.player.seekTo(index, C.TIME_UNSET) },
-                        null,
+                        remember { player.copy(onClickedOverride = { PlayerServiceHost.player.seekTo(index, C.TIME_UNSET) }) },
+                        true,
                         Modifier
                             .weight(1f)
                             .swipeable(
@@ -177,7 +178,7 @@ fun QueueTab(weight_modifier: Modifier) {
                     }
 
                     Box(Modifier.height(50.dp)) {
-                        val remove_request = {
+                        val remove_request: () -> Unit = {
                             v_removed.add(index)
 
                             undo_list.add({
@@ -251,7 +252,7 @@ fun QueueTab(weight_modifier: Modifier) {
 
                 Button(
                     onClick = {
-                        PlayerHost.service.shuffleQueue()
+                        PlayerServiceHost.service.shuffleQueue()
                     },
                     colors = ButtonDefaults.buttonColors(
                         containerColor = MainActivity.theme.getOnBackground(true)

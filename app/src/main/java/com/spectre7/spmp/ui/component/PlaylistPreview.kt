@@ -14,12 +14,13 @@ import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.spectre7.spmp.model.Playlist
+import com.spectre7.spmp.ui.layout.PlayerViewContext
 
 @OptIn(ExperimentalFoundationApi::class)
 @Composable
 fun PlaylistPreviewSquare(
-    playlist: Playlist, 
-    content_colour: Color, 
+    playlist: Playlist,
+    content_colour: Color,
     player: PlayerViewContext,
     enable_long_press_menu: Boolean = true,
     modifier: Modifier = Modifier
@@ -33,14 +34,14 @@ fun PlaylistPreviewSquare(
                 interactionSource = remember { MutableInteractionSource() },
                 indication = null,
                 onClick = {
-                    player.onMediaItemCLicked(artist)
+                    player.onMediaItemClicked(playlist)
                 },
                 onLongClick = {
                     if (enable_long_press_menu) {
                         show_popup = true
                     }
                     else {
-                        player.onMediaItemLongClicked(artist)
+                        player.onMediaItemLongClicked(playlist)
                     }
                 }
             )
@@ -90,14 +91,14 @@ fun PlaylistPreviewLong(
                 interactionSource = remember { MutableInteractionSource() },
                 indication = null,
                 onClick = {
-                    player.onMediaItemCLicked(artist)
+                    player.onMediaItemClicked(playlist)
                 },
                 onLongClick = {
                     if (enable_long_press_menu) {
                         show_popup = true
                     }
                     else {
-                        player.onMediaItemLongClicked(artist)
+                        player.onMediaItemLongClicked(playlist)
                     }
                 }
             )

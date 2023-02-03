@@ -169,7 +169,6 @@ class PlayerServiceHost {
 
     fun startService(onConnected: (() -> Unit)? = null, onDisconnected: (() -> Unit)? = null) {
         if (service_connected) {
-            println("ALREADY CONNECTED")
             return
         }
 

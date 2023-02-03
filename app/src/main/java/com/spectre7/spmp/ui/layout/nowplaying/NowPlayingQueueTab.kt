@@ -252,7 +252,12 @@ fun QueueTab(weight_modifier: Modifier, player: PlayerViewContext) {
 
                 Button(
                     onClick = {
-                        PlayerServiceHost.service.shuffleQueue()
+                        val swaps = PlayerServiceHost.service.shuffleQueue(return_swaps = true)!!
+                        undo_list.add {
+                            for (swap in swaps.asReversed()) {
+                                PlayerServiceHost.service.swapQueuePositions(swap.first, swap.second)
+                            }
+                        }
                     },
                     colors = ButtonDefaults.buttonColors(
                         containerColor = MainActivity.theme.getOnBackground(true)

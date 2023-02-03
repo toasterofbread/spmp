@@ -139,25 +139,46 @@ class PlayerService : Service() {
         return ret
     }
 
-    fun shuffleQueue(start: Int = -1) {
-        val start = if (start < 0) player.currentMediaItemIndex + 1 else start
+    fun shuffleQueue(start: Int = -1, return_swaps: Boolean = false): List<Pair<Int, Int>>? {
+        val range: IntRange =
+        if (start < 0) {
+            player.currentMediaItemIndex + 1 until player.mediaItemCount
+        }
+        else if (player.mediaItemCount - start <= 1) {
+            return if (return_swaps) emptyList() else null
+        }
+        else {
+            start until player.mediaItemCount
+        }
 
-        if (player.mediaItemCount - start <= 1) {
+        val ret: MutableList<Pair<Int, Int>>? = if (return_swaps) mutableListOf() else null
+
+        for (i in range) {
+            val swap = Random.nextInt(range)
+            swapQueuePositions(i, swap)
+
+            if (return_swaps) {
+                ret!!.add(Pair(i, swap))
+            }
+        }
+
+        return ret
+    }
+
+    fun swapQueuePositions(a: Int, b: Int) {
+        if (a == b) {
             return
         }
 
-        for (i in player.mediaItemCount - 1 downTo start) {
-            val swap = Random.nextInt(0 .. i)
+        assert(a >= 0 && a < player.mediaItemCount)
+        assert(b >= 0 && b < player.mediaItemCount)
 
-            if (i == swap) {
-                continue
-            }
+        val offset_b = b + (if (b > a) -1 else 1)
+        player.moveMediaItem(a, b)
+        player.moveMediaItem(offset_b, a)
 
-            player.moveMediaItem(i, swap)
-            player.moveMediaItem(swap + 1, i)
-
-            onSongMoved(i, swap)
-        }
+        onSongMoved(a, b)
+        onSongMoved(offset_b, a)
     }
 
     fun addToQueue(song: Song, index: Int? = null, is_active_queue: Boolean = false, start_radio: Boolean = false): Int {

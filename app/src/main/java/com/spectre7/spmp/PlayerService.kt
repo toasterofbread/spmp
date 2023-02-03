@@ -125,34 +125,40 @@ class PlayerService : Service() {
         }
     }
 
-    fun clearQueue(keep_current: Boolean = false): List<Pair<Song, Int>> {
+    fun clearQueue(from: Int = 0, keep_current: Boolean = false): List<Pair<Song, Int>> {
         val ret = mutableListOf<Pair<Song, Int>>()
-        if (keep_current) {
-            var i = 0
-            while (player.currentMediaItemIndex > 0) {
-                ret.add(Pair(getSong(0)!!, i++))
-                removeFromQueue(0)
+        for (i in player.mediaItemCount - 1 downTo from) {
+            if (keep_current && i == player.currentMediaItemIndex) {
+                continue
             }
-            while (player.mediaItemCount > 1) {
-                ret.add(Pair(getSong(player.mediaItemCount - 1)!!, player.mediaItemCount - 1 + i))
-                removeFromQueue(player.mediaItemCount - 1)
-            }
+            ret.add(Pair(removeFromQueue(i), i))
         }
-        else {
-            iterateSongs { i, song ->
-                ret.add(Pair(song, i))
-            }
-            player.clearMediaItems()
-            for (listener in queue_listeners) {
-                listener.onCleared()
-            }
+        ret.sortBy { it.second }
+        return ret
+    }
+
+    fun shuffleQueue(start: Int = -1) {
+        val start = if (start < 0) player.currentMediaItemIndex + 1 else start
+
+        if (player.mediaItemCount - start <= 1) {
+            return
         }
-        return ret.sortedBy {
-            it.second
+
+        for (i in player.mediaItemCount - 1 downTo start) {
+            val swap = Random.nextInt(0 .. i)
+
+            if (i == swap) {
+                continue
+            }
+
+            player.moveMediaItem(i, swap)
+            player.moveMediaItem(swap + 1, i)
+
+            onSongMoved(i, swap)
         }
     }
 
-    fun addToQueue(song: Song, index: Int? = null, is_active_queue: Boolean = false): Int {
+    fun addToQueue(song: Song, index: Int? = null, is_active_queue: Boolean = false, start_radio: Boolean = false): Int {
         val item = ExoMediaItem.Builder().setTag(song).setUri(song.id).build()
 
         val added_index: Int
@@ -171,6 +177,13 @@ class PlayerService : Service() {
 
         onSongAdded(song, added_index)
         addNotificationToPlayer()
+
+        if (start_radio) {
+            clearQueue(added_index)
+            thread {
+                addMultipleToQueueAndLoad(radio.startNewRadio(song), added_index, true)
+            }
+        }
 
         return added_index
     }
@@ -215,10 +228,11 @@ class PlayerService : Service() {
         }}}
     }
 
-    fun removeFromQueue(index: Int) {
+    fun removeFromQueue(index: Int): Song {
         val song = getSong(index)!!
         player.removeMediaItem(index)
         onSongRemoved(song, index)
+        return song
     }
 
     fun addQueueListener(listener: PlayerServiceHost.PlayerQueueListener) {
@@ -546,6 +560,12 @@ class PlayerService : Service() {
     private fun onSongRemoved(song: Song, index: Int) {
         for (listener in queue_listeners) {
             listener.onSongRemoved(song, index)
+        }
+    }
+
+    private fun onSongMoved(from: Int, to: Int) {
+        for (listener in queue_listeners) {
+            listener.onSongMoved(from, to)
         }
     }
 

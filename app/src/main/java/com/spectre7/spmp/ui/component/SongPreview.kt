@@ -26,9 +26,9 @@ import com.spectre7.utils.setAlpha
 fun SongPreviewSquare(
     song: Song, 
     content_colour: Color, 
-    modifier: Modifier = Modifier, 
-    onClick: (() -> Unit)? = null,
-    onLongClick: (() -> Unit)? = null
+    player: PlayerViewContext,
+    enable_long_press_menu: Boolean = true,
+    modifier: Modifier = Modifier
 ) {
     var show_popup by remember { mutableStateOf(false) }
 
@@ -39,17 +39,14 @@ fun SongPreviewSquare(
                 interactionSource = remember { MutableInteractionSource() },
                 indication = null,
                 onClick = {
-                    if (onClick != null) {
-                        onClick()
-                    } else {
-                        PlayerServiceHost.service.playSong(song)
-                    }
+                    player.onMediaItemCLicked(artist)
                 },
                 onLongClick = {
-                    if (onLongClick != null) {
-                        onLongClick()
-                    } else {
+                    if (enable_long_press_menu) {
                         show_popup = true
+                    }
+                    else {
+                        player.onMediaItemLongClicked(artist)
                     }
                 }
             )
@@ -63,6 +60,7 @@ fun SongPreviewSquare(
                 show_popup = false
             },
             media_item = song,
+            player = player,
             _thumb_size = 100.dp,
             thumb_shape = RoundedCornerShape(10),
             actions = longPressPopupActions
@@ -83,9 +81,9 @@ fun SongPreviewSquare(
 fun SongPreviewLong(
     song: Song, 
     content_colour: Color, 
-    modifier: Modifier = Modifier, 
-    onClick: (() -> Unit)? = null,
-    onLongClick: (() -> Unit)? = null
+    player: PlayerViewContext,
+    enable_long_press_menu: Boolean = true,
+    modifier: Modifier = Modifier
 ) {
     var show_popup by remember { mutableStateOf(false) }
 
@@ -96,8 +94,17 @@ fun SongPreviewLong(
             .combinedClickable(
                 interactionSource = remember { MutableInteractionSource() },
                 indication = null,
-                onClick = onClick ?: {},
-                onLongClick = onLongClick
+                onClick = {
+                    player.onMediaItemCLicked(artist)
+                },
+                onLongClick = {
+                    if (enable_long_press_menu) {
+                        show_popup = true
+                    }
+                    else {
+                        player.onMediaItemLongClicked(artist)
+                    }
+                }
             )
     ) {
         if (!song.loaded) {
@@ -110,6 +117,7 @@ fun SongPreviewLong(
                     show_popup = false
                 },
                 media_item = song,
+                player = player,
                 _thumb_size = 40.dp,
                 thumb_shape = RoundedCornerShape(20),
                 actions = longPressPopupActions
@@ -141,16 +149,14 @@ fun SongPreviewLong(
 
 val longPressPopupActions: @Composable LongPressMenuActionProvider.(MediaItem) -> Unit = { song ->
     if (song !is Song) {
-        throw ClassCastException()
+        throw IllegalStateException()
     }
 
-    ActionButton(Icons.Filled.PlayArrow, "Play") {
+    ActionButton(Icons.Filled.Radio, "Start radio") {
         PlayerServiceHost.service.playSong(song)
     }
 
-    ActionButton(Icons.Filled.ArrowRightAlt, "Play next") { }
-
-    val queue_song = PlayerServiceHost.service.getSong(PlayerServiceHost.service.active_queue_index)
+    val queue_song = remember (PlayerServiceHost.service.active_queue_index) { PlayerServiceHost.service.getSong(PlayerServiceHost.service.active_queue_index) }
     if (queue_song != null) {
         Column {
             Row(verticalAlignment = Alignment.CenterVertically) {
@@ -158,7 +164,7 @@ val longPressPopupActions: @Composable LongPressMenuActionProvider.(MediaItem) -
                     Modifier
                         .fillMaxWidth()
                         .weight(1f)) {
-                    PlayerServiceHost.service.addToQueue(song, PlayerServiceHost.service.active_queue_index + 1, true)
+                    PlayerServiceHost.service.addToQueue(song, PlayerServiceHost.service.active_queue_index + 1, true, TODO("Start radio on long press"))
                 }
                 
                 Row(verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(10.dp)) {
@@ -206,5 +212,9 @@ val longPressPopupActions: @Composable LongPressMenuActionProvider.(MediaItem) -
         }
     }
 
-    ActionButton(Icons.Filled.Download, "Download") { } // TODO
+    ActionButton(Icons.Filled.Download, "Download") { TODO() }
+
+    ActionButton(Icons.Filled.Person, "Go to artist") {
+        player.openMediaItem(song.artist)
+    }
 }

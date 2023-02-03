@@ -30,9 +30,9 @@ import com.spectre7.utils.setAlpha
 fun ArtistPreviewSquare(
     artist: Artist, 
     content_colour: Color, 
-    modifier: Modifier = Modifier, 
-    onClick: (() -> Unit)? = null,
-    onLongClick: (() -> Unit)? = null
+    player: PlayerViewContext,
+    enable_long_press_menu: Boolean = true,
+    modifier: Modifier = Modifier
 ) {
     var show_popup by remember { mutableStateOf(false) }
 
@@ -43,15 +43,14 @@ fun ArtistPreviewSquare(
                 interactionSource = remember { MutableInteractionSource() },
                 indication = null,
                 onClick = {
-                    if (onClick != null) {
-                        onClick()
-                    }
+                    player.onMediaItemCLicked(artist)
                 },
                 onLongClick = {
-                    if (onLongClick != null) {
-                        onLongClick()
-                    } else {
+                    if (enable_long_press_menu) {
                         show_popup = true
+                    }
+                    else {
+                        player.onMediaItemLongClicked(artist)
                     }
                 }
             )
@@ -65,9 +64,10 @@ fun ArtistPreviewSquare(
                 show_popup = false
             },
             media_item = artist,
+            player = player,
             _thumb_size = 100.dp,
             thumb_shape = CircleShape,
-            actions = { } // TODO
+            actions = longPressPopupActions
         )
 
         Text(
@@ -85,9 +85,9 @@ fun ArtistPreviewSquare(
 fun ArtistPreviewLong(
     artist: Artist, 
     content_colour: Color, 
-    modifier: Modifier = Modifier, 
-    onClick: (() -> Unit)? = null,
-    onLongClick: (() -> Unit)? = null
+    player: PlayerViewContext,
+    enable_long_press_menu: Boolean = true,
+    modifier: Modifier = Modifier
 ) {
     var show_popup by remember { mutableStateOf(false) }
 
@@ -98,8 +98,17 @@ fun ArtistPreviewLong(
             .combinedClickable(
                 interactionSource = remember { MutableInteractionSource() },
                 indication = null,
-                onClick = onClick ?: {},
-                onLongClick = onLongClick
+                onClick = {
+                    player.onMediaItemCLicked(artist)
+                },
+                onLongClick = {
+                    if (enable_long_press_menu) {
+                        show_popup = true
+                    }
+                    else {
+                        player.onMediaItemLongClicked(artist)
+                    }
+                }
             )
     ) {
         LongPressIconMenu(
@@ -108,9 +117,10 @@ fun ArtistPreviewLong(
                 show_popup = false
             },
             media_item = artist,
+            player = player,
             _thumb_size = 40.dp,
             thumb_shape = CircleShape,
-            actions = { } // TODO
+            actions = longPressPopupActions
         )
 
         Column(Modifier.padding(8.dp)) {
@@ -130,5 +140,75 @@ fun ArtistPreviewLong(
                 overflow = TextOverflow.Ellipsis
             )
         }
+    }
+}
+
+val longPressPopupActions: @Composable LongPressMenuActionProvider.(MediaItem) -> Unit = { artist ->
+    if (artist !is Artist) {
+        throw IllegalStateException()
+    }
+
+    ActionButton(Icons.Filled.PlayArrow, "Start radio") {
+        // TODO
+    }
+
+    val queue_song = remember (PlayerServiceHost.service.active_queue_index) { PlayerServiceHost.service.getSong(PlayerServiceHost.service.active_queue_index) }
+    if (queue_song != null) {
+        Column {
+            Row(verticalAlignment = Alignment.CenterVertically) {
+                ActionButton(Icons.Filled.SubdirectoryArrowRight, "Start radio after",
+                    Modifier
+                        .fillMaxWidth()
+                        .weight(1f)) {
+                    // TODO
+                }
+                
+                Row(verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(10.dp)) {
+                    val button_padding = PaddingValues(0.dp)
+                    val button_modifier = Modifier
+                        .size(30.dp)
+                        .fillMaxHeight()
+                        .aspectRatio(1f)
+                        .align(Alignment.CenterVertically)
+                    val button_colours = ButtonDefaults.buttonColors(
+                        containerColor = accent_colour,
+                        contentColor = background_colour
+                    )
+
+                    ElevatedButton(
+                        {
+                            PlayerServiceHost.service.updateActiveQueueIndex(-1)
+                        },
+                        button_modifier,
+                        contentPadding = button_padding,
+                        colors = button_colours,
+                    ) {
+                        Icon(Icons.Filled.Remove, null)
+                    }
+                    ElevatedButton(
+                        {
+                            PlayerServiceHost.service.updateActiveQueueIndex(1)
+                        },
+                        button_modifier,
+                        contentPadding = button_padding,
+                        colors = button_colours
+                    ) {
+                        Icon(Icons.Filled.Add, null)
+                    }
+                }
+            }
+
+            Crossfade(queue_song, animationSpec = tween(100)) {
+                it.PreviewLong(
+                    content_colour,
+                    null, null,
+                    Modifier
+                )
+            }
+        }
+    }
+
+    ActionButton(Icons.Filled.Person, "View artist") {
+        player.openMediaItem(song.artist)
     }
 }

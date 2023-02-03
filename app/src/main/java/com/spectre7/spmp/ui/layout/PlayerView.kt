@@ -51,6 +51,12 @@ enum class OverlayPage { NONE, SEARCH, SETTINGS, MEDIAITEM }
 
 val feed_refresh_mutex = ReentrantLock()
 
+abstract class PlayerViewContext {
+    abstract fun onMediaItemCLicked(item: MediaItem)
+    abstract fun onMediaItemLongClicked(item: MediaItem)
+    abstract fun openMediaItem(item: MediaItem)
+}
+
 @OptIn(ExperimentalMaterialApi::class, ExperimentalMaterial3Api::class)
 @Composable
 fun PlayerView() {

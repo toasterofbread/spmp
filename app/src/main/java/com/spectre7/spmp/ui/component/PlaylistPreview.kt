@@ -20,9 +20,9 @@ import com.spectre7.spmp.model.Playlist
 fun PlaylistPreviewSquare(
     playlist: Playlist, 
     content_colour: Color, 
-    modifier: Modifier = Modifier, 
-    onClick: (() -> Unit)? = null,
-    onLongClick: (() -> Unit)? = null
+    player: PlayerViewContext,
+    enable_long_press_menu: Boolean = true,
+    modifier: Modifier = Modifier
 ) {
     var show_popup by remember { mutableStateOf(false) }
 
@@ -33,17 +33,14 @@ fun PlaylistPreviewSquare(
                 interactionSource = remember { MutableInteractionSource() },
                 indication = null,
                 onClick = {
-                    if (onClick != null) {
-                        onClick()
-                    } else {
-                        TODO("Open playlist page")
-                    }
+                    player.onMediaItemCLicked(artist)
                 },
                 onLongClick = {
-                    if (onLongClick != null) {
-                        onLongClick()
-                    } else {
+                    if (enable_long_press_menu) {
                         show_popup = true
+                    }
+                    else {
+                        player.onMediaItemLongClicked(artist)
                     }
                 }
             )
@@ -57,6 +54,7 @@ fun PlaylistPreviewSquare(
                 show_popup = false
             },
             media_item = playlist,
+            player = player,
             _thumb_size = 100.dp,
             thumb_shape = RoundedCornerShape(10),
             actions = { TODO() }
@@ -78,9 +76,9 @@ fun PlaylistPreviewSquare(
 fun PlaylistPreviewLong(
     playlist: Playlist, 
     content_colour: Color, 
-    modifier: Modifier = Modifier, 
-    onClick: (() -> Unit)? = null,
-    onLongClick: (() -> Unit)? = null
+    player: PlayerViewContext,
+    enable_long_press_menu: Boolean = true,
+    modifier: Modifier = Modifier
 ) {
     var show_popup by remember { mutableStateOf(false) }
 
@@ -91,8 +89,17 @@ fun PlaylistPreviewLong(
             .combinedClickable(
                 interactionSource = remember { MutableInteractionSource() },
                 indication = null,
-                onClick = onClick ?: {},
-                onLongClick = onLongClick
+                onClick = {
+                    player.onMediaItemCLicked(artist)
+                },
+                onLongClick = {
+                    if (enable_long_press_menu) {
+                        show_popup = true
+                    }
+                    else {
+                        player.onMediaItemLongClicked(artist)
+                    }
+                }
             )
     ) {
         LongPressIconMenu(
@@ -101,6 +108,7 @@ fun PlaylistPreviewLong(
                 show_popup = false
             },
             media_item = playlist,
+            player = player,
             _thumb_size = 40.dp,
             thumb_shape = RoundedCornerShape(10),
             actions = { TODO() }

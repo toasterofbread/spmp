@@ -18,3 +18,4 @@ server/pages/github-markdown-css/
 server/pages/*.html
 nohup.out
 server/spectre7/
+keys.properties

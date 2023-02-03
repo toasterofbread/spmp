@@ -60,7 +60,7 @@ class DataApi {
                 .add("alt-used", "music.youtube.com")
                 .add("connection", "keep-alive")
                 .add("authorization", "SAPISIDHASH 1675248141_d44fbb5137d2b0b742935593e96ccb67b3b5c37b")
-                .add("cookie", "***REMOVED***")
+                .add("cookie", BuildConfig.TESTING_COOKIE) // TODO Config
                 .add("sec-fetch-dest", "empty")
                 .add("sec-fetch-mode", "same-origin")
                 .add("sec-fetch-site", "same-origin")

@@ -33,6 +33,8 @@
             </intent-filter>
         </activity>
 
+        <activity android:name=".ErrorReportActivity" />
+
         <service android:name=".PlayerService"
             android:exported="true"
             android:foregroundServiceType="mediaPlayback">

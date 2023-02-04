@@ -1,5 +1,6 @@
 package com.spectre7.spmp.api
 
+import androidx.compose.ui.text.toLowerCase
 import com.beust.klaxon.JsonObject
 import com.spectre7.spmp.model.*
 import okhttp3.Request
@@ -13,18 +14,17 @@ data class YoutubeiHomeBrowseResponse(
     val continuationContents: ContinuationContents? = null
 ) {
     fun getShelves(has_continuation: Boolean): List<YoutubeiShelf> {
-        return if (has_continuation) continuationContents!!.sectionListContinuation.contents else contents.singleColumnBrowseResultsRenderer.tabs.first().tabRenderer.content.sectionListRenderer.contents
+        return if (has_continuation) continuationContents!!.sectionListContinuation.contents else contents.singleColumnBrowseResultsRenderer.tabs.first().tabRenderer.content!!.sectionListRenderer.contents
     }
 
     data class Contents(val singleColumnBrowseResultsRenderer: SingleColumnBrowseResultsRenderer)
     data class SingleColumnBrowseResultsRenderer(val tabs: List<Tab>)
     data class Tab(val tabRenderer: TabRenderer)
-    data class TabRenderer(val content: Content)
+    data class TabRenderer(val content: Content? = null)
     data class Content(val sectionListRenderer: SectionListRenderer)
-    data class SectionListRenderer(val contents: List<YoutubeiShelf>)
+    data class SectionListRenderer(val contents: List<YoutubeiShelf>, val continuations: List<YoutubeiNextResponse.Continuation>)
 
-    data class ContinuationContents(val sectionListContinuation: SectionListContinuation)
-    data class SectionListContinuation(val contents: List<YoutubeiShelf>, val continuations: List<YoutubeiNextResponse.Continuation>)
+    data class ContinuationContents(val sectionListContinuation: SectionListRenderer)
 }
 
 data class YoutubeiShelf(
@@ -191,16 +191,21 @@ fun getHomeFeed(min_rows: Int = -1, allow_cached: Boolean = true): DataApi.Resul
     }
 
     var data: YoutubeiHomeBrowseResponse = DataApi.klaxon.parse(response_reader)!!
+    response_reader.close()
     rows = processRows(data.getShelves(false)).toMutableList()
 
     while (min_rows >= 1 && rows.size < min_rows) {
-        val ctoken = data.continuationContents?.sectionListContinuation?.continuations?.firstOrNull()?.nextContinuationData?.continuation ?: break
+        val ctoken =
+            data.continuationContents?.sectionListContinuation?.continuations?.firstOrNull()?.nextContinuationData?.continuation
+                ?: data.contents.singleColumnBrowseResultsRenderer.tabs.first().tabRenderer.content!!.sectionListRenderer.continuations.firstOrNull()?.nextContinuationData?.continuation
+                ?: break
 
         val result = postRequest(ctoken)
         if (!result.success) {
             return DataApi.Result.failure(result.exception)
         }
         data = DataApi.klaxon.parse(result.data)!!
+        result.data.close()
         rows.addAll(processRows(data.getShelves(true)))
     }
 

@@ -10,8 +10,6 @@ import android.os.VibratorManager
 import android.widget.Toast
 import androidx.compose.animation.core.CubicBezierEasing
 import androidx.compose.animation.core.tween
-import androidx.compose.foundation.MutatePriority
-import androidx.compose.foundation.background
 import androidx.compose.foundation.gestures.*
 import androidx.compose.foundation.horizontalScroll
 import androidx.compose.foundation.layout.Row
@@ -22,13 +20,17 @@ import androidx.compose.foundation.rememberScrollState
 import androidx.compose.material.ripple.LocalRippleTheme
 import androidx.compose.material.ripple.RippleAlpha
 import androidx.compose.material.ripple.RippleTheme
+import androidx.compose.material3.Text
 import androidx.compose.runtime.*
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clipToBounds
+import androidx.compose.ui.draw.drawWithContent
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.layout.SubcomposeLayout
 import androidx.compose.ui.layout.onSizeChanged
 import androidx.compose.ui.platform.LocalDensity
+import androidx.compose.ui.text.TextStyle
+import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.*
 import com.spectre7.spmp.MainActivity
 import kotlinx.coroutines.delay
@@ -183,7 +185,7 @@ fun Marquee(autoscroll: Boolean = true, modifier: Modifier = Modifier, content: 
             ) {
                 Row(
                     Modifier
-                        .requiredWidth(with (density) { container_width.toDp() - scroll_value })
+                        .requiredWidth(with(density) { container_width.toDp() - scroll_value })
                         .offset(scroll_value / 2)
                 ) {
                     content()
@@ -191,4 +193,42 @@ fun Marquee(autoscroll: Boolean = true, modifier: Modifier = Modifier, content: 
             }
         }
     }
+}
+
+@Composable
+fun WidthShrinkText(text: String, fontSize: TextUnit, modifier: Modifier = Modifier, fontWeight: FontWeight? = null) {
+    WidthShrinkText(
+        text,
+        remember { mutableStateOf(TextStyle(
+            fontSize = fontSize,
+            fontWeight = fontWeight
+        )) },
+        modifier
+    )
+}
+
+@Composable
+fun WidthShrinkText(text: String, style: TextStyle, modifier: Modifier = Modifier) {
+    WidthShrinkText(text, remember { mutableStateOf(style) }, modifier)
+}
+
+@Composable
+fun WidthShrinkText(text: String, style: MutableState<TextStyle>, modifier: Modifier = Modifier) {
+    var ready_to_draw by remember { mutableStateOf(false) }
+
+    Text(
+        text,
+        modifier.drawWithContent { if (ready_to_draw) drawContent() },
+        maxLines = 1,
+        softWrap = false,
+        style = style.value,
+        onTextLayout = { layout_result ->
+            if (!layout_result.didOverflowWidth) {
+                ready_to_draw = true
+            }
+            else {
+                style.value = style.value.copy(fontSize = style.value.fontSize * 0.99)
+            }
+        }
+    )
 }

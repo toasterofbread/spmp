@@ -18,8 +18,8 @@ import kotlin.math.absoluteValue
 fun getSongLyrics(song: Song): Song.Lyrics? {
     val ret: Song.Lyrics?
 
-    val id = song.registry.lyrics_id
-    val source = song.registry.lyrics_source
+    val id: Int? = song.registry.get("lyrics_id")
+    val source: Song.Lyrics.Source? = song.registry.get("lyrics_source")
 
     if (id != null && source != null) {
         ret = getLyrics(id, source).getDataOrThrow()
@@ -34,8 +34,8 @@ fun getSongLyrics(song: Song): Song.Lyrics? {
         ret = getLyrics(lyrics.id, lyrics.source).getDataOrThrow()
     }
 
-    song.registry.lyrics_id = ret.id
-    song.registry.lyrics_source = ret.source
+    song.registry.set("lyrics_id", ret.id)
+    song.registry.set("lyrics_source", ret.source)
     return ret
 }
 

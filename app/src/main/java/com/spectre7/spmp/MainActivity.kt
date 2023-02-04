@@ -147,8 +147,6 @@ class MainActivity : ComponentActivity() {
 //            .apply()
 //    }
 
-//    private fun createOc
-
     private fun loadLanguages(): MutableMap<String, Map<String, String>> {
         val data = resources.assets.open("languages.json").bufferedReader()
         val ret = mutableMapOf<String, Map<String, String>>()

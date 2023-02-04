@@ -140,9 +140,12 @@ fun LongPressIconMenu(
         }
 
         LaunchedEffect(Unit) {
-            if (media_item is Song && media_item.registry.theme_colour != null) {
-                accent_colour = Color(media_item.registry.theme_colour!!)
-                return@LaunchedEffect
+            if (media_item is Song) {
+                val theme_colour = media_item.registry.get<Int>("theme_colour")
+                if (theme_colour != null) {
+                    accent_colour = Color(theme_colour)
+                    return@LaunchedEffect
+                }
             }
 
             if (!media_item.isThumbnailLoaded(MediaItem.ThumbnailQuality.LOW) && !media_item.isThumbnailLoaded(MediaItem.ThumbnailQuality.HIGH)) {

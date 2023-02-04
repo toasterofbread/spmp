@@ -62,4 +62,25 @@
     <string name="artist_chip_radio">ラジオ</string>
     <string name="artist_chip_shuffle">シャッフル</string>
     <string name="artist_chip_open">開く</string>
+    <string name="prompt_confirm_action">確認してください</string>
+    <string name="prompt_confirm_settings_page_reset">このページのバリューを全てリセット</string>
+    <string name="s_group_download">ダウンロード</string>
+    <string name="s_key_auto_download_quality">オートダウンロードの音質</string>
+    <string name="s_key_auto_download_size_limit">オートダウンロードのサイズ制限</string>
+    <string name="s_key_lyrics_extra_padding">パディングを増やす</string>
+    <string name="s_key_vol_intercept_mode">音量インターセプトモード</string>
+    <string name="s_key_vol_intercept_notification">音量変化の通知</string>
+    <string name="s_key_vol_steps">音量変化のステップ</string>
+    <string name="s_option_vol_intercept_mode_never">有効にしない</string>
+    <string name="s_option_vol_intercept_mode_app">アプリ使用時に有効</string>
+    <string name="s_option_vol_intercept_mode_always">メディア再生時に有効</string>
+    <string name="s_page_acc_service">アクセシビリティサービス</string>
+    <string name="s_sub_auto_download_quality">オートダウンロードした曲の音質</string>
+    <string name="s_sub_auto_download_size_limit">オートダウンロードしたすべての曲のサイズ制限</string>
+    <string name="s_sub_download_audio_quality">オートダウンロードした曲の合計のサイズはこの制限を超えません</string>
+    <string name="s_sub_lyrics_extra_padding">歌詞の上と下にパディングを増やす</string>
+    <string name="s_sub_stream_audio_quality">曲をストリーム再生する時の音質</string>
+    <string name="s_sub_vol_intercept_mode">アクセシビリティサービスはボリュームボタンをインターセプトして、システム音量の代わりに SpMp の音量を変えることができます</string>
+    <string name="s_sub_vol_intercept_notification">アクセシビリティサービスがボリュームボタンをインターセプトした時に画面にメッセージを表示しする</string>
+    <string name="s_sub_vol_steps">アクセシビリティサービスで音量を変える時のステップ量</string>
 </resources>

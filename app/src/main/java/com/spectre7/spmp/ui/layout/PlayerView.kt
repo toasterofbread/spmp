@@ -9,7 +9,8 @@ import androidx.compose.foundation.gestures.LocalOverScrollConfiguration
 import androidx.compose.foundation.gestures.Orientation
 import androidx.compose.foundation.interaction.MutableInteractionSource
 import androidx.compose.foundation.layout.*
-import androidx.compose.foundation.lazy.LazyColumn
+import androidx.compose.foundation.lazy.LazyListState
+import androidx.compose.foundation.lazy.rememberLazyListState
 import androidx.compose.material.ExperimentalMaterialApi
 import androidx.compose.material.FractionalThreshold
 import androidx.compose.material.icons.Icons
@@ -104,7 +105,9 @@ fun PlayerView() {
         }
     }
 
-    Column(Modifier.fillMaxSize().background(MainActivity.theme.getBackground(false))) {
+    Column(Modifier
+        .fillMaxSize()
+        .background(MainActivity.theme.getBackground(false))) {
 
         Box(Modifier.padding(bottom = minimised_now_playing_height.value.dp)) {
 
@@ -129,7 +132,7 @@ fun PlayerView() {
                 MainActivity.theme.getAccent()
             )
 
-            val main_page_rows = remember { mutableStateListOf<MediaItemRow>() }
+            val main_page_rows = remember { mutableStateListOf<MediaItemLayout>() }
 
             lateinit var refreshFeed: (allow_cached: Boolean, onFinished: (success: Boolean) -> Unit) -> Unit
             refreshFeed = { allow_cached: Boolean, onFinished: (success: Boolean) -> Unit ->
@@ -138,7 +141,7 @@ fun PlayerView() {
                         feed_refresh_mutex.lock()
                         main_page_rows.clear()
 
-                        val feed_result = getHomeFeed()
+                        val feed_result = getHomeFeed(10)
 
                         if (!feed_result.success) {
                             MainActivity.error_manager.onError(feed_result.exception) { resolve ->
@@ -149,15 +152,15 @@ fun PlayerView() {
                             return@thread
                         }
 
-                        val artists = MediaItemRow(getString(R.string.feed_row_artists), null)
-                        val playlists = MediaItemRow(getString(R.string.feed_row_playlists), null)
+                        val artists = MediaItemLayout(getString(R.string.feed_row_artists), null, MediaItemLayout.Type.GRID)
+                        val playlists = MediaItemLayout(getString(R.string.feed_row_playlists), null, MediaItemLayout.Type.GRID)
 
-                        val rows = mutableListOf<MediaItemRow>()
+                        val rows = mutableListOf<MediaItemLayout>()
                         val request_limit = Semaphore(10)
 
                         runBlocking { withContext(Dispatchers.IO) { coroutineScope {
                             for (row in feed_result.data) {
-                                val entry = MediaItemRow(row.title, row.subtitle)
+                                val entry = MediaItemLayout(row.title, row.subtitle, MediaItemLayout.Type.GRID)
                                 rows.add(entry)
 
                                 for (item in row.items) {
@@ -168,11 +171,11 @@ fun PlayerView() {
                                             synchronized(request_limit) {
                                                 when (loaded) {
                                                     is Song -> {
-                                                        entry.add(loaded)
-                                                        artists.add(loaded.artist)
+                                                        entry.addItem(loaded)
+                                                        artists.addItem(loaded.artist)
                                                     }
-                                                    is Artist -> artists.add(loaded)
-                                                    is Playlist -> playlists.add(media_item)
+                                                    is Artist -> artists.addItem(loaded)
+                                                    is Playlist -> playlists.addItem(media_item)
                                                 }
                                             }
                                         }
@@ -203,13 +206,15 @@ fun PlayerView() {
                 refreshFeed(true) {}
             }
 
+            val main_page_scroll_state = rememberLazyListState()
+
             Crossfade(targetState = player.overlay_page) {
                 Column(Modifier.fillMaxSize()) {
                     if (it != OverlayPage.NONE && it != OverlayPage.MEDIAITEM) {
                         Spacer(Modifier.requiredHeight(getStatusBarHeight(MainActivity.context)))
                     }
                     when (it) {
-                        OverlayPage.NONE -> MainPage(main_page_rows, refreshFeed, player)
+                        OverlayPage.NONE -> MainPage(main_page_rows, refreshFeed, player, main_page_scroll_state)
                         OverlayPage.SEARCH -> SearchPage(pill_menu, player) { player.overlay_page = OverlayPage.NONE }
                         OverlayPage.SETTINGS -> PrefsPage(pill_menu) { player.overlay_page = OverlayPage.NONE }
                         OverlayPage.MEDIAITEM -> Crossfade(player.overlay_media_item) { item ->
@@ -269,11 +274,12 @@ fun PlayerView() {
 @OptIn(ExperimentalFoundationApi::class)
 @Composable
 fun MainPage(
-    _rows: List<MediaItemRow>,
+    _rows: List<MediaItemLayout>,
     refreshFeed: (allow_cache: Boolean, onFinished: (success: Boolean) -> Unit) -> Unit,
-    player: PlayerViewContext
+    player: PlayerViewContext,
+    scroll_state: LazyListState
 ) {
-    var rows: List<MediaItemRow> by remember { mutableStateOf(_rows) }
+    var rows: List<MediaItemLayout> by remember { mutableStateOf(_rows) }
 
     SwipeRefresh(
         state = rememberSwipeRefreshState(_rows.isEmpty()), // TODO
@@ -292,15 +298,12 @@ fun MainPage(
                 CompositionLocalProvider(
                     LocalOverScrollConfiguration provides null
                 ) {
-                    LazyColumn(Modifier.fillMaxSize(), verticalArrangement = Arrangement.spacedBy(20.dp)) {
-                        item {
-                            Spacer(Modifier.requiredHeight(getStatusBarHeight(MainActivity.context)))
-                        }
-                        items(rows.size) { i ->
-                            val row = rows[i]
-                            MediaItemGrid(row.title, row.subtitle, row.items, player)
-                        }
-                    }
+                    MediaItemLayoutColumn(
+                        rows,
+                        player,
+                        top_padding = getStatusBarHeight(MainActivity.context),
+                        scroll_state = scroll_state
+                    )
                 }
             }
             else {

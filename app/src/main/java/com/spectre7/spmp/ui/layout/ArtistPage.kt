@@ -5,12 +5,10 @@ package com.spectre7.spmp.ui.layout
 import android.content.Intent
 import android.net.Uri
 import androidx.activity.compose.BackHandler
-import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.animation.Crossfade
 import androidx.compose.animation.animateContentSize
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
-import androidx.compose.foundation.clickable
 import androidx.compose.foundation.gestures.detectTapGestures
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
@@ -44,6 +42,7 @@ import com.spectre7.spmp.R
 import com.spectre7.spmp.model.Artist
 import com.spectre7.spmp.model.MediaItem
 import com.spectre7.spmp.ui.component.MediaItemGrid
+import com.spectre7.spmp.ui.component.MediaItemLayout
 import com.spectre7.spmp.ui.component.PillMenu
 import com.spectre7.utils.*
 import kotlinx.coroutines.*
@@ -288,7 +287,7 @@ fun ArtistPage(
                             verticalArrangement = Arrangement.spacedBy(30.dp)
                         ) {
                             for (row in artist.feed_rows) {
-                                MediaItemGrid(row.title, null, row.items, player)
+                                MediaItemGrid(MediaItemLayout(row.title, null, items = row.items), player)
                             }
 
                             val description = artist.description

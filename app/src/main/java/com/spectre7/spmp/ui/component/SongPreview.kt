@@ -161,7 +161,9 @@ private val longPressPopupActions: @Composable LongPressMenuActionProvider.(Medi
     if (queue_song != null) {
         Column {
             Row(verticalAlignment = Alignment.CenterVertically) {
-                ActionButton(Icons.Filled.SubdirectoryArrowRight, "Play after",
+
+                val distance = PlayerServiceHost.service.active_queue_index - PlayerServiceHost.status.index
+                ActionButton(Icons.Filled.SubdirectoryArrowRight, "Play after $distance song(s)",
                     Modifier
                         .fillMaxWidth()
                         .weight(1f)) {

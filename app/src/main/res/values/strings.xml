@@ -58,10 +58,6 @@
     <string name="accessibility_service_description">TODO Desc</string>
     <string name="generic_network_error">A network error occurred</string>
 
-    <string name="song_details_edit_info">Details:\nInfo displayed in the app UI\n\nLyrics:\nInfo used when searching for lyrics</string>
-    <string name="song_details_edit_main">Details</string>
-    <string name="song_details_edit_lyrics">Lyrics</string>
-
     <string name="s_page_preferences">Preferences</string>
 
     <string name="s_group_general">General</string>

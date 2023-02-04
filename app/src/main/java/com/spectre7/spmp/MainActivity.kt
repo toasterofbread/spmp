@@ -17,10 +17,7 @@ import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Error
-import androidx.compose.material3.Icon
-import androidx.compose.material3.IconButton
-import androidx.compose.material3.Surface
-import androidx.compose.material3.Text
+import androidx.compose.material3.*
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.mutableStateMapOf
 import androidx.compose.runtime.mutableStateOf
@@ -50,13 +47,22 @@ class MainActivity : ComponentActivity() {
     lateinit var languages: Map<String, Map<String, String>>
     lateinit var database: StandaloneDatabaseProvider
 
-    private lateinit var auth_service: AuthorizationService
-    private lateinit var auth_state: AuthState
-    private lateinit var auth_activity_launcher: ActivityResultLauncher<(AuthorizationException?) -> Unit>
+//    private lateinit var auth_service: AuthorizationService
+//    private lateinit var auth_state: AuthState
+//    private lateinit var auth_activity_launcher: ActivityResultLauncher<(AuthorizationException?) -> Unit>
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         instance = this
+
+        Thread.setDefaultUncaughtExceptionHandler { _: Thread, error: Throwable ->
+            error.printStackTrace()
+
+            context.startActivity(Intent(context, ErrorReportActivity::class.java).apply {
+                putExtra("message", error.message)
+                putExtra("stack_trace", error.stackTraceToString())
+            })
+        }
 
         prefs = getSharedPreferences(this)
 
@@ -109,7 +115,7 @@ class MainActivity : ComponentActivity() {
                         service_host.startService({ service_started = false })
                     }
 
-//                    error_manager.Indicator(Color.Red)
+                    error_manager.Indicator(Color.Red)
                 }
             }
         }
@@ -141,40 +147,7 @@ class MainActivity : ComponentActivity() {
 //            .apply()
 //    }
 
-    private fun createOauthActivityLauncher(): ActivityResultLauncher<(AuthorizationException?) -> Unit> {
-        return registerForActivityResult(object : ActivityResultContract<(AuthorizationException?) -> Unit, Unit>() {
-            private lateinit var onFinished: (AuthorizationException?) -> Unit
-            
-            override fun createIntent(context: Context, onFinished: (AuthorizationException?) -> Unit): Intent {
-                this.onFinished = onFinished
-                
-                val auth_request_builder = AuthorizationRequest.Builder(
-                    auth_state.authorizationServiceConfiguration!!,
-                    com.spectre7.utils.getString(R.string.oauth_client_id),
-                    ResponseTypeValues.CODE,
-                    Uri.parse("${context.packageName}:/oauth2redirect")
-                )
-
-                val auth_request = auth_request_builder
-                    .setScope("https://www.googleapis.com/auth/youtube")
-                    .setUiLocales(ui_language)
-                    .build()
-
-                return auth_service.getAuthorizationRequestIntent(auth_request)
-            }
-
-            override fun parseResult(resultCode: Int, intent: Intent?) {
-                val exception = AuthorizationException.fromIntent(intent!!)
-                if (exception != null) {
-                    onFinished(exception)
-                    return
-                }
-
-                auth_state.update(AuthorizationResponse.fromIntent(intent), null)
-                onFinished(null)
-            }
-        }, {})
-    }
+//    private fun createOc
 
     private fun loadLanguages(): MutableMap<String, Map<String, String>> {
         val data = resources.assets.open("languages.json").bufferedReader()

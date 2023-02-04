@@ -4,6 +4,7 @@ import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import com.spectre7.spmp.api.BrowseData
+import com.spectre7.spmp.ui.component.MediaItemLayout
 import com.spectre7.spmp.ui.component.PlaylistPreviewLong
 import com.spectre7.spmp.ui.component.PlaylistPreviewSquare
 import com.spectre7.spmp.ui.layout.PlayerViewContext
@@ -14,7 +15,7 @@ class Playlist private constructor (
 
     // Data
     lateinit var title: String
-    lateinit var feed_rows: List<MediaItemRow>
+    lateinit var feed_rows: List<MediaItemLayout>
 
     companion object {
         private val playlists: MutableMap<String, Playlist> = mutableMapOf()
@@ -54,7 +55,7 @@ class Playlist private constructor (
 
         title = data.name!!
         feed_rows = List(data.feed_rows.size) { i ->
-            data.feed_rows[i].toMediaItemRow()
+            data.feed_rows[i].toMediaItemLayout()
         }
     }
 }

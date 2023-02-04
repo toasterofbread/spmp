@@ -11,6 +11,7 @@ import com.spectre7.spmp.api.isSubscribedToArtist
 import com.spectre7.spmp.api.subscribeOrUnsubscribeArtist
 import com.spectre7.spmp.ui.component.ArtistPreviewLong
 import com.spectre7.spmp.ui.component.ArtistPreviewSquare
+import com.spectre7.spmp.ui.component.MediaItemLayout
 import com.spectre7.spmp.ui.layout.PlayerViewContext
 import com.spectre7.utils.sendToast
 import kotlin.concurrent.thread
@@ -22,7 +23,7 @@ class Artist private constructor (
     // Data
     lateinit var name: String
     var description: String? = null
-    lateinit var feed_rows: List<MediaItemRow>
+    lateinit var feed_rows: List<MediaItemLayout>
     lateinit var subscribe_channel_id: String
 
     var subscribed: Boolean? by mutableStateOf(null)
@@ -66,7 +67,7 @@ class Artist private constructor (
         name = data.name!!
         description = data.description
         feed_rows = List(data.feed_rows.size) { i ->
-            data.feed_rows[i].toMediaItemRow()
+            data.feed_rows[i].toMediaItemLayout()
         }
         subscribe_channel_id = data.subscribe_channel_id ?: id
     }

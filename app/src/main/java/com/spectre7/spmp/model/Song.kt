@@ -3,9 +3,7 @@ package com.spectre7.spmp.model
 import android.content.SharedPreferences
 import android.graphics.Bitmap
 import android.graphics.BitmapFactory
-import androidx.compose.runtime.Composable
-import androidx.compose.runtime.MutableState
-import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.*
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.toArgb
@@ -29,68 +27,57 @@ import kotlin.concurrent.thread
 import kotlin.reflect.KMutableProperty1
 import kotlin.reflect.jvm.isAccessible
 
-class DataRegistry constructor(var songs: MutableMap<String, SongEntry> = mutableMapOf()) {
+class DataRegistry constructor(data: Map<String, Map<String, Any?>>? = null) {
+    private var songs: MutableMap<String, SongEntry> = mutableMapOf()
+
     init {
-        for (song in songs) {
-            song.value.id = song.key
-            song.value.registry = this
+        if (data != null) {
+            for (song_data in data) {
+                songs[song_data.key] = SongEntry(song_data.value)
+            }
         }
     }
 
-    data class SongEntry(
-        var _title: String? = null,
-        var _theme_colour: Int? = null,
-        var _lyrics_id: Int? = null,
-        var _lyrics_source: Int? = null
-    ) {
-        @Json(ignored = true) lateinit var id: String
-        @Json(ignored = true) lateinit var registry: DataRegistry
+    inner class SongEntry(init_data: Map<String, Any?>? = null) {
+        val data: Map<String, MutableState<Any?>> = getDefaultData()
+
+        init {
+            if (init_data != null) {
+                for (item in init_data) {
+                    data[item.key]!!.value = item.value
+                }
+            }
+        }
+
+        fun <T> set(key: String, value: T) {
+            data[key]!!.value = value
+            save()
+        }
+
+        fun <T> get(key: String): T? {
+            return data[key]!!.value as T?
+        }
+
+        fun getJsonData(): Map<String, Any?> {
+            return data.mapValues { it.value.value }
+        }
 
         fun isDefault(): Boolean {
-            return this == SongEntry()
+            for (item in getDefaultData()) {
+                if (data[item.key]!!.value != item.value.value) {
+                    return false
+                }
+            }
+            return true
         }
 
-        var title: String?
-            get() = getMutableState<String?>("_title").value
-            set(value) = set("_title", value)
-
-        var theme_colour: Int?
-            get() = getMutableState<Int?>("_theme_colour").value
-            set(value) = set("_theme_colour", value)
-
-        var lyrics_id: Int?
-            get() = getMutableState<Int?>("_lyrics_id").value
-            set(value) = set("_lyrics_id", value)
-
-        var lyrics_source: Song.Lyrics.Source?
-            get() {
-                val value = getMutableState<Int?>("_lyrics_source").value ?: return null
-                return Song.Lyrics.Source.values()[value]
-            }
-            set(value) = set("_lyrics_source", value?.ordinal)
-
-        private val mutable_states = mutableMapOf<String, MutableState<*>>()
-
-        private fun <T> getMutableState(name: String): MutableState<T> {
-            return mutable_states.getOrPut(name, {
-                val property = SongEntry::class.members.first { it.name == name } as KMutableProperty1<SongEntry, T>
-                property.isAccessible = true
-                mutableStateOf(property.get(this))
-            }) as MutableState<T>
-        }
-
-        private fun <T> set(name: String, value: T) {
-            val property = SongEntry::class.members.first { it.name == name } as KMutableProperty1<SongEntry, T>
-            property.isAccessible = true
-            if (property.get(this) == value) {
-                return
-            }
-
-            val state = getMutableState<T>(name)
-            state.value = value
-
-            property.set(this, value)
-            registry.save(Settings.prefs)
+        private fun getDefaultData(): Map<String, MutableState<Any?>> {
+            return mapOf(
+                "title" to mutableStateOf(null),
+                "theme_colour" to mutableStateOf(null),
+                "lyrics_id" to mutableStateOf(null),
+                "lyrics_source" to mutableStateOf(null),
+            )
         }
     }
 
@@ -103,26 +90,26 @@ class DataRegistry constructor(var songs: MutableMap<String, SongEntry> = mutabl
         }
 
         return SongEntry().also { entry ->
-            entry.id = song_id
-            entry.registry = this
             songs[song_id] = entry
         }
     }
 
     @Synchronized
-    fun save(prefs: SharedPreferences) {
-        prefs.edit {
-            val temp = songs
-            songs = mutableMapOf()
-
-            for (song in temp) {
-                if (!song.value.isDefault()) {
-                    songs[song.key] = song.value
-                }
+    fun save(prefs: SharedPreferences = Settings.prefs) {
+        val song_data = mutableMapOf<String, Map<String, Any?>>()
+        for (song in songs) {
+            if (song.value.isDefault()) {
+                continue
             }
+            song_data[song.key] = song.value.getJsonData()
+        }
 
-            putString("data_registry", Klaxon().toJsonString(this@DataRegistry))
-            songs = temp
+        if (song_data.isEmpty()) {
+            return
+        }
+
+        prefs.edit {
+            putString("data_registry", Klaxon().toJsonString(song_data))
         }
     }
 }
@@ -155,19 +142,20 @@ class Song private constructor (
 
     var theme_colour: Color?
         get() {
-            val value = registry.theme_colour
+            val value = registry.get<Int>("theme_colour")
             if (value != null) {
                 return Color(value)
             }
             return null
         }
-        set(value) { registry.theme_colour = value?.toArgb() }
+        set(value) { registry.set("theme_colour", value?.toArgb()) }
 
     val original_title: String get() = _title
     var title: String
         get() {
-            if (registry.title != null) {
-                return registry.title!!
+            val registry_title = registry.get<String>("title")
+            if (registry_title != null) {
+                return registry_title
             }
 
             var ret = _title
@@ -200,7 +188,7 @@ class Song private constructor (
 
             return (ret as CharSequence).trim().trim('ㅤ').toString()
         }
-        set(value) { registry.title = value }
+        set(value) { registry.set("title", value) }
 
     data class Lyrics(
         val id: Int,
@@ -313,12 +301,7 @@ class Song private constructor (
 
         fun init(prefs: SharedPreferences) {
             val data = prefs.getString("data_registry", null)
-            song_registry = if (data == null) {
-                DataRegistry()
-            }
-            else {
-                Klaxon().parse<DataRegistry>(data)!!
-            }
+            song_registry = DataRegistry(if (data == null) null else Klaxon().parse(data))
         }
 
         @Synchronized

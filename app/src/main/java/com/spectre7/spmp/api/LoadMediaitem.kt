@@ -1,8 +1,8 @@
 package com.spectre7.spmp.api
 
-import android.provider.ContactsContract.Data
 import android.util.JsonReader
 import com.spectre7.spmp.model.*
+import com.spectre7.spmp.ui.component.MediaItemLayout
 import okhttp3.Request
 import java.io.BufferedReader
 import java.time.Duration
@@ -22,10 +22,9 @@ class BrowseData {
     var description: String? = null
     var feed_rows: MutableList<FeedRow> = mutableListOf()
     var subscribe_channel_id: String? = null
-//    var id_replace: String? = null
     data class FeedRow(val title: String?, var items: List<MediaItem.Serialisable>, val media_item: MediaItem.Serialisable? = null) {
-        fun toMediaItemRow(): MediaItemRow {
-            return MediaItemRow(title, null, MutableList(items.size) { i ->
+        fun toMediaItemLayout(): MediaItemLayout {
+            return MediaItemLayout(title, null, items = MutableList(items.size) { i ->
                 items[i].toMediaItem()
             })
         }

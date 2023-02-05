@@ -2,14 +2,17 @@
 
 package com.spectre7.spmp.ui.component
 
+import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.animation.Crossfade
 import androidx.compose.animation.core.*
 import androidx.compose.foundation.*
 import androidx.compose.foundation.interaction.MutableInteractionSource
 import androidx.compose.foundation.layout.*
+import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.*
+import androidx.compose.material.ripple.rememberRipple
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
@@ -22,6 +25,7 @@ import com.spectre7.spmp.model.MediaItem
 import com.spectre7.spmp.model.Song
 import com.spectre7.spmp.ui.layout.PlayerViewContext
 import com.spectre7.utils.setAlpha
+import com.spectre7.utils.vibrateShort
 
 @Composable
 fun SongPreviewSquare(
@@ -31,7 +35,11 @@ fun SongPreviewSquare(
     enable_long_press_menu: Boolean = true,
     modifier: Modifier = Modifier
 ) {
-    var show_popup by remember { mutableStateOf(false) }
+    val long_press_menu_data = remember(song) { LongPressMenuData(
+        song,
+        RoundedCornerShape(10),
+        longPressPopupActions
+    ) }
 
     Column(
         modifier
@@ -43,29 +51,14 @@ fun SongPreviewSquare(
                     player.onMediaItemClicked(song)
                 },
                 onLongClick = {
-                    if (enable_long_press_menu) {
-                        show_popup = true
-                    }
-                    else {
-                        player.onMediaItemLongClicked(song)
-                    }
+                    player.showLongPressMenu(long_press_menu_data)
                 }
             )
             .aspectRatio(0.8f),
         horizontalAlignment = Alignment.CenterHorizontally,
         verticalArrangement = Arrangement.spacedBy(5.dp)
     ) {
-        LongPressIconMenu(
-            showing = show_popup,
-            onDismissRequest = {
-                show_popup = false
-            },
-            media_item = song,
-            player = player,
-            _thumb_size = 100.dp,
-            thumb_shape = RoundedCornerShape(10),
-            actions = longPressPopupActions
-        )
+        song.Thumbnail(MediaItem.ThumbnailQuality.LOW, Modifier.size(100.dp).longPressMenuIcon(long_press_menu_data, enable_long_press_menu))
 
         Text(
             song.title,
@@ -86,7 +79,11 @@ fun SongPreviewLong(
     enable_long_press_menu: Boolean = true,
     modifier: Modifier = Modifier
 ) {
-    var show_popup by remember { mutableStateOf(false) }
+    val long_press_menu_data = remember(song) { LongPressMenuData(
+        song,
+        RoundedCornerShape(20),
+        longPressPopupActions
+    ) }
 
     Row(
         verticalAlignment = Alignment.CenterVertically,
@@ -99,12 +96,7 @@ fun SongPreviewLong(
                     player.onMediaItemClicked(song)
                 },
                 onLongClick = {
-                    if (enable_long_press_menu) {
-                        show_popup = true
-                    }
-                    else {
-                        player.onMediaItemLongClicked(song)
-                    }
+                    player.showLongPressMenu(long_press_menu_data)
                 }
             )
     ) {
@@ -112,17 +104,7 @@ fun SongPreviewLong(
             CircularProgressIndicator(color = content_colour)
         }
         else {
-            LongPressIconMenu(
-                showing = show_popup,
-                onDismissRequest = {
-                    show_popup = false
-                },
-                media_item = song,
-                player = player,
-                _thumb_size = 40.dp,
-                thumb_shape = RoundedCornerShape(20),
-                actions = longPressPopupActions
-            )
+            song.Thumbnail(MediaItem.ThumbnailQuality.LOW, Modifier.size(40.dp).longPressMenuIcon(long_press_menu_data, enable_long_press_menu))
 
             Column(
                 Modifier
@@ -153,12 +135,16 @@ private val longPressPopupActions: @Composable LongPressMenuActionProvider.(Medi
         throw IllegalStateException()
     }
 
-    ActionButton(Icons.Filled.Radio, "Start radio") {
+    ActionButton(Icons.Filled.Radio, "Start radio", onClick = {
         PlayerServiceHost.service.playSong(song)
-    }
+    })
 
-    val queue_song = remember (PlayerServiceHost.service.active_queue_index) { PlayerServiceHost.service.getSong(PlayerServiceHost.service.active_queue_index) }
-    if (queue_song != null) {
+    var active_queue_item: Song? by remember { mutableStateOf(null) }
+    AnimatedVisibility(PlayerServiceHost.service.active_queue_index < PlayerServiceHost.status.m_queue.size) {
+        if (PlayerServiceHost.service.active_queue_index < PlayerServiceHost.status.m_queue.size) {
+            active_queue_item = PlayerServiceHost.status.m_queue[PlayerServiceHost.service.active_queue_index]
+        }
+
         Column {
             Row(verticalAlignment = Alignment.CenterVertically) {
 
@@ -166,59 +152,84 @@ private val longPressPopupActions: @Composable LongPressMenuActionProvider.(Medi
                 ActionButton(Icons.Filled.SubdirectoryArrowRight, "Play after $distance song(s)",
                     Modifier
                         .fillMaxWidth()
-                        .weight(1f)) {
-                    PlayerServiceHost.service.addToQueue(song, PlayerServiceHost.service.active_queue_index + 1, true, TODO("Start radio on long press"))
-                }
-                
+                        .weight(1f),
+                    onClick = {
+                        PlayerServiceHost.service.addToQueue(
+                            song,
+                            PlayerServiceHost.service.active_queue_index + 1,
+                            is_active_queue = true,
+                            start_radio = false
+                        )
+                    },
+                    onLongClick = {
+                        PlayerServiceHost.service.addToQueue(
+                            song,
+                            PlayerServiceHost.service.active_queue_index + 1,
+                            is_active_queue = true,
+                            start_radio = true
+                        )
+                    }
+                )
+
                 Row(verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(10.dp)) {
-                    val button_padding = PaddingValues(0.dp)
                     val button_modifier = Modifier
                         .size(30.dp)
                         .fillMaxHeight()
                         .aspectRatio(1f)
                         .align(Alignment.CenterVertically)
-                    val button_colours = ButtonDefaults.buttonColors(
-                        containerColor = accent_colour,
-                        contentColor = background_colour
-                    )
 
-                    ElevatedButton(
-                        {
-                            PlayerServiceHost.service.updateActiveQueueIndex(-1)
-                        },
-                        button_modifier,
-                        contentPadding = button_padding,
-                        colors = button_colours,
+                    Surface(
+                        button_modifier.combinedClickable(
+                            remember { MutableInteractionSource() },
+                            rememberRipple(),
+                            onClick = {
+                                PlayerServiceHost.service.updateActiveQueueIndex(-1)
+                            },
+                            onLongClick = {
+                                vibrateShort()
+                                PlayerServiceHost.service.active_queue_index = PlayerServiceHost.player.currentMediaItemIndex
+                            }
+                        ),
+                        color = accent_colour,
+                        shape = CircleShape
                     ) {
-                        Icon(Icons.Filled.Remove, null)
+                        Icon(Icons.Filled.Remove, null, tint = background_colour)
                     }
-                    ElevatedButton(
-                        {
-                            PlayerServiceHost.service.updateActiveQueueIndex(1)
-                        },
-                        button_modifier,
-                        contentPadding = button_padding,
-                        colors = button_colours
+
+                    Surface(
+                        button_modifier.combinedClickable(
+                            remember { MutableInteractionSource() },
+                            rememberRipple(),
+                            onClick = {
+                                PlayerServiceHost.service.updateActiveQueueIndex(1)
+                            },
+                            onLongClick = {
+                                vibrateShort()
+                                PlayerServiceHost.service.active_queue_index = PlayerServiceHost.player.mediaItemCount - 1
+                            }
+                        ),
+                        color = accent_colour,
+                        shape = CircleShape
                     ) {
-                        Icon(Icons.Filled.Add, null)
+                        Icon(Icons.Filled.Add, null, tint = background_colour)
                     }
                 }
             }
 
-            Crossfade(queue_song, animationSpec = tween(100)) {
-                it.PreviewLong(
+            Crossfade(active_queue_item, animationSpec = tween(100)) {
+                it?.PreviewLong(
                     content_colour,
-                    player,
-                    false,
+                    player.copy(onClickedOverride = { item -> player.openMediaItem(item) }),
+                    true,
                     Modifier
                 )
             }
         }
     }
 
-    ActionButton(Icons.Filled.Download, "Download") { TODO() }
+    ActionButton(Icons.Filled.Download, "Download", onClick = { TODO() })
 
-    ActionButton(Icons.Filled.Person, "Go to artist") {
+    ActionButton(Icons.Filled.Person, "Go to artist", onClick = {
         player.openMediaItem(song.artist)
-    }
+    })
 }

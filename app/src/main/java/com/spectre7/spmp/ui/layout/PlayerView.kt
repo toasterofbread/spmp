@@ -22,8 +22,16 @@ import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.alpha
+import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.graphics.RectangleShape
+import androidx.compose.ui.graphics.Shape
+import androidx.compose.ui.layout.onGloballyPositioned
+import androidx.compose.ui.layout.onSizeChanged
+import androidx.compose.ui.layout.positionInWindow
 import androidx.compose.ui.platform.LocalConfiguration
+import androidx.compose.ui.platform.LocalDensity
+import androidx.compose.ui.unit.Dp
+import androidx.compose.ui.unit.IntSize
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.google.accompanist.swiperefresh.SwipeRefresh
@@ -79,12 +87,61 @@ data class PlayerViewContext(
         overlay_page = OverlayPage.MEDIAITEM
         overlay_media_item = item
     }
+
+    private var long_press_menu_data: LongPressMenuData? by mutableStateOf(null)
+    private var long_press_menu_showing: Boolean by mutableStateOf(false)
+    private var long_press_menu_direct: Boolean by mutableStateOf(false)
+
+    fun showLongPressMenu(data: LongPressMenuData) {
+        long_press_menu_data = data
+
+        if (long_press_menu_showing) {
+            long_press_menu_direct = true
+        }
+        else {
+            long_press_menu_showing = true
+            long_press_menu_direct = false
+        }
+    }
+
+    fun hideLongPressMenu() {
+        long_press_menu_showing = false
+        long_press_menu_direct = false
+    }
+
+    @Composable
+    internal fun LongPressMenu() {
+        var height by remember { mutableStateOf(0) }
+
+        Crossfade(long_press_menu_data) { data ->
+            if (data != null) {
+                val current = data == long_press_menu_data
+                LongPressIconMenu(
+                    long_press_menu_showing && current,
+                    long_press_menu_direct && current,
+                    {
+                        if (current) {
+                            hideLongPressMenu()
+                        }
+                    },
+                    this,
+                    data,
+                    Modifier
+                        .onSizeChanged {
+                            height = maxOf(height, it.height)
+                        }
+                        .height(if (height > 0) with (LocalDensity.current) { height.toDp() } else Dp.Unspecified)
+                )
+            }
+        }
+    }
 }
 
 @OptIn(ExperimentalMaterialApi::class, ExperimentalMaterial3Api::class)
 @Composable
 fun PlayerView() {
     val player = remember { PlayerViewContext() }
+    player.LongPressMenu()
 
     val pill_menu = remember { PillMenu(
         top = false
@@ -141,7 +198,7 @@ fun PlayerView() {
                         feed_refresh_mutex.lock()
                         main_page_rows.clear()
 
-                        val feed_result = getHomeFeed(10)
+                        val feed_result = getHomeFeed()
 
                         if (!feed_result.success) {
                             MainActivity.error_manager.onError(feed_result.exception) { resolve ->
@@ -220,7 +277,8 @@ fun PlayerView() {
                         OverlayPage.MEDIAITEM -> Crossfade(player.overlay_media_item) { item ->
                             when (item) {
                                 null -> {}
-                                is Artist -> ArtistPage(pill_menu, item, { player.overlay_page = OverlayPage.NONE }, player)
+                                is Artist -> ArtistPage(pill_menu, item, player) { player.overlay_page = OverlayPage.NONE }
+                                is Playlist -> PlaylistPage(pill_menu, item, player) { player.overlay_page = OverlayPage.NONE }
                                 else -> throw NotImplementedError()
                             }
                         }

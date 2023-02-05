@@ -28,6 +28,12 @@
     <string name="prompt_confirm_action">Please confirm</string>
     <string name="prompt_confirm_settings_page_reset">Reset all values on this page?</string>
 
+    <string name="playlist_chip_play">Play</string>
+    <string name="playlist_chip_shuffle">Shuffle</string>
+    <string name="playlist_chip_radio">Radio</string>
+    <string name="playlist_chip_details">Details</string>
+    <string name="playlist_chip_open">Open</string>
+
     <string name="artist_chip_play">Play</string>
     <string name="artist_chip_shuffle">Shuffle</string>
     <string name="artist_chip_radio">Radio</string>

@@ -53,8 +53,8 @@ import kotlin.concurrent.thread
 fun ArtistPage(
     pill_menu: PillMenu,
     artist: Artist,
-    close: () -> Unit,
-    player: PlayerViewContext
+    player: PlayerViewContext,
+    close: () -> Unit
 ) {
     var show_info by remember { mutableStateOf(false) }
 
@@ -116,13 +116,9 @@ fun ArtistPage(
         }
     }
 
-    DisposableEffect(accent_colour) {
+    LaunchedEffect(accent_colour) {
         if (!accent_colour.isUnspecified) {
             pill_menu.setBackgroundColourOverride(accent_colour)
-        }
-
-        onDispose {
-            pill_menu.setBackgroundColourOverride(null)
         }
     }
 
@@ -361,87 +357,6 @@ fun ArtistPage(
             }
         }
     }
-}
-
-@Composable
-fun LinkifyText(
-    text: String,
-    colour: Color,
-    highlight_colour: Color,
-    style: TextStyle,
-    modifier: Modifier = Modifier
-) {
-    val uriHandler = LocalUriHandler.current
-    val layoutResult = remember {
-        mutableStateOf<TextLayoutResult?>(null)
-    }
-    val linksList = extractUrls(text)
-    val annotatedString = buildAnnotatedString {
-        append(text)
-        linksList.forEach { link ->
-            addStyle(
-                style = SpanStyle(
-                    color = highlight_colour,
-                    textDecoration = TextDecoration.Underline
-                ),
-                start = link.second,
-                end = link.third
-            )
-            addStringAnnotation(
-                tag = "URL",
-                annotation = link.first,
-                start = link.second,
-                end = link.third
-            )
-        }
-    }
-    Text(
-        text = annotatedString,
-        color = colour,
-        style = style,
-        overflow = TextOverflow.Ellipsis,
-        modifier = modifier.pointerInput(Unit) {
-        detectTapGestures { offsetPosition ->
-            layoutResult.value?.let {
-                val position = it.getOffsetForPosition(offsetPosition)
-                annotatedString.getStringAnnotations(position, position).firstOrNull()
-                    ?.let { result ->
-                        if (result.tag == "URL") {
-                            uriHandler.openUri(result.item)
-                        }
-                    }
-            }
-        }
-    },
-        onTextLayout = { layoutResult.value = it }
-    )
-}
-
-private val urlPattern: Pattern = Pattern.compile(
-    "(?:^|[\\W])((ht|f)tp(s?):\\/\\/|www\\.)"
-            + "(([\\w\\-]+\\.){1,}?([\\w\\-.~]+\\/?)*"
-            + "[\\p{Alnum}.,%_=?&#\\-+()\\[\\]\\*$~@!:/{};']*)",
-    Pattern.CASE_INSENSITIVE or Pattern.MULTILINE or Pattern.DOTALL
-)
-
-fun extractUrls(text: String): List<Triple<String, Int, Int>> {
-    val matcher = urlPattern.matcher(text)
-    var start: Int
-    var end: Int
-    val links = arrayListOf<Triple<String, Int, Int>>()
-
-    while (matcher.find()) {
-        start = matcher.start(1)
-        end = matcher.end()
-
-        var url = text.substring(start, end)
-        if (!url.startsWith("http://") && !url.startsWith("https://")) {
-            url = "https://$url"
-        }
-
-        links.add(Triple(url, start, end))
-    }
-    return links
 }
 
 @Composable

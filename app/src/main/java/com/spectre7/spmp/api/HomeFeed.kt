@@ -1,7 +1,5 @@
 package com.spectre7.spmp.api
 
-import androidx.compose.ui.text.toLowerCase
-import com.beust.klaxon.JsonObject
 import com.spectre7.spmp.model.*
 import okhttp3.Request
 import java.io.BufferedReader
@@ -9,9 +7,10 @@ import java.time.Duration
 
 private val CACHE_LIFETIME = Duration.ofDays(1)
 
-data class YoutubeiHomeBrowseResponse(
+data class YoutubeiBrowseResponse(
     val contents: Contents,
-    val continuationContents: ContinuationContents? = null
+    val continuationContents: ContinuationContents? = null,
+    val header: Header? = null
 ) {
     fun getShelves(has_continuation: Boolean): List<YoutubeiShelf> {
         return if (has_continuation) continuationContents!!.sectionListContinuation.contents else contents.singleColumnBrowseResultsRenderer.tabs.first().tabRenderer.content!!.sectionListRenderer.contents
@@ -22,7 +21,7 @@ data class YoutubeiHomeBrowseResponse(
     data class Tab(val tabRenderer: TabRenderer)
     data class TabRenderer(val content: Content? = null)
     data class Content(val sectionListRenderer: SectionListRenderer)
-    data class SectionListRenderer(val contents: List<YoutubeiShelf>, val continuations: List<YoutubeiNextResponse.Continuation>)
+    data class SectionListRenderer(val contents: List<YoutubeiShelf>, val continuations: List<YoutubeiNextResponse.Continuation>? = null)
 
     data class ContinuationContents(val sectionListContinuation: SectionListRenderer)
 }
@@ -30,18 +29,22 @@ data class YoutubeiHomeBrowseResponse(
 data class YoutubeiShelf(
     val musicShelfRenderer: MusicShelfRenderer? = null,
     val musicCarouselShelfRenderer: MusicCarouselShelfRenderer? = null,
-    val musicDescriptionShelfRenderer: MusicDescriptionShelfRenderer? = null
+    val musicDescriptionShelfRenderer: MusicDescriptionShelfRenderer? = null,
+    val musicPlaylistShelfRenderer: MusicShelfRenderer? = null
 ) {
     init {
-        assert(musicShelfRenderer != null || musicCarouselShelfRenderer != null || musicDescriptionShelfRenderer != null)
+        assert(musicShelfRenderer != null || musicCarouselShelfRenderer != null || musicDescriptionShelfRenderer != null || musicPlaylistShelfRenderer != null)
     }
 
-    val title: TextRun get() =
-        if (musicShelfRenderer != null) musicShelfRenderer.title.runs!![0]
+    val title: TextRun? get() =
+        if (musicShelfRenderer != null) musicShelfRenderer.title!!.runs!![0]
         else if (musicCarouselShelfRenderer != null) musicCarouselShelfRenderer.header.getRenderer().title.runs!![0]
-        else musicDescriptionShelfRenderer!!.header.runs!![0]
+        else if (musicDescriptionShelfRenderer != null) musicDescriptionShelfRenderer.header.runs!![0]
+        else null
 
-    val contents: List<ContentsItem> get() = musicShelfRenderer?.contents ?: musicCarouselShelfRenderer!!.contents
+    fun getSerialisableMediaItems(): List<MediaItem.Serialisable> {
+        return (musicShelfRenderer?.contents ?: musicCarouselShelfRenderer?.contents ?: musicPlaylistShelfRenderer!!.contents).mapNotNull { it.toSerialisableMediaItem() }
+    }
 
     fun getRenderer(): Any {
         return musicShelfRenderer ?: musicCarouselShelfRenderer ?: musicDescriptionShelfRenderer!!
@@ -49,7 +52,7 @@ data class YoutubeiShelf(
 }
 
 data class HomeFeedRow(
-    val title: String,
+    val title: String?,
     val subtitle: String?,
     val browse_id: String?,
     val items: List<MediaItem.Serialisable>
@@ -64,11 +67,14 @@ data class Header(
     val musicCarouselShelfBasicHeaderRenderer: HeaderRenderer? = null,
     val musicImmersiveHeaderRenderer: HeaderRenderer? = null,
     val musicVisualHeaderRenderer: HeaderRenderer? = null,
-    val musicDetailHeaderRenderer: HeaderRenderer? = null
+    val musicDetailHeaderRenderer: HeaderRenderer? = null,
+    val musicEditablePlaylistDetailHeaderRenderer: MusicEditablePlaylistDetailHeaderRenderer? = null
 ) {
     fun getRenderer(): HeaderRenderer {
-        return musicCarouselShelfBasicHeaderRenderer ?: musicImmersiveHeaderRenderer ?: musicVisualHeaderRenderer ?: musicDetailHeaderRenderer!!
+        return musicCarouselShelfBasicHeaderRenderer ?: musicImmersiveHeaderRenderer ?: musicVisualHeaderRenderer ?: musicDetailHeaderRenderer ?: musicEditablePlaylistDetailHeaderRenderer!!.header.getRenderer()
     }
+
+    data class MusicEditablePlaylistDetailHeaderRenderer(val header: Header)
 }
 
 //val thumbnails = (header.obj("thumbnail") ?: header.obj("foregroundThumbnail")!!)
@@ -76,12 +82,18 @@ data class Header(
 //    .obj("thumbnail")!!
 //    .array<JsonObject>("thumbnails")!!
 
-data class HeaderRenderer(val title: TextRuns, val description: TextRuns? = null, val thumbnail: Thumbnails? = null, val foregroundThumbnail: Thumbnails? = null) {
+data class HeaderRenderer(val title: TextRuns, val subtitle: TextRuns? = null, val description: TextRuns? = null, val thumbnail: Thumbnails? = null, val foregroundThumbnail: Thumbnails? = null) {
     fun getThumbnails(): List<MediaItem.ThumbnailProvider.Thumbnail> {
-        return (thumbnail ?: foregroundThumbnail!!).musicThumbnailRenderer.thumbnail.thumbnails
+        return (thumbnail ?: foregroundThumbnail!!).thumbnails
     }
 }
-data class Thumbnails(val musicThumbnailRenderer: MusicThumbnailRenderer)
+data class Thumbnails(val musicThumbnailRenderer: MusicThumbnailRenderer? = null, val croppedSquareThumbnailRenderer: MusicThumbnailRenderer? = null) {
+    init {
+        assert(musicThumbnailRenderer != null || croppedSquareThumbnailRenderer != null)
+    }
+
+    val thumbnails: List<MediaItem.ThumbnailProvider.Thumbnail> get() = (musicThumbnailRenderer ?: croppedSquareThumbnailRenderer!!).thumbnail.thumbnails
+}
 data class MusicThumbnailRenderer(val thumbnail: Thumbnail) {
     data class Thumbnail(val thumbnails: List<MediaItem.ThumbnailProvider.Thumbnail>)
 }
@@ -90,18 +102,18 @@ data class TextRuns(val runs: List<TextRun>? = null) {
 }
 data class TextRun(val text: String, val strapline: TextRuns? = null, val navigationEndpoint: NavigationEndpoint? = null)
 
-data class MusicShelfRenderer(val title: TextRuns, val contents: List<ContentsItem>)
+data class MusicShelfRenderer(val title: TextRuns? = null, val contents: List<ContentsItem>)
 data class MusicCarouselShelfRenderer(val header: Header, val contents: List<ContentsItem>)
 data class MusicDescriptionShelfRenderer(val header: TextRuns, val subheader: TextRuns, val description: TextRuns)
 
 data class MusicTwoRowItemRenderer(val navigationEndpoint: NavigationEndpoint)
-data class MusicResponsiveListItemRenderer(val playlistItemData: PlaylistItemData, val flexColumns: List<FlexColumn>? = null)
+data class MusicResponsiveListItemRenderer(val playlistItemData: PlaylistItemData? = null, val flexColumns: List<FlexColumn>? = null)
 data class PlaylistItemData(val videoId: String)
 data class FlexColumn(val musicResponsiveListItemFlexColumnRenderer: MusicResponsiveListItemFlexColumnRenderer)
 data class MusicResponsiveListItemFlexColumnRenderer(val text: TextRuns)
 
 data class ContentsItem(val musicTwoRowItemRenderer: MusicTwoRowItemRenderer? = null, val musicResponsiveListItemRenderer: MusicResponsiveListItemRenderer? = null) {
-    fun toSerialisableMediaItem(): MediaItem.Serialisable {
+    fun toSerialisableMediaItem(): MediaItem.Serialisable? {
         if (musicTwoRowItemRenderer != null) {
             val _item = musicTwoRowItemRenderer
 
@@ -120,7 +132,27 @@ data class ContentsItem(val musicTwoRowItemRenderer: MusicTwoRowItemRenderer? = 
             }
         }
         else if (musicResponsiveListItemRenderer != null) {
-            return Song.serialisable(musicResponsiveListItemRenderer.playlistItemData.videoId)
+            if (musicResponsiveListItemRenderer.playlistItemData != null) {
+                return Song.serialisable(musicResponsiveListItemRenderer.playlistItemData.videoId)
+            }
+
+            if (musicResponsiveListItemRenderer.flexColumns != null) {
+                for (column in musicResponsiveListItemRenderer.flexColumns) {
+                    if (column.musicResponsiveListItemFlexColumnRenderer.text.runs == null) {
+                        continue
+                    }
+                    for (run in column.musicResponsiveListItemFlexColumnRenderer.text.runs) {
+                        if (run.navigationEndpoint?.watchEndpoint != null) {
+                            return Song.serialisable(run.navigationEndpoint.watchEndpoint.videoId!!)
+                        }
+                    }
+                }
+
+                // TODO | Display unplayable items
+                return null
+            }
+
+            throw NotImplementedError()
         }
         else {
             throw NotImplementedError()
@@ -151,16 +183,15 @@ fun getHomeFeed(min_rows: Int = -1, allow_cached: Boolean = true): DataApi.Resul
         for (row in rows) {
             val items: List<MediaItem.Serialisable> = when (row.getRenderer()) {
                 is MusicDescriptionShelfRenderer -> continue
-                is MusicShelfRenderer, is MusicCarouselShelfRenderer ->
-                    List(row.contents.size) { row.contents[it].toSerialisableMediaItem() }
+                is MusicShelfRenderer, is MusicCarouselShelfRenderer -> row.getSerialisableMediaItems()
                 else -> throw NotImplementedError()
             }
 
             ret.add(
                 HomeFeedRow(
-                    row.title.text,
-                    row.title.strapline?.runs?.get(0)?.text,
-                    row.title.navigationEndpoint?.browseEndpoint?.browseId,
+                    row.title?.text,
+                    row.title?.strapline?.runs?.get(0)?.text,
+                    row.title?.navigationEndpoint?.browseEndpoint?.browseId,
                     items
                 )
             )
@@ -190,14 +221,14 @@ fun getHomeFeed(min_rows: Int = -1, allow_cached: Boolean = true): DataApi.Resul
         response_reader = Cache.get(cache_key)!!
     }
 
-    var data: YoutubeiHomeBrowseResponse = DataApi.klaxon.parse(response_reader)!!
+    var data: YoutubeiBrowseResponse = DataApi.klaxon.parse(response_reader)!!
     response_reader.close()
     rows = processRows(data.getShelves(false)).toMutableList()
 
     while (min_rows >= 1 && rows.size < min_rows) {
         val ctoken =
             data.continuationContents?.sectionListContinuation?.continuations?.firstOrNull()?.nextContinuationData?.continuation
-                ?: data.contents.singleColumnBrowseResultsRenderer.tabs.first().tabRenderer.content!!.sectionListRenderer.continuations.firstOrNull()?.nextContinuationData?.continuation
+                ?: data.contents.singleColumnBrowseResultsRenderer.tabs.first().tabRenderer.content!!.sectionListRenderer.continuations?.firstOrNull()?.nextContinuationData?.continuation
                 ?: break
 
         val result = postRequest(ctoken)

@@ -11,6 +11,7 @@ import androidx.compose.foundation.combinedClickable
 import androidx.compose.foundation.interaction.MutableInteractionSource
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.shape.CircleShape
+import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.*
 import androidx.compose.material3.*
@@ -35,7 +36,11 @@ fun ArtistPreviewSquare(
     enable_long_press_menu: Boolean = true,
     modifier: Modifier = Modifier
 ) {
-    var show_popup by remember { mutableStateOf(false) }
+    val long_press_menu_data = remember(artist) { LongPressMenuData(
+        artist,
+        CircleShape,
+        longPressPopupActions
+    ) }
 
     Column(
         modifier
@@ -47,29 +52,14 @@ fun ArtistPreviewSquare(
                     player.onMediaItemClicked(artist)
                 },
                 onLongClick = {
-                    if (enable_long_press_menu) {
-                        show_popup = true
-                    }
-                    else {
-                        player.onMediaItemLongClicked(artist)
-                    }
+                    player.showLongPressMenu(long_press_menu_data)
                 }
             )
             .aspectRatio(0.8f),
         horizontalAlignment = Alignment.CenterHorizontally,
         verticalArrangement = Arrangement.spacedBy(5.dp)
     ) {
-        LongPressIconMenu(
-            showing = show_popup,
-            onDismissRequest = {
-                show_popup = false
-            },
-            media_item = artist,
-            player = player,
-            _thumb_size = 100.dp,
-            thumb_shape = CircleShape,
-            actions = longPressPopupActions
-        )
+        artist.Thumbnail(MediaItem.ThumbnailQuality.LOW, Modifier.size(100.dp).longPressMenuIcon(long_press_menu_data, enable_long_press_menu))
 
         Text(
             artist.name,
@@ -90,7 +80,11 @@ fun ArtistPreviewLong(
     enable_long_press_menu: Boolean = true,
     modifier: Modifier = Modifier
 ) {
-    var show_popup by remember { mutableStateOf(false) }
+    val long_press_menu_data = remember(artist) { LongPressMenuData(
+        artist,
+        CircleShape,
+        longPressPopupActions
+    ) }
 
     Row(
         verticalAlignment = Alignment.CenterVertically,
@@ -103,26 +97,11 @@ fun ArtistPreviewLong(
                     player.onMediaItemClicked(artist)
                 },
                 onLongClick = {
-                    if (enable_long_press_menu) {
-                        show_popup = true
-                    }
-                    else {
-                        player.onMediaItemLongClicked(artist)
-                    }
+                    player.showLongPressMenu(long_press_menu_data)
                 }
             )
     ) {
-        LongPressIconMenu(
-            showing = show_popup,
-            onDismissRequest = {
-                show_popup = false
-            },
-            media_item = artist,
-            player = player,
-            _thumb_size = 40.dp,
-            thumb_shape = CircleShape,
-            actions = longPressPopupActions
-        )
+        artist.Thumbnail(MediaItem.ThumbnailQuality.LOW, Modifier.size(40.dp).longPressMenuIcon(long_press_menu_data, enable_long_press_menu))
 
         Column(Modifier.padding(8.dp)) {
             Text(
@@ -149,9 +128,9 @@ private val longPressPopupActions: @Composable LongPressMenuActionProvider.(Medi
         throw IllegalStateException()
     }
 
-    ActionButton(Icons.Filled.PlayArrow, "Start radio") {
-        // TODO
-    }
+    ActionButton(Icons.Filled.PlayArrow, "Start radio", onClick = {
+        TODO()
+    })
 
     val queue_song = remember (PlayerServiceHost.service.active_queue_index) { PlayerServiceHost.service.getSong(PlayerServiceHost.service.active_queue_index) }
     if (queue_song != null) {
@@ -160,9 +139,11 @@ private val longPressPopupActions: @Composable LongPressMenuActionProvider.(Medi
                 ActionButton(Icons.Filled.SubdirectoryArrowRight, "Start radio after",
                     Modifier
                         .fillMaxWidth()
-                        .weight(1f)) {
-                    // TODO
-                }
+                        .weight(1f),
+                    onClick = {
+                        TODO()
+                    }
+                )
                 
                 Row(verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(10.dp)) {
                     val button_padding = PaddingValues(0.dp)
@@ -210,7 +191,7 @@ private val longPressPopupActions: @Composable LongPressMenuActionProvider.(Medi
         }
     }
 
-    ActionButton(Icons.Filled.Person, "View artist") {
+    ActionButton(Icons.Filled.Person, "View artist", onClick = {
         player.openMediaItem(artist)
-    }
+    })
 }

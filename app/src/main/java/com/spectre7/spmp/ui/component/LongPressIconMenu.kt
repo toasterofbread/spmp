@@ -9,9 +9,7 @@ import androidx.compose.animation.Crossfade
 import androidx.compose.animation.core.Animatable
 import androidx.compose.animation.core.VectorConverter
 import androidx.compose.animation.core.tween
-import androidx.compose.foundation.Image
-import androidx.compose.foundation.background
-import androidx.compose.foundation.clickable
+import androidx.compose.foundation.*
 import androidx.compose.foundation.interaction.MutableInteractionSource
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.shape.RoundedCornerShape
@@ -27,6 +25,7 @@ import androidx.compose.ui.ExperimentalComposeUiApi
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.alpha
 import androidx.compose.ui.draw.clip
+import androidx.compose.ui.draw.drawWithContent
 import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.graphics.*
 import androidx.compose.ui.graphics.vector.ImageVector
@@ -45,6 +44,7 @@ import com.spectre7.spmp.ui.layout.PlayerViewContext
 import com.spectre7.spmp.ui.layout.getScreenHeight
 import com.spectre7.utils.*
 import kotlinx.coroutines.coroutineScope
+import kotlinx.coroutines.joinAll
 import kotlinx.coroutines.launch
 
 const val LONG_PRESS_ICON_MENU_OPEN_ANIM_MS = 200
@@ -56,15 +56,34 @@ class LongPressMenuActionProvider(
     val player: PlayerViewContext
 ) {
     @Composable
-    fun ActionButton(icon: ImageVector, label: String, modifier: Modifier = Modifier, onClick: () -> Unit) =
-        ActionButton(icon, label, accent_colour, modifier = modifier, onClick = onClick)
+    fun ActionButton(icon: ImageVector, label: String, modifier: Modifier = Modifier, onClick: () -> Unit, onLongClick: (() -> Unit)? = null) =
+        ActionButton(icon, label, accent_colour, modifier = modifier, onClick = onClick, onLongClick = onLongClick)
 
     companion object {
+        @OptIn(ExperimentalFoundationApi::class)
         @Composable
-        fun ActionButton(icon: ImageVector, label: String, icon_colour: Color = LocalContentColor.current, text_colour: Color = Color.Unspecified, modifier: Modifier = Modifier, onClick: () -> Unit) {
+        fun ActionButton(
+            icon: ImageVector,
+            label: String,
+            icon_colour: Color = LocalContentColor.current,
+            text_colour: Color = Color.Unspecified,
+            modifier: Modifier = Modifier,
+            onClick: () -> Unit,
+            onLongClick: (() -> Unit)? = null
+        ) {
             Row(
                 modifier
-                    .clickable(onClick = onClick)
+                    .combinedClickable(
+                        interactionSource = remember { MutableInteractionSource() },
+                        indication = null,
+                        onClick = onClick,
+                        onLongClick = if (onLongClick == null) null else {
+                            {
+                                vibrateShort()
+                                onLongClick()
+                            }
+                        }
+                    )
                     .fillMaxWidth(),
                 horizontalArrangement = Arrangement.spacedBy(20.dp)
             ) {
@@ -75,53 +94,72 @@ class LongPressMenuActionProvider(
     }
 }
 
+class LongPressMenuData(
+    val item: MediaItem,
+    val thumb_shape: Shape,
+    val actions: @Composable LongPressMenuActionProvider.(MediaItem) -> Unit
+) {
+    internal var thumb_size: IntSize? = null
+    internal var thumb_position: Offset? = null
+    internal var hide_thumb: Boolean by mutableStateOf(false)
+}
+
+fun Modifier.longPressMenuIcon(data: LongPressMenuData, enabled: Boolean = true): Modifier {
+    if (!enabled) {
+        return this.clip(data.thumb_shape)
+    }
+    return this
+        .onGloballyPositioned {
+            data.thumb_position = it.positionInWindow()
+        }
+        .onSizeChanged {
+            data.thumb_size = it
+        }
+        .drawWithContent {
+            if (!data.hide_thumb) {
+                drawContent()
+            }
+        }
+        .clip(data.thumb_shape)
+}
+
 @Composable
 fun LongPressIconMenu(
     showing: Boolean,
+    no_transition: Boolean,
     onDismissRequest: () -> Unit,
-    media_item: MediaItem,
     player: PlayerViewContext,
-    _thumb_size: Dp,
-    thumb_shape: Shape,
-    actions: @Composable LongPressMenuActionProvider.(MediaItem) -> Unit,
-    onShown: () -> Unit = {}
+    data: LongPressMenuData,
+    modifier: Modifier = Modifier
 ) {
-    var hide_thumb by remember { mutableStateOf(false) }
-    var thumb_position: Offset? by remember { mutableStateOf(null) }
-    var thumb_size: IntSize? by remember { mutableStateOf(null) }
-
     @Composable
     fun Thumb(modifier: Modifier) {
-        Crossfade(media_item.getThumbnail(MediaItem.ThumbnailQuality.LOW)) { thumbnail ->
+        Crossfade(data.item.getThumbnail(MediaItem.ThumbnailQuality.LOW)) { thumbnail ->
             if (thumbnail != null) {
                 Image(
                     thumbnail.asImageBitmap(),
                     contentDescription = null,
                     contentScale = ContentScale.Crop,
                     modifier = modifier
-                        .clip(thumb_shape)
+                        .clip(data.thumb_shape)
                 )
             }
         }
     }
 
-    Thumb(Modifier
-        .size(_thumb_size)
-        .onGloballyPositioned {
-            thumb_position = it.positionInWindow()
+    var show by remember { mutableStateOf(showing) }
+    LaunchedEffect(showing) {
+        if (showing) {
+            show = true
         }
-        .onSizeChanged {
-            thumb_size = it
-        }
-        .alpha(if (hide_thumb) 0f else 1f)
-    )
+    }
 
-    if (showing && thumb_position != null && thumb_size != null) {
+    if (show && data.thumb_position != null) {
         val density = LocalDensity.current
         val status_bar_height = getStatusBarHeight(MainActivity.context)
 
-        val initial_pos = remember { with (density) { DpOffset(thumb_position!!.x.toDp(), thumb_position!!.y.toDp() - status_bar_height) } }
-        val initial_size = remember { with (density) { DpSize(thumb_size!!.width.toDp(), thumb_size!!.height.toDp()) } }
+        val initial_pos = remember { with (density) { DpOffset(data.thumb_position!!.x.toDp(), data.thumb_position!!.y.toDp() - status_bar_height) } }
+        val initial_size = remember { with (density) { DpSize(data.thumb_size!!.width.toDp(), data.thumb_size!!.height.toDp()) } }
 
         var fully_open by remember { mutableStateOf(false) }
 
@@ -140,21 +178,21 @@ fun LongPressIconMenu(
         }
 
         LaunchedEffect(Unit) {
-            if (media_item is Song) {
-                val theme_colour = media_item.registry.get<Int>("theme_colour")
+            if (data.item is Song) {
+                val theme_colour = data.item.registry.get<Int>("theme_colour")
                 if (theme_colour != null) {
                     accent_colour = Color(theme_colour)
                     return@LaunchedEffect
                 }
             }
 
-            if (!media_item.isThumbnailLoaded(MediaItem.ThumbnailQuality.LOW) && !media_item.isThumbnailLoaded(MediaItem.ThumbnailQuality.HIGH)) {
-                media_item.getThumbnail(MediaItem.ThumbnailQuality.LOW) {
-                    applyPalette(media_item.thumbnail_palette!!)
+            if (!data.item.isThumbnailLoaded(MediaItem.ThumbnailQuality.LOW) && !data.item.isThumbnailLoaded(MediaItem.ThumbnailQuality.HIGH)) {
+                data.item.getThumbnail(MediaItem.ThumbnailQuality.LOW) {
+                    applyPalette(data.item.thumbnail_palette!!)
                 }
             }
             else {
-                applyPalette(media_item.thumbnail_palette!!)
+                applyPalette(data.item.thumbnail_palette!!)
             }
         }
 
@@ -182,23 +220,25 @@ fun LongPressIconMenu(
             }
 
             coroutineScope {
+                val animation_duration = if (no_transition && to_target) 0 else LONG_PRESS_ICON_MENU_OPEN_ANIM_MS
+
                 launch {
-                    panel_alpha.animateTo(if (to_target) 1f else 0f, tween(LONG_PRESS_ICON_MENU_OPEN_ANIM_MS))
+                    panel_alpha.animateTo(if (to_target) 1f else 0f, tween(animation_duration))
                 }
 
-                val pos_job = launch {
-                    pos.animateTo(pos_target, tween(LONG_PRESS_ICON_MENU_OPEN_ANIM_MS))
+                if (!no_transition || to_target) {
+                    listOf(
+                        launch {
+                            pos.animateTo(pos_target, tween(animation_duration))
+                        },
+                        launch {
+                            width.animateTo(width_target, tween(animation_duration))
+                        },
+                        launch {
+                            height.animateTo(height_target, tween(animation_duration))
+                        }
+                    ).joinAll()
                 }
-                val width_job = launch {
-                    width.animateTo(width_target, tween(LONG_PRESS_ICON_MENU_OPEN_ANIM_MS))
-                }
-                val height_job = launch {
-                    height.animateTo(height_target, tween(LONG_PRESS_ICON_MENU_OPEN_ANIM_MS))
-                }
-
-                pos_job.join()
-                width_job.join()
-                height_job.join()
 
                 fully_open = to_target
             }
@@ -210,13 +250,14 @@ fun LongPressIconMenu(
 
         suspend fun closePopup() {
             animateValues(false)
-            hide_thumb = false
+            data.hide_thumb = false
+            show = false
             onDismissRequest()
         }
 
         var close_requested by remember { mutableStateOf(false) }
-        LaunchedEffect(close_requested) {
-            if (close_requested) {
+        LaunchedEffect(showing, close_requested) {
+            if (!showing || close_requested) {
                 closePopup()
             }
         }
@@ -246,7 +287,7 @@ fun LongPressIconMenu(
                         }
                     )
                     Column(
-                        Modifier
+                        modifier
                             .alpha(panel_alpha.value)
                             .background(MainActivity.theme.getBackground(false), shape)
                             .fillMaxWidth()
@@ -258,8 +299,13 @@ fun LongPressIconMenu(
                                 .height(80.dp)
                                 .fillMaxWidth()
                         ) {
+
                             Thumb(Modifier
-                                .alpha(if (fully_open) 1f else 0f)
+                                .drawWithContent {
+                                    if (fully_open) {
+                                        drawContent()
+                                    }
+                                }
                                 .aspectRatio(1f)
                                 .onSizeChanged {
                                     target_size = it
@@ -279,10 +325,10 @@ fun LongPressIconMenu(
                                     .padding(horizontal = 15.dp)
                                 , verticalArrangement = Arrangement.Center) {
 
-                                if (media_item is Song) {
+                                if (data.item is Song) {
                                     Marquee(false) {
                                         Text(
-                                            media_item.title,
+                                            data.item.title,
                                             Modifier.fillMaxWidth(),
                                             color = MainActivity.theme.getOnBackground(false),
                                             softWrap = false,
@@ -291,15 +337,17 @@ fun LongPressIconMenu(
                                     }
                                 }
 
-                                val artist = media_item.getAssociatedArtist()
-                                if (artist != null) {
-                                    Marquee(false) {
-                                        artist.PreviewLong(
-                                            content_colour = MainActivity.theme.getOnBackground(false),
-                                            player,
-                                            false,
-                                            Modifier.fillMaxWidth()
-                                        )
+                                if (data.item !is Artist) {
+                                    val artist = data.item.getAssociatedArtist()
+                                    if (artist != null) {
+                                        Marquee(false) {
+                                            artist.PreviewLong(
+                                                content_colour = MainActivity.theme.getOnBackground(false),
+                                                player,
+                                                true,
+                                                Modifier.fillMaxWidth()
+                                            )
+                                        }
                                     }
                                 }
                             }
@@ -307,27 +355,27 @@ fun LongPressIconMenu(
 
                         Divider(thickness = Dp.Hairline, color = MainActivity.theme.getOnBackground(false))
 
-                        actions(LongPressMenuActionProvider(MainActivity.theme.getOnBackground(false), accent_colour, MainActivity.theme.getBackground(false), player), media_item)
+                        data.actions(LongPressMenuActionProvider(MainActivity.theme.getOnBackground(false), accent_colour, MainActivity.theme.getBackground(false), player), data.item)
 
-                        val share_intent = remember(media_item.url) {
+                        val share_intent = remember(data.item.url) {
                             Intent.createChooser(Intent().apply {
                                 action = Intent.ACTION_SEND
 
-                                if (media_item is Song) {
-                                    putExtra(Intent.EXTRA_TITLE, media_item.title)
+                                if (data.item is Song) {
+                                    putExtra(Intent.EXTRA_TITLE, data.item.title)
                                 }
 
-                                putExtra(Intent.EXTRA_TEXT, media_item.url)
+                                putExtra(Intent.EXTRA_TEXT, data.item.url)
                                 type = "text/plain"
                             }, null)
                         }
 
-                        LongPressMenuActionProvider.ActionButton(Icons.Filled.Share, "Share", accent_colour) {
+                        LongPressMenuActionProvider.ActionButton(Icons.Filled.Share, "Share", accent_colour, onClick = {
                             MainActivity.context.startActivity(share_intent)
-                        }
+                        })
 
-                        val open_intent: Intent? = remember(media_item.url) {
-                            val intent = Intent(Intent.ACTION_VIEW, Uri.parse(media_item.url))
+                        val open_intent: Intent? = remember(data.item.url) {
+                            val intent = Intent(Intent.ACTION_VIEW, Uri.parse(data.item.url))
                             if (intent.resolveActivity(MainActivity.context.packageManager) == null) {
                                 null
                             }
@@ -337,9 +385,9 @@ fun LongPressIconMenu(
                         }
 
                         if (open_intent != null) {
-                            LongPressMenuActionProvider.ActionButton(Icons.Filled.OpenWith, "Open externally", accent_colour) {
+                            LongPressMenuActionProvider.ActionButton(Icons.Filled.OpenWith, "Open externally", accent_colour, onClick = {
                                 MainActivity.context.startActivity(open_intent)
-                            }
+                            })
                         }
                     }
                 }
@@ -349,11 +397,11 @@ fun LongPressIconMenu(
                         Modifier
                             .offset(pos.value.x, pos.value.y + status_bar_height)
                             .requiredSize(width.value.dp, height.value.dp)
-                            .clip(thumb_shape)
+                            .clip(data.thumb_shape)
+                            .alpha(if (no_transition) panel_alpha.value else 1f)
                     ) {
                         Thumb(Modifier.fillMaxSize())
-                        hide_thumb = true
-                        onShown()
+                        data.hide_thumb = true
                     }
                 }
             }

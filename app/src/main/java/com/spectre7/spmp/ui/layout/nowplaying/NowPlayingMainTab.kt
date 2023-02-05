@@ -77,7 +77,7 @@ fun MainTab(
     var loaded_song: Song? by remember { mutableStateOf(null) }
 
     fun getSongTitle(): String {
-        val song = PlayerServiceHost.status.song
+        val song = PlayerServiceHost.status.m_song
         if (song == null || !song.loaded) {
             return ""
         }
@@ -85,7 +85,7 @@ fun MainTab(
     }
 
     fun getSongArtist(): String {
-        val song = PlayerServiceHost.status.song
+        val song = PlayerServiceHost.status.m_song
         if (song == null || !song.loaded || !song.artist.loaded) {
             return ""
         }
@@ -474,20 +474,22 @@ fun MainTab(
                 Column(verticalArrangement = Arrangement.spacedBy(5.dp)) {
 
                     // Title text
-                    Text(
-                        getSongTitle(),
-                        fontSize = 17.sp,
-                        color = MainActivity.theme.getOnBackground(true),
-                        textAlign = TextAlign.Center,
-                        maxLines = 1,
-                        overflow = TextOverflow.Ellipsis,
-                        modifier = Modifier
-                            .fillMaxWidth()
-                            .animateContentSize()
-                            .clickable {
-                                player.onMediaItemClicked(PlayerServiceHost.status.song!!)
-                            }
-                    )
+                    Marquee(false) {
+                        Text(
+                            getSongTitle(),
+                            fontSize = 17.sp,
+                            color = MainActivity.theme.getOnBackground(true),
+                            textAlign = TextAlign.Center,
+                            maxLines = 1,
+                            overflow = TextOverflow.Ellipsis,
+                            modifier = Modifier
+                                .fillMaxWidth()
+                                .animateContentSize()
+                                .clickable {
+                                    TODO("Edit song info")
+                                }
+                        )
+                    }
 
                     // Artist text
                     Text(

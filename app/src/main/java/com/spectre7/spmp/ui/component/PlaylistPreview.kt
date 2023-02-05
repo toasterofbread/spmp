@@ -4,6 +4,7 @@ import androidx.compose.foundation.ExperimentalFoundationApi
 import androidx.compose.foundation.combinedClickable
 import androidx.compose.foundation.interaction.MutableInteractionSource
 import androidx.compose.foundation.layout.*
+import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.Text
 import androidx.compose.runtime.*
@@ -13,6 +14,7 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import com.spectre7.spmp.model.MediaItem
 import com.spectre7.spmp.model.Playlist
 import com.spectre7.spmp.ui.layout.PlayerViewContext
 
@@ -25,7 +27,11 @@ fun PlaylistPreviewSquare(
     enable_long_press_menu: Boolean = true,
     modifier: Modifier = Modifier
 ) {
-    var show_popup by remember { mutableStateOf(false) }
+    val long_press_menu_data = remember(playlist) { LongPressMenuData(
+        playlist,
+        RoundedCornerShape(10),
+        { } // TODO
+    ) }
 
     Column(
         modifier
@@ -37,29 +43,17 @@ fun PlaylistPreviewSquare(
                     player.onMediaItemClicked(playlist)
                 },
                 onLongClick = {
-                    if (enable_long_press_menu) {
-                        show_popup = true
-                    }
-                    else {
-                        player.onMediaItemLongClicked(playlist)
-                    }
+                    player.showLongPressMenu(long_press_menu_data)
                 }
             )
             .aspectRatio(0.8f),
         horizontalAlignment = Alignment.CenterHorizontally,
         verticalArrangement = Arrangement.spacedBy(5.dp)
     ) {
-        LongPressIconMenu(
-            showing = show_popup,
-            onDismissRequest = {
-                show_popup = false
-            },
-            media_item = playlist,
-            player = player,
-            _thumb_size = 100.dp,
-            thumb_shape = RoundedCornerShape(10),
-            actions = { TODO() }
-        )
+        playlist.Thumbnail(MediaItem.ThumbnailQuality.LOW,
+            Modifier
+                .size(100.dp)
+                .longPressMenuIcon(long_press_menu_data, enable_long_press_menu))
 
         Text(
             playlist.title,
@@ -81,7 +75,11 @@ fun PlaylistPreviewLong(
     enable_long_press_menu: Boolean = true,
     modifier: Modifier = Modifier
 ) {
-    var show_popup by remember { mutableStateOf(false) }
+    val long_press_menu_data = remember(playlist) { LongPressMenuData(
+        playlist,
+        RoundedCornerShape(10),
+        { } // TODO
+    ) }
 
     Row(
         verticalAlignment = Alignment.CenterVertically,
@@ -94,26 +92,11 @@ fun PlaylistPreviewLong(
                     player.onMediaItemClicked(playlist)
                 },
                 onLongClick = {
-                    if (enable_long_press_menu) {
-                        show_popup = true
-                    }
-                    else {
-                        player.onMediaItemLongClicked(playlist)
-                    }
+                    player.showLongPressMenu(long_press_menu_data)
                 }
             )
     ) {
-        LongPressIconMenu(
-            showing = show_popup,
-            onDismissRequest = {
-                show_popup = false
-            },
-            media_item = playlist,
-            player = player,
-            _thumb_size = 40.dp,
-            thumb_shape = RoundedCornerShape(10),
-            actions = { TODO() }
-        )
+        playlist.Thumbnail(MediaItem.ThumbnailQuality.LOW, Modifier.size(40.dp).longPressMenuIcon(long_press_menu_data, enable_long_press_menu))
 
         Column(Modifier.padding(8.dp)) {
             Text(

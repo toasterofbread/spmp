@@ -9,9 +9,11 @@ import androidx.compose.foundation.lazy.grid.LazyHorizontalGrid
 import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.lazy.rememberLazyListState
 import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.Text
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
 import com.spectre7.spmp.MainActivity
@@ -27,7 +29,8 @@ data class MediaItemLayout(
     val items: MutableList<MediaItem> = mutableListOf()
 ) {
     enum class Type {
-        GRID
+        GRID,
+        NUMBERED_LIST
     }
 
     fun addItem(item: MediaItem) {
@@ -36,6 +39,40 @@ data class MediaItemLayout(
         }
         items.add(item)
         return
+    }
+
+    companion object {
+        @Composable
+        fun ItemPreview(
+            item: MediaItem,
+            width: Dp,
+            animate: MutableState<Boolean>?,
+            player: PlayerViewContext,
+            modifier: Modifier = Modifier
+        ) {
+            Box(modifier.requiredWidth(width), contentAlignment = Alignment.Center) {
+                if(animate?.value == true) {
+                    LaunchedEffect(Unit) {
+                        animate.value = false
+                    }
+
+                    var visible by remember { mutableStateOf(false) }
+                    LaunchedEffect(visible) {
+                        visible = true
+                    }
+                    AnimatedVisibility(
+                        visible,
+                        enter = fadeIn() + expandIn(expandFrom = Alignment.Center),
+                        exit = fadeOut() + shrinkOut(shrinkTowards = Alignment.Center)
+                    ) {
+                        item.PreviewSquare(MainActivity.theme.getOnBackground(false), player, true, Modifier)
+                    }
+                }
+                else {
+                    item.PreviewSquare(MainActivity.theme.getOnBackground(false), player, true, Modifier)
+                }
+            }
+        }
     }
 }
 
@@ -61,6 +98,7 @@ fun MediaItemLayoutColumn(
         items(layouts) { layout ->
             when (layout.type!!) {
                 MediaItemLayout.Type.GRID -> MediaItemGrid(layout, player)
+                MediaItemLayout.Type.NUMBERED_LIST -> MediaItemNumberedList(layout, player)
             }
         }
     }
@@ -91,40 +129,26 @@ fun MediaItemGrid(
             modifier = Modifier.requiredHeight(item_width * row_count * 1.1f)
         ) {
             items(layout.items.size, { layout.items[it].id }) {
-                ItemPreview(layout.items[it], item_width, null, player, Modifier)
+                MediaItemLayout.ItemPreview(layout.items[it], item_width, null, player, Modifier)
             }
         }
     }
 }
 
 @Composable
-private fun ItemPreview(
-    item: MediaItem,
-    width: Dp,
-    animate: MutableState<Boolean>?,
+fun MediaItemNumberedList(
+    layout: MediaItemLayout,
     player: PlayerViewContext,
     modifier: Modifier = Modifier
 ) {
-    Box(modifier.requiredWidth(width), contentAlignment = Alignment.Center) {
-        if(animate?.value == true) {
-            LaunchedEffect(Unit) {
-                animate.value = false
+    Column(modifier) {
+        for (item in layout.items.withIndex()) {
+            Row(verticalAlignment = Alignment.CenterVertically) {
+                Text((item.index + 1).toString().padStart((layout.items.size + 1).toString().length, '0'), fontWeight = FontWeight.Light)
+                Column {
+                    item.value.PreviewLong(MainActivity.theme.getOnBackground(false), player, true, Modifier)
+                }
             }
-
-            var visible by remember { mutableStateOf(false) }
-            LaunchedEffect(visible) {
-                visible = true
-            }
-            AnimatedVisibility(
-                visible,
-                enter = fadeIn() + expandIn(expandFrom = Alignment.Center),
-                exit = fadeOut() + shrinkOut(shrinkTowards = Alignment.Center)
-            ) {
-                item.PreviewSquare(MainActivity.theme.getOnBackground(false), player, true, Modifier)
-            }
-        }
-        else {
-            item.PreviewSquare(MainActivity.theme.getOnBackground(false), player, true, Modifier)
         }
     }
 }

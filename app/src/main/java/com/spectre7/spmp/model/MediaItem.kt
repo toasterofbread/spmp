@@ -2,15 +2,19 @@ package com.spectre7.spmp.model
 
 import android.graphics.Bitmap
 import android.graphics.BitmapFactory
+import androidx.compose.animation.Crossfade
+import androidx.compose.foundation.Image
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.asAndroidBitmap
 import androidx.compose.ui.graphics.asImageBitmap
 import androidx.compose.ui.graphics.toArgb
+import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.unit.IntSize
 import androidx.palette.graphics.Palette
 import com.spectre7.spmp.api.loadMediaItemData
@@ -203,7 +207,11 @@ abstract class MediaItem(id: String) {
         data class Thumbnail(val url: String, val width: Int, val height: Int)
 
         companion object {
-            fun fromThumbnails(thumbnails: List<Thumbnail>): ThumbnailProvider {
+            fun fromThumbnails(thumbnails: List<Thumbnail>): ThumbnailProvider? {
+                if (thumbnails.isEmpty()) {
+                    return null
+                }
+
                 for (thumbnail in thumbnails) {
                     val dynamic_provider = DynamicProvider.fromDynamicUrl(thumbnail.url, thumbnail.width, thumbnail.height)
                     if (dynamic_provider != null) {
@@ -344,13 +352,27 @@ abstract class MediaItem(id: String) {
     @Composable
     abstract fun PreviewLong(content_colour: Color, player: PlayerViewContext, enable_long_press_menu: Boolean, modifier: Modifier)
 
+    @Composable
+    fun Thumbnail(quality: ThumbnailQuality, modifier: Modifier) {
+        Crossfade(getThumbnail(quality)) { thumbnail ->
+            if (thumbnail != null) {
+                Image(
+                    thumbnail.asImageBitmap(),
+                    contentDescription = null,
+                    contentScale = ContentScale.Crop,
+                    modifier = modifier
+                )
+            }
+        }
+    }
+
     abstract fun _getUrl(): String
 
     fun getAssociatedArtist(): Artist? {
         return when (this) {
             is Artist -> this
             is Song -> artist
-            is Playlist -> null // TODO?
+            is Playlist -> artist
             else -> throw NotImplementedError(this.javaClass.name)
         }
     }

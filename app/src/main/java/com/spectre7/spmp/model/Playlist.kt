@@ -15,7 +15,8 @@ class Playlist private constructor (
 
     // Data
     lateinit var title: String
-    lateinit var feed_rows: List<MediaItemLayout>
+    lateinit var feed_layout: MediaItemLayout
+    var artist: Artist? = null
 
     companion object {
         private val playlists: MutableMap<String, Playlist> = mutableMapOf()
@@ -54,8 +55,10 @@ class Playlist private constructor (
         }
 
         title = data.name!!
-        feed_rows = List(data.feed_rows.size) { i ->
-            data.feed_rows[i].toMediaItemLayout()
+        feed_layout = data.feed_rows.single().toMediaItemLayout()
+
+        if (data.subscribe_channel_id != null) {
+            artist = Artist.fromId(data.subscribe_channel_id!!).loadData() as Artist
         }
     }
 }

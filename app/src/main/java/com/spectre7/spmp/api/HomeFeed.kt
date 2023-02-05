@@ -37,10 +37,14 @@ data class YoutubeiShelf(
     }
 
     val title: TextRun? get() =
-        if (musicShelfRenderer != null) musicShelfRenderer.title!!.runs!![0]
-        else if (musicCarouselShelfRenderer != null) musicCarouselShelfRenderer.header.getRenderer().title.runs!![0]
-        else if (musicDescriptionShelfRenderer != null) musicDescriptionShelfRenderer.header.runs!![0]
+        if (musicShelfRenderer != null) musicShelfRenderer.title?.runs?.firstOrNull()
+        else if (musicCarouselShelfRenderer != null) musicCarouselShelfRenderer.header.getRenderer().title.runs?.firstOrNull()
+        else if (musicDescriptionShelfRenderer != null) musicDescriptionShelfRenderer.header.runs?.firstOrNull()
         else null
+
+    fun getDescription(): String? {
+        return musicDescriptionShelfRenderer?.description?.first_text
+    }
 
     fun getSerialisableMediaItems(): List<MediaItem.Serialisable> {
         return (musicShelfRenderer?.contents ?: musicCarouselShelfRenderer?.contents ?: musicPlaylistShelfRenderer!!.contents).mapNotNull { it.toSerialisableMediaItem() }
@@ -84,7 +88,7 @@ data class Header(
 
 data class HeaderRenderer(val title: TextRuns, val subtitle: TextRuns? = null, val description: TextRuns? = null, val thumbnail: Thumbnails? = null, val foregroundThumbnail: Thumbnails? = null) {
     fun getThumbnails(): List<MediaItem.ThumbnailProvider.Thumbnail> {
-        return (thumbnail ?: foregroundThumbnail!!).thumbnails
+        return (thumbnail ?: foregroundThumbnail)?.thumbnails ?: emptyList()
     }
 }
 data class Thumbnails(val musicThumbnailRenderer: MusicThumbnailRenderer? = null, val croppedSquareThumbnailRenderer: MusicThumbnailRenderer? = null) {

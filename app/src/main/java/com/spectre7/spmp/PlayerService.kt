@@ -92,7 +92,6 @@ class PlayerService : Service() {
         if (index >= player.mediaItemCount) {
             return null
         }
-
         return player.getMediaItemAt(index).localConfiguration?.getSong()
     }
 
@@ -204,7 +203,7 @@ class PlayerService : Service() {
         if (start_radio) {
             clearQueue(added_index)
             thread {
-                addMultipleToQueueAndLoad(radio.startNewRadio(song), added_index, true)
+                addMultipleToQueueAndLoad(radio.startNewRadio(song), added_index)
             }
         }
 

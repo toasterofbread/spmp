@@ -25,19 +25,24 @@ fun isSubscribedToArtist(artist: Artist): DataApi.Result<Boolean?> {
 
     var ret: DataApi.Result<Boolean?>? = null
 
-    reader.beginObject()
-    reader.next("header", false) {
-        reader.next(null, false) {
-            reader.next("subscriptionButton", false, true) {
-                reader.next("subscribeButtonRenderer", false) {
-                    reader.next("subscribed", null) {
-                        ret = DataApi.Result.success(reader.nextBoolean())
+    try {
+        reader.beginObject()
+        reader.next("header", false) {
+            reader.next(null, false) {
+                reader.next("subscriptionButton", false, true) {
+                    reader.next("subscribeButtonRenderer", false) {
+                        reader.next("subscribed", null) {
+                            ret = DataApi.Result.success(reader.nextBoolean())
+                        }
                     }
                 }
             }
         }
+        reader.endObject()
     }
-    reader.endObject()
+    catch (e: Throwable) {
+        throw RuntimeException(artist.toString(), e)
+    }
 
     stream.close()
     reader.close()

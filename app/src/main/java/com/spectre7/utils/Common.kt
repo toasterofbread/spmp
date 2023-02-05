@@ -26,14 +26,22 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clipToBounds
 import androidx.compose.ui.draw.drawWithContent
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.input.pointer.pointerInput
 import androidx.compose.ui.layout.SubcomposeLayout
 import androidx.compose.ui.layout.onSizeChanged
 import androidx.compose.ui.platform.LocalDensity
+import androidx.compose.ui.platform.LocalUriHandler
+import androidx.compose.ui.text.SpanStyle
+import androidx.compose.ui.text.TextLayoutResult
 import androidx.compose.ui.text.TextStyle
+import androidx.compose.ui.text.buildAnnotatedString
 import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.text.style.TextDecoration
+import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.*
 import com.spectre7.spmp.MainActivity
 import kotlinx.coroutines.delay
+import java.util.regex.Pattern
 
 fun Boolean.toInt() = if (this) 1 else 0
 
@@ -112,7 +120,7 @@ fun MeasureUnconstrainedView(
 
 @SuppressLint("InternalInsetResource")
 @Composable
-fun getStatusBarHeight(context: Context): Dp {
+fun getStatusBarHeight(context: Context = MainActivity.context): Dp {
     val resource_id: Int = context.resources.getIdentifier("status_bar_height", "dimen", "android")
     if (resource_id > 0) {
         with(LocalDensity.current) {
@@ -231,4 +239,84 @@ fun WidthShrinkText(text: String, style: MutableState<TextStyle>, modifier: Modi
             }
         }
     )
+}
+
+@Composable
+fun LinkifyText(
+    text: String,
+    colour: Color,
+    highlight_colour: Color,
+    style: TextStyle,
+    modifier: Modifier = Modifier
+) {
+    val uriHandler = LocalUriHandler.current
+    val layoutResult = remember {
+        mutableStateOf<TextLayoutResult?>(null)
+    }
+    val annotatedString = buildAnnotatedString {
+        append(text)
+        text.extractUrls().forEach { link ->
+            addStyle(
+                style = SpanStyle(
+                    color = highlight_colour,
+                    textDecoration = TextDecoration.Underline
+                ),
+                start = link.second,
+                end = link.third
+            )
+            addStringAnnotation(
+                tag = "URL",
+                annotation = link.first,
+                start = link.second,
+                end = link.third
+            )
+        }
+    }
+    Text(
+        text = annotatedString,
+        color = colour,
+        style = style,
+        overflow = TextOverflow.Ellipsis,
+        modifier = modifier.pointerInput(Unit) {
+            detectTapGestures { offsetPosition ->
+                layoutResult.value?.let {
+                    val position = it.getOffsetForPosition(offsetPosition)
+                    annotatedString.getStringAnnotations(position, position).firstOrNull()
+                        ?.let { result ->
+                            if (result.tag == "URL") {
+                                uriHandler.openUri(result.item)
+                            }
+                        }
+                }
+            }
+        },
+        onTextLayout = { layoutResult.value = it }
+    )
+}
+
+private val urlPattern: Pattern = Pattern.compile(
+    "(?:^|[\\W])((ht|f)tp(s?):\\/\\/|www\\.)"
+            + "(([\\w\\-]+\\.){1,}?([\\w\\-.~]+\\/?)*"
+            + "[\\p{Alnum}.,%_=?&#\\-+()\\[\\]\\*$~@!:/{};']*)",
+    Pattern.CASE_INSENSITIVE or Pattern.MULTILINE or Pattern.DOTALL
+)
+
+fun String.extractUrls(): List<Triple<String, Int, Int>> {
+    val matcher = urlPattern.matcher(this)
+    var start: Int
+    var end: Int
+    val links = arrayListOf<Triple<String, Int, Int>>()
+
+    while (matcher.find()) {
+        start = matcher.start(1)
+        end = matcher.end()
+
+        var url = substring(start, end)
+        if (!url.startsWith("http://") && !url.startsWith("https://")) {
+            url = "https://$url"
+        }
+
+        links.add(Triple(url, start, end))
+    }
+    return links
 }

@@ -1,10 +1,12 @@
 package com.spectre7.spmp.api
 
 import android.util.JsonReader
+import com.beust.klaxon.KlaxonException
 import com.spectre7.spmp.model.*
 import com.spectre7.spmp.ui.component.MediaItemLayout
 import okhttp3.Request
 import java.io.BufferedReader
+import java.io.Reader
 import java.time.Duration
 
 private val CACHE_LIFETIME = Duration.ofDays(1)
@@ -14,7 +16,7 @@ data class PlayerData(val videoDetails: VideoDetails? = null)
 data class VideoDetails(
     val videoId: String,
     val title: String,
-    val channelId: String
+    val channelId: String,
 )
 
 class BrowseData {
@@ -132,10 +134,28 @@ fun loadMediaItemData(item: MediaItem): DataApi.Result<MediaItem> {
         }
 
         if (item !is Song) {
-            val parser = BrowseResponseParser(response_body)
-            parser.parse()
+            val parsed: YoutubeiBrowseResponse = DataApi.klaxon.parse(response_body)!!
             response_body.close()
-            return finish(parser.data, parser.thumbnail_provider)
+
+            val header_renderer = parsed.header!!.getRenderer()
+            return finish(BrowseData().apply {
+                name = header_renderer.title.first_text
+
+                if (header_renderer.subtitle?.runs != null) {
+                    for (run in header_renderer.subtitle.runs) {
+                        if (run.navigationEndpoint?.browseEndpoint != null) {
+                            subscribe_channel_id = run.navigationEndpoint.browseEndpoint.browseId
+                            break
+                        }
+                    }
+                }
+
+                feed_rows.add(BrowseData.FeedRow(
+                    null,
+                    parsed.contents.singleColumnBrowseResultsRenderer.tabs.first().tabRenderer.content!!.sectionListRenderer.contents.first().getSerialisableMediaItems(),
+                    item.toSerialisable()
+                ))
+            }, MediaItem.ThumbnailProvider.fromThumbnails(header_renderer.getThumbnails()))
         }
 
         var video_details = DataApi.klaxon.parse<PlayerData>(response_body)?.videoDetails
@@ -208,7 +228,7 @@ fun loadMediaItemData(item: MediaItem): DataApi.Result<MediaItem> {
     }
 }
 
-class BrowseResponseParser(private val response_body: BufferedReader) {
+class BrowseResponseParser(private val response_body: Reader) {
     private lateinit var reader: JsonReader
 
     lateinit var data: BrowseData
@@ -325,19 +345,13 @@ class BrowseResponseParser(private val response_body: BufferedReader) {
                                                 reader.endObject()
 
                                                 if (thumbnails == null) {
-                                                    val w_index = url.lastIndexOf("w$width")
-                                                    val h_index = url.lastIndexOf("-h$height")
+                                                    thumbnail_provider = MediaItem.ThumbnailProvider.DynamicProvider.fromDynamicUrl(url, width, height)
 
-                                                    if (w_index == -1 || h_index == -1) {
+                                                    if (thumbnail_provider == null) {
                                                         thumbnails = mutableListOf()
                                                         thumbnail_provider = MediaItem.ThumbnailProvider.SetProvider(thumbnails)
                                                     }
                                                     else {
-                                                        val url_a = url.substring(0, w_index + 1)
-                                                        val url_b = url.substring(h_index + 2 + height.toString().length)
-                                                        thumbnail_provider = MediaItem.ThumbnailProvider.DynamicProvider { w, h ->
-                                                            return@DynamicProvider "$url_a$w-h$h$url_b"
-                                                        }
                                                         while (reader.hasNext()) {
                                                             reader.skipValue()
                                                         }

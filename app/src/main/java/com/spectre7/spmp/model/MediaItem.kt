@@ -182,9 +182,38 @@ abstract class MediaItem(id: String) {
                 val target_size = quality.getTargetSize()
                 return provider(target_size.width, target_size.height)
             }
+
+            companion object {
+                fun fromDynamicUrl(url: String, width: Int, height: Int): DynamicProvider? {
+                    val w_index = url.lastIndexOf("w$width")
+                    val h_index = url.lastIndexOf("-h$height")
+
+                    if (w_index == -1 || h_index == -1) {
+                        return null
+                    }
+
+                    val url_a = url.substring(0, w_index + 1)
+                    val url_b = url.substring(h_index + 2 + height.toString().length)
+                    return DynamicProvider { w, h ->
+                        return@DynamicProvider "$url_a$w-h$h$url_b"
+                    }
+                }
+            }
+        }
+        data class Thumbnail(val url: String, val width: Int, val height: Int)
+
+        companion object {
+            fun fromThumbnails(thumbnails: List<Thumbnail>): ThumbnailProvider {
+                for (thumbnail in thumbnails) {
+                    val dynamic_provider = DynamicProvider.fromDynamicUrl(thumbnail.url, thumbnail.width, thumbnail.height)
+                    if (dynamic_provider != null) {
+                        return dynamic_provider
+                    }
+                }
+                return SetProvider(thumbnails)
+            }
         }
 
-        data class Thumbnail(val url: String, val width: Int, val height: Int)
     }
 
     enum class ThumbnailQuality {

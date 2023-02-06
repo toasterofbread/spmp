@@ -4,12 +4,8 @@ import android.graphics.Bitmap
 import android.graphics.BitmapFactory
 import androidx.compose.animation.Crossfade
 import androidx.compose.foundation.Image
-import androidx.compose.runtime.Composable
-import androidx.compose.runtime.getValue
-import androidx.compose.runtime.mutableStateOf
-import androidx.compose.runtime.setValue
+import androidx.compose.runtime.*
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.asAndroidBitmap
 import androidx.compose.ui.graphics.asImageBitmap
@@ -235,7 +231,7 @@ abstract class MediaItem(id: String) {
         }
     }
     private var thumbnail_provider: ThumbnailProvider? = null
-    var thumbnail_palette: Palette? = null
+    var thumbnail_palette: Palette? by mutableStateOf(null)
 
     private class ThumbState {
         var image: Bitmap? by mutableStateOf(null)
@@ -341,13 +337,12 @@ abstract class MediaItem(id: String) {
     }
 
     @Composable
-    abstract fun PreviewSquare(content_colour: Color, player: PlayerViewContext, enable_long_press_menu: Boolean, modifier: Modifier)
+    abstract fun PreviewSquare(content_colour: () -> Color, player: PlayerViewContext, enable_long_press_menu: Boolean, modifier: Modifier)
     @Composable
-    abstract fun PreviewLong(content_colour: Color, player: PlayerViewContext, enable_long_press_menu: Boolean, modifier: Modifier)
+    abstract fun PreviewLong(content_colour: () -> Color, player: PlayerViewContext, enable_long_press_menu: Boolean, modifier: Modifier)
 
     @Composable
     fun Thumbnail(quality: ThumbnailQuality, modifier: Modifier) {
-
         LaunchedEffect(quality) {
             getThumbnail(quality)
         }

@@ -155,7 +155,7 @@ fun PlaylistPage(
                     Text(playlist.title)
 
                     if (playlist.artist != null) {
-                        playlist.artist!!.PreviewLong(MainActivity.theme.getOnBackground(false), player, true, Modifier)
+                        playlist.artist!!.PreviewLong(MainActivity.theme.getOnBackgroundProvider(false), player, true, Modifier)
                     }
                 }
             }
@@ -205,7 +205,7 @@ fun PlaylistPage(
                                     Icon(icon, null, tint = accent_colour)
                                 },
                                 colors = AssistChipDefaults.assistChipColors(
-                                    containerColor = MainActivity.theme.getBackground(false),
+                                    containerColor = background_colour,
                                     labelColor = MainActivity.theme.getOnBackground(false),
                                     leadingIconContentColor = accent_colour
                                 )

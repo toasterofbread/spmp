@@ -114,8 +114,8 @@ fun MultiSelector(
     modifier: Modifier = Modifier,
     selector_modifier: Modifier = Modifier,
     rounding: Int = 50,
-    colour: Color = Color.Unspecified,
-    background_colour: Color = Color.Unspecified,
+    colourProvider: (() -> Color)? = null,
+    backgroundColourProvider: (() -> Color)? = null,
     state: MultiSelectorState = rememberMultiSelectorState(
         option_count = option_count,
         selected_option = selected_option,
@@ -132,7 +132,7 @@ fun MultiSelector(
     Layout(
         modifier = modifier
             .clip(shape = RoundedCornerShape(percent = rounding))
-            .background(if (background_colour == Color.Unspecified) MaterialTheme.colorScheme.background else background_colour)
+            .background(backgroundColourProvider?.invoke() ?: MaterialTheme.colorScheme.background)
             .border(Dp.Hairline, Color.Black, RoundedCornerShape(percent = rounding)),
         content = {
 
@@ -160,7 +160,7 @@ fun MultiSelector(
 //                                bottomEndPercent = state.endCornerPercent,
                             )
                         )
-                        .background(if (colour == Color.Unspecified) MaterialTheme.colorScheme.primary else colour)
+                        .background(colourProvider?.invoke() ?: MaterialTheme.colorScheme.primary)
                 )
             }
         }

@@ -115,7 +115,7 @@ class MainActivity : ComponentActivity() {
                         service_host.startService({ service_started = false })
                     }
 
-                    error_manager.Indicator(Color.Red)
+                    error_manager.Indicator({ Color.Red })
                 }
             }
         }
@@ -205,7 +205,7 @@ class ErrorManager {
     private val current_errors = mutableStateMapOf<Throwable, (resolve: () -> Unit) -> Unit>()
 
     @Composable
-    fun Indicator(colour: Color) {
+    fun Indicator(colour: () -> Color) {
         AnimatedVisibility(current_errors.isNotEmpty()) {
             remember{ PillMenu() }.PillMenu(
                 action_count = current_errors.size - 1,

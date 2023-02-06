@@ -19,6 +19,7 @@ import com.spectre7.spmp.ui.component.SongPreviewLong
 import com.spectre7.spmp.ui.component.SongPreviewSquare
 import com.spectre7.spmp.ui.layout.PlayerViewContext
 import com.spectre7.utils.getString
+import com.spectre7.utils.recomposeHighlighter
 import com.spectre7.utils.toHiragana
 import okhttp3.internal.filterList
 import java.io.FileNotFoundException
@@ -390,13 +391,13 @@ class Song private constructor (
     }
 
     @Composable
-    override fun PreviewSquare(content_colour: Color, player: PlayerViewContext, enable_long_press_menu: Boolean, modifier: Modifier) {
-        SongPreviewSquare(this, content_colour, player, enable_long_press_menu, modifier)
+    override fun PreviewSquare(content_colour: () -> Color, player: PlayerViewContext, enable_long_press_menu: Boolean, modifier: Modifier) {
+        SongPreviewSquare(this, content_colour, player, enable_long_press_menu, modifier.recomposeHighlighter())
     }
 
     @Composable
-    override fun PreviewLong(content_colour: Color, player: PlayerViewContext, enable_long_press_menu: Boolean, modifier: Modifier) {
-        SongPreviewLong(this, content_colour, player, enable_long_press_menu, modifier)
+    override fun PreviewLong(content_colour: () -> Color, player: PlayerViewContext, enable_long_press_menu: Boolean, modifier: Modifier) {
+        SongPreviewLong(this, content_colour, player, enable_long_press_menu, modifier.recomposeHighlighter())
     }
 
     override fun _getUrl(): String {

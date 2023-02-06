@@ -82,6 +82,7 @@ fun MediaItemLayoutColumn(
     player: PlayerViewContext,
     modifier: Modifier = Modifier,
     top_padding: Dp = 0.dp,
+    bottom_padding: Dp = 0.dp,
     scroll_state: LazyListState = rememberLazyListState()
 ) {
     for (layout in layouts) {
@@ -99,6 +100,12 @@ fun MediaItemLayoutColumn(
             when (layout.type!!) {
                 MediaItemLayout.Type.GRID -> MediaItemGrid(layout, player)
                 MediaItemLayout.Type.NUMBERED_LIST -> MediaItemNumberedList(layout, player)
+            }
+        }
+
+        if (bottom_padding > 0.dp) {
+            item {
+                Spacer(Modifier.requiredHeight(bottom_padding))
             }
         }
     }

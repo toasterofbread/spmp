@@ -119,7 +119,7 @@ fun SongPreviewLong(
                 )
 
                 Text(
-                    song.artist.name,
+                    song.artist.title,
                     fontSize = 11.sp,
                     color = content_colour().setAlpha(0.5),
                     maxLines = 1,

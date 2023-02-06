@@ -13,7 +13,6 @@ import org.xmlpull.v1.XmlPullParser
 import java.lang.Float.max
 import java.lang.Float.min
 import java.util.*
-import kotlin.math.absoluteValue
 
 fun getSongLyrics(song: Song): Song.Lyrics? {
     val ret: Song.Lyrics?
@@ -25,7 +24,7 @@ fun getSongLyrics(song: Song): Song.Lyrics? {
         ret = getLyrics(id, source).getDataOrThrow()
     }
     else {
-        val results = searchForLyrics(song.title, song.artist.name).getDataOrThrow()
+        val results = searchForLyrics(song.title, song.artist.title).getDataOrThrow()
         if (results.isEmpty()) {
             return null
         }

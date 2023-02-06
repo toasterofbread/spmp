@@ -50,7 +50,7 @@ fun LyricsSearchMenu(song: Song, lyrics: Song.Lyrics?, close: (changed: Boolean)
     val focus = LocalFocusManager.current
 
     var title = remember { mutableStateOf(TextFieldValue(song.title)) }
-    var artist = remember { mutableStateOf(TextFieldValue(song.artist.name)) }
+    var artist = remember { mutableStateOf(TextFieldValue(song.artist.title)) }
 
     var search_requested by remember { mutableStateOf(false) }
     var search_results: List<LyricsSearchResult>? by remember { mutableStateOf(null) }

@@ -31,7 +31,6 @@ import com.google.accompanist.systemuicontroller.rememberSystemUiController
 import com.spectre7.spmp.MainActivity
 import com.spectre7.spmp.PlayerServiceHost
 import com.spectre7.spmp.R
-import com.spectre7.spmp.model.MediaItem
 import com.spectre7.spmp.ui.component.MultiSelector
 import com.spectre7.spmp.ui.layout.PlayerViewContext
 import com.spectre7.utils.*
@@ -87,7 +86,6 @@ fun NowPlaying(expansion: Float, max_height: Float, close: () -> Unit, player: P
         }
 
         Column(verticalArrangement = Arrangement.Top, modifier = Modifier.fillMaxHeight()) {
-
             Row(
                 Modifier
                     .horizontalScroll(tab_scroll_state, false)
@@ -308,8 +306,7 @@ fun Tab(
         )) {
         when (tab) {
             NowPlayingTab.PLAYER -> {
-                MainTab(
-                    Modifier.weight(1f),
+                NowPlayingMainTab(
                     expansion,
                     max_height,
                     thumbnail.value,

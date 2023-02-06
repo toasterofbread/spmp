@@ -8,7 +8,6 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.toArgb
 import androidx.core.content.edit
-import com.beust.klaxon.Json
 import com.beust.klaxon.Klaxon
 import com.spectre7.spmp.R
 import com.spectre7.spmp.api.VideoDetails
@@ -25,8 +24,6 @@ import okhttp3.internal.filterList
 import java.io.FileNotFoundException
 import java.net.URL
 import kotlin.concurrent.thread
-import kotlin.reflect.KMutableProperty1
-import kotlin.reflect.jvm.isAccessible
 
 class DataRegistry constructor(data: Map<String, Map<String, Any?>>? = null) {
     private var songs: MutableMap<String, SongEntry> = mutableMapOf()
@@ -152,7 +149,7 @@ class Song private constructor (
         set(value) { registry.set("theme_colour", value?.toArgb()) }
 
     val original_title: String get() = _title
-    var title: String
+    override var title: String
         get() {
             val registry_title = registry.get<String>("title")
             if (registry_title != null) {
@@ -178,7 +175,7 @@ class Song private constructor (
                 }
             }
 
-            for ((key, value) in mapOf("-" to "", "  " to "", artist.name to "", "MV" to "")) {
+            for ((key, value) in mapOf("-" to "", "  " to "", artist.title to "", "MV" to "")) {
                 if (key.isEmpty()) {
                     continue
                 }
@@ -398,6 +395,10 @@ class Song private constructor (
     @Composable
     override fun PreviewLong(content_colour: () -> Color, player: PlayerViewContext, enable_long_press_menu: Boolean, modifier: Modifier) {
         SongPreviewLong(this, content_colour, player, enable_long_press_menu, modifier.recomposeHighlighter())
+    }
+
+    override fun getAssociatedArtist(): Artist? {
+        return artist
     }
 
     override fun _getUrl(): String {

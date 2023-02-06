@@ -219,23 +219,25 @@ fun QueueTab(weight_modifier: Modifier, player: PlayerViewContext) {
                     .weight(1f), horizontalArrangement = Arrangement.SpaceEvenly, verticalAlignment = Alignment.CenterVertically) {
                 Button(
                     onClick = {
-                        val index = PlayerServiceHost.player.currentMediaItemIndex
                         val removed: List<Pair<Song, Int>> = PlayerServiceHost.service.clearQueue(keep_current = PlayerServiceHost.status.m_queue.size > 1)
-                        undo_list.add {
-                            val before = mutableListOf<Song>()
-                            val after = mutableListOf<Song>()
-                            for (item in removed.withIndex()) {
-                                if (item.value.second >= index) {
-                                    for (i in item.index until removed.size) {
-                                        after.add(removed[i].first)
+                        if (removed.isNotEmpty()) {
+                            val index = PlayerServiceHost.player.currentMediaItemIndex
+                            undo_list.add {
+                                val before = mutableListOf<Song>()
+                                val after = mutableListOf<Song>()
+                                for (item in removed.withIndex()) {
+                                    if (item.value.second >= index) {
+                                        for (i in item.index until removed.size) {
+                                            after.add(removed[i].first)
+                                        }
+                                        break
                                     }
-                                    break
+                                    before.add(item.value.first)
                                 }
-                                before.add(item.value.first)
-                            }
 
-                            PlayerServiceHost.service.addMultipleToQueue(before, 0)
-                            PlayerServiceHost.service.addMultipleToQueue(after, index + 1)
+                                PlayerServiceHost.service.addMultipleToQueue(before, 0)
+                                PlayerServiceHost.service.addMultipleToQueue(after, index + 1)
+                            }
                         }
                     },
                     colors = ButtonDefaults.buttonColors(
@@ -251,9 +253,11 @@ fun QueueTab(weight_modifier: Modifier, player: PlayerViewContext) {
                 Button(
                     onClick = {
                         val swaps = PlayerServiceHost.service.shuffleQueue(return_swaps = true)!!
-                        undo_list.add {
-                            for (swap in swaps.asReversed()) {
-                                PlayerServiceHost.service.swapQueuePositions(swap.first, swap.second)
+                        if (swaps.isNotEmpty()) {
+                            undo_list.add {
+                                for (swap in swaps.asReversed()) {
+                                    PlayerServiceHost.service.swapQueuePositions(swap.first, swap.second)
+                                }
                             }
                         }
                     },

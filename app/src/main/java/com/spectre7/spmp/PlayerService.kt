@@ -618,7 +618,7 @@ class PlayerService : Service() {
                 }
 
                 override fun getCurrentContentText(player: Player): String? {
-                    return getCurrentSong()?.artist?.name
+                    return getCurrentSong()?.artist?.title
                 }
 
                 override fun getCurrentContentTitle(player: Player): String {

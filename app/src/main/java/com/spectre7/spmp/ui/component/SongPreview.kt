@@ -30,7 +30,7 @@ import com.spectre7.utils.vibrateShort
 @Composable
 fun SongPreviewSquare(
     song: Song, 
-    content_colour: Color, 
+    content_colour: () -> Color,
     player: PlayerViewContext,
     enable_long_press_menu: Boolean = true,
     modifier: Modifier = Modifier
@@ -63,7 +63,7 @@ fun SongPreviewSquare(
         Text(
             song.title,
             fontSize = 12.sp,
-            color = content_colour,
+            color = content_colour(),
             maxLines = 1,
             lineHeight = 14.sp,
             overflow = TextOverflow.Ellipsis
@@ -74,7 +74,7 @@ fun SongPreviewSquare(
 @Composable
 fun SongPreviewLong(
     song: Song,
-    content_colour: Color,
+    content_colour: () -> Color,
     player: PlayerViewContext,
     enable_long_press_menu: Boolean = true,
     modifier: Modifier = Modifier
@@ -101,7 +101,7 @@ fun SongPreviewLong(
             )
     ) {
         if (!song.loaded) {
-            CircularProgressIndicator(color = content_colour)
+            CircularProgressIndicator(color = content_colour())
         }
         else {
             song.Thumbnail(MediaItem.ThumbnailQuality.LOW, Modifier.size(40.dp).longPressMenuIcon(long_press_menu_data, enable_long_press_menu))
@@ -113,7 +113,7 @@ fun SongPreviewLong(
                 Text(
                     song.title,
                     fontSize = 15.sp,
-                    color = content_colour,
+                    color = content_colour(),
                     maxLines = 1,
                     overflow = TextOverflow.Ellipsis
                 )
@@ -121,7 +121,7 @@ fun SongPreviewLong(
                 Text(
                     song.artist.name,
                     fontSize = 11.sp,
-                    color = content_colour.setAlpha(0.5),
+                    color = content_colour().setAlpha(0.5),
                     maxLines = 1,
                     overflow = TextOverflow.Ellipsis
                 )
@@ -190,10 +190,10 @@ private val longPressPopupActions: @Composable LongPressMenuActionProvider.(Medi
                                 PlayerServiceHost.service.active_queue_index = PlayerServiceHost.player.currentMediaItemIndex
                             }
                         ),
-                        color = accent_colour,
+                        color = accent_colour(),
                         shape = CircleShape
                     ) {
-                        Icon(Icons.Filled.Remove, null, tint = background_colour)
+                        Icon(Icons.Filled.Remove, null, tint = background_colour())
                     }
 
                     Surface(
@@ -208,10 +208,10 @@ private val longPressPopupActions: @Composable LongPressMenuActionProvider.(Medi
                                 PlayerServiceHost.service.active_queue_index = PlayerServiceHost.player.mediaItemCount - 1
                             }
                         ),
-                        color = accent_colour,
+                        color = accent_colour(),
                         shape = CircleShape
                     ) {
-                        Icon(Icons.Filled.Add, null, tint = background_colour)
+                        Icon(Icons.Filled.Add, null, tint = background_colour())
                     }
                 }
             }

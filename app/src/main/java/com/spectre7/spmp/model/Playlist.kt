@@ -36,12 +36,12 @@ class Playlist private constructor (
     }
 
     @Composable
-    override fun PreviewSquare(content_colour: Color, player: PlayerViewContext, enable_long_press_menu: Boolean, modifier: Modifier) {
+    override fun PreviewSquare(content_colour: () -> Color, player: PlayerViewContext, enable_long_press_menu: Boolean, modifier: Modifier) {
         PlaylistPreviewSquare(this, content_colour, player, enable_long_press_menu, modifier)
     }
 
     @Composable
-    override fun PreviewLong(content_colour: Color, player: PlayerViewContext, enable_long_press_menu: Boolean, modifier: Modifier) {
+    override fun PreviewLong(content_colour: () -> Color, player: PlayerViewContext, enable_long_press_menu: Boolean, modifier: Modifier) {
         PlaylistPreviewLong(this, content_colour, player, enable_long_press_menu, modifier)
     }
 

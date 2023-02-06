@@ -100,7 +100,7 @@ fun SearchPage(
         LazyColumn(Modifier.fillMaxHeight().weight(1f)) {
             itemsIndexed(items = found_results, key = { _, item -> item.id }) { _, item ->
                 item.PreviewLong(
-                    MainActivity.theme.getOnBackground(false),
+                    MainActivity.theme.getOnBackgroundProvider(false),
                     player,
                     true,
                     Modifier

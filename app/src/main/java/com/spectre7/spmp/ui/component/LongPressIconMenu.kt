@@ -50,9 +50,9 @@ import kotlinx.coroutines.launch
 const val LONG_PRESS_ICON_MENU_OPEN_ANIM_MS = 200
 
 class LongPressMenuActionProvider(
-    val content_colour: Color,
-    val accent_colour: Color,
-    val background_colour: Color,
+    val content_colour: () -> Color,
+    val accent_colour: () -> Color,
+    val background_colour: () -> Color,
     val player: PlayerViewContext
 ) {
     @Composable
@@ -65,11 +65,11 @@ class LongPressMenuActionProvider(
         fun ActionButton(
             icon: ImageVector,
             label: String,
-            icon_colour: Color = LocalContentColor.current,
-            text_colour: Color = Color.Unspecified,
+            icon_colour: () -> Color = { Color.Unspecified },
+            text_colour: () -> Color = { Color.Unspecified },
             modifier: Modifier = Modifier,
             onClick: () -> Unit,
-            onLongClick: (() -> Unit)? = null
+            onLongClick: (() -> Unit)? = null,
         ) {
             Row(
                 modifier
@@ -87,8 +87,9 @@ class LongPressMenuActionProvider(
                     .fillMaxWidth(),
                 horizontalArrangement = Arrangement.spacedBy(20.dp)
             ) {
-                Icon(icon, null, tint = icon_colour)
-                Text(label, fontSize = 15.sp, color = text_colour)
+                val icon_col = icon_colour()
+                Icon(icon, null, tint = if (icon_col.isUnspecified) LocalContentColor.current else icon_col)
+                Text(label, fontSize = 15.sp, color = text_colour())
             }
         }
     }
@@ -185,11 +186,11 @@ fun LongPressIconMenu(
                     return@LaunchedEffect
                 }
             }
+        }
 
-            if (!data.item.isThumbnailLoaded(MediaItem.ThumbnailQuality.LOW) && !data.item.isThumbnailLoaded(MediaItem.ThumbnailQuality.HIGH)) {
-                data.item.getThumbnail(MediaItem.ThumbnailQuality.LOW) {
-                    applyPalette(data.item.thumbnail_palette!!)
-                }
+        LaunchedEffect(data.item.thumbnail_palette) {
+            if (data.item.thumbnail_palette == null) {
+                data.item.getThumbnail(MediaItem.ThumbnailQuality.LOW)
             }
             else {
                 applyPalette(data.item.thumbnail_palette!!)
@@ -342,7 +343,7 @@ fun LongPressIconMenu(
                                     if (artist != null) {
                                         Marquee(false) {
                                             artist.PreviewLong(
-                                                content_colour = MainActivity.theme.getOnBackground(false),
+                                                content_colour = MainActivity.theme.getOnBackgroundProvider(false),
                                                 player,
                                                 true,
                                                 Modifier.fillMaxWidth()
@@ -355,7 +356,9 @@ fun LongPressIconMenu(
 
                         Divider(thickness = Dp.Hairline, color = MainActivity.theme.getOnBackground(false))
 
-                        data.actions(LongPressMenuActionProvider(MainActivity.theme.getOnBackground(false), accent_colour, MainActivity.theme.getBackground(false), player), data.item)
+                        val accent_colour_provider = remember (accent_colour) { { accent_colour } }
+
+                        data.actions(LongPressMenuActionProvider(MainActivity.theme.getOnBackgroundProvider(false), accent_colour_provider, MainActivity.theme.getBackgroundProvider(false), player), data.item)
 
                         val share_intent = remember(data.item.url) {
                             Intent.createChooser(Intent().apply {
@@ -370,7 +373,7 @@ fun LongPressIconMenu(
                             }, null)
                         }
 
-                        LongPressMenuActionProvider.ActionButton(Icons.Filled.Share, "Share", accent_colour, onClick = {
+                        LongPressMenuActionProvider.ActionButton(Icons.Filled.Share, "Share", accent_colour_provider, onClick = {
                             MainActivity.context.startActivity(share_intent)
                         })
 
@@ -385,7 +388,7 @@ fun LongPressIconMenu(
                         }
 
                         if (open_intent != null) {
-                            LongPressMenuActionProvider.ActionButton(Icons.Filled.OpenWith, "Open externally", accent_colour, onClick = {
+                            LongPressMenuActionProvider.ActionButton(Icons.Filled.OpenWith, "Open externally", accent_colour_provider, onClick = {
                                 MainActivity.context.startActivity(open_intent)
                             })
                         }

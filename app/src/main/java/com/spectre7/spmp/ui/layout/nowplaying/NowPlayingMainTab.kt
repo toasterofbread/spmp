@@ -69,7 +69,6 @@ fun MainTab(
 
     val screen_width_dp = LocalConfiguration.current.screenWidthDp.dp
 
-    val colour_filter = ColorFilter.tint(MainActivity.theme.getOnBackground(true))
     var seek_state by remember { mutableStateOf(-1f) }
     var theme_palette by remember { mutableStateOf<Palette?>(null) }
     var accent_colour_source by remember { mutableStateOf(AccentColourSource.values()[Settings.prefs.getInt(Settings.KEY_ACCENT_COLOUR_SOURCE.name, 0)]) }
@@ -232,7 +231,7 @@ fun MainTab(
                             .run {
                                 if (colourpick_callback == null) {
                                     this.clickable(
-                                        enabled = remember { derivedStateOf { expansion == 1.0f } },
+                                        enabled = remember { derivedStateOf { expansion == 1.0f } }.value,
                                         indication = null,
                                         interactionSource = remember { MutableInteractionSource() }
                                     ) {
@@ -392,7 +391,7 @@ fun MainTab(
                     Image(
                         painterResource(R.drawable.ic_skip_previous),
                         null,
-                        colorFilter = colour_filter
+                        colorFilter = ColorFilter.tint(MainActivity.theme.getOnBackground(true))
                     )
                 }
             }
@@ -406,7 +405,7 @@ fun MainTab(
                     Image(
                         painterResource(if (PlayerServiceHost.status.m_playing) R.drawable.ic_pause else R.drawable.ic_play_arrow),
                         getString(if (PlayerServiceHost.status.m_playing) R.string.media_pause else R.string.media_play),
-                        colorFilter = colour_filter
+                        colorFilter = ColorFilter.tint(MainActivity.theme.getOnBackground(true))
                     )
                 }
             }
@@ -420,7 +419,7 @@ fun MainTab(
                     Image(
                         painterResource(R.drawable.ic_skip_next),
                         null,
-                        colorFilter = colour_filter
+                        colorFilter = ColorFilter.tint(MainActivity.theme.getOnBackground(true))
                     )
                 }
             }
@@ -436,7 +435,7 @@ fun MainTab(
         ) {
 
             @Composable
-            fun PlayerButton(painter: Painter, size: Dp = 60.dp, alpha: Float = 1f, colour: Color = MainActivity.theme.getOnBackground(true), label: String? = null, enabled: Boolean = true, on_click: () -> Unit) {
+            fun PlayerButton(painter: Painter, size: Dp = 60.dp, alpha: Float = 1f, colourProvider: (() -> Color)? = null, label: String? = null, enabled: Boolean = true, on_click: () -> Unit) {
                 Box(
                     contentAlignment = Alignment.Center,
                     modifier = Modifier
@@ -451,6 +450,7 @@ fun MainTab(
                         )
                         .alpha(if (enabled) 1.0f else 0.5f)
                 ) {
+                    val colour = remember (colourProvider) { colourProvider?.invoke() ?: MainActivity.theme.getOnBackground(true) }
                     Image(
                         painter, null,
                         Modifier
@@ -466,8 +466,8 @@ fun MainTab(
             }
 
             @Composable
-            fun PlayerButton(image_id: Int, size: Dp = 60.dp, alpha: Float = 1f, colour: Color = MainActivity.theme.getOnBackground(true), label: String? = null, enabled: Boolean = true, on_click: () -> Unit) {
-                PlayerButton(painterResource(image_id), size, alpha, colour, label, enabled, on_click)
+            fun PlayerButton(image_id: Int, size: Dp = 60.dp, alpha: Float = 1f, colourProvider: (() -> Color)? = null, label: String? = null, enabled: Boolean = true, on_click: () -> Unit) {
+                PlayerButton(painterResource(image_id), size, alpha, colourProvider, label, enabled, on_click)
             }
 
             Column(verticalArrangement = Arrangement.spacedBy(35.dp)) {
@@ -508,7 +508,6 @@ fun MainTab(
                                 }
                             }
                     )
-
                 }
 
                 SeekBar {

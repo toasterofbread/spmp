@@ -33,16 +33,18 @@ var checking by mutableStateOf(false)
 @Composable
 fun LyricsSearchMenu(song: Song, lyrics: Song.Lyrics?, close: (changed: Boolean) -> Unit) {
 
+    val on_accent = MainActivity.theme.getAccent()
+
     val text_field_colours = TextFieldDefaults.textFieldColors(
-        containerColor = MainActivity.theme.getAccent().setAlpha(0.75),
-        textColor = MainActivity.theme.getOnAccent(),
-        focusedLabelColor = MainActivity.theme.getOnAccent(),
-        unfocusedLabelColor = MainActivity.theme.getOnAccent(),
-        focusedTrailingIconColor = MainActivity.theme.getOnAccent(),
-        unfocusedTrailingIconColor = MainActivity.theme.getOnAccent(),
-        cursorColor = MainActivity.theme.getOnAccent(),
-        focusedIndicatorColor = MainActivity.theme.getOnAccent(),
-        unfocusedIndicatorColor = MainActivity.theme.getOnAccent().setAlpha(0.5)
+        containerColor = on_accent.setAlpha(0.75),
+        textColor = on_accent,
+        focusedLabelColor = on_accent,
+        unfocusedLabelColor = on_accent,
+        focusedTrailingIconColor = on_accent,
+        unfocusedTrailingIconColor = on_accent,
+        cursorColor = on_accent,
+        focusedIndicatorColor = on_accent,
+        unfocusedIndicatorColor = on_accent.setAlpha(0.5)
     )
 
     val focus = LocalFocusManager.current
@@ -102,7 +104,7 @@ fun LyricsSearchMenu(song: Song, lyrics: Song.Lyrics?, close: (changed: Boolean)
                         Modifier
                             .background(MainActivity.theme.getAccent(), CircleShape)
                             .padding(10.dp)) {
-                        Text("Search for lyrics", color = MainActivity.theme.getOnAccent())
+                        Text("Search for lyrics", color = on_accent)
                     }
 
                     @Composable
@@ -163,7 +165,7 @@ fun LyricsSearchMenu(song: Song, lyrics: Song.Lyrics?, close: (changed: Boolean)
                         .weight(1f),
                     colors = ButtonDefaults.buttonColors(
                         containerColor = MainActivity.theme.getAccent(),
-                        contentColor = MainActivity.theme.getOnAccent()
+                        contentColor = on_accent
                     )
                 ) {
                     Text(com.spectre7.utils.getString(R.string.action_close))
@@ -182,12 +184,12 @@ fun LyricsSearchMenu(song: Song, lyrics: Song.Lyrics?, close: (changed: Boolean)
                 ) {
                     Crossfade(if (checking) 0 else if (edit_page_open) 1 else 2) { icon ->
                         when (icon) {
-                            0 -> CircularProgressIndicator(Modifier.requiredSize(22.dp), color = MainActivity.theme.getOnAccent(), strokeWidth = 3.dp)
+                            0 -> CircularProgressIndicator(Modifier.requiredSize(22.dp), color = on_accent, strokeWidth = 3.dp)
                             else -> {
                                 Icon(
                                     if (icon == 1) Icons.Filled.Search else Icons.Filled.Edit,
                                     null,
-                                    tint = MainActivity.theme.getOnAccent()
+                                    tint = on_accent
                                 )
                             }
                         }

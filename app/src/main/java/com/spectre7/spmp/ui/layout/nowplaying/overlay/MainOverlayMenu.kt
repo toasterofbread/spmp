@@ -11,7 +11,6 @@ import androidx.compose.material.icons.filled.Share
 import androidx.compose.material3.*
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.remember
-import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.ColorFilter
@@ -32,7 +31,6 @@ import com.spectre7.spmp.ui.layout.nowplaying.overlay.DownloadOverlayMenu
 import com.spectre7.spmp.ui.layout.nowplaying.overlay.OverlayMenu
 import com.spectre7.spmp.ui.layout.nowplaying.overlay.PaletteSelectorOverlayMenu
 import com.spectre7.spmp.ui.layout.nowplaying.overlay.lyrics.LyricsOverlayMenu
-import com.spectre7.utils.Marquee
 import com.spectre7.utils.sendToast
 import com.spectre7.utils.vibrateShort
 
@@ -64,6 +62,8 @@ class MainOverlayMenu(
         ) {
             @Composable
             fun InfoField(name: String, value: String, shareable: Boolean) {
+
+                val accent_colour = MainActivity.theme.getAccent()
                 OutlinedTextField(
                     TextFieldValue(value),
                     {},
@@ -74,10 +74,10 @@ class MainOverlayMenu(
                     },
                     shape = RoundedCornerShape(30.dp),
                     colors = TextFieldDefaults.textFieldColors(
-                        disabledIndicatorColor = MainActivity.theme.getAccent(),
-                        disabledLabelColor = MainActivity.theme.getAccent(),
-                        disabledTextColor = MainActivity.theme.getAccent(),
-                        disabledTrailingIconColor = MainActivity.theme.getAccent(),
+                        disabledIndicatorColor = accent_colour,
+                        disabledLabelColor = accent_colour,
+                        disabledTextColor = accent_colour,
+                        disabledTrailingIconColor = accent_colour,
                         containerColor = Color.Transparent
                     ),
                     trailingIcon = {
@@ -109,7 +109,7 @@ class MainOverlayMenu(
 
             if (PlayerServiceHost.status.m_song != null) {
                 song.artist.PreviewLong(
-                    content_colour = Color.White,
+                    content_colour = { Color.White },
                     player,
                     true,
                     Modifier

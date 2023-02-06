@@ -170,7 +170,7 @@ fun PlayerView() {
 
         Box(Modifier.padding(bottom = minimised_now_playing_height.value.dp)) {
             val expand_state = remember { mutableStateOf(false) }
-            val overlay_open = remember { derivedStateOf { player.overlay_page != OverlayPage.NONE } }
+            val overlay_open by remember { derivedStateOf { player.overlay_page != OverlayPage.NONE } }
 
             player.pill_menu.PillMenu(
                 if (overlay_open) 1 else 2,
@@ -190,7 +190,7 @@ fun PlayerView() {
                     }
                 },
                 if (!overlay_open) expand_state else null,
-                MainActivity.theme.getAccent()
+                MainActivity.theme.getAccentProvider()
             )
 
             val main_page_layouts = remember { mutableStateListOf<MediaItemLayout>() }
@@ -272,7 +272,7 @@ fun MainPage(
     player: PlayerViewContext,
     scroll_state: LazyListState
 ) {
-    val refreshing by remember { mutableStateOf(false) }
+    var refreshing by remember { mutableStateOf(false) }
 
     SwipeRefresh(
         state = rememberSwipeRefreshState(refreshing), // TODO
@@ -284,7 +284,7 @@ fun MainPage(
         },
         Modifier.padding(horizontal = 10.dp)
     ) {
-        Crossfade(remember { derivedStateOf { layouts.isNotEmpty() } }) { loaded ->
+        Crossfade(remember { derivedStateOf { layouts.isNotEmpty() } }.value) { loaded ->
             if (loaded) {
                 CompositionLocalProvider(
                     LocalOverScrollConfiguration provides null
@@ -311,12 +311,15 @@ fun MainPage(
     }
 }
 
-fun refreshFeed(allow_cached: Boolean, feed_layouts: MutableList<MediaItemLayout>, onFinished: (success: Boolean) -> Unit) {
-    val lock = remember { ReentrantLock() }
+val feed_refresh_lock = ReentrantLock()
 
-    if (!lock.isLocked) {
-        thread {
-            lock.lock()
+fun refreshFeed(allow_cached: Boolean, feed_layouts: MutableList<MediaItemLayout>, onFinished: (success: Boolean) -> Unit) {
+
+    thread {
+        if (!feed_refresh_lock.tryLock()) {
+            return@thread
+        }
+        else {
             feed_layouts.clear()
 
             val feed_result = getHomeFeed()
@@ -325,7 +328,7 @@ fun refreshFeed(allow_cached: Boolean, feed_layouts: MutableList<MediaItemLayout
                 // MainActivity.error_manager.onError(feed_result.exception) { resolve ->
                 //     refreshFeed(false, feed_layouts) { success -> if (it) resolve() }
                 // }
-                lock.unlock()
+                feed_refresh_lock.unlock()
                 onFinished(false)
                 return@thread
             }
@@ -374,7 +377,7 @@ fun refreshFeed(allow_cached: Boolean, feed_layouts: MutableList<MediaItemLayout
                 feed_layouts.add(playlists)
             }
 
-            lock.unlock()
+            feed_refresh_lock.unlock()
             onFinished(true)
         }
     }

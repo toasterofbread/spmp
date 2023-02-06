@@ -34,10 +34,7 @@ import com.spectre7.spmp.R
 import com.spectre7.spmp.model.MediaItem
 import com.spectre7.spmp.ui.component.MultiSelector
 import com.spectre7.spmp.ui.layout.PlayerViewContext
-import com.spectre7.utils.getStatusBarHeight
-import com.spectre7.utils.getString
-import com.spectre7.utils.setColourAlpha
-import com.spectre7.utils.vibrateShort
+import com.spectre7.utils.*
 
 enum class AccentColourSource { THUMBNAIL, SYSTEM }
 enum class ThemeMode { BACKGROUND, ELEMENTS, NONE }
@@ -53,7 +50,7 @@ fun NowPlaying(expansion: Float, max_height: Float, close: () -> Unit, player: P
     val expanded = expansion >= EXPANDED_THRESHOLD
 
     val systemui_controller = rememberSystemUiController()
-    val status_bar_height_percent = remember { (getStatusBarHeight(MainActivity.context).value * 0.75) / max_height }
+    val status_bar_height_percent = (getStatusBarHeight(MainActivity.context).value * 0.75) / max_height
 
     LaunchedEffect(key1 = expansion, key2 = MainActivity.theme.getBackground(true)) {
         systemui_controller.setSystemBarsColor(
@@ -63,9 +60,9 @@ fun NowPlaying(expansion: Float, max_height: Float, close: () -> Unit, player: P
 
     MinimisedProgressBar(expansion)
 
-    val screen_width_dp = remember { LocalConfiguration.current.screenWidthDp.dp }
-    val screen_width_px = remember { with(LocalDensity.current) { screen_width_dp.roundToPx() } }
-    val main_padding_px = remember { with(LocalDensity.current) { NOW_PLAYING_MAIN_PADDING.roundToPx() } }
+    val screen_width_dp = LocalConfiguration.current.screenWidthDp.dp
+    val screen_width_px = with(LocalDensity.current) { screen_width_dp.roundToPx() }
+    val main_padding_px = with(LocalDensity.current) { NOW_PLAYING_MAIN_PADDING.roundToPx() }
 
     val thumbnail = remember { mutableStateOf<ImageBitmap?>(null) }
 
@@ -236,7 +233,7 @@ fun MinimisedProgressBar(expansion: Float) {
     LinearProgressIndicator(
         progress = PlayerServiceHost.status.m_position,
         color = MainActivity.theme.getOnBackground(true),
-        trackColor = setColourAlpha(MainActivity.theme.getOnBackground(true), 0.5),
+        trackColor = MainActivity.theme.getOnBackground(true).setAlpha(0.5),
         modifier = Modifier
             .requiredHeight(2.dp)
             .fillMaxWidth()
@@ -251,8 +248,8 @@ fun TabSelector(current_tab: MutableState<NowPlayingTab>) {
         current_tab.value.ordinal,
         Modifier.requiredHeight(60.dp * 0.8f),
         Modifier.aspectRatio(1f),
-        colour = setColourAlpha(MainActivity.theme.getOnBackground(true), 0.75),
-        background_colour = MainActivity.theme.getBackground(true),
+        colourProvider = { MainActivity.theme.getOnBackground(true).setAlpha(0.75) },
+        backgroundColourProvider = MainActivity.theme.getBackgroundProvider(true),
         on_selected = { current_tab.value = NowPlayingTab.values()[it] }
     ) { index ->
 
@@ -261,7 +258,6 @@ fun TabSelector(current_tab: MutableState<NowPlayingTab>) {
         Box(
             contentAlignment = Alignment.Center
         ) {
-
             val colour = if (tab == current_tab.value) MainActivity.theme.getBackground(true) else MainActivity.theme.getOnBackground(true)
 
             Image(
@@ -304,9 +300,12 @@ fun Tab(
         }
     }
 
-    Column(verticalArrangement = Arrangement.Top, modifier = modifier.fillMaxHeight().then(
-        if (tab == NowPlayingTab.PLAYER) padding(15.dp * expansion) else padding(top = 20.dp)
-    )) {
+    Column(verticalArrangement = Arrangement.Top, modifier = modifier
+        .fillMaxHeight()
+        .then(
+            if (tab == NowPlayingTab.PLAYER) Modifier.padding(15.dp * expansion) else Modifier.padding(
+                top = 20.dp)
+        )) {
         when (tab) {
             NowPlayingTab.PLAYER -> {
                 MainTab(

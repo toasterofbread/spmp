@@ -65,11 +65,11 @@ data class MediaItemLayout(
                         enter = fadeIn() + expandIn(expandFrom = Alignment.Center),
                         exit = fadeOut() + shrinkOut(shrinkTowards = Alignment.Center)
                     ) {
-                        item.PreviewSquare(MainActivity.theme.getOnBackground(false), player, true, Modifier)
+                        item.PreviewSquare(MainActivity.theme.getOnBackgroundProvider(false), player, true, Modifier)
                     }
                 }
                 else {
-                    item.PreviewSquare(MainActivity.theme.getOnBackground(false), player, true, Modifier)
+                    item.PreviewSquare(MainActivity.theme.getOnBackgroundProvider(false), player, true, Modifier)
                 }
             }
         }
@@ -146,7 +146,7 @@ fun MediaItemNumberedList(
             Row(verticalAlignment = Alignment.CenterVertically) {
                 Text((item.index + 1).toString().padStart((layout.items.size + 1).toString().length, '0'), fontWeight = FontWeight.Light)
                 Column {
-                    item.value.PreviewLong(MainActivity.theme.getOnBackground(false), player, true, Modifier)
+                    item.value.PreviewLong(MainActivity.theme.getOnBackgroundProvider(false), player, true, Modifier)
                 }
             }
         }

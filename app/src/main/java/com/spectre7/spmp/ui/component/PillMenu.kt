@@ -26,13 +26,13 @@ class PillMenu(
     private val action_count: Int = 0,
     private val getAction: @Composable (Action.(i: Int, action_count: Int) -> Unit) = { _, _ -> },
     private val expand_state: MutableState<Boolean>? = null,
-    private val _background_colour: Color = Color.Unspecified,
+    private val _background_colour: () -> Color = { Color.Unspecified },
     private val top: Boolean = false,
     private val left: Boolean = false,
     private val vertical: Boolean = false,
     private val container_modifier: Modifier = Modifier.fillMaxSize(),
     private val toggleButton: (@Composable Action.(modifier: Modifier) -> Unit)? = null,
-    private val modifier: Modifier = Modifier
+    private val modifier: Modifier = Modifier,
 ) {
 
     var is_open: Boolean
@@ -98,7 +98,7 @@ class PillMenu(
         action_count: Int = this.action_count,
         getAction: @Composable() (Action.(i: Int, action_count: Int) -> Unit) = this.getAction,
         expand_state: MutableState<Boolean>? = this.expand_state,
-        _background_colour: Color = this._background_colour,
+        _background_colour: () -> Color = this._background_colour,
         top: Boolean = this.top,
         left: Boolean = this.left,
         vertical: Boolean = this.vertical,
@@ -107,11 +107,11 @@ class PillMenu(
         modifier: Modifier = this.modifier,
     ) {
         LaunchedEffect(Unit) {
-            background_colour.snapTo(_background_colour)
+            background_colour.snapTo(_background_colour())
         }
 
         LaunchedEffect(background_colour_override, _background_colour) {
-            background_colour.animateTo(background_colour_override ?: _background_colour)
+            background_colour.animateTo(background_colour_override ?: _background_colour())
         }
 
         val params = remember(top, left, vertical, action_count, expand_state != null) {

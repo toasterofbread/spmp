@@ -31,7 +31,7 @@ import com.spectre7.utils.setAlpha
 @Composable
 fun ArtistPreviewSquare(
     artist: Artist, 
-    content_colour: Color, 
+    content_colour: () -> Color,
     player: PlayerViewContext,
     enable_long_press_menu: Boolean = true,
     modifier: Modifier = Modifier
@@ -64,7 +64,7 @@ fun ArtistPreviewSquare(
         Text(
             artist.name,
             fontSize = 12.sp,
-            color = content_colour,
+            color = content_colour(),
             maxLines = 1,
             lineHeight = 14.sp,
             overflow = TextOverflow.Ellipsis
@@ -75,7 +75,7 @@ fun ArtistPreviewSquare(
 @Composable
 fun ArtistPreviewLong(
     artist: Artist,
-    content_colour: Color,
+    content_colour: () -> Color,
     player: PlayerViewContext,
     enable_long_press_menu: Boolean = true,
     modifier: Modifier = Modifier
@@ -107,7 +107,7 @@ fun ArtistPreviewLong(
             Text(
                 artist.name,
                 fontSize = 15.sp,
-                color = content_colour,
+                color = content_colour(),
                 maxLines = 1,
                 overflow = TextOverflow.Ellipsis
             )
@@ -115,7 +115,7 @@ fun ArtistPreviewLong(
             Text(
                 "${artist.getFormattedSubscriberCount()} subscribers",
                 fontSize = 12.sp,
-                color = content_colour.setAlpha(0.5),
+                color = content_colour().setAlpha(0.5),
                 maxLines = 1,
                 overflow = TextOverflow.Ellipsis
             )
@@ -153,8 +153,8 @@ private val longPressPopupActions: @Composable LongPressMenuActionProvider.(Medi
                         .aspectRatio(1f)
                         .align(Alignment.CenterVertically)
                     val button_colours = ButtonDefaults.buttonColors(
-                        containerColor = accent_colour,
-                        contentColor = background_colour
+                        containerColor = accent_colour(),
+                        contentColor = background_colour()
                     )
 
                     ElevatedButton(

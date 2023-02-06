@@ -22,7 +22,7 @@ import com.spectre7.spmp.ui.layout.PlayerViewContext
 @Composable
 fun PlaylistPreviewSquare(
     playlist: Playlist,
-    content_colour: Color,
+    content_colour: () -> Color,
     player: PlayerViewContext,
     enable_long_press_menu: Boolean = true,
     modifier: Modifier = Modifier
@@ -58,7 +58,7 @@ fun PlaylistPreviewSquare(
         Text(
             playlist.title,
             fontSize = 12.sp,
-            color = content_colour,
+            color = content_colour(),
             maxLines = 1,
             lineHeight = 14.sp,
             overflow = TextOverflow.Ellipsis
@@ -70,7 +70,7 @@ fun PlaylistPreviewSquare(
 @Composable
 fun PlaylistPreviewLong(
     playlist: Playlist, 
-    content_colour: Color, 
+    content_colour: () -> Color,
     player: PlayerViewContext,
     enable_long_press_menu: Boolean = true,
     modifier: Modifier = Modifier
@@ -102,7 +102,7 @@ fun PlaylistPreviewLong(
             Text(
                 playlist.title,
                 fontSize = 15.sp,
-                color = content_colour,
+                color = content_colour(),
                 maxLines = 1,
                 overflow = TextOverflow.Ellipsis
             )

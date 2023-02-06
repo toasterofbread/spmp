@@ -9,7 +9,6 @@ import androidx.compose.animation.Animatable
 import androidx.compose.animation.core.Animatable
 import androidx.compose.animation.core.AnimationVector4D
 import androidx.compose.runtime.Composable
-import androidx.compose.material3.MaterialTheme
 
 fun Color.setAlpha(alpha: Double): Color {
     return setColourAlpha(this, alpha)
@@ -114,20 +113,20 @@ data class Theme private constructor(
         (if (themed) t_background else n_background).animateTo(value ?: if (themed) default_t_background else default_n_background)
     }
 
-    fun getBackground(themed: Boolean): Color {
-        return if (themed) t_background.value else n_background.value
-    }
-
     suspend fun setOnBackground(themed: Boolean, value: Color?) {
         (if (themed) t_on_background else n_on_background).animateTo(value ?: if (themed) default_t_on_background else default_n_on_background)
     }
 
-    fun getOnBackground(themed: Boolean): Color {
-        return if (themed) t_on_background.value else n_on_background.value
-    }
-
     suspend fun setAccent(value: Color?) {
         accent.animateTo(value ?: default_accent)
+    }
+
+    fun getBackground(themed: Boolean): Color {
+        return if (themed) t_background.value else n_background.value
+    }
+
+    fun getOnBackground(themed: Boolean): Color {
+        return if (themed) t_on_background.value else n_on_background.value
     }
 
     fun getAccent(): Color {
@@ -135,11 +134,31 @@ data class Theme private constructor(
     }
 
     fun getOnAccent(): Color {
-        return getAccent().getContrasted()
+        return accent.value.getContrasted()
     }
 
     fun getVibrantAccent(): Color {
-        return accent.value.contrastAgainst(getBackground(false))
+        return accent.value.contrastAgainst(n_background.value)
+    }
+
+    fun getBackgroundProvider(themed: Boolean): () -> Color {
+        return { if (themed) t_background.value else n_background.value }
+    }
+
+    fun getOnBackgroundProvider(themed: Boolean): () -> Color {
+        return { if (themed) t_on_background.value else n_on_background.value }
+    }
+
+    fun getAccentProvider(): () -> Color {
+        return { accent.value }
+    }
+
+    fun getOnAccentProvider(): () -> Color {
+        return { accent.value.getContrasted() }
+    }
+
+    fun getVibrantAccentProvider(): () -> Color {
+        return { accent.value.contrastAgainst(n_on_background.value) }
     }
 
     companion object {

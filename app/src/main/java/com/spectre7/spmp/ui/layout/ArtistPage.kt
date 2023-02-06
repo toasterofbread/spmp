@@ -204,7 +204,7 @@ fun ArtistPage(
                                     Icon(icon, null, tint = accent_colour)
                                 },
                                 colors = AssistChipDefaults.assistChipColors(
-                                    containerColor = MainActivity.theme.getBackground(false),
+                                    containerColor = background_colour,
                                     labelColor = MainActivity.theme.getOnBackground(false),
                                     leadingIconContentColor = accent_colour
                                 )
@@ -250,7 +250,7 @@ fun ArtistPage(
                                         )
                                     },
                                     colors = IconButtonDefaults.iconButtonColors(
-                                        containerColor = if (subscribed) accent_colour else MainActivity.theme.getBackground(false),
+                                        containerColor = if (subscribed) accent_colour else background_colour,
                                         contentColor = if (subscribed) accent_colour.getContrasted() else MainActivity.theme.getOnBackground(false)
                                     )
                                 ) {
@@ -313,7 +313,7 @@ fun ArtistPage(
                                                     Icon(Icons.Outlined.Info, null)
                                                 },
                                                 colors = AssistChipDefaults.assistChipColors(
-                                                    containerColor = MainActivity.theme.getBackground(false),
+                                                    containerColor = background_colour,
                                                     labelColor = MainActivity.theme.getOnBackground(false),
                                                     leadingIconContentColor = accent_colour
                                                 )

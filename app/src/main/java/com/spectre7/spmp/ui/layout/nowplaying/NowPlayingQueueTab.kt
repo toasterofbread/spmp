@@ -1,12 +1,13 @@
+@file:Suppress("INVISIBLE_MEMBER", "INVISIBLE_REFERENCE")
+
 package com.spectre7.spmp.ui.layout.nowplaying
 
 import androidx.compose.animation.*
-import androidx.compose.foundation.Image
-import androidx.compose.foundation.background
-import androidx.compose.foundation.clickable
-import androidx.compose.foundation.gestures.Orientation
+import androidx.compose.animation.core.*
+import androidx.compose.foundation.*
+import androidx.compose.foundation.gestures.*
 import androidx.compose.foundation.layout.*
-import androidx.compose.foundation.lazy.LazyColumn
+import androidx.compose.foundation.lazy.*
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.ExperimentalMaterialApi
@@ -20,22 +21,16 @@ import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.graphics.ColorFilter
-import androidx.compose.ui.graphics.vector.rememberVectorPainter
 import androidx.compose.ui.platform.LocalConfiguration
 import androidx.compose.ui.platform.LocalDensity
-import androidx.compose.ui.unit.IntOffset
-import androidx.compose.ui.unit.dp
+import androidx.compose.ui.unit.*
 import com.google.android.exoplayer2.C
 import com.spectre7.spmp.MainActivity
 import com.spectre7.spmp.PlayerServiceHost
 import com.spectre7.spmp.model.Song
 import com.spectre7.spmp.ui.layout.PlayerViewContext
 import com.spectre7.utils.vibrateShort
-import org.burnoutcrew.reorderable.ReorderableItem
-import org.burnoutcrew.reorderable.detectReorder
-import org.burnoutcrew.reorderable.rememberReorderableLazyListState
-import org.burnoutcrew.reorderable.reorderable
+import org.burnoutcrew.reorderable.*
 import kotlin.math.roundToInt
 
 @Composable
@@ -52,7 +47,6 @@ fun QueueTab(weight_modifier: Modifier, player: PlayerViewContext) {
         @OptIn(ExperimentalMaterialApi::class)
         @Composable
         fun QueueElement(handle_modifier: Modifier, current: Boolean, index: Int, on_remove_request: () -> Unit) {
-
             val swipe_state = rememberSwipeableState(1)
             val max_offset = with(LocalDensity.current) { LocalConfiguration.current.screenWidthDp.dp.toPx() }
             val anchors = mapOf(-max_offset to 0, 0f to 1, max_offset to 2)
@@ -71,9 +65,9 @@ fun QueueTab(weight_modifier: Modifier, player: PlayerViewContext) {
                     verticalAlignment = Alignment.CenterVertically,
                     modifier = Modifier.padding(start = 10.dp, end = 20.dp)
                 ) {
-                    val content_colour = if (current) MainActivity.theme.getBackground(true) else MainActivity.theme.getOnBackground(true)
+                    val contentColourProvider = if (current) MainActivity.theme.getBackgroundProvider(true) else MainActivity.theme.getOnBackgroundProvider(true)
                     song.PreviewLong(
-                        content_colour,
+                        contentColourProvider,
                         remember { player.copy(onClickedOverride = { PlayerServiceHost.player.seekTo(index, C.TIME_UNSET) }) },
                         true,
                         Modifier
@@ -87,10 +81,7 @@ fun QueueTab(weight_modifier: Modifier, player: PlayerViewContext) {
                     )
 
                     // Drag handle
-                    Image(rememberVectorPainter(Icons.Filled.Menu), "", modifier = handle_modifier
-                        .requiredSize(25.dp),
-                        colorFilter = ColorFilter.tint(content_colour)
-                    )
+                    Icon(Icons.Filled.Menu, null, handle_modifier.requiredSize(25.dp), tint = contentColourProvider())
                 }
             }
         }
@@ -165,11 +156,14 @@ fun QueueTab(weight_modifier: Modifier, player: PlayerViewContext) {
             state = state.listState,
             modifier = weight_modifier
                 .reorderable(state)
+                .detectReorderAfterLongPress(state)
                 .align(Alignment.TopCenter)
         ) {
+
             items(song_items.size, { song_items[it].key }) { index ->
                 val item = song_items[index]
-                ReorderableItem(state, item.key) { is_dragging ->
+                ReorderableItem(state, key = item.key) { is_dragging ->
+
                     LaunchedEffect(is_dragging) {
                         if (is_dragging) {
                             vibrateShort()
@@ -191,7 +185,6 @@ fun QueueTab(weight_modifier: Modifier, player: PlayerViewContext) {
                             PlayerServiceHost.service.removeFromQueue(index)
                         }
 
-                        val current = if (playing_key != null) playing_key == item.key else PlayerServiceHost.status.m_index == index
                         var visible by remember { mutableStateOf(false ) }
                         LaunchedEffect(visible) {
                             visible = true
@@ -204,7 +197,12 @@ fun QueueTab(weight_modifier: Modifier, player: PlayerViewContext) {
                                     else EnterTransition.None,
                             exit = ExitTransition.None
                         ) {
-                            item.QueueElement(Modifier.detectReorder(state), current, index, remove_request)
+                            item.QueueElement(
+                                Modifier.detectReorder(state),
+                                if (playing_key != null) playing_key == item.key else PlayerServiceHost.status.m_index == index,
+                                0,
+                                remove_request
+                            )
                         }
                     }
                 }

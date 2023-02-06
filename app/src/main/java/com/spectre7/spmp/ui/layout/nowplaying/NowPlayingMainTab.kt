@@ -51,8 +51,7 @@ import kotlin.math.min
 const val OVERLAY_MENU_ANIMATION_DURATION: Int = 200
 
 @Composable
-fun MainTab(
-    weight_modifier: Modifier,
+fun ColumnScope.NowPlayingMainTab(
     expansion: Float,
     max_height: Float,
     thumbnail: ImageBitmap?,
@@ -74,22 +73,6 @@ fun MainTab(
     var accent_colour_source by remember { mutableStateOf(AccentColourSource.values()[Settings.prefs.getInt(Settings.KEY_ACCENT_COLOUR_SOURCE.name, 0)]) }
     var theme_mode by remember { mutableStateOf(ThemeMode.values()[Settings.prefs.getInt(Settings.KEY_NOWPLAYING_THEME_MODE.name, 0)]) }
     var loaded_song: Song? by remember { mutableStateOf(null) }
-
-    fun getSongTitle(): String {
-        val song = PlayerServiceHost.status.m_song
-        if (song == null || !song.loaded) {
-            return ""
-        }
-        return song.title
-    }
-
-    fun getSongArtist(): String {
-        val song = PlayerServiceHost.status.m_song
-        if (song == null || !song.loaded || !song.artist.loaded) {
-            return ""
-        }
-        return song.artist.name
-    }
 
     val prefs_listener = remember {
         SharedPreferences.OnSharedPreferenceChangeListener { _, key ->
@@ -372,7 +355,7 @@ fun MainTab(
             Spacer(Modifier.requiredWidth(10.dp))
 
             Text(
-                getSongTitle(),
+                PlayerServiceHost.status.m_song?.getLoadedOrNull()?.title ?: "",
                 maxLines = 1,
                 color = MainActivity.theme.getOnBackground(true),
                 overflow = TextOverflow.Ellipsis,
@@ -427,74 +410,77 @@ fun MainTab(
     }
 
     if (expansion > 0.0f) {
-        Spacer(Modifier.requiredHeight(30.dp))
+        TODO()
+        Controls(
+            player,
+            {
+                PlayerServiceHost.player.seekTo((PlayerServiceHost.player.duration * it).toLong())
+                seek_state = it
+            },
+            Modifier.weight(1f).recomposeHighlighter()
+        )
+    }
+}
 
-        Box(
-            weight_modifier.alpha(expansion),
-            contentAlignment = Alignment.TopCenter
-        ) {
+@Composable
+private fun Controls(
+    player: PlayerViewContext,
+    seek: (Float) -> Unit,
+    modifier: Modifier = Modifier
+) {
+    Spacer(Modifier.requiredHeight(30.dp))
 
-            @Composable
-            fun PlayerButton(painter: Painter, size: Dp = 60.dp, alpha: Float = 1f, colourProvider: (() -> Color)? = null, label: String? = null, enabled: Boolean = true, on_click: () -> Unit) {
-                Box(
-                    contentAlignment = Alignment.Center,
-                    modifier = Modifier
-                        .clickable(
-                            onClick = on_click,
-                            indication = rememberRipple(
-                                radius = 25.dp,
-                                bounded = false
-                            ),
-                            interactionSource = remember { MutableInteractionSource() },
-                            enabled = enabled
-                        )
-                        .alpha(if (enabled) 1.0f else 0.5f)
-                ) {
-                    val colour = remember (colourProvider) { colourProvider?.invoke() ?: MainActivity.theme.getOnBackground(true) }
-                    Image(
-                        painter, null,
-                        Modifier
-                            .requiredSize(size, 60.dp)
-                            .offset(y = if (label != null) (-7).dp else 0.dp),
-                        colorFilter = ColorFilter.tint(colour),
-                        alpha = alpha
+    Box(
+        modifier,
+        contentAlignment = Alignment.TopCenter
+    ) {
+
+        @Composable
+        fun PlayerButton(painter: Painter, size: Dp = 60.dp, alpha: Float = 1f, colourProvider: (() -> Color)? = null, label: String? = null, enabled: Boolean = true, on_click: () -> Unit) {
+            Box(
+                contentAlignment = Alignment.Center,
+                modifier = Modifier
+                    .clickable(
+                        onClick = on_click,
+                        indication = rememberRipple(
+                            radius = 25.dp,
+                            bounded = false
+                        ),
+                        interactionSource = remember { MutableInteractionSource() },
+                        enabled = enabled
                     )
-                    if (label != null) {
-                        Text(label, color = colour, fontSize = 10.sp, modifier = Modifier.offset(y = (10).dp))
-                    }
+                    .alpha(if (enabled) 1.0f else 0.5f)
+            ) {
+                val colour = remember (colourProvider) { colourProvider?.invoke() ?: MainActivity.theme.getOnBackground(true) }
+                Image(
+                    painter, null,
+                    Modifier
+                        .requiredSize(size, 60.dp)
+                        .offset(y = if (label != null) (-7).dp else 0.dp),
+                    colorFilter = ColorFilter.tint(colour),
+                    alpha = alpha
+                )
+                if (label != null) {
+                    Text(label, color = colour, fontSize = 10.sp, modifier = Modifier.offset(y = (10).dp))
                 }
             }
+        }
 
-            @Composable
-            fun PlayerButton(image_id: Int, size: Dp = 60.dp, alpha: Float = 1f, colourProvider: (() -> Color)? = null, label: String? = null, enabled: Boolean = true, on_click: () -> Unit) {
-                PlayerButton(painterResource(image_id), size, alpha, colourProvider, label, enabled, on_click)
-            }
+        @Composable
+        fun PlayerButton(image_id: Int, size: Dp = 60.dp, alpha: Float = 1f, colourProvider: (() -> Color)? = null, label: String? = null, enabled: Boolean = true, on_click: () -> Unit) {
+            PlayerButton(painterResource(image_id), size, alpha, colourProvider, label, enabled, on_click)
+        }
 
-            Column(verticalArrangement = Arrangement.spacedBy(35.dp)) {
-                Column(verticalArrangement = Arrangement.spacedBy(5.dp)) {
+        Column(verticalArrangement = Arrangement.spacedBy(35.dp)) {
+            Column(verticalArrangement = Arrangement.spacedBy(5.dp)) {
 
-                    // Title text
-                    Marquee(false) {
-                        Text(
-                            getSongTitle(),
-                            fontSize = 17.sp,
-                            color = MainActivity.theme.getOnBackground(true),
-                            textAlign = TextAlign.Center,
-                            maxLines = 1,
-                            overflow = TextOverflow.Ellipsis,
-                            modifier = Modifier
-                                .fillMaxWidth()
-                                .animateContentSize()
-                                .clickable {
-                                    TODO("Edit song info")
-                                }
-                        )
-                    }
+                val song = PlayerServiceHost.status.m_song?.getLoadedOrNull() as Song?
 
-                    // Artist text
+                // Title text
+                Marquee(false) {
                     Text(
-                        getSongArtist(),
-                        fontSize = 12.sp,
+                        song?.title ?: "",
+                        fontSize = 17.sp,
                         color = MainActivity.theme.getOnBackground(true),
                         textAlign = TextAlign.Center,
                         maxLines = 1,
@@ -503,62 +489,75 @@ fun MainTab(
                             .fillMaxWidth()
                             .animateContentSize()
                             .clickable {
-                                if (PlayerServiceHost.status.song?.loaded == true) {
-                                    player.onMediaItemClicked(PlayerServiceHost.status.song!!.artist)
-                                }
+                                TODO("Edit song info")
                             }
                     )
                 }
 
-                SeekBar {
-                    PlayerServiceHost.player.seekTo((PlayerServiceHost.player.duration * it).toLong())
-                    seek_state = it
-                }
-
-                Row(
-                    horizontalArrangement = Arrangement.Center,
+                // Artist text
+                Text(
+                    song?.artist?.getLoadedOrNull()?.title ?: "",
+                    fontSize = 12.sp,
+                    color = MainActivity.theme.getOnBackground(true),
+                    textAlign = TextAlign.Center,
+                    maxLines = 1,
+                    overflow = TextOverflow.Ellipsis,
                     modifier = Modifier
                         .fillMaxWidth()
-                        .weight(1f),
-                ) {
-
-                    val utility_separation = 25.dp
-
-                    // Toggle shuffle
-                    PlayerButton(R.drawable.ic_shuffle, 60.dp * 0.65f, if (PlayerServiceHost.status.m_shuffle) 1f else 0.25f) {
-                        PlayerServiceHost.player.shuffleModeEnabled = !PlayerServiceHost.player.shuffleModeEnabled
-                    }
-
-                    Spacer(Modifier.requiredWidth(utility_separation))
-
-                    // Previous
-                    PlayerButton(R.drawable.ic_skip_previous, enabled = PlayerServiceHost.status.m_has_previous) {
-                        PlayerServiceHost.player.seekToPreviousMediaItem()
-                    }
-
-                    // Play / pause
-                    PlayerButton(if (PlayerServiceHost.status.m_playing) R.drawable.ic_pause else R.drawable.ic_play_arrow, enabled = PlayerServiceHost.status.m_song != null) {
-                        PlayerServiceHost.service.playPause()
-                    }
-
-                    // Next
-                    PlayerButton(R.drawable.ic_skip_next, enabled = PlayerServiceHost.status.m_has_next) {
-                        PlayerServiceHost.player.seekToNextMediaItem()
-                    }
-
-                    Spacer(Modifier.requiredWidth(utility_separation))
-
-                    // Cycle repeat mode
-                    PlayerButton(
-                        if (PlayerServiceHost.status.m_repeat_mode == Player.REPEAT_MODE_ONE) R.drawable.ic_repeat_one else R.drawable.ic_repeat,
-                        60.dp * 0.65f,
-                        if (PlayerServiceHost.status.m_repeat_mode != Player.REPEAT_MODE_OFF) 1f else 0.25f
-                    ) {
-                        PlayerServiceHost.player.repeatMode = when (PlayerServiceHost.player.repeatMode) {
-                            Player.REPEAT_MODE_ALL -> Player.REPEAT_MODE_ONE
-                            Player.REPEAT_MODE_ONE -> Player.REPEAT_MODE_OFF
-                            else -> Player.REPEAT_MODE_ALL
+                        .animateContentSize()
+                        .clickable {
+                            if (PlayerServiceHost.status.song?.loaded == true) {
+                                player.onMediaItemClicked(PlayerServiceHost.status.song!!.artist)
+                            }
                         }
+                )
+            }
+
+            SeekBar(seek)
+
+            Row(
+                horizontalArrangement = Arrangement.Center,
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .weight(1f),
+            ) {
+
+                val utility_separation = 25.dp
+
+                // Toggle shuffle
+                PlayerButton(R.drawable.ic_shuffle, 60.dp * 0.65f, if (PlayerServiceHost.status.m_shuffle) 1f else 0.25f) {
+                    PlayerServiceHost.player.shuffleModeEnabled = !PlayerServiceHost.player.shuffleModeEnabled
+                }
+
+                Spacer(Modifier.requiredWidth(utility_separation))
+
+                // Previous
+                PlayerButton(R.drawable.ic_skip_previous, enabled = PlayerServiceHost.status.m_has_previous) {
+                    PlayerServiceHost.player.seekToPreviousMediaItem()
+                }
+
+                // Play / pause
+                PlayerButton(if (PlayerServiceHost.status.m_playing) R.drawable.ic_pause else R.drawable.ic_play_arrow, enabled = PlayerServiceHost.status.m_song != null) {
+                    PlayerServiceHost.service.playPause()
+                }
+
+                // Next
+                PlayerButton(R.drawable.ic_skip_next, enabled = PlayerServiceHost.status.m_has_next) {
+                    PlayerServiceHost.player.seekToNextMediaItem()
+                }
+
+                Spacer(Modifier.requiredWidth(utility_separation))
+
+                // Cycle repeat mode
+                PlayerButton(
+                    if (PlayerServiceHost.status.m_repeat_mode == Player.REPEAT_MODE_ONE) R.drawable.ic_repeat_one else R.drawable.ic_repeat,
+                    60.dp * 0.65f,
+                    if (PlayerServiceHost.status.m_repeat_mode != Player.REPEAT_MODE_OFF) 1f else 0.25f
+                ) {
+                    PlayerServiceHost.player.repeatMode = when (PlayerServiceHost.player.repeatMode) {
+                        Player.REPEAT_MODE_ALL -> Player.REPEAT_MODE_ONE
+                        Player.REPEAT_MODE_ONE -> Player.REPEAT_MODE_OFF
+                        else -> Player.REPEAT_MODE_ALL
                     }
                 }
             }

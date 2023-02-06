@@ -21,7 +21,7 @@ class Artist private constructor (
 ): MediaItem(id) {
 
     // Data
-    lateinit var name: String
+    override lateinit var title: String
     var description: String? = null
     lateinit var feed_rows: List<MediaItemLayout>
     lateinit var subscribe_channel_id: String
@@ -55,6 +55,10 @@ class Artist private constructor (
         ArtistPreviewLong(this, content_colour, player, enable_long_press_menu, modifier)
     }
 
+    override fun getAssociatedArtist(): Artist {
+        return this
+    }
+
     override fun _getUrl(): String {
         return "https://music.youtube.com/channel/$id"
     }
@@ -64,7 +68,7 @@ class Artist private constructor (
             throw ClassCastException(data.javaClass.name)
         }
 
-        name = data.name!!
+        title = data.name!!
         description = data.description
         feed_rows = List(data.feed_rows.size) { i ->
             data.feed_rows[i].toMediaItemLayout()
@@ -103,8 +107,8 @@ class Artist private constructor (
 
             if (notify_failure && subscribed != target) {
                 sendToast(
-                    if (target) "Subscribing to $name failed"
-                    else        "Unsubscribed from $name failed"
+                    if (target) "Subscribing to $title failed"
+                    else        "Unsubscribed from $title failed"
                 )
             }
         }

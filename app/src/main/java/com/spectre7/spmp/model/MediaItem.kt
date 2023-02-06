@@ -26,10 +26,19 @@ abstract class MediaItem(id: String) {
         return _id
     }
 
+    abstract val title: String
+
     private var replaced_with: MediaItem? = null
 
     fun getOrReplacedWith(): MediaItem {
         return replaced_with?.getOrReplacedWith() ?: this
+    }
+
+    fun getLoadedOrNull(): MediaItem? {
+        if (!getOrReplacedWith().loaded) {
+            return null
+        }
+        return getOrReplacedWith()
     }
 
     fun replaceWithItemWithId(new_id: String): MediaItem {
@@ -361,14 +370,7 @@ abstract class MediaItem(id: String) {
 
     abstract fun _getUrl(): String
 
-    fun getAssociatedArtist(): Artist? {
-        return when (this) {
-            is Artist -> this
-            is Song -> artist
-            is Playlist -> artist
-            else -> throw NotImplementedError(this.javaClass.name)
-        }
-    }
+    abstract fun getAssociatedArtist(): Artist?
 
     fun loadData(): MediaItem {
         if (load_status == LoadStatus.LOADED) {

@@ -9,7 +9,6 @@ import androidx.compose.animation.Crossfade
 import androidx.compose.animation.animateContentSize
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
-import androidx.compose.foundation.gestures.detectTapGestures
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.LazyRow
@@ -25,16 +24,12 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.*
 import androidx.compose.ui.graphics.vector.ImageVector
-import androidx.compose.ui.input.pointer.pointerInput
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.layout.onSizeChanged
 import androidx.compose.ui.platform.LocalClipboardManager
 import androidx.compose.ui.platform.LocalDensity
-import androidx.compose.ui.platform.LocalUriHandler
 import androidx.compose.ui.text.*
 import androidx.compose.ui.text.style.TextAlign
-import androidx.compose.ui.text.style.TextDecoration
-import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.spectre7.spmp.MainActivity
@@ -46,7 +41,6 @@ import com.spectre7.spmp.ui.component.MediaItemLayout
 import com.spectre7.spmp.ui.component.PillMenu
 import com.spectre7.utils.*
 import kotlinx.coroutines.*
-import java.util.regex.Pattern
 import kotlin.concurrent.thread
 
 @Composable
@@ -58,10 +52,10 @@ fun ArtistPage(
 ) {
     var show_info by remember { mutableStateOf(false) }
 
-    val share_intent = remember(artist.url, artist.name) {
+    val share_intent = remember(artist.url, artist.title) {
         Intent.createChooser(Intent().apply {
             action = Intent.ACTION_SEND
-            putExtra(Intent.EXTRA_TITLE, artist.name)
+            putExtra(Intent.EXTRA_TITLE, artist.title)
             putExtra(Intent.EXTRA_TEXT, artist.url)
             type = "text/plain"
         }, null)
@@ -178,7 +172,7 @@ fun ArtistPage(
                     contentAlignment = Alignment.BottomCenter
                 ) {
                     Marquee(false) {
-                        Text(artist.name, Modifier.fillMaxWidth(), textAlign = TextAlign.Center, fontSize = 40.sp, softWrap = false)
+                        Text(artist.title, Modifier.fillMaxWidth(), textAlign = TextAlign.Center, fontSize = 40.sp, softWrap = false)
                     }
                 }
             }
@@ -411,7 +405,7 @@ private fun InfoDialog(artist: Artist, close: () -> Unit) {
             }
 
             Column(Modifier.fillMaxWidth(), verticalArrangement = Arrangement.Center) {
-                InfoValue("Name", artist.name)
+                InfoValue("Name", artist.title)
                 InfoValue("Id", artist.id)
                 InfoValue("Url", artist.url)
             }

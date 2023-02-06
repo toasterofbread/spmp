@@ -11,7 +11,6 @@ import androidx.compose.foundation.combinedClickable
 import androidx.compose.foundation.interaction.MutableInteractionSource
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.shape.CircleShape
-import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.*
 import androidx.compose.material3.*
@@ -62,7 +61,7 @@ fun ArtistPreviewSquare(
         artist.Thumbnail(MediaItem.ThumbnailQuality.LOW, Modifier.size(100.dp).longPressMenuIcon(long_press_menu_data, enable_long_press_menu))
 
         Text(
-            artist.name,
+            artist.title,
             fontSize = 12.sp,
             color = content_colour(),
             maxLines = 1,
@@ -105,7 +104,7 @@ fun ArtistPreviewLong(
 
         Column(Modifier.padding(8.dp)) {
             Text(
-                artist.name,
+                artist.title,
                 fontSize = 15.sp,
                 color = content_colour(),
                 maxLines = 1,

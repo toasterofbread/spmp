@@ -14,7 +14,7 @@ class Playlist private constructor (
 ): MediaItem(id) {
 
     // Data
-    lateinit var title: String
+    override lateinit var title: String
     lateinit var feed_layout: MediaItemLayout
     var artist: Artist? = null
 
@@ -43,6 +43,10 @@ class Playlist private constructor (
     @Composable
     override fun PreviewLong(content_colour: () -> Color, player: PlayerViewContext, enable_long_press_menu: Boolean, modifier: Modifier) {
         PlaylistPreviewLong(this, content_colour, player, enable_long_press_menu, modifier)
+    }
+
+    override fun getAssociatedArtist(): Artist? {
+        return artist
     }
 
     override fun _getUrl(): String {

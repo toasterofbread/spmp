@@ -1,3 +1,5 @@
+@file:OptIn(ExperimentalMaterialApi::class, ExperimentalMaterial3Api::class)
+
 package com.spectre7.spmp.ui.layout
 
 import androidx.compose.animation.*
@@ -22,16 +24,11 @@ import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.alpha
-import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.graphics.RectangleShape
-import androidx.compose.ui.graphics.Shape
-import androidx.compose.ui.layout.onGloballyPositioned
 import androidx.compose.ui.layout.onSizeChanged
-import androidx.compose.ui.layout.positionInWindow
 import androidx.compose.ui.platform.LocalConfiguration
 import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.unit.Dp
-import androidx.compose.ui.unit.IntSize
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.google.accompanist.swiperefresh.SwipeRefresh
@@ -148,8 +145,6 @@ fun PlayerView() {
     val player = remember { PlayerViewContext() }
     player.LongPressMenu()
 
-    val minimised_now_playing_height = remember { Animatable(0f) }
-
     LaunchedEffect(player.overlay_page) {
         if (player.overlay_page == OverlayPage.NONE) {
             player.pill_menu.clearExtraActions()
@@ -158,17 +153,11 @@ fun PlayerView() {
         }
     }
 
-    LaunchedEffect(PlayerServiceHost.session_started) {
-        if (PlayerServiceHost.session_started) {
-            minimised_now_playing_height.animateTo(MINIMISED_NOW_PLAYING_HEIGHT)
-        }
-    }
-
     Column(Modifier
         .fillMaxSize()
         .background(MainActivity.theme.getBackground(false))) {
 
-        Box(Modifier.padding(bottom = minimised_now_playing_height.value.dp)) {
+        Box {
             val expand_state = remember { mutableStateOf(false) }
             val overlay_open by remember { derivedStateOf { player.overlay_page != OverlayPage.NONE } }
 
@@ -223,43 +212,48 @@ fun PlayerView() {
             }
         }
 
-        AnimatedVisibility(PlayerServiceHost.session_started, enter = slideInVertically(), exit = slideOutVertically()) {
-            val screen_height = getScreenHeight()
-            val swipe_state = rememberSwipeableState(0)
+        NowPlaying(player)
+    }
+}
 
-            var switch: Boolean by remember { mutableStateOf(false) }
+@Composable
+private fun NowPlaying(player: PlayerViewContext) {
+    AnimatedVisibility(PlayerServiceHost.session_started, enter = slideInVertically(), exit = slideOutVertically()) {
+        val screen_height = getScreenHeight()
+        val swipe_state = rememberSwipeableState(0)
 
-            OnChangedEffect(switch) {
-                if (swipe_state.targetValue == switch.toInt()) {
-                    swipe_state.animateTo(if (swipe_state.targetValue == 1) 0 else 1)
-                }
-                else {
-                    swipe_state.animateTo(switch.toInt())
-                }
+        var switch: Boolean by remember { mutableStateOf(false) }
+
+        OnChangedEffect(switch) {
+            if (swipe_state.targetValue == switch.toInt()) {
+                swipe_state.animateTo(if (swipe_state.targetValue == 1) 0 else 1)
             }
+            else {
+                swipe_state.animateTo(switch.toInt())
+            }
+        }
 
-            Card(colors = CardDefaults.cardColors(
-                containerColor = MainActivity.theme.getBackground(true)
-            ), modifier = Modifier
-                .fillMaxWidth()
-                .requiredHeight(screen_height.dp)
-                .offset(y = (screen_height.dp / 2) - swipe_state.offset.value.dp)
-                .swipeable(
-                    state = swipe_state,
-                    anchors = mapOf(MINIMISED_NOW_PLAYING_HEIGHT to 0, screen_height to 1),
-                    thresholds = { _, _ -> FractionalThreshold(0.2f) },
-                    orientation = Orientation.Vertical,
-                    reverseDirection = true,
-                )
-                .clickable(
-                    interactionSource = remember { MutableInteractionSource() },
-                    enabled = swipe_state.targetValue == 0,
-                    indication = null
-                ) { switch = !switch }, shape = RectangleShape) {
+        Card(colors = CardDefaults.cardColors(
+            containerColor = MainActivity.theme.getBackground(true)
+        ), modifier = Modifier
+            .fillMaxWidth()
+            .requiredHeight(screen_height.dp)
+            .offset(y = (screen_height.dp / 2) - swipe_state.offset.value.dp)
+            .swipeable(
+                state = swipe_state,
+                anchors = mapOf(MINIMISED_NOW_PLAYING_HEIGHT to 0, screen_height to 1),
+                thresholds = { _, _ -> FractionalThreshold(0.2f) },
+                orientation = Orientation.Vertical,
+                reverseDirection = true,
+            )
+            .clickable(
+                interactionSource = remember { MutableInteractionSource() },
+                enabled = swipe_state.targetValue == 0,
+                indication = null
+            ) { switch = !switch }, shape = RectangleShape) {
 
-                Column(Modifier.fillMaxSize()) {
-                    NowPlaying(swipe_state.offset.value / screen_height, screen_height, { switch = !switch }, player)
-                }
+            Column(Modifier.fillMaxSize()) {
+                NowPlaying(swipe_state.offset.value / screen_height, screen_height, { switch = !switch }, player)
             }
         }
     }
@@ -267,7 +261,7 @@ fun PlayerView() {
 
 @OptIn(ExperimentalFoundationApi::class)
 @Composable
-fun MainPage(
+private fun MainPage(
     layouts: MutableList<MediaItemLayout>,
     player: PlayerViewContext,
     scroll_state: LazyListState
@@ -275,7 +269,7 @@ fun MainPage(
     var refreshing by remember { mutableStateOf(false) }
 
     SwipeRefresh(
-        state = rememberSwipeRefreshState(refreshing), // TODO
+        state = rememberSwipeRefreshState(refreshing),
         onRefresh = {
             refreshing = true
             refreshFeed(false, layouts) {
@@ -293,6 +287,7 @@ fun MainPage(
                         layouts,
                         player,
                         top_padding = getStatusBarHeight(MainActivity.context),
+                        bottom_padding = MINIMISED_NOW_PLAYING_HEIGHT.dp,
                         scroll_state = scroll_state
                     )
                 }
@@ -311,9 +306,9 @@ fun MainPage(
     }
 }
 
-val feed_refresh_lock = ReentrantLock()
+private val feed_refresh_lock = ReentrantLock()
 
-fun refreshFeed(allow_cached: Boolean, feed_layouts: MutableList<MediaItemLayout>, onFinished: (success: Boolean) -> Unit) {
+private fun refreshFeed(allow_cached: Boolean, feed_layouts: MutableList<MediaItemLayout>, onFinished: (success: Boolean) -> Unit) {
 
     thread {
         if (!feed_refresh_lock.tryLock()) {
@@ -322,7 +317,7 @@ fun refreshFeed(allow_cached: Boolean, feed_layouts: MutableList<MediaItemLayout
         else {
             feed_layouts.clear()
 
-            val feed_result = getHomeFeed()
+            val feed_result = getHomeFeed(allow_cached = allow_cached)
 
             if (!feed_result.success) {
                 // MainActivity.error_manager.onError(feed_result.exception) { resolve ->

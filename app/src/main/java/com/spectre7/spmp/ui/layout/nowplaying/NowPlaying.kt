@@ -53,7 +53,7 @@ fun NowPlaying(expansion: Float, max_height: Float, close: () -> Unit, player: P
     val expanded = expansion >= EXPANDED_THRESHOLD
 
     val systemui_controller = rememberSystemUiController()
-    val status_bar_height_percent = (getStatusBarHeight(MainActivity.context).value * 0.75) / max_height
+    val status_bar_height_percent = remember { (getStatusBarHeight(MainActivity.context).value * 0.75) / max_height }
 
     LaunchedEffect(key1 = expansion, key2 = MainActivity.theme.getBackground(true)) {
         systemui_controller.setSystemBarsColor(
@@ -63,9 +63,9 @@ fun NowPlaying(expansion: Float, max_height: Float, close: () -> Unit, player: P
 
     MinimisedProgressBar(expansion)
 
-    val screen_width_dp = LocalConfiguration.current.screenWidthDp.dp
-    val screen_width_px = with(LocalDensity.current) { screen_width_dp.roundToPx() }
-    val main_padding_px = with(LocalDensity.current) { NOW_PLAYING_MAIN_PADDING.roundToPx() }
+    val screen_width_dp = remember { LocalConfiguration.current.screenWidthDp.dp }
+    val screen_width_px = remember { with(LocalDensity.current) { screen_width_dp.roundToPx() } }
+    val main_padding_px = remember { with(LocalDensity.current) { NOW_PLAYING_MAIN_PADDING.roundToPx() } }
 
     val thumbnail = remember { mutableStateOf<ImageBitmap?>(null) }
 
@@ -304,31 +304,27 @@ fun Tab(
         }
     }
 
-    Column(verticalArrangement = Arrangement.Top, modifier = modifier.fillMaxHeight().run {
-        if (tab == NowPlayingTab.PLAYER) {
-            padding(15.dp * expansion)
-        }
-        else {
-            padding(top = 20.dp)
-        }
-    }) {
-        if (tab == NowPlayingTab.PLAYER) {
-            MainTab(
-                Modifier.weight(1f),
-                expansion,
-                max_height,
-                thumbnail.value,
-                { thumbnail.value = it },
-                remember { player.copy(
-                    onClickedOverride = {
-                        player.onMediaItemClicked(it)
-                        close()
-                    }
-                ) }
-            )
-        }
-        else if (tab == NowPlayingTab.QUEUE) {
-            QueueTab(Modifier.weight(1f), player)
+    Column(verticalArrangement = Arrangement.Top, modifier = modifier.fillMaxHeight().then(
+        if (tab == NowPlayingTab.PLAYER) padding(15.dp * expansion) else padding(top = 20.dp)
+    )) {
+        when (tab) {
+            NowPlayingTab.PLAYER -> {
+                MainTab(
+                    Modifier.weight(1f),
+                    expansion,
+                    max_height,
+                    thumbnail.value,
+                    { thumbnail.value = it },
+                    remember { player.copy(
+                        onClickedOverride = {
+                            player.onMediaItemClicked(it)
+                            close()
+                        }
+                    ) }
+                )
+            }
+            NowPlayingTab.QUEUE -> QueueTab(Modifier.weight(1f), player)
+            else -> {}
         }
     }
 }

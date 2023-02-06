@@ -58,12 +58,14 @@ fun getScreenHeight(): Float {
 const val MINIMISED_NOW_PLAYING_HEIGHT = 64f
 enum class OverlayPage { NONE, SEARCH, SETTINGS, MEDIAITEM }
 
-val feed_refresh_mutex = ReentrantLock()
-
 data class PlayerViewContext(
     private val onClickedOverride: ((item: MediaItem) -> Unit)? = null,
     private val onLongClickedOverride: ((item: MediaItem) -> Unit)? = null
 ) {
+    val pill_menu = PillMenu(
+        top = false
+    )
+
     var overlay_page by mutableStateOf(OverlayPage.NONE)
     var overlay_media_item: MediaItem? by mutableStateOf(null)
     
@@ -116,6 +118,8 @@ data class PlayerViewContext(
         Crossfade(long_press_menu_data) { data ->
             if (data != null) {
                 val current = data == long_press_menu_data
+                var height_found by remember { mutableStateOf(false) }
+
                 LongPressIconMenu(
                     long_press_menu_showing && current,
                     long_press_menu_direct && current,
@@ -129,8 +133,9 @@ data class PlayerViewContext(
                     Modifier
                         .onSizeChanged {
                             height = maxOf(height, it.height)
+                            height_found = true
                         }
-                        .height(if (height > 0) with (LocalDensity.current) { height.toDp() } else Dp.Unspecified)
+                        .height(if (height_found && height > 0) with (LocalDensity.current) { height.toDp() } else Dp.Unspecified)
                 )
             }
         }
@@ -143,16 +148,13 @@ fun PlayerView() {
     val player = remember { PlayerViewContext() }
     player.LongPressMenu()
 
-    val pill_menu = remember { PillMenu(
-        top = false
-    ) }
     val minimised_now_playing_height = remember { Animatable(0f) }
 
     LaunchedEffect(player.overlay_page) {
         if (player.overlay_page == OverlayPage.NONE) {
-            pill_menu.clearExtraActions()
-            pill_menu.clearActionOverriders()
-            pill_menu.setBackgroundColourOverride(null)
+            player.pill_menu.clearExtraActions()
+            player.pill_menu.clearActionOverriders()
+            player.pill_menu.setBackgroundColourOverride(null)
         }
     }
 
@@ -167,9 +169,11 @@ fun PlayerView() {
         .background(MainActivity.theme.getBackground(false))) {
 
         Box(Modifier.padding(bottom = minimised_now_playing_height.value.dp)) {
+            val expand_state = remember { mutableStateOf(false) }
+            val overlay_open = remember { derivedStateOf { player.overlay_page != OverlayPage.NONE } }
 
-            pill_menu.PillMenu(
-                if (player.overlay_page != OverlayPage.NONE) 1 else 2,
+            player.pill_menu.PillMenu(
+                if (overlay_open) 1 else 2,
                 { index, action_count ->
                     ActionButton(
                         if (action_count == 1) Icons.Filled.Close else
@@ -185,82 +189,14 @@ fun PlayerView() {
                             }
                     }
                 },
-                if (player.overlay_page == OverlayPage.NONE) remember { mutableStateOf(false) } else null,
+                if (!overlay_open) expand_state else null,
                 MainActivity.theme.getAccent()
             )
 
-            val main_page_rows = remember { mutableStateListOf<MediaItemLayout>() }
-
-            lateinit var refreshFeed: (allow_cached: Boolean, onFinished: (success: Boolean) -> Unit) -> Unit
-            refreshFeed = { allow_cached: Boolean, onFinished: (success: Boolean) -> Unit ->
-                if (!feed_refresh_mutex.isLocked) {
-                    thread {
-                        feed_refresh_mutex.lock()
-                        main_page_rows.clear()
-
-                        val feed_result = getHomeFeed()
-
-                        if (!feed_result.success) {
-                            MainActivity.error_manager.onError(feed_result.exception) { resolve ->
-                                refreshFeed(true) { if (it) resolve() }
-                            }
-                            feed_refresh_mutex.unlock()
-                            onFinished(false)
-                            return@thread
-                        }
-
-                        val artists = MediaItemLayout(getString(R.string.feed_row_artists), null, MediaItemLayout.Type.GRID)
-                        val playlists = MediaItemLayout(getString(R.string.feed_row_playlists), null, MediaItemLayout.Type.GRID)
-
-                        val rows = mutableListOf<MediaItemLayout>()
-                        val request_limit = Semaphore(10)
-
-                        runBlocking { withContext(Dispatchers.IO) { coroutineScope {
-                            for (row in feed_result.data) {
-                                val entry = MediaItemLayout(row.title, row.subtitle, MediaItemLayout.Type.GRID)
-                                rows.add(entry)
-
-                                for (item in row.items) {
-                                    val media_item = item.toMediaItem()
-                                    launch {
-                                        request_limit.withPermit {
-                                            val loaded = media_item.getOrReplacedWith().loadData()
-                                            synchronized(request_limit) {
-                                                when (loaded) {
-                                                    is Song -> {
-                                                        entry.addItem(loaded)
-                                                        artists.addItem(loaded.artist)
-                                                    }
-                                                    is Artist -> artists.addItem(loaded)
-                                                    is Playlist -> playlists.addItem(media_item)
-                                                }
-                                            }
-                                        }
-                                    }
-                                }
-                            }
-                        }}}
-
-                        for (row in rows) {
-                            if (row.items.isNotEmpty()) {
-                                main_page_rows.add(row)
-                            }
-                        }
-                        if (artists.items.isNotEmpty()) {
-                            main_page_rows.add(artists)
-                        }
-                        if (playlists.items.isNotEmpty()) {
-                            main_page_rows.add(playlists)
-                        }
-
-                        feed_refresh_mutex.unlock()
-                        onFinished(true)
-                    }
-                }
-            }
+            val main_page_layouts = remember { mutableStateListOf<MediaItemLayout>() }
 
             LaunchedEffect(Unit) {
-                refreshFeed(true) {}
+                refreshFeed(true, main_page_layouts) {}
             }
 
             val main_page_scroll_state = rememberLazyListState()
@@ -271,14 +207,14 @@ fun PlayerView() {
                         Spacer(Modifier.requiredHeight(getStatusBarHeight(MainActivity.context)))
                     }
                     when (it) {
-                        OverlayPage.NONE -> MainPage(main_page_rows, refreshFeed, player, main_page_scroll_state)
-                        OverlayPage.SEARCH -> SearchPage(pill_menu, player) { player.overlay_page = OverlayPage.NONE }
-                        OverlayPage.SETTINGS -> PrefsPage(pill_menu) { player.overlay_page = OverlayPage.NONE }
+                        OverlayPage.NONE -> MainPage(main_page_layouts, player, main_page_scroll_state)
+                        OverlayPage.SEARCH -> SearchPage(player.pill_menu, player) { player.overlay_page = OverlayPage.NONE }
+                        OverlayPage.SETTINGS -> PrefsPage(player.pill_menu) { player.overlay_page = OverlayPage.NONE }
                         OverlayPage.MEDIAITEM -> Crossfade(player.overlay_media_item) { item ->
                             when (item) {
                                 null -> {}
-                                is Artist -> ArtistPage(pill_menu, item, player) { player.overlay_page = OverlayPage.NONE }
-                                is Playlist -> PlaylistPage(pill_menu, item, player) { player.overlay_page = OverlayPage.NONE }
+                                is Artist -> ArtistPage(player.pill_menu, item, player) { player.overlay_page = OverlayPage.NONE }
+                                is Playlist -> PlaylistPage(player.pill_menu, item, player) { player.overlay_page = OverlayPage.NONE }
                                 else -> throw NotImplementedError()
                             }
                         }
@@ -332,32 +268,29 @@ fun PlayerView() {
 @OptIn(ExperimentalFoundationApi::class)
 @Composable
 fun MainPage(
-    _rows: List<MediaItemLayout>,
-    refreshFeed: (allow_cache: Boolean, onFinished: (success: Boolean) -> Unit) -> Unit,
+    layouts: MutableList<MediaItemLayout>,
     player: PlayerViewContext,
     scroll_state: LazyListState
 ) {
-    var rows: List<MediaItemLayout> by remember { mutableStateOf(_rows) }
+    val refreshing by remember { mutableStateOf(false) }
 
     SwipeRefresh(
-        state = rememberSwipeRefreshState(_rows.isEmpty()), // TODO
+        state = rememberSwipeRefreshState(refreshing), // TODO
         onRefresh = {
-            rows = _rows.toList()
-            refreshFeed(false) { success ->
-                if (success) {
-                    rows = _rows
-                }
+            refreshing = true
+            refreshFeed(false, layouts) {
+                refreshing = false
             }
         },
         Modifier.padding(horizontal = 10.dp)
     ) {
-        Crossfade(rows.isNotEmpty()) { loaded ->
+        Crossfade(remember { derivedStateOf { layouts.isNotEmpty() } }) { loaded ->
             if (loaded) {
                 CompositionLocalProvider(
                     LocalOverScrollConfiguration provides null
                 ) {
                     MediaItemLayoutColumn(
-                        rows,
+                        layouts,
                         player,
                         top_padding = getStatusBarHeight(MainActivity.context),
                         scroll_state = scroll_state
@@ -374,6 +307,75 @@ fun MainPage(
                             .fillMaxWidth(0.35f), color = MainActivity.theme.getOnBackground(false))
                 }
             }
+        }
+    }
+}
+
+fun refreshFeed(allow_cached: Boolean, feed_layouts: MutableList<MediaItemLayout>, onFinished: (success: Boolean) -> Unit) {
+    val lock = remember { ReentrantLock() }
+
+    if (!lock.isLocked) {
+        thread {
+            lock.lock()
+            feed_layouts.clear()
+
+            val feed_result = getHomeFeed()
+
+            if (!feed_result.success) {
+                // MainActivity.error_manager.onError(feed_result.exception) { resolve ->
+                //     refreshFeed(false, feed_layouts) { success -> if (it) resolve() }
+                // }
+                lock.unlock()
+                onFinished(false)
+                return@thread
+            }
+
+            val artists = MediaItemLayout(getString(R.string.feed_row_artists), null, MediaItemLayout.Type.GRID)
+            val playlists = MediaItemLayout(getString(R.string.feed_row_playlists), null, MediaItemLayout.Type.GRID)
+
+            val rows = mutableListOf<MediaItemLayout>()
+            val request_limit = Semaphore(10)
+
+            runBlocking { withContext(Dispatchers.IO) { coroutineScope {
+                for (row in feed_result.data) {
+                    val entry = MediaItemLayout(row.title, row.subtitle, MediaItemLayout.Type.GRID)
+                    rows.add(entry)
+
+                    for (item in row.items) {
+                        val media_item = item.toMediaItem()
+                        launch {
+                            request_limit.withPermit {
+                                val loaded = media_item.getOrReplacedWith().loadData()
+                                synchronized(request_limit) {
+                                    when (loaded) {
+                                        is Song -> {
+                                            entry.addItem(loaded)
+                                            artists.addItem(loaded.artist)
+                                        }
+                                        is Artist -> artists.addItem(loaded)
+                                        is Playlist -> playlists.addItem(media_item)
+                                    }
+                                }
+                            }
+                        }
+                    }
+                }
+            }}}
+
+            for (row in rows) {
+                if (row.items.isNotEmpty()) {
+                    feed_layouts.add(row)
+                }
+            }
+            if (artists.items.isNotEmpty()) {
+                feed_layouts.add(artists)
+            }
+            if (playlists.items.isNotEmpty()) {
+                feed_layouts.add(playlists)
+            }
+
+            lock.unlock()
+            onFinished(true)
         }
     }
 }

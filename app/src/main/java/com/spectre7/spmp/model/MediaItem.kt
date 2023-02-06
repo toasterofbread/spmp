@@ -293,21 +293,14 @@ abstract class MediaItem(id: String) {
         return thumb_states[quality]!!.image != null
     }
 
-    fun getThumbnail(quality: ThumbnailQuality, onLoaded: (Bitmap?) -> Unit = {}): Bitmap? {
+    fun getThumbnail(quality: ThumbnailQuality): Bitmap? {
         val state = thumb_states[quality]!!
         synchronized(state) {
-            if (state.loading) {
+            if (!state.loading) {
                 thread {
-                    synchronized(state) {
-                        (state as Object).wait()
-                        onLoaded(state.image)
-                    }
+                    loadThumbnail(quality)
                 }
-                return state.image
             }
-        }
-        thread {
-            onLoaded(loadThumbnail(quality))
         }
         return state.image
     }
@@ -354,7 +347,12 @@ abstract class MediaItem(id: String) {
 
     @Composable
     fun Thumbnail(quality: ThumbnailQuality, modifier: Modifier) {
-        Crossfade(getThumbnail(quality)) { thumbnail ->
+
+        LaunchedEffect(quality) {
+            getThumbnail(quality)
+        }
+
+        Crossfade(thumb_states[quality]!!.image) { thumbnail ->
             if (thumbnail != null) {
                 Image(
                     thumbnail.asImageBitmap(),

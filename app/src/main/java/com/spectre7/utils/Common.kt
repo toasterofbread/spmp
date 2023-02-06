@@ -169,14 +169,14 @@ fun Marquee(autoscroll: Boolean = true, modifier: Modifier = Modifier, content: 
                 }
             }
 
-            val scroll_value by derivedStateOf { with (density) {
+            val scroll_value by remember { derivedStateOf { with (density) {
                 if (container_width >= content_width) {
                     0.dp
                 }
                 else {
                     (-scroll_state.value).coerceIn(container_width - content_width, 0).toDp()
                 }
-            } }
+            } } }
 
             Row(
                 modifier

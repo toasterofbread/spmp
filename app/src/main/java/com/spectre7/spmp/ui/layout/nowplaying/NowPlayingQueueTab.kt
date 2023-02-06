@@ -268,7 +268,6 @@ fun QueueTab(weight_modifier: Modifier, player: PlayerViewContext) {
                         color = MainActivity.theme.getBackground(true)
                     )
                 }
-
             }
 
             AnimatedVisibility(undo_list.isNotEmpty()) {

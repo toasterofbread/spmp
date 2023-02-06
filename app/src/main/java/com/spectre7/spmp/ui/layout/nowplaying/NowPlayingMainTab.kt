@@ -232,7 +232,7 @@ fun MainTab(
                             .run {
                                 if (colourpick_callback == null) {
                                     this.clickable(
-                                        enabled = expansion == 1.0f,
+                                        enabled = remember { derivedStateOf { expansion == 1.0f } },
                                         indication = null,
                                         interactionSource = remember { MutableInteractionSource() }
                                     ) {

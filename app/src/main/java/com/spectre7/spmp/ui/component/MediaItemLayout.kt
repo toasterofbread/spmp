@@ -47,7 +47,7 @@ data class MediaItemLayout(
             item: MediaItem,
             width: Dp,
             animate: MutableState<Boolean>?,
-            player: PlayerViewContext,
+            playerProvider: () -> PlayerViewContext,
             modifier: Modifier = Modifier
         ) {
             Box(modifier.requiredWidth(width), contentAlignment = Alignment.Center) {
@@ -65,21 +65,47 @@ data class MediaItemLayout(
                         enter = fadeIn() + expandIn(expandFrom = Alignment.Center),
                         exit = fadeOut() + shrinkOut(shrinkTowards = Alignment.Center)
                     ) {
-                        item.PreviewSquare(MainActivity.theme.getOnBackgroundProvider(false), player, true, Modifier)
+                        item.PreviewSquare(MainActivity.theme.getOnBackgroundProvider(false), playerProvider, true, Modifier)
                     }
                 }
                 else {
-                    item.PreviewSquare(MainActivity.theme.getOnBackgroundProvider(false), player, true, Modifier)
+                    item.PreviewSquare(MainActivity.theme.getOnBackgroundProvider(false), playerProvider, true, Modifier)
                 }
             }
         }
     }
 }
 
+fun Collection<MediaItemLayout>.removeInvalid() {
+    for (layout in this) {
+        layout.items.removeAll { !it.is_valid }
+    }
+}
+
 @Composable
 fun MediaItemLayoutColumn(
     layouts: List<MediaItemLayout>,
-    player: PlayerViewContext,
+    playerProvider: () -> PlayerViewContext,
+    modifier: Modifier = Modifier
+) {
+    for (layout in layouts) {
+        assert(layout.type != null)
+    }
+
+    Column(modifier) {
+        for (layout in layouts) {
+            when (layout.type!!) {
+                MediaItemLayout.Type.GRID -> MediaItemGrid(layout, playerProvider)
+                MediaItemLayout.Type.NUMBERED_LIST -> MediaItemNumberedList(layout, playerProvider)
+            }
+        }
+    }
+}
+
+@Composable
+fun LazyMediaItemLayoutColumn(
+    layouts: List<MediaItemLayout>,
+    playerProvider: () -> PlayerViewContext,
     modifier: Modifier = Modifier,
     top_padding: Dp = 0.dp,
     bottom_padding: Dp = 0.dp,
@@ -98,8 +124,8 @@ fun MediaItemLayoutColumn(
 
         items(layouts) { layout ->
             when (layout.type!!) {
-                MediaItemLayout.Type.GRID -> MediaItemGrid(layout, player)
-                MediaItemLayout.Type.NUMBERED_LIST -> MediaItemNumberedList(layout, player)
+                MediaItemLayout.Type.GRID -> MediaItemGrid(layout, playerProvider)
+                MediaItemLayout.Type.NUMBERED_LIST -> MediaItemNumberedList(layout, playerProvider)
             }
         }
 
@@ -114,7 +140,7 @@ fun MediaItemLayoutColumn(
 @Composable
 fun MediaItemGrid(
     layout: MediaItemLayout,
-    player: PlayerViewContext,
+    playerProvider: () -> PlayerViewContext,
     modifier: Modifier = Modifier
 ) {
     val row_count = if (layout.items.size <= 3) 1 else 2
@@ -136,7 +162,7 @@ fun MediaItemGrid(
             modifier = Modifier.requiredHeight(item_width * row_count * 1.1f)
         ) {
             items(layout.items.size, { layout.items[it].id }) {
-                MediaItemLayout.ItemPreview(layout.items[it], item_width, null, player, Modifier)
+                MediaItemLayout.ItemPreview(layout.items[it], item_width, null, playerProvider, Modifier)
             }
         }
     }
@@ -145,7 +171,7 @@ fun MediaItemGrid(
 @Composable
 fun MediaItemNumberedList(
     layout: MediaItemLayout,
-    player: PlayerViewContext,
+    playerProvider: () -> PlayerViewContext,
     modifier: Modifier = Modifier
 ) {
     Column(modifier) {
@@ -153,7 +179,7 @@ fun MediaItemNumberedList(
             Row(verticalAlignment = Alignment.CenterVertically) {
                 Text((item.index + 1).toString().padStart((layout.items.size + 1).toString().length, '0'), fontWeight = FontWeight.Light)
                 Column {
-                    item.value.PreviewLong(MainActivity.theme.getOnBackgroundProvider(false), player, true, Modifier)
+                    item.value.PreviewLong(MainActivity.theme.getOnBackgroundProvider(false), playerProvider, true, Modifier)
                 }
             }
         }

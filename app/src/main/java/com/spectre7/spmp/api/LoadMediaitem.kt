@@ -1,12 +1,10 @@
 package com.spectre7.spmp.api
 
 import android.util.JsonReader
-import com.beust.klaxon.KlaxonException
 import com.spectre7.spmp.model.*
 import com.spectre7.spmp.ui.component.MediaItemLayout
 import okhttp3.Request
 import java.io.BufferedReader
-import java.io.Reader
 import java.time.Duration
 
 private val CACHE_LIFETIME = Duration.ofDays(1)
@@ -22,15 +20,8 @@ data class VideoDetails(
 class BrowseData {
     var name: String? = null
     var description: String? = null
-    var feed_rows: MutableList<FeedRow> = mutableListOf()
+    var item_layouts: MutableList<MediaItemLayout> = mutableListOf()
     var subscribe_channel_id: String? = null
-    data class FeedRow(val title: String?, var items: List<MediaItem.Serialisable>, val media_item: MediaItem.Serialisable? = null) {
-        fun toMediaItemLayout(): MediaItemLayout {
-            return MediaItemLayout(title, null, items = MutableList(items.size) { i ->
-                items[i].toMediaItem()
-            })
-        }
-    }
 }
 
 fun JsonReader.next(keys: List<String>?, is_array: Boolean?, allow_none: Boolean = false, action: (key: String) -> Unit) {
@@ -146,17 +137,18 @@ fun loadMediaItemData(item: MediaItem): DataApi.Result<MediaItem> {
                     }
                 }
 
-                for (row in parsed.contents.singleColumnBrowseResultsRenderer.tabs.first().tabRenderer.content!!.sectionListRenderer.contents) {
-                    val desc = row.getDescription()
+                for (row in parsed.contents.singleColumnBrowseResultsRenderer.tabs.first().tabRenderer.content!!.sectionListRenderer.contents.withIndex()) {
+                    val desc = row.value.getDescription()
                     if (desc != null) {
                         description = desc
                         continue
                     }
 
-                    feed_rows.add(BrowseData.FeedRow(
-                        row.title?.text,
-                        row.getSerialisableMediaItems(),
-                        item.toSerialisable()
+                    item_layouts.add(MediaItemLayout(
+                        row.value.title?.text,
+                        null,
+                        if (row.index == 0) MediaItemLayout.Type.NUMBERED_LIST else MediaItemLayout.Type.GRID,
+                        row.value.getMediaItems().toMutableList()
                     ))
                 }
             }, MediaItem.ThumbnailProvider.fromThumbnails(header_renderer.getThumbnails()))

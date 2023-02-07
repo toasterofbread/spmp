@@ -46,6 +46,10 @@ data class YoutubeiShelf(
         return musicDescriptionShelfRenderer?.description?.first_text
     }
 
+    fun getMediaItems(): List<MediaItem> {
+        return (musicShelfRenderer?.contents ?: musicCarouselShelfRenderer?.contents ?: musicPlaylistShelfRenderer!!.contents).mapNotNull { it.toSerialisableMediaItem()?.toMediaItem() }
+    }
+
     fun getSerialisableMediaItems(): List<MediaItem.Serialisable> {
         return (musicShelfRenderer?.contents ?: musicCarouselShelfRenderer?.contents ?: musicPlaylistShelfRenderer!!.contents).mapNotNull { it.toSerialisableMediaItem() }
     }
@@ -108,7 +112,7 @@ data class TextRun(val text: String, val strapline: TextRuns? = null, val naviga
 
 data class MusicShelfRenderer(val title: TextRuns? = null, val contents: List<ContentsItem>)
 data class MusicCarouselShelfRenderer(val header: Header, val contents: List<ContentsItem>)
-data class MusicDescriptionShelfRenderer(val header: TextRuns, val subheader: TextRuns, val description: TextRuns)
+data class MusicDescriptionShelfRenderer(val header: TextRuns, val description: TextRuns)
 
 data class MusicTwoRowItemRenderer(val navigationEndpoint: NavigationEndpoint)
 data class MusicResponsiveListItemRenderer(val playlistItemData: PlaylistItemData? = null, val flexColumns: List<FlexColumn>? = null)

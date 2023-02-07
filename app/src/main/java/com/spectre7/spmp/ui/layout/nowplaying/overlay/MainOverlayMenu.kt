@@ -36,7 +36,7 @@ import com.spectre7.utils.vibrateShort
 
 class MainOverlayMenu(
     val setOverlayMenu: (OverlayMenu?) -> Unit,
-    val theme_palette: Palette?,
+    val themePaletteProvider: () -> Palette?,
     val requestColourPicker: ((Color?) -> Unit) -> Unit,
     val onColourSelected: (Color) -> Unit,
     val screen_width_dp: Dp
@@ -52,7 +52,7 @@ class MainOverlayMenu(
         openShutterMenu: (@Composable () -> Unit) -> Unit,
         close: () -> Unit,
         seek_state: Any,
-        player: PlayerViewContext
+        playerProvider: () -> PlayerViewContext
     ) {
         Column(
             Modifier
@@ -110,7 +110,7 @@ class MainOverlayMenu(
             if (PlayerServiceHost.status.m_song != null) {
                 song.artist.PreviewLong(
                     content_colour = { Color.White },
-                    player,
+                    playerProvider,
                     true,
                     Modifier
                 )
@@ -123,7 +123,8 @@ class MainOverlayMenu(
             Spacer(
                 Modifier
                     .fillMaxHeight()
-                    .weight(1f))
+                    .weight(1f)
+            )
 
             Row(
                 Modifier.fillMaxWidth(),
@@ -142,7 +143,12 @@ class MainOverlayMenu(
                 Box(
                     button_modifier.clickable {
                         setOverlayMenu(
-                            PaletteSelectorOverlayMenu(theme_palette, requestColourPicker, onColourSelected)
+                            PaletteSelectorOverlayMenu(
+                                themePaletteProvider,
+                                song::getDefaultThemeColour,
+                                requestColourPicker,
+                                onColourSelected
+                            )
                         )
                     }
                 ) {

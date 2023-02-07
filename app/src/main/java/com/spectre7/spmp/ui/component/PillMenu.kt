@@ -30,7 +30,7 @@ class PillMenu(
     private val top: Boolean = false,
     private val left: Boolean = false,
     private val vertical: Boolean = false,
-    private val container_modifier: Modifier = Modifier.fillMaxSize(),
+    private val container_modifier: Modifier = Modifier,
     private val toggleButton: (@Composable Action.(modifier: Modifier) -> Unit)? = null,
     private val modifier: Modifier = Modifier,
 ) {
@@ -110,7 +110,7 @@ class PillMenu(
             background_colour.snapTo(_background_colour())
         }
 
-        LaunchedEffect(background_colour_override, _background_colour) {
+        LaunchedEffect(background_colour_override, _background_colour()) {
             background_colour.animateTo(background_colour_override ?: _background_colour())
         }
 
@@ -234,7 +234,7 @@ class PillMenu(
 
             Box(
                 contentAlignment = alignment,
-                modifier = container_modifier.padding(15.dp)
+                modifier = container_modifier.fillMaxSize().padding(15.dp)
             ) {
 
                 ToggleButton()

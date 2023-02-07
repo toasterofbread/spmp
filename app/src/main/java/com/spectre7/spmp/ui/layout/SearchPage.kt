@@ -39,7 +39,7 @@ val SEARCH_FIELD_FONT_SIZE: TextUnit = 18.sp
 @Composable
 fun SearchPage(
     pill_menu: PillMenu,
-    player: PlayerViewContext,
+    playerProvider: () -> PlayerViewContext,
     close: () -> Unit
 ) {
 
@@ -101,7 +101,7 @@ fun SearchPage(
             itemsIndexed(items = found_results, key = { _, item -> item.id }) { _, item ->
                 item.PreviewLong(
                     MainActivity.theme.getOnBackgroundProvider(false),
-                    player,
+                    playerProvider,
                     true,
                     Modifier
                 )

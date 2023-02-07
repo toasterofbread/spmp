@@ -1,25 +1,28 @@
 package com.spectre7.spmp.ui.layout.nowplaying
 
 import androidx.activity.compose.BackHandler
-import androidx.compose.foundation.Canvas
-import androidx.compose.foundation.Image
-import androidx.compose.foundation.horizontalScroll
+import androidx.compose.animation.AnimatedVisibility
+import androidx.compose.animation.slideInVertically
+import androidx.compose.animation.slideOutVertically
+import androidx.compose.foundation.*
+import androidx.compose.foundation.gestures.Orientation
+import androidx.compose.foundation.interaction.MutableInteractionSource
 import androidx.compose.foundation.layout.*
-import androidx.compose.foundation.rememberScrollState
+import androidx.compose.material.ExperimentalMaterialApi
+import androidx.compose.material.FractionalThreshold
+import androidx.compose.material.SwipeableState
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Menu
 import androidx.compose.material.icons.filled.PlayArrow
-import androidx.compose.material3.LinearProgressIndicator
-import androidx.compose.material3.Text
+import androidx.compose.material.rememberSwipeableState
+import androidx.compose.material.swipeable
+import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.alpha
 import androidx.compose.ui.geometry.Offset
-import androidx.compose.ui.graphics.Color
-import androidx.compose.ui.graphics.ColorFilter
-import androidx.compose.ui.graphics.ImageBitmap
-import androidx.compose.ui.graphics.StrokeCap
+import androidx.compose.ui.graphics.*
 import androidx.compose.ui.graphics.vector.rememberVectorPainter
 import androidx.compose.ui.platform.LocalConfiguration
 import androidx.compose.ui.platform.LocalDensity
@@ -32,24 +35,73 @@ import com.spectre7.spmp.MainActivity
 import com.spectre7.spmp.PlayerServiceHost
 import com.spectre7.spmp.R
 import com.spectre7.spmp.ui.component.MultiSelector
+import com.spectre7.spmp.ui.layout.MINIMISED_NOW_PLAYING_HEIGHT
 import com.spectre7.spmp.ui.layout.PlayerViewContext
+import com.spectre7.spmp.ui.layout.getScreenHeight
 import com.spectre7.utils.*
 
 enum class AccentColourSource { THUMBNAIL, SYSTEM }
 enum class ThemeMode { BACKGROUND, ELEMENTS, NONE }
-
 enum class NowPlayingTab { RELATED, PLAYER, QUEUE }
+
+private enum class NowPlayingVerticalPage { MAIN, QUEUE }
+private val VERTICAL_PAGE_COUNT = NowPlayingVerticalPage.values().size
 
 const val SEEK_CANCEL_THRESHOLD = 0.03f
 const val EXPANDED_THRESHOLD = 0.9f
 val NOW_PLAYING_MAIN_PADDING = 10.dp
 
+@OptIn(ExperimentalMaterialApi::class, ExperimentalMaterial3Api::class)
 @Composable
-fun NowPlaying(expansion: Float, max_height: Float, close: () -> Unit, player: PlayerViewContext) {
+fun NowPlaying(playerProvider: () -> PlayerViewContext, swipe_state: SwipeableState<Int>) {
+    AnimatedVisibility(PlayerServiceHost.session_started, enter = slideInVertically(), exit = slideOutVertically()) {
+        val screen_height = getScreenHeight()
+
+        var switch_to_page: Int by remember { mutableStateOf(-1) }
+        OnChangedEffect(switch_to_page) {
+            if (switch_to_page >= 0) {
+                swipe_state.animateTo(switch_to_page)
+                switch_to_page = -1
+            }
+        }
+
+        Card(
+            colors = CardDefaults.cardColors(containerColor = MainActivity.theme.getBackground(true)),
+            shape = RectangleShape,
+            modifier = Modifier
+                .fillMaxWidth()
+                .requiredHeight(screen_height * VERTICAL_PAGE_COUNT)
+                .offset(y = (screen_height * VERTICAL_PAGE_COUNT * 0.5f) - swipe_state.offset.value.dp)
+                .swipeable(
+                    state = swipe_state,
+                    anchors = (0..VERTICAL_PAGE_COUNT).associateBy{ if (it == 0) MINIMISED_NOW_PLAYING_HEIGHT else screen_height.value * it },
+                    thresholds = { _, _ -> FractionalThreshold(0.2f) },
+                    orientation = Orientation.Vertical,
+                    reverseDirection = true,
+                )
+                .clickable(
+                    interactionSource = remember { MutableInteractionSource() },
+                    enabled = swipe_state.targetValue == 0,
+                    indication = null
+                ) { switch_to_page = if (swipe_state.targetValue == 0) 1 else 0 }
+        ) {
+            BackHandler(swipe_state.targetValue != 0) {
+                switch_to_page = swipe_state.targetValue - 1
+            }
+
+            Column(Modifier.fillMaxSize(), horizontalAlignment = Alignment.CenterHorizontally) {
+                NowPlayingCardContent(swipe_state.offset.value / screen_height.value, screen_height, { switch_to_page = if (swipe_state.targetValue == 0) 1 else 0 }, playerProvider)
+            }
+        }
+    }
+}
+
+@Composable
+fun NowPlayingCardContent(expansion: Float, page_height: Dp, close: () -> Unit, playerProvider: () -> PlayerViewContext) {
     val expanded = expansion >= EXPANDED_THRESHOLD
 
     val systemui_controller = rememberSystemUiController()
-    val status_bar_height_percent = (getStatusBarHeight(MainActivity.context).value * 0.75) / max_height
+    val status_bar_height_percent = (getStatusBarHeight(MainActivity.context).value * 0.75) / page_height.value
 
     LaunchedEffect(key1 = expansion, key2 = MainActivity.theme.getBackground(true)) {
         systemui_controller.setSystemBarsColor(
@@ -65,8 +117,7 @@ fun NowPlaying(expansion: Float, max_height: Float, close: () -> Unit, player: P
 
     val thumbnail = remember { mutableStateOf<ImageBitmap?>(null) }
 
-    Box(Modifier.padding(NOW_PLAYING_MAIN_PADDING)) {
-
+    Column(Modifier.fillMaxHeight(), verticalArrangement = Arrangement.Top) {
         val current_tab = remember { mutableStateOf(NowPlayingTab.PLAYER) }
 
         fun getTabScrollTarget(): Int {
@@ -85,30 +136,49 @@ fun NowPlaying(expansion: Float, max_height: Float, close: () -> Unit, player: P
             }
         }
 
-        Column(verticalArrangement = Arrangement.Top, modifier = Modifier.fillMaxHeight()) {
-            Row(
-                Modifier
-                    .horizontalScroll(tab_scroll_state, false)
-                    .requiredWidth(screen_width_dp * 3)
-                    .weight(1f)
-            ) {
-                for (page in 0 until NowPlayingTab.values().size) {
-                    Tab(
-                        NowPlayingTab.values()[page],
-                        current_tab,
-                        expansion,
-                        max_height,
-                        thumbnail,
-                        close,
-                        player,
-                        Modifier.requiredWidth(screen_width_dp - (NOW_PLAYING_MAIN_PADDING * 2))
-                    )
+        Column(
+            verticalArrangement = Arrangement.Top,
+            modifier = Modifier.requiredHeight(page_height).requiredWidth(screen_width_dp - (NOW_PLAYING_MAIN_PADDING * 2)).padding(NOW_PLAYING_MAIN_PADDING)
+        ) {
+            NowPlayingMainTab(
+                minOf(expansion, 1f),
+                page_height,
+                thumbnail.value,
+                { thumbnail.value = it },
+                remember {
+                    {
+                        playerProvider().copy(
+                            onClickedOverride = {
+                                playerProvider().onMediaItemClicked(it)
+                                close()
+                            }
+                        )
+                    }
                 }
-            }
+            )
+        }
 
-            if (expansion > 0.0f) {
-                TabSelector(current_tab)
-            }
+        Column(
+            verticalArrangement = Arrangement.Top,
+            modifier = Modifier.requiredHeight(page_height).requiredWidth(screen_width_dp - (NOW_PLAYING_MAIN_PADDING * 2)).padding(NOW_PLAYING_MAIN_PADDING)
+        ) {
+            QueueTab(Modifier.weight(1f), playerProvider)
+//            NowPlayingMainTab(
+//                minOf(expansion, 1f),
+//                page_height,
+//                thumbnail.value,
+//                { thumbnail.value = it },
+//                remember {
+//                    {
+//                        playerProvider().copy(
+//                            onClickedOverride = {
+//                                playerProvider().onMediaItemClicked(it)
+//                                close()
+//                            }
+//                        )
+//                    }
+//                }
+//            )
         }
     }
 }
@@ -239,88 +309,3 @@ fun MinimisedProgressBar(expansion: Float) {
     )
 }
 
-@Composable
-fun TabSelector(current_tab: MutableState<NowPlayingTab>) {
-    MultiSelector(
-        3,
-        current_tab.value.ordinal,
-        Modifier.requiredHeight(60.dp * 0.8f),
-        Modifier.aspectRatio(1f),
-        colourProvider = { MainActivity.theme.getOnBackground(true).setAlpha(0.75) },
-        backgroundColourProvider = MainActivity.theme.getBackgroundProvider(true),
-        on_selected = { current_tab.value = NowPlayingTab.values()[it] }
-    ) { index ->
-
-        val tab = NowPlayingTab.values()[index]
-
-        Box(
-            contentAlignment = Alignment.Center
-        ) {
-            val colour = if (tab == current_tab.value) MainActivity.theme.getBackground(true) else MainActivity.theme.getOnBackground(true)
-
-            Image(
-                when(tab) {
-                    NowPlayingTab.PLAYER -> rememberVectorPainter(Icons.Filled.PlayArrow)
-                    NowPlayingTab.QUEUE -> painterResource(R.drawable.ic_music_queue)
-                    NowPlayingTab.RELATED -> rememberVectorPainter(Icons.Filled.Menu)
-                }, "",
-                Modifier
-                    .requiredSize(60.dp * 0.4f, 60.dp)
-                    .offset(y = (-7).dp),
-                colorFilter = ColorFilter.tint(colour)
-            )
-            Text(when (tab) {
-                NowPlayingTab.PLAYER -> getString(R.string.now_playing_player)
-                NowPlayingTab.QUEUE -> getString(R.string.now_playing_queue)
-                NowPlayingTab.RELATED -> getString(R.string.now_playing_related)
-            }, color = colour, fontSize = 10.sp, modifier = Modifier.offset(y = (10).dp))
-        }
-    }
-}
-
-@Composable
-fun Tab(
-    tab: NowPlayingTab,
-    open_tab: MutableState<NowPlayingTab>,
-    expansion: Float,
-    max_height: Float,
-    thumbnail: MutableState<ImageBitmap?>,
-    close: () -> Unit,
-    player: PlayerViewContext,
-    modifier: Modifier = Modifier
-) {
-    BackHandler(tab == open_tab.value && expansion >= EXPANDED_THRESHOLD) {
-        if (tab == NowPlayingTab.PLAYER) {
-            close()
-        }
-        else {
-            open_tab.value = NowPlayingTab.PLAYER
-        }
-    }
-
-    Column(verticalArrangement = Arrangement.Top, modifier = modifier
-        .fillMaxHeight()
-        .then(
-            if (tab == NowPlayingTab.PLAYER) Modifier.padding(15.dp * expansion) else Modifier.padding(
-                top = 20.dp)
-        )) {
-        when (tab) {
-            NowPlayingTab.PLAYER -> {
-                NowPlayingMainTab(
-                    expansion,
-                    max_height,
-                    thumbnail.value,
-                    { thumbnail.value = it },
-                    remember { player.copy(
-                        onClickedOverride = {
-                            player.onMediaItemClicked(it)
-                            close()
-                        }
-                    ) }
-                )
-            }
-            NowPlayingTab.QUEUE -> QueueTab(Modifier.weight(1f), player)
-            else -> {}
-        }
-    }
-}

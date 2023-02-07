@@ -46,13 +46,13 @@ class Artist private constructor (
     }
 
     @Composable
-    override fun PreviewSquare(content_colour: () -> Color, player: PlayerViewContext, enable_long_press_menu: Boolean, modifier: Modifier) {
-        ArtistPreviewSquare(this, content_colour, player, enable_long_press_menu, modifier)
+    override fun PreviewSquare(content_colour: () -> Color, playerProvider: () -> PlayerViewContext, enable_long_press_menu: Boolean, modifier: Modifier) {
+        ArtistPreviewSquare(this, content_colour, playerProvider, enable_long_press_menu, modifier)
     }
 
     @Composable
-    override fun PreviewLong(content_colour: () -> Color, player: PlayerViewContext, enable_long_press_menu: Boolean, modifier: Modifier) {
-        ArtistPreviewLong(this, content_colour, player, enable_long_press_menu, modifier)
+    override fun PreviewLong(content_colour: () -> Color, playerProvider: () -> PlayerViewContext, enable_long_press_menu: Boolean, modifier: Modifier) {
+        ArtistPreviewLong(this, content_colour, playerProvider, enable_long_press_menu, modifier)
     }
 
     override fun getAssociatedArtist(): Artist {
@@ -70,9 +70,7 @@ class Artist private constructor (
 
         title = data.name!!
         description = data.description
-        feed_rows = List(data.feed_rows.size) { i ->
-            data.feed_rows[i].toMediaItemLayout()
-        }
+        feed_rows = data.item_layouts
         subscribe_channel_id = data.subscribe_channel_id ?: id
     }
 

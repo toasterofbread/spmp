@@ -3,32 +3,26 @@
 package com.spectre7.spmp.ui.layout
 
 import androidx.compose.animation.*
-import androidx.compose.animation.core.Animatable
 import androidx.compose.foundation.ExperimentalFoundationApi
 import androidx.compose.foundation.background
-import androidx.compose.foundation.clickable
 import androidx.compose.foundation.gestures.LocalOverScrollConfiguration
-import androidx.compose.foundation.gestures.Orientation
-import androidx.compose.foundation.interaction.MutableInteractionSource
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyListState
 import androidx.compose.foundation.lazy.rememberLazyListState
 import androidx.compose.material.ExperimentalMaterialApi
-import androidx.compose.material.FractionalThreshold
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.*
 import androidx.compose.material.rememberSwipeableState
-import androidx.compose.material.swipeable
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.alpha
-import androidx.compose.ui.graphics.RectangleShape
 import androidx.compose.ui.layout.onSizeChanged
 import androidx.compose.ui.platform.LocalConfiguration
 import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.unit.Dp
+import androidx.compose.ui.unit.IntOffset
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.google.accompanist.swiperefresh.SwipeRefresh
@@ -48,8 +42,8 @@ import java.util.concurrent.locks.ReentrantLock
 import kotlin.concurrent.thread
 
 @Composable
-fun getScreenHeight(): Float {
-    return LocalConfiguration.current.screenHeightDp.toFloat() + getStatusBarHeight(MainActivity.context).value
+fun getScreenHeight(): Dp {
+    return LocalConfiguration.current.screenHeightDp.dp + getStatusBarHeight(MainActivity.context)
 }
 
 const val MINIMISED_NOW_PLAYING_HEIGHT = 64f
@@ -125,24 +119,24 @@ data class PlayerViewContext(
                             hideLongPressMenu()
                         }
                     },
-                    this,
+                    { this },
                     data,
                     Modifier
                         .onSizeChanged {
                             height = maxOf(height, it.height)
                             height_found = true
                         }
-                        .height(if (height_found && height > 0) with (LocalDensity.current) { height.toDp() } else Dp.Unspecified)
+                        .height(if (height_found && height > 0) with(LocalDensity.current) { height.toDp() } else Dp.Unspecified)
                 )
             }
         }
     }
 }
 
-@OptIn(ExperimentalMaterialApi::class, ExperimentalMaterial3Api::class)
 @Composable
 fun PlayerView() {
     val player = remember { PlayerViewContext() }
+    val playerProvider = remember { { player } }
     player.LongPressMenu()
 
     LaunchedEffect(player.overlay_page) {
@@ -153,9 +147,13 @@ fun PlayerView() {
         }
     }
 
-    Column(Modifier
-        .fillMaxSize()
-        .background(MainActivity.theme.getBackground(false))) {
+
+    Column(
+        Modifier
+            .fillMaxSize()
+            .background(MainActivity.theme.getBackground(false))
+    ) {
+        val now_playing_swipe_state = rememberSwipeableState(0)
 
         Box {
             val expand_state = remember { mutableStateOf(false) }
@@ -179,7 +177,8 @@ fun PlayerView() {
                     }
                 },
                 if (!overlay_open) expand_state else null,
-                MainActivity.theme.getAccentProvider()
+                MainActivity.theme.getAccentProvider(),
+                container_modifier = Modifier.offset { IntOffset(x = 0, y = -now_playing_swipe_state.offset.value.dp.toPx().toInt()) }
             )
 
             val main_page_layouts = remember { mutableStateListOf<MediaItemLayout>() }
@@ -196,14 +195,14 @@ fun PlayerView() {
                         Spacer(Modifier.requiredHeight(getStatusBarHeight(MainActivity.context)))
                     }
                     when (it) {
-                        OverlayPage.NONE -> MainPage(main_page_layouts, player, main_page_scroll_state)
-                        OverlayPage.SEARCH -> SearchPage(player.pill_menu, player) { player.overlay_page = OverlayPage.NONE }
+                        OverlayPage.NONE -> MainPage(main_page_layouts, playerProvider, main_page_scroll_state)
+                        OverlayPage.SEARCH -> SearchPage(player.pill_menu, playerProvider) { player.overlay_page = OverlayPage.NONE }
                         OverlayPage.SETTINGS -> PrefsPage(player.pill_menu) { player.overlay_page = OverlayPage.NONE }
                         OverlayPage.MEDIAITEM -> Crossfade(player.overlay_media_item) { item ->
                             when (item) {
                                 null -> {}
-                                is Artist -> ArtistPage(player.pill_menu, item, player) { player.overlay_page = OverlayPage.NONE }
-                                is Playlist -> PlaylistPage(player.pill_menu, item, player) { player.overlay_page = OverlayPage.NONE }
+                                is Artist -> ArtistPage(player.pill_menu, item, playerProvider) { player.overlay_page = OverlayPage.NONE }
+                                is Playlist -> PlaylistPage(player.pill_menu, item, playerProvider) { player.overlay_page = OverlayPage.NONE }
                                 else -> throw NotImplementedError()
                             }
                         }
@@ -212,50 +211,7 @@ fun PlayerView() {
             }
         }
 
-        NowPlaying(player)
-    }
-}
-
-@Composable
-private fun NowPlaying(player: PlayerViewContext) {
-    AnimatedVisibility(PlayerServiceHost.session_started, enter = slideInVertically(), exit = slideOutVertically()) {
-        val screen_height = getScreenHeight()
-        val swipe_state = rememberSwipeableState(0)
-
-        var switch: Boolean by remember { mutableStateOf(false) }
-
-        OnChangedEffect(switch) {
-            if (swipe_state.targetValue == switch.toInt()) {
-                swipe_state.animateTo(if (swipe_state.targetValue == 1) 0 else 1)
-            }
-            else {
-                swipe_state.animateTo(switch.toInt())
-            }
-        }
-
-        Card(colors = CardDefaults.cardColors(
-            containerColor = MainActivity.theme.getBackground(true)
-        ), modifier = Modifier
-            .fillMaxWidth()
-            .requiredHeight(screen_height.dp)
-            .offset(y = (screen_height.dp / 2) - swipe_state.offset.value.dp)
-            .swipeable(
-                state = swipe_state,
-                anchors = mapOf(MINIMISED_NOW_PLAYING_HEIGHT to 0, screen_height to 1),
-                thresholds = { _, _ -> FractionalThreshold(0.2f) },
-                orientation = Orientation.Vertical,
-                reverseDirection = true,
-            )
-            .clickable(
-                interactionSource = remember { MutableInteractionSource() },
-                enabled = swipe_state.targetValue == 0,
-                indication = null
-            ) { switch = !switch }, shape = RectangleShape) {
-
-            Column(Modifier.fillMaxSize()) {
-                NowPlaying(swipe_state.offset.value / screen_height, screen_height, { switch = !switch }, player)
-            }
-        }
+        NowPlaying(playerProvider, now_playing_swipe_state)
     }
 }
 
@@ -263,7 +219,7 @@ private fun NowPlaying(player: PlayerViewContext) {
 @Composable
 private fun MainPage(
     layouts: MutableList<MediaItemLayout>,
-    player: PlayerViewContext,
+    playerProvider: () -> PlayerViewContext,
     scroll_state: LazyListState
 ) {
     var refreshing by remember { mutableStateOf(false) }
@@ -283,9 +239,9 @@ private fun MainPage(
                 CompositionLocalProvider(
                     LocalOverScrollConfiguration provides null
                 ) {
-                    MediaItemLayoutColumn(
+                    LazyMediaItemLayoutColumn(
                         layouts,
-                        player,
+                        playerProvider,
                         top_padding = getStatusBarHeight(MainActivity.context),
                         bottom_padding = MINIMISED_NOW_PLAYING_HEIGHT.dp,
                         scroll_state = scroll_state

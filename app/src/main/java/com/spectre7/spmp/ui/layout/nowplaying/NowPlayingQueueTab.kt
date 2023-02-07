@@ -34,7 +34,7 @@ import org.burnoutcrew.reorderable.*
 import kotlin.math.roundToInt
 
 @Composable
-fun QueueTab(weight_modifier: Modifier, player: PlayerViewContext) {
+fun QueueTab(weight_modifier: Modifier, playerProvider: () -> PlayerViewContext) {
 
     var key_inc by remember { mutableStateOf(0) }
     val v_removed = remember { mutableStateListOf<Int>() }
@@ -68,7 +68,14 @@ fun QueueTab(weight_modifier: Modifier, player: PlayerViewContext) {
                     val contentColourProvider = if (current) MainActivity.theme.getBackgroundProvider(true) else MainActivity.theme.getOnBackgroundProvider(true)
                     song.PreviewLong(
                         contentColourProvider,
-                        remember { player.copy(onClickedOverride = { PlayerServiceHost.player.seekTo(index, C.TIME_UNSET) }) },
+                        remember {
+                            {
+                                playerProvider().copy(onClickedOverride = {
+                                    PlayerServiceHost.player.seekTo(index,
+                                        C.TIME_UNSET)
+                                })
+                            }
+                         },
                         true,
                         Modifier
                             .weight(1f)

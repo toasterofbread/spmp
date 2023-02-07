@@ -1,14 +1,17 @@
 package com.spectre7.utils
 
 import android.annotation.SuppressLint
-import androidx.compose.ui.graphics.Color
-import androidx.compose.ui.graphics.toArgb
-import androidx.core.graphics.ColorUtils
-import androidx.palette.graphics.Palette
+import android.graphics.Bitmap
 import androidx.compose.animation.Animatable
 import androidx.compose.animation.core.Animatable
 import androidx.compose.animation.core.AnimationVector4D
 import androidx.compose.runtime.Composable
+import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.graphics.isUnspecified
+import androidx.compose.ui.graphics.toArgb
+import androidx.core.graphics.ColorUtils
+import androidx.palette.graphics.Palette
+import kotlin.math.absoluteValue
 
 fun Color.setAlpha(alpha: Double): Color {
     return setColourAlpha(this, alpha)
@@ -40,25 +43,87 @@ fun offsetColourRGB(colour: Color, offset: Double, clip: Boolean = true): Color 
     )
 }
 
-fun getPaletteColour(palette: Palette, type: Int): Color? {
-    val ret = Color(
-        when (type) {
-            0 -> palette.getDominantColor(Color.Unspecified.toArgb())
-            1 -> palette.getVibrantColor(Color.Unspecified.toArgb())
-            2 -> palette.getDarkVibrantColor(Color.Unspecified.toArgb())
-            3 -> palette.getDarkMutedColor(Color.Unspecified.toArgb())
-            4 -> palette.getLightVibrantColor(Color.Unspecified.toArgb())
-            5 -> palette.getLightMutedColor(Color.Unspecified.toArgb())
-            6 -> palette.getMutedColor(Color.Unspecified.toArgb())
-            else -> throw RuntimeException("Invalid palette colour type $type")
-        }
-    )
+const val PALETTE_COLOUR_AMOUNT = 7
 
-    if (ret.toArgb() == Color.Unspecified.toArgb()) {
+fun Color.compare(against: Color): Float {
+    return ((red - against.red).absoluteValue + (green - against.green).absoluteValue + (blue - against.blue).absoluteValue) / 3f
+}
+
+fun Palette.getColour(type: Int): Color? {
+    val colour = when (type) {
+        0 -> getVibrantColor(0)
+        1 -> getLightVibrantColor(0)
+        2 -> getLightMutedColor(0)
+        3 -> getDarkVibrantColor(0)
+        4 -> getDarkMutedColor(0)
+        5 -> getDominantColor(0)
+        6 -> getMutedColor(0)
+        else -> throw RuntimeException("Invalid palette colour type $type")
+    }
+
+    if (colour == 0) {
         return null
     }
 
-    return ret
+    return Color(colour)
+}
+
+fun Bitmap.getThemeColour(): Color? {
+    val pixel_count = width * height
+
+    val pixels = IntArray(pixel_count)
+    getPixels(pixels, 0, width, 0, 0, width, height)
+
+    var light_count = 0
+    var light_r = 0
+    var light_g = 0
+    var light_b = 0
+
+    var dark_r = 0
+    var dark_g = 0
+    var dark_b = 0
+
+    for (x in 0 until width) {
+        for (y in 0 until height) {
+            val colour = pixels[x + y * width]
+
+            val r = (colour shr 16 and 0xFF) / 255f
+            val g = (colour shr 8 and 0xFF) / 255f
+            val b = (colour and 0xFF) / 255f
+
+            if ((0.299 * r) + (0.587 * g) + (0.114 * b) >= 0.5) {
+                light_count += 1
+                light_r += (r * 255).toInt()
+                light_g += (g * 255).toInt()
+                light_b += (b * 255).toInt()
+            }
+            else {
+                dark_r += (r * 255).toInt()
+                dark_g += (g * 255).toInt()
+                dark_b += (b * 255).toInt()
+            }
+        }
+    }
+
+    val dark_count = pixel_count - light_count
+    if (dark_count == 0 && light_count == 0) {
+        return null
+    }
+
+    if (light_count > dark_count) {
+        return Color(
+            light_r / light_count,
+            light_g / light_count,
+            light_b / light_count
+        )
+    }
+    else {
+        return Color(
+            dark_r / dark_count,
+            dark_g / dark_count,
+            dark_b / dark_count
+        )
+    }
 }
 
 fun Color.isDark(): Boolean {

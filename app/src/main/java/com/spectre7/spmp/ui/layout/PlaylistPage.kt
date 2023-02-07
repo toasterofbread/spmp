@@ -6,17 +6,13 @@ import android.content.Intent
 import android.net.Uri
 import androidx.activity.compose.BackHandler
 import androidx.compose.animation.Crossfade
-import androidx.compose.animation.animateContentSize
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
-import androidx.compose.foundation.gestures.detectTapGestures
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.LazyRow
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.filled.ArrowDropDown
-import androidx.compose.material.icons.filled.ArrowDropUp
 import androidx.compose.material.icons.filled.ContentCopy
 import androidx.compose.material.icons.filled.Share
 import androidx.compose.material.icons.outlined.*
@@ -27,36 +23,26 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.*
 import androidx.compose.ui.graphics.vector.ImageVector
-import androidx.compose.ui.input.pointer.pointerInput
 import androidx.compose.ui.layout.ContentScale
-import androidx.compose.ui.layout.onSizeChanged
 import androidx.compose.ui.platform.LocalClipboardManager
-import androidx.compose.ui.platform.LocalDensity
-import androidx.compose.ui.platform.LocalUriHandler
 import androidx.compose.ui.text.*
 import androidx.compose.ui.text.style.TextAlign
-import androidx.compose.ui.text.style.TextDecoration
-import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.spectre7.spmp.MainActivity
 import com.spectre7.spmp.R
 import com.spectre7.spmp.model.Playlist
 import com.spectre7.spmp.model.MediaItem
-import com.spectre7.spmp.ui.component.MediaItemGrid
-import com.spectre7.spmp.ui.component.MediaItemLayout
-import com.spectre7.spmp.ui.component.MediaItemNumberedList
-import com.spectre7.spmp.ui.component.PillMenu
+import com.spectre7.spmp.ui.component.*
 import com.spectre7.utils.*
 import kotlinx.coroutines.*
-import java.util.regex.Pattern
 import kotlin.concurrent.thread
 
 @Composable
 fun PlaylistPage(
     pill_menu: PillMenu,
     playlist: Playlist,
-    player: PlayerViewContext,
+    playerProvider: () -> PlayerViewContext,
     close: () -> Unit
 ) {
     var show_info by remember { mutableStateOf(false) }
@@ -91,22 +77,21 @@ fun PlaylistPage(
         thread {
             runBlocking {
                 withContext(Dispatchers.IO) { coroutineScope {
-                    for (item in playlist.feed_layout.items.withIndex()) {
-                        launch {
-                            val new_item = item.value.loadData()
-                            if (new_item != item.value) {
-                                synchronized(playlist.feed_layout.items) {
-                                    playlist.feed_layout.items[item.index] = new_item
+                    for (layout in playlist.feed_layouts) {
+                        for (item in layout.items.withIndex()) {
+                            launch {
+                                val new_item = item.value.loadData()
+                                if (new_item != item.value) {
+                                    synchronized(layout.items) {
+                                        layout.items[item.index] = new_item
+                                    }
                                 }
                             }
                         }
                     }
                 }}
 
-                playlist.feed_layout.items.removeAll {
-                    !it.is_valid
-                }
-
+                playlist.feed_layouts.removeInvalid()
                 playlist_rows_loaded = true
             }
         }
@@ -139,7 +124,7 @@ fun PlaylistPage(
                     }
                     else {
                         if (accent_colour.isUnspecified) {
-                            accent_colour = MediaItem.getDefaultPaletteColour(playlist.thumbnail_palette!!, MainActivity.theme.getAccent())
+                            accent_colour = playlist.getDefaultThemeColour() ?: MainActivity.theme.getAccent()
                         }
 
                         Image(
@@ -155,7 +140,7 @@ fun PlaylistPage(
                     Text(playlist.title)
 
                     if (playlist.artist != null) {
-                        playlist.artist!!.PreviewLong(MainActivity.theme.getOnBackgroundProvider(false), player, true, Modifier)
+                        playlist.artist!!.PreviewLong(MainActivity.theme.getOnBackgroundProvider(false), playerProvider, true, Modifier)
                     }
                 }
             }
@@ -260,9 +245,9 @@ fun PlaylistPage(
                         }
                     }
                     else {
-                        MediaItemNumberedList(
-                            MediaItemLayout(playlist.feed_layout.title, null, items = playlist.feed_layout.items),
-                            player,
+                        MediaItemLayoutColumn(
+                            playlist.feed_layouts,
+                            playerProvider,
                             Modifier
                                 .background(background_colour)
                                 .fillMaxSize()

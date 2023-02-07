@@ -47,7 +47,7 @@ import kotlin.concurrent.thread
 fun ArtistPage(
     pill_menu: PillMenu,
     artist: Artist,
-    player: PlayerViewContext,
+    playerProvider: () -> PlayerViewContext,
     close: () -> Unit
 ) {
     var show_info by remember { mutableStateOf(false) }
@@ -72,7 +72,7 @@ fun ArtistPage(
 
     val gradient_size = 0.35f
     val background_colour = MainActivity.theme.getBackground(false)
-    var accent_colour by remember { mutableStateOf(Color.Unspecified) }
+    var accent_colour: Color? by remember { mutableStateOf(null) }
 
     var artist_rows_loaded: Boolean by remember { mutableStateOf(false) }
 
@@ -111,7 +111,7 @@ fun ArtistPage(
     }
 
     LaunchedEffect(accent_colour) {
-        if (!accent_colour.isUnspecified) {
+        if (accent_colour != null) {
             pill_menu.setBackgroundColourOverride(accent_colour)
         }
     }
@@ -127,8 +127,8 @@ fun ArtistPage(
         // Artist image
         Crossfade(artist.getThumbnail(MediaItem.ThumbnailQuality.HIGH)) { thumbnail ->
             if (thumbnail != null) {
-                if (accent_colour.isUnspecified) {
-                    accent_colour = MediaItem.getDefaultPaletteColour(artist.thumbnail_palette!!, MainActivity.theme.getAccent())
+                if (accent_colour == null) {
+                    accent_colour = artist.getDefaultThemeColour() ?: MainActivity.theme.getAccent()
                 }
 
                 Image(
@@ -195,12 +195,12 @@ fun ArtistPage(
                                 onClick,
                                 { Text(text, style = MaterialTheme.typography.labelLarge) },
                                 leadingIcon = {
-                                    Icon(icon, null, tint = accent_colour)
+                                    Icon(icon, null, tint = accent_colour ?: Color.Unspecified)
                                 },
                                 colors = AssistChipDefaults.assistChipColors(
                                     containerColor = background_colour,
                                     labelColor = MainActivity.theme.getOnBackground(false),
-                                    leadingIconContentColor = accent_colour
+                                    leadingIconContentColor = accent_colour ?: Color.Unspecified
                                 )
                             )
                         }
@@ -219,7 +219,7 @@ fun ArtistPage(
                     fun Btn(text: String, icon: ImageVector, modifier: Modifier = Modifier, onClick: () -> Unit) {
                         OutlinedButton(onClick = onClick, modifier.height(45.dp)) {
                             Row(verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(10.dp)) {
-                                Icon(icon, null, tint = accent_colour)
+                                Icon(icon, null, tint = accent_colour ?: Color.Unspecified)
                                 Text(text, softWrap = false, color = MainActivity.theme.getOnBackground(false))
                             }
                         }
@@ -244,8 +244,8 @@ fun ArtistPage(
                                         )
                                     },
                                     colors = IconButtonDefaults.iconButtonColors(
-                                        containerColor = if (subscribed) accent_colour else background_colour,
-                                        contentColor = if (subscribed) accent_colour.getContrasted() else MainActivity.theme.getOnBackground(false)
+                                        containerColor = if (subscribed) accent_colour ?: Color.Unspecified else background_colour,
+                                        contentColor = if (subscribed) accent_colour?.getContrasted() ?: Color.Unspecified else MainActivity.theme.getOnBackground(false)
                                     )
                                 ) {
                                     Icon(if (subscribed) Icons.Outlined.Person else Icons.Outlined.PersonAdd, null)
@@ -265,7 +265,7 @@ fun ArtistPage(
                                 .fillMaxSize()
                                 .background(background_colour)
                                 .padding(content_padding), contentAlignment = Alignment.Center) {
-                            CircularProgressIndicator(color = accent_colour)
+                            CircularProgressIndicator(color = accent_colour ?: Color.Unspecified)
                         }
                     }
                     else {
@@ -277,7 +277,7 @@ fun ArtistPage(
                             verticalArrangement = Arrangement.spacedBy(30.dp)
                         ) {
                             for (row in artist.feed_rows) {
-                                MediaItemGrid(MediaItemLayout(row.title, null, items = row.items), player)
+                                MediaItemGrid(MediaItemLayout(row.title, null, items = row.items), playerProvider)
                             }
 
                             val description = artist.description
@@ -309,7 +309,7 @@ fun ArtistPage(
                                                 colors = AssistChipDefaults.assistChipColors(
                                                     containerColor = background_colour,
                                                     labelColor = MainActivity.theme.getOnBackground(false),
-                                                    leadingIconContentColor = accent_colour
+                                                    leadingIconContentColor = accent_colour ?: Color.Unspecified
                                                 )
                                             )
 

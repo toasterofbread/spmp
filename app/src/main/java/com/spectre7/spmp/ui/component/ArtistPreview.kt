@@ -31,7 +31,7 @@ import com.spectre7.utils.setAlpha
 fun ArtistPreviewSquare(
     artist: Artist, 
     content_colour: () -> Color,
-    player: PlayerViewContext,
+    playerProvider: () -> PlayerViewContext,
     enable_long_press_menu: Boolean = true,
     modifier: Modifier = Modifier
 ) {
@@ -48,10 +48,10 @@ fun ArtistPreviewSquare(
                 interactionSource = remember { MutableInteractionSource() },
                 indication = null,
                 onClick = {
-                    player.onMediaItemClicked(artist)
+                    playerProvider().onMediaItemClicked(artist)
                 },
                 onLongClick = {
-                    player.showLongPressMenu(long_press_menu_data)
+                    playerProvider().showLongPressMenu(long_press_menu_data)
                 }
             )
             .aspectRatio(0.8f),
@@ -75,7 +75,7 @@ fun ArtistPreviewSquare(
 fun ArtistPreviewLong(
     artist: Artist,
     content_colour: () -> Color,
-    player: PlayerViewContext,
+    playerProvider: () -> PlayerViewContext,
     enable_long_press_menu: Boolean = true,
     modifier: Modifier = Modifier
 ) {
@@ -93,10 +93,10 @@ fun ArtistPreviewLong(
                 interactionSource = remember { MutableInteractionSource() },
                 indication = null,
                 onClick = {
-                    player.onMediaItemClicked(artist)
+                    playerProvider().onMediaItemClicked(artist)
                 },
                 onLongClick = {
-                    player.showLongPressMenu(long_press_menu_data)
+                    playerProvider().showLongPressMenu(long_press_menu_data)
                 }
             )
     ) {
@@ -182,7 +182,7 @@ private val longPressPopupActions: @Composable LongPressMenuActionProvider.(Medi
             Crossfade(queue_song, animationSpec = tween(100)) {
                 it.PreviewLong(
                     content_colour,
-                    player,
+                    playerProvider,
                     false,
                     Modifier
                 )
@@ -191,6 +191,6 @@ private val longPressPopupActions: @Composable LongPressMenuActionProvider.(Medi
     }
 
     ActionButton(Icons.Filled.Person, "View artist", onClick = {
-        player.openMediaItem(artist)
+        playerProvider().openMediaItem(artist)
     })
 }

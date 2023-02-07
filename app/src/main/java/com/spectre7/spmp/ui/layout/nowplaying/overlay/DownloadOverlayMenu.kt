@@ -18,7 +18,7 @@ class DownloadOverlayMenu: OverlayMenu() {
         openShutterMenu: (@Composable () -> Unit) -> Unit,
         close: () -> Unit,
         seek_state: Any,
-        player: PlayerViewContext
+        playerProvider: () -> PlayerViewContext
     ) {
         Column(Modifier.fillMaxSize()) {
             Text("Download")

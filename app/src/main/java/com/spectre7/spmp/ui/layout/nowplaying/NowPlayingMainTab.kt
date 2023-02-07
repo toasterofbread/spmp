@@ -22,6 +22,7 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.alpha
 import androidx.compose.ui.draw.clip
+import androidx.compose.ui.draw.scale
 import androidx.compose.ui.graphics.*
 import androidx.compose.ui.graphics.painter.Painter
 import androidx.compose.ui.input.pointer.pointerInput
@@ -53,10 +54,10 @@ const val OVERLAY_MENU_ANIMATION_DURATION: Int = 200
 @Composable
 fun ColumnScope.NowPlayingMainTab(
     expansion: Float,
-    max_height: Float,
+    page_height: Dp,
     thumbnail: ImageBitmap?,
     _setThumbnail: (ImageBitmap?) -> Unit,
-    player: PlayerViewContext
+    playerProvider: () -> PlayerViewContext
 ) {
     Spacer(Modifier.requiredHeight(50.dp * expansion))
 
@@ -132,18 +133,15 @@ fun ColumnScope.NowPlayingMainTab(
         }
     }
 
-    fun loadThumbnail(song: Song) {
-        _setThumbnail(song.loadThumbnail(MediaItem.ThumbnailQuality.LOW)?.asImageBitmap())
+    fun loadThumbnail(song: Song, quality: MediaItem.ThumbnailQuality) {
+        _setThumbnail(song.loadThumbnail(quality)?.asImageBitmap())
         theme_palette = song.thumbnail_palette
 
         if (song.theme_colour != null) {
             theme_colour = song.theme_colour
         }
         else if (theme_palette != null) {
-            theme_colour = MediaItem.getDefaultPaletteColour(theme_palette!!, Color.Unspecified)
-            if (theme_colour!!.isUnspecified) {
-                theme_colour = null
-            }
+            theme_colour = song.getDefaultThemeColour()
         }
 
         loaded_song = song
@@ -162,11 +160,11 @@ fun ColumnScope.NowPlayingMainTab(
             loaded_song = null
         }
         else if (song.isThumbnailLoaded(MediaItem.ThumbnailQuality.HIGH)) {
-            loadThumbnail(song)
+            loadThumbnail(song, MediaItem.ThumbnailQuality.HIGH)
         }
         else {
             thread {
-                loadThumbnail(song)
+                loadThumbnail(song, MediaItem.ThumbnailQuality.HIGH)
             }
         }
     }
@@ -176,7 +174,8 @@ fun ColumnScope.NowPlayingMainTab(
         horizontalArrangement = Arrangement.SpaceEvenly,
         modifier = Modifier
             .fillMaxWidth()
-            .fillMaxHeight(0.5f * max(expansion, (MINIMISED_NOW_PLAYING_HEIGHT + 20f) / max_height))
+            .fillMaxHeight(0.5f * max(expansion,
+                (MINIMISED_NOW_PLAYING_HEIGHT + 20f) / page_height.value))
     ) {
 
         var overlay_menu by remember { mutableStateOf<OverlayMenu?>(null) }
@@ -214,14 +213,14 @@ fun ColumnScope.NowPlayingMainTab(
                             .run {
                                 if (colourpick_callback == null) {
                                     this.clickable(
-                                        enabled = remember { derivedStateOf { expansion == 1.0f } }.value,
+                                        enabled = expansion == 1f,
                                         indication = null,
                                         interactionSource = remember { MutableInteractionSource() }
                                     ) {
                                         if (overlay_menu == null || overlay_menu!!.closeOnTap()) {
                                             overlay_menu = if (overlay_menu == null) MainOverlayMenu(
                                                 { overlay_menu = it },
-                                                theme_palette,
+                                                { theme_palette },
                                                 { colourpick_callback = it },
                                                 {
                                                     setThemeColour(it)
@@ -298,7 +297,7 @@ fun ColumnScope.NowPlayingMainTab(
                                     overlay_menu = null
                                 },
                                 seek_state,
-                                player
+                                playerProvider
                             )
                         }
                     }
@@ -347,8 +346,11 @@ fun ColumnScope.NowPlayingMainTab(
             }
         }
 
+        val x_scale = minOf(1f, if (expansion < 0.5f) 1f else (1f - ((expansion - 0.5f) * 2f)))
         Row(
-            Modifier.fillMaxWidth(0.9f * (1f - expansion)),
+            Modifier
+                .fillMaxWidth(0.9f * (1f - expansion))
+                .scale(x_scale, 1f),
             horizontalArrangement = Arrangement.End
         ) {
 
@@ -410,21 +412,20 @@ fun ColumnScope.NowPlayingMainTab(
     }
 
     if (expansion > 0.0f) {
-        TODO()
         Controls(
-            player,
+            playerProvider,
             {
                 PlayerServiceHost.player.seekTo((PlayerServiceHost.player.duration * it).toLong())
                 seek_state = it
             },
-            Modifier.weight(1f).recomposeHighlighter()
+            Modifier.weight(1f)
         )
     }
 }
 
 @Composable
 private fun Controls(
-    player: PlayerViewContext,
+    playerProvider: () -> PlayerViewContext,
     seek: (Float) -> Unit,
     modifier: Modifier = Modifier
 ) {
@@ -451,7 +452,7 @@ private fun Controls(
                     )
                     .alpha(if (enabled) 1.0f else 0.5f)
             ) {
-                val colour = remember (colourProvider) { colourProvider?.invoke() ?: MainActivity.theme.getOnBackground(true) }
+                val colour = colourProvider?.invoke() ?: MainActivity.theme.getOnBackground(true)
                 Image(
                     painter, null,
                     Modifier
@@ -470,7 +471,7 @@ private fun Controls(
         fun PlayerButton(image_id: Int, size: Dp = 60.dp, alpha: Float = 1f, colourProvider: (() -> Color)? = null, label: String? = null, enabled: Boolean = true, on_click: () -> Unit) {
             PlayerButton(painterResource(image_id), size, alpha, colourProvider, label, enabled, on_click)
         }
-
+//
         Column(verticalArrangement = Arrangement.spacedBy(35.dp)) {
             Column(verticalArrangement = Arrangement.spacedBy(5.dp)) {
 
@@ -507,7 +508,7 @@ private fun Controls(
                         .animateContentSize()
                         .clickable {
                             if (PlayerServiceHost.status.song?.loaded == true) {
-                                player.onMediaItemClicked(PlayerServiceHost.status.song!!.artist)
+                                playerProvider().onMediaItemClicked(PlayerServiceHost.status.song!!.artist)
                             }
                         }
                 )

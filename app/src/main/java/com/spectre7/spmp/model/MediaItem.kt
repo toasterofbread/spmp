@@ -9,12 +9,12 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.asAndroidBitmap
 import androidx.compose.ui.graphics.asImageBitmap
-import androidx.compose.ui.graphics.toArgb
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.unit.IntSize
 import androidx.palette.graphics.Palette
 import com.spectre7.spmp.api.loadMediaItemData
 import com.spectre7.spmp.ui.layout.PlayerViewContext
+import com.spectre7.utils.getThemeColour
 import java.net.URL
 import kotlin.concurrent.thread
 
@@ -79,7 +79,7 @@ abstract class MediaItem(id: String) {
         val snippet: Snippet? = null,
         val statistics: Statistics? = null,
         val contentDetails: ContentDetails? = null,
-        val localizations: Map<String, LocalizedSnippet>? = null
+        val localizations: Map<String, LocalizedSnippet>? = null,
     ) {
         fun getLocalisation(lang: String): LocalizedSnippet? {
             return localizations?.getOrElse(lang) {
@@ -100,7 +100,7 @@ abstract class MediaItem(id: String) {
             val defaultLanguage: String? = null,
             val country: String? = null,
             val thumbnails: Map<String, ThumbnailProvider.Thumbnail>,
-            val localized: LocalizedSnippet? = null
+            val localized: LocalizedSnippet? = null,
         )
         data class LocalizedSnippet(val title: String? = null, var description: String? = null) {
             init {
@@ -346,9 +346,9 @@ abstract class MediaItem(id: String) {
     }
 
     @Composable
-    abstract fun PreviewSquare(content_colour: () -> Color, player: PlayerViewContext, enable_long_press_menu: Boolean, modifier: Modifier)
+    abstract fun PreviewSquare(content_colour: () -> Color, playerProvider: () -> PlayerViewContext, enable_long_press_menu: Boolean, modifier: Modifier)
     @Composable
-    abstract fun PreviewLong(content_colour: () -> Color, player: PlayerViewContext, enable_long_press_menu: Boolean, modifier: Modifier)
+    abstract fun PreviewLong(content_colour: () -> Color, playerProvider: () -> PlayerViewContext, enable_long_press_menu: Boolean, modifier: Modifier)
 
     @Composable
     fun Thumbnail(quality: ThumbnailQuality, modifier: Modifier) {
@@ -392,28 +392,14 @@ abstract class MediaItem(id: String) {
 
     protected abstract fun subInitWithData(data: Any)
 
-    companion object {
-        fun getDefaultPaletteColour(palette: Palette, default: Color): Color {
-            val unspecified = Color.Unspecified.toArgb()
-            var ret: Color? = null
-
-            fun tryColour(colour: Int): Boolean {
-                if (colour == unspecified) {
-                    return false
-                }
-                ret = Color(colour)
-                return true
+    fun getDefaultThemeColour(): Color? {
+        for (quality in ThumbnailQuality.values()) {
+            val state = thumb_states[quality]!!
+            if (state.image != null) {
+                return state.image?.getThemeColour()
             }
-
-            if (tryColour(palette.getVibrantColor(unspecified))) { return ret!! }
-            if (tryColour(palette.getLightVibrantColor(unspecified))) { return ret!! }
-            if (tryColour(palette.getLightMutedColor(unspecified))) { return ret!! }
-            if (tryColour(palette.getDarkVibrantColor(unspecified))) { return ret!! }
-            if (tryColour(palette.getDarkMutedColor(unspecified))) { return ret!! }
-            if (tryColour(palette.getDominantColor(unspecified))) { return ret!! }
-
-            return default
         }
+        return null
     }
 
     override fun toString(): String {

@@ -15,7 +15,7 @@ class Playlist private constructor (
 
     // Data
     override lateinit var title: String
-    lateinit var feed_layout: MediaItemLayout
+    lateinit var feed_layouts: List<MediaItemLayout>
     var artist: Artist? = null
 
     companion object {
@@ -36,13 +36,13 @@ class Playlist private constructor (
     }
 
     @Composable
-    override fun PreviewSquare(content_colour: () -> Color, player: PlayerViewContext, enable_long_press_menu: Boolean, modifier: Modifier) {
-        PlaylistPreviewSquare(this, content_colour, player, enable_long_press_menu, modifier)
+    override fun PreviewSquare(content_colour: () -> Color, playerProvider: () -> PlayerViewContext, enable_long_press_menu: Boolean, modifier: Modifier) {
+        PlaylistPreviewSquare(this, content_colour, playerProvider, enable_long_press_menu, modifier)
     }
 
     @Composable
-    override fun PreviewLong(content_colour: () -> Color, player: PlayerViewContext, enable_long_press_menu: Boolean, modifier: Modifier) {
-        PlaylistPreviewLong(this, content_colour, player, enable_long_press_menu, modifier)
+    override fun PreviewLong(content_colour: () -> Color, playerProvider: () -> PlayerViewContext, enable_long_press_menu: Boolean, modifier: Modifier) {
+        PlaylistPreviewLong(this, content_colour, playerProvider, enable_long_press_menu, modifier)
     }
 
     override fun getAssociatedArtist(): Artist? {
@@ -59,7 +59,11 @@ class Playlist private constructor (
         }
 
         title = data.name!!
-        feed_layout = data.feed_rows.single().toMediaItemLayout()
+
+        feed_layouts = data.item_layouts
+        for (layout in feed_layouts) {
+            assert(layout.type != null)
+        }
 
         if (data.subscribe_channel_id != null) {
             artist = Artist.fromId(data.subscribe_channel_id!!).loadData() as Artist

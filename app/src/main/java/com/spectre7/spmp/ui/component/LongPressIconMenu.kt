@@ -37,7 +37,6 @@ import androidx.compose.ui.unit.*
 import androidx.compose.ui.window.Dialog
 import androidx.compose.ui.window.DialogProperties
 import androidx.compose.ui.window.DialogWindowProvider
-import androidx.palette.graphics.Palette
 import com.spectre7.spmp.MainActivity
 import com.spectre7.spmp.model.*
 import com.spectre7.spmp.ui.layout.PlayerViewContext
@@ -53,7 +52,7 @@ class LongPressMenuActionProvider(
     val content_colour: () -> Color,
     val accent_colour: () -> Color,
     val background_colour: () -> Color,
-    val player: PlayerViewContext
+    val playerProvider: () -> PlayerViewContext
 ) {
     @Composable
     fun ActionButton(icon: ImageVector, label: String, modifier: Modifier = Modifier, onClick: () -> Unit, onLongClick: (() -> Unit)? = null) =
@@ -129,7 +128,7 @@ fun LongPressIconMenu(
     showing: Boolean,
     no_transition: Boolean,
     onDismissRequest: () -> Unit,
-    player: PlayerViewContext,
+    playerProvider: () -> PlayerViewContext,
     data: LongPressMenuData,
     modifier: Modifier = Modifier
 ) {
@@ -174,8 +173,8 @@ fun LongPressIconMenu(
 
         var accent_colour by remember { mutableStateOf(Color.Unspecified) }
 
-        fun applyPalette(palette: Palette) {
-            accent_colour = MediaItem.getDefaultPaletteColour(palette, MainActivity.theme.getBackground(false)).contrastAgainst(MainActivity.theme.getBackground(false), 0.2)
+        fun applyPalette(item: MediaItem) {
+            accent_colour = (item.getDefaultThemeColour() ?: MainActivity.theme.getBackground(false)).contrastAgainst(MainActivity.theme.getBackground(false), 0.2)
         }
 
         LaunchedEffect(Unit) {
@@ -193,7 +192,7 @@ fun LongPressIconMenu(
                 data.item.getThumbnail(MediaItem.ThumbnailQuality.LOW)
             }
             else {
-                applyPalette(data.item.thumbnail_palette!!)
+                applyPalette(data.item)
             }
         }
 
@@ -273,7 +272,7 @@ fun LongPressIconMenu(
 
             Box(
                 Modifier
-                    .requiredHeight(getScreenHeight().dp)
+                    .requiredHeight(getScreenHeight())
                     .offset(y = status_bar_height * -0.5f)
                     .background(Color.Black.setAlpha(0.5 * panel_alpha.value))
             ) {
@@ -344,7 +343,7 @@ fun LongPressIconMenu(
                                         Marquee(false) {
                                             artist.PreviewLong(
                                                 content_colour = MainActivity.theme.getOnBackgroundProvider(false),
-                                                player,
+                                                playerProvider,
                                                 true,
                                                 Modifier.fillMaxWidth()
                                             )
@@ -358,7 +357,7 @@ fun LongPressIconMenu(
 
                         val accent_colour_provider = remember (accent_colour) { { accent_colour } }
 
-                        data.actions(LongPressMenuActionProvider(MainActivity.theme.getOnBackgroundProvider(false), accent_colour_provider, MainActivity.theme.getBackgroundProvider(false), player), data.item)
+                        data.actions(LongPressMenuActionProvider(MainActivity.theme.getOnBackgroundProvider(false), accent_colour_provider, MainActivity.theme.getBackgroundProvider(false), playerProvider), data.item)
 
                         val share_intent = remember(data.item.url) {
                             Intent.createChooser(Intent().apply {

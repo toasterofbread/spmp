@@ -31,7 +31,7 @@ import com.spectre7.utils.vibrateShort
 fun SongPreviewSquare(
     song: Song, 
     content_colour: () -> Color,
-    player: PlayerViewContext,
+    playerProvider: () -> PlayerViewContext,
     enable_long_press_menu: Boolean = true,
     modifier: Modifier = Modifier
 ) {
@@ -48,17 +48,20 @@ fun SongPreviewSquare(
                 interactionSource = remember { MutableInteractionSource() },
                 indication = null,
                 onClick = {
-                    player.onMediaItemClicked(song)
+                    playerProvider().onMediaItemClicked(song)
                 },
                 onLongClick = {
-                    player.showLongPressMenu(long_press_menu_data)
+                    playerProvider().showLongPressMenu(long_press_menu_data)
                 }
             )
             .aspectRatio(0.8f),
         horizontalAlignment = Alignment.CenterHorizontally,
         verticalArrangement = Arrangement.spacedBy(5.dp)
     ) {
-        song.Thumbnail(MediaItem.ThumbnailQuality.LOW, Modifier.size(100.dp).longPressMenuIcon(long_press_menu_data, enable_long_press_menu))
+        song.Thumbnail(MediaItem.ThumbnailQuality.LOW,
+            Modifier
+                .size(100.dp)
+                .longPressMenuIcon(long_press_menu_data, enable_long_press_menu))
 
         Text(
             song.title,
@@ -75,7 +78,7 @@ fun SongPreviewSquare(
 fun SongPreviewLong(
     song: Song,
     content_colour: () -> Color,
-    player: PlayerViewContext,
+    playerProvider: () -> PlayerViewContext,
     enable_long_press_menu: Boolean = true,
     modifier: Modifier = Modifier
 ) {
@@ -93,10 +96,10 @@ fun SongPreviewLong(
                 interactionSource = remember { MutableInteractionSource() },
                 indication = null,
                 onClick = {
-                    player.onMediaItemClicked(song)
+                    playerProvider().onMediaItemClicked(song)
                 },
                 onLongClick = {
-                    player.showLongPressMenu(long_press_menu_data)
+                    playerProvider().showLongPressMenu(long_press_menu_data)
                 }
             )
     ) {
@@ -104,7 +107,10 @@ fun SongPreviewLong(
             CircularProgressIndicator(color = content_colour())
         }
         else {
-            song.Thumbnail(MediaItem.ThumbnailQuality.LOW, Modifier.size(40.dp).longPressMenuIcon(long_press_menu_data, enable_long_press_menu))
+            song.Thumbnail(MediaItem.ThumbnailQuality.LOW,
+                Modifier
+                    .size(40.dp)
+                    .longPressMenuIcon(long_press_menu_data, enable_long_press_menu))
 
             Column(
                 Modifier
@@ -219,7 +225,7 @@ private val longPressPopupActions: @Composable LongPressMenuActionProvider.(Medi
             Crossfade(active_queue_item, animationSpec = tween(100)) {
                 it?.PreviewLong(
                     content_colour,
-                    player.copy(onClickedOverride = { item -> player.openMediaItem(item) }),
+                    { playerProvider().copy(onClickedOverride = { item -> playerProvider().openMediaItem(item) }) },
                     true,
                     Modifier
                 )
@@ -230,6 +236,6 @@ private val longPressPopupActions: @Composable LongPressMenuActionProvider.(Medi
     ActionButton(Icons.Filled.Download, "Download", onClick = { TODO() })
 
     ActionButton(Icons.Filled.Person, "Go to artist", onClick = {
-        player.openMediaItem(song.artist)
+        playerProvider().openMediaItem(song.artist)
     })
 }

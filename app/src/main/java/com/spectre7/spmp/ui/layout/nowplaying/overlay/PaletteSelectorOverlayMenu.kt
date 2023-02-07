@@ -4,6 +4,9 @@ import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.animation.fadeIn
 import androidx.compose.animation.fadeOut
 import androidx.compose.foundation.layout.*
+import androidx.compose.foundation.lazy.grid.GridCells
+import androidx.compose.foundation.lazy.grid.LazyVerticalGrid
+import androidx.compose.foundation.lazy.grid.items
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.Button
 import androidx.compose.material3.ButtonDefaults
@@ -13,15 +16,22 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.graphics.toArgb
 import androidx.compose.ui.unit.dp
+import androidx.core.graphics.ColorUtils
 import androidx.palette.graphics.Palette
 import com.spectre7.spmp.MainActivity
 import com.spectre7.spmp.model.Song
 import com.spectre7.spmp.ui.layout.PlayerViewContext
-import com.spectre7.utils.getPaletteColour
+import com.spectre7.utils.PALETTE_COLOUR_AMOUNT
+import com.spectre7.utils.compare
+import com.spectre7.utils.getColour
+
+const val PALETTE_SIMILAR_COLOUR_THRESHOLD = 0.1f
 
 class PaletteSelectorOverlayMenu(
-    val palette: Palette?,
+    val paletteProvider: () -> Palette?,
+    val defaultThemeColourProvider: () -> Color?,
     val requestColourPicker: ((Color?) -> Unit) -> Unit,
     val onColourSelected: (Color) -> Unit
 ): OverlayMenu() {
@@ -35,9 +45,30 @@ class PaletteSelectorOverlayMenu(
         openShutterMenu: (@Composable () -> Unit) -> Unit,
         close: () -> Unit,
         seek_state: Any,
-        player: PlayerViewContext
+        playerProvider: () -> PlayerViewContext
     ) {
+        val palette = paletteProvider()
         if (palette != null) {
+
+            val palette_colours = remember(palette) {
+                val colours = mutableListOf(Color.Black, Color.White)
+
+                fun addColour(colour: Color?) {
+                    if (colour != null && !colours.any { it == colour || it.compare(colour) <= PALETTE_SIMILAR_COLOUR_THRESHOLD }) {
+                        colours.add(colour)
+                    }
+                }
+
+                for (i in 0 until PALETTE_COLOUR_AMOUNT) {
+                    addColour(palette.getColour(i))
+                }
+
+                addColour(defaultThemeColourProvider())
+
+                colours.sortByDescending { ColorUtils.calculateLuminance(it.toArgb()) }
+                return@remember colours
+            }
+
             var colourpick_requested by remember { mutableStateOf(false) }
 
             AnimatedVisibility(
@@ -47,26 +78,26 @@ class PaletteSelectorOverlayMenu(
             ) {
                 Column(Modifier.fillMaxSize(), verticalArrangement = Arrangement.SpaceEvenly, horizontalAlignment = Alignment.CenterHorizontally) {
 
-                    Row(
-                        Modifier.fillMaxWidth(),
-                        verticalAlignment = Alignment.CenterVertically,
-                        horizontalArrangement = Arrangement.SpaceEvenly
+                    val button_size = 40.dp
+                    val button_spacing = 30.dp
+                    LazyVerticalGrid(
+                        GridCells.Adaptive(button_size + button_spacing),
+                        Modifier.fillMaxWidth(0.75f),
+                        horizontalArrangement = Arrangement.Center,
+                        verticalArrangement = Arrangement.spacedBy(button_spacing)
                     ) {
-                        for (i in 0 until 5) {
-                            val colour = getPaletteColour(palette, i)
-                            if (colour != null) {
-                                Button(
-                                    onClick = {
-                                        onColourSelected(colour)
-                                    },
-                                    modifier = Modifier
-                                        .clip(RoundedCornerShape(75))
-                                        .requiredSize(40.dp),
-                                    colors = ButtonDefaults.buttonColors(
-                                        containerColor = colour
-                                    )
-                                ) {}
-                            }
+                        items(palette_colours) { colour ->
+                            Button(
+                                onClick = {
+                                    onColourSelected(colour)
+                                },
+                                modifier = Modifier
+                                    .clip(RoundedCornerShape(75))
+                                    .requiredSize(40.dp),
+                                colors = ButtonDefaults.buttonColors(
+                                    containerColor = colour
+                                )
+                            ) {}
                         }
                     }
 
@@ -81,8 +112,8 @@ class PaletteSelectorOverlayMenu(
                             }
                         },
                         colors = ButtonDefaults.buttonColors(
-                            containerColor = MainActivity.theme.getOnBackground(true),
-                            contentColor = MainActivity.theme.getBackground(true)
+                            containerColor = MainActivity.theme.getBackground(true),
+                            contentColor = MainActivity.theme.getOnBackground(true)
                         )
                     ) {
                         Text("Pick from thumbnail")

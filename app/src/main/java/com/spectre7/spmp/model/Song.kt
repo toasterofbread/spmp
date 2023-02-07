@@ -388,13 +388,13 @@ class Song private constructor (
     }
 
     @Composable
-    override fun PreviewSquare(content_colour: () -> Color, player: PlayerViewContext, enable_long_press_menu: Boolean, modifier: Modifier) {
-        SongPreviewSquare(this, content_colour, player, enable_long_press_menu, modifier.recomposeHighlighter())
+    override fun PreviewSquare(content_colour: () -> Color, playerProvider: () -> PlayerViewContext, enable_long_press_menu: Boolean, modifier: Modifier) {
+        SongPreviewSquare(this, content_colour, playerProvider, enable_long_press_menu, modifier.recomposeHighlighter())
     }
 
     @Composable
-    override fun PreviewLong(content_colour: () -> Color, player: PlayerViewContext, enable_long_press_menu: Boolean, modifier: Modifier) {
-        SongPreviewLong(this, content_colour, player, enable_long_press_menu, modifier.recomposeHighlighter())
+    override fun PreviewLong(content_colour: () -> Color, playerProvider: () -> PlayerViewContext, enable_long_press_menu: Boolean, modifier: Modifier) {
+        SongPreviewLong(this, content_colour, playerProvider, enable_long_press_menu, modifier.recomposeHighlighter())
     }
 
     override fun getAssociatedArtist(): Artist? {

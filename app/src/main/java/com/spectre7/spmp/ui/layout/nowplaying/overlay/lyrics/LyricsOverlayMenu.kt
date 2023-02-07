@@ -51,7 +51,7 @@ class LyricsOverlayMenu(
         openShutterMenu: (@Composable () -> Unit) -> Unit,
         close: () -> Unit,
         seek_state: Any,
-        player: PlayerViewContext
+        playerProvider: () -> PlayerViewContext
     ) {
 
         var lyrics: Song.Lyrics? by remember { mutableStateOf(null) }

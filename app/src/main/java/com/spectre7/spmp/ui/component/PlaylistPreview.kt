@@ -23,7 +23,7 @@ import com.spectre7.spmp.ui.layout.PlayerViewContext
 fun PlaylistPreviewSquare(
     playlist: Playlist,
     content_colour: () -> Color,
-    player: PlayerViewContext,
+    playerProvider: () -> PlayerViewContext,
     enable_long_press_menu: Boolean = true,
     modifier: Modifier = Modifier
 ) {
@@ -40,10 +40,10 @@ fun PlaylistPreviewSquare(
                 interactionSource = remember { MutableInteractionSource() },
                 indication = null,
                 onClick = {
-                    player.onMediaItemClicked(playlist)
+                    playerProvider().onMediaItemClicked(playlist)
                 },
                 onLongClick = {
-                    player.showLongPressMenu(long_press_menu_data)
+                    playerProvider().showLongPressMenu(long_press_menu_data)
                 }
             )
             .aspectRatio(0.8f),
@@ -71,7 +71,7 @@ fun PlaylistPreviewSquare(
 fun PlaylistPreviewLong(
     playlist: Playlist, 
     content_colour: () -> Color,
-    player: PlayerViewContext,
+    playerProvider: () -> PlayerViewContext,
     enable_long_press_menu: Boolean = true,
     modifier: Modifier = Modifier
 ) {
@@ -89,10 +89,10 @@ fun PlaylistPreviewLong(
                 interactionSource = remember { MutableInteractionSource() },
                 indication = null,
                 onClick = {
-                    player.onMediaItemClicked(playlist)
+                    playerProvider().onMediaItemClicked(playlist)
                 },
                 onLongClick = {
-                    player.showLongPressMenu(long_press_menu_data)
+                    playerProvider().showLongPressMenu(long_press_menu_data)
                 }
             )
     ) {

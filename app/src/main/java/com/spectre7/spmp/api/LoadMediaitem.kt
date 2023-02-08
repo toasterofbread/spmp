@@ -111,7 +111,7 @@ fun loadMediaItemData(item: MediaItem): DataApi.Result<MediaItem> {
 
         fun finish(data: Any, thumbnail_provider: MediaItem.ThumbnailProvider? = null): DataApi.Result<MediaItem> {
             if (item is Artist) {
-                item.subscribed = isSubscribedToArtist(item).getNullableDataOrThrow()
+                item.updateSubscribed()
             }
 
             item.initWithData(data, thumbnail_provider)
@@ -190,7 +190,7 @@ fun loadMediaItemData(item: MediaItem): DataApi.Result<MediaItem> {
             it.navigationEndpoint?.browseEndpoint?.browseEndpointContextSupportedConfigs?.browseEndpointContextMusicConfig?.pageType == "MUSIC_PAGE_TYPE_ALBUM"
         }
         if (album_run != null) {
-            val artist = Playlist.fromId(album_run.navigationEndpoint!!.browseEndpoint!!.browseId).loadData().getAssociatedArtist()
+            val artist = Playlist.fromId(album_run.navigationEndpoint!!.browseEndpoint!!.browseId).loadData().artist
             if (artist != null) {
                 return finish(VideoDetails(video.videoId, video.title.first_text, artist.id))
             }

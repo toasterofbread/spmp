@@ -13,10 +13,23 @@ class Playlist private constructor (
     id: String
 ): MediaItem(id) {
 
-    // Data
-    override lateinit var title: String
     lateinit var feed_layouts: List<MediaItemLayout>
-    var artist: Artist? = null
+
+    override fun subInitWithData(data: Serialisable) {
+        if (data !is SerialisablePlaylist) {
+            throw ClassCastException(data.javaClass.name)
+        }
+
+        title = data.title
+        description = data.description
+
+        feed_layouts = data.item_layouts
+        assert(!feed_layouts.any { it.type == null })
+
+        if (data.artist_id != null) {
+            artist = Artist.fromId(data.artist_id).loadData() as Artist
+        }
+    }
 
     companion object {
         private val playlists: MutableMap<String, Playlist> = mutableMapOf()
@@ -51,22 +64,5 @@ class Playlist private constructor (
 
     override fun _getUrl(): String {
         return "https://music.youtube.com/playlist?list=$id"
-    }
-
-    override fun subInitWithData(data: Any) {
-        if (data !is BrowseData) {
-            throw ClassCastException(data.javaClass.name)
-        }
-
-        title = data.name!!
-
-        feed_layouts = data.item_layouts
-        for (layout in feed_layouts) {
-            assert(layout.type != null)
-        }
-
-        if (data.subscribe_channel_id != null) {
-            artist = Artist.fromId(data.subscribe_channel_id!!).loadData() as Artist
-        }
     }
 }

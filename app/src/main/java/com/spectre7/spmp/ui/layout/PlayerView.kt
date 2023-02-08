@@ -288,7 +288,7 @@ private fun refreshFeed(allow_cached: Boolean, feed_layouts: MutableList<MediaIt
             val playlists = MediaItemLayout(getString(R.string.feed_row_playlists), null, MediaItemLayout.Type.GRID)
 
             val rows = mutableListOf<MediaItemLayout>()
-            val request_limit = Semaphore(10)
+            val request_limit = Semaphore(10) // TODO?
 
             runBlocking { withContext(Dispatchers.IO) { coroutineScope {
                 for (row in feed_result.data) {
@@ -297,17 +297,35 @@ private fun refreshFeed(allow_cached: Boolean, feed_layouts: MutableList<MediaIt
 
                     for (item in row.items) {
                         val media_item = item.toMediaItem()
+                        if (media_item.title != null && media_item.artist != null) {
+                            when (item) {
+                                is Song -> {
+                                    entry.addItem(media_item)
+                                    artists.addItem(media_item.artist!!)
+                                }
+                                is Playlist -> {
+                                    playlists.addItem(media_item)
+                                    artists.addItem(media_item.artist!!)
+                                }
+                                is Artist -> artists.addItem(media_item)
+                            }
+                            continue
+                        }
+
                         launch {
                             request_limit.withPermit {
-                                val loaded = media_item.getOrReplacedWith().loadData()
+                                val loaded = media_item.loadData()
                                 synchronized(request_limit) {
                                     when (loaded) {
                                         is Song -> {
                                             entry.addItem(loaded)
-                                            artists.addItem(loaded.artist)
+                                            artists.addItem(loaded.artist!!)
+                                        }
+                                        is Playlist -> {
+                                            playlists.addItem(loaded)
+                                            artists.addItem(loaded.artist!!)
                                         }
                                         is Artist -> artists.addItem(loaded)
-                                        is Playlist -> playlists.addItem(media_item)
                                     }
                                 }
                             }

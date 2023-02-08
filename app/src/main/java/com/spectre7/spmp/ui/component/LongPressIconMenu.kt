@@ -338,7 +338,7 @@ fun LongPressIconMenu(
                                 }
 
                                 if (data.item !is Artist) {
-                                    val artist = data.item.getAssociatedArtist()
+                                    val artist = data.item.artist
                                     if (artist != null) {
                                         Marquee(false) {
                                             artist.PreviewLong(

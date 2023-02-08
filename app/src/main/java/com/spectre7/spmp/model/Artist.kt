@@ -20,13 +20,25 @@ class Artist private constructor (
     id: String
 ): MediaItem(id) {
 
-    // Data
-    override lateinit var title: String
-    var description: String? = null
+    init {
+        artist = this
+    }
+
     lateinit var feed_rows: List<MediaItemLayout>
     lateinit var subscribe_channel_id: String
 
     var subscribed: Boolean? by mutableStateOf(null)
+
+    override fun subInitWithData(data: Serialisable) {
+        if (data !is SerialisableArtist) {
+            throw ClassCastException(data.javaClass.name)
+        }
+
+        title = data.title
+        description = data.description
+        feed_rows = data.item_layouts
+        subscribe_channel_id = data.subscribe_channel_id ?: id
+    }
 
     companion object {
         private val artists: MutableMap<String, Artist> = mutableMapOf()
@@ -63,17 +75,6 @@ class Artist private constructor (
         return "https://music.youtube.com/channel/$id"
     }
 
-    override fun subInitWithData(data: Any) {
-        if (data !is BrowseData) {
-            throw ClassCastException(data.javaClass.name)
-        }
-
-        title = data.name!!
-        description = data.description
-        feed_rows = data.item_layouts
-        subscribe_channel_id = data.subscribe_channel_id ?: id
-    }
-
     fun getFormattedSubscriberCount(): String {
         return "Unknown"
 //        val subs = subscriber_count.toInt()
@@ -86,6 +87,10 @@ class Artist private constructor (
 //        else {
 //            return "$subs"
 //        }
+    }
+
+    fun updateSubscribed() {
+        subscribed = isSubscribedToArtist(this).getNullableDataOrThrow()
     }
 
     fun toggleSubscribe(toggle_before_fetch: Boolean = false, notify_failure: Boolean = false) {
@@ -101,7 +106,7 @@ class Artist private constructor (
             }
 
             subscribeOrUnsubscribeArtist(this, target).getDataOrThrow()
-            subscribed = isSubscribedToArtist(this).getNullableDataOrThrow()
+            updateSubscribed()
 
             if (notify_failure && subscribed != target) {
                 sendToast(

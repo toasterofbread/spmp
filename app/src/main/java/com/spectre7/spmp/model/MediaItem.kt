@@ -26,43 +26,48 @@ abstract class MediaItem(id: String) {
         return _id
     }
 
-    abstract val title: String
+    private var _title: String? by mutableStateOf(null)
+    var title: String? 
+        get() = _title
+        protected set(value) {
+            _title = value
+        }
+
+    fun supplyTitle(value: String?) {
+        if (_title == null && value != null) {
+            _title = value
+        }
+    }
+
+    private var _artist: Artist? by mutableStateOf(null)
+    var artist: Artist?
+        get() = _artist
+        protected set(value) {
+            _artist = value
+        }
+
+    fun supplyArtist(value: Artist?) {
+        if (_artist == null && value != null) {
+            _artist = value
+        }
+    }
+
+    private var _description: String? by mutableStateOf(null)
+    var description: String?
+        get() = _description
+        protected set(value) {
+            _description = value
+        }
+
+    fun supplyDescription(value: String?) {
+        if (_description == null && value != null) {
+            _description = value
+        }
+    }
+
+    protected abstract fun subInitWithData(data: Serialisable)
 
     private var replaced_with: MediaItem? = null
-
-    fun getOrReplacedWith(): MediaItem {
-        return replaced_with?.getOrReplacedWith() ?: this
-    }
-
-    fun getLoadedOrNull(): MediaItem? {
-        if (!getOrReplacedWith().loaded) {
-            return null
-        }
-        return getOrReplacedWith()
-    }
-
-    fun replaceWithItemWithId(new_id: String): MediaItem {
-        if (_id == new_id) {
-            return this
-        }
-
-        if (replaced_with != null) {
-            if (replaced_with!!.getOrReplacedWith()._id == new_id) {
-                return replaced_with!!.getOrReplacedWith()
-            }
-            throw IllegalStateException()
-        }
-
-        invalidate()
-
-        replaced_with = when (type) {
-            Type.SONG -> Song.fromId(new_id)
-            Type.ARTIST -> Artist.fromId(new_id)
-            Type.PLAYLIST -> Playlist.fromId(new_id)
-        }
-
-        return replaced_with!!
-    }
 
     enum class Type {
         SONG, ARTIST, PLAYLIST
@@ -113,19 +118,22 @@ abstract class MediaItem(id: String) {
         data class ContentDetails(val duration: String? = null)
     }
 
-    data class Serialisable(val type: Int, val id: String) {
+    abstract class Serialisable(
+        val type: Int, 
+        val id: String,
+        var title: String? = null,
+        var artist_id: String? = null,
+        var description: String? = null
+    ) {
         private val enum_type get() = Type.values()[type]
+        
         fun toMediaItem(): MediaItem {
-            when (enum_type) {
-                Type.SONG -> return Song.fromId(id)
-                Type.ARTIST -> return Artist.fromId(id)
-                Type.PLAYLIST -> return Playlist.fromId(id)
-            }
+            return getMediaItem().initWithData(this)
         }
+
+        abstract protected fun getMediaItem(): MediaItem
     }
-    fun toSerialisable(): Serialisable {
-        return Serialisable(type.ordinal, id)
-    }
+    abstract fun toSerialisable(): Serialisable
 
     class BrowseEndpoint {
         val id: String
@@ -247,6 +255,40 @@ abstract class MediaItem(id: String) {
         var loading by mutableStateOf(false)
     }
     private val thumb_states: Map<ThumbnailQuality, ThumbState>
+
+    fun getOrReplacedWith(): MediaItem {
+        return replaced_with?.getOrReplacedWith() ?: this
+    }
+
+    fun getLoadedOrNull(): MediaItem? {
+        if (!getOrReplacedWith().loaded) {
+            return null
+        }
+        return getOrReplacedWith()
+    }
+
+    fun replaceWithItemWithId(new_id: String): MediaItem {
+        if (_id == new_id) {
+            return this
+        }
+
+        if (replaced_with != null) {
+            if (replaced_with!!.getOrReplacedWith()._id == new_id) {
+                return replaced_with!!.getOrReplacedWith()
+            }
+            throw IllegalStateException()
+        }
+
+        invalidate()
+
+        replaced_with = when (type) {
+            Type.SONG -> Song.fromId(new_id)
+            Type.ARTIST -> Artist.fromId(new_id)
+            Type.PLAYLIST -> Playlist.fromId(new_id)
+        }
+
+        return replaced_with!!
+    }
 
     val url: String get() = _getUrl()
 
@@ -370,18 +412,11 @@ abstract class MediaItem(id: String) {
 
     abstract fun _getUrl(): String
 
-    abstract fun getAssociatedArtist(): Artist?
-
     fun loadData(): MediaItem {
-        if (load_status == LoadStatus.LOADED) {
-            return getOrReplacedWith()
-        }
-
-        val result = loadMediaItemData(this)
-        return result.getDataOrThrow()
+        return loadMediaItemData(getOrReplacedWith()).getDataOrThrow()
     }
 
-    fun initWithData(data: Any, thumbnail_provider: ThumbnailProvider?) {
+    fun initWithData(data: Serialisable, thumbnail_provider: ThumbnailProvider?) {
         if (load_status == LoadStatus.LOADED) {
             return
         }
@@ -389,8 +424,6 @@ abstract class MediaItem(id: String) {
         subInitWithData(data)
         load_status = LoadStatus.LOADED
     }
-
-    protected abstract fun subInitWithData(data: Any)
 
     fun getDefaultThemeColour(): Color? {
         for (quality in ThumbnailQuality.values()) {

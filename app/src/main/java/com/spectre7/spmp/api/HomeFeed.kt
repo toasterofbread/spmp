@@ -122,6 +122,8 @@ data class MusicResponsiveListItemFlexColumnRenderer(val text: TextRuns)
 
 data class ContentsItem(val musicTwoRowItemRenderer: MusicTwoRowItemRenderer? = null, val musicResponsiveListItemRenderer: MusicResponsiveListItemRenderer? = null) {
     fun toSerialisableMediaItem(): MediaItem.Serialisable? {
+        TODO("Supply available data to created MediaItem")
+
         if (musicTwoRowItemRenderer != null) {
             val _item = musicTwoRowItemRenderer
 
@@ -130,13 +132,14 @@ data class ContentsItem(val musicTwoRowItemRenderer: MusicTwoRowItemRenderer? = 
                 return Song.serialisable(_item.navigationEndpoint.watchEndpoint.videoId)
             }
 
-            val browse_id = _item.navigationEndpoint.browseEndpoint!!.browseId
-
             // Playlist or artist
-            return when (_item.navigationEndpoint.browseEndpoint.browseEndpointContextSupportedConfigs!!.browseEndpointContextMusicConfig.pageType) {
+            val browse_id = _item.navigationEndpoint.browseEndpoint!!.browseId
+            val page_type = _item.navigationEndpoint.browseEndpoint.browseEndpointContextSupportedConfigs!!.browseEndpointContextMusicConfig.pageType
+
+            return when (page_type) {
                 "MUSIC_PAGE_TYPE_ALBUM", "MUSIC_PAGE_TYPE_PLAYLIST", "MUSIC_PAGE_TYPE_AUDIOBOOK" -> Playlist.serialisable(browse_id)
                 "MUSIC_PAGE_TYPE_ARTIST" -> Artist.serialisable(browse_id)
-                else -> throw NotImplementedError("$browse_id: ${_item.navigationEndpoint.browseEndpoint.browseEndpointContextSupportedConfigs.browseEndpointContextMusicConfig.pageType}")
+                else -> throw NotImplementedError("$page_type ($browse_id)")
             }
         }
         else if (musicResponsiveListItemRenderer != null) {

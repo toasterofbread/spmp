@@ -126,18 +126,6 @@ class Song private constructor (
     private var stream_url_loading: Boolean = false
     private val stream_url_load_lock = Object()
 
-    private lateinit var _title: String
-    lateinit var artist: Artist
-
-    override fun subInitWithData(data: Any) {
-        if (data !is VideoDetails) {
-            throw ClassCastException(data.javaClass.name)
-        }
-
-        _title = data.title
-        artist = Artist.fromId(data.channelId).loadData() as Artist
-    }
-
     var theme_colour: Color?
         get() {
             val value = registry.get<Int>("theme_colour")
@@ -148,45 +136,78 @@ class Song private constructor (
         }
         set(value) { registry.set("theme_colour", value?.toArgb()) }
 
-    val original_title: String get() = _title
-    override var title: String
-        get() {
-            val registry_title = registry.get<String>("title")
-            if (registry_title != null) {
-                return registry_title
-            }
-
-            var ret = _title
-
-            for (pair in listOf("[]", "{}")) {
-                while (true) {
-                    val a = ret.indexOf(pair[0])
-                    if (a < 0) {
-                        break
-                    }
-
-                    val b = ret.indexOf(pair[1])
-                    if (b < 0) {
-                        break
-                    }
-
-                    val temp = ret
-                    ret = temp.slice(0 until a - 1) + temp.slice(b + 1 until temp.length)
-                }
-            }
-
-            for ((key, value) in mapOf("-" to "", "  " to "", artist.title to "", "MV" to "")) {
-                if (key.isEmpty()) {
-                    continue
-                }
-                while (ret.contains(key)) {
-                    ret = ret.replace(key, value)
-                }
-            }
-
-            return (ret as CharSequence).trim().trim('ㅤ').toString()
+    
+    fun getDisplayTitle(): String? {
+        val registry_title = registry.get<String>("title")
+        if (registry_title != null) {
+            return registry_title
         }
-        set(value) { registry.set("title", value) }
+
+        if (title == null) {
+            return null
+        }
+
+        var ret = title
+
+        for (pair in listOf("[]", "{}")) {
+            while (true) {
+                val a = ret.indexOf(pair[0])
+                if (a < 0) {
+                    break
+                }
+
+                val b = ret.indexOf(pair[1])
+                if (b < 0) {
+                    break
+                }
+
+                val temp = ret
+                ret = temp.slice(0 until a - 1) + temp.slice(b + 1 until temp.length)
+            }
+        }
+
+        for ((key, value) in mapOf("-" to "", "  " to "", artist.title to "", "MV" to "")) {
+            if (key.isEmpty()) {
+                continue
+            }
+            while (ret.contains(key)) {
+                ret = ret.replace(key, value)
+            }
+        }
+
+        return (ret as CharSequence).trim().trim('ㅤ').toString()
+    }
+    
+    fun setTitleOverride(value: String) {
+        registry.set("title", value)
+    }
+
+    override fun subInitWithData(data: Serialisable) {
+        if (data !is SerialisableSong) {
+            throw ClassCastException(data.javaClass.name)
+        }
+
+        title = data.title
+        if (data.artist_id != null) {
+            artist = Artist.fromId(data.artist_id).loadData() as Artist
+        }
+        description = data.description
+    }
+
+    data class SerialisableSong(
+        id: String,
+        title: String? = null,
+        artist_id: String? = null,
+        description: String? = null
+    ): Serialisable(Type.SONG, id, title, artist_id, description) {
+        override fun getMediaItem(): MediaItem {
+            return Song.fromId(id)
+        }
+    }
+
+    override fun toSerialisable(): Serialisable {
+        return SerialisableSong(id, title, artist?.id, description)
+    }
 
     data class Lyrics(
         val id: Int,

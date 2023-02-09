@@ -82,7 +82,7 @@ fun ArtistPage(
         thread {
             runBlocking {
                 withContext(Dispatchers.IO) { coroutineScope {
-                    for (row in artist.feed_rows) {
+                    for (row in artist.feed_layouts) {
                         for (item in row.items.withIndex()) {
                             launch {
                                 val new_item = item.value.loadData()
@@ -96,7 +96,7 @@ fun ArtistPage(
                     }
                 }}
 
-                for (row in artist.feed_rows) {
+                for (row in artist.feed_layouts) {
                     row.items.removeAll {
                         if (!it.is_valid) {
                             println("REMOVE ${it.id} | ${it.type}")
@@ -276,7 +276,7 @@ fun ArtistPage(
                                 .padding(content_padding),
                             verticalArrangement = Arrangement.spacedBy(30.dp)
                         ) {
-                            for (row in artist.feed_rows) {
+                            for (row in artist.feed_layouts) {
                                 MediaItemGrid(MediaItemLayout(row.title, null, items = row.items), playerProvider)
                             }
 

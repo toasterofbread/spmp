@@ -13,22 +13,17 @@ class Playlist private constructor (
     id: String
 ): MediaItem(id) {
 
-    lateinit var feed_layouts: List<MediaItemLayout>
+    var feed_layouts: List<MediaItemLayout>? = null
 
-    override fun subInitWithData(data: Serialisable) {
-        if (data !is SerialisablePlaylist) {
-            throw ClassCastException(data.javaClass.name)
-        }
+    override fun initWithData(data: JsonObject, klaxon: Klaxon): MediaItem {
+        feed_layouts = klaxon.parseFromJsonArray(obj.array("feed_layouts"))
+        return super.initWithData(data, klaxon)
+    }
 
-        title = data.title
-        description = data.description
-
-        feed_layouts = data.item_layouts
-        assert(!feed_layouts.any { it.type == null })
-
-        if (data.artist_id != null) {
-            artist = Artist.fromId(data.artist_id).loadData() as Artist
-        }
+    override fun getJsonValues(klaxon: Klaxon): String {
+        return """
+            "feed_layouts": ${klaxon.toJsonString(feed_layouts)},
+        """
     }
 
     companion object {
@@ -41,10 +36,6 @@ class Playlist private constructor (
                 playlists[id] = playlist
                 return playlist
             }.getOrReplacedWith() as Playlist
-        }
-
-        fun serialisable(id: String): Serialisable {
-            return Serialisable(Type.PLAYLIST.ordinal, id)
         }
     }
 
@@ -62,7 +53,5 @@ class Playlist private constructor (
         return artist
     }
 
-    override fun _getUrl(): String {
-        return "https://music.youtube.com/playlist?list=$id"
-    }
+    override val url: String get() = return "https://music.youtube.com/playlist?list=$id"
 }

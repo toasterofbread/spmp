@@ -24,20 +24,22 @@ class Artist private constructor (
         artist = this
     }
 
-    lateinit var feed_rows: List<MediaItemLayout>
+    lateinit var feed_layouts: List<MediaItemLayout>
     lateinit var subscribe_channel_id: String
 
     var subscribed: Boolean? by mutableStateOf(null)
 
-    override fun subInitWithData(data: Serialisable) {
-        if (data !is SerialisableArtist) {
-            throw ClassCastException(data.javaClass.name)
-        }
+    override fun initWithData(data: JsonObject, klaxon: Klaxon): MediaItem {
+        feed_layouts = klaxon.parseFromJsonArray(data.array("feed_layouts"))
+        subscribe_channel_id = data.string("subscribe_channel_id") ?: id
+        return super.initWithData(data, klaxon)
+    }
 
-        title = data.title
-        description = data.description
-        feed_rows = data.item_layouts
-        subscribe_channel_id = data.subscribe_channel_id ?: id
+    override fun getJsonValues(klaxon: Klaxon): String {
+        return """
+            "feed_layouts": ${klaxon.toJsonString(feed_layouts)},
+            "subscribe_channel_id": ${stringToJson(subscribe_channel_id)}
+        """
     }
 
     companion object {
@@ -50,10 +52,6 @@ class Artist private constructor (
                 artists[id] = ret
                 return ret
             }.getOrReplacedWith() as Artist
-        }
-
-        fun serialisable(id: String): Serialisable {
-            return Serialisable(Type.ARTIST.ordinal, id)
         }
     }
 
@@ -71,9 +69,7 @@ class Artist private constructor (
         return this
     }
 
-    override fun _getUrl(): String {
-        return "https://music.youtube.com/channel/$id"
-    }
+    override val url: String get() = return "https://music.youtube.com/channel/$id"
 
     fun getFormattedSubscriberCount(): String {
         return "Unknown"

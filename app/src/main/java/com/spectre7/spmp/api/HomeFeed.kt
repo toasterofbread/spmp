@@ -47,11 +47,7 @@ data class YoutubeiShelf(
     }
 
     fun getMediaItems(): List<MediaItem> {
-        return (musicShelfRenderer?.contents ?: musicCarouselShelfRenderer?.contents ?: musicPlaylistShelfRenderer!!.contents).mapNotNull { it.toSerialisableMediaItem()?.toMediaItem() }
-    }
-
-    fun getSerialisableMediaItems(): List<MediaItem.Serialisable> {
-        return (musicShelfRenderer?.contents ?: musicCarouselShelfRenderer?.contents ?: musicPlaylistShelfRenderer!!.contents).mapNotNull { it.toSerialisableMediaItem() }
+        return (musicShelfRenderer?.contents ?: musicCarouselShelfRenderer?.contents ?: musicPlaylistShelfRenderer!!.contents).mapNotNull { it.toMediaItem() }
     }
 
     fun getRenderer(): Any {
@@ -63,7 +59,7 @@ data class HomeFeedRow(
     val title: String?,
     val subtitle: String?,
     val browse_id: String?,
-    val items: List<MediaItem.Serialisable>
+    val items: List<MediaItem>
 )
 
 data class WatchEndpoint(val videoId: String? = null, val playlistId: String? = null)
@@ -121,7 +117,7 @@ data class FlexColumn(val musicResponsiveListItemFlexColumnRenderer: MusicRespon
 data class MusicResponsiveListItemFlexColumnRenderer(val text: TextRuns)
 
 data class ContentsItem(val musicTwoRowItemRenderer: MusicTwoRowItemRenderer? = null, val musicResponsiveListItemRenderer: MusicResponsiveListItemRenderer? = null) {
-    fun toSerialisableMediaItem(): MediaItem.Serialisable? {
+    fun toMediaItem(): MediaItem {
         TODO("Supply available data to created MediaItem")
 
         if (musicTwoRowItemRenderer != null) {
@@ -129,7 +125,7 @@ data class ContentsItem(val musicTwoRowItemRenderer: MusicTwoRowItemRenderer? = 
 
             // Video
             if (_item.navigationEndpoint.watchEndpoint?.videoId != null) {
-                return Song.serialisable(_item.navigationEndpoint.watchEndpoint.videoId)
+                return Song.fromId(_item.navigationEndpoint.watchEndpoint.videoId)
             }
 
             // Playlist or artist
@@ -137,14 +133,14 @@ data class ContentsItem(val musicTwoRowItemRenderer: MusicTwoRowItemRenderer? = 
             val page_type = _item.navigationEndpoint.browseEndpoint.browseEndpointContextSupportedConfigs!!.browseEndpointContextMusicConfig.pageType
 
             return when (page_type) {
-                "MUSIC_PAGE_TYPE_ALBUM", "MUSIC_PAGE_TYPE_PLAYLIST", "MUSIC_PAGE_TYPE_AUDIOBOOK" -> Playlist.serialisable(browse_id)
-                "MUSIC_PAGE_TYPE_ARTIST" -> Artist.serialisable(browse_id)
+                "MUSIC_PAGE_TYPE_ALBUM", "MUSIC_PAGE_TYPE_PLAYLIST", "MUSIC_PAGE_TYPE_AUDIOBOOK" -> Playlist.fromId(browse_id)
+                "MUSIC_PAGE_TYPE_ARTIST" -> Artist.fromId(browse_id)
                 else -> throw NotImplementedError("$page_type ($browse_id)")
             }
         }
         else if (musicResponsiveListItemRenderer != null) {
             if (musicResponsiveListItemRenderer.playlistItemData != null) {
-                return Song.serialisable(musicResponsiveListItemRenderer.playlistItemData.videoId)
+                return Song.fromId(musicResponsiveListItemRenderer.playlistItemData.videoId)
             }
 
             if (musicResponsiveListItemRenderer.flexColumns != null) {
@@ -154,7 +150,7 @@ data class ContentsItem(val musicTwoRowItemRenderer: MusicTwoRowItemRenderer? = 
                     }
                     for (run in column.musicResponsiveListItemFlexColumnRenderer.text.runs) {
                         if (run.navigationEndpoint?.watchEndpoint != null) {
-                            return Song.serialisable(run.navigationEndpoint.watchEndpoint.videoId!!)
+                            return Song.fromId(run.navigationEndpoint.watchEndpoint.videoId!!)
                         }
                     }
                 }
@@ -192,9 +188,9 @@ fun getHomeFeed(min_rows: Int = -1, allow_cached: Boolean = true): DataApi.Resul
     fun processRows(rows: List<YoutubeiShelf>): List<HomeFeedRow> {
         val ret = mutableListOf<HomeFeedRow>()
         for (row in rows) {
-            val items: List<MediaItem.Serialisable> = when (row.getRenderer()) {
+            val items: List<MediaItem> = when (row.getRenderer()) {
                 is MusicDescriptionShelfRenderer -> continue
-                is MusicShelfRenderer, is MusicCarouselShelfRenderer -> row.getSerialisableMediaItems()
+                is MusicShelfRenderer, is MusicCarouselShelfRenderer -> row.getMediaItems()
                 else -> throw NotImplementedError()
             }
 

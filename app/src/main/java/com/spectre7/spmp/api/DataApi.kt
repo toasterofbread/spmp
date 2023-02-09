@@ -18,7 +18,9 @@ class DataApi {
 
     companion object {
         internal val client: OkHttpClient = OkHttpClient()
+
         internal val klaxon: Klaxon = Klaxon()
+            .converter(MediaItem.json_converter)
 
         private lateinit var youtubei_base_context: JsonObject
         private lateinit var youtubei_headers: Headers

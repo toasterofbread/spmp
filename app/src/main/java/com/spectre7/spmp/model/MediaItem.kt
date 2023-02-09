@@ -65,8 +65,6 @@ abstract class MediaItem(id: String) {
         }
     }
 
-    protected abstract fun subInitWithData(data: Serialisable)
-
     private var replaced_with: MediaItem? = null
 
     enum class Type {
@@ -78,62 +76,58 @@ abstract class MediaItem(id: String) {
         is Playlist -> Type.PLAYLIST
         else -> throw NotImplementedError(this.javaClass.name)
     }
-
-    data class YTApiDataResponse(
-        val id: String = "",
-        val snippet: Snippet? = null,
-        val statistics: Statistics? = null,
-        val contentDetails: ContentDetails? = null,
-        val localizations: Map<String, LocalizedSnippet>? = null,
-    ) {
-        fun getLocalisation(lang: String): LocalizedSnippet? {
-            return localizations?.getOrElse(lang) {
-                for (loc in localizations) {
-                    if (loc.key.split('_').first() == lang) {
-                        return@getOrElse loc.value
-                    }
-                }
-                return@getOrElse null
-            }
-        }
-
-        data class Snippet(
-            val title: String,
-            val description: String? = null,
-            val publishedAt: String,
-            val channelId: String? = null,
-            val defaultLanguage: String? = null,
-            val country: String? = null,
-            val thumbnails: Map<String, ThumbnailProvider.Thumbnail>,
-            val localized: LocalizedSnippet? = null,
-        )
-        data class LocalizedSnippet(val title: String? = null, var description: String? = null) {
-            init {
-                if (description?.isBlank() == true) {
-                    description = null
-                }
-            }
-        }
-        data class Statistics(val viewCount: String, val subscriberCount: String? = null, val hiddenSubscriberCount: Boolean = false, val videoCount: String? = null)
-        data class ContentDetails(val duration: String? = null)
+    
+    protected inline fun stringToJson(string: String?): String {
+        return if (string == null) "null" else "\"$string\""
     }
+    fun toJsonString(klaxon: Klaxon = DataApi.klaxon): String {
+        return """
+        {
+            "type": $type,
+            "title": ${stringToJson(title)},
+            "artist": ${stringToJson(artist)},
+            "description": ${stringToJson(description)},
+            ${getJsonValues(klaxon)}
+        }
+        """
+    }
+    open protected fun getJsonValues(klaxon: Klaxon): String = ""
 
-    abstract class Serialisable(
-        val type: Int, 
-        val id: String,
-        var title: String? = null,
-        var artist_id: String? = null,
-        var description: String? = null
-    ) {
-        private val enum_type get() = Type.values()[type]
+    companion object {
+        fun fromJsonObject(obj: JsonObject, klaxon: DataApi.klaxon): MediaItem {
+            val id = obj.string(id!!)
+            val type = Type.values()[obj.int("type")!!]
+
+            return when (type) {
+                Type.SONG -> Song(id)
+                Type.ARTIST -> Artist(id)
+                Type.PLAYLIST -> Playlist(id)
+            }.initFromJsonObject(obj, klaxon)
+        }
         
-        fun toMediaItem(): MediaItem {
-            return getMediaItem().initWithData(this)
-        }
+        val json_converter = object : Converter {
+            override fun canConvert(cls: Class<*>): Boolean {
+                return MediaItem::class.java.isAssignableFrom(cls)
+            }
 
-        abstract protected fun getMediaItem(): MediaItem
+            override fun fromJson(value: JsonValue): Any {
+                if (value.obj == null) {
+                    throw KlaxonException("Couldn't parse MediaItem as it isn't an object ($value)")
+                }
+
+                try {
+                    return fromJsonObject(value)
+                }
+                catch (e: Exception) {
+                    throw KlaxonException("Couldn't parse MediaItem ($value)", e)
+                }
+            }
+
+            override fun toJson(obj: Any): String {
+                return (obj as MediaItem).toJsonString(DataApi.klaxon)
+            }
+        }
     }
-    abstract fun toSerialisable(): Serialisable
 
     class BrowseEndpoint {
         val id: String
@@ -247,7 +241,7 @@ abstract class MediaItem(id: String) {
             }
         }
     }
-    private var thumbnail_provider: ThumbnailProvider? = null
+    var thumbnail_provider: ThumbnailProvider? = null
     var thumbnail_palette: Palette? by mutableStateOf(null)
 
     private class ThumbState {
@@ -290,7 +284,7 @@ abstract class MediaItem(id: String) {
         return replaced_with!!
     }
 
-    val url: String get() = _getUrl()
+    abstract val url: String
 
     private val _related_endpoints = mutableListOf<BrowseEndpoint>()
     val related_endpoints: List<BrowseEndpoint>
@@ -410,19 +404,15 @@ abstract class MediaItem(id: String) {
         }
     }
 
-    abstract fun _getUrl(): String
-
     fun loadData(): MediaItem {
         return loadMediaItemData(getOrReplacedWith()).getDataOrThrow()
     }
 
-    fun initWithData(data: Serialisable, thumbnail_provider: ThumbnailProvider?) {
-        if (load_status == LoadStatus.LOADED) {
-            return
-        }
-        this.thumbnail_provider = thumbnail_provider
-        subInitWithData(data)
-        load_status = LoadStatus.LOADED
+    open fun initWithData(data: JsonObject, klaxon: Klaxon): MediaItem {
+        title = data.string("title")
+        artist = data.string("artist")
+        description = data.string("description")
+        return this
     }
 
     fun getDefaultThemeColour(): Color? {

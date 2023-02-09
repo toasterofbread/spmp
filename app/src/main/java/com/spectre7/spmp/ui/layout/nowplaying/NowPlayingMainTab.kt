@@ -147,13 +147,13 @@ fun ColumnScope.NowPlayingMainTab(
         loaded_song = song
     }
 
-    LaunchedEffect(PlayerServiceHost.status.m_song, PlayerServiceHost.status.m_song?.loaded) {
+    LaunchedEffect(PlayerServiceHost.status.m_song, PlayerServiceHost.status.m_song?.canLoadThumbnail()) {
         val song = PlayerServiceHost.status.song
         if (loaded_song == song) {
             return@LaunchedEffect
         }
 
-        if (song == null || !song.loaded) {
+        if (song == null || !song.canLoadThumbnail()) {
             _setThumbnail(null)
             theme_palette = null
             theme_colour = null
@@ -507,8 +507,8 @@ private fun Controls(
                         .fillMaxWidth()
                         .animateContentSize()
                         .clickable {
-                            if (PlayerServiceHost.status.song?.loaded == true) {
-                                playerProvider().onMediaItemClicked(PlayerServiceHost.status.song!!.artist)
+                            PlayerServiceHost.status.song!!.artist?.also {
+                                playerProvider().onMediaItemClicked(it)
                             }
                         }
                 )

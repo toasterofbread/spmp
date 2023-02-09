@@ -34,7 +34,7 @@ import org.burnoutcrew.reorderable.*
 import kotlin.math.roundToInt
 
 @Composable
-fun QueueTab(weight_modifier: Modifier, playerProvider: () -> PlayerViewContext) {
+fun QueueTab(expansion: Float, playerProvider: () -> PlayerViewContext) {
 
     var key_inc by remember { mutableStateOf(0) }
     val v_removed = remember { mutableStateListOf<Int>() }
@@ -158,10 +158,9 @@ fun QueueTab(weight_modifier: Modifier, playerProvider: () -> PlayerViewContext)
     )
 
     Box(Modifier.fillMaxSize()) {
-
         LazyColumn(
             state = state.listState,
-            modifier = weight_modifier
+            modifier = Modifier
                 .reorderable(state)
                 .detectReorderAfterLongPress(state)
                 .align(Alignment.TopCenter)
@@ -216,79 +215,87 @@ fun QueueTab(weight_modifier: Modifier, playerProvider: () -> PlayerViewContext)
             }
         }
 
-        Row(
-            Modifier
-                .align(Alignment.BottomCenter)
-                .padding(10.dp), horizontalArrangement = Arrangement.SpaceAround, verticalAlignment = Alignment.CenterVertically) {
+        AnimatedVisibility(remember { derivedStateOf { expansion == 1f } }.value, enter = slideInVertically(), exit = slideOutVertically()) {
             Row(
                 Modifier
-                    .fillMaxWidth()
-                    .weight(1f), horizontalArrangement = Arrangement.SpaceEvenly, verticalAlignment = Alignment.CenterVertically) {
-                Button(
-                    onClick = {
-                        val removed: List<Pair<Song, Int>> = PlayerServiceHost.service.clearQueue(keep_current = PlayerServiceHost.status.m_queue.size > 1)
-                        if (removed.isNotEmpty()) {
-                            val index = PlayerServiceHost.player.currentMediaItemIndex
-                            undo_list.add {
-                                val before = mutableListOf<Song>()
-                                val after = mutableListOf<Song>()
-                                for (item in removed.withIndex()) {
-                                    if (item.value.second >= index) {
-                                        for (i in item.index until removed.size) {
-                                            after.add(removed[i].first)
-                                        }
-                                        break
-                                    }
-                                    before.add(item.value.first)
-                                }
-
-                                PlayerServiceHost.service.addMultipleToQueue(before, 0)
-                                PlayerServiceHost.service.addMultipleToQueue(after, index + 1)
-                            }
-                        }
-                    },
-                    colors = ButtonDefaults.buttonColors(
-                        containerColor = MainActivity.theme.getOnBackground(true)
-                    )
-                ) {
-                    Text(
-                        text = "Clear",
-                        color = MainActivity.theme.getBackground(true)
-                    )
-                }
-
-                Button(
-                    onClick = {
-                        val swaps = PlayerServiceHost.service.shuffleQueue(return_swaps = true)!!
-                        if (swaps.isNotEmpty()) {
-                            undo_list.add {
-                                for (swap in swaps.asReversed()) {
-                                    PlayerServiceHost.service.swapQueuePositions(swap.first, swap.second)
-                                }
-                            }
-                        }
-                    },
-                    colors = ButtonDefaults.buttonColors(
-                        containerColor = MainActivity.theme.getOnBackground(true)
-                    )
-                ) {
-                    Text(
-                        text = "Shuffle",
-                        color = MainActivity.theme.getBackground(true)
-                    )
-                }
-            }
-
-            AnimatedVisibility(undo_list.isNotEmpty()) {
-                IconButton({
-                    if (undo_list.isNotEmpty()) {
-                        undo_list.removeLast()()
-                    }
-                },
+                    .align(Alignment.BottomCenter)
+                    .padding(10.dp),
+                horizontalArrangement = Arrangement.SpaceAround,
+                verticalAlignment = Alignment.CenterVertically
+            ) {
+                Row(
                     Modifier
-                        .background(MainActivity.theme.getOnBackground(true), CircleShape)
-                        .size(40.dp)) {
-                    Icon(Icons.Filled.Undo, null, tint = MainActivity.theme.getBackground(true))
+                        .fillMaxWidth()
+                        .weight(1f),
+                    horizontalArrangement = Arrangement.SpaceEvenly,
+                    verticalAlignment = Alignment.CenterVertically
+                ) {
+                    Button(
+                        onClick = {
+                            val removed: List<Pair<Song, Int>> = PlayerServiceHost.service.clearQueue(keep_current = PlayerServiceHost.status.m_queue.size > 1)
+                            if (removed.isNotEmpty()) {
+                                val index = PlayerServiceHost.player.currentMediaItemIndex
+                                undo_list.add {
+                                    val before = mutableListOf<Song>()
+                                    val after = mutableListOf<Song>()
+                                    for (item in removed.withIndex()) {
+                                        if (item.value.second >= index) {
+                                            for (i in item.index until removed.size) {
+                                                after.add(removed[i].first)
+                                            }
+                                            break
+                                        }
+                                        before.add(item.value.first)
+                                    }
+
+                                    PlayerServiceHost.service.addMultipleToQueue(before, 0)
+                                    PlayerServiceHost.service.addMultipleToQueue(after, index + 1)
+                                }
+                            }
+                        },
+                        colors = ButtonDefaults.buttonColors(
+                            containerColor = MainActivity.theme.getOnBackground(true)
+                        )
+                    ) {
+                        Text(
+                            text = "Clear",
+                            color = MainActivity.theme.getBackground(true)
+                        )
+                    }
+
+                    Button(
+                        onClick = {
+                            val swaps = PlayerServiceHost.service.shuffleQueue(return_swaps = true)!!
+                            if (swaps.isNotEmpty()) {
+                                undo_list.add {
+                                    for (swap in swaps.asReversed()) {
+                                        PlayerServiceHost.service.swapQueuePositions(swap.first, swap.second)
+                                    }
+                                }
+                            }
+                        },
+                        colors = ButtonDefaults.buttonColors(
+                            containerColor = MainActivity.theme.getOnBackground(true)
+                        )
+                    ) {
+                        Text(
+                            text = "Shuffle",
+                            color = MainActivity.theme.getBackground(true)
+                        )
+                    }
+                }
+
+                AnimatedVisibility(undo_list.isNotEmpty()) {
+                    IconButton({
+                        if (undo_list.isNotEmpty()) {
+                            undo_list.removeLast()()
+                        }
+                    },
+                        Modifier
+                            .background(MainActivity.theme.getOnBackground(true), CircleShape)
+                            .size(40.dp)) {
+                        Icon(Icons.Filled.Undo, null, tint = MainActivity.theme.getBackground(true))
+                    }
                 }
             }
         }

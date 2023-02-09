@@ -296,25 +296,24 @@ private fun refreshFeed(allow_cached: Boolean, feed_layouts: MutableList<MediaIt
                     rows.add(entry)
 
                     for (item in row.items) {
-                        val media_item = item.toMediaItem()
-                        if (media_item.title != null && media_item.artist != null) {
+                        if (item.title != null && item.artist != null) {
                             when (item) {
                                 is Song -> {
-                                    entry.addItem(media_item)
-                                    artists.addItem(media_item.artist!!)
+                                    entry.addItem(item)
+                                    artists.addItem(item.artist!!)
                                 }
                                 is Playlist -> {
-                                    playlists.addItem(media_item)
-                                    artists.addItem(media_item.artist!!)
+                                    playlists.addItem(item)
+                                    artists.addItem(item.artist!!)
                                 }
-                                is Artist -> artists.addItem(media_item)
+                                is Artist -> artists.addItem(item)
                             }
                             continue
                         }
 
                         launch {
                             request_limit.withPermit {
-                                val loaded = media_item.loadData()
+                                val loaded = item.loadData()
                                 synchronized(request_limit) {
                                     when (loaded) {
                                         is Song -> {

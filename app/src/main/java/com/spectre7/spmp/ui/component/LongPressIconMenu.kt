@@ -328,7 +328,7 @@ fun LongPressIconMenu(
                                 if (data.item is Song) {
                                     Marquee(false) {
                                         Text(
-                                            data.item.title,
+                                            data.item.title ?: "",
                                             Modifier.fillMaxWidth(),
                                             color = MainActivity.theme.getOnBackground(false),
                                             softWrap = false,

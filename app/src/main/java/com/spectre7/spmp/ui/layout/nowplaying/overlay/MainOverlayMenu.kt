@@ -108,7 +108,7 @@ class MainOverlayMenu(
             }
 
             if (PlayerServiceHost.status.m_song != null) {
-                song.artist.PreviewLong(
+                song.artist?.PreviewLong(
                     content_colour = { Color.White },
                     playerProvider,
                     true,
@@ -116,7 +116,7 @@ class MainOverlayMenu(
                 )
 
                 val song = PlayerServiceHost.status.m_song!!
-                InfoField("Original title", song.original_title, false)
+                InfoField("Original title", song.title ?: "", false)
                 InfoField("Video id", song.id, true)
             }
 

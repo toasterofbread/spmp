@@ -162,23 +162,7 @@ fun NowPlayingCardContent(expansion: Float, page_height: Dp, close: () -> Unit, 
             verticalArrangement = Arrangement.Top,
             modifier = Modifier.requiredHeight(page_height).requiredWidth(screen_width_dp - (NOW_PLAYING_MAIN_PADDING * 2)).padding(NOW_PLAYING_MAIN_PADDING)
         ) {
-            QueueTab(Modifier.weight(1f), playerProvider)
-//            NowPlayingMainTab(
-//                minOf(expansion, 1f),
-//                page_height,
-//                thumbnail.value,
-//                { thumbnail.value = it },
-//                remember {
-//                    {
-//                        playerProvider().copy(
-//                            onClickedOverride = {
-//                                playerProvider().onMediaItemClicked(it)
-//                                close()
-//                            }
-//                        )
-//                    }
-//                }
-//            )
+            QueueTab((expansion - 1f).coerceIn(0f, 1f), playerProvider)
         }
     }
 }

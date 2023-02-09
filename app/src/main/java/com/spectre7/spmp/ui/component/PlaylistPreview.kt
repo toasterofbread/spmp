@@ -56,7 +56,7 @@ fun PlaylistPreviewSquare(
                 .longPressMenuIcon(long_press_menu_data, enable_long_press_menu))
 
         Text(
-            playlist.title,
+            playlist.title ?: "",
             fontSize = 12.sp,
             color = content_colour(),
             maxLines = 1,
@@ -100,7 +100,7 @@ fun PlaylistPreviewLong(
 
         Column(Modifier.padding(8.dp)) {
             Text(
-                playlist.title,
+                playlist.title ?: "",
                 fontSize = 15.sp,
                 color = content_colour(),
                 maxLines = 1,

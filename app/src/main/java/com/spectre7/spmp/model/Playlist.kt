@@ -3,6 +3,8 @@ package com.spectre7.spmp.model
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
+import com.beust.klaxon.JsonObject
+import com.beust.klaxon.Klaxon
 import com.spectre7.spmp.api.BrowseData
 import com.spectre7.spmp.ui.component.MediaItemLayout
 import com.spectre7.spmp.ui.component.PlaylistPreviewLong
@@ -15,9 +17,29 @@ class Playlist private constructor (
 
     var feed_layouts: List<MediaItemLayout>? = null
 
-    override fun initWithData(data: JsonObject, klaxon: Klaxon): MediaItem {
-        feed_layouts = klaxon.parseFromJsonArray(obj.array("feed_layouts"))
-        return super.initWithData(data, klaxon)
+    class PlaylistData(id: String): Data(id) {
+        var feed_layouts: List<MediaItemLayout>? = null
+
+        override fun initWithData(data: JsonObject, klaxon: Klaxon): Data {
+            val layouts = data.array<MediaItemLayout>("feed_layouts")
+            if (layouts != null) {
+                feed_layouts = klaxon.parseFromJsonArray(layouts)
+            }
+            return super.initWithData(data, klaxon)
+        }
+    }
+
+    override fun initWithData(data: Data): MediaItem {
+        if (data !is PlaylistData) {
+            throw ClassCastException(data.javaClass.name)
+        }
+
+        feed_layouts = data.feed_layouts
+        return super.initWithData(data)
+    }
+
+    override fun isLoaded(): Boolean {
+        return super.isLoaded() && feed_layouts != null
     }
 
     override fun getJsonValues(klaxon: Klaxon): String {
@@ -49,9 +71,5 @@ class Playlist private constructor (
         PlaylistPreviewLong(this, content_colour, playerProvider, enable_long_press_menu, modifier)
     }
 
-    override fun getAssociatedArtist(): Artist? {
-        return artist
-    }
-
-    override val url: String get() = return "https://music.youtube.com/playlist?list=$id"
+    override val url: String get() = "https://music.youtube.com/playlist?list=$id"
 }

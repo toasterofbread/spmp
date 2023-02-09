@@ -109,57 +109,73 @@ fun loadMediaItemData(item: MediaItem): DataApi.Result<MediaItem> {
             response_body = Cache.get(cache_key)!!
         }
 
-        fun finish(data: Any, thumbnail_provider: MediaItem.ThumbnailProvider? = null): DataApi.Result<MediaItem> {
+        fun finish(data: MediaItem.Data, thumbnail_provider: MediaItem.ThumbnailProvider? = null): DataApi.Result<MediaItem> {
             if (item is Artist) {
                 item.updateSubscribed()
             }
 
-            item.initWithData(data, DataApi.klaxon)
-            item.thumbnail_provider = thumbnail_provider
+            item.initWithData(data)
+            item.supplyThumbnailProvider(thumbnail_provider)
 
             lock.notifyAll()
 
             return DataApi.Result.success(item)
         }
 
-        if (item !is Song) {
+        val is_artist = item is Artist
+        if (is_artist || item is Playlist) {
             val parsed: YoutubeiBrowseResponse = DataApi.klaxon.parse(response_body)!!
             response_body.close()
 
             val header_renderer = parsed.header!!.getRenderer()
-            return finish(BrowseData().apply {
-                name = header_renderer.title.first_text
+            val item_layouts: MutableList<MediaItemLayout> = mutableListOf()
 
-                if (header_renderer.subtitle?.runs != null) {
-                    for (run in header_renderer.subtitle.runs) {
-                        if (run.navigationEndpoint?.browseEndpoint != null) {
-                            subscribe_channel_id = run.navigationEndpoint.browseEndpoint.browseId
-                            break
+
+            val data = if (is_artist)
+                Artist.ArtistData(item_id).also { data ->
+                    data.feed_layouts = item_layouts
+
+                    if (header_renderer.subtitle?.runs != null) {
+                        for (run in header_renderer.subtitle.runs) {
+                            if (run.navigationEndpoint?.browseEndpoint != null) {
+                                data.subscribe_channel_id = run.navigationEndpoint.browseEndpoint.browseId
+                                break
+                            }
                         }
                     }
                 }
-
-                for (row in parsed.contents.singleColumnBrowseResultsRenderer.tabs.first().tabRenderer.content!!.sectionListRenderer.contents.withIndex()) {
-                    val desc = row.value.getDescription()
-                    if (desc != null) {
-                        description = desc
-                        continue
-                    }
-
-                    item_layouts.add(MediaItemLayout(
-                        row.value.title?.text,
-                        null,
-                        if (row.index == 0) MediaItemLayout.Type.NUMBERED_LIST else MediaItemLayout.Type.GRID,
-                        row.value.getMediaItems().toMutableList()
-                    ))
+            else
+                Playlist.PlaylistData(item_id).also {
+                    it.feed_layouts = item_layouts
                 }
-            }, MediaItem.ThumbnailProvider.fromThumbnails(header_renderer.getThumbnails()))
+
+            data.title = header_renderer.title.first_text
+
+            for (row in parsed.contents.singleColumnBrowseResultsRenderer.tabs.first().tabRenderer.content!!.sectionListRenderer.contents.withIndex()) {
+                val desc = row.value.getDescription()
+                if (desc != null) {
+                    data.description = desc
+                    continue
+                }
+
+                item_layouts.add(MediaItemLayout(
+                    row.value.title?.text,
+                    null,
+                    if (row.index == 0) MediaItemLayout.Type.NUMBERED_LIST else MediaItemLayout.Type.GRID,
+                    row.value.getMediaItems().toMutableList()
+                ))
+            }
+
+            return finish(data, MediaItem.ThumbnailProvider.fromThumbnails(header_renderer.getThumbnails()))
         }
 
         var video_details = DataApi.klaxon.parse<PlayerData>(response_body)?.videoDetails
         response_body.close()
         if (video_details != null) {
-            return finish(video_details)
+            return finish(Song.SongData(video_details.videoId).also { data ->
+                data.title = video_details!!.title
+                data.artist = video_details!!.channelId
+            })
         }
 
         response_body = Cache.get(cache_key)!!
@@ -185,7 +201,10 @@ fun loadMediaItemData(item: MediaItem): DataApi.Result<MediaItem> {
         }
 
         if (artist_run != null) {
-            return finish(VideoDetails(video.videoId, video.title.first_text, artist_run.navigationEndpoint!!.browseEndpoint!!.browseId))
+            return finish(Song.SongData(video.videoId).also { data ->
+                data.title = video.title.first_text
+                data.artist = artist_run.navigationEndpoint!!.browseEndpoint!!.browseId
+            })
         }
 
         val album_run = video.longBylineText.runs.firstOrNull {
@@ -194,13 +213,19 @@ fun loadMediaItemData(item: MediaItem): DataApi.Result<MediaItem> {
         if (album_run != null) {
             val artist = Playlist.fromId(album_run.navigationEndpoint!!.browseEndpoint!!.browseId).loadData().artist
             if (artist != null) {
-                return finish(VideoDetails(video.videoId, video.title.first_text, artist.id))
+                return finish(Song.SongData(video.videoId).also { data ->
+                    data.title = video.title.first_text
+                    data.artist = artist.id
+                })
             }
         }
 
         val menu_artist = video.menu.menuRenderer.getArtist()?.menuNavigationItemRenderer?.navigationEndpoint?.browseEndpoint?.browseId
         if (menu_artist != null) {
-            return finish(VideoDetails(video.videoId, video.title.first_text, menu_artist))
+            return finish(Song.SongData(video.videoId).also { data ->
+                data.title = video.title.first_text
+                data.artist = menu_artist
+            })
         }
 
         // 'next' endpoint has no artist, use 'player' instead
@@ -222,6 +247,10 @@ fun loadMediaItemData(item: MediaItem): DataApi.Result<MediaItem> {
 
         video_details = DataApi.klaxon.parse<PlayerData>(response_body)!!.videoDetails!!
         response_body.close()
-        return finish(video_details)
+
+        return finish(Song.SongData(video_details.videoId).also { data ->
+            data.title = video_details.title
+            data.artist = video_details.channelId
+        })
     }
 }

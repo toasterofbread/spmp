@@ -75,9 +75,13 @@ fun PlaylistPage(
         playlist_rows_loaded = false
 
         thread {
+            if (playlist.feed_layouts == null) {
+                playlist.loadData()
+            }
+
             runBlocking {
                 withContext(Dispatchers.IO) { coroutineScope {
-                    for (layout in playlist.feed_layouts) {
+                    for (layout in playlist.feed_layouts!!) {
                         for (item in layout.items.withIndex()) {
                             launch {
                                 val new_item = item.value.loadData()
@@ -91,7 +95,7 @@ fun PlaylistPage(
                     }
                 }}
 
-                playlist.feed_layouts.removeInvalid()
+                playlist.feed_layouts!!.removeInvalid()
                 playlist_rows_loaded = true
             }
         }
@@ -137,7 +141,7 @@ fun PlaylistPage(
                 }
 
                 Column {
-                    Text(playlist.title)
+                    Text(playlist.title ?: "")
 
                     if (playlist.artist != null) {
                         playlist.artist!!.PreviewLong(MainActivity.theme.getOnBackgroundProvider(false), playerProvider, true, Modifier)
@@ -164,7 +168,7 @@ fun PlaylistPage(
                     contentAlignment = Alignment.BottomCenter
                 ) {
                     Marquee(false) {
-                        Text(playlist.title, Modifier.fillMaxWidth(), textAlign = TextAlign.Center, fontSize = 40.sp, softWrap = false)
+                        Text(playlist.title ?: "", Modifier.fillMaxWidth(), textAlign = TextAlign.Center, fontSize = 40.sp, softWrap = false)
                     }
                 }
             }
@@ -244,9 +248,9 @@ fun PlaylistPage(
                             CircularProgressIndicator(color = accent_colour)
                         }
                     }
-                    else {
+                    else if (playlist.feed_layouts != null) {
                         MediaItemLayoutColumn(
-                            playlist.feed_layouts,
+                            playlist.feed_layouts!!,
                             playerProvider,
                             Modifier
                                 .background(background_colour)
@@ -312,7 +316,7 @@ private fun InfoDialog(playlist: Playlist, close: () -> Unit) {
             }
 
             Column(Modifier.fillMaxWidth(), verticalArrangement = Arrangement.Center) {
-                InfoValue("Name", playlist.title)
+                InfoValue("Name", playlist.title ?: "")
                 InfoValue("Id", playlist.id)
                 InfoValue("Url", playlist.url)
             }

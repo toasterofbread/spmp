@@ -24,7 +24,7 @@ fun getSongLyrics(song: Song): Song.Lyrics? {
         ret = getLyrics(id, source).getDataOrThrow()
     }
     else {
-        val results = searchForLyrics(song.title, song.artist.title).getDataOrThrow()
+        val results = searchForLyrics(song.title!!, song.artist!!.title).getDataOrThrow()
         if (results.isEmpty()) {
             return null
         }

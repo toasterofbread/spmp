@@ -4,6 +4,7 @@ import com.beust.klaxon.JsonObject
 import com.beust.klaxon.Klaxon
 import com.spectre7.spmp.BuildConfig
 import com.spectre7.spmp.MainActivity
+import com.spectre7.spmp.model.MediaItem
 import net.openid.appauth.AuthorizationException
 import okhttp3.Headers
 import okhttp3.MediaType.Companion.toMediaType
@@ -19,7 +20,7 @@ class DataApi {
     companion object {
         internal val client: OkHttpClient = OkHttpClient()
 
-        internal val klaxon: Klaxon = Klaxon()
+        val klaxon: Klaxon = Klaxon()
             .converter(MediaItem.json_converter)
 
         private lateinit var youtubei_base_context: JsonObject

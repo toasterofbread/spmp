@@ -97,7 +97,7 @@ class PlayerService : Service() {
 
     fun getCurrentSong(): Song? {
         val song = getSong(player.currentMediaItemIndex)
-        if (song?.loaded == true) {
+        if (song?.isLoaded() == true) {
             return song
         }
         return null

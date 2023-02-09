@@ -39,6 +39,7 @@ import com.spectre7.spmp.model.MediaItem
 import com.spectre7.spmp.ui.component.MediaItemGrid
 import com.spectre7.spmp.ui.component.MediaItemLayout
 import com.spectre7.spmp.ui.component.PillMenu
+import com.spectre7.spmp.ui.component.removeInvalid
 import com.spectre7.utils.*
 import kotlinx.coroutines.*
 import kotlin.concurrent.thread
@@ -80,9 +81,13 @@ fun ArtistPage(
         artist_rows_loaded = false
 
         thread {
+            if (artist.feed_layouts == null) {
+                artist.loadData()
+            }
+
             runBlocking {
                 withContext(Dispatchers.IO) { coroutineScope {
-                    for (row in artist.feed_layouts) {
+                    for (row in artist.feed_layouts!!) {
                         for (item in row.items.withIndex()) {
                             launch {
                                 val new_item = item.value.loadData()
@@ -96,15 +101,7 @@ fun ArtistPage(
                     }
                 }}
 
-                for (row in artist.feed_layouts) {
-                    row.items.removeAll {
-                        if (!it.is_valid) {
-                            println("REMOVE ${it.id} | ${it.type}")
-                        }
-                        !it.is_valid
-                    }
-                }
-
+                artist.feed_layouts!!.removeInvalid()
                 artist_rows_loaded = true
             }
         }
@@ -172,7 +169,7 @@ fun ArtistPage(
                     contentAlignment = Alignment.BottomCenter
                 ) {
                     Marquee(false) {
-                        Text(artist.title, Modifier.fillMaxWidth(), textAlign = TextAlign.Center, fontSize = 40.sp, softWrap = false)
+                        Text(artist.title ?: "", Modifier.fillMaxWidth(), textAlign = TextAlign.Center, fontSize = 40.sp, softWrap = false)
                     }
                 }
             }
@@ -276,7 +273,7 @@ fun ArtistPage(
                                 .padding(content_padding),
                             verticalArrangement = Arrangement.spacedBy(30.dp)
                         ) {
-                            for (row in artist.feed_layouts) {
+                            for (row in artist.feed_layouts ?: emptyList()) {
                                 MediaItemGrid(MediaItemLayout(row.title, null, items = row.items), playerProvider)
                             }
 
@@ -405,7 +402,7 @@ private fun InfoDialog(artist: Artist, close: () -> Unit) {
             }
 
             Column(Modifier.fillMaxWidth(), verticalArrangement = Arrangement.Center) {
-                InfoValue("Name", artist.title)
+                InfoValue("Name", artist.title ?: "")
                 InfoValue("Id", artist.id)
                 InfoValue("Url", artist.url)
             }

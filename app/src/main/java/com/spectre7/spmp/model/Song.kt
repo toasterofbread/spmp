@@ -126,6 +126,16 @@ class Song private constructor (
     private var stream_url_loading: Boolean = false
     private val stream_url_load_lock = Object()
 
+    class SongData(id: String): Data(id)
+
+    override fun initWithData(data: Data): MediaItem {
+        val ret = super.initWithData(data)
+        registry.get<String>("title")?.also {
+            title = it
+        }
+        return ret
+    }
+
     data class Lyrics(
         val id: Int,
         val source: Source,
@@ -249,48 +259,6 @@ class Song private constructor (
             return null
         }
         set(value) { registry.set("theme_colour", value?.toArgb()) }
-
-    
-    fun getDisplayTitle(): String? {
-        val registry_title = registry.get<String>("title")
-        if (registry_title != null) {
-            return registry_title
-        }
-
-        if (title == null) {
-            return null
-        }
-
-        var ret = title
-
-        for (pair in listOf("[]", "{}")) {
-            while (true) {
-                val a = ret.indexOf(pair[0])
-                if (a < 0) {
-                    break
-                }
-
-                val b = ret.indexOf(pair[1])
-                if (b < 0) {
-                    break
-                }
-
-                val temp = ret
-                ret = temp.slice(0 until a - 1) + temp.slice(b + 1 until temp.length)
-            }
-        }
-
-        for ((key, value) in mapOf("-" to "", "  " to "", artist.title to "", "MV" to "")) {
-            if (key.isEmpty()) {
-                continue
-            }
-            while (ret.contains(key)) {
-                ret = ret.replace(key, value)
-            }
-        }
-
-        return (ret as CharSequence).trim().trim('ㅤ').toString()
-    }
     
     fun setTitleOverride(value: String) {
         registry.set("title", value)
@@ -371,9 +339,5 @@ class Song private constructor (
         SongPreviewLong(this, content_colour, playerProvider, enable_long_press_menu, modifier.recomposeHighlighter())
     }
 
-    override fun getAssociatedArtist(): Artist? {
-        return artist
-    }
-
-    override val url: String return "https://music.youtube.com/watch?v=$id"
+    override val url: String get() = "https://music.youtube.com/watch?v=$id"
 }

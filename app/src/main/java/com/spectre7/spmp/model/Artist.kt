@@ -6,7 +6,8 @@ import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
-import com.spectre7.spmp.api.BrowseData
+import com.beust.klaxon.JsonObject
+import com.beust.klaxon.Klaxon
 import com.spectre7.spmp.api.isSubscribedToArtist
 import com.spectre7.spmp.api.subscribeOrUnsubscribeArtist
 import com.spectre7.spmp.ui.component.ArtistPreviewLong
@@ -24,15 +25,37 @@ class Artist private constructor (
         artist = this
     }
 
-    lateinit var feed_layouts: List<MediaItemLayout>
-    lateinit var subscribe_channel_id: String
+    var feed_layouts: List<MediaItemLayout>? = null
+    var subscribe_channel_id: String? = null
 
     var subscribed: Boolean? by mutableStateOf(null)
 
-    override fun initWithData(data: JsonObject, klaxon: Klaxon): MediaItem {
-        feed_layouts = klaxon.parseFromJsonArray(data.array("feed_layouts"))
-        subscribe_channel_id = data.string("subscribe_channel_id") ?: id
-        return super.initWithData(data, klaxon)
+    class ArtistData(id: String): Data(id) {
+        var feed_layouts: List<MediaItemLayout>? = null
+        var subscribe_channel_id: String? = null
+
+        override fun initWithData(data: JsonObject, klaxon: Klaxon): Data {
+            val layouts = data.array<MediaItemLayout>("feed_layouts")
+            if (layouts != null) {
+                feed_layouts = klaxon.parseFromJsonArray(layouts)
+            }
+            subscribe_channel_id = data.string("subscribe_channel_id")
+            return super.initWithData(data, klaxon)
+        }
+    }
+
+    override fun initWithData(data: Data): MediaItem {
+        if (data !is ArtistData) {
+            throw ClassCastException(data.javaClass.name)
+        }
+
+        feed_layouts = data.feed_layouts
+        subscribe_channel_id = data.subscribe_channel_id ?: id
+        return super.initWithData(data)
+    }
+
+    override fun isLoaded(): Boolean {
+        return super.isLoaded() && feed_layouts != null && subscribe_channel_id != null
     }
 
     override fun getJsonValues(klaxon: Klaxon): String {
@@ -65,11 +88,7 @@ class Artist private constructor (
         ArtistPreviewLong(this, content_colour, playerProvider, enable_long_press_menu, modifier)
     }
 
-    override fun getAssociatedArtist(): Artist {
-        return this
-    }
-
-    override val url: String get() = return "https://music.youtube.com/channel/$id"
+    override val url: String get() = "https://music.youtube.com/channel/$id"
 
     fun getFormattedSubscriberCount(): String {
         return "Unknown"

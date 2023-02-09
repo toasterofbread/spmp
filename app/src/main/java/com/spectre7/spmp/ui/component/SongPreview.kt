@@ -64,7 +64,7 @@ fun SongPreviewSquare(
                 .longPressMenuIcon(long_press_menu_data, enable_long_press_menu))
 
         Text(
-            song.title,
+            song.title ?: "",
             fontSize = 12.sp,
             color = content_colour(),
             maxLines = 1,
@@ -103,7 +103,7 @@ fun SongPreviewLong(
                 }
             )
     ) {
-        if (!song.loaded) {
+        if (!song.isLoaded()) {
             CircularProgressIndicator(color = content_colour())
         }
         else {
@@ -117,7 +117,7 @@ fun SongPreviewLong(
                     .padding(10.dp)
                     .fillMaxWidth(0.9f)) {
                 Text(
-                    song.title,
+                    song.title ?: "",
                     fontSize = 15.sp,
                     color = content_colour(),
                     maxLines = 1,
@@ -125,7 +125,7 @@ fun SongPreviewLong(
                 )
 
                 Text(
-                    song.artist.title,
+                    song.artist?.title ?: "",
                     fontSize = 11.sp,
                     color = content_colour().setAlpha(0.5),
                     maxLines = 1,
@@ -235,7 +235,9 @@ private val longPressPopupActions: @Composable LongPressMenuActionProvider.(Medi
 
     ActionButton(Icons.Filled.Download, "Download", onClick = { TODO() })
 
-    ActionButton(Icons.Filled.Person, "Go to artist", onClick = {
-        playerProvider().openMediaItem(song.artist)
-    })
+    if (song.artist != null) {
+        ActionButton(Icons.Filled.Person, "Go to artist", onClick = {
+            playerProvider().openMediaItem(song.artist!!)
+        })
+    }
 }

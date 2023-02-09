@@ -1,5 +1,6 @@
 package com.spectre7.spmp.api
 
+import com.spectre7.spmp.model.Artist
 import com.spectre7.spmp.model.Song
 import okhttp3.Request
 import java.util.zip.GZIPInputStream
@@ -137,13 +138,23 @@ private fun getSongRadio(video_id: String, continuation: String?): DataApi.Resul
         RadioData(
             radio.contents.map { item ->
                 val song = Song.fromId(item.playlistPanelVideoRenderer!!.videoId)
+                    .supplyTitle(item.playlistPanelVideoRenderer.title.first_text) as Song
+
                 for (run in item.playlistPanelVideoRenderer.longBylineText.runs!!) {
-                    if (run.navigationEndpoint != null) {
-                        song.addBrowseEndpoint(
-                            run.navigationEndpoint.browseEndpoint!!.browseId,
-                            run.navigationEndpoint.browseEndpoint.browseEndpointContextSupportedConfigs!!.browseEndpointContextMusicConfig.pageType
-                        )
+                    if (run.navigationEndpoint == null) {
+                        continue
                     }
+
+                    val browse_endpoint = run.navigationEndpoint.browseEndpoint!!
+                    if (browse_endpoint.page_type == "MUSIC_PAGE_TYPE_ARTIST") {
+                        song.supplyArtist(Artist.fromId(browse_endpoint.browseId).supplyTitle(run.text) as Artist)
+                        continue
+                    }
+
+                    song.addBrowseEndpoint(
+                        browse_endpoint.browseId,
+                        browse_endpoint.browseEndpointContextSupportedConfigs!!.browseEndpointContextMusicConfig.pageType
+                    )
                 }
 
                 return@map song

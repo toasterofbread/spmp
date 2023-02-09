@@ -12,6 +12,8 @@ import androidx.compose.ui.graphics.asImageBitmap
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.unit.IntSize
 import androidx.palette.graphics.Palette
+import com.beust.klaxon.*
+import com.spectre7.spmp.api.DataApi
 import com.spectre7.spmp.api.loadMediaItemData
 import com.spectre7.spmp.ui.layout.PlayerViewContext
 import com.spectre7.utils.getThemeColour
@@ -33,10 +35,11 @@ abstract class MediaItem(id: String) {
             _title = value
         }
 
-    fun supplyTitle(value: String?) {
+    fun supplyTitle(value: String?): MediaItem {
         if (_title == null && value != null) {
             _title = value
         }
+        return this
     }
 
     private var _artist: Artist? by mutableStateOf(null)
@@ -46,10 +49,11 @@ abstract class MediaItem(id: String) {
             _artist = value
         }
 
-    fun supplyArtist(value: Artist?) {
+    fun supplyArtist(value: Artist?): MediaItem {
         if (_artist == null && value != null) {
             _artist = value
         }
+        return this
     }
 
     private var _description: String? by mutableStateOf(null)
@@ -59,9 +63,43 @@ abstract class MediaItem(id: String) {
             _description = value
         }
 
-    fun supplyDescription(value: String?) {
+    fun supplyDescription(value: String?): MediaItem {
         if (_description == null && value != null) {
             _description = value
+        }
+        return this
+    }
+
+    private var thumbnail_provider: ThumbnailProvider? by mutableStateOf(null)
+    open fun canLoadThumbnail(): Boolean = thumbnail_provider != null
+
+    fun supplyThumbnailProvider(value: ThumbnailProvider?) {
+        if (thumbnail_provider == null && value != null) {
+            thumbnail_provider = value
+        }
+    }
+
+    abstract class Data(val id: String) {
+        var title: String? = null
+        var artist: String? = null
+        var description: String? = null
+
+        open fun initWithData(data: JsonObject, klaxon: Klaxon): Data {
+            title = data.string("title")
+            artist = data.string("artist")
+            description = data.string("description")
+            return this
+        }
+
+        companion object {
+            fun fromJsonObject(data: JsonObject, klaxon: Klaxon = DataApi.klaxon): Data {
+                val id = data.string("id")!!
+                return when (Type.values()[data.int("type")!!]) {
+                    Type.SONG -> Song.SongData(id)
+                    Type.ARTIST -> TODO()
+                    Type.PLAYLIST -> TODO()
+                }.initWithData(data, klaxon)
+            }
         }
     }
 
@@ -77,7 +115,7 @@ abstract class MediaItem(id: String) {
         else -> throw NotImplementedError(this.javaClass.name)
     }
     
-    protected inline fun stringToJson(string: String?): String {
+    protected fun stringToJson(string: String?): String {
         return if (string == null) "null" else "\"$string\""
     }
     fun toJsonString(klaxon: Klaxon = DataApi.klaxon): String {
@@ -85,24 +123,24 @@ abstract class MediaItem(id: String) {
         {
             "type": $type,
             "title": ${stringToJson(title)},
-            "artist": ${stringToJson(artist)},
+            "artist": ${stringToJson(artist?.id)},
             "description": ${stringToJson(description)},
             ${getJsonValues(klaxon)}
         }
         """
     }
-    open protected fun getJsonValues(klaxon: Klaxon): String = ""
+    protected open fun getJsonValues(klaxon: Klaxon): String = ""
 
     companion object {
-        fun fromJsonObject(obj: JsonObject, klaxon: DataApi.klaxon): MediaItem {
-            val id = obj.string(id!!)
+        fun fromJsonObject(obj: JsonObject, klaxon: Klaxon = DataApi.klaxon): MediaItem {
+            val id = obj.string("id")!!
             val type = Type.values()[obj.int("type")!!]
 
             return when (type) {
-                Type.SONG -> Song(id)
-                Type.ARTIST -> Artist(id)
-                Type.PLAYLIST -> Playlist(id)
-            }.initFromJsonObject(obj, klaxon)
+                Type.SONG -> Song.fromId(id)
+                Type.ARTIST -> Artist.fromId(id)
+                Type.PLAYLIST -> Playlist.fromId(id)
+            }.initWithData(Data.fromJsonObject(obj, klaxon))
         }
         
         val json_converter = object : Converter {
@@ -110,21 +148,21 @@ abstract class MediaItem(id: String) {
                 return MediaItem::class.java.isAssignableFrom(cls)
             }
 
-            override fun fromJson(value: JsonValue): Any {
-                if (value.obj == null) {
-                    throw KlaxonException("Couldn't parse MediaItem as it isn't an object ($value)")
+            override fun fromJson(jv: JsonValue): Any {
+                if (jv.obj == null) {
+                    throw KlaxonException("Couldn't parse MediaItem as it isn't an object ($jv)")
                 }
 
                 try {
-                    return fromJsonObject(value)
+                    return fromJsonObject(jv.obj!!, DataApi.klaxon)
                 }
                 catch (e: Exception) {
-                    throw KlaxonException("Couldn't parse MediaItem ($value)", e)
+                    throw RuntimeException("Couldn't parse MediaItem ($jv)", e)
                 }
             }
 
-            override fun toJson(obj: Any): String {
-                return (obj as MediaItem).toJsonString(DataApi.klaxon)
+            override fun toJson(value: Any): String {
+                return (value as MediaItem).toJsonString(DataApi.klaxon)
             }
         }
     }
@@ -171,7 +209,7 @@ abstract class MediaItem(id: String) {
     var load_status: LoadStatus
         get() = _load_status
         private set(value) { _load_status = value }
-    val loaded: Boolean get() = _load_status == LoadStatus.LOADED
+//    val loaded: Boolean get() = _load_status == LoadStatus.LOADED
 
     private val _loading_lock = Object()
     val loading_lock: Object get() = getOrReplacedWith()._loading_lock
@@ -241,7 +279,6 @@ abstract class MediaItem(id: String) {
             }
         }
     }
-    var thumbnail_provider: ThumbnailProvider? = null
     var thumbnail_palette: Palette? by mutableStateOf(null)
 
     private class ThumbState {
@@ -255,10 +292,9 @@ abstract class MediaItem(id: String) {
     }
 
     fun getLoadedOrNull(): MediaItem? {
-        if (!getOrReplacedWith().loaded) {
-            return null
+        return getOrReplacedWith().let {
+            if (it.isLoaded()) it else null
         }
-        return getOrReplacedWith()
     }
 
     fun replaceWithItemWithId(new_id: String): MediaItem {
@@ -347,7 +383,9 @@ abstract class MediaItem(id: String) {
     }
 
     fun loadThumbnail(quality: ThumbnailQuality): Bitmap? {
-        assert(loaded)
+        if (!canLoadThumbnail()) {
+            return null
+        }
 
         val state = thumb_states[quality]!!
         synchronized(state) {
@@ -405,14 +443,23 @@ abstract class MediaItem(id: String) {
     }
 
     fun loadData(): MediaItem {
+        if (isLoaded()) {
+            return getOrReplacedWith()
+        }
         return loadMediaItemData(getOrReplacedWith()).getDataOrThrow()
     }
 
-    open fun initWithData(data: JsonObject, klaxon: Klaxon): MediaItem {
-        title = data.string("title")
-        artist = data.string("artist")
-        description = data.string("description")
+    open fun initWithData(data: Data): MediaItem {
+        title = data.title
+        if (data.artist != null) {
+            artist = Artist.fromId(data.artist!!)
+        }
+        description = data.description
         return this
+    }
+
+    open fun isLoaded(): Boolean {
+        return title != null && artist != null && description != null
     }
 
     fun getDefaultThemeColour(): Color? {

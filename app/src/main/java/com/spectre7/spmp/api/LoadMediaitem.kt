@@ -114,7 +114,9 @@ fun loadMediaItemData(item: MediaItem): DataApi.Result<MediaItem> {
                 item.updateSubscribed()
             }
 
-            item.initWithData(data, thumbnail_provider)
+            item.initWithData(data, DataApi.klaxon)
+            item.thumbnail_provider = thumbnail_provider
+
             lock.notifyAll()
 
             return DataApi.Result.success(item)

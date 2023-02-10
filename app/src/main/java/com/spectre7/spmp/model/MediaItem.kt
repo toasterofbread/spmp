@@ -29,42 +29,33 @@ abstract class MediaItem(id: String) {
     }
 
     private var _title: String? by mutableStateOf(null)
-    var title: String? 
+    val title: String? 
         get() = _title
-        protected set(value) {
-            _title = value
-        }
 
-    fun supplyTitle(value: String?): MediaItem {
-        if (_title == null && value != null) {
+    fun supplyTitle(value: String?, certain: Boolean = false): MediaItem {
+        if (value != null && (_title == null || certain)) {
             _title = value
         }
         return this
     }
 
-    private var _artist: Artist? by mutableStateOf(null)
-    var artist: Artist?
+    private var _artist: Artist? by mutableStateOf(if (this is Artist) this else null)
+    val artist: Artist?
         get() = _artist
-        protected set(value) {
-            _artist = value
-        }
 
-    fun supplyArtist(value: Artist?): MediaItem {
-        if (_artist == null && value != null) {
+    fun supplyArtist(value: Artist?, certain: Boolean = false): MediaItem {
+        if (value != null && (_artist == null || certain)) {
             _artist = value
         }
         return this
     }
 
     private var _description: String? by mutableStateOf(null)
-    var description: String?
+    val description: String?
         get() = _description
-        protected set(value) {
-            _description = value
-        }
 
-    fun supplyDescription(value: String?): MediaItem {
-        if (_description == null && value != null) {
+    fun supplyDescription(value: String?, certain: Boolean = false): MediaItem {
+        if (value != null && (_description == null || certain)) {
             _description = value
         }
         return this
@@ -73,10 +64,11 @@ abstract class MediaItem(id: String) {
     private var thumbnail_provider: ThumbnailProvider? by mutableStateOf(null)
     open fun canLoadThumbnail(): Boolean = thumbnail_provider != null
 
-    fun supplyThumbnailProvider(value: ThumbnailProvider?) {
-        if (thumbnail_provider == null && value != null) {
+    fun supplyThumbnailProvider(value: ThumbnailProvider?, certain: Boolean = false): MediaItem {
+        if (value != null && (thumbnail_provider == null || certain)) {
             thumbnail_provider = value
         }
+        return this
     }
 
     abstract class Data(val id: String) {
@@ -118,18 +110,22 @@ abstract class MediaItem(id: String) {
     protected fun stringToJson(string: String?): String {
         return if (string == null) "null" else "\"$string\""
     }
-    fun toJsonString(klaxon: Klaxon = DataApi.klaxon): String {
+    open fun getJsonMapValues(klaxon: Klaxon = DataApi.klaxon): String {
         return """
-        {
-            "type": $type,
+            "type": ${type.ordinal},
             "title": ${stringToJson(title)},
             "artist": ${stringToJson(artist?.id)},
-            "description": ${stringToJson(description)},
-            ${getJsonValues(klaxon)}
-        }
+            "desc": ${stringToJson(description)},
         """
     }
-    protected open fun getJsonValues(klaxon: Klaxon): String = ""
+
+    open fun supplyFromJsonObject(data: JsonObject, klaxon: Klaxon): MediaItem {
+        assert(data.int("type") == type.ordinal)
+        title = data.string("title")
+        artist = data.string("artist")?.let { Artist.fromId(it) }
+        description = data.string("desc")
+        return this
+    }
 
     companion object {
         fun fromJsonObject(obj: JsonObject, klaxon: Klaxon = DataApi.klaxon): MediaItem {
@@ -449,17 +445,8 @@ abstract class MediaItem(id: String) {
         return loadMediaItemData(getOrReplacedWith()).getDataOrThrow()
     }
 
-    open fun initWithData(data: Data): MediaItem {
-        title = data.title
-        if (data.artist != null) {
-            artist = Artist.fromId(data.artist!!)
-        }
-        description = data.description
-        return this
-    }
-
     open fun isLoaded(): Boolean {
-        return title != null && artist != null && description != null
+        return _title != null && _artist != null && _description != null
     }
 
     fun getDefaultThemeColour(): Color? {
@@ -474,5 +461,31 @@ abstract class MediaItem(id: String) {
 
     override fun toString(): String {
         return "MediaItem(type=$type, id=$_id)"
+    }
+}
+
+abstract class MediaItemWithLayouts(id: String): MediaItem(id) {
+    private var _feed_layouts: List<MediaItemLayout>? by mutableStateOf(null)
+    val feed_layouts: List<MediaItemLayout>?
+        get() = _feed_layouts
+
+    fun supplyFeedLayouts(value: List<MediaItemLayout>?, certain: Boolean): MediaItem {
+        if (value != null && (_feed_layouts == null || certain)) {
+            _feed_layouts = value
+        }
+        return this
+    }
+
+    override fun isLoaded(): Boolean {
+        return super.isLoaded() && _feed_layouts != null
+    }
+
+    override fun getJsonMapValues(klaxon: Klaxon = DataApi.klaxon): String {
+        return super.getJsonMapValues(klaxon) + "\"feed_layouts\": ${klaxon.toJsonString(feed_layouts)}"
+    }
+
+    open fun supplyFromJsonObject(data: JsonObject, klaxon: Klaxon): MediaItem {
+        feed_layouts = data.array<JsonObject>("feed_layouts")?.let { klaxon.parseFromJsonArray(it) }
+        return super.supplyFromJsonObject(data, klaxon)
     }
 }

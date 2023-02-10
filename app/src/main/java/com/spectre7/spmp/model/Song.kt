@@ -128,14 +128,6 @@ class Song private constructor (
 
     class SongData(id: String): Data(id)
 
-    override fun initWithData(data: Data): MediaItem {
-        val ret = super.initWithData(data)
-        registry.get<String>("title")?.also {
-            title = it
-        }
-        return ret
-    }
-
     data class Lyrics(
         val id: Int,
         val source: Source,

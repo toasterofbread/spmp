@@ -13,9 +13,7 @@ import com.spectre7.spmp.ui.layout.PlayerViewContext
 
 class Playlist private constructor (
     id: String
-): MediaItem(id) {
-
-    var feed_layouts: List<MediaItemLayout>? = null
+): MediaItemWithLayouts(id) {
 
     class PlaylistData(id: String): Data(id) {
         var feed_layouts: List<MediaItemLayout>? = null
@@ -27,19 +25,6 @@ class Playlist private constructor (
             }
             return super.initWithData(data, klaxon)
         }
-    }
-
-    override fun initWithData(data: Data): MediaItem {
-        if (data !is PlaylistData) {
-            throw ClassCastException(data.javaClass.name)
-        }
-
-        feed_layouts = data.feed_layouts
-        return super.initWithData(data)
-    }
-
-    override fun isLoaded(): Boolean {
-        return super.isLoaded() && feed_layouts != null
     }
 
     override fun getJsonValues(klaxon: Klaxon): String {

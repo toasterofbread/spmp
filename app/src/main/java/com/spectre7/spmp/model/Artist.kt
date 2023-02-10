@@ -19,14 +19,22 @@ import kotlin.concurrent.thread
 
 class Artist private constructor (
     id: String
-): MediaItem(id) {
+): MediaItemWithLayouts(id) {
 
     init {
         artist = this
     }
 
-    var feed_layouts: List<MediaItemLayout>? = null
-    var subscribe_channel_id: String? = null
+    private var _subscribe_channel_id: String? by mutableStateOf(null)
+    val subscribe_channel_id: String?
+        get() = _subscribe_channel_id
+
+    fun supplySubscribeChannelId(value: String?, certain: Boolean): MediaItem {
+        if (value != null && (_subscribe_channel_id == null || certain)) {
+            _subscribe_channel_id = value
+        }
+        return this
+    }
 
     var subscribed: Boolean? by mutableStateOf(null)
 
@@ -44,25 +52,20 @@ class Artist private constructor (
         }
     }
 
-    override fun initWithData(data: Data): MediaItem {
-        if (data !is ArtistData) {
-            throw ClassCastException(data.javaClass.name)
-        }
-
-        feed_layouts = data.feed_layouts
-        subscribe_channel_id = data.subscribe_channel_id ?: id
-        return super.initWithData(data)
-    }
-
     override fun isLoaded(): Boolean {
-        return super.isLoaded() && feed_layouts != null && subscribe_channel_id != null
+        return super.isLoaded() && _subscribe_channel_id != null
     }
 
-    override fun getJsonValues(klaxon: Klaxon): String {
-        return """
-            "feed_layouts": ${klaxon.toJsonString(feed_layouts)},
-            "subscribe_channel_id": ${stringToJson(subscribe_channel_id)}
-        """
+    override fun getJsonMapValues(klaxon: Klaxon): String {
+        return super.getJsonMapValues(klaxon) + "\"subscribe_channel_id\": ${stringToJson(subscribe_channel_id)},"
+    }
+
+    override fun supplyFromJsonObject(data: JsonObject, klaxon: Klaxon): MediaItem {
+        assert(data.int("type") == type.ordinal)
+        title = data.string("title")
+        artist = data.string("artist")?.let { Artist.fromId(it) }
+        description = data.string("desc")
+        return super.supplyFromJsonObject(data)
     }
 
     companion object {

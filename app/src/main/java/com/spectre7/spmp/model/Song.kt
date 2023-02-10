@@ -47,26 +47,35 @@ class DataRegistry constructor(data: Map<String, Map<String, Any?>>? = null) {
             }
         }
 
-        fun <T> set(key: String, value: T) {
+        fun <T> set(key: String, value: T, save: Boolean = true) {
             data[key]!!.value = value
-            save()
+
+            if (save) {
+                saveData()
+            }
         }
 
         fun <T> get(key: String): T? {
             return data[key]!!.value as T?
         }
 
-        fun getJsonData(): Map<String, Any?> {
-            return data.mapValues { it.value.value }
+        fun <T> getState(key: String): MutableState<T?> {
+            return data[key]!! as MutableState<T?>
         }
 
-        fun isDefault(): Boolean {
-            for (item in getDefaultData()) {
-                if (data[item.key]!!.value != item.value.value) {
-                    return false
+        fun save() {
+            saveData()
+        }
+
+        internal fun getJsonData(): Map<String, Any?>? {
+            val ret: MutableMap<String, Any?> = mutableMapOf()
+            for (item in data) {
+                if (item.value.value == null) {
+                    continue
                 }
+                ret[item.key] = item.value.value
             }
-            return true
+            return ret.ifEmpty { null }
         }
 
         private fun getDefaultData(): Map<String, MutableState<Any?>> {
@@ -75,6 +84,7 @@ class DataRegistry constructor(data: Map<String, Map<String, Any?>>? = null) {
                 "theme_colour" to mutableStateOf(null),
                 "lyrics_id" to mutableStateOf(null),
                 "lyrics_source" to mutableStateOf(null),
+                "thumbnail_rounding" to mutableStateOf(null)
             )
         }
     }
@@ -93,13 +103,13 @@ class DataRegistry constructor(data: Map<String, Map<String, Any?>>? = null) {
     }
 
     @Synchronized
-    fun save(prefs: SharedPreferences = Settings.prefs) {
+    fun saveData(prefs: SharedPreferences = Settings.prefs) {
         val song_data = mutableMapOf<String, Map<String, Any?>>()
         for (song in songs) {
-            if (song.value.isDefault()) {
-                continue
+            val data = song.value.getJsonData()
+            if (data != null) {
+                song_data[song.key] = data
             }
-            song_data[song.key] = song.value.getJsonData()
         }
 
         if (song_data.isEmpty()) {
@@ -126,7 +136,7 @@ class Song private constructor (
     private var stream_url_loading: Boolean = false
     private val stream_url_load_lock = Object()
 
-    class SongData(id: String): Data(id)
+//    class SongData(id: String): Data(id)
 
     data class Lyrics(
         val id: Int,
@@ -301,6 +311,10 @@ class Song private constructor (
         }
 
         return stream_url!!
+    }
+
+    override fun canLoadThumbnail(): Boolean {
+        return true
     }
 
     override fun downloadThumbnail(quality: ThumbnailQuality): Bitmap {

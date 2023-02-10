@@ -1,6 +1,7 @@
 package com.spectre7.spmp.ui.layout.nowplaying.overlay
 
 import androidx.compose.animation.AnimatedVisibility
+import androidx.compose.animation.core.Animatable
 import androidx.compose.animation.fadeIn
 import androidx.compose.animation.fadeOut
 import androidx.compose.foundation.layout.*
@@ -8,9 +9,7 @@ import androidx.compose.foundation.lazy.grid.GridCells
 import androidx.compose.foundation.lazy.grid.LazyVerticalGrid
 import androidx.compose.foundation.lazy.grid.items
 import androidx.compose.foundation.shape.RoundedCornerShape
-import androidx.compose.material3.Button
-import androidx.compose.material3.ButtonDefaults
-import androidx.compose.material3.Text
+import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
@@ -18,14 +17,19 @@ import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.toArgb
 import androidx.compose.ui.unit.dp
+import androidx.compose.ui.unit.sp
 import androidx.core.graphics.ColorUtils
 import androidx.palette.graphics.Palette
 import com.spectre7.spmp.MainActivity
 import com.spectre7.spmp.model.Song
 import com.spectre7.spmp.ui.layout.PlayerViewContext
-import com.spectre7.utils.PALETTE_COLOUR_AMOUNT
-import com.spectre7.utils.compare
-import com.spectre7.utils.getColour
+import com.spectre7.spmp.ui.layout.nowplaying.DEFAULT_THUMBNAIL_ROUNDING
+import com.spectre7.spmp.ui.layout.nowplaying.MAX_THUMBNAIL_ROUNDING
+import com.spectre7.spmp.ui.layout.nowplaying.MIN_THUMBNAIL_ROUNDING
+import com.spectre7.utils.*
+import kotlin.math.absoluteValue
+import kotlin.math.roundToInt
+import kotlin.math.sqrt
 
 const val PALETTE_SIMILAR_COLOUR_THRESHOLD = 0.1f
 
@@ -79,7 +83,7 @@ class PaletteSelectorOverlayMenu(
                 Column(Modifier.fillMaxSize(), verticalArrangement = Arrangement.SpaceEvenly, horizontalAlignment = Alignment.CenterHorizontally) {
 
                     val button_size = 40.dp
-                    val button_spacing = 30.dp
+                    val button_spacing = 15.dp
                     LazyVerticalGrid(
                         GridCells.Adaptive(button_size + button_spacing),
                         Modifier.fillMaxWidth(0.75f),
@@ -117,6 +121,53 @@ class PaletteSelectorOverlayMenu(
                         )
                     ) {
                         Text("Pick from thumbnail")
+                    }
+
+                    val thumbnail_rounding_state: MutableState<Int?> = remember(song.registry) { song.registry.getState("thumbnail_rounding") }
+                    var slider_value by remember { mutableStateOf(
+                        ((thumbnail_rounding_state.value ?: DEFAULT_THUMBNAIL_ROUNDING) - MIN_THUMBNAIL_ROUNDING) / (MAX_THUMBNAIL_ROUNDING - MIN_THUMBNAIL_ROUNDING).toFloat()
+                    ) }
+
+                    val anim_state = remember { Animatable(0f) }
+                    var anim_target: Float? by remember { mutableStateOf(null) }
+                    OnChangedEffect(anim_target) {
+                        anim_state.animateTo(anim_target!!)
+                    }
+
+                    var value_change_count by remember { mutableStateOf(0) }
+                    OnChangedEffect(slider_value) {
+                        if (value_change_count > 1) {
+                            anim_state.snapTo(slider_value)
+                        }
+                    }
+
+                    OnChangedEffect(anim_state.value) {
+                        thumbnail_rounding_state.value = MIN_THUMBNAIL_ROUNDING + ((MAX_THUMBNAIL_ROUNDING - MIN_THUMBNAIL_ROUNDING) * anim_state.value).roundToInt()
+
+                        if (!anim_state.isRunning) {
+                            song.registry.save()
+                        }
+                    }
+
+                    Column(horizontalAlignment = Alignment.CenterHorizontally) {
+                        val radius = (thumbnail_rounding_state.value ?: DEFAULT_THUMBNAIL_ROUNDING) * 2
+                        Text("Corner radius ${radius.toString().padStart(3, ' ')}", Modifier.offset(y = 10.dp), fontSize = 15.sp)
+                        Slider(
+                            value = slider_value,
+                            onValueChange = {
+                                slider_value = it
+                                value_change_count += 1
+                            },
+                            onValueChangeFinished = {
+                                value_change_count = 0
+                                anim_target = slider_value
+                            },
+                            colors = SliderDefaults.colors(
+                                thumbColor = MainActivity.theme.getBackground(true),
+                                activeTrackColor = MainActivity.theme.getBackground(true),
+                                inactiveTrackColor = MainActivity.theme.getBackground(true).setAlpha(0.2)
+                            )
+                        )
                     }
                 }
             }

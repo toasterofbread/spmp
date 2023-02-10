@@ -59,7 +59,8 @@ class PlayerServiceHost {
 
         val m_queue = mutableStateListOf<Song>()
         var m_playing: Boolean by mutableStateOf(false)
-        var m_position: Float by mutableStateOf(0f)
+        var m_position_seconds: Float by mutableStateOf(0f)
+        val m_position: Float get() = m_position_seconds / m_duration
         var m_duration: Float by mutableStateOf(0f)
         var m_song: Song? by mutableStateOf(null)
         var m_index: Int by mutableStateOf(0)
@@ -126,7 +127,7 @@ class PlayerServiceHost {
                     while (true) {
                         delay(100)
                         MainActivity.runInMainThread {
-                            m_position = position
+                            m_position_seconds = position_seconds
                         }
                     }
                 }

@@ -96,11 +96,7 @@ class PlayerService : Service() {
     }
 
     fun getCurrentSong(): Song? {
-        val song = getSong(player.currentMediaItemIndex)
-        if (song?.isLoaded() == true) {
-            return song
-        }
-        return null
+        return getSong(player.currentMediaItemIndex)
     }
 
     fun playSong(song: Song, start_radio: Boolean = true) {

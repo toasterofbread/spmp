@@ -15,22 +15,20 @@ class Playlist private constructor (
     id: String
 ): MediaItemWithLayouts(id) {
 
-    class PlaylistData(id: String): Data(id) {
-        var feed_layouts: List<MediaItemLayout>? = null
+//    class PlaylistData(id: String): Data(id) {
+//        var feed_layouts: List<MediaItemLayout>? = null
+//
+//        override fun initWithData(data: JsonObject, klaxon: Klaxon): Data {
+//            val layouts = data.array<MediaItemLayout>("feed_layouts")
+//            if (layouts != null) {
+//                feed_layouts = klaxon.parseFromJsonArray(layouts)
+//            }
+//            return super.initWithData(data, klaxon)
+//        }
+//    }
 
-        override fun initWithData(data: JsonObject, klaxon: Klaxon): Data {
-            val layouts = data.array<MediaItemLayout>("feed_layouts")
-            if (layouts != null) {
-                feed_layouts = klaxon.parseFromJsonArray(layouts)
-            }
-            return super.initWithData(data, klaxon)
-        }
-    }
-
-    override fun getJsonValues(klaxon: Klaxon): String {
-        return """
-            "feed_layouts": ${klaxon.toJsonString(feed_layouts)},
-        """
+    override fun getJsonMapValues(klaxon: Klaxon): String {
+        return super.getJsonMapValues(klaxon) + "\"feed_layouts\": ${klaxon.toJsonString(feed_layouts)},"
     }
 
     companion object {

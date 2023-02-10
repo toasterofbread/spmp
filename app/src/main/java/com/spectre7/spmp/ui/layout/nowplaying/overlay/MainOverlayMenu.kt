@@ -114,10 +114,6 @@ class MainOverlayMenu(
                     true,
                     Modifier
                 )
-
-                val song = PlayerServiceHost.status.m_song!!
-                InfoField("Original title", song.title ?: "", false)
-                InfoField("Video id", song.id, true)
             }
 
             Spacer(

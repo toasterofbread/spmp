@@ -74,7 +74,7 @@ fun loadMediaItemData(item: MediaItem): DataApi.Result<MediaItem> {
             return if (item.load_status == MediaItem.LoadStatus.LOADED) DataApi.Result.success(item.getOrReplacedWith()) else DataApi.Result.failure(RuntimeException())
         }
 
-        item.load_status = item.load_status == MediaItem.LoadStatus.LOADING
+        item.load_status = MediaItem.LoadStatus.LOADING
     }
 
     var response_body: BufferedReader
@@ -139,7 +139,7 @@ fun loadMediaItemData(item: MediaItem): DataApi.Result<MediaItem> {
         for (row in parsed.contents.singleColumnBrowseResultsRenderer.tabs.first().tabRenderer.content!!.sectionListRenderer.contents.withIndex()) {
             val desc = row.value.getDescription()
             if (desc != null) {
-                data.description = desc
+                item.supplyDescription(desc, true)
                 continue
             }
 
@@ -166,12 +166,13 @@ fun loadMediaItemData(item: MediaItem): DataApi.Result<MediaItem> {
         return finish(MediaItem.ThumbnailProvider.fromThumbnails(header_renderer.getThumbnails()))
     }
 
-    // var video_details = DataApi.klaxon.parse<PlayerData>(response_body)?.videoDetails
-    // response_body.close()
-    // if (video_details != null) {
-    //     item.supplyTitle(video_details.title, true)
-    //     item.supplyArtist(Artist.fromId(video_details.channelId))
-    // }
+     var video_details = DataApi.klaxon.parse<PlayerData>(response_body)?.videoDetails
+     response_body.close()
+     if (video_details != null) {
+         item.supplyTitle(video_details.title, true)
+         item.supplyArtist(Artist.fromId(video_details.channelId))
+         return finish()
+     }
 
     response_body = Cache.get(cache_key)!!
     val video = DataApi.klaxon.parse<YoutubeiNextResponse>(response_body)!!
@@ -194,12 +195,12 @@ fun loadMediaItemData(item: MediaItem): DataApi.Result<MediaItem> {
     item.supplyTitle(video.title.first_text, true)
 
     for (run in video.longBylineText.runs!!) {
-        if (row.navigationEndpoint?.browseEndpoint?.page_type != "MUSIC_PAGE_TYPE_ARTIST") {
+        if (run.navigationEndpoint?.browseEndpoint?.page_type != "MUSIC_PAGE_TYPE_ARTIST") {
             continue
         }
 
-        val artist = Artist.fromId(artist_run.navigationEndpoint!!.browseEndpoint!!.browseId).supplyTitle(artist_run.text)
-        item.supplyArtist(artist, true)
+        val artist = Artist.fromId(run.navigationEndpoint.browseEndpoint.browseId).supplyTitle(run.text)
+        item.supplyArtist(artist as Artist, true)
         
         return finish()
     }
@@ -210,12 +211,12 @@ fun loadMediaItemData(item: MediaItem): DataApi.Result<MediaItem> {
         return finish()
     }
 
-    for (run in video.longBylineText.runs!!) {
-        if (row.navigationEndpoint?.browseEndpoint?.page_type != "MUSIC_PAGE_TYPE_ALBUM") {
+    for (run in video.longBylineText.runs) {
+        if (run.navigationEndpoint?.browseEndpoint?.page_type != "MUSIC_PAGE_TYPE_ALBUM") {
             continue
         }
         
-        val artist = Playlist.fromId(run.navigationEndpoint!!.browseEndpoint!!.browseId).loadData().artist
+        val artist = Playlist.fromId(run.navigationEndpoint.browseEndpoint.browseId).loadData().artist
         if (artist != null) {
             item.supplyArtist(artist, true)
         }

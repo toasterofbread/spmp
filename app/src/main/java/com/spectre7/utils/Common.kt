@@ -52,6 +52,7 @@ import com.spectre7.spmp.MainActivity
 import kotlinx.coroutines.delay
 import java.util.regex.Pattern
 import kotlin.math.min
+import kotlin.math.sqrt
 
 fun Boolean.toInt() = if (this) 1 else 0
 
@@ -148,7 +149,7 @@ fun getStatusBarHeight(context: Context = MainActivity.context): Dp {
 }
 
 @Composable
-fun Marquee(autoscroll: Boolean = true, modifier: Modifier = Modifier, content: @Composable () -> Unit) {
+fun Marquee(autoscroll: Boolean = false, modifier: Modifier = Modifier, content: @Composable () -> Unit) {
 	MeasureUnconstrainedView(viewToMeasure = content) { content_width: Int, _ ->
 		val scroll_state = rememberScrollState()
 
@@ -412,3 +413,10 @@ private val recomposeModifier =
             }
         }
 	}
+
+fun getInnerSquareSizeOfCircle(radius: Float, corner_percent: Int): Float {
+	val C = 1.0 - (corner_percent * 0.02)
+	val E = (sqrt(8.0 * radius * radius) / 2.0) - radius
+	val I = radius + (E * C)
+	return sqrt(I * I * 0.5).toFloat()
+}

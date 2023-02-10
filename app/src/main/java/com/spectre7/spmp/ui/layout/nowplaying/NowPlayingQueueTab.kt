@@ -19,6 +19,7 @@ import androidx.compose.material.rememberSwipeableState
 import androidx.compose.material.swipeable
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
+import androidx.compose.runtime.snapshots.SnapshotStateList
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalConfiguration
@@ -34,7 +35,7 @@ import org.burnoutcrew.reorderable.*
 import kotlin.math.roundToInt
 
 @Composable
-fun QueueTab(expansion: Float, playerProvider: () -> PlayerViewContext) {
+fun QueueTab(expansionProvider: () -> Float, playerProvider: () -> PlayerViewContext) {
 
     var key_inc by remember { mutableStateOf(0) }
     val v_removed = remember { mutableStateListOf<Int>() }
@@ -215,11 +216,20 @@ fun QueueTab(expansion: Float, playerProvider: () -> PlayerViewContext) {
             }
         }
 
-        AnimatedVisibility(remember { derivedStateOf { expansion == 1f } }.value, enter = slideInVertically(), exit = slideOutVertically()) {
+        ActionBar(expansionProvider, undo_list)
+    }
+}
+
+@Composable
+private fun BoxScope.ActionBar(expansionProvider: () -> Float, undo_list: SnapshotStateList<() -> Unit>) {
+    val slide_offset: (fullHeight: Int) -> Int = remember { { (it * 0.7).toInt() } }
+
+    Box(Modifier.align(Alignment.BottomCenter)) {
+        AnimatedVisibility(remember { derivedStateOf { expansionProvider() >= 0.975f } }.value, enter = slideInVertically(initialOffsetY = slide_offset), exit = slideOutVertically(targetOffsetY = slide_offset)) {
             Row(
                 Modifier
-                    .align(Alignment.BottomCenter)
-                    .padding(10.dp),
+                    .padding(10.dp)
+                    .align(Alignment.BottomCenter),
                 horizontalArrangement = Arrangement.SpaceAround,
                 verticalAlignment = Alignment.CenterVertically
             ) {

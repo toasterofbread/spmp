@@ -3,6 +3,7 @@ package com.spectre7.spmp.ui.layout.nowplaying
 import MainOverlayMenu
 import com.spectre7.spmp.ui.layout.nowplaying.overlay.OverlayMenu
 import android.content.SharedPreferences
+import android.text.format.DateUtils
 import androidx.activity.compose.BackHandler
 import androidx.compose.animation.*
 import androidx.compose.animation.core.tween
@@ -23,17 +24,22 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.alpha
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.draw.scale
+import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.graphics.*
 import androidx.compose.ui.graphics.painter.Painter
 import androidx.compose.ui.input.pointer.pointerInput
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.layout.onSizeChanged
 import androidx.compose.ui.platform.LocalConfiguration
+import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.res.painterResource
+import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.*
 import androidx.palette.graphics.Palette
+import com.github.krottv.compose.sliders.DefaultThumb
+import com.github.krottv.compose.sliders.SliderValueHorizontal
 import com.google.android.exoplayer2.Player
 import com.spectre7.spmp.MainActivity
 import com.spectre7.spmp.PlayerServiceHost
@@ -50,6 +56,10 @@ import kotlin.math.max
 import kotlin.math.min
 
 const val OVERLAY_MENU_ANIMATION_DURATION: Int = 200
+
+const val DEFAULT_THUMBNAIL_ROUNDING: Int = 5
+const val MIN_THUMBNAIL_ROUNDING: Int = 0
+const val MAX_THUMBNAIL_ROUNDING: Int = 50
 
 @Composable
 fun ColumnScope.NowPlayingMainTab(
@@ -169,13 +179,16 @@ fun ColumnScope.NowPlayingMainTab(
         }
     }
 
+    val thumbnail_rounding: MutableState<Int?>? = remember (PlayerServiceHost.status.m_song?.registry) { PlayerServiceHost.status.song?.registry?.getState("thumbnail_rounding") }
+    val thumbnail_shape = RoundedCornerShape(thumbnail_rounding?.value ?: DEFAULT_THUMBNAIL_ROUNDING)
+    var image_size by remember { mutableStateOf(IntSize(1, 1)) }
+
     Row(
         verticalAlignment = Alignment.CenterVertically,
         horizontalArrangement = Arrangement.SpaceEvenly,
         modifier = Modifier
             .fillMaxWidth()
-            .fillMaxHeight(0.5f * max(expansion,
-                (MINIMISED_NOW_PLAYING_HEIGHT + 20f) / page_height.value))
+            .fillMaxHeight(0.5f * max(expansion, (MINIMISED_NOW_PLAYING_HEIGHT + 20f) / page_height.value))
     ) {
 
         var overlay_menu by remember { mutableStateOf<OverlayMenu?>(null) }
@@ -200,13 +213,12 @@ fun ColumnScope.NowPlayingMainTab(
                     }
                 }
                 else {
-                    var image_size by remember { mutableStateOf(IntSize(1, 1)) }
                     Image(
                         image, null,
                         contentScale = ContentScale.Crop,
                         modifier = Modifier
                             .aspectRatio(1f)
-                            .clip(RoundedCornerShape(5))
+                            .clip(thumbnail_shape)
                             .onSizeChanged {
                                 image_size = it
                             }
@@ -267,15 +279,24 @@ fun ColumnScope.NowPlayingMainTab(
                 enter = fadeIn(tween(OVERLAY_MENU_ANIMATION_DURATION)),
                 exit = fadeOut(tween(OVERLAY_MENU_ANIMATION_DURATION))
             ) {
-
-                Box(Modifier.alpha(expansion)) {
+                Box(
+                    Modifier
+                        .alpha(expansion)
+                        .fillMaxSize()
+                        .background(
+                            setColourAlpha(Color.DarkGray, 0.85),
+                            shape = thumbnail_shape
+                        ),
+                    contentAlignment = Alignment.Center
+                ) {
                     Box(
                         Modifier
-                            .background(
-                                setColourAlpha(Color.DarkGray, 0.85),
-                                shape = RoundedCornerShape(5)
-                            )
-                            .fillMaxSize(),
+                            .size(with (LocalDensity.current) {
+                                getInnerSquareSizeOfCircle(
+                                    radius = image_size.height.toDp().value,
+                                    corner_percent = thumbnail_rounding?.value ?: DEFAULT_THUMBNAIL_ROUNDING
+                                ).dp
+                            }),
                         contentAlignment = Alignment.Center
                     ) {
                         Crossfade(overlay_menu) { menu ->
@@ -287,7 +308,7 @@ fun ColumnScope.NowPlayingMainTab(
                             }
 
                             menu?.Menu(
-                                PlayerServiceHost.status.song!!,
+                                PlayerServiceHost.status.m_song!!,
                                 expansion,
                                 {
                                     get_shutter_menu = it
@@ -317,7 +338,7 @@ fun ColumnScope.NowPlayingMainTab(
                             Modifier
                                 .background(
                                     background.setAlpha(0.9),
-                                    RoundedCornerShape(5)
+                                    thumbnail_shape
                                 )
                                 .padding(start = padding, top = padding, end = padding)
                                 .fillMaxSize(),
@@ -357,7 +378,7 @@ fun ColumnScope.NowPlayingMainTab(
             Spacer(Modifier.requiredWidth(10.dp))
 
             Text(
-                PlayerServiceHost.status.m_song?.getLoadedOrNull()?.title ?: "",
+                PlayerServiceHost.status.m_song?.title ?: "",
                 maxLines = 1,
                 color = MainActivity.theme.getOnBackground(true),
                 overflow = TextOverflow.Ellipsis,
@@ -475,12 +496,10 @@ private fun Controls(
         Column(verticalArrangement = Arrangement.spacedBy(35.dp)) {
             Column(verticalArrangement = Arrangement.spacedBy(5.dp)) {
 
-                val song = PlayerServiceHost.status.m_song?.getLoadedOrNull() as Song?
-
                 // Title text
                 Marquee(false) {
                     Text(
-                        song?.title ?: "",
+                        PlayerServiceHost.status.m_song?.title ?: "",
                         fontSize = 17.sp,
                         color = MainActivity.theme.getOnBackground(true),
                         textAlign = TextAlign.Center,
@@ -489,15 +508,12 @@ private fun Controls(
                         modifier = Modifier
                             .fillMaxWidth()
                             .animateContentSize()
-                            .clickable {
-                                TODO("Edit song info")
-                            }
                     )
                 }
 
                 // Artist text
                 Text(
-                    song?.artist?.getLoadedOrNull()?.title ?: "",
+                    PlayerServiceHost.status.m_song?.artist?.title ?: "",
                     fontSize = 12.sp,
                     color = MainActivity.theme.getOnBackground(true),
                     textAlign = TextAlign.Center,
@@ -507,7 +523,7 @@ private fun Controls(
                         .fillMaxWidth()
                         .animateContentSize()
                         .clickable {
-                            PlayerServiceHost.status.song!!.artist?.also {
+                            PlayerServiceHost.status.song?.artist?.also {
                                 playerProvider().onMediaItemClicked(it)
                             }
                         }
@@ -538,7 +554,10 @@ private fun Controls(
                 }
 
                 // Play / pause
-                PlayerButton(if (PlayerServiceHost.status.m_playing) R.drawable.ic_pause else R.drawable.ic_play_arrow, enabled = PlayerServiceHost.status.m_song != null) {
+                PlayerButton(
+                    if (PlayerServiceHost.status.m_playing) R.drawable.ic_pause else R.drawable.ic_play_arrow,
+                    enabled = PlayerServiceHost.status.m_song != null
+                ) {
                     PlayerServiceHost.service.playPause()
                 }
 
@@ -563,5 +582,133 @@ private fun Controls(
                 }
             }
         }
+    }
+}
+
+@Composable
+private fun SeekBarTimeText(time: Float) {
+    Text(DateUtils.formatElapsedTime(time.toLong()), fontSize = 10.sp, fontWeight = FontWeight.Light, color = MainActivity.theme.getOnBackground(true))
+}
+
+@Composable
+private fun SeekBar(seek: (Float) -> Unit) {
+    var position_override by remember { mutableStateOf<Float?>(null) }
+    var old_position by remember { mutableStateOf<Float?>(null) }
+    var grab_start_position by remember { mutableStateOf<Float?>(null) }
+
+    @Composable
+    fun SeekTrack(
+        modifier: Modifier,
+        progress: Float,
+        enabled: Boolean,
+        track_colour: Color = Color(0xffD3B4F7),
+        progress_colour: Color = Color(0xff7000F8),
+        height: Dp = 4.dp,
+        highlight_colour: Color = setColourAlpha(Color.Red, 0.2)
+    ) {
+        androidx.compose.foundation.Canvas(
+            Modifier
+                .then(modifier)
+                .height(height)
+        ) {
+
+            val left = Offset(0f, center.y)
+            val right = Offset(size.width, center.y)
+            val start = if (layoutDirection == LayoutDirection.Rtl) right else left
+            val end = if (layoutDirection == LayoutDirection.Rtl) left else right
+
+            drawLine(
+                track_colour,
+                start,
+                end,
+                size.height,
+                StrokeCap.Round,
+                alpha = if (enabled) 1f else 0.6f
+            )
+
+            drawLine(
+                progress_colour,
+                Offset(
+                    start.x,
+                    center.y
+                ),
+                Offset(
+                    start.x + (end.x - start.x) * progress,
+                    center.y
+                ),
+                size.height,
+                StrokeCap.Round,
+                alpha = if (enabled) 1f else 0.6f
+            )
+
+            if (grab_start_position != null) {
+                drawLine(
+                    highlight_colour,
+                    Offset(size.width * (grab_start_position!! - SEEK_CANCEL_THRESHOLD / 2.0f),
+                        center.y),
+                    Offset(size.width * (grab_start_position!! + SEEK_CANCEL_THRESHOLD / 2.0f),
+                        center.y),
+                    size.height,
+                    StrokeCap.Square,
+                    alpha = if (enabled) 1f else 0.6f
+                )
+            }
+        }
+    }
+
+    var cancel_area_side: Int? by remember { mutableStateOf(null) }
+
+    fun getSliderValue(): Float {
+        if (position_override != null && old_position != null) {
+            if (PlayerServiceHost.status.m_position != old_position) {
+                old_position = null
+                position_override = null
+            }
+            else {
+                return position_override!!
+            }
+        }
+        return position_override ?: PlayerServiceHost.status.m_position
+    }
+
+    Row(verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(5.dp)) {
+
+        SeekBarTimeText(PlayerServiceHost.status.m_position_seconds)
+
+        SliderValueHorizontal(
+            value = getSliderValue(),
+            onValueChange = {
+                if (grab_start_position == null) {
+                    grab_start_position = PlayerServiceHost.status.position
+                }
+
+                position_override = it
+
+                val side = if (it <= grab_start_position!! - SEEK_CANCEL_THRESHOLD / 2.0) -1 else if (it >= grab_start_position!! + SEEK_CANCEL_THRESHOLD / 2.0) 1 else 0
+                if (side != cancel_area_side) {
+                    if (side == 0 || side + (cancel_area_side ?: 0) == 0) {
+                        vibrateShort()
+                    }
+                    cancel_area_side = side
+                }
+            },
+            onValueChangeFinished = {
+                if (cancel_area_side == 0 && grab_start_position != null) {
+                    vibrateShort()
+                }
+                else {
+                    seek(position_override!!)
+                }
+                old_position = PlayerServiceHost.status.position
+                grab_start_position = null
+                cancel_area_side = null
+            },
+            thumbSizeInDp = DpSize(12.dp, 12.dp),
+            track = { a, b, _, _, c -> SeekTrack(a, b, c, setColourAlpha(MainActivity.theme.getOnBackground(true), 0.5), MainActivity.theme.getOnBackground(true)) },
+            thumb = { a, b, c, d, e -> DefaultThumb(a, b, c, d, e, MainActivity.theme.getOnBackground(true), 1f) },
+            modifier = Modifier.weight(1f)
+        )
+
+        SeekBarTimeText(PlayerServiceHost.status.m_duration)
     }
 }

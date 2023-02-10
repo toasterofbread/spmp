@@ -21,10 +21,6 @@ class Artist private constructor (
     id: String
 ): MediaItemWithLayouts(id) {
 
-    init {
-        artist = this
-    }
-
     private var _subscribe_channel_id: String? by mutableStateOf(null)
     val subscribe_channel_id: String?
         get() = _subscribe_channel_id
@@ -38,19 +34,19 @@ class Artist private constructor (
 
     var subscribed: Boolean? by mutableStateOf(null)
 
-    class ArtistData(id: String): Data(id) {
-        var feed_layouts: List<MediaItemLayout>? = null
-        var subscribe_channel_id: String? = null
-
-        override fun initWithData(data: JsonObject, klaxon: Klaxon): Data {
-            val layouts = data.array<MediaItemLayout>("feed_layouts")
-            if (layouts != null) {
-                feed_layouts = klaxon.parseFromJsonArray(layouts)
-            }
-            subscribe_channel_id = data.string("subscribe_channel_id")
-            return super.initWithData(data, klaxon)
-        }
-    }
+//    class ArtistData(id: String): Data(id) {
+//        var feed_layouts: List<MediaItemLayout>? = null
+//        var subscribe_channel_id: String? = null
+//
+//        override fun initWithData(data: JsonObject, klaxon: Klaxon): Data {
+//            val layouts = data.array<MediaItemLayout>("feed_layouts")
+//            if (layouts != null) {
+//                feed_layouts = klaxon.parseFromJsonArray(layouts)
+//            }
+//            subscribe_channel_id = data.string("subscribe_channel_id")
+//            return super.initWithData(data, klaxon)
+//        }
+//    }
 
     override fun isLoaded(): Boolean {
         return super.isLoaded() && _subscribe_channel_id != null
@@ -61,11 +57,8 @@ class Artist private constructor (
     }
 
     override fun supplyFromJsonObject(data: JsonObject, klaxon: Klaxon): MediaItem {
-        assert(data.int("type") == type.ordinal)
-        title = data.string("title")
-        artist = data.string("artist")?.let { Artist.fromId(it) }
-        description = data.string("desc")
-        return super.supplyFromJsonObject(data)
+        _subscribe_channel_id = data.string("subscribe_channel_id")
+        return super.supplyFromJsonObject(data, klaxon)
     }
 
     companion object {

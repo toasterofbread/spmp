@@ -4,6 +4,8 @@ import android.graphics.Bitmap
 import android.graphics.BitmapFactory
 import androidx.compose.animation.Crossfade
 import androidx.compose.foundation.Image
+import androidx.compose.material3.CircularProgressIndicator
+import androidx.compose.material3.Text
 import androidx.compose.runtime.*
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
@@ -15,6 +17,7 @@ import androidx.palette.graphics.Palette
 import com.beust.klaxon.*
 import com.spectre7.spmp.api.DataApi
 import com.spectre7.spmp.api.loadMediaItemData
+import com.spectre7.spmp.ui.component.MediaItemLayout
 import com.spectre7.spmp.ui.layout.PlayerViewContext
 import com.spectre7.utils.getThemeColour
 import java.net.URL
@@ -71,29 +74,29 @@ abstract class MediaItem(id: String) {
         return this
     }
 
-    abstract class Data(val id: String) {
-        var title: String? = null
-        var artist: String? = null
-        var description: String? = null
-
-        open fun initWithData(data: JsonObject, klaxon: Klaxon): Data {
-            title = data.string("title")
-            artist = data.string("artist")
-            description = data.string("description")
-            return this
-        }
-
-        companion object {
-            fun fromJsonObject(data: JsonObject, klaxon: Klaxon = DataApi.klaxon): Data {
-                val id = data.string("id")!!
-                return when (Type.values()[data.int("type")!!]) {
-                    Type.SONG -> Song.SongData(id)
-                    Type.ARTIST -> TODO()
-                    Type.PLAYLIST -> TODO()
-                }.initWithData(data, klaxon)
-            }
-        }
-    }
+//    abstract class Data(val id: String) {
+//        var title: String? = null
+//        var artist: String? = null
+//        var description: String? = null
+//
+//        open fun initWithData(data: JsonObject, klaxon: Klaxon): Data {
+//            title = data.string("title")
+//            artist = data.string("artist")
+//            description = data.string("description")
+//            return this
+//        }
+//
+//        companion object {
+//            fun fromJsonObject(data: JsonObject, klaxon: Klaxon = DataApi.klaxon): Data {
+//                val id = data.string("id")!!
+//                return when (Type.values()[data.int("type")!!]) {
+//                    Type.SONG -> Song.SongData(id)
+//                    Type.ARTIST -> TODO()
+//                    Type.PLAYLIST -> TODO()
+//                }.initWithData(data, klaxon)
+//            }
+//        }
+//    }
 
     private var replaced_with: MediaItem? = null
 
@@ -121,9 +124,9 @@ abstract class MediaItem(id: String) {
 
     open fun supplyFromJsonObject(data: JsonObject, klaxon: Klaxon): MediaItem {
         assert(data.int("type") == type.ordinal)
-        title = data.string("title")
-        artist = data.string("artist")?.let { Artist.fromId(it) }
-        description = data.string("desc")
+        _title = data.string("title")
+        _artist = data.string("artist")?.let { Artist.fromId(it) }
+        _description = data.string("desc")
         return this
     }
 
@@ -136,7 +139,7 @@ abstract class MediaItem(id: String) {
                 Type.SONG -> Song.fromId(id)
                 Type.ARTIST -> Artist.fromId(id)
                 Type.PLAYLIST -> Playlist.fromId(id)
-            }.initWithData(Data.fromJsonObject(obj, klaxon))
+            }.supplyFromJsonObject(obj, klaxon)
         }
         
         val json_converter = object : Converter {
@@ -158,7 +161,7 @@ abstract class MediaItem(id: String) {
             }
 
             override fun toJson(value: Any): String {
-                return (value as MediaItem).toJsonString(DataApi.klaxon)
+                return "{${(value as MediaItem).getJsonMapValues(DataApi.klaxon)}}"
             }
         }
     }
@@ -201,10 +204,7 @@ abstract class MediaItem(id: String) {
         LOADED
     }
 
-    private var _load_status: LoadStatus by mutableStateOf(LoadStatus.NOT_LOADED)
-    var load_status: LoadStatus
-        get() = _load_status
-        private set(value) { _load_status = value }
+    var load_status: LoadStatus by mutableStateOf(LoadStatus.NOT_LOADED)
 //    val loaded: Boolean get() = _load_status == LoadStatus.LOADED
 
     private val _loading_lock = Object()
@@ -285,12 +285,6 @@ abstract class MediaItem(id: String) {
 
     fun getOrReplacedWith(): MediaItem {
         return replaced_with?.getOrReplacedWith() ?: this
-    }
-
-    fun getLoadedOrNull(): MediaItem? {
-        return getOrReplacedWith().let {
-            if (it.isLoaded()) it else null
-        }
     }
 
     fun replaceWithItemWithId(new_id: String): MediaItem {
@@ -422,12 +416,16 @@ abstract class MediaItem(id: String) {
 
     @Composable
     fun Thumbnail(quality: ThumbnailQuality, modifier: Modifier) {
-        LaunchedEffect(quality) {
+        LaunchedEffect(quality, canLoadThumbnail()) {
             getThumbnail(quality)
         }
 
         Crossfade(thumb_states[quality]!!.image) { thumbnail ->
-            if (thumbnail != null) {
+            if (thumbnail == null) {
+                CircularProgressIndicator()
+                Text(thumbnail_provider.toString())
+            }
+            else {
                 Image(
                     thumbnail.asImageBitmap(),
                     contentDescription = null,
@@ -480,12 +478,12 @@ abstract class MediaItemWithLayouts(id: String): MediaItem(id) {
         return super.isLoaded() && _feed_layouts != null
     }
 
-    override fun getJsonMapValues(klaxon: Klaxon = DataApi.klaxon): String {
+    override fun getJsonMapValues(klaxon: Klaxon): String {
         return super.getJsonMapValues(klaxon) + "\"feed_layouts\": ${klaxon.toJsonString(feed_layouts)}"
     }
 
-    open fun supplyFromJsonObject(data: JsonObject, klaxon: Klaxon): MediaItem {
-        feed_layouts = data.array<JsonObject>("feed_layouts")?.let { klaxon.parseFromJsonArray(it) }
+    override fun supplyFromJsonObject(data: JsonObject, klaxon: Klaxon): MediaItem {
+        _feed_layouts = data.array<JsonObject>("feed_layouts")?.let { klaxon.parseFromJsonArray(it) }
         return super.supplyFromJsonObject(data, klaxon)
     }
 }

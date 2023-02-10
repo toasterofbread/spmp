@@ -103,35 +103,30 @@ fun SongPreviewLong(
                 }
             )
     ) {
-        if (!song.isLoaded()) {
-            CircularProgressIndicator(color = content_colour())
-        }
-        else {
-            song.Thumbnail(MediaItem.ThumbnailQuality.LOW,
-                Modifier
-                    .size(40.dp)
-                    .longPressMenuIcon(long_press_menu_data, enable_long_press_menu))
+        song.Thumbnail(MediaItem.ThumbnailQuality.LOW,
+            Modifier
+                .size(40.dp)
+                .longPressMenuIcon(long_press_menu_data, enable_long_press_menu))
 
-            Column(
-                Modifier
-                    .padding(10.dp)
-                    .fillMaxWidth(0.9f)) {
-                Text(
-                    song.title ?: "",
-                    fontSize = 15.sp,
-                    color = content_colour(),
-                    maxLines = 1,
-                    overflow = TextOverflow.Ellipsis
-                )
+        Column(
+            Modifier
+                .padding(10.dp)
+                .fillMaxWidth(0.9f)) {
+            Text(
+                song.title ?: "",
+                fontSize = 15.sp,
+                color = content_colour(),
+                maxLines = 1,
+                overflow = TextOverflow.Ellipsis
+            )
 
-                Text(
-                    song.artist?.title ?: "",
-                    fontSize = 11.sp,
-                    color = content_colour().setAlpha(0.5),
-                    maxLines = 1,
-                    overflow = TextOverflow.Ellipsis
-                )
-            }
+            Text(
+                song.artist?.title ?: "",
+                fontSize = 11.sp,
+                color = content_colour().setAlpha(0.5),
+                maxLines = 1,
+                overflow = TextOverflow.Ellipsis
+            )
         }
     }
 }

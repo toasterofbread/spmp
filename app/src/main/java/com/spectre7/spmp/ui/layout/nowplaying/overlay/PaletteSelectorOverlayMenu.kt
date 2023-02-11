@@ -9,6 +9,8 @@ import androidx.compose.foundation.lazy.grid.GridCells
 import androidx.compose.foundation.lazy.grid.LazyVerticalGrid
 import androidx.compose.foundation.lazy.grid.items
 import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.Refresh
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
@@ -152,22 +154,32 @@ class PaletteSelectorOverlayMenu(
                     Column(horizontalAlignment = Alignment.CenterHorizontally) {
                         val radius = (thumbnail_rounding_state.value ?: DEFAULT_THUMBNAIL_ROUNDING) * 2
                         Text("Corner radius ${radius.toString().padStart(3, ' ')}", Modifier.offset(y = 10.dp), fontSize = 15.sp)
-                        Slider(
-                            value = slider_value,
-                            onValueChange = {
-                                slider_value = it
-                                value_change_count += 1
-                            },
-                            onValueChangeFinished = {
-                                value_change_count = 0
-                                anim_target = slider_value
-                            },
-                            colors = SliderDefaults.colors(
-                                thumbColor = MainActivity.theme.getBackground(true),
-                                activeTrackColor = MainActivity.theme.getBackground(true),
-                                inactiveTrackColor = MainActivity.theme.getBackground(true).setAlpha(0.2)
+
+                        Row {
+                            Slider(
+                                value = slider_value,
+                                onValueChange = {
+                                    slider_value = it
+                                    value_change_count += 1
+                                },
+                                onValueChangeFinished = {
+                                    value_change_count = 0
+                                    anim_target = slider_value
+                                },
+                                colors = SliderDefaults.colors(
+                                    thumbColor = MainActivity.theme.getBackground(true),
+                                    activeTrackColor = MainActivity.theme.getBackground(true),
+                                    inactiveTrackColor = MainActivity.theme.getBackground(true).setAlpha(0.2)
+                                ),
+                                modifier = Modifier.weight(1f)
                             )
-                        )
+                            IconButton({
+                                slider_value = (DEFAULT_THUMBNAIL_ROUNDING - MIN_THUMBNAIL_ROUNDING) / (MAX_THUMBNAIL_ROUNDING - MIN_THUMBNAIL_ROUNDING).toFloat()
+                                anim_target = slider_value
+                            }) {
+                                Icon(Icons.Filled.Refresh, null)
+                            }
+                        }
                     }
                 }
             }

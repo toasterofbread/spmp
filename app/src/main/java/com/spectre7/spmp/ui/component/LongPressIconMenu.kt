@@ -343,7 +343,12 @@ fun LongPressIconMenu(
                                         Marquee(false) {
                                             artist.PreviewLong(
                                                 content_colour = MainActivity.theme.getOnBackgroundProvider(false),
-                                                playerProvider,
+                                                remember { { playerProvider().let { player ->
+                                                    player.copy(onClickedOverride = {
+                                                        close_requested = true
+                                                        player.onMediaItemClicked(it)
+                                                    })
+                                                }}},
                                                 true,
                                                 Modifier.fillMaxWidth()
                                             )

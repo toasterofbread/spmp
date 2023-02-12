@@ -20,6 +20,7 @@ import com.spectre7.spmp.api.loadMediaItemData
 import com.spectre7.spmp.ui.component.MediaItemLayout
 import com.spectre7.spmp.ui.layout.PlayerViewContext
 import com.spectre7.utils.getThemeColour
+import java.io.Reader
 import java.net.URL
 import kotlin.concurrent.thread
 
@@ -42,7 +43,7 @@ abstract class MediaItem(id: String) {
         return this
     }
 
-    private var _artist: Artist? by mutableStateOf(if (this is Artist) this else null)
+    private var _artist: Artist? by mutableStateOf(null)
     val artist: Artist?
         get() = _artist
 
@@ -64,7 +65,7 @@ abstract class MediaItem(id: String) {
         return this
     }
 
-    private var thumbnail_provider: ThumbnailProvider? by mutableStateOf(null)
+    protected var thumbnail_provider: ThumbnailProvider? by mutableStateOf(null)
     open fun canLoadThumbnail(): Boolean = thumbnail_provider != null
 
     fun supplyThumbnailProvider(value: ThumbnailProvider?, certain: Boolean = false): MediaItem {
@@ -73,30 +74,6 @@ abstract class MediaItem(id: String) {
         }
         return this
     }
-
-//    abstract class Data(val id: String) {
-//        var title: String? = null
-//        var artist: String? = null
-//        var description: String? = null
-//
-//        open fun initWithData(data: JsonObject, klaxon: Klaxon): Data {
-//            title = data.string("title")
-//            artist = data.string("artist")
-//            description = data.string("description")
-//            return this
-//        }
-//
-//        companion object {
-//            fun fromJsonObject(data: JsonObject, klaxon: Klaxon = DataApi.klaxon): Data {
-//                val id = data.string("id")!!
-//                return when (Type.values()[data.int("type")!!]) {
-//                    Type.SONG -> Song.SongData(id)
-//                    Type.ARTIST -> TODO()
-//                    Type.PLAYLIST -> TODO()
-//                }.initWithData(data, klaxon)
-//            }
-//        }
-//    }
 
     private var replaced_with: MediaItem? = null
 
@@ -115,7 +92,6 @@ abstract class MediaItem(id: String) {
     }
     open fun getJsonMapValues(klaxon: Klaxon = DataApi.klaxon): String {
         return """
-            "type": ${type.ordinal},
             "title": ${stringToJson(title)},
             "artist": ${stringToJson(artist?.id)},
             "desc": ${stringToJson(description)},
@@ -130,19 +106,59 @@ abstract class MediaItem(id: String) {
         return this
     }
 
-    companion object {
-        fun fromJsonObject(obj: JsonObject, klaxon: Klaxon = DataApi.klaxon): MediaItem {
-            val id = obj.string("id")!!
-            val type = Type.values()[obj.int("type")!!]
+    fun toJsonData(): String {
+        return Klaxon().converter(json_converter).toJsonString(this)
+    }
 
-            return when (type) {
+    companion object {
+        fun fromJsonData(reader: Reader): MediaItem {
+            return Klaxon().converter(json_converter).parse(reader)!!
+        }
+
+        fun fromJsonObject(obj: JsonObject, klaxon: Klaxon = DataApi.klaxon, ref_only: Boolean = false): MediaItem {
+            val id = obj.string("id")!!
+            val item = when (Type.values()[obj.int("type")!!]) {
                 Type.SONG -> Song.fromId(id)
                 Type.ARTIST -> Artist.fromId(id)
                 Type.PLAYLIST -> Playlist.fromId(id)
-            }.supplyFromJsonObject(obj, klaxon)
+            }
+
+            if (!ref_only) {
+                item.supplyFromJsonObject(obj, klaxon)
+            }
+            return item
         }
-        
-        val json_converter = object : Converter {
+
+        protected val json_converter = object : Converter {
+            private val json_ref_converter = object : Converter {
+                override fun canConvert(cls: Class<*>): Boolean {
+                    return MediaItem::class.java.isAssignableFrom(cls)
+                }
+
+                override fun fromJson(jv: JsonValue): Any {
+                    if (jv.obj == null) {
+                        throw KlaxonException("Couldn't parse MediaItem as it isn't an object ($jv)")
+                    }
+
+                    try {
+                        return fromJsonObject(jv.obj!!, Klaxon().converter(this), true)
+                    }
+                    catch (e: Exception) {
+                        throw RuntimeException("Couldn't parse MediaItem ($jv)", e)
+                    }
+                }
+
+                override fun toJson(value: Any): String {
+                    if (value !is MediaItem) {
+                        throw KlaxonException("Value $value is not a MediaItem")
+                    }
+                    return """{
+                        "type": ${value.type.ordinal},
+                        "id": "${value.id}"
+                    }"""
+                }
+            }
+
             override fun canConvert(cls: Class<*>): Boolean {
                 return MediaItem::class.java.isAssignableFrom(cls)
             }
@@ -153,7 +169,7 @@ abstract class MediaItem(id: String) {
                 }
 
                 try {
-                    return fromJsonObject(jv.obj!!, DataApi.klaxon)
+                    return fromJsonObject(jv.obj!!, Klaxon().converter(json_ref_converter))
                 }
                 catch (e: Exception) {
                     throw RuntimeException("Couldn't parse MediaItem ($jv)", e)
@@ -161,9 +177,17 @@ abstract class MediaItem(id: String) {
             }
 
             override fun toJson(value: Any): String {
-                return "{${(value as MediaItem).getJsonMapValues(DataApi.klaxon)}}"
+                if (value !is MediaItem) {
+                    throw KlaxonException("Value $value is not a MediaItem")
+                }
+                return """{
+                    "type": ${value.type.ordinal},
+                    "id": "${value.id}",
+                    ${value.getJsonMapValues(Klaxon().converter(json_ref_converter))}
+                }"""
             }
         }
+
     }
 
     class BrowseEndpoint {
@@ -262,7 +286,6 @@ abstract class MediaItem(id: String) {
                 return SetProvider(thumbnails)
             }
         }
-
     }
 
     enum class ThumbnailQuality {
@@ -423,7 +446,6 @@ abstract class MediaItem(id: String) {
         Crossfade(thumb_states[quality]!!.image) { thumbnail ->
             if (thumbnail == null) {
                 CircularProgressIndicator()
-                Text(thumbnail_provider.toString())
             }
             else {
                 Image(

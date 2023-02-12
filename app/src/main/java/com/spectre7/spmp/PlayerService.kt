@@ -109,7 +109,11 @@ class PlayerService : Service() {
         }
 
         thread {
-            addMultipleToQueueAndLoad(radio.startNewRadio(song), 1, true)
+            radio.startNewRadio(song).let {
+                MainActivity.runInMainThread {
+                    addMultipleToQueue(it, 1, true)
+                }
+            }
         }
     }
 
@@ -118,7 +122,11 @@ class PlayerService : Service() {
             return
         }
         thread {
-            addMultipleToQueueAndLoad(radio.getRadioContinuation(), 1, false)
+            radio.getRadioContinuation().let {
+                MainActivity.runInMainThread {
+                    addMultipleToQueue(it, 1, false)
+                }
+            }
         }
     }
 
@@ -198,9 +206,7 @@ class PlayerService : Service() {
 
         if (start_radio) {
             clearQueue(added_index)
-            thread {
-                addMultipleToQueueAndLoad(radio.startNewRadio(song), added_index)
-            }
+            addMultipleToQueue(radio.startNewRadio(song), added_index)
         }
 
         return added_index
@@ -225,25 +231,6 @@ class PlayerService : Service() {
         }
 
         addNotificationToPlayer()
-    }
-
-    fun addMultipleToQueueAndLoad(songs: List<Song>, index: Int = 0, skip_first: Boolean = false) {
-        MainActivity.runInMainThread {
-            addMultipleToQueue(songs, index, skip_first)
-        }
-
-        runBlocking { withContext(Dispatchers.IO) { coroutineScope {
-            var skipped = !skip_first
-            for (song in songs) {
-                if (!skipped) {
-                    skipped = true
-                    continue
-                }
-                launch {
-                    song.loadData()
-                }
-            }
-        }}}
     }
 
     fun removeFromQueue(index: Int): Song {

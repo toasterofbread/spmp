@@ -69,11 +69,10 @@ fun QueueTab(expansionProvider: () -> Float, playerProvider: () -> PlayerViewCon
                     val contentColourProvider = if (current) MainActivity.theme.getBackgroundProvider(true) else MainActivity.theme.getOnBackgroundProvider(true)
                     song.PreviewLong(
                         contentColourProvider,
-                        remember {
+                        remember(index) {
                             {
                                 playerProvider().copy(onClickedOverride = {
-                                    PlayerServiceHost.player.seekTo(index,
-                                        C.TIME_UNSET)
+                                    PlayerServiceHost.player.seekTo(index, C.TIME_UNSET)
                                 })
                             }
                          },
@@ -207,7 +206,7 @@ fun QueueTab(expansionProvider: () -> Float, playerProvider: () -> PlayerViewCon
                             item.QueueElement(
                                 Modifier.detectReorder(state),
                                 if (playing_key != null) playing_key == item.key else PlayerServiceHost.status.m_index == index,
-                                0,
+                                index,
                                 remove_request
                             )
                         }

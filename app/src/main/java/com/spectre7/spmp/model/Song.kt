@@ -297,11 +297,6 @@ class Song private constructor (
             stream_url_loading = true
         }
 
-//        if (streaming_formats != null) {
-//            format = getWantedVideoFormat(streaming_formats!!)
-//            format.loadStreamUrl(id)
-//        }
-
         val format: YoutubeVideoFormat = getVideoFormats(id) { getWantedVideoFormat(it) }.getDataOrThrow()
         stream_url = format.stream_url!!
 
@@ -318,21 +313,39 @@ class Song private constructor (
     }
 
     override fun downloadThumbnail(quality: ThumbnailQuality): Bitmap {
-        lateinit var image: Bitmap
-        try {
-            val filename = when (quality) {
-                ThumbnailQuality.LOW -> "0"
-                ThumbnailQuality.HIGH -> "maxresdefault"
+        // Iterate through getThumbUrl URL and ThumbnailQuality URLs for passed quality and each lower quality
+        for (i in 0 .. quality.ordinal + 1) {
+
+            // Some static thumbnails are cropped for some reason
+            if (i == 0 && thumbnail_provider !is ThumbnailProvider.DynamicProvider) {
+                continue
             }
-            image = BitmapFactory.decodeStream(URL(getThumbUrl(quality) ?: "https://img.youtube.com/vi/$id/$filename.jpg").openConnection().getInputStream())!!
-        }
-        catch (e: FileNotFoundException) {
-            image = BitmapFactory.decodeStream(URL("https://img.youtube.com/vi/$id/0.jpg").openConnection().getInputStream())!!
+
+            val url = if (i == 0) getThumbUrl(quality) ?: continue else {
+                when (ThumbnailQuality.values()[quality.ordinal - i + 1]) {
+                    ThumbnailQuality.LOW -> "https://img.youtube.com/vi/$id/0.jpg"
+                    ThumbnailQuality.HIGH -> "https://img.youtube.com/vi/$id/maxresdefault.jpg"
+                }
+            }
+
+            try {
+                val image = BitmapFactory.decodeStream(URL(url).openConnection().getInputStream())!!
+                if (image.width == image.height) {
+                    return image
+                }
+
+                // Crop image to 1:1
+                val size = (image.width * (9f/16f)).toInt()
+                return Bitmap.createBitmap(image, (image.width - size) / 2, (image.height - size) / 2, size, size)
+            }
+            catch (e: FileNotFoundException) {
+                if (i == quality.ordinal + 1) {
+                    throw e
+                }
+            }
         }
 
-        // Crop image to 16:9
-        val height = (image.width * (9f/16f)).toInt()
-        return Bitmap.createBitmap(image, 0, (image.height - height) / 2, image.width, height)
+        throw IllegalStateException()
     }
 
     @Composable

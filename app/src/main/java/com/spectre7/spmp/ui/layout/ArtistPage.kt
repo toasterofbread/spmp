@@ -75,36 +75,16 @@ fun ArtistPage(
     val background_colour = MainActivity.theme.getBackground(false)
     var accent_colour: Color? by remember { mutableStateOf(null) }
 
-    var artist_rows_loaded: Boolean by remember { mutableStateOf(false) }
-
     LaunchedEffect(artist.id) {
-        artist_rows_loaded = false
-
         thread {
             if (artist.feed_layouts == null) {
                 artist.loadData()
             }
-
-            runBlocking {
-                withContext(Dispatchers.IO) { coroutineScope {
-                    for (row in artist.feed_layouts!!) {
-                        for (item in row.items.withIndex()) {
-                            launch {
-                                val new_item = item.value.loadData()
-                                if (new_item != item.value) {
-                                    synchronized(row.items) {
-                                        row.items[item.index] = new_item
-                                    }
-                                }
-                            }
-                        }
-                    }
-                }}
-
-                artist.feed_layouts!!.removeInvalid()
-                artist_rows_loaded = true
-            }
         }
+    }
+
+    LaunchedEffect(artist.canLoadThumbnail()) {
+        artist.getThumbnail(MediaItem.ThumbnailQuality.HIGH)
     }
 
     LaunchedEffect(accent_colour) {
@@ -255,8 +235,8 @@ fun ArtistPage(
 
             // Loaded items
             item {
-                Crossfade(artist_rows_loaded) { loaded ->
-                    if (!loaded) {
+                Crossfade(artist.feed_layouts) { layouts ->
+                    if (layouts == null) {
                         Box(
                             Modifier
                                 .fillMaxSize()
@@ -273,7 +253,7 @@ fun ArtistPage(
                                 .padding(content_padding),
                             verticalArrangement = Arrangement.spacedBy(30.dp)
                         ) {
-                            for (row in artist.feed_layouts ?: emptyList()) {
+                            for (row in layouts) {
                                 MediaItemGrid(MediaItemLayout(row.title, null, items = row.items), playerProvider)
                             }
 

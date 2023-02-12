@@ -12,6 +12,8 @@ import okhttp3.OkHttpClient
 import okhttp3.RequestBody
 import okhttp3.RequestBody.Companion.toRequestBody
 import okhttp3.Response
+import java.util.logging.Level
+import java.util.logging.Logger
 
 const val DATA_API_USER_AGENT = "Mozilla/5.0 (X11; Linux x86_64; rv:105.0) Gecko/20100101 Firefox/105.0"
 
@@ -21,7 +23,6 @@ class DataApi {
         internal val client: OkHttpClient = OkHttpClient()
 
         val klaxon: Klaxon = Klaxon()
-            .converter(MediaItem.json_converter)
 
         private lateinit var youtubei_base_context: JsonObject
         private lateinit var youtubei_headers: Headers

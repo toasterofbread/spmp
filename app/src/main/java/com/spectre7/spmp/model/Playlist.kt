@@ -3,10 +3,7 @@ package com.spectre7.spmp.model
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
-import com.beust.klaxon.JsonObject
 import com.beust.klaxon.Klaxon
-import com.spectre7.spmp.api.BrowseData
-import com.spectre7.spmp.ui.component.MediaItemLayout
 import com.spectre7.spmp.ui.component.PlaylistPreviewLong
 import com.spectre7.spmp.ui.component.PlaylistPreviewSquare
 import com.spectre7.spmp.ui.layout.PlayerViewContext
@@ -14,18 +11,6 @@ import com.spectre7.spmp.ui.layout.PlayerViewContext
 class Playlist private constructor (
     id: String
 ): MediaItemWithLayouts(id) {
-
-//    class PlaylistData(id: String): Data(id) {
-//        var feed_layouts: List<MediaItemLayout>? = null
-//
-//        override fun initWithData(data: JsonObject, klaxon: Klaxon): Data {
-//            val layouts = data.array<MediaItemLayout>("feed_layouts")
-//            if (layouts != null) {
-//                feed_layouts = klaxon.parseFromJsonArray(layouts)
-//            }
-//            return super.initWithData(data, klaxon)
-//        }
-//    }
 
     override fun getJsonMapValues(klaxon: Klaxon): String {
         return super.getJsonMapValues(klaxon) + "\"feed_layouts\": ${klaxon.toJsonString(feed_layouts)},"

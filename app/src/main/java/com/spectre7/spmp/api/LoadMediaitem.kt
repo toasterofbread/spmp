@@ -5,6 +5,7 @@ import com.spectre7.spmp.model.*
 import com.spectre7.spmp.ui.component.MediaItemLayout
 import okhttp3.Request
 import java.io.BufferedReader
+import java.io.Reader
 import java.time.Duration
 
 private val CACHE_LIFETIME = Duration.ofDays(1)
@@ -16,13 +17,6 @@ data class VideoDetails(
     val title: String,
     val channelId: String,
 )
-
-class BrowseData {
-    var name: String? = null
-    var description: String? = null
-    var item_layouts: MutableList<MediaItemLayout> = mutableListOf()
-    var subscribe_channel_id: String? = null
-}
 
 fun JsonReader.next(keys: List<String>?, is_array: Boolean?, allow_none: Boolean = false, action: (key: String) -> Unit) {
     var found = false
@@ -77,55 +71,53 @@ fun loadMediaItemData(item: MediaItem): DataApi.Result<MediaItem> {
         item.load_status = MediaItem.LoadStatus.LOADING
     }
 
-    var response_body: BufferedReader
     val cache_key = "MediaItemData/${item.type.name}/$item_id"
 
-    val cached = Cache.get(cache_key)
-    if (cached != null) {
-        response_body = cached
-    }
-    else {
-        val url = if (item is Song) "https://music.youtube.com/youtubei/v1/next" else "https://music.youtube.com/youtubei/v1/browse"
-        val body =
-            if (item is Song)
-                """{
-                    "enablePersistentPlaylistPanel": true,
-                    "isAudioOnly": true,
-                    "videoId": "$item_id"
-                }"""
-            else """{ "browseId": "$item_id" }"""
-
-        val request: Request = Request.Builder()
-            .url(url)
-            .headers(DataApi.getYTMHeaders())
-            .post(DataApi.getYoutubeiRequestBody(body))
-            .build()
-
-        val response = DataApi.client.newCall(request).execute()
-        if (response.code != 200) {
-            return DataApi.Result.failure(response)
-        }
-
-        val reader = BufferedReader(response.body!!.charStream())
-        Cache.set(cache_key, reader, CACHE_LIFETIME)
-        reader.close()
-        response_body = Cache.get(cache_key)!!
-    }
-
-    fun finish(thumbnail_provider: MediaItem.ThumbnailProvider? = null): DataApi.Result<MediaItem> {
-        if (item is Artist) {
-            item.updateSubscribed()
-        }
-
-        item.supplyThumbnailProvider(thumbnail_provider)
+    fun finish(cached: Boolean = false): DataApi.Result<MediaItem> {
         item.load_status = MediaItem.LoadStatus.LOADED
-
         synchronized(lock) {
             lock.notifyAll()
         }
 
+        if (!cached) {
+            Cache.setString(cache_key, item.toJsonData(), CACHE_LIFETIME)
+        }
+
         return DataApi.Result.success(item)
     }
+
+    val cached = Cache.get(cache_key)
+    if (cached != null) {
+        if (MediaItem.fromJsonData(cached) != item) {
+            throw RuntimeException()
+        }
+        cached.close()
+        println("CACHED $item")
+        return finish(true)
+    }
+
+    val url = if (item is Song) "https://music.youtube.com/youtubei/v1/next" else "https://music.youtube.com/youtubei/v1/browse"
+    val body =
+        if (item is Song)
+            """{
+                "enablePersistentPlaylistPanel": true,
+                "isAudioOnly": true,
+                "videoId": "$item_id"
+            }"""
+        else """{ "browseId": "$item_id" }"""
+
+    var request: Request = Request.Builder()
+        .url(url)
+        .headers(DataApi.getYTMHeaders())
+        .post(DataApi.getYoutubeiRequestBody(body))
+        .build()
+
+    var response = DataApi.client.newCall(request).execute()
+    if (response.code != 200) {
+        return DataApi.Result.failure(response)
+    }
+
+    var response_body: Reader = response.body!!.charStream()
 
     if (item is MediaItemWithLayouts) {
         val parsed: YoutubeiBrowseResponse = DataApi.klaxon.parse(response_body)!!
@@ -152,30 +144,30 @@ fun loadMediaItemData(item: MediaItem): DataApi.Result<MediaItem> {
         }
         item.supplyFeedLayouts(item_layouts, true)
 
-        if (item is Artist) {
-            if (header_renderer.subtitle?.runs != null) {
-                for (run in header_renderer.subtitle.runs) {
-                    if (run.navigationEndpoint?.browseEndpoint != null) {
-                        item.supplySubscribeChannelId(run.navigationEndpoint.browseEndpoint.browseId, true)
-                        break
-                    }
-                }
-            }
+        if (item is Artist && header_renderer.subscriptionButton != null) {
+            val subscribe_button = header_renderer.subscriptionButton.subscribeButtonRenderer
+            item.supplySubscribeChannelId(subscribe_button.channelId, true)
+            item.supplySubscriberCountText(subscribe_button.subscriberCountText.first_text, true)
+            item.subscribed = subscribe_button.subscribed
         }
 
-        return finish(MediaItem.ThumbnailProvider.fromThumbnails(header_renderer.getThumbnails()))
+        item.supplyThumbnailProvider(MediaItem.ThumbnailProvider.fromThumbnails(header_renderer.getThumbnails()))
+        return finish()
     }
 
-     var video_details = DataApi.klaxon.parse<PlayerData>(response_body)?.videoDetails
-     response_body.close()
-     if (video_details != null) {
-         item.supplyTitle(video_details.title, true)
-         item.supplyArtist(Artist.fromId(video_details.channelId))
-         return finish()
-     }
+    val buffered_reader = BufferedReader(response_body)
+    buffered_reader.mark(Int.MAX_VALUE)
 
-    response_body = Cache.get(cache_key)!!
-    val video = DataApi.klaxon.parse<YoutubeiNextResponse>(response_body)!!
+    var video_details = DataApi.klaxon.parse<PlayerData>(buffered_reader)?.videoDetails
+    if (video_details != null) {
+        buffered_reader.close()
+        item.supplyTitle(video_details.title, true)
+        item.supplyArtist(Artist.fromId(video_details.channelId))
+        return finish()
+    }
+
+    buffered_reader.reset()
+    val video = DataApi.klaxon.parse<YoutubeiNextResponse>(buffered_reader)!!
         .contents
         .singleColumnMusicWatchNextResultsRenderer
         .tabbedRenderer
@@ -190,7 +182,7 @@ fun loadMediaItemData(item: MediaItem): DataApi.Result<MediaItem> {
         .contents
         .first()
         .playlistPanelVideoRenderer!!
-    response_body.close()
+    buffered_reader.close()
 
     item.supplyTitle(video.title.first_text, true)
 
@@ -201,7 +193,7 @@ fun loadMediaItemData(item: MediaItem): DataApi.Result<MediaItem> {
 
         val artist = Artist.fromId(run.navigationEndpoint.browseEndpoint.browseId).supplyTitle(run.text)
         item.supplyArtist(artist as Artist, true)
-        
+
         return finish()
     }
 
@@ -225,22 +217,18 @@ fun loadMediaItemData(item: MediaItem): DataApi.Result<MediaItem> {
     }
 
     // 'next' endpoint has no artist, use 'player' instead
-    val request: Request = Request.Builder()
+    request = Request.Builder()
         .url("https://music.youtube.com/youtubei/v1/player")
         .headers(DataApi.getYTMHeaders())
         .post(DataApi.getYoutubeiRequestBody("""{ "videoId": "$item_id" }"""))
         .build()
 
-    val response = DataApi.client.newCall(request).execute()
+    response = DataApi.client.newCall(request).execute()
     if (response.code != 200) {
         return DataApi.Result.failure(response)
     }
 
-    val reader = BufferedReader(response.body!!.charStream())
-    Cache.set(cache_key, reader, CACHE_LIFETIME)
-    reader.close()
-    response_body = Cache.get(cache_key)!!
-
+    response_body = response.body!!.charStream()
     video_details = DataApi.klaxon.parse<PlayerData>(response_body)!!.videoDetails!!
     response_body.close()
 

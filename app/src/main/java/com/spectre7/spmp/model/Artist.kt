@@ -12,7 +12,6 @@ import com.spectre7.spmp.api.isSubscribedToArtist
 import com.spectre7.spmp.api.subscribeOrUnsubscribeArtist
 import com.spectre7.spmp.ui.component.ArtistPreviewLong
 import com.spectre7.spmp.ui.component.ArtistPreviewSquare
-import com.spectre7.spmp.ui.component.MediaItemLayout
 import com.spectre7.spmp.ui.layout.PlayerViewContext
 import com.spectre7.utils.sendToast
 import kotlin.concurrent.thread
@@ -20,6 +19,10 @@ import kotlin.concurrent.thread
 class Artist private constructor (
     id: String
 ): MediaItemWithLayouts(id) {
+
+    init {
+        supplyArtist(this, true)
+    }
 
     private var _subscribe_channel_id: String? by mutableStateOf(null)
     val subscribe_channel_id: String?
@@ -32,21 +35,17 @@ class Artist private constructor (
         return this
     }
 
-    var subscribed: Boolean? by mutableStateOf(null)
+    private var _subscriber_count_text: String? by mutableStateOf(null)
+    val subscriber_count_text: String? get() = _subscriber_count_text
 
-//    class ArtistData(id: String): Data(id) {
-//        var feed_layouts: List<MediaItemLayout>? = null
-//        var subscribe_channel_id: String? = null
-//
-//        override fun initWithData(data: JsonObject, klaxon: Klaxon): Data {
-//            val layouts = data.array<MediaItemLayout>("feed_layouts")
-//            if (layouts != null) {
-//                feed_layouts = klaxon.parseFromJsonArray(layouts)
-//            }
-//            subscribe_channel_id = data.string("subscribe_channel_id")
-//            return super.initWithData(data, klaxon)
-//        }
-//    }
+    fun supplySubscriberCountText(value: String?, certain: Boolean): MediaItem {
+        if (value != null && (_subscriber_count_text == null || certain)) {
+            _subscriber_count_text = value
+        }
+        return this
+    }
+
+    var subscribed: Boolean? by mutableStateOf(null)
 
     override fun isLoaded(): Boolean {
         return super.isLoaded() && _subscribe_channel_id != null
@@ -63,6 +62,7 @@ class Artist private constructor (
 
     companion object {
         private val artists: MutableMap<String, Artist> = mutableMapOf()
+        val UNKNOWN = Artist.fromId("").supplyTitle("Unknown", true).supplyDescription("No known artist attached to media", true) as Artist
 
         @Synchronized
         fun fromId(id: String): Artist {
@@ -87,7 +87,7 @@ class Artist private constructor (
     override val url: String get() = "https://music.youtube.com/channel/$id"
 
     fun getFormattedSubscriberCount(): String {
-        return "Unknown"
+        return subscriber_count_text ?: "Unknown"
 //        val subs = subscriber_count.toInt()
 //        if (subs >= 1000000) {
 //            return "${subs / 1000000}M"

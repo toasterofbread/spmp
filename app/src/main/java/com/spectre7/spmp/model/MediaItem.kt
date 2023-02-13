@@ -5,7 +5,6 @@ import android.graphics.BitmapFactory
 import androidx.compose.animation.Crossfade
 import androidx.compose.foundation.Image
 import androidx.compose.material3.CircularProgressIndicator
-import androidx.compose.material3.Text
 import androidx.compose.runtime.*
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
@@ -22,6 +21,7 @@ import com.spectre7.spmp.ui.layout.PlayerViewContext
 import com.spectre7.utils.getThemeColour
 import java.io.Reader
 import java.net.URL
+import java.time.Duration
 import kotlin.concurrent.thread
 
 @Suppress("PLATFORM_CLASS_MAPPED_TO_KOTLIN")
@@ -95,14 +95,16 @@ abstract class MediaItem(id: String) {
             "title": ${stringToJson(title)},
             "artist": ${stringToJson(artist?.id)},
             "desc": ${stringToJson(description)},
+            "thumb": ${klaxon.toJsonString(thumbnail_provider)},
         """
     }
 
     open fun supplyFromJsonObject(data: JsonObject, klaxon: Klaxon): MediaItem {
         assert(data.int("type") == type.ordinal)
-        _title = data.string("title")
-        _artist = data.string("artist")?.let { Artist.fromId(it) }
-        _description = data.string("desc")
+        data.string("title")?.also { _title = it }
+        data.string("artist")?.also { _artist = Artist.fromId(it) }
+        data.string("desc")?.also { _description = it }
+        data.obj("thumb")?.also { thumbnail_provider = ThumbnailProvider.fromJsonObject(it, klaxon) }
         return this
     }
 
@@ -110,7 +112,38 @@ abstract class MediaItem(id: String) {
         return Klaxon().converter(json_converter).toJsonString(this)
     }
 
+    fun loadFromCache() {
+        val cached = Cache.get(cache_key)
+        if (cached != null) {
+            thread {
+                val klaxon = Klaxon().converter(json_converter)
+
+                val str = cached.readText()
+                cached.close()
+                try {
+                    val obj = klaxon.parseJsonObject(str.reader())
+                    supplyFromJsonObject(obj, klaxon)
+                }
+                catch (e: KlaxonException) {
+                    println(str)
+                    println(this)
+                    throw e
+                }
+            }
+        }
+    }
+
+    fun saveToCache() {
+        Cache.setString(cache_key, toJsonData(), CACHE_LIFETIME)
+    }
+
     companion object {
+        val CACHE_LIFETIME: Duration = Duration.ofDays(1)
+
+        fun getCacheKey(type: Type, id: String): String {
+            return "M/${type.name}/$id"
+        }
+
         fun fromJsonData(reader: Reader): MediaItem {
             return Klaxon().converter(json_converter).parse(reader)!!
         }
@@ -182,8 +215,7 @@ abstract class MediaItem(id: String) {
                 }
                 return """{
                     "type": ${value.type.ordinal},
-                    "id": "${value.id}",
-                    ${value.getJsonMapValues(Klaxon().converter(json_ref_converter))}
+                    "id": "${value.id}",${value.getJsonMapValues(Klaxon().converter(json_ref_converter))}
                 }"""
             }
         }
@@ -228,11 +260,9 @@ abstract class MediaItem(id: String) {
         LOADED
     }
 
-    var load_status: LoadStatus by mutableStateOf(LoadStatus.NOT_LOADED)
-//    val loaded: Boolean get() = _load_status == LoadStatus.LOADED
-
     private val _loading_lock = Object()
     val loading_lock: Object get() = getOrReplacedWith()._loading_lock
+    var load_status: LoadStatus by mutableStateOf(LoadStatus.NOT_LOADED)
 
     abstract class ThumbnailProvider {
         abstract fun getThumbnail(quality: ThumbnailQuality): String?
@@ -246,10 +276,10 @@ abstract class MediaItem(id: String) {
             }
         }
 
-        data class DynamicProvider(val provider: (w: Int, h: Int) -> String): ThumbnailProvider() {
-            override fun getThumbnail(quality: ThumbnailQuality): String? {
+        data class DynamicProvider(val url_a: String, val url_b: String): ThumbnailProvider() {
+            override fun getThumbnail(quality: ThumbnailQuality): String {
                 val target_size = quality.getTargetSize()
-                return provider(target_size.width, target_size.height)
+                return "$url_a${target_size.width}-h${target_size.height}$url_b"
             }
 
             companion object {
@@ -261,11 +291,10 @@ abstract class MediaItem(id: String) {
                         return null
                     }
 
-                    val url_a = url.substring(0, w_index + 1)
-                    val url_b = url.substring(h_index + 2 + height.toString().length)
-                    return DynamicProvider { w, h ->
-                        return@DynamicProvider "$url_a$w-h$h$url_b"
-                    }
+                    return DynamicProvider(
+                        url.substring(0, w_index + 1),
+                        url.substring(h_index + 2 + height.toString().length)
+                    )
                 }
             }
         }
@@ -284,6 +313,13 @@ abstract class MediaItem(id: String) {
                     }
                 }
                 return SetProvider(thumbnails)
+            }
+
+            fun fromJsonObject(obj: JsonObject, klaxon: Klaxon): ThumbnailProvider? {
+                if (obj.containsKey("thumbnails")) {
+                    return klaxon.parseFromJsonObject<SetProvider>(obj)
+                }
+                return klaxon.parseFromJsonObject<DynamicProvider>(obj)
             }
         }
     }
@@ -482,6 +518,8 @@ abstract class MediaItem(id: String) {
     override fun toString(): String {
         return "MediaItem(type=$type, id=$_id)"
     }
+
+    val cache_key: String get() = getCacheKey(type, id)
 }
 
 abstract class MediaItemWithLayouts(id: String): MediaItem(id) {
@@ -501,11 +539,11 @@ abstract class MediaItemWithLayouts(id: String): MediaItem(id) {
     }
 
     override fun getJsonMapValues(klaxon: Klaxon): String {
-        return super.getJsonMapValues(klaxon) + "\"feed_layouts\": ${klaxon.toJsonString(feed_layouts)}"
+        return super.getJsonMapValues(klaxon) + "\"feed_layouts\": ${klaxon.toJsonString(feed_layouts)},"
     }
 
     override fun supplyFromJsonObject(data: JsonObject, klaxon: Klaxon): MediaItem {
-        _feed_layouts = data.array<JsonObject>("feed_layouts")?.let { klaxon.parseFromJsonArray(it) }
+        data.array<JsonObject>("feed_layouts")?.also { _feed_layouts = klaxon.parseFromJsonArray(it) }
         return super.supplyFromJsonObject(data, klaxon)
     }
 }

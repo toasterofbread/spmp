@@ -8,8 +8,6 @@ import java.io.BufferedReader
 import java.io.Reader
 import java.time.Duration
 
-private val CACHE_LIFETIME = Duration.ofDays(1)
-
 data class PlayerData(val videoDetails: VideoDetails? = null)
 
 data class VideoDetails(
@@ -71,8 +69,6 @@ fun loadMediaItemData(item: MediaItem): DataApi.Result<MediaItem> {
         item.load_status = MediaItem.LoadStatus.LOADING
     }
 
-    val cache_key = "MediaItemData/${item.type.name}/$item_id"
-
     fun finish(cached: Boolean = false): DataApi.Result<MediaItem> {
         item.load_status = MediaItem.LoadStatus.LOADED
         synchronized(lock) {
@@ -80,19 +76,23 @@ fun loadMediaItemData(item: MediaItem): DataApi.Result<MediaItem> {
         }
 
         if (!cached) {
-            Cache.setString(cache_key, item.toJsonData(), CACHE_LIFETIME)
+            item.saveToCache()
         }
 
         return DataApi.Result.success(item)
     }
 
+    if (item is Artist && item.unknown) {
+        return finish(true)
+    }
+
+    val cache_key = item.cache_key
     val cached = Cache.get(cache_key)
     if (cached != null) {
         if (MediaItem.fromJsonData(cached) != item) {
             throw RuntimeException()
         }
         cached.close()
-        println("CACHED $item")
         return finish(true)
     }
 
@@ -211,9 +211,8 @@ fun loadMediaItemData(item: MediaItem): DataApi.Result<MediaItem> {
         val artist = Playlist.fromId(run.navigationEndpoint.browseEndpoint.browseId).loadData().artist
         if (artist != null) {
             item.supplyArtist(artist, true)
+            return finish()
         }
-
-        return finish()
     }
 
     // 'next' endpoint has no artist, use 'player' instead

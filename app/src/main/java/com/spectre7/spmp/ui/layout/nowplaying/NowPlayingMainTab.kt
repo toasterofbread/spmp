@@ -1,7 +1,6 @@
 package com.spectre7.spmp.ui.layout.nowplaying
 
 import MainOverlayMenu
-import com.spectre7.spmp.ui.layout.nowplaying.overlay.OverlayMenu
 import android.content.SharedPreferences
 import android.text.format.DateUtils
 import androidx.activity.compose.BackHandler
@@ -49,6 +48,7 @@ import com.spectre7.spmp.model.Settings
 import com.spectre7.spmp.model.Song
 import com.spectre7.spmp.ui.layout.MINIMISED_NOW_PLAYING_HEIGHT
 import com.spectre7.spmp.ui.layout.PlayerViewContext
+import com.spectre7.spmp.ui.layout.nowplaying.overlay.OverlayMenu
 import com.spectre7.utils.*
 import kotlinx.coroutines.launch
 import kotlin.concurrent.thread
@@ -63,13 +63,14 @@ const val MAX_THUMBNAIL_ROUNDING: Int = 50
 
 @Composable
 fun ColumnScope.NowPlayingMainTab(
-    expansion: Float,
+    _expansion: Float,
     page_height: Dp,
     thumbnail: ImageBitmap?,
     _setThumbnail: (ImageBitmap?) -> Unit,
-    playerProvider: () -> PlayerViewContext
+    playerProvider: () -> PlayerViewContext,
+    scroll: (pages: Int) -> Unit
 ) {
-    Spacer(Modifier.requiredHeight(50.dp * expansion))
+    val expansion = maxOf(0.07930607f, _expansion)
 
     var theme_colour by remember { mutableStateOf<Color?>(null) }
     fun setThemeColour(value: Color?) {
@@ -84,6 +85,9 @@ fun ColumnScope.NowPlayingMainTab(
     var accent_colour_source by remember { mutableStateOf(AccentColourSource.values()[Settings.prefs.getInt(Settings.KEY_ACCENT_COLOUR_SOURCE.name, 0)]) }
     var theme_mode by remember { mutableStateOf(ThemeMode.values()[Settings.prefs.getInt(Settings.KEY_NOWPLAYING_THEME_MODE.name, 0)]) }
     var loaded_song: Song? by remember { mutableStateOf(null) }
+
+    val disappear_scale = minOf(1f, if (expansion < 0.5f) 1f else (1f - ((expansion - 0.5f) * 2f)))
+    val appear_scale = minOf(1f, if (expansion > 0.5f) 1f else (expansion * 2f))
 
     val prefs_listener = remember {
         SharedPreferences.OnSharedPreferenceChangeListener { _, key ->
@@ -182,6 +186,23 @@ fun ColumnScope.NowPlayingMainTab(
     val thumbnail_rounding: MutableState<Int?>? = remember (PlayerServiceHost.status.m_song?.registry) { PlayerServiceHost.status.song?.registry?.getState("thumbnail_rounding") }
     val thumbnail_shape = RoundedCornerShape(thumbnail_rounding?.value ?: DEFAULT_THUMBNAIL_ROUNDING)
     var image_size by remember { mutableStateOf(IntSize(1, 1)) }
+
+    Row(
+        Modifier.fillMaxWidth().requiredHeight(50.dp * appear_scale).alpha(1f - disappear_scale),
+        horizontalArrangement = Arrangement.End
+    ) {
+        IconButton({
+            TODO("Edit")
+        }) {
+            Icon(Icons.Filled.Edit, null, tint = MainActivity.theme.getOnBackground(true).setAlpha(0.5))
+        }
+
+        IconButton({
+            PlayerServiceHost.status.m_song?.let { playerProvider().onMediaItemLongClicked(it) }
+        }) {
+            Icon(Icons.Filled.MoreHoriz, null, tint = MainActivity.theme.getOnBackground(true).setAlpha(0.5))
+        }
+    }
 
     Row(
         verticalAlignment = Alignment.CenterVertically,
@@ -367,11 +388,10 @@ fun ColumnScope.NowPlayingMainTab(
             }
         }
 
-        val x_scale = minOf(1f, if (expansion < 0.5f) 1f else (1f - ((expansion - 0.5f) * 2f)))
         Row(
             Modifier
                 .fillMaxWidth(0.9f * (1f - expansion))
-                .scale(x_scale, 1f),
+                .scale(disappear_scale, 1f),
             horizontalArrangement = Arrangement.End
         ) {
 
@@ -439,6 +459,7 @@ fun ColumnScope.NowPlayingMainTab(
                 PlayerServiceHost.player.seekTo((PlayerServiceHost.player.duration * it).toLong())
                 seek_state = it
             },
+            scroll,
             Modifier.weight(1f)
         )
     }
@@ -448,6 +469,7 @@ fun ColumnScope.NowPlayingMainTab(
 private fun Controls(
     playerProvider: () -> PlayerViewContext,
     seek: (Float) -> Unit,
+    scroll: (pages: Int) -> Unit,
     modifier: Modifier = Modifier
 ) {
     Spacer(Modifier.requiredHeight(30.dp))
@@ -580,6 +602,13 @@ private fun Controls(
                         else -> Player.REPEAT_MODE_ALL
                     }
                 }
+            }
+
+            IconButton(
+                { scroll(1) },
+                Modifier.align(Alignment.CenterHorizontally)
+            ) {
+                Icon(Icons.Filled.KeyboardArrowDown, null, tint = MainActivity.theme.getOnBackground(true).setAlpha(0.5))
             }
         }
     }

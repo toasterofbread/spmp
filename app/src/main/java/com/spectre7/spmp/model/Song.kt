@@ -10,7 +10,6 @@ import androidx.compose.ui.graphics.toArgb
 import androidx.core.content.edit
 import com.beust.klaxon.Klaxon
 import com.spectre7.spmp.R
-import com.spectre7.spmp.api.VideoDetails
 import com.spectre7.spmp.api.YoutubeVideoFormat
 import com.spectre7.spmp.api.getVideoFormats
 import com.spectre7.spmp.api.getSongLyrics
@@ -240,6 +239,7 @@ class Song private constructor (
         fun fromId(id: String): Song {
             return songs.getOrElse(id) {
                 val song = Song(id)
+                song.loadFromCache()
                 songs[id] = song
                 return song
             }.getOrReplacedWith() as Song

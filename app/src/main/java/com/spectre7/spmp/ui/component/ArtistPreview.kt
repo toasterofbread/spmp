@@ -38,7 +38,7 @@ fun ArtistPreviewSquare(
     val long_press_menu_data = remember(artist) { LongPressMenuData(
         artist,
         CircleShape,
-        longPressPopupActions
+        artistLongPressPopupActions
     ) }
 
     Column(
@@ -82,7 +82,7 @@ fun ArtistPreviewLong(
     val long_press_menu_data = remember(artist) { LongPressMenuData(
         artist,
         CircleShape,
-        longPressPopupActions
+        artistLongPressPopupActions
     ) }
 
     Row(
@@ -122,7 +122,7 @@ fun ArtistPreviewLong(
     }
 }
 
-private val longPressPopupActions: @Composable LongPressMenuActionProvider.(MediaItem) -> Unit = { artist ->
+val artistLongPressPopupActions: @Composable LongPressMenuActionProvider.(MediaItem) -> Unit = { artist ->
     if (artist !is Artist) {
         throw IllegalStateException()
     }

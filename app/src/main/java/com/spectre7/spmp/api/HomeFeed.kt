@@ -47,7 +47,11 @@ data class YoutubeiShelf(
     }
 
     fun getMediaItems(): List<MediaItem> {
-        return (musicShelfRenderer?.contents ?: musicCarouselShelfRenderer?.contents ?: musicPlaylistShelfRenderer!!.contents).mapNotNull { it.toMediaItem() }
+        return (musicShelfRenderer?.contents ?: musicCarouselShelfRenderer?.contents ?: musicPlaylistShelfRenderer!!.contents).mapNotNull {
+            val item = it.toMediaItem()
+            item?.saveToCache()
+            return@mapNotNull item
+        }
     }
 
     fun getRenderer(): Any {

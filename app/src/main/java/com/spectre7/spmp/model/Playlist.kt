@@ -12,10 +12,6 @@ class Playlist private constructor (
     id: String
 ): MediaItemWithLayouts(id) {
 
-    override fun getJsonMapValues(klaxon: Klaxon): String {
-        return super.getJsonMapValues(klaxon) + "\"feed_layouts\": ${klaxon.toJsonString(feed_layouts)},"
-    }
-
     companion object {
         private val playlists: MutableMap<String, Playlist> = mutableMapOf()
 
@@ -23,6 +19,7 @@ class Playlist private constructor (
         fun fromId(id: String): Playlist {
             return playlists.getOrElse(id) {
                 val playlist = Playlist(id)
+                playlist.loadFromCache()
                 playlists[id] = playlist
                 return playlist
             }.getOrReplacedWith() as Playlist

@@ -38,7 +38,7 @@ fun SongPreviewSquare(
     val long_press_menu_data = remember(song) { LongPressMenuData(
         song,
         RoundedCornerShape(10),
-        longPressPopupActions
+        songLongPressPopupActions
     ) }
 
     Column(
@@ -85,7 +85,7 @@ fun SongPreviewLong(
     val long_press_menu_data = remember(song) { LongPressMenuData(
         song,
         RoundedCornerShape(20),
-        longPressPopupActions
+        songLongPressPopupActions
     ) }
 
     Row(
@@ -131,7 +131,7 @@ fun SongPreviewLong(
     }
 }
 
-private val longPressPopupActions: @Composable LongPressMenuActionProvider.(MediaItem) -> Unit = { song ->
+val songLongPressPopupActions: @Composable LongPressMenuActionProvider.(MediaItem) -> Unit = { song ->
     if (song !is Song) {
         throw IllegalStateException()
     }
@@ -149,7 +149,7 @@ private val longPressPopupActions: @Composable LongPressMenuActionProvider.(Medi
         Column {
             Row(verticalAlignment = Alignment.CenterVertically) {
 
-                val distance = PlayerServiceHost.service.active_queue_index - PlayerServiceHost.status.index
+                val distance = PlayerServiceHost.service.active_queue_index - PlayerServiceHost.status.index + 1
                 ActionButton(Icons.Filled.SubdirectoryArrowRight, "Play after $distance song(s)",
                     Modifier
                         .fillMaxWidth()

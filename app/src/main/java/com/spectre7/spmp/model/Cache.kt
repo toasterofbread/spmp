@@ -63,6 +63,7 @@ class Cache {
             val writer = file.writer()
             writer.write(expiry + "\n")
             value.copyTo(writer)
+            writer.write("\n")
             writer.flush()
             writer.close()
         }

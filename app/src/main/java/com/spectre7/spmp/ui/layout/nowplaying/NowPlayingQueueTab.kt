@@ -13,6 +13,7 @@ import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.ExperimentalMaterialApi
 import androidx.compose.material.FractionalThreshold
 import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.KeyboardArrowUp
 import androidx.compose.material.icons.filled.Menu
 import androidx.compose.material.icons.filled.Undo
 import androidx.compose.material.rememberSwipeableState
@@ -34,69 +35,74 @@ import com.spectre7.utils.vibrateShort
 import org.burnoutcrew.reorderable.*
 import kotlin.math.roundToInt
 
+private data class QueueTabItem(val song: Song, val key: Int) {
+
+    val added_time = System.currentTimeMillis()
+    val current_element_modifier = Modifier.background(MainActivity.theme.getOnBackground(true), RoundedCornerShape(45))
+
+    @OptIn(ExperimentalMaterialApi::class)
+    @Composable
+    fun QueueElement(handle_modifier: Modifier, current: Boolean, index: Int, playerProvider: () -> PlayerViewContext, on_remove_request: () -> Unit) {
+        val swipe_state = rememberSwipeableState(1)
+        val max_offset = with(LocalDensity.current) { LocalConfiguration.current.screenWidthDp.dp.toPx() }
+        val anchors = mapOf(-max_offset to 0, 0f to 1, max_offset to 2)
+        var removed by remember { mutableStateOf(false) }
+
+        LaunchedEffect(swipe_state.progress.fraction) {
+            if (!removed && swipe_state.targetValue != 1 && swipe_state.progress.fraction > 0.8f) {
+                on_remove_request()
+                println("REMOVE")
+                removed = true
+            }
+        }
+
+        Box(
+            (if (current) current_element_modifier else Modifier)
+                .offset { IntOffset(swipe_state.offset.value.roundToInt(), 0) }
+        ) {
+            Row(
+                horizontalArrangement = Arrangement.End,
+                verticalAlignment = Alignment.CenterVertically,
+                modifier = Modifier.padding(start = 10.dp, end = 20.dp)
+            ) {
+                val contentColourProvider = if (current) MainActivity.theme.getBackgroundProvider(true) else MainActivity.theme.getOnBackgroundProvider(true)
+                song.PreviewLong(
+                    contentColourProvider,
+                    remember(index) {
+                        {
+                            playerProvider().copy(onClickedOverride = {
+                                PlayerServiceHost.player.seekTo(index, C.TIME_UNSET)
+                            })
+                        }
+                    },
+                    true,
+                    Modifier
+                        .weight(1f)
+                        .swipeable(
+                            swipe_state,
+                            anchors,
+                            Orientation.Horizontal,
+                            thresholds = { _, _ -> FractionalThreshold(0.2f) }
+                        )
+                )
+
+                // Drag handle
+                Icon(Icons.Filled.Menu, null, handle_modifier.requiredSize(25.dp), tint = contentColourProvider())
+            }
+        }
+    }
+}
+
 @Composable
-fun QueueTab(expansionProvider: () -> Float, playerProvider: () -> PlayerViewContext) {
+fun QueueTab(expansionProvider: () -> Float, playerProvider: () -> PlayerViewContext, scroll: (pages: Int) -> Unit) {
 
     var key_inc by remember { mutableStateOf(0) }
     val v_removed = remember { mutableStateListOf<Int>() }
     val undo_list = remember { mutableStateListOf<() -> Unit>() }
 
-    data class Item(val song: Song, val key: Int) {
-
-        val added_time = System.currentTimeMillis()
-
-        @OptIn(ExperimentalMaterialApi::class)
-        @Composable
-        fun QueueElement(handle_modifier: Modifier, current: Boolean, index: Int, on_remove_request: () -> Unit) {
-            val swipe_state = rememberSwipeableState(1)
-            val max_offset = with(LocalDensity.current) { LocalConfiguration.current.screenWidthDp.dp.toPx() }
-            val anchors = mapOf(-max_offset to 0, 0f to 1, max_offset to 2)
-
-            LaunchedEffect(swipe_state.currentValue) {
-                if (swipe_state.currentValue != 1) {
-                    on_remove_request()
-                }
-            }
-
-            Box((if (current) Modifier.background(MainActivity.theme.getOnBackground(true), RoundedCornerShape(45)) else Modifier).offset {
-                IntOffset(swipe_state.offset.value.roundToInt(), 0)
-            }) {
-                Row(
-                    horizontalArrangement = Arrangement.End,
-                    verticalAlignment = Alignment.CenterVertically,
-                    modifier = Modifier.padding(start = 10.dp, end = 20.dp)
-                ) {
-                    val contentColourProvider = if (current) MainActivity.theme.getBackgroundProvider(true) else MainActivity.theme.getOnBackgroundProvider(true)
-                    song.PreviewLong(
-                        contentColourProvider,
-                        remember(index) {
-                            {
-                                playerProvider().copy(onClickedOverride = {
-                                    PlayerServiceHost.player.seekTo(index, C.TIME_UNSET)
-                                })
-                            }
-                         },
-                        true,
-                        Modifier
-                            .weight(1f)
-                            .swipeable(
-                                swipe_state,
-                                anchors,
-                                Orientation.Horizontal,
-                                thresholds = { _, _ -> FractionalThreshold(0.2f) }
-                            )
-                    )
-
-                    // Drag handle
-                    Icon(Icons.Filled.Menu, null, handle_modifier.requiredSize(25.dp), tint = contentColourProvider())
-                }
-            }
-        }
-    }
-
     var song_items by remember { mutableStateOf(
         List(PlayerServiceHost.status.m_queue.size) {
-            Item(PlayerServiceHost.status.m_queue[it], key_inc++)
+            QueueTabItem(PlayerServiceHost.status.m_queue[it], key_inc++)
         }
     ) }
 
@@ -104,7 +110,7 @@ fun QueueTab(expansionProvider: () -> Float, playerProvider: () -> PlayerViewCon
         object : PlayerServiceHost.PlayerQueueListener {
             override fun onSongAdded(song: Song, index: Int) {
                 song_items = song_items.toMutableList().apply {
-                    add(index, Item(song, key_inc++))
+                    add(index, QueueTabItem(song, key_inc++))
                 }
             }
             override fun onSongRemoved(song: Song, index: Int) {
@@ -191,47 +197,63 @@ fun QueueTab(expansionProvider: () -> Float, playerProvider: () -> PlayerViewCon
                             PlayerServiceHost.service.removeFromQueue(index)
                         }
 
-                        var visible by remember { mutableStateOf(false ) }
-                        LaunchedEffect(visible) {
-                            visible = true
-                        }
+//                        var visible by remember { mutableStateOf(false ) }
+//                        LaunchedEffect(visible) {
+//                            visible = true
+//                        }
 
-                        AnimatedVisibility(
-                            visible,
-                            enter = if (System.currentTimeMillis() - item.added_time < 250)
-                                        fadeIn() + slideInHorizontally(initialOffsetX = { it / 2 })
-                                    else EnterTransition.None,
-                            exit = ExitTransition.None
-                        ) {
+//                        AnimatedVisibility(
+//                            visible,
+//                            enter = if (System.currentTimeMillis() - item.added_time < 250)
+//                                        fadeIn() + slideInHorizontally(initialOffsetX = { it / 2 })
+//                                    else EnterTransition.None,
+//                            exit = ExitTransition.None
+//                        ) {
                             item.QueueElement(
                                 Modifier.detectReorder(state),
                                 if (playing_key != null) playing_key == item.key else PlayerServiceHost.status.m_index == index,
                                 index,
+                                playerProvider,
                                 remove_request
                             )
-                        }
+//                        }
                     }
                 }
             }
         }
 
-        ActionBar(expansionProvider, undo_list)
+        ActionBar(expansionProvider, undo_list, scroll)
     }
 }
 
+@OptIn(ExperimentalFoundationApi::class)
 @Composable
-private fun BoxScope.ActionBar(expansionProvider: () -> Float, undo_list: SnapshotStateList<() -> Unit>) {
+private fun BoxScope.ActionBar(expansionProvider: () -> Float, undo_list: SnapshotStateList<() -> Unit>, scroll: (pages: Int) -> Unit) {
     val slide_offset: (fullHeight: Int) -> Int = remember { { (it * 0.7).toInt() } }
 
     Box(Modifier.align(Alignment.BottomCenter)) {
-        AnimatedVisibility(remember { derivedStateOf { expansionProvider() >= 0.975f } }.value, enter = slideInVertically(initialOffsetY = slide_offset), exit = slideOutVertically(targetOffsetY = slide_offset)) {
+
+        AnimatedVisibility(
+            remember { derivedStateOf { expansionProvider() >= 0.975f } }.value,
+            enter = slideInVertically(initialOffsetY = slide_offset),
+            exit = slideOutVertically(targetOffsetY = slide_offset)
+        ) {
             Row(
                 Modifier
                     .padding(10.dp)
                     .align(Alignment.BottomCenter),
-                horizontalArrangement = Arrangement.SpaceAround,
+                horizontalArrangement = Arrangement.SpaceBetween,
                 verticalAlignment = Alignment.CenterVertically
             ) {
+                IconButton(
+                    { scroll(-1) },
+                    Modifier
+                        .background(MainActivity.theme.getOnBackground(true), CircleShape)
+                        .size(40.dp)
+                ) {
+                    Icon(Icons.Filled.KeyboardArrowUp, null, tint = MainActivity.theme.getBackground(true))
+                }
+
                 Row(
                     Modifier
                         .fillMaxWidth()
@@ -295,14 +317,31 @@ private fun BoxScope.ActionBar(expansionProvider: () -> Float, undo_list: Snapsh
                 }
 
                 AnimatedVisibility(undo_list.isNotEmpty()) {
-                    IconButton({
-                        if (undo_list.isNotEmpty()) {
-                            undo_list.removeLast()()
-                        }
-                    },
-                        Modifier
+                    Box(
+                        modifier = Modifier
+                            .minimumTouchTargetSize()
                             .background(MainActivity.theme.getOnBackground(true), CircleShape)
-                            .size(40.dp)) {
+                            .combinedClickable(
+                                onClick = {
+                                    if (undo_list.isNotEmpty()) {
+                                        undo_list
+                                            .removeLast()
+                                            .invoke()
+                                    }
+                                },
+                                onLongClick = {
+                                    if (undo_list.isNotEmpty()) {
+                                        vibrateShort()
+                                        for (undo_action in undo_list.asReversed()) {
+                                            undo_action.invoke()
+                                        }
+                                        undo_list.clear()
+                                    }
+                                }
+                            )
+                            .size(40.dp),
+                        contentAlignment = Alignment.Center
+                    ) {
                         Icon(Icons.Filled.Undo, null, tint = MainActivity.theme.getBackground(true))
                     }
                 }

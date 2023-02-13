@@ -78,14 +78,26 @@ fun NowPlaying(playerProvider: () -> PlayerViewContext, swipe_state: SwipeableSt
             }
 
             Column(Modifier.fillMaxSize(), horizontalAlignment = Alignment.CenterHorizontally) {
-                NowPlayingCardContent(remember { { swipe_state.offset.value / screen_height.value } }, screen_height, { switch_to_page = if (swipe_state.targetValue == 0) 1 else 0 }, playerProvider)
+                NowPlayingCardContent(
+                    remember { { swipe_state.offset.value / screen_height.value } },
+                    screen_height,
+                    { switch_to_page = if (swipe_state.targetValue == 0) 1 else 0 },
+                    { switch_to_page = swipe_state.targetValue + it },
+                    playerProvider
+                )
             }
         }
     }
 }
 
 @Composable
-fun NowPlayingCardContent(expansionProvider: () -> Float, page_height: Dp, close: () -> Unit, playerProvider: () -> PlayerViewContext) {
+fun NowPlayingCardContent(
+    expansionProvider: () -> Float,
+    page_height: Dp,
+    close: () -> Unit,
+    scroll: (pages: Int) -> Unit,
+    playerProvider: () -> PlayerViewContext
+) {
     val systemui_controller = rememberSystemUiController()
     val status_bar_height_percent = (getStatusBarHeight(MainActivity.context).value * 0.75) / page_height.value
 
@@ -106,7 +118,7 @@ fun NowPlayingCardContent(expansionProvider: () -> Float, page_height: Dp, close
             modifier = Modifier
                 .requiredHeight(page_height)
                 .requiredWidth(screen_width_dp - (NOW_PLAYING_MAIN_PADDING * 2))
-                .padding(NOW_PLAYING_MAIN_PADDING)
+                .padding(start = NOW_PLAYING_MAIN_PADDING, end = NOW_PLAYING_MAIN_PADDING, top = (getStatusBarHeight(MainActivity.context)) * expansionProvider())
         ) {
             NowPlayingMainTab(
                 minOf(expansionProvider(), 1f),
@@ -122,7 +134,8 @@ fun NowPlayingCardContent(expansionProvider: () -> Float, page_height: Dp, close
                             }
                         )
                     }
-                }
+                },
+                scroll
             )
         }
 
@@ -133,7 +146,7 @@ fun NowPlayingCardContent(expansionProvider: () -> Float, page_height: Dp, close
                 .requiredWidth(screen_width_dp - (NOW_PLAYING_MAIN_PADDING * 2))
                 .padding(NOW_PLAYING_MAIN_PADDING)
         ) {
-            QueueTab(remember { { (expansionProvider() - 1f).coerceIn(0f, 1f) } }, playerProvider)
+            QueueTab(remember { { (expansionProvider() - 1f).coerceIn(0f, 1f) } }, playerProvider, scroll)
         }
     }
 }

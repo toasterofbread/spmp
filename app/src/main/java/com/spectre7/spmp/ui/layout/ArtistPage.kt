@@ -39,7 +39,6 @@ import com.spectre7.spmp.model.MediaItem
 import com.spectre7.spmp.ui.component.MediaItemGrid
 import com.spectre7.spmp.ui.component.MediaItemLayout
 import com.spectre7.spmp.ui.component.PillMenu
-import com.spectre7.spmp.ui.component.removeInvalid
 import com.spectre7.utils.*
 import kotlinx.coroutines.*
 import kotlin.concurrent.thread
@@ -80,6 +79,7 @@ fun ArtistPage(
             if (artist.feed_layouts == null) {
                 artist.loadData()
             }
+            artist.updateSubscribed()
         }
     }
 
@@ -225,7 +225,7 @@ fun ArtistPage(
                                         contentColor = if (subscribed) accent_colour?.getContrasted() ?: Color.Unspecified else MainActivity.theme.getOnBackground(false)
                                     )
                                 ) {
-                                    Icon(if (subscribed) Icons.Outlined.Person else Icons.Outlined.PersonAdd, null)
+                                    Icon(if (subscribed) Icons.Outlined.PersonRemove else Icons.Outlined.PersonAddAlt1, null)
                                 }
                             }
                         }

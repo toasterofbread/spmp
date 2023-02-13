@@ -41,6 +41,7 @@ import com.spectre7.spmp.MainActivity
 import com.spectre7.spmp.model.*
 import com.spectre7.spmp.ui.layout.PlayerViewContext
 import com.spectre7.spmp.ui.layout.getScreenHeight
+import com.spectre7.spmp.ui.layout.nowplaying.DEFAULT_THUMBNAIL_ROUNDING
 import com.spectre7.utils.*
 import kotlinx.coroutines.coroutineScope
 import kotlinx.coroutines.joinAll
@@ -94,10 +95,10 @@ class LongPressMenuActionProvider(
     }
 }
 
-class LongPressMenuData(
+data class LongPressMenuData(
     val item: MediaItem,
-    val thumb_shape: Shape,
-    val actions: @Composable LongPressMenuActionProvider.(MediaItem) -> Unit
+    val thumb_shape: Shape? = null,
+    val actions: (@Composable LongPressMenuActionProvider.(MediaItem) -> Unit)? = null
 ) {
     internal var thumb_size: IntSize? = null
     internal var thumb_position: Offset? = null
@@ -106,7 +107,7 @@ class LongPressMenuData(
 
 fun Modifier.longPressMenuIcon(data: LongPressMenuData, enabled: Boolean = true): Modifier {
     if (!enabled) {
-        return this.clip(data.thumb_shape)
+        return this.clip(data.thumb_shape ?: RoundedCornerShape(DEFAULT_THUMBNAIL_ROUNDING))
     }
     return this
         .onGloballyPositioned {
@@ -120,7 +121,7 @@ fun Modifier.longPressMenuIcon(data: LongPressMenuData, enabled: Boolean = true)
                 drawContent()
             }
         }
-        .clip(data.thumb_shape)
+        .clip(data.thumb_shape ?: RoundedCornerShape(DEFAULT_THUMBNAIL_ROUNDING))
 }
 
 @Composable
@@ -141,7 +142,7 @@ fun LongPressIconMenu(
                     contentDescription = null,
                     contentScale = ContentScale.Crop,
                     modifier = modifier
-                        .clip(data.thumb_shape)
+                        .clip(data.thumb_shape ?: RoundedCornerShape(DEFAULT_THUMBNAIL_ROUNDING))
                 )
             }
         }
@@ -154,18 +155,33 @@ fun LongPressIconMenu(
         }
     }
 
-    if (show && data.thumb_position != null) {
+    if (show && (data.thumb_shape == null || data.thumb_position != null)) {
         val density = LocalDensity.current
         val status_bar_height = getStatusBarHeight(MainActivity.context)
 
-        val initial_pos = remember { with (density) { DpOffset(data.thumb_position!!.x.toDp(), data.thumb_position!!.y.toDp() - status_bar_height) } }
-        val initial_size = remember { with (density) { DpSize(data.thumb_size!!.width.toDp(), data.thumb_size!!.height.toDp()) } }
+        val initial_pos = remember {
+            if (data.thumb_position == null) null else
+            with (density) { DpOffset(data.thumb_position!!.x.toDp(), data.thumb_position!!.y.toDp() - status_bar_height) }
+        }
+        val initial_size = remember {
+            if (data.thumb_size == null) null else
+            with (density) { DpSize(data.thumb_size!!.width.toDp(), data.thumb_size!!.height.toDp()) }
+        }
 
         var fully_open by remember { mutableStateOf(false) }
 
-        val pos = remember { Animatable(initial_pos, DpOffset.VectorConverter) }
-        val width = remember { Animatable(initial_size.width.value) }
-        val height = remember { Animatable(initial_size.height.value) }
+        val pos = remember {
+            if (initial_pos == null) null else
+            Animatable(initial_pos, DpOffset.VectorConverter)
+        }
+        val width = remember {
+            if (initial_size == null) null else
+            Animatable(initial_size.width.value)
+        }
+        val height = remember {
+            if (initial_size == null) null else
+            Animatable(initial_size.height.value)
+        }
         val panel_alpha = remember { Animatable(1f) }
 
         var target_position: Offset? by remember { mutableStateOf(null) }
@@ -198,9 +214,9 @@ fun LongPressIconMenu(
 
         suspend fun animateValues(to_target: Boolean) {
 
-            val pos_target: DpOffset
-            val width_target: Float
-            val height_target: Float
+            var pos_target: DpOffset = DpOffset.Unspecified
+            var width_target: Float = Float.NaN
+            var height_target: Float = Float.NaN
 
             if (to_target) {
                 with (density) {
@@ -209,9 +225,9 @@ fun LongPressIconMenu(
                     height_target = target_size!!.height.toDp().value
                 }
             }
-            else {
+            else if (initial_pos != null) {
                 pos_target = initial_pos
-                width_target = initial_size.width.value
+                width_target = initial_size!!.width.value
                 height_target = initial_size.height.value
             }
 
@@ -226,16 +242,16 @@ fun LongPressIconMenu(
                     panel_alpha.animateTo(if (to_target) 1f else 0f, tween(animation_duration))
                 }
 
-                if (!no_transition || to_target) {
+                if ((!no_transition || to_target) && initial_pos != null) {
                     listOf(
                         launch {
-                            pos.animateTo(pos_target, tween(animation_duration))
+                            pos?.animateTo(pos_target, tween(animation_duration))
                         },
                         launch {
-                            width.animateTo(width_target, tween(animation_duration))
+                            width?.animateTo(width_target, tween(animation_duration))
                         },
                         launch {
-                            height.animateTo(height_target, tween(animation_duration))
+                            height?.animateTo(height_target, tween(animation_duration))
                         }
                     ).joinAll()
                 }
@@ -362,7 +378,15 @@ fun LongPressIconMenu(
 
                         val accent_colour_provider = remember (accent_colour) { { accent_colour } }
 
-                        data.actions(LongPressMenuActionProvider(MainActivity.theme.getOnBackgroundProvider(false), accent_colour_provider, MainActivity.theme.getBackgroundProvider(false), playerProvider), data.item)
+                        data.actions?.invoke(
+                            LongPressMenuActionProvider(
+                                MainActivity.theme.getOnBackgroundProvider(false),
+                                accent_colour_provider,
+                                MainActivity.theme.getBackgroundProvider(false),
+                                playerProvider
+                            ),
+                            data.item
+                        )
 
                         val share_intent = remember(data.item.url) {
                             Intent.createChooser(Intent().apply {
@@ -399,12 +423,12 @@ fun LongPressIconMenu(
                     }
                 }
 
-                if (!fully_open) {
+                if (!fully_open && pos != null && width != null && height != null) {
                     Box(
                         Modifier
                             .offset(pos.value.x, pos.value.y + status_bar_height)
                             .requiredSize(width.value.dp, height.value.dp)
-                            .clip(data.thumb_shape)
+                            .clip(data.thumb_shape ?: RoundedCornerShape(DEFAULT_THUMBNAIL_ROUNDING))
                             .alpha(if (no_transition) panel_alpha.value else 1f)
                     ) {
                         Thumb(Modifier.fillMaxSize())

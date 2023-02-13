@@ -51,8 +51,14 @@ enum class OverlayPage { NONE, SEARCH, SETTINGS, MEDIAITEM }
 
 data class PlayerViewContext(
     private val onClickedOverride: ((item: MediaItem) -> Unit)? = null,
-    private val onLongClickedOverride: ((item: MediaItem) -> Unit)? = null
+    private val onLongClickedOverride: ((item: MediaItem) -> Unit)? = null,
+    private val base: PlayerViewContext? = null
 ) {
+
+    fun copy(onClickedOverride: ((item: MediaItem) -> Unit)? = null, onLongClickedOverride: ((item: MediaItem) -> Unit)? = null): PlayerViewContext {
+        return PlayerViewContext(onClickedOverride, onLongClickedOverride, this)
+    }
+
     val pill_menu = PillMenu(
         top = false
     )
@@ -65,6 +71,12 @@ data class PlayerViewContext(
             onClickedOverride.invoke(item)
             return
         }
+
+        if (base != null) {
+            base.onMediaItemClicked(item)
+            return
+        }
+
         when (item) {
             is Song -> PlayerServiceHost.service.playSong(item)
             else -> openMediaItem(item)
@@ -75,8 +87,25 @@ data class PlayerViewContext(
             onLongClickedOverride.invoke(item)
             return
         }
+
+        if (base != null) {
+            base.onMediaItemLongClicked(item)
+            return
+        }
+
+        showLongPressMenu(LongPressMenuData(item, actions = when (item) {
+            is Song -> songLongPressPopupActions
+            is Artist -> artistLongPressPopupActions
+            else -> null
+        }))
     }
+
     fun openMediaItem(item: MediaItem) {
+        if (base != null) {
+            base.openMediaItem(item)
+            return
+        }
+
         overlay_page = OverlayPage.MEDIAITEM
         overlay_media_item = item
     }
@@ -86,6 +115,11 @@ data class PlayerViewContext(
     private var long_press_menu_direct: Boolean by mutableStateOf(false)
 
     fun showLongPressMenu(data: LongPressMenuData) {
+        if (base != null) {
+            base.showLongPressMenu(data)
+            return
+        }
+
         long_press_menu_data = data
 
         if (long_press_menu_showing) {
@@ -98,6 +132,10 @@ data class PlayerViewContext(
     }
 
     fun hideLongPressMenu() {
+        if (base != null) {
+            base.hideLongPressMenu()
+            return
+        }
         long_press_menu_showing = false
         long_press_menu_direct = false
     }
@@ -113,7 +151,7 @@ data class PlayerViewContext(
 
                 LongPressIconMenu(
                     long_press_menu_showing && current,
-                    long_press_menu_direct && current,
+                    (long_press_menu_direct && current) || data.thumb_shape == null,
                     {
                         if (current) {
                             hideLongPressMenu()
@@ -146,7 +184,6 @@ fun PlayerView() {
             player.pill_menu.setBackgroundColourOverride(null)
         }
     }
-
 
     Column(
         Modifier

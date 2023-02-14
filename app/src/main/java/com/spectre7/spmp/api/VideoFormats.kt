@@ -1,6 +1,9 @@
 package com.spectre7.spmp.api
 
 import com.beust.klaxon.JsonObject
+import com.spectre7.spmp.R
+import com.spectre7.spmp.model.Song
+import com.spectre7.utils.getString
 import okhttp3.*
 import java.io.IOException
 import java.net.URLDecoder
@@ -34,7 +37,7 @@ data class YoutubeVideoFormat (
     val signatureCipher: String? = null,
     val url: String? = null
 ) {
-    var stream_url: String? = null
+    var stream_url: String? = url
     val audio_only: Boolean get() = mimeType.startsWith("audio")
 
     fun loadStreamUrl(video_id: String) {
@@ -69,7 +72,19 @@ fun getVideoFormats(id: String, selectFormat: (List<YoutubeVideoFormat>) -> Yout
         .header("Cookie", "CONSENT=YES+1")
         .header("User-Agent", DATA_API_USER_AGENT)
         .build()
-    
+
+//    val r = Request.Builder()
+//        .url("https://music.youtube.com/youtubei/v1/player?key=${getString(R.string.yt_i_api_key)}")
+//        .post(DataApi.getYoutubeiRequestBody("""{
+//            "videoId": "$id",
+//            "playlistId": null
+//        }""", true))
+//        .build()
+//
+//    val resp = DataApi.client.newCall(r).execute()
+//    println("R $resp")
+//    println("R ${resp.body!!.string()}")
+
     fun getFormats(itag: Int?): DataApi.Result<Pair<SignatureCipherDecrypter, List<YoutubeVideoFormat>>> {
         val response = DataApi.client.newCall(request).execute()
         if (response.code != 200) {

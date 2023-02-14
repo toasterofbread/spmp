@@ -3,6 +3,7 @@
     <string name="ngrok_api_key" translatable="false">***REMOVED***</string>
     <string name="server_api_key" translatable="false">***REMOVED***</string>
     <string name="yt_api_key" translatable="false">***REMOVED***</string>
+    <string name="yt_i_api_key" translatable="false">AIzaSyAO_FJ2SlqU8Q4STEHLGCilw_Y9_11qcW8</string>
     <string name="oauth_client_id" translatable="false">1029123928342-8las6c3oor0r3910mcsarl6vauoi96fg.apps.googleusercontent.com</string>
 
     <string name="songs">Songs</string>
@@ -53,6 +54,8 @@
     <string name="lyrics_unavailable">Lyrics unavailable</string>
 
     <string name="player_service_name">Player Service</string>
+    <string name="download_service_name">Download Service</string>
+    <string name="download_service_error_name">Download Service errors</string>
 
     <string name="lyrics_source_prefix">Source:&#160;</string>
     <string name="lyrics_source_petitlyrics">PetitLyrics</string>

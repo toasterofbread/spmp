@@ -51,20 +51,12 @@ import com.google.android.exoplayer2.ExoPlayer
 import com.google.android.exoplayer2.MediaItem as ExoMediaItem
 import com.google.android.exoplayer2.Player
 import com.google.android.exoplayer2.audio.AudioAttributes
-import com.google.android.exoplayer2.database.StandaloneDatabaseProvider
 import com.google.android.exoplayer2.ext.mediasession.MediaSessionConnector
 import com.google.android.exoplayer2.extractor.mkv.MatroskaExtractor
 import com.google.android.exoplayer2.extractor.mp4.FragmentedMp4Extractor
 import com.google.android.exoplayer2.source.DefaultMediaSourceFactory
 import com.google.android.exoplayer2.ui.PlayerNotificationManager
-import com.google.android.exoplayer2.upstream.DataSource
-import com.google.android.exoplayer2.upstream.DataSpec
-import com.google.android.exoplayer2.upstream.DefaultHttpDataSource
-import com.google.android.exoplayer2.upstream.ResolvingDataSource
-import com.google.android.exoplayer2.upstream.cache.CacheDataSource
-import com.google.android.exoplayer2.upstream.cache.NoOpCacheEvictor
-import com.google.android.exoplayer2.upstream.cache.SimpleCache
-import com.spectre7.spmp.api.DATA_API_USER_AGENT
+import com.google.android.exoplayer2.upstream.*
 import com.spectre7.spmp.api.RadioInstance
 import com.spectre7.spmp.model.*
 import com.spectre7.utils.sendToast
@@ -269,7 +261,6 @@ class PlayerService : Service() {
 
     private val radio = RadioInstance()
 
-    private lateinit var cache: SimpleCache
     private var _session_started: Boolean by mutableStateOf(false)
 
     private var queue_listeners: MutableList<PlayerServiceHost.PlayerQueueListener> = mutableListOf()
@@ -320,18 +311,9 @@ class PlayerService : Service() {
     override fun onBind(intent: Intent?): PlayerBinder {
         return binder
     }
-    override fun onUnbind(intent: Intent?): Boolean {
-        return super.onUnbind(intent)
-    }
 
     override fun onCreate() {
         super.onCreate()
-
-        val cache_dir = cacheDir.resolve("exoplayer-cache")
-        if (!cache_dir.exists()) {
-            cache_dir.mkdir()
-        }
-        cache = SimpleCache(cache_dir, NoOpCacheEvictor(), StandaloneDatabaseProvider(this))
 
         player = ExoPlayer.Builder(
             MainActivity.context,
@@ -430,17 +412,16 @@ class PlayerService : Service() {
     }
 
     private fun createDataSourceFactory(): DataSource.Factory {
-        return ResolvingDataSource.Factory(
-            CacheDataSource.Factory().setCache(cache).apply {
-                setUpstreamDataSourceFactory(
-                    DefaultHttpDataSource.Factory()
-                        .setConnectTimeoutMs(16000)
-                        .setReadTimeoutMs(8000)
-                        .setUserAgent(DATA_API_USER_AGENT)
-                )
-            }
-        ) { data_spec: DataSpec ->
-            data_spec.withUri(Uri.parse(Song.fromId(data_spec.uri.toString()).loadStreamUrl()))
+        return ResolvingDataSource.Factory({
+            DefaultDataSource.Factory(this@PlayerService).createDataSource()
+        }) { data_spec: DataSpec ->
+            val song = Song.fromId(data_spec.uri.toString())
+            val local_file = PlayerServiceHost.download_manager.getDownloadedSong(song)
+
+            data_spec.withUri(
+                if (local_file != null) Uri.fromFile(local_file)
+                else Uri.parse(song.getStreamUrl())
+            )
         }
     }
 
@@ -450,7 +431,6 @@ class PlayerService : Service() {
         notification_manager = null
         media_session?.release()
         player.release()
-        cache.release()
 
         if (vol_notif.isShown) {
             MainActivity.context.windowManager.removeView(vol_notif)

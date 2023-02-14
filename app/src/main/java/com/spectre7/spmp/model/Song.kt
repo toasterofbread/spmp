@@ -132,8 +132,6 @@ class Song private constructor (
     val registry: DataRegistry.SongEntry
 
     private var stream_url: String? = null
-    private var stream_url_loading: Boolean = false
-    private val stream_url_load_lock = Object()
 
 //    class SongData(id: String): Data(id)
 
@@ -237,11 +235,10 @@ class Song private constructor (
 
         @Synchronized
         fun fromId(id: String): Song {
-            return songs.getOrElse(id) {
+            return songs.getOrPut(id) {
                 val song = Song(id)
                 song.loadFromCache()
-                songs[id] = song
-                return song
+                return@getOrPut song
             }.getOrReplacedWith() as Song
         }
     }
@@ -283,26 +280,11 @@ class Song private constructor (
         }
     }
 
-    fun loadStreamUrl(): String {
-        synchronized(stream_url_load_lock) {
-            if (stream_url != null) {
-                return stream_url!!
-            }
-
-            if (stream_url_loading) {
-                stream_url_load_lock.wait()
-                return stream_url!!
-            }
-
-            stream_url_loading = true
-        }
-
-        val format: YoutubeVideoFormat = getVideoFormats(id) { getWantedVideoFormat(it) }.getDataOrThrow()
-        stream_url = format.stream_url!!
-
-        synchronized(stream_url_load_lock) {
-            stream_url_loading = false
-            stream_url_load_lock.notifyAll()
+    @Synchronized
+    fun getStreamUrl(): String {
+        if (stream_url == null) {
+            val format: YoutubeVideoFormat = getVideoFormats(id) { getWantedVideoFormat(it) }.getDataOrThrow()
+            stream_url = format.stream_url!!
         }
 
         return stream_url!!

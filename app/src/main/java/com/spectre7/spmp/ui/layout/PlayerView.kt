@@ -354,6 +354,7 @@ private fun refreshFeed(allow_cached: Boolean, feed_layouts: MutableList<MediaIt
                                 synchronized(request_limit) {
                                     when (loaded) {
                                         is Song -> {
+                                            println(loaded.id)
                                             entry.addItem(loaded)
                                             artists.addItem(loaded.artist!!)
                                         }

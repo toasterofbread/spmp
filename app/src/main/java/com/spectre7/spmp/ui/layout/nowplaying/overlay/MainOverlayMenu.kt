@@ -23,16 +23,17 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.times
 import androidx.palette.graphics.Palette
 import com.spectre7.spmp.MainActivity
+import com.spectre7.spmp.PlayerDownloadService
 import com.spectre7.spmp.PlayerServiceHost
 import com.spectre7.spmp.model.Song
 import com.spectre7.spmp.ui.layout.PlayerViewContext
 import com.spectre7.spmp.ui.layout.nowplaying.NOW_PLAYING_MAIN_PADDING
-import com.spectre7.spmp.ui.layout.nowplaying.overlay.DownloadOverlayMenu
 import com.spectre7.spmp.ui.layout.nowplaying.overlay.OverlayMenu
 import com.spectre7.spmp.ui.layout.nowplaying.overlay.PaletteSelectorOverlayMenu
 import com.spectre7.spmp.ui.layout.nowplaying.overlay.lyrics.LyricsOverlayMenu
 import com.spectre7.utils.sendToast
 import com.spectre7.utils.vibrateShort
+import java.io.File
 
 class MainOverlayMenu(
     val setOverlayMenu: (OverlayMenu?) -> Unit,
@@ -181,7 +182,18 @@ class MainOverlayMenu(
 
                 Box(
                     button_modifier.clickable {
-                        setOverlayMenu(DownloadOverlayMenu())
+                        PlayerServiceHost.download_manager.startDownload(song) { file: File?, status: PlayerDownloadService.Download.Status ->
+                            when (status) {
+                                PlayerDownloadService.Download.Status.FINISHED -> sendToast("Download completed")
+                                PlayerDownloadService.Download.Status.ALREADY_FINISHED -> sendToast("Already downloaded")
+                                PlayerDownloadService.Download.Status.CANCELLED -> sendToast("Download was cancelled")
+
+                                // IDLE, DOWNLOADING
+                                else -> {
+                                    sendToast("Already downloading")
+                                }
+                            }
+                        }
                     }
                 ) {
                     Image(

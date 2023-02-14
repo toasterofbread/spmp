@@ -28,6 +28,8 @@ import androidx.lifecycle.Lifecycle
 import com.beust.klaxon.JsonObject
 import com.beust.klaxon.Klaxon
 import com.google.android.exoplayer2.database.StandaloneDatabaseProvider
+import com.google.android.exoplayer2.upstream.cache.NoOpCacheEvictor
+import com.google.android.exoplayer2.upstream.cache.SimpleCache
 import com.spectre7.spmp.api.DataApi
 import com.spectre7.spmp.model.Cache
 import com.spectre7.spmp.model.Settings
@@ -38,6 +40,7 @@ import com.spectre7.spmp.ui.theme.MyApplicationTheme
 import com.spectre7.utils.NoRipple
 import com.spectre7.utils.Theme
 import net.openid.appauth.*
+import java.io.File
 import java.util.*
 
 class MainActivity : ComponentActivity() {
@@ -45,7 +48,6 @@ class MainActivity : ComponentActivity() {
     lateinit var prefs: SharedPreferences
     lateinit var theme: Theme
     lateinit var languages: Map<String, Map<String, String>>
-    lateinit var database: StandaloneDatabaseProvider
 
 //    private lateinit var auth_service: AuthorizationService
 //    private lateinit var auth_state: AuthState
@@ -53,21 +55,9 @@ class MainActivity : ComponentActivity() {
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
+
         instance = this
-
-        Thread.setDefaultUncaughtExceptionHandler { _: Thread, error: Throwable ->
-            error.printStackTrace()
-
-            context.startActivity(Intent(context, ErrorReportActivity::class.java).apply {
-                putExtra("message", error.message)
-                putExtra("stack_trace", error.stackTraceToString())
-            })
-        }
-
         prefs = getSharedPreferences(this)
-
-        Cache.init(this)
-        Song.init(prefs)
 
         languages = loadLanguages()
         fun updateLanguage(lang: Int) {
@@ -86,20 +76,29 @@ class MainActivity : ComponentActivity() {
         }
         updateLanguage(Settings.get(Settings.KEY_LANG_UI))
 
+        Cache.init(this)
+        DataApi.initialise()
+        Song.init(prefs)
+
+        Thread.setDefaultUncaughtExceptionHandler { _: Thread, error: Throwable ->
+            error.printStackTrace()
+
+            context.startActivity(Intent(context, ErrorReportActivity::class.java).apply {
+                putExtra("message", error.message)
+                putExtra("stack_trace", error.stackTraceToString())
+            })
+        }
+
 //        auth_state = loadAuthState()
 //        auth_service = AuthorizationService(this)
 //        auth_activity_launcher = createOauthActivityLauncher()
-
-        database = StandaloneDatabaseProvider(this)
-
-        DataApi.initialise()
 
         window.setFlags(
             WindowManager.LayoutParams.FLAG_LAYOUT_NO_LIMITS,
             WindowManager.LayoutParams.FLAG_LAYOUT_NO_LIMITS
         )
 
-        val service_host = PlayerServiceHost()
+        val service_host = PlayerServiceHost.instance ?: PlayerServiceHost()
         var service_started = false
 
         setContent {
@@ -170,7 +169,6 @@ class MainActivity : ComponentActivity() {
         val theme: Theme get() = context.theme
         val languages: Map<String, Map<String, String>> get() = context.languages
         val error_manager = ErrorManager()
-        val database get() = context.database
 
 //        val auth_state: AuthState get() = context.auth_state
 //        val auth_service: AuthorizationService get() = context.auth_service

@@ -48,10 +48,6 @@ class Artist private constructor (
     var subscribed: Boolean? by mutableStateOf(null)
     val unknown: Boolean get() = this == UNKNOWN
 
-    override fun isLoaded(): Boolean {
-        return super.isLoaded() && _subscribe_channel_id != null
-    }
-
     override fun getJsonMapValues(klaxon: Klaxon): String {
         return super.getJsonMapValues(klaxon) + "\"subscribe_channel_id\": ${stringToJson(subscribe_channel_id)},"
     }
@@ -61,17 +57,20 @@ class Artist private constructor (
         return super.supplyFromJsonObject(data, klaxon)
     }
 
+    override fun isFullyLoaded(): Boolean {
+        return super.isFullyLoaded() && _subscribe_channel_id != null
+    }
+
     companion object {
         private val artists: MutableMap<String, Artist> = mutableMapOf()
         val UNKNOWN = fromId("0").supplyTitle("Unknown", true).supplyDescription("No known artist attached to media", true) as Artist
 
         @Synchronized
         fun fromId(id: String): Artist {
-            return artists.getOrElse(id) {
+            return artists.getOrPut(id) {
                 val artist = Artist(id)
                 artist.loadFromCache()
-                artists[id] = artist
-                return artist
+                return@getOrPut artist
             }.getOrReplacedWith() as Artist
         }
     }

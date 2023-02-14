@@ -17,11 +17,10 @@ class Playlist private constructor (
 
         @Synchronized
         fun fromId(id: String): Playlist {
-            return playlists.getOrElse(id) {
+            return playlists.getOrPut(id) {
                 val playlist = Playlist(id)
                 playlist.loadFromCache()
-                playlists[id] = playlist
-                return playlist
+                return@getOrPut playlist
             }.getOrReplacedWith() as Playlist
         }
     }

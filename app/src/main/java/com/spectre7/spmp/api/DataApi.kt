@@ -25,6 +25,7 @@ class DataApi {
         val klaxon: Klaxon = Klaxon()
 
         private lateinit var youtubei_base_context: JsonObject
+        private lateinit var youtubei_alt_context: JsonObject
         private lateinit var youtubei_headers: Headers
 
         fun initialise() {
@@ -36,6 +37,29 @@ class DataApi {
                             "platform": "DESKTOP",
                             "clientName": "WEB_REMIX",
                             "clientVersion": "1.20221031.00.00-canary_control",
+                            "userAgent": "$DATA_API_USER_AGENT",
+                            "acceptHeader": "text/html,application/xhtml+xml,application/xml;q=0.9,image/avif,image/webp,*/*;q=0.8",
+                        },
+                        "user":{
+                            "lockedSafetyMode": false
+                        },
+                        "request":{
+                            "useSsl": true,
+                            "internalExperimentFlags": [],
+                            "consistencyTokenJars": []
+                        }
+                    }
+                }
+            """.reader())
+
+            youtubei_alt_context = klaxon.parseJsonObject("""
+                {
+                    "context": {
+                        "client":{
+                            "hl": "${MainActivity.ui_language}",
+                            "platform": "DESKTOP",
+                            "clientName": "TVHTML5_SIMPLY_EMBEDDED_PLAYER",
+                            "clientVersion": "2.0",
                             "userAgent": "$DATA_API_USER_AGENT",
                             "acceptHeader": "text/html,application/xhtml+xml,application/xml;q=0.9,image/avif,image/webp,*/*;q=0.8",
                         },
@@ -79,13 +103,9 @@ class DataApi {
             return youtubei_headers
         }
 
-        internal fun getYoutubeiRequestBody(body: Any? = null): RequestBody {
-            val final_body = if (body != null) youtubei_base_context + klaxon.toJsonObject(body) else youtubei_base_context
-            return klaxon.toJsonString(final_body).toRequestBody("application/json".toMediaType())
-        }
-
-        internal fun getYoutubeiRequestBody(body: String): RequestBody {
-            val final_body = youtubei_base_context + klaxon.parseJsonObject(body.reader())
+        internal fun getYoutubeiRequestBody(body: String? = null, alt: Boolean = false): RequestBody {
+            val context = if (alt) youtubei_alt_context else youtubei_base_context
+            val final_body = if (body != null) context + klaxon.parseJsonObject(body.reader()) else context
             return klaxon.toJsonString(final_body).toRequestBody("application/json".toMediaType())
         }
     }

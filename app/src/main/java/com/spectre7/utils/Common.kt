@@ -3,7 +3,11 @@ package com.spectre7.utils
 // TODO | Move to separate repository
 
 import android.annotation.SuppressLint
+import android.app.Notification
+import android.app.PendingIntent
 import android.content.Context
+import android.content.Intent
+import android.graphics.drawable.Icon
 import android.os.Looper
 import android.os.VibrationEffect
 import android.os.VibratorManager
@@ -419,4 +423,30 @@ fun getInnerSquareSizeOfCircle(radius: Float, corner_percent: Int): Float {
 	val E = (sqrt(8.0 * radius * radius) / 2.0) - radius
 	val I = radius + (E * C)
 	return sqrt(I * I * 0.5).toFloat()
+}
+
+@Suppress("UsePropertyAccessSyntax")
+fun Throwable.createNotification(context: Context, notification_channel: String): Notification {
+	return Notification.Builder(context, notification_channel)
+		.setSmallIcon(android.R.drawable.stat_notify_error)
+		.setContentTitle(this::class.simpleName)
+		.setContentText(message)
+		.setStyle(Notification.BigTextStyle().bigText("$message\nStack trace:\n${stackTraceToString()}"))
+		.addAction(Notification.Action.Builder(
+			Icon.createWithResource(context, android.R.drawable.ic_menu_share),
+			"Share",
+			PendingIntent.getActivity(
+				context,
+				0,
+				Intent.createChooser(Intent().also { share ->
+					share.action = Intent.ACTION_SEND
+					share.putExtra(Intent.EXTRA_TITLE, this::class.simpleName)
+					share.putExtra(Intent.EXTRA_TITLE, this::class.simpleName)
+					share.putExtra(Intent.EXTRA_TEXT, stackTraceToString())
+					share.type = "text/plain"
+				}, null),
+				PendingIntent.FLAG_IMMUTABLE or PendingIntent.FLAG_CANCEL_CURRENT
+			)
+		).build())
+		.build()
 }

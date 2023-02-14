@@ -12,6 +12,7 @@ import androidx.compose.runtime.setValue
 import com.google.android.exoplayer2.ExoPlayer
 import com.google.android.exoplayer2.MediaItem
 import com.google.android.exoplayer2.Player
+import com.google.android.exoplayer2.offline.DownloadService
 import com.google.android.exoplayer2.MediaItem as ExoMediaItem
 import com.spectre7.spmp.model.Song
 import kotlinx.coroutines.delay
@@ -30,13 +31,14 @@ fun ExoMediaItem.LocalConfiguration.getSong(): Song? {
 
 class PlayerServiceHost {
 
-    private lateinit var service: PlayerService
-    private var service_connected by mutableStateOf(false)
+    private var service: PlayerService? by mutableStateOf(null)
+    private var service_connecting = false
 
     private var service_intent: Intent? = null
     private var service_connection: ServiceConnection? = null
 
     private val context: Context get() = MainActivity.context
+    private val download_manager = PlayerDownloadManager(context)
 
     init {
         assert(instance == null)
@@ -136,12 +138,13 @@ class PlayerServiceHost {
     }
 
     companion object {
-        private var instance: PlayerServiceHost? = null
+        var instance: PlayerServiceHost? = null
         lateinit var status: PlayerStatus
 
-        val service: PlayerService get() = instance!!.service
+        val service: PlayerService get() = instance!!.service!!
+        val download_manager: PlayerDownloadManager get() = instance!!.download_manager
         val player: ExoPlayer get() = service.player
-        val service_connected: Boolean get() = instance?.service_connected ?: false
+        val service_connected: Boolean get() = instance?.service != null
         val session_started: Boolean get() = instance?.service?.session_started ?: false
 
         fun isRunningAndFocused(): Boolean {
@@ -165,26 +168,31 @@ class PlayerServiceHost {
         if (service_connection != null) {
             context.unbindService(service_connection!!)
             service_connection = null
+            service_intent = null
         }
+        download_manager.release()
     }
 
+    @Synchronized
     fun startService(onConnected: (() -> Unit)? = null, onDisconnected: (() -> Unit)? = null) {
-        if (service_connected) {
+        if (service_connecting || service != null) {
             return
         }
+        service_connecting = true
 
         if (service_intent == null) {
             service_intent = Intent(context, PlayerService::class.java)
             service_connection = object : ServiceConnection {
                 override fun onServiceConnected(className: ComponentName, binder: IBinder) {
                     service = (binder as PlayerService.PlayerBinder).getService()
-                    status = PlayerStatus(service)
-                    service_connected = true
+                    status = PlayerStatus(service!!)
+                    service_connecting = false
                     onConnected?.invoke()
                 }
 
                 override fun onServiceDisconnected(arg0: ComponentName) {
-                    service_connected = false
+                    service = null
+                    service_connecting = false
                     onDisconnected?.invoke()
                 }
             }

@@ -108,6 +108,10 @@ abstract class MediaItem(id: String) {
         return this
     }
 
+    open fun isFullyLoaded(): Boolean {
+        return title != null && _artist != null && thumbnail_provider != null
+    }
+
     fun toJsonData(): String {
         return Klaxon().converter(json_converter).toJsonString(this)
     }
@@ -254,15 +258,9 @@ abstract class MediaItem(id: String) {
         }
     }
 
-    enum class LoadStatus {
-        NOT_LOADED,
-        LOADING,
-        LOADED
-    }
-
     private val _loading_lock = Object()
     val loading_lock: Object get() = getOrReplacedWith()._loading_lock
-    var load_status: LoadStatus by mutableStateOf(LoadStatus.NOT_LOADED)
+    var loading: Boolean by mutableStateOf(false)
 
     abstract class ThumbnailProvider {
         abstract fun getThumbnail(quality: ThumbnailQuality): String?
@@ -494,15 +492,11 @@ abstract class MediaItem(id: String) {
         }
     }
 
-    fun loadData(): MediaItem {
-        if (isLoaded()) {
+    fun loadData(force: Boolean = false): MediaItem {
+        if (!force && isFullyLoaded()) {
             return getOrReplacedWith()
         }
         return loadMediaItemData(getOrReplacedWith()).getDataOrThrow()
-    }
-
-    open fun isLoaded(): Boolean {
-        return _title != null && _artist != null && _description != null
     }
 
     fun getDefaultThemeColour(): Color? {
@@ -534,10 +528,6 @@ abstract class MediaItemWithLayouts(id: String): MediaItem(id) {
         return this
     }
 
-    override fun isLoaded(): Boolean {
-        return super.isLoaded() && _feed_layouts != null
-    }
-
     override fun getJsonMapValues(klaxon: Klaxon): String {
         return super.getJsonMapValues(klaxon) + "\"feed_layouts\": ${klaxon.toJsonString(feed_layouts)},"
     }
@@ -545,5 +535,9 @@ abstract class MediaItemWithLayouts(id: String): MediaItem(id) {
     override fun supplyFromJsonObject(data: JsonObject, klaxon: Klaxon): MediaItem {
         data.array<JsonObject>("feed_layouts")?.also { _feed_layouts = klaxon.parseFromJsonArray(it) }
         return super.supplyFromJsonObject(data, klaxon)
+    }
+
+    override fun isFullyLoaded(): Boolean {
+        return super.isFullyLoaded() && _feed_layouts != null
     }
 }

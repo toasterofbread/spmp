@@ -29,9 +29,7 @@ import com.spectre7.spmp.ui.layout.nowplaying.DEFAULT_THUMBNAIL_ROUNDING
 import com.spectre7.spmp.ui.layout.nowplaying.MAX_THUMBNAIL_ROUNDING
 import com.spectre7.spmp.ui.layout.nowplaying.MIN_THUMBNAIL_ROUNDING
 import com.spectre7.utils.*
-import kotlin.math.absoluteValue
 import kotlin.math.roundToInt
-import kotlin.math.sqrt
 
 const val PALETTE_SIMILAR_COLOUR_THRESHOLD = 0.1f
 
@@ -46,7 +44,7 @@ class PaletteSelectorOverlayMenu(
 
     @Composable
     override fun Menu(
-        song: Song,
+        songProvider: () -> Song,
         expansion: Float,
         openShutterMenu: (@Composable () -> Unit) -> Unit,
         close: () -> Unit,
@@ -125,7 +123,7 @@ class PaletteSelectorOverlayMenu(
                         Text("Pick from thumbnail")
                     }
 
-                    val thumbnail_rounding_state: MutableState<Int?> = remember(song.registry) { song.registry.getState("thumbnail_rounding") }
+                    val thumbnail_rounding_state: MutableState<Int?> = remember(songProvider().registry) { songProvider().registry.getState("thumbnail_rounding") }
                     var slider_value by remember { mutableStateOf(
                         ((thumbnail_rounding_state.value ?: DEFAULT_THUMBNAIL_ROUNDING) - MIN_THUMBNAIL_ROUNDING) / (MAX_THUMBNAIL_ROUNDING - MIN_THUMBNAIL_ROUNDING).toFloat()
                     ) }
@@ -147,7 +145,7 @@ class PaletteSelectorOverlayMenu(
                         thumbnail_rounding_state.value = MIN_THUMBNAIL_ROUNDING + ((MAX_THUMBNAIL_ROUNDING - MIN_THUMBNAIL_ROUNDING) * anim_state.value).roundToInt()
 
                         if (!anim_state.isRunning) {
-                            song.registry.save()
+                            songProvider().registry.save()
                         }
                     }
 

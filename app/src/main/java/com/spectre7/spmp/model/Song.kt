@@ -3,6 +3,7 @@ package com.spectre7.spmp.model
 import android.content.SharedPreferences
 import android.graphics.Bitmap
 import android.graphics.BitmapFactory
+import android.provider.MediaStore.Audio
 import androidx.compose.runtime.*
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
@@ -11,8 +12,8 @@ import androidx.core.content.edit
 import com.beust.klaxon.Klaxon
 import com.spectre7.spmp.R
 import com.spectre7.spmp.api.YoutubeVideoFormat
-import com.spectre7.spmp.api.getVideoFormats
 import com.spectre7.spmp.api.getSongLyrics
+import com.spectre7.spmp.api.getVideoFormats
 import com.spectre7.spmp.ui.component.SongPreviewLong
 import com.spectre7.spmp.ui.component.SongPreviewSquare
 import com.spectre7.spmp.ui.layout.PlayerViewContext
@@ -131,9 +132,9 @@ class Song private constructor (
 
     val registry: DataRegistry.SongEntry
 
-    private var stream_url: String? = null
-
-//    class SongData(id: String): Data(id)
+    private var audio_formats: List<YoutubeVideoFormat>? = null
+    private var stream_format: YoutubeVideoFormat? = null
+    private var download_format: YoutubeVideoFormat? = null
 
     data class Lyrics(
         val id: Int,
@@ -263,31 +264,66 @@ class Song private constructor (
         registry.set("title", value)
     }
 
-    private fun getWantedVideoFormat(formats: List<YoutubeVideoFormat>): YoutubeVideoFormat {
-        val _formats = formats.sortedByDescending { it.bitrate }
-        return when (Settings.getEnum<AudioQuality>(Settings.KEY_STREAM_AUDIO_QUALITY)) {
-            AudioQuality.HIGH -> _formats.firstOrNull { it.audio_only } ?: _formats.first()
+    // Expects formats to be sorted by bitrate (descending)
+    private fun List<YoutubeVideoFormat>.getByQuality(quality: AudioQuality): YoutubeVideoFormat {
+        return when (quality) {
+            AudioQuality.HIGH -> firstOrNull { it.audio_only } ?: first()
             AudioQuality.MEDIUM -> {
-                val audio_formats = _formats.filterList { audio_only }
+                val audio_formats = filterList { audio_only }
                 if (audio_formats.isNotEmpty()) {
                     audio_formats[audio_formats.size / 2]
                 }
                 else {
-                    _formats[_formats.size / 2]
+                    get(size / 2)
                 }
             }
-            AudioQuality.LOW -> _formats.lastOrNull { it.audio_only } ?: _formats.last()
-        }
+            AudioQuality.LOW -> lastOrNull { it.audio_only } ?: last()
+        }.also { it.matched_quality = quality }
     }
 
     @Synchronized
-    fun getStreamUrl(): String {
-        if (stream_url == null) {
-            val format: YoutubeVideoFormat = getVideoFormats(id) { getWantedVideoFormat(it) }.getDataOrThrow()
-            stream_url = format.stream_url!!
+    private fun loadFormats() {
+        if (audio_formats != null) {
+            return
+        }
+        audio_formats = getVideoFormats(id) { it.audio_only }
+            .getDataOrThrow()
+            .sortedByDescending { it.bitrate }
+    }
+
+    fun getFormatByQuality(quality: AudioQuality): YoutubeVideoFormat {
+        loadFormats()
+        return audio_formats!!.getByQuality(quality)
+    }
+
+    fun getStreamFormat(): YoutubeVideoFormat {
+        loadFormats()
+
+        val quality: AudioQuality = Settings.getEnum(Settings.KEY_STREAM_AUDIO_QUALITY)
+        if (stream_format?.matched_quality != quality) {
+            stream_format = getFormatByQuality(quality)
         }
 
-        return stream_url!!
+        return stream_format!!
+    }
+
+    fun getDownloadFormat(): YoutubeVideoFormat {
+        loadFormats()
+
+        val quality: AudioQuality = getTargetDownloadQuality()
+        if (download_format?.matched_quality != quality) {
+            download_format = getFormatByQuality(quality)
+        }
+
+        return download_format!!
+    }
+
+    fun getTargetStreamQuality(): AudioQuality {
+        return Settings.getEnum(Settings.KEY_STREAM_AUDIO_QUALITY)
+    }
+
+    fun getTargetDownloadQuality(): AudioQuality {
+        return Settings.getEnum(Settings.KEY_DOWNLOAD_AUDIO_QUALITY)
     }
 
     override fun canLoadThumbnail(): Boolean {

@@ -188,7 +188,10 @@ fun ColumnScope.NowPlayingMainTab(
     var image_size by remember { mutableStateOf(IntSize(1, 1)) }
 
     Row(
-        Modifier.fillMaxWidth().requiredHeight(50.dp * appear_scale).alpha(1f - disappear_scale),
+        Modifier
+            .fillMaxWidth()
+            .requiredHeight(50.dp * appear_scale)
+            .alpha(1f - disappear_scale),
         horizontalArrangement = Arrangement.End
     ) {
         IconButton({
@@ -209,7 +212,8 @@ fun ColumnScope.NowPlayingMainTab(
         horizontalArrangement = Arrangement.SpaceEvenly,
         modifier = Modifier
             .fillMaxWidth()
-            .fillMaxHeight(0.5f * max(expansion, (MINIMISED_NOW_PLAYING_HEIGHT + 20f) / page_height.value))
+            .fillMaxHeight(0.5f * max(expansion,
+                (MINIMISED_NOW_PLAYING_HEIGHT + 20f) / page_height.value))
     ) {
 
         var overlay_menu by remember { mutableStateOf<OverlayMenu?>(null) }
@@ -329,7 +333,7 @@ fun ColumnScope.NowPlayingMainTab(
                             }
 
                             menu?.Menu(
-                                PlayerServiceHost.status.m_song!!,
+                                { PlayerServiceHost.status.m_song!! },
                                 expansion,
                                 {
                                     get_shutter_menu = it

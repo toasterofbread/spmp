@@ -6,12 +6,18 @@ import android.content.*
 import android.os.IBinder
 import androidx.core.app.NotificationManagerCompat
 import androidx.localbroadcastmanager.content.LocalBroadcastManager
+import com.spectre7.spmp.model.Settings
 import com.spectre7.spmp.model.Song
 import com.spectre7.utils.createNotification
 import com.spectre7.utils.getString
+import com.spectre7.utils.networkThread
 import java.io.File
 
 private const val ERROR_NOTIFICATION_CHANNEL_ID = "download_error_channel"
+
+fun <T> Intent.getExtra(key: String): T {
+    return extras!!.get(key) as T
+}
 
 class PlayerDownloadManager(private val context: Context) {
 
@@ -21,37 +27,55 @@ class PlayerDownloadManager(private val context: Context) {
     private var service_connection: ServiceConnection? = null
 
     private var result_callback_id: Int = 0
-    private val download_start_callbacks: MutableMap<String, MutableMap<Int, (File?, PlayerDownloadService.Download.Status) -> Unit>> = mutableMapOf()
+    private val result_callbacks: MutableMap<PlayerDownloadService.IntentAction, MutableMap<String, MutableMap<Int, (Intent) -> Unit>>> = mutableMapOf()
     private val result_broadcast_receiver = object : BroadcastReceiver() {
         override fun onReceive(_context: Context, intent: Intent) {
-            val action = intent.extras?.get("action") as PlayerDownloadService.ResultIntentAction
+            val action = intent.extras?.get("action") as PlayerDownloadService.IntentAction
             onResultIntentReceived(action, intent)
         }
     }
 
-    private fun onResultIntentReceived(action: PlayerDownloadService.ResultIntentAction, intent: Intent) {
-        when (action) {
-            PlayerDownloadService.ResultIntentAction.DOWNLOAD_RESULT -> {
-                onDownloadCompleted(
-                    intent.extras!!.get("status") as PlayerDownloadService.Download.Status,
-                    intent.extras!!.get("result") as Result<File?>,
-                    intent.getStringExtra("song_id")!!,
-                    intent.extras!!.get("instance") as Int
-                )
-            }
+    abstract class DownloadStatusListener {
+        abstract fun onSongDownloadStatusChanged(song_id: String, status: PlayerDownloadService.DownloadStatus)
+    }
+    private val download_status_listeners: MutableList<DownloadStatusListener> = mutableListOf()
+
+    companion object {
+        fun getDownloadDir(context: Context): File {
+            return File(context.filesDir, "download")
         }
     }
 
-    private fun onDownloadCompleted(status: PlayerDownloadService.Download.Status, result: Result<File?>, song_id: String, instance: Int) {
-        if (result.isFailure) {
-            NotificationManagerCompat.from(context).notify(
-                System.currentTimeMillis().toInt(),
-                result.exceptionOrNull()!!.createNotification(context, getErrorNotificationChannel())
-            )
-            return
+    fun addDownloadStatusListener(listener: DownloadStatusListener) {
+        download_status_listeners.add(listener)
+    }
+    fun removeDownloadStatusListener(listener: DownloadStatusListener) {
+        download_status_listeners.remove(listener)
+    }
+
+    private fun onResultIntentReceived(action: PlayerDownloadService.IntentAction, intent: Intent) {
+        val song_id: String = intent.getExtra("song_id")
+
+        val instance: Int? = intent.getExtra("instance")
+        if (instance != null) {
+            result_callbacks[action]?.get(song_id)?.remove(instance)?.invoke(intent)
         }
 
-        download_start_callbacks[song_id]?.remove(instance)?.invoke(result.getOrNull(), status)
+        when (action) {
+            PlayerDownloadService.IntentAction.START_DOWNLOAD -> {
+                val result = intent.extras!!.get("result") as Result<File?>
+                if (result.isFailure) {
+                    NotificationManagerCompat.from(context).notify(
+                        System.currentTimeMillis().toInt(),
+                        result.exceptionOrNull()!!.createNotification(context, getErrorNotificationChannel())
+                    )
+                }
+            }
+            PlayerDownloadService.IntentAction.STATUS_CHANGED -> {
+                download_status_listeners.forEach { it.onSongDownloadStatusChanged(song_id, intent.getExtra("status")) }
+            }
+            else -> {}
+        }
     }
 
     private fun getErrorNotificationChannel(): String {
@@ -65,43 +89,62 @@ class PlayerDownloadManager(private val context: Context) {
         return ERROR_NOTIFICATION_CHANNEL_ID
     }
 
-    companion object {
-        fun getDownloadDir(context: Context): File {
-            return File(context.filesDir, "download")
-        }
+    private fun addResultCallback(action: PlayerDownloadService.IntentAction, song_id: String, instance: Int, callback: (Intent) -> Unit) {
+        val callbacks = result_callbacks.getOrPut(action) { mutableMapOf() }.getOrPut(song_id) { mutableMapOf() }
+        callbacks[instance] = callback
     }
 
     fun getDownloadedSong(song: Song): File? {
         val files = getDownloadDir(context).listFiles() ?: return null
-        return files.firstOrNull { it.nameWithoutExtension == song.id }
+        for (file in files) {
+            if (PlayerDownloadService.fileMatchesDownload(file.name, song.id, song.getTargetDownloadQuality()) == true) {
+                return file
+            }
+        }
+        return null
     }
 
-//    @Synchronized
-    fun startDownload(song: Song, onCompleted: ((File?, PlayerDownloadService.Download.Status) -> Unit)? = null) {
+    @Synchronized
+    fun startDownload(song_id: String, onCompleted: ((File?, PlayerDownloadService.DownloadStatus) -> Unit)? = null) {
         if (service == null) {
-            startService({ startDownload(song, onCompleted) })
+            startService({ startDownload(song_id, onCompleted) })
             return
         }
 
         val instance = result_callback_id++
         if (onCompleted != null) {
-            val callbacks = download_start_callbacks.getOrPut(song.id) { mutableMapOf() }
-            callbacks[instance] = onCompleted
+            addResultCallback(PlayerDownloadService.IntentAction.START_DOWNLOAD, song_id, instance) { intent ->
+                val result = intent.extras!!.get("result") as Result<File?>
+                onCompleted(result.getOrNull(), intent.extras!!.get("status") as PlayerDownloadService.DownloadStatus)
+            }
         }
 
         val intent = Intent(PlayerDownloadService::class.java.canonicalName)
         intent.putExtra("action", PlayerDownloadService.IntentAction.START_DOWNLOAD)
-        intent.putExtra("song_id", song.id)
+        intent.putExtra("song_id", song_id)
         intent.putExtra("instance", instance)
 
         LocalBroadcastManager.getInstance(context).sendBroadcast(intent)
     }
 
-    fun release() {
-        if (service_connection != null) {
-            context.unbindService(service_connection!!)
-            service_connection = null
-            service_intent = null
+    fun getSongDownloadStatus(song_id: String, callback: (PlayerDownloadService.DownloadStatus) -> Unit) {
+        if (service == null) {
+            startService({ getSongDownloadStatus(song_id, callback) })
+            return
+        }
+
+        networkThread {
+            callback(service!!.getDownloadStatus(song_id))
+        }
+    }
+
+    fun getSongDownloadProgress(song_id: String, callback: (Float) -> Unit) {
+        if (service == null) {
+            startService({ getSongDownloadProgress(song_id, callback) })
+        }
+
+        networkThread {
+            callback(service!!.getDownloadProgress(song_id))
         }
     }
 
@@ -112,26 +155,32 @@ class PlayerDownloadManager(private val context: Context) {
         }
         service_connecting = true
 
-        if (service_intent == null) {
-            service_intent = Intent(context, PlayerDownloadService::class.java)
-            service_connection = object : ServiceConnection {
-                override fun onServiceConnected(className: ComponentName, binder: IBinder) {
-                    service = (binder as PlayerDownloadService.ServiceBinder).getService()
-                    service_connecting = false
-                    LocalBroadcastManager.getInstance(context).registerReceiver(result_broadcast_receiver, IntentFilter(PlayerDownloadService.RESULT_INTENT_ACTION))
-                    onConnected?.invoke()
-                }
+        service_intent = Intent(context, PlayerDownloadService::class.java)
+        service_connection = object : ServiceConnection {
+            override fun onServiceConnected(className: ComponentName, binder: IBinder) {
+                service = (binder as PlayerDownloadService.ServiceBinder).getService()
+                service_connecting = false
+                LocalBroadcastManager.getInstance(context).registerReceiver(result_broadcast_receiver, IntentFilter(PlayerDownloadService.RESULT_INTENT_ACTION))
+                onConnected?.invoke()
+            }
 
-                override fun onServiceDisconnected(arg0: ComponentName) {
-                    service = null
-                    service_connecting = false
-                    LocalBroadcastManager.getInstance(context).unregisterReceiver(result_broadcast_receiver)
-                    onDisconnected?.invoke()
-                }
+            override fun onServiceDisconnected(arg0: ComponentName) {
+                service = null
+                service_connecting = false
+                LocalBroadcastManager.getInstance(context).unregisterReceiver(result_broadcast_receiver)
+                onDisconnected?.invoke()
             }
         }
 
         context.startService(service_intent)
         context.bindService(service_intent, service_connection!!, 0)
+    }
+
+    fun release() {
+        if (service_connection != null) {
+            context.unbindService(service_connection!!)
+            service_connection = null
+            service_intent = null
+        }
     }
 }

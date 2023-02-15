@@ -13,7 +13,7 @@ class DownloadOverlayMenu: OverlayMenu() {
     
     @Composable
     override fun Menu(
-        song: Song,
+        songProvider: () -> Song,
         expansion: Float,
         openShutterMenu: (@Composable () -> Unit) -> Unit,
         close: () -> Unit,

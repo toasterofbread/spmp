@@ -46,7 +46,7 @@ class LyricsOverlayMenu(
 
     @Composable
     override fun Menu(
-        song: Song,
+        songProvider: () -> Song,
         expansion: Float,
         openShutterMenu: (@Composable () -> Unit) -> Unit,
         close: () -> Unit,
@@ -61,9 +61,9 @@ class LyricsOverlayMenu(
         var search_menu_open by remember { mutableStateOf(false) }
         var reload_lyrics by remember { mutableStateOf(false) }
 
-        LaunchedEffect(song.id, reload_lyrics) {
+        LaunchedEffect(songProvider().id, reload_lyrics) {
             lyrics = null
-            song.getLyrics {
+            songProvider().getLyrics {
                 if (it == null) {
                     sendToast(getString(R.string.lyrics_unavailable))
                     search_menu_open = true
@@ -106,7 +106,7 @@ class LyricsOverlayMenu(
 
         Crossfade(search_menu_open) { edit ->
             if (edit) {
-                LyricsSearchMenu(song, lyrics) { changed ->
+                LyricsSearchMenu(songProvider(), lyrics) { changed ->
                     search_menu_open = false
                     if (changed) {
                         lyrics = null

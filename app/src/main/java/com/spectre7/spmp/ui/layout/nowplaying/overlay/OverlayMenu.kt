@@ -7,7 +7,7 @@ import com.spectre7.spmp.ui.layout.PlayerViewContext
 abstract class OverlayMenu {
     @Composable
     abstract fun Menu(
-        song: Song,
+        songProvider: () -> Song,
         expansion: Float,
         openShutterMenu: (@Composable () -> Unit) -> Unit,
         close: () -> Unit,

@@ -55,6 +55,7 @@ import androidx.compose.ui.unit.*
 import com.spectre7.spmp.MainActivity
 import kotlinx.coroutines.delay
 import java.util.regex.Pattern
+import kotlin.concurrent.thread
 import kotlin.math.min
 import kotlin.math.sqrt
 
@@ -449,4 +450,18 @@ fun Throwable.createNotification(context: Context, notification_channel: String)
 			)
 		).build())
 		.build()
+}
+
+fun lazyAssert(message: String? = "Assertion failed", conditionProvider: () -> Boolean) {
+	if (Object::class.java.desiredAssertionStatus() && !conditionProvider()) {
+		throw AssertionError(message)
+	}
+}
+
+fun networkThread(block: () -> Unit) {
+	if (Looper.getMainLooper().thread != Thread.currentThread()) {
+		block()
+		return
+	}
+	thread(block = block)
 }

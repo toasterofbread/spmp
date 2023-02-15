@@ -20,12 +20,15 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.*
+import com.spectre7.spmp.PlayerDownloadService
 import com.spectre7.spmp.PlayerServiceHost
 import com.spectre7.spmp.model.MediaItem
 import com.spectre7.spmp.model.Song
 import com.spectre7.spmp.ui.layout.PlayerViewContext
+import com.spectre7.utils.sendToast
 import com.spectre7.utils.setAlpha
 import com.spectre7.utils.vibrateShort
+import java.io.File
 
 @Composable
 fun SongPreviewSquare(
@@ -228,7 +231,20 @@ val songLongPressPopupActions: @Composable LongPressMenuActionProvider.(MediaIte
         }
     }
 
-    ActionButton(Icons.Filled.Download, "Download", onClick = { TODO() })
+    ActionButton(Icons.Filled.Download, "Download", onClick = {
+        PlayerServiceHost.download_manager.startDownload(song.id) { file: File?, status: PlayerDownloadService.DownloadStatus ->
+            when (status) {
+                PlayerDownloadService.DownloadStatus.FINISHED -> sendToast("Download completed")
+                PlayerDownloadService.DownloadStatus.ALREADY_FINISHED -> sendToast("Already downloaded")
+                PlayerDownloadService.DownloadStatus.CANCELLED -> sendToast("Download was cancelled")
+
+                // IDLE, DOWNLOADING, PAUSED
+                else -> {
+                    sendToast("Already downloading")
+                }
+            }
+        }
+    })
 
     if (song.artist != null) {
         ActionButton(Icons.Filled.Person, "Go to artist", onClick = {

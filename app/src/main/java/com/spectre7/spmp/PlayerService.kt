@@ -420,7 +420,7 @@ class PlayerService : Service() {
 
             data_spec.withUri(
                 if (local_file != null) Uri.fromFile(local_file)
-                else Uri.parse(song.getStreamUrl())
+                else Uri.parse(song.getStreamFormat().stream_url)
             )
         }
     }

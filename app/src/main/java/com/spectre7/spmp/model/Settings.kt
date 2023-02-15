@@ -27,7 +27,6 @@ enum class Settings {
 
     // Download
     KEY_AUTO_DOWNLOAD_THRESHOLD,
-    KEY_AUTO_DOWNLOAD_QUALITY,
     KEY_AUTO_DOWNLOAD_SIZE_LIMIT,
 
     // Stats
@@ -84,7 +83,6 @@ enum class Settings {
                 KEY_STATS_LISTEN_THRESHOLD_TYPE -> 0 // Absolute, percentage
                 
                 KEY_AUTO_DOWNLOAD_THRESHOLD -> 3 // Listens
-                KEY_AUTO_DOWNLOAD_QUALITY -> Song.AudioQuality.MEDIUM.ordinal
                 KEY_AUTO_DOWNLOAD_SIZE_LIMIT -> 1000000000 // Bytes
                 
                 KEY_ACC_VOL_INTERCEPT_MODE -> PlayerAccessibilityService.VOLUME_INTERCEPT_MODE.NEVER.ordinal

@@ -39,6 +39,7 @@ data class YoutubeVideoFormat (
 ) {
     var stream_url: String? = url
     val audio_only: Boolean get() = mimeType.startsWith("audio")
+    var matched_quality: Song.AudioQuality? = null
 
     fun loadStreamUrl(video_id: String) {
         if (stream_url != null) {
@@ -64,7 +65,7 @@ data class YoutubeVideoFormat (
     }
 }
 
-fun getVideoFormats(id: String, selectFormat: (List<YoutubeVideoFormat>) -> YoutubeVideoFormat): DataApi.Result<YoutubeVideoFormat> {
+fun getVideoFormats(id: String, filter: (YoutubeVideoFormat) -> Boolean = { true }): DataApi.Result<List<YoutubeVideoFormat>> {
 
     val RESPONSE_DATA_START = "ytInitialPlayerResponse = "
     val request = Request.Builder()
@@ -85,7 +86,7 @@ fun getVideoFormats(id: String, selectFormat: (List<YoutubeVideoFormat>) -> Yout
 //    println("R $resp")
 //    println("R ${resp.body!!.string()}")
 
-    fun getFormats(itag: Int?): DataApi.Result<Pair<SignatureCipherDecrypter, List<YoutubeVideoFormat>>> {
+    fun getFormats(): DataApi.Result<Pair<SignatureCipherDecrypter, List<YoutubeVideoFormat>>> {
         val response = DataApi.client.newCall(request).execute()
         if (response.code != 200) {
             return DataApi.Result.failure(response)
@@ -102,47 +103,42 @@ fun getVideoFormats(id: String, selectFormat: (List<YoutubeVideoFormat>) -> Yout
         val end = html.indexOf("};", start) + 1
         val streaming_data = DataApi.klaxon.parseJsonObject(html.substring(start, end).reader()).obj("streamingData")!!
 
-        if (itag != null) {
-            for (group in listOf("adaptiveFormats", "formats")) {
-                for (format in streaming_data.array<JsonObject>(group) ?: listOf()) {
-                    if (format.int("itag") == itag) {
-                        return DataApi.Result.success(Pair(
-                            decrypter_result.data,
-                            listOf(DataApi.klaxon.parseFromJsonObject(format)!!)
-                        ))
-                    }
-                }
-            }
-            return DataApi.Result.failure(RuntimeException("$itag | ${DataApi.klaxon.toJsonString(streaming_data)}"))
-        }
-        else {
-            return DataApi.Result.success(Pair(
-                decrypter_result.data,
-                DataApi.klaxon.parseFromJsonArray<YoutubeVideoFormat>(streaming_data.array<JsonObject>("adaptiveFormats")!!)!!
-                + DataApi.klaxon.parseFromJsonArray(streaming_data.array<JsonObject>("formats")!!)!!
-            ))
-        }
+        return DataApi.Result.success(Pair(
+            decrypter_result.data,
+            DataApi.klaxon.parseFromJsonArray<YoutubeVideoFormat>(streaming_data.array<JsonObject>("adaptiveFormats")!!)!!
+            + DataApi.klaxon.parseFromJsonArray(streaming_data.array<JsonObject>("formats")!!)!!
+        ))
     }
-
-    var itag: Int? = null
 
     // For some reason the URL is occasionally invalid (GET either fails with 403 or yields the URL itself)
     // I can't tell why this occurs, but just getting the URL again always seems to produce a valid one
     for (i in 0 until MAX_RETRIES) {
-        val result = getFormats(itag)
+        val result = getFormats()
         if (!result.success) {
             return DataApi.Result.failure(result.exception)
         }
 
         val (decrypter, formats) = result.data
 
-        val selected_format = if (itag == null) selectFormat(formats) else formats.first()
-        itag = selected_format.itag
+        val ret: MutableList<YoutubeVideoFormat> = mutableListOf()
+        var valid: Boolean = true
 
-        selected_format.stream_url = selected_format.url ?: decrypter.decryptSignatureCipher(selected_format.signatureCipher!!)
+        for (format in formats) {
+            if (!filter(format)) {
+                continue
+            }
 
-        if (checkUrl(selected_format.stream_url!!)) {
-            return DataApi.Result.success(selected_format)
+            if (ret.isEmpty() && !checkUrl(format.stream_url!!)) {
+                valid = false
+                break
+            }
+
+            format.stream_url = format.url ?: decrypter.decryptSignatureCipher(format.signatureCipher!!)
+            ret.add(format)
+        }
+
+        if (valid) {
+            return DataApi.Result.success(ret)
         }
     }
 

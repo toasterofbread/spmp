@@ -128,12 +128,12 @@ fun getVideoFormats(id: String, filter: (YoutubeVideoFormat) -> Boolean = { true
                 continue
             }
 
+            format.stream_url = format.url ?: decrypter.decryptSignatureCipher(format.signatureCipher!!)
             if (ret.isEmpty() && !checkUrl(format.stream_url!!)) {
                 valid = false
                 break
             }
 
-            format.stream_url = format.url ?: decrypter.decryptSignatureCipher(format.signatureCipher!!)
             ret.add(format)
         }
 

@@ -2,6 +2,7 @@
 
 package com.spectre7.spmp.ui.layout.nowplaying
 
+import android.nfc.NfcAdapter.OnTagRemovedListener
 import androidx.compose.animation.*
 import androidx.compose.animation.core.*
 import androidx.compose.foundation.*
@@ -10,14 +11,12 @@ import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.*
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
-import androidx.compose.material.ExperimentalMaterialApi
-import androidx.compose.material.FractionalThreshold
+import androidx.compose.material3.FractionalThreshold
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.KeyboardArrowUp
 import androidx.compose.material.icons.filled.Menu
 import androidx.compose.material.icons.filled.Undo
-import androidx.compose.material.rememberSwipeableState
-import androidx.compose.material.swipeable
+import androidx.compose.material3.rememberSwipeableState
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.runtime.snapshots.SnapshotStateList
@@ -35,30 +34,36 @@ import com.spectre7.utils.vibrateShort
 import org.burnoutcrew.reorderable.*
 import kotlin.math.roundToInt
 
-private data class QueueTabItem(val song: Song, val key: Int) {
+private class QueueTabItem(val song: Song, val key: Int) {
 
-    val added_time = System.currentTimeMillis()
+//    val added_time = System.currentTimeMillis()
     val current_element_modifier = Modifier.background(MainActivity.theme.getOnBackground(true), RoundedCornerShape(45))
 
-    @OptIn(ExperimentalMaterialApi::class)
+    @OptIn(ExperimentalMaterial3Api::class)
     @Composable
-    fun QueueElement(handle_modifier: Modifier, current: Boolean, index: Int, playerProvider: () -> PlayerViewContext, on_remove_request: () -> Unit) {
+    private fun queueElementSwipeState(requestRemove: () -> Unit): SwipeableState<Int> {
         val swipe_state = rememberSwipeableState(1)
-        val max_offset = with(LocalDensity.current) { LocalConfiguration.current.screenWidthDp.dp.toPx() }
-        val anchors = mapOf(-max_offset to 0, 0f to 1, max_offset to 2)
         var removed by remember { mutableStateOf(false) }
 
-        LaunchedEffect(swipe_state.progress.fraction) {
+        LaunchedEffect(remember { derivedStateOf { swipe_state.progress.fraction > 0.8f } }.value) {
             if (!removed && swipe_state.targetValue != 1 && swipe_state.progress.fraction > 0.8f) {
-                on_remove_request()
-                println("REMOVE")
+                requestRemove()
                 removed = true
             }
         }
 
+        return swipe_state
+    }
+
+    @OptIn(ExperimentalMaterial3Api::class)
+    @Composable
+    fun QueueElement(list_state: ReorderableLazyListState, current: Boolean, index: Int, playerProvider: () -> PlayerViewContext, requestRemove: () -> Unit) {
+        val swipe_state = queueElementSwipeState(requestRemove)
+        val max_offset = with(LocalDensity.current) { LocalConfiguration.current.screenWidthDp.dp.toPx() }
+        val anchors = mapOf(-max_offset to 0, 0f to 1, max_offset to 2)
+
         Box(
-            (if (current) current_element_modifier else Modifier)
-                .offset { IntOffset(swipe_state.offset.value.roundToInt(), 0) }
+            Modifier.offset { IntOffset(swipe_state.offset.value.roundToInt(), 0) }.then(if (current) current_element_modifier else Modifier)
         ) {
             Row(
                 horizontalArrangement = Arrangement.End,
@@ -87,7 +92,7 @@ private data class QueueTabItem(val song: Song, val key: Int) {
                 )
 
                 // Drag handle
-                Icon(Icons.Filled.Menu, null, handle_modifier.requiredSize(25.dp), tint = contentColourProvider())
+                Icon(Icons.Filled.Menu, null, Modifier.detectReorder(list_state).requiredSize(25.dp), tint = contentColourProvider())
             }
         }
     }
@@ -100,18 +105,16 @@ fun QueueTab(expansionProvider: () -> Float, playerProvider: () -> PlayerViewCon
     val v_removed = remember { mutableStateListOf<Int>() }
     val undo_list = remember { mutableStateListOf<() -> Unit>() }
 
-    var song_items by remember { mutableStateOf(
-        List(PlayerServiceHost.status.m_queue.size) {
-            QueueTabItem(PlayerServiceHost.status.m_queue[it], key_inc++)
+    val song_items: SnapshotStateList<QueueTabItem> = remember { mutableStateListOf<QueueTabItem>().also { list ->
+        for (item in PlayerServiceHost.status.m_queue) {
+            list.add(QueueTabItem(item, key_inc++))
         }
-    ) }
+    } }
 
     val queue_listener = remember {
         object : PlayerServiceHost.PlayerQueueListener {
             override fun onSongAdded(song: Song, index: Int) {
-                song_items = song_items.toMutableList().apply {
-                    add(index, QueueTabItem(song, key_inc++))
-                }
+                song_items.add(index, QueueTabItem(song, key_inc++))
             }
             override fun onSongRemoved(song: Song, index: Int) {
                 val i = v_removed.indexOf(index)
@@ -119,18 +122,14 @@ fun QueueTab(expansionProvider: () -> Float, playerProvider: () -> PlayerViewCon
                     v_removed.removeAt(i)
                 }
                 else {
-                    song_items = song_items.toMutableList().apply {
-                        removeAt(index)
-                    }
+                    song_items.removeAt(index)
                 }
             }
             override fun onSongMoved(from: Int, to: Int) {
-                song_items = song_items.toMutableList().apply {
-                    add(to, removeAt(from))
-                }
+                song_items.add(to, song_items.removeAt(from))
             }
             override fun onCleared() {
-                song_items = emptyList()
+                song_items.clear()
             }
         }
     }
@@ -151,9 +150,7 @@ fun QueueTab(expansionProvider: () -> Float, playerProvider: () -> PlayerViewCon
 
     val state = rememberReorderableLazyListState(
         onMove = { from, to ->
-            song_items = song_items.toMutableList().apply {
-                add(to.index, removeAt(from.index))
-            }
+            song_items.add(to.index, song_items.removeAt(from.index))
         },
         onDragEnd = { from, to ->
             if (from != to) {
@@ -163,7 +160,19 @@ fun QueueTab(expansionProvider: () -> Float, playerProvider: () -> PlayerViewCon
         }
     )
 
+    fun removeSong(song: Song, index: Int) {
+        v_removed.add(index)
+
+        undo_list.add({
+            PlayerServiceHost.service.addToQueue(song, index)
+        })
+
+        song_items.removeAt(index)
+        PlayerServiceHost.service.removeFromQueue(index)
+    }
+
     Box(Modifier.fillMaxSize()) {
+
         LazyColumn(
             state = state.listState,
             modifier = Modifier
@@ -184,24 +193,11 @@ fun QueueTab(expansionProvider: () -> Float, playerProvider: () -> PlayerViewCon
                     }
 
                     Box(Modifier.height(50.dp)) {
-                        val remove_request: () -> Unit = {
-                            v_removed.add(index)
-
-                            undo_list.add({
-                                PlayerServiceHost.service.addToQueue(item.song, index)
-                            })
-
-                            song_items = song_items.toMutableList().apply {
-                                removeAt(index)
-                            }
-                            PlayerServiceHost.service.removeFromQueue(index)
-                        }
-
 //                        var visible by remember { mutableStateOf(false ) }
 //                        LaunchedEffect(visible) {
 //                            visible = true
 //                        }
-
+//
 //                        AnimatedVisibility(
 //                            visible,
 //                            enter = if (System.currentTimeMillis() - item.added_time < 250)
@@ -210,11 +206,11 @@ fun QueueTab(expansionProvider: () -> Float, playerProvider: () -> PlayerViewCon
 //                            exit = ExitTransition.None
 //                        ) {
                             item.QueueElement(
-                                Modifier.detectReorder(state),
+                                state,
                                 if (playing_key != null) playing_key == item.key else PlayerServiceHost.status.m_index == index,
                                 index,
                                 playerProvider,
-                                remove_request
+                                remember(item.song, index) { { removeSong(item.song, index) } }
                             )
 //                        }
                     }

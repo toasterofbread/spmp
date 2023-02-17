@@ -6,27 +6,60 @@ import com.spectre7.spmp.BuildConfig
 import com.spectre7.spmp.MainActivity
 import com.spectre7.spmp.model.MediaItem
 import net.openid.appauth.AuthorizationException
-import okhttp3.Headers
+import okhttp3.*
 import okhttp3.MediaType.Companion.toMediaType
-import okhttp3.OkHttpClient
-import okhttp3.RequestBody
 import okhttp3.RequestBody.Companion.toRequestBody
-import okhttp3.Response
+import java.time.Duration
 import java.util.logging.Level
 import java.util.logging.Logger
+import kotlin.contracts.ExperimentalContracts
+import kotlin.contracts.InvocationKind
+import kotlin.contracts.contract
 
 const val DATA_API_USER_AGENT = "Mozilla/5.0 (X11; Linux x86_64; rv:105.0) Gecko/20100101 Firefox/105.0"
+
+fun <T> Result.Companion.failure(response: Response): Result<T> {
+    return failure(RuntimeException("${response.message}: ${response.body!!.string()}"))
+}
+fun <I, O> Result<I>.cast(): Result<O> {
+    require(!isSuccess)
+    return Result.failure(exceptionOrNull()!!)
+}
+val <T> Result<T>.data get() = getOrThrow()
 
 class DataApi {
 
     companion object {
-        internal val client: OkHttpClient = OkHttpClient()
+        private val client: OkHttpClient = OkHttpClient()
 
         val klaxon: Klaxon = Klaxon()
 
         private lateinit var youtubei_base_context: JsonObject
         private lateinit var youtubei_alt_context: JsonObject
         private lateinit var youtubei_headers: Headers
+
+        private val failed = mutableListOf<String>()
+
+        fun request(request: Request, allow_fail_response: Boolean = false, fail: Boolean = true): Result<Response> {
+            if (fail) {
+                val key = Throwable().stackTrace[2].let { trace -> "${trace.fileName}:${trace.lineNumber}" }
+                if (!failed.contains(key)) {
+                    failed.add(key)
+                    return Result.failure(RuntimeException("Failed (testing)"))
+                }
+            }
+
+            try {
+                val response = client.newCall(request).execute()
+                if (!allow_fail_response && response.code != 200) {
+                    return Result.failure(response)
+                }
+                return Result.success(response)
+            }
+            catch (e: Throwable) {
+                return Result.failure(e)
+            }
+        }
 
         fun initialise() {
             youtubei_base_context = klaxon.parseJsonObject("""
@@ -107,48 +140,6 @@ class DataApi {
             val context = if (alt) youtubei_alt_context else youtubei_base_context
             val final_body = if (body != null) context + klaxon.parseJsonObject(body.reader()) else context
             return klaxon.toJsonString(final_body).toRequestBody("application/json".toMediaType())
-        }
-    }
-
-    class Result<T> private constructor() {
-
-        private var _data: T? = null
-        private var _exception: Throwable? = null
-
-        val nullable_data: T? get() = _data
-        val data: T get() = _data!!
-        val exception: Throwable get() = _exception!!
-        val success: Boolean get() = _exception == null
-
-        fun getDataOrThrow(): T {
-            return getNullableDataOrThrow()!!
-        }
-
-        fun getNullableDataOrThrow(): T? {
-            if (!success) {
-                throw RuntimeException("DataApi action failed", exception)
-            }
-            return nullable_data
-        }
-
-        companion object {
-            fun <T> success(data: T): Result<T> {
-                return Result<T>().also {
-                    it._data = data
-                }
-            }
-
-            fun <T> failure(exception: Throwable): Result<T> {
-                return Result<T>().also {
-                    it._exception = exception
-                }
-            }
-
-            fun <T> failure(response: Response): Result<T> {
-                return Result<T>().also {
-                    it._exception = RuntimeException("${response.message}: ${response.body!!.string()}")
-                }
-            }
         }
     }
 }

@@ -101,9 +101,13 @@ class PlayerService : Service() {
         }
 
         thread {
-            radio.startNewRadio(song).let {
+            val result = radio.startNewRadio(song)
+            if (result.isFailure) {
+                MainActivity.error_manager.onError("playSong", result.exceptionOrNull()!!, null)
+            }
+            else {
                 MainActivity.runInMainThread {
-                    addMultipleToQueue(it, 1, true)
+                    addMultipleToQueue(result.getOrThrow(), 1, true)
                 }
             }
         }
@@ -114,9 +118,13 @@ class PlayerService : Service() {
             return
         }
         thread {
-            radio.getRadioContinuation().let {
+            val result = radio.getRadioContinuation()
+            if (result.isFailure) {
+                MainActivity.error_manager.onError("continueRadio", result.exceptionOrNull()!!, null)
+            }
+            else {
                 MainActivity.runInMainThread {
-                    addMultipleToQueue(it, 1, false)
+                    addMultipleToQueue(result.getOrThrow(), 1, false)
                 }
             }
         }
@@ -198,7 +206,14 @@ class PlayerService : Service() {
 
         if (start_radio) {
             clearQueue(added_index)
-            addMultipleToQueue(radio.startNewRadio(song), added_index)
+
+            val result = radio.startNewRadio(song)
+            if (result.isFailure) {
+                MainActivity.error_manager.onError("addToQueue", result.exceptionOrNull()!!, null)
+            }
+            else {
+                addMultipleToQueue(result.getOrThrow(), added_index)
+            }
         }
 
         return added_index

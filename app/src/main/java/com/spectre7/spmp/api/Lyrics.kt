@@ -21,16 +21,16 @@ fun getSongLyrics(song: Song): Song.Lyrics? {
     val source: Song.Lyrics.Source? = song.registry.get("lyrics_source")
 
     if (id != null && source != null) {
-        ret = getLyrics(id, source).getDataOrThrow()
+        ret = getLyrics(id, source).getOrThrow()
     }
     else {
-        val results = searchForLyrics(song.title!!, song.artist!!.title).getDataOrThrow()
+        val results = searchForLyrics(song.title!!, song.artist!!.title).getOrThrow()
         if (results.isEmpty()) {
             return null
         }
 
         val lyrics = results.first()
-        ret = getLyrics(lyrics.id, lyrics.source).getDataOrThrow()
+        ret = getLyrics(lyrics.id, lyrics.source).getOrThrow()
     }
 
     song.registry.set("lyrics_id", ret.id)
@@ -38,27 +38,27 @@ fun getSongLyrics(song: Song): Song.Lyrics? {
     return ret
 }
 
-fun getLyricsData(lyrics_id: Int, sync_type: Song.Lyrics.SyncType): DataApi.Result<String> {
+fun getLyricsData(lyrics_id: Int, sync_type: Song.Lyrics.SyncType): Result<String> {
     val body = "key_lyricsId=$lyrics_id&lyricsType=${sync_type.ordinal + 1}&terminalType=10&clientAppId=on354007".toRequestBody("application/x-www-form-urlencoded; charset=utf-8".toMediaType())
     val request = Request.Builder()
         .url("https://p1.petitlyrics.com/api/GetPetitLyricsData.php")
         .post(body)
         .build()
 
-    val response = DataApi.client.newCall(request).execute()
-    if (response.code != 200) {
-        return DataApi.Result.failure(response)
+    val result = DataApi.request(request)
+    if (result.isFailure) {
+        return result.cast()
     }
 
     val START = "<lyricsData>"
     val END = "</lyricsData>"
 
-    val xml = response.body!!.string()
+    val xml = result.getOrThrow().body!!.string()
     val start = xml.indexOf(START)
     val end = xml.indexOf(END, start + START.length)
 
     val decoded = Base64.getDecoder().decode(xml.substring(start + START.length, end))
-    return DataApi.Result.success(String(decoded))
+    return Result.success(String(decoded))
 }
 
 private fun trimOkurigana(term: Song.Lyrics.Term.Text): List<Song.Lyrics.Term.Text> {
@@ -304,30 +304,30 @@ private fun parseTimedLyrics(data: String): List<List<Song.Lyrics.Term>> {
     return ret
 }
 
-fun getLyrics(lyrics_id: Int, lyrics_source: Song.Lyrics.Source): DataApi.Result<Song.Lyrics> {
+fun getLyrics(lyrics_id: Int, lyrics_source: Song.Lyrics.Source): Result<Song.Lyrics> {
 
     when (lyrics_source) {
         Song.Lyrics.Source.PETITLYRICS -> {
             for (sync_type in Song.Lyrics.SyncType.byPriority()) {
-                val data = getLyricsData(lyrics_id, sync_type)
-                if (!data.success) {
-                    return DataApi.Result.failure(data.exception)
+                val result = getLyricsData(lyrics_id, sync_type)
+                if (!result.isSuccess) {
+                    return result.cast()
                 }
 
                 val lyrics: List<List<Song.Lyrics.Term>>
-                if (data.data.startsWith("<wsy>")) {
-                    lyrics = parseTimedLyrics(data.data)
+                if (result.data.startsWith("<wsy>")) {
+                    lyrics = parseTimedLyrics(result.data)
                 }
                 else {
-                    lyrics = parseStaticLyrics(data.data)
+                    lyrics = parseStaticLyrics(result.data)
                 }
 
-                return DataApi.Result.success(Song.Lyrics(lyrics_id, lyrics_source, sync_type, lyrics))
+                return Result.success(Song.Lyrics(lyrics_id, lyrics_source, sync_type, lyrics))
             }
         }
     }
 
-    return DataApi.Result.failure(NotImplementedError())
+    return Result.failure(NotImplementedError())
 }
 
 private fun concatParams(first: String, second: String): String {
@@ -355,7 +355,7 @@ data class LyricsSearchResult(
     var album_name: String?
 )
 
-fun searchForLyrics(title: String, artist: String?): DataApi.Result<List<LyricsSearchResult>> {
+fun searchForLyrics(title: String, artist: String?): Result<List<LyricsSearchResult>> {
 
     var title_param = concatParams("?title=", title)
     var artist_param = if (artist != null) concatParams("&artist=", artist) else ""
@@ -364,15 +364,15 @@ fun searchForLyrics(title: String, artist: String?): DataApi.Result<List<LyricsS
     val RESULT_END = "</a>"
     val SYNC_TYPE_START = "<span class=\"lyrics-list-sync "
 
-    fun performSearch(params: String): DataApi.Result<List<LyricsSearchResult>> {
+    fun performSearch(params: String): Result<List<LyricsSearchResult>> {
         val request = Request.Builder()
             .url("https://petitlyrics.com/search_lyrics$params")
             .header("User-Agent", DATA_API_USER_AGENT)
             .build()
 
-        val response = DataApi.client.newCall(request).execute()
-        if (response.code != 200) {
-            return DataApi.Result.failure(response)
+        val result = DataApi.request(request)
+        if (result.isFailure) {
+            return result.cast()
         }
 
         val ret = mutableListOf<LyricsSearchResult>()
@@ -386,7 +386,7 @@ fun searchForLyrics(title: String, artist: String?): DataApi.Result<List<LyricsS
         var r_album_id: String? = null
         var r_album_name: String? = null
 
-        val lines = response.body!!.string().split('\n')
+        val lines = result.getOrThrow().body!!.string().split('\n')
         for (element in lines) {
             val line = element.trim()
 
@@ -460,11 +460,11 @@ fun searchForLyrics(title: String, artist: String?): DataApi.Result<List<LyricsS
             )
         }
 
-        return DataApi.Result.success(ret)
+        return Result.success(ret)
     }
 
     val ret = performSearch(title_param + artist_param)
-    if (!ret.success) {
+    if (!ret.isSuccess) {
         return ret
     }
 

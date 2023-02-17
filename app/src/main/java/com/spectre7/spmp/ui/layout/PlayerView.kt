@@ -312,10 +312,10 @@ private fun refreshFeed(allow_cached: Boolean, feed_layouts: MutableList<MediaIt
 
             val feed_result = getHomeFeed(allow_cached = allow_cached)
 
-            if (!feed_result.success) {
-                // MainActivity.error_manager.onError(feed_result.exception) { resolve ->
-                //     refreshFeed(false, feed_layouts) { success -> if (it) resolve() }
-                // }
+            if (!feed_result.isSuccess) {
+                MainActivity.error_manager.onError("refreshFeed", feed_result.exceptionOrNull()!!) { result ->
+                    refreshFeed(false, feed_layouts) { success -> result(success, null) }
+                }
                 feed_refresh_lock.unlock()
                 onFinished(false)
                 return@thread
@@ -328,12 +328,12 @@ private fun refreshFeed(allow_cached: Boolean, feed_layouts: MutableList<MediaIt
             val request_limit = Semaphore(10) // TODO?
 
             runBlocking { withContext(Dispatchers.IO) { coroutineScope {
-                for (row in feed_result.data) {
+                for (row in feed_result.getOrThrow()) {
                     val entry = MediaItemLayout(row.title, row.subtitle, MediaItemLayout.Type.GRID)
                     rows.add(entry)
 
                     for (item in row.items) {
-                        if (item.title != null && item.artist != null) {
+                        if (item.title != null && (item.artist != null || item is Playlist)) {
                             when (item) {
                                 is Song -> {
                                     entry.addItem(item)
@@ -341,7 +341,9 @@ private fun refreshFeed(allow_cached: Boolean, feed_layouts: MutableList<MediaIt
                                 }
                                 is Playlist -> {
                                     playlists.addItem(item)
-                                    artists.addItem(item.artist!!)
+                                    if (item.artist != null) {
+                                        artists.addItem(item.artist!!)
+                                    }
                                 }
                                 is Artist -> artists.addItem(item)
                             }
@@ -350,19 +352,21 @@ private fun refreshFeed(allow_cached: Boolean, feed_layouts: MutableList<MediaIt
 
                         launch {
                             request_limit.withPermit {
-                                val loaded = item.loadData()
-                                synchronized(request_limit) {
-                                    when (loaded) {
-                                        is Song -> {
-                                            println(loaded.id)
-                                            entry.addItem(loaded)
-                                            artists.addItem(loaded.artist!!)
+                                item.loadData().onSuccess { loaded ->
+                                    synchronized(request_limit) {
+                                        when (loaded) {
+                                            is Song -> {
+                                                entry.addItem(loaded)
+                                                artists.addItem(loaded.artist!!)
+                                            }
+                                            is Playlist -> {
+                                                playlists.addItem(loaded)
+                                                if (loaded.artist != null) {
+                                                    artists.addItem(loaded.artist!!)
+                                                }
+                                            }
+                                            is Artist -> artists.addItem(loaded)
                                         }
-                                        is Playlist -> {
-                                            playlists.addItem(loaded)
-                                            artists.addItem(loaded.artist!!)
-                                        }
-                                        is Artist -> artists.addItem(loaded)
                                     }
                                 }
                             }

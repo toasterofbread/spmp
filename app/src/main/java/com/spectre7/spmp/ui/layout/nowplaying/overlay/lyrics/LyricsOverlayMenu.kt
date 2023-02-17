@@ -75,7 +75,7 @@ class LyricsOverlayMenu(
         }
 
         AnimatedVisibility(lyrics != null && !search_menu_open, Modifier.zIndex(10f), enter = fadeIn(), exit = fadeOut()) {
-            remember { PillMenu() }.PillMenu(
+            remember { PillMenu(expand_state = mutableStateOf(false)) }.PillMenu(
                 3,
                 { index, _ ->
                     when (index) {
@@ -98,8 +98,7 @@ class LyricsOverlayMenu(
                         }
                     }
                 },
-                remember { mutableStateOf(false) },
-                MainActivity.theme.getAccentProvider(),
+                _background_colour = MainActivity.theme.getAccentProvider(),
                 vertical = true
             )
         }

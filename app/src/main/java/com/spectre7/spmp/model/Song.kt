@@ -287,7 +287,7 @@ class Song private constructor (
             return
         }
         audio_formats = getVideoFormats(id) { it.audio_only }
-            .getDataOrThrow()
+            .getOrThrow()
             .sortedByDescending { it.bitrate }
     }
 

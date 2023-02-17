@@ -4,6 +4,7 @@ import okhttp3.Request
 import com.spectre7.spmp.model.*
 
 class RelatedGroup<T>(val title: String, val contents: List<T>)
+
 private data class RelatedItem(
     val videoId: String? = null,
     val playlistId: String? = null,
@@ -14,9 +15,9 @@ private data class RelatedItem(
     class IdItem(val id: String)
 }
 
-fun getMediaItemRelated(item: MediaItem): DataApi.Result<List<List<RelatedGroup<MediaItem>>>> {
+fun getMediaItemRelated(item: MediaItem): Result<List<List<RelatedGroup<MediaItem>>>> {
 
-    var error: DataApi.Result<List<List<RelatedGroup<MediaItem>>>>? = null
+    var error: Result<List<List<RelatedGroup<MediaItem>>>>? = null
     fun loadBrowseEndpoint(browse_endpoint: MediaItem.BrowseEndpoint): List<RelatedGroup<MediaItem>>? {
         val request = Request.Builder()
             .url("https://music.youtube.com/youtubei/v1/browse")
@@ -30,13 +31,13 @@ fun getMediaItemRelated(item: MediaItem): DataApi.Result<List<List<RelatedGroup<
             ))
             .build()
 
-        val response = DataApi.client.newCall(request).execute()
-        if (response.code != 200) {
-            error = DataApi.Result.failure(response)
+        val result = DataApi.request(request)
+        if (result.isFailure) {
+            error = result.cast()
             return null
         }
 
-        val parsed = DataApi.klaxon.parseArray<RelatedGroup<RelatedItem>>(response.body!!.charStream())!!
+        val parsed = DataApi.klaxon.parseArray<RelatedGroup<RelatedItem>>(result.getOrThrow().body!!.charStream())!!
 
         return List(parsed.size) { i ->
             val group = parsed[i]
@@ -47,10 +48,10 @@ fun getMediaItemRelated(item: MediaItem): DataApi.Result<List<List<RelatedGroup<
                     val item = group.contents[j]
 
                     if (item.videoId != null) {
-                        Song.fromId(item.videoId).loadData()
+                        Song.fromId(item.videoId).loadData().getOrThrow()
                     }
                     else if (item.playlistId != null) {
-                        Playlist.fromId(item.playlistId).loadData()
+                        Playlist.fromId(item.playlistId).loadData().getOrThrow()
                     }
                     else if (item.browseId != null) {
 
@@ -62,7 +63,7 @@ fun getMediaItemRelated(item: MediaItem): DataApi.Result<List<List<RelatedGroup<
                             media_item = Playlist.fromId(item.browseId).apply { addBrowseEndpoint(item.browseId, MediaItem.BrowseEndpoint.Type.ALBUM) }
                         }
 
-                        media_item.loadData()
+                        media_item.loadData().getOrThrow()
                     }
                     else {
                         throw NotImplementedError(item.toString())
@@ -77,5 +78,5 @@ fun getMediaItemRelated(item: MediaItem): DataApi.Result<List<List<RelatedGroup<
         ret.add(loadBrowseEndpoint(endpoint) ?: return error!!)
     }
 
-    return DataApi.Result.success(ret)
+    return Result.success(ret)
 }

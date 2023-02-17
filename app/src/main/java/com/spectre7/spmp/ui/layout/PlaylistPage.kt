@@ -84,10 +84,11 @@ fun PlaylistPage(
                     for (layout in playlist.feed_layouts!!) {
                         for (item in layout.items.withIndex()) {
                             launch {
-                                val new_item = item.value.loadData()
-                                if (new_item != item.value) {
-                                    synchronized(layout.items) {
-                                        layout.items[item.index] = new_item
+                                item.value.loadData().onSuccess { new_item ->
+                                    if (new_item != item.value) {
+                                        synchronized(layout.items) {
+                                            layout.items[item.index] = new_item
+                                        }
                                     }
                                 }
                             }

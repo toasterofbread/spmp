@@ -14,6 +14,7 @@ import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.unit.IntSize
 import androidx.palette.graphics.Palette
 import com.beust.klaxon.*
+import com.spectre7.spmp.MainActivity
 import com.spectre7.spmp.api.DataApi
 import com.spectre7.spmp.api.loadMediaItemData
 import com.spectre7.spmp.ui.component.MediaItemLayout
@@ -492,11 +493,11 @@ abstract class MediaItem(id: String) {
         }
     }
 
-    fun loadData(force: Boolean = false): MediaItem {
+    fun loadData(force: Boolean = false): Result<MediaItem> {
         if (!force && isFullyLoaded()) {
-            return getOrReplacedWith()
+            return Result.success(getOrReplacedWith())
         }
-        return loadMediaItemData(getOrReplacedWith()).getDataOrThrow()
+        return loadMediaItemData(getOrReplacedWith())
     }
 
     fun getDefaultThemeColour(): Color? {

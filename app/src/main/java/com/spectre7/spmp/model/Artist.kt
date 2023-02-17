@@ -105,7 +105,7 @@ class Artist private constructor (
         if (unknown) {
             return
         }
-        subscribed = isSubscribedToArtist(this).getNullableDataOrThrow()
+        subscribed = isSubscribedToArtist(this).getOrThrow()
     }
 
     fun toggleSubscribe(toggle_before_fetch: Boolean = false, notify_failure: Boolean = false) {
@@ -124,7 +124,7 @@ class Artist private constructor (
                 subscribed = target
             }
 
-            subscribeOrUnsubscribeArtist(this, target).getDataOrThrow()
+            subscribeOrUnsubscribeArtist(this, target).getOrThrow()
             updateSubscribed()
 
             if (notify_failure && subscribed != target) {

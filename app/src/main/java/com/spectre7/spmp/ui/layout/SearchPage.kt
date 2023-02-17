@@ -54,6 +54,9 @@ fun SearchPage(
     var query_text by remember { mutableStateOf("") }
 
     val found_results = remember { mutableStateListOf<MediaItem>() }
+
+    // TODO
+    var error: Throwable? by remember { mutableStateOf(null) }
     
     fun goBack() {
         focus_manager.clearFocus()
@@ -70,7 +73,7 @@ fun SearchPage(
         }
 
         thread {
-            val results = searchYoutube(query, type).getDataOrThrow()
+            val results = searchYoutube(query, type).getOrThrow()
             
             synchronized(search_lock) {
                 found_results.clear()
@@ -78,13 +81,34 @@ fun SearchPage(
                 for (result in results) {
                     when (result.id.kind) {
                         "youtube#video" -> {
-                            found_results.add(Song.fromId(result.id.videoId).loadData())
+                            Song.fromId(result.id.videoId).loadData().fold(
+                                onSuccess = {
+                                    found_results.add(it)
+                                },
+                                onFailure = {
+                                    error = it
+                                }
+                            )
                         }
                         "youtube#channel" -> {
-                            found_results.add(Artist.fromId(result.id.channelId).loadData())
+                            Artist.fromId(result.id.channelId).loadData().fold(
+                                onSuccess = {
+                                    found_results.add(it)
+                                },
+                                onFailure = {
+                                    error = it
+                                }
+                            )
                         }
                         "youtube#playlist" -> {
-                            found_results.add(Playlist.fromId(result.id.playlistId).loadData())
+                            Playlist.fromId(result.id.playlistId).loadData().fold(
+                                onSuccess = {
+                                    found_results.add(it)
+                                },
+                                onFailure = {
+                                    error = it
+                                }
+                            )
                         }
                         else -> throw NotImplementedError(result.id.kind)
                     }

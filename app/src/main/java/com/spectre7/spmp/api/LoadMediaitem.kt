@@ -59,19 +59,19 @@ fun JsonReader.next(key: String, is_array: Boolean?, allow_none: Boolean = false
     return next(listOf(key), is_array, allow_none, action)
 }
 
-fun loadMediaItemData(item: MediaItem): DataApi.Result<MediaItem> {
+fun loadMediaItemData(item: MediaItem): Result<MediaItem> {
     val lock = item.loading_lock
     val item_id = item.id
 
     synchronized(lock) {
         if (item.loading) {
             lock.wait()
-            return DataApi.Result.success(item.getOrReplacedWith())
+            return Result.success(item.getOrReplacedWith())
         }
         item.loading = true
     }
 
-    fun finish(cached: Boolean = false): DataApi.Result<MediaItem> {
+    fun finish(cached: Boolean = false): Result<MediaItem> {
         item.loading = false
         synchronized(lock) {
             lock.notifyAll()
@@ -81,7 +81,7 @@ fun loadMediaItemData(item: MediaItem): DataApi.Result<MediaItem> {
             item.saveToCache()
         }
 
-        return DataApi.Result.success(item)
+        return Result.success(item)
     }
 
     if (item is Artist && item.unknown) {
@@ -118,8 +118,8 @@ fun loadMediaItemData(item: MediaItem): DataApi.Result<MediaItem> {
         .post(DataApi.getYoutubeiRequestBody(body))
         .build()
 
-    var response = DataApi.client.newCall(request).execute()
-    if (response.code == 200) {
+    val response = DataApi.request(request).getOrNull()
+    if (response != null) {
         val response_body: Reader = response.body!!.charStream()
 
         if (item is MediaItemWithLayouts) {
@@ -211,7 +211,12 @@ fun loadMediaItemData(item: MediaItem): DataApi.Result<MediaItem> {
                 continue
             }
 
-            val artist = Playlist.fromId(run.navigationEndpoint.browseEndpoint.browseId).loadData().artist
+            val playlist_result = Playlist.fromId(run.navigationEndpoint.browseEndpoint.browseId).loadData()
+            if (playlist_result.isFailure) {
+                return playlist_result
+            }
+
+            val artist = playlist_result.getOrThrow().artist
             if (artist != null) {
                 item.supplyArtist(artist, true)
                 return finish()
@@ -226,12 +231,12 @@ fun loadMediaItemData(item: MediaItem): DataApi.Result<MediaItem> {
         .post(DataApi.getYoutubeiRequestBody("""{ "videoId": "$item_id" }"""))
         .build()
 
-    response = DataApi.client.newCall(request).execute()
-    if (response.code != 200) {
-        return DataApi.Result.failure(response)
+    val result = DataApi.request(request)
+    if (result.isFailure) {
+        return result.cast()
     }
 
-    val response_body = response.body!!.charStream()
+    val response_body = result.getOrThrow().body!!.charStream()
     val video_data = DataApi.klaxon.parse<PlayerData>(response_body)!!
     response_body.close()
 

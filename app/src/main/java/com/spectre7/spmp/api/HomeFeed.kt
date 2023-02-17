@@ -212,9 +212,9 @@ data class ContentsItem(val musicTwoRowItemRenderer: MusicTwoRowItemRenderer? = 
     }
 }
 
-fun getHomeFeed(min_rows: Int = -1, allow_cached: Boolean = true): DataApi.Result<List<HomeFeedRow>> {
+fun getHomeFeed(min_rows: Int = -1, allow_cached: Boolean = true): Result<List<HomeFeedRow>> {
 
-    fun postRequest(ctoken: String?): DataApi.Result<BufferedReader> {
+    fun postRequest(ctoken: String?): Result<BufferedReader> {
         val url = "https://music.youtube.com/youtubei/v1/browse"
         val request = Request.Builder()
             .url(if (ctoken == null) url else "$url?ctoken=$ctoken&continuation=$ctoken&type=next")
@@ -222,12 +222,12 @@ fun getHomeFeed(min_rows: Int = -1, allow_cached: Boolean = true): DataApi.Resul
             .post(DataApi.getYoutubeiRequestBody())
             .build()
 
-        val response = DataApi.client.newCall(request).execute()
-        if (response.code != 200) {
-            return DataApi.Result.failure(response)
+        val result = DataApi.request(request)
+        if (!result.isSuccess) {
+            return result.cast()
         }
 
-        return DataApi.Result.success(BufferedReader(response.body!!.charStream()))
+        return Result.success(BufferedReader(result.getOrThrow().body!!.charStream()))
     }
 
     fun processRows(rows: List<YoutubeiShelf>): List<HomeFeedRow> {
@@ -262,11 +262,11 @@ fun getHomeFeed(min_rows: Int = -1, allow_cached: Boolean = true): DataApi.Resul
 
     if (response_reader == null) {
         val result = postRequest(null)
-        if (!result.success) {
-            return DataApi.Result.failure(result.exception)
+        if (!result.isSuccess) {
+            return result.cast()
         }
 
-        response_reader = result.data
+        response_reader = result.getOrThrow()
         Cache.set(cache_key, response_reader, CACHE_LIFETIME)
         response_reader.close()
 
@@ -284,13 +284,13 @@ fun getHomeFeed(min_rows: Int = -1, allow_cached: Boolean = true): DataApi.Resul
                 ?: break
 
         val result = postRequest(ctoken)
-        if (!result.success) {
-            return DataApi.Result.failure(result.exception)
+        if (!result.isSuccess) {
+            return result.cast()
         }
         data = DataApi.klaxon.parse(result.data)!!
         result.data.close()
         rows.addAll(processRows(data.getShelves(true)))
     }
 
-    return DataApi.Result.success(rows)
+    return Result.success(rows)
 }

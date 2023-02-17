@@ -2,7 +2,6 @@
 
 package com.spectre7.spmp.ui.layout.nowplaying
 
-import android.nfc.NfcAdapter.OnTagRemovedListener
 import androidx.compose.animation.*
 import androidx.compose.animation.core.*
 import androidx.compose.foundation.*
@@ -30,6 +29,7 @@ import com.spectre7.spmp.MainActivity
 import com.spectre7.spmp.PlayerServiceHost
 import com.spectre7.spmp.model.Song
 import com.spectre7.spmp.ui.layout.PlayerViewContext
+import com.spectre7.utils.LongClickableButton
 import com.spectre7.utils.vibrateShort
 import org.burnoutcrew.reorderable.*
 import kotlin.math.roundToInt
@@ -136,10 +136,9 @@ fun QueueTab(expansionProvider: () -> Float, playerProvider: () -> PlayerViewCon
 
     var playing_key by remember { mutableStateOf<Int?>(null) }
 
-    // TODO
-    // LaunchedEffect(p_status.index) {
-    //     playing_key =
-    // }
+     LaunchedEffect(PlayerServiceHost.status.m_index) {
+         playing_key = song_items[PlayerServiceHost.status.index].key
+     }
 
     DisposableEffect(Unit) {
         PlayerServiceHost.service.addQueueListener(queue_listener)
@@ -290,9 +289,20 @@ private fun BoxScope.ActionBar(expansionProvider: () -> Float, undo_list: Snapsh
                         )
                     }
 
-                    Button(
+                    LongClickableButton(
                         onClick = {
                             val swaps = PlayerServiceHost.service.shuffleQueue(return_swaps = true)!!
+                            if (swaps.isNotEmpty()) {
+                                undo_list.add {
+                                    for (swap in swaps.asReversed()) {
+                                        PlayerServiceHost.service.swapQueuePositions(swap.first, swap.second)
+                                    }
+                                }
+                            }
+                        },
+                        onLongClick = {
+                            vibrateShort()
+                            val swaps = PlayerServiceHost.service.shuffleQueue(start = 0, return_swaps = true)!!
                             if (swaps.isNotEmpty()) {
                                 undo_list.add {
                                     for (swap in swaps.asReversed()) {

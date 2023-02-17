@@ -11,20 +11,23 @@ class RadioInstance {
 
     val has_continuation: Boolean get() = continuation != null
 
-    fun startNewRadio(song: Song): List<Song> {
+    fun startNewRadio(song: Song): Result<List<Song>> {
         this.song = song
         continuation = null
         return updateRadio(song.id)
     }
 
-    fun getRadioContinuation(): List<Song> {
+    fun getRadioContinuation(): Result<List<Song>> {
         return updateRadio(song!!.id)
     }
 
-    private fun updateRadio(video_id: String): List<Song> {
-        val radio = getSongRadio(video_id, continuation).getDataOrThrow()
-        continuation = radio.continuation
-        return radio.items
+    private fun updateRadio(video_id: String): Result<List<Song>> {
+        val result = getSongRadio(video_id, continuation)
+        if (result.isFailure) {
+            return result.cast()
+        }
+        continuation = result.getOrThrow().continuation
+        return Result.success(result.getOrThrow().items)
     }
 }
 
@@ -73,7 +76,7 @@ data class YoutubeiNextContinuationResponse(
     data class Contents(val playlistPanelContinuation: YoutubeiNextResponse.PlaylistPanelRenderer)
 }
 
-private fun getSongRadio(video_id: String, continuation: String?): DataApi.Result<RadioData> {
+private fun getSongRadio(video_id: String, continuation: String?): Result<RadioData> {
     val request = Request.Builder()
         .url("https://music.youtube.com/youtubei/v1/next")
         .header("accept", "*/*")
@@ -103,12 +106,12 @@ private fun getSongRadio(video_id: String, continuation: String?): DataApi.Resul
         ))
         .build()
     
-    val response = DataApi.client.newCall(request).execute()
-    if (response.code != 200) {
-        return DataApi.Result.failure(response)
+    val result = DataApi.request(request)
+    if (result.isFailure) {
+        return result.cast()
     }
 
-    val stream = GZIPInputStream(response.body!!.byteStream())
+    val stream = GZIPInputStream(result.getOrThrow().body!!.byteStream())
 
     val radio: YoutubeiNextResponse.PlaylistPanelRenderer
 
@@ -134,7 +137,7 @@ private fun getSongRadio(video_id: String, continuation: String?): DataApi.Resul
 
     stream.close()
 
-    return DataApi.Result.success(
+    return Result.success(
         RadioData(
             radio.contents.map { item ->
                 val song = Song.fromId(item.playlistPanelVideoRenderer!!.videoId)

@@ -52,6 +52,7 @@ import com.spectre7.spmp.ui.layout.nowplaying.overlay.OverlayMenu
 import com.spectre7.utils.*
 import kotlinx.coroutines.launch
 import kotlin.concurrent.thread
+import kotlin.math.absoluteValue
 import kotlin.math.max
 import kotlin.math.min
 
@@ -60,17 +61,22 @@ const val OVERLAY_MENU_ANIMATION_DURATION: Int = 200
 const val DEFAULT_THUMBNAIL_ROUNDING: Int = 5
 const val MIN_THUMBNAIL_ROUNDING: Int = 0
 const val MAX_THUMBNAIL_ROUNDING: Int = 50
+const val TOP_BAR_HEIGHT: Int = 50
+val NOW_PLAYING_MAIN_PADDING = 10.dp
 
 @Composable
 fun ColumnScope.NowPlayingMainTab(
-    _expansion: Float,
+    expansionProvider: () -> Float,
     page_height: Dp,
     thumbnail: ImageBitmap?,
     _setThumbnail: (ImageBitmap?) -> Unit,
     playerProvider: () -> PlayerViewContext,
     scroll: (pages: Int) -> Unit
 ) {
-    val expansion = maxOf(0.07930607f, _expansion)
+    val _expansion = expansionProvider()
+    val expansion =
+        if (_expansion <= 1f) maxOf(0.07930607f, _expansion)
+        else 2f - _expansion
 
     var theme_colour by remember { mutableStateOf<Color?>(null) }
     fun setThemeColour(value: Color?) {
@@ -186,12 +192,28 @@ fun ColumnScope.NowPlayingMainTab(
     val thumbnail_rounding: MutableState<Int?>? = remember (PlayerServiceHost.status.m_song?.registry) { PlayerServiceHost.status.song?.registry?.getState("thumbnail_rounding") }
     val thumbnail_shape = RoundedCornerShape(thumbnail_rounding?.value ?: DEFAULT_THUMBNAIL_ROUNDING)
     var image_size by remember { mutableStateOf(IntSize(1, 1)) }
+    val status_bar_height = getStatusBarHeight()
+    val screen_height = LocalConfiguration.current.screenHeightDp.dp + status_bar_height
+
+    val offsetProvider: Density.() -> IntOffset = {
+        IntOffset(
+            0,
+            if (_expansion > 1f)
+                (
+                    (-screen_height * ((NOW_PLAYING_VERTICAL_PAGE_COUNT * 0.5f) - _expansion))
+                    - ((TOP_BAR_HEIGHT.dp - status_bar_height) * (_expansion - 1f))
+                ).toPx().toInt()
+            else 0
+        )
+    }
 
     Row(
         Modifier
             .fillMaxWidth()
-            .requiredHeight(50.dp * appear_scale)
-            .alpha(1f - disappear_scale),
+            .requiredHeight(TOP_BAR_HEIGHT.dp * appear_scale)
+            .alpha(1f - disappear_scale)
+            .offset(offsetProvider)
+            .padding(start = NOW_PLAYING_MAIN_PADDING, end = NOW_PLAYING_MAIN_PADDING),
         horizontalArrangement = Arrangement.End
     ) {
         IconButton({
@@ -212,8 +234,9 @@ fun ColumnScope.NowPlayingMainTab(
         horizontalArrangement = Arrangement.SpaceEvenly,
         modifier = Modifier
             .fillMaxWidth()
-            .fillMaxHeight(0.5f * max(expansion,
-                (MINIMISED_NOW_PLAYING_HEIGHT + 20f) / page_height.value))
+            .fillMaxHeight(0.5f * max(expansion, (MINIMISED_NOW_PLAYING_HEIGHT + 20f) / page_height.value))
+            .offset(offsetProvider)
+            .padding(start = NOW_PLAYING_MAIN_PADDING, end = NOW_PLAYING_MAIN_PADDING)
     ) {
 
         var overlay_menu by remember { mutableStateOf<OverlayMenu?>(null) }
@@ -464,7 +487,13 @@ fun ColumnScope.NowPlayingMainTab(
                 seek_state = it
             },
             scroll,
-            Modifier.weight(1f)
+            Modifier
+                .weight(1f)
+                .offset(offsetProvider)
+                .graphicsLayer {
+                    alpha = 1f - (1f - _expansion).absoluteValue
+                }
+                .padding(start = NOW_PLAYING_MAIN_PADDING, end = NOW_PLAYING_MAIN_PADDING)
         )
     }
 }
@@ -620,7 +649,12 @@ private fun Controls(
 
 @Composable
 private fun SeekBarTimeText(time: Float) {
-    Text(DateUtils.formatElapsedTime(time.toLong()), fontSize = 10.sp, fontWeight = FontWeight.Light, color = MainActivity.theme.getOnBackground(true))
+    Text(
+        remember(time) { if (time < 0f) "??:??" else DateUtils.formatElapsedTime(time.toLong()) },
+        fontSize = 10.sp,
+        fontWeight = FontWeight.Light,
+        color = MainActivity.theme.getOnBackground(true)
+    )
 }
 
 @Composable

@@ -18,12 +18,10 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.*
 import androidx.compose.ui.platform.LocalConfiguration
-import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.unit.*
 import com.google.accompanist.systemuicontroller.rememberSystemUiController
 import com.spectre7.spmp.MainActivity
 import com.spectre7.spmp.PlayerServiceHost
-import com.spectre7.spmp.model.Song
 import com.spectre7.spmp.ui.layout.MINIMISED_NOW_PLAYING_HEIGHT
 import com.spectre7.spmp.ui.layout.PlayerViewContext
 import com.spectre7.spmp.ui.layout.getScreenHeight
@@ -33,11 +31,10 @@ enum class AccentColourSource { THUMBNAIL, SYSTEM }
 enum class ThemeMode { BACKGROUND, ELEMENTS, NONE }
 
 private enum class NowPlayingVerticalPage { MAIN, QUEUE }
-private val VERTICAL_PAGE_COUNT = NowPlayingVerticalPage.values().size
+val NOW_PLAYING_VERTICAL_PAGE_COUNT = NowPlayingVerticalPage.values().size
 
 const val SEEK_CANCEL_THRESHOLD = 0.03f
 const val EXPANDED_THRESHOLD = 0.9f
-val NOW_PLAYING_MAIN_PADDING = 10.dp
 
 @OptIn(ExperimentalMaterialApi::class, ExperimentalMaterial3Api::class)
 @Composable
@@ -58,11 +55,11 @@ fun NowPlaying(playerProvider: () -> PlayerViewContext, swipe_state: SwipeableSt
             shape = RectangleShape,
             modifier = Modifier
                 .fillMaxWidth()
-                .requiredHeight(screen_height * VERTICAL_PAGE_COUNT)
-                .offset(y = (screen_height * VERTICAL_PAGE_COUNT * 0.5f) - swipe_state.offset.value.dp)
+                .requiredHeight(screen_height * NOW_PLAYING_VERTICAL_PAGE_COUNT)
+                .offset(y = (screen_height * NOW_PLAYING_VERTICAL_PAGE_COUNT * 0.5f) - swipe_state.offset.value.dp)
                 .swipeable(
                     state = swipe_state,
-                    anchors = (0..VERTICAL_PAGE_COUNT).associateBy { if (it == 0) MINIMISED_NOW_PLAYING_HEIGHT else screen_height.value * it },
+                    anchors = (0..NOW_PLAYING_VERTICAL_PAGE_COUNT).associateBy { if (it == 0) MINIMISED_NOW_PLAYING_HEIGHT.toFloat() else screen_height.value * it },
                     thresholds = { _, _ -> FractionalThreshold(0.2f) },
                     orientation = Orientation.Vertical,
                     reverseDirection = true,
@@ -101,9 +98,10 @@ fun NowPlayingCardContent(
     val systemui_controller = rememberSystemUiController()
     val status_bar_height_percent = (getStatusBarHeight(MainActivity.context).value * 0.75) / page_height.value
 
-    LaunchedEffect(key1 = expansionProvider(), key2 = MainActivity.theme.getBackground(true)) {
+    val under_status_bar by remember { derivedStateOf { 1f - expansionProvider() < status_bar_height_percent } }
+    LaunchedEffect(key1 = under_status_bar, key2 = MainActivity.theme.getBackground(true)) {
         systemui_controller.setSystemBarsColor(
-            color = if (1f - expansionProvider() < status_bar_height_percent) MainActivity.theme.getBackground(true) else MainActivity.theme.default_n_background
+            color = if (under_status_bar) MainActivity.theme.getBackground(true) else MainActivity.theme.default_n_background
         )
     }
 
@@ -117,11 +115,11 @@ fun NowPlayingCardContent(
             verticalArrangement = Arrangement.Top,
             modifier = Modifier
                 .requiredHeight(page_height)
-                .requiredWidth(screen_width_dp - (NOW_PLAYING_MAIN_PADDING * 2))
-                .padding(start = NOW_PLAYING_MAIN_PADDING, end = NOW_PLAYING_MAIN_PADDING, top = (getStatusBarHeight(MainActivity.context)) * expansionProvider())
+                .requiredWidth(screen_width_dp)
+                .padding(top = (getStatusBarHeight(MainActivity.context)) * expansionProvider().coerceAtLeast(0f))
         ) {
             NowPlayingMainTab(
-                minOf(expansionProvider(), 1f),
+                expansionProvider,
                 page_height,
                 thumbnail.value,
                 { thumbnail.value = it },
@@ -143,8 +141,7 @@ fun NowPlayingCardContent(
             verticalArrangement = Arrangement.Top,
             modifier = Modifier
                 .requiredHeight(page_height)
-                .requiredWidth(screen_width_dp - (NOW_PLAYING_MAIN_PADDING * 2))
-                .padding(NOW_PLAYING_MAIN_PADDING)
+                .requiredWidth(screen_width_dp)
         ) {
             QueueTab(remember { { (expansionProvider() - 1f).coerceIn(0f, 1f) } }, playerProvider, scroll)
         }

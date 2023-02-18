@@ -10,6 +10,7 @@ import android.os.Binder
 import androidx.core.app.NotificationManagerCompat
 import androidx.localbroadcastmanager.content.LocalBroadcastManager
 import com.spectre7.spmp.api.YoutubeVideoFormat
+import com.spectre7.spmp.api.cast
 import com.spectre7.spmp.model.Settings
 import com.spectre7.spmp.model.Song
 import kotlinx.coroutines.delay
@@ -321,7 +322,12 @@ class PlayerDownloadService: Service() {
             download_dir.mkdirs()
         }
 
-        val connection = URL(download.song.getFormatByQuality(download.quality).stream_url).openConnection() as HttpURLConnection
+        val format = download.song.getFormatByQuality(download.quality)
+        if (format.isFailure) {
+            return format.cast()
+        }
+
+        val connection = URL(format.getOrThrow().stream_url).openConnection() as HttpURLConnection
         connection.setRequestProperty("Range", "bytes=${download.downloaded}-")
         connection.connect()
 

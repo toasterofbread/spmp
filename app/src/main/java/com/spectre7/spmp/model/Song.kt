@@ -11,9 +11,7 @@ import androidx.compose.ui.graphics.toArgb
 import androidx.core.content.edit
 import com.beust.klaxon.Klaxon
 import com.spectre7.spmp.R
-import com.spectre7.spmp.api.YoutubeVideoFormat
-import com.spectre7.spmp.api.getSongLyrics
-import com.spectre7.spmp.api.getVideoFormats
+import com.spectre7.spmp.api.*
 import com.spectre7.spmp.ui.component.SongPreviewLong
 import com.spectre7.spmp.ui.component.SongPreviewSquare
 import com.spectre7.spmp.ui.layout.PlayerViewContext
@@ -282,40 +280,52 @@ class Song private constructor (
     }
 
     @Synchronized
-    private fun loadFormats() {
-        if (audio_formats != null) {
-            return
+    private fun getAudioFormats(): Result<List<YoutubeVideoFormat>> {
+        if (audio_formats == null) {
+            val result = getVideoFormats(id) { it.audio_only }
+            if (result.isFailure) {
+                return result.cast()
+            }
+            audio_formats = result.getOrThrow().sortedByDescending { it.bitrate }
         }
-        audio_formats = getVideoFormats(id) { it.audio_only }
-            .getOrThrow()
-            .sortedByDescending { it.bitrate }
+        return Result.success(audio_formats!!)
     }
 
-    fun getFormatByQuality(quality: AudioQuality): YoutubeVideoFormat {
-        loadFormats()
-        return audio_formats!!.getByQuality(quality)
+    fun getFormatByQuality(quality: AudioQuality): Result<YoutubeVideoFormat> {
+        val formats = getAudioFormats()
+        if (formats.isFailure) {
+            return formats.cast()
+        }
+
+        return Result.success(formats.getOrThrow().getByQuality(quality))
     }
 
-    fun getStreamFormat(): YoutubeVideoFormat {
-        loadFormats()
-
-        val quality: AudioQuality = Settings.getEnum(Settings.KEY_STREAM_AUDIO_QUALITY)
+    fun getStreamFormat(): Result<YoutubeVideoFormat> {
+        val quality: AudioQuality = getTargetStreamQuality()
         if (stream_format?.matched_quality != quality) {
-            stream_format = getFormatByQuality(quality)
+            val formats = getAudioFormats()
+            if (formats.isFailure) {
+                return formats.cast()
+            }
+
+            stream_format = formats.getOrThrow().getByQuality(quality)
         }
 
-        return stream_format!!
+        return Result.success(stream_format!!)
     }
 
-    fun getDownloadFormat(): YoutubeVideoFormat {
-        loadFormats()
-
+    fun getDownloadFormat(): Result<YoutubeVideoFormat> {
         val quality: AudioQuality = getTargetDownloadQuality()
         if (download_format?.matched_quality != quality) {
-            download_format = getFormatByQuality(quality)
+            val formats = getAudioFormats()
+            if (formats.isFailure) {
+                return formats.cast()
+            }
+
+            download_format = formats.getOrThrow().getByQuality(quality)
         }
 
-        return download_format!!
+        return Result.success(download_format!!)
     }
 
     fun getTargetStreamQuality(): AudioQuality {

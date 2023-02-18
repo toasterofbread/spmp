@@ -13,11 +13,10 @@ import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
 import androidx.activity.result.ActivityResultLauncher
 import androidx.activity.result.contract.ActivityResultContract
-import androidx.compose.animation.AnimatedVisibility
-import androidx.compose.animation.slideInHorizontally
-import androidx.compose.animation.slideOutHorizontally
+import androidx.compose.animation.*
 import androidx.compose.foundation.ExperimentalFoundationApi
 import androidx.compose.foundation.background
+import androidx.compose.foundation.clickable
 import androidx.compose.foundation.combinedClickable
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.shape.CircleShape
@@ -227,46 +226,35 @@ class ErrorManager {
 
         AnimatedVisibility(
             current_errors.isNotEmpty(),
-            enter = slideInHorizontally(),
-            exit = slideOutHorizontally()
+            enter = slideInVertically(),
+            exit = slideOutVertically()
         ) {
-            remember{ PillMenu(expand_state = mutableStateOf(false)) }.PillMenu(
-                action_count = current_errors.size,
-                getAction = { i, _ ->
-                    IconButton({}) {
-                        Text(
-                            "#${i + 1}",
-                            modifier = Modifier
-                                .combinedClickable(
-                                    onClick = { showing_error = i },
-                                    onLongClick = {
-                                        vibrateShort()
-                                    }
-                                )
-                        )
-                    }
-                },
-                toggleButton = {
-                    NoRipple {
-                        IconButton({ is_open = !is_open }, it) {
-                            Icon(Icons.Filled.Warning, null, tint = colour().getContrasted())
+            Box(
+                Modifier.fillMaxSize().padding(top = getStatusBarHeight()),
+                contentAlignment = Alignment.TopCenter
+            ) {
+                Button(
+                    {},
+                    colors = ButtonDefaults.buttonColors(
+                        containerColor = colour(),
+                        contentColor = colour().getContrasted()
+                    )
+                ) {
+                    Row(
+                        Modifier.padding(2.dp),
+                        verticalAlignment = Alignment.CenterVertically,
+                        horizontalArrangement = Arrangement.spacedBy(10.dp)
+                    ) {
+                        Icon(Icons.Filled.WifiTetheringError, null)
+                        Text("Network error")
 
-                            Box(Modifier
-                                .size(15.dp)
-                                .offset(10.dp, 10.dp)
-                                .background(colour().getContrasted(), CircleShape),
-                                contentAlignment = Alignment.Center
-                            ) {
-                                Text(current_errors.size.toString(), Modifier.offset(y = (-3).dp), color = colour())
-                            }
-                        }
+                        Spacer(Modifier.requiredWidth(10.dp))
+
+                        Icon(Icons.Filled.Info, null, Modifier.clickable {})
+                        Icon(Icons.Filled.Close, null, Modifier.clickable { vibrateShort(); current_errors.clear() })
                     }
-                },
-                _background_colour = colour,
-                top = false,
-                left = true,
-                vertical = true
-            )
+                }
+            }
         }
     }
 
@@ -282,7 +270,9 @@ class ErrorManager {
                     FilledIconButton(close) {
                         Icon(Icons.Filled.Close, null)
                     }
-                    Spacer(Modifier.weight(1f).fillMaxWidth())
+                    Spacer(Modifier
+                        .weight(1f)
+                        .fillMaxWidth())
                     FilledTonalButton(onClick = {
                         throw error.value.first
                     }) {

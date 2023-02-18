@@ -26,8 +26,8 @@ class RadioInstance {
         if (result.isFailure) {
             return result.cast()
         }
-        continuation = result.getOrThrow().continuation
-        return Result.success(result.getOrThrow().items)
+        continuation = result.getOrThrowHere().continuation
+        return Result.success(result.getOrThrowHere().items)
     }
 }
 
@@ -111,7 +111,7 @@ private fun getSongRadio(video_id: String, continuation: String?): Result<RadioD
         return result.cast()
     }
 
-    val stream = GZIPInputStream(result.getOrThrow().body!!.byteStream())
+    val stream = GZIPInputStream(result.getOrThrowHere().body!!.byteStream())
 
     val radio: YoutubeiNextResponse.PlaylistPanelRenderer
 

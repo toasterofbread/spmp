@@ -31,6 +31,7 @@ import com.spectre7.spmp.MainActivity
 import com.spectre7.spmp.PlayerServiceHost
 import com.spectre7.spmp.R
 import com.spectre7.spmp.api.getHomeFeed
+import com.spectre7.spmp.api.getOrThrowHere
 import com.spectre7.spmp.model.*
 import com.spectre7.spmp.ui.component.*
 import com.spectre7.spmp.ui.layout.nowplaying.NowPlaying
@@ -46,7 +47,7 @@ fun getScreenHeight(): Dp {
     return LocalConfiguration.current.screenHeightDp.dp + getStatusBarHeight(MainActivity.context)
 }
 
-const val MINIMISED_NOW_PLAYING_HEIGHT = 64f
+const val MINIMISED_NOW_PLAYING_HEIGHT: Int = 64
 enum class OverlayPage { NONE, SEARCH, SETTINGS, MEDIAITEM }
 
 data class PlayerViewContext(
@@ -328,7 +329,7 @@ private fun refreshFeed(allow_cached: Boolean, feed_layouts: MutableList<MediaIt
             val request_limit = Semaphore(10) // TODO?
 
             runBlocking { withContext(Dispatchers.IO) { coroutineScope {
-                for (row in feed_result.getOrThrow()) {
+                for (row in feed_result.getOrThrowHere()) {
                     val entry = MediaItemLayout(row.title, row.subtitle, MediaItemLayout.Type.GRID)
                     rows.add(entry)
 

@@ -20,7 +20,7 @@ fun isSubscribedToArtist(artist: Artist): Result<Boolean?> {
         return result.cast()
     }
 
-    val stream = result.getOrThrow().body!!.charStream()
+    val stream = result.getOrThrowHere().body!!.charStream()
     val reader = JsonReader(stream)
 
     var ret: Result<Boolean?>? = null

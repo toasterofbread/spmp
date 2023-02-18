@@ -58,10 +58,12 @@ import com.google.android.exoplayer2.source.DefaultMediaSourceFactory
 import com.google.android.exoplayer2.ui.PlayerNotificationManager
 import com.google.android.exoplayer2.upstream.*
 import com.spectre7.spmp.api.RadioInstance
+import com.spectre7.spmp.api.getOrThrowHere
 import com.spectre7.spmp.model.*
 import com.spectre7.utils.sendToast
 import com.spectre7.utils.setAlpha
 import kotlinx.coroutines.*
+import java.io.IOException
 import kotlin.concurrent.thread
 import kotlin.math.roundToInt
 import kotlin.random.Random
@@ -107,7 +109,7 @@ class PlayerService : Service() {
             }
             else {
                 MainActivity.runInMainThread {
-                    addMultipleToQueue(result.getOrThrow(), 1, true)
+                    addMultipleToQueue(result.getOrThrowHere(), 1, true)
                 }
             }
         }
@@ -124,7 +126,7 @@ class PlayerService : Service() {
             }
             else {
                 MainActivity.runInMainThread {
-                    addMultipleToQueue(result.getOrThrow(), 1, false)
+                    addMultipleToQueue(result.getOrThrowHere(), 1, false)
                 }
             }
         }
@@ -212,7 +214,7 @@ class PlayerService : Service() {
                 MainActivity.error_manager.onError("addToQueue", result.exceptionOrNull()!!, null)
             }
             else {
-                addMultipleToQueue(result.getOrThrow(), added_index)
+                addMultipleToQueue(result.getOrThrowHere(), added_index)
             }
         }
 
@@ -431,12 +433,21 @@ class PlayerService : Service() {
             DefaultDataSource.Factory(this@PlayerService).createDataSource()
         }) { data_spec: DataSpec ->
             val song = Song.fromId(data_spec.uri.toString())
-            val local_file = PlayerServiceHost.download_manager.getDownloadedSong(song)
 
-            data_spec.withUri(
-                if (local_file != null) Uri.fromFile(local_file)
-                else Uri.parse(song.getStreamFormat().stream_url)
-            )
+            val local_file = PlayerServiceHost.download_manager.getDownloadedSong(song)
+            if (local_file != null) {
+                println(local_file)
+                data_spec.withUri(Uri.fromFile(local_file))
+            }
+            else {
+                val format = song.getStreamFormat()
+                if (format.isFailure) {
+                    println("FAILED ${format.exceptionOrNull()}")
+                    throw IOException(format.exceptionOrNull()!!)
+                }
+                println(format.getOrThrow().stream_url)
+                data_spec.withUri(Uri.parse(format.getOrThrow().stream_url))
+            }
         }
     }
 

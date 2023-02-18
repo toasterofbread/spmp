@@ -22,6 +22,7 @@ import androidx.compose.ui.unit.dp
 import com.spectre7.spmp.MainActivity
 import com.spectre7.spmp.R
 import com.spectre7.spmp.api.LyricsSearchResult
+import com.spectre7.spmp.api.getOrThrowHere
 import com.spectre7.spmp.api.searchForLyrics
 import com.spectre7.spmp.model.Song
 import com.spectre7.utils.setAlpha
@@ -65,7 +66,7 @@ fun LyricsSearchMenu(song: Song, lyrics: Song.Lyrics?, close: (changed: Boolean)
                 checking = true
             }
 
-            search_results = searchForLyrics(title.value.text, if (artist.value.text.trim().isEmpty()) null else artist.value.text).getOrThrow()
+            search_results = searchForLyrics(title.value.text, if (artist.value.text.trim().isEmpty()) null else artist.value.text).getOrThrowHere()
 
             synchronized(check_lock) {
                 checking = false

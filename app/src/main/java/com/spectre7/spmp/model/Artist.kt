@@ -8,6 +8,7 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import com.beust.klaxon.JsonObject
 import com.beust.klaxon.Klaxon
+import com.spectre7.spmp.api.getOrThrowHere
 import com.spectre7.spmp.api.isSubscribedToArtist
 import com.spectre7.spmp.api.subscribeOrUnsubscribeArtist
 import com.spectre7.spmp.ui.component.ArtistPreviewLong
@@ -105,7 +106,7 @@ class Artist private constructor (
         if (unknown) {
             return
         }
-        subscribed = isSubscribedToArtist(this).getOrThrow()
+        subscribed = isSubscribedToArtist(this).getOrThrowHere()
     }
 
     fun toggleSubscribe(toggle_before_fetch: Boolean = false, notify_failure: Boolean = false) {
@@ -124,7 +125,7 @@ class Artist private constructor (
                 subscribed = target
             }
 
-            subscribeOrUnsubscribeArtist(this, target).getOrThrow()
+            subscribeOrUnsubscribeArtist(this, target).getOrThrowHere()
             updateSubscribed()
 
             if (notify_failure && subscribed != target) {

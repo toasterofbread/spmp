@@ -21,6 +21,8 @@ import androidx.compose.runtime.*
 import androidx.compose.runtime.snapshots.SnapshotStateList
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.clip
+import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.LocalConfiguration
 import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.unit.*
@@ -28,8 +30,10 @@ import com.google.android.exoplayer2.C
 import com.spectre7.spmp.MainActivity
 import com.spectre7.spmp.PlayerServiceHost
 import com.spectre7.spmp.model.Song
+import com.spectre7.spmp.ui.layout.MINIMISED_NOW_PLAYING_HEIGHT
 import com.spectre7.spmp.ui.layout.PlayerViewContext
 import com.spectre7.utils.LongClickableButton
+import com.spectre7.utils.getStatusBarHeight
 import com.spectre7.utils.vibrateShort
 import org.burnoutcrew.reorderable.*
 import kotlin.math.roundToInt
@@ -170,7 +174,14 @@ fun QueueTab(expansionProvider: () -> Float, playerProvider: () -> PlayerViewCon
         PlayerServiceHost.service.removeFromQueue(index)
     }
 
-    Box(Modifier.fillMaxSize()) {
+    val shape = RoundedCornerShape(topStartPercent = 7, topEndPercent = 7)
+    Box(Modifier
+        .fillMaxSize()
+        .padding(top = MINIMISED_NOW_PLAYING_HEIGHT.dp + 20.dp)
+        .background(Color.DarkGray, shape)
+        .clip(shape)
+    ) {
+        val list_padding = 10.dp
 
         LazyColumn(
             state = state.listState,
@@ -178,7 +189,11 @@ fun QueueTab(expansionProvider: () -> Float, playerProvider: () -> PlayerViewCon
                 .reorderable(state)
                 .detectReorderAfterLongPress(state)
                 .align(Alignment.TopCenter)
+                .padding(start = list_padding, end = list_padding)
         ) {
+            item {
+                Spacer(Modifier.requiredHeight(10.dp))
+            }
 
             items(song_items.size, { song_items[it].key }) { index ->
                 val item = song_items[index]

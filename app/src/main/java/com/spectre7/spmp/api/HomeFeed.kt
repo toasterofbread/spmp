@@ -227,7 +227,7 @@ fun getHomeFeed(min_rows: Int = -1, allow_cached: Boolean = true): Result<List<H
             return result.cast()
         }
 
-        return Result.success(BufferedReader(result.getOrThrow().body!!.charStream()))
+        return Result.success(BufferedReader(result.getOrThrowHere().body!!.charStream()))
     }
 
     fun processRows(rows: List<YoutubeiShelf>): List<HomeFeedRow> {
@@ -266,7 +266,7 @@ fun getHomeFeed(min_rows: Int = -1, allow_cached: Boolean = true): Result<List<H
             return result.cast()
         }
 
-        response_reader = result.getOrThrow()
+        response_reader = result.getOrThrowHere()
         Cache.set(cache_key, response_reader, CACHE_LIFETIME)
         response_reader.close()
 

@@ -37,5 +37,5 @@ fun searchYoutube(query: String, type: MediaItem.Type, max_results: Int = 10, ch
         return result.cast()
     }
 
-    return Result.success(DataApi.klaxon.parse<SearchResults>(result.getOrThrow().body!!.charStream())!!.items)
+    return Result.success(DataApi.klaxon.parse<SearchResults>(result.getOrThrowHere().body!!.charStream())!!.items)
 }

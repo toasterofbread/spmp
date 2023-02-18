@@ -51,7 +51,7 @@ data class YoutubeVideoFormat (
         }
 
         for (i in 0 until MAX_RETRIES) {
-            val decrypter = SignatureCipherDecrypter.fromNothing("https://music.youtube.com/watch?v=$video_id", i == 0).getOrThrow()
+            val decrypter = SignatureCipherDecrypter.fromNothing("https://music.youtube.com/watch?v=$video_id", i == 0).getOrThrowHere()
             stream_url = decrypter.decryptSignatureCipher(signatureCipher!!)
             if (checkUrl(stream_url!!)) {
                 break
@@ -92,7 +92,7 @@ fun getVideoFormats(id: String, filter: (YoutubeVideoFormat) -> Boolean = { true
             return result.cast()
         }
 
-        val html = result.getOrThrow().body!!.string()
+        val html = result.getOrThrowHere().body!!.string()
 
         val decrypter_result = SignatureCipherDecrypter.fromPlayerPage(html)
         if (!decrypter_result.isSuccess) {
@@ -224,7 +224,7 @@ class SignatureCipherDecrypter(base_js: String) {
                 return result.cast()
             }
 
-            return Result.success(SignatureCipherDecrypter(result.getOrThrow().body!!.string()))
+            return Result.success(SignatureCipherDecrypter(result.getOrThrowHere().body!!.string()))
         }
 
         fun fromNothing(player_url: String, allow_cached: Boolean = true): Result<SignatureCipherDecrypter> {
@@ -243,7 +243,7 @@ class SignatureCipherDecrypter(base_js: String) {
                 return response_result.cast()
             }
 
-            val result = fromPlayerPage(response_result.getOrThrow().body!!.string())
+            val result = fromPlayerPage(response_result.getOrThrowHere().body!!.string())
             if (result.isSuccess) {
                 cached_instance = result.data
             }

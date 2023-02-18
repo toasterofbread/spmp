@@ -25,7 +25,11 @@ fun <I, O> Result<I>.cast(): Result<O> {
     require(!isSuccess)
     return Result.failure(exceptionOrNull()!!)
 }
-val <T> Result<T>.data get() = getOrThrow()
+val <T> Result<T>.data get() = getOrThrowHere()
+
+fun <T> Result<T>.getOrThrowHere(): T {
+    return getOrNull() ?: throw Exception(exceptionOrNull()!!)
+}
 
 class DataApi {
 
@@ -38,16 +42,16 @@ class DataApi {
         private lateinit var youtubei_alt_context: JsonObject
         private lateinit var youtubei_headers: Headers
 
-        private val failed = mutableListOf<String>()
+//        private val failed = mutableListOf<String>()
 
-        fun request(request: Request, allow_fail_response: Boolean = false, fail: Boolean = true): Result<Response> {
-            if (fail) {
-                val key = Throwable().stackTrace[2].let { trace -> "${trace.fileName}:${trace.lineNumber}" }
-                if (!failed.contains(key)) {
-                    failed.add(key)
-                    return Result.failure(RuntimeException("Failed (testing)"))
-                }
-            }
+        fun request(request: Request, allow_fail_response: Boolean = false): Result<Response> {
+//            if (fail) {
+//                val key = Throwable().stackTrace[2].let { trace -> "${trace.fileName}:${trace.lineNumber}" }
+//                if (!failed.contains(key)) {
+//                    failed.add(key)
+//                    return Result.failure(RuntimeException("Failed (testing)"))
+//                }
+//            }
 
             try {
                 val response = client.newCall(request).execute()

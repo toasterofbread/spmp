@@ -21,16 +21,16 @@ fun getSongLyrics(song: Song): Song.Lyrics? {
     val source: Song.Lyrics.Source? = song.registry.get("lyrics_source")
 
     if (id != null && source != null) {
-        ret = getLyrics(id, source).getOrThrow()
+        ret = getLyrics(id, source).getOrThrowHere()
     }
     else {
-        val results = searchForLyrics(song.title!!, song.artist!!.title).getOrThrow()
+        val results = searchForLyrics(song.title!!, song.artist!!.title).getOrThrowHere()
         if (results.isEmpty()) {
             return null
         }
 
         val lyrics = results.first()
-        ret = getLyrics(lyrics.id, lyrics.source).getOrThrow()
+        ret = getLyrics(lyrics.id, lyrics.source).getOrThrowHere()
     }
 
     song.registry.set("lyrics_id", ret.id)
@@ -53,7 +53,7 @@ fun getLyricsData(lyrics_id: Int, sync_type: Song.Lyrics.SyncType): Result<Strin
     val START = "<lyricsData>"
     val END = "</lyricsData>"
 
-    val xml = result.getOrThrow().body!!.string()
+    val xml = result.getOrThrowHere().body!!.string()
     val start = xml.indexOf(START)
     val end = xml.indexOf(END, start + START.length)
 
@@ -386,7 +386,7 @@ fun searchForLyrics(title: String, artist: String?): Result<List<LyricsSearchRes
         var r_album_id: String? = null
         var r_album_name: String? = null
 
-        val lines = result.getOrThrow().body!!.string().split('\n')
+        val lines = result.getOrThrowHere().body!!.string().split('\n')
         for (element in lines) {
             val line = element.trim()
 

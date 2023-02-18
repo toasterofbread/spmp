@@ -25,6 +25,7 @@ import androidx.compose.ui.unit.TextUnit
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.spectre7.spmp.MainActivity
+import com.spectre7.spmp.api.getOrThrowHere
 import com.spectre7.spmp.api.searchYoutube
 import com.spectre7.spmp.model.Artist
 import com.spectre7.spmp.model.Playlist
@@ -73,7 +74,7 @@ fun SearchPage(
         }
 
         thread {
-            val results = searchYoutube(query, type).getOrThrow()
+            val results = searchYoutube(query, type).getOrThrowHere()
             
             synchronized(search_lock) {
                 found_results.clear()

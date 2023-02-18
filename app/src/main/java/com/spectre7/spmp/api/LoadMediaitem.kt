@@ -216,7 +216,7 @@ fun loadMediaItemData(item: MediaItem): Result<MediaItem> {
                 return playlist_result
             }
 
-            val artist = playlist_result.getOrThrow().artist
+            val artist = playlist_result.getOrThrowHere().artist
             if (artist != null) {
                 item.supplyArtist(artist, true)
                 return finish()
@@ -236,7 +236,7 @@ fun loadMediaItemData(item: MediaItem): Result<MediaItem> {
         return result.cast()
     }
 
-    val response_body = result.getOrThrow().body!!.charStream()
+    val response_body = result.getOrThrowHere().body!!.charStream()
     val video_data = DataApi.klaxon.parse<PlayerData>(response_body)!!
     response_body.close()
 

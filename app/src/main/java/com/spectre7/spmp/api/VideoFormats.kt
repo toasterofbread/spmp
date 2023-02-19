@@ -1,14 +1,13 @@
 package com.spectre7.spmp.api
 
-import com.beust.klaxon.JsonObject
 import com.spectre7.spmp.R
 import com.spectre7.spmp.model.Song
 import com.spectre7.utils.getString
+import com.spectre7.utils.printJson
 import okhttp3.*
 import java.io.IOException
 import java.net.URLDecoder
 import java.net.URLEncoder
-import java.time.Duration
 
 private const val MAX_RETRIES = 5
 
@@ -20,7 +19,6 @@ private fun checkUrl(url: String): Boolean {
         .build()
 
     val response = DataApi.request(request, true).getOrNull() ?: return false
-
     val is_invalid = response.body!!.contentType().toString().startsWith("text/")
     response.close()
 
@@ -65,7 +63,81 @@ data class YoutubeVideoFormat (
     }
 }
 
-fun getVideoFormats(id: String, filter: (YoutubeVideoFormat) -> Boolean = { true }): Result<List<YoutubeVideoFormat>> {
+private data class FormatsResponse (
+    val playabilityStatus: PlayabilityStatus,
+    val streamingData: StreamingData? = null
+) {
+    val is_ok: Boolean get() = playabilityStatus.status == "OK"
+    data class PlayabilityStatus(val status: String)
+    data class StreamingData(val formats: List<YoutubeVideoFormat>, val adaptiveFormats: List<YoutubeVideoFormat>)
+}
+
+private fun buildVideoFormatsRequest(id: String, alt: Boolean): Request {
+    return Request.Builder()
+        .url("https://music.youtube.com/youtubei/v1/player?key=${getString(R.string.yt_i_api_key)}")
+        .post(DataApi.getYoutubeiRequestBody("""{
+            "videoId": "$id",
+            "playlistId": null
+        }""", alt))
+        .build()
+}
+
+fun getVideoFormats(id: String, filter: ((YoutubeVideoFormat) -> Boolean)? = null): Result<List<YoutubeVideoFormat>> {
+    return getVideoFormatsFallback(id, filter)
+
+    var result = DataApi.request(buildVideoFormatsRequest(id, false))
+    var formats: FormatsResponse? = null
+
+    if (result.isSuccess) {
+        val stream = result.getOrThrow().body!!.charStream()
+        formats = DataApi.klaxon.parse(stream)!!
+        stream.close()
+        println("one $id")
+    }
+
+    if (formats?.streamingData == null) {
+        println("two $id")
+        result = DataApi.request(buildVideoFormatsRequest(id, true))
+        if (result.isFailure) {
+            return result.cast()
+        }
+
+        val stream = result.getOrThrow().body!!.charStream()
+        formats = DataApi.klaxon.parse(stream)!!
+        stream.close()
+    }
+
+    if (formats.streamingData == null) {
+        return Result.failure(IOException(formats.playabilityStatus.status))
+    }
+
+    val streaming_data = formats.streamingData!!
+    val ret: MutableList<YoutubeVideoFormat> = mutableListOf()
+    var decrypter: SignatureCipherDecrypter? = null
+
+    for (i in 0 until streaming_data.formats.size + streaming_data.adaptiveFormats.size) {
+        val format = if (i < streaming_data.formats.size) streaming_data.formats[i] else streaming_data.adaptiveFormats[i - streaming_data.formats.size]
+        if (filter != null && !filter(format)) {
+            continue
+        }
+
+        if (format.url == null) {
+            if (decrypter == null) {
+                decrypter = SignatureCipherDecrypter.fromNothing("https://music.youtube.com/watch?v=$id").getOrThrowHere()
+            }
+        }
+
+        format.loadStreamUrl(id)
+//        format.stream_url = format.url ?: decrypter!!.decryptSignatureCipher(format.signatureCipher!!)
+        println("${format.itag} | ${format.url != null} | ${format.stream_url}")
+
+        ret.add(format)
+    }
+
+    return Result.success(ret)
+}
+
+private fun getVideoFormatsFallback(id: String, filter: ((YoutubeVideoFormat) -> Boolean)? = null): Result<List<YoutubeVideoFormat>> {
 
     val RESPONSE_DATA_START = "ytInitialPlayerResponse = "
     val request = Request.Builder()
@@ -74,20 +146,8 @@ fun getVideoFormats(id: String, filter: (YoutubeVideoFormat) -> Boolean = { true
         .header("User-Agent", DATA_API_USER_AGENT)
         .build()
 
-//    val r = Request.Builder()
-//        .url("https://music.youtube.com/youtubei/v1/player?key=${getString(R.string.yt_i_api_key)}")
-//        .post(DataApi.getYoutubeiRequestBody("""{
-//            "videoId": "$id",
-//            "playlistId": null
-//        }""", true))
-//        .build()
-//
-//    val resp = DataApi.client.newCall(r).execute()
-//    println("R $resp")
-//    println("R ${resp.body!!.string()}")
-
     fun getFormats(): Result<Pair<SignatureCipherDecrypter, List<YoutubeVideoFormat>>> {
-        val result = DataApi.request(request)
+        var result = DataApi.request(request)
         if (result.isFailure) {
             return result.cast()
         }
@@ -101,14 +161,31 @@ fun getVideoFormats(id: String, filter: (YoutubeVideoFormat) -> Boolean = { true
 
         val start = html.indexOf(RESPONSE_DATA_START) + RESPONSE_DATA_START.length
         val end = html.indexOf("};", start) + 1
-        val streaming_data = DataApi.klaxon.parseJsonObject(html.substring(start, end).reader()).obj("streamingData")!!
+
+        var streaming_data: FormatsResponse = DataApi.klaxon.parse(html.substring(start, end).reader())!!
+        if (!streaming_data.is_ok) {
+            result = DataApi.request(buildVideoFormatsRequest(id, true))
+
+            if (!result.isSuccess) {
+                return result.cast()
+            }
+
+            val stream = result.getOrThrow().body!!.charStream()
+            streaming_data = DataApi.klaxon.parse(stream)!!
+            stream.close()
+
+            if (!streaming_data.is_ok) {
+                return Result.failure(Exception(streaming_data.playabilityStatus.status))
+            }
+        }
 
         return Result.success(Pair(
             decrypter_result.data,
-            DataApi.klaxon.parseFromJsonArray<YoutubeVideoFormat>(streaming_data.array<JsonObject>("adaptiveFormats")!!)!!
-            + DataApi.klaxon.parseFromJsonArray(streaming_data.array<JsonObject>("formats")!!)!!
+            streaming_data.streamingData!!.adaptiveFormats + streaming_data.streamingData!!.formats
         ))
     }
+
+    val ret: MutableList<YoutubeVideoFormat> = mutableListOf()
 
     // For some reason the URL is occasionally invalid (GET either fails with 403 or yields the URL itself)
     // I can't tell why this occurs, but just getting the URL again always seems to produce a valid one
@@ -119,17 +196,15 @@ fun getVideoFormats(id: String, filter: (YoutubeVideoFormat) -> Boolean = { true
         }
 
         val (decrypter, formats) = result.data
-
-        val ret: MutableList<YoutubeVideoFormat> = mutableListOf()
         var valid: Boolean = true
 
         for (format in formats) {
-            if (!filter(format)) {
+            if ((filter != null && !filter(format)) || ret.any { it.itag == format.itag }) {
                 continue
             }
 
             format.stream_url = format.url ?: decrypter.decryptSignatureCipher(format.signatureCipher!!)
-            if (ret.isEmpty() && !checkUrl(format.stream_url!!)) {
+            if (format.url == null && !checkUrl(format.stream_url!!)) {
                 valid = false
                 break
             }

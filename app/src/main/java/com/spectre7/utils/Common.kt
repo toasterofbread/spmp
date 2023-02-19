@@ -54,7 +54,9 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextDecoration
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.*
+import com.beust.klaxon.Klaxon
 import com.spectre7.spmp.MainActivity
+import com.spectre7.spmp.api.DataApi
 import kotlinx.coroutines.delay
 import java.util.regex.Pattern
 import kotlin.concurrent.thread
@@ -521,4 +523,8 @@ fun LongClickableButton(
 			}
 		}
 	}
+}
+
+fun printJson(data: String, klaxon: Klaxon? = null) {
+	println((klaxon ?: Klaxon()).parseJsonObject(data.reader()).toJsonString(true))
 }

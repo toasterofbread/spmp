@@ -264,6 +264,7 @@ class Song private constructor (
 
     // Expects formats to be sorted by bitrate (descending)
     private fun List<YoutubeVideoFormat>.getByQuality(quality: AudioQuality): YoutubeVideoFormat {
+        check(isNotEmpty())
         return when (quality) {
             AudioQuality.HIGH -> firstOrNull { it.audio_only } ?: first()
             AudioQuality.MEDIUM -> {
@@ -286,6 +287,11 @@ class Song private constructor (
             if (result.isFailure) {
                 return result.cast()
             }
+
+            if (result.getOrThrow().isEmpty()) {
+                return Result.failure(Exception("No formats returned by getVideoFormats($id)"))
+            }
+
             audio_formats = result.getOrThrow().sortedByDescending { it.bitrate }
         }
         return Result.success(audio_formats!!)

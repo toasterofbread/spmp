@@ -31,13 +31,14 @@ import kotlin.concurrent.thread
 val check_lock = Object()
 var checking by mutableStateOf(false)
 
+@OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun LyricsSearchMenu(song: Song, lyrics: Song.Lyrics?, close: (changed: Boolean) -> Unit) {
 
     val on_accent = MainActivity.theme.getAccent()
 
     val text_field_colours = TextFieldDefaults.textFieldColors(
-        containerColor = on_accent.setAlpha(0.75),
+        containerColor = on_accent.setAlpha(0.75f),
         textColor = on_accent,
         focusedLabelColor = on_accent,
         unfocusedLabelColor = on_accent,
@@ -45,7 +46,7 @@ fun LyricsSearchMenu(song: Song, lyrics: Song.Lyrics?, close: (changed: Boolean)
         unfocusedTrailingIconColor = on_accent,
         cursorColor = on_accent,
         focusedIndicatorColor = on_accent,
-        unfocusedIndicatorColor = on_accent.setAlpha(0.5)
+        unfocusedIndicatorColor = on_accent.setAlpha(0.5f)
     )
 
     val focus = LocalFocusManager.current

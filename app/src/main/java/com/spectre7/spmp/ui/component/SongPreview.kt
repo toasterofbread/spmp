@@ -126,7 +126,7 @@ fun SongPreviewLong(
             Text(
                 song.artist?.title ?: "",
                 fontSize = 11.sp,
-                color = content_colour().setAlpha(0.5),
+                color = content_colour().setAlpha(0.5f),
                 maxLines = 1,
                 overflow = TextOverflow.Ellipsis
             )

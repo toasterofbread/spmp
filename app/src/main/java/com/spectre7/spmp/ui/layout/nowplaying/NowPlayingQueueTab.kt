@@ -17,12 +17,12 @@ import androidx.compose.material.icons.filled.Menu
 import androidx.compose.material.icons.filled.Undo
 import androidx.compose.material3.rememberSwipeableState
 import androidx.compose.material3.*
+import androidx.compose.material3.tokens.FilledButtonTokens
 import androidx.compose.runtime.*
 import androidx.compose.runtime.snapshots.SnapshotStateList
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
-import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.LocalConfiguration
 import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.unit.*
@@ -32,8 +32,7 @@ import com.spectre7.spmp.PlayerServiceHost
 import com.spectre7.spmp.model.Song
 import com.spectre7.spmp.ui.layout.MINIMISED_NOW_PLAYING_HEIGHT
 import com.spectre7.spmp.ui.layout.PlayerViewContext
-import com.spectre7.utils.LongClickableButton
-import com.spectre7.utils.getStatusBarHeight
+import com.spectre7.utils.amplify
 import com.spectre7.utils.vibrateShort
 import org.burnoutcrew.reorderable.*
 import kotlin.math.roundToInt
@@ -178,23 +177,20 @@ fun QueueTab(expansionProvider: () -> Float, playerProvider: () -> PlayerViewCon
     Box(Modifier
         .fillMaxSize()
         .padding(top = MINIMISED_NOW_PLAYING_HEIGHT.dp + 20.dp)
-        .background(Color.DarkGray, shape)
+        .background(MainActivity.theme.getBackground(true).amplify(1f), shape)
         .clip(shape)
     ) {
         val list_padding = 10.dp
 
         LazyColumn(
             state = state.listState,
+            contentPadding = PaddingValues(top = list_padding),
             modifier = Modifier
                 .reorderable(state)
                 .detectReorderAfterLongPress(state)
                 .align(Alignment.TopCenter)
                 .padding(start = list_padding, end = list_padding)
         ) {
-            item {
-                Spacer(Modifier.requiredHeight(10.dp))
-            }
-
             items(song_items.size, { song_items[it].key }) { index ->
                 val item = song_items[index]
                 ReorderableItem(state, key = item.key) { is_dragging ->
@@ -236,7 +232,7 @@ fun QueueTab(expansionProvider: () -> Float, playerProvider: () -> PlayerViewCon
     }
 }
 
-@OptIn(ExperimentalFoundationApi::class)
+@OptIn(ExperimentalFoundationApi::class, ExperimentalMaterial3Api::class)
 @Composable
 private fun BoxScope.ActionBar(expansionProvider: () -> Float, undo_list: SnapshotStateList<() -> Unit>, scroll: (pages: Int) -> Unit) {
     val slide_offset: (fullHeight: Int) -> Int = remember { { (it * 0.7).toInt() } }
@@ -304,36 +300,49 @@ private fun BoxScope.ActionBar(expansionProvider: () -> Float, undo_list: Snapsh
                         )
                     }
 
-                    LongClickableButton(
-                        onClick = {
-                            val swaps = PlayerServiceHost.service.shuffleQueue(return_swaps = true)!!
-                            if (swaps.isNotEmpty()) {
-                                undo_list.add {
-                                    for (swap in swaps.asReversed()) {
-                                        PlayerServiceHost.service.swapQueuePositions(swap.first, swap.second)
+                    Surface(
+                        Modifier.combinedClickable(
+                            onClick = {
+                                val swaps = PlayerServiceHost.service.shuffleQueue(return_swaps = true)!!
+                                if (swaps.isNotEmpty()) {
+                                    undo_list.add {
+                                        for (swap in swaps.asReversed()) {
+                                            PlayerServiceHost.service.swapQueuePositions(swap.first, swap.second)
+                                        }
+                                    }
+                                }
+                            },
+                            onLongClick = {
+                                vibrateShort()
+                                val swaps = PlayerServiceHost.service.shuffleQueue(start = 0, return_swaps = true)!!
+                                if (swaps.isNotEmpty()) {
+                                    undo_list.add {
+                                        for (swap in swaps.asReversed()) {
+                                            PlayerServiceHost.service.swapQueuePositions(swap.first, swap.second)
+                                        }
                                     }
                                 }
                             }
-                        },
-                        onLongClick = {
-                            vibrateShort()
-                            val swaps = PlayerServiceHost.service.shuffleQueue(start = 0, return_swaps = true)!!
-                            if (swaps.isNotEmpty()) {
-                                undo_list.add {
-                                    for (swap in swaps.asReversed()) {
-                                        PlayerServiceHost.service.swapQueuePositions(swap.first, swap.second)
-                                    }
-                                }
-                            }
-                        },
-                        colors = ButtonDefaults.buttonColors(
-                            containerColor = MainActivity.theme.getOnBackground(true)
-                        )
+                        ),
+                        color = MainActivity.theme.getOnBackground(true),
+                        shape = FilledButtonTokens.ContainerShape.toShape()
                     ) {
-                        Text(
-                            text = "Shuffle",
-                            color = MainActivity.theme.getBackground(true)
-                        )
+                        Row(
+                            Modifier
+                                .defaultMinSize(
+                                    minWidth = ButtonDefaults.MinWidth,
+                                    minHeight = ButtonDefaults.MinHeight
+                                )
+                                .padding(ButtonDefaults.ContentPadding),
+                            horizontalArrangement = Arrangement.Center,
+                            verticalAlignment = Alignment.CenterVertically
+                        ) {
+                            Text(
+                                text = "Shuffle",
+                                color = MainActivity.theme.getBackground(true),
+                                style = MaterialTheme.typography.labelLarge
+                            )
+                        }
                     }
                 }
 

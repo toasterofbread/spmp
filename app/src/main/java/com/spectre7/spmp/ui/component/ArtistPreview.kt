@@ -114,7 +114,7 @@ fun ArtistPreviewLong(
             Text(
                 "${artist.getFormattedSubscriberCount()} subscribers",
                 fontSize = 12.sp,
-                color = content_colour().setAlpha(0.5),
+                color = content_colour().setAlpha(0.5f),
                 maxLines = 1,
                 overflow = TextOverflow.Ellipsis
             )

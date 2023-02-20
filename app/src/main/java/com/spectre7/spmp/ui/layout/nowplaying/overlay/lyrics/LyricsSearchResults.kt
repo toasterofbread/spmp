@@ -99,7 +99,7 @@ internal fun ColumnScope.LyricsSearchResults(results: List<LyricsSearchResult>, 
                                     .background(
                                         MainActivity.theme
                                             .getOnAccent()
-                                            .setAlpha(0.1), shape
+                                            .setAlpha(0.1f), shape
                                     )
                                     .padding(2.dp)
                                     .fillMaxWidth()

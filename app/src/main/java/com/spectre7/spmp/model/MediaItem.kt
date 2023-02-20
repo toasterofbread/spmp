@@ -89,7 +89,7 @@ abstract class MediaItem(id: String) {
     }
     
     protected fun stringToJson(string: String?): String {
-        return if (string == null) "null" else "\"$string\""
+        return DataApi.klaxon.toJsonString(string)
     }
     open fun getJsonMapValues(klaxon: Klaxon = DataApi.klaxon): String {
         return """

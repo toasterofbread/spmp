@@ -8,29 +8,31 @@ import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.fillMaxHeight
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.lazy.LazyColumn
-import androidx.compose.runtime.Composable
-import androidx.compose.runtime.getValue
-import androidx.compose.runtime.mutableStateOf
-import androidx.compose.runtime.setValue
+import androidx.compose.runtime.*
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
 import com.spectre7.utils.Theme
+import kotlin.math.absoluteValue
 
 class SettingsInterface(
     val theme: Theme,
-    val root_page: Int,
+    private val root_page: Int,
     val context: Context,
     val prefs: SharedPreferences,
     val default_provider: (String) -> Any,
-    val getPage: (Int) -> SettingsPage?,
-    val onPageChanged: ((page: Int) -> Unit)? = null,
-    val onCloseRequested: (() -> Unit)? = null
+    private val getPage: (Int) -> SettingsPage,
+    private val onPageChanged: ((page: Int?) -> Unit)? = null,
+    private val onCloseRequested: (() -> Unit)? = null
 ) {
-    private var current_page by mutableStateOf(root_page)
-    private val page_stack = mutableListOf<Int>()
+    var current_page: SettingsPage by mutableStateOf(getUserPage(root_page))
+        private set
+    private val page_stack = mutableListOf<SettingsPage>()
 
-    fun resetKeysOnPage(page: Int = current_page) {
-        getPage(page)!!.resetKeys(this)
+    private fun getUserPage(page_id: Int): SettingsPage {
+        return getPage(page_id).also { page ->
+            page.id = page_id
+            page.settings_interface = this
+        }
     }
 
     fun goBack() {
@@ -38,7 +40,7 @@ class SettingsInterface(
             val target_page = page_stack.removeLast()
             if (current_page != target_page) {
                 current_page = target_page
-                onPageChanged?.invoke(current_page)
+                onPageChanged?.invoke(current_page.id)
             }
         }
         else {
@@ -48,20 +50,30 @@ class SettingsInterface(
 
     @Composable
     fun Interface(modifier: Modifier = Modifier) {
-        Crossfade(current_page, modifier = modifier) {
-            val page = getPage(it)
+        Crossfade(current_page, modifier = modifier) { page ->
             Column(Modifier.padding(top = 18.dp, start = 20.dp, end = 20.dp)) {
-                page?.TitleBar(this@SettingsInterface, it == root_page, { goBack() })
+                page.TitleBar(page.id == root_page, { goBack() })
                 LazyColumn(Modifier.fillMaxHeight()) {
                     item {
                         Box(Modifier.padding(bottom = 60.dp)) {
-                            page?.Page(this@SettingsInterface, { target_page ->
-                                if (current_page != target_page) {
-                                    page_stack.add(current_page)
-                                    current_page = target_page
-                                    onPageChanged?.invoke(current_page)
-                                }
-                            }, { goBack() })
+                            page.Page(
+                                { target_page ->
+                                    if (current_page.id != target_page) {
+                                        page_stack.add(current_page)
+                                        current_page = getUserPage(target_page)
+                                        onPageChanged?.invoke(current_page.id)
+                                    }
+                                },
+                                { target_page ->
+                                    if (current_page != target_page) {
+                                        target_page.settings_interface = this@SettingsInterface
+                                        page_stack.add(current_page)
+                                        current_page = target_page
+                                        onPageChanged?.invoke(current_page.id)
+                                    }
+                                },
+                                { goBack() }
+                            )
                         }
                     }
                 }

@@ -16,16 +16,12 @@ import androidx.compose.animation.core.CubicBezierEasing
 import androidx.compose.animation.core.tween
 import androidx.compose.foundation.*
 import androidx.compose.foundation.gestures.*
-import androidx.compose.foundation.interaction.MutableInteractionSource
 import androidx.compose.foundation.layout.*
-import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.material.ripple.LocalRippleTheme
 import androidx.compose.material.ripple.RippleAlpha
 import androidx.compose.material.ripple.RippleTheme
-import androidx.compose.material.ripple.rememberRipple
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
-import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.composed
 import androidx.compose.ui.draw.clipToBounds
@@ -34,7 +30,6 @@ import androidx.compose.ui.draw.drawWithContent
 import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.geometry.Size
 import androidx.compose.ui.graphics.Color
-import androidx.compose.ui.graphics.Shape
 import androidx.compose.ui.graphics.SolidColor
 import androidx.compose.ui.graphics.drawscope.Fill
 import androidx.compose.ui.graphics.drawscope.Stroke
@@ -45,7 +40,6 @@ import androidx.compose.ui.layout.onSizeChanged
 import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.platform.LocalUriHandler
 import androidx.compose.ui.platform.debugInspectorInfo
-import androidx.compose.ui.semantics.Role
 import androidx.compose.ui.text.SpanStyle
 import androidx.compose.ui.text.TextLayoutResult
 import androidx.compose.ui.text.TextStyle
@@ -56,7 +50,6 @@ import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.*
 import com.beust.klaxon.Klaxon
 import com.spectre7.spmp.MainActivity
-import com.spectre7.spmp.api.DataApi
 import kotlinx.coroutines.delay
 import java.util.regex.Pattern
 import kotlin.concurrent.thread
@@ -468,61 +461,6 @@ fun networkThread(block: () -> Unit) {
 		return
 	}
 	thread(block = block)
-}
-
-@OptIn(ExperimentalFoundationApi::class)
-@Composable
-fun LongClickableButton(
-	onClick: () -> Unit,
-	modifier: Modifier = Modifier,
-	onLongClick: (() -> Unit)? = null,
-	enabled: Boolean = true,
-	interactionSource: MutableInteractionSource = remember { MutableInteractionSource() },
-	elevation: ButtonElevation? = ButtonDefaults.buttonElevation(),
-	shape: Shape = CircleShape,
-	border: BorderStroke? = null,
-	colors: ButtonColors = ButtonDefaults.buttonColors(),
-	contentPadding: PaddingValues = ButtonDefaults.ContentPadding,
-	content: @Composable RowScope.() -> Unit
-) {
-	val containerColor = colors.containerColor(enabled).value
-	val contentColor = colors.contentColor(enabled).value
-	val shadowElevation = elevation?.shadowElevation(enabled, interactionSource)?.value ?: 0.dp
-	val tonalElevation = elevation?.tonalElevation(enabled, interactionSource)?.value ?: 0.dp
-
-	// TODO(b/202880001): Apply shadow color from token (will not be possibly any time soon, if ever).
-	Surface(
-		shape = shape,
-		color = containerColor,
-		contentColor = contentColor,
-		border = border,
-		shadowElevation = shadowElevation,
-		tonalElevation = tonalElevation,
-		modifier = modifier.combinedClickable(
-			interactionSource = interactionSource,
-			indication = rememberRipple(),
-			enabled = enabled,
-			role = Role.Button,
-			onClick = onClick,
-			onLongClick = onLongClick,
-//			onDoubleClick = onDoubleClick,
-		)
-	) {
-		CompositionLocalProvider(LocalContentColor provides contentColor) {
-			ProvideTextStyle(value = MaterialTheme.typography.labelLarge) {
-				Row(
-					Modifier.defaultMinSize(
-						minWidth = ButtonDefaults.MinWidth,
-						minHeight = ButtonDefaults.MinHeight
-					)
-						.padding(contentPadding),
-					horizontalArrangement = Arrangement.Center,
-					verticalAlignment = Alignment.CenterVertically,
-					content = content
-				)
-			}
-		}
-	}
 }
 
 fun printJson(data: String, klaxon: Klaxon? = null) {

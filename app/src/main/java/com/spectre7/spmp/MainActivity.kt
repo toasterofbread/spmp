@@ -50,8 +50,7 @@ import java.util.*
 
 class MainActivity : ComponentActivity() {
 
-    lateinit var prefs: SharedPreferences
-    lateinit var theme: Theme
+    var theme: Theme? by mutableStateOf(null)
     lateinit var languages: Map<String, Map<String, String>>
 
 //    private lateinit var auth_service: AuthorizationService
@@ -62,7 +61,6 @@ class MainActivity : ComponentActivity() {
         super.onCreate(savedInstanceState)
 
         instance = this
-        prefs = getSharedPreferences(this)
 
         languages = loadLanguages()
         fun updateLanguage(lang: Int) {
@@ -83,7 +81,7 @@ class MainActivity : ComponentActivity() {
 
         Cache.init(this)
         DataApi.initialise()
-        Song.init(prefs)
+        Song.init(Companion.getSharedPreferences())
 
         Thread.setDefaultUncaughtExceptionHandler { _: Thread, error: Throwable ->
             error.printStackTrace()
@@ -170,10 +168,10 @@ class MainActivity : ComponentActivity() {
 
         val context: MainActivity get() = instance!!
         val resources: Resources get() = context.resources
-        val prefs: SharedPreferences get() = instance!!.prefs
-        val theme: Theme get() = context.theme
+        val theme: Theme get() = context.theme!!
         val languages: Map<String, Map<String, String>> get() = context.languages
         val error_manager = ErrorManager()
+        private var prefs: SharedPreferences? = null
 
 //        val auth_state: AuthState get() = context.auth_state
 //        val auth_service: AuthorizationService get() = context.auth_service
@@ -191,8 +189,11 @@ class MainActivity : ComponentActivity() {
             Handler(Looper.getMainLooper()).post(action)
         }
 
-        fun getSharedPreferences(context: Context): SharedPreferences {
-            return context.getSharedPreferences("com.spectre7.spmp.PREFERENCES", Context.MODE_PRIVATE)
+        fun getSharedPreferences(context: Context = instance!!): SharedPreferences {
+            if (prefs == null) {
+                prefs = context.getSharedPreferences("com.spectre7.spmp.PREFERENCES", Context.MODE_PRIVATE)
+            }
+            return prefs!!
         }
 
         fun isInForeground(): Boolean {

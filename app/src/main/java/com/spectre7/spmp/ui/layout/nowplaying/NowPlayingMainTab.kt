@@ -131,7 +131,7 @@ fun ColumnScope.NowPlayingMainTab(
             }
             launch {
                 MainActivity.theme.setOnBackground(true,
-                    getContrastedColour(accent)
+                    accent.getContrasted()
                 )
             }
         }
@@ -219,13 +219,13 @@ fun ColumnScope.NowPlayingMainTab(
         IconButton({
             TODO("Edit")
         }) {
-            Icon(Icons.Filled.Edit, null, tint = MainActivity.theme.getOnBackground(true).setAlpha(0.5))
+            Icon(Icons.Filled.Edit, null, tint = MainActivity.theme.getOnBackground(true).setAlpha(0.5f))
         }
 
         IconButton({
             PlayerServiceHost.status.m_song?.let { playerProvider().onMediaItemLongClicked(it) }
         }) {
-            Icon(Icons.Filled.MoreHoriz, null, tint = MainActivity.theme.getOnBackground(true).setAlpha(0.5))
+            Icon(Icons.Filled.MoreHoriz, null, tint = MainActivity.theme.getOnBackground(true).setAlpha(0.5f))
         }
     }
 
@@ -332,7 +332,7 @@ fun ColumnScope.NowPlayingMainTab(
                         .alpha(expansion)
                         .fillMaxSize()
                         .background(
-                            setColourAlpha(Color.DarkGray, 0.85),
+                            Color.DarkGray.setAlpha(0.85f),
                             shape = thumbnail_shape
                         ),
                     contentAlignment = Alignment.Center
@@ -385,7 +385,7 @@ fun ColumnScope.NowPlayingMainTab(
                         Column(
                             Modifier
                                 .background(
-                                    background.setAlpha(0.9),
+                                    background.setAlpha(0.9f),
                                     thumbnail_shape
                                 )
                                 .padding(start = padding, top = padding, end = padding)
@@ -641,7 +641,7 @@ private fun Controls(
                 { scroll(1) },
                 Modifier.align(Alignment.CenterHorizontally)
             ) {
-                Icon(Icons.Filled.KeyboardArrowDown, null, tint = MainActivity.theme.getOnBackground(true).setAlpha(0.5))
+                Icon(Icons.Filled.KeyboardArrowDown, null, tint = MainActivity.theme.getOnBackground(true).setAlpha(0.5f))
             }
         }
     }
@@ -671,7 +671,7 @@ private fun SeekBar(seek: (Float) -> Unit) {
         track_colour: Color = Color(0xffD3B4F7),
         progress_colour: Color = Color(0xff7000F8),
         height: Dp = 4.dp,
-        highlight_colour: Color = setColourAlpha(Color.Red, 0.2)
+        highlight_colour: Color = Color.Red.setAlpha(0.2f)
     ) {
         androidx.compose.foundation.Canvas(
             Modifier
@@ -771,7 +771,7 @@ private fun SeekBar(seek: (Float) -> Unit) {
                 cancel_area_side = null
             },
             thumbSizeInDp = DpSize(12.dp, 12.dp),
-            track = { a, b, _, _, c -> SeekTrack(a, b, c, setColourAlpha(MainActivity.theme.getOnBackground(true), 0.5), MainActivity.theme.getOnBackground(true)) },
+            track = { a, b, _, _, c -> SeekTrack(a, b, c, MainActivity.theme.getOnBackground(true).setAlpha(0.5f), MainActivity.theme.getOnBackground(true)) },
             thumb = { a, b, c, d, e -> DefaultThumb(a, b, c, d, e, MainActivity.theme.getOnBackground(true), 1f) },
             modifier = Modifier.weight(1f)
         )

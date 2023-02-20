@@ -23,6 +23,7 @@ import com.spectre7.utils.getString
 import com.spectre7.utils.sendToast
 import kotlinx.coroutines.*
 import java.lang.ref.WeakReference
+import java.util.*
 import kotlin.collections.set
 import android.provider.Settings as AndroidSettings
 
@@ -63,10 +64,9 @@ class PlayerAccessibilityService : AccessibilityService(), LifecycleOwner {
         }
     }
 
-    private val pressed_time = mutableMapOf<Boolean, Long?>(
-        true to null,
-        false to null
-    )
+    private val long_press_timer = Timer()
+    private var long_presssed: Boolean = false
+    private var current_long_press_task: TimerTask? = null
 
     override fun onCreate() {
         super.onCreate()
@@ -92,6 +92,7 @@ class PlayerAccessibilityService : AccessibilityService(), LifecycleOwner {
 
         MainActivity.getSharedPreferences(this).unregisterOnSharedPreferenceChangeListener(prefs_change_listener)
         unregisterReceiver(broadcast_receiver)
+        long_press_timer.cancel()
     }
 
     override fun onKeyEvent(event: KeyEvent?): Boolean {
@@ -100,14 +101,16 @@ class PlayerAccessibilityService : AccessibilityService(), LifecycleOwner {
         }
 
         if (event.keyCode == KEYCODE_VOLUME_UP || event.keyCode == KEYCODE_VOLUME_DOWN) {
-            if (volume_intercept_mode == VOLUME_INTERCEPT_MODE.APP_OPEN) {
-                if (!MainActivity.isInForeground()) {
-                    return false
+            when (volume_intercept_mode) {
+                VOLUME_INTERCEPT_MODE.ALWAYS -> {
+                    !PlayerServiceHost.isRunningAndFocused()
                 }
-            }
-            // VOLUME_INTERCEPT_MODE.ALWAYS
-            else if (!PlayerServiceHost.isRunningAndFocused()) {
-                return false
+                VOLUME_INTERCEPT_MODE.APP_OPEN -> {
+                    if (!MainActivity.isInForeground()) {
+                        return false
+                    }
+                }
+                VOLUME_INTERCEPT_MODE.NEVER -> return false
             }
 
             onVolumeKeyPressed(event.keyCode == KEYCODE_VOLUME_UP, event.action == ACTION_DOWN)
@@ -119,18 +122,30 @@ class PlayerAccessibilityService : AccessibilityService(), LifecycleOwner {
 
     private fun onVolumeKeyPressed(volume_up: Boolean, key_down: Boolean) {
         if (key_down) {
-            pressed_time[volume_up] = System.currentTimeMillis()
+            current_long_press_task = object : TimerTask() {
+                override fun run() {
+                    long_presssed = true
+
+                    val intent = Intent(PlayerService::class.java.canonicalName)
+                    intent.putExtra("action", SERVICE_INTENT_ACTIONS.BUTTON_VOLUME.ordinal)
+                    intent.putExtra("up", volume_up)
+                    intent.putExtra("long", true)
+                    LocalBroadcastManager.getInstance(this@PlayerAccessibilityService).sendBroadcast(intent)
+                }
+            }
+            long_press_timer.schedule(current_long_press_task, getLongPressTimeout().toLong())
         }
         else {
+            if (long_presssed) {
+                long_presssed = false
+                return
+            }
+            current_long_press_task?.cancel()
+
             val intent = Intent(PlayerService::class.java.canonicalName)
             intent.putExtra("action", SERVICE_INTENT_ACTIONS.BUTTON_VOLUME.ordinal)
             intent.putExtra("up", volume_up)
-
-            val pressed = pressed_time[volume_up]
-            val long = if (pressed == null) false else (System.currentTimeMillis() - pressed) >= getLongPressTimeout()
-            intent.putExtra("long", long)
-            pressed_time[volume_up] = null
-
+            intent.putExtra("long", false)
             LocalBroadcastManager.getInstance(this).sendBroadcast(intent)
         }
     }

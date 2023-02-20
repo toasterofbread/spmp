@@ -11,6 +11,7 @@ enum class Settings {
     KEY_LANG_DATA,
 
     // Themeing
+    KEY_THEME,
     KEY_ACCENT_COLOUR_SOURCE,
     KEY_NOWPLAYING_THEME_MODE,
 
@@ -43,7 +44,7 @@ enum class Settings {
     KEY_VOLUME_STEPS;
 
     companion object {
-        val prefs: SharedPreferences get() = MainActivity.prefs
+        val prefs: SharedPreferences get() = MainActivity.getSharedPreferences()
 
         fun <T> get(enum_key: Settings, preferences: SharedPreferences = prefs, default: T? = null): T {
             val default_value: T = default ?: getDefault(enum_key)
@@ -65,8 +66,9 @@ enum class Settings {
         fun <T> getDefault(enum_key: Settings): T {
             return when (enum_key) {
                 KEY_LANG_UI, KEY_LANG_DATA -> MainActivity.languages.keys.indexOf(Locale.getDefault().language)
-                
+
                 KEY_ACCENT_COLOUR_SOURCE -> 0
+                KEY_THEME -> -1
                 KEY_NOWPLAYING_THEME_MODE -> 0
                 
                 KEY_LYRICS_FOLLOW_ENABLED -> true

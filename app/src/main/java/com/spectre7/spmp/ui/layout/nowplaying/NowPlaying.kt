@@ -153,7 +153,7 @@ fun MinimisedProgressBar(expansionProvider: () -> Float) {
     LinearProgressIndicator(
         progress = PlayerServiceHost.status.m_position,
         color = MainActivity.theme.getOnBackground(true),
-        trackColor = MainActivity.theme.getOnBackground(true).setAlpha(0.5),
+        trackColor = MainActivity.theme.getOnBackground(true).setAlpha(0.5f),
         modifier = Modifier
             .requiredHeight(2.dp)
             .fillMaxWidth()

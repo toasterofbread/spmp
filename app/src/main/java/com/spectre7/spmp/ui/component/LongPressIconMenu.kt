@@ -190,7 +190,8 @@ fun LongPressIconMenu(
         var accent_colour by remember { mutableStateOf(Color.Unspecified) }
 
         fun applyPalette(item: MediaItem) {
-            accent_colour = (item.getDefaultThemeColour() ?: MainActivity.theme.getBackground(false)).contrastAgainst(MainActivity.theme.getBackground(false), 0.2)
+            accent_colour = (item.getDefaultThemeColour() ?: MainActivity.theme.getBackground(false))
+                .contrastAgainst(MainActivity.theme.getBackground(false), 0.2f)
         }
 
         LaunchedEffect(Unit) {
@@ -290,7 +291,7 @@ fun LongPressIconMenu(
                 Modifier
                     .requiredHeight(getScreenHeight())
                     .offset(y = status_bar_height * -0.5f)
-                    .background(Color.Black.setAlpha(0.5 * panel_alpha.value))
+                    .background(Color.Black.setAlpha(0.5f * panel_alpha.value))
             ) {
                 val shape = RoundedCornerShape(topStartPercent = 12, topEndPercent = 12)
 

@@ -17,8 +17,9 @@ import androidx.compose.ui.input.pointer.pointerInput
 import androidx.compose.ui.platform.LocalConfiguration
 import androidx.compose.ui.unit.dp
 import com.spectre7.composesettings.ui.SettingsInterface
-import com.spectre7.composesettings.ui.SettingsPage
+import com.spectre7.composesettings.ui.SettingsPageWithItems
 import com.spectre7.settings.model.*
+import com.spectre7.settings.ui.SettingsItemThemeSelector
 import com.spectre7.spmp.MainActivity
 import com.spectre7.spmp.PlayerAccessibilityService
 import com.spectre7.spmp.R
@@ -64,7 +65,7 @@ fun PrefsPage(pill_menu: PillMenu, close: () -> Unit) {
             confirmButton = {
                 FilledTonalButton(
                     {
-                        settings_interface.resetKeysOnPage()
+                        settings_interface.current_page.resetKeys()
                         show_reset_confirmation = false
                     }
                 ) {
@@ -101,7 +102,7 @@ fun PrefsPage(pill_menu: PillMenu, close: () -> Unit) {
             {
                 when (Page.values()[it]) {
 
-                    Page.ROOT -> SettingsPage(
+                    Page.ROOT -> SettingsPageWithItems(
                         getString(R.string.s_page_preferences),
                         groupGeneral(interface_lang, language_data)
                             + groupThemeing()
@@ -112,7 +113,7 @@ fun PrefsPage(pill_menu: PillMenu, close: () -> Unit) {
                         Modifier.fillMaxSize()
                     )
 
-                    Page.ACCESSIBILITY_SERVICE -> SettingsPage(getString(R.string.s_page_acc_service), listOf(
+                    Page.ACCESSIBILITY_SERVICE -> SettingsPageWithItems(getString(R.string.s_page_acc_service), listOf(
 
                         SettingsItemAccessibilityService(
                             getString(R.string.s_acc_service_enabled),
@@ -215,7 +216,7 @@ fun PrefsPage(pill_menu: PillMenu, close: () -> Unit) {
                     ), Modifier.fillMaxSize())
                 }
             }, 
-            { page: Int ->
+            { page: Int? ->
                 if (page == Page.ROOT.ordinal) {
                     pill_menu.removeActionOverrider(pill_menu_action_overrider)
                 }
@@ -283,6 +284,14 @@ fun groupGeneral(interface_lang: SettingsValueState<Int>, language_data: Map<Str
 fun groupThemeing(): List<SettingsItem> {
     return listOf(
         SettingsGroup(getString(R.string.s_group_theming)),
+
+        SettingsItemThemeSelector<Int> (
+            SettingsValueState(Settings.KEY_THEME.name),
+            "Theme", null,
+            "Edit theme"
+        ) {
+            return@SettingsItemThemeSelector MainActivity.theme
+        },
 
         SettingsItemMultipleChoice(
             SettingsValueState(Settings.KEY_ACCENT_COLOUR_SOURCE.name),

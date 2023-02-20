@@ -1,11 +1,10 @@
-@file:OptIn(ExperimentalMaterialApi::class, ExperimentalMaterial3Api::class)
+@file:OptIn(ExperimentalMaterialApi::class)
 
 package com.spectre7.spmp.ui.layout
 
 import androidx.compose.animation.*
 import androidx.compose.foundation.ExperimentalFoundationApi
 import androidx.compose.foundation.background
-import androidx.compose.foundation.gestures.LocalOverScrollConfiguration
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyListState
 import androidx.compose.foundation.lazy.rememberLazyListState
@@ -274,9 +273,9 @@ private fun MainPage(
     ) {
         Crossfade(remember { derivedStateOf { layouts.isNotEmpty() } }.value) { loaded ->
             if (loaded) {
-                CompositionLocalProvider(
-                    LocalOverScrollConfiguration provides null
-                ) {
+//                CompositionLocalProvider(
+//                    LocalOverscrollConfiguration provides null
+//                ) {
                     LazyMediaItemLayoutColumn(
                         layouts,
                         playerProvider,
@@ -284,7 +283,7 @@ private fun MainPage(
                         bottom_padding = MINIMISED_NOW_PLAYING_HEIGHT.dp,
                         scroll_state = scroll_state
                     )
-                }
+//                }
             }
             else {
                 Column(Modifier.fillMaxSize(), verticalArrangement = Arrangement.Center, horizontalAlignment = Alignment.CenterHorizontally) {

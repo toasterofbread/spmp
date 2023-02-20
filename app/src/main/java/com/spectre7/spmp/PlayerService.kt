@@ -62,6 +62,7 @@ import com.spectre7.spmp.api.getOrThrowHere
 import com.spectre7.spmp.model.*
 import com.spectre7.utils.sendToast
 import com.spectre7.utils.setAlpha
+import com.spectre7.utils.vibrateShort
 import kotlinx.coroutines.*
 import java.io.IOException
 import kotlin.concurrent.thread
@@ -333,7 +334,7 @@ class PlayerService : Service() {
         super.onCreate()
 
         player = ExoPlayer.Builder(
-            MainActivity.context,
+            this@PlayerService,
             DefaultMediaSourceFactory(
                 createDataSourceFactory(),
                 { arrayOf(MatroskaExtractor(), FragmentedMp4Extractor()) }
@@ -351,7 +352,7 @@ class PlayerService : Service() {
         player.playWhenReady = false
         player.prepare()
 
-        media_session = MediaSessionCompat(MainActivity.context, "spmp")
+        media_session = MediaSessionCompat(this@PlayerService, "spmp")
         media_session_connector = MediaSessionConnector(media_session!!)
         media_session_connector!!.setPlayer(player)
         media_session!!.setMediaButtonReceiver(null)
@@ -392,7 +393,7 @@ class PlayerService : Service() {
         })
 
         // Create volume notification view
-        vol_notif = ComposeView(MainActivity.context)
+        vol_notif = ComposeView(this@PlayerService)
 
         val lifecycle_owner = object : SavedStateRegistryOwner {
             private val lifecycle_registry: LifecycleRegistry = LifecycleRegistry(this)
@@ -459,7 +460,7 @@ class PlayerService : Service() {
         player.release()
 
         if (vol_notif.isShown) {
-            MainActivity.context.windowManager.removeView(vol_notif)
+            (getSystemService(Context.WINDOW_SERVICE) as WindowManager).removeView(vol_notif)
         }
 
         MainActivity.getSharedPreferences(this).unregisterOnSharedPreferenceChangeListener(prefs_change_listener)
@@ -469,20 +470,20 @@ class PlayerService : Service() {
     }
 
     private fun onActionIntentReceived(intent: Intent) {
-        val action = intent.getIntExtra("action", -1)
+        val action = SERVICE_INTENT_ACTIONS.values()[intent.extras!!.get("action") as Int]
         when (action) {
-            -1 -> {}
-            SERVICE_INTENT_ACTIONS.STOP.ordinal -> {
+            SERVICE_INTENT_ACTIONS.STOP -> {
                 stopForeground(true)
                 stopSelf()
 
                 // TODO | Stop service properly
             }
-            SERVICE_INTENT_ACTIONS.BUTTON_VOLUME.ordinal -> {
+            SERVICE_INTENT_ACTIONS.BUTTON_VOLUME -> {
                 val long = intent.getBooleanExtra("long", false)
                 val up = intent.getBooleanExtra("up", false)
 
                 if (long) {
+                    vibrateShort()
                     if (up) player.seekToNextMediaItem()
                     else player.seekToPreviousMediaItem()
                 }
@@ -493,17 +494,16 @@ class PlayerService : Service() {
                     }
                 }
             }
-            else -> throw NotImplementedError(action.toString())
         }
     }
 
     private fun getCustomVolumeChangeAmount(): Float {
-        return 1f / Settings.get<Int>(Settings.KEY_VOLUME_STEPS).toFloat()
+        return 1f / Settings.get<Int>(Settings.KEY_VOLUME_STEPS, MainActivity.getSharedPreferences(this)).toFloat()
     }
 
     private fun showVolumeNotification(increasing: Boolean, volume: Float) {
         val FADE_DURATION: Long = 200
-        val BACKGROUND_COLOUR = Color.Black.setAlpha(0.5)
+        val BACKGROUND_COLOUR = Color.Black.setAlpha(0.5f)
         val FOREGROUND_COLOUR = Color.White
 
         vol_notif_visible = true
@@ -537,7 +537,7 @@ class PlayerService : Service() {
         }
 
         if (!vol_notif.isShown) {
-            MainActivity.context.windowManager.addView(vol_notif, vol_notif_params)
+            (getSystemService(Context.WINDOW_SERVICE) as WindowManager).addView(vol_notif, vol_notif_params)
         }
 
         val instance = ++vol_notif_instance
@@ -552,7 +552,7 @@ class PlayerService : Service() {
             Thread.sleep(FADE_DURATION)
             MainActivity.runInMainThread {
                 if (vol_notif_instance == instance && vol_notif.isShown) {
-                    MainActivity.context.windowManager.removeViewImmediate(vol_notif)
+                    (getSystemService(Context.WINDOW_SERVICE) as WindowManager).removeViewImmediate(vol_notif)
                 }
             }
         }
@@ -592,16 +592,16 @@ class PlayerService : Service() {
             return
         }
         notification_manager = PlayerNotificationManager.Builder(
-            MainActivity.context,
+            this@PlayerService,
             NOTIFICATION_ID,
             getNotificationChannel(),
             object : PlayerNotificationManager.MediaDescriptionAdapter {
 
                 override fun createCurrentContentIntent(player: Player): PendingIntent? {
                     return PendingIntent.getActivity(
-                        MainActivity.context,
+                        this@PlayerService,
                         1,
-                        Intent(MainActivity.context, MainActivity::class.java),
+                        Intent(this@PlayerService, MainActivity::class.java),
                         PendingIntent.FLAG_IMMUTABLE
                     )
                 }

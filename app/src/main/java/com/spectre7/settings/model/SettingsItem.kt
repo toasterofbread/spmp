@@ -26,6 +26,7 @@ import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.*
 import com.github.krottv.compose.sliders.*
+import com.spectre7.composesettings.ui.SettingsPage
 import com.spectre7.utils.*
 import kotlin.math.roundToInt
 
@@ -46,7 +47,11 @@ abstract class SettingsItem {
     abstract fun resetValues()
 
     @Composable
-    abstract fun GetItem(theme: Theme, open_page: (Int) -> Unit)
+    abstract fun GetItem(
+        theme: Theme,
+        openPage: (Int) -> Unit,
+        openCustomPage: (SettingsPage) -> Unit
+    )
 }
 
 class SettingsGroup(var title: String?): SettingsItem() {
@@ -54,7 +59,11 @@ class SettingsGroup(var title: String?): SettingsItem() {
     override fun resetValues() {}
 
     @Composable
-    override fun GetItem(theme: Theme, open_page: (Int) -> Unit) {
+    override fun GetItem(
+        theme: Theme,
+        openPage: (Int) -> Unit,
+        openCustomPage: (SettingsPage) -> Unit
+    ) {
         Spacer(Modifier.requiredHeight(20.dp))
         if (title != null) {
             Text(title!!.uppercase(), color = theme.getVibrantAccent(), fontSize = 20.sp, fontWeight = FontWeight.Light)
@@ -141,7 +150,11 @@ class SettingsItemToggle(
     }
 
     @Composable
-    override fun GetItem(theme: Theme, open_page: (Int) -> Unit) {
+    override fun GetItem(
+        theme: Theme,
+        openPage: (Int) -> Unit,
+        openCustomPage: (SettingsPage) -> Unit
+    ) {
         Row(verticalAlignment = Alignment.CenterVertically) {
             Column(
                 Modifier
@@ -151,7 +164,7 @@ class SettingsItemToggle(
                     Text(title)
                 }
                 if (subtitle != null) {
-                    Text(subtitle, color = theme.getOnBackground(false).setAlpha(0.75))
+                    Text(subtitle, color = theme.getOnBackground(false).setAlpha(0.75f))
                 }
             }
 
@@ -175,7 +188,7 @@ class SettingsItemToggle(
                 },
                 colors = SwitchDefaults.colors(
                     checkedThumbColor = theme.getVibrantAccent(),
-                    checkedTrackColor = theme.getVibrantAccent().setAlpha(0.5)
+                    checkedTrackColor = theme.getVibrantAccent().setAlpha(0.5f)
                 )
             )
         }
@@ -224,8 +237,13 @@ class SettingsItemSlider(
         value_state = state.value.toFloat()
     }
 
+    @OptIn(ExperimentalMaterial3Api::class)
     @Composable
-    override fun GetItem(theme: Theme, open_page: (Int) -> Unit) {
+    override fun GetItem(
+        theme: Theme,
+        openPage: (Int) -> Unit,
+        openCustomPage: (SettingsPage) -> Unit
+    ) {
         var show_edit_dialog by remember { mutableStateOf(false) }
 
         if (show_edit_dialog) {
@@ -295,7 +313,7 @@ class SettingsItemSlider(
                 }
             }
             if (subtitle != null) {
-                Text(subtitle, color = theme.getOnBackground(false).setAlpha(0.75))
+                Text(subtitle, color = theme.getOnBackground(false).setAlpha(0.75f))
             }
 
             Spacer(Modifier.requiredHeight(10.dp))
@@ -312,7 +330,13 @@ class SettingsItemSlider(
                         state.save()
                     },
                     thumbSizeInDp = DpSize(12.dp, 12.dp),
-                    track = { a, b, c, d, e -> DefaultTrack(a, b, c, d, e, theme.getVibrantAccent().setAlpha(0.5), theme.getVibrantAccent(), colorTickProgress = theme.getVibrantAccent().getContrasted().setAlpha(0.5)) },
+                    track = { a, b, c, d, e ->
+                        DefaultTrack(a, b, c, d, e,
+                            theme.getVibrantAccent().setAlpha(0.5f),
+                            theme.getVibrantAccent(),
+                            colorTickProgress = theme.getVibrantAccent().getContrasted().setAlpha(0.5f)
+                        )
+                    },
                     thumb = { modifier, offset, interaction_source, enabled, thumb_size ->
                         val colour = theme.getVibrantAccent()
                         val scale_on_press = 1.15f
@@ -342,7 +366,7 @@ class SettingsItemSlider(
                                             .size(12.dp)
                                             .background(
                                                 if (enabled) colour else
-                                                    colour.setAlpha(0.6), CircleShape
+                                                    colour.setAlpha(0.6f), CircleShape
                                             )
                                     )
                                     Text(value_text)
@@ -393,14 +417,18 @@ class SettingsItemMultipleChoice(
 
     @OptIn(ExperimentalMaterial3Api::class)
     @Composable
-    override fun GetItem(theme: Theme, open_page: (Int) -> Unit) {
+    override fun GetItem(
+        theme: Theme,
+        openPage: (Int) -> Unit,
+        openCustomPage: (SettingsPage) -> Unit
+    ) {
         Column {
             Column(Modifier.fillMaxWidth()) {
                 if (title != null) {
                     Text(title)
                 }
                 if (subtitle != null) {
-                    Text(subtitle, color = theme.getOnBackground(false).setAlpha(0.75), fontSize = 15.sp)
+                    Text(subtitle, color = theme.getOnBackground(false).setAlpha(0.75f), fontSize = 15.sp)
                 }
 
                 Spacer(Modifier.height(10.dp))
@@ -484,7 +512,11 @@ class SettingsItemDropdown(
     }
 
     @Composable
-    override fun GetItem(theme: Theme, open_page: (Int) -> Unit) {
+    override fun GetItem(
+        theme: Theme,
+        openPage: (Int) -> Unit,
+        openCustomPage: (SettingsPage) -> Unit
+    ) {
 
         Row(verticalAlignment = Alignment.CenterVertically) {
 
@@ -494,7 +526,7 @@ class SettingsItemDropdown(
                     .weight(1f)) {
                 Text(title)
                 if (subtitle != null) {
-                    Text(subtitle, color = theme.getOnBackground(false).setAlpha(0.75))
+                    Text(subtitle, color = theme.getOnBackground(false).setAlpha(0.75f))
                 }
             }
 
@@ -598,9 +630,13 @@ class SettingsItemSubpage(
     override fun resetValues() {}
 
     @Composable
-    override fun GetItem(theme: Theme, open_page: (Int) -> Unit) {
+    override fun GetItem(
+        theme: Theme,
+        openPage: (Int) -> Unit,
+        openCustomPage: (SettingsPage) -> Unit
+    ) {
         Button(modifier = Modifier.fillMaxWidth(), onClick = {
-            open_page(target_page)
+            openPage(target_page)
         }, colors = ButtonDefaults.buttonColors(theme.getAccent(), theme.getOnAccent())
         ) {
             Column(Modifier.weight(1f)) {
@@ -631,7 +667,11 @@ class SettingsItemAccessibilityService(
     override fun resetValues() {}
 
     @Composable
-    override fun GetItem(theme: Theme, open_page: (Int) -> Unit) {
+    override fun GetItem(
+        theme: Theme,
+        openPage: (Int) -> Unit,
+        openCustomPage: (SettingsPage) -> Unit
+    ) {
         var service_enabled: Boolean by remember { mutableStateOf(service_bridge.isEnabled(context)) }
         val listener: (Boolean) -> Unit = { service_enabled = it }
         DisposableEffect(Unit) {

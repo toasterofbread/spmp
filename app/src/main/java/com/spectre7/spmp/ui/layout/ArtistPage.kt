@@ -270,7 +270,7 @@ fun ArtistPage(
                                         .fillMaxWidth()
                                         .animateContentSize(),
                                     colors = CardDefaults.elevatedCardColors(
-                                        containerColor = MainActivity.theme.getOnBackground(false).setAlpha(0.05)
+                                        containerColor = MainActivity.theme.getOnBackground(false).setAlpha(0.05f)
                                     )
                                 ) {
                                     Column(Modifier.padding(10.dp), verticalArrangement = Arrangement.spacedBy(20.dp)) {
@@ -303,7 +303,7 @@ fun ArtistPage(
 
                                         LinkifyText(
                                             description,
-                                            MainActivity.theme.getOnBackground(false).setAlpha(0.8),
+                                            MainActivity.theme.getOnBackground(false).setAlpha(0.8f),
                                             MainActivity.theme.getOnBackground(false),
                                             MaterialTheme.typography.bodyMedium,
                                             Modifier

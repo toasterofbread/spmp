@@ -167,7 +167,7 @@ class PaletteSelectorOverlayMenu(
                                 colors = SliderDefaults.colors(
                                     thumbColor = MainActivity.theme.getBackground(true),
                                     activeTrackColor = MainActivity.theme.getBackground(true),
-                                    inactiveTrackColor = MainActivity.theme.getBackground(true).setAlpha(0.2)
+                                    inactiveTrackColor = MainActivity.theme.getBackground(true).setAlpha(0.2f)
                                 ),
                                 modifier = Modifier.weight(1f)
                             )

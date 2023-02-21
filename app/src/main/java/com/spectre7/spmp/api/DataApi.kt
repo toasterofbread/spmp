@@ -9,6 +9,9 @@ import net.openid.appauth.AuthorizationException
 import okhttp3.*
 import okhttp3.MediaType.Companion.toMediaType
 import okhttp3.RequestBody.Companion.toRequestBody
+import org.schabi.newpipe.extractor.NewPipe
+import org.schabi.newpipe.extractor.downloader.Downloader
+import org.schabi.newpipe.extractor.exceptions.ReCaptchaException
 import java.time.Duration
 import java.util.logging.Level
 import java.util.logging.Logger
@@ -42,17 +45,7 @@ class DataApi {
         private lateinit var youtubei_alt_context: JsonObject
         private lateinit var youtubei_headers: Headers
 
-//        private val failed = mutableListOf<String>()
-
         fun request(request: Request, allow_fail_response: Boolean = false): Result<Response> {
-//            if (fail) {
-//                val key = Throwable().stackTrace[2].let { trace -> "${trace.fileName}:${trace.lineNumber}" }
-//                if (!failed.contains(key)) {
-//                    failed.add(key)
-//                    return Result.failure(RuntimeException("Failed (testing)"))
-//                }
-//            }
-
             try {
                 val response = client.newCall(request).execute()
                 if (!allow_fail_response && response.code != 200) {
@@ -134,6 +127,50 @@ class DataApi {
                 .add("cache-control", "no-cache")
                 .add("te", "trailers")
                 .build()
+
+            NewPipe.init(object : Downloader() {
+                override fun execute(request: org.schabi.newpipe.extractor.downloader.Request): org.schabi.newpipe.extractor.downloader.Response {
+                    val httpMethod: String = request.httpMethod()
+                    val url: String = request.url()
+                    val headers: Map<String, List<String>> = request.headers()
+                    val dataToSend: ByteArray? = request.dataToSend()
+                    var requestBody: RequestBody? = null
+                    if (dataToSend != null) {
+                        requestBody = RequestBody.create(null, dataToSend)
+                    }
+                    val requestBuilder = Request.Builder()
+                        .method(httpMethod, requestBody).url(url)
+                        .addHeader("User-Agent", DATA_API_USER_AGENT)
+
+                    for ((headerName, headerValueList) in headers) {
+                        if (headerValueList.size > 1) {
+                            requestBuilder.removeHeader(headerName)
+                            for (headerValue in headerValueList) {
+                                requestBuilder.addHeader(headerName, headerValue)
+                            }
+                        } else if (headerValueList.size == 1) {
+                            requestBuilder.header(headerName, headerValueList[0])
+                        }
+                    }
+
+                    val response = DataApi.request(requestBuilder.build(), true).getOrThrowHere()
+                    if (response.code == 429) {
+                        response.close()
+                        throw ReCaptchaException("reCaptcha Challenge requested", url)
+                    }
+                    val body = response.body
+                    var responseBodyToReturn: String? = null
+                    if (body != null) {
+                        responseBodyToReturn = body.string()
+                    }
+                    val latestUrl = response.request.url.toString()
+                    return org.schabi.newpipe.extractor.downloader.Response(response.code,
+                        response.message,
+                        response.headers.toMultimap(),
+                        responseBodyToReturn,
+                        latestUrl)
+                }
+            })
         }
 
         internal fun getYTMHeaders(): Headers {

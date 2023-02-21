@@ -2,3 +2,7 @@
 	path = app/src/thirdparty/ExoPlayer
 	url = https://github.com/spectreseven1138/ExoPlayer
 	branch = 2.18.1-custom
+[submodule "app/src/thirdparty/NewPipeExtractor"]
+	path = app/src/thirdparty/NewPipeExtractor
+	url = https://github.com/TeamNewPipe/NewPipeExtractor
+	branch = 0ea16c0b73265302775f31b35a2349f465d434ba

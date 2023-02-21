@@ -4,6 +4,11 @@ import com.spectre7.spmp.R
 import com.spectre7.spmp.model.Song
 import com.spectre7.utils.getString
 import okhttp3.*
+import org.schabi.newpipe.extractor.NewPipe
+import org.schabi.newpipe.extractor.services.youtube.linkHandler.YoutubeStreamLinkHandlerFactory
+import org.schabi.newpipe.extractor.stream.AudioStream
+import org.schabi.newpipe.extractor.stream.StreamInfo
+import org.schabi.newpipe.extractor.stream.VideoStream
 import java.io.IOException
 import java.net.URLDecoder
 import java.net.URLEncoder
@@ -24,25 +29,25 @@ private fun checkUrl(url: String): Boolean {
     return response.code == 200 && !is_invalid
 }
 
-data class YoutubeVideoFormat (
+data class YoutubeVideoFormat(
     val itag: Int? = null,
     val mimeType: String,
     val bitrate: Int,
     val signatureCipher: String? = null,
-    val url: String? = null
+    val url: String? = null,
 ) {
     val identifier: Int = itag ?: bitrate
     var stream_url: String? = url
     val audio_only: Boolean get() = mimeType.startsWith("audio")
     var matched_quality: Song.AudioQuality? = null
 
-    fun loadStreamUrl(video_id: String) {
+    fun loadStreamUrl(video_id: String): Throwable? {
         if (stream_url != null) {
-            return
+            return null
         }
         if (url != null) {
             stream_url = url
-            return
+            return null
         }
 
         for (i in 0 until MAX_RETRIES) {
@@ -54,22 +59,102 @@ data class YoutubeVideoFormat (
 
             if (i + 1 == MAX_RETRIES) {
                 stream_url = null
-                throw RuntimeException("Could not load formats for video $video_id after $MAX_RETRIES attempts")
+                return RuntimeException("Could not load formats for video $video_id after $MAX_RETRIES attempts")
             }
         }
+
+        return null
     }
+}
+
+fun testVideoFormatMethods(ids: List<String>, filter: ((YoutubeVideoFormat) -> Boolean)? = null) {
+    val methods: Map<String, (id: String) -> Result<List<YoutubeVideoFormat>>> = mapOf(
+        Pair("NewPipe", { id -> getVideoFormats(id, filter) }),
+        Pair("Piped API", { id -> getVideoFormatsFallback1(id, filter) }),
+        Pair("Youtubei", { id -> getVideoFormatsFallback2(id, filter) }),
+        Pair("Youtube player", { id -> getVideoFormatsFallback3(id, filter) })
+    )
+
+    println("--- Begin test ---")
+
+    val totals: MutableMap<String, Long> = methods.mapValues { 0L }.toMutableMap()
+    for (id in ids) {
+        println("Testing id $id")
+        for (method in methods) {
+            println("Testing method ${method.key}")
+            val start = System.currentTimeMillis()
+            method.value.invoke(id)
+            totals[method.key] = totals[method.key]!! + (System.currentTimeMillis() - start)
+        }
+    }
+
+    println("Test results:")
+
+    for (total in totals) {
+        println("${total.key}: ${(total.value.toFloat() / ids.size) / 1000f}s")
+    }
+
+    println("--- End test ---")
+}
+
+private fun VideoStream.toYoutubeVideoFormat(): YoutubeVideoFormat {
+    return YoutubeVideoFormat(itag, format!!.mimeType, bitrate, url = content)
+}
+
+private fun AudioStream.toYoutubeVideoFormat(): YoutubeVideoFormat {
+    return YoutubeVideoFormat(itag, format!!.mimeType, bitrate, url = content)
+}
+
+fun getVideoFormats(id: String, filter: ((YoutubeVideoFormat) -> Boolean)? = null): Result<List<YoutubeVideoFormat>> {
+    val stream_info = StreamInfo.getInfo(
+        NewPipe.getService(0).getStreamExtractor(
+            YoutubeStreamLinkHandlerFactory.getInstance().fromId(id)
+        )
+    )
+
+    return Result.success(
+        stream_info.audioStreams.mapNotNull { stream ->
+            val format = stream.toYoutubeVideoFormat()
+            if (filter?.invoke(format) == false) {
+                return@mapNotNull null
+            }
+            return@mapNotNull format
+        }
+        + stream_info.videoStreams.mapNotNull { stream ->
+            val format = stream.toYoutubeVideoFormat()
+            if (filter?.invoke(format) == false) {
+                return@mapNotNull null
+            }
+            return@mapNotNull format
+        }
+    )
 }
 
 private data class PipedStreamsResponse(
     val audioStreams: List<YoutubeVideoFormat>,
-     val relatedStreams: List<RelatedStream>
+    val relatedStreams: List<RelatedStream>,
 ) {
     data class RelatedStream(val url: String, val type: String)
 }
 
+fun getVideoFormatsFallback1(id: String, filter: ((YoutubeVideoFormat) -> Boolean)? = null): Result<List<YoutubeVideoFormat>> {
+    val request = Request.Builder().url("https://pipedapi.syncpundit.io/streams/$id").build()
+    val result = DataApi.request(request)
+
+    if (result.isFailure) {
+        return result.cast()
+    }
+
+    val stream = result.getOrThrow().body!!.charStream()
+    val response: PipedStreamsResponse = DataApi.klaxon.parse(stream)!!
+    stream.close()
+
+    return Result.success(response.audioStreams.let { if (filter != null) it.filter(filter) else it })
+}
+
 private data class FormatsResponse(
     val playabilityStatus: PlayabilityStatus,
-    val streamingData: StreamingData? = null
+    val streamingData: StreamingData? = null,
 ) {
     val is_ok: Boolean get() = playabilityStatus.status == "OK"
     data class PlayabilityStatus(val status: String)
@@ -86,22 +171,7 @@ private fun buildVideoFormatsRequest(id: String, alt: Boolean): Request {
         .build()
 }
 
-fun getVideoFormats(id: String, filter: ((YoutubeVideoFormat) -> Boolean)? = null): Result<List<YoutubeVideoFormat>> {
-    val request = Request.Builder().url("https://pipedapi.syncpundit.io/streams/$id").build()
-    val result = DataApi.request(request)
-
-    if (result.isFailure) {
-        return result.cast()
-    }
-
-    val stream = result.getOrThrow().body!!.charStream()
-    val response: PipedStreamsResponse = DataApi.klaxon.parse(stream)!!
-    stream.close()
-
-    return Result.success(response.audioStreams)
-}
-
-fun getVideoFormatsFallback(id: String, filter: ((YoutubeVideoFormat) -> Boolean)? = null): Result<List<YoutubeVideoFormat>> {
+fun getVideoFormatsFallback2(id: String, filter: ((YoutubeVideoFormat) -> Boolean)? = null): Result<List<YoutubeVideoFormat>> {
     var result = DataApi.request(buildVideoFormatsRequest(id, false))
     var formats: FormatsResponse? = null
 
@@ -142,9 +212,12 @@ fun getVideoFormatsFallback(id: String, filter: ((YoutubeVideoFormat) -> Boolean
             }
         }
 
-        format.loadStreamUrl(id)
+        val error = format.loadStreamUrl(id)
+        if (error != null) {
+            return Result.failure(error)
+        }
 //        format.stream_url = format.url ?: decrypter!!.decryptSignatureCipher(format.signatureCipher!!)
-        println("${format.itag} | ${format.url != null} | ${format.stream_url}")
+//        println("${format.itag} | ${format.url != null} | ${format.stream_url}")
 
         ret.add(format)
     }
@@ -152,7 +225,7 @@ fun getVideoFormatsFallback(id: String, filter: ((YoutubeVideoFormat) -> Boolean
     return Result.success(ret)
 }
 
-private fun getVideoFormatsFallback2(id: String, filter: ((YoutubeVideoFormat) -> Boolean)? = null): Result<List<YoutubeVideoFormat>> {
+private fun getVideoFormatsFallback3(id: String, filter: ((YoutubeVideoFormat) -> Boolean)? = null): Result<List<YoutubeVideoFormat>> {
 
     val RESPONSE_DATA_START = "ytInitialPlayerResponse = "
     val request = Request.Builder()
@@ -327,7 +400,7 @@ class SignatureCipherDecrypter(base_js: String) {
                 .header("Cookie", "CONSENT=YES+1")
                 .header("User-Agent", DATA_API_USER_AGENT)
                 .build()
-        
+
             val response_result = DataApi.request(request)
             if (response_result.isFailure) {
                 return response_result.cast()

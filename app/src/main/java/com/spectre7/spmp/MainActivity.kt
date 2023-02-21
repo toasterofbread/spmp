@@ -37,6 +37,7 @@ import com.google.android.exoplayer2.database.StandaloneDatabaseProvider
 import com.google.android.exoplayer2.upstream.cache.NoOpCacheEvictor
 import com.google.android.exoplayer2.upstream.cache.SimpleCache
 import com.spectre7.spmp.api.DataApi
+import com.spectre7.spmp.api.testVideoFormatMethods
 import com.spectre7.spmp.model.Cache
 import com.spectre7.spmp.model.Settings
 import com.spectre7.spmp.model.Song

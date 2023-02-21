@@ -21,3 +21,9 @@ include ':app'
 
 gradle.ext.exoplayerModulePrefix = "exoplayer-"
 apply from: file("app/src/thirdparty/ExoPlayer/core_settings.gradle")
+
+includeBuild('app/src/thirdparty/NewPipeExtractor') {
+    dependencySubstitution {
+        substitute module('com.github.TeamNewPipe:NewPipeExtractor') with project(':extractor')
+    }
+}

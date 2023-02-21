@@ -147,6 +147,7 @@ dependencies {
     implementation "org.burnoutcrew.composereorderable:reorderable:0.9.2"
     implementation "com.github.spectreseven1138:android-compose-furigana:custom-SNAPSHOT"
     implementation "com.godaddy.android.colorpicker:compose-color-picker:0.7.0"
+    implementation "com.github.TeamNewPipe:NewPipeExtractor:v0.22.1"
 
     implementation project(":exoplayer-library-core")
     implementation project(":exoplayer-library-ui")

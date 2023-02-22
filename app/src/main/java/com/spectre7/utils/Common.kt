@@ -237,7 +237,7 @@ fun WidthShrinkText(text: String, fontSize: TextUnit, modifier: Modifier = Modif
 
 @Composable
 fun WidthShrinkText(text: String, style: TextStyle, modifier: Modifier = Modifier) {
-	WidthShrinkText(text, remember { mutableStateOf(style) }, modifier)
+	WidthShrinkText(text, remember(style) { mutableStateOf(style) }, modifier)
 }
 
 @Composable

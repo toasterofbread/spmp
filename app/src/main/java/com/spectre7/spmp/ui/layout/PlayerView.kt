@@ -3,7 +3,6 @@
 package com.spectre7.spmp.ui.layout
 
 import androidx.compose.animation.*
-import androidx.compose.foundation.ExperimentalFoundationApi
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyListState
@@ -252,7 +251,6 @@ fun PlayerView() {
     }
 }
 
-@OptIn(ExperimentalFoundationApi::class)
 @Composable
 private fun MainPage(
     layouts: MutableList<MediaItemLayout>,
@@ -302,7 +300,6 @@ private fun MainPage(
 private val feed_refresh_lock = ReentrantLock()
 
 private fun refreshFeed(allow_cached: Boolean, feed_layouts: MutableList<MediaItemLayout>, onFinished: (success: Boolean) -> Unit) {
-
     thread {
         if (!feed_refresh_lock.tryLock()) {
             return@thread
@@ -321,9 +318,6 @@ private fun refreshFeed(allow_cached: Boolean, feed_layouts: MutableList<MediaIt
                 return@thread
             }
 
-            val artists = MediaItemLayout(getString(R.string.feed_row_artists), null, MediaItemLayout.Type.GRID)
-            val playlists = MediaItemLayout(getString(R.string.feed_row_playlists), null, MediaItemLayout.Type.GRID)
-
             val rows = mutableListOf<MediaItemLayout>()
             val request_limit = Semaphore(10) // TODO?
 
@@ -333,20 +327,8 @@ private fun refreshFeed(allow_cached: Boolean, feed_layouts: MutableList<MediaIt
                     rows.add(entry)
 
                     for (item in row.items) {
-                        if (item.title != null && (item.artist != null || item is Playlist)) {
-                            when (item) {
-                                is Song -> {
-                                    entry.addItem(item)
-                                    artists.addItem(item.artist!!)
-                                }
-                                is Playlist -> {
-                                    playlists.addItem(item)
-                                    if (item.artist != null) {
-                                        artists.addItem(item.artist!!)
-                                    }
-                                }
-                                is Artist -> artists.addItem(item)
-                            }
+                        if (item.title != null) {
+                            entry.addItem(item)
                             continue
                         }
 
@@ -354,19 +336,7 @@ private fun refreshFeed(allow_cached: Boolean, feed_layouts: MutableList<MediaIt
                             request_limit.withPermit {
                                 item.loadData().onSuccess { loaded ->
                                     synchronized(request_limit) {
-                                        when (loaded) {
-                                            is Song -> {
-                                                entry.addItem(loaded)
-                                                artists.addItem(loaded.artist!!)
-                                            }
-                                            is Playlist -> {
-                                                playlists.addItem(loaded)
-                                                if (loaded.artist != null) {
-                                                    artists.addItem(loaded.artist!!)
-                                                }
-                                            }
-                                            is Artist -> artists.addItem(loaded)
-                                        }
+                                        entry.addItem(loaded)
                                     }
                                 }
                             }
@@ -379,12 +349,6 @@ private fun refreshFeed(allow_cached: Boolean, feed_layouts: MutableList<MediaIt
                 if (row.items.isNotEmpty()) {
                     feed_layouts.add(row)
                 }
-            }
-            if (artists.items.isNotEmpty()) {
-                feed_layouts.add(artists)
-            }
-            if (playlists.items.isNotEmpty()) {
-                feed_layouts.add(playlists)
             }
 
             feed_refresh_lock.unlock()

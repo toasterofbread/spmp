@@ -52,6 +52,20 @@ abstract class SettingsItem {
         openPage: (Int) -> Unit,
         openCustomPage: (SettingsPage) -> Unit
     )
+
+    @Composable
+    protected fun ItemTitleText(text: String?, theme: Theme) {
+        if (text != null) {
+            Text(text, color = theme.getOnBackground(false))
+        }
+    }
+
+    @Composable
+    protected fun ItemText(text: String?, theme: Theme, font_size: TextUnit = TextUnit.Unspecified) {
+        if (text != null) {
+            Text(text, color = theme.getOnBackground(false).setAlpha(0.75f), fontSize = font_size)
+        }
+    }
 }
 
 class SettingsGroup(var title: String?): SettingsItem() {
@@ -160,12 +174,8 @@ class SettingsItemToggle(
                 Modifier
                     .fillMaxWidth()
                     .weight(1f)) {
-                if (title != null) {
-                    Text(title)
-                }
-                if (subtitle != null) {
-                    Text(subtitle, color = theme.getOnBackground(false).setAlpha(0.75f))
-                }
+                ItemTitleText(title, theme)
+                ItemText(subtitle, theme)
             }
 
             Switch(
@@ -269,7 +279,7 @@ class SettingsItemSlider(
                     }
                 },
                 dismissButton = { TextButton( { show_edit_dialog = false } ) { Text("Cancel") } },
-                title = { Text(title ?: "Edit field") },
+                title = { ItemTitleText(title ?: "Edit field", theme) },
                 text = {
                     OutlinedTextField(
                         value = text,
@@ -306,22 +316,21 @@ class SettingsItemSlider(
         Column(Modifier.fillMaxWidth()) {
             if (title != null) {
                 Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.SpaceBetween) {
-                    Text(title)
+                    ItemTitleText(title, theme)
                     IconButton({ show_edit_dialog = true }, Modifier.size(25.dp)) {
                         Icon(Icons.Filled.Edit, null)
                     }
                 }
             }
-            if (subtitle != null) {
-                Text(subtitle, color = theme.getOnBackground(false).setAlpha(0.75f))
-            }
+            
+            ItemText(subtitle, theme)
 
             Spacer(Modifier.requiredHeight(10.dp))
 
             state.autosave = false
             Row(Modifier.fillMaxWidth(), verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(10.dp)) {
                 if (min_label != null) {
-                    Text(min_label, fontSize = 12.sp)
+                    ItemText(min_label, theme, 12.sp)
                 }
                 SliderValueHorizontal(
                     value = getValue(),
@@ -344,7 +353,7 @@ class SettingsItemSlider(
                         val value_text = getValueText?.invoke(getValue())
 
                         if (value_text != null) {
-                            MeasureUnconstrainedView({ Text(value_text) }) { width, height ->
+                            MeasureUnconstrainedView({ ItemText(value_text, theme) }) { width, height ->
 
                                 var is_pressed by remember { mutableStateOf(false) }
                                 interaction_source.ListenOnPressed { is_pressed = it }
@@ -369,7 +378,7 @@ class SettingsItemSlider(
                                                     colour.setAlpha(0.6f), CircleShape
                                             )
                                     )
-                                    Text(value_text)
+                                    ItemText(value_text, theme)
                                 }
                             }
                         }
@@ -391,7 +400,7 @@ class SettingsItemSlider(
                     valueRange = range
                 )
                 if (max_label != null) {
-                    Text(max_label, fontSize = 12.sp)
+                    ItemText(max_label, theme, 12.sp)
                 }
             }
         }
@@ -424,12 +433,8 @@ class SettingsItemMultipleChoice(
     ) {
         Column {
             Column(Modifier.fillMaxWidth()) {
-                if (title != null) {
-                    Text(title)
-                }
-                if (subtitle != null) {
-                    Text(subtitle, color = theme.getOnBackground(false).setAlpha(0.75f), fontSize = 15.sp)
-                }
+                ItemTitleText(title, theme)
+                ItemText(subtitle, theme, 15.sp)
 
                 Spacer(Modifier.height(10.dp))
 
@@ -524,10 +529,8 @@ class SettingsItemDropdown(
                 Modifier
                     .fillMaxWidth()
                     .weight(1f)) {
-                Text(title)
-                if (subtitle != null) {
-                    Text(subtitle, color = theme.getOnBackground(false).setAlpha(0.75f))
-                }
+                ItemTitleText(title, theme)
+                ItemText(subtitle, theme)
             }
 
             var open by remember { mutableStateOf(false) }
@@ -640,10 +643,8 @@ class SettingsItemSubpage(
         }, colors = ButtonDefaults.buttonColors(theme.getAccent(), theme.getOnAccent())
         ) {
             Column(Modifier.weight(1f)) {
-                Text(title)
-                if (subtitle != null) {
-                    Text(subtitle)
-                }
+                ItemTitleText(title, theme)
+                ItemText(subtitle, theme)
             }
         }
     }
@@ -698,7 +699,10 @@ class SettingsItemAccessibilityService(
                 ) {
                     Text(if (enabled) enabled_text else disabled_text)
                     Button({ service_bridge.setEnabled(!enabled) },
-                        colors = ButtonDefaults.buttonColors(if (enabled) theme.getAccent() else theme.getBackground(false), if (enabled) theme.getOnAccent() else theme.getOnBackground(false))
+                        colors = ButtonDefaults.buttonColors(
+                            containerColor = if (enabled) theme.getAccent() else theme.getBackground(false),
+                            contentColor = if (enabled) theme.getOnAccent() else theme.getOnBackground(false)
+                        )
                     ) {
                         Text(if (enabled) disable_button else enable_button)
                     }

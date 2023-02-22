@@ -1,3 +1,4 @@
+-dontobfuscate
 -keep class com.spectre7.spmp.** { *; }
 
 # Klaxon
@@ -5,3 +6,6 @@
 -keep class com.beust.klaxon.** { *; }
 -keep interface com.beust.klaxon.** { *; }
 -keep class kotlin.Metadata { *; }
+
+# NewPipe
+-keep class org.mozilla.javascript.**

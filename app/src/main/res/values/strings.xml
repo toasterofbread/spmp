@@ -78,6 +78,9 @@
     <string name="s_key_vol_steps">Volume steps</string>
     <string name="s_sub_vol_steps">Amount of steps when changing volume</string>
 
+    <string name="s_key_open_np_on_song_played">Open player when song clicked</string>
+    <string name="s_sub_open_np_on_song_played">The now playing menu will open automatically when clicking and playing a song</string>
+
     <string name="s_group_theming">Theming</string>
 
     <string name="s_key_accent_source">Accent colour</string>

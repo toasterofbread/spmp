@@ -58,6 +58,9 @@ data class PlayerViewContext(
         return PlayerViewContext(onClickedOverride, onLongClickedOverride, this)
     }
 
+    private val now_playing_swipe_state = rememberSwipeableState(0)
+    private var now_playing_switch_page: Int by mutableStateOf(-1)
+
     val pill_menu = PillMenu(
         top = false
     )
@@ -77,7 +80,12 @@ data class PlayerViewContext(
         }
 
         when (item) {
-            is Song -> PlayerServiceHost.service.playSong(item)
+            is Song -> {
+                PlayerServiceHost.service.playSong(item)
+                if (now_playing_swipe_state.targetState == 0 && Settings.get(Settings.KEY_OPEN_NP_ON_SONG_PLAYED)) {
+                    now_playing_switch_page = 1
+                }
+            }
             else -> openMediaItem(item)
         }
     }
@@ -140,6 +148,18 @@ data class PlayerViewContext(
     }
 
     @Composable
+    fun NowPlaying() {
+        NowPlaying(remember { { this } }, now_playing_swipe_state)
+        
+        OnChangedEffect(now_playing_switch_page) {
+            if (now_playing_switch_page >= 0) {
+                swipe_state.animateTo(now_playing_switch_page)
+                now_playing_switch_page = -1
+            }
+        }
+    }
+
+    @Composable
     internal fun LongPressMenu() {
         var height by remember { mutableStateOf(0) }
 
@@ -189,8 +209,6 @@ fun PlayerView() {
             .fillMaxSize()
             .background(MainActivity.theme.getBackground(false))
     ) {
-        val now_playing_swipe_state = rememberSwipeableState(0)
-
         Box {
             val expand_state = remember { mutableStateOf(false) }
             val overlay_open by remember { derivedStateOf { player.overlay_page != OverlayPage.NONE } }
@@ -214,7 +232,7 @@ fun PlayerView() {
                 },
                 if (!overlay_open) expand_state else null,
                 MainActivity.theme.getAccentProvider(),
-                container_modifier = Modifier.offset { IntOffset(x = 0, y = -now_playing_swipe_state.offset.value.dp.toPx().toInt()) }
+                container_modifier = Modifier.offset { IntOffset(x = 0, y = -player.now_playing_swipe_state.offset.value.dp.toPx().toInt()) }
             )
 
             val main_page_layouts = remember { mutableStateListOf<MediaItemLayout>() }
@@ -247,7 +265,7 @@ fun PlayerView() {
             }
         }
 
-        NowPlaying(playerProvider, now_playing_swipe_state)
+        player.NowPlaying()
     }
 }
 
@@ -271,17 +289,13 @@ private fun MainPage(
     ) {
         Crossfade(remember { derivedStateOf { layouts.isNotEmpty() } }.value) { loaded ->
             if (loaded) {
-//                CompositionLocalProvider(
-//                    LocalOverscrollConfiguration provides null
-//                ) {
-                    LazyMediaItemLayoutColumn(
-                        layouts,
-                        playerProvider,
-                        top_padding = getStatusBarHeight(MainActivity.context),
-                        bottom_padding = MINIMISED_NOW_PLAYING_HEIGHT.dp,
-                        scroll_state = scroll_state
-                    )
-//                }
+                LazyMediaItemLayoutColumn(
+                    layouts,
+                    playerProvider,
+                    top_padding = getStatusBarHeight(MainActivity.context),
+                    bottom_padding = MINIMISED_NOW_PLAYING_HEIGHT.dp,
+                    scroll_state = scroll_state
+                )
             }
             else {
                 Column(Modifier.fillMaxSize(), verticalArrangement = Arrangement.Center, horizontalAlignment = Alignment.CenterHorizontally) {

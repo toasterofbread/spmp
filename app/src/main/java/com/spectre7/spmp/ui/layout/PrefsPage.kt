@@ -105,7 +105,7 @@ fun PrefsPage(pill_menu: PillMenu, close: () -> Unit) {
                     Page.ROOT -> SettingsPageWithItems(
                         getString(R.string.s_page_preferences),
                         groupGeneral(interface_lang, language_data)
-                            + groupThemeing()
+                            + groupTheming()
                             + groupLyrics()
                             + groupDownloads()
                             + groupAudioVideo()
@@ -277,11 +277,17 @@ fun groupGeneral(interface_lang: SettingsValueState<Int>, language_data: Map<Str
             "0",
             "100",
             range = 0f .. 100f
+        ),
+
+        SettingsItemToggle(
+            SettingsValueState(Settings.KEY_OPEN_NP_ON_SONG_PLAYED.name),
+            getString(R.string.s_key_open_np_on_song_played),
+            getString(R.string.s_sub_open_np_on_song_played)
         )
     )
 }
 
-fun groupThemeing(): List<SettingsItem> {
+fun groupTheming(): List<SettingsItem> {
     return listOf(
         SettingsGroup(getString(R.string.s_group_theming)),
 

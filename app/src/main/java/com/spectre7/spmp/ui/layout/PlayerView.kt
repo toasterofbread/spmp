@@ -8,6 +8,7 @@ import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyListState
 import androidx.compose.foundation.lazy.rememberLazyListState
 import androidx.compose.material.ExperimentalMaterialApi
+import androidx.compose.material.SwipeableState
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.*
 import androidx.compose.material.rememberSwipeableState
@@ -48,6 +49,7 @@ fun getScreenHeight(): Dp {
 const val MINIMISED_NOW_PLAYING_HEIGHT: Int = 64
 enum class OverlayPage { NONE, SEARCH, SETTINGS, MEDIAITEM }
 
+@OptIn(ExperimentalMaterialApi::class)
 data class PlayerViewContext(
     private val onClickedOverride: ((item: MediaItem) -> Unit)? = null,
     private val onLongClickedOverride: ((item: MediaItem) -> Unit)? = null,
@@ -58,7 +60,7 @@ data class PlayerViewContext(
         return PlayerViewContext(onClickedOverride, onLongClickedOverride, this)
     }
 
-    private val now_playing_swipe_state = rememberSwipeableState(0)
+    val now_playing_swipe_state = SwipeableState(0)
     private var now_playing_switch_page: Int by mutableStateOf(-1)
 
     val pill_menu = PillMenu(
@@ -82,7 +84,7 @@ data class PlayerViewContext(
         when (item) {
             is Song -> {
                 PlayerServiceHost.service.playSong(item)
-                if (now_playing_swipe_state.targetState == 0 && Settings.get(Settings.KEY_OPEN_NP_ON_SONG_PLAYED)) {
+                if (now_playing_swipe_state.targetValue == 0 && Settings.get(Settings.KEY_OPEN_NP_ON_SONG_PLAYED)) {
                     now_playing_switch_page = 1
                 }
             }
@@ -115,6 +117,11 @@ data class PlayerViewContext(
 
         overlay_page = OverlayPage.MEDIAITEM
         overlay_media_item = item
+
+        if (now_playing_swipe_state.targetValue != 0) {
+            now_playing_switch_page = 0
+        }
+        hideLongPressMenu()
     }
 
     private var long_press_menu_data: LongPressMenuData? by mutableStateOf(null)
@@ -153,7 +160,7 @@ data class PlayerViewContext(
         
         OnChangedEffect(now_playing_switch_page) {
             if (now_playing_switch_page >= 0) {
-                swipe_state.animateTo(now_playing_switch_page)
+                now_playing_swipe_state.animateTo(now_playing_switch_page)
                 now_playing_switch_page = -1
             }
         }
@@ -238,7 +245,11 @@ fun PlayerView() {
             val main_page_layouts = remember { mutableStateListOf<MediaItemLayout>() }
 
             LaunchedEffect(Unit) {
-                refreshFeed(true, main_page_layouts) {}
+                refreshFeed(true, main_page_layouts) {
+                    if (it) {
+                        PlayerServiceHost.service.loadPersistentQueue()
+                    }
+                }
             }
 
             val main_page_scroll_state = rememberLazyListState()

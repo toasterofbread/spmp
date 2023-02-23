@@ -29,7 +29,7 @@ import com.spectre7.utils.setAlpha
 
 @Composable
 fun ArtistPreviewSquare(
-    artist: Artist, 
+    artist: Artist,
     content_colour: () -> Color,
     playerProvider: () -> PlayerViewContext,
     enable_long_press_menu: Boolean = true,
@@ -143,7 +143,7 @@ val artistLongPressPopupActions: @Composable LongPressMenuActionProvider.(MediaI
                         TODO()
                     }
                 )
-                
+
                 Row(verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(10.dp)) {
                     val button_padding = PaddingValues(0.dp)
                     val button_modifier = Modifier

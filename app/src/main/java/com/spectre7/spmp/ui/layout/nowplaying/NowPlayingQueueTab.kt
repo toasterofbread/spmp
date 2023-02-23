@@ -23,6 +23,7 @@ import androidx.compose.runtime.snapshots.SnapshotStateList
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
+import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.LocalConfiguration
 import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.unit.*
@@ -33,6 +34,7 @@ import com.spectre7.spmp.model.Song
 import com.spectre7.spmp.ui.layout.MINIMISED_NOW_PLAYING_HEIGHT
 import com.spectre7.spmp.ui.layout.PlayerViewContext
 import com.spectre7.utils.amplify
+import com.spectre7.utils.getContrasted
 import com.spectre7.utils.vibrateShort
 import org.burnoutcrew.reorderable.*
 import kotlin.math.roundToInt
@@ -40,7 +42,6 @@ import kotlin.math.roundToInt
 private class QueueTabItem(val song: Song, val key: Int) {
 
 //    val added_time = System.currentTimeMillis()
-    val current_element_modifier = Modifier.background(MainActivity.theme.getOnBackground(true), RoundedCornerShape(45))
 
     @OptIn(ExperimentalMaterial3Api::class)
     @Composable
@@ -60,22 +61,36 @@ private class QueueTabItem(val song: Song, val key: Int) {
 
     @OptIn(ExperimentalMaterial3Api::class)
     @Composable
-    fun QueueElement(list_state: ReorderableLazyListState, current: Boolean, index: Int, playerProvider: () -> PlayerViewContext, requestRemove: () -> Unit) {
+    fun QueueElement(
+        list_state: ReorderableLazyListState,
+        current: Boolean,
+        index: Int,
+        parent_background_colour: Color,
+        playerProvider: () -> PlayerViewContext,
+        requestRemove: () -> Unit
+    ) {
         val swipe_state = queueElementSwipeState(requestRemove)
         val max_offset = with(LocalDensity.current) { LocalConfiguration.current.screenWidthDp.dp.toPx() }
         val anchors = mapOf(-max_offset to 0, 0f to 1, max_offset to 2)
 
         Box(
-            Modifier.offset { IntOffset(swipe_state.offset.value.roundToInt(), 0) }.then(if (current) current_element_modifier else Modifier)
+            Modifier
+                .offset { IntOffset(swipe_state.offset.value.roundToInt(), 0) }
+                .let {
+                    if (!current)
+                        it
+                    else
+                        it.background(parent_background_colour.getContrasted(), RoundedCornerShape(45))
+                }
         ) {
             Row(
                 horizontalArrangement = Arrangement.End,
                 verticalAlignment = Alignment.CenterVertically,
                 modifier = Modifier.padding(start = 10.dp, end = 20.dp)
             ) {
-                val contentColourProvider = if (current) MainActivity.theme.getBackgroundProvider(true) else MainActivity.theme.getOnBackgroundProvider(true)
+                val content_colour = if (current) parent_background_colour else parent_background_colour.getContrasted()
                 song.PreviewLong(
-                    contentColourProvider,
+                    { content_colour },
                     remember(index) {
                         {
                             playerProvider().copy(onClickedOverride = {
@@ -95,7 +110,10 @@ private class QueueTabItem(val song: Song, val key: Int) {
                 )
 
                 // Drag handle
-                Icon(Icons.Filled.Menu, null, Modifier.detectReorder(list_state).requiredSize(25.dp), tint = contentColourProvider())
+                Icon(Icons.Filled.Menu, null,
+                    Modifier
+                        .detectReorder(list_state)
+                        .requiredSize(25.dp), tint = content_colour)
             }
         }
     }
@@ -173,18 +191,19 @@ fun QueueTab(expansionProvider: () -> Float, playerProvider: () -> PlayerViewCon
         PlayerServiceHost.service.removeFromQueue(index)
     }
 
+    val background_colour = MainActivity.theme.getBackground(true).amplify(1f)
     val shape = RoundedCornerShape(topStartPercent = 7, topEndPercent = 7)
     Box(Modifier
         .fillMaxSize()
         .padding(top = MINIMISED_NOW_PLAYING_HEIGHT.dp + 20.dp)
-        .background(MainActivity.theme.getBackground(true).amplify(1f), shape)
+        .background(background_colour, shape)
         .clip(shape)
     ) {
         val list_padding = 10.dp
 
         LazyColumn(
             state = state.listState,
-            contentPadding = PaddingValues(top = list_padding),
+            contentPadding = PaddingValues(top = list_padding, bottom = 60.dp),
             modifier = Modifier
                 .reorderable(state)
                 .detectReorderAfterLongPress(state)
@@ -219,6 +238,7 @@ fun QueueTab(expansionProvider: () -> Float, playerProvider: () -> PlayerViewCon
                                 state,
                                 if (playing_key != null) playing_key == item.key else PlayerServiceHost.status.m_index == index,
                                 index,
+                                background_colour,
                                 playerProvider,
                                 remember(item.song, index) { { removeSong(item.song, index) } }
                             )
@@ -307,8 +327,9 @@ private fun BoxScope.ActionBar(expansionProvider: () -> Float, undo_list: Snapsh
                                 if (swaps.isNotEmpty()) {
                                     undo_list.add {
                                         for (swap in swaps.asReversed()) {
-                                            PlayerServiceHost.service.swapQueuePositions(swap.first, swap.second)
+                                            PlayerServiceHost.service.swapQueuePositions(swap.first, swap.second, save = false)
                                         }
+                                        PlayerServiceHost.service.savePersistentQueue()
                                     }
                                 }
                             },
@@ -318,8 +339,9 @@ private fun BoxScope.ActionBar(expansionProvider: () -> Float, undo_list: Snapsh
                                 if (swaps.isNotEmpty()) {
                                     undo_list.add {
                                         for (swap in swaps.asReversed()) {
-                                            PlayerServiceHost.service.swapQueuePositions(swap.first, swap.second)
+                                            PlayerServiceHost.service.swapQueuePositions(swap.first, swap.second, save = false)
                                         }
+                                        PlayerServiceHost.service.savePersistentQueue()
                                     }
                                 }
                             }

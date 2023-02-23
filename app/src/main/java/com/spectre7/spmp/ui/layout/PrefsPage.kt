@@ -283,6 +283,12 @@ fun groupGeneral(interface_lang: SettingsValueState<Int>, language_data: Map<Str
             SettingsValueState(Settings.KEY_OPEN_NP_ON_SONG_PLAYED.name),
             getString(R.string.s_key_open_np_on_song_played),
             getString(R.string.s_sub_open_np_on_song_played)
+        ),
+
+        SettingsItemToggle(
+            SettingsValueState(Settings.KEY_PERSISTENT_QUEUE.name),
+            getString(R.string.s_key_persistent_queue),
+            getString(R.string.s_sub_persistent_queue)
         )
     )
 }

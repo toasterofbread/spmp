@@ -15,6 +15,7 @@ import com.google.android.exoplayer2.Player
 import com.google.android.exoplayer2.offline.DownloadService
 import com.google.android.exoplayer2.MediaItem as ExoMediaItem
 import com.spectre7.spmp.model.Song
+import com.spectre7.utils.mainThread
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.runBlocking
 import kotlin.concurrent.thread
@@ -62,7 +63,12 @@ class PlayerServiceHost {
         val m_queue = mutableStateListOf<Song>()
         var m_playing: Boolean by mutableStateOf(false)
         var m_position_seconds: Float by mutableStateOf(0f)
-        val m_position: Float get() = m_position_seconds / m_duration
+        val m_position: Float get() {
+            if (m_duration == 0f) {
+                return 0f
+            }
+            return m_position_seconds / m_duration
+        }
         var m_duration: Float by mutableStateOf(0f)
         var m_song: Song? by mutableStateOf(null)
         var m_index: Int by mutableStateOf(0)
@@ -128,7 +134,7 @@ class PlayerServiceHost {
                 runBlocking {
                     while (true) {
                         delay(100)
-                        MainActivity.runInMainThread {
+                        mainThread {
                             m_position_seconds = position_seconds
                         }
                     }

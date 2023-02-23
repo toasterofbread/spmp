@@ -4,7 +4,7 @@ import android.graphics.Bitmap
 import android.graphics.BitmapFactory
 import androidx.compose.animation.Crossfade
 import androidx.compose.foundation.Image
-import androidx.compose.material3.CircularProgressIndicator
+import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.runtime.*
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
@@ -19,6 +19,7 @@ import com.spectre7.spmp.api.DataApi
 import com.spectre7.spmp.api.loadMediaItemData
 import com.spectre7.spmp.ui.component.MediaItemLayout
 import com.spectre7.spmp.ui.layout.PlayerViewContext
+import com.spectre7.utils.SubtleLoadingIndicator
 import com.spectre7.utils.getThemeColour
 import java.io.Reader
 import java.net.URL
@@ -473,14 +474,14 @@ abstract class MediaItem(id: String) {
     abstract fun PreviewLong(content_colour: () -> Color, playerProvider: () -> PlayerViewContext, enable_long_press_menu: Boolean, modifier: Modifier)
 
     @Composable
-    fun Thumbnail(quality: ThumbnailQuality, modifier: Modifier) {
+    fun Thumbnail(quality: ThumbnailQuality, modifier: Modifier = Modifier, content_colour: Color = Color.White) {
         LaunchedEffect(quality, canLoadThumbnail()) {
             getThumbnail(quality)
         }
 
         Crossfade(thumb_states[quality]!!.image) { thumbnail ->
             if (thumbnail == null) {
-                CircularProgressIndicator()
+                SubtleLoadingIndicator(content_colour, modifier.fillMaxSize())
             }
             else {
                 Image(
@@ -511,7 +512,7 @@ abstract class MediaItem(id: String) {
     }
 
     override fun toString(): String {
-        return "MediaItem(type=$type, id=$_id)"
+        return "MediaItem(type=$type, id=$_id, title=$title)"
     }
 
     val cache_key: String get() = getCacheKey(type, id)

@@ -10,7 +10,7 @@ enum class Settings {
     KEY_LANG_UI,
     KEY_LANG_DATA,
 
-    // Themeing
+    // Theming
     KEY_THEME,
     KEY_ACCENT_COLOUR_SOURCE,
     KEY_NOWPLAYING_THEME_MODE,
@@ -41,7 +41,8 @@ enum class Settings {
     KEY_ACC_SCREEN_OFF,
 
     // Other
-    KEY_VOLUME_STEPS;
+    KEY_VOLUME_STEPS
+    KEY_OPEN_NP_ON_SONG_PLAYED;
 
     companion object {
         val prefs: SharedPreferences get() = MainActivity.getSharedPreferences()
@@ -92,6 +93,7 @@ enum class Settings {
                 KEY_ACC_SCREEN_OFF -> false
                 
                 KEY_VOLUME_STEPS -> 50
+                KEY_OPEN_NP_ON_SONG_PLAYED -> true
             } as T
         }
 

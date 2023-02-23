@@ -8,25 +8,28 @@ import android.app.PendingIntent
 import android.content.Context
 import android.content.Intent
 import android.graphics.drawable.Icon
+import android.os.Handler
 import android.os.Looper
 import android.os.VibrationEffect
 import android.os.VibratorManager
 import android.widget.Toast
-import androidx.compose.animation.core.CubicBezierEasing
-import androidx.compose.animation.core.tween
+import androidx.compose.animation.core.*
 import androidx.compose.foundation.*
 import androidx.compose.foundation.gestures.*
 import androidx.compose.foundation.layout.*
+import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.material.ripple.LocalRippleTheme
 import androidx.compose.material.ripple.RippleAlpha
 import androidx.compose.material.ripple.RippleTheme
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
+import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.composed
 import androidx.compose.ui.draw.clipToBounds
 import androidx.compose.ui.draw.drawWithCache
 import androidx.compose.ui.draw.drawWithContent
+import androidx.compose.ui.draw.scale
 import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.geometry.Size
 import androidx.compose.ui.graphics.Color
@@ -55,6 +58,7 @@ import java.util.regex.Pattern
 import kotlin.concurrent.thread
 import kotlin.math.min
 import kotlin.math.sqrt
+import kotlin.random.Random
 
 fun Boolean.toInt() = if (this) 1 else 0
 
@@ -455,6 +459,15 @@ fun lazyAssert(message: String? = "Assertion failed", conditionProvider: () -> B
 	}
 }
 
+fun mainThread(block: () -> Unit) {
+	val main_looper = Looper.getMainLooper()
+	if (main_looper.thread == Thread.currentThread()) {
+		block()
+		return
+	}
+	Handler(main_looper).post(block)
+}
+
 fun networkThread(block: () -> Unit) {
 	if (Looper.getMainLooper().thread != Thread.currentThread()) {
 		block()
@@ -465,4 +478,27 @@ fun networkThread(block: () -> Unit) {
 
 fun printJson(data: String, klaxon: Klaxon? = null) {
 	println((klaxon ?: Klaxon()).parseJsonObject(data.reader()).toJsonString(true))
+}
+
+@Composable
+fun SubtleLoadingIndicator(colour: Color, modifier: Modifier = Modifier) {
+	val inf_transition = rememberInfiniteTransition()
+	val anim by inf_transition.animateFloat(
+		initialValue = 0f,
+		targetValue = 1f,
+		animationSpec = infiniteRepeatable(
+			animation = tween(1500, easing = LinearOutSlowInEasing),
+			repeatMode = RepeatMode.Restart
+		)
+	)
+
+	val rand_offset = remember { Random.nextFloat() }
+
+	Box(modifier, contentAlignment = Alignment.Center) {
+		val current_anim = if (anim + rand_offset > 1f) anim + rand_offset - 1f else anim
+		val size = if (current_anim < 0.5f) current_anim else 1f - current_anim
+		Spacer(
+			Modifier.background(colour, CircleShape).size(20.dp * size)
+		)
+	}
 }

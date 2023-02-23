@@ -84,14 +84,14 @@ class MainActivity : ComponentActivity() {
         DataApi.initialise()
         Song.init(Companion.getSharedPreferences())
 
-        Thread.setDefaultUncaughtExceptionHandler { _: Thread, error: Throwable ->
-            error.printStackTrace()
-
-            context.startActivity(Intent(context, ErrorReportActivity::class.java).apply {
-                putExtra("message", error.message)
-                putExtra("stack_trace", error.stackTraceToString())
-            })
-        }
+//        Thread.setDefaultUncaughtExceptionHandler { _: Thread, error: Throwable ->
+//            error.printStackTrace()
+//
+//            context.startActivity(Intent(context, ErrorReportActivity::class.java).apply {
+//                putExtra("message", error.message)
+//                putExtra("stack_trace", error.stackTraceToString())
+//            })
+//        }
 
 //        auth_state = loadAuthState()
 //        auth_service = AuthorizationService(this)
@@ -185,10 +185,6 @@ class MainActivity : ComponentActivity() {
 
         val ui_language: String get() = languages.keys.elementAt(Settings.get(Settings.KEY_LANG_UI))
         val data_language: String get() = languages.keys.elementAt(Settings.get(Settings.KEY_LANG_DATA))
-
-        fun runInMainThread(action: () -> Unit) {
-            Handler(Looper.getMainLooper()).post(action)
-        }
 
         fun getSharedPreferences(context: Context = instance!!): SharedPreferences {
             if (prefs == null) {

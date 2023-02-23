@@ -83,7 +83,7 @@ fun ColumnScope.NowPlayingMainTab(
         theme_colour = value
         PlayerServiceHost.status.song?.theme_colour = theme_colour
     }
-
+    
     val screen_width_dp = LocalConfiguration.current.screenWidthDp.dp
 
     var seek_state by remember { mutableStateOf(-1f) }
@@ -553,6 +553,7 @@ private fun Controls(
 
                 // Title text
                 Marquee(false) {
+                    println("TITLE ${PlayerServiceHost.status.m_song?.title}")
                     Text(
                         PlayerServiceHost.status.m_song?.title ?: "",
                         fontSize = 17.sp,

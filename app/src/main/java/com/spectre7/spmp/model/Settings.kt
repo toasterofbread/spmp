@@ -3,7 +3,7 @@ package com.spectre7.spmp.model
 import android.content.SharedPreferences
 import com.spectre7.spmp.MainActivity
 import com.spectre7.spmp.PlayerAccessibilityService
-import java.util.Locale
+import java.util.*
 
 enum class Settings {
     // Language
@@ -41,21 +41,22 @@ enum class Settings {
     KEY_ACC_SCREEN_OFF,
 
     // Other
-    KEY_VOLUME_STEPS
-    KEY_OPEN_NP_ON_SONG_PLAYED;
+    KEY_VOLUME_STEPS,
+    KEY_OPEN_NP_ON_SONG_PLAYED,
+    KEY_PERSISTENT_QUEUE;
 
     companion object {
         val prefs: SharedPreferences get() = MainActivity.getSharedPreferences()
 
         fun <T> get(enum_key: Settings, preferences: SharedPreferences = prefs, default: T? = null): T {
             val default_value: T = default ?: getDefault(enum_key)
-            return when (default_value!!::class) {
-                Boolean::class -> preferences.getBoolean(enum_key.name, default_value as Boolean)
-                Float::class -> preferences.getFloat(enum_key.name, default_value as Float)
-                Int::class -> preferences.getInt(enum_key.name, default_value as Int)
-                Long::class -> preferences.getLong(enum_key.name, default_value as Long)
-                String::class -> preferences.getString(enum_key.name, default_value as String)
-                else -> throw ClassCastException()
+            return when (default_value) {
+                is Boolean -> preferences.getBoolean(enum_key.name, default_value as Boolean)
+                is Float -> preferences.getFloat(enum_key.name, default_value as Float)
+                is Int -> preferences.getInt(enum_key.name, default_value as Int)
+                is Long -> preferences.getLong(enum_key.name, default_value as Long)
+                is String -> preferences.getString(enum_key.name, default_value as String)
+                else -> throw NotImplementedError("$enum_key $default_value ${default_value!!::class.simpleName}")
             } as T
         }
 
@@ -94,6 +95,7 @@ enum class Settings {
                 
                 KEY_VOLUME_STEPS -> 50
                 KEY_OPEN_NP_ON_SONG_PLAYED -> true
+                KEY_PERSISTENT_QUEUE -> true
             } as T
         }
 

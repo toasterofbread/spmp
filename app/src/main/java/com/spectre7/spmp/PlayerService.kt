@@ -7,6 +7,7 @@ import android.graphics.PixelFormat
 import android.net.Uri
 import android.os.Binder
 import android.os.Build
+import android.os.Handler
 import android.support.v4.media.MediaMetadataCompat
 import android.support.v4.media.session.MediaSessionCompat
 import android.view.KeyEvent
@@ -48,27 +49,31 @@ import androidx.savedstate.SavedStateRegistryOwner
 import androidx.savedstate.setViewTreeSavedStateRegistryOwner
 import com.google.android.exoplayer2.C
 import com.google.android.exoplayer2.ExoPlayer
-import com.google.android.exoplayer2.MediaItem as ExoMediaItem
 import com.google.android.exoplayer2.Player
-import com.google.android.exoplayer2.audio.AudioAttributes
+import com.google.android.exoplayer2.RenderersFactory
+import com.google.android.exoplayer2.audio.*
 import com.google.android.exoplayer2.ext.mediasession.MediaSessionConnector
 import com.google.android.exoplayer2.extractor.mkv.MatroskaExtractor
 import com.google.android.exoplayer2.extractor.mp4.FragmentedMp4Extractor
+import com.google.android.exoplayer2.mediacodec.MediaCodecSelector
 import com.google.android.exoplayer2.source.DefaultMediaSourceFactory
 import com.google.android.exoplayer2.ui.PlayerNotificationManager
 import com.google.android.exoplayer2.upstream.*
 import com.spectre7.spmp.api.RadioInstance
 import com.spectre7.spmp.api.getOrThrowHere
 import com.spectre7.spmp.model.*
-import com.spectre7.utils.sendToast
-import com.spectre7.utils.setAlpha
-import com.spectre7.utils.vibrateShort
+import com.spectre7.utils.*
 import kotlinx.coroutines.*
+import kotlinx.coroutines.sync.Semaphore
+import kotlinx.coroutines.sync.withPermit
+import java.io.BufferedReader
+import java.io.FileNotFoundException
 import java.io.IOException
 import kotlin.concurrent.thread
 import kotlin.math.roundToInt
 import kotlin.random.Random
 import kotlin.random.nextInt
+import com.google.android.exoplayer2.MediaItem as ExoMediaItem
 
 const val VOL_NOTIF_SHOW_DURATION: Long = 1000
 // Radio continuation will be added if the amount of remaining songs (including current) falls below this
@@ -98,49 +103,61 @@ class PlayerService : Service() {
 
     fun playSong(song: Song, start_radio: Boolean = true) {
         if (song == getCurrentSong() && start_radio) {
-            clearQueue(keep_current = true)
+            clearQueue(keep_current = true, save = false)
         }
         else {
-            clearQueue(keep_current = false)
+            clearQueue(keep_current = false, save = false)
             addToQueue(song)
-        }
 
-        if (!start_radio) {
-            radio.cancelRadio()
-            return
+            if (!start_radio) {
+                radio.cancelRadio()
+                return
+            }
         }
 
         thread {
             val result = radio.startNewRadio(song)
             if (result.isFailure) {
                 MainActivity.error_manager.onError("playSong", result.exceptionOrNull()!!, null)
+                savePersistentQueue()
             }
             else {
-                MainActivity.runInMainThread {
-                    addMultipleToQueue(result.getOrThrowHere(), 1, true)
+                mainThread {
+                    addMultipleToQueue(result.getOrThrowHere(), 1, true, save = false)
+                    savePersistentQueue()
                 }
             }
         }
     }
 
     fun continueRadio() {
-        if (!radio.has_continuation) {
-            return
+        synchronized(radio) {
+            if (!radio.has_continuation || radio_continuing) {
+                return
+            }
+            radio_continuing = true
         }
+
         thread {
             val result = radio.getRadioContinuation()
             if (result.isFailure) {
                 MainActivity.error_manager.onError("continueRadio", result.exceptionOrNull()!!, null)
+                synchronized(radio) {
+                    radio_continuing = false
+                }
             }
             else {
-                MainActivity.runInMainThread {
-                    addMultipleToQueue(result.getOrThrowHere(), 1, false)
+                mainThread {
+                    addMultipleToQueue(result.getOrThrowHere(), player.mediaItemCount, false)
+                    synchronized(radio) {
+                        radio_continuing = false
+                    }
                 }
             }
         }
     }
 
-    fun clearQueue(from: Int = 0, keep_current: Boolean = false): List<Pair<Song, Int>> {
+    fun clearQueue(from: Int = 0, keep_current: Boolean = false, save: Boolean = true): List<Pair<Song, Int>> {
         val ret = mutableListOf<Pair<Song, Int>>()
         for (i in player.mediaItemCount - 1 downTo from) {
             if (keep_current && i == player.currentMediaItemIndex) {
@@ -149,6 +166,11 @@ class PlayerService : Service() {
             ret.add(Pair(removeFromQueue(i), i))
         }
         ret.sortBy { it.second }
+
+        if (save) {
+            savePersistentQueue()
+        }
+
         return ret
     }
 
@@ -168,17 +190,19 @@ class PlayerService : Service() {
 
         for (i in range) {
             val swap = Random.nextInt(range)
-            swapQueuePositions(i, swap)
+            swapQueuePositions(i, swap, false)
 
             if (return_swaps) {
                 ret!!.add(Pair(i, swap))
             }
         }
 
+        savePersistentQueue()
+
         return ret
     }
 
-    fun swapQueuePositions(a: Int, b: Int) {
+    fun swapQueuePositions(a: Int, b: Int, save: Boolean = true) {
         if (a == b) {
             return
         }
@@ -192,9 +216,13 @@ class PlayerService : Service() {
 
         onSongMoved(a, b)
         onSongMoved(offset_b, a)
+
+        if (save) {
+            savePersistentQueue()
+        }
     }
 
-    fun addToQueue(song: Song, index: Int? = null, is_active_queue: Boolean = false, start_radio: Boolean = false): Int {
+    fun addToQueue(song: Song, index: Int? = null, is_active_queue: Boolean = false, start_radio: Boolean = false, save: Boolean = true): Int {
         val item = ExoMediaItem.Builder().setTag(song).setUri(song.id).build()
 
         val added_index: Int
@@ -215,21 +243,27 @@ class PlayerService : Service() {
         addNotificationToPlayer()
 
         if (start_radio) {
-            clearQueue(added_index)
+            clearQueue(added_index, save = false)
 
             val result = radio.startNewRadio(song)
             if (result.isFailure) {
                 MainActivity.error_manager.onError("addToQueue", result.exceptionOrNull()!!, null)
+                if (save) {
+                    savePersistentQueue()
+                }
             }
             else {
-                addMultipleToQueue(result.getOrThrowHere(), added_index)
+                addMultipleToQueue(result.getOrThrowHere(), added_index, save = save)
             }
+        }
+        else if (save) {
+            savePersistentQueue()
         }
 
         return added_index
     }
 
-    fun addMultipleToQueue(songs: List<Song>, index: Int = 0, skip_first: Boolean = false) {
+    fun addMultipleToQueue(songs: List<Song>, index: Int = 0, skip_first: Boolean = false, save: Boolean = true) {
         if (songs.isEmpty()) {
             return
         }
@@ -248,12 +282,16 @@ class PlayerService : Service() {
         }
 
         addNotificationToPlayer()
+        if (save) {
+            savePersistentQueue()
+        }
     }
 
     fun removeFromQueue(index: Int): Song {
         val song = getSong(index)!!
         player.removeMediaItem(index)
         onSongRemoved(song, index)
+        savePersistentQueue()
         return song
     }
 
@@ -281,10 +319,10 @@ class PlayerService : Service() {
         }
     }
 
-
     // --- Internal ---
 
     private val radio = RadioInstance()
+    private var radio_continuing = false
 
     private var _session_started: Boolean by mutableStateOf(false)
 
@@ -317,8 +355,14 @@ class PlayerService : Service() {
 
     private val player_listener = 
         object : Player.Listener {
+
+            // TODO | Interval to save playback position
             override fun onEvents(player: Player, events: Player.Events) {
                 checkRadioContinuation()
+
+                if (events.contains(Player.EVENT_MEDIA_ITEM_TRANSITION)) {
+                    savePersistentQueue()
+                }
             }
         }
 
@@ -336,6 +380,118 @@ class PlayerService : Service() {
     )
     private var vol_notif_instance: Int = 0
 
+    // Persistent queue
+    private var lock_queue = false
+    private val queue_lock = Object()
+
+    fun savePersistentQueue() {
+        synchronized(queue_lock) {
+            if (lock_queue) {
+                return
+            }
+            lock_queue = true
+        }
+
+        println("SAVE")
+
+        val writer = openFileOutput("persistent_queue", MODE_PRIVATE).bufferedWriter()
+        writer.write("${player.currentMediaItemIndex},${player.currentPosition}")
+        writer.newLine()
+
+        iterateSongs { _, song: Song ->
+            writer.write(song.id)
+            writer.newLine()
+        }
+
+        writer.close()
+
+        synchronized(queue_lock) {
+            lock_queue = false
+        }
+    }
+
+    fun loadPersistentQueue() {
+        synchronized(queue_lock) {
+            check(!lock_queue)
+            lock_queue = true
+        }
+
+        thread {
+            val reader: BufferedReader
+            try {
+                reader = openFileInput("persistent_queue").bufferedReader()
+            }
+            catch (_: FileNotFoundException) {
+                synchronized(queue_lock) {
+                    lock_queue = false
+                }
+                return@thread
+            }
+
+            val pos_data = reader.readLine().split(',')
+            val songs: MutableList<Song?> = mutableListOf()
+
+            var first_song: Song? = null
+            val request_limit = Semaphore(10)
+
+            runBlocking { withContext(Dispatchers.IO) { coroutineScope {
+                var i = 0
+                var line = reader.readLine()
+                while (line != null) {
+                    val song = Song.fromId(line)
+                    val index = i++
+                    line = reader.readLine()
+
+                    if (song.title != null) {
+                        if (index == 0) {
+                            mainThread {
+                                addToQueue(song, 0, save = false)
+                                first_song = song
+                            }
+                        }
+                        else {
+                            songs.add(song)
+                        }
+                        continue
+                    }
+
+                    songs.add(null)
+                    launch {
+                        request_limit.withPermit {
+                            song.loadData().onSuccess { loaded ->
+                                if (index == 0) {
+                                    mainThread {
+                                        addToQueue(song, 0, save = false)
+                                        first_song = song
+                                    }
+                                }
+                                else {
+                                    songs[index - 1] = song
+                                }
+                            }
+                        }
+                    }
+                }
+            }}}
+
+            // Pretty sure this is safe?
+            while (first_song == null) { runBlocking { delay(100) } }
+
+            mainThread {
+                if (player.mediaItemCount != 1 || getSong(0) != first_song) {
+                    return@mainThread
+                }
+
+                addMultipleToQueue(songs as List<Song>, 1)
+                player.seekTo(pos_data[0].toInt(), pos_data[1].toLong())
+
+                synchronized(queue_lock) {
+                    lock_queue = false
+                }
+            }
+        }
+    }
+
     private val binder = PlayerBinder()
     inner class PlayerBinder: Binder() {
         fun getService(): PlayerService = this@PlayerService
@@ -347,17 +503,31 @@ class PlayerService : Service() {
     override fun onCreate() {
         super.onCreate()
 
+        val audio_sink = DefaultAudioSink.Builder()
+            .setAudioProcessorChain(
+                DefaultAudioSink.DefaultAudioProcessorChain(
+                    emptyArray(),
+                    SilenceSkippingAudioProcessor(2_000_000, 20_000, 256),
+                    SonicAudioProcessor()
+                )
+            )
+            .build()
+
+        val renderers_factory = RenderersFactory { handler: Handler?, _, audioListener: AudioRendererEventListener?, _, _ ->
+            arrayOf(
+                MediaCodecAudioRenderer(
+                    this,
+                    MediaCodecSelector.DEFAULT,
+                    handler,
+                    audioListener,
+                    audio_sink
+                )
+            )
+        }
+
         player = ExoPlayer.Builder(
             this@PlayerService,
-            DefaultAudioSink.Builder()
-                .setAudioProcessorChain(
-                    DefaultAudioProcessorChain(
-                        emptyArray(),
-                        SilenceSkippingAudioProcessor(2_000_000, 20_000, 256),
-                        SonicAudioProcessor()
-                    )
-                )
-                .build()
+            renderers_factory,
             DefaultMediaSourceFactory(
                 createDataSourceFactory(),
                 { arrayOf(MatroskaExtractor(), FragmentedMp4Extractor()) }
@@ -461,16 +631,13 @@ class PlayerService : Service() {
 
             val local_file = PlayerServiceHost.download_manager.getDownloadedSong(song)
             if (local_file != null) {
-                println(local_file)
                 data_spec.withUri(Uri.fromFile(local_file))
             }
             else {
                 val format = song.getStreamFormat()
                 if (format.isFailure) {
-                    println("FAILED ${format.exceptionOrNull()}")
                     throw IOException(format.exceptionOrNull()!!)
                 }
-                println(format.getOrThrow().stream_url)
                 data_spec.withUri(Uri.parse(format.getOrThrow().stream_url))
             }
         }
@@ -575,7 +742,7 @@ class PlayerService : Service() {
             vol_notif_visible = false
 
             Thread.sleep(FADE_DURATION)
-            MainActivity.runInMainThread {
+            mainThread {
                 if (vol_notif_instance == instance && vol_notif.isShown) {
                     (getSystemService(Context.WINDOW_SERVICE) as WindowManager).removeViewImmediate(vol_notif)
                 }

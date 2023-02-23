@@ -71,6 +71,8 @@ import kotlin.random.Random
 import kotlin.random.nextInt
 
 const val VOL_NOTIF_SHOW_DURATION: Long = 1000
+// Radio continuation will be added if the amount of remaining songs (including current) falls below this
+const val RADIO_MIN_LENGTH: Int = 10
 
 class PlayerService : Service() {
 
@@ -95,11 +97,16 @@ class PlayerService : Service() {
     }
 
     fun playSong(song: Song, start_radio: Boolean = true) {
-        clearQueue()
-
-        addToQueue(song)
+        if (song == getCurrentSong() && start_radio) {
+            clearQueue(keep_current = true)
+        }
+        else {
+            clearQueue(keep_current = false)
+            addToQueue(song)
+        }
 
         if (!start_radio) {
+            radio.cancelRadio()
             return
         }
 
@@ -308,6 +315,13 @@ class PlayerService : Service() {
             }
         }
 
+    private val player_listener = 
+        object : Player.Listener {
+            override fun onEvents(player: Player, events: Player.Events) {
+                checkRadioContinuation()
+            }
+        }
+
     // Volume notification
     private var vol_notif_enabled: Boolean = false
     private lateinit var vol_notif: ComposeView
@@ -335,6 +349,15 @@ class PlayerService : Service() {
 
         player = ExoPlayer.Builder(
             this@PlayerService,
+            DefaultAudioSink.Builder()
+                .setAudioProcessorChain(
+                    DefaultAudioProcessorChain(
+                        emptyArray(),
+                        SilenceSkippingAudioProcessor(2_000_000, 20_000, 256),
+                        SonicAudioProcessor()
+                    )
+                )
+                .build()
             DefaultMediaSourceFactory(
                 createDataSourceFactory(),
                 { arrayOf(MatroskaExtractor(), FragmentedMp4Extractor()) }
@@ -350,6 +373,7 @@ class PlayerService : Service() {
             .setUsePlatformDiagnostics(false)
             .build()
         player.playWhenReady = false
+        player.addListener(player_listener)
         player.prepare()
 
         media_session = MediaSessionCompat(this@PlayerService, "spmp")
@@ -457,6 +481,7 @@ class PlayerService : Service() {
         notification_manager?.setPlayer(null)
         notification_manager = null
         media_session?.release()
+        player.removeListener(player_listener)
         player.release()
 
         if (vol_notif.isShown) {
@@ -573,11 +598,24 @@ class PlayerService : Service() {
         for (listener in queue_listeners) {
             listener.onSongRemoved(song, index)
         }
+        checkRadioContinuation()
     }
 
     private fun onSongMoved(from: Int, to: Int) {
         for (listener in queue_listeners) {
             listener.onSongMoved(from, to)
+        }
+        checkRadioContinuation()
+    }
+
+    private fun checkRadioContinuation() {
+        if (!radio.active) {
+            return
+        }
+
+        val remaining = player.mediaItemCount - player.currentMediaItemIndex
+        if (remaining < RADIO_MIN_LENGTH) {
+            continueRadio()
         }
     }
 

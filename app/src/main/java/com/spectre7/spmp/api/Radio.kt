@@ -9,6 +9,7 @@ class RadioInstance {
     private var song: Song? = null
     private var continuation: String? = null
 
+    val active: Boolean get() = song != null
     val has_continuation: Boolean get() = continuation != null
 
     fun startNewRadio(song: Song): Result<List<Song>> {
@@ -19,6 +20,11 @@ class RadioInstance {
 
     fun getRadioContinuation(): Result<List<Song>> {
         return updateRadio(song!!.id)
+    }
+
+    fun cancelRadio() {
+        song = null
+        continuation = null
     }
 
     private fun updateRadio(video_id: String): Result<List<Song>> {

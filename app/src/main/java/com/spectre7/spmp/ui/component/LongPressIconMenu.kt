@@ -342,16 +342,14 @@ fun LongPressIconMenu(
                                     .padding(horizontal = 15.dp)
                                 , verticalArrangement = Arrangement.Center) {
 
-                                if (data.item is Song) {
-                                    Marquee(false) {
-                                        Text(
-                                            data.item.title ?: "",
-                                            Modifier.fillMaxWidth(),
-                                            color = MainActivity.theme.getOnBackground(false),
-                                            softWrap = false,
-                                            overflow = TextOverflow.Ellipsis,
-                                        )
-                                    }
+                                Marquee(false) {
+                                    Text(
+                                        data.item.title ?: "",
+                                        Modifier.fillMaxWidth(),
+                                        color = MainActivity.theme.getOnBackground(false),
+                                        softWrap = false,
+                                        overflow = TextOverflow.Ellipsis
+                                    )
                                 }
 
                                 if (data.item !is Artist) {

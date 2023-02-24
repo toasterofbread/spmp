@@ -5,6 +5,10 @@ import com.spectre7.spmp.MainActivity
 import com.spectre7.spmp.PlayerAccessibilityService
 import java.util.*
 
+enum class AccentColourSource {
+    THEME, THUMBNAIL, SYSTEM
+}
+
 enum class Settings {
     // Language
     KEY_LANG_UI,
@@ -69,7 +73,7 @@ enum class Settings {
             return when (enum_key) {
                 KEY_LANG_UI, KEY_LANG_DATA -> MainActivity.languages.keys.indexOf(Locale.getDefault().language)
 
-                KEY_ACCENT_COLOUR_SOURCE -> 0
+                KEY_ACCENT_COLOUR_SOURCE -> AccentColourSource.THUMBNAIL.ordinal
                 KEY_THEME -> -1
                 KEY_NOWPLAYING_THEME_MODE -> 0
                 

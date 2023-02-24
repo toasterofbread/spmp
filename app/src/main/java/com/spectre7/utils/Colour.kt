@@ -160,13 +160,59 @@ class Theme private constructor(
 
     private val accent: Animatable<Color, AnimationVector4D>,
 
-    var default_t_background: Color,
-    var default_t_on_background: Color,
-    var default_n_background: Color,
-    var default_n_on_background: Color,
-    var default_accent: Color,
+    default_t_background: Color,
+    default_t_on_background: Color,
+    default_n_background: Color,
+    default_n_on_background: Color,
+    default_accent: Color,
 ) {
     var name: String? = null
+
+    var default_t_background: Color = default_t_background
+        set(value) {
+            if (t_background.targetValue == value) {
+                runBlocking { launch {
+                    t_background.animateTo(value)
+                } }
+            }
+            field = value
+        }
+    var default_t_on_background: Color = default_t_on_background
+        set(value) {
+            if (t_on_background.targetValue == value) {
+                runBlocking { launch {
+                    t_on_background.animateTo(value)
+                } }
+            }
+            field = value
+        }
+    var default_n_background: Color = default_n_background
+        set(value) {
+            if (n_background.targetValue == value) {
+                runBlocking { launch {
+                    n_background.animateTo(value)
+                } }
+            }
+            field = value
+        }
+    var default_n_on_background: Color = default_n_on_background
+        set(value) {
+            if (n_on_background.targetValue == value) {
+                runBlocking { launch {
+                    n_on_background.animateTo(value)
+                } }
+            }
+            field = value
+        }
+    var default_accent: Color = default_accent
+        set(value) {
+            if (accent.targetValue == value) {
+                runBlocking { launch {
+                    accent.animateTo(value)
+                } }
+            }
+            field = value
+        }
 
     suspend fun reset() {
         t_background.snapTo(default_t_background)

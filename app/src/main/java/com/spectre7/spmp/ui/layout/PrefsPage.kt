@@ -308,11 +308,12 @@ fun groupTheming(): List<SettingsItem> {
         SettingsItemMultipleChoice(
             SettingsValueState(Settings.KEY_ACCENT_COLOUR_SOURCE.name),
             getString(R.string.s_key_accent_source), null,
-            2, false
+            3, false
         ) { choice ->
-            when (choice) {
-                0 ->    getString(R.string.s_option_accent_thumbnail)
-                else -> getString(R.string.s_option_accent_system)
+            when (AccentColourSource.values()[choice]) {
+                AccentColourSource.THEME     -> getString(R.string.s_option_accent_theme)
+                AccentColourSource.THUMBNAIL -> getString(R.string.s_option_accent_thumbnail)
+                AccentColourSource.SYSTEM    -> getString(R.string.s_option_accent_system)
             }
         },
 

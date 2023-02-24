@@ -10,5 +10,9 @@ fun LibraryPage(
         item {
             Text("Downloaded songs", style = MaterialTheme.typography.titleMedium)
         }
+
+        items(PlayerServiceHost.download_manager.downloaded_songs) { song ->
+            song.PreviewLong(MainActivity.theme.getOnBackgroundProvider(true), playerProvider, true, Modifier)
+        }
     }
 }

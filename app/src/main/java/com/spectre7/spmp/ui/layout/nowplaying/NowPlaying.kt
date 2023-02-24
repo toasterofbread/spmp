@@ -27,7 +27,6 @@ import com.spectre7.spmp.ui.layout.PlayerViewContext
 import com.spectre7.spmp.ui.layout.getScreenHeight
 import com.spectre7.utils.*
 
-enum class AccentColourSource { THUMBNAIL, SYSTEM }
 enum class ThemeMode { BACKGROUND, ELEMENTS, NONE }
 
 private enum class NowPlayingVerticalPage { MAIN, QUEUE }

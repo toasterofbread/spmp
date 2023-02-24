@@ -41,8 +41,6 @@ import kotlin.math.roundToInt
 
 private class QueueTabItem(val song: Song, val key: Int) {
 
-//    val added_time = System.currentTimeMillis()
-
     @OptIn(ExperimentalMaterial3Api::class)
     @Composable
     private fun queueElementSwipeState(requestRemove: () -> Unit): SwipeableState<Int> {
@@ -157,9 +155,9 @@ fun QueueTab(expansionProvider: () -> Float, playerProvider: () -> PlayerViewCon
 
     var playing_key by remember { mutableStateOf<Int?>(null) }
 
-     LaunchedEffect(PlayerServiceHost.status.m_index) {
-         playing_key = song_items[PlayerServiceHost.status.index].key
-     }
+    LaunchedEffect(PlayerServiceHost.status.m_index) {
+        playing_key = song_items[PlayerServiceHost.status.index].key
+    }
 
     DisposableEffect(Unit) {
         PlayerServiceHost.service.addQueueListener(queue_listener)
@@ -222,27 +220,14 @@ fun QueueTab(expansionProvider: () -> Float, playerProvider: () -> PlayerViewCon
                     }
 
                     Box(Modifier.height(50.dp)) {
-//                        var visible by remember { mutableStateOf(false ) }
-//                        LaunchedEffect(visible) {
-//                            visible = true
-//                        }
-//
-//                        AnimatedVisibility(
-//                            visible,
-//                            enter = if (System.currentTimeMillis() - item.added_time < 250)
-//                                        fadeIn() + slideInHorizontally(initialOffsetX = { it / 2 })
-//                                    else EnterTransition.None,
-//                            exit = ExitTransition.None
-//                        ) {
-                            item.QueueElement(
-                                state,
-                                if (playing_key != null) playing_key == item.key else PlayerServiceHost.status.m_index == index,
-                                index,
-                                background_colour,
-                                playerProvider,
-                                remember(item.song, index) { { removeSong(item.song, index) } }
-                            )
-//                        }
+                        item.QueueElement(
+                            state,
+                            if (playing_key != null) playing_key == item.key else PlayerServiceHost.status.m_index == index,
+                            index,
+                            background_colour,
+                            playerProvider,
+                            remember(item.song, index) { { removeSong(item.song, index) } }
+                        )
                     }
                 }
             }

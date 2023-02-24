@@ -87,6 +87,7 @@
     <string name="s_group_theming">Theming</string>
 
     <string name="s_key_accent_source">Accent colour</string>
+    <string name="s_option_accent_theme">From theme</string>
     <string name="s_option_accent_thumbnail">From thumbnail</string>
     <string name="s_option_accent_system">From system theme</string>
 

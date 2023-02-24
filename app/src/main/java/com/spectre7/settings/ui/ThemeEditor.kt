@@ -56,9 +56,9 @@ class SettingsItemThemeSelector<T>(
 
             @SuppressLint("UnusedCrossfadeTargetStateParameter")
             @Composable
-            private fun ColourField(name: String, initial: Color, onChanged: suspend (Color) -> Unit) {
+            private fun ColourField(name: String, provider: () -> Color, onChanged: suspend (Color) -> Unit) {
                 var show_picker by remember { mutableStateOf(false) }
-                var current by remember { mutableStateOf(initial) }
+                var current by remember { mutableStateOf(provider()) }
                 var instance by remember { mutableStateOf(0) }
 
                 OnChangedEffect(current) {
@@ -110,7 +110,7 @@ class SettingsItemThemeSelector<T>(
                                 }
                                 FilledIconButton({
                                     show_picker = false
-                                    current = initial
+                                    current = provider()
                                 }) {
                                     Icon(Icons.Filled.Close, null)
                                 }
@@ -132,6 +132,16 @@ class SettingsItemThemeSelector<T>(
                 Crossfade(getTheme(state.value)) { theme ->
                     var previewing by remember { mutableStateOf(false) }
 
+                    var background by remember { mutableStateOf(theme.getBackground(false)) }
+                    var on_background by remember { mutableStateOf(theme.getOnBackground(false)) }
+                    var accent by remember { mutableStateOf(theme.getAccent()) }
+
+                    OnChangedEffect(previewing) {
+                        theme.setBackground(false, if (previewing) background else null)
+                        theme.setOnBackground(false, if (previewing) on_background else null)
+                        theme.setAccent(if (previewing) accent else null)
+                    }
+
                     Column(verticalArrangement = Arrangement.spacedBy(20.dp)) {
                         Spacer(Modifier)
 
@@ -150,11 +160,13 @@ class SettingsItemThemeSelector<T>(
                             }
                         }
 
-                        ColourField("Background colour", theme.getBackground(false)) { colour ->
+                        ColourField("Background colour", theme.getBackgroundProvider(false)) { colour ->
                             theme.setBackground(false, colour)
                             theme.setOnBackground(false, colour.getContrasted())
                         }
-                        ColourField("Accent colour", theme.getAccent()) {}
+                        ColourField("On background colour", theme.getOnBackgroundProvider(false)) {}
+                        ColourField("Accent colour", theme.getAccentProvider()) {}
+                        ColourField("On accent colour", theme.getOnAccentProvider()) {}
                     }
                 }
             }

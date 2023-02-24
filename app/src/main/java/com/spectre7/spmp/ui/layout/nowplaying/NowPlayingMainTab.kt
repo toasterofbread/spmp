@@ -88,8 +88,8 @@ fun ColumnScope.NowPlayingMainTab(
 
     var seek_state by remember { mutableStateOf(-1f) }
     var theme_palette by remember { mutableStateOf<Palette?>(null) }
-    var accent_colour_source by remember { mutableStateOf(AccentColourSource.values()[Settings.prefs.getInt(Settings.KEY_ACCENT_COLOUR_SOURCE.name, 0)]) }
-    var theme_mode by remember { mutableStateOf(ThemeMode.values()[Settings.prefs.getInt(Settings.KEY_NOWPLAYING_THEME_MODE.name, 0)]) }
+    var accent_colour_source: AccentColourSource by remember { mutableStateOf(Settings.getEnum(Settings.KEY_ACCENT_COLOUR_SOURCE)) }
+    var theme_mode: ThemeMode by remember { mutableStateOf(Settings.getEnum(Settings.KEY_NOWPLAYING_THEME_MODE)) }
     var loaded_song: Song? by remember { mutableStateOf(null) }
 
     val disappear_scale = minOf(1f, if (expansion < 0.5f) 1f else (1f - ((expansion - 0.5f) * 2f)))
@@ -98,9 +98,9 @@ fun ColumnScope.NowPlayingMainTab(
     val prefs_listener = remember {
         SharedPreferences.OnSharedPreferenceChangeListener { _, key ->
             if (key == Settings.KEY_ACCENT_COLOUR_SOURCE.name) {
-                accent_colour_source = AccentColourSource.values()[Settings.get(Settings.KEY_ACCENT_COLOUR_SOURCE)]
+                accent_colour_source = Settings.getEnum(Settings.KEY_ACCENT_COLOUR_SOURCE)
             } else if (key == Settings.KEY_NOWPLAYING_THEME_MODE.name) {
-                theme_mode = ThemeMode.values()[Settings.get(Settings.KEY_NOWPLAYING_THEME_MODE)]
+                theme_mode = Settings.getEnum(Settings.KEY_NOWPLAYING_THEME_MODE)
             }
         }
     }
@@ -113,7 +113,11 @@ fun ColumnScope.NowPlayingMainTab(
     }
 
     LaunchedEffect(key1 = theme_colour, key2 = accent_colour_source, key3 = theme_mode) {
-        MainActivity.theme.setAccent(if (accent_colour_source == AccentColourSource.SYSTEM) null else theme_colour)
+        MainActivity.theme.setAccent(when (accent_colour_source) {
+            AccentColourSource.THEME -> null,
+            AccentColourSource.THUMBNAIL -> theme_colour
+            AccentColourSource.SYSTEM -> TODO()
+        })
 
         val accent = MainActivity.theme.getAccent()
 

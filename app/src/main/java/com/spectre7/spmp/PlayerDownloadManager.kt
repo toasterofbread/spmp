@@ -40,7 +40,7 @@ class PlayerDownloadManager(private val context: Context) {
     }
     private val download_status_listeners: MutableList<DownloadStatusListener> = mutableListOf()
 
-    private val downloaded_songs: MutableList<Song> = mutableStateListOf()
+    val downloaded_songs: MutableList<Song> = mutableStateListOf()
 
     init {
         val files = getDownloadDir(context).listFiles()

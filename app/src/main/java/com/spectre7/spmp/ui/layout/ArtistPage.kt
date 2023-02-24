@@ -71,7 +71,7 @@ fun ArtistPage(
     }
 
     val gradient_size = 0.35f
-    val background_colour = MainActivity.theme.getBackground(false)
+    val background_colour = Theme.current.background
     var accent_colour: Color? by remember { mutableStateOf(null) }
 
     LaunchedEffect(artist.id) {
@@ -105,7 +105,7 @@ fun ArtistPage(
         Crossfade(artist.getThumbnail(MediaItem.ThumbnailQuality.HIGH)) { thumbnail ->
             if (thumbnail != null) {
                 if (accent_colour == null) {
-                    accent_colour = artist.getDefaultThemeColour() ?: MainActivity.theme.getAccent()
+                    accent_colour = artist.getDefaultThemeColour() ?: Theme.current.accent
                 }
 
                 Image(
@@ -176,7 +176,7 @@ fun ArtistPage(
                                 },
                                 colors = AssistChipDefaults.assistChipColors(
                                     containerColor = background_colour,
-                                    labelColor = MainActivity.theme.getOnBackground(false),
+                                    labelColor = Theme.current.on_background,
                                     leadingIconContentColor = accent_colour ?: Color.Unspecified
                                 )
                             )
@@ -197,7 +197,7 @@ fun ArtistPage(
                         OutlinedButton(onClick = onClick, modifier.height(45.dp)) {
                             Row(verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(10.dp)) {
                                 Icon(icon, null, tint = accent_colour ?: Color.Unspecified)
-                                Text(text, softWrap = false, color = MainActivity.theme.getOnBackground(false))
+                                Text(text, softWrap = false, color = Theme.current.on_background)
                             }
                         }
                     }
@@ -222,7 +222,7 @@ fun ArtistPage(
                                     },
                                     colors = IconButtonDefaults.iconButtonColors(
                                         containerColor = if (subscribed) accent_colour ?: Color.Unspecified else background_colour,
-                                        contentColor = if (subscribed) accent_colour?.getContrasted() ?: Color.Unspecified else MainActivity.theme.getOnBackground(false)
+                                        contentColor = if (subscribed) accent_colour?.getContrasted() ?: Color.Unspecified else Theme.current.on_background
                                     )
                                 ) {
                                     Icon(if (subscribed) Icons.Outlined.PersonRemove else Icons.Outlined.PersonAddAlt1, null)
@@ -270,7 +270,7 @@ fun ArtistPage(
                                         .fillMaxWidth()
                                         .animateContentSize(),
                                     colors = CardDefaults.elevatedCardColors(
-                                        containerColor = MainActivity.theme.getOnBackground(false).setAlpha(0.05f)
+                                        containerColor = Theme.current.on_background.setAlpha(0.05f)
                                     )
                                 ) {
                                     Column(Modifier.padding(10.dp), verticalArrangement = Arrangement.spacedBy(20.dp)) {
@@ -285,7 +285,7 @@ fun ArtistPage(
                                                 },
                                                 colors = AssistChipDefaults.assistChipColors(
                                                     containerColor = background_colour,
-                                                    labelColor = MainActivity.theme.getOnBackground(false),
+                                                    labelColor = Theme.current.on_background,
                                                     leadingIconContentColor = accent_colour ?: Color.Unspecified
                                                 )
                                             )
@@ -303,8 +303,8 @@ fun ArtistPage(
 
                                         LinkifyText(
                                             description,
-                                            MainActivity.theme.getOnBackground(false).setAlpha(0.8f),
-                                            MainActivity.theme.getOnBackground(false),
+                                            Theme.current.on_background.setAlpha(0.8f),
+                                            Theme.current.on_background,
                                             MaterialTheme.typography.bodyMedium,
                                             Modifier
                                                 .onSizeChanged { size ->

@@ -23,11 +23,13 @@ import com.spectre7.settings.ui.SettingsItemThemeSelector
 import com.spectre7.spmp.MainActivity
 import com.spectre7.spmp.PlayerAccessibilityService
 import com.spectre7.spmp.R
+import com.spectre7.spmp.model.AccentColourSource
 import com.spectre7.spmp.model.Settings
 import com.spectre7.spmp.model.Song
 import com.spectre7.spmp.ui.component.PillMenu
 import com.spectre7.utils.OnChangedEffect
 import com.spectre7.utils.Permissions
+import com.spectre7.utils.Theme
 import com.spectre7.utils.getString
 
 enum class Page { ROOT, ACCESSIBILITY_SERVICE }
@@ -94,7 +96,7 @@ fun PrefsPage(pill_menu: PillMenu, close: () -> Unit) {
 
     settings_interface = remember {
         SettingsInterface(
-            MainActivity.theme, 
+            Theme.current, 
             Page.ROOT.ordinal,
             MainActivity.context,
             Settings.prefs, 
@@ -232,12 +234,9 @@ fun PrefsPage(pill_menu: PillMenu, close: () -> Unit) {
 
     BoxWithConstraints(
         Modifier
-            .background(
-                MainActivity
-                    .theme
-                    .getBackground(false)
-            )
-            .pointerInput(Unit) {}) {
+            .background(Theme.current.background)
+            .pointerInput(Unit) {}
+    ) {
         settings_interface.Interface(Modifier.requiredHeight(LocalConfiguration.current.screenHeightDp.dp - MINIMISED_NOW_PLAYING_HEIGHT.dp))
     }
 }
@@ -300,10 +299,9 @@ fun groupTheming(): List<SettingsItem> {
         SettingsItemThemeSelector<Int> (
             SettingsValueState(Settings.KEY_THEME.name),
             "Theme", null,
-            "Edit theme"
-        ) {
-            return@SettingsItemThemeSelector MainActivity.theme
-        },
+            "Edit theme",
+            { Theme.theme }
+        ),
 
         SettingsItemMultipleChoice(
             SettingsValueState(Settings.KEY_ACCENT_COLOUR_SOURCE.name),

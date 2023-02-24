@@ -6,10 +6,15 @@ import androidx.compose.animation.Animatable
 import androidx.compose.animation.core.Animatable
 import androidx.compose.animation.core.AnimationVector4D
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.toArgb
 import androidx.core.graphics.ColorUtils
 import androidx.palette.graphics.Palette
+import kotlinx.coroutines.launch
+import kotlinx.coroutines.runBlocking
 import java.util.*
 import kotlin.math.absoluteValue
 
@@ -150,151 +155,91 @@ fun Color.getContrasted(): Color {
         return Color.Black
 }
 
-@Suppress("MemberVisibilityCanBePrivate")
-class Theme private constructor(
-    private val t_background: Animatable<Color, AnimationVector4D>,
-    private val t_on_background: Animatable<Color, AnimationVector4D>,
+class Theme(data: ThemeData) {
+    var theme_data: ThemeData = data
+        private set
 
-    private val n_background: Animatable<Color, AnimationVector4D>,
-    private val n_on_background: Animatable<Color, AnimationVector4D>,
+    private val background_state: Animatable<Color, AnimationVector4D> = Animatable(data.background)
+    private val on_background_state: Animatable<Color, AnimationVector4D> = Animatable(data.on_background)
+    private val accent_state: Animatable<Color, AnimationVector4D> = Animatable(data.accent)
 
-    private val accent: Animatable<Color, AnimationVector4D>,
+    val background: Color get() = background_state.value
+    val on_background: Color get() = on_background_state.value
+    val accent: Color get() = accent_state.value
 
-    default_t_background: Color,
-    default_t_on_background: Color,
-    default_n_background: Color,
-    default_n_on_background: Color,
-    default_accent: Color,
-) {
-    var name: String? = null
+    val on_accent: Color get() = accent.getContrasted()
+    val vibrant_accent: Color get() = accent.contrastAgainst(background)
 
-    var default_t_background: Color = default_t_background
-        set(value) {
-            if (t_background.targetValue == value) {
-                runBlocking { launch {
-                    t_background.animateTo(value)
-                } }
-            }
-            field = value
-        }
-    var default_t_on_background: Color = default_t_on_background
-        set(value) {
-            if (t_on_background.targetValue == value) {
-                runBlocking { launch {
-                    t_on_background.animateTo(value)
-                } }
-            }
-            field = value
-        }
-    var default_n_background: Color = default_n_background
-        set(value) {
-            if (n_background.targetValue == value) {
-                runBlocking { launch {
-                    n_background.animateTo(value)
-                } }
-            }
-            field = value
-        }
-    var default_n_on_background: Color = default_n_on_background
-        set(value) {
-            if (n_on_background.targetValue == value) {
-                runBlocking { launch {
-                    n_on_background.animateTo(value)
-                } }
-            }
-            field = value
-        }
-    var default_accent: Color = default_accent
-        set(value) {
-            if (accent.targetValue == value) {
-                runBlocking { launch {
-                    accent.animateTo(value)
-                } }
-            }
-            field = value
-        }
+    val background_provider: () -> Color = { background_state.value }
+    val on_background_provider: () -> Color = { on_background_state.value }
+    val accent_provider: () -> Color = { accent_state.value }
 
-    suspend fun reset() {
-        t_background.snapTo(default_t_background)
-        t_on_background.snapTo(default_t_on_background)
-        n_background.snapTo(default_n_background)
-        n_on_background.snapTo(default_n_on_background)
-        accent.snapTo(default_accent)
+    suspend fun setBackground(value: Color, snap: Boolean = false) {
+        if (snap)
+            background_state.snapTo(value)
+        else
+            background_state.animateTo(value)
+    }
+    suspend fun setOnBackground(value: Color, snap: Boolean = false) {
+        if (snap)
+            on_background_state.snapTo(value)
+        else
+            on_background_state.animateTo(value)
     }
 
-    suspend fun setBackground(themed: Boolean, value: Color?) {
-        (if (themed) t_background else n_background).animateTo(value ?: if (themed) default_t_background else default_n_background)
+    suspend fun setAccent(value: Color?, snap: Boolean = false) {
+        if (snap)
+            accent_state.snapTo(value ?: theme_data.accent)
+        else
+            accent_state.animateTo(value ?: theme_data.accent)
     }
 
-    suspend fun setOnBackground(themed: Boolean, value: Color?) {
-        (if (themed) t_on_background else n_on_background).animateTo(value ?: if (themed) default_t_on_background else default_n_on_background)
+    suspend fun setThemeData(theme: ThemeData, snap: Boolean = false) {
+        theme_data = theme
+        applyThemeData(theme)
     }
 
-    suspend fun setAccent(value: Color?) {
-        accent.animateTo(value ?: default_accent)
+    private suspend fun applyThemeData(theme: ThemeData, snap: Boolean = false) {
+        setBackground(theme.background, snap)
+        setOnBackground(theme.on_background, snap)
+        setAccent(theme.accent, snap)
     }
 
-    fun getBackground(themed: Boolean): Color {
-        return if (themed) t_background.value else n_background.value
-    }
-
-    fun getOnBackground(themed: Boolean): Color {
-        return if (themed) t_on_background.value else n_on_background.value
-    }
-
-    fun getAccent(): Color {
-        return accent.value
-    }
-
-    fun getOnAccent(): Color {
-        return accent.value.getContrasted()
-    }
-
-    fun getVibrantAccent(): Color {
-        return accent.value.contrastAgainst(n_background.value)
-    }
-
-    fun getBackgroundProvider(themed: Boolean): () -> Color {
-        return { if (themed) t_background.value else n_background.value }
-    }
-
-    fun getOnBackgroundProvider(themed: Boolean): () -> Color {
-        return { if (themed) t_on_background.value else n_on_background.value }
-    }
-
-    fun getAccentProvider(): () -> Color {
-        return { accent.value }
-    }
-
-    fun getOnAccentProvider(): () -> Color {
-        return { accent.value.getContrasted() }
-    }
-
-    fun getVibrantAccentProvider(): () -> Color {
-        return { accent.value.contrastAgainst(n_on_background.value) }
+    fun getDataFromCurrent(): ThemeData {
+        return ThemeData(background_state.targetValue, on_background_state.targetValue, accent_state.targetValue)
     }
 
     companion object {
-        @Composable
-        fun default(): Theme {
-            return create(Color.Black, Color.White, Color(99, 54, 143))
+        private val default = ThemeData(Color.Black, Color.White, Color(99, 54, 143))
+
+        val theme: Theme = Theme(default)
+        val preview_theme: Theme = Theme(default)
+
+        var preview_active: Boolean by mutableStateOf(false)
+            private set
+
+        suspend fun startPreview(theme_data: ThemeData) {
+            if (!preview_active) {
+                preview_theme.setThemeData(theme.theme_data, true)
+                preview_active = true
+            }
+            preview_theme.setThemeData(theme_data)
         }
 
-        @SuppressLint("UnrememberedAnimatable")
-        @Composable
-        fun create(background: Color, on_background: Color, accent: Color): Theme {
-            return Theme(
-                Animatable(background),
-                Animatable(on_background),
-                Animatable(background),
-                Animatable(on_background),
-                Animatable(accent),
-                background,
-                on_background,
-                background,
-                on_background,
-                accent
-            )
+        suspend fun stopPreview() {
+            if (!preview_active) {
+                return
+            }
+            val theme_data = theme.getDataFromCurrent()
+            theme.applyThemeData(preview_theme.theme_data, true)
+            theme.applyThemeData(theme_data)
+            preview_active = false
         }
+
+        val current: Theme get() = if (preview_active) preview_theme else theme
     }
 }
+
+data class ThemeData(
+    val background: Color, val on_background: Color, val accent: Color
+)

@@ -4,22 +4,14 @@ import android.content.Context
 import android.content.Intent
 import android.content.SharedPreferences
 import android.content.res.Resources
-import android.net.Uri
 import android.os.Bundle
-import android.os.Handler
-import android.os.Looper
 import android.view.WindowManager
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
-import androidx.activity.result.ActivityResultLauncher
-import androidx.activity.result.contract.ActivityResultContract
 import androidx.compose.animation.*
 import androidx.compose.foundation.ExperimentalFoundationApi
-import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
-import androidx.compose.foundation.combinedClickable
 import androidx.compose.foundation.layout.*
-import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.*
 import androidx.compose.material3.*
@@ -29,29 +21,25 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.LocalClipboardManager
 import androidx.compose.ui.text.AnnotatedString
+import androidx.compose.ui.text.ExperimentalTextApi
+import androidx.compose.ui.text.font.Font
+import androidx.compose.ui.text.font.FontFamily
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.Lifecycle
 import com.beust.klaxon.JsonObject
 import com.beust.klaxon.Klaxon
-import com.google.android.exoplayer2.database.StandaloneDatabaseProvider
-import com.google.android.exoplayer2.upstream.cache.NoOpCacheEvictor
-import com.google.android.exoplayer2.upstream.cache.SimpleCache
 import com.spectre7.spmp.api.DataApi
-import com.spectre7.spmp.api.testVideoFormatMethods
 import com.spectre7.spmp.model.Cache
 import com.spectre7.spmp.model.Settings
 import com.spectre7.spmp.model.Song
-import com.spectre7.spmp.ui.component.PillMenu
 import com.spectre7.spmp.ui.layout.PlayerView
-import com.spectre7.spmp.ui.theme.MyApplicationTheme
+import com.spectre7.spmp.ui.theme.ApplicationTheme
 import com.spectre7.utils.*
 import net.openid.appauth.*
-import java.io.File
 import java.util.*
 
 class MainActivity : ComponentActivity() {
 
-    var theme: Theme? by mutableStateOf(null)
     lateinit var languages: Map<String, Map<String, String>>
 
 //    private lateinit var auth_service: AuthorizationService
@@ -66,11 +54,11 @@ class MainActivity : ComponentActivity() {
         languages = loadLanguages()
         fun updateLanguage(lang: Int) {
             // TODO
-            val myLocale = Locale(MainActivity.languages.keys.elementAt(lang))
+            val locale = Locale(MainActivity.languages.keys.elementAt(lang))
             val conf = resources.configuration
-            conf.setLocale(myLocale)
-//            Locale.setDefault(myLocale)
-            conf.setLayoutDirection(myLocale)
+            conf.setLocale(locale)
+            Locale.setDefault(locale)
+            conf.setLayoutDirection(locale)
             resources.updateConfiguration(conf, resources.displayMetrics)
         }
         Settings.prefs.registerOnSharedPreferenceChangeListener { _, key: String ->
@@ -106,9 +94,7 @@ class MainActivity : ComponentActivity() {
         var service_started = false
 
         setContent {
-            MyApplicationTheme {
-                theme = Theme.default()
-
+            ApplicationTheme(getFontFamily()) {
                 Surface(modifier = Modifier.fillMaxSize()) {
                     if (PlayerServiceHost.service_connected) {
                         PlayerView()
@@ -160,7 +146,25 @@ class MainActivity : ComponentActivity() {
             }
             ret[item.key] = map
         }
+        data.close()
         return ret
+    }
+
+    @OptIn(ExperimentalTextApi::class)
+    private fun getFontFamily(): FontFamily {
+        val locale = languages.keys.elementAt(Settings.get(Settings.KEY_LANG_UI))
+        val font_dirs = resources.assets.list("")!!.filter { it.length > 4 && it.startsWith("font") }
+
+        var font_dir: String? = font_dirs.firstOrNull { it.endsWith("-$locale") }
+        if (font_dir == null) {
+            val locale_split = locale.indexOf('-')
+            if (locale_split > 0) {
+                val sublocale = locale.take(locale_split)
+                font_dir = font_dirs.firstOrNull { it.endsWith("-$sublocale") }
+            }
+        }
+
+        return FontFamily(Font("${font_dir ?: "font"}/regular.ttf", resources.assets))
     }
 
     companion object {
@@ -169,7 +173,6 @@ class MainActivity : ComponentActivity() {
 
         val context: MainActivity get() = instance!!
         val resources: Resources get() = context.resources
-        val theme: Theme get() = context.theme!!
         val languages: Map<String, Map<String, String>> get() = context.languages
         val error_manager = ErrorManager()
         private var prefs: SharedPreferences? = null

@@ -2,6 +2,7 @@ package com.spectre7.composesettings.ui
 
 import androidx.activity.compose.BackHandler
 import androidx.compose.foundation.layout.*
+import androidx.compose.material3.MaterialTheme
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.text.TextStyle
@@ -28,11 +29,13 @@ abstract class SettingsPage(val title: String?) {
     @Composable
     fun TitleBar(is_root: Boolean, goBack: () -> Unit) {
         if (title != null) {
-            WidthShrinkText(title, style = TextStyle(
-                fontSize = 30.sp,
-                fontWeight = FontWeight.Bold,
-                color = settings_interface.theme.getOnBackground(false)
-            ))
+            WidthShrinkText(
+                title,
+                style = MaterialTheme.typography.headlineLarge.copy(
+                    color = settings_interface.theme.on_background,
+                    fontWeight = FontWeight.Bold
+                )
+            )
         }
     }
 

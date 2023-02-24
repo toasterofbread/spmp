@@ -19,23 +19,22 @@ import androidx.compose.ui.platform.LocalFocusManager
 import androidx.compose.ui.text.input.ImeAction
 import androidx.compose.ui.text.input.TextFieldValue
 import androidx.compose.ui.unit.dp
-import com.spectre7.spmp.MainActivity
 import com.spectre7.spmp.R
 import com.spectre7.spmp.api.LyricsSearchResult
 import com.spectre7.spmp.api.getOrThrowHere
 import com.spectre7.spmp.api.searchForLyrics
 import com.spectre7.spmp.model.Song
+import com.spectre7.utils.Theme
 import com.spectre7.utils.setAlpha
 import kotlin.concurrent.thread
 
 val check_lock = Object()
 var checking by mutableStateOf(false)
 
-@OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun LyricsSearchMenu(song: Song, lyrics: Song.Lyrics?, close: (changed: Boolean) -> Unit) {
 
-    val on_accent = MainActivity.theme.getAccent()
+    val on_accent = Theme.current.accent
 
     val text_field_colours = TextFieldDefaults.textFieldColors(
         containerColor = on_accent.setAlpha(0.75f),
@@ -104,7 +103,7 @@ fun LyricsSearchMenu(song: Song, lyrics: Song.Lyrics?, close: (changed: Boolean)
                 ) {
                     Box(
                         Modifier
-                            .background(MainActivity.theme.getAccent(), CircleShape)
+                            .background(Theme.current.accent, CircleShape)
                             .padding(10.dp)) {
                         Text("Search for lyrics", color = on_accent)
                     }
@@ -153,7 +152,7 @@ fun LyricsSearchMenu(song: Song, lyrics: Song.Lyrics?, close: (changed: Boolean)
                         .weight(1f), contentAlignment = Alignment.Center) {
                     CircularProgressIndicator(
                         Modifier.requiredSize(22.dp),
-                        color = MainActivity.theme.getAccent(),
+                        color = Theme.current.accent,
                         strokeWidth = 3.dp
                     )
                 }
@@ -166,7 +165,7 @@ fun LyricsSearchMenu(song: Song, lyrics: Song.Lyrics?, close: (changed: Boolean)
                         .fillMaxWidth()
                         .weight(1f),
                     colors = ButtonDefaults.buttonColors(
-                        containerColor = MainActivity.theme.getAccent(),
+                        containerColor = Theme.current.accent,
                         contentColor = on_accent
                     )
                 ) {
@@ -182,7 +181,7 @@ fun LyricsSearchMenu(song: Song, lyrics: Song.Lyrics?, close: (changed: Boolean)
                             edit_page_open = true
                         }
                     },
-                    Modifier.background(MainActivity.theme.getAccent(), CircleShape).requiredSize(40.dp),
+                    Modifier.background(Theme.current.accent, CircleShape).requiredSize(40.dp),
                 ) {
                     Crossfade(if (checking) 0 else if (edit_page_open) 1 else 2) { icon ->
                         when (icon) {

@@ -66,7 +66,7 @@ fun PlaylistPage(
     }
 
     val gradient_size = 0.35f
-    val background_colour = MainActivity.theme.getBackground(false)
+    val background_colour = Theme.current.background
     var accent_colour by remember { mutableStateOf(Color.Unspecified) }
 
     var playlist_rows_loaded: Boolean by remember { mutableStateOf(false) }
@@ -125,11 +125,11 @@ fun PlaylistPage(
             Row(Modifier.padding(10.dp), horizontalArrangement = Arrangement.spacedBy(10.dp)) {
                 Crossfade(playlist.getThumbnail(MediaItem.ThumbnailQuality.HIGH)) { thumbnail ->
                     if (thumbnail == null) {
-                        CircularProgressIndicator(color = MainActivity.theme.getAccent())
+                        CircularProgressIndicator(color = Theme.current.accent)
                     }
                     else {
                         if (accent_colour.isUnspecified) {
-                            accent_colour = playlist.getDefaultThemeColour() ?: MainActivity.theme.getAccent()
+                            accent_colour = playlist.getDefaultThemeColour() ?: Theme.current.accent
                         }
 
                         Image(
@@ -145,7 +145,7 @@ fun PlaylistPage(
                     Text(playlist.title ?: "")
 
                     if (playlist.artist != null) {
-                        playlist.artist!!.PreviewLong(MainActivity.theme.getOnBackgroundProvider(false), playerProvider, true, Modifier)
+                        playlist.artist!!.PreviewLong(Theme.current.on_background_provider, playerProvider, true, Modifier)
                     }
                 }
             }
@@ -196,7 +196,7 @@ fun PlaylistPage(
                                 },
                                 colors = AssistChipDefaults.assistChipColors(
                                     containerColor = background_colour,
-                                    labelColor = MainActivity.theme.getOnBackground(false),
+                                    labelColor = Theme.current.on_background,
                                     leadingIconContentColor = accent_colour
                                 )
                             )
@@ -220,7 +220,7 @@ fun PlaylistPage(
                         OutlinedButton(onClick = onClick, modifier.height(45.dp)) {
                             Row(verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(10.dp)) {
                                 Icon(icon, null, tint = accent_colour)
-                                Text(text, softWrap = false, color = MainActivity.theme.getOnBackground(false))
+                                Text(text, softWrap = false, color = Theme.current.on_background)
                             }
                         }
                     }

@@ -26,17 +26,13 @@ import androidx.compose.ui.platform.LocalLayoutDirection
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.*
 import androidx.compose.ui.zIndex
-import com.spectre7.spmp.MainActivity
 import com.spectre7.spmp.R
 import com.spectre7.spmp.model.Settings
 import com.spectre7.spmp.model.Song
 import com.spectre7.spmp.ui.component.PillMenu
 import com.spectre7.spmp.ui.layout.PlayerViewContext
 import com.spectre7.spmp.ui.layout.nowplaying.overlay.OverlayMenu
-import com.spectre7.utils.LongFuriganaText
-import com.spectre7.utils.TextData
-import com.spectre7.utils.getString
-import com.spectre7.utils.sendToast
+import com.spectre7.utils.*
 
 class LyricsOverlayMenu(
     val size: Dp
@@ -98,7 +94,7 @@ class LyricsOverlayMenu(
                         }
                     }
                 },
-                _background_colour = MainActivity.theme.getAccentProvider(),
+                _background_colour = Theme.current.accent_provider,
                 vertical = true
             )
         }
@@ -114,38 +110,38 @@ class LyricsOverlayMenu(
                 }
             }
             else {
-                ScrollingLyricsDisplay(size, seek_state, lyrics, scroll_state, show_furigana)
+                ScrollingLyricsDisplay(playerProvider, size, seek_state, lyrics, scroll_state, show_furigana)
             }
         }
     }
 }
 
 @Composable
-fun ScrollingLyricsDisplay(size: Dp, seek_state: Any, lyrics: Song.Lyrics?, scroll_state: LazyListState, show_furigana: Boolean) {
+fun ScrollingLyricsDisplay(playerProvider: () -> PlayerViewContext, size: Dp, seek_state: Any, lyrics: Song.Lyrics?, scroll_state: LazyListState, show_furigana: Boolean) {
     Box {
         Crossfade(targetState = lyrics) {
             if (it == null) {
                 Column(Modifier.size(size), horizontalAlignment = Alignment.CenterHorizontally, verticalArrangement = Arrangement.Center) {
                     Text("Loading lyrics", fontWeight = FontWeight.Light) // TODO
                     Spacer(Modifier.height(20.dp))
-                    LinearProgressIndicator(color = MainActivity.theme.getAccent(), trackColor = MainActivity.theme.getOnAccent())
+                    LinearProgressIndicator(color = Theme.current.accent, trackColor = Theme.current.on_accent)
                 }
             }
             else {
-                CoreLyricsDisplay(size, seek_state, it, scroll_state, show_furigana)
+                CoreLyricsDisplay(playerProvider, size, seek_state, it, scroll_state, show_furigana)
             }
         }
     }
 }
 
 @Composable
-fun CoreLyricsDisplay(size: Dp, seek_state: Any, lyrics: Song.Lyrics, scroll_state: LazyListState, show_furigana: Boolean) {
+fun CoreLyricsDisplay(playerProvider: () -> PlayerViewContext, size: Dp, seek_state: Any, lyrics: Song.Lyrics, scroll_state: LazyListState, show_furigana: Boolean) {
     val size_px = with(LocalDensity.current) { size.toPx() }
 
     val line_height = with (LocalDensity.current) { 20.sp.toPx() }
     val line_spacing = with (LocalDensity.current) { 25.dp.toPx() }
 
-    LyricsTimingOverlay(lyrics, false, seek_state, scroll_state) { position ->
+    LyricsTimingOverlay(playerProvider, lyrics, false, seek_state, scroll_state) { position ->
         if (!Settings.get<Boolean>(Settings.KEY_LYRICS_FOLLOW_ENABLED)) {
             return@LyricsTimingOverlay
         }

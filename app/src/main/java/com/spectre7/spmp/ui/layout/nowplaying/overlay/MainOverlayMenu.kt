@@ -23,9 +23,9 @@ import com.spectre7.spmp.ui.layout.nowplaying.overlay.OverlayMenu
 import com.spectre7.spmp.ui.layout.nowplaying.overlay.PaletteSelectorOverlayMenu
 import com.spectre7.spmp.ui.layout.nowplaying.overlay.lyrics.LyricsOverlayMenu
 import com.spectre7.utils.OnChangedEffect
+import com.spectre7.utils.Theme
 import com.spectre7.utils.vibrateShort
 import kotlinx.coroutines.delay
-import kotlin.concurrent.thread
 
 class MainOverlayMenu(
     val setOverlayMenu: (OverlayMenu?) -> Unit,
@@ -121,13 +121,13 @@ class MainOverlayMenu(
                 val button_size = 42.dp
                 val button_modifier = Modifier
                     .background(
-                        MainActivity.theme.getAccent(),
+                        Theme.current.accent,
                         CircleShape
                     )
                     .size(button_size)
                     .padding(8.dp)
 
-                val button_colour = MainActivity.theme.getOnAccent()
+                val button_colour = Theme.current.on_accent
 
                 Box(
                     button_modifier
@@ -191,7 +191,7 @@ class MainOverlayMenu(
                         ) { icon ->
                             if (icon != null) {
                                 val offset = button_size * 0.2f
-                                Icon(icon, null, Modifier.size(10.dp).offset(offset, offset).background(button_colour, CircleShape), tint = MainActivity.theme.getAccent())
+                                Icon(icon, null, Modifier.size(10.dp).offset(offset, offset).background(button_colour, CircleShape), tint = Theme.current.accent)
                             }
                         }
                     }

@@ -2,6 +2,7 @@
 
 package com.spectre7.spmp.ui.layout
 
+import android.content.SharedPreferences.OnSharedPreferenceChangeListener
 import androidx.compose.animation.*
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.*
@@ -11,7 +12,6 @@ import androidx.compose.material.ExperimentalMaterialApi
 import androidx.compose.material.SwipeableState
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.*
-import androidx.compose.material.rememberSwipeableState
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
@@ -34,6 +34,7 @@ import com.spectre7.spmp.api.getOrThrowHere
 import com.spectre7.spmp.model.*
 import com.spectre7.spmp.ui.component.*
 import com.spectre7.spmp.ui.layout.nowplaying.NowPlaying
+import com.spectre7.spmp.ui.layout.nowplaying.ThemeMode
 import com.spectre7.utils.*
 import kotlinx.coroutines.*
 import kotlinx.coroutines.sync.Semaphore
@@ -55,13 +56,30 @@ data class PlayerViewContext(
     private val onLongClickedOverride: ((item: MediaItem) -> Unit)? = null,
     private val base: PlayerViewContext? = null
 ) {
-
     fun copy(onClickedOverride: ((item: MediaItem) -> Unit)? = null, onLongClickedOverride: ((item: MediaItem) -> Unit)? = null): PlayerViewContext {
         return PlayerViewContext(onClickedOverride, onLongClickedOverride, this)
     }
 
-    val now_playing_swipe_state = SwipeableState(0)
-    private var now_playing_switch_page: Int by mutableStateOf(-1)
+    private val is_base: Boolean get() = base == null
+    private fun baseOrThis(): PlayerViewContext = base ?: this
+
+    private val np_theme_mode_state: MutableState<ThemeMode>? = if (is_base) mutableStateOf(Settings.getEnum(Settings.KEY_NOWPLAYING_THEME_MODE)) else null
+    private val np_accent_colour_source_state: MutableState<AccentColourSource>? = if (is_base) mutableStateOf(Settings.getEnum(Settings.KEY_ACCENT_COLOUR_SOURCE)) else null
+
+    var np_theme_mode: ThemeMode
+        get() = baseOrThis().np_theme_mode_state!!.value
+        private set(value) { baseOrThis().np_theme_mode_state!!.value = value }
+    var np_accent_colour_source: AccentColourSource
+        get() = baseOrThis().np_accent_colour_source_state!!.value
+        private set(value) { baseOrThis().np_accent_colour_source_state!!.value = value }
+
+    private val now_playing_swipe_state: SwipeableState<Int>? = if (is_base) SwipeableState(0) else null
+    fun getNowPlayingSwipeState(): SwipeableState<Int> = baseOrThis().now_playing_swipe_state!!
+
+    private val now_playing_switch_page: MutableState<Int>? = if (is_base) mutableStateOf(-1) else null
+    private fun switchNowPlayingPage(page: Int) {
+        baseOrThis().now_playing_switch_page!!.value = page
+    }
 
     val pill_menu = PillMenu(
         top = false
@@ -69,7 +87,31 @@ data class PlayerViewContext(
 
     var overlay_page by mutableStateOf(OverlayPage.NONE)
     var overlay_media_item: MediaItem? by mutableStateOf(null)
-    
+
+    private lateinit var prefs_listener: OnSharedPreferenceChangeListener
+
+    init {
+        if (is_base) {
+            prefs_listener = OnSharedPreferenceChangeListener { prefs, key ->
+                when (key) {
+                    Settings.KEY_NOWPLAYING_THEME_MODE.name -> {
+                        np_theme_mode = Settings.getEnum(Settings.KEY_NOWPLAYING_THEME_MODE, prefs)
+                    }
+                    Settings.KEY_ACCENT_COLOUR_SOURCE.name -> {
+                        np_accent_colour_source = Settings.getEnum(Settings.KEY_ACCENT_COLOUR_SOURCE, prefs)
+                    }
+                }
+            }
+            Settings.prefs.registerOnSharedPreferenceChangeListener(prefs_listener)
+        }
+    }
+
+    fun release() {
+        if (is_base) {
+            Settings.prefs.unregisterOnSharedPreferenceChangeListener(prefs_listener)
+        }
+    }
+
     fun onMediaItemClicked(item: MediaItem) {
         if (onClickedOverride != null) {
             onClickedOverride.invoke(item)
@@ -84,8 +126,8 @@ data class PlayerViewContext(
         when (item) {
             is Song -> {
                 PlayerServiceHost.service.playSong(item)
-                if (now_playing_swipe_state.targetValue == 0 && Settings.get(Settings.KEY_OPEN_NP_ON_SONG_PLAYED)) {
-                    now_playing_switch_page = 1
+                if (getNowPlayingSwipeState().targetValue == 0 && Settings.get(Settings.KEY_OPEN_NP_ON_SONG_PLAYED)) {
+                    switchNowPlayingPage(1)
                 }
             }
             else -> openMediaItem(item)
@@ -118,8 +160,8 @@ data class PlayerViewContext(
         overlay_page = OverlayPage.MEDIAITEM
         overlay_media_item = item
 
-        if (now_playing_swipe_state.targetValue != 0) {
-            now_playing_switch_page = 0
+        if (getNowPlayingSwipeState().targetValue != 0) {
+            switchNowPlayingPage(0)
         }
         hideLongPressMenu()
     }
@@ -156,12 +198,14 @@ data class PlayerViewContext(
 
     @Composable
     fun NowPlaying() {
-        NowPlaying(remember { { this } }, now_playing_swipe_state)
+        check(is_base)
+
+        NowPlaying(remember { { this } }, now_playing_swipe_state!!)
         
-        OnChangedEffect(now_playing_switch_page) {
-            if (now_playing_switch_page >= 0) {
-                now_playing_swipe_state.animateTo(now_playing_switch_page)
-                now_playing_switch_page = -1
+        OnChangedEffect(now_playing_switch_page!!.value) {
+            if (now_playing_switch_page.value >= 0) {
+                now_playing_swipe_state.animateTo(now_playing_switch_page.value)
+                now_playing_switch_page.value = -1
             }
         }
     }
@@ -203,6 +247,12 @@ fun PlayerView() {
     val playerProvider = remember { { player } }
     player.LongPressMenu()
 
+    DisposableEffect(Unit) {
+        onDispose {
+            player.release()
+        }
+    }
+
     LaunchedEffect(player.overlay_page) {
         if (player.overlay_page == OverlayPage.NONE) {
             player.pill_menu.clearExtraActions()
@@ -214,7 +264,7 @@ fun PlayerView() {
     Column(
         Modifier
             .fillMaxSize()
-            .background(MainActivity.theme.getBackground(false))
+            .background(Theme.current.background)
     ) {
         Box {
             val expand_state = remember { mutableStateOf(false) }
@@ -226,22 +276,22 @@ fun PlayerView() {
                     ActionButton(
                         if (action_count == 1) Icons.Filled.Close else
                             when (index) {
-                                0 -> Icons.Filled.Library
                                 0 -> Icons.Filled.Search
+                                1 -> Icons.Filled.LibraryMusic
                                 else -> Icons.Filled.Settings
                             }
                     ) {
                         player.overlay_page = if (action_count == 1) OverlayPage.NONE else
                             when (index) {
-                                0 -> OverlayPage.LIBRARY
-                                1 -> OverlayPage.SEARCH
+                                0 -> OverlayPage.SEARCH
+                                1 -> OverlayPage.LIBRARY
                                 else -> OverlayPage.SETTINGS
                             }
                     }
                 },
                 if (!overlay_open) expand_state else null,
-                MainActivity.theme.getAccentProvider(),
-                container_modifier = Modifier.offset { IntOffset(x = 0, y = -player.now_playing_swipe_state.offset.value.dp.toPx().toInt()) }
+                Theme.current.accent_provider,
+                container_modifier = Modifier.offset { IntOffset(x = 0, y = -player.getNowPlayingSwipeState().offset.value.dp.toPx().toInt()) }
             )
 
             val main_page_layouts = remember { mutableStateListOf<MediaItemLayout>() }
@@ -315,12 +365,12 @@ private fun MainPage(
             }
             else {
                 Column(Modifier.fillMaxSize(), verticalArrangement = Arrangement.Center, horizontalAlignment = Alignment.CenterHorizontally) {
-                    Text(getString(R.string.loading_feed), Modifier.alpha(0.4f), fontSize = 12.sp, color = MainActivity.theme.getOnBackground(false))
+                    Text(getString(R.string.loading_feed), Modifier.alpha(0.4f), fontSize = 12.sp, color = Theme.current.on_background)
                     Spacer(Modifier.height(5.dp))
                     LinearProgressIndicator(
                         Modifier
                             .alpha(0.4f)
-                            .fillMaxWidth(0.35f), color = MainActivity.theme.getOnBackground(false))
+                            .fillMaxWidth(0.35f), color = Theme.current.on_background)
                 }
             }
         }

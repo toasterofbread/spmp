@@ -47,7 +47,7 @@ fun getScreenHeight(): Dp {
 }
 
 const val MINIMISED_NOW_PLAYING_HEIGHT: Int = 64
-enum class OverlayPage { NONE, SEARCH, SETTINGS, MEDIAITEM }
+enum class OverlayPage { NONE, SEARCH, SETTINGS, MEDIAITEM, LIBRARY }
 
 @OptIn(ExperimentalMaterialApi::class)
 data class PlayerViewContext(
@@ -221,19 +221,21 @@ fun PlayerView() {
             val overlay_open by remember { derivedStateOf { player.overlay_page != OverlayPage.NONE } }
 
             player.pill_menu.PillMenu(
-                if (overlay_open) 1 else 2,
+                if (overlay_open) 1 else 3,
                 { index, action_count ->
                     ActionButton(
                         if (action_count == 1) Icons.Filled.Close else
                             when (index) {
-                                0 -> Icons.Filled.Settings
-                                else -> Icons.Filled.Search
+                                0 -> Icons.Filled.Library
+                                0 -> Icons.Filled.Search
+                                else -> Icons.Filled.Settings
                             }
                     ) {
                         player.overlay_page = if (action_count == 1) OverlayPage.NONE else
                             when (index) {
-                                0 -> OverlayPage.SETTINGS
-                                else -> OverlayPage.SEARCH
+                                0 -> OverlayPage.LIBRARY
+                                1 -> OverlayPage.SEARCH
+                                else -> OverlayPage.SETTINGS
                             }
                     }
                 },
@@ -259,18 +261,21 @@ fun PlayerView() {
                     if (it != OverlayPage.NONE && it != OverlayPage.MEDIAITEM) {
                         Spacer(Modifier.requiredHeight(getStatusBarHeight(MainActivity.context)))
                     }
+
+                    val close = remember { { player.overlay_page = OverlayPage.NONE } }
                     when (it) {
                         OverlayPage.NONE -> MainPage(main_page_layouts, playerProvider, main_page_scroll_state)
-                        OverlayPage.SEARCH -> SearchPage(player.pill_menu, playerProvider) { player.overlay_page = OverlayPage.NONE }
-                        OverlayPage.SETTINGS -> PrefsPage(player.pill_menu) { player.overlay_page = OverlayPage.NONE }
+                        OverlayPage.SEARCH -> SearchPage(player.pill_menu, playerProvider, close)
+                        OverlayPage.SETTINGS -> PrefsPage(player.pill_menu, close)
                         OverlayPage.MEDIAITEM -> Crossfade(player.overlay_media_item) { item ->
                             when (item) {
                                 null -> {}
-                                is Artist -> ArtistPage(player.pill_menu, item, playerProvider) { player.overlay_page = OverlayPage.NONE }
-                                is Playlist -> PlaylistPage(player.pill_menu, item, playerProvider) { player.overlay_page = OverlayPage.NONE }
+                                is Artist -> ArtistPage(player.pill_menu, item, playerProvider, close)
+                                is Playlist -> PlaylistPage(player.pill_menu, item, playerProvider, close)
                                 else -> throw NotImplementedError()
                             }
                         }
+                        OverlayPage.LIBRARY -> LibraryPage(player.pill_menu, playerProvider, close)
                     }
                 }
             }

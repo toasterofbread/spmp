@@ -127,9 +127,33 @@ class PlayerDownloadService: Service() {
     enum class IntentAction {
         STOP, START_DOWNLOAD, CANCEL_DOWNLOAD, CANCEL_ALL, PAUSE_RESUME, STATUS_CHANGED
     }
+    
+    data class FilenameData(
+        val id: String,
+        val quality: Song.AudioQuality,
+        val extension: String,
+        val downloading: Boolean
+    )
 
     companion object {
         const val RESULT_INTENT_ACTION: String = "com.spectre7.spmp.PlayerDownloadService.result"
+
+        fun getFilenameData(filename: String): FilenameData {
+            val downloading = filename.endsWith(FILE_DOWNLOADING_SUFFIX)
+            val split = (if (downloading) filename.dropLast(FILE_DOWNLOADING_SUFFIX.length) else filename).split('.', 3)
+            require(split.size == 3)
+
+            return FilenameData(
+                split[0],
+                Song.AudioQuality.values()[split[1].toInt()],
+                split[2],
+                downloading
+            )
+        }
+
+        fun getFilenameSong(filename: String): Song {
+            return Song.fromId(filename.take(filename.indexOf('.')))
+        }
 
         // Filename format: id.quality.mediatype(.part)
         // Return values: true = match, false = match (partial file), null = no match

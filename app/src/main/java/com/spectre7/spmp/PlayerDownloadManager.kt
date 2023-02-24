@@ -40,6 +40,27 @@ class PlayerDownloadManager(private val context: Context) {
     }
     private val download_status_listeners: MutableList<DownloadStatusListener> = mutableListOf()
 
+    private val downloaded_songs: MutableList<Song> = mutableStateListOf()
+
+    init {
+        val files = getDownloadDir(context).listFiles()
+        if (files != null) {
+            for (file in files) {
+                onSongDownloaded(PlayerDownloadService.getFilenameSong(file.name))
+            }
+        }
+    }
+
+    private fun onSongDownloaded(song: Song) {
+        if (!downloaded_songs.contains(song)) {
+            downloaded_songs.add(song)
+        }
+    }
+
+    private fun onSongDeleted(song_id: String) {
+        downloaded_songs.removeIf { it.id == song_id }
+    }
+
     companion object {
         fun getDownloadDir(context: Context): File {
             return File(context.filesDir, "download")
@@ -69,6 +90,10 @@ class PlayerDownloadManager(private val context: Context) {
                         System.currentTimeMillis().toInt(),
                         result.exceptionOrNull()!!.createNotification(context, getErrorNotificationChannel())
                     )
+                }
+
+                if (result.getOrNull() == null) {
+                    onSongDeleted(song_id)
                 }
             }
             PlayerDownloadService.IntentAction.STATUS_CHANGED -> {
@@ -125,6 +150,8 @@ class PlayerDownloadManager(private val context: Context) {
         intent.putExtra("instance", instance)
 
         LocalBroadcastManager.getInstance(context).sendBroadcast(intent)
+
+        onSongDownloaded(Song.fromId(song_id))
     }
 
     fun getSongDownloadStatus(song_id: String, callback: (PlayerDownloadService.DownloadStatus) -> Unit) {

@@ -56,15 +56,20 @@ abstract class SettingsItem {
     @Composable
     protected fun ItemTitleText(text: String?, theme: Theme) {
         if (text != null) {
-            Text(text, color = theme.getOnBackground(false))
+            Text(text, color = theme.on_background)
+        }
+    }
+
+    @Composable
+    protected fun ItemText(text: String?, colour: Color, font_size: TextUnit = TextUnit.Unspecified) {
+        if (text != null) {
+            Text(text, color = colour, fontSize = font_size)
         }
     }
 
     @Composable
     protected fun ItemText(text: String?, theme: Theme, font_size: TextUnit = TextUnit.Unspecified) {
-        if (text != null) {
-            Text(text, color = theme.getOnBackground(false).setAlpha(0.75f), fontSize = font_size)
-        }
+        ItemText(text, theme.on_background.setAlpha(0.75f), font_size)
     }
 }
 
@@ -80,7 +85,7 @@ class SettingsGroup(var title: String?): SettingsItem() {
     ) {
         Spacer(Modifier.requiredHeight(20.dp))
         if (title != null) {
-            Text(title!!.uppercase(), color = theme.getVibrantAccent(), fontSize = 20.sp, fontWeight = FontWeight.Light)
+            Text(title!!.uppercase(), color = theme.vibrant_accent, fontSize = 20.sp, fontWeight = FontWeight.Light)
         }
     }
 }
@@ -197,8 +202,8 @@ class SettingsItemToggle(
                     }
                 },
                 colors = SwitchDefaults.colors(
-                    checkedThumbColor = theme.getVibrantAccent(),
-                    checkedTrackColor = theme.getVibrantAccent().setAlpha(0.5f)
+                    checkedThumbColor = theme.vibrant_accent,
+                    checkedTrackColor = theme.vibrant_accent.setAlpha(0.5f)
                 )
             )
         }
@@ -341,13 +346,13 @@ class SettingsItemSlider(
                     thumbSizeInDp = DpSize(12.dp, 12.dp),
                     track = { a, b, c, d, e ->
                         DefaultTrack(a, b, c, d, e,
-                            theme.getVibrantAccent().setAlpha(0.5f),
-                            theme.getVibrantAccent(),
-                            colorTickProgress = theme.getVibrantAccent().getContrasted().setAlpha(0.5f)
+                            theme.vibrant_accent.setAlpha(0.5f),
+                            theme.vibrant_accent,
+                            colorTickProgress = theme.vibrant_accent.getContrasted().setAlpha(0.5f)
                         )
                     },
                     thumb = { modifier, offset, interaction_source, enabled, thumb_size ->
-                        val colour = theme.getVibrantAccent()
+                        val colour = theme.vibrant_accent
                         val scale_on_press = 1.15f
                         val animation_spec = SpringSpec<Float>(0.65f)
                         val value_text = getValueText?.invoke(getValue())
@@ -447,7 +452,7 @@ class SettingsItemMultipleChoice(
                                 modifier = Modifier
                                     .border(
                                         Dp.Hairline,
-                                        theme.getOnBackground(false),
+                                        theme.on_background,
                                         RoundedCornerShape(16.dp)
                                     )
                                     .fillMaxWidth()
@@ -457,8 +462,8 @@ class SettingsItemMultipleChoice(
                                         null
                                     ) { state.value = i }
                             ) {
-                                Text(get_choice(i), color = theme.getOnAccent())
-                                RadioButton(i == state.value, onClick = { state.value = i }, colors = RadioButtonDefaults.colors(theme.getVibrantAccent()))
+                                Text(get_choice(i), color = theme.on_accent)
+                                RadioButton(i == state.value, onClick = { state.value = i }, colors = RadioButtonDefaults.colors(theme.vibrant_accent))
                             }
                         }
                     }
@@ -467,9 +472,9 @@ class SettingsItemMultipleChoice(
                     Column(Modifier.padding(start = 15.dp), verticalArrangement = Arrangement.spacedBy(10.dp)) {
                         for (i in 0 until choice_amount) {
 
-                            val colour = remember(i) { Animatable(if (state.value == i) theme.getVibrantAccent() else Color.Transparent) }
-                            LaunchedEffect(state.value, theme.getAccent()) {
-                                colour.animateTo(if (state.value == i) theme.getAccent() else Color.Transparent, TweenSpec(150))
+                            val colour = remember(i) { Animatable(if (state.value == i) theme.vibrant_accent else Color.Transparent) }
+                            LaunchedEffect(state.value, theme.vibrant_accent) {
+                                colour.animateTo(if (state.value == i) theme.vibrant_accent else Color.Transparent, TweenSpec(150))
                             }
 
                             Box(
@@ -477,7 +482,7 @@ class SettingsItemMultipleChoice(
                                 modifier = Modifier
                                     .border(
                                         Dp.Hairline,
-                                        theme.getOnBackground(false),
+                                        theme.on_background,
                                         RoundedCornerShape(16.dp)
                                     )
                                     .fillMaxWidth()
@@ -488,7 +493,7 @@ class SettingsItemMultipleChoice(
                                     .background(colour.value, RoundedCornerShape(16.dp))
                             ) {
                                 Box(Modifier.padding(horizontal = 10.dp)) {
-                                    Text(get_choice(i), color = if (state.value == i) theme.getOnAccent() else theme.getOnBackground(false))
+                                    Text(get_choice(i), color = if (state.value == i) theme.on_accent else theme.on_background)
                                 }
                             }
                         }
@@ -540,15 +545,15 @@ class SettingsItemDropdown(
                 Modifier.requiredHeight(40.dp),
                 shape = RoundedCornerShape(16.dp),
                 colors = ButtonDefaults.buttonColors(
-                    containerColor = theme.getAccent(),
-                    contentColor = theme.getOnAccent()
+                    containerColor = theme.vibrant_accent,
+                    contentColor = theme.on_accent
                 )
             ) {
                 Text(getButtonItem?.invoke(state.value) ?: getItem(state.value))
                 Icon(
                     Icons.Filled.ArrowDropDown,
                     null,
-                    tint = theme.getOnAccent()
+                    tint = theme.on_accent
                 )
             }
 
@@ -575,7 +580,7 @@ class SettingsItemDropdown(
 //                Crossfade(open) {
 //                    Row(Modifier.fillMaxWidth().offset((-20).dp), horizontalArrangement = Arrangement.End) {
 //                        Box(
-//                            Modifier.background(theme.getAccent(), RoundedCornerShape(16.dp)), contentAlignment = Alignment.TopEnd
+//                            Modifier.background(theme.vibrant_accent, RoundedCornerShape(16.dp)), contentAlignment = Alignment.TopEnd
 //                        ) {
 //                            if (it) {
 //                                LazyColumn(
@@ -603,11 +608,11 @@ class SettingsItemDropdown(
 //                                            Icon(
 //                                                Icons.Filled.KeyboardArrowRight,
 //                                                null,
-//                                                tint = theme.getOnAccent()
+//                                                tint = theme.on_accent
 //                                            )
 //                                            Text(
 //                                                item,
-//                                                color = theme.getOnAccent(),
+//                                                color = theme.on_accent,
 //                                                fontWeight = FontWeight.Medium
 //                                            )
 //                                        }
@@ -638,13 +643,17 @@ class SettingsItemSubpage(
         openPage: (Int) -> Unit,
         openCustomPage: (SettingsPage) -> Unit
     ) {
-        Button(modifier = Modifier.fillMaxWidth(), onClick = {
-            openPage(target_page)
-        }, colors = ButtonDefaults.buttonColors(theme.getAccent(), theme.getOnAccent())
+        Button(
+            { openPage(target_page) },
+            Modifier.fillMaxWidth(),
+            colors = ButtonDefaults.buttonColors(
+                containerColor = theme.vibrant_accent,
+                contentColor = theme.on_accent
+            )
         ) {
             Column(Modifier.weight(1f)) {
-                ItemTitleText(title, theme)
-                ItemText(subtitle, theme)
+                Text(title, color = theme.on_accent)
+                ItemText(subtitle, theme.on_accent)
             }
         }
     }
@@ -685,14 +694,14 @@ class SettingsItemAccessibilityService(
         val shape = RoundedCornerShape(35)
 
         Crossfade(service_enabled) { enabled ->
-            CompositionLocalProvider(LocalContentColor provides if (enabled) theme.getOnBackground(false) else theme.getOnAccent()) {
+            CompositionLocalProvider(LocalContentColor provides if (enabled) theme.on_background else theme.on_accent) {
                 Row(
                     Modifier
                         .background(
-                            if (enabled) theme.getBackground(false) else theme.getAccent(),
+                            if (enabled) theme.background else theme.vibrant_accent,
                             shape
                         )
-                        .border(Dp.Hairline, theme.getAccent(), shape)
+                        .border(Dp.Hairline, theme.vibrant_accent, shape)
                         .padding(start = 20.dp, end = 20.dp)
                         .fillMaxWidth(),
                     horizontalArrangement = Arrangement.SpaceBetween, verticalAlignment = Alignment.CenterVertically
@@ -700,8 +709,8 @@ class SettingsItemAccessibilityService(
                     Text(if (enabled) enabled_text else disabled_text)
                     Button({ service_bridge.setEnabled(!enabled) },
                         colors = ButtonDefaults.buttonColors(
-                            containerColor = if (enabled) theme.getAccent() else theme.getBackground(false),
-                            contentColor = if (enabled) theme.getOnAccent() else theme.getOnBackground(false)
+                            containerColor = if (enabled) theme.vibrant_accent else theme.background,
+                            contentColor = if (enabled) theme.on_accent else theme.on_background
                         )
                     ) {
                         Text(if (enabled) disable_button else enable_button)

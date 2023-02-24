@@ -1,7 +1,6 @@
 package com.spectre7.spmp.ui.layout.nowplaying
 
 import MainOverlayMenu
-import android.content.SharedPreferences
 import android.text.format.DateUtils
 import androidx.activity.compose.BackHandler
 import androidx.compose.animation.*
@@ -43,14 +42,13 @@ import com.google.android.exoplayer2.Player
 import com.spectre7.spmp.MainActivity
 import com.spectre7.spmp.PlayerServiceHost
 import com.spectre7.spmp.R
+import com.spectre7.spmp.model.AccentColourSource
 import com.spectre7.spmp.model.MediaItem
-import com.spectre7.spmp.model.Settings
 import com.spectre7.spmp.model.Song
 import com.spectre7.spmp.ui.layout.MINIMISED_NOW_PLAYING_HEIGHT
 import com.spectre7.spmp.ui.layout.PlayerViewContext
 import com.spectre7.spmp.ui.layout.nowplaying.overlay.OverlayMenu
 import com.spectre7.utils.*
-import kotlinx.coroutines.launch
 import kotlin.concurrent.thread
 import kotlin.math.absoluteValue
 import kotlin.math.max
@@ -63,6 +61,41 @@ const val MIN_THUMBNAIL_ROUNDING: Int = 0
 const val MAX_THUMBNAIL_ROUNDING: Int = 50
 const val TOP_BAR_HEIGHT: Int = 50
 val NOW_PLAYING_MAIN_PADDING = 10.dp
+
+//if (theme_colour == null) {
+//    launch {
+//        Theme.current.setBackground(true, null)
+//    }
+//    launch {
+//        Theme.current.setOnBackground(true, null)
+//    }
+//}
+//else if (theme_mode == ThemeMode.BACKGROUND) {
+//    launch {
+//        Theme.current.setBackground(true, accent)
+//    }
+//    launch {
+//        Theme.current.setOnBackground(true,
+//            accent.getContrasted()
+//        )
+//    }
+//}
+//else if (theme_mode == ThemeMode.ELEMENTS) {
+//    launch {
+//        Theme.current.setBackground(true, null)
+//    }
+//    launch {
+//        Theme.current.setOnBackground(true, accent.contrastAgainst(Theme.current.getBackground(true)))
+//    }
+//}
+//else {
+//    launch {
+//        Theme.current.setBackground(true, null)
+//    }
+//    launch {
+//        Theme.current.setOnBackground(true, null)
+//    }
+//}
 
 @Composable
 fun ColumnScope.NowPlayingMainTab(
@@ -88,73 +121,18 @@ fun ColumnScope.NowPlayingMainTab(
 
     var seek_state by remember { mutableStateOf(-1f) }
     var theme_palette by remember { mutableStateOf<Palette?>(null) }
-    var accent_colour_source: AccentColourSource by remember { mutableStateOf(Settings.getEnum(Settings.KEY_ACCENT_COLOUR_SOURCE)) }
-    var theme_mode: ThemeMode by remember { mutableStateOf(Settings.getEnum(Settings.KEY_NOWPLAYING_THEME_MODE)) }
     var loaded_song: Song? by remember { mutableStateOf(null) }
 
     val disappear_scale = minOf(1f, if (expansion < 0.5f) 1f else (1f - ((expansion - 0.5f) * 2f)))
     val appear_scale = minOf(1f, if (expansion > 0.5f) 1f else (expansion * 2f))
 
-    val prefs_listener = remember {
-        SharedPreferences.OnSharedPreferenceChangeListener { _, key ->
-            if (key == Settings.KEY_ACCENT_COLOUR_SOURCE.name) {
-                accent_colour_source = Settings.getEnum(Settings.KEY_ACCENT_COLOUR_SOURCE)
-            } else if (key == Settings.KEY_NOWPLAYING_THEME_MODE.name) {
-                theme_mode = Settings.getEnum(Settings.KEY_NOWPLAYING_THEME_MODE)
-            }
-        }
-    }
-
-    DisposableEffect(Unit) {
-        Settings.prefs.registerOnSharedPreferenceChangeListener(prefs_listener)
-        onDispose {
-            Settings.prefs.unregisterOnSharedPreferenceChangeListener(prefs_listener)
-        }
-    }
-
-    LaunchedEffect(key1 = theme_colour, key2 = accent_colour_source, key3 = theme_mode) {
-        MainActivity.theme.setAccent(when (accent_colour_source) {
-            AccentColourSource.THEME -> null,
+    val system_accent = MaterialTheme.colorScheme.primary
+    LaunchedEffect(key1 = theme_colour, key2 = playerProvider().np_accent_colour_source) {
+        Theme.current.setAccent(when (playerProvider().np_accent_colour_source) {
+            AccentColourSource.THEME -> null
             AccentColourSource.THUMBNAIL -> theme_colour
-            AccentColourSource.SYSTEM -> TODO()
+            AccentColourSource.SYSTEM -> system_accent
         })
-
-        val accent = MainActivity.theme.getAccent()
-
-        if (theme_colour == null) {
-            launch {
-                MainActivity.theme.setBackground(true, null)
-            }
-            launch {
-                MainActivity.theme.setOnBackground(true, null)
-            }
-        }
-        else if (theme_mode == ThemeMode.BACKGROUND) {
-            launch {
-                MainActivity.theme.setBackground(true, accent)
-            }
-            launch {
-                MainActivity.theme.setOnBackground(true,
-                    accent.getContrasted()
-                )
-            }
-        }
-        else if (theme_mode == ThemeMode.ELEMENTS) {
-            launch {
-                MainActivity.theme.setBackground(true, null)
-            }
-            launch {
-                MainActivity.theme.setOnBackground(true, accent.contrastAgainst(MainActivity.theme.getBackground(true)))
-            }
-        }
-        else {
-            launch {
-                MainActivity.theme.setBackground(true, null)
-            }
-            launch {
-                MainActivity.theme.setOnBackground(true, null)
-            }
-        }
     }
 
     fun loadThumbnail(song: Song, quality: MediaItem.ThumbnailQuality) {
@@ -223,13 +201,13 @@ fun ColumnScope.NowPlayingMainTab(
         IconButton({
             TODO("Edit")
         }) {
-            Icon(Icons.Filled.Edit, null, tint = MainActivity.theme.getOnBackground(true).setAlpha(0.5f))
+            Icon(Icons.Filled.Edit, null, tint = getNPOnBackground(playerProvider).setAlpha(0.5f))
         }
 
         IconButton({
             PlayerServiceHost.status.m_song?.let { playerProvider().onMediaItemLongClicked(it) }
         }) {
-            Icon(Icons.Filled.MoreHoriz, null, tint = MainActivity.theme.getOnBackground(true).setAlpha(0.5f))
+            Icon(Icons.Filled.MoreHoriz, null, tint = getNPOnBackground(playerProvider).setAlpha(0.5f))
         }
     }
 
@@ -261,7 +239,7 @@ fun ColumnScope.NowPlayingMainTab(
             Crossfade(thumbnail, animationSpec = tween(250)) { image ->
                 if (image == null) {
                     Box(Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
-                        CircularProgressIndicator(color = MainActivity.theme.getAccent())
+                        CircularProgressIndicator(color = Theme.current.accent)
                     }
                 }
                 else {
@@ -382,14 +360,13 @@ fun ColumnScope.NowPlayingMainTab(
                     exit = shrinkVertically(tween(200))
                 ) {
                     val padding = 15.dp
-                    val background = if (theme_mode == ThemeMode.BACKGROUND) MainActivity.theme.getBackground(false) else MainActivity.theme.getAccent()
                     CompositionLocalProvider(
-                        LocalContentColor provides background.getContrasted()
+                        LocalContentColor provides getNPOnBackground(playerProvider)
                     ) {
                         Column(
                             Modifier
                                 .background(
-                                    background.setAlpha(0.9f),
+                                    getNPBackground(playerProvider).setAlpha(0.9f),
                                     thumbnail_shape
                                 )
                                 .padding(start = padding, top = padding, end = padding)
@@ -409,7 +386,7 @@ fun ColumnScope.NowPlayingMainTab(
                             IconButton(onClick = { shutter_menu_open = false }) {
                                 Icon(
                                     Icons.Filled.KeyboardArrowUp, null,
-                                    tint = background.getContrasted(),
+                                    tint = getNPOnBackground(playerProvider),
                                     modifier = Modifier.size(50.dp)
                                 )
                             }
@@ -431,7 +408,7 @@ fun ColumnScope.NowPlayingMainTab(
             Text(
                 PlayerServiceHost.status.m_song?.title ?: "",
                 maxLines = 1,
-                color = MainActivity.theme.getOnBackground(true),
+                color = getNPOnBackground(playerProvider),
                 overflow = TextOverflow.Ellipsis,
                 modifier = Modifier
                     .align(Alignment.CenterVertically)
@@ -448,7 +425,7 @@ fun ColumnScope.NowPlayingMainTab(
                     Image(
                         painterResource(R.drawable.ic_skip_previous),
                         null,
-                        colorFilter = ColorFilter.tint(MainActivity.theme.getOnBackground(true))
+                        colorFilter = ColorFilter.tint(getNPOnBackground(playerProvider))
                     )
                 }
             }
@@ -462,7 +439,7 @@ fun ColumnScope.NowPlayingMainTab(
                     Image(
                         painterResource(if (PlayerServiceHost.status.m_playing) R.drawable.ic_pause else R.drawable.ic_play_arrow),
                         getString(if (PlayerServiceHost.status.m_playing) R.string.media_pause else R.string.media_play),
-                        colorFilter = ColorFilter.tint(MainActivity.theme.getOnBackground(true))
+                        colorFilter = ColorFilter.tint(getNPOnBackground(playerProvider))
                     )
                 }
             }
@@ -476,7 +453,7 @@ fun ColumnScope.NowPlayingMainTab(
                     Image(
                         painterResource(R.drawable.ic_skip_next),
                         null,
-                        colorFilter = ColorFilter.tint(MainActivity.theme.getOnBackground(true))
+                        colorFilter = ColorFilter.tint(getNPOnBackground(playerProvider))
                     )
                 }
             }
@@ -532,7 +509,7 @@ private fun Controls(
                     )
                     .alpha(if (enabled) 1.0f else 0.5f)
             ) {
-                val colour = colourProvider?.invoke() ?: MainActivity.theme.getOnBackground(true)
+                val colour = colourProvider?.invoke() ?: getNPOnBackground(playerProvider)
                 Image(
                     painter, null,
                     Modifier
@@ -557,11 +534,10 @@ private fun Controls(
 
                 // Title text
                 Marquee(false) {
-                    println("TITLE ${PlayerServiceHost.status.m_song?.title}")
                     Text(
                         PlayerServiceHost.status.m_song?.title ?: "",
                         fontSize = 17.sp,
-                        color = MainActivity.theme.getOnBackground(true),
+                        color = getNPOnBackground(playerProvider),
                         textAlign = TextAlign.Center,
                         maxLines = 1,
                         overflow = TextOverflow.Ellipsis,
@@ -575,7 +551,7 @@ private fun Controls(
                 Text(
                     PlayerServiceHost.status.m_song?.artist?.title ?: "",
                     fontSize = 12.sp,
-                    color = MainActivity.theme.getOnBackground(true),
+                    color = getNPOnBackground(playerProvider),
                     textAlign = TextAlign.Center,
                     maxLines = 1,
                     overflow = TextOverflow.Ellipsis,
@@ -590,7 +566,7 @@ private fun Controls(
                 )
             }
 
-            SeekBar(seek)
+            SeekBar(playerProvider, seek)
 
             Row(
                 horizontalArrangement = Arrangement.Center,
@@ -646,24 +622,24 @@ private fun Controls(
                 { scroll(1) },
                 Modifier.align(Alignment.CenterHorizontally)
             ) {
-                Icon(Icons.Filled.KeyboardArrowDown, null, tint = MainActivity.theme.getOnBackground(true).setAlpha(0.5f))
+                Icon(Icons.Filled.KeyboardArrowDown, null, tint = getNPOnBackground(playerProvider).setAlpha(0.5f))
             }
         }
     }
 }
 
 @Composable
-private fun SeekBarTimeText(time: Float) {
+private fun SeekBarTimeText(time: Float, colour: Color) {
     Text(
         remember(time) { if (time < 0f) "??:??" else DateUtils.formatElapsedTime(time.toLong()) },
         fontSize = 10.sp,
         fontWeight = FontWeight.Light,
-        color = MainActivity.theme.getOnBackground(true)
+        color = colour
     )
 }
 
 @Composable
-private fun SeekBar(seek: (Float) -> Unit) {
+private fun SeekBar(playerProvider: () -> PlayerViewContext, seek: (Float) -> Unit) {
     var position_override by remember { mutableStateOf<Float?>(null) }
     var old_position by remember { mutableStateOf<Float?>(null) }
     var grab_start_position by remember { mutableStateOf<Float?>(null) }
@@ -745,7 +721,7 @@ private fun SeekBar(seek: (Float) -> Unit) {
 
     Row(verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(5.dp)) {
 
-        SeekBarTimeText(PlayerServiceHost.status.m_position_seconds)
+        SeekBarTimeText(PlayerServiceHost.status.m_position_seconds, getNPOnBackground(playerProvider))
 
         SliderValueHorizontal(
             value = getSliderValue(),
@@ -776,11 +752,11 @@ private fun SeekBar(seek: (Float) -> Unit) {
                 cancel_area_side = null
             },
             thumbSizeInDp = DpSize(12.dp, 12.dp),
-            track = { a, b, _, _, c -> SeekTrack(a, b, c, MainActivity.theme.getOnBackground(true).setAlpha(0.5f), MainActivity.theme.getOnBackground(true)) },
-            thumb = { a, b, c, d, e -> DefaultThumb(a, b, c, d, e, MainActivity.theme.getOnBackground(true), 1f) },
+            track = { a, b, _, _, c -> SeekTrack(a, b, c, getNPOnBackground(playerProvider).setAlpha(0.5f), getNPOnBackground(playerProvider)) },
+            thumb = { a, b, c, d, e -> DefaultThumb(a, b, c, d, e, getNPOnBackground(playerProvider), 1f) },
             modifier = Modifier.weight(1f)
         )
 
-        SeekBarTimeText(PlayerServiceHost.status.m_duration)
+        SeekBarTimeText(PlayerServiceHost.status.m_duration, getNPOnBackground(playerProvider))
     }
 }

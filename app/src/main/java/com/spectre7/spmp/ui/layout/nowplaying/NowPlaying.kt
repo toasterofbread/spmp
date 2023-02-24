@@ -35,6 +35,22 @@ val NOW_PLAYING_VERTICAL_PAGE_COUNT = NowPlayingVerticalPage.values().size
 const val SEEK_CANCEL_THRESHOLD = 0.03f
 const val EXPANDED_THRESHOLD = 0.9f
 
+internal fun getNPBackground(playerProvider: () -> PlayerViewContext): Color {
+    return when (playerProvider().np_theme_mode) {
+        ThemeMode.BACKGROUND -> Theme.current.accent
+        ThemeMode.ELEMENTS -> Theme.current.background
+        ThemeMode.NONE -> Theme.current.background
+    }
+}
+
+internal fun getNPOnBackground(playerProvider: () -> PlayerViewContext): Color {
+    return when (playerProvider().np_theme_mode) {
+        ThemeMode.BACKGROUND -> Theme.current.on_accent
+        ThemeMode.ELEMENTS -> Theme.current.accent
+        ThemeMode.NONE -> Theme.current.on_background
+    }
+}
+
 @OptIn(ExperimentalMaterialApi::class, ExperimentalMaterial3Api::class)
 @Composable
 fun NowPlaying(playerProvider: () -> PlayerViewContext, swipe_state: SwipeableState<Int>) {
@@ -50,7 +66,7 @@ fun NowPlaying(playerProvider: () -> PlayerViewContext, swipe_state: SwipeableSt
         }
 
         Card(
-            colors = CardDefaults.cardColors(containerColor = MainActivity.theme.getBackground(true)),
+            colors = CardDefaults.cardColors(containerColor = getNPBackground(playerProvider)),
             shape = RectangleShape,
             modifier = Modifier
                 .fillMaxWidth()
@@ -98,13 +114,13 @@ fun NowPlayingCardContent(
     val status_bar_height_percent = (getStatusBarHeight(MainActivity.context).value * 0.75) / page_height.value
 
     val under_status_bar by remember { derivedStateOf { 1f - expansionProvider() < status_bar_height_percent } }
-    LaunchedEffect(key1 = under_status_bar, key2 = MainActivity.theme.getBackground(true)) {
+    LaunchedEffect(key1 = under_status_bar, key2 = getNPBackground(playerProvider)) {
         systemui_controller.setSystemBarsColor(
-            color = if (under_status_bar) MainActivity.theme.getBackground(true) else MainActivity.theme.default_n_background
+            color = if (under_status_bar) getNPBackground(playerProvider) else Theme.current.background
         )
     }
 
-    MinimisedProgressBar(expansionProvider)
+    MinimisedProgressBar(playerProvider, expansionProvider)
 
     val screen_width_dp = LocalConfiguration.current.screenWidthDp.dp
     val thumbnail = remember { mutableStateOf<ImageBitmap?>(null) }
@@ -148,11 +164,11 @@ fun NowPlayingCardContent(
 }
 
 @Composable
-fun MinimisedProgressBar(expansionProvider: () -> Float) {
+fun MinimisedProgressBar(playerProvider: () -> PlayerViewContext, expansionProvider: () -> Float) {
     LinearProgressIndicator(
         progress = PlayerServiceHost.status.m_position,
-        color = MainActivity.theme.getOnBackground(true),
-        trackColor = MainActivity.theme.getOnBackground(true).setAlpha(0.5f),
+        color = getNPOnBackground(playerProvider),
+        trackColor = getNPOnBackground(playerProvider).setAlpha(0.5f),
         modifier = Modifier
             .requiredHeight(2.dp)
             .fillMaxWidth()

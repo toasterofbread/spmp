@@ -16,11 +16,10 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
-import com.spectre7.spmp.MainActivity
 import com.spectre7.spmp.model.MediaItem
 import com.spectre7.spmp.ui.layout.PlayerViewContext
+import com.spectre7.utils.Theme
 import com.spectre7.utils.WidthShrinkText
-
 
 data class MediaItemLayout(
     val title: String?,
@@ -65,11 +64,11 @@ data class MediaItemLayout(
                         enter = fadeIn() + expandIn(expandFrom = Alignment.Center),
                         exit = fadeOut() + shrinkOut(shrinkTowards = Alignment.Center)
                     ) {
-                        item.PreviewSquare(MainActivity.theme.getOnBackgroundProvider(false), playerProvider, true, Modifier)
+                        item.PreviewSquare(Theme.current.on_background_provider, playerProvider, true, Modifier)
                     }
                 }
                 else {
-                    item.PreviewSquare(MainActivity.theme.getOnBackgroundProvider(false), playerProvider, true, Modifier)
+                    item.PreviewSquare(Theme.current.on_background_provider, playerProvider, true, Modifier)
                 }
             }
         }
@@ -179,7 +178,7 @@ fun MediaItemNumberedList(
             Row(verticalAlignment = Alignment.CenterVertically) {
                 Text((item.index + 1).toString().padStart((layout.items.size + 1).toString().length, '0'), fontWeight = FontWeight.Light)
                 Column {
-                    item.value.PreviewLong(MainActivity.theme.getOnBackgroundProvider(false), playerProvider, true, Modifier)
+                    item.value.PreviewLong(Theme.current.on_background_provider, playerProvider, true, Modifier)
                 }
             }
         }

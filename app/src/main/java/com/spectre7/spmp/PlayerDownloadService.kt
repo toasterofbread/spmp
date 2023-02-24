@@ -140,7 +140,7 @@ class PlayerDownloadService: Service() {
 
         fun getFilenameData(filename: String): FilenameData {
             val downloading = filename.endsWith(FILE_DOWNLOADING_SUFFIX)
-            val split = (if (downloading) filename.dropLast(FILE_DOWNLOADING_SUFFIX.length) else filename).split('.', 3)
+            val split = (if (downloading) filename.dropLast(FILE_DOWNLOADING_SUFFIX.length) else filename).split('.', limit = 3)
             require(split.size == 3)
 
             return FilenameData(

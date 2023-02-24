@@ -24,7 +24,6 @@ import androidx.compose.ui.text.input.ImeAction
 import androidx.compose.ui.unit.TextUnit
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
-import com.spectre7.spmp.MainActivity
 import com.spectre7.spmp.api.getOrThrowHere
 import com.spectre7.spmp.api.searchYoutube
 import com.spectre7.spmp.model.Artist
@@ -32,6 +31,7 @@ import com.spectre7.spmp.model.Playlist
 import com.spectre7.spmp.model.Song
 import com.spectre7.spmp.model.MediaItem
 import com.spectre7.spmp.ui.component.PillMenu
+import com.spectre7.utils.Theme
 import kotlin.concurrent.thread
 
 val SEARCH_FIELD_FONT_SIZE: TextUnit = 18.sp
@@ -125,7 +125,7 @@ fun SearchPage(
         LazyColumn(Modifier.fillMaxHeight().weight(1f)) {
             itemsIndexed(items = found_results, key = { _, item -> item.id }) { _, item ->
                 item.PreviewLong(
-                    MainActivity.theme.getOnBackgroundProvider(false),
+                    Theme.current.on_background_provider,
                     playerProvider,
                     true,
                     Modifier
@@ -178,13 +178,16 @@ fun SearchPage(
                 value = query_text,
                 onValueChange = { query_text = it },
                 singleLine = true,
-                textStyle = LocalTextStyle.current.copy(fontSize = SEARCH_FIELD_FONT_SIZE, color = MainActivity.theme.getOnAccent()),
+                textStyle = LocalTextStyle.current.copy(
+                    fontSize = SEARCH_FIELD_FONT_SIZE,
+                    color = Theme.current.on_accent
+                ),
                 modifier = Modifier.height(45.dp),
                 decorationBox = { innerTextField ->
                     Row(
                         Modifier
                             .background(
-                                MainActivity.theme.getAccent(),
+                                Theme.current.accent,
                                 RoundedCornerShape(percent = 35)
                             )
                             .padding(10.dp)
@@ -203,7 +206,7 @@ fun SearchPage(
                                     MediaItem.Type.SONG -> "Search for songs"
                                     MediaItem.Type.ARTIST -> "Search for artists"
                                     MediaItem.Type.PLAYLIST -> "Search for playlists"
-                                }, fontSize = SEARCH_FIELD_FONT_SIZE, color = MainActivity.theme.getOnAccent())
+                                }, fontSize = SEARCH_FIELD_FONT_SIZE, color = Theme.current.on_accent)
                             }
 
                             // Text input
@@ -212,7 +215,7 @@ fun SearchPage(
 
                         // Clear field button
                         IconButton(onClick = { query_text = "" }, Modifier.fillMaxWidth()) {
-                            Icon(Icons.Filled.Clear, null, Modifier, MainActivity.theme.getOnAccent())
+                            Icon(Icons.Filled.Clear, null, Modifier, Theme.current.on_accent)
                         }
                     }
                 },

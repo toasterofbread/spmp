@@ -17,10 +17,10 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
-import com.spectre7.spmp.MainActivity
 import com.spectre7.spmp.R
 import com.spectre7.spmp.api.LyricsSearchResult
 import com.spectre7.spmp.model.Song
+import com.spectre7.utils.Theme
 import com.spectre7.utils.getContrasted
 import com.spectre7.utils.getString
 import com.spectre7.utils.setAlpha
@@ -41,13 +41,13 @@ internal fun ColumnScope.LyricsSearchResults(results: List<LyricsSearchResult>, 
             items(results.size + 1, { if (it == results.size) 0 else results[it].id }) {
 
                 if (it == results.size) {
-                    Text("No more results", color = MainActivity.theme.getAccent())
+                    Text("No more results", color = Theme.current.accent)
                 }
                 else {
                     val result = results[it]
                     Box(
                         Modifier
-                            .background(MainActivity.theme.getAccent(), RoundedCornerShape(16))
+                            .background(Theme.current.accent, RoundedCornerShape(16))
                             .clickable {
                                 onFinished(it)
                             }
@@ -69,7 +69,7 @@ internal fun ColumnScope.LyricsSearchResults(results: List<LyricsSearchResult>, 
                             val shape = RoundedCornerShape(16)
 
                             Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.spacedBy(10.dp), verticalAlignment = Alignment.CenterVertically) {
-                                Text(result.name, color = MainActivity.theme.getOnAccent())
+                                Text(result.name, color = Theme.current.on_accent)
 
                                 @Composable
                                 fun text(text: String, colour: Color) {
@@ -95,20 +95,20 @@ internal fun ColumnScope.LyricsSearchResults(results: List<LyricsSearchResult>, 
 
                             Column(
                                 Modifier
-                                    .border(Dp.Hairline, MainActivity.theme.getOnAccent(), shape)
+                                    .border(Dp.Hairline, Theme.current.on_accent, shape)
                                     .background(
-                                        MainActivity.theme
-                                            .getOnAccent()
+                                        Theme.current
+                                            .on_accent
                                             .setAlpha(0.1f), shape
                                     )
                                     .padding(2.dp)
                                     .fillMaxWidth()
                             ) {
                                 if (result.artist_name != null) {
-                                    Item(getString(R.string.artist), result.artist_name!!, MainActivity.theme.getOnAccent())
+                                    Item(getString(R.string.artist), result.artist_name!!, Theme.current.on_accent)
                                 }
                                 if (result.album_name != null) {
-                                    Item(getString(R.string.album), result.album_name!!, MainActivity.theme.getOnAccent())
+                                    Item(getString(R.string.album), result.album_name!!, Theme.current.on_accent)
                                 }
                             }
                         }
@@ -119,6 +119,6 @@ internal fun ColumnScope.LyricsSearchResults(results: List<LyricsSearchResult>, 
         }
     }
     else {
-        Text("No results found", color = MainActivity.theme.getAccent())
+        Text("No results found", color = Theme.current.accent)
     }
 }

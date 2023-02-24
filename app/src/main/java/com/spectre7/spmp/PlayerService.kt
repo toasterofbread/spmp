@@ -69,6 +69,7 @@ import kotlinx.coroutines.sync.withPermit
 import java.io.BufferedReader
 import java.io.FileNotFoundException
 import java.io.IOException
+import java.util.*
 import kotlin.concurrent.thread
 import kotlin.math.roundToInt
 import kotlin.random.Random
@@ -364,12 +365,12 @@ class PlayerService : Service() {
                 if (events.contains(Player.EVENT_MEDIA_ITEM_TRANSITION)) {
                     savePersistentQueue()
                 }
-                if (event.contains(EVENT_PLAYBACK_STATE_CHANGED)) {
+                if (events.contains(Player.EVENT_PLAYBACK_STATE_CHANGED)) {
 
                     if (player.isPlaying) {
                         if (queue_update_timer == null) {
                             queue_update_timer = Timer()
-                            queue_update_timer.scheduleAtFixedRate(object : TimerTask() {
+                            queue_update_timer!!.scheduleAtFixedRate(object : TimerTask() {
                                 override fun run() {
                                     savePersistentQueue()
                                 }
@@ -377,8 +378,8 @@ class PlayerService : Service() {
                         }
                     }
                     else if (queue_update_timer != null) {
-                        queue_update_timer.cancel()
-                        queue_update_timer = nul
+                        queue_update_timer!!.cancel()
+                        queue_update_timer = null
                         savePersistentQueue()
                     }
                 }
@@ -402,7 +403,7 @@ class PlayerService : Service() {
     // Persistent queue
     private var lock_queue = false
     private val queue_lock = Object()
-    private val queue_update_timer: Timer? = null
+    private var queue_update_timer: Timer? = null
 
     fun savePersistentQueue() {
         synchronized(queue_lock) {
@@ -672,7 +673,7 @@ class PlayerService : Service() {
         player.release()
         
         if (queue_update_timer != null) {
-            queue_update_timer.cancel()
+            queue_update_timer!!.cancel()
             queue_update_timer = null
         }
 

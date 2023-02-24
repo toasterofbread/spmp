@@ -4,6 +4,7 @@ import android.app.NotificationChannel
 import android.app.NotificationManager
 import android.content.*
 import android.os.IBinder
+import androidx.compose.runtime.mutableStateListOf
 import androidx.core.app.NotificationManagerCompat
 import androidx.localbroadcastmanager.content.LocalBroadcastManager
 import com.spectre7.spmp.model.Settings

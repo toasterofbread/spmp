@@ -189,7 +189,7 @@ fun QueueTab(expansionProvider: () -> Float, playerProvider: () -> PlayerViewCon
         PlayerServiceHost.service.removeFromQueue(index)
     }
 
-    val background_colour = MainActivity.theme.getBackground(true).amplify(1f)
+    val background_colour = getNPBackground(playerProvider).amplify(1f)
     val shape = RoundedCornerShape(topStartPercent = 7, topEndPercent = 7)
     Box(Modifier
         .fillMaxSize()
@@ -233,13 +233,13 @@ fun QueueTab(expansionProvider: () -> Float, playerProvider: () -> PlayerViewCon
             }
         }
 
-        ActionBar(expansionProvider, undo_list, scroll)
+        ActionBar(playerProvider, expansionProvider, undo_list, scroll)
     }
 }
 
-@OptIn(ExperimentalFoundationApi::class, ExperimentalMaterial3Api::class)
+@OptIn(ExperimentalFoundationApi::class)
 @Composable
-private fun BoxScope.ActionBar(expansionProvider: () -> Float, undo_list: SnapshotStateList<() -> Unit>, scroll: (pages: Int) -> Unit) {
+private fun BoxScope.ActionBar(playerProvider: () -> PlayerViewContext, expansionProvider: () -> Float, undo_list: SnapshotStateList<() -> Unit>, scroll: (pages: Int) -> Unit) {
     val slide_offset: (fullHeight: Int) -> Int = remember { { (it * 0.7).toInt() } }
 
     Box(Modifier.align(Alignment.BottomCenter)) {
@@ -259,10 +259,10 @@ private fun BoxScope.ActionBar(expansionProvider: () -> Float, undo_list: Snapsh
                 IconButton(
                     { scroll(-1) },
                     Modifier
-                        .background(MainActivity.theme.getOnBackground(true), CircleShape)
+                        .background(getNPOnBackground(playerProvider), CircleShape)
                         .size(40.dp)
                 ) {
-                    Icon(Icons.Filled.KeyboardArrowUp, null, tint = MainActivity.theme.getBackground(true))
+                    Icon(Icons.Filled.KeyboardArrowUp, null, tint = getNPBackground(playerProvider))
                 }
 
                 Row(
@@ -296,12 +296,12 @@ private fun BoxScope.ActionBar(expansionProvider: () -> Float, undo_list: Snapsh
                             }
                         },
                         colors = ButtonDefaults.buttonColors(
-                            containerColor = MainActivity.theme.getOnBackground(true)
+                            containerColor = getNPOnBackground(playerProvider)
                         )
                     ) {
                         Text(
                             text = "Clear",
-                            color = MainActivity.theme.getBackground(true)
+                            color = getNPBackground(playerProvider)
                         )
                     }
 
@@ -331,7 +331,7 @@ private fun BoxScope.ActionBar(expansionProvider: () -> Float, undo_list: Snapsh
                                 }
                             }
                         ),
-                        color = MainActivity.theme.getOnBackground(true),
+                        color = getNPOnBackground(playerProvider),
                         shape = FilledButtonTokens.ContainerShape.toShape()
                     ) {
                         Row(
@@ -346,7 +346,7 @@ private fun BoxScope.ActionBar(expansionProvider: () -> Float, undo_list: Snapsh
                         ) {
                             Text(
                                 text = "Shuffle",
-                                color = MainActivity.theme.getBackground(true),
+                                color = getNPBackground(playerProvider),
                                 style = MaterialTheme.typography.labelLarge
                             )
                         }
@@ -357,7 +357,7 @@ private fun BoxScope.ActionBar(expansionProvider: () -> Float, undo_list: Snapsh
                     Box(
                         modifier = Modifier
                             .minimumTouchTargetSize()
-                            .background(MainActivity.theme.getOnBackground(true), CircleShape)
+                            .background(getNPOnBackground(playerProvider), CircleShape)
                             .combinedClickable(
                                 onClick = {
                                     if (undo_list.isNotEmpty()) {
@@ -379,7 +379,7 @@ private fun BoxScope.ActionBar(expansionProvider: () -> Float, undo_list: Snapsh
                             .size(40.dp),
                         contentAlignment = Alignment.Center
                     ) {
-                        Icon(Icons.Filled.Undo, null, tint = MainActivity.theme.getBackground(true))
+                        Icon(Icons.Filled.Undo, null, tint = getNPBackground(playerProvider))
                     }
                 }
             }

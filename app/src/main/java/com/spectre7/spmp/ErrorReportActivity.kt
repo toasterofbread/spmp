@@ -21,9 +21,10 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalClipboardManager
 import androidx.compose.ui.text.AnnotatedString
+import androidx.compose.ui.text.font.FontFamily
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
-import com.spectre7.spmp.ui.theme.MyApplicationTheme
+import com.spectre7.spmp.ui.theme.ApplicationTheme
 import com.spectre7.utils.sendToast
 
 class ErrorReportActivity : ComponentActivity() {
@@ -41,7 +42,7 @@ class ErrorReportActivity : ComponentActivity() {
         }, null)
 
         setContent {
-            MyApplicationTheme {
+            ApplicationTheme {
                 Surface(modifier = Modifier.fillMaxSize()) {
 
                     Column(Modifier

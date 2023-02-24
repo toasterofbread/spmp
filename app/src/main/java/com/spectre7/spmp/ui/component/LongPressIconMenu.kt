@@ -190,8 +190,8 @@ fun LongPressIconMenu(
         var accent_colour by remember { mutableStateOf(Color.Unspecified) }
 
         fun applyPalette(item: MediaItem) {
-            accent_colour = (item.getDefaultThemeColour() ?: MainActivity.theme.getBackground(false))
-                .contrastAgainst(MainActivity.theme.getBackground(false), 0.2f)
+            accent_colour = (item.getDefaultThemeColour() ?: Theme.current.background)
+                .contrastAgainst(Theme.current.background, 0.2f)
         }
 
         LaunchedEffect(Unit) {
@@ -306,7 +306,7 @@ fun LongPressIconMenu(
                     Column(
                         modifier
                             .alpha(panel_alpha.value)
-                            .background(MainActivity.theme.getBackground(false), shape)
+                            .background(Theme.current.background, shape)
                             .fillMaxWidth()
                             .padding(25.dp),
                         verticalArrangement = Arrangement.spacedBy(20.dp)
@@ -346,7 +346,7 @@ fun LongPressIconMenu(
                                     Text(
                                         data.item.title ?: "",
                                         Modifier.fillMaxWidth(),
-                                        color = MainActivity.theme.getOnBackground(false),
+                                        color = Theme.current.on_background,
                                         softWrap = false,
                                         overflow = TextOverflow.Ellipsis
                                     )
@@ -357,7 +357,7 @@ fun LongPressIconMenu(
                                     if (artist != null) {
                                         Marquee(false) {
                                             artist.PreviewLong(
-                                                content_colour = MainActivity.theme.getOnBackgroundProvider(false),
+                                                content_colour = Theme.current.on_background_provider,
                                                 remember { { playerProvider().let { player ->
                                                     player.copy(onClickedOverride = {
                                                         close_requested = true
@@ -373,15 +373,15 @@ fun LongPressIconMenu(
                             }
                         }
 
-                        Divider(thickness = Dp.Hairline, color = MainActivity.theme.getOnBackground(false))
+                        Divider(thickness = Dp.Hairline, color = Theme.current.on_background)
 
                         val accent_colour_provider = remember (accent_colour) { { accent_colour } }
 
                         data.actions?.invoke(
                             LongPressMenuActionProvider(
-                                MainActivity.theme.getOnBackgroundProvider(false),
+                                Theme.current.on_background_provider,
                                 accent_colour_provider,
-                                MainActivity.theme.getBackgroundProvider(false),
+                                Theme.current.background_provider,
                                 playerProvider
                             ),
                             data.item

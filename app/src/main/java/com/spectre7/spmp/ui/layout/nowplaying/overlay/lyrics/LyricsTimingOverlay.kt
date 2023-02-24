@@ -16,11 +16,14 @@ import androidx.compose.ui.geometry.Size
 import com.spectre7.spmp.MainActivity
 import com.spectre7.spmp.PlayerServiceHost
 import com.spectre7.spmp.model.Song
+import com.spectre7.spmp.ui.layout.PlayerViewContext
+import com.spectre7.spmp.ui.layout.nowplaying.getNPBackground
 import net.zerotask.libraries.android.compose.furigana.TermInfo
 import kotlin.math.abs
 
 @Composable
 fun LyricsTimingOverlay(
+    playerProvider: () -> PlayerViewContext,
     lyrics: Song.Lyrics,
     full_line: Boolean,
     seek_state: Any,
@@ -49,14 +52,14 @@ fun LyricsTimingOverlay(
     //            val offset = scroll_state.firstVisibleItemScrollOffset
             if (highlight_instantly) {
                 drawRoundRect(
-                    MainActivity.theme.getBackground(true),
+                    getNPBackground(playerProvider),
                     Offset(highlight_position_x, highlight_position_y),
                     Size(highlight_width, highlight_height),
                     CornerRadius(25f, 25f)
                 )
             } else {
                 drawRoundRect(
-                    MainActivity.theme.getBackground(true),
+                    getNPBackground(playerProvider),
                     highlight_position_state.value,
                     Size(highlight_size_state.value.x, highlight_size_state.value.y),
                     CornerRadius(25f, 25f)

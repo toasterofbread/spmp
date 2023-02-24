@@ -25,9 +25,9 @@ import androidx.palette.graphics.Palette
 import com.spectre7.spmp.MainActivity
 import com.spectre7.spmp.model.Song
 import com.spectre7.spmp.ui.layout.PlayerViewContext
-import com.spectre7.spmp.ui.layout.nowplaying.DEFAULT_THUMBNAIL_ROUNDING
-import com.spectre7.spmp.ui.layout.nowplaying.MAX_THUMBNAIL_ROUNDING
-import com.spectre7.spmp.ui.layout.nowplaying.MIN_THUMBNAIL_ROUNDING
+import com.spectre7.spmp.ui.layout.nowplaying.*
+import com.spectre7.spmp.ui.layout.nowplaying.getNPBackground
+import com.spectre7.spmp.ui.layout.nowplaying.getNPOnBackground
 import com.spectre7.utils.*
 import kotlin.math.roundToInt
 
@@ -116,8 +116,8 @@ class PaletteSelectorOverlayMenu(
                             }
                         },
                         colors = ButtonDefaults.buttonColors(
-                            containerColor = MainActivity.theme.getBackground(true),
-                            contentColor = MainActivity.theme.getOnBackground(true)
+                            containerColor = getNPBackground(playerProvider),
+                            contentColor = getNPOnBackground(playerProvider)
                         )
                     ) {
                         Text("Pick from thumbnail")
@@ -152,6 +152,7 @@ class PaletteSelectorOverlayMenu(
                     Column(horizontalAlignment = Alignment.CenterHorizontally) {
                         val radius = (thumbnail_rounding_state.value ?: DEFAULT_THUMBNAIL_ROUNDING) * 2
                         Text("Corner radius ${radius.toString().padStart(3, ' ')}", Modifier.offset(y = 10.dp), fontSize = 15.sp)
+                        val background_colour = getNPBackground(playerProvider)
 
                         Row {
                             Slider(
@@ -165,9 +166,9 @@ class PaletteSelectorOverlayMenu(
                                     anim_target = slider_value
                                 },
                                 colors = SliderDefaults.colors(
-                                    thumbColor = MainActivity.theme.getBackground(true),
-                                    activeTrackColor = MainActivity.theme.getBackground(true),
-                                    inactiveTrackColor = MainActivity.theme.getBackground(true).setAlpha(0.2f)
+                                    thumbColor = background_colour,
+                                    activeTrackColor = background_colour,
+                                    inactiveTrackColor = background_colour.setAlpha(0.2f)
                                 ),
                                 modifier = Modifier.weight(1f)
                             )

@@ -78,6 +78,7 @@ import com.google.android.exoplayer2.MediaItem as ExoMediaItem
 const val VOL_NOTIF_SHOW_DURATION: Long = 1000
 // Radio continuation will be added if the amount of remaining songs (including current) falls below this
 const val RADIO_MIN_LENGTH: Int = 10
+const val PERSISTENT_QUEUE_UPDATE_INTERVAL: Long = 5000 // ms
 
 class PlayerService : Service() {
 
@@ -363,6 +364,24 @@ class PlayerService : Service() {
                 if (events.contains(Player.EVENT_MEDIA_ITEM_TRANSITION)) {
                     savePersistentQueue()
                 }
+                if (event.contains(EVENT_PLAYBACK_STATE_CHANGED)) {
+
+                    if (player.isPlaying) {
+                        if (queue_update_timer == null) {
+                            queue_update_timer = Timer()
+                            queue_update_timer.scheduleAtFixedRate(object : TimerTask() {
+                                override fun run() {
+                                    savePersistentQueue()
+                                }
+                            }, 0, PERSISTENT_QUEUE_UPDATE_INTERVAL)
+                        }
+                    }
+                    else if (queue_update_timer != null) {
+                        queue_update_timer.cancel()
+                        queue_update_timer = nul
+                        savePersistentQueue()
+                    }
+                }
             }
         }
 
@@ -383,6 +402,7 @@ class PlayerService : Service() {
     // Persistent queue
     private var lock_queue = false
     private val queue_lock = Object()
+    private val queue_update_timer: Timer? = null
 
     fun savePersistentQueue() {
         synchronized(queue_lock) {
@@ -650,6 +670,11 @@ class PlayerService : Service() {
         media_session?.release()
         player.removeListener(player_listener)
         player.release()
+        
+        if (queue_update_timer != null) {
+            queue_update_timer.cancel()
+            queue_update_timer = null
+        }
 
         if (vol_notif.isShown) {
             (getSystemService(Context.WINDOW_SERVICE) as WindowManager).removeView(vol_notif)

@@ -42,6 +42,7 @@ import com.spectre7.spmp.model.*
 import com.spectre7.spmp.ui.layout.PlayerViewContext
 import com.spectre7.spmp.ui.layout.getScreenHeight
 import com.spectre7.spmp.ui.layout.nowplaying.DEFAULT_THUMBNAIL_ROUNDING
+import com.spectre7.spmp.ui.theme.Theme
 import com.spectre7.utils.*
 import kotlinx.coroutines.coroutineScope
 import kotlinx.coroutines.joinAll

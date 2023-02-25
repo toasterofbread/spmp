@@ -34,6 +34,7 @@ import com.spectre7.spmp.R
 import com.spectre7.spmp.model.Playlist
 import com.spectre7.spmp.model.MediaItem
 import com.spectre7.spmp.ui.component.*
+import com.spectre7.spmp.ui.theme.Theme
 import com.spectre7.utils.*
 import kotlinx.coroutines.*
 import kotlin.concurrent.thread

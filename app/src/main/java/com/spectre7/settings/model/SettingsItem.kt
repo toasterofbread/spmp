@@ -27,6 +27,7 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.*
 import com.github.krottv.compose.sliders.*
 import com.spectre7.composesettings.ui.SettingsPage
+import com.spectre7.spmp.ui.theme.Theme
 import com.spectre7.utils.*
 import kotlin.math.roundToInt
 

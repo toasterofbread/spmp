@@ -35,6 +35,7 @@ import com.spectre7.spmp.model.*
 import com.spectre7.spmp.ui.component.*
 import com.spectre7.spmp.ui.layout.nowplaying.NowPlaying
 import com.spectre7.spmp.ui.layout.nowplaying.ThemeMode
+import com.spectre7.spmp.ui.theme.Theme
 import com.spectre7.utils.*
 import kotlinx.coroutines.*
 import kotlinx.coroutines.sync.Semaphore
@@ -64,14 +65,10 @@ data class PlayerViewContext(
     private fun baseOrThis(): PlayerViewContext = base ?: this
 
     private val np_theme_mode_state: MutableState<ThemeMode>? = if (is_base) mutableStateOf(Settings.getEnum(Settings.KEY_NOWPLAYING_THEME_MODE)) else null
-    private val np_accent_colour_source_state: MutableState<AccentColourSource>? = if (is_base) mutableStateOf(Settings.getEnum(Settings.KEY_ACCENT_COLOUR_SOURCE)) else null
 
     var np_theme_mode: ThemeMode
         get() = baseOrThis().np_theme_mode_state!!.value
         private set(value) { baseOrThis().np_theme_mode_state!!.value = value }
-    var np_accent_colour_source: AccentColourSource
-        get() = baseOrThis().np_accent_colour_source_state!!.value
-        private set(value) { baseOrThis().np_accent_colour_source_state!!.value = value }
 
     private val now_playing_swipe_state: SwipeableState<Int>? = if (is_base) SwipeableState(0) else null
     fun getNowPlayingSwipeState(): SwipeableState<Int> = baseOrThis().now_playing_swipe_state!!
@@ -82,7 +79,8 @@ data class PlayerViewContext(
     }
 
     val pill_menu = PillMenu(
-        top = false
+        top = false,
+        left = false
     )
 
     var overlay_page by mutableStateOf(OverlayPage.NONE)
@@ -96,9 +94,6 @@ data class PlayerViewContext(
                 when (key) {
                     Settings.KEY_NOWPLAYING_THEME_MODE.name -> {
                         np_theme_mode = Settings.getEnum(Settings.KEY_NOWPLAYING_THEME_MODE, prefs)
-                    }
-                    Settings.KEY_ACCENT_COLOUR_SOURCE.name -> {
-                        np_accent_colour_source = Settings.getEnum(Settings.KEY_ACCENT_COLOUR_SOURCE, prefs)
                     }
                 }
             }
@@ -256,6 +251,7 @@ fun PlayerView() {
     LaunchedEffect(player.overlay_page) {
         if (player.overlay_page == OverlayPage.NONE) {
             player.pill_menu.clearExtraActions()
+            player.pill_menu.clearAlongsideActions()
             player.pill_menu.clearActionOverriders()
             player.pill_menu.setBackgroundColourOverride(null)
         }
@@ -287,6 +283,7 @@ fun PlayerView() {
                                 1 -> OverlayPage.LIBRARY
                                 else -> OverlayPage.SETTINGS
                             }
+                        expand_state.value = false
                     }
                 },
                 if (!overlay_open) expand_state else null,

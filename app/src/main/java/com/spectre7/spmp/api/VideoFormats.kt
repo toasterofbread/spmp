@@ -106,6 +106,8 @@ private fun AudioStream.toYoutubeVideoFormat(): YoutubeVideoFormat {
 }
 
 fun getVideoFormats(id: String, filter: ((YoutubeVideoFormat) -> Boolean)? = null): Result<List<YoutubeVideoFormat>> {
+    markSongAsWatched(id)
+
     val stream_info = StreamInfo.getInfo(
         NewPipe.getService(0).getStreamExtractor(
             YoutubeStreamLinkHandlerFactory.getInstance().fromId(id)
@@ -157,9 +159,9 @@ private data class FormatsResponse(
     val streamingData: StreamingData? = null,
 ) {
     val is_ok: Boolean get() = playabilityStatus.status == "OK"
-    data class PlayabilityStatus(val status: String)
     data class StreamingData(val formats: List<YoutubeVideoFormat>, val adaptiveFormats: List<YoutubeVideoFormat>)
 }
+data class PlayabilityStatus(val status: String)
 
 private fun buildVideoFormatsRequest(id: String, alt: Boolean): Request {
     return Request.Builder()

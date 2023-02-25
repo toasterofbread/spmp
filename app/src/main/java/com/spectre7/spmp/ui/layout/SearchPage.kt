@@ -31,7 +31,7 @@ import com.spectre7.spmp.model.Playlist
 import com.spectre7.spmp.model.Song
 import com.spectre7.spmp.model.MediaItem
 import com.spectre7.spmp.ui.component.PillMenu
-import com.spectre7.utils.Theme
+import com.spectre7.spmp.ui.theme.Theme
 import kotlin.concurrent.thread
 
 val SEARCH_FIELD_FONT_SIZE: TextUnit = 18.sp

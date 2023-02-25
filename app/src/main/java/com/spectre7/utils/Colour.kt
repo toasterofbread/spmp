@@ -1,20 +1,10 @@
 package com.spectre7.utils
 
-import android.annotation.SuppressLint
 import android.graphics.Bitmap
-import androidx.compose.animation.Animatable
-import androidx.compose.animation.core.Animatable
-import androidx.compose.animation.core.AnimationVector4D
-import androidx.compose.runtime.Composable
-import androidx.compose.runtime.getValue
-import androidx.compose.runtime.mutableStateOf
-import androidx.compose.runtime.setValue
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.toArgb
 import androidx.core.graphics.ColorUtils
 import androidx.palette.graphics.Palette
-import kotlinx.coroutines.launch
-import kotlinx.coroutines.runBlocking
 import java.util.*
 import kotlin.math.absoluteValue
 
@@ -155,91 +145,46 @@ fun Color.getContrasted(): Color {
         return Color.Black
 }
 
-class Theme(data: ThemeData) {
-    var theme_data: ThemeData = data
-        private set
+fun List<Color>.sorted(descending: Boolean = false): List<Color> {
+    return if (descending) sortedByDescending { ColorUtils.calculateLuminance(it.toArgb()) }
+            else sortedBy { ColorUtils.calculateLuminance(it.toArgb()) }
+}
 
-    private val background_state: Animatable<Color, AnimationVector4D> = Animatable(data.background)
-    private val on_background_state: Animatable<Color, AnimationVector4D> = Animatable(data.on_background)
-    private val accent_state: Animatable<Color, AnimationVector4D> = Animatable(data.accent)
+fun Color.generatePalette(size: Int, variance: Float = 0.2f): List<Color> {
+    val rnd = Random()
+    val ret: MutableList<Color> = mutableListOf()
+    val luminance_boundary = 0.2f
 
-    val background: Color get() = background_state.value
-    val on_background: Color get() = on_background_state.value
-    val accent: Color get() = accent_state.value
-
-    val on_accent: Color get() = accent.getContrasted()
-    val vibrant_accent: Color get() = accent.contrastAgainst(background)
-
-    val background_provider: () -> Color = { background_state.value }
-    val on_background_provider: () -> Color = { on_background_state.value }
-    val accent_provider: () -> Color = { accent_state.value }
-
-    suspend fun setBackground(value: Color, snap: Boolean = false) {
-        if (snap)
-            background_state.snapTo(value)
-        else
-            background_state.animateTo(value)
-    }
-    suspend fun setOnBackground(value: Color, snap: Boolean = false) {
-        if (snap)
-            on_background_state.snapTo(value)
-        else
-            on_background_state.animateTo(value)
-    }
-
-    suspend fun setAccent(value: Color?, snap: Boolean = false) {
-        if (snap)
-            accent_state.snapTo(value ?: theme_data.accent)
-        else
-            accent_state.animateTo(value ?: theme_data.accent)
-    }
-
-    suspend fun setThemeData(theme: ThemeData, snap: Boolean = false) {
-        theme_data = theme
-        applyThemeData(theme)
-    }
-
-    private suspend fun applyThemeData(theme: ThemeData, snap: Boolean = false) {
-        setBackground(theme.background, snap)
-        setOnBackground(theme.on_background, snap)
-        setAccent(theme.accent, snap)
-    }
-
-    fun getDataFromCurrent(): ThemeData {
-        return ThemeData(background_state.targetValue, on_background_state.targetValue, accent_state.targetValue)
-    }
-
-    companion object {
-        private val default = ThemeData(Color.Black, Color.White, Color(99, 54, 143))
-
-        val theme: Theme = Theme(default)
-        val preview_theme: Theme = Theme(default)
-
-        var preview_active: Boolean by mutableStateOf(false)
-            private set
-
-        suspend fun startPreview(theme_data: ThemeData) {
-            if (!preview_active) {
-                preview_theme.setThemeData(theme.theme_data, true)
-                preview_active = true
-            }
-            preview_theme.setThemeData(theme_data)
+    fun isColourValid(colour: Color): Boolean {
+        if (ret.any { it.compare(colour) > 0.5f }) {
+            return false
         }
 
-        suspend fun stopPreview() {
-            if (!preview_active) {
-                return
-            }
-            val theme_data = theme.getDataFromCurrent()
-            theme.applyThemeData(preview_theme.theme_data, true)
-            theme.applyThemeData(theme_data)
-            preview_active = false
+        if (colour.compare(Color.Black) > 0.8f || colour.compare(Color.White) > 0.8f) {
+            return false
         }
 
-        val current: Theme get() = if (preview_active) preview_theme else theme
+        return true
+    }
+
+    for (i in 0 until size) {
+        var colour: Color
+        do {
+            colour = offsetRGB(rnd.nextFloat() * variance * (if (rnd.nextBoolean()) 1f else -1f), false)
+        }
+        while (!isColourValid(colour))
+
+        ret.add(colour)
+    }
+
+    return List(size) {
+        offsetRGB(rnd.nextFloat() * variance * (if (rnd.nextBoolean()) 1f else -1f), false)
     }
 }
 
-data class ThemeData(
-    val background: Color, val on_background: Color, val accent: Color
-)
+fun Color.Companion.generatePalette(size: Int): List<Color> {
+    val rnd = Random()
+    return List(size) {
+        random(rnd = rnd)
+    }
+}

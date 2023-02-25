@@ -22,7 +22,7 @@ import kotlin.contracts.contract
 const val DATA_API_USER_AGENT = "Mozilla/5.0 (X11; Linux x86_64; rv:105.0) Gecko/20100101 Firefox/105.0"
 
 fun <T> Result.Companion.failure(response: Response): Result<T> {
-    return failure(RuntimeException("${response.message}: ${response.body!!.string()}"))
+    return failure(RuntimeException("${response.message}: ${response.body?.string()} (${response.code})"))
 }
 fun <I, O> Result<I>.cast(): Result<O> {
     require(!isSuccess)
@@ -48,7 +48,7 @@ class DataApi {
         fun request(request: Request, allow_fail_response: Boolean = false): Result<Response> {
             try {
                 val response = client.newCall(request).execute()
-                if (!allow_fail_response && response.code != 200) {
+                if (!allow_fail_response && !response.isSuccessful) {
                     return Result.failure(response)
                 }
                 return Result.success(response)

@@ -3,27 +3,40 @@ package com.spectre7.composesettings.ui
 import android.content.Context
 import android.content.SharedPreferences
 import androidx.compose.animation.Crossfade
-import androidx.compose.foundation.layout.Box
-import androidx.compose.foundation.layout.Column
-import androidx.compose.foundation.layout.fillMaxHeight
-import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.ScrollState
+import androidx.compose.foundation.background
+import androidx.compose.foundation.gestures.rememberScrollableState
+import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
+import androidx.compose.foundation.verticalScroll
 import androidx.compose.runtime.*
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.layout.onSizeChanged
+import androidx.compose.ui.platform.LocalConfiguration
+import androidx.compose.ui.platform.LocalDensity
+import androidx.compose.ui.unit.Constraints
+import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
-import com.spectre7.utils.Theme
-import kotlin.math.absoluteValue
+import androidx.compose.ui.zIndex
+import com.spectre7.spmp.ui.component.PillMenu
+import com.spectre7.spmp.ui.layout.MINIMISED_NOW_PLAYING_HEIGHT
+import com.spectre7.spmp.ui.layout.getScreenHeight
+import com.spectre7.spmp.ui.theme.Theme
+import com.spectre7.utils.MeasureUnconstrainedView
 
 class SettingsInterface(
-    val theme: Theme,
+    val themeProvider: () -> Theme,
     private val root_page: Int,
     val context: Context,
     val prefs: SharedPreferences,
     val default_provider: (String) -> Any,
     private val getPage: (Int) -> SettingsPage,
+    val pill_menu: PillMenu? = null,
     private val onPageChanged: ((page: Int?) -> Unit)? = null,
     private val onCloseRequested: (() -> Unit)? = null
 ) {
+    val theme: Theme get() = themeProvider()
     var current_page: SettingsPage by mutableStateOf(getUserPage(root_page))
         private set
     private val page_stack = mutableListOf<SettingsPage>()
@@ -35,10 +48,11 @@ class SettingsInterface(
         }
     }
 
-    fun goBack() {
+    suspend fun goBack() {
         if (page_stack.size > 0) {
             val target_page = page_stack.removeLast()
             if (current_page != target_page) {
+                current_page.onClosed()
                 current_page = target_page
                 onPageChanged?.invoke(current_page.id)
             }
@@ -49,33 +63,46 @@ class SettingsInterface(
     }
 
     @Composable
-    fun Interface(modifier: Modifier = Modifier) {
-        Crossfade(current_page, modifier = modifier) { page ->
-            Column(Modifier.padding(top = 18.dp, start = 20.dp, end = 20.dp)) {
-                page.TitleBar(page.id == root_page, { goBack() })
-                LazyColumn(Modifier.fillMaxHeight()) {
-                    item {
-                        Box(Modifier.padding(bottom = 60.dp)) {
-                            page.Page(
-                                { target_page ->
-                                    if (current_page.id != target_page) {
-                                        page_stack.add(current_page)
-                                        current_page = getUserPage(target_page)
-                                        onPageChanged?.invoke(current_page.id)
-                                    }
-                                },
-                                { target_page ->
-                                    if (current_page != target_page) {
-                                        target_page.settings_interface = this@SettingsInterface
-                                        page_stack.add(current_page)
-                                        current_page = target_page
-                                        onPageChanged?.invoke(current_page.id)
-                                    }
-                                },
-                                { goBack() }
-                            )
-                        }
+    fun Interface(height: Dp, modifier: Modifier = Modifier, content_padding: PaddingValues = PaddingValues(0.dp)) {
+        Crossfade(current_page, modifier = modifier.requiredHeight(height)) { page ->
+
+            val padding = PaddingValues(top = 18.dp, start = 20.dp, end = 20.dp)
+            var width by remember { mutableStateOf(0) }
+
+            Column(Modifier.padding(padding).onSizeChanged { width = it.width }) {
+
+                var go_back by remember { mutableStateOf(false) }
+                LaunchedEffect(go_back) {
+                    if (go_back) {
+                        goBack()
                     }
+                }
+
+                page.TitleBar(page.id == root_page, Modifier.requiredHeight(30.dp)) { go_back = true }
+
+                Box(
+                    Modifier
+                        .verticalScroll(remember { ScrollState(0) })
+                        .padding(content_padding)
+                ) {
+                    page.Page(
+                        { target_page_id ->
+                            if (current_page.id != target_page_id) {
+                                page_stack.add(current_page)
+                                current_page = getUserPage(target_page_id)
+                                onPageChanged?.invoke(current_page.id)
+                            }
+                        },
+                        { target_page ->
+                            if (current_page != target_page) {
+                                target_page.settings_interface = this@SettingsInterface
+                                page_stack.add(current_page)
+                                current_page = target_page
+                                onPageChanged?.invoke(current_page.id)
+                            }
+                        },
+                        { go_back = true }
+                    )
                 }
             }
         }

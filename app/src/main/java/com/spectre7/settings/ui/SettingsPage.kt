@@ -27,14 +27,15 @@ abstract class SettingsPage(val title: String?) {
     }
 
     @Composable
-    fun TitleBar(is_root: Boolean, goBack: () -> Unit) {
+    fun TitleBar(is_root: Boolean, modifier: Modifier = Modifier, goBack: () -> Unit) {
         if (title != null) {
             WidthShrinkText(
                 title,
                 style = MaterialTheme.typography.headlineLarge.copy(
                     color = settings_interface.theme.on_background,
                     fontWeight = FontWeight.Bold
-                )
+                ),
+                modifier = modifier
             )
         }
     }
@@ -42,8 +43,8 @@ abstract class SettingsPage(val title: String?) {
     @Composable
     protected abstract fun PageView(openPage: (Int) -> Unit, openCustomPage: (SettingsPage) -> Unit, goBack: () -> Unit)
 
-    abstract fun resetKeys()
-
+    abstract suspend fun resetKeys()
+    open suspend fun onClosed() {}
 }
 
 class SettingsPageWithItems(
@@ -71,7 +72,7 @@ class SettingsPageWithItems(
         }
     }
 
-    override fun resetKeys() {
+    override suspend fun resetKeys() {
         for (item in items) {
             item.initialise(settings_interface.context, settings_interface.prefs, settings_interface.default_provider)
             item.resetValues()

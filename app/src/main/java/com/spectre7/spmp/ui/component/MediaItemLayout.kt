@@ -18,7 +18,7 @@ import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
 import com.spectre7.spmp.model.MediaItem
 import com.spectre7.spmp.ui.layout.PlayerViewContext
-import com.spectre7.utils.Theme
+import com.spectre7.spmp.ui.theme.Theme
 import com.spectre7.utils.WidthShrinkText
 
 data class MediaItemLayout(

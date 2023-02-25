@@ -8,7 +8,7 @@ import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
 import com.spectre7.spmp.PlayerServiceHost
 import com.spectre7.spmp.ui.component.PillMenu
-import com.spectre7.utils.Theme
+import com.spectre7.spmp.ui.theme.Theme
 
 @Composable
 fun LibraryPage(

@@ -119,11 +119,12 @@ fun getAppName(context: Context): String {
 
 @Composable
 fun MeasureUnconstrainedView(
-	viewToMeasure: @Composable () -> Unit,
+	view_to_measure: @Composable () -> Unit,
+	view_constraints: Constraints = Constraints(),
 	content: @Composable (width: Int, height: Int) -> Unit,
 ) {
 	SubcomposeLayout { constraints ->
-		val measurement = subcompose("viewToMeasure", viewToMeasure)[0].measure(Constraints())
+		val measurement = subcompose("viewToMeasure", view_to_measure)[0].measure(view_constraints)
 
 		val contentPlaceable = subcompose("content") {
 			content(measurement.width, measurement.height)
@@ -156,7 +157,7 @@ fun getStatusBarHeight(context: Context = MainActivity.context): Dp {
 
 @Composable
 fun Marquee(autoscroll: Boolean = false, modifier: Modifier = Modifier, content: @Composable () -> Unit) {
-	MeasureUnconstrainedView(viewToMeasure = content) { content_width: Int, _ ->
+	MeasureUnconstrainedView(content) { content_width: Int, _ ->
 		val scroll_state = rememberScrollState()
 
 		if (autoscroll) {
@@ -498,7 +499,34 @@ fun SubtleLoadingIndicator(colour: Color, modifier: Modifier = Modifier) {
 		val current_anim = if (anim + rand_offset > 1f) anim + rand_offset - 1f else anim
 		val size = if (current_anim < 0.5f) current_anim else 1f - current_anim
 		Spacer(
-			Modifier.background(colour, CircleShape).size(20.dp * size)
+			Modifier
+				.background(colour, CircleShape)
+				.size(20.dp * size)
 		)
+	}
+}
+
+@Composable
+fun ButtonColors.toIconButtonColours(): IconButtonColors {
+	return IconButtonDefaults.iconButtonColors(
+		containerColor = containerColor(true).value,
+		contentColor = contentColor(true).value,
+		disabledContainerColor = containerColor(false).value,
+		disabledContentColor = contentColor(false).value
+	)
+}
+
+@Composable
+fun RowOrColumn(
+	row: Boolean,
+	modifier: Modifier = Modifier,
+	arrangement: Arrangement.HorizontalOrVertical = Arrangement.SpaceEvenly,
+	content: @Composable (weight_modifier: Modifier) -> Unit
+) {
+	if (row) {
+		Row(modifier, horizontalArrangement = arrangement, verticalAlignment = Alignment.CenterVertically) { content(Modifier.weight(1f)) }
+	}
+	else {
+		Column(modifier, verticalArrangement = arrangement, horizontalAlignment = Alignment.CenterHorizontally) { content(Modifier.weight(1f)) }
 	}
 }

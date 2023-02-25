@@ -20,7 +20,7 @@ import androidx.compose.ui.unit.sp
 import com.spectre7.spmp.R
 import com.spectre7.spmp.api.LyricsSearchResult
 import com.spectre7.spmp.model.Song
-import com.spectre7.utils.Theme
+import com.spectre7.spmp.ui.theme.Theme
 import com.spectre7.utils.getContrasted
 import com.spectre7.utils.getString
 import com.spectre7.utils.setAlpha

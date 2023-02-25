@@ -39,6 +39,7 @@ import com.spectre7.spmp.model.MediaItem
 import com.spectre7.spmp.ui.component.MediaItemGrid
 import com.spectre7.spmp.ui.component.MediaItemLayout
 import com.spectre7.spmp.ui.component.PillMenu
+import com.spectre7.spmp.ui.theme.Theme
 import com.spectre7.utils.*
 import kotlinx.coroutines.*
 import kotlin.concurrent.thread

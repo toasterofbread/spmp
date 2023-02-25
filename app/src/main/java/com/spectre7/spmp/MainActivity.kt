@@ -34,6 +34,7 @@ import com.spectre7.spmp.model.Settings
 import com.spectre7.spmp.model.Song
 import com.spectre7.spmp.ui.layout.PlayerView
 import com.spectre7.spmp.ui.theme.ApplicationTheme
+import com.spectre7.spmp.ui.theme.Theme
 import com.spectre7.utils.*
 import net.openid.appauth.*
 import java.util.*
@@ -95,6 +96,8 @@ class MainActivity : ComponentActivity() {
 
         setContent {
             ApplicationTheme(getFontFamily()) {
+                Theme.Update(this, MaterialTheme.colorScheme.primary)
+
                 Surface(modifier = Modifier.fillMaxSize()) {
                     if (PlayerServiceHost.service_connected) {
                         PlayerView()
@@ -231,7 +234,9 @@ class ErrorManager {
             exit = slideOutVertically()
         ) {
             Box(
-                Modifier.fillMaxSize().padding(top = getStatusBarHeight()),
+                Modifier
+                    .fillMaxSize()
+                    .padding(top = getStatusBarHeight()),
                 contentAlignment = Alignment.TopCenter
             ) {
                 Button(

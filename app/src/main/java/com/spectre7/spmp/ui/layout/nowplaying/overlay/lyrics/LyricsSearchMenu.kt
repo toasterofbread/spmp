@@ -24,7 +24,7 @@ import com.spectre7.spmp.api.LyricsSearchResult
 import com.spectre7.spmp.api.getOrThrowHere
 import com.spectre7.spmp.api.searchForLyrics
 import com.spectre7.spmp.model.Song
-import com.spectre7.utils.Theme
+import com.spectre7.spmp.ui.theme.Theme
 import com.spectre7.utils.setAlpha
 import kotlin.concurrent.thread
 

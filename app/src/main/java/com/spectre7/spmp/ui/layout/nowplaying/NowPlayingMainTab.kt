@@ -48,6 +48,7 @@ import com.spectre7.spmp.model.Song
 import com.spectre7.spmp.ui.layout.MINIMISED_NOW_PLAYING_HEIGHT
 import com.spectre7.spmp.ui.layout.PlayerViewContext
 import com.spectre7.spmp.ui.layout.nowplaying.overlay.OverlayMenu
+import com.spectre7.spmp.ui.theme.Theme
 import com.spectre7.utils.*
 import kotlin.concurrent.thread
 import kotlin.math.absoluteValue
@@ -127,12 +128,8 @@ fun ColumnScope.NowPlayingMainTab(
     val appear_scale = minOf(1f, if (expansion > 0.5f) 1f else (expansion * 2f))
 
     val system_accent = MaterialTheme.colorScheme.primary
-    LaunchedEffect(key1 = theme_colour, key2 = playerProvider().np_accent_colour_source) {
-        Theme.current.setAccent(when (playerProvider().np_accent_colour_source) {
-            AccentColourSource.THEME -> null
-            AccentColourSource.THUMBNAIL -> theme_colour
-            AccentColourSource.SYSTEM -> system_accent
-        })
+    LaunchedEffect(theme_colour) {
+        Theme.currentThumbnnailColourChanged(theme_colour)
     }
 
     fun loadThumbnail(song: Song, quality: MediaItem.ThumbnailQuality) {

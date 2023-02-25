@@ -1,5 +1,6 @@
 package com.spectre7.spmp.model
 
+import android.content.Context
 import android.content.SharedPreferences
 import com.spectre7.spmp.MainActivity
 import com.spectre7.spmp.PlayerAccessibilityService
@@ -45,12 +46,15 @@ enum class Settings {
     KEY_ACC_SCREEN_OFF,
 
     // Other
-    KEY_VOLUME_STEPS,
     KEY_OPEN_NP_ON_SONG_PLAYED,
+    KEY_VOLUME_STEPS,
     KEY_PERSISTENT_QUEUE;
 
     companion object {
-        val prefs: SharedPreferences get() = MainActivity.getSharedPreferences()
+        val prefs: SharedPreferences get() = getPrefs()
+        fun getPrefs(context: Context = MainActivity.context): SharedPreferences {
+            return MainActivity.getSharedPreferences(context)
+        }
 
         fun <T> get(enum_key: Settings, preferences: SharedPreferences = prefs, default: T? = null): T {
             val default_value: T = default ?: getDefault(enum_key)

@@ -25,6 +25,7 @@ import com.spectre7.spmp.PlayerServiceHost
 import com.spectre7.spmp.ui.layout.MINIMISED_NOW_PLAYING_HEIGHT
 import com.spectre7.spmp.ui.layout.PlayerViewContext
 import com.spectre7.spmp.ui.layout.getScreenHeight
+import com.spectre7.spmp.ui.theme.Theme
 import com.spectre7.utils.*
 
 enum class ThemeMode { BACKGROUND, ELEMENTS, NONE }

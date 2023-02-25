@@ -3,9 +3,9 @@ package com.spectre7.spmp.ui.layout
 import android.Manifest
 import android.app.AlertDialog
 import android.content.Context
-import androidx.compose.animation.Crossfade
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.BoxWithConstraints
+import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.requiredHeight
 import androidx.compose.material.icons.Icons
@@ -27,9 +27,9 @@ import com.spectre7.spmp.model.AccentColourSource
 import com.spectre7.spmp.model.Settings
 import com.spectre7.spmp.model.Song
 import com.spectre7.spmp.ui.component.PillMenu
+import com.spectre7.spmp.ui.theme.Theme
 import com.spectre7.utils.OnChangedEffect
 import com.spectre7.utils.Permissions
-import com.spectre7.utils.Theme
 import com.spectre7.utils.getString
 
 enum class Page { ROOT, ACCESSIBILITY_SERVICE }
@@ -48,10 +48,17 @@ fun PrefsPage(pill_menu: PillMenu, close: () -> Unit) {
 
     val pill_menu_action_overrider: @Composable PillMenu.Action.(i: Int) -> Boolean = remember { { i ->
         if (i == 0) {
+            var go_back by remember { mutableStateOf(false) }
+            LaunchedEffect(go_back) {
+                if (go_back) {
+                    settings_interface.goBack()
+                }
+            }
+
             ActionButton(
                 Icons.Filled.ArrowBack
             ) {
-                settings_interface.goBack()
+                go_back = true
             }
             true
         }
@@ -61,13 +68,19 @@ fun PrefsPage(pill_menu: PillMenu, close: () -> Unit) {
     } }
 
     var show_reset_confirmation by remember { mutableStateOf(false) }
+
+    var reset by remember { mutableStateOf(false) }
+    OnChangedEffect(reset) {
+        settings_interface.current_page.resetKeys()
+    }
+
     if (show_reset_confirmation) {
         AlertDialog(
             { show_reset_confirmation = false },
             confirmButton = {
                 FilledTonalButton(
                     {
-                        settings_interface.current_page.resetKeys()
+                        reset = !reset
                         show_reset_confirmation = false
                     }
                 ) {
@@ -86,7 +99,7 @@ fun PrefsPage(pill_menu: PillMenu, close: () -> Unit) {
         pill_menu.addExtraAction {
             if (it == 1) {
                 ActionButton(
-                    Icons.Filled.CleaningServices
+                    Icons.Filled.Refresh
                 ) {
                     show_reset_confirmation = true
                 }
@@ -96,7 +109,7 @@ fun PrefsPage(pill_menu: PillMenu, close: () -> Unit) {
 
     settings_interface = remember {
         SettingsInterface(
-            Theme.current, 
+            { Theme.current },
             Page.ROOT.ordinal,
             MainActivity.context,
             Settings.prefs, 
@@ -217,7 +230,8 @@ fun PrefsPage(pill_menu: PillMenu, close: () -> Unit) {
 
                     ), Modifier.fillMaxSize())
                 }
-            }, 
+            },
+            pill_menu,
             { page: Int? ->
                 if (page == Page.ROOT.ordinal) {
                     pill_menu.removeActionOverrider(pill_menu_action_overrider)
@@ -237,7 +251,10 @@ fun PrefsPage(pill_menu: PillMenu, close: () -> Unit) {
             .background(Theme.current.background)
             .pointerInput(Unit) {}
     ) {
-        settings_interface.Interface(Modifier.requiredHeight(LocalConfiguration.current.screenHeightDp.dp - MINIMISED_NOW_PLAYING_HEIGHT.dp))
+        settings_interface.Interface(
+            LocalConfiguration.current.screenHeightDp.dp,
+            content_padding = PaddingValues(bottom = MINIMISED_NOW_PLAYING_HEIGHT.dp + 70.dp)
+        )
     }
 }
 

@@ -112,7 +112,6 @@ class PlayerService : Service() {
             addToQueue(song)
 
             if (!start_radio) {
-                radio.cancelRadio()
                 return
             }
         }
@@ -160,12 +159,14 @@ class PlayerService : Service() {
     }
 
     fun clearQueue(from: Int = 0, keep_current: Boolean = false, save: Boolean = true): List<Pair<Song, Int>> {
+        radio.cancelRadio()
+
         val ret = mutableListOf<Pair<Song, Int>>()
         for (i in player.mediaItemCount - 1 downTo from) {
             if (keep_current && i == player.currentMediaItemIndex) {
                 continue
             }
-            ret.add(Pair(removeFromQueue(i), i))
+            ret.add(Pair(removeFromQueue(i, save = false), i))
         }
         ret.sortBy { it.second }
 
@@ -289,11 +290,14 @@ class PlayerService : Service() {
         }
     }
 
-    fun removeFromQueue(index: Int): Song {
+    fun removeFromQueue(index: Int, save: Boolean = true): Song {
         val song = getSong(index)!!
         player.removeMediaItem(index)
         onSongRemoved(song, index)
-        savePersistentQueue()
+
+        if (save) {
+            savePersistentQueue()
+        }
         return song
     }
 
@@ -476,7 +480,10 @@ class PlayerService : Service() {
                         continue
                     }
 
-                    songs.add(null)
+                    if (index != 0) {
+                        songs.add(null)
+                    }
+
                     launch {
                         request_limit.withPermit {
                             song.loadData().onSuccess { loaded ->

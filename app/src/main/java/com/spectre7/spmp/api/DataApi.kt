@@ -17,13 +17,15 @@ fun <T> Result.Companion.failure(response: Response): Result<T> {
     return failure(RuntimeException("${response.message}: ${response.body?.string()} (${response.code})"))
 }
 fun <I, O> Result<I>.cast(): Result<O> {
-    require(!isSuccess)
     return Result.failure(exceptionOrNull()!!)
 }
 val <T> Result<T>.data get() = getOrThrowHere()
 
 fun <T> Result<T>.getOrThrowHere(): T {
-    return getOrNull() ?: throw Exception(exceptionOrNull()!!)
+    if (isFailure) {
+        throw Exception(exceptionOrNull()!!)
+    }
+    return getOrThrow()
 }
 
 class DataApi {

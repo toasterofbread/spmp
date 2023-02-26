@@ -13,7 +13,10 @@ import androidx.compose.foundation.interaction.MutableInteractionSource
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.filled.*
+import androidx.compose.material.icons.filled.Edit
+import androidx.compose.material.icons.filled.KeyboardArrowDown
+import androidx.compose.material.icons.filled.KeyboardArrowUp
+import androidx.compose.material.icons.filled.MoreHoriz
 import androidx.compose.material.ripple.rememberRipple
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
@@ -39,12 +42,11 @@ import androidx.palette.graphics.Palette
 import com.github.krottv.compose.sliders.DefaultThumb
 import com.github.krottv.compose.sliders.SliderValueHorizontal
 import com.google.android.exoplayer2.Player
-import com.spectre7.spmp.MainActivity
 import com.spectre7.spmp.PlayerServiceHost
 import com.spectre7.spmp.R
-import com.spectre7.spmp.model.AccentColourSource
 import com.spectre7.spmp.model.MediaItem
 import com.spectre7.spmp.model.Song
+import com.spectre7.spmp.ui.component.LikeDislikeButton
 import com.spectre7.spmp.ui.layout.MINIMISED_NOW_PLAYING_HEIGHT
 import com.spectre7.spmp.ui.layout.PlayerViewContext
 import com.spectre7.spmp.ui.layout.nowplaying.overlay.OverlayMenu
@@ -62,41 +64,6 @@ const val MIN_THUMBNAIL_ROUNDING: Int = 0
 const val MAX_THUMBNAIL_ROUNDING: Int = 50
 const val TOP_BAR_HEIGHT: Int = 50
 val NOW_PLAYING_MAIN_PADDING = 10.dp
-
-//if (theme_colour == null) {
-//    launch {
-//        Theme.current.setBackground(true, null)
-//    }
-//    launch {
-//        Theme.current.setOnBackground(true, null)
-//    }
-//}
-//else if (theme_mode == ThemeMode.BACKGROUND) {
-//    launch {
-//        Theme.current.setBackground(true, accent)
-//    }
-//    launch {
-//        Theme.current.setOnBackground(true,
-//            accent.getContrasted()
-//        )
-//    }
-//}
-//else if (theme_mode == ThemeMode.ELEMENTS) {
-//    launch {
-//        Theme.current.setBackground(true, null)
-//    }
-//    launch {
-//        Theme.current.setOnBackground(true, accent.contrastAgainst(Theme.current.getBackground(true)))
-//    }
-//}
-//else {
-//    launch {
-//        Theme.current.setBackground(true, null)
-//    }
-//    launch {
-//        Theme.current.setOnBackground(true, null)
-//    }
-//}
 
 @Composable
 fun ColumnScope.NowPlayingMainTab(
@@ -195,6 +162,12 @@ fun ColumnScope.NowPlayingMainTab(
             .padding(start = NOW_PLAYING_MAIN_PADDING, end = NOW_PLAYING_MAIN_PADDING),
         horizontalArrangement = Arrangement.End
     ) {
+        AnimatedVisibility(PlayerServiceHost.status.m_song != null) {
+            if (PlayerServiceHost.status.m_song != null) {
+                LikeDislikeButton(PlayerServiceHost.status.m_song!!, getNPOnBackground(playerProvider).setAlpha(0.5f))
+            }
+        }
+
         IconButton({
             TODO("Edit")
         }) {
@@ -213,7 +186,8 @@ fun ColumnScope.NowPlayingMainTab(
         horizontalArrangement = Arrangement.SpaceEvenly,
         modifier = Modifier
             .fillMaxWidth()
-            .fillMaxHeight(0.5f * max(expansion, (MINIMISED_NOW_PLAYING_HEIGHT + 20f) / page_height.value))
+            .fillMaxHeight(0.5f * max(expansion,
+                (MINIMISED_NOW_PLAYING_HEIGHT + 20f) / page_height.value))
             .offset(offsetProvider)
             .padding(start = NOW_PLAYING_MAIN_PADDING, end = NOW_PLAYING_MAIN_PADDING)
     ) {

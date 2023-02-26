@@ -4,20 +4,12 @@ import com.beust.klaxon.JsonObject
 import com.beust.klaxon.Klaxon
 import com.spectre7.spmp.BuildConfig
 import com.spectre7.spmp.MainActivity
-import com.spectre7.spmp.model.MediaItem
-import net.openid.appauth.AuthorizationException
 import okhttp3.*
 import okhttp3.MediaType.Companion.toMediaType
 import okhttp3.RequestBody.Companion.toRequestBody
 import org.schabi.newpipe.extractor.NewPipe
 import org.schabi.newpipe.extractor.downloader.Downloader
 import org.schabi.newpipe.extractor.exceptions.ReCaptchaException
-import java.time.Duration
-import java.util.logging.Level
-import java.util.logging.Logger
-import kotlin.contracts.ExperimentalContracts
-import kotlin.contracts.InvocationKind
-import kotlin.contracts.contract
 
 const val DATA_API_USER_AGENT = "Mozilla/5.0 (X11; Linux x86_64; rv:105.0) Gecko/20100101 Firefox/105.0"
 
@@ -118,7 +110,7 @@ class DataApi {
                 .add("origin", "https://music.youtube.com")
                 .add("alt-used", "music.youtube.com")
                 .add("connection", "keep-alive")
-                .add("authorization", "SAPISIDHASH 1675248141_d44fbb5137d2b0b742935593e96ccb67b3b5c37b")
+                .add("authorization", "SAPISIDHASH 1677407834_47421e2bb133ac7d02e4ca4a5af50403715c3244")
                 .add("cookie", BuildConfig.TESTING_COOKIE) // TODO Config
                 .add("sec-fetch-dest", "empty")
                 .add("sec-fetch-mode", "same-origin")

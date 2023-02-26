@@ -106,7 +106,6 @@ private fun AudioStream.toYoutubeVideoFormat(): YoutubeVideoFormat {
 }
 
 fun getVideoFormats(id: String, filter: ((YoutubeVideoFormat) -> Boolean)? = null): Result<List<YoutubeVideoFormat>> {
-    markSongAsWatched(id)
 
     val stream_info = StreamInfo.getInfo(
         NewPipe.getService(0).getStreamExtractor(

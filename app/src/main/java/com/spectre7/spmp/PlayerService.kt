@@ -248,15 +248,19 @@ class PlayerService : Service() {
         if (start_radio) {
             clearQueue(added_index, save = false)
 
-            val result = radio.startNewRadio(song)
-            if (result.isFailure) {
-                MainActivity.error_manager.onError("addToQueue", result.exceptionOrNull()!!, null)
-                if (save) {
-                    savePersistentQueue()
+            networkThread {
+                val result = radio.startNewRadio(song)
+                if (result.isFailure) {
+                    MainActivity.error_manager.onError("addToQueue", result.exceptionOrNull()!!, null)
+                    if (save) {
+                        savePersistentQueue()
+                    }
                 }
-            }
-            else {
-                addMultipleToQueue(result.getOrThrowHere(), added_index, save = save)
+                else {
+                    mainThread {
+                        addMultipleToQueue(result.getOrThrowHere(), added_index, save = save)
+                    }
+                }
             }
         }
         else if (save) {

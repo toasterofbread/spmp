@@ -2,6 +2,7 @@ package com.spectre7.spmp.model
 
 import android.content.Context
 import android.content.SharedPreferences
+import com.beust.klaxon.Klaxon
 import com.spectre7.spmp.MainActivity
 import com.spectre7.spmp.PlayerAccessibilityService
 import java.util.*
@@ -16,7 +17,8 @@ enum class Settings {
     KEY_LANG_DATA,
 
     // Theming
-    KEY_THEME,
+    KEY_CURRENT_THEME,
+    KEY_THEMES,
     KEY_ACCENT_COLOUR_SOURCE,
     KEY_NOWPLAYING_THEME_MODE,
 
@@ -68,6 +70,10 @@ enum class Settings {
             } as T
         }
 
+        inline fun <reified T> getJsonArray(enum_key: Settings, preferences: SharedPreferences = prefs, default: String? = null): List<T> {
+            return Klaxon().parseArray(get(enum_key, preferences, default))!!
+        }
+
         inline fun <reified T: Enum<T>> getEnum(enum_key: Settings, preferences: SharedPreferences = prefs, default: T? = null): T {
             val default_value: Int = default?.ordinal ?: getDefault(enum_key)
             return enumValues<T>()[preferences.getInt(enum_key.name, default_value)]
@@ -78,7 +84,8 @@ enum class Settings {
                 KEY_LANG_UI, KEY_LANG_DATA -> MainActivity.languages.keys.indexOf(Locale.getDefault().language)
 
                 KEY_ACCENT_COLOUR_SOURCE -> AccentColourSource.THUMBNAIL.ordinal
-                KEY_THEME -> -1
+                KEY_CURRENT_THEME -> 0
+                KEY_THEMES -> "[]"
                 KEY_NOWPLAYING_THEME_MODE -> 0
                 
                 KEY_LYRICS_FOLLOW_ENABLED -> true

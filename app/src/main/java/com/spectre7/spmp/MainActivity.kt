@@ -73,14 +73,14 @@ class MainActivity : ComponentActivity() {
         DataApi.initialise()
         Song.init(Companion.getSharedPreferences())
 
-//        Thread.setDefaultUncaughtExceptionHandler { _: Thread, error: Throwable ->
-//            error.printStackTrace()
-//
-//            context.startActivity(Intent(context, ErrorReportActivity::class.java).apply {
-//                putExtra("message", error.message)
-//                putExtra("stack_trace", error.stackTraceToString())
-//            })
-//        }
+        Thread.setDefaultUncaughtExceptionHandler { _: Thread, error: Throwable ->
+            error.printStackTrace()
+
+            context.startActivity(Intent(context, ErrorReportActivity::class.java).apply {
+                putExtra("message", error.message)
+                putExtra("stack_trace", error.stackTraceToString())
+            })
+        }
 
 //        auth_state = loadAuthState()
 //        auth_service = AuthorizationService(this)
@@ -256,7 +256,7 @@ class ErrorManager {
 
                         Spacer(Modifier.requiredWidth(10.dp))
 
-                        Icon(Icons.Filled.Info, null, Modifier.clickable {})
+                        Icon(Icons.Filled.Info, null, Modifier.clickable { throw current_errors.values.first().first })
                         Icon(Icons.Filled.Close, null, Modifier.clickable { vibrateShort(); current_errors.clear() })
                     }
                 }

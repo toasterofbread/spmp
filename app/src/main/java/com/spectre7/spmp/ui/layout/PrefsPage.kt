@@ -3,11 +3,12 @@ package com.spectre7.spmp.ui.layout
 import android.Manifest
 import android.app.AlertDialog
 import android.content.Context
+import android.content.SharedPreferences
+import android.content.SharedPreferences.OnSharedPreferenceChangeListener
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.BoxWithConstraints
 import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.fillMaxSize
-import androidx.compose.foundation.layout.requiredHeight
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.*
 import androidx.compose.material3.*
@@ -28,6 +29,8 @@ import com.spectre7.spmp.model.Settings
 import com.spectre7.spmp.model.Song
 import com.spectre7.spmp.ui.component.PillMenu
 import com.spectre7.spmp.ui.theme.Theme
+import com.spectre7.spmp.ui.theme.ThemeData
+import com.spectre7.spmp.ui.theme.ThemeManager
 import com.spectre7.utils.OnChangedEffect
 import com.spectre7.utils.Permissions
 import com.spectre7.utils.getString
@@ -43,7 +46,7 @@ fun PrefsPage(pill_menu: PillMenu, close: () -> Unit) {
     OnChangedEffect(interface_lang.value) {
         language_data = MainActivity.languages.values.elementAt(interface_lang.value)
     }
-
+    
     lateinit var settings_interface: SettingsInterface
 
     val pill_menu_action_overrider: @Composable PillMenu.Action.(i: Int) -> Boolean = remember { { i ->
@@ -120,7 +123,7 @@ fun PrefsPage(pill_menu: PillMenu, close: () -> Unit) {
                     Page.ROOT -> SettingsPageWithItems(
                         getString(R.string.s_page_preferences),
                         groupGeneral(interface_lang, language_data)
-                            + groupTheming()
+                            + groupTheming(Theme.manager!!)
                             + groupLyrics()
                             + groupDownloads()
                             + groupAudioVideo()
@@ -258,7 +261,7 @@ fun PrefsPage(pill_menu: PillMenu, close: () -> Unit) {
     }
 }
 
-fun groupGeneral(interface_lang: SettingsValueState<Int>, language_data: Map<String, String>): List<SettingsItem> {
+private fun groupGeneral(interface_lang: SettingsValueState<Int>, language_data: Map<String, String>): List<SettingsItem> {
     return listOf(
         SettingsGroup(getString(R.string.s_group_general)),
 
@@ -309,15 +312,24 @@ fun groupGeneral(interface_lang: SettingsValueState<Int>, language_data: Map<Str
     )
 }
 
-fun groupTheming(): List<SettingsItem> {
+private fun groupTheming(theme_manager: ThemeManager): List<SettingsItem> {
     return listOf(
         SettingsGroup(getString(R.string.s_group_theming)),
 
-        SettingsItemThemeSelector<Int> (
-            SettingsValueState(Settings.KEY_THEME.name),
-            "Theme", null,
+        SettingsItemThemeSelector (
+            SettingsValueState(Settings.KEY_CURRENT_THEME.name),
+            "Current theme", null,
             "Edit theme",
-            { Theme.theme }
+            {
+                check(theme_manager.themes.isNotEmpty())
+                theme_manager.themes.size
+            },
+            { theme_manager.themes[it] },
+            { index: Int, edited_theme: ThemeData ->
+                theme_manager.updateTheme(index, edited_theme)
+            },
+            { theme_manager.addTheme(Theme.default.copy(name = "New theme")) },
+            { theme_manager.removeTheme(it) }
         ),
 
         SettingsItemMultipleChoice(
@@ -346,7 +358,7 @@ fun groupTheming(): List<SettingsItem> {
     )
 }
 
-fun groupLyrics(): List<SettingsItem> {
+private fun groupLyrics(): List<SettingsItem> {
     return listOf(
         SettingsGroup(getString(R.string.s_group_lyrics)),
 
@@ -385,7 +397,7 @@ fun groupLyrics(): List<SettingsItem> {
     )
 }
 
-fun groupDownloads(): List<SettingsItem> {
+private fun groupDownloads(): List<SettingsItem> {
     return listOf(
         SettingsGroup(getString(R.string.s_group_download)),
 
@@ -396,7 +408,7 @@ fun groupDownloads(): List<SettingsItem> {
     )
 }
 
-fun groupAudioVideo(): List<SettingsItem> {
+private fun groupAudioVideo(): List<SettingsItem> {
     return listOf(
         SettingsGroup(getString(R.string.s_group_audio_video)),
 
@@ -424,7 +436,7 @@ fun groupAudioVideo(): List<SettingsItem> {
     )
 }
 
-fun groupOther(): List<SettingsItem> {
+private fun groupOther(): List<SettingsItem> {
     return listOf(
         SettingsGroup(getString(R.string.s_group_other)),
 

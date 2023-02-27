@@ -74,9 +74,9 @@ class Theme(data: ThemeData) {
     private val on_background_state: Animatable<Color, AnimationVector4D> = Animatable(data.on_background)
     private val accent_state: Animatable<Color, AnimationVector4D> = Animatable(data.accent)
 
-    private var background_is_default = false
-    private var on_background_is_default = false
-    private var accent_is_default = false
+    private var background_is_default = true
+    private var on_background_is_default = true
+    private var accent_is_default = true
 
     val background: Color get() = background_state.value
     val on_background: Color get() = on_background_state.value
@@ -139,7 +139,7 @@ class Theme(data: ThemeData) {
 
     fun getDataFromCurrent(): ThemeData {
         return ThemeData(
-            "If you are reading this, a bug has occurred (or you're looking at the source code",
+            "If you're reading this, a bug has occurred",
             background_state.targetValue,
             on_background_state.targetValue,
             accent_state.targetValue
@@ -147,17 +147,33 @@ class Theme(data: ThemeData) {
     }
 
     companion object {
-        val default = ThemeData("Default", Color.Black, Color.White, Color(99, 54, 143))
+        val default = ThemeData("Default theme", Color.Black, Color.White, Color(99, 54, 143))
         private var thumbnail_colour: Color? = null
         private var accent_colour_source: AccentColourSource by mutableStateOf(Settings.getEnum(Settings.KEY_ACCENT_COLOUR_SOURCE))
         private var system_accent_colour: Color? = null
 
         private val prefs_listener: OnSharedPreferenceChangeListener =
             OnSharedPreferenceChangeListener { prefs, key ->
-                if (key == Settings.KEY_ACCENT_COLOUR_SOURCE.name) {
-                    accent_colour_source = Settings.getEnum(Settings.KEY_ACCENT_COLOUR_SOURCE, prefs)
+                when (key) {
+                    Settings.KEY_ACCENT_COLOUR_SOURCE.name -> {
+                        accent_colour_source = Settings.getEnum(Settings.KEY_ACCENT_COLOUR_SOURCE, prefs)
+                    }
+                    Settings.KEY_CURRENT_THEME.name -> {
+                        current_theme = Settings.get(Settings.KEY_CURRENT_THEME)
+                    }
                 }
             }
+
+        private var _manager: ThemeManager? = null
+        val manager: ThemeManager
+            get() {
+                if (_manager == null) {
+                    _manager = ThemeManager(Settings.prefs)
+                }
+                return _manager!!
+            }
+
+        private var current_theme: Int by mutableStateOf(0)
 
         val theme: Theme = Theme(default)
         val preview_theme: Theme = Theme(default)
@@ -174,11 +190,17 @@ class Theme(data: ThemeData) {
 
                 onDispose {
                     Settings.getPrefs(context).unregisterOnSharedPreferenceChangeListener(prefs_listener)
+                    manager.release()
                 }
             }
 
             OnChangedEffect(accent_colour_source) {
                 updateAccentColour()
+            }
+
+            OnChangedEffect(current_theme, manager.themes) {
+                println("UPAPDNS $current_theme ${manager.themes[current_theme]}")
+                current.setThemeData(manager.themes[current_theme])
             }
         }
 
@@ -218,3 +240,47 @@ class Theme(data: ThemeData) {
 data class ThemeData(
     val name: String, val background: Color, val on_background: Color, val accent: Color
 )
+
+class ThemeManager(val prefs: SharedPreferences) {
+    var current_theme: Int by mutableStateOf(0)
+        private set
+
+    var themes: List<ThemeData> by mutableStateOf(emptyList())
+        private set
+
+    private val prefs_listener = OnSharedPreferenceChangeListener { prefs, key ->
+        when (key) {
+            Settings.KEY_CURRENT_THEME.name -> current_theme = Settings.get(Settings.KEY_CURRENT_THEME, prefs)
+            Settings.KEY_THEMES.name -> loadThemes()
+        }
+    }
+
+    init {
+        prefs.registerOnSharedPreferenceChangeListener(prefs_listener)
+        loadThemes()
+    }
+
+    fun release() {
+        prefs.unregisterOnSharedPreferenceChangeListener(prefs_listener)
+    }
+
+    fun updateTheme(index: Int, theme: ThemeData) {
+        println("updateTheme $index $theme")
+        themes = themes.toMutableList().also { it[index] = theme }
+    }
+
+    fun addTheme(theme: ThemeData) {
+        themes = themes.toMutableList().also { it.add(theme) }
+    }
+
+    fun removeTheme(index: Int) {
+        themes = themes.toMutableList().also { it.removeAt(index) }
+    }
+
+    private fun loadThemes() {
+        themes = Settings.getJsonArray(Settings.KEY_THEMES, prefs)
+        if (themes.isEmpty()) {
+            themes = listOf(Theme.default)
+        }
+    }
+}

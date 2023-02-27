@@ -149,10 +149,10 @@ fun MediaItemGrid(
 
         Column(Modifier.padding(horizontal = 20.dp)) {
             if (layout.title != null) {
-                WidthShrinkText(layout.title, style = MaterialTheme.typography.headlineMedium)
+                WidthShrinkText(layout.title, style = MaterialTheme.typography.headlineMedium.copy(color = Theme.current.on_background))
             }
             if (layout.subtitle != null) {
-                WidthShrinkText(layout.subtitle, style = MaterialTheme.typography.headlineSmall)
+                WidthShrinkText(layout.subtitle, style = MaterialTheme.typography.headlineSmall.copy(color = Theme.current.on_background))
             }
         }
 

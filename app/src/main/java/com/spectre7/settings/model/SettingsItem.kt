@@ -91,7 +91,10 @@ class SettingsGroup(var title: String?): SettingsItem() {
     }
 }
 
-class SettingsValueState<T>(val key: String) {
+class SettingsValueState<T>(
+    val key: String,
+    private val onChanged: ((value: T) -> Unit)? = null
+) {
 
     var autosave: Boolean = true
 
@@ -105,10 +108,15 @@ class SettingsValueState<T>(val key: String) {
             if (_value == null) {
                 throw IllegalStateException("State has not been initialised")
             }
+            if (_value == new_value) {
+                return
+            }
+
             _value = new_value
             if (autosave) {
                 save()
             }
+            onChanged?.invoke(new_value)
         }
 
     fun init(prefs: SharedPreferences, defaultProvider: (String) -> Any): SettingsValueState<T> {

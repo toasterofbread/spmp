@@ -123,7 +123,7 @@ fun PrefsPage(pill_menu: PillMenu, close: () -> Unit) {
                     Page.ROOT -> SettingsPageWithItems(
                         getString(R.string.s_page_preferences),
                         groupGeneral(interface_lang, language_data)
-                            + groupTheming(Theme.manager!!)
+                            + groupTheming(Theme.manager)
                             + groupLyrics()
                             + groupDownloads()
                             + groupAudioVideo()
@@ -288,6 +288,15 @@ private fun groupGeneral(interface_lang: SettingsValueState<Int>, language_data:
             val language = language_data.entries.elementAt(i)
             "${language.key} / ${language.value}"
         },
+
+        SettingsItemSlider(
+            SettingsValueState<Int>(Settings.KEY_INITIAL_FEED_ROWS.name),
+            "Initial feed rows",
+            "Minimum amount of feed rows to load automatically",
+            "1",
+            "10",
+            range = 1f .. 10f
+        ),
 
         SettingsItemSlider(
             SettingsValueState<Int>(Settings.KEY_VOLUME_STEPS.name),

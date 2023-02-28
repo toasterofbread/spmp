@@ -41,6 +41,7 @@ import androidx.compose.ui.input.pointer.pointerInput
 import androidx.compose.ui.layout.SubcomposeLayout
 import androidx.compose.ui.layout.onSizeChanged
 import androidx.compose.ui.platform.LocalDensity
+import androidx.compose.ui.platform.LocalLayoutDirection
 import androidx.compose.ui.platform.LocalUriHandler
 import androidx.compose.ui.platform.debugInspectorInfo
 import androidx.compose.ui.text.SpanStyle
@@ -542,4 +543,19 @@ fun RowOrColumn(
 	else {
 		Column(modifier, verticalArrangement = arrangement, horizontalAlignment = Alignment.CenterHorizontally) { content(Modifier.weight(1f)) }
 	}
+}
+
+@Composable
+fun PaddingValues.copy(
+	start: Dp? = null,
+	top: Dp? = null,
+	end: Dp? = null,
+	bottom: Dp? = null
+): PaddingValues {
+	return PaddingValues(
+		start ?: calculateStartPadding(LocalLayoutDirection.current),
+		top ?: calculateTopPadding(),
+		end ?: calculateEndPadding(LocalLayoutDirection.current),
+		bottom ?: calculateBottomPadding()
+	)
 }

@@ -1,11 +1,12 @@
 package com.spectre7.spmp.ui.layout
 
 import androidx.activity.compose.BackHandler
-import androidx.compose.animation.Crossfade
+import androidx.compose.animation.*
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.itemsIndexed
+import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.text.BasicTextField
 import androidx.compose.foundation.text.KeyboardActions
@@ -14,13 +15,17 @@ import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.*
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
+import androidx.compose.ui.Alignment
 import androidx.compose.ui.ExperimentalComposeUiApi
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.clip
 import androidx.compose.ui.focus.FocusRequester
 import androidx.compose.ui.focus.focusRequester
+import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.LocalFocusManager
 import androidx.compose.ui.platform.LocalSoftwareKeyboardController
 import androidx.compose.ui.text.input.ImeAction
+import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.TextUnit
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
@@ -40,6 +45,7 @@ val SEARCH_FIELD_FONT_SIZE: TextUnit = 18.sp
 @Composable
 fun SearchPage(
     pill_menu: PillMenu,
+    bottom_padding: Dp,
     playerProvider: () -> PlayerViewContext,
     close: () -> Unit
 ) {
@@ -51,7 +57,7 @@ fun SearchPage(
     var search_in_progress: Boolean by remember { mutableStateOf(false) }
     val search_lock = remember { Object() }
 
-    var type_to_search: MediaItem.Type = MediaItem.Type.SONG
+    var type_to_search: MediaItem.Type by remember { mutableStateOf(MediaItem.Type.SONG) }
     var query_text by remember { mutableStateOf("") }
 
     val found_results = remember { mutableStateListOf<MediaItem>() }
@@ -120,9 +126,13 @@ fun SearchPage(
         }
     }
 
-    Column(Modifier.fillMaxSize()) {
+    LaunchedEffect(Unit) {
+        pill_menu.showing = false
+    }
+
+    Column(Modifier.fillMaxSize().padding(bottom = bottom_padding)) {
         // Search results
-        LazyColumn(Modifier.fillMaxHeight().weight(1f)) {
+        LazyColumn(Modifier.fillMaxSize().weight(1f)) {
             itemsIndexed(items = found_results, key = { _, item -> item.id }) { _, item ->
                 item.PreviewLong(
                     Theme.current.on_background_provider,
@@ -134,44 +144,52 @@ fun SearchPage(
         }
 
         // Bottom bar
-        Row(Modifier.fillMaxWidth()) {
+        Row(
+            Modifier.fillMaxWidth().height(IntrinsicSize.Max).padding(15.dp),
+            horizontalArrangement = Arrangement.spacedBy(10.dp),
+            verticalAlignment = Alignment.Bottom
+        ) {
 
-            @Composable
-            fun PillMenu.Action.resourceTypeAction(type: MediaItem.Type, action: () -> Unit) {
-                ActionButton(
-                    when (type) {
-                        MediaItem.Type.SONG     -> Icons.Filled.MusicNote
-                        MediaItem.Type.ARTIST   -> Icons.Filled.Person
-                        MediaItem.Type.PLAYLIST -> Icons.Filled.FeaturedPlayList
-                    },
-                    action
-                )
-            }
+            var type_selector_open by remember { mutableStateOf(false) }
 
-            val type_menu = remember {
-                PillMenu(
-                    action_count = MediaItem.Type.values().size - 1,
-                    getAction = { i, _ ->
-                        val type = MediaItem.Type.values().filter{ it != type_to_search }[i]
-                        resourceTypeAction(type) {
-                            type_to_search = type
-                        }
-                    },
-                    mutableStateOf(false),
-                    container_modifier = Modifier,
-                    vertical = true,
-                    top = true,
-                    toggleButton = { modifier ->
-                        Crossfade(type_to_search) { type ->
-                            resourceTypeAction(type) {
-                                is_open = !is_open
+            Box(Modifier.clip(CircleShape), contentAlignment = Alignment.BottomCenter) {
+                this@Row.AnimatedVisibility(
+                    !type_selector_open,
+                    enter = fadeIn(),
+                    exit = fadeOut()
+                ) {
+                    IconButton({ type_selector_open = true }, Modifier.background(Theme.current.accent, CircleShape)) {
+                        Icon(
+                            type_to_search.getIcon(),
+                            null,
+                            tint = Theme.current.on_accent
+                        )
+                    }
+                }
+
+                this@Row.AnimatedVisibility(
+                    type_selector_open,
+                    enter = slideInVertically { it },
+                    exit = slideOutVertically { it }
+                ) {
+                    Column(Modifier.background(Theme.current.accent, CircleShape)) {
+                        val types = MediaItem.Type.values()
+                        for (i in types.size - 1 downTo 0) {
+                            val type = if (i == 0) type_to_search else if (i - 1 < type_to_search.ordinal) types[i - 1] else types[i]
+                            IconButton({
+                                type_to_search = type
+                                type_selector_open = false
+                            }) {
+                                Icon(
+                                    type.getIcon(),
+                                    null,
+                                    tint = Theme.current.on_accent
+                                )
                             }
                         }
                     }
-                ) 
+                }
             }
-
-            type_menu.PillMenu()
 
             // Query input field
             BasicTextField(
@@ -182,23 +200,24 @@ fun SearchPage(
                     fontSize = SEARCH_FIELD_FONT_SIZE,
                     color = Theme.current.on_accent
                 ),
-                modifier = Modifier.height(45.dp),
+                modifier = Modifier.height(45.dp).weight(1f),
                 decorationBox = { innerTextField ->
                     Row(
                         Modifier
                             .background(
                                 Theme.current.accent,
-                                RoundedCornerShape(percent = 35)
+                                CircleShape
                             )
                             .padding(10.dp)
                             .fillMaxWidth()
                             .fillMaxHeight()
                             .focusRequester(focus_requester),
-                        Arrangement.End
+                        horizontalArrangement = Arrangement.End,
+                        verticalAlignment = Alignment.CenterVertically
                     ) {
 
                         // Search field
-                        Box(Modifier.fillMaxWidth(0.9f)) {
+                        Box(Modifier.fillMaxWidth(0.9f), contentAlignment = Alignment.CenterStart) {
 
                             // Query hint
                             if (query_text.isEmpty()) {
@@ -230,7 +249,7 @@ fun SearchPage(
             )
 
             // Search button / search indicator
-            Crossfade(search_in_progress) { in_progress -> 
+            Crossfade(search_in_progress) { in_progress ->
                 if (!in_progress) {
                     IconButton(onClick = {
                         if (!search_in_progress) {
@@ -244,7 +263,6 @@ fun SearchPage(
                     CircularProgressIndicator()
                 }
             }
-
         }
     }
 

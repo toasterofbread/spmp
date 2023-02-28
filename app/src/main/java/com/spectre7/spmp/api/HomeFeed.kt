@@ -12,6 +12,10 @@ data class YoutubeiBrowseResponse(
     val continuationContents: ContinuationContents? = null,
     val header: Header? = null
 ) {
+    val ctoken: String?
+        get() = continuationContents?.sectionListContinuation?.continuations?.firstOrNull()?.nextContinuationData?.continuation
+                ?: contents.singleColumnBrowseResultsRenderer.tabs.first().tabRenderer.content?.sectionListRenderer?.continuations?.firstOrNull()?.nextContinuationData?.continuation
+
     fun getShelves(has_continuation: Boolean): List<YoutubeiShelf> {
         return if (has_continuation) continuationContents!!.sectionListContinuation.contents else contents.singleColumnBrowseResultsRenderer.tabs.first().tabRenderer.content!!.sectionListRenderer.contents
     }
@@ -212,7 +216,7 @@ data class ContentsItem(val musicTwoRowItemRenderer: MusicTwoRowItemRenderer? = 
     }
 }
 
-fun getHomeFeed(min_rows: Int = -1, allow_cached: Boolean = true): Result<List<HomeFeedRow>> {
+fun getHomeFeed(min_rows: Int = -1, allow_cached: Boolean = true, continuation: String? = null): Result<Pair<List<HomeFeedRow>, String?>> {
 
     fun postRequest(ctoken: String?): Result<BufferedReader> {
         val url = "https://music.youtube.com/youtubei/v1/browse"
@@ -256,32 +260,34 @@ fun getHomeFeed(min_rows: Int = -1, allow_cached: Boolean = true): Result<List<H
     var response_reader: BufferedReader? = null
 
     val cache_key = "feed"
-    if (allow_cached) {
+    if (allow_cached && continuation == null) {
         response_reader = Cache.get(cache_key)
     }
 
     if (response_reader == null) {
-        val result = postRequest(null)
+        val result = postRequest(continuation)
         if (!result.isSuccess) {
             return result.cast()
         }
 
         response_reader = result.getOrThrowHere()
-        Cache.set(cache_key, response_reader, CACHE_LIFETIME)
-        response_reader.close()
 
-        response_reader = Cache.get(cache_key)!!
+        if (continuation == null) {
+            Cache.set(cache_key, response_reader, CACHE_LIFETIME)
+            response_reader.close()
+            response_reader = Cache.get(cache_key)!!
+        }
     }
 
     var data: YoutubeiBrowseResponse = DataApi.klaxon.parse(response_reader)!!
     response_reader.close()
-    rows = processRows(data.getShelves(false)).toMutableList()
+    rows = processRows(data.getShelves(continuation != null)).toMutableList()
 
+    var ctoken: String? = data.ctoken
     while (min_rows >= 1 && rows.size < min_rows) {
-        val ctoken =
-            data.continuationContents?.sectionListContinuation?.continuations?.firstOrNull()?.nextContinuationData?.continuation
-                ?: data.contents.singleColumnBrowseResultsRenderer.tabs.first().tabRenderer.content!!.sectionListRenderer.continuations?.firstOrNull()?.nextContinuationData?.continuation
-                ?: break
+        if (ctoken == null) {
+            break
+        }
 
         val result = postRequest(ctoken)
         if (!result.isSuccess) {
@@ -290,7 +296,9 @@ fun getHomeFeed(min_rows: Int = -1, allow_cached: Boolean = true): Result<List<H
         data = DataApi.klaxon.parse(result.data)!!
         result.data.close()
         rows.addAll(processRows(data.getShelves(true)))
+
+        ctoken = data.ctoken
     }
 
-    return Result.success(rows)
+    return Result.success(Pair(rows, ctoken))
 }

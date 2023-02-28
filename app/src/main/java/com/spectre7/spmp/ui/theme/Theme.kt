@@ -4,7 +4,6 @@ import android.app.Activity
 import android.content.Context
 import android.content.SharedPreferences
 import android.content.SharedPreferences.OnSharedPreferenceChangeListener
-import android.os.Build
 import androidx.compose.animation.Animatable
 import androidx.compose.animation.core.Animatable
 import androidx.compose.animation.core.AnimationVector4D
@@ -17,6 +16,9 @@ import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.LocalView
 import androidx.compose.ui.text.font.FontFamily
 import androidx.core.view.ViewCompat
+import com.beust.klaxon.Converter
+import com.beust.klaxon.JsonValue
+import com.beust.klaxon.Klaxon
 import com.spectre7.spmp.model.AccentColourSource
 import com.spectre7.spmp.model.Settings
 import com.spectre7.utils.OnChangedEffect
@@ -121,13 +123,13 @@ class Theme(data: ThemeData) {
         theme_data = theme
 
         if (background_is_default) {
-            setBackground(theme.background, snap)
+            setBackground(null, snap)
         }
         if (on_background_is_default) {
-            setOnBackground(theme.on_background, snap)
+            setOnBackground(null, snap)
         }
         if (accent_is_default) {
-            setAccent(theme.accent, snap)
+            setAccent(null, snap)
         }
     }
 
@@ -158,9 +160,6 @@ class Theme(data: ThemeData) {
                     Settings.KEY_ACCENT_COLOUR_SOURCE.name -> {
                         accent_colour_source = Settings.getEnum(Settings.KEY_ACCENT_COLOUR_SOURCE, prefs)
                     }
-                    Settings.KEY_CURRENT_THEME.name -> {
-                        current_theme = Settings.get(Settings.KEY_CURRENT_THEME)
-                    }
                 }
             }
 
@@ -172,8 +171,6 @@ class Theme(data: ThemeData) {
                 }
                 return _manager!!
             }
-
-        private var current_theme: Int by mutableStateOf(0)
 
         val theme: Theme = Theme(default)
         val preview_theme: Theme = Theme(default)
@@ -198,9 +195,9 @@ class Theme(data: ThemeData) {
                 updateAccentColour()
             }
 
-            OnChangedEffect(current_theme, manager.themes) {
-                println("UPAPDNS $current_theme ${manager.themes[current_theme]}")
-                current.setThemeData(manager.themes[current_theme])
+            LaunchedEffect(manager.current_theme, manager.themes) {
+                println("UU ${manager.current_theme} ${manager.themes}")
+                current.setThemeData(manager.themes[manager.current_theme])
             }
         }
 
@@ -239,10 +236,26 @@ class Theme(data: ThemeData) {
 
 data class ThemeData(
     val name: String, val background: Color, val on_background: Color, val accent: Color
-)
+) {
+    fun serialise(): String {
+        return "${background.toArgb()},${on_background.toArgb()},${accent.toArgb()},$name"
+    }
+
+    companion object {
+        fun deserialise(data: String): ThemeData {
+            val split = data.split(',', limit = 4)
+            return ThemeData(
+                split[3],
+                Color(split[0].toInt()),
+                Color(split[1].toInt()),
+                Color(split[2].toInt())
+            )
+        }
+    }
+}
 
 class ThemeManager(val prefs: SharedPreferences) {
-    var current_theme: Int by mutableStateOf(0)
+    var current_theme: Int by mutableStateOf(Settings.get(Settings.KEY_CURRENT_THEME, prefs))
         private set
 
     var themes: List<ThemeData> by mutableStateOf(emptyList())
@@ -252,6 +265,21 @@ class ThemeManager(val prefs: SharedPreferences) {
         when (key) {
             Settings.KEY_CURRENT_THEME.name -> current_theme = Settings.get(Settings.KEY_CURRENT_THEME, prefs)
             Settings.KEY_THEMES.name -> loadThemes()
+        }
+    }
+
+    private val colour_converter = object : Converter {
+        override fun canConvert(cls: Class<*>): Boolean {
+            return cls == ThemeData::class.java
+        }
+
+        override fun fromJson(jv: JsonValue): Any {
+            return ThemeData.deserialise(jv.string!!)
+        }
+
+        override fun toJson(value: Any): String {
+            require(value is ThemeData)
+            return "\"${value.serialise()}\""
         }
     }
 
@@ -265,20 +293,34 @@ class ThemeManager(val prefs: SharedPreferences) {
     }
 
     fun updateTheme(index: Int, theme: ThemeData) {
-        println("updateTheme $index $theme")
         themes = themes.toMutableList().also { it[index] = theme }
+        saveThemes()
     }
 
     fun addTheme(theme: ThemeData) {
         themes = themes.toMutableList().also { it.add(theme) }
+        saveThemes()
     }
 
     fun removeTheme(index: Int) {
-        themes = themes.toMutableList().also { it.removeAt(index) }
+        if (themes.size == 1) {
+            themes = listOf(Theme.default)
+        }
+        else {
+            themes = themes.toMutableList().also { it.removeAt(index) }
+        }
+        saveThemes()
+    }
+
+    private val klaxon: Klaxon get() = Klaxon().converter(colour_converter)
+
+    private fun saveThemes() {
+        println(klaxon.toJsonString(themes))
+        Settings.set(Settings.KEY_THEMES, klaxon.toJsonString(themes), prefs)
     }
 
     private fun loadThemes() {
-        themes = Settings.getJsonArray(Settings.KEY_THEMES, prefs)
+        themes = Settings.getJsonArray(Settings.KEY_THEMES, klaxon, prefs)
         if (themes.isEmpty()) {
             themes = listOf(Theme.default)
         }

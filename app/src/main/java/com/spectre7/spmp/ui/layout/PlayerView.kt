@@ -29,6 +29,7 @@ import com.google.accompanist.swiperefresh.rememberSwipeRefreshState
 import com.spectre7.spmp.MainActivity
 import com.spectre7.spmp.PlayerServiceHost
 import com.spectre7.spmp.R
+import com.spectre7.spmp.api.cast
 import com.spectre7.spmp.api.getHomeFeed
 import com.spectre7.spmp.api.getOrThrowHere
 import com.spectre7.spmp.model.*
@@ -50,6 +51,8 @@ fun getScreenHeight(): Dp {
 
 const val MINIMISED_NOW_PLAYING_HEIGHT: Int = 64
 enum class OverlayPage { NONE, SEARCH, SETTINGS, MEDIAITEM, LIBRARY }
+
+private enum class FeedLoadState { NONE, LOADING, CONTINUING }
 
 @OptIn(ExperimentalMaterialApi::class)
 data class PlayerViewContext(
@@ -242,6 +245,50 @@ fun PlayerView() {
     val playerProvider = remember { { player } }
     player.LongPressMenu()
 
+    val feed_load_state = remember { mutableStateOf(FeedLoadState.NONE) }
+    val feed_load_lock = remember { ReentrantLock() }
+    var feed_continuation: String? by remember { mutableStateOf(null) }
+
+    val main_page_layouts = remember { mutableStateListOf<MediaItemLayout>() }
+
+    fun loadFeed(min_rows: Int, allow_cached: Boolean, continue_feed: Boolean, onFinished: ((success: Boolean) -> Unit)? = null) {
+        thread {
+            if (!feed_load_lock.tryLock()) {
+                return@thread
+            }
+            check(feed_load_state.value == FeedLoadState.NONE)
+
+            feed_load_state.value = if (continue_feed) FeedLoadState.CONTINUING else FeedLoadState.LOADING
+
+            val result = loadFeedLayouts(min_rows, allow_cached, if (continue_feed) feed_continuation else null)
+            if (result.isFailure) {
+                TODO(result.exceptionOrNull().toString())
+            }
+            else {
+                if (!continue_feed) {
+                    main_page_layouts.clear()
+                }
+
+                val (layouts, cont) = result.getOrThrow()
+                main_page_layouts.addAll(layouts)
+                feed_continuation = cont
+            }
+
+            feed_load_state.value = FeedLoadState.NONE
+            feed_load_lock.unlock()
+
+            onFinished?.invoke(result.isSuccess)
+        }
+    }
+
+    LaunchedEffect(Unit) {
+        loadFeed(Settings.get(Settings.KEY_INITIAL_FEED_ROWS), allow_cached = true, continue_feed = false) {
+            if (it) {
+                PlayerServiceHost.service.loadPersistentQueue()
+            }
+        }
+    }
+
     DisposableEffect(Unit) {
         onDispose {
             player.release()
@@ -250,6 +297,7 @@ fun PlayerView() {
 
     LaunchedEffect(player.overlay_page) {
         if (player.overlay_page == OverlayPage.NONE) {
+            player.pill_menu.showing = true
             player.pill_menu.clearExtraActions()
             player.pill_menu.clearAlongsideActions()
             player.pill_menu.clearActionOverriders()
@@ -291,16 +339,6 @@ fun PlayerView() {
                 container_modifier = Modifier.offset { IntOffset(x = 0, y = -player.getNowPlayingSwipeState().offset.value.dp.toPx().toInt()) }
             )
 
-            val main_page_layouts = remember { mutableStateListOf<MediaItemLayout>() }
-
-            LaunchedEffect(Unit) {
-                refreshFeed(true, main_page_layouts) {
-                    if (it) {
-                        PlayerServiceHost.service.loadPersistentQueue()
-                    }
-                }
-            }
-
             val main_page_scroll_state = rememberLazyListState()
 
             Crossfade(targetState = player.overlay_page) {
@@ -311,8 +349,15 @@ fun PlayerView() {
 
                     val close = remember { { player.overlay_page = OverlayPage.NONE } }
                     when (it) {
-                        OverlayPage.NONE -> MainPage(main_page_layouts, playerProvider, main_page_scroll_state)
-                        OverlayPage.SEARCH -> SearchPage(player.pill_menu, playerProvider, close)
+                        OverlayPage.NONE -> MainPage(
+                            main_page_layouts,
+                            playerProvider,
+                            main_page_scroll_state,
+                            feed_load_state,
+                            remember { derivedStateOf { feed_continuation != null } }.value,
+                            { loadFeed(-1, false, it) }
+                        )
+                        OverlayPage.SEARCH -> SearchPage(player.pill_menu, if (PlayerServiceHost.session_started) MINIMISED_NOW_PLAYING_HEIGHT.dp else 0.dp, playerProvider, close)
                         OverlayPage.SETTINGS -> PrefsPage(player.pill_menu, close)
                         OverlayPage.MEDIAITEM -> Crossfade(player.overlay_media_item) { item ->
                             when (item) {
@@ -336,27 +381,31 @@ fun PlayerView() {
 private fun MainPage(
     layouts: MutableList<MediaItemLayout>,
     playerProvider: () -> PlayerViewContext,
-    scroll_state: LazyListState
+    scroll_state: LazyListState,
+    feed_load_state: MutableState<FeedLoadState>,
+    can_continue_feed: Boolean,
+    loadFeed: (continuation: Boolean) -> Unit
 ) {
-    var refreshing by remember { mutableStateOf(false) }
-
     SwipeRefresh(
-        state = rememberSwipeRefreshState(refreshing),
-        onRefresh = {
-            refreshing = true
-            refreshFeed(false, layouts) {
-                refreshing = false
-            }
-        },
-        Modifier.padding(horizontal = 10.dp)
+        state = rememberSwipeRefreshState(feed_load_state.value == FeedLoadState.LOADING),
+        onRefresh = { loadFeed(false) },
+        swipeEnabled = feed_load_state.value == FeedLoadState.NONE,
+        modifier = Modifier.padding(horizontal = 10.dp)
     ) {
         Crossfade(remember { derivedStateOf { layouts.isNotEmpty() } }.value) { loaded ->
             if (loaded) {
                 LazyMediaItemLayoutColumn(
                     layouts,
                     playerProvider,
-                    top_padding = getStatusBarHeight(MainActivity.context),
-                    bottom_padding = MINIMISED_NOW_PLAYING_HEIGHT.dp,
+                    padding = PaddingValues(
+                        top = getStatusBarHeight(MainActivity.context),
+                        bottom = MINIMISED_NOW_PLAYING_HEIGHT.dp
+                    ),
+                    onContinuationRequested = if (can_continue_feed) {
+                        { loadFeed(true) }
+                    } else null,
+                    continuation_alignment = Alignment.Start,
+                    loading_continuation = feed_load_state.value != FeedLoadState.NONE,
                     scroll_state = scroll_state
                 )
             }
@@ -374,62 +423,42 @@ private fun MainPage(
     }
 }
 
-private val feed_refresh_lock = ReentrantLock()
+private fun loadFeedLayouts(min_rows: Int, allow_cached: Boolean, continuation: String? = null): Result<Pair<List<MediaItemLayout>, String?>> {
+    val result = getHomeFeed(allow_cached = allow_cached, min_rows = min_rows, continuation = continuation)
 
-private fun refreshFeed(allow_cached: Boolean, feed_layouts: MutableList<MediaItemLayout>, onFinished: (success: Boolean) -> Unit) {
-    thread {
-        if (!feed_refresh_lock.tryLock()) {
-            return@thread
-        }
-        else {
-            feed_layouts.clear()
+    if (!result.isSuccess) {
+        return result.cast()
+    }
 
-            val feed_result = getHomeFeed(allow_cached = allow_cached)
+    val (row_data, new_continuation) = result.getOrThrowHere()
 
-            if (!feed_result.isSuccess) {
-                MainActivity.error_manager.onError("refreshFeed", feed_result.exceptionOrNull()!!) { result ->
-                    refreshFeed(false, feed_layouts) { success -> result(success, null) }
+    val rows = mutableListOf<MediaItemLayout>()
+    val request_limit = Semaphore(10) // TODO?
+
+    runBlocking { withContext(Dispatchers.IO) { coroutineScope {
+        for (row in row_data) {
+            val entry = MediaItemLayout(row.title, row.subtitle, MediaItemLayout.Type.GRID)
+            rows.add(entry)
+
+            for (item in row.items) {
+                if (item.title != null) {
+                    entry.addItem(item)
+                    continue
                 }
-                feed_refresh_lock.unlock()
-                onFinished(false)
-                return@thread
-            }
 
-            val rows = mutableListOf<MediaItemLayout>()
-            val request_limit = Semaphore(10) // TODO?
-
-            runBlocking { withContext(Dispatchers.IO) { coroutineScope {
-                for (row in feed_result.getOrThrowHere()) {
-                    val entry = MediaItemLayout(row.title, row.subtitle, MediaItemLayout.Type.GRID)
-                    rows.add(entry)
-
-                    for (item in row.items) {
-                        if (item.title != null) {
-                            entry.addItem(item)
-                            continue
-                        }
-
-                        launch {
-                            request_limit.withPermit {
-                                item.loadData().onSuccess { loaded ->
-                                    synchronized(request_limit) {
-                                        entry.addItem(loaded)
-                                    }
-                                }
+                launch {
+                    request_limit.withPermit {
+                        item.loadData().onSuccess { loaded ->
+                            synchronized(request_limit) {
+                                entry.addItem(loaded)
                             }
                         }
                     }
                 }
-            }}}
-
-            for (row in rows) {
-                if (row.items.isNotEmpty()) {
-                    feed_layouts.add(row)
-                }
             }
-
-            feed_refresh_lock.unlock()
-            onFinished(true)
         }
-    }
+    }}}
+
+    rows.removeIf { it.items.isEmpty() }
+    return Result.success(Pair(rows, new_continuation))
 }

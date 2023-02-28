@@ -50,6 +50,7 @@ enum class Settings {
 
     // Other
     KEY_OPEN_NP_ON_SONG_PLAYED,
+    KEY_INITIAL_FEED_ROWS,
     KEY_VOLUME_STEPS,
     KEY_PERSISTENT_QUEUE;
 
@@ -124,6 +125,7 @@ enum class Settings {
                 KEY_ACC_SCREEN_OFF -> false
                 
                 KEY_VOLUME_STEPS -> 50
+                KEY_INITIAL_FEED_ROWS -> 5
                 KEY_OPEN_NP_ON_SONG_PLAYED -> true
                 KEY_PERSISTENT_QUEUE -> true
             } as T

@@ -27,7 +27,7 @@ fun searchYoutube(query: String, type: MediaItem.Type, max_results: Int = 10, ch
         MediaItem.Type.PLAYLIST -> "playlist"
     }
 
-    var url = "https://www.googleapis.com/youtube/v3/search?key${getString(R.string.yt_api_key)}&part=snippet&type=$type_name&q=${URLEncoder.encode(query, "UTF-8")}&maxResults=$max_results&safeSearch=none"
+    var url = "https://www.googleapis.com/youtube/v3/search?key=${getString(R.string.yt_api_key)}&part=snippet&type=$type_name&q=${URLEncoder.encode(query, "UTF-8")}&maxResults=$max_results&safeSearch=none"
     if (channel_id != null) {
         url += "&channelId=$channel_id"
     }

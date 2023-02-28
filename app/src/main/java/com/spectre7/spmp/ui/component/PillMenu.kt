@@ -47,6 +47,8 @@ class PillMenu(
             expand_state?.value = value
         }
 
+    var showing: Boolean by mutableStateOf(true)
+
     private val extra_actions = mutableStateListOf<@Composable Action.(action_count: Int) -> Unit>()
     private val extra_alongside_actions = mutableStateListOf<@Composable Action.() -> Unit>()
     private val action_overriders = mutableStateListOf<@Composable Action.(i: Int) -> Boolean>()
@@ -215,7 +217,8 @@ class PillMenu(
     ) {
         val action = remember(background_colour) { Action(background_colour, background_colour.getContrasted()) }
 
-        Crossfade(params, Modifier.zIndex(1f)) { crossfade_params ->
+        Crossfade(Pair(showing, params), Modifier.zIndex(1f)) { data ->
+            val (visible, crossfade_params) = data
             val (vertical, top, left, alignment, toggleButton, enter, exit, action_count, expand_state) = crossfade_params
             val align_start = (vertical && top) || (!vertical && left)
 
@@ -261,80 +264,82 @@ class PillMenu(
                 }
             }
 
-            Box(
-                contentAlignment = alignment,
-                modifier = container_modifier
-                    .fillMaxSize()
-                    .padding(15.dp)
-            ) {
+            if (visible) {
+                Box(
+                    contentAlignment = alignment,
+                    modifier = container_modifier
+                        .fillMaxSize()
+                        .padding(15.dp)
+                ) {
 
-                ToggleButton()
+                    ToggleButton()
 
-                val start = if (vertical) top else left
-                val fill_modifier = if (vertical) Modifier.fillMaxHeight() else Modifier.fillMaxWidth()
+                    val start = if (vertical) top else left
+                    val fill_modifier = if (vertical) Modifier.fillMaxHeight() else Modifier.fillMaxWidth()
 
-                @Composable
-                fun Alongside() {
-                    if (start && alongsideContent != null) {
-                        alongsideContent(action)
-                    }
+                    @Composable
+                    fun Alongside() {
+                        if (start && alongsideContent != null) {
+                            alongsideContent(action)
+                        }
 
-                    for (extra in extra_alongside_actions.let { if (start) it.asReversed() else it }) {
-                        extra(action)
-                    }
+                        for (extra in extra_alongside_actions.let { if (start) it.asReversed() else it }) {
+                            extra(action)
+                        }
 
-                    if (!start && alongsideContent != null) {
-                        alongsideContent(action)
-                    }
-                }
-
-                RowOrColumn(!vertical, fill_modifier.height(IntrinsicSize.Max), Arrangement.spacedBy(10.dp)) { weight_modifier ->
-                    if (!start) {
-                        Alongside()
-                        Spacer(fill_modifier.then(weight_modifier))
-                    }
-
-                    AnimatedVisibility(
-                        visible = expand_state?.value ?: true,
-                        enter = enter,
-                        exit = exit
-                    ) {
-                        RowOrColumn(!vertical, modifier.background(background_colour, shape = CircleShape)) {
-                            if (align_start) {
-                                ToggleButton()
-                            }
-                            else {
-                                for (extra in extra_actions) {
-                                    extra(action, action_count)
-                                }
-                            }
-
-                            for (i in 0 until action_count) {
-                                var overridden = false
-                                for (overrider in action_overriders) {
-                                    if (overrider(action, i)) {
-                                        overridden = true
-                                        break
-                                    }
-                                }
-                                if (!overridden) {
-                                    getAction(action, i, action_count)
-                                }
-                            }
-
-                            if (!align_start) {
-                                ToggleButton()
-                            } else {
-                                for (extra in extra_actions) {
-                                    extra(action,  action_count)
-                                }
-                            }
+                        if (!start && alongsideContent != null) {
+                            alongsideContent(action)
                         }
                     }
 
-                    if (start) {
-                        Spacer(fill_modifier.then(weight_modifier))
-                        Alongside()
+                    RowOrColumn(!vertical, fill_modifier.height(IntrinsicSize.Max), Arrangement.spacedBy(10.dp)) { weight_modifier ->
+                        if (!start) {
+                            Alongside()
+                            Spacer(fill_modifier.then(weight_modifier))
+                        }
+
+                        AnimatedVisibility(
+                            visible = expand_state?.value ?: true,
+                            enter = enter,
+                            exit = exit
+                        ) {
+                            RowOrColumn(!vertical, modifier.background(background_colour, shape = CircleShape)) {
+                                if (align_start) {
+                                    ToggleButton()
+                                }
+                                else {
+                                    for (extra in extra_actions) {
+                                        extra(action, action_count)
+                                    }
+                                }
+
+                                for (i in 0 until action_count) {
+                                    var overridden = false
+                                    for (overrider in action_overriders) {
+                                        if (overrider(action, i)) {
+                                            overridden = true
+                                            break
+                                        }
+                                    }
+                                    if (!overridden) {
+                                        getAction(action, i, action_count)
+                                    }
+                                }
+
+                                if (!align_start) {
+                                    ToggleButton()
+                                } else {
+                                    for (extra in extra_actions) {
+                                        extra(action,  action_count)
+                                    }
+                                }
+                            }
+                        }
+
+                        if (start) {
+                            Spacer(fill_modifier.then(weight_modifier))
+                            Alongside()
+                        }
                     }
                 }
             }

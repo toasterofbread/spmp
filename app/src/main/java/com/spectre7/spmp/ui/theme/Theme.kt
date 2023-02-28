@@ -196,7 +196,6 @@ class Theme(data: ThemeData) {
             }
 
             LaunchedEffect(manager.current_theme, manager.themes) {
-                println("UU ${manager.current_theme} ${manager.themes}")
                 current.setThemeData(manager.themes[manager.current_theme])
             }
         }
@@ -315,7 +314,6 @@ class ThemeManager(val prefs: SharedPreferences) {
     private val klaxon: Klaxon get() = Klaxon().converter(colour_converter)
 
     private fun saveThemes() {
-        println(klaxon.toJsonString(themes))
         Settings.set(Settings.KEY_THEMES, klaxon.toJsonString(themes), prefs)
     }
 

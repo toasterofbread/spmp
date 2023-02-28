@@ -8,8 +8,9 @@ import androidx.compose.foundation.lazy.grid.GridCells
 import androidx.compose.foundation.lazy.grid.LazyHorizontalGrid
 import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.lazy.rememberLazyListState
-import androidx.compose.material3.MaterialTheme
-import androidx.compose.material3.Text
+import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.KeyboardDoubleArrowDown
+import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
@@ -20,6 +21,7 @@ import com.spectre7.spmp.model.MediaItem
 import com.spectre7.spmp.ui.layout.PlayerViewContext
 import com.spectre7.spmp.ui.theme.Theme
 import com.spectre7.utils.WidthShrinkText
+import com.spectre7.utils.copy
 
 data class MediaItemLayout(
     val title: String?,
@@ -106,21 +108,21 @@ fun LazyMediaItemLayoutColumn(
     layouts: List<MediaItemLayout>,
     playerProvider: () -> PlayerViewContext,
     modifier: Modifier = Modifier,
-    top_padding: Dp = 0.dp,
-    bottom_padding: Dp = 0.dp,
+    padding: PaddingValues = PaddingValues(0.dp),
+    onContinuationRequested: (() -> Unit)? = null,
+    loading_continuation: Boolean = false,
+    continuation_alignment: Alignment.Horizontal = Alignment.CenterHorizontally,
     scroll_state: LazyListState = rememberLazyListState()
 ) {
     for (layout in layouts) {
         assert(layout.type != null)
     }
 
-    LazyColumn(modifier, state = scroll_state) {
-        if (top_padding > 0.dp) {
-            item {
-                Spacer(Modifier.requiredHeight(top_padding))
-            }
-        }
-
+    LazyColumn(
+        modifier,
+        state = scroll_state,
+        contentPadding = padding.copy(bottom = 0.dp)
+    ) {
         items(layouts) { layout ->
             when (layout.type!!) {
                 MediaItemLayout.Type.GRID -> MediaItemGrid(layout, playerProvider)
@@ -128,9 +130,25 @@ fun LazyMediaItemLayoutColumn(
             }
         }
 
-        if (bottom_padding > 0.dp) {
+        val bottom_padding = padding.calculateBottomPadding()
+        if (bottom_padding != 0.dp) {
             item {
-                Spacer(Modifier.requiredHeight(bottom_padding))
+                Spacer(Modifier.height(bottom_padding))
+            }
+        }
+
+        item {
+            Crossfade(Pair(onContinuationRequested, loading_continuation)) { data ->
+                if (data.second) {
+                    CircularProgressIndicator(color = Theme.current.on_background)
+                }
+                else if (data.first != null) {
+                    Column(Modifier.fillMaxWidth(), horizontalAlignment = continuation_alignment) {
+                        IconButton({ data.first!!.invoke() }) {
+                            Icon(Icons.Filled.KeyboardDoubleArrowDown, null, tint = Theme.current.on_background)
+                        }
+                    }
+                }
             }
         }
     }

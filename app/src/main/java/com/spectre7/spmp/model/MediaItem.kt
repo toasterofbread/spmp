@@ -5,11 +5,16 @@ import android.graphics.BitmapFactory
 import androidx.compose.animation.Crossfade
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.FeaturedPlayList
+import androidx.compose.material.icons.filled.MusicNote
+import androidx.compose.material.icons.filled.Person
 import androidx.compose.runtime.*
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.asAndroidBitmap
 import androidx.compose.ui.graphics.asImageBitmap
+import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.unit.IntSize
 import androidx.palette.graphics.Palette
@@ -80,7 +85,15 @@ abstract class MediaItem(id: String) {
     private var replaced_with: MediaItem? = null
 
     enum class Type {
-        SONG, ARTIST, PLAYLIST
+        SONG, ARTIST, PLAYLIST;
+
+        fun getIcon(): ImageVector {
+            return when (this) {
+                SONG     -> Icons.Filled.MusicNote
+                ARTIST   -> Icons.Filled.Person
+                PLAYLIST -> Icons.Filled.FeaturedPlayList
+            }
+        }
     }
     val type: Type get() = when(this) {
         is Song -> Type.SONG

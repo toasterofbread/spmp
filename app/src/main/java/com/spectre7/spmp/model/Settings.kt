@@ -2,6 +2,7 @@ package com.spectre7.spmp.model
 
 import android.content.Context
 import android.content.SharedPreferences
+import androidx.core.content.edit
 import com.beust.klaxon.Klaxon
 import com.spectre7.spmp.MainActivity
 import com.spectre7.spmp.PlayerAccessibilityService
@@ -58,6 +59,20 @@ enum class Settings {
             return MainActivity.getSharedPreferences(context)
         }
 
+        fun <T> set(enum_key: Settings, value: T?, preferences: SharedPreferences) {
+            preferences.edit {
+                when (value) {
+                    null -> remove(enum_key.name)
+                    is Boolean -> putBoolean(enum_key.name, value)
+                    is Float -> putFloat(enum_key.name, value)
+                    is Int -> putInt(enum_key.name, value)
+                    is Long -> putLong(enum_key.name, value)
+                    is String -> putString(enum_key.name, value)
+                    else -> throw NotImplementedError("$enum_key ${value!!::class.simpleName}")
+                }
+            }
+        }
+
         fun <T> get(enum_key: Settings, preferences: SharedPreferences = prefs, default: T? = null): T {
             val default_value: T = default ?: getDefault(enum_key)
             return when (default_value) {
@@ -70,8 +85,8 @@ enum class Settings {
             } as T
         }
 
-        inline fun <reified T> getJsonArray(enum_key: Settings, preferences: SharedPreferences = prefs, default: String? = null): List<T> {
-            return Klaxon().parseArray(get(enum_key, preferences, default))!!
+        inline fun <reified T> getJsonArray(enum_key: Settings, klaxon: Klaxon = Klaxon(), preferences: SharedPreferences = prefs, default: String? = null): List<T> {
+            return klaxon.parseArray(get(enum_key, preferences, default))!!
         }
 
         inline fun <reified T: Enum<T>> getEnum(enum_key: Settings, preferences: SharedPreferences = prefs, default: T? = null): T {

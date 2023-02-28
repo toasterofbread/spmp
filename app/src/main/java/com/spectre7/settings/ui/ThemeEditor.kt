@@ -113,7 +113,10 @@ class SettingsItemThemeSelector(
                     }
 
                     IconButton(
-                        { removeTheme(state.value) },
+                        {
+                            removeTheme(state.value)
+                            state.value = maxOf(0, state.value - 1)
+                        },
                         Modifier.background(theme_data.accent, CircleShape).size(height)
                     ) {
                         Icon(Icons.Filled.Remove, null, tint = theme_data.accent.getContrasted())

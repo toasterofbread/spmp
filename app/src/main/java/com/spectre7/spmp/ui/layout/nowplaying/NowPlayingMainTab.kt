@@ -390,7 +390,7 @@ fun ColumnScope.NowPlayingMainTab(
             AnimatedVisibility(PlayerServiceHost.status.m_has_previous, enter = expandHorizontally(), exit = shrinkHorizontally()) {
                 IconButton(
                     onClick = {
-                        PlayerServiceHost.player.seekToPreviousMediaItem()
+                        PlayerServiceHost.setvice.seekToPrevious()
                     }
                 ) {
                     Image(
@@ -418,7 +418,7 @@ fun ColumnScope.NowPlayingMainTab(
             AnimatedVisibility(PlayerServiceHost.status.m_has_next, enter = expandHorizontally(), exit = shrinkHorizontally()) {
                 IconButton(
                     onClick = {
-                        PlayerServiceHost.player.seekToNextMediaItem()
+                        PlayerServiceHost.service.seekToNext()
                     }
                 ) {
                     Image(
@@ -512,9 +512,7 @@ private fun Controls(
                         textAlign = TextAlign.Center,
                         maxLines = 1,
                         overflow = TextOverflow.Ellipsis,
-                        modifier = Modifier
-                            .fillMaxWidth()
-                            .animateContentSize()
+                        modifier = Modifier.fillMaxWidth()
                     )
                 }
 
@@ -528,7 +526,6 @@ private fun Controls(
                     overflow = TextOverflow.Ellipsis,
                     modifier = Modifier
                         .fillMaxWidth()
-                        .animateContentSize()
                         .clickable {
                             PlayerServiceHost.status.song?.artist?.also {
                                 playerProvider().onMediaItemClicked(it)
@@ -545,19 +542,9 @@ private fun Controls(
                     .fillMaxWidth()
                     .weight(1f),
             ) {
-
-                val utility_separation = 25.dp
-
-                // Toggle shuffle
-                PlayerButton(R.drawable.ic_shuffle, 60.dp * 0.65f, if (PlayerServiceHost.status.m_shuffle) 1f else 0.25f) {
-                    PlayerServiceHost.player.shuffleModeEnabled = !PlayerServiceHost.player.shuffleModeEnabled
-                }
-
-                Spacer(Modifier.requiredWidth(utility_separation))
-
                 // Previous
                 PlayerButton(R.drawable.ic_skip_previous, enabled = PlayerServiceHost.status.m_has_previous) {
-                    PlayerServiceHost.player.seekToPreviousMediaItem()
+                    PlayerServiceHost.service.seekToPrevious()
                 }
 
                 // Play / pause
@@ -570,33 +557,52 @@ private fun Controls(
 
                 // Next
                 PlayerButton(R.drawable.ic_skip_next, enabled = PlayerServiceHost.status.m_has_next) {
-                    PlayerServiceHost.player.seekToNextMediaItem()
-                }
-
-                Spacer(Modifier.requiredWidth(utility_separation))
-
-                // Cycle repeat mode
-                PlayerButton(
-                    if (PlayerServiceHost.status.m_repeat_mode == Player.REPEAT_MODE_ONE) R.drawable.ic_repeat_one else R.drawable.ic_repeat,
-                    60.dp * 0.65f,
-                    if (PlayerServiceHost.status.m_repeat_mode != Player.REPEAT_MODE_OFF) 1f else 0.25f
-                ) {
-                    PlayerServiceHost.player.repeatMode = when (PlayerServiceHost.player.repeatMode) {
-                        Player.REPEAT_MODE_ALL -> Player.REPEAT_MODE_ONE
-                        Player.REPEAT_MODE_ONE -> Player.REPEAT_MODE_OFF
-                        else -> Player.REPEAT_MODE_ALL
-                    }
+                    PlayerServiceHost.service.seekToNext()
                 }
             }
 
-            IconButton(
-                { scroll(1) },
-                Modifier.align(Alignment.CenterHorizontally)
+            val bottom_row_colour = getNPOnBackground(playerProvider).setAlpha(0.5f)
+            Row(
+                Modifier.fillMaxWidth(),
+                verticalAlignment = Alignment.CenterVertically, 
+                horizontalArrangement = Arrangement.SpaceEvenly
             ) {
-                Icon(Icons.Filled.KeyboardArrowDown, null, tint = getNPOnBackground(playerProvider).setAlpha(0.5f))
+                var volume_slider_visible by remember { mutableStateOf(false) }
+                Row(Modifier.animateContentSize()) {
+                    IconButton(
+                        { volume_slider_visible = !volume_slider_visible }
+                    ) {
+                        Icon(Icons.Filled.Volume, null, tint = bottom_row_colour)
+                    }
+
+                    AnimatedVisibility(volume_slider_visible) {
+                        VolumeSlider(bottom_row_colour, Modifier.fillMaxWidth().weight(1f))
+                    }
+                }
+
+                IconButton(
+                    { scroll(1) },
+                    Modifier.align(Alignment.CenterHorizontally)
+                ) {
+                    Icon(Icons.Filled.KeyboardArrowDown, null, tint = bottom_row_colour)
+                }
             }
         }
     }
+}
+
+@Composable
+private fun VolumeSlider(colour: Color, modifier: Modifier = Modifier) {
+    SliderValueHorizontal(
+        value = PlayerServiceHost.status.m_volume,
+        onValueChange = {
+            PlayerServiceHost.status.m_volume = it
+        },
+        thumbSizeInDp = DpSize(12.dp, 12.dp),
+        track = { a, b, _, _, e -> SeekTrack(a, b, e, colour.setAlpha(0.5f), colour) },
+        thumb = { a, b, c, d, e -> DefaultThumb(a, b, c, d, e, colour, 1f) },
+        modifier = modifier
+    )
 }
 
 @Composable
@@ -723,7 +729,7 @@ private fun SeekBar(playerProvider: () -> PlayerViewContext, seek: (Float) -> Un
                 cancel_area_side = null
             },
             thumbSizeInDp = DpSize(12.dp, 12.dp),
-            track = { a, b, _, _, c -> SeekTrack(a, b, c, getNPOnBackground(playerProvider).setAlpha(0.5f), getNPOnBackground(playerProvider)) },
+            track = { a, b, _, _, e -> SeekTrack(a, b, e, getNPOnBackground(playerProvider).setAlpha(0.5f), getNPOnBackground(playerProvider)) },
             thumb = { a, b, c, d, e -> DefaultThumb(a, b, c, d, e, getNPOnBackground(playerProvider), 1f) },
             modifier = Modifier.weight(1f)
         )

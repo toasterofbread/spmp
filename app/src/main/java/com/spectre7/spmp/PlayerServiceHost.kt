@@ -41,6 +41,9 @@ class PlayerServiceHost {
     private val context: Context get() = MainActivity.context
     private val download_manager = PlayerDownloadManager(context)
 
+    lateinit var status: PlayerStatus
+        private set
+
     init {
         assert(instance == null)
         instance = this
@@ -48,6 +51,20 @@ class PlayerServiceHost {
 
     class PlayerStatus internal constructor(service: PlayerService) {
         private var player: ExoPlayer
+        private val queue_listener = object : PlayerQueueListener {
+            override fun onSongAdded(song: Song, index: Int) {
+                m_queue.add(index, song)
+            }
+            override fun onSongRemoved(song: Song, index: Int) {
+                m_queue.removeAt(index)
+            }
+            override fun onSongMoved(from: Int, to: Int) {
+                m_queue.add(to, m_queue.removeAt(from))
+            }
+            override fun onCleared() {
+                m_queue.clear()
+            }
+        }
 
         val playing: Boolean get() = player.isPlaying
         val position: Float get() = player.currentPosition.toFloat() / player.duration.toFloat()
@@ -59,6 +76,7 @@ class PlayerServiceHost {
         val repeat_mode: Int get() = player.repeatMode
         val has_next: Boolean get() = player.hasNextMediaItem()
         val has_previous: Boolean get() = player.hasPreviousMediaItem()
+        val volume: Float get() = player.voume
 
         val m_queue = mutableStateListOf<Song>()
         var m_playing: Boolean by mutableStateOf(false)
@@ -76,23 +94,11 @@ class PlayerServiceHost {
         var m_repeat_mode: Int by mutableStateOf(0)
         var m_has_next: Boolean by mutableStateOf(false)
         var m_has_previous: Boolean by mutableStateOf(false)
+        var m_volume: Float by mutableStateOf(0f)
 
         init {
             player = service.player
-            service.addQueueListener(object : PlayerQueueListener {
-                override fun onSongAdded(song: Song, index: Int) {
-                    m_queue.add(index, song)
-                }
-                override fun onSongRemoved(song: Song, index: Int) {
-                    m_queue.removeAt(index)
-                }
-                override fun onSongMoved(from: Int, to: Int) {
-                    m_queue.add(to, m_queue.removeAt(from))
-                }
-                override fun onCleared() {
-                    m_queue.clear()
-                }
-            })
+            service.addQueueListener(queue_listener)
 
             player.addListener(object : Player.Listener {
                 override fun onMediaItemTransition(
@@ -119,6 +125,7 @@ class PlayerServiceHost {
                     m_has_next = player.hasNextMediaItem()
                     m_duration = duration
                     m_index = player.currentMediaItemIndex
+                    m_volume = volume
 
                     if (player.currentMediaItemIndex > service.active_queue_index) {
                         service.active_queue_index = player.currentMediaItemIndex
@@ -141,11 +148,15 @@ class PlayerServiceHost {
                 }
             }
         }
+
+        fun release() {
+            service.removeQueueListener(queue_listener)
+        }
     }
 
     companion object {
         var instance: PlayerServiceHost? = null
-        lateinit var status: PlayerStatus
+        val status: PlayerStatus get() = instance!!.status
 
         val service: PlayerService get() = instance!!.service!!
         val download_manager: PlayerDownloadManager get() = instance!!.download_manager
@@ -177,6 +188,7 @@ class PlayerServiceHost {
             service_intent = null
         }
         download_manager.release()
+        status.release()
     }
 
     @Synchronized

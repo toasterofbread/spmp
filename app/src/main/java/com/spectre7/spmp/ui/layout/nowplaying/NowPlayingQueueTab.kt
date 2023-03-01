@@ -189,51 +189,102 @@ fun QueueTab(expansionProvider: () -> Float, playerProvider: () -> PlayerViewCon
         PlayerServiceHost.service.removeFromQueue(index)
     }
 
-    val background_colour = getNPBackground(playerProvider).amplify(1f)
+    val background_colour = getNPBackground(playerProvider)
+    val queue_background_colour = background_colour.amplify(1f)
     val shape = RoundedCornerShape(topStartPercent = 7, topEndPercent = 7)
     Box(Modifier
         .fillMaxSize()
         .padding(top = MINIMISED_NOW_PLAYING_HEIGHT.dp + 20.dp)
-        .background(background_colour, shape)
+        .background(queue_background_colour, shape)
         .clip(shape)
     ) {
         val list_padding = 10.dp
 
-        LazyColumn(
-            state = state.listState,
-            contentPadding = PaddingValues(top = list_padding, bottom = 60.dp),
-            modifier = Modifier
-                .reorderable(state)
-                .detectReorderAfterLongPress(state)
-                .align(Alignment.TopCenter)
-                .padding(start = list_padding, end = list_padding)
-        ) {
-            items(song_items.size, { song_items[it].key }) { index ->
-                val item = song_items[index]
-                ReorderableItem(state, key = item.key) { is_dragging ->
+        Column(Modifier.fillMaxSize()) {
+            Row(verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.SpaceBetween) {
+                RepeatButton(background_colour, background_colour.getContrasted())
+                StopAfterSongButton(background_colour, queue_background_colour)
+            }
 
-                    LaunchedEffect(is_dragging) {
-                        if (is_dragging) {
-                            vibrateShort()
-                            playing_key = song_items[PlayerServiceHost.status.index].key
+            LazyColumn(
+                state = state.listState,
+                contentPadding = PaddingValues(top = list_padding, bottom = 60.dp),
+                modifier = Modifier
+                    .reorderable(state)
+                    .detectReorderAfterLongPress(state)
+                    .align(Alignment.TopCenter)
+                    .padding(start = list_padding, end = list_padding)
+            ) {
+                items(song_items.size, { song_items[it].key }) { index ->
+                    val item = song_items[index]
+                    ReorderableItem(state, key = item.key) { is_dragging ->
+                        LaunchedEffect(is_dragging) {
+                            if (is_dragging) {
+                                vibrateShort()
+                                playing_key = song_items[PlayerServiceHost.status.index].key
+                            }
                         }
-                    }
 
-                    Box(Modifier.height(50.dp)) {
-                        item.QueueElement(
-                            state,
-                            if (playing_key != null) playing_key == item.key else PlayerServiceHost.status.m_index == index,
-                            index,
-                            background_colour,
-                            playerProvider,
-                            remember(item.song, index) { { removeSong(item.song, index) } }
-                        )
+                        Box(Modifier.height(50.dp)) {
+                            item.QueueElement(
+                                state,
+                                if (playing_key != null) playing_key == item.key else PlayerServiceHost.status.m_index == index,
+                                index,
+                                queue_background_colour,
+                                playerProvider,
+                                remember(item.song, index) { { removeSong(item.song, index) } }
+                            )
+                        }
                     }
                 }
             }
         }
 
         ActionBar(playerProvider, expansionProvider, undo_list, scroll)
+    }
+}
+
+@Composable
+private fun RepeatButton(background_colour: Color, content_colour: Color) {
+    CrossOutBox(
+        PlayerServiceHost.status.m_repeat_mode != Player.REPEAT_MODE_OFF,
+        content_colour,
+        Modifier.background(background_colour, CircleShape)
+    ) {
+        IconButton({
+            PlayerServiceHost.player.repeatMode = when (PlayerServiceHost.player.repeatMode) {
+                Player.REPEAT_MODE_ALL -> Player.REPEAT_MODE_ONE
+                Player.REPEAT_MODE_ONE -> Player.REPEAT_MODE_OFF
+                else -> Player.REPEAT_MODE_ALL
+            }
+        }) {
+            Icon(
+                when (PlayerServiceHost.status.m_repeat_mode) {
+                    Player.REPEAT_MODE_ONE -> R.drawable.ic_repeat_one
+                    else -> R.drawable.ic_repeat
+                },
+                null,
+                Modifier.size(20.dp),
+                tint = content_colour
+            )
+        }
+    }
+}
+
+@Composable
+private fun StopAfterSongButton(background_colour: Color, queue_background_colour: Color) {
+    Crossfade(PlayerServiceHost.player.stop_after_current_song) { stopping ->
+        Button(
+            { PlayerServiceHost.player.stop_after_current_song = !stopping },
+            ButtonDefaults.buttonColors(
+                containerColor = if (stopping) queue_background_colour.getContrasted() else background_colour,
+                contentColor = if (stopping) queue_background_colour.getNeutral() else background_colour.getContrasted()
+            )
+        ) {
+            Text(
+                if (stopping) "Stopping after song" else "Stop after song"
+            )
+        }
     }
 }
 

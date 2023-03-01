@@ -6,36 +6,38 @@ import androidx.compose.animation.*
 import androidx.compose.animation.core.*
 import androidx.compose.foundation.*
 import androidx.compose.foundation.gestures.*
+import androidx.compose.foundation.interaction.MutableInteractionSource
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.*
 import androidx.compose.foundation.shape.CircleShape
+import androidx.compose.foundation.shape.CornerSize
 import androidx.compose.foundation.shape.RoundedCornerShape
-import androidx.compose.material3.FractionalThreshold
 import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.filled.KeyboardArrowUp
-import androidx.compose.material.icons.filled.Menu
-import androidx.compose.material.icons.filled.Undo
-import androidx.compose.material3.rememberSwipeableState
+import androidx.compose.material.icons.filled.*
+import androidx.compose.material.ripple.rememberRipple
 import androidx.compose.material3.*
 import androidx.compose.material3.tokens.FilledButtonTokens
+import androidx.compose.material3.tokens.IconButtonTokens
 import androidx.compose.runtime.*
 import androidx.compose.runtime.snapshots.SnapshotStateList
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
+import androidx.compose.ui.draw.rotate
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.LocalConfiguration
 import androidx.compose.ui.platform.LocalDensity
+import androidx.compose.ui.res.painterResource
+import androidx.compose.ui.semantics.Role
 import androidx.compose.ui.unit.*
 import com.google.android.exoplayer2.C
-import com.spectre7.spmp.MainActivity
+import com.google.android.exoplayer2.Player
 import com.spectre7.spmp.PlayerServiceHost
+import com.spectre7.spmp.R
 import com.spectre7.spmp.model.Song
 import com.spectre7.spmp.ui.layout.MINIMISED_NOW_PLAYING_HEIGHT
 import com.spectre7.spmp.ui.layout.PlayerViewContext
-import com.spectre7.utils.amplify
-import com.spectre7.utils.getContrasted
-import com.spectre7.utils.vibrateShort
+import com.spectre7.utils.*
 import org.burnoutcrew.reorderable.*
 import kotlin.math.roundToInt
 
@@ -191,7 +193,8 @@ fun QueueTab(expansionProvider: () -> Float, playerProvider: () -> PlayerViewCon
 
     val background_colour = getNPBackground(playerProvider)
     val queue_background_colour = background_colour.amplify(1f)
-    val shape = RoundedCornerShape(topStartPercent = 7, topEndPercent = 7)
+
+    val shape = RoundedCornerShape(topStart = 25.dp, topEnd = 25.dp)
     Box(Modifier
         .fillMaxSize()
         .padding(top = MINIMISED_NOW_PLAYING_HEIGHT.dp + 20.dp)
@@ -200,11 +203,21 @@ fun QueueTab(expansionProvider: () -> Float, playerProvider: () -> PlayerViewCon
     ) {
         val list_padding = 10.dp
 
-        Column(Modifier.fillMaxSize()) {
-            Row(verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.SpaceBetween) {
-                RepeatButton(background_colour, background_colour.getContrasted())
-                StopAfterSongButton(background_colour, queue_background_colour)
+        Column(Modifier.fillMaxSize(), horizontalAlignment = Alignment.CenterHorizontally) {
+            val padding = 15.dp
+            Row(
+                Modifier
+                    .padding(top = padding, start = padding, end = padding, bottom = 10.dp)
+                    .height(40.dp)
+                    .fillMaxWidth(),
+                verticalAlignment = Alignment.CenterVertically,
+                horizontalArrangement = Arrangement.spacedBy(10.dp)
+            ) {
+                RepeatButton(background_colour, background_colour.getContrasted(), Modifier.fillMaxHeight())
+                StopAfterSongButton(background_colour, Modifier.fillMaxHeight())
             }
+
+            Divider(Modifier.padding(horizontal = list_padding), background_colour)
 
             LazyColumn(
                 state = state.listState,
@@ -212,8 +225,7 @@ fun QueueTab(expansionProvider: () -> Float, playerProvider: () -> PlayerViewCon
                 modifier = Modifier
                     .reorderable(state)
                     .detectReorderAfterLongPress(state)
-                    .align(Alignment.TopCenter)
-                    .padding(start = list_padding, end = list_padding)
+                    .padding(horizontal = list_padding)
             ) {
                 items(song_items.size, { song_items[it].key }) { index ->
                     val item = song_items[index]
@@ -245,44 +257,82 @@ fun QueueTab(expansionProvider: () -> Float, playerProvider: () -> PlayerViewCon
 }
 
 @Composable
-private fun RepeatButton(background_colour: Color, content_colour: Color) {
-    CrossOutBox(
-        PlayerServiceHost.status.m_repeat_mode != Player.REPEAT_MODE_OFF,
-        content_colour,
-        Modifier.background(background_colour, CircleShape)
-    ) {
-        IconButton({
-            PlayerServiceHost.player.repeatMode = when (PlayerServiceHost.player.repeatMode) {
-                Player.REPEAT_MODE_ALL -> Player.REPEAT_MODE_ONE
-                Player.REPEAT_MODE_ONE -> Player.REPEAT_MODE_OFF
-                else -> Player.REPEAT_MODE_ALL
-            }
-        }) {
-            Icon(
-                when (PlayerServiceHost.status.m_repeat_mode) {
-                    Player.REPEAT_MODE_ONE -> R.drawable.ic_repeat_one
-                    else -> R.drawable.ic_repeat
-                },
-                null,
-                Modifier.size(20.dp),
-                tint = content_colour
+private fun RepeatButton(background_colour: Color, content_colour: Color, modifier: Modifier = Modifier) {
+    Box(
+        modifier = modifier
+            .minimumTouchTargetSize()
+            .aspectRatio(1f)
+            .background(background_colour, CircleShape)
+            .clickable(
+                interactionSource = remember { MutableInteractionSource() },
+                indication = null,
+                onClick = {
+                    PlayerServiceHost.player.repeatMode = when (PlayerServiceHost.player.repeatMode) {
+                        Player.REPEAT_MODE_ALL -> Player.REPEAT_MODE_ONE
+                        Player.REPEAT_MODE_ONE -> Player.REPEAT_MODE_OFF
+                        else -> Player.REPEAT_MODE_ALL
+                    }
+                }
             )
-        }
+            .crossOut(
+                crossed_out = PlayerServiceHost.status.m_repeat_mode == Player.REPEAT_MODE_OFF,
+                colour = content_colour,
+                width = 5f
+            ) {
+                return@crossOut IntSize(
+                    (getInnerSquareSizeOfCircle(it.width * 0.5f, 50) * 1.25f).roundToInt(),
+                    (getInnerSquareSizeOfCircle(it.height * 0.5f, 50) * 1.25f).roundToInt()
+                )
+            },
+        contentAlignment = Alignment.Center
+    ) {
+        Icon(
+            painterResource(when (PlayerServiceHost.status.m_repeat_mode) {
+                Player.REPEAT_MODE_ONE -> R.drawable.ic_repeat_one
+                else -> R.drawable.ic_repeat
+            }),
+            null,
+            Modifier.size(20.dp),
+            tint = content_colour
+        )
     }
 }
 
+@OptIn(ExperimentalFoundationApi::class)
 @Composable
-private fun StopAfterSongButton(background_colour: Color, queue_background_colour: Color) {
-    Crossfade(PlayerServiceHost.player.stop_after_current_song) { stopping ->
-        Button(
-            { PlayerServiceHost.player.stop_after_current_song = !stopping },
-            ButtonDefaults.buttonColors(
-                containerColor = if (stopping) queue_background_colour.getContrasted() else background_colour,
-                contentColor = if (stopping) queue_background_colour.getNeutral() else background_colour.getContrasted()
-            )
+private fun StopAfterSongButton(background_colour: Color, modifier: Modifier = Modifier) {
+    val rotation = remember { Animatable(0f) }
+    OnChangedEffect(PlayerServiceHost.service.stop_after_current_song) {
+        rotation.animateTo(
+            if (PlayerServiceHost.service.stop_after_current_song) 180f else 0f
+        )
+    }
+
+    Crossfade(PlayerServiceHost.service.stop_after_current_song) { stopping ->
+        Box(
+            modifier = modifier
+                .minimumTouchTargetSize()
+                .aspectRatio(1f)
+                .background(background_colour, CircleShape)
+                .rotate(rotation.value)
+                .combinedClickable(
+                    interactionSource = remember { MutableInteractionSource() },
+                    indication = null,
+                    onClick = { PlayerServiceHost.service.stop_after_current_song = !stopping },
+                    onLongClick = {}
+                )
+                .then(
+                    if (stopping) Modifier.border(1.dp,
+                        background_colour.getContrasted(),
+                        CircleShape)
+                    else Modifier
+                ),
+            contentAlignment = Alignment.Center
         ) {
-            Text(
-                if (stopping) "Stopping after song" else "Stop after song"
+            Icon(
+                if (stopping) Icons.Filled.HourglassBottom else Icons.Filled.HourglassEmpty,
+                null,
+                tint = background_colour.getContrasted()
             )
         }
     }

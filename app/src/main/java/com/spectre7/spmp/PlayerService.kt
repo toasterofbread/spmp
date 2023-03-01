@@ -400,7 +400,7 @@ class PlayerService : Service() {
                             queue_update_timer = Timer()
                             queue_update_timer!!.scheduleAtFixedRate(object : TimerTask() {
                                 override fun run() {
-                                    savePersistentQueue()
+                                    mainThread { savePersistentQueue() }
                                 }
                             }, 0, PERSISTENT_QUEUE_UPDATE_INTERVAL)
                         }

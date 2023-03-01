@@ -76,7 +76,7 @@ class PlayerServiceHost {
         val repeat_mode: Int get() = player.repeatMode
         val has_next: Boolean get() = player.hasNextMediaItem()
         val has_previous: Boolean get() = player.hasPreviousMediaItem()
-        val volume: Float get() = player.voume
+        val volume: Float get() = player.volume
 
         val m_queue = mutableStateListOf<Song>()
         var m_playing: Boolean by mutableStateOf(false)

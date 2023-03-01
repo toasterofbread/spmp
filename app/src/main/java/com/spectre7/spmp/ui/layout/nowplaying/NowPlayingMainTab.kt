@@ -13,10 +13,7 @@ import androidx.compose.foundation.interaction.MutableInteractionSource
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.filled.Edit
-import androidx.compose.material.icons.filled.KeyboardArrowDown
-import androidx.compose.material.icons.filled.KeyboardArrowUp
-import androidx.compose.material.icons.filled.MoreHoriz
+import androidx.compose.material.icons.filled.*
 import androidx.compose.material.ripple.rememberRipple
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
@@ -40,6 +37,7 @@ import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.*
 import androidx.palette.graphics.Palette
 import com.github.krottv.compose.sliders.DefaultThumb
+import com.github.krottv.compose.sliders.DefaultTrack
 import com.github.krottv.compose.sliders.SliderValueHorizontal
 import com.google.android.exoplayer2.Player
 import com.spectre7.spmp.PlayerServiceHost
@@ -390,7 +388,7 @@ fun ColumnScope.NowPlayingMainTab(
             AnimatedVisibility(PlayerServiceHost.status.m_has_previous, enter = expandHorizontally(), exit = shrinkHorizontally()) {
                 IconButton(
                     onClick = {
-                        PlayerServiceHost.setvice.seekToPrevious()
+                        PlayerServiceHost.service.seekToPrevious()
                     }
                 ) {
                     Image(
@@ -565,26 +563,32 @@ private fun Controls(
             Row(
                 Modifier.fillMaxWidth(),
                 verticalAlignment = Alignment.CenterVertically, 
-                horizontalArrangement = Arrangement.SpaceEvenly
+                horizontalArrangement = Arrangement.SpaceBetween
             ) {
                 var volume_slider_visible by remember { mutableStateOf(false) }
-                Row(Modifier.animateContentSize()) {
+                Row(
+                    Modifier.weight(1f, false).animateContentSize(),
+                    verticalAlignment = Alignment.CenterVertically
+                ) {
                     IconButton(
                         { volume_slider_visible = !volume_slider_visible }
                     ) {
-                        Icon(Icons.Filled.Volume, null, tint = bottom_row_colour)
+                        Icon(Icons.Filled.VolumeUp, null, tint = bottom_row_colour)
                     }
 
                     AnimatedVisibility(volume_slider_visible) {
-                        VolumeSlider(bottom_row_colour, Modifier.fillMaxWidth().weight(1f))
+                        VolumeSlider(bottom_row_colour)
                     }
                 }
 
                 IconButton(
-                    { scroll(1) },
-                    Modifier.align(Alignment.CenterHorizontally)
+                    { scroll(1) }
                 ) {
                     Icon(Icons.Filled.KeyboardArrowDown, null, tint = bottom_row_colour)
+                }
+
+                AnimatedVisibility(!volume_slider_visible, enter = expandHorizontally(), exit = shrinkHorizontally()) {
+                    Spacer(Modifier.width(48.dp).background(Color.Green))
                 }
             }
         }
@@ -599,7 +603,7 @@ private fun VolumeSlider(colour: Color, modifier: Modifier = Modifier) {
             PlayerServiceHost.status.m_volume = it
         },
         thumbSizeInDp = DpSize(12.dp, 12.dp),
-        track = { a, b, _, _, e -> SeekTrack(a, b, e, colour.setAlpha(0.5f), colour) },
+        track = { a, b, c, d, e -> DefaultTrack(a, b, c, d, e, colour.setAlpha(0.5f), colour) },
         thumb = { a, b, c, d, e -> DefaultThumb(a, b, c, d, e, colour, 1f) },
         modifier = modifier
     )

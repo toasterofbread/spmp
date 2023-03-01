@@ -26,10 +26,7 @@ import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.composed
-import androidx.compose.ui.draw.clipToBounds
-import androidx.compose.ui.draw.drawWithCache
-import androidx.compose.ui.draw.drawWithContent
-import androidx.compose.ui.draw.scale
+import androidx.compose.ui.draw.*
 import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.geometry.Size
 import androidx.compose.ui.graphics.Color
@@ -151,7 +148,7 @@ fun MeasureUnconstrainedView(
 	}
 }
 
-@SuppressLint("InternalInsetResource")
+@SuppressLint("InternalInsetResource", "DiscouragedApi")
 @Composable
 fun getStatusBarHeight(context: Context = MainActivity.context): Dp {
 	var height: Dp? by remember { mutableStateOf(null) }
@@ -561,30 +558,37 @@ fun PaddingValues.copy(
 	)
 }
 
-@Composable
-fun CrossOutBox(
-	state: Boolean, 
-	colour: Color, 
-	modifier: Modifier = Modifier, 
-	width: Float = Stroke.HairlineWidth, 
-	content: @Composable BoxScope.() -> Unit)
-{
-	val line_visibility = remember { Animatable(state.toFloat()) }
-	OnChangedEffect(state) {
-		line_visibility.animateTo(state.toFloat())
+fun Modifier.crossOut(
+	crossed_out: Boolean,
+	colour: Color,
+	width: Float = Stroke.HairlineWidth,
+	getSize: ((IntSize) -> IntSize)? = null
+): Modifier = composed {
+	val line_visibility = remember { Animatable(crossed_out.toFloat()) }
+	OnChangedEffect(crossed_out) {
+		line_visibility.animateTo(crossed_out.toFloat())
 	}
 
 	var size by remember { mutableStateOf(IntSize.Zero) }
+	var actual_size by remember { mutableStateOf(IntSize.Zero) }
 
-	Box(
-		modifier
-			.onSizeChanged {
-				size = it
-			}
-			.drawBehind {
-				drawLine(colour, Offset.Zero, Offset(size.width * line_visibility, size.height * line_visibility), width)
-			}
-	) {
-		content()
-	}
+	this
+		.onSizeChanged {
+			size = getSize?.invoke(it) ?: it
+			actual_size = it
+		}
+		.drawBehind {
+
+			val offset = Offset((actual_size.width - size.width) * 0.5f, (actual_size.height - size.height) * 0.5f)
+
+			drawLine(
+				colour,
+				offset,
+				Offset(
+					size.width * line_visibility.value + offset.x,
+					size.height * line_visibility.value + offset.y
+				),
+				width
+			)
+		}
 }

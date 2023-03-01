@@ -92,6 +92,8 @@ class PlayerService : Service() {
         active_queue_index = (active_queue_index + delta).coerceIn(player.currentMediaItemIndex, player.mediaItemCount - 1)
     }
 
+    var stop_after_current_song: Boolean by mutableStateOf(false)
+
     fun getSong(index: Int): Song? {
         if (index >= player.mediaItemCount) {
             return null
@@ -320,6 +322,10 @@ class PlayerService : Service() {
         player.play()
     }
 
+    fun pause() {
+        player.pause()
+    }
+
     fun playPause() {
         if (player.isPlaying) {
             player.pause()
@@ -327,6 +333,16 @@ class PlayerService : Service() {
         else {
             play()
         }
+    }
+
+    fun seekToNext() {
+        stop_after_current_song = false
+        player.seekToNextMediaItem()
+    }
+
+    fun seekToPrevious() {
+        stop_after_current_song = false
+        player.seekToPreviousMediaItem()
     }
 
     // --- Internal ---
@@ -363,6 +379,7 @@ class PlayerService : Service() {
             }
         }
 
+    private var current_media_index: Int = 0
     private val player_listener = 
         object : Player.Listener {
 
@@ -372,9 +389,12 @@ class PlayerService : Service() {
 
                 if (events.contains(Player.EVENT_MEDIA_ITEM_TRANSITION)) {
                     savePersistentQueue()
+                    if (player.currentMediaItemIndex == current_media_index + 1) {
+                        onSongEnded()
+                    }
+                    current_media_index = player.currentMediaItemIndex
                 }
                 if (events.contains(Player.EVENT_PLAYBACK_STATE_CHANGED)) {
-
                     if (player.isPlaying) {
                         if (queue_update_timer == null) {
                             queue_update_timer = Timer()
@@ -385,10 +405,16 @@ class PlayerService : Service() {
                             }, 0, PERSISTENT_QUEUE_UPDATE_INTERVAL)
                         }
                     }
-                    else if (queue_update_timer != null) {
-                        queue_update_timer!!.cancel()
-                        queue_update_timer = null
-                        savePersistentQueue()
+                    else {
+                        if (queue_update_timer != null) {
+                            queue_update_timer!!.cancel()
+                            queue_update_timer = null
+                            savePersistentQueue()
+                        }
+
+                        if (player.playbackState == Player.STATE_ENDED) {
+                            onSongEnded()
+                        }
                     }
                 }
             }
@@ -420,8 +446,6 @@ class PlayerService : Service() {
             }
             lock_queue = true
         }
-
-        println("SAVE")
 
         val writer = openFileOutput("persistent_queue", MODE_PRIVATE).bufferedWriter()
         writer.write("${player.currentMediaItemIndex},${player.currentPosition}")
@@ -600,13 +624,13 @@ class PlayerService : Service() {
                         play()
                     }
                     KeyEvent.KEYCODE_MEDIA_PAUSE -> {
-                        player.pause()
+                        pause()
                     }
                     KeyEvent.KEYCODE_MEDIA_NEXT -> {
-                        player.seekToNextMediaItem()
+                        seekToNext()
                     }
                     KeyEvent.KEYCODE_MEDIA_PREVIOUS -> {
-                        player.seekToPreviousMediaItem()
+                        seekToPrevious()
                     }
                     else -> {
                         sendToast("Unhandled media event: ${event.keyCode}")
@@ -713,8 +737,8 @@ class PlayerService : Service() {
 
                 if (long) {
                     vibrateShort()
-                    if (up) player.seekToNextMediaItem()
-                    else player.seekToPreviousMediaItem()
+                    if (up) seekToNext()
+                    else seekToPrevious()
                 }
                 else {
                     player.volume = player.volume + (if (up) getCustomVolumeChangeAmount() else -getCustomVolumeChangeAmount())
@@ -810,6 +834,13 @@ class PlayerService : Service() {
             listener.onSongMoved(from, to)
         }
         checkRadioContinuation()
+    }
+
+    private fun onSongEnded() {
+        if (stop_after_current_song) {
+            pause()
+            stop_after_current_song = false
+        }
     }
 
     private fun checkRadioContinuation() {

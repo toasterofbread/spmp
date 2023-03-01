@@ -62,6 +62,7 @@ import kotlin.math.sqrt
 import kotlin.random.Random
 
 fun Boolean.toInt() = if (this) 1 else 0
+fun Boolean.toFloat() = if (this) 1f else 0f
 
 fun vibrate(duration: Double) {
 	val vibrator = (MainActivity.context.getSystemService(Context.VIBRATOR_MANAGER_SERVICE) as VibratorManager).defaultVibrator
@@ -558,4 +559,32 @@ fun PaddingValues.copy(
 		end ?: calculateEndPadding(LocalLayoutDirection.current),
 		bottom ?: calculateBottomPadding()
 	)
+}
+
+@Composable
+fun CrossOutBox(
+	state: Boolean, 
+	colour: Color, 
+	modifier: Modifier = Modifier, 
+	width: Float = Stroke.HairlineWidth, 
+	content: @Composable BoxScope.() -> Unit)
+{
+	val line_visibility = remember { Animatable(state.toFloat()) }
+	OnChangedEffect(state) {
+		line_visibility.animateTo(state.toFloat())
+	}
+
+	var size by remember { mutableStateOf(IntSize.Zero) }
+
+	Box(
+		modifier
+			.onSizeChanged {
+				size = it
+			}
+			.drawBehind {
+				drawLine(colour, Offset.Zero, Offset(size.width * line_visibility, size.height * line_visibility), width)
+			}
+	) {
+		content()
+	}
 }

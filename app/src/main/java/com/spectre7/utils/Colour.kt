@@ -145,6 +145,13 @@ fun Color.getContrasted(): Color {
         return Color.Black
 }
 
+fun Color.getNeutral(): Color {
+    if (isDark()) 
+        return Color.Black
+    else
+        return Color.White
+}
+
 fun List<Color>.sorted(descending: Boolean = false): List<Color> {
     return if (descending) sortedByDescending { ColorUtils.calculateLuminance(it.toArgb()) }
             else sortedBy { ColorUtils.calculateLuminance(it.toArgb()) }

@@ -39,9 +39,9 @@ enum class Settings {
     KEY_AUTO_DOWNLOAD_SIZE_LIMIT,
 
     // Stats
-    KEY_STATS_ENABLED,
-    KEY_STATS_LISTEN_THRESHOLD,
-    KEY_STATS_LISTEN_THRESHOLD_TYPE,
+    // KEY_STATS_ENABLED,
+    // KEY_STATS_LISTEN_THRESHOLD,
+    // KEY_STATS_LISTEN_THRESHOLD_TYPE,
 
     // Accessibility Service
     KEY_ACC_VOL_INTERCEPT_MODE,
@@ -52,7 +52,8 @@ enum class Settings {
     KEY_OPEN_NP_ON_SONG_PLAYED,
     KEY_INITIAL_FEED_ROWS,
     KEY_VOLUME_STEPS,
-    KEY_PERSISTENT_QUEUE;
+    KEY_PERSISTENT_QUEUE
+    KEY_ADD_SONG_TO_HISTORY;
 
     companion object {
         val prefs: SharedPreferences get() = getPrefs()
@@ -113,9 +114,9 @@ enum class Settings {
                 KEY_STREAM_AUDIO_QUALITY -> Song.AudioQuality.MEDIUM.ordinal
                 KEY_DOWNLOAD_AUDIO_QUALITY -> Song.AudioQuality.MEDIUM.ordinal
 
-                KEY_STATS_ENABLED -> true
-                KEY_STATS_LISTEN_THRESHOLD -> 1f // Minutes or percentage
-                KEY_STATS_LISTEN_THRESHOLD_TYPE -> 0 // Absolute, percentage
+                // KEY_STATS_ENABLED -> true
+                // KEY_STATS_LISTEN_THRESHOLD -> 1f // Minutes or percentage
+                // KEY_STATS_LISTEN_THRESHOLD_TYPE -> 0 // Absolute, percentage
                 
                 KEY_AUTO_DOWNLOAD_THRESHOLD -> 3 // Listens
                 KEY_AUTO_DOWNLOAD_SIZE_LIMIT -> 1000000000 // Bytes
@@ -128,6 +129,7 @@ enum class Settings {
                 KEY_INITIAL_FEED_ROWS -> 5
                 KEY_OPEN_NP_ON_SONG_PLAYED -> true
                 KEY_PERSISTENT_QUEUE -> true
+                KEY_ADD_SONG_TO_HISTORY -> false
             } as T
         }
 

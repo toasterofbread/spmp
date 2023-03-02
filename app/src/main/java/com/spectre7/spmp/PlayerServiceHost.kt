@@ -51,20 +51,6 @@ class PlayerServiceHost {
 
     class PlayerStatus internal constructor(service: PlayerService) {
         private var player: ExoPlayer
-        private val queue_listener = object : PlayerQueueListener {
-            override fun onSongAdded(song: Song, index: Int) {
-                m_queue.add(index, song)
-            }
-            override fun onSongRemoved(song: Song, index: Int) {
-                m_queue.removeAt(index)
-            }
-            override fun onSongMoved(from: Int, to: Int) {
-                m_queue.add(to, m_queue.removeAt(from))
-            }
-            override fun onCleared() {
-                m_queue.clear()
-            }
-        }
 
         val playing: Boolean get() = player.isPlaying
         val position: Float get() = player.currentPosition.toFloat() / player.duration.toFloat()
@@ -77,16 +63,9 @@ class PlayerServiceHost {
         val has_next: Boolean get() = player.hasNextMediaItem()
         val has_previous: Boolean get() = player.hasPreviousMediaItem()
         val volume: Float get() = player.volume
+        val queue_size: Int get() = player.mediaItemCount
 
-        val m_queue = mutableStateListOf<Song>()
         var m_playing: Boolean by mutableStateOf(false)
-        var m_position_seconds: Float by mutableStateOf(0f)
-        val m_position: Float get() {
-            if (m_duration == 0f) {
-                return 0f
-            }
-            return m_position_seconds / m_duration
-        }
         var m_duration: Float by mutableStateOf(0f)
         var m_song: Song? by mutableStateOf(null)
         var m_index: Int by mutableStateOf(0)
@@ -95,10 +74,10 @@ class PlayerServiceHost {
         var m_has_next: Boolean by mutableStateOf(false)
         var m_has_previous: Boolean by mutableStateOf(false)
         var m_volume: Float by mutableStateOf(0f)
+        var m_queue_size: Int by mutableStateOf(0)
 
         init {
             player = service.player
-            service.addQueueListener(queue_listener)
 
             player.addListener(object : Player.Listener {
                 override fun onMediaItemTransition(
@@ -126,27 +105,13 @@ class PlayerServiceHost {
                     m_duration = duration
                     m_index = player.currentMediaItemIndex
                     m_volume = volume
+                    m_queue_size = queue_size
 
                     if (player.currentMediaItemIndex > service.active_queue_index) {
                         service.active_queue_index = player.currentMediaItemIndex
                     }
                 }
             })
-
-            service.iterateSongs { _, song ->
-                m_queue.add(song)
-            }
-
-            thread {
-                runBlocking {
-                    while (true) {
-                        delay(100)
-                        mainThread {
-                            m_position_seconds = position_seconds
-                        }
-                    }
-                }
-            }
         }
 
         fun release() {

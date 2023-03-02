@@ -35,6 +35,7 @@ val NOW_PLAYING_VERTICAL_PAGE_COUNT = NowPlayingVerticalPage.values().size
 
 const val SEEK_CANCEL_THRESHOLD = 0.03f
 const val EXPANDED_THRESHOLD = 0.9f
+const val POSITION_UPDATE_INTERVAL_MS: Long = 100
 
 internal fun getNPBackground(playerProvider: () -> PlayerViewContext): Color {
     return when (playerProvider().np_theme_mode) {
@@ -167,7 +168,7 @@ fun NowPlayingCardContent(
 @Composable
 fun MinimisedProgressBar(playerProvider: () -> PlayerViewContext, expansionProvider: () -> Float) {
     LinearProgressIndicator(
-        progress = PlayerServiceHost.status.m_position,
+        progress = PlayerServiceHost.status.position,
         color = getNPOnBackground(playerProvider),
         trackColor = getNPOnBackground(playerProvider).setAlpha(0.5f),
         modifier = Modifier
@@ -176,6 +177,7 @@ fun MinimisedProgressBar(playerProvider: () -> PlayerViewContext, expansionProvi
             .graphicsLayer {
                 alpha = 1f - expansionProvider()
             }
+            .recomposeOnInterval(POSITION_UPDATE_INTERVAL_MS)
     )
 }
 

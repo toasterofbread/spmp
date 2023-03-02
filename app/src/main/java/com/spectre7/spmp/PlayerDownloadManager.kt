@@ -41,25 +41,11 @@ class PlayerDownloadManager(private val context: Context) {
     }
     private val download_status_listeners: MutableList<DownloadStatusListener> = mutableListOf()
 
-    val downloaded_songs: MutableList<Song> = mutableStateListOf()
-
-    init {
-        val files = getDownloadDir(context).listFiles()
-        if (files != null) {
-            for (file in files) {
-                onSongDownloaded(PlayerDownloadService.getFilenameSong(file.name))
-            }
-        }
-    }
-
-    private fun onSongDownloaded(song: Song) {
-        if (!downloaded_songs.contains(song)) {
-            downloaded_songs.add(song)
-        }
-    }
-
-    private fun onSongDeleted(song_id: String) {
-        downloaded_songs.removeIf { it.id == song_id }
+    var download_state: Int by mutableStateOf(0)
+        private set
+    
+    private fun onStateChanged() {
+        download_state++
     }
 
     companion object {
@@ -93,12 +79,11 @@ class PlayerDownloadManager(private val context: Context) {
                     )
                 }
 
-                if (result.getOrNull() == null) {
-                    onSongDeleted(song_id)
-                }
+                onStateChanged()
             }
             PlayerDownloadService.IntentAction.STATUS_CHANGED -> {
                 download_status_listeners.forEach { it.onSongDownloadStatusChanged(song_id, intent.getExtra("status")) }
+                onStateChanged()
             }
             else -> {}
         }
@@ -120,7 +105,14 @@ class PlayerDownloadManager(private val context: Context) {
         callbacks[instance] = callback
     }
 
-    fun getDownloadedSong(song: Song): File? {
+    fun iterateDownloadedFiles(action: (file: File?, data: FilenameData) -> Unit) {
+        val files = getDownloadDir(context).listFiles() ?: return null
+        for (file in files) {
+            action(file, PlayerDownloadService.getFilenameData(file.name))
+        }
+    }
+
+    fun getSongLocalFile(song: Song): File? {
         val files = getDownloadDir(context).listFiles() ?: return null
         for (file in files) {
             if (PlayerDownloadService.fileMatchesDownload(file.name, song.id, song.getTargetDownloadQuality()) == true) {
@@ -152,7 +144,7 @@ class PlayerDownloadManager(private val context: Context) {
 
         LocalBroadcastManager.getInstance(context).sendBroadcast(intent)
 
-        onSongDownloaded(Song.fromId(song_id))
+        onStateChanged()
     }
 
     fun getSongDownloadStatus(song_id: String, callback: (PlayerDownloadService.DownloadStatus) -> Unit) {

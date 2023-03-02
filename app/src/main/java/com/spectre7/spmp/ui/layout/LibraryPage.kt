@@ -16,13 +16,46 @@ fun LibraryPage(
     playerProvider: () -> PlayerViewContext,
     close: () -> Unit
 ) {
-    LazyColumn {
+    val download_manager = PlayerServiceHost.download_manager
+    download_manager.download_state
+
+    var current_page: MediaItem.Type by remember { mutableStateOf(MediaItem.Type.SONG) }
+
+    LaunchedEffect(Unit) {
+        pill_menu.addAlongsideAction {
+            for (type in MediaItem.Type.values()) {
+                ActionButton(type.getIcon()) { current_page = type }
+            }
+
+            ActionButton(Icons.Filled.Download) { TODO("Open download menu") }
+        }
+    }
+
+    LazyColumn(Modifier.padding(10.dp)) {
         item {
-            Text("Downloaded songs", style = MaterialTheme.typography.titleMedium)
+            Column {
+                Text(
+                    "Library",
+                    style = MaterialTheme.typography.headlineLarge.copy(
+                        color = settings_interface.theme.on_background
+                    )
+                )
+
+                Text(
+                    current_page.getReadable(true),
+                    style = MaterialTheme.typography.headlineSmall.copy(
+                        color = settings_interface.theme.on_background
+                    )
+                )
+            }
         }
 
-        items(PlayerServiceHost.download_manager.downloaded_songs) { song ->
-            song.PreviewLong(Theme.current.on_background_provider, playerProvider, true, Modifier)
+        download_manager.iterateDownloadedFiles { file, data ->
+            val song = Song.fromId(data.id)
+
+            item(data) {
+                song.PreviewLong(Theme.current.on_background_provider, playerProvider, true, Modifier)
+            }
         }
     }
 }

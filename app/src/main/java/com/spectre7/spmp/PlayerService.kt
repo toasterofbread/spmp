@@ -383,6 +383,10 @@ class PlayerService : Service() {
     private val player_listener = 
         object : Player.Listener {
 
+            override fun onTimelineChanged(timeline: Timeline, reason: Int) {
+
+            }
+
             // TODO | Interval to save playback position
             override fun onEvents(player: Player, events: Player.Events) {
                 checkRadioContinuation()
@@ -685,7 +689,7 @@ class PlayerService : Service() {
         }) { data_spec: DataSpec ->
             val song = Song.fromId(data_spec.uri.toString())
 
-            val local_file = PlayerServiceHost.download_manager.getDownloadedSong(song)
+            val local_file = PlayerServiceHost.download_manager.getSongLocalFile(song)
             if (local_file != null) {
                 data_spec.withUri(Uri.fromFile(local_file))
             }

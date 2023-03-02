@@ -152,9 +152,9 @@ val songLongPressPopupActions: @Composable LongPressMenuActionProvider.(MediaIte
     })
 
     var active_queue_item: Song? by remember { mutableStateOf(null) }
-    AnimatedVisibility(PlayerServiceHost.service.active_queue_index < PlayerServiceHost.status.m_queue.size) {
-        if (PlayerServiceHost.service.active_queue_index < PlayerServiceHost.status.m_queue.size) {
-            active_queue_item = PlayerServiceHost.status.m_queue[PlayerServiceHost.service.active_queue_index]
+    AnimatedVisibility(PlayerServiceHost.service.active_queue_index < PlayerServiceHost.status.m_queue_size) {
+        if (PlayerServiceHost.service.active_queue_index < PlayerServiceHost.status.m_queue_size) {
+            active_queue_item = PlayerServiceHost.service.getSong(PlayerServiceHost.service.active_queue_index)
         }
 
         Column {

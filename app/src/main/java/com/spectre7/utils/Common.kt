@@ -578,7 +578,6 @@ fun Modifier.crossOut(
 			actual_size = it
 		}
 		.drawBehind {
-
 			val offset = Offset((actual_size.width - size.width) * 0.5f, (actual_size.height - size.height) * 0.5f)
 
 			drawLine(
@@ -591,4 +590,23 @@ fun Modifier.crossOut(
 				width
 			)
 		}
+}
+
+fun Modifier.recomposeOnInterval(interval_ms: Long): Modifier = composed {
+    val recomposition_state by remember { mutableStateOf(false) }
+    LaunchedEffect(Unit) {
+		while (true) {
+			delay(interval_ms)
+			recomposition_state = !recomposition_state
+		}
+    }
+    this
+}
+
+fun List<T>.addUnique(item: T): Boolean {
+	if (!contains(item)) {
+		add(item)
+		return true
+	}
+	return false
 }

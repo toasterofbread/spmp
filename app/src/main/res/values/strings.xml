@@ -6,14 +6,17 @@
     <string name="yt_i_api_key" translatable="false">AIzaSyAO_FJ2SlqU8Q4STEHLGCilw_Y9_11qcW8</string>
     <string name="oauth_client_id" translatable="false">1029123928342-8las6c3oor0r3910mcsarl6vauoi96fg.apps.googleusercontent.com</string>
 
-    <string name="songs">Songs</string>
     <string name="song_name">Song name</string>
-
     <string name="videos">Videos</string>
-    <string name="playlists">Playlists</string>
-
+    
+    <string name="songs">Songs</string>
+    <string name="song">Song</string>
+    
     <string name="artists">Artists</string>
     <string name="artist">Artist</string>
+
+    <string name="playlists">Playlists</string>
+    <string name="playlist">Playlists</string>
 
     <string name="albums">Albums</string>
     <string name="album">Album</string>

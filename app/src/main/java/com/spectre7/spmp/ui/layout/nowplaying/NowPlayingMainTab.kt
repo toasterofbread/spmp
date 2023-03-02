@@ -689,7 +689,7 @@ private fun SeekBar(playerProvider: () -> PlayerViewContext, seek: (Float) -> Un
 
     fun getSliderValue(): Float {
         if (position_override != null && old_position != null) {
-            if (PlayerServiceHost.status.m_position != old_position) {
+            if (PlayerServiceHost.status.position != old_position) {
                 old_position = null
                 position_override = null
             }
@@ -697,12 +697,16 @@ private fun SeekBar(playerProvider: () -> PlayerViewContext, seek: (Float) -> Un
                 return position_override!!
             }
         }
-        return position_override ?: PlayerServiceHost.status.m_position
+        return position_override ?: PlayerServiceHost.status.position
     }
 
-    Row(verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(5.dp)) {
+    Row(
+        Modifier.recomposeOnInterval(POSITION_UPDATE_INTERVAL_MS),
+        verticalAlignment = Alignment.CenterVertically, 
+        horizontalArrangement = Arrangement.spacedBy(5.dp)
+    ) {
 
-        SeekBarTimeText(PlayerServiceHost.status.m_position_seconds, getNPOnBackground(playerProvider))
+        SeekBarTimeText(PlayerServiceHost.status.position_seconds, getNPOnBackground(playerProvider))
 
         SliderValueHorizontal(
             value = getSliderValue(),

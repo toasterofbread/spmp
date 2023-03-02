@@ -94,6 +94,14 @@ abstract class MediaItem(id: String) {
                 PLAYLIST -> Icons.Filled.FeaturedPlayList
             }
         }
+
+        fun getReadable(plural: Boolean = false): String {
+            return when (this) {
+                SONG -> getString(if (plural) R.string.songs else R.string.song)
+                ARTIST -> getString(if (plural) R.string.artists else R.string.artist)
+                PLAYLIST -> getString(if (plural) R.string.playlists else R.string.playlist)
+            }
+        }
     }
     val type: Type get() = when(this) {
         is Song -> Type.SONG

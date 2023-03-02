@@ -44,7 +44,11 @@ fun Color.offsetRGB(offset: Float, clip: Boolean = true): Color {
 }
 
 fun Color.amplify(by: Float): Color {
-    return offsetRGB(if (isDark()) -by else by)
+    val offset = offsetRGB(if (isDark()) -by else by)
+    if (compare(offset) < 0.9f) {
+        return offset
+    }
+    return offsetRGB(if (isDark()) by else -by)
 }
 
 const val PALETTE_COLOUR_AMOUNT = 7

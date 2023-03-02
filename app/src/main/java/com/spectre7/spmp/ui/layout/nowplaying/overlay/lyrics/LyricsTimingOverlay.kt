@@ -77,85 +77,88 @@ fun LyricsTimingOverlay(
 //        scrollTo(highlight_position_y)
     }
 
-    LaunchedEffect(PlayerServiceHost.status.m_position, full_line) {
+    LaunchedEffect(Unit) {
+        while (true) {
+            delay(POSITION_UPDATE_INTERVAL_MS)
 
-        if (lyrics.sync_type == Song.Lyrics.SyncType.NONE) {
-            return@LaunchedEffect
-        }
-
-        val terms = mutableListOf<Song.Lyrics.Term>()
-        var offset: Offset? = null
-
-        for (item in scroll_state.layoutInfo.visibleItemsInfo) {
-            if (item.key !is Int) {
-                continue
+            if (lyrics.sync_type == Song.Lyrics.SyncType.NONE) {
+                return@LaunchedEffect
             }
-            
-            val line = lyrics.lines[item.key as Int]
-            for (term in line) {
-                if (term.range.contains(PlayerServiceHost.status.position_seconds)) {
-                    if (full_line) {
-                        for (_term in line) {
-                            terms.add(_term)
+
+            val terms = mutableListOf<Song.Lyrics.Term>()
+            var offset: Offset? = null
+
+            for (item in scroll_state.layoutInfo.visibleItemsInfo) {
+                if (item.key !is Int) {
+                    continue
+                }
+                
+                val line = lyrics.lines[item.key as Int]
+                for (term in line) {
+                    if (term.range.contains(PlayerServiceHost.status.position_seconds)) {
+                        if (full_line) {
+                            for (_term in line) {
+                                terms.add(_term)
+                            }
+                            break
+                        } 
+                        else {
+                            terms.add(term)
                         }
-                        break
-                    } 
-                    else {
-                        terms.add(term)
                     }
+                }
+
+                if (terms.isNotEmpty()) {
+                    offset = Offset(0f, item.offset.toFloat() + 75f)
+                    break
                 }
             }
 
-            if (terms.isNotEmpty()) {
-                offset = Offset(0f, item.offset.toFloat() + 75f)
-                break
+            if (terms.isEmpty()) {
+                return@LaunchedEffect
             }
+
+            var target_x: Float = Float.NaN
+            var target_y: Float = Float.NaN
+            var target_br_x: Float = Float.NaN
+            var target_br_y: Float = Float.NaN
+
+            for (term in terms) {
+                var rect = (term.data as Rect)
+                rect = rect.copy(left = rect.left, right = rect.right)
+                println("${rect.left} | ${rect.right} | ${term.subterms.first().text}")
+
+                if (target_x.isNaN() || rect.left < target_x) {
+                    target_x = offset!!.x + rect.left
+                }
+                if (target_y.isNaN() || rect.top < target_y) {
+                    target_y = offset!!.y// + rect.top
+                }
+
+                if (target_br_x.isNaN() || rect.right > target_br_x) {
+                    target_br_x = offset!!.x + rect.right
+                }
+                if (target_br_y.isNaN() || rect.bottom > target_br_y) {
+                    target_br_y = offset!!.y// + rect.bottom
+                }
+            }
+
+            if (
+                highlight_position_x != target_x || 
+                highlight_position_y != target_y || 
+                highlight_width != abs(target_br_x - target_x) || 
+                highlight_height != abs(target_br_y - target_y)
+            ) {
+                highlight_position_x = target_x
+                highlight_position_y = target_y
+                highlight_width = abs(target_br_x - target_x)
+                highlight_height = abs(target_br_y - target_y)
+
+                highlight_instantly = highlight_unset
+                highlight_unset = false
+            }
+
+            show_highlight = true
         }
-
-        if (terms.isEmpty()) {
-            return@LaunchedEffect
-        }
-
-        var target_x: Float = Float.NaN
-        var target_y: Float = Float.NaN
-        var target_br_x: Float = Float.NaN
-        var target_br_y: Float = Float.NaN
-
-        for (term in terms) {
-            var rect = (term.data as Rect)
-            rect = rect.copy(left = rect.left, right = rect.right)
-            println("${rect.left} | ${rect.right} | ${term.subterms.first().text}")
-
-            if (target_x.isNaN() || rect.left < target_x) {
-                target_x = offset!!.x + rect.left
-            }
-            if (target_y.isNaN() || rect.top < target_y) {
-                target_y = offset!!.y// + rect.top
-            }
-
-            if (target_br_x.isNaN() || rect.right > target_br_x) {
-                target_br_x = offset!!.x + rect.right
-            }
-            if (target_br_y.isNaN() || rect.bottom > target_br_y) {
-                target_br_y = offset!!.y// + rect.bottom
-            }
-        }
-
-        if (
-            highlight_position_x != target_x || 
-            highlight_position_y != target_y || 
-            highlight_width != abs(target_br_x - target_x) || 
-            highlight_height != abs(target_br_y - target_y)
-        ) {
-            highlight_position_x = target_x
-            highlight_position_y = target_y
-            highlight_width = abs(target_br_x - target_x)
-            highlight_height = abs(target_br_y - target_y)
-
-            highlight_instantly = highlight_unset
-            highlight_unset = false
-        }
-
-        show_highlight = true
     }
 }

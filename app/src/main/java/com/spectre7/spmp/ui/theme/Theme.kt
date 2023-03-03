@@ -149,7 +149,7 @@ class Theme(data: ThemeData) {
     }
 
     companion object {
-        val default = ThemeData("Default theme", Color.Black, Color.White, Color(99, 54, 143))
+        val default = ThemeData(getString(R.string.theme_title_default), Color.Black, Color.White, Color(99, 54, 143))
         private var thumbnail_colour: Color? = null
         private var accent_colour_source: AccentColourSource by mutableStateOf(Settings.getEnum(Settings.KEY_ACCENT_COLOUR_SOURCE))
         private var system_accent_colour: Color? = null

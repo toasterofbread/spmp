@@ -39,12 +39,13 @@ fun SongPreviewSquare(
     content_colour: () -> Color,
     playerProvider: () -> PlayerViewContext,
     enable_long_press_menu: Boolean = true,
-    modifier: Modifier = Modifier
+    modifier: Modifier = Modifier,
+    queue_index: Int? = null
 ) {
     val long_press_menu_data = remember(song) { LongPressMenuData(
         song,
         RoundedCornerShape(10),
-        songLongPressPopupActions
+        getLongPressPopupActions(queue_index)
     ) }
 
     Column(
@@ -88,12 +89,13 @@ fun SongPreviewLong(
     content_colour: () -> Color,
     playerProvider: () -> PlayerViewContext,
     enable_long_press_menu: Boolean = true,
-    modifier: Modifier = Modifier
+    modifier: Modifier = Modifier,
+    queue_index: Int? = null
 ) {
     val long_press_menu_data = remember(song) { LongPressMenuData(
         song,
         RoundedCornerShape(20),
-        songLongPressPopupActions
+        getLongPressPopupActions(queue_index)
     ) }
 
     Row(
@@ -142,14 +144,18 @@ fun SongPreviewLong(
     }
 }
 
-val songLongPressPopupActions: @Composable LongPressMenuActionProvider.(MediaItem) -> Unit = { song ->
-    if (song !is Song) {
-        throw IllegalStateException()
-    }
+private fun getLongPressPopupActions(queue_index: Int?): @Composable LongPressMenuActionProvider.(MediaItem) -> Unit = { song ->
+    require(song is Song)
 
-    ActionButton(Icons.Filled.Radio, "Start radio", onClick = {
-        PlayerServiceHost.service.playSong(song)
-    })
+    ActionButton(
+        Icons.Filled.Radio, "Start radio", 
+        onClick = {
+            PlayerServiceHost.service.playSong(song)
+        },
+        onLongClick = if (queue_index == null) null else {{
+            PlayerServiceHost.service.startRadioAtSong(queue_index, song)
+        }}
+    )
 
     var active_queue_item: Song? by remember { mutableStateOf(null) }
     AnimatedVisibility(PlayerServiceHost.service.active_queue_index < PlayerServiceHost.status.m_queue_size) {

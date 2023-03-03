@@ -106,7 +106,8 @@ private class QueueTabItem(val song: Song, val key: Int) {
                             anchors,
                             Orientation.Horizontal,
                             thresholds = { _, _ -> FractionalThreshold(0.2f) }
-                        )
+                        ),
+                    queue_index = index
                 )
 
                 // Drag handle
@@ -235,7 +236,7 @@ fun QueueTab(expansionProvider: () -> Float, playerProvider: () -> PlayerViewCon
                         contentColor = background_colour.getContrasted()
                     )
                 ) {
-                    Text("Clear")
+                    Text(getString(R.string.queue_clear))
                 }
 
                 Surface(
@@ -278,7 +279,7 @@ fun QueueTab(expansionProvider: () -> Float, playerProvider: () -> PlayerViewCon
                         verticalAlignment = Alignment.CenterVertically
                     ) {
                         Text(
-                            text = "Shuffle",
+                            text = getString(R.string.queue_shuffle),
                             color = background_colour.getContrasted(),
                             style = MaterialTheme.typography.labelLarge
                         )

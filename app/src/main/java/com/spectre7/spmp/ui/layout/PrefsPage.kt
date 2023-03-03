@@ -170,12 +170,12 @@ fun PrefsPage(pill_menu: PillMenu, close: () -> Unit) {
 
                                     val dialog = AlertDialog.Builder(MainActivity.context)
                                     dialog.setCancelable(true)
-                                    dialog.setTitle("Enabling accessibility service")
-                                    dialog.setMessage("Service can be enabled automatically by granting write secure settings permission using root")
-                                    dialog.setPositiveButton("Use root") { _, _ ->
+                                    dialog.setTitle(getString(R.string.acc_ser_enable_dialog_title))
+                                    dialog.setMessage(getString(R.string.acc_ser_enable_dialog_body))
+                                    dialog.setPositiveButton(getString(R.string.acc_ser_enable_dialog_btn_root)) { _, _ ->
                                         PlayerAccessibilityService.enable(MainActivity.context, true)
                                     }
-                                    dialog.setNeutralButton("Enable manually") { _, _ ->
+                                    dialog.setNeutralButton(getString(R.string.acc_ser_enable_dialog_btn_manual)) { _, _ ->
                                         PlayerAccessibilityService.enable(MainActivity.context, false)
                                     }
                                     dialog.setNegativeButton(getString(R.string.action_cancel)) { _, _ -> }
@@ -291,8 +291,8 @@ private fun groupGeneral(interface_lang: SettingsValueState<Int>, language_data:
 
         SettingsItemSlider(
             SettingsValueState<Int>(Settings.KEY_INITIAL_FEED_ROWS.name),
-            "Initial feed rows",
-            "Minimum amount of feed rows to load automatically",
+            getString(R.string.s_key_initial_feed_rows),
+            getString(R.string.s_sub_initial_feed_rows),
             "1",
             "10",
             range = 1f .. 10f
@@ -327,8 +327,8 @@ private fun groupTheming(theme_manager: ThemeManager): List<SettingsItem> {
 
         SettingsItemThemeSelector (
             SettingsValueState(Settings.KEY_CURRENT_THEME.name),
-            "Current theme", null,
-            "Edit theme",
+            getString(R.string.s_key_current_theme), null,
+            getString(R.string.s_theme_editor_title),
             {
                 check(theme_manager.themes.isNotEmpty())
                 theme_manager.themes.size
@@ -337,7 +337,7 @@ private fun groupTheming(theme_manager: ThemeManager): List<SettingsItem> {
             { index: Int, edited_theme: ThemeData ->
                 theme_manager.updateTheme(index, edited_theme)
             },
-            { theme_manager.addTheme(Theme.default.copy(name = "New theme")) },
+            { theme_manager.addTheme(Theme.default.copy(name = getString(R.string.theme_title_new))) },
             { theme_manager.removeTheme(it) }
         ),
 

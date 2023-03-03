@@ -85,6 +85,11 @@ fun getString(id: Int, context: Context = MainActivity.context): String {
 	return context.resources.getString(id)
 }
 
+fun getString(temp_string: String): String {
+	// throw NotImplementedError(temp_string)
+	return temp_string
+}
+
 fun getAppName(context: Context): String {
 	val info = context.applicationInfo
 	val string_id = info.labelRes

@@ -40,7 +40,7 @@ import androidx.compose.ui.layout.SubcomposeLayout
 import androidx.compose.ui.layout.onSizeChanged
 import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.platform.LocalLayoutDirection
-import androidx.compose.ui.platform.LocalUriHandler
+import androidx.compose.ui.platform.Localuri_handler
 import androidx.compose.ui.platform.debugInspectorInfo
 import androidx.compose.ui.text.SpanStyle
 import androidx.compose.ui.text.TextLayoutResult
@@ -62,8 +62,8 @@ import kotlin.random.Random
 fun Boolean.toInt() = if (this) 1 else 0
 fun Boolean.toFloat() = if (this) 1f else 0f
 
-fun vibrate(duration: Double) {
-	val vibrator = (MainActivity.context.getSystemService(Context.VIBRATOR_MANAGER_SERVICE) as VibratorManager).defaultVibrator
+fun vibrate(duration: Double, context: Context = MainActivity.context) {
+	val vibrator = (context.getSystemService(Context.VIBRATOR_MANAGER_SERVICE) as VibratorManager).defaultVibrator
 	vibrator.vibrate(VibrationEffect.createOneShot((duration * 1000.0).toLong(), VibrationEffect.DEFAULT_AMPLITUDE))
 }
 
@@ -85,6 +85,31 @@ fun getString(id: Int, context: Context = MainActivity.context): String {
 	return context.resources.getString(id)
 }
 
+fun getAppName(context: Context): String {
+	val info = context.applicationInfo
+	val string_id = info.labelRes
+	return if (string_id == 0) info.nonLocalizedLabel.toString() else context.getString(string_id)
+}
+
+@SuppressLint("InternalInsetResource", "DiscouragedApi")
+@Composable
+fun getStatusBarHeight(context: Context = MainActivity.context): Dp {
+	var height: Dp? by remember { mutableStateOf(null) }
+	if (height != null) {
+		return height!!
+	}
+
+	val resource_id: Int = context.resources.getIdentifier("status_bar_height", "dimen", "android")
+	if (resource_id > 0) {
+		with(LocalDensity.current) {
+			height = context.resources.getDimensionPixelSize(resource_id).toDp()
+			return height!!
+		}
+	}
+
+	throw RuntimeException()
+}
+
 @Composable
 fun NoRipple(content: @Composable () -> Unit) {
 	CompositionLocalProvider(LocalRippleTheme provides object : RippleTheme {
@@ -92,7 +117,7 @@ fun NoRipple(content: @Composable () -> Unit) {
 		override fun defaultColor() = Color.Unspecified
 
 		@Composable
-		override fun rippleAlpha(): RippleAlpha = RippleAlpha(0.0f,0.0f,0.0f,0.0f)
+		override fun rippleAlpha(): RippleAlpha = RippleAlpha(0f, 0f, 0f, 0f)
 	}) {
 		content()
 	}
@@ -124,12 +149,6 @@ fun OnChangedEffect(key1: Any?, key2: Any?, block: suspend () -> Unit) {
 	}
 }
 
-fun getAppName(context: Context): String {
-	val info = context.applicationInfo
-	val string_id = info.labelRes
-	return if (string_id == 0) info.nonLocalizedLabel.toString() else context.getString(string_id)
-}
-
 @Composable
 fun MeasureUnconstrainedView(
 	view_to_measure: @Composable () -> Unit,
@@ -147,25 +166,6 @@ fun MeasureUnconstrainedView(
 			contentPlaceable.place(0, 0)
 		}
 	}
-}
-
-@SuppressLint("InternalInsetResource", "DiscouragedApi")
-@Composable
-fun getStatusBarHeight(context: Context = MainActivity.context): Dp {
-	var height: Dp? by remember { mutableStateOf(null) }
-	if (height != null) {
-		return height!!
-	}
-
-	val resource_id: Int = context.resources.getIdentifier("status_bar_height", "dimen", "android")
-	if (resource_id > 0) {
-		with(LocalDensity.current) {
-			height = context.resources.getDimensionPixelSize(resource_id).toDp()
-			return height!!
-		}
-	}
-
-	throw RuntimeException()
 }
 
 @Composable
@@ -242,23 +242,6 @@ fun Marquee(autoscroll: Boolean = false, modifier: Modifier = Modifier, content:
 }
 
 @Composable
-fun WidthShrinkText(text: String, fontSize: TextUnit, modifier: Modifier = Modifier, fontWeight: FontWeight? = null) {
-	WidthShrinkText(
-		text,
-		remember { mutableStateOf(TextStyle(
-			fontSize = fontSize,
-			fontWeight = fontWeight
-		)) },
-		modifier
-	)
-}
-
-@Composable
-fun WidthShrinkText(text: String, style: TextStyle, modifier: Modifier = Modifier) {
-	WidthShrinkText(text, remember(style) { mutableStateOf(style) }, modifier)
-}
-
-@Composable
 fun WidthShrinkText(text: String, style: MutableState<TextStyle>, modifier: Modifier = Modifier) {
 	var ready_to_draw by remember { mutableStateOf(false) }
 
@@ -280,6 +263,24 @@ fun WidthShrinkText(text: String, style: MutableState<TextStyle>, modifier: Modi
 }
 
 @Composable
+fun WidthShrinkText(text: String, fontSize: TextUnit, modifier: Modifier = Modifier, fontWeight: FontWeight? = null) {
+	WidthShrinkText(
+		text,
+		remember { mutableStateOf(TextStyle(
+			fontSize = fontSize,
+			fontWeight = fontWeight
+		)) },
+		modifier
+	)
+}
+
+@Composable
+fun WidthShrinkText(text: String, style: TextStyle, modifier: Modifier = Modifier) {
+	WidthShrinkText(text, remember(style) { mutableStateOf(style) }, modifier)
+}
+
+// https://stackoverflow.com/a/66235329
+@Composable
 fun LinkifyText(
 	text: String,
 	colour: Color,
@@ -287,13 +288,9 @@ fun LinkifyText(
 	style: TextStyle,
 	modifier: Modifier = Modifier
 ) {
-	val uriHandler = LocalUriHandler.current
-	val layoutResult = remember {
-		mutableStateOf<TextLayoutResult?>(null)
-	}
-	val annotatedString = buildAnnotatedString {
+	val annotated_string = buildAnnotatedString {
 		append(text)
-		text.extractUrls().forEach { link ->
+		text.extractURLs().forEach { link ->
 			addStyle(
 				style = SpanStyle(
 					color = highlight_colour,
@@ -310,37 +307,43 @@ fun LinkifyText(
 			)
 		}
 	}
+	
+	val uri_handler = Localuri_handler.current
+	val layout_result = remember {
+		mutableStateOf<TextLayoutResult?>(null)
+	}
+	
 	Text(
-		text = annotatedString,
+		text = annotated_string,
 		color = colour,
 		style = style,
 		overflow = TextOverflow.Ellipsis,
 		modifier = modifier.pointerInput(Unit) {
 			detectTapGestures { offsetPosition ->
-				layoutResult.value?.let {
+				layout_result.value?.let {
 					val position = it.getOffsetForPosition(offsetPosition)
-					annotatedString.getStringAnnotations(position, position).firstOrNull()
+					annotated_string.getStringAnnotations(position, position).firstOrNull()
 						?.let { result ->
 							if (result.tag == "URL") {
-								uriHandler.openUri(result.item)
+								uri_handler.openUri(result.item)
 							}
 						}
 				}
 			}
 		},
-		onTextLayout = { layoutResult.value = it }
+		onTextLayout = { layout_result.value = it }
 	)
 }
 
-private val urlPattern: Pattern = Pattern.compile(
+private val URL_PATTERN: Pattern = Pattern.compile(
 	"(?:^|[\\W])((ht|f)tp(s?):\\/\\/|www\\.)"
 			+ "(([\\w\\-]+\\.){1,}?([\\w\\-.~]+\\/?)*"
 			+ "[\\p{Alnum}.,%_=?&#\\-+()\\[\\]\\*$~@!:/{};']*)",
 	Pattern.CASE_INSENSITIVE or Pattern.MULTILINE or Pattern.DOTALL
 )
 
-fun String.extractUrls(): List<Triple<String, Int, Int>> {
-	val matcher = urlPattern.matcher(this)
+fun String.extractURLs(): List<Triple<String, Int, Int>> {
+	val matcher = URL_PATTERN.matcher(this)
 	var start: Int
 	var end: Int
 	val links = arrayListOf<Triple<String, Int, Int>>()
@@ -534,13 +537,13 @@ fun RowOrColumn(
 	row: Boolean,
 	modifier: Modifier = Modifier,
 	arrangement: Arrangement.HorizontalOrVertical = Arrangement.SpaceEvenly,
-	content: @Composable (weight_modifier: Modifier) -> Unit
+	content: @Composable (getWeightModifier: (Float) -> Modifier) -> Unit
 ) {
 	if (row) {
-		Row(modifier, horizontalArrangement = arrangement, verticalAlignment = Alignment.CenterVertically) { content(Modifier.weight(1f)) }
+		Row(modifier, horizontalArrangement = arrangement, verticalAlignment = Alignment.CenterVertically) { content { Modifier.weight(it) } }
 	}
 	else {
-		Column(modifier, verticalArrangement = arrangement, horizontalAlignment = Alignment.CenterHorizontally) { content(Modifier.weight(1f)) }
+		Column(modifier, verticalArrangement = arrangement, horizontalAlignment = Alignment.CenterHorizontally) { content { Modifier.weight(it) } }
 	}
 }
 

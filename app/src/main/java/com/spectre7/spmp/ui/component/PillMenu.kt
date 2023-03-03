@@ -292,10 +292,10 @@ class PillMenu(
                         }
                     }
 
-                    RowOrColumn(!vertical, fill_modifier.height(IntrinsicSize.Max), Arrangement.spacedBy(10.dp)) { weight_modifier ->
+                    RowOrColumn(!vertical, fill_modifier.height(IntrinsicSize.Max), Arrangement.spacedBy(10.dp)) { getWeightModifier ->
                         if (!start) {
                             Alongside()
-                            Spacer(fill_modifier.then(weight_modifier))
+                            Spacer(fill_modifier.then(getWeightModifier(1f)))
                         }
 
                         AnimatedVisibility(
@@ -337,7 +337,7 @@ class PillMenu(
                         }
 
                         if (start) {
-                            Spacer(fill_modifier.then(weight_modifier))
+                            Spacer(fill_modifier.then(getWeightModifier(1f)))
                             Alongside()
                         }
                     }

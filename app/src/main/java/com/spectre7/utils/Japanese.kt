@@ -1,9 +1,6 @@
 package com.spectre7.utils
 
-import android.util.Log
 import java.lang.Character.UnicodeBlock.*
-
-enum class JpCharType { KANJI, HIRA, KATA, OTHER }
 
 fun Char.isKanji(): Boolean = Character.UnicodeBlock.of(this) == CJK_UNIFIED_IDEOGRAPHS
 fun Char.isHiragana(): Boolean = Character.UnicodeBlock.of(this) == HIRAGANA
@@ -27,26 +24,25 @@ fun Char.toHiragana(): Char {
     return this
 }
 
-fun Char.jpType(): JpCharType {
-    return when(Character.UnicodeBlock.of(this)) {
-        CJK_UNIFIED_IDEOGRAPHS -> JpCharType.KANJI
-        HIRAGANA -> JpCharType.HIRA
-        KATAKANA -> JpCharType.KATA
-        else -> JpCharType.OTHER
+fun String.toHiragana(): String {
+    val ret = StringBuilder()
+    for (char in this) {
+        ret.append(char.toHiragana())
     }
+    return ret.toString()
 }
 
 fun String.hasKanjiAndHiragana(): Boolean {
     var has_kanji = false
     var has_hiragana = false
     for (char in this) {
-        when (char.jpType()) {
-            JpCharType.KANJI -> {
+        when (Character.UnicodeBlock.of(char)) {
+            CJK_UNIFIED_IDEOGRAPHS -> {
                 if (has_hiragana)
                     return true
                 has_kanji = true
             }
-            JpCharType.HIRA -> {
+            HIRAGANA -> {
                 if (has_kanji)
                     return true
                 has_hiragana = true
@@ -55,12 +51,4 @@ fun String.hasKanjiAndHiragana(): Boolean {
         }
     }
     return false
-}
-
-fun String.toHiragana(): String {
-    val ret = StringBuilder()
-    for (char in this) {
-        ret.append(char.toHiragana())
-    }
-    return ret.toString()
 }

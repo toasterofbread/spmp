@@ -173,7 +173,7 @@ fun ColumnScope.NowPlayingMainTab(
         }
 
         IconButton({
-            PlayerServiceHost.status.m_song?.let { playerProvider().onMediaItemLongClicked(it) }
+            PlayerServiceHost.status.song?.let { playerProvider().onMediaItemLongClicked(it, PlayerServiceHost.status.index) }
         }) {
             Icon(Icons.Filled.MoreHoriz, null, tint = getNPOnBackground(playerProvider).setAlpha(0.5f))
         }

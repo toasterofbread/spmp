@@ -32,14 +32,18 @@ class PillMenu(
     private val getAction: @Composable (Action.(i: Int, action_count: Int) -> Unit) = { _, _ -> },
     private val expand_state: MutableState<Boolean>? = null,
     private val _background_colour: () -> Color = { Color.Unspecified },
-    private val top: Boolean = false,
-    private val left: Boolean = false,
-    private val vertical: Boolean = false,
+    top: Boolean = false,
+    left: Boolean = false,
+    vertical: Boolean = false,
     private val container_modifier: Modifier = Modifier,
     private val toggleButton: (@Composable Action.(modifier: Modifier) -> Unit)? = null,
     private val alongsideContent: (@Composable Action.() -> Unit)? = null,
     private val modifier: Modifier = Modifier
 ) {
+
+    var top by mutableStateOf(top)
+    var left by mutableStateOf(left)
+    var vertical by mutableStateOf(vertical)
 
     var is_open: Boolean
         get() = expand_state?.value == true

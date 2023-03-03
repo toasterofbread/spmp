@@ -63,7 +63,7 @@ class PaletteSelectorOverlayMenu(
                     }
                 }
 
-                for (i in 0 until PALETTE_COLOUR_AMOUNT) {
+                for (i in 0 until 7) {
                     addColour(palette.getColour(i))
                 }
 

@@ -704,7 +704,7 @@ private fun SeekBar(playerProvider: () -> PlayerViewContext, seek: (Float) -> Un
         return position_override ?: PlayerServiceHost.status.position
     }
 
-    RecomposeOnInterval(POSITION_UPDATE_INTERVAL_MS, PlayerServiceHost.status.playing) { state ->
+    RecomposeOnInterval(POSITION_UPDATE_INTERVAL_MS, PlayerServiceHost.status.m_playing) { state ->
         state
         Row(
             verticalAlignment = Alignment.CenterVertically,

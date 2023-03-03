@@ -51,10 +51,8 @@ fun Color.amplify(by: Float): Color {
     return offsetRGB(if (isDark()) by else -by)
 }
 
-const val PALETTE_COLOUR_AMOUNT = 7
-
 fun Color.compare(against: Color): Float {
-    return ((red - against.red).absoluteValue + (green - against.green).absoluteValue + (blue - against.blue).absoluteValue) / 3f
+    return 1f - (((red - against.red).absoluteValue + (green - against.green).absoluteValue + (blue - against.blue).absoluteValue) / 3f)
 }
 
 fun Palette.getColour(type: Int): Color? {

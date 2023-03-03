@@ -27,10 +27,12 @@ data class MediaItemLayout(
     val title: String?,
     val subtitle: String?,
     val type: Type? = null,
-    val items: MutableList<MediaItem> = mutableListOf()
+    val items: MutableList<MediaItem> = mutableListOf(),
+    val thumbnail_provider: MediaItem.ThumbnailProvider? = null // TODO
 ) {
     enum class Type {
         GRID,
+        LIST,
         NUMBERED_LIST
     }
 
@@ -97,7 +99,8 @@ fun MediaItemLayoutColumn(
         for (layout in layouts) {
             when (layout.type!!) {
                 MediaItemLayout.Type.GRID -> MediaItemGrid(layout, playerProvider)
-                MediaItemLayout.Type.NUMBERED_LIST -> MediaItemNumberedList(layout, playerProvider)
+                MediaItemLayout.Type.LIST -> MediaItemList(layout, false, playerProvider)
+                MediaItemLayout.Type.NUMBERED_LIST -> MediaItemList(layout, true, playerProvider)
             }
         }
     }
@@ -112,21 +115,23 @@ fun LazyMediaItemLayoutColumn(
     onContinuationRequested: (() -> Unit)? = null,
     loading_continuation: Boolean = false,
     continuation_alignment: Alignment.Horizontal = Alignment.CenterHorizontally,
-    scroll_state: LazyListState = rememberLazyListState()
+    scroll_state: LazyListState = rememberLazyListState(),
+    vertical_arrangement: Arrangement.Vertical = Arrangement.Top,
+    getType: ((MediaItemLayout) -> MediaItemLayout.Type)? = null
 ) {
-    for (layout in layouts) {
-        assert(layout.type != null)
-    }
+    require(getType != null || layouts.all { it.type != null })
 
     LazyColumn(
         modifier,
         state = scroll_state,
-        contentPadding = padding.copy(bottom = 0.dp)
+        contentPadding = padding.copy(bottom = 0.dp),
+        verticalArrangement = vertical_arrangement
     ) {
         items(layouts) { layout ->
-            when (layout.type!!) {
+            when (getType?.invoke(layout) ?: layout.type!!) {
                 MediaItemLayout.Type.GRID -> MediaItemGrid(layout, playerProvider)
-                MediaItemLayout.Type.NUMBERED_LIST -> MediaItemNumberedList(layout, playerProvider)
+                MediaItemLayout.Type.LIST -> MediaItemList(layout, false, playerProvider)
+                MediaItemLayout.Type.NUMBERED_LIST -> MediaItemList(layout, true, playerProvider)
             }
         }
 
@@ -164,7 +169,6 @@ fun MediaItemGrid(
     val item_width = 125.dp
 
     Column(modifier, verticalArrangement = Arrangement.spacedBy(10.dp)) {
-
         Column(Modifier.padding(horizontal = 20.dp)) {
             if (layout.title != null) {
                 WidthShrinkText(layout.title, style = MaterialTheme.typography.headlineMedium.copy(color = Theme.current.on_background))
@@ -186,15 +190,28 @@ fun MediaItemGrid(
 }
 
 @Composable
-fun MediaItemNumberedList(
+fun MediaItemList(
     layout: MediaItemLayout,
+    numbered: Boolean,
     playerProvider: () -> PlayerViewContext,
     modifier: Modifier = Modifier
 ) {
     Column(modifier) {
+        Column(Modifier.padding(horizontal = 20.dp)) {
+            if (layout.title != null) {
+                WidthShrinkText(layout.title, style = MaterialTheme.typography.headlineMedium.copy(color = Theme.current.on_background))
+            }
+            if (layout.subtitle != null) {
+                WidthShrinkText(layout.subtitle, style = MaterialTheme.typography.headlineSmall.copy(color = Theme.current.on_background))
+            }
+        }
+
         for (item in layout.items.withIndex()) {
             Row(verticalAlignment = Alignment.CenterVertically) {
-                Text((item.index + 1).toString().padStart((layout.items.size + 1).toString().length, '0'), fontWeight = FontWeight.Light)
+                if (numbered) {
+                    Text((item.index + 1).toString().padStart((layout.items.size + 1).toString().length, '0'), fontWeight = FontWeight.Light)
+                }
+
                 Column {
                     item.value.PreviewLong(Theme.current.on_background_provider, playerProvider, true, Modifier)
                 }

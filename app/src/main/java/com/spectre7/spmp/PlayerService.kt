@@ -123,13 +123,13 @@ class PlayerService : Service() {
             }
         }
 
-        startRadioFromExistingSong(0, song)
+        startRadioAtSong(0, song)
     }
 
-    fun startRadioAtSong(index: Index, song: Song? = null) {
+    fun startRadioAtSong(index: Int, song: Song? = null) {
         clearQueue(from = index + 1, keep_current = true, save = false)
         thread {
-            val result = radio.startNewRadio(song ?: getSong(index))
+            val result = radio.startNewRadio(song ?: getSong(index)!!)
             if (result.isFailure) {
                 MainActivity.error_manager.onError("playSong", result.exceptionOrNull()!!, null)
                 savePersistentQueue()

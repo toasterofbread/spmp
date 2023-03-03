@@ -40,7 +40,7 @@ import androidx.compose.ui.layout.SubcomposeLayout
 import androidx.compose.ui.layout.onSizeChanged
 import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.platform.LocalLayoutDirection
-import androidx.compose.ui.platform.Localuri_handler
+import androidx.compose.ui.platform.LocalUriHandler
 import androidx.compose.ui.platform.debugInspectorInfo
 import androidx.compose.ui.text.SpanStyle
 import androidx.compose.ui.text.TextLayoutResult
@@ -313,7 +313,7 @@ fun LinkifyText(
 		}
 	}
 	
-	val uri_handler = Localuri_handler.current
+	val uri_handler = LocalUriHandler.current
 	val layout_result = remember {
 		mutableStateOf<TextLayoutResult?>(null)
 	}

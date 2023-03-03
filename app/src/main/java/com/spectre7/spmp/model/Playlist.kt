@@ -1,6 +1,9 @@
 package com.spectre7.spmp.model
 
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import com.beust.klaxon.Klaxon
@@ -11,6 +14,16 @@ import com.spectre7.spmp.ui.layout.PlayerViewContext
 class Playlist private constructor (
     id: String
 ): MediaItemWithLayouts(id) {
+
+    var is_album: Boolean? by mutableStateOf(null)
+        private set
+
+    fun supplyIsAlbum(value: Boolean?, certain: Boolean): MediaItem {
+        if (value != null && (is_album == null || certain)) {
+            is_album = value
+        }
+        return this
+    }
 
     companion object {
         private val playlists: MutableMap<String, Playlist> = mutableMapOf()

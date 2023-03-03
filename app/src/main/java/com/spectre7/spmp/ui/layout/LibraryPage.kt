@@ -16,6 +16,7 @@ import com.spectre7.spmp.model.MediaItem
 import com.spectre7.spmp.model.Song
 import com.spectre7.spmp.ui.component.PillMenu
 import com.spectre7.spmp.ui.theme.Theme
+import com.spectre7.utils.getString
 
 @Composable
 fun LibraryPage(

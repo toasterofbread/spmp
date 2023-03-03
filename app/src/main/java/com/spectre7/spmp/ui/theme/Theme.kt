@@ -19,11 +19,13 @@ import androidx.core.view.ViewCompat
 import com.beust.klaxon.Converter
 import com.beust.klaxon.JsonValue
 import com.beust.klaxon.Klaxon
+import com.spectre7.spmp.R
 import com.spectre7.spmp.model.AccentColourSource
 import com.spectre7.spmp.model.Settings
 import com.spectre7.utils.OnChangedEffect
 import com.spectre7.utils.contrastAgainst
 import com.spectre7.utils.getContrasted
+import com.spectre7.utils.getString
 
 const val VIBRANT_ACCENT_CONTRAST: Float = 0.2f
 

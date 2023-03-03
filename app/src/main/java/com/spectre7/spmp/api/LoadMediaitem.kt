@@ -131,7 +131,7 @@ fun loadMediaItemData(item: MediaItem): Result<MediaItem> {
 
             item.supplyTitle(header_renderer.title.first_text, true)
 
-            for (row in parsed.contents.singleColumnBrowseResultsRenderer.tabs.first().tabRenderer.content!!.sectionListRenderer.contents.withIndex()) {
+            for (row in parsed.contents.singleColumnBrowseResultsRenderer.tabs.first().tabRenderer.content!!.sectionListRenderer.contents!!.withIndex()) {
                 val desc = row.value.getDescription()
                 if (desc != null) {
                     item.supplyDescription(desc, true)

@@ -40,35 +40,32 @@ abstract class MediaItem(id: String) {
         return _id
     }
 
-    private var _title: String? by mutableStateOf(null)
-    val title: String? 
-        get() = _title
+    var title: String? by mutableStateOf(null)
+        private set
 
     fun supplyTitle(value: String?, certain: Boolean = false): MediaItem {
-        if (value != null && (_title == null || certain)) {
-            _title = value
+        if (value != null && (title == null || certain)) {
+            title = value
         }
         return this
     }
 
-    private var _artist: Artist? by mutableStateOf(null)
-    val artist: Artist?
-        get() = _artist
+    var artist: Artist? by mutableStateOf(null)
+        private set
 
     fun supplyArtist(value: Artist?, certain: Boolean = false): MediaItem {
-        if (value != null && (_artist == null || certain)) {
-            _artist = value
+        if (value != null && (artist == null || certain)) {
+            artist = value
         }
         return this
     }
 
-    private var _description: String? by mutableStateOf(null)
-    val description: String?
-        get() = _description
+    var description: String? by mutableStateOf(null)
+        private set
 
     fun supplyDescription(value: String?, certain: Boolean = false): MediaItem {
-        if (value != null && (_description == null || certain)) {
-            _description = value
+        if (value != null && (description == null || certain)) {
+            description = value
         }
         return this
     }
@@ -125,15 +122,15 @@ abstract class MediaItem(id: String) {
 
     open fun supplyFromJsonObject(data: JsonObject, klaxon: Klaxon): MediaItem {
         assert(data.int("type") == type.ordinal)
-        data.string("title")?.also { _title = it }
-        data.string("artist")?.also { _artist = Artist.fromId(it) }
-        data.string("desc")?.also { _description = it }
+        data.string("title")?.also { title = it }
+        data.string("artist")?.also { artist = Artist.fromId(it) }
+        data.string("desc")?.also { description = it }
         data.obj("thumb")?.also { thumbnail_provider = ThumbnailProvider.fromJsonObject(it, klaxon) }
         return this
     }
 
     open fun isFullyLoaded(): Boolean {
-        return title != null && _artist != null && thumbnail_provider != null
+        return title != null && artist != null && thumbnail_provider != null
     }
 
     fun toJsonData(): String {

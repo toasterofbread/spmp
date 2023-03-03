@@ -36,12 +36,12 @@ class Artist private constructor (
         return this
     }
 
-    private var _subscriber_count_text: String? by mutableStateOf(null)
-    val subscriber_count_text: String? get() = _subscriber_count_text
+    var subscriber_count_text: String? by mutableStateOf(null)
+        private set
 
     fun supplySubscriberCountText(value: String?, certain: Boolean): MediaItem {
-        if (value != null && (_subscriber_count_text == null || certain)) {
-            _subscriber_count_text = value
+        if (value != null && (subscriber_count_text == null || certain)) {
+            subscriber_count_text = value
         }
         return this
     }

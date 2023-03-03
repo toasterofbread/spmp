@@ -345,7 +345,7 @@ fun PlayerView() {
 
             Crossfade(targetState = player.overlay_page) {
                 Column(Modifier.fillMaxSize()) {
-                    if (it != OverlayPage.NONE && it != OverlayPage.MEDIAITEM) {
+                    if (it != OverlayPage.NONE && it != OverlayPage.MEDIAITEM && it != OverlayPage.SEARCH) {
                         Spacer(Modifier.requiredHeight(getStatusBarHeight(MainActivity.context)))
                     }
 
@@ -439,7 +439,7 @@ private fun loadFeedLayouts(min_rows: Int, allow_cached: Boolean, continuation: 
 
     runBlocking { withContext(Dispatchers.IO) { coroutineScope {
         for (row in row_data) {
-            val entry = MediaItemLayout(row.title, row.subtitle, MediaItemLayout.Type.GRID)
+            val entry = MediaItemLayout(row.title, row.subtitle, MediaItemLayout.Type.GRID, thumbnail_provider = row.thumbnail_provider)
             rows.add(entry)
 
             for (item in row.items) {

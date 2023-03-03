@@ -45,7 +45,7 @@ fun SongPreviewSquare(
     val long_press_menu_data = remember(song) { LongPressMenuData(
         song,
         RoundedCornerShape(10),
-        getLongPressPopupActions(queue_index)
+        getSongLongPressPopupActions(queue_index)
     ) }
 
     Column(
@@ -95,7 +95,7 @@ fun SongPreviewLong(
     val long_press_menu_data = remember(song) { LongPressMenuData(
         song,
         RoundedCornerShape(20),
-        getLongPressPopupActions(queue_index)
+        getSongLongPressPopupActions(queue_index)
     ) }
 
     Row(
@@ -144,7 +144,7 @@ fun SongPreviewLong(
     }
 }
 
-private fun getLongPressPopupActions(queue_index: Int?): @Composable LongPressMenuActionProvider.(MediaItem) -> Unit = { song ->
+fun getSongLongPressPopupActions(queue_index: Int?): @Composable LongPressMenuActionProvider.(MediaItem) -> Unit = { song ->
     require(song is Song)
 
     ActionButton(

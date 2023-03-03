@@ -131,7 +131,7 @@ data class PlayerViewContext(
             else -> openMediaItem(item)
         }
     }
-    fun onMediaItemLongClicked(item: MediaItem) {
+    fun onMediaItemLongClicked(item: MediaItem, queue_index: Int? = null) {
         if (onLongClickedOverride != null) {
             onLongClickedOverride.invoke(item)
             return
@@ -143,7 +143,7 @@ data class PlayerViewContext(
         }
 
         showLongPressMenu(LongPressMenuData(item, actions = when (item) {
-            is Song -> songLongPressPopupActions
+            is Song -> getSongLongPressPopupActions(queue_index)
             is Artist -> artistLongPressPopupActions
             else -> null
         }))
@@ -298,6 +298,8 @@ fun PlayerView() {
     LaunchedEffect(player.overlay_page) {
         if (player.overlay_page == OverlayPage.NONE) {
             player.pill_menu.showing = true
+            player.pill_menu.top = false
+            player.pill_menu.left = false
             player.pill_menu.clearExtraActions()
             player.pill_menu.clearAlongsideActions()
             player.pill_menu.clearActionOverriders()

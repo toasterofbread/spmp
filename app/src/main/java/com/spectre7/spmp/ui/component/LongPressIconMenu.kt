@@ -54,7 +54,8 @@ class LongPressMenuActionProvider(
     val content_colour: () -> Color,
     val accent_colour: () -> Color,
     val background_colour: () -> Color,
-    val playerProvider: () -> PlayerViewContext
+    val playerProvider: () -> PlayerViewContext,
+    val closeMenu: () -> Unit
 ) {
     @Composable
     fun ActionButton(icon: ImageVector, label: String, modifier: Modifier = Modifier, onClick: () -> Unit, onLongClick: (() -> Unit)? = null) =
@@ -340,9 +341,9 @@ fun LongPressIconMenu(
                                 Modifier
                                     .fillMaxSize()
                                     .weight(1f)
-                                    .padding(horizontal = 15.dp)
-                                , verticalArrangement = Arrangement.Center) {
-
+                                    .padding(horizontal = 15.dp), 
+                                verticalArrangement = Arrangement.Center
+                            ) {
                                 Marquee(false) {
                                     Text(
                                         data.item.title ?: "",
@@ -383,7 +384,8 @@ fun LongPressIconMenu(
                                 Theme.current.on_background_provider,
                                 accent_colour_provider,
                                 Theme.current.background_provider,
-                                playerProvider
+                                playerProvider,
+                                { close_requested = true }
                             ),
                             data.item
                         )

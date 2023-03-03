@@ -30,7 +30,7 @@ import androidx.compose.ui.unit.TextUnit
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.spectre7.spmp.api.getOrThrowHere
-import com.spectre7.spmp.api.searchYoutube
+import com.spectre7.spmp.api.searchYoutubeMusic
 import com.spectre7.spmp.model.Artist
 import com.spectre7.spmp.model.Playlist
 import com.spectre7.spmp.model.Song
@@ -40,6 +40,16 @@ import com.spectre7.spmp.ui.theme.Theme
 import kotlin.concurrent.thread
 
 val SEARCH_FIELD_FONT_SIZE: TextUnit = 18.sp
+
+fun YTMusicSearchResults.getLayouts(): List<MediaItemLayout> {
+    return listOf(
+        MediaItemLayout(MediaItem.Type.SONG.readable(true), null, items = songs)
+        MediaItemLayout(getString(R.string.videos), null, items = videos)
+        MediaItemLayout(MediaItem.Type.ARTIST.readable(true), null, items = artists)
+        MediaItemLayout(MediaItem.Type.PLAYLIST.readable(true), null, items = playlists)
+        MediaItemLayout(getString(R.string.albums), null, items = albums)
+    )
+}
 
 @OptIn(ExperimentalComposeUiApi::class)
 @Composable
@@ -57,10 +67,10 @@ fun SearchPage(
     var search_in_progress: Boolean by remember { mutableStateOf(false) }
     val search_lock = remember { Object() }
 
-    var type_to_search: MediaItem.Type by remember { mutableStateOf(MediaItem.Type.SONG) }
+    var type_to_search: MediaItem.Type? by remember { mutableStateOf(null) }
     var query_text by remember { mutableStateOf("") }
 
-    val found_results = remember { mutableStateListOf<MediaItem>() }
+    val current_results: List<MediaItemLayout>? by remember { mutableStateOf(null) }
 
     // TODO
     var error: Throwable? by remember { mutableStateOf(null) }
@@ -80,68 +90,31 @@ fun SearchPage(
         }
 
         thread {
-            val results = searchYoutube(query, type).getOrThrowHere()
-            
+            val results = searchYoutubeMusic(query, type).getOrThrowHere()
+
             synchronized(search_lock) {
-                found_results.clear()
-
-                for (result in results) {
-                    when (result.id.kind) {
-                        "youtube#video" -> {
-                            Song.fromId(result.id.videoId).loadData().fold(
-                                onSuccess = {
-                                    found_results.add(it)
-                                },
-                                onFailure = {
-                                    error = it
-                                }
-                            )
-                        }
-                        "youtube#channel" -> {
-                            Artist.fromId(result.id.channelId).loadData().fold(
-                                onSuccess = {
-                                    found_results.add(it)
-                                },
-                                onFailure = {
-                                    error = it
-                                }
-                            )
-                        }
-                        "youtube#playlist" -> {
-                            Playlist.fromId(result.id.playlistId).loadData().fold(
-                                onSuccess = {
-                                    found_results.add(it)
-                                },
-                                onFailure = {
-                                    error = it
-                                }
-                            )
-                        }
-                        else -> throw NotImplementedError(result.id.kind)
-                    }
-                }
-
+                current_results = results.getLayouts()
                 search_in_progress = false
             }
         }
     }
 
     LaunchedEffect(Unit) {
-        pill_menu.showing = false
+        pill_menu.top = true
     }
 
-    Column(Modifier.fillMaxSize().padding(bottom = bottom_padding)) {
-        // Search results
-        LazyColumn(Modifier.fillMaxSize().weight(1f)) {
-            itemsIndexed(items = found_results, key = { _, item -> item.id }) { _, item ->
-                item.PreviewLong(
-                    Theme.current.on_background_provider,
-                    playerProvider,
-                    true,
-                    Modifier
-                )
-            }
+    Column(
+        Modifier.fillMaxSize().padding(bottom = bottom_padding),
+        verticalArrangement = Arrangement.Bottom
+    ) {
+        if (current_results != null) {
+            LazyMediaItemLayoutColumn(
+                current_results,
+                playerProvider,
+                Modifier.fillMaxWidth()
+            )
         }
+
 
         // Bottom bar
         Row(
@@ -236,6 +209,22 @@ fun SearchPage(
                         IconButton(onClick = { query_text = "" }, Modifier.fillMaxWidth()) {
                             Icon(Icons.Filled.Clear, null, Modifier, Theme.current.on_accent)
                         }
+
+                        // Search button / search indicator
+                        Crossfade(search_in_progress) { in_progress ->
+                            if (!in_progress) {
+                                IconButton(onClick = {
+                                    if (!search_in_progress) {
+                                        performSearch(query_text, type_to_search)
+                                    }
+                                }) {
+                                    Icon(Icons.Filled.Search, null)
+                                }
+                            }
+                            else {
+                                CircularProgressIndicator(Modifier.size(30.dp))
+                            }
+                        }
                     }
                 },
                 keyboardOptions = KeyboardOptions(imeAction = ImeAction.Search),
@@ -247,22 +236,6 @@ fun SearchPage(
                     }
                 )
             )
-
-            // Search button / search indicator
-            Crossfade(search_in_progress) { in_progress ->
-                if (!in_progress) {
-                    IconButton(onClick = {
-                        if (!search_in_progress) {
-                            performSearch(query_text, type_to_search)
-                        }
-                    }) {
-                        Icon(Icons.Filled.Search, null)
-                    }
-                }
-                else {
-                    CircularProgressIndicator()
-                }
-            }
         }
     }
 

@@ -85,7 +85,15 @@ class PlayerService : Service() {
     val session_started: Boolean get() = _session_started
 
     var active_queue_index: Int by mutableStateOf(0)
-    fun updateActiveQueueIndex(delta: Int) {
+    fun updateActiveQueueIndex(delta: Int = 0) {
+        if (delta == 0) {
+            if (active_queue_index >= player.mediaItemCount) {
+                active_queue_index = player.currentMediaItemIndex
+            }
+
+            return
+        }
+
         active_queue_index = (active_queue_index + delta).coerceIn(player.currentMediaItemIndex, player.mediaItemCount - 1)
     }
 
@@ -176,6 +184,8 @@ class PlayerService : Service() {
         if (save) {
             savePersistentQueue()
         }
+
+        updateActiveQueueIndex()
 
         return ret
     }

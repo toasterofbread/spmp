@@ -1,10 +1,7 @@
 <resources>
     <string name="app_name" translatable="false">SpMp</string>
-    <string name="ngrok_api_key" translatable="false">***REMOVED***</string>
-    <string name="server_api_key" translatable="false">***REMOVED***</string>
     <string name="yt_api_key" translatable="false">***REMOVED***</string>
     <string name="yt_i_api_key" translatable="false">AIzaSyAO_FJ2SlqU8Q4STEHLGCilw_Y9_11qcW8</string>
-    <string name="oauth_client_id" translatable="false">1029123928342-8las6c3oor0r3910mcsarl6vauoi96fg.apps.googleusercontent.com</string>
 
     <string name="song_name">Song name</string>
     <string name="videos">Videos</string>
@@ -32,6 +29,12 @@
     <string name="prompt_confirm_action">Please confirm</string>
     <string name="prompt_confirm_settings_page_reset">Reset all values on this page?</string>
 
+    <string name="theme_title_default">Default theme</string>
+    <string name="theme_title_new">New theme</string>
+    
+    <string name="queue_shuffle">Shuffle</string>
+    <string name="queue_clear">Clear</string>
+    
     <string name="playlist_chip_play">Play</string>
     <string name="playlist_chip_shuffle">Shuffle</string>
     <string name="playlist_chip_radio">Radio</string>
@@ -70,6 +73,11 @@
     <string name="accessibility_service_description">TODO Desc</string>
     <string name="generic_network_error">A network error occurred</string>
 
+    <string name="acc_ser_enable_dialog_title">Enabling accessibility service</string>
+    <string name="acc_ser_enable_dialog_body">Service can be enabled automatically by granting write secure settings permission using root</string>
+    <string name="acc_ser_enable_dialog_btn_root">Use root</string>
+    <string name="acc_ser_enable_dialog_btn_manual">Enable manually</string>
+
     <string name="s_page_preferences">Preferences</string>
 
     <string name="s_group_general">General</string>
@@ -77,6 +85,8 @@
     <string name="s_sub_interface_lang">Language used for interface text</string>
     <string name="s_key_data_lang">Data language</string>
     <string name="s_sub_data_lang">Language used for song and artist titles, etc. (if available)</string>
+    <string name="s_key_initial_feed_rows">Initial feed rows</string>
+    <string name="s_sub_initial_feed_rows">Minimum amount of feed rows to load automatically</string>
 
     <string name="s_key_vol_steps">Volume steps</string>
     <string name="s_sub_vol_steps">Amount of steps when changing volume</string>
@@ -88,6 +98,9 @@
     <string name="s_sub_persistent_queue">Song queue will persist even when closing the app</string>
 
     <string name="s_group_theming">Theming</string>
+
+    <string name="s_key_current_theme">Current theme</string>
+    <string name="s_theme_editor_title">Edit theme</string>
 
     <string name="s_key_accent_source">Accent colour</string>
     <string name="s_option_accent_theme">From theme</string>

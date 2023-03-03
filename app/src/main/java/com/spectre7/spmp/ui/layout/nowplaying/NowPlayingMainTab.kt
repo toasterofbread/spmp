@@ -604,7 +604,7 @@ private fun VolumeSlider(colour: Color, modifier: Modifier = Modifier) {
     SliderValueHorizontal(
         value = PlayerServiceHost.status.m_volume,
         onValueChange = {
-            PlayerServiceHost.status.m_volume = it
+            PlayerServiceHost.status.volume = it
         },
         thumbSizeInDp = DpSize(12.dp, 12.dp),
         track = { a, b, c, d, e -> DefaultTrack(a, b, c, d, e, colour.setAlpha(0.5f), colour) },

@@ -388,8 +388,18 @@ class Song private constructor (
     }
 
     @Composable
+    fun PreviewSquare(content_colour: () -> Color, playerProvider: () -> PlayerViewContext, enable_long_press_menu: Boolean, modifier: Modifier = Modifier, queue_index: Int?) {
+        SongPreviewSquare(this, content_colour, playerProvider, enable_long_press_menu, modifier, queue_index = queue_index)
+    }
+
+    @Composable
     override fun PreviewLong(content_colour: () -> Color, playerProvider: () -> PlayerViewContext, enable_long_press_menu: Boolean, modifier: Modifier) {
         SongPreviewLong(this, content_colour, playerProvider, enable_long_press_menu, modifier)
+    }
+
+    @Composable
+    fun PreviewLong(content_colour: () -> Color, playerProvider: () -> PlayerViewContext, enable_long_press_menu: Boolean, modifier: Modifier = Modifier, queue_index: Int?) {
+        SongPreviewLong(this, content_colour, playerProvider, enable_long_press_menu, modifier, queue_index = queue_index)
     }
 
     override val url: String get() = "https://music.youtube.com/watch?v=$id"

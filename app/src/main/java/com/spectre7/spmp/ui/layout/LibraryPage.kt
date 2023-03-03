@@ -42,7 +42,7 @@ fun LibraryPage(
         item {
             Column {
                 Text(
-                    "Library",
+                    getString("Library"),
                     style = MaterialTheme.typography.headlineLarge.copy(
                         color = Theme.current.on_background
                     )

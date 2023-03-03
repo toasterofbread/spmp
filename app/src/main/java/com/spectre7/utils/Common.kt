@@ -24,6 +24,7 @@ import androidx.compose.material.ripple.RippleTheme
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
+import androidx.compose.ui.ExperimentalComposeUiApi
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.composed
 import androidx.compose.ui.draw.*
@@ -592,18 +593,26 @@ fun Modifier.crossOut(
 		}
 }
 
-fun Modifier.recomposeOnInterval(interval_ms: Long): Modifier = composed {
-    val recomposition_state by remember { mutableStateOf(false) }
-    LaunchedEffect(Unit) {
-		while (true) {
-			delay(interval_ms)
+@Composable
+fun RecomposeOnInterval(interval_ms: Long, enabled: Boolean = true, content: @Composable (Boolean) -> Unit) {
+    var recomposition_state by remember { mutableStateOf(false) }
+
+	LaunchedEffect(enabled) {
+		if (enabled) {
+			while (true) {
+				delay(interval_ms)
+				recomposition_state = !recomposition_state
+			}
+		}
+		else {
 			recomposition_state = !recomposition_state
 		}
     }
-    this
+
+	content(recomposition_state)
 }
 
-fun List<T>.addUnique(item: T): Boolean {
+fun <T> MutableList<T>.addUnique(item: T): Boolean {
 	if (!contains(item)) {
 		add(item)
 		return true

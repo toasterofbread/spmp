@@ -19,12 +19,13 @@ import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.unit.IntSize
 import androidx.palette.graphics.Palette
 import com.beust.klaxon.*
-import com.spectre7.spmp.MainActivity
+import com.spectre7.spmp.R
 import com.spectre7.spmp.api.DataApi
 import com.spectre7.spmp.api.loadMediaItemData
 import com.spectre7.spmp.ui.component.MediaItemLayout
 import com.spectre7.spmp.ui.layout.PlayerViewContext
 import com.spectre7.utils.SubtleLoadingIndicator
+import com.spectre7.utils.getString
 import com.spectre7.utils.getThemeColour
 import java.io.Reader
 import java.net.URL

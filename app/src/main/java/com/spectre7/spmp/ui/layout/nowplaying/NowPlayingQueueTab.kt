@@ -119,6 +119,7 @@ private class QueueTabItem(val song: Song, val key: Int) {
     }
 }
 
+@OptIn(ExperimentalFoundationApi::class)
 @Composable
 fun QueueTab(expansionProvider: () -> Float, playerProvider: () -> PlayerViewContext, scroll: (pages: Int) -> Unit) {
 
@@ -201,88 +202,86 @@ fun QueueTab(expansionProvider: () -> Float, playerProvider: () -> PlayerViewCon
                     .height(40.dp)
                     .fillMaxWidth(),
                 verticalAlignment = Alignment.CenterVertically,
-                horizontalArrangement = Arrangement.spacedBy(10.dp)
+                horizontalArrangement = Arrangement.SpaceEvenly
             ) {
                 RepeatButton(background_colour, background_colour.getContrasted(), Modifier.fillMaxHeight())
                 StopAfterSongButton(background_colour, Modifier.fillMaxHeight())
 
-                Row(Modifier.fillMaxWidth().weight(1f)) {
-                    Button(
-                        onClick = {
-                            val removed: List<Pair<Song, Int>> = PlayerServiceHost.service.clearQueue(keep_current = PlayerServiceHost.status.queue_size > 1)
-                            if (removed.isNotEmpty()) {
-                                val index = PlayerServiceHost.player.currentMediaItemIndex
-                                undo_list.add {
-                                    val before = mutableListOf<Song>()
-                                    val after = mutableListOf<Song>()
-                                    for (item in removed.withIndex()) {
-                                        if (item.value.second >= index) {
-                                            for (i in item.index until removed.size) {
-                                                after.add(removed[i].first)
-                                            }
-                                            break
+                Button(
+                    onClick = {
+                        val removed: List<Pair<Song, Int>> = PlayerServiceHost.service.clearQueue(keep_current = PlayerServiceHost.status.queue_size > 1)
+                        if (removed.isNotEmpty()) {
+                            val index = PlayerServiceHost.player.currentMediaItemIndex
+                            undo_list.add {
+                                val before = mutableListOf<Song>()
+                                val after = mutableListOf<Song>()
+                                for (item in removed.withIndex()) {
+                                    if (item.value.second >= index) {
+                                        for (i in item.index until removed.size) {
+                                            after.add(removed[i].first)
                                         }
-                                        before.add(item.value.first)
+                                        break
                                     }
+                                    before.add(item.value.first)
+                                }
 
-                                    PlayerServiceHost.service.addMultipleToQueue(before, 0)
-                                    PlayerServiceHost.service.addMultipleToQueue(after, index + 1)
+                                PlayerServiceHost.service.addMultipleToQueue(before, 0)
+                                PlayerServiceHost.service.addMultipleToQueue(after, index + 1)
+                            }
+                        }
+                    },
+                    colors = ButtonDefaults.buttonColors(
+                        containerColor = background_colour,
+                        contentColor = background_colour.getContrasted()
+                    )
+                ) {
+                    Text("Clear")
+                }
+
+                Surface(
+                    Modifier.combinedClickable(
+                        onClick = {
+                            val swaps = PlayerServiceHost.service.shuffleQueue(return_swaps = true)!!
+                            if (swaps.isNotEmpty()) {
+                                undo_list.add {
+                                    for (swap in swaps.asReversed()) {
+                                        PlayerServiceHost.service.swapQueuePositions(swap.first, swap.second, save = false)
+                                    }
+                                    PlayerServiceHost.service.savePersistentQueue()
                                 }
                             }
                         },
-                        colors = ButtonDefaults.buttonColors(
-                            containerColor = background_colour,
-                            contentColor = background_colour.getContrasted()
-                        )
-                    ) {
-                        Text("Clear")
-                    }
-
-                    Surface(
-                        Modifier.combinedClickable(
-                            onClick = {
-                                val swaps = PlayerServiceHost.service.shuffleQueue(return_swaps = true)!!
-                                if (swaps.isNotEmpty()) {
-                                    undo_list.add {
-                                        for (swap in swaps.asReversed()) {
-                                            PlayerServiceHost.service.swapQueuePositions(swap.first, swap.second, save = false)
-                                        }
-                                        PlayerServiceHost.service.savePersistentQueue()
+                        onLongClick = {
+                            vibrateShort()
+                            val swaps = PlayerServiceHost.service.shuffleQueue(start = 0, return_swaps = true)!!
+                            if (swaps.isNotEmpty()) {
+                                undo_list.add {
+                                    for (swap in swaps.asReversed()) {
+                                        PlayerServiceHost.service.swapQueuePositions(swap.first, swap.second, save = false)
                                     }
-                                }
-                            },
-                            onLongClick = {
-                                vibrateShort()
-                                val swaps = PlayerServiceHost.service.shuffleQueue(start = 0, return_swaps = true)!!
-                                if (swaps.isNotEmpty()) {
-                                    undo_list.add {
-                                        for (swap in swaps.asReversed()) {
-                                            PlayerServiceHost.service.swapQueuePositions(swap.first, swap.second, save = false)
-                                        }
-                                        PlayerServiceHost.service.savePersistentQueue()
-                                    }
+                                    PlayerServiceHost.service.savePersistentQueue()
                                 }
                             }
-                        ),
-                        color = background_colour,
-                        shape = FilledButtonTokens.ContainerShape.toShape()
-                    ) {
-                        Row(
-                            Modifier
-                                .defaultMinSize(
-                                    minWidth = ButtonDefaults.MinWidth,
-                                    minHeight = ButtonDefaults.MinHeight
-                                )
-                                .padding(ButtonDefaults.ContentPadding),
-                            horizontalArrangement = Arrangement.Center,
-                            verticalAlignment = Alignment.CenterVertically
-                        ) {
-                            Text(
-                                text = "Shuffle",
-                                color = background_colour.getContrasted(),
-                                style = MaterialTheme.typography.labelLarge
-                            )
                         }
+                    ),
+                    color = background_colour,
+                    shape = FilledButtonTokens.ContainerShape.toShape()
+                ) {
+                    Row(
+                        Modifier
+                            .defaultMinSize(
+                                minWidth = ButtonDefaults.MinWidth,
+                                minHeight = ButtonDefaults.MinHeight
+                            )
+                            .padding(ButtonDefaults.ContentPadding),
+                        horizontalArrangement = Arrangement.Center,
+                        verticalAlignment = Alignment.CenterVertically
+                    ) {
+                        Text(
+                            text = "Shuffle",
+                            color = background_colour.getContrasted(),
+                            style = MaterialTheme.typography.labelLarge
+                        )
                     }
                 }
 
@@ -439,33 +438,24 @@ private fun StopAfterSongButton(background_colour: Color, modifier: Modifier = M
     }
 }
 
-@OptIn(ExperimentalFoundationApi::class)
 @Composable
 private fun BoxScope.ActionBar(playerProvider: () -> PlayerViewContext, expansionProvider: () -> Float, undo_list: SnapshotStateList<() -> Unit>, scroll: (pages: Int) -> Unit) {
     val slide_offset: (fullHeight: Int) -> Int = remember { { (it * 0.7).toInt() } }
 
-    Box(Modifier.align(Alignment.BottomCenter)) {
+    Box(Modifier.align(Alignment.BottomStart).padding(10.dp)) {
 
         AnimatedVisibility(
             remember { derivedStateOf { expansionProvider() >= 0.975f } }.value,
             enter = slideInVertically(initialOffsetY = slide_offset),
             exit = slideOutVertically(targetOffsetY = slide_offset)
         ) {
-            Row(
+            IconButton(
+                { scroll(-1) },
                 Modifier
-                    .padding(10.dp)
-                    .align(Alignment.BottomCenter),
-                horizontalArrangement = Arrangement.SpaceBetween,
-                verticalAlignment = Alignment.CenterVertically
+                    .background(getNPOnBackground(playerProvider), CircleShape)
+                    .size(40.dp)
             ) {
-                IconButton(
-                    { scroll(-1) },
-                    Modifier
-                        .background(getNPOnBackground(playerProvider), CircleShape)
-                        .size(40.dp)
-                ) {
-                    Icon(Icons.Filled.KeyboardArrowUp, null, tint = getNPBackground(playerProvider))
-                }
+                Icon(Icons.Filled.KeyboardArrowUp, null, tint = getNPBackground(playerProvider))
             }
         }
     }

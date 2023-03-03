@@ -52,7 +52,7 @@ enum class Settings {
     KEY_OPEN_NP_ON_SONG_PLAYED,
     KEY_INITIAL_FEED_ROWS,
     KEY_VOLUME_STEPS,
-    KEY_PERSISTENT_QUEUE
+    KEY_PERSISTENT_QUEUE,
     KEY_ADD_SONG_TO_HISTORY;
 
     companion object {

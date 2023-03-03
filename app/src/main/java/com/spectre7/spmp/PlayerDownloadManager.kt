@@ -4,10 +4,11 @@ import android.app.NotificationChannel
 import android.app.NotificationManager
 import android.content.*
 import android.os.IBinder
-import androidx.compose.runtime.mutableStateListOf
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.setValue
 import androidx.core.app.NotificationManagerCompat
 import androidx.localbroadcastmanager.content.LocalBroadcastManager
-import com.spectre7.spmp.model.Settings
 import com.spectre7.spmp.model.Song
 import com.spectre7.utils.createNotification
 import com.spectre7.utils.getString
@@ -105,8 +106,8 @@ class PlayerDownloadManager(private val context: Context) {
         callbacks[instance] = callback
     }
 
-    fun iterateDownloadedFiles(action: (file: File?, data: FilenameData) -> Unit) {
-        val files = getDownloadDir(context).listFiles() ?: return null
+    fun iterateDownloadedFiles(action: (file: File?, data: PlayerDownloadService.FilenameData) -> Unit) {
+        val files = getDownloadDir(context).listFiles() ?: return
         for (file in files) {
             action(file, PlayerDownloadService.getFilenameData(file.name))
         }

@@ -567,7 +567,9 @@ private fun Controls(
             ) {
                 var volume_slider_visible by remember { mutableStateOf(false) }
                 Row(
-                    Modifier.weight(1f, false).animateContentSize(),
+                    Modifier
+                        .weight(1f, false)
+                        .animateContentSize(),
                     verticalAlignment = Alignment.CenterVertically
                 ) {
                     IconButton(
@@ -588,7 +590,9 @@ private fun Controls(
                 }
 
                 AnimatedVisibility(!volume_slider_visible, enter = expandHorizontally(), exit = shrinkHorizontally()) {
-                    Spacer(Modifier.width(48.dp).background(Color.Green))
+                    Spacer(Modifier
+                        .width(48.dp)
+                        .background(Color.Green))
                 }
             }
         }
@@ -700,48 +704,50 @@ private fun SeekBar(playerProvider: () -> PlayerViewContext, seek: (Float) -> Un
         return position_override ?: PlayerServiceHost.status.position
     }
 
-    Row(
-        Modifier.recomposeOnInterval(POSITION_UPDATE_INTERVAL_MS),
-        verticalAlignment = Alignment.CenterVertically, 
-        horizontalArrangement = Arrangement.spacedBy(5.dp)
-    ) {
+    RecomposeOnInterval(POSITION_UPDATE_INTERVAL_MS, PlayerServiceHost.status.playing) { state ->
+        state
+        Row(
+            verticalAlignment = Alignment.CenterVertically,
+            horizontalArrangement = Arrangement.spacedBy(5.dp)
+        ) {
 
-        SeekBarTimeText(PlayerServiceHost.status.position_seconds, getNPOnBackground(playerProvider))
+            SeekBarTimeText(PlayerServiceHost.status.position_seconds, getNPOnBackground(playerProvider))
 
-        SliderValueHorizontal(
-            value = getSliderValue(),
-            onValueChange = {
-                if (grab_start_position == null) {
-                    grab_start_position = PlayerServiceHost.status.position
-                }
+            SliderValueHorizontal(
+                value = getSliderValue(),
+                onValueChange = {
+                    if (grab_start_position == null) {
+                        grab_start_position = PlayerServiceHost.status.position
+                    }
 
-                position_override = it
+                    position_override = it
 
-                val side = if (it <= grab_start_position!! - SEEK_CANCEL_THRESHOLD / 2.0) -1 else if (it >= grab_start_position!! + SEEK_CANCEL_THRESHOLD / 2.0) 1 else 0
-                if (side != cancel_area_side) {
-                    if (side == 0 || side + (cancel_area_side ?: 0) == 0) {
+                    val side = if (it <= grab_start_position!! - SEEK_CANCEL_THRESHOLD / 2.0) -1 else if (it >= grab_start_position!! + SEEK_CANCEL_THRESHOLD / 2.0) 1 else 0
+                    if (side != cancel_area_side) {
+                        if (side == 0 || side + (cancel_area_side ?: 0) == 0) {
+                            vibrateShort()
+                        }
+                        cancel_area_side = side
+                    }
+                },
+                onValueChangeFinished = {
+                    if (cancel_area_side == 0 && grab_start_position != null) {
                         vibrateShort()
                     }
-                    cancel_area_side = side
-                }
-            },
-            onValueChangeFinished = {
-                if (cancel_area_side == 0 && grab_start_position != null) {
-                    vibrateShort()
-                }
-                else {
-                    seek(position_override!!)
-                }
-                old_position = PlayerServiceHost.status.position
-                grab_start_position = null
-                cancel_area_side = null
-            },
-            thumbSizeInDp = DpSize(12.dp, 12.dp),
-            track = { a, b, _, _, e -> SeekTrack(a, b, e, getNPOnBackground(playerProvider).setAlpha(0.5f), getNPOnBackground(playerProvider)) },
-            thumb = { a, b, c, d, e -> DefaultThumb(a, b, c, d, e, getNPOnBackground(playerProvider), 1f) },
-            modifier = Modifier.weight(1f)
-        )
+                    else {
+                        seek(position_override!!)
+                    }
+                    old_position = PlayerServiceHost.status.position
+                    grab_start_position = null
+                    cancel_area_side = null
+                },
+                thumbSizeInDp = DpSize(12.dp, 12.dp),
+                track = { a, b, _, _, e -> SeekTrack(a, b, e, getNPOnBackground(playerProvider).setAlpha(0.5f), getNPOnBackground(playerProvider)) },
+                thumb = { a, b, c, d, e -> DefaultThumb(a, b, c, d, e, getNPOnBackground(playerProvider), 1f) },
+                modifier = Modifier.weight(1f)
+            )
 
-        SeekBarTimeText(PlayerServiceHost.status.m_duration, getNPOnBackground(playerProvider))
+            SeekBarTimeText(PlayerServiceHost.status.m_duration, getNPOnBackground(playerProvider))
+        }
     }
 }

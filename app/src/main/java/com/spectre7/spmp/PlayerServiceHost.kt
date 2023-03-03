@@ -113,10 +113,6 @@ class PlayerServiceHost {
                 }
             })
         }
-
-        fun release() {
-            service.removeQueueListener(queue_listener)
-        }
     }
 
     companion object {
@@ -153,7 +149,6 @@ class PlayerServiceHost {
             service_intent = null
         }
         download_manager.release()
-        status.release()
     }
 
     @Synchronized

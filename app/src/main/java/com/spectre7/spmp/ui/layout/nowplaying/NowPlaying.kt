@@ -133,7 +133,8 @@ fun NowPlayingCardContent(
             modifier = Modifier
                 .requiredHeight(page_height)
                 .requiredWidth(screen_width_dp)
-                .padding(top = (getStatusBarHeight(MainActivity.context)) * expansionProvider().coerceAtLeast(0f))
+                .padding(top = (getStatusBarHeight(MainActivity.context)) * expansionProvider().coerceAtLeast(
+                    0f))
         ) {
             NowPlayingMainTab(
                 expansionProvider,
@@ -167,17 +168,20 @@ fun NowPlayingCardContent(
 
 @Composable
 fun MinimisedProgressBar(playerProvider: () -> PlayerViewContext, expansionProvider: () -> Float) {
-    LinearProgressIndicator(
-        progress = PlayerServiceHost.status.position,
-        color = getNPOnBackground(playerProvider),
-        trackColor = getNPOnBackground(playerProvider).setAlpha(0.5f),
-        modifier = Modifier
-            .requiredHeight(2.dp)
-            .fillMaxWidth()
-            .graphicsLayer {
-                alpha = 1f - expansionProvider()
-            }
-            .recomposeOnInterval(POSITION_UPDATE_INTERVAL_MS)
-    )
+    RecomposeOnInterval(POSITION_UPDATE_INTERVAL_MS) { state ->
+        state
+
+        LinearProgressIndicator(
+            progress = PlayerServiceHost.status.position,
+            color = getNPOnBackground(playerProvider),
+            trackColor = getNPOnBackground(playerProvider).setAlpha(0.5f),
+            modifier = Modifier
+                .requiredHeight(2.dp)
+                .fillMaxWidth()
+                .graphicsLayer {
+                    alpha = 1f - expansionProvider()
+                }
+        )
+    }
 }
 

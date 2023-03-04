@@ -7,6 +7,8 @@
     <string name="home_feed_mixed_for_you">Mixed for you</string>
     <string name="home_feed_new_releases">New releases</string>
     <string name="home_feed_moods_and_genres">Recommended playlists</string>
+    <string name="home_feed_charts">Charts</string>
+    <string name="home_feed_similar_to">Similar to</string>
 
     <string name="song_name">Song name</string>
     <string name="videos">Videos</string>
@@ -18,7 +20,7 @@
     <string name="artist">Artist</string>
 
     <string name="playlists">Playlists</string>
-    <string name="playlist">Playlists</string>
+    <string name="playlist">Playlist</string>
 
     <string name="albums">Albums</string>
     <string name="album">Album</string>
@@ -90,8 +92,15 @@
     <string name="s_sub_interface_lang">Language used for interface text</string>
     <string name="s_key_data_lang">Data language</string>
     <string name="s_sub_data_lang">Language used for song and artist titles, etc. (if available)</string>
-    <string name="s_key_initial_feed_rows">Initial feed rows</string>
-    <string name="s_sub_initial_feed_rows">Minimum amount of feed rows to load automatically</string>
+
+    <string name="s_group_home_feed">Home feed</string>
+    <string name="s_key_feed_initial_rows">Initial feed rows</string>
+    <string name="s_sub_feed_initial_rows">Minimum amount of feed rows to load automatically</string>
+    <string name="s_key_feed_enable_listen_row">Enable \'Listen again\' row</string>
+    <string name="s_key_feed_enable_mix_row">Enable \'Mixed for you\' row</string>
+    <string name="s_key_feed_enable_new_row">Enable \'New releases\' row</string>
+    <string name="s_key_feed_enable_moods_row">Enable \'Recommended playlists\' row</string>
+    <string name="s_key_feed_enable_charts_row">Enable \'Charts\' row</string>
 
     <string name="s_key_vol_steps">Volume steps</string>
     <string name="s_sub_vol_steps">Amount of steps when changing volume</string>

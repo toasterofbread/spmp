@@ -2,6 +2,8 @@ package com.spectre7.spmp.api
 
 import com.spectre7.spmp.R
 import com.spectre7.spmp.model.*
+import com.spectre7.spmp.ui.component.MediaItemLayout
+import com.spectre7.spmp.ui.component.generateLayoutTitle
 import com.spectre7.utils.getString
 import okhttp3.Request
 import java.io.BufferedReader
@@ -9,72 +11,7 @@ import java.time.Duration
 
 private val CACHE_LIFETIME = Duration.ofDays(1)
 
-open class HomeFeedRow {
-
-    lateinit var items: List<MediaItem>
-    var title: String = ""
-        get() {
-            if (field.isNotEmpty()) {
-                return field
-            }
-            // TODO
-            return "Title"
-        }
-    var subtitle: String? = null
-    var thumbnail_provider: MediaItem.ThumbnailProvider? = null
-
-    open fun viewMore(
-        listPage: (url: String) -> Unit,
-        viewArtist: (artist: Artist) -> Unit,
-        viewPlaylist: (playlist: Playlist) -> Unit
-    ) {}
-
-    class UrlPage(
-        private val url: String
-    ): HomeFeedRow() {
-        override fun viewMore(
-            listPage: (url: String) -> Unit,
-            viewArtist: (artist: Artist) -> Unit,
-            viewPlaylist: (playlist: Playlist) -> Unit
-        ) {
-            listPage(url)
-        }
-    }
-
-    class ArtistContent(
-        val artist: Artist
-    ): HomeFeedRow() {
-        init {
-            title = artist.title!!
-        }
-
-        override fun viewMore(
-            listPage: (url: String) -> Unit,
-            viewArtist: (artist: Artist) -> Unit,
-            viewPlaylist: (playlist: Playlist) -> Unit
-        ) {
-            viewArtist(artist)
-        }
-    }
-
-    class PlaylistContent(
-        val playlist: Playlist
-    ): HomeFeedRow() {
-        init {
-            title = playlist.title!!
-        }
-
-        override fun viewMore(
-            listPage: (url: String) -> Unit,
-            viewArtist: (artist: Artist) -> Unit,
-            viewPlaylist: (playlist: Playlist) -> Unit
-        ) {
-            viewPlaylist(playlist)
-        }
-    }
-}
-
-fun getHomeFeed(min_rows: Int = -1, allow_cached: Boolean = true, continuation: String? = null): Result<Pair<List<HomeFeedRow>, String?>> {
+fun getHomeFeed(min_rows: Int = -1, allow_cached: Boolean = true, continuation: String? = null): Result<Pair<List<MediaItemLayout>, String?>> {
 
     fun postRequest(ctoken: String?): Result<BufferedReader> {
         val url = "https://music.youtube.com/youtubei/v1/browse"
@@ -92,67 +29,112 @@ fun getHomeFeed(min_rows: Int = -1, allow_cached: Boolean = true, continuation: 
         return Result.success(BufferedReader(result.getOrThrowHere().body!!.charStream()))
     }
 
-    fun processRows(rows: List<YoutubeiShelf>): List<HomeFeedRow> {
-        val ret = mutableListOf<HomeFeedRow>()
+    fun processRows(rows: List<YoutubeiShelf>): List<MediaItemLayout> {
+        val ret = mutableListOf<MediaItemLayout>()
         for (row in rows) {
             when (val renderer = row.getRenderer()) {
                 is MusicDescriptionShelfRenderer -> continue
                 is MusicCarouselShelfRenderer -> {
                     val header = renderer.header.musicCarouselShelfBasicHeaderRenderer!!
 
-                    fun add(feed_row: HomeFeedRow, title: String? = null) {
-                        feed_row.items = row.getMediaItems()
-                        if (title != null) {
-                            feed_row.title = title
+                    fun add(
+                        title: String? = null,
+                        thumbnail_source: MediaItemLayout.ThumbnailSource? =
+                            header.thumbnail?.musicThumbnailRenderer?.thumbnail?.thumbnails?.firstOrNull()?.let {
+                                MediaItemLayout.ThumbnailSource(null, url = it.url)
+                            },
+                        media_item_type: MediaItem.Type? = null,
+                        view_more: MediaItemLayout.ViewMore? = null,
+                    ) {
+                        val items = row.getMediaItems().toMutableList()
+                        val final_title: String
+                        val final_subtitle: String?
+
+                        if (title == null) {
+                            val generated = items.generateLayoutTitle()
+                            final_title = generated.first
+                            final_subtitle = generated.second
+                        }
+                        else {
+                            final_title = title
+                            if (header.strapline?.runs?.isNotEmpty() == true && (
+                                (thumbnail_source?.url == null && media_item_type != MediaItem.Type.ARTIST)
+                                || (thumbnail_source?.url != null && media_item_type == MediaItem.Type.ARTIST)
+                            )) {
+                                final_subtitle = getString(R.string.home_feed_similar_to)
+                            }
+                            else {
+                                final_subtitle = null
+                            }
                         }
 
-                        val thumbnails = header.thumbnail?.musicThumbnailRenderer?.thumbnail?.thumbnails
-                        if (thumbnails != null) {
-                            feed_row.thumbnail_provider = MediaItem.ThumbnailProvider.fromThumbnails(thumbnails)
-                        }
-                        ret.add(feed_row)
+                        ret.add(MediaItemLayout(
+                            final_title, final_subtitle,
+                            items = items,
+                            thumbnail_source = thumbnail_source,
+                            view_more = view_more,
+                            media_item_type = media_item_type
+                        ))
                     }
 
                     val browse_endpoint = header.title.runs?.first()?.navigationEndpoint?.browseEndpoint
                     if (browse_endpoint == null) {
-                        add(HomeFeedRow())
+                        add()
                         continue
                     }
 
                     when (browse_endpoint.browseId) {
                         "FEmusic_listen_again" -> {
-                            add(HomeFeedRow.UrlPage("https://music.youtube.com/listen_again"), getString(R.string.home_feed_listen_again))
+                            if (Settings.get(Settings.KEY_FEED_ENABLE_LISTEN_ROW)) {
+                                add(getString(R.string.home_feed_listen_again), thumbnail_source = null, view_more = MediaItemLayout.ViewMore(list_page_url = "https://music.youtube.com/listen_again"))
+                            }
                             continue
                         }
                         "FEmusic_mixed_for_you" -> {
-                            add(HomeFeedRow.UrlPage("https://music.youtube.com/mixed_for_you"), getString(R.string.home_feed_mixed_for_you))
+                            if (Settings.get(Settings.KEY_FEED_ENABLE_MIX_ROW)) {
+                                add(getString(R.string.home_feed_mixed_for_you), view_more = MediaItemLayout.ViewMore(list_page_url = "https://music.youtube.com/mixed_for_you"))
+                            }
                             continue
                         }
                         "FEmusic_new_releases_albums" -> {
-                            add(HomeFeedRow.UrlPage("https://music.youtube.com/new_releases/albums"), getString(R.string.home_feed_new_releases))
+                            if (Settings.get(Settings.KEY_FEED_ENABLE_NEW_ROW)) {
+                                add(getString(R.string.home_feed_new_releases), view_more = MediaItemLayout.ViewMore(list_page_url = "https://music.youtube.com/new_releases/albums"))
+                            }
                             continue
                         }
                         "FEmusic_moods_and_genres" -> {
-                            add(HomeFeedRow.UrlPage("https://music.youtube.com/moods_and_genres"), getString(R.string.home_feed_moods_and_genres))
+                            if (Settings.get(Settings.KEY_FEED_ENABLE_MOODS_ROW)) {
+                                add(getString(R.string.home_feed_moods_and_genres), view_more = MediaItemLayout.ViewMore(list_page_url = "https://music.youtube.com/moods_and_genres"))
+                            }
                             continue
                         }
-                        // https://music.youtube.com/charts
+                        "FEmusic_charts" -> {
+                            if (Settings.get(Settings.KEY_FEED_ENABLE_CHARTS_ROW)) {
+                                add(getString(R.string.home_feed_charts), view_more = MediaItemLayout.ViewMore(list_page_url = "https://music.youtube.com/charts"))
+                            }
+                            continue
+                        }
                     }
 
                     val page_type = browse_endpoint.browseEndpointContextSupportedConfigs?.browseEndpointContextMusicConfig?.pageType
+                    val media_item: MediaItem
+
                     when (page_type) {
-                        "MUSIC_PAGE_TYPE_ARTIST", "MUSIC_PAGE_TYPE_USER_CHANNEL" -> add(
-                            HomeFeedRow.ArtistContent(
-                                Artist.fromId(browse_endpoint.browseId).supplyTitle(header.title.first_text) as Artist
-                            )
-                        )
-                        "MUSIC_PAGE_TYPE_PLAYLIST" -> add(
-                            HomeFeedRow.PlaylistContent(
-                                Playlist.fromId(browse_endpoint.browseId).supplyTitle(header.title.first_text) as Playlist
-                            )
-                        )
+                        "MUSIC_PAGE_TYPE_ARTIST", "MUSIC_PAGE_TYPE_USER_CHANNEL" -> media_item = Artist.fromId(browse_endpoint.browseId).supplyTitle(header.title.first_text)
+                        "MUSIC_PAGE_TYPE_PLAYLIST" -> media_item = Playlist.fromId(browse_endpoint.browseId).supplyTitle(header.title.first_text)
                         else -> throw NotImplementedError(browse_endpoint.toString())
                     }
+
+                    val thumbnail_source = header.thumbnail?.musicThumbnailRenderer?.thumbnail?.thumbnails?.firstOrNull()?.let {
+                        MediaItemLayout.ThumbnailSource(url = it.url)
+                    } ?: MediaItemLayout.ThumbnailSource(media_item = media_item)
+
+                    add(
+                        media_item.title!!,
+                        view_more = MediaItemLayout.ViewMore(media_item = media_item),
+                        thumbnail_source = thumbnail_source,
+                        media_item_type = media_item.type
+                    )
                 }
                 else -> throw NotImplementedError(row.getRenderer().toString())
             }
@@ -161,7 +143,7 @@ fun getHomeFeed(min_rows: Int = -1, allow_cached: Boolean = true, continuation: 
         return ret
     }
 
-    val rows: MutableList<HomeFeedRow>
+    val rows: MutableList<MediaItemLayout>
     var response_reader: BufferedReader? = null
 
     val cache_key = "feed"
@@ -361,7 +343,9 @@ data class ContentsItem(val musicTwoRowItemRenderer: MusicTwoRowItemRenderer? = 
 
             // Video
             if (renderer.navigationEndpoint.watchEndpoint?.videoId != null) {
+                val first_thumbnail = renderer.thumbnailRenderer.musicThumbnailRenderer.thumbnail.thumbnails.first()
                 return Song.fromId(renderer.navigationEndpoint.watchEndpoint.videoId)
+                    .supplySongType(if (first_thumbnail.height == first_thumbnail.width) Song.SongType.SONG else Song.SongType.VIDEO)
                     .supplyTitle(renderer.title.first_text)
                     .supplyArtist(renderer.getArtist())
                     .supplyThumbnailProvider(renderer.thumbnailRenderer.toThumbnailProvider())
@@ -372,7 +356,12 @@ data class ContentsItem(val musicTwoRowItemRenderer: MusicTwoRowItemRenderer? = 
             val page_type = renderer.navigationEndpoint.browseEndpoint.page_type!!
 
             return when (page_type) {
-                "MUSIC_PAGE_TYPE_ALBUM", "MUSIC_PAGE_TYPE_PLAYLIST", "MUSIC_PAGE_TYPE_AUDIOBOOK" -> Playlist.fromId(browse_id).supplyArtist(renderer.getArtist())
+                "MUSIC_PAGE_TYPE_ALBUM", "MUSIC_PAGE_TYPE_PLAYLIST", "MUSIC_PAGE_TYPE_AUDIOBOOK" ->
+                    Playlist.fromId(browse_id).supplyPlaylistType(when (page_type) {
+                        "MUSIC_PAGE_TYPE_ALBUM" -> Playlist.PlaylistType.ALBUM
+                        "MUSIC_PAGE_TYPE_PLAYLIST" -> Playlist.PlaylistType.PLAYLIST
+                        else -> Playlist.PlaylistType.AUDIOBOOK
+                    }, true).supplyArtist(renderer.getArtist())
                 "MUSIC_PAGE_TYPE_ARTIST" -> Artist.fromId(browse_id)
                 else -> throw NotImplementedError("$page_type ($browse_id)")
             }.supplyTitle(renderer.title.first_text).supplyThumbnailProvider(renderer.thumbnailRenderer.toThumbnailProvider())
@@ -394,7 +383,7 @@ data class ContentsItem(val musicTwoRowItemRenderer: MusicTwoRowItemRenderer? = 
                         video_is_main = false
                         playlist = Playlist
                             .fromId(renderer.navigationEndpoint.browseEndpoint.browseId)
-                            .supplyIsAlbum(page_type == "MUSIC_PAGE_TYPE_ALBUM", true) as Playlist
+                            .supplyPlaylistType(Playlist.PlaylistType.fromTypeString(page_type), true)
                     }
                     "MUSIC_PAGE_TYPE_ARTIST", "MUSIC_PAGE_TYPE_USER_CHANNEL" -> {
                         video_is_main = false
@@ -440,9 +429,11 @@ data class ContentsItem(val musicTwoRowItemRenderer: MusicTwoRowItemRenderer? = 
             }
 
             val ret: MediaItem
-
             if (video_id != null) {
-                ret = Song.fromId(video_id)
+                val first_thumbnail = renderer.thumbnail!!.musicThumbnailRenderer.thumbnail.thumbnails.first()
+                ret = Song
+                    .fromId(video_id)
+                    .supplySongType(if (first_thumbnail.height == first_thumbnail.width) Song.SongType.SONG else Song.SongType.VIDEO)
             }
             else if (video_is_main) {
                 return null
@@ -451,7 +442,7 @@ data class ContentsItem(val musicTwoRowItemRenderer: MusicTwoRowItemRenderer? = 
                 ret = playlist ?: artist ?: return null
             }
 
-            return ret.supplyTitle(title).supplyArtist(artist ?: Artist.UNKNOWN).supplyThumbnailProvider(renderer.thumbnail?.toThumbnailProvider())
+            return ret.supplyTitle(title).supplyArtist(artist ?: Artist.UNKNOWN).supplyThumbnailProvider(renderer.thumbnail!!.toThumbnailProvider())
         }
 
         throw NotImplementedError()

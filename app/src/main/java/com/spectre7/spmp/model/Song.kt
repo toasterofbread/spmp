@@ -134,6 +134,17 @@ class Song private constructor (
     private var stream_format: YoutubeVideoFormat? = null
     private var download_format: YoutubeVideoFormat? = null
 
+    enum class SongType { SONG, VIDEO }
+    var song_type: SongType? by mutableStateOf(null)
+        private set
+
+    fun supplySongType(value: SongType?, certain: Boolean = false): Song {
+        if (value != null && (song_type == null || certain)) {
+            song_type = value
+        }
+        return this
+    }
+
     data class Lyrics(
         val id: Int,
         val source: Source,

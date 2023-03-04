@@ -48,9 +48,16 @@ enum class Settings {
     KEY_ACC_VOL_INTERCEPT_NOTIFICATION,
     KEY_ACC_SCREEN_OFF,
 
+    // Home feed
+    KEY_FEED_INITIAL_ROWS,
+    KEY_FEED_ENABLE_LISTEN_ROW,
+    KEY_FEED_ENABLE_MIX_ROW,
+    KEY_FEED_ENABLE_NEW_ROW,
+    KEY_FEED_ENABLE_MOODS_ROW,
+    KEY_FEED_ENABLE_CHARTS_ROW,
+
     // Other
     KEY_OPEN_NP_ON_SONG_PLAYED,
-    KEY_INITIAL_FEED_ROWS,
     KEY_VOLUME_STEPS,
     KEY_PERSISTENT_QUEUE,
     KEY_ADD_SONG_TO_HISTORY;
@@ -125,8 +132,14 @@ enum class Settings {
                 KEY_ACC_VOL_INTERCEPT_NOTIFICATION -> false
                 KEY_ACC_SCREEN_OFF -> false
                 
+                KEY_FEED_INITIAL_ROWS -> 5
+                KEY_FEED_ENABLE_LISTEN_ROW -> true
+                KEY_FEED_ENABLE_MIX_ROW -> true
+                KEY_FEED_ENABLE_NEW_ROW -> true
+                KEY_FEED_ENABLE_MOODS_ROW -> true
+                KEY_FEED_ENABLE_CHARTS_ROW -> true
+
                 KEY_VOLUME_STEPS -> 50
-                KEY_INITIAL_FEED_ROWS -> 5
                 KEY_OPEN_NP_ON_SONG_PLAYED -> true
                 KEY_PERSISTENT_QUEUE -> true
                 KEY_ADD_SONG_TO_HISTORY -> false

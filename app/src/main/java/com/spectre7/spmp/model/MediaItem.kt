@@ -27,6 +27,7 @@ import com.spectre7.spmp.ui.layout.PlayerViewContext
 import com.spectre7.utils.SubtleLoadingIndicator
 import com.spectre7.utils.getString
 import com.spectre7.utils.getThemeColour
+import com.spectre7.utils.printJson
 import java.io.Reader
 import java.net.URL
 import java.time.Duration
@@ -70,7 +71,8 @@ abstract class MediaItem(id: String) {
         return this
     }
 
-    protected var thumbnail_provider: ThumbnailProvider? by mutableStateOf(null)
+    var thumbnail_provider: ThumbnailProvider? by mutableStateOf(null)
+        protected set
     open fun canLoadThumbnail(): Boolean = thumbnail_provider != null
 
     fun supplyThumbnailProvider(value: ThumbnailProvider?, certain: Boolean = false): MediaItem {
@@ -150,7 +152,7 @@ abstract class MediaItem(id: String) {
                     supplyFromJsonObject(obj, klaxon)
                 }
                 catch (e: KlaxonException) {
-                    println(str)
+                    printJson(str)
                     println(this)
                     throw e
                 }

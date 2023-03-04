@@ -57,7 +57,7 @@ abstract class SettingsItem {
     @Composable
     protected fun ItemTitleText(text: String?, theme: Theme) {
         if (text != null) {
-            Text(text, color = theme.on_background)
+            WidthShrinkText(text, LocalTextStyle.current.copy(color = theme.on_background))
         }
     }
 
@@ -183,11 +183,13 @@ class SettingsItemToggle(
         openPage: (Int) -> Unit,
         openCustomPage: (SettingsPage) -> Unit
     ) {
-        Row(verticalAlignment = Alignment.CenterVertically) {
+        Row(verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(5.dp)) {
             Column(
                 Modifier
                     .fillMaxWidth()
-                    .weight(1f)) {
+                    .weight(1f),
+                verticalArrangement = Arrangement.spacedBy(5.dp)
+            ) {
                 ItemTitleText(title, theme)
                 ItemText(subtitle, theme)
             }

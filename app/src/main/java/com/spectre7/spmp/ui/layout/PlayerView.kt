@@ -40,7 +40,6 @@ import com.spectre7.spmp.ui.theme.Theme
 import com.spectre7.utils.*
 import kotlinx.coroutines.*
 import kotlinx.coroutines.sync.Semaphore
-import kotlinx.coroutines.sync.withPermit
 import java.util.concurrent.locks.ReentrantLock
 import kotlin.concurrent.thread
 
@@ -282,7 +281,7 @@ fun PlayerView() {
     }
 
     LaunchedEffect(Unit) {
-        loadFeed(Settings.get(Settings.KEY_INITIAL_FEED_ROWS), allow_cached = true, continue_feed = false) {
+        loadFeed(Settings.get(Settings.KEY_FEED_INITIAL_ROWS), allow_cached = true, continue_feed = false) {
             if (it) {
                 PlayerServiceHost.service.loadPersistentQueue()
             }
@@ -408,8 +407,9 @@ private fun MainPage(
                     } else null,
                     continuation_alignment = Alignment.Start,
                     loading_continuation = feed_load_state.value != FeedLoadState.NONE,
-                    scroll_state = scroll_state
-                )
+                    scroll_state = scroll_state,
+                    vertical_arrangement = Arrangement.spacedBy(15.dp)
+                ) { MediaItemLayout.Type.GRID }
             }
             else {
                 Column(Modifier.fillMaxSize(), verticalArrangement = Arrangement.Center, horizontalAlignment = Alignment.CenterHorizontally) {
@@ -434,32 +434,32 @@ private fun loadFeedLayouts(min_rows: Int, allow_cached: Boolean, continuation: 
 
     val (row_data, new_continuation) = result.getOrThrowHere()
 
-    val rows = mutableListOf<MediaItemLayout>()
+    val rows = row_data.toMutableList()
     val request_limit = Semaphore(10) // TODO?
 
-    runBlocking { withContext(Dispatchers.IO) { coroutineScope {
-        for (row in row_data) {
-            val entry = MediaItemLayout(row.title, row.subtitle, MediaItemLayout.Type.GRID, thumbnail_provider = row.thumbnail_provider)
-            rows.add(entry)
-
-            for (item in row.items) {
-                if (item.title != null) {
-                    entry.addItem(item)
-                    continue
-                }
-
-                launch {
-                    request_limit.withPermit {
-                        item.loadData().onSuccess { loaded ->
-                            synchronized(request_limit) {
-                                entry.addItem(loaded)
-                            }
-                        }
-                    }
-                }
-            }
-        }
-    }}}
+//    runBlocking { withContext(Dispatchers.IO) { coroutineScope {
+//        for (row in row_data) {
+//            val entry = MediaItemLayout(row.title, row.subtitle, MediaItemLayout.Type.GRID, thumbnail_provider = row.thumbnail_provider, viewMore = row.viewMore)
+//            rows.add(entry)
+//
+//            for (item in row.items) {
+//                if (item.title != null) {
+//                    entry.addItem(item)
+//                    continue
+//                }
+//
+//                launch {
+//                    request_limit.withPermit {
+//                        item.loadData().onSuccess { loaded ->
+//                            synchronized(request_limit) {
+//                                entry.addItem(loaded)
+//                            }
+//                        }
+//                    }
+//                }
+//            }
+//        }
+//    }}}
 
     rows.removeIf { it.items.isEmpty() }
     return Result.success(Pair(rows, new_continuation))

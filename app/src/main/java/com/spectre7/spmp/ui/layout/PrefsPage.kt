@@ -3,8 +3,6 @@ package com.spectre7.spmp.ui.layout
 import android.Manifest
 import android.app.AlertDialog
 import android.content.Context
-import android.content.SharedPreferences
-import android.content.SharedPreferences.OnSharedPreferenceChangeListener
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.BoxWithConstraints
 import androidx.compose.foundation.layout.PaddingValues
@@ -123,6 +121,7 @@ fun PrefsPage(pill_menu: PillMenu, close: () -> Unit) {
                     Page.ROOT -> SettingsPageWithItems(
                         getString(R.string.s_page_preferences),
                         groupGeneral(interface_lang, language_data)
+                            + groupHomeFeed()
                             + groupTheming(Theme.manager)
                             + groupLyrics()
                             + groupDownloads()
@@ -290,15 +289,6 @@ private fun groupGeneral(interface_lang: SettingsValueState<Int>, language_data:
         },
 
         SettingsItemSlider(
-            SettingsValueState<Int>(Settings.KEY_INITIAL_FEED_ROWS.name),
-            getString(R.string.s_key_initial_feed_rows),
-            getString(R.string.s_sub_initial_feed_rows),
-            "1",
-            "10",
-            range = 1f .. 10f
-        ),
-
-        SettingsItemSlider(
             SettingsValueState<Int>(Settings.KEY_VOLUME_STEPS.name),
             getString(R.string.s_key_vol_steps),
             getString(R.string.s_sub_vol_steps),
@@ -317,6 +307,42 @@ private fun groupGeneral(interface_lang: SettingsValueState<Int>, language_data:
             SettingsValueState(Settings.KEY_PERSISTENT_QUEUE.name),
             getString(R.string.s_key_persistent_queue),
             getString(R.string.s_sub_persistent_queue)
+        )
+    )
+}
+
+private fun groupHomeFeed(): List<SettingsItem> {
+    return listOf(
+        SettingsGroup(getString(R.string.s_group_home_feed)),
+
+        SettingsItemSlider(
+            SettingsValueState<Int>(Settings.KEY_FEED_INITIAL_ROWS.name),
+            getString(R.string.s_key_feed_initial_rows),
+            getString(R.string.s_sub_feed_initial_rows),
+            "1",
+            "10",
+            range = 1f .. 10f
+        ),
+
+        SettingsItemToggle(
+            SettingsValueState(Settings.KEY_FEED_ENABLE_LISTEN_ROW.name),
+            getString(R.string.s_key_feed_enable_listen_row), null
+        ),
+        SettingsItemToggle(
+            SettingsValueState(Settings.KEY_FEED_ENABLE_MIX_ROW.name),
+            getString(R.string.s_key_feed_enable_mix_row), null
+        ),
+        SettingsItemToggle(
+            SettingsValueState(Settings.KEY_FEED_ENABLE_NEW_ROW.name),
+            getString(R.string.s_key_feed_enable_new_row), null
+        ),
+        SettingsItemToggle(
+            SettingsValueState(Settings.KEY_FEED_ENABLE_MOODS_ROW.name),
+            getString(R.string.s_key_feed_enable_moods_row), null
+        ),
+        SettingsItemToggle(
+            SettingsValueState(Settings.KEY_FEED_ENABLE_CHARTS_ROW.name),
+            getString(R.string.s_key_feed_enable_charts_row), null
         )
     )
 }

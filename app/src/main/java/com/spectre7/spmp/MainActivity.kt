@@ -42,6 +42,22 @@ import java.util.*
 class MainActivity : ComponentActivity() {
 
     lateinit var languages: Map<String, Map<String, String>>
+    private val prefs_change_listener =
+        SharedPreferences.OnSharedPreferenceChangeListener { _, key: String ->
+            if (key == Settings.KEY_LANG_UI.name) {
+                updateLanguage(Settings.get(Settings.KEY_LANG_UI))
+            }
+        }
+
+    private fun updateLanguage(lang: Int) {
+        // TODO
+        val locale = Locale(MainActivity.languages.keys.elementAt(lang))
+        val conf = resources.configuration
+        conf.setLocale(locale)
+        Locale.setDefault(locale)
+        conf.setLayoutDirection(locale)
+        resources.updateConfiguration(conf, resources.displayMetrics)
+    }
 
 //    private lateinit var auth_service: AuthorizationService
 //    private lateinit var auth_state: AuthState
@@ -53,20 +69,7 @@ class MainActivity : ComponentActivity() {
         instance = this
 
         languages = loadLanguages()
-        fun updateLanguage(lang: Int) {
-            // TODO
-            val locale = Locale(MainActivity.languages.keys.elementAt(lang))
-            val conf = resources.configuration
-            conf.setLocale(locale)
-            Locale.setDefault(locale)
-            conf.setLayoutDirection(locale)
-            resources.updateConfiguration(conf, resources.displayMetrics)
-        }
-        Settings.prefs.registerOnSharedPreferenceChangeListener { _, key: String ->
-            if (key == Settings.KEY_LANG_UI.name) {
-                updateLanguage(Settings.get(Settings.KEY_LANG_UI))
-            }
-        }
+        Settings.prefs.registerOnSharedPreferenceChangeListener(prefs_change_listener)
         updateLanguage(Settings.get(Settings.KEY_LANG_UI))
 
         Cache.init(this)
@@ -116,6 +119,7 @@ class MainActivity : ComponentActivity() {
     override fun onDestroy() {
         super.onDestroy()
         PlayerServiceHost.release()
+        Settings.prefs.unregisterOnSharedPreferenceChangeListener(prefs_change_listener)
 //        auth_service.dispose()
         instance = null
     }

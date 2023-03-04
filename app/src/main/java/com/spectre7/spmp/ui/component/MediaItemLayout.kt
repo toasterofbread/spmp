@@ -1,6 +1,7 @@
 package com.spectre7.spmp.ui.component
 
 import androidx.compose.animation.*
+import androidx.compose.foundation.Image
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.LazyListState
@@ -8,32 +9,64 @@ import androidx.compose.foundation.lazy.grid.GridCells
 import androidx.compose.foundation.lazy.grid.LazyHorizontalGrid
 import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.lazy.rememberLazyListState
+import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.KeyboardDoubleArrowDown
+import androidx.compose.material.icons.filled.MoreHoriz
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.clip
+import androidx.compose.ui.graphics.RectangleShape
+import androidx.compose.ui.graphics.Shape
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
+import coil.compose.rememberAsyncImagePainter
+import com.beust.klaxon.Json
+import com.spectre7.spmp.model.Artist
 import com.spectre7.spmp.model.MediaItem
+import com.spectre7.spmp.model.Playlist
+import com.spectre7.spmp.model.Song
 import com.spectre7.spmp.ui.layout.PlayerViewContext
 import com.spectre7.spmp.ui.theme.Theme
 import com.spectre7.utils.WidthShrinkText
 import com.spectre7.utils.copy
+import com.spectre7.utils.getString
 
 data class MediaItemLayout(
     val title: String?,
     val subtitle: String?,
     val type: Type? = null,
     val items: MutableList<MediaItem> = mutableListOf(),
-    val thumbnail_provider: MediaItem.ThumbnailProvider? = null // TODO
+    val thumbnail_source: ThumbnailSource? = null,
+    val media_item_type: MediaItem.Type? = null,
+    val view_more: ViewMore? = null
 ) {
     enum class Type {
         GRID,
         LIST,
         NUMBERED_LIST
+    }
+
+    data class ViewMore(val list_page_url: String? = null, val media_item: MediaItem? = null) {
+        init { check(list_page_url != null || media_item != null) }
+    }
+
+    class ThumbnailSource(val media_item: MediaItem? = null, val url: String? = null) {
+        init {
+            check(media_item != null || url != null)
+        }
+
+        fun getThumbUrl(quality: MediaItem.ThumbnailQuality): String? {
+            return url ?: media_item?.getThumbUrl(quality)
+        }
+
+    }
+
+    private fun getThumbShape(): Shape {
+        return if (media_item_type == MediaItem.Type.ARTIST) CircleShape else RectangleShape
     }
 
     fun addItem(item: MediaItem) {
@@ -42,6 +75,51 @@ data class MediaItemLayout(
         }
         items.add(item)
         return
+    }
+
+    @Composable
+    fun TitleBar(playerProvider: () -> PlayerViewContext, modifier: Modifier = Modifier) {
+        Row(modifier.fillMaxWidth().height(IntrinsicSize.Max), verticalAlignment = Alignment.Bottom, horizontalArrangement = Arrangement.spacedBy(10.dp)) {
+            val thumbnail_url = thumbnail_source?.getThumbUrl(MediaItem.ThumbnailQuality.LOW)
+            println("$thumbnail_url | $thumbnail_source | ${thumbnail_source?.url}")
+            if (thumbnail_url != null) {
+                Image(
+                    rememberAsyncImagePainter(thumbnail_url), title,
+                    Modifier.fillMaxHeight().aspectRatio(1f).clip(getThumbShape())
+                )
+            }
+
+            Column(Modifier.fillMaxSize().weight(1f), verticalArrangement = Arrangement.Center) {
+                if (subtitle != null) {
+                    WidthShrinkText(subtitle, style = MaterialTheme.typography.titleSmall.copy(color = Theme.current.on_background))
+                }
+
+                if (title != null) {
+                    WidthShrinkText(
+                        title,
+                        MaterialTheme.typography.headlineMedium.copy(color = Theme.current.on_background),
+                        Modifier.fillMaxWidth()//.weight(1f)
+                    )
+                }
+            }
+
+            if (view_more != null) {
+                IconButton({
+                    if (view_more.media_item != null) {
+                        playerProvider().openMediaItem(view_more.media_item)
+                    }
+                    else if (view_more.list_page_url != null) {
+                        TODO(view_more.list_page_url)
+                    }
+                    else {
+                        throw NotImplementedError(view_more.toString())
+                    }
+                }, Modifier.fillMaxHeight().aspectRatio(1f)) {
+                    Icon(Icons.Filled.MoreHoriz, null)
+                }
+            }
+        }
+
     }
 
     companion object {
@@ -169,14 +247,7 @@ fun MediaItemGrid(
     val item_width = 125.dp
 
     Column(modifier, verticalArrangement = Arrangement.spacedBy(10.dp)) {
-        Column(Modifier.padding(horizontal = 20.dp)) {
-            if (layout.title != null) {
-                WidthShrinkText(layout.title, style = MaterialTheme.typography.headlineMedium.copy(color = Theme.current.on_background))
-            }
-            if (layout.subtitle != null) {
-                WidthShrinkText(layout.subtitle, style = MaterialTheme.typography.headlineSmall.copy(color = Theme.current.on_background))
-            }
-        }
+        layout.TitleBar(playerProvider)
 
         LazyHorizontalGrid(
             rows = GridCells.Fixed(row_count),
@@ -197,14 +268,7 @@ fun MediaItemList(
     modifier: Modifier = Modifier
 ) {
     Column(modifier) {
-        Column(Modifier.padding(horizontal = 20.dp)) {
-            if (layout.title != null) {
-                WidthShrinkText(layout.title, style = MaterialTheme.typography.headlineMedium.copy(color = Theme.current.on_background))
-            }
-            if (layout.subtitle != null) {
-                WidthShrinkText(layout.subtitle, style = MaterialTheme.typography.headlineSmall.copy(color = Theme.current.on_background))
-            }
-        }
+        layout.TitleBar(playerProvider)
 
         for (item in layout.items.withIndex()) {
             Row(verticalAlignment = Alignment.CenterVertically) {
@@ -217,5 +281,34 @@ fun MediaItemList(
                 }
             }
         }
+    }
+}
+
+fun List<MediaItem>.generateLayoutTitle(): Pair<String, String?> {
+    check(isNotEmpty())
+
+    var songs = 0
+    var videos = 0
+    var artists = 0
+    var playlists = 0
+    var albums = 0
+
+    for (item in this) {
+        when (item.type) {
+            MediaItem.Type.SONG -> if ((item as Song).song_type == Song.SongType.VIDEO) videos++ else songs++
+            MediaItem.Type.ARTIST -> artists++
+            MediaItem.Type.PLAYLIST -> if ((item as Playlist).playlist_type == Playlist.PlaylistType.ALBUM) albums++ else playlists++
+        }
+    }
+
+    return when (songs + videos + artists + playlists + albums) {
+        0 -> throw IllegalStateException()
+        videos ->             Pair(getString("おすすめのミュージックビデオ"), null)
+        artists ->            Pair(getString("おすすめのアーティスト"), null)
+        songs + videos ->     Pair(getString("おすすめの曲"), null)
+        playlists ->          Pair(getString("おすすめのプレイリスト"), null)
+        albums ->             Pair(getString("おすすめのアルバム"), null)
+        playlists + albums -> Pair(getString("プレイリストとアルバム"), null)
+        else ->               Pair(getString("おすすめ"), null)
     }
 }

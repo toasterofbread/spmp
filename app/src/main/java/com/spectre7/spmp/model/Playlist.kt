@@ -6,7 +6,6 @@ import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
-import com.beust.klaxon.Klaxon
 import com.spectre7.spmp.ui.component.PlaylistPreviewLong
 import com.spectre7.spmp.ui.component.PlaylistPreviewSquare
 import com.spectre7.spmp.ui.layout.PlayerViewContext
@@ -15,12 +14,25 @@ class Playlist private constructor (
     id: String
 ): MediaItemWithLayouts(id) {
 
-    var is_album: Boolean? by mutableStateOf(null)
+    enum class PlaylistType {
+        PLAYLIST, ALBUM, AUDIOBOOK;
+        companion object {
+            fun fromTypeString(type: String): PlaylistType {
+                return when (type) {
+                    "MUSIC_PAGE_TYPE_PLAYLIST" -> PLAYLIST
+                    "MUSIC_PAGE_TYPE_ALBUM" -> ALBUM
+                    "MUSIC_PAGE_TYPE_AUDIOBOOK" -> AUDIOBOOK
+                    else -> throw NotImplementedError(type)
+                }
+            }
+        }
+    }
+    var playlist_type: PlaylistType? by mutableStateOf(null)
         private set
 
-    fun supplyIsAlbum(value: Boolean?, certain: Boolean): MediaItem {
-        if (value != null && (is_album == null || certain)) {
-            is_album = value
+    fun supplyPlaylistType(value: PlaylistType?, certain: Boolean): Playlist {
+        if (value != null && (playlist_type == null || certain)) {
+            playlist_type = value
         }
         return this
     }

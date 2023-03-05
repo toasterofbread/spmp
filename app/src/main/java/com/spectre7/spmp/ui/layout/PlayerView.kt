@@ -88,6 +88,9 @@ data class PlayerViewContext(
     var overlay_page by mutableStateOf(OverlayPage.NONE)
     var overlay_media_item: MediaItem? by mutableStateOf(null)
 
+    private val bottom_padding_anim = androidx.compose.animation.core.Animatable(PlayerServiceHost.session_started.toFloat() * MINIMISED_NOW_PLAYING_HEIGHT)
+    val bottom_padding: Dp get() = bottom_padding_anim.value.dp
+
     private lateinit var prefs_listener: OnSharedPreferenceChangeListener
 
     init {
@@ -196,6 +199,10 @@ data class PlayerViewContext(
     @Composable
     fun NowPlaying() {
         check(is_base)
+
+        OnChangedEffect(PlayerServiceHost.session_started) {
+            bottom_padding_anim.animateTo(PlayerServiceHost.session_started.toFloat() * MINIMISED_NOW_PLAYING_HEIGHT)
+        }
 
         NowPlaying(remember { { this } }, now_playing_swipe_state!!)
         
@@ -400,7 +407,7 @@ private fun MainPage(
                     playerProvider,
                     padding = PaddingValues(
                         top = getStatusBarHeight(MainActivity.context),
-                        bottom = MINIMISED_NOW_PLAYING_HEIGHT.dp
+                        bottom = playerProvider().bottom_padding
                     ),
                     onContinuationRequested = if (can_continue_feed) {
                         { loadFeed(true) }

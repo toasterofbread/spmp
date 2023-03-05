@@ -499,7 +499,13 @@ fun networkThread(block: () -> Unit) {
 }
 
 fun printJson(data: String, klaxon: Klaxon? = null) {
-	println((klaxon ?: Klaxon()).parseJsonObject(data.reader()).toJsonString(true))
+	try {
+		println((klaxon ?: Klaxon()).parseJsonObject(data.reader()).toJsonString(true))
+	}
+	catch (e: Exception) {
+		println(data.substring(1790))
+		throw e
+	}
 }
 
 @Composable

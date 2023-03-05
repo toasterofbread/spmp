@@ -3,12 +3,9 @@ package com.spectre7.spmp.ui.component
 import androidx.compose.animation.*
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.layout.*
-import androidx.compose.foundation.lazy.LazyColumn
-import androidx.compose.foundation.lazy.LazyListState
+import androidx.compose.foundation.lazy.*
 import androidx.compose.foundation.lazy.grid.GridCells
 import androidx.compose.foundation.lazy.grid.LazyHorizontalGrid
-import androidx.compose.foundation.lazy.items
-import androidx.compose.foundation.lazy.rememberLazyListState
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.KeyboardDoubleArrowDown
@@ -25,15 +22,18 @@ import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
 import coil.compose.rememberAsyncImagePainter
 import com.beust.klaxon.Json
-import com.spectre7.spmp.model.Artist
+import com.spectre7.spmp.R
+import com.spectre7.spmp.api.DataApi
+import com.spectre7.spmp.api.YoutubeiBrowseResponse
+import com.spectre7.spmp.api.cast
 import com.spectre7.spmp.model.MediaItem
 import com.spectre7.spmp.model.Playlist
 import com.spectre7.spmp.model.Song
 import com.spectre7.spmp.ui.layout.PlayerViewContext
 import com.spectre7.spmp.ui.theme.Theme
 import com.spectre7.utils.WidthShrinkText
-import com.spectre7.utils.copy
 import com.spectre7.utils.getString
+import okhttp3.Request
 
 data class MediaItemLayout(
     val title: String?,
@@ -42,12 +42,48 @@ data class MediaItemLayout(
     val items: MutableList<MediaItem> = mutableListOf(),
     val thumbnail_source: ThumbnailSource? = null,
     val media_item_type: MediaItem.Type? = null,
-    val view_more: ViewMore? = null
+    val view_more: ViewMore? = null,
+    var continuation: Continuation? = null
 ) {
     enum class Type {
         GRID,
         LIST,
         NUMBERED_LIST
+    }
+
+    class Continuation(var token: String, val type: Type) {
+        enum class Type { PLAYLIST }
+
+        fun loadContinuation(): Result<Pair<List<MediaItem>, String?>> {
+            return when (type) {
+                Type.PLAYLIST -> loadPlaylistContinuation()
+            }
+        }
+
+        fun update(token: String) {
+            this.token = token
+        }
+
+        private fun loadPlaylistContinuation(): Result<Pair<List<MediaItem>, String?>> {
+            val request = Request.Builder()
+                .url("https://music.youtube.com/youtubei/v1/browse?ctoken=$token&continuation=$token&type=next&key=${getString(R.string.yt_i_api_key)}")
+                .headers(DataApi.getYTMHeaders())
+                .post(DataApi.getYoutubeiRequestBody())
+                .build()
+
+            val result = DataApi.request(request)
+            if (result.isFailure) {
+                return result.cast()
+            }
+
+            val stream = result.getOrThrow().body!!.charStream()
+            val parsed: YoutubeiBrowseResponse = DataApi.klaxon.parse(stream)!!
+            stream.close()
+
+            val shelf = parsed.continuationContents!!.musicPlaylistShelfContinuation!!
+            return Result.success(Pair(shelf.contents.mapNotNull { it.toMediaItem() }, shelf.continuations?.firstOrNull()?.nextContinuationData?.continuation))
+        }
+
     }
 
     data class ViewMore(val list_page_url: String? = null, val media_item: MediaItem? = null) {
@@ -62,26 +98,45 @@ data class MediaItemLayout(
         fun getThumbUrl(quality: MediaItem.ThumbnailQuality): String? {
             return url ?: media_item?.getThumbUrl(quality)
         }
+    }
 
+    @Json(ignored = true)
+    var loading_continuation: Boolean by mutableStateOf(false)
+        private set
+
+    @Synchronized
+    fun loadContinuation(): Result<Any> {
+        check(continuation != null)
+
+        loading_continuation = true
+        val result = continuation!!.loadContinuation()
+        loading_continuation = false
+
+        if (result.isFailure) {
+            return result
+        }
+
+        val (new_items, cont_token) = result.getOrThrow()
+        items += new_items
+
+        if (cont_token == null) {
+            continuation = null
+        }
+        else {
+            continuation!!.update(cont_token)
+        }
+
+        return Result.success(Unit)
     }
 
     private fun getThumbShape(): Shape {
         return if (media_item_type == MediaItem.Type.ARTIST) CircleShape else RectangleShape
     }
 
-    fun addItem(item: MediaItem) {
-        if (items.any { it.id == item.id }) {
-            return
-        }
-        items.add(item)
-        return
-    }
-
     @Composable
     fun TitleBar(playerProvider: () -> PlayerViewContext, modifier: Modifier = Modifier) {
         Row(modifier.fillMaxWidth().height(IntrinsicSize.Max), verticalAlignment = Alignment.Bottom, horizontalArrangement = Arrangement.spacedBy(10.dp)) {
             val thumbnail_url = thumbnail_source?.getThumbUrl(MediaItem.ThumbnailQuality.LOW)
-            println("$thumbnail_url | $thumbnail_source | ${thumbnail_source?.url}")
             if (thumbnail_url != null) {
                 Image(
                     rememberAsyncImagePainter(thumbnail_url), title,
@@ -167,11 +222,12 @@ fun Collection<MediaItemLayout>.removeInvalid() {
 fun MediaItemLayoutColumn(
     layouts: List<MediaItemLayout>,
     playerProvider: () -> PlayerViewContext,
-    modifier: Modifier = Modifier
+    modifier: Modifier = Modifier,
+    onContinuationRequested: (() -> Unit)? = null,
+    loading_continuation: Boolean = false,
+    continuation_alignment: Alignment.Horizontal = Alignment.CenterHorizontally
 ) {
-    for (layout in layouts) {
-        assert(layout.type != null)
-    }
+    require(layouts.all { it.type != null })
 
     Column(modifier) {
         for (layout in layouts) {
@@ -179,6 +235,19 @@ fun MediaItemLayoutColumn(
                 MediaItemLayout.Type.GRID -> MediaItemGrid(layout, playerProvider)
                 MediaItemLayout.Type.LIST -> MediaItemList(layout, false, playerProvider)
                 MediaItemLayout.Type.NUMBERED_LIST -> MediaItemList(layout, true, playerProvider)
+            }
+        }
+
+        Crossfade(Pair(onContinuationRequested, loading_continuation)) { data ->
+            Column(Modifier.fillMaxWidth(), horizontalAlignment = continuation_alignment) {
+                if (data.second) {
+                    CircularProgressIndicator(color = Theme.current.on_background)
+                }
+                else if (data.first != null) {
+                    IconButton({ data.first!!.invoke() }) {
+                        Icon(Icons.Filled.KeyboardDoubleArrowDown, null, tint = Theme.current.on_background)
+                    }
+                }
             }
         }
     }
@@ -190,6 +259,7 @@ fun LazyMediaItemLayoutColumn(
     playerProvider: () -> PlayerViewContext,
     modifier: Modifier = Modifier,
     padding: PaddingValues = PaddingValues(0.dp),
+    topContent: (LazyListScope.() -> Unit)? = null,
     onContinuationRequested: (() -> Unit)? = null,
     loading_continuation: Boolean = false,
     continuation_alignment: Alignment.Horizontal = Alignment.CenterHorizontally,
@@ -202,31 +272,41 @@ fun LazyMediaItemLayoutColumn(
     LazyColumn(
         modifier,
         state = scroll_state,
-        contentPadding = padding.copy(bottom = 0.dp),
+        contentPadding = padding,
         verticalArrangement = vertical_arrangement
     ) {
-        items(layouts) { layout ->
-            when (getType?.invoke(layout) ?: layout.type!!) {
-                MediaItemLayout.Type.GRID -> MediaItemGrid(layout, playerProvider)
-                MediaItemLayout.Type.LIST -> MediaItemList(layout, false, playerProvider)
-                MediaItemLayout.Type.NUMBERED_LIST -> MediaItemList(layout, true, playerProvider)
-            }
-        }
+        topContent?.invoke(this)
 
-        val bottom_padding = padding.calculateBottomPadding()
-        if (bottom_padding != 0.dp) {
-            item {
-                Spacer(Modifier.height(bottom_padding))
+        for (layout in layouts) {
+            when (val type = getType?.invoke(layout) ?: layout.type!!) {
+                MediaItemLayout.Type.GRID -> item { MediaItemGrid(layout, playerProvider) }
+                MediaItemLayout.Type.LIST, MediaItemLayout.Type.NUMBERED_LIST -> {
+                    item {
+                        layout.TitleBar(playerProvider)
+                    }
+                    items(layout.items.size) { index ->
+                        val item = layout.items[index]
+                        Row(verticalAlignment = Alignment.CenterVertically) {
+                            if (type == MediaItemLayout.Type.NUMBERED_LIST) {
+                                Text((index + 1).toString().padStart((layout.items.size + 1).toString().length, '0'), fontWeight = FontWeight.Light)
+                            }
+
+                            Column {
+                                item.PreviewLong(Theme.current.on_background_provider, playerProvider, true, Modifier)
+                            }
+                        }
+                    }
+                }
             }
         }
 
         item {
             Crossfade(Pair(onContinuationRequested, loading_continuation)) { data ->
-                if (data.second) {
-                    CircularProgressIndicator(color = Theme.current.on_background)
-                }
-                else if (data.first != null) {
-                    Column(Modifier.fillMaxWidth(), horizontalAlignment = continuation_alignment) {
+                Column(Modifier.fillMaxWidth(), horizontalAlignment = continuation_alignment) {
+                    if (data.second) {
+                        CircularProgressIndicator(color = Theme.current.on_background)
+                    }
+                    else if (data.first != null) {
                         IconButton({ data.first!!.invoke() }) {
                             Icon(Icons.Filled.KeyboardDoubleArrowDown, null, tint = Theme.current.on_background)
                         }

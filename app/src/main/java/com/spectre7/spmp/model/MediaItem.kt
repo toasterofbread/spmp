@@ -21,6 +21,7 @@ import androidx.palette.graphics.Palette
 import com.beust.klaxon.*
 import com.spectre7.spmp.R
 import com.spectre7.spmp.api.DataApi
+import com.spectre7.spmp.api.cast
 import com.spectre7.spmp.api.loadMediaItemData
 import com.spectre7.spmp.ui.component.MediaItemLayout
 import com.spectre7.spmp.ui.layout.PlayerViewContext
@@ -55,6 +56,8 @@ abstract class MediaItem(id: String) {
         private set
 
     fun supplyArtist(value: Artist?, certain: Boolean = false): MediaItem {
+        assert(this !is Artist || value == this)
+
         if (value != null && (artist == null || certain)) {
             artist = value
         }
@@ -143,7 +146,7 @@ abstract class MediaItem(id: String) {
         val cached = Cache.get(cache_key)
         if (cached != null) {
             thread {
-                val klaxon = Klaxon().converter(json_converter)
+                val klaxon = DataApi.klaxon.converter(json_converter)
 
                 val str = cached.readText()
                 cached.close()
@@ -201,7 +204,7 @@ abstract class MediaItem(id: String) {
                     }
 
                     try {
-                        return fromJsonObject(jv.obj!!, Klaxon().converter(this), true)
+                        return fromJsonObject(jv.obj!!, DataApi.klaxon.converter(this), true)
                     }
                     catch (e: Exception) {
                         throw RuntimeException("Couldn't parse MediaItem ($jv)", e)
@@ -229,10 +232,12 @@ abstract class MediaItem(id: String) {
                 }
 
                 try {
-                    return fromJsonObject(jv.obj!!, Klaxon().converter(json_ref_converter))
+                    return fromJsonObject(jv.obj!!, DataApi.klaxon.converter(json_ref_converter))
                 }
                 catch (e: Exception) {
-                    throw RuntimeException("Couldn't parse MediaItem ($jv)", e)
+                    println("aaa")
+                    println(jv.obj?.get("type"))
+                    throw RuntimeException("Couldn't parse MediaItem (${jv.obj})", e)
                 }
             }
 
@@ -242,7 +247,7 @@ abstract class MediaItem(id: String) {
                 }
                 return """{
                     "type": ${value.type.ordinal},
-                    "id": "${value.id}",${value.getJsonMapValues(Klaxon().converter(json_ref_converter))}
+                    "id": "${value.id}",${value.getJsonMapValues(DataApi.klaxon.converter(json_ref_converter))}
                 }"""
             }
         }
@@ -540,13 +545,12 @@ abstract class MediaItem(id: String) {
 }
 
 abstract class MediaItemWithLayouts(id: String): MediaItem(id) {
-    private var _feed_layouts: List<MediaItemLayout>? by mutableStateOf(null)
-    val feed_layouts: List<MediaItemLayout>?
-        get() = _feed_layouts
+    var feed_layouts: List<MediaItemLayout>? by mutableStateOf(null)
+        private set
 
     fun supplyFeedLayouts(value: List<MediaItemLayout>?, certain: Boolean): MediaItem {
-        if (value != null && (_feed_layouts == null || certain)) {
-            _feed_layouts = value
+        if (value != null && (feed_layouts == null || certain)) {
+            feed_layouts = value
         }
         return this
     }
@@ -556,11 +560,11 @@ abstract class MediaItemWithLayouts(id: String): MediaItem(id) {
     }
 
     override fun supplyFromJsonObject(data: JsonObject, klaxon: Klaxon): MediaItem {
-        data.array<JsonObject>("feed_layouts")?.also { _feed_layouts = klaxon.parseFromJsonArray(it) }
+        data.array<JsonObject>("feed_layouts")?.also { feed_layouts = klaxon.parseFromJsonArray(it) }
         return super.supplyFromJsonObject(data, klaxon)
     }
 
     override fun isFullyLoaded(): Boolean {
-        return super.isFullyLoaded() && _feed_layouts != null
+        return super.isFullyLoaded() && feed_layouts != null
     }
 }

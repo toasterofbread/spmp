@@ -28,6 +28,8 @@ import androidx.compose.ui.unit.dp
 import androidx.lifecycle.Lifecycle
 import com.beust.klaxon.JsonObject
 import com.beust.klaxon.Klaxon
+import com.my.kizzyrpc.KizzyRPC
+import com.my.kizzyrpc.model.Activity
 import com.spectre7.spmp.api.DataApi
 import com.spectre7.spmp.model.Cache
 import com.spectre7.spmp.model.Settings

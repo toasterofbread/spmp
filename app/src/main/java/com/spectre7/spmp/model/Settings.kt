@@ -60,7 +60,8 @@ enum class Settings {
     KEY_OPEN_NP_ON_SONG_PLAYED,
     KEY_VOLUME_STEPS,
     KEY_PERSISTENT_QUEUE,
-    KEY_ADD_SONG_TO_HISTORY;
+    KEY_ADD_SONG_TO_HISTORY,
+    KEY_ENABLE_DISCORD_PRESENCE;
 
     companion object {
         val prefs: SharedPreferences get() = getPrefs()
@@ -143,6 +144,7 @@ enum class Settings {
                 KEY_OPEN_NP_ON_SONG_PLAYED -> true
                 KEY_PERSISTENT_QUEUE -> true
                 KEY_ADD_SONG_TO_HISTORY -> false
+                KEY_ENABLE_DISCORD_PRESENCE -> false
             } as T
         }
 

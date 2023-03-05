@@ -6,11 +6,10 @@ import android.content.Intent
 import android.net.Uri
 import androidx.activity.compose.BackHandler
 import androidx.compose.animation.Crossfade
-import androidx.compose.foundation.Image
-import androidx.compose.foundation.background
+import androidx.compose.foundation.*
 import androidx.compose.foundation.layout.*
-import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.LazyRow
+import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.ContentCopy
@@ -24,13 +23,16 @@ import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.*
 import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.layout.ContentScale
+import androidx.compose.ui.layout.onSizeChanged
 import androidx.compose.ui.platform.LocalClipboardManager
+import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.text.*
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.spectre7.spmp.MainActivity
 import com.spectre7.spmp.R
+import com.spectre7.spmp.api.getOrThrowHere
 import com.spectre7.spmp.model.Playlist
 import com.spectre7.spmp.model.MediaItem
 import com.spectre7.spmp.ui.component.*
@@ -115,15 +117,19 @@ fun PlaylistPage(
         InfoDialog(playlist) { show_info = false }
     }
 
-    Column(
-        Modifier
-            .fillMaxSize()
-            .padding(top = 20.dp + getStatusBarHeight()),
-        verticalArrangement = Arrangement.Top
-    ) {
+    val content_padding = 10.dp
 
-        ElevatedCard(Modifier.fillMaxWidth().height(150.dp)) {
-            Row(Modifier.padding(10.dp), horizontalArrangement = Arrangement.spacedBy(10.dp)) {
+    @Composable
+    fun TopContent() {
+        Spacer(Modifier.height(getStatusBarHeight()))
+
+        Column(
+            Modifier
+                .fillMaxWidth()
+                .border(1.dp, Theme.current.on_background, RoundedCornerShape(15.dp))
+                .padding(10.dp)
+        ) {
+            Row(Modifier.height(150.dp), horizontalArrangement = Arrangement.spacedBy(10.dp)) {
                 Crossfade(playlist.getThumbnail(MediaItem.ThumbnailQuality.HIGH)) { thumbnail ->
                     if (thumbnail == null) {
                         CircularProgressIndicator(color = Theme.current.accent)
@@ -137,131 +143,120 @@ fun PlaylistPage(
                             thumbnail.asImageBitmap(),
                             contentDescription = null,
                             contentScale = ContentScale.Crop,
-                            modifier = Modifier.aspectRatio(1f).clip(RoundedCornerShape(12))
+                            modifier = Modifier
+                                .aspectRatio(1f)
+                                .clip(RoundedCornerShape(12))
                         )
                     }
                 }
 
-                Column {
-                    Text(playlist.title ?: "")
+                Column(Modifier.fillMaxHeight(), verticalArrangement = Arrangement.SpaceEvenly) {
+                    Text(playlist.title ?: "", fontSize = 25.sp)
 
                     if (playlist.artist != null) {
                         playlist.artist!!.PreviewLong(Theme.current.on_background_provider, playerProvider, true, Modifier)
                     }
                 }
             }
+
+            if (playlist.description != null) {
+                Text(playlist.description!!, fontSize = 15.sp)
+            }
         }
 
-        LazyColumn(Modifier.fillMaxSize()) {
+        // Action bar
+        LazyRow(
+            Modifier
+                .fillMaxWidth()
+                .background(background_colour),
+            horizontalArrangement = Arrangement.spacedBy(10.dp),
+            contentPadding = PaddingValues(horizontal = content_padding)
+        ) {
 
-            // Image spacing
-            item {
+            fun chip(text: String, icon: ImageVector, onClick: () -> Unit) {
+                item {
+                    ElevatedAssistChip(
+                        onClick,
+                        { Text(text, style = MaterialTheme.typography.labelLarge) },
+                        leadingIcon = {
+                            Icon(icon, null, tint = accent_colour)
+                        },
+                        colors = AssistChipDefaults.assistChipColors(
+                            containerColor = background_colour,
+                            labelColor = Theme.current.on_background,
+                            leadingIconContentColor = accent_colour
+                        )
+                    )
+                }
+            }
+
+            chip(getString(R.string.playlist_chip_shuffle), Icons.Outlined.Shuffle) { TODO() }
+            chip(getString(R.string.action_share), Icons.Outlined.Share) { MainActivity.context.startActivity(share_intent) }
+            chip(getString(R.string.playlist_chip_open), Icons.Outlined.OpenInNew) { MainActivity.context.startActivity(open_intent) }
+            chip(getString(R.string.playlist_chip_details), Icons.Outlined.Info) { show_info = !show_info }
+        }
+
+        Row(Modifier
+            .fillMaxWidth()
+            .background(background_colour)
+            .padding(start = 20.dp, bottom = 10.dp)
+        ) {
+            @Composable
+            fun Btn(text: String, icon: ImageVector, modifier: Modifier = Modifier, onClick: () -> Unit) {
+                OutlinedButton(onClick = onClick, modifier.height(45.dp)) {
+                    Row(verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(10.dp)) {
+                        Icon(icon, null, tint = accent_colour)
+                        Text(text, softWrap = false, color = Theme.current.on_background)
+                    }
+                }
+            }
+
+            Btn(getString(R.string.playlist_chip_play), Icons.Outlined.PlayArrow,
+                Modifier
+                    .fillMaxWidth(0.5f)
+                    .weight(1f)) { TODO() }
+            Spacer(Modifier.requiredWidth(20.dp))
+            Btn(getString(R.string.playlist_chip_radio), Icons.Outlined.Radio,
+                Modifier
+                    .fillMaxWidth(1f)
+                    .weight(1f)) { TODO() }
+        }
+    }
+
+    // Loaded items
+    Crossfade(playlist_rows_loaded) { loaded ->
+        if (!loaded) {
+            Column {
+                TopContent()
                 Box(
                     Modifier
-                        .fillMaxWidth()
-                        .aspectRatio(1.1f)
-                        .background(
-                            Brush.verticalGradient(
-                                1f - gradient_size to Color.Transparent,
-                                1f to background_colour
-                            )
-                        )
-                        .padding(bottom = 20.dp),
-                    contentAlignment = Alignment.BottomCenter
-                ) {
-                    Marquee(false) {
-                        Text(playlist.title ?: "", Modifier.fillMaxWidth(), textAlign = TextAlign.Center, fontSize = 40.sp, softWrap = false)
-                    }
+                        .fillMaxSize()
+                        .background(background_colour)
+                        .padding(content_padding), contentAlignment = Alignment.Center) {
+                    CircularProgressIndicator(color = accent_colour)
                 }
             }
+        }
+        else if (playlist.feed_layouts != null) {
 
-            val content_padding = 10.dp
-
-            // Action bar
-            item {
-                LazyRow(
-                    Modifier
-                        .fillMaxWidth()
-                        .background(background_colour),
-                    horizontalArrangement = Arrangement.spacedBy(10.dp),
-                    contentPadding = PaddingValues(horizontal = content_padding)
-                ) {
-
-                    fun chip(text: String, icon: ImageVector, onClick: () -> Unit) {
-                        item {
-                            ElevatedAssistChip(
-                                onClick,
-                                { Text(text, style = MaterialTheme.typography.labelLarge) },
-                                leadingIcon = {
-                                    Icon(icon, null, tint = accent_colour)
-                                },
-                                colors = AssistChipDefaults.assistChipColors(
-                                    containerColor = background_colour,
-                                    labelColor = Theme.current.on_background,
-                                    leadingIconContentColor = accent_colour
-                                )
-                            )
-                        }
-                    }
-
-                    chip(getString(R.string.playlist_chip_shuffle), Icons.Outlined.Shuffle) { TODO() }
-                    chip(getString(R.string.action_share), Icons.Outlined.Share) { MainActivity.context.startActivity(share_intent) }
-                    chip(getString(R.string.playlist_chip_open), Icons.Outlined.OpenInNew) { MainActivity.context.startActivity(open_intent) }
-                    chip(getString(R.string.playlist_chip_details), Icons.Outlined.Info) { show_info = !show_info }
-                }
-            }
-
-            item {
-                Row(Modifier
-                    .fillMaxWidth()
+            val first_layout = playlist.feed_layouts?.firstOrNull()
+            LazyMediaItemLayoutColumn(
+                playlist.feed_layouts!!,
+                playerProvider,
+                Modifier
                     .background(background_colour)
-                    .padding(start = 20.dp, bottom = 10.dp)) {
-                    @Composable
-                    fun Btn(text: String, icon: ImageVector, modifier: Modifier = Modifier, onClick: () -> Unit) {
-                        OutlinedButton(onClick = onClick, modifier.height(45.dp)) {
-                            Row(verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(10.dp)) {
-                                Icon(icon, null, tint = accent_colour)
-                                Text(text, softWrap = false, color = Theme.current.on_background)
-                            }
-                        }
+                    .fillMaxSize()
+                    .padding(content_padding),
+                onContinuationRequested = if (first_layout?.continuation == null) null else {{
+                    thread {
+                        first_layout.loadContinuation().getOrThrowHere()
                     }
-
-                    Btn(getString(R.string.playlist_chip_play), Icons.Outlined.PlayArrow,
-                        Modifier
-                            .fillMaxWidth(0.5f)
-                            .weight(1f)) { TODO() }
-                    Spacer(Modifier.requiredWidth(20.dp))
-                    Btn(getString(R.string.playlist_chip_radio), Icons.Outlined.Radio,
-                        Modifier
-                            .fillMaxWidth(1f)
-                            .weight(1f)) { TODO() }
-                }
-            }
-
-            // Loaded items
-            item {
-                Crossfade(playlist_rows_loaded) { loaded ->
-                    if (!loaded) {
-                        Box(
-                            Modifier
-                                .fillMaxSize()
-                                .background(background_colour)
-                                .padding(content_padding), contentAlignment = Alignment.Center) {
-                            CircularProgressIndicator(color = accent_colour)
-                        }
-                    }
-                    else if (playlist.feed_layouts != null) {
-                        MediaItemLayoutColumn(
-                            playlist.feed_layouts!!,
-                            playerProvider,
-                            Modifier
-                                .background(background_colour)
-                                .fillMaxSize()
-                                .padding(content_padding)
-                        )
-                    }
-                }
-            }
+                }},
+                padding = PaddingValues(bottom = playerProvider().bottom_padding),
+                loading_continuation = first_layout?.loading_continuation == true,
+                continuation_alignment = Alignment.CenterHorizontally,
+                topContent = { item { TopContent() } }
+            )
         }
     }
 }

@@ -5,6 +5,7 @@ import com.spectre7.spmp.R
 import com.spectre7.spmp.model.*
 import com.spectre7.spmp.ui.component.MediaItemLayout
 import com.spectre7.utils.getString
+import com.spectre7.utils.printJson
 import okhttp3.Request
 import java.io.BufferedReader
 import java.io.Reader
@@ -130,19 +131,36 @@ fun loadMediaItemData(item: MediaItem): Result<MediaItem> {
             val item_layouts: MutableList<MediaItemLayout> = mutableListOf()
 
             item.supplyTitle(header_renderer.title.first_text, true)
+            item.supplyDescription(header_renderer.description?.first_text, true)
 
-            for (row in parsed.contents.singleColumnBrowseResultsRenderer.tabs.first().tabRenderer.content!!.sectionListRenderer.contents!!.withIndex()) {
-                val desc = row.value.getDescription()
-                if (desc != null) {
-                    item.supplyDescription(desc, true)
+            val artist = header_renderer.subtitle?.runs?.firstOrNull {
+                it.navigationEndpoint?.browseEndpoint?.page_type == "MUSIC_PAGE_TYPE_USER_CHANNEL"
+            }
+            if (artist != null) {
+                item.supplyArtist(
+                    Artist
+                        .fromId(artist.navigationEndpoint!!.browseEndpoint!!.browseId)
+                        .supplyTitle(artist.text, true) as Artist,
+                    true
+                )
+            }
+
+            for (row in parsed.contents!!.singleColumnBrowseResultsRenderer.tabs.first().tabRenderer.content!!.sectionListRenderer.contents!!.withIndex()) {
+                val description = row.value.description
+                if (description != null) {
+                    item.supplyDescription(description, true)
                     continue
                 }
+
+                val continuation: MediaItemLayout.Continuation? =
+                    row.value.musicPlaylistShelfRenderer?.continuations?.firstOrNull()?.nextContinuationData?.continuation?.let { MediaItemLayout.Continuation(it, MediaItemLayout.Continuation.Type.PLAYLIST) }
 
                 item_layouts.add(MediaItemLayout(
                     row.value.title?.text,
                     null,
                     if (row.index == 0) MediaItemLayout.Type.NUMBERED_LIST else MediaItemLayout.Type.GRID,
-                    row.value.getMediaItems().toMutableList()
+                    row.value.getMediaItems().toMutableList(),
+                    continuation = continuation
                 ))
             }
             item.supplyFeedLayouts(item_layouts, true)

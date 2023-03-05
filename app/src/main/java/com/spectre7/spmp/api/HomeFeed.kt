@@ -8,6 +8,7 @@ import com.spectre7.utils.getString
 import okhttp3.Request
 import java.io.BufferedReader
 import java.time.Duration
+import kotlin.concurrent.thread
 
 private val CACHE_LIFETIME = Duration.ofDays(1)
 
@@ -57,11 +58,8 @@ fun getHomeFeed(min_rows: Int = -1, allow_cached: Boolean = true, continuation: 
                         }
                         else {
                             final_title = title
-                            if (header.strapline?.runs?.isNotEmpty() == true && (
-                                (thumbnail_source?.url == null && media_item_type != MediaItem.Type.ARTIST)
-                                || (thumbnail_source?.url != null && media_item_type == MediaItem.Type.ARTIST)
-                            )) {
-                                final_subtitle = getString(R.string.home_feed_similar_to)
+                            if (header.strapline?.runs?.isNotEmpty() == true && media_item_type != null) {
+                                final_subtitle = getString(if (thumbnail_source?.url != null) R.string.home_feed_similar_to else R.string.home_feed_more_from)
                             }
                             else {
                                 final_subtitle = null
@@ -120,17 +118,23 @@ fun getHomeFeed(min_rows: Int = -1, allow_cached: Boolean = true, continuation: 
                     val media_item: MediaItem
 
                     when (page_type) {
-                        "MUSIC_PAGE_TYPE_ARTIST", "MUSIC_PAGE_TYPE_USER_CHANNEL" -> media_item = Artist.fromId(browse_endpoint.browseId).supplyTitle(header.title.first_text)
+                        "MUSIC_PAGE_TYPE_ARTIST", "MUSIC_PAGE_TYPE_USER_CHANNEL" -> media_item = Artist.fromId(browse_endpoint.browseId)
                         "MUSIC_PAGE_TYPE_PLAYLIST" -> media_item = Playlist.fromId(browse_endpoint.browseId).supplyTitle(header.title.first_text)
                         else -> throw NotImplementedError(browse_endpoint.toString())
                     }
 
-                    val thumbnail_source = header.thumbnail?.musicThumbnailRenderer?.thumbnail?.thumbnails?.firstOrNull()?.let {
-                        MediaItemLayout.ThumbnailSource(url = it.url)
-                    } ?: MediaItemLayout.ThumbnailSource(media_item = media_item)
+                    val thumbnail_source =
+                        header.thumbnail?.musicThumbnailRenderer?.thumbnail?.thumbnails?.firstOrNull()?.let {
+                            MediaItemLayout.ThumbnailSource(url = it.url)
+                        }
+                        ?: MediaItemLayout.ThumbnailSource(media_item = media_item).also {
+                            if (!media_item.canLoadThumbnail()) {
+                                thread { media_item.loadData() }
+                            }
+                        }
 
                     add(
-                        media_item.title!!,
+                        header.title.first_text,
                         view_more = MediaItemLayout.ViewMore(media_item = media_item),
                         thumbnail_source = thumbnail_source,
                         media_item_type = media_item.type
@@ -191,16 +195,16 @@ fun getHomeFeed(min_rows: Int = -1, allow_cached: Boolean = true, continuation: 
 }
 
 data class YoutubeiBrowseResponse(
-    val contents: Contents,
+    val contents: Contents? = null,
     val continuationContents: ContinuationContents? = null,
     val header: Header? = null
 ) {
     val ctoken: String?
         get() = continuationContents?.sectionListContinuation?.continuations?.firstOrNull()?.nextContinuationData?.continuation
-                ?: contents.singleColumnBrowseResultsRenderer.tabs.first().tabRenderer.content?.sectionListRenderer?.continuations?.firstOrNull()?.nextContinuationData?.continuation
+                ?: contents!!.singleColumnBrowseResultsRenderer.tabs.first().tabRenderer.content?.sectionListRenderer?.continuations?.firstOrNull()?.nextContinuationData?.continuation
 
     fun getShelves(has_continuation: Boolean): List<YoutubeiShelf> {
-        return if (has_continuation) continuationContents!!.sectionListContinuation.contents!! else contents.singleColumnBrowseResultsRenderer.tabs.first().tabRenderer.content!!.sectionListRenderer.contents!!
+        return if (has_continuation) continuationContents!!.sectionListContinuation!!.contents!! else contents!!.singleColumnBrowseResultsRenderer.tabs.first().tabRenderer.content!!.sectionListRenderer.contents!!
     }
 
     data class Contents(val singleColumnBrowseResultsRenderer: SingleColumnBrowseResultsRenderer)
@@ -210,7 +214,7 @@ data class YoutubeiBrowseResponse(
     data class Content(val sectionListRenderer: SectionListRenderer)
     open class SectionListRenderer(val contents: List<YoutubeiShelf>? = null, val continuations: List<YoutubeiNextResponse.Continuation>? = null)
 
-    data class ContinuationContents(val sectionListContinuation: SectionListRenderer)
+    data class ContinuationContents(val sectionListContinuation: SectionListRenderer? = null, val musicPlaylistShelfContinuation: MusicShelfRenderer? = null)
 }
 
 data class YoutubeiShelf(
@@ -229,9 +233,7 @@ data class YoutubeiShelf(
         else if (musicDescriptionShelfRenderer != null) musicDescriptionShelfRenderer.header.runs?.firstOrNull()
         else null
 
-    fun getDescription(): String? {
-        return musicDescriptionShelfRenderer?.description?.first_text
-    }
+    val description: String? get() = musicDescriptionShelfRenderer?.description?.first_text
 
     fun getMediaItems(): List<MediaItem> {
         return (musicShelfRenderer?.contents ?: musicCarouselShelfRenderer?.contents ?: musicPlaylistShelfRenderer!!.contents).mapNotNull {
@@ -283,7 +285,8 @@ data class HeaderRenderer(
     val subscriptionButton: SubscriptionButton? = null,
     val description: TextRuns? = null,
     val thumbnail: Thumbnails? = null,
-    val foregroundThumbnail: Thumbnails? = null
+    val foregroundThumbnail: Thumbnails? = null,
+    val subtitle: TextRuns? = null
 ) {
     fun getThumbnails(): List<MediaItem.ThumbnailProvider.Thumbnail> {
         return (thumbnail ?: foregroundThumbnail)?.thumbnails ?: emptyList()
@@ -306,7 +309,7 @@ data class TextRuns(val runs: List<TextRun>? = null) {
 }
 data class TextRun(val text: String, val strapline: TextRuns? = null, val navigationEndpoint: NavigationEndpoint? = null)
 
-data class MusicShelfRenderer(val title: TextRuns? = null, val contents: List<ContentsItem>)
+data class MusicShelfRenderer(val title: TextRuns? = null, val contents: List<ContentsItem>, val continuations: List<YoutubeiNextResponse.Continuation>? = null)
 data class MusicCarouselShelfRenderer(val header: Header, val contents: List<ContentsItem>)
 data class MusicDescriptionShelfRenderer(val header: TextRuns, val description: TextRuns)
 
@@ -430,10 +433,10 @@ data class ContentsItem(val musicTwoRowItemRenderer: MusicTwoRowItemRenderer? = 
 
             val ret: MediaItem
             if (video_id != null) {
-                val first_thumbnail = renderer.thumbnail!!.musicThumbnailRenderer.thumbnail.thumbnails.first()
-                ret = Song
-                    .fromId(video_id)
-                    .supplySongType(if (first_thumbnail.height == first_thumbnail.width) Song.SongType.SONG else Song.SongType.VIDEO)
+                ret = Song.fromId(video_id)
+                renderer.thumbnail?.musicThumbnailRenderer?.thumbnail?.thumbnails?.firstOrNull()?.also {
+                    ret.supplySongType(if (it.height == it.width) Song.SongType.SONG else Song.SongType.VIDEO)
+                }
             }
             else if (video_is_main) {
                 return null
@@ -442,7 +445,7 @@ data class ContentsItem(val musicTwoRowItemRenderer: MusicTwoRowItemRenderer? = 
                 ret = playlist ?: artist ?: return null
             }
 
-            return ret.supplyTitle(title).supplyArtist(artist ?: Artist.UNKNOWN).supplyThumbnailProvider(renderer.thumbnail!!.toThumbnailProvider())
+            return ret.supplyTitle(title).supplyArtist(artist ?: Artist.UNKNOWN).supplyThumbnailProvider(renderer.thumbnail?.toThumbnailProvider())
         }
 
         throw NotImplementedError()

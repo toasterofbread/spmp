@@ -8,14 +8,16 @@
     <string name="home_feed_new_releases">New releases</string>
     <string name="home_feed_moods_and_genres">Recommended playlists</string>
     <string name="home_feed_charts">Charts</string>
+
     <string name="home_feed_similar_to">Similar to</string>
+    <string name="home_feed_more_from">More from</string>
 
     <string name="song_name">Song name</string>
     <string name="videos">Videos</string>
-    
+
     <string name="songs">Songs</string>
     <string name="song">Song</string>
-    
+
     <string name="artists">Artists</string>
     <string name="artist">Artist</string>
 
@@ -38,10 +40,10 @@
 
     <string name="theme_title_default">Default theme</string>
     <string name="theme_title_new">New theme</string>
-    
+
     <string name="queue_shuffle">Shuffle</string>
     <string name="queue_clear">Clear</string>
-    
+
     <string name="playlist_chip_play">Play</string>
     <string name="playlist_chip_shuffle">Shuffle</string>
     <string name="playlist_chip_radio">Radio</string>
@@ -167,7 +169,7 @@
     <string name="s_sub_auto_download_size_limit">This size will not be exceeded by auto-downloaded songs, if more space is needed the least listened to songs will be deleted first</string>
 
     <string name="s_group_stats">Listen stats</string>
-    
+
     <string name="s_key_enable_stats">Enable listen stats</string>
     <string name="s_sub_enable_stats">If disabled, listen stats will not be recorded</string>
     <string name="s_key_listen_count_threshold">Minimum listen time to count</string>
@@ -192,7 +194,7 @@
     <string name="s_option_vol_intercept_mode_always">When media session is active</string>
     <string name="s_option_vol_intercept_mode_app">When the app is open</string>
     <string name="s_option_vol_intercept_mode_never">Never</string>
-    
+
     <string name="s_key_acc_screen_off">Enable while screen is off</string>
     <string name="s_sub_acc_screen_off">Requires root privledges</string>
 

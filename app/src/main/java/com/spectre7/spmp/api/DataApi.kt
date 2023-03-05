@@ -1,7 +1,6 @@
 package com.spectre7.spmp.api
 
-import com.beust.klaxon.JsonObject
-import com.beust.klaxon.Klaxon
+import com.beust.klaxon.*
 import com.spectre7.spmp.BuildConfig
 import com.spectre7.spmp.MainActivity
 import okhttp3.*
@@ -33,7 +32,31 @@ class DataApi {
     companion object {
         private val client: OkHttpClient = OkHttpClient()
 
-        val klaxon: Klaxon = Klaxon()
+        private val enum_converter = object : Converter {
+            override fun canConvert(cls: Class<*>): Boolean {
+                return cls.isEnum
+            }
+
+            override fun fromJson(jv: JsonValue): Enum<*>? {
+                val cls = jv.propertyClass
+                if (cls !is Class<*> || !cls.isEnum) {
+                    throw IllegalArgumentException("Could not convert $jv to enum")
+                }
+
+                val name = jv.inside as String? ?: return null
+                val field = cls.declaredFields
+                    .firstOrNull { it.name == name || it.getAnnotation(Json::class.java)?.name == name }
+                    ?: throw IllegalArgumentException("Could not find enum value for $name")
+
+                return field.get(null) as Enum<*>
+            }
+
+            override fun toJson(value: Any): String {
+                require(value is Enum<*>)
+                return "\"${value.name}\""
+            }
+        }
+        val klaxon: Klaxon get() = Klaxon().converter(enum_converter)
 
         private lateinit var youtubei_base_context: JsonObject
         private lateinit var youtubei_alt_context: JsonObject

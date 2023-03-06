@@ -23,103 +23,6 @@ import java.io.FileNotFoundException
 import java.net.URL
 import kotlin.concurrent.thread
 
-class DataRegistry constructor(data: Map<String, Map<String, Any?>>? = null) {
-    private var songs: MutableMap<String, SongEntry> = mutableMapOf()
-
-    init {
-        if (data != null) {
-            for (song_data in data) {
-                songs[song_data.key] = SongEntry(song_data.value)
-            }
-        }
-    }
-
-    inner class SongEntry(init_data: Map<String, Any?>? = null) {
-        val data: Map<String, MutableState<Any?>> = getDefaultData()
-
-        init {
-            if (init_data != null) {
-                for (item in init_data) {
-                    data[item.key]!!.value = item.value
-                }
-            }
-        }
-
-        fun <T> set(key: String, value: T, save: Boolean = true) {
-            data[key]!!.value = value
-
-            if (save) {
-                saveData()
-            }
-        }
-
-        fun <T> get(key: String): T? {
-            return data[key]!!.value as T?
-        }
-
-        fun <T> getState(key: String): MutableState<T?> {
-            return data[key]!! as MutableState<T?>
-        }
-
-        fun save() {
-            saveData()
-        }
-
-        internal fun getJsonData(): Map<String, Any?>? {
-            val ret: MutableMap<String, Any?> = mutableMapOf()
-            for (item in data) {
-                if (item.value.value == null) {
-                    continue
-                }
-                ret[item.key] = item.value.value
-            }
-            return ret.ifEmpty { null }
-        }
-
-        private fun getDefaultData(): Map<String, MutableState<Any?>> {
-            return mapOf(
-                "title" to mutableStateOf(null),
-                "theme_colour" to mutableStateOf(null),
-                "lyrics_id" to mutableStateOf(null),
-                "lyrics_source" to mutableStateOf(null),
-                "thumbnail_rounding" to mutableStateOf(null)
-            )
-        }
-    }
-
-    @Synchronized
-    fun getSongEntry(song_id: String): SongEntry {
-        val ret = songs.getOrDefault(song_id, null)
-
-        if (ret != null) {
-            return ret
-        }
-
-        return SongEntry().also { entry ->
-            songs[song_id] = entry
-        }
-    }
-
-    @Synchronized
-    fun saveData(prefs: SharedPreferences = Settings.prefs) {
-        val song_data = mutableMapOf<String, Map<String, Any?>>()
-        for (song in songs) {
-            val data = song.value.getJsonData()
-            if (data != null) {
-                song_data[song.key] = data
-            }
-        }
-
-        if (song_data.isEmpty()) {
-            return
-        }
-
-        prefs.edit {
-            putString("data_registry", Klaxon().toJsonString(song_data))
-        }
-    }
-}
-
 class Song private constructor (
     id: String
 ): MediaItem(id) {
@@ -128,7 +31,15 @@ class Song private constructor (
         LOW, MEDIUM, HIGH
     }
 
-    val registry: DataRegistry.SongEntry
+    class SongDataRegistryEntry: DataRegistry.Entry() {
+        var theme_colour: Int? by mutableStateOf(null)
+        var lyrics_id: Int? by mutableStateOf(null)
+        var lyrics_source: Lyrics.Source? by mutableStateOf(null)
+        var theme_colour: Int? by mutableStateOf(null)
+    }
+    
+    val song_reg_entry: SongDataRegistryEntry
+    override fun getDefaultRegistryEntry(): DataRegistry.Entry = SongDataRegistryEntry()
 
     private var audio_formats: List<YoutubeVideoFormat>? = null
     private var stream_format: YoutubeVideoFormat? = null
@@ -231,17 +142,11 @@ class Song private constructor (
     }
 
     init {
-        registry = song_registry.getSongEntry(id)
+        song_reg_entry = reg_entry as SongDataRegistryEntry
     }
 
     companion object {
         private val songs: MutableMap<String, Song> = mutableMapOf()
-        lateinit var song_registry: DataRegistry
-
-        fun init(prefs: SharedPreferences) {
-            val data = prefs.getString("data_registry", null)
-            song_registry = DataRegistry(if (data == null) null else Klaxon().parse(data))
-        }
 
         @Synchronized
         fun fromId(id: String): Song {
@@ -260,17 +165,11 @@ class Song private constructor (
     }
 
     var theme_colour: Color?
-        get() {
-            val value = registry.get<Int>("theme_colour")
-            if (value != null) {
-                return Color(value)
-            }
-            return null
-        }
-        set(value) { registry.set("theme_colour", value?.toArgb()) }
+        get() = song_reg_entry.theme_colour?.let { Color(it) }
+        set(value) { song_reg_entry.theme_colour = value?.toArgb() }
     
-    fun setTitleOverride(value: String) {
-        registry.set("title", value)
+    fun setTitleOverride(value: String?) {
+        song_reg_entry.title = value
     }
 
     // Expects formats to be sorted by bitrate (descending)

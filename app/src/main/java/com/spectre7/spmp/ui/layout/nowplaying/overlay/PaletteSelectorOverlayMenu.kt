@@ -123,9 +123,9 @@ class PaletteSelectorOverlayMenu(
                         Text("Pick from thumbnail")
                     }
 
-                    val thumbnail_rounding_state: MutableState<Int?> = remember(songProvider().registry) { songProvider().registry.getState("thumbnail_rounding") }
+                    val thumbnail_rounding: Int? = songProvider().song_reg_entry.thumbnail_rounding
                     var slider_value by remember { mutableStateOf(
-                        ((thumbnail_rounding_state.value ?: DEFAULT_THUMBNAIL_ROUNDING) - MIN_THUMBNAIL_ROUNDING) / (MAX_THUMBNAIL_ROUNDING - MIN_THUMBNAIL_ROUNDING).toFloat()
+                        ((thumbnail_rounding.value ?: DEFAULT_THUMBNAIL_ROUNDING) - MIN_THUMBNAIL_ROUNDING) / (MAX_THUMBNAIL_ROUNDING - MIN_THUMBNAIL_ROUNDING).toFloat()
                     ) }
 
                     val anim_state = remember { Animatable(0f) }
@@ -142,15 +142,15 @@ class PaletteSelectorOverlayMenu(
                     }
 
                     OnChangedEffect(anim_state.value) {
-                        thumbnail_rounding_state.value = MIN_THUMBNAIL_ROUNDING + ((MAX_THUMBNAIL_ROUNDING - MIN_THUMBNAIL_ROUNDING) * anim_state.value).roundToInt()
+                        thumbnail_rounding.value = MIN_THUMBNAIL_ROUNDING + ((MAX_THUMBNAIL_ROUNDING - MIN_THUMBNAIL_ROUNDING) * anim_state.value).roundToInt()
 
                         if (!anim_state.isRunning) {
-                            songProvider().registry.save()
+                            MediaItem.data_registry.save()
                         }
                     }
 
                     Column(horizontalAlignment = Alignment.CenterHorizontally) {
-                        val radius = (thumbnail_rounding_state.value ?: DEFAULT_THUMBNAIL_ROUNDING) * 2
+                        val radius = (thumbnail_rounding.value ?: DEFAULT_THUMBNAIL_ROUNDING) * 2
                         Text("Corner radius ${radius.toString().padStart(3, ' ')}", Modifier.offset(y = 10.dp), fontSize = 15.sp)
                         val background_colour = getNPBackground(playerProvider)
 

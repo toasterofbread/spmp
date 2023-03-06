@@ -36,11 +36,16 @@ import kotlin.concurrent.thread
 
 @Suppress("PLATFORM_CLASS_MAPPED_TO_KOTLIN")
 abstract class MediaItem(id: String) {
+
+    val reg_entry: DataRegistry.Entry
+    abstract fun getDefaultRegistryEntry(): DataRegistry.Entry
+
     private val _id: String = id
     val id: String get() {
         requireValid()
         return _id
     }
+    val uid: String get() = "${type.ordinal}$_id"
 
     var title: String? by mutableStateOf(null)
         private set
@@ -172,6 +177,12 @@ abstract class MediaItem(id: String) {
 
         fun getCacheKey(type: Type, id: String): String {
             return "M/${type.name}/$id"
+        }
+
+        val data_registry: DataRegistry = DataRegistry()
+
+        fun init(prefs: SharedPreferences) {
+            data_registry.load(prefs)
         }
 
         fun fromJsonData(reader: Reader): MediaItem {
@@ -421,6 +432,7 @@ abstract class MediaItem(id: String) {
             states[quality] = ThumbState()
         }
         thumb_states = states
+        reg_entry = data_registry.getEntry(this)
     }
 
     fun addBrowseEndpoint(id: String, type: BrowseEndpoint.Type): Boolean {
@@ -542,6 +554,33 @@ abstract class MediaItem(id: String) {
     }
 
     val cache_key: String get() = getCacheKey(type, id)
+
+    class DataRegistry {
+        private lateinit var entries: MutableMap<String, Entry>
+
+        class Entry {
+            var title: String? by mutableStateOf(null)
+        }
+
+        @Synchronized
+        fun getEntry(item: MediaItem): SongEntry {
+            return entries.getOrPut(item.uid) {
+                item.getDefaultRegistryEntry()
+            }
+        }
+
+        @Synchronized
+        fun load(prefs: SharedPreferences = Settings.prefs) {
+            entries = prefs.getString("data_registry", null)?.let { DataApi.klaxon.parse(it) } ?: mutableMapOf()
+        }
+
+        @Synchronized
+        fun save(prefs: SharedPreferences = Settings.prefs) {
+            prefs.edit {
+                putString("data_registry", DataApi.klaxon.toJsonString(entries))
+            }
+        }
+    }
 }
 
 abstract class MediaItemWithLayouts(id: String): MediaItem(id) {

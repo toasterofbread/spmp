@@ -86,6 +86,7 @@ fun getString(id: Int, context: Context = MainActivity.context): String {
 }
 
 fun getString(temp_string: String): String {
+	println("Unlocalised string used: '$temp_string'")
 	// throw NotImplementedError(temp_string)
 	return temp_string
 }

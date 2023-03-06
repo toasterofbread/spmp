@@ -17,8 +17,8 @@ import java.util.*
 fun getSongLyrics(song: Song): Song.Lyrics? {
     val ret: Song.Lyrics?
 
-    val id: Int? = song.registry.get("lyrics_id")
-    val source: Song.Lyrics.Source? = song.registry.get("lyrics_source")
+    val id: Int? = song.song_reg_entry.lyrics_id
+    val source: Song.Lyrics.Source? = song.song_reg_entry.lyrics_source
 
     if (id != null && source != null) {
         ret = getLyrics(id, source).getOrThrowHere()
@@ -33,8 +33,8 @@ fun getSongLyrics(song: Song): Song.Lyrics? {
         ret = getLyrics(lyrics.id, lyrics.source).getOrThrowHere()
     }
 
-    song.registry.set("lyrics_id", ret.id)
-    song.registry.set("lyrics_source", ret.source)
+    song.song_reg_entry.lyrics_id = ret.id
+    song.song_reg_entry.lyrics_source = ret.source
     return ret
 }
 

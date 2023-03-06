@@ -76,7 +76,7 @@ class MainActivity : ComponentActivity() {
 
         Cache.init(this)
         DataApi.initialise()
-        Song.init(Companion.getSharedPreferences())
+        MediaItem.init(Companion.getSharedPreferences())
 
         Thread.setDefaultUncaughtExceptionHandler { _: Thread, error: Throwable ->
             error.printStackTrace()

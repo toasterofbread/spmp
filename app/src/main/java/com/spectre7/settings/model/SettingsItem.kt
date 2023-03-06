@@ -313,14 +313,14 @@ class SettingsItemSlider(
                             try {
                                 val value: Float = if (is_int) text.toInt().toFloat() else text.toFloat()
                                 if (!range.contains(value)) {
-                                    error = "Value is out of range ($range)"
+                                    error = getString("Value is out of range ($range)")
                                     return@OutlinedTextField
                                 }
 
                                 error = null
                             }
                             catch(_: NumberFormatException) {
-                                error = if (is_int) "Value is not an integer" else "Value is not a float"
+                                error = if (is_int) getString("Value is not an integer") else getString("Value is not a float")
                             }
                         },
                         singleLine = true

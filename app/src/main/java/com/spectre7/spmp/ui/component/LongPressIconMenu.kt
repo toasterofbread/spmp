@@ -198,7 +198,7 @@ fun LongPressIconMenu(
 
         LaunchedEffect(Unit) {
             if (data.item is Song) {
-                val theme_colour = data.item.registry.get<Int>("theme_colour")
+                val theme_colour = data.item.theme_colour
                 if (theme_colour != null) {
                     accent_colour = Color(theme_colour)
                     return@LaunchedEffect

@@ -1,5 +1,6 @@
 package com.spectre7.spmp.model
 
+import android.content.SharedPreferences
 import android.graphics.Bitmap
 import android.graphics.BitmapFactory
 import androidx.compose.animation.Crossfade
@@ -17,6 +18,7 @@ import androidx.compose.ui.graphics.asImageBitmap
 import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.unit.IntSize
+import androidx.core.content.edit
 import androidx.palette.graphics.Palette
 import com.beust.klaxon.*
 import com.spectre7.spmp.R
@@ -38,7 +40,7 @@ import kotlin.concurrent.thread
 abstract class MediaItem(id: String) {
 
     val reg_entry: DataRegistry.Entry
-    abstract fun getDefaultRegistryEntry(): DataRegistry.Entry
+    open fun getDefaultRegistryEntry(): DataRegistry.Entry = DataRegistry.Entry()
 
     private val _id: String = id
     val id: String get() {
@@ -110,6 +112,13 @@ abstract class MediaItem(id: String) {
                 PLAYLIST -> getString(if (plural) R.string.playlists else R.string.playlist)
             }
         }
+
+        fun parseRegistryEntry(obj: JsonObject): DataRegistry.Entry {
+            return when (this) {
+                SONG -> DataApi.klaxon.parseFromJsonObject<Song.SongDataRegistryEntry>(obj)!!
+                else -> DataApi.klaxon.parseFromJsonObject(obj)!!
+            }
+        }
     }
     val type: Type get() = when(this) {
         is Song -> Type.SONG
@@ -117,7 +126,7 @@ abstract class MediaItem(id: String) {
         is Playlist -> Type.PLAYLIST
         else -> throw NotImplementedError(this.javaClass.name)
     }
-    
+
     protected fun stringToJson(string: String?): String {
         return DataApi.klaxon.toJsonString(string)
     }
@@ -556,14 +565,14 @@ abstract class MediaItem(id: String) {
     val cache_key: String get() = getCacheKey(type, id)
 
     class DataRegistry {
-        private lateinit var entries: MutableMap<String, Entry>
+        private val entries: MutableMap<String, Entry> = mutableMapOf()
 
-        class Entry {
+        open class Entry {
             var title: String? by mutableStateOf(null)
         }
 
         @Synchronized
-        fun getEntry(item: MediaItem): SongEntry {
+        fun getEntry(item: MediaItem): Entry {
             return entries.getOrPut(item.uid) {
                 item.getDefaultRegistryEntry()
             }
@@ -571,7 +580,18 @@ abstract class MediaItem(id: String) {
 
         @Synchronized
         fun load(prefs: SharedPreferences = Settings.prefs) {
-            entries = prefs.getString("data_registry", null)?.let { DataApi.klaxon.parse(it) } ?: mutableMapOf()
+            val data = prefs.getString("data_registry", null)
+            if (data == null) {
+                return
+            }
+
+            entries.clear()
+
+            val parsed = DataApi.klaxon.parseJsonObject(data.reader())
+            for (item in parsed.entries) {
+                val type = Type.values()[item.key.take(1).toInt()]
+                entries[item.key] = type.parseRegistryEntry(item.value as JsonObject)
+            }
         }
 
         @Synchronized

@@ -23,6 +23,7 @@ import androidx.compose.ui.unit.sp
 import androidx.core.graphics.ColorUtils
 import androidx.palette.graphics.Palette
 import com.spectre7.spmp.MainActivity
+import com.spectre7.spmp.model.MediaItem
 import com.spectre7.spmp.model.Song
 import com.spectre7.spmp.ui.layout.PlayerViewContext
 import com.spectre7.spmp.ui.layout.nowplaying.*
@@ -123,9 +124,8 @@ class PaletteSelectorOverlayMenu(
                         Text("Pick from thumbnail")
                     }
 
-                    val thumbnail_rounding: Int? = songProvider().song_reg_entry.thumbnail_rounding
                     var slider_value by remember { mutableStateOf(
-                        ((thumbnail_rounding.value ?: DEFAULT_THUMBNAIL_ROUNDING) - MIN_THUMBNAIL_ROUNDING) / (MAX_THUMBNAIL_ROUNDING - MIN_THUMBNAIL_ROUNDING).toFloat()
+                        ((songProvider().song_reg_entry.thumbnail_rounding ?: DEFAULT_THUMBNAIL_ROUNDING) - MIN_THUMBNAIL_ROUNDING) / (MAX_THUMBNAIL_ROUNDING - MIN_THUMBNAIL_ROUNDING).toFloat()
                     ) }
 
                     val anim_state = remember { Animatable(0f) }
@@ -142,7 +142,7 @@ class PaletteSelectorOverlayMenu(
                     }
 
                     OnChangedEffect(anim_state.value) {
-                        thumbnail_rounding.value = MIN_THUMBNAIL_ROUNDING + ((MAX_THUMBNAIL_ROUNDING - MIN_THUMBNAIL_ROUNDING) * anim_state.value).roundToInt()
+                        songProvider().song_reg_entry.thumbnail_rounding = MIN_THUMBNAIL_ROUNDING + ((MAX_THUMBNAIL_ROUNDING - MIN_THUMBNAIL_ROUNDING) * anim_state.value).roundToInt()
 
                         if (!anim_state.isRunning) {
                             MediaItem.data_registry.save()
@@ -150,7 +150,7 @@ class PaletteSelectorOverlayMenu(
                     }
 
                     Column(horizontalAlignment = Alignment.CenterHorizontally) {
-                        val radius = (thumbnail_rounding.value ?: DEFAULT_THUMBNAIL_ROUNDING) * 2
+                        val radius = (songProvider().song_reg_entry.thumbnail_rounding ?: DEFAULT_THUMBNAIL_ROUNDING) * 2
                         Text("Corner radius ${radius.toString().padStart(3, ' ')}", Modifier.offset(y = 10.dp), fontSize = 15.sp)
                         val background_colour = getNPBackground(playerProvider)
 

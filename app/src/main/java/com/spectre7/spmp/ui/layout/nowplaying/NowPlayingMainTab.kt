@@ -133,7 +133,7 @@ fun ColumnScope.NowPlayingMainTab(
         }
     }
 
-    val thumbnail_rounding: Int? = PlayerServiceHost.status.m_song?.song_reg_entry.thumbnail_rounding
+    val thumbnail_rounding: Int? = PlayerServiceHost.status.m_song?.song_reg_entry?.thumbnail_rounding
     val thumbnail_shape = RoundedCornerShape(thumbnail_rounding ?: DEFAULT_THUMBNAIL_ROUNDING)
     var image_size by remember { mutableStateOf(IntSize(1, 1)) }
     val status_bar_height = getStatusBarHeight()

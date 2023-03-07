@@ -32,6 +32,7 @@ import com.my.kizzyrpc.KizzyRPC
 import com.my.kizzyrpc.model.Activity
 import com.spectre7.spmp.api.DataApi
 import com.spectre7.spmp.model.Cache
+import com.spectre7.spmp.model.MediaItem
 import com.spectre7.spmp.model.Settings
 import com.spectre7.spmp.model.Song
 import com.spectre7.spmp.ui.layout.PlayerView

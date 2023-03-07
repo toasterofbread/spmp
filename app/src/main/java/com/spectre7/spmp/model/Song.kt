@@ -35,10 +35,10 @@ class Song private constructor (
         var theme_colour: Int? by mutableStateOf(null)
         var lyrics_id: Int? by mutableStateOf(null)
         var lyrics_source: Lyrics.Source? by mutableStateOf(null)
-        var theme_colour: Int? by mutableStateOf(null)
+        var thumbnail_rounding: Int? by mutableStateOf(null)
     }
     
-    val song_reg_entry: SongDataRegistryEntry
+    val song_reg_entry: SongDataRegistryEntry = reg_entry as SongDataRegistryEntry
     override fun getDefaultRegistryEntry(): DataRegistry.Entry = SongDataRegistryEntry()
 
     private var audio_formats: List<YoutubeVideoFormat>? = null
@@ -139,10 +139,6 @@ class Song private constructor (
                 }
             }
         }
-    }
-
-    init {
-        song_reg_entry = reg_entry as SongDataRegistryEntry
     }
 
     companion object {

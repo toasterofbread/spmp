@@ -1,6 +1,5 @@
 <resources>
     <string name="app_name" translatable="false">SpMp</string>
-    <string name="yt_api_key" translatable="false">***REMOVED***</string>
     <string name="yt_i_api_key" translatable="false">AIzaSyAO_FJ2SlqU8Q4STEHLGCilw_Y9_11qcW8</string>
 
     <string name="home_feed_listen_again">Listen again</string>

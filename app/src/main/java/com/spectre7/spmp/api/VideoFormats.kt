@@ -19,7 +19,7 @@ private fun checkUrl(url: String): Boolean {
     val request = Request.Builder()
         .url(url)
         .header("Cookie", "CONSENT=YES+1")
-        .header("User-Agent", DATA_API_USER_AGENT)
+        .header("User-Agent", DataApi.user_agent)
         .build()
 
     val response = DataApi.request(request, true).getOrNull() ?: return false
@@ -232,7 +232,7 @@ private fun getVideoFormatsFallback3(id: String, filter: ((YoutubeVideoFormat) -
     val request = Request.Builder()
         .url("https://www.youtube.com/watch?v=$id")
         .header("Cookie", "CONSENT=YES+1")
-        .header("User-Agent", DATA_API_USER_AGENT)
+        .header("User-Agent", DataApi.user_agent)
         .build()
 
     fun getFormats(): Result<Pair<SignatureCipherDecrypter, List<YoutubeVideoFormat>>> {
@@ -380,7 +380,7 @@ class SignatureCipherDecrypter(base_js: String) {
 
             val request = Request.Builder()
                 .url("https://www.youtube.com${player_html.substring(url_start, url_end)}")
-                .header("User-Agent", DATA_API_USER_AGENT)
+                .header("User-Agent", DataApi.user_agent)
                 .build()
 
             val result = DataApi.request(request)
@@ -399,7 +399,7 @@ class SignatureCipherDecrypter(base_js: String) {
             val request = Request.Builder()
                 .url(player_url)
                 .header("Cookie", "CONSENT=YES+1")
-                .header("User-Agent", DATA_API_USER_AGENT)
+                .header("User-Agent", DataApi.user_agent)
                 .build()
 
             val response_result = DataApi.request(request)

@@ -39,7 +39,6 @@ import androidx.palette.graphics.Palette
 import com.github.krottv.compose.sliders.DefaultThumb
 import com.github.krottv.compose.sliders.DefaultTrack
 import com.github.krottv.compose.sliders.SliderValueHorizontal
-import com.google.android.exoplayer2.Player
 import com.spectre7.spmp.PlayerServiceHost
 import com.spectre7.spmp.R
 import com.spectre7.spmp.model.MediaItem
@@ -223,12 +222,12 @@ fun ColumnScope.NowPlayingMainTab(
                             }
                             .run {
                                 if (colourpick_callback == null) {
-                                    this.clickable(
-                                        enabled = expansion == 1f,
-                                        indication = null,
-                                        interactionSource = remember { MutableInteractionSource() }
-                                    ) {
-                                        if (overlay_menu == null || overlay_menu!!.closeOnTap()) {
+                                    if (overlay_menu == null || overlay_menu!!.closeOnTap()) {
+                                        this.clickable(
+                                            enabled = expansion == 1f,
+                                            indication = null,
+                                            interactionSource = remember { MutableInteractionSource() }
+                                        ) {
                                             overlay_menu = if (overlay_menu == null) MainOverlayMenu(
                                                 { overlay_menu = it },
                                                 { theme_palette },
@@ -240,6 +239,9 @@ fun ColumnScope.NowPlayingMainTab(
                                                 screen_width_dp
                                             ) else null
                                         }
+                                    }
+                                    else {
+                                        this
                                     }
                                 }
                                 else {
@@ -507,26 +509,14 @@ private fun Controls(
                 }
 
                 Marquee(false) {
-                    EditableText(
+                    Text(
                         title_text,
-                        editable = PlayerServiceHost.status.m_song != null
-                        style = TextStyle(
-                            fontSize = 17.sp,
-                            color = getNPOnBackground(playerProvider),
-                            textAlign = TextAlign.Center
-                        ),
-                        single_line = true,
-                        // overflow = TextOverflow.Ellipsis,
-                        modifier = Modifier.fillMaxWidth(),
-                        onEdit = { text ->
-                            title_text = text
-                        },
-                        onCompleted = {
-                            PlayerServiceHost.status.m_song?.apply {
-                                reg_entry.title = title_text
-                                saveRegistry()
-                            }
-                        }
+                        fontSize = 17.sp,
+                        color = getNPOnBackground(playerProvider),
+                        textAlign = TextAlign.Center,
+                        maxLines = 1,
+                        overflow = TextOverflow.Ellipsis,
+                        modifier = Modifier.fillMaxWidth()
                     )
                 }
 

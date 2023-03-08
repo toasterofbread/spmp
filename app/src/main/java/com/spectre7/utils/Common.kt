@@ -18,6 +18,9 @@ import androidx.compose.foundation.*
 import androidx.compose.foundation.gestures.*
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.shape.CircleShape
+import androidx.compose.foundation.text.BasicTextField
+import androidx.compose.foundation.text.KeyboardActions
+import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.material.ripple.LocalRippleTheme
 import androidx.compose.material.ripple.RippleAlpha
 import androidx.compose.material.ripple.RippleTheme
@@ -38,15 +41,13 @@ import androidx.compose.ui.graphics.lerp
 import androidx.compose.ui.input.pointer.pointerInput
 import androidx.compose.ui.layout.SubcomposeLayout
 import androidx.compose.ui.layout.onSizeChanged
-import androidx.compose.ui.platform.LocalDensity
-import androidx.compose.ui.platform.LocalLayoutDirection
-import androidx.compose.ui.platform.LocalUriHandler
-import androidx.compose.ui.platform.debugInspectorInfo
+import androidx.compose.ui.platform.*
 import androidx.compose.ui.text.SpanStyle
 import androidx.compose.ui.text.TextLayoutResult
 import androidx.compose.ui.text.TextStyle
 import androidx.compose.ui.text.buildAnnotatedString
 import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.text.input.ImeAction
 import androidx.compose.ui.text.style.TextDecoration
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.*
@@ -504,7 +505,7 @@ fun printJson(data: String, klaxon: Klaxon? = null) {
 		println((klaxon ?: Klaxon()).parseJsonObject(data.reader()).toJsonString(true))
 	}
 	catch (e: Exception) {
-		println(data.substring(1790))
+		println(data)
 		throw e
 	}
 }
@@ -633,48 +634,4 @@ fun <T> MutableList<T>.addUnique(item: T): Boolean {
 		return true
 	}
 	return false
-}
-
-@Composable
-fun EditableText(
-	text: String, 
-	onEdit: (String) -> Boolean, 
-	onCompleted: () -> Unit, 
-	modifier: Modifier = Modifier, 
-	style: TextStyle, 
-	editable: Boolean = true,
-	singleLine: Boolean = false
-) {
-	var editing by remember { mutableStateOf(false) }
-	OnChangedEffect(editable) {
-		if (!editable) {
-			editing = false
-		}
-	}
-
-	val keyboard_controller = LocalSoftwareKeyboardController.current
-
-	BasicTextField(
-		text,
-		onEdit,
-		readOnly = !editing,
-		textStyle = style,
-		keyboardOptions = KeyboardOptions(imeAction = ImeAction.Done),
-		keyboardActions = KeyboardActions(
-			onDone = { 
-				editing = false
-				keyboard_controller.hide()
-				onCompleted()
-			}
-		),
-		modifier = modifier.combinedClickable {
-			onClick = {},
-			onLongClick = {
-				if (!editing) {
-					vibrateShort()
-					editing = true
-				}
-			}
-		}
-	)
 }

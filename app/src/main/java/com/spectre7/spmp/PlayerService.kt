@@ -73,10 +73,10 @@ import kotlin.random.Random
 import kotlin.random.nextInt
 import com.google.android.exoplayer2.MediaItem as ExoMediaItem
 
-const val VOL_NOTIF_SHOW_DURATION: Long = 1000
 // Radio continuation will be added if the amount of remaining songs (including current) falls below this
 const val RADIO_MIN_LENGTH: Int = 10
 const val PERSISTENT_QUEUE_UPDATE_INTERVAL: Long = 5000 // ms
+const val VOL_NOTIF_SHOW_DURATION: Long = 1000
 
 class PlayerService : Service() {
 

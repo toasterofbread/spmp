@@ -501,20 +501,35 @@ private fun Controls(
         Column(verticalArrangement = Arrangement.spacedBy(35.dp)) {
             Column(verticalArrangement = Arrangement.spacedBy(5.dp)) {
 
-                // Title text
+                var title_text by remember { mutableStateOf(PlayerServiceHost.status.m_song?.title ?: "") }
+                OnChangedEffect(PlayerServiceHost.status.m_song?.title) {
+                    title_text = PlayerServiceHost.status.m_song?.title ?: ""
+                }
+
                 Marquee(false) {
-                    Text(
-                        PlayerServiceHost.status.m_song?.title ?: "",
-                        fontSize = 17.sp,
-                        color = getNPOnBackground(playerProvider),
-                        textAlign = TextAlign.Center,
-                        maxLines = 1,
-                        overflow = TextOverflow.Ellipsis,
-                        modifier = Modifier.fillMaxWidth()
+                    EditableText(
+                        title_text,
+                        editable = PlayerServiceHost.status.m_song != null
+                        style = TextStyle(
+                            fontSize = 17.sp,
+                            color = getNPOnBackground(playerProvider),
+                            textAlign = TextAlign.Center
+                        ),
+                        single_line = true,
+                        // overflow = TextOverflow.Ellipsis,
+                        modifier = Modifier.fillMaxWidth(),
+                        onEdit = { text ->
+                            title_text = text
+                        },
+                        onCompleted = {
+                            PlayerServiceHost.status.m_song?.apply {
+                                reg_entry.title = title_text
+                                saveRegistry()
+                            }
+                        }
                     )
                 }
 
-                // Artist text
                 Text(
                     PlayerServiceHost.status.m_song?.artist?.title ?: "",
                     fontSize = 12.sp,
@@ -524,7 +539,10 @@ private fun Controls(
                     overflow = TextOverflow.Ellipsis,
                     modifier = Modifier
                         .fillMaxWidth()
-                        .clickable {
+                        .clickable(
+                            remember { MutableInteractionSource() },
+                            indication = null
+                        ) {
                             PlayerServiceHost.status.song?.artist?.also {
                                 playerProvider().onMediaItemClicked(it)
                             }

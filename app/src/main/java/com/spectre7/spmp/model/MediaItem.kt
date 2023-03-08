@@ -564,6 +564,10 @@ abstract class MediaItem(id: String) {
 
     val cache_key: String get() = getCacheKey(type, id)
 
+    fun saveRegistry() {
+        MediaItem.data_registry.save()
+    }
+
     class DataRegistry {
         private val entries: MutableMap<String, Entry> = mutableMapOf()
 

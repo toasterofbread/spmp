@@ -162,11 +162,10 @@ class Song private constructor (
 
     var theme_colour: Color?
         get() = song_reg_entry.theme_colour?.let { Color(it) }
-        set(value) { song_reg_entry.theme_colour = value?.toArgb() }
-    
-    fun setTitleOverride(value: String?) {
-        song_reg_entry.title = value
-    }
+        set(value) { 
+            song_reg_entry.theme_colour = value?.toArgb()
+            saveRegistry()
+        }
 
     // Expects formats to be sorted by bitrate (descending)
     private fun List<YoutubeVideoFormat>.getByQuality(quality: AudioQuality): YoutubeVideoFormat {

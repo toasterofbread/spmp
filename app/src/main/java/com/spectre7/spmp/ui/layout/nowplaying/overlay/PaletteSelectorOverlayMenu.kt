@@ -142,10 +142,11 @@ class PaletteSelectorOverlayMenu(
                     }
 
                     OnChangedEffect(anim_state.value) {
-                        songProvider().song_reg_entry.thumbnail_rounding = MIN_THUMBNAIL_ROUNDING + ((MAX_THUMBNAIL_ROUNDING - MIN_THUMBNAIL_ROUNDING) * anim_state.value).roundToInt()
-
-                        if (!anim_state.isRunning) {
-                            MediaItem.data_registry.save()
+                        songProvider().apply {
+                            song_reg_entry.thumbnail_rounding = MIN_THUMBNAIL_ROUNDING + ((MAX_THUMBNAIL_ROUNDING - MIN_THUMBNAIL_ROUNDING) * anim_state.value).roundToInt()
+                            if (!anim_state.isRunning) {
+                                saveRegistry()
+                            }
                         }
                     }
 

@@ -634,3 +634,47 @@ fun <T> MutableList<T>.addUnique(item: T): Boolean {
 	}
 	return false
 }
+
+@Composable
+fun EditableText(
+	text: String, 
+	onEdit: (String) -> Boolean, 
+	onCompleted: () -> Unit, 
+	modifier: Modifier = Modifier, 
+	style: TextStyle, 
+	editable: Boolean = true,
+	singleLine: Boolean = false
+) {
+	var editing by remember { mutableStateOf(false) }
+	OnChangedEffect(editable) {
+		if (!editable) {
+			editing = false
+		}
+	}
+
+	val keyboard_controller = LocalSoftwareKeyboardController.current
+
+	BasicTextField(
+		text,
+		onEdit,
+		readOnly = !editing,
+		textStyle = style,
+		keyboardOptions = KeyboardOptions(imeAction = ImeAction.Done),
+		keyboardActions = KeyboardActions(
+			onDone = { 
+				editing = false
+				keyboard_controller.hide()
+				onCompleted()
+			}
+		),
+		modifier = modifier.combinedClickable {
+			onClick = {},
+			onLongClick = {
+				if (!editing) {
+					vibrateShort()
+					editing = true
+				}
+			}
+		}
+	)
+}

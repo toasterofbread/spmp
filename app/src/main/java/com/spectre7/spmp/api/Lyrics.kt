@@ -367,7 +367,7 @@ fun searchForLyrics(title: String, artist: String?): Result<List<LyricsSearchRes
     fun performSearch(params: String): Result<List<LyricsSearchResult>> {
         val request = Request.Builder()
             .url("https://petitlyrics.com/search_lyrics$params")
-            .header("User-Agent", DATA_API_USER_AGENT)
+            .header("User-Agent", DataApi.user_agent)
             .build()
 
         val result = DataApi.request(request)

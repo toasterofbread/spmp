@@ -99,19 +99,27 @@ class MainOverlayMenu(
             Modifier
                 .fillMaxSize()
                 .padding(20.dp),
-            verticalArrangement = Arrangement.spacedBy(10.dp)
+            verticalArrangement = Arrangement.SpaceEvenly
         ) {
 
-            if (PlayerServiceHost.status.m_song != null) {
-                songProvider().artist?.PreviewLong(
-                    content_colour = { Color.White },
-                    playerProvider,
-                    true,
-                    Modifier
-                )
-            }
+            val song = songProvider()
+            var song_title by remember(song.title) { mutableStateOf(song.title ?: "") }
 
-            Spacer(Modifier.fillMaxHeight().weight(1f))
+            OutlinedTextField(
+                song_title,
+                onValueChange = { text ->
+                    song_title = text
+                },
+                maxLines = 1,
+                modifier = Modifier.fillMaxWidth().clickable { println("what") }
+            )
+
+            songProvider().artist?.PreviewLong(
+                content_colour = { Color.White },
+                playerProvider,
+                true,
+                Modifier
+            )
 
             Row(
                 Modifier.fillMaxWidth(),

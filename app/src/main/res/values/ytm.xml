@@ -2,23 +2,11 @@
     <string name="ytm_user_agent" translatable="false">Mozilla/5.0 (X11; Linux x86_64; rv:105.0) Gecko/20100101 Firefox/105.0</string>
     <string-array name="ytm_headers" translatable="false">
         <item>accept</item> <item>*/*</item>
-        <item>accept-language</item> <item>en</item>
         <item>content-type</item> <item>application/json</item>
         <item>x-goog-visitor-id</item> <item>CgtTeVhTTl94clQ2YyimgumeBg%3D%3D</item>
         <item>x-youtube-client-name</item> <item>67</item>
         <item>x-youtube-client-version</item> <item>1.20221019.01.00</item>
         <item>x-goog-authuser</item> <item>1</item>
-        <item>x-origin</item> <item>https://music.youtube.com</item>
-        <item>origin</item> <item>https://music.youtube.com</item>
-        <item>alt-used</item> <item>music.youtube.com</item>
-        <item>connection</item> <item>keep-alive</item>
-        <item>authorization</item> <item>SAPISIDHASH 1677407834_47421e2bb133ac7d02e4ca4a5af50403715c3244</item>
-        <item>sec-fetch-dest</item> <item>empty</item>
-        <item>sec-fetch-mode</item> <item>same-origin</item>
-        <item>sec-fetch-site</item> <item>same-origin</item>
-        <item>pragma</item> <item>no-cache</item>
-        <item>cache-control</item> <item>no-cache</item>
-        <item>te</item> <item>trailers</item>
     </string-array>
     <string name="ytm_context" translatable="false">
     { \"context\": {
@@ -26,10 +14,11 @@
             \"hl\": \"${hl}\",
             \"platform\": \"DESKTOP\",
             \"clientName\": \"WEB_REMIX\",
-            \"clientVersion\": \"1.20221031.00.00-canary_control\",
+            \"clientVersion\": \"1.20230306.01.00\",
             \"userAgent\": \"${user_agent}\",
             \"acceptHeader\": \"text/html,application/xhtml+xml,application/xml;q=0.9,image/avif,image/webp,*/*;q=0.8\"
-        }
+        },
+        \"user\": {}
     }}
     </string>
     <string name="ytm_context_alt" translatable="false">
@@ -41,7 +30,8 @@
             \"clientVersion\": \"2.0\",
             \"userAgent\": \"${user_agent}\",
             \"acceptHeader\": \"text/html,application/xhtml+xml,application/xml;q=0.9,image/avif,image/webp,*/*;q=0.8\",
-        }
+        },
+        \"user\": {}
     }}
     </string>
 </resources>

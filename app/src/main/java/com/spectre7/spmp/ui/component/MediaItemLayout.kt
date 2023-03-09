@@ -152,8 +152,8 @@ data class MediaItemLayout(
                 if (title != null) {
                     WidthShrinkText(
                         title,
-                        MaterialTheme.typography.headlineMedium.copy(color = Theme.current.on_background),
-                        Modifier.fillMaxWidth()//.weight(1f)
+                        Modifier.fillMaxWidth(),
+                        style = MaterialTheme.typography.headlineMedium.copy(color = Theme.current.on_background)
                     )
                 }
             }

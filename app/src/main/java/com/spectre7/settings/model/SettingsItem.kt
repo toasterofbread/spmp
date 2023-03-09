@@ -31,6 +31,8 @@ import com.spectre7.spmp.ui.theme.Theme
 import com.spectre7.utils.*
 import kotlin.math.roundToInt
 
+val SETTINGS_ITEM_ROUNDED_SHAPE = RoundedCornerShape(16.dp)
+
 abstract class SettingsItem {
     lateinit var context: Context
 
@@ -57,7 +59,7 @@ abstract class SettingsItem {
     @Composable
     protected fun ItemTitleText(text: String?, theme: Theme) {
         if (text != null) {
-            WidthShrinkText(text, LocalTextStyle.current.copy(color = theme.on_background))
+            WidthShrinkText(text, style = LocalTextStyle.current.copy(color = theme.on_background))
         }
     }
 
@@ -91,11 +93,12 @@ class SettingsGroup(var title: String?): SettingsItem() {
     }
 }
 
+@Suppress("UNCHECKED_CAST", "IMPLICIT_CAST_TO_ANY")
 class SettingsValueState<T>(
     val key: String,
-    private val onChanged: ((value: T) -> Unit)? = null
+    private val onChanged: ((value: T) -> Unit)? = null,
+    private val converter: (Any?) -> T? = { it as T }
 ) {
-
     var autosave: Boolean = true
 
     private lateinit var prefs: SharedPreferences
@@ -128,14 +131,15 @@ class SettingsValueState<T>(
         this.defaultProvider = defaultProvider
 
         val default = defaultProvider(key) as T
-        _value = when (default!!::class) {
-            Boolean::class -> prefs.getBoolean(key, default as Boolean)
-            Float::class -> prefs.getFloat(key, default as Float)
-            Int::class -> prefs.getInt(key, default as Int)
-            Long::class -> prefs.getLong(key, default as Long)
-            String::class -> prefs.getString(key, default as String)
+        _value = converter(when (default!!) {
+            is Boolean -> prefs.getBoolean(key, default as Boolean)
+            is Float -> prefs.getFloat(key, default as Float)
+            is Int -> prefs.getInt(key, default as Int)
+            is Long -> prefs.getLong(key, default as Long)
+            is String -> prefs.getString(key, default as String)
+            is Set<*> -> prefs.getStringSet(key, default as Set<String>)
             else -> throw ClassCastException()
-        } as T
+        })
 
         return this
     }
@@ -149,12 +153,13 @@ class SettingsValueState<T>(
 
     fun save() {
         with (prefs.edit()) {
-            when (value!!::class) {
-                Boolean::class -> putBoolean(key, value as Boolean)
-                Float::class -> putFloat(key, value as Float)
-                Int::class -> putInt(key, value as Int)
-                Long::class -> putLong(key, value as Long)
-                String::class -> putString(key, value as String)
+            when (value!!) {
+                is Boolean -> putBoolean(key, value as Boolean)
+                is Float -> putFloat(key, value as Float)
+                is Int -> putInt(key, value as Int)
+                is Long -> putLong(key, value as Long)
+                is String -> putString(key, value as String)
+                is Set<*> -> putStringSet(key, value as Set<String>)
                 else -> throw ClassCastException()
             }
             apply()
@@ -464,7 +469,7 @@ class SettingsItemMultipleChoice(
                                     .border(
                                         Dp.Hairline,
                                         theme.on_background,
-                                        RoundedCornerShape(16.dp)
+                                        SETTINGS_ITEM_ROUNDED_SHAPE
                                     )
                                     .fillMaxWidth()
                                     .padding(horizontal = 10.dp)
@@ -494,14 +499,14 @@ class SettingsItemMultipleChoice(
                                     .border(
                                         Dp.Hairline,
                                         theme.on_background,
-                                        RoundedCornerShape(16.dp)
+                                        SETTINGS_ITEM_ROUNDED_SHAPE
                                     )
                                     .fillMaxWidth()
                                     .height(40.dp)
                                     .clickable(remember { MutableInteractionSource() }, null) {
                                         state.value = i
                                     }
-                                    .background(colour.value, RoundedCornerShape(16.dp))
+                                    .background(colour.value, SETTINGS_ITEM_ROUNDED_SHAPE)
                             ) {
                                 Box(Modifier.padding(horizontal = 10.dp)) {
                                     Text(get_choice(i), color = if (state.value == i) theme.on_accent else theme.on_background)
@@ -554,7 +559,7 @@ class SettingsItemDropdown(
             Button(
                 { open = !open },
                 Modifier.requiredHeight(40.dp),
-                shape = RoundedCornerShape(16.dp),
+                shape = SETTINGS_ITEM_ROUNDED_SHAPE,
                 colors = ButtonDefaults.buttonColors(
                     containerColor = theme.vibrant_accent,
                     contentColor = theme.on_accent
@@ -570,7 +575,7 @@ class SettingsItemDropdown(
 
             Box(contentAlignment = Alignment.CenterEnd) {
                 MaterialTheme(
-                    shapes = MaterialTheme.shapes.copy(extraSmall = RoundedCornerShape(16.dp))
+                    shapes = MaterialTheme.shapes.copy(extraSmall = SETTINGS_ITEM_ROUNDED_SHAPE)
                 ){
                     DropdownMenu(
                         open,
@@ -591,7 +596,7 @@ class SettingsItemDropdown(
 //                Crossfade(open) {
 //                    Row(Modifier.fillMaxWidth().offset((-20).dp), horizontalArrangement = Arrangement.End) {
 //                        Box(
-//                            Modifier.background(theme.vibrant_accent, RoundedCornerShape(16.dp)), contentAlignment = Alignment.TopEnd
+//                            Modifier.background(theme.vibrant_accent, SETTINGS_ITEM_ROUNDED_SHAPE), contentAlignment = Alignment.TopEnd
 //                        ) {
 //                            if (it) {
 //                                LazyColumn(

@@ -11,6 +11,7 @@ import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.runtime.*
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.scale
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.layout.onSizeChanged
 import androidx.compose.ui.platform.LocalConfiguration
@@ -24,6 +25,7 @@ import com.spectre7.spmp.ui.layout.MINIMISED_NOW_PLAYING_HEIGHT
 import com.spectre7.spmp.ui.layout.getScreenHeight
 import com.spectre7.spmp.ui.theme.Theme
 import com.spectre7.utils.MeasureUnconstrainedView
+import com.spectre7.utils.thenIf
 
 class SettingsInterface(
     val themeProvider: () -> Theme,
@@ -65,11 +67,13 @@ class SettingsInterface(
     @Composable
     fun Interface(height: Dp, modifier: Modifier = Modifier, content_padding: PaddingValues = PaddingValues(0.dp)) {
         Crossfade(current_page, modifier = modifier.requiredHeight(height)) { page ->
-
-            val padding = PaddingValues(top = 18.dp, start = 20.dp, end = 20.dp)
             var width by remember { mutableStateOf(0) }
 
-            Column(Modifier.padding(padding).onSizeChanged { width = it.width }) {
+            Column(
+                Modifier
+                    .thenIf(!page.disable_padding, Modifier.padding(top = 18.dp, start = 20.dp, end = 20.dp))
+                    .onSizeChanged { width = it.width }
+            ) {
 
                 var go_back by remember { mutableStateOf(false) }
                 LaunchedEffect(go_back) {
@@ -82,8 +86,8 @@ class SettingsInterface(
 
                 Box(
                     Modifier
-                        .verticalScroll(remember { ScrollState(0) })
-                        .padding(content_padding)
+                        .thenIf(page.scrolling, Modifier.verticalScroll(remember { ScrollState(0) }))
+                        .thenIf(!page.disable_padding, Modifier.padding(content_padding))
                 ) {
                     page.Page(
                         { target_page_id ->

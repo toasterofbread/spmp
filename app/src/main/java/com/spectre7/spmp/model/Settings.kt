@@ -56,6 +56,9 @@ enum class Settings {
     KEY_FEED_ENABLE_MOODS_ROW,
     KEY_FEED_ENABLE_CHARTS_ROW,
 
+    // Auth
+    KEY_YTM_AUTH,
+
     // Other
     KEY_OPEN_NP_ON_SONG_PLAYED,
     KEY_VOLUME_STEPS,
@@ -69,8 +72,9 @@ enum class Settings {
             return MainActivity.getSharedPreferences(context)
         }
 
-        fun <T> set(enum_key: Settings, value: T?, preferences: SharedPreferences) {
+        fun <T> set(enum_key: Settings, value: T?, preferences: SharedPreferences = prefs) {
             preferences.edit {
+                @Suppress("UNNECESSARY_NOT_NULL_ASSERTION")
                 when (value) {
                     null -> remove(enum_key.name)
                     is Boolean -> putBoolean(enum_key.name, value)
@@ -78,11 +82,13 @@ enum class Settings {
                     is Int -> putInt(enum_key.name, value)
                     is Long -> putLong(enum_key.name, value)
                     is String -> putString(enum_key.name, value)
+                    is Set<*> -> putStringSet(enum_key.name, value as Set<String>)
                     else -> throw NotImplementedError("$enum_key ${value!!::class.simpleName}")
                 }
             }
         }
 
+        @Suppress("IMPLICIT_CAST_TO_ANY", "UNCHECKED_CAST")
         fun <T> get(enum_key: Settings, preferences: SharedPreferences = prefs, default: T? = null): T {
             val default_value: T = default ?: getDefault(enum_key)
             return when (default_value) {
@@ -91,6 +97,7 @@ enum class Settings {
                 is Int -> preferences.getInt(enum_key.name, default_value as Int)
                 is Long -> preferences.getLong(enum_key.name, default_value as Long)
                 is String -> preferences.getString(enum_key.name, default_value as String)
+                is Set<*> -> preferences.getStringSet(enum_key.name, default_value as Set<String>)
                 else -> throw NotImplementedError("$enum_key $default_value ${default_value!!::class.simpleName}")
             } as T
         }
@@ -104,6 +111,7 @@ enum class Settings {
             return enumValues<T>()[preferences.getInt(enum_key.name, default_value)]
         }
 
+        @Suppress("IMPLICIT_CAST_TO_ANY", "UNCHECKED_CAST")
         fun <T> getDefault(enum_key: Settings): T {
             return when (enum_key) {
                 KEY_LANG_UI, KEY_LANG_DATA -> MainActivity.languages.keys.indexOf(Locale.getDefault().language)
@@ -112,33 +120,35 @@ enum class Settings {
                 KEY_CURRENT_THEME -> 0
                 KEY_THEMES -> "[]"
                 KEY_NOWPLAYING_THEME_MODE -> 0
-                
+
                 KEY_LYRICS_FOLLOW_ENABLED -> true
                 KEY_LYRICS_FOLLOW_OFFSET -> 0.5f
                 KEY_LYRICS_DEFAULT_FURIGANA -> true
                 KEY_LYRICS_TEXT_ALIGNMENT -> 0 // Left, center, right
                 KEY_LYRICS_EXTRA_PADDING -> false
-                
+
                 KEY_STREAM_AUDIO_QUALITY -> Song.AudioQuality.MEDIUM.ordinal
                 KEY_DOWNLOAD_AUDIO_QUALITY -> Song.AudioQuality.MEDIUM.ordinal
 
                 // KEY_STATS_ENABLED -> true
                 // KEY_STATS_LISTEN_THRESHOLD -> 1f // Minutes or percentage
                 // KEY_STATS_LISTEN_THRESHOLD_TYPE -> 0 // Absolute, percentage
-                
+
                 KEY_AUTO_DOWNLOAD_THRESHOLD -> 3 // Listens
                 KEY_AUTO_DOWNLOAD_SIZE_LIMIT -> 1000000000 // Bytes
-                
+
                 KEY_ACC_VOL_INTERCEPT_MODE -> PlayerAccessibilityService.VOLUME_INTERCEPT_MODE.NEVER.ordinal
                 KEY_ACC_VOL_INTERCEPT_NOTIFICATION -> false
                 KEY_ACC_SCREEN_OFF -> false
-                
+
                 KEY_FEED_INITIAL_ROWS -> 5
                 KEY_FEED_ENABLE_LISTEN_ROW -> true
                 KEY_FEED_ENABLE_MIX_ROW -> true
                 KEY_FEED_ENABLE_NEW_ROW -> true
                 KEY_FEED_ENABLE_MOODS_ROW -> true
                 KEY_FEED_ENABLE_CHARTS_ROW -> true
+
+                KEY_YTM_AUTH -> emptySet<String>()
 
                 KEY_VOLUME_STEPS -> 50
                 KEY_OPEN_NP_ON_SONG_PLAYED -> true
@@ -148,10 +158,8 @@ enum class Settings {
             } as T
         }
 
-        fun <T> getDefaultProvider(): (String) -> T {
-            return { key: String ->
-                getDefault(values().first { it.name == key })
-            }
+        fun <T> provideDefault(key: String): T {
+            return getDefault(values().first { it.name == key })
         }
     }
 }

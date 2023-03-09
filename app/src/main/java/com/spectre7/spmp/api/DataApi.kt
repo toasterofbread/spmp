@@ -67,6 +67,7 @@ class DataApi {
         private lateinit var youtubei_headers: Headers
 
         fun request(request: Request, allow_fail_response: Boolean = false): Result<Response> {
+//            val new_request = request.newBuilder().url(request.url.newBuilder().addQueryParameter("prettyPrint", "false").build()).build()
             try {
                 val response = client.newCall(request).execute()
                 if (!allow_fail_response && !response.isSuccessful) {
@@ -96,12 +97,12 @@ class DataApi {
                 context_substitutor.replace(getString(R.string.ytm_context_alt)).reader()
             )
 
-            val headers = MainActivity.resources.getStringArray(R.array.ytm_headers)
             val headers_builder = Headers.Builder().apply {
                 add("cookie", BuildConfig.TESTING_COOKIE)
                 add("user-agent", user_agent)
             }
 
+            val headers = MainActivity.resources.getStringArray(R.array.ytm_headers)
             var i = 0
             while (i < headers.size) {
                 val key = headers[i++]

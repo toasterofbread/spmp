@@ -1,3 +1,5 @@
+@file:Suppress("INVISIBLE_MEMBER", "INVISIBLE_REFERENCE")
+
 package com.spectre7.utils
 
 // TODO | Move to separate repository
@@ -16,6 +18,7 @@ import android.widget.Toast
 import androidx.compose.animation.core.*
 import androidx.compose.foundation.*
 import androidx.compose.foundation.gestures.*
+import androidx.compose.foundation.interaction.MutableInteractionSource
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.text.BasicTextField
@@ -24,7 +27,9 @@ import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.material.ripple.LocalRippleTheme
 import androidx.compose.material.ripple.RippleAlpha
 import androidx.compose.material.ripple.RippleTheme
+import androidx.compose.material.ripple.rememberRipple
 import androidx.compose.material3.*
+import androidx.compose.material3.tokens.IconButtonTokens
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.ExperimentalComposeUiApi
@@ -34,6 +39,7 @@ import androidx.compose.ui.draw.*
 import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.geometry.Size
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.graphics.Shape
 import androidx.compose.ui.graphics.SolidColor
 import androidx.compose.ui.graphics.drawscope.Fill
 import androidx.compose.ui.graphics.drawscope.Stroke
@@ -42,6 +48,7 @@ import androidx.compose.ui.input.pointer.pointerInput
 import androidx.compose.ui.layout.SubcomposeLayout
 import androidx.compose.ui.layout.onSizeChanged
 import androidx.compose.ui.platform.*
+import androidx.compose.ui.semantics.Role
 import androidx.compose.ui.text.SpanStyle
 import androidx.compose.ui.text.TextLayoutResult
 import androidx.compose.ui.text.TextStyle
@@ -282,7 +289,7 @@ fun WidthShrinkText(text: String, fontSize: TextUnit, modifier: Modifier = Modif
 }
 
 @Composable
-fun WidthShrinkText(text: String, style: TextStyle, modifier: Modifier = Modifier) {
+fun WidthShrinkText(text: String, modifier: Modifier = Modifier, style: TextStyle = LocalTextStyle.current) {
 	WidthShrinkText(text, remember(style) { mutableStateOf(style) }, modifier)
 }
 
@@ -609,6 +616,8 @@ fun Modifier.crossOut(
 		}
 }
 
+fun Modifier.thenIf(condition: Boolean, modifier: Modifier): Modifier = if (condition) then(modifier) else this
+
 @Composable
 fun RecomposeOnInterval(interval_ms: Long, enabled: Boolean = true, content: @Composable (Boolean) -> Unit) {
     var recomposition_state by remember { mutableStateOf(false) }
@@ -634,4 +643,37 @@ fun <T> MutableList<T>.addUnique(item: T): Boolean {
 		return true
 	}
 	return false
+}
+
+@Composable
+fun ShapedIconButton(
+	onClick: () -> Unit,
+	shape: Shape,
+	modifier: Modifier = Modifier,
+	enabled: Boolean = true,
+	interactionSource: MutableInteractionSource = remember { MutableInteractionSource() },
+	colors: IconButtonColors = IconButtonDefaults.iconButtonColors(),
+	content: @Composable () -> Unit
+) {
+	Box(
+		modifier =
+		modifier
+			.minimumTouchTargetSize()
+			.size(IconButtonTokens.StateLayerSize)
+			.background(color = colors.containerColor(enabled).value, shape = shape)
+			.clickable(
+				onClick = onClick,
+				enabled = enabled,
+				role = Role.Button,
+				interactionSource = interactionSource,
+				indication = rememberRipple(
+					bounded = false,
+					radius = IconButtonTokens.StateLayerSize / 2
+				)
+			),
+		contentAlignment = Alignment.Center
+	) {
+		val contentColor = colors.contentColor(enabled).value
+		CompositionLocalProvider(LocalContentColor provides contentColor, content = content)
+	}
 }

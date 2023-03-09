@@ -18,6 +18,9 @@ abstract class SettingsPage(val title: String?) {
     internal var id: Int? = null
     internal lateinit var settings_interface: SettingsInterface
 
+    open val disable_padding: Boolean = false
+    open val scrolling: Boolean = true
+
     @Composable
     fun Page(openPage: (Int) -> Unit, openCustomPage: (SettingsPage) -> Unit, goBack: () -> Unit) {
         PageView(openPage, openCustomPage, goBack)

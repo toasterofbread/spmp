@@ -213,138 +213,96 @@ class MainActivity : ComponentActivity() {
 }
 
 class ErrorManager {
-    private val current_errors = mutableStateMapOf<String, Pair<Throwable, ((result: (success: Boolean, message: String?) -> Unit) -> Unit)?>>()
+    val SIDE_PADDING = 10.dp
+    val INDICATOR_SIZE = 40.dp
+
+    private val errors = mutableStateMapOf<String, Throwable>()
+    private var dismissed by mutableStateOf(false)
 
     @OptIn(ExperimentalFoundationApi::class)
     @Composable
     fun Indicator(colour: () -> Color) {
-        var showing_error: Int by remember { mutableStateOf(-1) }
+        val swipe_state = rememberSwipeableState(0)
+        val dismiss_offset = with(LocalDensity.current) { 
+            (-SIDE_PADDING - INDICATOR_SIZE).toPx()
+        }
+        val swipe_anchors = mapOf(0f to 0, dismiss_offset to 1)
 
-        if (showing_error >= 0) {
-            ErrorInfo(
-                showing_error,
-                {
-                    current_errors.remove(current_errors.entries.elementAt(showing_error).key)
-                    showing_error = -1
-                }
-            ) {
-                showing_error = -1
+        var dismissed by remember { mutableStateOf(false) }
+        OnChangedEffect(dismissed) {
+            if (dismissed) {
+                swipe_state.animateTo(1)
+                dismissed = false
             }
         }
 
-        AnimatedVisibility(
-            current_errors.isNotEmpty(),
-            enter = slideInVertically(),
-            exit = slideOutVertically()
+        var show_info: Boolean by remember { mutableStateOf(false) }
+        if (show_info) {
+            InfoPopup({
+                dismissed = true
+            }) {
+                show_info = false
+            }
+        }
+
+        Box(
+            Modifier
+                .fillMaxSize()
+                .padding(start = SIDE_PADDING),
+            contentAlignment = Alignment.BottomStart
         ) {
-            Box(
+            IconButton(
+                { show_info = !show_info },
                 Modifier
-                    .fillMaxSize()
-                    .padding(top = getStatusBarHeight()),
-                contentAlignment = Alignment.TopCenter
-            ) {
-                Button(
-                    {},
-                    colors = ButtonDefaults.buttonColors(
-                        containerColor = colour(),
-                        contentColor = colour().getContrasted()
+                    .swipeable(
+                        state = swipe_state,
+                        anchors = swipe_anchors,
+                        thresholds = { _, _ -> FractionalThreshold(0.3f) },
+                        orientation = Orientation.Horizontal
                     )
-                ) {
-                    Row(
-                        Modifier.padding(2.dp),
-                        verticalAlignment = Alignment.CenterVertically,
-                        horizontalArrangement = Arrangement.spacedBy(10.dp)
-                    ) {
-                        Icon(Icons.Filled.WifiTetheringError, null)
-                        Text("Network error")
-
-                        Spacer(Modifier.requiredWidth(10.dp))
-
-                        Icon(Icons.Filled.Info, null, Modifier.clickable { throw current_errors.values.first().first })
-                        Icon(Icons.Filled.Close, null, Modifier.clickable { vibrateShort(); current_errors.clear() })
-                    }
-                }
+                    .size(INDICATOR_SIZE)
+                    .offset { IntOffset(swipe_state.offset.value.roundToInt(), 0) },
+                colors = IconButtonDefaults.iconButtonColors(
+                    containerColor = colour(),
+                    contentColor = colour().getContrasted()
+                )
+            ) {
+                Icon(Icons.Filled.NetworkError, null)
             }
         }
     }
 
     @OptIn(ExperimentalMaterial3Api::class)
     @Composable
-    fun ErrorInfo(i: Int, resolve: () -> Unit, close: () -> Unit) {
-        val error = remember(i) { current_errors.entries.elementAt(i) }
-
+    fun InfoPopup(dismiss: () -> Unit, close: () -> Unit) {
         AlertDialog(
             close,
             confirmButton = {
-                Row(horizontalArrangement = Arrangement.spacedBy(10.dp)) {
-                    FilledIconButton(close) {
-                        Icon(Icons.Filled.Close, null)
-                    }
-                    Spacer(Modifier
-                        .weight(1f)
-                        .fillMaxWidth())
-                    FilledTonalButton(onClick = {
-                        throw error.value.first
-                    }) {
-                        Text("Throw")
-                    }
-
-                    if (error.value.second != null) {
-                        FilledTonalButton({
-                            error.value.second!!.invoke { success: Boolean, message: String? ->
-                                if (success) {
-                                    sendToast("Retry succeeded")
-                                    resolve()
-                                }
-                                else {
-                                    sendToast("Retry failed")
-                                }
-                            }
-                        }) {
-                            Text("Retry")
-                        }
-                    }
+                FilledTonalButton(dismiss) {
+                    Text("Dismiss")
                 }
             },
-            title = { error.value.first.javaClass.typeName },
-            text = {
-                @Composable
-                fun InfoValue(name: String, value: String) {
-                    Column(Modifier.fillMaxWidth()) {
-                        Text(name, style = MaterialTheme.typography.labelLarge)
-                        Box(Modifier.fillMaxWidth()) {
-                            Marquee(false) {
-                                Text(value, softWrap = false)
-                            }
-                        }
-                    }
+            dismissButton = {
+                FilledIconButton(close) {
+                    Icon(Icons.Filled.Close, null)
                 }
+            },
+            title = { 
+                getString("{errors} error(s) have occurred").replace("{errors}", errors.size.toString())
+            },
+            text = {
+                var expanded_error by remember { mutableStateOf(-1) }
 
-                Column(Modifier.fillMaxWidth(), verticalArrangement = Arrangement.Center) {
-                    InfoValue("Key", error.key)
-                    InfoValue("Message", error.value.first.message.toString())
-                    InfoValue("Stacktrace", error.value.first.stackTraceToString())
-
-                    Spacer(Modifier.requiredHeight(40.dp))
-
-                    Row(horizontalArrangement = Arrangement.End) {
-                        val clipboard = LocalClipboardManager.current
-                        IconButton({
-                            clipboard.setText(AnnotatedString(error.value.first.stackTraceToString()))
-                            sendToast("Copied error to clipboard")
-                        }) {
-                            Icon(Icons.Filled.ContentCopy, null, Modifier.size(20.dp))
-                        }
-
-                        val share_intent = Intent.createChooser(Intent().apply {
-                            action = Intent.ACTION_SEND
-                            putExtra(Intent.EXTRA_TEXT, error.value.first.stackTraceToString())
-                            type = "text/plain"
-                        }, null)
-                        IconButton({
-                            MainActivity.context.startActivity(share_intent)
-                        }) {
-                            Icon(Icons.Filled.Share, null, Modifier.size(20.dp))
+                LazyColumn(Modifier.fillMaxWidth().height(500.dp)) {
+                    items(errors.size, { errors.values.elementAt(it) }) { index ->
+                        val error = errors.values.elementAt(index)
+                        ErrorItem(error, index == expanded_error) {
+                            if (expanded_error == index) {
+                                expanded_error = -1
+                            }
+                            else {
+                                expanded_error = index
+                            }
                         }
                     }
                 }
@@ -352,7 +310,49 @@ class ErrorManager {
         )
     }
 
-    fun onError(key: String, e: Throwable, retry: ((result: (success: Boolean, message: String?) -> Unit) -> Unit)?) {
-        current_errors[key] = Pair(Exception(e), retry)
+    fun onError(key: String, error: Throwable) {
+        errors[key] = Exception(e)
+    }
+
+    @Composable
+    private fun ErrorItem(error: Throwable, expanded: Boolean, onClick: () -> Unit) {
+        Column(Modifier.animateContentSize().clickable(onClick)) {
+            Row(
+                Modifier.fillMaxWidth(),
+                verticalAlignment = Alignment.CenterVertically, 
+                horizontalArrangement = Arrangement.SpaceEvenly
+            ) {
+                Box(Modifier.background(Color.Red, RoundedCornerShape(16.dp))) {
+                    Text(index.toString())
+                }
+
+                Text(error.message ?: getString("No message"))
+            }
+
+            AnimatedVisibility(expanded, enter = expandVertically(), exit = shrinkVertically()) {
+                Text(error.stackTraceToString())
+
+                Row(horizontalArrangement = Arrangement.End) {
+                    val clipboard = LocalClipboardManager.current
+                    IconButton({
+                        clipboard.setText(AnnotatedString(error.value.first.stackTraceToString()))
+                        sendToast("Copied error to clipboard")
+                    }) {
+                        Icon(Icons.Filled.ContentCopy, null, Modifier.size(20.dp))
+                    }
+
+                    val share_intent = Intent.createChooser(Intent().apply {
+                        action = Intent.ACTION_SEND
+                        putExtra(Intent.EXTRA_TEXT, error.value.first.stackTraceToString())
+                        type = "text/plain"
+                    }, null)
+                    IconButton({
+                        MainActivity.context.startActivity(share_intent)
+                    }) {
+                        Icon(Icons.Filled.Share, null, Modifier.size(20.dp))
+                    }
+                }
+            }
+        }
     }
 }

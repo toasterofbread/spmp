@@ -20,6 +20,7 @@ import com.spectre7.utils.isDark
 import com.spectre7.utils.toInt
 import okhttp3.Request
 
+const val YOUTUBE_MUSIC_URL = "https://music.youtube.com/"
 const val YOUTUBE_MUSIC_LOGIN_URL = "https://accounts.google.com/v3/signin/identifier?dsh=S1527412391%3A1678373417598386&continue=https%3A%2F%2Fwww.youtube.com%2Fsignin%3Faction_handle_signin%3Dtrue%26app%3Ddesktop%26hl%3Den-GB%26next%3Dhttps%253A%252F%252Fmusic.youtube.com%252F%253Fcbrd%253D1%26feature%3D__FEATURE__&hl=en-GB&ifkv=AWnogHfK4OXI8X1zVlVjzzjybvICXS4ojnbvzpE4Gn_Pfddw7fs3ERdfk-q3tRimJuoXjfofz6wuzg&ltmpl=music&passive=true&service=youtube&uilel=3&flowName=GlifWebSignIn&flowEntry=ServiceLogin"
 
 @SuppressLint("SetJavaScriptEnabled")
@@ -72,7 +73,7 @@ fun YoutubeMusicLogin(modifier: Modifier = Modifier, onFinished: (Result<Youtube
                         override fun onPageStarted(view: WebView, url: String, favicon: Bitmap?) {
                             super.onPageStarted(view, url, favicon)
 
-                            if (url.startsWith("https://music.youtube.com/")) {
+                            if (url.startsWith(YOUTUBE_MUSIC_URL)) {
                                 show_webview = false
                             }
                         }
@@ -80,7 +81,7 @@ fun YoutubeMusicLogin(modifier: Modifier = Modifier, onFinished: (Result<Youtube
                         override fun onPageFinished(view: WebView?, url: String?) {
                             super.onPageFinished(view, url)
 
-                            if (url?.startsWith("https://music.youtube.com/") == false) {
+                            if (url?.startsWith(YOUTUBE_MUSIC_URL) == false) {
                                 show_webview = true
                             }
                         }
@@ -100,7 +101,7 @@ fun YoutubeMusicLogin(modifier: Modifier = Modifier, onFinished: (Result<Youtube
 
                                 login_completed = true
 
-                                val cookie = CookieManager.getInstance().getCookie("https://music.youtube.com/")
+                                val cookie = CookieManager.getInstance().getCookie(YOUTUBE_MUSIC_URL)
                                 val account_request = Request.Builder()
                                     .url("https://music.youtube.com/youtubei/v1/account/account_menu")
                                     .addHeader("cookie", cookie)
@@ -228,9 +229,9 @@ class YoutubeMusicAuthInfo: Set<String> {
         override fun hasNext(): Boolean = i < size
         override fun next(): String {
             return when (i++) {
-                0 -> "${ValueType.CHANNEL.ordinal}${own_channel!!.id}"
-                1 -> "${ValueType.COOKIE.ordinal}${cookie!!}"
-                else -> "${ValueType.HEADER.ordinal}${headerToString(headers!!.entries.elementAt(i - 3))}"
+                0 ->    ValueType.CHANNEL.ordinal.toString() + own_channel!!.id
+                1 ->    ValueType.COOKIE.ordinal.toString()  + cookie!!
+                else -> ValueType.HEADER.ordinal.toString()  + headerToString(headers!!.entries.elementAt(i - 3))
             }
         }
     }

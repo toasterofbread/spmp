@@ -677,3 +677,50 @@ fun ShapedIconButton(
 		CompositionLocalProvider(LocalContentColor provides contentColor, content = content)
 	}
 }
+
+@Composable
+fun <T> Result<T>.AlertDialog(message: String, close: () -> Unit) {
+	val error = exceptionOrNull()
+	
+	AlertDialog(
+		close,
+		confirmButton = {
+			FilledTonalButton(close) {
+				Text(getString("Close"))
+			}
+		},
+		title = { getString(R.string.generic_error) },
+		text = {
+			Column {
+				Text(message)
+				error.message?.also { Text(it) }
+				Row {
+					CopyShareButtons("error") { error.stackTraceToString() }
+				}
+				Text(error.stackTraceToString())
+			}
+		}
+	)
+}
+
+@Composable
+fun CopyShareButtons(name: String, getText: () -> String) {
+	val clipboard = LocalClipboardManager.current
+	IconButton({
+		clipboard.setText(AnnotatedString(getText()))
+		sendToast(getString("Copied {name} to clipboard").replace("{name}", name))
+	}) {
+		Icon(Icons.Filled.ContentCopy, null, Modifier.size(20.dp))
+	}
+
+	IconButton({
+		val share_intent = Intent.createChooser(Intent().apply {
+			action = Intent.ACTION_SEND
+			putExtra(Intent.EXTRA_TEXT, getText())
+			type = "text/plain"
+		}, null)
+		MainActivity.context.startActivity(share_intent)
+	}) {
+		Icon(Icons.Filled.Share, null, Modifier.size(20.dp))
+	}
+}

@@ -79,7 +79,7 @@
     <string name="lyrics_sync_word">Word sync</string>
 
     <string name="accessibility_service_description">TODO Desc</string>
-    <string name="generic_network_error">A network error occurred</string>
+    <string name="generic_error">A error occurred</string>
 
     <string name="acc_ser_enable_dialog_title">Enabling accessibility service</string>
     <string name="acc_ser_enable_dialog_body">Service can be enabled automatically by granting write secure settings permission using root</string>

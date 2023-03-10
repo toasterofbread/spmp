@@ -333,24 +333,7 @@ class ErrorManager {
                 Text(error.stackTraceToString())
 
                 Row(horizontalArrangement = Arrangement.End) {
-                    val clipboard = LocalClipboardManager.current
-                    IconButton({
-                        clipboard.setText(AnnotatedString(error.value.first.stackTraceToString()))
-                        sendToast("Copied error to clipboard")
-                    }) {
-                        Icon(Icons.Filled.ContentCopy, null, Modifier.size(20.dp))
-                    }
-
-                    val share_intent = Intent.createChooser(Intent().apply {
-                        action = Intent.ACTION_SEND
-                        putExtra(Intent.EXTRA_TEXT, error.value.first.stackTraceToString())
-                        type = "text/plain"
-                    }, null)
-                    IconButton({
-                        MainActivity.context.startActivity(share_intent)
-                    }) {
-                        Icon(Icons.Filled.Share, null, Modifier.size(20.dp))
-                    }
+                    CopyShareButtons(getString("error")) { error.value.first.stackTraceToString()) }
                 }
             }
         }

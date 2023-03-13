@@ -131,7 +131,7 @@ class PlayerService : Service() {
         thread {
             val result = radio.startNewRadio(song ?: getSong(index)!!)
             if (result.isFailure) {
-                MainActivity.error_manager.onError("playSong", result.exceptionOrNull()!!, null)
+                MainActivity.error_manager.onError("playSong", result.exceptionOrNull()!!)
                 savePersistentQueue()
             }
             else {
@@ -153,7 +153,7 @@ class PlayerService : Service() {
         thread {
             val result = radio.getRadioContinuation()
             if (result.isFailure) {
-                MainActivity.error_manager.onError("continueRadio", result.exceptionOrNull()!!, null)
+                MainActivity.error_manager.onError("continueRadio", result.exceptionOrNull()!!)
                 synchronized(radio) {
                     radio_continuing = false
                 }
@@ -264,7 +264,7 @@ class PlayerService : Service() {
             networkThread {
                 val result = radio.startNewRadio(song)
                 if (result.isFailure) {
-                    MainActivity.error_manager.onError("addToQueue", result.exceptionOrNull()!!, null)
+                    MainActivity.error_manager.onError("addToQueue", result.exceptionOrNull()!!)
                     if (save) {
                         savePersistentQueue()
                     }

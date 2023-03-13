@@ -9,22 +9,33 @@ import android.view.WindowManager
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
 import androidx.compose.animation.*
-import androidx.compose.foundation.ExperimentalFoundationApi
-import androidx.compose.foundation.clickable
+import androidx.compose.foundation.*
+import androidx.compose.foundation.gestures.Orientation
+import androidx.compose.foundation.interaction.MutableInteractionSource
 import androidx.compose.foundation.layout.*
+import androidx.compose.foundation.lazy.LazyColumn
+import androidx.compose.foundation.shape.CircleShape
+import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.material.ExperimentalMaterialApi
+import androidx.compose.material.FractionalThreshold
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.*
+import androidx.compose.material.rememberSwipeableState
+import androidx.compose.material.swipeable
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.LocalClipboardManager
+import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.text.AnnotatedString
 import androidx.compose.ui.text.ExperimentalTextApi
 import androidx.compose.ui.text.font.Font
 import androidx.compose.ui.text.font.FontFamily
+import androidx.compose.ui.unit.IntOffset
 import androidx.compose.ui.unit.dp
+import androidx.compose.ui.window.DialogProperties
 import androidx.lifecycle.Lifecycle
 import com.beust.klaxon.JsonObject
 import com.beust.klaxon.Klaxon
@@ -38,6 +49,7 @@ import com.spectre7.spmp.ui.theme.Theme
 import com.spectre7.utils.*
 import net.openid.appauth.*
 import java.util.*
+import kotlin.math.roundToInt
 
 class MainActivity : ComponentActivity() {
 
@@ -110,7 +122,7 @@ class MainActivity : ComponentActivity() {
                         service_host.startService({ service_started = false })
                     }
 
-                    error_manager.Indicator({ Color.Red })
+                    error_manager.Indicator(Theme.current.accent_provider)
                 }
             }
         }
@@ -214,32 +226,42 @@ class MainActivity : ComponentActivity() {
 
 class ErrorManager {
     val SIDE_PADDING = 10.dp
-    val INDICATOR_SIZE = 40.dp
+    val INDICATOR_SIZE = 50.dp
 
     private val errors = mutableStateMapOf<String, Throwable>()
-    private var dismissed by mutableStateOf(false)
 
-    @OptIn(ExperimentalFoundationApi::class)
+    @OptIn(ExperimentalMaterialApi::class)
     @Composable
     fun Indicator(colour: () -> Color) {
         val swipe_state = rememberSwipeableState(0)
         val dismiss_offset = with(LocalDensity.current) { 
-            (-SIDE_PADDING - INDICATOR_SIZE).toPx()
+            (-SIDE_PADDING - INDICATOR_SIZE).toPx() - 1
         }
-        val swipe_anchors = mapOf(0f to 0, dismiss_offset to 1)
+        val swipe_anchors = mapOf(dismiss_offset to 0, 0f to 1)
 
-        var dismissed by remember { mutableStateOf(false) }
-        OnChangedEffect(dismissed) {
-            if (dismissed) {
-                swipe_state.animateTo(1)
-                dismissed = false
+        OnChangedEffect(errors.isEmpty()) {
+            swipe_state.animateTo(errors.isNotEmpty().toInt())
+        }
+
+        var dismiss by remember { mutableStateOf(false) }
+        OnChangedEffect(dismiss) {
+            if (dismiss) {
+                swipe_state.animateTo(0)
+                dismiss = false
+            }
+        }
+
+        OnChangedEffect(swipe_state.currentValue) {
+            if (swipe_state.currentValue == 0) {
+                errors.clear()
             }
         }
 
         var show_info: Boolean by remember { mutableStateOf(false) }
         if (show_info) {
             InfoPopup({
-                dismissed = true
+                dismiss = true
+                show_info = false
             }) {
                 show_info = false
             }
@@ -251,8 +273,9 @@ class ErrorManager {
                 .padding(start = SIDE_PADDING),
             contentAlignment = Alignment.BottomStart
         ) {
-            IconButton(
+            ShapedIconButton(
                 { show_info = !show_info },
+                CircleShape,
                 Modifier
                     .swipeable(
                         state = swipe_state,
@@ -267,7 +290,7 @@ class ErrorManager {
                     contentColor = colour().getContrasted()
                 )
             ) {
-                Icon(Icons.Filled.NetworkError, null)
+                Icon(Icons.Filled.WifiOff, null)
             }
         }
     }
@@ -278,25 +301,28 @@ class ErrorManager {
         AlertDialog(
             close,
             confirmButton = {
-                FilledTonalButton(dismiss) {
-                    Text("Dismiss")
+                Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.SpaceBetween) {
+                    FilledIconButton(close) {
+                        Icon(Icons.Filled.Close, null)
+                    }
+
+                    FilledTonalButton(dismiss) {
+                        Text("Dismiss")
+                    }
                 }
             },
-            dismissButton = {
-                FilledIconButton(close) {
-                    Icon(Icons.Filled.Close, null)
-                }
-            },
-            title = { 
-                getString("{errors} error(s) have occurred").replace("{errors}", errors.size.toString())
+            title = {
+                WidthShrinkText(getString("{errors} error(s) occurred").replace("{errors}", errors.size.toString()))
             },
             text = {
                 var expanded_error by remember { mutableStateOf(-1) }
 
-                LazyColumn(Modifier.fillMaxWidth().height(500.dp)) {
+                LazyColumn(Modifier
+                    .fillMaxWidth()
+                    .height(300.dp)) {
                     items(errors.size, { errors.values.elementAt(it) }) { index ->
                         val error = errors.values.elementAt(index)
-                        ErrorItem(error, index == expanded_error) {
+                        ErrorItem(error, index, index == expanded_error) {
                             if (expanded_error == index) {
                                 expanded_error = -1
                             }
@@ -311,29 +337,39 @@ class ErrorManager {
     }
 
     fun onError(key: String, error: Throwable) {
-        errors[key] = Exception(e)
+        errors[key] = Exception(error)
     }
 
     @Composable
-    private fun ErrorItem(error: Throwable, expanded: Boolean, onClick: () -> Unit) {
-        Column(Modifier.animateContentSize().clickable(onClick)) {
+    private fun ErrorItem(error: Throwable, index: Int, expanded: Boolean, onClick: () -> Unit) {
+        Column(Modifier
+            .animateContentSize()
+            .clickable(
+                remember { MutableInteractionSource() },
+                null,
+                onClick = onClick
+            ),
+            verticalArrangement = Arrangement.spacedBy(10.dp)
+        ) {
             Row(
                 Modifier.fillMaxWidth(),
                 verticalAlignment = Alignment.CenterVertically, 
                 horizontalArrangement = Arrangement.SpaceEvenly
             ) {
-                Box(Modifier.background(Color.Red, RoundedCornerShape(16.dp))) {
-                    Text(index.toString())
+                Box(Modifier.size(20.dp).background(Color.Red, RoundedCornerShape(16.dp))) {
+                    Text(index.toString(), Modifier.align(Alignment.Center))
                 }
 
                 Text(error.message ?: getString("No message"))
             }
 
             AnimatedVisibility(expanded, enter = expandVertically(), exit = shrinkVertically()) {
-                Text(error.stackTraceToString())
+                Column {
+                    Text(error.stackTraceToString(), Modifier.horizontalScroll(rememberScrollState()))
 
-                Row(horizontalArrangement = Arrangement.End) {
-                    CopyShareButtons(getString("error")) { error.value.first.stackTraceToString()) }
+                    Row(horizontalArrangement = Arrangement.End) {
+                        CopyShareButtons(getString("error")) { error.stackTraceToString() }
+                    }
                 }
             }
         }

@@ -184,12 +184,14 @@ class YoutubeMusicAuthInfo: Set<String> {
     enum class ValueType { CHANNEL, COOKIE, HEADER }
     var initialised: Boolean = false
 
-    var own_channel: Artist? = null
+    lateinit var own_channel: Artist
         private set
-    var cookie: String? = null
+    lateinit var cookie: String
         private set
-    var headers: Map<String, String>? = null
+    lateinit var headers: Map<String, String>
         private set
+
+    constructor()
 
     constructor(own_channel: Artist, cookie: String, headers: Map<String, String>) {
         this.own_channel = own_channel
@@ -229,9 +231,9 @@ class YoutubeMusicAuthInfo: Set<String> {
         override fun hasNext(): Boolean = i < size
         override fun next(): String {
             return when (i++) {
-                0 ->    ValueType.CHANNEL.ordinal.toString() + own_channel!!.id
-                1 ->    ValueType.COOKIE.ordinal.toString()  + cookie!!
-                else -> ValueType.HEADER.ordinal.toString()  + headerToString(headers!!.entries.elementAt(i - 3))
+                0 ->    ValueType.CHANNEL.ordinal.toString() + own_channel.id
+                1 ->    ValueType.COOKIE.ordinal.toString()  + cookie
+                else -> ValueType.HEADER.ordinal.toString()  + headerToString(headers.entries.elementAt(i - 3))
             }
         }
     }
@@ -240,7 +242,6 @@ class YoutubeMusicAuthInfo: Set<String> {
         return "${header.key}=${header.value}"
     }
     private fun stringToHeader(header: String): Pair<String, String> {
-        println(header)
         val split = header.split('=', limit = 2)
         return Pair(split[0], split[1])
     }

@@ -1,9 +1,12 @@
 package com.spectre7.spmp.api
 
+import android.content.SharedPreferences
+import android.content.SharedPreferences.OnSharedPreferenceChangeListener
 import com.beust.klaxon.*
 import com.spectre7.spmp.BuildConfig
 import com.spectre7.spmp.MainActivity
 import com.spectre7.spmp.R
+import com.spectre7.spmp.model.Settings
 import com.spectre7.utils.getString
 import okhttp3.*
 import okhttp3.MediaType.Companion.toMediaType
@@ -66,7 +69,15 @@ class DataApi {
         private lateinit var youtubei_alt_context: JsonObject
         private lateinit var youtubei_headers: Headers
 
+        private val prefs_change_listener = OnSharedPreferenceChangeListener { _, key ->
+            when (key) {
+                Settings.KEY_YTM_AUTH.name -> updateYtmHeaders()
+                Settings.KEY_LANG_DATA.name -> updateYtmContext()
+            }
+        }
+
         fun request(request: Request, allow_fail_response: Boolean = false): Result<Response> {
+//            return Result.failure(RuntimeException())
 //            val new_request = request.newBuilder().url(request.url.newBuilder().addQueryParameter("prettyPrint", "false").build()).build()
             try {
                 val response = client.newCall(request).execute()
@@ -80,14 +91,13 @@ class DataApi {
             }
         }
 
-        fun initialise() {
+        private fun updateYtmContext() {
             val context_substitutor = StringSubstitutor(
                 mapOf(
                     "user_agent" to user_agent,
-                    "hl" to MainActivity.ui_language
+                    "hl" to MainActivity.data_language
                 ),
-                "\${",
-                "}"
+                "\${", "}"
             )
 
             youtubei_base_context = klaxon.parseJsonObject(
@@ -96,21 +106,38 @@ class DataApi {
             youtubei_alt_context = klaxon.parseJsonObject(
                 context_substitutor.replace(getString(R.string.ytm_context_alt)).reader()
             )
+        }
 
-            val headers_builder = Headers.Builder().apply {
-                add("cookie", BuildConfig.TESTING_COOKIE)
-                add("user-agent", user_agent)
+        private fun updateYtmHeaders() {
+            val headers_builder = Headers.Builder().add("user-agent", user_agent)
+
+            val ytm_auth = YoutubeMusicAuthInfo(Settings.get(Settings.KEY_YTM_AUTH))
+            if (ytm_auth.initialised) {
+                headers_builder["cookie"] = ytm_auth.cookie
+                for (header in ytm_auth.headers) {
+                    headers_builder[header.key] = header.value
+                }
             }
+            else {
+                val headers = MainActivity.resources.getStringArray(R.array.ytm_headers)
+                var i = 0
+                while (i < headers.size) {
+                    val key = headers[i++]
+                    val value = headers[i++]
+                    headers_builder[key] = value
+                }
 
-            val headers = MainActivity.resources.getStringArray(R.array.ytm_headers)
-            var i = 0
-            while (i < headers.size) {
-                val key = headers[i++]
-                val value = headers[i++]
-                headers_builder.add(key, value)
+                headers_builder["cookie"] = BuildConfig.TESTING_COOKIE
             }
 
             youtubei_headers = headers_builder.build()
+        }
+
+        fun initialise() {
+            updateYtmContext()
+            updateYtmHeaders()
+
+            Settings.prefs.registerOnSharedPreferenceChangeListener(prefs_change_listener)
 
             NewPipe.init(object : Downloader() {
                 override fun execute(request: NewPipeRequest): NewPipeResponse {

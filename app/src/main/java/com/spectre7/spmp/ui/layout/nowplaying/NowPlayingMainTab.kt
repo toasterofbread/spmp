@@ -71,7 +71,7 @@ fun ColumnScope.NowPlayingMainTab(
     playerProvider: () -> PlayerViewContext,
     scroll: (pages: Int) -> Unit
 ) {
-    val _expansion = expansionProvider()
+    val _expansion = minOf(2f, expansionProvider())
     val expansion =
         if (_expansion <= 1f) maxOf(0.07930607f, _expansion)
         else 2f - _expansion

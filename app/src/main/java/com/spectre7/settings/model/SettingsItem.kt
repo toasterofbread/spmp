@@ -145,10 +145,11 @@ class SettingsValueState<T>(
     }
 
     fun reset() {
-        value = defaultProvider(key) as T
-        if (!autosave) {
+        _value = converter(defaultProvider(key) as T)!!
+        if (autosave) {
             save()
         }
+        onChanged?.invoke(_value!!)
     }
 
     fun save() {

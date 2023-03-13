@@ -92,6 +92,7 @@ class Theme(data: ThemeData) {
     val background_provider: () -> Color = { background_state.value }
     val on_background_provider: () -> Color = { on_background_state.value }
     val accent_provider: () -> Color = { accent_state.value }
+    val on_accent_provider: () -> Color = { accent_state.value.getContrasted() }
 
     suspend fun setBackground(value: Color?, snap: Boolean = false) {
         background_is_default = value == null

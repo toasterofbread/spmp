@@ -18,6 +18,7 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.*
 import androidx.compose.ui.platform.LocalConfiguration
+import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.unit.*
 import com.google.accompanist.systemuicontroller.rememberSystemUiController
 import com.spectre7.spmp.MainActivity
@@ -58,6 +59,9 @@ internal fun getNPOnBackground(playerProvider: () -> PlayerViewContext): Color {
 fun NowPlaying(playerProvider: () -> PlayerViewContext, swipe_state: SwipeableState<Int>) {
     AnimatedVisibility(PlayerServiceHost.session_started, enter = slideInVertically(), exit = slideOutVertically()) {
         val screen_height = getScreenHeight()
+        val half_screen_height = screen_height.value * 0.5f
+        val density = LocalDensity.current
+        val is_shut by remember { derivedStateOf { swipe_state.targetValue == 0 } }
 
         var switch_to_page: Int by remember { mutableStateOf(-1) }
         OnChangedEffect(switch_to_page) {
@@ -72,28 +76,33 @@ fun NowPlaying(playerProvider: () -> PlayerViewContext, swipe_state: SwipeableSt
             shape = RectangleShape,
             modifier = Modifier
                 .fillMaxWidth()
-                .requiredHeight(screen_height * NOW_PLAYING_VERTICAL_PAGE_COUNT)
-                .offset(y = (screen_height * NOW_PLAYING_VERTICAL_PAGE_COUNT * 0.5f) - swipe_state.offset.value.dp)
+                .requiredHeight(screen_height * (NOW_PLAYING_VERTICAL_PAGE_COUNT + 1))
+                .offset {
+                    IntOffset(
+                        0,
+                        with (density) { ((half_screen_height.dp * NOW_PLAYING_VERTICAL_PAGE_COUNT) - swipe_state.offset.value.dp).toPx().toInt() }
+                    )
+                }
                 .swipeable(
                     state = swipe_state,
-                    anchors = (0..NOW_PLAYING_VERTICAL_PAGE_COUNT).associateBy { if (it == 0) MINIMISED_NOW_PLAYING_HEIGHT.toFloat() else screen_height.value * it },
+                    anchors = (0..NOW_PLAYING_VERTICAL_PAGE_COUNT).associateBy { if (it == 0) MINIMISED_NOW_PLAYING_HEIGHT.toFloat() - half_screen_height else (screen_height.value * it) - half_screen_height },
                     thresholds = { _, _ -> FractionalThreshold(0.2f) },
                     orientation = Orientation.Vertical,
                     reverseDirection = true,
                 )
                 .clickable(
                     interactionSource = remember { MutableInteractionSource() },
-                    enabled = swipe_state.targetValue == 0,
+                    enabled = is_shut,
                     indication = null
                 ) { switch_to_page = if (swipe_state.targetValue == 0) 1 else 0 }
         ) {
-            BackHandler(swipe_state.targetValue != 0) {
+            BackHandler(!is_shut) {
                 switch_to_page = swipe_state.targetValue - 1
             }
 
             Column(Modifier.fillMaxSize(), horizontalAlignment = Alignment.CenterHorizontally) {
                 NowPlayingCardContent(
-                    remember { { swipe_state.offset.value / screen_height.value } },
+                    remember { { (swipe_state.offset.value + half_screen_height) / screen_height.value } },
                     screen_height,
                     { switch_to_page = if (swipe_state.targetValue == 0) 1 else 0 },
                     { switch_to_page = swipe_state.targetValue + it },
@@ -158,7 +167,7 @@ fun NowPlayingCardContent(
         Column(
             verticalArrangement = Arrangement.Top,
             modifier = Modifier
-                .requiredHeight(page_height)
+                .requiredHeight(page_height + (maxOf(0f, expansionProvider() - 2f) * page_height))
                 .requiredWidth(screen_width_dp)
         ) {
             QueueTab(remember { { (expansionProvider() - 1f).coerceIn(0f, 1f) } }, playerProvider, scroll)

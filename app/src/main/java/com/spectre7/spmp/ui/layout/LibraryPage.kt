@@ -61,7 +61,7 @@ fun LibraryPage(
         download_manager.iterateDownloadedFiles { file, data ->
             val song = Song.fromId(data.id)
 
-            item(data) {
+            item {
                 song.PreviewLong(Theme.current.on_background_provider, playerProvider, true, Modifier)
             }
         }

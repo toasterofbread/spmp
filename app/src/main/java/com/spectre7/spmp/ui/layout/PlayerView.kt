@@ -29,6 +29,7 @@ import com.google.accompanist.swiperefresh.rememberSwipeRefreshState
 import com.spectre7.spmp.MainActivity
 import com.spectre7.spmp.PlayerServiceHost
 import com.spectre7.spmp.R
+import com.spectre7.spmp.api.DataApi
 import com.spectre7.spmp.api.cast
 import com.spectre7.spmp.api.getHomeFeed
 import com.spectre7.spmp.api.getOrThrowHere
@@ -256,6 +257,7 @@ fun PlayerView() {
     var feed_continuation: String? by remember { mutableStateOf(null) }
 
     val main_page_layouts = remember { mutableStateListOf<MediaItemLayout>() }
+    val screen_height = getScreenHeight()
 
     fun loadFeed(min_rows: Int, allow_cached: Boolean, continue_feed: Boolean, onFinished: ((success: Boolean) -> Unit)? = null) {
         thread {
@@ -268,7 +270,7 @@ fun PlayerView() {
 
             val result = loadFeedLayouts(min_rows, allow_cached, if (continue_feed) feed_continuation else null)
             if (result.isFailure) {
-                TODO(result.exceptionOrNull().toString())
+                MainActivity.error_manager.onError("loadFeed", result.exceptionOrNull()!!)
             }
             else {
                 if (!continue_feed) {
@@ -344,7 +346,12 @@ fun PlayerView() {
                 },
                 if (!overlay_open) expand_state else null,
                 Theme.current.accent_provider,
-                container_modifier = Modifier.offset { IntOffset(x = 0, y = -player.getNowPlayingSwipeState().offset.value.dp.toPx().toInt()) }
+                container_modifier = Modifier.offset {
+                    IntOffset(
+                        0,
+                        (-player.getNowPlayingSwipeState().offset.value.dp - screen_height * 0.5f).toPx().toInt()
+                    )
+                }
             )
 
             val main_page_scroll_state = rememberLazyListState()
@@ -366,7 +373,7 @@ fun PlayerView() {
                             { loadFeed(-1, false, it) }
                         )
                         OverlayPage.SEARCH -> SearchPage(player.pill_menu, if (PlayerServiceHost.session_started) MINIMISED_NOW_PLAYING_HEIGHT.dp else 0.dp, playerProvider, close)
-                        OverlayPage.SETTINGS -> PrefsPage(player.pill_menu, close)
+                        OverlayPage.SETTINGS -> PrefsPage(player.pill_menu, playerProvider, close)
                         OverlayPage.MEDIAITEM -> Crossfade(player.overlay_media_item) { item ->
                             when (item) {
                                 null -> {}

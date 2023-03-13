@@ -39,7 +39,7 @@ import com.spectre7.utils.*
 enum class Page { ROOT, ACCESSIBILITY_SERVICE, YOUTUBE_MUSIC_LOGIN }
 
 @Composable
-fun PrefsPage(pill_menu: PillMenu, close: () -> Unit) {
+fun PrefsPage(pill_menu: PillMenu, playerProvider: () -> PlayerViewContext, close: () -> Unit) {
 
     val interface_lang = remember { SettingsValueState<Int>(Settings.KEY_LANG_UI.name).init(Settings.prefs, Settings.Companion::provideDefault) }
     var language_data by remember { mutableStateOf(MainActivity.languages.values.elementAt(interface_lang.value)) }
@@ -48,10 +48,10 @@ fun PrefsPage(pill_menu: PillMenu, close: () -> Unit) {
     }
 
     val ytm_auth = remember {
-        SettingsValueState<YoutubeMusicAuthInfo>(
+        SettingsValueState(
             Settings.KEY_YTM_AUTH.name,
             converter = { set ->
-                set?.let { YoutubeMusicAuthInfo(it as Set<String>) }
+                set?.let { YoutubeMusicAuthInfo(it as Set<String>) } ?: YoutubeMusicAuthInfo()
             }
         ).init(Settings.prefs, Settings.Companion::provideDefault)
     }
@@ -128,7 +128,7 @@ fun PrefsPage(pill_menu: PillMenu, close: () -> Unit) {
             Settings.Companion::provideDefault,
             {
                 when (Page.values()[it]) {
-                    Page.ROOT -> getRootPage(interface_lang, language_data, ytm_auth)
+                    Page.ROOT -> getRootPage(interface_lang, language_data, ytm_auth, playerProvider)
                     Page.ACCESSIBILITY_SERVICE -> getAccessibilityServicePage()
                     Page.YOUTUBE_MUSIC_LOGIN -> getYoutubeMusicLoginPage(ytm_auth)
                 }
@@ -163,11 +163,12 @@ fun PrefsPage(pill_menu: PillMenu, close: () -> Unit) {
 private fun getRootPage(
     interface_lang: SettingsValueState<Int>,
     language_data: Map<String, String>,
-    ytm_auth: SettingsValueState<YoutubeMusicAuthInfo>
+    ytm_auth: SettingsValueState<YoutubeMusicAuthInfo>,
+    playerProvider: () -> PlayerViewContext
 ): SettingsPage {
     return SettingsPageWithItems(
         getString(R.string.s_page_preferences),
-        groupAuth(ytm_auth)
+        groupAuth(ytm_auth, playerProvider)
             + groupGeneral(interface_lang, language_data)
             + groupHomeFeed()
             + groupTheming(Theme.manager)
@@ -310,7 +311,7 @@ private fun getYoutubeMusicLoginPage(ytm_auth: SettingsValueState<YoutubeMusicAu
     }
 }
 
-private fun groupAuth(ytm_auth: SettingsValueState<YoutubeMusicAuthInfo>): List<SettingsItem> {
+private fun groupAuth(ytm_auth: SettingsValueState<YoutubeMusicAuthInfo>, playerProvider: () -> PlayerViewContext): List<SettingsItem> {
     return listOf(
         object : SettingsItem() {
             override fun initialiseValueStates(
@@ -333,58 +334,52 @@ private fun groupAuth(ytm_auth: SettingsValueState<YoutubeMusicAuthInfo>): List<
                     .padding(horizontal = 10.dp)
                 ) {
                     Crossfade(ytm_auth.value) { auth ->
-                        Column() {
-                            WidthShrinkText(
-                                getString(
-                                    if (auth.initialised) "Signed in to YouTube Music"
-                                    else "Not signed in to YouTube Music"
-                                ),
-                                Modifier
-                                    .fillMaxWidth()
-                                    .weight(1f)
-                            )
+                        Row(
+                            Modifier.fillMaxWidth(),
+                            verticalAlignment = Alignment.CenterVertically,
+                            horizontalArrangement = Arrangement.spacedBy(5.dp)
+                        ) {
+                            if (auth.initialised) {
+                                auth.own_channel.PreviewLong(
+                                    content_colour = Theme.current.on_accent_provider,
+                                    playerProvider = playerProvider,
+                                    enable_long_press_menu = true,
+                                    modifier = Modifier.weight(1f)
+                                )
+                            }
+                            else {
+                                WidthShrinkText(
+                                    getString("Not signed in"),
+                                    Modifier.fillMaxWidth().weight(1f),
+                                    style = LocalTextStyle.current.copy(color = Theme.current.on_accent)
+                                )
+                            }
 
-                            Row(
-                                Modifier.fillMaxWidth(),
-                                verticalAlignment = Alignment.CenterVertically,
-                                horizontalArrangement = Arrangement.spacedBy(5.dp)
-                            ) {
-
-                                auth.own_channel?.also {
-                                    it.PreviewLong(
-                                        content_colour = Theme.current.on_background_provider,
-                                        playerProvider = { TODO() },
-                                        enable_long_press_menu = true,
-                                        modifier = Modifier.weight(1f)
-                                    )
+                            Button({
+                                if (auth.initialised) {
+                                    resetValues()
                                 }
+                                else {
+                                    openPage(Page.YOUTUBE_MUSIC_LOGIN.ordinal)
+                                }
+                            }, colors = ButtonDefaults.buttonColors(
+                                containerColor = Theme.current.background,
+                                contentColor = Theme.current.on_background
+                            )) {
+                                Text(getString(if (auth.initialised) "Sign out" else "Sign in"))
+                            }
 
-                                Button({
-                                    if (auth.initialised) {
-                                        resetValues()
-                                    }
-                                    else {
-                                        openPage(Page.YOUTUBE_MUSIC_LOGIN.ordinal)
-                                    }
-                                }, colors = ButtonDefaults.buttonColors(
+                            ShapedIconButton(
+                                {
+
+                                },
+                                colors = IconButtonDefaults.iconButtonColors(
                                     containerColor = Theme.current.background,
                                     contentColor = Theme.current.on_background
-                                )) {
-                                    Text(getString(if (auth.initialised) "Sign out" else "Sign in"))
-                                }
-
-                                ShapedIconButton(
-                                    {
-
-                                    },
-                                    colors = IconButtonDefaults.iconButtonColors(
-                                        containerColor = Theme.current.background,
-                                        contentColor = Theme.current.on_background
-                                    ),
-                                    shape = CircleShape
-                                ) {
-                                    Icon(Icons.Filled.Info, null)
-                                }
+                                ),
+                                shape = CircleShape
+                            ) {
+                                Icon(Icons.Filled.Info, null)
                             }
                         }
                     }

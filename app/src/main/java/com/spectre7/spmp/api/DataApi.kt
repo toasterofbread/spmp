@@ -1,6 +1,5 @@
 package com.spectre7.spmp.api
 
-import android.content.SharedPreferences
 import android.content.SharedPreferences.OnSharedPreferenceChangeListener
 import com.beust.klaxon.*
 import com.spectre7.spmp.BuildConfig
@@ -11,7 +10,6 @@ import com.spectre7.utils.getString
 import okhttp3.*
 import okhttp3.MediaType.Companion.toMediaType
 import okhttp3.RequestBody.Companion.toRequestBody
-import org.apache.commons.lang3.text.StrSubstitutor
 import org.apache.commons.text.StringSubstitutor
 import org.schabi.newpipe.extractor.NewPipe
 import org.schabi.newpipe.extractor.downloader.Downloader
@@ -81,10 +79,10 @@ class DataApi {
 //            val new_request = request.newBuilder().url(request.url.newBuilder().addQueryParameter("prettyPrint", "false").build()).build()
             try {
                 val response = client.newCall(request).execute()
-                if (!allow_fail_response && !response.isSuccessful) {
-                    return Result.failure(response)
+                if (response.isSuccessful || allow_fail_response) {
+                    return Result.success(response)
                 }
-                return Result.success(response)
+                return Result.failure(response)
             }
             catch (e: Throwable) {
                 return Result.failure(e)

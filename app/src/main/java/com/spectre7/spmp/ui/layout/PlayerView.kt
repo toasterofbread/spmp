@@ -5,13 +5,16 @@ package com.spectre7.spmp.ui.layout
 import android.content.SharedPreferences.OnSharedPreferenceChangeListener
 import androidx.compose.animation.*
 import androidx.compose.foundation.background
+import androidx.compose.foundation.gestures.Orientation
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyListState
 import androidx.compose.foundation.lazy.rememberLazyListState
 import androidx.compose.material.ExperimentalMaterialApi
+import androidx.compose.material.FractionalThreshold
 import androidx.compose.material.SwipeableState
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.*
+import androidx.compose.material.swipeable
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
@@ -35,6 +38,7 @@ import com.spectre7.spmp.api.getHomeFeed
 import com.spectre7.spmp.api.getOrThrowHere
 import com.spectre7.spmp.model.*
 import com.spectre7.spmp.ui.component.*
+import com.spectre7.spmp.ui.layout.nowplaying.NOW_PLAYING_VERTICAL_PAGE_COUNT
 import com.spectre7.spmp.ui.layout.nowplaying.NowPlaying
 import com.spectre7.spmp.ui.layout.nowplaying.ThemeMode
 import com.spectre7.spmp.ui.theme.Theme
@@ -74,6 +78,7 @@ data class PlayerViewContext(
         private set(value) { baseOrThis().np_theme_mode_state!!.value = value }
 
     private val now_playing_swipe_state: SwipeableState<Int>? = if (is_base) SwipeableState(0) else null
+    private var now_playing_swipe_anchors: Map<Float, Int>? = null
     fun getNowPlayingSwipeState(): SwipeableState<Int> = baseOrThis().now_playing_swipe_state!!
 
     private val now_playing_switch_page: MutableState<Int>? = if (is_base) mutableStateOf(-1) else null
@@ -205,7 +210,16 @@ data class PlayerViewContext(
             bottom_padding_anim.animateTo(PlayerServiceHost.session_started.toFloat() * MINIMISED_NOW_PLAYING_HEIGHT)
         }
 
-        NowPlaying(remember { { this } }, now_playing_swipe_state!!)
+        if (now_playing_swipe_anchors == null) {
+            val screen_height = getScreenHeight()
+            val half_screen_height = screen_height.value * 0.5f
+            now_playing_swipe_anchors = (0..NOW_PLAYING_VERTICAL_PAGE_COUNT).associateBy { if (it == 0) MINIMISED_NOW_PLAYING_HEIGHT.toFloat() - half_screen_height else (screen_height.value * it) - half_screen_height }
+
+            @Suppress("INVISIBLE_MEMBER")
+            now_playing_swipe_state!!.ensureInit(mapOf(-half_screen_height to 0))
+        }
+
+        NowPlaying(remember { { this } }, now_playing_swipe_state!!, now_playing_swipe_anchors!!)
         
         OnChangedEffect(now_playing_switch_page!!.value) {
             if (now_playing_switch_page.value >= 0) {

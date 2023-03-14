@@ -2,8 +2,6 @@ package com.spectre7.spmp.ui.layout.nowplaying.overlay.lyrics
 
 import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.animation.core.animateOffsetAsState
-import androidx.compose.animation.fadeIn
-import androidx.compose.animation.fadeOut
 import androidx.compose.foundation.Canvas
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.lazy.LazyListState
@@ -13,14 +11,12 @@ import androidx.compose.ui.geometry.CornerRadius
 import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.geometry.Rect
 import androidx.compose.ui.geometry.Size
-import com.spectre7.spmp.MainActivity
 import com.spectre7.spmp.PlayerServiceHost
 import com.spectre7.spmp.model.Song
 import com.spectre7.spmp.ui.layout.PlayerViewContext
 import com.spectre7.spmp.ui.layout.nowplaying.POSITION_UPDATE_INTERVAL_MS
 import com.spectre7.spmp.ui.layout.nowplaying.getNPBackground
 import kotlinx.coroutines.delay
-import net.zerotask.libraries.android.compose.furigana.TermInfo
 import kotlin.math.abs
 
 @Composable

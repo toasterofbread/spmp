@@ -56,7 +56,7 @@ internal fun getNPOnBackground(playerProvider: () -> PlayerViewContext): Color {
 
 @OptIn(ExperimentalMaterialApi::class, ExperimentalMaterial3Api::class)
 @Composable
-fun NowPlaying(playerProvider: () -> PlayerViewContext, swipe_state: SwipeableState<Int>) {
+fun NowPlaying(playerProvider: () -> PlayerViewContext, swipe_state: SwipeableState<Int>, swipe_anchors: Map<Float, Int>) {
     AnimatedVisibility(PlayerServiceHost.session_started, enter = slideInVertically(), exit = slideOutVertically()) {
         val screen_height = getScreenHeight()
         val half_screen_height = screen_height.value * 0.5f
@@ -85,7 +85,7 @@ fun NowPlaying(playerProvider: () -> PlayerViewContext, swipe_state: SwipeableSt
                 }
                 .swipeable(
                     state = swipe_state,
-                    anchors = (0..NOW_PLAYING_VERTICAL_PAGE_COUNT).associateBy { if (it == 0) MINIMISED_NOW_PLAYING_HEIGHT.toFloat() - half_screen_height else (screen_height.value * it) - half_screen_height },
+                    anchors = swipe_anchors,
                     thresholds = { _, _ -> FractionalThreshold(0.2f) },
                     orientation = Orientation.Vertical,
                     reverseDirection = true,

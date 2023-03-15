@@ -1,22 +1,17 @@
 package com.spectre7.spmp.model
 
-import android.content.SharedPreferences
 import android.graphics.Bitmap
 import android.graphics.BitmapFactory
-import android.provider.MediaStore.Audio
 import androidx.compose.runtime.*
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.toArgb
-import androidx.core.content.edit
-import com.beust.klaxon.Klaxon
 import com.spectre7.spmp.R
 import com.spectre7.spmp.api.*
 import com.spectre7.spmp.ui.component.SongPreviewLong
 import com.spectre7.spmp.ui.component.SongPreviewSquare
 import com.spectre7.spmp.ui.layout.PlayerViewContext
 import com.spectre7.utils.getString
-import com.spectre7.utils.recomposeHighlighter
 import com.spectre7.utils.toHiragana
 import okhttp3.internal.filterList
 import java.io.FileNotFoundException
@@ -38,7 +33,7 @@ class Song private constructor (
         var thumbnail_rounding: Int? by mutableStateOf(null)
     }
     
-    val song_reg_entry: SongDataRegistryEntry = reg_entry as SongDataRegistryEntry
+    val song_reg_entry: SongDataRegistryEntry = registry_entry as SongDataRegistryEntry
     override fun getDefaultRegistryEntry(): DataRegistry.Entry = SongDataRegistryEntry()
 
     private var audio_formats: List<YoutubeVideoFormat>? = null

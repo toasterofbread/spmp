@@ -124,8 +124,6 @@ class DataApi {
                     val value = headers[i++]
                     headers_builder[key] = value
                 }
-
-                headers_builder["cookie"] = BuildConfig.TESTING_COOKIE
             }
 
             youtubei_headers = headers_builder.build()

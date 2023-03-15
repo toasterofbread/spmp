@@ -3,6 +3,7 @@
 package com.spectre7.utils
 
 // TODO | Move to separate repository
+// TODO | Should probably split this a little
 
 import android.annotation.SuppressLint
 import android.app.Notification
@@ -21,9 +22,6 @@ import androidx.compose.foundation.gestures.*
 import androidx.compose.foundation.interaction.MutableInteractionSource
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.shape.CircleShape
-import androidx.compose.foundation.text.BasicTextField
-import androidx.compose.foundation.text.KeyboardActions
-import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.ContentCopy
 import androidx.compose.material.icons.filled.Share
@@ -35,7 +33,6 @@ import androidx.compose.material3.*
 import androidx.compose.material3.tokens.IconButtonTokens
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
-import androidx.compose.ui.ExperimentalComposeUiApi
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.composed
 import androidx.compose.ui.draw.*
@@ -54,11 +51,11 @@ import androidx.compose.ui.platform.*
 import androidx.compose.ui.semantics.Role
 import androidx.compose.ui.text.*
 import androidx.compose.ui.text.font.FontWeight
-import androidx.compose.ui.text.input.ImeAction
 import androidx.compose.ui.text.style.TextDecoration
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.*
 import com.beust.klaxon.Klaxon
+import com.spectre7.spmp.BuildConfig
 import com.spectre7.spmp.MainActivity
 import com.spectre7.spmp.R
 import kotlinx.coroutines.delay
@@ -67,6 +64,9 @@ import kotlin.concurrent.thread
 import kotlin.math.min
 import kotlin.math.sqrt
 import kotlin.random.Random
+
+@Suppress("KotlinConstantConditions")
+fun isDebugBuild(): Boolean = BuildConfig.BUILD_TYPE == "debug"
 
 fun Boolean.toInt() = if (this) 1 else 0
 fun Boolean.toFloat() = if (this) 1f else 0f
@@ -725,3 +725,8 @@ fun CopyShareButtons(name: String, getText: () -> String) {
 		Icon(Icons.Filled.Share, null, Modifier.size(20.dp))
 	}
 }
+
+fun spacedByEnd(space: Dp): Arrangement.HorizontalOrVertical =
+	Arrangement.SpacedAligned(space, true) { size, layoutDirection ->
+		Alignment.End.align(0, size, layoutDirection)
+	}

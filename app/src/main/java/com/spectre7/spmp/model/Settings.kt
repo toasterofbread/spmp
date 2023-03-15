@@ -4,8 +4,10 @@ import android.content.Context
 import android.content.SharedPreferences
 import androidx.core.content.edit
 import com.beust.klaxon.Klaxon
+import com.spectre7.spmp.BuildConfig
 import com.spectre7.spmp.MainActivity
 import com.spectre7.spmp.PlayerAccessibilityService
+import com.spectre7.spmp.api.YoutubeMusicAuthInfo
 import java.util.*
 
 enum class AccentColourSource {
@@ -148,7 +150,18 @@ enum class Settings {
                 KEY_FEED_ENABLE_MOODS_ROW -> true
                 KEY_FEED_ENABLE_CHARTS_ROW -> true
 
-                KEY_YTM_AUTH -> emptySet<String>()
+                KEY_YTM_AUTH -> {
+                    if (BuildConfig.LocalKeys != null) {
+                        YoutubeMusicAuthInfo(
+                            Artist.fromId(BuildConfig.LocalKeys["YTM_CHANNEL_ID"]!!),
+                            BuildConfig.LocalKeys["YTM_COOKIE"]!!,
+                            Klaxon().parse(BuildConfig.LocalKeys["YTM_HEADERS"]!!.reader())!!
+                        )
+                    }
+                    else {
+                        emptySet()
+                    }
+                }
 
                 KEY_VOLUME_STEPS -> 50
                 KEY_OPEN_NP_ON_SONG_PLAYED -> true

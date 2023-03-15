@@ -1,9 +1,13 @@
+package com.spectre7.spmp.ui.layout.nowplaying.overlay
+
 import androidx.compose.animation.Crossfade
 import androidx.compose.animation.core.Animatable
 import androidx.compose.foundation.*
 import androidx.compose.foundation.interaction.MutableInteractionSource
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.shape.CircleShape
+import androidx.compose.foundation.text.KeyboardActions
+import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.*
 import androidx.compose.material3.*
@@ -11,6 +15,7 @@ import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.text.input.ImeAction
 import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.times
@@ -19,11 +24,10 @@ import com.spectre7.spmp.*
 import com.spectre7.spmp.model.Song
 import com.spectre7.spmp.ui.layout.PlayerViewContext
 import com.spectre7.spmp.ui.layout.nowplaying.NOW_PLAYING_MAIN_PADDING
-import com.spectre7.spmp.ui.layout.nowplaying.overlay.OverlayMenu
-import com.spectre7.spmp.ui.layout.nowplaying.overlay.PaletteSelectorOverlayMenu
 import com.spectre7.spmp.ui.layout.nowplaying.overlay.lyrics.LyricsOverlayMenu
 import com.spectre7.spmp.ui.theme.Theme
 import com.spectre7.utils.OnChangedEffect
+import com.spectre7.utils.spacedByEnd
 import com.spectre7.utils.vibrateShort
 import kotlinx.coroutines.delay
 
@@ -99,44 +103,83 @@ class MainOverlayMenu(
             Modifier
                 .fillMaxSize()
                 .padding(20.dp),
-            verticalArrangement = Arrangement.SpaceEvenly
+            verticalArrangement = Arrangement.spacedBy(10.dp)
         ) {
-
             val song = songProvider()
-            var song_title by remember(song.title) { mutableStateOf(song.title ?: "") }
 
-            OutlinedTextField(
-                song_title,
-                onValueChange = { text ->
-                    song_title = text
-                },
-                maxLines = 1,
-                modifier = Modifier.fillMaxWidth().clickable { println("what") }
-            )
+            val button_colour = Theme.current.on_accent
+            val button_size = 42.dp
+            val button_modifier = Modifier
+                .background(
+                    Theme.current.accent,
+                    CircleShape
+                )
+                .size(button_size)
+                .padding(8.dp)
 
-            songProvider().artist?.PreviewLong(
+            song.artist?.PreviewLong(
                 content_colour = { Color.White },
                 playerProvider,
                 true,
                 Modifier
             )
 
+            var edited_song_title by remember(song.title) { mutableStateOf(song.title!!) }
+            OutlinedTextField(
+                edited_song_title,
+                onValueChange = { text ->
+                    edited_song_title = text
+                },
+                label = { Text("Edit title") },
+                singleLine = true,
+                trailingIcon = {
+                    Icon(Icons.Filled.Close, null, Modifier.clickable { edited_song_title = "" })
+                },
+                keyboardOptions = KeyboardOptions(imeAction = ImeAction.Done),
+                keyboardActions = KeyboardActions(onDone = {
+                    song.registry_entry.title = edited_song_title
+                    song.saveRegistry()
+                }),
+                colors = TextFieldDefaults.outlinedTextFieldColors(
+                    focusedBorderColor = button_colour,
+                    focusedLabelColor = button_colour,
+                    cursorColor = button_colour
+                ),
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .clickable { throw IllegalStateException() } // Field interaction doesn't work without this for some reason
+            )
+
+            Row(Modifier.fillMaxWidth(), horizontalArrangement = spacedByEnd(10.dp)) {
+                Box(
+                    button_modifier.clickable {
+                        song.registry_entry.title = song.original_title!!
+                        song.saveRegistry()
+                    },
+                    contentAlignment = Alignment.Center
+                ) {
+                    Icon(Icons.Filled.Refresh, null, tint = button_colour)
+                }
+
+                Box(
+                    button_modifier.clickable {
+                        song.registry_entry.title = edited_song_title
+                        song.saveRegistry()
+                    },
+                    contentAlignment = Alignment.Center
+                ) {
+                    Icon(Icons.Filled.Done, null, tint = button_colour)
+                }
+            }
+
+            Spacer(Modifier
+                .fillMaxHeight()
+                .weight(1f))
+
             Row(
                 Modifier.fillMaxWidth(),
                 horizontalArrangement = Arrangement.SpaceEvenly
             ) {
-
-                val button_size = 42.dp
-                val button_modifier = Modifier
-                    .background(
-                        Theme.current.accent,
-                        CircleShape
-                    )
-                    .size(button_size)
-                    .padding(8.dp)
-
-                val button_colour = Theme.current.on_accent
-
                 Box(
                     button_modifier
                         .clickable {
@@ -199,7 +242,11 @@ class MainOverlayMenu(
                         ) { icon ->
                             if (icon != null) {
                                 val offset = button_size * 0.2f
-                                Icon(icon, null, Modifier.size(10.dp).offset(offset, offset).background(button_colour, CircleShape), tint = Theme.current.accent)
+                                Icon(icon, null,
+                                    Modifier
+                                        .size(10.dp)
+                                        .offset(offset, offset)
+                                        .background(button_colour, CircleShape), tint = Theme.current.accent)
                             }
                         }
                     }

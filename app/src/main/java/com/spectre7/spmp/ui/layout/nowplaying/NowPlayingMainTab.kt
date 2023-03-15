@@ -1,6 +1,6 @@
 package com.spectre7.spmp.ui.layout.nowplaying
 
-import MainOverlayMenu
+import com.spectre7.spmp.ui.layout.nowplaying.overlay.MainOverlayMenu
 import android.text.format.DateUtils
 import androidx.activity.compose.BackHandler
 import androidx.compose.animation.*

@@ -18,8 +18,6 @@ import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
-import androidx.compose.ui.layout.onSizeChanged
-import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.*
 import com.spectre7.spmp.PlayerDownloadService
@@ -27,10 +25,7 @@ import com.spectre7.spmp.PlayerServiceHost
 import com.spectre7.spmp.model.MediaItem
 import com.spectre7.spmp.model.Song
 import com.spectre7.spmp.ui.layout.PlayerViewContext
-import com.spectre7.utils.OnChangedEffect
-import com.spectre7.utils.sendToast
-import com.spectre7.utils.setAlpha
-import com.spectre7.utils.vibrateShort
+import com.spectre7.utils.*
 import java.io.File
 
 @Composable
@@ -146,6 +141,15 @@ fun SongPreviewLong(
 
 fun getSongLongPressPopupActions(queue_index: Int?): @Composable LongPressMenuActionProvider.(MediaItem) -> Unit = { song ->
     require(song is Song)
+
+    if (isDebugBuild()) {
+        ActionButton(
+            Icons.Filled.Info, "Print info",
+            onClick = {
+                println(song)
+            }
+        )
+    }
 
     ActionButton(
         Icons.Filled.Radio, "Start radio", 

@@ -3,11 +3,22 @@ plugins {
     id 'org.jetbrains.kotlin.android'
 }
 
-def keys_file = rootProject.file("keys.properties")
-def keys = new Properties()
+def createKeysHashTable() {
+    def keys_file = rootProject.file("keys.properties")
+    if (keys_file.exists()) {
+        def keys = new Properties()
+        keys.load(new FileInputStream(keys_file))
 
-if (keys_file.exists()) {
-    keys.load(new FileInputStream(keys_file))
+        def value = ""
+        for (key in keys) {
+            value += String.format('put("%s",%s); ', key.key, key.value)
+        }
+
+        return String.format("%s%s%s", "new java.util.Hashtable<String, String>(){{ ", value, "}}")
+    }
+    else {
+        return "null"
+    }
 }
 
 android {
@@ -44,7 +55,7 @@ android {
             abiFilters "armeabi-v7a", "arm64-v8a", "x86", "x86_64"
         }
 
-        buildConfigField("String", "TESTING_COOKIE", keys["TESTING_COOKIE"] ?: "null")
+        buildConfigField("java.util.Hashtable<String, String>", "LocalKeys", createKeysHashTable())
     }
 
     buildTypes {

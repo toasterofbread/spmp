@@ -12,6 +12,7 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.graphicsLayer
 import androidx.compose.ui.viewinterop.AndroidView
+import com.beust.klaxon.Klaxon
 import com.spectre7.spmp.model.Artist
 import com.spectre7.spmp.model.MediaItem
 import com.spectre7.spmp.ui.theme.Theme
@@ -244,5 +245,30 @@ class YoutubeMusicAuthInfo: Set<String> {
     private fun stringToHeader(header: String): Pair<String, String> {
         val split = header.split('=', limit = 2)
         return Pair(split[0], split[1])
+    }
+
+    fun toJson(): String {
+        if (!initialised) {
+            return "{}"
+        }
+        return Klaxon().toJsonString(mapOf(
+            "own_channel" to own_channel.id,
+            "cookie" to cookie,
+            "headers" to headers
+        ))
+    }
+
+    companion object {
+        fun fromJson(data: String): YoutubeMusicAuthInfo {
+            val obj = Klaxon().parseJsonObject(data.reader())
+            if (obj.isEmpty()) {
+                return YoutubeMusicAuthInfo()
+            }
+            return YoutubeMusicAuthInfo(
+                Artist.fromId(obj.string("own_channel")!!),
+                obj.string("cookie")!!,
+                obj.obj("headers")!!.toMap() as Map<String, String>
+            )
+        }
     }
 }

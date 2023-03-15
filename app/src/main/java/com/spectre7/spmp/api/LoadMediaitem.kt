@@ -119,8 +119,12 @@ fun loadMediaItemData(item: MediaItem): Result<MediaItem> {
         .post(DataApi.getYoutubeiRequestBody(body))
         .build()
 
+    if (item_id == "_ZgZOaF04aE") println("BRUH 1")
+
     val response = DataApi.request(request).getOrNull()
     if (response != null) {
+    if (item_id == "_ZgZOaF04aE") println("BRUH 2")
+
         val response_body: Reader = response.body!!.charStream()
 
         if (item is MediaItemWithLayouts) {
@@ -181,11 +185,13 @@ fun loadMediaItemData(item: MediaItem): Result<MediaItem> {
 
         val video_details = DataApi.klaxon.parse<PlayerData>(buffered_reader)?.videoDetails
         if (video_details != null) {
+        if (item_id == "_ZgZOaF04aE") println("BRUH 3")
             buffered_reader.close()
             item.supplyTitle(video_details.title, true)
             item.supplyArtist(Artist.fromId(video_details.channelId))
             return finish()
         }
+        if (item_id == "_ZgZOaF04aE") println("BRUH 4")
 
         buffered_reader.reset()
         val video = DataApi.klaxon.parse<YoutubeiNextResponse>(buffered_reader)!!
@@ -206,41 +212,53 @@ fun loadMediaItemData(item: MediaItem): Result<MediaItem> {
         buffered_reader.close()
 
         item.supplyTitle(video.title.first_text, true)
+        if (item_id == "_ZgZOaF04aE") println("BRUH 5")
 
         for (run in video.longBylineText.runs!!) {
+        if (item_id == "_ZgZOaF04aE") println("BRUH 6")
             if (run.navigationEndpoint?.browseEndpoint?.page_type != "MUSIC_PAGE_TYPE_ARTIST") {
                 continue
             }
+        if (item_id == "_ZgZOaF04aE") println("BRUH 7")
 
             val artist = Artist.fromId(run.navigationEndpoint.browseEndpoint.browseId).supplyTitle(run.text)
             item.supplyArtist(artist as Artist, true)
 
             return finish()
         }
+        if (item_id == "_ZgZOaF04aE") println("BRUH 8")
 
         val menu_artist = video.menu.menuRenderer.getArtist()?.menuNavigationItemRenderer?.navigationEndpoint?.browseEndpoint?.browseId
         if (menu_artist != null) {
+        if (item_id == "_ZgZOaF04aE") println("BRUH 9")
             item.supplyArtist(Artist.fromId(menu_artist))
             return finish()
         }
+        if (item_id == "_ZgZOaF04aE") println("BRUH 10")
 
         for (run in video.longBylineText.runs) {
+        if (item_id == "_ZgZOaF04aE") println("BRUH 11")
             if (run.navigationEndpoint?.browseEndpoint?.page_type != "MUSIC_PAGE_TYPE_ALBUM") {
                 continue
             }
+        if (item_id == "_ZgZOaF04aE") println("BRUH 13")
 
             val playlist_result = Playlist.fromId(run.navigationEndpoint.browseEndpoint.browseId).loadData()
             if (playlist_result.isFailure) {
+        if (item_id == "_ZgZOaF04aE") println("BRUH 14")
                 return playlist_result
             }
+        if (item_id == "_ZgZOaF04aE") println("BRUH 15")
 
             val artist = playlist_result.getOrThrowHere().artist
             if (artist != null) {
+        if (item_id == "_ZgZOaF04aE") println("BRUH 16")
                 item.supplyArtist(artist, true)
                 return finish()
             }
         }
     }
+    if (item_id == "_ZgZOaF04aE") println("BRUH 17")
 
     // 'next' endpoint has no artist, use 'player' instead
     request = Request.Builder()
@@ -251,6 +269,7 @@ fun loadMediaItemData(item: MediaItem): Result<MediaItem> {
 
     val result = DataApi.request(request)
     if (result.isFailure) {
+    if (item_id == "_ZgZOaF04aE") println("BRUH 18")
         return result.cast()
     }
 
@@ -261,5 +280,6 @@ fun loadMediaItemData(item: MediaItem): Result<MediaItem> {
     item.supplyTitle(video_data.videoDetails!!.title, true)
     item.supplyArtist(Artist.fromId(video_data.videoDetails.channelId), true)
 
+    if (item_id == "_ZgZOaF04aE") println("BRUH 19")
     return finish()
 }

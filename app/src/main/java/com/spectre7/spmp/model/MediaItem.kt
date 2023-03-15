@@ -17,13 +17,13 @@ import androidx.compose.ui.graphics.asAndroidBitmap
 import androidx.compose.ui.graphics.asImageBitmap
 import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.layout.ContentScale
+import androidx.compose.ui.text.capitalize
 import androidx.compose.ui.unit.IntSize
 import androidx.core.content.edit
 import androidx.palette.graphics.Palette
 import com.beust.klaxon.*
 import com.spectre7.spmp.R
 import com.spectre7.spmp.api.DataApi
-import com.spectre7.spmp.api.cast
 import com.spectre7.spmp.api.loadMediaItemData
 import com.spectre7.spmp.ui.component.MediaItemLayout
 import com.spectre7.spmp.ui.layout.PlayerViewContext
@@ -34,12 +34,13 @@ import com.spectre7.utils.printJson
 import java.io.Reader
 import java.net.URL
 import java.time.Duration
+import java.util.*
 import kotlin.concurrent.thread
 
 @Suppress("PLATFORM_CLASS_MAPPED_TO_KOTLIN")
 abstract class MediaItem(id: String) {
 
-    val reg_entry: DataRegistry.Entry
+    val registry_entry: DataRegistry.Entry
     open fun getDefaultRegistryEntry(): DataRegistry.Entry = DataRegistry.Entry()
 
     private val _id: String = id
@@ -49,12 +50,14 @@ abstract class MediaItem(id: String) {
     }
     val uid: String get() = "${type.ordinal}$_id"
 
-    var title: String? by mutableStateOf(null)
-        private set
+    var original_title: String? by mutableStateOf(null)
+    var title: String?
+        get() = registry_entry.title ?: original_title
+        private set(value) { original_title = value }
 
     fun supplyTitle(value: String?, certain: Boolean = false): MediaItem {
-        if (value != null && (title == null || certain)) {
-            title = value
+        if (value != null && (original_title == null || certain)) {
+            original_title = value
         }
         return this
     }
@@ -119,6 +122,10 @@ abstract class MediaItem(id: String) {
                 else -> DataApi.klaxon.parseFromJsonObject(obj)!!
             }
         }
+
+        override fun toString(): String {
+            return name.lowercase().replaceFirstChar { it.uppercase() }
+        }
     }
     val type: Type get() = when(this) {
         is Song -> Type.SONG
@@ -132,7 +139,7 @@ abstract class MediaItem(id: String) {
     }
     open fun getJsonMapValues(klaxon: Klaxon = DataApi.klaxon): String {
         return """
-            "title": ${stringToJson(title)},
+            "title": ${stringToJson(original_title)},
             "artist": ${stringToJson(artist?.id)},
             "desc": ${stringToJson(description)},
             "thumb": ${klaxon.toJsonString(thumbnail_provider)},
@@ -141,7 +148,7 @@ abstract class MediaItem(id: String) {
 
     open fun supplyFromJsonObject(data: JsonObject, klaxon: Klaxon): MediaItem {
         assert(data.int("type") == type.ordinal)
-        data.string("title")?.also { title = it }
+        data.string("title")?.also { original_title = it }
         data.string("artist")?.also { artist = Artist.fromId(it) }
         data.string("desc")?.also { description = it }
         data.obj("thumb")?.also { thumbnail_provider = ThumbnailProvider.fromJsonObject(it, klaxon) }
@@ -149,7 +156,7 @@ abstract class MediaItem(id: String) {
     }
 
     open fun isFullyLoaded(): Boolean {
-        return title != null && artist != null && thumbnail_provider != null
+        return original_title != null && artist != null && thumbnail_provider != null
     }
 
     fun toJsonData(): String {
@@ -441,7 +448,7 @@ abstract class MediaItem(id: String) {
             states[quality] = ThumbState()
         }
         thumb_states = states
-        reg_entry = data_registry.getEntry(this)
+        registry_entry = data_registry.getEntry(this)
     }
 
     fun addBrowseEndpoint(id: String, type: BrowseEndpoint.Type): Boolean {
@@ -559,11 +566,11 @@ abstract class MediaItem(id: String) {
     }
 
     override fun toString(): String {
-        return "MediaItem(type=$type, id=$_id, title=$title)"
+        val artist_str = if (this is Artist) "" else ", artist=$artist"
+        return "$type(id=$_id, title=$title$artist_str)"
     }
 
     val cache_key: String get() = getCacheKey(type, id)
-
     fun saveRegistry() {
         MediaItem.data_registry.save()
     }

@@ -168,7 +168,7 @@ private fun buildVideoFormatsRequest(id: String, alt: Boolean): Request {
         .post(DataApi.getYoutubeiRequestBody("""{
             "videoId": "$id",
             "playlistId": null
-        }""", alt))
+        }""", context = if (alt) DataApi.Companion.YoutubeiContextType.ALT else DataApi.Companion.YoutubeiContextType.BASE))
         .build()
 }
 

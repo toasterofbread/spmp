@@ -21,6 +21,19 @@
         \"user\": {}
     }}
     </string>
+    <string name="ytm_context_android" translatable="false">
+    { \"context\": {
+        \"client\":{
+            \"hl\": \"${hl}\",
+            \"platform\": \"MOBILE\",
+            \"clientName\": \"Android\",
+            \"clientVersion\": \"17.10.35\",
+            \"userAgent\": \"${user_agent}\",
+            \"acceptHeader\": \"text/html,application/xhtml+xml,application/xml;q=0.9,image/avif,image/webp,*/*;q=0.8\"
+        },
+        \"user\": {}
+    }}
+    </string>
     <string name="ytm_context_alt" translatable="false">
     { \"context\": {
         \"client\":{

@@ -141,7 +141,10 @@ fun markSongAsWatched(id: String): Result<Any> {
     fun buildRequest(alt: Boolean): Request {
         return Request.Builder()
             .url("https://music.youtube.com/youtubei/v1/player?key=${getString(R.string.yt_i_api_key)}")
-            .post(DataApi.getYoutubeiRequestBody("""{ "videoId": "$id" }""", alt))
+            .post(DataApi.getYoutubeiRequestBody(
+                """{ "videoId": "$id" }""",
+                context = if (alt) DataApi.Companion.YoutubeiContextType.ALT else DataApi.Companion.YoutubeiContextType.BASE
+            ))
             .headers(DataApi.getYTMHeaders())
             .build()
     }

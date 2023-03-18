@@ -8,25 +8,18 @@ import time
 import argparse
 from spectre7 import utils
 
+PACKAGE_NAME = "com.spectre7.spmp"
+PACKAGE_NAME_DEBUG = "com.spectre7.spmp.debug"
+
 def getAppPid(package: str):
     return subprocess.getoutput(f"adb shell pidof -s {package}")
 
-def launch(gradle_task: str, package: str):
+def beginLogcat(package: str, filter: bool = False):
+    args = ["adb", "logcat", f"--pid={getAppPid(package)}", "-v", "tag"]
+    if filter:
+        args += ["-s", "SpMp"]
 
-    utils.clear()
-
-    if subprocess.run(["./gradlew", gradle_task]).returncode != 0:
-        return
-
-    if subprocess.run(["adb", "shell", "monkey", "-p", package, "1"]).returncode != 0:
-        return
-
-    utils.clear()
-
-    utils.log(f"Build successful. Starting app [{package}].")
-    time.sleep(1)
-
-    proc = subprocess.Popen(["adb", "logcat", f"--pid={getAppPid(package)}", "-v", "tag"], stdout=subprocess.PIPE)
+    proc = subprocess.Popen(args, stdout=subprocess.PIPE)
     error_occurred = False
 
     while True:
@@ -45,7 +38,12 @@ def launch(gradle_task: str, package: str):
 
             tag = line[0]
 
-            line = f"[{tag}] " + line[2:]
+            if not filter:
+                line = f"[{tag}] " + line[2:]
+            elif not line.startswith("D/SpMp    : "):
+                continue
+            else:
+                line = line.removeprefix("D/SpMp    : ")
 
             if tag == "E":
                 if not error_occurred and line.startswith("E/AndroidRuntime: FATAL EXCEPTION:"):
@@ -66,16 +64,34 @@ def launch(gradle_task: str, package: str):
 
     proc.kill()
 
+def launch(gradle_task: str, package: str):
+    utils.clear()
+
+    if subprocess.run(["./gradlew", gradle_task]).returncode != 0:
+        return
+
+    if subprocess.run(["adb", "shell", "monkey", "-p", package, "1"]).returncode != 0:
+        return
+
+    utils.clear()
+
+    utils.log(f"Build successful. Starting app [{package}].")
+    time.sleep(1)
+
+    beginLogcat(package)
+
 if __name__ == "__main__":
 
     parser = argparse.ArgumentParser()
-    parser.add_argument("profile", type = str, choices = ["debug", "release"])
+    parser.add_argument("profile", type = str, choices = ["debug", "release", "logcat"])
+    parser.add_argument("-n", "--no-filter", action = "store_true")
 
     args = parser.parse_args()
 
     match args.profile:
         case "debug":
-            launch("installDebug", "com.spectre7.spmp.debug")
+            launch("installDebug", PACKAGE_NAME_DEBUG)
         case "release":
-            launch("installRelease", "com.spectre7.spmp")
-
+            launch("installRelease", PACKAGE_NAME)
+        case "logcat":
+            beginLogcat(PACKAGE_NAME_DEBUG, not args.no_filter)

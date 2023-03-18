@@ -33,6 +33,7 @@ import androidx.compose.ui.text.AnnotatedString
 import androidx.compose.ui.text.ExperimentalTextApi
 import androidx.compose.ui.text.font.Font
 import androidx.compose.ui.text.font.FontFamily
+import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.IntOffset
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.window.DialogProperties
@@ -49,6 +50,7 @@ import com.spectre7.spmp.ui.theme.Theme
 import com.spectre7.utils.*
 import net.openid.appauth.*
 import java.util.*
+import kotlin.concurrent.thread
 import kotlin.math.roundToInt
 
 class MainActivity : ComponentActivity() {
@@ -224,11 +226,26 @@ class MainActivity : ComponentActivity() {
     }
 }
 
+@Preview
+@Composable
+fun ErrorManagerPreview() {
+    val manager = remember { ErrorManager().apply {
+        onError("Key1", RuntimeException("Exception one message"))
+        onError("Key2", RuntimeException("Exception two message"))
+        onError("Key3", RuntimeException("Exception three message"))
+    } }
+    manager.Indicator { Color.Red }
+}
+
 class ErrorManager {
     val SIDE_PADDING = 10.dp
     val INDICATOR_SIZE = 50.dp
 
     private val errors = mutableStateMapOf<String, Throwable>()
+
+    fun onError(key: String, error: Throwable) {
+        errors[key] = Exception(error)
+    }
 
     @OptIn(ExperimentalMaterialApi::class)
     @Composable
@@ -239,7 +256,7 @@ class ErrorManager {
         }
         val swipe_anchors = mapOf(dismiss_offset to 0, 0f to 1)
 
-        OnChangedEffect(errors.isEmpty()) {
+        LaunchedEffect(errors.isEmpty()) {
             swipe_state.animateTo(errors.isNotEmpty().toInt())
         }
 
@@ -273,24 +290,33 @@ class ErrorManager {
                 .padding(start = SIDE_PADDING),
             contentAlignment = Alignment.BottomStart
         ) {
-            ShapedIconButton(
-                { show_info = !show_info },
-                CircleShape,
-                Modifier
-                    .swipeable(
-                        state = swipe_state,
-                        anchors = swipe_anchors,
-                        thresholds = { _, _ -> FractionalThreshold(0.3f) },
-                        orientation = Orientation.Horizontal
-                    )
-                    .size(INDICATOR_SIZE)
-                    .offset { IntOffset(swipe_state.offset.value.roundToInt(), 0) },
-                colors = IconButtonDefaults.iconButtonColors(
-                    containerColor = colour(),
-                    contentColor = colour().getContrasted()
-                )
-            ) {
-                Icon(Icons.Filled.WifiOff, null)
+            Box(Modifier.swipeable(
+                state = swipe_state,
+                anchors = swipe_anchors,
+                thresholds = { _, _ -> FractionalThreshold(0.3f) },
+                orientation = Orientation.Horizontal
+            )) {
+                if (swipe_state.targetValue == 1) {
+                    ShapedIconButton(
+                        { show_info = !show_info },
+                        CircleShape,
+                        Modifier
+                            .swipeable(
+                                state = swipe_state,
+                                anchors = swipe_anchors,
+                                thresholds = { _, _ -> FractionalThreshold(0.3f) },
+                                orientation = Orientation.Horizontal
+                            )
+                            .size(INDICATOR_SIZE)
+                            .offset { IntOffset(swipe_state.offset.value.roundToInt(), 0) },
+                        colors = IconButtonDefaults.iconButtonColors(
+                            containerColor = colour(),
+                            contentColor = colour().getContrasted()
+                        )
+                    ) {
+                        Icon(Icons.Filled.WifiOff, null)
+                    }
+                }
             }
         }
     }
@@ -307,7 +333,7 @@ class ErrorManager {
                     }
 
                     FilledTonalButton(dismiss) {
-                        Text("Dismiss")
+                        Text(getString("Dismiss"))
                     }
                 }
             },
@@ -336,10 +362,6 @@ class ErrorManager {
         )
     }
 
-    fun onError(key: String, error: Throwable) {
-        errors[key] = Exception(error)
-    }
-
     @Composable
     private fun ErrorItem(error: Throwable, index: Int, expanded: Boolean, onClick: () -> Unit) {
         Column(Modifier
@@ -348,15 +370,18 @@ class ErrorManager {
                 remember { MutableInteractionSource() },
                 null,
                 onClick = onClick
-            ),
+            )
+            .horizontalScroll(rememberScrollState()),
             verticalArrangement = Arrangement.spacedBy(10.dp)
         ) {
             Row(
                 Modifier.fillMaxWidth(),
-                verticalAlignment = Alignment.CenterVertically, 
+                verticalAlignment = Alignment.CenterVertically,
                 horizontalArrangement = Arrangement.SpaceEvenly
             ) {
-                Box(Modifier.size(20.dp).background(Color.Red, RoundedCornerShape(16.dp))) {
+                Box(Modifier
+                    .size(20.dp)
+                    .background(Color.Red, RoundedCornerShape(16.dp))) {
                     Text(index.toString(), Modifier.align(Alignment.Center))
                 }
 
@@ -365,10 +390,13 @@ class ErrorManager {
 
             AnimatedVisibility(expanded, enter = expandVertically(), exit = shrinkVertically()) {
                 Column {
-                    Text(error.stackTraceToString(), Modifier.horizontalScroll(rememberScrollState()))
+                    Text(error.stackTraceToString(), softWrap = false)
 
                     Row(horizontalArrangement = Arrangement.End) {
                         CopyShareButtons(getString("error")) { error.stackTraceToString() }
+                        FilledTonalButton(onClick = { throw error }) {
+                            Text(getString("Throw"))
+                        }
                     }
                 }
             }

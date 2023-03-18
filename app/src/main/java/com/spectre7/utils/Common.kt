@@ -15,6 +15,7 @@ import android.os.Handler
 import android.os.Looper
 import android.os.VibrationEffect
 import android.os.VibratorManager
+import android.util.Log
 import android.widget.Toast
 import androidx.compose.animation.core.*
 import androidx.compose.foundation.*
@@ -22,6 +23,8 @@ import androidx.compose.foundation.gestures.*
 import androidx.compose.foundation.interaction.MutableInteractionSource
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.shape.CircleShape
+import androidx.compose.material.ExperimentalMaterialApi
+import androidx.compose.material.SwipeableState
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.ContentCopy
 import androidx.compose.material.icons.filled.Share
@@ -87,6 +90,16 @@ fun sendToast(text: String, length: Int = Toast.LENGTH_SHORT, context: Context =
 	catch (_: NullPointerException) {
 		Looper.prepare()
 		Toast.makeText(context, text, length).show()
+	}
+}
+
+fun log(message: Any?) {
+	val content = message.toString()
+	if (content.length > 3000) {
+		Log.d("SpMp", content.substring(0, 3000))
+		log(content.substring(3000))
+	} else {
+		Log.d("SpMp", content)
 	}
 }
 
@@ -301,7 +314,7 @@ fun LinkifyText(
 	colour: Color,
 	highlight_colour: Color,
 	style: TextStyle,
-	modifier: Modifier = Modifier
+	modifier: Modifier = Modifier,
 ) {
 	val annotated_string = buildAnnotatedString {
 		append(text)
@@ -558,7 +571,7 @@ fun RowOrColumn(
 	row: Boolean,
 	modifier: Modifier = Modifier,
 	arrangement: Arrangement.HorizontalOrVertical = Arrangement.SpaceEvenly,
-	content: @Composable (getWeightModifier: (Float) -> Modifier) -> Unit
+	content: @Composable (getWeightModifier: (Float) -> Modifier) -> Unit,
 ) {
 	if (row) {
 		Row(modifier, horizontalArrangement = arrangement, verticalAlignment = Alignment.CenterVertically) { content { Modifier.weight(it) } }
@@ -573,7 +586,7 @@ fun PaddingValues.copy(
 	start: Dp? = null,
 	top: Dp? = null,
 	end: Dp? = null,
-	bottom: Dp? = null
+	bottom: Dp? = null,
 ): PaddingValues {
 	return PaddingValues(
 		start ?: calculateStartPadding(LocalLayoutDirection.current),
@@ -587,7 +600,7 @@ fun Modifier.crossOut(
 	crossed_out: Boolean,
 	colour: Color,
 	width: Float = Stroke.HairlineWidth,
-	getSize: ((IntSize) -> IntSize)? = null
+	getSize: ((IntSize) -> IntSize)? = null,
 ): Modifier = composed {
 	val line_visibility = remember { Animatable(crossed_out.toFloat()) }
 	OnChangedEffect(crossed_out) {
@@ -603,7 +616,8 @@ fun Modifier.crossOut(
 			actual_size = it
 		}
 		.drawBehind {
-			val offset = Offset((actual_size.width - size.width) * 0.5f, (actual_size.height - size.height) * 0.5f)
+			val offset = Offset((actual_size.width - size.width) * 0.5f,
+				(actual_size.height - size.height) * 0.5f)
 
 			drawLine(
 				colour,
@@ -654,7 +668,7 @@ fun ShapedIconButton(
 	enabled: Boolean = true,
 	interactionSource: MutableInteractionSource = remember { MutableInteractionSource() },
 	colors: IconButtonColors = IconButtonDefaults.iconButtonColors(),
-	content: @Composable () -> Unit
+	content: @Composable () -> Unit,
 ) {
 	Box(
 		modifier =
@@ -730,3 +744,9 @@ fun spacedByEnd(space: Dp): Arrangement.HorizontalOrVertical =
 	Arrangement.SpacedAligned(space, true) { size, layoutDirection ->
 		Alignment.End.align(0, size, layoutDirection)
 	}
+
+@OptIn(ExperimentalMaterialApi::class)
+fun <T> SwipeableState<T>.init(anchors: Map<Float, T>) {
+	@Suppress("INVISIBLE_MEMBER")
+	ensureInit(anchors)
+}

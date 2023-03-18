@@ -2,7 +2,6 @@ package com.spectre7.spmp.api
 
 import android.content.SharedPreferences.OnSharedPreferenceChangeListener
 import com.beust.klaxon.*
-import com.spectre7.spmp.BuildConfig
 import com.spectre7.spmp.MainActivity
 import com.spectre7.spmp.R
 import com.spectre7.spmp.model.Settings
@@ -63,8 +62,24 @@ class DataApi {
         }
         val klaxon: Klaxon get() = Klaxon().converter(enum_converter)
 
-        private lateinit var youtubei_base_context: JsonObject
-        private lateinit var youtubei_alt_context: JsonObject
+        enum class YoutubeiContextType {
+            BASE,
+            ALT,
+            ANDROID;
+
+            fun getContext(): JsonObject {
+                return when (this) {
+                    BASE -> youtubei_context
+                    ALT -> youtubei_context_alt
+                    ANDROID -> youtubei_context_android
+                }
+            }
+        }
+
+        private lateinit var youtubei_context: JsonObject
+        private lateinit var youtubei_context_alt: JsonObject
+        private lateinit var youtubei_context_android: JsonObject
+
         private lateinit var youtubei_headers: Headers
 
         private val prefs_change_listener = OnSharedPreferenceChangeListener { _, key ->
@@ -98,11 +113,14 @@ class DataApi {
                 "\${", "}"
             )
 
-            youtubei_base_context = klaxon.parseJsonObject(
+            youtubei_context = klaxon.parseJsonObject(
                 context_substitutor.replace(getString(R.string.ytm_context)).reader()
             )
-            youtubei_alt_context = klaxon.parseJsonObject(
+            youtubei_context_alt = klaxon.parseJsonObject(
                 context_substitutor.replace(getString(R.string.ytm_context_alt)).reader()
+            )
+            youtubei_context_android = klaxon.parseJsonObject(
+                context_substitutor.replace(getString(R.string.ytm_context_android)).reader()
             )
         }
 
@@ -177,9 +195,8 @@ class DataApi {
             return youtubei_headers
         }
 
-        internal fun getYoutubeiRequestBody(body: String? = null, alt: Boolean = false): RequestBody {
-            val context = if (alt) youtubei_alt_context else youtubei_base_context
-            val final_body = if (body != null) context + klaxon.parseJsonObject(body.reader()) else context
+        internal fun getYoutubeiRequestBody(body: String? = null, context: YoutubeiContextType = YoutubeiContextType.BASE): RequestBody {
+            val final_body = if (body != null) context.getContext() + klaxon.parseJsonObject(body.reader()) else context.getContext()
             return klaxon.toJsonString(final_body).toRequestBody("application/json".toMediaType())
         }
     }

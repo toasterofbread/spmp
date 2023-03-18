@@ -1,5 +1,6 @@
 package com.spectre7.spmp.api
 
+import com.spectre7.spmp.MainActivity
 import com.spectre7.spmp.R
 import com.spectre7.spmp.model.*
 import com.spectre7.spmp.ui.component.MediaItemLayout
@@ -46,12 +47,13 @@ fun getHomeFeed(min_rows: Int = -1, allow_cached: Boolean = true, continuation: 
                             },
                         media_item_type: MediaItem.Type? = null,
                         view_more: MediaItemLayout.ViewMore? = null,
+                        localised_title: Boolean = true
                     ) {
                         val items = row.getMediaItems().toMutableList()
                         val final_title: String
                         val final_subtitle: String?
 
-                        if (title == null) {
+                        if (title == null || (!localised_title && MainActivity.data_language != MainActivity.ui_language)) {
                             val generated = items.generateLayoutTitle()
                             final_title = generated.first
                             final_subtitle = generated.second
@@ -77,7 +79,7 @@ fun getHomeFeed(min_rows: Int = -1, allow_cached: Boolean = true, continuation: 
 
                     val browse_endpoint = header.title.runs?.first()?.navigationEndpoint?.browseEndpoint
                     if (browse_endpoint == null) {
-                        add()
+                        add(header.title.first_text, localised_title = false)
                         continue
                     }
 
@@ -307,7 +309,9 @@ data class MusicThumbnailRenderer(val thumbnail: Thumbnail) {
 data class TextRuns(val runs: List<TextRun>? = null) {
     val first_text: String get() = runs!![0].text
 }
-data class TextRun(val text: String, val strapline: TextRuns? = null, val navigationEndpoint: NavigationEndpoint? = null)
+data class TextRun(val text: String, val strapline: TextRuns? = null, val navigationEndpoint: NavigationEndpoint? = null) {
+    val browse_endpoint_type: String? get() = navigationEndpoint?.browseEndpoint?.page_type
+}
 
 data class MusicShelfRenderer(val title: TextRuns? = null, val contents: List<ContentsItem>, val continuations: List<YoutubeiNextResponse.Continuation>? = null)
 data class MusicCarouselShelfRenderer(val header: Header, val contents: List<ContentsItem>)

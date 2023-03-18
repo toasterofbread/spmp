@@ -215,8 +215,7 @@ data class PlayerViewContext(
             val half_screen_height = screen_height.value * 0.5f
             now_playing_swipe_anchors = (0..NOW_PLAYING_VERTICAL_PAGE_COUNT).associateBy { if (it == 0) MINIMISED_NOW_PLAYING_HEIGHT.toFloat() - half_screen_height else (screen_height.value * it) - half_screen_height }
 
-            @Suppress("INVISIBLE_MEMBER")
-            now_playing_swipe_state!!.ensureInit(mapOf(-half_screen_height to 0))
+            now_playing_swipe_state!!.init(mapOf(-half_screen_height to 0))
         }
 
         NowPlaying(remember { { this } }, now_playing_swipe_state!!, now_playing_swipe_anchors!!)

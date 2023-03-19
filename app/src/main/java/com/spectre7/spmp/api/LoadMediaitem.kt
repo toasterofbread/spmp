@@ -1,16 +1,11 @@
 package com.spectre7.spmp.api
 
 import android.util.JsonReader
-import com.spectre7.spmp.R
 import com.spectre7.spmp.model.*
 import com.spectre7.spmp.ui.component.MediaItemLayout
-import com.spectre7.utils.getString
-import com.spectre7.utils.log
-import com.spectre7.utils.printJson
 import okhttp3.Request
 import java.io.BufferedReader
 import java.io.Reader
-import java.time.Duration
 
 data class PlayerData(
     val videoDetails: VideoDetails? = null,
@@ -61,7 +56,7 @@ fun JsonReader.next(key: String, is_array: Boolean?, allow_none: Boolean = false
     return next(listOf(key), is_array, allow_none, action)
 }
 
-fun loadMediaItemData(item: MediaItem): Result<MediaItem> {
+fun loadMediaItemData(item: MediaItem): Result<MediaItem?> {
     val lock = item.loading_lock
     val item_id = item.id
 
@@ -120,12 +115,8 @@ fun loadMediaItemData(item: MediaItem): Result<MediaItem> {
         .post(DataApi.getYoutubeiRequestBody(body))
         .build()
 
-    if (item_id == "9QLT1Aw_45s") log("BRUH 1")
-
     val response = DataApi.request(request).getOrNull()
     if (response != null) {
-    if (item_id == "9QLT1Aw_45s") log("BRUH 2")
-
         val response_body: Reader = response.body!!.charStream()
 
         if (item is MediaItemWithLayouts) {
@@ -186,13 +177,11 @@ fun loadMediaItemData(item: MediaItem): Result<MediaItem> {
 
         val video_details = DataApi.klaxon.parse<PlayerData>(buffered_reader)?.videoDetails
         if (video_details != null) {
-        if (item_id == "9QLT1Aw_45s") log("BRUH 3")
             buffered_reader.close()
             item.supplyTitle(video_details.title, true)
             item.supplyArtist(Artist.fromId(video_details.channelId))
             return finish()
         }
-        if (item_id == "9QLT1Aw_45s") log("BRUH 4")
 
         buffered_reader.reset()
         val video = DataApi.klaxon.parse<YoutubeiNextResponse>(buffered_reader)!!
@@ -241,7 +230,7 @@ fun loadMediaItemData(item: MediaItem): Result<MediaItem> {
                 return playlist_result
             }
 
-            val artist = playlist_result.getOrThrowHere().artist
+            val artist = playlist_result.getOrThrowHere()?.artist
             if (artist != null) {
                 item.supplyArtist(artist, true)
                 return finish()
@@ -265,7 +254,11 @@ fun loadMediaItemData(item: MediaItem): Result<MediaItem> {
     val video_data = DataApi.klaxon.parse<PlayerData>(response_body)!!
     response_body.close()
 
-    item.supplyTitle(video_data.videoDetails!!.title, true)
+    if (video_data.videoDetails == null) {
+        return Result.success(null)
+    }
+
+    item.supplyTitle(video_data.videoDetails.title, true)
     item.supplyArtist(Artist.fromId(video_data.videoDetails.channelId), true)
 
     return finish()

@@ -20,7 +20,12 @@ fun <T> Result.Companion.failure(response: Response): Result<T> {
     return failure(RuntimeException("${response.message}: ${response.body?.string()} (${response.code})"))
 }
 fun <I, O> Result<I>.cast(): Result<O> {
-    return Result.failure(exceptionOrNull()!!)
+    if (isSuccess) {
+        return Result.success(getOrNull() as O)
+    }
+    else {
+        return Result.failure(exceptionOrNull()!!)
+    }
 }
 val <T> Result<T>.data get() = getOrThrowHere()
 

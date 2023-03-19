@@ -8,22 +8,18 @@ import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.*
-import androidx.compose.material3.Button
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
-import androidx.compose.material3.Text
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.painter.Painter
 import androidx.compose.ui.graphics.vector.ImageVector
-import androidx.compose.ui.layout.Layout
 import androidx.compose.ui.unit.IntSize
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.zIndex
 import com.spectre7.utils.NoRipple
-import com.spectre7.utils.OnChangedEffect
 import com.spectre7.utils.RowOrColumn
 import com.spectre7.utils.getContrasted
 
@@ -53,7 +49,8 @@ class PillMenu(
 
     var showing: Boolean by mutableStateOf(true)
 
-    private val extra_actions = mutableStateListOf<@Composable Action.(action_count: Int) -> Unit>()
+    private val extra_actions_inner = mutableStateListOf<@Composable Action.(action_count: Int) -> Unit>()
+    private val extra_actions_outer = mutableStateListOf<@Composable Action.(action_count: Int) -> Unit>()
     private val extra_alongside_actions = mutableStateListOf<@Composable Action.() -> Unit>()
     private val action_overriders = mutableStateListOf<@Composable Action.(i: Int) -> Boolean>()
 
@@ -74,14 +71,18 @@ class PillMenu(
         extra_alongside_actions.clear()
     }
 
-    fun addExtraAction(action: @Composable Action.(action_count: Int) -> Unit) {
-        extra_actions.add(action)
+    fun addExtraAction(inner: Boolean = true, action: @Composable Action.(action_count: Int) -> Unit): @Composable Action.(action_count: Int) -> Unit {
+        (if (inner) extra_actions_inner else extra_actions_outer).add(action)
+        return action
     }
     fun removeExtraAction(action: @Composable Action.(action_count: Int) -> Unit) {
-        extra_actions.remove(action)
+        if (!extra_actions_inner.remove(action)) {
+            extra_actions_outer.remove(action)
+        }
     }
     fun clearExtraActions() {
-        extra_actions.clear()
+        extra_actions_inner.clear()
+        extra_actions_outer.clear()
     }
 
     fun addActionOverrider(overrider: @Composable Action.(i: Int) -> Boolean) {
@@ -309,10 +310,13 @@ class PillMenu(
                         ) {
                             RowOrColumn(!vertical, modifier.background(background_colour, shape = CircleShape)) {
                                 if (align_start) {
+                                    for (extra in extra_actions_outer) {
+                                        extra(action, action_count)
+                                    }
                                     ToggleButton()
                                 }
                                 else {
-                                    for (extra in extra_actions) {
+                                    for (extra in extra_actions_inner) {
                                         extra(action, action_count)
                                     }
                                 }
@@ -330,11 +334,15 @@ class PillMenu(
                                     }
                                 }
 
-                                if (!align_start) {
-                                    ToggleButton()
-                                } else {
-                                    for (extra in extra_actions) {
+                                if (align_start) {
+                                    for (extra in extra_actions_inner) {
                                         extra(action,  action_count)
+                                    }
+                                }
+                                else {
+                                    ToggleButton()
+                                    for (extra in extra_actions_outer) {
+                                        extra(action, action_count)
                                     }
                                 }
                             }

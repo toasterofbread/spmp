@@ -19,6 +19,7 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.text.style.TextOverflow
+import androidx.compose.ui.unit.DpSize
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.spectre7.spmp.PlayerServiceHost
@@ -33,7 +34,8 @@ fun ArtistPreviewSquare(
     content_colour: () -> Color,
     playerProvider: () -> PlayerViewContext,
     enable_long_press_menu: Boolean = true,
-    modifier: Modifier = Modifier
+    modifier: Modifier = Modifier,
+    thumb_size: DpSize = DpSize(100.dp, 100.dp)
 ) {
     val long_press_menu_data = remember(artist) { LongPressMenuData(
         artist,
@@ -58,7 +60,7 @@ fun ArtistPreviewSquare(
         horizontalAlignment = Alignment.CenterHorizontally,
         verticalArrangement = Arrangement.spacedBy(5.dp)
     ) {
-        artist.Thumbnail(MediaItem.ThumbnailQuality.LOW, Modifier.size(100.dp).longPressMenuIcon(long_press_menu_data, enable_long_press_menu))
+        artist.Thumbnail(MediaItem.ThumbnailQuality.LOW, Modifier.size(thumb_size).longPressMenuIcon(long_press_menu_data, enable_long_press_menu))
 
         Text(
             artist.title ?: "",

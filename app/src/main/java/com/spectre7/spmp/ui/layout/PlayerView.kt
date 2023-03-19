@@ -9,6 +9,7 @@ import androidx.compose.foundation.gestures.Orientation
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyListState
 import androidx.compose.foundation.lazy.rememberLazyListState
+import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.material.ExperimentalMaterialApi
 import androidx.compose.material.FractionalThreshold
 import androidx.compose.material.SwipeableState
@@ -54,7 +55,7 @@ fun getScreenHeight(): Dp {
 }
 
 const val MINIMISED_NOW_PLAYING_HEIGHT: Int = 64
-enum class OverlayPage { NONE, SEARCH, SETTINGS, MEDIAITEM, LIBRARY }
+enum class OverlayPage { NONE, SEARCH, SETTINGS, MEDIAITEM, LIBRARY, RADIO_BUILDER }
 
 private enum class FeedLoadState { NONE, LOADING, CONTINUING }
 
@@ -369,14 +370,14 @@ fun PlayerView() {
 
             val main_page_scroll_state = rememberLazyListState()
 
-            Crossfade(targetState = player.overlay_page) {
+            Crossfade(targetState = player.overlay_page) { page ->
                 Column(Modifier.fillMaxSize()) {
-                    if (it != OverlayPage.NONE && it != OverlayPage.MEDIAITEM && it != OverlayPage.SEARCH) {
+                    if (page != OverlayPage.NONE && page != OverlayPage.MEDIAITEM && page != OverlayPage.SEARCH) {
                         Spacer(Modifier.requiredHeight(getStatusBarHeight(MainActivity.context)))
                     }
 
                     val close = remember { { player.overlay_page = OverlayPage.NONE } }
-                    when (it) {
+                    when (page) {
                         OverlayPage.NONE -> MainPage(
                             main_page_layouts,
                             playerProvider,
@@ -396,6 +397,7 @@ fun PlayerView() {
                             }
                         }
                         OverlayPage.LIBRARY -> LibraryPage(player.pill_menu, playerProvider, close)
+                        OverlayPage.RADIO_BUILDER -> RadioBuilderPage(player.pill_menu, playerProvider, close)
                     }
                 }
             }
@@ -405,6 +407,7 @@ fun PlayerView() {
     }
 }
 
+@OptIn(ExperimentalMaterial3Api::class)
 @Composable
 private fun MainPage(
     layouts: MutableList<MediaItemLayout>,
@@ -435,7 +438,41 @@ private fun MainPage(
                     continuation_alignment = Alignment.Start,
                     loading_continuation = feed_load_state.value != FeedLoadState.NONE,
                     scroll_state = scroll_state,
-                    vertical_arrangement = Arrangement.spacedBy(15.dp)
+                    vertical_arrangement = Arrangement.spacedBy(15.dp),
+                    topContent = {
+                        item {
+                            ElevatedCard(
+                                Modifier
+                                    .fillMaxWidth()
+                                    .padding(5.dp)
+                            ) {
+                                Column(Modifier.padding(15.dp), verticalArrangement = Arrangement.spacedBy(15.dp)) {
+                                    WidthShrinkText(getString("ラジオ番組を作成"), fontSize = 25.sp)
+
+                                    Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.SpaceEvenly) {
+                                        ShapedIconButton({ playerProvider().overlay_page = OverlayPage.RADIO_BUILDER }, CircleShape, colors = IconButtonDefaults.iconButtonColors(
+                                            containerColor = Theme.current.accent,
+                                            contentColor = Theme.current.on_accent
+                                        )) {
+                                            Icon(Icons.Filled.Add, null)
+                                        }
+
+                                        val button_padding = PaddingValues(15.dp, 5.dp)
+                                        val button_colours = ButtonDefaults.buttonColors(
+                                            containerColor = Theme.current.accent,
+                                            contentColor = Theme.current.on_accent
+                                        )
+                                        Button({}, contentPadding = button_padding, colors = button_colours) {
+                                            WidthShrinkText(getString("Play last radio"))
+                                        }
+                                        Button({}, contentPadding = button_padding, colors = button_colours) {
+                                            WidthShrinkText(getString("Recent radios"))
+                                        }
+                                    }
+                                }
+                            }
+                        }
+                    }
                 ) { MediaItemLayout.Type.GRID }
             }
             else {

@@ -169,7 +169,7 @@ private fun getEditPage(
                             close = true
                         }
                     }
-                    settings_interface.pill_menu?.addExtraAction(pill_extra!!)
+                    settings_interface.pill_menu?.addExtraAction(action = pill_extra!!)
                 }
                 if (pill_side_extra == null) {
                     pill_side_extra =  {

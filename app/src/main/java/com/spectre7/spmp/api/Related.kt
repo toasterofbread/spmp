@@ -48,10 +48,10 @@ fun getMediaItemRelated(item: MediaItem): Result<List<List<RelatedGroup<MediaIte
                     val item = group.contents[j]
 
                     if (item.videoId != null) {
-                        Song.fromId(item.videoId).loadData().getOrThrowHere()
+                        Song.fromId(item.videoId).loadData().getOrThrowHere()!!
                     }
                     else if (item.playlistId != null) {
-                        Playlist.fromId(item.playlistId).loadData().getOrThrowHere()
+                        Playlist.fromId(item.playlistId).loadData().getOrThrowHere()!!
                     }
                     else if (item.browseId != null) {
 
@@ -63,7 +63,7 @@ fun getMediaItemRelated(item: MediaItem): Result<List<List<RelatedGroup<MediaIte
                             media_item = Playlist.fromId(item.browseId).apply { addBrowseEndpoint(item.browseId, MediaItem.BrowseEndpoint.Type.ALBUM) }
                         }
 
-                        media_item.loadData().getOrThrowHere()
+                        media_item.loadData().getOrThrowHere()!!
                     }
                     else {
                         throw NotImplementedError(item.toString())

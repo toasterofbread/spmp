@@ -74,6 +74,10 @@ class Artist private constructor (
                 return@getOrPut artist
             }.getOrReplacedWith() as Artist
         }
+
+        fun createTemp(id: String = "TEMP"): Artist {
+            return Artist(id)
+        }
     }
 
     @Composable

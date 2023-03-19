@@ -152,6 +152,9 @@ fun NoRipple(content: @Composable () -> Unit) {
 }
 
 @Composable
+fun Modifier.cliclableNoIndication(onClick: () -> Unit) = Modifier.clickable(remember { MutableInteractionSource() }, null, onClick = onClick)
+
+@Composable
 fun OnChangedEffect(key: Any?, block: suspend () -> Unit) {
 	var launched by remember { mutableStateOf(false) }
 	LaunchedEffect(key) {
@@ -532,14 +535,14 @@ fun printJson(data: String, klaxon: Klaxon? = null) {
 }
 
 @Composable
-fun SubtleLoadingIndicator(colour: Color, modifier: Modifier = Modifier) {
+fun SubtleLoadingIndicator(colour: Color = LocalContentColor.current, modifier: Modifier = Modifier) {
 	val inf_transition = rememberInfiniteTransition()
 	val anim by inf_transition.animateFloat(
 		initialValue = 0f,
 		targetValue = 1f,
 		animationSpec = infiniteRepeatable(
 			animation = tween(1500, easing = LinearOutSlowInEasing),
-			repeatMode = RepeatMode.Restart
+			repeatMode = RepeatMode.Reverse
 		)
 	)
 
@@ -663,7 +666,7 @@ fun <T> MutableList<T>.addUnique(item: T): Boolean {
 @Composable
 fun ShapedIconButton(
 	onClick: () -> Unit,
-	shape: Shape,
+	shape: Shape = CircleShape,
 	modifier: Modifier = Modifier,
 	enabled: Boolean = true,
 	interactionSource: MutableInteractionSource = remember { MutableInteractionSource() },
@@ -750,3 +753,6 @@ fun <T> SwipeableState<T>.init(anchors: Map<Float, T>) {
 	@Suppress("INVISIBLE_MEMBER")
 	ensureInit(anchors)
 }
+
+operator fun IntSize.times(other: Float): IntSize =
+	IntSize(width = (width * other).toInt(), height = (height * other).toInt())

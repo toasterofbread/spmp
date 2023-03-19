@@ -548,7 +548,7 @@ abstract class MediaItem(id: String) {
         }
     }
 
-    fun loadData(force: Boolean = false): Result<MediaItem> {
+    fun loadData(force: Boolean = false): Result<MediaItem?> {
         if (!force && isFullyLoaded()) {
             return Result.success(getOrReplacedWith())
         }

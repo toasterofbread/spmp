@@ -90,7 +90,7 @@ fun PlaylistPage(
                                 item.value.loadData().onSuccess { new_item ->
                                     if (new_item != item.value) {
                                         synchronized(layout.items) {
-                                            layout.items[item.index] = new_item
+                                            layout.items[item.index] = new_item!!
                                         }
                                     }
                                 }

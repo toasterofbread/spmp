@@ -48,7 +48,7 @@ class RadioBuilderArtist(
     val token: String,
     val thumbnail: MediaItem.ThumbnailProvider.Thumbnail
 ) {
-    fun getFormattedToken(first: Boolean): String {
+    fun getFormattedToken(first: Boolean, last: Boolean): String {
         return token.removePrefix("RDAT")
             .let {
                 if (it.first() == 'a' && !first) {
@@ -57,7 +57,7 @@ class RadioBuilderArtist(
             }
             .let {
                 val E = it.lastIndexOf('E')
-                if (E >= 0) {
+                if (!last && E >= 0) {
                     return it.take(E)
                 } else it
             }
@@ -108,7 +108,7 @@ interface RadioBuilderModifier {
 
 fun getBuiltRadio(radio_token: String): Result<Playlist?> {
     require(radio_token.startsWith("VLRDAT"))
-    require(radio_token.endsWith('E'))
+    require(radio_token.contains('E'))
 
     val playlist = Playlist.fromId(radio_token)
     val result = playlist.loadData(true)
@@ -126,7 +126,7 @@ fun getBuiltRadio(radio_token: String): Result<Playlist?> {
 }
 
 fun buildRadioToken(artists: Set<RadioBuilderArtist>, modifiers: Set<RadioBuilderModifier?>): String {
-    var radio_id: String = "VLRDAT"
+    var radio_token: String = "VLRDAT"
 
     for (modifier in listOf(
         modifiers.singleOrNull { it is RadioBuilderModifier.FilterB },
@@ -134,17 +134,14 @@ fun buildRadioToken(artists: Set<RadioBuilderArtist>, modifiers: Set<RadioBuilde
         modifiers.singleOrNull { it is RadioBuilderModifier.SelectionType },
         modifiers.singleOrNull { it is RadioBuilderModifier.Variety }
     )) {
-        modifier?.string?.also { radio_id += it }
+        modifier?.string?.also { radio_token += it }
     }
 
-    var first = true
-    for (artist_token in artists.map {
-        it.getFormattedToken(first).also { first = false }
-    }) {
-        radio_id += artist_token
+    for (token in artists.withIndex()) {
+        radio_token += token.value.getFormattedToken(token.index == 0, token.index + 1 == artists.size)
     }
 
-    return radio_id + "E"
+    return radio_token
 }
 
 // https://gist.github.com/spectreseven1138/8982ffebfca5919cb51e8967e0122982

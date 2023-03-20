@@ -441,27 +441,29 @@ private fun MainPage(
                     vertical_arrangement = Arrangement.spacedBy(15.dp),
                     topContent = {
                         item {
-                            ElevatedCard(
+                            Card(
                                 Modifier
                                     .fillMaxWidth()
-                                    .padding(5.dp)
+                                    .padding(5.dp),
+                                colors = CardDefaults.cardColors(
+                                    containerColor = Theme.current.accent,
+                                    contentColor = Theme.current.on_accent
+                                )
                             ) {
                                 Column(Modifier.padding(15.dp), verticalArrangement = Arrangement.spacedBy(15.dp)) {
                                     WidthShrinkText(getString("ラジオ番組を作成"), fontSize = 25.sp)
 
                                     Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.SpaceEvenly) {
-                                        ShapedIconButton({ playerProvider().overlay_page = OverlayPage.RADIO_BUILDER }, CircleShape, colors = IconButtonDefaults.iconButtonColors(
-                                            containerColor = Theme.current.accent,
-                                            contentColor = Theme.current.on_accent
-                                        )) {
+                                        val button_colours = ButtonDefaults.buttonColors(
+                                            containerColor = Theme.current.on_background,
+                                            contentColor = Theme.current.background
+                                        )
+
+                                        ShapedIconButton({ playerProvider().overlay_page = OverlayPage.RADIO_BUILDER }, CircleShape, colors = button_colours.toIconButtonColours()) {
                                             Icon(Icons.Filled.Add, null)
                                         }
 
                                         val button_padding = PaddingValues(15.dp, 5.dp)
-                                        val button_colours = ButtonDefaults.buttonColors(
-                                            containerColor = Theme.current.accent,
-                                            contentColor = Theme.current.on_accent
-                                        )
                                         Button({}, contentPadding = button_padding, colors = button_colours) {
                                             WidthShrinkText(getString("Play last radio"))
                                         }

@@ -94,6 +94,7 @@ fun RadioBuilderPage(
                 var is_loading by remember { mutableStateOf(false) }
                 var preview_loading by remember { mutableStateOf(false) }
                 var preview_playlist: Playlist? by remember { mutableStateOf(null) }
+                var load_error: Throwable? by remember { mutableStateOf(null) }
 
                 fun loadRadio(preview: Boolean) {
                     if (is_loading || preview_loading) {
@@ -106,6 +107,7 @@ fun RadioBuilderPage(
                     else {
                         is_loading = true
                     }
+                    load_error = null
 
                     val radio_token = buildRadioToken(
                         selected_artists!!.map { available_artists!![it] }.toSet(),
@@ -117,14 +119,19 @@ fun RadioBuilderPage(
 
                         result.fold(
                             {
+                                if (it == null) {
+                                    throw RuntimeException(radio_token)
+                                }
+
                                 if (preview) {
                                     preview_playlist = it
                                 }
-                                else if (it != null) {
+                                else {
                                     playerProvider().openMediaItem(it)
                                 }
                             },
                             {
+                                load_error = it
                                 MainActivity.error_manager.onError("radio_builder_load_radio", result.exceptionOrNull()!!)
                             }
                         )
@@ -136,14 +143,17 @@ fun RadioBuilderPage(
 
                 Box {
                     Box(Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
-                        Crossfade(Pair(preview_loading, preview_playlist)) {
-                            val (loading, playlist) = it
-                            if (loading) {
+                        Crossfade(Triple(preview_loading, preview_playlist, load_error)) {
+                            val (loading, playlist, error) = it
+                            if (error != null) {
+                                Text(error.toString())
+                            }
+                            else if (loading) {
                                 SubtleLoadingIndicator(Theme.current.on_background)
                             }
                             else if (playlist?.feed_layouts?.isNotEmpty() == true) {
                                 val layout = playlist.feed_layouts!!.first()
-                                LazyColumn(Modifier.fillMaxSize()) {
+                                LazyColumn(Modifier.fillMaxSize(), contentPadding = PaddingValues(bottom = MINIMISED_NOW_PLAYING_HEIGHT.dp)) {
                                     items(layout.items) { item ->
                                         item.PreviewLong(
                                             content_colour = Theme.current.on_background_provider,
@@ -157,14 +167,11 @@ fun RadioBuilderPage(
                         }
                     }
 
-                    Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.SpaceBetween) {
+                    Column(Modifier.align(Alignment.TopEnd)) {
                         val icon_button_colours = IconButtonDefaults.iconButtonColors(
-                            containerColor = Theme.current.on_background,
-                            contentColor = Theme.current.background
+                            containerColor = Theme.current.accent,
+                            contentColor = Theme.current.on_accent
                         )
-                        ShapedIconButton({ loadRadio(true) }, colors = icon_button_colours) {
-                            Icon(Icons.Filled.RemoveRedEye, null)
-                        }
                         ShapedIconButton({ loadRadio(false) }, colors = icon_button_colours) {
                             Crossfade(is_loading) { loading ->
                                 if (loading) {
@@ -174,6 +181,9 @@ fun RadioBuilderPage(
                                     Icon(Icons.Filled.Done, null)
                                 }
                             }
+                        }
+                        ShapedIconButton({ loadRadio(true) }, colors = icon_button_colours) {
+                            Icon(Icons.Filled.RemoveRedEye, null)
                         }
                     }
                 }

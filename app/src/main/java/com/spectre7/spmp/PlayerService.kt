@@ -123,15 +123,15 @@ class PlayerService : Service() {
             }
         }
 
-        startRadioAtSong(0, song)
+        startRadioAtIndex(0, song)
     }
 
-    fun startRadioAtSong(index: Int, song: Song? = null) {
+    fun startRadioAtIndex(index: Int, item: MediaItem? = null) {
         clearQueue(from = index + 1, keep_current = true, save = false)
         thread {
-            val result = radio.startNewRadio(song ?: getSong(index)!!)
+            val result = radio.playMediaItem(item ?: getSong(index)!!)
             if (result.isFailure) {
-                MainActivity.error_manager.onError("playSong", result.exceptionOrNull()!!)
+                MainActivity.error_manager.onError("startRadioAtIndex", result.exceptionOrNull()!!)
                 savePersistentQueue()
             }
             else {
@@ -151,7 +151,7 @@ class PlayerService : Service() {
         }
 
         thread {
-            val result = radio.getRadioContinuation()
+            val result = radio.getContinuation()
             if (result.isFailure) {
                 MainActivity.error_manager.onError("continueRadio", result.exceptionOrNull()!!)
                 synchronized(radio) {
@@ -262,7 +262,7 @@ class PlayerService : Service() {
             clearQueue(added_index, save = false)
 
             networkThread {
-                val result = radio.startNewRadio(song)
+                val result = radio.playMediaItem(song)
                 if (result.isFailure) {
                     MainActivity.error_manager.onError("addToQueue", result.exceptionOrNull()!!)
                     if (save) {

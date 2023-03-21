@@ -211,15 +211,23 @@ fun PlaylistPage(
                 }
             }
 
-            Btn(getString(R.string.playlist_chip_play), Icons.Outlined.PlayArrow,
+            Btn(
+                getString(R.string.playlist_chip_play), 
+                Icons.Outlined.PlayArrow,
                 Modifier
                     .fillMaxWidth(0.5f)
-                    .weight(1f)) { TODO() }
+                    .weight(1f)
+            ) { PlayerServiceHost.service.startRadioAtIndex(0, playlist) }
+            
             Spacer(Modifier.requiredWidth(20.dp))
-            Btn(getString(R.string.playlist_chip_radio), Icons.Outlined.Radio,
+            
+            Btn(
+                getString(R.string.playlist_chip_radio), 
+                Icons.Outlined.Radio,
                 Modifier
                     .fillMaxWidth(1f)
-                    .weight(1f)) { TODO() }
+                    .weight(1f)
+            ) { TODO() }
         }
     }
 

@@ -531,7 +531,8 @@ private fun Controls(
                         .fillMaxWidth()
                         .clickable(
                             remember { MutableInteractionSource() },
-                            indication = null
+                            indication = null,
+                            enabled = PlayerServiceHost.status.song?.artist?.for_song == false
                         ) {
                             PlayerServiceHost.status.song?.artist?.also {
                                 playerProvider().onMediaItemClicked(it)

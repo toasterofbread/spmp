@@ -47,22 +47,7 @@ class RadioBuilderArtist(
     val name: String,
     val token: String,
     val thumbnail: MediaItem.ThumbnailProvider.Thumbnail
-) {
-    fun getFormattedToken(first: Boolean, last: Boolean): String {
-        return token.removePrefix("RDAT")
-            .let {
-                if (it.first() == 'a' && !first) {
-                    'I' + it.substring(1)
-                } else it
-            }
-            .let {
-                val E = it.lastIndexOf('E')
-                if (!last && E >= 0) {
-                    return it.take(E)
-                } else it
-            }
-    }
-}
+)
 
 interface RadioBuilderModifier {
     val string: String?
@@ -119,26 +104,49 @@ fun getBuiltRadio(radio_token: String): Result<Playlist?> {
 
     val thumb_url = playlist.thumbnail_provider?.getThumbnail(MediaItem.ThumbnailQuality.HIGH)
     if (thumb_url?.contains("fallback") == true) {
-        return Result.failure(RuntimeException("Radio token is invalid ($radio_token)"))
+        return Result.success(null)
     }
 
     return result.cast()
 }
 
 fun buildRadioToken(artists: Set<RadioBuilderArtist>, modifiers: Set<RadioBuilderModifier?>): String {
+    require(artists.isNotEmpty())
     var radio_token: String = "VLRDAT"
 
+    var modifier_added = false
     for (modifier in listOf(
         modifiers.singleOrNull { it is RadioBuilderModifier.FilterB },
         modifiers.singleOrNull { it is RadioBuilderModifier.FilterA },
         modifiers.singleOrNull { it is RadioBuilderModifier.SelectionType },
         modifiers.singleOrNull { it is RadioBuilderModifier.Variety }
     )) {
-        modifier?.string?.also { radio_token += it }
+        modifier?.string?.also {
+            radio_token += it
+            modifier_added = true
+        }
     }
 
-    for (token in artists.withIndex()) {
-        radio_token += token.value.getFormattedToken(token.index == 0, token.index + 1 == artists.size)
+    for (artist in artists.withIndex()) {
+        val formatted_token = artist.value.token.removePrefix("RDAT")
+            .let { token ->
+                if (token.first() == 'a' && artist.index != 0) {
+                    'I' + token.substring(1)
+                } else token
+            }
+            .let { token ->
+                if (artists.size == 1 && !modifier_added) {
+                    token
+                }
+                else if (artist.index + 1 == artists.size) {
+                    token.take(token.lastIndexOf('E') + 1)
+                }
+                else {
+                    token.take(token.lastIndexOf('E'))
+                }
+            }
+
+        radio_token += formatted_token
     }
 
     return radio_token

@@ -9,6 +9,8 @@ import okhttp3.Request
 import java.util.*
 
 fun isSubscribedToArtist(artist: Artist): Result<Boolean?> {
+    check(!artist.for_song)
+
     val request: Request = Request.Builder()
         .url("https://music.youtube.com/youtubei/v1/browse")
         .headers(DataApi.getYTMHeaders())

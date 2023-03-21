@@ -4,7 +4,6 @@ package com.spectre7.spmp.ui.layout
 
 import android.content.Intent
 import android.net.Uri
-import androidx.activity.compose.BackHandler
 import androidx.compose.animation.Crossfade
 import androidx.compose.animation.animateContentSize
 import androidx.compose.foundation.Image
@@ -51,6 +50,8 @@ fun ArtistPage(
     playerProvider: () -> PlayerViewContext,
     close: () -> Unit
 ) {
+    check(!artist.for_song)
+
     var show_info by remember { mutableStateOf(false) }
 
     val share_intent = remember(artist.url, artist.title) {
@@ -93,8 +94,6 @@ fun ArtistPage(
             pill_menu.setBackgroundColourOverride(accent_colour)
         }
     }
-
-    BackHandler(onBack = close)
 
     if (show_info) {
         InfoDialog(artist) { show_info = false }

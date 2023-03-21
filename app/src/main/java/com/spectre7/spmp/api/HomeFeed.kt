@@ -1,5 +1,6 @@
 package com.spectre7.spmp.api
 
+import com.beust.klaxon.Json
 import com.spectre7.spmp.MainActivity
 import com.spectre7.spmp.R
 import com.spectre7.spmp.model.*
@@ -300,16 +301,23 @@ data class Thumbnails(val musicThumbnailRenderer: MusicThumbnailRenderer? = null
     init {
         assert(musicThumbnailRenderer != null || croppedSquareThumbnailRenderer != null)
     }
-
+    @Json(ignored = true)
     val thumbnails: List<MediaItem.ThumbnailProvider.Thumbnail> get() = (musicThumbnailRenderer ?: croppedSquareThumbnailRenderer!!).thumbnail.thumbnails
 }
 data class MusicThumbnailRenderer(val thumbnail: Thumbnail) {
     data class Thumbnail(val thumbnails: List<MediaItem.ThumbnailProvider.Thumbnail>)
 }
-data class TextRuns(val runs: List<TextRun>? = null) {
+data class TextRuns(
+    @Json(name = "runs")
+    val _runs: List<TextRun>? = null
+) {
+    @Json(ignored = true)
+    val runs: List<TextRun>? get() = _runs?.filter { it.text != " \u2022 " }
+    @Json(ignored = true)
     val first_text: String get() = runs!![0].text
 }
 data class TextRun(val text: String, val strapline: TextRuns? = null, val navigationEndpoint: NavigationEndpoint? = null) {
+    @Json(ignored = true)
     val browse_endpoint_type: String? get() = navigationEndpoint?.browseEndpoint?.page_type
 }
 
@@ -318,12 +326,21 @@ data class MusicCarouselShelfRenderer(val header: Header, val contents: List<Con
 data class MusicDescriptionShelfRenderer(val header: TextRuns, val description: TextRuns)
 
 data class MusicTwoRowItemRenderer(val navigationEndpoint: NavigationEndpoint, val title: TextRuns, val subtitle: TextRuns, val thumbnailRenderer: ThumbnailRenderer) {
-    fun getArtist(): Artist? {
-        return subtitle.runs!!.firstOrNull {
-            it.navigationEndpoint?.browseEndpoint?.page_type == "MUSIC_PAGE_TYPE_ARTIST"
-        }?.let { run ->
-            Artist.fromId(run.navigationEndpoint!!.browseEndpoint!!.browseId).supplyTitle(run.text)
-        } as Artist?
+    fun getArtist(host_item: MediaItem): Artist? {
+        for (run in subtitle.runs!!) {
+            val browse_endpoint = run.navigationEndpoint?.browseEndpoint
+            if (browse_endpoint?.page_type == "MUSIC_PAGE_TYPE_ARTIST") {
+                return Artist.fromId(browse_endpoint.browseId).supplyTitle(run.text) as Artist
+            }
+        }
+
+        if (host_item is Song) {
+            subtitle.runs!!.getOrNull(1)?.also {
+                return Artist.createForItem(host_item).supplyTitle(it.text) as Artist
+            }
+        }
+
+        return null
     }
 }
 data class ThumbnailRenderer(val musicThumbnailRenderer: MusicThumbnailRenderer) {
@@ -338,9 +355,7 @@ data class MusicResponsiveListItemRenderer(
     val navigationEndpoint: NavigationEndpoint? = null
 )
 data class PlaylistItemData(val videoId: String)
-data class FlexColumn(val musicResponsiveListItemFlexColumnRenderer: MusicResponsiveListItemFlexColumnRenderer) {
-    val runs: TextRuns get() = musicResponsiveListItemFlexColumnRenderer.text
-}
+data class FlexColumn(val musicResponsiveListItemFlexColumnRenderer: MusicResponsiveListItemFlexColumnRenderer)
 data class MusicResponsiveListItemFlexColumnRenderer(val text: TextRuns)
 
 data class ContentsItem(val musicTwoRowItemRenderer: MusicTwoRowItemRenderer? = null, val musicResponsiveListItemRenderer: MusicResponsiveListItemRenderer? = null) {
@@ -351,11 +366,12 @@ data class ContentsItem(val musicTwoRowItemRenderer: MusicTwoRowItemRenderer? = 
             // Video
             if (renderer.navigationEndpoint.watchEndpoint?.videoId != null) {
                 val first_thumbnail = renderer.thumbnailRenderer.musicThumbnailRenderer.thumbnail.thumbnails.first()
-                return Song.fromId(renderer.navigationEndpoint.watchEndpoint.videoId)
-                    .supplySongType(if (first_thumbnail.height == first_thumbnail.width) Song.SongType.SONG else Song.SongType.VIDEO)
-                    .supplyTitle(renderer.title.first_text)
-                    .supplyArtist(renderer.getArtist())
-                    .supplyThumbnailProvider(renderer.thumbnailRenderer.toThumbnailProvider())
+                return Song.fromId(renderer.navigationEndpoint.watchEndpoint.videoId).apply {
+                    supplySongType(if (first_thumbnail.height == first_thumbnail.width) Song.SongType.SONG else Song.SongType.VIDEO)
+                    supplyTitle(renderer.title.first_text)
+                    supplyArtist(renderer.getArtist(this))
+                    supplyThumbnailProvider(renderer.thumbnailRenderer.toThumbnailProvider())
+                }
             }
 
             // Playlist or artist
@@ -364,11 +380,15 @@ data class ContentsItem(val musicTwoRowItemRenderer: MusicTwoRowItemRenderer? = 
 
             return when (page_type) {
                 "MUSIC_PAGE_TYPE_ALBUM", "MUSIC_PAGE_TYPE_PLAYLIST", "MUSIC_PAGE_TYPE_AUDIOBOOK" ->
-                    Playlist.fromId(browse_id).supplyPlaylistType(when (page_type) {
-                        "MUSIC_PAGE_TYPE_ALBUM" -> Playlist.PlaylistType.ALBUM
-                        "MUSIC_PAGE_TYPE_PLAYLIST" -> Playlist.PlaylistType.PLAYLIST
-                        else -> Playlist.PlaylistType.AUDIOBOOK
-                    }, true).supplyArtist(renderer.getArtist())
+                    Playlist.fromId(browse_id).apply {
+                        supplyPlaylistType(when (page_type) {
+                            "MUSIC_PAGE_TYPE_ALBUM" -> Playlist.PlaylistType.ALBUM
+                            "MUSIC_PAGE_TYPE_PLAYLIST" -> Playlist.PlaylistType.PLAYLIST
+                            else -> Playlist.PlaylistType.AUDIOBOOK
+                        }, true)
+                        supplyArtist(renderer.getArtist(this))
+                    }
+
                 "MUSIC_PAGE_TYPE_ARTIST" -> Artist.fromId(browse_id)
                 else -> throw NotImplementedError("$page_type ($browse_id)")
             }.supplyTitle(renderer.title.first_text).supplyThumbnailProvider(renderer.thumbnailRenderer.toThumbnailProvider())
@@ -401,7 +421,7 @@ data class ContentsItem(val musicTwoRowItemRenderer: MusicTwoRowItemRenderer? = 
             }
 
             if (renderer.flexColumns != null) {
-                for (column in renderer.flexColumns.withIndex()) {
+                 for (column in renderer.flexColumns.withIndex()) {
                     val text = column.value.musicResponsiveListItemFlexColumnRenderer.text
                     if (text.runs == null) {
                         continue
@@ -411,7 +431,7 @@ data class ContentsItem(val musicTwoRowItemRenderer: MusicTwoRowItemRenderer? = 
                         title = text.first_text
                     }
 
-                    for (run in text.runs) {
+                    for (run in text.runs!!) {
                         if (run.navigationEndpoint == null) {
                             continue
                         }

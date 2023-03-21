@@ -157,7 +157,7 @@ fun getSongLongPressPopupActions(queue_index: Int?): @Composable LongPressMenuAc
             PlayerServiceHost.service.playSong(song)
         },
         onLongClick = if (queue_index == null) null else {{
-            PlayerServiceHost.service.startRadioAtSong(queue_index, song)
+            PlayerServiceHost.service.startRadioAtIndex(queue_index, song)
         }}
     )
 

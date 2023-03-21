@@ -127,7 +127,8 @@ fun RadioBuilderPage(
                                     preview_playlist = it
                                 }
                                 else {
-                                    playerProvider().openMediaItem(it)
+                                    // playerProvider().openMediaItem(it)
+                                    PlayerServiceHost.service.startRadioAtIndex(0, it)
                                 }
                             },
                             {
@@ -178,7 +179,7 @@ fun RadioBuilderPage(
                                     SubtleLoadingIndicator()
                                 }
                                 else {
-                                    Icon(Icons.Filled.Done, null)
+                                    Icon(Icons.Filled.PlayArrow, null)
                                 }
                             }
                         }

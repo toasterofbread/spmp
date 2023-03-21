@@ -51,17 +51,32 @@ data class MediaItemLayout(
         NUMBERED_LIST
     }
 
-    class Continuation(var token: String, val type: Type) {
-        enum class Type { PLAYLIST }
+    class Continuation(var token: String, val type: Type, private val id: String? = null) {
+        enum class Type { SONG, PLAYLIST }
+
+        init {
+            if (type == Type.SONG) {
+                require(id != null)
+            }
+        }
 
         fun loadContinuation(): Result<Pair<List<MediaItem>, String?>> {
             return when (type) {
+                Type.SONG -> loadSongContinuation()
                 Type.PLAYLIST -> loadPlaylistContinuation()
             }
         }
 
         fun update(token: String) {
             this.token = token
+        }
+
+        private fun loadSongContinuation(): Result<Pair<List<MediaItem>, String?>> {
+            val result = getSongRadio(id!!, token)
+            return result.fold(
+                { Result.success(Pair(it.items, it.continuation)) },
+                { Result.failure(it) }
+            )
         }
 
         private fun loadPlaylistContinuation(): Result<Pair<List<MediaItem>, String?>> {
@@ -83,7 +98,6 @@ data class MediaItemLayout(
             val shelf = parsed.continuationContents!!.musicPlaylistShelfContinuation!!
             return Result.success(Pair(shelf.contents.mapNotNull { it.toMediaItem() }, shelf.continuations?.firstOrNull()?.nextContinuationData?.continuation))
         }
-
     }
 
     data class ViewMore(val list_page_url: String? = null, val media_item: MediaItem? = null) {

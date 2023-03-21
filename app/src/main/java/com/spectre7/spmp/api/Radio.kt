@@ -6,20 +6,16 @@ import okhttp3.Request
 import java.util.zip.GZIPInputStream
 
 class RadioInstance {
-    private var song: Song? = null
-    private var continuation: String? = null
+    private var item: MediaItem? = null
+    private var continuation: MediaItemLayout.Continuation? = null
 
     val active: Boolean get() = song != null
     val has_continuation: Boolean get() = continuation != null
 
-    fun startNewRadio(song: Song): Result<List<Song>> {
-        this.song = song
+    fun playMediaItem(item: MediaItem): Result<List<Song>> {
+        this.item = item
         continuation = null
-        return updateRadio(song.id)
-    }
-
-    fun getRadioContinuation(): Result<List<Song>> {
-        return updateRadio(song!!.id)
+        return getContinuation()
     }
 
     fun cancelRadio() {
@@ -27,13 +23,52 @@ class RadioInstance {
         continuation = null
     }
 
-    private fun updateRadio(video_id: String): Result<List<Song>> {
-        val result = getSongRadio(video_id, continuation)
+    fun getContinuation(): Result<List<Song>> {
+        if (continuation == null) {
+            return getInitialSongs()
+        }
+
+        val result = continuation.loadContinuation()
         if (result.isFailure) {
             return result.cast()
         }
-        continuation = result.getOrThrowHere().continuation
-        return Result.success(result.getOrThrowHere().items)
+
+        val (items, cont) = result.getOrThrow()
+        continuation.update(cont)
+
+        return Result.success(items)
+    }
+
+    private fun getInitialSongs(): Result<List<Song>> {
+        when (item.type) {
+            MediaItem.Type.SONG -> {
+                val result = getSongRadio(item.id, continuation)
+                return result.fold(
+                    {
+                        continuation = MediaItemLayout.Continuation(it.continuation, MediaItemLayout.Continuation.Type.SONG, item.id)
+                        Result.success(it.items)
+                    }
+                    { Result.failure(It) }
+                )
+            }
+            MediaItem.Type.PLAYLIST -> {
+                if (item.feed_layouts == null) {
+                    val result = item.loadData()
+                    if (result.isFailure) {
+                        return result.cast()
+                    }
+                }
+
+                val layout = item.feed_layouts?.firstOrNull()
+                if (layout == null) {
+                    return Result.success(emptyList())
+                }
+
+                continuation = layout.continuation
+                return Result.success(layout.items)
+            }
+            MediaItem.Type.ARTIST -> TODO()
+        }
     }
 }
 

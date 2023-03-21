@@ -451,7 +451,7 @@ private fun MainPage(
                                 )
                             ) {
                                 Column(Modifier.padding(15.dp), verticalArrangement = Arrangement.spacedBy(15.dp)) {
-                                    WidthShrinkText(getString("ラジオ番組を作成"), fontSize = 25.sp)
+                                    WidthShrinkText(getString(R.string.radio_builder_title), fontSize = 25.sp)
 
                                     Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.SpaceEvenly) {
                                         val button_colours = ButtonDefaults.buttonColors(
@@ -464,11 +464,11 @@ private fun MainPage(
                                         }
 
                                         val button_padding = PaddingValues(15.dp, 5.dp)
-                                        Button({}, contentPadding = button_padding, colors = button_colours) {
-                                            WidthShrinkText(getString("Play last radio"))
+                                        Button({ TODO() }, contentPadding = button_padding, colors = button_colours) {
+                                            WidthShrinkText(getString(R.string.radio_builder_play_last_button))
                                         }
-                                        Button({}, contentPadding = button_padding, colors = button_colours) {
-                                            WidthShrinkText(getString("Recent radios"))
+                                        Button({ TODO() }, contentPadding = button_padding, colors = button_colours) {
+                                            WidthShrinkText(getString(R.string.radio_builder_recent_button))
                                         }
                                     }
                                 }

@@ -66,11 +66,11 @@ fun RadioBuilderPage(
             verticalArrangement = Arrangement.spacedBy(15.dp)
         ) {
             Column(verticalArrangement = Arrangement.spacedBy(5.dp)) {
-                Text(getString("ラジオ番組を作成"), fontSize = 15.sp)
+                Text(getString(R.string.radio_builder_title), fontSize = 15.sp)
                 Text(
                     getString(
-                        if (selected == null) "アーティストを選択"
-                        else "好みを選択"
+                        if (selected == null) R.string.radio_builder_artists_title
+                        else R.string.radio_builder_modifiers_title
                     ), fontSize = 30.sp
                 )
             }
@@ -229,7 +229,7 @@ private fun SelectionTypeRow(state: MutableState<RadioBuilderModifier.SelectionT
                 .weight(1f),
             verticalArrangement = Arrangement.spacedBy(5.dp)
         ) {
-            Text(getString("曲の選択方法"))
+            Text(getString(R.string.radio_builder_modifier_selection_type))
 
             MultiSelectRow(
                 amount = RadioBuilderModifier.SelectionType.values().size,
@@ -238,9 +238,9 @@ private fun SelectionTypeRow(state: MutableState<RadioBuilderModifier.SelectionT
                 onSelected = { state.value =  RadioBuilderModifier.SelectionType.values()[it!!] },
                 getText = {
                     getString(when (RadioBuilderModifier.SelectionType.values()[it]) {
-                        RadioBuilderModifier.SelectionType.FAMILIAR -> "おなじみの曲"
-                        RadioBuilderModifier.SelectionType.BLEND -> "ブレンド"
-                        RadioBuilderModifier.SelectionType.DISCOVER -> "おすすめ"
+                        RadioBuilderModifier.SelectionType.FAMILIAR -> R.string.radio_builder_modifier_selection_type_familiar
+                        RadioBuilderModifier.SelectionType.BLEND -> R.string.radio_builder_modifier_selection_type_blend
+                        RadioBuilderModifier.SelectionType.DISCOVER -> R.string.radio_builder_modifier_selection_type_discover
                     })
                 },
                 button_padding = PaddingValues(0.dp)
@@ -272,7 +272,7 @@ private fun SelectionTypeRow(state: MutableState<RadioBuilderModifier.SelectionT
 @Composable
 private fun ArtistVarietyRow(state: MutableState<RadioBuilderModifier.Variety>) {
     Column(verticalArrangement = Arrangement.spacedBy(5.dp)) {
-        Text(getString("アーティストのバラエティ"))
+        Text(getString(R.string.radio_builder_modifier_variety))
         MultiSelectRow(
             RadioBuilderModifier.Variety.values().size,
             arrangement = Arrangement.spacedBy(20.dp),
@@ -280,9 +280,9 @@ private fun ArtistVarietyRow(state: MutableState<RadioBuilderModifier.Variety>) 
             onSelected = { state.value =  RadioBuilderModifier.Variety.values()[it!!] },
             getText = {
                 getString(when (RadioBuilderModifier.Variety.values()[it]) {
-                    RadioBuilderModifier.Variety.LOW -> "低"
-                    RadioBuilderModifier.Variety.MEDIUM -> "中"
-                    RadioBuilderModifier.Variety.HIGH -> "高"
+                    RadioBuilderModifier.Variety.LOW -> R.string.radio_builder_modifier_variety_low
+                    RadioBuilderModifier.Variety.MEDIUM -> R.string.radio_builder_modifier_variety_medium
+                    RadioBuilderModifier.Variety.HIGH -> R.string.radio_builder_modifier_variety_high
                 })
             }
         )
@@ -292,7 +292,7 @@ private fun ArtistVarietyRow(state: MutableState<RadioBuilderModifier.Variety>) 
 @Composable
 private fun FilterARow(state: MutableState<RadioBuilderModifier.FilterA?>) {
     Column(verticalArrangement = Arrangement.spacedBy(5.dp)) {
-        Text(getString("フィルター"))
+        Text(getString(R.string.radio_builder_modifier_filter_a))
         MultiSelectRow(
             RadioBuilderModifier.FilterA.values().size,
             arrangement = Arrangement.spacedBy(20.dp),
@@ -300,9 +300,9 @@ private fun FilterARow(state: MutableState<RadioBuilderModifier.FilterA?>) {
             onSelected = { state.value = it?.let { RadioBuilderModifier.FilterA.values()[it] } },
             getText = {
                 getString(when (RadioBuilderModifier.FilterA.values()[it]) {
-                    RadioBuilderModifier.FilterA.POPULAR -> "人気"
-                    RadioBuilderModifier.FilterA.HIDDEN -> "隠れた"
-                    RadioBuilderModifier.FilterA.NEW -> "新作"
+                    RadioBuilderModifier.FilterA.POPULAR -> R.string.radio_builder_modifier_filter_a_popular
+                    RadioBuilderModifier.FilterA.HIDDEN -> R.string.radio_builder_modifier_filter_a_hidden
+                    RadioBuilderModifier.FilterA.NEW -> R.string.radio_builder_modifier_filter_a_new
                 })
             },
             nullable = true
@@ -313,7 +313,7 @@ private fun FilterARow(state: MutableState<RadioBuilderModifier.FilterA?>) {
 @Composable
 private fun FilterBRow(state: MutableState<RadioBuilderModifier.FilterB?>) {
     Column(verticalArrangement = Arrangement.spacedBy(5.dp)) {
-        Text(getString("ジャンル"))
+        Text(getString(R.string.radio_builder_modifier_filter_b))
         MultiSelectRow(
             RadioBuilderModifier.FilterB.values().size,
             arrangement = Arrangement.spacedBy(20.dp),
@@ -321,11 +321,11 @@ private fun FilterBRow(state: MutableState<RadioBuilderModifier.FilterB?>) {
             onSelected = { state.value = it?.let { RadioBuilderModifier.FilterB.values()[it] } },
             getText = {
                 getString(when (RadioBuilderModifier.FilterB.values()[it]) {
-                    RadioBuilderModifier.FilterB.PUMP_UP -> "パンプアップ" // 熱
-                    RadioBuilderModifier.FilterB.CHILL -> "チル" // 冷
-                    RadioBuilderModifier.FilterB.UPBEAT -> "アップビート" // 明るい
-                    RadioBuilderModifier.FilterB.DOWNBEAT -> "ダウンビート" // 重い
-                    RadioBuilderModifier.FilterB.FOCUS -> "集中"
+                    RadioBuilderModifier.FilterB.PUMP_UP -> R.string.radio_builder_modifier_filter_pump_up // 熱
+                    RadioBuilderModifier.FilterB.CHILL -> R.string.radio_builder_modifier_filter_chill // 冷
+                    RadioBuilderModifier.FilterB.UPBEAT -> R.string.radio_builder_modifier_filter_upbeat // 明るい
+                    RadioBuilderModifier.FilterB.DOWNBEAT -> R.string.radio_builder_modifier_filter_downbeat // 重い
+                    RadioBuilderModifier.FilterB.FOCUS -> R.string.radio_builder_modifier_filter_focus
                 })
             },
             nullable = true,
@@ -428,7 +428,7 @@ private fun RadioArtistSelector(
                     ),
                     contentPadding = PaddingValues(0.dp, 0.dp)
                 ) {
-                    Text(getString("次へ"), Modifier.crossOut(selected_artists.isEmpty(), content_colour, 3f, { it * 1.2f }))
+                    Text(getString(R.string.radio_builder_next_button), Modifier.crossOut(selected_artists.isEmpty(), content_colour, 3f, { it * 1.2f }))
                 }
             }
         ) }

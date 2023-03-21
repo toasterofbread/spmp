@@ -4,12 +4,10 @@ package com.spectre7.spmp.ui.layout
 
 import android.content.Intent
 import android.net.Uri
-import androidx.activity.compose.BackHandler
 import androidx.compose.animation.Crossfade
 import androidx.compose.foundation.*
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyRow
-import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.ContentCopy
@@ -23,14 +21,12 @@ import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.*
 import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.layout.ContentScale
-import androidx.compose.ui.layout.onSizeChanged
 import androidx.compose.ui.platform.LocalClipboardManager
-import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.text.*
-import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.spectre7.spmp.MainActivity
+import com.spectre7.spmp.PlayerServiceHost
 import com.spectre7.spmp.R
 import com.spectre7.spmp.api.getOrThrowHere
 import com.spectre7.spmp.model.Playlist
@@ -68,7 +64,6 @@ fun PlaylistPage(
         }
     }
 
-    val gradient_size = 0.35f
     val background_colour = Theme.current.background
     var accent_colour by remember { mutableStateOf(Color.Unspecified) }
 
@@ -110,8 +105,6 @@ fun PlaylistPage(
             pill_menu.setBackgroundColourOverride(accent_colour)
         }
     }
-
-    BackHandler(onBack = close)
 
     if (show_info) {
         InfoDialog(playlist) { show_info = false }

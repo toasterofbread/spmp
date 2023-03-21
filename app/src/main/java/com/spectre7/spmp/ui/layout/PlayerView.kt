@@ -3,6 +3,7 @@
 package com.spectre7.spmp.ui.layout
 
 import android.content.SharedPreferences.OnSharedPreferenceChangeListener
+import androidx.activity.compose.BackHandler
 import androidx.compose.animation.*
 import androidx.compose.foundation.background
 import androidx.compose.foundation.gestures.Orientation
@@ -55,7 +56,7 @@ fun getScreenHeight(): Dp {
 }
 
 const val MINIMISED_NOW_PLAYING_HEIGHT: Int = 64
-enum class OverlayPage { NONE, SEARCH, SETTINGS, MEDIAITEM, LIBRARY, RADIO_BUILDER }
+enum class OverlayPage { SEARCH, SETTINGS, MEDIAITEM, LIBRARY, RADIO_BUILDER }
 
 private enum class FeedLoadState { NONE, LOADING, CONTINUING }
 
@@ -92,8 +93,21 @@ data class PlayerViewContext(
         left = false
     )
 
-    var overlay_page by mutableStateOf(OverlayPage.NONE)
-    var overlay_media_item: MediaItem? by mutableStateOf(null)
+    private val overlay_page_undo_stack: MutableList<Pair<OverlayPage, MediaItem?>?> = mutableListOf()
+    var overlay_page: Pair<OverlayPage, MediaItem?>? by mutableStateOf(null)
+        private set
+
+    fun setOverlayPage(page: OverlayPage?, media_item: MediaItem? = null) {
+        val new_page = page?.let { Pair(page, media_item) }
+        if (new_page != overlay_page) {
+            overlay_page_undo_stack.add(overlay_page)
+            overlay_page = new_page
+        }
+    }
+
+    fun navigateBack() {
+        overlay_page = overlay_page_undo_stack.removeLast()
+    }
 
     private val bottom_padding_anim = androidx.compose.animation.core.Animatable(PlayerServiceHost.session_started.toFloat() * MINIMISED_NOW_PLAYING_HEIGHT)
     val bottom_padding: Dp get() = bottom_padding_anim.value.dp
@@ -159,13 +173,16 @@ data class PlayerViewContext(
     }
 
     fun openMediaItem(item: MediaItem) {
+        if (item is Artist && item.for_song) {
+            return
+        }
+
         if (base != null) {
             base.openMediaItem(item)
             return
         }
 
-        overlay_page = OverlayPage.MEDIAITEM
-        overlay_media_item = item
+        setOverlayPage(OverlayPage.MEDIAITEM, item)
 
         if (getNowPlayingSwipeState().targetValue != 0) {
             switchNowPlayingPage(0)
@@ -226,6 +243,10 @@ data class PlayerViewContext(
                 now_playing_swipe_state.animateTo(now_playing_switch_page.value)
                 now_playing_switch_page.value = -1
             }
+        }
+
+        BackHandler(overlay_page_undo_stack.isNotEmpty()) {
+            navigateBack()
         }
     }
 
@@ -318,7 +339,7 @@ fun PlayerView() {
     }
 
     LaunchedEffect(player.overlay_page) {
-        if (player.overlay_page == OverlayPage.NONE) {
+        if (player.overlay_page == null) {
             player.pill_menu.showing = true
             player.pill_menu.top = false
             player.pill_menu.left = false
@@ -336,7 +357,7 @@ fun PlayerView() {
     ) {
         Box {
             val expand_state = remember { mutableStateOf(false) }
-            val overlay_open by remember { derivedStateOf { player.overlay_page != OverlayPage.NONE } }
+            val overlay_open by remember { derivedStateOf { player.overlay_page != null } }
 
             player.pill_menu.PillMenu(
                 if (overlay_open) 1 else 3,
@@ -349,12 +370,13 @@ fun PlayerView() {
                                 else -> Icons.Filled.Settings
                             }
                     ) {
-                        player.overlay_page = if (action_count == 1) OverlayPage.NONE else
+                        player.setOverlayPage(if (action_count == 1) null else
                             when (index) {
                                 0 -> OverlayPage.SEARCH
                                 1 -> OverlayPage.LIBRARY
                                 else -> OverlayPage.SETTINGS
                             }
+                        )
                         expand_state.value = false
                     }
                 },
@@ -372,13 +394,13 @@ fun PlayerView() {
 
             Crossfade(targetState = player.overlay_page) { page ->
                 Column(Modifier.fillMaxSize()) {
-                    if (page != OverlayPage.NONE && page != OverlayPage.MEDIAITEM && page != OverlayPage.SEARCH) {
+                    if (page != null && page.first != OverlayPage.MEDIAITEM && page.first != OverlayPage.SEARCH) {
                         Spacer(Modifier.requiredHeight(getStatusBarHeight(MainActivity.context)))
                     }
 
-                    val close = remember { { player.overlay_page = OverlayPage.NONE } }
-                    when (page) {
-                        OverlayPage.NONE -> MainPage(
+                    val close = remember { { player.navigateBack() } }
+                    when (page?.first) {
+                        null -> MainPage(
                             main_page_layouts,
                             playerProvider,
                             main_page_scroll_state,
@@ -388,7 +410,7 @@ fun PlayerView() {
                         )
                         OverlayPage.SEARCH -> SearchPage(player.pill_menu, if (PlayerServiceHost.session_started) MINIMISED_NOW_PLAYING_HEIGHT.dp else 0.dp, playerProvider, close)
                         OverlayPage.SETTINGS -> PrefsPage(player.pill_menu, playerProvider, close)
-                        OverlayPage.MEDIAITEM -> Crossfade(player.overlay_media_item) { item ->
+                        OverlayPage.MEDIAITEM -> Crossfade(page.second) { item ->
                             when (item) {
                                 null -> {}
                                 is Artist -> ArtistPage(player.pill_menu, item, playerProvider, close)
@@ -397,7 +419,7 @@ fun PlayerView() {
                             }
                         }
                         OverlayPage.LIBRARY -> LibraryPage(player.pill_menu, playerProvider, close)
-                        OverlayPage.RADIO_BUILDER -> RadioBuilderPage(player.pill_menu, playerProvider, close)
+                        OverlayPage.RADIO_BUILDER -> RadioBuilderPage(player.pill_menu, if (PlayerServiceHost.session_started) MINIMISED_NOW_PLAYING_HEIGHT.dp else 0.dp, playerProvider, close)
                     }
                 }
             }
@@ -459,7 +481,7 @@ private fun MainPage(
                                             contentColor = Theme.current.background
                                         )
 
-                                        ShapedIconButton({ playerProvider().overlay_page = OverlayPage.RADIO_BUILDER }, CircleShape, colors = button_colours.toIconButtonColours()) {
+                                        ShapedIconButton({ playerProvider().setOverlayPage(OverlayPage.RADIO_BUILDER) }, CircleShape, colors = button_colours.toIconButtonColours()) {
                                             Icon(Icons.Filled.Add, null)
                                         }
 

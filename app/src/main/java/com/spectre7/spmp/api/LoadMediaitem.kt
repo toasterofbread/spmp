@@ -3,6 +3,7 @@ package com.spectre7.spmp.api
 import android.util.JsonReader
 import com.spectre7.spmp.model.*
 import com.spectre7.spmp.ui.component.MediaItemLayout
+import com.spectre7.utils.printJson
 import okhttp3.Request
 import java.io.BufferedReader
 import java.io.Reader
@@ -172,6 +173,8 @@ fun loadMediaItemData(item: MediaItem): Result<MediaItem?> {
             return finish()
         }
 
+        check(item is Song)
+
         val buffered_reader = BufferedReader(response_body)
         buffered_reader.mark(Int.MAX_VALUE)
 
@@ -203,38 +206,15 @@ fun loadMediaItemData(item: MediaItem): Result<MediaItem?> {
 
         item.supplyTitle(video.title.first_text, true)
 
-        for (run in video.longBylineText.runs!! + video.title.runs!!) {
-            if (run.browse_endpoint_type != "MUSIC_PAGE_TYPE_ARTIST"){// && run.browse_endpoint_type != "MUSIC_PAGE_TYPE_USER_CHANNEL") {
-                continue
-            }
-
-            val artist = Artist.fromId(run.navigationEndpoint!!.browseEndpoint!!.browseId).supplyTitle(run.text)
-            item.supplyArtist(artist as Artist, true)
-
-            return finish()
+        val result = video.getArtist(item)
+        if (result.isFailure) {
+            return result.cast()
         }
 
-        val menu_artist = video.menu.menuRenderer.getArtist()?.menuNavigationItemRenderer?.navigationEndpoint?.browseEndpoint?.browseId
-        if (menu_artist != null) {
-            item.supplyArtist(Artist.fromId(menu_artist))
+        val (artist, certain) = result.getOrThrow()
+        if (artist != null) {
+            item.supplyArtist(artist, certain)
             return finish()
-        }
-
-        for (run in video.longBylineText.runs) {
-            if (run.navigationEndpoint?.browseEndpoint?.page_type != "MUSIC_PAGE_TYPE_ALBUM") {
-                continue
-            }
-
-            val playlist_result = Playlist.fromId(run.navigationEndpoint.browseEndpoint.browseId).loadData()
-            if (playlist_result.isFailure) {
-                return playlist_result
-            }
-
-            val artist = playlist_result.getOrThrowHere()?.artist
-            if (artist != null) {
-                item.supplyArtist(artist, true)
-                return finish()
-            }
         }
     }
 

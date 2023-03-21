@@ -19,12 +19,16 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.drawBehind
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.drawscope.Stroke
+import androidx.compose.ui.platform.LocalClipboardManager
 import androidx.compose.ui.platform.LocalDensity
+import androidx.compose.ui.text.AnnotatedString
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.spectre7.spmp.MainActivity
+import com.spectre7.spmp.PlayerServiceHost
+import com.spectre7.spmp.R
 import com.spectre7.spmp.api.*
 import com.spectre7.spmp.model.Artist
 import com.spectre7.spmp.model.MediaItem
@@ -39,8 +43,9 @@ import kotlin.concurrent.thread
 @Composable
 fun RadioBuilderPage(
     pill_menu: PillMenu,
+    bottom_padding: Dp,
     playerProvider: () -> PlayerViewContext,
-    close: () -> Unit,
+    close: () -> Unit
 ) {
     var available_artists: List<RadioBuilderArtist>? by remember { mutableStateOf(null) }
     var selected_artists: Set<Int>? by remember { mutableStateOf(null) }
@@ -94,25 +99,29 @@ fun RadioBuilderPage(
                 var is_loading by remember { mutableStateOf(false) }
                 var preview_loading by remember { mutableStateOf(false) }
                 var preview_playlist: Playlist? by remember { mutableStateOf(null) }
-                var load_error: Throwable? by remember { mutableStateOf(null) }
+                var invalid_modifiers: Boolean by remember { mutableStateOf(false) }
 
                 fun loadRadio(preview: Boolean) {
                     if (is_loading || preview_loading) {
                         return
                     }
 
-                    if (preview) {
-                        preview_loading = true
-                    }
-                    else {
-                        is_loading = true
-                    }
-                    load_error = null
-
                     val radio_token = buildRadioToken(
                         selected_artists!!.map { available_artists!![it] }.toSet(),
                         setOf(selection_type.value, artist_variety.value, filter_a.value, filter_b.value)
                     )
+
+                    invalid_modifiers = false
+                    if (preview) {
+                        preview_loading = true
+                    }
+                    else if (preview_playlist?.id == radio_token) {
+                        PlayerServiceHost.service.startRadioAtIndex(0, preview_playlist)
+                        return
+                    }
+                    else {
+                        is_loading = true
+                    }
 
                     thread {
                         val result = getBuiltRadio(radio_token)
@@ -120,19 +129,18 @@ fun RadioBuilderPage(
                         result.fold(
                             {
                                 if (it == null) {
-                                    throw RuntimeException(radio_token)
+                                    invalid_modifiers = true
                                 }
-
-                                if (preview) {
+                                else if (preview) {
                                     preview_playlist = it
                                 }
                                 else {
-                                    // playerProvider().openMediaItem(it)
-                                    PlayerServiceHost.service.startRadioAtIndex(0, it)
+                                    mainThread {
+                                        PlayerServiceHost.service.startRadioAtIndex(0, it)
+                                    }
                                 }
                             },
                             {
-                                load_error = it
                                 MainActivity.error_manager.onError("radio_builder_load_radio", result.exceptionOrNull()!!)
                             }
                         )
@@ -144,17 +152,52 @@ fun RadioBuilderPage(
 
                 Box {
                     Box(Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
-                        Crossfade(Triple(preview_loading, preview_playlist, load_error)) {
-                            val (loading, playlist, error) = it
-                            if (error != null) {
-                                Text(error.toString())
+                        Crossfade(Triple(preview_loading, preview_playlist, invalid_modifiers)) {
+                            val (loading, playlist, invalid) = it
+                            if (invalid) {
+                                Column(
+                                    Modifier
+                                        .fillMaxHeight()
+                                        .padding(bottom = bottom_padding),
+                                    horizontalAlignment = Alignment.CenterHorizontally,
+                                    verticalArrangement = Arrangement.Center
+                                ) {
+                                    Text(getString("No songs match criteria"), Modifier.padding(10.dp))
+
+                                    Row {
+                                        CopyShareButtons(name = "") {
+                                            buildRadioToken(
+                                                selected_artists!!.map { i -> available_artists!![i] }.toSet(),
+                                                setOf(selection_type.value, artist_variety.value, filter_a.value, filter_b.value)
+                                            )
+                                        }
+                                    }
+
+//                                    val clipboard = LocalClipboardManager.current
+//                                    Button(
+//                                        {
+//                                            clipboard.setText(AnnotatedString(
+//                                                buildRadioToken(
+//                                                    selected_artists!!.map { i -> available_artists!![i] }.toSet(),
+//                                                    setOf(selection_type.value, artist_variety.value, filter_a.value, filter_b.value)
+//                                                )
+//                                            ))
+//                                        },
+//                                        colors = ButtonDefaults.buttonColors(
+//                                            containerColor = Theme.current.accent,
+//                                            contentColor = Theme.current.on_accent
+//                                        )
+//                                    ) {
+//                                        Text(getString("Copy radio token"))
+//                                    }
+                                }
                             }
                             else if (loading) {
-                                SubtleLoadingIndicator(Theme.current.on_background)
+                                SubtleLoadingIndicator(Theme.current.on_background, Modifier.offset(y = -bottom_padding))
                             }
                             else if (playlist?.feed_layouts?.isNotEmpty() == true) {
                                 val layout = playlist.feed_layouts!!.first()
-                                LazyColumn(Modifier.fillMaxSize(), contentPadding = PaddingValues(bottom = MINIMISED_NOW_PLAYING_HEIGHT.dp)) {
+                                LazyColumn(Modifier.fillMaxSize(), contentPadding = PaddingValues(bottom = bottom_padding)) {
                                     items(layout.items) { item ->
                                         item.PreviewLong(
                                             content_colour = Theme.current.on_background_provider,

@@ -326,7 +326,8 @@ fun QueueTab(expansionProvider: () -> Float, playerProvider: () -> PlayerViewCon
                 modifier = Modifier
                     .reorderable(state)
                     .detectReorderAfterLongPress(state)
-                    .padding(horizontal = list_padding)
+                    .padding(horizontal = list_padding),
+                horizontalAlignment = Alignment.CenterHorizontally
             ) {
                 items(song_items.size, { song_items[it].key }) { index ->
                     val item = song_items[index]
@@ -350,6 +351,14 @@ fun QueueTab(expansionProvider: () -> Float, playerProvider: () -> PlayerViewCon
                         }
                     }
                 }
+
+                if (PlayerServiceHost.service.radio_continuing) {
+                    item {
+                        Box(Modifier.height(50.dp), contentAlignment = Alignment.Center) {
+                            SubtleLoadingIndicator(queue_background_colour.getContrasted())
+                        }
+                    }
+                }
             }
         }
 
@@ -368,11 +377,12 @@ private fun RepeatButton(background_colour: Color, content_colour: Color, modifi
                 interactionSource = remember { MutableInteractionSource() },
                 indication = null,
                 onClick = {
-                    PlayerServiceHost.player.repeatMode = when (PlayerServiceHost.player.repeatMode) {
-                        Player.REPEAT_MODE_ALL -> Player.REPEAT_MODE_ONE
-                        Player.REPEAT_MODE_ONE -> Player.REPEAT_MODE_OFF
-                        else -> Player.REPEAT_MODE_ALL
-                    }
+                    PlayerServiceHost.player.repeatMode =
+                        when (PlayerServiceHost.player.repeatMode) {
+                            Player.REPEAT_MODE_ALL -> Player.REPEAT_MODE_ONE
+                            Player.REPEAT_MODE_ONE -> Player.REPEAT_MODE_OFF
+                            else -> Player.REPEAT_MODE_ALL
+                        }
                 }
             )
             .crossOut(
@@ -443,7 +453,9 @@ private fun StopAfterSongButton(background_colour: Color, modifier: Modifier = M
 private fun BoxScope.ActionBar(playerProvider: () -> PlayerViewContext, expansionProvider: () -> Float, undo_list: SnapshotStateList<() -> Unit>, scroll: (pages: Int) -> Unit) {
     val slide_offset: (fullHeight: Int) -> Int = remember { { (it * 0.7).toInt() } }
 
-    Box(Modifier.align(Alignment.BottomStart).padding(10.dp)) {
+    Box(Modifier
+        .align(Alignment.BottomStart)
+        .padding(10.dp)) {
 
         AnimatedVisibility(
             remember { derivedStateOf { expansionProvider() >= 0.975f } }.value,

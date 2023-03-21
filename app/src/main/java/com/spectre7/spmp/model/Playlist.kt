@@ -15,7 +15,7 @@ class Playlist private constructor (
 ): MediaItemWithLayouts(id) {
 
     enum class PlaylistType {
-        PLAYLIST, ALBUM, AUDIOBOOK;
+        PLAYLIST, ALBUM, AUDIOBOOK, RADIO;
         companion object {
             fun fromTypeString(type: String): PlaylistType {
                 return when (type) {

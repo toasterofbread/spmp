@@ -18,6 +18,7 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.focus.FocusRequester
 import androidx.compose.ui.focus.focusRequester
+import androidx.compose.ui.focus.onFocusChanged
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.platform.LocalFocusManager
@@ -74,7 +75,7 @@ fun SearchPage(
     playerProvider: () -> PlayerViewContext,
     close: () -> Unit
 ) {
-
+    val focus_state = remember { mutableStateOf(false) }
     val focus_manager = LocalFocusManager.current
     val keyboard_controller = LocalSoftwareKeyboardController.current
 
@@ -85,12 +86,6 @@ fun SearchPage(
 
     // TODO
     var error: Throwable? by remember { mutableStateOf(null) }
-    
-    fun goBack() {
-        focus_manager.clearFocus()
-        keyboard_controller?.hide()
-        close()
-    }
 
     fun performSearch(query: String, params: String?) {
         synchronized(search_lock) {
@@ -114,7 +109,7 @@ fun SearchPage(
         pill_menu.top = true
     }
 
-    Box(Modifier.fillMaxSize()) {
+    Box(Modifier.fillMaxSize().padding(bottom = bottom_padding)) {
         if (current_results != null) {
             LazyMediaItemLayoutColumn(
                 current_results!!.map { it.first },
@@ -127,18 +122,19 @@ fun SearchPage(
             }
         }
 
-        SearchBar(search_in_progress, Modifier.align(Alignment.BottomCenter)) { query, type ->
+        SearchBar(search_in_progress, focus_state, Modifier.align(Alignment.BottomCenter)) { query, type ->
             performSearch(query, type.getParams())
         }
     }
 
-    BackHandler {
-        goBack()
+    BackHandler(focus_state.value) {
+        focus_manager.clearFocus()
+        keyboard_controller?.hide()
     }
 }
 
 @Composable
-private fun SearchBar(search_in_progress: Boolean, modifier: Modifier = Modifier, requestSearch: (String, SearchType) -> Unit) {
+private fun SearchBar(search_in_progress: Boolean, focus_state: MutableState<Boolean>, modifier: Modifier = Modifier, requestSearch: (String, SearchType) -> Unit) {
     val focus_requester = remember { FocusRequester() }
     var type_to_search: SearchType by remember { mutableStateOf(SearchType.ALL) }
     var query_text by remember { mutableStateOf("") }
@@ -168,7 +164,10 @@ private fun SearchBar(search_in_progress: Boolean, modifier: Modifier = Modifier
                         .padding(10.dp)
                         .fillMaxWidth()
                         .fillMaxHeight()
-                        .focusRequester(focus_requester),
+                        .focusRequester(focus_requester)
+                        .onFocusChanged {
+                            focus_state.value = it.isFocused
+                        },
                     horizontalArrangement = Arrangement.End,
                     verticalAlignment = Alignment.CenterVertically
                 ) {

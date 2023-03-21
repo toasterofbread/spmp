@@ -86,6 +86,31 @@
     <string name="acc_ser_enable_dialog_btn_root">Use root</string>
     <string name="acc_ser_enable_dialog_btn_manual">Enable manually</string>
 
+    <string name="radio_builder_title">Create a radio</string>
+    <string name="radio_builder_next_button">Next</string>
+    <string name="radio_builder_play_last_button">Play last radio</string>
+    <string name="radio_builder_recent_button">Recent radios</string>
+    <string name="radio_builder_artists_title">Select artists</string>
+    <string name="radio_builder_modifiers_title">Select preferences</string>
+    <string name="radio_builder_modifier_selection_type">Song selection type</string>
+    <string name="radio_builder_modifier_selection_type_familiar">Familiar</string>
+    <string name="radio_builder_modifier_selection_type_blend">Blend</string>
+    <string name="radio_builder_modifier_selection_type_discover">Recommended</string>
+    <string name="radio_builder_modifier_variety">Artist variety</string>
+    <string name="radio_builder_modifier_variety_low">Low</string>
+    <string name="radio_builder_modifier_variety_medium">Medium</string>
+    <string name="radio_builder_modifier_variety_high">High</string>
+    <string name="radio_builder_modifier_filter_a">Filter</string>
+    <string name="radio_builder_modifier_filter_a_popular">Popular</string>
+    <string name="radio_builder_modifier_filter_a_hidden">Hidden</string>
+    <string name="radio_builder_modifier_filter_a_new">New</string>
+    <string name="radio_builder_modifier_filter_b">Genre</string>
+    <string name="radio_builder_modifier_filter_pump_up">Pump up</string>
+    <string name="radio_builder_modifier_filter_chill">Chill</string>
+    <string name="radio_builder_modifier_filter_upbeat">Upbeat</string>
+    <string name="radio_builder_modifier_filter_downbeat">Downbeat</string>
+    <string name="radio_builder_modifier_filter_focus">Focus</string>
+
     <string name="s_page_preferences">Preferences</string>
 
     <string name="s_group_general">General</string>

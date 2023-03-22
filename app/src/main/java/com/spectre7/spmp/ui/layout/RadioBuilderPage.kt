@@ -1,5 +1,6 @@
 package com.spectre7.spmp.ui.layout
 
+import androidx.activity.compose.BackHandler
 import androidx.compose.animation.*
 import androidx.compose.animation.core.*
 import androidx.compose.foundation.*
@@ -84,6 +85,10 @@ fun RadioBuilderPage(
                 RadioArtistSelector(available_artists, pill_menu, playerProvider, Modifier.fillMaxSize()) { selected_artists = it.toSet() }
             }
             else {
+                BackHandler {
+                    selected_artists = null
+                }
+
                 val selection_type = remember { mutableStateOf(RadioBuilderModifier.SelectionType.BLEND) }
                 SelectionTypeRow(selection_type)
 

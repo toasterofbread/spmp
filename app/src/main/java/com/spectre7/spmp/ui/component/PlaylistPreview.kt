@@ -4,7 +4,6 @@ import androidx.compose.foundation.ExperimentalFoundationApi
 import androidx.compose.foundation.combinedClickable
 import androidx.compose.foundation.interaction.MutableInteractionSource
 import androidx.compose.foundation.layout.*
-import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.Text
 import androidx.compose.runtime.*
@@ -29,9 +28,9 @@ fun PlaylistPreviewSquare(
 ) {
     val long_press_menu_data = remember(playlist) { LongPressMenuData(
         playlist,
-        RoundedCornerShape(10),
-        { } // TODO
-    ) }
+        RoundedCornerShape(10)
+    ) { } // TODO
+    }
 
     Column(
         modifier
@@ -77,9 +76,9 @@ fun PlaylistPreviewLong(
 ) {
     val long_press_menu_data = remember(playlist) { LongPressMenuData(
         playlist,
-        RoundedCornerShape(10),
-        { } // TODO
-    ) }
+        RoundedCornerShape(10)
+    ) { } // TODO
+    }
 
     Row(
         verticalAlignment = Alignment.CenterVertically,

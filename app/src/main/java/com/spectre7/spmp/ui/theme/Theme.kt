@@ -87,6 +87,8 @@ class Theme(data: ThemeData) {
     val accent: Color get() = accent_state.value
 
     val on_accent: Color get() = accent.getContrasted()
+
+    // TODO | Don't offset unless similar enough to background
     val vibrant_accent: Color get() = accent.contrastAgainst(background, VIBRANT_ACCENT_CONTRAST)
 
     val background_provider: () -> Color = { background_state.value }

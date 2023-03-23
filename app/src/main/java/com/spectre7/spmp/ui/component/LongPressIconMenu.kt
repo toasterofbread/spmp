@@ -5,22 +5,20 @@ package com.spectre7.spmp.ui.component
 import android.content.Intent
 import android.net.Uri
 import android.view.WindowManager
-import androidx.compose.animation.Crossfade
-import androidx.compose.animation.core.Animatable
-import androidx.compose.animation.core.VectorConverter
-import androidx.compose.animation.core.tween
+import androidx.compose.animation.*
+import androidx.compose.animation.core.*
 import androidx.compose.foundation.*
 import androidx.compose.foundation.interaction.MutableInteractionSource
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.Close
+import androidx.compose.material.icons.filled.Info
 import androidx.compose.material.icons.filled.OpenWith
 import androidx.compose.material.icons.filled.Share
-import androidx.compose.material3.Divider
-import androidx.compose.material3.Icon
-import androidx.compose.material3.LocalContentColor
-import androidx.compose.material3.Text
+import androidx.compose.material3.*
 import androidx.compose.runtime.*
+import androidx.compose.ui.Alignment
 import androidx.compose.ui.ExperimentalComposeUiApi
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.alpha
@@ -40,7 +38,6 @@ import androidx.compose.ui.window.DialogWindowProvider
 import com.spectre7.spmp.MainActivity
 import com.spectre7.spmp.model.*
 import com.spectre7.spmp.ui.layout.PlayerViewContext
-import com.spectre7.spmp.ui.layout.getScreenHeight
 import com.spectre7.spmp.ui.layout.nowplaying.DEFAULT_THUMBNAIL_ROUNDING
 import com.spectre7.spmp.ui.theme.Theme
 import com.spectre7.utils.*
@@ -58,8 +55,8 @@ class LongPressMenuActionProvider(
     val closeMenu: () -> Unit
 ) {
     @Composable
-    fun ActionButton(icon: ImageVector, label: String, modifier: Modifier = Modifier, onClick: () -> Unit, onLongClick: (() -> Unit)? = null) =
-        ActionButton(icon, label, accent_colour, modifier = modifier, onClick = onClick, onLongClick = onLongClick)
+    fun ActionButton(icon: ImageVector, label: String, modifier: Modifier = Modifier, onClick: () -> Unit, onLongClick: (() -> Unit)? = null, fill_width: Boolean = true) =
+        ActionButton(icon, label, accent_colour, modifier = modifier, onClick = onClick, onLongClick = onLongClick, closeMenu = closeMenu, fill_width = fill_width)
 
     companion object {
         @OptIn(ExperimentalFoundationApi::class)
@@ -72,22 +69,29 @@ class LongPressMenuActionProvider(
             modifier: Modifier = Modifier,
             onClick: () -> Unit,
             onLongClick: (() -> Unit)? = null,
+            closeMenu: () -> Unit,
+            fill_width: Boolean = true
         ) {
             Row(
                 modifier
                     .combinedClickable(
                         interactionSource = remember { MutableInteractionSource() },
                         indication = null,
-                        onClick = onClick,
+                        onClick = {
+                            onClick()
+                            closeMenu()
+                        },
                         onLongClick = if (onLongClick == null) null else {
                             {
                                 vibrateShort()
                                 onLongClick()
+                                closeMenu()
                             }
                         }
                     )
-                    .fillMaxWidth(),
-                horizontalArrangement = Arrangement.spacedBy(20.dp)
+                    .let { if (fill_width) it.fillMaxWidth() else it },
+                horizontalArrangement = Arrangement.spacedBy(20.dp),
+                verticalAlignment = Alignment.CenterVertically
             ) {
                 val icon_col = icon_colour()
                 Icon(icon, null, tint = if (icon_col.isUnspecified) LocalContentColor.current else icon_col)
@@ -100,6 +104,8 @@ class LongPressMenuActionProvider(
 data class LongPressMenuData(
     val item: MediaItem,
     val thumb_shape: Shape? = null,
+    val infoContent: (@Composable ColumnScope.(accent: Color) -> Unit)? = null,
+    val info_title: String? = null,
     val actions: (@Composable LongPressMenuActionProvider.(MediaItem) -> Unit)? = null
 ) {
     internal var thumb_size: IntSize? = null
@@ -126,6 +132,7 @@ fun Modifier.longPressMenuIcon(data: LongPressMenuData, enabled: Boolean = true)
         .clip(data.thumb_shape ?: RoundedCornerShape(DEFAULT_THUMBNAIL_ROUNDING))
 }
 
+@OptIn(ExperimentalAnimationApi::class)
 @Composable
 fun LongPressIconMenu(
     showing: Boolean,
@@ -259,8 +266,10 @@ fun LongPressIconMenu(
             }
         }
 
-        LaunchedEffect(Unit) {
-            animateValues(true)
+        LaunchedEffect(target_position) {
+            if (target_position != null) {
+                animateValues(true)
+            }
         }
 
         suspend fun closePopup() {
@@ -301,13 +310,17 @@ fun LongPressIconMenu(
                             close_requested = true
                         }
                     )
+
+                    val item_spacing = 20.dp
+                    val padding = 25.dp
+
                     Column(
                         modifier
                             .alpha(panel_alpha.value)
                             .background(Theme.current.background, shape)
                             .fillMaxWidth()
-                            .padding(25.dp),
-                        verticalArrangement = Arrangement.spacedBy(20.dp)
+                            .padding(padding),
+                        verticalArrangement = Arrangement.spacedBy(item_spacing)
                     ) {
                         Row(
                             Modifier
@@ -371,52 +384,64 @@ fun LongPressIconMenu(
                             }
                         }
 
-                        Divider(thickness = Dp.Hairline, color = Theme.current.on_background)
+                        var show_info by remember { mutableStateOf(false) }
 
-                        val accent_colour_provider = remember (accent_colour) { { accent_colour } }
+                        Row(Modifier.requiredHeight(1.dp)) {
+                            var info_title_width: Int by remember { mutableStateOf(0) }
+                            var box_width: Int by remember { mutableStateOf(0) }
 
-                        data.actions?.invoke(
-                            LongPressMenuActionProvider(
-                                Theme.current.on_background_provider,
-                                accent_colour_provider,
-                                Theme.current.background_provider,
-                                playerProvider,
-                                { close_requested = true }
-                            ),
-                            data.item
-                        )
-
-                        val share_intent = remember(data.item.url) {
-                            Intent.createChooser(Intent().apply {
-                                action = Intent.ACTION_SEND
-
-                                if (data.item is Song) {
-                                    putExtra(Intent.EXTRA_TITLE, data.item.title)
+                            Box(
+                                Modifier
+                                    .fillMaxWidth()
+                                    .weight(1f)
+                                    .onSizeChanged { box_width = it.width }
+                            ) {
+                                if (data.info_title != null) {
+                                    Text(
+                                        data.info_title,
+                                        Modifier.offset(y = (-10).dp).onSizeChanged { info_title_width = it.width },
+                                        color = Theme.current.on_background,
+                                        overflow = TextOverflow.Visible
+                                    )
                                 }
 
-                                putExtra(Intent.EXTRA_TEXT, data.item.url)
-                                type = "text/plain"
-                            }, null)
+                                Box(
+                                    Modifier
+                                        .width(animateDpAsState(
+                                            with(LocalDensity.current) {
+                                                if (show_info) (box_width - info_title_width).toDp() - 15.dp else box_width.toDp()
+                                            }
+                                        ).value)
+                                        .requiredHeight(20.dp)
+                                        .background(Theme.current.background)
+                                        .align(Alignment.CenterEnd),
+                                    contentAlignment = Alignment.Center
+                                ) {
+                                    Divider(
+                                        thickness = Dp.Hairline,
+                                        color = Theme.current.on_background
+                                    )
+                                }
+                            }
+
+                            if (data.infoContent != null) {
+                                IconButton({ show_info = !show_info }, Modifier.requiredHeight(40.dp)) {
+                                    Crossfade(show_info) { info ->
+                                        Icon(if (info) Icons.Filled.Close else Icons.Filled.Info, null)
+                                    }
+                                }
+                            }
                         }
 
-                        LongPressMenuActionProvider.ActionButton(Icons.Filled.Share, "Share", accent_colour_provider, onClick = {
-                            MainActivity.context.startActivity(share_intent)
-                        })
-
-                        val open_intent: Intent? = remember(data.item.url) {
-                            val intent = Intent(Intent.ACTION_VIEW, Uri.parse(data.item.url))
-                            if (intent.resolveActivity(MainActivity.context.packageManager) == null) {
-                                null
+                        Crossfade(show_info) { info ->
+                            Column(verticalArrangement = Arrangement.spacedBy(item_spacing)) {
+                                if (info) {
+                                    data.infoContent?.invoke(this, accent_colour)
+                                }
+                                else {
+                                    Actions(data, accent_colour, playerProvider) { close_requested = true }
+                                }
                             }
-                            else {
-                                intent
-                            }
-                        }
-
-                        if (open_intent != null) {
-                            LongPressMenuActionProvider.ActionButton(Icons.Filled.OpenWith, "Open externally", accent_colour_provider, onClick = {
-                                MainActivity.context.startActivity(open_intent)
-                            })
                         }
                     }
                 }
@@ -426,7 +451,9 @@ fun LongPressIconMenu(
                         Modifier
                             .offset(pos.value.x, pos.value.y + status_bar_height)
                             .requiredSize(width.value.dp, height.value.dp)
-                            .clip(data.thumb_shape ?: RoundedCornerShape(DEFAULT_THUMBNAIL_ROUNDING))
+                            .clip(
+                                data.thumb_shape ?: RoundedCornerShape(DEFAULT_THUMBNAIL_ROUNDING)
+                            )
                             .alpha(if (no_transition) panel_alpha.value else 1f)
                     ) {
                         Thumb(Modifier.fillMaxSize())
@@ -435,5 +462,54 @@ fun LongPressIconMenu(
                 }
             }
         }
+    }
+}
+
+@Composable
+private fun Actions(data: LongPressMenuData, accent_colour: Color, playerProvider: () -> PlayerViewContext, close: () -> Unit) {
+    val accent_colour_provider = remember (accent_colour) { { accent_colour } }
+
+    data.actions?.invoke(
+        LongPressMenuActionProvider(
+            Theme.current.on_background_provider,
+            accent_colour_provider,
+            Theme.current.background_provider,
+            playerProvider,
+            close
+        ),
+        data.item
+    )
+
+    val share_intent = remember(data.item.url) {
+        Intent.createChooser(Intent().apply {
+            action = Intent.ACTION_SEND
+
+            if (data.item is Song) {
+                putExtra(Intent.EXTRA_TITLE, data.item.title)
+            }
+
+            putExtra(Intent.EXTRA_TEXT, data.item.url)
+            type = "text/plain"
+        }, null)
+    }
+
+    LongPressMenuActionProvider.ActionButton(Icons.Filled.Share, "Share", accent_colour_provider, onClick = {
+        MainActivity.context.startActivity(share_intent)
+    }, closeMenu = close)
+
+    val open_intent: Intent? = remember(data.item.url) {
+        val intent = Intent(Intent.ACTION_VIEW, Uri.parse(data.item.url))
+        if (intent.resolveActivity(MainActivity.context.packageManager) == null) {
+            null
+        }
+        else {
+            intent
+        }
+    }
+
+    if (open_intent != null) {
+        LongPressMenuActionProvider.ActionButton(Icons.Filled.OpenWith, "Open externally", accent_colour_provider, onClick = {
+            MainActivity.context.startActivity(open_intent)
+        }, closeMenu = close)
     }
 }

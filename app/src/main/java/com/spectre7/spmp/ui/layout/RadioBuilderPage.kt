@@ -20,9 +20,7 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.drawBehind
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.drawscope.Stroke
-import androidx.compose.ui.platform.LocalClipboardManager
 import androidx.compose.ui.platform.LocalDensity
-import androidx.compose.ui.text.AnnotatedString
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
@@ -521,7 +519,7 @@ private fun RadioArtistSelector(
                         val long_press_menu_data = remember(artist) { LongPressMenuData(
                             artist,
                             CircleShape,
-                            artistLongPressPopupActions
+                            actions = artistLongPressPopupActions
                         ) }
 
                         Column(

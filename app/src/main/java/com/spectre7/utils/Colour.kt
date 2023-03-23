@@ -43,12 +43,12 @@ fun Color.offsetRGB(offset: Float, clip: Boolean = true): Color {
     )
 }
 
-fun Color.amplify(by: Float): Color {
+fun Color.amplify(by: Float, opposite: Float = by): Color {
     val offset = offsetRGB(if (isDark()) -by else by)
     if (compare(offset) < 0.9f) {
         return offset
     }
-    return offsetRGB(if (isDark()) by else -by)
+    return offsetRGB(if (isDark()) opposite else -opposite)
 }
 
 fun Color.compare(against: Color): Float {
@@ -133,7 +133,7 @@ fun Bitmap.getThemeColour(): Color? {
 }
 
 fun Color.isDark(): Boolean {
-    return ColorUtils.calculateLuminance(toArgb()) < 0.5
+    return ColorUtils.calculateLuminance(toArgb()) < 0.4
 }
 
 fun Color.contrastAgainst(against: Color, by: Float = 0.5f): Color {

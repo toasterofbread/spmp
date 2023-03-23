@@ -23,9 +23,7 @@ import androidx.compose.ui.unit.*
 import com.google.accompanist.systemuicontroller.rememberSystemUiController
 import com.spectre7.spmp.MainActivity
 import com.spectre7.spmp.PlayerServiceHost
-import com.spectre7.spmp.ui.layout.MINIMISED_NOW_PLAYING_HEIGHT
 import com.spectre7.spmp.ui.layout.PlayerViewContext
-import com.spectre7.spmp.ui.layout.getScreenHeight
 import com.spectre7.spmp.ui.theme.Theme
 import com.spectre7.utils.*
 
@@ -126,8 +124,10 @@ fun NowPlayingCardContent(
 
     val under_status_bar by remember { derivedStateOf { 1f - expansionProvider() < status_bar_height_percent } }
     LaunchedEffect(key1 = under_status_bar, key2 = getNPBackground(playerProvider)) {
+        val colour = if (under_status_bar) getNPBackground(playerProvider) else Theme.current.background
         systemui_controller.setSystemBarsColor(
-            color = if (under_status_bar) getNPBackground(playerProvider) else Theme.current.background
+            color = colour,
+            darkIcons = !colour.isDark()
         )
     }
 

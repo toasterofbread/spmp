@@ -6,17 +6,14 @@ import android.content.SharedPreferences.OnSharedPreferenceChangeListener
 import androidx.activity.compose.BackHandler
 import androidx.compose.animation.*
 import androidx.compose.foundation.background
-import androidx.compose.foundation.gestures.Orientation
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyListState
 import androidx.compose.foundation.lazy.rememberLazyListState
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.material.ExperimentalMaterialApi
-import androidx.compose.material.FractionalThreshold
 import androidx.compose.material.SwipeableState
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.*
-import androidx.compose.material.swipeable
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
@@ -34,7 +31,6 @@ import com.google.accompanist.swiperefresh.rememberSwipeRefreshState
 import com.spectre7.spmp.MainActivity
 import com.spectre7.spmp.PlayerServiceHost
 import com.spectre7.spmp.R
-import com.spectre7.spmp.api.DataApi
 import com.spectre7.spmp.api.cast
 import com.spectre7.spmp.api.getHomeFeed
 import com.spectre7.spmp.api.getOrThrowHere
@@ -49,11 +45,6 @@ import kotlinx.coroutines.*
 import kotlinx.coroutines.sync.Semaphore
 import java.util.concurrent.locks.ReentrantLock
 import kotlin.concurrent.thread
-
-@Composable
-fun getScreenHeight(): Dp {
-    return LocalConfiguration.current.screenHeightDp.dp + getStatusBarHeight(MainActivity.context)
-}
 
 const val MINIMISED_NOW_PLAYING_HEIGHT: Int = 64
 enum class OverlayPage { SEARCH, SETTINGS, MEDIAITEM, LIBRARY, RADIO_BUILDER }
@@ -165,11 +156,11 @@ data class PlayerViewContext(
             return
         }
 
-        showLongPressMenu(LongPressMenuData(item, actions = when (item) {
-            is Song -> getSongLongPressPopupActions(queue_index)
-            is Artist -> artistLongPressPopupActions
-            else -> null
-        }))
+        showLongPressMenu(when (item) {
+            is Song -> getSongLongPressMenuData(item, queue_index = queue_index)
+            is Artist -> LongPressMenuData(item, actions = artistLongPressPopupActions)
+            else -> LongPressMenuData(item)
+        })
     }
 
     fun openMediaItem(item: MediaItem) {
@@ -468,17 +459,17 @@ private fun MainPage(
                                     .fillMaxWidth()
                                     .padding(5.dp),
                                 colors = CardDefaults.cardColors(
-                                    containerColor = Theme.current.accent,
-                                    contentColor = Theme.current.on_accent
+                                    containerColor = Theme.current.vibrant_accent,
+                                    contentColor = Theme.current.vibrant_accent.getContrasted()
                                 )
                             ) {
                                 Column(Modifier.padding(15.dp), verticalArrangement = Arrangement.spacedBy(15.dp)) {
-                                    WidthShrinkText(getString(R.string.radio_builder_title), fontSize = 25.sp)
+                                    WidthShrinkText(getString(R.string.radio_builder_title), fontSize = 25.sp, colour = Theme.current.vibrant_accent.getContrasted())
 
                                     Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.SpaceEvenly) {
                                         val button_colours = ButtonDefaults.buttonColors(
-                                            containerColor = Theme.current.on_background,
-                                            contentColor = Theme.current.background
+                                            containerColor = Theme.current.vibrant_accent.getContrasted(),
+                                            contentColor = Theme.current.vibrant_accent
                                         )
 
                                         ShapedIconButton({ playerProvider().setOverlayPage(OverlayPage.RADIO_BUILDER) }, CircleShape, colors = button_colours.toIconButtonColours()) {

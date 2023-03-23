@@ -17,7 +17,11 @@ import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.alpha
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.graphics.Shape
+import androidx.compose.ui.graphics.graphicsLayer
+import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.*
 import com.spectre7.spmp.PlayerDownloadService
@@ -37,11 +41,9 @@ fun SongPreviewSquare(
     modifier: Modifier = Modifier,
     queue_index: Int? = null
 ) {
-    val long_press_menu_data = remember(song) { LongPressMenuData(
-        song,
-        RoundedCornerShape(10),
-        getSongLongPressPopupActions(queue_index)
-    ) }
+    val long_press_menu_data = remember(song) {
+        getSongLongPressMenuData(song, RoundedCornerShape(10), queue_index = queue_index)
+    }
 
     Column(
         modifier
@@ -87,11 +89,9 @@ fun SongPreviewLong(
     modifier: Modifier = Modifier,
     queue_index: Int? = null
 ) {
-    val long_press_menu_data = remember(song) { LongPressMenuData(
-        song,
-        RoundedCornerShape(20),
-        getSongLongPressPopupActions(queue_index)
-    ) }
+    val long_press_menu_data = remember(song) {
+        getSongLongPressMenuData(song, RoundedCornerShape(20), queue_index = queue_index)
+    }
 
     Row(
         verticalAlignment = Alignment.CenterVertically,
@@ -139,17 +139,68 @@ fun SongPreviewLong(
     }
 }
 
-fun getSongLongPressPopupActions(queue_index: Int?): @Composable LongPressMenuActionProvider.(MediaItem) -> Unit = { song ->
-    require(song is Song)
+fun getSongLongPressMenuData(
+    song: Song,
+    thumb_shape: Shape? = null,
+    queue_index: Int? = null
+): LongPressMenuData {
+    return LongPressMenuData(
+        song,
+        thumb_shape,
+        { SongLongPressMenuInfo(song, queue_index, it) },
+        getString("Long press actions"),
+        actions = getSongLongPressPopupActions(queue_index)
+    )
+}
+
+@Composable
+private fun ColumnScope.SongLongPressMenuInfo(song: Song, queue_index: Int?, accent_colour: Color) {
+
+    @Composable
+    fun Item(icon: ImageVector, text: String, modifier: Modifier = Modifier) {
+        Row(
+            modifier,
+            horizontalArrangement = Arrangement.spacedBy(20.dp),
+            verticalAlignment = Alignment.CenterVertically
+        ) {
+            Icon(icon, null, tint = accent_colour)
+            WidthShrinkText(text, fontSize = 15.sp)
+        }
+    }
+
+    Item(Icons.Filled.Radio, getString("Start radio at song position in queue"))
+    Item(Icons.Filled.SubdirectoryArrowRight, getString("Start radio after X song(s)"))
+    Item(Icons.Filled.Download, getString("Configure download"))
+
+    Spacer(
+        Modifier
+            .fillMaxHeight()
+            .weight(1f)
+    )
+
+    Row(Modifier.requiredHeight(20.dp), verticalAlignment = Alignment.CenterVertically) {
+        Text("ID: ")
+        Text(song.id,
+            Modifier
+                .fillMaxWidth()
+                .weight(1f)
+        )
+        CopyShareButtons { song.id }
+    }
+
+    if (queue_index != null) {
+        Text("Queue index: $queue_index")
+    }
 
     if (isDebugBuild()) {
-        ActionButton(
-            Icons.Filled.Info, "Print info",
-            onClick = {
-                println(song)
-            }
-        )
+        Item(Icons.Filled.Print, "Print info", Modifier.clickable {
+            println(song)
+        })
     }
+}
+
+private fun getSongLongPressPopupActions(queue_index: Int?): @Composable LongPressMenuActionProvider.(MediaItem) -> Unit = { song ->
+    require(song is Song)
 
     ActionButton(
         Icons.Filled.Radio, "Start radio", 
@@ -157,7 +208,7 @@ fun getSongLongPressPopupActions(queue_index: Int?): @Composable LongPressMenuAc
             PlayerServiceHost.service.playSong(song)
         },
         onLongClick = if (queue_index == null) null else {{
-            PlayerServiceHost.service.startRadioAtIndex(queue_index + 1, song)
+            PlayerServiceHost.service.startRadioAtIndex(queue_index + 1, song, skip_first = true)
         }}
     )
 
@@ -168,13 +219,14 @@ fun getSongLongPressPopupActions(queue_index: Int?): @Composable LongPressMenuAc
         }
 
         Column {
-            Row(verticalAlignment = Alignment.CenterVertically) {
-
+            Row(
+                Modifier.fillMaxWidth(),
+                verticalAlignment = Alignment.CenterVertically,
+                horizontalArrangement = Arrangement.SpaceBetween
+            ) {
                 val distance = PlayerServiceHost.service.active_queue_index - PlayerServiceHost.status.index + 1
                 ActionButton(Icons.Filled.SubdirectoryArrowRight, "Play after $distance song(s)",
-                    Modifier
-                        .fillMaxWidth()
-                        .weight(1f),
+                    fill_width = false,
                     onClick = {
                         PlayerServiceHost.service.addToQueue(
                             song,

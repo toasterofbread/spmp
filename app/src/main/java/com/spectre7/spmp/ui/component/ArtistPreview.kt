@@ -40,7 +40,7 @@ fun ArtistPreviewSquare(
     val long_press_menu_data = remember(artist) { LongPressMenuData(
         artist,
         CircleShape,
-        artistLongPressPopupActions
+        actions = artistLongPressPopupActions
     ) }
 
     Column(
@@ -84,7 +84,7 @@ fun ArtistPreviewLong(
     val long_press_menu_data = remember(artist) { LongPressMenuData(
         artist,
         CircleShape,
-        artistLongPressPopupActions
+        actions = artistLongPressPopupActions
     ) }
 
     Row(

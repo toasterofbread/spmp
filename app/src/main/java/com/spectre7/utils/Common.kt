@@ -293,13 +293,11 @@ fun WidthShrinkText(text: String, style: MutableState<TextStyle>, modifier: Modi
 }
 
 @Composable
-fun WidthShrinkText(text: String, fontSize: TextUnit, modifier: Modifier = Modifier, fontWeight: FontWeight? = null) {
+fun WidthShrinkText(text: String, fontSize: TextUnit, modifier: Modifier = Modifier, fontWeight: FontWeight? = null, colour: Color = LocalContentColor.current) {
+	val style = LocalTextStyle.current.copy(fontSize = fontSize, fontWeight = fontWeight, color = colour)
 	WidthShrinkText(
 		text,
-		remember { mutableStateOf(TextStyle(
-			fontSize = fontSize,
-			fontWeight = fontWeight
-		)) },
+		remember(fontSize, fontWeight, colour) { mutableStateOf(style) },
 		modifier
 	)
 }
@@ -721,11 +719,17 @@ fun <T> Result<T>.AlertDialog(message: String, close: () -> Unit) {
 }
 
 @Composable
-fun CopyShareButtons(name: String, getText: () -> String) {
+fun CopyShareButtons(name: String? = null, getText: () -> String) {
 	val clipboard = LocalClipboardManager.current
 	IconButton({
 		clipboard.setText(AnnotatedString(getText()))
-		sendToast(getString("Copied {name} to clipboard").replace("{name}", name))
+
+		if (name != null) {
+			sendToast(getString("Copied {name} to clipboard").replace("{name}", name))
+		}
+		else {
+			sendToast(getString("Copied to clipboard"))
+		}
 	}) {
 		Icon(Icons.Filled.ContentCopy, null, Modifier.size(20.dp))
 	}
@@ -755,3 +759,13 @@ fun <T> SwipeableState<T>.init(anchors: Map<Float, T>) {
 
 operator fun IntSize.times(other: Float): IntSize =
 	IntSize(width = (width * other).toInt(), height = (height * other).toInt())
+
+@Composable
+fun getScreenHeight(): Dp {
+	return LocalConfiguration.current.screenHeightDp.dp + getStatusBarHeight(MainActivity.context)
+}
+
+@Composable
+fun getScreenWidth(): Dp {
+	return LocalConfiguration.current.screenWidthDp.dp
+}

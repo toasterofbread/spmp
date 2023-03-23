@@ -176,15 +176,15 @@ fun QueueTab(expansionProvider: () -> Float, playerProvider: () -> PlayerViewCon
     )
 
     fun removeSong(song: Song, index: Int) {
-        undo_list.add({
+        undo_list.add {
             PlayerServiceHost.service.addToQueue(song, index)
-        })
+        }
 
         PlayerServiceHost.service.removeFromQueue(index)
     }
 
     val background_colour = getNPBackground(playerProvider)
-    val queue_background_colour = background_colour.amplify(1f)
+    val queue_background_colour = background_colour.amplify(0.15f, 0.15f)
 
     val shape = RoundedCornerShape(topStart = 25.dp, topEnd = 25.dp)
     Box(Modifier

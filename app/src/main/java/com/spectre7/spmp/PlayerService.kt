@@ -123,10 +123,10 @@ class PlayerService : Service() {
             }
         }
 
-        startRadioAtIndex(1, song)
+        startRadioAtIndex(1, song, true)
     }
 
-    fun startRadioAtIndex(index: Int, item: MediaItem? = null) {
+    fun startRadioAtIndex(index: Int, item: MediaItem? = null, skip_first: Boolean = false) {
         clearQueue(from = index, keep_current = false, save = false)
         thread {
             val result = radio.playMediaItem(item ?: getSong(index)!!)
@@ -136,7 +136,7 @@ class PlayerService : Service() {
             }
             else {
                 mainThread {
-                    addMultipleToQueue(result.getOrThrowHere(), index, false)
+                    addMultipleToQueue(result.getOrThrowHere(), index, skip_first)
                 }
             }
         }

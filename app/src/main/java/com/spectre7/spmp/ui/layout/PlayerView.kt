@@ -404,8 +404,7 @@ fun PlayerView() {
                         OverlayPage.MEDIAITEM -> Crossfade(page.second) { item ->
                             when (item) {
                                 null -> {}
-                                is Artist -> ArtistPage(player.pill_menu, item, playerProvider, close)
-                                is Playlist -> PlaylistPage(player.pill_menu, item, playerProvider, close)
+                                is Artist, is Playlist -> ArtistPlaylistPage(player.pill_menu, item, playerProvider, close)
                                 else -> throw NotImplementedError()
                             }
                         }

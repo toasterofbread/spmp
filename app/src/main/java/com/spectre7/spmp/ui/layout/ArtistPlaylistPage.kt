@@ -44,26 +44,27 @@ import kotlinx.coroutines.*
 import kotlin.concurrent.thread
 
 @Composable
-fun ArtistPage(
+fun ArtistPlaylistPage(
     pill_menu: PillMenu,
-    artist: Artist,
+    item: MediaItem,
     playerProvider: () -> PlayerViewContext,
     close: () -> Unit
 ) {
-    check(!artist.for_song)
+    require(item is MediaItemWithLayouts)
+    require(item !is Artist || !item.for_song)
 
     var show_info by remember { mutableStateOf(false) }
 
-    val share_intent = remember(artist.url, artist.title) {
+    val share_intent = remember(item.url, item.title) {
         Intent.createChooser(Intent().apply {
             action = Intent.ACTION_SEND
-            putExtra(Intent.EXTRA_TITLE, artist.title)
-            putExtra(Intent.EXTRA_TEXT, artist.url)
+            putExtra(Intent.EXTRA_TITLE, item.title)
+            putExtra(Intent.EXTRA_TEXT, item.url)
             type = "text/plain"
         }, null)
     }
-    val open_intent: Intent? = remember(artist.url) {
-        val intent = Intent(Intent.ACTION_VIEW, Uri.parse(artist.url))
+    val open_intent: Intent? = remember(item.url) {
+        val intent = Intent(Intent.ACTION_VIEW, Uri.parse(item.url))
         if (intent.resolveActivity(MainActivity.context.packageManager) == null) {
             null
         }
@@ -76,17 +77,17 @@ fun ArtistPage(
     val background_colour = Theme.current.background
     var accent_colour: Color? by remember { mutableStateOf(null) }
 
-    LaunchedEffect(artist.id) {
+    LaunchedEffect(item.id) {
         thread {
-            if (artist.feed_layouts == null) {
-                artist.loadData()
+            if (item.feed_layouts == null) {
+                item.loadData()
             }
-            artist.updateSubscribed()
+            item.updateSubscribed()
         }
     }
 
-    LaunchedEffect(artist.canLoadThumbnail()) {
-        artist.getThumbnail(MediaItem.ThumbnailQuality.HIGH)
+    LaunchedEffect(item.canLoadThumbnail()) {
+        item.getThumbnail(MediaItem.ThumbnailQuality.HIGH)
     }
 
     LaunchedEffect(accent_colour) {
@@ -96,16 +97,16 @@ fun ArtistPage(
     }
 
     if (show_info) {
-        InfoDialog(artist) { show_info = false }
+        InfoDialog(item) { show_info = false }
     }
 
     Box(Modifier.fillMaxSize(), contentAlignment = Alignment.TopCenter) {
 
-        // Artist image
-        Crossfade(artist.getThumbnail(MediaItem.ThumbnailQuality.HIGH)) { thumbnail ->
+        // Thumbnail
+        Crossfade(item.getThumbnail(MediaItem.ThumbnailQuality.HIGH)) { thumbnail ->
             if (thumbnail != null) {
                 if (accent_colour == null) {
-                    accent_colour = artist.getDefaultThemeColour() ?: Theme.current.accent
+                    accent_colour = item.getDefaultThemeColour() ?: Theme.current.accent
                 }
 
                 Image(
@@ -148,15 +149,85 @@ fun ArtistPage(
                         .padding(bottom = 20.dp),
                     contentAlignment = Alignment.BottomCenter
                 ) {
-                    Marquee(false) {
-                        Text(artist.title ?: "", Modifier.fillMaxWidth(), textAlign = TextAlign.Center, fontSize = 40.sp, softWrap = false)
+                    var editing_title by remember { mutableStateOf(false) }
+                    Crossfade(editing_title) { editing ->
+                        if (editing) {
+                            var edited_title by remember(item) { mutableStateOf(item.title!!) }
+                            
+                            Column(Modifier.fillMaxWidth(), horizontalAlignment = Alignment.End) {
+                                val field_colour = Theme.current.on_accent
+                                OutlinedTextField(
+                                    edited_title,
+                                    onValueChange = { text ->
+                                        edited_title = text
+                                    },
+                                    label = { Text(getString("Edit title")) },
+                                    singleLine = true,
+                                    trailingIcon = {
+                                        Icon(Icons.Filled.Close, null, Modifier.clickable { edited_title = "" })
+                                    },
+                                    keyboardOptions = KeyboardOptions(imeAction = ImeAction.Done),
+                                    keyboardActions = KeyboardActions(onDone = {
+                                        item.registry_entry.title = edited_title
+                                        item.saveRegistry()
+                                        editing_title = false
+                                    }),
+                                    colors = TextFieldDefaults.outlinedTextFieldColors(
+                                        focusedBorderColor = field_colour,
+                                        focusedLabelColor = field_colour,
+                                        cursorColor = field_colour
+                                    ),
+                                    modifier = Modifier.fillMaxWidth()
+                                )
+
+                                Row(Modifier.fillMaxWidth(), horizontalArrangement = spacedByEnd(10.dp)) {
+                                    @Composable
+                                    fun Action(icon: ImageVector, action: () -> Unit) {
+                                        Box(Modifier
+                                            .background(Theme.current.accent, CircleShape)
+                                            .size(42.dp)
+                                            .padding(8.dp)
+                                            .clickable(action),
+                                            contentAlignment = Alignment.Center
+                                        ) {
+                                            Icon(icon, null, tint = Theme.current.on_accent)
+                                        }
+                                    }
+
+                                    Action(Icons.Filled.Cancel) { editing_title = false }
+                                    Action(Icons.Filled.Refresh) { edited_title = item.original_title!! }
+                                    Action(Icons.Filled.Done) {
+                                        item.registry_entry.title = edited_title
+                                        item.saveRegistry()
+                                    }
+                                }
+                            }
+
+                        }
+                        else {
+                            Marquee(false) {
+                                Text(
+                                    item.title ?: "", Modifier.fillMaxWidth(),
+                                    Modifier.combinedClickable(
+                                        onClick = {},
+                                        onLongClick = {
+                                            vibrateShort()
+                                            editing_title = true
+                                        }
+                                    ),
+                                    textAlign = TextAlign.Center, 
+                                    fontSize = 40.sp, 
+                                    softWrap = false
+                                )
+                            }
+                        }
                     }
                 }
             }
 
             val content_padding = 10.dp
 
-            // Action bar
+            // Secondary action bar
             item {
                 LazyRow(
                     Modifier
@@ -190,6 +261,7 @@ fun ArtistPage(
                 }
             }
 
+            // Primary action bar
             item {
                 Row(Modifier.fillMaxWidth().background(background_colour).padding(start = 20.dp, bottom = 10.dp)) {
                     @Composable
@@ -206,36 +278,15 @@ fun ArtistPage(
                     Spacer(Modifier.requiredWidth(20.dp))
                     Btn(getString(R.string.artist_chip_radio), Icons.Outlined.Radio, Modifier.fillMaxWidth(1f).weight(1f)) { TODO() }
 
-                    Crossfade(artist.subscribed) { subscribed ->
-                        if (subscribed == null) {
-                            Spacer(Modifier.requiredWidth(20.dp))
-                        }
-                        else {
-                            Row {
-                                Spacer(Modifier.requiredWidth(10.dp))
-                                OutlinedIconButton(
-                                    {
-                                        artist.toggleSubscribe(
-                                            toggle_before_fetch = true,
-                                            notify_failure = true
-                                        )
-                                    },
-                                    colors = IconButtonDefaults.iconButtonColors(
-                                        containerColor = if (subscribed) accent_colour ?: Color.Unspecified else background_colour,
-                                        contentColor = if (subscribed) accent_colour?.getContrasted() ?: Color.Unspecified else Theme.current.on_background
-                                    )
-                                ) {
-                                    Icon(if (subscribed) Icons.Outlined.PersonRemove else Icons.Outlined.PersonAddAlt1, null)
-                                }
-                            }
-                        }
+                    if (item is Artist) {
+                        ArtistSubscribeButton(item, background_colour, accent_colour)
                     }
                 }
             }
 
             // Loaded items
             item {
-                Crossfade(artist.feed_layouts) { layouts ->
+                Crossfade(item.feed_layouts) { layouts ->
                     if (layouts == null) {
                         Box(
                             Modifier
@@ -257,68 +308,9 @@ fun ArtistPage(
                                 MediaItemGrid(MediaItemLayout(row.title, null, items = row.items), playerProvider)
                             }
 
-                            val description = artist.description
+                            val description = item.description
                             if (description?.isNotBlank() == true) {
-
-                                var expanded by remember { mutableStateOf(false) }
-                                var can_expand by remember { mutableStateOf(false) }
-                                val small_text_height = 200.dp
-                                val small_text_height_px = with ( LocalDensity.current ) { small_text_height.toPx().toInt() }
-
-                                ElevatedCard(
-                                    Modifier
-                                        .fillMaxWidth()
-                                        .animateContentSize(),
-                                    colors = CardDefaults.elevatedCardColors(
-                                        containerColor = Theme.current.on_background.setAlpha(0.05f)
-                                    )
-                                ) {
-                                    Column(Modifier.padding(10.dp), verticalArrangement = Arrangement.spacedBy(20.dp)) {
-                                        Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.SpaceBetween) {
-                                            AssistChip(
-                                                { show_info = !show_info },
-                                                {
-                                                    Text(getString(R.string.artist_info_label), style = MaterialTheme.typography.labelLarge)
-                                                },
-                                                leadingIcon = {
-                                                    Icon(Icons.Outlined.Info, null)
-                                                },
-                                                colors = AssistChipDefaults.assistChipColors(
-                                                    containerColor = background_colour,
-                                                    labelColor = Theme.current.on_background,
-                                                    leadingIconContentColor = accent_colour ?: Color.Unspecified
-                                                )
-                                            )
-
-                                            if (can_expand) {
-                                                NoRipple {
-                                                    IconButton(
-                                                        { expanded = !expanded }
-                                                    ) {
-                                                        Icon(if (expanded) Icons.Filled.ArrowDropUp else Icons.Filled.ArrowDropDown,null)
-                                                    }
-                                                }
-                                            }
-                                        }
-
-                                        LinkifyText(
-                                            description,
-                                            Theme.current.on_background.setAlpha(0.8f),
-                                            Theme.current.on_background,
-                                            MaterialTheme.typography.bodyMedium,
-                                            Modifier
-                                                .onSizeChanged { size ->
-                                                    if (size.height == small_text_height_px) {
-                                                        can_expand = true
-                                                    }
-                                                }
-                                                .animateContentSize()
-                                                .then(
-                                                    if (expanded) Modifier else Modifier.height(200.dp)
-                                                )
-                                        )
-                                    }
-                                }
+                                DescriptionCard(description)
                             }
 
                             Spacer(Modifier.requiredHeight(50.dp))
@@ -331,7 +323,98 @@ fun ArtistPage(
 }
 
 @Composable
-private fun InfoDialog(artist: Artist, close: () -> Unit) {
+private fun ArtistSubscribeButton(artist: Artist, background_colour: Color, accent_colour: Color) {
+    Crossfade(artist.subscribed) { subscribed ->
+        if (subscribed == null) {
+            Spacer(Modifier.requiredWidth(20.dp))
+        }
+        else {
+            Row {
+                Spacer(Modifier.requiredWidth(10.dp))
+                OutlinedIconButton(
+                    {
+                        artist.toggleSubscribe(
+                            toggle_before_fetch = true,
+                            notify_failure = true
+                        )
+                    },
+                    colors = IconButtonDefaults.iconButtonColors(
+                        containerColor = if (subscribed) accent_colour ?: Color.Unspecified else background_colour,
+                        contentColor = if (subscribed) accent_colour?.getContrasted() ?: Color.Unspecified else Theme.current.on_background
+                    )
+                ) {
+                    Icon(if (subscribed) Icons.Outlined.PersonRemove else Icons.Outlined.PersonAddAlt1, null)
+                }
+            }
+        }
+    }
+}
+
+@Composable
+private fun DescriptionCard(description_text: String) {
+    var expanded by remember { mutableStateOf(false) }
+    var can_expand by remember { mutableStateOf(false) }
+    val small_text_height = 200.dp
+    val small_text_height_px = with ( LocalDensity.current ) { small_text_height.toPx().toInt() }
+
+    ElevatedCard(
+        Modifier
+            .fillMaxWidth()
+            .animateContentSize(),
+        colors = CardDefaults.elevatedCardColors(
+            containerColor = Theme.current.on_background.setAlpha(0.05f)
+        )
+    ) {
+        Column(Modifier.padding(10.dp), verticalArrangement = Arrangement.spacedBy(20.dp)) {
+            Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.SpaceBetween) {
+                AssistChip(
+                    { show_info = !show_info },
+                    {
+                        Text(getString(R.string.artist_info_label), style = MaterialTheme.typography.labelLarge)
+                    },
+                    leadingIcon = {
+                        Icon(Icons.Outlined.Info, null)
+                    },
+                    colors = AssistChipDefaults.assistChipColors(
+                        containerColor = background_colour,
+                        labelColor = Theme.current.on_background,
+                        leadingIconContentColor = accent_colour ?: Color.Unspecified
+                    )
+                )
+
+                if (can_expand) {
+                    NoRipple {
+                        IconButton(
+                            { expanded = !expanded }
+                        ) {
+                            Icon(if (expanded) Icons.Filled.ArrowDropUp else Icons.Filled.ArrowDropDown,null)
+                        }
+                    }
+                }
+            }
+
+            LinkifyText(
+                description_text,
+                Theme.current.on_background.setAlpha(0.8f),
+                Theme.current.on_background,
+                MaterialTheme.typography.bodyMedium,
+                Modifier
+                    .onSizeChanged { size ->
+                        if (size.height == small_text_height_px) {
+                            can_expand = true
+                        }
+                    }
+                    .animateContentSize()
+                    .then(
+                        if (expanded) Modifier else Modifier.height(200.dp)
+                    )
+            )
+        }
+    }
+}
+
+@Composable
+private fun InfoDialog(item: MediaItem, close: () -> Unit) {
     AlertDialog(
         close,
         confirmButton = {
@@ -341,7 +424,11 @@ private fun InfoDialog(artist: Artist, close: () -> Unit) {
                 Text("Close")
             }
         },
-        title = { Text("Artist info") },
+        title = { Text(getString(when (item) {
+            is Artist -> "Artist info"
+            is Playlist -> "Playlist info"
+            else -> throw NotImplementedError(item.type.toString())
+        })) },
         text = {
             @Composable
             fun InfoValue(name: String, value: String) {
@@ -382,9 +469,9 @@ private fun InfoDialog(artist: Artist, close: () -> Unit) {
             }
 
             Column(Modifier.fillMaxWidth(), verticalArrangement = Arrangement.Center) {
-                InfoValue("Name", artist.title ?: "")
-                InfoValue("Id", artist.id)
-                InfoValue("Url", artist.url)
+                InfoValue("Name", item.title ?: "")
+                InfoValue("Id", item.id)
+                InfoValue("Url", item.url)
             }
         }
     )

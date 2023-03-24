@@ -27,6 +27,7 @@ import com.spectre7.spmp.ui.layout.nowplaying.NOW_PLAYING_MAIN_PADDING
 import com.spectre7.spmp.ui.layout.nowplaying.overlay.lyrics.LyricsOverlayMenu
 import com.spectre7.spmp.ui.theme.Theme
 import com.spectre7.utils.OnChangedEffect
+import com.spectre7.utils.getString
 import com.spectre7.utils.spacedByEnd
 import com.spectre7.utils.vibrateShort
 import kotlinx.coroutines.delay

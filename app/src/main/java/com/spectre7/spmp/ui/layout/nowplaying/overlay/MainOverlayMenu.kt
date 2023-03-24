@@ -124,13 +124,13 @@ class MainOverlayMenu(
                 Modifier
             )
 
-            var edited_song_title by remember(song.title) { mutableStateOf(song.title!!) }
+            var edited_song_title by remember(song) { mutableStateOf(song.title!!) }
             OutlinedTextField(
                 edited_song_title,
                 onValueChange = { text ->
                     edited_song_title = text
                 },
-                label = { Text("Edit title") },
+                label = { Text(getString("Edit title")) },
                 singleLine = true,
                 trailingIcon = {
                     Icon(Icons.Filled.Close, null, Modifier.clickable { edited_song_title = "" })
@@ -147,14 +147,13 @@ class MainOverlayMenu(
                 ),
                 modifier = Modifier
                     .fillMaxWidth()
-                    .clickable { throw IllegalStateException() } // Field interaction doesn't work without this for some reason
+                    .clickable {} // Field interaction doesn't work without this for some reason
             )
 
             Row(Modifier.fillMaxWidth(), horizontalArrangement = spacedByEnd(10.dp)) {
                 Box(
                     button_modifier.clickable {
-                        song.registry_entry.title = song.original_title!!
-                        song.saveRegistry()
+                        edited_song_title = song.original_title!!
                     },
                     contentAlignment = Alignment.Center
                 ) {

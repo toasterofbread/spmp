@@ -4,6 +4,7 @@ import com.spectre7.spmp.R
 import com.spectre7.spmp.model.MediaItem
 import com.spectre7.spmp.ui.component.MediaItemLayout
 import com.spectre7.utils.getString
+import com.spectre7.utils.printJson
 import okhttp3.Request
 
 private data class YoutubeiSearchResponse(
@@ -47,20 +48,20 @@ fun searchYoutubeMusic(query: String, params: String?, limit: Int = 10): Result<
     val tab = parsed.contents.tabbedSearchResultsRenderer.tabs.first().tabRenderer
     val chips = tab.content!!.sectionListRenderer.header!!.chipCloudRenderer.chips
 
-    println(chips)
-
     for (category in tab.content.sectionListRenderer.contents!!.withIndex()) {
 
-        println(category.value.musicShelfRenderer?.title?.first_text)
-        val shelf = category.value.musicShelfRenderer ?: continue
+        val card = category.value.musicCardShelfRenderer
+        if (card != null) {
+            TODO()
+            continue
+        }
 
+        val shelf = category.value.musicShelfRenderer ?: continue
         ret.add(Pair(
             MediaItemLayout(shelf.title!!.first_text, null, items = shelf.contents.mapNotNull { it.toMediaItem() }.toMutableList()),
             if (category.index == 0) null else chips[category.index - 1].chipCloudChipRenderer.navigationEndpoint.searchEndpoint!!.params
         ))
     }
-
-    println(ret)
 
     return Result.success(ret)
 }

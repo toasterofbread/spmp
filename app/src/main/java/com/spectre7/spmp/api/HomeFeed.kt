@@ -224,16 +224,18 @@ data class YoutubeiShelf(
     val musicShelfRenderer: MusicShelfRenderer? = null,
     val musicCarouselShelfRenderer: MusicCarouselShelfRenderer? = null,
     val musicDescriptionShelfRenderer: MusicDescriptionShelfRenderer? = null,
-    val musicPlaylistShelfRenderer: MusicShelfRenderer? = null
+    val musicPlaylistShelfRenderer: MusicShelfRenderer? = null,
+    val musicCardShelfRenderer: MusicCardShelfRenderer? = null
 ) {
     init {
-        assert(musicShelfRenderer != null || musicCarouselShelfRenderer != null || musicDescriptionShelfRenderer != null || musicPlaylistShelfRenderer != null)
+        assert(musicShelfRenderer != null || musicCarouselShelfRenderer != null || musicDescriptionShelfRenderer != null || musicPlaylistShelfRenderer != null || musicCardShelfRenderer != null)
     }
 
     val title: TextRun? get() =
         if (musicShelfRenderer != null) musicShelfRenderer.title?.runs?.firstOrNull()
         else if (musicCarouselShelfRenderer != null) musicCarouselShelfRenderer.header.getRenderer().title.runs?.firstOrNull()
         else if (musicDescriptionShelfRenderer != null) musicDescriptionShelfRenderer.header.runs?.firstOrNull()
+        else if (musicCardShelfRenderer != null) musicCardShelfRenderer.title.runs?.firstOrNull()
         else null
 
     val description: String? get() = musicDescriptionShelfRenderer?.description?.first_text
@@ -324,6 +326,7 @@ data class TextRun(val text: String, val strapline: TextRuns? = null, val naviga
 data class MusicShelfRenderer(val title: TextRuns? = null, val contents: List<ContentsItem>, val continuations: List<YoutubeiNextResponse.Continuation>? = null)
 data class MusicCarouselShelfRenderer(val header: Header, val contents: List<ContentsItem>)
 data class MusicDescriptionShelfRenderer(val header: TextRuns, val description: TextRuns)
+data class MusicCardShelfRenderer(val thumbnail: ThumbnailRenderer, val title: TextRuns, val subtitle: TextRuns, val menu: YoutubeiNextResponse.Menu)
 
 data class MusicTwoRowItemRenderer(val navigationEndpoint: NavigationEndpoint, val title: TextRuns, val subtitle: TextRuns, val thumbnailRenderer: ThumbnailRenderer) {
     fun getArtist(host_item: MediaItem): Artist? {

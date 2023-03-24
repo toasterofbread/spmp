@@ -1,5 +1,7 @@
 package com.spectre7.spmp.ui.layout.nowplaying.overlay
 
+import android.graphics.Bitmap
+import android.graphics.Color.*
 import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.animation.core.Animatable
 import androidx.compose.animation.fadeIn
@@ -22,7 +24,7 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.core.graphics.ColorUtils
 import androidx.palette.graphics.Palette
-import com.spectre7.spmp.MainActivity
+import com.spectre7.spmp.PlayerServiceHost
 import com.spectre7.spmp.model.MediaItem
 import com.spectre7.spmp.model.Song
 import com.spectre7.spmp.ui.layout.PlayerViewContext
@@ -30,7 +32,10 @@ import com.spectre7.spmp.ui.layout.nowplaying.*
 import com.spectre7.spmp.ui.layout.nowplaying.getNPBackground
 import com.spectre7.spmp.ui.layout.nowplaying.getNPOnBackground
 import com.spectre7.utils.*
+import kotlin.concurrent.thread
+import kotlin.math.absoluteValue
 import kotlin.math.roundToInt
+import kotlin.random.Random
 
 const val PALETTE_SIMILAR_COLOUR_THRESHOLD = 0.1f
 
@@ -55,23 +60,31 @@ class PaletteSelectorOverlayMenu(
         val palette = paletteProvider()
         if (palette != null) {
 
-            val palette_colours = remember(palette) {
-                val colours = mutableListOf(Color.Black, Color.White)
-
-                fun addColour(colour: Color?) {
-                    if (colour != null && !colours.any { it == colour || it.compare(colour) <= PALETTE_SIMILAR_COLOUR_THRESHOLD }) {
-                        colours.add(colour)
-                    }
+//            val palette_colours = remember(palette) {
+//                val colours = mutableListOf(Color.Black, Color.White)
+//
+//                fun addColour(colour: Color?) {
+//                    if (colour != null && !colours.any { it == colour || it.compare(colour) <= PALETTE_SIMILAR_COLOUR_THRESHOLD }) {
+//                        colours.add(colour)
+//                    }
+//                }
+//
+//                for (i in 0 until 7) {
+//                    addColour(palette.getColour(i))
+//                }
+//
+//                addColour(defaultThemeColourProvider())
+//
+//                colours.sortByDescending { ColorUtils.calculateLuminance(it.toArgb()) }
+//                return@remember colours
+//            }
+            var palette_colours by remember { mutableStateOf<List<Color>?>(null) }
+            LaunchedEffect(Unit) {
+                val song = PlayerServiceHost.status.song!!
+                thread {
+                    val r = km(song.getThumbnail(MediaItem.ThumbnailQuality.HIGH)!!, 3)
+                    palette_colours = r
                 }
-
-                for (i in 0 until 7) {
-                    addColour(palette.getColour(i))
-                }
-
-                addColour(defaultThemeColourProvider())
-
-                colours.sortByDescending { ColorUtils.calculateLuminance(it.toArgb()) }
-                return@remember colours
             }
 
             var colourpick_requested by remember { mutableStateOf(false) }
@@ -91,7 +104,7 @@ class PaletteSelectorOverlayMenu(
                         horizontalArrangement = Arrangement.Center,
                         verticalArrangement = Arrangement.spacedBy(button_spacing)
                     ) {
-                        items(palette_colours) { colour ->
+                        items(palette_colours ?: emptyList()) { colour ->
                             Button(
                                 onClick = {
                                     onColourSelected(colour)
@@ -185,4 +198,120 @@ class PaletteSelectorOverlayMenu(
             }
         }
     }
+}
+
+private fun km(image: Bitmap, k: Int): List<Color> {
+    val scaled = Bitmap.createScaledBitmap(image, 50, 50, false)
+
+    val pixels = IntArray(scaled.width * scaled.height)
+    scaled.getPixels(pixels, 0, scaled.width, 0, 0, scaled.width, scaled.height)
+
+    val centroids = IntArray(k) { pixels[(Random.nextDouble() * (pixels.size - 1)).toInt()] }
+    val clusters: MutableList<MutableList<Int>> = List(k) { mutableListOf<Int>() }.toMutableList()
+
+
+    var iterations = 0.01 * 10000
+
+    while (iterations-- > 0) {
+        println(iterations)
+
+        for (cluster in clusters) {
+            cluster.clear()
+        }
+
+        // Assign each pixel to closest cluster
+        for (pixel in pixels.withIndex()) {
+            var closest_diff: Int? = null
+            var closest_centroid = -1
+
+            for (centroid in centroids.withIndex()) {
+                val diff = (pixel.value - centroid.value).absoluteValue
+                if (closest_diff == null || diff < closest_diff) {
+                    closest_diff = diff
+                    closest_centroid = centroid.index
+                }
+            }
+
+            clusters[closest_centroid].add(pixel.value)
+        }
+
+        // Recalculate cluster means
+        for (cluster in clusters.withIndex()) {
+            var r = 0L
+            var g = 0L
+            var b = 0L
+            for (pixel in cluster.value) {
+                r += red(pixel)
+                g += green(pixel)
+                b += blue(pixel)
+            }
+            centroids[cluster.index] = Color(
+                (r / cluster.value.size.toLong()).toInt(),
+                (g / cluster.value.size.toLong()).toInt(),
+                (b / cluster.value.size.toLong()).toInt(),
+            ).toArgb()
+        }
+    }
+
+    return centroids.map { Color(it) }
+}
+
+private fun kMeans(
+    elements: Array<Int>,
+    numIterations: Int,
+    numClusters: Int
+): Array<Int> {
+
+    // Setup: create K clusters with random elements from input
+    val clusters = mutableListOf<MutableList<Int>>()
+    val centroids = Array(numClusters) { 0 }
+    for (i in 0 until numClusters) {
+        clusters.add(mutableListOf(elements[i]))
+    }
+
+    // Algorithm
+    for (i in 0 until numIterations) {
+        println(i)
+
+        for (j in 0 until numClusters) {
+            // Find centroids
+            centroids[j] = findCentroid(clusters[j], centroids[j])
+        }
+        clusters.forEach{ list ->
+            list.removeAll {
+                true
+            }
+        }
+        for (element in elements) {
+            // Assign elements to the best cluster
+            val index = assignToCluster(element, centroids)
+            clusters[index].add(element)
+        }
+
+    }
+
+    return centroids
+}
+
+// Find the centroid of a cluster
+fun findCentroid(cluster: MutableList<Int>?, actualCentroid: Int): Int {
+    var newCentroid = 0L
+    cluster?.forEach {
+        newCentroid = newCentroid.plus(it)
+    }
+    return (newCentroid / cluster!!.size.toLong()).toInt()
+}
+
+// Returns the index of the cluster that this element must be assigned to
+fun assignToCluster(element: Int, centroids: Array<Int>): Int {
+    var minValue = 0
+    var minIndex = 0
+    for (i in centroids.indices) {
+        if (kotlin.math.abs(element - centroids[i]) < kotlin.math.abs(element - minValue)) {
+            minIndex = i
+            minValue = centroids[i]
+        }
+    }
+    // Centroids and clusters are in sync
+    return minIndex
 }

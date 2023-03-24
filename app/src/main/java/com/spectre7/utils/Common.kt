@@ -274,7 +274,6 @@ fun Marquee(autoscroll: Boolean = false, modifier: Modifier = Modifier, content:
 @Composable
 fun WidthShrinkText(text: String, style: MutableState<TextStyle>, modifier: Modifier = Modifier) {
 	var ready_to_draw by remember { mutableStateOf(false) }
-
 	Text(
 		text,
 		modifier.drawWithContent { if (ready_to_draw) drawContent() },
@@ -286,7 +285,7 @@ fun WidthShrinkText(text: String, style: MutableState<TextStyle>, modifier: Modi
 				ready_to_draw = true
 			}
 			else {
-				style.value = style.value.copy(fontSize = style.value.fontSize * 0.99)
+				style.value = style.value.copy(fontSize = style.value.fontSize * 0.95)
 			}
 		}
 	)

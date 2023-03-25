@@ -27,16 +27,13 @@ import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
-import androidx.compose.ui.platform.LocalClipboardManager
 import androidx.compose.ui.platform.LocalDensity
-import androidx.compose.ui.text.AnnotatedString
 import androidx.compose.ui.text.ExperimentalTextApi
 import androidx.compose.ui.text.font.Font
 import androidx.compose.ui.text.font.FontFamily
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.IntOffset
 import androidx.compose.ui.unit.dp
-import androidx.compose.ui.window.DialogProperties
 import androidx.lifecycle.Lifecycle
 import com.beust.klaxon.JsonObject
 import com.beust.klaxon.Klaxon
@@ -50,7 +47,6 @@ import com.spectre7.spmp.ui.theme.Theme
 import com.spectre7.utils.*
 import net.openid.appauth.*
 import java.util.*
-import kotlin.concurrent.thread
 import kotlin.math.roundToInt
 
 class MainActivity : ComponentActivity() {
@@ -299,7 +295,6 @@ class ErrorManager {
                 if (swipe_state.targetValue == 1) {
                     ShapedIconButton(
                         { show_info = !show_info },
-                        CircleShape,
                         Modifier
                             .swipeable(
                                 state = swipe_state,
@@ -309,6 +304,7 @@ class ErrorManager {
                             )
                             .size(INDICATOR_SIZE)
                             .offset { IntOffset(swipe_state.offset.value.roundToInt(), 0) },
+                        CircleShape,
                         colors = IconButtonDefaults.iconButtonColors(
                             containerColor = colour(),
                             contentColor = colour().getContrasted()

@@ -267,7 +267,7 @@ fun ArtistPlaylistPage(
 
 @OptIn(ExperimentalFoundationApi::class)
 @Composable
-fun TitleBar(item: MediaItem, modifier: Modifier = Modifier) {
+private fun TitleBar(item: MediaItem, modifier: Modifier = Modifier) {
     var editing_title by remember { mutableStateOf(false) }
     Crossfade(editing_title) { editing ->
         Box(modifier.padding(horizontal = 20.dp), contentAlignment = Alignment.BottomCenter) {

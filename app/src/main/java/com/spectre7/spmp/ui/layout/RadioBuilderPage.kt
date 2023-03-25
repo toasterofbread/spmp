@@ -202,12 +202,7 @@ fun RadioBuilderPage(
                                 val layout = playlist.feed_layouts!!.first()
                                 LazyColumn(Modifier.fillMaxSize(), contentPadding = PaddingValues(bottom = bottom_padding)) {
                                     items(layout.items) { item ->
-                                        item.PreviewLong(
-                                            content_colour = Theme.current.on_background_provider,
-                                            playerProvider = playerProvider,
-                                            enable_long_press_menu = true,
-                                            modifier = Modifier
-                                        )
+                                        item.PreviewLong(MediaItem.PreviewParams(playerProvider))
                                     }
                                 }
                             }

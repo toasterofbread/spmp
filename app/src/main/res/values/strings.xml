@@ -22,9 +22,12 @@
 
     <string name="playlists">Playlists</string>
     <string name="playlist">Playlist</string>
-
     <string name="albums">Albums</string>
     <string name="album">Album</string>
+    <string name="audiobook">Audiobook</string>
+    <string name="audiobooks">Audiobooks</string>
+    <string name="radio">Radio</string>
+    <string name="radios">Radios</string>
 
     <string name="feed_row_artists">Recommended artists</string>
     <string name="feed_row_playlists">Playlists</string>

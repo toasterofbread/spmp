@@ -3,7 +3,6 @@ package com.spectre7.spmp.ui.layout
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.lazy.LazyColumn
-import androidx.compose.foundation.lazy.items
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Download
 import androidx.compose.material3.MaterialTheme
@@ -62,7 +61,7 @@ fun LibraryPage(
             val song = Song.fromId(data.id)
 
             item {
-                song.PreviewLong(Theme.current.on_background_provider, playerProvider, true, Modifier)
+                song.PreviewLong(MediaItem.PreviewParams(playerProvider))
             }
         }
     }

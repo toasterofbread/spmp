@@ -131,7 +131,7 @@ fun loadMediaItemData(item: MediaItem): Result<MediaItem?> {
             item.supplyDescription(header_renderer.description?.first_text, true)
 
             val artist = header_renderer.subtitle?.runs?.firstOrNull {
-                it.navigationEndpoint?.browseEndpoint?.page_type == "MUSIC_PAGE_TYPE_USER_CHANNEL"
+                it.navigationEndpoint?.browseEndpoint?.getPageType() == "MUSIC_PAGE_TYPE_USER_CHANNEL"
             }
             if (artist != null) {
                 item.supplyArtist(

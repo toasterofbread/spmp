@@ -10,6 +10,7 @@ import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.FeaturedPlayList
 import androidx.compose.material.icons.filled.MusicNote
 import androidx.compose.material.icons.filled.Person
+import androidx.compose.material.icons.filled.PlaylistPlay
 import androidx.compose.runtime.*
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
@@ -17,16 +18,17 @@ import androidx.compose.ui.graphics.asAndroidBitmap
 import androidx.compose.ui.graphics.asImageBitmap
 import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.layout.ContentScale
-import androidx.compose.ui.text.capitalize
 import androidx.compose.ui.unit.IntSize
 import androidx.core.content.edit
 import androidx.palette.graphics.Palette
 import com.beust.klaxon.*
 import com.spectre7.spmp.R
 import com.spectre7.spmp.api.DataApi
+import com.spectre7.spmp.api.TextRun
 import com.spectre7.spmp.api.loadMediaItemData
 import com.spectre7.spmp.ui.component.MediaItemLayout
 import com.spectre7.spmp.ui.layout.PlayerViewContext
+import com.spectre7.spmp.ui.theme.Theme
 import com.spectre7.utils.SubtleLoadingIndicator
 import com.spectre7.utils.getString
 import com.spectre7.utils.getThemeColour
@@ -95,6 +97,30 @@ abstract class MediaItem(id: String) {
         return this
     }
 
+    fun supplyDataFromSubtitle(runs: List<TextRun>) {
+        var artist_found = false
+        for (run in runs) {
+            val type = run.browse_endpoint_type ?: continue
+            when (Type.fromBrowseEndpointType(type)) {
+                Type.ARTIST -> {
+                    val artist = run.navigationEndpoint?.browseEndpoint?.getMediaItem()
+                    if (artist != null) {
+                        supplyArtist(artist as Artist, true)
+                        artist_found = true
+                    }
+                }
+                Type.PLAYLIST -> TODO()
+                else -> {}
+            }
+        }
+
+        if (!artist_found && this !is Artist) {
+            val artist = Artist.createForItem(this)
+            artist.supplyTitle(runs[1].text)
+            supplyArtist(artist)
+        }
+    }
+
     private var replaced_with: MediaItem? = null
 
     enum class Type {
@@ -104,16 +130,16 @@ abstract class MediaItem(id: String) {
             return when (this) {
                 SONG     -> Icons.Filled.MusicNote
                 ARTIST   -> Icons.Filled.Person
-                PLAYLIST -> Icons.Filled.FeaturedPlayList
+                PLAYLIST -> Icons.Filled.PlaylistPlay
             }
         }
 
         fun getReadable(plural: Boolean = false): String {
-            return when (this) {
-                SONG -> getString(if (plural) R.string.songs else R.string.song)
-                ARTIST -> getString(if (plural) R.string.artists else R.string.artist)
-                PLAYLIST -> getString(if (plural) R.string.playlists else R.string.playlist)
-            }
+            return getString(when (this) {
+                SONG -> if (plural) R.string.songs else R.string.song
+                ARTIST -> if (plural) R.string.artists else R.string.artist
+                PLAYLIST -> if (plural) R.string.playlists else R.string.playlist
+            })
         }
 
         fun parseRegistryEntry(obj: JsonObject): DataRegistry.Entry {
@@ -125,6 +151,16 @@ abstract class MediaItem(id: String) {
 
         override fun toString(): String {
             return name.lowercase().replaceFirstChar { it.uppercase() }
+        }
+
+        companion object {
+            fun fromBrowseEndpointType(page_type: String): Type {
+                return when (page_type) {
+                    "MUSIC_PAGE_TYPE_PLAYLIST", "MUSIC_PAGE_TYPE_ALBUM", "MUSIC_PAGE_TYPE_AUDIOBOOK" -> PLAYLIST
+                    "MUSIC_PAGE_TYPE_ARTIST", "MUSIC_PAGE_TYPE_USER_CHANNEL" -> ARTIST
+                    else -> throw NotImplementedError(page_type)
+                }
+            }
         }
     }
     val type: Type get() = when(this) {
@@ -217,6 +253,16 @@ abstract class MediaItem(id: String) {
                 item.supplyFromJsonObject(obj, klaxon)
             }
             return item
+        }
+
+        fun fromBrowseEndpointType(page_type: String, id: String): MediaItem {
+            return when (page_type) {
+                "MUSIC_PAGE_TYPE_PLAYLIST", "MUSIC_PAGE_TYPE_ALBUM", "MUSIC_PAGE_TYPE_AUDIOBOOK" ->
+                    Playlist.fromId(id).supplyPlaylistType(Playlist.PlaylistType.fromTypeString(page_type), true)
+                "MUSIC_PAGE_TYPE_ARTIST", "MUSIC_PAGE_TYPE_USER_CHANNEL" ->
+                    Artist.fromId(id)
+                else -> throw NotImplementedError(page_type)
+            }
         }
 
         protected val json_converter = object : Converter {
@@ -522,10 +568,18 @@ abstract class MediaItem(id: String) {
         return BitmapFactory.decodeStream(URL(url).openConnection().getInputStream())
     }
 
+    data class PreviewParams(
+        val playerProvider: () -> PlayerViewContext,
+        val modifier: Modifier = Modifier,
+        val content_colour: () -> Color = Theme.current.on_background_provider,
+        val enable_long_press_menu: Boolean = true,
+        val show_type: Boolean = true
+    )
+
     @Composable
-    abstract fun PreviewSquare(content_colour: () -> Color, playerProvider: () -> PlayerViewContext, enable_long_press_menu: Boolean, modifier: Modifier)
+    abstract fun PreviewSquare(params: PreviewParams)
     @Composable
-    abstract fun PreviewLong(content_colour: () -> Color, playerProvider: () -> PlayerViewContext, enable_long_press_menu: Boolean, modifier: Modifier)
+    abstract fun PreviewLong(params: PreviewParams)
 
     @Composable
     fun Thumbnail(quality: ThumbnailQuality, modifier: Modifier = Modifier, content_colour: Color = Color.White) {

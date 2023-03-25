@@ -11,8 +11,6 @@
     <string name="player_service_name">プレイヤーサービス</string>
     <string name="lyrics_source_prefix">元:&#160;</string>
     <string name="s_group_lyrics">歌詞</string>
-    <string name="lyrics_source_via_youtubemusic">" (YouTube Music より)"</string>
-    <string name="lyrics_source_youtube">YouTube</string>
     <string name="lyrics_source_petitlyrics">プチリリ</string>
     <string name="generic_error">エラーが発生しました</string>
     <string name="s_page_preferences">設定</string>
@@ -36,6 +34,10 @@
     <string name="s_group_other">その他</string>
     <string name="album">アルバム</string>
     <string name="artist">アーティスト</string>
+    <string name="audiobook">オーディオブック</string>
+    <string name="audiobooks">オーディオブック</string>
+    <string name="radio">ラジオ</string>
+    <string name="radios">ラジオ</string>
     <string name="song_name">曲名</string>
     <string name="feed_row_artists">おすすめのアーティスト</string>
     <string name="feed_row_playlists">プレイリスト</string>

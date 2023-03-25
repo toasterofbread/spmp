@@ -9,22 +9,19 @@ import androidx.compose.material3.Text
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.spectre7.spmp.model.MediaItem
 import com.spectre7.spmp.model.Playlist
-import com.spectre7.spmp.ui.layout.PlayerViewContext
+import com.spectre7.spmp.model.getReadable
+import com.spectre7.utils.setAlpha
 
 @OptIn(ExperimentalFoundationApi::class)
 @Composable
 fun PlaylistPreviewSquare(
     playlist: Playlist,
-    content_colour: () -> Color,
-    playerProvider: () -> PlayerViewContext,
-    enable_long_press_menu: Boolean = true,
-    modifier: Modifier = Modifier
+    params: MediaItem.PreviewParams
 ) {
     val long_press_menu_data = remember(playlist) { LongPressMenuData(
         playlist,
@@ -33,16 +30,16 @@ fun PlaylistPreviewSquare(
     }
 
     Column(
-        modifier
+        params.modifier
             .padding(10.dp, 0.dp)
             .combinedClickable(
                 interactionSource = remember { MutableInteractionSource() },
                 indication = null,
                 onClick = {
-                    playerProvider().onMediaItemClicked(playlist)
+                    params.playerProvider().onMediaItemClicked(playlist)
                 },
                 onLongClick = {
-                    playerProvider().showLongPressMenu(long_press_menu_data)
+                    params.playerProvider().showLongPressMenu(long_press_menu_data)
                 }
             )
             .aspectRatio(0.8f),
@@ -52,12 +49,12 @@ fun PlaylistPreviewSquare(
         playlist.Thumbnail(MediaItem.ThumbnailQuality.LOW,
             Modifier
                 .size(100.dp)
-                .longPressMenuIcon(long_press_menu_data, enable_long_press_menu))
+                .longPressMenuIcon(long_press_menu_data, params.enable_long_press_menu))
 
         Text(
             playlist.title ?: "",
             fontSize = 12.sp,
-            color = content_colour(),
+            color = params.content_colour(),
             maxLines = 1,
             lineHeight = 14.sp,
             overflow = TextOverflow.Ellipsis
@@ -69,10 +66,7 @@ fun PlaylistPreviewSquare(
 @Composable
 fun PlaylistPreviewLong(
     playlist: Playlist, 
-    content_colour: () -> Color,
-    playerProvider: () -> PlayerViewContext,
-    enable_long_press_menu: Boolean = true,
-    modifier: Modifier = Modifier
+    params: MediaItem.PreviewParams
 ) {
     val long_press_menu_data = remember(playlist) { LongPressMenuData(
         playlist,
@@ -82,37 +76,61 @@ fun PlaylistPreviewLong(
 
     Row(
         verticalAlignment = Alignment.CenterVertically,
-        modifier = modifier
-            .padding(10.dp, 0.dp)
+        modifier = params.modifier
             .combinedClickable(
                 interactionSource = remember { MutableInteractionSource() },
                 indication = null,
                 onClick = {
-                    playerProvider().onMediaItemClicked(playlist)
+                    params.playerProvider().onMediaItemClicked(playlist)
                 },
                 onLongClick = {
-                    playerProvider().showLongPressMenu(long_press_menu_data)
+                    params.playerProvider().showLongPressMenu(long_press_menu_data)
                 }
             )
     ) {
-        playlist.Thumbnail(MediaItem.ThumbnailQuality.LOW, Modifier.size(40.dp).longPressMenuIcon(long_press_menu_data, enable_long_press_menu))
+        playlist.Thumbnail(
+            MediaItem.ThumbnailQuality.LOW,
+            Modifier
+                .size(40.dp)
+                .longPressMenuIcon(long_press_menu_data, params.enable_long_press_menu),
+            params.content_colour()
+        )
 
-        Column(Modifier.padding(8.dp)) {
+        Column(
+            Modifier.padding(10.dp).fillMaxWidth(),
+            verticalArrangement = Arrangement.spacedBy(5.dp)
+        ) {
             Text(
                 playlist.title ?: "",
                 fontSize = 15.sp,
-                color = content_colour(),
+                color = params.content_colour(),
                 maxLines = 1,
                 overflow = TextOverflow.Ellipsis
             )
 
-            // Text(
-            //     "${playlist.getFormattedSubscriberCount()} subscribers",
-            //     fontSize = font_size * 0.75,
-            //     color = colour.setAlpha(0.5),
-            //     maxLines = 1,
-            //     overflow = TextOverflow.Ellipsis
-            // )
+            Row(horizontalArrangement = Arrangement.spacedBy(5.dp)) {
+                @Composable
+                fun InfoText(text: String) {
+                    Text(
+                        text,
+                        fontSize = 11.sp,
+                        color = params.content_colour().setAlpha(0.5f),
+                        maxLines = 1,
+                        overflow = TextOverflow.Ellipsis
+                    )
+                }
+
+                if (params.show_type) {
+                    InfoText(playlist.playlist_type.getReadable(false))
+                }
+
+                if (playlist.artist?.title != null) {
+                    if (params.show_type) {
+                        InfoText("\u2022")
+                    }
+                    InfoText(playlist.artist?.title!!)
+                }
+            }
         }
     }
 }

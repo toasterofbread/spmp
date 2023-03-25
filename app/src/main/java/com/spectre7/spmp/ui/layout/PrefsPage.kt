@@ -28,6 +28,7 @@ import com.spectre7.spmp.R
 import com.spectre7.spmp.api.YoutubeMusicAuthInfo
 import com.spectre7.spmp.api.YoutubeMusicLogin
 import com.spectre7.spmp.model.AccentColourSource
+import com.spectre7.spmp.model.MediaItem
 import com.spectre7.spmp.model.Settings
 import com.spectre7.spmp.model.Song
 import com.spectre7.spmp.ui.component.PillMenu
@@ -340,12 +341,11 @@ private fun groupAuth(ytm_auth: SettingsValueState<YoutubeMusicAuthInfo>, player
                             horizontalArrangement = Arrangement.spacedBy(5.dp)
                         ) {
                             if (auth.initialised) {
-                                auth.own_channel.PreviewLong(
-                                    content_colour = Theme.current.on_accent_provider,
-                                    playerProvider = playerProvider,
-                                    enable_long_press_menu = true,
-                                    modifier = Modifier.weight(1f)
-                                )
+                                auth.own_channel.PreviewLong(MediaItem.PreviewParams(
+                                    playerProvider,
+                                    Modifier.weight(1f),
+                                    content_colour = Theme.current.on_accent_provider
+                                ))
                             }
                             else {
                                 WidthShrinkText(
@@ -373,11 +373,11 @@ private fun groupAuth(ytm_auth: SettingsValueState<YoutubeMusicAuthInfo>, player
                                 {
 
                                 },
+                                shape = CircleShape,
                                 colors = IconButtonDefaults.iconButtonColors(
                                     containerColor = Theme.current.background,
                                     contentColor = Theme.current.on_background
-                                ),
-                                shape = CircleShape
+                                )
                             ) {
                                 Icon(Icons.Filled.Info, null)
                             }

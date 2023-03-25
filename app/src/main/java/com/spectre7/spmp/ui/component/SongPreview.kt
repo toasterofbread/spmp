@@ -17,10 +17,8 @@ import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.draw.alpha
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.Shape
-import androidx.compose.ui.graphics.graphicsLayer
 import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.*
@@ -28,17 +26,13 @@ import com.spectre7.spmp.PlayerDownloadService
 import com.spectre7.spmp.PlayerServiceHost
 import com.spectre7.spmp.model.MediaItem
 import com.spectre7.spmp.model.Song
-import com.spectre7.spmp.ui.layout.PlayerViewContext
 import com.spectre7.utils.*
 import java.io.File
 
 @Composable
 fun SongPreviewSquare(
     song: Song, 
-    content_colour: () -> Color,
-    playerProvider: () -> PlayerViewContext,
-    enable_long_press_menu: Boolean = true,
-    modifier: Modifier = Modifier,
+    params: MediaItem.PreviewParams,
     queue_index: Int? = null
 ) {
     val long_press_menu_data = remember(song) {
@@ -46,16 +40,16 @@ fun SongPreviewSquare(
     }
 
     Column(
-        modifier
+        params.modifier
             .padding(10.dp, 0.dp)
             .combinedClickable(
                 interactionSource = remember { MutableInteractionSource() },
                 indication = null,
                 onClick = {
-                    playerProvider().onMediaItemClicked(song)
+                    params.playerProvider().onMediaItemClicked(song)
                 },
                 onLongClick = {
-                    playerProvider().showLongPressMenu(long_press_menu_data)
+                    params.playerProvider().showLongPressMenu(long_press_menu_data)
                 }
             )
             .aspectRatio(0.8f),
@@ -65,14 +59,14 @@ fun SongPreviewSquare(
         song.Thumbnail(MediaItem.ThumbnailQuality.LOW,
             Modifier
                 .size(100.dp)
-                .longPressMenuIcon(long_press_menu_data, enable_long_press_menu),
-            content_colour()
+                .longPressMenuIcon(long_press_menu_data, params.enable_long_press_menu),
+            params.content_colour()
         )
 
         Text(
             song.title ?: "",
             fontSize = 12.sp,
-            color = content_colour(),
+            color = params.content_colour(),
             maxLines = 1,
             lineHeight = 14.sp,
             overflow = TextOverflow.Ellipsis
@@ -83,10 +77,7 @@ fun SongPreviewSquare(
 @Composable
 fun SongPreviewLong(
     song: Song,
-    content_colour: () -> Color,
-    playerProvider: () -> PlayerViewContext,
-    enable_long_press_menu: Boolean = true,
-    modifier: Modifier = Modifier,
+    params: MediaItem.PreviewParams,
     queue_index: Int? = null
 ) {
     val long_press_menu_data = remember(song) {
@@ -95,46 +86,62 @@ fun SongPreviewLong(
 
     Row(
         verticalAlignment = Alignment.CenterVertically,
-        modifier = modifier
-            .padding(10.dp, 0.dp)
+        modifier = params.modifier
+            .fillMaxWidth()
             .combinedClickable(
                 interactionSource = remember { MutableInteractionSource() },
                 indication = null,
                 onClick = {
-                    playerProvider().onMediaItemClicked(song)
+                    params.playerProvider().onMediaItemClicked(song)
                 },
                 onLongClick = {
-                    playerProvider().showLongPressMenu(long_press_menu_data)
+                    params.playerProvider().showLongPressMenu(long_press_menu_data)
                 }
             )
     ) {
         song.Thumbnail(MediaItem.ThumbnailQuality.LOW,
             Modifier
                 .size(40.dp)
-                .longPressMenuIcon(long_press_menu_data, enable_long_press_menu)
-                .weight(1f),
-            content_colour()
+                .longPressMenuIcon(long_press_menu_data, params.enable_long_press_menu),
+            params.content_colour()
         )
 
         Column(
-            Modifier
-                .padding(10.dp)
-                .fillMaxWidth(0.9f)) {
+            Modifier.padding(10.dp).fillMaxWidth(),
+            verticalArrangement = Arrangement.spacedBy(5.dp)
+        ) {
+
             Text(
                 song.title ?: "",
                 fontSize = 15.sp,
-                color = content_colour(),
+                color = params.content_colour(),
                 maxLines = 1,
                 overflow = TextOverflow.Ellipsis
             )
 
-            Text(
-                song.artist?.title ?: "",
-                fontSize = 11.sp,
-                color = content_colour().setAlpha(0.5f),
-                maxLines = 1,
-                overflow = TextOverflow.Ellipsis
-            )
+            Row(horizontalArrangement = Arrangement.spacedBy(5.dp)) {
+                @Composable
+                fun InfoText(text: String) {
+                    Text(
+                        text,
+                        fontSize = 11.sp,
+                        color = params.content_colour().setAlpha(0.5f),
+                        maxLines = 1,
+                        overflow = TextOverflow.Ellipsis
+                    )
+                }
+
+                if (params.show_type) {
+                    InfoText(song.type.getReadable(false))
+                }
+
+                if (song.artist?.title != null) {
+                    if (params.show_type) {
+                        InfoText("\u2022")
+                    }
+                    InfoText(song.artist?.title!!)
+                }
+            }
         }
     }
 }
@@ -291,12 +298,10 @@ private fun getSongLongPressPopupActions(queue_index: Int?): @Composable LongPre
             }
 
             Crossfade(active_queue_item, animationSpec = tween(100)) {
-                it?.PreviewLong(
-                    content_colour,
+                it?.PreviewLong(MediaItem.PreviewParams(
                     { playerProvider().copy(onClickedOverride = { item -> playerProvider().openMediaItem(item) }) },
-                    true,
-                    Modifier
-                )
+                    content_colour = content_colour
+                ))
             }
         }
     }

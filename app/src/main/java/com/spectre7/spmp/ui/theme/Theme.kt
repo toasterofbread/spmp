@@ -22,10 +22,7 @@ import com.beust.klaxon.Klaxon
 import com.spectre7.spmp.R
 import com.spectre7.spmp.model.AccentColourSource
 import com.spectre7.spmp.model.Settings
-import com.spectre7.utils.OnChangedEffect
-import com.spectre7.utils.contrastAgainst
-import com.spectre7.utils.getContrasted
-import com.spectre7.utils.getString
+import com.spectre7.utils.*
 
 const val VIBRANT_ACCENT_CONTRAST: Float = 0.2f
 
@@ -88,8 +85,12 @@ class Theme(data: ThemeData) {
 
     val on_accent: Color get() = accent.getContrasted()
 
-    // TODO | Don't offset unless similar enough to background
-    val vibrant_accent: Color get() = accent.contrastAgainst(background, VIBRANT_ACCENT_CONTRAST)
+    val vibrant_accent: Color get() {
+        if (accent.compare(background) > 0.8f) {
+            return accent.contrastAgainst(background, VIBRANT_ACCENT_CONTRAST)
+        }
+        return accent
+    }
 
     val background_provider: () -> Color = { background_state.value }
     val on_background_provider: () -> Color = { on_background_state.value }

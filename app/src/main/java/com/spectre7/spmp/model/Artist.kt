@@ -4,8 +4,6 @@ import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.setValue
-import androidx.compose.ui.Modifier
-import androidx.compose.ui.graphics.Color
 import com.beust.klaxon.JsonObject
 import com.beust.klaxon.Klaxon
 import com.spectre7.spmp.api.getOrThrowHere
@@ -13,7 +11,6 @@ import com.spectre7.spmp.api.isSubscribedToArtist
 import com.spectre7.spmp.api.subscribeOrUnsubscribeArtist
 import com.spectre7.spmp.ui.component.ArtistPreviewLong
 import com.spectre7.spmp.ui.component.ArtistPreviewSquare
-import com.spectre7.spmp.ui.layout.PlayerViewContext
 import com.spectre7.utils.lazyAssert
 import com.spectre7.utils.sendToast
 import kotlin.concurrent.thread
@@ -97,13 +94,13 @@ class Artist private constructor (
     }
 
     @Composable
-    override fun PreviewSquare(content_colour: () -> Color, playerProvider: () -> PlayerViewContext, enable_long_press_menu: Boolean, modifier: Modifier) {
-        ArtistPreviewSquare(this, content_colour, playerProvider, enable_long_press_menu, modifier)
+    override fun PreviewSquare(params: PreviewParams) {
+        ArtistPreviewSquare(this, params)
     }
 
     @Composable
-    override fun PreviewLong(content_colour: () -> Color, playerProvider: () -> PlayerViewContext, enable_long_press_menu: Boolean, modifier: Modifier) {
-        ArtistPreviewLong(this, content_colour, playerProvider, enable_long_press_menu, modifier)
+    override fun PreviewLong(params: PreviewParams) {
+        ArtistPreviewLong(this, params)
     }
 
     override val url: String get() = "https://music.youtube.com/channel/$id"

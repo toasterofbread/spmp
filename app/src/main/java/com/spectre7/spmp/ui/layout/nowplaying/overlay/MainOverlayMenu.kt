@@ -21,6 +21,7 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.times
 import androidx.palette.graphics.Palette
 import com.spectre7.spmp.*
+import com.spectre7.spmp.model.MediaItem
 import com.spectre7.spmp.model.Song
 import com.spectre7.spmp.ui.layout.PlayerViewContext
 import com.spectre7.spmp.ui.layout.nowplaying.NOW_PLAYING_MAIN_PADDING
@@ -118,12 +119,10 @@ class MainOverlayMenu(
                 .size(button_size)
                 .padding(8.dp)
 
-            song.artist?.PreviewLong(
-                content_colour = { Color.White },
+            song.artist?.PreviewLong(MediaItem.PreviewParams(
                 playerProvider,
-                true,
-                Modifier
-            )
+                content_colour = { Color.White },
+            ))
 
             var edited_song_title by remember(song) { mutableStateOf(song.title!!) }
             OutlinedTextField(

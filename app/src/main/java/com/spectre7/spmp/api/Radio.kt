@@ -128,7 +128,7 @@ data class YoutubeiNextResponse(
 
             // Get artist from album
             for (run in longBylineText.runs!!) {
-                if (run.navigationEndpoint?.browseEndpoint?.page_type != "MUSIC_PAGE_TYPE_ALBUM") {
+                if (run.navigationEndpoint?.browseEndpoint?.getPageType() != "MUSIC_PAGE_TYPE_ALBUM") {
                     continue
                 }
 

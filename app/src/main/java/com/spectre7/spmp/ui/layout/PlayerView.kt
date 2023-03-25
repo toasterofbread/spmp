@@ -20,12 +20,8 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.alpha
 import androidx.compose.ui.layout.onSizeChanged
-import androidx.compose.ui.platform.LocalConfiguration
 import androidx.compose.ui.platform.LocalDensity
-import androidx.compose.ui.unit.Dp
-import androidx.compose.ui.unit.IntOffset
-import androidx.compose.ui.unit.dp
-import androidx.compose.ui.unit.sp
+import androidx.compose.ui.unit.*
 import com.google.accompanist.swiperefresh.SwipeRefresh
 import com.google.accompanist.swiperefresh.rememberSwipeRefreshState
 import com.spectre7.spmp.MainActivity
@@ -74,6 +70,10 @@ data class PlayerViewContext(
     private var now_playing_swipe_anchors: Map<Float, Int>? = null
     fun getNowPlayingSwipeState(): SwipeableState<Int> = baseOrThis().now_playing_swipe_state!!
 
+    fun getNowPlayingTopOffset(screen_height: Dp, density: Density): Int {
+        return with (density) { (-getNowPlayingSwipeState().offset.value.dp - screen_height * 0.5f).toPx().toInt() }
+    }
+
     private val now_playing_switch_page: MutableState<Int>? = if (is_base) mutableStateOf(-1) else null
     private fun switchNowPlayingPage(page: Int) {
         baseOrThis().now_playing_switch_page!!.value = page
@@ -85,7 +85,7 @@ data class PlayerViewContext(
     )
 
     private val overlay_page_undo_stack: MutableList<Pair<OverlayPage, MediaItem?>?> = mutableListOf()
-    var overlay_page: Pair<OverlayPage, MediaItem?>? by mutableStateOf(null)
+    var overlay_page: Pair<OverlayPage, MediaItem?>? by mutableStateOf(Pair(OverlayPage.SEARCH, null))
         private set
 
     fun setOverlayPage(page: OverlayPage?, media_item: MediaItem? = null) {
@@ -374,10 +374,7 @@ fun PlayerView() {
                 if (!overlay_open) expand_state else null,
                 Theme.current.accent_provider,
                 container_modifier = Modifier.offset {
-                    IntOffset(
-                        0,
-                        (-player.getNowPlayingSwipeState().offset.value.dp - screen_height * 0.5f).toPx().toInt()
-                    )
+                    IntOffset(0, player.getNowPlayingTopOffset(screen_height, this))
                 }
             )
 
@@ -471,7 +468,11 @@ private fun MainPage(
                                             contentColor = Theme.current.vibrant_accent
                                         )
 
-                                        ShapedIconButton({ playerProvider().setOverlayPage(OverlayPage.RADIO_BUILDER) }, CircleShape, colors = button_colours.toIconButtonColours()) {
+                                        ShapedIconButton(
+                                            { playerProvider().setOverlayPage(OverlayPage.RADIO_BUILDER) },
+                                            shape = CircleShape,
+                                            colors = button_colours.toIconButtonColours()
+                                        ) {
                                             Icon(Icons.Filled.Add, null)
                                         }
 

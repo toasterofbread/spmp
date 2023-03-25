@@ -4,11 +4,10 @@ import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.setValue
-import androidx.compose.ui.Modifier
-import androidx.compose.ui.graphics.Color
+import com.spectre7.spmp.R
 import com.spectre7.spmp.ui.component.PlaylistPreviewLong
 import com.spectre7.spmp.ui.component.PlaylistPreviewSquare
-import com.spectre7.spmp.ui.layout.PlayerViewContext
+import com.spectre7.utils.getString
 
 class Playlist private constructor (
     id: String
@@ -16,6 +15,7 @@ class Playlist private constructor (
 
     enum class PlaylistType {
         PLAYLIST, ALBUM, AUDIOBOOK, RADIO;
+
         companion object {
             fun fromTypeString(type: String): PlaylistType {
                 return when (type) {
@@ -51,14 +51,23 @@ class Playlist private constructor (
     }
 
     @Composable
-    override fun PreviewSquare(content_colour: () -> Color, playerProvider: () -> PlayerViewContext, enable_long_press_menu: Boolean, modifier: Modifier) {
-        PlaylistPreviewSquare(this, content_colour, playerProvider, enable_long_press_menu, modifier)
+    override fun PreviewSquare(params: PreviewParams) {
+        PlaylistPreviewSquare(this, params)
     }
 
     @Composable
-    override fun PreviewLong(content_colour: () -> Color, playerProvider: () -> PlayerViewContext, enable_long_press_menu: Boolean, modifier: Modifier) {
-        PlaylistPreviewLong(this, content_colour, playerProvider, enable_long_press_menu, modifier)
+    override fun PreviewLong(params: PreviewParams) {
+        PlaylistPreviewLong(this, params)
     }
 
     override val url: String get() = "https://music.youtube.com/playlist?list=$id"
+}
+
+fun Playlist.PlaylistType?.getReadable(plural: Boolean): String {
+    return getString(when (this) {
+        Playlist.PlaylistType.PLAYLIST, null -> if (plural) R.string.playlists else R.string.playlist
+        Playlist.PlaylistType.ALBUM -> if (plural) R.string.albums else R.string.album
+        Playlist.PlaylistType.AUDIOBOOK -> if (plural) R.string.audiobooks else R.string.audiobook
+        Playlist.PlaylistType.RADIO -> if (plural) R.string.radios else R.string.radio
+    })
 }

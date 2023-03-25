@@ -172,7 +172,7 @@ private class AccountMenuResponse(val actions: List<Action>) {
         for (section in actions.first().openPopupAction.popup.multiPageMenuRenderer.sections) {
             for (item in section.multiPageMenuSectionRenderer.items) {
                 val browse_endpoint = item.compactLinkRenderer.navigationEndpoint?.browseEndpoint
-                if (browse_endpoint?.page_type == "MUSIC_PAGE_TYPE_USER_CHANNEL") {
+                if (browse_endpoint?.getPageType() == "MUSIC_PAGE_TYPE_USER_CHANNEL") {
                     return browse_endpoint.browseId
                 }
             }

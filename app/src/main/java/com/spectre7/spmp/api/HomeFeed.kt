@@ -257,9 +257,15 @@ data class WatchEndpoint(val videoId: String? = null, val playlistId: String? = 
 data class BrowseEndpointContextMusicConfig(val pageType: String)
 data class BrowseEndpointContextSupportedConfigs(val browseEndpointContextMusicConfig: BrowseEndpointContextMusicConfig)
 data class BrowseEndpoint(val browseId: String, val browseEndpointContextSupportedConfigs: BrowseEndpointContextSupportedConfigs? = null) {
-    val page_type: String? get() = browseEndpointContextSupportedConfigs?.browseEndpointContextMusicConfig?.pageType
+    fun getPageType(): String? = browseEndpointContextSupportedConfigs?.browseEndpointContextMusicConfig?.pageType
+
+    fun getMediaItem(): MediaItem? {
+        return getPageType()?.let { page_type ->
+            MediaItem.fromBrowseEndpointType(page_type, browseId)
+        }
+    }
 }
-data class SearchEndpoint(val query: String, val params: String)
+data class SearchEndpoint(val query: String, val params: String? = null)
 data class NavigationEndpoint(
     val watchEndpoint: WatchEndpoint? = null,
     val browseEndpoint: BrowseEndpoint? = null,
@@ -270,10 +276,11 @@ data class Header(
     val musicImmersiveHeaderRenderer: HeaderRenderer? = null,
     val musicVisualHeaderRenderer: HeaderRenderer? = null,
     val musicDetailHeaderRenderer: HeaderRenderer? = null,
-    val musicEditablePlaylistDetailHeaderRenderer: MusicEditablePlaylistDetailHeaderRenderer? = null
+    val musicEditablePlaylistDetailHeaderRenderer: MusicEditablePlaylistDetailHeaderRenderer? = null,
+    val musicCardShelfHeaderBasicRenderer: HeaderRenderer? = null
 ) {
     fun getRenderer(): HeaderRenderer {
-        return musicCarouselShelfBasicHeaderRenderer ?: musicImmersiveHeaderRenderer ?: musicVisualHeaderRenderer ?: musicDetailHeaderRenderer ?: musicEditablePlaylistDetailHeaderRenderer!!.header.getRenderer()
+        return musicCarouselShelfBasicHeaderRenderer ?: musicImmersiveHeaderRenderer ?: musicVisualHeaderRenderer ?: musicDetailHeaderRenderer ?: musicCardShelfHeaderBasicRenderer ?: musicEditablePlaylistDetailHeaderRenderer!!.header.getRenderer()
     }
 
     data class MusicEditablePlaylistDetailHeaderRenderer(val header: Header)
@@ -320,19 +327,42 @@ data class TextRuns(
 }
 data class TextRun(val text: String, val strapline: TextRuns? = null, val navigationEndpoint: NavigationEndpoint? = null) {
     @Json(ignored = true)
-    val browse_endpoint_type: String? get() = navigationEndpoint?.browseEndpoint?.page_type
+    val browse_endpoint_type: String? get() = navigationEndpoint?.browseEndpoint?.getPageType()
 }
 
 data class MusicShelfRenderer(val title: TextRuns? = null, val contents: List<ContentsItem>, val continuations: List<YoutubeiNextResponse.Continuation>? = null)
 data class MusicCarouselShelfRenderer(val header: Header, val contents: List<ContentsItem>)
 data class MusicDescriptionShelfRenderer(val header: TextRuns, val description: TextRuns)
-data class MusicCardShelfRenderer(val thumbnail: ThumbnailRenderer, val title: TextRuns, val subtitle: TextRuns, val menu: YoutubeiNextResponse.Menu)
+data class MusicCardShelfRenderer(
+    val thumbnail: ThumbnailRenderer,
+    val title: TextRuns,
+    val subtitle: TextRuns,
+    val menu: YoutubeiNextResponse.Menu,
+    val header: Header
+) {
+    fun getMediaItem(): MediaItem {
+        val item: MediaItem
+
+        val endpoint = title.runs!!.first().navigationEndpoint!!
+        if (endpoint.watchEndpoint != null) {
+            item = Song.fromId(endpoint.watchEndpoint.videoId!!)
+        }
+        else {
+            item = endpoint.browseEndpoint!!.getMediaItem()!!
+        }
+
+        item.supplyTitle(title.first_text, true)
+        item.supplyDataFromSubtitle(subtitle.runs!!)
+
+        return item
+    }
+}
 
 data class MusicTwoRowItemRenderer(val navigationEndpoint: NavigationEndpoint, val title: TextRuns, val subtitle: TextRuns, val thumbnailRenderer: ThumbnailRenderer) {
     fun getArtist(host_item: MediaItem): Artist? {
         for (run in subtitle.runs!!) {
             val browse_endpoint = run.navigationEndpoint?.browseEndpoint
-            if (browse_endpoint?.page_type == "MUSIC_PAGE_TYPE_ARTIST") {
+            if (browse_endpoint?.getPageType() == "MUSIC_PAGE_TYPE_ARTIST") {
                 return Artist.fromId(browse_endpoint.browseId).supplyTitle(run.text) as Artist
             }
         }
@@ -370,6 +400,7 @@ data class ContentsItem(val musicTwoRowItemRenderer: MusicTwoRowItemRenderer? = 
             if (renderer.navigationEndpoint.watchEndpoint?.videoId != null) {
                 val first_thumbnail = renderer.thumbnailRenderer.musicThumbnailRenderer.thumbnail.thumbnails.first()
                 return Song.fromId(renderer.navigationEndpoint.watchEndpoint.videoId).apply {
+                    // TODO | Is this the best way of checking?
                     supplySongType(if (first_thumbnail.height == first_thumbnail.width) Song.SongType.SONG else Song.SongType.VIDEO)
                     supplyTitle(renderer.title.first_text)
                     supplyArtist(renderer.getArtist(this))
@@ -379,7 +410,7 @@ data class ContentsItem(val musicTwoRowItemRenderer: MusicTwoRowItemRenderer? = 
 
             // Playlist or artist
             val browse_id = renderer.navigationEndpoint.browseEndpoint!!.browseId
-            val page_type = renderer.navigationEndpoint.browseEndpoint.page_type!!
+            val page_type = renderer.navigationEndpoint.browseEndpoint.getPageType()!!
 
             return when (page_type) {
                 "MUSIC_PAGE_TYPE_ALBUM", "MUSIC_PAGE_TYPE_PLAYLIST", "MUSIC_PAGE_TYPE_AUDIOBOOK" ->
@@ -407,7 +438,7 @@ data class ContentsItem(val musicTwoRowItemRenderer: MusicTwoRowItemRenderer? = 
             var playlist: Playlist? = null
 
             if (video_id == null) {
-                val page_type = renderer.navigationEndpoint?.browseEndpoint?.page_type
+                val page_type = renderer.navigationEndpoint?.browseEndpoint?.getPageType()
                 when (page_type) {
                     "MUSIC_PAGE_TYPE_ALBUM", "MUSIC_PAGE_TYPE_PLAYLIST" -> {
                         video_is_main = false
@@ -447,7 +478,7 @@ data class ContentsItem(val musicTwoRowItemRenderer: MusicTwoRowItemRenderer? = 
                         }
 
                         val browse_endpoint = run.navigationEndpoint.browseEndpoint
-                        when (browse_endpoint?.page_type) {
+                        when (browse_endpoint?.getPageType()) {
                             "MUSIC_PAGE_TYPE_ARTIST", "MUSIC_PAGE_TYPE_USER_CHANNEL" -> {
                                 if (artist == null) {
                                     artist = Artist.fromId(browse_endpoint.browseId).supplyTitle(run.text) as Artist

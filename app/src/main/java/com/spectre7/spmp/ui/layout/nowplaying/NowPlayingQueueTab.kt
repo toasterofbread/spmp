@@ -34,6 +34,7 @@ import com.google.android.exoplayer2.C
 import com.google.android.exoplayer2.Player
 import com.spectre7.spmp.PlayerServiceHost
 import com.spectre7.spmp.R
+import com.spectre7.spmp.model.MediaItem
 import com.spectre7.spmp.model.Song
 import com.spectre7.spmp.ui.layout.MINIMISED_NOW_PLAYING_HEIGHT
 import com.spectre7.spmp.ui.layout.PlayerViewContext
@@ -90,23 +91,24 @@ private class QueueTabItem(val song: Song, val key: Int) {
             ) {
                 val content_colour = if (current) parent_background_colour else parent_background_colour.getContrasted()
                 song.PreviewLong(
-                    { content_colour },
-                    remember(index) {
-                        {
-                            playerProvider().copy(onClickedOverride = {
-                                PlayerServiceHost.player.seekTo(index, C.TIME_UNSET)
-                            })
-                        }
-                    },
-                    true,
-                    Modifier
-                        .weight(1f)
-                        .swipeable(
-                            swipe_state,
-                            anchors,
-                            Orientation.Horizontal,
-                            thresholds = { _, _ -> FractionalThreshold(0.2f) }
-                        ),
+                    MediaItem.PreviewParams(
+                        remember(index) {
+                            {
+                                playerProvider().copy(onClickedOverride = {
+                                    PlayerServiceHost.player.seekTo(index, C.TIME_UNSET)
+                                })
+                            }
+                        },
+                        Modifier
+                            .weight(1f)
+                            .swipeable(
+                                swipe_state,
+                                anchors,
+                                Orientation.Horizontal,
+                                thresholds = { _, _ -> FractionalThreshold(0.2f) }
+                            ),
+                        content_colour = { content_colour },
+                    ),
                     queue_index = index
                 )
 

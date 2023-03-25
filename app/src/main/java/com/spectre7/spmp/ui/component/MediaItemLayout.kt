@@ -1,25 +1,29 @@
 package com.spectre7.spmp.ui.component
 
 import androidx.compose.animation.*
-import androidx.compose.foundation.Image
+import androidx.compose.foundation.*
+import androidx.compose.foundation.interaction.MutableInteractionSource
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.*
 import androidx.compose.foundation.lazy.grid.GridCells
 import androidx.compose.foundation.lazy.grid.LazyHorizontalGrid
 import androidx.compose.foundation.shape.CircleShape
+import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.filled.KeyboardDoubleArrowDown
-import androidx.compose.material.icons.filled.MoreHoriz
+import androidx.compose.material.icons.filled.*
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
+import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.RectangleShape
 import androidx.compose.ui.graphics.Shape
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.Dp
+import androidx.compose.ui.unit.TextUnit
 import androidx.compose.ui.unit.dp
+import androidx.compose.ui.unit.sp
 import coil.compose.rememberAsyncImagePainter
 import com.beust.klaxon.Json
 import com.spectre7.spmp.R
@@ -27,12 +31,11 @@ import com.spectre7.spmp.api.DataApi
 import com.spectre7.spmp.api.YoutubeiBrowseResponse
 import com.spectre7.spmp.api.cast
 import com.spectre7.spmp.api.getSongRadio
-import com.spectre7.spmp.model.MediaItem
-import com.spectre7.spmp.model.Playlist
-import com.spectre7.spmp.model.Song
+import com.spectre7.spmp.model.*
 import com.spectre7.spmp.ui.layout.PlayerViewContext
 import com.spectre7.spmp.ui.theme.Theme
 import com.spectre7.utils.WidthShrinkText
+import com.spectre7.utils.getContrasted
 import com.spectre7.utils.getString
 import okhttp3.Request
 
@@ -43,13 +46,29 @@ data class MediaItemLayout(
     val items: MutableList<MediaItem> = mutableListOf(),
     val thumbnail_source: ThumbnailSource? = null,
     val media_item_type: MediaItem.Type? = null,
-    val view_more: ViewMore? = null,
+    var view_more: ViewMore? = null,
     var continuation: Continuation? = null
 ) {
     enum class Type {
         GRID,
         LIST,
-        NUMBERED_LIST
+        NUMBERED_LIST,
+        CARD;
+
+        @Composable
+        fun Layout(layout: MediaItemLayout, playerProvider: () -> PlayerViewContext) {
+            when (this) {
+                GRID -> MediaItemGrid(layout, playerProvider)
+                LIST -> MediaItemList(layout, false, playerProvider)
+                NUMBERED_LIST -> MediaItemList(layout, true, playerProvider)
+                CARD -> MediaItemCard(layout, playerProvider)
+            }
+        }
+    }
+
+    @Composable
+    fun Layout(playerProvider: () -> PlayerViewContext) {
+        type!!.Layout(this, playerProvider)
     }
 
     class Continuation(var token: String, val type: Type, private val id: String? = null) {
@@ -101,8 +120,12 @@ data class MediaItemLayout(
         }
     }
 
-    data class ViewMore(val list_page_url: String? = null, val media_item: MediaItem? = null) {
-        init { check(list_page_url != null || media_item != null) }
+    data class ViewMore(
+        val list_page_url: String? = null,
+        val media_item: MediaItem? = null,
+        val action: (() -> Unit)? = null
+    ) {
+        init { check(list_page_url != null || media_item != null || action != null) }
     }
 
     class ThumbnailSource(val media_item: MediaItem? = null, val url: String? = null) {
@@ -149,17 +172,30 @@ data class MediaItemLayout(
     }
 
     @Composable
-    fun TitleBar(playerProvider: () -> PlayerViewContext, modifier: Modifier = Modifier) {
-        Row(modifier.fillMaxWidth().height(IntrinsicSize.Max), verticalAlignment = Alignment.Bottom, horizontalArrangement = Arrangement.spacedBy(10.dp)) {
+    fun TitleBar(
+        playerProvider: () -> PlayerViewContext,
+        modifier: Modifier = Modifier,
+        font_size: TextUnit? = null
+    ) {
+        Row(
+            modifier
+                .fillMaxWidth()
+                .height(IntrinsicSize.Max),
+            verticalAlignment = Alignment.Bottom,
+            horizontalArrangement = Arrangement.spacedBy(10.dp)
+        ) {
             val thumbnail_url = thumbnail_source?.getThumbUrl(MediaItem.ThumbnailQuality.LOW)
             if (thumbnail_url != null) {
                 Image(
                     rememberAsyncImagePainter(thumbnail_url), title,
-                    Modifier.fillMaxHeight().aspectRatio(1f).clip(getThumbShape())
+                    Modifier
+                        .fillMaxHeight()
+                        .aspectRatio(1f)
+                        .clip(getThumbShape())
                 )
             }
 
-            Column(Modifier.fillMaxSize().weight(1f), verticalArrangement = Arrangement.Center) {
+            Column(verticalArrangement = Arrangement.Center) {
                 if (subtitle != null) {
                     WidthShrinkText(subtitle, style = MaterialTheme.typography.titleSmall.copy(color = Theme.current.on_background))
                 }
@@ -167,24 +203,37 @@ data class MediaItemLayout(
                 if (title != null) {
                     WidthShrinkText(
                         title,
-                        Modifier.fillMaxWidth(),
-                        style = MaterialTheme.typography.headlineMedium.copy(color = Theme.current.on_background)
+                        modifier = Modifier.fillMaxWidth(),
+                        style = MaterialTheme.typography.headlineMedium.let { style ->
+                            style.copy(
+                                color = Theme.current.on_background,
+                                fontSize = font_size ?: style.fontSize
+                            )
+                        }
                     )
                 }
             }
 
-            if (view_more != null) {
-                IconButton({
-                    if (view_more.media_item != null) {
-                        playerProvider().openMediaItem(view_more.media_item)
-                    }
-                    else if (view_more.list_page_url != null) {
-                        TODO(view_more.list_page_url)
-                    }
-                    else {
-                        throw NotImplementedError(view_more.toString())
-                    }
-                }, Modifier.fillMaxHeight().aspectRatio(1f)) {
+            view_more?.also { view_more ->
+                IconButton(
+                    {
+                        if (view_more.media_item != null) {
+                            playerProvider().openMediaItem(view_more.media_item)
+                        }
+                        else if (view_more.list_page_url != null) {
+                            TODO(view_more.list_page_url)
+                        }
+                        else if (view_more.action != null) {
+                            view_more.action.invoke()
+                        }
+                        else {
+                            throw NotImplementedError(view_more.toString())
+                        }
+                    },
+                    Modifier
+                        .fillMaxHeight()
+                        .aspectRatio(1f)
+                ) {
                     Icon(Icons.Filled.MoreHoriz, null)
                 }
             }
@@ -216,11 +265,15 @@ data class MediaItemLayout(
                         enter = fadeIn() + expandIn(expandFrom = Alignment.Center),
                         exit = fadeOut() + shrinkOut(shrinkTowards = Alignment.Center)
                     ) {
-                        item.PreviewSquare(Theme.current.on_background_provider, playerProvider, true, Modifier)
+                        item.PreviewSquare(MediaItem.PreviewParams(
+                            playerProvider, content_colour = Theme.current.on_background_provider
+                        ))
                     }
                 }
                 else {
-                    item.PreviewSquare(Theme.current.on_background_provider, playerProvider, true, Modifier)
+                    item.PreviewSquare(MediaItem.PreviewParams(
+                        playerProvider, content_colour = Theme.current.on_background_provider
+                    ))
                 }
             }
         }
@@ -246,11 +299,7 @@ fun MediaItemLayoutColumn(
 
     Column(modifier) {
         for (layout in layouts) {
-            when (layout.type!!) {
-                MediaItemLayout.Type.GRID -> MediaItemGrid(layout, playerProvider)
-                MediaItemLayout.Type.LIST -> MediaItemList(layout, false, playerProvider)
-                MediaItemLayout.Type.NUMBERED_LIST -> MediaItemList(layout, true, playerProvider)
-            }
+            layout.Layout(playerProvider)
         }
 
         Crossfade(Pair(onContinuationRequested, loading_continuation)) { data ->
@@ -294,7 +343,6 @@ fun LazyMediaItemLayoutColumn(
 
         for (layout in layouts) {
             when (val type = getType?.invoke(layout) ?: layout.type!!) {
-                MediaItemLayout.Type.GRID -> item { MediaItemGrid(layout, playerProvider) }
                 MediaItemLayout.Type.LIST, MediaItemLayout.Type.NUMBERED_LIST -> {
                     item {
                         layout.TitleBar(playerProvider)
@@ -307,11 +355,12 @@ fun LazyMediaItemLayoutColumn(
                             }
 
                             Column {
-                                item.PreviewLong(Theme.current.on_background_provider, playerProvider, true, Modifier)
+                                item.PreviewLong(MediaItem.PreviewParams(playerProvider, content_colour = Theme.current.on_background_provider))
                             }
                         }
                     }
                 }
+                else -> item { type.Layout(layout, playerProvider) }
             }
         }
 
@@ -327,6 +376,113 @@ fun LazyMediaItemLayoutColumn(
                         }
                     }
                 }
+            }
+        }
+    }
+}
+
+@OptIn(ExperimentalFoundationApi::class)
+@Composable
+fun MediaItemCard(
+    layout: MediaItemLayout,
+    playerProvider: () -> PlayerViewContext,
+    modifier: Modifier = Modifier
+) {
+    val item: MediaItem = layout.items.single()
+
+    val shape = RoundedCornerShape(16.dp)
+    val long_press_menu_data = remember (item) {
+        when (item) {
+            is Song -> getSongLongPressMenuData(item, shape)
+            is Artist -> LongPressMenuData(item, shape, actions = artistLongPressPopupActions)
+            else -> LongPressMenuData(item, shape)
+        }
+    }
+
+    Column(
+        modifier
+            .padding(10.dp)
+            .combinedClickable(
+                interactionSource = remember { MutableInteractionSource() },
+                indication = null,
+                onClick = {
+                    playerProvider().onMediaItemClicked(item)
+                },
+                onLongClick = {
+                    playerProvider().showLongPressMenu(long_press_menu_data)
+                }
+            ),
+        verticalArrangement = Arrangement.spacedBy(10.dp)
+    ) {
+        Row(
+            verticalAlignment = Alignment.CenterVertically,
+            horizontalArrangement = Arrangement.spacedBy(5.dp)
+        ) {
+            layout.TitleBar(playerProvider, Modifier.fillMaxWidth().weight(1f))
+
+            Text(if (item is Playlist) item.playlist_type.getReadable(false) else item.type.getReadable(false))
+
+            Icon(
+                when (item) {
+                    is Song -> Icons.Filled.MusicNote
+                    is Artist -> Icons.Filled.Person
+                    is Playlist -> {
+                        when (item.playlist_type) {
+                            Playlist.PlaylistType.PLAYLIST, null -> Icons.Filled.PlaylistPlay
+                            Playlist.PlaylistType.ALBUM -> Icons.Filled.Album
+                            Playlist.PlaylistType.AUDIOBOOK -> Icons.Filled.Book
+                            Playlist.PlaylistType.RADIO -> Icons.Filled.Radio
+                        }
+                    }
+                    else -> throw NotImplementedError(item.type.toString())
+                },
+                null,
+                Modifier.size(15.dp)
+            )
+        }
+
+        Row(
+            Modifier
+                .fillMaxWidth()
+                .height(IntrinsicSize.Min), horizontalArrangement = Arrangement.spacedBy(10.dp)) {
+            item.Thumbnail(
+                MediaItem.ThumbnailQuality.HIGH,
+                Modifier
+                    .size(100.dp)
+                    .longPressMenuIcon(long_press_menu_data)
+            )
+
+            Column(
+                Modifier
+                    .fillMaxSize()
+                    .background(Theme.current.accent, shape)
+                    .padding(horizontal = 15.dp, vertical = 5.dp),
+                verticalArrangement = Arrangement.SpaceEvenly
+            ) {
+                WidthShrinkText(item.title!!)
+                item.artist?.PreviewLong(MediaItem.PreviewParams(playerProvider))
+            }
+        }
+
+        Row(
+            Modifier.fillMaxWidth(),
+            horizontalArrangement = Arrangement.spacedBy(15.dp),
+            verticalAlignment = Alignment.CenterVertically
+        ) {
+            Button(
+                {},
+                Modifier.fillMaxWidth(),
+                shape = shape,
+                colors = ButtonDefaults.buttonColors(
+                    containerColor = Theme.current.vibrant_accent,
+                    contentColor = Theme.current.vibrant_accent.getContrasted()
+                )
+            ) {
+                Text(getString(when (item.type) {
+                    MediaItem.Type.SONG -> R.string.media_play
+                    MediaItem.Type.ARTIST -> R.string.artist_chip_play
+                    MediaItem.Type.PLAYLIST -> R.string.playlist_chip_play
+                }))
             }
         }
     }
@@ -363,7 +519,7 @@ fun MediaItemList(
     modifier: Modifier = Modifier
 ) {
     Column(modifier) {
-        layout.TitleBar(playerProvider)
+        layout.TitleBar(playerProvider, Modifier.padding(bottom = 5.dp))
 
         for (item in layout.items.withIndex()) {
             Row(verticalAlignment = Alignment.CenterVertically) {
@@ -372,7 +528,7 @@ fun MediaItemList(
                 }
 
                 Column {
-                    item.value.PreviewLong(Theme.current.on_background_provider, playerProvider, true, Modifier)
+                    item.value.PreviewLong(MediaItem.PreviewParams(playerProvider))
                 }
             }
         }
@@ -392,7 +548,7 @@ fun List<MediaItem>.generateLayoutTitle(): Pair<String, String?> {
         when (item.type) {
             MediaItem.Type.SONG -> if ((item as Song).song_type == Song.SongType.VIDEO) videos++ else songs++
             MediaItem.Type.ARTIST -> artists++
-            MediaItem.Type.PLAYLIST -> if ((item as Playlist).playlist_type == Playlist.PlaylistType.ALBUM) albums++ else playlists++
+            else -> if ((item as Playlist).playlist_type == Playlist.PlaylistType.ALBUM) albums++ else playlists++
         }
     }
 

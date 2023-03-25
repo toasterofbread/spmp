@@ -272,20 +272,26 @@ fun Marquee(autoscroll: Boolean = false, modifier: Modifier = Modifier, content:
 }
 
 @Composable
-fun WidthShrinkText(text: String, style: MutableState<TextStyle>, modifier: Modifier = Modifier) {
+fun WidthShrinkText(
+	text: String,
+	modifier: Modifier = Modifier,
+	style: TextStyle = LocalTextStyle.current
+) {
+	var text_style by remember(style) { mutableStateOf(style) }
 	var ready_to_draw by remember { mutableStateOf(false) }
+
 	Text(
 		text,
 		modifier.drawWithContent { if (ready_to_draw) drawContent() },
 		maxLines = 1,
 		softWrap = false,
-		style = style.value,
+		style = text_style,
 		onTextLayout = { layout_result ->
 			if (!layout_result.didOverflowWidth) {
 				ready_to_draw = true
 			}
 			else {
-				style.value = style.value.copy(fontSize = style.value.fontSize * 0.95)
+				text_style = text_style.copy(fontSize = text_style.fontSize * 0.95)
 			}
 		}
 	)
@@ -293,17 +299,11 @@ fun WidthShrinkText(text: String, style: MutableState<TextStyle>, modifier: Modi
 
 @Composable
 fun WidthShrinkText(text: String, fontSize: TextUnit, modifier: Modifier = Modifier, fontWeight: FontWeight? = null, colour: Color = LocalContentColor.current) {
-	val style = LocalTextStyle.current.copy(fontSize = fontSize, fontWeight = fontWeight, color = colour)
 	WidthShrinkText(
 		text,
-		remember(fontSize, fontWeight, colour) { mutableStateOf(style) },
-		modifier
+		modifier,
+		LocalTextStyle.current.copy(fontSize = fontSize, fontWeight = fontWeight, color = colour)
 	)
-}
-
-@Composable
-fun WidthShrinkText(text: String, modifier: Modifier = Modifier, style: TextStyle = LocalTextStyle.current) {
-	WidthShrinkText(text, remember(style) { mutableStateOf(style) }, modifier)
 }
 
 // https://stackoverflow.com/a/66235329
@@ -531,7 +531,7 @@ fun printJson(data: String, klaxon: Klaxon? = null) {
 }
 
 @Composable
-fun SubtleLoadingIndicator(colour: Color = LocalContentColor.current, modifier: Modifier = Modifier) {
+fun SubtleLoadingIndicator(colour: Color = LocalContentColor.current, modifier: Modifier = Modifier, size: Dp = 20.dp) {
 	val inf_transition = rememberInfiniteTransition()
 	val anim by inf_transition.animateFloat(
 		initialValue = 0f,
@@ -546,11 +546,11 @@ fun SubtleLoadingIndicator(colour: Color = LocalContentColor.current, modifier: 
 
 	Box(modifier, contentAlignment = Alignment.Center) {
 		val current_anim = if (anim + rand_offset > 1f) anim + rand_offset - 1f else anim
-		val size = if (current_anim < 0.5f) current_anim else 1f - current_anim
+		val size_percent = if (current_anim < 0.5f) current_anim else 1f - current_anim
 		Spacer(
 			Modifier
 				.background(colour, CircleShape)
-				.size(20.dp * size)
+				.size(size * size_percent)
 		)
 	}
 }
@@ -662,8 +662,8 @@ fun <T> MutableList<T>.addUnique(item: T): Boolean {
 @Composable
 fun ShapedIconButton(
 	onClick: () -> Unit,
-	shape: Shape = CircleShape,
 	modifier: Modifier = Modifier,
+	shape: Shape = CircleShape,
 	enabled: Boolean = true,
 	interactionSource: MutableInteractionSource = remember { MutableInteractionSource() },
 	colors: IconButtonColors = IconButtonDefaults.iconButtonColors(),

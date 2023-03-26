@@ -353,6 +353,7 @@ data class MusicCardShelfRenderer(
 
         item.supplyTitle(title.first_text, true)
         item.supplyDataFromSubtitle(subtitle.runs!!)
+        item.supplyThumbnailProvider(thumbnail.toThumbnailProvider(), true)
 
         return item
     }

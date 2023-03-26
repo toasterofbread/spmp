@@ -74,6 +74,9 @@
     <string name="download_service_name">Download Service</string>
     <string name="download_service_error_name">Download Service errors</string>
 
+    <string name="search_filter_all">All</string>
+    <string name="search_filter_videos">Videos</string>
+
     <string name="lyrics_source_prefix">Source:&#160;</string>
     <string name="lyrics_source_petitlyrics">PetitLyrics</string>
 

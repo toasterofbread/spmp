@@ -35,6 +35,7 @@ import com.spectre7.spmp.model.*
 import com.spectre7.spmp.ui.layout.PlayerViewContext
 import com.spectre7.spmp.ui.theme.Theme
 import com.spectre7.utils.WidthShrinkText
+import com.spectre7.utils.contrastAgainst
 import com.spectre7.utils.getContrasted
 import com.spectre7.utils.getString
 import okhttp3.Request
@@ -389,6 +390,7 @@ fun MediaItemCard(
     modifier: Modifier = Modifier
 ) {
     val item: MediaItem = layout.items.single()
+    var accent_colour: Color? by remember { mutableStateOf(null) }
 
     val shape = RoundedCornerShape(16.dp)
     val long_press_menu_data = remember (item) {
@@ -396,6 +398,21 @@ fun MediaItemCard(
             is Song -> getSongLongPressMenuData(item, shape)
             is Artist -> LongPressMenuData(item, shape, actions = artistLongPressPopupActions)
             else -> LongPressMenuData(item, shape)
+        }
+    }
+
+    LaunchedEffect(item.thumbnail_palette) {
+        if (accent_colour != null) {
+            return@LaunchedEffect
+        }
+
+        if (item is Song && item.theme_colour != null) {
+            accent_colour = item.theme_colour
+            return@LaunchedEffect
+        }
+
+        if (item.thumbnail_palette != null) {
+            accent_colour = item.getDefaultThemeColour()
         }
     }
 
@@ -444,23 +461,31 @@ fun MediaItemCard(
         Row(
             Modifier
                 .fillMaxWidth()
-                .height(IntrinsicSize.Min), horizontalArrangement = Arrangement.spacedBy(10.dp)) {
+                .height(IntrinsicSize.Min),
+            horizontalArrangement = Arrangement.spacedBy(10.dp)
+        ) {
             item.Thumbnail(
                 MediaItem.ThumbnailQuality.HIGH,
                 Modifier
                     .size(100.dp)
-                    .longPressMenuIcon(long_press_menu_data)
+                    .longPressMenuIcon(long_press_menu_data),
             )
 
             Column(
                 Modifier
                     .fillMaxSize()
-                    .background(Theme.current.accent, shape)
+                    .background(accent_colour ?: Theme.current.accent, shape)
                     .padding(horizontal = 15.dp, vertical = 5.dp),
                 verticalArrangement = Arrangement.SpaceEvenly
             ) {
-                WidthShrinkText(item.title!!)
-                item.artist?.PreviewLong(MediaItem.PreviewParams(playerProvider))
+                WidthShrinkText(
+                    item.title!!,
+                    style = LocalTextStyle.current.copy(color = (accent_colour ?: Theme.current.accent).getContrasted())
+                )
+                item.artist?.PreviewLong(MediaItem.PreviewParams(
+                    playerProvider,
+                    content_colour = { (accent_colour ?: Theme.current.accent).getContrasted() }
+                ))
             }
         }
 
@@ -474,8 +499,8 @@ fun MediaItemCard(
                 Modifier.fillMaxWidth(),
                 shape = shape,
                 colors = ButtonDefaults.buttonColors(
-                    containerColor = Theme.current.vibrant_accent,
-                    contentColor = Theme.current.vibrant_accent.getContrasted()
+                    containerColor = accent_colour ?: Theme.current.vibrant_accent,
+                    contentColor = (accent_colour ?: Theme.current.vibrant_accent).getContrasted()
                 )
             ) {
                 Text(getString(when (item.type) {

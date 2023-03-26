@@ -6,19 +6,13 @@ import android.content.Intent
 import android.content.ServiceConnection
 import android.os.IBinder
 import androidx.compose.runtime.getValue
-import androidx.compose.runtime.mutableStateListOf
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.setValue
 import com.google.android.exoplayer2.ExoPlayer
 import com.google.android.exoplayer2.MediaItem
 import com.google.android.exoplayer2.Player
-import com.google.android.exoplayer2.offline.DownloadService
 import com.google.android.exoplayer2.MediaItem as ExoMediaItem
 import com.spectre7.spmp.model.Song
-import com.spectre7.utils.mainThread
-import kotlinx.coroutines.delay
-import kotlinx.coroutines.runBlocking
-import kotlin.concurrent.thread
 
 enum class SERVICE_INTENT_ACTIONS { STOP, BUTTON_VOLUME }
 

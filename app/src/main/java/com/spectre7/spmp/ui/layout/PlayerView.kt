@@ -85,7 +85,7 @@ data class PlayerViewContext(
     )
 
     private val overlay_page_undo_stack: MutableList<Pair<OverlayPage, MediaItem?>?> = mutableListOf()
-    var overlay_page: Pair<OverlayPage, MediaItem?>? by mutableStateOf(Pair(OverlayPage.SEARCH, null))
+    var overlay_page: Pair<OverlayPage, MediaItem?>? by mutableStateOf(null)
         private set
 
     fun setOverlayPage(page: OverlayPage?, media_item: MediaItem? = null) {
@@ -97,7 +97,7 @@ data class PlayerViewContext(
     }
 
     fun navigateBack() {
-        overlay_page = overlay_page_undo_stack.removeLast()
+        overlay_page = overlay_page_undo_stack.removeLastOrNull()
     }
 
     private val bottom_padding_anim = androidx.compose.animation.core.Animatable(PlayerServiceHost.session_started.toFloat() * MINIMISED_NOW_PLAYING_HEIGHT)

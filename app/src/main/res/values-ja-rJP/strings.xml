@@ -152,4 +152,6 @@
     <string name="radio_builder_modifier_filter_upbeat">アップビート</string>
     <string name="radio_builder_modifier_filter_downbeat">ダウンビート</string>
     <string name="radio_builder_modifier_filter_focus">集中</string>
+    <string name="search_filter_all">全て</string>
+    <string name="search_filter_videos">動画</string>
 </resources>

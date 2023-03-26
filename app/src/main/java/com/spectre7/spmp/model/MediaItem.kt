@@ -582,7 +582,7 @@ abstract class MediaItem(id: String) {
     abstract fun PreviewLong(params: PreviewParams)
 
     @Composable
-    fun Thumbnail(quality: ThumbnailQuality, modifier: Modifier = Modifier, content_colour: Color = Color.White) {
+    fun Thumbnail(quality: ThumbnailQuality, modifier: Modifier = Modifier, content_colour: Color = Color.White, d: Boolean = false) {
         LaunchedEffect(quality, canLoadThumbnail()) {
             getThumbnail(quality)
         }

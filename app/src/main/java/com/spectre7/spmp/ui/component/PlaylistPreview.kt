@@ -23,10 +23,11 @@ fun PlaylistPreviewSquare(
     playlist: Playlist,
     params: MediaItem.PreviewParams
 ) {
-    val long_press_menu_data = remember(playlist) { LongPressMenuData(
-        playlist,
-        RoundedCornerShape(10)
-    ) { } // TODO
+    val long_press_menu_data = remember(playlist) {
+        LongPressMenuData(
+            playlist,
+            RoundedCornerShape(10)
+        ) { } // TODO
     }
 
     Column(

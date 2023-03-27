@@ -3,7 +3,6 @@ package com.spectre7.spmp.api
 import android.util.JsonReader
 import com.spectre7.spmp.model.*
 import com.spectre7.spmp.ui.component.MediaItemLayout
-import com.spectre7.utils.printJson
 import okhttp3.Request
 import java.io.BufferedReader
 import java.io.Reader
@@ -121,6 +120,7 @@ fun loadMediaItemData(item: MediaItem): Result<MediaItem?> {
         val response_body: Reader = response.body!!.charStream()
 
         if (item is MediaItemWithLayouts) {
+
             val parsed: YoutubeiBrowseResponse = DataApi.klaxon.parse(response_body)!!
             response_body.close()
 

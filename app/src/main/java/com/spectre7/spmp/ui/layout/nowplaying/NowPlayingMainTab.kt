@@ -161,7 +161,11 @@ fun ColumnScope.NowPlayingMainTab(
     ) {
         AnimatedVisibility(PlayerServiceHost.status.m_song != null) {
             if (PlayerServiceHost.status.m_song != null) {
-                LikeDislikeButton(PlayerServiceHost.status.m_song!!, getNPOnBackground(playerProvider).setAlpha(0.5f))
+                LikeDislikeButton(
+                    PlayerServiceHost.status.m_song!!,
+                    Modifier.width(40.dp).fillMaxHeight(),
+                    colour = getNPOnBackground(playerProvider).setAlpha(0.5f)
+                )
             }
         }
 

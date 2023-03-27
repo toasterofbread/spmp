@@ -1,20 +1,17 @@
 package com.spectre7.spmp.ui.component
 
-import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.animation.Crossfade
 import androidx.compose.animation.core.Animatable
 import androidx.compose.foundation.ExperimentalFoundationApi
 import androidx.compose.foundation.combinedClickable
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.fillMaxHeight
-import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
 import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.filled.LineAxis
-import androidx.compose.material.icons.filled.QuestionMark
 import androidx.compose.material.icons.filled.ThumbUp
 import androidx.compose.material.icons.outlined.ThumbUp
 import androidx.compose.material3.Icon
+import androidx.compose.material3.LocalContentColor
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
@@ -33,7 +30,8 @@ import kotlin.concurrent.thread
 @Composable
 fun LikeDislikeButton(
     song: Song,
-    colour: Color
+    modifier: Modifier = Modifier,
+    colour: Color = LocalContentColor.current
 ) {
     var loaded: Boolean by remember { mutableStateOf(false) }
     var liked: Boolean? by remember { mutableStateOf(null) }
@@ -65,11 +63,11 @@ fun LikeDislikeButton(
         }
     }
 
-    Crossfade(liked != null) { active ->
-        Box(
-            Modifier.width(40.dp).fillMaxHeight(),
-            contentAlignment = Alignment.Center
-        ) {
+    Box(
+        modifier,
+        contentAlignment = Alignment.Center
+    ) {
+        Crossfade(liked != null) { active ->
             Icon(
                 if (active) Icons.Filled.ThumbUp else Icons.Outlined.ThumbUp,
                 null,

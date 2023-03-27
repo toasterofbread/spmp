@@ -4,6 +4,7 @@ package com.spectre7.spmp.ui.layout
 
 import android.content.Intent
 import android.net.Uri
+import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.animation.Crossfade
 import androidx.compose.animation.animateContentSize
 import androidx.compose.foundation.*
@@ -347,20 +348,21 @@ private fun TitleBar(item: MediaItem, modifier: Modifier = Modifier) {
 }
 
 @Composable
-private fun ArtistSubscribeButton(artist: Artist, background_colour: Color, accent_colour: Color?) {
+fun ArtistSubscribeButton(
+    artist: Artist,
+    background_colour: Color,
+    accent_colour: Color?,
+    modifier: Modifier = Modifier
+) {
     LaunchedEffect(artist) {
         thread {
             artist.updateSubscribed()
         }
     }
 
-    Crossfade(artist.subscribed) { subscribed ->
-        if (subscribed == null) {
-            Spacer(Modifier.requiredWidth(20.dp))
-        }
-        else {
-            Row {
-                Spacer(Modifier.requiredWidth(10.dp))
+    Box(modifier) {
+        Crossfade(artist.subscribed) { subscribed ->
+            if (subscribed != null) {
                 OutlinedIconButton(
                     {
                         artist.toggleSubscribe(
@@ -378,6 +380,15 @@ private fun ArtistSubscribeButton(artist: Artist, background_colour: Color, acce
             }
         }
     }
+    //        if (subscribed == null) {
+    //            Spacer(Modifier.requiredWidth(20.dp))
+    //        }
+    //        else {
+    //            Row {
+    //                Spacer(Modifier.requiredWidth(10.dp))
+    //            }
+    //        }
+
 }
 
 @Composable

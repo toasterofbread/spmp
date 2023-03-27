@@ -511,11 +511,9 @@ private fun RadioArtistSelector(
                             border_expansion.animateTo(if (selected) 1f else 0f)
                         }
 
-                        val long_press_menu_data = remember(artist) { LongPressMenuData(
-                            artist,
-                            CircleShape,
-                            actions = artistLongPressPopupActions
-                        ) }
+                        val long_press_menu_data = remember(artist) {
+                            getArtistLongPressMenuData(artist)
+                        }
 
                         Column(
                             modifier

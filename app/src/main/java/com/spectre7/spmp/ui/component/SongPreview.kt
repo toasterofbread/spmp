@@ -46,10 +46,14 @@ fun SongPreviewSquare(
                 interactionSource = remember { MutableInteractionSource() },
                 indication = null,
                 onClick = {
-                    params.playerProvider().onMediaItemClicked(song)
+                    params
+                        .playerProvider()
+                        .onMediaItemClicked(song)
                 },
                 onLongClick = {
-                    params.playerProvider().showLongPressMenu(long_press_menu_data)
+                    params
+                        .playerProvider()
+                        .showLongPressMenu(long_press_menu_data)
                 }
             )
             .aspectRatio(0.8f),
@@ -92,10 +96,14 @@ fun SongPreviewLong(
                 interactionSource = remember { MutableInteractionSource() },
                 indication = null,
                 onClick = {
-                    params.playerProvider().onMediaItemClicked(song)
+                    params
+                        .playerProvider()
+                        .onMediaItemClicked(song)
                 },
                 onLongClick = {
-                    params.playerProvider().showLongPressMenu(long_press_menu_data)
+                    params
+                        .playerProvider()
+                        .showLongPressMenu(long_press_menu_data)
                 }
             )
     ) {
@@ -107,7 +115,9 @@ fun SongPreviewLong(
         )
 
         Column(
-            Modifier.padding(10.dp).fillMaxWidth(),
+            Modifier
+                .padding(10.dp)
+                .fillMaxWidth(),
             verticalArrangement = Arrangement.spacedBy(5.dp)
         ) {
 
@@ -156,7 +166,12 @@ fun getSongLongPressMenuData(
         thumb_shape,
         { SongLongPressMenuInfo(song, queue_index, it) },
         getString("Long press actions"),
-        actions = getSongLongPressPopupActions(queue_index)
+        actions = {
+            SongLongPressPopupActions(it, queue_index)
+        },
+        sideButton = { modifier, background, _ ->
+            LikeDislikeButton(song, modifier, background.getContrasted())
+        }
     )
 }
 
@@ -206,7 +221,8 @@ private fun ColumnScope.SongLongPressMenuInfo(song: Song, queue_index: Int?, acc
     }
 }
 
-private fun getSongLongPressPopupActions(queue_index: Int?): @Composable LongPressMenuActionProvider.(MediaItem) -> Unit = { song ->
+@Composable
+private fun LongPressMenuActionProvider.SongLongPressPopupActions(song: MediaItem, queue_index: Int?) {
     require(song is Song)
 
     ActionButton(

@@ -106,6 +106,7 @@ data class LongPressMenuData(
     val thumb_shape: Shape? = null,
     val infoContent: (@Composable ColumnScope.(accent: Color) -> Unit)? = null,
     val info_title: String? = null,
+    val sideButton: (@Composable (Modifier, background: Color, accent: Color) -> Unit)? = null,
     val actions: (@Composable LongPressMenuActionProvider.(MediaItem) -> Unit)? = null
 ) {
     internal var thumb_size: IntSize? = null
@@ -196,7 +197,7 @@ fun LongPressIconMenu(
         var target_position: Offset? by remember { mutableStateOf(null) }
         var target_size: IntSize? by remember { mutableStateOf(null) }
 
-        var accent_colour by remember { mutableStateOf(Color.Unspecified) }
+        var accent_colour: Color? by remember { mutableStateOf(null) }
 
         fun applyPalette(item: MediaItem) {
             accent_colour = (item.getDefaultThemeColour() ?: Theme.current.background)
@@ -386,7 +387,7 @@ fun LongPressIconMenu(
 
                         Row(Modifier.requiredHeight(1.dp)) {
                             var info_title_width: Int by remember { mutableStateOf(0) }
-                            var box_width: Int by remember { mutableStateOf(0) }
+                            var box_width: Int by remember { mutableStateOf(-1) }
 
                             Box(
                                 Modifier
@@ -405,11 +406,14 @@ fun LongPressIconMenu(
 
                                 Box(
                                     Modifier
-                                        .width(animateDpAsState(
-                                            with(LocalDensity.current) {
-                                                if (show_info) (box_width - info_title_width).toDp() - 15.dp else box_width.toDp()
-                                            }
-                                        ).value)
+                                        .run {
+                                            if (box_width < 0) fillMaxWidth()
+                                            else width(animateDpAsState(
+                                                with(LocalDensity.current) {
+                                                    if (show_info) (box_width - info_title_width).toDp() - 15.dp else box_width.toDp()
+                                                }
+                                            ).value)
+                                        }
                                         .requiredHeight(20.dp)
                                         .background(Theme.current.background)
                                         .align(Alignment.CenterEnd),
@@ -429,15 +433,17 @@ fun LongPressIconMenu(
                                     }
                                 }
                             }
+
+                            data.sideButton?.invoke(Modifier.requiredHeight(40.dp), Theme.current.background, accent_colour ?: Theme.current.accent)
                         }
 
                         Crossfade(show_info) { info ->
                             Column(verticalArrangement = Arrangement.spacedBy(item_spacing)) {
                                 if (info) {
-                                    data.infoContent?.invoke(this, accent_colour)
+                                    data.infoContent?.invoke(this, accent_colour ?: Theme.current.accent)
                                 }
                                 else {
-                                    Actions(data, accent_colour, playerProvider) { close_requested = true }
+                                    Actions(data, accent_colour ?: Theme.current.accent, playerProvider) { close_requested = true }
                                 }
                             }
                         }

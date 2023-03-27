@@ -396,7 +396,7 @@ fun MediaItemCard(
     val long_press_menu_data = remember (item) {
         when (item) {
             is Song -> getSongLongPressMenuData(item, shape)
-            is Artist -> LongPressMenuData(item, shape, actions = artistLongPressPopupActions)
+            is Artist -> getArtistLongPressMenuData(item)
             else -> LongPressMenuData(item, shape)
         }
     }

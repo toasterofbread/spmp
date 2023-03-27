@@ -17,6 +17,7 @@ import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.graphics.Shape
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.DpSize
 import androidx.compose.ui.unit.dp
@@ -24,6 +25,9 @@ import androidx.compose.ui.unit.sp
 import com.spectre7.spmp.PlayerServiceHost
 import com.spectre7.spmp.model.Artist
 import com.spectre7.spmp.model.MediaItem
+import com.spectre7.spmp.model.Song
+import com.spectre7.spmp.ui.layout.ArtistSubscribeButton
+import com.spectre7.utils.getContrasted
 import com.spectre7.utils.setAlpha
 
 @Composable
@@ -32,11 +36,9 @@ fun ArtistPreviewSquare(
     params: MediaItem.PreviewParams,
     thumb_size: DpSize = DpSize(100.dp, 100.dp)
 ) {
-    val long_press_menu_data = remember(artist) { LongPressMenuData(
-        artist,
-        CircleShape,
-        actions = artistLongPressPopupActions
-    ) }
+    val long_press_menu_data = remember(artist) {
+        getArtistLongPressMenuData(artist)
+    }
 
     Column(
         params.modifier
@@ -45,17 +47,24 @@ fun ArtistPreviewSquare(
                 interactionSource = remember { MutableInteractionSource() },
                 indication = null,
                 onClick = {
-                    params.playerProvider().onMediaItemClicked(artist)
+                    params
+                        .playerProvider()
+                        .onMediaItemClicked(artist)
                 },
                 onLongClick = {
-                    params.playerProvider().showLongPressMenu(long_press_menu_data)
+                    params
+                        .playerProvider()
+                        .showLongPressMenu(long_press_menu_data)
                 }
             )
             .aspectRatio(0.8f),
         horizontalAlignment = Alignment.CenterHorizontally,
         verticalArrangement = Arrangement.spacedBy(5.dp)
     ) {
-        artist.Thumbnail(MediaItem.ThumbnailQuality.LOW, Modifier.size(thumb_size).longPressMenuIcon(long_press_menu_data, params.enable_long_press_menu))
+        artist.Thumbnail(MediaItem.ThumbnailQuality.LOW,
+            Modifier
+                .size(thumb_size)
+                .longPressMenuIcon(long_press_menu_data, params.enable_long_press_menu))
 
         Text(
             artist.title ?: "",
@@ -73,11 +82,9 @@ fun ArtistPreviewLong(
     artist: Artist,
     params: MediaItem.PreviewParams
 ) {
-    val long_press_menu_data = remember(artist) { LongPressMenuData(
-        artist,
-        CircleShape,
-        actions = artistLongPressPopupActions
-    ) }
+    val long_press_menu_data = remember(artist) {
+        getArtistLongPressMenuData(artist)
+    }
 
     Row(
         verticalAlignment = Alignment.CenterVertically,
@@ -86,14 +93,21 @@ fun ArtistPreviewLong(
                 interactionSource = remember { MutableInteractionSource() },
                 indication = null,
                 onClick = {
-                    params.playerProvider().onMediaItemClicked(artist)
+                    params
+                        .playerProvider()
+                        .onMediaItemClicked(artist)
                 },
                 onLongClick = {
-                    params.playerProvider().showLongPressMenu(long_press_menu_data)
+                    params
+                        .playerProvider()
+                        .showLongPressMenu(long_press_menu_data)
                 }
             )
     ) {
-        artist.Thumbnail(MediaItem.ThumbnailQuality.LOW, Modifier.size(40.dp).longPressMenuIcon(long_press_menu_data, params.enable_long_press_menu))
+        artist.Thumbnail(MediaItem.ThumbnailQuality.LOW,
+            Modifier
+                .size(40.dp)
+                .longPressMenuIcon(long_press_menu_data, params.enable_long_press_menu))
 
         Column(Modifier.padding(8.dp)) {
             Text(
@@ -115,10 +129,30 @@ fun ArtistPreviewLong(
     }
 }
 
-val artistLongPressPopupActions: @Composable LongPressMenuActionProvider.(MediaItem) -> Unit = { artist ->
-    if (artist !is Artist) {
-        throw IllegalStateException()
-    }
+fun getArtistLongPressMenuData(
+    artist: Artist,
+    thumb_shape: Shape? = CircleShape
+): LongPressMenuData {
+    return LongPressMenuData(
+        artist,
+        thumb_shape,
+        actions = {
+            ArtistLongPressPopupActions(it)
+        },
+        sideButton = { modifier, background, accent ->
+            ArtistSubscribeButton(
+                artist,
+                background_colour = background.getContrasted(),
+                accent_colour = accent,
+                modifier = modifier
+            )
+        }
+    )
+}
+
+@Composable
+private fun LongPressMenuActionProvider.ArtistLongPressPopupActions(artist: MediaItem) {
+    require(artist is Artist)
 
     ActionButton(Icons.Filled.PlayArrow, "Start radio", onClick = {
         TODO()

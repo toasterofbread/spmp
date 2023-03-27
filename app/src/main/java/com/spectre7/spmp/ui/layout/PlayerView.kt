@@ -158,7 +158,7 @@ data class PlayerViewContext(
 
         showLongPressMenu(when (item) {
             is Song -> getSongLongPressMenuData(item, queue_index = queue_index)
-            is Artist -> LongPressMenuData(item, actions = artistLongPressPopupActions)
+            is Artist -> getArtistLongPressMenuData(item)
             else -> LongPressMenuData(item)
         })
     }

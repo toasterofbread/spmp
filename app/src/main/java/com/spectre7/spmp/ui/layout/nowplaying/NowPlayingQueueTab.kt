@@ -354,7 +354,7 @@ fun QueueTab(expansionProvider: () -> Float, playerProvider: () -> PlayerViewCon
                     }
                 }
 
-                if (PlayerServiceHost.service.radio_continuing) {
+                if (PlayerServiceHost.service.radio_loading) {
                     item {
                         Box(Modifier.height(50.dp), contentAlignment = Alignment.Center) {
                             SubtleLoadingIndicator(queue_background_colour.getContrasted())

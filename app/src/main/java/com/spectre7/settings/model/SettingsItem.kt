@@ -172,8 +172,10 @@ class SettingsItemToggle(
     val state: SettingsValueState<Boolean>,
     val title: String?,
     val subtitle: String?,
-    val checker: ((target: Boolean, (allowChange: Boolean) -> Unit) -> Unit)? = null
+    val checker: ((target: Boolean, setLoading: (Boolean) -> Unit, (allowChange: Boolean) -> Unit) -> Unit)? = null
 ): SettingsItem() {
+
+    private var loading: Boolean by mutableStateOf(false)
 
     override fun initialiseValueStates(prefs: SharedPreferences, default_provider: (String) -> Any) {
         state.init(prefs, default_provider)
@@ -200,29 +202,42 @@ class SettingsItemToggle(
                 ItemText(subtitle, theme)
             }
 
-            Switch(
-                state.value,
-                null,
-                Modifier.clickable(
-                    interactionSource = remember { MutableInteractionSource() },
-                    indication = null
-                ) {
-                    if (checker == null) {
-                        state.value = !state.value
-                        return@clickable
-                    }
+            Crossfade(loading) {
+                if (it) {
+                    CircularProgressIndicator(color = theme.on_background)
+                }
+                else {
+                    Switch(
+                        state.value,
+                        onCheckedChange = null,
+                        Modifier.clickable(
+                            interactionSource = remember { MutableInteractionSource() },
+                            indication = null
+                        ) {
+                            if (checker == null) {
+                                state.value = !state.value
+                                return@clickable
+                            }
 
-                    checker.invoke(!state.value) { allow_change ->
-                        if (allow_change) {
-                            state.value = !state.value
-                        }
-                    }
-                },
-                colors = SwitchDefaults.colors(
-                    checkedThumbColor = theme.vibrant_accent,
-                    checkedTrackColor = theme.vibrant_accent.setAlpha(0.5f)
-                )
-            )
+                            checker.invoke(
+                                !state.value,
+                                { l ->
+                                    loading = l
+                                }
+                            ) { allow_change ->
+                                if (allow_change) {
+                                    state.value = !state.value
+                                }
+                                loading = false
+                            }
+                        },
+                        colors = SwitchDefaults.colors(
+                            checkedThumbColor = theme.vibrant_accent,
+                            checkedTrackColor = theme.vibrant_accent.setAlpha(0.5f)
+                        )
+                    )
+                }
+            }
         }
     }
 }

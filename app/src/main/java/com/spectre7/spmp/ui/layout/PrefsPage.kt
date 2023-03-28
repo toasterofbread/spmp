@@ -253,7 +253,7 @@ private fun getAccessibilityServicePage(): SettingsPage {
             SettingsValueState(Settings.KEY_ACC_SCREEN_OFF.name),
             getString(R.string.s_key_acc_screen_off),
             getString(R.string.s_sub_acc_screen_off)
-        ) { checked, allowChange ->
+        ) { checked, _, allowChange ->
             if (!checked) {
                 allowChange(true)
                 return@SettingsItemToggle
@@ -266,7 +266,7 @@ private fun getAccessibilityServicePage(): SettingsPage {
             SettingsValueState(Settings.KEY_ACC_VOL_INTERCEPT_NOTIFICATION.name),
             getString(R.string.s_key_vol_intercept_notification),
             getString(R.string.s_key_vol_intercept_notification)
-        ) { checked, allowChange ->
+        ) { checked, _, allowChange ->
             if (!checked) {
                 allowChange(true)
                 return@SettingsItemToggle
@@ -436,6 +436,12 @@ private fun groupGeneral(interface_lang: SettingsValueState<Int>, language_data:
             SettingsValueState(Settings.KEY_PERSISTENT_QUEUE.name),
             getString(R.string.s_key_persistent_queue),
             getString(R.string.s_sub_persistent_queue)
+        ),
+
+        SettingsItemToggle(
+            SettingsValueState(Settings.KEY_ADD_SONGS_TO_HISTORY.name),
+            getString(R.string.s_key_add_songs_to_history),
+            getString(R.string.s_sub_add_songs_to_history)
         )
     )
 }

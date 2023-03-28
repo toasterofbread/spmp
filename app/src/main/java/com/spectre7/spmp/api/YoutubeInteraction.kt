@@ -6,7 +6,9 @@ import com.spectre7.spmp.model.Artist
 import com.spectre7.utils.getString
 import okhttp3.HttpUrl.Companion.toHttpUrl
 import okhttp3.Request
+import okhttp3.internal.http2.StreamResetException
 import java.util.*
+import javax.net.ssl.SSLHandshakeException
 
 fun isSubscribedToArtist(artist: Artist): Result<Boolean?> {
     check(!artist.for_song)
@@ -160,7 +162,10 @@ fun markSongAsWatched(id: String): Result<Any> {
     val data: PlaybackTrackingRepsonse = DataApi.klaxon.parse(stream)!!
     stream.close()
 
-    val playback_url = data.playback_url.toHttpUrl().newBuilder()
+    check(data.playback_url.contains("s.youtube.com"))
+
+    val playback_url = data.playback_url.replace("s.youtube.com", "music.youtube.com")
+        .toHttpUrl().newBuilder()
         .setQueryParameter("ver", "2")
         .setQueryParameter("c", "WEB_REMIX")
         .setQueryParameter("cpn", generateCpn())

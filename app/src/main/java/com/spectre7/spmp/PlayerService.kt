@@ -58,6 +58,7 @@ import com.google.android.exoplayer2.ui.PlayerNotificationManager
 import com.google.android.exoplayer2.upstream.*
 import com.spectre7.spmp.api.RadioInstance
 import com.spectre7.spmp.api.getOrThrowHere
+import com.spectre7.spmp.api.markSongAsWatched
 import com.spectre7.spmp.model.*
 import com.spectre7.utils.*
 import kotlinx.coroutines.*
@@ -75,43 +76,41 @@ import com.google.android.exoplayer2.MediaItem as ExoMediaItem
 
 // Radio continuation will be added if the amount of remaining songs (including current) falls below this
 const val RADIO_MIN_LENGTH: Int = 10
-const val PERSISTENT_QUEUE_UPDATE_INTERVAL: Long = 5000 // ms
+const val UPDATE_INTERVAL: Long = 5000 // ms
 const val VOL_NOTIF_SHOW_DURATION: Long = 1000
+private const val SONG_MARK_WATCHED_POSITION = 1000 // ms
 
+@Suppress("OPT_IN_USAGE")
 class PlayerService : Service() {
 
     lateinit var player: ExoPlayer
 
     val session_started: Boolean get() = _session_started
 
+    var stop_after_current_song: Boolean by mutableStateOf(false)
     var active_queue_index: Int by mutableStateOf(0)
+    private var song_marked_as_watched: Boolean = false
+
     fun updateActiveQueueIndex(delta: Int = 0) {
         if (delta == 0) {
             if (active_queue_index >= player.mediaItemCount) {
                 active_queue_index = player.currentMediaItemIndex
             }
-
             return
         }
 
         active_queue_index = (active_queue_index + delta).coerceIn(player.currentMediaItemIndex, player.mediaItemCount - 1)
     }
 
-    var stop_after_current_song: Boolean by mutableStateOf(false)
-
-    fun getSong(index: Int): Song? {
+    fun getSong(index: Int = player.currentMediaItemIndex): Song? {
         if (index >= player.mediaItemCount) {
             return null
         }
         return player.getMediaItemAt(index).localConfiguration?.getSong()
     }
 
-    fun getCurrentSong(): Song? {
-        return getSong(player.currentMediaItemIndex)
-    }
-
     fun playSong(song: Song, start_radio: Boolean = true) {
-        if (song == getCurrentSong() && start_radio) {
+        if (song == getSong() && start_radio) {
             clearQueue(keep_current = true, save = false)
         }
         else {
@@ -127,16 +126,19 @@ class PlayerService : Service() {
     }
 
     fun startRadioAtIndex(index: Int, item: MediaItem? = null, skip_first: Boolean = false) {
-        clearQueue(from = index, keep_current = false, save = false)
-        thread {
-            val result = radio.playMediaItem(item ?: getSong(index)!!)
-            if (result.isFailure) {
-                MainActivity.error_manager.onError("startRadioAtIndex", result.exceptionOrNull()!!)
-                savePersistentQueue()
-            }
-            else {
-                mainThread {
-                    addMultipleToQueue(result.getOrThrowHere(), index, skip_first)
+        synchronized(radio) {
+            clearQueue(from = index, keep_current = false, save = false)
+
+            radio.playMediaItem(item ?: getSong(index)!!)
+            radio.loadContinuation { result ->
+                if (result.isFailure) {
+                    MainActivity.error_manager.onError("startRadioAtIndex", result.exceptionOrNull()!!)
+                    savePersistentQueue()
+                }
+                else {
+                    mainThread {
+                        addMultipleToQueue(result.getOrThrowHere(), index, skip_first)
+                    }
                 }
             }
         }
@@ -144,25 +146,16 @@ class PlayerService : Service() {
 
     fun continueRadio() {
         synchronized(radio) {
-            if (!radio.has_continuation || radio_continuing) {
+            if (radio.loading) {
                 return
             }
-            radio_continuing = true
-        }
-
-        thread {
-            val result = radio.getContinuation()
-            if (result.isFailure) {
-                MainActivity.error_manager.onError("continueRadio", result.exceptionOrNull()!!)
-                synchronized(radio) {
-                    radio_continuing = false
+            radio.loadContinuation { result ->
+                if (result.isFailure) {
+                    MainActivity.error_manager.onError("continueRadio", result.exceptionOrNull()!!)
                 }
-            }
-            else {
-                mainThread {
-                    addMultipleToQueue(result.getOrThrowHere(), player.mediaItemCount, false)
-                    synchronized(radio) {
-                        radio_continuing = false
+                else {
+                    mainThread {
+                        addMultipleToQueue(result.getOrThrowHere(), player.mediaItemCount, false)
                     }
                 }
             }
@@ -261,17 +254,19 @@ class PlayerService : Service() {
         if (start_radio) {
             clearQueue(added_index, save = false)
 
-            networkThread {
-                val result = radio.playMediaItem(song)
-                if (result.isFailure) {
-                    MainActivity.error_manager.onError("addToQueue", result.exceptionOrNull()!!)
-                    if (save) {
-                        savePersistentQueue()
+            synchronized(radio) {
+                radio.playMediaItem(song)
+                radio.loadContinuation { result ->
+                    if (result.isFailure) {
+                        MainActivity.error_manager.onError("addToQueue", result.exceptionOrNull()!!)
+                        if (save) {
+                            savePersistentQueue()
+                        }
                     }
-                }
-                else {
-                    mainThread {
-                        addMultipleToQueue(result.getOrThrowHere(), added_index, save = save)
+                    else {
+                        mainThread {
+                            addMultipleToQueue(result.getOrThrowHere(), added_index, save = save)
+                        }
                     }
                 }
             }
@@ -359,8 +354,7 @@ class PlayerService : Service() {
     // --- Internal ---
 
     private val radio = RadioInstance()
-    var radio_continuing = false
-        private set
+    val radio_loading: Boolean get() = radio.loading
 
     private var _session_started: Boolean by mutableStateOf(false)
 
@@ -394,12 +388,6 @@ class PlayerService : Service() {
     private var current_media_index: Int = 0
     private val player_listener = 
         object : Player.Listener {
-
-            override fun onTimelineChanged(timeline: Timeline, reason: Int) {
-
-            }
-
-            // TODO | Interval to save playback position
             override fun onEvents(player: Player, events: Player.Events) {
                 checkRadioContinuation()
 
@@ -409,28 +397,11 @@ class PlayerService : Service() {
                         onSongEnded()
                     }
                     current_media_index = player.currentMediaItemIndex
+                    song_marked_as_watched = false
                 }
                 if (events.contains(Player.EVENT_PLAYBACK_STATE_CHANGED)) {
-                    if (player.isPlaying) {
-                        if (queue_update_timer == null) {
-                            queue_update_timer = Timer()
-                            queue_update_timer!!.scheduleAtFixedRate(object : TimerTask() {
-                                override fun run() {
-                                    mainThread { savePersistentQueue() }
-                                }
-                            }, 0, PERSISTENT_QUEUE_UPDATE_INTERVAL)
-                        }
-                    }
-                    else {
-                        if (queue_update_timer != null) {
-                            queue_update_timer!!.cancel()
-                            queue_update_timer = null
-                            savePersistentQueue()
-                        }
-
-                        if (player.playbackState == Player.STATE_ENDED) {
-                            onSongEnded()
-                        }
+                    if (player.playbackState == Player.STATE_ENDED) {
+                        onSongEnded()
                     }
                 }
             }
@@ -453,7 +424,7 @@ class PlayerService : Service() {
     // Persistent queue
     private var lock_queue = false
     private val queue_lock = Object()
-    private var queue_update_timer: Timer? = null
+    private var update_timer: Timer? = null
 
     fun savePersistentQueue() {
         synchronized(queue_lock) {
@@ -601,9 +572,8 @@ class PlayerService : Service() {
             this@PlayerService,
             renderers_factory,
             DefaultMediaSourceFactory(
-                createDataSourceFactory(),
-                { arrayOf(MatroskaExtractor(), FragmentedMp4Extractor()) }
-            )
+                createDataSourceFactory()
+            ) { arrayOf(MatroskaExtractor(), FragmentedMp4Extractor()) }
         )
             .setAudioAttributes(
                 AudioAttributes.Builder()
@@ -693,6 +663,10 @@ class PlayerService : Service() {
         vol_notif_enabled = Settings.get(Settings.KEY_ACC_VOL_INTERCEPT_NOTIFICATION, preferences = prefs)
 
         LocalBroadcastManager.getInstance(this).registerReceiver(broadcast_receiver, IntentFilter(PlayerService::class.java.canonicalName))
+
+        if (update_timer == null) {
+            update_timer = createUpdateTimer()
+        }
     }
 
     private fun createDataSourceFactory(): DataSource.Factory {
@@ -722,11 +696,9 @@ class PlayerService : Service() {
         media_session?.release()
         player.removeListener(player_listener)
         player.release()
-        
-        if (queue_update_timer != null) {
-            queue_update_timer!!.cancel()
-            queue_update_timer = null
-        }
+
+        update_timer?.cancel()
+        update_timer = null
 
         if (vol_notif.isShown) {
             (getSystemService(Context.WINDOW_SERVICE) as WindowManager).removeView(vol_notif)
@@ -763,6 +735,42 @@ class PlayerService : Service() {
                     }
                 }
             }
+        }
+    }
+
+    private fun createUpdateTimer(): Timer {
+        return Timer().apply {
+            scheduleAtFixedRate(
+                object : TimerTask() {
+                    override fun run() {
+                        mainThread {
+                            savePersistentQueue()
+                            markWatched()
+                        }
+                    }
+
+                    fun markWatched() {
+                        if (
+                            Settings.get(Settings.KEY_ADD_SONGS_TO_HISTORY)
+                            && !song_marked_as_watched
+                            && player.isPlaying
+                            && player.currentPosition >= SONG_MARK_WATCHED_POSITION
+                        ) {
+                            song_marked_as_watched = true
+
+                            val id = getSong()!!.id
+                            networkThread {
+                                val result = markSongAsWatched(id)
+                                if (result.isFailure) {
+                                    MainActivity.error_manager.onError("autoMarkSongAsWatched", result.exceptionOrNull()!!)
+                                }
+                            }
+                        }
+                    }
+                },
+                0,
+                UPDATE_INTERVAL
+            )
         }
     }
 
@@ -896,11 +904,11 @@ class PlayerService : Service() {
                 }
 
                 override fun getCurrentContentText(player: Player): String? {
-                    return getCurrentSong()?.artist?.title
+                    return getSong()?.artist?.title
                 }
 
                 override fun getCurrentContentTitle(player: Player): String {
-                    return getCurrentSong()?.title ?: "NULL"
+                    return getSong()?.title ?: "NULL"
                 }
 
                 override fun getCurrentLargeIcon(player: Player, callback: PlayerNotificationManager.BitmapCallback): Bitmap? {
@@ -920,7 +928,7 @@ class PlayerService : Service() {
                     }
 
                     try {
-                        val song = getCurrentSong() ?: return null
+                        val song = getSong() ?: return null
                         if (song.isThumbnailLoaded(MediaItem.ThumbnailQuality.HIGH)) {
                             return getCroppedThumbnail(song.loadThumbnail(MediaItem.ThumbnailQuality.HIGH))
                         }

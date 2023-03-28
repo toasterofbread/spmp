@@ -143,6 +143,9 @@
     <string name="s_key_persistent_queue">Persistent song queue</string>
     <string name="s_sub_persistent_queue">Song queue will persist even when closing the app</string>
 
+    <string name="s_key_add_songs_to_history">Add song to YT history</string>
+    <string name="s_sub_add_songs_to_history">Songs listened to will be sent to YouTube and added to account history</string>
+
     <string name="s_group_theming">Theming</string>
 
     <string name="s_key_current_theme">Current theme</string>

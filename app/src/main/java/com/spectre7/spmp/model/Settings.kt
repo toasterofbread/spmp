@@ -65,14 +65,17 @@ enum class Settings {
     KEY_OPEN_NP_ON_SONG_PLAYED,
     KEY_VOLUME_STEPS,
     KEY_PERSISTENT_QUEUE,
-    KEY_ADD_SONG_TO_HISTORY,
+    KEY_ADD_SONGS_TO_HISTORY,
     KEY_ENABLE_DISCORD_PRESENCE;
+
 
     companion object {
         val prefs: SharedPreferences get() = getPrefs()
         fun getPrefs(context: Context = MainActivity.context): SharedPreferences {
             return MainActivity.getSharedPreferences(context)
         }
+
+        private var local_auth_keys_used = false
 
         fun <T> set(enum_key: Settings, value: T?, preferences: SharedPreferences = prefs) {
             preferences.edit {
@@ -151,7 +154,8 @@ enum class Settings {
                 KEY_FEED_ENABLE_CHARTS_ROW -> true
 
                 KEY_YTM_AUTH -> {
-                    if (BuildConfig.LocalKeys != null) {
+                    if (BuildConfig.LocalKeys != null && !local_auth_keys_used) {
+                        local_auth_keys_used = true
                         YoutubeMusicAuthInfo(
                             Artist.fromId(BuildConfig.LocalKeys["YTM_CHANNEL_ID"]!!),
                             BuildConfig.LocalKeys["YTM_COOKIE"]!!,
@@ -166,7 +170,7 @@ enum class Settings {
                 KEY_VOLUME_STEPS -> 50
                 KEY_OPEN_NP_ON_SONG_PLAYED -> true
                 KEY_PERSISTENT_QUEUE -> true
-                KEY_ADD_SONG_TO_HISTORY -> false
+                KEY_ADD_SONGS_TO_HISTORY -> false
                 KEY_ENABLE_DISCORD_PRESENCE -> false
             } as T
         }

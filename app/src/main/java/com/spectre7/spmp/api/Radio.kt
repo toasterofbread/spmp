@@ -1,51 +1,83 @@
 package com.spectre7.spmp.api
 
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.setValue
 import com.spectre7.spmp.model.Artist
 import com.spectre7.spmp.model.MediaItem
 import com.spectre7.spmp.model.Playlist
 import com.spectre7.spmp.model.Song
 import com.spectre7.spmp.ui.component.MediaItemLayout
+import kotlinx.coroutines.DelicateCoroutinesApi
+import kotlinx.coroutines.GlobalScope
+import kotlinx.coroutines.Job
+import kotlinx.coroutines.launch
 import okhttp3.Request
 import java.util.zip.GZIPInputStream
 
+@OptIn(DelicateCoroutinesApi::class)
 class RadioInstance {
-    private var item: MediaItem? = null
     private var continuation: MediaItemLayout.Continuation? = null
+    private var current_job: Job? by mutableStateOf(null)
+    private val lock = Object()
 
+    var item: MediaItem? = null
+        private set
     val active: Boolean get() = item != null
-    val has_continuation: Boolean get() = continuation != null
+    val loading: Boolean get() = current_job != null
 
-    fun playMediaItem(item: MediaItem): Result<List<Song>> {
-        this.item = item
-        continuation = null
-        return getContinuation()
+    fun playMediaItem(item: MediaItem) {
+        synchronized(lock) {
+            this.item = item
+            continuation = null
+            cancelJob()
+        }
     }
 
     fun cancelRadio() {
-        item = null
-        continuation = null
+        synchronized(lock) {
+            item = null
+            continuation = null
+            cancelJob()
+        }
     }
 
-    fun getContinuation(): Result<List<Song>> {
-        if (continuation == null) {
-            return getInitialSongs()
-        }
+    private fun cancelJob() {
+        current_job?.cancel()
+        current_job = null
+    }
 
-        val result = continuation!!.loadContinuation()
-        if (result.isFailure) {
-            return result.cast()
-        }
+    fun loadContinuation(callback: (Result<List<Song>>) -> Unit) {
+        synchronized(lock) {
+            check(current_job == null)
 
-        val (items, cont) = result.getOrThrow()
+            current_job = GlobalScope.launch {
+                if (continuation == null) {
+                    callback(getInitialSongs())
+                    synchronized(lock) { current_job = null }
+                    return@launch
+                }
 
-        if (cont != null) {
-            continuation!!.update(cont)
-        }
-        else {
-            continuation = null
-        }
+                val result = continuation!!.loadContinuation()
+                if (result.isFailure) {
+                    callback(result.cast())
+                    synchronized(lock) { current_job = null }
+                    return@launch
+                }
 
-        return Result.success(items.filterIsInstance<Song>())
+                val (items, cont) = result.getOrThrow()
+
+                if (cont != null) {
+                    continuation!!.update(cont)
+                }
+                else {
+                    continuation = null
+                }
+
+                callback(Result.success(items.filterIsInstance<Song>()))
+                synchronized(lock) { current_job = null }
+            }
+        }
     }
 
     private fun getInitialSongs(): Result<List<Song>> {

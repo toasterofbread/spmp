@@ -162,7 +162,6 @@ fun List<Color>.sorted(descending: Boolean = false): List<Color> {
 fun Color.generatePalette(size: Int, variance: Float = 0.2f): List<Color> {
     val rnd = Random()
     val ret: MutableList<Color> = mutableListOf()
-    val luminance_boundary = 0.2f
 
     fun isColourValid(colour: Color): Boolean {
         if (ret.any { it.compare(colour) > 0.5f }) {
@@ -177,13 +176,14 @@ fun Color.generatePalette(size: Int, variance: Float = 0.2f): List<Color> {
     }
 
     for (i in 0 until size) {
-        var colour: Color
-        do {
-            colour = offsetRGB(rnd.nextFloat() * variance * (if (rnd.nextBoolean()) 1f else -1f), false)
+        var tries = 5
+        while (tries-- > 0) {
+            val colour = offsetRGB(rnd.nextFloat() * variance * (if (rnd.nextBoolean()) 1f else -1f), false)
+            if (isColourValid(colour)) {
+                ret.add(colour)
+                break
+            }
         }
-        while (!isColourValid(colour))
-
-        ret.add(colour)
     }
 
     return List(size) {

@@ -89,6 +89,26 @@ interface RadioBuilderModifier {
             FOCUS -> "ma"
         }
     }
+
+    companion object {
+        fun fromString(modifier: String): RadioBuilderModifier? {
+            return when (modifier) {
+                "iY" -> SelectionType.FAMILIAR
+                "iX" -> SelectionType.DISCOVER
+                "pY" -> FilterA.POPULAR
+                "pX" -> FilterA.HIDDEN
+                "dX" -> FilterA.NEW
+                "mY" -> FilterB.PUMP_UP
+                "mX" -> FilterB.CHILL
+                "mb" -> FilterB.UPBEAT
+                "mc" -> FilterB.DOWNBEAT
+                "ma" -> FilterB.FOCUS
+                "rX" -> Variety.LOW
+                "rZ" -> Variety.HIGH
+                else -> null
+            }
+        }
+    }
 }
 
 fun getBuiltRadio(radio_token: String): Result<Playlist?> {

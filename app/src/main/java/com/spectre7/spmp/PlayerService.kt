@@ -354,7 +354,9 @@ class PlayerService : Service() {
     // --- Internal ---
 
     private val radio = RadioInstance()
+
     val radio_loading: Boolean get() = radio.loading
+    val radio_item: MediaItem? get() = radio.item
 
     private var _session_started: Boolean by mutableStateOf(false)
 

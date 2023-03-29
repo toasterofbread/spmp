@@ -104,9 +104,13 @@ class SettingsItemThemeSelector(
                     }
 
                     IconButton(
-                        { openCustomPage(getEditPage(editor_title, theme_data) {
-                            onThemeEdited(state.value, it)
-                        }) },
+                        {
+                            openCustomPage(
+                                getEditPage(editor_title, theme_data) {
+                                    onThemeEdited(state.value, it)
+                                }
+                            )
+                        },
                         Modifier.background(theme_data.accent, CircleShape).size(height)
                     ) {
                         Icon(Icons.Filled.Edit, null, tint = theme_data.accent.getContrasted())

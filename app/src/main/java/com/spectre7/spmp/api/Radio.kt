@@ -8,11 +8,13 @@ import com.spectre7.spmp.model.MediaItem
 import com.spectre7.spmp.model.Playlist
 import com.spectre7.spmp.model.Song
 import com.spectre7.spmp.ui.component.MediaItemLayout
+import com.spectre7.utils.printJson
 import kotlinx.coroutines.DelicateCoroutinesApi
 import kotlinx.coroutines.GlobalScope
 import kotlinx.coroutines.Job
 import kotlinx.coroutines.launch
 import okhttp3.Request
+import okio.ByteString.Companion.readByteString
 import java.util.zip.GZIPInputStream
 
 @OptIn(DelicateCoroutinesApi::class)
@@ -21,7 +23,7 @@ class RadioInstance {
     private var current_job: Job? by mutableStateOf(null)
     private val lock = Object()
 
-    var item: MediaItem? = null
+    var item: MediaItem? by mutableStateOf(null)
         private set
     val active: Boolean get() = item != null
     val loading: Boolean get() = current_job != null
@@ -114,23 +116,29 @@ class RadioInstance {
     }
 }
 
-data class RadioData(val items: List<Song>, var continuation: String?)
+data class RadioData(val items: List<Song>, var continuation: String?, val filters: List<RadioBuilderModifier>?)
 
 data class YoutubeiNextResponse(
     val contents: Contents
 ) {
-    data class Contents(val singleColumnMusicWatchNextResultsRenderer: SingleColumnMusicWatchNextResultsRenderer)
-    data class SingleColumnMusicWatchNextResultsRenderer(val tabbedRenderer: TabbedRenderer)
-    data class TabbedRenderer(val watchNextTabbedResultsRenderer: WatchNextTabbedResultsRenderer)
-    data class WatchNextTabbedResultsRenderer(val tabs: List<Tab>)
-    data class Tab(val tabRenderer: TabRenderer)
-    data class TabRenderer(val content: Content? = null)
-    data class Content(val musicQueueRenderer: MusicQueueRenderer)
-    data class MusicQueueRenderer(val content: MusicQueueRendererContent)
-    data class MusicQueueRendererContent(val playlistPanelRenderer: PlaylistPanelRenderer)
-    data class PlaylistPanelRenderer(val contents: List<ResponseRadioItem>, val continuations: List<Continuation>? = null)
-    data class ResponseRadioItem(val playlistPanelVideoRenderer: PlaylistPanelVideoRenderer? = null)
-    data class PlaylistPanelVideoRenderer(
+    class Contents(val singleColumnMusicWatchNextResultsRenderer: SingleColumnMusicWatchNextResultsRenderer)
+    class SingleColumnMusicWatchNextResultsRenderer(val tabbedRenderer: TabbedRenderer)
+    class TabbedRenderer(val watchNextTabbedResultsRenderer: WatchNextTabbedResultsRenderer)
+    class WatchNextTabbedResultsRenderer(val tabs: List<Tab>)
+    class Tab(val tabRenderer: TabRenderer)
+    class TabRenderer(val content: Content? = null)
+    class Content(val musicQueueRenderer: MusicQueueRenderer)
+    class MusicQueueRenderer(val content: MusicQueueRendererContent, val subHeaderChipCloud: SubHeaderChipCloud)
+
+    class SubHeaderChipCloud(val chipCloudRenderer: ChipCloudRenderer)
+    class ChipCloudRenderer(val chips: List<Chip>)
+    class Chip(val chipCloudChipRenderer: ChipCloudChipRenderer)
+    class ChipCloudChipRenderer(val navigationEndpoint: NavigationEndpoint)
+
+    class MusicQueueRendererContent(val playlistPanelRenderer: PlaylistPanelRenderer)
+    class PlaylistPanelRenderer(val contents: List<ResponseRadioItem>, val continuations: List<Continuation>? = null)
+    class ResponseRadioItem(val playlistPanelVideoRenderer: PlaylistPanelVideoRenderer? = null)
+    class PlaylistPanelVideoRenderer(
         val videoId: String,
         val title: TextRuns,
         val longBylineText: TextRuns,
@@ -187,21 +195,21 @@ data class YoutubeiNextResponse(
             return Result.success(Pair(null, false))
         }
     }
-    data class Menu(val menuRenderer: MenuRenderer)
-    data class MenuRenderer(val items: List<MenuItem>) {
+    class Menu(val menuRenderer: MenuRenderer)
+    class MenuRenderer(val items: List<MenuItem>) {
         fun getArtist(): MenuItem? {
             return items.firstOrNull {
                 it.menuNavigationItemRenderer?.icon?.iconType == "ARTIST"
             }
         }
     }
-    data class MenuItem(val menuNavigationItemRenderer: MenuNavigationItemRenderer? = null)
-    data class MenuNavigationItemRenderer(val icon: MenuIcon, val navigationEndpoint: NavigationEndpoint)
-    data class MenuIcon(val iconType: String)
-    data class Continuation(val nextContinuationData: ContinuationData? = null, val nextRadioContinuationData: ContinuationData? = null) {
+    class MenuItem(val menuNavigationItemRenderer: MenuNavigationItemRenderer? = null)
+    class MenuNavigationItemRenderer(val icon: MenuIcon, val navigationEndpoint: NavigationEndpoint)
+    class MenuIcon(val iconType: String)
+    class Continuation(val nextContinuationData: ContinuationData? = null, val nextRadioContinuationData: ContinuationData? = null) {
         val data: ContinuationData? get() = nextContinuationData ?: nextRadioContinuationData
     }
-    data class ContinuationData(val continuation: String)
+    class ContinuationData(val continuation: String)
 }
 
 data class YoutubeiNextContinuationResponse(
@@ -211,6 +219,7 @@ data class YoutubeiNextContinuationResponse(
 }
 
 fun getSongRadio(video_id: String, continuation: String?): Result<RadioData> {
+    val RADIO_PLAYLIST_ID_PREFIX = "RDAMVM"
     val request = Request.Builder()
         .url("https://music.youtube.com/youtubei/v1/next")
         .header("accept", "*/*")
@@ -224,10 +233,13 @@ fun getSongRadio(video_id: String, continuation: String?): Result<RadioData> {
         """
         {
             "enablePersistentPlaylistPanel": true,
+            "tunerSettingValue": "AUTOMIX_SETTING_NORMAL",
             "isAudioOnly": true,
             "tunerSettingValue": "AUTOMIX_SETTING_NORMAL",
-            "videoId": "$video_id",
-            "playlistId": "RDAMVM$video_id",
+            "playlistId": "$RADIO_PLAYLIST_ID_PREFIX$video_id",
+            "videoId", "$video_id",
+            "params": "wAEB",
+            "activePlayers": [{"playerContextParams": "Q0FFU0FnZ0I="}],
             "watchEndpointMusicSupportedConfigs": {
                 "watchEndpointMusicConfig": {
                     "hasPersistentPlaylistPanel": true,
@@ -248,9 +260,10 @@ fun getSongRadio(video_id: String, continuation: String?): Result<RadioData> {
     val stream = GZIPInputStream(result.getOrThrowHere().body!!.byteStream())
 
     val radio: YoutubeiNextResponse.PlaylistPanelRenderer
+    val filters: List<RadioBuilderModifier>?
 
     if (continuation == null) {
-        radio = DataApi.klaxon.parse<YoutubeiNextResponse>(stream)!!
+        val renderer = DataApi.klaxon.parse<YoutubeiNextResponse>(stream)!!
             .contents
             .singleColumnMusicWatchNextResultsRenderer
             .tabbedRenderer
@@ -260,13 +273,25 @@ fun getSongRadio(video_id: String, continuation: String?): Result<RadioData> {
             .tabRenderer
             .content!!
             .musicQueueRenderer
-            .content
-            .playlistPanelRenderer
+        radio = renderer.content.playlistPanelRenderer
+
+        filters = renderer.subHeaderChipCloud.chipCloudRenderer.chips.mapNotNull { chip ->
+            val id = chip.chipCloudChipRenderer.navigationEndpoint.watchEndpoint?.playlistId
+            if (id == null) {
+                return@mapNotNull null
+            }
+
+            val modifier_id = id.substring(RADIO_PLAYLIST_ID_PREFIX.length, id.length - video_id.length)
+            TODO()
+
+            return@mapNotNull RadioBuilderModifier.fromString(id)
+        }
     }
     else {
         radio = DataApi.klaxon.parse<YoutubeiNextContinuationResponse>(stream)!!
             .continuationContents
             .playlistPanelContinuation
+        filters = null
     }
 
     stream.close()
@@ -289,7 +314,8 @@ fun getSongRadio(video_id: String, continuation: String?): Result<RadioData> {
 
                 return@map song
             },
-            radio.continuations?.firstOrNull()?.data?.continuation
+            radio.continuations?.firstOrNull()?.data?.continuation,
+            filters
         )
     )
 }

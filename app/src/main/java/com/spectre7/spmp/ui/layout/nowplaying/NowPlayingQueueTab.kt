@@ -10,14 +10,11 @@ import androidx.compose.foundation.interaction.MutableInteractionSource
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.*
 import androidx.compose.foundation.shape.CircleShape
-import androidx.compose.foundation.shape.CornerSize
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.*
-import androidx.compose.material.ripple.rememberRipple
 import androidx.compose.material3.*
 import androidx.compose.material3.tokens.FilledButtonTokens
-import androidx.compose.material3.tokens.IconButtonTokens
 import androidx.compose.runtime.*
 import androidx.compose.runtime.snapshots.SnapshotStateList
 import androidx.compose.ui.Alignment
@@ -28,7 +25,6 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.LocalConfiguration
 import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.res.painterResource
-import androidx.compose.ui.semantics.Role
 import androidx.compose.ui.unit.*
 import com.google.android.exoplayer2.C
 import com.google.android.exoplayer2.Player
@@ -67,6 +63,7 @@ private class QueueTabItem(val song: Song, val key: Int) {
         current: Boolean,
         index: Int,
         parent_background_colour: Color,
+        accent_colour: Color,
         playerProvider: () -> PlayerViewContext,
         requestRemove: () -> Unit
     ) {
@@ -77,19 +74,16 @@ private class QueueTabItem(val song: Song, val key: Int) {
         Box(
             Modifier
                 .offset { IntOffset(swipe_state.offset.value.roundToInt(), 0) }
-                .let {
-                    if (!current)
-                        it
-                    else
-                        it.background(parent_background_colour.getContrasted(), RoundedCornerShape(45))
-                }
+                .thenIf(current,
+                    Modifier.background(accent_colour, RoundedCornerShape(45))
+                )
         ) {
             Row(
                 horizontalArrangement = Arrangement.End,
                 verticalAlignment = Alignment.CenterVertically,
                 modifier = Modifier.padding(start = 10.dp, end = 20.dp)
             ) {
-                val content_colour = if (current) parent_background_colour else parent_background_colour.getContrasted()
+                val content_colour = (if (current) accent_colour else parent_background_colour).getContrasted()
                 song.PreviewLong(
                     MediaItem.PreviewParams(
                         remember(index) {
@@ -173,6 +167,10 @@ fun QueueTab(expansionProvider: () -> Float, playerProvider: () -> PlayerViewCon
             if (from != to) {
                 PlayerServiceHost.player.moveMediaItem(from, to)
                 playing_key = null
+
+                undo_list.add {
+                    song_items.add(from, song_items.removeAt(to))
+                }
             }
         }
     )
@@ -331,6 +329,18 @@ fun QueueTab(expansionProvider: () -> Float, playerProvider: () -> PlayerViewCon
                     .padding(horizontal = list_padding),
                 horizontalAlignment = Alignment.CenterHorizontally
             ) {
+
+                val radio_item: MediaItem? = PlayerServiceHost.service.radio_item
+                if (radio_item != null) {
+//                if (radio_item is Artist or radio_item is Playlist) {
+//                    item {
+//                        radio_item.PreviewLong(MediaItem.PreviewParams(
+//                            playerProvider,
+//                            content_colour = { queue_background_colour.getContrasted() }
+//                        ))
+//                    }
+                }
+
                 items(song_items.size, { song_items[it].key }) { index ->
                     val item = song_items[index]
                     ReorderableItem(state, key = item.key) { is_dragging ->
@@ -347,6 +357,7 @@ fun QueueTab(expansionProvider: () -> Float, playerProvider: () -> PlayerViewCon
                                 if (playing_key != null) playing_key == item.key else PlayerServiceHost.status.m_index == index,
                                 index,
                                 queue_background_colour,
+                                background_colour,
                                 playerProvider,
                                 remember(item.song, index) { { removeSong(item.song, index) } }
                             )
@@ -366,6 +377,11 @@ fun QueueTab(expansionProvider: () -> Float, playerProvider: () -> PlayerViewCon
 
         ActionBar(playerProvider, expansionProvider, undo_list, scroll)
     }
+}
+
+@Composable
+private fun CurrentRadioIndicator() {
+
 }
 
 @Composable
@@ -433,12 +449,6 @@ private fun StopAfterSongButton(background_colour: Color, modifier: Modifier = M
                     indication = null,
                     onClick = { PlayerServiceHost.service.stop_after_current_song = !stopping },
                     onLongClick = {}
-                )
-                .then(
-                    if (stopping) Modifier.border(1.dp,
-                        background_colour.getContrasted(),
-                        CircleShape)
-                    else Modifier
                 ),
             contentAlignment = Alignment.Center
         ) {
@@ -455,9 +465,10 @@ private fun StopAfterSongButton(background_colour: Color, modifier: Modifier = M
 private fun BoxScope.ActionBar(playerProvider: () -> PlayerViewContext, expansionProvider: () -> Float, undo_list: SnapshotStateList<() -> Unit>, scroll: (pages: Int) -> Unit) {
     val slide_offset: (fullHeight: Int) -> Int = remember { { (it * 0.7).toInt() } }
 
-    Box(Modifier
-        .align(Alignment.BottomStart)
-        .padding(10.dp)) {
+    Box(
+        Modifier
+            .align(Alignment.BottomStart)
+            .padding(10.dp)) {
 
         AnimatedVisibility(
             remember { derivedStateOf { expansionProvider() >= 0.975f } }.value,

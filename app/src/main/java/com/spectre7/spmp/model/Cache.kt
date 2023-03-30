@@ -6,6 +6,7 @@ import com.spectre7.utils.getString
 import java.io.BufferedReader
 import java.io.File
 import java.io.FileNotFoundException
+import java.io.Reader
 import java.time.Duration
 import java.time.Instant
 import kotlin.io.path.relativeTo
@@ -48,7 +49,7 @@ class Cache {
             cache_dir.deleteRecursively()
         }
 
-        fun set(path: String, value: BufferedReader?, lifetime: Duration?) {
+        fun set(path: String, value: Reader?, lifetime: Duration?) {
             val file = cache_dir.resolve(path)
             if (value == null) {
                 file.delete()

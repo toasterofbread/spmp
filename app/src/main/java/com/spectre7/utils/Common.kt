@@ -768,3 +768,18 @@ fun getScreenHeight(): Dp {
 fun getScreenWidth(): Dp {
 	return LocalConfiguration.current.screenWidthDp.dp
 }
+
+class Listeners<T>(private val list: MutableList<T>) {
+	fun add(value: T) {
+		list.add(value)
+	}
+	fun remove(value: T) {
+		for (item in list.withIndex()) {
+			if (item.value == value) {
+				list.removeAt(item.index)
+				break
+			}
+		}
+		throw NoSuchElementException(value.toString())
+	}
+}

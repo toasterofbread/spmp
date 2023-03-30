@@ -3,25 +3,38 @@ package com.spectre7.spmp.api
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.setValue
+import com.spectre7.spmp.api.DataApi.Companion.addYtHeaders
+import com.spectre7.spmp.api.DataApi.Companion.getStream
+import com.spectre7.spmp.api.DataApi.Companion.ytUrl
 import com.spectre7.spmp.model.Artist
 import com.spectre7.spmp.model.MediaItem
 import com.spectre7.spmp.model.Playlist
 import com.spectre7.spmp.model.Song
 import com.spectre7.spmp.ui.component.MediaItemLayout
-import com.spectre7.utils.printJson
+import com.spectre7.utils.Listeners
 import kotlinx.coroutines.DelicateCoroutinesApi
 import kotlinx.coroutines.GlobalScope
 import kotlinx.coroutines.Job
 import kotlinx.coroutines.launch
 import okhttp3.Request
-import okio.ByteString.Companion.readByteString
-import java.util.zip.GZIPInputStream
+
+private const val RADIO_ID_PREFIX = "RDAMVM"
+private const val MODIFIED_RADIO_ID_PREFIX = "RDAT"
 
 @OptIn(DelicateCoroutinesApi::class)
 class RadioInstance {
-    private var continuation: MediaItemLayout.Continuation? = null
-    private var current_job: Job? by mutableStateOf(null)
     private val lock = Object()
+    private var current_job: Job? by mutableStateOf(null)
+
+    var filters: List<List<RadioModifier>>? by mutableStateOf(null)
+        private set
+    var current_filter: Int? by mutableStateOf(null)
+        private set
+
+    private val _filter_changed_listeners: MutableList<(List<RadioModifier>?) -> Unit> = mutableListOf()
+    val filter_changed_listeners = Listeners(_filter_changed_listeners)
+
+    private var continuation: MediaItemLayout.Continuation? = null
 
     var item: MediaItem? by mutableStateOf(null)
         private set
@@ -30,40 +43,59 @@ class RadioInstance {
 
     fun playMediaItem(item: MediaItem) {
         synchronized(lock) {
-            this.item = item
-            continuation = null
             cancelJob()
+            reset()
+            this.item = item
+        }
+    }
+
+    fun setFilter(filter_index: Int?) {
+        if (filter_index == current_filter) {
+            return
+        }
+        current_filter = filter_index
+        continuation = null
+
+        val filter = current_filter?.let { filters!![it] }
+        for (listener in _filter_changed_listeners) {
+            listener.invoke(filter)
         }
     }
 
     fun cancelRadio() {
         synchronized(lock) {
-            item = null
-            continuation = null
+            reset()
             cancelJob()
         }
     }
 
-    private fun cancelJob() {
+    private fun reset() {
+        item = null
+        continuation = null
+        filters = null
+        current_filter = null
+    }
+
+    fun cancelJob() {
         current_job?.cancel()
         current_job = null
     }
 
-    fun loadContinuation(callback: (Result<List<Song>>) -> Unit) {
+    fun loadContinuation(onStart: (() -> Unit)? = null, callback: (Result<List<Song>>) -> Unit) {
         synchronized(lock) {
             check(current_job == null)
 
             current_job = GlobalScope.launch {
+                onStart?.invoke()
+
                 if (continuation == null) {
                     callback(getInitialSongs())
-                    synchronized(lock) { current_job = null }
                     return@launch
                 }
 
-                val result = continuation!!.loadContinuation()
+                val result = continuation!!.loadContinuation(current_filter?.let { filters?.get(it) } ?: emptyList())
                 if (result.isFailure) {
                     callback(result.cast())
-                    synchronized(lock) { current_job = null }
                     return@launch
                 }
 
@@ -77,6 +109,9 @@ class RadioInstance {
                 }
 
                 callback(Result.success(items.filterIsInstance<Song>()))
+            }
+
+            current_job!!.invokeOnCompletion {
                 synchronized(lock) { current_job = null }
             }
         }
@@ -85,11 +120,18 @@ class RadioInstance {
     private fun getInitialSongs(): Result<List<Song>> {
         when (val item = item!!) {
             is Song -> {
-                val result = getSongRadio(item.id, null)
+                val result = getSongRadio(item.id, null, current_filter?.let { filters?.get(it) } ?: emptyList())
                 return result.fold(
-                    {
-                        continuation = it.continuation?.let { MediaItemLayout.Continuation(it, MediaItemLayout.Continuation.Type.SONG, item!!.id) }
-                        Result.success(it.items)
+                    { data ->
+                        continuation = data.continuation?.let { continuation ->
+                            MediaItemLayout.Continuation(continuation, MediaItemLayout.Continuation.Type.SONG, item.id)
+                        }
+
+                        if (data.filters != null) {
+                            filters = data.filters
+                        }
+
+                        Result.success(data.items)
                     },
                     { Result.failure(it) }
                 )
@@ -116,7 +158,7 @@ class RadioInstance {
     }
 }
 
-data class RadioData(val items: List<Song>, var continuation: String?, val filters: List<RadioBuilderModifier>?)
+data class RadioData(val items: List<Song>, var continuation: String?, val filters: List<List<RadioModifier>>?)
 
 data class YoutubeiNextResponse(
     val contents: Contents
@@ -128,12 +170,17 @@ data class YoutubeiNextResponse(
     class Tab(val tabRenderer: TabRenderer)
     class TabRenderer(val content: Content? = null)
     class Content(val musicQueueRenderer: MusicQueueRenderer)
-    class MusicQueueRenderer(val content: MusicQueueRendererContent, val subHeaderChipCloud: SubHeaderChipCloud)
+    class MusicQueueRenderer(val content: MusicQueueRendererContent, val subHeaderChipCloud: SubHeaderChipCloud? = null)
 
     class SubHeaderChipCloud(val chipCloudRenderer: ChipCloudRenderer)
     class ChipCloudRenderer(val chips: List<Chip>)
-    class Chip(val chipCloudChipRenderer: ChipCloudChipRenderer)
-    class ChipCloudChipRenderer(val navigationEndpoint: NavigationEndpoint)
+    class Chip(val chipCloudChipRenderer: ChipCloudChipRenderer) {
+        fun getPlaylistId(): String = chipCloudChipRenderer.navigationEndpoint.queueUpdateCommand.fetchContentsCommand.watchEndpoint.playlistId!!
+    }
+    class ChipCloudChipRenderer(val navigationEndpoint: ChipNavigationEndpoint)
+    class ChipNavigationEndpoint(val queueUpdateCommand: QueueUpdateCommand)
+    class QueueUpdateCommand(val fetchContentsCommand: FetchContentsCommand)
+    class FetchContentsCommand(val watchEndpoint: WatchEndpoint)
 
     class MusicQueueRendererContent(val playlistPanelRenderer: PlaylistPanelRenderer)
     class PlaylistPanelRenderer(val contents: List<ResponseRadioItem>, val continuations: List<Continuation>? = null)
@@ -218,35 +265,62 @@ data class YoutubeiNextContinuationResponse(
     data class Contents(val playlistPanelContinuation: YoutubeiNextResponse.PlaylistPanelRenderer)
 }
 
-fun getSongRadio(video_id: String, continuation: String?): Result<RadioData> {
-    val RADIO_PLAYLIST_ID_PREFIX = "RDAMVM"
+fun radioToFilters(radio: String, video_id: String): List<RadioModifier>? {
+    if (!radio.startsWith(MODIFIED_RADIO_ID_PREFIX)) {
+        return null
+    }
+
+    val ret: MutableList<RadioModifier> = mutableListOf()
+    val modifier_string = radio.substring(MODIFIED_RADIO_ID_PREFIX.length, radio.length - video_id.length)
+
+    var c = 0
+    while (c + 1 < modifier_string.length) {
+        val modifier = RadioModifier.fromString(modifier_string.substring(c++, ++c))
+        if (modifier != null) {
+            ret.add(modifier)
+        }
+    }
+
+    if (ret.isEmpty()) {
+        return null
+    }
+
+    return ret
+}
+
+fun videoIdToRadio(video_id: String, filters: List<RadioModifier>): String {
+    if (filters.isEmpty()) {
+        return RADIO_ID_PREFIX + video_id
+    }
+
+    val ret = StringBuilder(MODIFIED_RADIO_ID_PREFIX)
+    for (filter in filters) {
+        filter.string?.also { ret.append(it) }
+    }
+    ret.append('v')
+    ret.append(video_id)
+    return ret.toString()
+}
+
+fun getSongRadio(video_id: String, continuation: String?, filters: List<RadioModifier> = emptyList()): Result<RadioData> {
+
     val request = Request.Builder()
-        .url("https://music.youtube.com/youtubei/v1/next")
-        .header("accept", "*/*")
-        .header("accept-encoding", "gzip, deflate")
-        .header("content-encoding", "gzip")
-        .header("origin", "https://music.youtube.com")
-        .header("X-Goog-Visitor-Id", "CgtUYXUtLWtyZ3ZvTSj3pNWaBg%3D%3D")
-        .header("Content-type", "application/json")
-        .header("Cookie", "CONSENT=YES+1")
+        .ytUrl("/youtubei/v1/next")
+        .addYtHeaders()
         .post(DataApi.getYoutubeiRequestBody(
         """
         {
             "enablePersistentPlaylistPanel": true,
             "tunerSettingValue": "AUTOMIX_SETTING_NORMAL",
-            "isAudioOnly": true,
-            "tunerSettingValue": "AUTOMIX_SETTING_NORMAL",
-            "playlistId": "$RADIO_PLAYLIST_ID_PREFIX$video_id",
-            "videoId", "$video_id",
-            "params": "wAEB",
-            "activePlayers": [{"playerContextParams": "Q0FFU0FnZ0I="}],
+            "playlistId": "${videoIdToRadio(video_id, filters)}",
             "watchEndpointMusicSupportedConfigs": {
                 "watchEndpointMusicConfig": {
                     "hasPersistentPlaylistPanel": true,
                     "musicVideoType": "MUSIC_VIDEO_TYPE_ATV"
                 }
-            }
-            ${if (continuation != null) """, "continuation": "$continuation" """ else ""}
+            },
+            "isAudioOnly": true
+            ${if (continuation != null) ", \"continuation\": \"$continuation\" " else ""}
         }
         """
         ))
@@ -257,10 +331,10 @@ fun getSongRadio(video_id: String, continuation: String?): Result<RadioData> {
         return result.cast()
     }
 
-    val stream = GZIPInputStream(result.getOrThrowHere().body!!.byteStream())
+    val stream = result.getOrThrowHere().getStream()
 
     val radio: YoutubeiNextResponse.PlaylistPanelRenderer
-    val filters: List<RadioBuilderModifier>?
+    val out_filters: List<List<RadioModifier>>?
 
     if (continuation == null) {
         val renderer = DataApi.klaxon.parse<YoutubeiNextResponse>(stream)!!
@@ -275,23 +349,15 @@ fun getSongRadio(video_id: String, continuation: String?): Result<RadioData> {
             .musicQueueRenderer
         radio = renderer.content.playlistPanelRenderer
 
-        filters = renderer.subHeaderChipCloud.chipCloudRenderer.chips.mapNotNull { chip ->
-            val id = chip.chipCloudChipRenderer.navigationEndpoint.watchEndpoint?.playlistId
-            if (id == null) {
-                return@mapNotNull null
-            }
-
-            val modifier_id = id.substring(RADIO_PLAYLIST_ID_PREFIX.length, id.length - video_id.length)
-            TODO()
-
-            return@mapNotNull RadioBuilderModifier.fromString(id)
+        out_filters = renderer.subHeaderChipCloud?.chipCloudRenderer?.chips?.mapNotNull { chip ->
+            radioToFilters(chip.getPlaylistId(), video_id)
         }
     }
     else {
         radio = DataApi.klaxon.parse<YoutubeiNextContinuationResponse>(stream)!!
             .continuationContents
             .playlistPanelContinuation
-        filters = null
+        out_filters = null
     }
 
     stream.close()
@@ -315,7 +381,7 @@ fun getSongRadio(video_id: String, continuation: String?): Result<RadioData> {
                 return@map song
             },
             radio.continuations?.firstOrNull()?.data?.continuation,
-            filters
+            out_filters
         )
     )
 }

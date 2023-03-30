@@ -27,10 +27,9 @@ import androidx.compose.ui.unit.sp
 import coil.compose.rememberAsyncImagePainter
 import com.beust.klaxon.Json
 import com.spectre7.spmp.R
-import com.spectre7.spmp.api.DataApi
-import com.spectre7.spmp.api.YoutubeiBrowseResponse
-import com.spectre7.spmp.api.cast
-import com.spectre7.spmp.api.getSongRadio
+import com.spectre7.spmp.api.*
+import com.spectre7.spmp.api.DataApi.Companion.addYtHeaders
+import com.spectre7.spmp.api.DataApi.Companion.ytUrl
 import com.spectre7.spmp.model.*
 import com.spectre7.spmp.ui.layout.PlayerViewContext
 import com.spectre7.spmp.ui.theme.Theme
@@ -81,9 +80,9 @@ data class MediaItemLayout(
             }
         }
 
-        fun loadContinuation(): Result<Pair<List<MediaItem>, String?>> {
+        fun loadContinuation(filters: List<RadioModifier> = emptyList()): Result<Pair<List<MediaItem>, String?>> {
             return when (type) {
-                Type.SONG -> loadSongContinuation()
+                Type.SONG -> loadSongContinuation(filters)
                 Type.PLAYLIST -> loadPlaylistContinuation()
             }
         }
@@ -92,8 +91,8 @@ data class MediaItemLayout(
             this.token = token
         }
 
-        private fun loadSongContinuation(): Result<Pair<List<MediaItem>, String?>> {
-            val result = getSongRadio(id!!, token)
+        private fun loadSongContinuation(filters: List<RadioModifier>): Result<Pair<List<MediaItem>, String?>> {
+            val result = getSongRadio(id!!, token, filters)
             return result.fold(
                 { Result.success(Pair(it.items, it.continuation)) },
                 { Result.failure(it) }
@@ -102,8 +101,8 @@ data class MediaItemLayout(
 
         private fun loadPlaylistContinuation(): Result<Pair<List<MediaItem>, String?>> {
             val request = Request.Builder()
-                .url("https://music.youtube.com/youtubei/v1/browse?ctoken=$token&continuation=$token&type=next&key=${getString(R.string.yt_i_api_key)}")
-                .headers(DataApi.getYTMHeaders())
+                .ytUrl("/youtubei/v1/browse?ctoken=$token&continuation=$token&type=next")
+                .addYtHeaders()
                 .post(DataApi.getYoutubeiRequestBody())
                 .build()
 

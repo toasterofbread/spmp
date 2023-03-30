@@ -5,6 +5,8 @@ import androidx.compose.material.icons.filled.Album
 import androidx.compose.material.icons.filled.PlayArrow
 import androidx.compose.ui.graphics.vector.ImageVector
 import com.spectre7.spmp.R
+import com.spectre7.spmp.api.DataApi.Companion.addYtHeaders
+import com.spectre7.spmp.api.DataApi.Companion.ytUrl
 import com.spectre7.spmp.model.Artist
 import com.spectre7.spmp.model.MediaItem
 import com.spectre7.spmp.model.Playlist
@@ -63,8 +65,8 @@ fun searchYoutubeMusic(query: String, params: String?): Result<List<Pair<MediaIt
 
     val params_str: String = if (params != null) "\"$params\"" else "null"
     val request = Request.Builder()
-        .url("https://music.youtube.com/youtubei/v1/search?key=${getString(R.string.yt_i_api_key)}")
-        .headers(DataApi.getYTMHeaders())
+        .ytUrl("/youtubei/v1/search")
+        .addYtHeaders()
         .post(DataApi.getYoutubeiRequestBody("""{ "query": "$query", "params": $params_str }"""))
         .build()
 

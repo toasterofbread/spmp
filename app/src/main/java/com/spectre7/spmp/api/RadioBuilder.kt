@@ -1,7 +1,11 @@
 package com.spectre7.spmp.api
 
+import com.spectre7.spmp.R
+import com.spectre7.spmp.api.DataApi.Companion.addYtHeaders
+import com.spectre7.spmp.api.DataApi.Companion.ytUrl
 import com.spectre7.spmp.model.MediaItem
 import com.spectre7.spmp.model.Playlist
+import com.spectre7.utils.getString
 import okhttp3.Request
 
 private class RadioBuilderBrowseResponse(
@@ -49,37 +53,53 @@ class RadioBuilderArtist(
     val thumbnail: MediaItem.ThumbnailProvider.Thumbnail
 )
 
-interface RadioBuilderModifier {
+interface RadioModifier {
     val string: String?
+    fun getReadable(): String
 
-    enum class Variety: RadioBuilderModifier {
+    enum class Variety: RadioModifier {
         LOW, MEDIUM, HIGH;
         override val string: String? get() = when (this) {
             LOW -> "rX"
             MEDIUM -> null
             HIGH -> "rZ"
         }
+        override fun getReadable(): String = getString(when (this) {
+            LOW -> R.string.radio_builder_modifier_variety_low
+            MEDIUM -> R.string.radio_builder_modifier_variety_medium
+            HIGH -> R.string.radio_builder_modifier_variety_high
+        })
     }
 
-    enum class SelectionType: RadioBuilderModifier {
+    enum class SelectionType: RadioModifier {
         FAMILIAR, BLEND, DISCOVER;
         override val string: String? get() = when (this) {
             FAMILIAR -> "iY"
             BLEND -> null
             DISCOVER -> "iX"
         }
+        override fun getReadable(): String = getString(when (this) {
+            FAMILIAR -> R.string.radio_builder_modifier_selection_type_familiar
+            BLEND -> R.string.radio_builder_modifier_selection_type_blend
+            DISCOVER -> R.string.radio_builder_modifier_selection_type_discover
+        })
     }
 
-    enum class FilterA: RadioBuilderModifier {
+    enum class FilterA: RadioModifier {
         POPULAR, HIDDEN, NEW;
         override val string: String? get() = when (this) {
             POPULAR -> "pY"
             HIDDEN -> "pX"
             NEW -> "dX"
         }
+        override fun getReadable(): String = getString(when (this) {
+            POPULAR -> R.string.radio_builder_modifier_filter_a_popular
+            HIDDEN -> R.string.radio_builder_modifier_filter_a_hidden
+            NEW -> R.string.radio_builder_modifier_filter_a_new
+        })
     }
 
-    enum class FilterB: RadioBuilderModifier {
+    enum class FilterB: RadioModifier {
         PUMP_UP, CHILL, UPBEAT, DOWNBEAT, FOCUS;
         override val string: String? get() = when (this) {
             PUMP_UP -> "mY"
@@ -88,10 +108,17 @@ interface RadioBuilderModifier {
             DOWNBEAT -> "mc"
             FOCUS -> "ma"
         }
+        override fun getReadable(): String = getString(when (this) {
+            PUMP_UP -> R.string.radio_builder_modifier_filter_pump_up // 熱
+            CHILL -> R.string.radio_builder_modifier_filter_chill // 冷
+            UPBEAT -> R.string.radio_builder_modifier_filter_upbeat // 明るい
+            DOWNBEAT -> R.string.radio_builder_modifier_filter_downbeat // 重い
+            FOCUS -> R.string.radio_builder_modifier_filter_focus
+        })
     }
 
     companion object {
-        fun fromString(modifier: String): RadioBuilderModifier? {
+        fun fromString(modifier: String): RadioModifier? {
             return when (modifier) {
                 "iY" -> SelectionType.FAMILIAR
                 "iX" -> SelectionType.DISCOVER
@@ -130,16 +157,16 @@ fun getBuiltRadio(radio_token: String): Result<Playlist?> {
     return result.cast()
 }
 
-fun buildRadioToken(artists: Set<RadioBuilderArtist>, modifiers: Set<RadioBuilderModifier?>): String {
+fun buildRadioToken(artists: Set<RadioBuilderArtist>, modifiers: Set<RadioModifier?>): String {
     require(artists.isNotEmpty())
     var radio_token: String = "VLRDAT"
 
     var modifier_added = false
     for (modifier in listOf(
-        modifiers.singleOrNull { it is RadioBuilderModifier.FilterB },
-        modifiers.singleOrNull { it is RadioBuilderModifier.FilterA },
-        modifiers.singleOrNull { it is RadioBuilderModifier.SelectionType },
-        modifiers.singleOrNull { it is RadioBuilderModifier.Variety }
+        modifiers.singleOrNull { it is RadioModifier.FilterB },
+        modifiers.singleOrNull { it is RadioModifier.FilterA },
+        modifiers.singleOrNull { it is RadioModifier.SelectionType },
+        modifiers.singleOrNull { it is RadioModifier.Variety }
     )) {
         modifier?.string?.also {
             radio_token += it
@@ -177,8 +204,8 @@ fun getRadioBuilderArtists(
     selectThumbnail: (List<MediaItem.ThumbnailProvider.Thumbnail>) -> MediaItem.ThumbnailProvider.Thumbnail
 ): Result<List<RadioBuilderArtist>> {
     val request = Request.Builder()
-        .url("https://music.youtube.com/youtubei/v1/browse")
-        .headers(DataApi.getYTMHeaders())
+        .ytUrl("/youtubei/v1/browse")
+        .addYtHeaders()
         .post(DataApi.getYoutubeiRequestBody("""{ "browseId": "FEmusic_radio_builder" }""", context = DataApi.Companion.YoutubeiContextType.ANDROID))
         .build()
 

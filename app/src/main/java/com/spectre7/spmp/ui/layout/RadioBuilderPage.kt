@@ -87,16 +87,16 @@ fun RadioBuilderPage(
                     selected_artists = null
                 }
 
-                val selection_type = remember { mutableStateOf(RadioBuilderModifier.SelectionType.BLEND) }
+                val selection_type = remember { mutableStateOf(RadioModifier.SelectionType.BLEND) }
                 SelectionTypeRow(selection_type)
 
-                val artist_variety = remember { mutableStateOf(RadioBuilderModifier.Variety.MEDIUM) }
+                val artist_variety = remember { mutableStateOf(RadioModifier.Variety.MEDIUM) }
                 ArtistVarietyRow(artist_variety)
 
-                val filter_a: MutableState<RadioBuilderModifier.FilterA?> = remember { mutableStateOf(null) }
+                val filter_a: MutableState<RadioModifier.FilterA?> = remember { mutableStateOf(null) }
                 FilterARow(filter_a)
 
-                val filter_b: MutableState<RadioBuilderModifier.FilterB?> = remember { mutableStateOf(null) }
+                val filter_b: MutableState<RadioModifier.FilterB?> = remember { mutableStateOf(null) }
                 FilterBRow(filter_b)
 
                 var is_loading by remember { mutableStateOf(false) }
@@ -235,7 +235,7 @@ fun RadioBuilderPage(
 }
 
 @Composable
-private fun SelectionTypeRow(state: MutableState<RadioBuilderModifier.SelectionType>) {
+private fun SelectionTypeRow(state: MutableState<RadioModifier.SelectionType>) {
     Row(
         Modifier.fillMaxWidth(),
         horizontalArrangement = Arrangement.spacedBy(10.dp),
@@ -274,16 +274,12 @@ private fun SelectionTypeRow(state: MutableState<RadioBuilderModifier.SelectionT
             Text(getString(R.string.radio_builder_modifier_selection_type))
 
             MultiSelectRow(
-                amount = RadioBuilderModifier.SelectionType.values().size,
+                amount = RadioModifier.SelectionType.values().size,
                 arrangement = Arrangement.spacedBy(10.dp),
                 isSelected = { it == state.value.ordinal },
-                onSelected = { state.value =  RadioBuilderModifier.SelectionType.values()[it!!] },
+                onSelected = { state.value =  RadioModifier.SelectionType.values()[it!!] },
                 getText = {
-                    getString(when (RadioBuilderModifier.SelectionType.values()[it]) {
-                        RadioBuilderModifier.SelectionType.FAMILIAR -> R.string.radio_builder_modifier_selection_type_familiar
-                        RadioBuilderModifier.SelectionType.BLEND -> R.string.radio_builder_modifier_selection_type_blend
-                        RadioBuilderModifier.SelectionType.DISCOVER -> R.string.radio_builder_modifier_selection_type_discover
-                    })
+                    RadioModifier.SelectionType.values()[it].getReadable()
                 },
                 button_padding = PaddingValues(0.dp)
             )
@@ -312,40 +308,32 @@ private fun SelectionTypeRow(state: MutableState<RadioBuilderModifier.SelectionT
 }
 
 @Composable
-private fun ArtistVarietyRow(state: MutableState<RadioBuilderModifier.Variety>) {
+private fun ArtistVarietyRow(state: MutableState<RadioModifier.Variety>) {
     Column(verticalArrangement = Arrangement.spacedBy(5.dp)) {
         Text(getString(R.string.radio_builder_modifier_variety))
         MultiSelectRow(
-            RadioBuilderModifier.Variety.values().size,
+            RadioModifier.Variety.values().size,
             arrangement = Arrangement.spacedBy(20.dp),
             isSelected = { state.value.ordinal == it },
-            onSelected = { state.value =  RadioBuilderModifier.Variety.values()[it!!] },
+            onSelected = { state.value =  RadioModifier.Variety.values()[it!!] },
             getText = {
-                getString(when (RadioBuilderModifier.Variety.values()[it]) {
-                    RadioBuilderModifier.Variety.LOW -> R.string.radio_builder_modifier_variety_low
-                    RadioBuilderModifier.Variety.MEDIUM -> R.string.radio_builder_modifier_variety_medium
-                    RadioBuilderModifier.Variety.HIGH -> R.string.radio_builder_modifier_variety_high
-                })
+                RadioModifier.Variety.values()[it].getReadable()
             }
         )
     }
 }
 
 @Composable
-private fun FilterARow(state: MutableState<RadioBuilderModifier.FilterA?>) {
+private fun FilterARow(state: MutableState<RadioModifier.FilterA?>) {
     Column(verticalArrangement = Arrangement.spacedBy(5.dp)) {
         Text(getString(R.string.radio_builder_modifier_filter_a))
         MultiSelectRow(
-            RadioBuilderModifier.FilterA.values().size,
+            RadioModifier.FilterA.values().size,
             arrangement = Arrangement.spacedBy(20.dp),
             isSelected = { state.value?.ordinal == it },
-            onSelected = { state.value = it?.let { RadioBuilderModifier.FilterA.values()[it] } },
+            onSelected = { state.value = it?.let { RadioModifier.FilterA.values()[it] } },
             getText = {
-                getString(when (RadioBuilderModifier.FilterA.values()[it]) {
-                    RadioBuilderModifier.FilterA.POPULAR -> R.string.radio_builder_modifier_filter_a_popular
-                    RadioBuilderModifier.FilterA.HIDDEN -> R.string.radio_builder_modifier_filter_a_hidden
-                    RadioBuilderModifier.FilterA.NEW -> R.string.radio_builder_modifier_filter_a_new
-                })
+                RadioModifier.FilterA.values()[it].getReadable()
             },
             nullable = true
         )
@@ -353,22 +341,16 @@ private fun FilterARow(state: MutableState<RadioBuilderModifier.FilterA?>) {
 }
 
 @Composable
-private fun FilterBRow(state: MutableState<RadioBuilderModifier.FilterB?>) {
+private fun FilterBRow(state: MutableState<RadioModifier.FilterB?>) {
     Column(verticalArrangement = Arrangement.spacedBy(5.dp)) {
         Text(getString(R.string.radio_builder_modifier_filter_b))
         MultiSelectRow(
-            RadioBuilderModifier.FilterB.values().size,
+            RadioModifier.FilterB.values().size,
             arrangement = Arrangement.spacedBy(20.dp),
             isSelected = { state.value?.ordinal == it },
-            onSelected = { state.value = it?.let { RadioBuilderModifier.FilterB.values()[it] } },
+            onSelected = { state.value = it?.let { RadioModifier.FilterB.values()[it] } },
             getText = {
-                getString(when (RadioBuilderModifier.FilterB.values()[it]) {
-                    RadioBuilderModifier.FilterB.PUMP_UP -> R.string.radio_builder_modifier_filter_pump_up // 熱
-                    RadioBuilderModifier.FilterB.CHILL -> R.string.radio_builder_modifier_filter_chill // 冷
-                    RadioBuilderModifier.FilterB.UPBEAT -> R.string.radio_builder_modifier_filter_upbeat // 明るい
-                    RadioBuilderModifier.FilterB.DOWNBEAT -> R.string.radio_builder_modifier_filter_downbeat // 重い
-                    RadioBuilderModifier.FilterB.FOCUS -> R.string.radio_builder_modifier_filter_focus
-                })
+                RadioModifier.FilterB.values()[it].getReadable()
             },
             nullable = true,
             button_padding = PaddingValues(0.dp),
@@ -582,16 +564,16 @@ private fun RecordArc(size: Dp, arc_angle: Float, offset: Float = 0f, colour: Co
     }
 }
 
-private fun getRecordArcValues(type: RadioBuilderModifier.SelectionType, i: Int): Triple<Dp, Float, Float> {
+private fun getRecordArcValues(type: RadioModifier.SelectionType, i: Int): Triple<Dp, Float, Float> {
     return when (type) {
-        RadioBuilderModifier.SelectionType.FAMILIAR -> Triple((20f + 10f * i).dp, 40f + 20f * i, 0f)
-        RadioBuilderModifier.SelectionType.BLEND -> Triple((20f + 10f * i).dp, 35f + 15f * i, -20f + i * 20f)
-        RadioBuilderModifier.SelectionType.DISCOVER -> Triple((20f + 10f * i).dp, 40f + 25f * i, -25f + i * 35f)
+        RadioModifier.SelectionType.FAMILIAR -> Triple((20f + 10f * i).dp, 40f + 20f * i, 0f)
+        RadioModifier.SelectionType.BLEND -> Triple((20f + 10f * i).dp, 35f + 15f * i, -20f + i * 20f)
+        RadioModifier.SelectionType.DISCOVER -> Triple((20f + 10f * i).dp, 40f + 25f * i, -25f + i * 35f)
     }
 }
 
 @Composable
-private fun RadioSelectionTypeAnimation(type: RadioBuilderModifier.SelectionType, animate_state: Any = Unit, colour: Color = Color.White) {
+private fun RadioSelectionTypeAnimation(type: RadioModifier.SelectionType, animate_state: Any = Unit, colour: Color = Color.White) {
     val animatable = remember { Animatable(0f) }
 //    val anim_spec = SpringSpec<Float>(stiffness = Spring.StiffnessVeryLow)
     val anim_spec = TweenSpec<Float>(850, easing = CubicBezierEasing(0.25f, 0.1f, 0.25f, 1.0f))

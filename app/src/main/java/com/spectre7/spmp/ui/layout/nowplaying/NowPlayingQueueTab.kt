@@ -31,6 +31,8 @@ import com.google.android.exoplayer2.Player
 import com.spectre7.spmp.PlayerServiceHost
 import com.spectre7.spmp.R
 import com.spectre7.spmp.model.MediaItem
+import com.spectre7.spmp.model.NowPlayingQueueRadioInfoPosition
+import com.spectre7.spmp.model.Settings
 import com.spectre7.spmp.model.Song
 import com.spectre7.spmp.ui.layout.MINIMISED_NOW_PLAYING_HEIGHT
 import com.spectre7.spmp.ui.layout.PlayerViewContext
@@ -74,7 +76,8 @@ private class QueueTabItem(val song: Song, val key: Int) {
         Box(
             Modifier
                 .offset { IntOffset(swipe_state.offset.value.roundToInt(), 0) }
-                .thenIf(current,
+                .thenIf(
+                    current,
                     Modifier.background(accent_colour, RoundedCornerShape(45))
                 )
         ) {
@@ -122,6 +125,7 @@ fun QueueTab(expansionProvider: () -> Float, playerProvider: () -> PlayerViewCon
 
     var key_inc by remember { mutableStateOf(0) }
     val undo_list = remember { mutableStateListOf<() -> Unit>() }
+    val radio_info_position: NowPlayingQueueRadioInfoPosition = Settings.getEnum(Settings.KEY_NP_QUEUE_RADIO_INFO_POSITION)
 
     val song_items: SnapshotStateList<QueueTabItem> = remember { mutableStateListOf<QueueTabItem>().also { list ->
         PlayerServiceHost.service.iterateSongs { _, song: Song ->
@@ -159,39 +163,16 @@ fun QueueTab(expansionProvider: () -> Float, playerProvider: () -> PlayerViewCon
         }
     }
 
-    val state = rememberReorderableLazyListState(
-        onMove = { from, to ->
-            song_items.add(to.index, song_items.removeAt(from.index))
-        },
-        onDragEnd = { from, to ->
-            if (from != to) {
-                PlayerServiceHost.player.moveMediaItem(from, to)
-                playing_key = null
-
-                undo_list.add {
-                    song_items.add(from, song_items.removeAt(to))
-                }
-            }
-        }
-    )
-
-    fun removeSong(song: Song, index: Int) {
-        undo_list.add {
-            PlayerServiceHost.service.addToQueue(song, index)
-        }
-
-        PlayerServiceHost.service.removeFromQueue(index)
-    }
-
     val background_colour = getNPBackground(playerProvider)
     val queue_background_colour = background_colour.amplify(0.15f, 0.15f)
 
     val shape = RoundedCornerShape(topStart = 25.dp, topEnd = 25.dp)
-    Box(Modifier
-        .fillMaxSize()
-        .padding(top = MINIMISED_NOW_PLAYING_HEIGHT.dp + 20.dp)
-        .background(queue_background_colour, shape)
-        .clip(shape)
+    Box(
+        Modifier
+            .fillMaxSize()
+            .padding(top = MINIMISED_NOW_PLAYING_HEIGHT.dp + 20.dp)
+            .background(queue_background_colour, shape)
+            .clip(shape)
     ) {
         val list_padding = 10.dp
 
@@ -318,7 +299,28 @@ fun QueueTab(expansionProvider: () -> Float, playerProvider: () -> PlayerViewCon
 
             }
 
+            if (radio_info_position == NowPlayingQueueRadioInfoPosition.TOP_BAR) {
+                CurrentRadioIndicator(queue_background_colour, background_colour)
+            }
+
             Divider(Modifier.padding(horizontal = list_padding), background_colour)
+
+            val items_above_queue = if (radio_info_position == NowPlayingQueueRadioInfoPosition.ABOVE_ITEMS) 1 else 0
+            val state = rememberReorderableLazyListState(
+                onMove = { from, to ->
+                    song_items.add(to.index - items_above_queue, song_items.removeAt(from.index - items_above_queue))
+                },
+                onDragEnd = { from, to ->
+                    if (from != to) {
+                        PlayerServiceHost.player.moveMediaItem(from - items_above_queue, to - items_above_queue)
+                        playing_key = null
+
+                        undo_list.add {
+                            song_items.add(from - items_above_queue, song_items.removeAt(to - items_above_queue))
+                        }
+                    }
+                }
+            )
 
             LazyColumn(
                 state = state.listState,
@@ -329,16 +331,10 @@ fun QueueTab(expansionProvider: () -> Float, playerProvider: () -> PlayerViewCon
                     .padding(horizontal = list_padding),
                 horizontalAlignment = Alignment.CenterHorizontally
             ) {
-
-                val radio_item: MediaItem? = PlayerServiceHost.service.radio_item
-                if (radio_item != null) {
-//                if (radio_item is Artist or radio_item is Playlist) {
-//                    item {
-//                        radio_item.PreviewLong(MediaItem.PreviewParams(
-//                            playerProvider,
-//                            content_colour = { queue_background_colour.getContrasted() }
-//                        ))
-//                    }
+                if (radio_info_position == NowPlayingQueueRadioInfoPosition.ABOVE_ITEMS) {
+                    item {
+                        CurrentRadioIndicator(queue_background_colour, background_colour)
+                    }
                 }
 
                 items(song_items.size, { song_items[it].key }) { index ->
@@ -358,9 +354,13 @@ fun QueueTab(expansionProvider: () -> Float, playerProvider: () -> PlayerViewCon
                                 index,
                                 queue_background_colour,
                                 background_colour,
-                                playerProvider,
-                                remember(item.song, index) { { removeSong(item.song, index) } }
-                            )
+                                playerProvider
+                            ) {
+                                undo_list.add {
+                                    PlayerServiceHost.service.addToQueue(item.song, index)
+                                }
+                                PlayerServiceHost.service.removeFromQueue(index)
+                            }
                         }
                     }
                 }
@@ -379,9 +379,54 @@ fun QueueTab(expansionProvider: () -> Float, playerProvider: () -> PlayerViewCon
     }
 }
 
+@OptIn(ExperimentalMaterial3Api::class)
 @Composable
-private fun CurrentRadioIndicator() {
+private fun CurrentRadioIndicator(
+    background_colour: Color,
+    accent_colour: Color
+) {
+    Column {
+        val filters = PlayerServiceHost.service.radio_filters
+        val current_filter = PlayerServiceHost.service.radio_current_filter
 
+        if (filters != null) {
+            Row(Modifier.horizontalScroll(rememberScrollState()), horizontalArrangement = Arrangement.spacedBy(15.dp)) {
+                for (filter in listOf(null) + filters.withIndex()) {
+                    FilterChip(
+                        current_filter == filter?.index,
+                        onClick = {
+                            if (PlayerServiceHost.service.radio_current_filter != filter?.index) {
+                                PlayerServiceHost.service.radio_current_filter = filter?.index
+                            }
+                        },
+                        label = {
+                            Text(
+                                filter?.value?.joinToString("|") { it.getReadable() }
+                                    ?: getString("すべて")
+                            )
+                        },
+                        colors = FilterChipDefaults.filterChipColors(
+                            labelColor = background_colour.getContrasted(),
+                            selectedContainerColor = accent_colour,
+                            selectedLabelColor = accent_colour.getContrasted()
+                        )
+                    )
+                }
+            }
+        }
+    }
+
+    val radio_item: MediaItem? = PlayerServiceHost.service.radio_item
+    if (radio_item != null) {
+
+//                if (radio_item is Artist or radio_item is Playlist) {
+//                    item {
+//                        radio_item.PreviewLong(MediaItem.PreviewParams(
+//                            playerProvider,
+//                            content_colour = { queue_background_colour.getContrasted() }
+//                        ))
+//                    }
+    }
 }
 
 @Composable

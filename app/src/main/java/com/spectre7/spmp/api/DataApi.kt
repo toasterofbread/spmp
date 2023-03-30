@@ -13,7 +13,9 @@ import org.apache.commons.text.StringSubstitutor
 import org.schabi.newpipe.extractor.NewPipe
 import org.schabi.newpipe.extractor.downloader.Downloader
 import org.schabi.newpipe.extractor.exceptions.ReCaptchaException
-import java.util.*
+import java.io.InputStream
+import java.io.InputStreamReader
+import java.util.zip.GZIPInputStream
 import org.schabi.newpipe.extractor.downloader.Request as NewPipeRequest
 import org.schabi.newpipe.extractor.downloader.Response as NewPipeResponse
 
@@ -96,8 +98,6 @@ class DataApi {
         }
 
         fun request(request: Request, allow_fail_response: Boolean = false): Result<Response> {
-//            return Result.failure(RuntimeException())
-//            val new_request = request.newBuilder().url(request.url.newBuilder().addQueryParameter("prettyPrint", "false").build()).build()
             try {
                 val response = client.newCall(request).execute()
                 if (response.isSuccessful || allow_fail_response) {
@@ -108,6 +108,10 @@ class DataApi {
             catch (e: Throwable) {
                 return Result.failure(e)
             }
+        }
+
+        fun Response.getStream(): InputStream {
+            return GZIPInputStream(body!!.byteStream())
         }
 
         private fun updateYtmContext() {
@@ -149,6 +153,9 @@ class DataApi {
                     headers_builder[key] = value
                 }
             }
+
+            headers_builder["accept-encoding"] = "gzip, deflate"
+            headers_builder["content-encoding"] = "gzip"
 
             youtubei_headers = headers_builder.build()
         }
@@ -197,8 +204,13 @@ class DataApi {
             })
         }
 
-        internal fun getYTMHeaders(): Headers {
-            return youtubei_headers
+        internal fun Request.Builder.addYtHeaders(): Request.Builder {
+            return headers(youtubei_headers)
+        }
+
+        internal fun Request.Builder.ytUrl(endpoint: String): Request.Builder {
+            val joiner = if (endpoint.contains('?')) '&' else '?'
+            return url("https://music.youtube.com$endpoint${joiner}prettyPrint=false")
         }
 
         internal fun getYoutubeiRequestBody(body: String? = null, context: YoutubeiContextType = YoutubeiContextType.BASE): RequestBody {

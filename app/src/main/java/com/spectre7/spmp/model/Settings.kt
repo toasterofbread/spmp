@@ -13,6 +13,9 @@ import java.util.*
 enum class AccentColourSource {
     THEME, THUMBNAIL, SYSTEM
 }
+enum class NowPlayingQueueRadioInfoPosition {
+    TOP_BAR, ABOVE_ITEMS
+}
 
 enum class Settings {
     // Language
@@ -58,6 +61,9 @@ enum class Settings {
     KEY_FEED_ENABLE_MOODS_ROW,
     KEY_FEED_ENABLE_CHARTS_ROW,
 
+    // Now playing queue
+    KEY_NP_QUEUE_RADIO_INFO_POSITION,
+
     // Auth
     KEY_YTM_AUTH,
 
@@ -67,7 +73,6 @@ enum class Settings {
     KEY_PERSISTENT_QUEUE,
     KEY_ADD_SONGS_TO_HISTORY,
     KEY_ENABLE_DISCORD_PRESENCE;
-
 
     companion object {
         val prefs: SharedPreferences get() = getPrefs()
@@ -152,6 +157,8 @@ enum class Settings {
                 KEY_FEED_ENABLE_NEW_ROW -> true
                 KEY_FEED_ENABLE_MOODS_ROW -> true
                 KEY_FEED_ENABLE_CHARTS_ROW -> true
+
+                KEY_NP_QUEUE_RADIO_INFO_POSITION -> NowPlayingQueueRadioInfoPosition.TOP_BAR.ordinal
 
                 KEY_YTM_AUTH -> {
                     if (BuildConfig.LocalKeys != null && !local_auth_keys_used) {

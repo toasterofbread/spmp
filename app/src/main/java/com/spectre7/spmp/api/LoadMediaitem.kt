@@ -1,6 +1,9 @@
 package com.spectre7.spmp.api
 
 import android.util.JsonReader
+import com.spectre7.spmp.api.DataApi.Companion.addYtHeaders
+import com.spectre7.spmp.api.DataApi.Companion.getStream
+import com.spectre7.spmp.api.DataApi.Companion.ytUrl
 import com.spectre7.spmp.model.*
 import com.spectre7.spmp.ui.component.MediaItemLayout
 import okhttp3.Request
@@ -99,7 +102,7 @@ fun loadMediaItemData(item: MediaItem): Result<MediaItem?> {
         }
     }
 
-    val url = if (item is Song) "https://music.youtube.com/youtubei/v1/next" else "https://music.youtube.com/youtubei/v1/browse"
+    val url = if (item is Song) "/youtubei/v1/next" else "/youtubei/v1/browse"
     val body =
         if (item is Song)
             """{
@@ -110,14 +113,14 @@ fun loadMediaItemData(item: MediaItem): Result<MediaItem?> {
         else """{ "browseId": "$item_id" }"""
 
     var request: Request = Request.Builder()
-        .url(url)
-        .headers(DataApi.getYTMHeaders())
+        .ytUrl(url)
+        .addYtHeaders()
         .post(DataApi.getYoutubeiRequestBody(body))
         .build()
 
     val response = DataApi.request(request).getOrNull()
     if (response != null) {
-        val response_body: Reader = response.body!!.charStream()
+        val response_body = response.getStream()
 
         if (item is MediaItemWithLayouts) {
 
@@ -175,7 +178,7 @@ fun loadMediaItemData(item: MediaItem): Result<MediaItem?> {
 
         check(item is Song)
 
-        val buffered_reader = BufferedReader(response_body)
+        val buffered_reader = BufferedReader(response_body.reader())
         buffered_reader.mark(Int.MAX_VALUE)
 
         val video_details = DataApi.klaxon.parse<PlayerData>(buffered_reader)?.videoDetails
@@ -220,8 +223,8 @@ fun loadMediaItemData(item: MediaItem): Result<MediaItem?> {
 
     // 'next' endpoint has no artist, use 'player' instead
     request = Request.Builder()
-        .url("https://music.youtube.com/youtubei/v1/player")//?key=${getString(R.string.yt_i_api_key)}")
-        .headers(DataApi.getYTMHeaders())
+        .ytUrl("/youtubei/v1/player")
+        .addYtHeaders()
         .post(DataApi.getYoutubeiRequestBody("""{ "videoId": "$item_id" }"""))
         .build()
 

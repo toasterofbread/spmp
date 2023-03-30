@@ -2,6 +2,9 @@ package com.spectre7.spmp.api
 
 import android.util.JsonReader
 import com.spectre7.spmp.R
+import com.spectre7.spmp.api.DataApi.Companion.addYtHeaders
+import com.spectre7.spmp.api.DataApi.Companion.getStream
+import com.spectre7.spmp.api.DataApi.Companion.ytUrl
 import com.spectre7.spmp.model.Artist
 import com.spectre7.utils.getString
 import okhttp3.HttpUrl.Companion.toHttpUrl
@@ -14,8 +17,8 @@ fun isSubscribedToArtist(artist: Artist): Result<Boolean?> {
     check(!artist.for_song)
 
     val request: Request = Request.Builder()
-        .url("https://music.youtube.com/youtubei/v1/browse")
-        .headers(DataApi.getYTMHeaders())
+        .ytUrl("/youtubei/v1/browse")
+        .addYtHeaders()
         .post(DataApi.getYoutubeiRequestBody("""{ "browseId": "${artist.id}" }"""))
         .build()
 
@@ -57,7 +60,7 @@ fun isSubscribedToArtist(artist: Artist): Result<Boolean?> {
 fun subscribeOrUnsubscribeArtist(artist: Artist, subscribe: Boolean): Result<Any> {
     val request: Request = Request.Builder()
         .url("https://music.youtube.com/youtubei/v1/subscription/${if (subscribe) "subscribe" else "unsubscribe"}")
-        .headers(DataApi.getYTMHeaders())
+        .addYtHeaders()
         .post(DataApi.getYoutubeiRequestBody("""
             {
                 "channelIds": ["${artist.subscribe_channel_id}"]
@@ -82,7 +85,7 @@ private data class PlayerLikeResponse(
 fun getSongLiked(id: String): Result<Boolean?> {
     val request: Request = Request.Builder()
         .url("https://music.youtube.com/youtubei/v1/next")
-        .headers(DataApi.getYTMHeaders())
+        .addYtHeaders()
         .post(DataApi.getYoutubeiRequestBody("""
             {
                 "videoId": "$id"
@@ -95,7 +98,7 @@ fun getSongLiked(id: String): Result<Boolean?> {
         return result.cast()
     }
 
-    val stream = result.getOrThrow().body!!.charStream()
+    val stream = result.getOrThrow().getStream()
     val parsed: PlayerLikeResponse = DataApi.klaxon.parse(stream)!!
     stream.close()
 
@@ -114,7 +117,7 @@ fun setSongLiked(id: String, liked: Boolean?): Result<Any> {
             false -> "like/dislike"
             null -> "like/removelike"
         })
-        .headers(DataApi.getYTMHeaders())
+        .addYtHeaders()
         .post(DataApi.getYoutubeiRequestBody("""
             {
                 "target": { "videoId": "$id" }
@@ -149,7 +152,7 @@ fun markSongAsWatched(id: String): Result<Any> {
                 """{ "videoId": "$id" }""",
                 context = if (alt) DataApi.Companion.YoutubeiContextType.ALT else DataApi.Companion.YoutubeiContextType.BASE
             ))
-            .headers(DataApi.getYTMHeaders())
+            .addYtHeaders()
             .build()
     }
 
@@ -173,7 +176,7 @@ fun markSongAsWatched(id: String): Result<Any> {
 
     val request = Request.Builder()
         .url(playback_url)
-        .headers(DataApi.getYTMHeaders())
+        .addYtHeaders()
         .build()
 
     result = DataApi.request(request)

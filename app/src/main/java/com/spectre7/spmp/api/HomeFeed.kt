@@ -3,12 +3,18 @@ package com.spectre7.spmp.api
 import com.beust.klaxon.Json
 import com.spectre7.spmp.MainActivity
 import com.spectre7.spmp.R
+import com.spectre7.spmp.api.DataApi.Companion.addYtHeaders
+import com.spectre7.spmp.api.DataApi.Companion.getStream
+import com.spectre7.spmp.api.DataApi.Companion.ytUrl
 import com.spectre7.spmp.model.*
 import com.spectre7.spmp.ui.component.MediaItemLayout
 import com.spectre7.spmp.ui.component.generateLayoutTitle
 import com.spectre7.utils.getString
 import okhttp3.Request
 import java.io.BufferedReader
+import java.io.InputStream
+import java.io.InputStreamReader
+import java.io.Reader
 import java.time.Duration
 import kotlin.concurrent.thread
 
@@ -16,20 +22,20 @@ private val CACHE_LIFETIME = Duration.ofDays(1)
 
 fun getHomeFeed(min_rows: Int = -1, allow_cached: Boolean = true, continuation: String? = null): Result<Pair<List<MediaItemLayout>, String?>> {
 
-    fun postRequest(ctoken: String?): Result<BufferedReader> {
-        val url = "https://music.youtube.com/youtubei/v1/browse"
+    fun postRequest(ctoken: String?): Result<InputStreamReader> {
+        val endpoint = "/youtubei/v1/browse"
         val request = Request.Builder()
-            .url(if (ctoken == null) url else "$url?ctoken=$ctoken&continuation=$ctoken&type=next")
-            .headers(DataApi.getYTMHeaders())
+            .ytUrl(if (ctoken == null) endpoint else "$endpoint?ctoken=$ctoken&continuation=$ctoken&type=next")
+            .addYtHeaders()
             .post(DataApi.getYoutubeiRequestBody())
             .build()
 
         val result = DataApi.request(request)
-        if (!result.isSuccess) {
+        if (result.isFailure) {
             return result.cast()
         }
 
-        return Result.success(BufferedReader(result.getOrThrowHere().body!!.charStream()))
+        return Result.success(result.getOrThrow().getStream().reader())
     }
 
     fun processRows(rows: List<YoutubeiShelf>): List<MediaItemLayout> {
@@ -151,7 +157,7 @@ fun getHomeFeed(min_rows: Int = -1, allow_cached: Boolean = true, continuation: 
     }
 
     val rows: MutableList<MediaItemLayout>
-    var response_reader: BufferedReader? = null
+    var response_reader: Reader? = null
 
     val cache_key = "feed"
     if (allow_cached && continuation == null) {

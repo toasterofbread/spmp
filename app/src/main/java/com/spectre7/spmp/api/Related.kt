@@ -1,5 +1,7 @@
 package com.spectre7.spmp.api
 
+import com.spectre7.spmp.api.DataApi.Companion.addYtHeaders
+import com.spectre7.spmp.api.DataApi.Companion.ytUrl
 import okhttp3.Request
 import com.spectre7.spmp.model.*
 
@@ -20,8 +22,8 @@ fun getMediaItemRelated(item: MediaItem): Result<List<List<RelatedGroup<MediaIte
     var error: Result<List<List<RelatedGroup<MediaItem>>>>? = null
     fun loadBrowseEndpoint(browse_endpoint: MediaItem.BrowseEndpoint): List<RelatedGroup<MediaItem>>? {
         val request = Request.Builder()
-            .url("https://music.youtube.com/youtubei/v1/browse")
-            .headers(DataApi.getYTMHeaders())
+            .ytUrl("/youtubei/v1/browse")
+            .addYtHeaders()
             .post(DataApi.getYoutubeiRequestBody(
                 """
             {

@@ -56,6 +56,7 @@ import com.google.android.exoplayer2.mediacodec.MediaCodecSelector
 import com.google.android.exoplayer2.source.DefaultMediaSourceFactory
 import com.google.android.exoplayer2.ui.PlayerNotificationManager
 import com.google.android.exoplayer2.upstream.*
+import com.spectre7.spmp.api.RadioModifier
 import com.spectre7.spmp.api.RadioInstance
 import com.spectre7.spmp.api.getOrThrowHere
 import com.spectre7.spmp.api.markSongAsWatched
@@ -162,8 +163,10 @@ class PlayerService : Service() {
         }
     }
 
-    fun clearQueue(from: Int = 0, keep_current: Boolean = false, save: Boolean = true): List<Pair<Song, Int>> {
-        radio.cancelRadio()
+    fun clearQueue(from: Int = 0, keep_current: Boolean = false, save: Boolean = true, cancel_radio: Boolean = true): List<Pair<Song, Int>> {
+        if (cancel_radio) {
+            radio.cancelRadio()
+        }
 
         val ret = mutableListOf<Pair<Song, Int>>()
         for (i in player.mediaItemCount - 1 downTo from) {
@@ -351,12 +354,40 @@ class PlayerService : Service() {
         player.seekToPreviousMediaItem()
     }
 
-    // --- Internal ---
-
-    private val radio = RadioInstance()
 
     val radio_loading: Boolean get() = radio.loading
     val radio_item: MediaItem? get() = radio.item
+    val radio_filters: List<List<RadioModifier>>? get() = radio.filters
+    var radio_current_filter: Int?
+        get() = radio.current_filter
+        set(value) { radio.setFilter(value) }
+
+    // --- Internal ---
+
+    private val radio = RadioInstance()
+    private fun onRadioFiltersChanged(filters: List<RadioModifier>?) {
+        radio.cancelJob()
+        radio.loadContinuation({
+            runBlocking {
+                launch(Dispatchers.Main) {
+                    clearQueue(player.currentMediaItemIndex + 1, cancel_radio = false, save = false)
+                }
+            }
+        }) { result ->
+            result.fold(
+                { songs ->
+                    runBlocking {
+                        launch(Dispatchers.Main) {
+                            addMultipleToQueue(songs, player.currentMediaItemIndex + 1)
+                        }
+                    }
+                },
+                { error ->
+                    MainActivity.error_manager.onError("onRadioFiltersChanged", error)
+                }
+            )
+        }
+    }
 
     private var _session_started: Boolean by mutableStateOf(false)
 
@@ -669,6 +700,8 @@ class PlayerService : Service() {
         if (update_timer == null) {
             update_timer = createUpdateTimer()
         }
+
+        radio.filter_changed_listeners.add(this::onRadioFiltersChanged)
     }
 
     private fun createDataSourceFactory(): DataSource.Factory {
@@ -698,6 +731,7 @@ class PlayerService : Service() {
         media_session?.release()
         player.removeListener(player_listener)
         player.release()
+        radio.filter_changed_listeners.remove(this::onRadioFiltersChanged)
 
         update_timer?.cancel()
         update_timer = null
@@ -870,7 +904,7 @@ class PlayerService : Service() {
     }
 
     private fun checkRadioContinuation() {
-        if (!radio.active) {
+        if (!radio.active || radio.loading) {
             return
         }
 

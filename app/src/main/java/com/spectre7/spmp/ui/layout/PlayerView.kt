@@ -135,14 +135,16 @@ data class PlayerViewContext(
             return
         }
 
-        when (item) {
-            is Song -> {
-                PlayerServiceHost.service.playSong(item)
-                if (getNowPlayingSwipeState().targetValue == 0 && Settings.get(Settings.KEY_OPEN_NP_ON_SONG_PLAYED)) {
-                    switchNowPlayingPage(1)
-                }
+        if (item is Song || (item is Playlist && item.playlist_type == Playlist.PlaylistType.RADIO)) {
+            PlayerServiceHost.service.clearQueue()
+            PlayerServiceHost.service.startRadioAtIndex(0, item)
+
+            if (getNowPlayingSwipeState().targetValue == 0 && Settings.get(Settings.KEY_OPEN_NP_ON_SONG_PLAYED)) {
+                switchNowPlayingPage(1)
             }
-            else -> openMediaItem(item)
+        }
+        else {
+            openMediaItem(item)
         }
     }
     fun onMediaItemLongClicked(item: MediaItem, queue_index: Int? = null) {

@@ -522,10 +522,10 @@ fun networkThread(block: () -> Unit) {
 
 fun printJson(data: String, klaxon: Klaxon? = null) {
 	try {
-		println((klaxon ?: Klaxon()).parseJsonObject(data.reader()).toJsonString(true))
+		log((klaxon ?: Klaxon()).parseJsonObject(data.reader()).toJsonString(true))
 	}
 	catch (e: Exception) {
-		println(data)
+		log(data)
 		throw e
 	}
 }

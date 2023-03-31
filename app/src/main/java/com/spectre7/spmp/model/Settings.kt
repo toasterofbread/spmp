@@ -55,11 +55,12 @@ enum class Settings {
 
     // Home feed
     KEY_FEED_INITIAL_ROWS,
-    KEY_FEED_ENABLE_LISTEN_ROW,
-    KEY_FEED_ENABLE_MIX_ROW,
-    KEY_FEED_ENABLE_NEW_ROW,
-    KEY_FEED_ENABLE_MOODS_ROW,
-    KEY_FEED_ENABLE_CHARTS_ROW,
+    KEY_FEED_SHOW_RADIOS,
+    KEY_FEED_SHOW_LISTEN_ROW,
+    KEY_FEED_SHOW_MIX_ROW,
+    KEY_FEED_SHOW_NEW_ROW,
+    KEY_FEED_SHOW_MOODS_ROW,
+    KEY_FEED_SHOW_CHARTS_ROW,
 
     // Now playing queue
     KEY_NP_QUEUE_RADIO_INFO_POSITION,
@@ -152,11 +153,12 @@ enum class Settings {
                 KEY_ACC_SCREEN_OFF -> false
 
                 KEY_FEED_INITIAL_ROWS -> 5
-                KEY_FEED_ENABLE_LISTEN_ROW -> true
-                KEY_FEED_ENABLE_MIX_ROW -> true
-                KEY_FEED_ENABLE_NEW_ROW -> true
-                KEY_FEED_ENABLE_MOODS_ROW -> true
-                KEY_FEED_ENABLE_CHARTS_ROW -> true
+                KEY_FEED_SHOW_RADIOS -> false
+                KEY_FEED_SHOW_LISTEN_ROW -> true
+                KEY_FEED_SHOW_MIX_ROW -> true
+                KEY_FEED_SHOW_NEW_ROW -> true
+                KEY_FEED_SHOW_MOODS_ROW -> true
+                KEY_FEED_SHOW_CHARTS_ROW -> true
 
                 KEY_NP_QUEUE_RADIO_INFO_POSITION -> NowPlayingQueueRadioInfoPosition.TOP_BAR.ordinal
 

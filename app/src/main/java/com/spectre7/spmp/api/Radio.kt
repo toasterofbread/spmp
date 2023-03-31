@@ -189,7 +189,8 @@ data class YoutubeiNextResponse(
         val videoId: String,
         val title: TextRuns,
         val longBylineText: TextRuns,
-        val menu: Menu
+        val menu: Menu,
+        val thumbnail: MusicThumbnailRenderer.Thumbnail
     ) {
         // Artist, certain
         fun getArtist(host_item: Song): Result<Pair<Artist?, Boolean>> {

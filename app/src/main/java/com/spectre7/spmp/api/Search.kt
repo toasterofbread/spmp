@@ -62,7 +62,6 @@ enum class SearchType {
 data class SearchFilter(val type: SearchType, val params: String)
 
 fun searchYoutubeMusic(query: String, params: String?): Result<List<Pair<MediaItemLayout, SearchFilter?>>> {
-
     val params_str: String = if (params != null) "\"$params\"" else "null"
     val request = Request.Builder()
         .ytUrl("/youtubei/v1/search")

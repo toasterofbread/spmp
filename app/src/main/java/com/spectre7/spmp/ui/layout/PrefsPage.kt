@@ -146,7 +146,7 @@ fun PrefsPage(pill_menu: PillMenu, playerProvider: () -> PlayerViewContext, clos
             {
                 close()
             }
-        ) 
+        )
     }
 
     BoxWithConstraints(
@@ -460,24 +460,24 @@ private fun groupHomeFeed(): List<SettingsItem> {
         ),
 
         SettingsItemToggle(
-            SettingsValueState(Settings.KEY_FEED_ENABLE_LISTEN_ROW.name),
-            getString(R.string.s_key_feed_enable_listen_row), null
+            SettingsValueState(Settings.KEY_FEED_SHOW_LISTEN_ROW.name),
+            getString(R.string.s_key_feed_show_listen_row), null
         ),
         SettingsItemToggle(
-            SettingsValueState(Settings.KEY_FEED_ENABLE_MIX_ROW.name),
-            getString(R.string.s_key_feed_enable_mix_row), null
+            SettingsValueState(Settings.KEY_FEED_SHOW_MIX_ROW.name),
+            getString(R.string.s_key_feed_show_mix_row), null
         ),
         SettingsItemToggle(
-            SettingsValueState(Settings.KEY_FEED_ENABLE_NEW_ROW.name),
-            getString(R.string.s_key_feed_enable_new_row), null
+            SettingsValueState(Settings.KEY_FEED_SHOW_NEW_ROW.name),
+            getString(R.string.s_key_feed_show_new_row), null
         ),
         SettingsItemToggle(
-            SettingsValueState(Settings.KEY_FEED_ENABLE_MOODS_ROW.name),
-            getString(R.string.s_key_feed_enable_moods_row), null
+            SettingsValueState(Settings.KEY_FEED_SHOW_MOODS_ROW.name),
+            getString(R.string.s_key_feed_show_moods_row), null
         ),
         SettingsItemToggle(
-            SettingsValueState(Settings.KEY_FEED_ENABLE_CHARTS_ROW.name),
-            getString(R.string.s_key_feed_enable_charts_row), null
+            SettingsValueState(Settings.KEY_FEED_SHOW_CHARTS_ROW.name),
+            getString(R.string.s_key_feed_show_charts_row), null
         )
     )
 }

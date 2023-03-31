@@ -128,11 +128,11 @@
     <string name="s_group_home_feed">Home feed</string>
     <string name="s_key_feed_initial_rows">Initial feed rows</string>
     <string name="s_sub_feed_initial_rows">Minimum amount of feed rows to load automatically</string>
-    <string name="s_key_feed_enable_listen_row">Enable \'Listen again\' row</string>
-    <string name="s_key_feed_enable_mix_row">Enable \'Mixed for you\' row</string>
-    <string name="s_key_feed_enable_new_row">Enable \'New releases\' row</string>
-    <string name="s_key_feed_enable_moods_row">Enable \'Recommended playlists\' row</string>
-    <string name="s_key_feed_enable_charts_row">Enable \'Charts\' row</string>
+    <string name="s_key_feed_show_listen_row">Enable \'Listen again\' row</string>
+    <string name="s_key_feed_show_mix_row">Enable \'Mixed for you\' row</string>
+    <string name="s_key_feed_show_new_row">Enable \'New releases\' row</string>
+    <string name="s_key_feed_show_moods_row">Enable \'Recommended playlists\' row</string>
+    <string name="s_key_feed_show_charts_row">Enable \'Charts\' row</string>
 
     <string name="s_key_vol_steps">Volume steps</string>
     <string name="s_sub_vol_steps">Amount of steps when changing volume</string>

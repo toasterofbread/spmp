@@ -71,7 +71,7 @@ data class MediaItemLayout(
         type!!.Layout(this, playerProvider)
     }
 
-    class Continuation(var token: String, val type: Type, private val id: String? = null) {
+    class Continuation(var token: String, val type: Type, val id: String? = null) {
         enum class Type { SONG, PLAYLIST }
 
         init {

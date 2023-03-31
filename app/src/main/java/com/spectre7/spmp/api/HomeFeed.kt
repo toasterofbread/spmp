@@ -11,8 +11,6 @@ import com.spectre7.spmp.ui.component.MediaItemLayout
 import com.spectre7.spmp.ui.component.generateLayoutTitle
 import com.spectre7.utils.getString
 import okhttp3.Request
-import java.io.BufferedReader
-import java.io.InputStream
 import java.io.InputStreamReader
 import java.io.Reader
 import java.time.Duration
@@ -92,31 +90,31 @@ fun getHomeFeed(min_rows: Int = -1, allow_cached: Boolean = true, continuation: 
 
                     when (browse_endpoint.browseId) {
                         "FEmusic_listen_again" -> {
-                            if (Settings.get(Settings.KEY_FEED_ENABLE_LISTEN_ROW)) {
+                            if (Settings.get(Settings.KEY_FEED_SHOW_LISTEN_ROW)) {
                                 add(getString(R.string.home_feed_listen_again), thumbnail_source = null, view_more = MediaItemLayout.ViewMore(list_page_url = "https://music.youtube.com/listen_again"))
                             }
                             continue
                         }
                         "FEmusic_mixed_for_you" -> {
-                            if (Settings.get(Settings.KEY_FEED_ENABLE_MIX_ROW)) {
+                            if (Settings.get(Settings.KEY_FEED_SHOW_MIX_ROW)) {
                                 add(getString(R.string.home_feed_mixed_for_you), view_more = MediaItemLayout.ViewMore(list_page_url = "https://music.youtube.com/mixed_for_you"))
                             }
                             continue
                         }
                         "FEmusic_new_releases_albums" -> {
-                            if (Settings.get(Settings.KEY_FEED_ENABLE_NEW_ROW)) {
+                            if (Settings.get(Settings.KEY_FEED_SHOW_NEW_ROW)) {
                                 add(getString(R.string.home_feed_new_releases), view_more = MediaItemLayout.ViewMore(list_page_url = "https://music.youtube.com/new_releases/albums"))
                             }
                             continue
                         }
                         "FEmusic_moods_and_genres" -> {
-                            if (Settings.get(Settings.KEY_FEED_ENABLE_MOODS_ROW)) {
+                            if (Settings.get(Settings.KEY_FEED_SHOW_MOODS_ROW)) {
                                 add(getString(R.string.home_feed_moods_and_genres), view_more = MediaItemLayout.ViewMore(list_page_url = "https://music.youtube.com/moods_and_genres"))
                             }
                             continue
                         }
                         "FEmusic_charts" -> {
-                            if (Settings.get(Settings.KEY_FEED_ENABLE_CHARTS_ROW)) {
+                            if (Settings.get(Settings.KEY_FEED_SHOW_CHARTS_ROW)) {
                                 add(getString(R.string.home_feed_charts), view_more = MediaItemLayout.ViewMore(list_page_url = "https://music.youtube.com/charts"))
                             }
                             continue
@@ -272,10 +270,12 @@ data class BrowseEndpoint(val browseId: String, val browseEndpointContextSupport
     }
 }
 data class SearchEndpoint(val query: String, val params: String? = null)
+data class WatchPlaylistEndpoint(val playlistId: String, val params: String)
 data class NavigationEndpoint(
     val watchEndpoint: WatchEndpoint? = null,
     val browseEndpoint: BrowseEndpoint? = null,
-    val searchEndpoint: SearchEndpoint? = null
+    val searchEndpoint: SearchEndpoint? = null,
+    val watchPlaylistEndpoint: WatchPlaylistEndpoint? = null
 )
 data class Header(
     val musicCarouselShelfBasicHeaderRenderer: HeaderRenderer? = null,
@@ -415,24 +415,39 @@ data class ContentsItem(val musicTwoRowItemRenderer: MusicTwoRowItemRenderer? = 
                 }
             }
 
-            // Playlist or artist
-            val browse_id = renderer.navigationEndpoint.browseEndpoint!!.browseId
-            val page_type = renderer.navigationEndpoint.browseEndpoint.getPageType()!!
+            val item: MediaItem
 
-            return when (page_type) {
-                "MUSIC_PAGE_TYPE_ALBUM", "MUSIC_PAGE_TYPE_PLAYLIST", "MUSIC_PAGE_TYPE_AUDIOBOOK" ->
-                    Playlist.fromId(browse_id).apply {
-                        supplyPlaylistType(when (page_type) {
-                            "MUSIC_PAGE_TYPE_ALBUM" -> Playlist.PlaylistType.ALBUM
-                            "MUSIC_PAGE_TYPE_PLAYLIST" -> Playlist.PlaylistType.PLAYLIST
-                            else -> Playlist.PlaylistType.AUDIOBOOK
-                        }, true)
-                        supplyArtist(renderer.getArtist(this))
-                    }
+            if (renderer.navigationEndpoint.watchPlaylistEndpoint != null) {
+                if (!Settings.get<Boolean>(Settings.KEY_FEED_SHOW_RADIOS)) {
+                    return null
+                }
 
-                "MUSIC_PAGE_TYPE_ARTIST" -> Artist.fromId(browse_id)
-                else -> throw NotImplementedError("$page_type ($browse_id)")
-            }.supplyTitle(renderer.title.first_text).supplyThumbnailProvider(renderer.thumbnailRenderer.toThumbnailProvider())
+                item = Playlist.fromId(renderer.navigationEndpoint.watchPlaylistEndpoint.playlistId)
+                    .supplyPlaylistType(Playlist.PlaylistType.RADIO, true)
+            }
+            else {
+                // Playlist or artist
+                val browse_id = renderer.navigationEndpoint.browseEndpoint!!.browseId
+                val page_type = renderer.navigationEndpoint.browseEndpoint.getPageType()!!
+
+                item = when (page_type) {
+                    "MUSIC_PAGE_TYPE_ALBUM", "MUSIC_PAGE_TYPE_PLAYLIST", "MUSIC_PAGE_TYPE_AUDIOBOOK" ->
+                        Playlist.fromId(browse_id).apply {
+                            supplyPlaylistType(when (page_type) {
+                                "MUSIC_PAGE_TYPE_ALBUM" -> Playlist.PlaylistType.ALBUM
+                                "MUSIC_PAGE_TYPE_PLAYLIST" -> Playlist.PlaylistType.PLAYLIST
+                                else -> Playlist.PlaylistType.AUDIOBOOK
+                            }, true)
+                            supplyArtist(renderer.getArtist(this))
+                        }
+                    "MUSIC_PAGE_TYPE_ARTIST" -> Artist.fromId(browse_id)
+                    else -> throw NotImplementedError("$page_type ($browse_id)")
+                }
+            }
+
+            return item
+                .supplyTitle(renderer.title.first_text)
+                .supplyThumbnailProvider(renderer.thumbnailRenderer.toThumbnailProvider())
         }
         else if (musicResponsiveListItemRenderer != null) {
             val renderer = musicResponsiveListItemRenderer

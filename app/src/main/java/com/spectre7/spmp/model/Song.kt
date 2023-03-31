@@ -18,7 +18,7 @@ import java.io.FileNotFoundException
 import java.net.URL
 import kotlin.concurrent.thread
 
-class Song private constructor (
+class Song protected constructor (
     id: String
 ): MediaItem(id) {
 
@@ -246,7 +246,7 @@ class Song private constructor (
         return true
     }
 
-    override fun downloadThumbnail(quality: ThumbnailQuality): Bitmap {
+    override fun downloadThumbnail(quality: ThumbnailQuality): Bitmap? {
         // Iterate through getThumbUrl URL and ThumbnailQuality URLs for passed quality and each lower quality
         for (i in 0 .. quality.ordinal + 1) {
 

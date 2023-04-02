@@ -124,11 +124,12 @@
     <string name="s_key_current_theme">現在のテーマ</string>
     <string name="s_theme_editor_title">テーマを変更する</string>
     <string name="s_option_accent_theme">テーマから</string>
-    <string name="s_key_feed_show_charts_row">「チャート」行を有効にする</string>
-    <string name="s_key_feed_show_mix_row">「おすすめのミックス」行を有効にする</string>
-    <string name="s_key_feed_show_listen_row">「もう一度聴く」行を有効にする</string>
-    <string name="s_key_feed_show_moods_row">「おすすめのプレイリスト」行を有効にする</string>
-    <string name="s_key_feed_show_new_row">「新作」行を有効にする</string>
+    <string name="s_key_feed_show_radios">フィードにラジオを表示する</string>
+    <string name="s_key_feed_show_charts_row">「チャート」行を表示する</string>
+    <string name="s_key_feed_show_mix_row">「おすすめのミックス」行を表示する</string>
+    <string name="s_key_feed_show_listen_row">「もう一度聴く」行を表示する</string>
+    <string name="s_key_feed_show_moods_row">「おすすめのプレイリスト」行を表示する</string>
+    <string name="s_key_feed_show_new_row">「新作」行を表示する</string>
     <string name="s_group_home_feed">おすすめフィード</string>
     <string name="radio_builder_title">ラジオ番組を作成</string>
     <string name="radio_builder_next_button">次へ</string>

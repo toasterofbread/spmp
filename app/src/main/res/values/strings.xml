@@ -128,6 +128,7 @@
     <string name="s_group_home_feed">Home feed</string>
     <string name="s_key_feed_initial_rows">Initial feed rows</string>
     <string name="s_sub_feed_initial_rows">Minimum amount of feed rows to load automatically</string>
+    <string name="s_key_feed_show_radios">Show radio items in feed</string>
     <string name="s_key_feed_show_listen_row">Enable \'Listen again\' row</string>
     <string name="s_key_feed_show_mix_row">Enable \'Mixed for you\' row</string>
     <string name="s_key_feed_show_new_row">Enable \'New releases\' row</string>

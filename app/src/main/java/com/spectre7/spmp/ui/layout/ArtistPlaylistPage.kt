@@ -202,7 +202,9 @@ fun ArtistPlaylistPage(
                         }
                     }
 
-                    chip(getString(R.string.artist_chip_shuffle), Icons.Outlined.Shuffle) { TODO() }
+                    if (item is Artist) {
+                        chip(getString(R.string.artist_chip_shuffle), Icons.Outlined.Shuffle) { TODO() }
+                    }
                     chip(getString(R.string.action_share), Icons.Outlined.Share) { MainActivity.context.startActivity(share_intent) }
                     chip(getString(R.string.artist_chip_open), Icons.Outlined.OpenInNew) { MainActivity.context.startActivity(open_intent) }
                     chip(getString(R.string.artist_chip_details), Icons.Outlined.Info) { show_info = !show_info }
@@ -226,15 +228,32 @@ fun ArtistPlaylistPage(
                         }
                     }
 
-                    Btn(getString(R.string.artist_chip_play), Icons.Outlined.PlayArrow,
+                    Btn(
+                        getString(R.string.artist_chip_play),
+                        Icons.Outlined.PlayArrow,
                         Modifier
                             .fillMaxWidth(0.5f)
-                            .weight(1f)) { TODO() }
+                            .weight(1f)
+                    ) {
+                        playerProvider().playMediaItem(item)
+                    }
+
                     Spacer(Modifier.requiredWidth(20.dp))
-                    Btn(getString(R.string.artist_chip_radio), Icons.Outlined.Radio,
+
+                    Btn(
+                        getString(if (item is Artist) R.string.artist_chip_radio else R.string.artist_chip_shuffle),
+                        if (item is Artist) Icons.Outlined.Radio else Icons.Outlined.Shuffle,
                         Modifier
                             .fillMaxWidth(1f)
-                            .weight(1f)) { TODO() }
+                            .weight(1f)
+                    ) {
+                        if (item is Artist) {
+                            TODO()
+                        }
+                        else {
+                            playerProvider().playMediaItem(item, shuffle = true)
+                        }
+                    }
 
                     if (item is Artist) {
                         ArtistSubscribeButton(item, background_colour, accent_colour)

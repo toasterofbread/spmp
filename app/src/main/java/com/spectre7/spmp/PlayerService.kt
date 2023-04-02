@@ -163,19 +163,38 @@ class PlayerService : Service() {
         }
     }
 
-    fun clearQueue(from: Int = 0, keep_current: Boolean = false, save: Boolean = true, cancel_radio: Boolean = true): List<Pair<Song, Int>> {
+    fun clearQueue(from: Int = 0, keep_current: Boolean = false, save: Boolean = true, cancel_radio: Boolean = true) {
         if (cancel_radio) {
             radio.cancelRadio()
         }
 
-        val ret = mutableListOf<Pair<Song, Int>>()
         for (i in player.mediaItemCount - 1 downTo from) {
             if (keep_current && i == player.currentMediaItemIndex) {
                 continue
             }
-            ret.add(Pair(removeFromQueue(i, save = false), i))
+            removeFromQueue(i, save = false)
         }
-        ret.sortBy { it.second }
+
+        if (save) {
+            savePersistentQueue()
+        }
+
+        updateActiveQueueIndex()
+    }
+
+    fun clearQueueWithUndo(from: Int = 0, keep_current: Boolean = false, save: Boolean = true, cancel_radio: Boolean = true): (() -> Unit)? {
+        val radio_state =
+            if (cancel_radio) radio.cancelRadio()
+            else null
+
+        val removed = mutableListOf<Pair<Song, Int>>()
+        for (i in player.mediaItemCount - 1 downTo from) {
+            if (keep_current && i == player.currentMediaItemIndex) {
+                continue
+            }
+            removed.add(Pair(removeFromQueue(i, save = false), i))
+        }
+        removed.sortBy { it.second }
 
         if (save) {
             savePersistentQueue()
@@ -183,7 +202,27 @@ class PlayerService : Service() {
 
         updateActiveQueueIndex()
 
-        return ret
+        val index = player.currentMediaItemIndex
+        return {
+            val before = mutableListOf<Song>()
+            val after = mutableListOf<Song>()
+            for (item in removed.withIndex()) {
+                if (item.value.second >= index) {
+                    for (i in item.index until removed.size) {
+                        after.add(removed[i].first)
+                    }
+                    break
+                }
+                before.add(item.value.first)
+            }
+
+            addMultipleToQueue(before, 0)
+            addMultipleToQueue(after, index + 1)
+
+            if (radio_state != null) {
+                radio.setRadioState(radio_state)
+            }
+        }
     }
 
     fun shuffleQueue(start: Int = -1, return_swaps: Boolean = false): List<Pair<Int, Int>>? {
@@ -356,10 +395,10 @@ class PlayerService : Service() {
 
 
     val radio_loading: Boolean get() = radio.loading
-    val radio_item: MediaItem? get() = radio.item
-    val radio_filters: List<List<RadioModifier>>? get() = radio.filters
+    val radio_item: MediaItem? get() = radio.state.item
+    val radio_filters: List<List<RadioModifier>>? get() = radio.state.filters
     var radio_current_filter: Int?
-        get() = radio.current_filter
+        get() = radio.state.current_filter
         set(value) { radio.setFilter(value) }
 
     // --- Internal ---

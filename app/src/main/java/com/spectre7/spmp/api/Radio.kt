@@ -23,57 +23,62 @@ private const val MODIFIED_RADIO_ID_PREFIX = "RDAT"
 
 @OptIn(DelicateCoroutinesApi::class)
 class RadioInstance {
+    var state: RadioState by mutableStateOf(RadioState())
+        private set
+    val active: Boolean get() = state.item != null
+    val loading: Boolean get() = current_job != null
+
     private val lock = Object()
     private var current_job: Job? by mutableStateOf(null)
-
-    var filters: List<List<RadioModifier>>? by mutableStateOf(null)
-        private set
-    var current_filter: Int? by mutableStateOf(null)
-        private set
 
     private val _filter_changed_listeners: MutableList<(List<RadioModifier>?) -> Unit> = mutableListOf()
     val filter_changed_listeners = Listeners(_filter_changed_listeners)
 
-    private var continuation: MediaItemLayout.Continuation? = null
-
-    var item: MediaItem? by mutableStateOf(null)
-        private set
-    val active: Boolean get() = item != null
-    val loading: Boolean get() = current_job != null
-
     fun playMediaItem(item: MediaItem) {
         synchronized(lock) {
             cancelJob()
-            reset()
-            this.item = item
+            state = RadioState()
+            state.item = item
         }
     }
 
     fun setFilter(filter_index: Int?) {
-        if (filter_index == current_filter) {
+        if (filter_index == state.current_filter) {
             return
         }
-        current_filter = filter_index
-        continuation = null
+        state.current_filter = filter_index
+        state.continuation = null
 
-        val filter = current_filter?.let { filters!![it] }
+        val filter = state.current_filter?.let { state.filters!![it] }
         for (listener in _filter_changed_listeners) {
             listener.invoke(filter)
         }
     }
 
-    fun cancelRadio() {
+    class RadioState {
+        var item: MediaItem? by mutableStateOf(null)
+        var continuation: MediaItemLayout.Continuation? by mutableStateOf(null)
+        var filters: List<List<RadioModifier>>? by mutableStateOf(null)
+        var current_filter: Int? by mutableStateOf(null)
+    }
+
+    fun setRadioState(new_state: RadioState) {
+        if (state == new_state) {
+            return
+        }
         synchronized(lock) {
-            reset()
-            cancelJob()
+            cancelRadio()
+            state = new_state
         }
     }
 
-    private fun reset() {
-        item = null
-        continuation = null
-        filters = null
-        current_filter = null
+    fun cancelRadio(): RadioState {
+        synchronized(lock) {
+            val old_state = state
+            state = RadioState()
+            cancelJob()
+            return old_state
+        }
     }
 
     fun cancelJob() {
@@ -88,12 +93,12 @@ class RadioInstance {
             current_job = GlobalScope.launch {
                 onStart?.invoke()
 
-                if (continuation == null) {
+                if (state.continuation == null) {
                     callback(getInitialSongs())
                     return@launch
                 }
 
-                val result = continuation!!.loadContinuation(current_filter?.let { filters?.get(it) } ?: emptyList())
+                val result = state.continuation!!.loadContinuation(state.current_filter?.let { state.filters?.get(it) } ?: emptyList())
                 if (result.isFailure) {
                     callback(result.cast())
                     return@launch
@@ -102,10 +107,10 @@ class RadioInstance {
                 val (items, cont) = result.getOrThrow()
 
                 if (cont != null) {
-                    continuation!!.update(cont)
+                    state.continuation!!.update(cont)
                 }
                 else {
-                    continuation = null
+                    state.continuation = null
                 }
 
                 callback(Result.success(items.filterIsInstance<Song>()))
@@ -118,17 +123,17 @@ class RadioInstance {
     }
 
     private fun getInitialSongs(): Result<List<Song>> {
-        when (val item = item!!) {
+        when (val item = state.item!!) {
             is Song -> {
-                val result = getSongRadio(item.id, null, current_filter?.let { filters?.get(it) } ?: emptyList())
+                val result = getSongRadio(item.id, null, state.current_filter?.let { state.filters?.get(it) } ?: emptyList())
                 return result.fold(
                     { data ->
-                        continuation = data.continuation?.let { continuation ->
+                        state.continuation = data.continuation?.let { continuation ->
                             MediaItemLayout.Continuation(continuation, MediaItemLayout.Continuation.Type.SONG, item.id)
                         }
 
-                        if (data.filters != null) {
-                            filters = data.filters
+                        if (state.filters == null) {
+                            state.filters = data.filters
                         }
 
                         Result.success(data.items)
@@ -149,7 +154,7 @@ class RadioInstance {
                     return Result.success(emptyList())
                 }
 
-                continuation = layout.continuation
+                state.continuation = layout.continuation
                 return Result.success(layout.items.filterIsInstance<Song>())
             }
             is Artist -> TODO()

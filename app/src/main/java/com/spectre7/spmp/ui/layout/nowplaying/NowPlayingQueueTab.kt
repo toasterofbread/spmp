@@ -191,25 +191,9 @@ fun QueueTab(expansionProvider: () -> Float, playerProvider: () -> PlayerViewCon
 
                 Button(
                     onClick = {
-                        val removed: List<Pair<Song, Int>> = PlayerServiceHost.service.clearQueue(keep_current = PlayerServiceHost.status.queue_size > 1)
-                        if (removed.isNotEmpty()) {
-                            val index = PlayerServiceHost.player.currentMediaItemIndex
-                            undo_list.add {
-                                val before = mutableListOf<Song>()
-                                val after = mutableListOf<Song>()
-                                for (item in removed.withIndex()) {
-                                    if (item.value.second >= index) {
-                                        for (i in item.index until removed.size) {
-                                            after.add(removed[i].first)
-                                        }
-                                        break
-                                    }
-                                    before.add(item.value.first)
-                                }
-
-                                PlayerServiceHost.service.addMultipleToQueue(before, 0)
-                                PlayerServiceHost.service.addMultipleToQueue(after, index + 1)
-                            }
+                        val undo: (() -> Unit)? = PlayerServiceHost.service.clearQueueWithUndo(keep_current = PlayerServiceHost.status.queue_size > 1)
+                        if (undo != null) {
+                            undo_list.add(undo)
                         }
                     },
                     colors = ButtonDefaults.buttonColors(
@@ -300,7 +284,7 @@ fun QueueTab(expansionProvider: () -> Float, playerProvider: () -> PlayerViewCon
             }
 
             if (radio_info_position == NowPlayingQueueRadioInfoPosition.TOP_BAR) {
-                CurrentRadioIndicator(queue_background_colour, background_colour)
+                CurrentRadioIndicator(queue_background_colour, background_colour, playerProvider)
             }
 
             Divider(Modifier.padding(horizontal = list_padding), background_colour)
@@ -333,7 +317,7 @@ fun QueueTab(expansionProvider: () -> Float, playerProvider: () -> PlayerViewCon
             ) {
                 if (radio_info_position == NowPlayingQueueRadioInfoPosition.ABOVE_ITEMS) {
                     item {
-                        CurrentRadioIndicator(queue_background_colour, background_colour)
+                        CurrentRadioIndicator(queue_background_colour, background_colour, playerProvider)
                     }
                 }
 
@@ -383,14 +367,28 @@ fun QueueTab(expansionProvider: () -> Float, playerProvider: () -> PlayerViewCon
 @Composable
 private fun CurrentRadioIndicator(
     background_colour: Color,
-    accent_colour: Color
+    accent_colour: Color,
+    playerProvider: () -> PlayerViewContext
 ) {
     Column {
+        val radio_item: MediaItem? = PlayerServiceHost.service.radio_item
+        if (radio_item != null && radio_item !is Song) {
+            radio_item.PreviewLong(MediaItem.PreviewParams(
+                playerProvider,
+                Modifier.padding(horizontal = 15.dp),
+                content_colour = { background_colour.getContrasted() }
+            ))
+        }
+
         val filters = PlayerServiceHost.service.radio_filters
         val current_filter = PlayerServiceHost.service.radio_current_filter
-
         if (filters != null) {
-            Row(Modifier.horizontalScroll(rememberScrollState()), horizontalArrangement = Arrangement.spacedBy(15.dp)) {
+            Row(
+                Modifier.horizontalScroll(rememberScrollState()),
+                horizontalArrangement = Arrangement.spacedBy(15.dp)
+            ) {
+                Spacer(Modifier)
+
                 for (filter in listOf(null) + filters.withIndex()) {
                     FilterChip(
                         current_filter == filter?.index,
@@ -414,18 +412,6 @@ private fun CurrentRadioIndicator(
                 }
             }
         }
-    }
-
-    val radio_item: MediaItem? = PlayerServiceHost.service.radio_item
-    if (radio_item != null) {
-
-//                if (radio_item is Artist or radio_item is Playlist) {
-//                    item {
-//                        radio_item.PreviewLong(MediaItem.PreviewParams(
-//                            playerProvider,
-//                            content_colour = { queue_background_colour.getContrasted() }
-//                        ))
-//                    }
     }
 }
 

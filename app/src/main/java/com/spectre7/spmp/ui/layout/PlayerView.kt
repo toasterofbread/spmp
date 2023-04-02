@@ -136,12 +136,7 @@ data class PlayerViewContext(
         }
 
         if (item is Song || (item is Playlist && item.playlist_type == Playlist.PlaylistType.RADIO)) {
-            PlayerServiceHost.service.clearQueue()
-            PlayerServiceHost.service.startRadioAtIndex(0, item)
-
-            if (getNowPlayingSwipeState().targetValue == 0 && Settings.get(Settings.KEY_OPEN_NP_ON_SONG_PLAYED)) {
-                switchNowPlayingPage(1)
-            }
+            playMediaItem(item)
         }
         else {
             openMediaItem(item)
@@ -181,6 +176,24 @@ data class PlayerViewContext(
             switchNowPlayingPage(0)
         }
         hideLongPressMenu()
+    }
+
+    fun playMediaItem(item: MediaItem, shuffle: Boolean = false) {
+        if (shuffle) {
+            TODO()
+        }
+
+        if (item is Song) {
+            PlayerServiceHost.service.playSong(item)
+        }
+        else {
+            PlayerServiceHost.service.clearQueue()
+            PlayerServiceHost.service.startRadioAtIndex(0, item)
+        }
+
+        if (getNowPlayingSwipeState().targetValue == 0 && Settings.get(Settings.KEY_OPEN_NP_ON_SONG_PLAYED)) {
+            switchNowPlayingPage(1)
+        }
     }
 
     private var long_press_menu_data: LongPressMenuData? by mutableStateOf(null)

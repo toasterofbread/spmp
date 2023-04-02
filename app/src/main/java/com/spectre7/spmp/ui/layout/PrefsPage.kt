@@ -460,6 +460,11 @@ private fun groupHomeFeed(): List<SettingsItem> {
         ),
 
         SettingsItemToggle(
+            SettingsValueState(Settings.KEY_FEED_SHOW_RADIOS.name),
+            getString(R.string.s_key_feed_show_radios), null
+        ),
+
+        SettingsItemToggle(
             SettingsValueState(Settings.KEY_FEED_SHOW_LISTEN_ROW.name),
             getString(R.string.s_key_feed_show_listen_row), null
         ),

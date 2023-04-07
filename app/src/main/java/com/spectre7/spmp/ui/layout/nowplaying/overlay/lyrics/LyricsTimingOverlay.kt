@@ -48,6 +48,7 @@ fun LyricsTimingOverlay(
     AnimatedVisibility(show_highlight && !highlight_unset) {
         Canvas(modifier = Modifier.fillMaxSize()) {
     //            val offset = scroll_state.firstVisibleItemScrollOffset
+            println("we drawin $highlight_position_y")
             if (highlight_instantly) {
                 drawRoundRect(
                     getNPBackground(playerProvider),
@@ -90,7 +91,7 @@ fun LyricsTimingOverlay(
                 if (item.key !is Int) {
                     continue
                 }
-                
+
                 val line = lyrics.lines[item.key as Int]
                 for (term in line) {
                     if (term.range.contains(PlayerServiceHost.status.position_seconds)) {
@@ -99,7 +100,7 @@ fun LyricsTimingOverlay(
                                 terms.add(_term)
                             }
                             break
-                        } 
+                        }
                         else {
                             terms.add(term)
                         }
@@ -113,7 +114,7 @@ fun LyricsTimingOverlay(
             }
 
             if (terms.isEmpty()) {
-                return@LaunchedEffect
+                continue
             }
 
             var target_x: Float = Float.NaN
@@ -142,9 +143,9 @@ fun LyricsTimingOverlay(
             }
 
             if (
-                highlight_position_x != target_x || 
-                highlight_position_y != target_y || 
-                highlight_width != abs(target_br_x - target_x) || 
+                highlight_position_x != target_x ||
+                highlight_position_y != target_y ||
+                highlight_width != abs(target_br_x - target_x) ||
                 highlight_height != abs(target_br_y - target_y)
             ) {
                 highlight_position_x = target_x

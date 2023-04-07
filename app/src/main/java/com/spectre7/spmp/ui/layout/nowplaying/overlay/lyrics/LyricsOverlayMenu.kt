@@ -26,6 +26,7 @@ import androidx.compose.ui.platform.LocalLayoutDirection
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.*
 import androidx.compose.ui.zIndex
+import com.spectre7.spmp.PlayerServiceHost
 import com.spectre7.spmp.R
 import com.spectre7.spmp.model.Settings
 import com.spectre7.spmp.model.Song
@@ -70,6 +71,8 @@ class LyricsOverlayMenu(
                 }
             }
         }
+
+        Text(lyrics?.id.toString() + " | " + lyrics?.sync_type.toString())
 
         AnimatedVisibility(lyrics != null && !search_menu_open, Modifier.zIndex(10f), enter = fadeIn(), exit = fadeOut()) {
             remember { PillMenu(expand_state = mutableStateOf(false)) }.PillMenu(
@@ -123,9 +126,9 @@ fun ScrollingLyricsDisplay(playerProvider: () -> PlayerViewContext, size: Dp, se
         Crossfade(targetState = lyrics) {
             if (it == null) {
                 Column(Modifier.size(size), horizontalAlignment = Alignment.CenterHorizontally, verticalArrangement = Arrangement.Center) {
-                    Text("Loading lyrics", fontWeight = FontWeight.Light) // TODO
+                    Text(getString("Loading lyrics"), fontWeight = FontWeight.Light)
                     Spacer(Modifier.height(20.dp))
-                    LinearProgressIndicator(color = Theme.current.accent, trackColor = Theme.current.on_accent)
+                    LinearProgressIndicator(Modifier.fillMaxWidth(0.5f), color = Theme.current.accent, trackColor = Theme.current.on_accent)
                 }
             }
             else {
@@ -142,14 +145,14 @@ fun CoreLyricsDisplay(playerProvider: () -> PlayerViewContext, size: Dp, seek_st
     val line_height = with (LocalDensity.current) { 20.sp.toPx() }
     val line_spacing = with (LocalDensity.current) { 25.dp.toPx() }
 
-    LyricsTimingOverlay(playerProvider, lyrics, false, seek_state, scroll_state) { position ->
-        if (!Settings.get<Boolean>(Settings.KEY_LYRICS_FOLLOW_ENABLED)) {
-            return@LyricsTimingOverlay
-        }
-
-        val offset = size_px * Settings.prefs.getFloat(Settings.KEY_LYRICS_FOLLOW_OFFSET.name, 0.5f)
-        scroll_state.animateScrollToItem(0, (position - offset).toInt())
-    }
+//    LyricsTimingOverlay(playerProvider, lyrics, false, seek_state, scroll_state) { position ->
+//        if (!Settings.get<Boolean>(Settings.KEY_LYRICS_FOLLOW_ENABLED)) {
+//            return@LyricsTimingOverlay
+//        }
+//
+//        val offset = size_px * Settings.prefs.getFloat(Settings.KEY_LYRICS_FOLLOW_OFFSET.name, 0.5f)
+//        scroll_state.animateScrollToItem(0, (position - offset).toInt())
+//    }
 
     val add_padding: Boolean = Settings.get(Settings.KEY_LYRICS_EXTRA_PADDING)
     val padding_height = with (LocalDensity.current) {
@@ -180,6 +183,15 @@ fun CoreLyricsDisplay(playerProvider: () -> PlayerViewContext, size: Dp, seek_st
         }
     } }
 
+    var time by remember { mutableStateOf(0f) }
+
+    if (lyrics.sync_type != Song.Lyrics.SyncType.NONE) {
+        RecomposeOnInterval(interval_ms = 100) {
+            it
+            time = PlayerServiceHost.status.position_seconds
+        }
+    }
+
     Crossfade(targetState = show_furigana) { show_readings ->
 
         LongFuriganaText(
@@ -193,11 +205,21 @@ fun CoreLyricsDisplay(playerProvider: () -> PlayerViewContext, size: Dp, seek_st
             },
 
             text_element = { is_reading: Boolean, text: String, font_size: TextUnit, index: Int, modifier: Modifier ->
+                val is_current by remember { derivedStateOf {
+                    if (lyrics.sync_type == Song.Lyrics.SyncType.NONE) {
+                        return@derivedStateOf true
+                    }
+
+                    val term = terms[index].data as Song.Lyrics.Term
+                    term.range.contains(time)
+                } }
+
+                val colour = if (is_current) Color.Red else Color.White
                 Text(
                     text,
                     modifier,
                     fontSize = font_size,
-                    color = Color.White,
+                    color = colour,
                 )
             },
 

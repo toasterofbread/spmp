@@ -320,6 +320,7 @@ fun getLyrics(lyrics_id: Int, lyrics_source: Song.Lyrics.Source): Result<Song.Ly
                 }
                 else {
                     lyrics = parseStaticLyrics(result.data)
+                    return Result.success(Song.Lyrics(lyrics_id, lyrics_source, Song.Lyrics.SyncType.NONE, lyrics))
                 }
 
                 return Result.success(Song.Lyrics(lyrics_id, lyrics_source, sync_type, lyrics))

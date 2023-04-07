@@ -3,6 +3,7 @@ package com.spectre7.spmp.ui.layout.nowplaying.overlay.lyrics
 import androidx.activity.compose.BackHandler
 import androidx.compose.animation.Crossfade
 import androidx.compose.foundation.background
+import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.text.KeyboardActions
@@ -19,33 +20,36 @@ import androidx.compose.ui.platform.LocalFocusManager
 import androidx.compose.ui.text.input.ImeAction
 import androidx.compose.ui.text.input.TextFieldValue
 import androidx.compose.ui.unit.dp
+import com.spectre7.spmp.MainActivity
 import com.spectre7.spmp.R
 import com.spectre7.spmp.api.LyricsSearchResult
 import com.spectre7.spmp.api.getOrThrowHere
 import com.spectre7.spmp.api.searchForLyrics
 import com.spectre7.spmp.model.Song
 import com.spectre7.spmp.ui.theme.Theme
+import com.spectre7.utils.getString
 import com.spectre7.utils.setAlpha
 import kotlin.concurrent.thread
-
-val check_lock = Object()
-var checking by mutableStateOf(false)
 
 @Composable
 fun LyricsSearchMenu(song: Song, lyrics: Song.Lyrics?, close: (changed: Boolean) -> Unit) {
 
-    val on_accent = Theme.current.accent
+    val on_accent = Theme.current.on_accent
+    val accent = Theme.current.accent
+
+    val check_lock = remember { Object() }
+    var checking by remember { mutableStateOf(false) }
 
     val text_field_colours = TextFieldDefaults.textFieldColors(
-        containerColor = on_accent.setAlpha(0.75f),
+        containerColor = accent.setAlpha(0.75f),
         textColor = on_accent,
         focusedLabelColor = on_accent,
         unfocusedLabelColor = on_accent,
         focusedTrailingIconColor = on_accent,
         unfocusedTrailingIconColor = on_accent,
         cursorColor = on_accent,
-        focusedIndicatorColor = on_accent,
-        unfocusedIndicatorColor = on_accent.setAlpha(0.5f)
+        focusedIndicatorColor = accent,
+        unfocusedIndicatorColor = accent.setAlpha(0.5f)
     )
 
     val focus = LocalFocusManager.current
@@ -53,7 +57,6 @@ fun LyricsSearchMenu(song: Song, lyrics: Song.Lyrics?, close: (changed: Boolean)
     var title = remember (song.title) { mutableStateOf(TextFieldValue(song.title ?: "")) }
     var artist = remember (song.artist?.title) { mutableStateOf(TextFieldValue(song.artist?.title ?: "")) }
 
-    var search_requested by remember { mutableStateOf(false) }
     var search_results: List<LyricsSearchResult>? by remember { mutableStateOf(null) }
     var edit_page_open by remember { mutableStateOf(false) }
 
@@ -61,12 +64,22 @@ fun LyricsSearchMenu(song: Song, lyrics: Song.Lyrics?, close: (changed: Boolean)
         thread {
             synchronized(check_lock) {
                 if (checking) {
-                    return@thread
+                    throw IllegalStateException()
                 }
                 checking = true
             }
 
-            search_results = searchForLyrics(title.value.text, if (artist.value.text.trim().isEmpty()) null else artist.value.text).getOrThrowHere()
+
+            val result = searchForLyrics(title.value.text, if (artist.value.text.trim().isEmpty()) null else artist.value.text)
+            result.fold(
+                {
+                    println("SET")
+                    search_results = it
+                },
+                {
+                    MainActivity.error_manager.onError("performLyricsSearch", it)
+                }
+            )
 
             synchronized(check_lock) {
                 checking = false
@@ -79,19 +92,14 @@ fun LyricsSearchMenu(song: Song, lyrics: Song.Lyrics?, close: (changed: Boolean)
         performSearch()
     }
 
-    LaunchedEffect(search_requested) {
-        if (search_requested) {
-            search_requested = false
-            performSearch()
-        }
-    }
-
     BackHandler {
         close(false)
     }
 
+    println("RECOMP A")
     Crossfade(edit_page_open) { edit_page ->
         Column(Modifier.padding(15.dp), verticalArrangement = Arrangement.spacedBy(10.dp)) {
+            println("RECOMP B")
             if (edit_page) {
                 Column(
                     Modifier
@@ -105,7 +113,7 @@ fun LyricsSearchMenu(song: Song, lyrics: Song.Lyrics?, close: (changed: Boolean)
                         Modifier
                             .background(Theme.current.accent, CircleShape)
                             .padding(10.dp)) {
-                        Text("Search for lyrics", color = on_accent)
+                        Text(getString("Search for lyrics"), color = on_accent)
                     }
 
                     @Composable
@@ -124,7 +132,8 @@ fun LyricsSearchMenu(song: Song, lyrics: Song.Lyrics?, close: (changed: Boolean)
                                     Icon(Icons.Filled.Close, null)
                                 }
                             },
-                            colors = text_field_colours
+                            colors = text_field_colours,
+                            modifier = Modifier.clickable {}
                         )
                     }
 
@@ -149,7 +158,9 @@ fun LyricsSearchMenu(song: Song, lyrics: Song.Lyrics?, close: (changed: Boolean)
                 Box(
                     Modifier
                         .fillMaxSize()
-                        .weight(1f), contentAlignment = Alignment.Center) {
+                        .weight(1f),
+                    contentAlignment = Alignment.Center
+                ) {
                     CircularProgressIndicator(
                         Modifier.requiredSize(22.dp),
                         color = Theme.current.accent,
@@ -175,7 +186,7 @@ fun LyricsSearchMenu(song: Song, lyrics: Song.Lyrics?, close: (changed: Boolean)
                 IconButton(
                     {
                         if (edit_page_open) {
-                            search_requested = true
+                            performSearch()
                         }
                         else {
                             edit_page_open = true

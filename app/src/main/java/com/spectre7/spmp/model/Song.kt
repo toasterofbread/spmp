@@ -12,6 +12,7 @@ import com.spectre7.spmp.ui.component.SongPreviewLong
 import com.spectre7.spmp.ui.component.SongPreviewSquare
 import com.spectre7.spmp.ui.layout.PlayerViewContext
 import com.spectre7.utils.getString
+import com.spectre7.utils.lazyAssert
 import com.spectre7.utils.toHiragana
 import okhttp3.internal.filterList
 import java.io.FileNotFoundException
@@ -128,10 +129,16 @@ class Song protected constructor (
         }
 
         init {
-            for (line in lines) {
-                for (term in line) {
-                    assert(sync_type == SyncType.NONE || (term.start != null && term.end != null))
+            lazyAssert {
+                for (line in lines) {
+                    for (term in line) {
+                        if (sync_type != SyncType.NONE && (term.start != null || term.end != null)) {
+                            println(this)
+                            return@lazyAssert false
+                        }
+                    }
                 }
+                return@lazyAssert true
             }
         }
     }

@@ -497,8 +497,15 @@ fun Throwable.createNotification(context: Context, notification_channel: String)
 		.build()
 }
 
+val assertions_enabled = try {
+	assert(false)
+	false
+} catch (e: AssertionError) {
+	true
+}
+
 fun lazyAssert(message: String? = "Assertion failed", condition: () -> Boolean) {
-	if (Object::class.java.desiredAssertionStatus() && !condition()) {
+	if (assertions_enabled && !condition()) {
 		throw AssertionError(message)
 	}
 }

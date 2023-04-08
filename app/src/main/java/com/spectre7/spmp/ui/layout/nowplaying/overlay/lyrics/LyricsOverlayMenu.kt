@@ -1,9 +1,6 @@
 package com.spectre7.spmp.ui.layout.nowplaying.overlay.lyrics
 
-import androidx.compose.animation.AnimatedVisibility
-import androidx.compose.animation.Crossfade
-import androidx.compose.animation.fadeIn
-import androidx.compose.animation.fadeOut
+import androidx.compose.animation.*
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.gestures.scrollBy
 import androidx.compose.foundation.interaction.MutableInteractionSource
@@ -205,21 +202,26 @@ fun CoreLyricsDisplay(playerProvider: () -> PlayerViewContext, size: Dp, seek_st
             },
 
             text_element = { is_reading: Boolean, text: String, font_size: TextUnit, index: Int, modifier: Modifier ->
-                val is_current by remember { derivedStateOf {
+                val is_current: Boolean by remember { derivedStateOf {
                     if (lyrics.sync_type == Song.Lyrics.SyncType.NONE) {
                         return@derivedStateOf true
                     }
 
                     val term = terms[index].data as Song.Lyrics.Term
-                    term.range.contains(time)
+
+                    if (lyrics.sync_type == Song.Lyrics.SyncType.WORD_SYNC && !Settings.get<Boolean>(Settings.KEY_LYRICS_ENABLE_WORD_SYNC)) {
+                        term.line_range?.also { return@derivedStateOf it.contains(time) }
+                    }
+
+                    return@derivedStateOf term.range.contains(time)
                 } }
 
-                val colour = if (is_current) Color.Red else Color.White
+                val colour by animateColorAsState(targetValue = if (is_current) Color.White else Color.White.setAlpha(0.5f))
                 Text(
                     text,
                     modifier,
                     fontSize = font_size,
-                    color = colour,
+                    color = colour
                 )
             },
 
@@ -243,7 +245,8 @@ fun CoreLyricsDisplay(playerProvider: () -> PlayerViewContext, size: Dp, seek_st
                         Spacer(Modifier.requiredHeight(padding_height - if (add_padding) with (LocalDensity.current) { (line_spacing * 2).toDp() } else 0.dp))
                     }
                 }
-            }
+            },
+            chunk_size = lyrics.lines.size
         )
     }
 }

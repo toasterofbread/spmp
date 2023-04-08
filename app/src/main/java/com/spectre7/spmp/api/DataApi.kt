@@ -1,6 +1,7 @@
 package com.spectre7.spmp.api
 
 import android.content.SharedPreferences.OnSharedPreferenceChangeListener
+import androidx.annotation.Keep
 import com.beust.klaxon.*
 import com.spectre7.spmp.MainActivity
 import com.spectre7.spmp.R

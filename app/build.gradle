@@ -54,8 +54,6 @@ android {
         ndk {
             abiFilters "armeabi-v7a", "arm64-v8a", "x86", "x86_64"
         }
-
-        buildConfigField("java.util.Hashtable<String, String>", "LocalKeys", createKeysHashTable())
     }
 
     buildTypes {
@@ -64,6 +62,7 @@ android {
             manifestPlaceholders = [appAuthRedirectScheme: 'com.spectre7.spmp.debug']
             manifestPlaceholders["appName"] = "SpMp (debug)"
             signingConfig signingConfigs.debug
+            buildConfigField("java.util.Hashtable<String, String>", "LocalKeys", createKeysHashTable())
         }
         release {
             minifyEnabled true
@@ -72,6 +71,7 @@ android {
             manifestPlaceholders = [appAuthRedirectScheme: 'com.spectre7.spmp']
             manifestPlaceholders["appName"] = "SpMp"
             signingConfig signingConfigs.debug
+            buildConfigField("java.util.Hashtable<String, String>", "LocalKeys", "null")
         }
     }
 

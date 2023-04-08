@@ -23,7 +23,6 @@ import androidx.compose.ui.unit.dp
 import com.spectre7.spmp.MainActivity
 import com.spectre7.spmp.R
 import com.spectre7.spmp.api.LyricsSearchResult
-import com.spectre7.spmp.api.getOrThrowHere
 import com.spectre7.spmp.api.searchForLyrics
 import com.spectre7.spmp.model.Song
 import com.spectre7.spmp.ui.theme.Theme
@@ -69,11 +68,9 @@ fun LyricsSearchMenu(song: Song, lyrics: Song.Lyrics?, close: (changed: Boolean)
                 checking = true
             }
 
-
             val result = searchForLyrics(title.value.text, if (artist.value.text.trim().isEmpty()) null else artist.value.text)
             result.fold(
                 {
-                    println("SET")
                     search_results = it
                 },
                 {
@@ -96,10 +93,8 @@ fun LyricsSearchMenu(song: Song, lyrics: Song.Lyrics?, close: (changed: Boolean)
         close(false)
     }
 
-    println("RECOMP A")
     Crossfade(edit_page_open) { edit_page ->
         Column(Modifier.padding(15.dp), verticalArrangement = Arrangement.spacedBy(10.dp)) {
-            println("RECOMP B")
             if (edit_page) {
                 Column(
                     Modifier
@@ -145,9 +140,10 @@ fun LyricsSearchMenu(song: Song, lyrics: Song.Lyrics?, close: (changed: Boolean)
                 LyricsSearchResults(search_results!!) { index ->
                     if (index != null) {
                         val selected = search_results!![index]
-                        if (selected.id != song.song_reg_entry.lyrics_id && selected.source != song.song_reg_entry.lyrics_source) {
+                        if (selected.id != song.song_reg_entry.lyrics_id || selected.source != song.song_reg_entry.lyrics_source) {
                             song.song_reg_entry.lyrics_id = selected.id
                             song.song_reg_entry.lyrics_source = selected.source
+                            song.saveRegistry()
                             close(true)
                         }
                     }
@@ -180,7 +176,7 @@ fun LyricsSearchMenu(song: Song, lyrics: Song.Lyrics?, close: (changed: Boolean)
                         contentColor = on_accent
                     )
                 ) {
-                    Text(com.spectre7.utils.getString(R.string.action_close))
+                    Text(getString(R.string.action_close))
                 }
 
                 IconButton(

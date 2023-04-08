@@ -1,5 +1,6 @@
 package com.spectre7.utils
 
+import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.LazyListScope
@@ -13,6 +14,7 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.geometry.Rect
 import androidx.compose.ui.geometry.Size
+import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.layout.onPlaced
 import androidx.compose.ui.layout.positionInParent
 import androidx.compose.ui.layout.positionInRoot
@@ -38,6 +40,7 @@ fun LongFuriganaText(
     font_size: TextUnit = TextUnit.Unspecified,
     receiveTermRect: ((TextData, Rect) -> Unit)? = null,
     highlight_term_range: IntRange? = null,
+    chunk_size: Int = 1,
 
     text_element: (@Composable (is_reading: Boolean, text: String, font_size: TextUnit, index: Int, modifier: Modifier) -> Unit)? = null,
     list_element: (@Composable (content: LazyListScope.() -> Unit) -> Unit)? = null,
@@ -177,19 +180,29 @@ fun LongFuriganaText(
             content()
         }
     }) {
-        items(text_data.size, { it }) { i ->
-            val item = text_data[i]
+        val chunks = (text_data.size / chunk_size).coerceAtLeast(1)
 
-            if (i > 0) {
-                Spacer(Modifier.requiredHeight(line_spacing))
+        for (chunk in 0 until chunks) {
+            items(chunks, { it }) { i ->
+                for (line in i + (chunk * chunk_size) until i + ((chunk + 1) * chunk_size)) {
+                    if (line >= text_data.size) {
+                        break
+                    }
+                    val item = text_data[line]
+
+                    if (line > 0) {
+                        Spacer(Modifier.requiredHeight(line_spacing))
+                    }
+
+                    Text(
+                        item.first,
+                        fontSize = _font_size,
+                        inlineContent = item.second,
+                        lineHeight = text_line_height.sp
+                    )
+                }
             }
-
-            Text(
-                item.first,
-                fontSize = _font_size,
-                inlineContent = item.second,
-                lineHeight = text_line_height.sp
-            )
         }
+
     }
 }

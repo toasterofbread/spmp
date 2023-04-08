@@ -10,6 +10,7 @@ import com.spectre7.spmp.model.*
 import com.spectre7.spmp.ui.component.MediaItemLayout
 import com.spectre7.spmp.ui.component.generateLayoutTitle
 import com.spectre7.utils.getString
+import com.spectre7.utils.printJson
 import okhttp3.Request
 import java.io.InputStreamReader
 import java.io.Reader
@@ -34,124 +35,6 @@ fun getHomeFeed(min_rows: Int = -1, allow_cached: Boolean = true, continuation: 
         }
 
         return Result.success(result.getOrThrow().getStream().reader())
-    }
-
-    fun processRows(rows: List<YoutubeiShelf>): List<MediaItemLayout> {
-        val ret = mutableListOf<MediaItemLayout>()
-        for (row in rows) {
-            when (val renderer = row.getRenderer()) {
-                is MusicDescriptionShelfRenderer -> continue
-                is MusicCarouselShelfRenderer -> {
-                    val header = renderer.header.musicCarouselShelfBasicHeaderRenderer!!
-
-                    fun add(
-                        title: String? = null,
-                        thumbnail_source: MediaItemLayout.ThumbnailSource? =
-                            header.thumbnail?.musicThumbnailRenderer?.thumbnail?.thumbnails?.firstOrNull()?.let {
-                                MediaItemLayout.ThumbnailSource(null, url = it.url)
-                            },
-                        media_item_type: MediaItem.Type? = null,
-                        view_more: MediaItemLayout.ViewMore? = null,
-                        localised_title: Boolean = true
-                    ) {
-                        val items = row.getMediaItems().toMutableList()
-                        val final_title: String
-                        val final_subtitle: String?
-
-                        if (title == null || (!localised_title && MainActivity.data_language != MainActivity.ui_language)) {
-                            val generated = items.generateLayoutTitle()
-                            final_title = generated.first
-                            final_subtitle = generated.second
-                        }
-                        else {
-                            final_title = title
-                            if (header.strapline?.runs?.isNotEmpty() == true && media_item_type != null) {
-                                final_subtitle = getString(if (thumbnail_source?.url != null) R.string.home_feed_similar_to else R.string.home_feed_more_from)
-                            }
-                            else {
-                                final_subtitle = null
-                            }
-                        }
-
-                        ret.add(MediaItemLayout(
-                            final_title, final_subtitle,
-                            items = items,
-                            thumbnail_source = thumbnail_source,
-                            view_more = view_more,
-                            media_item_type = media_item_type
-                        ))
-                    }
-
-                    val browse_endpoint = header.title.runs?.first()?.navigationEndpoint?.browseEndpoint
-                    if (browse_endpoint == null) {
-                        add(header.title.first_text, localised_title = false)
-                        continue
-                    }
-
-                    when (browse_endpoint.browseId) {
-                        "FEmusic_listen_again" -> {
-                            if (Settings.get(Settings.KEY_FEED_SHOW_LISTEN_ROW)) {
-                                add(getString(R.string.home_feed_listen_again), thumbnail_source = null, view_more = MediaItemLayout.ViewMore(list_page_url = "https://music.youtube.com/listen_again"))
-                            }
-                            continue
-                        }
-                        "FEmusic_mixed_for_you" -> {
-                            if (Settings.get(Settings.KEY_FEED_SHOW_MIX_ROW)) {
-                                add(getString(R.string.home_feed_mixed_for_you), view_more = MediaItemLayout.ViewMore(list_page_url = "https://music.youtube.com/mixed_for_you"))
-                            }
-                            continue
-                        }
-                        "FEmusic_new_releases_albums" -> {
-                            if (Settings.get(Settings.KEY_FEED_SHOW_NEW_ROW)) {
-                                add(getString(R.string.home_feed_new_releases), view_more = MediaItemLayout.ViewMore(list_page_url = "https://music.youtube.com/new_releases/albums"))
-                            }
-                            continue
-                        }
-                        "FEmusic_moods_and_genres" -> {
-                            if (Settings.get(Settings.KEY_FEED_SHOW_MOODS_ROW)) {
-                                add(getString(R.string.home_feed_moods_and_genres), view_more = MediaItemLayout.ViewMore(list_page_url = "https://music.youtube.com/moods_and_genres"))
-                            }
-                            continue
-                        }
-                        "FEmusic_charts" -> {
-                            if (Settings.get(Settings.KEY_FEED_SHOW_CHARTS_ROW)) {
-                                add(getString(R.string.home_feed_charts), view_more = MediaItemLayout.ViewMore(list_page_url = "https://music.youtube.com/charts"))
-                            }
-                            continue
-                        }
-                    }
-
-                    val page_type = browse_endpoint.browseEndpointContextSupportedConfigs?.browseEndpointContextMusicConfig?.pageType
-                    val media_item: MediaItem
-
-                    when (page_type) {
-                        "MUSIC_PAGE_TYPE_ARTIST", "MUSIC_PAGE_TYPE_USER_CHANNEL" -> media_item = Artist.fromId(browse_endpoint.browseId)
-                        "MUSIC_PAGE_TYPE_PLAYLIST" -> media_item = Playlist.fromId(browse_endpoint.browseId).supplyTitle(header.title.first_text)
-                        else -> throw NotImplementedError(browse_endpoint.toString())
-                    }
-
-                    val thumbnail_source =
-                        header.thumbnail?.musicThumbnailRenderer?.thumbnail?.thumbnails?.firstOrNull()?.let {
-                            MediaItemLayout.ThumbnailSource(url = it.url)
-                        }
-                        ?: MediaItemLayout.ThumbnailSource(media_item = media_item).also {
-                            if (!media_item.canLoadThumbnail()) {
-                                thread { media_item.loadData() }
-                            }
-                        }
-
-                    add(
-                        header.title.first_text,
-                        view_more = MediaItemLayout.ViewMore(media_item = media_item),
-                        thumbnail_source = thumbnail_source,
-                        media_item_type = media_item.type
-                    )
-                }
-                else -> throw NotImplementedError(row.getRenderer().toString())
-            }
-        }
-
-        return ret
     }
 
     val rows: MutableList<MediaItemLayout>
@@ -179,7 +62,9 @@ fun getHomeFeed(min_rows: Int = -1, allow_cached: Boolean = true, continuation: 
 
     var data: YoutubeiBrowseResponse = DataApi.klaxon.parse(response_reader)!!
     response_reader.close()
+
     rows = processRows(data.getShelves(continuation != null)).toMutableList()
+    check(rows.isNotEmpty())
 
     var ctoken: String? = data.ctoken
     while (min_rows >= 1 && rows.size < min_rows) {
@@ -193,12 +78,133 @@ fun getHomeFeed(min_rows: Int = -1, allow_cached: Boolean = true, continuation: 
         }
         data = DataApi.klaxon.parse(result.data)!!
         result.data.close()
-        rows.addAll(processRows(data.getShelves(true)))
+
+        val shelves = data.getShelves(true)
+        check(shelves.isNotEmpty())
+        rows.addAll(processRows(shelves))
 
         ctoken = data.ctoken
     }
 
     return Result.success(Pair(rows, ctoken))
+}
+
+private fun processRows(rows: List<YoutubeiShelf>): List<MediaItemLayout> {
+    val ret = mutableListOf<MediaItemLayout>()
+    for (row in rows) {
+        when (val renderer = row.getRenderer()) {
+            is MusicDescriptionShelfRenderer -> continue
+            is MusicCarouselShelfRenderer -> {
+                val header = renderer.header.musicCarouselShelfBasicHeaderRenderer!!
+
+                fun add(
+                    title: String? = null,
+                    thumbnail_source: MediaItemLayout.ThumbnailSource? =
+                        header.thumbnail?.musicThumbnailRenderer?.thumbnail?.thumbnails?.firstOrNull()?.let {
+                            MediaItemLayout.ThumbnailSource(null, url = it.url)
+                        },
+                    media_item_type: MediaItem.Type? = null,
+                    view_more: MediaItemLayout.ViewMore? = null,
+                    localised_title: Boolean = true
+                ) {
+                    val items = row.getMediaItems().toMutableList()
+                    val final_title: String
+                    val final_subtitle: String?
+
+                    if (title == null || (!localised_title && MainActivity.data_language != MainActivity.ui_language)) {
+                        val generated = items.generateLayoutTitle()
+                        final_title = generated.first
+                        final_subtitle = generated.second
+                    }
+                    else {
+                        final_title = title
+                        if (header.strapline?.runs?.isNotEmpty() == true && media_item_type != null) {
+                            final_subtitle = getString(if (thumbnail_source?.url != null) R.string.home_feed_similar_to else R.string.home_feed_more_from)
+                        }
+                        else {
+                            final_subtitle = null
+                        }
+                    }
+
+                    ret.add(MediaItemLayout(
+                        final_title, final_subtitle,
+                        items = items,
+                        thumbnail_source = thumbnail_source,
+                        view_more = view_more,
+                        media_item_type = media_item_type
+                    ))
+                }
+
+                val browse_endpoint = header.title.runs?.first()?.navigationEndpoint?.browseEndpoint
+                if (browse_endpoint == null) {
+                    add(header.title.first_text, localised_title = false)
+                    continue
+                }
+
+                when (browse_endpoint.browseId) {
+                    "FEmusic_listen_again" -> {
+                        if (Settings.get(Settings.KEY_FEED_SHOW_LISTEN_ROW)) {
+                            add(getString(R.string.home_feed_listen_again), thumbnail_source = null, view_more = MediaItemLayout.ViewMore(list_page_url = "https://music.youtube.com/listen_again"))
+                        }
+                        continue
+                    }
+                    "FEmusic_mixed_for_you" -> {
+                        if (Settings.get(Settings.KEY_FEED_SHOW_MIX_ROW)) {
+                            add(getString(R.string.home_feed_mixed_for_you), view_more = MediaItemLayout.ViewMore(list_page_url = "https://music.youtube.com/mixed_for_you"))
+                        }
+                        continue
+                    }
+                    "FEmusic_new_releases_albums" -> {
+                        if (Settings.get(Settings.KEY_FEED_SHOW_NEW_ROW)) {
+                            add(getString(R.string.home_feed_new_releases), view_more = MediaItemLayout.ViewMore(list_page_url = "https://music.youtube.com/new_releases/albums"))
+                        }
+                        continue
+                    }
+                    "FEmusic_moods_and_genres" -> {
+                        if (Settings.get(Settings.KEY_FEED_SHOW_MOODS_ROW)) {
+                            add(getString(R.string.home_feed_moods_and_genres), view_more = MediaItemLayout.ViewMore(list_page_url = "https://music.youtube.com/moods_and_genres"))
+                        }
+                        continue
+                    }
+                    "FEmusic_charts" -> {
+                        if (Settings.get(Settings.KEY_FEED_SHOW_CHARTS_ROW)) {
+                            add(getString(R.string.home_feed_charts), view_more = MediaItemLayout.ViewMore(list_page_url = "https://music.youtube.com/charts"))
+                        }
+                        continue
+                    }
+                }
+
+                val page_type = browse_endpoint.browseEndpointContextSupportedConfigs?.browseEndpointContextMusicConfig?.pageType
+                val media_item: MediaItem
+
+                when (page_type) {
+                    "MUSIC_PAGE_TYPE_ARTIST", "MUSIC_PAGE_TYPE_USER_CHANNEL" -> media_item = Artist.fromId(browse_endpoint.browseId)
+                    "MUSIC_PAGE_TYPE_PLAYLIST" -> media_item = Playlist.fromId(browse_endpoint.browseId).supplyTitle(header.title.first_text)
+                    else -> throw NotImplementedError(browse_endpoint.toString())
+                }
+
+                val thumbnail_source =
+                    header.thumbnail?.musicThumbnailRenderer?.thumbnail?.thumbnails?.firstOrNull()?.let {
+                        MediaItemLayout.ThumbnailSource(url = it.url)
+                    }
+                        ?: MediaItemLayout.ThumbnailSource(media_item = media_item).also {
+                            if (!media_item.canLoadThumbnail()) {
+                                thread { media_item.loadData() }
+                            }
+                        }
+
+                add(
+                    header.title.first_text,
+                    view_more = MediaItemLayout.ViewMore(media_item = media_item),
+                    thumbnail_source = thumbnail_source,
+                    media_item_type = media_item.type
+                )
+            }
+            else -> throw NotImplementedError(row.getRenderer().toString())
+        }
+    }
+
+    return ret
 }
 
 data class YoutubeiBrowseResponse(
@@ -211,7 +217,8 @@ data class YoutubeiBrowseResponse(
                 ?: contents!!.singleColumnBrowseResultsRenderer.tabs.first().tabRenderer.content?.sectionListRenderer?.continuations?.firstOrNull()?.nextContinuationData?.continuation
 
     fun getShelves(has_continuation: Boolean): List<YoutubeiShelf> {
-        return if (has_continuation) continuationContents!!.sectionListContinuation!!.contents!! else contents!!.singleColumnBrowseResultsRenderer.tabs.first().tabRenderer.content!!.sectionListRenderer.contents!!
+        return if (has_continuation) continuationContents?.sectionListContinuation?.contents ?: emptyList()
+               else contents?.singleColumnBrowseResultsRenderer?.tabs?.firstOrNull()?.tabRenderer?.content?.sectionListRenderer?.contents ?: emptyList()
     }
 
     data class Contents(val singleColumnBrowseResultsRenderer: SingleColumnBrowseResultsRenderer)

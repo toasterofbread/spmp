@@ -6,6 +6,7 @@ import com.atilika.kuromoji.ipadic.Tokenizer
 import com.spectre7.spmp.model.Song
 import com.spectre7.utils.hasKanjiAndHiragana
 import com.spectre7.utils.isKanji
+import com.spectre7.utils.lazyAssert
 import okhttp3.MediaType.Companion.toMediaType
 import okhttp3.Request
 import okhttp3.RequestBody.Companion.toRequestBody
@@ -125,8 +126,12 @@ private fun trimOkurigana(term: Song.Lyrics.Term.Text): List<Song.Lyrics.Term.Te
 }
 
 private fun mergeAndFuriganiseTerms(tokeniser: Tokenizer, terms: List<Song.Lyrics.Term>): List<Song.Lyrics.Term> {
+    if (terms.isEmpty()) {
+        return emptyList()
+    }
 
     val ret: MutableList<Song.Lyrics.Term> = mutableListOf()
+    val line_range = terms.first().line_range!!
 
     var terms_text: String = ""
     for (term in terms) {
@@ -163,7 +168,9 @@ private fun mergeAndFuriganiseTerms(tokeniser: Tokenizer, terms: List<Song.Lyric
             }
         }
 
-        ret.add(Song.Lyrics.Term(trimOkurigana(Song.Lyrics.Term.Text(text, token.reading)), start, end))
+        val term = Song.Lyrics.Term(trimOkurigana(Song.Lyrics.Term.Text(text, token.reading)), start, end)
+        term.line_range = line_range
+        ret.add(term)
     }
 
     return ret
@@ -251,6 +258,9 @@ private fun parseTimedLyrics(data: String): List<List<Song.Lyrics.Term>> {
     fun parseLine(): List<Song.Lyrics.Term> {
         parser.require(XmlPullParser.START_TAG, null, "line")
 
+        var line_start = Float.POSITIVE_INFINITY
+        var line_end = Float.NEGATIVE_INFINITY
+
         val terms: MutableList<Song.Lyrics.Term> = mutableListOf()
         while (parser.next() != XmlPullParser.END_TAG) {
             if (parser.eventType != XmlPullParser.START_TAG) {
@@ -265,6 +275,23 @@ private fun parseTimedLyrics(data: String): List<List<Song.Lyrics.Term>> {
             val term = parseTerm()
             if (term != null) {
                 terms.add(term)
+
+                if (term.start!! < line_start) {
+                    line_start = term.start
+                }
+                if (term.end!! > line_end) {
+                    line_end = term.end
+                }
+            }
+        }
+
+        if (terms.isNotEmpty()) {
+            check(!line_start.isInfinite())
+            check(!line_end.isInfinite())
+
+            val range = line_start..line_end
+            for (term in terms) {
+                term.line_range = range
             }
         }
 

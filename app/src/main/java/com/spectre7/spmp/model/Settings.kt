@@ -34,6 +34,7 @@ enum class Settings {
     KEY_LYRICS_DEFAULT_FURIGANA,
     KEY_LYRICS_TEXT_ALIGNMENT,
     KEY_LYRICS_EXTRA_PADDING,
+    KEY_LYRICS_ENABLE_WORD_SYNC,
     
     // Audio & Video
     KEY_STREAM_AUDIO_QUALITY,
@@ -137,6 +138,7 @@ enum class Settings {
                 KEY_LYRICS_DEFAULT_FURIGANA -> true
                 KEY_LYRICS_TEXT_ALIGNMENT -> 0 // Left, center, right
                 KEY_LYRICS_EXTRA_PADDING -> false
+                KEY_LYRICS_ENABLE_WORD_SYNC -> false
 
                 KEY_STREAM_AUDIO_QUALITY -> Song.AudioQuality.MEDIUM.ordinal
                 KEY_DOWNLOAD_AUDIO_QUALITY -> Song.AudioQuality.MEDIUM.ordinal

@@ -102,6 +102,7 @@ class Song protected constructor (
         }
 
         data class Term(val subterms: List<Text>, val start: Float? = null, val end: Float? = null) {
+            var line_range: ClosedFloatingPointRange<Float>? = null
             var data: Any? = null
 
             data class Text(val text: String, var furi: String? = null) {
@@ -132,8 +133,7 @@ class Song protected constructor (
             lazyAssert {
                 for (line in lines) {
                     for (term in line) {
-                        if (sync_type != SyncType.NONE && (term.start != null || term.end != null)) {
-                            println(this)
+                        if (sync_type != SyncType.NONE && (term.start == null || term.end == null)) {
                             return@lazyAssert false
                         }
                     }

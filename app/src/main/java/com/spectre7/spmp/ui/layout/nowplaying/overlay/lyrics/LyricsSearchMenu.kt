@@ -27,11 +27,12 @@ import com.spectre7.spmp.api.searchForLyrics
 import com.spectre7.spmp.model.Song
 import com.spectre7.spmp.ui.theme.Theme
 import com.spectre7.utils.getString
+import com.spectre7.utils.sendToast
 import com.spectre7.utils.setAlpha
 import kotlin.concurrent.thread
 
 @Composable
-fun LyricsSearchMenu(song: Song, lyrics: Song.Lyrics?, close: (changed: Boolean) -> Unit) {
+fun LyricsSearchMenu(song: Song, close: (changed: Boolean) -> Unit) {
 
     val on_accent = Theme.current.on_accent
     val accent = Theme.current.accent
@@ -57,7 +58,7 @@ fun LyricsSearchMenu(song: Song, lyrics: Song.Lyrics?, close: (changed: Boolean)
     var artist = remember (song.artist?.title) { mutableStateOf(TextFieldValue(song.artist?.title ?: "")) }
 
     var search_results: List<LyricsSearchResult>? by remember { mutableStateOf(null) }
-    var edit_page_open by remember { mutableStateOf(false) }
+    var edit_page_open by remember { mutableStateOf(true) }
 
     fun performSearch() {
         thread {
@@ -80,13 +81,15 @@ fun LyricsSearchMenu(song: Song, lyrics: Song.Lyrics?, close: (changed: Boolean)
 
             synchronized(check_lock) {
                 checking = false
-                edit_page_open = false
+
+                if (search_results?.isNotEmpty() == true) {
+                    edit_page_open = false
+                }
+                else if (result.isSuccess) {
+                    sendToast(getString(R.string.no_lyrics_found))
+                }
             }
         }
-    }
-
-    LaunchedEffect(Unit) {
-        performSearch()
     }
 
     BackHandler {

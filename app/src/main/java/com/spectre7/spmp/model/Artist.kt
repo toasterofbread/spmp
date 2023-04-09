@@ -78,13 +78,11 @@ class Artist private constructor (
         fun createForItem(item: MediaItem): Artist {
             synchronized(artists) {
                 val id = "FS" + item.id
-                lazyAssert { !artists.containsKey(id) }
-
-                val artist = Artist(id, true)
-                artist.loadFromCache()
-                artists[id] = artist
-
-                return artist.getOrReplacedWith() as Artist
+                return artists.getOrPut(id) {
+                    val artist = Artist(id)
+                    artist.loadFromCache()
+                    return@getOrPut artist
+                }.getOrReplacedWith() as Artist
             }
         }
 

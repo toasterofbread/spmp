@@ -151,11 +151,11 @@ abstract class MediaItem(id: String) {
         }
 
         companion object {
-            fun fromBrowseEndpointType(page_type: String): Type {
+            fun fromBrowseEndpointType(page_type: String): Type? {
                 return when (page_type) {
                     "MUSIC_PAGE_TYPE_PLAYLIST", "MUSIC_PAGE_TYPE_ALBUM", "MUSIC_PAGE_TYPE_AUDIOBOOK" -> PLAYLIST
                     "MUSIC_PAGE_TYPE_ARTIST", "MUSIC_PAGE_TYPE_USER_CHANNEL" -> ARTIST
-                    else -> throw NotImplementedError(page_type)
+                    else -> null
                 }
             }
         }

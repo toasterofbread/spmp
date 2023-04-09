@@ -787,6 +787,5 @@ class Listeners<T>(private val list: MutableList<T>) {
 				break
 			}
 		}
-		throw NoSuchElementException(value.toString())
 	}
 }

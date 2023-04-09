@@ -68,7 +68,7 @@
     <string name="now_playing_queue">Queue</string>
     <string name="now_playing_related">Related</string>
 
-    <string name="lyrics_unavailable">Lyrics unavailable</string>
+    <string name="no_lyrics_found">No lyrics found</string>
 
     <string name="player_service_name">Player Service</string>
     <string name="download_service_name">Download Service</string>

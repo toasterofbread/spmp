@@ -32,6 +32,7 @@ import com.spectre7.spmp.ui.layout.PlayerViewContext
 import com.spectre7.spmp.ui.layout.nowplaying.overlay.OverlayMenu
 import com.spectre7.spmp.ui.theme.Theme
 import com.spectre7.utils.*
+import kotlinx.coroutines.delay
 
 class LyricsOverlayMenu(
     val size: Dp
@@ -60,7 +61,7 @@ class LyricsOverlayMenu(
             lyrics = null
             songProvider().getLyrics {
                 if (it == null) {
-                    sendToast(getString(R.string.lyrics_unavailable))
+                    sendToast(getString(R.string.no_lyrics_found))
                     search_menu_open = true
                 }
                 else {
@@ -100,9 +101,9 @@ class LyricsOverlayMenu(
             )
         }
 
-        Crossfade(search_menu_open) { edit ->
-            if (edit) {
-                LyricsSearchMenu(songProvider(), lyrics) { changed ->
+        Crossfade(search_menu_open) { search ->
+            if (search) {
+                LyricsSearchMenu(songProvider()) { changed ->
                     search_menu_open = false
                     if (changed) {
                         lyrics = null
@@ -180,12 +181,47 @@ fun CoreLyricsDisplay(playerProvider: () -> PlayerViewContext, size: Dp, seek_st
         }
     } }
 
-    var time by remember { mutableStateOf(0f) }
+    var current_range: IntRange? by remember { mutableStateOf(null) }
 
-    if (lyrics.sync_type != Song.Lyrics.SyncType.NONE) {
-        RecomposeOnInterval(interval_ms = 100) {
-            it
-            time = PlayerServiceHost.status.position_seconds
+    LaunchedEffect(lyrics) {
+        if (lyrics.sync_type != Song.Lyrics.SyncType.NONE) {
+            while (true) {
+                val time = PlayerServiceHost.status.position_seconds
+                var start = -1
+                var end = -1
+                var next = Float.POSITIVE_INFINITY
+
+                for (item in terms.withIndex()) {
+                    val term = item.value.data as Song.Lyrics.Term
+
+                    val range =
+                    if (lyrics.sync_type == Song.Lyrics.SyncType.WORD_SYNC && !Settings.get<Boolean>(Settings.KEY_LYRICS_ENABLE_WORD_SYNC)) {
+                        term.line_range ?: term.range
+                    }
+                    else {
+                        term.range
+                    }
+
+                    if (range.contains(time)) {
+                        if (start == -1) {
+                            start = item.index
+                        }
+                        end = item.index
+                    }
+                    else if (start != -1) {
+                        if (term.start!! > time) {
+                            next = term.start - time
+                        }
+                        break
+                    }
+                }
+
+                if (start != -1) {
+                    current_range = start..end
+                }
+
+                delay(minOf((next * 1000).toLong(), 100))
+            }
         }
     }
 
@@ -202,21 +238,9 @@ fun CoreLyricsDisplay(playerProvider: () -> PlayerViewContext, size: Dp, seek_st
             },
 
             text_element = { is_reading: Boolean, text: String, font_size: TextUnit, index: Int, modifier: Modifier ->
-                val is_current: Boolean by remember { derivedStateOf {
-                    if (lyrics.sync_type == Song.Lyrics.SyncType.NONE) {
-                        return@derivedStateOf true
-                    }
-
-                    val term = terms[index].data as Song.Lyrics.Term
-
-                    if (lyrics.sync_type == Song.Lyrics.SyncType.WORD_SYNC && !Settings.get<Boolean>(Settings.KEY_LYRICS_ENABLE_WORD_SYNC)) {
-                        term.line_range?.also { return@derivedStateOf it.contains(time) }
-                    }
-
-                    return@derivedStateOf term.range.contains(time)
-                } }
-
+                val is_current by remember { derivedStateOf { current_range?.contains(index) == true } }
                 val colour by animateColorAsState(targetValue = if (is_current) Color.White else Color.White.setAlpha(0.5f))
+
                 Text(
                     text,
                     modifier,

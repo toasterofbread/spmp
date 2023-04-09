@@ -269,6 +269,7 @@ data class BrowseEndpointContextMusicConfig(val pageType: String)
 data class BrowseEndpointContextSupportedConfigs(val browseEndpointContextMusicConfig: BrowseEndpointContextMusicConfig)
 data class BrowseEndpoint(val browseId: String, val browseEndpointContextSupportedConfigs: BrowseEndpointContextSupportedConfigs? = null) {
     fun getPageType(): String? = browseEndpointContextSupportedConfigs?.browseEndpointContextMusicConfig?.pageType
+    fun getMediaItemType(): MediaItem.Type? = getPageType()?.let { MediaItem.Type.fromBrowseEndpointType(it) }
 
     fun getMediaItem(): MediaItem? {
         return getPageType()?.let { page_type ->
@@ -376,13 +377,16 @@ data class MusicTwoRowItemRenderer(val navigationEndpoint: NavigationEndpoint, v
     fun getArtist(host_item: MediaItem): Artist? {
         for (run in subtitle.runs!!) {
             val browse_endpoint = run.navigationEndpoint?.browseEndpoint
-            if (browse_endpoint?.getPageType() == "MUSIC_PAGE_TYPE_ARTIST") {
+
+            val endpoint_type = browse_endpoint?.getMediaItemType()
+            if (endpoint_type == MediaItem.Type.ARTIST) {
                 return Artist.fromId(browse_endpoint.browseId).supplyTitle(run.text) as Artist
             }
         }
 
         if (host_item is Song) {
-            subtitle.runs!!.getOrNull(1)?.also {
+            val index = if (host_item.song_type == Song.SongType.VIDEO) 0 else 1
+            subtitle.runs!!.getOrNull(index)?.also {
                 return Artist.createForItem(host_item).supplyTitle(it.text) as Artist
             }
         }

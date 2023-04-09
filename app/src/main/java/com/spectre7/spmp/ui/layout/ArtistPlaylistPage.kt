@@ -86,10 +86,6 @@ fun ArtistPlaylistPage(
                 val result = item.loadData()
                 result.fold(
                     { playlist ->
-                        println("DONE")
-                        println(playlist)
-                        println((playlist as Playlist).feed_layouts)
-                        println(playlist.playlist_type)
                         if (playlist == null) {
                             MainActivity.error_manager.onError("ArtistPlaylistPageLoad", Exception("loadData result is null"))
                         }

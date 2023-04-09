@@ -7,7 +7,7 @@
     <string name="media_pause">停止</string>
     <string name="media_play">再生</string>
     <string name="now_playing_related">関係</string>
-    <string name="lyrics_unavailable">歌詞が見つかりませんでした</string>
+    <string name="no_lyrics_found">歌詞が見つかりませんでした</string>
     <string name="player_service_name">プレイヤーサービス</string>
     <string name="lyrics_source_prefix">元:&#160;</string>
     <string name="s_group_lyrics">歌詞</string>

@@ -123,9 +123,26 @@ data class MediaItemLayout(
     data class ViewMore(
         val list_page_url: String? = null,
         val media_item: MediaItem? = null,
-        val action: (() -> Unit)? = null
+        val action: (() -> Unit)? = null,
+
+        var layout_type: Type? = null,
+        val browse_params: String? = null
     ) {
+        var layout: MediaItemLayout? by mutableStateOf(null)
         init { check(list_page_url != null || media_item != null || action != null) }
+
+        fun loadLayout(): Result<MediaItemLayout> {
+            check(media_item != null)
+            check(browse_params != null)
+
+            val result = loadBrowseId(media_item.id, browse_params)
+            if (result.isFailure) {
+                return result.cast()
+            }
+
+            layout = result.getOrThrow().single()
+            return Result.success(layout!!)
+        }
     }
 
     class ThumbnailSource(val media_item: MediaItem? = null, val url: String? = null) {
@@ -218,7 +235,7 @@ data class MediaItemLayout(
                 IconButton(
                     {
                         if (view_more.media_item != null) {
-                            playerProvider().openMediaItem(view_more.media_item)
+                            playerProvider().openMediaItem(view_more.media_item, this@MediaItemLayout)
                         }
                         else if (view_more.list_page_url != null) {
                             TODO(view_more.list_page_url)
@@ -238,7 +255,6 @@ data class MediaItemLayout(
                 }
             }
         }
-
     }
 
     companion object {

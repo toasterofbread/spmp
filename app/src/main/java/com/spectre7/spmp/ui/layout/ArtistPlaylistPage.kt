@@ -34,6 +34,7 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.spectre7.spmp.MainActivity
 import com.spectre7.spmp.R
+import com.spectre7.spmp.api.getOrReport
 import com.spectre7.spmp.model.Artist
 import com.spectre7.spmp.model.MediaItem
 import com.spectre7.spmp.model.MediaItemWithLayouts
@@ -51,6 +52,7 @@ fun ArtistPlaylistPage(
     pill_menu: PillMenu,
     item: MediaItem,
     playerProvider: () -> PlayerViewContext,
+    opened_layout: MediaItemLayout? = null,
     close: () -> Unit
 ) {
     require(item is MediaItemWithLayouts)
@@ -81,8 +83,16 @@ fun ArtistPlaylistPage(
     var accent_colour: Color? by remember { mutableStateOf(null) }
 
     LaunchedEffect(item.id) {
-        thread {
-            if (item.feed_layouts == null) {
+        if (opened_layout != null) {
+            val view_more = opened_layout.view_more!!
+            if (view_more.layout == null) {
+                thread {
+                    view_more.loadLayout().getOrReport("ArtistPlaylistPageLoad")
+                }
+            }
+        }
+        else if (item.feed_layouts == null) {
+            thread {
                 val result = item.loadData()
                 result.fold(
                     { playlist ->
@@ -161,10 +171,12 @@ fun ArtistPlaylistPage(
                         .padding(bottom = 20.dp),
                     contentAlignment = Alignment.BottomCenter
                 ) {
-                    TitleBar(item, Modifier
-                        .fillMaxWidth()
-                        .aspectRatio(1.1f)
-                        .padding(bottom = 20.dp)
+                    TitleBar(
+                        item,
+                        Modifier
+                            .fillMaxWidth()
+                            .aspectRatio(1.1f)
+                            .padding(bottom = 20.dp)
                     )
                 }
             }
@@ -259,7 +271,7 @@ fun ArtistPlaylistPage(
 
             // Loaded items
             item {
-                Crossfade(item.feed_layouts) { layouts ->
+                Crossfade(if (opened_layout != null) opened_layout.view_more!!.layout?.let { listOf(it) } else item.feed_layouts) { layouts ->
                     if (layouts == null) {
                         Box(
                             Modifier
@@ -278,7 +290,10 @@ fun ArtistPlaylistPage(
                             verticalArrangement = Arrangement.spacedBy(30.dp)
                         ) {
                             for (row in layouts) {
-                                MediaItemGrid(MediaItemLayout(row.title, null, items = row.items), playerProvider)
+                                (row.type ?: MediaItemLayout.Type.GRID).Layout(
+                                    if (opened_layout == null) row else row.copy(title = null, subtitle = null),
+                                    playerProvider
+                                )
                             }
 
                             val description = item.description

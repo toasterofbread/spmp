@@ -236,10 +236,11 @@ data class YoutubeiShelf(
     val musicCarouselShelfRenderer: MusicCarouselShelfRenderer? = null,
     val musicDescriptionShelfRenderer: MusicDescriptionShelfRenderer? = null,
     val musicPlaylistShelfRenderer: MusicShelfRenderer? = null,
-    val musicCardShelfRenderer: MusicCardShelfRenderer? = null
+    val musicCardShelfRenderer: MusicCardShelfRenderer? = null,
+    val gridRenderer: GridRenderer? = null
 ) {
     init {
-        assert(musicShelfRenderer != null || musicCarouselShelfRenderer != null || musicDescriptionShelfRenderer != null || musicPlaylistShelfRenderer != null || musicCardShelfRenderer != null)
+        assert(musicShelfRenderer != null || musicCarouselShelfRenderer != null || musicDescriptionShelfRenderer != null || musicPlaylistShelfRenderer != null || musicCardShelfRenderer != null || gridRenderer != null)
     }
 
     val title: TextRun? get() =
@@ -247,12 +248,17 @@ data class YoutubeiShelf(
         else if (musicCarouselShelfRenderer != null) musicCarouselShelfRenderer.header.getRenderer().title.runs?.firstOrNull()
         else if (musicDescriptionShelfRenderer != null) musicDescriptionShelfRenderer.header.runs?.firstOrNull()
         else if (musicCardShelfRenderer != null) musicCardShelfRenderer.title.runs?.firstOrNull()
+        else if (gridRenderer != null) gridRenderer.header.gridHeaderRenderer.title.runs?.firstOrNull()
         else null
 
     val description: String? get() = musicDescriptionShelfRenderer?.description?.first_text
 
+    fun getNavigationEndpoint(): NavigationEndpoint? {
+        return musicShelfRenderer?.bottomEndpoint ?: musicCarouselShelfRenderer?.header?.getRenderer()?.moreContentButton?.buttonRenderer?.navigationEndpoint
+    }
+
     fun getMediaItems(): List<MediaItem> {
-        return (musicShelfRenderer?.contents ?: musicCarouselShelfRenderer?.contents ?: musicPlaylistShelfRenderer!!.contents).mapNotNull {
+        return (musicShelfRenderer?.contents ?: musicCarouselShelfRenderer?.contents ?: musicPlaylistShelfRenderer?.contents ?: gridRenderer!!.items).mapNotNull {
             val item = it.toMediaItem()
             item?.saveToCache()
             return@mapNotNull item
@@ -264,10 +270,17 @@ data class YoutubeiShelf(
     }
 }
 
+data class GridRenderer(val items: List<ContentsItem>, val header: GridHeader)
+data class GridHeader(val gridHeaderRenderer: HeaderRenderer)
+
 data class WatchEndpoint(val videoId: String? = null, val playlistId: String? = null)
 data class BrowseEndpointContextMusicConfig(val pageType: String)
 data class BrowseEndpointContextSupportedConfigs(val browseEndpointContextMusicConfig: BrowseEndpointContextMusicConfig)
-data class BrowseEndpoint(val browseId: String, val browseEndpointContextSupportedConfigs: BrowseEndpointContextSupportedConfigs? = null) {
+data class BrowseEndpoint(
+    val browseId: String,
+    val browseEndpointContextSupportedConfigs: BrowseEndpointContextSupportedConfigs? = null,
+    val params: String? = null
+) {
     fun getPageType(): String? = browseEndpointContextSupportedConfigs?.browseEndpointContextMusicConfig?.pageType
     fun getMediaItemType(): MediaItem.Type? = getPageType()?.let { MediaItem.Type.fromBrowseEndpointType(it) }
 
@@ -275,6 +288,10 @@ data class BrowseEndpoint(val browseId: String, val browseEndpointContextSupport
         return getPageType()?.let { page_type ->
             MediaItem.fromBrowseEndpointType(page_type, browseId)
         }
+    }
+
+    fun getViewMore(): MediaItemLayout.ViewMore? {
+        return getMediaItem()?.let { MediaItemLayout.ViewMore(media_item = it, browse_params = params) }
     }
 }
 data class SearchEndpoint(val query: String, val params: String? = null)
@@ -284,14 +301,39 @@ data class NavigationEndpoint(
     val browseEndpoint: BrowseEndpoint? = null,
     val searchEndpoint: SearchEndpoint? = null,
     val watchPlaylistEndpoint: WatchPlaylistEndpoint? = null
-)
+) {
+    fun getMediaItem(): MediaItem? {
+        if (watchEndpoint != null) {
+            if (watchEndpoint.videoId != null) {
+                return Song.fromId(watchEndpoint.videoId)
+            }
+            else if (watchEndpoint.playlistId != null) {
+                return Playlist.fromId(watchEndpoint.playlistId)
+            }
+        }
+        if (browseEndpoint != null) {
+            browseEndpoint.getMediaItem()?.also { return it }
+        }
+        if (watchPlaylistEndpoint != null) {
+            return Playlist.fromId(watchPlaylistEndpoint.playlistId)
+        }
+        return null
+    }
+
+    fun getViewMore(): MediaItemLayout.ViewMore? {
+        if (browseEndpoint != null) {
+            browseEndpoint.getViewMore()?.also { return it }
+        }
+        return getMediaItem()?.let { MediaItemLayout.ViewMore(media_item = it) }
+    }
+}
 data class Header(
     val musicCarouselShelfBasicHeaderRenderer: HeaderRenderer? = null,
     val musicImmersiveHeaderRenderer: HeaderRenderer? = null,
     val musicVisualHeaderRenderer: HeaderRenderer? = null,
     val musicDetailHeaderRenderer: HeaderRenderer? = null,
     val musicEditablePlaylistDetailHeaderRenderer: MusicEditablePlaylistDetailHeaderRenderer? = null,
-    val musicCardShelfHeaderBasicRenderer: HeaderRenderer? = null
+    val musicCardShelfHeaderBasicRenderer: HeaderRenderer? = null,
 ) {
     fun getRenderer(): HeaderRenderer {
         return musicCarouselShelfBasicHeaderRenderer ?: musicImmersiveHeaderRenderer ?: musicVisualHeaderRenderer ?: musicDetailHeaderRenderer ?: musicCardShelfHeaderBasicRenderer ?: musicEditablePlaylistDetailHeaderRenderer!!.header.getRenderer()
@@ -312,7 +354,8 @@ data class HeaderRenderer(
     val description: TextRuns? = null,
     val thumbnail: Thumbnails? = null,
     val foregroundThumbnail: Thumbnails? = null,
-    val subtitle: TextRuns? = null
+    val subtitle: TextRuns? = null,
+    val moreContentButton: MoreContentButton? = null
 ) {
     fun getThumbnails(): List<MediaItem.ThumbnailProvider.Thumbnail> {
         return (thumbnail ?: foregroundThumbnail)?.thumbnails ?: emptyList()
@@ -344,8 +387,18 @@ data class TextRun(val text: String, val strapline: TextRuns? = null, val naviga
     val browse_endpoint_type: String? get() = navigationEndpoint?.browseEndpoint?.getPageType()
 }
 
-data class MusicShelfRenderer(val title: TextRuns? = null, val contents: List<ContentsItem>, val continuations: List<YoutubeiNextResponse.Continuation>? = null)
-data class MusicCarouselShelfRenderer(val header: Header, val contents: List<ContentsItem>)
+data class MusicShelfRenderer(
+    val title: TextRuns? = null,
+    val contents: List<ContentsItem>,
+    val continuations: List<YoutubeiNextResponse.Continuation>? = null,
+    val bottomEndpoint: NavigationEndpoint? = null
+)
+data class MoreContentButton(val buttonRenderer: ButtonRenderer)
+data class ButtonRenderer(val navigationEndpoint: NavigationEndpoint)
+data class MusicCarouselShelfRenderer(
+    val header: Header,
+    val contents: List<ContentsItem>
+)
 data class MusicDescriptionShelfRenderer(val header: TextRuns, val description: TextRuns)
 data class MusicCardShelfRenderer(
     val thumbnail: ThumbnailRenderer,

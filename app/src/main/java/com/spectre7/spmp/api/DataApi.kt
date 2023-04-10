@@ -40,6 +40,18 @@ fun <T> Result<T>.getOrThrowHere(): T {
     return getOrThrow()
 }
 
+fun <T> Result<T>.getOrReport(error_key: String): T? {
+    return fold(
+        {
+            it
+        },
+        {
+            MainActivity.error_manager.onError(error_key, it)
+            null
+        }
+    )
+}
+
 class DataApi {
 
     companion object {

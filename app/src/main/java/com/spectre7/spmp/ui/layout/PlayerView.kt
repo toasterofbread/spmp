@@ -84,12 +84,12 @@ data class PlayerViewContext(
         left = false
     )
 
-    private val overlay_page_undo_stack: MutableList<Pair<OverlayPage, MediaItem?>?> = mutableListOf()
-    var overlay_page: Pair<OverlayPage, MediaItem?>? by mutableStateOf(null)
+    private val overlay_page_undo_stack: MutableList<Triple<OverlayPage, MediaItem?, MediaItemLayout?>?> = mutableListOf()
+    var overlay_page: Triple<OverlayPage, MediaItem?, MediaItemLayout?>? by mutableStateOf(null)
         private set
 
-    fun setOverlayPage(page: OverlayPage?, media_item: MediaItem? = null) {
-        val new_page = page?.let { Pair(page, media_item) }
+    fun setOverlayPage(page: OverlayPage?, media_item: MediaItem? = null, opened_layout: MediaItemLayout? = null) {
+        val new_page = page?.let { Triple(page, media_item, opened_layout) }
         if (new_page != overlay_page) {
             overlay_page_undo_stack.add(overlay_page)
             overlay_page = new_page
@@ -160,17 +160,17 @@ data class PlayerViewContext(
         })
     }
 
-    fun openMediaItem(item: MediaItem) {
+    fun openMediaItem(item: MediaItem, opened_layout: MediaItemLayout? = null) {
         if (item is Artist && item.for_song) {
             return
         }
 
         if (base != null) {
-            base.openMediaItem(item)
+            base.openMediaItem(item, opened_layout)
             return
         }
 
-        setOverlayPage(OverlayPage.MEDIAITEM, item)
+        setOverlayPage(OverlayPage.MEDIAITEM, item, opened_layout)
 
         if (getNowPlayingSwipeState().targetValue != 0) {
             switchNowPlayingPage(0)
@@ -413,10 +413,10 @@ fun PlayerView() {
                         )
                         OverlayPage.SEARCH -> SearchPage(player.pill_menu, if (PlayerServiceHost.session_started) MINIMISED_NOW_PLAYING_HEIGHT.dp else 0.dp, playerProvider, close)
                         OverlayPage.SETTINGS -> PrefsPage(player.pill_menu, playerProvider, close)
-                        OverlayPage.MEDIAITEM -> Crossfade(page.second) { item ->
-                            when (item) {
+                        OverlayPage.MEDIAITEM -> Crossfade(page) { p ->
+                            when (val item = p.second) {
                                 null -> {}
-                                is Artist, is Playlist -> ArtistPlaylistPage(player.pill_menu, item, playerProvider, close)
+                                is Artist, is Playlist -> ArtistPlaylistPage(player.pill_menu, item, playerProvider, p.third, close)
                                 else -> throw NotImplementedError()
                             }
                         }

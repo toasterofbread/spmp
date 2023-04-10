@@ -6,6 +6,7 @@ import com.spectre7.spmp.api.DataApi.Companion.getStream
 import com.spectre7.spmp.api.DataApi.Companion.ytUrl
 import com.spectre7.spmp.model.*
 import com.spectre7.spmp.ui.component.MediaItemLayout
+import com.spectre7.utils.printJson
 import okhttp3.Request
 import java.io.BufferedReader
 import java.io.Reader
@@ -57,6 +58,48 @@ fun JsonReader.next(keys: List<String>?, is_array: Boolean?, allow_none: Boolean
 
 fun JsonReader.next(key: String, is_array: Boolean?, allow_none: Boolean = false, action: (key: String) -> Unit) {
     return next(listOf(key), is_array, allow_none, action)
+}
+
+fun loadBrowseId(browse_id: String, params: String? = null): Result<List<MediaItemLayout>> {
+    val params_str = if (params == null) "" else """, "params": "$params" """
+    val request = Request.Builder()
+        .ytUrl("/youtubei/v1/browse")
+        .addYtHeaders()
+        .post(DataApi.getYoutubeiRequestBody("""{ "browseId": "$browse_id"$params_str }"""))
+        .build()
+
+    val result = DataApi.request(request)
+    if (result.isFailure) {
+        return result.cast()
+    }
+
+    val stream = result.getOrThrow().getStream()
+    val parsed: YoutubeiBrowseResponse = DataApi.klaxon.parse(stream)!!
+    stream.close()
+
+    val ret: MutableList<MediaItemLayout> = mutableListOf()
+    for (row in parsed.contents!!.singleColumnBrowseResultsRenderer.tabs.first().tabRenderer.content!!.sectionListRenderer.contents!!.withIndex()) {
+        if (row.value.description != null) {
+            continue
+        }
+
+        val continuation: MediaItemLayout.Continuation? =
+            row.value.musicPlaylistShelfRenderer?.continuations?.firstOrNull()?.nextContinuationData?.continuation?.let { MediaItemLayout.Continuation(it, MediaItemLayout.Continuation.Type.PLAYLIST) }
+
+        val view_more = row.value.getNavigationEndpoint()?.getViewMore()
+        view_more?.layout_type = MediaItemLayout.Type.LIST
+
+        ret.add(MediaItemLayout(
+            row.value.title?.text,
+            null,
+            if (row.index == 0) MediaItemLayout.Type.NUMBERED_LIST else MediaItemLayout.Type.GRID,
+            row.value.getMediaItems().toMutableList(),
+            continuation = continuation,
+            view_more = view_more
+        ))
+    }
+
+    return Result.success(ret)
 }
 
 fun loadMediaItemData(item: MediaItem): Result<MediaItem?> {
@@ -210,12 +253,16 @@ fun loadMediaItemData(item: MediaItem): Result<MediaItem?> {
                 val continuation: MediaItemLayout.Continuation? =
                     row.value.musicPlaylistShelfRenderer?.continuations?.firstOrNull()?.nextContinuationData?.continuation?.let { MediaItemLayout.Continuation(it, MediaItemLayout.Continuation.Type.PLAYLIST) }
 
+                val view_more = row.value.getNavigationEndpoint()?.getViewMore()
+                view_more?.layout_type = MediaItemLayout.Type.LIST
+
                 item_layouts.add(MediaItemLayout(
                     row.value.title?.text,
                     null,
                     if (row.index == 0) MediaItemLayout.Type.NUMBERED_LIST else MediaItemLayout.Type.GRID,
                     row.value.getMediaItems().toMutableList(),
-                    continuation = continuation
+                    continuation = continuation,
+                    view_more = view_more
                 ))
             }
             item.supplyFeedLayouts(item_layouts, true)

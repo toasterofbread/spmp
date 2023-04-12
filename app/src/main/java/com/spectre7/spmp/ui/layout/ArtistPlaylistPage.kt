@@ -338,8 +338,9 @@ private fun TitleBar(item: MediaItem, modifier: Modifier = Modifier) {
                         Action(Icons.Filled.Close) { editing_title = false }
                         Action(Icons.Filled.Refresh) { edited_title = item.original_title!! }
                         Action(Icons.Filled.Done) {
-                            item.registry_entry.title = edited_title
-                            item.saveRegistry()
+                            item.editRegistry {
+                                it.title = edited_title
+                            }
                         }
                     }
 
@@ -356,8 +357,9 @@ private fun TitleBar(item: MediaItem, modifier: Modifier = Modifier) {
                         },
                         keyboardOptions = KeyboardOptions(imeAction = ImeAction.Done),
                         keyboardActions = KeyboardActions(onDone = {
-                            item.registry_entry.title = edited_title
-                            item.saveRegistry()
+                            item.editRegistry {
+                                it.title = edited_title
+                            }
                             editing_title = false
                         }),
                         colors = TextFieldDefaults.outlinedTextFieldColors(

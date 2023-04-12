@@ -195,12 +195,12 @@
 
     <string name="s_group_download">Downloads</string>
 
+    <string name="s_key_auto_download_enabled">Enable song auto-download</string>
     <string name="s_key_auto_download_threshold">Auto-download threshold</string>
     <string name="s_sub_auto_download_threshold">Songs you have listened to at least this many times will be automatically downloaded</string>
     <string name="s_key_auto_download_quality">Auto-download quality</string>
     <string name="s_sub_auto_download_quality">Audio quality of auto-downloaded songs</string>
-    <string name="s_key_auto_download_size_limit">Auto-download size limit</string>
-    <string name="s_sub_auto_download_size_limit">This size will not be exceeded by auto-downloaded songs, if more space is needed the least listened to songs will be deleted first</string>
+    <string name="s_key_auto_download_on_metered">Auto-download when on a metered connection</string>
 
     <string name="s_group_stats">Listen stats</string>
 

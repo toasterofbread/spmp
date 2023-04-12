@@ -31,7 +31,8 @@ class PlayerDownloadService: Service() {
 
     inner class Download(
         val id: String,
-        val quality: Song.AudioQuality
+        val quality: Song.AudioQuality,
+        var silent: Boolean
     ) {
         var status: DownloadStatus = DownloadStatus.IDLE
             set(value) {
@@ -108,7 +109,7 @@ class PlayerDownloadService: Service() {
                     return download
                 }
             }
-            return Download(song_id, quality)
+            return Download(song_id, quality, true)
         }
     }
 
@@ -169,7 +170,7 @@ class PlayerDownloadService: Service() {
         }
     }
 
-    private lateinit var notification_builder: Notification.Builder
+    private var notification_builder: Notification.Builder? = null
     private lateinit var notification_manager: NotificationManagerCompat
 
     private val download_dir: File get() = PlayerDownloadManager.getDownloadDir(this)
@@ -232,6 +233,11 @@ class PlayerDownloadService: Service() {
         val instance = intent.extras!!.get("instance") as Int
         val download = getDownload(intent.getStringExtra("song_id")!!)
 
+        val silent = intent.extras!!.get("silent") as Boolean
+        if (!silent) {
+            download.silent = false
+        }
+
         synchronized(download) {
             if (download.finished) {
                 download.broadcastResult(this, Result.success(download.file), instance)
@@ -246,10 +252,13 @@ class PlayerDownloadService: Service() {
                 return
             }
 
+            println("START DOWNLOAD")
             synchronized(downloads) {
                 if (downloads.isEmpty()) {
-                    notification_builder = getNotificationBuilder()
-                    startForeground(NOTIFICATION_ID, notification_builder.build())
+                    if (!download.silent) {
+                        notification_builder = getNotificationBuilder()
+                        startForeground(NOTIFICATION_ID, notification_builder!!.build())
+                    }
                     start_time = System.currentTimeMillis()
                     completed_downloads = 0
                     failed_downloads = 0
@@ -409,10 +418,13 @@ class PlayerDownloadService: Service() {
         }
 
         close(DownloadStatus.FINISHED)
-        file.renameTo(file.resolveSibling(file.name.dropLast(FILE_DOWNLOADING_SUFFIX.length)))
 
+        val renamed = file.resolveSibling(file.name.dropLast(FILE_DOWNLOADING_SUFFIX.length))
+        file.renameTo(renamed)
+        download.file = renamed
         download.status = DownloadStatus.FINISHED
-        return Result.success(file)
+
+        return Result.success(download.file)
     }
 
     private fun getNotificationText(): String {
@@ -461,62 +473,70 @@ class PlayerDownloadService: Service() {
     }
 
     private fun onDownloadProgress() {
-        val total_progress = downloads.getTotalProgress()
-
-        if (downloads.isEmpty()) {
-            notification_builder.setProgress(0, 0, false);
-            notification_builder.setOngoing(false)
-            notification_builder.setDeleteIntent(notification_delete_intent)
-
-            if (cancelled) {
-                notification_builder.setContentTitle("Download cancelled")
-                notification_builder.setSmallIcon(android.R.drawable.ic_menu_close_clear_cancel)
-            }
-            else if (completed_downloads == 0) {
-                notification_builder.setContentTitle("Download failed")
-                notification_builder.setSmallIcon(android.R.drawable.stat_notify_error)
-            }
-            else {
-                notification_builder.setContentTitle("Download completed")
-                notification_builder.setSmallIcon(android.R.drawable.stat_sys_download_done)
-            }
-
-            notification_builder.setContentText("")
+        if (downloads.isNotEmpty() && downloads.all { it.silent }) {
+            return
         }
-        else {
-            notification_builder.setProgress(100, (total_progress * 100).toInt(), false)
 
-            val title = if (downloads.size == 1) {
-                if (downloads.first().song.title != null) {
-                    "Downloading ${downloads.first().song.title}"
+        notification_builder?.also { builder ->
+            notification_update_time = System.currentTimeMillis()
+            val total_progress = downloads.getTotalProgress()
+
+            if (!downloads.any { !it.silent }) {
+                builder.setProgress(0, 0, false);
+                builder.setOngoing(false)
+                builder.setDeleteIntent(notification_delete_intent)
+
+                if (cancelled) {
+                    builder.setContentTitle("Download cancelled")
+                    builder.setSmallIcon(android.R.drawable.ic_menu_close_clear_cancel)
+                }
+                else if (completed_downloads == 0) {
+                    builder.setContentTitle("Download failed")
+                    builder.setSmallIcon(android.R.drawable.stat_notify_error)
                 }
                 else {
-                    "Downloading 1 song"
+                    NotificationManagerCompat.from(this).cancel(NOTIFICATION_ID)
+                    return
+//                    builder.setContentTitle("Download completed")
+//                    builder.setSmallIcon(android.R.drawable.stat_sys_download_done)
                 }
+
+                builder.setContentText("")
             }
             else {
-                "Downloading ${downloads.size} songs"
-            }
+                builder.setProgress(100, (total_progress * 100).toInt(), false)
 
-            notification_builder.setContentTitle(if (paused) "$title (paused)" else title)
-            notification_builder.setContentText(getNotificationText())
-
-            val elapsed_minutes = ((System.currentTimeMillis() - start_time) / 60000f).toInt()
-            notification_builder.setSubText(when(elapsed_minutes) {
-                0 -> "Just started"
-                1 -> "Started 1 min ago"
-                else -> "Started $elapsed_minutes mins ago"
-            })
-        }
-
-        NotificationManagerCompat.from(this).notify(
-            NOTIFICATION_ID, notification_builder.build().apply {
-                if (downloads.isEmpty() || total_progress == 1f) {
-                    actions = arrayOf<Notification.Action>()
+                val title = if (downloads.size == 1) {
+                    if (downloads.first().song.title != null) {
+                        "Downloading ${downloads.first().song.title}"
+                    }
+                    else {
+                        "Downloading 1 song"
+                    }
                 }
+                else {
+                    "Downloading ${downloads.size} songs"
+                }
+
+                builder.setContentTitle(if (paused) "$title (paused)" else title)
+                builder.setContentText(getNotificationText())
+
+                val elapsed_minutes = ((System.currentTimeMillis() - start_time) / 60000f).toInt()
+                builder.setSubText(when(elapsed_minutes) {
+                    0 -> "Just started"
+                    1 -> "Started 1 min ago"
+                    else -> "Started $elapsed_minutes mins ago"
+                })
             }
-        )
-        notification_update_time = System.currentTimeMillis()
+
+            NotificationManagerCompat.from(this).notify(
+                NOTIFICATION_ID, builder.build().apply {
+                    if (downloads.isEmpty() || total_progress == 1f) {
+                        actions = arrayOf<Notification.Action>()
+                    }
+                }
+            )
+        }
     }
 
     override fun onStartCommand(intent: Intent?, flags: Int, startId: Int): Int {
@@ -570,6 +590,7 @@ class PlayerDownloadService: Service() {
 
     override fun onCreate() {
         super.onCreate()
+        println("CREATE SERVICE")
 
         LocalBroadcastManager.getInstance(this).registerReceiver(broadcast_receiver, IntentFilter(PlayerDownloadService::class.java.canonicalName))
         notification_manager = NotificationManagerCompat.from(this)
@@ -595,6 +616,7 @@ class PlayerDownloadService: Service() {
 
     override fun onDestroy() {
         super.onDestroy()
+        println("DESTROY SERVICE")
         LocalBroadcastManager.getInstance(this).unregisterReceiver(broadcast_receiver)
         executor.shutdownNow()
     }

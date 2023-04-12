@@ -576,6 +576,11 @@ private fun groupDownloads(): List<SettingsItem> {
     return listOf(
         SettingsGroup(getString(R.string.s_group_download)),
 
+        SettingsItemToggle(
+            SettingsValueState(Settings.KEY_AUTO_DOWNLOAD_ENABLED.name),
+            getString(R.string.s_key_auto_download_enabled), null
+        ),
+
         SettingsItemSlider(
             SettingsValueState<Int>(Settings.KEY_AUTO_DOWNLOAD_THRESHOLD.name),
             getString(R.string.s_key_auto_download_threshold), getString(R.string.s_sub_auto_download_threshold),

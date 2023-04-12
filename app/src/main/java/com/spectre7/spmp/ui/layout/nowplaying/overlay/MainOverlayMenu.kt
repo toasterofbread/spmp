@@ -27,10 +27,7 @@ import com.spectre7.spmp.ui.layout.PlayerViewContext
 import com.spectre7.spmp.ui.layout.nowplaying.NOW_PLAYING_MAIN_PADDING
 import com.spectre7.spmp.ui.layout.nowplaying.overlay.lyrics.LyricsOverlayMenu
 import com.spectre7.spmp.ui.theme.Theme
-import com.spectre7.utils.OnChangedEffect
-import com.spectre7.utils.getString
-import com.spectre7.utils.spacedByEnd
-import com.spectre7.utils.vibrateShort
+import com.spectre7.utils.*
 import kotlinx.coroutines.delay
 
 class MainOverlayMenu(
@@ -105,7 +102,8 @@ class MainOverlayMenu(
             Modifier
                 .fillMaxSize()
                 .padding(20.dp),
-            verticalArrangement = Arrangement.spacedBy(10.dp)
+            verticalArrangement = Arrangement.spacedBy(10.dp),
+            horizontalAlignment = Alignment.CenterHorizontally
         ) {
             val song = songProvider()
 
@@ -137,8 +135,9 @@ class MainOverlayMenu(
                 },
                 keyboardOptions = KeyboardOptions(imeAction = ImeAction.Done),
                 keyboardActions = KeyboardActions(onDone = {
-                    song.registry_entry.title = edited_song_title
-                    song.saveRegistry()
+                    song.editRegistry {
+                        it.title = edited_song_title
+                    }
                 }),
                 colors = TextFieldDefaults.outlinedTextFieldColors(
                     focusedBorderColor = button_colour,
@@ -218,6 +217,20 @@ class MainOverlayMenu(
                     contentAlignment = Alignment.Center
                 ) {
                     Icon(Icons.Filled.MusicNote, null, tint = button_colour)
+                }
+
+                Box(
+                    button_modifier
+                        .cliclableNoIndication {
+//                            setOverlayMenu(
+//                                LyricsOverlayMenu(
+//                                    (screen_width_dp - (NOW_PLAYING_MAIN_PADDING * 2) - (15.dp * expansion * 2)).value * 0.9.dp
+//                                )
+//                            )
+                        },
+                    contentAlignment = Alignment.Center
+                ) {
+                    Icon(Icons.Filled.BarChart, null, tint = button_colour)
                 }
 
                 Box(contentAlignment = Alignment.Center) {

@@ -116,7 +116,7 @@ class PlayerDownloadManager(private val context: Context) {
     fun getSongLocalFile(song: Song): File? {
         val files = getDownloadDir(context).listFiles() ?: return null
         for (file in files) {
-            if (PlayerDownloadService.fileMatchesDownload(file.name, song.id, song.getTargetDownloadQuality()) == true) {
+            if (PlayerDownloadService.fileMatchesDownload(file.name, song.id, Song.getTargetDownloadQuality()) == true) {
                 return file
             }
         }
@@ -124,9 +124,9 @@ class PlayerDownloadManager(private val context: Context) {
     }
 
     @Synchronized
-    fun startDownload(song_id: String, onCompleted: ((File?, PlayerDownloadService.DownloadStatus) -> Unit)? = null) {
+    fun startDownload(song_id: String, silent: Boolean = false, onCompleted: ((File?, PlayerDownloadService.DownloadStatus) -> Unit)? = null) {
         if (service == null) {
-            startService({ startDownload(song_id, onCompleted) })
+            startService({ startDownload(song_id, silent, onCompleted) })
             return
         }
 
@@ -141,6 +141,7 @@ class PlayerDownloadManager(private val context: Context) {
         val intent = Intent(PlayerDownloadService::class.java.canonicalName)
         intent.putExtra("action", PlayerDownloadService.IntentAction.START_DOWNLOAD)
         intent.putExtra("song_id", song_id)
+        intent.putExtra("silent", silent)
         intent.putExtra("instance", instance)
 
         LocalBroadcastManager.getInstance(context).sendBroadcast(intent)

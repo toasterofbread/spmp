@@ -49,6 +49,7 @@ import androidx.savedstate.SavedStateRegistryOwner
 import androidx.savedstate.setViewTreeSavedStateRegistryOwner
 import com.google.android.exoplayer2.*
 import com.google.android.exoplayer2.audio.*
+import com.google.android.exoplayer2.database.StandaloneDatabaseProvider
 import com.google.android.exoplayer2.ext.mediasession.MediaSessionConnector
 import com.google.android.exoplayer2.extractor.mkv.MatroskaExtractor
 import com.google.android.exoplayer2.extractor.mp4.FragmentedMp4Extractor
@@ -56,8 +57,10 @@ import com.google.android.exoplayer2.mediacodec.MediaCodecSelector
 import com.google.android.exoplayer2.source.DefaultMediaSourceFactory
 import com.google.android.exoplayer2.ui.PlayerNotificationManager
 import com.google.android.exoplayer2.upstream.*
-import com.spectre7.spmp.api.RadioModifier
+import com.google.android.exoplayer2.upstream.cache.LeastRecentlyUsedCacheEvictor
+import com.google.android.exoplayer2.upstream.cache.SimpleCache
 import com.spectre7.spmp.api.RadioInstance
+import com.spectre7.spmp.api.RadioModifier
 import com.spectre7.spmp.api.getOrThrowHere
 import com.spectre7.spmp.api.markSongAsWatched
 import com.spectre7.spmp.model.*
@@ -65,21 +68,21 @@ import com.spectre7.utils.*
 import kotlinx.coroutines.*
 import kotlinx.coroutines.sync.Semaphore
 import kotlinx.coroutines.sync.withPermit
-import java.io.BufferedReader
-import java.io.FileNotFoundException
-import java.io.IOException
+import java.io.*
 import java.util.*
 import kotlin.concurrent.thread
 import kotlin.math.roundToInt
 import kotlin.random.Random
 import kotlin.random.nextInt
 import com.google.android.exoplayer2.MediaItem as ExoMediaItem
+import com.spectre7.spmp.PlayerDownloadService.DownloadStatus
 
 // Radio continuation will be added if the amount of remaining songs (including current) falls below this
-const val RADIO_MIN_LENGTH: Int = 10
-const val UPDATE_INTERVAL: Long = 5000 // ms
-const val VOL_NOTIF_SHOW_DURATION: Long = 1000
+private const val RADIO_MIN_LENGTH: Int = 10
+private const val UPDATE_INTERVAL: Long = 5000 // ms
+private const val VOL_NOTIF_SHOW_DURATION: Long = 1000
 private const val SONG_MARK_WATCHED_POSITION = 1000 // ms
+private const val AUTO_DOWNLOAD_SOFT_TIMEOUT = 1500 // ms
 
 @Suppress("OPT_IN_USAGE")
 class PlayerService : Service() {
@@ -274,7 +277,7 @@ class PlayerService : Service() {
     }
 
     fun addToQueue(song: Song, index: Int? = null, is_active_queue: Boolean = false, start_radio: Boolean = false, save: Boolean = true): Int {
-        val item = ExoMediaItem.Builder().setTag(song).setUri(song.id).build()
+        val item = ExoMediaItem.Builder().setTag(song).setUri(song.id).setCustomCacheKey(song.id).build()
 
         val added_index: Int
         if (index == null) {
@@ -439,6 +442,7 @@ class PlayerService : Service() {
     private val metadata_builder: MediaMetadataCompat.Builder = MediaMetadataCompat.Builder()
     private var media_session: MediaSessionCompat? = null
     private var media_session_connector: MediaSessionConnector? = null
+    private var cache: com.google.android.exoplayer2.upstream.cache.Cache? = null
 
     private val broadcast_receiver = object : BroadcastReceiver() {
         override fun onReceive(_context: Context, intent: Intent) {
@@ -452,7 +456,7 @@ class PlayerService : Service() {
         SharedPreferences.OnSharedPreferenceChangeListener { prefs, key ->
             when (key) {
                 Settings.KEY_ACC_VOL_INTERCEPT_NOTIFICATION.name -> {
-                    vol_notif_enabled = Settings.get(Settings.KEY_ACC_VOL_INTERCEPT_NOTIFICATION, preferences = prefs)
+                    vol_notif_enabled = Settings.KEY_ACC_VOL_INTERCEPT_NOTIFICATION.get(preferences = prefs)
                 }
             }
         }
@@ -660,6 +664,8 @@ class PlayerService : Service() {
         player.addListener(player_listener)
         player.prepare()
 
+        cache = SimpleCache(File("${cacheDir.absolutePath}/exoplayer"), LeastRecentlyUsedCacheEvictor(1), StandaloneDatabaseProvider(this))
+
         media_session = MediaSessionCompat(this@PlayerService, "spmp")
         media_session_connector = MediaSessionConnector(media_session!!)
         media_session_connector!!.setPlayer(player)
@@ -732,7 +738,7 @@ class PlayerService : Service() {
 
         val prefs = MainActivity.getSharedPreferences(this)
         prefs.registerOnSharedPreferenceChangeListener(prefs_change_listener)
-        vol_notif_enabled = Settings.get(Settings.KEY_ACC_VOL_INTERCEPT_NOTIFICATION, preferences = prefs)
+        vol_notif_enabled = Settings.KEY_ACC_VOL_INTERCEPT_NOTIFICATION.get(preferences = prefs)
 
         LocalBroadcastManager.getInstance(this).registerReceiver(broadcast_receiver, IntentFilter(PlayerService::class.java.canonicalName))
 
@@ -747,17 +753,81 @@ class PlayerService : Service() {
         return ResolvingDataSource.Factory({
             DefaultDataSource.Factory(this@PlayerService).createDataSource()
         }) { data_spec: DataSpec ->
+
             val song = Song.fromId(data_spec.uri.toString())
 
-            val local_file = PlayerServiceHost.download_manager.getSongLocalFile(song)
+            val download_manager = PlayerServiceHost.download_manager
+            var local_file: File? = download_manager.getSongLocalFile(song)
             if (local_file != null) {
+                return@Factory data_spec.withUri(Uri.fromFile(local_file))
+            }
+
+            if (
+                song.registry_entry.play_count >= Settings.KEY_AUTO_DOWNLOAD_THRESHOLD.get<Int>(this)
+                && (Settings.KEY_AUTO_DOWNLOAD_ON_METERED.get(this) || !isConnectionMetered(this))
+            ) {
+                var done = false
+                runBlocking {
+
+                    download_manager.getSongDownloadStatus(song.id) { initial_status ->
+
+                        when (initial_status) {
+                            DownloadStatus.DOWNLOADING -> {
+                                val listener = object : PlayerDownloadManager.DownloadStatusListener() {
+                                    override fun onSongDownloadStatusChanged(song_id: String, status: DownloadStatus) {
+                                        if (song_id != song.id) {
+                                            return
+                                        }
+
+                                        when (status) {
+                                            DownloadStatus.IDLE, DownloadStatus.DOWNLOADING -> return
+                                            DownloadStatus.PAUSED -> throw IllegalStateException()
+                                            DownloadStatus.CANCELLED -> {
+                                                done = true
+                                            }
+                                            DownloadStatus.FINISHED, DownloadStatus.ALREADY_FINISHED -> {
+                                                local_file = download_manager.getSongLocalFile(song)
+                                                done = true
+                                            }
+                                        }
+
+                                        download_manager.removeDownloadStatusListener(this)
+                                    }
+                                }
+                                download_manager.addDownloadStatusListener(listener)
+                            }
+                            DownloadStatus.IDLE, DownloadStatus.CANCELLED, DownloadStatus.PAUSED -> {
+                                download_manager.startDownload(song.id, true) { completed_file, _ ->
+                                    local_file = completed_file
+                                    done = true
+                                }
+                            }
+                            DownloadStatus.ALREADY_FINISHED, DownloadStatus.FINISHED -> throw IllegalStateException()
+                        }
+
+                    }
+
+                    var elapsed = 0
+                    while (!done && elapsed < AUTO_DOWNLOAD_SOFT_TIMEOUT) {
+                        delay(100)
+                        elapsed += 100
+                    }
+                }
+
+                if (local_file != null) {
+                    return@Factory data_spec.withUri(Uri.fromFile(local_file))
+                }
+            }
+
+            val format = song.getStreamFormat()
+            if (format.isFailure) {
+                throw IOException(format.exceptionOrNull()!!)
+            }
+
+            return@Factory if (local_file != null) {
                 data_spec.withUri(Uri.fromFile(local_file))
             }
             else {
-                val format = song.getStreamFormat()
-                if (format.isFailure) {
-                    throw IOException(format.exceptionOrNull()!!)
-                }
                 data_spec.withUri(Uri.parse(format.getOrThrow().stream_url))
             }
         }
@@ -771,6 +841,9 @@ class PlayerService : Service() {
         player.removeListener(player_listener)
         player.release()
         radio.filter_changed_listeners.remove(this::onRadioFiltersChanged)
+
+        cache?.release()
+        cache = null
 
         update_timer?.cancel()
         update_timer = null
@@ -826,18 +899,23 @@ class PlayerService : Service() {
 
                     fun markWatched() {
                         if (
-                            Settings.get(Settings.KEY_ADD_SONGS_TO_HISTORY)
-                            && !song_marked_as_watched
+                            !song_marked_as_watched
                             && player.isPlaying
                             && player.currentPosition >= SONG_MARK_WATCHED_POSITION
                         ) {
                             song_marked_as_watched = true
 
-                            val id = getSong()!!.id
-                            networkThread {
-                                val result = markSongAsWatched(id)
-                                if (result.isFailure) {
-                                    MainActivity.error_manager.onError("autoMarkSongAsWatched", result.exceptionOrNull()!!)
+                            val song = getSong()!!
+                            song.editRegistry {
+                                it.play_count++
+                            }
+
+                            if (Settings.KEY_ADD_SONGS_TO_HISTORY.get(this@PlayerService)) {
+                                networkThread {
+                                    val result = markSongAsWatched(song.id)
+                                    if (result.isFailure) {
+                                        MainActivity.error_manager.onError("autoMarkSongAsWatched", result.exceptionOrNull()!!)
+                                    }
                                 }
                             }
                         }
@@ -850,7 +928,7 @@ class PlayerService : Service() {
     }
 
     private fun getCustomVolumeChangeAmount(): Float {
-        return 1f / Settings.get<Int>(Settings.KEY_VOLUME_STEPS, MainActivity.getSharedPreferences(this)).toFloat()
+        return 1f / Settings.KEY_VOLUME_STEPS.get<Int>(this).toFloat()
     }
 
     private fun showVolumeNotification(increasing: Boolean, volume: Float) {

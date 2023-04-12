@@ -192,9 +192,11 @@ abstract class MediaItem(id: String) {
         return original_title != null && artist != null && thumbnail_provider != null
     }
 
-    fun toJsonData(): String {
+    private fun toJsonData(): String {
         return Klaxon().converter(json_converter).toJsonString(this)
     }
+
+    val cache_key: String get() = getCacheKey(type, id)
 
     fun loadFromCache() {
         val cached = Cache.get(cache_key)
@@ -621,9 +623,12 @@ abstract class MediaItem(id: String) {
         return "$type(id=$_id, title=$title$artist_str)"
     }
 
-    val cache_key: String get() = getCacheKey(type, id)
     fun saveRegistry() {
-        MediaItem.data_registry.save()
+        data_registry.save()
+    }
+    fun editRegistry(action: (DataRegistry.Entry) -> Unit) {
+        action(registry_entry)
+        saveRegistry()
     }
 
     class DataRegistry {
@@ -631,6 +636,7 @@ abstract class MediaItem(id: String) {
 
         open class Entry {
             var title: String? by mutableStateOf(null)
+            var play_count: Int by mutableStateOf(0)
         }
 
         @Synchronized

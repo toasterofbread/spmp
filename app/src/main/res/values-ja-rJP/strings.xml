@@ -68,7 +68,7 @@
     <string name="prompt_confirm_settings_page_reset">このページのバリューを全てリセット</string>
     <string name="s_group_download">ダウンロード</string>
     <string name="s_key_auto_download_quality">オートダウンロードの音質</string>
-    <string name="s_key_auto_download_size_limit">オートダウンロードのサイズ制限</string>
+    <string name="s_key_auto_download_on_metered">従量制接続でオートダウンロードを行う</string>
     <string name="s_key_lyrics_extra_padding">パディングを増やす</string>
     <string name="s_key_vol_intercept_mode">音量インターセプトモード</string>
     <string name="s_key_vol_intercept_notification">音量変化の通知</string>
@@ -77,8 +77,10 @@
     <string name="s_option_vol_intercept_mode_app">アプリ使用時に有効</string>
     <string name="s_option_vol_intercept_mode_always">メディア再生時に有効</string>
     <string name="s_page_acc_service">アクセシビリティサービス</string>
+    <string name="s_key_auto_download_enabled">曲を自動的にダウンロードする</string>
+    <string name="s_key_auto_download_threshold">自動曲ダウンロード最低再生数</string>
+    <string name="s_sub_auto_download_threshold">この数以上再生された曲のみが自動的にダウンロードされます</string>
     <string name="s_sub_auto_download_quality">オートダウンロードした曲の音質</string>
-    <string name="s_sub_auto_download_size_limit">オートダウンロードしたすべての曲のサイズ制限</string>
     <string name="s_sub_download_audio_quality">オートダウンロードした曲の合計のサイズはこの制限を超えません</string>
     <string name="s_sub_lyrics_extra_padding">歌詞の上と下にパディングを増やす</string>
     <string name="s_sub_stream_audio_quality">曲をストリーム再生する時の音質</string>

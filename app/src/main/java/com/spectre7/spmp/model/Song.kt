@@ -154,6 +154,14 @@ class Song protected constructor (
                 return@getOrPut song
             }.getOrReplacedWith() as Song
         }
+
+        fun getTargetStreamQuality(): AudioQuality {
+            return Settings.getEnum(Settings.KEY_STREAM_AUDIO_QUALITY)
+        }
+
+        fun getTargetDownloadQuality(): AudioQuality {
+            return Settings.getEnum(Settings.KEY_DOWNLOAD_AUDIO_QUALITY)
+        }
     }
 
     fun getLyrics(callback: (Lyrics?) -> Unit) {
@@ -164,9 +172,10 @@ class Song protected constructor (
 
     var theme_colour: Color?
         get() = song_reg_entry.theme_colour?.let { Color(it) }
-        set(value) { 
-            song_reg_entry.theme_colour = value?.toArgb()
-            saveRegistry()
+        set(value) {
+            editRegistry {
+                (it as SongDataRegistryEntry).theme_colour = value?.toArgb()
+            }
         }
 
     // Expects formats to be sorted by bitrate (descending)
@@ -239,14 +248,6 @@ class Song protected constructor (
         }
 
         return Result.success(download_format!!)
-    }
-
-    fun getTargetStreamQuality(): AudioQuality {
-        return Settings.getEnum(Settings.KEY_STREAM_AUDIO_QUALITY)
-    }
-
-    fun getTargetDownloadQuality(): AudioQuality {
-        return Settings.getEnum(Settings.KEY_DOWNLOAD_AUDIO_QUALITY)
     }
 
     override fun canLoadThumbnail(): Boolean {

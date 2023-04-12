@@ -41,8 +41,9 @@ enum class Settings {
     KEY_DOWNLOAD_AUDIO_QUALITY,
 
     // Download
+    KEY_AUTO_DOWNLOAD_ENABLED,
     KEY_AUTO_DOWNLOAD_THRESHOLD,
-    KEY_AUTO_DOWNLOAD_SIZE_LIMIT,
+    KEY_AUTO_DOWNLOAD_ON_METERED,
 
     // Stats
     // KEY_STATS_ENABLED,
@@ -75,6 +76,14 @@ enum class Settings {
     KEY_PERSISTENT_QUEUE,
     KEY_ADD_SONGS_TO_HISTORY,
     KEY_ENABLE_DISCORD_PRESENCE;
+
+    fun <T> get(preferences: SharedPreferences = prefs): T {
+        return Settings.get(this, preferences)
+    }
+
+    fun <T> get(context: Context): T {
+        return Settings.get(this, MainActivity.getSharedPreferences(context))
+    }
 
     companion object {
         val prefs: SharedPreferences get() = getPrefs()
@@ -147,8 +156,9 @@ enum class Settings {
                 // KEY_STATS_LISTEN_THRESHOLD -> 1f // Minutes or percentage
                 // KEY_STATS_LISTEN_THRESHOLD_TYPE -> 0 // Absolute, percentage
 
-                KEY_AUTO_DOWNLOAD_THRESHOLD -> 3 // Listens
-                KEY_AUTO_DOWNLOAD_SIZE_LIMIT -> 1000000000 // Bytes
+                KEY_AUTO_DOWNLOAD_ENABLED -> true
+                KEY_AUTO_DOWNLOAD_THRESHOLD -> 1 // Listens
+                KEY_AUTO_DOWNLOAD_ON_METERED -> false
 
                 KEY_ACC_VOL_INTERCEPT_MODE -> PlayerAccessibilityService.VOLUME_INTERCEPT_MODE.NEVER.ordinal
                 KEY_ACC_VOL_INTERCEPT_NOTIFICATION -> false

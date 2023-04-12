@@ -11,6 +11,8 @@ import android.app.PendingIntent
 import android.content.Context
 import android.content.Intent
 import android.graphics.drawable.Icon
+import android.net.ConnectivityManager
+import android.net.NetworkCapabilities
 import android.os.Handler
 import android.os.Looper
 import android.os.VibrationEffect
@@ -57,6 +59,7 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextDecoration
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.*
+import androidx.core.content.ContextCompat.getSystemService
 import com.beust.klaxon.Klaxon
 import com.spectre7.spmp.BuildConfig
 import com.spectre7.spmp.MainActivity
@@ -788,4 +791,15 @@ class Listeners<T>(private val list: MutableList<T>) {
 			}
 		}
 	}
+}
+
+fun isConnectionMetered(context: Context): Boolean {
+	val manager = context.getSystemService(Context.CONNECTIVITY_SERVICE) as ConnectivityManager
+	val capabilities = manager.getNetworkCapabilities(manager.activeNetwork)
+
+	if (capabilities != null) {
+		return !capabilities.hasCapability(NetworkCapabilities.NET_CAPABILITY_NOT_METERED)
+	}
+
+	return false
 }

@@ -189,11 +189,16 @@ data class PlayerViewContext(
         else {
             PlayerServiceHost.service.clearQueue()
             PlayerServiceHost.service.startRadioAtIndex(0, item)
+
+            item.editRegistry {
+                it.play_count++
+            }
         }
 
         if (getNowPlayingSwipeState().targetValue == 0 && Settings.get(Settings.KEY_OPEN_NP_ON_SONG_PLAYED)) {
             switchNowPlayingPage(1)
         }
+
     }
 
     private var long_press_menu_data: LongPressMenuData? by mutableStateOf(null)

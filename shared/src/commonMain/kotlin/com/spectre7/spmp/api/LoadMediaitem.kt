@@ -1,15 +1,13 @@
 package com.spectre7.spmp.api
 
-import android.util.JsonReader
 import com.spectre7.spmp.api.DataApi.Companion.addYtHeaders
 import com.spectre7.spmp.api.DataApi.Companion.getStream
 import com.spectre7.spmp.api.DataApi.Companion.ytUrl
 import com.spectre7.spmp.model.*
 import com.spectre7.spmp.ui.component.MediaItemLayout
-import com.spectre7.utils.printJson
 import okhttp3.Request
 import java.io.BufferedReader
-import java.io.Reader
+import java.util.regex.Pattern
 
 data class PlayerData(
     val videoDetails: VideoDetails? = null,
@@ -23,42 +21,6 @@ data class VideoDetails(
     val title: String,
     val channelId: String,
 )
-
-fun JsonReader.next(keys: List<String>?, is_array: Boolean?, allow_none: Boolean = false, action: (key: String) -> Unit) {
-    var found = false
-
-    while (hasNext()) {
-        val name = nextName()
-        if (!found && (keys == null || keys.isEmpty() || keys.contains(name))) {
-            found = true
-
-            when (is_array) {
-                true -> beginArray()
-                false -> beginObject()
-                else -> {}
-            }
-
-            action(name)
-
-            when (is_array) {
-                true -> endArray()
-                false -> endObject()
-                else -> {}
-            }
-        }
-        else {
-            skipValue()
-        }
-    }
-
-    if (!allow_none && !found) {
-        throw RuntimeException("No key within $keys found (array: $is_array)")
-    }
-}
-
-fun JsonReader.next(key: String, is_array: Boolean?, allow_none: Boolean = false, action: (key: String) -> Unit) {
-    return next(listOf(key), is_array, allow_none, action)
-}
 
 fun loadBrowseId(browse_id: String, params: String? = null): Result<List<MediaItemLayout>> {
     val params_str = if (params == null) "" else """, "params": "$params" """
@@ -146,7 +108,7 @@ fun loadMediaItemData(item: MediaItem): Result<MediaItem?> {
     }
 
     val is_radio = item is Playlist && item.playlist_type == Playlist.PlaylistType.RADIO
-    val url = if (item is Song || is_radio) "/youtubei/v1/next" else "/youtubei/v1/browse"
+    val url = if (item is Song) "/youtubei/v1/next" else if (is_radio) "/browse/$item_id" else "/youtubei/v1/browse"
     val body =
         if (item is Song)
             """{
@@ -155,35 +117,59 @@ fun loadMediaItemData(item: MediaItem): Result<MediaItem?> {
                 "videoId": "$item_id"
             }"""
         else if (is_radio)
-            """{ "playlistId": "$item_id", "params": "wAEB" }"""
+            null
         else """{ "browseId": "$item_id" }"""
 
     var request: Request = Request.Builder()
         .ytUrl(url)
-        .addYtHeaders()
-        .post(DataApi.getYoutubeiRequestBody(body))
+        .addYtHeaders(body == null)
+        .apply {
+            if (body != null) post(DataApi.getYoutubeiRequestBody(body))
+        }
         .build()
 
     val response = DataApi.request(request).getOrNull()
     if (response != null) {
         val response_body = response.getStream()
 
+        fun unescape(input: String): String {
+            val regex = "\\\\x([0-9a-fA-F]{2})"
+            val pattern = Pattern.compile(regex)
+            val matcher = pattern.matcher(input)
+            val sb = StringBuffer()
+            while (matcher.find()) {
+                val hex = matcher.group(1)
+                val decimal = Integer.parseInt(hex, 16)
+                matcher.appendReplacement(sb, decimal.toChar().toString())
+            }
+            matcher.appendTail(sb)
+            return sb.toString()
+        }
+
         if (is_radio) {
             check(item is Playlist)
 
-            val parsed = DataApi.klaxon.parse<YoutubeiNextResponse>(response_body)!!
-                .contents
-                .singleColumnMusicWatchNextResultsRenderer
-                .tabbedRenderer
-                .watchNextTabbedResultsRenderer
-                .tabs
-                .first()
+            val string = response_body.reader().readText()
+            response_body.close()
+
+            val start_str = "JSON.parse('\\x7b\\x22browseId\\x22:\\x22$item_id\\x22\\x7d'), data:"
+            val start = string.indexOf(start_str)
+            check(start != -1)
+
+            val end = string.indexOf('}', start + start_str.length)
+            check(end != -1)
+
+            val json_reader = unescape(string.substring(start + start_str.length, end).trim().trim('\'')).reader()
+            val parsed = DataApi.klaxon.parse<YoutubeiBrowseResponse>(json_reader)!!
+                .contents!!
+                .singleColumnBrowseResultsRenderer
+                .tabs[0]
                 .tabRenderer
                 .content!!
-                .musicQueueRenderer
-                .content
-                .playlistPanelRenderer
-            response_body.close()
+                .sectionListRenderer
+                .contents!![0]
+                .musicPlaylistShelfRenderer!!
+            json_reader.close()
 
             val continuation = parsed.continuations?.firstOrNull()?.nextRadioContinuationData?.continuation
 
@@ -191,21 +177,21 @@ fun loadMediaItemData(item: MediaItem): Result<MediaItem?> {
                 null, null,
                 MediaItemLayout.Type.LIST,
                 parsed.contents.mapNotNull { data ->
-                    val renderer = data.playlistPanelVideoRenderer ?: return@mapNotNull null
+//                    val renderer = data.musicResponsiveListItemRenderer ?: return@mapNotNull null
+//
+//                    val song = Song.fromId(renderer.playlistItemData!!.videoId)
+//                    song.supplyTitle(renderer.flexColumns!!.first().musicResponsiveListItemFlexColumnRenderer.text.first_text, true)
+//                    song.supplyThumbnailProvider(MediaItem.ThumbnailProvider.fromThumbnails(renderer.thumbnail!!.musicThumbnailRenderer.thumbnail.thumbnails))
+//
+//                    val artist_result = renderer.getArtist(song)
+//                    if (artist_result.isFailure) {
+//                        return artist_result.cast()
+//                    }
+//
+//                    val (artist, certain) = artist_result.getOrThrow()
+//                    song.supplyArtist(artist, certain)
 
-                    val song = Song.fromId(renderer.videoId)
-                    song.supplyTitle(renderer.title.first_text, true)
-                    song.supplyThumbnailProvider(MediaItem.ThumbnailProvider.fromThumbnails(renderer.thumbnail.thumbnails))
-
-                    val artist_result = renderer.getArtist(song)
-                    if (artist_result.isFailure) {
-                        return artist_result.cast()
-                    }
-
-                    val (artist, certain) = artist_result.getOrThrow()
-                    song.supplyArtist(artist, certain)
-
-                    return@mapNotNull song
+                    return@mapNotNull data.toMediaItem().also { check(it is Song) }
                 }.toMutableList(),
                 continuation = continuation?.let { MediaItemLayout.Continuation(it, MediaItemLayout.Continuation.Type.SONG, item_id) }
             )
@@ -217,7 +203,6 @@ fun loadMediaItemData(item: MediaItem): Result<MediaItem?> {
 
         if (item is MediaItemWithLayouts) {
             val parsed: YoutubeiBrowseResponse = DataApi.klaxon.parse(response_body)!!
-            response_body.close()
 
             val header_renderer: HeaderRenderer?
             if (parsed.header != null) {

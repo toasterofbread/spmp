@@ -19,10 +19,10 @@ import androidx.compose.ui.text.input.ImeAction
 import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.times
-import androidx.palette.graphics.Palette
 import com.spectre7.spmp.*
 import com.spectre7.spmp.model.MediaItem
 import com.spectre7.spmp.model.Song
+import com.spectre7.spmp.platform.vibrateShort
 import com.spectre7.spmp.ui.layout.PlayerViewContext
 import com.spectre7.spmp.ui.layout.nowplaying.NOW_PLAYING_MAIN_PADDING
 import com.spectre7.spmp.ui.layout.nowplaying.overlay.lyrics.LyricsOverlayMenu
@@ -32,7 +32,6 @@ import kotlinx.coroutines.delay
 
 class MainOverlayMenu(
     val setOverlayMenu: (OverlayMenu?) -> Unit,
-    val themePaletteProvider: () -> Palette?,
     val requestColourPicker: ((Color?) -> Unit) -> Unit,
     val onColourSelected: (Color) -> Unit,
     val screen_width_dp: Dp
@@ -40,7 +39,7 @@ class MainOverlayMenu(
 
     override fun closeOnTap(): Boolean = true
 
-    @OptIn(ExperimentalFoundationApi::class)
+    @OptIn(ExperimentalFoundationApi::class, ExperimentalMaterial3Api::class)
     @Composable
     override fun Menu(
         songProvider: () -> Song,
@@ -183,7 +182,6 @@ class MainOverlayMenu(
                         .clickable {
                             setOverlayMenu(
                                 PaletteSelectorOverlayMenu(
-                                    themePaletteProvider,
                                     songProvider()::getDefaultThemeColour,
                                     requestColourPicker,
                                     onColourSelected
@@ -206,7 +204,7 @@ class MainOverlayMenu(
                                 )
                             ) },
                             onLongClick = {
-                                vibrateShort()
+                                SpMp.context.vibrateShort()
                                 setOverlayMenu(
                                     LyricsOverlayMenu(
                                         (screen_width_dp - (NOW_PLAYING_MAIN_PADDING * 2) - (15.dp * expansion * 2)).value * 0.9.dp

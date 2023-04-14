@@ -1,6 +1,5 @@
 package com.spectre7.spmp.ui.layout.nowplaying
 
-import androidx.activity.compose.BackHandler
 import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.animation.slideInVertically
 import androidx.compose.animation.slideOutVertically
@@ -17,12 +16,10 @@ import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.*
-import androidx.compose.ui.platform.LocalConfiguration
 import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.unit.*
-import com.google.accompanist.systemuicontroller.rememberSystemUiController
-import com.spectre7.spmp.MainActivity
 import com.spectre7.spmp.PlayerServiceHost
+import com.spectre7.spmp.platform.BackHandler
 import com.spectre7.spmp.ui.layout.PlayerViewContext
 import com.spectre7.spmp.ui.theme.Theme
 import com.spectre7.utils.*
@@ -52,11 +49,11 @@ internal fun getNPOnBackground(playerProvider: () -> PlayerViewContext): Color {
     }
 }
 
-@OptIn(ExperimentalMaterialApi::class, ExperimentalMaterial3Api::class)
+@OptIn(ExperimentalMaterialApi::class)
 @Composable
 fun NowPlaying(playerProvider: () -> PlayerViewContext, swipe_state: SwipeableState<Int>, swipe_anchors: Map<Float, Int>) {
     AnimatedVisibility(PlayerServiceHost.session_started, enter = slideInVertically(), exit = slideOutVertically()) {
-        val screen_height = getScreenHeight()
+        val screen_height = SpMp.context.getScreenHeight()
         val half_screen_height = screen_height.value * 0.5f
         val density = LocalDensity.current
         val is_shut by remember { derivedStateOf { swipe_state.targetValue == 0 } }
@@ -119,21 +116,18 @@ fun NowPlayingCardContent(
     scroll: (pages: Int) -> Unit,
     playerProvider: () -> PlayerViewContext
 ) {
-    val systemui_controller = rememberSystemUiController()
-    val status_bar_height_percent = (getStatusBarHeight(MainActivity.context).value * 0.75) / page_height.value
+    val status_bar_height = SpMp.context.getStatusBarHeight()
+    val status_bar_height_percent = (status_bar_height.value * 0.75) / page_height.value
 
     val under_status_bar by remember { derivedStateOf { 1f - expansionProvider() < status_bar_height_percent } }
     LaunchedEffect(key1 = under_status_bar, key2 = getNPBackground(playerProvider)) {
         val colour = if (under_status_bar) getNPBackground(playerProvider) else Theme.current.background
-        systemui_controller.setSystemBarsColor(
-            color = colour,
-            darkIcons = !colour.isDark()
-        )
+        SpMp.context.setStatusBarColour(colour, !colour.isDark())
     }
 
     MinimisedProgressBar(playerProvider, expansionProvider)
 
-    val screen_width_dp = LocalConfiguration.current.screenWidthDp.dp
+    val screen_width_dp = SpMp.context.getScreenWidth()
     val thumbnail = remember { mutableStateOf<ImageBitmap?>(null) }
 
     Column(Modifier.fillMaxHeight(), verticalArrangement = Arrangement.Top) {
@@ -142,8 +136,7 @@ fun NowPlayingCardContent(
             modifier = Modifier
                 .requiredHeight(page_height)
                 .requiredWidth(screen_width_dp)
-                .padding(top = (getStatusBarHeight(MainActivity.context)) * expansionProvider().coerceAtLeast(
-                    0f))
+                .padding(top = (status_bar_height * expansionProvider().coerceAtLeast(0f)))
         ) {
             NowPlayingMainTab(
                 expansionProvider,

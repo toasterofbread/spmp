@@ -1,8 +1,7 @@
 package com.spectre7.spmp.api
 
-import com.spectre7.spmp.R
 import com.spectre7.spmp.model.Song
-import com.spectre7.utils.getStringTemp
+import com.spectre7.utils.getString
 import okhttp3.*
 import org.schabi.newpipe.extractor.NewPipe
 import org.schabi.newpipe.extractor.services.youtube.linkHandler.YoutubeStreamLinkHandlerFactory
@@ -164,7 +163,7 @@ data class PlayabilityStatus(val status: String)
 
 private fun buildVideoFormatsRequest(id: String, alt: Boolean): Request {
     return Request.Builder()
-        .url("https://music.youtube.com/youtubei/v1/player?key=${getString("yt_i_api_key)}")
+        .url("https://music.youtube.com/youtubei/v1/player?key=${getString("yt_i_api_key")}")
         .post(DataApi.getYoutubeiRequestBody("""{
             "videoId": "$id",
             "playlistId": null

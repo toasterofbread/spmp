@@ -1,15 +1,13 @@
 package com.spectre7.spmp.api
 
 import com.beust.klaxon.Json
-import com.spectre7.spmp.MainActivity
-import com.spectre7.spmp.R
 import com.spectre7.spmp.api.DataApi.Companion.addYtHeaders
 import com.spectre7.spmp.api.DataApi.Companion.getStream
 import com.spectre7.spmp.api.DataApi.Companion.ytUrl
 import com.spectre7.spmp.model.*
 import com.spectre7.spmp.ui.component.MediaItemLayout
 import com.spectre7.spmp.ui.component.generateLayoutTitle
-import com.spectre7.utils.getStringTemp
+import com.spectre7.utils.getString
 import okhttp3.Request
 import java.io.InputStreamReader
 import java.io.Reader
@@ -110,7 +108,7 @@ private fun processRows(rows: List<YoutubeiShelf>): List<MediaItemLayout> {
                     val final_title: String
                     val final_subtitle: String?
 
-                    if (title == null || (!localised_title && MainActivity.data_language != MainActivity.ui_language)) {
+                    if (title == null || (!localised_title && SpMp.data_language != SpMp.ui_language)) {
                         val generated = items.generateLayoutTitle()
                         final_title = generated.first
                         final_subtitle = generated.second
@@ -118,7 +116,7 @@ private fun processRows(rows: List<YoutubeiShelf>): List<MediaItemLayout> {
                     else {
                         final_title = title
                         if (header.strapline?.runs?.isNotEmpty() == true && media_item_type != null) {
-                            final_subtitle = getStringTemp(if (thumbnail_source?.url != null) R.string.home_feed_similar_to else R.string.home_feed_more_from)
+                            final_subtitle = getString(if (thumbnail_source?.url != null) "home_feed_similar_to" else "home_feed_more_from")
                         }
                         else {
                             final_subtitle = null
@@ -143,31 +141,31 @@ private fun processRows(rows: List<YoutubeiShelf>): List<MediaItemLayout> {
                 when (browse_endpoint.browseId) {
                     "FEmusic_listen_again" -> {
                         if (Settings.get(Settings.KEY_FEED_SHOW_LISTEN_ROW)) {
-                            add(getString("home_feed_listen_again), thumbnail_source = null, view_more = MediaItemLayout.ViewMore(list_page_url = "https://music.youtube.com/listen_again"))
+                            add(getString("home_feed_listen_again"), thumbnail_source = null, view_more = MediaItemLayout.ViewMore(list_page_url = "https://music.youtube.com/listen_again"))
                         }
                         continue
                     }
                     "FEmusic_mixed_for_you" -> {
                         if (Settings.get(Settings.KEY_FEED_SHOW_MIX_ROW)) {
-                            add(getString("home_feed_mixed_for_you), view_more = MediaItemLayout.ViewMore(list_page_url = "https://music.youtube.com/mixed_for_you"))
+                            add(getString("home_feed_mixed_for_you"), view_more = MediaItemLayout.ViewMore(list_page_url = "https://music.youtube.com/mixed_for_you"))
                         }
                         continue
                     }
                     "FEmusic_new_releases_albums" -> {
                         if (Settings.get(Settings.KEY_FEED_SHOW_NEW_ROW)) {
-                            add(getString("home_feed_new_releases), view_more = MediaItemLayout.ViewMore(list_page_url = "https://music.youtube.com/new_releases/albums"))
+                            add(getString("home_feed_new_releases"), view_more = MediaItemLayout.ViewMore(list_page_url = "https://music.youtube.com/new_releases/albums"))
                         }
                         continue
                     }
                     "FEmusic_moods_and_genres" -> {
                         if (Settings.get(Settings.KEY_FEED_SHOW_MOODS_ROW)) {
-                            add(getString("home_feed_moods_and_genres), view_more = MediaItemLayout.ViewMore(list_page_url = "https://music.youtube.com/moods_and_genres"))
+                            add(getString("home_feed_moods_and_genres"), view_more = MediaItemLayout.ViewMore(list_page_url = "https://music.youtube.com/moods_and_genres"))
                         }
                         continue
                     }
                     "FEmusic_charts" -> {
                         if (Settings.get(Settings.KEY_FEED_SHOW_CHARTS_ROW)) {
-                            add(getString("home_feed_charts), view_more = MediaItemLayout.ViewMore(list_page_url = "https://music.youtube.com/charts"))
+                            add(getString("home_feed_charts"), view_more = MediaItemLayout.ViewMore(list_page_url = "https://music.youtube.com/charts"))
                         }
                         continue
                     }

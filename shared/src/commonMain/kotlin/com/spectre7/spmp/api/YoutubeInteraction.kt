@@ -1,15 +1,22 @@
 package com.spectre7.spmp.api
 
-import android.util.JsonReader
-import com.spectre7.spmp.R
 import com.spectre7.spmp.api.DataApi.Companion.addYtHeaders
 import com.spectre7.spmp.api.DataApi.Companion.getStream
 import com.spectre7.spmp.api.DataApi.Companion.ytUrl
 import com.spectre7.spmp.model.Artist
-import com.spectre7.utils.getStringTemp
+import com.spectre7.utils.getString
 import okhttp3.HttpUrl.Companion.toHttpUrl
 import okhttp3.Request
 import java.util.*
+
+class ArtistBrowseResponse(val header: Header) {
+    class Header(val musicImmersiveHeaderRenderer: MusicImmersiveHeaderRenderer)
+    class MusicImmersiveHeaderRenderer(val subscriptionButton: SubscriptionButton)
+    class SubscriptionButton(val subscribeButtonRenderer: SubscribeButtonRenderer)
+    class SubscribeButtonRenderer(val subscribed: Boolean)
+
+    fun getSubscribed(): Boolean = header.musicImmersiveHeaderRenderer.subscriptionButton.subscribeButtonRenderer.subscribed
+}
 
 fun isSubscribedToArtist(artist: Artist): Result<Boolean?> {
     check(!artist.for_song)
@@ -26,33 +33,10 @@ fun isSubscribedToArtist(artist: Artist): Result<Boolean?> {
     }
 
     val stream = result.getOrThrow().getStream()
-    val reader = JsonReader(stream.reader())
-
-    var ret: Result<Boolean?>? = null
-
-    try {
-        reader.beginObject()
-        reader.next("header", false) {
-            reader.next(null, false) {
-                reader.next("subscriptionButton", false, true) {
-                    reader.next("subscribeButtonRenderer", false) {
-                        reader.next("subscribed", null) {
-                            ret = Result.success(reader.nextBoolean())
-                        }
-                    }
-                }
-            }
-        }
-        reader.endObject()
-    }
-    catch (e: Throwable) {
-        throw RuntimeException(artist.toString(), e)
-    }
-
+    val parsed: ArtistBrowseResponse = DataApi.klaxon.parse(stream)!!
     stream.close()
-    reader.close()
 
-    return ret ?: Result.success(null)
+    return Result.success(parsed.getSubscribed())
 }
 
 fun subscribeOrUnsubscribeArtist(artist: Artist, subscribe: Boolean): Result<Any> {
@@ -145,7 +129,7 @@ private fun generateCpn(): String {
 fun markSongAsWatched(id: String): Result<Any> {
     fun buildRequest(alt: Boolean): Request {
         return Request.Builder()
-            .url("https://music.youtube.com/youtubei/v1/player?key=${getString("yt_i_api_key)}")
+            .url("https://music.youtube.com/youtubei/v1/player?key=${getString("yt_i_api_key")}")
             .post(DataApi.getYoutubeiRequestBody(
                 """{ "videoId": "$id" }""",
                 context = if (alt) DataApi.Companion.YoutubeiContextType.ALT else DataApi.Companion.YoutubeiContextType.BASE

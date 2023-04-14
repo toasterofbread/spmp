@@ -2,9 +2,6 @@
 
 package com.spectre7.spmp.ui.component
 
-import android.content.Intent
-import android.net.Uri
-import android.view.WindowManager
 import androidx.compose.animation.*
 import androidx.compose.animation.core.*
 import androidx.compose.foundation.*
@@ -29,14 +26,11 @@ import androidx.compose.ui.graphics.*
 import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.layout.*
 import androidx.compose.ui.platform.LocalDensity
-import androidx.compose.ui.platform.LocalView
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.*
-import androidx.compose.ui.window.Dialog
-import androidx.compose.ui.window.DialogProperties
-import androidx.compose.ui.window.DialogWindowProvider
-import com.spectre7.spmp.MainActivity
 import com.spectre7.spmp.model.*
+import com.spectre7.spmp.platform.PlatformDialog
+import com.spectre7.spmp.platform.vibrateShort
 import com.spectre7.spmp.ui.layout.PlayerViewContext
 import com.spectre7.spmp.ui.layout.nowplaying.DEFAULT_THUMBNAIL_ROUNDING
 import com.spectre7.spmp.ui.theme.Theme
@@ -83,7 +77,7 @@ class LongPressMenuActionProvider(
                         },
                         onLongClick = if (onLongClick == null) null else {
                             {
-                                vibrateShort()
+                                SpMp.context.vibrateShort()
                                 onLongClick()
                                 closeMenu()
                             }
@@ -148,7 +142,7 @@ fun LongPressIconMenu(
         Crossfade(data.item.getThumbnail(MediaItem.ThumbnailQuality.LOW)) { thumbnail ->
             if (thumbnail != null) {
                 Image(
-                    thumbnail.asImageBitmap(),
+                    thumbnail,
                     contentDescription = null,
                     contentScale = ContentScale.Crop,
                     modifier = modifier
@@ -167,7 +161,7 @@ fun LongPressIconMenu(
 
     if (show && (data.thumb_shape == null || data.thumb_position != null)) {
         val density = LocalDensity.current
-        val status_bar_height = getStatusBarHeight(MainActivity.context)
+        val status_bar_height = SpMp.context.getStatusBarHeight()
 
         val initial_pos = remember {
             if (data.thumb_position == null) null else
@@ -210,8 +204,9 @@ fun LongPressIconMenu(
             }
         }
 
-        LaunchedEffect(data.item.thumbnail_palette) {
-            if (data.item.thumbnail_palette == null) {
+        val thumb_quality = MediaItem.ThumbnailQuality.LOW
+        LaunchedEffect(data.item.isThumbnailLoaded(thumb_quality)) {
+            if (!data.item.isThumbnailLoaded(thumb_quality)) {
                 data.item.getThumbnail(MediaItem.ThumbnailQuality.LOW)
             }
             else {
@@ -287,17 +282,14 @@ fun LongPressIconMenu(
             }
         }
 
-        Dialog(
+        PlatformDialog(
             onDismissRequest = { close_requested = true },
-            properties = DialogProperties(usePlatformDefaultWidth = false)
+            use_platform_default_width = false,
+            dim_behind = false
         ) {
-
-            val dialog = LocalView.current.parent as DialogWindowProvider
-            dialog.window.clearFlags(WindowManager.LayoutParams.FLAG_DIM_BEHIND)
-
             Box(
                 Modifier
-                    .requiredHeight(getScreenHeight())
+                    .requiredHeight(SpMp.context.getScreenHeight())
                     .offset(y = status_bar_height * -0.5f)
                     .background(Color.Black.setAlpha(0.5f * panel_alpha.value))
             ) {
@@ -484,36 +476,15 @@ private fun Actions(data: LongPressMenuData, accent_colour: Color, playerProvide
         data.item
     )
 
-    val share_intent = remember(data.item.url) {
-        Intent.createChooser(Intent().apply {
-            action = Intent.ACTION_SEND
-
-            if (data.item is Song) {
-                putExtra(Intent.EXTRA_TITLE, data.item.title)
-            }
-
-            putExtra(Intent.EXTRA_TEXT, data.item.url)
-            type = "text/plain"
-        }, null)
+    if (SpMp.context.canShare()) {
+        LongPressMenuActionProvider.ActionButton(Icons.Filled.Share, "Share", accent_colour_provider, onClick = {
+            SpMp.context.shareText(data.item.url, if (data.item is Song) data.item.title else null)
+        }, closeMenu = close)
     }
 
-    LongPressMenuActionProvider.ActionButton(Icons.Filled.Share, "Share", accent_colour_provider, onClick = {
-        MainActivity.context.startActivity(share_intent)
-    }, closeMenu = close)
-
-    val open_intent: Intent? = remember(data.item.url) {
-        val intent = Intent(Intent.ACTION_VIEW, Uri.parse(data.item.url))
-        if (intent.resolveActivity(MainActivity.context.packageManager) == null) {
-            null
-        }
-        else {
-            intent
-        }
-    }
-
-    if (open_intent != null) {
+    if (SpMp.context.canOpenUrl()) {
         LongPressMenuActionProvider.ActionButton(Icons.Filled.OpenWith, "Open externally", accent_colour_provider, onClick = {
-            MainActivity.context.startActivity(open_intent)
+            SpMp.context.openUrl(data.item.url)
         }, closeMenu = close)
     }
 }

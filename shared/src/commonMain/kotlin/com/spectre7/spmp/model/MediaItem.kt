@@ -8,6 +8,7 @@ import androidx.compose.material.icons.filled.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.graphics.ImageBitmap
 import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.unit.IntSize
@@ -19,11 +20,11 @@ import com.spectre7.spmp.ui.component.MediaItemLayout
 import com.spectre7.spmp.ui.layout.PlayerViewContext
 import com.spectre7.spmp.ui.theme.Theme
 import com.spectre7.utils.SubtleLoadingIndicator
-import com.spectre7.utils.getString
 import com.spectre7.utils.getStringTemp
 import com.spectre7.utils.getThemeColour
 import com.spectre7.utils.printJson
-import com.spectre7.shared.ProjectPreferences
+import com.spectre7.spmp.platform.ProjectPreferences
+import com.spectre7.spmp.platform.toImageBitmap
 import java.io.Reader
 import java.net.URL
 import java.time.Duration
@@ -127,9 +128,9 @@ abstract class MediaItem(id: String) {
 
         fun getReadable(plural: Boolean = false): String {
             return getStringTemp(when (this) {
-                SONG -> if (plural) R.string.songs else R.string.song
-                ARTIST -> if (plural) R.string.artists else R.string.artist
-                PLAYLIST -> if (plural) R.string.playlists else R.string.playlist
+                SONG -> if (plural) "songs" else "song"
+                ARTIST -> if (plural) "artists" else "artist"
+                PLAYLIST -> if (plural) "playlists" else "playlist"
             })
         }
 
@@ -426,10 +427,9 @@ abstract class MediaItem(id: String) {
             }
         }
     }
-    var thumbnail_palette: Palette? by mutableStateOf(null)
 
     private class ThumbState {
-        var image: Bitmap? by mutableStateOf(null)
+        var image: ImageBitmap? by mutableStateOf(null)
         var loading by mutableStateOf(false)
     }
     private val thumb_states: Map<ThumbnailQuality, ThumbState>
@@ -512,7 +512,7 @@ abstract class MediaItem(id: String) {
         return thumb_states[quality]!!.image != null
     }
 
-    fun getThumbnail(quality: ThumbnailQuality): Bitmap? {
+    fun getThumbnail(quality: ThumbnailQuality): ImageBitmap? {
         val state = thumb_states[quality]!!
         synchronized(state) {
             if (!state.loading) {
@@ -524,7 +524,7 @@ abstract class MediaItem(id: String) {
         return state.image
     }
 
-    fun loadThumbnail(quality: ThumbnailQuality): Bitmap? {
+    fun loadThumbnail(quality: ThumbnailQuality): ImageBitmap? {
         if (!canLoadThumbnail()) {
             return null
         }
@@ -544,9 +544,6 @@ abstract class MediaItem(id: String) {
         }
 
         state.image = downloadThumbnail(quality)
-        if (state.image != null) {
-            thumbnail_palette = Palette.from(state.image!!.asImageBitmap().asAndroidBitmap()).clearFilters().generate()
-        }
 
         synchronized(state) {
             state.loading = false
@@ -556,9 +553,14 @@ abstract class MediaItem(id: String) {
         return state.image
     }
 
-    protected open fun downloadThumbnail(quality: ThumbnailQuality): Bitmap? {
+    protected open fun downloadThumbnail(quality: ThumbnailQuality): ImageBitmap? {
         val url = getThumbUrl(quality) ?: return null
-        return BitmapFactory.decodeStream(URL(url).openConnection().getInputStream())
+
+        val stream = URL(url).openConnection().getInputStream()
+        val bytes = stream.readBytes()
+        stream.close()
+
+        return bytes.toImageBitmap()
     }
 
     data class PreviewParams(
@@ -586,7 +588,7 @@ abstract class MediaItem(id: String) {
             }
             else {
                 Image(
-                    thumbnail.asImageBitmap(),
+                    thumbnail,
                     contentDescription = null,
                     contentScale = ContentScale.Crop,
                     modifier = modifier
@@ -601,6 +603,8 @@ abstract class MediaItem(id: String) {
         }
         return loadMediaItemData(getOrReplacedWith())
     }
+
+    fun canGetThemeColour(): Boolean = thumb_states.values.any { it.image != null }
 
     fun getDefaultThemeColour(): Color? {
         for (quality in ThumbnailQuality.values()) {

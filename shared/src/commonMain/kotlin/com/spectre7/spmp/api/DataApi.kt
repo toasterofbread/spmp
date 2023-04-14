@@ -4,7 +4,6 @@ import com.beust.klaxon.*
 import com.spectre7.spmp.platform.ProjectPreferences
 import com.spectre7.spmp.model.Settings
 import com.spectre7.utils.getString
-import com.spectre7.utils.getStringTemp
 import okhttp3.*
 import okhttp3.MediaType.Companion.toMediaType
 import okhttp3.RequestBody.Companion.toRequestBody
@@ -44,7 +43,7 @@ fun <T> Result<T>.getOrReport(error_key: String): T? {
         },
         {
             TODO()
-//            MainActivity.error_manager.onError(error_key, it)
+//            SpMp.error_manager.onError(error_key, it)
 //            null
         }
     )
@@ -53,7 +52,7 @@ fun <T> Result<T>.getOrReport(error_key: String): T? {
 class DataApi {
 
     companion object {
-        private val client: OkHttpClient = OkHttpClient()
+        private val client: OkHttpClient = OkHttpClient.Builder().protocols(listOf(Protocol.HTTP_1_1)).build()
         val user_agent: String get() = getString("ytm_user_agent")
 
         private val enum_converter = object : Converter {
@@ -158,13 +157,14 @@ class DataApi {
                 }
             }
             else {
-                val headers = MainActivity.resources.getStringArray(R.array.ytm_headers)
-                var i = 0
-                while (i < headers.size) {
-                    val key = headers[i++]
-                    val value = headers[i++]
-                    headers_builder[key] = value
-                }
+                TODO()
+//                val headers = MainActivity.resources.getStringArray(R.array.ytm_headers)
+//                var i = 0
+//                while (i < headers.size) {
+//                    val key = headers[i++]
+//                    val value = headers[i++]
+//                    headers_builder[key] = value
+//                }
             }
 
             headers_builder["accept-encoding"] = "gzip, deflate"
@@ -217,8 +217,16 @@ class DataApi {
             })
         }
 
-        internal fun Request.Builder.addYtHeaders(): Request.Builder {
-            return headers(youtubei_headers)
+        internal fun Request.Builder.addYtHeaders(plain: Boolean = false): Request.Builder {
+            if (plain) {
+                for (header in listOf("accept-language", "user-agent", "accept-encoding", "content-encoding")) {
+                    header(header, youtubei_headers[header]!!)
+                }
+            }
+            else {
+                headers(youtubei_headers)
+            }
+            return this
         }
 
         internal fun Request.Builder.ytUrl(endpoint: String): Request.Builder {

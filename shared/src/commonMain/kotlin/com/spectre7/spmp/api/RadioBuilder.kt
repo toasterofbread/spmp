@@ -1,11 +1,11 @@
 package com.spectre7.spmp.api
 
-import com.spectre7.spmp.R
 import com.spectre7.spmp.api.DataApi.Companion.addYtHeaders
+import com.spectre7.spmp.api.DataApi.Companion.getStream
 import com.spectre7.spmp.api.DataApi.Companion.ytUrl
 import com.spectre7.spmp.model.MediaItem
 import com.spectre7.spmp.model.Playlist
-import com.spectre7.utils.getStringTemp
+import com.spectre7.utils.getString
 import okhttp3.Request
 
 private class RadioBuilderBrowseResponse(
@@ -64,10 +64,10 @@ interface RadioModifier {
             MEDIUM -> null
             HIGH -> "rZ"
         }
-        override fun getReadable(): String = getStringTemp(when (this) {
-            LOW -> R.string.radio_builder_modifier_variety_low
-            MEDIUM -> R.string.radio_builder_modifier_variety_medium
-            HIGH -> R.string.radio_builder_modifier_variety_high
+        override fun getReadable(): String = getString(when (this) {
+            LOW -> "radio_builder_modifier_variety_low"
+            MEDIUM -> "radio_builder_modifier_variety_medium"
+            HIGH -> "radio_builder_modifier_variety_high"
         })
     }
 
@@ -78,10 +78,10 @@ interface RadioModifier {
             BLEND -> null
             DISCOVER -> "iX"
         }
-        override fun getReadable(): String = getStringTemp(when (this) {
-            FAMILIAR -> R.string.radio_builder_modifier_selection_type_familiar
-            BLEND -> R.string.radio_builder_modifier_selection_type_blend
-            DISCOVER -> R.string.radio_builder_modifier_selection_type_discover
+        override fun getReadable(): String = getString(when (this) {
+            FAMILIAR -> "radio_builder_modifier_selection_type_familiar"
+            BLEND -> "radio_builder_modifier_selection_type_blend"
+            DISCOVER -> "radio_builder_modifier_selection_type_discover"
         })
     }
 
@@ -92,10 +92,10 @@ interface RadioModifier {
             HIDDEN -> "pX"
             NEW -> "dX"
         }
-        override fun getReadable(): String = getStringTemp(when (this) {
-            POPULAR -> R.string.radio_builder_modifier_filter_a_popular
-            HIDDEN -> R.string.radio_builder_modifier_filter_a_hidden
-            NEW -> R.string.radio_builder_modifier_filter_a_new
+        override fun getReadable(): String = getString(when (this) {
+            POPULAR -> "radio_builder_modifier_filter_a_popular"
+            HIDDEN -> "radio_builder_modifier_filter_a_hidden"
+            NEW -> "radio_builder_modifier_filter_a_new"
         })
     }
 
@@ -108,12 +108,12 @@ interface RadioModifier {
             DOWNBEAT -> "mc"
             FOCUS -> "ma"
         }
-        override fun getReadable(): String = getStringTemp(when (this) {
-            PUMP_UP -> R.string.radio_builder_modifier_filter_pump_up // 熱
-            CHILL -> R.string.radio_builder_modifier_filter_chill // 冷
-            UPBEAT -> R.string.radio_builder_modifier_filter_upbeat // 明るい
-            DOWNBEAT -> R.string.radio_builder_modifier_filter_downbeat // 重い
-            FOCUS -> R.string.radio_builder_modifier_filter_focus
+        override fun getReadable(): String = getString(when (this) {
+            PUMP_UP -> "radio_builder_modifier_filter_pump_up" // 熱
+            CHILL -> "radio_builder_modifier_filter_chill" // 冷
+            UPBEAT -> "radio_builder_modifier_filter_upbeat" // 明るい
+            DOWNBEAT -> "radio_builder_modifier_filter_downbeat" // 重い
+            FOCUS -> "radio_builder_modifier_filter_focus"
         })
     }
 
@@ -143,7 +143,9 @@ fun getBuiltRadio(radio_token: String): Result<Playlist?> {
     require(radio_token.contains('E'))
 
     val playlist = Playlist.fromId(radio_token).supplyPlaylistType(Playlist.PlaylistType.RADIO, true)
+    println("PLAYLIST $playlist")
     val result = playlist.loadData(true)
+    println("RES $result")
 
     if (result.isFailure) {
         return result.cast()
@@ -214,9 +216,9 @@ fun getRadioBuilderArtists(
         return result.cast()
     }
 
-    val body = result.getOrThrowHere().body!!
-    val parsed: RadioBuilderBrowseResponse = DataApi.klaxon.parse(body.charStream())!!
-    body.close()
+    val strean = result.getOrThrow().getStream()
+    val parsed: RadioBuilderBrowseResponse = DataApi.klaxon.parse(strean)!!
+    strean.close()
 
     return Result.success(parsed.items.zip(parsed.mutations).map { artist ->
         RadioBuilderArtist(artist.first.title, artist.second.token!!, selectThumbnail(artist.first.musicThumbnail.image.sources))

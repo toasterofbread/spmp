@@ -1,8 +1,6 @@
 package com.spectre7.spmp.ui.layout.nowplaying
 
 import com.spectre7.spmp.ui.layout.nowplaying.overlay.MainOverlayMenu
-import android.text.format.DateUtils
-import androidx.activity.compose.BackHandler
 import androidx.compose.animation.*
 import androidx.compose.animation.core.tween
 import androidx.compose.foundation.Image
@@ -25,30 +23,28 @@ import androidx.compose.ui.draw.scale
 import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.graphics.*
 import androidx.compose.ui.graphics.painter.Painter
+import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.input.pointer.pointerInput
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.layout.onSizeChanged
-import androidx.compose.ui.platform.LocalConfiguration
 import androidx.compose.ui.platform.LocalDensity
-import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.*
-import androidx.palette.graphics.Palette
-import com.github.krottv.compose.sliders.DefaultThumb
-import com.github.krottv.compose.sliders.DefaultTrack
-import com.github.krottv.compose.sliders.SliderValueHorizontal
 import com.spectre7.spmp.PlayerServiceHost
-import com.spectre7.spmp.R
 import com.spectre7.spmp.model.MediaItem
 import com.spectre7.spmp.model.Song
+import com.spectre7.spmp.platform.BackHandler
+import com.spectre7.spmp.platform.getPixel
+import com.spectre7.spmp.platform.vibrateShort
 import com.spectre7.spmp.ui.component.LikeDislikeButton
 import com.spectre7.spmp.ui.layout.MINIMISED_NOW_PLAYING_HEIGHT
 import com.spectre7.spmp.ui.layout.PlayerViewContext
 import com.spectre7.spmp.ui.layout.nowplaying.overlay.OverlayMenu
 import com.spectre7.spmp.ui.theme.Theme
 import com.spectre7.utils.*
+import org.apache.commons.lang3.time.DateUtils
 import kotlin.concurrent.thread
 import kotlin.math.absoluteValue
 import kotlin.math.max
@@ -82,10 +78,9 @@ fun ColumnScope.NowPlayingMainTab(
         PlayerServiceHost.status.song?.theme_colour = theme_colour
     }
     
-    val screen_width_dp = LocalConfiguration.current.screenWidthDp.dp
+    val screen_width_dp = SpMp.context.getScreenWidth()
 
     var seek_state by remember { mutableStateOf(-1f) }
-    var theme_palette by remember { mutableStateOf<Palette?>(null) }
     var loaded_song: Song? by remember { mutableStateOf(null) }
 
     val disappear_scale = minOf(1f, if (expansion < 0.5f) 1f else (1f - ((expansion - 0.5f) * 2f)))
@@ -97,13 +92,12 @@ fun ColumnScope.NowPlayingMainTab(
     }
 
     fun loadThumbnail(song: Song, quality: MediaItem.ThumbnailQuality) {
-        _setThumbnail(song.loadThumbnail(quality)?.asImageBitmap())
-        theme_palette = song.thumbnail_palette
+        _setThumbnail(song.loadThumbnail(quality))
 
         if (song.theme_colour != null) {
             theme_colour = song.theme_colour
         }
-        else if (theme_palette != null) {
+        else if (song.canGetThemeColour()) {
             theme_colour = song.getDefaultThemeColour()
         }
 
@@ -118,7 +112,6 @@ fun ColumnScope.NowPlayingMainTab(
 
         if (song == null || !song.canLoadThumbnail()) {
             _setThumbnail(null)
-            theme_palette = null
             theme_colour = null
             loaded_song = null
         }
@@ -135,8 +128,8 @@ fun ColumnScope.NowPlayingMainTab(
     val thumbnail_rounding: Int? = PlayerServiceHost.status.m_song?.song_reg_entry?.thumbnail_rounding
     val thumbnail_shape = RoundedCornerShape(thumbnail_rounding ?: DEFAULT_THUMBNAIL_ROUNDING)
     var image_size by remember { mutableStateOf(IntSize(1, 1)) }
-    val status_bar_height = getStatusBarHeight()
-    val screen_height = LocalConfiguration.current.screenHeightDp.dp + status_bar_height
+    val status_bar_height = SpMp.context.getStatusBarHeight()
+    val screen_height = SpMp.context.getScreenHeight()
 
     val offsetProvider: Density.() -> IntOffset = {
         IntOffset(
@@ -234,7 +227,6 @@ fun ColumnScope.NowPlayingMainTab(
                                         ) {
                                             overlay_menu = if (overlay_menu == null) MainOverlayMenu(
                                                 { overlay_menu = it },
-                                                { theme_palette },
                                                 { colourpick_callback = it },
                                                 {
                                                     setThemeColour(it)
@@ -265,7 +257,7 @@ fun ColumnScope.NowPlayingMainTab(
                                                     }
 
                                                     colourpick_callback?.invoke(
-                                                        Color(image.asAndroidBitmap().getPixel(x.toInt(), y.toInt()))
+                                                        image.getPixel(x.toInt(), y.toInt())
                                                     )
                                                     colourpick_callback = null
                                                 }
@@ -394,11 +386,11 @@ fun ColumnScope.NowPlayingMainTab(
             AnimatedVisibility(PlayerServiceHost.status.m_has_previous, enter = expandHorizontally(), exit = shrinkHorizontally()) {
                 IconButton(
                     onClick = {
-                        PlayerServiceHost.service.seekToPrevious()
+                        PlayerServiceHost.player.seekToPrevious()
                     }
                 ) {
                     Image(
-                        painterResource(R.drawable.ic_skip_previous),
+                        Icons.Filled.SkipPrevious,
                         null,
                         colorFilter = ColorFilter.tint(getNPOnBackground(playerProvider))
                     )
@@ -408,12 +400,12 @@ fun ColumnScope.NowPlayingMainTab(
             AnimatedVisibility(PlayerServiceHost.status.m_song != null, enter = fadeIn(), exit = fadeOut()) {
                 IconButton(
                     onClick = {
-                        PlayerServiceHost.service.playPause()
+                        PlayerServiceHost.player.playPause()
                     }
                 ) {
                     Image(
-                        painterResource(if (PlayerServiceHost.status.m_playing) R.drawable.ic_pause else R.drawable.ic_play_arrow),
-                        getStringTemp(if (PlayerServiceHost.status.m_playing) R.string.media_pause else R.string.media_play),
+                        if (PlayerServiceHost.status.m_playing) Icons.Filled.Pause else Icons.Filled.PlayArrow,
+                        getString(if (PlayerServiceHost.status.m_playing) "media_pause" else "media_play"),
                         colorFilter = ColorFilter.tint(getNPOnBackground(playerProvider))
                     )
                 }
@@ -422,11 +414,11 @@ fun ColumnScope.NowPlayingMainTab(
             AnimatedVisibility(PlayerServiceHost.status.m_has_next, enter = expandHorizontally(), exit = shrinkHorizontally()) {
                 IconButton(
                     onClick = {
-                        PlayerServiceHost.service.seekToNext()
+                        PlayerServiceHost.player.seekToNext()
                     }
                 ) {
                     Image(
-                        painterResource(R.drawable.ic_skip_next),
+                        Icons.Filled.SkipNext,
                         null,
                         colorFilter = ColorFilter.tint(getNPOnBackground(playerProvider))
                     )
@@ -439,7 +431,7 @@ fun ColumnScope.NowPlayingMainTab(
         Controls(
             playerProvider,
             {
-                PlayerServiceHost.player.seekTo((PlayerServiceHost.player.duration * it).toLong())
+                PlayerServiceHost.player.seekTo((PlayerServiceHost.player.duration_ms * it).toLong())
                 seek_state = it
             },
             scroll,
@@ -469,7 +461,7 @@ private fun Controls(
     ) {
 
         @Composable
-        fun PlayerButton(painter: Painter, size: Dp = 60.dp, alpha: Float = 1f, colourProvider: (() -> Color)? = null, label: String? = null, enabled: Boolean = true, on_click: () -> Unit) {
+        fun PlayerButton(image: ImageVector, size: Dp = 60.dp, alpha: Float = 1f, colourProvider: (() -> Color)? = null, label: String? = null, enabled: Boolean = true, on_click: () -> Unit) {
             Box(
                 contentAlignment = Alignment.Center,
                 modifier = Modifier
@@ -486,7 +478,7 @@ private fun Controls(
             ) {
                 val colour = colourProvider?.invoke() ?: getNPOnBackground(playerProvider)
                 Image(
-                    painter, null,
+                    image, null,
                     Modifier
                         .requiredSize(size, 60.dp)
                         .offset(y = if (label != null) (-7).dp else 0.dp),
@@ -499,11 +491,6 @@ private fun Controls(
             }
         }
 
-        @Composable
-        fun PlayerButton(image_id: Int, size: Dp = 60.dp, alpha: Float = 1f, colourProvider: (() -> Color)? = null, label: String? = null, enabled: Boolean = true, on_click: () -> Unit) {
-            PlayerButton(painterResource(image_id), size, alpha, colourProvider, label, enabled, on_click)
-        }
-//
         Column(verticalArrangement = Arrangement.spacedBy(35.dp)) {
             Column(verticalArrangement = Arrangement.spacedBy(5.dp)) {
 
@@ -554,21 +541,21 @@ private fun Controls(
                     .weight(1f),
             ) {
                 // Previous
-                PlayerButton(R.drawable.ic_skip_previous, enabled = PlayerServiceHost.status.m_has_previous) {
-                    PlayerServiceHost.service.seekToPrevious()
+                PlayerButton(Icons.Filled.SkipPrevious, enabled = PlayerServiceHost.status.m_has_previous) {
+                    PlayerServiceHost.player.seekToPrevious()
                 }
 
                 // Play / pause
                 PlayerButton(
-                    if (PlayerServiceHost.status.m_playing) R.drawable.ic_pause else R.drawable.ic_play_arrow,
+                    if (PlayerServiceHost.status.m_playing) Icons.Filled.Pause else Icons.Filled.PlayArrow,
                     enabled = PlayerServiceHost.status.m_song != null
                 ) {
-                    PlayerServiceHost.service.playPause()
+                    PlayerServiceHost.player.playPause()
                 }
 
                 // Next
-                PlayerButton(R.drawable.ic_skip_next, enabled = PlayerServiceHost.status.m_has_next) {
-                    PlayerServiceHost.service.seekToNext()
+                PlayerButton(Icons.Filled.SkipNext, enabled = PlayerServiceHost.status.m_has_next) {
+                    PlayerServiceHost.player.seekToNext()
                 }
             }
 
@@ -614,22 +601,23 @@ private fun Controls(
 
 @Composable
 private fun VolumeSlider(colour: Color, modifier: Modifier = Modifier) {
-    SliderValueHorizontal(
-        value = PlayerServiceHost.status.m_volume,
-        onValueChange = {
-            PlayerServiceHost.status.volume = it
-        },
-        thumbSizeInDp = DpSize(12.dp, 12.dp),
-        track = { a, b, c, d, e -> DefaultTrack(a, b, c, d, e, colour.setAlpha(0.5f), colour) },
-        thumb = { a, b, c, d, e -> DefaultThumb(a, b, c, d, e, colour, 1f) },
-        modifier = modifier
-    )
+    TODO()
+//    SliderValueHorizontal(
+//        value = PlayerServiceHost.status.m_volume,
+//        onValueChange = {
+//            PlayerServiceHost.status.volume = it
+//        },
+//        thumbSizeInDp = DpSize(12.dp, 12.dp),
+//        track = { a, b, c, d, e -> DefaultTrack(a, b, c, d, e, colour.setAlpha(0.5f), colour) },
+//        thumb = { a, b, c, d, e -> DefaultThumb(a, b, c, d, e, colour, 1f) },
+//        modifier = modifier
+//    )
 }
 
 @Composable
 private fun SeekBarTimeText(time: Float, colour: Color) {
     Text(
-        remember(time) { if (time < 0f) "??:??" else DateUtils.formatElapsedTime(time.toLong()) },
+        remember(time) { if (time < 0f) "??:??" else formatElapsedTime(time.toLong()) },
         fontSize = 10.sp,
         fontWeight = FontWeight.Light,
         color = colour
@@ -726,39 +714,41 @@ private fun SeekBar(playerProvider: () -> PlayerViewContext, seek: (Float) -> Un
 
             SeekBarTimeText(PlayerServiceHost.status.position_seconds, getNPOnBackground(playerProvider))
 
-            SliderValueHorizontal(
-                value = getSliderValue(),
-                onValueChange = {
-                    if (grab_start_position == null) {
-                        grab_start_position = PlayerServiceHost.status.position
-                    }
+            TODO()
 
-                    position_override = it
-
-                    val side = if (it <= grab_start_position!! - SEEK_CANCEL_THRESHOLD / 2.0) -1 else if (it >= grab_start_position!! + SEEK_CANCEL_THRESHOLD / 2.0) 1 else 0
-                    if (side != cancel_area_side) {
-                        if (side == 0 || side + (cancel_area_side ?: 0) == 0) {
-                            vibrateShort()
-                        }
-                        cancel_area_side = side
-                    }
-                },
-                onValueChangeFinished = {
-                    if (cancel_area_side == 0 && grab_start_position != null) {
-                        vibrateShort()
-                    }
-                    else {
-                        seek(position_override!!)
-                    }
-                    old_position = PlayerServiceHost.status.position
-                    grab_start_position = null
-                    cancel_area_side = null
-                },
-                thumbSizeInDp = DpSize(12.dp, 12.dp),
-                track = { a, b, _, _, e -> SeekTrack(a, b, e, getNPOnBackground(playerProvider).setAlpha(0.5f), getNPOnBackground(playerProvider)) },
-                thumb = { a, b, c, d, e -> DefaultThumb(a, b, c, d, e, getNPOnBackground(playerProvider), 1f) },
-                modifier = Modifier.weight(1f)
-            )
+//            SliderValueHorizontal(
+//                value = getSliderValue(),
+//                onValueChange = {
+//                    if (grab_start_position == null) {
+//                        grab_start_position = PlayerServiceHost.status.position
+//                    }
+//
+//                    position_override = it
+//
+//                    val side = if (it <= grab_start_position!! - SEEK_CANCEL_THRESHOLD / 2.0) -1 else if (it >= grab_start_position!! + SEEK_CANCEL_THRESHOLD / 2.0) 1 else 0
+//                    if (side != cancel_area_side) {
+//                        if (side == 0 || side + (cancel_area_side ?: 0) == 0) {
+//                            SpMp.context.vibrateShort()
+//                        }
+//                        cancel_area_side = side
+//                    }
+//                },
+//                onValueChangeFinished = {
+//                    if (cancel_area_side == 0 && grab_start_position != null) {
+//                        SpMp.context.vibrateShort()
+//                    }
+//                    else {
+//                        seek(position_override!!)
+//                    }
+//                    old_position = PlayerServiceHost.status.position
+//                    grab_start_position = null
+//                    cancel_area_side = null
+//                },
+//                thumbSizeInDp = DpSize(12.dp, 12.dp),
+//                track = { a, b, _, _, e -> SeekTrack(a, b, e, getNPOnBackground(playerProvider).setAlpha(0.5f), getNPOnBackground(playerProvider)) },
+//                thumb = { a, b, c, d, e -> DefaultThumb(a, b, c, d, e, getNPOnBackground(playerProvider), 1f) },
+//                modifier = Modifier.weight(1f)
+//            )
 
             SeekBarTimeText(PlayerServiceHost.status.m_duration, getNPOnBackground(playerProvider))
         }

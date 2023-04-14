@@ -1,6 +1,5 @@
 package com.spectre7.spmp.ui.layout.nowplaying.overlay.lyrics
 
-import androidx.activity.compose.BackHandler
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
@@ -17,12 +16,12 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
-import com.spectre7.spmp.R
 import com.spectre7.spmp.api.LyricsSearchResult
 import com.spectre7.spmp.model.Song
+import com.spectre7.spmp.platform.BackHandler
 import com.spectre7.spmp.ui.theme.Theme
 import com.spectre7.utils.getContrasted
-import com.spectre7.utils.getStringTemp
+import com.spectre7.utils.getString
 import com.spectre7.utils.setAlpha
 
 @Composable
@@ -105,10 +104,10 @@ internal fun ColumnScope.LyricsSearchResults(results: List<LyricsSearchResult>, 
                                     .fillMaxWidth()
                             ) {
                                 if (result.artist_name != null) {
-                                    Item(getString("artist), result.artist_name!!, Theme.current.on_accent)
+                                    Item(getString("artist"), result.artist_name!!, Theme.current.on_accent)
                                 }
                                 if (result.album_name != null) {
-                                    Item(getString("album), result.album_name!!, Theme.current.on_accent)
+                                    Item(getString("album"), result.album_name!!, Theme.current.on_accent)
                                 }
                             }
                         }

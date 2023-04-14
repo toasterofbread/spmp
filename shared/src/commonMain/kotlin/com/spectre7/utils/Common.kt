@@ -5,20 +5,19 @@ package com.spectre7.utils
 // TODO | Move to separate repository
 // TODO | Should probably split this a little
 
-import com.spectre7.spmp.platform.ProjectContext
+import com.spectre7.spmp.platform.PlatformContext
 import androidx.compose.animation.core.*
 import androidx.compose.foundation.*
 import androidx.compose.foundation.gestures.*
 import androidx.compose.foundation.interaction.MutableInteractionSource
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.shape.CircleShape
-import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.filled.ContentCopy
-import androidx.compose.material.icons.filled.Share
+import androidx.compose.material.ExperimentalMaterialApi
 import androidx.compose.material.ripple.LocalRippleTheme
 import androidx.compose.material.ripple.RippleAlpha
 import androidx.compose.material.ripple.RippleTheme
 import androidx.compose.material.ripple.rememberRipple
+import androidx.compose.material.SwipeableState
 import androidx.compose.material3.*
 import androidx.compose.material3.tokens.IconButtonTokens
 import androidx.compose.runtime.*
@@ -45,30 +44,64 @@ import androidx.compose.ui.text.style.TextDecoration
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.*
 import com.beust.klaxon.Klaxon
+import com.spectre7.spmp.ProjectBuildConfig
+import com.spectre7.spmp.platform.PlatformAlertDialog
 import kotlinx.coroutines.delay
+import kotlinx.coroutines.runBlocking
+import org.apache.commons.text.StringEscapeUtils
+import org.jetbrains.compose.resources.ExperimentalResourceApi
+import org.jetbrains.compose.resources.resource
+import org.xmlpull.v1.XmlPullParser
+import org.xmlpull.v1.XmlPullParserFactory
 import java.util.*
+import java.util.concurrent.TimeUnit
 import java.util.regex.Pattern
-import kotlin.concurrent.thread
 import kotlin.math.min
 import kotlin.math.sqrt
 import kotlin.random.Random
 
-fun Boolean.toInt() = if (this) 1 else 0
-fun Boolean.toFloat() = if (this) 1f else 0f
+private lateinit var strings: Map<String, String>
+@Suppress("BlockingMethodInNonBlockingContext")
+@OptIn(ExperimentalResourceApi::class)
+fun initResources() {
+	runBlocking {
+		val map = mutableMapOf<String, String>()
 
-fun ProjectContext.vibrateShort() {
-	vibrate(0.01)
+		for (file in listOf("values/strings.xml", "values/ytm.xml")) {
+			val stream = resource(file).readBytes().inputStream()
+
+			val parser = XmlPullParserFactory.newInstance().newPullParser()
+			parser.setInput(stream.reader())
+
+			while (parser.eventType != XmlPullParser.END_DOCUMENT) {
+				if (parser.eventType == XmlPullParser.START_TAG && parser.name == "string") {
+					val key = parser.getAttributeValue(null, "name")
+					val value = parser.nextText()
+					map[key] = value.replace("\\\"", "\"")
+				}
+				parser.next()
+			}
+
+			stream.close()
+		}
+
+		strings = map
+	}
 }
 
 fun getString(key: String): String {
-	val bundle = ResourceBundle.getBundle("Strings")
-	return bundle.getString(key)
+	return strings[key] ?: throw NotImplementedError(key)
 }
 
 fun getStringTemp(temp_string: String): String {
 //	println("Unlocalised string used: '$temp_string'")
 	return temp_string
 }
+
+fun Boolean.toInt() = if (this) 1 else 0
+fun Boolean.toFloat() = if (this) 1f else 0f
+
+fun isDebugBuild(): Boolean = ProjectBuildConfig.IS_DEBUG
 
 @Composable
 fun NoRipple(content: @Composable () -> Unit) {
@@ -404,32 +437,6 @@ fun getInnerSquareSizeOfCircle(radius: Float, corner_percent: Int): Float {
 	return sqrt(I * I * 0.5).toFloat()
 }
 
-@Suppress("UsePropertyAccessSyntax")
-fun Throwable.createNotification(context: ProjectContext, notification_channel: String): Notification {
-	return Notification.Builder(context, notification_channel)
-		.setSmallIcon(android.R.drawable.stat_notify_error)
-		.setContentTitle(this::class.simpleName)
-		.setContentText(message)
-		.setStyle(Notification.BigTextStyle().bigText("$message\nStack trace:\n${stackTraceToString()}"))
-		.addAction(Notification.Action.Builder(
-			Icon.createWithResource(context, android.R.drawable.ic_menu_share),
-			"Share",
-			PendingIntent.getActivity(
-				context,
-				0,
-				Intent.createChooser(Intent().also { share ->
-					share.action = Intent.ACTION_SEND
-					share.putExtra(Intent.EXTRA_TITLE, this::class.simpleName)
-					share.putExtra(Intent.EXTRA_TITLE, this::class.simpleName)
-					share.putExtra(Intent.EXTRA_TEXT, stackTraceToString())
-					share.type = "text/plain"
-				}, null),
-				PendingIntent.FLAG_IMMUTABLE or PendingIntent.FLAG_CANCEL_CURRENT
-			)
-		).build())
-		.build()
-}
-
 val assertions_enabled = try {
 	assert(false)
 	false
@@ -443,22 +450,7 @@ fun lazyAssert(message: String? = "Assertion failed", condition: () -> Boolean) 
 	}
 }
 
-fun mainThread(block: () -> Unit) {
-	val main_looper = Looper.getMainLooper()
-	if (main_looper.thread == Thread.currentThread()) {
-		block()
-		return
-	}
-	Handler(main_looper).post(block)
-}
-
-fun networkThread(block: () -> Unit) {
-	if (Looper.getMainLooper().thread != Thread.currentThread()) {
-		block()
-		return
-	}
-	thread(block = block)
-}
+expect fun log(message: Any?)
 
 fun printJson(data: String, klaxon: Klaxon? = null) {
 	try {
@@ -633,56 +625,28 @@ fun ShapedIconButton(
 }
 
 @Composable
-fun <T> Result<T>.AlertDialog(message: String, close: () -> Unit) {
+fun <T> Result<T>.AlertDialog(context: PlatformContext, message: String, close: () -> Unit) {
 	val error = exceptionOrNull()!!
-	
-	AlertDialog(
-		close,
-		confirmButton = {
-			FilledTonalButton(close) {
-				Text(getStringTemp("Close"))
-			}
-		},
-		title = { getString("generic_error) },
-		text = {
-			Column {
-				Text(message)
-				error.message?.also { Text(it) }
-				Row {
-					CopyShareButtons("error") { error.stackTraceToString() }
-				}
-				Text(error.stackTraceToString())
-			}
-		}
+
+	PlatformAlertDialog(
+//		close,
+//		confirmButton = {
+//			FilledTonalButton(close) {
+//				Text(getStringTemp("Close"))
+//			}
+//		},
+//		title = { getString("generic_error") },
+//		text = {
+//			Column {
+//				Text(message)
+//				error.message?.also { Text(it) }
+//				Row {
+//					context.CopyShareButtons("error") { error.stackTraceToString() }
+//				}
+//				Text(error.stackTraceToString())
+//			}
+//		}
 	)
-}
-
-@Composable
-fun CopyShareButtons(name: String? = null, getText: () -> String) {
-	val clipboard = LocalClipboardManager.current
-	IconButton({
-		clipboard.setText(AnnotatedString(getText()))
-
-		if (name != null) {
-			sendToast(getStringTemp("Copied {name} to clipboard").replace("{name}", name))
-		}
-		else {
-			sendToast(getStringTemp("Copied to clipboard"))
-		}
-	}) {
-		Icon(Icons.Filled.ContentCopy, null, Modifier.size(20.dp))
-	}
-
-	IconButton({
-		val share_intent = Intent.createChooser(Intent().apply {
-			action = Intent.ACTION_SEND
-			putExtra(Intent.EXTRA_TEXT, getText())
-			type = "text/plain"
-		}, null)
-		MainActivity.context.startActivity(share_intent)
-	}) {
-		Icon(Icons.Filled.Share, null, Modifier.size(20.dp))
-	}
 }
 
 fun spacedByEnd(space: Dp): Arrangement.HorizontalOrVertical =
@@ -692,22 +656,11 @@ fun spacedByEnd(space: Dp): Arrangement.HorizontalOrVertical =
 
 @OptIn(ExperimentalMaterialApi::class)
 fun <T> SwipeableState<T>.init(anchors: Map<Float, T>) {
-	@Suppress("INVISIBLE_MEMBER")
 	ensureInit(anchors)
 }
 
 operator fun IntSize.times(other: Float): IntSize =
 	IntSize(width = (width * other).toInt(), height = (height * other).toInt())
-
-@Composable
-fun getScreenHeight(): Dp {
-	return LocalConfiguration.current.screenHeightDp.dp + getStatusBarHeight(MainActivity.context)
-}
-
-@Composable
-fun getScreenWidth(): Dp {
-	return LocalConfiguration.current.screenWidthDp.dp
-}
 
 class Listeners<T>(private val list: MutableList<T>) {
 	fun add(value: T) {
@@ -723,13 +676,13 @@ class Listeners<T>(private val list: MutableList<T>) {
 	}
 }
 
-fun isConnectionMetered(context: ProjectContext): Boolean {
-	val manager = context.getSystemService(ProjectContext.CONNECTIVITY_SERVICE) as ConnectivityManager
-	val capabilities = manager.getNetworkCapabilities(manager.activeNetwork)
-
-	if (capabilities != null) {
-		return !capabilities.hasCapability(NetworkCapabilities.NET_CAPABILITY_NOT_METERED)
+fun formatElapsedTime(seconds: Long): String {
+	val hours = TimeUnit.SECONDS.toHours(seconds)
+	val minutes = TimeUnit.SECONDS.toMinutes(seconds) % 60
+	val remaining_seconds = seconds % 60
+	return if (hours > 0) {
+		String.format("%d:%02d:%02d", hours, minutes, remaining_seconds)
+	} else {
+		String.format("%02d:%02d", minutes, remaining_seconds)
 	}
-
-	return false
 }

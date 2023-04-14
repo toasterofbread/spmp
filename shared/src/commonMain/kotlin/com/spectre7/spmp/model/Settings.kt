@@ -1,11 +1,10 @@
 package com.spectre7.spmp.model
 
-import com.spectre7.spmp.platform.ProjectPreferences
 import com.beust.klaxon.Klaxon
 import com.spectre7.spmp.ProjectBuildConfig
-import com.spectre7.spmp.MainActivity
-import com.spectre7.spmp.PlayerAccessibilityService
 import com.spectre7.spmp.api.YoutubeMusicAuthInfo
+import com.spectre7.spmp.platform.ProjectPreferences
+import com.spectre7.spmp.platform.PlatformContext
 import java.util.*
 
 enum class AccentColourSource {
@@ -49,7 +48,7 @@ enum class Settings {
     // KEY_STATS_LISTEN_THRESHOLD_TYPE,
 
     // Accessibility Service
-    KEY_ACC_VOL_INTERCEPT_MODE,
+//    KEY_ACC_VOL_INTERCEPT_MODE,
     KEY_ACC_VOL_INTERCEPT_NOTIFICATION,
     KEY_ACC_SCREEN_OFF,
 
@@ -79,8 +78,12 @@ enum class Settings {
         return Settings.get(this, preferences)
     }
 
+    fun <T> get(context: PlatformContext): T {
+        return Settings.get(this, context.getPrefs())
+    }
+
     companion object {
-        lateinit var prefs: ProjectPreferences
+        val prefs: ProjectPreferences get() = SpMp.context.getPrefs()
         private var local_auth_keys_used = false
 
         fun <T> set(enum_key: Settings, value: T?, preferences: ProjectPreferences = prefs) {
@@ -125,7 +128,7 @@ enum class Settings {
         @Suppress("IMPLICIT_CAST_TO_ANY", "UNCHECKED_CAST")
         fun <T> getDefault(enum_key: Settings): T {
             return when (enum_key) {
-                KEY_LANG_UI, KEY_LANG_DATA -> MainActivity.languages.keys.indexOf(Locale.getDefault().language)
+                KEY_LANG_UI, KEY_LANG_DATA -> SpMp.languages.keys.indexOf(Locale.getDefault().language)
 
                 KEY_ACCENT_COLOUR_SOURCE -> AccentColourSource.THUMBNAIL.ordinal
                 KEY_CURRENT_THEME -> 0
@@ -142,15 +145,11 @@ enum class Settings {
                 KEY_STREAM_AUDIO_QUALITY -> Song.AudioQuality.MEDIUM.ordinal
                 KEY_DOWNLOAD_AUDIO_QUALITY -> Song.AudioQuality.MEDIUM.ordinal
 
-                // KEY_STATS_ENABLED -> true
-                // KEY_STATS_LISTEN_THRESHOLD -> 1f // Minutes or percentage
-                // KEY_STATS_LISTEN_THRESHOLD_TYPE -> 0 // Absolute, percentage
-
                 KEY_AUTO_DOWNLOAD_ENABLED -> true
                 KEY_AUTO_DOWNLOAD_THRESHOLD -> 1 // Listens
                 KEY_AUTO_DOWNLOAD_ON_METERED -> false
 
-                KEY_ACC_VOL_INTERCEPT_MODE -> PlayerAccessibilityService.VOLUME_INTERCEPT_MODE.NEVER.ordinal
+//                KEY_ACC_VOL_INTERCEPT_MODE -> PlayerAccessibilityService.PlayerAccessibilityServiceVolumeInterceptMode.NEVER.ordinal
                 KEY_ACC_VOL_INTERCEPT_NOTIFICATION -> false
                 KEY_ACC_SCREEN_OFF -> false
 

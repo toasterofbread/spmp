@@ -18,7 +18,7 @@ import androidx.lifecycle.LifecycleRegistry
 import androidx.lifecycle.lifecycleScope
 import androidx.localbroadcastmanager.content.LocalBroadcastManager
 import com.spectre7.spmp.model.Settings
-import com.spectre7.spmp.platform.ProjectContext
+import com.spectre7.spmp.platform.PlatformContext
 import com.spectre7.utils.Permissions
 import com.spectre7.utils.getString
 import kotlinx.coroutines.*
@@ -27,22 +27,19 @@ import java.util.*
 import kotlin.collections.set
 import android.provider.Settings as AndroidSettings
 
-class PlayerAccessibilityService : AccessibilityService(), LifecycleOwner {
+actual class PlayerAccessibilityService : AccessibilityService(), LifecycleOwner {
 
-    enum class VOLUME_INTERCEPT_MODE {
-        ALWAYS,
-        APP_OPEN,
-        NEVER
-    }
-    private lateinit var volume_intercept_mode: VOLUME_INTERCEPT_MODE
+    private lateinit var context: PlatformContext
+
+    private lateinit var volume_intercept_mode: PlayerAccessibilityServiceVolumeInterceptMode
     private var listen_while_screen_off: Boolean = false
 
     private val prefs_change_listener = object : ProjectPreferences.Listener {
         override fun onChanged(prefs: ProjectPreferences, key: String) {
             when (key) {
-                Settings.KEY_ACC_VOL_INTERCEPT_MODE.name -> {
-                    volume_intercept_mode = VOLUME_INTERCEPT_MODE.values()[Settings.get(Settings.KEY_ACC_VOL_INTERCEPT_MODE, prefs)]
-                }
+//                Settings.KEY_ACC_VOL_INTERCEPT_MODE.name -> {
+//                    volume_intercept_mode = VOLUME_INTERCEPT_MODE.values()[Settings.get(Settings.KEY_ACC_VOL_INTERCEPT_MODE, prefs)]
+//                }
                 Settings.KEY_ACC_SCREEN_OFF.name -> {
                     listen_while_screen_off = Settings.get(Settings.KEY_ACC_SCREEN_OFF, prefs)
                     if (!listen_while_screen_off) {
@@ -73,13 +70,14 @@ class PlayerAccessibilityService : AccessibilityService(), LifecycleOwner {
     override fun onCreate() {
         super.onCreate()
         instance = WeakReference(this)
+        context = PlatformContext(this)
 
         lifecycle_registry = LifecycleRegistry(this)
         lifecycle_registry.currentState = Lifecycle.State.CREATED
 
-        val prefs = ProjectContext(this).getPrefs()
+        val prefs = context.getPrefs()
         prefs.addListener(prefs_change_listener)
-        volume_intercept_mode = VOLUME_INTERCEPT_MODE.values()[Settings.get(Settings.KEY_ACC_VOL_INTERCEPT_MODE, prefs)]
+//        volume_intercept_mode = VOLUME_INTERCEPT_MODE.values()[Settings.get(Settings.KEY_ACC_VOL_INTERCEPT_MODE, prefs)]
         listen_while_screen_off = Settings.get(Settings.KEY_ACC_SCREEN_OFF, prefs)
 
         val filter = IntentFilter()
@@ -92,27 +90,27 @@ class PlayerAccessibilityService : AccessibilityService(), LifecycleOwner {
         super.onDestroy()
         instance = null
 
-        ProjectContext(this).getPrefs().removeListener(prefs_change_listener)
+        PlatformContext(this).getPrefs().removeListener(prefs_change_listener)
         unregisterReceiver(broadcast_receiver)
         long_press_timer.cancel()
     }
 
     override fun onKeyEvent(event: KeyEvent?): Boolean {
-        if (event == null || volume_intercept_mode == VOLUME_INTERCEPT_MODE.NEVER) {
+        if (event == null || volume_intercept_mode == PlayerAccessibilityServiceVolumeInterceptMode.NEVER) {
             return false
         }
 
         if (event.keyCode == KEYCODE_VOLUME_UP || event.keyCode == KEYCODE_VOLUME_DOWN) {
             when (volume_intercept_mode) {
-                VOLUME_INTERCEPT_MODE.ALWAYS -> {
+                PlayerAccessibilityServiceVolumeInterceptMode.ALWAYS -> {
                     !PlayerServiceHost.isRunningAndFocused()
                 }
-                VOLUME_INTERCEPT_MODE.APP_OPEN -> {
-                    if (!MainActivity.isInForeground()) {
+                PlayerAccessibilityServiceVolumeInterceptMode.APP_OPEN -> {
+                    if (!context.isAppInForeground()) {
                         return false
                     }
                 }
-                VOLUME_INTERCEPT_MODE.NEVER -> return false
+                PlayerAccessibilityServiceVolumeInterceptMode.NEVER -> return false
             }
 
             onVolumeKeyPressed(event.keyCode == KEYCODE_VOLUME_UP, event.action == ACTION_DOWN)
@@ -163,11 +161,14 @@ class PlayerAccessibilityService : AccessibilityService(), LifecycleOwner {
         serviceInfo = info
     }
 
-    companion object {
+    actual companion object {
         private var enabled_listeners: MutableMap<(Boolean) -> Unit, ContentObserver> = mutableMapOf()
+        private var instance: WeakReference<PlayerAccessibilityService>? = null
 
-        fun addEnabledListener(listener: (Boolean) -> Unit, context: ProjectContext) {
-            val observer: ContentObserver = object : ContentObserver(Handler(context.mainLooper)) {
+        actual fun isSupported(): Boolean = true
+
+        actual fun addEnabledListener(listener: (Boolean) -> Unit, context: PlatformContext) {
+            val observer: ContentObserver = object : ContentObserver(Handler(context.ctx.mainLooper)) {
                 override fun onChange(selfChange: Boolean) {
                     super.onChange(selfChange)
                     listener(isEnabled(context))
@@ -175,29 +176,22 @@ class PlayerAccessibilityService : AccessibilityService(), LifecycleOwner {
             }
 
             val uri = AndroidSettings.Secure.getUriFor(AndroidSettings.Secure.ENABLED_ACCESSIBILITY_SERVICES)
-            context.contentResolver.registerContentObserver(uri, false, observer)
+            context.ctx.contentResolver.registerContentObserver(uri, false, observer)
 
             enabled_listeners[listener] = observer
         }
 
-        fun removeEnabledListener(listener: (Boolean) -> Unit, context: ProjectContext) {
+        actual fun removeEnabledListener(listener: (Boolean) -> Unit, context: PlatformContext) {
             val observer = enabled_listeners.remove(listener) ?: return
-            context.contentResolver.unregisterContentObserver(observer)
+            context.ctx.contentResolver.unregisterContentObserver(observer)
         }
 
-        fun isEnabled(context: ProjectContext): Boolean {
-            val enabled_services = AndroidSettings.Secure.getString(context.contentResolver, AndroidSettings.Secure.ENABLED_ACCESSIBILITY_SERVICES)
-            return enabled_services.contains("${context.packageName}/${PlayerAccessibilityService::class.java.canonicalName}")
+        actual fun isEnabled(context: PlatformContext): Boolean {
+            val enabled_services = AndroidSettings.Secure.getString(context.ctx.contentResolver, AndroidSettings.Secure.ENABLED_ACCESSIBILITY_SERVICES)
+            return enabled_services.contains("${context.ctx.packageName}/${PlayerAccessibilityService::class.java.canonicalName}")
         }
 
-        private var instance: WeakReference<PlayerAccessibilityService>? = null
-        fun disable() {
-            if (instance != null && instance!!.get() != null) {
-                instance!!.get()!!.disableSelf()
-            }
-        }
-
-        fun enable(context: ProjectContext, root: Boolean) {
+        actual fun enable(context: PlatformContext, root: Boolean) {
             if (!root) {
                 val intent = Intent(AndroidSettings.ACTION_ACCESSIBILITY_SETTINGS)
                 intent.addFlags(
@@ -205,14 +199,14 @@ class PlayerAccessibilityService : AccessibilityService(), LifecycleOwner {
                             or Intent.FLAG_ACTIVITY_CLEAR_TASK
                             or Intent.FLAG_ACTIVITY_EXCLUDE_FROM_RECENTS
                 )
-                context.startActivity(intent)
+                context.ctx.startActivity(intent)
                 return
             }
 
             fun enableSecurely() {
-                val resolver = MainActivity.context.contentResolver
+                val resolver = context.ctx.contentResolver
                 val enabled_services = AndroidSettings.Secure.getString(resolver, AndroidSettings.Secure.ENABLED_ACCESSIBILITY_SERVICES)
-                val service_entry = "${context.packageName}/${PlayerAccessibilityService::class.java.canonicalName}"
+                val service_entry = "${context.ctx.packageName}/${PlayerAccessibilityService::class.java.canonicalName}"
 
                 AndroidSettings.Secure.putString(resolver, AndroidSettings.Secure.ENABLED_ACCESSIBILITY_SERVICES, when {
                     enabled_services.isNullOrBlank() -> service_entry
@@ -222,19 +216,19 @@ class PlayerAccessibilityService : AccessibilityService(), LifecycleOwner {
                 AndroidSettings.Secure.putInt(resolver, AndroidSettings.Secure.ACCESSIBILITY_ENABLED, 1)
             }
 
-            if (Permissions.hasPermission(Manifest.permission.WRITE_SECURE_SETTINGS, context)) {
+            if (Permissions.hasPermission(Manifest.permission.WRITE_SECURE_SETTINGS, context.ctx)) {
                 enableSecurely()
                 return
             }
 
-            Permissions.requestPermission(Manifest.permission.WRITE_SECURE_SETTINGS, context) { result, error ->
+            Permissions.requestPermission(Manifest.permission.WRITE_SECURE_SETTINGS, context.ctx) { result, error ->
                 when (result) {
                     Permissions.GrantError.OK -> enableSecurely()
-                    Permissions.GrantError.ROOT_NOT_GRANTED -> sendToast(getString("err_root_not_granted))
+                    Permissions.GrantError.ROOT_NOT_GRANTED -> context.sendToast(getString("err_root_not_granted"))
                     else -> {
-                        val dialog = AlertDialog.Builder(context)
+                        val dialog = AlertDialog.Builder(context.ctx)
                         dialog.setCancelable(false)
-                        dialog.setTitle(getString("err_secure_settings_grant_failed))
+                        dialog.setTitle(getString("err_secure_settings_grant_failed"))
                         dialog.setMessage(error)
                         dialog.setPositiveButton("Ok") { _, _ -> }
                         dialog.create().show()
@@ -242,11 +236,29 @@ class PlayerAccessibilityService : AccessibilityService(), LifecycleOwner {
                 }
             }
         }
+
+        actual fun disable() {
+            if (instance != null && instance!!.get() != null) {
+                instance!!.get()!!.disableSelf()
+            }
+        }
+
+        actual fun isSettingsPermissionGranted(context: PlatformContext): Boolean =
+            Permissions.hasPermission(Manifest.permission.WRITE_SECURE_SETTINGS, context.ctx)
+
+        actual fun requestRootPermission(callback: (granted: Boolean) -> Unit) =
+            Permissions.requestRootPermission(callback)
+
+        actual fun isOverlayPermissionGranted(context: PlatformContext): Boolean = android.provider.Settings.canDrawOverlays(context.ctx)
+        actual fun requestOverlayPermission(context: PlatformContext, callback: (success: Boolean) -> Unit) {
+            Permissions.requestPermission(Manifest.permission.SYSTEM_ALERT_WINDOW, context.ctx) { result, error ->
+                callback(result == Permissions.GrantError.OK)
+            }
+        }
     }
 
-    override fun getLifecycle(): Lifecycle {
-        return lifecycle_registry
-    }
+    override val lifecycle: Lifecycle
+        get() = lifecycle_registry
 }
 
 class ScreenOffListener(private val onVolumeKeyPressed: (volume_up: Boolean, key_down: Boolean) -> Unit) {

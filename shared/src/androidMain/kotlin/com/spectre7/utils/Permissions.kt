@@ -2,14 +2,15 @@ package com.spectre7.utils
 
 import android.Manifest
 import android.app.AlertDialog
-import com.spectre7.spmp.platform.ProjectContext
+import android.content.Context
+import com.spectre7.spmp.platform.PlatformContext
 import android.content.Intent
 import android.content.pm.PackageManager
 import android.provider.Settings
 import androidx.activity.ComponentActivity
 import androidx.activity.result.ActivityResultLauncher
 import androidx.activity.result.contract.ActivityResultContracts
-import com.spectre7.spmp.MainActivity
+import com.spectre7.spmp.platform.getAppName
 import kotlin.concurrent.thread
 
 class Permissions {
@@ -34,11 +35,11 @@ class Permissions {
             }
         }
 
-        fun hasPermission(permission: String, context: ProjectContext): Boolean {
+        fun hasPermission(permission: String, context: Context): Boolean {
             return context.checkSelfPermission(permission) == PackageManager.PERMISSION_GRANTED
         }
 
-        fun requestPermission(permission: String, context: ProjectContext, callback: (result: GrantError, error: String?) -> Unit) {
+        fun requestPermission(permission: String, context: Context, callback: (result: GrantError, error: String?) -> Unit) {
 
             when (permission) {
                 Manifest.permission.SYSTEM_ALERT_WINDOW -> {
@@ -53,7 +54,7 @@ class Permissions {
                                     or Intent.FLAG_ACTIVITY_CLEAR_TASK
                                     or Intent.FLAG_ACTIVITY_EXCLUDE_FROM_RECENTS
                         )
-                        MainActivity.context.startActivity(intent)
+                        context.startActivity(intent)
                     }
                     dialog.setNegativeButton("Cancel") { _, _ -> }
                     dialog.create().show()

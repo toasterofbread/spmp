@@ -1,6 +1,5 @@
 package com.spectre7.spmp.ui.layout
 
-import androidx.activity.compose.BackHandler
 import androidx.compose.animation.*
 import androidx.compose.foundation.background
 import androidx.compose.foundation.horizontalScroll
@@ -25,12 +24,11 @@ import androidx.compose.ui.platform.LocalFocusManager
 import androidx.compose.ui.platform.LocalSoftwareKeyboardController
 import androidx.compose.ui.text.input.ImeAction
 import androidx.compose.ui.unit.*
-import com.spectre7.spmp.MainActivity
-import com.spectre7.spmp.R
 import com.spectre7.spmp.api.*
 import com.spectre7.spmp.model.MediaItem
 import com.spectre7.spmp.model.Playlist
 import com.spectre7.spmp.model.getReadable
+import com.spectre7.spmp.platform.BackHandler
 import com.spectre7.spmp.ui.component.MediaItemLayout
 import com.spectre7.spmp.ui.component.PillMenu
 import com.spectre7.spmp.ui.theme.Theme
@@ -94,7 +92,7 @@ fun SearchPage(
                     }
                 },
                 {
-                    MainActivity.error_manager.onError("SearchPage", it)
+                    SpMp.error_manager.onError("SearchPage", it)
                     synchronized(search_lock) {
                         search_in_progress = false
                     }
@@ -135,7 +133,7 @@ fun SearchPage(
             }
         }
 
-        val screen_height = getScreenHeight()
+        val screen_height = SpMp.context.getScreenHeight()
         SearchBar(
             search_in_progress,
             focus_state,
@@ -164,7 +162,7 @@ private fun Results(layouts: List<MediaItemLayout>, playerProvider: () -> Player
     LazyColumn(
         Modifier.fillMaxSize(),
         contentPadding = PaddingValues(
-            top = getStatusBarHeight() + 20.dp,
+            top = SpMp.context.getStatusBarHeight() + 20.dp,
             bottom = bottom_padding,
             start = horizontal_padding,
             end = horizontal_padding
@@ -216,8 +214,8 @@ private fun SearchBar(
                     },
                     label = {
                         Text(when (type) {
-                            null -> getString("search_filter_all)
-                            SearchType.VIDEO -> getString("search_filter_videos)
+                            null -> getString("search_filter_all")
+                            SearchType.VIDEO -> getString("search_filter_videos")
                             SearchType.SONG -> MediaItem.Type.SONG.getReadable(true)
                             SearchType.ARTIST -> MediaItem.Type.ARTIST.getReadable(true)
                             SearchType.PLAYLIST -> Playlist.PlaylistType.PLAYLIST.getReadable(true)

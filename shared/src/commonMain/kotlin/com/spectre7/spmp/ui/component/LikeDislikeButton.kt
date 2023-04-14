@@ -17,13 +17,12 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.rotate
 import androidx.compose.ui.graphics.Color
-import androidx.compose.ui.unit.dp
 import com.spectre7.spmp.api.getOrThrowHere
 import com.spectre7.spmp.api.getSongLiked
 import com.spectre7.spmp.api.setSongLiked
 import com.spectre7.spmp.model.Song
+import com.spectre7.spmp.platform.vibrateShort
 import com.spectre7.utils.OnChangedEffect
-import com.spectre7.utils.vibrateShort
 import kotlin.concurrent.thread
 
 @OptIn(ExperimentalFoundationApi::class)
@@ -85,7 +84,7 @@ fun LikeDislikeButton(
                                 false -> setLiked(true)
                                 null -> setLiked(false)
                             }
-                            vibrateShort()
+                            SpMp.context.vibrateShort()
                         }
                     ),
                 tint = colour

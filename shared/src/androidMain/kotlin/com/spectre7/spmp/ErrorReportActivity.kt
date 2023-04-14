@@ -23,7 +23,7 @@ import androidx.compose.ui.platform.LocalClipboardManager
 import androidx.compose.ui.text.AnnotatedString
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
-import com.spectre7.spmp.platform.ProjectContext
+import com.spectre7.spmp.platform.PlatformContext
 import com.spectre7.spmp.ui.theme.ApplicationTheme
 
 class ErrorReportActivity : ComponentActivity() {
@@ -40,7 +40,7 @@ class ErrorReportActivity : ComponentActivity() {
             type = "text/plain"
         }, null)
 
-        val context = ProjectContext(this)
+        val context = PlatformContext(this)
 
         setContent {
             ApplicationTheme(context) {

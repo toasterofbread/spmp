@@ -17,7 +17,7 @@ fun GenerateBuildConfig.buildConfig(debug: Boolean) {
     val keys_type = "Map<String, String>?"
     val keys_file = rootProject.file("keys.properties")
 
-    if (!debug && keys_file.exists()) {
+    if (debug && keys_file.exists()) {
         val keys = Properties()
         keys.load(FileInputStream(keys_file))
 
@@ -68,11 +68,13 @@ kotlin {
     sourceSets {
         val compose_version = extra["compose.version"] as String
 
-        val commonMain by getting {
+        commonMain {
             dependencies {
                 implementation(compose.runtime)
                 implementation(compose.foundation)
                 implementation(compose.materialIconsExtended)
+                implementation(compose.ui)
+                implementation(compose.material)
 
                 @OptIn(org.jetbrains.compose.ExperimentalComposeLibrary::class)
                 implementation(compose.material3)
@@ -82,21 +84,37 @@ kotlin {
                 implementation("com.squareup.okhttp3:okhttp:4.10.0")
 
                 implementation("com.beust:klaxon:5.5")
-                implementation("com.github.krottv:compose-sliders:0.1.4")
                 implementation("com.godaddy.android.colorpicker:compose-color-picker:0.7.0")
                 implementation("com.github.TeamNewPipe:NewPipeExtractor:v0.22.1")
                 implementation("org.apache.commons:commons-text:1.10.0")
-                implementation("androidx.palette:palette:1.0.0")
+                implementation("com.atilika.kuromoji:kuromoji-ipadic:0.9.0")
+                implementation("xmlpull:xmlpull:1.1.3.4a")
+                implementation("org.jsoup:jsoup:1.15.3")
+                implementation("org.burnoutcrew.composereorderable:reorderable:0.9.2")
+                implementation("com.github.ltttttttttttt:load-the-image:1.0.5")
             }
             kotlin.srcDir(buildConfigDir)
         }
+
         val androidMain by getting {
             dependencies {
                 api("androidx.activity:activity-compose:1.6.1")
-                api("androidx.appcompat:appcompat:1.6.1")
                 api("androidx.core:core-ktx:1.9.0")
+                api("androidx.appcompat:appcompat:1.6.1")
+
+                // Exoplayer
+                implementation(project(":library-core"))
+                implementation(project(":library-ui"))
+                implementation(project(":extension-mediasession"))
+
+                implementation("com.google.accompanist:accompanist-pager:0.21.2-beta")
+                implementation("com.google.accompanist:accompanist-pager-indicators:0.21.2-beta")
+                implementation("com.google.accompanist:accompanist-systemuicontroller:0.21.2-beta")
+                implementation("com.google.accompanist:accompanist-swiperefresh:0.21.2-beta")
+                implementation("androidx.localbroadcastmanager:localbroadcastmanager:1.1.0")
             }
         }
+
         val desktopMain by getting {
             dependencies {
                 implementation(compose.desktop.common)
@@ -124,10 +142,11 @@ android {
     }
     kotlin {
         jvmToolchain {
-            // Specify the JDK version to use
             version = "11"
         }
-//        jvmToolchain(11) // ERROR ON LINE: The integer literal does not conform to the expected type Action<JavaToolchainSpec>
+    }
+    buildFeatures {
+        compose = true
     }
 }
 

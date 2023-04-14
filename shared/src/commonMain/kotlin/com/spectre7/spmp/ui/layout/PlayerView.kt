@@ -2,9 +2,7 @@
 
 package com.spectre7.spmp.ui.layout
 
-import com.spectre7.spmp.platform.ProjectPreferences.OnSharedPreferenceChangeListener
-import androidx.activity.compose.BackHandler
-import androidx.compose.animation.*
+import androidx.compose.animation.Crossfade
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyListState
@@ -14,6 +12,7 @@ import androidx.compose.material.ExperimentalMaterialApi
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.*
 import androidx.compose.material3.*
+import androidx.compose.material.SwipeableState
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
@@ -21,15 +20,14 @@ import androidx.compose.ui.draw.alpha
 import androidx.compose.ui.layout.onSizeChanged
 import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.unit.*
-import com.google.accompanist.swiperefresh.SwipeRefresh
-import com.google.accompanist.swiperefresh.rememberSwipeRefreshState
-import com.spectre7.spmp.MainActivity
 import com.spectre7.spmp.PlayerServiceHost
-import com.spectre7.spmp.R
+import com.spectre7.spmp.platform.ProjectPreferences
 import com.spectre7.spmp.api.cast
 import com.spectre7.spmp.api.getHomeFeed
 import com.spectre7.spmp.api.getOrThrowHere
 import com.spectre7.spmp.model.*
+import com.spectre7.spmp.platform.BackHandler
+import com.spectre7.spmp.platform.SwipeRefresh
 import com.spectre7.spmp.ui.component.*
 import com.spectre7.spmp.ui.layout.nowplaying.NOW_PLAYING_VERTICAL_PAGE_COUNT
 import com.spectre7.spmp.ui.layout.nowplaying.NowPlaying
@@ -46,7 +44,6 @@ enum class OverlayPage { SEARCH, SETTINGS, MEDIAITEM, LIBRARY, RADIO_BUILDER }
 
 private enum class FeedLoadState { NONE, LOADING, CONTINUING }
 
-@OptIn(ExperimentalMaterialApi::class)
 data class PlayerViewContext(
     private val onClickedOverride: ((item: MediaItem) -> Unit)? = null,
     private val onLongClickedOverride: ((item: MediaItem) -> Unit)? = null,
@@ -102,24 +99,26 @@ data class PlayerViewContext(
     private val bottom_padding_anim = androidx.compose.animation.core.Animatable(PlayerServiceHost.session_started.toFloat() * MINIMISED_NOW_PLAYING_HEIGHT)
     val bottom_padding: Dp get() = bottom_padding_anim.value.dp
 
-    private lateinit var prefs_listener: OnSharedPreferenceChangeListener
+    private lateinit var prefs_listener: ProjectPreferences.Listener
 
     init {
         if (is_base) {
-            prefs_listener = OnSharedPreferenceChangeListener { prefs, key ->
-                when (key) {
-                    Settings.KEY_NOWPLAYING_THEME_MODE.name -> {
-                        np_theme_mode = Settings.getEnum(Settings.KEY_NOWPLAYING_THEME_MODE, prefs)
+            prefs_listener = object : ProjectPreferences.Listener {
+                override fun onChanged(prefs: ProjectPreferences, key: String) {
+                    when (key) {
+                        Settings.KEY_NOWPLAYING_THEME_MODE.name -> {
+                            np_theme_mode = Settings.getEnum(Settings.KEY_NOWPLAYING_THEME_MODE, prefs)
+                        }
                     }
                 }
             }
-            Settings.prefs.registerOnSharedPreferenceChangeListener(prefs_listener)
+            Settings.prefs.addListener(prefs_listener)
         }
     }
 
     fun release() {
         if (is_base) {
-            Settings.prefs.unregisterOnSharedPreferenceChangeListener(prefs_listener)
+            Settings.prefs.removeListener(prefs_listener)
         }
     }
 
@@ -183,11 +182,11 @@ data class PlayerViewContext(
         }
 
         if (item is Song) {
-            PlayerServiceHost.service.playSong(item)
+            PlayerServiceHost.player.playSong(item)
         }
         else {
-            PlayerServiceHost.service.clearQueue()
-            PlayerServiceHost.service.startRadioAtIndex(0, item)
+            PlayerServiceHost.player.clearQueue()
+            PlayerServiceHost.player.startRadioAtIndex(0, item)
 
             item.editRegistry {
                 it.play_count++
@@ -239,7 +238,7 @@ data class PlayerViewContext(
         }
 
         if (now_playing_swipe_anchors == null) {
-            val screen_height = getScreenHeight()
+            val screen_height = SpMp.context.getScreenHeight()
             val half_screen_height = screen_height.value * 0.5f
             now_playing_swipe_anchors = (0..NOW_PLAYING_VERTICAL_PAGE_COUNT).associateBy { if (it == 0) MINIMISED_NOW_PLAYING_HEIGHT.toFloat() - half_screen_height else (screen_height.value * it) - half_screen_height }
 
@@ -302,7 +301,7 @@ fun PlayerView() {
     var feed_continuation: String? by remember { mutableStateOf(null) }
 
     val main_page_layouts = remember { mutableStateListOf<MediaItemLayout>() }
-    val screen_height = getScreenHeight()
+    val screen_height = SpMp.context.getScreenHeight()
 
     fun loadFeed(min_rows: Int, allow_cached: Boolean, continue_feed: Boolean, onFinished: ((success: Boolean) -> Unit)? = null) {
         thread {
@@ -315,7 +314,7 @@ fun PlayerView() {
 
             val result = loadFeedLayouts(min_rows, allow_cached, if (continue_feed) feed_continuation else null)
             if (result.isFailure) {
-                MainActivity.error_manager.onError("loadFeed", result.exceptionOrNull()!!)
+                SpMp.error_manager.onError("loadFeed", result.exceptionOrNull()!!)
             }
             else {
                 if (!continue_feed) {
@@ -337,7 +336,7 @@ fun PlayerView() {
     LaunchedEffect(Unit) {
         loadFeed(Settings.get(Settings.KEY_FEED_INITIAL_ROWS), allow_cached = true, continue_feed = false) {
             if (it) {
-                PlayerServiceHost.service.loadPersistentQueue()
+                PlayerServiceHost.player.loadPersistentQueue()
             }
         }
     }
@@ -402,7 +401,7 @@ fun PlayerView() {
             Crossfade(targetState = player.overlay_page) { page ->
                 Column(Modifier.fillMaxSize()) {
                     if (page != null && page.first != OverlayPage.MEDIAITEM && page.first != OverlayPage.SEARCH) {
-                        Spacer(Modifier.requiredHeight(getStatusBarHeight(MainActivity.context)))
+                        Spacer(Modifier.requiredHeight(SpMp.context.getStatusBarHeight()))
                     }
 
                     val close = remember { { player.navigateBack() } }
@@ -446,9 +445,9 @@ private fun MainPage(
     loadFeed: (continuation: Boolean) -> Unit
 ) {
     SwipeRefresh(
-        state = rememberSwipeRefreshState(feed_load_state.value == FeedLoadState.LOADING),
+        state = feed_load_state.value == FeedLoadState.LOADING,
         onRefresh = { loadFeed(false) },
-        swipeEnabled = feed_load_state.value == FeedLoadState.NONE,
+        swipe_enabled = feed_load_state.value == FeedLoadState.NONE,
         modifier = Modifier.padding(horizontal = 10.dp)
     ) {
         Crossfade(remember { derivedStateOf { layouts.isNotEmpty() } }.value) { loaded ->
@@ -457,7 +456,7 @@ private fun MainPage(
                     layouts,
                     playerProvider,
                     padding = PaddingValues(
-                        top = getStatusBarHeight(MainActivity.context),
+                        top = SpMp.context.getStatusBarHeight(),
                         bottom = playerProvider().bottom_padding
                     ),
                     onContinuationRequested = if (can_continue_feed) {
@@ -479,7 +478,7 @@ private fun MainPage(
                                 )
                             ) {
                                 Column(Modifier.padding(15.dp), verticalArrangement = Arrangement.spacedBy(15.dp)) {
-                                    WidthShrinkText(getString("radio_builder_title), fontSize = 25.sp, colour = Theme.current.vibrant_accent.getContrasted())
+                                    WidthShrinkText(getString("radio_builder_title"), fontSize = 25.sp, colour = Theme.current.vibrant_accent.getContrasted())
 
                                     Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.SpaceEvenly) {
                                         val button_colours = ButtonDefaults.buttonColors(
@@ -497,10 +496,10 @@ private fun MainPage(
 
                                         val button_padding = PaddingValues(15.dp, 5.dp)
                                         Button({ TODO() }, contentPadding = button_padding, colors = button_colours) {
-                                            WidthShrinkText(getString("radio_builder_play_last_button))
+                                            WidthShrinkText(getString("radio_builder_play_last_button"))
                                         }
                                         Button({ TODO() }, contentPadding = button_padding, colors = button_colours) {
-                                            WidthShrinkText(getString("radio_builder_recent_button))
+                                            WidthShrinkText(getString("radio_builder_recent_button"))
                                         }
                                     }
                                 }
@@ -511,7 +510,7 @@ private fun MainPage(
             }
             else {
                 Column(Modifier.fillMaxSize(), verticalArrangement = Arrangement.Center, horizontalAlignment = Alignment.CenterHorizontally) {
-                    Text(getString("loading_feed), Modifier.alpha(0.4f), fontSize = 12.sp, color = Theme.current.on_background)
+                    Text(getString("loading_feed"), Modifier.alpha(0.4f), fontSize = 12.sp, color = Theme.current.on_background)
                     Spacer(Modifier.height(5.dp))
                     LinearProgressIndicator(
                         Modifier

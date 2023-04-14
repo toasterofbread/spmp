@@ -1,15 +1,15 @@
 package com.spectre7.spmp.model
 
-import android.graphics.Bitmap
-import android.graphics.BitmapFactory
 import androidx.compose.runtime.*
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.graphics.ImageBitmap
 import androidx.compose.ui.graphics.toArgb
-import com.spectre7.spmp.R
 import com.spectre7.spmp.api.*
+import com.spectre7.spmp.platform.crop
+import com.spectre7.spmp.platform.toImageBitmap
 import com.spectre7.spmp.ui.component.SongPreviewLong
 import com.spectre7.spmp.ui.component.SongPreviewSquare
-import com.spectre7.utils.getStringTemp
+import com.spectre7.utils.getString
 import com.spectre7.utils.lazyAssert
 import com.spectre7.utils.toHiragana
 import okhttp3.internal.filterList
@@ -62,7 +62,7 @@ class Song protected constructor (
 
             val readable: String
                 get() = when (this) {
-                    PETITLYRICS -> getString("lyrics_source_petitlyrics)
+                    PETITLYRICS -> getString("lyrics_source_petitlyrics")
                 }
 
             val colour: Color
@@ -78,9 +78,9 @@ class Song protected constructor (
 
             val readable: String
                 get() = when (this) {
-                    NONE -> getString("lyrics_sync_none)
-                    LINE_SYNC -> getString("lyrics_sync_line)
-                    WORD_SYNC -> getString("lyrics_sync_word)
+                    NONE -> getString("lyrics_sync_none")
+                    LINE_SYNC -> getString("lyrics_sync_line")
+                    WORD_SYNC -> getString("lyrics_sync_word")
                 }
 
             companion object {
@@ -252,7 +252,7 @@ class Song protected constructor (
         return true
     }
 
-    override fun downloadThumbnail(quality: ThumbnailQuality): Bitmap? {
+    override fun downloadThumbnail(quality: ThumbnailQuality): ImageBitmap? {
         // Iterate through getThumbUrl URL and ThumbnailQuality URLs for passed quality and each lower quality
         for (i in 0 .. quality.ordinal + 1) {
 
@@ -269,14 +269,18 @@ class Song protected constructor (
             }
 
             try {
-                val image = BitmapFactory.decodeStream(URL(url).openConnection().getInputStream())!!
+                val stream = URL(url).openConnection().getInputStream()
+                val bytes = stream.readBytes()
+                stream.close()
+
+                val image = bytes.toImageBitmap()
                 if (image.width == image.height) {
                     return image
                 }
 
                 // Crop image to 1:1
                 val size = (image.width * (9f/16f)).toInt()
-                return Bitmap.createBitmap(image, (image.width - size) / 2, (image.height - size) / 2, size, size)
+                return image.crop((image.width - size) / 2, (image.height - size) / 2, size, size)
             }
             catch (e: FileNotFoundException) {
                 if (i == quality.ordinal + 1) {

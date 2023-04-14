@@ -3,7 +3,6 @@ package com.spectre7.utils
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.ImageBitmap
 import androidx.compose.ui.graphics.luminance
-import androidx.palette.graphics.Palette
 import java.util.*
 import kotlin.math.absoluteValue
 
@@ -52,25 +51,6 @@ fun Color.amplify(by: Float, opposite: Float = by): Color {
 
 fun Color.compare(against: Color): Float {
     return 1f - (((red - against.red).absoluteValue + (green - against.green).absoluteValue + (blue - against.blue).absoluteValue) / 3f)
-}
-
-fun Palette.getColour(type: Int): Color? {
-    val colour = when (type) {
-        0 -> getVibrantColor(0)
-        1 -> getLightVibrantColor(0)
-        2 -> getLightMutedColor(0)
-        3 -> getDarkVibrantColor(0)
-        4 -> getDarkMutedColor(0)
-        5 -> getDominantColor(0)
-        6 -> getMutedColor(0)
-        else -> throw RuntimeException("Invalid palette colour type $type")
-    }
-
-    if (colour == 0) {
-        return null
-    }
-
-    return Color(colour)
 }
 
 fun ImageBitmap.getThemeColour(): Color? {

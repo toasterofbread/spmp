@@ -1,6 +1,5 @@
 package com.spectre7.spmp.ui.layout
 
-import androidx.activity.compose.BackHandler
 import androidx.compose.animation.*
 import androidx.compose.animation.core.*
 import androidx.compose.foundation.*
@@ -25,13 +24,12 @@ import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
-import com.spectre7.spmp.MainActivity
 import com.spectre7.spmp.PlayerServiceHost
-import com.spectre7.spmp.R
 import com.spectre7.spmp.api.*
 import com.spectre7.spmp.model.Artist
 import com.spectre7.spmp.model.MediaItem
 import com.spectre7.spmp.model.Playlist
+import com.spectre7.spmp.platform.BackHandler
 import com.spectre7.spmp.ui.component.*
 import com.spectre7.spmp.ui.theme.Theme
 import com.spectre7.utils.*
@@ -57,7 +55,7 @@ fun RadioBuilderPage(
             result.fold({ artists ->
                 available_artists = artists
             }, { exception ->
-                MainActivity.error_manager.onError("radio_builder_artists", exception)
+                SpMp.error_manager.onError("radio_builder_artists", exception)
             })
         }
     }
@@ -70,11 +68,11 @@ fun RadioBuilderPage(
             verticalArrangement = Arrangement.spacedBy(15.dp)
         ) {
             Column(verticalArrangement = Arrangement.spacedBy(5.dp)) {
-                Text(getString("radio_builder_title), fontSize = 15.sp)
+                Text(getString("radio_builder_title"), fontSize = 15.sp)
                 Text(
-                    getStringTemp(
-                        if (selected == null) R.string.radio_builder_artists_title
-                        else R.string.radio_builder_modifiers_title
+                    getString(
+                        if (selected == null) "radio_builder_artists_title"
+                        else "radio_builder_modifiers_title"
                     ), fontSize = 30.sp
                 )
             }
@@ -119,7 +117,7 @@ fun RadioBuilderPage(
                         preview_loading = true
                     }
                     else if (preview_playlist?.id == radio_token) {
-                        PlayerServiceHost.service.startRadioAtIndex(0, preview_playlist)
+                        PlayerServiceHost.player.startRadioAtIndex(0, preview_playlist)
                         return
                     }
                     else {
@@ -138,13 +136,13 @@ fun RadioBuilderPage(
                                     preview_playlist = it
                                 }
                                 else {
-                                    mainThread {
-                                        PlayerServiceHost.service.startRadioAtIndex(0, it)
+                                    SpMp.context.mainThread {
+                                        PlayerServiceHost.player.startRadioAtIndex(0, it)
                                     }
                                 }
                             },
                             {
-                                MainActivity.error_manager.onError("radio_builder_load_radio", result.exceptionOrNull()!!)
+                                SpMp.error_manager.onError("radio_builder_load_radio", result.exceptionOrNull()!!)
                             }
                         )
 
@@ -168,7 +166,7 @@ fun RadioBuilderPage(
                                     Text(getStringTemp("No songs match criteria"), Modifier.padding(10.dp))
 
                                     Row {
-                                        CopyShareButtons(name = "") {
+                                        SpMp.context.CopyShareButtons(name = "") {
                                             buildRadioToken(
                                                 selected_artists!!.map { i -> available_artists!![i] }.toSet(),
                                                 setOf(selection_type.value, artist_variety.value, filter_a.value, filter_b.value)
@@ -271,7 +269,7 @@ private fun SelectionTypeRow(state: MutableState<RadioModifier.SelectionType>) {
                 .weight(1f),
             verticalArrangement = Arrangement.spacedBy(5.dp)
         ) {
-            Text(getString("radio_builder_modifier_selection_type))
+            Text(getString("radio_builder_modifier_selection_type"))
 
             MultiSelectRow(
                 amount = RadioModifier.SelectionType.values().size,
@@ -310,7 +308,7 @@ private fun SelectionTypeRow(state: MutableState<RadioModifier.SelectionType>) {
 @Composable
 private fun ArtistVarietyRow(state: MutableState<RadioModifier.Variety>) {
     Column(verticalArrangement = Arrangement.spacedBy(5.dp)) {
-        Text(getString("radio_builder_modifier_variety))
+        Text(getString("radio_builder_modifier_variety"))
         MultiSelectRow(
             RadioModifier.Variety.values().size,
             arrangement = Arrangement.spacedBy(20.dp),
@@ -326,7 +324,7 @@ private fun ArtistVarietyRow(state: MutableState<RadioModifier.Variety>) {
 @Composable
 private fun FilterARow(state: MutableState<RadioModifier.FilterA?>) {
     Column(verticalArrangement = Arrangement.spacedBy(5.dp)) {
-        Text(getString("radio_builder_modifier_filter_a))
+        Text(getString("radio_builder_modifier_filter_a"))
         MultiSelectRow(
             RadioModifier.FilterA.values().size,
             arrangement = Arrangement.spacedBy(20.dp),
@@ -343,7 +341,7 @@ private fun FilterARow(state: MutableState<RadioModifier.FilterA?>) {
 @Composable
 private fun FilterBRow(state: MutableState<RadioModifier.FilterB?>) {
     Column(verticalArrangement = Arrangement.spacedBy(5.dp)) {
-        Text(getString("radio_builder_modifier_filter_b))
+        Text(getString("radio_builder_modifier_filter_b"))
         MultiSelectRow(
             RadioModifier.FilterB.values().size,
             arrangement = Arrangement.spacedBy(20.dp),
@@ -452,7 +450,7 @@ private fun RadioArtistSelector(
                     ),
                     contentPadding = PaddingValues(0.dp, 0.dp)
                 ) {
-                    Text(getString("radio_builder_next_button), Modifier.crossOut(selected_artists.isEmpty(), content_colour, 3f, { it * 1.2f }))
+                    Text(getString("radio_builder_next_button"), Modifier.crossOut(selected_artists.isEmpty(), content_colour, 3f, { it * 1.2f }))
                 }
             }
         ) }

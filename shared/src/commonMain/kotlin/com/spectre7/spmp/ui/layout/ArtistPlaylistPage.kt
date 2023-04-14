@@ -2,8 +2,6 @@
 
 package com.spectre7.spmp.ui.layout
 
-import android.content.Intent
-import android.net.Uri
 import androidx.compose.animation.Crossfade
 import androidx.compose.animation.animateContentSize
 import androidx.compose.foundation.*
@@ -31,13 +29,13 @@ import androidx.compose.ui.text.input.ImeAction
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
-import com.spectre7.spmp.MainActivity
-import com.spectre7.spmp.R
 import com.spectre7.spmp.api.getOrReport
 import com.spectre7.spmp.model.Artist
 import com.spectre7.spmp.model.MediaItem
 import com.spectre7.spmp.model.MediaItemWithLayouts
 import com.spectre7.spmp.model.Playlist
+import com.spectre7.spmp.platform.PlatformAlertDialog
+import com.spectre7.spmp.platform.vibrateShort
 import com.spectre7.spmp.ui.component.MediaItemLayout
 import com.spectre7.spmp.ui.component.PillMenu
 import com.spectre7.spmp.ui.theme.Theme
@@ -58,24 +56,6 @@ fun ArtistPlaylistPage(
 
     var show_info by remember { mutableStateOf(false) }
 
-    val share_intent = remember(item.url, item.title) {
-        Intent.createChooser(Intent().apply {
-            action = Intent.ACTION_SEND
-            putExtra(Intent.EXTRA_TITLE, item.title)
-            putExtra(Intent.EXTRA_TEXT, item.url)
-            type = "text/plain"
-        }, null)
-    }
-    val open_intent: Intent? = remember(item.url) {
-        val intent = Intent(Intent.ACTION_VIEW, Uri.parse(item.url))
-        if (intent.resolveActivity(MainActivity.context.packageManager) == null) {
-            null
-        }
-        else {
-            intent
-        }
-    }
-
     val gradient_size = 0.35f
     val background_colour = Theme.current.background
     var accent_colour: Color? by remember { mutableStateOf(null) }
@@ -95,11 +75,11 @@ fun ArtistPlaylistPage(
                 result.fold(
                     { playlist ->
                         if (playlist == null) {
-                            MainActivity.error_manager.onError("ArtistPlaylistPageLoad", Exception("loadData result is null"))
+                            SpMp.error_manager.onError("ArtistPlaylistPageLoad", Exception("loadData result is null"))
                         }
                     },
                     { error ->
-                        MainActivity.error_manager.onError("ArtistPlaylistPageLoad", error)
+                        SpMp.error_manager.onError("ArtistPlaylistPageLoad", error)
                     }
                 )
             }
@@ -130,7 +110,7 @@ fun ArtistPlaylistPage(
                 }
 
                 Image(
-                    thumbnail.asImageBitmap(),
+                    thumbnail,
                     contentDescription = null,
                     contentScale = ContentScale.Crop,
                     modifier = Modifier
@@ -209,11 +189,17 @@ fun ArtistPlaylistPage(
                     }
 
                     if (item is Artist) {
-                        chip(getString("artist_chip_shuffle), Icons.Outlined.Shuffle) { TODO() }
+                        chip(getString("artist_chip_shuffle"), Icons.Outlined.Shuffle) { TODO() }
                     }
-                    chip(getString("action_share), Icons.Outlined.Share) { MainActivity.context.startActivity(share_intent) }
-                    chip(getString("artist_chip_open), Icons.Outlined.OpenInNew) { MainActivity.context.startActivity(open_intent) }
-                    chip(getString("artist_chip_details), Icons.Outlined.Info) { show_info = !show_info }
+
+                    if (SpMp.context.canShare()) {
+                        chip(getString("action_share"), Icons.Outlined.Share) { SpMp.context.shareText(item.url, item.title) }
+                    }
+                    if (SpMp.context.canOpenUrl()) {
+                        chip(getString("artist_chip_open"), Icons.Outlined.OpenInNew) { SpMp.context.openUrl(item.url) }
+                    }
+
+                    chip(getString("artist_chip_details"), Icons.Outlined.Info) { show_info = !show_info }
                 }
             }
 
@@ -235,7 +221,7 @@ fun ArtistPlaylistPage(
                     }
 
                     Btn(
-                        getString("artist_chip_play),
+                        getString("artist_chip_play"),
                         Icons.Outlined.PlayArrow,
                         Modifier
                             .fillMaxWidth(0.5f)
@@ -247,7 +233,7 @@ fun ArtistPlaylistPage(
                     Spacer(Modifier.requiredWidth(20.dp))
 
                     Btn(
-                        getStringTemp(if (item is Artist) R.string.artist_chip_radio else R.string.artist_chip_shuffle),
+                        getString(if (item is Artist) "artist_chip_radio" else "artist_chip_shuffle"),
                         if (item is Artist) Icons.Outlined.Radio else Icons.Outlined.Shuffle,
                         Modifier
                             .fillMaxWidth(1f)
@@ -376,7 +362,7 @@ private fun TitleBar(item: MediaItem, modifier: Modifier = Modifier) {
                         .combinedClickable(
                             onClick = {},
                             onLongClick = {
-                                vibrateShort()
+                                SpMp.context.vibrateShort()
                                 editing_title = true
                             }
                         )
@@ -411,8 +397,14 @@ fun ArtistSubscribeButton(
                     {
                         artist.toggleSubscribe(
                             toggle_before_fetch = true,
-                            notify_failure = true
-                        )
+                        ) { success, subscribing ->
+                            if (!success) {
+                                SpMp.context.sendToast(getStringTemp(
+                                    if (subscribing) "Subscribing to ${artist.title} failed"
+                                    else "Unsubscribing from ${artist.title} failed"
+                                ))
+                            }
+                        }
                     },
                     colors = IconButtonDefaults.iconButtonColors(
                         containerColor = if (subscribed) accent_colour ?: Color.Unspecified else background_colour,
@@ -455,7 +447,7 @@ private fun DescriptionCard(description_text: String, background_colour: Color, 
                 AssistChip(
                     toggleInfo,
                     {
-                        Text(getString("artist_info_label), style = MaterialTheme.typography.labelLarge)
+                        Text(getString("artist_info_label"), style = MaterialTheme.typography.labelLarge)
                     },
                     leadingIcon = {
                         Icon(Icons.Outlined.Info, null)
@@ -500,64 +492,61 @@ private fun DescriptionCard(description_text: String, background_colour: Color, 
 
 @Composable
 private fun InfoDialog(item: MediaItem, close: () -> Unit) {
-    AlertDialog(
-        close,
-        confirmButton = {
-            FilledTonalButton(
-                close
-            ) {
-                Text("Close")
-            }
-        },
-        title = { Text(getStringTemp(when (item) {
-            is Artist -> "Artist info"
-            is Playlist -> "Playlist info"
-            else -> throw NotImplementedError(item.type.toString())
-        })) },
-        text = {
-            @Composable
-            fun InfoValue(name: String, value: String) {
-                Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.spacedBy(20.dp), verticalAlignment = Alignment.CenterVertically) {
-                    Column(
-                        Modifier
-                            .fillMaxWidth()
-                            .weight(1f)) {
-                        Text(name, style = MaterialTheme.typography.labelLarge)
-                        Box(Modifier.fillMaxWidth()) {
-                            Marquee(false) {
-                                Text(value, softWrap = false)
-                            }
-                        }
-                    }
-
-                    Row(horizontalArrangement = Arrangement.End) {
-                        val clipboard = LocalClipboardManager.current
-                        IconButton({
-                            clipboard.setText(AnnotatedString(value))
-                            sendToast("Copied ${name.lowercase()} to clipboard")
-                        }) {
-                            Icon(Icons.Filled.ContentCopy, null, Modifier.size(20.dp))
-                        }
-
-                        val share_intent = Intent.createChooser(Intent().apply {
-                            action = Intent.ACTION_SEND
-                            putExtra(Intent.EXTRA_TEXT, value)
-                            type = "text/plain"
-                        }, null)
-                        IconButton({
-                            MainActivity.context.startActivity(share_intent)
-                        }) {
-                            Icon(Icons.Filled.Share, null, Modifier.size(20.dp))
-                        }
-                    }
-                }
-            }
-
-            Column(Modifier.fillMaxWidth(), verticalArrangement = Arrangement.Center) {
-                InfoValue("Name", item.title ?: "")
-                InfoValue("Id", item.id)
-                InfoValue("Url", item.url)
-            }
-        }
+    PlatformAlertDialog(
+//        close,
+//        confirmButton = {
+//            FilledTonalButton(
+//                close
+//            ) {
+//                Text("Close")
+//            }
+//        },
+//        title = { Text(getStringTemp(when (item) {
+//            is Artist -> "Artist info"
+//            is Playlist -> "Playlist info"
+//            else -> throw NotImplementedError(item.type.toString())
+//        })) },
+//        text = {
+//            @Composable
+//            fun InfoValue(name: String, value: String) {
+//                Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.spacedBy(20.dp), verticalAlignment = Alignment.CenterVertically) {
+//                    Column(
+//                        Modifier
+//                            .fillMaxWidth()
+//                            .weight(1f)) {
+//                        Text(name, style = MaterialTheme.typography.labelLarge)
+//                        Box(Modifier.fillMaxWidth()) {
+//                            Marquee(false) {
+//                                Text(value, softWrap = false)
+//                            }
+//                        }
+//                    }
+//
+//                    Row(horizontalArrangement = Arrangement.End) {
+//                        val clipboard = LocalClipboardManager.current
+//                        IconButton({
+//                            clipboard.setText(AnnotatedString(value))
+//                            SpMp.context.sendToast("Copied ${name.lowercase()} to clipboard")
+//                        }) {
+//                            Icon(Icons.Filled.ContentCopy, null, Modifier.size(20.dp))
+//                        }
+//
+//                        if (SpMp.context.canShare()) {
+//                            IconButton({
+//                                SpMp.context.shareText(value)
+//                            }) {
+//                                Icon(Icons.Filled.Share, null, Modifier.size(20.dp))
+//                            }
+//                        }
+//                    }
+//                }
+//            }
+//
+//            Column(Modifier.fillMaxWidth(), verticalArrangement = Arrangement.Center) {
+//                InfoValue("Name", item.title ?: "")
+//                InfoValue("Id", item.id)
+//                InfoValue("Url", item.url)
+//            }
+//        }
     )
 }

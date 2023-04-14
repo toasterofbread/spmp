@@ -134,8 +134,8 @@ var compose_version = "1.2.1"
 
 dependencies {
     implementation("androidx.core:core-ktx:1.9.0")
-    implementation("androidx.compose.ui:ui:$compose_version")
     implementation("androidx.compose.material3:material3:1.0.0-alpha11")
+    implementation("androidx.compose.ui:ui:$compose_version")
     implementation("androidx.compose.ui:ui-tooling-preview:$compose_version")
     implementation("androidx.lifecycle:lifecycle-runtime-ktx:2.3.1")
     implementation("androidx.activity:activity-compose:1.3.1")
@@ -150,22 +150,19 @@ dependencies {
     implementation("org.jetbrains.kotlin:kotlin-reflect:1.7.10")
     implementation("net.openid:appauth:0.11.1")
 
-    implementation("io.coil-kt:coil-compose:2.0.0-rc01")
     implementation("com.google.accompanist:accompanist-pager:0.21.2-beta")
     implementation("com.google.accompanist:accompanist-pager-indicators:0.21.2-beta")
     implementation("com.google.accompanist:accompanist-systemuicontroller:0.21.2-beta")
     implementation("com.google.accompanist:accompanist-swiperefresh:0.21.2-beta")
-    implementation("org.burnoutcrew.composereorderable:reorderable:0.9.2")
-
-    implementation(group = "com.atilika.kuromoji", name = "kuromoji-ipadic", version = "0.9.0")
 
     // Shared
     implementation("com.beust:klaxon:5.5")
-    implementation("com.github.krottv:compose-sliders:0.1.4")
     implementation("com.godaddy.android.colorpicker:compose-color-picker:0.7.0")
     implementation("com.github.TeamNewPipe:NewPipeExtractor:v0.22.1")
     implementation("org.apache.commons:commons-text:1.10.0")
     implementation("androidx.palette:palette:1.0.0")
+    implementation("com.atilika.kuromoji:kuromoji-ipadic:0.9.0")
+    implementation("org.burnoutcrew.composereorderable:reorderable:0.9.2")
 
     // Exoplayer
     implementation(project(":library-core"))

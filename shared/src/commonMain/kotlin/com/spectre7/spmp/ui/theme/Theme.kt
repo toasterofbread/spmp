@@ -4,7 +4,7 @@ import androidx.compose.animation.Animatable
 import androidx.compose.animation.core.Animatable
 import androidx.compose.animation.core.AnimationVector4D
 import androidx.compose.foundation.isSystemInDarkTheme
-import androidx.compose.material.MaterialTheme
+import androidx.compose.material3.MaterialTheme
 import androidx.compose.runtime.*
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.toArgb
@@ -16,13 +16,13 @@ import com.spectre7.spmp.model.AccentColourSource
 import com.spectre7.spmp.model.Settings
 import com.spectre7.utils.*
 import com.spectre7.spmp.platform.ProjectPreferences
-import com.spectre7.spmp.platform.ProjectContext
+import com.spectre7.spmp.platform.PlatformContext
 
 const val VIBRANT_ACCENT_CONTRAST: Float = 0.2f
 
 @Composable
 fun ApplicationTheme(
-    context: ProjectContext,
+    context: PlatformContext,
     font_family: FontFamily = FontFamily.Default,
     content: @Composable () -> Unit
 ) {
@@ -37,24 +37,27 @@ fun ApplicationTheme(
 //        }
 //    }
 
+    val default = MaterialTheme.typography
     val typography = MaterialTheme.typography.copy(
-        h1 = MaterialTheme.typography.h1.copy(fontFamily = font_family),
-        h2 = MaterialTheme.typography.h2.copy(fontFamily = font_family),
-        h3 = MaterialTheme.typography.h3.copy(fontFamily = font_family),
-        h4 = MaterialTheme.typography.h4.copy(fontFamily = font_family),
-        h5 = MaterialTheme.typography.h5.copy(fontFamily = font_family),
-        h6 = MaterialTheme.typography.h6.copy(fontFamily = font_family),
-        subtitle1 = MaterialTheme.typography.subtitle1.copy(fontFamily = font_family),
-        subtitle2 = MaterialTheme.typography.subtitle2.copy(fontFamily = font_family),
-        body1 = MaterialTheme.typography.body1.copy(fontFamily = font_family),
-        body2 = MaterialTheme.typography.body2.copy(fontFamily = font_family),
-        button = MaterialTheme.typography.button.copy(fontFamily = font_family),
-        caption = MaterialTheme.typography.caption.copy(fontFamily = font_family),
-        overline = MaterialTheme.typography.overline.copy(fontFamily = font_family)
+        displayLarge = default.displayLarge.copy(fontFamily = font_family),
+        displayMedium = default.displayMedium.copy(fontFamily = font_family),
+        displaySmall = default.displaySmall.copy(fontFamily = font_family),
+        headlineLarge = default.headlineLarge.copy(fontFamily = font_family),
+        headlineMedium = default.headlineMedium.copy(fontFamily = font_family),
+        headlineSmall = default.headlineSmall.copy(fontFamily = font_family),
+        titleLarge = default.titleLarge.copy(fontFamily = font_family),
+        titleMedium = default.titleMedium.copy(fontFamily = font_family),
+        titleSmall = default.titleSmall.copy(fontFamily = font_family),
+        bodyLarge = default.bodyLarge.copy(fontFamily = font_family),
+        bodyMedium = default.bodyMedium.copy(fontFamily = font_family),
+        bodySmall = default.bodySmall.copy(fontFamily = font_family),
+        labelLarge = default.labelLarge.copy(fontFamily = font_family),
+        labelMedium = default.labelMedium.copy(fontFamily = font_family),
+        labelSmall = default.labelSmall.copy(fontFamily = font_family)
     )
-    
+
     MaterialTheme(
-        colors = colour_scheme,
+        colorScheme = colour_scheme,
         typography = typography,
         content = content
     )
@@ -181,7 +184,7 @@ class Theme(data: ThemeData) {
         val current: Theme get() = if (preview_active) preview_theme else theme
 
         @Composable
-        fun Update(context: ProjectContext, system_accent_colour: Color) {
+        fun Update(context: PlatformContext, system_accent_colour: Color) {
             DisposableEffect(Unit) {
                 this@Companion.system_accent_colour = system_accent_colour
                 context.getPrefs().addListener(prefs_listener)

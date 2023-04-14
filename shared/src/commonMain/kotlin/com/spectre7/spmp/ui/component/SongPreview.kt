@@ -26,6 +26,7 @@ import com.spectre7.spmp.PlayerDownloadService
 import com.spectre7.spmp.PlayerServiceHost
 import com.spectre7.spmp.model.MediaItem
 import com.spectre7.spmp.model.Song
+import com.spectre7.spmp.platform.vibrateShort
 import com.spectre7.utils.*
 import java.io.File
 
@@ -207,7 +208,7 @@ private fun ColumnScope.SongLongPressMenuInfo(song: Song, queue_index: Int?, acc
                 .fillMaxWidth()
                 .weight(1f)
         )
-        CopyShareButtons { song.id }
+        SpMp.context.CopyShareButtons { song.id }
     }
 
     if (queue_index != null) {
@@ -228,17 +229,17 @@ private fun LongPressMenuActionProvider.SongLongPressPopupActions(song: MediaIte
     ActionButton(
         Icons.Filled.Radio, "Start radio", 
         onClick = {
-            PlayerServiceHost.service.playSong(song)
+            PlayerServiceHost.player.playSong(song)
         },
         onLongClick = if (queue_index == null) null else {{
-            PlayerServiceHost.service.startRadioAtIndex(queue_index + 1, song, skip_first = true)
+            PlayerServiceHost.player.startRadioAtIndex(queue_index + 1, song, skip_first = true)
         }}
     )
 
     var active_queue_item: Song? by remember { mutableStateOf(null) }
-    AnimatedVisibility(PlayerServiceHost.service.active_queue_index < PlayerServiceHost.status.m_queue_size) {
-        if (PlayerServiceHost.service.active_queue_index < PlayerServiceHost.status.m_queue_size) {
-            active_queue_item = PlayerServiceHost.service.getSong(PlayerServiceHost.service.active_queue_index)
+    AnimatedVisibility(PlayerServiceHost.player.active_queue_index < PlayerServiceHost.status.m_queue_size) {
+        if (PlayerServiceHost.player.active_queue_index < PlayerServiceHost.status.m_queue_size) {
+            active_queue_item = PlayerServiceHost.player.getSong(PlayerServiceHost.player.active_queue_index)
         }
 
         Column {
@@ -247,21 +248,21 @@ private fun LongPressMenuActionProvider.SongLongPressPopupActions(song: MediaIte
                 verticalAlignment = Alignment.CenterVertically,
                 horizontalArrangement = Arrangement.SpaceBetween
             ) {
-                val distance = PlayerServiceHost.service.active_queue_index - PlayerServiceHost.status.index + 1
+                val distance = PlayerServiceHost.player.active_queue_index - PlayerServiceHost.status.index + 1
                 ActionButton(Icons.Filled.SubdirectoryArrowRight, "Play after $distance song(s)",
                     fill_width = false,
                     onClick = {
-                        PlayerServiceHost.service.addToQueue(
+                        PlayerServiceHost.player.addToQueue(
                             song,
-                            PlayerServiceHost.service.active_queue_index + 1,
+                            PlayerServiceHost.player.active_queue_index + 1,
                             is_active_queue = true,
                             start_radio = false
                         )
                     },
                     onLongClick = {
-                        PlayerServiceHost.service.addToQueue(
+                        PlayerServiceHost.player.addToQueue(
                             song,
-                            PlayerServiceHost.service.active_queue_index + 1,
+                            PlayerServiceHost.player.active_queue_index + 1,
                             is_active_queue = true,
                             start_radio = true
                         )
@@ -280,11 +281,11 @@ private fun LongPressMenuActionProvider.SongLongPressPopupActions(song: MediaIte
                             remember { MutableInteractionSource() },
                             rememberRipple(),
                             onClick = {
-                                PlayerServiceHost.service.updateActiveQueueIndex(-1)
+                                PlayerServiceHost.player.updateActiveQueueIndex(-1)
                             },
                             onLongClick = {
-                                vibrateShort()
-                                PlayerServiceHost.service.active_queue_index = PlayerServiceHost.player.currentMediaItemIndex
+                                SpMp.context.vibrateShort()
+                                PlayerServiceHost.player.active_queue_index = PlayerServiceHost.player.current_song_index
                             }
                         ),
                         color = accent_colour(),
@@ -298,11 +299,11 @@ private fun LongPressMenuActionProvider.SongLongPressPopupActions(song: MediaIte
                             remember { MutableInteractionSource() },
                             rememberRipple(),
                             onClick = {
-                                PlayerServiceHost.service.updateActiveQueueIndex(1)
+                                PlayerServiceHost.player.updateActiveQueueIndex(1)
                             },
                             onLongClick = {
-                                vibrateShort()
-                                PlayerServiceHost.service.active_queue_index = PlayerServiceHost.player.mediaItemCount - 1
+                                SpMp.context.vibrateShort()
+                                PlayerServiceHost.player.active_queue_index = PlayerServiceHost.player.song_count - 1
                             }
                         ),
                         color = accent_colour(),
@@ -325,13 +326,13 @@ private fun LongPressMenuActionProvider.SongLongPressPopupActions(song: MediaIte
     ActionButton(Icons.Filled.Download, "Download", onClick = {
         PlayerServiceHost.download_manager.startDownload(song.id) { file: File?, status: PlayerDownloadService.DownloadStatus ->
             when (status) {
-                PlayerDownloadService.DownloadStatus.FINISHED -> sendToast("Download completed")
-                PlayerDownloadService.DownloadStatus.ALREADY_FINISHED -> sendToast("Already downloaded")
-                PlayerDownloadService.DownloadStatus.CANCELLED -> sendToast("Download was cancelled")
+                PlayerDownloadService.DownloadStatus.FINISHED -> SpMp.context.sendToast("Download completed")
+                PlayerDownloadService.DownloadStatus.ALREADY_FINISHED -> SpMp.context.sendToast("Already downloaded")
+                PlayerDownloadService.DownloadStatus.CANCELLED -> SpMp.context.sendToast("Download was cancelled")
 
                 // IDLE, DOWNLOADING, PAUSED
                 else -> {
-                    sendToast("Already downloading")
+                    SpMp.context.sendToast("Already downloading")
                 }
             }
         }

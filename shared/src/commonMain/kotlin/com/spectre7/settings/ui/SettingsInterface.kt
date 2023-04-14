@@ -1,6 +1,6 @@
 package com.spectre7.composesettings.ui
 
-import com.spectre7.spmp.platform.ProjectContext
+import com.spectre7.spmp.platform.PlatformContext
 import com.spectre7.spmp.platform.ProjectPreferences
 import androidx.compose.animation.Crossfade
 import androidx.compose.foundation.ScrollState
@@ -18,7 +18,7 @@ import com.spectre7.utils.thenIf
 class SettingsInterface(
     val themeProvider: () -> Theme,
     private val root_page: Int,
-    val context: ProjectContext,
+    val context: PlatformContext,
     val prefs: ProjectPreferences,
     val default_provider: (String) -> Any,
     private val getPage: (Int) -> SettingsPage,

@@ -1,6 +1,5 @@
 package com.spectre7.spmp.ui.layout.nowplaying.overlay.lyrics
 
-import androidx.activity.compose.BackHandler
 import androidx.compose.animation.Crossfade
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
@@ -20,17 +19,17 @@ import androidx.compose.ui.platform.LocalFocusManager
 import androidx.compose.ui.text.input.ImeAction
 import androidx.compose.ui.text.input.TextFieldValue
 import androidx.compose.ui.unit.dp
-import com.spectre7.spmp.MainActivity
-import com.spectre7.spmp.R
 import com.spectre7.spmp.api.LyricsSearchResult
 import com.spectre7.spmp.api.searchForLyrics
 import com.spectre7.spmp.model.Song
+import com.spectre7.spmp.platform.BackHandler
 import com.spectre7.spmp.ui.theme.Theme
+import com.spectre7.utils.getString
 import com.spectre7.utils.getStringTemp
-import com.spectre7.utils.sendToast
 import com.spectre7.utils.setAlpha
 import kotlin.concurrent.thread
 
+@OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun LyricsSearchMenu(song: Song, close: (changed: Boolean) -> Unit) {
 
@@ -75,7 +74,7 @@ fun LyricsSearchMenu(song: Song, close: (changed: Boolean) -> Unit) {
                     search_results = it
                 },
                 {
-                    MainActivity.error_manager.onError("performLyricsSearch", it)
+                    SpMp.error_manager.onError("performLyricsSearch", it)
                 }
             )
 
@@ -86,7 +85,7 @@ fun LyricsSearchMenu(song: Song, close: (changed: Boolean) -> Unit) {
                     edit_page_open = false
                 }
                 else if (result.isSuccess) {
-                    sendToast(getString("no_lyrics_found))
+                    SpMp.context.sendToast(getString("no_lyrics_found"))
                 }
             }
         }
@@ -135,8 +134,8 @@ fun LyricsSearchMenu(song: Song, close: (changed: Boolean) -> Unit) {
                         )
                     }
 
-                    Field(title, com.spectre7.utils.getString("song_name))
-                    Field(artist, com.spectre7.utils.getString("artist))
+                    Field(title, com.spectre7.utils.getString("song_name"))
+                    Field(artist, com.spectre7.utils.getString("artist"))
                 }
             }
             else if (search_results != null) {
@@ -179,7 +178,7 @@ fun LyricsSearchMenu(song: Song, close: (changed: Boolean) -> Unit) {
                         contentColor = on_accent
                     )
                 ) {
-                    Text(getString("action_close))
+                    Text(getString("action_close"))
                 }
 
                 IconButton(

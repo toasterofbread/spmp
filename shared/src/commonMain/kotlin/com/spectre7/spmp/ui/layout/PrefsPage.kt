@@ -1,9 +1,8 @@
 package com.spectre7.spmp.ui.layout
 
-import android.Manifest
-import android.app.AlertDialog
-import com.spectre7.spmp.platform.ProjectContext
+import com.spectre7.spmp.platform.PlatformContext
 import com.spectre7.spmp.platform.ProjectPreferences
+import com.spectre7.spmp.PlayerAccessibilityService
 import androidx.compose.animation.Crossfade
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.*
@@ -15,22 +14,19 @@ import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.input.pointer.pointerInput
-import androidx.compose.ui.platform.LocalConfiguration
 import androidx.compose.ui.unit.dp
 import com.spectre7.composesettings.ui.SettingsInterface
 import com.spectre7.composesettings.ui.SettingsPage
 import com.spectre7.composesettings.ui.SettingsPageWithItems
 import com.spectre7.settings.model.*
 import com.spectre7.settings.ui.SettingsItemThemeSelector
-import com.spectre7.spmp.MainActivity
-import com.spectre7.spmp.PlayerAccessibilityService
-import com.spectre7.spmp.R
 import com.spectre7.spmp.api.YoutubeMusicAuthInfo
 import com.spectre7.spmp.api.YoutubeMusicLogin
 import com.spectre7.spmp.model.AccentColourSource
 import com.spectre7.spmp.model.MediaItem
 import com.spectre7.spmp.model.Settings
 import com.spectre7.spmp.model.Song
+import com.spectre7.spmp.platform.PlatformAlertDialog
 import com.spectre7.spmp.ui.component.PillMenu
 import com.spectre7.spmp.ui.theme.Theme
 import com.spectre7.spmp.ui.theme.ThemeData
@@ -43,9 +39,9 @@ enum class Page { ROOT, ACCESSIBILITY_SERVICE, YOUTUBE_MUSIC_LOGIN }
 fun PrefsPage(pill_menu: PillMenu, playerProvider: () -> PlayerViewContext, close: () -> Unit) {
 
     val interface_lang = remember { SettingsValueState<Int>(Settings.KEY_LANG_UI.name).init(Settings.prefs, Settings.Companion::provideDefault) }
-    var language_data by remember { mutableStateOf(MainActivity.languages.values.elementAt(interface_lang.value)) }
+    var language_data by remember { mutableStateOf(SpMp.languages.values.elementAt(interface_lang.value)) }
     OnChangedEffect(interface_lang.value) {
-        language_data = MainActivity.languages.values.elementAt(interface_lang.value)
+        language_data = SpMp.languages.values.elementAt(interface_lang.value)
     }
 
     val ytm_auth = remember {
@@ -88,23 +84,23 @@ fun PrefsPage(pill_menu: PillMenu, playerProvider: () -> PlayerViewContext, clos
     }
 
     if (show_reset_confirmation) {
-        AlertDialog(
-            { show_reset_confirmation = false },
-            confirmButton = {
-                FilledTonalButton(
-                    {
-                        reset = !reset
-                        show_reset_confirmation = false
-                    }
-                ) {
-                    Text(getString("action_confirm_action))
-                }
-            },
-            dismissButton = { TextButton( { show_reset_confirmation = false } ) { Text(getString("action_deny_action)) } },
-            title = { Text(getString("prompt_confirm_action)) },
-            text = {
-                Text(getString("prompt_confirm_settings_page_reset))
-            }
+        PlatformAlertDialog(
+//            { show_reset_confirmation = false },
+//            confirmButton = {
+//                FilledTonalButton(
+//                    {
+//                        reset = !reset
+//                        show_reset_confirmation = false
+//                    }
+//                ) {
+//                    Text(getString("action_confirm_action"))
+//                }
+//            },
+//            dismissButton = { TextButton( { show_reset_confirmation = false } ) { Text(getString("action_deny_action")) } },
+//            title = { Text(getString("prompt_confirm_action")) },
+//            text = {
+//                Text(getString("prompt_confirm_settings_page_reset"))
+//            }
         )
     }
 
@@ -124,7 +120,7 @@ fun PrefsPage(pill_menu: PillMenu, playerProvider: () -> PlayerViewContext, clos
         SettingsInterface(
             { Theme.current },
             Page.ROOT.ordinal,
-            MainActivity.context,
+            SpMp.context,
             Settings.prefs,
             Settings.Companion::provideDefault,
             {
@@ -155,7 +151,7 @@ fun PrefsPage(pill_menu: PillMenu, playerProvider: () -> PlayerViewContext, clos
             .pointerInput(Unit) {}
     ) {
         settings_interface.Interface(
-            LocalConfiguration.current.screenHeightDp.dp,
+            SpMp.context.getScreenHeight() - SpMp.context.getStatusBarHeight(),
             content_padding = PaddingValues(bottom = MINIMISED_NOW_PLAYING_HEIGHT.dp + 70.dp)
         )
     }
@@ -168,7 +164,7 @@ private fun getRootPage(
     playerProvider: () -> PlayerViewContext
 ): SettingsPage {
     return SettingsPageWithItems(
-        getString("s_page_preferences),
+        getString("s_page_preferences"),
         groupAuth(ytm_auth, playerProvider)
             + groupGeneral(interface_lang, language_data)
             + groupHomeFeed()
@@ -182,29 +178,33 @@ private fun getRootPage(
 }
 
 private fun getAccessibilityServicePage(): SettingsPage {
-    return SettingsPageWithItems(getString("s_page_acc_service), listOf(
+    if (!PlayerAccessibilityService.isSupported()) {
+        return SettingsPageWithItems(getString("s_page_acc_service"), emptyList())
+    }
+
+    return SettingsPageWithItems(getString("s_page_acc_service"), listOf(
 
         SettingsItemAccessibilityService(
-            getString("s_acc_service_enabled),
-            getString("s_acc_service_disabled),
-            getString("s_acc_service_enable),
-            getString("s_acc_service_disable),
+            getString("s_acc_service_enabled"),
+            getString("s_acc_service_disabled"),
+            getString("s_acc_service_enable"),
+            getString("s_acc_service_disable"),
             object : SettingsItemAccessibilityService.AccessibilityServiceBridge {
                 override fun addEnabledListener(
                     listener: (Boolean) -> Unit,
-                    context: ProjectContext
+                    context: PlatformContext
                 ) {
                     PlayerAccessibilityService.addEnabledListener(listener, context)
                 }
 
                 override fun removeEnabledListener(
                     listener: (Boolean) -> Unit,
-                    context: ProjectContext
+                    context: PlatformContext
                 ) {
                     PlayerAccessibilityService.removeEnabledListener(listener, context)
                 }
 
-                override fun isEnabled(context: ProjectContext): Boolean {
+                override fun isEnabled(context: PlatformContext): Boolean {
                     return PlayerAccessibilityService.isEnabled(context)
                 }
 
@@ -214,67 +214,69 @@ private fun getAccessibilityServicePage(): SettingsPage {
                         return
                     }
 
-                    if (Permissions.hasPermission(Manifest.permission.WRITE_SECURE_SETTINGS, MainActivity.context)) {
-                        PlayerAccessibilityService.enable(MainActivity.context, true)
+                    val context = SpMp.context
+                    if (PlayerAccessibilityService.isSettingsPermissionGranted(context)) {
+                        PlayerAccessibilityService.enable(context, true)
                         return
                     }
 
-                    val dialog = AlertDialog.Builder(MainActivity.context)
-                    dialog.setCancelable(true)
-                    dialog.setTitle(getString("acc_ser_enable_dialog_title))
-                    dialog.setMessage(getString("acc_ser_enable_dialog_body))
-                    dialog.setPositiveButton(getString("acc_ser_enable_dialog_btn_root)) { _, _ ->
-                        PlayerAccessibilityService.enable(MainActivity.context, true)
-                    }
-                    dialog.setNeutralButton(getString("acc_ser_enable_dialog_btn_manual)) { _, _ ->
-                        PlayerAccessibilityService.enable(MainActivity.context, false)
-                    }
-                    dialog.setNegativeButton(getString("action_cancel)) { _, _ -> }
-                    dialog.create().show()
+                    TODO()
+//                    val dialog = AlertDialog.Builder(MainActivity.context)
+//                    dialog.setCancelable(true)
+//                    dialog.setTitle(getString("acc_ser_enable_dialog_title"))
+//                    dialog.setMessage(getString("acc_ser_enable_dialog_body"))
+//                    dialog.setPositiveButton(getString("acc_ser_enable_dialog_btn_root")) { _, _ ->
+//                        PlayerAccessibilityService.enable(MainActivity.context, true)
+//                    }
+//                    dialog.setNeutralButton(getString("acc_ser_enable_dialog_btn_manual")) { _, _ ->
+//                        PlayerAccessibilityService.enable(MainActivity.context, false)
+//                    }
+//                    dialog.setNegativeButton(getString("action_cancel")) { _, _ -> }
+//                    dialog.create().show()
                 }
             }
         ),
 
-        SettingsItemMultipleChoice(
-            SettingsValueState(Settings.KEY_ACC_VOL_INTERCEPT_MODE.name),
-            getString("s_key_vol_intercept_mode),
-            getString("s_sub_vol_intercept_mode),
-            PlayerAccessibilityService.VOLUME_INTERCEPT_MODE.values().size,
-            false
-        ) { mode ->
-            when (mode) {
-                0 -> getString("s_option_vol_intercept_mode_always)
-                1 -> getString("s_option_vol_intercept_mode_app)
-                else -> getString("s_option_vol_intercept_mode_never)
-            }
-        },
+//        SettingsItemMultipleChoice(
+//            SettingsValueState(Settings.KEY_ACC_VOL_INTERCEPT_MODE.name),
+//            getString("s_key_vol_intercept_mode"),
+//            getString("s_sub_vol_intercept_mode"),
+//            PlayerAccessibilityService.PlayerAccessibilityServiceVolumeInterceptMode.values().size,
+//            false
+//        ) { mode ->
+//            when (mode) {
+//                0 -> getString("s_option_vol_intercept_mode_always")
+//                1 -> getString("s_option_vol_intercept_mode_app")
+//                else -> getString("s_option_vol_intercept_mode_never")
+//            }
+//        },
 
         SettingsItemToggle(
             SettingsValueState(Settings.KEY_ACC_SCREEN_OFF.name),
-            getString("s_key_acc_screen_off),
-            getString("s_sub_acc_screen_off)
+            getString("s_key_acc_screen_off"),
+            getString("s_sub_acc_screen_off")
         ) { checked, _, allowChange ->
             if (!checked) {
                 allowChange(true)
                 return@SettingsItemToggle
             }
 
-            Permissions.requestRootPermission(allowChange)
+            PlayerAccessibilityService.requestRootPermission(allowChange)
         },
 
         SettingsItemToggle(
             SettingsValueState(Settings.KEY_ACC_VOL_INTERCEPT_NOTIFICATION.name),
-            getString("s_key_vol_intercept_notification),
-            getString("s_key_vol_intercept_notification)
+            getString("s_key_vol_intercept_notification"),
+            getString("s_key_vol_intercept_notification")
         ) { checked, _, allowChange ->
             if (!checked) {
                 allowChange(true)
                 return@SettingsItemToggle
             }
 
-            if (!android.provider.Settings.canDrawOverlays(MainActivity.context)) {
-                Permissions.requestPermission(Manifest.permission.SYSTEM_ALERT_WINDOW, MainActivity.context) { result, error ->
-                    allowChange(result == Permissions.GrantError.OK)
+            if (!PlayerAccessibilityService.isOverlayPermissionGranted(SpMp.context)) {
+                PlayerAccessibilityService.requestOverlayPermission(SpMp.context) { success ->
+                    allowChange(success)
                 }
                 return@SettingsItemToggle
             }
@@ -391,12 +393,12 @@ private fun groupAuth(ytm_auth: SettingsValueState<YoutubeMusicAuthInfo>, player
 
 private fun groupGeneral(interface_lang: SettingsValueState<Int>, language_data: Map<String, String>): List<SettingsItem> {
     return listOf(
-        SettingsGroup(getString("s_group_general)),
+        SettingsGroup(getString("s_group_general")),
 
         SettingsItemDropdown(
             interface_lang,
-            getString("s_key_interface_lang), getString("s_sub_interface_lang),
-            MainActivity.languages.values.first().size,
+            getString("s_key_interface_lang"), getString("s_sub_interface_lang"),
+            SpMp.languages.values.first().size,
             { i ->
                 language_data.entries.elementAt(i).key
             }
@@ -407,8 +409,8 @@ private fun groupGeneral(interface_lang: SettingsValueState<Int>, language_data:
 
         SettingsItemDropdown(
             SettingsValueState(Settings.KEY_LANG_DATA.name),
-            getString("s_key_data_lang), getString("s_sub_data_lang),
-            MainActivity.languages.values.first().size,
+            getString("s_key_data_lang"), getString("s_sub_data_lang"),
+            SpMp.languages.values.first().size,
             { i ->
                 language_data.entries.elementAt(i).key
             }
@@ -419,8 +421,8 @@ private fun groupGeneral(interface_lang: SettingsValueState<Int>, language_data:
 
         SettingsItemSlider(
             SettingsValueState<Int>(Settings.KEY_VOLUME_STEPS.name),
-            getString("s_key_vol_steps),
-            getString("s_sub_vol_steps),
+            getString("s_key_vol_steps"),
+            getString("s_sub_vol_steps"),
             "0",
             "100",
             range = 0f .. 100f
@@ -428,32 +430,32 @@ private fun groupGeneral(interface_lang: SettingsValueState<Int>, language_data:
 
         SettingsItemToggle(
             SettingsValueState(Settings.KEY_OPEN_NP_ON_SONG_PLAYED.name),
-            getString("s_key_open_np_on_song_played),
-            getString("s_sub_open_np_on_song_played)
+            getString("s_key_open_np_on_song_played"),
+            getString("s_sub_open_np_on_song_played")
         ),
 
         SettingsItemToggle(
             SettingsValueState(Settings.KEY_PERSISTENT_QUEUE.name),
-            getString("s_key_persistent_queue),
-            getString("s_sub_persistent_queue)
+            getString("s_key_persistent_queue"),
+            getString("s_sub_persistent_queue")
         ),
 
         SettingsItemToggle(
             SettingsValueState(Settings.KEY_ADD_SONGS_TO_HISTORY.name),
-            getString("s_key_add_songs_to_history),
-            getString("s_sub_add_songs_to_history)
+            getString("s_key_add_songs_to_history"),
+            getString("s_sub_add_songs_to_history")
         )
     )
 }
 
 private fun groupHomeFeed(): List<SettingsItem> {
     return listOf(
-        SettingsGroup(getString("s_group_home_feed)),
+        SettingsGroup(getString("s_group_home_feed")),
 
         SettingsItemSlider(
             SettingsValueState<Int>(Settings.KEY_FEED_INITIAL_ROWS.name),
-            getString("s_key_feed_initial_rows),
-            getString("s_sub_feed_initial_rows),
+            getString("s_key_feed_initial_rows"),
+            getString("s_sub_feed_initial_rows"),
             "1",
             "10",
             range = 1f .. 10f
@@ -461,40 +463,40 @@ private fun groupHomeFeed(): List<SettingsItem> {
 
         SettingsItemToggle(
             SettingsValueState(Settings.KEY_FEED_SHOW_RADIOS.name),
-            getString("s_key_feed_show_radios), null
+            getString("s_key_feed_show_radios"), null
         ),
 
         SettingsItemToggle(
             SettingsValueState(Settings.KEY_FEED_SHOW_LISTEN_ROW.name),
-            getString("s_key_feed_show_listen_row), null
+            getString("s_key_feed_show_listen_row"), null
         ),
         SettingsItemToggle(
             SettingsValueState(Settings.KEY_FEED_SHOW_MIX_ROW.name),
-            getString("s_key_feed_show_mix_row), null
+            getString("s_key_feed_show_mix_row"), null
         ),
         SettingsItemToggle(
             SettingsValueState(Settings.KEY_FEED_SHOW_NEW_ROW.name),
-            getString("s_key_feed_show_new_row), null
+            getString("s_key_feed_show_new_row"), null
         ),
         SettingsItemToggle(
             SettingsValueState(Settings.KEY_FEED_SHOW_MOODS_ROW.name),
-            getString("s_key_feed_show_moods_row), null
+            getString("s_key_feed_show_moods_row"), null
         ),
         SettingsItemToggle(
             SettingsValueState(Settings.KEY_FEED_SHOW_CHARTS_ROW.name),
-            getString("s_key_feed_show_charts_row), null
+            getString("s_key_feed_show_charts_row"), null
         )
     )
 }
 
 private fun groupTheming(theme_manager: ThemeManager): List<SettingsItem> {
     return listOf(
-        SettingsGroup(getString("s_group_theming)),
+        SettingsGroup(getString("s_group_theming")),
 
         SettingsItemThemeSelector (
             SettingsValueState(Settings.KEY_CURRENT_THEME.name),
-            getString("s_key_current_theme), null,
-            getString("s_theme_editor_title),
+            getString("s_key_current_theme"), null,
+            getString("s_theme_editor_title"),
             {
                 check(theme_manager.themes.isNotEmpty())
                 theme_manager.themes.size
@@ -503,31 +505,31 @@ private fun groupTheming(theme_manager: ThemeManager): List<SettingsItem> {
             { index: Int, edited_theme: ThemeData ->
                 theme_manager.updateTheme(index, edited_theme)
             },
-            { theme_manager.addTheme(Theme.default.copy(name = getString("theme_title_new))) },
+            { theme_manager.addTheme(Theme.default.copy(name = getString("theme_title_new"))) },
             { theme_manager.removeTheme(it) }
         ),
 
         SettingsItemMultipleChoice(
             SettingsValueState(Settings.KEY_ACCENT_COLOUR_SOURCE.name),
-            getString("s_key_accent_source), null,
+            getString("s_key_accent_source"), null,
             3, false
         ) { choice ->
             when (AccentColourSource.values()[choice]) {
-                AccentColourSource.THEME     -> getString("s_option_accent_theme)
-                AccentColourSource.THUMBNAIL -> getString("s_option_accent_thumbnail)
-                AccentColourSource.SYSTEM    -> getString("s_option_accent_system)
+                AccentColourSource.THEME     -> getString("s_option_accent_theme")
+                AccentColourSource.THUMBNAIL -> getString("s_option_accent_thumbnail")
+                AccentColourSource.SYSTEM    -> getString("s_option_accent_system")
             }
         },
 
         SettingsItemMultipleChoice(
             SettingsValueState(Settings.KEY_NOWPLAYING_THEME_MODE.name),
-            getString("s_key_np_theme_mode), null,
+            getString("s_key_np_theme_mode"), null,
             3, false
         ) { choice ->
             when (choice) {
-                0 ->    getString("s_option_np_accent_background)
-                1 ->    getString("s_option_np_accent_elements)
-                else -> getString("s_option_np_accent_none)
+                0 ->    getString("s_option_np_accent_background")
+                1 ->    getString("s_option_np_accent_elements")
+                else -> getString("s_option_np_accent_none")
             }
         }
     )
@@ -535,55 +537,55 @@ private fun groupTheming(theme_manager: ThemeManager): List<SettingsItem> {
 
 private fun groupLyrics(): List<SettingsItem> {
     return listOf(
-        SettingsGroup(getString("s_group_lyrics)),
+        SettingsGroup(getString("s_group_lyrics")),
 
         SettingsItemToggle(
             SettingsValueState(Settings.KEY_LYRICS_FOLLOW_ENABLED.name),
-            getString("s_key_lyrics_follow_enabled), getString("s_sub_lyrics_follow_enabled)
+            getString("s_key_lyrics_follow_enabled"), getString("s_sub_lyrics_follow_enabled")
         ),
 
         SettingsItemSlider(
             SettingsValueState(Settings.KEY_LYRICS_FOLLOW_OFFSET.name),
-            getString("s_key_lyrics_follow_offset), getString("s_sub_lyrics_follow_offset),
-            getString("s_option_lyrics_follow_offset_top), getString("s_option_lyrics_follow_offset_bottom), steps = 5,
+            getString("s_key_lyrics_follow_offset"), getString("s_sub_lyrics_follow_offset"),
+            getString("s_option_lyrics_follow_offset_top"), getString("s_option_lyrics_follow_offset_bottom"), steps = 5,
             getValueText = null
         ),
 
         SettingsItemToggle(
             SettingsValueState(Settings.KEY_LYRICS_DEFAULT_FURIGANA.name),
-            getString("s_key_lyrics_default_furigana), null
+            getString("s_key_lyrics_default_furigana"), null
         ),
 
         SettingsItemDropdown(
             SettingsValueState(Settings.KEY_LYRICS_TEXT_ALIGNMENT.name),
-            getString("s_key_lyrics_text_alignment), null, 3
+            getString("s_key_lyrics_text_alignment"), null, 3
         ) { i ->
             when (i) {
-                0 ->    getString("s_option_lyrics_text_alignment_left)
-                1 ->    getString("s_option_lyrics_text_alignment_center)
-                else -> getString("s_option_lyrics_text_alignment_right)
+                0 ->    getString("s_option_lyrics_text_alignment_left")
+                1 ->    getString("s_option_lyrics_text_alignment_center")
+                else -> getString("s_option_lyrics_text_alignment_right")
             }
         },
 
         SettingsItemToggle(
             SettingsValueState(Settings.KEY_LYRICS_EXTRA_PADDING.name),
-            getString("s_key_lyrics_extra_padding), getString("s_sub_lyrics_extra_padding)
+            getString("s_key_lyrics_extra_padding"), getString("s_sub_lyrics_extra_padding")
         )
     )
 }
 
 private fun groupDownloads(): List<SettingsItem> {
     return listOf(
-        SettingsGroup(getString("s_group_download)),
+        SettingsGroup(getString("s_group_download")),
 
         SettingsItemToggle(
             SettingsValueState(Settings.KEY_AUTO_DOWNLOAD_ENABLED.name),
-            getString("s_key_auto_download_enabled), null
+            getString("s_key_auto_download_enabled"), null
         ),
 
         SettingsItemSlider(
             SettingsValueState<Int>(Settings.KEY_AUTO_DOWNLOAD_THRESHOLD.name),
-            getString("s_key_auto_download_threshold), getString("s_sub_auto_download_threshold),
+            getString("s_key_auto_download_threshold"), getString("s_sub_auto_download_threshold"),
             range = 1f .. 10f,
             min_label = "1",
             max_label = "10"
@@ -593,27 +595,27 @@ private fun groupDownloads(): List<SettingsItem> {
 
 private fun groupAudioVideo(): List<SettingsItem> {
     return listOf(
-        SettingsGroup(getString("s_group_audio_video)),
+        SettingsGroup(getString("s_group_audio_video")),
 
         SettingsItemDropdown(
             SettingsValueState(Settings.KEY_STREAM_AUDIO_QUALITY.name),
-            getString("s_key_stream_audio_quality), getString("s_sub_stream_audio_quality), 3
+            getString("s_key_stream_audio_quality"), getString("s_sub_stream_audio_quality"), 3
         ) { i ->
             when (i) {
-                Song.AudioQuality.HIGH.ordinal ->   getString("s_option_audio_quality_high)
-                Song.AudioQuality.MEDIUM.ordinal -> getString("s_option_audio_quality_medium)
-                else ->                             getString("s_option_audio_quality_low)
+                Song.AudioQuality.HIGH.ordinal ->   getString("s_option_audio_quality_high")
+                Song.AudioQuality.MEDIUM.ordinal -> getString("s_option_audio_quality_medium")
+                else ->                             getString("s_option_audio_quality_low")
             }
         },
 
         SettingsItemDropdown(
             SettingsValueState(Settings.KEY_DOWNLOAD_AUDIO_QUALITY.name),
-            getString("s_key_download_audio_quality), getString("s_sub_download_audio_quality), 3
+            getString("s_key_download_audio_quality"), getString("s_sub_download_audio_quality"), 3
         ) { i ->
             when (i) {
-                Song.AudioQuality.HIGH.ordinal ->   getString("s_option_audio_quality_high)
-                Song.AudioQuality.MEDIUM.ordinal -> getString("s_option_audio_quality_medium)
-                else ->                             getString("s_option_audio_quality_low)
+                Song.AudioQuality.HIGH.ordinal ->   getString("s_option_audio_quality_high")
+                Song.AudioQuality.MEDIUM.ordinal -> getString("s_option_audio_quality_medium")
+                else ->                             getString("s_option_audio_quality_low")
             }
         }
     )
@@ -621,10 +623,10 @@ private fun groupAudioVideo(): List<SettingsItem> {
 
 private fun groupOther(): List<SettingsItem> {
     return listOf(
-        SettingsGroup(getString("s_group_other)),
+        SettingsGroup(getString("s_group_other")),
 
         SettingsItemSubpage(
-            getString("s_page_acc_service),
+            getString("s_page_acc_service"),
             null,
             Page.ACCESSIBILITY_SERVICE.ordinal
         )

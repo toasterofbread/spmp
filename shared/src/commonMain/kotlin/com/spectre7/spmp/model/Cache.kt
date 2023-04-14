@@ -1,6 +1,6 @@
 package com.spectre7.spmp.model
 
-import com.spectre7.spmp.ProjectContext
+import com.spectre7.spmp.platform.PlatformContext
 import java.io.BufferedReader
 import java.io.File
 import java.io.FileNotFoundException
@@ -13,8 +13,8 @@ class Cache {
     companion object {
         private lateinit var cache_dir: File
 
-        fun init(context: ProjectContext) {
-            cache_dir = File(context.cacheDir, getString(R.string.app_name, context))
+        fun init(context: PlatformContext) {
+            cache_dir = File(context.getCacheDir(), com.spectre7.utils.getString("app_name"))
 
             if (!cache_dir.exists()) {
                 cache_dir.mkdirs()

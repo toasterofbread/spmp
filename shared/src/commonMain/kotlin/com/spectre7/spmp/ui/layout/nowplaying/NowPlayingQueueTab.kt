@@ -22,18 +22,15 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.draw.rotate
 import androidx.compose.ui.graphics.Color
-import androidx.compose.ui.platform.LocalConfiguration
 import androidx.compose.ui.platform.LocalDensity
-import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.unit.*
-import com.google.android.exoplayer2.C
-import com.google.android.exoplayer2.Player
 import com.spectre7.spmp.PlayerServiceHost
-import com.spectre7.spmp.R
 import com.spectre7.spmp.model.MediaItem
 import com.spectre7.spmp.model.NowPlayingQueueRadioInfoPosition
 import com.spectre7.spmp.model.Settings
 import com.spectre7.spmp.model.Song
+import com.spectre7.spmp.platform.MediaPlayerRepeatMode
+import com.spectre7.spmp.platform.vibrateShort
 import com.spectre7.spmp.ui.layout.MINIMISED_NOW_PLAYING_HEIGHT
 import com.spectre7.spmp.ui.layout.PlayerViewContext
 import com.spectre7.utils.*
@@ -70,7 +67,7 @@ private class QueueTabItem(val song: Song, val key: Int) {
         requestRemove: () -> Unit
     ) {
         val swipe_state = queueElementSwipeState(requestRemove)
-        val max_offset = with(LocalDensity.current) { LocalConfiguration.current.screenWidthDp.dp.toPx() }
+        val max_offset = with(LocalDensity.current) { SpMp.context.getScreenWidth().toPx() }
         val anchors = mapOf(-max_offset to 0, 0f to 1, max_offset to 2)
 
         Box(
@@ -92,7 +89,7 @@ private class QueueTabItem(val song: Song, val key: Int) {
                         remember(index) {
                             {
                                 playerProvider().copy(onClickedOverride = {
-                                    PlayerServiceHost.player.seekTo(index, C.TIME_UNSET)
+                                    PlayerServiceHost.player.seekTo(index)
                                 })
                             }
                         },
@@ -128,7 +125,7 @@ fun QueueTab(expansionProvider: () -> Float, playerProvider: () -> PlayerViewCon
     val radio_info_position: NowPlayingQueueRadioInfoPosition = Settings.getEnum(Settings.KEY_NP_QUEUE_RADIO_INFO_POSITION)
 
     val song_items: SnapshotStateList<QueueTabItem> = remember { mutableStateListOf<QueueTabItem>().also { list ->
-        PlayerServiceHost.service.iterateSongs { _, song: Song ->
+        PlayerServiceHost.player.iterateSongs { _, song: Song ->
             list.add(QueueTabItem(song, key_inc++))
         }
     } }
@@ -157,9 +154,9 @@ fun QueueTab(expansionProvider: () -> Float, playerProvider: () -> PlayerViewCon
     }
 
     DisposableEffect(Unit) {
-        PlayerServiceHost.service.addQueueListener(queue_listener)
+        PlayerServiceHost.player.addQueueListener(queue_listener)
         onDispose {
-            PlayerServiceHost.service.removeQueueListener(queue_listener)
+            PlayerServiceHost.player.removeQueueListener(queue_listener)
         }
     }
 
@@ -191,7 +188,7 @@ fun QueueTab(expansionProvider: () -> Float, playerProvider: () -> PlayerViewCon
 
                 Button(
                     onClick = {
-                        val undo: (() -> Unit)? = PlayerServiceHost.service.clearQueueWithUndo(keep_current = PlayerServiceHost.status.queue_size > 1)
+                        val undo: (() -> Unit)? = PlayerServiceHost.player.clearQueueWithUndo(keep_current = PlayerServiceHost.status.queue_size > 1)
                         if (undo != null) {
                             undo_list.add(undo)
                         }
@@ -201,31 +198,31 @@ fun QueueTab(expansionProvider: () -> Float, playerProvider: () -> PlayerViewCon
                         contentColor = background_colour.getContrasted()
                     )
                 ) {
-                    Text(getString("queue_clear))
+                    Text(getString("queue_clear"))
                 }
 
                 Surface(
                     Modifier.combinedClickable(
                         onClick = {
-                            val swaps = PlayerServiceHost.service.shuffleQueue(return_swaps = true)!!
+                            val swaps = PlayerServiceHost.player.shuffleQueue(return_swaps = true)!!
                             if (swaps.isNotEmpty()) {
                                 undo_list.add {
                                     for (swap in swaps.asReversed()) {
-                                        PlayerServiceHost.service.swapQueuePositions(swap.first, swap.second, save = false)
+                                        PlayerServiceHost.player.swapQueuePositions(swap.first, swap.second, save = false)
                                     }
-                                    PlayerServiceHost.service.savePersistentQueue()
+                                    PlayerServiceHost.player.savePersistentQueue()
                                 }
                             }
                         },
                         onLongClick = {
-                            vibrateShort()
-                            val swaps = PlayerServiceHost.service.shuffleQueue(start = 0, return_swaps = true)!!
+                            SpMp.context.vibrateShort()
+                            val swaps = PlayerServiceHost.player.shuffleQueue(start = 0, return_swaps = true)!!
                             if (swaps.isNotEmpty()) {
                                 undo_list.add {
                                     for (swap in swaps.asReversed()) {
-                                        PlayerServiceHost.service.swapQueuePositions(swap.first, swap.second, save = false)
+                                        PlayerServiceHost.player.swapQueuePositions(swap.first, swap.second, save = false)
                                     }
-                                    PlayerServiceHost.service.savePersistentQueue()
+                                    PlayerServiceHost.player.savePersistentQueue()
                                 }
                             }
                         }
@@ -244,7 +241,7 @@ fun QueueTab(expansionProvider: () -> Float, playerProvider: () -> PlayerViewCon
                         verticalAlignment = Alignment.CenterVertically
                     ) {
                         Text(
-                            text = getString("queue_shuffle),
+                            text = getString("queue_shuffle"),
                             color = background_colour.getContrasted(),
                             style = MaterialTheme.typography.labelLarge
                         )
@@ -266,7 +263,7 @@ fun QueueTab(expansionProvider: () -> Float, playerProvider: () -> PlayerViewCon
                                 },
                                 onLongClick = {
                                     if (undo_list.isNotEmpty()) {
-                                        vibrateShort()
+                                        SpMp.context.vibrateShort()
                                         for (undo_action in undo_list.asReversed()) {
                                             undo_action.invoke()
                                         }
@@ -287,7 +284,7 @@ fun QueueTab(expansionProvider: () -> Float, playerProvider: () -> PlayerViewCon
                 CurrentRadioIndicator(queue_background_colour, background_colour, playerProvider)
             }
 
-            Divider(Modifier.padding(horizontal = list_padding), background_colour)
+            Divider(Modifier.padding(horizontal = list_padding), 1.dp, background_colour)
 
             val items_above_queue = if (radio_info_position == NowPlayingQueueRadioInfoPosition.ABOVE_ITEMS) 1 else 0
             val state = rememberReorderableLazyListState(
@@ -296,7 +293,7 @@ fun QueueTab(expansionProvider: () -> Float, playerProvider: () -> PlayerViewCon
                 },
                 onDragEnd = { from, to ->
                     if (from != to) {
-                        PlayerServiceHost.player.moveMediaItem(from - items_above_queue, to - items_above_queue)
+                        PlayerServiceHost.player.moveSong(from - items_above_queue, to - items_above_queue)
                         playing_key = null
 
                         undo_list.add {
@@ -326,7 +323,7 @@ fun QueueTab(expansionProvider: () -> Float, playerProvider: () -> PlayerViewCon
                     ReorderableItem(state, key = item.key) { is_dragging ->
                         LaunchedEffect(is_dragging) {
                             if (is_dragging) {
-                                vibrateShort()
+                                SpMp.context.vibrateShort()
                                 playing_key = song_items[PlayerServiceHost.status.index].key
                             }
                         }
@@ -341,15 +338,15 @@ fun QueueTab(expansionProvider: () -> Float, playerProvider: () -> PlayerViewCon
                                 playerProvider
                             ) {
                                 undo_list.add {
-                                    PlayerServiceHost.service.addToQueue(item.song, index)
+                                    PlayerServiceHost.player.addToQueue(item.song, index)
                                 }
-                                PlayerServiceHost.service.removeFromQueue(index)
+                                PlayerServiceHost.player.removeFromQueue(index)
                             }
                         }
                     }
                 }
 
-                if (PlayerServiceHost.service.radio_loading) {
+                if (PlayerServiceHost.player.radio_loading) {
                     item {
                         Box(Modifier.height(50.dp), contentAlignment = Alignment.Center) {
                             SubtleLoadingIndicator(queue_background_colour.getContrasted())
@@ -371,7 +368,7 @@ private fun CurrentRadioIndicator(
     playerProvider: () -> PlayerViewContext
 ) {
     Column {
-        val radio_item: MediaItem? = PlayerServiceHost.service.radio_item
+        val radio_item: MediaItem? = PlayerServiceHost.player.radio_item
         if (radio_item != null && radio_item !is Song) {
             radio_item.PreviewLong(MediaItem.PreviewParams(
                 playerProvider,
@@ -380,8 +377,8 @@ private fun CurrentRadioIndicator(
             ))
         }
 
-        val filters = PlayerServiceHost.service.radio_filters
-        val current_filter = PlayerServiceHost.service.radio_current_filter
+        val filters = PlayerServiceHost.player.radio_filters
+        val current_filter = PlayerServiceHost.player.radio_current_filter
         if (filters != null) {
             Row(
                 Modifier.horizontalScroll(rememberScrollState()),
@@ -393,8 +390,8 @@ private fun CurrentRadioIndicator(
                     FilterChip(
                         current_filter == filter?.index,
                         onClick = {
-                            if (PlayerServiceHost.service.radio_current_filter != filter?.index) {
-                                PlayerServiceHost.service.radio_current_filter = filter?.index
+                            if (PlayerServiceHost.player.radio_current_filter != filter?.index) {
+                                PlayerServiceHost.player.radio_current_filter = filter?.index
                             }
                         },
                         label = {
@@ -426,16 +423,16 @@ private fun RepeatButton(background_colour: Color, content_colour: Color, modifi
                 interactionSource = remember { MutableInteractionSource() },
                 indication = null,
                 onClick = {
-                    PlayerServiceHost.player.repeatMode =
-                        when (PlayerServiceHost.player.repeatMode) {
-                            Player.REPEAT_MODE_ALL -> Player.REPEAT_MODE_ONE
-                            Player.REPEAT_MODE_ONE -> Player.REPEAT_MODE_OFF
-                            else -> Player.REPEAT_MODE_ALL
+                    PlayerServiceHost.player.repeat_mode =
+                        when (PlayerServiceHost.player.repeat_mode) {
+                            MediaPlayerRepeatMode.REPEAT_MODE_ALL -> MediaPlayerRepeatMode.REPEAT_MODE_ONE
+                            MediaPlayerRepeatMode.REPEAT_MODE_ONE -> MediaPlayerRepeatMode.REPEAT_MODE_OFF
+                            else -> MediaPlayerRepeatMode.REPEAT_MODE_ALL
                         }
                 }
             )
             .crossOut(
-                crossed_out = PlayerServiceHost.status.m_repeat_mode == Player.REPEAT_MODE_OFF,
+                crossed_out = PlayerServiceHost.status.m_repeat_mode == MediaPlayerRepeatMode.REPEAT_MODE_OFF,
                 colour = content_colour,
                 width = 5f
             ) {
@@ -447,10 +444,10 @@ private fun RepeatButton(background_colour: Color, content_colour: Color, modifi
         contentAlignment = Alignment.Center
     ) {
         Icon(
-            painterResource(when (PlayerServiceHost.status.m_repeat_mode) {
-                Player.REPEAT_MODE_ONE -> R.drawable.ic_repeat_one
-                else -> R.drawable.ic_repeat
-            }),
+            when (PlayerServiceHost.status.m_repeat_mode) {
+                MediaPlayerRepeatMode.REPEAT_MODE_ONE -> Icons.Filled.RepeatOne
+                else -> Icons.Filled.Repeat
+            },
             null,
             Modifier.size(20.dp),
             tint = content_colour
@@ -462,13 +459,13 @@ private fun RepeatButton(background_colour: Color, content_colour: Color, modifi
 @Composable
 private fun StopAfterSongButton(background_colour: Color, modifier: Modifier = Modifier) {
     val rotation = remember { Animatable(0f) }
-    OnChangedEffect(PlayerServiceHost.service.stop_after_current_song) {
+    OnChangedEffect(PlayerServiceHost.player.stop_after_current_song) {
         rotation.animateTo(
-            if (PlayerServiceHost.service.stop_after_current_song) 180f else 0f
+            if (PlayerServiceHost.player.stop_after_current_song) 180f else 0f
         )
     }
 
-    Crossfade(PlayerServiceHost.service.stop_after_current_song) { stopping ->
+    Crossfade(PlayerServiceHost.player.stop_after_current_song) { stopping ->
         Box(
             modifier = modifier
                 .minimumTouchTargetSize()
@@ -478,7 +475,7 @@ private fun StopAfterSongButton(background_colour: Color, modifier: Modifier = M
                 .combinedClickable(
                     interactionSource = remember { MutableInteractionSource() },
                     indication = null,
-                    onClick = { PlayerServiceHost.service.stop_after_current_song = !stopping },
+                    onClick = { PlayerServiceHost.player.stop_after_current_song = !stopping },
                     onLongClick = {}
                 ),
             contentAlignment = Alignment.Center

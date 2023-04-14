@@ -11,8 +11,6 @@ import com.spectre7.spmp.api.isSubscribedToArtist
 import com.spectre7.spmp.api.subscribeOrUnsubscribeArtist
 import com.spectre7.spmp.ui.component.ArtistPreviewLong
 import com.spectre7.spmp.ui.component.ArtistPreviewSquare
-import com.spectre7.utils.lazyAssert
-import com.spectre7.utils.sendToast
 import kotlin.concurrent.thread
 
 class Artist private constructor (
@@ -125,7 +123,7 @@ class Artist private constructor (
         subscribed = isSubscribedToArtist(this).getOrThrowHere()
     }
 
-    fun toggleSubscribe(toggle_before_fetch: Boolean = false, notify_failure: Boolean = false) {
+    fun toggleSubscribe(toggle_before_fetch: Boolean = false, onFinished: ((success: Boolean, subscribing: Boolean) -> Unit)? = null) {
         if (unknown) {
             return
         }
@@ -144,12 +142,7 @@ class Artist private constructor (
             subscribeOrUnsubscribeArtist(this, target).getOrThrowHere()
             updateSubscribed()
 
-            if (notify_failure && subscribed != target) {
-                sendToast(
-                    if (target) "Subscribing to $title failed"
-                    else        "Unsubscribed from $title failed"
-                )
-            }
+            onFinished?.invoke(subscribed == target, target)
         }
     }
 }

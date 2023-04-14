@@ -23,9 +23,8 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.TextUnit
 import androidx.compose.ui.unit.dp
-import coil.compose.rememberAsyncImagePainter
 import com.beust.klaxon.Json
-import com.spectre7.spmp.R
+import com.lt.load_the_image.rememberImagePainter
 import com.spectre7.spmp.api.*
 import com.spectre7.spmp.api.DataApi.Companion.addYtHeaders
 import com.spectre7.spmp.api.DataApi.Companion.ytUrl
@@ -34,6 +33,7 @@ import com.spectre7.spmp.ui.layout.PlayerViewContext
 import com.spectre7.spmp.ui.theme.Theme
 import com.spectre7.utils.WidthShrinkText
 import com.spectre7.utils.getContrasted
+import com.spectre7.utils.getString
 import com.spectre7.utils.getStringTemp
 import okhttp3.Request
 
@@ -202,7 +202,7 @@ data class MediaItemLayout(
             val thumbnail_url = thumbnail_source?.getThumbUrl(MediaItem.ThumbnailQuality.LOW)
             if (thumbnail_url != null) {
                 Image(
-                    rememberAsyncImagePainter(thumbnail_url), title,
+                    rememberImagePainter(thumbnail_url), title,
                     Modifier
                         .fillMaxHeight()
                         .aspectRatio(1f)
@@ -414,7 +414,7 @@ fun MediaItemCard(
         }
     }
 
-    LaunchedEffect(item.thumbnail_palette) {
+    LaunchedEffect(item.canGetThemeColour()) {
         if (accent_colour != null) {
             return@LaunchedEffect
         }
@@ -424,7 +424,7 @@ fun MediaItemCard(
             return@LaunchedEffect
         }
 
-        if (item.thumbnail_palette != null) {
+        if (item.canGetThemeColour()) {
             accent_colour = item.getDefaultThemeColour()
         }
     }
@@ -516,10 +516,10 @@ fun MediaItemCard(
                     contentColor = (accent_colour ?: Theme.current.vibrant_accent).getContrasted()
                 )
             ) {
-                Text(getStringTemp(when (item.type) {
-                    MediaItem.Type.SONG -> R.string.media_play
-                    MediaItem.Type.ARTIST -> R.string.artist_chip_play
-                    MediaItem.Type.PLAYLIST -> R.string.playlist_chip_play
+                Text(getString(when (item.type) {
+                    MediaItem.Type.SONG -> "media_play"
+                    MediaItem.Type.ARTIST -> "artist_chip_play"
+                    MediaItem.Type.PLAYLIST -> "playlist_chip_play"
                 }))
             }
         }

@@ -1,16 +1,16 @@
 package com.spectre7.spmp.api
 
-import android.text.Html
+import org.jsoup.Jsoup
 import android.util.Xml
 import com.atilika.kuromoji.ipadic.Tokenizer
 import com.spectre7.spmp.model.Song
 import com.spectre7.utils.hasKanjiAndHiragana
 import com.spectre7.utils.isKanji
-import com.spectre7.utils.lazyAssert
 import okhttp3.MediaType.Companion.toMediaType
 import okhttp3.Request
 import okhttp3.RequestBody.Companion.toRequestBody
 import org.xmlpull.v1.XmlPullParser
+import org.xmlpull.v1.XmlPullParserFactory
 import java.lang.Float.max
 import java.lang.Float.min
 import java.util.*
@@ -193,7 +193,7 @@ private fun parseStaticLyrics(data: String): List<List<Song.Lyrics.Term>> {
 }
 
 private fun parseTimedLyrics(data: String): List<List<Song.Lyrics.Term>> {
-    val parser = Xml.newPullParser()
+    val parser = XmlPullParserFactory.newInstance().newPullParser()
     parser.setFeature(XmlPullParser.FEATURE_PROCESS_NAMESPACES, false)
     parser.setInput(data.reader())
     parser.nextTag()
@@ -455,7 +455,7 @@ fun searchForLyrics(title: String, artist: String?): Result<List<LyricsSearchRes
                 }
 
                 r_id = result_id
-                r_name = Html.fromHtml(line.substring(0, end + RESULT_END.length), 0).toString()
+                r_name = Jsoup.parse(line.substring(0, end + RESULT_END.length)).ownText()
             }
             else {
                 val split = href.split('/')
@@ -463,11 +463,11 @@ fun searchForLyrics(title: String, artist: String?): Result<List<LyricsSearchRes
                 when (split[0]) {
                     "artist" -> {
                         r_artist_id = split[1]
-                        r_artist_name = Html.fromHtml(line.substring(0, end + RESULT_END.length), 0).toString()
+                        r_artist_name = Jsoup.parse(line.substring(0, end + RESULT_END.length)).ownText()
                     }
                     "album" -> {
                         r_album_id = split[1]
-                        r_album_name = Html.fromHtml(line.substring(0, end + RESULT_END.length), 0).toString()
+                        r_album_name = Jsoup.parse(line.substring(0, end + RESULT_END.length)).ownText()
                     }
                 }
             }

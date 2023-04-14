@@ -24,7 +24,6 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.*
 import androidx.compose.ui.zIndex
 import com.spectre7.spmp.PlayerServiceHost
-import com.spectre7.spmp.R
 import com.spectre7.spmp.model.Settings
 import com.spectre7.spmp.model.Song
 import com.spectre7.spmp.ui.component.PillMenu
@@ -61,7 +60,7 @@ class LyricsOverlayMenu(
             lyrics = null
             songProvider().getLyrics {
                 if (it == null) {
-                    sendToast(getString("no_lyrics_found))
+                    SpMp.context.sendToast(getString("no_lyrics_found"))
                     search_menu_open = true
                 }
                 else {

@@ -158,7 +158,7 @@ private fun LongPressMenuActionProvider.ArtistLongPressPopupActions(artist: Medi
         TODO()
     })
 
-    val queue_song = remember (PlayerServiceHost.service.active_queue_index) { PlayerServiceHost.service.getSong(PlayerServiceHost.service.active_queue_index) }
+    val queue_song = remember (PlayerServiceHost.player.active_queue_index) { PlayerServiceHost.player.getSong(PlayerServiceHost.player.active_queue_index) }
     if (queue_song != null) {
         Column {
             Row(verticalAlignment = Alignment.CenterVertically) {
@@ -185,7 +185,7 @@ private fun LongPressMenuActionProvider.ArtistLongPressPopupActions(artist: Medi
 
                     ElevatedButton(
                         {
-                            PlayerServiceHost.service.updateActiveQueueIndex(-1)
+                            PlayerServiceHost.player.updateActiveQueueIndex(-1)
                         },
                         button_modifier,
                         contentPadding = button_padding,
@@ -195,7 +195,7 @@ private fun LongPressMenuActionProvider.ArtistLongPressPopupActions(artist: Medi
                     }
                     ElevatedButton(
                         {
-                            PlayerServiceHost.service.updateActiveQueueIndex(1)
+                            PlayerServiceHost.player.updateActiveQueueIndex(1)
                         },
                         button_modifier,
                         contentPadding = button_padding,

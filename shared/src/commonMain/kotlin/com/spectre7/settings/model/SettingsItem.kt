@@ -1,20 +1,16 @@
 package com.spectre7.settings.model
 
-import com.spectre7.spmp.platform.ProjectContext
+import com.spectre7.spmp.platform.PlatformContext
 import com.spectre7.spmp.platform.ProjectPreferences
 import androidx.compose.animation.Animatable
 import androidx.compose.animation.Crossfade
-import androidx.compose.animation.core.SpringSpec
 import androidx.compose.animation.core.TweenSpec
-import androidx.compose.animation.core.animateFloatAsState
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.interaction.MutableInteractionSource
 import androidx.compose.foundation.layout.*
-import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
-import androidx.compose.material.*
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.ArrowDropDown
 import androidx.compose.material.icons.filled.Edit
@@ -22,12 +18,10 @@ import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.*
 import androidx.compose.ui.graphics.Color
-import androidx.compose.ui.graphics.graphicsLayer
-import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.*
-import com.github.krottv.compose.sliders.*
 import com.spectre7.composesettings.ui.SettingsPage
+import com.spectre7.spmp.platform.PlatformAlertDialog
 import com.spectre7.spmp.ui.theme.Theme
 import com.spectre7.utils.*
 import kotlin.math.roundToInt
@@ -35,10 +29,10 @@ import kotlin.math.roundToInt
 val SETTINGS_ITEM_ROUNDED_SHAPE = RoundedCornerShape(16.dp)
 
 abstract class SettingsItem {
-    lateinit var context: ProjectContext
+    lateinit var context: PlatformContext
 
     private var initialised = false
-    fun initialise(context: ProjectContext, prefs: ProjectPreferences, default_provider: (String) -> Any) {
+    fun initialise(context: PlatformContext, prefs: ProjectPreferences, default_provider: (String) -> Any) {
         if (initialised) {
             return
         }
@@ -297,56 +291,56 @@ class SettingsItemSlider(
             var text by remember { mutableStateOf((if (is_int) getValue().roundToInt() else getValue()).toString()) }
             var error by remember { mutableStateOf<String?>(null) }
 
-            AlertDialog(
-                {
-                    show_edit_dialog = false
-                },
-                confirmButton = {
-                    FilledTonalButton(
-                        {
-                            try {
-                                setValue(if (is_int) text.toInt().toFloat() else text.toFloat())
-                                show_edit_dialog = false
-                            }
-                            catch(_: NumberFormatException) {}
-                        },
-                        enabled = error == null
-                    ) {
-                        Text("Done")
-                    }
-                },
-                dismissButton = { TextButton( { show_edit_dialog = false } ) { Text("Cancel") } },
-                title = { ItemTitleText(title ?: "Edit field", theme) },
-                text = {
-                    OutlinedTextField(
-                        value = text,
-                        isError = error != null,
-                        label = {
-                            Crossfade(error) { error_text ->
-                                if (error_text != null) {
-                                    Text(error_text)
-                                }
-                            }
-                        },
-                        onValueChange = {
-                            text = it
-
-                            try {
-                                val value: Float = if (is_int) text.toInt().toFloat() else text.toFloat()
-                                if (!range.contains(value)) {
-                                    error = getStringTemp("Value is out of range ($range)")
-                                    return@OutlinedTextField
-                                }
-
-                                error = null
-                            }
-                            catch(_: NumberFormatException) {
-                                error = if (is_int) getStringTemp("Value is not an integer") else getStringTemp("Value is not a float")
-                            }
-                        },
-                        singleLine = true
-                    )
-                }
+            PlatformAlertDialog(
+//                {
+//                    show_edit_dialog = false
+//                },
+//                confirmButton = {
+//                    FilledTonalButton(
+//                        {
+//                            try {
+//                                setValue(if (is_int) text.toInt().toFloat() else text.toFloat())
+//                                show_edit_dialog = false
+//                            }
+//                            catch(_: NumberFormatException) {}
+//                        },
+//                        enabled = error == null
+//                    ) {
+//                        Text("Done")
+//                    }
+//                },
+//                dismissButton = { TextButton( { show_edit_dialog = false } ) { Text("Cancel") } },
+//                title = { ItemTitleText(title ?: "Edit field", theme) },
+//                text = {
+//                    OutlinedTextField(
+//                        value = text,
+//                        isError = error != null,
+//                        label = {
+//                            Crossfade(error) { error_text ->
+//                                if (error_text != null) {
+//                                    Text(error_text)
+//                                }
+//                            }
+//                        },
+//                        onValueChange = {
+//                            text = it
+//
+//                            try {
+//                                val value: Float = if (is_int) text.toInt().toFloat() else text.toFloat()
+//                                if (!range.contains(value)) {
+//                                    error = getStringTemp("Value is out of range ($range)")
+//                                    return@OutlinedTextField
+//                                }
+//
+//                                error = null
+//                            }
+//                            catch(_: NumberFormatException) {
+//                                error = if (is_int) getStringTemp("Value is not an integer") else getStringTemp("Value is not a float")
+//                            }
+//                        },
+//                        singleLine = true
+//                    )
+//                }
             )
         }
 
@@ -369,76 +363,77 @@ class SettingsItemSlider(
                 if (min_label != null) {
                     ItemText(min_label, theme, 12.sp)
                 }
-                SliderValueHorizontal(
-                    value = getValue(),
-                    onValueChange = { setValue(it) },
-                    onValueChangeFinished = {
-                        state.save()
-                    },
-                    thumbSizeInDp = DpSize(12.dp, 12.dp),
-                    track = { a, b, c, d, e ->
-                        DefaultTrack(a, b, c, d, e,
-                            theme.vibrant_accent.setAlpha(0.5f),
-                            theme.vibrant_accent,
-                            colorTickProgress = theme.vibrant_accent.getContrasted().setAlpha(0.5f)
-                        )
-                    },
-                    thumb = { modifier, offset, interaction_source, enabled, thumb_size ->
-                        val colour = theme.vibrant_accent
-                        val scale_on_press = 1.15f
-                        val animation_spec = SpringSpec<Float>(0.65f)
-                        val value_text = getValueText?.invoke(getValue())
-
-                        if (value_text != null) {
-                            MeasureUnconstrainedView({ ItemText(value_text, theme) }) { width, height ->
-
-                                var is_pressed by remember { mutableStateOf(false) }
-                                interaction_source.ListenOnPressed { is_pressed = it }
-                                val scale: Float by animateFloatAsState(
-                                    if (is_pressed) scale_on_press else 1f,
-                                    animationSpec = animation_spec
-                                )
-
-                                Column(
-                                    Modifier
-                                        .offset(with(LocalDensity.current) { offset - (width.toDp() / 2) + 12.dp })
-                                        .requiredHeight(55.dp)
-                                        .graphicsLayer(scale, scale),
-                                    verticalArrangement = Arrangement.Bottom,
-                                    horizontalAlignment = Alignment.CenterHorizontally
-                                ) {
-                                    Spacer(
-                                        Modifier
-                                            .size(12.dp)
-                                            .background(
-                                                if (enabled) colour else
-                                                    colour.setAlpha(0.6f), CircleShape
-                                            )
-                                    )
-                                    ItemText(value_text, theme)
-                                }
-                            }
-                        }
-                        else {
-                            DefaultThumb(
-                                modifier,
-                                offset,
-                                interaction_source,
-                                true,
-                                thumb_size,
-                                colour,
-                                scale_on_press,
-                                animation_spec
-                            )
-                        }
-                    },
-                    steps = steps,
-                    modifier = Modifier.weight(1f),
-                    valueRange = range
-                )
-                if (max_label != null) {
-                    ItemText(max_label, theme, 12.sp)
-                }
+                TODO()
+//                SliderValueHorizontal(
+//                    value = getValue(),
+//                    onValueChange = { setValue(it) },
+//                    onValueChangeFinished = {
+//                        state.save()
+//                    },
+//                    thumbSizeInDp = DpSize(12.dp, 12.dp),
+//                    track = { a, b, c, d, e ->
+//                        DefaultTrack(a, b, c, d, e,
+//                            theme.vibrant_accent.setAlpha(0.5f),
+//                            theme.vibrant_accent,
+//                            colorTickProgress = theme.vibrant_accent.getContrasted().setAlpha(0.5f)
+//                        )
+//                    },
+//                    thumb = { modifier, offset, interaction_source, enabled, thumb_size ->
+//                        val colour = theme.vibrant_accent
+//                        val scale_on_press = 1.15f
+//                        val animation_spec = SpringSpec<Float>(0.65f)
+//                        val value_text = getValueText?.invoke(getValue())
+//
+//                        if (value_text != null) {
+//                            MeasureUnconstrainedView({ ItemText(value_text, theme) }) { width, height ->
+//
+//                                var is_pressed by remember { mutableStateOf(false) }
+//                                interaction_source.ListenOnPressed { is_pressed = it }
+//                                val scale: Float by animateFloatAsState(
+//                                    if (is_pressed) scale_on_press else 1f,
+//                                    animationSpec = animation_spec
+//                                )
+//
+//                                Column(
+//                                    Modifier
+//                                        .offset(with(LocalDensity.current) { offset - (width.toDp() / 2) + 12.dp })
+//                                        .requiredHeight(55.dp)
+//                                        .graphicsLayer(scale, scale),
+//                                    verticalArrangement = Arrangement.Bottom,
+//                                    horizontalAlignment = Alignment.CenterHorizontally
+//                                ) {
+//                                    Spacer(
+//                                        Modifier
+//                                            .size(12.dp)
+//                                            .background(
+//                                                if (enabled) colour else
+//                                                    colour.setAlpha(0.6f), CircleShape
+//                                            )
+//                                    )
+//                                    ItemText(value_text, theme)
+//                                }
+//                            }
+//                        }
+//                        else {
+//                            DefaultThumb(
+//                                modifier,
+//                                offset,
+//                                interaction_source,
+//                                true,
+//                                thumb_size,
+//                                colour,
+//                                scale_on_press,
+//                                animation_spec
+//                            )
+//                        }
+//                    },
+//                    steps = steps,
+//                    modifier = Modifier.weight(1f),
+//                    valueRange = range
+//                )
+//                if (max_label != null) {
+//                    ItemText(max_label, theme, 12.sp)
+//                }
             }
         }
     }
@@ -699,9 +694,9 @@ class SettingsItemAccessibilityService(
     val service_bridge: AccessibilityServiceBridge
 ): SettingsItem() {
     interface AccessibilityServiceBridge {
-        fun addEnabledListener(listener: (Boolean) -> Unit, context: ProjectContext)
-        fun removeEnabledListener(listener: (Boolean) -> Unit, context: ProjectContext)
-        fun isEnabled(context: ProjectContext): Boolean
+        fun addEnabledListener(listener: (Boolean) -> Unit, context: PlatformContext)
+        fun removeEnabledListener(listener: (Boolean) -> Unit, context: PlatformContext)
+        fun isEnabled(context: PlatformContext): Boolean
         fun setEnabled(enabled: Boolean)
     }
 

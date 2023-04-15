@@ -493,60 +493,60 @@ private fun DescriptionCard(description_text: String, background_colour: Color, 
 @Composable
 private fun InfoDialog(item: MediaItem, close: () -> Unit) {
     PlatformAlertDialog(
-//        close,
-//        confirmButton = {
-//            FilledTonalButton(
-//                close
-//            ) {
-//                Text("Close")
-//            }
-//        },
-//        title = { Text(getStringTemp(when (item) {
-//            is Artist -> "Artist info"
-//            is Playlist -> "Playlist info"
-//            else -> throw NotImplementedError(item.type.toString())
-//        })) },
-//        text = {
-//            @Composable
-//            fun InfoValue(name: String, value: String) {
-//                Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.spacedBy(20.dp), verticalAlignment = Alignment.CenterVertically) {
-//                    Column(
-//                        Modifier
-//                            .fillMaxWidth()
-//                            .weight(1f)) {
-//                        Text(name, style = MaterialTheme.typography.labelLarge)
-//                        Box(Modifier.fillMaxWidth()) {
-//                            Marquee(false) {
-//                                Text(value, softWrap = false)
-//                            }
-//                        }
-//                    }
-//
-//                    Row(horizontalArrangement = Arrangement.End) {
-//                        val clipboard = LocalClipboardManager.current
-//                        IconButton({
-//                            clipboard.setText(AnnotatedString(value))
-//                            SpMp.context.sendToast("Copied ${name.lowercase()} to clipboard")
-//                        }) {
-//                            Icon(Icons.Filled.ContentCopy, null, Modifier.size(20.dp))
-//                        }
-//
-//                        if (SpMp.context.canShare()) {
-//                            IconButton({
-//                                SpMp.context.shareText(value)
-//                            }) {
-//                                Icon(Icons.Filled.Share, null, Modifier.size(20.dp))
-//                            }
-//                        }
-//                    }
-//                }
-//            }
-//
-//            Column(Modifier.fillMaxWidth(), verticalArrangement = Arrangement.Center) {
-//                InfoValue("Name", item.title ?: "")
-//                InfoValue("Id", item.id)
-//                InfoValue("Url", item.url)
-//            }
-//        }
+        close,
+        confirmButton = {
+            FilledTonalButton(
+                close
+            ) {
+                Text("Close")
+            }
+        },
+        title = { Text(getStringTemp(when (item) {
+            is Artist -> "Artist info"
+            is Playlist -> "Playlist info"
+            else -> throw NotImplementedError(item.type.toString())
+        })) },
+        text = {
+            @Composable
+            fun InfoValue(name: String, value: String) {
+                Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.spacedBy(20.dp), verticalAlignment = Alignment.CenterVertically) {
+                    Column(
+                        Modifier
+                            .fillMaxWidth()
+                            .weight(1f)) {
+                        Text(name, style = MaterialTheme.typography.labelLarge)
+                        Box(Modifier.fillMaxWidth()) {
+                            Marquee(false) {
+                                Text(value, softWrap = false)
+                            }
+                        }
+                    }
+
+                    Row(horizontalArrangement = Arrangement.End) {
+                        val clipboard = LocalClipboardManager.current
+                        IconButton({
+                            clipboard.setText(AnnotatedString(value))
+                            SpMp.context.sendToast("Copied ${name.lowercase()} to clipboard")
+                        }) {
+                            Icon(Icons.Filled.ContentCopy, null, Modifier.size(20.dp))
+                        }
+
+                        if (SpMp.context.canShare()) {
+                            IconButton({
+                                SpMp.context.shareText(value)
+                            }) {
+                                Icon(Icons.Filled.Share, null, Modifier.size(20.dp))
+                            }
+                        }
+                    }
+                }
+            }
+
+            Column(Modifier.fillMaxWidth(), verticalArrangement = Arrangement.Center) {
+                InfoValue("Name", item.title ?: "")
+                InfoValue("Id", item.id)
+                InfoValue("Url", item.url)
+            }
+        }
     )
 }

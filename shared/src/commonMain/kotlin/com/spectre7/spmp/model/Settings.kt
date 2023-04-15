@@ -122,7 +122,7 @@ enum class Settings {
 
         inline fun <reified T: Enum<T>> getEnum(enum_key: Settings, preferences: ProjectPreferences = prefs, default: T? = null): T {
             val default_value: Int = default?.ordinal ?: getDefault(enum_key)
-            return enumValues<T>()[preferences.getInt(enum_key.name, default_value)]
+            return enumValues<T>()[preferences.getInt(enum_key.name, default_value)!!]
         }
 
         @Suppress("IMPLICIT_CAST_TO_ANY", "UNCHECKED_CAST")

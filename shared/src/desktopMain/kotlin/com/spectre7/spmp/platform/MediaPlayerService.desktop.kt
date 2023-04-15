@@ -22,7 +22,6 @@ actual open class MediaPlayerService actual constructor() : PlatformService() {
 
         actual open fun onEvents() {
         }
-
     }
 
     actual fun release() {

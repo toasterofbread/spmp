@@ -85,22 +85,22 @@ fun PrefsPage(pill_menu: PillMenu, playerProvider: () -> PlayerViewContext, clos
 
     if (show_reset_confirmation) {
         PlatformAlertDialog(
-//            { show_reset_confirmation = false },
-//            confirmButton = {
-//                FilledTonalButton(
-//                    {
-//                        reset = !reset
-//                        show_reset_confirmation = false
-//                    }
-//                ) {
-//                    Text(getString("action_confirm_action"))
-//                }
-//            },
-//            dismissButton = { TextButton( { show_reset_confirmation = false } ) { Text(getString("action_deny_action")) } },
-//            title = { Text(getString("prompt_confirm_action")) },
-//            text = {
-//                Text(getString("prompt_confirm_settings_page_reset"))
-//            }
+            { show_reset_confirmation = false },
+            confirmButton = {
+                FilledTonalButton(
+                    {
+                        reset = !reset
+                        show_reset_confirmation = false
+                    }
+                ) {
+                    Text(getString("action_confirm_action"))
+                }
+            },
+            dismissButton = { TextButton( { show_reset_confirmation = false } ) { Text(getString("action_deny_action")) } },
+            title = { Text(getString("prompt_confirm_action")) },
+            text = {
+                Text(getString("prompt_confirm_settings_page_reset"))
+            }
         )
     }
 

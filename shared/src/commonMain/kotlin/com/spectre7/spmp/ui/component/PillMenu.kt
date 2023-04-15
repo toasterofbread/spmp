@@ -1,6 +1,5 @@
 package com.spectre7.spmp.ui.component
 
-import android.annotation.SuppressLint
 import androidx.compose.animation.*
 import androidx.compose.animation.core.tween
 import androidx.compose.foundation.background
@@ -126,7 +125,6 @@ class PillMenu(
         }
     }
 
-    @SuppressLint("NotConstructor")
     @Composable
     fun PillMenu(
         action_count: Int = this.action_count,

@@ -4,6 +4,7 @@ import com.beust.klaxon.*
 import com.spectre7.spmp.platform.ProjectPreferences
 import com.spectre7.spmp.model.Settings
 import com.spectre7.utils.getString
+import com.spectre7.utils.getStringArray
 import okhttp3.*
 import okhttp3.MediaType.Companion.toMediaType
 import okhttp3.RequestBody.Companion.toRequestBody
@@ -157,14 +158,13 @@ class DataApi {
                 }
             }
             else {
-                TODO()
-//                val headers = MainActivity.resources.getStringArray(R.array.ytm_headers)
-//                var i = 0
-//                while (i < headers.size) {
-//                    val key = headers[i++]
-//                    val value = headers[i++]
-//                    headers_builder[key] = value
-//                }
+                val headers = getStringArray("ytm_headers")
+                var i = 0
+                while (i < headers.size) {
+                    val key = headers[i++]
+                    val value = headers[i++]
+                    headers_builder[key] = value
+                }
             }
 
             headers_builder["accept-encoding"] = "gzip, deflate"

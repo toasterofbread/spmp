@@ -143,9 +143,7 @@ fun getBuiltRadio(radio_token: String): Result<Playlist?> {
     require(radio_token.contains('E'))
 
     val playlist = Playlist.fromId(radio_token).supplyPlaylistType(Playlist.PlaylistType.RADIO, true)
-    println("PLAYLIST $playlist")
     val result = playlist.loadData(true)
-    println("RES $result")
 
     if (result.isFailure) {
         return result.cast()

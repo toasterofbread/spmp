@@ -1,31 +1,54 @@
 package com.spectre7.spmp.platform
 
-import androidx.compose.material.Colors
 import androidx.compose.material3.ColorScheme
+import androidx.compose.material3.darkColorScheme
+import androidx.compose.material3.lightColorScheme
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.text.font.Font
+import androidx.compose.ui.text.platform.Font
 import androidx.compose.ui.unit.Dp
+import androidx.compose.ui.unit.dp
+import com.spectre7.spmp.PlayerService
+import com.spectre7.utils.getString
+import org.jetbrains.skiko.OS
+import org.jetbrains.skiko.hostOs
+import java.awt.Window
 import java.io.File
 import java.io.FileInputStream
 import java.io.FileOutputStream
 import java.io.InputStream
+import java.nio.file.FileSystems
+import java.nio.file.Files
+import kotlin.io.path.name
+import kotlin.streams.toList
+
+private fun getHomeDir(): File = File(System.getProperty("user.home"))
 
 actual open class PlatformContext {
-    actual fun getPrefs(): ProjectPreferences {
-        TODO("Not yet implemented")
-    }
+    actual fun getPrefs(): ProjectPreferences = ProjectPreferences.getInstance(this)
 
-    actual fun getAppName(): String {
-        TODO("Not yet implemented")
-    }
+    actual fun getAppName(): String = getString("app_name")
 
     actual fun getFilesDir(): File {
-        TODO("Not yet implemented")
+        val subdir = when (hostOs) {
+            OS.Linux -> ".local/share"
+            OS.Windows -> TODO()
+            OS.MacOS -> TODO()
+            else -> throw NotImplementedError(hostOs.name)
+        }
+        return getHomeDir().resolve(subdir).resolve(getAppName())
     }
 
     actual fun getCacheDir(): File {
-        TODO("Not yet implemented")
+        val subdir = when (hostOs) {
+            OS.Linux -> ".cache"
+            OS.Windows -> TODO()
+            OS.MacOS -> TODO()
+            else -> throw NotImplementedError(hostOs.name)
+        }
+        return getHomeDir().resolve(subdir).resolve(getAppName())
     }
 
     actual fun isAppInForeground(): Boolean {
@@ -33,37 +56,28 @@ actual open class PlatformContext {
     }
 
     @Composable
-    actual fun getStatusBarHeight(): Dp {
-        TODO("Not yet implemented")
-    }
+    actual fun getStatusBarHeight(): Dp = 0.dp
 
-    actual fun setStatusBarColour(colour: Color, dark_icons: Boolean) {
-    }
+    actual fun setStatusBarColour(colour: Color, dark_icons: Boolean) {}
 
-    actual fun getLightColorScheme(): ColorScheme {
-        TODO("Not yet implemented")
-    }
+    actual fun getLightColorScheme(): ColorScheme = lightColorScheme()
 
-    actual fun getDarkColorScheme(): ColorScheme {
-        TODO("Not yet implemented")
-    }
+    actual fun getDarkColorScheme(): ColorScheme = darkColorScheme()
 
-    actual fun canShare(): Boolean {
-        TODO("Not yet implemented")
-    }
+    actual fun canShare(): Boolean = false
 
     actual fun shareText(text: String, title: String?) {
+        throw NotImplementedError()
     }
 
-    actual fun canOpenUrl(): Boolean {
-        TODO("Not yet implemented")
-    }
+    actual fun canOpenUrl(): Boolean = true
 
     actual fun openUrl(url: String) {
+        TODO()
     }
 
     actual fun canSendNotifications(): Boolean {
-        TODO("Not yet implemented")
+        TODO()
     }
 
     actual fun sendNotification(title: String, body: String) {
@@ -75,33 +89,50 @@ actual open class PlatformContext {
     actual fun sendToast(text: String, long: Boolean) {
     }
 
-    actual fun vibrate(duration: Double) {
-    }
+    actual fun vibrate(duration: Double) {}
 
-    actual fun openFileInput(name: String): FileInputStream {
-        TODO("Not yet implemented")
-    }
+    actual fun openFileInput(name: String): FileInputStream =
+        getFilesDir().resolve(name).inputStream()
 
     actual fun openFileOutput(name: String, append: Boolean): FileOutputStream {
-        TODO("Not yet implemented")
+        val path = getFilesDir().resolve(name)
+        path.createNewFile()
+        return path.outputStream()
     }
 
+    private fun getResourceDir(): File = File("/assets")
+
     actual fun openResourceFile(path: String): InputStream {
-        TODO("Not yet implemented")
+        val resource_path = getResourceDir().resolve(path).path
+        return PlayerService::class.java.getResourceAsStream(resource_path)!!
     }
 
     actual fun listResourceFiles(path: String): List<String>? {
-        TODO("Not yet implemented")
+        val resource_path = getResourceDir().resolve(path).path
+        val resource = PlayerService::class.java.getResource(resource_path)!!
+
+        val file_system = FileSystems.newFileSystem(resource.toURI(), emptyMap<String, Any>())
+        return Files.list(file_system.getPath(resource_path)).toList().map { it.name }
     }
 
     actual fun loadFontFromFile(path: String): Font {
-        TODO("Not yet implemented")
+        val resource_path = getResourceDir().resolve(path).path
+
+        val stream = PlayerService::class.java.getResourceAsStream(resource_path)!!
+        val bytes = stream.readBytes()
+        stream.close()
+
+        return Font(path, bytes)
     }
 
     actual fun mainThread(block: () -> Unit) {
+        // TODO
+        block()
     }
 
     actual fun networkThread(block: () -> Unit) {
+        // TODO
+        block()
     }
 
     actual fun isConnectionMetered(): Boolean {
@@ -110,12 +141,14 @@ actual open class PlatformContext {
 
     @Composable
     actual fun getScreenHeight(): Dp {
-        TODO("Not yet implemented")
+        val window = Window.getWindows().first()
+        return with (LocalDensity.current) { window.height.toDp() }
     }
 
     @Composable
     actual fun getScreenWidth(): Dp {
-        TODO("Not yet implemented")
+        val window = Window.getWindows().first()
+        return with (LocalDensity.current) { window.width.toDp() }
     }
 
     @Composable

@@ -1,13 +1,19 @@
 import androidx.compose.desktop.ui.tooling.preview.Preview
-import androidx.compose.runtime.Composable
+import androidx.compose.runtime.*
 import com.spectre7.spmp.platform.PlatformContext
 
 actual fun getPlatformName(): String = "Desktop"
 
-@Composable fun MainView(context: PlatformContext) = SpMp.App(context)
-
 @Preview
 @Composable
 fun AppPreview() {
-    SpMp.App(PlatformContext())
+    var initialised by remember { mutableStateOf(false) }
+    LaunchedEffect(Unit) {
+        SpMp.init(PlatformContext())
+        initialised = true
+    }
+
+    if (initialised) {
+        SpMp.App()
+    }
 }

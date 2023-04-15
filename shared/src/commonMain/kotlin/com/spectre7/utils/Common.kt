@@ -61,11 +61,18 @@ import kotlin.math.sqrt
 import kotlin.random.Random
 
 private lateinit var strings: Map<String, String>
+private lateinit var string_arrays: Map<String, List<String>>
+
 @Suppress("BlockingMethodInNonBlockingContext")
 @OptIn(ExperimentalResourceApi::class)
 fun initResources() {
+	fun formatText(text: String): String = text.replace("\\\"", "\"").replace("\\'", "'")
+
 	runBlocking {
-		val map = mutableMapOf<String, String>()
+		delay(100)
+
+		val strs = mutableMapOf<String, String>()
+		val str_arrays = mutableMapOf<String, List<String>>()
 
 		for (file in listOf("values/strings.xml", "values/ytm.xml")) {
 			val stream = resource(file).readBytes().inputStream()
@@ -74,18 +81,39 @@ fun initResources() {
 			parser.setInput(stream.reader())
 
 			while (parser.eventType != XmlPullParser.END_DOCUMENT) {
-				if (parser.eventType == XmlPullParser.START_TAG && parser.name == "string") {
-					val key = parser.getAttributeValue(null, "name")
-					val value = parser.nextText()
-					map[key] = value.replace("\\\"", "\"")
+				if (parser.eventType != XmlPullParser.START_TAG) {
+					parser.next()
+					continue
 				}
+
+				val key = parser.getAttributeValue(null, "name")
+				when (parser.name) {
+					"string" -> {
+						strs[key] = formatText(parser.nextText())
+					}
+					"string-array" -> {
+						val array = mutableListOf<String>()
+
+						parser.nextTag()
+						while (parser.name == "item") {
+							array.add(formatText(parser.nextText()))
+							parser.nextTag()
+						}
+
+						str_arrays[key] = array
+					}
+					"resources" -> {}
+					else -> throw NotImplementedError(parser.name)
+				}
+
 				parser.next()
 			}
 
 			stream.close()
 		}
 
-		strings = map
+		strings = strs
+		string_arrays = str_arrays
 	}
 }
 
@@ -96,6 +124,10 @@ fun getString(key: String): String {
 fun getStringTemp(temp_string: String): String {
 //	println("Unlocalised string used: '$temp_string'")
 	return temp_string
+}
+
+fun getStringArray(key: String): List<String> {
+	return string_arrays[key] ?: throw NotImplementedError(key)
 }
 
 fun Boolean.toInt() = if (this) 1 else 0
@@ -629,23 +661,23 @@ fun <T> Result<T>.AlertDialog(context: PlatformContext, message: String, close: 
 	val error = exceptionOrNull()!!
 
 	PlatformAlertDialog(
-//		close,
-//		confirmButton = {
-//			FilledTonalButton(close) {
-//				Text(getStringTemp("Close"))
-//			}
-//		},
-//		title = { getString("generic_error") },
-//		text = {
-//			Column {
-//				Text(message)
-//				error.message?.also { Text(it) }
-//				Row {
-//					context.CopyShareButtons("error") { error.stackTraceToString() }
-//				}
-//				Text(error.stackTraceToString())
-//			}
-//		}
+		close,
+		confirmButton = {
+			FilledTonalButton(close) {
+				Text(getStringTemp("Close"))
+			}
+		},
+		title = { getString("generic_error") },
+		text = {
+			Column {
+				Text(message)
+				error.message?.also { Text(it) }
+				Row {
+					context.CopyShareButtons("error") { error.stackTraceToString() }
+				}
+				Text(error.stackTraceToString())
+			}
+		}
 	)
 }
 

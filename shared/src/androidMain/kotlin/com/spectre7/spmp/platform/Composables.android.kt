@@ -1,10 +1,14 @@
 package com.spectre7.spmp.platform
 
 import android.view.WindowManager
+import androidx.compose.foundation.layout.ColumnScope
+import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.Surface
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.*
 import androidx.compose.ui.platform.LocalView
+import androidx.compose.ui.unit.DpOffset
 import androidx.compose.ui.window.Dialog
 import androidx.compose.ui.window.DialogProperties
 import androidx.compose.ui.window.DialogWindowProvider
@@ -37,33 +41,54 @@ actual fun PlatformDialog(
 
 @Composable
 actual fun PlatformAlertDialog(
-//    onDismissRequest: () -> Unit,
-//    confirmButton: @Composable () -> Unit,
-//    modifier: Modifier,
-//    dismissButton: @Composable() (() -> Unit)?,
-//    icon: @Composable() (() -> Unit)?,
-//    title: @Composable() (() -> Unit)?,
-//    text: @Composable() (() -> Unit)?,
-//    shape: Shape,
-//    containerColor: Color,
-//    iconContentColor: Color,
-//    titleContentColor: Color,
-//    textContentColor: Color
+    onDismissRequest: () -> Unit,
+    confirmButton: @Composable () -> Unit,
+    modifier: Modifier,
+    dismissButton: @Composable (() -> Unit)?,
+    icon: @Composable (() -> Unit)?,
+    title: @Composable (() -> Unit)?,
+    text: @Composable (() -> Unit)?,
+    shape: Shape,
+    containerColor: Color,
+    iconContentColor: Color,
+    titleContentColor: Color,
+    textContentColor: Color
 ) {
-//    androidx.compose.material3.AlertDialog(
-//        onDismissRequest,
-//        confirmButton,
-//        modifier,
-//        dismissButton,
-//        icon,
-//        title,
-//        text,
-//        shape,
-//        containerColor,
-//        iconContentColor,
-//        titleContentColor,
-//        textContentColor
-//    )
+    androidx.compose.material3.AlertDialog(
+        onDismissRequest,
+        confirmButton,
+        modifier,
+        dismissButton,
+        icon,
+        title,
+        text,
+        shape,
+        containerColor,
+        iconContentColor,
+        titleContentColor,
+        textContentColor
+    )
+}
+
+@Composable
+actual fun PlatformAlertDialog(
+    onDismissRequest: () -> Unit,
+    confirmButton: @Composable () -> Unit,
+    modifier: Modifier,
+    dismissButton: @Composable (() -> Unit)?,
+    icon: @Composable (() -> Unit)?,
+    title: @Composable (() -> Unit)?,
+    text: @Composable (() -> Unit)?
+) {
+    androidx.compose.material3.AlertDialog(
+        onDismissRequest,
+        confirmButton,
+        modifier,
+        dismissButton,
+        icon,
+        title,
+        text
+    )
 }
 
 @Composable

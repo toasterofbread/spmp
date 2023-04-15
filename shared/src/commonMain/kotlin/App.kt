@@ -40,6 +40,7 @@ import com.spectre7.spmp.ui.layout.PlayerView
 import com.spectre7.spmp.ui.theme.ApplicationTheme
 import com.spectre7.spmp.ui.theme.Theme
 import com.spectre7.utils.*
+import java.io.File
 import java.util.*
 import kotlin.math.roundToInt
 
@@ -240,40 +241,40 @@ class ErrorManager(private val context: PlatformContext) {
     @Composable
     fun InfoPopup(dismiss: () -> Unit, close: () -> Unit) {
         PlatformAlertDialog(
-//            close,
-//            confirmButton = {
-//                Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.SpaceBetween) {
-//                    FilledIconButton(close) {
-//                        Icon(Icons.Filled.Close, null)
-//                    }
-//
-//                    FilledTonalButton(dismiss) {
-//                        Text(getStringTemp("Dismiss"))
-//                    }
-//                }
-//            },
-//            title = {
-//                WidthShrinkText(getStringTemp("{errors} error(s) occurred").replace("{errors}", errors.size.toString()))
-//            },
-//            text = {
-//                var expanded_error by remember { mutableStateOf(-1) }
-//
-//                LazyColumn(Modifier
-//                    .fillMaxWidth()
-//                    .height(300.dp)) {
-//                    items(errors.size, { errors.values.elementAt(it) }) { index ->
-//                        val error = errors.values.elementAt(index)
-//                        ErrorItem(error, index, index == expanded_error) {
-//                            if (expanded_error == index) {
-//                                expanded_error = -1
-//                            }
-//                            else {
-//                                expanded_error = index
-//                            }
-//                        }
-//                    }
-//                }
-//            }
+            close,
+            confirmButton = {
+                Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.SpaceBetween) {
+                    FilledIconButton(close) {
+                        Icon(Icons.Filled.Close, null)
+                    }
+
+                    FilledTonalButton(dismiss) {
+                        Text(getStringTemp("Dismiss"))
+                    }
+                }
+            },
+            title = {
+                WidthShrinkText(getStringTemp("{errors} error(s) occurred").replace("{errors}", errors.size.toString()))
+            },
+            text = {
+                var expanded_error by remember { mutableStateOf(-1) }
+
+                LazyColumn(Modifier
+                    .fillMaxWidth()
+                    .height(300.dp)) {
+                    items(errors.size, { errors.values.elementAt(it) }) { index ->
+                        val error = errors.values.elementAt(index)
+                        ErrorItem(error, index, index == expanded_error) {
+                            if (expanded_error == index) {
+                                expanded_error = -1
+                            }
+                            else {
+                                expanded_error = index
+                            }
+                        }
+                    }
+                }
+            }
         )
     }
 

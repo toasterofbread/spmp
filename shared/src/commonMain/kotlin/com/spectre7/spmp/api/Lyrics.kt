@@ -1,7 +1,6 @@
 package com.spectre7.spmp.api
 
 import org.jsoup.Jsoup
-import android.util.Xml
 import com.atilika.kuromoji.ipadic.Tokenizer
 import com.spectre7.spmp.model.Song
 import com.spectre7.utils.hasKanjiAndHiragana

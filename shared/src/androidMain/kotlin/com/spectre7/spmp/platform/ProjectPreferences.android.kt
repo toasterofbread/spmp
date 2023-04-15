@@ -19,13 +19,33 @@ actual class ProjectPreferences private constructor(private val prefs: SharedPre
         }
     }
 
-    actual fun getString(key: String?, defValue: String?): String? = prefs.getString(key, defValue)
-    actual fun getStringSet(key: String?, defValues: Set<String?>?): Set<String?>? = prefs.getStringSet(key, defValues)
-    actual fun getInt(key: String?, defValue: Int): Int = prefs.getInt(key, defValue)
-    actual fun getLong(key: String?, defValue: Long): Long = prefs.getLong(key, defValue)
-    actual fun getFloat(key: String?, defValue: Float): Float = prefs.getFloat(key, defValue)
-    actual fun getBoolean(key: String?, defValue: Boolean): Boolean = prefs.getBoolean(key, defValue)
-    actual operator fun contains(key: String?): Boolean = prefs.contains(key)
+    actual fun getString(key: String, defValue: String?): String? = prefs.getString(key, defValue)
+    actual fun getStringSet(key: String, defValues: Set<String>?): Set<String>? = prefs.getStringSet(key, defValues)
+    actual fun getInt(key: String, defValue: Int?): Int? {
+        if (!prefs.contains(key)) {
+            return defValue
+        }
+        return prefs.getInt(key, 0)
+    }
+    actual fun getLong(key: String, defValue: Long?): Long? {
+        if (!prefs.contains(key)) {
+            return defValue
+        }
+        return prefs.getLong(key, 0)
+    }
+    actual fun getFloat(key: String, defValue: Float?): Float? {
+        if (!prefs.contains(key)) {
+            return defValue
+        }
+        return prefs.getFloat(key, 0f)
+    }
+    actual fun getBoolean(key: String, defValue: Boolean?): Boolean? {
+        if (!prefs.contains(key)) {
+            return defValue
+        }
+        return prefs.getBoolean(key, false)
+    }
+    actual operator fun contains(key: String): Boolean = prefs.contains(key)
     
     actual fun addListener(listener: Listener) {
         prefs.registerOnSharedPreferenceChangeListener(listener)
@@ -49,40 +69,40 @@ actual class ProjectPreferences private constructor(private val prefs: SharedPre
     }
 
     actual open class Editor(private val upstream: SharedPreferences.Editor) {
-        actual fun putString(key: String?, value: String?): Editor {
+        actual fun putString(key: String, value: String): Editor {
             upstream.putString(key, value)
             return this
         }
 
         actual fun putStringSet(
-            key: String?,
-            values: Set<String?>?
+            key: String,
+            values: Set<String>
         ): Editor {
             upstream.putStringSet(key, values)
             return this
         }
 
-        actual fun putInt(key: String?, value: Int): Editor {
+        actual fun putInt(key: String, value: Int): Editor {
             upstream.putInt(key, value)
             return this
         }
 
-        actual fun putLong(key: String?, value: Long): Editor {
+        actual fun putLong(key: String, value: Long): Editor {
             upstream.putLong(key, value)
             return this
         }
 
-        actual fun putFloat(key: String?, value: Float): Editor {
+        actual fun putFloat(key: String, value: Float): Editor {
             upstream.putFloat(key, value)
             return this
         }
 
-        actual fun putBoolean(key: String?, value: Boolean): Editor {
+        actual fun putBoolean(key: String, value: Boolean): Editor {
             upstream.putBoolean(key, value)
             return this
         }
 
-        actual fun remove(key: String?): Editor {
+        actual fun remove(key: String): Editor {
             upstream.remove(key)
             return this
         }

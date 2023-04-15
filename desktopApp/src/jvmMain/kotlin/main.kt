@@ -3,7 +3,8 @@ import androidx.compose.ui.window.application
 import com.spectre7.spmp.platform.PlatformContext
 
 fun main() = application {
+    SpMp.init(PlatformContext())
     Window(onCloseRequest = ::exitApplication) {
-        MainView(PlatformContext())
+        SpMp.App()
     }
 }

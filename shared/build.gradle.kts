@@ -88,7 +88,7 @@ kotlin {
                 implementation("com.github.TeamNewPipe:NewPipeExtractor:v0.22.1")
                 implementation("org.apache.commons:commons-text:1.10.0")
                 implementation("com.atilika.kuromoji:kuromoji-ipadic:0.9.0")
-                implementation("xmlpull:xmlpull:1.1.3.4a")
+                implementation("org.xmlpull:xmlpull:1.1.4.0")
                 implementation("org.jsoup:jsoup:1.15.3")
                 implementation("org.burnoutcrew.composereorderable:reorderable:0.9.2")
                 implementation("com.github.ltttttttttttt:load-the-image:1.0.5")
@@ -118,6 +118,7 @@ kotlin {
         val desktopMain by getting {
             dependencies {
                 implementation(compose.desktop.common)
+                implementation("com.github.bluemods:kxml2:4dae70b2a995e72f842eca0c778792ce90d6cfc7")
             }
         }
     }

@@ -50,7 +50,7 @@ class LyricsOverlayMenu(
     ) {
 
         var lyrics: Song.Lyrics? by remember { mutableStateOf(null) }
-        var show_furigana: Boolean by remember { mutableStateOf(Settings.prefs.getBoolean(Settings.KEY_LYRICS_DEFAULT_FURIGANA.name, true)) }
+        var show_furigana: Boolean by remember { mutableStateOf(Settings.KEY_LYRICS_DEFAULT_FURIGANA.get()) }
 
         val scroll_state = rememberLazyListState()
         var search_menu_open by remember { mutableStateOf(false) }

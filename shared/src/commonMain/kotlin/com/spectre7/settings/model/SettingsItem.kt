@@ -21,6 +21,7 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.*
 import com.spectre7.composesettings.ui.SettingsPage
+import com.spectre7.spmp.platform.LargeDropdownMenu
 import com.spectre7.spmp.platform.PlatformAlertDialog
 import com.spectre7.spmp.ui.theme.Theme
 import com.spectre7.utils.*
@@ -292,55 +293,55 @@ class SettingsItemSlider(
             var error by remember { mutableStateOf<String?>(null) }
 
             PlatformAlertDialog(
-//                {
-//                    show_edit_dialog = false
-//                },
-//                confirmButton = {
-//                    FilledTonalButton(
-//                        {
-//                            try {
-//                                setValue(if (is_int) text.toInt().toFloat() else text.toFloat())
-//                                show_edit_dialog = false
-//                            }
-//                            catch(_: NumberFormatException) {}
-//                        },
-//                        enabled = error == null
-//                    ) {
-//                        Text("Done")
-//                    }
-//                },
-//                dismissButton = { TextButton( { show_edit_dialog = false } ) { Text("Cancel") } },
-//                title = { ItemTitleText(title ?: "Edit field", theme) },
-//                text = {
-//                    OutlinedTextField(
-//                        value = text,
-//                        isError = error != null,
-//                        label = {
-//                            Crossfade(error) { error_text ->
-//                                if (error_text != null) {
-//                                    Text(error_text)
-//                                }
-//                            }
-//                        },
-//                        onValueChange = {
-//                            text = it
-//
-//                            try {
-//                                val value: Float = if (is_int) text.toInt().toFloat() else text.toFloat()
-//                                if (!range.contains(value)) {
-//                                    error = getStringTemp("Value is out of range ($range)")
-//                                    return@OutlinedTextField
-//                                }
-//
-//                                error = null
-//                            }
-//                            catch(_: NumberFormatException) {
-//                                error = if (is_int) getStringTemp("Value is not an integer") else getStringTemp("Value is not a float")
-//                            }
-//                        },
-//                        singleLine = true
-//                    )
-//                }
+                {
+                    show_edit_dialog = false
+                },
+                confirmButton = {
+                    FilledTonalButton(
+                        {
+                            try {
+                                setValue(if (is_int) text.toInt().toFloat() else text.toFloat())
+                                show_edit_dialog = false
+                            }
+                            catch(_: NumberFormatException) {}
+                        },
+                        enabled = error == null
+                    ) {
+                        Text("Done")
+                    }
+                },
+                dismissButton = { TextButton( { show_edit_dialog = false } ) { Text("Cancel") } },
+                title = { ItemTitleText(title ?: "Edit field", theme) },
+                text = {
+                    OutlinedTextField(
+                        value = text,
+                        isError = error != null,
+                        label = {
+                            Crossfade(error) { error_text ->
+                                if (error_text != null) {
+                                    Text(error_text)
+                                }
+                            }
+                        },
+                        onValueChange = {
+                            text = it
+
+                            try {
+                                val value: Float = if (is_int) text.toInt().toFloat() else text.toFloat()
+                                if (!range.contains(value)) {
+                                    error = getStringTemp("Value is out of range ($range)")
+                                    return@OutlinedTextField
+                                }
+
+                                error = null
+                            }
+                            catch(_: NumberFormatException) {
+                                error = if (is_int) getStringTemp("Value is not an integer") else getStringTemp("Value is not a float")
+                            }
+                        },
+                        singleLine = true
+                    )
+                }
             )
         }
 
@@ -363,7 +364,7 @@ class SettingsItemSlider(
                 if (min_label != null) {
                     ItemText(min_label, theme, 12.sp)
                 }
-                TODO()
+//                TODO()
 //                SliderValueHorizontal(
 //                    value = getValue(),
 //                    onValueChange = { setValue(it) },
@@ -560,7 +561,8 @@ class SettingsItemDropdown(
             Column(
                 Modifier
                     .fillMaxWidth()
-                    .weight(1f)) {
+                    .weight(1f)
+            ) {
                 ItemTitleText(title, theme)
                 ItemText(subtitle, theme)
             }
@@ -588,18 +590,29 @@ class SettingsItemDropdown(
                 MaterialTheme(
                     shapes = MaterialTheme.shapes.copy(extraSmall = SETTINGS_ITEM_ROUNDED_SHAPE)
                 ){
-                    DropdownMenu(
+                    LargeDropdownMenu(
                         open,
                         { open = false },
-                        Modifier.size(200.dp, 200.dp),
-                        offset = DpOffset(50.dp, 0.dp)
+                        item_count,
+                        state.value,
+                        getItem,
+                        selected_item_colour = Theme.current.vibrant_accent
                     ) {
-                        for (i in 0 until item_count) {
-                            DropdownMenuItem(onClick = { state.value = i; open = false }, text = {
-                                Text(getItem(i))
-                            })
-                        }
+                        state.value = it
+                        open = false
                     }
+//                    DropdownMenu(
+//                        open,
+//                        { open = false },
+//                        Modifier.size(200.dp, 200.dp),
+//                        offset = DpOffset(50.dp, 0.dp)
+//                    ) {
+//                        for (i in 0 until item_count) {
+//                            DropdownMenuItem(onClick = { state.value = i; open = false }, text = {
+//                                Text(getItem(i))
+//                            })
+//                        }
+//                    }
                 }
             }
 

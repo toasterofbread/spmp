@@ -31,7 +31,10 @@ class PlayerServiceHost {
 
     class PlayerStatus internal constructor(private val player: PlayerService) {
         val playing: Boolean get() = player.is_playing
-        val position: Float get() = player.current_position_ms.toFloat() / player.duration_ms.toFloat()
+        val position: Float get() = player.duration_ms.let { it ->
+            if (it <= 0f) 0f
+            else player.current_position_ms.toFloat() / it
+        }
         val position_seconds: Float get() = player.current_position_ms / 1000f
         val duration: Float get() = player.duration_ms / 1000f
         val song: Song? get() = player.getSong()
@@ -124,7 +127,6 @@ class PlayerServiceHost {
     }
 
     private fun release() {
-        player?.release()
         if (service_connection != null) {
             PlatformService.unbindService(context, service_connection!!)
             service_connection = null

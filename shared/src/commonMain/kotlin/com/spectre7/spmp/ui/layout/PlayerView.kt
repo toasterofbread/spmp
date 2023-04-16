@@ -434,7 +434,6 @@ fun PlayerView() {
     }
 }
 
-@OptIn(ExperimentalMaterial3Api::class)
 @Composable
 private fun MainPage(
     layouts: MutableList<MediaItemLayout>,

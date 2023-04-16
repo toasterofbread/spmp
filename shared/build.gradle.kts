@@ -119,6 +119,7 @@ kotlin {
             dependencies {
                 implementation(compose.desktop.common)
                 implementation("com.github.bluemods:kxml2:4dae70b2a995e72f842eca0c778792ce90d6cfc7")
+                implementation("org.zeromq:jeromq:0.5.3")
             }
         }
     }

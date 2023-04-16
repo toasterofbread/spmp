@@ -714,7 +714,7 @@ private fun SeekBar(playerProvider: () -> PlayerViewContext, seek: (Float) -> Un
 
             SeekBarTimeText(PlayerServiceHost.status.position_seconds, getNPOnBackground(playerProvider))
 
-            TODO()
+//            TODO()
 
 //            SliderValueHorizontal(
 //                value = getSliderValue(),

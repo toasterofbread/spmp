@@ -13,6 +13,8 @@ import org.schabi.newpipe.extractor.NewPipe
 import org.schabi.newpipe.extractor.downloader.Downloader
 import org.schabi.newpipe.extractor.exceptions.ReCaptchaException
 import java.io.InputStream
+import java.util.logging.Level
+import java.util.logging.Logger
 import java.util.zip.GZIPInputStream
 import org.schabi.newpipe.extractor.downloader.Request as NewPipeRequest
 import org.schabi.newpipe.extractor.downloader.Response as NewPipeResponse
@@ -53,7 +55,9 @@ fun <T> Result<T>.getOrReport(error_key: String): T? {
 class DataApi {
 
     companion object {
-        private val client: OkHttpClient = OkHttpClient.Builder().protocols(listOf(Protocol.HTTP_1_1)).build()
+        private val client: OkHttpClient = OkHttpClient().also {
+            Logger.getLogger(OkHttpClient::class.java.name).level = Level.FINE
+        }
         val user_agent: String get() = getString("ytm_user_agent")
 
         private val enum_converter = object : Converter {

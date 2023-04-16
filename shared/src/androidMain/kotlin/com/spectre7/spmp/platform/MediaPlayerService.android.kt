@@ -13,6 +13,9 @@ import android.os.Handler
 import android.support.v4.media.MediaMetadataCompat
 import android.support.v4.media.session.MediaSessionCompat
 import android.view.KeyEvent
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.graphics.asAndroidBitmap
 import androidx.media.session.MediaButtonReceiver
 import com.google.android.exoplayer2.C
@@ -40,8 +43,7 @@ import com.spectre7.spmp.model.MediaItem
 import com.spectre7.spmp.model.Settings
 import com.spectre7.spmp.model.Song
 import com.spectre7.utils.getString
-import kotlinx.coroutines.delay
-import kotlinx.coroutines.runBlocking
+import kotlinx.coroutines.*
 import java.io.File
 import java.io.IOException
 import kotlin.concurrent.thread
@@ -181,7 +183,7 @@ actual open class MediaPlayerService: PlatformService() {
         })
     }
 
-    actual fun release() {
+    override fun onDestroy() {
         notification_manager?.setPlayer(null)
         notification_manager = null
 
@@ -191,7 +193,11 @@ actual open class MediaPlayerService: PlatformService() {
         player = null
         cache?.release()
         cache = null
+
+        super.onDestroy()
     }
+
+    actual var session_started: Boolean by mutableStateOf(false)
 
     actual val is_playing: Boolean get() = player!!.isPlaying
     actual val song_count: Int get() = player!!.mediaItemCount
@@ -236,7 +242,6 @@ actual open class MediaPlayerService: PlatformService() {
         }
         return player!!.getMediaItemAt(index).getSong()
     }
-    actual fun moveSong(from: Int, to: Int) = player!!.moveMediaItem(from, to)
 
     actual fun addSong(song: Song) = addSong(song, current_song_index + 1)
     actual fun addSong(song: Song, index: Int) {
@@ -244,6 +249,7 @@ actual open class MediaPlayerService: PlatformService() {
         player!!.addMediaItem(item)
         addNotificationToPlayer()
     }
+    actual fun moveSong(from: Int, to: Int) = player!!.moveMediaItem(from, to)
     actual fun removeSong(index: Int) = player!!.removeMediaItem(index)
 
     actual fun addListener(listener: Listener) = player!!.addListener(listener)
@@ -474,6 +480,12 @@ actual open class MediaPlayerService: PlatformService() {
         )
         (getSystemService(Context.NOTIFICATION_SERVICE) as NotificationManager).createNotificationChannel(channel)
         return NOTIFICATION_CHANNEL_ID
+    }
+
+    actual companion object {
+        actual fun CoroutineScope.playerLaunch(action: CoroutineScope.() -> Unit) {
+            launch(Dispatchers.Main, block = action)
+        }
     }
 }
 

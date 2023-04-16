@@ -29,8 +29,6 @@ private const val SONG_MARK_WATCHED_POSITION = 1000 // ms
 @Suppress("OPT_IN_USAGE")
 class PlayerService : MediaPlayerService() {
 
-    val session_started: Boolean get() = _session_started
-
     var stop_after_current_song: Boolean by mutableStateOf(false)
     var active_queue_index: Int by mutableStateOf(0)
     private var song_marked_as_watched: Boolean = false
@@ -316,7 +314,7 @@ class PlayerService : MediaPlayerService() {
         radio.cancelJob()
         radio.loadContinuation({
             runBlocking {
-                launch(Dispatchers.Main) {
+                playerLaunch {
                     clearQueue(current_song_index + 1, cancel_radio = false, save = false)
                 }
             }
@@ -324,7 +322,7 @@ class PlayerService : MediaPlayerService() {
             result.fold(
                 { songs ->
                     runBlocking {
-                        launch(Dispatchers.Main) {
+                        playerLaunch {
                             addMultipleToQueue(songs, current_song_index + 1)
                         }
                     }
@@ -335,8 +333,6 @@ class PlayerService : MediaPlayerService() {
             )
         }
     }
-
-    private var _session_started: Boolean by mutableStateOf(false)
 
     private var queue_listeners: MutableList<PlayerServiceHost.PlayerQueueListener> = mutableListOf()
 
@@ -553,7 +549,6 @@ class PlayerService : MediaPlayerService() {
     }
 
     override fun onDestroy() {
-        _session_started = false
         radio.filter_changed_listeners.remove(this::onRadioFiltersChanged)
 
         update_timer?.cancel()

@@ -1,6 +1,7 @@
 package com.spectre7.spmp.platform
 
 import com.spectre7.spmp.model.Song
+import kotlinx.coroutines.CoroutineScope
 
 internal const val AUTO_DOWNLOAD_SOFT_TIMEOUT = 1500 // ms
 
@@ -26,7 +27,8 @@ expect open class MediaPlayerService(): PlatformService {
         open fun onEvents()
     }
 
-    fun release()
+    var session_started: Boolean
+        private set
 
     val is_playing: Boolean
     val song_count: Int
@@ -54,12 +56,16 @@ expect open class MediaPlayerService(): PlatformService {
 
     fun getSong(): Song?
     fun getSong(index: Int): Song?
-    fun moveSong(from: Int, to: Int)
 
     fun addSong(song: Song)
     fun addSong(song: Song, index: Int)
+    fun moveSong(from: Int, to: Int)
     fun removeSong(index: Int)
 
     fun addListener(listener: Listener)
     fun removeListener(listener: Listener)
+
+    companion object {
+        fun CoroutineScope.playerLaunch(action: CoroutineScope.() -> Unit)
+    }
 }

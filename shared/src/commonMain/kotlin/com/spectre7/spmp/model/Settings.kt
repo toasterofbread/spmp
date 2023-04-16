@@ -67,6 +67,9 @@ enum class Settings {
     // Auth
     KEY_YTM_AUTH,
 
+    // Server
+    KEY_SPMS_PORT,
+
     // Other
     KEY_OPEN_NP_ON_SONG_PLAYED,
     KEY_VOLUME_STEPS,
@@ -178,6 +181,8 @@ enum class Settings {
                         emptySet()
                     }
                 }
+
+                KEY_SPMS_PORT -> 3973
 
                 KEY_VOLUME_STEPS -> 50
                 KEY_OPEN_NP_ON_SONG_PLAYED -> true

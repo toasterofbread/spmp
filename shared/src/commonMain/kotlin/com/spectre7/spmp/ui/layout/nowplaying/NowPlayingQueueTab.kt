@@ -150,7 +150,13 @@ fun QueueTab(expansionProvider: () -> Float, playerProvider: () -> PlayerViewCon
     var playing_key by remember { mutableStateOf<Int?>(null) }
 
     LaunchedEffect(PlayerServiceHost.status.m_index) {
-        playing_key = song_items[PlayerServiceHost.status.index].key
+        val index = PlayerServiceHost.status.index
+        if (index in song_items.indices) {
+            playing_key = song_items[PlayerServiceHost.status.index].key
+        }
+        else {
+            playing_key = null
+        }
     }
 
     DisposableEffect(Unit) {

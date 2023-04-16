@@ -276,23 +276,45 @@ fun WidthShrinkText(
 	style: TextStyle = LocalTextStyle.current
 ) {
 	var text_style by remember(style) { mutableStateOf(style) }
+	var text_style_large: TextStyle? by remember(style) { mutableStateOf(null) }
 	var ready_to_draw by remember { mutableStateOf(false) }
 
-	Text(
-		text,
-		modifier.drawWithContent { if (ready_to_draw) drawContent() },
-		maxLines = 1,
-		softWrap = false,
-		style = text_style,
-		onTextLayout = { layout_result ->
-			if (!layout_result.didOverflowWidth) {
-				ready_to_draw = true
+	val delta = 0.05
+
+	Box {
+		Text(
+			text,
+			modifier.drawWithContent { if (ready_to_draw) drawContent() },
+			maxLines = 1,
+			softWrap = false,
+			style = text_style,
+			onTextLayout = { layout_result ->
+				if (!layout_result.didOverflowWidth) {
+					ready_to_draw = true
+					text_style_large = text_style
+				}
+				else {
+					text_style = text_style.copy(fontSize = text_style.fontSize * (1.0 - delta))
+				}
 			}
-			else {
-				text_style = text_style.copy(fontSize = text_style.fontSize * 0.95)
-			}
+		)
+
+		text_style_large?.also {
+			Text(
+				text,
+				modifier.drawWithContent {},
+				maxLines = 1,
+				softWrap = false,
+				style = it,
+				onTextLayout = { layout_result ->
+					if (!layout_result.didOverflowWidth) {
+						text_style_large = it.copy(fontSize = minOf(style.fontSize.value, it.fontSize.value * (1.0f + delta.toFloat())).sp)
+						text_style = it
+					}
+				}
+			)
 		}
-	)
+	}
 }
 
 @Composable

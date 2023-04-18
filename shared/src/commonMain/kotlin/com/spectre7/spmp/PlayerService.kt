@@ -225,7 +225,7 @@ class PlayerService : MediaPlayerService() {
         onSongAdded(song, added_index)
 
         if (start_radio) {
-            clearQueue(added_index, save = false)
+            clearQueue(added_index + 1, save = false)
 
             synchronized(radio) {
                 radio.playMediaItem(song)

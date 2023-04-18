@@ -85,7 +85,7 @@ fun SongPreviewLong(
     params: MediaItem.PreviewParams,
     queue_index: Int? = null
 ) {
-    val long_press_menu_data = remember(song) {
+    val long_press_menu_data = remember(song, queue_index) {
         getSongLongPressMenuData(song, RoundedCornerShape(20), queue_index = queue_index)
     }
 

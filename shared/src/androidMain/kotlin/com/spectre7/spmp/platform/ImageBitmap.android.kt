@@ -6,6 +6,8 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.ImageBitmap
 import androidx.compose.ui.graphics.asAndroidBitmap
 import androidx.compose.ui.graphics.asImageBitmap
+import androidx.palette.graphics.Palette
+import com.spectre7.utils.compare
 
 actual fun ByteArray.toImageBitmap(): ImageBitmap =
     BitmapFactory.decodeByteArray(this, 0, size).asImageBitmap()
@@ -18,3 +20,38 @@ actual fun ImageBitmap.getPixel(x: Int, y: Int): Color =
 
 actual fun ImageBitmap.scale(width: Int, height: Int): ImageBitmap =
     Bitmap.createScaledBitmap(this.asAndroidBitmap(), width, height, false).asImageBitmap()
+
+fun Palette.getColour(type: Int): Color? {
+    val colour = when (type) {
+        0 -> getVibrantColor(0)
+        1 -> getLightVibrantColor(0)
+        2 -> getLightMutedColor(0)
+        3 -> getDarkVibrantColor(0)
+        4 -> getDarkMutedColor(0)
+        5 -> getDominantColor(0)
+        6 -> getMutedColor(0)
+        else -> throw RuntimeException("Invalid palette colour type $type")
+    }
+
+    if (colour == 0) {
+        return null
+    }
+
+    return Color(colour)
+}
+
+actual fun ImageBitmap.generatePalette(max_amount: Int): List<Color> {
+    require(max_amount >= 0)
+
+    val palette = Palette.from(this.asAndroidBitmap()).clearFilters().generate()
+
+    val colours: MutableList<Color> = mutableListOf()
+    for (i in 0 until minOf(max_amount, 7)) {
+        val colour = palette.getColour(i)
+        if (colour != null) {
+            colours.add(colour)
+        }
+    }
+
+    return colours
+}

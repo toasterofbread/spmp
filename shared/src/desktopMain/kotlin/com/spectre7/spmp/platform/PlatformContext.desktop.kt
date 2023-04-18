@@ -4,6 +4,9 @@ import androidx.compose.material3.ColorScheme
 import androidx.compose.material3.darkColorScheme
 import androidx.compose.material3.lightColorScheme
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.text.font.Font
@@ -14,6 +17,7 @@ import com.spectre7.spmp.PlayerService
 import com.spectre7.utils.getString
 import org.jetbrains.skiko.OS
 import org.jetbrains.skiko.hostOs
+import java.awt.Dimension
 import java.awt.Window
 import java.io.File
 import java.io.FileInputStream
@@ -139,16 +143,20 @@ actual open class PlatformContext {
         TODO("Not yet implemented")
     }
 
+    private var screen_size: Dimension? by mutableStateOf(null)
+    fun updateScreenSize() {
+        val window = Window.getWindows().first()
+        screen_size = window.size
+    }
+
     @Composable
     actual fun getScreenHeight(): Dp {
-        val window = Window.getWindows().first()
-        return with (LocalDensity.current) { window.height.toDp() }
+        return with (LocalDensity.current) { screen_size!!.height.toDp() }
     }
 
     @Composable
     actual fun getScreenWidth(): Dp {
-        val window = Window.getWindows().first()
-        return with (LocalDensity.current) { window.width.toDp() }
+        return with (LocalDensity.current) { screen_size!!.width.toDp() }
     }
 
     @Composable

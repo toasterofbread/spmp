@@ -2,8 +2,13 @@ package com.spectre7.spmp.platform
 
 import androidx.compose.ui.graphics.*
 import androidx.compose.ui.graphics.Color
+import com.spectre7.utils.compare
+import de.androidpit.colorthief.ColorThief
+import de.androidpit.colorthief.MMCQ.VBox
 import org.jetbrains.skia.*
 import java.awt.image.BufferedImage
+import java.awt.image.BufferedImageOp
+import java.io.ByteArrayInputStream
 import java.io.ByteArrayOutputStream
 import java.io.IOException
 import javax.imageio.ImageIO
@@ -17,8 +22,10 @@ actual fun ImageBitmap.crop(x: Int, y: Int, width: Int, height: Int): ImageBitma
 actual fun ImageBitmap.getPixel(x: Int, y: Int): Color =
     Color(toAwtImage().getRGB(x, y))
 
+fun ImageBitmap.toScaledBufferedImage(width: Int, height: Int): BufferedImage = toAwtImage().getScaledInstance(50, 50, 0) as BufferedImage
+
 actual fun ImageBitmap.scale(width: Int, height: Int): ImageBitmap {
-    val scaled = toAwtImage().getScaledInstance(width, height, 0) as BufferedImage
+    val scaled = toScaledBufferedImage(width, height)
     val stream = ByteArrayOutputStream()
     try {
         ImageIO.write(scaled, "png", stream)
@@ -28,3 +35,12 @@ actual fun ImageBitmap.scale(width: Int, height: Int): ImageBitmap {
     }
     return this
 }
+
+actual fun ImageBitmap.generatePalette(max_amount: Int): List<Color> {
+    require(max_amount in 2..256)
+
+    val scaled = toScaledBufferedImage(50, 50)
+    val palette = ColorThief.getColorMap(scaled, max_amount, 10, false).palette()
+    return palette.map { Color(it[0], it[1], it[2]) }
+}
+

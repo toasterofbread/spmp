@@ -5,6 +5,7 @@ import androidx.compose.material.icons.filled.Album
 import androidx.compose.material.icons.filled.PlayArrow
 import androidx.compose.ui.graphics.vector.ImageVector
 import com.spectre7.spmp.api.DataApi.Companion.addYtHeaders
+import com.spectre7.spmp.api.DataApi.Companion.getStream
 import com.spectre7.spmp.api.DataApi.Companion.ytUrl
 import com.spectre7.spmp.model.Artist
 import com.spectre7.spmp.model.MediaItem
@@ -70,7 +71,7 @@ fun searchYoutubeMusic(query: String, params: String?): Result<List<Pair<MediaIt
         return result.cast()
     }
 
-    val stream = result.getOrThrow().body!!.charStream()
+    val stream = result.getOrThrow().getStream()
     val parsed: YoutubeiSearchResponse = DataApi.klaxon.parse(stream)!!
     stream.close()
 

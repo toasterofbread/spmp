@@ -149,6 +149,7 @@ dependencies {
     implementation("androidx.compose.material:material-icons-extended:$compose_version")
     implementation("org.jetbrains.kotlin:kotlin-reflect:1.7.10")
     implementation("net.openid:appauth:0.11.1")
+    implementation("androidx.palette:palette:1.0.0")
 
     implementation("com.google.accompanist:accompanist-pager:0.21.2-beta")
     implementation("com.google.accompanist:accompanist-pager-indicators:0.21.2-beta")
@@ -160,7 +161,6 @@ dependencies {
     implementation("com.godaddy.android.colorpicker:compose-color-picker:0.7.0")
     implementation("com.github.TeamNewPipe:NewPipeExtractor:v0.22.1")
     implementation("org.apache.commons:commons-text:1.10.0")
-    implementation("androidx.palette:palette:1.0.0")
     implementation("com.atilika.kuromoji:kuromoji-ipadic:0.9.0")
     implementation("org.burnoutcrew.composereorderable:reorderable:0.9.2")
 

@@ -62,10 +62,6 @@ data class PlayerViewContext(
         get() = baseOrThis().np_theme_mode_state!!.value
         private set(value) { baseOrThis().np_theme_mode_state!!.value = value }
 
-    private val now_playing_swipe_state: SwipeableState<Int>? = if (is_base) SwipeableState(0) else null
-    private var now_playing_swipe_anchors: Map<Float, Int>? = null
-    fun getNowPlayingSwipeState(): SwipeableState<Int> = baseOrThis().now_playing_swipe_state!!
-
     fun getNowPlayingTopOffset(screen_height: Dp, density: Density): Int {
         return with (density) { (-getNowPlayingSwipeState().offset.value.dp - screen_height * 0.5f).toPx().toInt() }
     }
@@ -229,6 +225,10 @@ data class PlayerViewContext(
         long_press_menu_direct = false
     }
 
+    private var now_playing_swipe_state: SwipeableState<Int>? by mutableStateOf(if (is_base) SwipeableState(0) else null)
+    private var now_playing_swipe_anchors: Map<Float, Int>? by mutableStateOf(null)
+    private fun getNowPlayingSwipeState(): SwipeableState<Int> = baseOrThis().now_playing_swipe_state!!
+
     @Composable
     fun NowPlaying() {
         check(is_base)
@@ -237,19 +237,25 @@ data class PlayerViewContext(
             bottom_padding_anim.animateTo(PlayerServiceHost.session_started.toFloat() * MINIMISED_NOW_PLAYING_HEIGHT)
         }
 
-        if (now_playing_swipe_anchors == null) {
-            val screen_height = SpMp.context.getScreenHeight()
+        val screen_height = SpMp.context.getScreenHeight()
+        LaunchedEffect(screen_height) {
             val half_screen_height = screen_height.value * 0.5f
             now_playing_swipe_anchors = (0..NOW_PLAYING_VERTICAL_PAGE_COUNT).associateBy { if (it == 0) MINIMISED_NOW_PLAYING_HEIGHT.toFloat() - half_screen_height else (screen_height.value * it) - half_screen_height }
 
-            now_playing_swipe_state!!.init(mapOf(-half_screen_height to 0))
+            val current_swipe_value = now_playing_swipe_state!!.targetValue
+            now_playing_swipe_state = SwipeableState(0).apply {
+                init(mapOf(-half_screen_height to 0))
+                snapTo(current_swipe_value)
+            }
         }
 
-        NowPlaying(remember { { this } }, now_playing_swipe_state!!, now_playing_swipe_anchors!!)
-        
+        if (now_playing_swipe_anchors != null) {
+            NowPlaying(remember { { this } }, now_playing_swipe_state!!, now_playing_swipe_anchors!!)
+        }
+
         OnChangedEffect(now_playing_switch_page!!.value) {
             if (now_playing_switch_page.value >= 0) {
-                now_playing_swipe_state.animateTo(now_playing_switch_page.value)
+                now_playing_swipe_state!!.animateTo(now_playing_switch_page.value)
                 now_playing_switch_page.value = -1
             }
         }

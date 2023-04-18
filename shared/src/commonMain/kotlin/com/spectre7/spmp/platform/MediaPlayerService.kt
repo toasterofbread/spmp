@@ -30,15 +30,13 @@ expect open class MediaPlayerService(): PlatformService {
     var session_started: Boolean
         private set
 
+    val state: MediaPlayerState
     val is_playing: Boolean
     val song_count: Int
     val current_song_index: Int
     val current_position_ms: Long
     val duration_ms: Long
     val shuffle_enabled: Boolean
-    val has_next_song: Boolean
-    val has_prev_song: Boolean
-    val state: MediaPlayerState
 
     var repeat_mode: MediaPlayerRepeatMode
     var volume: Float

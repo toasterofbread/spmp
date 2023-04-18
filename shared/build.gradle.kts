@@ -92,6 +92,7 @@ kotlin {
                 implementation("org.jsoup:jsoup:1.15.3")
                 implementation("org.burnoutcrew.composereorderable:reorderable:0.9.2")
                 implementation("com.github.ltttttttttttt:load-the-image:1.0.5")
+                implementation("com.github.SvenWoltmann:color-thief-java:v1.1.2")
             }
             kotlin.srcDir(buildConfigDir)
         }
@@ -112,6 +113,7 @@ kotlin {
                 implementation("com.google.accompanist:accompanist-systemuicontroller:0.21.2-beta")
                 implementation("com.google.accompanist:accompanist-swiperefresh:0.21.2-beta")
                 implementation("androidx.localbroadcastmanager:localbroadcastmanager:1.1.0")
+                implementation("androidx.palette:palette:1.0.0")
             }
         }
 

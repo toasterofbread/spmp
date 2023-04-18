@@ -6,6 +6,10 @@ import androidx.compose.ui.graphics.luminance
 import java.util.*
 import kotlin.math.absoluteValue
 
+fun Color.Companion.red(argb: Int): Int = argb shr 16 and 0xFF
+fun Color.Companion.green(argb: Int): Int = argb shr 8 and 0xFF
+fun Color.Companion.blue(argb: Int): Int = argb and 0xFF
+
 fun Color.Companion.random(randomise_alpha: Boolean = false, rnd: Random = Random()): Color {
     return Color(
         rnd.nextInt(256),

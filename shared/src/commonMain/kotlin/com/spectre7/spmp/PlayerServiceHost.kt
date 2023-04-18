@@ -41,8 +41,8 @@ class PlayerServiceHost {
         val index: Int get() = player.current_song_index
         val repeat_mode: MediaPlayerRepeatMode get() = player.repeat_mode
         val shuffle: Boolean get() = player.shuffle_enabled
-        val has_next: Boolean get() = player.has_next_song
-        val has_previous: Boolean get() = player.has_prev_song
+        val has_next: Boolean get() = true // TODO
+        val has_previous: Boolean get() = true // TODO
         var volume: Float
             get() = player.volume
             set(value) { player.volume = value }

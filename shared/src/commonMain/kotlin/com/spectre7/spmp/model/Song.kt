@@ -50,6 +50,17 @@ class Song protected constructor (
         return this
     }
 
+    // TODO
+    var duration: Long? by mutableStateOf(null)
+        private set
+
+    fun supplyDuration(value: Long?, certain: Boolean = false): Song {
+        if (value != null && (duration == null || certain)) {
+            duration = value
+        }
+        return this
+    }
+
     data class Lyrics(
         val id: Int,
         val source: Source,

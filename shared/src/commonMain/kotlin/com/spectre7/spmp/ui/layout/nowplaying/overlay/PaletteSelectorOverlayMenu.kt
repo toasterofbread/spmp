@@ -17,23 +17,17 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
-import androidx.compose.ui.graphics.ImageBitmap
-import androidx.compose.ui.graphics.toArgb
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.spectre7.spmp.PlayerServiceHost
 import com.spectre7.spmp.model.MediaItem
 import com.spectre7.spmp.model.Song
-import com.spectre7.spmp.platform.scale
+import com.spectre7.spmp.platform.generatePalette
 import com.spectre7.spmp.ui.layout.PlayerViewContext
 import com.spectre7.spmp.ui.layout.nowplaying.*
-import com.spectre7.spmp.ui.layout.nowplaying.getNPBackground
-import com.spectre7.spmp.ui.layout.nowplaying.getNPOnBackground
 import com.spectre7.utils.*
 import kotlin.concurrent.thread
-import kotlin.math.absoluteValue
 import kotlin.math.roundToInt
-import kotlin.random.Random
 
 const val PALETTE_SIMILAR_COLOUR_THRESHOLD = 0.1f
 
@@ -76,8 +70,8 @@ class PaletteSelectorOverlayMenu(
         LaunchedEffect(Unit) {
             val song = PlayerServiceHost.status.song!!
             thread {
-                val r = km(song.getThumbnail(MediaItem.ThumbnailQuality.HIGH)!!, 3)
-                palette_colours = r
+                val image = song.getThumbnail(MediaItem.ThumbnailQuality.HIGH)!!
+                palette_colours = image.generatePalette(8)
             }
         }
 
@@ -193,60 +187,42 @@ class PaletteSelectorOverlayMenu(
     }
 }
 
-private fun km(image: ImageBitmap, k: Int): List<Color> {
-    val scaled = image.scale(50, 50)
-
-    val pixels = IntArray(scaled.width * scaled.height)
-    scaled.readPixels(pixels, 0, scaled.width, 0, 0, scaled.width, scaled.height)
-
-    val centroids = IntArray(k) { pixels[(Random.nextDouble() * (pixels.size - 1)).toInt()] }
-    val clusters: MutableList<MutableList<Int>> = List(k) { mutableListOf<Int>() }.toMutableList()
-
-
-    var iterations = 0.01 * 10000
-
-    while (iterations-- > 0) {
-        println(iterations)
-
-        for (cluster in clusters) {
-            cluster.clear()
-        }
-
-        // Assign each pixel to closest cluster
-        for (pixel in pixels.withIndex()) {
-            var closest_diff: Int? = null
-            var closest_centroid = -1
-
-            for (centroid in centroids.withIndex()) {
-                val diff = (pixel.value - centroid.value).absoluteValue
-                if (closest_diff == null || diff < closest_diff) {
-                    closest_diff = diff
-                    closest_centroid = centroid.index
-                }
-            }
-
-            clusters[closest_centroid].add(pixel.value)
-        }
-
-        // Recalculate cluster means
-        for (cluster in clusters.withIndex()) {
-            var r = 0L
-            var g = 0L
-            var b = 0L
-            for (pixel in cluster.value) {
-                with(Color(pixel)) {
-                    r += (red * 255L).toLong()
-                    g += (green * 255L).toLong()
-                    b += (blue * 255L).toLong()
-                }
-            }
-            centroids[cluster.index] = Color(
-                (r / cluster.value.size.toLong()).toInt(),
-                (g / cluster.value.size.toLong()).toInt(),
-                (b / cluster.value.size.toLong()).toInt(),
-            ).toArgb()
-        }
-    }
-
-    return centroids.map { Color(it) }
-}
+//private fun km(image: ImageBitmap, k: Int): List<Color> {
+//    // Scale the image down to reduce the number of pixels to process
+//    val scaled = image.scale(50, 50)
+//
+//    // Get the pixel values from the scaled image
+//    val pixels = IntArray(scaled.width * scaled.height)
+//    scaled.readPixels(pixels, 0, scaled.width, 0, 0, scaled.width, scaled.height)
+//
+//    // Convert the pixel values to Color objects
+//    val colors = pixels.map { Color(it) }
+//
+//    // Initialize the k-means algorithm
+//    val centroids = colors.shuffled().take(k).toMutableList()
+//    var prevCentroids: List<Color>
+//
+//    do {
+//        // Assign each color to its nearest centroid
+//        val clusters = colors.groupBy { color ->
+//            centroids.minByOrNull { centroid -> color.distanceTo(centroid) }!!
+//        }
+//
+//        // Update the centroids based on the mean of the colors in each cluster
+//        prevCentroids = centroids.toList()
+//        centroids.clear()
+//        for ((centroid, cluster) in clusters) {
+//            val mean = Color(
+//                red = cluster.map { it.red }.average().toInt(),
+//                green = cluster.map { it.green }.average().toInt(),
+//                blue = cluster.map { it.blue }.average().toInt(),
+//                alpha = cluster.map { it.alpha }.average().toInt()
+//            )
+//            centroids.add(mean)
+//        }
+//    } while (centroids != prevCentroids)
+//
+//    // Return the final centroids as the dominant colors
+//    return centroids
+//}
+//

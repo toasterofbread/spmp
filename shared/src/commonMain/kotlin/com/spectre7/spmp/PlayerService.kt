@@ -356,7 +356,7 @@ class PlayerService : MediaPlayerService() {
 
     private var tracking_song_index = 0
     private val player_listener = object : MediaPlayerService.Listener() {
-        override fun onMediaItemTransition(song: Song?) {
+        override fun onSongTransition(song: Song?) {
             savePersistentQueue()
             if (current_song_index == tracking_song_index + 1) {
                 onSongEnded()
@@ -365,7 +365,7 @@ class PlayerService : MediaPlayerService() {
             song_marked_as_watched = false
         }
         override fun onStateChanged(state: MediaPlayerState) {
-            if (state == MediaPlayerState.STATE_ENDED) {
+            if (state == MediaPlayerState.ENDED) {
                 onSongEnded()
             }
         }
@@ -386,18 +386,12 @@ class PlayerService : MediaPlayerService() {
 //    private var vol_notif_instance: Int = 0
 
     // Persistent queue
-    private var lock_queue = false
-    private val queue_lock = Object()
+    private val queue_lock = ReentrantLock()
     private var update_timer: Timer? = null
 
     fun savePersistentQueue() {
-        synchronized(queue_lock) {
-            if (lock_queue) {
-                return
-            }
-            lock_queue = true
-        }
-
+        queue_lock.lock()
+        
         val writer = context.openFileOutput("persistent_queue").bufferedWriter()
         writer.write("${current_song_index},${current_position_ms}")
         writer.newLine()
@@ -408,27 +402,20 @@ class PlayerService : MediaPlayerService() {
         }
 
         writer.close()
-
-        synchronized(queue_lock) {
-            lock_queue = false
-        }
+        
+        queue_lock.unlock()
     }
 
     fun loadPersistentQueue() {
-        synchronized(queue_lock) {
-            check(!lock_queue)
-            lock_queue = true
-        }
-
         thread {
+            queue_lock.lock()
+        
             val reader: BufferedReader
             try {
                 reader = context.openFileInput("persistent_queue").bufferedReader()
             }
             catch (_: FileNotFoundException) {
-                synchronized(queue_lock) {
-                    lock_queue = false
-                }
+                queue_lock.unlock()
                 return@thread
             }
 
@@ -485,16 +472,10 @@ class PlayerService : MediaPlayerService() {
             while (first_song == null) { runBlocking { delay(100) } }
 
             context.mainThread {
-                if (song_count != 1 || getSong(0) != first_song) {
-                    return@mainThread
-                }
-
                 addMultipleToQueue(songs as List<Song>, 1)
                 seekTo(pos_data[0].toInt(), pos_data[1].toLong())
 
-                synchronized(queue_lock) {
-                    lock_queue = false
-                }
+                queue_lock.unlock()
             }
         }
     }

@@ -56,32 +56,46 @@ private fun convertState(exo_state: Int): MediaPlayerState {
 
 actual open class MediaPlayerService: PlatformService() {
 
-    actual open class Listener: Player.Listener {
-        actual open fun onMediaItemTransition(song: Song?) {}
+    actual open class Listener {
+        actual open fun onSongTransition(song: Song?) {}
         actual open fun onStateChanged(state: MediaPlayerState) {}
         actual open fun onPlayingChanged(is_playing: Boolean) {}
-        actual open fun onShuffleEnabledChanged(shuffle_enabled: Boolean) {}
         actual open fun onRepeatModeChanged(repeat_mode: MediaPlayerRepeatMode) {}
+        actual open fun onVolumeChanged(volume: Float) {}
+        actual open fun onSeeked(position_ms: Long) {}
+        
+        actual open fun onSongAdded(index: Int, song: Song?) {}
+        actual open fun onSongRemoved(index: Int) {}
+        actual open fun onSongMoved(from: Int, to: Int) {}
+
         actual open fun onEvents() {}
 
-        override fun onMediaItemTransition(item: ExoMediaItem?, reason: Int) {
-            onMediaItemTransition(item?.getSong())
-        }
-        override fun onPlaybackStateChanged(state: Int) {
-            onStateChanged(convertState(state))
-        }
-        override fun onIsPlayingChanged(is_playing: Boolean) {
-            onPlayingChanged(is_playing)
-        }
-        override fun onShuffleModeEnabledChanged(shuffle_enabled: Boolean) {
-            onShuffleEnabledChanged(shuffle_enabled)
-        }
-        override fun onRepeatModeChanged(repeat_mode: Int) {
-            onRepeatModeChanged(MediaPlayerRepeatMode.values()[repeat_mode])
+        private val listener = object : Player.Listener {
+            override fun onMediaItemTransition(item: ExoMediaItem?, reason: Int) {
+                onSongTransition(item?.getSong())
+            }
+            override fun onPlaybackStateChanged(state: Int) {
+                onStateChanged(convertState(state))
+            }
+            override fun onIsPlayingChanged(is_playing: Boolean) {
+                onPlayingChanged(is_playing)
+            }
+            override fun onRepeatModeChanged(repeat_mode: Int) {
+                onRepeatModeChanged(MediaPlayerRepeatMode.values()[repeat_mode])
+            }
+            override fun onVolumeChanged(volume: Float) {
+                this@Listener.onVolumeChanged(volume)
+            }
+            override fun onEvents(player: Player, events: Player.Events) {
+                onEvents()
+            }
         }
 
-        override fun onEvents(player: Player, events: Player.Events) {
-            onEvents()
+        internal fun addToPlayer(player: Player) {
+            player.addListener(listener)
+        }
+        internal fun removeFromPlayer(player: Player) {
+            player.removeListener(listener)
         }
     }
 
@@ -89,6 +103,7 @@ actual open class MediaPlayerService: PlatformService() {
     private var cache: ExoCache? = null
     private var media_session: MediaSessionCompat? = null
     private var media_session_connector: MediaSessionConnector? = null
+    private val listeners: MutableList<Listener> = mutableListOf()
 
     private val NOTIFICATION_ID = 2
     private val NOTIFICATION_CHANNEL_ID = "playback_channel"
@@ -205,7 +220,6 @@ actual open class MediaPlayerService: PlatformService() {
     actual val current_song_index: Int get() = player!!.currentMediaItemIndex
     actual val current_position_ms: Long get() = player!!.currentPosition
     actual val duration_ms: Long get() = player!!.duration
-    actual val shuffle_enabled: Boolean get() = player!!.shuffleModeEnabled
 
     actual var repeat_mode: MediaPlayerRepeatMode
         get() = MediaPlayerRepeatMode.values()[player!!.repeatMode]
@@ -217,7 +231,7 @@ actual open class MediaPlayerService: PlatformService() {
     actual val has_focus: Boolean get() = player!!.audioFocusState == Player.AUDIO_FOCUS_STATE_HAVE_FOCUS
 
     actual open fun play() {
-        if (state == MediaPlayerState.STATE_ENDED) {
+        if (state == MediaPlayerState.ENDED) {
             seekTo(0)
         }
         player!!.play()
@@ -228,8 +242,14 @@ actual open class MediaPlayerService: PlatformService() {
         else play()
     }
 
-    actual open fun seekTo(position_ms: Long) = player!!.seekTo(position_ms)
-    actual open fun seekTo(index: Int, position_ms: Long) = player!!.seekTo(index, position_ms)
+    actual open fun seekTo(position_ms: Long) {
+        player!!.seekTo(position_ms)
+        listeners.forEach { it.onSeeked(position_ms) }
+    }
+    actual open fun seekTo(index: Int, position_ms: Long) {
+        player!!.seekTo(index, position_ms)
+        listeners.forEach { it.onSeeked(position_ms) }
+    }
     actual open fun seekToNext() = player!!.seekToNextMediaItem()
     actual open fun seekToPrevious() = player!!.seekToPreviousMediaItem()
 
@@ -241,17 +261,35 @@ actual open class MediaPlayerService: PlatformService() {
         return player!!.getMediaItemAt(index).getSong()
     }
 
-    actual fun addSong(song: Song) = addSong(song, current_song_index + 1)
-    actual fun addSong(song: Song, index: Int) {
-        val item = ExoMediaItem.Builder().setTag(song).setUri(song.id).setCustomCacheKey(song.id).build()
-        player!!.addMediaItem(item)
-        addNotificationToPlayer()
+    actual fun addSong(song: Song) {
+        addSong(song, song_count)
     }
-    actual fun moveSong(from: Int, to: Int) = player!!.moveMediaItem(from, to)
-    actual fun removeSong(index: Int) = player!!.removeMediaItem(index)
+    actual fun addSong(song: Song, index: Int) {
+        val target_index = index.coerceIn(0, song_count)
+        val item = ExoMediaItem.Builder().setTag(song).setUri(song.id).setCustomCacheKey(song.id).build()
+        player!!.addMediaItem(index, item)
+        addNotificationToPlayer()
+        listeners.forEach { onSongAdded(song, target_index) }
+    }
+    actual fun moveSong(from: Int, to: Int) {
+        require(from in 0 until song_count)
+        require(to in 0 until song_count)
+        player!!.moveMediaItem(from, to)
+        listeners.forEach { onSongMoved(from, to) }
+    }
+    actual fun removeSong(index: Int) {
+        player!!.removeMediaItem(index)
+        listeners.forEach { onSongRemoved(index) }
+    }
 
-    actual fun addListener(listener: Listener) = player!!.addListener(listener)
-    actual fun removeListener(listener: Listener) = player!!.removeListener(listener)
+    actual fun addListener(listener: Listener) {
+        listeners.add(listener)
+        listener.addToPlayer(player!!)
+    }
+    actual fun removeListener(listener: Listener) {
+        listener.removeFromPlayer(player!!)
+        listeners.remove(listener)
+    }
 
     override fun onStartCommand(intent: Intent?, flags: Int, startId: Int): Int {
         MediaButtonReceiver.handleIntent(media_session, intent)

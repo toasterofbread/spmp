@@ -40,7 +40,6 @@ class PlayerServiceHost {
         val song: Song? get() = player.getSong()
         val index: Int get() = player.current_song_index
         val repeat_mode: MediaPlayerRepeatMode get() = player.repeat_mode
-        val shuffle: Boolean get() = player.shuffle_enabled
         val has_next: Boolean get() = true // TODO
         val has_previous: Boolean get() = true // TODO
         var volume: Float
@@ -56,8 +55,6 @@ class PlayerServiceHost {
             private set
         var m_index: Int by mutableStateOf(0)
             private set
-        var m_shuffle: Boolean by mutableStateOf(false)
-            private set
         var m_repeat_mode: MediaPlayerRepeatMode by mutableStateOf(MediaPlayerRepeatMode.values()[0])
             private set
         var m_has_next: Boolean by mutableStateOf(false)
@@ -71,14 +68,11 @@ class PlayerServiceHost {
 
         init {
             player.addListener(object : MediaPlayerService.Listener() {
-                override fun onMediaItemTransition(song: Song?) {
+                override fun onSongTransition(song: Song?) {
                     m_song = song
                 }
                 override fun onPlayingChanged(is_playing: Boolean) {
                     m_playing = is_playing
-                }
-                override fun onShuffleEnabledChanged(shuffle_enabled: Boolean) {
-                    m_shuffle = shuffle_enabled
                 }
                 override fun onRepeatModeChanged(repeat_mode: MediaPlayerRepeatMode) {
                     m_repeat_mode = repeat_mode
@@ -156,12 +150,5 @@ class PlayerServiceHost {
                 onDisconnected?.invoke()
             }
         )
-    }
-
-    interface PlayerQueueListener {
-        fun onSongAdded(song: Song, index: Int)
-        fun onSongRemoved(song: Song, index: Int)
-        fun onSongMoved(from: Int, to: Int)
-        fun onCleared()
     }
 }

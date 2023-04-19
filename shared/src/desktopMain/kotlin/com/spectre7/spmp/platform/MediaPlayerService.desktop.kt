@@ -18,24 +18,29 @@ const val POLL_STATE_INTERVAL = 100L // ms
 
 actual open class MediaPlayerService actual constructor() : PlatformService() {
     actual open class Listener actual constructor() {
-        actual open fun onMediaItemTransition(song: Song?) {
-        }
+        actual open fun onSongTransition(song: Song?) {}
+        actual open fun onStateChanged(state: MediaPlayerState) {}
+        actual open fun onPlayingChanged(is_playing: Boolean) {}
+        actual open fun onRepeatModeChanged(repeat_mode: MediaPlayerRepeatMode) {}
+        actual open fun onVolumeChanged(volume: Float) {}
+        actual open fun onSeeked(position_ms: Long) {}
 
-        actual open fun onStateChanged(state: MediaPlayerState) {
-        }
+        actual open fun onSongAdded(index: Int, song: Song?) {}
+        actual open fun onSongRemoved(index: Int) {}
+        actual open fun onSongMoved(from: Int, to: Int) {}
 
-        actual open fun onPlayingChanged(is_playing: Boolean) {
-        }
-
-        actual open fun onShuffleEnabledChanged(shuffle_enabled: Boolean) {
-        }
-
-        actual open fun onRepeatModeChanged(repeat_mode: MediaPlayerRepeatMode) {
-        }
-
-        actual open fun onEvents() {
-        }
+        actual open fun onEvents() {}
     }
+
+    private class ServerPlayerState(
+        val is_playing: Boolean,
+        val current_song_index: Int,
+        val current_position_ms: Int,
+        val duration_ms: Int,
+        val repeat_mode: Int,
+        val volume: Float,
+        val playlist: List<String>
+    )
 
     private fun getServerPort(): Int = Settings.KEY_SPMS_PORT.get(this)
 
@@ -44,27 +49,7 @@ actual open class MediaPlayerService actual constructor() : PlatformService() {
     private var poll_thread: Thread? = null
     private var playlist: MutableList<Song> = mutableListOf()
     private val queued_messages: MutableList<Pair<String, List<Any>>> = mutableListOf()
-
-//    private class ServerReply<T>(val result: T? = null, val error: String?) {
-//        fun checkAndGetResult(): T? {
-//            if (error != null) {
-//                SpMp.error_manager.onError("ServerReply", RuntimeException(error))
-//                return null
-//            }
-//            return result
-//        }
-//    }
-
-    private class ServerPlayerState(
-        val is_playing: Boolean,
-        val current_song_index: Int,
-        val current_position_ms: Int,
-        val duration_ms: Int,
-        val shuffle_enabled: Boolean,
-        val repeat_mode: Int,
-        val volume: Float,
-        val playlist: List<String>
-    )
+    private val listeners: MutableList<Listener> = mutableListOf()
 
     override fun onCreate() {
         super.onCreate()
@@ -85,7 +70,6 @@ actual open class MediaPlayerService actual constructor() : PlatformService() {
             _current_song_index = state.current_song_index
             updateCurrentSongPosition(state.current_position_ms.toLong())
             _duration_ms = state.duration_ms.toLong()
-            _shuffle_enabled = state.shuffle_enabled
             _repeat_mode = MediaPlayerRepeatMode.values()[state.repeat_mode]
             _volume = state.volume
 
@@ -136,30 +120,62 @@ actual open class MediaPlayerService actual constructor() : PlatformService() {
             when (event["type"] as String) {
                 "SongTransition" -> {
                     _current_song_index = event["index"] as Int
+                    _duration_ms = (event["duration"] as Int).toLong()
                     updateCurrentSongPosition(0)
+                    listeners.forEach { it.onSongTransition(getSong()) }
                 }
                 "PropertyChanged" -> {
+                    val value = event["value"]
                     when (event["key"] as String) {
+                        "state" -> {
+                            if (value != _state.ordinal) {
+                                _state = MediaPlayerState.values()[value as Int]
+                                listeners.forEach { it.onStateChanged(_state) }
+                            }
+                        }
                         "is_playing" -> {
-                            updateIsPlaying(event["value"] as Boolean)
+                            if (value != _is_playing) {
+                                updateIsPlaying(value as Boolean)
+                                listeners.forEach { it.onPlayingChanged(_is_playing) }
+                            }
                         }
                         "repeat_mode" -> {
-                            _repeat_mode = MediaPlayerRepeatMode.values()[event["value"] as Int]
+                            if (value != _repeat_mode.ordinal) {
+                                _repeat_mode = MediaPlayerRepeatMode.values()[value as Int]
+                                listeners.forEach { it.onRepeatModeChanged(_repeat_mode) }
+                            }
                         }
                         "volume" -> {
-                            _volume = event["value"] as Float
+                            if (value != _volume) {
+                                _volume = event["value"] as Float
+                                listeners.forEach { it.onVolumeChanged(_volume) }
+                            }
                         }
                         else -> throw NotImplementedError(event["key"] as String)
                     }
-                } // TODO
-                "Seeked" -> updateCurrentSongPosition((event["position_ms"] as Int).toLong())
+                }
+                "Seeked" -> {
+                    val position_ms = (event["position_ms"] as Int).toLong()
+                    updateCurrentSongPosition(position_ms)
+                    listeners.forEach { it.onSeeked(position_ms) }
+                }
                 "SongAdded" -> {
                     val song = Song.fromId(event["song_id"] as String)
                     val index = event["index"] as Int
                     playlist.add(index, song)
+                    listeners.forEach { it.onSongAdded(inded, song) }
                 }
-                "SongRemoved" -> playlist.removeAt(event["index"] as Int)
-                "SongMoved" -> playlist.add(event["to_index"] as Int, playlist.removeAt(event["from_index"] as Int))
+                "SongRemoved" -> {
+                    val index = event["index"] as Int
+                    playlist.removeAt(index)
+                    listeners.forEach { it.onSongRemoved(index) }
+                }
+                "SongMoved" -> {
+                    val to = event["to_index"] as Int
+                    val from = event["from_index"] as Int
+                    playlist.add(to, playlist.removeAt(from))
+                    listeners.forEach { it.onSongMoved(from, to) }
+                }
                 else -> throw NotImplementedError(event["type"] as String)
             }
         }
@@ -203,12 +219,11 @@ actual open class MediaPlayerService actual constructor() : PlatformService() {
 
     actual var session_started: Boolean by mutableStateOf(true)
 
-    private var _state: MediaPlayerState = MediaPlayerState.STATE_IDLE
+    private var _state: MediaPlayerState = MediaPlayerState.IDLE
     private var _is_playing: Boolean = false
-    private var _current_song_index: Int = 0
+    private var _current_song_index: Int = -1
     private var _duration_ms: Long = -1
-    private var _shuffle_enabled: Boolean = false
-    private var _repeat_mode: MediaPlayerRepeatMode = MediaPlayerRepeatMode.REPEAT_MODE_OFF
+    private var _repeat_mode: MediaPlayerRepeatMode = MediaPlayerRepeatMode.OFF
     private var _volume: Float = 1f
     private var current_song_time: Long = -1
 
@@ -225,21 +240,33 @@ actual open class MediaPlayerService actual constructor() : PlatformService() {
             if (current_song_time < 0) {
                 return 0
             }
-            if (!_is_playing) {
+            if (!_is_playing || _state != MediaPlayerState.READY) {
                 return current_song_time
             }
             return System.currentTimeMillis() - current_song_time
         }
     actual val duration_ms: Long
         get() = _duration_ms
-    actual val shuffle_enabled: Boolean
-        get() = _shuffle_enabled
     actual var repeat_mode: MediaPlayerRepeatMode
         get() = _repeat_mode
-        set(value) { sendRequest("setRepeatMode", value.ordinal) }
+        set(value) { 
+            if (value == _repeat_mode) {
+                return
+            }
+            _repeat_mode = value
+            listeners.forEach { it.onRepeatModeChanged(_repeat_mode) }
+            sendRequest("setRepeatMode", value.ordinal)
+        }
     actual var volume: Float
         get() = _volume
-        set(value) { sendRequest("setVolume", value) }
+        set(value) { 
+            if (value == _volume) {
+                return
+            }
+            _volume = value
+            listeners.forEach { it.onVolumeChanged(_volume) }
+            sendRequest("setVolume", value)
+        }
     actual val has_focus: Boolean = true
 
     actual open fun play() {
@@ -276,16 +303,14 @@ actual open class MediaPlayerService actual constructor() : PlatformService() {
     }
 
     actual open fun seekTo(position_ms: Long) {
-        require(playlist.isNotEmpty())
+        if (playlist.isEmpty()) {
+            return 
+        }
         require(position_ms in 0 until _duration_ms)
 
-        if (_is_playing) {
-            current_song_time -= position_ms - (System.currentTimeMillis() - current_song_time)
-        }
-        else {
-            current_song_time = position_ms
-        }
+        updateCurrentSongPosition(position_ms)
 
+        listeners.forEach { it.onSeeked(position_ms) }
         sendRequest("seekTo", position_ms)
     }
 
@@ -294,12 +319,11 @@ actual open class MediaPlayerService actual constructor() : PlatformService() {
         require(position_ms in 0 until _duration_ms)
 
         _current_song_index = index
+        updateCurrentSongPosition(position_ms)
 
-        if (_is_playing) {
-            current_song_time -= position_ms - (System.currentTimeMillis() - current_song_time)
-        }
-        else {
-            current_song_time = position_ms
+        listeners.forEach {
+            it.onSongTransition(playlist[index])
+            it.onSeeked(position_ms)
         }
 
         sendRequest("seekToIndex", index, position_ms)
@@ -311,15 +335,16 @@ actual open class MediaPlayerService actual constructor() : PlatformService() {
         }
 
         val target_index = when (_repeat_mode) {
-            MediaPlayerRepeatMode.REPEAT_MODE_OFF -> if (_current_song_index + 1 == playlist.size) return else _current_song_index + 1
-            MediaPlayerRepeatMode.REPEAT_MODE_ONE -> _current_song_index
-            MediaPlayerRepeatMode.REPEAT_MODE_ALL -> if (_current_song_index + 1 == playlist.size) 0 else _current_song_index + 1
+            MediaPlayerRepeatMode.OFF -> if (_current_song_index + 1 == playlist.size) return else _current_song_index + 1
+            MediaPlayerRepeatMode.ONE -> _current_song_index
+            MediaPlayerRepeatMode.ALL -> if (_current_song_index + 1 == playlist.size) 0 else _current_song_index + 1
         }
 
         _current_song_index = target_index
-        _is_playing = false
         current_song_time = 0
-        _duration_ms = 0
+        _duration_ms = -1
+
+        listeners.forEach { it.onSongTransition(playlist[_current_song_index]) }
 
         sendRequest("seekToNext")
     }
@@ -330,15 +355,16 @@ actual open class MediaPlayerService actual constructor() : PlatformService() {
         }
 
         val target_index = when (_repeat_mode) {
-            MediaPlayerRepeatMode.REPEAT_MODE_OFF -> if (_current_song_index == 0) return else _current_song_index - 1
-            MediaPlayerRepeatMode.REPEAT_MODE_ONE -> _current_song_index
-            MediaPlayerRepeatMode.REPEAT_MODE_ALL -> if (_current_song_index == 0) playlist.size - 1 else _current_song_index - 1
+            MediaPlayerRepeatMode.OFF -> if (_current_song_index == 0) return else _current_song_index - 1
+            MediaPlayerRepeatMode.ONE -> _current_song_index
+            MediaPlayerRepeatMode.ALL -> if (_current_song_index == 0) playlist.size - 1 else _current_song_index - 1
         }
 
         _current_song_index = target_index
-        _is_playing = false
         current_song_time = 0
-        _duration_ms = 0
+        _duration_ms = -1
+        
+        listeners.forEach { it.onSongTransition(playlist[_current_song_index]) }
 
         sendRequest("seekToPrevious")
     }
@@ -347,17 +373,20 @@ actual open class MediaPlayerService actual constructor() : PlatformService() {
 
     actual fun getSong(index: Int): Song? = playlist.getOrNull(index)
 
-    actual fun addSong(song: Song) {
-        playlist.add(song)
-        sendRequest("addSong", song.id)
-    }
+    actual fun addSong(song: Song) = addSong(song, song_count)
 
     actual fun addSong(song: Song, index: Int) {
+        require(index in 0..song_count)
+
         playlist.add(index, song)
+        listeners.forEach { it.onSongAdded(index, song) }
         sendRequest("addSong", song.id, index)
     }
 
     actual fun moveSong(from: Int, to: Int) {
+        require(from in 0 until song_count)
+        require(to in 0 until song_count)
+
         if (playlist.size < 2) {
             return
         }
@@ -376,27 +405,22 @@ actual open class MediaPlayerService actual constructor() : PlatformService() {
             }
         }
 
+        listeners.forEach { it.onSongMoved(from, ti) }
         sendRequest("moveSong", from, to)
     }
 
     actual fun removeSong(index: Int) {
-        if (index !in playlist.indices) {
-            return
-        }
-
         playlist.removeAt(index)
         if (_current_song_index == playlist.size) {
             _current_song_index--
         }
 
+        listeners.forEach { it.onSongRemovd(index) }
         sendRequest("removeSong", index)
     }
 
-    actual fun addListener(listener: Listener) {
-    }
-
-    actual fun removeListener(listener: Listener) {
-    }
+    actual fun addListener(listener: Listener) = listeners.add(listener)
+    actual fun removeListener(listener: Listener) = listeners.remove(listener)
 
     actual companion object {
         actual fun CoroutineScope.playerLaunch(action: CoroutineScope.() -> Unit) {

@@ -141,9 +141,6 @@ fun QueueTab(expansionProvider: () -> Float, playerProvider: () -> PlayerViewCon
             override fun onSongMoved(from: Int, to: Int) {
                 song_items.add(to, song_items.removeAt(from))
             }
-            override fun onCleared() {
-                song_items.clear()
-            }
         }
     }
 
@@ -431,14 +428,14 @@ private fun RepeatButton(background_colour: Color, content_colour: Color, modifi
                 onClick = {
                     PlayerServiceHost.player.repeat_mode =
                         when (PlayerServiceHost.player.repeat_mode) {
-                            MediaPlayerRepeatMode.REPEAT_MODE_ALL -> MediaPlayerRepeatMode.REPEAT_MODE_ONE
-                            MediaPlayerRepeatMode.REPEAT_MODE_ONE -> MediaPlayerRepeatMode.REPEAT_MODE_OFF
-                            else -> MediaPlayerRepeatMode.REPEAT_MODE_ALL
+                            MediaPlayerRepeatMode.ALL -> MediaPlayerRepeatMode.ONE
+                            MediaPlayerRepeatMode.ONE -> MediaPlayerRepeatMode.OFF
+                            else -> MediaPlayerRepeatMode.ALL
                         }
                 }
             )
             .crossOut(
-                crossed_out = PlayerServiceHost.status.m_repeat_mode == MediaPlayerRepeatMode.REPEAT_MODE_OFF,
+                crossed_out = PlayerServiceHost.status.m_repeat_mode == MediaPlayerRepeatMode.OFF,
                 colour = content_colour,
                 width = 5f
             ) {
@@ -451,7 +448,7 @@ private fun RepeatButton(background_colour: Color, content_colour: Color, modifi
     ) {
         Icon(
             when (PlayerServiceHost.status.m_repeat_mode) {
-                MediaPlayerRepeatMode.REPEAT_MODE_ONE -> Icons.Filled.RepeatOne
+                MediaPlayerRepeatMode.ONE -> Icons.Filled.RepeatOne
                 else -> Icons.Filled.Repeat
             },
             null,

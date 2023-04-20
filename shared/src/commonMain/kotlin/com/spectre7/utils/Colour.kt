@@ -61,7 +61,7 @@ fun ImageBitmap.getThemeColour(): Color? {
     val pixel_count = width * height
 
     val pixels = IntArray(pixel_count)
-    readPixels(pixels, 0, width, 0, 0, width, height)
+    readPixels(pixels, 0, 0, width, height)
 
     var light_count = 0
     var light_r = 0

@@ -86,7 +86,6 @@ fun ColumnScope.NowPlayingMainTab(
     val disappear_scale = minOf(1f, if (expansion < 0.5f) 1f else (1f - ((expansion - 0.5f) * 2f)))
     val appear_scale = minOf(1f, if (expansion > 0.5f) 1f else (expansion * 2f))
 
-    val system_accent = MaterialTheme.colorScheme.primary
     LaunchedEffect(theme_colour) {
         Theme.currentThumbnnailColourChanged(theme_colour)
     }
@@ -128,8 +127,9 @@ fun ColumnScope.NowPlayingMainTab(
     val thumbnail_rounding: Int? = PlayerServiceHost.status.m_song?.song_reg_entry?.thumbnail_rounding
     val thumbnail_shape = RoundedCornerShape(thumbnail_rounding ?: DEFAULT_THUMBNAIL_ROUNDING)
     var image_size by remember { mutableStateOf(IntSize(1, 1)) }
-    val status_bar_height = SpMp.context.getStatusBarHeight()
+
     val screen_height = SpMp.context.getScreenHeight()
+    val status_bar_height = SpMp.context.getStatusBarHeight()
 
     val offsetProvider: Density.() -> IntOffset = {
         IntOffset(
@@ -137,7 +137,7 @@ fun ColumnScope.NowPlayingMainTab(
             if (_expansion > 1f)
                 (
                     (-screen_height * ((NOW_PLAYING_VERTICAL_PAGE_COUNT * 0.5f) - _expansion))
-                    - ((TOP_BAR_HEIGHT.dp - status_bar_height) * (_expansion - 1f))
+                    - ((TOP_BAR_HEIGHT.dp - MINIMISED_NOW_PLAYING_HEIGHT.dp + (status_bar_height * 0.5f)) * (_expansion - 1f))
                 ).toPx().toInt()
             else 0
         )
@@ -199,6 +199,9 @@ fun ColumnScope.NowPlayingMainTab(
             shutter_menu_open = false
             overlay_menu = null
         }
+
+        // Keep thumbnail centered
+        Spacer(Modifier)
 
         Box(Modifier.aspectRatio(1f)) {
             Crossfade(thumbnail, animationSpec = tween(250)) { image ->

@@ -62,9 +62,10 @@ actual open class MediaPlayerService: PlatformService() {
         actual open fun onPlayingChanged(is_playing: Boolean) {}
         actual open fun onRepeatModeChanged(repeat_mode: MediaPlayerRepeatMode) {}
         actual open fun onVolumeChanged(volume: Float) {}
+        actual open fun onDurationChanged(duration_ms: Long) {}
         actual open fun onSeeked(position_ms: Long) {}
         
-        actual open fun onSongAdded(index: Int, song: Song?) {}
+        actual open fun onSongAdded(index: Int, song: Song) {}
         actual open fun onSongRemoved(index: Int) {}
         actual open fun onSongMoved(from: Int, to: Int) {}
 
@@ -246,9 +247,8 @@ actual open class MediaPlayerService: PlatformService() {
         player!!.seekTo(position_ms)
         listeners.forEach { it.onSeeked(position_ms) }
     }
-    actual open fun seekTo(index: Int, position_ms: Long) {
-        player!!.seekTo(index, position_ms)
-        listeners.forEach { it.onSeeked(position_ms) }
+    actual open fun seekToSong(index: Int) {
+        player!!.seekTo(index, 0)
     }
     actual open fun seekToNext() = player!!.seekToNextMediaItem()
     actual open fun seekToPrevious() = player!!.seekToPreviousMediaItem()
@@ -269,17 +269,17 @@ actual open class MediaPlayerService: PlatformService() {
         val item = ExoMediaItem.Builder().setTag(song).setUri(song.id).setCustomCacheKey(song.id).build()
         player!!.addMediaItem(index, item)
         addNotificationToPlayer()
-        listeners.forEach { onSongAdded(song, target_index) }
+        listeners.forEach { it.onSongAdded(target_index, song) }
     }
     actual fun moveSong(from: Int, to: Int) {
         require(from in 0 until song_count)
         require(to in 0 until song_count)
         player!!.moveMediaItem(from, to)
-        listeners.forEach { onSongMoved(from, to) }
+        listeners.forEach { it.onSongMoved(from, to) }
     }
     actual fun removeSong(index: Int) {
         player!!.removeMediaItem(index)
-        listeners.forEach { onSongRemoved(index) }
+        listeners.forEach { it.onSongRemoved(index) }
     }
 
     actual fun addListener(listener: Listener) {

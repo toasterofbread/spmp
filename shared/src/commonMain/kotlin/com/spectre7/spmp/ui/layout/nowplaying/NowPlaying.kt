@@ -95,10 +95,11 @@ fun NowPlaying(playerProvider: () -> PlayerViewContext, swipe_state: SwipeableSt
                 switch_to_page = swipe_state.targetValue - 1
             }
 
+            val status_bar_height = SpMp.context.getStatusBarHeight()
             Column(Modifier.fillMaxSize(), horizontalAlignment = Alignment.CenterHorizontally) {
                 NowPlayingCardContent(
-                    remember { { (swipe_state.offset.value + half_screen_height) / screen_height.value } },
-                    screen_height,
+                    remember(screen_height) { { (swipe_state.offset.value + half_screen_height) / (screen_height + status_bar_height).value } },
+                    screen_height + status_bar_height,
                     { switch_to_page = if (swipe_state.targetValue == 0) 1 else 0 },
                     { switch_to_page = swipe_state.targetValue + it },
                     playerProvider

@@ -4,6 +4,8 @@ import androidx.compose.ui.window.application
 import com.spectre7.spmp.platform.PlatformContext
 import kotlinx.coroutines.delay
 
+private const val SCREEN_SIZE_UPDATE_INTERVAL: Long = 100
+
 fun main() = application {
     val context = PlatformContext()
     SpMp.init(context)
@@ -16,7 +18,7 @@ fun main() = application {
 
             while (true) {
                 context.updateScreenSize()
-                delay(500)
+                delay(SCREEN_SIZE_UPDATE_INTERVAL)
             }
         }
 

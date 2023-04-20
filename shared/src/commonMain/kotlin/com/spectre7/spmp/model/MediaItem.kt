@@ -2,9 +2,12 @@ package com.spectre7.spmp.model
 
 import androidx.compose.animation.Crossfade
 import androidx.compose.foundation.Image
+import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.foundation.layout.size
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.*
+import androidx.compose.ui.unit.Dp
 import androidx.compose.runtime.*
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
@@ -188,7 +191,7 @@ abstract class MediaItem(id: String) {
     }
 
     private fun toJsonData(): String {
-        return Klaxon().converter(json_converter).toJsonString(this)
+        return DataApi.klaxon.toJsonString(this)
     }
 
     val cache_key: String get() = getCacheKey(type, id)
@@ -197,13 +200,11 @@ abstract class MediaItem(id: String) {
         val cached = Cache.get(cache_key)
         if (cached != null) {
             thread {
-                val klaxon = DataApi.klaxon.converter(json_converter)
-
                 val str = cached.readText()
                 cached.close()
                 try {
-                    val obj = klaxon.parseJsonObject(str.reader())
-                    supplyFromJsonObject(obj, klaxon)
+                    val obj = DataApi.klaxon.parseJsonObject(str.reader())
+                    supplyFromJsonObject(obj, DataApi.klaxon)
                 }
                 catch (e: KlaxonException) {
                     printJson(str)
@@ -232,7 +233,7 @@ abstract class MediaItem(id: String) {
         }
 
         fun fromJsonData(reader: Reader): MediaItem {
-            return Klaxon().converter(json_converter).parse(reader)!!
+            return DataApi.klaxon.parse(reader)!!
         }
 
         fun fromJsonObject(obj: JsonObject, klaxon: Klaxon = DataApi.klaxon, ref_only: Boolean = false): MediaItem {
@@ -258,67 +259,6 @@ abstract class MediaItem(id: String) {
                 else -> throw NotImplementedError(page_type)
             }
         }
-
-        protected val json_converter = object : Converter {
-            private val json_ref_converter = object : Converter {
-                override fun canConvert(cls: Class<*>): Boolean {
-                    return MediaItem::class.java.isAssignableFrom(cls)
-                }
-
-                override fun fromJson(jv: JsonValue): Any {
-                    if (jv.obj == null) {
-                        throw KlaxonException("Couldn't parse MediaItem as it isn't an object ($jv)")
-                    }
-
-                    try {
-                        return fromJsonObject(jv.obj!!, DataApi.klaxon.converter(this), true)
-                    }
-                    catch (e: Exception) {
-                        throw RuntimeException("Couldn't parse MediaItem ($jv)", e)
-                    }
-                }
-
-                override fun toJson(value: Any): String {
-                    if (value !is MediaItem) {
-                        throw KlaxonException("Value $value is not a MediaItem")
-                    }
-                    return """{
-                        "type": ${value.type.ordinal},
-                        "id": "${value.id}"
-                    }"""
-                }
-            }
-
-            override fun canConvert(cls: Class<*>): Boolean {
-                return MediaItem::class.java.isAssignableFrom(cls)
-            }
-
-            override fun fromJson(jv: JsonValue): Any {
-                if (jv.obj == null) {
-                    throw KlaxonException("Couldn't parse MediaItem as it isn't an object ($jv)")
-                }
-
-                try {
-                    return fromJsonObject(jv.obj!!, DataApi.klaxon.converter(json_ref_converter))
-                }
-                catch (e: Exception) {
-                    println("aaa")
-                    println(jv.obj?.get("type"))
-                    throw RuntimeException("Couldn't parse MediaItem (${jv.obj})", e)
-                }
-            }
-
-            override fun toJson(value: Any): String {
-                if (value !is MediaItem) {
-                    throw KlaxonException("Value $value is not a MediaItem")
-                }
-                return """{
-                    "type": ${value.type.ordinal},
-                    "id": "${value.id}",${value.getJsonMapValues(DataApi.klaxon.converter(json_ref_converter))}
-                }"""
-            }
-        }
-
     }
 
     class BrowseEndpoint {
@@ -577,22 +517,24 @@ abstract class MediaItem(id: String) {
     abstract fun PreviewLong(params: PreviewParams)
 
     @Composable
-    fun Thumbnail(quality: ThumbnailQuality, modifier: Modifier = Modifier, content_colour: Color = Color.White, d: Boolean = false) {
+    fun Thumbnail(quality: ThumbnailQuality, size: Dp, modifier: Modifier = Modifier, content_colour: Color = Color.White, d: Boolean = false) {
         LaunchedEffect(quality, canLoadThumbnail()) {
             getThumbnail(quality)
         }
 
-        Crossfade(thumb_states[quality]!!.image) { thumbnail ->
-            if (thumbnail == null) {
-                SubtleLoadingIndicator(content_colour, modifier.fillMaxSize())
-            }
-            else {
-                Image(
-                    thumbnail,
-                    contentDescription = null,
-                    contentScale = ContentScale.Crop,
-                    modifier = modifier
-                )
+        Box(Modifier.size(size)) {
+            Crossfade(thumb_states[quality]!!.image) { thumbnail ->
+                if (thumbnail == null) {
+                    SubtleLoadingIndicator(content_colour, modifier.fillMaxSize())
+                }
+                else {
+                    Image(
+                        thumbnail,
+                        contentDescription = null,
+                        contentScale = ContentScale.Crop,
+                        modifier = modifier.size(size)
+                    )
+                }
             }
         }
     }

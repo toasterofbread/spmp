@@ -7,6 +7,7 @@ import android.content.Context.MODE_APPEND
 import android.content.Context.MODE_PRIVATE
 import android.content.ContextWrapper
 import android.content.Intent
+import android.content.res.Resources
 import android.net.ConnectivityManager
 import android.net.NetworkCapabilities
 import android.os.Handler
@@ -39,10 +40,12 @@ import java.lang.ref.WeakReference
 import kotlin.concurrent.thread
 import android.graphics.drawable.Icon
 import android.net.Uri
+import android.util.DisplayMetrics
 import android.view.Window
 import android.view.WindowInsetsController.APPEARANCE_LIGHT_STATUS_BARS
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.toArgb
+import androidx.compose.ui.unit.IntSize
 
 private const val ERROR_NOTIFICATION_CHANNEL_ID = "download_error_channel"
 
@@ -156,7 +159,7 @@ actual class PlatformContext(context: Context) {
 
     @Composable
     actual fun getScreenHeight(): Dp {
-        return LocalConfiguration.current.screenHeightDp.dp + getStatusBarHeight()
+        return LocalConfiguration.current.screenHeightDp.dp
     }
 
     @Composable

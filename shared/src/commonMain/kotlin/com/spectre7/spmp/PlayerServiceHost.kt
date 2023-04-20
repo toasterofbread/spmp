@@ -11,7 +11,7 @@ import com.spectre7.spmp.platform.PlatformService
 
 enum class SERVICE_INTENT_ACTIONS { STOP, BUTTON_VOLUME }
 
-class PlayerServiceHost {
+class PlayerServiceHost() {
 
     private var player: PlayerService? by mutableStateOf(null)
 
@@ -29,6 +29,7 @@ class PlayerServiceHost {
         instance = this
     }
 
+    // TODO remove (at least the non-state stuff)
     class PlayerStatus internal constructor(private val player: PlayerService) {
         val playing: Boolean get() = player.is_playing
         val position: Float get() = player.duration_ms.let { it ->
@@ -47,23 +48,23 @@ class PlayerServiceHost {
             set(value) { player.volume = value }
         val queue_size: Int get() = player.song_count
 
-        var m_playing: Boolean by mutableStateOf(false)
+        var m_playing: Boolean by mutableStateOf(playing)
             private set
-        var m_duration: Float by mutableStateOf(0f)
+        var m_duration: Float by mutableStateOf(duration)
             private set
-        var m_song: Song? by mutableStateOf(null)
+        var m_song: Song? by mutableStateOf(song)
             private set
-        var m_index: Int by mutableStateOf(0)
+        var m_index: Int by mutableStateOf(index)
             private set
-        var m_repeat_mode: MediaPlayerRepeatMode by mutableStateOf(MediaPlayerRepeatMode.values()[0])
+        var m_repeat_mode: MediaPlayerRepeatMode by mutableStateOf(repeat_mode)
             private set
         var m_has_next: Boolean by mutableStateOf(false)
             private set
         var m_has_previous: Boolean by mutableStateOf(false)
             private set
-        var m_volume: Float by mutableStateOf(0f)
+        var m_volume: Float by mutableStateOf(volume)
             private set
-        var m_queue_size: Int by mutableStateOf(0)
+        var m_queue_size: Int by mutableStateOf(queue_size)
             private set
 
         init {

@@ -1,19 +1,30 @@
 package com.spectre7.spmp.platform
 
 import android.view.WindowManager
-import androidx.compose.foundation.layout.ColumnScope
-import androidx.compose.material3.MaterialTheme
-import androidx.compose.material3.Surface
+import androidx.compose.foundation.ExperimentalFoundationApi
+import androidx.compose.foundation.Indication
+import androidx.compose.foundation.combinedClickable
+import androidx.compose.foundation.interaction.MutableInteractionSource
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.remember
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.composed
 import androidx.compose.ui.graphics.*
 import androidx.compose.ui.platform.LocalView
-import androidx.compose.ui.unit.DpOffset
 import androidx.compose.ui.window.Dialog
 import androidx.compose.ui.window.DialogProperties
 import androidx.compose.ui.window.DialogWindowProvider
 import com.google.accompanist.swiperefresh.SwipeRefresh as AccSwipeRefresh
 import com.google.accompanist.swiperefresh.rememberSwipeRefreshState
+
+@OptIn(ExperimentalFoundationApi::class)
+actual fun Modifier.platformClickable(onClick: () -> Unit, onAltClick: (() -> Unit)?, indication: Indication?): Modifier =
+    composed { combinedClickable(
+        interactionSource = remember { MutableInteractionSource() },
+        indication = null,
+        onClick = onClick,
+        onLongClick = onAltClick
+    ) }
 
 @Composable
 actual fun BackHandler(enabled: Boolean, action: () -> Unit) {

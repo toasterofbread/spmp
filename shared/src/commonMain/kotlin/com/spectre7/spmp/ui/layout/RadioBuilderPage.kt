@@ -521,10 +521,12 @@ private fun RadioArtistSelector(
                                         .border(1.dp, Theme.current.on_background, CircleShape)
                                     )
                                 }
-                                artist.Thumbnail(MediaItem.ThumbnailQuality.LOW,
+                                artist.Thumbnail(
+                                    MediaItem.ThumbnailQuality.LOW,
+                                    thumb_size,
                                     Modifier
-                                        .size(thumb_size)
-                                        .longPressMenuIcon(long_press_menu_data))
+                                        .longPressMenuIcon(long_press_menu_data)
+                                )
                             }
 
                             Text(

@@ -12,6 +12,7 @@ import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.text.font.Font
 import androidx.compose.ui.text.platform.Font
 import androidx.compose.ui.unit.Dp
+import androidx.compose.ui.unit.IntSize
 import androidx.compose.ui.unit.dp
 import com.spectre7.spmp.PlayerService
 import com.spectre7.utils.getString
@@ -145,8 +146,7 @@ actual open class PlatformContext {
 
     private var screen_size: Dimension? by mutableStateOf(null)
     fun updateScreenSize() {
-        val window = Window.getWindows().first()
-        screen_size = window.size
+        screen_size = Window.getWindows().first().size
     }
 
     @Composable
@@ -161,6 +161,7 @@ actual open class PlatformContext {
 
     @Composable
     actual fun CopyShareButtons(name: String?, getText: () -> String) {
+        // TODO
     }
 
 }

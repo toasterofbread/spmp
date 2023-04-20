@@ -34,6 +34,7 @@ import androidx.compose.ui.graphics.drawscope.Fill
 import androidx.compose.ui.graphics.drawscope.Stroke
 import androidx.compose.ui.graphics.lerp
 import androidx.compose.ui.input.pointer.pointerInput
+import androidx.compose.ui.layout.Layout
 import androidx.compose.ui.layout.SubcomposeLayout
 import androidx.compose.ui.layout.onSizeChanged
 import androidx.compose.ui.platform.*
@@ -149,7 +150,7 @@ fun NoRipple(content: @Composable () -> Unit) {
 }
 
 @Composable
-fun Modifier.cliclableNoIndication(onClick: () -> Unit) = Modifier.clickable(remember { MutableInteractionSource() }, null, onClick = onClick)
+fun Modifier.cliclableNoIndication(onClick: () -> Unit) = clickable(remember { MutableInteractionSource() }, null, onClick = onClick)
 
 @Composable
 fun OnChangedEffect(key: Any?, block: suspend () -> Unit) {

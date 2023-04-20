@@ -47,10 +47,12 @@ fun PlaylistPreviewSquare(
         horizontalAlignment = Alignment.CenterHorizontally,
         verticalArrangement = Arrangement.spacedBy(5.dp)
     ) {
-        playlist.Thumbnail(MediaItem.ThumbnailQuality.LOW,
+        playlist.Thumbnail(
+            MediaItem.ThumbnailQuality.LOW,
+            100.dp,
             Modifier
-                .size(100.dp)
-                .longPressMenuIcon(long_press_menu_data, params.enable_long_press_menu))
+                .longPressMenuIcon(long_press_menu_data, params.enable_long_press_menu)
+        )
 
         Text(
             playlist.title ?: "",
@@ -91,8 +93,8 @@ fun PlaylistPreviewLong(
     ) {
         playlist.Thumbnail(
             MediaItem.ThumbnailQuality.LOW,
+            40.dp,
             Modifier
-                .size(40.dp)
                 .longPressMenuIcon(long_press_menu_data, params.enable_long_press_menu),
             params.content_colour()
         )

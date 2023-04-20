@@ -264,19 +264,19 @@ fun loadMediaItemData(item: MediaItem): Result<MediaItem?> {
 
         check(item is Song)
 
-        val buffered_reader = BufferedReader(response_body.reader())
-        buffered_reader.mark(Int.MAX_VALUE)
+//        val buffered_reader = BufferedReader(response_body.reader())
+//        buffered_reader.mark(Int.MAX_VALUE)
+//
+//        val video_details = DataApi.klaxon.parse<PlayerData>(buffered_reader)?.videoDetails
+//        if (video_details != null) {
+//            buffered_reader.close()
+//            item.supplyTitle(video_details.title, true)
+//            item.supplyArtist(Artist.fromId(video_details.channelId))
+//            return finish()
+//        }
 
-        val video_details = DataApi.klaxon.parse<PlayerData>(buffered_reader)?.videoDetails
-        if (video_details != null) {
-            buffered_reader.close()
-            item.supplyTitle(video_details.title, true)
-            item.supplyArtist(Artist.fromId(video_details.channelId))
-            return finish()
-        }
-
-        buffered_reader.reset()
-        val video = DataApi.klaxon.parse<YoutubeiNextResponse>(buffered_reader)!!
+//        buffered_reader.reset()
+        val video = DataApi.klaxon.parse<YoutubeiNextResponse>(response_body)!!
             .contents
             .singleColumnMusicWatchNextResultsRenderer
             .tabbedRenderer
@@ -291,7 +291,7 @@ fun loadMediaItemData(item: MediaItem): Result<MediaItem?> {
             .contents
             .first()
             .playlistPanelVideoRenderer!!
-        buffered_reader.close()
+        response_body.close()
 
         item.supplyTitle(video.title.first_text, true)
 

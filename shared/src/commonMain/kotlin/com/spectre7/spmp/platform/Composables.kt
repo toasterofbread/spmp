@@ -1,5 +1,6 @@
 package com.spectre7.spmp.platform
 
+import androidx.compose.foundation.Indication
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
@@ -10,6 +11,9 @@ import androidx.compose.runtime.*
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.*
 import androidx.compose.ui.unit.dp
+
+@Composable
+expect fun Modifier.platformClickable(onClick: () -> Unit, onAltClick: (() -> Unit)? = null, indication: Indication? = null): Modifier
 
 @Composable
 expect fun BackHandler(enabled: Boolean = true, action: () -> Unit)

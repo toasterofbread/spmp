@@ -5,13 +5,21 @@ import androidx.compose.runtime.Composable
 import androidx.compose.ui.text.font.Font
 import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.unit.IntSize
 import java.io.File
 import java.io.FileInputStream
 import java.io.FileOutputStream
 import java.io.InputStream
 
+private const val MIN_PORTRAIT_RATIO: Float = 1f / 1.2f
+
 fun PlatformContext.vibrateShort() {
     vibrate(0.01)
+}
+
+@Composable
+fun PlatformContext.isPortrait(): Boolean {
+    return (getScreenWidth() / getScreenHeight()) <= MIN_PORTRAIT_RATIO
 }
 
 expect class PlatformContext {

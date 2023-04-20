@@ -30,6 +30,7 @@ import com.spectre7.spmp.model.NowPlayingQueueRadioInfoPosition
 import com.spectre7.spmp.model.Settings
 import com.spectre7.spmp.model.Song
 import com.spectre7.spmp.platform.MediaPlayerRepeatMode
+import com.spectre7.spmp.platform.MediaPlayerService
 import com.spectre7.spmp.platform.vibrateShort
 import com.spectre7.spmp.ui.layout.MINIMISED_NOW_PLAYING_HEIGHT
 import com.spectre7.spmp.ui.layout.PlayerViewContext
@@ -89,7 +90,7 @@ private class QueueTabItem(val song: Song, val key: Int) {
                         remember(index) {
                             {
                                 playerProvider().copy(onClickedOverride = {
-                                    PlayerServiceHost.player.seekTo(index)
+                                    PlayerServiceHost.player.seekToSong(index)
                                 })
                             }
                         },
@@ -131,11 +132,11 @@ fun QueueTab(expansionProvider: () -> Float, playerProvider: () -> PlayerViewCon
     } }
 
     val queue_listener = remember {
-        object : PlayerServiceHost.PlayerQueueListener {
-            override fun onSongAdded(song: Song, index: Int) {
+        object : MediaPlayerService.Listener() {
+            override fun onSongAdded(index: Int, song: Song) {
                 song_items.add(index, QueueTabItem(song, key_inc++))
             }
-            override fun onSongRemoved(song: Song, index: Int) {
+            override fun onSongRemoved(index: Int) {
                 song_items.removeAt(index)
             }
             override fun onSongMoved(from: Int, to: Int) {
@@ -157,9 +158,9 @@ fun QueueTab(expansionProvider: () -> Float, playerProvider: () -> PlayerViewCon
     }
 
     DisposableEffect(Unit) {
-        PlayerServiceHost.player.addQueueListener(queue_listener)
+        PlayerServiceHost.player.addListener(queue_listener)
         onDispose {
-            PlayerServiceHost.player.removeQueueListener(queue_listener)
+            PlayerServiceHost.player.removeListener(queue_listener)
         }
     }
 
@@ -170,7 +171,7 @@ fun QueueTab(expansionProvider: () -> Float, playerProvider: () -> PlayerViewCon
     Box(
         Modifier
             .fillMaxSize()
-            .padding(top = MINIMISED_NOW_PLAYING_HEIGHT.dp + 20.dp)
+            .padding(top = MINIMISED_NOW_PLAYING_HEIGHT.dp + (SpMp.context.getStatusBarHeight() * 0.5f))
             .background(queue_background_colour, shape)
             .clip(shape)
     ) {

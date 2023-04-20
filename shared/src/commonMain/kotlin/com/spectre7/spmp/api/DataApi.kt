@@ -1,6 +1,7 @@
 package com.spectre7.spmp.api
 
 import com.beust.klaxon.*
+import com.spectre7.spmp.model.MediaItem
 import com.spectre7.spmp.platform.ProjectPreferences
 import com.spectre7.spmp.model.Settings
 import com.spectre7.utils.getString
@@ -83,7 +84,67 @@ class DataApi {
                 return "\"${(value as Enum<*>).name}\""
             }
         }
-        val klaxon: Klaxon get() = Klaxon().converter(enum_converter)
+        private val mediaitem_converter = object : Converter {
+            override fun canConvert(cls: Class<*>): Boolean {
+                return MediaItem::class.java.isAssignableFrom(cls)
+            }
+
+            override fun fromJson(jv: JsonValue): Any {
+                if (jv.obj == null) {
+                    throw KlaxonException("Couldn't parse MediaItem as it isn't an object ($jv)")
+                }
+
+                try {
+                    return MediaItem.fromJsonObject(jv.obj!!, klaxon)
+                }
+                catch (e: Exception) {
+                    throw RuntimeException("Couldn't parse MediaItem (${jv.obj})", e)
+                }
+            }
+
+            override fun toJson(value: Any): String {
+                if (value !is MediaItem) {
+                    throw KlaxonException("Value $value is not a MediaItem")
+                }
+                return """{
+                    "type": ${value.type.ordinal},
+                    "id": "${value.id}",${value.getJsonMapValues(klaxon)}
+                }"""
+            }
+        }
+        private val mediaitem_ref_converter = object : Converter {
+            override fun canConvert(cls: Class<*>): Boolean {
+                return MediaItem::class.java.isAssignableFrom(cls)
+            }
+
+            override fun fromJson(jv: JsonValue): Any {
+                if (jv.obj == null) {
+                    throw KlaxonException("Couldn't parse MediaItem as it isn't an object ($jv)")
+                }
+
+                try {
+                    return MediaItem.fromJsonObject(jv.obj!!, klaxon.converter(this), true)
+                }
+                catch (e: Exception) {
+                    throw RuntimeException("Couldn't parse MediaItem ($jv)", e)
+                }
+            }
+
+            override fun toJson(value: Any): String {
+                if (value !is MediaItem) {
+                    throw KlaxonException("Value $value is not a MediaItem")
+                }
+                return """{
+                        "type": ${value.type.ordinal},
+                        "id": "${value.id}"
+                    }"""
+            }
+        }
+
+        val klaxon: Klaxon get() = Klaxon()
+            .converter(enum_converter)
+            .converter(mediaitem_converter)
+            .converter(mediaitem_ref_converter)
 
         enum class YoutubeiContextType {
             BASE,

@@ -26,9 +26,14 @@ import com.spectre7.spmp.PlayerDownloadService
 import com.spectre7.spmp.PlayerServiceHost
 import com.spectre7.spmp.model.MediaItem
 import com.spectre7.spmp.model.Song
+import com.spectre7.spmp.platform.isPortrait
+import com.spectre7.spmp.platform.platformClickable
 import com.spectre7.spmp.platform.vibrateShort
 import com.spectre7.utils.*
 import java.io.File
+
+const val SONG_PREVIEW_SQUARE_SIZE_PORTRAIT: Float = 100f
+const val SONG_PREVIEW_SQUARE_SIZE_LANDSCAPE: Float = 200f
 
 @Composable
 fun SongPreviewSquare(
@@ -43,15 +48,13 @@ fun SongPreviewSquare(
     Column(
         params.modifier
             .padding(10.dp, 0.dp)
-            .combinedClickable(
-                interactionSource = remember { MutableInteractionSource() },
-                indication = null,
+            .platformClickable(
                 onClick = {
                     params
                         .playerProvider()
                         .onMediaItemClicked(song)
                 },
-                onLongClick = {
+                onAltClick = {
                     params
                         .playerProvider()
                         .showLongPressMenu(long_press_menu_data)
@@ -61,9 +64,13 @@ fun SongPreviewSquare(
         horizontalAlignment = Alignment.CenterHorizontally,
         verticalArrangement = Arrangement.spacedBy(5.dp)
     ) {
-        song.Thumbnail(MediaItem.ThumbnailQuality.LOW,
+        song.Thumbnail(
+            MediaItem.ThumbnailQuality.LOW,
+            animateDpAsState(
+                if (SpMp.context.isPortrait()) SONG_PREVIEW_SQUARE_SIZE_PORTRAIT.dp
+                else SONG_PREVIEW_SQUARE_SIZE_LANDSCAPE.dp
+            ).value,
             Modifier
-                .size(100.dp)
                 .longPressMenuIcon(long_press_menu_data, params.enable_long_press_menu),
             params.content_colour()
         )
@@ -108,9 +115,10 @@ fun SongPreviewLong(
                 }
             )
     ) {
-        song.Thumbnail(MediaItem.ThumbnailQuality.LOW,
+        song.Thumbnail(
+            MediaItem.ThumbnailQuality.LOW,
+            40.dp,
             Modifier
-                .size(40.dp)
                 .longPressMenuIcon(long_press_menu_data, params.enable_long_press_menu),
             params.content_colour()
         )

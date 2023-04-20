@@ -25,11 +25,12 @@ expect open class MediaPlayerService(): PlatformService {
         open fun onPlayingChanged(is_playing: Boolean)
         open fun onRepeatModeChanged(repeat_mode: MediaPlayerRepeatMode)
         open fun onVolumeChanged(volume: Float)
-        open fun onSeeked(position_ms: Long) {}
+        open fun onDurationChanged(duration_ms: Long)
+        open fun onSeeked(position_ms: Long)
 
-        open fun onSongAdded(index: Int, song: Song?) {}
-        open fun onSongRemoved(index: Int) {}
-        open fun onSongMoved(from: Int, to: Int) {}
+        open fun onSongAdded(index: Int, song: Song)
+        open fun onSongRemoved(index: Int)
+        open fun onSongMoved(from: Int, to: Int)
 
         open fun onEvents()
     }
@@ -54,7 +55,7 @@ expect open class MediaPlayerService(): PlatformService {
     open fun playPause()
 
     open fun seekTo(position_ms: Long)
-    open fun seekTo(index: Int, position_ms: Long = 0)
+    open fun seekToSong(index: Int)
     open fun seekToNext()
     open fun seekToPrevious()
 

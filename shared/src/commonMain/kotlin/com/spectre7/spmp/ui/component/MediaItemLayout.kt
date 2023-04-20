@@ -1,6 +1,7 @@
 package com.spectre7.spmp.ui.component
 
 import androidx.compose.animation.*
+import androidx.compose.animation.core.animateDpAsState
 import androidx.compose.foundation.*
 import androidx.compose.foundation.interaction.MutableInteractionSource
 import androidx.compose.foundation.layout.*
@@ -29,6 +30,7 @@ import com.spectre7.spmp.api.*
 import com.spectre7.spmp.api.DataApi.Companion.addYtHeaders
 import com.spectre7.spmp.api.DataApi.Companion.ytUrl
 import com.spectre7.spmp.model.*
+import com.spectre7.spmp.platform.isPortrait
 import com.spectre7.spmp.ui.layout.PlayerViewContext
 import com.spectre7.spmp.ui.theme.Theme
 import com.spectre7.utils.WidthShrinkText
@@ -479,8 +481,8 @@ fun MediaItemCard(
         ) {
             item.Thumbnail(
                 MediaItem.ThumbnailQuality.HIGH,
+                100.dp,
                 Modifier
-                    .size(100.dp)
                     .longPressMenuIcon(long_press_menu_data),
             )
 
@@ -533,14 +535,17 @@ fun MediaItemGrid(
     modifier: Modifier = Modifier
 ) {
     val row_count = if (layout.items.size <= 3) 1 else 2
-    val item_width = 125.dp
+    val item_width = animateDpAsState(
+        if (SpMp.context.isPortrait()) SONG_PREVIEW_SQUARE_SIZE_PORTRAIT.dp
+        else SONG_PREVIEW_SQUARE_SIZE_LANDSCAPE.dp
+    ).value + 50.dp
 
     Column(modifier, verticalArrangement = Arrangement.spacedBy(10.dp)) {
         layout.TitleBar(playerProvider)
 
         LazyHorizontalGrid(
             rows = GridCells.Fixed(row_count),
-            modifier = Modifier.requiredHeight(item_width * row_count * 1.1f)
+            modifier = Modifier.requiredHeight(item_width * row_count)
         ) {
             items(layout.items.size, { layout.items[it].id }) {
                 MediaItemLayout.ItemPreview(layout.items[it], item_width, null, playerProvider, Modifier)

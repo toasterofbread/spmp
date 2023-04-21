@@ -199,9 +199,9 @@ enum class Settings {
                 KEY_ADD_SONGS_TO_HISTORY -> false
                 KEY_ENABLE_DISCORD_PRESENCE -> false
 
-                INTERNAL_PINNED_SONGS -> emptySet()
-                INTERNAL_PINNED_ARTISTS -> emptySet()
-                INTERNAL_PINNED_PLAYLISTS -> emptySet()
+                INTERNAL_PINNED_SONGS -> emptySet<String>()
+                INTERNAL_PINNED_ARTISTS -> emptySet<String>()
+                INTERNAL_PINNED_PLAYLISTS -> emptySet<String>()
                 
             } as T
         }

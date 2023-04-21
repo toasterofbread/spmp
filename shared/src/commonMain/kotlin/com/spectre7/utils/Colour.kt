@@ -123,11 +123,11 @@ fun Color.contrastAgainst(against: Color, by: Float = 0.5f): Color {
     return offsetRGB(if (against.isDark()) by else -by)
 }
 
-fun Color.getContrasted(): Color {
-    if (isDark())
-        return Color.White
-    else
-        return Color.Black
+fun Color.getContrasted(keep_alpha: Boolean = false): Color {
+    val colour =
+        if (isDark()) Color.White
+        else Color.Black
+    return if (keep_alpha) colour.copy(alpha = alpha) else colour
 }
 
 fun Color.getNeutral(): Color {

@@ -2,18 +2,32 @@ package com.spectre7.spmp.platform
 
 import androidx.compose.foundation.Indication
 import androidx.compose.foundation.clickable
+import androidx.compose.foundation.gestures.Orientation
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.rememberLazyListState
 import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.material.ExperimentalMaterialApi
+import androidx.compose.material.FixedThreshold
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.*
 import androidx.compose.ui.unit.dp
+import androidx.compose.material.SwipeableState
+import androidx.compose.material.ThresholdConfig
 
 @Composable
 expect fun Modifier.platformClickable(onClick: () -> Unit, onAltClick: (() -> Unit)? = null, indication: Indication? = null): Modifier
+
+@OptIn(ExperimentalMaterialApi::class)
+expect fun Modifier.scrollWheelSwipeable(
+    state: SwipeableState<Int>,
+    anchors: Map<Float, Int>,
+    thresholds: (from: Int, to: Int) -> ThresholdConfig = { _, _ -> FixedThreshold(56.dp) },
+    orientation: Orientation = Orientation.Vertical,
+    reverseDirection: Boolean = true
+): Modifier
 
 @Composable
 expect fun BackHandler(enabled: Boolean = true, action: () -> Unit)

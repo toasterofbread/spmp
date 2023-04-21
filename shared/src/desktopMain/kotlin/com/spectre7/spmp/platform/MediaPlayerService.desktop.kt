@@ -251,6 +251,8 @@ actual open class MediaPlayerService actual constructor() : PlatformService() {
         else {
             current_song_time = position_ms
         }
+
+        println("current_song_time $current_song_time")
     }
 
     actual var session_started: Boolean by mutableStateOf(true)
@@ -276,7 +278,7 @@ actual open class MediaPlayerService actual constructor() : PlatformService() {
             if (current_song_time < 0) {
                 return 0
             }
-            if (!_is_playing || _state != MediaPlayerState.READY) {
+            if (!_is_playing) {
                 return current_song_time
             }
             return System.currentTimeMillis() - current_song_time
@@ -306,23 +308,27 @@ actual open class MediaPlayerService actual constructor() : PlatformService() {
     actual val has_focus: Boolean = true
 
     actual open fun play() {
-        if (playlist.isEmpty()) {
+        if (playlist.isEmpty() || _is_playing) {
             return
         }
 
         _is_playing = true
-        current_song_time = System.currentTimeMillis() - current_song_time
+        updateCurrentSongPosition(current_song_time)
+
+        listeners.forEach { it.onPlayingChanged(_is_playing) }
 
         sendRequest("play")
     }
 
     actual open fun pause() {
-        if (playlist.isEmpty()) {
+        if (playlist.isEmpty() || !_is_playing) {
             return
         }
 
         _is_playing = false
-        current_song_time = System.currentTimeMillis() - current_song_time
+        updateCurrentSongPosition(System.currentTimeMillis() - current_song_time)
+
+        listeners.forEach { it.onPlayingChanged(_is_playing) }
 
         sendRequest("pause")
     }
@@ -332,8 +338,11 @@ actual open class MediaPlayerService actual constructor() : PlatformService() {
             return
         }
 
+        val pos_ms = current_position_ms
         _is_playing = !_is_playing
-        current_song_time = System.currentTimeMillis() - current_song_time
+        updateCurrentSongPosition(pos_ms)
+
+        listeners.forEach { it.onPlayingChanged(_is_playing) }
 
         sendRequest("playPause")
     }

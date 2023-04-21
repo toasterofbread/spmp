@@ -37,6 +37,7 @@ import com.spectre7.spmp.ui.layout.PlayerViewContext
 import com.spectre7.utils.*
 import org.burnoutcrew.reorderable.*
 import kotlin.math.roundToInt
+import com.spectre7.utils.getString
 
 private class QueueTabItem(val song: Song, val key: Int) {
 
@@ -145,12 +146,11 @@ fun QueueTab(expansionProvider: () -> Float, playerProvider: () -> PlayerViewCon
         }
     }
 
-    var playing_key by remember { mutableStateOf<Int?>(null) }
-
-    LaunchedEffect(PlayerServiceHost.status.m_index) {
+    var playing_key: Int? by remember { mutableStateOf(null) }
+    LaunchedEffect(PlayerServiceHost.status.m_index, song_items.size) {
         val index = PlayerServiceHost.status.index
         if (index in song_items.indices) {
-            playing_key = song_items[PlayerServiceHost.status.index].key
+            playing_key = song_items[index].key
         }
         else {
             playing_key = null

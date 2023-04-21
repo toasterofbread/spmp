@@ -20,12 +20,21 @@ import androidx.compose.ui.*
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.*
+import com.github.krottv.compose.sliders.DefaultTrack
 import com.spectre7.composesettings.ui.SettingsPage
 import com.spectre7.spmp.platform.LargeDropdownMenu
 import com.spectre7.spmp.platform.PlatformAlertDialog
 import com.spectre7.spmp.ui.theme.Theme
 import com.spectre7.utils.*
 import kotlin.math.roundToInt
+import com.github.krottv.compose.sliders.SliderValueHorizontal
+import androidx.compose.animation.core.SpringSpec
+import androidx.compose.animation.core.animateFloatAsState
+import androidx.compose.foundation.shape.CircleShape
+import androidx.compose.ui.graphics.graphicsLayer
+import androidx.compose.ui.platform.LocalDensity
+import com.github.krottv.compose.sliders.DefaultThumb
+import com.github.krottv.compose.sliders.ListenOnPressed
 
 val SETTINGS_ITEM_ROUNDED_SHAPE = RoundedCornerShape(16.dp)
 
@@ -364,77 +373,76 @@ class SettingsItemSlider(
                 if (min_label != null) {
                     ItemText(min_label, theme, 12.sp)
                 }
-//                TODO()
-//                SliderValueHorizontal(
-//                    value = getValue(),
-//                    onValueChange = { setValue(it) },
-//                    onValueChangeFinished = {
-//                        state.save()
-//                    },
-//                    thumbSizeInDp = DpSize(12.dp, 12.dp),
-//                    track = { a, b, c, d, e ->
-//                        DefaultTrack(a, b, c, d, e,
-//                            theme.vibrant_accent.setAlpha(0.5f),
-//                            theme.vibrant_accent,
-//                            colorTickProgress = theme.vibrant_accent.getContrasted().setAlpha(0.5f)
-//                        )
-//                    },
-//                    thumb = { modifier, offset, interaction_source, enabled, thumb_size ->
-//                        val colour = theme.vibrant_accent
-//                        val scale_on_press = 1.15f
-//                        val animation_spec = SpringSpec<Float>(0.65f)
-//                        val value_text = getValueText?.invoke(getValue())
-//
-//                        if (value_text != null) {
-//                            MeasureUnconstrainedView({ ItemText(value_text, theme) }) { width, height ->
-//
-//                                var is_pressed by remember { mutableStateOf(false) }
-//                                interaction_source.ListenOnPressed { is_pressed = it }
-//                                val scale: Float by animateFloatAsState(
-//                                    if (is_pressed) scale_on_press else 1f,
-//                                    animationSpec = animation_spec
-//                                )
-//
-//                                Column(
-//                                    Modifier
-//                                        .offset(with(LocalDensity.current) { offset - (width.toDp() / 2) + 12.dp })
-//                                        .requiredHeight(55.dp)
-//                                        .graphicsLayer(scale, scale),
-//                                    verticalArrangement = Arrangement.Bottom,
-//                                    horizontalAlignment = Alignment.CenterHorizontally
-//                                ) {
-//                                    Spacer(
-//                                        Modifier
-//                                            .size(12.dp)
-//                                            .background(
-//                                                if (enabled) colour else
-//                                                    colour.setAlpha(0.6f), CircleShape
-//                                            )
-//                                    )
-//                                    ItemText(value_text, theme)
-//                                }
-//                            }
-//                        }
-//                        else {
-//                            DefaultThumb(
-//                                modifier,
-//                                offset,
-//                                interaction_source,
-//                                true,
-//                                thumb_size,
-//                                colour,
-//                                scale_on_press,
-//                                animation_spec
-//                            )
-//                        }
-//                    },
-//                    steps = steps,
-//                    modifier = Modifier.weight(1f),
-//                    valueRange = range
-//                )
-//                if (max_label != null) {
-//                    ItemText(max_label, theme, 12.sp)
-//                }
+                SliderValueHorizontal(
+                    value = getValue(),
+                    onValueChange = { setValue(it) },
+                    onValueChangeFinished = {
+                        state.save()
+                    },
+                    thumbSizeInDp = DpSize(12.dp, 12.dp),
+                    track = { a, b, c, d, e ->
+                        DefaultTrack(a, b, c, d, e,
+                            theme.vibrant_accent.setAlpha(0.5f),
+                            theme.vibrant_accent,
+                            colorTickProgress = theme.vibrant_accent.getContrasted().setAlpha(0.5f)
+                        )
+                    },
+                    thumb = { modifier, offset, interaction_source, enabled, thumb_size ->
+                        val colour = theme.vibrant_accent
+                        val scale_on_press = 1.15f
+                        val animation_spec = SpringSpec<Float>(0.65f)
+                        val value_text = getValueText?.invoke(getValue())
+
+                        if (value_text != null) {
+                            MeasureUnconstrainedView({ ItemText(value_text, theme) }) { width, height ->
+
+                                var is_pressed by remember { mutableStateOf(false) }
+                                interaction_source.ListenOnPressed { is_pressed = it }
+                                val scale: Float by animateFloatAsState(
+                                    if (is_pressed) scale_on_press else 1f,
+                                    animationSpec = animation_spec
+                                )
+
+                                Column(
+                                    Modifier
+                                        .offset(with(LocalDensity.current) { offset - (width.toDp() / 2) + 12.dp })
+                                        .requiredHeight(55.dp)
+                                        .graphicsLayer(scale, scale),
+                                    verticalArrangement = Arrangement.Bottom,
+                                    horizontalAlignment = Alignment.CenterHorizontally
+                                ) {
+                                    Spacer(
+                                        Modifier
+                                            .size(12.dp)
+                                            .background(
+                                                if (enabled) colour else
+                                                    colour.setAlpha(0.6f), CircleShape
+                                            )
+                                    )
+                                    ItemText(value_text, theme)
+                                }
+                            }
+                        }
+                        else {
+                            DefaultThumb(
+                                modifier,
+                                offset,
+                                interaction_source,
+                                true,
+                                thumb_size,
+                                colour,
+                                scale_on_press,
+                                animation_spec
+                            )
+                        }
+                    },
+                    steps = steps,
+                    modifier = Modifier.weight(1f),
+                    valueRange = range
+                )
+                if (max_label != null) {
+                    ItemText(max_label, theme, 12.sp)
+                }
             }
         }
     }
@@ -731,7 +739,7 @@ class SettingsItemAccessibilityService(
             }
         }
 
-        val shape = RoundedCornerShape(35)
+        val shape = RoundedCornerShape(20.dp)
 
         Crossfade(service_enabled) { enabled ->
             CompositionLocalProvider(LocalContentColor provides if (enabled) theme.on_background else theme.on_accent) {

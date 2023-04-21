@@ -370,100 +370,109 @@ class PlayerService : MediaPlayerService() {
 //    private var vol_notif_instance: Int = 0
 
     // Persistent queue
-//    private val queue_lock = ReentrantLock()
+    private val queue_lock = ReentrantLock()
     private var update_timer: Timer? = null
 
     fun savePersistentQueue() {
-//        queue_lock.lock()
-//
-//        val writer = context.openFileOutput("persistent_queue").bufferedWriter()
-//        writer.write("${current_song_index},${current_position_ms}")
-//        writer.newLine()
-//
-//        iterateSongs { _, song: Song ->
-//            writer.write(song.id)
-//            writer.newLine()
-//        }
-//
-//        writer.close()
-//
-//        queue_lock.unlock()
+        if (Platform.is_desktop) {
+            return
+        }
+
+        if (!queue_lock.tryLock()) {
+            return
+        }
+
+        val writer = context.openFileOutput("persistent_queue").bufferedWriter()
+        writer.write("${current_song_index},${current_position_ms}")
+        writer.newLine()
+
+        iterateSongs { _, song: Song ->
+            writer.write(song.id)
+            writer.newLine()
+        }
+
+        writer.close()
+
+        queue_lock.unlock()
     }
 
-    // TODO Move to MediaPlayerService
     fun loadPersistentQueue() {
-//        thread {
-//            queue_lock.lock()
-//
-//            val reader: BufferedReader
-//            try {
-//                reader = context.openFileInput("persistent_queue").bufferedReader()
-//            }
-//            catch (_: FileNotFoundException) {
-//                queue_lock.unlock()
-//                return@thread
-//            }
-//
-//            val pos_data = reader.readLine().split(',')
-//            val songs: MutableList<Song?> = mutableListOf()
-//
-//            var first_song: Song? = null
-//            val request_limit = Semaphore(10)
-//
-//            runBlocking { withContext(Dispatchers.IO) { coroutineScope {
-//                var i = 0
-//                var line = reader.readLine()
-//                while (line != null) {
-//                    val song = Song.fromId(line)
-//                    val index = i++
-//                    line = reader.readLine()
-//
-//                    if (song.title != null) {
-//                        if (index == 0) {
-//                            context.mainThread {
-//                                addToQueue(song, 0, save = false)
-//                                first_song = song
-//                            }
-//                        }
-//                        else {
-//                            songs.add(song)
-//                        }
-//                        continue
-//                    }
-//
-//                    if (index != 0) {
-//                        songs.add(null)
-//                    }
-//
-//                    launch {
-//                        request_limit.withPermit {
-//                            song.loadData().onSuccess { loaded ->
-//                                if (index == 0) {
-//                                    context.mainThread {
-//                                        addToQueue(song, 0, save = false)
-//                                        first_song = song
-//                                    }
-//                                }
-//                                else {
-//                                    songs[index - 1] = song
-//                                }
-//                            }
-//                        }
-//                    }
-//                }
-//            }}}
-//
-//            // Pretty sure this is safe?
-//            while (first_song == null) { runBlocking { delay(100) } }
-//
-//            context.mainThread {
-//                addMultipleToQueue(songs as List<Song>, 1)
-//                seekToSong(pos_data[0].toInt())
-//                seekTo(pos_data[1].toLong())
-//
-//                queue_lock.unlock()
-//            }
-//        }
+        if (Platform.is_desktop) {
+            return
+        }
+
+        thread {
+            queue_lock.lock()
+
+            val reader: BufferedReader
+            try {
+                reader = context.openFileInput("persistent_queue").bufferedReader()
+            }
+            catch (_: FileNotFoundException) {
+                queue_lock.unlock()
+                return@thread
+            }
+
+            val pos_data = reader.readLine().split(',')
+            val songs: MutableList<Song?> = mutableListOf()
+
+            var first_song: Song? = null
+            val request_limit = Semaphore(10)
+
+            runBlocking { withContext(Dispatchers.IO) { coroutineScope {
+                var i = 0
+                var line = reader.readLine()
+                while (line != null) {
+                    val song = Song.fromId(line)
+                    val index = i++
+                    line = reader.readLine()
+
+                    if (song.title != null) {
+                        if (index == 0) {
+                            context.mainThread {
+                                addToQueue(song, 0, save = false)
+                                first_song = song
+                            }
+                        }
+                        else {
+                            songs.add(song)
+                        }
+                        continue
+                    }
+
+                    if (index != 0) {
+                        songs.add(null)
+                    }
+
+                    launch {
+                        request_limit.withPermit {
+                            song.loadData().onSuccess { loaded ->
+                                if (index == 0) {
+                                    context.mainThread {
+                                        addToQueue(song, 0, save = false)
+                                        first_song = song
+                                    }
+                                }
+                                else {
+                                    songs[index - 1] = song
+                                }
+                            }
+                        }
+                    }
+                }
+            }}}
+
+            // Pretty sure this is safe?
+            while (first_song == null) { runBlocking { delay(100) } }
+
+            context.mainThread {
+                addMultipleToQueue(songs as List<Song>, 1)
+                seekToSong(pos_data[0].toInt())
+                seekTo(pos_data[1].toLong())
+
+                queue_lock.unlock()
+            }
+        }
     }
 
     inner class PlayerBinder: PlatformBinder() {

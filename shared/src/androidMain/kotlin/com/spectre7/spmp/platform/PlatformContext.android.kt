@@ -31,7 +31,6 @@ import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
 import androidx.core.app.NotificationManagerCompat
 import com.spectre7.spmp.model.Settings
-import com.spectre7.utils.getStringTemp
 import java.io.File
 import java.io.FileInputStream
 import java.io.FileOutputStream
@@ -40,12 +39,12 @@ import java.lang.ref.WeakReference
 import kotlin.concurrent.thread
 import android.graphics.drawable.Icon
 import android.net.Uri
-import android.util.DisplayMetrics
 import android.view.Window
 import android.view.WindowInsetsController.APPEARANCE_LIGHT_STATUS_BARS
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.toArgb
-import androidx.compose.ui.unit.IntSize
+import com.spectre7.utils.getStringTemp
+import com.spectre7.utils.getString
 
 private const val ERROR_NOTIFICATION_CHANNEL_ID = "download_error_channel"
 
@@ -212,7 +211,7 @@ private fun Context.findWindow(): Window? {
 private fun getErrorNotificationChannel(context: Context): String {
     val channel = NotificationChannel(
         ERROR_NOTIFICATION_CHANNEL_ID,
-        com.spectre7.utils.getString("download_service_error_name"),
+        getString("download_service_error_name"),
         NotificationManager.IMPORTANCE_HIGH
     )
 

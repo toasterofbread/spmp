@@ -1,5 +1,6 @@
 package com.spectre7.spmp.ui.component
 
+import androidx.compose.animation.core.animateDpAsState
 import androidx.compose.foundation.ExperimentalFoundationApi
 import androidx.compose.foundation.combinedClickable
 import androidx.compose.foundation.interaction.MutableInteractionSource
@@ -15,6 +16,8 @@ import androidx.compose.ui.unit.sp
 import com.spectre7.spmp.model.MediaItem
 import com.spectre7.spmp.model.Playlist
 import com.spectre7.spmp.model.getReadable
+import com.spectre7.spmp.platform.Platform
+import com.spectre7.spmp.platform.platformClickable
 import com.spectre7.utils.setAlpha
 
 @OptIn(ExperimentalFoundationApi::class)
@@ -26,20 +29,18 @@ fun PlaylistPreviewSquare(
     val long_press_menu_data = remember(playlist) {
         LongPressMenuData(
             playlist,
-            RoundedCornerShape(10)
+            RoundedCornerShape(10.dp)
         ) { } // TODO
     }
 
     Column(
         params.modifier
             .padding(10.dp, 0.dp)
-            .combinedClickable(
-                interactionSource = remember { MutableInteractionSource() },
-                indication = null,
+            .platformClickable(
                 onClick = {
                     params.playerProvider().onMediaItemClicked(playlist)
                 },
-                onLongClick = {
+                onAltClick = {
                     params.playerProvider().showLongPressMenu(long_press_menu_data)
                 }
             )
@@ -49,7 +50,7 @@ fun PlaylistPreviewSquare(
     ) {
         playlist.Thumbnail(
             MediaItem.ThumbnailQuality.LOW,
-            100.dp,
+            animateDpAsState(getMediaItemPreviewSquareHeight()).value,
             Modifier
                 .longPressMenuIcon(long_press_menu_data, params.enable_long_press_menu)
         )
@@ -73,7 +74,7 @@ fun PlaylistPreviewLong(
 ) {
     val long_press_menu_data = remember(playlist) { LongPressMenuData(
         playlist,
-        RoundedCornerShape(10)
+        RoundedCornerShape(10.dp)
     ) { } // TODO
     }
 

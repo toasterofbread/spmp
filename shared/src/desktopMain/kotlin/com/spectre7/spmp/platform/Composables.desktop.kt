@@ -1,8 +1,11 @@
+@file:Suppress("UnnecessaryOptInAnnotation")
+
 package com.spectre7.spmp.platform
 
-import androidx.compose.foundation.ExperimentalFoundationApi
-import androidx.compose.foundation.Indication
-import androidx.compose.foundation.PointerMatcher
+import androidx.compose.foundation.*
+import androidx.compose.foundation.gestures.Orientation
+import androidx.compose.ui.input.pointer.PointerEventType
+import androidx.compose.ui.input.pointer.PointerInputChange
 import androidx.compose.foundation.layout.Box
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.ExperimentalComposeUiApi
@@ -12,20 +15,70 @@ import androidx.compose.ui.graphics.Shape
 import androidx.compose.ui.input.key.Key
 import androidx.compose.ui.input.key.key
 import androidx.compose.ui.input.key.onKeyEvent
-import androidx.compose.foundation.onClick
-import androidx.compose.ui.input.pointer.PointerButton
+import androidx.compose.material.*
+import androidx.compose.ui.composed
+import androidx.compose.ui.input.pointer.*
+import kotlinx.coroutines.coroutineScope
+import kotlinx.coroutines.isActive
+
+private inline val PointerEvent.isConsumed: Boolean get() = changes.any { c: PointerInputChange -> c.isConsumed }
+private inline fun PointerEvent.consume() = changes.forEach { c: PointerInputChange -> c.consume() }
+
+private suspend fun AwaitPointerEventScope.awaitScrollEvent(): PointerEvent {
+    var event: PointerEvent
+    do {
+        event = awaitPointerEvent()
+    } while ((event.type as PointerEventType) != PointerEventType.Scroll)
+    return event
+}
+
+private fun Modifier.mouseWheelInput(
+    onMouseWheel: suspend (direction: Int) -> Boolean
+) = pointerInput(Unit) {
+    coroutineScope {
+        while (isActive) {
+            val event = awaitPointerEventScope {
+                awaitScrollEvent()
+            }
+            if (!event.isConsumed) {
+                val change: PointerInputChange = event.changes.first()
+                val consumed = onMouseWheel(change.scrollDelta.y.toInt())
+                if (consumed) {
+                    event.consume()
+                }
+            }
+        }
+    }
+}
 
 @OptIn(ExperimentalFoundationApi::class)
 @Composable
 actual fun Modifier.platformClickable(onClick: () -> Unit, onAltClick: (() -> Unit)?, indication: Indication?): Modifier {
-    var ret: Modifier = this.onClick(onClick = onClick)
-    if (onAltClick != null) {
-        ret = ret.onClick(
-            matcher = PointerMatcher.mouse(PointerButton.Secondary),
-            onClick = onAltClick
-        )
+    val ret: Modifier = this.onClick(onClick = onClick)
+    if (onAltClick == null) {
+        return ret
     }
-    return ret
+    return ret.onClick(
+        matcher = PointerMatcher.mouse(PointerButton.Secondary),
+        onClick = onAltClick
+    )
+}
+
+@OptIn(ExperimentalMaterialApi::class)
+actual fun Modifier.scrollWheelSwipeable(
+    state: SwipeableState<Int>,
+    anchors: Map<Float, Int>,
+    thresholds: (from: Int, to: Int) -> ThresholdConfig,
+    orientation: Orientation,
+    reverseDirection: Boolean
+): Modifier = composed {
+    return@composed mouseWheelInput { direction ->
+        val target = state.targetValue + (if (reverseDirection) -direction else direction)
+        if (anchors.values.contains(target)) {
+            state.animateTo(target)
+        }
+        return@mouseWheelInput true
+    }.swipeable(state = state, anchors = anchors, thresholds = thresholds, orientation = orientation, reverseDirection = reverseDirection)
 }
 
 @OptIn(ExperimentalComposeUiApi::class)
@@ -88,5 +141,7 @@ actual fun SwipeRefresh(
     swipe_enabled: Boolean,
     content: @Composable () -> Unit
 ) {
-    content()
+    Box(modifier) {
+        content()
+    }
 }

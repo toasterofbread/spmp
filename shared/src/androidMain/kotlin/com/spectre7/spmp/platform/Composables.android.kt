@@ -4,13 +4,16 @@ import android.view.WindowManager
 import androidx.compose.foundation.ExperimentalFoundationApi
 import androidx.compose.foundation.Indication
 import androidx.compose.foundation.combinedClickable
+import androidx.compose.foundation.gestures.Orientation
 import androidx.compose.foundation.interaction.MutableInteractionSource
+import androidx.compose.material.*
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.remember
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.composed
 import androidx.compose.ui.graphics.*
 import androidx.compose.ui.platform.LocalView
+import androidx.compose.ui.unit.dp
 import androidx.compose.ui.window.Dialog
 import androidx.compose.ui.window.DialogProperties
 import androidx.compose.ui.window.DialogWindowProvider
@@ -25,6 +28,15 @@ actual fun Modifier.platformClickable(onClick: () -> Unit, onAltClick: (() -> Un
         onClick = onClick,
         onLongClick = onAltClick
     ) }
+
+@OptIn(ExperimentalMaterialApi::class)
+actual fun Modifier.scrollWheelSwipeable(
+    state: SwipeableState<Int>,
+    anchors: Map<Float, Int>,
+    thresholds: (from: Int, to: Int) -> ThresholdConfig,
+    orientation: Orientation,
+    reverseDirection: Boolean
+): Modifier = swipeable(state = state, anchors = anchors, thresholds = thresholds, orientation = orientation, reverseDirection = reverseDirection)
 
 @Composable
 actual fun BackHandler(enabled: Boolean, action: () -> Unit) {

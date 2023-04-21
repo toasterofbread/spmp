@@ -3,6 +3,7 @@
 package com.spectre7.spmp.ui.layout
 
 import androidx.compose.animation.Crossfade
+import androidx.compose.animation.core.animateDpAsState
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyListState
@@ -28,12 +29,14 @@ import com.spectre7.spmp.api.getOrThrowHere
 import com.spectre7.spmp.model.*
 import com.spectre7.spmp.platform.BackHandler
 import com.spectre7.spmp.platform.SwipeRefresh
+import com.spectre7.spmp.platform.isScreenLarge
 import com.spectre7.spmp.ui.component.*
 import com.spectre7.spmp.ui.layout.nowplaying.NOW_PLAYING_VERTICAL_PAGE_COUNT
 import com.spectre7.spmp.ui.layout.nowplaying.NowPlaying
 import com.spectre7.spmp.ui.layout.nowplaying.ThemeMode
 import com.spectre7.spmp.ui.theme.Theme
 import com.spectre7.utils.*
+import com.spectre7.utils.getString
 import kotlinx.coroutines.*
 import kotlinx.coroutines.sync.Semaphore
 import java.util.concurrent.locks.ReentrantLock
@@ -456,11 +459,12 @@ private fun MainPage(
     can_continue_feed: Boolean,
     loadFeed: (continuation: Boolean) -> Unit
 ) {
+    val padding = animateDpAsState(if (SpMp.context.isScreenLarge()) 30.dp else 10.dp).value
     SwipeRefresh(
         state = feed_load_state.value == FeedLoadState.LOADING,
         onRefresh = { loadFeed(false) },
         swipe_enabled = feed_load_state.value == FeedLoadState.NONE,
-        modifier = Modifier.padding(horizontal = 10.dp)
+        modifier = Modifier.padding(horizontal = padding)
     ) {
         Crossfade(remember { derivedStateOf { layouts.isNotEmpty() } }.value) { loaded ->
             if (loaded) {
@@ -468,7 +472,7 @@ private fun MainPage(
                     layouts,
                     playerProvider,
                     padding = PaddingValues(
-                        top = SpMp.context.getStatusBarHeight(),
+                        top = SpMp.context.getStatusBarHeight() + padding,
                         bottom = playerProvider().bottom_padding
                     ),
                     onContinuationRequested = if (can_continue_feed) {

@@ -33,6 +33,7 @@ import com.spectre7.spmp.platform.BackHandler
 import com.spectre7.spmp.ui.component.*
 import com.spectre7.spmp.ui.theme.Theme
 import com.spectre7.utils.*
+import com.spectre7.utils.getString
 import kotlinx.coroutines.launch
 import kotlin.math.ceil
 import kotlin.concurrent.thread

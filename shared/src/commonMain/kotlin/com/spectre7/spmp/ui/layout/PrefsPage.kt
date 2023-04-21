@@ -32,6 +32,7 @@ import com.spectre7.spmp.ui.theme.Theme
 import com.spectre7.spmp.ui.theme.ThemeData
 import com.spectre7.spmp.ui.theme.ThemeManager
 import com.spectre7.utils.*
+import com.spectre7.utils.getString
 
 enum class Page { ROOT, ACCESSIBILITY_SERVICE, YOUTUBE_MUSIC_LOGIN }
 

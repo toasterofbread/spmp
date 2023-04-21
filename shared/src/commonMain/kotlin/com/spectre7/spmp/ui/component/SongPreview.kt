@@ -26,14 +26,16 @@ import com.spectre7.spmp.PlayerDownloadService
 import com.spectre7.spmp.PlayerServiceHost
 import com.spectre7.spmp.model.MediaItem
 import com.spectre7.spmp.model.Song
-import com.spectre7.spmp.platform.isPortrait
-import com.spectre7.spmp.platform.platformClickable
-import com.spectre7.spmp.platform.vibrateShort
+import com.spectre7.spmp.platform.*
 import com.spectre7.utils.*
 import java.io.File
 
-const val SONG_PREVIEW_SQUARE_SIZE_PORTRAIT: Float = 100f
-const val SONG_PREVIEW_SQUARE_SIZE_LANDSCAPE: Float = 200f
+const val MEDIAITEM_PREVIEW_SQUARE_SIZE_SMALL: Float = 100f
+const val MEDIAITEM_PREVIEW_SQUARE_SIZE_LARGE: Float = 200f
+
+@Composable
+fun getMediaItemPreviewSquareHeight(context: PlatformContext = SpMp.context): Dp =
+    if (context.isScreenLarge()) MEDIAITEM_PREVIEW_SQUARE_SIZE_LARGE.dp else MEDIAITEM_PREVIEW_SQUARE_SIZE_SMALL.dp
 
 @Composable
 fun SongPreviewSquare(
@@ -42,7 +44,7 @@ fun SongPreviewSquare(
     queue_index: Int? = null
 ) {
     val long_press_menu_data = remember(song) {
-        getSongLongPressMenuData(song, RoundedCornerShape(10), queue_index = queue_index)
+        getSongLongPressMenuData(song, RoundedCornerShape(10.dp), queue_index = queue_index)
     }
 
     Column(
@@ -66,10 +68,7 @@ fun SongPreviewSquare(
     ) {
         song.Thumbnail(
             MediaItem.ThumbnailQuality.LOW,
-            animateDpAsState(
-                if (SpMp.context.isPortrait()) SONG_PREVIEW_SQUARE_SIZE_PORTRAIT.dp
-                else SONG_PREVIEW_SQUARE_SIZE_LANDSCAPE.dp
-            ).value,
+            animateDpAsState(getMediaItemPreviewSquareHeight()).value,
             Modifier
                 .longPressMenuIcon(long_press_menu_data, params.enable_long_press_menu),
             params.content_colour()

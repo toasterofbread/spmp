@@ -5,12 +5,14 @@
 package com.spectre7.spmp.ui.component
 
 import androidx.compose.animation.Crossfade
+import androidx.compose.animation.core.animateDpAsState
 import androidx.compose.animation.core.tween
 import androidx.compose.foundation.ExperimentalFoundationApi
 import androidx.compose.foundation.combinedClickable
 import androidx.compose.foundation.interaction.MutableInteractionSource
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.shape.CircleShape
+import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.*
 import androidx.compose.material3.*
@@ -25,6 +27,7 @@ import androidx.compose.ui.unit.sp
 import com.spectre7.spmp.PlayerServiceHost
 import com.spectre7.spmp.model.Artist
 import com.spectre7.spmp.model.MediaItem
+import com.spectre7.spmp.platform.platformClickable
 import com.spectre7.spmp.ui.layout.ArtistSubscribeButton
 import com.spectre7.utils.getContrasted
 import com.spectre7.utils.setAlpha
@@ -32,8 +35,7 @@ import com.spectre7.utils.setAlpha
 @Composable
 fun ArtistPreviewSquare(
     artist: Artist,
-    params: MediaItem.PreviewParams,
-    thumb_size: Dp = 100.dp
+    params: MediaItem.PreviewParams
 ) {
     val long_press_menu_data = remember(artist) {
         getArtistLongPressMenuData(artist)
@@ -42,15 +44,13 @@ fun ArtistPreviewSquare(
     Column(
         params.modifier
             .padding(10.dp, 0.dp)
-            .combinedClickable(
-                interactionSource = remember { MutableInteractionSource() },
-                indication = null,
+            .platformClickable(
                 onClick = {
                     params
                         .playerProvider()
                         .onMediaItemClicked(artist)
                 },
-                onLongClick = {
+                onAltClick = {
                     params
                         .playerProvider()
                         .showLongPressMenu(long_press_menu_data)
@@ -62,7 +62,7 @@ fun ArtistPreviewSquare(
     ) {
         artist.Thumbnail(
             MediaItem.ThumbnailQuality.LOW,
-            thumb_size,
+            animateDpAsState(getMediaItemPreviewSquareHeight()).value,
             Modifier
                 .longPressMenuIcon(long_press_menu_data, params.enable_long_press_menu)
         )
@@ -134,7 +134,7 @@ fun ArtistPreviewLong(
 
 fun getArtistLongPressMenuData(
     artist: Artist,
-    thumb_shape: Shape? = CircleShape
+    thumb_shape: Shape? = RoundedCornerShape(10.dp)
 ): LongPressMenuData {
     return LongPressMenuData(
         artist,

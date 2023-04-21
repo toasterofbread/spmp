@@ -591,7 +591,7 @@ fun PaddingValues.copy(
 fun Modifier.crossOut(
 	crossed_out: Boolean,
 	colour: Color,
-	width: Float = Stroke.HairlineWidth,
+	width: Dp = 2.dp,
 	getSize: ((IntSize) -> IntSize)? = null,
 ): Modifier = composed {
 	val line_visibility = remember { Animatable(crossed_out.toFloat()) }
@@ -601,6 +601,8 @@ fun Modifier.crossOut(
 
 	var size by remember { mutableStateOf(IntSize.Zero) }
 	var actual_size by remember { mutableStateOf(IntSize.Zero) }
+
+	val density = LocalDensity.current
 
 	this
 		.onSizeChanged {
@@ -618,7 +620,7 @@ fun Modifier.crossOut(
 					size.width * line_visibility.value + offset.x,
 					size.height * line_visibility.value + offset.y
 				),
-				width
+				with (density) { width.toPx() }
 			)
 		}
 }

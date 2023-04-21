@@ -34,6 +34,7 @@ dependencyResolutionManagement {
         maven("https://maven.pkg.jetbrains.space/public/p/compose/dev")
         maven("https://jitpack.io")
         maven("https://gitlab.com/api/v4/projects/26729549/packages/maven")
+        maven("https://maven.andob.info/repository/open_source")
     }
 }
 

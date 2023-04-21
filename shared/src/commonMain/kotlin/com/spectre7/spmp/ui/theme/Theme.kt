@@ -4,11 +4,15 @@ import androidx.compose.animation.Animatable
 import androidx.compose.animation.core.Animatable
 import androidx.compose.animation.core.AnimationVector4D
 import androidx.compose.foundation.isSystemInDarkTheme
+import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.LibraryAdd
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.runtime.*
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.toArgb
+import androidx.compose.ui.text.capitalize
 import androidx.compose.ui.text.font.FontFamily
+import androidx.compose.ui.text.intl.Locale
 import com.beust.klaxon.Converter
 import com.beust.klaxon.JsonValue
 import com.beust.klaxon.Klaxon
@@ -17,6 +21,7 @@ import com.spectre7.spmp.model.Settings
 import com.spectre7.utils.*
 import com.spectre7.spmp.platform.ProjectPreferences
 import com.spectre7.spmp.platform.PlatformContext
+import com.catppuccin.Palette as Catppuccin
 
 const val VIBRANT_ACCENT_CONTRAST: Float = 0.2f
 
@@ -26,6 +31,7 @@ fun ApplicationTheme(
     font_family: FontFamily = FontFamily.Default,
     content: @Composable () -> Unit
 ) {
+    Icons.Filled.LibraryAdd
     val dark_theme = isSystemInDarkTheme()
     val colour_scheme = if (dark_theme) context.getDarkColorScheme() else context.getLightColorScheme()
 
@@ -151,7 +157,7 @@ class Theme(data: ThemeData) {
     }
 
     companion object {
-        val default = ThemeData(getStringTemp("Default theme"), Color.Black, Color.White, Color(99, 54, 143))
+        val default = getDefaultTheme()
         private var thumbnail_colour: Color? = null
         private var accent_colour_source: AccentColourSource by mutableStateOf(Settings.getEnum(Settings.KEY_ACCENT_COLOUR_SOURCE))
         private var system_accent_colour: Color? = null
@@ -182,6 +188,16 @@ class Theme(data: ThemeData) {
         var preview_active: Boolean by mutableStateOf(false)
             private set
         val current: Theme get() = if (preview_active) preview_theme else theme
+
+        fun getDefaultTheme(): ThemeData {
+            val palette = Catppuccin.MOCHA
+            return ThemeData(
+                "Catppuccin ${palette.name.capitalize(Locale.current)} Lavender",
+                Color(palette.crust.rgb),
+                Color(palette.text.rgb),
+                Color(palette.lavender.rgb)
+            )
+        }
 
         @Composable
         fun Update(context: PlatformContext, system_accent_colour: Color) {

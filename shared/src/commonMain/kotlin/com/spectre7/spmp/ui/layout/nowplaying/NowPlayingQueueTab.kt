@@ -31,6 +31,7 @@ import com.spectre7.spmp.model.Settings
 import com.spectre7.spmp.model.Song
 import com.spectre7.spmp.platform.MediaPlayerRepeatMode
 import com.spectre7.spmp.platform.MediaPlayerService
+import com.spectre7.spmp.platform.isScreenLarge
 import com.spectre7.spmp.platform.vibrateShort
 import com.spectre7.spmp.ui.layout.MINIMISED_NOW_PLAYING_HEIGHT
 import com.spectre7.spmp.ui.layout.PlayerViewContext
@@ -252,39 +253,25 @@ fun QueueTab(expansionProvider: () -> Float, playerProvider: () -> PlayerViewCon
                     }
                 }
 
-                AnimatedVisibility(undo_list.isNotEmpty() || SpMp.contex.isScreenLarge()) {
-                    Box(
-                        modifier = Modifier
-                            .minimumTouchTargetSize()
-                            .background(
-                                animateColorAsState(
-                                    if (undo_list.isEmpty()) getNPOnBackground(playerProvider) 
-                                    else background_colour
-                                ).value, 
-                                CircleShape
-                            )
-                            .clickable {
-                                if (undo_list.isNotEmpty()) {
-                                    undo_list
-                                        .removeLast()
-                                        .invoke()
-                                }
-                            }
-                            .crossOut(
-                                crossed_out = undo_list.isEmpty(),
-                                colour = content_colour,
-                                width = 4.dp
-                            ) {
-                                IntSize(
-                                    (getInnerSquareSizeOfCircle(it.width * 0.5f, 50) * 1.25f).roundToInt(),
-                                    (getInnerSquareSizeOfCircle(it.height * 0.5f, 50) * 1.25f).roundToInt()
-                                )
-                            },
-                            .size(40.dp),
-                        contentAlignment = Alignment.Center
-                    ) {
-                        Icon(Icons.Filled.Undo, null, tint = getNPBackground(playerProvider))
-                    }
+                val undo_background = animateColorAsState(
+                    if (undo_list.isNotEmpty()) background_colour
+                    else background_colour.setAlpha(0.3f)
+                ).value
+
+                Box(
+                    modifier = Modifier
+                        .minimumTouchTargetSize()
+                        .background(
+                            undo_background,
+                            CircleShape
+                        )
+                        .clickable(undo_list.isNotEmpty()) {
+                            undo_list.removeLast().invoke()
+                        }
+                        .size(40.dp),
+                    contentAlignment = Alignment.Center
+                ) {
+                    Icon(Icons.Filled.Undo, null, tint = undo_background.getContrasted(true))
                 }
             }
 
@@ -442,7 +429,6 @@ private fun RepeatButton(background_colour: Color, content_colour: Color, modifi
             .crossOut(
                 crossed_out = PlayerServiceHost.status.m_repeat_mode == MediaPlayerRepeatMode.OFF,
                 colour = content_colour,
-                width = 4.dp
             ) {
                 return@crossOut IntSize(
                     (getInnerSquareSizeOfCircle(it.width * 0.5f, 50) * 1.25f).roundToInt(),

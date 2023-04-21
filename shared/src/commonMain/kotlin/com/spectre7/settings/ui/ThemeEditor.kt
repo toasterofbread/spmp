@@ -13,6 +13,8 @@ import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.text.KeyboardActions
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.*
+import androidx.compose.material.icons.materialIcon
+import androidx.compose.material.icons.materialPath
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
@@ -20,6 +22,8 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.draw.scale
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.graphics.vector.ImageVector
+import androidx.compose.ui.graphics.vector.addPathNodes
 import androidx.compose.ui.input.pointer.pointerInput
 import androidx.compose.ui.layout.onSizeChanged
 import androidx.compose.ui.platform.LocalDensity
@@ -212,7 +216,7 @@ private fun getEditPage(
                             contentAlignment = Alignment.Center
                         ) {
                             Icon(
-                                painterResource("ic_die"),
+                                painterResource("drawable/ic_die.xml"),
                                 null,
                                 Modifier.size(25.dp),
                                 tint = content_colour
@@ -387,14 +391,14 @@ private fun ColourField(
                 show_picker = !show_picker
             }, colors = button_colours) {
                 Crossfade(show_picker) { picker ->
-                    Icon(if (picker) Icons.Filled.Close else Icons.Filled.Edit, null, Modifier.size(22.dp))
+                    Icon(if (picker) Icons.Filled.Done else Icons.Filled.Edit, null, Modifier.size(22.dp))
                 }
             }
             FilledIconButton({
                 current = Color.random()
                 instance = !instance
             }, colors = button_colours) {
-                Icon(painterResource("ic_die"), null, Modifier.size(22.dp))
+                Icon(painterResource("drawable/ic_die.xml"), null, Modifier.size(22.dp))
             }
             FilledIconButton({
                 current = default_colour

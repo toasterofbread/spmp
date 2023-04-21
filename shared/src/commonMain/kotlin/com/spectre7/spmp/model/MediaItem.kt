@@ -133,7 +133,7 @@ abstract class MediaItem(id: String) {
             Type.PLAYLIST -> Settings.INTERNAL_PINNED_PLAYLISTS
         }
 
-        val set: Set<String> = key.get().toMutableSet()
+        val set: MutableSet<String> = key.get<Set<String>>().toMutableSet()
         if (value) {
             set.add(id)
         }
@@ -146,6 +146,12 @@ abstract class MediaItem(id: String) {
 
         playerProvider().onMediaItemPinnedChanged(this, value)
     }
+
+    private class ThumbState {
+        var image: ImageBitmap? by mutableStateOf(null)
+        var loading by mutableStateOf(false)
+    }
+    private val thumb_states: Map<ThumbnailQuality, ThumbState>
 
     init {
         // Populate thumb_states
@@ -416,12 +422,6 @@ abstract class MediaItem(id: String) {
             }
         }
     }
-
-    private class ThumbState {
-        var image: ImageBitmap? by mutableStateOf(null)
-        var loading by mutableStateOf(false)
-    }
-    private val thumb_states: Map<ThumbnailQuality, ThumbState>
 
     fun getOrReplacedWith(): MediaItem {
         return replaced_with?.getOrReplacedWith() ?: this

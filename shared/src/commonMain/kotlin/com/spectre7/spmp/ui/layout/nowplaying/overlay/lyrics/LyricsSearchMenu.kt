@@ -134,8 +134,8 @@ fun LyricsSearchMenu(song: Song, close: (changed: Boolean) -> Unit) {
                         )
                     }
 
-                    Field(title, com.spectre7.utils.getString("song_name"))
-                    Field(artist, com.spectre7.utils.getString("artist"))
+                    Field(title, getString("song_name"))
+                    Field(artist, getString("artist"))
                 }
             }
             else if (search_results != null) {

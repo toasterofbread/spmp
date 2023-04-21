@@ -5,6 +5,7 @@ import com.spectre7.spmp.api.DataApi.Companion.getStream
 import com.spectre7.spmp.api.DataApi.Companion.ytUrl
 import com.spectre7.spmp.model.*
 import com.spectre7.spmp.ui.component.MediaItemLayout
+import com.spectre7.utils.printJson
 import okhttp3.Request
 import java.io.BufferedReader
 import java.util.regex.Pattern

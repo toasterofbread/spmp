@@ -10,7 +10,6 @@ import androidx.compose.foundation.layout.*
 import androidx.compose.material.ExperimentalMaterialApi
 import androidx.compose.material.FractionalThreshold
 import androidx.compose.material.SwipeableState
-import androidx.compose.material.swipeable
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
@@ -20,6 +19,7 @@ import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.unit.*
 import com.spectre7.spmp.PlayerServiceHost
 import com.spectre7.spmp.platform.BackHandler
+import com.spectre7.spmp.platform.scrollWheelSwipeable
 import com.spectre7.spmp.ui.layout.PlayerViewContext
 import com.spectre7.spmp.ui.theme.Theme
 import com.spectre7.utils.*
@@ -78,7 +78,7 @@ fun NowPlaying(playerProvider: () -> PlayerViewContext, swipe_state: SwipeableSt
                         with (density) { ((half_screen_height.dp * NOW_PLAYING_VERTICAL_PAGE_COUNT) - swipe_state.offset.value.dp).toPx().toInt() }
                     )
                 }
-                .swipeable(
+                .scrollWheelSwipeable(
                     state = swipe_state,
                     anchors = swipe_anchors,
                     thresholds = { _, _ -> FractionalThreshold(0.2f) },

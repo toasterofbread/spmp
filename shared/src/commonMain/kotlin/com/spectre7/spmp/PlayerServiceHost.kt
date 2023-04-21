@@ -41,8 +41,6 @@ class PlayerServiceHost() {
         val song: Song? get() = player.getSong()
         val index: Int get() = player.current_song_index
         val repeat_mode: MediaPlayerRepeatMode get() = player.repeat_mode
-        val has_next: Boolean get() = true // TODO
-        val has_previous: Boolean get() = true // TODO
         var volume: Float
             get() = player.volume
             set(value) { player.volume = value }
@@ -58,9 +56,9 @@ class PlayerServiceHost() {
             private set
         var m_repeat_mode: MediaPlayerRepeatMode by mutableStateOf(repeat_mode)
             private set
-        var m_has_next: Boolean by mutableStateOf(false)
+        var m_has_next: Boolean by mutableStateOf(true)
             private set
-        var m_has_previous: Boolean by mutableStateOf(false)
+        var m_has_previous: Boolean by mutableStateOf(true)
             private set
         var m_volume: Float by mutableStateOf(volume)
             private set
@@ -80,8 +78,6 @@ class PlayerServiceHost() {
                 }
 
                 override fun onEvents() {
-                    m_has_next = has_next
-                    m_has_previous = has_previous
                     m_duration = duration
                     m_index = index
                     m_volume = volume

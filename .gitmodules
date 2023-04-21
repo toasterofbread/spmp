@@ -6,3 +6,6 @@
 	path = androidApp/src/thirdparty/NewPipeExtractor
 	url = https://github.com/TeamNewPipe/NewPipeExtractor
 	branch = 0ea16c0b73265302775f31b35a2349f465d434ba
+[submodule "shared/src/commonMain/kotlin/thirdparty/compose-sliders"]
+	path = shared/src/commonMain/kotlin/thirdparty/compose-sliders
+	url = https://github.com/toasterofbread/compose-sliders/

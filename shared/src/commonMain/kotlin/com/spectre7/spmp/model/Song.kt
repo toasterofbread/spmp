@@ -157,6 +157,9 @@ class Song protected constructor (
 
         @Synchronized
         fun fromId(id: String): Song {
+            if (id.contains(',')) {
+                TODO()
+            }
             return songs.getOrPut(id) {
                 val song = Song(id)
                 song.loadFromCache()

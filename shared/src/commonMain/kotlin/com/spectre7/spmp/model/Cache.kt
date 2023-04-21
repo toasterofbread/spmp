@@ -8,13 +8,14 @@ import java.io.Reader
 import java.time.Duration
 import java.time.Instant
 import kotlin.io.path.relativeTo
+import com.spectre7.utils.getString
 
 class Cache {
     companion object {
         private lateinit var cache_dir: File
 
         fun init(context: PlatformContext) {
-            cache_dir = File(context.getCacheDir(), com.spectre7.utils.getString("app_name"))
+            cache_dir = File(context.getCacheDir(), getString("app_name"))
 
             if (!cache_dir.exists()) {
                 cache_dir.mkdirs()

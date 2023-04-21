@@ -6,6 +6,7 @@ import androidx.compose.ui.text.font.Font
 import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.unit.IntSize
+import androidx.compose.ui.unit.dp
 import java.io.File
 import java.io.FileInputStream
 import java.io.FileOutputStream
@@ -20,6 +21,17 @@ fun PlatformContext.vibrateShort() {
 @Composable
 fun PlatformContext.isPortrait(): Boolean {
     return (getScreenWidth() / getScreenHeight()) <= MIN_PORTRAIT_RATIO
+}
+
+@Composable
+fun PlatformContext.isScreenLarge(): Boolean {
+    val width = getScreenWidth()
+    if (width < 900.dp) {
+        return false
+    }
+
+    val height = getScreenHeight()
+    return height >= 600.dp && (width / height) > MIN_PORTRAIT_RATIO
 }
 
 expect class PlatformContext {

@@ -32,6 +32,8 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.*
+import com.github.krottv.compose.sliders.DefaultThumb
+import com.github.krottv.compose.sliders.SliderValueHorizontal
 import com.spectre7.spmp.PlayerServiceHost
 import com.spectre7.spmp.model.MediaItem
 import com.spectre7.spmp.model.Song
@@ -44,7 +46,7 @@ import com.spectre7.spmp.ui.layout.PlayerViewContext
 import com.spectre7.spmp.ui.layout.nowplaying.overlay.OverlayMenu
 import com.spectre7.spmp.ui.theme.Theme
 import com.spectre7.utils.*
-import org.apache.commons.lang3.time.DateUtils
+import com.spectre7.utils.getString
 import kotlin.concurrent.thread
 import kotlin.math.absoluteValue
 import kotlin.math.max
@@ -630,69 +632,9 @@ private fun SeekBarTimeText(time: Float, colour: Color) {
 @Composable
 private fun SeekBar(playerProvider: () -> PlayerViewContext, seek: (Float) -> Unit) {
     var position_override by remember { mutableStateOf<Float?>(null) }
+
     var old_position by remember { mutableStateOf<Float?>(null) }
     var grab_start_position by remember { mutableStateOf<Float?>(null) }
-
-    @Composable
-    fun SeekTrack(
-        modifier: Modifier,
-        progress: Float,
-        enabled: Boolean,
-        track_colour: Color = Color(0xffD3B4F7),
-        progress_colour: Color = Color(0xff7000F8),
-        height: Dp = 4.dp,
-        highlight_colour: Color = Color.Red.setAlpha(0.2f)
-    ) {
-        androidx.compose.foundation.Canvas(
-            Modifier
-                .then(modifier)
-                .height(height)
-        ) {
-
-            val left = Offset(0f, center.y)
-            val right = Offset(size.width, center.y)
-            val start = if (layoutDirection == LayoutDirection.Rtl) right else left
-            val end = if (layoutDirection == LayoutDirection.Rtl) left else right
-
-            drawLine(
-                track_colour,
-                start,
-                end,
-                size.height,
-                StrokeCap.Round,
-                alpha = if (enabled) 1f else 0.6f
-            )
-
-            drawLine(
-                progress_colour,
-                Offset(
-                    start.x,
-                    center.y
-                ),
-                Offset(
-                    start.x + (end.x - start.x) * progress,
-                    center.y
-                ),
-                size.height,
-                StrokeCap.Round,
-                alpha = if (enabled) 1f else 0.6f
-            )
-
-            if (grab_start_position != null) {
-                drawLine(
-                    highlight_colour,
-                    Offset(size.width * (grab_start_position!! - SEEK_CANCEL_THRESHOLD / 2.0f),
-                        center.y),
-                    Offset(size.width * (grab_start_position!! + SEEK_CANCEL_THRESHOLD / 2.0f),
-                        center.y),
-                    size.height,
-                    StrokeCap.Square,
-                    alpha = if (enabled) 1f else 0.6f
-                )
-            }
-        }
-    }
-
     var cancel_area_side: Int? by remember { mutableStateOf(null) }
 
     fun getSliderValue(): Float {
@@ -717,43 +659,102 @@ private fun SeekBar(playerProvider: () -> PlayerViewContext, seek: (Float) -> Un
 
             SeekBarTimeText(PlayerServiceHost.status.position_seconds, getNPOnBackground(playerProvider))
 
-//            TODO()
+            SliderValueHorizontal(
+                value = getSliderValue(),
+                onValueChange = {
+                    if (grab_start_position == null) {
+                        grab_start_position = PlayerServiceHost.status.position
+                    }
 
-//            SliderValueHorizontal(
-//                value = getSliderValue(),
-//                onValueChange = {
-//                    if (grab_start_position == null) {
-//                        grab_start_position = PlayerServiceHost.status.position
-//                    }
-//
-//                    position_override = it
-//
-//                    val side = if (it <= grab_start_position!! - SEEK_CANCEL_THRESHOLD / 2.0) -1 else if (it >= grab_start_position!! + SEEK_CANCEL_THRESHOLD / 2.0) 1 else 0
-//                    if (side != cancel_area_side) {
-//                        if (side == 0 || side + (cancel_area_side ?: 0) == 0) {
-//                            SpMp.context.vibrateShort()
-//                        }
-//                        cancel_area_side = side
-//                    }
-//                },
-//                onValueChangeFinished = {
-//                    if (cancel_area_side == 0 && grab_start_position != null) {
-//                        SpMp.context.vibrateShort()
-//                    }
-//                    else {
-//                        seek(position_override!!)
-//                    }
-//                    old_position = PlayerServiceHost.status.position
-//                    grab_start_position = null
-//                    cancel_area_side = null
-//                },
-//                thumbSizeInDp = DpSize(12.dp, 12.dp),
-//                track = { a, b, _, _, e -> SeekTrack(a, b, e, getNPOnBackground(playerProvider).setAlpha(0.5f), getNPOnBackground(playerProvider)) },
-//                thumb = { a, b, c, d, e -> DefaultThumb(a, b, c, d, e, getNPOnBackground(playerProvider), 1f) },
-//                modifier = Modifier.weight(1f)
-//            )
+                    position_override = it
+
+                    val side = if (it <= grab_start_position!! - SEEK_CANCEL_THRESHOLD / 2.0) -1 else if (it >= grab_start_position!! + SEEK_CANCEL_THRESHOLD / 2.0) 1 else 0
+                    if (side != cancel_area_side) {
+                        if (side == 0 || side + (cancel_area_side ?: 0) == 0) {
+                            SpMp.context.vibrateShort()
+                        }
+                        cancel_area_side = side
+                    }
+                },
+                onValueChangeFinished = {
+                    if (cancel_area_side == 0 && grab_start_position != null) {
+                        SpMp.context.vibrateShort()
+                    }
+                    else {
+                        seek(position_override!!)
+                    }
+                    old_position = PlayerServiceHost.status.position
+                    grab_start_position = null
+                    cancel_area_side = null
+                },
+                thumbSizeInDp = DpSize(12.dp, 12.dp),
+                track = { a, b, _, _, e -> SeekTrack(a, b, e, grab_start_position, getNPOnBackground(playerProvider).setAlpha(0.5f), getNPOnBackground(playerProvider)) },
+                thumb = { a, b, c, d, e -> DefaultThumb(a, b, c, d, e, getNPOnBackground(playerProvider), 1f) },
+                modifier = Modifier.weight(1f)
+            )
 
             SeekBarTimeText(PlayerServiceHost.status.m_duration, getNPOnBackground(playerProvider))
+        }
+    }
+}
+
+@Composable
+fun SeekTrack(
+    modifier: Modifier,
+    progress: Float,
+    enabled: Boolean,
+    grab_start_position: Float?,
+    track_colour: Color = Color(0xffD3B4F7),
+    progress_colour: Color = Color(0xff7000F8),
+    height: Dp = 4.dp,
+    highlight_colour: Color = Color.Red.setAlpha(0.2f)
+) {
+    androidx.compose.foundation.Canvas(
+        Modifier
+            .then(modifier)
+            .height(height)
+    ) {
+
+        val left = Offset(0f, center.y)
+        val right = Offset(size.width, center.y)
+        val start = if (layoutDirection == LayoutDirection.Rtl) right else left
+        val end = if (layoutDirection == LayoutDirection.Rtl) left else right
+
+        drawLine(
+            track_colour,
+            start,
+            end,
+            size.height,
+            StrokeCap.Round,
+            alpha = if (enabled) 1f else 0.6f
+        )
+
+        drawLine(
+            progress_colour,
+            Offset(
+                start.x,
+                center.y
+            ),
+            Offset(
+                start.x + (end.x - start.x) * progress,
+                center.y
+            ),
+            size.height,
+            StrokeCap.Round,
+            alpha = if (enabled) 1f else 0.6f
+        )
+
+        if (grab_start_position != null) {
+            drawLine(
+                highlight_colour,
+                Offset(size.width * (grab_start_position - SEEK_CANCEL_THRESHOLD / 2.0f),
+                    center.y),
+                Offset(size.width * (grab_start_position + SEEK_CANCEL_THRESHOLD / 2.0f),
+                    center.y),
+                size.height,
+                StrokeCap.Square,
+                alpha = if (enabled) 1f else 0.6f
+            )
         }
     }
 }

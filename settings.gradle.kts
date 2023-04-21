@@ -1,7 +1,7 @@
 rootProject.name = "SpMp"
 
-include(":androidApp")
 include(":shared")
+include(":androidApp")
 include(":desktopApp")
 
 pluginManagement {
@@ -62,3 +62,9 @@ includeBuild("androidApp/src/thirdparty/NewPipeExtractor") {
         substitute(module("com.github.TeamNewPipe:NewPipeExtractor")).using(project(":extractor"))
     }
 }
+//includeBuild("shared/src/thirdparty/compose-sliders") {
+//    dependencySubstitution {
+//        substitute(module("com.github.krottv:compose-sliders")).using(project(":library"))
+//    }
+//}
+

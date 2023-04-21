@@ -30,7 +30,6 @@ import com.spectre7.spmp.api.*
 import com.spectre7.spmp.api.DataApi.Companion.addYtHeaders
 import com.spectre7.spmp.api.DataApi.Companion.ytUrl
 import com.spectre7.spmp.model.*
-import com.spectre7.spmp.platform.isPortrait
 import com.spectre7.spmp.ui.layout.PlayerViewContext
 import com.spectre7.spmp.ui.theme.Theme
 import com.spectre7.utils.WidthShrinkText
@@ -535,10 +534,7 @@ fun MediaItemGrid(
     modifier: Modifier = Modifier
 ) {
     val row_count = if (layout.items.size <= 3) 1 else 2
-    val item_width = animateDpAsState(
-        if (SpMp.context.isPortrait()) SONG_PREVIEW_SQUARE_SIZE_PORTRAIT.dp
-        else SONG_PREVIEW_SQUARE_SIZE_LANDSCAPE.dp
-    ).value + 50.dp
+    val item_width = animateDpAsState(getMediaItemPreviewSquareHeight()).value + 20.dp
 
     Column(modifier, verticalArrangement = Arrangement.spacedBy(10.dp)) {
         layout.TitleBar(playerProvider)

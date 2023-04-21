@@ -451,7 +451,7 @@ private fun RadioArtistSelector(
                     ),
                     contentPadding = PaddingValues(0.dp, 0.dp)
                 ) {
-                    Text(getString("radio_builder_next_button"), Modifier.crossOut(selected_artists.isEmpty(), content_colour, 3f, { it * 1.2f }))
+                    Text(getString("radio_builder_next_button"), Modifier.crossOut(selected_artists.isEmpty(), content_colour) { it * 1.2f })
                 }
             }
         ) }

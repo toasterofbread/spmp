@@ -116,7 +116,56 @@ abstract class MediaItem(id: String) {
         }
     }
 
+    // Remove?
     private var replaced_with: MediaItem? = null
+    
+    var pinned_to_home: Boolean by mutableStateOf(false)
+        private set
+
+    fun setPinnedToHome(value: Boolean, playerProvider: () -> PlayerViewContext) {
+        if (value == pinned_to_home) {
+            return
+        }
+
+        val key = when (type) {
+            Type.SONG -> Settings.INTERNAL_PINNED_SONGS
+            Type.ARTIST -> Settings.INTERNAL_PINNED_ARTISTS
+            Type.PLAYLIST -> Settings.INTERNAL_PINNED_PLAYLISTS
+        }
+
+        val set: Set<String> = key.get().toMutableSet()
+        if (value) {
+            set.add(id)
+        }
+        else {
+            set.remove(id)
+        }
+        key.set(set)
+        
+        pinned_to_home = value
+
+        playerProvider().onMediaItemPinnedChanged(this, value)
+    }
+
+    init {
+        // Populate thumb_states
+        val states = mutableMapOf<ThumbnailQuality, ThumbState>()
+        for (quality in ThumbnailQuality.values()) {
+            states[quality] = ThumbState()
+        }
+        thumb_states = states
+
+        // Get registry
+        registry_entry = data_registry.getEntry(this)
+
+        // Get pinned status
+        val key = when (type) {
+            Type.SONG -> Settings.INTERNAL_PINNED_SONGS
+            Type.ARTIST -> Settings.INTERNAL_PINNED_ARTISTS
+            Type.PLAYLIST -> Settings.INTERNAL_PINNED_PLAYLISTS
+        }
+        pinned_to_home = key.get<Set<String>>().contains(id)
+    }
 
     enum class Type {
         SONG, ARTIST, PLAYLIST;
@@ -419,15 +468,6 @@ abstract class MediaItem(id: String) {
         if (invalidation_exception != null) {
             throw IllegalStateException("$this (replaced with $replaced_with) must be valid. Invalidated at cause.", invalidation_exception)
         }
-    }
-
-    init {
-        val states = mutableMapOf<ThumbnailQuality, ThumbState>()
-        for (quality in ThumbnailQuality.values()) {
-            states[quality] = ThumbState()
-        }
-        thumb_states = states
-        registry_entry = data_registry.getEntry(this)
     }
 
     fun addBrowseEndpoint(id: String, type: BrowseEndpoint.Type): Boolean {

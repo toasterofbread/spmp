@@ -160,6 +160,9 @@ fun LongPressIconMenu(
     }
 
     if (show && (data.thumb_shape == null || data.thumb_position != null)) {
+
+        // Animation logic
+
         val density = LocalDensity.current
         val status_bar_height = SpMp.context.getStatusBarHeight()
 
@@ -190,29 +193,6 @@ fun LongPressIconMenu(
 
         var target_position: Offset? by remember { mutableStateOf(null) }
         var target_size: IntSize? by remember { mutableStateOf(null) }
-
-        var accent_colour: Color? by remember { mutableStateOf(null) }
-
-        fun applyPalette(item: MediaItem) {
-            accent_colour = (item.getDefaultThemeColour() ?: Theme.current.background)
-                .contrastAgainst(Theme.current.background, 0.2f)
-        }
-
-        LaunchedEffect(Unit) {
-            if (data.item is Song && data.item.theme_colour != null) {
-                accent_colour = data.item.theme_colour!!
-            }
-        }
-
-        val thumb_quality = MediaItem.ThumbnailQuality.LOW
-        LaunchedEffect(data.item.isThumbnailLoaded(thumb_quality)) {
-            if (!data.item.isThumbnailLoaded(thumb_quality)) {
-                data.item.getThumbnail(MediaItem.ThumbnailQuality.LOW)
-            }
-            else {
-                applyPalette(data.item)
-            }
-        }
 
         suspend fun animateValues(to_target: Boolean) {
 
@@ -265,6 +245,31 @@ fun LongPressIconMenu(
         LaunchedEffect(target_position) {
             if (target_position != null) {
                 animateValues(true)
+            }
+        }
+
+        // UI
+
+        var accent_colour: Color? by remember { mutableStateOf(null) }
+
+        fun applyPalette(item: MediaItem) {
+            accent_colour = (item.getDefaultThemeColour() ?: Theme.current.background)
+                .contrastAgainst(Theme.current.background, 0.2f)
+        }
+
+        LaunchedEffect(Unit) {
+            if (data.item is Song && data.item.theme_colour != null) {
+                accent_colour = data.item.theme_colour!!
+            }
+        }
+
+        val thumb_quality = MediaItem.ThumbnailQuality.LOW
+        LaunchedEffect(data.item.isThumbnailLoaded(thumb_quality)) {
+            if (!data.item.isThumbnailLoaded(thumb_quality)) {
+                data.item.getThumbnail(MediaItem.ThumbnailQuality.LOW)
+            }
+            else {
+                applyPalette(data.item)
             }
         }
 
@@ -476,14 +481,27 @@ private fun Actions(data: LongPressMenuData, accent_colour: Color, playerProvide
         data.item
     )
 
+    LongPressMenuActionProvider.ActionButton(
+        Icons.Filled.Pin, 
+        getStringTemp(
+            if (data.item.pinned_to_home) "Unpin from home" 
+            else "Pin to home"
+        ), 
+        accent_colour_provider, 
+        onClick = {
+            data.item.setPinnedToHome(!data.item.pinned_to_home, playerProvider)
+        }, 
+        closeMenu = close
+    )
+
     if (SpMp.context.canShare()) {
-        LongPressMenuActionProvider.ActionButton(Icons.Filled.Share, "Share", accent_colour_provider, onClick = {
+        LongPressMenuActionProvider.ActionButton(Icons.Filled.Share, getStringTemp("Share"), accent_colour_provider, onClick = {
             SpMp.context.shareText(data.item.url, if (data.item is Song) data.item.title else null)
         }, closeMenu = close)
     }
 
     if (SpMp.context.canOpenUrl()) {
-        LongPressMenuActionProvider.ActionButton(Icons.Filled.OpenWith, "Open externally", accent_colour_provider, onClick = {
+        LongPressMenuActionProvider.ActionButton(Icons.Filled.OpenWith, getStringTemp("Open externally"), accent_colour_provider, onClick = {
             SpMp.context.openUrl(data.item.url)
         }, closeMenu = close)
     }

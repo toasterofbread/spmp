@@ -252,36 +252,40 @@ fun QueueTab(expansionProvider: () -> Float, playerProvider: () -> PlayerViewCon
                     }
                 }
 
-                AnimatedVisibility(undo_list.isNotEmpty()) {
+                AnimatedVisibility(undo_list.isNotEmpty() || SpMp.contex.isScreenLarge()) {
                     Box(
                         modifier = Modifier
                             .minimumTouchTargetSize()
-                            .background(getNPOnBackground(playerProvider), CircleShape)
-                            .combinedClickable(
-                                onClick = {
-                                    if (undo_list.isNotEmpty()) {
-                                        undo_list
-                                            .removeLast()
-                                            .invoke()
-                                    }
-                                },
-                                onLongClick = {
-                                    if (undo_list.isNotEmpty()) {
-                                        SpMp.context.vibrateShort()
-                                        for (undo_action in undo_list.asReversed()) {
-                                            undo_action.invoke()
-                                        }
-                                        undo_list.clear()
-                                    }
-                                }
+                            .background(
+                                animateColorAsState(
+                                    if (undo_list.isEmpty()) getNPOnBackground(playerProvider) 
+                                    else background_colour
+                                ).value, 
+                                CircleShape
                             )
+                            .clickable {
+                                if (undo_list.isNotEmpty()) {
+                                    undo_list
+                                        .removeLast()
+                                        .invoke()
+                                }
+                            }
+                            .crossOut(
+                                crossed_out = undo_list.isEmpty(),
+                                colour = content_colour,
+                                width = 4.dp
+                            ) {
+                                IntSize(
+                                    (getInnerSquareSizeOfCircle(it.width * 0.5f, 50) * 1.25f).roundToInt(),
+                                    (getInnerSquareSizeOfCircle(it.height * 0.5f, 50) * 1.25f).roundToInt()
+                                )
+                            },
                             .size(40.dp),
                         contentAlignment = Alignment.Center
                     ) {
                         Icon(Icons.Filled.Undo, null, tint = getNPBackground(playerProvider))
                     }
                 }
-
             }
 
             if (radio_info_position == NowPlayingQueueRadioInfoPosition.TOP_BAR) {
@@ -438,7 +442,7 @@ private fun RepeatButton(background_colour: Color, content_colour: Color, modifi
             .crossOut(
                 crossed_out = PlayerServiceHost.status.m_repeat_mode == MediaPlayerRepeatMode.OFF,
                 colour = content_colour,
-                width = 5f
+                width = 4.dp
             ) {
                 return@crossOut IntSize(
                     (getInnerSquareSizeOfCircle(it.width * 0.5f, 50) * 1.25f).roundToInt(),

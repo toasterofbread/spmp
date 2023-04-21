@@ -47,58 +47,67 @@ enum class OverlayPage { SEARCH, SETTINGS, MEDIAITEM, LIBRARY, RADIO_BUILDER }
 
 private enum class FeedLoadState { NONE, LOADING, CONTINUING }
 
-data class PlayerViewContext(
+open class BasePlayerViewContext(
     private val onClickedOverride: ((item: MediaItem) -> Unit)? = null,
     private val onLongClickedOverride: ((item: MediaItem) -> Unit)? = null,
-    private val base: PlayerViewContext? = null
+    private val upstream: BasePlayerViewContext? = null
 ) {
-    fun copy(onClickedOverride: ((item: MediaItem) -> Unit)? = null, onLongClickedOverride: ((item: MediaItem) -> Unit)? = null): PlayerViewContext {
-        return PlayerViewContext(onClickedOverride, onLongClickedOverride, this)
+    fun copy(onClickedOverride: ((item: MediaItem) -> Unit)? = null, onLongClickedOverride: ((item: MediaItem) -> Unit)? = null): BasePlayerViewContext {
+        return BasePlayerViewContext(onClickedOverride, onLongClickedOverride, this)
     }
 
+    open fun getNowPlayingTopOffset(screen_height: Dp, density: Density): Int = upstream!!.getNowPlayingTopOffset(screen_height, density)
+
+    open fun setOverlayPage(page: OverlayPage?, media_item: MediaItem? = null, opened_layout: MediaItemLayout? = null) = upstream.setOverlayPage(page, media_item, opened_layout)
+
+    open fun navigateBack() { upstream!!.navigateBack() }
+
+    open fun onMediaItemClicked(item: MediaItem) { upstream!!.onMediaItemClicked(item) }
+    open fun onMediaItemLongClicked(item: MediaItem, queue_index: Int? = null) { upstream!!.onMediaItemLongClicked(item, queue_index) }
+
+    open fun openMediaItem(item: MediaItem, opened_layout: MediaItemLayout? = null) { upstream!!.openMediaItem(item, opened_layout) }
+    open fun playMediaItem(item: MediaItem, shuffle: Boolean = false) { upstream!!.playMediaItem(item, shuffle) }
+
+    open fun onMediaItemPinnedChanged(item: MediaItem, pinned: Boolean) { upstream!!.onMediaItemPinnedChanged(item, pinned) }
+
+    open fun showLongPressMenu(data: LongPressMenuData) { upstream!!.showLongPressMenu(data) }
+
+    open fun hideLongPressMenu() { upstream.hideLongPressMenu() }
+}
+
+data class PlayerViewContext: BasePlayerViewContext(null, null, null) {
     private val is_base: Boolean get() = base == null
     private fun baseOrThis(): PlayerViewContext = base ?: this
 
     private val np_theme_mode_state: MutableState<ThemeMode>? = if (is_base) mutableStateOf(Settings.getEnum(Settings.KEY_NOWPLAYING_THEME_MODE)) else null
-
-    var np_theme_mode: ThemeMode
-        get() = baseOrThis().np_theme_mode_state!!.value
-        private set(value) { baseOrThis().np_theme_mode_state!!.value = value }
-
-    fun getNowPlayingTopOffset(screen_height: Dp, density: Density): Int {
-        return with (density) { (-getNowPlayingSwipeState().offset.value.dp - screen_height * 0.5f).toPx().toInt() }
-    }
-
     private val now_playing_switch_page: MutableState<Int>? = if (is_base) mutableStateOf(-1) else null
+    private val overlay_page_undo_stack: MutableList<Triple<OverlayPage, MediaItem?, MediaItemLayout?>?> = mutableListOf()
+    private val bottom_padding_anim = androidx.compose.animation.core.Animatable(PlayerServiceHost.session_started.toFloat() * MINIMISED_NOW_PLAYING_HEIGHT)
+
+    private lateinit var prefs_listener: ProjectPreferences.Listener
+
     private fun switchNowPlayingPage(page: Int) {
         baseOrThis().now_playing_switch_page!!.value = page
     }
+    
+    private var long_press_menu_data: LongPressMenuData? by mutableStateOf(null)
+    private var long_press_menu_showing: Boolean by mutableStateOf(false)
+    private var long_press_menu_direct: Boolean by mutableStateOf(false)
 
+    private var now_playing_swipe_state: SwipeableState<Int>? by mutableStateOf(if (is_base) SwipeableState(0) else null)
+    private var now_playing_swipe_anchors: Map<Float, Int>? by mutableStateOf(null)
+    private fun getNowPlayingSwipeState(): SwipeableState<Int> = baseOrThis().now_playing_swipe_state!!
+    
+    var np_theme_mode: ThemeMode
+        get() = baseOrThis().np_theme_mode_state!!.value
+        private set(value) { baseOrThis().np_theme_mode_state!!.value = value }
+    var overlay_page: Triple<OverlayPage, MediaItem?, MediaItemLayout?>? by mutableStateOf(null)
+        private set
+    val bottom_padding: Dp get() = bottom_padding_anim.value.dp
     val pill_menu = PillMenu(
         top = false,
         left = false
     )
-
-    private val overlay_page_undo_stack: MutableList<Triple<OverlayPage, MediaItem?, MediaItemLayout?>?> = mutableListOf()
-    var overlay_page: Triple<OverlayPage, MediaItem?, MediaItemLayout?>? by mutableStateOf(null)
-        private set
-
-    fun setOverlayPage(page: OverlayPage?, media_item: MediaItem? = null, opened_layout: MediaItemLayout? = null) {
-        val new_page = page?.let { Triple(page, media_item, opened_layout) }
-        if (new_page != overlay_page) {
-            overlay_page_undo_stack.add(overlay_page)
-            overlay_page = new_page
-        }
-    }
-
-    fun navigateBack() {
-        overlay_page = overlay_page_undo_stack.removeLastOrNull()
-    }
-
-    private val bottom_padding_anim = androidx.compose.animation.core.Animatable(PlayerServiceHost.session_started.toFloat() * MINIMISED_NOW_PLAYING_HEIGHT)
-    val bottom_padding: Dp get() = bottom_padding_anim.value.dp
-
-    private lateinit var prefs_listener: ProjectPreferences.Listener
 
     init {
         if (is_base) {
@@ -121,7 +130,27 @@ data class PlayerViewContext(
         }
     }
 
-    fun onMediaItemClicked(item: MediaItem) {
+    fun copy(onClickedOverride: ((item: MediaItem) -> Unit)? = null, onLongClickedOverride: ((item: MediaItem) -> Unit)? = null): PlayerViewContext {
+        return PlayerViewContext(onClickedOverride, onLongClickedOverride, this)
+    }
+
+    override fun getNowPlayingTopOffset(screen_height: Dp, density: Density): Int {
+        return with (density) { (-getNowPlayingSwipeState().offset.value.dp - screen_height * 0.5f).toPx().toInt() }
+    }
+
+    override fun setOverlayPage(page: OverlayPage?, media_item: MediaItem? = null, opened_layout: MediaItemLayout? = null) {
+        val new_page = page?.let { Triple(page, media_item, opened_layout) }
+        if (new_page != overlay_page) {
+            overlay_page_undo_stack.add(overlay_page)
+            overlay_page = new_page
+        }
+    }
+
+    override fun navigateBack() {
+        overlay_page = overlay_page_undo_stack.removeLastOrNull()
+    }
+
+    override fun onMediaItemClicked(item: MediaItem) {
         if (onClickedOverride != null) {
             onClickedOverride.invoke(item)
             return
@@ -139,7 +168,7 @@ data class PlayerViewContext(
             openMediaItem(item)
         }
     }
-    fun onMediaItemLongClicked(item: MediaItem, queue_index: Int? = null) {
+    override fun onMediaItemLongClicked(item: MediaItem, queue_index: Int? = null) {
         if (onLongClickedOverride != null) {
             onLongClickedOverride.invoke(item)
             return
@@ -157,7 +186,7 @@ data class PlayerViewContext(
         })
     }
 
-    fun openMediaItem(item: MediaItem, opened_layout: MediaItemLayout? = null) {
+    override fun openMediaItem(item: MediaItem, opened_layout: MediaItemLayout? = null) {
         if (item is Artist && item.for_song) {
             return
         }
@@ -175,7 +204,7 @@ data class PlayerViewContext(
         hideLongPressMenu()
     }
 
-    fun playMediaItem(item: MediaItem, shuffle: Boolean = false) {
+    override fun playMediaItem(item: MediaItem, shuffle: Boolean = false) {
         if (shuffle) {
             TODO()
         }
@@ -195,14 +224,13 @@ data class PlayerViewContext(
         if (getNowPlayingSwipeState().targetValue == 0 && Settings.get(Settings.KEY_OPEN_NP_ON_SONG_PLAYED)) {
             switchNowPlayingPage(1)
         }
-
     }
 
-    private var long_press_menu_data: LongPressMenuData? by mutableStateOf(null)
-    private var long_press_menu_showing: Boolean by mutableStateOf(false)
-    private var long_press_menu_direct: Boolean by mutableStateOf(false)
+    override fun onMediaItemPinnedChanged(item: MediaItem, pinned: Boolean) {
+        TODO()
+    }
 
-    fun showLongPressMenu(data: LongPressMenuData) {
+    override fun showLongPressMenu(data: LongPressMenuData) {
         if (base != null) {
             base.showLongPressMenu(data)
             return
@@ -219,7 +247,7 @@ data class PlayerViewContext(
         }
     }
 
-    fun hideLongPressMenu() {
+    override fun hideLongPressMenu() {
         if (base != null) {
             base.hideLongPressMenu()
             return
@@ -227,10 +255,6 @@ data class PlayerViewContext(
         long_press_menu_showing = false
         long_press_menu_direct = false
     }
-
-    private var now_playing_swipe_state: SwipeableState<Int>? by mutableStateOf(if (is_base) SwipeableState(0) else null)
-    private var now_playing_swipe_anchors: Map<Float, Int>? by mutableStateOf(null)
-    private fun getNowPlayingSwipeState(): SwipeableState<Int> = baseOrThis().now_playing_swipe_state!!
 
     @Composable
     fun NowPlaying() {

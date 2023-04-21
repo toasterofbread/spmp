@@ -75,7 +75,12 @@ enum class Settings {
     KEY_VOLUME_STEPS,
     KEY_PERSISTENT_QUEUE,
     KEY_ADD_SONGS_TO_HISTORY,
-    KEY_ENABLE_DISCORD_PRESENCE;
+    KEY_ENABLE_DISCORD_PRESENCE,
+    
+    // Internal
+    INTERNAL_PINNED_SONGS,
+    INTERNAL_PINNED_ARTISTS,
+    INTERNAL_PINNED_PLAYLISTS;
 
     fun <T> get(preferences: ProjectPreferences = prefs): T {
         return Settings.get(this, preferences)
@@ -83,6 +88,10 @@ enum class Settings {
 
     fun <T> get(context: PlatformContext): T {
         return Settings.get(this, context.getPrefs())
+    }
+
+    fun <T> set(value: T?, preferences: ProjectPreferences = prefs) {
+        Settings.set(this, value, preferences)
     }
 
     companion object {
@@ -189,6 +198,11 @@ enum class Settings {
                 KEY_PERSISTENT_QUEUE -> true
                 KEY_ADD_SONGS_TO_HISTORY -> false
                 KEY_ENABLE_DISCORD_PRESENCE -> false
+
+                INTERNAL_PINNED_SONGS -> emptySet()
+                INTERNAL_PINNED_ARTISTS -> emptySet()
+                INTERNAL_PINNED_PLAYLISTS -> emptySet()
+                
             } as T
         }
 

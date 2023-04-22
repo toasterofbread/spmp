@@ -53,6 +53,7 @@ import java.util.*
 import java.util.concurrent.TimeUnit
 import java.util.regex.Pattern
 import kotlin.math.min
+import kotlin.math.roundToInt
 import kotlin.math.sqrt
 import kotlin.random.Random
 
@@ -256,7 +257,7 @@ fun Marquee(autoscroll: Boolean = false, modifier: Modifier = Modifier, content:
 				Row(
 					Modifier
 						.requiredWidth(with(density) { container_width.toDp() - scroll_value })
-						.offset(scroll_value / 2)
+						.offset { IntOffset((scroll_value / 2).toPx().roundToInt(), 0) }
 				) {
 					content()
 				}
@@ -520,14 +521,14 @@ fun SubtleLoadingIndicator(colour: Color = LocalContentColor.current, modifier: 
 		targetValue = 1f,
 		animationSpec = infiniteRepeatable(
 			animation = tween(1500, easing = LinearOutSlowInEasing),
-			repeatMode = RepeatMode.Reverse
+			repeatMode = RepeatMode.Restart
 		)
 	)
 
 	val rand_offset = remember { Random.nextFloat() }
 
-	Box(modifier, contentAlignment = Alignment.Center) {
-		val current_anim = if (anim + rand_offset > 1f) anim + rand_offset - 1f else anim
+	Box(Modifier.sizeIn(minWidth = size, minHeight = size).then(modifier), contentAlignment = Alignment.Center) {
+		val current_anim = if (anim + rand_offset > 1f) anim + rand_offset - 1f else anim + rand_offset
 		val size_percent = if (current_anim < 0.5f) current_anim else 1f - current_anim
 		Spacer(
 			Modifier

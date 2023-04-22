@@ -44,7 +44,7 @@ val buildConfigDebug = tasks.register("buildConfigDebug", GenerateBuildConfig::c
     buildConfig(true)
 }
 val buildConfigRelease = tasks.register("buildConfigRelease", GenerateBuildConfig::class.java) {
-    buildConfig(true)
+    buildConfig(false)
 }
 
 tasks.all {
@@ -52,11 +52,11 @@ tasks.all {
         return@all
     }
 
-    if (name.toLowerCase().contains("debug")) {
-        dependsOn(buildConfigDebug)
+    if (name.toLowerCase().contains("release")) {
+        dependsOn(buildConfigRelease)
     }
     else {
-        dependsOn(buildConfigRelease)
+        dependsOn(buildConfigDebug)
     }
 }
 
@@ -88,12 +88,11 @@ kotlin {
                 implementation("com.github.TeamNewPipe:NewPipeExtractor:v0.22.1")
                 implementation("org.apache.commons:commons-text:1.10.0")
                 implementation("com.atilika.kuromoji:kuromoji-ipadic:0.9.0")
-                implementation("org.xmlpull:xmlpull:1.1.4.0")
                 implementation("org.jsoup:jsoup:1.15.3")
                 implementation("org.burnoutcrew.composereorderable:reorderable:0.9.2")
-                implementation("com.github.ltttttttttttt:load-the-image:1.0.5")
                 implementation("com.github.SvenWoltmann:color-thief-java:v1.1.2")
                 implementation("com.github.catppuccin:java:v1.0.0")
+                implementation("org.xmlpull:xmlpull:1.1.4.0")
             }
             kotlin.srcDir(buildConfigDir)
         }
@@ -116,6 +115,7 @@ kotlin {
                 implementation("androidx.localbroadcastmanager:localbroadcastmanager:1.1.0")
                 implementation("androidx.palette:palette:1.0.0")
                 implementation("ro.andob.androidawt:androidawt:1.0.4")
+                implementation("io.coil-kt:coil-compose:2.3.0")
             }
         }
 
@@ -124,6 +124,7 @@ kotlin {
                 implementation(compose.desktop.common)
                 implementation("com.github.bluemods:kxml2:4dae70b2a995e72f842eca0c778792ce90d6cfc7")
                 implementation("org.zeromq:jeromq:0.5.3")
+                implementation("com.github.ltttttttttttt:load-the-image:1.0.5")
             }
         }
     }
@@ -131,7 +132,7 @@ kotlin {
 
 android {
     compileSdk = (findProperty("android.compileSdk") as String).toInt()
-    namespace = "com.spectre7.spmp"
+    namespace = "com.spectre7.spmp.shared"
 
     sourceSets["main"].manifest.srcFile("src/androidMain/AndroidManifest.xml")
     sourceSets["main"].res.srcDirs("src/androidMain/res")
@@ -182,7 +183,7 @@ open class GenerateBuildConfig : DefaultTask() {
             }
 
             appendLine()
-            appendLine("/* GENERATED, DO NOT EDIT MANUALLY! */")
+            appendLine("/* GENERATED ON BUILD */")
             appendLine("object $className {")
 
             for (field in fieldsToGenerate.get().sortedBy { it.first }) {

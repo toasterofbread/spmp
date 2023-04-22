@@ -94,4 +94,4 @@ if __name__ == "__main__":
         case "release":
             launch("installRelease", PACKAGE_NAME)
         case "logcat":
-            beginLogcat(PACKAGE_NAME_DEBUG, not args.no_filter)
+            beginLogcat(PACKAGE_NAME, not args.no_filter)

@@ -17,6 +17,7 @@ import androidx.compose.ui.input.key.key
 import androidx.compose.ui.input.key.onKeyEvent
 import androidx.compose.material.*
 import androidx.compose.ui.composed
+import androidx.compose.ui.graphics.painter.Painter
 import androidx.compose.ui.input.pointer.*
 import kotlinx.coroutines.coroutineScope
 import kotlinx.coroutines.isActive
@@ -145,3 +146,6 @@ actual fun SwipeRefresh(
         content()
     }
 }
+
+@Composable
+actual fun rememberImagePainter(url: String): Painter = com.lt.load_the_image.rememberImagePainter(url)

@@ -7,7 +7,6 @@ import android.content.Context.MODE_APPEND
 import android.content.Context.MODE_PRIVATE
 import android.content.ContextWrapper
 import android.content.Intent
-import android.content.res.Resources
 import android.net.ConnectivityManager
 import android.net.NetworkCapabilities
 import android.os.Handler
@@ -43,6 +42,7 @@ import android.view.Window
 import android.view.WindowInsetsController.APPEARANCE_LIGHT_STATUS_BARS
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.toArgb
+import com.spectre7.spmp.model.YoutubeMusicAuthInfo
 import com.spectre7.utils.getStringTemp
 import com.spectre7.utils.getString
 

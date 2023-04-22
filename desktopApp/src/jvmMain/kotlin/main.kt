@@ -10,7 +10,10 @@ fun main() = application {
     val context = PlatformContext()
     SpMp.init(context)
 
-    Window(onCloseRequest = ::exitApplication) {
+    Window(
+        title = context.getAppName(),
+        onCloseRequest = ::exitApplication
+    ) {
         var initialised by remember { mutableStateOf(false) }
         LaunchedEffect(Unit) {
             context.updateScreenSize()

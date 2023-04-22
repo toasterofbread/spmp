@@ -6,6 +6,7 @@ import androidx.compose.foundation.ExperimentalFoundationApi
 import androidx.compose.foundation.combinedClickable
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.fillMaxHeight
+import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.ThumbUp
@@ -17,12 +18,16 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.rotate
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.layout.onSizeChanged
+import androidx.compose.ui.platform.LocalDensity
+import androidx.compose.ui.unit.dp
 import com.spectre7.spmp.api.getOrThrowHere
 import com.spectre7.spmp.api.getSongLiked
 import com.spectre7.spmp.api.setSongLiked
 import com.spectre7.spmp.model.Song
 import com.spectre7.spmp.platform.vibrateShort
 import com.spectre7.utils.OnChangedEffect
+import com.spectre7.utils.SubtleLoadingIndicator
 import kotlin.concurrent.thread
 
 @OptIn(ExperimentalFoundationApi::class)
@@ -66,29 +71,35 @@ fun LikeDislikeButton(
         modifier,
         contentAlignment = Alignment.Center
     ) {
-        Crossfade(liked != null) { active ->
-            Icon(
-                if (active) Icons.Filled.ThumbUp else Icons.Outlined.ThumbUp,
-                null,
-                Modifier
-                    .rotate(rotation.value)
-                    .combinedClickable(
-                        onClick = { when (liked) {
-                            true -> setLiked(null)
-                            false -> setLiked(null)
-                            null -> setLiked(true)
-                        }},
-                        onLongClick = {
-                            when (liked) {
-                                true -> setLiked(false)
-                                false -> setLiked(true)
-                                null -> setLiked(false)
+        Crossfade(if (!loaded) null else liked != null) { active ->
+            if (active == null) {
+                SubtleLoadingIndicator(colour, Modifier.size(24.dp))
+            }
+            else {
+                Icon(
+                    if (active) Icons.Filled.ThumbUp else Icons.Outlined.ThumbUp,
+                    null,
+                    Modifier
+                        .rotate(rotation.value)
+                        .combinedClickable(
+                            onClick = { when (liked) {
+                                true -> setLiked(null)
+                                false -> setLiked(null)
+                                null -> setLiked(true)
+                            }},
+                            onLongClick = {
+                                when (liked) {
+                                    true -> setLiked(false)
+                                    false -> setLiked(true)
+                                    null -> setLiked(false)
+                                }
+                                SpMp.context.vibrateShort()
                             }
-                            SpMp.context.vibrateShort()
-                        }
-                    ),
-                tint = colour
-            )
+                        ),
+                    tint = colour
+                )
+            }
+
         }
     }
 }

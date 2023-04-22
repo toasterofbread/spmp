@@ -4,6 +4,7 @@ import com.beust.klaxon.*
 import com.spectre7.spmp.model.MediaItem
 import com.spectre7.spmp.platform.ProjectPreferences
 import com.spectre7.spmp.model.Settings
+import com.spectre7.spmp.model.YoutubeMusicAuthInfo
 import com.spectre7.utils.getString
 import com.spectre7.utils.getStringArray
 import okhttp3.*

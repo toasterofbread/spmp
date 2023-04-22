@@ -20,12 +20,7 @@ import com.spectre7.composesettings.ui.SettingsPage
 import com.spectre7.composesettings.ui.SettingsPageWithItems
 import com.spectre7.settings.model.*
 import com.spectre7.settings.ui.SettingsItemThemeSelector
-import com.spectre7.spmp.api.YoutubeMusicAuthInfo
-import com.spectre7.spmp.api.YoutubeMusicLogin
-import com.spectre7.spmp.model.AccentColourSource
-import com.spectre7.spmp.model.MediaItem
-import com.spectre7.spmp.model.Settings
-import com.spectre7.spmp.model.Song
+import com.spectre7.spmp.model.*
 import com.spectre7.spmp.platform.PlatformAlertDialog
 import com.spectre7.spmp.ui.component.PillMenu
 import com.spectre7.spmp.ui.theme.Theme
@@ -33,6 +28,7 @@ import com.spectre7.spmp.ui.theme.ThemeData
 import com.spectre7.spmp.ui.theme.ThemeManager
 import com.spectre7.utils.*
 import com.spectre7.utils.getString
+import com.spectre7.spmp.platform.YoutubeMusicLogin
 
 enum class Page { ROOT, ACCESSIBILITY_SERVICE, YOUTUBE_MUSIC_LOGIN }
 
@@ -351,7 +347,7 @@ private fun groupAuth(ytm_auth: SettingsValueState<YoutubeMusicAuthInfo>, player
                                 ))
                             }
                             else {
-                                WidthShrinkText(
+                                Text(
                                     getStringTemp("Not signed in"),
                                     Modifier.fillMaxWidth().weight(1f),
                                     style = LocalTextStyle.current.copy(color = Theme.current.on_accent)

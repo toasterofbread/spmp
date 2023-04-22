@@ -25,17 +25,14 @@ import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.TextUnit
 import androidx.compose.ui.unit.dp
 import com.beust.klaxon.Json
-import com.lt.load_the_image.rememberImagePainter
 import com.spectre7.spmp.api.*
 import com.spectre7.spmp.api.DataApi.Companion.addYtHeaders
 import com.spectre7.spmp.api.DataApi.Companion.ytUrl
 import com.spectre7.spmp.model.*
+import com.spectre7.spmp.platform.rememberImagePainter
 import com.spectre7.spmp.ui.layout.PlayerViewContext
 import com.spectre7.spmp.ui.theme.Theme
-import com.spectre7.utils.WidthShrinkText
-import com.spectre7.utils.getContrasted
-import com.spectre7.utils.getString
-import com.spectre7.utils.getStringTemp
+import com.spectre7.utils.*
 import okhttp3.Request
 
 data class MediaItemLayout(
@@ -55,12 +52,12 @@ data class MediaItemLayout(
         CARD;
 
         @Composable
-        fun Layout(layout: MediaItemLayout, playerProvider: () -> PlayerViewContext) {
+        fun Layout(layout: MediaItemLayout, playerProvider: () -> PlayerViewContext, modifier: Modifier = Modifier) {
             when (this) {
-                GRID -> MediaItemGrid(layout, playerProvider)
-                LIST -> MediaItemList(layout, false, playerProvider)
-                NUMBERED_LIST -> MediaItemList(layout, true, playerProvider)
-                CARD -> MediaItemCard(layout, playerProvider)
+                GRID -> MediaItemGrid(layout, playerProvider, modifier)
+                LIST -> MediaItemList(layout, false, playerProvider, modifier)
+                NUMBERED_LIST -> MediaItemList(layout, true, playerProvider, modifier)
+                CARD -> MediaItemCard(layout, playerProvider, modifier)
             }
         }
     }
@@ -357,6 +354,10 @@ fun LazyMediaItemLayoutColumn(
         topContent?.invoke(this)
 
         for (layout in layouts) {
+            if (layout.items.isEmpty()) {
+                continue
+            }
+
             when (val type = getType?.invoke(layout) ?: layout.type!!) {
                 MediaItemLayout.Type.LIST, MediaItemLayout.Type.NUMBERED_LIST -> {
                     item {
@@ -375,7 +376,7 @@ fun LazyMediaItemLayoutColumn(
                         }
                     }
                 }
-                else -> item { type.Layout(layout, playerProvider) }
+                else -> item { type.Layout(layout, playerProvider, Modifier.recomposeHighlighter()) }
             }
         }
 

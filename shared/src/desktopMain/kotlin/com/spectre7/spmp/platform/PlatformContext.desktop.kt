@@ -7,23 +7,26 @@ import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.setValue
+import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.text.font.Font
 import androidx.compose.ui.text.platform.Font
 import androidx.compose.ui.unit.Dp
-import androidx.compose.ui.unit.IntSize
 import androidx.compose.ui.unit.dp
 import com.spectre7.spmp.PlayerService
+import com.spectre7.spmp.model.YoutubeMusicAuthInfo
 import com.spectre7.utils.getString
 import org.jetbrains.skiko.OS
 import org.jetbrains.skiko.hostOs
+import java.awt.Desktop
 import java.awt.Dimension
 import java.awt.Window
 import java.io.File
 import java.io.FileInputStream
 import java.io.FileOutputStream
 import java.io.InputStream
+import java.net.URI
 import java.nio.file.FileSystems
 import java.nio.file.Files
 import kotlin.io.path.name
@@ -75,10 +78,11 @@ actual open class PlatformContext {
         throw NotImplementedError()
     }
 
-    actual fun canOpenUrl(): Boolean = true
+    actual fun canOpenUrl(): Boolean = Desktop.isDesktopSupported() && Desktop.getDesktop().isSupported(Desktop.Action.BROWSE)
 
     actual fun openUrl(url: String) {
-        TODO()
+        assert(canOpenUrl())
+        Desktop.getDesktop().browse(URI(url))
     }
 
     actual fun canSendNotifications(): Boolean {
@@ -163,5 +167,4 @@ actual open class PlatformContext {
     actual fun CopyShareButtons(name: String?, getText: () -> String) {
         // TODO
     }
-
 }

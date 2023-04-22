@@ -16,6 +16,7 @@ import androidx.compose.ui.graphics.*
 import androidx.compose.ui.unit.dp
 import androidx.compose.material.SwipeableState
 import androidx.compose.material.ThresholdConfig
+import androidx.compose.ui.graphics.painter.Painter
 
 @Composable
 expect fun Modifier.platformClickable(onClick: () -> Unit, onAltClick: (() -> Unit)? = null, indication: Indication? = null): Modifier
@@ -154,3 +155,6 @@ fun LargeDropdownMenuItem(
         }
     }
 }
+
+@Composable
+expect fun rememberImagePainter(url: String): Painter

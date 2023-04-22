@@ -2,7 +2,6 @@ package com.spectre7.spmp.model
 
 import com.beust.klaxon.Klaxon
 import com.spectre7.spmp.ProjectBuildConfig
-import com.spectre7.spmp.api.YoutubeMusicAuthInfo
 import com.spectre7.spmp.platform.ProjectPreferences
 import com.spectre7.spmp.platform.PlatformContext
 import java.util.*

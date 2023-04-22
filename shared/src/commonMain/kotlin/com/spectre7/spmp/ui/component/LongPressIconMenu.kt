@@ -1,5 +1,3 @@
-@file:OptIn(ExperimentalComposeUiApi::class)
-
 package com.spectre7.spmp.ui.component
 
 import androidx.compose.animation.*
@@ -13,7 +11,6 @@ import androidx.compose.material.icons.filled.*
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
-import androidx.compose.ui.ExperimentalComposeUiApi
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.alpha
 import androidx.compose.ui.draw.clip
@@ -35,8 +32,9 @@ import com.spectre7.utils.*
 import kotlinx.coroutines.coroutineScope
 import kotlinx.coroutines.joinAll
 import kotlinx.coroutines.launch
+import kotlin.math.roundToInt
 
-const val LONG_PRESS_ICON_MENU_OPEN_ANIM_MS = 200
+const val LONG_PRESS_ICON_MENU_OPEN_ANIM_MS = 150
 
 class LongPressMenuActionProvider(
     val content_colour: () -> Color,
@@ -284,6 +282,8 @@ fun LongPressIconMenu(
             }
         }
 
+        val y_offset = 10
+
         PlatformDialog(
             onDismissRequest = { close_requested = true },
             use_platform_default_width = false,
@@ -292,7 +292,7 @@ fun LongPressIconMenu(
             Box(
                 Modifier
                     .requiredHeight(SpMp.context.getScreenHeight())
-                    .offset(y = status_bar_height * -0.5f)
+                    .offset { IntOffset(0, y_offset) }
                     .background(Color.Black.setAlpha(0.5f * panel_alpha.value))
             ) {
                 val shape = RoundedCornerShape(topStartPercent = 12, topEndPercent = 12)
@@ -447,7 +447,7 @@ fun LongPressIconMenu(
                 if (!fully_open && pos != null && width != null && height != null) {
                     Box(
                         Modifier
-                            .offset(pos.value.x, pos.value.y + status_bar_height)
+                            .offset { IntOffset(pos.value.x.toPx().roundToInt(), pos.value.y.toPx().roundToInt() - y_offset) }
                             .requiredSize(width.value.dp, height.value.dp)
                             .clip(
                                 data.thumb_shape ?: RoundedCornerShape(DEFAULT_THUMBNAIL_ROUNDING)

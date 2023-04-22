@@ -5,12 +5,13 @@ import androidx.compose.runtime.Composable
 import androidx.compose.ui.text.font.Font
 import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.graphics.Color
-import androidx.compose.ui.unit.IntSize
 import androidx.compose.ui.unit.dp
 import java.io.File
 import java.io.FileInputStream
 import java.io.FileOutputStream
 import java.io.InputStream
+import androidx.compose.ui.Modifier
+import com.spectre7.spmp.model.YoutubeMusicAuthInfo
 
 private const val MIN_PORTRAIT_RATIO: Float = 1f / 1.2f
 

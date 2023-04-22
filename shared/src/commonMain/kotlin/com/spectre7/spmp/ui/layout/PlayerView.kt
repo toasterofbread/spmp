@@ -112,6 +112,8 @@ private class PlayerViewContextImpl: PlayerViewContext(null, null, null) {
     private var now_playing_swipe_state: SwipeableState<Int> by mutableStateOf(SwipeableState(0))
     private var now_playing_swipe_anchors: Map<Float, Int>? by mutableStateOf(null)
 
+    private val pinned_items: MutableList<MediaItem> = mutableStateListOf()
+
     override var np_theme_mode: ThemeMode by mutableStateOf(Settings.getEnum(Settings.KEY_NOWPLAYING_THEME_MODE))
     override var overlay_page: Triple<OverlayPage, MediaItem?, MediaItemLayout?>? by mutableStateOf(null)
         private set
@@ -132,6 +134,24 @@ private class PlayerViewContextImpl: PlayerViewContext(null, null, null) {
             }
         }
         Settings.prefs.addListener(prefs_listener)
+
+        for (song in Settings.INTERNAL_PINNED_SONGS.get<Set<String>>()) {
+            pinned_items.add(Song.fromId(song))
+        }
+        for (artist in Settings.INTERNAL_PINNED_ARTISTS.get<Set<String>>()) {
+            pinned_items.add(Artist.fromId(artist))
+        }
+        for (playlist in Settings.INTERNAL_PINNED_PLAYLISTS.get<Set<String>>()) {
+            pinned_items.add(Playlist.fromId(playlist))
+        }
+    }
+
+    @Composable
+    fun init() {
+        val screen_height = SpMp.context.getScreenHeight().value
+        LaunchedEffect(Unit) {
+            now_playing_swipe_state.init(mapOf(screen_height * -0.5f to 0))
+        }
     }
 
     fun release() {
@@ -139,7 +159,7 @@ private class PlayerViewContextImpl: PlayerViewContext(null, null, null) {
     }
 
     override fun getNowPlayingTopOffset(screen_height: Dp, density: Density): Int {
-        return with (density) { (-now_playing_swipe_state.offset.value.dp - screen_height * 0.5f).toPx().toInt() }
+        return with (density) { (-now_playing_swipe_state.offset.value.dp - (screen_height * 0.5f)).toPx().toInt() }
     }
 
     override fun setOverlayPage(page: OverlayPage?, media_item: MediaItem?, opened_layout: MediaItemLayout?) {
@@ -206,7 +226,12 @@ private class PlayerViewContextImpl: PlayerViewContext(null, null, null) {
     }
 
     override fun onMediaItemPinnedChanged(item: MediaItem, pinned: Boolean) {
-        TODO()
+        if (pinned) {
+            pinned_items.addUnique(item)
+        }
+        else {
+            pinned_items.remove(item)
+        }
     }
 
     override fun showLongPressMenu(data: LongPressMenuData) {
@@ -268,7 +293,7 @@ private class PlayerViewContextImpl: PlayerViewContext(null, null, null) {
     }
 
     @Composable
-    internal fun LongPressMenu() {
+    fun LongPressMenu() {
         var height by remember { mutableStateOf(0) }
 
         Crossfade(long_press_menu_data) { data ->
@@ -291,27 +316,21 @@ private class PlayerViewContextImpl: PlayerViewContext(null, null, null) {
                             height = maxOf(height, it.height)
                             height_found = true
                         }
-                        .height(if (height_found && height > 0) with(LocalDensity.current) { height.toDp() } else Dp.Unspecified)
+//                        .height(if (height_found && height > 0) with(LocalDensity.current) { height.toDp() } else Dp.Unspecified)
                 )
             }
         }
     }
-}
 
-@Composable
-fun PlayerView() {
-    val player = remember { PlayerViewContextImpl() }
-    val playerProvider = remember { { player } }
-    player.LongPressMenu()
+    private val main_page_scroll_state = LazyListState()
+    private val playerProvider = { this }
+    private val main_page_layouts = mutableStateListOf<MediaItemLayout>()
 
-    val feed_load_state = remember { mutableStateOf(FeedLoadState.NONE) }
-    val feed_load_lock = remember { ReentrantLock() }
-    var feed_continuation: String? by remember { mutableStateOf(null) }
+    private val feed_load_state = mutableStateOf(FeedLoadState.NONE)
+    private val feed_load_lock = ReentrantLock()
+    private var feed_continuation: String? by mutableStateOf(null)
 
-    val main_page_layouts = remember { mutableStateListOf<MediaItemLayout>() }
-    val screen_height = SpMp.context.getScreenHeight()
-
-    fun loadFeed(min_rows: Int, allow_cached: Boolean, continue_feed: Boolean, onFinished: ((success: Boolean) -> Unit)? = null) {
+    private fun loadFeed(min_rows: Int, allow_cached: Boolean, continue_feed: Boolean, onFinished: ((success: Boolean) -> Unit)? = null) {
         thread {
             if (!feed_load_lock.tryLock()) {
                 return@thread
@@ -341,13 +360,60 @@ fun PlayerView() {
         }
     }
 
-    LaunchedEffect(Unit) {
-        loadFeed(Settings.get(Settings.KEY_FEED_INITIAL_ROWS), allow_cached = true, continue_feed = false) {
-            if (it) {
-                PlayerServiceHost.player.loadPersistentQueue()
+    @Composable
+    fun HomeFeed() {
+        LaunchedEffect(Unit) {
+            loadFeed(Settings.get(Settings.KEY_FEED_INITIAL_ROWS), allow_cached = true, continue_feed = false) {
+                if (it) {
+                    PlayerServiceHost.player.loadPersistentQueue()
+                }
+            }
+        }
+
+        val pinned_layout = remember { mutableListOf(MediaItemLayout(
+            null, "Pinned",
+            MediaItemLayout.Type.GRID,
+            pinned_items
+        )) }
+
+        Crossfade(targetState = overlay_page) { page ->
+            Column(Modifier.fillMaxSize()) {
+                if (page != null && page.first != OverlayPage.MEDIAITEM && page.first != OverlayPage.SEARCH) {
+                    Spacer(Modifier.requiredHeight(SpMp.context.getStatusBarHeight()))
+                }
+
+                val close = remember { { navigateBack() } }
+                when (page?.first) {
+                    null -> MainPage(
+                        (pinned_layout + main_page_layouts).toMutableList(),
+                        playerProvider,
+                        main_page_scroll_state,
+                        feed_load_state,
+                        remember { derivedStateOf { feed_continuation != null } }.value,
+                        { loadFeed(-1, false, it) }
+                    )
+                    OverlayPage.SEARCH -> SearchPage(pill_menu, if (PlayerServiceHost.session_started) MINIMISED_NOW_PLAYING_HEIGHT.dp else 0.dp, playerProvider, close)
+                    OverlayPage.SETTINGS -> PrefsPage(pill_menu, playerProvider, close)
+                    OverlayPage.MEDIAITEM -> Crossfade(page) { p ->
+                        when (val item = p.second) {
+                            null -> {}
+                            is Artist, is Playlist -> ArtistPlaylistPage(pill_menu, item, playerProvider, p.third, close)
+                            else -> throw NotImplementedError()
+                        }
+                    }
+                    OverlayPage.LIBRARY -> LibraryPage(pill_menu, playerProvider, close)
+                    OverlayPage.RADIO_BUILDER -> RadioBuilderPage(pill_menu, if (PlayerServiceHost.session_started) MINIMISED_NOW_PLAYING_HEIGHT.dp else 0.dp, playerProvider, close)
+                }
             }
         }
     }
+}
+
+@Composable
+fun PlayerView() {
+    val player = remember { PlayerViewContextImpl() }
+    player.init()
+    player.LongPressMenu()
 
     DisposableEffect(Unit) {
         onDispose {
@@ -366,6 +432,8 @@ fun PlayerView() {
             player.pill_menu.setBackgroundColourOverride(null)
         }
     }
+
+    val screen_height = SpMp.context.getScreenHeight()
 
     Column(
         Modifier
@@ -404,38 +472,7 @@ fun PlayerView() {
                 }
             )
 
-            val main_page_scroll_state = rememberLazyListState()
-
-            Crossfade(targetState = player.overlay_page) { page ->
-                Column(Modifier.fillMaxSize()) {
-                    if (page != null && page.first != OverlayPage.MEDIAITEM && page.first != OverlayPage.SEARCH) {
-                        Spacer(Modifier.requiredHeight(SpMp.context.getStatusBarHeight()))
-                    }
-
-                    val close = remember { { player.navigateBack() } }
-                    when (page?.first) {
-                        null -> MainPage(
-                            main_page_layouts,
-                            playerProvider,
-                            main_page_scroll_state,
-                            feed_load_state,
-                            remember { derivedStateOf { feed_continuation != null } }.value,
-                            { loadFeed(-1, false, it) }
-                        )
-                        OverlayPage.SEARCH -> SearchPage(player.pill_menu, if (PlayerServiceHost.session_started) MINIMISED_NOW_PLAYING_HEIGHT.dp else 0.dp, playerProvider, close)
-                        OverlayPage.SETTINGS -> PrefsPage(player.pill_menu, playerProvider, close)
-                        OverlayPage.MEDIAITEM -> Crossfade(page) { p ->
-                            when (val item = p.second) {
-                                null -> {}
-                                is Artist, is Playlist -> ArtistPlaylistPage(player.pill_menu, item, playerProvider, p.third, close)
-                                else -> throw NotImplementedError()
-                            }
-                        }
-                        OverlayPage.LIBRARY -> LibraryPage(player.pill_menu, playerProvider, close)
-                        OverlayPage.RADIO_BUILDER -> RadioBuilderPage(player.pill_menu, if (PlayerServiceHost.session_started) MINIMISED_NOW_PLAYING_HEIGHT.dp else 0.dp, playerProvider, close)
-                    }
-                }
-            }
+            player.HomeFeed()
         }
 
         player.NowPlaying()
@@ -476,54 +513,62 @@ private fun MainPage(
                     vertical_arrangement = Arrangement.spacedBy(15.dp),
                     topContent = {
                         item {
-                            Card(
-                                Modifier
-                                    .fillMaxWidth()
-                                    .padding(5.dp),
-                                colors = CardDefaults.cardColors(
-                                    containerColor = Theme.current.vibrant_accent,
-                                    contentColor = Theme.current.vibrant_accent.getContrasted()
-                                )
-                            ) {
-                                Column(Modifier.padding(15.dp), verticalArrangement = Arrangement.spacedBy(15.dp)) {
-                                    WidthShrinkText(getString("radio_builder_title"), fontSize = 25.sp, colour = Theme.current.vibrant_accent.getContrasted())
-
-                                    Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.SpaceEvenly) {
-                                        val button_colours = ButtonDefaults.buttonColors(
-                                            containerColor = Theme.current.vibrant_accent.getContrasted(),
-                                            contentColor = Theme.current.vibrant_accent
-                                        )
-
-                                        ShapedIconButton(
-                                            { playerProvider().setOverlayPage(OverlayPage.RADIO_BUILDER) },
-                                            shape = CircleShape,
-                                            colors = button_colours.toIconButtonColours()
-                                        ) {
-                                            Icon(Icons.Filled.Add, null)
-                                        }
-
-                                        val button_padding = PaddingValues(15.dp, 5.dp)
-                                        Button({ TODO() }, contentPadding = button_padding, colors = button_colours) {
-                                            WidthShrinkText(getString("radio_builder_play_last_button"))
-                                        }
-                                        Button({ TODO() }, contentPadding = button_padding, colors = button_colours) {
-                                            WidthShrinkText(getString("radio_builder_recent_button"))
-                                        }
-                                    }
-                                }
-                            }
+                            RadioBuilderCard(playerProvider, Modifier.fillMaxWidth().padding(5.dp))
                         }
                     }
                 ) { MediaItemLayout.Type.GRID }
             }
             else {
-                Column(Modifier.fillMaxSize(), verticalArrangement = Arrangement.Center, horizontalAlignment = Alignment.CenterHorizontally) {
-                    Text(getString("loading_feed"), Modifier.alpha(0.4f), fontSize = 12.sp, color = Theme.current.on_background)
-                    Spacer(Modifier.height(5.dp))
-                    LinearProgressIndicator(
-                        Modifier
-                            .alpha(0.4f)
-                            .fillMaxWidth(0.35f), color = Theme.current.on_background)
+                MainPageLoadingView(Modifier.fillMaxSize())
+            }
+        }
+    }
+}
+
+@Composable
+private fun MainPageLoadingView(modifier: Modifier = Modifier) {
+    Column(modifier, verticalArrangement = Arrangement.Center, horizontalAlignment = Alignment.CenterHorizontally) {
+        Text(getString("loading_feed"), Modifier.alpha(0.4f), fontSize = 12.sp, color = Theme.current.on_background)
+        Spacer(Modifier.height(5.dp))
+        LinearProgressIndicator(
+            Modifier
+                .alpha(0.4f)
+                .fillMaxWidth(0.35f), color = Theme.current.on_background)
+    }
+}
+
+@Composable
+private fun RadioBuilderCard(playerProvider: () -> PlayerViewContext, modifier: Modifier = Modifier) {
+    Card(
+        modifier,
+        colors = CardDefaults.cardColors(
+            containerColor = Theme.current.vibrant_accent,
+            contentColor = Theme.current.vibrant_accent.getContrasted()
+        )
+    ) {
+        Column(Modifier.padding(15.dp), verticalArrangement = Arrangement.spacedBy(15.dp)) {
+            WidthShrinkText(getString("radio_builder_title"), fontSize = 25.sp, colour = Theme.current.vibrant_accent.getContrasted())
+
+            Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.SpaceEvenly) {
+                val button_colours = ButtonDefaults.buttonColors(
+                    containerColor = Theme.current.vibrant_accent.getContrasted(),
+                    contentColor = Theme.current.vibrant_accent
+                )
+
+                ShapedIconButton(
+                    { playerProvider().setOverlayPage(OverlayPage.RADIO_BUILDER) },
+                    shape = CircleShape,
+                    colors = button_colours.toIconButtonColours()
+                ) {
+                    Icon(Icons.Filled.Add, null)
+                }
+
+                val button_padding = PaddingValues(15.dp, 5.dp)
+                Button({ TODO() }, contentPadding = button_padding, colors = button_colours) {
+                    WidthShrinkText(getString("radio_builder_play_last_button"))
+                }
+                Button({ TODO() }, contentPadding = button_padding, colors = button_colours) {
+                    WidthShrinkText(getString("radio_builder_recent_button"))
                 }
             }
         }
@@ -538,34 +583,5 @@ private fun loadFeedLayouts(min_rows: Int, allow_cached: Boolean, continuation: 
     }
 
     val (row_data, new_continuation) = result.getOrThrowHere()
-
-    val rows = row_data.toMutableList()
-    val request_limit = Semaphore(10) // TODO?
-
-//    runBlocking { withContext(Dispatchers.IO) { coroutineScope {
-//        for (row in row_data) {
-//            val entry = MediaItemLayout(row.title, row.subtitle, MediaItemLayout.Type.GRID, thumbnail_provider = row.thumbnail_provider, viewMore = row.viewMore)
-//            rows.add(entry)
-//
-//            for (item in row.items) {
-//                if (item.title != null) {
-//                    entry.addItem(item)
-//                    continue
-//                }
-//
-//                launch {
-//                    request_limit.withPermit {
-//                        item.loadData().onSuccess { loaded ->
-//                            synchronized(request_limit) {
-//                                entry.addItem(loaded)
-//                            }
-//                        }
-//                    }
-//                }
-//            }
-//        }
-//    }}}
-
-    rows.removeIf { it.items.isEmpty() }
-    return Result.success(Pair(rows, new_continuation))
+    return Result.success(Pair(row_data.filter { it.items.isNotEmpty() }, new_continuation))
 }

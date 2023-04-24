@@ -7,6 +7,7 @@ import com.spectre7.spmp.model.Settings
 import com.spectre7.spmp.model.YoutubeMusicAuthInfo
 import com.spectre7.utils.getString
 import com.spectre7.utils.getStringArray
+import kotlinx.coroutines.withTimeout
 import okhttp3.*
 import okhttp3.MediaType.Companion.toMediaType
 import okhttp3.RequestBody.Companion.toRequestBody
@@ -15,6 +16,7 @@ import org.schabi.newpipe.extractor.NewPipe
 import org.schabi.newpipe.extractor.downloader.Downloader
 import org.schabi.newpipe.extractor.exceptions.ReCaptchaException
 import java.io.InputStream
+import java.time.Duration
 import java.util.logging.Level
 import java.util.logging.Logger
 import java.util.zip.GZIPInputStream
@@ -57,7 +59,7 @@ fun <T> Result<T>.getOrReport(error_key: String): T? {
 class DataApi {
 
     companion object {
-        private val client: OkHttpClient = OkHttpClient().also {
+        private val client: OkHttpClient = OkHttpClient.Builder().callTimeout(Duration.ofMillis(5000)).build().also {
             Logger.getLogger(OkHttpClient::class.java.name).level = Level.FINE
         }
         val user_agent: String get() = getString("ytm_user_agent")

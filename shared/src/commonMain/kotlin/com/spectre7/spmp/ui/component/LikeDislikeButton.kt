@@ -35,7 +35,7 @@ import kotlin.concurrent.thread
 fun LikeDislikeButton(
     song: Song,
     modifier: Modifier = Modifier,
-    colour: Color = LocalContentColor.current
+    colourProvider: () -> Color
 ) {
     var loaded: Boolean by remember { mutableStateOf(false) }
     var liked: Boolean? by remember { mutableStateOf(null) }
@@ -73,7 +73,7 @@ fun LikeDislikeButton(
     ) {
         Crossfade(if (!loaded) null else liked != null) { active ->
             if (active == null) {
-                SubtleLoadingIndicator(colour, Modifier.size(24.dp))
+                SubtleLoadingIndicator(colourProvider, Modifier.size(24.dp))
             }
             else {
                 Icon(
@@ -96,7 +96,7 @@ fun LikeDislikeButton(
                                 SpMp.context.vibrateShort()
                             }
                         ),
-                    tint = colour
+                    tint = colourProvider()
                 )
             }
 

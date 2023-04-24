@@ -58,7 +58,6 @@ fun ArtistPlaylistPage(
     var show_info by remember { mutableStateOf(false) }
 
     val gradient_size = 0.35f
-    val background_colour = Theme.current.background
     var accent_colour: Color? by remember { mutableStateOf(null) }
 
     LaunchedEffect(item.id) {
@@ -123,12 +122,12 @@ fun ArtistPlaylistPage(
                     Modifier
                         .fillMaxWidth()
                         .aspectRatio(1f)
-                        .background(
+                        .brushBackground {
                             Brush.verticalGradient(
-                                0f to background_colour,
+                                0f to Theme.current.background,
                                 gradient_size to Color.Transparent
                             )
-                        )
+                        }
                 )
             }
         }
@@ -141,12 +140,12 @@ fun ArtistPlaylistPage(
                     Modifier
                         .fillMaxWidth()
                         .aspectRatio(1.1f)
-                        .background(
+                        .brushBackground {
                             Brush.verticalGradient(
                                 1f - gradient_size to Color.Transparent,
-                                1f to background_colour
+                                1f to Theme.current.background
                             )
-                        )
+                        }
                         .padding(bottom = 20.dp),
                     contentAlignment = Alignment.BottomCenter
                 ) {
@@ -167,7 +166,7 @@ fun ArtistPlaylistPage(
                 LazyRow(
                     Modifier
                         .fillMaxWidth()
-                        .background(background_colour),
+                        .background { Theme.current.background },
                     horizontalArrangement = Arrangement.spacedBy(10.dp),
                     contentPadding = PaddingValues(horizontal = content_padding)
                 ) {
@@ -181,7 +180,7 @@ fun ArtistPlaylistPage(
                                     Icon(icon, null, tint = accent_colour ?: Color.Unspecified)
                                 },
                                 colors = AssistChipDefaults.assistChipColors(
-                                    containerColor = background_colour,
+                                    containerColor = Theme.current.background,
                                     labelColor = Theme.current.on_background,
                                     leadingIconContentColor = accent_colour ?: Color.Unspecified
                                 )
@@ -209,7 +208,7 @@ fun ArtistPlaylistPage(
                 Row(
                     Modifier
                         .fillMaxWidth()
-                        .background(background_colour)
+                        .background { Theme.current.background }
                         .padding(start = 20.dp, bottom = 10.dp)) {
                     @Composable
                     fun Btn(text: String, icon: ImageVector, modifier: Modifier = Modifier, onClick: () -> Unit) {
@@ -249,7 +248,7 @@ fun ArtistPlaylistPage(
                     }
 
                     if (item is Artist) {
-                        ArtistSubscribeButton(item, background_colour, accent_colour)
+                        ArtistSubscribeButton(item, { Theme.current.background }, { accent_colour })
                     }
                 }
             }
@@ -261,7 +260,7 @@ fun ArtistPlaylistPage(
                         Box(
                             Modifier
                                 .fillMaxSize()
-                                .background(background_colour)
+                                .background { Theme.current.background }
                                 .padding(content_padding), contentAlignment = Alignment.Center) {
                             CircularProgressIndicator(color = accent_colour ?: Color.Unspecified)
                         }
@@ -269,7 +268,7 @@ fun ArtistPlaylistPage(
                     else {
                         Column(
                             Modifier
-                                .background(background_colour)
+                                .background { Theme.current.background }
                                 .fillMaxSize()
                                 .padding(content_padding),
                             verticalArrangement = Arrangement.spacedBy(30.dp)
@@ -283,7 +282,7 @@ fun ArtistPlaylistPage(
 
                             val description = item.description
                             if (description?.isNotBlank() == true) {
-                                DescriptionCard(description, background_colour, accent_colour) { show_info = !show_info }
+                                DescriptionCard(description, { Theme.current.background }, { accent_colour }) { show_info = !show_info }
                             }
 
                             Spacer(Modifier.requiredHeight(50.dp))
@@ -381,8 +380,8 @@ private fun TitleBar(item: MediaItem, modifier: Modifier = Modifier) {
 @Composable
 fun ArtistSubscribeButton(
     artist: Artist,
-    background_colour: Color,
-    accent_colour: Color?,
+    backgroundColourProvider: () -> Color,
+    accentColourProvider: () -> Color?,
     modifier: Modifier = Modifier
 ) {
     LaunchedEffect(artist) {
@@ -408,8 +407,8 @@ fun ArtistSubscribeButton(
                         }
                     },
                     colors = IconButtonDefaults.iconButtonColors(
-                        containerColor = if (subscribed) accent_colour ?: Color.Unspecified else background_colour,
-                        contentColor = if (subscribed) accent_colour?.getContrasted() ?: Color.Unspecified else Theme.current.on_background
+                        containerColor = if (subscribed) accentColourProvider() ?: Color.Unspecified else backgroundColourProvider(),
+                        contentColor = if (subscribed) accentColourProvider()?.getContrasted() ?: Color.Unspecified else Theme.current.on_background
                     )
                 ) {
                     Icon(if (subscribed) Icons.Outlined.PersonRemove else Icons.Outlined.PersonAddAlt1, null)
@@ -429,7 +428,7 @@ fun ArtistSubscribeButton(
 }
 
 @Composable
-private fun DescriptionCard(description_text: String, background_colour: Color, accent_colour: Color?, toggleInfo: () -> Unit) {
+private fun DescriptionCard(description_text: String, backgroundColourProvider: () -> Color, accentColourProvider: () -> Color?, toggleInfo: () -> Unit) {
     var expanded by remember { mutableStateOf(false) }
     var can_expand by remember { mutableStateOf(false) }
     val small_text_height = 200.dp
@@ -454,9 +453,9 @@ private fun DescriptionCard(description_text: String, background_colour: Color, 
                         Icon(Icons.Outlined.Info, null)
                     },
                     colors = AssistChipDefaults.assistChipColors(
-                        containerColor = background_colour,
+                        containerColor = backgroundColourProvider(),
                         labelColor = Theme.current.on_background,
-                        leadingIconContentColor = accent_colour ?: Color.Unspecified
+                        leadingIconContentColor = accentColourProvider() ?: Color.Unspecified
                     )
                 )
 

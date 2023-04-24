@@ -62,10 +62,8 @@ private class QueueTabItem(val song: Song, val key: Int) {
     @Composable
     fun QueueElement(
         list_state: ReorderableLazyListState,
-        current: Boolean,
         index: Int,
-        parent_background_colour: Color,
-        accent_colour: Color,
+        backgroundColourProvider: () -> Color,
         playerProvider: () -> PlayerViewContext,
         requestRemove: () -> Unit
     ) {
@@ -76,17 +74,13 @@ private class QueueTabItem(val song: Song, val key: Int) {
         Box(
             Modifier
                 .offset { IntOffset(swipe_state.offset.value.roundToInt(), 0) }
-                .thenIf(
-                    current,
-                    Modifier.background(accent_colour, RoundedCornerShape(45))
-                )
+                .background(RoundedCornerShape(45), backgroundColourProvider)
         ) {
             Row(
                 horizontalArrangement = Arrangement.End,
                 verticalAlignment = Alignment.CenterVertically,
                 modifier = Modifier.padding(start = 10.dp, end = 20.dp)
             ) {
-                val content_colour = (if (current) accent_colour else parent_background_colour).getContrasted()
                 song.PreviewLong(
                     MediaItem.PreviewParams(
                         remember(index) {
@@ -104,16 +98,20 @@ private class QueueTabItem(val song: Song, val key: Int) {
                                 Orientation.Horizontal,
                                 thresholds = { _, _ -> FractionalThreshold(0.2f) }
                             ),
-                        content_colour = { content_colour },
+                        content_colour = { backgroundColourProvider().getContrasted() },
                     ),
                     queue_index = index
                 )
 
                 // Drag handle
-                Icon(Icons.Filled.Menu, null,
+                Icon(
+                    Icons.Filled.Menu,
+                    null,
                     Modifier
                         .detectReorder(list_state)
-                        .requiredSize(25.dp), tint = content_colour)
+                        .requiredSize(25.dp),
+                    tint = backgroundColourProvider().getContrasted()
+                )
             }
         }
     }
@@ -166,14 +164,16 @@ fun QueueTab(expansionProvider: () -> Float, playerProvider: () -> PlayerViewCon
     }
 
     val background_colour = getNPBackground(playerProvider)
-    val queue_background_colour = background_colour.amplify(0.15f, 0.15f)
+
+    val backgroundColourProvider = { getNPBackground(playerProvider) }
+    val queueBackgroundColourProvider = { getNPBackground(playerProvider).amplify(0.15f, 0.15f) }
 
     val shape = RoundedCornerShape(topStart = 25.dp, topEnd = 25.dp)
     Box(
         Modifier
             .fillMaxSize()
             .padding(top = MINIMISED_NOW_PLAYING_HEIGHT.dp + (SpMp.context.getStatusBarHeight() * 0.5f))
-            .background(queue_background_colour, shape)
+            .background(shape, queueBackgroundColourProvider)
             .clip(shape)
     ) {
         val list_padding = 10.dp
@@ -188,8 +188,8 @@ fun QueueTab(expansionProvider: () -> Float, playerProvider: () -> PlayerViewCon
                 verticalAlignment = Alignment.CenterVertically,
                 horizontalArrangement = Arrangement.SpaceEvenly
             ) {
-                RepeatButton(background_colour, background_colour.getContrasted(), Modifier.fillMaxHeight())
-                StopAfterSongButton(background_colour, Modifier.fillMaxHeight())
+                RepeatButton(backgroundColourProvider, Modifier.fillMaxHeight())
+                StopAfterSongButton(backgroundColourProvider, Modifier.fillMaxHeight())
 
                 Button(
                     onClick = {
@@ -276,10 +276,10 @@ fun QueueTab(expansionProvider: () -> Float, playerProvider: () -> PlayerViewCon
             }
 
             if (radio_info_position == NowPlayingQueueRadioInfoPosition.TOP_BAR) {
-                CurrentRadioIndicator(queue_background_colour, background_colour, playerProvider)
+                CurrentRadioIndicator(queueBackgroundColourProvider, backgroundColourProvider, playerProvider)
             }
 
-            Divider(Modifier.padding(horizontal = list_padding), 1.dp, background_colour)
+            Divider(Modifier.padding(horizontal = list_padding), 1.dp, backgroundColourProvider)
 
             val items_above_queue = if (radio_info_position == NowPlayingQueueRadioInfoPosition.ABOVE_ITEMS) 1 else 0
             val state = rememberReorderableLazyListState(
@@ -309,7 +309,7 @@ fun QueueTab(expansionProvider: () -> Float, playerProvider: () -> PlayerViewCon
             ) {
                 if (radio_info_position == NowPlayingQueueRadioInfoPosition.ABOVE_ITEMS) {
                     item {
-                        CurrentRadioIndicator(queue_background_colour, background_colour, playerProvider)
+                        CurrentRadioIndicator(queueBackgroundColourProvider, backgroundColourProvider, playerProvider)
                     }
                 }
 
@@ -326,10 +326,12 @@ fun QueueTab(expansionProvider: () -> Float, playerProvider: () -> PlayerViewCon
                         Box(Modifier.height(50.dp)) {
                             item.QueueElement(
                                 state,
-                                if (playing_key != null) playing_key == item.key else PlayerServiceHost.status.m_index == index,
                                 index,
-                                queue_background_colour,
-                                background_colour,
+                                {
+                                    val current = if (playing_key != null) playing_key == item.key else PlayerServiceHost.status.m_index == index
+                                    if (current) backgroundColourProvider()
+                                    else queueBackgroundColourProvider()
+                                },
                                 playerProvider
                             ) {
                                 undo_list.add {
@@ -344,7 +346,7 @@ fun QueueTab(expansionProvider: () -> Float, playerProvider: () -> PlayerViewCon
                 if (PlayerServiceHost.player.radio_loading) {
                     item {
                         Box(Modifier.height(50.dp), contentAlignment = Alignment.Center) {
-                            SubtleLoadingIndicator(queue_background_colour.getContrasted())
+                            SubtleLoadingIndicator({ queueBackgroundColourProvider().getContrasted() })
                         }
                     }
                 }
@@ -358,8 +360,8 @@ fun QueueTab(expansionProvider: () -> Float, playerProvider: () -> PlayerViewCon
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 private fun CurrentRadioIndicator(
-    background_colour: Color,
-    accent_colour: Color,
+    backgroundColourProvider: () -> Color,
+    accentColourProvider: () -> Color,
     playerProvider: () -> PlayerViewContext
 ) {
     Column {
@@ -368,7 +370,7 @@ private fun CurrentRadioIndicator(
             radio_item.PreviewLong(MediaItem.PreviewParams(
                 playerProvider,
                 Modifier.padding(horizontal = 15.dp),
-                content_colour = { background_colour.getContrasted() }
+                content_colour = { backgroundColourProvider().getContrasted() }
             ))
         }
 
@@ -396,9 +398,9 @@ private fun CurrentRadioIndicator(
                             )
                         },
                         colors = FilterChipDefaults.filterChipColors(
-                            labelColor = background_colour.getContrasted(),
-                            selectedContainerColor = accent_colour,
-                            selectedLabelColor = accent_colour.getContrasted()
+                            labelColor = backgroundColourProvider().getContrasted(),
+                            selectedContainerColor = accentColourProvider(),
+                            selectedLabelColor = accentColourProvider().getContrasted()
                         )
                     )
                 }
@@ -408,12 +410,12 @@ private fun CurrentRadioIndicator(
 }
 
 @Composable
-private fun RepeatButton(background_colour: Color, content_colour: Color, modifier: Modifier = Modifier) {
+private fun RepeatButton(backgroundColourProvider: () -> Color, modifier: Modifier = Modifier) {
     Box(
         modifier = modifier
             .minimumTouchTargetSize()
             .aspectRatio(1f)
-            .background(background_colour, CircleShape)
+            .background(CircleShape, backgroundColourProvider)
             .clickable(
                 interactionSource = remember { MutableInteractionSource() },
                 indication = null,
@@ -428,7 +430,7 @@ private fun RepeatButton(background_colour: Color, content_colour: Color, modifi
             )
             .crossOut(
                 crossed_out = PlayerServiceHost.status.m_repeat_mode == MediaPlayerRepeatMode.OFF,
-                colour = content_colour,
+                colourProvider = { backgroundColourProvider().getContrasted() },
             ) {
                 return@crossOut IntSize(
                     (getInnerSquareSizeOfCircle(it.width * 0.5f, 50) * 1.25f).roundToInt(),
@@ -444,14 +446,14 @@ private fun RepeatButton(background_colour: Color, content_colour: Color, modifi
             },
             null,
             Modifier.size(20.dp),
-            tint = content_colour
+            tint = backgroundColourProvider().getContrasted()
         )
     }
 }
 
 @OptIn(ExperimentalFoundationApi::class)
 @Composable
-private fun StopAfterSongButton(background_colour: Color, modifier: Modifier = Modifier) {
+private fun StopAfterSongButton(backgroundColourProvider: () -> Color, modifier: Modifier = Modifier) {
     val rotation = remember { Animatable(0f) }
     OnChangedEffect(PlayerServiceHost.player.stop_after_current_song) {
         rotation.animateTo(
@@ -464,7 +466,7 @@ private fun StopAfterSongButton(background_colour: Color, modifier: Modifier = M
             modifier = modifier
                 .minimumTouchTargetSize()
                 .aspectRatio(1f)
-                .background(background_colour, CircleShape)
+                .background(CircleShape, backgroundColourProvider)
                 .rotate(rotation.value)
                 .combinedClickable(
                     interactionSource = remember { MutableInteractionSource() },
@@ -477,7 +479,7 @@ private fun StopAfterSongButton(background_colour: Color, modifier: Modifier = M
             Icon(
                 if (stopping) Icons.Filled.HourglassBottom else Icons.Filled.HourglassEmpty,
                 null,
-                tint = background_colour.getContrasted()
+                tint = backgroundColourProvider().getContrasted()
             )
         }
     }

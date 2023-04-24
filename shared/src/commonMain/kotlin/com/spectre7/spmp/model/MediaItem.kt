@@ -557,7 +557,7 @@ abstract class MediaItem(id: String) {
     abstract fun PreviewLong(params: PreviewParams)
 
     @Composable
-    fun Thumbnail(quality: ThumbnailQuality, size: Dp, modifier: Modifier = Modifier, content_colour: Color = Color.White, d: Boolean = false) {
+    fun Thumbnail(quality: ThumbnailQuality, size: Dp, modifier: Modifier = Modifier, contentColourProvider: () -> Color = { Color.White }) {
         LaunchedEffect(quality, canLoadThumbnail()) {
             getThumbnail(quality)
         }
@@ -565,7 +565,7 @@ abstract class MediaItem(id: String) {
         Box(Modifier.size(size)) {
             Crossfade(thumb_states[quality]!!.image) { thumbnail ->
                 if (thumbnail == null) {
-                    SubtleLoadingIndicator(content_colour, modifier.fillMaxSize())
+                    SubtleLoadingIndicator(contentColourProvider, modifier.fillMaxSize())
                 }
                 else {
                     Image(

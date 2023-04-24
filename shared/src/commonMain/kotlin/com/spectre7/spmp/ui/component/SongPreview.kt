@@ -71,7 +71,7 @@ fun SongPreviewSquare(
             animateDpAsState(getMediaItemPreviewSquareHeight()).value,
             Modifier
                 .longPressMenuIcon(long_press_menu_data, params.enable_long_press_menu),
-            params.content_colour()
+            params.content_colour
         )
 
         Text(
@@ -119,7 +119,7 @@ fun SongPreviewLong(
             40.dp,
             Modifier
                 .longPressMenuIcon(long_press_menu_data, params.enable_long_press_menu),
-            params.content_colour()
+            params.content_colour
         )
 
         Column(
@@ -178,7 +178,7 @@ fun getSongLongPressMenuData(
             SongLongPressPopupActions(it, queue_index)
         },
         sideButton = { modifier, background, _ ->
-            LikeDislikeButton(song, modifier, background.getContrasted())
+            LikeDislikeButton(song, modifier, { background.getContrasted() })
         }
     )
 }

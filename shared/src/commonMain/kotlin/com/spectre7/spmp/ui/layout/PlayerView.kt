@@ -2,8 +2,10 @@
 
 package com.spectre7.spmp.ui.layout
 
+import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.animation.Crossfade
 import androidx.compose.animation.core.animateDpAsState
+import androidx.compose.foundation.ScrollState
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyListState
@@ -370,12 +372,6 @@ private class PlayerViewContextImpl: PlayerViewContext(null, null, null) {
             }
         }
 
-        val pinned_layout = remember { mutableListOf(MediaItemLayout(
-            null, "Pinned",
-            MediaItemLayout.Type.GRID,
-            pinned_items
-        )) }
-
         Crossfade(targetState = overlay_page) { page ->
             Column(Modifier.fillMaxSize()) {
                 if (page != null && page.first != OverlayPage.MEDIAITEM && page.first != OverlayPage.SEARCH) {
@@ -385,7 +381,8 @@ private class PlayerViewContextImpl: PlayerViewContext(null, null, null) {
                 val close = remember { { navigateBack() } }
                 when (page?.first) {
                     null -> MainPage(
-                        (pinned_layout + main_page_layouts).toMutableList(),
+                        pinned_items,
+                        main_page_layouts,
                         playerProvider,
                         main_page_scroll_state,
                         feed_load_state,
@@ -481,6 +478,7 @@ fun PlayerView() {
 
 @Composable
 private fun MainPage(
+    pinned_items: MutableList<MediaItem>,
     layouts: MutableList<MediaItemLayout>,
     playerProvider: () -> PlayerViewContext,
     scroll_state: LazyListState,
@@ -488,15 +486,21 @@ private fun MainPage(
     can_continue_feed: Boolean,
     loadFeed: (continuation: Boolean) -> Unit
 ) {
-    val padding = animateDpAsState(if (SpMp.context.isScreenLarge()) 30.dp else 10.dp).value
+    val padding by animateDpAsState(if (SpMp.context.isScreenLarge()) 30.dp else 10.dp)
+    val pinned_layout = remember(pinned_items) { MediaItemLayout("Pinned", null, MediaItemLayout.Type.GRID, pinned_items) }
+
     SwipeRefresh(
         state = feed_load_state.value == FeedLoadState.LOADING,
         onRefresh = { loadFeed(false) },
         swipe_enabled = feed_load_state.value == FeedLoadState.NONE,
         modifier = Modifier.padding(horizontal = padding)
     ) {
-        Crossfade(remember { derivedStateOf { layouts.isNotEmpty() } }.value) { loaded ->
-            if (loaded) {
+        val state by remember { derivedStateOf { if (feed_load_state.value == FeedLoadState.LOADING) null else layouts.isNotEmpty() } }
+        Crossfade(state) { s ->
+            if (s == null) {
+                MainPageLoadingView(Modifier.fillMaxSize())
+            }
+            else if (s) {
                 LazyMediaItemLayoutColumn(
                     layouts,
                     playerProvider,
@@ -515,11 +519,17 @@ private fun MainPage(
                         item {
                             RadioBuilderCard(playerProvider, Modifier.fillMaxWidth().padding(5.dp))
                         }
+                        item {
+                            AnimatedVisibility(pinned_layout.items.isNotEmpty()) {
+                                pinned_layout.Layout(playerProvider)
+                            }
+                        }
                     }
                 ) { MediaItemLayout.Type.GRID }
             }
             else {
-                MainPageLoadingView(Modifier.fillMaxSize())
+                // Offline layout
+                Text("Offline", Modifier.padding(top = SpMp.context.getStatusBarHeight() + padding))
             }
         }
     }

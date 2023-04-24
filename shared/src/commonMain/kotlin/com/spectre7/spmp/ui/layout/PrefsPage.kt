@@ -144,7 +144,7 @@ fun PrefsPage(pill_menu: PillMenu, playerProvider: () -> PlayerViewContext, clos
 
     BoxWithConstraints(
         Modifier
-            .background(Theme.current.background)
+            .background { Theme.current.background }
             .pointerInput(Unit) {}
     ) {
         settings_interface.Interface(

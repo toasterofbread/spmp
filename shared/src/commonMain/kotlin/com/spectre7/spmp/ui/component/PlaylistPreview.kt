@@ -97,7 +97,7 @@ fun PlaylistPreviewLong(
             40.dp,
             Modifier
                 .longPressMenuIcon(long_press_menu_data, params.enable_long_press_menu),
-            params.content_colour()
+            params.content_colour
         )
 
         Column(

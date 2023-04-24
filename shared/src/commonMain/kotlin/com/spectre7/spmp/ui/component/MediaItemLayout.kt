@@ -292,26 +292,30 @@ data class MediaItemLayout(
     }
 }
 
-fun Collection<MediaItemLayout>.removeInvalid() {
-    for (layout in this) {
-        layout.items.removeAll { !it.is_valid }
-    }
-}
-
 @Composable
 fun MediaItemLayoutColumn(
     layouts: List<MediaItemLayout>,
     playerProvider: () -> PlayerViewContext,
     modifier: Modifier = Modifier,
+    padding: PaddingValues = PaddingValues(0.dp),
+    topContent: (@Composable ColumnScope.() -> Unit)? = null,
     onContinuationRequested: (() -> Unit)? = null,
     loading_continuation: Boolean = false,
-    continuation_alignment: Alignment.Horizontal = Alignment.CenterHorizontally
+    continuation_alignment: Alignment.Horizontal = Alignment.CenterHorizontally,
+    scroll_state: ScrollState? = null,
+    vertical_arrangement: Arrangement.Vertical = Arrangement.Top,
+    getType: ((MediaItemLayout) -> MediaItemLayout.Type)? = null
 ) {
-    require(layouts.all { it.type != null })
+    require(getType != null || layouts.all { it.type != null })
 
-    Column(modifier) {
+    Column(
+        modifier.padding(padding).thenIf(scroll_state != null, Modifier.verticalScroll(scroll_state!!)),
+        verticalArrangement = vertical_arrangement
+    ) {
+        topContent?.invoke(this)
+
         for (layout in layouts) {
-            layout.Layout(playerProvider)
+            (getType?.invoke(layout) ?: layout.type!!).Layout(layout, playerProvider)
         }
 
         Crossfade(Pair(onContinuationRequested, loading_continuation)) { data ->

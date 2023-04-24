@@ -159,7 +159,7 @@ fun ColumnScope.NowPlayingMainTab(
                 LikeDislikeButton(
                     PlayerServiceHost.status.m_song!!,
                     Modifier.width(40.dp).fillMaxHeight(),
-                    colour = getNPOnBackground(playerProvider).setAlpha(0.5f)
+                    colourProvider = { getNPOnBackground(playerProvider).setAlpha(0.5f) }
                 )
             }
         }

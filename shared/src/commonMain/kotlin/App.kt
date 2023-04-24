@@ -113,7 +113,7 @@ object SpMp {
                     service_host.startService({ service_started = false })
                 }
 
-//                MainActivity.error_manager.Indicator(Theme.current.accent_provider)
+                error_manager.Indicator(Theme.current.accent_provider)
             }
         }
     }

@@ -26,11 +26,11 @@ actual open class PlatformService: PlatformContext() {
     actual open fun onDestroy() {}
     actual open fun onBind(): PlatformBinder? = null
 
-    actual fun broadcast(action: String, data: Map<String, Any?>) {
+    actual fun broadcast(data: Map<String, Any?>) {
         TODO()
     }
 
-    actual fun addBroadcastReceiver(receiver: BroadcastReceiver, action: String) {
+    actual fun addBroadcastReceiver(receiver: BroadcastReceiver) {
         TODO()
     }
 

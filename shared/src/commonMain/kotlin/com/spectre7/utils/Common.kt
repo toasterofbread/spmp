@@ -514,7 +514,7 @@ fun printJson(data: String, klaxon: Klaxon? = null) {
 }
 
 @Composable
-fun SubtleLoadingIndicator(colour: Color = LocalContentColor.current, modifier: Modifier = Modifier, size: Dp = 20.dp) {
+fun SubtleLoadingIndicator(colourProvider: () -> Color, modifier: Modifier = Modifier, size: Dp = 20.dp) {
 	val inf_transition = rememberInfiniteTransition()
 	val anim by inf_transition.animateFloat(
 		initialValue = 0f,
@@ -532,7 +532,7 @@ fun SubtleLoadingIndicator(colour: Color = LocalContentColor.current, modifier: 
 		val size_percent = if (current_anim < 0.5f) current_anim else 1f - current_anim
 		Spacer(
 			Modifier
-				.background(colour, CircleShape)
+				.background(CircleShape, colourProvider)
 				.size(size * size_percent)
 		)
 	}
@@ -580,7 +580,7 @@ fun PaddingValues.copy(
 
 fun Modifier.crossOut(
 	crossed_out: Boolean,
-	colour: Color,
+	colourProvider: () -> Color,
 	width: Dp = 2.dp,
 	getSize: ((IntSize) -> IntSize)? = null,
 ): Modifier = composed {
@@ -604,7 +604,7 @@ fun Modifier.crossOut(
 				(actual_size.height - size.height) * 0.5f)
 
 			drawLine(
-				colour,
+				colourProvider(),
 				offset,
 				Offset(
 					size.width * line_visibility.value + offset.x,
@@ -738,4 +738,35 @@ fun formatElapsedTime(seconds: Long): String {
 	} else {
 		String.format("%02d:%02d", minutes, remaining_seconds)
 	}
+}
+
+fun Modifier.background(colourProvider: () -> Color) = drawBehind {
+	drawRect(colourProvider())
+}
+
+fun Modifier.brushBackground(brushProvider: () -> Brush) = drawBehind {
+	drawRect(brushProvider())
+}
+
+fun Modifier.background(shape: Shape, colourProvider: () -> Color) = drawBehind {
+	drawOutline(shape.createOutline(size, layoutDirection, this), colourProvider())
+}
+
+@Composable
+fun Divider(
+	modifier: Modifier = Modifier,
+	thickness: Dp = DividerDefaults.Thickness,
+	colorProvider: () -> Color,
+) {
+	val targetThickness = if (thickness == Dp.Hairline) {
+		(1f / LocalDensity.current.density).dp
+	} else {
+		thickness
+	}
+	Box(
+		modifier
+			.fillMaxWidth()
+			.height(targetThickness)
+			.background { colorProvider() }
+	)
 }

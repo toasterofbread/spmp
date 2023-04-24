@@ -41,8 +41,10 @@ actual open class PlatformService: Service() {
         return START_NOT_STICKY
     }
 
-    actual fun broadcast(action: String, data: Map<String, Any?>) {
-        val intent = Intent(action)
+    private val intent_action: String get() = javaClass.name
+
+    actual fun broadcast(data: Map<String, Any?>) {
+        val intent = Intent(intent_action)
         for (entry in data.entries) {
             when (val value = entry.value) {
                 is Boolean -> intent.putExtra(entry.key, value)
@@ -63,8 +65,8 @@ actual open class PlatformService: Service() {
         LocalBroadcastManager.getInstance(context.ctx).sendBroadcast(intent)
     }
 
-    actual fun addBroadcastReceiver(receiver: BroadcastReceiver, action: String) {
-        LocalBroadcastManager.getInstance(this).registerReceiver(receiver, IntentFilter(action))
+    actual fun addBroadcastReceiver(receiver: BroadcastReceiver) {
+        LocalBroadcastManager.getInstance(this).registerReceiver(receiver, IntentFilter(intent_action))
     }
     actual fun removeBroadcastReceiver(receiver: BroadcastReceiver) {
         LocalBroadcastManager.getInstance(this).unregisterReceiver(receiver)

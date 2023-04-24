@@ -76,7 +76,6 @@ class PlayerDownloadService: PlatformService() {
 
         fun broadcastResult(result: Result<File?>?, instance: Int) {
             broadcast(
-                RESULT_INTENT_ACTION,
                 mapOf(
                     "action" to IntentAction.START_DOWNLOAD,
                     "song_id" to id,
@@ -89,7 +88,6 @@ class PlayerDownloadService: PlatformService() {
 
         private fun broadcastStatus() {
             broadcast(
-                RESULT_INTENT_ACTION,
                 mapOf(
                     "action" to IntentAction.STATUS_CHANGED,
                     "song_id" to id,
@@ -136,8 +134,6 @@ class PlayerDownloadService: PlatformService() {
     )
 
     companion object {
-        const val RESULT_INTENT_ACTION: String = "com.spectre7.spmp.PlayerDownloadService.result"
-
         fun getFilenameData(filename: String): FilenameData {
             val downloading = filename.endsWith(FILE_DOWNLOADING_SUFFIX)
             val split = (if (downloading) filename.dropLast(FILE_DOWNLOADING_SUFFIX.length) else filename).split('.', limit = 3)

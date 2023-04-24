@@ -13,8 +13,8 @@ expect open class PlatformService() {
 
     open fun onBind(): PlatformBinder? // Binder
 
-    fun broadcast(action: String, data: Map<String, Any?>)
-    fun addBroadcastReceiver(receiver: BroadcastReceiver, action: String)
+    fun broadcast(data: Map<String, Any?>)
+    fun addBroadcastReceiver(receiver: BroadcastReceiver)
     fun removeBroadcastReceiver(receiver: BroadcastReceiver)
 
     companion object {

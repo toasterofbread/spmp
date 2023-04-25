@@ -1,6 +1,8 @@
 package com.spectre7.spmp
 
 import android.os.Bundle
+import android.os.StrictMode
+import android.os.StrictMode.VmPolicy
 import android.view.WindowManager
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
@@ -9,6 +11,12 @@ import com.spectre7.spmp.platform.PlatformContext
 class MainActivity : ComponentActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
+
+        StrictMode.setVmPolicy(VmPolicy.Builder()
+            .detectLeakedClosableObjects()
+            .penaltyLog()
+            .build()
+        )
 
         window.setFlags(
             WindowManager.LayoutParams.FLAG_LAYOUT_NO_LIMITS,

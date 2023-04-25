@@ -8,6 +8,14 @@
     <string name="home_feed_moods_and_genres">Recommended playlists</string>
     <string name="home_feed_charts">Charts</string>
 
+    <string name="home_feed_rec_general">Recommended</string>
+    <string name="home_feed_rec_songs">Recommended songs</string>
+    <string name="home_feed_rec_artists">Recommended artists</string>
+    <string name="home_feed_rec_albums">Recommended albums</string>
+    <string name="home_feed_rec_playlists">Recommended playlists</string>
+    <string name="home_feed_rec_music_videos">Recommended music videos</string>
+    <string name="home_feed_rec_albums_playlists">Artists and albums</string>
+
     <string name="home_feed_similar_to">Similar to</string>
     <string name="home_feed_more_from">More from</string>
 

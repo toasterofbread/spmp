@@ -17,6 +17,7 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.material.SwipeableState
 import androidx.compose.material.ThresholdConfig
 import androidx.compose.ui.graphics.painter.Painter
+import androidx.compose.ui.unit.Dp
 
 @Composable
 expect fun Modifier.platformClickable(onClick: () -> Unit, onAltClick: (() -> Unit)? = null, indication: Indication? = null): Modifier
@@ -74,6 +75,7 @@ expect fun SwipeRefresh(
     onRefresh: () -> Unit,
     modifier: Modifier = Modifier,
     swipe_enabled: Boolean = true,
+    indicator: Boolean = true,
     content: @Composable () -> Unit
 )
 

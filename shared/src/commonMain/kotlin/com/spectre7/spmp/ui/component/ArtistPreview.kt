@@ -43,7 +43,6 @@ fun ArtistPreviewSquare(
 
     Column(
         params.modifier
-            .padding(10.dp, 0.dp)
             .platformClickable(
                 onClick = {
                     params
@@ -55,17 +54,17 @@ fun ArtistPreviewSquare(
                         .playerProvider()
                         .showLongPressMenu(long_press_menu_data)
                 }
-            )
-            .aspectRatio(0.8f),
+            ),
         horizontalAlignment = Alignment.CenterHorizontally,
         verticalArrangement = Arrangement.spacedBy(5.dp)
     ) {
-        artist.Thumbnail(
-            MediaItem.ThumbnailQuality.LOW,
-            animateDpAsState(getMediaItemPreviewSquareHeight()).value,
-            Modifier
-                .longPressMenuIcon(long_press_menu_data, params.enable_long_press_menu)
-        )
+        Box(Modifier.fillMaxSize().weight(1f), contentAlignment = Alignment.Center) {
+            artist.Thumbnail(
+                MediaItem.ThumbnailQuality.LOW,
+                Modifier.longPressMenuIcon(long_press_menu_data, params.enable_long_press_menu).aspectRatio(1f),
+                params.content_colour
+            )
+        }
 
         Text(
             artist.title ?: "",
@@ -107,9 +106,9 @@ fun ArtistPreviewLong(
     ) {
         artist.Thumbnail(
             MediaItem.ThumbnailQuality.LOW,
-            40.dp,
             Modifier
                 .longPressMenuIcon(long_press_menu_data, params.enable_long_press_menu)
+                .size(40.dp)
         )
 
         Column(Modifier.padding(8.dp)) {

@@ -524,9 +524,9 @@ private fun RadioArtistSelector(
                                 }
                                 artist.Thumbnail(
                                     MediaItem.ThumbnailQuality.LOW,
-                                    thumb_size,
                                     Modifier
                                         .longPressMenuIcon(long_press_menu_data)
+                                        .size(thumb_size)
                                 )
                             }
 

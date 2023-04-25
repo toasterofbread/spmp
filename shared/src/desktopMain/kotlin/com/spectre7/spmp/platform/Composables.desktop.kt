@@ -140,6 +140,7 @@ actual fun SwipeRefresh(
     onRefresh: () -> Unit,
     modifier: Modifier,
     swipe_enabled: Boolean,
+    indicator: Boolean,
     content: @Composable () -> Unit
 ) {
     Box(modifier) {

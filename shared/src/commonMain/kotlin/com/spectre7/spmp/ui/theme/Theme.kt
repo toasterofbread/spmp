@@ -31,36 +31,37 @@ fun ApplicationTheme(
     font_family: FontFamily = FontFamily.Default,
     content: @Composable () -> Unit
 ) {
-    Icons.Filled.LibraryAdd
-    val dark_theme = isSystemInDarkTheme()
-    val colour_scheme = if (dark_theme) context.getDarkColorScheme() else context.getLightColorScheme()
+    val colour_scheme = with(Theme.current) {
+        (if (isSystemInDarkTheme()) context.getDarkColorScheme() else context.getLightColorScheme()).copy(
+            background = background,
+            onBackground = on_background,
+            primary = on_background,
+            onPrimary = on_background.getContrasted(),
+            primaryContainer = on_background,
+            onPrimaryContainer = on_background.getContrasted()
+        )
+    }
 
-//    val view = LocalView.current
-//    if (!view.isInEditMode) {
-//        SideEffect {
-//            (view.context as Activity).window.statusBarColor = colour_scheme.background.toArgb()
-//            ViewCompat.getWindowInsetsController(view)?.isAppearanceLightStatusBars = !dark_theme
-//        }
-//    }
-
-    val default = MaterialTheme.typography
-    val typography = MaterialTheme.typography.copy(
-        displayLarge = default.displayLarge.copy(fontFamily = font_family),
-        displayMedium = default.displayMedium.copy(fontFamily = font_family),
-        displaySmall = default.displaySmall.copy(fontFamily = font_family),
-        headlineLarge = default.headlineLarge.copy(fontFamily = font_family),
-        headlineMedium = default.headlineMedium.copy(fontFamily = font_family),
-        headlineSmall = default.headlineSmall.copy(fontFamily = font_family),
-        titleLarge = default.titleLarge.copy(fontFamily = font_family),
-        titleMedium = default.titleMedium.copy(fontFamily = font_family),
-        titleSmall = default.titleSmall.copy(fontFamily = font_family),
-        bodyLarge = default.bodyLarge.copy(fontFamily = font_family),
-        bodyMedium = default.bodyMedium.copy(fontFamily = font_family),
-        bodySmall = default.bodySmall.copy(fontFamily = font_family),
-        labelLarge = default.labelLarge.copy(fontFamily = font_family),
-        labelMedium = default.labelMedium.copy(fontFamily = font_family),
-        labelSmall = default.labelSmall.copy(fontFamily = font_family)
-    )
+    val default_typography = MaterialTheme.typography
+    val typography = remember {
+        default_typography.copy(
+            displayLarge = default_typography.displayLarge.copy(fontFamily = font_family),
+            displayMedium = default_typography.displayMedium.copy(fontFamily = font_family),
+            displaySmall = default_typography.displaySmall.copy(fontFamily = font_family),
+            headlineLarge = default_typography.headlineLarge.copy(fontFamily = font_family),
+            headlineMedium = default_typography.headlineMedium.copy(fontFamily = font_family),
+            headlineSmall = default_typography.headlineSmall.copy(fontFamily = font_family),
+            titleLarge = default_typography.titleLarge.copy(fontFamily = font_family),
+            titleMedium = default_typography.titleMedium.copy(fontFamily = font_family),
+            titleSmall = default_typography.titleSmall.copy(fontFamily = font_family),
+            bodyLarge = default_typography.bodyLarge.copy(fontFamily = font_family),
+            bodyMedium = default_typography.bodyMedium.copy(fontFamily = font_family),
+            bodySmall = default_typography.bodySmall.copy(fontFamily = font_family),
+            labelLarge = default_typography.labelLarge.copy(fontFamily = font_family),
+            labelMedium = default_typography.labelMedium.copy(fontFamily = font_family),
+            labelSmall = default_typography.labelSmall.copy(fontFamily = font_family)
+        )
+    }
 
     MaterialTheme(
         colorScheme = colour_scheme,

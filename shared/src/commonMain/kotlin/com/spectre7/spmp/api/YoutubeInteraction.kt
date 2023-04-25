@@ -5,17 +5,18 @@ import com.spectre7.spmp.api.DataApi.Companion.getStream
 import com.spectre7.spmp.api.DataApi.Companion.ytUrl
 import com.spectre7.spmp.model.Artist
 import com.spectre7.utils.getString
+import com.spectre7.utils.printJson
 import okhttp3.HttpUrl.Companion.toHttpUrl
 import okhttp3.Request
 import java.util.*
 
 class ArtistBrowseResponse(val header: Header) {
-    class Header(val musicImmersiveHeaderRenderer: MusicImmersiveHeaderRenderer)
+    class Header(val musicImmersiveHeaderRenderer: MusicImmersiveHeaderRenderer? = null)
     class MusicImmersiveHeaderRenderer(val subscriptionButton: SubscriptionButton)
     class SubscriptionButton(val subscribeButtonRenderer: SubscribeButtonRenderer)
     class SubscribeButtonRenderer(val subscribed: Boolean)
 
-    fun getSubscribed(): Boolean = header.musicImmersiveHeaderRenderer.subscriptionButton.subscribeButtonRenderer.subscribed
+    fun getSubscribed(): Boolean? = header.musicImmersiveHeaderRenderer?.subscriptionButton?.subscribeButtonRenderer?.subscribed
 }
 
 fun isSubscribedToArtist(artist: Artist): Result<Boolean?> {

@@ -1,12 +1,15 @@
 package com.spectre7.spmp.ui.component
 
 import androidx.compose.animation.*
+import androidx.compose.animation.core.Animatable
 import androidx.compose.animation.core.animateDpAsState
+import androidx.compose.animation.core.animateFloatAsState
 import androidx.compose.foundation.*
 import androidx.compose.foundation.interaction.MutableInteractionSource
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.*
 import androidx.compose.foundation.lazy.grid.GridCells
+import androidx.compose.foundation.lazy.grid.LazyGridScope
 import androidx.compose.foundation.lazy.grid.LazyHorizontalGrid
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
@@ -20,8 +23,10 @@ import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.RectangleShape
 import androidx.compose.ui.graphics.Shape
+import androidx.compose.ui.graphics.graphicsLayer
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.Dp
+import androidx.compose.ui.unit.DpSize
 import androidx.compose.ui.unit.TextUnit
 import androidx.compose.ui.unit.dp
 import com.beust.klaxon.Json
@@ -33,6 +38,7 @@ import com.spectre7.spmp.platform.rememberImagePainter
 import com.spectre7.spmp.ui.layout.PlayerViewContext
 import com.spectre7.spmp.ui.theme.Theme
 import com.spectre7.utils.*
+import kotlinx.coroutines.runBlocking
 import okhttp3.Request
 
 data class MediaItemLayout(
@@ -43,10 +49,12 @@ data class MediaItemLayout(
     val thumbnail_source: ThumbnailSource? = null,
     val media_item_type: MediaItem.Type? = null,
     var view_more: ViewMore? = null,
-    var continuation: Continuation? = null
+    var continuation: Continuation? = null,
+    var itemSizeProvider: @Composable () -> DpSize = { DpSize(100.dp, 130.dp) }
 ) {
     enum class Type {
         GRID,
+        ROW,
         LIST,
         NUMBERED_LIST,
         CARD;
@@ -55,6 +63,7 @@ data class MediaItemLayout(
         fun Layout(layout: MediaItemLayout, playerProvider: () -> PlayerViewContext, modifier: Modifier = Modifier) {
             when (this) {
                 GRID -> MediaItemGrid(layout, playerProvider, modifier)
+                ROW -> MediaItemGrid(layout, playerProvider, modifier, 1)
                 LIST -> MediaItemList(layout, false, playerProvider, modifier)
                 NUMBERED_LIST -> MediaItemList(layout, true, playerProvider, modifier)
                 CARD -> MediaItemCard(layout, playerProvider, modifier)
@@ -63,8 +72,8 @@ data class MediaItemLayout(
     }
 
     @Composable
-    fun Layout(playerProvider: () -> PlayerViewContext) {
-        type!!.Layout(this, playerProvider)
+    fun Layout(playerProvider: () -> PlayerViewContext, modifier: Modifier = Modifier) {
+        type!!.Layout(this, playerProvider, modifier)
     }
 
     class Continuation(var token: String, val type: Type, val id: String? = null) {
@@ -190,11 +199,15 @@ data class MediaItemLayout(
         modifier: Modifier = Modifier,
         font_size: TextUnit? = null
     ) {
+        if (thumbnail_source == null && title == null && subtitle == null && view_more == null) {
+            return
+        }
+
         Row(
             modifier
                 .fillMaxWidth()
                 .height(IntrinsicSize.Max),
-            verticalAlignment = Alignment.Bottom,
+            verticalAlignment = Alignment.CenterVertically,
             horizontalArrangement = Arrangement.spacedBy(10.dp)
         ) {
             val thumbnail_url = thumbnail_source?.getThumbUrl(MediaItem.ThumbnailQuality.LOW)
@@ -208,7 +221,7 @@ data class MediaItemLayout(
                 )
             }
 
-            Column(verticalArrangement = Arrangement.Center) {
+            Column(verticalArrangement = Arrangement.Center, modifier = Modifier.weight(1f)) {
                 if (subtitle != null) {
                     WidthShrinkText(subtitle, style = MaterialTheme.typography.titleSmall.copy(color = Theme.current.on_background))
                 }
@@ -228,7 +241,7 @@ data class MediaItemLayout(
             }
 
             view_more?.also { view_more ->
-                IconButton(
+                OutlinedButton(
                     {
                         if (view_more.media_item != null) {
                             playerProvider().openMediaItem(view_more.media_item, this@MediaItemLayout)
@@ -242,109 +255,70 @@ data class MediaItemLayout(
                         else {
                             throw NotImplementedError(view_more.toString())
                         }
-                    },
-                    Modifier
-                        .fillMaxHeight()
-                        .aspectRatio(1f)
+                    }
                 ) {
-                    Icon(Icons.Filled.MoreHoriz, null)
-                }
-            }
-        }
-    }
-
-    companion object {
-        @Composable
-        fun ItemPreview(
-            item: MediaItem,
-            width: Dp,
-            animate: MutableState<Boolean>?,
-            playerProvider: () -> PlayerViewContext,
-            modifier: Modifier = Modifier
-        ) {
-            Box(modifier.requiredWidth(width), contentAlignment = Alignment.Center) {
-                if(animate?.value == true) {
-                    LaunchedEffect(Unit) {
-                        animate.value = false
-                    }
-
-                    var visible by remember { mutableStateOf(false) }
-                    LaunchedEffect(visible) {
-                        visible = true
-                    }
-                    AnimatedVisibility(
-                        visible,
-                        enter = fadeIn() + expandIn(expandFrom = Alignment.Center),
-                        exit = fadeOut() + shrinkOut(shrinkTowards = Alignment.Center)
-                    ) {
-                        item.PreviewSquare(MediaItem.PreviewParams(
-                            playerProvider, content_colour = Theme.current.on_background_provider
-                        ))
-                    }
-                }
-                else {
-                    item.PreviewSquare(MediaItem.PreviewParams(
-                        playerProvider, content_colour = Theme.current.on_background_provider
-                    ))
+                    Text(getStringTemp("More"))
                 }
             }
         }
     }
 }
 
-@Composable
-fun MediaItemLayoutColumn(
-    layouts: List<MediaItemLayout>,
-    playerProvider: () -> PlayerViewContext,
-    modifier: Modifier = Modifier,
-    padding: PaddingValues = PaddingValues(0.dp),
-    topContent: (@Composable ColumnScope.() -> Unit)? = null,
-    onContinuationRequested: (() -> Unit)? = null,
-    loading_continuation: Boolean = false,
-    continuation_alignment: Alignment.Horizontal = Alignment.CenterHorizontally,
-    scroll_state: ScrollState? = null,
-    vertical_arrangement: Arrangement.Vertical = Arrangement.Top,
-    getType: ((MediaItemLayout) -> MediaItemLayout.Type)? = null
-) {
-    require(getType != null || layouts.all { it.type != null })
-
-    Column(
-        modifier.padding(padding).thenIf(scroll_state != null, Modifier.verticalScroll(scroll_state!!)),
-        verticalArrangement = vertical_arrangement
-    ) {
-        topContent?.invoke(this)
-
-        for (layout in layouts) {
-            (getType?.invoke(layout) ?: layout.type!!).Layout(layout, playerProvider)
-        }
-
-        Crossfade(Pair(onContinuationRequested, loading_continuation)) { data ->
-            Column(Modifier.fillMaxWidth(), horizontalAlignment = continuation_alignment) {
-                if (data.second) {
-                    CircularProgressIndicator(color = Theme.current.on_background)
-                }
-                else if (data.first != null) {
-                    IconButton({ data.first!!.invoke() }) {
-                        Icon(Icons.Filled.KeyboardDoubleArrowDown, null, tint = Theme.current.on_background)
-                    }
-                }
-            }
-        }
-    }
-}
+//@Composable
+//fun MediaItemLayoutColumn(
+//    layouts: List<MediaItemLayout>,
+//    playerProvider: () -> PlayerViewContext,
+//    modifier: Modifier = Modifier,
+//    padding: PaddingValues = PaddingValues(0.dp),
+//    topContent: (@Composable ColumnScope.() -> Unit)? = null,
+//    onContinuationRequested: (() -> Unit)? = null,
+//    loading_continuation: Boolean = false,
+//    continuation_alignment: Alignment.Horizontal = Alignment.CenterHorizontally,
+//    scroll_state: ScrollState? = null,
+//    vertical_arrangement: Arrangement.Vertical = Arrangement.Top,
+//    getType: ((MediaItemLayout) -> MediaItemLayout.Type)? = null
+//) {
+//    require(getType != null || layouts.all { it.type != null })
+//
+//    Column(
+//        modifier.padding(padding).thenIf(scroll_state != null, Modifier.verticalScroll(scroll_state!!)),
+//        verticalArrangement = vertical_arrangement
+//    ) {
+//        topContent?.invoke(this)
+//
+//        for (layout in layouts) {
+//            (getType?.invoke(layout) ?: layout.type!!).Layout(layout, playerProvider)
+//        }
+//
+//        Crossfade(Pair(onContinuationRequested, loading_continuation)) { data ->
+//            Column(Modifier.fillMaxWidth(), horizontalAlignment = continuation_alignment) {
+//                if (data.second) {
+//                    CircularProgressIndicator(color = Theme.current.on_background)
+//                }
+//                else if (data.first != null) {
+//                    IconButton({ data.first!!.invoke() }) {
+//                        Icon(Icons.Filled.KeyboardDoubleArrowDown, null, tint = Theme.current.on_background)
+//                    }
+//                }
+//            }
+//        }
+//    }
+//}
 
 @Composable
 fun LazyMediaItemLayoutColumn(
     layouts: List<MediaItemLayout>,
     playerProvider: () -> PlayerViewContext,
     modifier: Modifier = Modifier,
+    layout_modifier: Modifier = Modifier,
     padding: PaddingValues = PaddingValues(0.dp),
     topContent: (LazyListScope.() -> Unit)? = null,
     onContinuationRequested: (() -> Unit)? = null,
     loading_continuation: Boolean = false,
     continuation_alignment: Alignment.Horizontal = Alignment.CenterHorizontally,
     scroll_state: LazyListState = rememberLazyListState(),
-    vertical_arrangement: Arrangement.Vertical = Arrangement.Top,
+    scroll_enabled: Boolean = true,
+    spacing: Dp = 0.dp,
     getType: ((MediaItemLayout) -> MediaItemLayout.Type)? = null
 ) {
     require(getType != null || layouts.all { it.type != null })
@@ -353,42 +327,49 @@ fun LazyMediaItemLayoutColumn(
         modifier,
         state = scroll_state,
         contentPadding = padding,
-        verticalArrangement = vertical_arrangement
+        userScrollEnabled = scroll_enabled
     ) {
         topContent?.invoke(this)
 
+        var count = layouts.count { it.items.isNotEmpty() }
         for (layout in layouts) {
             if (layout.items.isEmpty()) {
                 continue
             }
 
-            when (val type = getType?.invoke(layout) ?: layout.type!!) {
-                MediaItemLayout.Type.LIST, MediaItemLayout.Type.NUMBERED_LIST -> {
-                    item {
-                        layout.TitleBar(playerProvider)
-                    }
-                    items(layout.items.size) { index ->
-                        val item = layout.items[index]
-                        Row(verticalAlignment = Alignment.CenterVertically) {
-                            if (type == MediaItemLayout.Type.NUMBERED_LIST) {
-                                Text((index + 1).toString().padStart((layout.items.size + 1).toString().length, '0'), fontWeight = FontWeight.Light)
-                            }
-
-                            Column {
-                                item.PreviewLong(MediaItem.PreviewParams(playerProvider, content_colour = Theme.current.on_background_provider))
-                            }
-                        }
-                    }
-                }
-                else -> item { type.Layout(layout, playerProvider, Modifier.recomposeHighlighter()) }
+            val type = getType?.invoke(layout) ?: layout.type!!
+            item { type.Layout(layout, playerProvider, layout_modifier) }
+            if (--count != 0) {
+                item { Spacer(Modifier.height(spacing)) }
             }
+
+//            when (val type = getType?.invoke(layout) ?: layout.type!!) {
+//                MediaItemLayout.Type.LIST, MediaItemLayout.Type.NUMBERED_LIST -> {
+//                    item {
+//                        layout.TitleBar(playerProvider)
+//                    }
+//                    items(layout.items.size) { index ->
+//                        val item = layout.items[index]
+//                        Row(verticalAlignment = Alignment.CenterVertically) {
+//                            if (type == MediaItemLayout.Type.NUMBERED_LIST) {
+//                                Text((index + 1).toString().padStart((layout.items.size + 1).toString().length, '0'), fontWeight = FontWeight.Light)
+//                            }
+//
+//                            Column {
+//                                item.PreviewLong(MediaItem.PreviewParams(playerProvider, content_colour = Theme.current.on_background_provider))
+//                            }
+//                        }
+//                    }
+//                }
+//                else -> item { type.Layout(layout, playerProvider, layout_modifier) }
+//            }
         }
 
         item {
             Crossfade(Pair(onContinuationRequested, loading_continuation)) { data ->
                 Column(Modifier.fillMaxWidth(), horizontalAlignment = continuation_alignment) {
                     if (data.second) {
-                        CircularProgressIndicator(color = Theme.current.on_background)
+//                        CircularProgressIndicator(color = Theme.current.on_background)
                     }
                     else if (data.first != null) {
                         IconButton({ data.first!!.invoke() }) {
@@ -485,9 +466,9 @@ fun MediaItemCard(
         ) {
             item.Thumbnail(
                 MediaItem.ThumbnailQuality.HIGH,
-                100.dp,
                 Modifier
-                    .longPressMenuIcon(long_press_menu_data),
+                    .longPressMenuIcon(long_press_menu_data)
+                    .size(100.dp),
             )
 
             Column(
@@ -536,20 +517,52 @@ fun MediaItemCard(
 fun MediaItemGrid(
     layout: MediaItemLayout,
     playerProvider: () -> PlayerViewContext,
-    modifier: Modifier = Modifier
+    modifier: Modifier = Modifier,
+    rows: Int? = null,
+    startContent: (LazyGridScope.() -> Unit)? = null
 ) {
-    val row_count = if (layout.items.size <= 3) 1 else 2
-    val item_width = animateDpAsState(getMediaItemPreviewSquareHeight()).value + 20.dp
+    val row_count = rows ?: if (layout.items.size <= 3) 1 else 2
+    val item_spacing = Arrangement.spacedBy(15.dp)
+    val item_size = layout.itemSizeProvider()
 
     Column(modifier, verticalArrangement = Arrangement.spacedBy(10.dp)) {
         layout.TitleBar(playerProvider)
 
         LazyHorizontalGrid(
             rows = GridCells.Fixed(row_count),
-            modifier = Modifier.requiredHeight(item_width * row_count)
+            modifier = Modifier.height(item_size.height * row_count),
+            horizontalArrangement = item_spacing,
+            verticalArrangement = item_spacing
         ) {
+            startContent?.invoke(this)
+
             items(layout.items.size, { layout.items[it].id }) {
-                MediaItemLayout.ItemPreview(layout.items[it], item_width, null, playerProvider, Modifier)
+                layout.items[it].PreviewSquare(MediaItem.PreviewParams(
+                    playerProvider,
+                    Modifier.size(item_size),
+                    content_colour = Theme.current.on_background_provider
+                ))
+//                    if(animate?.value == true) {
+//                        LaunchedEffect(Unit) {
+//                            animate.value = false
+//                        }
+//
+//                        var visible by remember { mutableStateOf(false) }
+//                        LaunchedEffect(visible) {
+//                            visible = true
+//                        }
+//                        AnimatedVisibility(
+//                            visible,
+//                            enter = fadeIn() + expandIn(expandFrom = Alignment.Center),
+//                            exit = fadeOut() + shrinkOut(shrinkTowards = Alignment.Center)
+//                        ) {
+//                            item.PreviewSquare(MediaItem.PreviewParams(
+//                                playerProvider, content_colour = Theme.current.on_background_provider
+//                            ))
+//                        }
+//                    }
+//                    else {
+//                    }
             }
         }
     }
@@ -598,12 +611,12 @@ fun List<MediaItem>.generateLayoutTitle(): Pair<String, String?> {
 
     return when (songs + videos + artists + playlists + albums) {
         0 -> throw IllegalStateException()
-        videos ->             Pair(getStringTemp("おすすめのミュージックビデオ"), null)
-        artists ->            Pair(getStringTemp("おすすめのアーティスト"), null)
-        songs + videos ->     Pair(getStringTemp("おすすめの曲"), null)
-        playlists ->          Pair(getStringTemp("おすすめのプレイリスト"), null)
-        albums ->             Pair(getStringTemp("おすすめのアルバム"), null)
-        playlists + albums -> Pair(getStringTemp("プレイリストとアルバム"), null)
-        else ->               Pair(getStringTemp("おすすめ"), null)
+        videos ->             Pair(getString("home_feed_rec_music_videos"), null)
+        artists ->            Pair(getString("home_feed_rec_artists"), null)
+        songs + videos ->     Pair(getString("home_feed_rec_songs"), null)
+        playlists ->          Pair(getString("home_feed_rec_playlists"), null)
+        albums ->             Pair(getString("home_feed_rec_albums"), null)
+        playlists + albums -> Pair(getString("home_feed_rec_albums_playlists"), null)
+        else ->               Pair(getString("home_feed_rec_general"), null)
     }
 }

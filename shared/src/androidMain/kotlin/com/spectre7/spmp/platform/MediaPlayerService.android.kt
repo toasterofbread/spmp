@@ -36,12 +36,11 @@ import com.google.android.exoplayer2.upstream.DefaultDataSource
 import com.google.android.exoplayer2.upstream.ResolvingDataSource
 import com.google.android.exoplayer2.upstream.cache.LeastRecentlyUsedCacheEvictor
 import com.google.android.exoplayer2.upstream.cache.SimpleCache
-import com.spectre7.spmp.PlayerDownloadManager
-import com.spectre7.spmp.PlayerDownloadService.DownloadStatus
 import com.spectre7.spmp.PlayerServiceHost
 import com.spectre7.spmp.model.MediaItem
 import com.spectre7.spmp.model.Settings
 import com.spectre7.spmp.model.Song
+import com.spectre7.spmp.platform.PlayerDownloadManager.DownloadStatus
 import com.spectre7.utils.getString
 import kotlinx.coroutines.*
 import java.io.File
@@ -318,21 +317,21 @@ actual open class MediaPlayerService: PlatformService() {
 
                     download_manager.getSongDownloadStatus(song.id) { initial_status ->
 
-                        when (initial_status) {
-                            DownloadStatus.DOWNLOADING -> {
-                                val listener = object : PlayerDownloadManager.DownloadStatusListener() {
-                                    override fun onSongDownloadStatusChanged(song_id: String, status: DownloadStatus) {
+                        when (initial_status.status) {
+                            DownloadStatus.Status.DOWNLOADING -> {
+                                val listener = object : PlayerDownloadManager.DownloadStatusListener {
+                                    override fun onSongDownloadStatusChanged(song_id: String, status: DownloadStatus.Status) {
                                         if (song_id != song.id) {
                                             return
                                         }
 
                                         when (status) {
-                                            DownloadStatus.IDLE, DownloadStatus.DOWNLOADING -> return
-                                            DownloadStatus.PAUSED -> throw IllegalStateException()
-                                            DownloadStatus.CANCELLED -> {
+                                            DownloadStatus.Status.IDLE, DownloadStatus.Status.DOWNLOADING -> return
+                                            DownloadStatus.Status.PAUSED -> throw IllegalStateException()
+                                            DownloadStatus.Status.CANCELLED -> {
                                                 done = true
                                             }
-                                            DownloadStatus.FINISHED, DownloadStatus.ALREADY_FINISHED -> {
+                                            DownloadStatus.Status.FINISHED, DownloadStatus.Status.ALREADY_FINISHED -> {
                                                 local_file = download_manager.getSongLocalFile(song)
                                                 done = true
                                             }
@@ -343,13 +342,13 @@ actual open class MediaPlayerService: PlatformService() {
                                 }
                                 download_manager.addDownloadStatusListener(listener)
                             }
-                            DownloadStatus.IDLE, DownloadStatus.CANCELLED, DownloadStatus.PAUSED -> {
-                                download_manager.startDownload(song.id, true) { completed_file, _ ->
-                                    local_file = completed_file
+                            DownloadStatus.Status.IDLE, DownloadStatus.Status.CANCELLED, DownloadStatus.Status.PAUSED -> {
+                                download_manager.startDownload(song.id, true) { status ->
+                                    local_file = status.file
                                     done = true
                                 }
                             }
-                            DownloadStatus.ALREADY_FINISHED, DownloadStatus.FINISHED -> throw IllegalStateException()
+                            DownloadStatus.Status.ALREADY_FINISHED, DownloadStatus.Status.FINISHED -> throw IllegalStateException()
                         }
 
                     }

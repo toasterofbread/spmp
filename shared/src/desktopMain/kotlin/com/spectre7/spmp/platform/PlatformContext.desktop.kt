@@ -16,6 +16,7 @@ import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
 import com.spectre7.spmp.PlayerService
 import com.spectre7.spmp.model.YoutubeMusicAuthInfo
+import com.spectre7.spmp.ui.layout.PlayerViewContext
 import com.spectre7.utils.getString
 import org.jetbrains.skiko.OS
 import org.jetbrains.skiko.hostOs

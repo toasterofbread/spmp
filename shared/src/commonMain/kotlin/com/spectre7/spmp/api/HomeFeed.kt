@@ -355,7 +355,7 @@ data class HeaderRenderer(
     val moreContentButton: MoreContentButton? = null
 ) {
     fun getThumbnails(): List<MediaItem.ThumbnailProvider.Thumbnail> {
-        return (thumbnail ?: foregroundThumbnail)?.thumbnails ?: emptyList()
+        return (foregroundThumbnail ?: thumbnail)?.thumbnails ?: emptyList()
     }
 }
 data class SubscriptionButton(val subscribeButtonRenderer: SubscribeButtonRenderer)

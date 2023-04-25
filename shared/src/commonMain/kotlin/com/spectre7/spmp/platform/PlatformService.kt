@@ -2,20 +2,19 @@ package com.spectre7.spmp.platform
 
 expect open class PlatformService() {
     abstract class PlatformBinder()
-    abstract class BroadcastReceiver() {
-        abstract fun onReceive(data: Map<String, Any?>)
-    }
 
     val context: PlatformContext
 
     open fun onCreate()
     open fun onDestroy()
 
-    open fun onBind(): PlatformBinder? // Binder
+    open fun onBind(): PlatformBinder?
 
-    fun broadcast(data: Map<String, Any?>)
-    fun addBroadcastReceiver(receiver: BroadcastReceiver)
-    fun removeBroadcastReceiver(receiver: BroadcastReceiver)
+    protected fun sendMessageOut(data: Any?)
+    open fun onMessage(data: Any?)
+
+    fun addMessageReceiver(receiver: (Any?) -> Unit)
+    fun removeMessageReceiver(receiver: (Any?) -> Unit)
 
     companion object {
         fun startService(

@@ -1,13 +1,10 @@
 package com.spectre7.spmp
 
-import com.spectre7.spmp.platform.PlatformContext
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.setValue
 import com.spectre7.spmp.model.Song
-import com.spectre7.spmp.platform.MediaPlayerRepeatMode
-import com.spectre7.spmp.platform.MediaPlayerService
-import com.spectre7.spmp.platform.PlatformService
+import com.spectre7.spmp.platform.*
 
 enum class SERVICE_INTENT_ACTIONS { STOP, BUTTON_VOLUME }
 

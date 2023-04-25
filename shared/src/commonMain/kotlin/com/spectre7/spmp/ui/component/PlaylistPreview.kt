@@ -1,6 +1,5 @@
 package com.spectre7.spmp.ui.component
 
-import androidx.compose.animation.core.animateDpAsState
 import androidx.compose.foundation.ExperimentalFoundationApi
 import androidx.compose.foundation.combinedClickable
 import androidx.compose.foundation.interaction.MutableInteractionSource
@@ -16,11 +15,9 @@ import androidx.compose.ui.unit.sp
 import com.spectre7.spmp.model.MediaItem
 import com.spectre7.spmp.model.Playlist
 import com.spectre7.spmp.model.getReadable
-import com.spectre7.spmp.platform.Platform
 import com.spectre7.spmp.platform.platformClickable
 import com.spectre7.utils.setAlpha
 
-@OptIn(ExperimentalFoundationApi::class)
 @Composable
 fun PlaylistPreviewSquare(
     playlist: Playlist,
@@ -35,7 +32,6 @@ fun PlaylistPreviewSquare(
 
     Column(
         params.modifier
-            .padding(10.dp, 0.dp)
             .platformClickable(
                 onClick = {
                     params.playerProvider().onMediaItemClicked(playlist)
@@ -43,17 +39,17 @@ fun PlaylistPreviewSquare(
                 onAltClick = {
                     params.playerProvider().showLongPressMenu(long_press_menu_data)
                 }
-            )
-            .aspectRatio(0.8f),
+            ),
         horizontalAlignment = Alignment.CenterHorizontally,
         verticalArrangement = Arrangement.spacedBy(5.dp)
     ) {
-        playlist.Thumbnail(
-            MediaItem.ThumbnailQuality.LOW,
-            animateDpAsState(getMediaItemPreviewSquareHeight()).value,
-            Modifier
-                .longPressMenuIcon(long_press_menu_data, params.enable_long_press_menu)
-        )
+        Box(Modifier.fillMaxSize().weight(1f), contentAlignment = Alignment.Center) {
+            playlist.Thumbnail(
+                MediaItem.ThumbnailQuality.LOW,
+                Modifier.longPressMenuIcon(long_press_menu_data, params.enable_long_press_menu).aspectRatio(1f),
+                params.content_colour
+            )
+        }
 
         Text(
             playlist.title ?: "",
@@ -94,9 +90,9 @@ fun PlaylistPreviewLong(
     ) {
         playlist.Thumbnail(
             MediaItem.ThumbnailQuality.LOW,
-            40.dp,
             Modifier
-                .longPressMenuIcon(long_press_menu_data, params.enable_long_press_menu),
+                .longPressMenuIcon(long_press_menu_data, params.enable_long_press_menu)
+                .size(40.dp),
             params.content_colour
         )
 

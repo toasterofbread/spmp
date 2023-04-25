@@ -177,7 +177,7 @@ enum class Settings {
                 KEY_YTM_AUTH -> {
                     if (!local_auth_keys_used) {
                         ProjectBuildConfig.LocalKeys?.let { keys ->
-                            local_auth_keys_used = true
+//                            local_auth_keys_used = true
                             YoutubeMusicAuthInfo(
                                 Artist.fromId(keys["YTM_CHANNEL_ID"]!!),
                                 keys["YTM_COOKIE"]!!,

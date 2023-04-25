@@ -94,6 +94,13 @@
     <string name="home_feed_new_releases">新作</string>
     <string name="home_feed_similar_to">似ているかも</string>
     <string name="home_feed_more_from">他の曲</string>
+    <string name="home_feed_rec_general">おすすめ</string>
+    <string name="home_feed_rec_songs">おすすめの曲</string>
+    <string name="home_feed_rec_artists">おすすめのアーティスト</string>
+    <string name="home_feed_rec_albums">おすすめのアルバム</string>
+    <string name="home_feed_rec_playlists">おすすめのプレイリスト</string>
+    <string name="home_feed_rec_music_videos">おすすめのミュージックビデオ</string>
+    <string name="home_feed_rec_albums_playlists">アルバムとプレイリスト</string>
     <string name="playlist">プレイリスト</string>
     <string name="song">曲</string>
     <string name="action_cancel">キャンセル</string>

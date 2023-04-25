@@ -14,13 +14,13 @@ import androidx.compose.ui.composed
 import androidx.compose.ui.graphics.*
 import androidx.compose.ui.graphics.painter.Painter
 import androidx.compose.ui.platform.LocalView
-import androidx.compose.ui.unit.dp
 import androidx.compose.ui.window.Dialog
 import androidx.compose.ui.window.DialogProperties
 import androidx.compose.ui.window.DialogWindowProvider
 import coil.compose.rememberAsyncImagePainter
-import com.google.accompanist.swiperefresh.SwipeRefresh as AccSwipeRefresh
+import com.google.accompanist.swiperefresh.SwipeRefreshIndicator
 import com.google.accompanist.swiperefresh.rememberSwipeRefreshState
+import com.google.accompanist.swiperefresh.SwipeRefresh as AccSwipeRefresh
 
 @OptIn(ExperimentalFoundationApi::class)
 actual fun Modifier.platformClickable(onClick: () -> Unit, onAltClick: (() -> Unit)?, indication: Indication?): Modifier =
@@ -122,6 +122,7 @@ actual fun SwipeRefresh(
     onRefresh: () -> Unit,
     modifier: Modifier,
     swipe_enabled: Boolean,
+    indicator: Boolean,
     content: @Composable () -> Unit
 ) {
     AccSwipeRefresh(
@@ -129,7 +130,12 @@ actual fun SwipeRefresh(
         onRefresh,
         modifier,
         swipe_enabled,
-        content = content
+        content = content,
+        indicator = { s, trigger ->
+            if (indicator || s.isSwipeInProgress) {
+                SwipeRefreshIndicator(s, trigger)
+            }
+        }
     )
 }
 

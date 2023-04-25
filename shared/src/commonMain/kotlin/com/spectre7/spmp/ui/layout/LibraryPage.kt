@@ -24,7 +24,7 @@ fun LibraryPage(
     close: () -> Unit
 ) {
     val download_manager = PlayerServiceHost.download_manager
-    download_manager.download_state
+//    download_manager.download_state
 
     var current_page: MediaItem.Type by remember { mutableStateOf(MediaItem.Type.SONG) }
 
@@ -57,12 +57,12 @@ fun LibraryPage(
             }
         }
 
-        download_manager.iterateDownloadedFiles { file, data ->
-            val song = Song.fromId(data.id)
+        // TODO
 
-            item {
-                song.PreviewLong(MediaItem.PreviewParams(playerProvider))
-            }
-        }
+//        download_manager.getDownloadedSongs().forEach { status ->
+//            item {
+//                status.song.PreviewLong(MediaItem.PreviewParams(playerProvider))
+//            }
+//        }
     }
 }

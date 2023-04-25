@@ -22,6 +22,8 @@ import androidx.compose.ui.unit.times
 import com.spectre7.spmp.*
 import com.spectre7.spmp.model.MediaItem
 import com.spectre7.spmp.model.Song
+import com.spectre7.spmp.platform.PlayerDownloadManager
+import com.spectre7.spmp.platform.PlayerDownloadManager.DownloadStatus
 import com.spectre7.spmp.platform.vibrateShort
 import com.spectre7.spmp.ui.layout.PlayerViewContext
 import com.spectre7.spmp.ui.layout.nowplaying.NOW_PLAYING_MAIN_PADDING
@@ -52,7 +54,7 @@ class MainOverlayMenu(
 
         val download_progress = remember { Animatable(0f) }
         var download_progress_target: Float by remember { mutableStateOf(0f) }
-        var download_status: PlayerDownloadService.DownloadStatus? by remember { mutableStateOf(null) }
+        var download_status: DownloadStatus.Status? by remember { mutableStateOf(null) }
 
         LaunchedEffect(songProvider().id) {
             download_status = null
@@ -60,16 +62,13 @@ class MainOverlayMenu(
             download_progress_target = 0f
 
             PlayerServiceHost.download_manager.getSongDownloadStatus(songProvider().id) {
-                download_status = it
+                download_status = it.status
             }
         }
 
         DisposableEffect(Unit) {
-            val status_listener = object : PlayerDownloadManager.DownloadStatusListener() {
-                override fun onSongDownloadStatusChanged(
-                    song_id: String,
-                    status: PlayerDownloadService.DownloadStatus,
-                ) {
+            val status_listener = object : PlayerDownloadManager.DownloadStatusListener {
+                override fun onSongDownloadStatusChanged(song_id: String, status: DownloadStatus.Status) {
                     if (song_id == songProvider().id) {
                         download_status = status
                     }
@@ -88,9 +87,9 @@ class MainOverlayMenu(
 
         LaunchedEffect(Unit) {
             while (true) {
-                if (download_status == PlayerDownloadService.DownloadStatus.DOWNLOADING || download_status == PlayerDownloadService.DownloadStatus.PAUSED) {
-                    PlayerServiceHost.download_manager.getSongDownloadProgress(songProvider().id) {
-                        download_progress_target = it
+                if (download_status == DownloadStatus.Status.DOWNLOADING || download_status == DownloadStatus.Status.PAUSED) {
+                    PlayerServiceHost.download_manager.getSongDownloadStatus(songProvider().id) {
+                        download_progress_target = it.progress
                     }
                 }
                 delay(1500)
@@ -244,9 +243,9 @@ class MainOverlayMenu(
                         Icon(Icons.Filled.Download, null, Modifier.align(Alignment.Center), tint = button_colour)
                         Crossfade(
                             when (download_status) {
-                                PlayerDownloadService.DownloadStatus.PAUSED -> Icons.Filled.Pause
-                                PlayerDownloadService.DownloadStatus.FINISHED, PlayerDownloadService.DownloadStatus.ALREADY_FINISHED -> Icons.Filled.Done
-                                PlayerDownloadService.DownloadStatus.CANCELLED -> Icons.Filled.Cancel
+                                DownloadStatus.Status.PAUSED -> Icons.Filled.Pause
+                                DownloadStatus.Status.FINISHED, DownloadStatus.Status.ALREADY_FINISHED -> Icons.Filled.Done
+                                DownloadStatus.Status.CANCELLED -> Icons.Filled.Cancel
                                 else -> null
                             }
                         ) { icon ->
@@ -261,7 +260,7 @@ class MainOverlayMenu(
                         }
                     }
 
-                    if (download_status == PlayerDownloadService.DownloadStatus.DOWNLOADING || download_status == PlayerDownloadService.DownloadStatus.PAUSED) {
+                    if (download_status == DownloadStatus.Status.DOWNLOADING || download_status == DownloadStatus.Status.PAUSED) {
                         CircularProgressIndicator(download_progress.value, Modifier.size(button_size), color = button_colour, strokeWidth = 2.dp)
                     }
                 }

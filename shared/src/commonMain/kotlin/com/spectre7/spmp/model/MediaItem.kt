@@ -4,6 +4,7 @@ import androidx.compose.animation.Crossfade
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.foundation.layout.requiredSize
 import androidx.compose.foundation.layout.size
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.*
@@ -523,11 +524,14 @@ abstract class MediaItem(id: String) {
             state.loading = true
         }
 
-        state.image = downloadThumbnail(quality)
-
-        synchronized(state) {
-            state.loading = false
-            (state as Object).notifyAll()
+        try {
+            state.image = downloadThumbnail(quality)
+        }
+        finally {
+            synchronized(state) {
+                state.loading = false
+                (state as Object).notifyAll()
+            }
         }
 
         return state.image
@@ -557,24 +561,25 @@ abstract class MediaItem(id: String) {
     abstract fun PreviewLong(params: PreviewParams)
 
     @Composable
-    fun Thumbnail(quality: ThumbnailQuality, size: Dp, modifier: Modifier = Modifier, contentColourProvider: () -> Color = { Color.White }) {
+    fun Thumbnail(quality: ThumbnailQuality, modifier: Modifier = Modifier, contentColourProvider: () -> Color = { Color.White }) {
         LaunchedEffect(quality, canLoadThumbnail()) {
+            if (!canLoadThumbnail()) {
+                thread { loadData() }
+            }
             getThumbnail(quality)
         }
 
-        Box(Modifier.size(size)) {
-            Crossfade(thumb_states[quality]!!.image) { thumbnail ->
-                if (thumbnail == null) {
-                    SubtleLoadingIndicator(contentColourProvider, modifier.fillMaxSize())
-                }
-                else {
-                    Image(
-                        thumbnail,
-                        contentDescription = null,
-                        contentScale = ContentScale.Crop,
-                        modifier = modifier.size(size)
-                    )
-                }
+        Crossfade(thumb_states[quality]!!.image) { thumbnail ->
+            if (thumbnail == null) {
+                SubtleLoadingIndicator(contentColourProvider, modifier.fillMaxSize())
+            }
+            else {
+                Image(
+                    thumbnail,
+                    contentDescription = null,
+                    contentScale = ContentScale.Crop,
+                    modifier = modifier
+                )
             }
         }
     }

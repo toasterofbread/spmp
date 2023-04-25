@@ -295,7 +295,7 @@ fun LongPressIconMenu(
                     .offset { IntOffset(0, y_offset) }
                     .background(Color.Black.setAlpha(0.5f * panel_alpha.value))
             ) {
-                val shape = RoundedCornerShape(topStartPercent = 12, topEndPercent = 12)
+                val shape = RoundedCornerShape(topStart = 16.dp, topEnd = 16.dp)
 
                 Column(Modifier.fillMaxSize()) {
                     Spacer(Modifier
@@ -346,7 +346,7 @@ fun LongPressIconMenu(
                                     .fillMaxSize()
                                     .weight(1f)
                                     .padding(horizontal = 15.dp), 
-                                verticalArrangement = Arrangement.Center
+                                verticalArrangement = Arrangement.SpaceEvenly
                             ) {
                                 Marquee(false) {
                                     Text(

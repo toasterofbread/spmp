@@ -10,20 +10,6 @@ import androidx.localbroadcastmanager.content.LocalBroadcastManager
 actual open class PlatformService: Service() {
 
     actual abstract class PlatformBinder: Binder()
-    actual abstract class BroadcastReceiver: android.content.BroadcastReceiver() {
-        actual abstract fun onReceive(data: Map<String, Any?>)
-
-        override fun onReceive(context: Context, intent: Intent) {
-            val data = mutableMapOf<String, Any>()
-            intent.extras?.also { extras ->
-                for (extra in extras.keySet()) {
-                    data[extra] = extras[extra] as Any
-                }
-            }
-            onReceive(data)
-        }
-
-    }
 
     actual val context: PlatformContext get() = PlatformContext(this)
 
@@ -41,35 +27,18 @@ actual open class PlatformService: Service() {
         return START_NOT_STICKY
     }
 
-    private val intent_action: String get() = javaClass.name
-
-    actual fun broadcast(data: Map<String, Any?>) {
-        val intent = Intent(intent_action)
-        for (entry in data.entries) {
-            when (val value = entry.value) {
-                is Boolean -> intent.putExtra(entry.key, value)
-                is Byte -> intent.putExtra(entry.key, value)
-                is Char -> intent.putExtra(entry.key, value)
-                is Short -> intent.putExtra(entry.key, value)
-                is Int -> intent.putExtra(entry.key, value)
-                is Long -> intent.putExtra(entry.key, value)
-                is Float -> intent.putExtra(entry.key, value)
-                is Double -> intent.putExtra(entry.key, value)
-                is String -> intent.putExtra(entry.key, value)
-                is CharSequence -> intent.putExtra(entry.key, value)
-                is Parcelable -> intent.putExtra(entry.key, value)
-                null -> intent.removeExtra(entry.key)
-                else -> throw NotImplementedError(value::class.java.name)
-            }
-        }
-        LocalBroadcastManager.getInstance(context.ctx).sendBroadcast(intent)
+    private val message_receivers: MutableList<(Any?) -> Unit> = mutableListOf()
+    actual fun sendMessageOut(data: Any?) {
+        message_receivers.forEach { it(data) }
     }
 
-    actual fun addBroadcastReceiver(receiver: BroadcastReceiver) {
-        LocalBroadcastManager.getInstance(this).registerReceiver(receiver, IntentFilter(intent_action))
+    actual open fun onMessage(data: Any?) {}
+
+    actual fun addMessageReceiver(receiver: (Any?) -> Unit) {
+        message_receivers.add(receiver)
     }
-    actual fun removeBroadcastReceiver(receiver: BroadcastReceiver) {
-        LocalBroadcastManager.getInstance(this).unregisterReceiver(receiver)
+    actual fun removeMessageReceiver(receiver: (Any?) -> Unit) {
+        message_receivers.remove(receiver)
     }
 
     actual companion object {

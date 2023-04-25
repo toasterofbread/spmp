@@ -2,50 +2,53 @@
 
 package com.spectre7.spmp.ui.layout
 
+import SpMp
 import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.animation.Crossfade
+import androidx.compose.animation.core.Animatable
 import androidx.compose.animation.core.animateDpAsState
-import androidx.compose.foundation.ScrollState
-import androidx.compose.foundation.background
+import androidx.compose.animation.core.tween
+import androidx.compose.animation.expandVertically
+import androidx.compose.animation.shrinkVertically
+import androidx.compose.foundation.*
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyListState
-import androidx.compose.foundation.lazy.rememberLazyListState
+import androidx.compose.foundation.lazy.LazyRow
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.material.ExperimentalMaterialApi
+import androidx.compose.material.SwipeableState
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.*
 import androidx.compose.material3.*
-import androidx.compose.material.SwipeableState
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.alpha
+import androidx.compose.ui.draw.clip
+import androidx.compose.ui.graphics.graphicsLayer
 import androidx.compose.ui.layout.onSizeChanged
-import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.unit.*
 import com.spectre7.spmp.PlayerServiceHost
-import com.spectre7.spmp.platform.ProjectPreferences
 import com.spectre7.spmp.api.cast
 import com.spectre7.spmp.api.getHomeFeed
 import com.spectre7.spmp.api.getOrThrowHere
 import com.spectre7.spmp.model.*
-import com.spectre7.spmp.platform.BackHandler
-import com.spectre7.spmp.platform.SwipeRefresh
-import com.spectre7.spmp.platform.isScreenLarge
+import com.spectre7.spmp.platform.*
 import com.spectre7.spmp.ui.component.*
 import com.spectre7.spmp.ui.layout.nowplaying.NOW_PLAYING_VERTICAL_PAGE_COUNT
 import com.spectre7.spmp.ui.layout.nowplaying.NowPlaying
 import com.spectre7.spmp.ui.layout.nowplaying.ThemeMode
 import com.spectre7.spmp.ui.theme.Theme
 import com.spectre7.utils.*
-import com.spectre7.utils.getString
 import kotlinx.coroutines.*
-import kotlinx.coroutines.sync.Semaphore
 import java.util.concurrent.locks.ReentrantLock
 import kotlin.concurrent.thread
 
 const val MINIMISED_NOW_PLAYING_HEIGHT: Int = 64
-enum class OverlayPage { SEARCH, SETTINGS, MEDIAITEM, LIBRARY, RADIO_BUILDER }
+const val MEDIAITEM_PREVIEW_SQUARE_SIZE_SMALL: Float = 100f
+const val MEDIAITEM_PREVIEW_SQUARE_SIZE_LARGE: Float = 200f
+
+enum class OverlayPage { SEARCH, SETTINGS, MEDIAITEM, LIBRARY, RADIO_BUILDER, YTM_LOGIN }
 
 private enum class FeedLoadState { NONE, LOADING, CONTINUING }
 
@@ -351,7 +354,10 @@ private class PlayerViewContextImpl: PlayerViewContext(null, null, null) {
                 }
 
                 val (layouts, cont) = result.getOrThrow()
-                main_page_layouts.addAll(layouts)
+                for (layout in layouts) {
+                    layout.itemSizeProvider = { getMainPageItemSize() }
+                    main_page_layouts.add(layout)
+                }
                 feed_continuation = cont
             }
 
@@ -400,6 +406,12 @@ private class PlayerViewContextImpl: PlayerViewContext(null, null, null) {
                     }
                     OverlayPage.LIBRARY -> LibraryPage(pill_menu, playerProvider, close)
                     OverlayPage.RADIO_BUILDER -> RadioBuilderPage(pill_menu, if (PlayerServiceHost.session_started) MINIMISED_NOW_PLAYING_HEIGHT.dp else 0.dp, playerProvider, close)
+                    OverlayPage.YTM_LOGIN -> YoutubeMusicLogin(Modifier.fillMaxSize()) { result ->
+                        result.fold(
+                            { Settings.KEY_YTM_AUTH.set(it) },
+                            { TODO(it.toString()) }
+                        )
+                    }
                 }
             }
         }
@@ -477,6 +489,15 @@ fun PlayerView() {
 }
 
 @Composable
+private fun getMainPageItemSize(): DpSize {
+    val width = if (SpMp.context.isScreenLarge()) MEDIAITEM_PREVIEW_SQUARE_SIZE_LARGE.dp else MEDIAITEM_PREVIEW_SQUARE_SIZE_SMALL.dp
+    return DpSize(
+        width,
+        width + 30.dp
+    )
+}
+
+@Composable
 private fun MainPage(
     pinned_items: MutableList<MediaItem>,
     layouts: MutableList<MediaItemLayout>,
@@ -487,52 +508,206 @@ private fun MainPage(
     loadFeed: (continuation: Boolean) -> Unit
 ) {
     val padding by animateDpAsState(if (SpMp.context.isScreenLarge()) 30.dp else 10.dp)
-    val pinned_layout = remember(pinned_items) { MediaItemLayout("Pinned", null, MediaItemLayout.Type.GRID, pinned_items) }
 
-    SwipeRefresh(
-        state = feed_load_state.value == FeedLoadState.LOADING,
-        onRefresh = { loadFeed(false) },
-        swipe_enabled = feed_load_state.value == FeedLoadState.NONE,
-        modifier = Modifier.padding(horizontal = padding)
-    ) {
-        val state by remember { derivedStateOf { if (feed_load_state.value == FeedLoadState.LOADING) null else layouts.isNotEmpty() } }
-        Crossfade(state) { s ->
-            if (s == null) {
-                MainPageLoadingView(Modifier.fillMaxSize())
+    var auth_info: YoutubeMusicAuthInfo by remember { mutableStateOf(YoutubeMusicAuthInfo(Settings.KEY_YTM_AUTH.get())) }
+    DisposableEffect(Unit) {
+        val prefs_listener = object : ProjectPreferences.Listener {
+            override fun onChanged(prefs: ProjectPreferences, key: String) {
+                if (key == Settings.KEY_YTM_AUTH.name) {
+                    auth_info = YoutubeMusicAuthInfo(Settings.KEY_YTM_AUTH.get(prefs))
+                }
             }
-            else if (s) {
-                LazyMediaItemLayoutColumn(
-                    layouts,
-                    playerProvider,
-                    padding = PaddingValues(
-                        top = SpMp.context.getStatusBarHeight() + padding,
-                        bottom = playerProvider().bottom_padding
-                    ),
-                    onContinuationRequested = if (can_continue_feed) {
-                        { loadFeed(true) }
-                    } else null,
-                    continuation_alignment = Alignment.Start,
-                    loading_continuation = feed_load_state.value != FeedLoadState.NONE,
-                    scroll_state = scroll_state,
-                    vertical_arrangement = Arrangement.spacedBy(15.dp),
-                    topContent = {
-                        item {
-                            RadioBuilderCard(playerProvider, Modifier.fillMaxWidth().padding(5.dp))
-                        }
-                        item {
-                            AnimatedVisibility(pinned_layout.items.isNotEmpty()) {
-                                pinned_layout.Layout(playerProvider)
+        }
+
+        Settings.prefs.addListener(prefs_listener)
+
+        onDispose {
+            Settings.prefs.removeListener(prefs_listener)
+        }
+    }
+
+    Column(Modifier.padding(horizontal = padding)) {
+        // Top bar
+        Row(Modifier.padding(top = SpMp.context.getStatusBarHeight())) {
+
+            // TODO | Lyrics
+            Spacer(Modifier.fillMaxWidth().weight(1f))
+
+            IconButton({
+                if (auth_info.initialised) {
+                    playerProvider().onMediaItemClicked(auth_info.own_channel)
+                }
+                else {
+                    playerProvider().setOverlayPage(OverlayPage.YTM_LOGIN)
+                }
+            }) {
+                Crossfade(auth_info) { info ->
+                    if (auth_info.initialised) {
+                        info.own_channel.Thumbnail(MediaItem.ThumbnailQuality.LOW, Modifier.clip(CircleShape).size(27.dp))
+                    }
+                    else {
+                        Icon(Icons.Filled.Person, null)
+                    }
+                }
+            }
+        }
+
+        // Main scrolling view
+        SwipeRefresh(
+            state = feed_load_state.value == FeedLoadState.LOADING,
+            onRefresh = { loadFeed(false) },
+            swipe_enabled = feed_load_state.value == FeedLoadState.NONE,
+            indicator = false
+        ) {
+            val state by remember { derivedStateOf { if (feed_load_state.value == FeedLoadState.LOADING) null else layouts.isNotEmpty() } }
+            var current_state by remember { mutableStateOf(state) }
+            val state_alpha = remember { Animatable(1f) }
+
+            LaunchedEffect(state) {
+                state_alpha.animateTo(0f, tween(300))
+                current_state = state
+                state_alpha.animateTo(1f, tween(300))
+            }
+
+            when (current_state) {
+                // Loaded
+                true -> {
+                    LazyMediaItemLayoutColumn(
+                        layouts,
+                        playerProvider,
+                        layout_modifier = Modifier.graphicsLayer { alpha = state_alpha.value },
+                        padding = PaddingValues(
+                            bottom = playerProvider().bottom_padding
+                        ),
+                        onContinuationRequested = if (can_continue_feed) {
+                            { loadFeed(true) }
+                        } else null,
+                        continuation_alignment = Alignment.Start,
+                        loading_continuation = feed_load_state.value != FeedLoadState.NONE,
+                        scroll_state = scroll_state,
+                        scroll_enabled = !state_alpha.isRunning,
+                        spacing = 30.dp,
+                        topContent = {
+                            item {
+                                MainPageScrollableTopContent(playerProvider, pinned_items)
                             }
                         }
+                    ) { MediaItemLayout.Type.GRID }
+                }
+                // Offline
+                false -> {
+                    // TODO
+                    Text("Offline", Modifier.padding(top = SpMp.context.getStatusBarHeight() + padding))
+                }
+                // Loading
+                null -> {
+                    Column(Modifier.fillMaxSize()) {
+                        MainPageScrollableTopContent(playerProvider, pinned_items)
+                        MainPageLoadingView(Modifier.graphicsLayer { alpha = state_alpha.value }.fillMaxSize())
                     }
-                ) { MediaItemLayout.Type.GRID }
-            }
-            else {
-                // Offline layout
-                Text("Offline", Modifier.padding(top = SpMp.context.getStatusBarHeight() + padding))
+                }
             }
         }
     }
+}
+
+@OptIn(ExperimentalMaterial3Api::class)
+@Composable
+private fun MainPageScrollableTopContent(playerProvider: () -> PlayerViewContext, pinned_items: MutableList<MediaItem>) {
+    val pinned_layout = remember(pinned_items) {
+        MediaItemLayout(
+            null, null,
+            MediaItemLayout.Type.ROW,
+            pinned_items,
+            itemSizeProvider = { getMainPageItemSize() * 0.8f }
+        )
+    }
+
+    Column(Modifier.fillMaxWidth(), verticalArrangement = Arrangement.spacedBy(20.dp)) {
+        AnimatedVisibility(
+            pinned_layout.items.isNotEmpty(),
+            enter = expandVertically(),
+            exit = shrinkVertically()
+        ) {
+            MediaItemGrid(
+                pinned_layout,
+                playerProvider,
+                rows = 1,
+                startContent = {
+                    item {
+                        Column(
+                            Modifier.fillMaxHeight(),
+                            verticalArrangement = Arrangement.SpaceEvenly,
+                            horizontalAlignment = Alignment.CenterHorizontally
+                        ) {
+                            Box(Modifier.size(30.dp), contentAlignment = Alignment.Center) {
+                                Icon(Icons.Filled.PushPin, null, Modifier.alpha(0.5f))
+                            }
+                            IconButton({
+                                for (i in 0 until pinned_items.size) {
+                                    pinned_items.first().setPinnedToHome(false, playerProvider)
+                                }
+                            }, Modifier.size(30.dp)) {
+                                Icon(Icons.Filled.CleaningServices, null)
+                            }
+                        }
+                    }
+                }
+            )
+        }
+
+        LazyRow(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.spacedBy(10.dp)) {
+//            item {
+//                IconButton({ playerProvider().setOverlayPage(OverlayPage.RADIO_BUILDER) }) {
+//                    Row {
+//                        Icon(Icons.Filled.Radio, null)
+//                        Icon(Icons.Filled.Add, null)
+//                    }
+//                }
+//            }
+
+            item {
+                ElevatedFilterChip(
+                    false,
+                    {},
+                    { Text("Relax") }
+                )
+            }
+
+            item {
+                ElevatedFilterChip(
+                    false,
+                    {},
+                    { Text("Energise") }
+                )
+            }
+
+            item {
+                ElevatedFilterChip(
+                    true,
+                    {},
+                    { Text("Commute") }
+                )
+            }
+
+            item {
+                ElevatedFilterChip(
+                    true,
+                    {},
+                    { Text("Workout") }
+                )
+            }
+
+            item {
+                ElevatedFilterChip(
+                    true,
+                    {},
+                    { Text("Focus") }
+                )
+            }
+        }
+    }
+
 }
 
 @Composable
@@ -547,43 +722,48 @@ private fun MainPageLoadingView(modifier: Modifier = Modifier) {
     }
 }
 
-@Composable
-private fun RadioBuilderCard(playerProvider: () -> PlayerViewContext, modifier: Modifier = Modifier) {
-    Card(
-        modifier,
-        colors = CardDefaults.cardColors(
-            containerColor = Theme.current.vibrant_accent,
-            contentColor = Theme.current.vibrant_accent.getContrasted()
-        )
-    ) {
-        Column(Modifier.padding(15.dp), verticalArrangement = Arrangement.spacedBy(15.dp)) {
-            WidthShrinkText(getString("radio_builder_title"), fontSize = 25.sp, colour = Theme.current.vibrant_accent.getContrasted())
-
-            Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.SpaceEvenly) {
-                val button_colours = ButtonDefaults.buttonColors(
-                    containerColor = Theme.current.vibrant_accent.getContrasted(),
-                    contentColor = Theme.current.vibrant_accent
-                )
-
-                ShapedIconButton(
-                    { playerProvider().setOverlayPage(OverlayPage.RADIO_BUILDER) },
-                    shape = CircleShape,
-                    colors = button_colours.toIconButtonColours()
-                ) {
-                    Icon(Icons.Filled.Add, null)
-                }
-
-                val button_padding = PaddingValues(15.dp, 5.dp)
-                Button({ TODO() }, contentPadding = button_padding, colors = button_colours) {
-                    WidthShrinkText(getString("radio_builder_play_last_button"))
-                }
-                Button({ TODO() }, contentPadding = button_padding, colors = button_colours) {
-                    WidthShrinkText(getString("radio_builder_recent_button"))
-                }
-            }
-        }
-    }
-}
+//@Composable
+//private fun RadioBuilderCard(playerProvider: () -> PlayerViewContext, modifier: Modifier = Modifier) {
+//    Card(
+//        modifier,
+//        colors = CardDefaults.cardColors(
+//            containerColor = Theme.current.vibrant_accent,
+//            contentColor = Theme.current.vibrant_accent.getContrasted()
+//        )
+//    ) {
+//        Column(Modifier.padding(10.dp), verticalArrangement = Arrangement.spacedBy(5.dp)) {
+//            WidthShrinkText(
+//                getString("radio_builder_title"),
+//                modifier = Modifier.padding(horizontal = 15.dp),
+//                fontSize = 25.sp,
+//                colour = Theme.current.vibrant_accent.getContrasted()
+//            )
+//
+//            Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.SpaceEvenly) {
+//                val button_colours = ButtonDefaults.buttonColors(
+//                    containerColor = Theme.current.vibrant_accent.getContrasted(),
+//                    contentColor = Theme.current.vibrant_accent
+//                )
+//
+//                ShapedIconButton(
+//                    { playerProvider().setOverlayPage(OverlayPage.RADIO_BUILDER) },
+//                    shape = CircleShape,
+//                    colors = button_colours.toIconButtonColours()
+//                ) {
+//                    Icon(Icons.Filled.Add, null)
+//                }
+//
+//                val button_padding = PaddingValues(15.dp, 5.dp)
+//                Button({ TODO() }, contentPadding = button_padding, colors = button_colours) {
+//                    WidthShrinkText(getString("radio_builder_play_last_button"))
+//                }
+//                Button({ TODO() }, contentPadding = button_padding, colors = button_colours) {
+//                    WidthShrinkText(getString("radio_builder_recent_button"))
+//                }
+//            }
+//        }
+//    }
+//}
 
 private fun loadFeedLayouts(min_rows: Int, allow_cached: Boolean, continuation: String? = null): Result<Pair<List<MediaItemLayout>, String?>> {
     val result = getHomeFeed(allow_cached = allow_cached, min_rows = min_rows, continuation = continuation)

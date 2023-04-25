@@ -65,6 +65,20 @@ fun loadBrowseId(browse_id: String, params: String? = null): Result<List<MediaIt
     return Result.success(ret)
 }
 
+private fun unescape(input: String): String {
+    val regex = "\\\\x([0-9a-fA-F]{2})"
+    val pattern = Pattern.compile(regex)
+    val matcher = pattern.matcher(input)
+    val sb = StringBuffer()
+    while (matcher.find()) {
+        val hex = matcher.group(1)
+        val decimal = Integer.parseInt(hex, 16)
+        matcher.appendReplacement(sb, decimal.toChar().toString())
+    }
+    matcher.appendTail(sb)
+    return sb.toString()
+}
+
 fun loadMediaItemData(item: MediaItem): Result<MediaItem?> {
     val lock = item.loading_lock
     val item_id = item.id
@@ -133,20 +147,6 @@ fun loadMediaItemData(item: MediaItem): Result<MediaItem?> {
     if (response != null) {
         val response_body = response.getStream()
 
-        fun unescape(input: String): String {
-            val regex = "\\\\x([0-9a-fA-F]{2})"
-            val pattern = Pattern.compile(regex)
-            val matcher = pattern.matcher(input)
-            val sb = StringBuffer()
-            while (matcher.find()) {
-                val hex = matcher.group(1)
-                val decimal = Integer.parseInt(hex, 16)
-                matcher.appendReplacement(sb, decimal.toChar().toString())
-            }
-            matcher.appendTail(sb)
-            return sb.toString()
-        }
-
         if (is_radio) {
             check(item is Playlist)
 
@@ -178,20 +178,6 @@ fun loadMediaItemData(item: MediaItem): Result<MediaItem?> {
                 null, null,
                 MediaItemLayout.Type.LIST,
                 parsed.contents.mapNotNull { data ->
-//                    val renderer = data.musicResponsiveListItemRenderer ?: return@mapNotNull null
-//
-//                    val song = Song.fromId(renderer.playlistItemData!!.videoId)
-//                    song.supplyTitle(renderer.flexColumns!!.first().musicResponsiveListItemFlexColumnRenderer.text.first_text, true)
-//                    song.supplyThumbnailProvider(MediaItem.ThumbnailProvider.fromThumbnails(renderer.thumbnail!!.musicThumbnailRenderer.thumbnail.thumbnails))
-//
-//                    val artist_result = renderer.getArtist(song)
-//                    if (artist_result.isFailure) {
-//                        return artist_result.cast()
-//                    }
-//
-//                    val (artist, certain) = artist_result.getOrThrow()
-//                    song.supplyArtist(artist, certain)
-
                     return@mapNotNull data.toMediaItem().also { check(it is Song) }
                 }.toMutableList(),
                 continuation = continuation?.let { MediaItemLayout.Continuation(it, MediaItemLayout.Continuation.Type.SONG, item_id) }
@@ -204,6 +190,7 @@ fun loadMediaItemData(item: MediaItem): Result<MediaItem?> {
 
         if (item is MediaItemWithLayouts) {
             val parsed: YoutubeiBrowseResponse = DataApi.klaxon.parse(response_body)!!
+            response_body.close()
 
             val header_renderer: HeaderRenderer?
             if (parsed.header != null) {

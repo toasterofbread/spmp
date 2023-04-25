@@ -22,20 +22,12 @@ import androidx.compose.ui.graphics.Shape
 import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.*
-import com.spectre7.spmp.PlayerDownloadService
+import com.spectre7.spmp.platform.PlayerDownloadManager.DownloadStatus
 import com.spectre7.spmp.PlayerServiceHost
 import com.spectre7.spmp.model.MediaItem
 import com.spectre7.spmp.model.Song
 import com.spectre7.spmp.platform.*
 import com.spectre7.utils.*
-import java.io.File
-
-const val MEDIAITEM_PREVIEW_SQUARE_SIZE_SMALL: Float = 100f
-const val MEDIAITEM_PREVIEW_SQUARE_SIZE_LARGE: Float = 200f
-
-@Composable
-fun getMediaItemPreviewSquareHeight(context: PlatformContext = SpMp.context): Dp =
-    if (context.isScreenLarge()) MEDIAITEM_PREVIEW_SQUARE_SIZE_LARGE.dp else MEDIAITEM_PREVIEW_SQUARE_SIZE_SMALL.dp
 
 @Composable
 fun SongPreviewSquare(
@@ -49,7 +41,6 @@ fun SongPreviewSquare(
 
     Column(
         params.modifier
-            .padding(10.dp, 0.dp)
             .platformClickable(
                 onClick = {
                     params
@@ -61,18 +52,17 @@ fun SongPreviewSquare(
                         .playerProvider()
                         .showLongPressMenu(long_press_menu_data)
                 }
-            )
-            .aspectRatio(0.8f),
+            ),
         horizontalAlignment = Alignment.CenterHorizontally,
         verticalArrangement = Arrangement.spacedBy(5.dp)
     ) {
-        song.Thumbnail(
-            MediaItem.ThumbnailQuality.LOW,
-            animateDpAsState(getMediaItemPreviewSquareHeight()).value,
-            Modifier
-                .longPressMenuIcon(long_press_menu_data, params.enable_long_press_menu),
-            params.content_colour
-        )
+        Box(Modifier.fillMaxSize().weight(1f), contentAlignment = Alignment.Center) {
+            song.Thumbnail(
+                MediaItem.ThumbnailQuality.LOW,
+                Modifier.longPressMenuIcon(long_press_menu_data, params.enable_long_press_menu).aspectRatio(1f),
+                params.content_colour
+            )
+        }
 
         Text(
             song.title ?: "",
@@ -116,9 +106,9 @@ fun SongPreviewLong(
     ) {
         song.Thumbnail(
             MediaItem.ThumbnailQuality.LOW,
-            40.dp,
             Modifier
-                .longPressMenuIcon(long_press_menu_data, params.enable_long_press_menu),
+                .longPressMenuIcon(long_press_menu_data, params.enable_long_press_menu)
+                .size(40.dp),
             params.content_colour
         )
 
@@ -331,11 +321,11 @@ private fun LongPressMenuActionProvider.SongLongPressPopupActions(song: MediaIte
     }
 
     ActionButton(Icons.Filled.Download, "Download", onClick = {
-        PlayerServiceHost.download_manager.startDownload(song.id) { file: File?, status: PlayerDownloadService.DownloadStatus ->
-            when (status) {
-                PlayerDownloadService.DownloadStatus.FINISHED -> SpMp.context.sendToast("Download completed")
-                PlayerDownloadService.DownloadStatus.ALREADY_FINISHED -> SpMp.context.sendToast("Already downloaded")
-                PlayerDownloadService.DownloadStatus.CANCELLED -> SpMp.context.sendToast("Download was cancelled")
+        PlayerServiceHost.download_manager.startDownload(song.id) { status: DownloadStatus ->
+            when (status.status) {
+                DownloadStatus.Status.FINISHED -> SpMp.context.sendToast("Download completed")
+                DownloadStatus.Status.ALREADY_FINISHED -> SpMp.context.sendToast("Already downloaded")
+                DownloadStatus.Status.CANCELLED -> SpMp.context.sendToast("Download was cancelled")
 
                 // IDLE, DOWNLOADING, PAUSED
                 else -> {

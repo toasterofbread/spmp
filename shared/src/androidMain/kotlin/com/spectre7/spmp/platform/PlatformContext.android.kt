@@ -43,6 +43,8 @@ import android.view.WindowInsetsController.APPEARANCE_LIGHT_STATUS_BARS
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.toArgb
 import com.spectre7.spmp.model.YoutubeMusicAuthInfo
+import com.spectre7.spmp.ui.layout.OverlayPage
+import com.spectre7.spmp.ui.layout.PlayerViewContext
 import com.spectre7.utils.getStringTemp
 import com.spectre7.utils.getString
 

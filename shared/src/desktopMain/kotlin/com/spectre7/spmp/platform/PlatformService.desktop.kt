@@ -2,7 +2,7 @@ package com.spectre7.spmp.platform
 
 actual open class PlatformService: PlatformContext() {
     actual abstract class PlatformBinder actual constructor()
-    actual abstract class BroadcastReceiver actual constructor() {
+    actual abstract class MessageReceiver actual constructor() {
         actual abstract fun onReceive(data: Map<String, Any?>)
     }
 
@@ -30,11 +30,11 @@ actual open class PlatformService: PlatformContext() {
         TODO()
     }
 
-    actual fun addBroadcastReceiver(receiver: BroadcastReceiver) {
+    actual fun addMessageReceiver(receiver: MessageReceiver) {
         TODO()
     }
 
-    actual fun removeBroadcastReceiver(receiver: BroadcastReceiver) {
+    actual fun removeMessageReceiver(receiver: MessageReceiver) {
         TODO()
     }
 

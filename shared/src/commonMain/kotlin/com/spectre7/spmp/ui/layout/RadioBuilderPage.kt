@@ -519,7 +519,7 @@ private fun RadioArtistSelector(
                                 if (border_expansion.value > 0f) {
                                     Box(Modifier
                                         .size(thumb_size + selected_border_size * border_expansion.value)
-                                        .border(1.dp, Theme.current.on_background, CircleShape)
+                                        .border(1.dp, Theme.current.on_background, RoundedCornerShape(ARTIST_THUMB_CORNER_ROUNDING.dp))
                                     )
                                 }
                                 artist.Thumbnail(

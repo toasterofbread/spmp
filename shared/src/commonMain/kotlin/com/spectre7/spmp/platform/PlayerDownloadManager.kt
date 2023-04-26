@@ -19,7 +19,6 @@ expect class PlayerDownloadManager(context: PlatformContext) {
     fun addDownloadStatusListener(listener: DownloadStatusListener)
     fun removeDownloadStatusListener(listener: DownloadStatusListener)
 
-
     fun getDownloadedSongs(): List<DownloadStatus>
     @Synchronized
     fun startDownload(song_id: String, silent: Boolean = false, onCompleted: ((DownloadStatus) -> Unit)? = null)

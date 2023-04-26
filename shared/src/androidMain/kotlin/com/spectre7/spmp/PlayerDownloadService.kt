@@ -282,23 +282,18 @@ class PlayerDownloadService: PlatformService() {
         executor.submit {
             runBlocking {
                 var result: Result<File?>? = null
-                println(1)
                 try {
                     println(Klaxon().toJsonString(downloads))
                 }
                 catch (e: Throwable) {
                     println("E: $e")
                 }
-                println(2)
                 while (result == null || download.status == DownloadStatus.Status.IDLE || download.status == DownloadStatus.Status.PAUSED) {
-                println(2)
                     if (paused && !download.cancelled) {
                         onDownloadProgress()
                         delay(1000)
-                println(3)
                         continue
                     }
-                println(4)
 
                     result = try {
                         performDownload(download)
@@ -306,30 +301,22 @@ class PlayerDownloadService: PlatformService() {
                     catch (e: Exception) {
                         Result.failure(e)
                     }
-                println(5)
                 }
-                println(6)
 
                 synchronized(downloads) {
                     downloads.removeIf { it.id == download.id }
-                println(7)
                     if (downloads.isEmpty()) {
-                println(8)
                         cancelled = download.cancelled
                         stopForeground(false)
                     }
-                println(9)
 
                     if (result.isFailure) {
-                println(10)
                         failed_downloads += 1
                     }
                     else {
-                println(11)
                         completed_downloads += 1
                     }
                 }
-                println(12)
 
                 download.broadcastResult(result, message.instance)
 
@@ -339,7 +326,6 @@ class PlayerDownloadService: PlatformService() {
                         delay(delay_duration)
                     }
                 }
-                println(13)
                 onDownloadProgress()
             }
         }

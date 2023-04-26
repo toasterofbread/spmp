@@ -117,12 +117,58 @@ private class QueueTabItem(val song: Song, val key: Int) {
     }
 }
 
+private interface UndoAction { fun undo() }
+
+private class ClearQueueUndoAction(val current_index: Int, val removed: List<Pair<Song, Int>>): UndoAction {
+    override fun undo() {
+        val before = mutableListOf<Song>()
+        val after = mutableListOf<Song>()
+        for (item in removed.withIndex()) {
+            if (item.value.second >= current_index) {
+                for (i in item.index until removed.size) {
+                    after.add(removed[i].first)
+                }
+                break
+            }
+            before.add(item.value.first)
+        }
+
+        addMultipleToQueue(before, 0)
+        addMultipleToQueue(after, current_index + 1)
+
+        if (radio_state != null) {
+            radio.setRadioState(radio_state)
+        }
+    }
+}
+
+private class SwapUndoAction(val from: Int, val to: Index): UndoAction {
+    override fun undo() {
+        song_items.add(from, song_items.removeAt(to))
+    }
+}
+
+private class ShuffleUndoAction(val swaps: List<Pair<Int, Int>>): UndoAction {
+    override fun undo() {
+        for (swap in swaps.asReversed()) {
+            PlayerServiceHost.player.swapQueuePositions(swap.first, swap.second, save = false)
+        }
+        PlayerServiceHost.player.savePersistentQueue()
+    }
+}
+
+private class RemoveUndoAction(val song: Song, val index: Int): UndoAction {
+    override fun undo() {
+        PlayerServiceHost.player.addToQueue(song, index)
+    }
+}
+
 @OptIn(ExperimentalFoundationApi::class)
 @Composable
 fun QueueTab(expansionProvider: () -> Float, playerProvider: () -> PlayerViewContext, scroll: (pages: Int) -> Unit) {
 
     var key_inc by remember { mutableStateOf(0) }
-    val undo_list = remember { mutableStateListOf<() -> Unit>() }
+    val undo_list: MutableList<UndoAction> = remember { mutableStateListOf() }
     val radio_info_position: NowPlayingQueueRadioInfoPosition = Settings.getEnum(Settings.KEY_NP_QUEUE_RADIO_INFO_POSITION)
 
     val song_items: SnapshotStateList<QueueTabItem> = remember { mutableStateListOf<QueueTabItem>().also { list ->
@@ -193,9 +239,9 @@ fun QueueTab(expansionProvider: () -> Float, playerProvider: () -> PlayerViewCon
 
                 Button(
                     onClick = {
-                        val undo: (() -> Unit)? = PlayerServiceHost.player.clearQueueWithUndo(keep_current = PlayerServiceHost.status.queue_size > 1)
+                        val undo = PlayerServiceHost.player.clearQueueWithUndo(keep_current = PlayerServiceHost.status.queue_size > 1)
                         if (undo != null) {
-                            undo_list.add(undo)
+                            undo_list.add(ClearQueueUndoAction(undo.first, undo.second))
                         }
                     },
                     colors = ButtonDefaults.buttonColors(
@@ -211,24 +257,14 @@ fun QueueTab(expansionProvider: () -> Float, playerProvider: () -> PlayerViewCon
                         onClick = {
                             val swaps = PlayerServiceHost.player.shuffleQueue(return_swaps = true)!!
                             if (swaps.isNotEmpty()) {
-                                undo_list.add {
-                                    for (swap in swaps.asReversed()) {
-                                        PlayerServiceHost.player.swapQueuePositions(swap.first, swap.second, save = false)
-                                    }
-                                    PlayerServiceHost.player.savePersistentQueue()
-                                }
+                                undo_list.add(ShuffleUndoAction(swaps))
                             }
                         },
                         onLongClick = {
                             SpMp.context.vibrateShort()
                             val swaps = PlayerServiceHost.player.shuffleQueue(start = 0, return_swaps = true)!!
                             if (swaps.isNotEmpty()) {
-                                undo_list.add {
-                                    for (swap in swaps.asReversed()) {
-                                        PlayerServiceHost.player.swapQueuePositions(swap.first, swap.second, save = false)
-                                    }
-                                    PlayerServiceHost.player.savePersistentQueue()
-                                }
+                                undo_list.add(ShuffleUndoAction(swaps))
                             }
                         }
                     ),
@@ -266,7 +302,7 @@ fun QueueTab(expansionProvider: () -> Float, playerProvider: () -> PlayerViewCon
                             CircleShape
                         )
                         .clickable(undo_list.isNotEmpty()) {
-                            undo_list.removeLast().invoke()
+                            undo_list.removeLast().undo()
                         }
                         .size(40.dp),
                     contentAlignment = Alignment.Center
@@ -291,9 +327,7 @@ fun QueueTab(expansionProvider: () -> Float, playerProvider: () -> PlayerViewCon
                         PlayerServiceHost.player.moveSong(from - items_above_queue, to - items_above_queue)
                         playing_key = null
 
-                        undo_list.add {
-                            song_items.add(from - items_above_queue, song_items.removeAt(to - items_above_queue))
-                        }
+                        undo_list.add(SwapUndoAction(from - items_above_queue, to - items_above_queue))
                     }
                 }
             )
@@ -334,9 +368,7 @@ fun QueueTab(expansionProvider: () -> Float, playerProvider: () -> PlayerViewCon
                                 },
                                 playerProvider
                             ) {
-                                undo_list.add {
-                                    PlayerServiceHost.player.addToQueue(item.song, index)
-                                }
+                                undo_list.add(RemoveUndoAction(item.song, index))
                                 PlayerServiceHost.player.removeFromQueue(index)
                             }
                         }

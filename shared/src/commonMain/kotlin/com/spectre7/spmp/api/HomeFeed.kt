@@ -10,20 +10,23 @@ import com.spectre7.spmp.ui.component.generateLayoutTitle
 import com.spectre7.utils.getString
 import okhttp3.Request
 import java.io.InputStreamReader
-import java.io.Reader
 import java.time.Duration
 import kotlin.concurrent.thread
 
 private val CACHE_LIFETIME = Duration.ofDays(1)
 
-fun getHomeFeed(min_rows: Int = -1, allow_cached: Boolean = true, continuation: String? = null): Result<Pair<List<MediaItemLayout>, String?>> {
+fun getHomeFeed(min_rows: Int = -1, allow_cached: Boolean = true, params: String? = null, continuation: String? = null): Result<Triple<List<MediaItemLayout>, String?, List<String>?>> {
 
     fun postRequest(ctoken: String?): Result<InputStreamReader> {
         val endpoint = "/youtubei/v1/browse"
         val request = Request.Builder()
             .ytUrl(if (ctoken == null) endpoint else "$endpoint?ctoken=$ctoken&continuation=$ctoken&type=next")
             .addYtHeaders()
-            .post(DataApi.getYoutubeiRequestBody())
+            .post(
+                DataApi.getYoutubeiRequestBody(params?.let {
+                    """{"params": "$it"}"""
+                })
+            )
             .build()
 
         val result = DataApi.request(request)
@@ -34,34 +37,46 @@ fun getHomeFeed(min_rows: Int = -1, allow_cached: Boolean = true, continuation: 
         return Result.success(result.getOrThrow().getStream().reader())
     }
 
-    val rows: MutableList<MediaItemLayout>
-    var response_reader: Reader? = null
+    val suffix = params ?: ""
+    val rows_cache_key = "feed_rows$suffix"
+    val ctoken_cache_key = "feed_ctoken$suffix"
+    val chips_cache_key = "feed_chips$suffix"
 
-    val cache_key = "feed"
     if (allow_cached && continuation == null) {
-        response_reader = Cache.get(cache_key)
+        val cached_rows = Cache.get(rows_cache_key)
+        if (cached_rows != null) {
+            val rows = DataApi.klaxon.parseArray<MediaItemLayout>(cached_rows)!!
+            cached_rows.close()
+
+            val ctoken = Cache.get(ctoken_cache_key)?.run {
+                val ctoken = readText()
+                close()
+                ctoken
+            }
+
+            val chips = Cache.get(chips_cache_key)?.run {
+                val chips: List<String> = DataApi.klaxon.parseArray(this)!!
+                close()
+                chips
+            }
+
+            return Result.success(Triple(rows, ctoken, chips))
+        }
     }
 
-    if (response_reader == null) {
-        val result = postRequest(continuation)
-        if (!result.isSuccess) {
-            return result.cast()
-        }
-
-        response_reader = result.getOrThrowHere()
-
-        if (continuation == null) {
-            Cache.set(cache_key, response_reader, CACHE_LIFETIME)
-            response_reader.close()
-            response_reader = Cache.get(cache_key)!!
-        }
+    val result = postRequest(continuation)
+    if (!result.isSuccess) {
+        return result.cast()
     }
 
+    val response_reader = result.getOrThrowHere()
     var data: YoutubeiBrowseResponse = DataApi.klaxon.parse(response_reader)!!
     response_reader.close()
 
-    rows = processRows(data.getShelves(continuation != null)).toMutableList()
+    val rows: MutableList<MediaItemLayout> = processRows(data.getShelves(continuation != null)).toMutableList()
     check(rows.isNotEmpty())
+
+    val chips = data.getHeaderChips()
 
     var ctoken: String? = data.ctoken
     while (min_rows >= 1 && rows.size < min_rows) {
@@ -83,7 +98,13 @@ fun getHomeFeed(min_rows: Int = -1, allow_cached: Boolean = true, continuation: 
         ctoken = data.ctoken
     }
 
-    return Result.success(Pair(rows, ctoken))
+    if (continuation == null) {
+        Cache.set(rows_cache_key, DataApi.klaxon.toJsonString(rows).reader(), CACHE_LIFETIME)
+        Cache.set(ctoken_cache_key, ctoken?.reader(), CACHE_LIFETIME)
+        Cache.set(chips_cache_key, chips?.let { DataApi.klaxon.toJsonString(it).reader() }, CACHE_LIFETIME)
+    }
+
+    return Result.success(Triple(rows, ctoken, chips))
 }
 
 private fun processRows(rows: List<YoutubeiShelf>): List<MediaItemLayout> {
@@ -218,12 +239,17 @@ data class YoutubeiBrowseResponse(
                else contents?.singleColumnBrowseResultsRenderer?.tabs?.firstOrNull()?.tabRenderer?.content?.sectionListRenderer?.contents ?: emptyList()
     }
 
+    fun getHeaderChips(): List<String>? =
+        contents?.singleColumnBrowseResultsRenderer?.tabs?.first()?.tabRenderer?.content?.sectionListRenderer?.header?.chipCloudRenderer?.chips?.map {
+            it.chipCloudChipRenderer.navigationEndpoint.browseEndpoint!!.params!!
+        }
+
     data class Contents(val singleColumnBrowseResultsRenderer: SingleColumnBrowseResultsRenderer)
     data class SingleColumnBrowseResultsRenderer(val tabs: List<Tab>)
     data class Tab(val tabRenderer: TabRenderer)
     data class TabRenderer(val content: Content? = null)
     data class Content(val sectionListRenderer: SectionListRenderer)
-    open class SectionListRenderer(val contents: List<YoutubeiShelf>? = null, val continuations: List<YoutubeiNextResponse.Continuation>? = null)
+    open class SectionListRenderer(val contents: List<YoutubeiShelf>? = null, val header: ChipCloudRendererHeader? = null, val continuations: List<YoutubeiNextResponse.Continuation>? = null)
 
     data class ContinuationContents(val sectionListContinuation: SectionListRenderer? = null, val musicPlaylistShelfContinuation: MusicShelfRenderer? = null)
 }

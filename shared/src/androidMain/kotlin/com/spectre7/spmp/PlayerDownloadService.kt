@@ -37,7 +37,7 @@ class PlayerDownloadService: PlatformService() {
         val quality: Song.AudioQuality,
         var silent: Boolean,
         val instance: Int,
-        val file: File? = null
+        var file: File? = null
     ) {
         var status: DownloadStatus.Status = DownloadStatus.Status.IDLE
             set(value) {
@@ -69,19 +69,6 @@ class PlayerDownloadService: PlatformService() {
                 instance.toString(),
                 file
             )
-
-        init {
-            val files = download_dir.listFiles()
-            if (files != null) {
-                for (f in files) {
-                    if (matchesFile(f) == true) {
-                        status = DownloadStatus.Status.ALREADY_FINISHED
-                        file = f
-                        break
-                    }
-                }
-            }
-        }
 
         fun cancel() {
             cancelled = true
@@ -288,7 +275,6 @@ class PlayerDownloadService: PlatformService() {
                 return
             }
 
-            println("START DOWNLOAD")
             synchronized(downloads) {
                 if (downloads.isEmpty()) {
                     if (!download.silent) {
@@ -311,12 +297,6 @@ class PlayerDownloadService: PlatformService() {
         executor.submit {
             runBlocking {
                 var result: Result<File?>? = null
-                try {
-                    println(Klaxon().toJsonString(downloads))
-                }
-                catch (e: Throwable) {
-                    println("E: $e")
-                }
                 while (result == null || download.status == DownloadStatus.Status.IDLE || download.status == DownloadStatus.Status.PAUSED) {
                     if (paused && !download.cancelled) {
                         onDownloadProgress()

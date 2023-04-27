@@ -14,6 +14,7 @@ import androidx.compose.foundation.*
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyListState
 import androidx.compose.foundation.lazy.LazyRow
+import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.material.ExperimentalMaterialApi
 import androidx.compose.material.SwipeableState
@@ -25,10 +26,12 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.alpha
 import androidx.compose.ui.draw.clip
+import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.graphicsLayer
 import androidx.compose.ui.layout.onSizeChanged
 import androidx.compose.ui.unit.*
 import com.spectre7.spmp.PlayerServiceHost
+import com.spectre7.spmp.api.YoutubeiSearchResponse
 import com.spectre7.spmp.api.cast
 import com.spectre7.spmp.api.getHomeFeed
 import com.spectre7.spmp.api.getOrThrowHere
@@ -330,30 +333,37 @@ private class PlayerViewContextImpl: PlayerViewContext(null, null, null) {
     private val main_page_scroll_state = LazyListState()
     private val playerProvider = { this }
     private val main_page_layouts = mutableStateListOf<MediaItemLayout>()
+    private var main_page_filter_chips: List<String>? by mutableStateOf(null)
+    private var main_page_selected_filter_chip: Int? by mutableStateOf(null)
 
     private val feed_load_state = mutableStateOf(FeedLoadState.NONE)
     private val feed_load_lock = ReentrantLock()
     private var feed_continuation: String? by mutableStateOf(null)
 
-    private fun loadFeed(min_rows: Int, allow_cached: Boolean, continue_feed: Boolean, onFinished: ((success: Boolean) -> Unit)? = null) {
+    private fun loadFeed(min_rows: Int, allow_cached: Boolean, continue_feed: Boolean, filter_chip: Int? = null, onFinished: ((success: Boolean) -> Unit)? = null) {
         thread {
             if (!feed_load_lock.tryLock()) {
                 return@thread
             }
             check(feed_load_state.value == FeedLoadState.NONE)
 
+            main_page_selected_filter_chip = filter_chip
+            val params = filter_chip?.let { main_page_filter_chips!![it] }
+
             feed_load_state.value = if (continue_feed) FeedLoadState.CONTINUING else FeedLoadState.LOADING
 
-            val result = loadFeedLayouts(min_rows, allow_cached, if (continue_feed) feed_continuation else null)
+            val result = loadFeedLayouts(min_rows, allow_cached, params, if (continue_feed) feed_continuation else null)
             if (result.isFailure) {
                 SpMp.error_manager.onError("loadFeed", result.exceptionOrNull()!!)
             }
             else {
+                val (layouts, cont, chips) = result.getOrThrow()
+
                 if (!continue_feed) {
                     main_page_layouts.clear()
+                    main_page_filter_chips = chips
                 }
 
-                val (layouts, cont) = result.getOrThrow()
                 for (layout in layouts) {
                     layout.itemSizeProvider = { getMainPageItemSize() }
                     main_page_layouts.add(layout)
@@ -393,7 +403,11 @@ private class PlayerViewContextImpl: PlayerViewContext(null, null, null) {
                         main_page_scroll_state,
                         feed_load_state,
                         remember { derivedStateOf { feed_continuation != null } }.value,
-                        { loadFeed(-1, false, it) }
+                        { main_page_filter_chips },
+                        { main_page_selected_filter_chip },
+                        { filter_chip: Int?, continuation: Boolean ->
+                            loadFeed(-1, false, continuation, filter_chip)
+                        }
                     )
                     OverlayPage.SEARCH -> SearchPage(pill_menu, if (PlayerServiceHost.session_started) MINIMISED_NOW_PLAYING_HEIGHT.dp else 0.dp, playerProvider, close)
                     OverlayPage.SETTINGS -> PrefsPage(pill_menu, playerProvider, close)
@@ -411,6 +425,7 @@ private class PlayerViewContextImpl: PlayerViewContext(null, null, null) {
                             { Settings.KEY_YTM_AUTH.set(it) },
                             { TODO(it.toString()) }
                         )
+                        close()
                     }
                 }
             }
@@ -505,7 +520,9 @@ private fun MainPage(
     scroll_state: LazyListState,
     feed_load_state: MutableState<FeedLoadState>,
     can_continue_feed: Boolean,
-    loadFeed: (continuation: Boolean) -> Unit
+    getFilterChips: () -> List<String>?,
+    getSelectedFilterChip: () -> Int?,
+    loadFeed: (filter_chip: Int?, continuation: Boolean) -> Unit
 ) {
     val padding by animateDpAsState(if (SpMp.context.isScreenLarge()) 30.dp else 10.dp)
 
@@ -529,6 +546,8 @@ private fun MainPage(
     Column(Modifier.padding(horizontal = padding)) {
         // Top bar
         Row(Modifier.padding(top = SpMp.context.getStatusBarHeight())) {
+
+            PlayerServiceHost.player.Waveform(Color.White)
 
             // TODO | Lyrics
             Spacer(Modifier.fillMaxWidth().weight(1f))
@@ -555,7 +574,7 @@ private fun MainPage(
         // Main scrolling view
         SwipeRefresh(
             state = feed_load_state.value == FeedLoadState.LOADING,
-            onRefresh = { loadFeed(false) },
+            onRefresh = { loadFeed(getSelectedFilterChip(), false) },
             swipe_enabled = feed_load_state.value == FeedLoadState.NONE,
             indicator = false
         ) {
@@ -569,6 +588,13 @@ private fun MainPage(
                 state_alpha.animateTo(1f, tween(300))
             }
 
+            @Composable
+            fun TopContent() {
+                MainPageScrollableTopContent(playerProvider, pinned_items, getFilterChips, getSelectedFilterChip, Modifier.padding(bottom = 15.dp)) {
+                    loadFeed(it, false)
+                }
+            }
+
             when (current_state) {
                 // Loaded
                 true -> {
@@ -580,7 +606,7 @@ private fun MainPage(
                             bottom = playerProvider().bottom_padding
                         ),
                         onContinuationRequested = if (can_continue_feed) {
-                            { loadFeed(true) }
+                            { loadFeed(getSelectedFilterChip(), true) }
                         } else null,
                         continuation_alignment = Alignment.Start,
                         loading_continuation = feed_load_state.value != FeedLoadState.NONE,
@@ -589,7 +615,7 @@ private fun MainPage(
                         spacing = 30.dp,
                         topContent = {
                             item {
-                                MainPageScrollableTopContent(playerProvider, pinned_items)
+                                TopContent()
                             }
                         }
                     ) { MediaItemLayout.Type.GRID }
@@ -602,7 +628,7 @@ private fun MainPage(
                 // Loading
                 null -> {
                     Column(Modifier.fillMaxSize()) {
-                        MainPageScrollableTopContent(playerProvider, pinned_items)
+                        TopContent()
                         MainPageLoadingView(Modifier.graphicsLayer { alpha = state_alpha.value }.fillMaxSize())
                     }
                 }
@@ -613,7 +639,14 @@ private fun MainPage(
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
-private fun MainPageScrollableTopContent(playerProvider: () -> PlayerViewContext, pinned_items: MutableList<MediaItem>) {
+private fun MainPageScrollableTopContent(
+    playerProvider: () -> PlayerViewContext,
+    pinned_items: MutableList<MediaItem>,
+    getFilterChips: () -> List<String>?,
+    getSelectedFilterChip: () -> Int?,
+    modifier: Modifier = Modifier,
+    onFilterChipSelected: (Int?) -> Unit
+) {
     val pinned_layout = remember(pinned_items) {
         MediaItemLayout(
             null, null,
@@ -623,7 +656,7 @@ private fun MainPageScrollableTopContent(playerProvider: () -> PlayerViewContext
         )
     }
 
-    Column(Modifier.fillMaxWidth(), verticalArrangement = Arrangement.spacedBy(20.dp)) {
+    Column(modifier.fillMaxWidth(), verticalArrangement = Arrangement.spacedBy(20.dp)) {
         AnimatedVisibility(
             pinned_layout.items.isNotEmpty(),
             enter = expandVertically(),
@@ -657,58 +690,32 @@ private fun MainPageScrollableTopContent(playerProvider: () -> PlayerViewContext
         }
 
         LazyRow(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.spacedBy(10.dp)) {
-//            item {
-//                IconButton({ playerProvider().setOverlayPage(OverlayPage.RADIO_BUILDER) }) {
-//                    Row {
-//                        Icon(Icons.Filled.Radio, null)
-//                        Icon(Icons.Filled.Add, null)
-//                    }
-//                }
-//            }
+            val filter_chips = getFilterChips()
+            val selected_filter_chip = getSelectedFilterChip()
 
-            item {
+            items(filter_chips?.size ?: 0) { i ->
+                val chip = filter_chips!![i]
                 ElevatedFilterChip(
-                    false,
-                    {},
-                    { Text("Relax") }
-                )
-            }
-
-            item {
-                ElevatedFilterChip(
-                    false,
-                    {},
-                    { Text("Energise") }
-                )
-            }
-
-            item {
-                ElevatedFilterChip(
-                    true,
-                    {},
-                    { Text("Commute") }
-                )
-            }
-
-            item {
-                ElevatedFilterChip(
-                    true,
-                    {},
-                    { Text("Workout") }
-                )
-            }
-
-            item {
-                ElevatedFilterChip(
-                    true,
-                    {},
-                    { Text("Focus") }
+                    i == selected_filter_chip,
+                    {
+                        onFilterChipSelected(if (i == selected_filter_chip) null else i)
+                    },
+                    { Text(getFilterChipName(chip)) }
                 )
             }
         }
     }
 
 }
+
+private fun getFilterChipName(params: String): String = getStringTemp(when(params) {
+    "ggMeSgQIBxADSgQICRABSgQIBBABSgQIAxABSgQIBhAB" -> "Relax"
+    "ggMeSgQIBxABSgQICRADSgQIBBABSgQIAxABSgQIBhAB" -> "Energise"
+    "ggMeSgQIBxABSgQICRABSgQIBBADSgQIAxABSgQIBhAB" -> "Workout"
+    "ggMeSgQIBxABSgQICRABSgQIBBABSgQIAxADSgQIBhAB" -> "Commute"
+    "ggMeSgQIBxABSgQICRABSgQIBBABSgQIAxABSgQIBhAD" -> "Focus"
+    else -> throw NotImplementedError(params)
+})
 
 @Composable
 private fun MainPageLoadingView(modifier: Modifier = Modifier) {
@@ -765,13 +772,13 @@ private fun MainPageLoadingView(modifier: Modifier = Modifier) {
 //    }
 //}
 
-private fun loadFeedLayouts(min_rows: Int, allow_cached: Boolean, continuation: String? = null): Result<Pair<List<MediaItemLayout>, String?>> {
-    val result = getHomeFeed(allow_cached = allow_cached, min_rows = min_rows, continuation = continuation)
+private fun loadFeedLayouts(min_rows: Int, allow_cached: Boolean, params: String?, continuation: String? = null): Result<Triple<List<MediaItemLayout>, String?, List<String>?>> {
+    val result = getHomeFeed(allow_cached = allow_cached, min_rows = min_rows, params = params, continuation = continuation)
 
     if (!result.isSuccess) {
         return result.cast()
     }
 
-    val (row_data, new_continuation) = result.getOrThrowHere()
-    return Result.success(Pair(row_data.filter { it.items.isNotEmpty() }, new_continuation))
+    val (row_data, new_continuation, chips) = result.getOrThrowHere()
+    return Result.success(Triple(row_data.filter { it.items.isNotEmpty() }, new_continuation, chips))
 }

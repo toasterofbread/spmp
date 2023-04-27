@@ -14,7 +14,7 @@ import com.spectre7.spmp.model.Song
 import com.spectre7.spmp.ui.component.MediaItemLayout
 import okhttp3.Request
 
-private data class YoutubeiSearchResponse(
+data class YoutubeiSearchResponse(
     val contents: Contents
 ) {
     data class Contents(val tabbedSearchResultsRenderer: TabbedSearchResultsRenderer)
@@ -24,13 +24,14 @@ private data class YoutubeiSearchResponse(
     data class Content(val sectionListRenderer: SectionListRenderer)
     data class SectionListRenderer(
         val contents: List<YoutubeiShelf>? = null,
-        val header: Header? = null
+        val header: ChipCloudRendererHeader? = null
     )
-    data class Header(val chipCloudRenderer: ChipCloudRenderer)
     data class ChipCloudRenderer(val chips: List<Chip>)
     data class Chip(val chipCloudChipRenderer: ChipCloudChipRenderer)
     data class ChipCloudChipRenderer(val navigationEndpoint: NavigationEndpoint)
 }
+
+data class ChipCloudRendererHeader(val chipCloudRenderer: YoutubeiSearchResponse.ChipCloudRenderer)
 
 enum class SearchType {
     SONG, VIDEO, PLAYLIST, ALBUM, ARTIST;

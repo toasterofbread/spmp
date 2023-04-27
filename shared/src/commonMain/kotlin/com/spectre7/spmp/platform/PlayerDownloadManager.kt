@@ -12,15 +12,16 @@ expect class PlayerDownloadManager(context: PlatformContext) {
         enum class Status { IDLE, PAUSED, DOWNLOADING, CANCELLED, ALREADY_FINISHED, FINISHED }
     }
 
-    interface DownloadStatusListener {
-        fun onDownloadAdded(status: DownloadStatus)
-        fun onDownloadRemoved(id: String)
-        fun onDownloadChanged(status: DownloadStatus)
+    open class DownloadStatusListener() {
+        open fun onDownloadAdded(status: DownloadStatus)
+        open fun onDownloadRemoved(id: String)
+        open fun onDownloadChanged(status: DownloadStatus)
     }
 
     fun addDownloadStatusListener(listener: DownloadStatusListener)
     fun removeDownloadStatusListener(listener: DownloadStatusListener)
     
+    fun getDownload(song: Song, callback: (DownloadStatus?) -> Unit)
     fun getDownloads(callback: (List<DownloadStatus>) -> Unit)
 
     @Synchronized

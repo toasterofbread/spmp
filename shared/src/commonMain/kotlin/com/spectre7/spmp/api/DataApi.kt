@@ -7,7 +7,6 @@ import com.spectre7.spmp.model.Settings
 import com.spectre7.spmp.model.YoutubeMusicAuthInfo
 import com.spectre7.utils.getString
 import com.spectre7.utils.getStringArray
-import kotlinx.coroutines.withTimeout
 import okhttp3.*
 import okhttp3.MediaType.Companion.toMediaType
 import okhttp3.RequestBody.Companion.toRequestBody
@@ -92,9 +91,13 @@ class DataApi {
                 return MediaItem::class.java.isAssignableFrom(cls)
             }
 
-            override fun fromJson(jv: JsonValue): Any {
+            override fun fromJson(jv: JsonValue): Any? {
+                if (jv.obj == null && jv.type != Object::class.java) {
+                    throw KlaxonException("Couldn't parse MediaItem as it isn't an object (${jv.type.name})")
+                }
+
                 if (jv.obj == null) {
-                    throw KlaxonException("Couldn't parse MediaItem as it isn't an object ($jv)")
+                    return null
                 }
 
                 try {
@@ -120,9 +123,13 @@ class DataApi {
                 return MediaItem::class.java.isAssignableFrom(cls)
             }
 
-            override fun fromJson(jv: JsonValue): Any {
+            override fun fromJson(jv: JsonValue): Any? {
+                if (jv.obj == null && jv.type != Object::class.java) {
+                    throw KlaxonException("Couldn't parse MediaItem as it isn't an object (${jv.type.name})")
+                }
+
                 if (jv.obj == null) {
-                    throw KlaxonException("Couldn't parse MediaItem as it isn't an object ($jv)")
+                    return null
                 }
 
                 try {
@@ -146,8 +153,11 @@ class DataApi {
 
         val klaxon: Klaxon get() = Klaxon()
             .converter(enum_converter)
-            .converter(mediaitem_converter)
             .converter(mediaitem_ref_converter)
+
+        val mediaitem_klaxon: Klaxon get() = Klaxon()
+            .converter(enum_converter)
+            .converter(mediaitem_converter)
 
         enum class YoutubeiContextType {
             BASE,

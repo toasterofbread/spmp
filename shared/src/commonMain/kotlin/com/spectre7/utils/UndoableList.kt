@@ -10,42 +10,54 @@ class UndoableList<T>() {
         abstract fun redo()
         abstract fun undo()
     }
-    private class AddAction(val item: T, val index: Int? = null): Action() {
+    private inner class AddAction(val item: T, val index: Int? = null): Action() {
         override fun redo() {
             if (index == null) list.add(item)
             else list.add(index, item)
         }
         override fun undo() {
             if (index == null) list.removeLast()
-            else list.remove(index)
+            else list.removeAt(index)
         }
     }
-    private class RemoveAction(val index: Int): Action() {
-        private lateinit var item: T
+    private inner class RemoveAction(val index: Int): Action() {
+        private var item: T? = null
         override fun redo() {
             item = list.removeAt(index)
         }
         override fun undo() {
-            list.add(index, item)
+            list.add(index, item as T)
         }
     }
-    private class ClearAction(): Action() {
+    private inner class ClearAction(): Action() {
         private var items: List<T>? = null
         override fun redo() {
-            if (items == null && undoable) {
+            if (items == null && is_undoable) {
                 items = list.toList()
             }
             list.clear()
         }
         override fun undo() {
             assert(items != null && list.isEmpty())
-            list.addAll(items)
+            list.addAll(items!!)
         }
     }
 
-    private val list: MutableList<T> = mutableListOf()
-    private val action_list: MutableList<List<Action>>
+    private val action_list: MutableList<List<Action>> = mutableListOf()
     private var action_head: Int = 0
+
+    private val list: MutableList<T> = mutableListOf()
+
+    private fun List<Action>.redo() {
+        for (action in this) {
+            action.redo()
+        }
+    }
+    private fun List<Action>.undo() {
+        for (action in asReversed()) {
+            action.undo()
+        }
+    }
 
     private fun onActionPerformed(action: Action) {
         action.redo()
@@ -78,7 +90,7 @@ class UndoableList<T>() {
             for (i in 0 until redo_count) {
                 action_list.removeLast()
             }
-            action_list.add(current_action)
+            action_list.add(current_action!!)
             action_head++
 
             current_action = null
@@ -86,15 +98,15 @@ class UndoableList<T>() {
     }
 
     fun add(item: T) {
-        onActionPerformed(AddAction(list, item))
+        onActionPerformed(AddAction(item))
     }
     fun add(index: Int, item: T) {
-        onActionPerformed(AddAction(list, item, index))
+        onActionPerformed(AddAction(item, index))
     }
     fun removeAt(index: Int) {
-        onActionPerformed(RemoveAction(list, index))
+        onActionPerformed(RemoveAction(index))
     }
     fun clear() {
-        onActionPerformed(ClearAction(list))
+        onActionPerformed(ClearAction())
     }
 }

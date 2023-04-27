@@ -38,24 +38,6 @@ dependencyResolutionManagement {
     }
 }
 
-// pluginManagement {
-//     repositories {
-//         google()
-//         mavenCentral()
-//         gradlePluginPortal()
-//     }
-// }
-
-// dependencyResolutionManagement {
-//     repositoriesMode.set(RepositoriesMode.PREFER_SETTINGS)
-//     repositories {
-//         google()
-//         mavenCentral()
-//         maven { url "https://jitpack.io" }
-//         gradlePluginPortal()
-//     }
-// }
-
 apply(from = "androidApp/src/thirdparty/ExoPlayer/core_settings.gradle")
 
 includeBuild("androidApp/src/thirdparty/NewPipeExtractor") {
@@ -63,9 +45,3 @@ includeBuild("androidApp/src/thirdparty/NewPipeExtractor") {
         substitute(module("com.github.TeamNewPipe:NewPipeExtractor")).using(project(":extractor"))
     }
 }
-//includeBuild("shared/src/thirdparty/compose-sliders") {
-//    dependencySubstitution {
-//        substitute(module("com.github.krottv:compose-sliders")).using(project(":library"))
-//    }
-//}
-

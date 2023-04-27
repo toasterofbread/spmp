@@ -1,5 +1,8 @@
 package com.spectre7.spmp.platform
 
+import androidx.compose.runtime.Composable
+import androidx.compose.ui.Modifier
+import androidx.compose.ui.graphics.Color
 import com.spectre7.spmp.model.Song
 import kotlinx.coroutines.CoroutineScope
 
@@ -27,6 +30,7 @@ expect open class MediaPlayerService(): PlatformService {
         open fun onVolumeChanged(volume: Float)
         open fun onDurationChanged(duration_ms: Long)
         open fun onSeeked(position_ms: Long)
+        open fun onUndoStateChanged()
 
         open fun onSongAdded(index: Int, song: Song)
         open fun onSongRemoved(index: Int)
@@ -44,11 +48,23 @@ expect open class MediaPlayerService(): PlatformService {
     val current_song_index: Int
     val current_position_ms: Long
     val duration_ms: Long
+    val undo_count: Int
+    val redo_count: Int
 
     var repeat_mode: MediaPlayerRepeatMode
     var volume: Float
 
     val has_focus: Boolean
+    val supports_waveform: Boolean
+
+    @Composable
+    fun Waveform(colour: Color, modifier: Modifier = Modifier)
+
+    fun undoableAction(action: MediaPlayerService.() -> Unit)
+    fun redo()
+    fun redoAll()
+    fun undo()
+    fun undoAll()
 
     open fun play()
     open fun pause()

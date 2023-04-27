@@ -29,6 +29,9 @@ import com.spectre7.utils.getThemeColour
 import com.spectre7.utils.printJson
 import com.spectre7.spmp.platform.ProjectPreferences
 import com.spectre7.spmp.platform.toImageBitmap
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.runBlocking
+import kotlinx.coroutines.withContext
 import java.io.Reader
 import java.net.URL
 import java.time.Duration
@@ -235,10 +238,14 @@ abstract class MediaItem(id: String) {
 
     open fun supplyFromJsonObject(data: JsonObject, klaxon: Klaxon): MediaItem {
         assert(data.int("type") == type.ordinal)
-        data.string("title")?.also { original_title = it }
-        data.string("artist")?.also { artist = Artist.fromId(it) }
-        data.string("desc")?.also { description = it }
-        data.obj("thumb")?.also { thumbnail_provider = ThumbnailProvider.fromJsonObject(it, klaxon) }
+        runBlocking {
+            withContext(Dispatchers.Main) {
+                data.string("title")?.also { original_title = it }
+                data.string("artist")?.also { artist = Artist.fromId(it) }
+                data.string("desc")?.also { description = it }
+                data.obj("thumb")?.also { thumbnail_provider = ThumbnailProvider.fromJsonObject(it, klaxon) }
+            }
+        }
         return this
     }
 
@@ -247,7 +254,7 @@ abstract class MediaItem(id: String) {
     }
 
     private fun toJsonData(): String {
-        return DataApi.klaxon.toJsonString(this)
+        return DataApi.mediaitem_klaxon.toJsonString(this)
     }
 
     val cache_key: String get() = getCacheKey(type, id)

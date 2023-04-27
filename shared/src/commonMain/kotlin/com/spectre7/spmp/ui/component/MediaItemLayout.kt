@@ -23,7 +23,6 @@ import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.RectangleShape
 import androidx.compose.ui.graphics.Shape
-import androidx.compose.ui.graphics.graphicsLayer
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.DpSize
@@ -38,7 +37,6 @@ import com.spectre7.spmp.platform.rememberImagePainter
 import com.spectre7.spmp.ui.layout.PlayerViewContext
 import com.spectre7.spmp.ui.theme.Theme
 import com.spectre7.utils.*
-import kotlinx.coroutines.runBlocking
 import okhttp3.Request
 
 data class MediaItemLayout(
@@ -50,6 +48,7 @@ data class MediaItemLayout(
     val media_item_type: MediaItem.Type? = null,
     var view_more: ViewMore? = null,
     var continuation: Continuation? = null,
+    @Json(ignored = true)
     var itemSizeProvider: @Composable () -> DpSize = { DpSize(100.dp, 130.dp) }
 ) {
     enum class Type {

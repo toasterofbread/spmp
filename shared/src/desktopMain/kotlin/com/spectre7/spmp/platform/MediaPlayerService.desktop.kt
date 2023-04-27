@@ -285,6 +285,8 @@ actual open class MediaPlayerService actual constructor() : PlatformService() {
         }
     actual val duration_ms: Long
         get() = _duration_ms
+    actual val undo_count: Int = 0 // TODO
+    actual val redo_count: Int = 0 // TODO
     actual var repeat_mode: MediaPlayerRepeatMode
         get() = _repeat_mode
         set(value) { 

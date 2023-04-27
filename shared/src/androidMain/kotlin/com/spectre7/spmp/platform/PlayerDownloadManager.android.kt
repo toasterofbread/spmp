@@ -22,7 +22,7 @@ actual class PlayerDownloadManager actual constructor(val context: PlatformConte
         onResultIntentReceived(data)
     }
 
-    actual class DownloadStatus(
+    actual data class DownloadStatus(
         actual val song: Song,
         actual val status: Status,
         actual val quality: Song.AudioQuality,
@@ -33,10 +33,10 @@ actual class PlayerDownloadManager actual constructor(val context: PlatformConte
         actual enum class Status { IDLE, PAUSED, DOWNLOADING, CANCELLED, ALREADY_FINISHED, FINISHED }
     }
 
-    actual interface DownloadStatusListener {
-        actual fun onDownloadAdded(status: DownloadStatus)
-        actual fun onDownloadRemoved(id: String)
-        actual fun onDownloadChanged(status: DownloadStatus)
+    actual open class DownloadStatusListener {
+        actual open fun onDownloadAdded(status: DownloadStatus) {}
+        actual open fun onDownloadRemoved(id: String) {}
+        actual open fun onDownloadChanged(status: DownloadStatus) {}
     }
     private val download_status_listeners: MutableList<DownloadStatusListener> = mutableListOf()
 
@@ -89,7 +89,33 @@ actual class PlayerDownloadManager actual constructor(val context: PlatformConte
             action(it)
             return
         }
-        startService { action(it) }
+        startService({ action(it) })
+    }
+
+    actual fun getDownload(song: Song, callback: (DownloadStatus?) -> Unit) {
+        service?.apply {
+            getDownloadStatus(song.id)?.also {
+                callback(it)
+                return
+            }
+        }
+
+        for (file in getDownloadDir(context).listFiles() ?: emptyArray()) {
+            val data = PlayerDownloadService.getFilenameData(file.name)
+            if (data.id == song.id) {
+                callback(DownloadStatus(
+                    Song.fromId(data.id),
+                    if (data.downloading) DownloadStatus.Status.IDLE else DownloadStatus.Status.FINISHED,
+                    data.quality,
+                    if (data.downloading) -1f else 1f,
+                    file.name,
+                    file
+                ))
+                return
+            }
+        }
+
+        callback(null)
     }
 
     actual fun getDownloads(callback: (List<DownloadStatus>) -> Unit) {
@@ -97,21 +123,24 @@ actual class PlayerDownloadManager actual constructor(val context: PlatformConte
             getAllDownloadsStatus()
         } ?: emptyList()
 
-        val files = getDownloadDir(context).listFiles() ?: return current_downloads
-        return current_downloads + files.mapNotNull { file ->
-            if (current_downloads.any { it.file == file }) {
-                return@mapNotNull null
+        val files = getDownloadDir(context).listFiles() ?: emptyArray()
+        callback(
+            current_downloads + files.mapNotNull { file ->
+                if (current_downloads.any { it.file == file }) {
+                    return@mapNotNull null
+                }
+
+                val data = PlayerDownloadService.getFilenameData(file.name)
+                DownloadStatus(
+                    Song.fromId(data.id),
+                    if (data.downloading) DownloadStatus.Status.IDLE else DownloadStatus.Status.FINISHED,
+                    data.quality,
+                    if (data.downloading) -1f else 1f,
+                    file.name,
+                    file
+                )
             }
-            
-            val data = PlayerDownloadService.getFilenameData(file.name)
-            DownloadStatus(
-                Song.fromId(data.id),
-                if (data.downloading) DownloadStatus.Status.IDLE else DownloadStatus.Status.FINISHED,
-                data.quality,
-                if (data.downloading) -1f else 1f,
-                file.name,
-                file
-            )
+        )
     }
 
     fun getSongLocalFile(song: Song): File? {

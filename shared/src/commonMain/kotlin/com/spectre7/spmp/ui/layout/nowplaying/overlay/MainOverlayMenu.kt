@@ -54,22 +54,22 @@ class MainOverlayMenu(
 
         val download_progress = remember { Animatable(0f) }
         var download_progress_target: Float by remember { mutableStateOf(0f) }
-        var download_status: DownloadStatus.Status? by remember { mutableStateOf(null) }
+        var download_status: DownloadStatus? by remember { mutableStateOf(null) }
 
         LaunchedEffect(songProvider().id) {
             download_status = null
             download_progress.snapTo(0f)
             download_progress_target = 0f
 
-            PlayerServiceHost.download_manager.getSongDownloadStatus(songProvider().id) {
-                download_status = it.status
+            PlayerServiceHost.download_manager.getDownload(songProvider()) {
+                download_status = it
             }
         }
 
         DisposableEffect(Unit) {
-            val status_listener = object : PlayerDownloadManager.DownloadStatusListener {
-                override fun onSongDownloadStatusChanged(song_id: String, status: DownloadStatus.Status) {
-                    if (song_id == songProvider().id) {
+            val status_listener = object : PlayerDownloadManager.DownloadStatusListener() {
+                override fun onDownloadChanged(status: DownloadStatus) {
+                    if (status.song == songProvider()) {
                         download_status = status
                     }
                 }
@@ -87,9 +87,9 @@ class MainOverlayMenu(
 
         LaunchedEffect(Unit) {
             while (true) {
-                if (download_status == DownloadStatus.Status.DOWNLOADING || download_status == DownloadStatus.Status.PAUSED) {
-                    PlayerServiceHost.download_manager.getSongDownloadStatus(songProvider().id) {
-                        download_progress_target = it.progress
+                if (download_status?.status == DownloadStatus.Status.DOWNLOADING || download_status?.status == DownloadStatus.Status.PAUSED) {
+                    PlayerServiceHost.download_manager.getDownload(songProvider()) {
+                        download_progress_target = it!!.progress
                     }
                 }
                 delay(1500)
@@ -236,13 +236,15 @@ class MainOverlayMenu(
                             .align(Alignment.Center)
                             .fillMaxSize()
                             .clickable {
-                                PlayerServiceHost.download_manager.startDownload(songProvider().id)
+                                if (download_status?.status != DownloadStatus.Status.FINISHED && download_status?.status != DownloadStatus.Status.ALREADY_FINISHED) {
+                                    PlayerServiceHost.download_manager.startDownload(songProvider().id)
+                                }
                             },
                         contentAlignment = Alignment.Center
                     ) {
                         Icon(Icons.Filled.Download, null, Modifier.align(Alignment.Center), tint = button_colour)
                         Crossfade(
-                            when (download_status) {
+                            when (download_status?.status) {
                                 DownloadStatus.Status.PAUSED -> Icons.Filled.Pause
                                 DownloadStatus.Status.FINISHED, DownloadStatus.Status.ALREADY_FINISHED -> Icons.Filled.Done
                                 DownloadStatus.Status.CANCELLED -> Icons.Filled.Cancel
@@ -260,7 +262,7 @@ class MainOverlayMenu(
                         }
                     }
 
-                    if (download_status == DownloadStatus.Status.DOWNLOADING || download_status == DownloadStatus.Status.PAUSED) {
+                    if (download_status?.status == DownloadStatus.Status.DOWNLOADING || download_status?.status == DownloadStatus.Status.PAUSED) {
                         CircularProgressIndicator(download_progress.value, Modifier.size(button_size), color = button_colour, strokeWidth = 2.dp)
                     }
                 }

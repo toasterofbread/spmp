@@ -507,9 +507,14 @@ fun printJson(data: String, klaxon: Klaxon? = null) {
 	try {
 		log((klaxon ?: Klaxon()).parseJsonObject(data.reader()).toJsonString(true))
 	}
-	catch (e: Exception) {
-		log(data)
-		throw e
+	catch (_: Exception) {
+		try {
+			log((klaxon ?: Klaxon()).parseJsonArray(data.reader()).toJsonString(true))
+		}
+		catch (e: Exception) {
+			log(data)
+			throw e
+		}
 	}
 }
 

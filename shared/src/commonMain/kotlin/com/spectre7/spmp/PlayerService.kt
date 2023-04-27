@@ -115,52 +115,24 @@ class PlayerService : MediaPlayerService() {
         updateActiveQueueIndex()
     }
 
-    fun clearQueueWithUndo(from: Int = 0, keep_current: Boolean = false, save: Boolean = true, cancel_radio: Boolean = true): Pair<Int, List<Pair<Song, Int>>>? {
-        val radio_state =
-            if (cancel_radio) radio.cancelRadio()
-            else null
-
-        val removed: MutableList<Pair<Song, Int>> = mutableListOf()
-        for (i in song_count - 1 downTo from) {
-            if (keep_current && i == current_song_index) {
-                continue
-            }
-            removed.add(Pair(removeFromQueue(i, save = false), i))
-        }
-        removed.sortBy { it.second }
-
-        if (save) {
-            savePersistentQueue()
-        }
-
-        updateActiveQueueIndex()
-
-        return Pair(current_song_index, removed)
-    }
-
-    fun shuffleQueue(start: Int = -1, return_swaps: Boolean = false): List<Pair<Int, Int>>? {
+    fun shuffleQueue(start: Int = -1) {
         val range: IntRange =
         if (start < 0) {
             current_song_index + 1 until song_count
         }
         else if (song_count - start <= 1) {
-            return if (return_swaps) emptyList() else null
+            return
         }
         else {
             start until song_count
         }
 
-        val ret: MutableList<Pair<Int, Int>>? = if (return_swaps) mutableListOf() else null
-
         for (i in range) {
             val swap = Random.nextInt(range)
             swapQueuePositions(i, swap, false)
-            ret?.add(Pair(i, swap))
         }
 
         savePersistentQueue()
-
-        return ret
     }
 
     fun swapQueuePositions(a: Int, b: Int, save: Boolean = true) {

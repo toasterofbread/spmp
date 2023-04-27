@@ -13,9 +13,9 @@ import android.os.Handler
 import android.support.v4.media.MediaMetadataCompat
 import android.support.v4.media.session.MediaSessionCompat
 import android.view.KeyEvent
-import androidx.compose.runtime.getValue
-import androidx.compose.runtime.mutableStateOf
-import androidx.compose.runtime.setValue
+import androidx.compose.runtime.*
+import androidx.compose.ui.Modifier
+import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.asAndroidBitmap
 import androidx.media.session.MediaButtonReceiver
 import com.google.android.exoplayer2.C
@@ -36,6 +36,7 @@ import com.google.android.exoplayer2.upstream.DefaultDataSource
 import com.google.android.exoplayer2.upstream.ResolvingDataSource
 import com.google.android.exoplayer2.upstream.cache.LeastRecentlyUsedCacheEvictor
 import com.google.android.exoplayer2.upstream.cache.SimpleCache
+import com.linc.audiowaveform.AudioWaveform
 import com.spectre7.spmp.PlayerServiceHost
 import com.spectre7.spmp.model.MediaItem
 import com.spectre7.spmp.model.Settings
@@ -45,7 +46,11 @@ import com.spectre7.utils.getString
 import kotlinx.coroutines.*
 import java.io.File
 import java.io.IOException
+import java.nio.ByteBuffer
+import java.nio.ShortBuffer
 import kotlin.concurrent.thread
+import kotlin.math.ceil
+import kotlin.random.Random
 import com.google.android.exoplayer2.MediaItem as ExoMediaItem
 import com.google.android.exoplayer2.upstream.cache.Cache as ExoCache
 
@@ -63,6 +68,7 @@ actual open class MediaPlayerService: PlatformService() {
         actual open fun onVolumeChanged(volume: Float) {}
         actual open fun onDurationChanged(duration_ms: Long) {}
         actual open fun onSeeked(position_ms: Long) {}
+        actual open fun onUndoStateChanged() {}
         
         actual open fun onSongAdded(index: Int, song: Song) {}
         actual open fun onSongRemoved(index: Int) {}
@@ -109,18 +115,85 @@ actual open class MediaPlayerService: PlatformService() {
     private val NOTIFICATION_CHANNEL_ID = "playback_channel"
     private var notification_manager: PlayerNotificationManager? = null
 
+    // Undo
+    private var current_action: MutableList<Action>? = null
+    private val action_list: MutableList<List<Action>> = mutableListOf()
+    private var action_head: Int = 0
+
+    private val audio_processor = object : TeeAudioProcessor.AudioBufferSink {
+        var counter = 0
+
+        var sample_rate: Int = -1
+        var channels: Int = -1
+
+        var bytes: ShortArray? by mutableStateOf(null)
+        var amplitudes: IntArray? by mutableStateOf(null)
+
+        override fun flush(sampleRateHz: Int, channelCount: Int, encoding: Int) {
+            sample_rate = sampleRateHz
+            channels = channelCount
+        }
+
+        override fun handleBuffer(buffer: ByteBuffer) {
+            counter++;
+//            if (!audioDataReceiver.isLocked()) {
+//                audioDataReceiver.setLocked(true);
+//                audioDataFetch.setAudioDataAsByteBuffer(buffer.duplicate(), sample_rate, channels);
+
+            val shortBuffer: ShortBuffer = buffer.asShortBuffer()
+            val data = ShortArray(shortBuffer.limit())
+            shortBuffer.get(data)
+
+            //frames par sample
+
+            //frames par sample
+            val numFrames: Int = data.size / channels
+
+            val rawData = ShortArray(numFrames)
+
+            var sum: Long = 0
+
+            var val1 = 0
+
+            //took average of all channel data
+
+            //took average of all channel data
+            for (i in 0 until numFrames) {
+                sum = 0
+                for (ch in 0 until channels) {
+                    val1 = (data[channels * i + ch] + 32768)
+                    sum += val1.toLong()
+                }
+                rawData[i] = (sum / channels).toShort()
+            }
+
+            bytes = rawData.clone().also { bytes ->
+                amplitudes = IntArray(bytes.size / 2)
+
+                var i = 0
+                var j = 0
+                while (i < bytes.size) {
+                    val msb = bytes[i++].toInt()
+                    val lsb = bytes[i++].toInt()
+                    val sample = (msb shl 8) or (lsb and 0xff)
+                    amplitudes!![j++] = sample
+                }
+            }
+        }
+    }
+
+    actual val supports_waveform: Boolean = true
+
+    @Composable
+    actual fun Waveform(colour: Color, modifier: Modifier) {
+        audio_processor.amplitudes?.also { amplitudes ->
+            println(amplitudes.asList())
+            AudioWaveform(amplitudes = amplitudes.asList()) {}
+        }
+    }
+
     override fun onCreate() {
         super.onCreate()
-
-        val audio_sink = DefaultAudioSink.Builder()
-            .setAudioProcessorChain(
-                DefaultAudioSink.DefaultAudioProcessorChain(
-                    emptyArray(),
-                    SilenceSkippingAudioProcessor(2_000_000, 20_000, 256),
-                    SonicAudioProcessor()
-                )
-            )
-            .build()
 
         val renderers_factory = RenderersFactory { handler: Handler?, _, audioListener: AudioRendererEventListener?, _, _ ->
             arrayOf(
@@ -129,7 +202,8 @@ actual open class MediaPlayerService: PlatformService() {
                     MediaCodecSelector.DEFAULT,
                     handler,
                     audioListener,
-                    audio_sink
+                    AudioCapabilities.DEFAULT_AUDIO_CAPABILITIES,
+                    TeeAudioProcessor(audio_processor)
                 )
             )
         }
@@ -220,6 +294,8 @@ actual open class MediaPlayerService: PlatformService() {
     actual val current_song_index: Int get() = player!!.currentMediaItemIndex
     actual val current_position_ms: Long get() = player!!.currentPosition
     actual val duration_ms: Long get() = player!!.duration
+    actual val undo_count: Int get() = action_head
+    actual val redo_count: Int get() = action_list.size - undo_count
 
     actual var repeat_mode: MediaPlayerRepeatMode
         get() = MediaPlayerRepeatMode.values()[player!!.repeatMode]
@@ -264,21 +340,22 @@ actual open class MediaPlayerService: PlatformService() {
         addSong(song, song_count)
     }
     actual fun addSong(song: Song, index: Int) {
-        val target_index = index.coerceIn(0, song_count)
+        require(index in 0 .. song_count)
+
         val item = ExoMediaItem.Builder().setTag(song).setUri(song.id).setCustomCacheKey(song.id).build()
-        player!!.addMediaItem(index, item)
+        performAction(AddAction(item, index))
+
         addNotificationToPlayer()
-        listeners.forEach { it.onSongAdded(target_index, song) }
     }
     actual fun moveSong(from: Int, to: Int) {
         require(from in 0 until song_count)
         require(to in 0 until song_count)
-        player!!.moveMediaItem(from, to)
-        listeners.forEach { it.onSongMoved(from, to) }
+
+        performAction(MoveAction(from, to))
     }
     actual fun removeSong(index: Int) {
-        player!!.removeMediaItem(index)
-        listeners.forEach { it.onSongRemoved(index) }
+        require(index in 0 until song_count)
+        performAction(RemoveAction(index))
     }
 
     actual fun addListener(listener: Listener) {
@@ -305,6 +382,7 @@ actual open class MediaPlayerService: PlatformService() {
             val download_manager = PlayerServiceHost.download_manager
             var local_file: File? = download_manager.getSongLocalFile(song)
             if (local_file != null) {
+                println("Playing song ${song.title} from local file $local_file")
                 return@Factory data_spec.withUri(Uri.fromFile(local_file))
             }
 
@@ -315,17 +393,17 @@ actual open class MediaPlayerService: PlatformService() {
                 var done = false
                 runBlocking {
 
-                    download_manager.getSongDownloadStatus(song.id) { initial_status ->
+                    download_manager.getDownload(song) { initial_status ->
 
-                        when (initial_status.status) {
+                        when (initial_status?.status) {
                             DownloadStatus.Status.DOWNLOADING -> {
-                                val listener = object : PlayerDownloadManager.DownloadStatusListener {
-                                    override fun onSongDownloadStatusChanged(song_id: String, status: DownloadStatus.Status) {
-                                        if (song_id != song.id) {
+                                val listener = object : PlayerDownloadManager.DownloadStatusListener() {
+                                    override fun onDownloadChanged(status: DownloadStatus) {
+                                        if (status.song != song) {
                                             return
                                         }
 
-                                        when (status) {
+                                        when (status.status) {
                                             DownloadStatus.Status.IDLE, DownloadStatus.Status.DOWNLOADING -> return
                                             DownloadStatus.Status.PAUSED -> throw IllegalStateException()
                                             DownloadStatus.Status.CANCELLED -> {
@@ -342,7 +420,7 @@ actual open class MediaPlayerService: PlatformService() {
                                 }
                                 download_manager.addDownloadStatusListener(listener)
                             }
-                            DownloadStatus.Status.IDLE, DownloadStatus.Status.CANCELLED, DownloadStatus.Status.PAUSED -> {
+                            DownloadStatus.Status.IDLE, DownloadStatus.Status.CANCELLED, DownloadStatus.Status.PAUSED, null -> {
                                 download_manager.startDownload(song.id, true) { status ->
                                     local_file = status.file
                                     done = true
@@ -444,58 +522,27 @@ actual open class MediaPlayerService: PlatformService() {
                 }
 
             }
-        ).setNotificationListener(
+        )
+        .setNotificationListener(
             object : PlayerNotificationManager.NotificationListener {
-                override fun onNotificationPosted(notificationId: Int,
-                                                  notification: Notification,
-                                                  ongoing: Boolean) {
+                override fun onNotificationPosted(
+                    notificationId: Int,
+                    notification: Notification,
+                    ongoing: Boolean
+                ) {
                     super.onNotificationPosted(notificationId, notification, ongoing)
-//                            if (!ongoing) {
-//                                stopForeground(false)
-//                            } else {
                     startForeground(notificationId, notification)
-//                            }
-
                 }
-                override fun onNotificationCancelled(notificationId: Int,
-                                                     dismissedByUser: Boolean) {
+                override fun onNotificationCancelled(
+                    notificationId: Int,
+                    dismissedByUser: Boolean
+                ) {
                     super.onNotificationCancelled(notificationId, dismissedByUser)
                     stopSelf()
                 }
             }
         )
-            // .setCustomActionReceiver(
-            //     object : PlayerNotificationManager.CustomActionReceiver {
-            //         override fun createCustomActions(
-            //             context: ProjectContext,
-            //             instanceId: Int
-            //         ): MutableMap<String, NotificationCompat.Action> {
-            //             val pendingIntent = PendingIntent.getService(
-            //                 context,
-            //                 1,
-            //                 Intent(context, PlayerService::class.java).putExtra("action", SERVICE_INTENT_ACTIONS.STOP),
-            //                 PendingIntent.FLAG_IMMUTABLE
-            //             )
-            //             return mutableMapOf(
-            //                 Pair("Play", NotificationCompat.Action(android.R.drawable.ic_menu_close_clear_cancel, "namae", pendingIntent))
-            //             )
-            //         }
-
-            //         override fun getCustomActions(player: Player): MutableList<String> {
-            //             return mutableListOf("Play")
-            //         }
-
-            //         override fun onCustomAction(
-            //             player: Player,
-            //             action: String,
-            //             intent: Intent
-            //         ) {
-            //             println(action)
-            //         }
-
-            //     }
-            // )
-            .build()
+        .build()
 
         notification_manager?.setUseFastForwardAction(false)
         notification_manager?.setUseRewindAction(false)
@@ -519,6 +566,126 @@ actual open class MediaPlayerService: PlatformService() {
         return NOTIFICATION_CHANNEL_ID
     }
 
+    actual fun undoableAction(action: MediaPlayerService.() -> Unit) {
+        synchronized(action_list) {
+            assert(current_action == null)
+            current_action = mutableListOf()
+            action(this)
+
+            for (i in 0 until redo_count) {
+                action_list.removeLast()
+            }
+            action_list.add(current_action!!)
+            action_head++
+
+            current_action = null
+            listeners.forEach { it.onUndoStateChanged() }
+        }
+    }
+
+    private fun performAction(action: Action) {
+        action.redo()
+        current_action?.add(action)
+    }
+
+    actual fun redo() {
+        synchronized(action_list) {
+            if (redo_count == 0) {
+                return
+            }
+        }
+    }
+
+    actual fun redoAll() {
+        synchronized(action_list) {
+            for (i in 0 until redo_count) {
+                for (action in action_list[action_head++]) {
+                    action.redo()
+                }
+            }
+            listeners.forEach { it.onUndoStateChanged() }
+        }
+    }
+
+    actual fun undo() {
+        synchronized(action_list) {
+            if (undo_count == 0) {
+                return
+            }
+            for (action in action_list[--action_head].asReversed()) {
+                action.undo()
+            }
+            listeners.forEach { it.onUndoStateChanged() }
+        }
+    }
+
+    actual fun undoAll() {
+        synchronized(action_list) {
+            for (i in 0 until undo_count) {
+                for (action in action_list[--action_head].asReversed()) {
+                    action.undo()
+                }
+            }
+            listeners.forEach { it.onUndoStateChanged() }
+        }
+    }
+
+    private abstract inner class Action() {
+        protected val is_undoable: Boolean get() = current_action != null
+
+        abstract fun redo()
+        abstract fun undo()
+    }
+    private inner class AddAction(val item: ExoMediaItem, val index: Int): Action() {
+        override fun redo() {
+            player!!.addMediaItem(index, item)
+            listeners.forEach { it.onSongAdded(index, item.getSong()) }
+        }
+        override fun undo() {
+            player!!.removeMediaItem(index)
+            listeners.forEach { it.onSongRemoved(index) }
+        }
+    }
+    private inner class MoveAction(val from: Int, val to: Int): Action() {
+        override fun redo() {
+            player!!.moveMediaItem(from, to)
+            listeners.forEach { it.onSongMoved(from, to) }
+        }
+        override fun undo() {
+            player!!.moveMediaItem(to, from)
+            listeners.forEach { it.onSongMoved(to, from) }
+        }
+    }
+    private inner class RemoveAction(val index: Int): Action() {
+        private lateinit var item: ExoMediaItem
+        override fun redo() {
+            item = player!!.getMediaItemAt(index)
+            player!!.removeMediaItem(index)
+            listeners.forEach { it.onSongRemoved(index) }
+        }
+        override fun undo() {
+            player!!.addMediaItem(index, item)
+            listeners.forEach { it.onSongAdded(index, item.getSong()) }
+        }
+    }
+    private inner class ClearAction(): Action() {
+        private var items: List<ExoMediaItem>? = null
+        override fun redo() {
+            if (items == null && is_undoable) {
+                items = List(player!!.mediaItemCount) {
+                    player!!.getMediaItemAt(it)
+                }
+            }
+            player!!.clearMediaItems()
+        }
+        override fun undo() {
+            assert(items != null && player!!.mediaItemCount == 0)
+            for (item in items!!) {
+                player!!.addMediaItem(item)
+            }
+        }
+    }
+
     actual companion object {
         actual fun CoroutineScope.playerLaunch(action: CoroutineScope.() -> Unit) {
             launch(Dispatchers.Main, block = action)
@@ -526,10 +693,10 @@ actual open class MediaPlayerService: PlatformService() {
     }
 }
 
-fun ExoMediaItem.getSong(): Song? {
+fun ExoMediaItem.getSong(): Song {
     return when (val tag = localConfiguration!!.tag) {
-        is IndexedValue<*> -> tag.value as Song?
-        is Song? -> tag
+        is IndexedValue<*> -> tag.value as Song
+        is Song -> tag
         else -> throw IllegalStateException()
     }
 }

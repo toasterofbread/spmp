@@ -42,6 +42,8 @@ class PlayerServiceHost() {
             get() = player.volume
             set(value) { player.volume = value }
         val queue_size: Int get() = player.song_count
+        val undo_count: Int get() = player.undo_count
+        val redo_count: Int get() = player.redo_count
 
         var m_playing: Boolean by mutableStateOf(playing)
             private set
@@ -61,6 +63,10 @@ class PlayerServiceHost() {
             private set
         var m_queue_size: Int by mutableStateOf(queue_size)
             private set
+        var m_undo_count: Int by mutableStateOf(undo_count)
+            private set
+        var m_redo_count: Int by mutableStateOf(redo_count)
+            private set
 
         init {
             player.addListener(object : MediaPlayerService.Listener() {
@@ -72,6 +78,10 @@ class PlayerServiceHost() {
                 }
                 override fun onRepeatModeChanged(repeat_mode: MediaPlayerRepeatMode) {
                     m_repeat_mode = repeat_mode
+                }
+                override fun onUndoStateChanged() {
+                    m_undo_count = undo_count
+                    m_redo_count = redo_count
                 }
 
                 override fun onEvents() {

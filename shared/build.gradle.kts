@@ -44,19 +44,13 @@ val buildConfigDebug = tasks.register("buildConfigDebug", GenerateBuildConfig::c
     buildConfig(true)
 }
 val buildConfigRelease = tasks.register("buildConfigRelease", GenerateBuildConfig::class.java) {
-    buildConfig(false)
+    buildConfig(true)
 }
 
 tasks.all {
-    if (name.startsWith("buildConfig")) {
-        return@all
-    }
-
-    if (name.toLowerCase().contains("release")) {
-        dependsOn(buildConfigRelease)
-    }
-    else {
-        dependsOn(buildConfigDebug)
+    when (name) {
+        "generateDebugBuildConfig" -> dependsOn(buildConfigDebug)
+        "generateReleaseBuildConfig" -> dependsOn(buildConfigRelease)
     }
 }
 
@@ -92,7 +86,8 @@ kotlin {
                 implementation("org.burnoutcrew.composereorderable:reorderable:0.9.2")
                 implementation("com.github.SvenWoltmann:color-thief-java:v1.1.2")
                 implementation("com.github.catppuccin:java:v1.0.0")
-                implementation("org.xmlpull:xmlpull:1.1.4.0")
+                implementation("com.github.paramsen:noise:2.0.0")
+//                implementation("org.xmlpull:xmlpull:1.1.4.0")
             }
             kotlin.srcDir(buildConfigDir)
         }

@@ -23,8 +23,30 @@ fun LibraryPage(
     playerProvider: () -> PlayerViewContext,
     close: () -> Unit
 ) {
-    val download_manager = PlayerServiceHost.download_manager
-//    download_manager.download_state
+
+    val downloads: MutableList<PlayerDownloadManager.DownloadStatus> by remember { mutableStateListOf() }
+    DisposableEffect(Unit) {
+        val listener = object : PlayerDownloadManager.DownloadStatusListener {
+            override fun onDownloadAdded(status: DownloadStatus) {
+                downloads.add(status)
+            }
+            override fun onDownloadRemoved(id: String) {
+                downloads.removeIf { it.id == id }
+            }
+            override fun onDownloadChanged(status: DownloadStatus) {
+                for (i in downloads.indices) [
+                    if (downloads[i].id == status.id) [
+                        downloads[i] = status
+                    ]
+                ]
+            }
+        }
+        PlayerServiceHost.download_manager.addDownloadStatusListener(listener)
+
+        onDispose {
+            PlayerServiceHost.download_manager.removeDownloadStatusListener(listener)
+        }
+    }
 
     var current_page: MediaItem.Type by remember { mutableStateOf(MediaItem.Type.SONG) }
 
@@ -57,12 +79,8 @@ fun LibraryPage(
             }
         }
 
-        // TODO
-
-//        download_manager.getDownloadedSongs().forEach { status ->
-//            item {
-//                status.song.PreviewLong(MediaItem.PreviewParams(playerProvider))
-//            }
-//        }
+        items(downloads) { download ->
+            download.song.PreviewLong(MediaItem.PreviewParams(playerProvider))
+        }
     }
 }

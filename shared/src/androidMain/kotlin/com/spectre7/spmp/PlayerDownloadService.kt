@@ -35,7 +35,9 @@ class PlayerDownloadService: PlatformService() {
     private inner class Download(
         val id: String,
         val quality: Song.AudioQuality,
-        var silent: Boolean
+        var silent: Boolean,
+        val instance: Int,
+        val file: File? = null
     ) {
         var status: DownloadStatus.Status = DownloadStatus.Status.IDLE
             set(value) {
@@ -54,7 +56,6 @@ class PlayerDownloadService: PlatformService() {
 
         var downloaded: Long = 0
         var total_size: Long = -1
-        var file: File? = null
 
         val progress: Float get() = if (total_size < 0f) 0f else downloaded.toFloat() / total_size
         val percent_progress: Int get() = (progress * 100).toInt()
@@ -65,6 +66,7 @@ class PlayerDownloadService: PlatformService() {
                 status,
                 quality,
                 progress,
+                instance.toString(),
                 file
             )
 
@@ -104,31 +106,31 @@ class PlayerDownloadService: PlatformService() {
             ))
         }
 
-        private fun broadcastStatus() {
+        fun broadcastStatus(started: Boolean = false) {
             sendMessageOut(PlayerDownloadManager.PlayerDownloadMessage(
                 IntentAction.STATUS_CHANGED,
-                mapOf("status" to getStatusObject())
+                mapOf("status" to getStatusObject(), "started" to started)
             ))
         }
     }
 
-    private fun getExistingDownload(song_id: String): Download? {
-        val quality: Song.AudioQuality = Settings.getEnum(Settings.KEY_DOWNLOAD_AUDIO_QUALITY)
+    private var download_inc: Int = 0
+    private fun getOrCreateDownload(song_id: String): Download {
         synchronized(downloads) {
             for (download in downloads) {
-                if (download.id == song_id && download.quality == quality) {
+                if (download.id == song_id) {
                     return download
                 }
             }
-            return null
+            return Download(song_id, Settings.getEnum(Settings.KEY_DOWNLOAD_AUDIO_QUALITY), true, download_inc++)
         }
     }
 
-    private fun getDownload(song_id: String): Download =
-        getExistingDownload(song_id) ?: Download(song_id, Settings.getEnum(Settings.KEY_DOWNLOAD_AUDIO_QUALITY), true)
+    fun getAllDownloadsStatus(): List<DownloadStatus> =
+        downloads.map { it.getStatusObject() }
 
-    fun getDownloadStatus(song_id: String): DownloadStatus =
-        getDownload(song_id).getStatusObject()
+    fun getDownloadStatus(song_id: String): DownloadStatus? =
+        downloads.firstOrNull { it.id == song_id }?.getStatusObject()
 
     private fun Collection<Download>.getTotalProgress(): Float {
         if (isEmpty()) {
@@ -205,12 +207,38 @@ class PlayerDownloadService: PlatformService() {
             pause_resume_action.title = if (value) "Resume" else "Pause"
         }
 
-//    private val broadcast_receiver = object : BroadcastReceiver() {
-//        override fun onReceive(_context: Context, intent: Intent) {
-//        }
-//    }
     private lateinit var notification_delete_intent: PendingIntent
     private lateinit var pause_resume_action: Notification.Action
+
+    override fun onCreate() {
+        super.onCreate()
+
+        downloads.clear()
+
+        notification_manager = NotificationManagerCompat.from(this)
+        notification_delete_intent = PendingIntent.getService(
+            this,
+            IntentAction.STOP.ordinal,
+            Intent(this, PlayerDownloadService::class.java).putExtra("action", IntentAction.STOP),
+            PendingIntent.FLAG_IMMUTABLE or PendingIntent.FLAG_ONE_SHOT
+        )
+        pause_resume_action = Notification.Action.Builder(
+            Icon.createWithResource(this, android.R.drawable.ic_menu_close_clear_cancel),
+            "Pause",
+            PendingIntent.getService(
+                this,
+                IntentAction.PAUSE_RESUME.ordinal,
+                Intent(this, PlayerDownloadService::class.java).putExtra("action", IntentAction.PAUSE_RESUME),
+                PendingIntent.FLAG_IMMUTABLE
+            )
+        ).build()
+    }
+
+    override fun onDestroy() {
+        executor.shutdownNow()
+        downloads.clear()
+        super.onDestroy()
+    }
 
     override fun onMessage(data: Any?) {
         require(data is PlayerDownloadManager.PlayerDownloadMessage)
@@ -239,7 +267,7 @@ class PlayerDownloadService: PlatformService() {
 
     private fun startDownload(message: PlayerDownloadManager.PlayerDownloadMessage) {
         require(message.instance != null)
-        val download = getDownload(message.data["song_id"] as String)
+        val download = getOrCreateDownload(message.data["song_id"] as String)
 
         val silent = message.data["silent"] as Boolean
         if (!silent) {
@@ -274,6 +302,7 @@ class PlayerDownloadService: PlatformService() {
                 }
 
                 downloads.add(download)
+                download.broadcastStatus(true)
             }
         }
 
@@ -345,29 +374,6 @@ class PlayerDownloadService: PlatformService() {
     }
 
     private fun performDownload(download: Download): Result<File?> {
-        var file: File? = null
-
-        if (download_dir.exists()) {
-            for (f in download_dir.listFiles()!!) {
-                when (download.matchesFile(f)) {
-                    true -> {
-                        // Download fully completed
-                        download.status = DownloadStatus.Status.ALREADY_FINISHED
-                        return Result.success(f)
-                    }
-                    false -> {
-                        // Download partially completed
-                        download.downloaded = f.length()
-                        file = f
-                        break
-                    }
-                    null -> {}
-                }
-            }
-        }
-        else {
-            download_dir.mkdirs()
-        }
 
         val format = download.song.getFormatByQuality(download.quality)
         if (format.isFailure) {
@@ -383,6 +389,9 @@ class PlayerDownloadService: PlatformService() {
                 "${download.id}: Server returned code ${connection.responseCode} ${connection.responseMessage}"
             ))
         }
+        
+        var file: File? = download.file
+        download_dir.mkdirs()
 
         if (file == null) {
             val extension = when (connection.contentType) {
@@ -602,35 +611,6 @@ class PlayerDownloadService: PlatformService() {
 
         notification_manager.createNotificationChannel(channel)
         return NOTIFICATION_CHANNEL_ID
-    }
-
-    override fun onCreate() {
-        super.onCreate()
-
-//        addBroadcastReceiver(broadcast_receiver, PlayerDownloadService::class.java.canonicalName)
-
-        notification_manager = NotificationManagerCompat.from(this)
-        notification_delete_intent = PendingIntent.getService(
-            this,
-            IntentAction.STOP.ordinal,
-            Intent(this, PlayerDownloadService::class.java).putExtra("action", IntentAction.STOP),
-            PendingIntent.FLAG_IMMUTABLE or PendingIntent.FLAG_ONE_SHOT
-        )
-        pause_resume_action = Notification.Action.Builder(
-            Icon.createWithResource(this, android.R.drawable.ic_menu_close_clear_cancel),
-            "Pause",
-            PendingIntent.getService(
-                this,
-                IntentAction.PAUSE_RESUME.ordinal,
-                Intent(this, PlayerDownloadService::class.java).putExtra("action", IntentAction.PAUSE_RESUME),
-                PendingIntent.FLAG_IMMUTABLE
-            )
-        ).build()
-    }
-
-    override fun onDestroy() {
-        executor.shutdownNow()
-        super.onDestroy()
     }
 
     inner class ServiceBinder: PlatformBinder() {

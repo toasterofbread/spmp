@@ -27,13 +27,16 @@ actual class PlayerDownloadManager actual constructor(val context: PlatformConte
         actual val status: Status,
         actual val quality: Song.AudioQuality,
         actual val progress: Float,
+        actual val id: String,
         val file: File?
     ) {
         actual enum class Status { IDLE, PAUSED, DOWNLOADING, CANCELLED, ALREADY_FINISHED, FINISHED }
     }
 
     actual interface DownloadStatusListener {
-        actual fun onSongDownloadStatusChanged(song_id: String, status: DownloadStatus.Status)
+        actual fun onDownloadAdded(status: DownloadStatus)
+        actual fun onDownloadRemoved(id: String)
+        actual fun onDownloadChanged(status: DownloadStatus)
     }
     private val download_status_listeners: MutableList<DownloadStatusListener> = mutableListOf()
 
@@ -58,12 +61,19 @@ actual class PlayerDownloadManager actual constructor(val context: PlatformConte
                 val result = data["result"] as Result<File?>
                 if (result.isFailure) {
                     context.sendNotification(result.exceptionOrNull()!!)
+                    download_status_listeners.forEach { it.onDownloadRemoved(status.id) }
                 }
-//                onStateChanged()
+                else {
+                    download_status_listeners.forEach { it.onDownloadChanged(status) }
+                }
             }
             PlayerDownloadService.IntentAction.STATUS_CHANGED -> {
-                download_status_listeners.forEach { it.onSongDownloadStatusChanged(status.song.id, data["status"] as DownloadStatus.Status) }
-//                onStateChanged()
+                if (data["started"] as Boolean) {
+                    download_status_listeners.forEach { it.onDownloadAdded(status) }
+                }
+                else {
+                    download_status_listeners.forEach { it.onDownloadChanged(status) }
+                }
             }
             else -> {}
         }
@@ -74,18 +84,34 @@ actual class PlayerDownloadManager actual constructor(val context: PlatformConte
         callbacks[instance] = callback
     }
 
-    actual fun getDownloadedSongs(): List<DownloadStatus> {
-        val files = getDownloadDir(context).listFiles() ?: return emptyList()
-        return files.map { file ->
+    private fun onService(action: PlayerDownloadService.() -> Unit) {
+        service?.also {
+            action(it)
+            return
+        }
+        startService { action(it) }
+    }
+
+    actual fun getDownloads(callback: (List<DownloadStatus>) -> Unit) {
+        val current_downloads: List<DownloadStatus> = service?.run {
+            getAllDownloadsStatus()
+        } ?: emptyList()
+
+        val files = getDownloadDir(context).listFiles() ?: return current_downloads
+        return current_downloads + files.mapNotNull { file ->
+            if (current_downloads.any { it.file == file }) {
+                return@mapNotNull null
+            }
+            
             val data = PlayerDownloadService.getFilenameData(file.name)
             DownloadStatus(
                 Song.fromId(data.id),
                 if (data.downloading) DownloadStatus.Status.IDLE else DownloadStatus.Status.FINISHED,
                 data.quality,
-                if (data.downloading) 0f else 1f,
+                if (data.downloading) -1f else 1f,
+                file.name,
                 file
             )
-        }
     }
 
     fun getSongLocalFile(song: Song): File? {
@@ -100,40 +126,24 @@ actual class PlayerDownloadManager actual constructor(val context: PlatformConte
 
     @Synchronized
     actual fun startDownload(song_id: String, silent: Boolean, onCompleted: ((DownloadStatus) -> Unit)?) {
-        if (service == null) {
-            startService({ startDownload(song_id, silent, onCompleted) })
-            return
-        }
-
-        val instance = result_callback_id++
-        if (onCompleted != null) {
-            addResultCallback(PlayerDownloadService.IntentAction.START_DOWNLOAD, song_id, instance) { data ->
-                onCompleted(data["status"] as DownloadStatus)
+        onService {
+            val instance = result_callback_id++
+            if (onCompleted != null) {
+                addResultCallback(PlayerDownloadService.IntentAction.START_DOWNLOAD, song_id, instance) { data ->
+                    onCompleted(data["status"] as DownloadStatus)
+                }
             }
+
+            onMessage(PlayerDownloadMessage(
+                PlayerDownloadService.IntentAction.START_DOWNLOAD,
+                mapOf(
+                    "song_id" to song_id,
+                    "silent" to silent
+                ),
+                instance
+            ))
         }
-
-        service!!.onMessage(PlayerDownloadMessage(
-            PlayerDownloadService.IntentAction.START_DOWNLOAD,
-            mapOf(
-                "song_id" to song_id,
-                "silent" to silent
-            ),
-            instance
-        ))
-
-
 //        onStateChanged()
-    }
-
-    actual fun getSongDownloadStatus(song_id: String, callback: (DownloadStatus) -> Unit) {
-        if (service == null) {
-            startService({ getSongDownloadStatus(song_id, callback) })
-            return
-        }
-
-        context.networkThread {
-            callback(service!!.getDownloadStatus(song_id))
-        }
     }
 
 //    fun getSongDownloadProgress(song_id: String, callback: (Float) -> Unit) {
@@ -147,7 +157,7 @@ actual class PlayerDownloadManager actual constructor(val context: PlatformConte
 //    }
 
     @Synchronized
-    private fun startService(onConnected: (() -> Unit)? = null, onDisconnected: (() -> Unit)? = null) {
+    private fun startService(onConnected: ((PlayerDownloadService) -> Unit)? = null, onDisconnected: (() -> Unit)? = null) {
         if (service_connecting || service != null) {
             return
         }
@@ -160,7 +170,7 @@ actual class PlayerDownloadManager actual constructor(val context: PlatformConte
                 service = (binder as PlayerDownloadService.ServiceBinder).getService()
                 service!!.addMessageReceiver(result_receiver)
                 service_connecting = false
-                onConnected?.invoke()
+                onConnected?.invoke(service!!)
             },
             onDisconnected = {
                 service = null

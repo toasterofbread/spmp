@@ -8,22 +8,23 @@ expect class PlayerDownloadManager(context: PlatformContext) {
         val status: Status
         val quality: Song.AudioQuality
         val progress: Float
-
+        val id: String
         enum class Status { IDLE, PAUSED, DOWNLOADING, CANCELLED, ALREADY_FINISHED, FINISHED }
     }
 
     interface DownloadStatusListener {
-        fun onSongDownloadStatusChanged(song_id: String, status: DownloadStatus.Status)
+        fun onDownloadAdded(status: DownloadStatus)
+        fun onDownloadRemoved(id: String)
+        fun onDownloadChanged(status: DownloadStatus)
     }
 
     fun addDownloadStatusListener(listener: DownloadStatusListener)
     fun removeDownloadStatusListener(listener: DownloadStatusListener)
+    
+    fun getDownloads(callback: (List<DownloadStatus>) -> Unit)
 
-    fun getDownloadedSongs(): List<DownloadStatus>
     @Synchronized
     fun startDownload(song_id: String, silent: Boolean = false, onCompleted: ((DownloadStatus) -> Unit)? = null)
-
-    fun getSongDownloadStatus(song_id: String, callback: (DownloadStatus) -> Unit)
 
     fun release()
 }

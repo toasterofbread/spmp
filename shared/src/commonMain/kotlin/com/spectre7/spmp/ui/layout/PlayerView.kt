@@ -579,32 +579,7 @@ private fun MainPage(
     }
 
     Column(Modifier.padding(horizontal = padding)) {
-        // Top bar
-        Row(Modifier.padding(top = SpMp.context.getStatusBarHeight())) {
-
-            PlayerServiceHost.player.Waveform(Color.White)
-
-            // TODO | Lyrics
-            Spacer(Modifier.fillMaxWidth().weight(1f))
-
-            IconButton({
-                if (auth_info.initialised) {
-                    playerProvider().onMediaItemClicked(auth_info.own_channel)
-                }
-                else {
-                    playerProvider().setOverlayPage(OverlayPage.YTM_LOGIN)
-                }
-            }) {
-                Crossfade(auth_info) { info ->
-                    if (auth_info.initialised) {
-                        info.own_channel.Thumbnail(MediaItem.ThumbnailQuality.LOW, Modifier.clip(CircleShape).size(27.dp))
-                    }
-                    else {
-                        Icon(Icons.Filled.Person, null)
-                    }
-                }
-            }
-        }
+        MainPageTopBar(Modifier.padding(top = SpMp.context.getStatusBarHeight()))
 
         // Main scrolling view
         SwipeRefresh(
@@ -673,6 +648,68 @@ private fun MainPage(
                         TopContent()
                         MainPageLoadingView(Modifier.graphicsLayer { alpha = state_alpha.value }.fillMaxSize())
                     }
+                }
+            }
+        }
+    }
+}
+
+@Composable
+private fun MainPageTopBar(auth_info: YoutubeMusicAuthInfo, playerProvider: () -> PlayerViewContext, modifier: Modifier = Modifier) {
+    Row(modifier) {
+
+        var lyrics: Song.Lyrics? by remember { mutableStateOf(null) }
+        var lyrics_loaded by remember { mutableStateOf(null) }
+
+        LaunchedEffect(PlayerServiceHost.status.m_song) {
+            val song = PlayerServiceHost.status.m_song
+
+            if (song.lyrics_loaded) {
+                lyrics = song.lyrics
+                lyrics_loaded = true
+            }
+            else {
+                lyrics = null
+                lyrics_loaded = false
+                
+                launch {
+                    lyrics = song.loadLyrics()
+                    lyrics_loaded = true
+                }
+            }
+        }
+
+        Crossfade(Pair(lyrics_loaded, lyrics)) { state ->
+            val (loading, lyr) = state
+    
+            if (!state.first) {
+                SubtleLoadingIndicator()
+            }
+            else if (state.second != null && state.second.sync_type != Song.Lyrics.SyncType.NONE) {
+                LyricsLineDisplay(state.second, { PlayerServiceHost.status.position_ms }, Theme.current.on_background_provider, Modifier.fillMaxWidth())
+            }
+            else {
+                PlayerServiceHost.player.Waveform(Color.White)
+            }
+        }
+
+        // TODO | Lyrics
+        Spacer(Modifier.fillMaxWidth().weight(1f))
+
+        IconButton({
+            if (auth_info.initialised) {
+                playerProvider().onMediaItemClicked(auth_info.own_channel)
+            }
+            else {
+                playerProvider().setOverlayPage(OverlayPage.YTM_LOGIN)
+            }
+        }) {
+            Crossfade(auth_info) { info ->
+                if (auth_info.initialised) {
+                    info.own_channel.Thumbnail(MediaItem.ThumbnailQuality.LOW, Modifier.clip(CircleShape).size(27.dp))
+                }
+                else {
+                    Icon(Icons.Filled.Person, null)
                 }
             }
         }

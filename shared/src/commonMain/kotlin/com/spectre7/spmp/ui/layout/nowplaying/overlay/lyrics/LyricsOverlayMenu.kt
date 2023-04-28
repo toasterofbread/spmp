@@ -186,10 +186,10 @@ fun CoreLyricsDisplay(playerProvider: () -> PlayerViewContext, size: Dp, seek_st
     LaunchedEffect(lyrics) {
         if (lyrics.sync_type != Song.Lyrics.SyncType.NONE) {
             while (true) {
-                val time = PlayerServiceHost.status.position_seconds
+                val time = PlayerServiceHost.status.position_ms
                 var start = -1
                 var end = -1
-                var next = Float.POSITIVE_INFINITY
+                var next = Long.MAX_VALUE
 
                 for (item in terms.withIndex()) {
                     val term = item.value.data as Song.Lyrics.Term
@@ -220,7 +220,7 @@ fun CoreLyricsDisplay(playerProvider: () -> PlayerViewContext, size: Dp, seek_st
                     current_range = start..end
                 }
 
-                delay(minOf((next * 1000).toLong(), 100))
+                delay(minOf(next, 100))
             }
         }
     }

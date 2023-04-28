@@ -33,6 +33,7 @@ class PlayerServiceHost() {
             if (it <= 0f) 0f
             else player.current_position_ms.toFloat() / it
         }
+        val position_ms: Long get() = player.current_position_ms
         val position_seconds: Float get() = player.current_position_ms / 1000f
         val duration: Float get() = player.duration_ms / 1000f
         val song: Song? get() = player.getSong()

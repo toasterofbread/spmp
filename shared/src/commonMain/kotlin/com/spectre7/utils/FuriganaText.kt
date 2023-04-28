@@ -39,11 +39,11 @@ fun LongFuriganaText(
     column_modifier: Modifier = Modifier,
     font_size: TextUnit = TextUnit.Unspecified,
     receiveTermRect: ((TextData, Rect) -> Unit)? = null,
-    highlight_term_range: IntRange? = null,
     chunk_size: Int = 1,
 
     text_element: (@Composable (is_reading: Boolean, text: String, font_size: TextUnit, index: Int, modifier: Modifier) -> Unit)? = null,
     list_element: (@Composable (content: LazyListScope.() -> Unit) -> Unit)? = null,
+    loadingIndicator: @Composable () -> Unit = { SubtleLoadingIndicator() }
 ) {
 
     val _font_size = if (font_size == TextUnit.Unspecified) LocalTextStyle.current.fontSize else font_size
@@ -160,49 +160,62 @@ fun LongFuriganaText(
         return ret
     }
 
-    val data_with_readings = remember(text_content, highlight_term_range) {
-        calculateAnnotatedString(true)
-    }
+    val data_with_readings: List<Pair<AnnotatedString, Map<String, InlineTextContent>>>? by remember(text_content) { mutableStateOf(null) }
+    val data_without_readings: List<Pair<AnnotatedString, Map<String, InlineTextContent>>>? by remember(text_content) { mutableStateOf(null) }
 
-    val data_without_readings = remember(text_content) {
-        calculateAnnotatedString(false)
-    }
-
-    val text_data = if (show_readings) data_with_readings else data_without_readings
-
-    var text_line_height = _font_size.value + reading_font_size.value + 10
-    if (space_wrapped_lines) {
-        text_line_height += with(LocalDensity.current) { line_spacing.toSp() }.value
-    }
-
-    (list_element ?: { content ->
-        LazyColumn(column_modifier) {
-            content()
+    LaunchedEffect(text_content) {
+        data_with_readings = null
+        data_without_readings = null
+        
+        if (show_readings) {
+            data_with_readings = calculateAnnotatedString(true)
+            data_without_readings = calculateAnnotatedString(false)
         }
-    }) {
-        val chunks = (text_data.size / chunk_size).coerceAtLeast(1)
+        else {
+            data_without_readings = calculateAnnotatedString(false)
+            data_with_readings = calculateAnnotatedString(true)
+        }
+    }
 
-        for (chunk in 0 until chunks) {
-            items(chunks, { it }) { i ->
-                for (line in i + (chunk * chunk_size) until i + ((chunk + 1) * chunk_size)) {
-                    if (line >= text_data.size) {
-                        break
+    Crossfade(if (show_readings) data_with_readings else data_without_readings) { text_data ->
+        if (text_data == null) {
+            loadingIndicator()
+        }
+        else {
+            var text_line_height = _font_size.value + reading_font_size.value + 10
+            if (space_wrapped_lines) {
+                text_line_height += with(LocalDensity.current) { line_spacing.toSp() }.value
+            }
+
+            (list_element ?: { content ->
+                LazyColumn(column_modifier) {
+                    content()
+                }
+            }) {
+                val chunks = (text_data.size / chunk_size).coerceAtLeast(1)
+
+                for (chunk in 0 until chunks) {
+                    items(chunks, { it }) { i ->
+                        for (line in i + (chunk * chunk_size) until i + ((chunk + 1) * chunk_size)) {
+                            if (line >= text_data.size) {
+                                break
+                            }
+                            val item = text_data[line]
+
+                            if (line > 0) {
+                                Spacer(Modifier.requiredHeight(line_spacing))
+                            }
+
+                            Text(
+                                item.first,
+                                fontSize = _font_size,
+                                inlineContent = item.second,
+                                lineHeight = text_line_height.sp
+                            )
+                        }
                     }
-                    val item = text_data[line]
-
-                    if (line > 0) {
-                        Spacer(Modifier.requiredHeight(line_spacing))
-                    }
-
-                    Text(
-                        item.first,
-                        fontSize = _font_size,
-                        inlineContent = item.second,
-                        lineHeight = text_line_height.sp
-                    )
                 }
             }
         }
-
     }
 }

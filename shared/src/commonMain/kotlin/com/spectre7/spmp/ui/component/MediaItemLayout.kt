@@ -318,6 +318,9 @@ fun LazyMediaItemLayoutColumn(
     scroll_state: LazyListState = rememberLazyListState(),
     scroll_enabled: Boolean = true,
     spacing: Dp = 0.dp,
+    layoutItem: LazyListScope.(layout: MediaItemLayout, i: Int, showLayout: LazyListScope.(MediaItemLayout) -> Unit) -> Unit = { layout, i, showLayout ->
+        showLayout(this, layout)
+    },
     getType: ((MediaItemLayout) -> MediaItemLayout.Type)? = null
 ) {
     require(getType != null || layouts.all { it.type != null })
@@ -330,17 +333,23 @@ fun LazyMediaItemLayoutColumn(
     ) {
         topContent?.invoke(this)
 
-        var count = layouts.count { it.items.isNotEmpty() }
-        for (layout in layouts) {
-            if (layout.items.isEmpty()) {
+        for (layout in layouts.withIndex()) {
+            if (layout.value.items.isEmpty()) {
                 continue
             }
 
-            val type = getType?.invoke(layout) ?: layout.type!!
-            item { type.Layout(layout, playerProvider, layout_modifier) }
-            if (--count != 0) {
-                item { Spacer(Modifier.height(spacing)) }
-            }
+            val type = getType?.invoke(layout.value) ?: layout.value.type!!
+            layoutItem(
+                this, 
+                layout.value, 
+                layout.index,
+                { layout ->
+                    item {
+                        type.Layout(layout, playerProvider, layout_modifier)
+                    }
+                    item { Spacer(Modifier.height(spacing)) }
+                }
+            )
 
 //            when (val type = getType?.invoke(layout) ?: layout.type!!) {
 //                MediaItemLayout.Type.LIST, MediaItemLayout.Type.NUMBERED_LIST -> {

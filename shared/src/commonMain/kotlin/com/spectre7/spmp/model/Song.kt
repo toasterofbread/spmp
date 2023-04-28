@@ -110,8 +110,8 @@ class Song protected constructor (
             }
         }
 
-        data class Term(val subterms: List<Text>, val start: Float? = null, val end: Float? = null) {
-            var line_range: ClosedFloatingPointRange<Float>? = null
+        data class Term(val subterms: List<Text>, val start: Long? = null, val end: Long? = null) {
+            var line_range: LongRange? = null
             var data: Any? = null
 
             data class Text(val text: String, var furi: String? = null) {
@@ -130,7 +130,7 @@ class Song protected constructor (
                 }
             }
 
-            val range: ClosedFloatingPointRange<Float>
+            val range: LongRange
                 get() = start!! .. end!!
 
             companion object {
@@ -149,6 +149,20 @@ class Song protected constructor (
                 }
                 return@lazyAssert true
             }
+        }
+
+        fun getLine(time_ms: Long): Int? {
+            check(sync_type != SyncType.NONE)
+
+            for (line in lines.withIndex()) {
+                for (term in line.value) {
+                    if (time_ms in term.line_range) {
+                        return line.index
+                    }
+                }
+            }
+
+            return null
         }
     }
 
@@ -176,10 +190,20 @@ class Song protected constructor (
         }
     }
 
-    fun getLyrics(callback: (Lyrics?) -> Unit) {
-        thread {
-            callback(getSongLyrics(this))
+    var lyrics: Lyrics? by mutableStateOf(null)
+        private set
+    var lyrics_loaded: Booleab by mutableStateOf(false)
+        private set
+
+    @Synchronized
+    fun loadLyrics(): Lyrics? {
+        if (lyrics_loaded) {
+            return null
         }
+
+        lyrics = getSongLyrics(this)
+        lyrics_loaded = true
+        return lyrics
     }
 
     var theme_colour: Color?

@@ -227,8 +227,8 @@ private fun parseTimedLyrics(data: String): List<List<Song.Lyrics.Term>> {
         parser.require(XmlPullParser.START_TAG, null, "word")
 
         var text: String? = null
-        var start: Float? = null
-        var end: Float? = null
+        var start: Long? = null
+        var end: Long? = null
 
         while (parser.next() != XmlPullParser.END_TAG) {
             if (parser.eventType != XmlPullParser.START_TAG) {
@@ -237,8 +237,8 @@ private fun parseTimedLyrics(data: String): List<List<Song.Lyrics.Term>> {
 
             when (parser.name) {
                 "wordstring" -> text = readText("wordstring")
-                "starttime" -> start = readText("starttime").toInt() / 1000f
-                "endtime" -> end = readText("endtime").toInt() / 1000f
+                "starttime" -> start = readText("starttime").toLong()
+                "endtime" -> end = readText("endtime").toLong()
                 else -> skip()
             }
         }
@@ -257,8 +257,8 @@ private fun parseTimedLyrics(data: String): List<List<Song.Lyrics.Term>> {
     fun parseLine(): List<Song.Lyrics.Term> {
         parser.require(XmlPullParser.START_TAG, null, "line")
 
-        var line_start = Float.POSITIVE_INFINITY
-        var line_end = Float.NEGATIVE_INFINITY
+        var line_start: Long? = null
+        var line_end: Long? = null
 
         val terms: MutableList<Song.Lyrics.Term> = mutableListOf()
         while (parser.next() != XmlPullParser.END_TAG) {
@@ -275,20 +275,23 @@ private fun parseTimedLyrics(data: String): List<List<Song.Lyrics.Term>> {
             if (term != null) {
                 terms.add(term)
 
-                if (term.start!! < line_start) {
+                if (line_start == null) {
                     line_start = term.start
-                }
-                if (term.end!! > line_end) {
                     line_end = term.end
+                }
+                else {
+                    if (term.start!! < line_start) {
+                        line_start = term.start
+                    }
+                    if (term.end!! > line_end) {
+                        line_end = term.end
+                    }
                 }
             }
         }
 
         if (terms.isNotEmpty()) {
-            check(!line_start.isInfinite())
-            check(!line_end.isInfinite())
-
-            val range = line_start..line_end
+            val range = line_start!! .. line_end!!
             for (term in terms) {
                 term.line_range = range
             }

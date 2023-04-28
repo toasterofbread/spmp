@@ -524,7 +524,42 @@ private fun MainPage(
     getSelectedFilterChip: () -> Int?,
     loadFeed: (filter_chip: Int?, continuation: Boolean) -> Unit
 ) {
+    require(layouts.isNotEmpty())
+
     val padding by animateDpAsState(if (SpMp.context.isScreenLarge()) 30.dp else 10.dp)
+
+    val home_layouts: MutableList<MediaItemLayout> by remember { mutableStateListOf() }
+    val artists_layout: MediaItemLayout by remember { MediaItemLayout(getStringTemp("Artists"), null, items = mutableStateListOf()) }
+
+    LaunchedEffect(layouts) {
+        val artists_map: MutableMap<Artist, Int> = mutableMapOf()
+        for (layout in layouts) {
+            for (item in layout.items) {
+                if (item is Artist) {
+                    continue
+                }
+
+                item.artist?.also { artist ->
+                    if (!top_artists.containsKey()) {
+                        top_artists[artist] = 1
+                    }
+                    else {
+                        top_artists[artist]++
+                    }
+                }
+            }
+        }
+
+        val artists = artists_map.mapNotNull { artist ->
+            if (artist.value < 2) null
+            else Pair(artist.key, artist.value)    
+        }.sortBy { it.second }
+
+        artists_layout.items.clear()
+        for (artist in artists) {
+            artist_layout.items.add(artist.first)
+        }
+    }
 
     var auth_info: YoutubeMusicAuthInfo by remember { mutableStateOf(YoutubeMusicAuthInfo(Settings.KEY_YTM_AUTH.get())) }
     DisposableEffect(Unit) {
@@ -616,6 +651,13 @@ private fun MainPage(
                         topContent = {
                             item {
                                 TopContent()
+                            }
+                        },
+                        layoutItem = { layout, i, showLayout ->
+                            showLayout(this, layout)
+                            
+                            if (i == 0) {
+                                artists_layout?.also { showLayout(this, it) }
                             }
                         }
                     ) { MediaItemLayout.Type.GRID }

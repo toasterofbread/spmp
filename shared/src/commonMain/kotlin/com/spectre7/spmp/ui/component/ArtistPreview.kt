@@ -32,7 +32,7 @@ import com.spectre7.spmp.ui.layout.ArtistSubscribeButton
 import com.spectre7.utils.getContrasted
 import com.spectre7.utils.setAlpha
 
-const val ARTIST_THUMB_CORNER_ROUNDING = 10f
+const val ARTIST_THUMB_CORNER_ROUNDING = 50
 
 @Composable
 fun ArtistPreviewSquare(
@@ -135,7 +135,7 @@ fun ArtistPreviewLong(
 
 fun getArtistLongPressMenuData(
     artist: Artist,
-    thumb_shape: Shape? = RoundedCornerShape(ARTIST_THUMB_CORNER_ROUNDING.dp)
+    thumb_shape: Shape? = RoundedCornerShape(ARTIST_THUMB_CORNER_ROUNDING)
 ): LongPressMenuData {
     return LongPressMenuData(
         artist,

@@ -134,7 +134,7 @@ class Song protected constructor (
                 get() = start!! .. end!!
 
             companion object {
-                val EMPTY = Term(listOf(Text("")), -1f, -1f)
+                val EMPTY = Term(listOf(Text("")), null, null)
             }
         }
 
@@ -156,7 +156,7 @@ class Song protected constructor (
 
             for (line in lines.withIndex()) {
                 for (term in line.value) {
-                    if (time_ms in term.line_range) {
+                    if (term.line_range!!.contains(time_ms)) {
                         return line.index
                     }
                 }
@@ -192,13 +192,13 @@ class Song protected constructor (
 
     var lyrics: Lyrics? by mutableStateOf(null)
         private set
-    var lyrics_loaded: Booleab by mutableStateOf(false)
+    var lyrics_loaded: Boolean by mutableStateOf(false)
         private set
 
     @Synchronized
     fun loadLyrics(): Lyrics? {
         if (lyrics_loaded) {
-            return null
+            return lyrics
         }
 
         lyrics = getSongLyrics(this)

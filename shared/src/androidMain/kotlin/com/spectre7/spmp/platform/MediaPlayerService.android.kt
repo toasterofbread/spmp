@@ -49,8 +49,6 @@ import java.io.IOException
 import java.nio.ByteBuffer
 import java.nio.ShortBuffer
 import kotlin.concurrent.thread
-import kotlin.math.ceil
-import kotlin.random.Random
 import com.google.android.exoplayer2.MediaItem as ExoMediaItem
 import com.google.android.exoplayer2.upstream.cache.Cache as ExoCache
 

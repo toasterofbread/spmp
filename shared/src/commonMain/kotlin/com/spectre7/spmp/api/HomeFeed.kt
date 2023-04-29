@@ -7,7 +7,6 @@ import com.spectre7.spmp.api.DataApi.Companion.ytUrl
 import com.spectre7.spmp.model.*
 import com.spectre7.spmp.ui.component.MediaItemLayout
 import com.spectre7.spmp.ui.component.generateLayoutTitle
-import com.spectre7.utils.getString
 import okhttp3.Request
 import java.io.InputStreamReader
 import java.time.Duration
@@ -116,36 +115,36 @@ private fun processRows(rows: List<YoutubeiShelf>): List<MediaItemLayout> {
                 val header = renderer.header.musicCarouselShelfBasicHeaderRenderer!!
 
                 fun add(
-                    title: String? = null,
+                    title: LocalisedYoutubeString,
+                    subtitle: LocalisedYoutubeString? = null,
                     thumbnail_source: MediaItemLayout.ThumbnailSource? =
                         header.thumbnail?.musicThumbnailRenderer?.thumbnail?.thumbnails?.firstOrNull()?.let {
                             MediaItemLayout.ThumbnailSource(null, url = it.url)
                         },
                     media_item_type: MediaItem.Type? = null,
-                    view_more: MediaItemLayout.ViewMore? = null,
-                    localised_title: Boolean = true
+                    view_more: MediaItemLayout.ViewMore? = null
                 ) {
                     val items = row.getMediaItems().toMutableList()
-                    val final_title: String
-                    val final_subtitle: String?
 
-                    if (title == null || (!localised_title && SpMp.data_language != SpMp.ui_language)) {
-                        val generated = items.generateLayoutTitle()
-                        final_title = generated.first
-                        final_subtitle = generated.second
-                    }
-                    else {
-                        final_title = title
-                        if (header.strapline?.runs?.isNotEmpty() == true && media_item_type != null) {
-                            final_subtitle = getString(if (thumbnail_source?.url != null) "home_feed_similar_to" else "home_feed_more_from")
-                        }
-                        else {
-                            final_subtitle = null
-                        }
-                    }
+//                    val final_title: String
+//                    val final_subtitle: String?
+//                    if (title == null || (!localised_title && SpMp.data_language != SpMp.ui_language)) {
+//                        val generated = items.generateLayoutTitle()
+//                        final_title = generated.first
+//                        final_subtitle = generated.second
+//                    }
+//                    else {
+//                        final_title = title
+//                        if (header.strapline?.runs?.isNotEmpty() == true && media_item_type != null) {
+//                            final_subtitle = if (thumbnail_source?.url != null) "home_feed_similar_to" else "home_feed_more_from"
+//                        }
+//                        else {
+//                            final_subtitle = null
+//                        }
+//                    }
 
                     ret.add(MediaItemLayout(
-                        final_title, final_subtitle,
+                        title, subtitle,
                         items = items,
                         thumbnail_source = thumbnail_source,
                         view_more = view_more,
@@ -155,38 +154,62 @@ private fun processRows(rows: List<YoutubeiShelf>): List<MediaItemLayout> {
 
                 val browse_endpoint = header.title.runs?.first()?.navigationEndpoint?.browseEndpoint
                 if (browse_endpoint == null) {
-                    add(header.title.first_text, localised_title = false)
+                    add(
+                        LocalisedYoutubeString.homeFeed(header.title.first_text),
+                        header.subtitle?.first_text?.let { LocalisedYoutubeString.homeFeed(it) }
+                    )
                     continue
                 }
 
                 when (browse_endpoint.browseId) {
                     "FEmusic_listen_again" -> {
                         if (Settings.get(Settings.KEY_FEED_SHOW_LISTEN_ROW)) {
-                            add(getString("home_feed_listen_again"), thumbnail_source = null, view_more = MediaItemLayout.ViewMore(list_page_url = "https://music.youtube.com/listen_again"))
+                            add(
+                                LocalisedYoutubeString.common("home_feed_listen_again"),
+                                null,
+                                thumbnail_source = null,
+                                view_more = MediaItemLayout.ViewMore(list_page_url = "https://music.youtube.com/listen_again")
+                            )
                         }
                         continue
                     }
                     "FEmusic_mixed_for_you" -> {
                         if (Settings.get(Settings.KEY_FEED_SHOW_MIX_ROW)) {
-                            add(getString("home_feed_mixed_for_you"), view_more = MediaItemLayout.ViewMore(list_page_url = "https://music.youtube.com/mixed_for_you"))
+                            add(
+                                LocalisedYoutubeString.common("home_feed_mixed_for_you"),
+                                null,
+                                view_more = MediaItemLayout.ViewMore(list_page_url = "https://music.youtube.com/mixed_for_you")
+                            )
                         }
                         continue
                     }
                     "FEmusic_new_releases_albums" -> {
                         if (Settings.get(Settings.KEY_FEED_SHOW_NEW_ROW)) {
-                            add(getString("home_feed_new_releases"), view_more = MediaItemLayout.ViewMore(list_page_url = "https://music.youtube.com/new_releases/albums"))
+                            add(
+                                LocalisedYoutubeString.common("home_feed_new_releases"),
+                                null,
+                                view_more = MediaItemLayout.ViewMore(list_page_url = "https://music.youtube.com/new_releases/albums")
+                            )
                         }
                         continue
                     }
                     "FEmusic_moods_and_genres" -> {
                         if (Settings.get(Settings.KEY_FEED_SHOW_MOODS_ROW)) {
-                            add(getString("home_feed_moods_and_genres"), view_more = MediaItemLayout.ViewMore(list_page_url = "https://music.youtube.com/moods_and_genres"))
+                            add(
+                                LocalisedYoutubeString.common("home_feed_moods_and_genres"),
+                                null,
+                                view_more = MediaItemLayout.ViewMore(list_page_url = "https://music.youtube.com/moods_and_genres")
+                            )
                         }
                         continue
                     }
                     "FEmusic_charts" -> {
                         if (Settings.get(Settings.KEY_FEED_SHOW_CHARTS_ROW)) {
-                            add(getString("home_feed_charts"), view_more = MediaItemLayout.ViewMore(list_page_url = "https://music.youtube.com/charts"))
+                            add(
+                                LocalisedYoutubeString.common("home_feed_charts"),
+                                null,
+                                view_more = MediaItemLayout.ViewMore(list_page_url = "https://music.youtube.com/charts")
+                            )
                         }
                         continue
                     }
@@ -212,7 +235,8 @@ private fun processRows(rows: List<YoutubeiShelf>): List<MediaItemLayout> {
                         }
 
                 add(
-                    header.title.first_text,
+                    LocalisedYoutubeString.raw(header.title.first_text),
+                    header.subtitle?.first_text?.let { LocalisedYoutubeString.homeFeed(it) },
                     view_more = MediaItemLayout.ViewMore(media_item = media_item),
                     thumbnail_source = thumbnail_source,
                     media_item_type = media_item.type

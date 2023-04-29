@@ -23,15 +23,13 @@ import com.spectre7.spmp.api.loadMediaItemData
 import com.spectre7.spmp.ui.component.MediaItemLayout
 import com.spectre7.spmp.ui.layout.PlayerViewContext
 import com.spectre7.spmp.ui.theme.Theme
-import com.spectre7.utils.SubtleLoadingIndicator
-import com.spectre7.utils.getStringTemp
-import com.spectre7.utils.getThemeColour
-import com.spectre7.utils.printJson
 import com.spectre7.spmp.platform.ProjectPreferences
 import com.spectre7.spmp.platform.toImageBitmap
+import com.spectre7.utils.*
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.runBlocking
 import kotlinx.coroutines.withContext
+import java.io.FileNotFoundException
 import java.io.Reader
 import java.net.URL
 import java.time.Duration
@@ -189,7 +187,7 @@ abstract class MediaItem(id: String) {
         }
 
         fun getReadable(plural: Boolean = false): String {
-            return getStringTemp(when (this) {
+            return getString(when (this) {
                 SONG -> if (plural) "songs" else "song"
                 ARTIST -> if (plural) "artists" else "artist"
                 PLAYLIST -> if (plural) "playlists" else "playlist"
@@ -372,7 +370,7 @@ abstract class MediaItem(id: String) {
             }
         }
 
-        data class DynamicProvider(val url_a: String, val url_b: String): ThumbnailProvider() {
+        data class DynamicProvider(val url_a: String, val url_b: String, val original_url: String): ThumbnailProvider() {
             override fun getThumbnail(quality: ThumbnailQuality): String {
                 val target_size = quality.getTargetSize()
                 return "$url_a${target_size.width}-h${target_size.height}$url_b"
@@ -389,7 +387,8 @@ abstract class MediaItem(id: String) {
 
                     return DynamicProvider(
                         url.substring(0, w_index + 1),
-                        url.substring(h_index + 2 + height.toString().length)
+                        url.substring(h_index + 2 + height.toString().length),
+                        url
                     )
                 }
             }
@@ -547,11 +546,19 @@ abstract class MediaItem(id: String) {
     protected open fun downloadThumbnail(quality: ThumbnailQuality): ImageBitmap? {
         val url = getThumbUrl(quality) ?: return null
 
-        val stream = URL(url).openConnection().getInputStream()
-        val bytes = stream.readBytes()
-        stream.close()
+        try {
+            val stream = URL(url).openConnection().getInputStream()
+            val bytes = stream.readBytes()
+            stream.close()
 
-        return bytes.toImageBitmap()
+            return bytes.toImageBitmap()
+        }
+        catch (e: FileNotFoundException) {
+            println("AAA")
+            println((thumbnail_provider!! as ThumbnailProvider.DynamicProvider).original_url)
+            println((thumbnail_provider!! as ThumbnailProvider.DynamicProvider))
+            throw e
+        }
     }
 
     data class PreviewParams(

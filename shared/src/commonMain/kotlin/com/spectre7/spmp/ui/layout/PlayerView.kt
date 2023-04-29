@@ -31,10 +31,7 @@ import androidx.compose.ui.graphics.graphicsLayer
 import androidx.compose.ui.layout.onSizeChanged
 import androidx.compose.ui.unit.*
 import com.spectre7.spmp.PlayerServiceHost
-import com.spectre7.spmp.api.YoutubeiSearchResponse
-import com.spectre7.spmp.api.cast
-import com.spectre7.spmp.api.getHomeFeed
-import com.spectre7.spmp.api.getOrThrowHere
+import com.spectre7.spmp.api.*
 import com.spectre7.spmp.model.*
 import com.spectre7.spmp.platform.*
 import com.spectre7.spmp.ui.component.*
@@ -154,6 +151,7 @@ private class PlayerViewContextImpl: PlayerViewContext(null, null, null) {
         }
     }
 
+    @OptIn(ExperimentalMaterialApi::class)
     @Composable
     fun init() {
         val screen_height = SpMp.context.getScreenHeight().value
@@ -332,7 +330,7 @@ private class PlayerViewContextImpl: PlayerViewContext(null, null, null) {
 
     private val main_page_scroll_state = LazyListState()
     private val playerProvider = { this }
-    private val main_page_layouts = mutableStateListOf<MediaItemLayout>()
+    private var main_page_layouts: List<MediaItemLayout> by mutableStateOf(emptyList())
     private var main_page_filter_chips: List<String>? by mutableStateOf(null)
     private var main_page_selected_filter_chip: Int? by mutableStateOf(null)
 
@@ -358,16 +356,18 @@ private class PlayerViewContextImpl: PlayerViewContext(null, null, null) {
             }
             else {
                 val (layouts, cont, chips) = result.getOrThrow()
+                for (layout in layouts) {
+                    layout.itemSizeProvider = { getMainPageItemSize() }
+                }
 
-                if (!continue_feed) {
-                    main_page_layouts.clear()
+                if (continue_feed) {
+                    main_page_layouts = main_page_layouts + layouts
+                }
+                else {
+                    main_page_layouts = layouts
                     main_page_filter_chips = chips
                 }
 
-                for (layout in layouts) {
-                    layout.itemSizeProvider = { getMainPageItemSize() }
-                    main_page_layouts.add(layout)
-                }
                 feed_continuation = cont
             }
 
@@ -515,7 +515,7 @@ private fun getMainPageItemSize(): DpSize {
 @Composable
 private fun MainPage(
     pinned_items: MutableList<MediaItem>,
-    layouts: MutableList<MediaItemLayout>,
+    layouts: List<MediaItemLayout>,
     playerProvider: () -> PlayerViewContext,
     scroll_state: LazyListState,
     feed_load_state: MutableState<FeedLoadState>,
@@ -524,12 +524,18 @@ private fun MainPage(
     getSelectedFilterChip: () -> Int?,
     loadFeed: (filter_chip: Int?, continuation: Boolean) -> Unit
 ) {
-    require(layouts.isNotEmpty())
-
     val padding by animateDpAsState(if (SpMp.context.isScreenLarge()) 30.dp else 10.dp)
 
-    val home_layouts: MutableList<MediaItemLayout> by remember { mutableStateListOf() }
-    val artists_layout: MediaItemLayout by remember { MediaItemLayout(getStringTemp("Artists"), null, items = mutableStateListOf()) }
+    val artists_layout: MediaItemLayout = remember {
+        MediaItemLayout(
+            LocalisedYoutubeString.raw(MediaItem.Type.ARTIST.getReadable(true)),
+            null,
+            items = mutableStateListOf(),
+            type = MediaItemLayout.Type.ROW,
+            itemSizeProvider = { DpSize(120.dp, 150.dp) }
+        )
+    }
+    var auth_info: YoutubeMusicAuthInfo by remember { mutableStateOf(YoutubeMusicAuthInfo(Settings.KEY_YTM_AUTH.get())) }
 
     LaunchedEffect(layouts) {
         val artists_map: MutableMap<Artist, Int> = mutableMapOf()
@@ -540,28 +546,32 @@ private fun MainPage(
                 }
 
                 item.artist?.also { artist ->
-                    if (!top_artists.containsKey()) {
-                        top_artists[artist] = 1
+                    if (artist == auth_info.own_channel) {
+                        return@also
+                    }
+
+                    val current = artists_map[artist]
+                    if (current == null) {
+                        artists_map[artist] = 1
                     }
                     else {
-                        top_artists[artist]++
+                        artists_map[artist] = current + 1
                     }
                 }
             }
         }
 
         val artists = artists_map.mapNotNull { artist ->
-            if (artist.value < 2) null
+            if (artist.value < 1) null
             else Pair(artist.key, artist.value)    
-        }.sortBy { it.second }
+        }.sortedByDescending { it.second }
 
         artists_layout.items.clear()
         for (artist in artists) {
-            artist_layout.items.add(artist.first)
+            artists_layout.items.add(artist.first)
         }
     }
 
-    var auth_info: YoutubeMusicAuthInfo by remember { mutableStateOf(YoutubeMusicAuthInfo(Settings.KEY_YTM_AUTH.get())) }
     DisposableEffect(Unit) {
         val prefs_listener = object : ProjectPreferences.Listener {
             override fun onChanged(prefs: ProjectPreferences, key: String) {
@@ -579,7 +589,7 @@ private fun MainPage(
     }
 
     Column(Modifier.padding(horizontal = padding)) {
-        MainPageTopBar(Modifier.padding(top = SpMp.context.getStatusBarHeight()))
+        MainPageTopBar(auth_info, playerProvider, Modifier.padding(top = SpMp.context.getStatusBarHeight()))
 
         // Main scrolling view
         SwipeRefresh(
@@ -588,7 +598,8 @@ private fun MainPage(
             swipe_enabled = feed_load_state.value == FeedLoadState.NONE,
             indicator = false
         ) {
-            val state by remember { derivedStateOf { if (feed_load_state.value == FeedLoadState.LOADING) null else layouts.isNotEmpty() } }
+//            val state by remember { derivedStateOf { if (feed_load_state.value == FeedLoadState.LOADING) null else layouts.isNotEmpty() } }
+            val state = if (feed_load_state.value == FeedLoadState.LOADING) null else layouts.isNotEmpty()
             var current_state by remember { mutableStateOf(state) }
             val state_alpha = remember { Animatable(1f) }
 
@@ -632,10 +643,10 @@ private fun MainPage(
                             showLayout(this, layout)
                             
                             if (i == 0) {
-                                artists_layout?.also { showLayout(this, it) }
+                                artists_layout.also { showLayout(this, it) }
                             }
                         }
-                    ) { MediaItemLayout.Type.GRID }
+                    ) { it.type ?: MediaItemLayout.Type.GRID }
                 }
                 // Offline
                 false -> {
@@ -659,22 +670,24 @@ private fun MainPageTopBar(auth_info: YoutubeMusicAuthInfo, playerProvider: () -
     Row(modifier) {
 
         var lyrics: Song.Lyrics? by remember { mutableStateOf(null) }
-        var lyrics_loaded by remember { mutableStateOf(null) }
+        var lyrics_loaded: Boolean by remember { mutableStateOf(false) }
 
         LaunchedEffect(PlayerServiceHost.status.m_song) {
             val song = PlayerServiceHost.status.m_song
 
-            if (song.lyrics_loaded) {
-                lyrics = song.lyrics
+            if (song?.lyrics_loaded == true) {
+                lyrics = song!!.lyrics
                 lyrics_loaded = true
             }
             else {
                 lyrics = null
                 lyrics_loaded = false
-                
-                launch {
-                    lyrics = song.loadLyrics()
-                    lyrics_loaded = true
+
+                if (song != null) {
+                    launch {
+                        lyrics = song.loadLyrics()
+                        lyrics_loaded = true
+                    }
                 }
             }
         }
@@ -685,8 +698,8 @@ private fun MainPageTopBar(auth_info: YoutubeMusicAuthInfo, playerProvider: () -
             if (!state.first) {
                 SubtleLoadingIndicator()
             }
-            else if (state.second != null && state.second.sync_type != Song.Lyrics.SyncType.NONE) {
-                LyricsLineDisplay(state.second, { PlayerServiceHost.status.position_ms }, Theme.current.on_background_provider, Modifier.fillMaxWidth())
+            else if (state.second != null && state.second!!.sync_type != Song.Lyrics.SyncType.NONE) {
+                LyricsLineDisplay(state.second!!, { PlayerServiceHost.status.position_ms }, Theme.current.on_background_provider, Modifier.fillMaxWidth())
             }
             else {
                 PlayerServiceHost.player.Waveform(Color.White)
@@ -787,14 +800,22 @@ private fun MainPageScrollableTopContent(
 
 }
 
-private fun getFilterChipName(params: String): String = getStringTemp(when(params) {
-    "ggMeSgQIBxADSgQICRABSgQIBBABSgQIAxABSgQIBhAB" -> "Relax"
-    "ggMeSgQIBxABSgQICRADSgQIBBABSgQIAxABSgQIBhAB" -> "Energise"
-    "ggMeSgQIBxABSgQICRABSgQIBBADSgQIAxABSgQIBhAB" -> "Workout"
-    "ggMeSgQIBxABSgQICRABSgQIBBABSgQIAxADSgQIBhAB" -> "Commute"
-    "ggMeSgQIBxABSgQICRABSgQIBBABSgQIAxABSgQIBhAD" -> "Focus"
-    else -> throw NotImplementedError(params)
-})
+private val FILTER_CHIP_INDICES = mapOf(
+    11 to "Relax",
+    19 to "Workout",
+    27 to "Energise",
+    35 to "Commute",
+    43 to "Focus"
+)
+
+private fun getFilterChipName(params: String): String {
+    for (index in FILTER_CHIP_INDICES) {
+        if (params[index.key] == 'D') {
+            return getStringTemp(index.value)
+        }
+    }
+    throw NotImplementedError(params)
+}
 
 @Composable
 private fun MainPageLoadingView(modifier: Modifier = Modifier) {

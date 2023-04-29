@@ -33,6 +33,7 @@ import com.spectre7.spmp.ui.theme.Theme
 import com.spectre7.utils.*
 import com.spectre7.utils.getString
 import kotlinx.coroutines.delay
+import kotlinx.coroutines.launch
 
 class LyricsOverlayMenu(
     val size: Dp
@@ -59,13 +60,12 @@ class LyricsOverlayMenu(
 
         LaunchedEffect(songProvider().id, reload_lyrics) {
             lyrics = null
-            songProvider().getLyrics {
-                if (it == null) {
+
+            launch {
+                lyrics = songProvider().loadLyrics()
+                if (lyrics == null) {
                     SpMp.context.sendToast(getString("no_lyrics_found"))
                     search_menu_open = true
-                }
-                else {
-                    lyrics = it
                 }
             }
         }

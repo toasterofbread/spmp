@@ -86,7 +86,7 @@ fun searchYoutubeMusic(query: String, params: String?): Result<List<Pair<MediaIt
         val card = category.value.musicCardShelfRenderer
         if (card != null) {
             ret.add(Pair(
-                MediaItemLayout(card.header.musicCardShelfHeaderBasicRenderer!!.title.first_text, null, items = mutableListOf(card.getMediaItem()), type = MediaItemLayout.Type.CARD),
+                MediaItemLayout(TODO(card.header.musicCardShelfHeaderBasicRenderer!!.title.first_text), null, items = mutableListOf(card.getMediaItem()), type = MediaItemLayout.Type.CARD),
                 null
             ))
             continue
@@ -97,7 +97,7 @@ fun searchYoutubeMusic(query: String, params: String?): Result<List<Pair<MediaIt
         val items = shelf.contents.mapNotNull { it.toMediaItem() }.toMutableList()
 
         ret.add(Pair(
-            MediaItemLayout(shelf.title!!.first_text, null, items = items),
+            MediaItemLayout(LocalisedYoutubeString.temp(shelf.title!!.first_text), null, items = items),
             search_params?.let {
                 val item = items.firstOrNull() ?: return@let null
                 SearchFilter(when (item) {

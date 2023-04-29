@@ -1,5 +1,6 @@
 package com.spectre7.utils
 
+import androidx.compose.animation.Crossfade
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
@@ -8,8 +9,7 @@ import androidx.compose.foundation.text.InlineTextContent
 import androidx.compose.foundation.text.appendInlineContent
 import androidx.compose.material3.LocalTextStyle
 import androidx.compose.material3.Text
-import androidx.compose.runtime.Composable
-import androidx.compose.runtime.remember
+import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.geometry.Rect
@@ -160,8 +160,8 @@ fun LongFuriganaText(
         return ret
     }
 
-    val data_with_readings: List<Pair<AnnotatedString, Map<String, InlineTextContent>>>? by remember(text_content) { mutableStateOf(null) }
-    val data_without_readings: List<Pair<AnnotatedString, Map<String, InlineTextContent>>>? by remember(text_content) { mutableStateOf(null) }
+    var data_with_readings: List<Pair<AnnotatedString, Map<String, InlineTextContent>>>? by remember(text_content) { mutableStateOf(null) }
+    var data_without_readings: List<Pair<AnnotatedString, Map<String, InlineTextContent>>>? by remember(text_content) { mutableStateOf(null) }
 
     LaunchedEffect(text_content) {
         data_with_readings = null

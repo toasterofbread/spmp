@@ -146,14 +146,14 @@ private fun mergeAndFuriganiseTerms(tokeniser: Tokenizer, terms: List<Song.Lyric
         val token_base = token.surface
 
         var text: String = ""
-        var start: Float = Float.POSITIVE_INFINITY
-        var end: Float = Float.NEGATIVE_INFINITY
+        var start: Long = Long.MAX_VALUE
+        var end: Long = Long.MIN_VALUE
 
         while (text.length < token_base.length) {
             val term = terms[current_term]
             val subterm = term.subterms.single()
-            start = min(start, term.start!!)
-            end = max(end, term.end!!)
+            start = minOf(start, term.start!!)
+            end = maxOf(end, term.end!!)
 
             val needed = token_base.length - text.length
             if (needed < subterm.text.length - term_head) {
@@ -283,7 +283,7 @@ private fun parseTimedLyrics(data: String): List<List<Song.Lyrics.Term>> {
                     if (term.start!! < line_start) {
                         line_start = term.start
                     }
-                    if (term.end!! > line_end) {
+                    if (term.end!! > line_end!!) {
                         line_end = term.end
                     }
                 }

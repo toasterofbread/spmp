@@ -17,6 +17,7 @@ class YoutubeMusicAuthInfo: Set<String> {
 
     constructor(own_channel: Artist, cookie: String, headers: Map<String, String>) {
         this.own_channel = own_channel
+        own_channel.is_own_channel = true
         this.cookie = cookie
         this.headers = headers
         initialised = true

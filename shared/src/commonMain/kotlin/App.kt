@@ -31,6 +31,7 @@ import com.beust.klaxon.Klaxon
 import com.spectre7.spmp.PlayerServiceHost
 import com.spectre7.spmp.platform.PlatformContext
 import com.spectre7.spmp.api.DataApi
+import com.spectre7.spmp.api.YoutubeUITranslation
 import com.spectre7.spmp.model.Cache
 import com.spectre7.spmp.model.MediaItem
 import com.spectre7.spmp.model.Settings
@@ -53,6 +54,9 @@ object SpMp {
     lateinit var error_manager: ErrorManager
     lateinit var languages: Map<String, Map<String, String>>
 
+    private var _yt_ui_translation: YoutubeUITranslation? = null
+    val yt_ui_translation: YoutubeUITranslation get() = _yt_ui_translation!!
+
     private lateinit var service_host: PlayerServiceHost
     private var service_started = false
 
@@ -70,13 +74,15 @@ object SpMp {
 
     fun init(context: PlatformContext) {
         this.context = context
-        initResources()
-
-        error_manager = ErrorManager(context)
-        languages = loadLanguages(context)
 
         context.getPrefs().addListener(prefs_change_listener)
-        updateLanguage(Settings.get(Settings.KEY_LANG_UI))
+        error_manager = ErrorManager(context)
+        languages = loadLanguages(context)
+        _yt_ui_translation = YoutubeUITranslation(languages.keys)
+
+        val ui_lang: Int = Settings.get(Settings.KEY_LANG_UI)
+        initResources(languages.keys.elementAt(ui_lang), context)
+        updateLanguage(ui_lang)
 
         Cache.init(context)
         DataApi.initialise()
@@ -97,6 +103,7 @@ object SpMp {
 
     fun release() {
         PlayerServiceHost.release()
+        _yt_ui_translation = null
     }
 
     @Composable

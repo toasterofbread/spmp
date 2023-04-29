@@ -5,9 +5,7 @@ import com.spectre7.spmp.api.DataApi.Companion.getStream
 import com.spectre7.spmp.api.DataApi.Companion.ytUrl
 import com.spectre7.spmp.model.*
 import com.spectre7.spmp.ui.component.MediaItemLayout
-import com.spectre7.utils.printJson
 import okhttp3.Request
-import java.io.BufferedReader
 import java.util.regex.Pattern
 
 data class PlayerData(
@@ -53,7 +51,7 @@ fun loadBrowseId(browse_id: String, params: String? = null): Result<List<MediaIt
         view_more?.layout_type = MediaItemLayout.Type.LIST
 
         ret.add(MediaItemLayout(
-            row.value.title?.text,
+            row.value.title?.text?.let { LocalisedYoutubeString.raw(it) },
             null,
             if (row.index == 0) MediaItemLayout.Type.NUMBERED_LIST else MediaItemLayout.Type.GRID,
             row.value.getMediaItems().toMutableList(),
@@ -230,7 +228,10 @@ fun loadMediaItemData(item: MediaItem): Result<MediaItem?> {
                 view_more?.layout_type = MediaItemLayout.Type.LIST
 
                 item_layouts.add(MediaItemLayout(
-                    row.value.title?.text,
+                    row.value.title?.text?.let {
+                        if (item is Artist && item.is_own_channel) LocalisedYoutubeString.ownChannel(it)
+                        else LocalisedYoutubeString.mediaItemPage(it, item.type)
+                    },
                     null,
                     if (row.index == 0) MediaItemLayout.Type.NUMBERED_LIST else MediaItemLayout.Type.GRID,
                     row.value.getMediaItems().toMutableList(),

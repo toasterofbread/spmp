@@ -45,6 +45,7 @@ class Artist private constructor (
 
     var subscribed: Boolean? by mutableStateOf(null)
     val unknown: Boolean get() = this == UNKNOWN
+    var is_own_channel: Boolean by mutableStateOf(false)
 
     override fun getJsonMapValues(klaxon: Klaxon): String {
         return super.getJsonMapValues(klaxon) + "\"subscribe_channel_id\": ${stringToJson(subscribe_channel_id)},"

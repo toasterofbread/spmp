@@ -56,13 +56,16 @@ import kotlin.math.min
 import kotlin.math.roundToInt
 import kotlin.math.sqrt
 import kotlin.random.Random
+import org.jetbrains.compose.resources.MissingResourceException
+import java.io.ByteArrayInputStream
+import java.io.InputStream
 
 private lateinit var strings: Map<String, String>
 private lateinit var string_arrays: Map<String, List<String>>
 
 @Suppress("BlockingMethodInNonBlockingContext")
 @OptIn(ExperimentalResourceApi::class)
-fun initResources() {
+fun initResources(language: String, context: PlatformContext) {
 	fun formatText(text: String): String = text.replace("\\\"", "\"").replace("\\'", "'")
 
 	runBlocking {
@@ -71,8 +74,17 @@ fun initResources() {
 		val strs = mutableMapOf<String, String>()
 		val str_arrays = mutableMapOf<String, List<String>>()
 
-		for (file in listOf("values/strings.xml", "values/ytm.xml")) {
-			val stream = resource(file).readBytes().inputStream()
+		suspend fun loadFile(path: String): Boolean {
+			val stream: InputStream
+			try {
+				stream = context.openResourceFile(path)
+			}
+			catch (e: Throwable) {
+				if (e.javaClass != MissingResourceException::class.java) {
+					throw e
+				}
+				return false
+			}
 
 			val parser = XmlPullParserFactory.newInstance().newPullParser()
 			parser.setInput(stream.reader())
@@ -107,7 +119,37 @@ fun initResources() {
 			}
 
 			stream.close()
+
+			println("Loaded strings.xml at $path")
+
+			return true
 		}
+
+		var language_best_match: String? = null
+		val language_family = language.split('-', limit = 2).first()
+
+		for (file in context.listResourceFiles("") ?: emptyList()) {
+			if (!file.startsWith("values-")) {
+				continue
+			}
+
+			val file_language = file.substring(7)
+
+			if (file_language == language) {
+				language_best_match = file
+				break
+			}
+
+			if (file_language.split('-', limit = 2).first() == language_family) {
+				language_best_match = file
+			}
+		}
+
+		loadFile("values/strings.xml")
+		if (language_best_match != null) {
+			loadFile("$language_best_match/strings.xml")
+		}
+		loadFile("values/ytm.xml")
 
 		strings = strs
 		string_arrays = str_arrays
@@ -116,6 +158,10 @@ fun initResources() {
 
 fun getString(key: String): String {
 	return strings[key] ?: throw NotImplementedError(key)
+}
+
+fun getStringOrNull(key: String): String? {
+	return strings[key]
 }
 
 fun getStringTemp(temp_string: String): String {
@@ -519,7 +565,7 @@ fun printJson(data: String, klaxon: Klaxon? = null) {
 }
 
 @Composable
-fun SubtleLoadingIndicator(colourProvider: () -> Color, modifier: Modifier = Modifier, size: Dp = 20.dp) {
+fun SubtleLoadingIndicator(colourProvider: (() -> Color)? = null, modifier: Modifier = Modifier, size: Dp = 20.dp) {
 	val inf_transition = rememberInfiniteTransition()
 	val anim by inf_transition.animateFloat(
 		initialValue = 0f,
@@ -535,9 +581,10 @@ fun SubtleLoadingIndicator(colourProvider: () -> Color, modifier: Modifier = Mod
 	Box(Modifier.sizeIn(minWidth = size, minHeight = size).then(modifier), contentAlignment = Alignment.Center) {
 		val current_anim = if (anim + rand_offset > 1f) anim + rand_offset - 1f else anim + rand_offset
 		val size_percent = if (current_anim < 0.5f) current_anim else 1f - current_anim
+		val content_colour = LocalContentColor.current
 		Spacer(
 			Modifier
-				.background(CircleShape, colourProvider)
+				.background(CircleShape, colourProvider ?: { content_colour })
 				.size(size * size_percent)
 		)
 	}

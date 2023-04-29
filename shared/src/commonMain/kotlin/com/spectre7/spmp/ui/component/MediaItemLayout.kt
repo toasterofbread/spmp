@@ -1,9 +1,6 @@
 package com.spectre7.spmp.ui.component
 
 import androidx.compose.animation.*
-import androidx.compose.animation.core.Animatable
-import androidx.compose.animation.core.animateDpAsState
-import androidx.compose.animation.core.animateFloatAsState
 import androidx.compose.foundation.*
 import androidx.compose.foundation.interaction.MutableInteractionSource
 import androidx.compose.foundation.layout.*
@@ -40,8 +37,8 @@ import com.spectre7.utils.*
 import okhttp3.Request
 
 data class MediaItemLayout(
-    val title: String?,
-    val subtitle: String?,
+    val title: LocalisedYoutubeString?,
+    val subtitle: LocalisedYoutubeString?,
     val type: Type? = null,
     val items: MutableList<MediaItem> = mutableListOf(),
     val thumbnail_source: ThumbnailSource? = null,
@@ -51,6 +48,11 @@ data class MediaItemLayout(
     @Json(ignored = true)
     var itemSizeProvider: @Composable () -> DpSize = { DpSize(100.dp, 130.dp) }
 ) {
+    init {
+        title?.getString()
+        subtitle?.getString()
+    }
+
     enum class Type {
         GRID,
         ROW,
@@ -202,6 +204,9 @@ data class MediaItemLayout(
             return
         }
 
+        val title_string: String? = remember { title?.getString() }
+        val subtitle_string: String? = remember { subtitle?.getString() }
+
         Row(
             modifier
                 .fillMaxWidth()
@@ -212,7 +217,8 @@ data class MediaItemLayout(
             val thumbnail_url = thumbnail_source?.getThumbUrl(MediaItem.ThumbnailQuality.LOW)
             if (thumbnail_url != null) {
                 Image(
-                    rememberImagePainter(thumbnail_url), title,
+                    rememberImagePainter(thumbnail_url), 
+                    null,
                     Modifier
                         .fillMaxHeight()
                         .aspectRatio(1f)
@@ -221,13 +227,13 @@ data class MediaItemLayout(
             }
 
             Column(verticalArrangement = Arrangement.Center, modifier = Modifier.weight(1f)) {
-                if (subtitle != null) {
-                    WidthShrinkText(subtitle, style = MaterialTheme.typography.titleSmall.copy(color = Theme.current.on_background))
+                if (subtitle_string != null) {
+                    WidthShrinkText(subtitle_string, style = MaterialTheme.typography.titleSmall.copy(color = Theme.current.on_background))
                 }
 
-                if (title != null) {
+                if (title_string != null) {
                     WidthShrinkText(
-                        title,
+                        title_string,
                         modifier = Modifier.fillMaxWidth(),
                         style = MaterialTheme.typography.headlineMedium.let { style ->
                             style.copy(
@@ -338,13 +344,13 @@ fun LazyMediaItemLayoutColumn(
                 continue
             }
 
-            val type = getType?.invoke(layout.value) ?: layout.value.type!!
             layoutItem(
-                this, 
-                layout.value, 
+                this,
+                layout.value,
                 layout.index,
                 { layout ->
                     item {
+                        val type = getType?.invoke(layout) ?: layout.type!!
                         type.Layout(layout, playerProvider, layout_modifier)
                     }
                     item { Spacer(Modifier.height(spacing)) }
@@ -619,12 +625,12 @@ fun List<MediaItem>.generateLayoutTitle(): Pair<String, String?> {
 
     return when (songs + videos + artists + playlists + albums) {
         0 -> throw IllegalStateException()
-        videos ->             Pair(getString("home_feed_rec_music_videos"), null)
-        artists ->            Pair(getString("home_feed_rec_artists"), null)
-        songs + videos ->     Pair(getString("home_feed_rec_songs"), null)
-        playlists ->          Pair(getString("home_feed_rec_playlists"), null)
-        albums ->             Pair(getString("home_feed_rec_albums"), null)
-        playlists + albums -> Pair(getString("home_feed_rec_albums_playlists"), null)
-        else ->               Pair(getString("home_feed_rec_general"), null)
+        videos ->             Pair("home_feed_rec_music_videos", null)
+        artists ->            Pair("home_feed_rec_artists", null)
+        songs + videos ->     Pair("home_feed_rec_songs", null)
+        playlists ->          Pair("home_feed_rec_playlists", null)
+        albums ->             Pair("home_feed_rec_albums", null)
+        playlists + albums -> Pair("home_feed_rec_albums_playlists", null)
+        else ->               Pair("home_feed_rec_general", null)
     }
 }

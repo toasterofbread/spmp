@@ -94,7 +94,7 @@ fun LyricsTimingOverlay(
 
                 val line = lyrics.lines[item.key as Int]
                 for (term in line) {
-                    if (term.range.contains(PlayerServiceHost.status.position_seconds)) {
+                    if (term.range.contains(PlayerServiceHost.status.position_ms)) {
                         if (full_line) {
                             for (_term in line) {
                                 terms.add(_term)

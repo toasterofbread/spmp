@@ -182,9 +182,9 @@ private fun parseStaticLyrics(data: String): List<List<Song.Lyrics.Term>> {
 
     for (line in data.split('\n')) {
         val tokens = tokeniser.tokenize(line)
-        ret.add(List(tokens.size) { i ->
-            val token = tokens[i]
-            Song.Lyrics.Term(listOf(Song.Lyrics.Term.Text(token.surface, token.reading)))
+        ret.add(tokens.mapNotNull { token ->
+            if (token.surface.isBlank()) null
+            else Song.Lyrics.Term(listOf(Song.Lyrics.Term.Text(token.surface, token.reading)))
         })
     }
 
@@ -326,7 +326,7 @@ private fun parseTimedLyrics(data: String): List<List<Song.Lyrics.Term>> {
 
     for (line in ret.withIndex()) {
         if (line.value.isEmpty()) {
-            ret[line.index] = listOf(Song.Lyrics.Term.EMPTY)
+            ret[line.index] = listOf()
         }
     }
 

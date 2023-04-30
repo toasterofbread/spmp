@@ -116,6 +116,8 @@ class Song protected constructor (
 
             data class Text(val text: String, var furi: String? = null) {
                 init {
+                    require(text.isNotBlank())
+
                     if (furi != null) {
                         if (furi == "*") {
                             this.furi = null
@@ -133,15 +135,14 @@ class Song protected constructor (
             val range: LongRange
                 get() = start!! .. end!!
 
-            companion object {
-                val EMPTY = Term(listOf(Text("")), null, null)
-            }
         }
 
         init {
             lazyAssert {
                 for (line in lines) {
+                    println("LINE $line")
                     for (term in line) {
+                        println("TERM $term")
                         if (sync_type != SyncType.NONE && (term.start == null || term.end == null)) {
                             return@lazyAssert false
                         }

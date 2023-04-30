@@ -31,9 +31,11 @@ internal fun ColumnScope.LyricsSearchResults(results: List<LyricsSearchResult>, 
         onFinished(null)
     }
 
+    println(results)
+
     if (results.isNotEmpty()) {
         LazyColumn(
-            Modifier.fillMaxSize().weight(1f),
+            modifier.fillMaxSize().weight(1f),
             verticalArrangement = Arrangement.spacedBy(20.dp),
             horizontalAlignment = Alignment.CenterHorizontally
         ) {
@@ -118,6 +120,6 @@ internal fun ColumnScope.LyricsSearchResults(results: List<LyricsSearchResult>, 
         }
     }
     else {
-        Text("No results found", color = Theme.current.accent)
+        Text("No results found", modifier, color = Theme.current.accent)
     }
 }

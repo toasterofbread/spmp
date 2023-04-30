@@ -667,47 +667,49 @@ private fun MainPage(
 
 @Composable
 private fun MainPageTopBar(auth_info: YoutubeMusicAuthInfo, playerProvider: () -> PlayerViewContext, modifier: Modifier = Modifier) {
-    Row(modifier) {
+    Row(modifier.height(IntrinsicSize.Min)) {
 
         var lyrics: Song.Lyrics? by remember { mutableStateOf(null) }
-        var lyrics_loaded: Boolean by remember { mutableStateOf(false) }
+        var lyrics_loading: Boolean by remember { mutableStateOf(false) }
 
         LaunchedEffect(PlayerServiceHost.status.m_song) {
             val song = PlayerServiceHost.status.m_song
 
             if (song?.lyrics_loaded == true) {
-                lyrics = song!!.lyrics
-                lyrics_loaded = true
+                lyrics = song.lyrics
+                lyrics_loading = false
             }
             else {
                 lyrics = null
-                lyrics_loaded = false
 
                 if (song != null) {
-                    launch {
+                    lyrics_loading = true
+                    SpMp.context.networkThread {
                         lyrics = song.loadLyrics()
-                        lyrics_loaded = true
+                        lyrics_loading = false
                     }
+                }
+                else {
+                    lyrics_loading = false
                 }
             }
         }
 
-        Crossfade(Pair(lyrics_loaded, lyrics)) { state ->
-            val (loading, lyr) = state
-    
-            if (!state.first) {
-                SubtleLoadingIndicator()
-            }
-            else if (state.second != null && state.second!!.sync_type != Song.Lyrics.SyncType.NONE) {
-                LyricsLineDisplay(state.second!!, { PlayerServiceHost.status.position_ms }, Theme.current.on_background_provider, Modifier.fillMaxWidth())
-            }
-            else {
-                PlayerServiceHost.player.Waveform(Color.White)
+        Box(Modifier.fillMaxSize().weight(1f), contentAlignment = Alignment.Center) {
+            Crossfade(Pair(lyrics_loading, lyrics)) { state ->
+                val (loading, lyr) = state
+
+                if (loading) {
+                    SubtleLoadingIndicator()
+                }
+                else if (lyr != null && lyr.sync_type != Song.Lyrics.SyncType.NONE) {
+                    LyricsLineDisplay(lyr, { PlayerServiceHost.status.position_ms }, Theme.current.on_background_provider)
+                }
+                else {
+                    PlayerServiceHost.player.Waveform(Color.White)
+                }
             }
         }
-
-        // TODO | Lyrics
-        Spacer(Modifier.fillMaxWidth().weight(1f))
 
         IconButton({
             if (auth_info.initialised) {

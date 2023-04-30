@@ -36,7 +36,7 @@ import com.google.android.exoplayer2.upstream.DefaultDataSource
 import com.google.android.exoplayer2.upstream.ResolvingDataSource
 import com.google.android.exoplayer2.upstream.cache.LeastRecentlyUsedCacheEvictor
 import com.google.android.exoplayer2.upstream.cache.SimpleCache
-import com.linc.audiowaveform.AudioWaveform
+//import com.linc.audiowaveform.AudioWaveform
 import com.spectre7.spmp.PlayerServiceHost
 import com.spectre7.spmp.model.MediaItem
 import com.spectre7.spmp.model.Settings
@@ -185,8 +185,8 @@ actual open class MediaPlayerService: PlatformService() {
     @Composable
     actual fun Waveform(colour: Color, modifier: Modifier) {
         audio_processor.amplitudes?.also { amplitudes ->
-            println(amplitudes.asList())
-            AudioWaveform(amplitudes = amplitudes.asList()) {}
+//            println(amplitudes.asList())
+//            AudioWaveform(amplitudes = amplitudes.asList()) {}
         }
     }
 

@@ -58,7 +58,7 @@ expect open class MediaPlayerService(): PlatformService {
     val supports_waveform: Boolean
 
     @Composable
-    fun Waveform(colour: Color, modifier: Modifier = Modifier)
+    fun Visualiser(colour: Color, modifier: Modifier = Modifier, opacity: Float = 1f)
 
     fun undoableAction(action: MediaPlayerService.() -> Unit)
     fun redo()

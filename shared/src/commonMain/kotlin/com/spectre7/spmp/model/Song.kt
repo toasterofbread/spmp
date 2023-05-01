@@ -9,6 +9,7 @@ import com.spectre7.spmp.platform.crop
 import com.spectre7.spmp.platform.toImageBitmap
 import com.spectre7.spmp.ui.component.SongPreviewLong
 import com.spectre7.spmp.ui.component.SongPreviewSquare
+import com.spectre7.utils.TextData
 import com.spectre7.utils.getString
 import com.spectre7.utils.lazyAssert
 import com.spectre7.utils.toHiragana
@@ -140,9 +141,7 @@ class Song protected constructor (
         init {
             lazyAssert {
                 for (line in lines) {
-                    println("LINE $line")
                     for (term in line) {
-                        println("TERM $term")
                         if (sync_type != SyncType.NONE && (term.start == null || term.end == null)) {
                             return@lazyAssert false
                         }
@@ -150,20 +149,6 @@ class Song protected constructor (
                 }
                 return@lazyAssert true
             }
-        }
-
-        fun getLine(time_ms: Long): Int? {
-            check(sync_type != SyncType.NONE)
-
-            for (line in lines.withIndex()) {
-                for (term in line.value) {
-                    if (term.line_range!!.contains(time_ms)) {
-                        return line.index
-                    }
-                }
-            }
-
-            return null
         }
     }
 

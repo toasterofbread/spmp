@@ -31,8 +31,6 @@ internal fun ColumnScope.LyricsSearchResults(results: List<LyricsSearchResult>, 
         onFinished(null)
     }
 
-    println(results)
-
     if (results.isNotEmpty()) {
         LazyColumn(
             modifier.fillMaxSize().weight(1f),

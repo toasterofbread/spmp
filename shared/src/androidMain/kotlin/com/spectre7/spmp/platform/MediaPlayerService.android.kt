@@ -17,6 +17,7 @@ import androidx.compose.runtime.*
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.asAndroidBitmap
+import androidx.compose.ui.viewinterop.AndroidView
 import androidx.media.session.MediaButtonReceiver
 import com.google.android.exoplayer2.C
 import com.google.android.exoplayer2.ExoPlayer
@@ -38,6 +39,9 @@ import com.google.android.exoplayer2.upstream.cache.LeastRecentlyUsedCacheEvicto
 import com.google.android.exoplayer2.upstream.cache.SimpleCache
 //import com.linc.audiowaveform.AudioWaveform
 import com.spectre7.spmp.PlayerServiceHost
+import com.spectre7.exovisualiser.ExoVisualizer
+import com.spectre7.exovisualiser.FFTAudioProcessor
+import com.spectre7.exovisualiser.FFTBandView
 import com.spectre7.spmp.model.MediaItem
 import com.spectre7.spmp.model.Settings
 import com.spectre7.spmp.model.Song
@@ -118,76 +122,13 @@ actual open class MediaPlayerService: PlatformService() {
     private val action_list: MutableList<List<Action>> = mutableListOf()
     private var action_head: Int = 0
 
-    private val audio_processor = object : TeeAudioProcessor.AudioBufferSink {
-        var counter = 0
-
-        var sample_rate: Int = -1
-        var channels: Int = -1
-
-        var bytes: ShortArray? by mutableStateOf(null)
-        var amplitudes: IntArray? by mutableStateOf(null)
-
-        override fun flush(sampleRateHz: Int, channelCount: Int, encoding: Int) {
-            sample_rate = sampleRateHz
-            channels = channelCount
-        }
-
-        override fun handleBuffer(buffer: ByteBuffer) {
-            counter++;
-//            if (!audioDataReceiver.isLocked()) {
-//                audioDataReceiver.setLocked(true);
-//                audioDataFetch.setAudioDataAsByteBuffer(buffer.duplicate(), sample_rate, channels);
-
-            val shortBuffer: ShortBuffer = buffer.asShortBuffer()
-            val data = ShortArray(shortBuffer.limit())
-            shortBuffer.get(data)
-
-            //frames par sample
-
-            //frames par sample
-            val numFrames: Int = data.size / channels
-
-            val rawData = ShortArray(numFrames)
-
-            var sum: Long = 0
-
-            var val1 = 0
-
-            //took average of all channel data
-
-            //took average of all channel data
-            for (i in 0 until numFrames) {
-                sum = 0
-                for (ch in 0 until channels) {
-                    val1 = (data[channels * i + ch] + 32768)
-                    sum += val1.toLong()
-                }
-                rawData[i] = (sum / channels).toShort()
-            }
-
-            bytes = rawData.clone().also { bytes ->
-                amplitudes = IntArray(bytes.size / 2)
-
-                var i = 0
-                var j = 0
-                while (i < bytes.size) {
-                    val msb = bytes[i++].toInt()
-                    val lsb = bytes[i++].toInt()
-                    val sample = (msb shl 8) or (lsb and 0xff)
-                    amplitudes!![j++] = sample
-                }
-            }
-        }
-    }
-
+    private val audio_processor = FFTAudioProcessor()
     actual val supports_waveform: Boolean = true
 
     @Composable
-    actual fun Waveform(colour: Color, modifier: Modifier) {
-        audio_processor.amplitudes?.also { amplitudes ->
-//            println(amplitudes.asList())
-//            AudioWaveform(amplitudes = amplitudes.asList()) {}
-        }
+    actual fun Visualiser(colour: Color, modifier: Modifier, opacity: Float) {
+        val visualiser = remember { ExoVisualizer(audio_processor) }
+        visualiser.Visualiser(colour, modifier, opacity)
     }
 
     override fun onCreate() {
@@ -201,7 +142,7 @@ actual open class MediaPlayerService: PlatformService() {
                     handler,
                     audioListener,
                     AudioCapabilities.DEFAULT_AUDIO_CAPABILITIES,
-                    TeeAudioProcessor(audio_processor)
+                    audio_processor
                 )
             )
         }

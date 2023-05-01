@@ -11,6 +11,7 @@ import androidx.compose.material.icons.filled.*
 import androidx.compose.ui.unit.Dp
 import androidx.compose.runtime.*
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.graphics.Canvas
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.ImageBitmap
 import androidx.compose.ui.graphics.vector.ImageVector
@@ -553,11 +554,8 @@ abstract class MediaItem(id: String) {
 
             return bytes.toImageBitmap()
         }
-        catch (e: FileNotFoundException) {
-            println("AAA")
-            println((thumbnail_provider!! as ThumbnailProvider.DynamicProvider).original_url)
-            println((thumbnail_provider!! as ThumbnailProvider.DynamicProvider))
-            throw e
+        catch (_: FileNotFoundException) {
+            return null
         }
     }
 

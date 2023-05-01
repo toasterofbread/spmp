@@ -14,7 +14,6 @@ import androidx.compose.foundation.*
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyListState
 import androidx.compose.foundation.lazy.LazyRow
-import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.material.ExperimentalMaterialApi
 import androidx.compose.material.SwipeableState
@@ -41,6 +40,7 @@ import com.spectre7.spmp.ui.layout.nowplaying.ThemeMode
 import com.spectre7.spmp.ui.theme.Theme
 import com.spectre7.utils.*
 import kotlinx.coroutines.*
+import java.io.InterruptedIOException
 import java.util.concurrent.locks.ReentrantLock
 import kotlin.concurrent.thread
 
@@ -671,8 +671,12 @@ private fun MainPageTopBar(auth_info: YoutubeMusicAuthInfo, playerProvider: () -
 
         var lyrics: Song.Lyrics? by remember { mutableStateOf(null) }
         var lyrics_loading: Boolean by remember { mutableStateOf(false) }
+        var load_thread: Thread? by remember { mutableStateOf(null) }
 
         LaunchedEffect(PlayerServiceHost.status.m_song) {
+            load_thread?.interrupt()
+            load_thread = null
+
             val song = PlayerServiceHost.status.m_song
 
             if (song?.lyrics_loaded == true) {
@@ -684,9 +688,19 @@ private fun MainPageTopBar(auth_info: YoutubeMusicAuthInfo, playerProvider: () -
 
                 if (song != null) {
                     lyrics_loading = true
-                    SpMp.context.networkThread {
-                        lyrics = song.loadLyrics()
-                        lyrics_loading = false
+                    load_thread = SpMp.context.networkThread {
+                        try {
+                            val result = song.loadLyrics()
+                            if (!Thread.currentThread().isInterrupted) {
+                                lyrics = result
+                                lyrics_loading = false
+                            }
+                        }
+                        catch (e: java.lang.Exception) {
+                            if (e.cause !is InterruptedIOException) {
+                                throw e
+                            }
+                        }
                     }
                 }
                 else {
@@ -699,14 +713,11 @@ private fun MainPageTopBar(auth_info: YoutubeMusicAuthInfo, playerProvider: () -
             Crossfade(Pair(lyrics_loading, lyrics)) { state ->
                 val (loading, lyr) = state
 
-                if (loading) {
-                    SubtleLoadingIndicator()
-                }
-                else if (lyr != null && lyr.sync_type != Song.Lyrics.SyncType.NONE) {
-                    LyricsLineDisplay(lyr, { PlayerServiceHost.status.position_ms }, Theme.current.on_background_provider)
+                if (lyr != null && lyr.sync_type != Song.Lyrics.SyncType.NONE) {
+                    LyricsLineDisplay(lyr, { PlayerServiceHost.status.position_ms + 500 }, Theme.current.on_background_provider)
                 }
                 else {
-                    PlayerServiceHost.player.Waveform(Color.White)
+                    PlayerServiceHost.player.Visualiser(Color.White, Modifier.fillMaxSize().padding(vertical = 10.dp), opacity = 0.5f)
                 }
             }
         }
@@ -794,7 +805,18 @@ private fun MainPageScrollableTopContent(
                     {
                         onFilterChipSelected(if (i == selected_filter_chip) null else i)
                     },
-                    { Text(getFilterChipName(chip)) }
+                    { Text(getFilterChipName(chip)) },
+                    colors = with(Theme.current) {
+                        FilterChipDefaults.elevatedFilterChipColors(
+                            containerColor = background,
+                            labelColor = on_background,
+                            selectedContainerColor = accent,
+                            selectedLabelColor = on_accent
+                        )
+                    },
+                    border = FilterChipDefaults.filterChipBorder(
+                        borderColor = Theme.current.on_background
+                    )
                 )
             }
         }
@@ -803,9 +825,9 @@ private fun MainPageScrollableTopContent(
 }
 
 private val FILTER_CHIP_INDICES = mapOf(
-    11 to "Relax",
-    19 to "Workout",
-    27 to "Energise",
+    11 to "Energise",
+    19 to "Relax",
+    27 to "Workout",
     35 to "Commute",
     43 to "Focus"
 )

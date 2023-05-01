@@ -387,8 +387,8 @@ data class LyricsSearchResult(
 
 fun searchForLyrics(title: String, artist: String?): Result<List<LyricsSearchResult>> {
 
-    var title_param = concatParams("?title=", title)
-    var artist_param = if (artist != null) concatParams("&artist=", artist) else ""
+    val title_param = concatParams("?title=", title)
+    val artist_param = if (artist != null) concatParams("&artist=", artist) else ""
 
     val RESULT_START = "<a href=\"/lyrics/"
     val RESULT_END = "</a>"
@@ -457,7 +457,7 @@ fun searchForLyrics(title: String, artist: String?): Result<List<LyricsSearchRes
                 }
 
                 r_id = result_id
-                r_name = Jsoup.parse(line.substring(0, end + RESULT_END.length)).ownText()
+                r_name = Jsoup.parse(line.substring(0, end + RESULT_END.length)).body().text()
             }
             else {
                 val split = href.split('/')

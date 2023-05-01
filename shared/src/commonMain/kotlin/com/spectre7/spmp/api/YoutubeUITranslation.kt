@@ -101,6 +101,10 @@ class YoutubeUITranslation(languages: Set<String>) {
 
         HOME_FEED_STRINGS = mutableListOf<Map<Int, Pair<String, String?>>>().apply {
             addString(
+                en to "Listen again",
+                ja to "もう一度聴く"
+            )
+            addString(
                 en to "Quick picks",
                 ja to "おすすめ"
             )
@@ -202,6 +206,10 @@ class YoutubeUITranslation(languages: Set<String>) {
             addString(
                 en to "Singles",
                 ja to "シングル"
+            )
+            addString(
+                en to "Playlists",
+                ja to "プレイリスト"
             )
             addString(
                 en to "From your library",

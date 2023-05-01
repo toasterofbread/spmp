@@ -46,9 +46,10 @@ import com.spectre7.spmp.platform.PlatformContext
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.runBlocking
 import org.jetbrains.compose.resources.ExperimentalResourceApi
-import org.jetbrains.compose.resources.resource
+import org.jetbrains.compose.resources.MissingResourceException
 import org.xmlpull.v1.XmlPullParser
 import org.xmlpull.v1.XmlPullParserFactory
+import java.io.InputStream
 import java.util.*
 import java.util.concurrent.TimeUnit
 import java.util.regex.Pattern
@@ -56,9 +57,6 @@ import kotlin.math.min
 import kotlin.math.roundToInt
 import kotlin.math.sqrt
 import kotlin.random.Random
-import org.jetbrains.compose.resources.MissingResourceException
-import java.io.ByteArrayInputStream
-import java.io.InputStream
 
 private lateinit var strings: Map<String, String>
 private lateinit var string_arrays: Map<String, List<String>>
@@ -821,4 +819,14 @@ fun Divider(
 			.height(targetThickness)
 			.background { colorProvider() }
 	)
+}
+
+
+fun <K, V : Any> MutableMap<K, V>.putIfAbsent(key: K, getValue: () -> V): V {
+	var v = this[key]
+	if (v == null) {
+		v = getValue()
+		put(key, v)
+	}
+	return v
 }

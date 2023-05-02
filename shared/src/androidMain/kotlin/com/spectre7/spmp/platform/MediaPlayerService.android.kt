@@ -37,11 +37,9 @@ import com.google.android.exoplayer2.upstream.DefaultDataSource
 import com.google.android.exoplayer2.upstream.ResolvingDataSource
 import com.google.android.exoplayer2.upstream.cache.LeastRecentlyUsedCacheEvictor
 import com.google.android.exoplayer2.upstream.cache.SimpleCache
-//import com.linc.audiowaveform.AudioWaveform
 import com.spectre7.spmp.PlayerServiceHost
 import com.spectre7.exovisualiser.ExoVisualizer
 import com.spectre7.exovisualiser.FFTAudioProcessor
-import com.spectre7.exovisualiser.FFTBandView
 import com.spectre7.spmp.model.MediaItem
 import com.spectre7.spmp.model.Settings
 import com.spectre7.spmp.model.Song
@@ -50,8 +48,6 @@ import com.spectre7.utils.getString
 import kotlinx.coroutines.*
 import java.io.File
 import java.io.IOException
-import java.nio.ByteBuffer
-import java.nio.ShortBuffer
 import kotlin.concurrent.thread
 import com.google.android.exoplayer2.MediaItem as ExoMediaItem
 import com.google.android.exoplayer2.upstream.cache.Cache as ExoCache

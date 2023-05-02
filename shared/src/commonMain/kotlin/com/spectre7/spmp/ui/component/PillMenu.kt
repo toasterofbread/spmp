@@ -96,7 +96,8 @@ class PillMenu(
 
     inner class Action(
         val background_colour: Color,
-        val content_colour: Color
+        val content_colour: Color,
+        val fill_modifier: Modifier
     ) {
         var is_open: Boolean
             get() = this@PillMenu.is_open
@@ -218,15 +219,13 @@ class PillMenu(
         getAction: @Composable Action.(i: Int, action_count: Int) -> Unit,
         alongsideContent: (@Composable Action.() -> Unit)? = null
     ) {
-        val action = remember(background_colour) { Action(background_colour, background_colour.getContrasted()) }
-
         Crossfade(Pair(showing, params), Modifier.zIndex(1f)) { data ->
             val (visible, crossfade_params) = data
             val (vertical, top, left, alignment, toggleButton, enter, exit, action_count, expand_state) = crossfade_params
             val align_start = (vertical && top) || (!vertical && left)
 
             @Composable
-            fun ToggleButton() {
+            fun ToggleButton(action: Action) {
                 if (expand_state != null) {
                     if (toggleButton != null) {
                         toggleButton(action, Modifier.background(background_colour, shape = CircleShape))
@@ -274,28 +273,29 @@ class PillMenu(
                         .fillMaxSize()
                         .padding(15.dp)
                 ) {
-
-                    ToggleButton()
+                    ToggleButton(Action(background_colour, background_colour.getContrasted(), Modifier))
 
                     val start = if (vertical) top else left
                     val fill_modifier = if (vertical) Modifier.fillMaxHeight() else Modifier.fillMaxWidth()
 
-                    @Composable
-                    fun Alongside() {
-                        if (start && alongsideContent != null) {
-                            alongsideContent(action)
-                        }
-
-                        for (extra in extra_alongside_actions.let { if (start) it.asReversed() else it }) {
-                            extra(action)
-                        }
-
-                        if (!start && alongsideContent != null) {
-                            alongsideContent(action)
-                        }
-                    }
-
                     RowOrColumn(!vertical, fill_modifier.height(IntrinsicSize.Max), Arrangement.spacedBy(10.dp)) { getWeightModifier ->
+                        val action = remember(background_colour) { Action(background_colour, background_colour.getContrasted(), getWeightModifier(Float.MAX_VALUE).then(fill_modifier)) }
+
+                        @Composable
+                        fun Alongside() {
+                            if (start && alongsideContent != null) {
+                                alongsideContent(action)
+                            }
+
+                            for (extra in extra_alongside_actions.let { if (start) it.asReversed() else it }) {
+                                extra(action)
+                            }
+
+                            if (!start && alongsideContent != null) {
+                                alongsideContent(action)
+                            }
+                        }
+
                         if (!start) {
                             Alongside()
                             Spacer(fill_modifier.then(getWeightModifier(1f)))
@@ -311,7 +311,7 @@ class PillMenu(
                                     for (extra in extra_actions_outer) {
                                         extra(action, action_count)
                                     }
-                                    ToggleButton()
+                                    ToggleButton(action)
                                 }
                                 else {
                                     for (extra in extra_actions_inner) {
@@ -338,7 +338,7 @@ class PillMenu(
                                     }
                                 }
                                 else {
-                                    ToggleButton()
+                                    ToggleButton(action)
                                     for (extra in extra_actions_outer) {
                                         extra(action, action_count)
                                     }

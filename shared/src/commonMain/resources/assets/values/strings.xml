@@ -223,7 +223,7 @@
 
     <string name="s_group_other">Other</string>
 
-    <string name="s_page_acc_service">Accessibility service</string>
+    <string name="s_group_acc_service">Accessibility service</string>
 
     <string name="s_acc_service_enabled">Service is enabled</string>
     <string name="s_acc_service_disabled">Service is disabled</string>

@@ -4,15 +4,24 @@ import com.spectre7.spmp.platform.PlatformContext
 import com.spectre7.spmp.platform.ProjectPreferences
 import com.spectre7.spmp.PlayerAccessibilityService
 import androidx.compose.animation.Crossfade
+import androidx.compose.animation.animateColorAsState
 import androidx.compose.foundation.background
+import androidx.compose.foundation.border
+import androidx.compose.foundation.horizontalScroll
 import androidx.compose.foundation.layout.*
+import androidx.compose.foundation.lazy.LazyColumn
+import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.*
+import androidx.compose.material.icons.outlined.*
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.graphics.ImageBitmap
+import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.input.pointer.pointerInput
 import androidx.compose.ui.unit.dp
 import com.spectre7.composesettings.ui.SettingsInterface
@@ -30,10 +39,37 @@ import com.spectre7.utils.*
 import com.spectre7.utils.getString
 import com.spectre7.spmp.platform.YoutubeMusicLogin
 
-enum class Page { ROOT, ACCESSIBILITY_SERVICE, YOUTUBE_MUSIC_LOGIN }
+private enum class Page { ROOT, YOUTUBE_MUSIC_LOGIN }
+private enum class Category {
+    GENERAL,
+    FEED,
+    THEME,
+    LYRICS,
+    DOWNLOAD,
+    ACCESSIBILITY_SERVICE;
+
+    fun getIcon(filled: Boolean = false): ImageVector = when (this) {
+        GENERAL -> if (filled) Icons.Filled.Settings else Icons.Outlined.Settings
+        FEED -> if (filled) Icons.Filled.FormatListBulleted else Icons.Outlined.FormatListBulleted
+        THEME -> if (filled) Icons.Filled.Palette else Icons.Outlined.Palette
+        LYRICS -> if (filled) Icons.Filled.MusicNote else Icons.Outlined.MusicNote
+        DOWNLOAD -> if (filled) Icons.Filled.Download else Icons.Outlined.Download
+        ACCESSIBILITY_SERVICE -> if (filled) Icons.Filled.Accessibility else Icons.Outlined.Accessibility
+    }
+
+    fun getTitle(): String = when (this) {
+        GENERAL -> getString("s_group_general")
+        FEED -> getString("s_group_home_feed")
+        THEME -> getString("s_group_theming")
+        LYRICS -> getString("s_group_lyrics")
+        DOWNLOAD -> getString("s_group_download")
+        ACCESSIBILITY_SERVICE -> getString("s_group_acc_service")
+    }
+}
 
 @Composable
 fun PrefsPage(pill_menu: PillMenu, playerProvider: () -> PlayerViewContext, close: () -> Unit) {
+    var current_category: Category by remember { mutableStateOf(Category.GENERAL) }
 
     val interface_lang = remember { SettingsValueState<Int>(Settings.KEY_LANG_UI.name).init(Settings.prefs, Settings.Companion::provideDefault) }
     var language_data by remember { mutableStateOf(SpMp.languages.values.elementAt(interface_lang.value)) }
@@ -111,6 +147,33 @@ fun PrefsPage(pill_menu: PillMenu, playerProvider: () -> PlayerViewContext, clos
                 }
             }
         }
+        pill_menu.addAlongsideAction {
+            Row(fill_modifier
+                .border(1.dp, background_colour, CircleShape)
+                .padding(horizontal = 5.dp)
+            ) {
+                for (category in Category.values()) {
+                    Box(
+                        Modifier.fillMaxWidth(1f / (Category.values().size - category.ordinal).toFloat()),
+                        contentAlignment = Alignment.Center
+                    ) {
+
+                        Crossfade(category == current_category) { current ->
+                            val button_colour = if (current) background_colour else Color.Transparent
+                            ShapedIconButton(
+                                { current_category = category },
+                                colors = IconButtonDefaults.iconButtonColors(
+                                    containerColor = button_colour,
+                                    contentColor = button_colour.getContrasted()
+                                )
+                            ) {
+                                Icon(category.getIcon(current), null)
+                            }
+                        }
+                    }
+                }
+            }
+        }
     }
 
     settings_interface = remember {
@@ -120,14 +183,13 @@ fun PrefsPage(pill_menu: PillMenu, playerProvider: () -> PlayerViewContext, clos
             SpMp.context,
             Settings.prefs,
             Settings.Companion::provideDefault,
+            pill_menu,
             {
                 when (Page.values()[it]) {
-                    Page.ROOT -> getRootPage(interface_lang, language_data, ytm_auth, playerProvider)
-                    Page.ACCESSIBILITY_SERVICE -> getAccessibilityServicePage()
+                    Page.ROOT -> getRootPage({ current_category }, interface_lang, language_data, ytm_auth, playerProvider)
                     Page.YOUTUBE_MUSIC_LOGIN -> getYoutubeMusicLoginPage(ytm_auth)
                 }
             },
-            pill_menu,
             { page: Int? ->
                 if (page == Page.ROOT.ordinal) {
                     pill_menu.removeActionOverrider(pill_menu_action_overrider)
@@ -149,38 +211,39 @@ fun PrefsPage(pill_menu: PillMenu, playerProvider: () -> PlayerViewContext, clos
     ) {
         settings_interface.Interface(
             SpMp.context.getScreenHeight() - SpMp.context.getStatusBarHeight(),
-            content_padding = PaddingValues(bottom = MINIMISED_NOW_PLAYING_HEIGHT.dp + 70.dp)
+            content_padding = PaddingValues(bottom = MINIMISED_NOW_PLAYING_HEIGHT.dp)
         )
     }
 }
 
 private fun getRootPage(
+    getCategory: () -> Category,
     interface_lang: SettingsValueState<Int>,
     language_data: Map<String, String>,
     ytm_auth: SettingsValueState<YoutubeMusicAuthInfo>,
     playerProvider: () -> PlayerViewContext
 ): SettingsPage {
     return SettingsPageWithItems(
-        getString("s_page_preferences"),
-        groupAuth(ytm_auth, playerProvider)
-            + groupGeneral(interface_lang, language_data)
-            + groupHomeFeed()
-            + groupTheming(Theme.manager)
-            + groupLyrics()
-            + groupDownloads()
-            + groupAudioVideo()
-            + groupOther(),
-        Modifier.fillMaxSize()
+        { getCategory().getTitle() },
+        {
+            when (getCategory()) {
+                Category.GENERAL -> getGeneralCategory(interface_lang, language_data, ytm_auth, playerProvider)
+                Category.FEED -> getFeedCategory()
+                Category.THEME -> getThemeCategory(Theme.manager)
+                Category.LYRICS -> getLyricsCategory()
+                Category.DOWNLOAD -> getDownloadCategory()
+                Category.ACCESSIBILITY_SERVICE -> getAccessibilityServiceCategory()
+            }
+        }
     )
 }
 
-private fun getAccessibilityServicePage(): SettingsPage {
+private fun getAccessibilityServiceCategory(): List<SettingsItem> {
     if (!PlayerAccessibilityService.isSupported()) {
-        return SettingsPageWithItems(getString("s_page_acc_service"), emptyList())
+        return emptyList()
     }
 
-    return SettingsPageWithItems(getString("s_page_acc_service"), listOf(
-
+    return listOf(
         SettingsItemAccessibilityService(
             getString("s_acc_service_enabled"),
             getString("s_acc_service_disabled"),
@@ -281,16 +344,17 @@ private fun getAccessibilityServicePage(): SettingsPage {
             allowChange(true)
         }
 
-    ), Modifier.fillMaxSize())
+    )
 }
 
 private fun getYoutubeMusicLoginPage(ytm_auth: SettingsValueState<YoutubeMusicAuthInfo>): SettingsPage {
-    return object : SettingsPage(null) {
+    return object : SettingsPage() {
         override val disable_padding: Boolean = true
         override val scrolling: Boolean = false
 
         @Composable
         override fun PageView(
+            content_padding: PaddingValues,
             openPage: (Int) -> Unit,
             openCustomPage: (SettingsPage) -> Unit,
             goBack: () -> Unit,
@@ -299,7 +363,7 @@ private fun getYoutubeMusicLoginPage(ytm_auth: SettingsValueState<YoutubeMusicAu
                 auth_info.fold({
                     ytm_auth.value = it
                 }, {
-                    TODO(it.toString())
+                    throw RuntimeException(it)
                 })
                 goBack()
             }
@@ -311,86 +375,91 @@ private fun getYoutubeMusicLoginPage(ytm_auth: SettingsValueState<YoutubeMusicAu
     }
 }
 
-private fun groupAuth(ytm_auth: SettingsValueState<YoutubeMusicAuthInfo>, playerProvider: () -> PlayerViewContext): List<SettingsItem> {
-    return listOf(
-        object : SettingsItem() {
-            override fun initialiseValueStates(
-                prefs: ProjectPreferences,
-                default_provider: (String) -> Any,
-            ) {}
+private fun getAuthSettingsItem(ytm_auth: SettingsValueState<YoutubeMusicAuthInfo>, playerProvider: () -> PlayerViewContext): SettingsItem {
+    return object : SettingsItem() {
+        override fun initialiseValueStates(
+            prefs: ProjectPreferences,
+            default_provider: (String) -> Any,
+        ) {}
 
-            override fun resetValues() {
-                ytm_auth.reset()
-            }
+        override fun resetValues() {
+            ytm_auth.reset()
+        }
 
-            @Composable
-            override fun GetItem(
-                theme: Theme,
-                openPage: (Int) -> Unit,
-                openCustomPage: (SettingsPage) -> Unit,
+        @Composable
+        override fun GetItem(
+            theme: Theme,
+            openPage: (Int) -> Unit,
+            openCustomPage: (SettingsPage) -> Unit,
+        ) {
+            Box(Modifier
+                .background(Theme.current.vibrant_accent, SETTINGS_ITEM_ROUNDED_SHAPE)
+                .padding(horizontal = 10.dp)
             ) {
-                Box(Modifier
-                    .background(Theme.current.vibrant_accent, SETTINGS_ITEM_ROUNDED_SHAPE)
-                    .padding(horizontal = 10.dp)
-                ) {
-                    Crossfade(ytm_auth.value) { auth ->
-                        Row(
-                            Modifier.fillMaxWidth(),
-                            verticalAlignment = Alignment.CenterVertically,
-                            horizontalArrangement = Arrangement.spacedBy(5.dp)
-                        ) {
+                Crossfade(ytm_auth.value) { auth ->
+                    Row(
+                        Modifier.fillMaxWidth(),
+                        verticalAlignment = Alignment.CenterVertically,
+                        horizontalArrangement = Arrangement.spacedBy(5.dp)
+                    ) {
+                        if (auth.initialised) {
+                            auth.own_channel.PreviewLong(MediaItem.PreviewParams(
+                                playerProvider,
+                                Modifier.weight(1f),
+                                content_colour = Theme.current.on_accent_provider
+                            ))
+                        }
+                        else {
+                            Text(
+                                getStringTemp("Not signed in"),
+                                Modifier.fillMaxWidth().weight(1f),
+                                style = LocalTextStyle.current.copy(color = Theme.current.on_accent)
+                            )
+                        }
+
+                        Button({
                             if (auth.initialised) {
-                                auth.own_channel.PreviewLong(MediaItem.PreviewParams(
-                                    playerProvider,
-                                    Modifier.weight(1f),
-                                    content_colour = Theme.current.on_accent_provider
-                                ))
+                                resetValues()
                             }
                             else {
-                                Text(
-                                    getStringTemp("Not signed in"),
-                                    Modifier.fillMaxWidth().weight(1f),
-                                    style = LocalTextStyle.current.copy(color = Theme.current.on_accent)
-                                )
+                                openPage(Page.YOUTUBE_MUSIC_LOGIN.ordinal)
                             }
+                        }, colors = ButtonDefaults.buttonColors(
+                            containerColor = Theme.current.background,
+                            contentColor = Theme.current.on_background
+                        )) {
+                            Text(getStringTemp(if (auth.initialised) "Sign out" else "Sign in"))
+                        }
 
-                            Button({
-                                if (auth.initialised) {
-                                    resetValues()
-                                }
-                                else {
-                                    openPage(Page.YOUTUBE_MUSIC_LOGIN.ordinal)
-                                }
-                            }, colors = ButtonDefaults.buttonColors(
+                        ShapedIconButton(
+                            {
+
+                            },
+                            shape = CircleShape,
+                            colors = IconButtonDefaults.iconButtonColors(
                                 containerColor = Theme.current.background,
                                 contentColor = Theme.current.on_background
-                            )) {
-                                Text(getStringTemp(if (auth.initialised) "Sign out" else "Sign in"))
-                            }
-
-                            ShapedIconButton(
-                                {
-
-                                },
-                                shape = CircleShape,
-                                colors = IconButtonDefaults.iconButtonColors(
-                                    containerColor = Theme.current.background,
-                                    contentColor = Theme.current.on_background
-                                )
-                            ) {
-                                Icon(Icons.Filled.Info, null)
-                            }
+                            )
+                        ) {
+                            Icon(Icons.Filled.Info, null)
                         }
                     }
                 }
             }
         }
-    )
+    }
 }
 
-private fun groupGeneral(interface_lang: SettingsValueState<Int>, language_data: Map<String, String>): List<SettingsItem> {
+private fun getGeneralCategory(
+    interface_lang: SettingsValueState<Int>,
+    language_data: Map<String, String>,
+    ytm_auth: SettingsValueState<YoutubeMusicAuthInfo>,
+    playerProvider: () -> PlayerViewContext
+): List<SettingsItem> {
     return listOf(
-        SettingsGroup(getString("s_group_general")),
+        getAuthSettingsItem(ytm_auth, playerProvider),
+
+        SettingsItemSpacer(10.dp),
 
         SettingsItemDropdown(
             interface_lang,
@@ -445,10 +514,8 @@ private fun groupGeneral(interface_lang: SettingsValueState<Int>, language_data:
     )
 }
 
-private fun groupHomeFeed(): List<SettingsItem> {
+private fun getFeedCategory(): List<SettingsItem> {
     return listOf(
-        SettingsGroup(getString("s_group_home_feed")),
-
         SettingsItemSlider(
             SettingsValueState<Int>(Settings.KEY_FEED_INITIAL_ROWS.name),
             getString("s_key_feed_initial_rows"),
@@ -486,10 +553,8 @@ private fun groupHomeFeed(): List<SettingsItem> {
     )
 }
 
-private fun groupTheming(theme_manager: ThemeManager): List<SettingsItem> {
+private fun getThemeCategory(theme_manager: ThemeManager): List<SettingsItem> {
     return listOf(
-        SettingsGroup(getString("s_group_theming")),
-
         SettingsItemThemeSelector (
             SettingsValueState(Settings.KEY_CURRENT_THEME.name),
             getString("s_key_current_theme"), null,
@@ -532,10 +597,8 @@ private fun groupTheming(theme_manager: ThemeManager): List<SettingsItem> {
     )
 }
 
-private fun groupLyrics(): List<SettingsItem> {
+private fun getLyricsCategory(): List<SettingsItem> {
     return listOf(
-        SettingsGroup(getString("s_group_lyrics")),
-
         SettingsItemToggle(
             SettingsValueState(Settings.KEY_LYRICS_FOLLOW_ENABLED.name),
             getString("s_key_lyrics_follow_enabled"), getString("s_sub_lyrics_follow_enabled")
@@ -571,10 +634,8 @@ private fun groupLyrics(): List<SettingsItem> {
     )
 }
 
-private fun groupDownloads(): List<SettingsItem> {
+private fun getDownloadCategory(): List<SettingsItem> {
     return listOf(
-        SettingsGroup(getString("s_group_download")),
-
         SettingsItemToggle(
             SettingsValueState(Settings.KEY_AUTO_DOWNLOAD_ENABLED.name),
             getString("s_key_auto_download_enabled"), null
@@ -586,13 +647,7 @@ private fun groupDownloads(): List<SettingsItem> {
             range = 1f .. 10f,
             min_label = "1",
             max_label = "10"
-        )
-    )
-}
-
-private fun groupAudioVideo(): List<SettingsItem> {
-    return listOf(
-        SettingsGroup(getString("s_group_audio_video")),
+        ),
 
         SettingsItemDropdown(
             SettingsValueState(Settings.KEY_STREAM_AUDIO_QUALITY.name),
@@ -615,17 +670,5 @@ private fun groupAudioVideo(): List<SettingsItem> {
                 else ->                             getString("s_option_audio_quality_low")
             }
         }
-    )
-}
-
-private fun groupOther(): List<SettingsItem> {
-    return listOf(
-        SettingsGroup(getString("s_group_other")),
-
-        SettingsItemSubpage(
-            getString("s_page_acc_service"),
-            null,
-            Page.ACCESSIBILITY_SERVICE.ordinal
-        )
     )
 }

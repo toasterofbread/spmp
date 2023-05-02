@@ -709,15 +709,26 @@ private fun MainPageTopBar(auth_info: YoutubeMusicAuthInfo, playerProvider: () -
             }
         }
 
-        Box(Modifier.fillMaxSize().weight(1f), contentAlignment = Alignment.Center) {
-            Crossfade(Pair(lyrics_loading, lyrics)) { state ->
-                val (loading, lyr) = state
 
-                if (lyr != null && lyr.sync_type != Song.Lyrics.SyncType.NONE) {
-                    LyricsLineDisplay(lyr, { PlayerServiceHost.status.position_ms + 500 }, Theme.current.on_background_provider)
-                }
-                else {
-                    PlayerServiceHost.player.Visualiser(Color.White, Modifier.fillMaxSize().padding(vertical = 10.dp), opacity = 0.5f)
+        var show_lyrics: Boolean by remember { mutableStateOf(true) }
+
+        NoRipple {
+            Box(Modifier.fillMaxSize().weight(1f).clickable { show_lyrics = !show_lyrics }) {
+                val state by remember { derivedStateOf {
+                    lyrics.let {
+                        if (show_lyrics && it != null && it.sync_type != Song.Lyrics.SyncType.NONE) it
+                        else if (PlayerServiceHost.status.m_playing) 0
+                        else null
+                    }
+                } }
+
+                Crossfade(state) { s ->
+                    Box(Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
+                        when (s) {
+                            is Song.Lyrics -> LyricsLineDisplay(s, { PlayerServiceHost.status.position_ms + 500 }, Theme.current.on_background_provider)
+                            0 -> PlayerServiceHost.player.Visualiser(Color.White, Modifier.fillMaxSize().padding(vertical = 10.dp), opacity = 0.5f)
+                        }
+                    }
                 }
             }
         }

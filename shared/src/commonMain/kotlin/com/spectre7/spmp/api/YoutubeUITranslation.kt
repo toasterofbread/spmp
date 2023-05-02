@@ -189,6 +189,10 @@ class YoutubeUITranslation(languages: Set<String>) {
                 en to "Videos on repeat",
                 ja to "繰り返し再生されている動画"
             )
+            addString(
+                en to "Playlists on repeat",
+                ja to "繰り返し再生するプレイリスト"
+            )
         }
         ARTIST_PAGE_STRINGS = mutableListOf<Map<Int, Pair<String, String?>>>().apply {
             addString(

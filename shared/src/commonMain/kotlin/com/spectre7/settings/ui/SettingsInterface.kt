@@ -4,10 +4,13 @@ import com.spectre7.spmp.platform.PlatformContext
 import com.spectre7.spmp.platform.ProjectPreferences
 import androidx.compose.animation.Crossfade
 import androidx.compose.foundation.ScrollState
+import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.runtime.*
+import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.layout.onSizeChanged
 import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
@@ -21,8 +24,8 @@ class SettingsInterface(
     val context: PlatformContext,
     val prefs: ProjectPreferences,
     val default_provider: (String) -> Any,
-    private val getPage: (Int) -> SettingsPage,
     val pill_menu: PillMenu? = null,
+    private val getPage: (Int) -> SettingsPage,
     private val onPageChanged: ((page: Int?) -> Unit)? = null,
     private val onCloseRequested: (() -> Unit)? = null
 ) {
@@ -59,6 +62,7 @@ class SettingsInterface(
 
             Column(
                 Modifier
+                    .fillMaxSize()
                     .thenIf(!page.disable_padding, Modifier.padding(top = 18.dp, start = 20.dp, end = 20.dp))
                     .onSizeChanged { width = it.width }
             ) {
@@ -73,11 +77,10 @@ class SettingsInterface(
                 page.TitleBar(page.id == root_page, Modifier.requiredHeight(30.dp)) { go_back = true }
 
                 Box(
-                    Modifier
-                        .thenIf(page.scrolling, Modifier.verticalScroll(remember { ScrollState(0) }))
-                        .thenIf(!page.disable_padding, Modifier.padding(content_padding))
+                    contentAlignment = Alignment.TopCenter
                 ) {
                     page.Page(
+                        if (!page.disable_padding) content_padding else PaddingValues(0.dp),
                         { target_page_id ->
                             if (current_page.id != target_page_id) {
                                 page_stack.add(current_page)

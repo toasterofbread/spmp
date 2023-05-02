@@ -98,6 +98,16 @@ class SettingsGroup(var title: String?): SettingsItem() {
     }
 }
 
+class SettingsItemSpacer(val spacing: Dp): SettingsItem() {
+    override fun initialiseValueStates(prefs: ProjectPreferences, default_provider: (String) -> Any) {}
+    override fun resetValues() {}
+
+    @Composable
+    override fun GetItem(theme: Theme, openPage: (Int) -> Unit, openCustomPage: (SettingsPage) -> Unit) {
+        Spacer(Modifier.height(spacing))
+    }
+}
+
 @Suppress("UNCHECKED_CAST", "IMPLICIT_CAST_TO_ANY")
 class SettingsValueState<T>(
     val key: String,

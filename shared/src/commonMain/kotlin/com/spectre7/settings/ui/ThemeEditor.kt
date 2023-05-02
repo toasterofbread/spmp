@@ -140,7 +140,7 @@ private fun getEditPage(
     theme: ThemeData,
     onEditCompleted: (theme_data: ThemeData) -> Unit
 ): SettingsPage {
-    return object : SettingsPage(editor_title) {
+    return object : SettingsPage({ editor_title }) {
         private var reset by mutableStateOf(false)
         private var close by mutableStateOf(false)
 
@@ -154,6 +154,7 @@ private fun getEditPage(
 
         @Composable
         override fun PageView(
+            content_padding: PaddingValues,
             openPage: (Int) -> Unit,
             openCustomPage: (SettingsPage) -> Unit,
             goBack: () -> Unit,
@@ -251,7 +252,8 @@ private fun getEditPage(
                         detectTapGestures {
                             focus_manager.clearFocus()
                         }
-                    },
+                    }
+                    .padding(content_padding),
                 verticalArrangement = Arrangement.spacedBy(20.dp)
             ) {
                 Spacer(Modifier.height(20.dp))

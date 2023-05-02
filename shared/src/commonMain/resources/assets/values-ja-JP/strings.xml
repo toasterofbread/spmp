@@ -76,7 +76,7 @@
     <string name="s_option_vol_intercept_mode_never">有効にしない</string>
     <string name="s_option_vol_intercept_mode_app">アプリ使用時に有効</string>
     <string name="s_option_vol_intercept_mode_always">メディア再生時に有効</string>
-    <string name="s_page_acc_service">アクセシビリティサービス</string>
+    <string name="s_group_acc_service">アクセシビリティサービス</string>
     <string name="s_key_auto_download_enabled">曲を自動的にダウンロードする</string>
     <string name="s_key_auto_download_threshold">自動曲ダウンロード最低再生数</string>
     <string name="s_sub_auto_download_threshold">この数以上再生された曲のみが自動的にダウンロードされます</string>

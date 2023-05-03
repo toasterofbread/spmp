@@ -111,6 +111,7 @@ kotlin {
                 implementation("androidx.palette:palette:1.0.0")
                 implementation("ro.andob.androidawt:androidawt:1.0.4")
                 implementation("io.coil-kt:coil-compose:2.3.0")
+                implementation("com.github.dead8309:KizzyRPC:1.0.71")
             }
         }
 

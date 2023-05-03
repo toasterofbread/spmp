@@ -2,6 +2,7 @@ package com.spectre7.spmp.ui.layout
 
 import com.spectre7.spmp.platform.PlatformContext
 import com.spectre7.spmp.platform.ProjectPreferences
+import com.spectre7.spmp.platform.DiscordStatus
 import com.spectre7.spmp.PlayerAccessibilityService
 import androidx.compose.animation.Crossfade
 import androidx.compose.animation.animateColorAsState
@@ -37,7 +38,7 @@ import com.spectre7.spmp.ui.theme.ThemeData
 import com.spectre7.spmp.ui.theme.ThemeManager
 import com.spectre7.utils.*
 import com.spectre7.utils.getString
-import com.spectre7.spmp.platform.YoutubeMusicLogin
+import com.spectre7.spmp.platform.WebViewLogin
 
 private enum class Page { ROOT, YOUTUBE_MUSIC_LOGIN }
 private enum class Category {
@@ -46,7 +47,7 @@ private enum class Category {
     THEME,
     LYRICS,
     DOWNLOAD,
-    ACCESSIBILITY_SERVICE;
+    OTHER;
 
     fun getIcon(filled: Boolean = false): ImageVector = when (this) {
         GENERAL -> if (filled) Icons.Filled.Settings else Icons.Outlined.Settings
@@ -54,16 +55,16 @@ private enum class Category {
         THEME -> if (filled) Icons.Filled.Palette else Icons.Outlined.Palette
         LYRICS -> if (filled) Icons.Filled.MusicNote else Icons.Outlined.MusicNote
         DOWNLOAD -> if (filled) Icons.Filled.Download else Icons.Outlined.Download
-        ACCESSIBILITY_SERVICE -> if (filled) Icons.Filled.Accessibility else Icons.Outlined.Accessibility
+        OTHER -> if (filled) Icons.Filled.MoreHoriz else Icons.Outlined.MoreHoriz
     }
 
     fun getTitle(): String = when (this) {
-        GENERAL -> getString("s_group_general")
-        FEED -> getString("s_group_home_feed")
-        THEME -> getString("s_group_theming")
-        LYRICS -> getString("s_group_lyrics")
-        DOWNLOAD -> getString("s_group_download")
-        ACCESSIBILITY_SERVICE -> getString("s_group_acc_service")
+        GENERAL -> getString("s_cat_general")
+        FEED -> getString("s_cat_home_feed")
+        THEME -> getString("s_cat_theming")
+        LYRICS -> getString("s_cat_lyrics")
+        DOWNLOAD -> getString("s_cat_download")
+        OTHER -> getString("s_cat_other")
     }
 }
 
@@ -187,7 +188,7 @@ fun PrefsPage(pill_menu: PillMenu, playerProvider: () -> PlayerViewContext, clos
             {
                 when (Page.values()[it]) {
                     Page.ROOT -> getRootPage({ current_category }, interface_lang, language_data, ytm_auth, playerProvider)
-                    Page.YOUTUBE_MUSIC_LOGIN -> getYoutubeMusicLoginPage(ytm_auth)
+                    Page.YOUTUBE_MUSIC_LOGIN -> getWebViewLoginPage(ytm_auth)
                 }
             },
             { page: Int? ->
@@ -232,18 +233,20 @@ private fun getRootPage(
                 Category.THEME -> getThemeCategory(Theme.manager)
                 Category.LYRICS -> getLyricsCategory()
                 Category.DOWNLOAD -> getDownloadCategory()
-                Category.ACCESSIBILITY_SERVICE -> getAccessibilityServiceCategory()
+                Category.OTHER -> getOtherCategory()
             }
         }
     )
 }
 
-private fun getAccessibilityServiceCategory(): List<SettingsItem> {
+private fun getAccessibilityServiceGroup(): List<SettingsItem> {
     if (!PlayerAccessibilityService.isSupported()) {
         return emptyList()
     }
-
+    
     return listOf(
+        SettingsGroup(getString("s_group_acc_service")),
+
         SettingsItemAccessibilityService(
             getString("s_acc_service_enabled"),
             getString("s_acc_service_disabled"),
@@ -343,11 +346,24 @@ private fun getAccessibilityServiceCategory(): List<SettingsItem> {
 
             allowChange(true)
         }
-
     )
 }
 
-private fun getYoutubeMusicLoginPage(ytm_auth: SettingsValueState<YoutubeMusicAuthInfo>): SettingsPage {
+private getDiscordStatusGroup(): List<SettingsItem> {
+    if (!DiscordStatus.isSupported()) {
+        return emptyList()
+    }
+
+    return listOf(
+        SettingsGroup(getStringTemp("Discord status"))
+    )
+}
+
+private fun getOtherCategory(): List<SettingsItem> {
+    return getAccessibilityServiceGroup() + getDiscordStatusGroup()
+}
+
+private fun getWebViewLoginPage(ytm_auth: SettingsValueState<YoutubeMusicAuthInfo>): SettingsPage {
     return object : SettingsPage() {
         override val disable_padding: Boolean = true
         override val scrolling: Boolean = false

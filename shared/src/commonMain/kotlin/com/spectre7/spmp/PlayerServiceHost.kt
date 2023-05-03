@@ -26,7 +26,7 @@ class PlayerServiceHost() {
         instance = this
     }
 
-    // TODO remove (at least the non-state stuff)
+    // TODO remove (at least the non-mutablestate stuff)
     class PlayerStatus internal constructor(private val player: PlayerService) {
         val playing: Boolean get() = player.is_playing
         val position: Float get() = player.duration_ms.let { it ->

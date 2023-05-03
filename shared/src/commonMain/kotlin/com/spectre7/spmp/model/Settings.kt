@@ -79,7 +79,10 @@ enum class Settings {
     // Internal
     INTERNAL_PINNED_SONGS,
     INTERNAL_PINNED_ARTISTS,
-    INTERNAL_PINNED_PLAYLISTS;
+    INTERNAL_PINNED_PLAYLISTS,
+    
+    CHOICE_ACCEPT_YTM_LOGIN_WARNING,
+    CHOICE_ACCEPT_DISCORD_LOGIN_WARNING;
 
     fun <T> get(preferences: ProjectPreferences = prefs): T {
         return Settings.get(this, preferences)
@@ -201,7 +204,10 @@ enum class Settings {
                 INTERNAL_PINNED_SONGS -> emptySet<String>()
                 INTERNAL_PINNED_ARTISTS -> emptySet<String>()
                 INTERNAL_PINNED_PLAYLISTS -> emptySet<String>()
-                
+
+                CHOICE_ACCEPT_YTM_LOGIN_WARNING -> false
+                CHOICE_ACCEPT_DISCORD_LOGIN_WARNING -> false
+
             } as T
         }
 

@@ -19,15 +19,22 @@ import com.spectre7.utils.OnChangedEffect
 import com.spectre7.utils.isDark
 import okhttp3.Request
 
+actual fun isWebViewLoginSupported(): Boolean get() = true
+
 @Composable
-actual fun YoutubeMusicLogin(modifier: Modifier, onFinished: (Result<YoutubeMusicAuthInfo>) -> Unit) {
+actual fun WebViewLogin(
+    initial_url: String,
+    modifier: Modifier,
+    shouldShowPage: (url: String) -> Boolean,
+    onRequestIntercepted: (WebResourceRequest, openUrl: (String) -> Unit) -> Boolean
+) {
     var web_view: WebView? by remember { mutableStateOf(null) }
     val is_dark by remember { derivedStateOf { Theme.current.background.isDark() } }
 
-    var login_requested by remember { mutableStateOf(false) }
-    OnChangedEffect(login_requested) {
-        if (login_requested) {
-            web_view?.loadUrl(YOUTUBE_MUSIC_LOGIN_URL)
+    var requested_url: String? by remember { mutableStateOf(null) }
+    OnChangedEffect(requested_url) {
+        requested_url?.also {
+            web_view?.loadUrl(it)
         }
     }
 
@@ -68,7 +75,7 @@ actual fun YoutubeMusicLogin(modifier: Modifier, onFinished: (Result<YoutubeMusi
                         override fun onPageStarted(view: WebView, url: String, favicon: Bitmap?) {
                             super.onPageStarted(view, url, favicon)
 
-                            if (url.startsWith(YOUTUBE_MUSIC_URL)) {
+                            if (!shouldShowPage(url)) {
                                 show_webview = false
                             }
                         }
@@ -76,7 +83,7 @@ actual fun YoutubeMusicLogin(modifier: Modifier, onFinished: (Result<YoutubeMusi
                         override fun onPageFinished(view: WebView?, url: String?) {
                             super.onPageFinished(view, url)
 
-                            if (url?.startsWith(YOUTUBE_MUSIC_URL) == false) {
+                            if (url != null && shouldShowPage(url)) {
                                 show_webview = true
                             }
                         }
@@ -85,47 +92,10 @@ actual fun YoutubeMusicLogin(modifier: Modifier, onFinished: (Result<YoutubeMusi
                             view: WebView,
                             request: WebResourceRequest
                         ): WebResourceResponse? {
-                            if (request.url.host == "music.youtube.com" && request.url.path?.startsWith("/youtubei/v1/") == true) {
-                                if (!request.requestHeaders.containsKey("Authorization")) {
-                                    login_requested = true
-                                    return null
-                                }
-                                if (login_completed) {
-                                    return null
-                                }
-
+                            if (!login_completed && onRequestIntercepted(request) {
+                                requested_url = it
+                            }) {
                                 login_completed = true
-
-                                val cookie = CookieManager.getInstance().getCookie(YOUTUBE_MUSIC_URL)
-                                val account_request = Request.Builder()
-                                    .url("https://music.youtube.com/youtubei/v1/account/account_menu")
-                                    .addHeader("cookie", cookie)
-                                    .apply {
-                                        for (header in request.requestHeaders) {
-                                            addHeader(header.key, header.value)
-                                        }
-                                    }
-                                    .post(DataApi.getYoutubeiRequestBody())
-                                    .build()
-
-                                val result = DataApi.request(account_request)
-                                if (result.isFailure) {
-                                    onFinished(result.cast())
-                                    return null
-                                }
-
-                                result.getOrThrow().also { response ->
-                                    val parsed: AccountMenuResponse = DataApi.klaxon.parse(response.body!!.charStream())!!
-                                    response.close()
-
-                                    onFinished(Result.success(
-                                        YoutubeMusicAuthInfo(
-                                            parsed.getAritst()!!,
-                                            cookie,
-                                            request.requestHeaders
-                                        )
-                                    ))
-                                }
                             }
                             return null
                         }

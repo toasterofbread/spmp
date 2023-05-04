@@ -62,6 +62,8 @@ class Artist private constructor (
 
     companion object {
         private val artists: MutableMap<String, Artist> = mutableMapOf()
+
+        // TODO Remove
         val UNKNOWN = fromId("0").supplyTitle("Unknown", true).supplyDescription("No known artist attached to media", true) as Artist
 
         fun fromId(id: String): Artist {
@@ -72,6 +74,12 @@ class Artist private constructor (
                     return@getOrPut artist
                 }.getOrReplacedWith() as Artist
             }
+        }
+
+        fun clearStoredItems(): Int {
+            val amount = artists.size
+            artists.clear()
+            return amount
         }
 
         fun createForItem(item: MediaItem): Artist {

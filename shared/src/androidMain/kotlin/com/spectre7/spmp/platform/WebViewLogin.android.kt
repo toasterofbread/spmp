@@ -1,6 +1,8 @@
 package com.spectre7.spmp.platform
 
 import android.graphics.Bitmap
+import android.net.Uri
+import android.view.ViewGroup
 import android.webkit.*
 import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.foundation.layout.Box
@@ -10,23 +12,29 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.graphicsLayer
 import androidx.compose.ui.viewinterop.AndroidView
-import com.spectre7.spmp.api.*
-import com.spectre7.spmp.model.Artist
-import com.spectre7.spmp.model.MediaItem
-import com.spectre7.spmp.model.YoutubeMusicAuthInfo
 import com.spectre7.spmp.ui.theme.Theme
 import com.spectre7.utils.OnChangedEffect
 import com.spectre7.utils.isDark
-import okhttp3.Request
 
-actual fun isWebViewLoginSupported(): Boolean get() = true
+actual fun isWebViewLoginSupported(): Boolean = true
+
+class WebResourceRequestReader(private val request: WebResourceRequest): WebViewRequest {
+    override val url: String
+        get() = request.url.toString()
+    override val isRedirect: Boolean
+        get() = request.isRedirect
+    override val method: String
+        get() = request.method
+    override val requestHeaders: Map<String, String>
+        get() = request.requestHeaders
+}
 
 @Composable
 actual fun WebViewLogin(
     initial_url: String,
     modifier: Modifier,
     shouldShowPage: (url: String) -> Boolean,
-    onRequestIntercepted: (WebResourceRequest, openUrl: (String) -> Unit) -> Boolean
+    onRequestIntercepted: (WebViewRequest, openUrl: (String) -> Unit, getCookie: (String) -> String) -> Unit
 ) {
     var web_view: WebView? by remember { mutableStateOf(null) }
     val is_dark by remember { derivedStateOf { Theme.current.background.isDark() } }
@@ -61,8 +69,16 @@ actual fun WebViewLogin(
                 alpha = if (show_webview) 1f else 0f
             },
             factory = { context ->
-                return@AndroidView WebView(context).apply {
+                WebView(context).apply {
+                    WebStorage.getInstance().deleteAllData()
+
                     settings.javaScriptEnabled = true
+                    settings.domStorageEnabled = true
+
+                    layoutParams = ViewGroup.LayoutParams(
+                        ViewGroup.LayoutParams.MATCH_PARENT,
+                        ViewGroup.LayoutParams.MATCH_PARENT
+                    )
 
                     webChromeClient = object : WebChromeClient() {
                         override fun onConsoleMessage(msg: ConsoleMessage): Boolean {
@@ -70,8 +86,6 @@ actual fun WebViewLogin(
                         }
                     }
                     webViewClient = object : WebViewClient() {
-                        private var login_completed = false
-
                         override fun onPageStarted(view: WebView, url: String, favicon: Bitmap?) {
                             super.onPageStarted(view, url, favicon)
 
@@ -92,55 +106,23 @@ actual fun WebViewLogin(
                             view: WebView,
                             request: WebResourceRequest
                         ): WebResourceResponse? {
-                            if (!login_completed && onRequestIntercepted(request) {
-                                requested_url = it
-                            }) {
-                                login_completed = true
-                            }
+                            onRequestIntercepted(
+                                WebResourceRequestReader(request),
+                                {
+                                    requested_url = it
+                                },
+                                { url ->
+                                    CookieManager.getInstance().getCookie(url)
+                                }
+                            )
                             return null
                         }
                     }
 
-                    loadUrl(YOUTUBE_MUSIC_LOGIN_URL)
+                    loadUrl(initial_url)
                     web_view = this
                 }
             }
         )
-    }
-}
-
-private class AccountMenuResponse(val actions: List<Action>) {
-    class Action(val openPopupAction: OpenPopupAction)
-    class OpenPopupAction(val popup: Popup)
-    class Popup(val multiPageMenuRenderer: MultiPageMenuRenderer)
-    class MultiPageMenuRenderer(val sections: List<Section>, val header: Header? = null)
-
-    class Section(val multiPageMenuSectionRenderer: MultiPageMenuSectionRenderer)
-    class MultiPageMenuSectionRenderer(val items: List<Item>)
-    class Item(val compactLinkRenderer: CompactLinkRenderer)
-    class CompactLinkRenderer(val navigationEndpoint: NavigationEndpoint? = null)
-
-    class Header(val activeAccountHeaderRenderer: ActiveAccountHeaderRenderer)
-    class ActiveAccountHeaderRenderer(val accountName: TextRuns, val accountPhoto: MusicThumbnailRenderer.Thumbnail)
-
-    fun getAritst(): Artist? {
-        val artist = Artist.fromId(getChannelId() ?: return null)
-        val account = actions.first().openPopupAction.popup.multiPageMenuRenderer.header!!.activeAccountHeaderRenderer
-
-        artist.supplyTitle(account.accountName.first_text)
-        artist.supplyThumbnailProvider(MediaItem.ThumbnailProvider.fromThumbnails(account.accountPhoto.thumbnails))
-        return artist
-    }
-
-    fun getChannelId(): String? {
-        for (section in actions.first().openPopupAction.popup.multiPageMenuRenderer.sections) {
-            for (item in section.multiPageMenuSectionRenderer.items) {
-                val browse_endpoint = item.compactLinkRenderer.navigationEndpoint?.browseEndpoint
-                if (browse_endpoint?.getPageType() == "MUSIC_PAGE_TYPE_USER_CHANNEL") {
-                    return browse_endpoint.browseId
-                }
-            }
-        }
-        return null
     }
 }

@@ -65,7 +65,6 @@
     <string name="artist_chip_open">開く</string>
     <string name="prompt_confirm_action">確認してください</string>
     <string name="prompt_confirm_settings_page_reset">このページのバリューを全てリセットしますか？</string>
-    <string name="warning_ytm_login">今からアプリ内で YouTube Music のログインページに移動します。ログインを終えたら、セッションクッキーを取って、保存し、オススメフィードやチャンネル登録などの YouTube Music への API リクエストのみに使います。よろしいですか？</string>
     <string name="s_group_acc_service">アクセシビリティサービス</string>
     <string name="s_cat_download">ダウンロード</string>
     <string name="s_key_auto_download_quality">オートダウンロードの音質</string>
@@ -166,4 +165,39 @@
     <string name="radio_builder_modifier_filter_focus">集中</string>
     <string name="search_filter_all">全て</string>
     <string name="search_filter_videos">動画</string>
+
+    <string name="s_group_discord_status">ディスコード　ユーザーステータス</string>
+
+    <string name="s_discord_status_text_info">以下のキーワードをテキスト内で使うことで、流れてる曲の情報を表示することができます:&#xA;- $song (曲)&#xA;- $artist (アーティスト)</string>
+
+    <string name="s_key_discord_status_name">ステータスタイトル</string>
+    <string name="s_sub_discord_status_name">'Listening to'の次に表示されるテキスト</string>
+    <string name="s_key_discord_status_text_a">第一テキスト行</string>
+    <string name="s_sub_discord_status_text_a"></string>
+    <string name="s_key_discord_status_text_b">第ニテキスト行</string>
+    <string name="s_sub_discord_status_text_b"></string>
+    <string name="s_key_discord_status_text_c">第三テキスト行</string>
+    <string name="s_sub_discord_status_text_c">画像のホバーテキストにも使われます</string>
+
+    <string name="s_key_discord_status_show_button_song">曲ページのボタンを表示する</string>
+    <string name="s_sub_discord_status_show_button_song">押されると現在流れている曲が YouTube Music で開かれます</string>
+    <string name="s_key_discord_status_button_song_text">曲ページボタンに表示されるテキスト</string>
+
+    <string name="s_key_discord_status_show_button_project">プロジェクトページのボタンを表示する</string>
+    <string name="s_sub_discord_status_show_button_project">押されるとこのプロジェクトのページが GitHub で開かれます</string>
+    <string name="s_key_discord_status_button_project_text">プロジェクトページボタンに表示されるテキスト</string>
+
+    <string name="discord_status_default_name">$artist</string>
+    <string name="discord_status_default_text_a">$song</string>
+    <string name="discord_status_default_text_b">$artist</string>
+    <string name="discord_status_default_text_c">Listening on SpMp</string>
+    <string name="discord_status_default_button_song">Open on YouTube</string>
+    <string name="discord_status_default_button_project">Visit project page</string>
+
+    <string name="warning_ytm_login">今からアプリ内で YouTube Music のログインページに移動します。&#xA;&#xA;ログインを終えたら、セッションクッキーを取って、保存し、オススメフィードやチャンネル登録などの YouTube Music への API リクエストのみに使います。&#xA;&#xA;よろしいですか？</string>
+    <string name="info_ytm_login">アプリ内で YouTube Music のログインページに移動します。&#xA;&#xA;ログインを終えたら、セッションクッキーを取って、保存し、オススメフィードやチャンネル登録などの YouTube Music への API リクエストのみに使います。</string>
+
+    <string name="warning_discord_login">今からアプリ内で Discord のログインページに移動します。&#xA;&#xA;ログインを終えたら、ユーザトーケンを取って、保存し、ステータスを変えるための Discord への API リクエストのみに使います。&#xA;&#xA;詳しくは https://github.com/dead8309/Kizzy をご覧ください。&#xA;&#xA;よろしいですか？</string>
+    <string name="info_discord_login">アプリ内で Discord のログインページに移動します。&#xA;&#xA;ログインを終えたら、ユーザトーケンを取って、保存し、ステータスを変えるための Discord への API リクエストのみに使います。&#xA;&#xA;詳しくは https://github.com/dead8309/Kizzy をご覧ください。</string>
+
 </resources>

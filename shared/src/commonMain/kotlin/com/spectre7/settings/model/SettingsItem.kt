@@ -36,7 +36,7 @@ import androidx.compose.ui.platform.LocalDensity
 import com.github.krottv.compose.sliders.DefaultThumb
 import com.github.krottv.compose.sliders.ListenOnPressed
 
-val SETTINGS_ITEM_ROUNDED_SHAPE = RoundedCornerShape(16.dp)
+val SETTINGS_ITEM_ROUNDED_SHAPE = RoundedCornerShape(20.dp)
 
 abstract class SettingsItem {
     lateinit var context: PlatformContext
@@ -63,14 +63,14 @@ abstract class SettingsItem {
 
     @Composable
     protected fun ItemTitleText(text: String?, theme: Theme) {
-        if (text != null) {
+        if (text?.isNotBlank() == true) {
             WidthShrinkText(text, style = LocalTextStyle.current.copy(color = theme.on_background))
         }
     }
 
     @Composable
     protected fun ItemText(text: String?, colour: Color, font_size: TextUnit = TextUnit.Unspecified) {
-        if (text != null) {
+        if (text?.isNotBlank() == true) {
             Text(text, color = colour, fontSize = font_size)
         }
     }
@@ -91,10 +91,19 @@ class SettingsGroup(var title: String?): SettingsItem() {
         openPage: (Int) -> Unit,
         openCustomPage: (SettingsPage) -> Unit
     ) {
-        Spacer(Modifier.requiredHeight(20.dp))
-        if (title != null) {
-            Text(title!!.uppercase(), color = theme.vibrant_accent, fontSize = 20.sp, fontWeight = FontWeight.Light)
+        title?.also {
+            Text(it, color = theme.vibrant_accent, fontSize = 20.sp, fontWeight = FontWeight.Light)
         }
+    }
+}
+
+class SettingsItemInfoText(val text: String): SettingsItem() {
+    override fun initialiseValueStates(prefs: ProjectPreferences, default_provider: (String) -> Any) {}
+    override fun resetValues() {}
+
+    @Composable
+    override fun GetItem(theme: Theme, openPage: (Int) -> Unit, openCustomPage: (SettingsPage) -> Unit) {
+        Text(text)
     }
 }
 
@@ -108,19 +117,27 @@ class SettingsItemSpacer(val spacing: Dp): SettingsItem() {
     }
 }
 
+interface BasicSettingsValueState<T: Any> {
+    var value: T
+    fun init(prefs: ProjectPreferences, defaultProvider: (String) -> Any): BasicSettingsValueState<T>
+    fun reset()
+    fun save()
+    fun getDefault(defaultProvider: (String) -> Any): T
+}
+
 @Suppress("UNCHECKED_CAST", "IMPLICIT_CAST_TO_ANY")
-class SettingsValueState<T>(
+class SettingsValueState<T: Any>(
     val key: String,
     private val onChanged: ((value: T) -> Unit)? = null,
     private val converter: (Any?) -> T? = { it as T }
-) {
+): BasicSettingsValueState<T> {
     var autosave: Boolean = true
 
     private lateinit var prefs: ProjectPreferences
     private lateinit var defaultProvider: (String) -> Any
     private var _value: T? by mutableStateOf(null)
 
-    var value: T
+    override var value: T
         get() = _value!!
         set(new_value) {
             if (_value == null) {
@@ -137,7 +154,7 @@ class SettingsValueState<T>(
             onChanged?.invoke(new_value)
         }
 
-    fun init(prefs: ProjectPreferences, defaultProvider: (String) -> Any): SettingsValueState<T> {
+    override fun init(prefs: ProjectPreferences, defaultProvider: (String) -> Any): SettingsValueState<T> {
         if (_value != null) {
             return this
         }
@@ -159,7 +176,7 @@ class SettingsValueState<T>(
         return this
     }
 
-    fun reset() {
+    override fun reset() {
         _value = converter(defaultProvider(key) as T)!!
         if (autosave) {
             save()
@@ -167,7 +184,7 @@ class SettingsValueState<T>(
         onChanged?.invoke(_value!!)
     }
 
-    fun save() {
+    override fun save() {
         prefs.edit {
             when (value!!) {
                 is Boolean -> putBoolean(key, value as Boolean)
@@ -180,13 +197,41 @@ class SettingsValueState<T>(
             }
         }
     }
+
+    override fun getDefault(defaultProvider: (String) -> Any): T = defaultProvider(key) as T
 }
 
-class SettingsItemToggle(
-    val state: SettingsValueState<Boolean>,
+// TODO Styling
+class SettingsItemTextField(
+    val state: BasicSettingsValueState<String>,
     val title: String?,
     val subtitle: String?,
-    val checker: ((target: Boolean, setLoading: (Boolean) -> Unit, (allowChange: Boolean) -> Unit) -> Unit)? = null
+    val single_line: Boolean = true
+): SettingsItem() {
+    override fun initialiseValueStates(prefs: ProjectPreferences, default_provider: (String) -> Any) {
+        state.init(prefs, default_provider)
+    }
+
+    override fun resetValues() {
+        state.reset()
+    }
+
+    @OptIn(ExperimentalMaterial3Api::class)
+    @Composable
+    override fun GetItem(theme: Theme, openPage: (Int) -> Unit, openCustomPage: (SettingsPage) -> Unit) {
+        Column(Modifier.fillMaxWidth(), verticalArrangement = Arrangement.spacedBy(5.dp)) {
+            ItemTitleText(title, theme)
+            ItemText(subtitle, theme)
+            TextField(state.value, { state.value = it }, Modifier.fillMaxWidth(), singleLine = single_line)
+        }
+    }
+
+}
+class SettingsItemToggle(
+    val state: BasicSettingsValueState<Boolean>,
+    val title: String?,
+    val subtitle: String?,
+    val checker: ((target: Boolean, setLoading: (Boolean) -> Unit, (allow_change: Boolean) -> Unit) -> Unit)? = null
 ): SettingsItem() {
 
     private var loading: Boolean by mutableStateOf(false)
@@ -257,7 +302,7 @@ class SettingsItemToggle(
 }
 
 class SettingsItemSlider(
-    val state: SettingsValueState<out Number>,
+    val state: BasicSettingsValueState<out Number>,
     val title: String?,
     val subtitle: String?,
     val min_label: String? = null,
@@ -273,9 +318,9 @@ class SettingsItemSlider(
     fun setValue(value: Float) {
         value_state = value
         if (is_int) {
-            (state as SettingsValueState<Int>).value = value.roundToInt()
+            (state as BasicSettingsValueState<Int>).value = value.roundToInt()
         } else {
-            (state as SettingsValueState<Float>).value = value
+            (state as BasicSettingsValueState<Float>).value = value
         }
     }
 
@@ -286,10 +331,10 @@ class SettingsItemSlider(
     override fun initialiseValueStates(prefs: ProjectPreferences, default_provider: (String) -> Any) {
         state.init(prefs, default_provider)
         value_state = state.value.toFloat()
-        is_int = when (default_provider(state.key)) {
+        is_int = when (state.getDefault(default_provider)) {
             is Float -> false
             is Int -> true
-            else -> throw NotImplementedError(default_provider(state.key).javaClass.name)
+            else -> throw NotImplementedError(state.getDefault(default_provider).javaClass.name)
         }
     }
 
@@ -373,12 +418,14 @@ class SettingsItemSlider(
                     }
                 }
             }
-            
+
             ItemText(subtitle, theme)
 
             Spacer(Modifier.requiredHeight(10.dp))
 
-            state.autosave = false
+            if (state is SettingsValueState) {
+                state.autosave = false
+            }
             Row(Modifier.fillMaxWidth(), verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(10.dp)) {
                 if (min_label != null) {
                     ItemText(min_label, theme, 12.sp)
@@ -459,7 +506,7 @@ class SettingsItemSlider(
 }
 
 class SettingsItemMultipleChoice(
-    val state: SettingsValueState<Int>,
+    val state: BasicSettingsValueState<Int>,
     val title: String?,
     val subtitle: String?,
     val choice_amount: Int,
@@ -551,7 +598,7 @@ class SettingsItemMultipleChoice(
 }
 
 class SettingsItemDropdown(
-    val state: SettingsValueState<Int>,
+    val state: BasicSettingsValueState<Int>,
     val title: String,
     val subtitle: String?,
     val item_count: Int,
@@ -717,6 +764,66 @@ class SettingsItemSubpage(
     }
 }
 
+class SettingsItemLargeToggle(
+    val state: BasicSettingsValueState<Boolean>,
+    val enabled_text: String,
+    val disabled_text: String,
+    val enable_button: String,
+    val disable_button: String,
+    val checker: ((target: Boolean, openPage: (Int) -> Unit, onFinished: (allow_change: Boolean) -> Unit) -> Unit)? = null
+): SettingsItem() {
+    override fun initialiseValueStates(prefs: ProjectPreferences, default_provider: (String) -> Any) {}
+    override fun resetValues() {}
+
+    @Composable
+    override fun GetItem(
+        theme: Theme,
+        openPage: (Int) -> Unit,
+        openCustomPage: (SettingsPage) -> Unit
+    ) {
+        val shape = RoundedCornerShape(20.dp)
+
+        Crossfade(state.value) { enabled ->
+            CompositionLocalProvider(LocalContentColor provides if (!enabled) theme.on_background else theme.on_accent) {
+                Row(
+                    Modifier
+                        .background(
+                            if (!enabled) theme.background else theme.vibrant_accent,
+                            shape
+                        )
+                        .border(Dp.Hairline, theme.vibrant_accent, shape)
+                        .padding(start = 20.dp, end = 20.dp)
+                        .fillMaxWidth(),
+                    horizontalArrangement = Arrangement.SpaceBetween, verticalAlignment = Alignment.CenterVertically
+                ) {
+                    Text(if (enabled) enabled_text else disabled_text)
+                    Button(
+                        { 
+                            if (checker == null) {
+                                state.value = !enabled
+                            }
+                            else {
+                                checker.invoke(!enabled, openPage) { allow_change ->
+                                    if (allow_change) {
+                                        state.value = !enabled
+                                    }
+                                }
+                            }
+                        },
+                        colors = ButtonDefaults.buttonColors(
+                            containerColor = if (enabled) theme.vibrant_accent else theme.background,
+                            contentColor = if (enabled) theme.on_accent else theme.on_background
+                        )
+                    ) {
+                        Text(if (enabled) disable_button else enable_button)
+                    }
+                }
+            }
+        }
+    }
+}
+
+
 class SettingsItemAccessibilityService(
     val enabled_text: String,
     val disabled_text: String,
@@ -749,17 +856,15 @@ class SettingsItemAccessibilityService(
             }
         }
 
-        val shape = RoundedCornerShape(20.dp)
-
         Crossfade(service_enabled) { enabled ->
             CompositionLocalProvider(LocalContentColor provides if (enabled) theme.on_background else theme.on_accent) {
                 Row(
                     Modifier
                         .background(
                             if (enabled) theme.background else theme.vibrant_accent,
-                            shape
+                            SETTINGS_ITEM_ROUNDED_SHAPE
                         )
-                        .border(Dp.Hairline, theme.vibrant_accent, shape)
+                        .border(Dp.Hairline, theme.vibrant_accent, SETTINGS_ITEM_ROUNDED_SHAPE)
                         .padding(start = 20.dp, end = 20.dp)
                         .fillMaxWidth(),
                     horizontalArrangement = Arrangement.SpaceBetween, verticalAlignment = Alignment.CenterVertically

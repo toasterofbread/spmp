@@ -57,7 +57,6 @@ android {
             manifestPlaceholders["appAuthRedirectScheme"] = "com.spectre7.spmp.debug"
             manifestPlaceholders["appName"] = "SpMp (debug)"
             signingConfig = signingConfigs.getByName("debug")
-            buildConfigField("java.util.Hashtable<String, String>", "LocalKeys", createKeysHashTable())
         }
         getByName("release") {
             isMinifyEnabled = true
@@ -66,7 +65,6 @@ android {
             manifestPlaceholders["appAuthRedirectScheme"] = "com.spectre7.spmp"
             manifestPlaceholders["appName"] = "SpMp"
             signingConfig = signingConfigs.getByName("debug")
-            buildConfigField("java.util.Hashtable<String, String>", "LocalKeys", "null")
         }
     }
 

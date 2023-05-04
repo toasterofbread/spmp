@@ -47,6 +47,12 @@ class Playlist private constructor (
                 return@getOrPut playlist
             }.getOrReplacedWith() as Playlist
         }
+
+        fun clearStoredItems(): Int {
+            val amount = playlists.size
+            playlists.clear()
+            return amount
+        }
     }
 
     @Composable

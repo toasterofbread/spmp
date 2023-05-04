@@ -34,7 +34,7 @@ class YoutubeMusicAuthInfo: Set<String> {
         for (item in set) {
             val value = item.substring(1)
             when (ValueType.values()[item.take(1).toInt()]) {
-                ValueType.CHANNEL -> own_channel = Artist.fromId(value)
+                ValueType.CHANNEL -> own_channel = Artist.fromId(value).also { it.is_own_channel = true }
                 ValueType.COOKIE -> cookie = value
                 ValueType.HEADER -> stringToHeader(value).also { set_headers[it.first] = it.second }
             }

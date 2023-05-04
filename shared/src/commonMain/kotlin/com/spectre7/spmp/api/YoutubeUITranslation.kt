@@ -29,7 +29,7 @@ class LocalisedYoutubeString(
         Type.HOME_FEED -> SpMp.yt_ui_translation.translateHomeFeedString(key, source_language!!)
         Type.OWN_CHANNEL -> SpMp.yt_ui_translation.translateOwnChannelString(key, source_language!!)
         Type.ARTIST_PAGE -> SpMp.yt_ui_translation.translateArtistPageString(key, source_language!!)
-    } ?: throw NotImplementedError("Key: $key, Type: $type")
+    } ?: throw NotImplementedError("Key: $key, Type: $type, Source lang: ${SpMp.languages.keys.elementAt(source_language!!)}")
 
     companion object {
         private val current_source_language: Int get() = Settings.KEY_LANG_DATA.get()
@@ -174,6 +174,25 @@ class YoutubeUITranslation(languages: Set<String>) {
             addString(
                 en to "Long listening",
                 ja to "長編ミュージック ビデオ"
+            )
+            addString(
+                en to "Celebrating Africa Month",
+                ja to "Celebrating Africa Month",
+                ja to "TODO"
+            )
+            addString(
+                en to "Feel good",
+                ja to "Feel good",
+                ja to "TODO"
+            )
+            addString(
+                en to "Fresh new music",
+                ja to "Fresh new music",
+                ja to "TODO"
+            )
+            addString(
+                en to "#TBT",
+                ja to "#TBT"
             )
         }
         OWN_CHANNEL_STRINGS = mutableListOf<Map<Int, Pair<String, String?>>>().apply {

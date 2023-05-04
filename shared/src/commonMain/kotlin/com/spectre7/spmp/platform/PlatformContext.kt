@@ -36,7 +36,6 @@ fun PlatformContext.isScreenLarge(): Boolean {
 
 expect class PlatformContext {
     fun getPrefs(): ProjectPreferences
-    fun getAppName(): String
 
     fun getFilesDir(): File
     fun getCacheDir(): File

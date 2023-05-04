@@ -41,6 +41,7 @@ import com.spectre7.spmp.ui.theme.Theme
 import com.spectre7.utils.*
 import kotlinx.coroutines.*
 import java.io.InterruptedIOException
+import java.nio.channels.ClosedByInterruptException
 import java.util.concurrent.locks.ReentrantLock
 import kotlin.concurrent.thread
 
@@ -102,8 +103,10 @@ open class PlayerViewContext(
 private class PlayerViewContextImpl: PlayerViewContext(null, null, null) {
     private var now_playing_switch_page: Int by mutableStateOf(-1)
     private val overlay_page_undo_stack: MutableList<Triple<OverlayPage, MediaItem?, MediaItemLayout?>?> = mutableListOf()
-    private val bottom_padding_anim = androidx.compose.animation.core.Animatable(PlayerServiceHost.session_started.toFloat() * MINIMISED_NOW_PLAYING_HEIGHT)
+    private val bottom_padding_anim = Animatable(PlayerServiceHost.session_started.toFloat() * MINIMISED_NOW_PLAYING_HEIGHT)
+    private var main_page_showing: Boolean by mutableStateOf(false)
 
+    private val low_memory_listener: () -> Unit
     private val prefs_listener: ProjectPreferences.Listener
 
     private fun switchNowPlayingPage(page: Int) {
@@ -129,6 +132,13 @@ private class PlayerViewContextImpl: PlayerViewContext(null, null, null) {
     )
 
     init {
+        low_memory_listener = {
+            if (!main_page_showing) {
+                resetHomeFeed()
+            }
+        }
+        SpMp.addLowMemoryListener(low_memory_listener)
+
         prefs_listener = object : ProjectPreferences.Listener {
             override fun onChanged(prefs: ProjectPreferences, key: String) {
                 when (key) {
@@ -161,6 +171,7 @@ private class PlayerViewContextImpl: PlayerViewContext(null, null, null) {
     }
 
     fun release() {
+        SpMp.removeLowMemoryListener(low_memory_listener)
         Settings.prefs.removeListener(prefs_listener)
     }
 
@@ -328,6 +339,12 @@ private class PlayerViewContextImpl: PlayerViewContext(null, null, null) {
         }
     }
 
+    private fun resetHomeFeed() {
+        main_page_layouts = emptyList()
+        main_page_filter_chips = null
+        main_page_selected_filter_chip = null
+    }
+
     private val main_page_scroll_state = LazyListState()
     private val playerProvider = { this }
     private var main_page_layouts: List<MediaItemLayout> by mutableStateOf(emptyList())
@@ -380,15 +397,7 @@ private class PlayerViewContextImpl: PlayerViewContext(null, null, null) {
 
     @Composable
     fun HomeFeed() {
-        LaunchedEffect(Unit) {
-            loadFeed(Settings.get(Settings.KEY_FEED_INITIAL_ROWS), allow_cached = true, continue_feed = false) {
-                if (it) {
-                    PlayerServiceHost.player.loadPersistentQueue()
-                }
-            }
-        }
-
-        Crossfade(targetState = overlay_page) { page ->
+       Crossfade(targetState = overlay_page) { page ->
             Column(Modifier.fillMaxSize()) {
                 if (page != null && page.first != OverlayPage.MEDIAITEM && page.first != OverlayPage.SEARCH) {
                     Spacer(Modifier.requiredHeight(SpMp.context.getStatusBarHeight()))
@@ -421,11 +430,182 @@ private class PlayerViewContextImpl: PlayerViewContext(null, null, null) {
                     OverlayPage.LIBRARY -> LibraryPage(pill_menu, playerProvider, close)
                     OverlayPage.RADIO_BUILDER -> RadioBuilderPage(pill_menu, if (PlayerServiceHost.session_started) MINIMISED_NOW_PLAYING_HEIGHT.dp else 0.dp, playerProvider, close)
                     OverlayPage.YTM_LOGIN -> YoutubeMusicLogin(Modifier.fillMaxSize()) { result ->
-                        result.fold(
+                        result?.fold(
                             { Settings.KEY_YTM_AUTH.set(it) },
                             { TODO(it.toString()) }
                         )
                         close()
+                    }
+                }
+            }
+        }
+    }
+
+    @Composable
+    private fun MainPage(
+        pinned_items: MutableList<MediaItem>,
+        layouts: List<MediaItemLayout>,
+        playerProvider: () -> PlayerViewContext,
+        scroll_state: LazyListState,
+        feed_load_state: MutableState<FeedLoadState>,
+        can_continue_feed: Boolean,
+        getFilterChips: () -> List<String>?,
+        getSelectedFilterChip: () -> Int?,
+        loadFeed: (filter_chip: Int?, continuation: Boolean) -> Unit
+    ) {
+        DisposableEffect(Unit) {
+            check(!main_page_showing)
+            main_page_showing = true
+
+            if (main_page_layouts.isEmpty()) {
+                loadFeed(Settings.get(Settings.KEY_FEED_INITIAL_ROWS), allow_cached = true, continue_feed = false) {
+                    if (it) {
+                        PlayerServiceHost.player.loadPersistentQueue()
+                    }
+                }
+            }
+
+            onDispose {
+                check(main_page_showing)
+                main_page_showing = false
+            }
+        }
+
+        val padding by animateDpAsState(if (SpMp.context.isScreenLarge()) 30.dp else 10.dp)
+
+        val artists_layout: MediaItemLayout = remember {
+            MediaItemLayout(
+                LocalisedYoutubeString.raw(MediaItem.Type.ARTIST.getReadable(true)),
+                null,
+                items = mutableStateListOf(),
+                type = MediaItemLayout.Type.ROW,
+                itemSizeProvider = { DpSize(120.dp, 150.dp) }
+            )
+        }
+        var auth_info: YoutubeMusicAuthInfo by remember { mutableStateOf(YoutubeMusicAuthInfo(Settings.KEY_YTM_AUTH.get())) }
+
+        LaunchedEffect(layouts) {
+            val artists_map: MutableMap<Artist, Int> = mutableMapOf()
+            for (layout in layouts) {
+                for (item in layout.items) {
+                    if (item is Artist) {
+                        continue
+                    }
+
+                    item.artist?.also { artist ->
+                        if (auth_info.initialised && artist == auth_info.own_channel) {
+                            return@also
+                        }
+
+                        val current = artists_map[artist]
+                        if (current == null) {
+                            artists_map[artist] = 1
+                        }
+                        else {
+                            artists_map[artist] = current + 1
+                        }
+                    }
+                }
+            }
+
+            val artists = artists_map.mapNotNull { artist ->
+                if (artist.value < 1) null
+                else Pair(artist.key, artist.value)
+            }.sortedByDescending { it.second }
+
+            artists_layout.items.clear()
+            for (artist in artists) {
+                artists_layout.items.add(artist.first)
+            }
+        }
+
+        DisposableEffect(Unit) {
+            val prefs_listener = object : ProjectPreferences.Listener {
+                override fun onChanged(prefs: ProjectPreferences, key: String) {
+                    if (key == Settings.KEY_YTM_AUTH.name) {
+                        auth_info = YoutubeMusicAuthInfo(Settings.KEY_YTM_AUTH.get(prefs))
+                    }
+                }
+            }
+
+            Settings.prefs.addListener(prefs_listener)
+
+            onDispose {
+                Settings.prefs.removeListener(prefs_listener)
+            }
+        }
+
+        Column(Modifier.padding(horizontal = padding)) {
+            MainPageTopBar(auth_info, playerProvider, Modifier.padding(top = SpMp.context.getStatusBarHeight()))
+
+            // Main scrolling view
+            SwipeRefresh(
+                state = feed_load_state.value == FeedLoadState.LOADING,
+                onRefresh = { loadFeed(getSelectedFilterChip(), false) },
+                swipe_enabled = feed_load_state.value == FeedLoadState.NONE,
+                indicator = false
+            ) {
+//            val state by remember { derivedStateOf { if (feed_load_state.value == FeedLoadState.LOADING) null else layouts.isNotEmpty() } }
+                val state = if (feed_load_state.value == FeedLoadState.LOADING) null else layouts.isNotEmpty()
+                var current_state by remember { mutableStateOf(state) }
+                val state_alpha = remember { Animatable(1f) }
+
+                LaunchedEffect(state) {
+                    state_alpha.animateTo(0f, tween(300))
+                    current_state = state
+                    state_alpha.animateTo(1f, tween(300))
+                }
+
+                @Composable
+                fun TopContent() {
+                    MainPageScrollableTopContent(playerProvider, pinned_items, getFilterChips, getSelectedFilterChip, Modifier.padding(bottom = 15.dp)) {
+                        loadFeed(it, false)
+                    }
+                }
+
+                when (current_state) {
+                    // Loaded
+                    true -> {
+                        LazyMediaItemLayoutColumn(
+                            layouts,
+                            playerProvider,
+                            layout_modifier = Modifier.graphicsLayer { alpha = state_alpha.value },
+                            padding = PaddingValues(
+                                bottom = playerProvider().bottom_padding
+                            ),
+                            onContinuationRequested = if (can_continue_feed) {
+                                { loadFeed(getSelectedFilterChip(), true) }
+                            } else null,
+                            continuation_alignment = Alignment.Start,
+                            loading_continuation = feed_load_state.value != FeedLoadState.NONE,
+                            scroll_state = scroll_state,
+                            scroll_enabled = !state_alpha.isRunning,
+                            spacing = 30.dp,
+                            topContent = {
+                                item {
+                                    TopContent()
+                                }
+                            },
+                            layoutItem = { layout, i, showLayout ->
+                                showLayout(this, layout)
+
+                                if (i == 0) {
+                                    artists_layout.also { showLayout(this, it) }
+                                }
+                            }
+                        ) { it.type ?: MediaItemLayout.Type.GRID }
+                    }
+                    // Offline
+                    false -> {
+                        // TODO
+                        Text("Offline", Modifier.padding(top = SpMp.context.getStatusBarHeight() + padding))
+                    }
+                    // Loading
+                    null -> {
+                        Column(Modifier.fillMaxSize()) {
+                            TopContent()
+                            MainPageLoadingView(Modifier.graphicsLayer { alpha = state_alpha.value }.fillMaxSize())
+                        }
                     }
                 }
             }
@@ -513,159 +693,6 @@ private fun getMainPageItemSize(): DpSize {
 }
 
 @Composable
-private fun MainPage(
-    pinned_items: MutableList<MediaItem>,
-    layouts: List<MediaItemLayout>,
-    playerProvider: () -> PlayerViewContext,
-    scroll_state: LazyListState,
-    feed_load_state: MutableState<FeedLoadState>,
-    can_continue_feed: Boolean,
-    getFilterChips: () -> List<String>?,
-    getSelectedFilterChip: () -> Int?,
-    loadFeed: (filter_chip: Int?, continuation: Boolean) -> Unit
-) {
-    val padding by animateDpAsState(if (SpMp.context.isScreenLarge()) 30.dp else 10.dp)
-
-    val artists_layout: MediaItemLayout = remember {
-        MediaItemLayout(
-            LocalisedYoutubeString.raw(MediaItem.Type.ARTIST.getReadable(true)),
-            null,
-            items = mutableStateListOf(),
-            type = MediaItemLayout.Type.ROW,
-            itemSizeProvider = { DpSize(120.dp, 150.dp) }
-        )
-    }
-    var auth_info: YoutubeMusicAuthInfo by remember { mutableStateOf(YoutubeMusicAuthInfo(Settings.KEY_YTM_AUTH.get())) }
-
-    LaunchedEffect(layouts) {
-        val artists_map: MutableMap<Artist, Int> = mutableMapOf()
-        for (layout in layouts) {
-            for (item in layout.items) {
-                if (item is Artist) {
-                    continue
-                }
-
-                item.artist?.also { artist ->
-                    if (artist == auth_info.own_channel) {
-                        return@also
-                    }
-
-                    val current = artists_map[artist]
-                    if (current == null) {
-                        artists_map[artist] = 1
-                    }
-                    else {
-                        artists_map[artist] = current + 1
-                    }
-                }
-            }
-        }
-
-        val artists = artists_map.mapNotNull { artist ->
-            if (artist.value < 1) null
-            else Pair(artist.key, artist.value)    
-        }.sortedByDescending { it.second }
-
-        artists_layout.items.clear()
-        for (artist in artists) {
-            artists_layout.items.add(artist.first)
-        }
-    }
-
-    DisposableEffect(Unit) {
-        val prefs_listener = object : ProjectPreferences.Listener {
-            override fun onChanged(prefs: ProjectPreferences, key: String) {
-                if (key == Settings.KEY_YTM_AUTH.name) {
-                    auth_info = YoutubeMusicAuthInfo(Settings.KEY_YTM_AUTH.get(prefs))
-                }
-            }
-        }
-
-        Settings.prefs.addListener(prefs_listener)
-
-        onDispose {
-            Settings.prefs.removeListener(prefs_listener)
-        }
-    }
-
-    Column(Modifier.padding(horizontal = padding)) {
-        MainPageTopBar(auth_info, playerProvider, Modifier.padding(top = SpMp.context.getStatusBarHeight()))
-
-        // Main scrolling view
-        SwipeRefresh(
-            state = feed_load_state.value == FeedLoadState.LOADING,
-            onRefresh = { loadFeed(getSelectedFilterChip(), false) },
-            swipe_enabled = feed_load_state.value == FeedLoadState.NONE,
-            indicator = false
-        ) {
-//            val state by remember { derivedStateOf { if (feed_load_state.value == FeedLoadState.LOADING) null else layouts.isNotEmpty() } }
-            val state = if (feed_load_state.value == FeedLoadState.LOADING) null else layouts.isNotEmpty()
-            var current_state by remember { mutableStateOf(state) }
-            val state_alpha = remember { Animatable(1f) }
-
-            LaunchedEffect(state) {
-                state_alpha.animateTo(0f, tween(300))
-                current_state = state
-                state_alpha.animateTo(1f, tween(300))
-            }
-
-            @Composable
-            fun TopContent() {
-                MainPageScrollableTopContent(playerProvider, pinned_items, getFilterChips, getSelectedFilterChip, Modifier.padding(bottom = 15.dp)) {
-                    loadFeed(it, false)
-                }
-            }
-
-            when (current_state) {
-                // Loaded
-                true -> {
-                    LazyMediaItemLayoutColumn(
-                        layouts,
-                        playerProvider,
-                        layout_modifier = Modifier.graphicsLayer { alpha = state_alpha.value },
-                        padding = PaddingValues(
-                            bottom = playerProvider().bottom_padding
-                        ),
-                        onContinuationRequested = if (can_continue_feed) {
-                            { loadFeed(getSelectedFilterChip(), true) }
-                        } else null,
-                        continuation_alignment = Alignment.Start,
-                        loading_continuation = feed_load_state.value != FeedLoadState.NONE,
-                        scroll_state = scroll_state,
-                        scroll_enabled = !state_alpha.isRunning,
-                        spacing = 30.dp,
-                        topContent = {
-                            item {
-                                TopContent()
-                            }
-                        },
-                        layoutItem = { layout, i, showLayout ->
-                            showLayout(this, layout)
-                            
-                            if (i == 0) {
-                                artists_layout.also { showLayout(this, it) }
-                            }
-                        }
-                    ) { it.type ?: MediaItemLayout.Type.GRID }
-                }
-                // Offline
-                false -> {
-                    // TODO
-                    Text("Offline", Modifier.padding(top = SpMp.context.getStatusBarHeight() + padding))
-                }
-                // Loading
-                null -> {
-                    Column(Modifier.fillMaxSize()) {
-                        TopContent()
-                        MainPageLoadingView(Modifier.graphicsLayer { alpha = state_alpha.value }.fillMaxSize())
-                    }
-                }
-            }
-        }
-    }
-}
-
-@Composable
 private fun MainPageTopBar(auth_info: YoutubeMusicAuthInfo, playerProvider: () -> PlayerViewContext, modifier: Modifier = Modifier) {
     Row(modifier.height(IntrinsicSize.Min)) {
 
@@ -696,10 +723,13 @@ private fun MainPageTopBar(auth_info: YoutubeMusicAuthInfo, playerProvider: () -
                                 lyrics_loading = false
                             }
                         }
-                        catch (e: java.lang.Exception) {
-                            if (e.cause !is InterruptedIOException) {
-                                throw e
+                        catch (error: java.lang.Exception) {
+                            for (e in listOf(error, error.cause)) {
+                                if (e is InterruptedIOException || e is ClosedByInterruptException) {
+                                    return@networkThread
+                                }
                             }
+                            throw RuntimeException(error)
                         }
                     }
                 }
@@ -708,7 +738,6 @@ private fun MainPageTopBar(auth_info: YoutubeMusicAuthInfo, playerProvider: () -
                 }
             }
         }
-
 
         var show_lyrics: Boolean by remember { mutableStateOf(true) }
 

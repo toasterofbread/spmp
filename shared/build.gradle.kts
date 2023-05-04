@@ -10,34 +10,23 @@ plugins {
 val buildConfigDir get() = project.layout.buildDirectory.dir("generated/buildconfig")
 
 fun GenerateBuildConfig.buildConfig(debug: Boolean) {
-    classFqName.set("com.spectre7.spmp.ProjectBuildConfig")
-    generatedOutputDir.set(buildConfigDir)
+    class_fq_name.set("com.spectre7.spmp.ProjectBuildConfig")
+    generated_output_dir.set(buildConfigDir)
 
-    val keys_name = "LocalKeys"
-    val keys_type = "Map<String, String>?"
-    val keys_file = rootProject.file("keys.properties")
+    val keys = Properties()
 
-    if (debug && keys_file.exists()) {
-        val keys = Properties()
-        keys.load(FileInputStream(keys_file))
-
-        var map = "mapOf("
-        var i = 0
-
-        for (item in keys) {
-            map += "\"${item.key}\" to ${item.value}"
-            if (++i != keys.size) {
-                map += ", "
-            }
-        }
-
-        fieldsToGenerate.add(Triple(keys_name, keys_type, "$map)"))
-    }
-    else {
-        fieldsToGenerate.add(Triple(keys_name, keys_type, "null"))
+    keys.load(FileInputStream(rootProject.file("keys.properties")))
+    for (item in keys) {
+        fields_to_generate.add(Triple(item.key.toString(), null, item.value.toString()))
     }
 
-    fieldsToGenerate.add(Triple("IS_DEBUG", "Boolean", debug.toString()))
+    keys.clear()
+    keys.load(FileInputStream(rootProject.file("debug_keys.properties")))
+    for (item in keys) {
+        fields_to_generate.add(Triple(item.key.toString(), "String?", if (debug) item.value.toString() else null.toString()))
+    }
+
+    fields_to_generate.add(Triple("IS_DEBUG", "Boolean", debug.toString()))
 }
 
 val buildConfigDebug = tasks.register("buildConfigDebug", GenerateBuildConfig::class.java) {
@@ -87,6 +76,7 @@ kotlin {
                 implementation("com.github.SvenWoltmann:color-thief-java:v1.1.2")
                 implementation("com.github.catppuccin:java:v1.0.0")
                 implementation("com.github.paramsen:noise:2.0.0")
+                implementation("com.github.jeziellago:compose-markdown:0.3.3")
 //                implementation("org.xmlpull:xmlpull:1.1.4.0")
             }
             kotlin.srcDir(buildConfigDir)
@@ -112,6 +102,7 @@ kotlin {
                 implementation("ro.andob.androidawt:androidawt:1.0.4")
                 implementation("io.coil-kt:coil-compose:2.3.0")
                 implementation("com.github.dead8309:KizzyRPC:1.0.71")
+                implementation("dev.kord:kord-core:0.9.0")
             }
         }
 
@@ -155,26 +146,27 @@ android {
 
 open class GenerateBuildConfig : DefaultTask() {
     @get:Input
-    val fieldsToGenerate: ListProperty<Triple<String, String, String>> = project.objects.listProperty()
+    val fields_to_generate: ListProperty<Triple<String, String?, String>> = project.objects.listProperty()
 
     @get:Input
-    val classFqName: Property<String> = project.objects.property()
+    val class_fq_name: Property<String> = project.objects.property()
 
     @get:OutputDirectory
-    val generatedOutputDir: DirectoryProperty = project.objects.directoryProperty()
+    val generated_output_dir: DirectoryProperty = project.objects.directoryProperty()
 
     @TaskAction
     fun execute() {
-        val dir = generatedOutputDir.get().asFile
+        val dir = generated_output_dir.get().asFile
         dir.deleteRecursively()
         dir.mkdirs()
 
-        val fqName = classFqName.get()
+        val fqName = class_fq_name.get()
         val parts = fqName.split(".")
         val className = parts.last()
         val file = dir.resolve("$className.kt")
         val content = buildString {
             if (parts.size > 1) {
+                appendLine("@file:Suppress(\"RedundantNullableReturnType\", \"MayBeConstant\")\n")
                 appendLine("package ${parts.dropLast(1).joinToString(".")}")
             }
 
@@ -182,8 +174,9 @@ open class GenerateBuildConfig : DefaultTask() {
             appendLine("/* GENERATED ON BUILD */")
             appendLine("object $className {")
 
-            for (field in fieldsToGenerate.get().sortedBy { it.first }) {
-                appendLine("val ${field.first}: ${field.second} = ${field.third}")
+            for (field in fields_to_generate.get().sortedBy { it.first }) {
+                val type = if (field.second == null) "" else ": ${field.second}"
+                appendLine("    val ${field.first}$type = ${field.third}")
             }
 
             appendLine("}")

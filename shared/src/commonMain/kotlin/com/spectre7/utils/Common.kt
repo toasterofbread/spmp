@@ -43,6 +43,7 @@ import com.beust.klaxon.Klaxon
 import com.spectre7.spmp.ProjectBuildConfig
 import com.spectre7.spmp.platform.PlatformAlertDialog
 import com.spectre7.spmp.platform.PlatformContext
+import com.spectre7.spmp.ui.theme.Theme
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.runBlocking
 import org.jetbrains.compose.resources.ExperimentalResourceApi
@@ -371,10 +372,10 @@ fun WidthShrinkText(text: String, fontSize: TextUnit, modifier: Modifier = Modif
 @Composable
 fun LinkifyText(
 	text: String,
-	colour: Color,
-	highlight_colour: Color,
-	style: TextStyle,
 	modifier: Modifier = Modifier,
+	colour: Color = LocalContentColor.current,
+	highlight_colour: Color = Theme.current.accent,
+	style: TextStyle = LocalTextStyle.current
 ) {
 	val annotated_string = buildAnnotatedString {
 		append(text)
@@ -441,6 +442,7 @@ fun String.extractURLs(): List<Triple<String, Int, Int>> {
 		end = matcher.end()
 
 		var url = substring(start, end)
+		println("FOUND URL $url")
 		if (!url.startsWith("http://") && !url.startsWith("https://")) {
 			url = "https://$url"
 		}
@@ -765,7 +767,11 @@ fun <T> SwipeableState<T>.init(anchors: Map<Float, T>) {
 operator fun IntSize.times(other: Float): IntSize =
 	IntSize(width = (width * other).toInt(), height = (height * other).toInt())
 
-class Listeners<T>(private val list: MutableList<T>) {
+class Listeners<T>(private val list: MutableList<T> = mutableListOf()) {
+	fun call(action: (T) -> Unit) {
+		list.forEach(action)
+	}
+
 	fun add(value: T) {
 		list.add(value)
 	}

@@ -69,6 +69,8 @@ object SpMp {
             }
         }
 
+    private val low_memory_listeners: MutableList<() -> Unit> = mutableListOf()
+
     val ui_language: String get() = languages.keys.elementAt(Settings.get(Settings.KEY_LANG_UI))
     val data_language: String get() = languages.keys.elementAt(Settings.get(Settings.KEY_LANG_DATA))
 
@@ -125,6 +127,17 @@ object SpMp {
         }
     }
 
+    fun addLowMemoryListener(listener: () -> Unit) {
+        low_memory_listeners.add(listener)
+    }
+    fun removeLowMemoryListener(listener: () -> Unit) {
+        low_memory_listeners.remove(listener)
+    }
+
+    fun onLowMemory() {
+        low_memory_listeners.forEach { it.invoke() }
+    }
+
     private fun loadLanguages(context: PlatformContext): MutableMap<String, Map<String, String>> {
         val data = context.openResourceFile("languages.json").bufferedReader()
         val ret = mutableMapOf<String, Map<String, String>>()
@@ -159,6 +172,8 @@ object SpMp {
     private fun updateLanguage(lang: Int) {
         // TODO
     }
+
+    val app_name: String get() = getString("app_name")
 }
 
 class ErrorManager(private val context: PlatformContext) {

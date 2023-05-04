@@ -19,3 +19,4 @@ server/pages/*.html
 nohup.out
 server/spectre7/
 keys.properties
+debug_keys.properties

@@ -90,11 +90,11 @@ fun ArtistPlaylistPage(
         item.getThumbnail(MediaItem.ThumbnailQuality.HIGH)
     }
 
-    LaunchedEffect(accent_colour) {
-        if (accent_colour != null) {
-            pill_menu.setBackgroundColourOverride(accent_colour)
-        }
-    }
+//    LaunchedEffect(accent_colour) {
+//        if (accent_colour != null) {
+//            pill_menu.setBackgroundColourOverride(accent_colour)
+//        }
+//    }
 
     if (show_info) {
         InfoDialog(item) { show_info = false }
@@ -472,9 +472,6 @@ private fun DescriptionCard(description_text: String, backgroundColourProvider: 
 
             LinkifyText(
                 description_text,
-                Theme.current.on_background.setAlpha(0.8f),
-                Theme.current.on_background,
-                MaterialTheme.typography.bodyMedium,
                 Modifier
                     .onSizeChanged { size ->
                         if (size.height == small_text_height_px) {
@@ -484,7 +481,10 @@ private fun DescriptionCard(description_text: String, backgroundColourProvider: 
                     .animateContentSize()
                     .then(
                         if (expanded) Modifier else Modifier.height(200.dp)
-                    )
+                    ),
+                Theme.current.on_background.setAlpha(0.8f),
+                Theme.current.on_background,
+                MaterialTheme.typography.bodyMedium
             )
         }
     }

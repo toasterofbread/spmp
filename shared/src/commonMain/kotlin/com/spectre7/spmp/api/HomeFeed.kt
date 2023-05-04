@@ -124,6 +124,7 @@ private fun processRows(rows: List<YoutubeiShelf>): List<MediaItemLayout> {
                     media_item_type: MediaItem.Type? = null,
                     view_more: MediaItemLayout.ViewMore? = null
                 ) {
+
                     val items = row.getMediaItems().toMutableList()
 
 //                    val final_title: String

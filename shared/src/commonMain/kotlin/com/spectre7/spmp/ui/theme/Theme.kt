@@ -37,8 +37,15 @@ fun ApplicationTheme(
             onBackground = on_background,
             primary = on_background,
             onPrimary = on_background.getContrasted(),
-            primaryContainer = on_background,
-            onPrimaryContainer = on_background.getContrasted()
+            primaryContainer = accent,
+            onPrimaryContainer = on_accent,
+            secondaryContainer = accent,
+            onSecondaryContainer = on_accent,
+            surface = background,
+            onSurface = on_background,
+            surfaceTint = accent,
+            surfaceVariant = background,
+            onSurfaceVariant = on_background
         )
     }
 

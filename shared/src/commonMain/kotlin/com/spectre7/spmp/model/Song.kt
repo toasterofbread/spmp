@@ -167,6 +167,12 @@ class Song protected constructor (
             }.getOrReplacedWith() as Song
         }
 
+        fun clearStoredItems(): Int {
+            val amount = songs.size
+            songs.clear()
+            return amount
+        }
+
         fun getTargetStreamQuality(): AudioQuality {
             return Settings.getEnum(Settings.KEY_STREAM_AUDIO_QUALITY)
         }

@@ -2,16 +2,11 @@ package com.spectre7.spmp.model
 
 import androidx.compose.animation.Crossfade
 import androidx.compose.foundation.Image
-import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.fillMaxSize
-import androidx.compose.foundation.layout.requiredSize
-import androidx.compose.foundation.layout.size
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.*
-import androidx.compose.ui.unit.Dp
 import androidx.compose.runtime.*
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.graphics.Canvas
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.ImageBitmap
 import androidx.compose.ui.graphics.vector.ImageVector
@@ -41,7 +36,7 @@ import kotlin.concurrent.thread
 abstract class MediaItem(id: String) {
 
     val registry_entry: DataRegistry.Entry
-    open fun getDefaultRegistryEntry(): DataRegistry.Entry = DataRegistry.Entry()
+    open fun getDefaultRegistryEntry(): DataRegistry.Entry = DataRegistry.Entry().apply { item = this@MediaItem }
 
     private val _id: String = id
     val id: String get() {
@@ -55,9 +50,11 @@ abstract class MediaItem(id: String) {
         get() = registry_entry.title ?: original_title
         private set(value) { original_title = value }
 
+    val title_listeners = Listeners<(String?) -> Unit>()
     fun supplyTitle(value: String?, certain: Boolean = false): MediaItem {
         if (value != null && (original_title == null || certain)) {
             original_title = value
+            title_listeners.call { it(title) }
         }
         return this
     }
@@ -65,11 +62,13 @@ abstract class MediaItem(id: String) {
     var artist: Artist? by mutableStateOf(null)
         private set
 
+    val artist_listeners = Listeners<(Artist?) -> Unit>()
     fun supplyArtist(value: Artist?, certain: Boolean = false): MediaItem {
         assert(this !is Artist || value == this)
 
         if (value != null && (artist == null || certain)) {
             artist = value
+            artist_listeners.call { it(artist) }
         }
         return this
     }
@@ -320,6 +319,11 @@ abstract class MediaItem(id: String) {
                     Artist.fromId(id)
                 else -> throw NotImplementedError(page_type)
             }
+        }
+
+        fun clearStoredItems() {
+            var amount = Song.clearStoredItems() + Artist.clearStoredItems() + Playlist.clearStoredItems()
+            println("Cleared $amount MediaItems")
         }
     }
 
@@ -632,7 +636,20 @@ abstract class MediaItem(id: String) {
         private val entries: MutableMap<String, Entry> = mutableMapOf()
 
         open class Entry {
-            var title: String? by mutableStateOf(null)
+            @Json(ignored = true)
+            var item: MediaItem? = null
+
+            @Json(ignored = true)
+            val title_state: MutableState<String?> = mutableStateOf(null)
+
+            var title: String?
+                get() = title_state.value
+                set(value) {
+                    title_state.value = value
+                    item?.also { i ->
+                        i.title_listeners.call { it(i.title) }
+                    }
+                }
             var play_count: Int by mutableStateOf(0)
         }
 
@@ -640,7 +657,7 @@ abstract class MediaItem(id: String) {
         fun getEntry(item: MediaItem): Entry {
             return entries.getOrPut(item.uid) {
                 item.getDefaultRegistryEntry()
-            }
+            }.also { it.item = item }
         }
 
         @Synchronized

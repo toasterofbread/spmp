@@ -4,6 +4,7 @@ import com.beust.klaxon.Klaxon
 import com.spectre7.spmp.ProjectBuildConfig
 import com.spectre7.spmp.platform.ProjectPreferences
 import com.spectre7.spmp.platform.PlatformContext
+import com.spectre7.utils.getString
 import java.util.*
 
 enum class AccentColourSource {
@@ -69,21 +70,28 @@ enum class Settings {
     // Server
     KEY_SPMS_PORT,
 
+    // Discord status
+    KEY_DISCORD_ACCOUNT_TOKEN,
+    KEY_DISCORD_STATUS_NAME,
+    KEY_DISCORD_STATUS_TEXT_A,
+    KEY_DISCORD_STATUS_TEXT_B,
+    KEY_DISCORD_STATUS_TEXT_C,
+    KEY_DISCORD_SHOW_BUTTON_SONG,
+    KEY_DISCORD_BUTTON_SONG_TEXT,
+    KEY_DISCORD_SHOW_BUTTON_PROJECT,
+    KEY_DISCORD_BUTTON_PROJECT_TEXT,
+
     // Other
     KEY_OPEN_NP_ON_SONG_PLAYED,
     KEY_VOLUME_STEPS,
     KEY_PERSISTENT_QUEUE,
     KEY_ADD_SONGS_TO_HISTORY,
-    KEY_ENABLE_DISCORD_PRESENCE,
-    
+
     // Internal
     INTERNAL_PINNED_SONGS,
     INTERNAL_PINNED_ARTISTS,
-    INTERNAL_PINNED_PLAYLISTS,
+    INTERNAL_PINNED_PLAYLISTS;
     
-    CHOICE_ACCEPT_YTM_LOGIN_WARNING,
-    CHOICE_ACCEPT_DISCORD_LOGIN_WARNING;
-
     fun <T> get(preferences: ProjectPreferences = prefs): T {
         return Settings.get(this, preferences)
     }
@@ -179,14 +187,17 @@ enum class Settings {
 
                 KEY_YTM_AUTH -> {
                     if (!local_auth_keys_used) {
-                        ProjectBuildConfig.LocalKeys?.let { keys ->
-//                            local_auth_keys_used = true
-                            YoutubeMusicAuthInfo(
-                                Artist.fromId(keys["YTM_CHANNEL_ID"]!!),
-                                keys["YTM_COOKIE"]!!,
-                                Klaxon().parse(keys["YTM_HEADERS"]!!.reader())!!
-                            )
-                        } ?: emptySet()
+                        with(ProjectBuildConfig) {
+                            if (IS_DEBUG) {
+                                local_auth_keys_used = true
+                                YoutubeMusicAuthInfo(
+                                    Artist.fromId(YTM_CHANNEL_ID!!),
+                                    YTM_COOKIE!!,
+                                    Klaxon().parse(YTM_HEADERS!!.reader())!!
+                                )
+                            }
+                            else emptySet()
+                        }
                     }
                     else {
                         emptySet()
@@ -195,18 +206,24 @@ enum class Settings {
 
                 KEY_SPMS_PORT -> 3973
 
+                KEY_DISCORD_ACCOUNT_TOKEN -> ""
+                KEY_DISCORD_STATUS_NAME -> getString("discord_status_default_name")
+                KEY_DISCORD_STATUS_TEXT_A -> getString("discord_status_default_text_a")
+                KEY_DISCORD_STATUS_TEXT_B -> getString("discord_status_default_text_b")
+                KEY_DISCORD_STATUS_TEXT_C -> getString("discord_status_default_text_c")
+                KEY_DISCORD_SHOW_BUTTON_SONG -> true
+                KEY_DISCORD_BUTTON_SONG_TEXT -> getString("discord_status_default_button_song")
+                KEY_DISCORD_SHOW_BUTTON_PROJECT -> true
+                KEY_DISCORD_BUTTON_PROJECT_TEXT -> getString("discord_status_default_button_project")
+
                 KEY_VOLUME_STEPS -> 50
                 KEY_OPEN_NP_ON_SONG_PLAYED -> true
                 KEY_PERSISTENT_QUEUE -> true
                 KEY_ADD_SONGS_TO_HISTORY -> false
-                KEY_ENABLE_DISCORD_PRESENCE -> false
 
                 INTERNAL_PINNED_SONGS -> emptySet<String>()
                 INTERNAL_PINNED_ARTISTS -> emptySet<String>()
                 INTERNAL_PINNED_PLAYLISTS -> emptySet<String>()
-
-                CHOICE_ACCEPT_YTM_LOGIN_WARNING -> false
-                CHOICE_ACCEPT_DISCORD_LOGIN_WARNING -> false
 
             } as T
         }

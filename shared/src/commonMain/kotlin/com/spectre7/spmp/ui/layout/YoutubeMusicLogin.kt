@@ -1,83 +1,130 @@
 package com.spectre7.spmp.ui.layout
 
+import androidx.compose.material3.FilledTonalButton
+import androidx.compose.material3.Text
+import androidx.compose.material3.TextButton
+import androidx.compose.runtime.Composable
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.setValue
+import androidx.compose.runtime.remember
+import androidx.compose.ui.Modifier
+import com.spectre7.spmp.model.Settings
+import com.spectre7.spmp.model.YoutubeMusicAuthInfo
+import com.spectre7.spmp.platform.PlatformAlertDialog
+import com.spectre7.spmp.platform.WebViewLogin
+import com.spectre7.spmp.platform.isWebViewLoginSupported
+import com.spectre7.utils.getString
+import com.spectre7.spmp.api.*
+import com.spectre7.spmp.model.Artist
+import com.spectre7.spmp.model.MediaItem
+import okhttp3.Request
+import java.net.URI
+
 private const val MUSIC_URL = "https://music.youtube.com/"
 private const val MUSIC_LOGIN_URL = "https://accounts.google.com/v3/signin/identifier?dsh=S1527412391%3A1678373417598386&continue=https%3A%2F%2Fwww.youtube.com%2Fsignin%3Faction_handle_signin%3Dtrue%26app%3Ddesktop%26hl%3Den-GB%26next%3Dhttps%253A%252F%252Fmusic.youtube.com%252F%253Fcbrd%253D1%26feature%3D__FEATURE__&hl=en-GB&ifkv=AWnogHfK4OXI8X1zVlVjzzjybvICXS4ojnbvzpE4Gn_Pfddw7fs3ERdfk-q3tRimJuoXjfofz6wuzg&ltmpl=music&passive=true&service=youtube&uilel=3&flowName=GlifWebSignIn&flowEntry=ServiceLogin"
 
 @Composable
-fun YoutubeMusicLogin(modifier: Modifier = Modifier, onFinished: (Result<YoutubeMusicAuthInfo>) -> Unit) {
-    var showing_warning: Boolean? = remember { mutableStateOf(!Settings.CHOICE_ACCEPT_YTM_LOGIN_WARNING.get<Boolean>()) }
-    when (showing_warning) {
-        true -> {
-            PlatformAlertDialog(
-                { 
-                    show_reset_confirmation = false
-                    Settings.CHOICE_ACCEPT_YTM_LOGIN_WARNING.set(true)
-                },
-                confirmButton = {
-                    FilledTonalButton({ showing_warning = false }) {
-                        Text(getString("action_confirm_action"))
-                    }
-                },
-                dismissButton = { TextButton({ showing_warning = null }) { Text(getString("action_deny_action")) } },
-                title = { Text(getString("prompt_confirm_action")) },
-                text = {
-                    Text(getString("warning_ytm_login"))
-                }
-            )
+fun YoutubeMusicLoginWarningPopup(info: Boolean = false, onFinished: (accepted: Boolean) -> Unit) {
+    PlatformAlertDialog(
+        { onFinished(false) },
+        confirmButton = {
+            FilledTonalButton({
+                onFinished(!info)
+            }) {
+                Text(getString("action_confirm_action"))
+            }
+        },
+        dismissButton = if (!info) ({ TextButton({ onFinished(false) }) { Text(getString("action_deny_action")) } }) else null,
+        title = { Text(getString("prompt_confirm_action")) },
+        text = {
+            Text(getString(if (info) "info_ytm_login" else "warning_ytm_login"))
         }
-        false -> {
-            if (isWebViewLoginSupported()) {
-                WebViewLogin(MUSIC_URL, modifier, { !it.startsWith(MUSIC_URL) }) { request, openUrl ->
-                    if (request.url.host == "music.youtube.com" && request.url.path?.startsWith("/youtubei/v1/") == true) {
-                        if (!request.requestHeaders.containsKey("Authorization")) {
-                            openUrl(MUSIC_LOGIN_URL)
-                            return@WebViewLogin false
+    )
+}
+
+@Composable
+fun YoutubeMusicLogin(modifier: Modifier = Modifier, onFinished: (Result<YoutubeMusicAuthInfo>?) -> Unit) {
+    if (isWebViewLoginSupported()) {
+        WebViewLogin(MUSIC_URL, modifier, shouldShowPage = { !it.startsWith(MUSIC_URL) }) { request, openUrl, getCookie ->
+            val url = URI(request.url)
+            if (url.host == "music.youtube.com" && url.path?.startsWith("/youtubei/v1/") == true) {
+                if (!request.requestHeaders.containsKey("Authorization")) {
+                    openUrl(MUSIC_LOGIN_URL)
+                    return@WebViewLogin
+                }
+
+                val cookie = getCookie(MUSIC_URL)
+                val account_request = Request.Builder()
+                    .url("https://music.youtube.com/youtubei/v1/account/account_menu")
+                    .addHeader("cookie", cookie)
+                    .apply {
+                        for (header in request.requestHeaders) {
+                            addHeader(header.key, header.value)
                         }
-
-                        val cookie = CookieManager.getInstance().getCookie(YOUTUBE_MUSIC_URL)
-                        val account_request = Request.Builder()
-                            .url("https://music.youtube.com/youtubei/v1/account/account_menu")
-                            .addHeader("cookie", cookie)
-                            .apply {
-                                for (header in request.requestHeaders) {
-                                    addHeader(header.key, header.value)
-                                }
-                            }
-                            .post(DataApi.getYoutubeiRequestBody())
-                            .build()
-
-                        val result = DataApi.request(account_request)
-                        result.fold(
-                            { response ->
-                                val parsed: AccountMenuResponse = DataApi.klaxon.parse(response.body!!.charStream())!!
-                                response.close()
-
-                                onFinished(Result.success(
-                                    YoutubeMusicAuthInfo(
-                                        parsed.getAritst()!!,
-                                        cookie,
-                                        request.requestHeaders
-                                    )
-                                ))
-                            }, 
-                            {
-                                onFinished(result.cast())
-                            }
-                        )
-
-                        return@WebViewLogin true
                     }
+                    .post(DataApi.getYoutubeiRequestBody())
+                    .build()
 
-                    return@WebViewLogin false
+                val result = DataApi.request(account_request)
+                result.fold(
+                    { response ->
+                        val parsed: AccountMenuResponse = DataApi.klaxon.parse(response.body!!.charStream())!!
+                        response.close()
+
+                        onFinished(Result.success(
+                            YoutubeMusicAuthInfo(
+                                parsed.getAritst()!!,
+                                cookie,
+                                request.requestHeaders
+                            )
+                        ))
+                    },
+                    {
+                        onFinished(result.cast())
+                    }
+                )
+            }
+        }
+    }
+    else {
+        // TODO
+        SpMp.context.openUrl(MUSIC_LOGIN_URL)
+    }
+}
+
+private class AccountMenuResponse(val actions: List<Action>) {
+    class Action(val openPopupAction: OpenPopupAction)
+    class OpenPopupAction(val popup: Popup)
+    class Popup(val multiPageMenuRenderer: MultiPageMenuRenderer)
+    class MultiPageMenuRenderer(val sections: List<Section>, val header: Header? = null)
+
+    class Section(val multiPageMenuSectionRenderer: MultiPageMenuSectionRenderer)
+    class MultiPageMenuSectionRenderer(val items: List<Item>)
+    class Item(val compactLinkRenderer: CompactLinkRenderer)
+    class CompactLinkRenderer(val navigationEndpoint: NavigationEndpoint? = null)
+
+    class Header(val activeAccountHeaderRenderer: ActiveAccountHeaderRenderer)
+    class ActiveAccountHeaderRenderer(val accountName: TextRuns, val accountPhoto: MusicThumbnailRenderer.Thumbnail)
+
+    fun getAritst(): Artist? {
+        val artist = Artist.fromId(getChannelId() ?: return null)
+        val account = actions.first().openPopupAction.popup.multiPageMenuRenderer.header!!.activeAccountHeaderRenderer
+
+        artist.supplyTitle(account.accountName.first_text)
+        artist.supplyThumbnailProvider(MediaItem.ThumbnailProvider.fromThumbnails(account.accountPhoto.thumbnails))
+        return artist
+    }
+
+    fun getChannelId(): String? {
+        for (section in actions.first().openPopupAction.popup.multiPageMenuRenderer.sections) {
+            for (item in section.multiPageMenuSectionRenderer.items) {
+                val browse_endpoint = item.compactLinkRenderer.navigationEndpoint?.browseEndpoint
+                if (browse_endpoint?.getPageType() == "MUSIC_PAGE_TYPE_USER_CHANNEL") {
+                    return browse_endpoint.browseId
                 }
             }
-            else {
-                // TODO
-                SpMp.context.openUrl(MUSIC_LOGIN_URL)
-            }
         }
-        null -> {
-
-        }
+        return null
     }
 }

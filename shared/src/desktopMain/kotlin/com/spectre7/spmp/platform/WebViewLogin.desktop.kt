@@ -5,14 +5,14 @@ import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
 import com.spectre7.spmp.model.YoutubeMusicAuthInfo
 
-actual fun isWebViewLoginSupported(): Boolean get() = false
+actual fun isWebViewLoginSupported(): Boolean = false
 
 @Composable
 actual fun WebViewLogin(
     initial_url: String,
-    modifier: Modifier = Modifier,
+    modifier: Modifier,
     shouldShowPage: (url: String) -> Boolean,
-    onRequestIntercepted: (WebResourceRequest, openUrl: (String) -> Unit) -> Boolean
+    onRequestIntercepted: (WebViewRequest, openUrl: (String) -> Unit, getCookie: (String) -> String) -> Unit
 ) {
-    throw NotImplementedException()
+    throw NotImplementedError("Not supported")
 }

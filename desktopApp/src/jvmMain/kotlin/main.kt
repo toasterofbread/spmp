@@ -11,7 +11,7 @@ fun main() = application {
     SpMp.init(context)
 
     Window(
-        title = context.getAppName(),
+        title = SpMp.app_name,
         onCloseRequest = ::exitApplication
     ) {
         var initialised by remember { mutableStateOf(false) }

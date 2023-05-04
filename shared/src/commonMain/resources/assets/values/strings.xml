@@ -1,5 +1,6 @@
 <resources>
     <string name="app_name" translatable="false">SpMp</string>
+    <string name="project_url" translatable="false">https://github.com/toasterofbread/spmp</string>
     <string name="yt_i_api_key" translatable="false">AIzaSyAOghZGza2MQSZkY_zfZ370N-PUdXEo8AI</string>
 
     <string name="home_feed_listen_again">Listen again</string>
@@ -47,8 +48,6 @@
     <string name="action_deny_action">No</string>
     <string name="prompt_confirm_action">Please confirm</string>
     <string name="prompt_confirm_settings_page_reset">Reset all values on this page?</string>
-
-    <string name="warning_ytm_login">You will be directed to an in-app webview in order to log into YouTube Music. Once logged in, your session cookie will be extracted, stored, and used only for API requests to YouTube Music such as getting your recommended feed and subscribing to artists. Continue?</string>
 
     <string name="theme_title_default">Default theme</string>
     <string name="theme_title_new">New theme</string>
@@ -231,6 +230,11 @@
     <string name="s_acc_service_enable">Enable</string>
     <string name="s_acc_service_disable">Disable</string>
 
+    <string name="s_discord_status_enabled">Discord status is enabled</string>
+    <string name="s_discord_status_disabled">Discord status is disabled</string>
+    <string name="s_discord_status_enable">Enable</string>
+    <string name="s_discord_status_disable">Disable</string>
+
     <string name="s_key_vol_intercept_mode">Volume intercept mode</string>
     <string name="s_sub_vol_intercept_mode">The accessibility service can intercept volume key presses and use them to change SpMp\'s volume instead of the system volume</string>
     <string name="s_option_vol_intercept_mode_always">When media session is active</string>
@@ -242,6 +246,39 @@
 
     <string name="s_key_vol_intercept_notification">Volume change notification</string>
     <string name="s_sub_vol_intercept_notification">Show an on-screen popup when the service intercepts a volume key press</string>
+
+    <string name="s_group_discord_status">Discord status</string>
+
+    <string name="s_discord_status_text_info">To display information about the current song, use the strings below:&#xA;- $song&#xA;- $artist</string>
+
+    <string name="s_key_discord_status_name">Status title</string>
+    <string name="s_sub_discord_status_name">The text displayed after 'Listening to'</string>
+    <string name="s_key_discord_status_text_a">Primary status text</string>
+    <string name="s_sub_discord_status_text_a"></string>
+    <string name="s_key_discord_status_text_b">Secondary status text</string>
+    <string name="s_sub_discord_status_text_b"></string>
+    <string name="s_key_discord_status_text_c">Tertiary status text</string>
+    <string name="s_sub_discord_status_text_c">Also used for the image hover text</string>
+
+    <string name="s_key_discord_status_show_button_song">Show open song button</string>
+    <string name="s_sub_discord_status_show_button_song">Opens the current song on YouTube Music</string>
+    <string name="s_key_discord_status_button_song_text">Open song button text</string>
+
+    <string name="s_key_discord_status_show_button_project">Show project page button</string>
+    <string name="s_sub_discord_status_show_button_project">Opens the project repository on GitHub</string>
+    <string name="s_key_discord_status_button_project_text">Project page button text</string>
+
+    <string name="discord_status_default_name">$artist</string>
+    <string name="discord_status_default_text_a">$song</string>
+    <string name="discord_status_default_text_b">$artist</string>
+    <string name="discord_status_default_text_c">Listening on SpMp</string>
+    <string name="discord_status_default_button_song">Open on YouTube</string>
+    <string name="discord_status_default_button_project">Visit project page</string>
+
+    <string name="warning_ytm_login">You will be directed to an in-app webview in order to log into YouTube Music.&#xA;&#xA;Once logged in, your session cookie will be extracted, stored, and used only for API requests to YouTube Music such as getting your recommended feed and subscribing to artists.&#xA;&#xA;Continue?</string>
+    <string name="info_ytm_login">You will be directed to an in-app webview in order to log into YouTube Music.&#xA;&#xA;Once logged in, your session cookie will be extracted, stored, and used only for API requests to YouTube Music such as getting your recommended feed and subscribing to artists.</string>
+    <string name="warning_discord_login">You will be directed to an in-app webview in order to log into Discord.&#xA;&#xA;Once logged in, your account token will be extracted, stored, and used only for gateway connections to Discord for setting your current status.&#xA;&#xA;See https://github.com/dead8309/Kizzy for more information.&#xA;&#xA;Continue?</string>
+    <string name="info_discord_login">You will be directed to an in-app webview in order to log into Discord.&#xA;&#xA;Once logged in, your account token will be extracted, stored, and used only for gateway connections to Discord for setting your current status.&#xA;&#xA;See https://github.com/dead8309/Kizzy for more information.</string>
 
     <string name="err_root_not_granted">Could not get root privledges</string>
     <string name="err_secure_settings_grant_failed">Granting secure settings permission failed</string>

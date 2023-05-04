@@ -3,6 +3,7 @@ package com.spectre7.spmp
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.setValue
+import androidx.compose.runtime.snapshotFlow
 import androidx.compose.ui.unit.*
 import com.spectre7.spmp.api.RadioInstance
 import com.spectre7.spmp.api.RadioModifier
@@ -27,12 +28,18 @@ private const val UPDATE_INTERVAL: Long = 5000 // ms
 //private const val VOL_NOTIF_SHOW_DURATION: Long = 1000
 private const val SONG_MARK_WATCHED_POSITION = 1000 // ms
 
+private const val DISCORD_APPLICATION_ID = "1081929293979992134"
+private const val DISCORD_ASSET_ICON_PRIMARY = "1103702923852132372"
+
 @Suppress("OPT_IN_USAGE")
 class PlayerService : MediaPlayerService() {
 
     var stop_after_current_song: Boolean by mutableStateOf(false)
     var active_queue_index: Int by mutableStateOf(0)
     private var song_marked_as_watched: Boolean = false
+
+    private var discord_rpc: DiscordStatus? = null
+    private var discord_status_update_thread: Thread? = null
 
     fun updateActiveQueueIndex(delta: Int = 0) {
         if (delta != 0) {
@@ -267,33 +274,48 @@ class PlayerService : MediaPlayerService() {
         }
     }
 
-//    private val broadcast_receiver = object : BroadcastReceiver() {
-//        override fun onReceive(_context: Context, intent: Intent) {
-//            if (intent.hasExtra("action")) {
-//                onActionIntentReceived(intent)
-//            }
-//        }
-//    }
-
-//    private val prefs_change_listener = object : ProjectPreferences.Listener {
-//        override fun onChanged(prefs: ProjectPreferences, key: String) {
-//            when (key) {
+    private val prefs_listener = object : ProjectPreferences.Listener {
+        override fun onChanged(prefs: ProjectPreferences, key: String) {
+            when (key) {
+                Settings.KEY_DISCORD_ACCOUNT_TOKEN.name -> {
+                    onDiscordAccountTokenChanged()
+                }
 //                Settings.KEY_ACC_VOL_INTERCEPT_NOTIFICATION.name -> {
 //                    vol_notif_enabled = Settings.KEY_ACC_VOL_INTERCEPT_NOTIFICATION.get(preferences = prefs)
 //                }
-//            }
-//        }
-//    }
+            }
+        }
+    }
 
     private var tracking_song_index = 0
-    private val player_listener = object : MediaPlayerService.Listener() {
+    private val player_listener = object : Listener() {
+        var current_song: Song? = null
+        val song_title_listener: (String?) -> Unit = {
+            updateDiscordStatus(current_song)
+        }
+        val song_artist_listener: (Artist?) -> Unit = {
+            updateDiscordStatus(current_song)
+        }
+
         override fun onSongTransition(song: Song?) {
+            current_song?.apply {
+                title_listeners.remove(song_title_listener)
+                artist_listeners.remove(song_artist_listener)
+            }
+            current_song = song
+            current_song?.apply {
+                title_listeners.add(song_title_listener)
+                artist_listeners.add(song_artist_listener)
+            }
+
             savePersistentQueue()
             if (current_song_index == tracking_song_index + 1) {
                 onSongEnded()
             }
             tracking_song_index = current_song_index
             song_marked_as_watched = false
+
+            updateDiscordStatus(song)
         }
         override fun onStateChanged(state: MediaPlayerState) {
             if (state == MediaPlayerState.ENDED) {
@@ -319,6 +341,78 @@ class PlayerService : MediaPlayerService() {
     // Persistent queue
     private val queue_lock = ReentrantLock()
     private var update_timer: Timer? = null
+
+    private fun onDiscordAccountTokenChanged() {
+        discord_rpc?.close()
+
+        val account_token = Settings.KEY_DISCORD_ACCOUNT_TOKEN.get<String>(context.getPrefs())
+        if (!DiscordStatus.isSupported() || (account_token.isBlank() && DiscordStatus.isAccountTokenRequired())) {
+            discord_rpc = null
+            return
+        }
+
+        discord_rpc = DiscordStatus(
+            bot_token = ProjectBuildConfig.DISCORD_BOT_TOKEN,
+            custom_images_channel_id = ProjectBuildConfig.DISCORD_CUSTOM_IMAGES_CHANNEL,
+            account_token = account_token
+        )
+
+        updateDiscordStatus(null)
+    }
+
+    private fun updateDiscordStatus(song: Song?) {
+        discord_status_update_thread?.interrupt()
+        discord_rpc?.apply {
+            val song = song ?: getSong()
+            if (song?.title == null) {
+                close()
+                return
+            }
+
+            discord_status_update_thread = thread { runBlocking {
+
+                fun formatText(text: String): String {
+                    return text
+                        .replace("\$artist", song.artist!!.title!!)
+                        .replace("\$song", song.title!!)
+                }
+
+                val name = formatText(Settings.KEY_DISCORD_STATUS_NAME.get())
+                val text_a = formatText(Settings.KEY_DISCORD_STATUS_TEXT_A.get())
+                val text_b = formatText(Settings.KEY_DISCORD_STATUS_TEXT_B.get())
+                val text_c = formatText(Settings.KEY_DISCORD_STATUS_TEXT_C.get())
+
+                val large_image = getCustomImage(song.id) { song.loadThumbnail(MediaItem.ThumbnailQuality.LOW)!! }
+                val small_image = song.artist?.let { artist ->
+                    getCustomImage(artist.id) {
+                        artist.loadThumbnail(MediaItem.ThumbnailQuality.LOW)
+                    }
+                }
+
+                val buttons = mutableListOf<Pair<String, String>>().apply {
+                    if (Settings.KEY_DISCORD_SHOW_BUTTON_SONG.get()) {
+                        add(Settings.KEY_DISCORD_BUTTON_SONG_TEXT.get<String>() to song.url)
+                    }
+                    if (Settings.KEY_DISCORD_SHOW_BUTTON_PROJECT.get()) {
+                        add(Settings.KEY_DISCORD_BUTTON_PROJECT_TEXT.get<String>() to getString("project_url"))
+                    }
+                }
+
+                setActivity(
+                    name = name,
+                    type = DiscordStatus.Type.LISTENING,
+                    details = text_a.ifEmpty { null },
+                    state = text_b.ifEmpty { null },
+                    buttons = buttons.ifEmpty { null },
+                    large_image = large_image,
+                    large_text = text_c.ifEmpty { null },
+                    small_image = small_image,
+                    small_text = if (small_image != null) song.artist?.title else null,
+                    application_id = DISCORD_APPLICATION_ID
+                )
+            }
+        }}
+    }
 
     fun savePersistentQueue() {
         if (Platform.is_desktop) {
@@ -433,6 +527,9 @@ class PlayerService : MediaPlayerService() {
 
         addListener(player_listener)
 
+        val prefs = context.getPrefs()
+        prefs.addListener(prefs_listener)
+
 //        // Create volume notification view
 //        vol_notif = ComposeView(this@PlayerService)
 //
@@ -459,8 +556,6 @@ class PlayerService : MediaPlayerService() {
 //            recomposer.runRecomposeAndApplyChanges()
 //        }
 
-//        val prefs = ProjectContext(this).getPrefs()
-//        prefs.addListener(prefs_change_listener)
 //        vol_notif_enabled = Settings.KEY_ACC_VOL_INTERCEPT_NOTIFICATION.get(preferences = prefs)
 
 //        LocalBroadcastManager.getInstance(this).registerReceiver(broadcast_receiver, IntentFilter(PlayerService::class.java.canonicalName))
@@ -469,6 +564,8 @@ class PlayerService : MediaPlayerService() {
             update_timer = createUpdateTimer()
         }
         radio.filter_changed_listeners.add(this::onRadioFiltersChanged)
+
+        onDiscordAccountTokenChanged()
     }
 
     override fun onDestroy() {
@@ -477,10 +574,12 @@ class PlayerService : MediaPlayerService() {
         update_timer?.cancel()
         update_timer = null
 
+        discord_rpc?.close()
+
 //        if (vol_notif.isShown) {
 //            (getSystemService(Context.WINDOW_SERVICE) as WindowManager).removeView(vol_notif)
 //        }
-//        ProjectContext(this).getPrefs().removeListener(prefs_change_listener)
+//        ProjectContext(this).getPrefs().removeListener(prefs_listener)
 
 //        LocalBroadcastManager.getInstance(this).unregisterReceiver(broadcast_receiver)
 

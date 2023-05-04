@@ -20,6 +20,7 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.zIndex
 import com.spectre7.utils.NoRipple
 import com.spectre7.utils.RowOrColumn
+import com.spectre7.utils.addUnique
 import com.spectre7.utils.getContrasted
 
 class PillMenu(
@@ -61,7 +62,7 @@ class PillMenu(
     }
     
     fun addAlongsideAction(action: @Composable Action.() -> Unit) {
-        extra_alongside_actions.add(action)
+        extra_alongside_actions.addUnique(action)
     }
     fun removeAlongsideAction(action: @Composable Action.() -> Unit) {
         extra_alongside_actions.remove(action)
@@ -71,7 +72,7 @@ class PillMenu(
     }
 
     fun addExtraAction(inner: Boolean = true, action: @Composable Action.(action_count: Int) -> Unit): @Composable Action.(action_count: Int) -> Unit {
-        (if (inner) extra_actions_inner else extra_actions_outer).add(action)
+        (if (inner) extra_actions_inner else extra_actions_outer).addUnique(action)
         return action
     }
     fun removeExtraAction(action: @Composable Action.(action_count: Int) -> Unit) {

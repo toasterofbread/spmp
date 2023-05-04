@@ -15,8 +15,6 @@ import androidx.compose.ui.text.platform.Font
 import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
 import com.spectre7.spmp.PlayerService
-import com.spectre7.spmp.model.YoutubeMusicAuthInfo
-import com.spectre7.spmp.ui.layout.PlayerViewContext
 import com.spectre7.utils.getString
 import org.jetbrains.skiko.OS
 import org.jetbrains.skiko.hostOs
@@ -38,8 +36,6 @@ private fun getHomeDir(): File = File(System.getProperty("user.home"))
 actual open class PlatformContext {
     actual fun getPrefs(): ProjectPreferences = ProjectPreferences.getInstance(this)
 
-    actual fun getAppName(): String = getString("app_name")
-
     actual fun getFilesDir(): File {
         val subdir = when (hostOs) {
             OS.Linux -> ".local/share"
@@ -47,7 +43,7 @@ actual open class PlatformContext {
             OS.MacOS -> TODO()
             else -> throw NotImplementedError(hostOs.name)
         }
-        return getHomeDir().resolve(subdir).resolve(getAppName())
+        return getHomeDir().resolve(subdir).resolve(SpMp.app_name)
     }
 
     actual fun getCacheDir(): File {
@@ -57,7 +53,7 @@ actual open class PlatformContext {
             OS.MacOS -> TODO()
             else -> throw NotImplementedError(hostOs.name)
         }
-        return getHomeDir().resolve(subdir).resolve(getAppName())
+        return getHomeDir().resolve(subdir).resolve(SpMp.app_name)
     }
 
     actual fun isAppInForeground(): Boolean {
@@ -140,7 +136,7 @@ actual open class PlatformContext {
         block()
     }
 
-    actual fun networkThread(block: () -> Unit) {
+    actual fun networkThread(block: () -> Unit): Thread {
         // TODO
         block()
     }

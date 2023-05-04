@@ -26,12 +26,14 @@ fun <T> Result.Companion.failure(response: Response): Result<T> {
     return failure(RuntimeException("${response.message}: ${response.body?.string()} (${response.code})"))
 }
 fun <I, O> Result<I>.cast(): Result<O> {
-    if (isSuccess) {
-        return Result.success(getOrNull() as O)
-    }
-    else {
-        return Result.failure(exceptionOrNull()!!)
-    }
+    return fold(
+        {
+            Result.success(it as O)
+        },
+        {
+            Result.failure(it)
+        }
+    )
 }
 val <T> Result<T>.data get() = getOrThrowHere()
 
@@ -247,6 +249,7 @@ class DataApi {
 
             headers_builder["accept-encoding"] = "gzip, deflate"
             headers_builder["content-encoding"] = "gzip"
+            headers_builder["user-agent"] = user_agent
 
             youtubei_headers = headers_builder.build()
         }

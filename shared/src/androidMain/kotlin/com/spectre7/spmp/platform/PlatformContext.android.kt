@@ -62,7 +62,6 @@ actual class PlatformContext(context: Context) {
     val ctx: Context get() = context.get()!!
 
     actual fun getPrefs(): ProjectPreferences = ProjectPreferences.getInstance(ctx)
-    actual fun getAppName(): String = getAppName(ctx)
 
     actual fun getFilesDir(): File = ctx.filesDir
     actual fun getCacheDir(): File = ctx.cacheDir

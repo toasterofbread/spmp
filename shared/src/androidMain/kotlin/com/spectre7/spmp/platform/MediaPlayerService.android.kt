@@ -38,8 +38,8 @@ import com.google.android.exoplayer2.upstream.ResolvingDataSource
 import com.google.android.exoplayer2.upstream.cache.LeastRecentlyUsedCacheEvictor
 import com.google.android.exoplayer2.upstream.cache.SimpleCache
 import com.spectre7.spmp.PlayerServiceHost
-import com.spectre7.exovisualiser.ExoVisualizer
-import com.spectre7.exovisualiser.FFTAudioProcessor
+import com.spectre7.spmp.exovisualiser.ExoVisualizer
+import com.spectre7.spmp.exovisualiser.FFTAudioProcessor
 import com.spectre7.spmp.model.MediaItem
 import com.spectre7.spmp.model.Settings
 import com.spectre7.spmp.model.Song

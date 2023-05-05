@@ -1,4 +1,4 @@
-package com.spectre7.exovisualiser
+package com.spectre7.spmp.exovisualiser
 
 import android.media.AudioTrack
 import android.media.AudioTrack.ERROR_BAD_VALUE

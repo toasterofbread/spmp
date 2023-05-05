@@ -1,4 +1,4 @@
-package com.spectre7.exovisualiser
+package com.spectre7.spmp.exovisualiser
 
 import androidx.compose.foundation.Canvas
 import androidx.compose.runtime.*

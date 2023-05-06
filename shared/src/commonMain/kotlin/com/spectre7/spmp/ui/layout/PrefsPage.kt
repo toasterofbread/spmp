@@ -66,12 +66,6 @@ private enum class Category {
 fun PrefsPage(pill_menu: PillMenu, playerProvider: () -> PlayerViewContext, close: () -> Unit) {
     var current_category: Category by remember { mutableStateOf(Category.GENERAL) }
 
-    val interface_lang = remember { SettingsValueState<Int>(Settings.KEY_LANG_UI.name).init(Settings.prefs, Settings.Companion::provideDefault) }
-    var language_data by remember { mutableStateOf(SpMp.languages.values.elementAt(interface_lang.value)) }
-    OnChangedEffect(interface_lang.value) {
-        language_data = SpMp.languages.values.elementAt(interface_lang.value)
-    }
-
     val ytm_auth = remember {
         SettingsValueState(
             Settings.KEY_YTM_AUTH.name,
@@ -187,7 +181,7 @@ fun PrefsPage(pill_menu: PillMenu, playerProvider: () -> PlayerViewContext, clos
                         { current_category.getTitle() },
                         {
                             when (current_category) {
-                                Category.GENERAL -> getGeneralCategory(interface_lang, language_data, ytm_auth, playerProvider)
+                                Category.GENERAL -> getGeneralCategory(ytm_auth, playerProvider)
                                 Category.FEED -> getFeedCategory()
                                 Category.THEME -> getThemeCategory(Theme.manager)
                                 Category.LYRICS -> getLyricsCategory()
@@ -498,7 +492,7 @@ private fun getDiscordLoginSettingsItem(discord_auth: SettingsValueState<String>
                     ) {
                         if (account_token.isNotEmpty()) {
                             Text(
-                                getStringTemp("Signed in to Discord"),
+                                getStringTODO("Signed in to Discord"),
                                 style = LocalTextStyle.current.copy(color = Theme.current.on_accent)
                             )
 //                            auth.own_channel.PreviewLong(MediaItem.PreviewParams(
@@ -509,7 +503,7 @@ private fun getDiscordLoginSettingsItem(discord_auth: SettingsValueState<String>
                         }
                         else {
                             Text(
-                                getStringTemp("Not signed in"),
+                                getStringTODO("Not signed in"),
                                 style = LocalTextStyle.current.copy(color = Theme.current.on_accent)
                             )
                         }
@@ -527,7 +521,7 @@ private fun getDiscordLoginSettingsItem(discord_auth: SettingsValueState<String>
                             containerColor = Theme.current.background,
                             contentColor = Theme.current.on_background
                         )) {
-                            Text(getStringTemp(if (account_token.isNotEmpty()) "Sign out" else "Sign in"))
+                            Text(getStringTODO(if (account_token.isNotEmpty()) "Sign out" else "Sign in"))
                         }
 
                         ShapedIconButton(
@@ -595,7 +589,7 @@ private fun getYoutubeMusicLoginSettingsItem(ytm_auth: SettingsValueState<Youtub
                         }
                         else {
                             Text(
-                                getStringTemp("Not signed in"),
+                                getStringTODO("Not signed in"),
                                 Modifier.fillMaxWidth().weight(1f),
                                 style = LocalTextStyle.current.copy(color = Theme.current.on_accent)
                             )
@@ -612,7 +606,7 @@ private fun getYoutubeMusicLoginSettingsItem(ytm_auth: SettingsValueState<Youtub
                             containerColor = Theme.current.background,
                             contentColor = Theme.current.on_background
                         )) {
-                            Text(getStringTemp(if (auth.initialised) "Sign out" else "Sign in"))
+                            Text(getStringTODO(if (auth.initialised) "Sign out" else "Sign in"))
                         }
 
                         ShapedIconButton(
@@ -635,39 +629,37 @@ private fun getYoutubeMusicLoginSettingsItem(ytm_auth: SettingsValueState<Youtub
 }
 
 private fun getGeneralCategory(
-    interface_lang: SettingsValueState<Int>,
-    language_data: Map<String, String>,
     ytm_auth: SettingsValueState<YoutubeMusicAuthInfo>,
     playerProvider: () -> PlayerViewContext
 ): List<SettingsItem> {
     return listOf(
-        SettingsGroup(getStringTemp("YouTube Music アカウント")),
         getYoutubeMusicLoginSettingsItem(ytm_auth, playerProvider),
-
         SettingsItemSpacer(10.dp),
 
         SettingsItemDropdown(
-            interface_lang,
+            SettingsValueState(Settings.KEY_LANG_UI.name),
             getString("s_key_interface_lang"), getString("s_sub_interface_lang"),
-            SpMp.languages.values.first().size,
+            SpMp.getLanguageCount(),
             { i ->
-                language_data.entries.elementAt(i).key
+                getLanguageName(i)
             }
         ) { i ->
-            val language = language_data.entries.elementAt(i)
-            "${language.key} / ${language.value}"
+            val code = SpMp.getLanguageCode(i)
+            val name = getLanguageName(i)
+            "$code / $name"
         },
 
         SettingsItemDropdown(
             SettingsValueState(Settings.KEY_LANG_DATA.name),
             getString("s_key_data_lang"), getString("s_sub_data_lang"),
-            SpMp.languages.values.first().size,
+            SpMp.getLanguageCount(),
             { i ->
-                language_data.entries.elementAt(i).key
+                getLanguageName(i)
             }
         ) { i ->
-            val language = language_data.entries.elementAt(i)
-            "${language.key} / ${language.value}"
+            val code = SpMp.getLanguageCode(i)
+            val name = getLanguageName(i)
+            "$code / $name"
         },
 
         SettingsItemSlider(

@@ -28,7 +28,7 @@ data class YoutubeiSearchResponse(
     )
     data class ChipCloudRenderer(val chips: List<Chip>)
     data class Chip(val chipCloudChipRenderer: ChipCloudChipRenderer)
-    data class ChipCloudChipRenderer(val navigationEndpoint: NavigationEndpoint)
+    data class ChipCloudChipRenderer(val navigationEndpoint: NavigationEndpoint, val text: TextRuns)
 }
 
 data class ChipCloudRendererHeader(val chipCloudRenderer: YoutubeiSearchResponse.ChipCloudRenderer)

@@ -163,7 +163,7 @@ fun getSongLongPressMenuData(
         song,
         thumb_shape,
         { SongLongPressMenuInfo(song, queue_index, it) },
-        getStringTemp("Long press actions"),
+        getStringTODO("Long press actions"),
         actions = {
             SongLongPressPopupActions(it, queue_index)
         },
@@ -188,9 +188,9 @@ private fun ColumnScope.SongLongPressMenuInfo(song: Song, queue_index: Int?, acc
         }
     }
 
-    Item(Icons.Filled.Radio, getStringTemp("Start radio at song position in queue"))
-    Item(Icons.Filled.SubdirectoryArrowRight, getStringTemp("Start radio after X song(s)"))
-    Item(Icons.Filled.Download, getStringTemp("Configure download"))
+    Item(Icons.Filled.Radio, getStringTODO("Start radio at song position in queue"))
+    Item(Icons.Filled.SubdirectoryArrowRight, getStringTODO("Start radio after X song(s)"))
+    Item(Icons.Filled.Download, getStringTODO("Configure download"))
 
     Spacer(
         Modifier

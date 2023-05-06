@@ -26,7 +26,7 @@ import com.spectre7.spmp.model.*
 import com.spectre7.spmp.platform.PlatformDialog
 import com.spectre7.spmp.platform.vibrateShort
 import com.spectre7.spmp.ui.layout.PlayerViewContext
-import com.spectre7.spmp.ui.layout.nowplaying.DEFAULT_THUMBNAIL_ROUNDING
+import com.spectre7.spmp.ui.layout.nowplaying.overlay.DEFAULT_THUMBNAIL_ROUNDING
 import com.spectre7.spmp.ui.theme.Theme
 import com.spectre7.utils.*
 import kotlinx.coroutines.coroutineScope
@@ -480,7 +480,7 @@ private fun Actions(data: LongPressMenuData, accent_colour: Color, playerProvide
 
     LongPressMenuActionProvider.ActionButton(
         Icons.Filled.Pin, 
-        getStringTemp(
+        getStringTODO(
             if (data.item.pinned_to_home) "Unpin from home" 
             else "Pin to home"
         ), 
@@ -492,13 +492,13 @@ private fun Actions(data: LongPressMenuData, accent_colour: Color, playerProvide
     )
 
     if (SpMp.context.canShare()) {
-        LongPressMenuActionProvider.ActionButton(Icons.Filled.Share, getStringTemp("Share"), accent_colour_provider, onClick = {
+        LongPressMenuActionProvider.ActionButton(Icons.Filled.Share, getStringTODO("Share"), accent_colour_provider, onClick = {
             SpMp.context.shareText(data.item.url, if (data.item is Song) data.item.title else null)
         }, closeMenu = close)
     }
 
     if (SpMp.context.canOpenUrl()) {
-        LongPressMenuActionProvider.ActionButton(Icons.Filled.OpenWith, getStringTemp("Open externally"), accent_colour_provider, onClick = {
+        LongPressMenuActionProvider.ActionButton(Icons.Filled.OpenWith, getStringTODO("Open externally"), accent_colour_provider, onClick = {
             SpMp.context.openUrl(data.item.url)
         }, closeMenu = close)
     }

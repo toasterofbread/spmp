@@ -14,7 +14,7 @@ import kotlin.concurrent.thread
 
 private val CACHE_LIFETIME = Duration.ofDays(1)
 
-fun getHomeFeed(min_rows: Int = -1, allow_cached: Boolean = true, params: String? = null, continuation: String? = null): Result<Triple<List<MediaItemLayout>, String?, List<String>?>> {
+fun getHomeFeed(min_rows: Int = -1, allow_cached: Boolean = true, params: String? = null, continuation: String? = null): Result<Triple<List<MediaItemLayout>, String?, List<Pair<Int, String>>?>> {
 
     fun postRequest(ctoken: String?): Result<InputStreamReader> {
         val endpoint = "/youtubei/v1/browse"
@@ -54,9 +54,9 @@ fun getHomeFeed(min_rows: Int = -1, allow_cached: Boolean = true, params: String
             }
 
             val chips = Cache.get(chips_cache_key)?.run {
-                val chips: List<String> = DataApi.klaxon.parseArray(this)!!
+                val chips: List<List<Any>> = DataApi.klaxon.parseArray(this)!!
                 close()
-                chips
+                chips.map { Pair(it[0] as Int, it[1] as String) }
             }
 
             return Result.success(Triple(rows, ctoken, chips))
@@ -100,7 +100,7 @@ fun getHomeFeed(min_rows: Int = -1, allow_cached: Boolean = true, params: String
     if (continuation == null) {
         Cache.set(rows_cache_key, DataApi.klaxon.toJsonString(rows).reader(), CACHE_LIFETIME)
         Cache.set(ctoken_cache_key, ctoken?.reader(), CACHE_LIFETIME)
-        Cache.set(chips_cache_key, chips?.let { DataApi.klaxon.toJsonString(it).reader() }, CACHE_LIFETIME)
+        Cache.set(chips_cache_key, chips?.let { DataApi.klaxon.toJsonString(it.map { chip -> listOf(chip.first, chip.second) }).reader() }, CACHE_LIFETIME)
     }
 
     return Result.success(Triple(rows, ctoken, chips))
@@ -264,9 +264,12 @@ data class YoutubeiBrowseResponse(
                else contents?.singleColumnBrowseResultsRenderer?.tabs?.firstOrNull()?.tabRenderer?.content?.sectionListRenderer?.contents ?: emptyList()
     }
 
-    fun getHeaderChips(): List<String>? =
+    fun getHeaderChips(): List<Pair<Int, String>>? =
         contents?.singleColumnBrowseResultsRenderer?.tabs?.first()?.tabRenderer?.content?.sectionListRenderer?.header?.chipCloudRenderer?.chips?.map {
-            it.chipCloudChipRenderer.navigationEndpoint.browseEndpoint!!.params!!
+            Pair(
+                LocalisedYoutubeString.filterChip(it.chipCloudChipRenderer.text.first_text) ?: throw NotImplementedError(it.chipCloudChipRenderer.text.first_text),
+                it.chipCloudChipRenderer.navigationEndpoint.browseEndpoint!!.params!!
+            )
         }
 
     data class Contents(val singleColumnBrowseResultsRenderer: SingleColumnBrowseResultsRenderer)

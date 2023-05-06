@@ -262,57 +262,16 @@ data class MediaItemLayout(
                         }
                     }
                 ) {
-                    Text(getStringTemp("More"))
+                    Text(getStringTODO("More"))
                 }
             }
         }
     }
 }
 
-//@Composable
-//fun MediaItemLayoutColumn(
-//    layouts: List<MediaItemLayout>,
-//    playerProvider: () -> PlayerViewContext,
-//    modifier: Modifier = Modifier,
-//    padding: PaddingValues = PaddingValues(0.dp),
-//    topContent: (@Composable ColumnScope.() -> Unit)? = null,
-//    onContinuationRequested: (() -> Unit)? = null,
-//    loading_continuation: Boolean = false,
-//    continuation_alignment: Alignment.Horizontal = Alignment.CenterHorizontally,
-//    scroll_state: ScrollState? = null,
-//    vertical_arrangement: Arrangement.Vertical = Arrangement.Top,
-//    getType: ((MediaItemLayout) -> MediaItemLayout.Type)? = null
-//) {
-//    require(getType != null || layouts.all { it.type != null })
-//
-//    Column(
-//        modifier.padding(padding).thenIf(scroll_state != null, Modifier.verticalScroll(scroll_state!!)),
-//        verticalArrangement = vertical_arrangement
-//    ) {
-//        topContent?.invoke(this)
-//
-//        for (layout in layouts) {
-//            (getType?.invoke(layout) ?: layout.type!!).Layout(layout, playerProvider)
-//        }
-//
-//        Crossfade(Pair(onContinuationRequested, loading_continuation)) { data ->
-//            Column(Modifier.fillMaxWidth(), horizontalAlignment = continuation_alignment) {
-//                if (data.second) {
-//                    CircularProgressIndicator(color = Theme.current.on_background)
-//                }
-//                else if (data.first != null) {
-//                    IconButton({ data.first!!.invoke() }) {
-//                        Icon(Icons.Filled.KeyboardDoubleArrowDown, null, tint = Theme.current.on_background)
-//                    }
-//                }
-//            }
-//        }
-//    }
-//}
-
 @Composable
 fun LazyMediaItemLayoutColumn(
-    layouts: List<MediaItemLayout>,
+    layoutsProvider: () -> List<MediaItemLayout>,
     playerProvider: () -> PlayerViewContext,
     modifier: Modifier = Modifier,
     layout_modifier: Modifier = Modifier,
@@ -329,6 +288,7 @@ fun LazyMediaItemLayoutColumn(
     },
     getType: ((MediaItemLayout) -> MediaItemLayout.Type)? = null
 ) {
+    val layouts = layoutsProvider()
     require(getType != null || layouts.all { it.type != null })
 
     LazyColumn(

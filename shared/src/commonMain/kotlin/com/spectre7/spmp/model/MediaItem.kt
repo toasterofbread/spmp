@@ -22,9 +22,7 @@ import com.spectre7.spmp.ui.theme.Theme
 import com.spectre7.spmp.platform.ProjectPreferences
 import com.spectre7.spmp.platform.toImageBitmap
 import com.spectre7.utils.*
-import kotlinx.coroutines.Dispatchers
-import kotlinx.coroutines.runBlocking
-import kotlinx.coroutines.withContext
+import kotlinx.coroutines.*
 import java.io.FileNotFoundException
 import java.io.Reader
 import java.net.URL
@@ -670,9 +668,13 @@ abstract class MediaItem(id: String) {
             entries.clear()
 
             val parsed = DataApi.klaxon.parseJsonObject(data.reader())
-            for (item in parsed.entries) {
-                val type = Type.values()[item.key.take(1).toInt()]
-                entries[item.key] = type.parseRegistryEntry(item.value as JsonObject)
+            runBlocking {
+                parsed.entries.map { item ->
+                    GlobalScope.async {
+                        val type = Type.values()[item.key.take(1).toInt()]
+                        entries[item.key] = type.parseRegistryEntry(item.value as JsonObject)
+                    }
+                }.joinAll()
             }
         }
 

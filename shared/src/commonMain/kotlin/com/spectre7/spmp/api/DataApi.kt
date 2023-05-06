@@ -1,6 +1,7 @@
 package com.spectre7.spmp.api
 
 import com.beust.klaxon.*
+import com.spectre7.spmp.model.Cache
 import com.spectre7.spmp.model.MediaItem
 import com.spectre7.spmp.platform.ProjectPreferences
 import com.spectre7.spmp.model.Settings
@@ -19,6 +20,7 @@ import java.time.Duration
 import java.util.logging.Level
 import java.util.logging.Logger
 import java.util.zip.GZIPInputStream
+import kotlin.concurrent.thread
 import org.schabi.newpipe.extractor.downloader.Request as NewPipeRequest
 import org.schabi.newpipe.extractor.downloader.Response as NewPipeResponse
 
@@ -179,13 +181,17 @@ class DataApi {
         private lateinit var youtubei_context_alt: JsonObject
         private lateinit var youtubei_context_android: JsonObject
 
-        private lateinit var youtubei_headers: Headers
+        private var youtubei_headers: Headers? = null
+        private var header_update_thread: Thread? = null
 
         private val prefs_change_listener = object : ProjectPreferences.Listener {
             override fun onChanged(prefs: ProjectPreferences, key: String) {
                 when (key) {
                     Settings.KEY_YTM_AUTH.name -> updateYtmHeaders()
-                    Settings.KEY_LANG_DATA.name -> updateYtmContext()
+                    Settings.KEY_LANG_DATA.name -> {
+                        updateYtmContext()
+                        Cache.reset()
+                    }
                 }
             }
         }
@@ -227,31 +233,41 @@ class DataApi {
             )
         }
 
-        private fun updateYtmHeaders() {
-            val headers_builder = Headers.Builder().add("user-agent", user_agent)
-
-            val ytm_auth = YoutubeMusicAuthInfo(Settings.get(Settings.KEY_YTM_AUTH))
-            if (ytm_auth.initialised) {
-                headers_builder["cookie"] = ytm_auth.cookie
-                for (header in ytm_auth.headers) {
-                    headers_builder[header.key] = header.value
-                }
-            }
-            else {
-                val headers = getStringArray("ytm_headers")
-                var i = 0
-                while (i < headers.size) {
-                    val key = headers[i++]
-                    val value = headers[i++]
-                    headers_builder[key] = value
+        @Synchronized
+        private fun updateYtmHeaders(): Thread {
+            header_update_thread?.also { thread ->
+                if (thread.isAlive) {
+                    return thread
                 }
             }
 
-            headers_builder["accept-encoding"] = "gzip, deflate"
-            headers_builder["content-encoding"] = "gzip"
-            headers_builder["user-agent"] = user_agent
+            header_update_thread = thread {
+                val headers_builder = Headers.Builder().add("user-agent", user_agent)
 
-            youtubei_headers = headers_builder.build()
+                val ytm_auth = Settings.get<Set<String>>(Settings.KEY_YTM_AUTH).let { if (it is YoutubeMusicAuthInfo) it else YoutubeMusicAuthInfo(it) }
+                if (ytm_auth.initialised) {
+                    headers_builder["cookie"] = ytm_auth.cookie
+                    for (header in ytm_auth.headers) {
+                        headers_builder[header.key] = header.value
+                    }
+                }
+                else {
+                    val headers = getStringArray("ytm_headers")
+                    var i = 0
+                    while (i < headers.size) {
+                        val key = headers[i++]
+                        val value = headers[i++]
+                        headers_builder[key] = value
+                    }
+                }
+
+                headers_builder["accept-encoding"] = "gzip, deflate"
+                headers_builder["content-encoding"] = "gzip"
+                headers_builder["user-agent"] = user_agent
+
+                youtubei_headers = headers_builder.build()
+            }
+            return header_update_thread!!
         }
 
         fun initialise() {
@@ -299,13 +315,17 @@ class DataApi {
         }
 
         internal fun Request.Builder.addYtHeaders(plain: Boolean = false): Request.Builder {
+            if (youtubei_headers == null) {
+                header_update_thread!!.join()
+            }
+
             if (plain) {
                 for (header in listOf("accept-language", "user-agent", "accept-encoding", "content-encoding")) {
-                    header(header, youtubei_headers[header]!!)
+                    header(header, youtubei_headers!![header]!!)
                 }
             }
             else {
-                headers(youtubei_headers)
+                headers(youtubei_headers!!)
             }
             return this
         }

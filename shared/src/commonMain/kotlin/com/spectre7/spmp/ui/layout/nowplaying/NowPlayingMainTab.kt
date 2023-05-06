@@ -28,6 +28,7 @@ import androidx.compose.ui.input.pointer.pointerInput
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.layout.onSizeChanged
 import androidx.compose.ui.platform.LocalDensity
+import androidx.compose.ui.text.TextStyle
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.text.style.TextOverflow
@@ -43,6 +44,7 @@ import com.spectre7.spmp.platform.vibrateShort
 import com.spectre7.spmp.ui.component.LikeDislikeButton
 import com.spectre7.spmp.ui.layout.MINIMISED_NOW_PLAYING_HEIGHT
 import com.spectre7.spmp.ui.layout.PlayerViewContext
+import com.spectre7.spmp.ui.layout.nowplaying.overlay.DEFAULT_THUMBNAIL_ROUNDING
 import com.spectre7.spmp.ui.layout.nowplaying.overlay.OverlayMenu
 import com.spectre7.spmp.ui.theme.Theme
 import com.spectre7.utils.*
@@ -52,13 +54,12 @@ import kotlin.math.absoluteValue
 import kotlin.math.max
 import kotlin.math.min
 
-const val OVERLAY_MENU_ANIMATION_DURATION: Int = 200
+const val NOW_PLAYING_MAIN_PADDING = 10f
 
-const val DEFAULT_THUMBNAIL_ROUNDING: Int = 5
-const val MIN_THUMBNAIL_ROUNDING: Int = 0
-const val MAX_THUMBNAIL_ROUNDING: Int = 50
-const val TOP_BAR_HEIGHT: Int = 50
-val NOW_PLAYING_MAIN_PADDING = 10.dp
+private const val MINIMISED_NOW_PLAYING_HORIZ_PADDING = 10f
+private const val OVERLAY_MENU_ANIMATION_DURATION: Int = 200
+private const val TOP_BAR_HEIGHT: Int = 50
+private const val MIN_EXPANSION = 0.07930607f
 
 @Composable
 fun ColumnScope.NowPlayingMainTab(
@@ -71,8 +72,9 @@ fun ColumnScope.NowPlayingMainTab(
 ) {
     val _expansion = minOf(2f, expansionProvider())
     val expansion =
-        if (_expansion <= 1f) maxOf(0.07930607f, _expansion)
+        if (_expansion <= 1f) maxOf(MIN_EXPANSION, _expansion)
         else 2f - _expansion
+    val full_expansion = if (_expansion < 1f) (1f / (1f - MIN_EXPANSION)) * (_expansion - MIN_EXPANSION) else expansion
 
     var theme_colour by remember { mutableStateOf<Color?>(null) }
     fun setThemeColour(value: Color?) {
@@ -80,8 +82,6 @@ fun ColumnScope.NowPlayingMainTab(
         PlayerServiceHost.status.song?.theme_colour = theme_colour
     }
     
-    val screen_width_dp = SpMp.context.getScreenWidth()
-
     var seek_state by remember { mutableStateOf(-1f) }
     var loaded_song: Song? by remember { mutableStateOf(null) }
 
@@ -151,7 +151,7 @@ fun ColumnScope.NowPlayingMainTab(
             .requiredHeight(TOP_BAR_HEIGHT.dp * appear_scale)
             .alpha(1f - disappear_scale)
             .offset(offsetProvider)
-            .padding(start = NOW_PLAYING_MAIN_PADDING, end = NOW_PLAYING_MAIN_PADDING),
+            .padding(horizontal = NOW_PLAYING_MAIN_PADDING.dp),
         horizontalArrangement = Arrangement.End
     ) {
         AnimatedVisibility(PlayerServiceHost.status.m_song != null) {
@@ -162,12 +162,6 @@ fun ColumnScope.NowPlayingMainTab(
                     colourProvider = { getNPOnBackground(playerProvider).setAlpha(0.5f) }
                 )
             }
-        }
-
-        IconButton({
-            TODO("Edit")
-        }) {
-            Icon(Icons.Filled.Edit, null, tint = getNPOnBackground(playerProvider).setAlpha(0.5f))
         }
 
         IconButton({
@@ -185,7 +179,7 @@ fun ColumnScope.NowPlayingMainTab(
             .fillMaxHeight(0.5f * max(expansion,
                 (MINIMISED_NOW_PLAYING_HEIGHT + 20f) / page_height.value))
             .offset(offsetProvider)
-            .padding(start = NOW_PLAYING_MAIN_PADDING, end = NOW_PLAYING_MAIN_PADDING)
+            .padding(horizontal = NOW_PLAYING_MAIN_PADDING.dp + (MINIMISED_NOW_PLAYING_HORIZ_PADDING.dp * (1f - full_expansion).coerceAtLeast(0f)))
     ) {
 
         var overlay_menu by remember { mutableStateOf<OverlayMenu?>(null) }
@@ -237,7 +231,7 @@ fun ColumnScope.NowPlayingMainTab(
                                                     setThemeColour(it)
                                                     overlay_menu = null
                                                 },
-                                                screen_width_dp
+                                                { SpMp.context.getScreenWidth() }
                                             ) else null
                                         }
                                     }
@@ -370,64 +364,44 @@ fun ColumnScope.NowPlayingMainTab(
 
         Row(
             Modifier
-                .fillMaxWidth(0.9f * (1f - expansion))
+                .fillMaxWidth(1f - full_expansion)
                 .scale(disappear_scale, 1f),
-            horizontalArrangement = Arrangement.End
+            horizontalArrangement = Arrangement.End,
+            verticalAlignment = Alignment.CenterVertically
         ) {
-
             Spacer(Modifier.requiredWidth(10.dp))
 
-            Text(
-                PlayerServiceHost.status.m_song?.title ?: "",
-                maxLines = 1,
-                color = getNPOnBackground(playerProvider),
-                overflow = TextOverflow.Ellipsis,
-                modifier = Modifier
-                    .align(Alignment.CenterVertically)
-                    .weight(1f)
-                    .fillMaxWidth()
-            )
-
-            AnimatedVisibility(PlayerServiceHost.status.m_has_previous, enter = expandHorizontally(), exit = shrinkHorizontally()) {
-                IconButton(
-                    onClick = {
-                        PlayerServiceHost.player.seekToPrevious()
-                    }
-                ) {
-                    Image(
-                        Icons.Filled.SkipPrevious,
-                        null,
-                        colorFilter = ColorFilter.tint(getNPOnBackground(playerProvider))
-                    )
-                }
+            Column(Modifier.fillMaxSize().weight(1f), verticalArrangement = Arrangement.SpaceEvenly) {
+                Text(
+                    PlayerServiceHost.status.m_song?.title ?: "",
+                    maxLines = 1,
+                    color = getNPOnBackground(playerProvider),
+                    overflow = TextOverflow.Ellipsis
+                )
+                Text(
+                    PlayerServiceHost.status.m_song?.artist?.title ?: "",
+                    maxLines = 1,
+                    color = getNPOnBackground(playerProvider),//.copy(alpha = 0.5f),
+                    overflow = TextOverflow.Ellipsis,
+                    style = MaterialTheme.typography.bodySmall
+                )
             }
 
-            AnimatedVisibility(PlayerServiceHost.status.m_song != null, enter = fadeIn(), exit = fadeOut()) {
-                IconButton(
-                    onClick = {
-                        PlayerServiceHost.player.playPause()
-                    }
-                ) {
-                    Image(
-                        if (PlayerServiceHost.status.m_playing) Icons.Filled.Pause else Icons.Filled.PlayArrow,
-                        getString(if (PlayerServiceHost.status.m_playing) "media_pause" else "media_play"),
-                        colorFilter = ColorFilter.tint(getNPOnBackground(playerProvider))
-                    )
-                }
+            val player_button_modifier = Modifier.size(40.dp)
+            IconButton(PlayerServiceHost.player::playPause, player_button_modifier) {
+                Image(
+                    if (PlayerServiceHost.status.m_playing) Icons.Filled.Pause else Icons.Filled.PlayArrow,
+                    getString(if (PlayerServiceHost.status.m_playing) "media_pause" else "media_play"),
+                    colorFilter = ColorFilter.tint(getNPOnBackground(playerProvider))
+                )
             }
 
-            AnimatedVisibility(PlayerServiceHost.status.m_has_next, enter = expandHorizontally(), exit = shrinkHorizontally()) {
-                IconButton(
-                    onClick = {
-                        PlayerServiceHost.player.seekToNext()
-                    }
-                ) {
-                    Image(
-                        Icons.Filled.SkipNext,
-                        null,
-                        colorFilter = ColorFilter.tint(getNPOnBackground(playerProvider))
-                    )
-                }
+            IconButton(PlayerServiceHost.player::seekToNext, player_button_modifier) {
+                Image(
+                    Icons.Filled.SkipNext,
+                    null,
+                    colorFilter = ColorFilter.tint(getNPOnBackground(playerProvider))
+                )
             }
         }
     }
@@ -446,7 +420,7 @@ fun ColumnScope.NowPlayingMainTab(
                 .graphicsLayer {
                     alpha = 1f - (1f - _expansion).absoluteValue
                 }
-                .padding(start = NOW_PLAYING_MAIN_PADDING, end = NOW_PLAYING_MAIN_PADDING)
+                .padding(horizontal = NOW_PLAYING_MAIN_PADDING.dp)
         )
     }
 }

@@ -11,11 +11,13 @@ import com.my.kizzyrpc.model.Metadata
 import com.my.kizzyrpc.model.Timestamps
 import dev.kord.common.entity.Snowflake
 import dev.kord.core.Kord
+import dev.kord.core.exception.KordInitializationException
 import dev.kord.rest.NamedFile
 import dev.kord.rest.builder.message.EmbedBuilder
 import dev.kord.rest.service.ChannelService
 import io.ktor.client.request.forms.*
 import io.ktor.utils.io.jvm.javaio.*
+import kotlinx.coroutines.delay
 import java.io.ByteArrayOutputStream
 
 actual class DiscordStatus actual constructor(
@@ -93,7 +95,25 @@ actual class DiscordStatus actual constructor(
         check(bot_token != null)
         check(custom_images_channel_id != null)
 
-        val kord = Kord(bot_token)
+        var kord: Kord
+        try {
+            kord = Kord(bot_token)
+        }
+        catch (e: KordInitializationException) {
+            val message = e.message ?: throw e
+
+            val start = message.indexOf("retry_after")
+            if (start == -1) {
+                throw e
+            }
+
+            val retry_after = message.substring(start + 14, message.indexOf("\"", start + 14)).toFloatOrNull()
+                ?: throw NotImplementedError(message)
+
+            delay((retry_after * 1000L).toLong())
+            kord = Kord(bot_token)
+        }
+
         val result = with(kord.rest.channel) {
             val channel = Snowflake(custom_images_channel_id)
 

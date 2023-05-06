@@ -100,6 +100,11 @@
     <string name="home_feed_rec_playlists">おすすめのプレイリスト</string>
     <string name="home_feed_rec_music_videos">おすすめのミュージックビデオ</string>
     <string name="home_feed_rec_albums_playlists">アルバムとプレイリスト</string>
+    <string name="home_feed_filter_energise">エナジー</string>
+    <string name="home_feed_filter_relax">リラックス</string>
+    <string name="home_feed_filter_workout">ワークアウト</string>
+    <string name="home_feed_filter_commute">通勤・通学</string>
+    <string name="home_feed_filter_focus">フォーカス</string>
     <string name="playlist">プレイリスト</string>
     <string name="song">曲</string>
     <string name="action_cancel">キャンセル</string>

@@ -17,7 +17,7 @@ import com.spectre7.spmp.platform.PlayerDownloadManager
 import com.spectre7.spmp.platform.PlayerDownloadManager.DownloadStatus
 import com.spectre7.spmp.ui.component.PillMenu
 import com.spectre7.spmp.ui.theme.Theme
-import com.spectre7.utils.getStringTemp
+import com.spectre7.utils.getStringTODO
 
 @Composable
 fun LibraryPage(
@@ -70,7 +70,7 @@ fun LibraryPage(
         item {
             Column {
                 Text(
-                    getStringTemp("Library"),
+                    getStringTODO("Library"),
                     style = MaterialTheme.typography.headlineLarge.copy(
                         color = Theme.current.on_background
                     )

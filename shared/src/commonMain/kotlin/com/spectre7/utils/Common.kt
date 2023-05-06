@@ -44,9 +44,7 @@ import com.spectre7.spmp.ProjectBuildConfig
 import com.spectre7.spmp.platform.PlatformAlertDialog
 import com.spectre7.spmp.platform.PlatformContext
 import com.spectre7.spmp.ui.theme.Theme
-import kotlinx.coroutines.delay
-import kotlinx.coroutines.runBlocking
-import org.jetbrains.compose.resources.ExperimentalResourceApi
+import kotlinx.coroutines.*
 import org.jetbrains.compose.resources.MissingResourceException
 import org.xmlpull.v1.XmlPullParser
 import org.xmlpull.v1.XmlPullParserFactory
@@ -54,6 +52,7 @@ import java.io.InputStream
 import java.util.*
 import java.util.concurrent.TimeUnit
 import java.util.regex.Pattern
+import kotlin.concurrent.thread
 import kotlin.math.min
 import kotlin.math.roundToInt
 import kotlin.math.sqrt
@@ -62,18 +61,25 @@ import kotlin.random.Random
 private lateinit var strings: Map<String, String>
 private lateinit var string_arrays: Map<String, List<String>>
 
+private lateinit var language_names: List<String>
+private var language_load_thread: Thread? = null
+
 @Suppress("BlockingMethodInNonBlockingContext")
-@OptIn(ExperimentalResourceApi::class)
 fun initResources(language: String, context: PlatformContext) {
 	fun formatText(text: String): String = text.replace("\\\"", "\"").replace("\\'", "'")
 
-	runBlocking {
-		delay(100)
+	language_load_thread = thread {
+		val data = context.openResourceFile("languages/$language.json").bufferedReader()
+		language_names = Klaxon().parseArray(data)!!
+		data.close()
+		language_load_thread = null
+	}
 
+	runBlocking {
 		val strs = mutableMapOf<String, String>()
 		val str_arrays = mutableMapOf<String, List<String>>()
 
-		suspend fun loadFile(path: String): Boolean {
+		suspend fun loadFile(path: String) {
 			val stream: InputStream
 			try {
 				stream = context.openResourceFile(path)
@@ -82,7 +88,7 @@ fun initResources(language: String, context: PlatformContext) {
 				if (e.javaClass != MissingResourceException::class.java) {
 					throw e
 				}
-				return false
+				return
 			}
 
 			val parser = XmlPullParserFactory.newInstance().newPullParser()
@@ -120,8 +126,6 @@ fun initResources(language: String, context: PlatformContext) {
 			stream.close()
 
 			println("Loaded strings.xml at $path")
-
-			return true
 		}
 
 		var language_best_match: String? = null
@@ -155,21 +159,18 @@ fun initResources(language: String, context: PlatformContext) {
 	}
 }
 
-fun getString(key: String): String {
-	return strings[key] ?: throw NotImplementedError(key)
-}
+fun getString(key: String): String = strings[key] ?: throw NotImplementedError(key)
+fun getStringOrNull(key: String): String? = strings[key]
+fun getStringTODO(temp_string: String): String = temp_string // Strings to be localised
+fun getStringArray(key: String): List<String> = string_arrays[key] ?: throw NotImplementedError(key)
 
-fun getStringOrNull(key: String): String? {
-	return strings[key]
+fun getLanguageName(language_code: String): String {
+	language_load_thread?.join()
+	return language_names[SpMp.getLanguageIndex(language_code)]
 }
-
-fun getStringTemp(temp_string: String): String {
-//	println("Unlocalised string used: '$temp_string'")
-	return temp_string
-}
-
-fun getStringArray(key: String): List<String> {
-	return string_arrays[key] ?: throw NotImplementedError(key)
+fun getLanguageName(index: Int): String {
+	language_load_thread?.join()
+	return language_names[index]
 }
 
 fun Boolean.toInt() = if (this) 1 else 0
@@ -344,7 +345,7 @@ fun WidthShrinkText(
 		text_style_large?.also {
 			Text(
 				text,
-				modifier.drawWithContent {},
+				modifier.drawWithContent {}.wrapContentHeight(unbounded = true),
 				maxLines = 1,
 				softWrap = false,
 				style = it,
@@ -737,7 +738,7 @@ fun <T> Result<T>.AlertDialog(context: PlatformContext, message: String, close: 
 		close,
 		confirmButton = {
 			FilledTonalButton(close) {
-				Text(getStringTemp("Close"))
+				Text(getStringTODO("Close"))
 			}
 		},
 		title = { getString("generic_error") },

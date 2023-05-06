@@ -10,8 +10,6 @@ import okhttp3.Request
 import okhttp3.RequestBody.Companion.toRequestBody
 import org.xmlpull.v1.XmlPullParser
 import org.xmlpull.v1.XmlPullParserFactory
-import java.lang.Float.max
-import java.lang.Float.min
 import java.util.*
 
 fun getSongLyrics(song: Song): Song.Lyrics? {
@@ -465,11 +463,11 @@ fun searchForLyrics(title: String, artist: String?): Result<List<LyricsSearchRes
                 when (split[0]) {
                     "artist" -> {
                         r_artist_id = split[1]
-                        r_artist_name = Jsoup.parse(line.substring(0, end + RESULT_END.length)).ownText()
+                        r_artist_name = Jsoup.parse(line.substring(0, end + RESULT_END.length)).body().text()
                     }
                     "album" -> {
                         r_album_id = split[1]
-                        r_album_name = Jsoup.parse(line.substring(0, end + RESULT_END.length)).ownText()
+                        r_album_name = Jsoup.parse(line.substring(0, end + RESULT_END.length)).body().text()
                     }
                 }
             }

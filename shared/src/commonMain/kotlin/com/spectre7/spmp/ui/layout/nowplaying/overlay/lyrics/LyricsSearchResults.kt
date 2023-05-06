@@ -22,6 +22,7 @@ import com.spectre7.spmp.platform.BackHandler
 import com.spectre7.spmp.ui.theme.Theme
 import com.spectre7.utils.getContrasted
 import com.spectre7.utils.getString
+import com.spectre7.utils.getStringTODO
 import com.spectre7.utils.setAlpha
 
 @Composable
@@ -40,7 +41,7 @@ internal fun ColumnScope.LyricsSearchResults(results: List<LyricsSearchResult>, 
             items(results.size + 1, { if (it == results.size) 0 else results[it].id }) {
 
                 if (it == results.size) {
-                    Text("No more results", color = Theme.current.accent)
+                    Text(getStringTODO("No more results"), color = Theme.current.accent)
                 }
                 else {
                     val result = results[it]
@@ -58,9 +59,8 @@ internal fun ColumnScope.LyricsSearchResults(results: List<LyricsSearchResult>, 
 
                             @Composable
                             fun Item(name: String, value: String, colour: Color) {
-                                Row(Modifier.padding(5.dp), horizontalArrangement = Arrangement.spacedBy(10.dp)) {
-                                    Text(name.uppercase(), fontWeight = FontWeight.Light, color = colour)
-                                    Text("-", fontWeight = FontWeight.Light, color = colour)
+                                Row(Modifier.padding(5.dp), horizontalArrangement = Arrangement.spacedBy(15.dp), verticalAlignment = Alignment.CenterVertically) {
+                                    Text(name.uppercase(), style = MaterialTheme.typography.bodySmall, color = colour)
                                     Text(value, color = colour)
                                 }
                             }

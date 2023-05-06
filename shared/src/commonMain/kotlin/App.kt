@@ -41,18 +41,18 @@ import com.spectre7.spmp.ui.layout.PlayerView
 import com.spectre7.spmp.ui.theme.ApplicationTheme
 import com.spectre7.spmp.ui.theme.Theme
 import com.spectre7.utils.*
-import java.io.File
 import java.util.*
+import kotlin.concurrent.thread
 import kotlin.math.roundToInt
 
 expect fun getPlatformName(): String
 
 object SpMp {
 
-    lateinit var context: PlatformContext
+    private val LANGUAGES = listOf("af", "am", "ar", "as", "az", "be", "bg", "bn", "bs", "ca", "cs", "da", "de", "el", "en-GB", "en-IN", "en", "es", "es-419", "es-US", "et", "eu", "fa", "fi", "fil", "fr-CA", "fr", "gl", "gu", "hi", "hr", "hu", "hy", "id", "is", "it", "iw", "ja", "ka", "kk", "km", "kn", "ko", "ky", "lo", "lt", "lv", "mk", "ml", "mn", "mr", "ms", "my", "no", "ne", "nl", "or", "pa", "pl", "pt", "pt-PT", "ro", "ru", "si", "sk", "sl", "sq", "sr-Latn", "sr", "sv", "sw", "ta", "te", "th", "tr", "uk", "ur", "uz", "vi", "zh-CN", "zh-HK", "zh-TW", "zu")
 
+    lateinit var context: PlatformContext
     lateinit var error_manager: ErrorManager
-    lateinit var languages: Map<String, Map<String, String>>
 
     private var _yt_ui_translation: YoutubeUITranslation? = null
     val yt_ui_translation: YoutubeUITranslation get() = _yt_ui_translation!!
@@ -63,32 +63,20 @@ object SpMp {
     private val prefs_change_listener =
         object : ProjectPreferences.Listener {
             override fun onChanged(prefs: ProjectPreferences, key: String) {
-                if (key == Settings.KEY_LANG_UI.name) {
-                    updateLanguage(Settings.get(Settings.KEY_LANG_UI))
-                }
             }
         }
 
     private val low_memory_listeners: MutableList<() -> Unit> = mutableListOf()
 
-    val ui_language: String get() = languages.keys.elementAt(Settings.get(Settings.KEY_LANG_UI))
-    val data_language: String get() = languages.keys.elementAt(Settings.get(Settings.KEY_LANG_DATA))
+    fun getLanguageCode(index: Int): String = LANGUAGES[index]
+    fun getLanguageIndex(language_code: String): Int = LANGUAGES.indexOf(language_code)
+    fun getLanguageCount(): Int = LANGUAGES.size
+
+    val ui_language: String get() = getLanguageCode(Settings.get(Settings.KEY_LANG_UI))
+    val data_language: String get() = getLanguageCode(Settings.get(Settings.KEY_LANG_DATA))
 
     fun init(context: PlatformContext) {
         this.context = context
-
-        context.getPrefs().addListener(prefs_change_listener)
-        error_manager = ErrorManager(context)
-        languages = loadLanguages(context)
-        _yt_ui_translation = YoutubeUITranslation(languages.keys)
-
-        val ui_lang: Int = Settings.get(Settings.KEY_LANG_UI)
-        initResources(languages.keys.elementAt(ui_lang), context)
-        updateLanguage(ui_lang)
-
-        Cache.init(context)
-        DataApi.initialise()
-        MediaItem.init(Settings.prefs)
 
 //        Thread.setDefaultUncaughtExceptionHandler { _: Thread, error: Throwable ->
 //            error.printStackTrace()
@@ -98,6 +86,20 @@ object SpMp {
 //                putExtra("stack_trace", error.stackTraceToString())
 //            })
 //        }
+
+        context.getPrefs().addListener(prefs_change_listener)
+        error_manager = ErrorManager(context)
+
+        thread {
+            MediaItem.init(Settings.prefs)
+        }
+
+        val ui_lang: Int = Settings.get(Settings.KEY_LANG_UI)
+        initResources(LANGUAGES.elementAt(ui_lang), context)
+
+        _yt_ui_translation = YoutubeUITranslation(LANGUAGES)
+        Cache.init(context)
+        DataApi.initialise()
 
         service_host = PlayerServiceHost.instance ?: PlayerServiceHost()
         service_started = false
@@ -138,22 +140,8 @@ object SpMp {
         low_memory_listeners.forEach { it.invoke() }
     }
 
-    private fun loadLanguages(context: PlatformContext): MutableMap<String, Map<String, String>> {
-        val data = context.openResourceFile("languages.json").bufferedReader()
-        val ret = mutableMapOf<String, Map<String, String>>()
-        for (item in Klaxon().parseJsonObject(data).entries) {
-            val map = mutableMapOf<String, String>()
-            for (subitem in (item.value as JsonObject).entries) {
-                map[subitem.key] = subitem.value.toString()
-            }
-            ret[item.key] = map
-        }
-        data.close()
-        return ret
-    }
-
     private fun getFontFamily(context: PlatformContext): FontFamily {
-        val locale = languages.keys.elementAt(Settings.get(Settings.KEY_LANG_UI))
+        val locale = ui_language
         val font_dirs = context.listResourceFiles("")!!.filter { it.length > 4 && it.startsWith("font") }
 
         var font_dir: String? = font_dirs.firstOrNull { it.endsWith("-$locale") }
@@ -167,10 +155,6 @@ object SpMp {
 
         val font_name = font_dir ?: "font"
         return FontFamily(context.loadFontFromFile("$font_name/regular.ttf"))
-    }
-
-    private fun updateLanguage(lang: Int) {
-        // TODO
     }
 
     val app_name: String get() = getString("app_name")
@@ -271,12 +255,12 @@ class ErrorManager(private val context: PlatformContext) {
                     }
 
                     FilledTonalButton(dismiss) {
-                        Text(getStringTemp("Dismiss"))
+                        Text(getStringTODO("Dismiss"))
                     }
                 }
             },
             title = {
-                WidthShrinkText(getStringTemp("{errors} error(s) occurred").replace("{errors}", errors.size.toString()))
+                WidthShrinkText(getStringTODO("{errors} error(s) occurred").replace("{errors}", errors.size.toString()))
             },
             text = {
                 var expanded_error by remember { mutableStateOf(-1) }
@@ -323,7 +307,7 @@ class ErrorManager(private val context: PlatformContext) {
                     Text(index.toString(), Modifier.align(Alignment.Center))
                 }
 
-                Text(error.message ?: getStringTemp("No message"))
+                Text(error.message ?: getStringTODO("No message"))
             }
 
             AnimatedVisibility(expanded, enter = expandVertically(), exit = shrinkVertically()) {
@@ -331,9 +315,9 @@ class ErrorManager(private val context: PlatformContext) {
                     Text(error.stackTraceToString(), softWrap = false)
 
                     Row(horizontalArrangement = Arrangement.End) {
-                        context.CopyShareButtons(getStringTemp("error")) { error.stackTraceToString() }
+                        context.CopyShareButtons(getStringTODO("error")) { error.stackTraceToString() }
                         FilledTonalButton(onClick = { throw error }) {
-                            Text(getStringTemp("Throw"))
+                            Text(getStringTODO("Throw"))
                         }
                     }
                 }

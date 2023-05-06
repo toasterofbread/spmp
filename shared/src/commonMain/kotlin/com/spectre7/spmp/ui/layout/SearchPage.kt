@@ -129,7 +129,7 @@ fun SearchPage(
                     Box(Modifier.size(20.dp), contentAlignment = Alignment.Center) {
                         SubtleLoadingIndicator({ Theme.current.on_background }, size = 20.dp)
                     }
-                    Text(getStringTemp("Loading"), Modifier.padding(top = 5.dp))
+                    Text(getStringTODO("Loading"), Modifier.padding(top = 5.dp))
                 }
             }
         }
@@ -283,7 +283,7 @@ private fun SearchBar(
 
                             // Query hint
                             if (query_text.isEmpty()) {
-                                Text(getStringTemp("検索"), fontSize = SEARCH_FIELD_FONT_SIZE, color = Theme.current.on_accent)
+                                Text(getStringTODO("検索"), fontSize = SEARCH_FIELD_FONT_SIZE, color = Theme.current.on_accent)
                             }
 
                             // Text input

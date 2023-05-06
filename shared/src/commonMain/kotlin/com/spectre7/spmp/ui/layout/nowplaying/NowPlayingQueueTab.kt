@@ -31,7 +31,6 @@ import com.spectre7.spmp.model.Settings
 import com.spectre7.spmp.model.Song
 import com.spectre7.spmp.platform.MediaPlayerRepeatMode
 import com.spectre7.spmp.platform.MediaPlayerService
-import com.spectre7.spmp.platform.isScreenLarge
 import com.spectre7.spmp.platform.vibrateShort
 import com.spectre7.spmp.ui.layout.MINIMISED_NOW_PLAYING_HEIGHT
 import com.spectre7.spmp.ui.layout.PlayerViewContext
@@ -381,7 +380,7 @@ private fun CurrentRadioIndicator(
                         label = {
                             Text(
                                 filter?.value?.joinToString("|") { it.getReadable() }
-                                    ?: getStringTemp("すべて")
+                                    ?: getStringTODO("すべて")
                             )
                         },
                         colors = FilterChipDefaults.filterChipColors(

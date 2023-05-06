@@ -29,7 +29,7 @@ class LocalisedYoutubeString(
         Type.HOME_FEED -> SpMp.yt_ui_translation.translateHomeFeedString(key, source_language!!)
         Type.OWN_CHANNEL -> SpMp.yt_ui_translation.translateOwnChannelString(key, source_language!!)
         Type.ARTIST_PAGE -> SpMp.yt_ui_translation.translateArtistPageString(key, source_language!!)
-    } ?: throw NotImplementedError("Key: $key, Type: $type, Source lang: ${SpMp.languages.keys.elementAt(source_language!!)}")
+    } ?: throw NotImplementedError("Key: $key, Type: $type, Source lang: ${SpMp.getLanguageCode(source_language!!)}")
 
     companion object {
         private val current_source_language: Int get() = Settings.KEY_LANG_DATA.get()
@@ -42,6 +42,9 @@ class LocalisedYoutubeString(
         fun ownChannel(key: String): LocalisedYoutubeString = LocalisedYoutubeString(key, Type.OWN_CHANNEL, current_source_language)
         fun artistPage(key: String): LocalisedYoutubeString = LocalisedYoutubeString(key, Type.ARTIST_PAGE, current_source_language)
 
+        fun filterChip(key: String): Int? = SpMp.yt_ui_translation.getFilterChipIndex(key, current_source_language)
+        fun filterChip(index: Int): String = SpMp.yt_ui_translation.getFilterChip(index)
+
         fun mediaItemPage(key: String, item_type: MediaItem.Type): LocalisedYoutubeString =
             when (item_type) {
                 MediaItem.Type.ARTIST -> artistPage(key)
@@ -50,10 +53,11 @@ class LocalisedYoutubeString(
     }
 }
 
-class YoutubeUITranslation(languages: Set<String>) {
+class YoutubeUITranslation(languages: List<String>) {
     private val HOME_FEED_STRINGS: List<Map<Int, Pair<String, String?>>>
     private val OWN_CHANNEL_STRINGS: List<Map<Int, Pair<String, String?>>>
     private val ARTIST_PAGE_STRINGS: List<Map<Int, Pair<String, String?>>>
+    private val FILTER_CHIPS: List<Map<Int, Pair<String, String?>>>
 
     private fun getTranslated(string: String, translations: List<Map<Int, Pair<String, String?>>>, source_language: Int): String? {
         val target: Int = Settings.KEY_LANG_UI.get()
@@ -68,16 +72,21 @@ class YoutubeUITranslation(languages: Set<String>) {
         return null
     }
 
-//    fun translateString(string: String): String {
-//        return getStringOrNull(string)
-//                ?: translateHomeFeedString(string)
-//                ?: translateOwnChannelString(string)
-//                ?: throw NotImplementedError(string)
-//    }
-
     fun translateHomeFeedString(string: String, source_language: Int): String? = getTranslated(string, HOME_FEED_STRINGS, source_language)
     fun translateOwnChannelString(string: String, source_language: Int): String? = getTranslated(string, OWN_CHANNEL_STRINGS, source_language)
     fun translateArtistPageString(string: String, source_language: Int): String? = getTranslated(string, ARTIST_PAGE_STRINGS, source_language)
+
+    fun getFilterChipIndex(string: String, source_language: Int): Int? {
+        val index = FILTER_CHIPS.indexOfFirst { it[source_language]?.first == string }
+        if (index == -1) {
+            return null
+        }
+        return index
+    }
+    fun getFilterChip(index: Int): String {
+        val chip = FILTER_CHIPS.elementAt(index)[Settings.KEY_LANG_UI.get()]!!
+        return chip.second ?: chip.first
+    }
 
     init {
         fun MutableList<Map<Int, Pair<String, String?>>>.addString(vararg strings: Pair<Int, String>) {
@@ -245,6 +254,28 @@ class YoutubeUITranslation(languages: Set<String>) {
             addString(
                 en to "Featured on",
                 ja to "収録プレイリスト"
+            )
+        }
+        FILTER_CHIPS = mutableListOf<Map<Int, Pair<String, String?>>>().apply {
+            addString(
+                en to "Relax",
+                ja to "リラックス"
+            )
+            addString(
+                en to "Energize",
+                ja to "エナジー"
+            )
+            addString(
+                en to "Workout",
+                ja to "ワークアウト"
+            )
+            addString(
+                en to "Commute",
+                ja to "通勤・通学"
+            )
+            addString(
+                en to "Focus",
+                ja to "フォーカス"
             )
         }
     }

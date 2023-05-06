@@ -106,7 +106,6 @@ enum class Settings {
 
     companion object {
         val prefs: ProjectPreferences get() = SpMp.context.getPrefs()
-        private var local_auth_keys_used = false
 
         fun <T> set(enum_key: Settings, value: T?, preferences: ProjectPreferences = prefs) {
             preferences.edit {
@@ -150,7 +149,7 @@ enum class Settings {
         @Suppress("IMPLICIT_CAST_TO_ANY", "UNCHECKED_CAST")
         fun <T> getDefault(enum_key: Settings): T {
             return when (enum_key) {
-                KEY_LANG_UI, KEY_LANG_DATA -> SpMp.languages.keys.indexOf(Locale.getDefault().language)
+                KEY_LANG_UI, KEY_LANG_DATA -> SpMp.getLanguageIndex(Locale.getDefault().language)
 
                 KEY_ACCENT_COLOUR_SOURCE -> AccentColourSource.THUMBNAIL.ordinal
                 KEY_CURRENT_THEME -> 0
@@ -186,21 +185,15 @@ enum class Settings {
                 KEY_NP_QUEUE_RADIO_INFO_POSITION -> NowPlayingQueueRadioInfoPosition.TOP_BAR.ordinal
 
                 KEY_YTM_AUTH -> {
-                    if (!local_auth_keys_used) {
-                        with(ProjectBuildConfig) {
-                            if (IS_DEBUG) {
-                                local_auth_keys_used = true
-                                YoutubeMusicAuthInfo(
-                                    Artist.fromId(YTM_CHANNEL_ID!!),
-                                    YTM_COOKIE!!,
-                                    Klaxon().parse(YTM_HEADERS!!.reader())!!
-                                )
-                            }
-                            else emptySet()
+                    with(ProjectBuildConfig) {
+                        if (IS_DEBUG) {
+                            YoutubeMusicAuthInfo(
+                                Artist.fromId(YTM_CHANNEL_ID!!),
+                                YTM_COOKIE!!,
+                                Klaxon().parse(YTM_HEADERS!!.reader())!!
+                            )
                         }
-                    }
-                    else {
-                        emptySet()
+                        else emptySet()
                     }
                 }
 

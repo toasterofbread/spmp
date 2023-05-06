@@ -124,7 +124,7 @@ fun ScrollingLyricsDisplay(playerProvider: () -> PlayerViewContext, size: Dp, se
         Crossfade(targetState = lyrics) {
             if (it == null) {
                 Column(Modifier.size(size), horizontalAlignment = Alignment.CenterHorizontally, verticalArrangement = Arrangement.Center) {
-                    Text(getStringTemp("Loading lyrics"), fontWeight = FontWeight.Light)
+                    Text(getStringTODO("Loading lyrics"), fontWeight = FontWeight.Light)
                     Spacer(Modifier.height(20.dp))
                     LinearProgressIndicator(Modifier.fillMaxWidth(0.5f), color = Theme.current.accent, trackColor = Theme.current.on_accent)
                 }

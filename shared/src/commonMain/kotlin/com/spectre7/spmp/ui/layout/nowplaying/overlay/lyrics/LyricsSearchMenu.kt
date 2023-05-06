@@ -25,7 +25,7 @@ import com.spectre7.spmp.model.Song
 import com.spectre7.spmp.platform.BackHandler
 import com.spectre7.spmp.ui.theme.Theme
 import com.spectre7.utils.getString
-import com.spectre7.utils.getStringTemp
+import com.spectre7.utils.getStringTODO
 import com.spectre7.utils.setAlpha
 import kotlin.concurrent.thread
 
@@ -110,7 +110,7 @@ fun LyricsSearchMenu(song: Song, close: (changed: Boolean) -> Unit) {
                         Modifier
                             .background(Theme.current.accent, CircleShape)
                             .padding(10.dp)) {
-                        Text(getStringTemp("Search for lyrics"), color = on_accent)
+                        Text(getStringTODO("Search for lyrics"), color = on_accent)
                     }
 
                     @Composable

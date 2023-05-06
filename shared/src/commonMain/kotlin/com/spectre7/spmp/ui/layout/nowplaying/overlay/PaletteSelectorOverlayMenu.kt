@@ -29,7 +29,10 @@ import com.spectre7.utils.*
 import kotlin.concurrent.thread
 import kotlin.math.roundToInt
 
-const val PALETTE_SIMILAR_COLOUR_THRESHOLD = 0.1f
+//const val PALETTE_SIMILAR_COLOUR_THRESHOLD = 0.1f
+const val DEFAULT_THUMBNAIL_ROUNDING: Int = 5
+const val MIN_THUMBNAIL_ROUNDING: Int = 0
+const val MAX_THUMBNAIL_ROUNDING: Int = 50
 
 class PaletteSelectorOverlayMenu(
     val defaultThemeColourProvider: () -> Color?,

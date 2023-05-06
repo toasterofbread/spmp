@@ -333,7 +333,6 @@ private class PlayerViewContextImpl: PlayerViewContext(null, null, null) {
                             height = maxOf(height, it.height)
                             height_found = true
                         }
-//                        .height(if (height_found && height > 0) with(LocalDensity.current) { height.toDp() } else Dp.Unspecified)
                 )
             }
         }
@@ -348,7 +347,7 @@ private class PlayerViewContextImpl: PlayerViewContext(null, null, null) {
     private val main_page_scroll_state = LazyListState()
     private val playerProvider = { this }
     private var main_page_layouts: List<MediaItemLayout> by mutableStateOf(emptyList())
-    private var main_page_filter_chips: List<String>? by mutableStateOf(null)
+    private var main_page_filter_chips: List<Pair<Int, String>>? by mutableStateOf(null)
     private var main_page_selected_filter_chip: Int? by mutableStateOf(null)
 
     private val feed_load_state = mutableStateOf(FeedLoadState.NONE)
@@ -363,7 +362,7 @@ private class PlayerViewContextImpl: PlayerViewContext(null, null, null) {
             check(feed_load_state.value == FeedLoadState.NONE)
 
             main_page_selected_filter_chip = filter_chip
-            val params = filter_chip?.let { main_page_filter_chips!![it] }
+            val params = filter_chip?.let { main_page_filter_chips!![it].second }
 
             feed_load_state.value = if (continue_feed) FeedLoadState.CONTINUING else FeedLoadState.LOADING
 
@@ -407,7 +406,7 @@ private class PlayerViewContextImpl: PlayerViewContext(null, null, null) {
                 when (page?.first) {
                     null -> MainPage(
                         pinned_items,
-                        main_page_layouts,
+                        { main_page_layouts },
                         playerProvider,
                         main_page_scroll_state,
                         feed_load_state,
@@ -444,12 +443,12 @@ private class PlayerViewContextImpl: PlayerViewContext(null, null, null) {
     @Composable
     private fun MainPage(
         pinned_items: MutableList<MediaItem>,
-        layouts: List<MediaItemLayout>,
+        layoutsProvider: () -> List<MediaItemLayout>,
         playerProvider: () -> PlayerViewContext,
         scroll_state: LazyListState,
         feed_load_state: MutableState<FeedLoadState>,
         can_continue_feed: Boolean,
-        getFilterChips: () -> List<String>?,
+        getFilterChips: () -> List<Pair<Int, String>>?,
         getSelectedFilterChip: () -> Int?,
         loadFeed: (filter_chip: Int?, continuation: Boolean) -> Unit
     ) {
@@ -475,20 +474,25 @@ private class PlayerViewContextImpl: PlayerViewContext(null, null, null) {
 
         val artists_layout: MediaItemLayout = remember {
             MediaItemLayout(
-                LocalisedYoutubeString.raw(MediaItem.Type.ARTIST.getReadable(true)),
+                null,
+//                LocalisedYoutubeString.raw(MediaItem.Type.ARTIST.getReadable(true)),
                 null,
                 items = mutableStateListOf(),
                 type = MediaItemLayout.Type.ROW,
-                itemSizeProvider = { DpSize(120.dp, 150.dp) }
+                itemSizeProvider = {
+                    val size = 80.dp
+                    DpSize(size, size + 30.dp)
+                }
             )
         }
         var auth_info: YoutubeMusicAuthInfo by remember { mutableStateOf(YoutubeMusicAuthInfo(Settings.KEY_YTM_AUTH.get())) }
 
-        LaunchedEffect(layouts) {
-            val artists_map: MutableMap<Artist, Int> = mutableMapOf()
-            for (layout in layouts) {
+        LaunchedEffect(layoutsProvider()) {
+            val artists_map: MutableMap<Artist, Int?> = mutableMapOf()
+            for (layout in layoutsProvider()) {
                 for (item in layout.items) {
                     if (item is Artist) {
+                        artists_map[item] = null
                         continue
                     }
 
@@ -497,19 +501,21 @@ private class PlayerViewContextImpl: PlayerViewContext(null, null, null) {
                             return@also
                         }
 
-                        val current = artists_map[artist]
-                        if (current == null) {
-                            artists_map[artist] = 1
+                        if (artists_map.containsKey(artist)) {
+                            val current = artists_map[artist]
+                            if (current != null) {
+                                artists_map[artist] = current + 1
+                            }
                         }
                         else {
-                            artists_map[artist] = current + 1
+                            artists_map[artist] = 1
                         }
                     }
                 }
             }
 
             val artists = artists_map.mapNotNull { artist ->
-                if (artist.value < 1) null
+                if (artist.value == null || artist.value!! < 1) null
                 else Pair(artist.key, artist.value)
             }.sortedByDescending { it.second }
 
@@ -536,7 +542,14 @@ private class PlayerViewContextImpl: PlayerViewContext(null, null, null) {
         }
 
         Column(Modifier.padding(horizontal = padding)) {
-            MainPageTopBar(auth_info, playerProvider, Modifier.padding(top = SpMp.context.getStatusBarHeight()))
+            MainPageTopBar(
+                auth_info,
+                playerProvider,
+                { main_page_filter_chips },
+                getSelectedFilterChip,
+                { loadFeed(it, false) },
+                Modifier.padding(top = SpMp.context.getStatusBarHeight())
+            )
 
             // Main scrolling view
             SwipeRefresh(
@@ -545,8 +558,8 @@ private class PlayerViewContextImpl: PlayerViewContext(null, null, null) {
                 swipe_enabled = feed_load_state.value == FeedLoadState.NONE,
                 indicator = false
             ) {
-//            val state by remember { derivedStateOf { if (feed_load_state.value == FeedLoadState.LOADING) null else layouts.isNotEmpty() } }
-                val state = if (feed_load_state.value == FeedLoadState.LOADING) null else layouts.isNotEmpty()
+                val layouts_empty by remember { derivedStateOf { layoutsProvider().isEmpty() } }
+                val state = if (feed_load_state.value == FeedLoadState.LOADING) null else !layouts_empty
                 var current_state by remember { mutableStateOf(state) }
                 val state_alpha = remember { Animatable(1f) }
 
@@ -558,16 +571,14 @@ private class PlayerViewContextImpl: PlayerViewContext(null, null, null) {
 
                 @Composable
                 fun TopContent() {
-                    MainPageScrollableTopContent(playerProvider, pinned_items, getFilterChips, getSelectedFilterChip, Modifier.padding(bottom = 15.dp)) {
-                        loadFeed(it, false)
-                    }
+                    MainPageScrollableTopContent(playerProvider, pinned_items, Modifier.padding(bottom = 15.dp))
                 }
 
                 when (current_state) {
                     // Loaded
                     true -> {
                         LazyMediaItemLayoutColumn(
-                            layouts,
+                            layoutsProvider,
                             playerProvider,
                             layout_modifier = Modifier.graphicsLayer { alpha = state_alpha.value },
                             padding = PaddingValues(
@@ -587,11 +598,11 @@ private class PlayerViewContextImpl: PlayerViewContext(null, null, null) {
                                 }
                             },
                             layoutItem = { layout, i, showLayout ->
-                                showLayout(this, layout)
-
                                 if (i == 0) {
                                     artists_layout.also { showLayout(this, it) }
                                 }
+
+                                showLayout(this, layout)
                             }
                         ) { it.type ?: MediaItemLayout.Type.GRID }
                     }
@@ -693,104 +704,122 @@ private fun getMainPageItemSize(): DpSize {
 }
 
 @Composable
-private fun MainPageTopBar(auth_info: YoutubeMusicAuthInfo, playerProvider: () -> PlayerViewContext, modifier: Modifier = Modifier) {
-    Row(modifier.height(IntrinsicSize.Min)) {
-
-        var lyrics: Song.Lyrics? by remember { mutableStateOf(null) }
-        var lyrics_loading: Boolean by remember { mutableStateOf(false) }
-        var load_thread: Thread? by remember { mutableStateOf(null) }
-
-        LaunchedEffect(PlayerServiceHost.status.m_song) {
-            load_thread?.interrupt()
-            load_thread = null
-
-            val song = PlayerServiceHost.status.m_song
-
-            if (song?.lyrics_loaded == true) {
-                lyrics = song.lyrics
-                lyrics_loading = false
-            }
-            else {
-                lyrics = null
-
-                if (song != null) {
-                    lyrics_loading = true
-                    load_thread = SpMp.context.networkThread {
-                        try {
-                            val result = song.loadLyrics()
-                            if (!Thread.currentThread().isInterrupted) {
-                                lyrics = result
-                                lyrics_loading = false
-                            }
-                        }
-                        catch (error: java.lang.Exception) {
-                            for (e in listOf(error, error.cause)) {
-                                if (e is InterruptedIOException || e is ClosedByInterruptException) {
-                                    return@networkThread
-                                }
-                            }
-                            throw RuntimeException(error)
-                        }
-                    }
-                }
-                else {
-                    lyrics_loading = false
-                }
-            }
-        }
-
-        var show_lyrics: Boolean by remember { mutableStateOf(true) }
-
-        NoRipple {
-            Box(Modifier.fillMaxSize().weight(1f).clickable { show_lyrics = !show_lyrics }) {
-                val state by remember { derivedStateOf {
-                    lyrics.let {
-                        if (show_lyrics && it != null && it.sync_type != Song.Lyrics.SyncType.NONE) it
-                        else if (PlayerServiceHost.status.m_playing) 0
-                        else null
-                    }
-                } }
-
-                Crossfade(state) { s ->
-                    Box(Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
-                        when (s) {
-                            is Song.Lyrics -> LyricsLineDisplay(s, { PlayerServiceHost.status.position_ms + 500 }, Theme.current.on_background_provider)
-                            0 -> PlayerServiceHost.player.Visualiser(Color.White, Modifier.fillMaxSize().padding(vertical = 10.dp), opacity = 0.5f)
-                        }
-                    }
-                }
-            }
-        }
-
-        IconButton({
-            if (auth_info.initialised) {
-                playerProvider().onMediaItemClicked(auth_info.own_channel)
-            }
-            else {
-                playerProvider().setOverlayPage(OverlayPage.YTM_LOGIN)
-            }
-        }) {
-            Crossfade(auth_info) { info ->
-                if (auth_info.initialised) {
-                    info.own_channel.Thumbnail(MediaItem.ThumbnailQuality.LOW, Modifier.clip(CircleShape).size(27.dp))
-                }
-                else {
-                    Icon(Icons.Filled.Person, null)
-                }
-            }
+private fun RadioBuilderButton(playerProvider: () -> PlayerViewContext) {
+    IconButton({ playerProvider().setOverlayPage(OverlayPage.RADIO_BUILDER) }) {
+        Row {
+            Icon(Icons.Default.Radio, null)
+            Icon(Icons.Default.Add, null)
         }
     }
 }
 
-@OptIn(ExperimentalMaterial3Api::class)
+@Composable
+private fun MainPageTopBar(
+    auth_info: YoutubeMusicAuthInfo,
+    playerProvider: () -> PlayerViewContext,
+    getFilterChips: () -> List<Pair<Int, String>>?,
+    getSelectedFilterChip: () -> Int?,
+    onFilterChipSelected: (Int?) -> Unit,
+    modifier: Modifier = Modifier
+) {
+    Column {
+        Row(modifier.height(IntrinsicSize.Min)) {
+            RadioBuilderButton(playerProvider)
+
+            var lyrics: Song.Lyrics? by remember { mutableStateOf(null) }
+            var lyrics_loading: Boolean by remember { mutableStateOf(false) }
+            var load_thread: Thread? by remember { mutableStateOf(null) }
+
+            LaunchedEffect(PlayerServiceHost.status.m_song) {
+                load_thread?.interrupt()
+                load_thread = null
+
+                val song = PlayerServiceHost.status.m_song
+
+                if (song?.lyrics_loaded == true) {
+                    lyrics = song.lyrics
+                    lyrics_loading = false
+                }
+                else {
+                    lyrics = null
+
+                    if (song != null) {
+                        lyrics_loading = true
+                        load_thread = SpMp.context.networkThread {
+                            try {
+                                val result = song.loadLyrics()
+                                if (!Thread.currentThread().isInterrupted) {
+                                    lyrics = result
+                                    lyrics_loading = false
+                                }
+                            }
+                            catch (error: java.lang.Exception) {
+                                for (e in listOf(error, error.cause)) {
+                                    if (e is InterruptedIOException || e is ClosedByInterruptException) {
+                                        return@networkThread
+                                    }
+                                }
+                                throw RuntimeException(error)
+                            }
+                        }
+                    }
+                    else {
+                        lyrics_loading = false
+                    }
+                }
+            }
+
+            var show_lyrics: Boolean by remember { mutableStateOf(true) }
+
+            NoRipple {
+                Box(Modifier.fillMaxSize().weight(1f).clickable { show_lyrics = !show_lyrics }) {
+                    val state by remember { derivedStateOf {
+                        lyrics.let {
+                            if (show_lyrics && it != null && it.sync_type != Song.Lyrics.SyncType.NONE) it
+                            else if (PlayerServiceHost.status.m_playing) 0
+                            else null
+                        }
+                    } }
+
+                    Crossfade(state) { s ->
+                        Box(Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
+                            when (s) {
+                                is Song.Lyrics -> LyricsLineDisplay(s, { PlayerServiceHost.status.position_ms + 500 }, Theme.current.on_background_provider)
+                                0 -> PlayerServiceHost.player.Visualiser(Color.White, Modifier.fillMaxSize().padding(vertical = 10.dp), opacity = 0.5f)
+                            }
+                        }
+                    }
+                }
+            }
+
+            IconButton({
+                if (auth_info.initialised) {
+                    playerProvider().onMediaItemClicked(auth_info.own_channel)
+                }
+                else {
+                    playerProvider().setOverlayPage(OverlayPage.YTM_LOGIN)
+                }
+            }) {
+                Crossfade(auth_info) { info ->
+                    if (auth_info.initialised) {
+                        info.own_channel.Thumbnail(MediaItem.ThumbnailQuality.LOW, Modifier.clip(CircleShape).size(27.dp))
+                    }
+                    else {
+                        Icon(Icons.Filled.Person, null)
+                    }
+                }
+            }
+        }
+
+        FilterChipsRow(getFilterChips, getSelectedFilterChip, onFilterChipSelected)
+    }
+}
+
 @Composable
 private fun MainPageScrollableTopContent(
     playerProvider: () -> PlayerViewContext,
     pinned_items: MutableList<MediaItem>,
-    getFilterChips: () -> List<String>?,
-    getSelectedFilterChip: () -> Int?,
-    modifier: Modifier = Modifier,
-    onFilterChipSelected: (Int?) -> Unit
+    modifier: Modifier = Modifier
 ) {
     val pinned_layout = remember(pinned_items) {
         MediaItemLayout(
@@ -833,19 +862,25 @@ private fun MainPageScrollableTopContent(
                 }
             )
         }
+    }
+}
 
+@OptIn(ExperimentalMaterial3Api::class)
+@Composable
+private fun ColumnScope.FilterChipsRow(getFilterChips: () -> List<Pair<Int, String>>?, getSelectedFilterChip: () -> Int?, onFilterChipSelected: (Int?) -> Unit) {
+    val filter_chips = getFilterChips()
+    AnimatedVisibility(filter_chips?.isNotEmpty() == true) {
         LazyRow(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.spacedBy(10.dp)) {
-            val filter_chips = getFilterChips()
             val selected_filter_chip = getSelectedFilterChip()
 
             items(filter_chips?.size ?: 0) { i ->
-                val chip = filter_chips!![i]
+                val chip_index = filter_chips!![i].first
                 ElevatedFilterChip(
                     i == selected_filter_chip,
                     {
                         onFilterChipSelected(if (i == selected_filter_chip) null else i)
                     },
-                    { Text(getFilterChipName(chip)) },
+                    { Text(LocalisedYoutubeString.filterChip(chip_index)) },
                     colors = with(Theme.current) {
                         FilterChipDefaults.elevatedFilterChipColors(
                             containerColor = background,
@@ -861,24 +896,6 @@ private fun MainPageScrollableTopContent(
             }
         }
     }
-
-}
-
-private val FILTER_CHIP_INDICES = mapOf(
-    11 to "Energise",
-    19 to "Relax",
-    27 to "Workout",
-    35 to "Commute",
-    43 to "Focus"
-)
-
-private fun getFilterChipName(params: String): String {
-    for (index in FILTER_CHIP_INDICES) {
-        if (params[index.key] == 'D') {
-            return getStringTemp(index.value)
-        }
-    }
-    throw NotImplementedError(params)
 }
 
 @Composable
@@ -893,50 +910,7 @@ private fun MainPageLoadingView(modifier: Modifier = Modifier) {
     }
 }
 
-//@Composable
-//private fun RadioBuilderCard(playerProvider: () -> PlayerViewContext, modifier: Modifier = Modifier) {
-//    Card(
-//        modifier,
-//        colors = CardDefaults.cardColors(
-//            containerColor = Theme.current.vibrant_accent,
-//            contentColor = Theme.current.vibrant_accent.getContrasted()
-//        )
-//    ) {
-//        Column(Modifier.padding(10.dp), verticalArrangement = Arrangement.spacedBy(5.dp)) {
-//            WidthShrinkText(
-//                getString("radio_builder_title"),
-//                modifier = Modifier.padding(horizontal = 15.dp),
-//                fontSize = 25.sp,
-//                colour = Theme.current.vibrant_accent.getContrasted()
-//            )
-//
-//            Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.SpaceEvenly) {
-//                val button_colours = ButtonDefaults.buttonColors(
-//                    containerColor = Theme.current.vibrant_accent.getContrasted(),
-//                    contentColor = Theme.current.vibrant_accent
-//                )
-//
-//                ShapedIconButton(
-//                    { playerProvider().setOverlayPage(OverlayPage.RADIO_BUILDER) },
-//                    shape = CircleShape,
-//                    colors = button_colours.toIconButtonColours()
-//                ) {
-//                    Icon(Icons.Filled.Add, null)
-//                }
-//
-//                val button_padding = PaddingValues(15.dp, 5.dp)
-//                Button({ TODO() }, contentPadding = button_padding, colors = button_colours) {
-//                    WidthShrinkText(getString("radio_builder_play_last_button"))
-//                }
-//                Button({ TODO() }, contentPadding = button_padding, colors = button_colours) {
-//                    WidthShrinkText(getString("radio_builder_recent_button"))
-//                }
-//            }
-//        }
-//    }
-//}
-
-private fun loadFeedLayouts(min_rows: Int, allow_cached: Boolean, params: String?, continuation: String? = null): Result<Triple<List<MediaItemLayout>, String?, List<String>?>> {
+private fun loadFeedLayouts(min_rows: Int, allow_cached: Boolean, params: String?, continuation: String? = null): Result<Triple<List<MediaItemLayout>, String?, List<Pair<Int, String>>?>> {
     val result = getHomeFeed(allow_cached = allow_cached, min_rows = min_rows, params = params, continuation = continuation)
 
     if (!result.isSuccess) {

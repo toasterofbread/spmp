@@ -36,7 +36,7 @@ class MainOverlayMenu(
     val setOverlayMenu: (OverlayMenu?) -> Unit,
     val requestColourPicker: ((Color?) -> Unit) -> Unit,
     val onColourSelected: (Color) -> Unit,
-    val screen_width_dp: Dp
+    val getScreenWidth: @Composable () -> Dp
 ): OverlayMenu() {
 
     override fun closeOnTap(): Boolean = true
@@ -126,7 +126,7 @@ class MainOverlayMenu(
                 onValueChange = { text ->
                     edited_song_title = text
                 },
-                label = { Text(getStringTemp("Edit title")) },
+                label = { Text(getStringTODO("Edit title")) },
                 singleLine = true,
                 trailingIcon = {
                     Icon(Icons.Filled.Close, null, Modifier.clickable { edited_song_title = "" })
@@ -192,6 +192,7 @@ class MainOverlayMenu(
                     Icon(Icons.Filled.Palette, null, tint = button_colour)
                 }
 
+                val screen_width = getScreenWidth()
                 Box(
                     button_modifier
                         .combinedClickable(
@@ -199,14 +200,14 @@ class MainOverlayMenu(
                             indication = null,
                             onClick = { setOverlayMenu(
                                 LyricsOverlayMenu(
-                                    (screen_width_dp - (NOW_PLAYING_MAIN_PADDING * 2) - (15.dp * expansion * 2)).value * 0.9.dp
+                                    (screen_width - (NOW_PLAYING_MAIN_PADDING.dp * 2) - (15.dp * expansion * 2)).value * 0.9.dp
                                 )
                             ) },
                             onLongClick = {
                                 SpMp.context.vibrateShort()
                                 setOverlayMenu(
                                     LyricsOverlayMenu(
-                                        (screen_width_dp - (NOW_PLAYING_MAIN_PADDING * 2) - (15.dp * expansion * 2)).value * 0.9.dp
+                                        (screen_width - (NOW_PLAYING_MAIN_PADDING.dp * 2) - (15.dp * expansion * 2)).value * 0.9.dp
                                     )
                                 )
                             }

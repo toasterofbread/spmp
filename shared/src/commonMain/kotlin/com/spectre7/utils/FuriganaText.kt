@@ -27,6 +27,8 @@ import androidx.compose.ui.text.AnnotatedString
 import androidx.compose.ui.text.Placeholder
 import androidx.compose.ui.text.PlaceholderVerticalAlign
 import androidx.compose.ui.text.buildAnnotatedString
+import androidx.compose.ui.text.style.TextAlign
+import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.*
 import com.spectre7.spmp.model.Song
 
@@ -199,7 +201,6 @@ fun BasicFuriganaText(
                             Text(text, fontSize = font_size, color = _text_colour)
                             Text("", fontSize = reading_font_size) // Add spacing at bottom to keep main text centered
                         }
-
                     }
                 }
             }

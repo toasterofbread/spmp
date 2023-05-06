@@ -16,9 +16,14 @@
     <string name="home_feed_rec_playlists">Recommended playlists</string>
     <string name="home_feed_rec_music_videos">Recommended music videos</string>
     <string name="home_feed_rec_albums_playlists">Artists and albums</string>
-
     <string name="home_feed_similar_to">Similar to</string>
     <string name="home_feed_more_from">More from</string>
+
+    <string name="home_feed_filter_energise">Energise</string>
+    <string name="home_feed_filter_relax">Relax</string>
+    <string name="home_feed_filter_workout">Workout</string>
+    <string name="home_feed_filter_commute">Commute</string>
+    <string name="home_feed_filter_focus">Focus</string>
 
     <string name="song_name">Song name</string>
     <string name="videos">Videos</string>

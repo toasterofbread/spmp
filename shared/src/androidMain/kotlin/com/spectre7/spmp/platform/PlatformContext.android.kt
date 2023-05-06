@@ -42,10 +42,7 @@ import android.view.Window
 import android.view.WindowInsetsController.APPEARANCE_LIGHT_STATUS_BARS
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.toArgb
-import com.spectre7.spmp.model.YoutubeMusicAuthInfo
-import com.spectre7.spmp.ui.layout.OverlayPage
-import com.spectre7.spmp.ui.layout.PlayerViewContext
-import com.spectre7.utils.getStringTemp
+import com.spectre7.utils.getStringTODO
 import com.spectre7.utils.getString
 
 private const val ERROR_NOTIFICATION_CHANNEL_ID = "download_error_channel"
@@ -174,10 +171,10 @@ actual class PlatformContext(context: Context) {
             clipboard.setText(AnnotatedString(getText()))
 
             if (name != null) {
-                sendToast(getStringTemp("Copied {name} to clipboard").replace("{name}", name))
+                sendToast(getStringTODO("Copied {name} to clipboard").replace("{name}", name))
             }
             else {
-                sendToast(getStringTemp("Copied to clipboard"))
+                sendToast(getStringTODO("Copied to clipboard"))
             }
         }) {
             Icon(Icons.Filled.ContentCopy, null, Modifier.size(20.dp))

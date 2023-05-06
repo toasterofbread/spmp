@@ -9,13 +9,14 @@ import java.time.Duration
 import java.time.Instant
 import kotlin.io.path.relativeTo
 import com.spectre7.utils.getString
+import kotlin.concurrent.thread
 
 class Cache {
     companion object {
         private lateinit var cache_dir: File
 
         fun init(context: PlatformContext) {
-            cache_dir = File(context.getCacheDir(), getString("app_name"))
+            cache_dir = File(context.getCacheDir(), "spmp")
 
             if (!cache_dir.exists()) {
                 cache_dir.mkdirs()
@@ -23,7 +24,10 @@ class Cache {
                     throw FileNotFoundException("Could not create cache dir")
                 }
             }
-            clean()
+
+            thread {
+                clean()
+            }
         }
 
         fun clean() {

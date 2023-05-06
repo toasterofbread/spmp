@@ -6,7 +6,7 @@ import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.setValue
 import com.spectre7.spmp.ui.component.PlaylistPreviewLong
 import com.spectre7.spmp.ui.component.PlaylistPreviewSquare
-import com.spectre7.utils.getStringTemp
+import com.spectre7.utils.getStringTODO
 
 class Playlist private constructor (
     id: String
@@ -69,7 +69,7 @@ class Playlist private constructor (
 }
 
 fun Playlist.PlaylistType?.getReadable(plural: Boolean): String {
-    return getStringTemp(when (this) {
+    return getStringTODO(when (this) {
         Playlist.PlaylistType.PLAYLIST, null -> if (plural) "playlists" else "playlist"
         Playlist.PlaylistType.ALBUM -> if (plural) "albums" else "album"
         Playlist.PlaylistType.AUDIOBOOK -> if (plural) "audiobooks" else "audiobook"

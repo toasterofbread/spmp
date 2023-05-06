@@ -334,7 +334,7 @@ private fun TitleBar(item: MediaItem, modifier: Modifier = Modifier) {
                         onValueChange = { text ->
                             edited_title = text
                         },
-                        label = { Text(getStringTemp("Edit title")) },
+                        label = { Text(getStringTODO("Edit title")) },
                         singleLine = true,
                         trailingIcon = {
                             Icon(Icons.Filled.Close, null, Modifier.clickable { edited_title = "" })
@@ -399,7 +399,7 @@ fun ArtistSubscribeButton(
                             toggle_before_fetch = true,
                         ) { success, subscribing ->
                             if (!success) {
-                                SpMp.context.sendToast(getStringTemp(
+                                SpMp.context.sendToast(getStringTODO(
                                     if (subscribing) "Subscribing to ${artist.title} failed"
                                     else "Unsubscribing from ${artist.title} failed"
                                 ))
@@ -501,7 +501,7 @@ private fun InfoDialog(item: MediaItem, close: () -> Unit) {
                 Text("Close")
             }
         },
-        title = { Text(getStringTemp(when (item) {
+        title = { Text(getStringTODO(when (item) {
             is Artist -> "Artist info"
             is Playlist -> "Playlist info"
             else -> throw NotImplementedError(item.type.toString())

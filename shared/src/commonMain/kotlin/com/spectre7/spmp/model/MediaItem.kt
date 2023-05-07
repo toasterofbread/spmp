@@ -20,7 +20,6 @@ import com.spectre7.spmp.platform.ProjectPreferences
 import com.spectre7.spmp.platform.toImageBitmap
 import com.spectre7.spmp.ui.component.MediaItemLayout
 import com.spectre7.spmp.ui.layout.PlayerViewContext
-import com.spectre7.spmp.ui.theme.Theme
 import com.spectre7.utils.*
 import kotlinx.coroutines.*
 import java.io.FileNotFoundException
@@ -315,7 +314,7 @@ abstract class MediaItem(id: String) {
             val result = arrayListOf<Any?>()
             val map = DataApi.klaxon.parser(Any::class).parse(reader) as JsonArray<*>
             map.forEach { jo ->
-                if (jo == null || jo is JsonObject) {
+                if (jo == null || jo is JsonObject || jo is JsonArray<*>) {
                     result.add(jo)
                 }
                 else {
@@ -606,7 +605,7 @@ abstract class MediaItem(id: String) {
     data class PreviewParams(
         val playerProvider: () -> PlayerViewContext,
         val modifier: Modifier = Modifier,
-        val content_colour: () -> Color = Theme.current.on_background_provider,
+        val contentColour: (() -> Color)? = null,
         val enable_long_press_menu: Boolean = true,
         val show_type: Boolean = true
     )
@@ -617,7 +616,7 @@ abstract class MediaItem(id: String) {
     abstract fun PreviewLong(params: PreviewParams)
 
     @Composable
-    fun Thumbnail(quality: ThumbnailQuality, modifier: Modifier = Modifier, contentColourProvider: () -> Color = { Color.White }) {
+    fun Thumbnail(quality: ThumbnailQuality, modifier: Modifier = Modifier, contentColourProvider: (() -> Color)? = null) {
         LaunchedEffect(quality, canLoadThumbnail()) {
             if (!canLoadThumbnail()) {
                 thread { loadData() }
@@ -627,7 +626,7 @@ abstract class MediaItem(id: String) {
 
         Crossfade(thumb_states[quality]!!.image) { thumbnail ->
             if (thumbnail == null) {
-                SubtleLoadingIndicator(contentColourProvider, modifier.fillMaxSize())
+                SubtleLoadingIndicator(modifier.fillMaxSize(), contentColourProvider)
             }
             else {
                 Image(

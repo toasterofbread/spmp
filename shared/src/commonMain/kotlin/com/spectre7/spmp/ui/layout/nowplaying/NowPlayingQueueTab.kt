@@ -97,7 +97,7 @@ private class QueueTabItem(val song: Song, val key: Int) {
                                 Orientation.Horizontal,
                                 thresholds = { _, _ -> FractionalThreshold(0.2f) }
                             ),
-                        content_colour = { backgroundColourProvider().getContrasted() },
+                        contentColour = { backgroundColourProvider().getContrasted() },
                     ),
                     queue_index = index
                 )
@@ -332,7 +332,7 @@ fun QueueTab(expansionProvider: () -> Float, playerProvider: () -> PlayerViewCon
                 if (PlayerServiceHost.player.radio_loading) {
                     item {
                         Box(Modifier.height(50.dp), contentAlignment = Alignment.Center) {
-                            SubtleLoadingIndicator({ queueBackgroundColourProvider().getContrasted() })
+                            SubtleLoadingIndicator(colourProvider = { queueBackgroundColourProvider().getContrasted() })
                         }
                     }
                 }
@@ -356,7 +356,7 @@ private fun CurrentRadioIndicator(
             radio_item.PreviewLong(MediaItem.PreviewParams(
                 playerProvider,
                 Modifier.padding(horizontal = 15.dp),
-                content_colour = { backgroundColourProvider().getContrasted() }
+                contentColour = { backgroundColourProvider().getContrasted() }
             ))
         }
 

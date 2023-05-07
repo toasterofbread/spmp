@@ -171,10 +171,10 @@ actual class PlatformContext(private val context: Context) {
             clipboard.setText(AnnotatedString(getText()))
 
             if (name != null) {
-                sendToast(getStringTODO("Copied {name} to clipboard").replace("{name}", name))
+                sendToast(getString("notif_copied_x_to_clipboard").replace("\$x", name))
             }
             else {
-                sendToast(getStringTODO("Copied to clipboard"))
+                sendToast(getString("notif_copied_to_clipboard"))
             }
         }) {
             Icon(Icons.Filled.ContentCopy, null, Modifier.size(20.dp))

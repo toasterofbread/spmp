@@ -5,13 +5,11 @@
 package com.spectre7.spmp.ui.component
 
 import androidx.compose.animation.Crossfade
-import androidx.compose.animation.core.animateDpAsState
 import androidx.compose.animation.core.tween
 import androidx.compose.foundation.ExperimentalFoundationApi
 import androidx.compose.foundation.combinedClickable
 import androidx.compose.foundation.interaction.MutableInteractionSource
 import androidx.compose.foundation.layout.*
-import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.*
@@ -19,9 +17,10 @@ import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.alpha
+import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.Shape
 import androidx.compose.ui.text.style.TextOverflow
-import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.spectre7.spmp.PlayerServiceHost
@@ -30,6 +29,7 @@ import com.spectre7.spmp.model.MediaItem
 import com.spectre7.spmp.platform.platformClickable
 import com.spectre7.spmp.ui.layout.ArtistSubscribeButton
 import com.spectre7.utils.getContrasted
+import com.spectre7.utils.getStringTODO
 import com.spectre7.utils.setAlpha
 
 const val ARTIST_THUMB_CORNER_ROUNDING = 50
@@ -64,14 +64,14 @@ fun ArtistPreviewSquare(
             artist.Thumbnail(
                 MediaItem.ThumbnailQuality.LOW,
                 Modifier.longPressMenuIcon(long_press_menu_data, params.enable_long_press_menu).aspectRatio(1f),
-                params.content_colour
+                params.contentColour
             )
         }
 
         Text(
             artist.title ?: "",
             fontSize = 12.sp,
-            color = params.content_colour(),
+            color = params.contentColour?.invoke() ?: Color.Unspecified,
             maxLines = 1,
             lineHeight = 14.sp,
             overflow = TextOverflow.Ellipsis
@@ -117,15 +117,16 @@ fun ArtistPreviewLong(
             Text(
                 artist.title ?: "",
                 fontSize = 15.sp,
-                color = params.content_colour(),
+                color = params.contentColour?.invoke() ?: Color.Unspecified,
                 maxLines = 1,
                 overflow = TextOverflow.Ellipsis
             )
 
             Text(
-                "${artist.getFormattedSubscriberCount()} subscribers",
+                getStringTODO("${artist.getFormattedSubscriberCount()} subscribers"),
+                Modifier.alpha(0.5f),
                 fontSize = 12.sp,
-                color = params.content_colour().setAlpha(0.5f),
+                color = params.contentColour?.invoke() ?: Color.Unspecified,
                 maxLines = 1,
                 overflow = TextOverflow.Ellipsis
             )
@@ -211,7 +212,7 @@ private fun LongPressMenuActionProvider.ArtistLongPressPopupActions(artist: Medi
             }
 
             Crossfade(queue_song, animationSpec = tween(100)) {
-                it.PreviewLong(MediaItem.PreviewParams(playerProvider, content_colour = content_colour))
+                it.PreviewLong(MediaItem.PreviewParams(playerProvider, contentColour = content_colour))
             }
         }
     }

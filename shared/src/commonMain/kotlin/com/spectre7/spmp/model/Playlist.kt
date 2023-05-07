@@ -7,6 +7,7 @@ import androidx.compose.runtime.setValue
 import com.beust.klaxon.Klaxon
 import com.spectre7.spmp.ui.component.PlaylistPreviewLong
 import com.spectre7.spmp.ui.component.PlaylistPreviewSquare
+import com.spectre7.utils.getString
 import com.spectre7.utils.getStringTODO
 
 class Playlist private constructor (
@@ -80,7 +81,7 @@ class Playlist private constructor (
 }
 
 fun Playlist.PlaylistType?.getReadable(plural: Boolean): String {
-    return getStringTODO(when (this) {
+    return getString(when (this) {
         Playlist.PlaylistType.PLAYLIST, null -> if (plural) "playlists" else "playlist"
         Playlist.PlaylistType.ALBUM -> if (plural) "albums" else "album"
         Playlist.PlaylistType.AUDIOBOOK -> if (plural) "audiobooks" else "audiobook"

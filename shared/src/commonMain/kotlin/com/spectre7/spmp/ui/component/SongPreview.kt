@@ -17,6 +17,7 @@ import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.alpha
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.Shape
 import androidx.compose.ui.graphics.vector.ImageVector
@@ -60,14 +61,14 @@ fun SongPreviewSquare(
             song.Thumbnail(
                 MediaItem.ThumbnailQuality.LOW,
                 Modifier.longPressMenuIcon(long_press_menu_data, params.enable_long_press_menu).aspectRatio(1f),
-                params.content_colour
+                params.contentColour
             )
         }
 
         Text(
             song.title ?: "",
             fontSize = 12.sp,
-            color = params.content_colour(),
+            color = params.contentColour?.invoke() ?: Color.Unspecified,
             maxLines = 1,
             lineHeight = 14.sp,
             overflow = TextOverflow.Ellipsis
@@ -109,7 +110,7 @@ fun SongPreviewLong(
             Modifier
                 .longPressMenuIcon(long_press_menu_data, params.enable_long_press_menu)
                 .size(40.dp),
-            params.content_colour
+            params.contentColour
         )
 
         Column(
@@ -122,7 +123,7 @@ fun SongPreviewLong(
             Text(
                 song.title ?: "",
                 fontSize = 15.sp,
-                color = params.content_colour(),
+                color = params.contentColour?.invoke() ?: Color.Unspecified,
                 maxLines = 1,
                 overflow = TextOverflow.Ellipsis
             )
@@ -132,8 +133,9 @@ fun SongPreviewLong(
                 fun InfoText(text: String) {
                     Text(
                         text,
+                        Modifier.alpha(0.5f),
                         fontSize = 11.sp,
-                        color = params.content_colour().setAlpha(0.5f),
+                        color = params.contentColour?.invoke() ?: Color.Unspecified,
                         maxLines = 1,
                         overflow = TextOverflow.Ellipsis
                     )
@@ -163,7 +165,7 @@ fun getSongLongPressMenuData(
         song,
         thumb_shape,
         { SongLongPressMenuInfo(song, queue_index, it) },
-        getStringTODO("Long press actions"),
+        getString("lpm_long_press_actions"),
         actions = {
             SongLongPressPopupActions(it, queue_index)
         },
@@ -188,9 +190,10 @@ private fun ColumnScope.SongLongPressMenuInfo(song: Song, queue_index: Int?, acc
         }
     }
 
-    Item(Icons.Filled.Radio, getStringTODO("Start radio at song position in queue"))
-    Item(Icons.Filled.SubdirectoryArrowRight, getStringTODO("Start radio after X song(s)"))
-    Item(Icons.Filled.Download, getStringTODO("Configure download"))
+    Item(Icons.Filled.Radio, getString("lpm_action_start_radio_long_press"))
+    if (queue_index != null) {
+        Item(Icons.Filled.SubdirectoryArrowRight, getString("lpm_action_play_after_long_press"))
+    }
 
     Spacer(
         Modifier
@@ -199,8 +202,8 @@ private fun ColumnScope.SongLongPressMenuInfo(song: Song, queue_index: Int?, acc
     )
 
     Row(Modifier.requiredHeight(20.dp), verticalAlignment = Alignment.CenterVertically) {
-        Text("ID: ")
-        Text(song.id,
+        Text(
+            getString("lpm_info_id").replace("\$id", song.id),
             Modifier
                 .fillMaxWidth()
                 .weight(1f)
@@ -209,11 +212,11 @@ private fun ColumnScope.SongLongPressMenuInfo(song: Song, queue_index: Int?, acc
     }
 
     if (queue_index != null) {
-        Text("Queue index: $queue_index")
+        Text(getString("lpm_info_queue_index").replace("\$index", queue_index.toString()))
     }
 
     if (isDebugBuild()) {
-        Item(Icons.Filled.Print, "Print info", Modifier.clickable {
+        Item(Icons.Filled.Print, getString("lpm_action_print_info"), Modifier.clickable {
             println(song)
         })
     }
@@ -224,7 +227,7 @@ private fun LongPressMenuActionProvider.SongLongPressPopupActions(song: MediaIte
     require(song is Song)
 
     ActionButton(
-        Icons.Filled.Radio, "Start radio", 
+        Icons.Filled.Radio, getString("lpm_action_start_radio"),
         onClick = {
             PlayerServiceHost.player.playSong(song)
         },
@@ -246,7 +249,9 @@ private fun LongPressMenuActionProvider.SongLongPressPopupActions(song: MediaIte
                 horizontalArrangement = Arrangement.SpaceBetween
             ) {
                 val distance = PlayerServiceHost.player.active_queue_index - PlayerServiceHost.status.index + 1
-                ActionButton(Icons.Filled.SubdirectoryArrowRight, "Play after $distance song(s)",
+                ActionButton(
+                    Icons.Filled.SubdirectoryArrowRight,
+                    getString(if (distance == 1) "lpm_action_play_after_1_song" else "lpm_action_play_after_x_songs").replace("\$x", distance.toString()),
                     fill_width = false,
                     onClick = {
                         PlayerServiceHost.player.addToQueue(
@@ -314,29 +319,29 @@ private fun LongPressMenuActionProvider.SongLongPressPopupActions(song: MediaIte
             Crossfade(active_queue_item, animationSpec = tween(100)) {
                 it?.PreviewLong(MediaItem.PreviewParams(
                     { playerProvider().copy(onClickedOverride = { item -> playerProvider().openMediaItem(item) }) },
-                    content_colour = content_colour
+                    contentColour = content_colour
                 ))
             }
         }
     }
 
-    ActionButton(Icons.Filled.Download, "Download", onClick = {
+    ActionButton(Icons.Filled.Download, getString("lpm_action_download"), onClick = {
         PlayerServiceHost.download_manager.startDownload(song.id) { status: DownloadStatus ->
             when (status.status) {
-                DownloadStatus.Status.FINISHED -> SpMp.context.sendToast("Download completed")
-                DownloadStatus.Status.ALREADY_FINISHED -> SpMp.context.sendToast("Already downloaded")
-                DownloadStatus.Status.CANCELLED -> SpMp.context.sendToast("Download was cancelled")
+                DownloadStatus.Status.FINISHED -> SpMp.context.sendToast(getString("notif_download_finished"))
+                DownloadStatus.Status.ALREADY_FINISHED -> SpMp.context.sendToast(getString("notif_download_already_finished"))
+                DownloadStatus.Status.CANCELLED -> SpMp.context.sendToast(getString("notif_download_cancelled"))
 
                 // IDLE, DOWNLOADING, PAUSED
                 else -> {
-                    SpMp.context.sendToast("Already downloading")
+                    SpMp.context.sendToast(getString("notif_download_already_downloading"))
                 }
             }
         }
     })
 
     if (song.artist != null) {
-        ActionButton(Icons.Filled.Person, "Go to artist", onClick = {
+        ActionButton(Icons.Filled.Person, getString("lpm_action_go_to_artist"), onClick = {
             playerProvider().openMediaItem(song.artist!!)
         })
     }

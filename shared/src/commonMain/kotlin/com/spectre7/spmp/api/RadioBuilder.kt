@@ -8,6 +8,91 @@ import com.spectre7.spmp.model.Playlist
 import com.spectre7.utils.getString
 import okhttp3.Request
 
+fun getBuiltRadio(radio_token: String): Result<Playlist?> {
+    require(radio_token.startsWith("VLRDAT"))
+    require(radio_token.contains('E'))
+
+    val playlist = Playlist.fromId(radio_token).supplyPlaylistType(Playlist.PlaylistType.RADIO, true)
+    val result = playlist.loadData(true)
+
+    if (result.isFailure) {
+        return result.cast()
+    }
+
+    val thumb_url = playlist.thumbnail_provider?.getThumbnail(MediaItem.ThumbnailQuality.HIGH)
+    if (thumb_url?.contains("fallback") == true) {
+        return Result.success(null)
+    }
+
+    return result.cast()
+}
+
+fun buildRadioToken(artists: Set<RadioBuilderArtist>, modifiers: Set<RadioModifier?>): String {
+    require(artists.isNotEmpty())
+    var radio_token: String = "VLRDAT"
+
+    var modifier_added = false
+    for (modifier in listOf(
+        modifiers.singleOrNull { it is RadioModifier.FilterB },
+        modifiers.singleOrNull { it is RadioModifier.FilterA },
+        modifiers.singleOrNull { it is RadioModifier.SelectionType },
+        modifiers.singleOrNull { it is RadioModifier.Variety }
+    )) {
+        modifier?.string?.also {
+            radio_token += it
+            modifier_added = true
+        }
+    }
+
+    for (artist in artists.withIndex()) {
+        val formatted_token = artist.value.token.removePrefix("RDAT")
+            .let { token ->
+                if (token.first() == 'a' && artist.index != 0) {
+                    'I' + token.substring(1)
+                } else token
+            }
+            .let { token ->
+                if (artists.size == 1 && !modifier_added) {
+                    token
+                }
+                else if (artist.index + 1 == artists.size) {
+                    token.take(token.lastIndexOf('E') + 1)
+                }
+                else {
+                    token.take(token.lastIndexOf('E'))
+                }
+            }
+
+        radio_token += formatted_token
+    }
+
+    return radio_token
+}
+
+// https://gist.github.com/toasterofbread/8982ffebfca5919cb51e8967e0122982
+fun getRadioBuilderArtists(
+    selectThumbnail: (List<MediaItem.ThumbnailProvider.Thumbnail>) -> MediaItem.ThumbnailProvider.Thumbnail
+): Result<List<RadioBuilderArtist>> {
+    val request = Request.Builder()
+        .ytUrl("/youtubei/v1/browse")
+        .addYtHeaders()
+        .post(DataApi.getYoutubeiRequestBody("""{ "browseId": "FEmusic_radio_builder" }""", context = DataApi.Companion.YoutubeiContextType.ANDROID))
+        .build()
+
+    val result = DataApi.request(request)
+    if (!result.isSuccess) {
+        return result.cast()
+    }
+
+    val strean = result.getOrThrow().getStream()
+    val parsed: RadioBuilderBrowseResponse = DataApi.klaxon.parse(strean)!!
+    strean.close()
+
+    return Result.success(parsed.items.zip(parsed.mutations).map { artist ->
+        RadioBuilderArtist(artist.first.title, artist.second.token!!, selectThumbnail(artist.first.musicThumbnail.image.sources))
+    })
+}
+
 private class RadioBuilderBrowseResponse(
     val contents: Contents,
     val frameworkUpdates: FrameworkUpdates
@@ -136,89 +221,4 @@ interface RadioModifier {
             }
         }
     }
-}
-
-fun getBuiltRadio(radio_token: String): Result<Playlist?> {
-    require(radio_token.startsWith("VLRDAT"))
-    require(radio_token.contains('E'))
-
-    val playlist = Playlist.fromId(radio_token).supplyPlaylistType(Playlist.PlaylistType.RADIO, true)
-    val result = playlist.loadData(true)
-
-    if (result.isFailure) {
-        return result.cast()
-    }
-
-    val thumb_url = playlist.thumbnail_provider?.getThumbnail(MediaItem.ThumbnailQuality.HIGH)
-    if (thumb_url?.contains("fallback") == true) {
-        return Result.success(null)
-    }
-
-    return result.cast()
-}
-
-fun buildRadioToken(artists: Set<RadioBuilderArtist>, modifiers: Set<RadioModifier?>): String {
-    require(artists.isNotEmpty())
-    var radio_token: String = "VLRDAT"
-
-    var modifier_added = false
-    for (modifier in listOf(
-        modifiers.singleOrNull { it is RadioModifier.FilterB },
-        modifiers.singleOrNull { it is RadioModifier.FilterA },
-        modifiers.singleOrNull { it is RadioModifier.SelectionType },
-        modifiers.singleOrNull { it is RadioModifier.Variety }
-    )) {
-        modifier?.string?.also {
-            radio_token += it
-            modifier_added = true
-        }
-    }
-
-    for (artist in artists.withIndex()) {
-        val formatted_token = artist.value.token.removePrefix("RDAT")
-            .let { token ->
-                if (token.first() == 'a' && artist.index != 0) {
-                    'I' + token.substring(1)
-                } else token
-            }
-            .let { token ->
-                if (artists.size == 1 && !modifier_added) {
-                    token
-                }
-                else if (artist.index + 1 == artists.size) {
-                    token.take(token.lastIndexOf('E') + 1)
-                }
-                else {
-                    token.take(token.lastIndexOf('E'))
-                }
-            }
-
-        radio_token += formatted_token
-    }
-
-    return radio_token
-}
-
-// https://gist.github.com/spectreseven1138/8982ffebfca5919cb51e8967e0122982
-fun getRadioBuilderArtists(
-    selectThumbnail: (List<MediaItem.ThumbnailProvider.Thumbnail>) -> MediaItem.ThumbnailProvider.Thumbnail
-): Result<List<RadioBuilderArtist>> {
-    val request = Request.Builder()
-        .ytUrl("/youtubei/v1/browse")
-        .addYtHeaders()
-        .post(DataApi.getYoutubeiRequestBody("""{ "browseId": "FEmusic_radio_builder" }""", context = DataApi.Companion.YoutubeiContextType.ANDROID))
-        .build()
-
-    val result = DataApi.request(request)
-    if (!result.isSuccess) {
-        return result.cast()
-    }
-
-    val strean = result.getOrThrow().getStream()
-    val parsed: RadioBuilderBrowseResponse = DataApi.klaxon.parse(strean)!!
-    strean.close()
-
-    return Result.success(parsed.items.zip(parsed.mutations).map { artist ->
-        RadioBuilderArtist(artist.first.title, artist.second.token!!, selectThumbnail(artist.first.musicThumbnail.image.sources))
-    })
 }

@@ -220,7 +220,7 @@ fun RadioBuilderPage(
                                 }
                             }
                             else if (loading) {
-                                SubtleLoadingIndicator({ Theme.current.on_background }, Modifier.offset(y = -bottom_padding))
+                                SubtleLoadingIndicator(Modifier.offset(y = -bottom_padding), { Theme.current.on_background })
                             }
                             else if (playlist?.feed_layouts?.isNotEmpty() == true) {
                                 val layout = playlist.feed_layouts!!.first()
@@ -241,7 +241,7 @@ fun RadioBuilderPage(
                         ShapedIconButton({ loadRadio(false) }, colors = icon_button_colours) {
                             Crossfade(is_loading) { loading ->
                                 if (loading) {
-                                    SubtleLoadingIndicator({ Theme.current.on_accent })
+                                    SubtleLoadingIndicator(colourProvider = { Theme.current.on_accent })
                                 }
                                 else {
                                     Icon(Icons.Filled.PlayArrow, null)
@@ -491,7 +491,7 @@ private fun RadioArtistSelector(
     Crossfade(radio_artists) { artists ->
         if (artists == null) {
             Box(modifier, contentAlignment = Alignment.Center) {
-                SubtleLoadingIndicator({ Theme.current.on_background })
+                SubtleLoadingIndicator(colourProvider = { Theme.current.on_background })
             }
         }
         else {

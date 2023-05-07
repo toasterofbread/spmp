@@ -458,7 +458,7 @@ fun MediaItemCard(
                 )
                 item.artist?.PreviewLong(MediaItem.PreviewParams(
                     playerProvider,
-                    content_colour = { (accent_colour ?: Theme.current.accent).getContrasted() }
+                    contentColour = { (accent_colour ?: Theme.current.accent).getContrasted() }
                 ))
             }
         }
@@ -514,7 +514,7 @@ fun MediaItemGrid(
                 layout.items[it].PreviewSquare(MediaItem.PreviewParams(
                     playerProvider,
                     Modifier.size(item_size),
-                    content_colour = Theme.current.on_background_provider
+                    contentColour = Theme.current.on_background_provider
                 ))
 //                    if(animate?.value == true) {
 //                        LaunchedEffect(Unit) {

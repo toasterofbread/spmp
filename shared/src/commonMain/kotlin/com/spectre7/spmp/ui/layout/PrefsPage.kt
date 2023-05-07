@@ -64,7 +64,7 @@ private enum class Category {
 
 @Composable
 fun PrefsPage(pill_menu: PillMenu, playerProvider: () -> PlayerViewContext, close: () -> Unit) {
-    var current_category: Category by remember { mutableStateOf(Category.GENERAL) }
+    var current_category: Category by remember { mutableStateOf(Category.OTHER) }
 
     val ytm_auth = remember {
         SettingsValueState(
@@ -351,9 +351,46 @@ private fun getDiscordStatusGroup(discord_auth: SettingsValueState<String>): Lis
         return emptyList()
     }
 
+    var account_token by mutableStateOf(discord_auth.value)
+
     return listOf(
         SettingsGroup(getString("s_group_discord_status")),
-        getDiscordLoginSettingsItem(discord_auth),
+
+        SettingsItemLargeToggle(
+            object : BasicSettingsValueState<Boolean> {
+                override var value: Boolean
+                    get() = discord_auth.value.isNotEmpty()
+                    set(value) {
+                        if (!value) {
+                            discord_auth.value = ""
+                        }
+                    }
+                override fun init(prefs: ProjectPreferences, defaultProvider: (String) -> Any): BasicSettingsValueState<Boolean> = this
+                override fun reset() = discord_auth.reset()
+                override fun save() = discord_auth.save()
+                override fun getDefault(defaultProvider: (String) -> Any): Boolean = (defaultProvider(Settings.KEY_DISCORD_ACCOUNT_TOKEN.name) as String).isNotEmpty()
+            },
+            enabled_content = { modifier ->
+                if (discord_auth.value.isNotEmpty()) {
+                    account_token = discord_auth.value
+                }
+                if (account_token.isNotEmpty()) {
+                    DiscordAccountPreview(account_token, modifier)
+                }
+            },
+            disabled_text = "Not signed in",
+            enable_button = "Sign in",
+            disable_button = "Sign out",
+            warning_text = getString("warning_discord_login"),
+            info_text = getString("info_discord_login")
+        ) { target, setEnabled, _, openPage ->
+            if (target) {
+                openPage(Page.DISCORD_LOGIN.ordinal)
+            }
+            else {
+                setEnabled(false)
+            }
+        },
 
         SettingsItemInfoText(getString("s_discord_status_text_info")),
 
@@ -453,188 +490,55 @@ private fun getDiscordLoginPage(discord_auth: SettingsValueState<String>): Setti
     }
 }
 
-private fun getDiscordLoginSettingsItem(discord_auth: SettingsValueState<String>): SettingsItem {
-    return object : SettingsItem() {
-        override fun initialiseValueStates(
-            prefs: ProjectPreferences,
-            default_provider: (String) -> Any,
-        ) {}
-
-        override fun resetValues() {
-            discord_auth.reset()
-        }
-
-        @Composable
-        override fun GetItem(
-            theme: Theme,
-            openPage: (Int) -> Unit,
-            openCustomPage: (SettingsPage) -> Unit,
-        ) {
-            var showing_warning: Boolean? by remember { mutableStateOf(null) }
-            if (showing_warning != null) {
-                DiscordLoginWarningPopup(!showing_warning!!) { accepted ->
-                    showing_warning = null
-                    if (accepted) {
-                        openPage(Page.DISCORD_LOGIN.ordinal)
-                    }
-                }
-            }
-
-            Box(Modifier
-                .background(SETTINGS_ITEM_ROUNDED_SHAPE, Theme.current.accent_provider)
-                .padding(horizontal = 10.dp)
-            ) {
-                Crossfade(discord_auth.value) { account_token ->
-                    Row(
-                        Modifier.fillMaxWidth(),
-                        verticalAlignment = Alignment.CenterVertically,
-                        horizontalArrangement = Arrangement.spacedBy(5.dp)
-                    ) {
-                        if (account_token.isNotEmpty()) {
-                            Text(
-                                getStringTODO("Signed in to Discord"),
-                                style = LocalTextStyle.current.copy(color = Theme.current.on_accent)
-                            )
-//                            auth.own_channel.PreviewLong(MediaItem.PreviewParams(
-//                                playerProvider,
-//                                Modifier.weight(1f),
-//                                content_colour = Theme.current.on_accent_provider
-//                            ))
-                        }
-                        else {
-                            Text(
-                                getStringTODO("Not signed in"),
-                                style = LocalTextStyle.current.copy(color = Theme.current.on_accent)
-                            )
-                        }
-
-                        Spacer(Modifier.fillMaxWidth().weight(1f))
-
-                        Button({
-                            if (account_token.isNotEmpty()) {
-                                resetValues()
-                            }
-                            else {
-                                showing_warning = true
-                            }
-                        }, colors = ButtonDefaults.buttonColors(
-                            containerColor = Theme.current.background,
-                            contentColor = Theme.current.on_background
-                        )) {
-                            Text(getStringTODO(if (account_token.isNotEmpty()) "Sign out" else "Sign in"))
-                        }
-
-                        ShapedIconButton(
-                            {
-                                showing_warning = false
-                            },
-                            shape = CircleShape,
-                            colors = IconButtonDefaults.iconButtonColors(
-                                containerColor = Theme.current.background,
-                                contentColor = Theme.current.on_background
-                            )
-                        ) {
-                            Icon(Icons.Filled.Info, null)
-                        }
-                    }
-                }
-            }
-        }
-    }
-}
-
-private fun getYoutubeMusicLoginSettingsItem(ytm_auth: SettingsValueState<YoutubeMusicAuthInfo>, playerProvider: () -> PlayerViewContext): SettingsItem {
-    return object : SettingsItem() {
-        override fun initialiseValueStates(
-            prefs: ProjectPreferences,
-            default_provider: (String) -> Any,
-        ) {}
-
-        override fun resetValues() {
-            ytm_auth.reset()
-        }
-
-        @Composable
-        override fun GetItem(
-            theme: Theme,
-            openPage: (Int) -> Unit,
-            openCustomPage: (SettingsPage) -> Unit,
-        ) {
-            var showing_warning: Boolean? by remember { mutableStateOf(null) }
-            if (showing_warning != null) {
-                YoutubeMusicLoginWarningPopup(!showing_warning!!) { accepted ->
-                    showing_warning = null
-                    if (accepted) {
-                        openPage(Page.YOUTUBE_MUSIC_LOGIN.ordinal)
-                    }
-                }
-            }
-
-            Box(Modifier
-                .background(Theme.current.vibrant_accent, SETTINGS_ITEM_ROUNDED_SHAPE)
-                .padding(horizontal = 10.dp)
-            ) {
-                Crossfade(ytm_auth.value) { auth ->
-                    Row(
-                        Modifier.fillMaxWidth(),
-                        verticalAlignment = Alignment.CenterVertically,
-                        horizontalArrangement = Arrangement.spacedBy(5.dp)
-                    ) {
-                        if (auth.initialised) {
-                            auth.own_channel.PreviewLong(MediaItem.PreviewParams(
-                                playerProvider,
-                                Modifier.weight(1f),
-                                content_colour = Theme.current.on_accent_provider
-                            ))
-                        }
-                        else {
-                            Text(
-                                getStringTODO("Not signed in"),
-                                Modifier.fillMaxWidth().weight(1f),
-                                style = LocalTextStyle.current.copy(color = Theme.current.on_accent)
-                            )
-                        }
-
-                        Button({
-                            if (auth.initialised) {
-                                resetValues()
-                            }
-                            else {
-                                showing_warning = true
-                            }
-                        }, colors = ButtonDefaults.buttonColors(
-                            containerColor = Theme.current.background,
-                            contentColor = Theme.current.on_background
-                        )) {
-                            Text(getStringTODO(if (auth.initialised) "Sign out" else "Sign in"))
-                        }
-
-                        ShapedIconButton(
-                            {
-                                showing_warning = false
-                            },
-                            shape = CircleShape,
-                            colors = IconButtonDefaults.iconButtonColors(
-                                containerColor = Theme.current.background,
-                                contentColor = Theme.current.on_background
-                            )
-                        ) {
-                            Icon(Icons.Filled.Info, null)
-                        }
-                    }
-                }
-            }
-        }
-    }
-}
-
 private fun getGeneralCategory(
     ytm_auth: SettingsValueState<YoutubeMusicAuthInfo>,
     playerProvider: () -> PlayerViewContext
 ): List<SettingsItem> {
+    var own_channel by mutableStateOf(ytm_auth.value.getOwnChannelOrNull())
+
     return listOf(
-        getYoutubeMusicLoginSettingsItem(ytm_auth, playerProvider),
-        SettingsItemSpacer(10.dp),
+        SettingsItemLargeToggle(
+            object : BasicSettingsValueState<Boolean> {
+                override var value: Boolean
+                    get() = ytm_auth.value.initialised
+                    set(value) {
+                        if (!value) {
+                            ytm_auth.value = YoutubeMusicAuthInfo()
+                        }
+                    }
+                override fun init(prefs: ProjectPreferences, defaultProvider: (String) -> Any): BasicSettingsValueState<Boolean> = this
+                override fun reset() = ytm_auth.reset()
+                override fun save() = ytm_auth.save()
+                override fun getDefault(defaultProvider: (String) -> Any): Boolean =
+                    defaultProvider(Settings.KEY_YTM_AUTH.name) is YoutubeMusicAuthInfo
+            },
+            enabled_content = { modifier ->
+                ytm_auth.value.getOwnChannelOrNull()?.also {
+                    own_channel = it
+                }
+
+                own_channel?.PreviewLong(
+                    MediaItem.PreviewParams(
+                        playerProvider,
+                        modifier
+                    )
+                )
+            },
+            disabled_text = getStringTODO("Not signed in"),
+            enable_button = getStringTODO("Sign in"),
+            disable_button = getStringTODO("Sign out"),
+            warning_text = getString("warning_ytm_login"),
+            info_text = getString("info_ytm_login")
+        ) { target, setEnabled, _, openPage ->
+            if (target) {
+                openPage(Page.YOUTUBE_MUSIC_LOGIN.ordinal)
+            }
+            else {
+                setEnabled(false)
+            }
+        },
+
+        SettingsItemSpacer(5.dp),
 
         SettingsItemComposable {
             WidthShrinkText(getString("language_change_restart_notice"))

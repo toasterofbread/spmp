@@ -207,4 +207,27 @@
     <string name="warning_discord_login">今からアプリ内で Discord のログインページに移動します。&#xA;&#xA;ログインを終えたら、ユーザトーケンを取って、保存し、ステータスを変えるための Discord への API リクエストのみに使います。&#xA;&#xA;詳しくは https://github.com/dead8309/Kizzy をご覧ください。&#xA;&#xA;よろしいですか？</string>
     <string name="info_discord_login">アプリ内で Discord のログインページに移動します。&#xA;&#xA;ログインを終えたら、ユーザトーケンを取って、保存し、ステータスを変えるための Discord への API リクエストのみに使います。&#xA;&#xA;詳しくは https://github.com/dead8309/Kizzy をご覧ください。</string>
 
+    <string name="lpm_action_start_radio">ラジオを始める</string>
+    <string name="lpm_action_play_after_1_song">次に再生する</string>
+    <string name="lpm_action_play_after_x_songs">$amount曲後に再生する</string>
+    <string name="lpm_action_download">ダウンロード</string>
+    <string name="lpm_action_go_to_artist">アーティストを見る</string>
+    <string name="lpm_action_print_info">情報をコンソールに出力する</string>
+    <string name="lpm_action_home_pin">ホームに貼り付ける</string>
+    <string name="lpm_action_home_unpin">ホームから外す</string>
+    <string name="lpm_action_share">共有</string>
+    <string name="lpm_action_open_external">外部アプリで開く</string>
+
+    <string name="lpm_long_press_actions">長押しアクション</string>
+    <string name="lpm_action_start_radio_long_press">この曲の位置にラジオを入れる</string>
+    <string name="lpm_action_play_after_long_press">X曲後にラジオを入れる</string>
+
+    <string name="lpm_info_queue_index">再生リストでの位置: $index</string>
+    <string name="lpm_info_id">ID: $id</string>
+
+    <string name="notif_download_finished">ダウンロードが完了しました</string>
+    <string name="notif_download_already_finished">ダウンロードはすでに完了しています</string>
+    <string name="notif_download_cancelled">ダウンロードが停止されました</string>
+    <string name="notif_download_already_downloading">ダウンロードはすでに開始されてます</string>
+
 </resources>

@@ -104,6 +104,14 @@ fun loadMediaItemData(item: MediaItem): Result<MediaItem?> {
         return Result.success(item)
     }
 
+    fun finish(result: Result<MediaItem?>): Result<MediaItem?> {
+        item.loading = false
+        synchronized(lock) {
+            lock.notifyAll()
+        }
+        return result
+    }
+
     if (item is Artist && item.is_for_item) {
         return finish(true)
     }
@@ -122,8 +130,7 @@ fun loadMediaItemData(item: MediaItem): Result<MediaItem?> {
         }
     }
 
-    val is_radio = item is Playlist && item.playlist_type == Playlist.PlaylistType.RADIO
-    val url = if (item is Song) "/youtubei/v1/next" else if (is_radio) "/browse/$item_id" else "/youtubei/v1/browse"
+    val url = if (item is Song) "/youtubei/v1/next" else "/youtubei/v1/browse"
     val body =
         if (item is Song)
             """{
@@ -131,129 +138,104 @@ fun loadMediaItemData(item: MediaItem): Result<MediaItem?> {
                 "isAudioOnly": true,
                 "videoId": "$item_id"
             }"""
-        else if (is_radio)
-            null
         else """{ "browseId": "$item_id" }"""
 
-    // TODO Fix language option not applying to radio
     var request: Request = Request.Builder()
         .ytUrl(url)
-        .addYtHeaders(body == null)
+        .addYtHeaders()
         .apply {
-            if (body != null) post(DataApi.getYoutubeiRequestBody(body))
+            post(DataApi.getYoutubeiRequestBody(body))
         }
         .build()
-    println(1)
+
     val response = DataApi.request(request).getOrNull()
     if (response != null) {
         val response_body = response.getStream()
-
-        if (is_radio) {
-            check(item is Playlist)
-
-            val string = response_body.reader().readText()
-            response_body.close()
-
-            val start_str = "JSON.parse('\\x7b\\x22browseId\\x22:\\x22$item_id\\x22\\x7d'), data:"
-            val start = string.indexOf(start_str)
-            if (start == -1) {
-                return Result.failure(InvalidRadioException())
-            }
-
-            val end = string.indexOf('}', start + start_str.length)
-            if (end == -1) {
-                return Result.failure(InvalidRadioException())
-            }
-
-            val json_reader = unescape(string.substring(start + start_str.length, end).trim().trim('\'')).reader()
-            val parsed = DataApi.klaxon.parse<YoutubeiBrowseResponse>(json_reader)!!
-                .contents!!
-                .singleColumnBrowseResultsRenderer
-                .tabs[0]
-                .tabRenderer
-                .content!!
-                .sectionListRenderer
-                .contents!![0]
-                .musicPlaylistShelfRenderer!!
-            json_reader.close()
-    println(7)
-
-            val continuation = parsed.continuations?.firstOrNull()?.nextRadioContinuationData?.continuation
-
-            val layout = MediaItemLayout(
-                null, null,
-                MediaItemLayout.Type.LIST,
-                parsed.contents.mapNotNull { data ->
-                    return@mapNotNull data.toMediaItem().also { check(it is Song) }
-                }.toMutableList(),
-                continuation = continuation?.let { MediaItemLayout.Continuation(it, MediaItemLayout.Continuation.Type.SONG, item_id) }
-            )
-
-            item.supplyFeedLayouts(listOf(layout), true)
-
-            return finish()
-        }
 
         if (item is MediaItemWithLayouts) {
             val parsed: YoutubeiBrowseResponse = DataApi.klaxon.parse(response_body)!!
             response_body.close()
 
-            val header_renderer: HeaderRenderer?
-            if (parsed.header != null) {
-                header_renderer = parsed.header.getRenderer()
-                item.supplyTitle(header_renderer.title.first_text, true)
-                item.supplyDescription(header_renderer.description?.first_text, true)
-                item.supplyThumbnailProvider(MediaItem.ThumbnailProvider.fromThumbnails(header_renderer.getThumbnails()))
+            // Skip unneeded information for radios
+            if (item is Playlist && item.playlist_type == Playlist.PlaylistType.RADIO) {
+                val playlist_shelf = parsed
+                    .contents!!
+                    .singleColumnBrowseResultsRenderer
+                    .tabs[0]
+                    .tabRenderer
+                    .content!!
+                    .sectionListRenderer
+                    .contents!![0]
+                    .musicPlaylistShelfRenderer!!
 
-                val artist = header_renderer.subtitle?.runs?.firstOrNull {
-                    it.navigationEndpoint?.browseEndpoint?.getPageType() == "MUSIC_PAGE_TYPE_USER_CHANNEL"
-                }
-                if (artist != null) {
-                    item.supplyArtist(
-                        Artist
-                            .fromId(artist.navigationEndpoint!!.browseEndpoint!!.browseId)
-                            .supplyTitle(artist.text, true) as Artist,
-                        true
-                    )
-                }
+                val continuation = playlist_shelf.continuations?.firstOrNull()?.nextRadioContinuationData?.continuation
+
+                val layout = MediaItemLayout(
+                    null, null,
+                    MediaItemLayout.Type.LIST,
+                    playlist_shelf.contents.mapNotNull { data ->
+                        return@mapNotNull data.toMediaItem().also { check(it is Song) }
+                    }.toMutableList(),
+                    continuation = continuation?.let { MediaItemLayout.Continuation(it, MediaItemLayout.Continuation.Type.SONG, item_id) }
+                )
+
+                item.supplyFeedLayouts(listOf(layout), true)
             }
             else {
-                header_renderer = null
-            }
+                if (parsed.header != null) {
+                    val header_renderer = parsed.header.getRenderer()
 
-            val item_layouts: MutableList<MediaItemLayout> = mutableListOf()
-            for (row in parsed.contents!!.singleColumnBrowseResultsRenderer.tabs.first().tabRenderer.content!!.sectionListRenderer.contents!!.withIndex()) {
-                val description = row.value.description
-                if (description != null) {
-                    item.supplyDescription(description, true)
-                    continue
+                    item.supplyTitle(header_renderer.title.first_text, true)
+                    item.supplyDescription(header_renderer.description?.first_text, true)
+                    item.supplyThumbnailProvider(MediaItem.ThumbnailProvider.fromThumbnails(header_renderer.getThumbnails()))
+
+                    val artist = header_renderer.subtitle?.runs?.firstOrNull {
+                        it.navigationEndpoint?.browseEndpoint?.getPageType() == "MUSIC_PAGE_TYPE_USER_CHANNEL"
+                    }
+                    if (artist != null) {
+                        item.supplyArtist(
+                            Artist
+                                .fromId(artist.navigationEndpoint!!.browseEndpoint!!.browseId)
+                                .supplyTitle(artist.text, true) as Artist,
+                            true
+                        )
+                    }
+
+                    if (header_renderer.subscriptionButton != null && item is Artist) {
+                        val subscribe_button = header_renderer.subscriptionButton.subscribeButtonRenderer
+                        item.supplySubscribeChannelId(subscribe_button.channelId, true)
+                        item.supplySubscriberCountText(subscribe_button.subscriberCountText.first_text, true)
+                        item.subscribed = subscribe_button.subscribed
+                    }
                 }
 
-                val continuation: MediaItemLayout.Continuation? =
-                    row.value.musicPlaylistShelfRenderer?.continuations?.firstOrNull()?.nextContinuationData?.continuation?.let { MediaItemLayout.Continuation(it, MediaItemLayout.Continuation.Type.PLAYLIST) }
+                val item_layouts: MutableList<MediaItemLayout> = mutableListOf()
+                for (row in parsed.contents!!.singleColumnBrowseResultsRenderer.tabs.first().tabRenderer.content!!.sectionListRenderer.contents!!.withIndex()) {
+                    val description = row.value.description
+                    if (description != null) {
+                        item.supplyDescription(description, true)
+                        continue
+                    }
 
-                val view_more = row.value.getNavigationEndpoint()?.getViewMore()
-                view_more?.layout_type = MediaItemLayout.Type.LIST
+                    val continuation: MediaItemLayout.Continuation? =
+                        row.value.musicPlaylistShelfRenderer?.continuations?.firstOrNull()?.nextContinuationData?.continuation?.let { MediaItemLayout.Continuation(it, MediaItemLayout.Continuation.Type.PLAYLIST) }
 
-                item_layouts.add(MediaItemLayout(
-                    row.value.title?.text?.let {
-                        if (item is Artist && item.is_own_channel) LocalisedYoutubeString.ownChannel(it)
-                        else LocalisedYoutubeString.mediaItemPage(it, item.type)
-                    },
-                    null,
-                    if (row.index == 0) MediaItemLayout.Type.NUMBERED_LIST else MediaItemLayout.Type.GRID,
-                    row.value.getMediaItems().toMutableList(),
-                    continuation = continuation,
-                    view_more = view_more
-                ))
-            }
-            item.supplyFeedLayouts(item_layouts, true)
+                    val view_more = row.value.getNavigationEndpoint()?.getViewMore()
+                    view_more?.layout_type = MediaItemLayout.Type.LIST
 
-            if (item is Artist && header_renderer?.subscriptionButton != null) {
-                val subscribe_button = header_renderer.subscriptionButton.subscribeButtonRenderer
-                item.supplySubscribeChannelId(subscribe_button.channelId, true)
-                item.supplySubscriberCountText(subscribe_button.subscriberCountText.first_text, true)
-                item.subscribed = subscribe_button.subscribed
+                    item_layouts.add(MediaItemLayout(
+                        row.value.title?.text?.let {
+                            if (item is Artist && item.is_own_channel) LocalisedYoutubeString.ownChannel(it)
+                            else LocalisedYoutubeString.mediaItemPage(it, item.type)
+                        },
+                        null,
+                        if (row.index == 0) MediaItemLayout.Type.NUMBERED_LIST else MediaItemLayout.Type.GRID,
+                        row.value.getMediaItems().toMutableList(),
+                        continuation = continuation,
+                        view_more = view_more
+                    ))
+                }
+                item.supplyFeedLayouts(item_layouts, true)
             }
 
             return finish()
@@ -294,7 +276,7 @@ fun loadMediaItemData(item: MediaItem): Result<MediaItem?> {
 
         val result = video.getArtist(item)
         if (result.isFailure) {
-            return result.cast()
+            return finish(result.cast())
         }
 
         val (artist, certain) = result.getOrThrow()
@@ -313,7 +295,7 @@ fun loadMediaItemData(item: MediaItem): Result<MediaItem?> {
 
     val result = DataApi.request(request)
     if (result.isFailure) {
-        return result.cast()
+        return finish(result.cast())
     }
 
     val stream = result.getOrThrowHere().getStream()
@@ -321,7 +303,7 @@ fun loadMediaItemData(item: MediaItem): Result<MediaItem?> {
     stream.close()
 
     if (video_data.videoDetails == null) {
-        return Result.success(null)
+        return finish(Result.success(null))
     }
 
     item.supplyTitle(video_data.videoDetails.title, true)

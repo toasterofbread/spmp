@@ -16,11 +16,11 @@ import com.beust.klaxon.*
 import com.spectre7.spmp.api.DataApi
 import com.spectre7.spmp.api.TextRun
 import com.spectre7.spmp.api.loadMediaItemData
+import com.spectre7.spmp.platform.ProjectPreferences
+import com.spectre7.spmp.platform.toImageBitmap
 import com.spectre7.spmp.ui.component.MediaItemLayout
 import com.spectre7.spmp.ui.layout.PlayerViewContext
 import com.spectre7.spmp.ui.theme.Theme
-import com.spectre7.spmp.platform.ProjectPreferences
-import com.spectre7.spmp.platform.toImageBitmap
 import com.spectre7.utils.*
 import kotlinx.coroutines.*
 import java.io.FileNotFoundException
@@ -104,7 +104,16 @@ abstract class MediaItem(id: String) {
                         artist_found = true
                     }
                 }
-                Type.PLAYLIST -> TODO()
+                Type.PLAYLIST -> {
+                    check(this is Song)
+
+                    val playlist = run.navigationEndpoint?.browseEndpoint?.getMediaItem() as Playlist?
+                    if (playlist != null) {
+                        check(playlist.playlist_type == Playlist.PlaylistType.ALBUM)
+                        playlist.supplyTitle(run.text, true)
+                        supplyAlbum(playlist, true)
+                    }
+                }
                 else -> {}
             }
         }
@@ -223,26 +232,21 @@ abstract class MediaItem(id: String) {
     protected fun stringToJson(string: String?): String {
         return DataApi.klaxon.toJsonString(string)
     }
-    open fun getJsonMapValues(klaxon: Klaxon = DataApi.klaxon): String {
-        return """
-            "title": ${stringToJson(original_title)},
-            "artist": ${stringToJson(artist?.id)},
-            "desc": ${stringToJson(description)},
-            "thumb": ${klaxon.toJsonString(thumbnail_provider)},
-        """
-    }
 
-    open fun supplyFromJsonObject(data: JsonObject, klaxon: Klaxon): MediaItem {
-        assert(data.int("type") == type.ordinal)
+    open fun getSerialisedData(klaxon: Klaxon = DataApi.klaxon): List<String> {
+        return listOf(stringToJson(original_title), stringToJson(artist?.id), stringToJson(description), klaxon.toJsonString(thumbnail_provider))
+    }
+    open fun supplyFromSerialisedData(data: MutableList<Any?>, klaxon: Klaxon): MediaItem {
+        require(data.size >= 4)
         runBlocking {
-            withContext(Dispatchers.Main) {
-                data.string("title")?.also { original_title = it }
-                data.string("artist")?.also { artist = Artist.fromId(it) }
-                data.string("desc")?.also { description = it }
-                data.obj("thumb")?.also { thumbnail_provider = ThumbnailProvider.fromJsonObject(it, klaxon) }
+            with(Dispatchers.Main) {
+                data[data.size - 4]?.also { original_title = it as String }
+                data[data.size - 3]?.also { artist = Artist.fromId(it as String) }
+                data[data.size - 2]?.also { description = it as String }
+                data[data.size - 1]?.also { thumbnail_provider = ThumbnailProvider.fromJsonObject(it as JsonObject, klaxon) }
             }
         }
-        return this
+        return this@MediaItem
     }
 
     open fun isFullyLoaded(): Boolean {
@@ -262,8 +266,23 @@ abstract class MediaItem(id: String) {
                 val str = cached.readText()
                 cached.close()
                 try {
-                    val obj = DataApi.klaxon.parseJsonObject(str.reader())
-                    supplyFromJsonObject(obj, DataApi.klaxon)
+                    val array = DataApi.klaxon.parseJsonArray(str.reader())
+
+                    runBlocking {
+                        var retries = 5
+                        while (retries-- > 0) {
+                            try {
+                                supplyFromSerialisedData(array.toMutableList(), DataApi.klaxon)
+                                break
+                            }
+                            catch (e: IllegalStateException) {
+                                delay(100)
+                                if (retries == 0) {
+                                    throw e
+                                }
+                            }
+                        }
+                    }
                 }
                 catch (e: KlaxonException) {
                     printJson(str)
@@ -292,19 +311,43 @@ abstract class MediaItem(id: String) {
         }
 
         fun fromJsonData(reader: Reader): MediaItem {
-            return DataApi.klaxon.parse(reader)!!
+
+            val result = arrayListOf<Any?>()
+            val map = DataApi.klaxon.parser(Any::class).parse(reader) as JsonArray<*>
+            map.forEach { jo ->
+                if (jo == null || jo is JsonObject) {
+                    result.add(jo)
+                }
+                else {
+                    try {
+                        val converter = DataApi.klaxon.findConverterFromClass(Any::class.java, null)
+                        val convertedValue = converter.fromJson(JsonValue(jo, null, null, DataApi.klaxon))
+                        result.add(convertedValue)
+                    }
+                    catch (e: IllegalArgumentException) {
+                        println(jo)
+                        throw RuntimeException(e)
+                    }
+                }
+            }
+
+            return fromDataItems(result, DataApi.klaxon)
         }
 
-        fun fromJsonObject(obj: JsonObject, klaxon: Klaxon = DataApi.klaxon, ref_only: Boolean = false): MediaItem {
-            val id = obj.string("id")!!
-            val item = when (Type.values()[obj.int("type")!!]) {
+        fun fromDataItems(data: List<Any?>, klaxon: Klaxon = DataApi.klaxon): MediaItem {
+            require(data.size >= 2)
+
+            val type = Type.values()[data[0] as Int]
+            val id = data[1] as String
+
+            val item = when (type) {
                 Type.SONG -> Song.fromId(id)
                 Type.ARTIST -> Artist.fromId(id)
                 Type.PLAYLIST -> Playlist.fromId(id)
             }
 
-            if (!ref_only) {
-                item.supplyFromJsonObject(obj, klaxon)
+            if (data.size > 2) {
+                item.supplyFromSerialisedData(data.toMutableList(), klaxon)
             }
             return item
         }
@@ -373,7 +416,7 @@ abstract class MediaItem(id: String) {
             }
         }
 
-        data class DynamicProvider(val url_a: String, val url_b: String, val original_url: String): ThumbnailProvider() {
+        data class DynamicProvider(val url_a: String, val url_b: String): ThumbnailProvider() {
             override fun getThumbnail(quality: ThumbnailQuality): String {
                 val target_size = quality.getTargetSize()
                 return "$url_a${target_size.width}-h${target_size.height}$url_b"
@@ -390,8 +433,7 @@ abstract class MediaItem(id: String) {
 
                     return DynamicProvider(
                         url.substring(0, w_index + 1),
-                        url.substring(h_index + 2 + height.toString().length),
-                        url
+                        url.substring(h_index + 2 + height.toString().length)
                     )
                 }
             }
@@ -632,6 +674,7 @@ abstract class MediaItem(id: String) {
 
     class DataRegistry {
         private val entries: MutableMap<String, Entry> = mutableMapOf()
+        val size: Int get() = entries.size
 
         open class Entry {
             @Json(ignored = true)
@@ -698,13 +741,14 @@ abstract class MediaItemWithLayouts(id: String): MediaItem(id) {
         return this
     }
 
-    override fun getJsonMapValues(klaxon: Klaxon): String {
-        return super.getJsonMapValues(klaxon) + "\"feed_layouts\": ${klaxon.toJsonString(feed_layouts)},"
+    override fun getSerialisedData(klaxon: Klaxon): List<String> {
+        return super.getSerialisedData(klaxon) + listOf(klaxon.toJsonString(feed_layouts))
     }
 
-    override fun supplyFromJsonObject(data: JsonObject, klaxon: Klaxon): MediaItem {
-        data.array<JsonObject>("feed_layouts")?.also { feed_layouts = klaxon.parseFromJsonArray(it) }
-        return super.supplyFromJsonObject(data, klaxon)
+    override fun supplyFromSerialisedData(data: MutableList<Any?>, klaxon: Klaxon): MediaItem {
+        require(data.size >= 1)
+        data.removeLast()?.also { feed_layouts = klaxon.parseFromJsonArray(it as JsonArray<*>) }
+        return super.supplyFromSerialisedData(data, klaxon)
     }
 
     override fun isFullyLoaded(): Boolean {

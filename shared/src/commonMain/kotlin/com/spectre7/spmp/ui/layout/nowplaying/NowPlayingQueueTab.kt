@@ -380,7 +380,7 @@ private fun CurrentRadioIndicator(
                         label = {
                             Text(
                                 filter?.value?.joinToString("|") { it.getReadable() }
-                                    ?: getStringTODO("すべて")
+                                    ?: getString("radio_filter_all")
                             )
                         },
                         colors = FilterChipDefaults.filterChipColors(

@@ -29,7 +29,7 @@ class LocalisedYoutubeString(
         Type.HOME_FEED -> SpMp.yt_ui_translation.translateHomeFeedString(key, source_language!!)
         Type.OWN_CHANNEL -> SpMp.yt_ui_translation.translateOwnChannelString(key, source_language!!)
         Type.ARTIST_PAGE -> SpMp.yt_ui_translation.translateArtistPageString(key, source_language!!)
-    } ?: throw NotImplementedError("Key: $key, Type: $type, Source lang: ${SpMp.getLanguageCode(source_language!!)}")
+    } ?: throw NotImplementedError("Key: '$key', Type: $type, Source lang: ${SpMp.getLanguageCode(source_language!!)}")
 
     companion object {
         private val current_source_language: Int get() = Settings.KEY_LANG_DATA.get()
@@ -202,6 +202,10 @@ class YoutubeUITranslation(languages: List<String>) {
             addString(
                 en to "#TBT",
                 ja to "#TBT"
+            )
+            addString(
+                en to "From your library",
+                ja to "ライブラリから"
             )
         }
         OWN_CHANNEL_STRINGS = mutableListOf<Map<Int, Pair<String, String?>>>().apply {

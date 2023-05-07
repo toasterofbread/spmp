@@ -53,7 +53,7 @@ fun ArtistPlaylistPage(
     close: () -> Unit
 ) {
     require(item is MediaItemWithLayouts)
-    require(item !is Artist || !item.for_song)
+    require(item !is Artist || !item.is_for_item)
 
     var show_info by remember { mutableStateOf(false) }
 
@@ -274,7 +274,11 @@ fun ArtistPlaylistPage(
                             verticalArrangement = Arrangement.spacedBy(30.dp)
                         ) {
                             for (row in layouts) {
-                                (row.type ?: MediaItemLayout.Type.GRID).Layout(
+                                val type = if (row.type == null) MediaItemLayout.Type.GRID
+                                    else if (row.type == MediaItemLayout.Type.NUMBERED_LIST && item is Artist) MediaItemLayout.Type.LIST
+                                    else row.type
+
+                                type.Layout(
                                     if (opened_layout == null) row else row.copy(title = null, subtitle = null),
                                     playerProvider
                                 )

@@ -6,7 +6,6 @@ import com.spectre7.spmp.api.DataApi.Companion.getStream
 import com.spectre7.spmp.api.DataApi.Companion.ytUrl
 import com.spectre7.spmp.model.*
 import com.spectre7.spmp.ui.component.MediaItemLayout
-import com.spectre7.spmp.ui.component.generateLayoutTitle
 import okhttp3.Request
 import java.io.InputStreamReader
 import java.time.Duration
@@ -149,7 +148,7 @@ private fun processRows(rows: List<YoutubeiShelf>): List<MediaItemLayout> {
                         items = items,
                         thumbnail_source = thumbnail_source,
                         view_more = view_more,
-                        media_item_type = media_item_type
+                        thumbnail_item_type = media_item_type
                     ))
                 }
 
@@ -267,7 +266,7 @@ data class YoutubeiBrowseResponse(
     fun getHeaderChips(): List<Pair<Int, String>>? =
         contents?.singleColumnBrowseResultsRenderer?.tabs?.first()?.tabRenderer?.content?.sectionListRenderer?.header?.chipCloudRenderer?.chips?.map {
             Pair(
-                LocalisedYoutubeString.filterChip(it.chipCloudChipRenderer.text.first_text) ?: throw NotImplementedError(it.chipCloudChipRenderer.text.first_text),
+                LocalisedYoutubeString.filterChip(it.chipCloudChipRenderer.text!!.first_text) ?: throw NotImplementedError(it.chipCloudChipRenderer.text.first_text),
                 it.chipCloudChipRenderer.navigationEndpoint.browseEndpoint!!.params!!
             )
         }
@@ -282,16 +281,29 @@ data class YoutubeiBrowseResponse(
     data class ContinuationContents(val sectionListContinuation: SectionListRenderer? = null, val musicPlaylistShelfContinuation: MusicShelfRenderer? = null)
 }
 
+data class ItemSectionRenderer(val contents: List<ItemSectionRendererContent>)
+data class ItemSectionRendererContent(val didYouMeanRenderer: DidYouMeanRenderer)
+data class DidYouMeanRenderer(val correctedQuery: TextRuns)
+
 data class YoutubeiShelf(
     val musicShelfRenderer: MusicShelfRenderer? = null,
     val musicCarouselShelfRenderer: MusicCarouselShelfRenderer? = null,
     val musicDescriptionShelfRenderer: MusicDescriptionShelfRenderer? = null,
     val musicPlaylistShelfRenderer: MusicShelfRenderer? = null,
     val musicCardShelfRenderer: MusicCardShelfRenderer? = null,
-    val gridRenderer: GridRenderer? = null
+    val gridRenderer: GridRenderer? = null,
+    val itemSectionRenderer: ItemSectionRenderer? = null
 ) {
     init {
-        assert(musicShelfRenderer != null || musicCarouselShelfRenderer != null || musicDescriptionShelfRenderer != null || musicPlaylistShelfRenderer != null || musicCardShelfRenderer != null || gridRenderer != null)
+        assert(
+            musicShelfRenderer != null
+            || musicCarouselShelfRenderer != null
+            || musicDescriptionShelfRenderer != null
+            || musicPlaylistShelfRenderer != null
+            || musicCardShelfRenderer != null
+            || gridRenderer != null
+            || itemSectionRenderer != null
+        )
     }
 
     val title: TextRun? get() =
@@ -507,7 +519,8 @@ data class MusicResponsiveListItemRenderer(
     val playlistItemData: PlaylistItemData? = null,
     val flexColumns: List<FlexColumn>? = null,
     val thumbnail: ThumbnailRenderer? = null,
-    val navigationEndpoint: NavigationEndpoint? = null
+    val navigationEndpoint: NavigationEndpoint? = null,
+    val menu: YoutubeiNextResponse.Menu? = null
 )
 data class PlaylistItemData(val videoId: String)
 data class FlexColumn(val musicResponsiveListItemFlexColumnRenderer: MusicResponsiveListItemFlexColumnRenderer)
@@ -585,14 +598,13 @@ data class ContentsItem(val musicTwoRowItemRenderer: MusicTwoRowItemRenderer? = 
                     }
                     "MUSIC_PAGE_TYPE_ARTIST", "MUSIC_PAGE_TYPE_USER_CHANNEL" -> {
                         video_is_main = false
-                        artist = Artist
-                            .fromId(renderer.navigationEndpoint.browseEndpoint.browseId)
+                        artist = Artist.fromId(renderer.navigationEndpoint.browseEndpoint.browseId)
                     }
                 }
             }
 
             if (renderer.flexColumns != null) {
-                 for (column in renderer.flexColumns.withIndex()) {
+                for (column in renderer.flexColumns.withIndex()) {
                     val text = column.value.musicResponsiveListItemFlexColumnRenderer.text
                     if (text.runs == null) {
                         continue
@@ -640,7 +652,27 @@ data class ContentsItem(val musicTwoRowItemRenderer: MusicTwoRowItemRenderer? = 
                 ret = playlist ?: artist ?: return null
             }
 
-            return ret.supplyTitle(title).supplyArtist(artist ?: Artist.UNKNOWN).supplyThumbnailProvider(renderer.thumbnail?.toThumbnailProvider())
+            // Handle songs with no artist (or 'Various artists')
+            if (artist == null) {
+                if (renderer.flexColumns != null && renderer.flexColumns.size > 1) {
+                    val text = renderer.flexColumns[1].musicResponsiveListItemFlexColumnRenderer.text
+                    if (text.runs != null) {
+                        artist = Artist.createForItem(ret).apply { supplyTitle(text.first_text) }
+                    }
+                }
+
+                if (artist == null && renderer.menu != null) {
+                    for (item in renderer.menu.menuRenderer.items) {
+                        val browse_endpoint = (item.menuNavigationItemRenderer ?: continue).navigationEndpoint.browseEndpoint ?: continue
+                        if (browse_endpoint.getMediaItemType() == MediaItem.Type.ARTIST) {
+                            artist = Artist.fromId(browse_endpoint.browseId)
+                            break
+                        }
+                    }
+                }
+            }
+
+            return ret.supplyTitle(title).supplyArtist(artist).supplyThumbnailProvider(renderer.thumbnail?.toThumbnailProvider())
         }
 
         throw NotImplementedError()

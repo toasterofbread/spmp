@@ -30,6 +30,7 @@
     <string name="s_key_data_lang">データ言語</string>
     <string name="s_sub_interface_lang">アプリのUIに使われる言語</string>
     <string name="s_sub_data_lang">曲の名前などに使われる言語</string>
+    <string name="language_change_restart_notice">言語の変更を有効にするには、アプリの再起動が必要です</string>
     <string name="s_cat_other">その他</string>
     <string name="album">アルバム</string>
     <string name="artist">アーティスト</string>
@@ -168,6 +169,7 @@
     <string name="radio_builder_modifier_filter_upbeat">アップビート</string>
     <string name="radio_builder_modifier_filter_downbeat">ダウンビート</string>
     <string name="radio_builder_modifier_filter_focus">集中</string>
+    <string name="radio_filter_all">すべて</string>
     <string name="search_filter_all">全て</string>
     <string name="search_filter_videos">動画</string>
 

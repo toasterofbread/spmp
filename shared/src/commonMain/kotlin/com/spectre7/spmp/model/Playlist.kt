@@ -4,6 +4,7 @@ import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.setValue
+import com.beust.klaxon.Klaxon
 import com.spectre7.spmp.ui.component.PlaylistPreviewLong
 import com.spectre7.spmp.ui.component.PlaylistPreviewSquare
 import com.spectre7.utils.getStringTODO
@@ -34,6 +35,16 @@ class Playlist private constructor (
             playlist_type = value
         }
         return this
+    }
+
+    override fun getSerialisedData(klaxon: Klaxon): List<String> {
+        return super.getSerialisedData(klaxon) + listOf(klaxon.toJsonString(playlist_type?.ordinal))
+    }
+
+    override fun supplyFromSerialisedData(data: MutableList<Any?>, klaxon: Klaxon): MediaItem {
+        require(data.size >= 1)
+        data.removeLast()?.also { playlist_type = PlaylistType.values()[it as Int] }
+        return super.supplyFromSerialisedData(data, klaxon)
     }
 
     companion object {

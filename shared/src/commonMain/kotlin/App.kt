@@ -26,8 +26,6 @@ import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.text.font.FontFamily
 import androidx.compose.ui.unit.IntOffset
 import androidx.compose.ui.unit.dp
-import com.beust.klaxon.JsonObject
-import com.beust.klaxon.Klaxon
 import com.spectre7.spmp.PlayerServiceHost
 import com.spectre7.spmp.platform.PlatformContext
 import com.spectre7.spmp.api.DataApi

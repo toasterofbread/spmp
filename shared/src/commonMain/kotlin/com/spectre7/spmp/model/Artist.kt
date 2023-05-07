@@ -4,7 +4,6 @@ import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.setValue
-import com.beust.klaxon.JsonObject
 import com.beust.klaxon.Klaxon
 import com.spectre7.spmp.api.getOrThrowHere
 import com.spectre7.spmp.api.isSubscribedToArtist
@@ -15,12 +14,15 @@ import kotlin.concurrent.thread
 
 class Artist private constructor (
     id: String,
-    val for_song: Boolean = false
+    is_for_item: Boolean = false
 ): MediaItemWithLayouts(id) {
 
     init {
         supplyArtist(this, true)
     }
+
+    var is_for_item: Boolean = is_for_item
+        private set
 
     private var _subscribe_channel_id: String? by mutableStateOf(null)
     val subscribe_channel_id: String?
@@ -44,16 +46,17 @@ class Artist private constructor (
     }
 
     var subscribed: Boolean? by mutableStateOf(null)
-    val unknown: Boolean get() = this == UNKNOWN
     var is_own_channel: Boolean by mutableStateOf(false)
 
-    override fun getJsonMapValues(klaxon: Klaxon): String {
-        return super.getJsonMapValues(klaxon) + "\"subscribe_channel_id\": ${stringToJson(subscribe_channel_id)},"
+    override fun getSerialisedData(klaxon: Klaxon): List<String> {
+        return super.getSerialisedData(klaxon) + listOf(stringToJson(subscribe_channel_id), klaxon.toJsonString(is_for_item))
     }
 
-    override fun supplyFromJsonObject(data: JsonObject, klaxon: Klaxon): MediaItem {
-        data.string("subscribe_channel_id")?.also { _subscribe_channel_id = it }
-        return super.supplyFromJsonObject(data, klaxon)
+    override fun supplyFromSerialisedData(data: MutableList<Any?>, klaxon: Klaxon): MediaItem {
+        require(data.size >= 2)
+        is_for_item = data.removeLast() as Boolean
+        _subscribe_channel_id = data.removeLast() as String?
+        return super.supplyFromSerialisedData(data, klaxon)
     }
 
     override fun isFullyLoaded(): Boolean {
@@ -62,9 +65,6 @@ class Artist private constructor (
 
     companion object {
         private val artists: MutableMap<String, Artist> = mutableMapOf()
-
-        // TODO Remove
-        val UNKNOWN = fromId("0").supplyTitle("Unknown", true).supplyDescription("No known artist attached to media", true) as Artist
 
         fun fromId(id: String): Artist {
             synchronized(artists) {
@@ -86,7 +86,7 @@ class Artist private constructor (
             synchronized(artists) {
                 val id = "FS" + item.id
                 return artists.getOrPut(id) {
-                    val artist = Artist(id)
+                    val artist = Artist(id, true)
                     artist.loadFromCache()
                     return@getOrPut artist
                 }.getOrReplacedWith() as Artist
@@ -125,17 +125,12 @@ class Artist private constructor (
     }
 
     fun updateSubscribed() {
-        check(!for_song)
-        if (unknown) {
-            return
-        }
+        check(!is_for_item)
         subscribed = isSubscribedToArtist(this).getOrThrowHere()
     }
 
     fun toggleSubscribe(toggle_before_fetch: Boolean = false, onFinished: ((success: Boolean, subscribing: Boolean) -> Unit)? = null) {
-        if (unknown) {
-            return
-        }
+        check(!is_for_item)
 
         thread {
             if (subscribed == null) {

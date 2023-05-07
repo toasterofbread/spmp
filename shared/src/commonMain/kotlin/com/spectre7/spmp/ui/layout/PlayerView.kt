@@ -208,7 +208,7 @@ private class PlayerViewContextImpl: PlayerViewContext(null, null, null) {
     }
 
     override fun openMediaItem(item: MediaItem, opened_layout: MediaItemLayout?) {
-        if (item is Artist && item.for_song) {
+        if (item is Artist && item.is_for_item) {
             return
         }
 
@@ -488,41 +488,7 @@ private class PlayerViewContextImpl: PlayerViewContext(null, null, null) {
         var auth_info: YoutubeMusicAuthInfo by remember { mutableStateOf(YoutubeMusicAuthInfo(Settings.KEY_YTM_AUTH.get())) }
 
         LaunchedEffect(layoutsProvider()) {
-            val artists_map: MutableMap<Artist, Int?> = mutableMapOf()
-            for (layout in layoutsProvider()) {
-                for (item in layout.items) {
-                    if (item is Artist) {
-                        artists_map[item] = null
-                        continue
-                    }
-
-                    item.artist?.also { artist ->
-                        if (auth_info.initialised && artist == auth_info.own_channel) {
-                            return@also
-                        }
-
-                        if (artists_map.containsKey(artist)) {
-                            val current = artists_map[artist]
-                            if (current != null) {
-                                artists_map[artist] = current + 1
-                            }
-                        }
-                        else {
-                            artists_map[artist] = 1
-                        }
-                    }
-                }
-            }
-
-            val artists = artists_map.mapNotNull { artist ->
-                if (artist.value == null || artist.value!! < 1) null
-                else Pair(artist.key, artist.value)
-            }.sortedByDescending { it.second }
-
-            artists_layout.items.clear()
-            for (artist in artists) {
-                artists_layout.items.add(artist.first)
-            }
+            populateArtistsLayout(artists_layout, layoutsProvider, auth_info.getOwnChannelOrNull())
         }
 
         DisposableEffect(Unit) {
@@ -706,10 +672,7 @@ private fun getMainPageItemSize(): DpSize {
 @Composable
 private fun RadioBuilderButton(playerProvider: () -> PlayerViewContext) {
     IconButton({ playerProvider().setOverlayPage(OverlayPage.RADIO_BUILDER) }) {
-        Row {
-            Icon(Icons.Default.Radio, null)
-            Icon(Icons.Default.Add, null)
-        }
+        RadioBuilderIcon()
     }
 }
 
@@ -919,4 +882,42 @@ private fun loadFeedLayouts(min_rows: Int, allow_cached: Boolean, params: String
 
     val (row_data, new_continuation, chips) = result.getOrThrowHere()
     return Result.success(Triple(row_data.filter { it.items.isNotEmpty() }, new_continuation, chips))
+}
+
+fun populateArtistsLayout(artists_layout: MediaItemLayout, layoutsProvider: () -> List<MediaItemLayout>, own_channel: Artist?) {
+    val artists_map: MutableMap<Artist, Int?> = mutableMapOf()
+    for (layout in layoutsProvider()) {
+        for (item in layout.items) {
+            if (item is Artist) {
+                artists_map[item] = null
+                continue
+            }
+
+            item.artist?.also { artist ->
+                if (artist == own_channel) {
+                    return@also
+                }
+
+                if (artists_map.containsKey(artist)) {
+                    val current = artists_map[artist]
+                    if (current != null) {
+                        artists_map[artist] = current + 1
+                    }
+                }
+                else {
+                    artists_map[artist] = 1
+                }
+            }
+        }
+    }
+
+    val artists = artists_map.mapNotNull { artist ->
+        if (artist.value == null || artist.value!! < 1) null
+        else Pair(artist.key, artist.value)
+    }.sortedByDescending { it.second }
+
+    artists_layout.items.clear()
+    for (artist in artists) {
+        artists_layout.items.add(artist.first)
+    }
 }

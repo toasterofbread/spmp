@@ -345,7 +345,7 @@ fun WidthShrinkText(
 		text_style_large?.also {
 			Text(
 				text,
-				modifier.drawWithContent {}.wrapContentHeight(unbounded = true),
+				modifier.drawWithContent {}.requiredHeight(1.dp),
 				maxLines = 1,
 				softWrap = false,
 				style = it,

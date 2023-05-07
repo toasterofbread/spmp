@@ -12,6 +12,7 @@ import com.spectre7.spmp.model.MediaItem
 import com.spectre7.spmp.model.Playlist
 import com.spectre7.spmp.model.Song
 import com.spectre7.spmp.ui.component.MediaItemLayout
+import com.spectre7.utils.getStringTODO
 import okhttp3.Request
 
 data class YoutubeiSearchResponse(
@@ -28,7 +29,7 @@ data class YoutubeiSearchResponse(
     )
     data class ChipCloudRenderer(val chips: List<Chip>)
     data class Chip(val chipCloudChipRenderer: ChipCloudChipRenderer)
-    data class ChipCloudChipRenderer(val navigationEndpoint: NavigationEndpoint, val text: TextRuns)
+    data class ChipCloudChipRenderer(val navigationEndpoint: NavigationEndpoint, val text: TextRuns? = null)
 }
 
 data class ChipCloudRendererHeader(val chipCloudRenderer: YoutubeiSearchResponse.ChipCloudRenderer)
@@ -58,8 +59,9 @@ enum class SearchType {
 }
 
 data class SearchFilter(val type: SearchType, val params: String)
+data class SearchResults(val suggested_correction: String?, val categories: List<Pair<MediaItemLayout, SearchFilter?>>)
 
-fun searchYoutubeMusic(query: String, params: String?): Result<List<Pair<MediaItemLayout, SearchFilter?>>> {
+fun searchYoutubeMusic(query: String, params: String?): Result<SearchResults> {
     val params_str: String = if (params != null) "\"$params\"" else "null"
     val request = Request.Builder()
         .ytUrl("/youtubei/v1/search")
@@ -73,20 +75,34 @@ fun searchYoutubeMusic(query: String, params: String?): Result<List<Pair<MediaIt
     }
 
     val stream = result.getOrThrow().getStream()
-    val parsed: YoutubeiSearchResponse = DataApi.klaxon.parse(stream)!!
+    val str = stream.reader().readText()
+    val parsed: YoutubeiSearchResponse = DataApi.klaxon.parse(str)!!
     stream.close()
 
-    val ret: MutableList<Pair<MediaItemLayout, SearchFilter?>> = mutableListOf()
     val tab = parsed.contents.tabbedSearchResultsRenderer.tabs.first().tabRenderer
 
-    val chips = tab.content!!.sectionListRenderer.header!!.chipCloudRenderer.chips
+    var correction_suggestion: String? = null
+    val categories = tab.content!!.sectionListRenderer.contents!!.filter { shelf ->
+        if (shelf.itemSectionRenderer != null) {
+            shelf.itemSectionRenderer.contents.firstOrNull()?.didYouMeanRenderer?.correctedQuery?.first_text?.also {
+                correction_suggestion = it
+            }
+            false
+        }
+        else {
+            true
+        }
+    }
 
-    for (category in tab.content.sectionListRenderer.contents!!.withIndex()) {
+    val category_layouts: MutableList<Pair<MediaItemLayout, SearchFilter?>> = mutableListOf()
+    val chips = tab.content.sectionListRenderer.header!!.chipCloudRenderer.chips
+
+    for (category in categories.withIndex()) {
 
         val card = category.value.musicCardShelfRenderer
         if (card != null) {
-            ret.add(Pair(
-                MediaItemLayout(TODO(card.header.musicCardShelfHeaderBasicRenderer!!.title.first_text), null, items = mutableListOf(card.getMediaItem()), type = MediaItemLayout.Type.CARD),
+            category_layouts.add(Pair(
+                MediaItemLayout(LocalisedYoutubeString.raw(getStringTODO(card.header.musicCardShelfHeaderBasicRenderer!!.title.first_text)), null, items = mutableListOf(card.getMediaItem()), type = MediaItemLayout.Type.CARD),
                 null
             ))
             continue
@@ -96,7 +112,7 @@ fun searchYoutubeMusic(query: String, params: String?): Result<List<Pair<MediaIt
         val search_params = if (category.index == 0) null else chips[category.index - 1].chipCloudChipRenderer.navigationEndpoint.searchEndpoint!!.params
         val items = shelf.contents.mapNotNull { it.toMediaItem() }.toMutableList()
 
-        ret.add(Pair(
+        category_layouts.add(Pair(
             MediaItemLayout(LocalisedYoutubeString.temp(shelf.title!!.first_text), null, items = items),
             search_params?.let {
                 val item = items.firstOrNull() ?: return@let null
@@ -113,5 +129,5 @@ fun searchYoutubeMusic(query: String, params: String?): Result<List<Pair<MediaIt
         ))
     }
 
-    return Result.success(ret)
+    return Result.success(SearchResults(correction_suggestion, category_layouts))
 }

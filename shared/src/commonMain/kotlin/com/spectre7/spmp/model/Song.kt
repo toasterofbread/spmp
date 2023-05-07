@@ -4,19 +4,19 @@ import androidx.compose.runtime.*
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.ImageBitmap
 import androidx.compose.ui.graphics.toArgb
+import com.beust.klaxon.Klaxon
 import com.spectre7.spmp.api.*
 import com.spectre7.spmp.platform.crop
 import com.spectre7.spmp.platform.toImageBitmap
 import com.spectre7.spmp.ui.component.SongPreviewLong
 import com.spectre7.spmp.ui.component.SongPreviewSquare
-import com.spectre7.utils.TextData
 import com.spectre7.utils.getString
 import com.spectre7.utils.lazyAssert
 import com.spectre7.utils.toHiragana
+import kotlinx.coroutines.*
 import okhttp3.internal.filterList
 import java.io.FileNotFoundException
 import java.net.URL
-import kotlin.concurrent.thread
 
 class Song protected constructor (
     id: String
@@ -60,6 +60,28 @@ class Song protected constructor (
             duration = value
         }
         return this
+    }
+
+    var album: Playlist? by mutableStateOf(null)
+        private set
+
+    fun supplyAlbum(value: Playlist?, certain: Boolean = false): Song {
+        if (value != null && (album == null || certain)) {
+            album = value
+        }
+        return this
+    }
+
+    override fun getSerialisedData(klaxon: Klaxon): List<String> {
+        return super.getSerialisedData(klaxon) + listOf(klaxon.toJsonString(song_type?.ordinal), klaxon.toJsonString(duration), klaxon.toJsonString(album?.id))
+    }
+
+    override fun supplyFromSerialisedData(data: MutableList<Any?>, klaxon: Klaxon): MediaItem {
+        require(data.size >= 3)
+        data.removeLast()?.also { album = Playlist.fromId(it as String) }
+        data.removeLast()?.also { duration = (it as Int).toLong() }
+        data.removeLast()?.also { song_type = SongType.values()[it as Int] }
+        return super.supplyFromSerialisedData(data, klaxon)
     }
 
     data class Lyrics(

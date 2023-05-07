@@ -636,6 +636,10 @@ private fun getGeneralCategory(
         getYoutubeMusicLoginSettingsItem(ytm_auth, playerProvider),
         SettingsItemSpacer(10.dp),
 
+        SettingsItemComposable {
+            WidthShrinkText(getString("language_change_restart_notice"))
+        },
+
         SettingsItemDropdown(
             SettingsValueState(Settings.KEY_LANG_UI.name),
             getString("s_key_interface_lang"), getString("s_sub_interface_lang"),

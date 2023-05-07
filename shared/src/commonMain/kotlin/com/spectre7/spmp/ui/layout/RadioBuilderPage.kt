@@ -38,6 +38,16 @@ import kotlinx.coroutines.launch
 import kotlin.math.ceil
 import kotlin.concurrent.thread
 
+const val RADIO_BUILDER_ICON_WIDTH = 35f
+
+@Composable
+fun RadioBuilderIcon(modifier: Modifier = Modifier) {
+    Row(modifier.requiredSize(RADIO_BUILDER_ICON_WIDTH.dp, 25.dp)) {
+        Icon(Icons.Default.Radio, null, Modifier.align(Alignment.CenterVertically))
+        Icon(Icons.Default.Add, null, Modifier.align(Alignment.Top))
+    }
+}
+
 @Composable
 fun RadioBuilderPage(
     pill_menu: PillMenu,
@@ -68,14 +78,23 @@ fun RadioBuilderPage(
                 .padding(10.dp, 0.dp),
             verticalArrangement = Arrangement.spacedBy(15.dp)
         ) {
-            Column(verticalArrangement = Arrangement.spacedBy(5.dp)) {
-                Text(getString("radio_builder_title"), fontSize = 15.sp)
+            Row(
+                Modifier.padding(vertical = 10.dp).fillMaxWidth(),
+                horizontalArrangement = Arrangement.SpaceBetween,
+                verticalAlignment = Alignment.CenterVertically
+            ) {
+                RadioBuilderIcon()
+
+//                Text(getString("radio_builder_title"), fontSize = 15.sp)
                 Text(
                     getString(
                         if (selected == null) "radio_builder_artists_title"
                         else "radio_builder_modifiers_title"
-                    ), fontSize = 30.sp
+                    ),
+                    style = MaterialTheme.typography.headlineMedium
                 )
+
+                Spacer(Modifier.width(RADIO_BUILDER_ICON_WIDTH.dp))
             }
 
             if (selected == null) {
@@ -143,7 +162,13 @@ fun RadioBuilderPage(
                                 }
                             },
                             {
-                                SpMp.error_manager.onError("radio_builder_load_radio", result.exceptionOrNull()!!)
+                                if (it is InvalidRadioException) {
+                                    invalid_modifiers = true
+                                    preview_playlist = null
+                                }
+                                else {
+                                    SpMp.error_manager.onError("radio_builder_load_radio", result.exceptionOrNull()!!)
+                                }
                             }
                         )
 

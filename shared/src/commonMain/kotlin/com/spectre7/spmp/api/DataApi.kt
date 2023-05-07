@@ -52,9 +52,8 @@ fun <T> Result<T>.getOrReport(error_key: String): T? {
             it
         },
         {
-            TODO()
-//            SpMp.error_manager.onError(error_key, it)
-//            null
+            SpMp.error_manager.onError(error_key, it)
+            null
         }
     )
 }
@@ -96,16 +95,12 @@ class DataApi {
             }
 
             override fun fromJson(jv: JsonValue): Any? {
-                if (jv.obj == null && jv.type != Object::class.java) {
-                    throw KlaxonException("Couldn't parse MediaItem as it isn't an object (${jv.type.name})")
-                }
-
-                if (jv.obj == null) {
+                if (jv.array == null) {
                     return null
                 }
 
                 try {
-                    return MediaItem.fromJsonObject(jv.obj!!, klaxon)
+                    return MediaItem.fromDataItems(jv.array!!.toList(), klaxon)
                 }
                 catch (e: Exception) {
                     throw RuntimeException("Couldn't parse MediaItem (${jv.obj})", e)
@@ -116,10 +111,16 @@ class DataApi {
                 if (value !is MediaItem) {
                     throw KlaxonException("Value $value is not a MediaItem")
                 }
-                return """{
-                    "type": ${value.type.ordinal},
-                    "id": "${value.id}",${value.getJsonMapValues(klaxon)}
-                }"""
+
+                val string = StringBuilder("[${value.type.ordinal},\"${value.id}\"")
+
+                for (item in value.getSerialisedData(klaxon)) {
+                    string.append(',')
+                    string.append(item)
+                }
+
+                string.append(']')
+                return string.toString()
             }
         }
         private val mediaitem_ref_converter = object : Converter {
@@ -128,16 +129,12 @@ class DataApi {
             }
 
             override fun fromJson(jv: JsonValue): Any? {
-                if (jv.obj == null && jv.type != Object::class.java) {
-                    throw KlaxonException("Couldn't parse MediaItem as it isn't an object (${jv.type.name})")
-                }
-
-                if (jv.obj == null) {
+                if (jv.array == null) {
                     return null
                 }
 
                 try {
-                    return MediaItem.fromJsonObject(jv.obj!!, klaxon.converter(this), true)
+                    return MediaItem.fromDataItems(jv.array!!.toList(), klaxon.converter(this))
                 }
                 catch (e: Exception) {
                     throw RuntimeException("Couldn't parse MediaItem ($jv)", e)
@@ -148,10 +145,7 @@ class DataApi {
                 if (value !is MediaItem) {
                     throw KlaxonException("Value $value is not a MediaItem")
                 }
-                return """{
-                        "type": ${value.type.ordinal},
-                        "id": "${value.id}"
-                    }"""
+                return "[${value.type.ordinal},\"${value.id}\"]"
             }
         }
 

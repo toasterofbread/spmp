@@ -5,7 +5,6 @@ import com.spectre7.spmp.api.DataApi.Companion.getStream
 import com.spectre7.spmp.api.DataApi.Companion.ytUrl
 import com.spectre7.spmp.model.*
 import com.spectre7.spmp.ui.component.MediaItemLayout
-import com.spectre7.utils.printJson
 import okhttp3.Request
 import java.util.regex.Pattern
 
@@ -75,8 +74,10 @@ private fun unescape(input: String): String {
         matcher.appendReplacement(sb, decimal.toChar().toString())
     }
     matcher.appendTail(sb)
-    return sb.toString()
+    return sb.toString().replace("\\\\\"", "\\\"")
 }
+
+class InvalidRadioException: Throwable()
 
 fun loadMediaItemData(item: MediaItem): Result<MediaItem?> {
     val lock = item.loading_lock
@@ -103,7 +104,7 @@ fun loadMediaItemData(item: MediaItem): Result<MediaItem?> {
         return Result.success(item)
     }
 
-    if (item is Artist && item.unknown) {
+    if (item is Artist && item.is_for_item) {
         return finish(true)
     }
 
@@ -134,6 +135,7 @@ fun loadMediaItemData(item: MediaItem): Result<MediaItem?> {
             null
         else """{ "browseId": "$item_id" }"""
 
+    // TODO Fix language option not applying to radio
     var request: Request = Request.Builder()
         .ytUrl(url)
         .addYtHeaders(body == null)
@@ -141,7 +143,7 @@ fun loadMediaItemData(item: MediaItem): Result<MediaItem?> {
             if (body != null) post(DataApi.getYoutubeiRequestBody(body))
         }
         .build()
-
+    println(1)
     val response = DataApi.request(request).getOrNull()
     if (response != null) {
         val response_body = response.getStream()
@@ -154,10 +156,14 @@ fun loadMediaItemData(item: MediaItem): Result<MediaItem?> {
 
             val start_str = "JSON.parse('\\x7b\\x22browseId\\x22:\\x22$item_id\\x22\\x7d'), data:"
             val start = string.indexOf(start_str)
-            check(start != -1)
+            if (start == -1) {
+                return Result.failure(InvalidRadioException())
+            }
 
             val end = string.indexOf('}', start + start_str.length)
-            check(end != -1)
+            if (end == -1) {
+                return Result.failure(InvalidRadioException())
+            }
 
             val json_reader = unescape(string.substring(start + start_str.length, end).trim().trim('\'')).reader()
             val parsed = DataApi.klaxon.parse<YoutubeiBrowseResponse>(json_reader)!!
@@ -170,6 +176,7 @@ fun loadMediaItemData(item: MediaItem): Result<MediaItem?> {
                 .contents!![0]
                 .musicPlaylistShelfRenderer!!
             json_reader.close()
+    println(7)
 
             val continuation = parsed.continuations?.firstOrNull()?.nextRadioContinuationData?.continuation
 

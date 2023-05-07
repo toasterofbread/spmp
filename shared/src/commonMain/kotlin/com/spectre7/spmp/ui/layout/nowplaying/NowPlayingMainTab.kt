@@ -22,13 +22,11 @@ import androidx.compose.ui.draw.clip
 import androidx.compose.ui.draw.scale
 import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.graphics.*
-import androidx.compose.ui.graphics.painter.Painter
 import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.input.pointer.pointerInput
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.layout.onSizeChanged
 import androidx.compose.ui.platform.LocalDensity
-import androidx.compose.ui.text.TextStyle
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.text.style.TextOverflow
@@ -502,7 +500,7 @@ private fun Controls(
                         .clickable(
                             remember { MutableInteractionSource() },
                             indication = null,
-                            enabled = PlayerServiceHost.status.song?.artist?.for_song == false
+                            enabled = PlayerServiceHost.status.song?.artist?.is_for_item == false
                         ) {
                             PlayerServiceHost.status.song?.artist?.also {
                                 playerProvider().onMediaItemClicked(it)

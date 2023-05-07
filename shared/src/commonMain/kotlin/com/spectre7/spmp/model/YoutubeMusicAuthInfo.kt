@@ -1,6 +1,8 @@
 package com.spectre7.spmp.model
 
-import com.beust.klaxon.Klaxon
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.runBlocking
+import kotlinx.coroutines.withContext
 
 class YoutubeMusicAuthInfo: Set<String> {
     enum class ValueType { CHANNEL, COOKIE, HEADER }
@@ -13,11 +15,21 @@ class YoutubeMusicAuthInfo: Set<String> {
     lateinit var headers: Map<String, String>
         private set
 
+    fun getOwnChannelOrNull(): Artist? = if (initialised) null else own_channel
+
     constructor()
 
     constructor(own_channel: Artist, cookie: String, headers: Map<String, String>) {
         this.own_channel = own_channel
-        own_channel.is_own_channel = true
+
+        runBlocking {
+            with(own_channel) {
+                withContext(Dispatchers.IO) {
+                    is_own_channel = true
+                }
+            }
+        }
+
         this.cookie = cookie
         this.headers = headers
         initialised = true
@@ -33,7 +45,13 @@ class YoutubeMusicAuthInfo: Set<String> {
         for (item in set) {
             val value = item.substring(1)
             when (ValueType.values()[item.take(1).toInt()]) {
-                ValueType.CHANNEL -> own_channel = Artist.fromId(value).also { it.is_own_channel = true }
+                ValueType.CHANNEL -> own_channel = Artist.fromId(value).also {
+                    runBlocking {
+                        withContext(Dispatchers.IO) {
+                            it.is_own_channel = true
+                        }
+                    }
+                }
                 ValueType.COOKIE -> cookie = value
                 ValueType.HEADER -> stringToHeader(value).also { set_headers[it.first] = it.second }
             }

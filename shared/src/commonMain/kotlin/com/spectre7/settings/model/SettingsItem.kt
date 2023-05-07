@@ -97,6 +97,16 @@ class SettingsGroup(var title: String?): SettingsItem() {
     }
 }
 
+class SettingsItemComposable(val composable: @Composable () -> Unit): SettingsItem() {
+    override fun initialiseValueStates(prefs: ProjectPreferences, default_provider: (String) -> Any) {}
+    override fun resetValues() {}
+
+    @Composable
+    override fun GetItem(theme: Theme, openPage: (Int) -> Unit, openCustomPage: (SettingsPage) -> Unit) {
+        composable()
+    }
+}
+
 class SettingsItemInfoText(val text: String): SettingsItem() {
     override fun initialiseValueStates(prefs: ProjectPreferences, default_provider: (String) -> Any) {}
     override fun resetValues() {}

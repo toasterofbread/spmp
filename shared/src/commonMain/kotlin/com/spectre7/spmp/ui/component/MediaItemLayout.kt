@@ -42,7 +42,7 @@ data class MediaItemLayout(
     val type: Type? = null,
     val items: MutableList<MediaItem> = mutableListOf(),
     val thumbnail_source: ThumbnailSource? = null,
-    val media_item_type: MediaItem.Type? = null,
+    val thumbnail_item_type: MediaItem.Type? = null,
     var view_more: ViewMore? = null,
     var continuation: Continuation? = null,
     @Json(ignored = true)
@@ -191,7 +191,7 @@ data class MediaItemLayout(
     }
 
     private fun getThumbShape(): Shape {
-        return if (media_item_type == MediaItem.Type.ARTIST) CircleShape else RectangleShape
+        return if (thumbnail_item_type == MediaItem.Type.ARTIST) CircleShape else RectangleShape
     }
 
     @Composable
@@ -469,7 +469,7 @@ fun MediaItemCard(
             verticalAlignment = Alignment.CenterVertically
         ) {
             Button(
-                {},
+                { playerProvider().playMediaItem(item) },
                 Modifier.fillMaxWidth(),
                 shape = shape,
                 colors = ButtonDefaults.buttonColors(

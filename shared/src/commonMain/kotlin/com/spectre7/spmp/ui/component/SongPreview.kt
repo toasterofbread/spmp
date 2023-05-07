@@ -114,7 +114,7 @@ fun SongPreviewLong(
 
         Column(
             Modifier
-                .padding(10.dp)
+                .padding(horizontal = 10.dp, vertical = 8.dp)
                 .fillMaxWidth(),
             verticalArrangement = Arrangement.spacedBy(5.dp)
         ) {

@@ -55,7 +55,7 @@ fun SearchPage(
     var search_in_progress: Boolean by remember { mutableStateOf(false) }
     val search_lock = remember { Object() }
 
-    var current_results: List<Pair<MediaItemLayout, SearchFilter?>>? by remember { mutableStateOf(null) }
+    var current_results: SearchResults? by remember { mutableStateOf(null) }
     var current_query: String? by remember { mutableStateOf(null) }
     var current_filter: SearchType? by remember { mutableStateOf(null) }
 
@@ -77,7 +77,7 @@ fun SearchPage(
         thread {
             searchYoutubeMusic(query, filter?.params).fold(
                 { results ->
-                    for (result in results) {
+                    for (result in results.categories) {
                         if (result.second != null) {
                             result.first.view_more = MediaItemLayout.ViewMore(
                                 action = {
@@ -115,7 +115,7 @@ fun SearchPage(
         Crossfade(current_results) { results ->
             if (results != null) {
                 Results(
-                    results.map { it.first },
+                    results,
                     playerProvider,
                     bottom_padding + (SEARCH_BAR_HEIGHT * 2) + (SEARCH_BAR_PADDING * 2)
                 )
@@ -158,7 +158,7 @@ fun SearchPage(
 }
 
 @Composable
-private fun Results(layouts: List<MediaItemLayout>, playerProvider: () -> PlayerViewContext, bottom_padding: Dp) {
+private fun Results(results: SearchResults, playerProvider: () -> PlayerViewContext, bottom_padding: Dp) {
     val horizontal_padding = 10.dp
     LazyColumn(
         Modifier.fillMaxSize(),
@@ -170,7 +170,14 @@ private fun Results(layouts: List<MediaItemLayout>, playerProvider: () -> Player
         ),
         verticalArrangement = Arrangement.spacedBy(30.dp)
     ) {
-        for (layout in layouts) {
+        if (results.suggested_correction != null) {
+            item {
+                Text(results.suggested_correction)
+            }
+        }
+
+        for (category in results.categories) {
+            val layout = category.first
             item {
                 (layout.type ?: MediaItemLayout.Type.LIST).Layout(layout, playerProvider)
             }

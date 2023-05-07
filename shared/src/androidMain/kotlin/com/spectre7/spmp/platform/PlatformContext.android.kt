@@ -53,10 +53,10 @@ fun getAppName(context: Context): String {
     return if (string_id == 0) info.nonLocalizedLabel.toString() else context.getString(string_id)
 }
 
-actual class PlatformContext(context: Context) {
+actual class PlatformContext(private val context: Context) {
 
-    private val context: WeakReference<Context> = WeakReference(context)
-    val ctx: Context get() = context.get()!!
+//    private val context: WeakReference<Context> = WeakReference(context)
+    val ctx: Context get() = context
 
     actual fun getPrefs(): ProjectPreferences = ProjectPreferences.getInstance(ctx)
 

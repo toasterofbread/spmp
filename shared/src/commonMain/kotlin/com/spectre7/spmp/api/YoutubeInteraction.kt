@@ -5,7 +5,6 @@ import com.spectre7.spmp.api.DataApi.Companion.getStream
 import com.spectre7.spmp.api.DataApi.Companion.ytUrl
 import com.spectre7.spmp.model.Artist
 import com.spectre7.utils.getString
-import com.spectre7.utils.printJson
 import okhttp3.HttpUrl.Companion.toHttpUrl
 import okhttp3.Request
 import java.util.*
@@ -20,7 +19,7 @@ class ArtistBrowseResponse(val header: Header) {
 }
 
 fun isSubscribedToArtist(artist: Artist): Result<Boolean?> {
-    check(!artist.for_song)
+    check(!artist.is_for_item)
 
     val request: Request = Request.Builder()
         .ytUrl("/youtubei/v1/browse")

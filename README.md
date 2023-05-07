@@ -15,7 +15,7 @@ Support for Compose Multiplatform on desktop is [in-progress](https://github.com
 
 ## Features
 
-<img src="readme/screenshot_2.png" style="max-height:70vh;float:right;padding-left:10px;">
+<img align="right" width="300" src="readme/screenshot_2.png">
 
 #### Metadata
 - Edit song, artist, and playlist titles

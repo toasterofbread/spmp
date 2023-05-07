@@ -5,21 +5,16 @@ import androidx.compose.animation.core.Animatable
 import androidx.compose.foundation.ExperimentalFoundationApi
 import androidx.compose.foundation.combinedClickable
 import androidx.compose.foundation.layout.Box
-import androidx.compose.foundation.layout.fillMaxHeight
 import androidx.compose.foundation.layout.size
-import androidx.compose.foundation.layout.width
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.ThumbUp
 import androidx.compose.material.icons.outlined.ThumbUp
 import androidx.compose.material3.Icon
-import androidx.compose.material3.LocalContentColor
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.rotate
 import androidx.compose.ui.graphics.Color
-import androidx.compose.ui.layout.onSizeChanged
-import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.unit.dp
 import com.spectre7.spmp.api.getOrThrowHere
 import com.spectre7.spmp.api.getSongLiked
@@ -73,7 +68,7 @@ fun LikeDislikeButton(
     ) {
         Crossfade(if (!loaded) null else liked != null) { active ->
             if (active == null) {
-                SubtleLoadingIndicator(colourProvider, Modifier.size(24.dp))
+                SubtleLoadingIndicator(Modifier.size(24.dp), colourProvider)
             }
             else {
                 Icon(

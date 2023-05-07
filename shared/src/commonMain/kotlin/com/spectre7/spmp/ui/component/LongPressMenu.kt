@@ -122,9 +122,8 @@ fun Modifier.longPressMenuIcon(data: LongPressMenuData, enabled: Boolean = true)
         .clip(data.thumb_shape ?: RoundedCornerShape(DEFAULT_THUMBNAIL_ROUNDING))
 }
 
-@OptIn(ExperimentalAnimationApi::class)
 @Composable
-fun LongPressIconMenu(
+fun LongPressMenu(
     showing: Boolean,
     no_transition: Boolean,
     onDismissRequest: () -> Unit,
@@ -480,9 +479,9 @@ private fun Actions(data: LongPressMenuData, accent_colour: Color, playerProvide
 
     LongPressMenuActionProvider.ActionButton(
         Icons.Filled.Pin, 
-        getStringTODO(
-            if (data.item.pinned_to_home) "Unpin from home" 
-            else "Pin to home"
+        getString(
+            if (data.item.pinned_to_home) "lpm_action_home_unpin"
+            else "lpm_action_home_pin"
         ), 
         accent_colour_provider, 
         onClick = {
@@ -492,13 +491,13 @@ private fun Actions(data: LongPressMenuData, accent_colour: Color, playerProvide
     )
 
     if (SpMp.context.canShare()) {
-        LongPressMenuActionProvider.ActionButton(Icons.Filled.Share, getStringTODO("Share"), accent_colour_provider, onClick = {
+        LongPressMenuActionProvider.ActionButton(Icons.Filled.Share, getString("lpm_action_share"), accent_colour_provider, onClick = {
             SpMp.context.shareText(data.item.url, if (data.item is Song) data.item.title else null)
         }, closeMenu = close)
     }
 
     if (SpMp.context.canOpenUrl()) {
-        LongPressMenuActionProvider.ActionButton(Icons.Filled.OpenWith, getStringTODO("Open externally"), accent_colour_provider, onClick = {
+        LongPressMenuActionProvider.ActionButton(Icons.Filled.OpenWith, getString("lpm_action_open_external"), accent_colour_provider, onClick = {
             SpMp.context.openUrl(data.item.url)
         }, closeMenu = close)
     }

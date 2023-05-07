@@ -1,47 +1,19 @@
 package com.spectre7.spmp.ui.layout
 
-import androidx.compose.material3.FilledTonalButton
-import androidx.compose.material3.Text
-import androidx.compose.material3.TextButton
+import SpMp
 import androidx.compose.runtime.Composable
-import androidx.compose.runtime.getValue
-import androidx.compose.runtime.mutableStateOf
-import androidx.compose.runtime.setValue
-import androidx.compose.runtime.remember
 import androidx.compose.ui.Modifier
-import com.spectre7.spmp.model.Settings
-import com.spectre7.spmp.model.YoutubeMusicAuthInfo
-import com.spectre7.spmp.platform.PlatformAlertDialog
-import com.spectre7.spmp.platform.WebViewLogin
-import com.spectre7.spmp.platform.isWebViewLoginSupported
-import com.spectre7.utils.getString
 import com.spectre7.spmp.api.*
 import com.spectre7.spmp.model.Artist
 import com.spectre7.spmp.model.MediaItem
+import com.spectre7.spmp.model.YoutubeMusicAuthInfo
+import com.spectre7.spmp.platform.WebViewLogin
+import com.spectre7.spmp.platform.isWebViewLoginSupported
 import okhttp3.Request
 import java.net.URI
 
 private const val MUSIC_URL = "https://music.youtube.com/"
 private const val MUSIC_LOGIN_URL = "https://accounts.google.com/v3/signin/identifier?dsh=S1527412391%3A1678373417598386&continue=https%3A%2F%2Fwww.youtube.com%2Fsignin%3Faction_handle_signin%3Dtrue%26app%3Ddesktop%26hl%3Den-GB%26next%3Dhttps%253A%252F%252Fmusic.youtube.com%252F%253Fcbrd%253D1%26feature%3D__FEATURE__&hl=en-GB&ifkv=AWnogHfK4OXI8X1zVlVjzzjybvICXS4ojnbvzpE4Gn_Pfddw7fs3ERdfk-q3tRimJuoXjfofz6wuzg&ltmpl=music&passive=true&service=youtube&uilel=3&flowName=GlifWebSignIn&flowEntry=ServiceLogin"
-
-@Composable
-fun YoutubeMusicLoginWarningPopup(info: Boolean = false, onFinished: (accepted: Boolean) -> Unit) {
-    PlatformAlertDialog(
-        { onFinished(false) },
-        confirmButton = {
-            FilledTonalButton({
-                onFinished(!info)
-            }) {
-                Text(getString("action_confirm_action"))
-            }
-        },
-        dismissButton = if (!info) ({ TextButton({ onFinished(false) }) { Text(getString("action_deny_action")) } }) else null,
-        title = { Text(getString("prompt_confirm_action")) },
-        text = {
-            Text(getString(if (info) "info_ytm_login" else "warning_ytm_login"))
-        }
-    )
-}
 
 @Composable
 fun YoutubeMusicLogin(modifier: Modifier = Modifier, onFinished: (Result<YoutubeMusicAuthInfo>?) -> Unit) {

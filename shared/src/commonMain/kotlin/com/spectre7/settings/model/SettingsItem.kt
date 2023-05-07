@@ -1,9 +1,10 @@
+@file:Suppress("MemberVisibilityCanBePrivate")
+
 package com.spectre7.settings.model
 
+import androidx.compose.animation.*
 import com.spectre7.spmp.platform.PlatformContext
 import com.spectre7.spmp.platform.ProjectPreferences
-import androidx.compose.animation.Animatable
-import androidx.compose.animation.Crossfade
 import androidx.compose.animation.core.TweenSpec
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
@@ -31,6 +32,7 @@ import com.github.krottv.compose.sliders.SliderValueHorizontal
 import androidx.compose.animation.core.SpringSpec
 import androidx.compose.animation.core.animateFloatAsState
 import androidx.compose.foundation.shape.CircleShape
+import androidx.compose.material.icons.filled.Info
 import androidx.compose.ui.graphics.graphicsLayer
 import androidx.compose.ui.platform.LocalDensity
 import com.github.krottv.compose.sliders.DefaultThumb
@@ -776,13 +778,20 @@ class SettingsItemSubpage(
 
 class SettingsItemLargeToggle(
     val state: BasicSettingsValueState<Boolean>,
-    val enabled_text: String,
-    val disabled_text: String,
+    val enabled_text: String? = null,
+    val disabled_text: String? = null,
     val enable_button: String,
     val disable_button: String,
-    val checker: ((target: Boolean, openPage: (Int) -> Unit, onFinished: (allow_change: Boolean) -> Unit) -> Unit)? = null
+    val enabled_content: (@Composable (Modifier) -> Unit)? = null,
+    val disabled_content: (@Composable (Modifier) -> Unit)? = null,
+    val warning_text: String? = null,
+    val info_text: String? = null,
+    val onClicked: (target: Boolean, setEnabled: (Boolean) -> Unit, setLoading: (Boolean) -> Unit, openPage: (Int) -> Unit) -> Unit =
+        { target, setEnabled, _, _ -> setEnabled(target) }
 ): SettingsItem() {
-    override fun initialiseValueStates(prefs: ProjectPreferences, default_provider: (String) -> Any) {}
+    override fun initialiseValueStates(prefs: ProjectPreferences, default_provider: (String) -> Any) {
+        state.init(prefs, default_provider)
+    }
     override fun resetValues() {}
 
     @Composable
@@ -792,6 +801,48 @@ class SettingsItemLargeToggle(
         openCustomPage: (SettingsPage) -> Unit
     ) {
         val shape = RoundedCornerShape(20.dp)
+        var loading: Boolean by remember { mutableStateOf(false) }
+
+        var showing_warning: Boolean by remember { mutableStateOf(false) }
+        var showing_info: Boolean by remember { mutableStateOf(false) }
+
+        if (showing_warning || showing_info) {
+            assert(!(showing_warning && showing_info))
+
+            PlatformAlertDialog(
+                {
+                    showing_warning = false
+                    showing_info = false
+                },
+                confirmButton = {
+                    FilledTonalButton({
+                        if (showing_warning) {
+                            showing_warning = false
+                            onClicked(
+                                true,
+                                { state.value = it },
+                                { loading = it },
+                                openPage
+                            )
+                        }
+                        else {
+                            showing_info = false
+                        }
+                    }) {
+                        Text(getString("action_confirm_action"))
+                    }
+                },
+                dismissButton =
+                if (showing_warning) ({
+                    TextButton({ showing_warning = false }) { Text(getString("action_deny_action")) }
+                })
+                else null,
+                title = { Text(getString("prompt_confirm_action")) },
+                text = {
+                    LinkifyText(if (showing_warning) warning_text!! else info_text!!)
+                }
+            )
+        }
 
         Crossfade(state.value) { enabled ->
             CompositionLocalProvider(LocalContentColor provides if (!enabled) theme.on_background else theme.on_accent) {
@@ -802,30 +853,57 @@ class SettingsItemLargeToggle(
                             shape
                         )
                         .border(Dp.Hairline, theme.vibrant_accent, shape)
-                        .padding(start = 20.dp, end = 20.dp)
-                        .fillMaxWidth(),
-                    horizontalArrangement = Arrangement.SpaceBetween, verticalAlignment = Alignment.CenterVertically
+                        .padding(horizontal = 10.dp)
+                        .fillMaxWidth()
+                        .height(IntrinsicSize.Max),
+                    horizontalArrangement = Arrangement.spacedBy(3.dp), verticalAlignment = Alignment.CenterVertically
                 ) {
-                    Text(if (enabled) enabled_text else disabled_text)
+                    (if (enabled) enabled_content else disabled_content)?.invoke(Modifier.weight(1f).padding(vertical = 5.dp))
+                    (if (enabled) enabled_text else disabled_text)?.also { Text(it, Modifier.fillMaxWidth().weight(1f)) }
+
                     Button(
-                        { 
-                            if (checker == null) {
-                                state.value = !enabled
+                        {
+                            if (!enabled && warning_text != null) {
+                                showing_warning = true
                             }
                             else {
-                                checker.invoke(!enabled, openPage) { allow_change ->
-                                    if (allow_change) {
-                                        state.value = !enabled
-                                    }
-                                }
+                                onClicked(
+                                    !enabled,
+                                    { state.value = it },
+                                    { loading = it },
+                                    openPage
+                                )
                             }
                         },
                         colors = ButtonDefaults.buttonColors(
-                            containerColor = if (enabled) theme.vibrant_accent else theme.background,
-                            contentColor = if (enabled) theme.on_accent else theme.on_background
+                            containerColor = if (enabled) theme.background else theme.vibrant_accent,
+                            contentColor = if (enabled) theme.on_background else theme.on_accent
                         )
                     ) {
-                        Text(if (enabled) disable_button else enable_button)
+                        Box(contentAlignment = Alignment.Center) {
+                            this@Row.AnimatedVisibility(loading, enter = fadeIn(), exit = fadeOut()) {
+                                SubtleLoadingIndicator()
+                            }
+
+                            val text_alpha = animateFloatAsState(if (loading) 0f else 1f)
+                            Text(
+                                if (enabled) disable_button else enable_button,
+                                Modifier.graphicsLayer { alpha = text_alpha.value }
+                            )
+                        }
+                    }
+
+                    if (info_text != null) {
+                        ShapedIconButton(
+                            { showing_info = !showing_info },
+                            shape = CircleShape,
+                            colors = IconButtonDefaults.iconButtonColors(
+                                containerColor = if (enabled) theme.background else theme.vibrant_accent,
+                                contentColor = if (enabled) theme.on_background else theme.on_accent
+                            )
+                        ) {
+                            Icon(Icons.Default.Info, null)
+                        }
                     }
                 }
             }

@@ -64,14 +64,14 @@ enum class Settings {
     // Now playing queue
     KEY_NP_QUEUE_RADIO_INFO_POSITION,
 
-    // Auth
-    KEY_YTM_AUTH,
-
     // Server
     KEY_SPMS_PORT,
 
-    // Discord status
+    // Auth
+    KEY_YTM_AUTH,
     KEY_DISCORD_ACCOUNT_TOKEN,
+
+    // Discord status
     KEY_DISCORD_STATUS_NAME,
     KEY_DISCORD_STATUS_TEXT_A,
     KEY_DISCORD_STATUS_TEXT_B,
@@ -184,22 +184,21 @@ enum class Settings {
 
                 KEY_NP_QUEUE_RADIO_INFO_POSITION -> NowPlayingQueueRadioInfoPosition.TOP_BAR.ordinal
 
+                KEY_SPMS_PORT -> 3973
+
                 KEY_YTM_AUTH -> {
                     with(ProjectBuildConfig) {
-                        if (IS_DEBUG) {
+                        if (IS_DEBUG)
                             YoutubeMusicAuthInfo(
                                 Artist.fromId(YTM_CHANNEL_ID!!),
                                 YTM_COOKIE!!,
                                 Klaxon().parse(YTM_HEADERS!!.reader())!!
                             )
-                        }
                         else emptySet()
                     }
                 }
+                KEY_DISCORD_ACCOUNT_TOKEN -> ProjectBuildConfig.DISCORD_ACCOUNT_TOKEN ?: ""
 
-                KEY_SPMS_PORT -> 3973
-
-                KEY_DISCORD_ACCOUNT_TOKEN -> ""
                 KEY_DISCORD_STATUS_NAME -> getString("discord_status_default_name")
                 KEY_DISCORD_STATUS_TEXT_A -> getString("discord_status_default_text_a")
                 KEY_DISCORD_STATUS_TEXT_B -> getString("discord_status_default_text_b")

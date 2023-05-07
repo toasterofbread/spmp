@@ -117,7 +117,7 @@ class MainOverlayMenu(
 
             song.artist?.PreviewLong(MediaItem.PreviewParams(
                 playerProvider,
-                content_colour = { Color.White },
+                contentColour = { Color.White },
             ))
 
             var edited_song_title by remember(song) { mutableStateOf(song.title!!) }

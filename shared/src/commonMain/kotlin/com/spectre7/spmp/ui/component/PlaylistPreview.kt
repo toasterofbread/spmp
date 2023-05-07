@@ -9,6 +9,7 @@ import androidx.compose.material3.Text
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
@@ -47,14 +48,14 @@ fun PlaylistPreviewSquare(
             playlist.Thumbnail(
                 MediaItem.ThumbnailQuality.LOW,
                 Modifier.longPressMenuIcon(long_press_menu_data, params.enable_long_press_menu).aspectRatio(1f),
-                params.content_colour
+                params.contentColour
             )
         }
 
         Text(
             playlist.title ?: "",
             fontSize = 12.sp,
-            color = params.content_colour(),
+            color = params.contentColour?.invoke() ?: Color.Unspecified,
             maxLines = 1,
             lineHeight = 14.sp,
             overflow = TextOverflow.Ellipsis
@@ -93,7 +94,7 @@ fun PlaylistPreviewLong(
             Modifier
                 .longPressMenuIcon(long_press_menu_data, params.enable_long_press_menu)
                 .size(40.dp),
-            params.content_colour
+            params.contentColour
         )
 
         Column(
@@ -103,7 +104,7 @@ fun PlaylistPreviewLong(
             Text(
                 playlist.title ?: "",
                 fontSize = 15.sp,
-                color = params.content_colour(),
+                color = params.contentColour?.invoke() ?: Color.Unspecified,
                 maxLines = 1,
                 overflow = TextOverflow.Ellipsis
             )
@@ -114,7 +115,7 @@ fun PlaylistPreviewLong(
                     Text(
                         text,
                         fontSize = 11.sp,
-                        color = params.content_colour().setAlpha(0.5f),
+                        color = params.contentColour?.invoke() ?: Color.Unspecified.setAlpha(0.5f),
                         maxLines = 1,
                         overflow = TextOverflow.Ellipsis
                     )

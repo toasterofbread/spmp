@@ -28,6 +28,7 @@ import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.graphicsLayer
 import androidx.compose.ui.layout.onSizeChanged
+import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.unit.*
 import com.spectre7.spmp.PlayerServiceHost
 import com.spectre7.spmp.api.*
@@ -318,7 +319,7 @@ private class PlayerViewContextImpl: PlayerViewContext(null, null, null) {
                 val current = data == long_press_menu_data
                 var height_found by remember { mutableStateOf(false) }
 
-                LongPressIconMenu(
+                LongPressMenu(
                     long_press_menu_showing && current,
                     (long_press_menu_direct && current) || data.thumb_shape == null,
                     {
@@ -333,6 +334,7 @@ private class PlayerViewContextImpl: PlayerViewContext(null, null, null) {
                             height = maxOf(height, it.height)
                             height_found = true
                         }
+                        .height(if (height_found && height > 0) with (LocalDensity.current) { height.toDp() } else Dp.Unspecified)
                 )
             }
         }

@@ -369,6 +369,8 @@ class PlayerService : MediaPlayerService() {
                 return
             }
 
+            check(song.artist?.title != null)
+
             discord_status_update_thread = thread { runBlocking {
 
                 fun formatText(text: String): String {

@@ -25,7 +25,7 @@ import org.schabi.newpipe.extractor.downloader.Request as NewPipeRequest
 import org.schabi.newpipe.extractor.downloader.Response as NewPipeResponse
 
 fun <T> Result.Companion.failure(response: Response): Result<T> {
-    return failure(RuntimeException("${response.message}: ${response.body?.string()} (${response.code})"))
+    return failure<T>(RuntimeException("${response.message}: ${response.body?.string()} (${response.code})")).also { response.close() }
 }
 fun <I, O> Result<I>.cast(): Result<O> {
     return fold(

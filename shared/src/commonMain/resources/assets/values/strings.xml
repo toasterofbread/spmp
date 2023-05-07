@@ -104,6 +104,31 @@
     <string name="acc_ser_enable_dialog_btn_root">Use root</string>
     <string name="acc_ser_enable_dialog_btn_manual">Enable manually</string>
 
+    <string name="lpm_action_start_radio">Start radio</string>
+    <string name="lpm_action_play_after_1_song">Play after next song</string>
+    <string name="lpm_action_play_after_x_songs">Play after $x songs</string>
+    <string name="lpm_action_download">Download</string>
+    <string name="lpm_action_go_to_artist">Go to artist</string>
+    <string name="lpm_action_print_info">Print info</string>
+    <string name="lpm_action_home_pin">Pin to home</string>
+    <string name="lpm_action_home_unpin">Unpin from home</string>
+    <string name="lpm_action_share">Share</string>
+    <string name="lpm_action_open_external">Open externally</string>
+
+    <string name="lpm_long_press_actions">Long press actions</string>
+    <string name="lpm_action_start_radio_long_press">Start radio at song position in queue</string>
+    <string name="lpm_action_play_after_long_press">Start radio after X song(s)</string>
+
+    <string name="lpm_info_queue_index">Queue index: $index</string>
+    <string name="lpm_info_id">ID: $id</string>
+
+    <string name="notif_download_finished">Download completed</string>
+    <string name="notif_download_already_finished">Already downloaded</string>
+    <string name="notif_download_cancelled">Download was cancelled</string>
+    <string name="notif_download_already_downloading">Already downloading</string>
+    <string name="notif_copied_to_clipboard">Copied to clipboar</string>
+    <string name="notif_copied_x_to_clipboard">Copied $x to clipboard</string>
+
     <string name="radio_builder_title">Create a radio</string>
     <string name="radio_builder_next_button">Next</string>
     <string name="radio_builder_play_last_button">Play last radio</string>

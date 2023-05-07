@@ -443,7 +443,6 @@ fun String.extractURLs(): List<Triple<String, Int, Int>> {
 		end = matcher.end()
 
 		var url = substring(start, end)
-		println("FOUND URL $url")
 		if (!url.startsWith("http://") && !url.startsWith("https://")) {
 			url = "https://$url"
 		}
@@ -566,7 +565,7 @@ fun printJson(data: String, klaxon: Klaxon? = null) {
 }
 
 @Composable
-fun SubtleLoadingIndicator(colourProvider: (() -> Color)? = null, modifier: Modifier = Modifier, size: Dp = 20.dp) {
+fun SubtleLoadingIndicator(modifier: Modifier = Modifier, colourProvider: (() -> Color)? = null, size: Dp = 20.dp) {
 	val inf_transition = rememberInfiniteTransition()
 	val anim by inf_transition.animateFloat(
 		initialValue = 0f,

@@ -15,22 +15,24 @@ Support for Compose Multiplatform on desktop is [in-progress](https://github.com
 
 ## Features
 
-<img align="right" width="300" src="readme/screenshot_2.png">
+<img align="right" width="30%" src="readme/screenshot_2.png">
 
 #### Metadata
 - Edit song, artist, and playlist titles
 - Set UI and metadata languages separately (ex. display the app's UI in English and show songs and artists in Japanese)
-- Option to log into your YouTube Music account for displaying your personal feed, as well as interactions like liking songs and subscribing to artists
+- In-app YouTube Music login for feed personalisation and 
 
 #### Lyrics
 - Fetch and display lyrics from [PetitLyrics](https://petitlyrics.com/), with timed lyrics support (in-progress)
 - Display timed lyrics above the home feed
 - Show furigana for Japanese kanji within lyrics using [Kuromoji](https://github.com/atilika/kuromoji)
 
-#### QOL
-- Undo queue actions (no more accidental swipe removals)
-- Store songs locally for offline playback
-- Accessibility service for fine volume control, even when screen is off if device is rooted
+#### Song queue
+- Undo button for queue actions (no more accidental swipe removals)
+- Radio filters (if provided by YouTube)
+- 'Play after' button in the long-press menu for songs
+    - Similar to 'Play next', but allows you to select a position in the queue and add the song there directly
+    - Automatically increments the insertion position when used, so the next song you add will be placed after the last (rather than before, as with 'Play next') 
 
 #### YouTube parity
 - Home feed (with filters support)
@@ -40,10 +42,15 @@ Support for Compose Multiplatform on desktop is [in-progress](https://github.com
 - Subscribe/unsubscribe from artists
 - Display artists and playlists (in-progress)
 
+#### Home feed
+- Pin any song, playlist, album, or artist to the top of the home feed
+- Disable specific recommendation feed rows (such as 'Listen again' and 'Quick picks') from options
+
 #### Other
 - UI theme editor
 - Option to automatically use a colour from the current song thumbnail as the theme accent colour
 - Customisable Discord rich presence (with image support) using [KizzyRPC](https://github.com/dead8309/KizzyRPC)
+- Accessibility service for fine volume control, even when screen is off if device is rooted
 
 And more
 

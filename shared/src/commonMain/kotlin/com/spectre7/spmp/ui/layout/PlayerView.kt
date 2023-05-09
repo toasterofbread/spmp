@@ -25,6 +25,7 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.alpha
 import androidx.compose.ui.draw.clip
+import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.graphicsLayer
 import androidx.compose.ui.layout.onSizeChanged
@@ -60,7 +61,7 @@ open class PlayerViewContext(
     private val upstream: PlayerViewContext? = null
 ) {
     open val np_theme_mode: ThemeMode get() = upstream!!.np_theme_mode
-    open val overlay_page: Triple<OverlayPage, MediaItem?, MediaItemLayout?>? get() = upstream!!.overlay_page
+    open val overlay_page: Triple<OverlayPage, MediaItem?, MediaItem?>? get() = upstream!!.overlay_page
     open val bottom_padding: Dp get() = upstream!!.bottom_padding
     open val pill_menu: PillMenu get() = upstream!!.pill_menu
 
@@ -70,7 +71,7 @@ open class PlayerViewContext(
 
     open fun getNowPlayingTopOffset(screen_height: Dp, density: Density): Int = upstream!!.getNowPlayingTopOffset(screen_height, density)
 
-    open fun setOverlayPage(page: OverlayPage?, media_item: MediaItem? = null, opened_layout: MediaItemLayout? = null) { upstream!!.setOverlayPage(page, media_item, opened_layout) }
+    open fun setOverlayPage(page: OverlayPage?, media_item: MediaItem? = null, from_current: Boolean = false) { upstream!!.setOverlayPage(page, media_item, from_current) }
 
     open fun navigateBack() { upstream!!.navigateBack() }
 
@@ -91,19 +92,20 @@ open class PlayerViewContext(
         }
     }
 
-    open fun openMediaItem(item: MediaItem, opened_layout: MediaItemLayout? = null) { upstream!!.openMediaItem(item, opened_layout) }
+    open fun openMediaItem(item: MediaItem, from_current: Boolean = false) { upstream!!.openMediaItem(item, from_current) }
     open fun playMediaItem(item: MediaItem, shuffle: Boolean = false) { upstream!!.playMediaItem(item, shuffle) }
 
     open fun onMediaItemPinnedChanged(item: MediaItem, pinned: Boolean) { upstream!!.onMediaItemPinnedChanged(item, pinned) }
 
     open fun showLongPressMenu(data: LongPressMenuData) { upstream!!.showLongPressMenu(data) }
+    fun showLongPressMenu(item: MediaItem) { showLongPressMenu(LongPressMenuData(item)) }
 
     open fun hideLongPressMenu() { upstream!!.hideLongPressMenu() }
 }
 
 private class PlayerViewContextImpl: PlayerViewContext(null, null, null) {
     private var now_playing_switch_page: Int by mutableStateOf(-1)
-    private val overlay_page_undo_stack: MutableList<Triple<OverlayPage, MediaItem?, MediaItemLayout?>?> = mutableListOf()
+    private val overlay_page_undo_stack: MutableList<Triple<OverlayPage, MediaItem?, MediaItem?>?> = mutableListOf()
     private val bottom_padding_anim = Animatable(PlayerServiceHost.session_started.toFloat() * MINIMISED_NOW_PLAYING_HEIGHT)
     private var main_page_showing: Boolean by mutableStateOf(false)
 
@@ -124,7 +126,7 @@ private class PlayerViewContextImpl: PlayerViewContext(null, null, null) {
     private val pinned_items: MutableList<MediaItem> = mutableStateListOf()
 
     override var np_theme_mode: ThemeMode by mutableStateOf(Settings.getEnum(Settings.KEY_NOWPLAYING_THEME_MODE))
-    override var overlay_page: Triple<OverlayPage, MediaItem?, MediaItemLayout?>? by mutableStateOf(null)
+    override var overlay_page: Triple<OverlayPage, MediaItem?, MediaItem?>? by mutableStateOf(null)
         private set
     override val bottom_padding: Dp get() = bottom_padding_anim.value.dp
     override val pill_menu = PillMenu(
@@ -180,8 +182,10 @@ private class PlayerViewContextImpl: PlayerViewContext(null, null, null) {
         return with (density) { (-now_playing_swipe_state.offset.value.dp - (screen_height * 0.5f)).toPx().toInt() }
     }
 
-    override fun setOverlayPage(page: OverlayPage?, media_item: MediaItem?, opened_layout: MediaItemLayout?) {
-        val new_page = page?.let { Triple(page, media_item, opened_layout) }
+    override fun setOverlayPage(page: OverlayPage?, media_item: MediaItem?, from_current: Boolean) {
+        val current = if (from_current) overlay_page!!.second!! else null
+
+        val new_page = page?.let { Triple(page, media_item, current) }
         if (new_page != overlay_page) {
             overlay_page_undo_stack.add(overlay_page)
             overlay_page = new_page
@@ -208,12 +212,12 @@ private class PlayerViewContextImpl: PlayerViewContext(null, null, null) {
         })
     }
 
-    override fun openMediaItem(item: MediaItem, opened_layout: MediaItemLayout?) {
+    override fun openMediaItem(item: MediaItem, from_current: Boolean) {
         if (item is Artist && item.is_for_item) {
             return
         }
 
-        setOverlayPage(OverlayPage.MEDIAITEM, item, opened_layout)
+        setOverlayPage(OverlayPage.MEDIAITEM, item, from_current)
 
         if (now_playing_swipe_state.targetValue != 0) {
             switchNowPlayingPage(0)
@@ -621,7 +625,7 @@ fun PlayerView() {
     Column(
         Modifier
             .fillMaxSize()
-            .background(Theme.current.background)
+            .background(Theme.current.background_provider)
     ) {
         Box {
             val expand_state = remember { mutableStateOf(false) }

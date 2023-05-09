@@ -30,6 +30,8 @@ import com.spectre7.spmp.model.Song
 import com.spectre7.spmp.platform.*
 import com.spectre7.utils.*
 
+val SONG_THUMB_CORNER_ROUNDING = 10.dp
+
 @Composable
 fun SongPreviewSquare(
     song: Song, 
@@ -37,7 +39,7 @@ fun SongPreviewSquare(
     queue_index: Int? = null
 ) {
     val long_press_menu_data = remember(song) {
-        getSongLongPressMenuData(song, RoundedCornerShape(10.dp), queue_index = queue_index)
+        getSongLongPressMenuData(song, RoundedCornerShape(SONG_THUMB_CORNER_ROUNDING), queue_index = queue_index)
     }
 
     Column(
@@ -83,7 +85,7 @@ fun SongPreviewLong(
     queue_index: Int? = null
 ) {
     val long_press_menu_data = remember(song, queue_index) {
-        getSongLongPressMenuData(song, RoundedCornerShape(20), queue_index = queue_index)
+        getSongLongPressMenuData(song, RoundedCornerShape(SONG_THUMB_CORNER_ROUNDING), queue_index = queue_index)
     }
 
     Row(

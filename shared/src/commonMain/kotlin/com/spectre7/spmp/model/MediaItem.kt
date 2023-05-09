@@ -61,9 +61,7 @@ abstract class MediaItem(id: String) {
 
     val artist_listeners = Listeners<(Artist?) -> Unit>()
     fun supplyArtist(value: Artist?, certain: Boolean = false): MediaItem {
-        assert(this !is Artist || value == this)
-
-        if (value != null && (artist == null || certain)) {
+        if (this !is Artist && value != null && (artist == null || certain)) {
             artist = value
             artist_listeners.call { it(artist) }
         }
@@ -149,7 +147,7 @@ abstract class MediaItem(id: String) {
             set.remove(id)
         }
         key.set(set)
-        
+
         pinned_to_home = value
 
         playerProvider().onMediaItemPinnedChanged(this, value)
@@ -616,7 +614,7 @@ abstract class MediaItem(id: String) {
     abstract fun PreviewLong(params: PreviewParams)
 
     @Composable
-    fun Thumbnail(quality: ThumbnailQuality, modifier: Modifier = Modifier, contentColourProvider: (() -> Color)? = null) {
+    fun Thumbnail(quality: ThumbnailQuality, modifier: Modifier = Modifier, contentColourProvider: (() -> Color)? = null, onLoaded: ((ImageBitmap) -> Unit)? = null) {
         LaunchedEffect(quality, canLoadThumbnail()) {
             if (!canLoadThumbnail()) {
                 thread { loadData() }
@@ -624,11 +622,18 @@ abstract class MediaItem(id: String) {
             getThumbnail(quality)
         }
 
+        var loaded by remember { mutableStateOf(false) }
+
         Crossfade(thumb_states[quality]!!.image) { thumbnail ->
             if (thumbnail == null) {
                 SubtleLoadingIndicator(modifier.fillMaxSize(), contentColourProvider)
             }
             else {
+                if (!loaded) {
+                    onLoaded?.invoke(thumbnail)
+                    loaded = true
+                }
+
                 Image(
                     thumbnail,
                     contentDescription = null,

@@ -15,6 +15,7 @@ private val CACHE_LIFETIME = Duration.ofDays(1)
 
 fun getHomeFeed(min_rows: Int = -1, allow_cached: Boolean = true, params: String? = null, continuation: String? = null): Result<Triple<List<MediaItemLayout>, String?, List<Pair<Int, String>>?>> {
 
+    val hl = SpMp.data_language
     fun postRequest(ctoken: String?): Result<InputStreamReader> {
         val endpoint = "/youtubei/v1/browse"
         val request = Request.Builder()
@@ -71,7 +72,7 @@ fun getHomeFeed(min_rows: Int = -1, allow_cached: Boolean = true, params: String
     var data: YoutubeiBrowseResponse = DataApi.klaxon.parse(response_reader)!!
     response_reader.close()
 
-    val rows: MutableList<MediaItemLayout> = processRows(data.getShelves(continuation != null)).toMutableList()
+    val rows: MutableList<MediaItemLayout> = processRows(data.getShelves(continuation != null), hl).toMutableList()
     check(rows.isNotEmpty())
 
     val chips = data.getHeaderChips()
@@ -91,7 +92,7 @@ fun getHomeFeed(min_rows: Int = -1, allow_cached: Boolean = true, params: String
 
         val shelves = data.getShelves(true)
         check(shelves.isNotEmpty())
-        rows.addAll(processRows(shelves))
+        rows.addAll(processRows(shelves, hl))
 
         ctoken = data.ctoken
     }
@@ -105,7 +106,7 @@ fun getHomeFeed(min_rows: Int = -1, allow_cached: Boolean = true, params: String
     return Result.success(Triple(rows, ctoken, chips))
 }
 
-private fun processRows(rows: List<YoutubeiShelf>): List<MediaItemLayout> {
+private fun processRows(rows: List<YoutubeiShelf>, hl: String): List<MediaItemLayout> {
     val ret = mutableListOf<MediaItemLayout>()
     for (row in rows) {
         when (val renderer = row.getRenderer()) {
@@ -124,7 +125,7 @@ private fun processRows(rows: List<YoutubeiShelf>): List<MediaItemLayout> {
                     view_more: MediaItemLayout.ViewMore? = null
                 ) {
 
-                    val items = row.getMediaItems().toMutableList()
+                    val items = row.getMediaItems(hl).toMutableList()
 
 //                    val final_title: String
 //                    val final_subtitle: String?
@@ -282,7 +283,7 @@ data class YoutubeiBrowseResponse(
 }
 
 data class ItemSectionRenderer(val contents: List<ItemSectionRendererContent>)
-data class ItemSectionRendererContent(val didYouMeanRenderer: DidYouMeanRenderer)
+data class ItemSectionRendererContent(val didYouMeanRenderer: DidYouMeanRenderer? = null)
 data class DidYouMeanRenderer(val correctedQuery: TextRuns)
 
 data class YoutubeiShelf(
@@ -320,9 +321,9 @@ data class YoutubeiShelf(
         return musicShelfRenderer?.bottomEndpoint ?: musicCarouselShelfRenderer?.header?.getRenderer()?.moreContentButton?.buttonRenderer?.navigationEndpoint
     }
 
-    fun getMediaItems(): List<MediaItem> {
+    fun getMediaItems(hl: String): List<MediaItem> {
         return (musicShelfRenderer?.contents ?: musicCarouselShelfRenderer?.contents ?: musicPlaylistShelfRenderer?.contents ?: gridRenderer!!.items).mapNotNull {
-            val item = it.toMediaItem()
+            val item = it.toMediaItem(hl)
             item?.saveToCache()
             return@mapNotNull item
         }
@@ -418,6 +419,7 @@ data class HeaderRenderer(
     val thumbnail: Thumbnails? = null,
     val foregroundThumbnail: Thumbnails? = null,
     val subtitle: TextRuns? = null,
+    val secondSubtitle: TextRuns? = null,
     val moreContentButton: MoreContentButton? = null
 ) {
     fun getThumbnails(): List<MediaItem.ThumbnailProvider.Thumbnail> {
@@ -452,7 +454,7 @@ data class TextRun(val text: String, val strapline: TextRuns? = null, val naviga
 
 data class MusicShelfRenderer(
     val title: TextRuns? = null,
-    val contents: List<ContentsItem>,
+    val contents: List<ContentsItem>? = null,
     val continuations: List<YoutubeiNextResponse.Continuation>? = null,
     val bottomEndpoint: NavigationEndpoint? = null
 )
@@ -518,16 +520,19 @@ data class ThumbnailRenderer(val musicThumbnailRenderer: MusicThumbnailRenderer)
 data class MusicResponsiveListItemRenderer(
     val playlistItemData: PlaylistItemData? = null,
     val flexColumns: List<FlexColumn>? = null,
+    val fixedColumns: List<FixedColumn>? = null,
     val thumbnail: ThumbnailRenderer? = null,
     val navigationEndpoint: NavigationEndpoint? = null,
     val menu: YoutubeiNextResponse.Menu? = null
 )
 data class PlaylistItemData(val videoId: String)
-data class FlexColumn(val musicResponsiveListItemFlexColumnRenderer: MusicResponsiveListItemFlexColumnRenderer)
-data class MusicResponsiveListItemFlexColumnRenderer(val text: TextRuns)
+
+data class FlexColumn(val musicResponsiveListItemFlexColumnRenderer: MusicResponsiveListItemColumnRenderer)
+data class FixedColumn(val musicResponsiveListItemFixedColumnRenderer: MusicResponsiveListItemColumnRenderer)
+data class MusicResponsiveListItemColumnRenderer(val text: TextRuns)
 
 data class ContentsItem(val musicTwoRowItemRenderer: MusicTwoRowItemRenderer? = null, val musicResponsiveListItemRenderer: MusicResponsiveListItemRenderer? = null) {
-    fun toMediaItem(): MediaItem? {
+    fun toMediaItem(hl: String): MediaItem? {
         if (musicTwoRowItemRenderer != null) {
             val renderer = musicTwoRowItemRenderer
 
@@ -586,6 +591,7 @@ data class ContentsItem(val musicTwoRowItemRenderer: MusicTwoRowItemRenderer? = 
             var title: String? = null
             var artist: Artist? = null
             var playlist: Playlist? = null
+            var duration: Long? = null
 
             if (video_id == null) {
                 val page_type = renderer.navigationEndpoint?.browseEndpoint?.getPageType()
@@ -638,9 +644,20 @@ data class ContentsItem(val musicTwoRowItemRenderer: MusicTwoRowItemRenderer? = 
                 }
             }
 
+            if (renderer.fixedColumns != null) {
+                for (column in renderer.fixedColumns) {
+                    val text = column.musicResponsiveListItemFixedColumnRenderer.text.first_text
+                    val parsed = parseYoutubeDurationString(text, hl)
+                    if (parsed != null) {
+                        duration = parsed
+                        break
+                    }
+                }
+            }
+
             val ret: MediaItem
             if (video_id != null) {
-                ret = Song.fromId(video_id)
+                ret = Song.fromId(video_id).supplyDuration(duration, true)
                 renderer.thumbnail?.musicThumbnailRenderer?.thumbnail?.thumbnails?.firstOrNull()?.also {
                     ret.supplySongType(if (it.height == it.width) Song.SongType.SONG else Song.SongType.VIDEO)
                 }
@@ -649,7 +666,7 @@ data class ContentsItem(val musicTwoRowItemRenderer: MusicTwoRowItemRenderer? = 
                 return null
             }
             else {
-                ret = playlist ?: artist ?: return null
+                ret = (playlist?.supplyTotalDuration(duration, true)) ?: artist ?: return null
             }
 
             // Handle songs with no artist (or 'Various artists')

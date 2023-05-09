@@ -5,11 +5,10 @@ import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.setValue
 import com.beust.klaxon.Klaxon
-import com.spectre7.spmp.api.getOrThrowHere
-import com.spectre7.spmp.api.isSubscribedToArtist
-import com.spectre7.spmp.api.subscribeOrUnsubscribeArtist
+import com.spectre7.spmp.api.*
 import com.spectre7.spmp.ui.component.ArtistPreviewLong
 import com.spectre7.spmp.ui.component.ArtistPreviewSquare
+import com.spectre7.utils.getString
 import kotlin.concurrent.thread
 
 class Artist private constructor (
@@ -35,12 +34,12 @@ class Artist private constructor (
         return this
     }
 
-    var subscriber_count_text: String? by mutableStateOf(null)
+    var subscriber_count: Int? by mutableStateOf(null)
         private set
 
-    fun supplySubscriberCountText(value: String?, certain: Boolean): MediaItem {
-        if (value != null && (subscriber_count_text == null || certain)) {
-            subscriber_count_text = value
+    fun supplySubscriberCount(value: Int?, certain: Boolean): MediaItem {
+        if (value != null && (subscriber_count == null || certain)) {
+            subscriber_count = value
         }
         return this
     }
@@ -49,13 +48,14 @@ class Artist private constructor (
     var is_own_channel: Boolean by mutableStateOf(false)
 
     override fun getSerialisedData(klaxon: Klaxon): List<String> {
-        return super.getSerialisedData(klaxon) + listOf(stringToJson(subscribe_channel_id), klaxon.toJsonString(is_for_item))
+        return super.getSerialisedData(klaxon) + listOf(stringToJson(subscribe_channel_id), klaxon.toJsonString(is_for_item), klaxon.toJsonString(subscriber_count))
     }
 
     override fun supplyFromSerialisedData(data: MutableList<Any?>, klaxon: Klaxon): MediaItem {
-        require(data.size >= 2)
+        require(data.size >= 3)
+        data.removeLast()?.also { subscriber_count = it as Int }
         is_for_item = data.removeLast() as Boolean
-        _subscribe_channel_id = data.removeLast() as String?
+        data.removeLast()?.also { _subscribe_channel_id = it as String }
         return super.supplyFromSerialisedData(data, klaxon)
     }
 
@@ -111,26 +111,21 @@ class Artist private constructor (
     override val url: String get() = "https://music.youtube.com/channel/$id"
 
     fun getFormattedSubscriberCount(): String {
-        return subscriber_count_text ?: "Unknown"
-//        val subs = subscriber_count.toInt()
-//        if (subs >= 1000000) {
-//            return "${subs / 1000000}M"
-//        }
-//        else if (subs >= 1000) {
-//            return "${subs / 1000}K"
-//        }
-//        else {
-//            return "$subs"
-//        }
+        return getString("artist_x_subscribers").replace("\$x", subscriber_count?.let { amountToString(it, SpMp.ui_language) } ?: "0")
     }
 
     fun updateSubscribed() {
         check(!is_for_item)
+
+        if (is_own_channel) {
+            return
+        }
         subscribed = isSubscribedToArtist(this).getOrThrowHere()
     }
 
     fun toggleSubscribe(toggle_before_fetch: Boolean = false, onFinished: ((success: Boolean, subscribing: Boolean) -> Unit)? = null) {
         check(!is_for_item)
+        check(DataApi.ytm_authenticated)
 
         thread {
             if (subscribed == null) {

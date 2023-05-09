@@ -64,7 +64,7 @@ private enum class Category {
 
 @Composable
 fun PrefsPage(pill_menu: PillMenu, playerProvider: () -> PlayerViewContext, close: () -> Unit) {
-    var current_category: Category by remember { mutableStateOf(Category.OTHER) }
+    var current_category: Category by remember { mutableStateOf(Category.GENERAL) }
 
     val ytm_auth = remember {
         SettingsValueState(

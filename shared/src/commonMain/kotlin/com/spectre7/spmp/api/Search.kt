@@ -63,6 +63,7 @@ data class SearchResults(val suggested_correction: String?, val categories: List
 
 fun searchYoutubeMusic(query: String, params: String?): Result<SearchResults> {
     val params_str: String = if (params != null) "\"$params\"" else "null"
+    val hl = SpMp.data_language
     val request = Request.Builder()
         .ytUrl("/youtubei/v1/search")
         .addYtHeaders()
@@ -109,8 +110,8 @@ fun searchYoutubeMusic(query: String, params: String?): Result<SearchResults> {
         }
 
         val shelf = category.value.musicShelfRenderer ?: continue
+        val items = shelf.contents?.mapNotNull { it.toMediaItem(hl) }?.toMutableList() ?: continue
         val search_params = if (category.index == 0) null else chips[category.index - 1].chipCloudChipRenderer.navigationEndpoint.searchEndpoint!!.params
-        val items = shelf.contents.mapNotNull { it.toMediaItem() }.toMutableList()
 
         category_layouts.add(Pair(
             MediaItemLayout(LocalisedYoutubeString.temp(shelf.title!!.first_text), null, items = items),

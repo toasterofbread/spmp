@@ -40,6 +40,8 @@ fun isSubscribedToArtist(artist: Artist): Result<Boolean?> {
 }
 
 fun subscribeOrUnsubscribeArtist(artist: Artist, subscribe: Boolean): Result<Any> {
+    check(DataApi.ytm_authenticated)
+
     val request: Request = Request.Builder()
         .url("https://music.youtube.com/youtubei/v1/subscription/${if (subscribe) "subscribe" else "unsubscribe"}")
         .addYtHeaders()

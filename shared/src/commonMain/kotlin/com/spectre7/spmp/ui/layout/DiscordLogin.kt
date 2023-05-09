@@ -115,8 +115,11 @@ fun DiscordAccountPreview(account_token: String, modifier: Modifier = Modifier) 
 
         if (me.token != account_token) {
             load_thread = thread {
-                me = getDiscordAccountInfo(account_token).getOrReport("DiscordAccountPreview") ?: DiscordMeResponse.EMPTY
-                load_thread = null
+                try {
+                    me = getDiscordAccountInfo(account_token).getOrReport("DiscordAccountPreview") ?: DiscordMeResponse.EMPTY
+                    load_thread = null
+                }
+                catch (_: InterruptedException) {}
             }
 
             me = DiscordMeResponse.EMPTY

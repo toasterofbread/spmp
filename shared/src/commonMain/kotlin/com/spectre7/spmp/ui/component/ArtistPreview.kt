@@ -147,8 +147,8 @@ fun getArtistLongPressMenuData(
         sideButton = { modifier, background, accent ->
             ArtistSubscribeButton(
                 artist,
-                { background.getContrasted() },
-                { accent },
+//                { background.getContrasted() },
+//                { accent },
                 modifier = modifier
             )
         }

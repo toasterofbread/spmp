@@ -8,6 +8,8 @@ import com.spectre7.spmp.ui.component.MediaItemLayout
 import okhttp3.Request
 import java.util.regex.Pattern
 
+// TODO Organise and split
+
 data class PlayerData(
     val videoDetails: VideoDetails? = null,
 //    val streamingData: StreamingData? = null
@@ -23,6 +25,7 @@ data class VideoDetails(
 
 fun loadBrowseId(browse_id: String, params: String? = null): Result<List<MediaItemLayout>> {
     val params_str = if (params == null) "" else """, "params": "$params" """
+    val hl = SpMp.data_language
     val request = Request.Builder()
         .ytUrl("/youtubei/v1/browse")
         .addYtHeaders()
@@ -54,7 +57,7 @@ fun loadBrowseId(browse_id: String, params: String? = null): Result<List<MediaIt
             row.value.title?.text?.let { LocalisedYoutubeString.raw(it) },
             null,
             if (row.index == 0) MediaItemLayout.Type.NUMBERED_LIST else MediaItemLayout.Type.GRID,
-            row.value.getMediaItems().toMutableList(),
+            row.value.getMediaItems(hl).toMutableList(),
             continuation = continuation,
             view_more = view_more
         ))
@@ -112,6 +115,8 @@ fun loadMediaItemData(item: MediaItem): Result<MediaItem?> {
         return result
     }
 
+    println("Load $item_id $item")
+
     if (item is Artist && item.is_for_item) {
         return finish(true)
     }
@@ -140,6 +145,7 @@ fun loadMediaItemData(item: MediaItem): Result<MediaItem?> {
             }"""
         else """{ "browseId": "$item_id" }"""
 
+    val hl = SpMp.data_language
     var request: Request = Request.Builder()
         .ytUrl(url)
         .addYtHeaders()
@@ -173,8 +179,8 @@ fun loadMediaItemData(item: MediaItem): Result<MediaItem?> {
                 val layout = MediaItemLayout(
                     null, null,
                     MediaItemLayout.Type.LIST,
-                    playlist_shelf.contents.mapNotNull { data ->
-                        return@mapNotNull data.toMediaItem().also { check(it is Song) }
+                    playlist_shelf.contents!!.mapNotNull { data ->
+                        return@mapNotNull data.toMediaItem(hl).also { check(it is Song) }
                     }.toMutableList(),
                     continuation = continuation?.let { MediaItemLayout.Continuation(it, MediaItemLayout.Continuation.Type.SONG, item_id) }
                 )
@@ -189,22 +195,37 @@ fun loadMediaItemData(item: MediaItem): Result<MediaItem?> {
                     item.supplyDescription(header_renderer.description?.first_text, true)
                     item.supplyThumbnailProvider(MediaItem.ThumbnailProvider.fromThumbnails(header_renderer.getThumbnails()))
 
-                    val artist = header_renderer.subtitle?.runs?.firstOrNull {
-                        it.navigationEndpoint?.browseEndpoint?.getPageType() == "MUSIC_PAGE_TYPE_USER_CHANNEL"
+                    header_renderer.subtitle?.runs?.also { subtitle ->
+                        val artist_run = subtitle.firstOrNull {
+                            it.navigationEndpoint?.browseEndpoint?.getPageType() == "MUSIC_PAGE_TYPE_USER_CHANNEL"
+                        }
+                        if (artist_run != null) {
+                            item.supplyArtist(
+                                Artist
+                                    .fromId(artist_run.navigationEndpoint!!.browseEndpoint!!.browseId)
+                                    .supplyTitle(artist_run.text, true) as Artist,
+                                true
+                            )
+                        }
+
+                        if (item is Playlist) {
+                            item.supplyYear(subtitle.lastOrNull { it.text.all { it.isDigit() } }?.text?.toInt(), true)
+                        }
                     }
-                    if (artist != null) {
-                        item.supplyArtist(
-                            Artist
-                                .fromId(artist.navigationEndpoint!!.browseEndpoint!!.browseId)
-                                .supplyTitle(artist.text, true) as Artist,
-                            true
-                        )
+
+                    if (item is Playlist) {
+                        header_renderer.secondSubtitle?.runs?.also { second_subtitle ->
+                            check(second_subtitle.size == 2) { second_subtitle.toString() }
+
+                            item.supplyItemCount(second_subtitle[0].text.filter { it.isDigit() }.toInt(), true)
+                            item.supplyTotalDuration(parseYoutubeDurationString(second_subtitle[1].text, hl), true)
+                        }
                     }
 
                     if (header_renderer.subscriptionButton != null && item is Artist) {
                         val subscribe_button = header_renderer.subscriptionButton.subscribeButtonRenderer
                         item.supplySubscribeChannelId(subscribe_button.channelId, true)
-                        item.supplySubscriberCountText(subscribe_button.subscriberCountText.first_text, true)
+                        item.supplySubscriberCount(parseYoutubeSubscribersString(subscribe_button.subscriberCountText.first_text, hl), true)
                         item.subscribed = subscribe_button.subscribed
                     }
                 }
@@ -220,17 +241,23 @@ fun loadMediaItemData(item: MediaItem): Result<MediaItem?> {
                     val continuation: MediaItemLayout.Continuation? =
                         row.value.musicPlaylistShelfRenderer?.continuations?.firstOrNull()?.nextContinuationData?.continuation?.let { MediaItemLayout.Continuation(it, MediaItemLayout.Continuation.Type.PLAYLIST) }
 
+                    val layout_title = row.value.title?.text?.let {
+                        if (item is Artist && item.is_own_channel) LocalisedYoutubeString.ownChannel(it)
+                        else LocalisedYoutubeString.mediaItemPage(it, item.type)
+                    }
+
                     val view_more = row.value.getNavigationEndpoint()?.getViewMore()
                     view_more?.layout_type = MediaItemLayout.Type.LIST
+                    if (view_more?.media_item != null && item is Artist) {
+                        view_more.media_item.supplyArtist(item, true)
+                        view_more.media_item.supplyTitle(layout_title?.getString(), false)
+                    }
 
                     item_layouts.add(MediaItemLayout(
-                        row.value.title?.text?.let {
-                            if (item is Artist && item.is_own_channel) LocalisedYoutubeString.ownChannel(it)
-                            else LocalisedYoutubeString.mediaItemPage(it, item.type)
-                        },
+                        layout_title,
                         null,
                         if (row.index == 0) MediaItemLayout.Type.NUMBERED_LIST else MediaItemLayout.Type.GRID,
-                        row.value.getMediaItems().toMutableList(),
+                        row.value.getMediaItems(hl).toMutableList(),
                         continuation = continuation,
                         view_more = view_more
                     ))

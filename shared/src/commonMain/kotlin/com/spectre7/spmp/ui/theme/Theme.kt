@@ -95,11 +95,13 @@ class Theme(data: ThemeData) {
 
     val on_accent: Color get() = accent.getContrasted()
 
-    val vibrant_accent: Color get() {
-        if (accent.compare(background) > 0.8f) {
-            return accent.contrastAgainst(background, VIBRANT_ACCENT_CONTRAST)
+    val vibrant_accent: Color get() = makeVibrant(accent)
+
+    fun makeVibrant(colour: Color, against: Color = background): Color {
+        if (colour.compare(background) > 0.8f) {
+            return colour.contrastAgainst(against, VIBRANT_ACCENT_CONTRAST)
         }
-        return accent
+        return colour
     }
 
     val background_provider: () -> Color = { background_state.value }

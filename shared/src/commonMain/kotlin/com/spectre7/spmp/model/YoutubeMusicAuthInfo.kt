@@ -15,7 +15,8 @@ class YoutubeMusicAuthInfo: Set<String> {
     lateinit var headers: Map<String, String>
         private set
 
-    fun getOwnChannelOrNull(): Artist? = if (!initialised) null else own_channel
+    fun initialisedOrNull(): YoutubeMusicAuthInfo? = if (initialised) this else null
+    fun getOwnChannelOrNull(): Artist? = initialisedOrNull()?.own_channel
 
     constructor()
 

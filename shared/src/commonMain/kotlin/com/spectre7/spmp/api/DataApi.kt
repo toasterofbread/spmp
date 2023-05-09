@@ -1,5 +1,8 @@
 package com.spectre7.spmp.api
 
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.setValue
 import com.beust.klaxon.*
 import com.spectre7.spmp.model.Cache
 import com.spectre7.spmp.model.MediaItem
@@ -157,6 +160,9 @@ class DataApi {
             .converter(enum_converter)
             .converter(mediaitem_converter)
 
+        fun getYtmAuth(): YoutubeMusicAuthInfo? =
+            Settings.get<Set<String>>(Settings.KEY_YTM_AUTH).let { if (it is YoutubeMusicAuthInfo) it else YoutubeMusicAuthInfo(it) }.initialisedOrNull()
+
         enum class YoutubeiContextType {
             BASE,
             ALT,
@@ -170,6 +176,9 @@ class DataApi {
                 }
             }
         }
+
+        var ytm_authenticated: Boolean by mutableStateOf(false)
+            private set
 
         private lateinit var youtubei_context: JsonObject
         private lateinit var youtubei_context_alt: JsonObject
@@ -238,8 +247,8 @@ class DataApi {
             header_update_thread = thread {
                 val headers_builder = Headers.Builder().add("user-agent", user_agent)
 
-                val ytm_auth = Settings.get<Set<String>>(Settings.KEY_YTM_AUTH).let { if (it is YoutubeMusicAuthInfo) it else YoutubeMusicAuthInfo(it) }
-                if (ytm_auth.initialised) {
+                val ytm_auth = getYtmAuth()
+                if (ytm_auth != null) {
                     headers_builder["cookie"] = ytm_auth.cookie
                     for (header in ytm_auth.headers) {
                         headers_builder[header.key] = header.value
@@ -260,6 +269,7 @@ class DataApi {
                 headers_builder["user-agent"] = user_agent
 
                 youtubei_headers = headers_builder.build()
+                ytm_authenticated = ytm_auth != null
             }
             return header_update_thread!!
         }

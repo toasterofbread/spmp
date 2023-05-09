@@ -106,6 +106,7 @@ data class MediaItemLayout(
         }
 
         private fun loadPlaylistContinuation(): Result<Pair<List<MediaItem>, String?>> {
+            val hl = SpMp.data_language
             val request = Request.Builder()
                 .ytUrl("/youtubei/v1/browse?ctoken=$token&continuation=$token&type=next")
                 .addYtHeaders()
@@ -122,7 +123,7 @@ data class MediaItemLayout(
             stream.close()
 
             val shelf = parsed.continuationContents!!.musicPlaylistShelfContinuation!!
-            return Result.success(Pair(shelf.contents.mapNotNull { it.toMediaItem() }, shelf.continuations?.firstOrNull()?.nextContinuationData?.continuation))
+            return Result.success(Pair(shelf.contents!!.mapNotNull { it.toMediaItem(hl) }, shelf.continuations?.firstOrNull()?.nextContinuationData?.continuation))
         }
     }
 
@@ -249,7 +250,7 @@ data class MediaItemLayout(
                 OutlinedButton(
                     {
                         if (view_more.media_item != null) {
-                            playerProvider().openMediaItem(view_more.media_item, this@MediaItemLayout)
+                            playerProvider().openMediaItem(view_more.media_item, true)
                         }
                         else if (view_more.list_page_url != null) {
                             TODO(view_more.list_page_url)

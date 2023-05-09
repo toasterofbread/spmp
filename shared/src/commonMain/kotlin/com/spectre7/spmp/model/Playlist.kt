@@ -8,7 +8,6 @@ import com.beust.klaxon.Klaxon
 import com.spectre7.spmp.ui.component.PlaylistPreviewLong
 import com.spectre7.spmp.ui.component.PlaylistPreviewSquare
 import com.spectre7.utils.getString
-import com.spectre7.utils.getStringTODO
 
 class Playlist private constructor (
     id: String
@@ -38,12 +37,45 @@ class Playlist private constructor (
         return this
     }
 
+    var total_duration: Long? by mutableStateOf(null)
+        private set
+
+    fun supplyTotalDuration(value: Long?, certain: Boolean = false): Playlist {
+        if (value != null && (total_duration == null || certain)) {
+            total_duration = value
+        }
+        return this
+    }
+
+    var item_count: Int? by mutableStateOf(null)
+        private set
+
+    fun supplyItemCount(value: Int?, certain: Boolean = false): Playlist {
+        if (value != null && (item_count == null || certain)) {
+            item_count = value
+        }
+        return this
+    }
+
+    var year: Int? by mutableStateOf(null)
+        private set
+
+    fun supplyYear(value: Int?, certain: Boolean = false): Playlist {
+        if (value != null && (year == null || certain)) {
+            year = value
+        }
+        return this
+    }
+
     override fun getSerialisedData(klaxon: Klaxon): List<String> {
-        return super.getSerialisedData(klaxon) + listOf(klaxon.toJsonString(playlist_type?.ordinal))
+        return super.getSerialisedData(klaxon) + listOf(klaxon.toJsonString(playlist_type?.ordinal), klaxon.toJsonString(total_duration), klaxon.toJsonString(item_count), klaxon.toJsonString(year))
     }
 
     override fun supplyFromSerialisedData(data: MutableList<Any?>, klaxon: Klaxon): MediaItem {
-        require(data.size >= 1)
+        require(data.size >= 4)
+        data.removeLast()?.also { year = it as Int }
+        data.removeLast()?.also { item_count = it as Int }
+        data.removeLast()?.also { total_duration = (it as Int).toLong() }
         data.removeLast()?.also { playlist_type = PlaylistType.values()[it as Int] }
         return super.supplyFromSerialisedData(data, klaxon)
     }

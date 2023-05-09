@@ -64,6 +64,7 @@
     <string name="artist_chip_radio">ラジオ</string>
     <string name="artist_chip_shuffle">シャッフル</string>
     <string name="artist_chip_open">開く</string>
+    <string name="artist_x_subscribers">登録者$x人</string>
     <string name="prompt_confirm_action">確認してください</string>
     <string name="prompt_confirm_settings_page_reset">このページのバリューを全てリセットしますか？</string>
     <string name="s_group_acc_service">アクセシビリティサービス</string>

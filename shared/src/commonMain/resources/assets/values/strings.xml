@@ -73,6 +73,8 @@
     <string name="artist_chip_open">Open</string>
     <string name="artist_info_label">Artist info</string>
 
+    <string name="artist_x_subscribers">$x subscribers</string>
+
     <string name="loading_feed">Loading feed</string>
 
     <string name="media_pause">Pause</string>

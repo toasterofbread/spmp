@@ -1,8 +1,122 @@
 package com.spectre7.spmp.api
 
+import SpMp
 import com.spectre7.spmp.model.MediaItem
 import com.spectre7.spmp.model.Settings
 import com.spectre7.utils.getString
+import org.apache.commons.lang3.time.DurationFormatUtils
+import java.time.Duration
+
+private const val HOUR: Long = 3600000L
+
+fun durationToString(duration: Long, hl: String, short: Boolean): String {
+    if (short) {
+        return DurationFormatUtils.formatDuration(
+            duration,
+            if (duration >= HOUR) "H:mm:ss" else "mm:ss",
+            true
+        )
+    }
+    else {
+        val hms = getHMS(hl)
+        if (hms != null) {
+            val f = StringBuilder()
+
+            val dur = Duration.ofMillis(duration)
+            dur.toHours().also {
+                if (it != 0L) {
+                    f.append("$it${hms.splitter}${hms.hours} ")
+                }
+            }
+            dur.toMinutesPart().also {
+                if (it != 0) {
+                    f.append("$it${hms.splitter}${hms.minutes} ")
+                }
+            }
+            dur.toSecondsPart().also {
+                if (it != 0) {
+                    f.append("$it${hms.splitter}${hms.seconds}")
+                }
+                else {
+                    f.removeSuffix(" ")
+                }
+            }
+
+            return f.toString()
+        }
+    }
+
+    throw NotImplementedError(hl.split('-', limit = 2).first())
+}
+
+fun parseYoutubeDurationString(string: String, hl: String): Long? {
+    if (string.contains(':')) {
+        val parts = string.split(':')
+
+        if (parts.size !in 2..3) {
+            return null
+        }
+
+        val seconds = parts.last().toLong()
+        val minutes = parts[parts.size - 2].toLong()
+        val hours = if (parts.size == 3) parts.first().toLong() else 0L
+
+        return ((hours * 60 + minutes) * 60 + seconds) * 1000
+    }
+    else {
+        val hms = getHMS(hl)
+        if (hms != null) {
+            return parseHhMmSsDurationString(string, hms)
+        }
+    }
+
+    throw NotImplementedError(hl.split('-', limit = 2).first())
+}
+
+fun parseYoutubeSubscribersString(string: String, hl: String): Int? {
+    val suffixes = getAmountSuffixes(hl)
+    if (suffixes != null) {
+        if (string.last().isDigit()) {
+            return string.toFloat().toInt()
+        }
+
+        val multiplier = suffixes[string.last()] ?: throw NotImplementedError(string.last().toString())
+        return (string.substring(0, string.length - 1).toFloat() * multiplier).toInt()
+    }
+
+    throw NotImplementedError(hl)
+}
+
+fun amountToString(amount: Int, hl: String): String {
+    val suffixes = getAmountSuffixes(hl)
+    if (suffixes != null) {
+        for (suffix in suffixes) {
+            if (amount >= suffix.value) {
+                return "${amount / suffix.value}${suffix.key}"
+            }
+        }
+
+        return amount.toString()
+    }
+
+    throw NotImplementedError(hl)
+}
+
+private fun getAmountSuffixes(hl: String): Map<Char, Int>? =
+    when (hl) {
+        "en" -> mapOf(
+            'B' to 1000000000,
+            'M' to 1000000,
+            'K' to 1000
+        )
+        "ja" -> mapOf(
+            '億' to 100000000,
+            '万' to 10000,
+            '千' to 1000,
+            '百' to 100
+        )
+        else -> null
+    }
 
 class LocalisedYoutubeString(
     val key: String,
@@ -26,7 +140,16 @@ class LocalisedYoutubeString(
     fun getString(): String = when (type) {
         Type.RAW -> key
         Type.COMMON -> getString(key)
-        Type.HOME_FEED -> SpMp.yt_ui_translation.translateHomeFeedString(key, source_language!!)
+        Type.HOME_FEED -> {
+            val translation = SpMp.yt_ui_translation.translateHomeFeedString(key, source_language!!)
+            if (translation != null) {
+                translation
+            }
+            else {
+                println("WARNING: Using raw key '$key' as home feed string")
+                key
+            }
+        }
         Type.OWN_CHANNEL -> SpMp.yt_ui_translation.translateOwnChannelString(key, source_language!!)
         Type.ARTIST_PAGE -> SpMp.yt_ui_translation.translateArtistPageString(key, source_language!!)
     } ?: throw NotImplementedError("Key: '$key', Type: $type, Source lang: ${SpMp.getLanguageCode(source_language!!)}")
@@ -283,4 +406,38 @@ class YoutubeUITranslation(languages: List<String>) {
             )
         }
     }
+}
+
+private data class HMSData(val hours: String, val minutes: String, val seconds: String, val splitter: String = "")
+
+private fun getHMS(hl: String): HMSData? =
+    when (hl.split('-', limit = 2).first()) {
+        "en" -> HMSData("hours", "minutes", "seconds", " ")
+        "ja" -> HMSData("時間", "分", "秒")
+        else -> null
+    }
+
+private fun parseHhMmSsDurationString(string: String, hms: HMSData): Long? {
+    val parts = string.split(' ')
+
+    val h = parts.indexOf(hms.hours)
+    val hours =
+        if (h != -1) parts[h - 1].toLong()
+        else null
+
+    val m = parts.indexOf(hms.minutes)
+    val minutes =
+        if (m != -1) parts[m - 1].toLong()
+        else null
+
+    val s = parts.indexOf(hms.seconds)
+    val seconds =
+        if (s != -1) parts[s - 1].toLong()
+        else null
+
+    if (hours == null && minutes == null && seconds == null) {
+        return null
+    }
+
+    return (((hours ?: 0) * 60 + (minutes ?: 0)) * 60 + (seconds ?: 0)) * 1000
 }

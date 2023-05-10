@@ -49,6 +49,8 @@ import org.jetbrains.compose.resources.MissingResourceException
 import org.xmlpull.v1.XmlPullParser
 import org.xmlpull.v1.XmlPullParserFactory
 import java.io.InputStream
+import java.io.InterruptedIOException
+import java.nio.channels.ClosedByInterruptException
 import java.util.*
 import java.util.concurrent.TimeUnit
 import java.util.regex.Pattern
@@ -240,7 +242,7 @@ fun MeasureUnconstrainedView(
 }
 
 @Composable
-fun Marquee(autoscroll: Boolean = false, modifier: Modifier = Modifier, content: @Composable () -> Unit) {
+fun Marquee(modifier: Modifier = Modifier, autoscroll: Boolean = false, arrangement: Arrangement.Horizontal = Arrangement.Start, content: @Composable () -> Unit) {
 	MeasureUnconstrainedView(content) { content_width: Int, _ ->
 		val scroll_state = rememberScrollState()
 
@@ -263,7 +265,7 @@ fun Marquee(autoscroll: Boolean = false, modifier: Modifier = Modifier, content:
 				animation_state = !animation_state
 			}
 
-			Row(modifier.horizontalScroll(scroll_state, false)) {
+			Row(modifier.horizontalScroll(scroll_state, false), horizontalArrangement = arrangement) {
 				content()
 			}
 		}
@@ -303,7 +305,8 @@ fun Marquee(autoscroll: Boolean = false, modifier: Modifier = Modifier, content:
 				Row(
 					Modifier
 						.requiredWidth(with(density) { container_width.toDp() - scroll_value })
-						.offset { IntOffset((scroll_value / 2).toPx().roundToInt(), 0) }
+						.offset { IntOffset((scroll_value / 2).toPx().roundToInt(), 0) },
+					horizontalArrangement = arrangement
 				) {
 					content()
 				}
@@ -835,4 +838,33 @@ fun <K, V : Any> MutableMap<K, V>.putIfAbsent(key: K, getValue: () -> V): V {
 		put(key, v)
 	}
 	return v
+}
+
+fun catchInterrupts(action: () -> Unit): Boolean {
+	try {
+		action()
+	}
+	catch (error: Exception) {
+		for (e in listOf(error, error.cause)) {
+			if (e is InterruptedException || e is InterruptedIOException) {
+				return true
+			}
+		}
+		throw RuntimeException(error)
+	}
+	return false
+}
+
+fun String.indexOfOrNull(string: String, start_index: Int = 0, ignore_case: Boolean = false): Int? {
+	val index = indexOf(string, start_index, ignore_case)
+	return if (index == -1) null else index
+}
+
+fun String.indexOfFirstOrNull(start: Int = 0, predicate: (Char) -> Boolean): Int? {
+	for (i in start until length) {
+		if (predicate(elementAt(i))) {
+			return i
+		}
+	}
+	return null
 }

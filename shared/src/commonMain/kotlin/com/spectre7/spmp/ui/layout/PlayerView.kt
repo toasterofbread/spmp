@@ -42,8 +42,10 @@ import com.spectre7.spmp.ui.layout.nowplaying.ThemeMode
 import com.spectre7.spmp.ui.theme.Theme
 import com.spectre7.utils.*
 import kotlinx.coroutines.*
-import java.io.InterruptedIOException
+import java.net.URI
+import java.net.URISyntaxException
 import java.nio.channels.ClosedByInterruptException
+import java.text.ParseException
 import java.util.concurrent.locks.ReentrantLock
 import kotlin.concurrent.thread
 
@@ -67,6 +69,31 @@ open class PlayerViewContext(
 
     fun copy(onClickedOverride: ((item: MediaItem) -> Unit)? = null, onLongClickedOverride: ((item: MediaItem) -> Unit)? = null): PlayerViewContext {
         return PlayerViewContext(onClickedOverride, onLongClickedOverride, this)
+    }
+
+    fun openUri(uri_string: String): Result<Unit> {
+        fun failure(reason: String): Result<Unit> = Result.failure(URISyntaxException(uri_string, reason))
+
+        val uri = URI(uri_string)
+        if (uri.host != "music.youtube.com" && uri.host != "www.youtube.com") {
+            return failure("Unsupported host '${uri.host}'")
+        }
+
+        val path_parts = uri.path.split('/').filter { it.isNotBlank() }
+        when (path_parts.firstOrNull()) {
+            "channel" -> {
+                val channel_id = path_parts.elementAtOrNull(1) ?: return failure("No channel ID")
+                openMediaItem(Artist.fromId(channel_id))
+            }
+            "watch" -> {
+                val v_start = (uri.query.indexOfOrNull("v=") ?: return failure("'v' query parameter not found")) + 2
+                val v_end = uri.query.indexOfOrNull("&", v_start) ?: uri.query.length
+                playMediaItem(Song.fromId(uri.query.substring(v_start, v_end)))
+            }
+            else -> return failure("Uri path not implemented")
+        }
+
+        return Result.success(Unit)
     }
 
     open fun getNowPlayingTopOffset(screen_height: Dp, density: Density): Int = upstream!!.getNowPlayingTopOffset(screen_height, density)
@@ -103,7 +130,7 @@ open class PlayerViewContext(
     open fun hideLongPressMenu() { upstream!!.hideLongPressMenu() }
 }
 
-private class PlayerViewContextImpl: PlayerViewContext(null, null, null) {
+class PlayerViewContextImpl: PlayerViewContext(null, null, null) {
     private var now_playing_switch_page: Int by mutableStateOf(-1)
     private val overlay_page_undo_stack: MutableList<Triple<OverlayPage, MediaItem?, MediaItem?>?> = mutableListOf()
     private val bottom_padding_anim = Animatable(PlayerServiceHost.session_started.toFloat() * MINIMISED_NOW_PLAYING_HEIGHT)
@@ -498,15 +525,13 @@ private class PlayerViewContextImpl: PlayerViewContext(null, null, null) {
         }
 
         DisposableEffect(Unit) {
-            val prefs_listener = object : ProjectPreferences.Listener {
+            val prefs_listener = Settings.prefs.addListener(object : ProjectPreferences.Listener {
                 override fun onChanged(prefs: ProjectPreferences, key: String) {
                     if (key == Settings.KEY_YTM_AUTH.name) {
                         auth_info = YoutubeMusicAuthInfo(Settings.KEY_YTM_AUTH.get(prefs))
                     }
                 }
-            }
-
-            Settings.prefs.addListener(prefs_listener)
+            })
 
             onDispose {
                 Settings.prefs.removeListener(prefs_listener)
@@ -597,9 +622,7 @@ private class PlayerViewContextImpl: PlayerViewContext(null, null, null) {
 }
 
 @Composable
-fun PlayerView() {
-    val player = remember { PlayerViewContextImpl() }
-    player.init()
+fun PlayerView(player: PlayerViewContextImpl) {
     player.LongPressMenu()
 
     DisposableEffect(Unit) {
@@ -715,20 +738,12 @@ private fun MainPageTopBar(
                     if (song != null) {
                         lyrics_loading = true
                         load_thread = SpMp.context.networkThread {
-                            try {
+                            catchInterrupts {
                                 val result = song.loadLyrics()
                                 if (!Thread.currentThread().isInterrupted) {
                                     lyrics = result
                                     lyrics_loading = false
                                 }
-                            }
-                            catch (error: java.lang.Exception) {
-                                for (e in listOf(error, error.cause)) {
-                                    if (e is InterruptedIOException || e is ClosedByInterruptException) {
-                                        return@networkThread
-                                    }
-                                }
-                                throw RuntimeException(error)
                             }
                         }
                     }
@@ -738,14 +753,40 @@ private fun MainPageTopBar(
                 }
             }
 
-            var show_lyrics: Boolean by remember { mutableStateOf(true) }
+            var show_lyrics: Boolean by remember { mutableStateOf(Settings.KEY_HP_SHOW_TIMED_LYRICS.get()) }
+            var show_visualiser: Boolean by remember { mutableStateOf(Settings.KEY_HP_SHOW_VISUALISER.get()) }
+
+            DisposableEffect(Unit) {
+                val prefs_listener = Settings.prefs.addListener(object : ProjectPreferences.Listener {
+                    override fun onChanged(prefs: ProjectPreferences, key: String) {
+                        if (key == Settings.KEY_HP_SHOW_TIMED_LYRICS.name) {
+                            show_lyrics = Settings.KEY_HP_SHOW_TIMED_LYRICS.get(prefs)
+                        }
+                        else if (key == Settings.KEY_HP_SHOW_VISUALISER.name) {
+                            show_visualiser = Settings.KEY_HP_SHOW_VISUALISER.get(prefs)
+                        }
+                    }
+                })
+
+                onDispose {
+                    Settings.prefs.removeListener(prefs_listener)
+                }
+            }
 
             NoRipple {
-                Box(Modifier.fillMaxSize().weight(1f).clickable { show_lyrics = !show_lyrics }) {
+                Box(
+                    Modifier.fillMaxSize().weight(1f).clickable {
+                        when (Settings.getEnum<PlayerViewTopBarAction>(Settings.KEY_HP_TOP_BAR_ACTION)) {
+                            PlayerViewTopBarAction.TOGGLE_LYRICS -> Settings.KEY_HP_SHOW_TIMED_LYRICS.set(!show_lyrics)
+                            PlayerViewTopBarAction.OPEN_LYRICS -> TODO()
+                            PlayerViewTopBarAction.NONE -> {}
+                        }
+                    }
+                ) {
                     val state by remember { derivedStateOf {
                         lyrics.let {
                             if (show_lyrics && it != null && it.sync_type != Song.Lyrics.SyncType.NONE) it
-                            else if (PlayerServiceHost.status.m_playing) 0
+                            else if (show_visualiser && PlayerServiceHost.status.m_playing) 0
                             else null
                         }
                     } }
@@ -837,8 +878,10 @@ private fun MainPageScrollableTopContent(
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 private fun ColumnScope.FilterChipsRow(getFilterChips: () -> List<Pair<Int, String>>?, getSelectedFilterChip: () -> Int?, onFilterChipSelected: (Int?) -> Unit) {
+    val enabled: Boolean by mutableSettingsState(Settings.KEY_FEED_SHOW_FILTERS)
     val filter_chips = getFilterChips()
-    AnimatedVisibility(filter_chips?.isNotEmpty() == true) {
+
+    AnimatedVisibility(enabled && filter_chips?.isNotEmpty() == true) {
         LazyRow(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.spacedBy(10.dp)) {
             val selected_filter_chip = getSelectedFilterChip()
 

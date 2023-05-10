@@ -347,7 +347,7 @@ fun LongPressMenu(
                                     .padding(horizontal = 15.dp), 
                                 verticalArrangement = Arrangement.SpaceEvenly
                             ) {
-                                Marquee(false) {
+                                Marquee(autoscroll = false) {
                                     Text(
                                         data.item.title ?: "",
                                         Modifier.fillMaxWidth(),
@@ -360,7 +360,7 @@ fun LongPressMenu(
                                 if (data.item !is Artist) {
                                     val artist = data.item.artist
                                     if (artist != null) {
-                                        Marquee(false) {
+                                        Marquee(autoscroll = false) {
                                             artist.PreviewLong(MediaItem.PreviewParams(
                                                 remember { { playerProvider().let { player ->
                                                     player.copy(onClickedOverride = {

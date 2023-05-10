@@ -29,11 +29,112 @@ import java.time.Duration
 import java.util.*
 import kotlin.concurrent.thread
 
+open class MediaItemData(open val data_item: MediaItem) {
+
+    private var changes_made: Boolean = false
+    protected fun onChanged(cached: Boolean) {
+        if (!cached) {
+            changes_made = true
+        }
+    }
+
+    var original_title: String? by mutableStateOf(null)
+
+    val title_listeners = Listeners<(String?) -> Unit>()
+    fun supplyTitle(value: String?, certain: Boolean = false, cached: Boolean = false): MediaItem {
+        if (value != original_title && (original_title == null || certain)) {
+            original_title = value
+            title_listeners.call { it(data_item.title) }
+            onChanged(cached)
+        }
+        return data_item
+    }
+
+    var artist: Artist? by mutableStateOf(null)
+        private set
+
+    val artist_listeners = Listeners<(Artist?) -> Unit>()
+    fun supplyArtist(value: Artist?, certain: Boolean = false, cached: Boolean = false): MediaItem {
+        if (data_item !is Artist && value != artist && (artist == null || certain)) {
+            artist = value
+            artist_listeners.call { it(artist) }
+            onChanged(cached)
+        }
+        return data_item
+    }
+
+    var description: String? by mutableStateOf(null)
+        private set
+
+    fun supplyDescription(value: String?, certain: Boolean = false, cached: Boolean = false): MediaItem {
+        if (value != description && (description == null || certain)) {
+            description = value
+            onChanged(cached)
+        }
+        return data_item
+    }
+
+    var thumbnail_provider: MediaItem.ThumbnailProvider? by mutableStateOf(null)
+        private set
+
+    fun supplyThumbnailProvider(value: MediaItem.ThumbnailProvider?, certain: Boolean = false, cached: Boolean = false): MediaItem {
+        if (value != thumbnail_provider && (thumbnail_provider == null || certain)) {
+            thumbnail_provider = value
+            onChanged(cached)
+        }
+        return data_item
+    }
+
+    open fun supplyDataFromSubtitle(runs: List<TextRun>) {
+        var artist_found = false
+        for (run in runs) {
+            val type = run.browse_endpoint_type ?: continue
+            when (MediaItem.Type.fromBrowseEndpointType(type)) {
+                MediaItem.Type.ARTIST -> {
+                    val artist = run.navigationEndpoint?.browseEndpoint?.getMediaItem()
+                    if (artist != null) {
+                        supplyArtist(artist as Artist, true)
+                        artist_found = true
+                    }
+                }
+                MediaItem.Type.PLAYLIST -> {
+                    check(this is SongItemData)
+
+                    val playlist = run.navigationEndpoint?.browseEndpoint?.getMediaItem() as Playlist?
+                    if (playlist != null) {
+                        check(playlist.playlist_type == Playlist.PlaylistType.ALBUM)
+
+                        playlist.editData {
+                            supplyTitle(run.text, true)
+                        }
+                        supplyAlbum(playlist, true)
+                    }
+                }
+                else -> {}
+            }
+        }
+
+        if (!artist_found && data_item !is Artist) {
+            val artist = Artist.createForItem(data_item)
+            artist.editData {
+                supplyTitle(runs[1].text)
+            }
+            supplyArtist(artist)
+        }
+    }
+
+    fun save() {
+        if (!changes_made) {
+            return
+        }
+
+        // TODO
+        Cache.setString(data_item.cache_key, DataApi.mediaitem_klaxon.toJsonString(data_item), MediaItem.CACHE_LIFETIME)
+    }
+}
+
 @Suppress("PLATFORM_CLASS_MAPPED_TO_KOTLIN")
 abstract class MediaItem(id: String) {
-
-    val registry_entry: DataRegistry.Entry
-    open fun getDefaultRegistryEntry(): DataRegistry.Entry = DataRegistry.Entry().apply { item = this@MediaItem }
 
     private val _id: String = id
     val id: String get() {
@@ -42,84 +143,24 @@ abstract class MediaItem(id: String) {
     }
     val uid: String get() = "${type.ordinal}$_id"
 
-    var original_title: String? by mutableStateOf(null)
-    var title: String?
-        get() = registry_entry.title ?: original_title
-        private set(value) { original_title = value }
+    protected abstract val data: MediaItemData
+    val registry_entry: DataRegistry.Entry
+    open fun getDefaultRegistryEntry(): DataRegistry.Entry = DataRegistry.Entry().apply { item = this@MediaItem }
 
-    val title_listeners = Listeners<(String?) -> Unit>()
-    fun supplyTitle(value: String?, certain: Boolean = false): MediaItem {
-        if (value != null && (original_title == null || certain)) {
-            original_title = value
-            title_listeners.call { it(title) }
-        }
-        return this
-    }
+    val original_title: String? get() = data.original_title
+    val title: String? get() = registry_entry.title ?: original_title
+    val title_listeners: Listeners<(String?) -> Unit> get() = data.title_listeners
+    val artist: Artist? get() =
+        if (this is Artist) this
+        else data.artist
+    val artist_listeners: Listeners<(Artist?) -> Unit> get() = data.artist_listeners
+    val description: String? get() = data.description
+    val thumbnail_provider: ThumbnailProvider? get() = data.thumbnail_provider
 
-    var artist: Artist? by mutableStateOf(null)
-        private set
-
-    val artist_listeners = Listeners<(Artist?) -> Unit>()
-    fun supplyArtist(value: Artist?, certain: Boolean = false): MediaItem {
-        if (this !is Artist && value != null && (artist == null || certain)) {
-            artist = value
-            artist_listeners.call { it(artist) }
-        }
-        return this
-    }
-
-    var description: String? by mutableStateOf(null)
-        private set
-
-    fun supplyDescription(value: String?, certain: Boolean = false): MediaItem {
-        if (value != null && (description == null || certain)) {
-            description = value
-        }
-        return this
-    }
-
-    var thumbnail_provider: ThumbnailProvider? by mutableStateOf(null)
-        protected set
     open fun canLoadThumbnail(): Boolean = thumbnail_provider != null
 
-    fun supplyThumbnailProvider(value: ThumbnailProvider?, certain: Boolean = false): MediaItem {
-        if (value != null && (thumbnail_provider == null || certain)) {
-            thumbnail_provider = value
-        }
-        return this
-    }
-
     fun supplyDataFromSubtitle(runs: List<TextRun>) {
-        var artist_found = false
-        for (run in runs) {
-            val type = run.browse_endpoint_type ?: continue
-            when (Type.fromBrowseEndpointType(type)) {
-                Type.ARTIST -> {
-                    val artist = run.navigationEndpoint?.browseEndpoint?.getMediaItem()
-                    if (artist != null) {
-                        supplyArtist(artist as Artist, true)
-                        artist_found = true
-                    }
-                }
-                Type.PLAYLIST -> {
-                    check(this is Song)
-
-                    val playlist = run.navigationEndpoint?.browseEndpoint?.getMediaItem() as Playlist?
-                    if (playlist != null) {
-                        check(playlist.playlist_type == Playlist.PlaylistType.ALBUM)
-                        playlist.supplyTitle(run.text, true)
-                        supplyAlbum(playlist, true)
-                    }
-                }
-                else -> {}
-            }
-        }
-
-        if (!artist_found && this !is Artist) {
-            val artist = Artist.createForItem(this)
-            artist.supplyTitle(runs[1].text)
-            supplyArtist(artist)
-        }
+        data.supplyDataFromSubtitle(runs)
     }
 
     // Remove?
@@ -236,11 +277,13 @@ abstract class MediaItem(id: String) {
     open fun supplyFromSerialisedData(data: MutableList<Any?>, klaxon: Klaxon): MediaItem {
         require(data.size >= 4)
         runBlocking {
-            with(Dispatchers.Main) {
-                data[data.size - 4]?.also { original_title = it as String }
-                data[data.size - 3]?.also { artist = Artist.fromId(it as String) }
-                data[data.size - 2]?.also { description = it as String }
-                data[data.size - 1]?.also { thumbnail_provider = ThumbnailProvider.fromJsonObject(it as JsonObject, klaxon) }
+            with(this@MediaItem.data) {
+                with(Dispatchers.Main) {
+                    data[data.size - 4]?.also { supplyTitle(it as String, cached = true) }
+                    data[data.size - 3]?.also { supplyArtist(Artist.fromId(it as String), cached = true) }
+                    data[data.size - 2]?.also { supplyDescription(it as String, cached = true) }
+                    data[data.size - 1]?.also { supplyThumbnailProvider(ThumbnailProvider.fromJsonObject(it as JsonObject, klaxon), cached = true) }
+                }
             }
         }
         return this@MediaItem
@@ -250,11 +293,18 @@ abstract class MediaItem(id: String) {
         return original_title != null && artist != null && thumbnail_provider != null
     }
 
-    private fun toJsonData(): String {
-        return DataApi.mediaitem_klaxon.toJsonString(this)
+    val cache_key: String get() = getCacheKey(type, id)
+
+    fun <T> editData(action: MediaItemData.() -> T): T {
+        val ret = action(data)
+        saveToCache()
+        return ret
     }
 
-    val cache_key: String get() = getCacheKey(type, id)
+    fun editDataManual(action: (MediaItemData.() -> Unit)? = null): MediaItemData {
+        action?.invoke(data)
+        return data
+    }
 
     fun loadFromCache() {
         val cached = Cache.get(cache_key)
@@ -264,12 +314,13 @@ abstract class MediaItem(id: String) {
                 cached.close()
                 try {
                     val array = DataApi.klaxon.parseJsonArray(str.reader())
-
                     runBlocking {
                         var retries = 5
                         while (retries-- > 0) {
                             try {
-                                supplyFromSerialisedData(array.toMutableList(), DataApi.klaxon)
+                                editData {
+                                    supplyFromSerialisedData(array.toMutableList(), DataApi.klaxon)
+                                }
                                 break
                             }
                             catch (e: IllegalStateException) {
@@ -282,16 +333,17 @@ abstract class MediaItem(id: String) {
                     }
                 }
                 catch (e: KlaxonException) {
-                    printJson(str)
                     println(this)
+                    printJson(str)
                     throw e
                 }
             }
         }
     }
 
-    fun saveToCache() {
-        Cache.setString(cache_key, toJsonData(), CACHE_LIFETIME)
+    private fun saveToCache(): MediaItem {
+        data.save()
+        return this
     }
 
     companion object {
@@ -344,7 +396,9 @@ abstract class MediaItem(id: String) {
             }
 
             if (data.size > 2) {
-                item.supplyFromSerialisedData(data.toMutableList(), klaxon)
+                item.editData {
+                    item.supplyFromSerialisedData(data.toMutableList(), klaxon)
+                }
             }
             return item
         }
@@ -352,7 +406,7 @@ abstract class MediaItem(id: String) {
         fun fromBrowseEndpointType(page_type: String, id: String): MediaItem {
             return when (page_type) {
                 "MUSIC_PAGE_TYPE_PLAYLIST", "MUSIC_PAGE_TYPE_ALBUM", "MUSIC_PAGE_TYPE_AUDIOBOOK" ->
-                    Playlist.fromId(id).supplyPlaylistType(Playlist.PlaylistType.fromTypeString(page_type), true)
+                    Playlist.fromId(id).editPlaylistData { supplyPlaylistType(Playlist.PlaylistType.fromTypeString(page_type), true) }
                 "MUSIC_PAGE_TYPE_ARTIST", "MUSIC_PAGE_TYPE_USER_CHANNEL" ->
                     Artist.fromId(id)
                 else -> throw NotImplementedError(page_type)
@@ -734,16 +788,23 @@ abstract class MediaItem(id: String) {
     }
 }
 
-abstract class MediaItemWithLayouts(id: String): MediaItem(id) {
+abstract class MediaItemWithLayoutsData(item: MediaItem): MediaItemData(item) {
     var feed_layouts: List<MediaItemLayout>? by mutableStateOf(null)
         private set
 
-    fun supplyFeedLayouts(value: List<MediaItemLayout>?, certain: Boolean): MediaItem {
-        if (value != null && (feed_layouts == null || certain)) {
+    fun supplyFeedLayouts(value: List<MediaItemLayout>?, certain: Boolean, cached: Boolean = false): MediaItemWithLayoutsData {
+        if (value != feed_layouts && (feed_layouts == null || certain)) {
             feed_layouts = value
+            onChanged(cached)
         }
         return this
     }
+}
+
+abstract class MediaItemWithLayouts(id: String): MediaItem(id) {
+    abstract override val data: MediaItemWithLayoutsData
+
+    val feed_layouts: List<MediaItemLayout>? get() = data.feed_layouts
 
     override fun getSerialisedData(klaxon: Klaxon): List<String> {
         return super.getSerialisedData(klaxon) + listOf(klaxon.toJsonString(feed_layouts))
@@ -751,7 +812,9 @@ abstract class MediaItemWithLayouts(id: String): MediaItem(id) {
 
     override fun supplyFromSerialisedData(data: MutableList<Any?>, klaxon: Klaxon): MediaItem {
         require(data.size >= 1)
-        data.removeLast()?.also { feed_layouts = klaxon.parseFromJsonArray(it as JsonArray<*>) }
+        with(this@MediaItemWithLayouts.data) {
+            data.removeLast()?.also { supplyFeedLayouts(klaxon.parseFromJsonArray(it as JsonArray<*>), true) }
+        }
         return super.supplyFromSerialisedData(data, klaxon)
     }
 

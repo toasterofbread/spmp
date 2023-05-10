@@ -45,6 +45,7 @@ import androidx.compose.ui.graphics.toArgb
 import com.spectre7.utils.getStringTODO
 import com.spectre7.utils.getString
 
+private const val DEFAULT_NOTIFICATION_CHANNEL_ID = "default_channel"
 private const val ERROR_NOTIFICATION_CHANNEL_ID = "download_error_channel"
 
 fun getAppName(context: Context): String {
@@ -136,8 +137,19 @@ actual class PlatformContext(private val context: Context) {
     actual fun loadFontFromFile(path: String): Font = Font(path, ctx.resources.assets)
 
     actual fun canSendNotifications(): Boolean = NotificationManagerCompat.from(ctx).areNotificationsEnabled()
+    @SuppressLint("MissingPermission")
     actual fun sendNotification(title: String, body: String) {
-        TODO()
+        if (canSendNotifications()) {
+            val notification = Notification.Builder(context, getDefaultNotificationChannel(ctx))
+                .setContentTitle(title)
+                .setContentText(body)
+                .build()
+
+            NotificationManagerCompat.from(ctx).notify(
+                System.currentTimeMillis().toInt(),
+                notification
+            )
+        }
     }
     @SuppressLint("MissingPermission")
     actual fun sendNotification(throwable: Throwable) {
@@ -204,6 +216,17 @@ private fun Context.findWindow(): Window? {
         context = context.baseContext
     }
     return null
+}
+
+private fun getDefaultNotificationChannel(context: Context): String {
+    val channel = NotificationChannel(
+        DEFAULT_NOTIFICATION_CHANNEL_ID,
+        getStringTODO("Default channel"),
+        NotificationManager.IMPORTANCE_DEFAULT
+    )
+
+    NotificationManagerCompat.from(context).createNotificationChannel(channel)
+    return DEFAULT_NOTIFICATION_CHANNEL_ID
 }
 
 private fun getErrorNotificationChannel(context: Context): String {

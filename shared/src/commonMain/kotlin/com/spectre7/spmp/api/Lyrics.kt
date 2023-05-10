@@ -10,6 +10,7 @@ import okhttp3.Request
 import okhttp3.RequestBody.Companion.toRequestBody
 import org.xmlpull.v1.XmlPullParser
 import org.xmlpull.v1.XmlPullParserFactory
+import java.nio.channels.ClosedByInterruptException
 import java.util.*
 
 fun getSongLyrics(song: Song): Song.Lyrics? {
@@ -250,7 +251,18 @@ private fun parseTimedLyrics(data: String): List<List<Song.Lyrics.Term>> {
         return Song.Lyrics.Term(listOf(Song.Lyrics.Term.Text(text)), start!!, end!!)
     }
 
-    val tokeniser = Tokenizer()
+    val tokeniser: Tokenizer
+    try {
+        tokeniser = Tokenizer()
+    }
+    catch (e: RuntimeException) {
+        if (e.cause is ClosedByInterruptException) {
+            throw InterruptedException()
+        }
+        else {
+            throw e
+        }
+    }
 
     fun parseLine(): List<Song.Lyrics.Term> {
         parser.require(XmlPullParser.START_TAG, null, "line")

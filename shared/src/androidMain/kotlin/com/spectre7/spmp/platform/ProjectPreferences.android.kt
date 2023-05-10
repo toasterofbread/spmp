@@ -47,8 +47,9 @@ actual class ProjectPreferences private constructor(private val prefs: SharedPre
     }
     actual operator fun contains(key: String): Boolean = prefs.contains(key)
     
-    actual fun addListener(listener: Listener) {
+    actual fun addListener(listener: Listener): Listener {
         prefs.registerOnSharedPreferenceChangeListener(listener)
+        return listener
     }
 
     actual fun removeListener(listener: Listener) {

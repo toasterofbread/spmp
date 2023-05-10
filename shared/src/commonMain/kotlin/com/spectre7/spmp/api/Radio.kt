@@ -206,7 +206,7 @@ data class YoutubeiNextResponse(
                 }
 
                 return Result.success(Pair(
-                    Artist.fromId(run.navigationEndpoint!!.browseEndpoint!!.browseId).supplyTitle(run.text) as Artist,
+                    Artist.fromId(run.navigationEndpoint!!.browseEndpoint!!.browseId).editArtistData { supplyTitle(run.text) },
                     true
                 ))
             }
@@ -240,7 +240,7 @@ data class YoutubeiNextResponse(
             val artist_title = longBylineText.runs?.firstOrNull { it.navigationEndpoint == null }
             if (artist_title != null) {
                 return Result.success(Pair(
-                    Artist.createForItem(host_item).supplyTitle(artist_title.text) as Artist,
+                    Artist.createForItem(host_item).editArtistData { supplyTitle(artist_title.text) },
                     false
                 ))
             }
@@ -372,16 +372,24 @@ fun getSongRadio(video_id: String, continuation: String?, filters: List<RadioMod
         RadioData(
             radio.contents.map { item ->
                 val song = Song.fromId(item.playlistPanelVideoRenderer!!.videoId)
-                    .supplyTitle(item.playlistPanelVideoRenderer.title.first_text) as Song
+                val error = song.editSongData<Result<RadioData>?> {
+                    supplyTitle(item.playlistPanelVideoRenderer.title.first_text) as Song
 
-                val artist_result = item.playlistPanelVideoRenderer.getArtist(song)
-                if (artist_result.isFailure) {
-                    return artist_result.cast()
+                    val artist_result = item.playlistPanelVideoRenderer.getArtist(song)
+                    if (artist_result.isFailure) {
+                        return@editSongData artist_result.cast()
+                    }
+
+                    val (artist, certain) = artist_result.getOrThrow()
+                    if (artist != null) {
+                        supplyArtist(artist, certain)
+                    }
+
+                    null
                 }
 
-                val (artist, certain) = artist_result.getOrThrow()
-                if (artist != null) {
-                    song.supplyArtist(artist, certain)
+                if (error != null) {
+                    return error
                 }
 
                 return@map song

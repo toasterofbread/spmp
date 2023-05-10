@@ -12,6 +12,7 @@ import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
+import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import com.beust.klaxon.JsonObject
 import com.beust.klaxon.Klaxon
@@ -21,6 +22,7 @@ import com.spectre7.spmp.platform.WebViewLogin
 import com.spectre7.spmp.platform.isWebViewLoginSupported
 import com.spectre7.spmp.platform.rememberImagePainter
 import com.spectre7.utils.SubtleLoadingIndicator
+import com.spectre7.utils.catchInterrupts
 import com.spectre7.utils.getStringTODO
 import okhttp3.OkHttpClient
 import okhttp3.Request
@@ -28,6 +30,7 @@ import kotlin.concurrent.thread
 
 private const val DISCORD_LOGIN_URL = "https://discord.com/login"
 private const val DISCORD_API_URL = "https://discord.com/api/"
+private const val DISCORD_DEFAULT_AVATAR = "https://discord.com/assets/1f0bfc0865d324c2587920a7d80c609b.png"
 
 @Composable
 fun DiscordLogin(modifier: Modifier = Modifier, onFinished: (Result<String?>?) -> Unit) {
@@ -60,7 +63,10 @@ private data class DiscordMeResponse(
     fun isEmpty(): Boolean = this == EMPTY
     fun getAvatarUrl(): String {
         check(!isEmpty())
-        return "https://cdn.discordapp.com/avatars/$id/$avatar.webp"
+        check(id != null)
+
+        return if (avatar != null) "https://cdn.discordapp.com/avatars/$id/$avatar.webp"
+                else DISCORD_DEFAULT_AVATAR
     }
 
     companion object {
@@ -115,11 +121,10 @@ fun DiscordAccountPreview(account_token: String, modifier: Modifier = Modifier) 
 
         if (me.token != account_token) {
             load_thread = thread {
-                try {
+                catchInterrupts {
                     me = getDiscordAccountInfo(account_token).getOrReport("DiscordAccountPreview") ?: DiscordMeResponse.EMPTY
                     load_thread = null
                 }
-                catch (_: InterruptedException) {}
             }
 
             me = DiscordMeResponse.EMPTY
@@ -143,7 +148,7 @@ fun DiscordAccountPreview(account_token: String, modifier: Modifier = Modifier) 
                 Image(rememberImagePainter(state.getAvatarUrl()), null, Modifier.fillMaxHeight().aspectRatio(1f).clip(CircleShape))
 
                 Column(Modifier.fillMaxHeight(), verticalArrangement = Arrangement.SpaceEvenly) {
-                    Text(state.username!!)
+                    Text(state.username!!, overflow = TextOverflow.Ellipsis, maxLines = 1)
                     Text("#${state.discriminator}")
                 }
             }

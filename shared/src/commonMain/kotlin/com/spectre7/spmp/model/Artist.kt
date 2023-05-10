@@ -9,43 +9,61 @@ import com.spectre7.spmp.api.*
 import com.spectre7.spmp.ui.component.ArtistPreviewLong
 import com.spectre7.spmp.ui.component.ArtistPreviewSquare
 import com.spectre7.utils.getString
+import kotlinx.coroutines.CoroutineScope
 import kotlin.concurrent.thread
+
+class ArtistItemData(override val data_item: Artist): MediaItemWithLayoutsData(data_item) {
+    var subscribe_channel_id: String? by mutableStateOf(null)
+        private set
+
+    fun supplySubscribeChannelId(value: String?, certain: Boolean = false, cached: Boolean = false): Artist {
+        if (value != subscribe_channel_id && (subscribe_channel_id == null || certain)) {
+            subscribe_channel_id = value
+            onChanged(cached)
+        }
+        return data_item
+    }
+
+    var subscriber_count: Int? by mutableStateOf(null)
+        private set
+
+    fun supplySubscriberCount(value: Int?, certain: Boolean = false, cached: Boolean = false): Artist {
+        if (value != subscriber_count && (subscriber_count == null || certain)) {
+            subscriber_count = value
+            onChanged(cached)
+        }
+        return data_item
+    }
+}
 
 class Artist private constructor (
     id: String,
     is_for_item: Boolean = false
 ): MediaItemWithLayouts(id) {
 
-    init {
-        supplyArtist(this, true)
-    }
+    override val data: ArtistItemData = ArtistItemData(this)
 
     var is_for_item: Boolean = is_for_item
         private set
+    val is_temp: Boolean get() = id.isBlank()
 
-    private var _subscribe_channel_id: String? by mutableStateOf(null)
-    val subscribe_channel_id: String?
-        get() = _subscribe_channel_id
-
-    fun supplySubscribeChannelId(value: String?, certain: Boolean): MediaItem {
-        if (value != null && (_subscribe_channel_id == null || certain)) {
-            _subscribe_channel_id = value
-        }
-        return this
-    }
-
-    var subscriber_count: Int? by mutableStateOf(null)
-        private set
-
-    fun supplySubscriberCount(value: Int?, certain: Boolean): MediaItem {
-        if (value != null && (subscriber_count == null || certain)) {
-            subscriber_count = value
-        }
-        return this
-    }
+    val subscribe_channel_id: String? get() = data.subscribe_channel_id
+    val subscriber_count: Int? get() = data.subscriber_count
 
     var subscribed: Boolean? by mutableStateOf(null)
     var is_own_channel: Boolean by mutableStateOf(false)
+
+    fun editArtistData(action: ArtistItemData.() -> Unit): Artist {
+        if (is_for_item || is_temp) {
+            action(data)
+        }
+        else {
+            editData {
+                action(this as ArtistItemData)
+            }
+        }
+        return this
+    }
 
     override fun getSerialisedData(klaxon: Klaxon): List<String> {
         return super.getSerialisedData(klaxon) + listOf(stringToJson(subscribe_channel_id), klaxon.toJsonString(is_for_item), klaxon.toJsonString(subscriber_count))
@@ -53,20 +71,24 @@ class Artist private constructor (
 
     override fun supplyFromSerialisedData(data: MutableList<Any?>, klaxon: Klaxon): MediaItem {
         require(data.size >= 3)
-        data.removeLast()?.also { subscriber_count = it as Int }
-        is_for_item = data.removeLast() as Boolean
-        data.removeLast()?.also { _subscribe_channel_id = it as String }
+        with(this@Artist.data) {
+            data.removeLast()?.also { supplySubscriberCount(it as Int, cached = true) }
+            is_for_item = data.removeLast() as Boolean
+            data.removeLast()?.also { supplySubscribeChannelId(it as String, cached = true) }
+        }
         return super.supplyFromSerialisedData(data, klaxon)
     }
 
     override fun isFullyLoaded(): Boolean {
-        return super.isFullyLoaded() && _subscribe_channel_id != null
+        return super.isFullyLoaded() && subscribe_channel_id != null
     }
 
     companion object {
         private val artists: MutableMap<String, Artist> = mutableMapOf()
 
         fun fromId(id: String): Artist {
+            check(id.isNotBlank())
+
             synchronized(artists) {
                 return artists.getOrPut(id) {
                     val artist = Artist(id)
@@ -93,7 +115,7 @@ class Artist private constructor (
             }
         }
 
-        fun createTemp(id: String = "TEMP"): Artist {
+        fun createTemp(id: String = ""): Artist {
             return Artist(id)
         }
     }

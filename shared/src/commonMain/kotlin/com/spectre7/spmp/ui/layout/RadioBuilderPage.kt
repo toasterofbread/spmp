@@ -503,7 +503,7 @@ private fun RadioArtistSelector(
 
                     val radio_artist = artists[index]
                     val artist = remember(radio_artist) {
-                        Artist.createTemp(index.toString()).apply {
+                        Artist.createTemp(index.toString()).editArtistData {
                             supplyTitle(radio_artist.name)
                             supplyThumbnailProvider(MediaItem.ThumbnailProvider.fromThumbnails(listOf(radio_artist.thumbnail)))
                         }

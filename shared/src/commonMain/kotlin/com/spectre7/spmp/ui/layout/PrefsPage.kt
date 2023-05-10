@@ -54,7 +54,7 @@ private enum class Category {
 
     fun getTitle(): String = when (this) {
         GENERAL -> getString("s_cat_general")
-        FEED -> getString("s_cat_home_feed")
+        FEED -> getString("s_cat_home_page")
         THEME -> getString("s_cat_theming")
         LYRICS -> getString("s_cat_lyrics")
         DOWNLOAD -> getString("s_cat_download")
@@ -142,6 +142,7 @@ fun PrefsPage(pill_menu: PillMenu, playerProvider: () -> PlayerViewContext, clos
     val alongside_action: @Composable PillMenu.Action.() -> Unit = {
         Row(fill_modifier
             .border(1.dp, background_colour, CircleShape)
+            .background(Theme.current.background, CircleShape)
             .padding(horizontal = 5.dp)
         ) {
             for (category in Category.values()) {
@@ -601,6 +602,38 @@ private fun getGeneralCategory(
 
 private fun getFeedCategory(): List<SettingsItem> {
     return listOf(
+
+        SettingsItemToggle(
+            SettingsValueState(Settings.KEY_HP_SHOW_VISUALISER.name),
+            getString("s_key_hp_show_visualiser"),
+            getString("s_sub_hp_show_visualiser")
+        ),
+        SettingsItemToggle(
+            SettingsValueState(Settings.KEY_HP_SHOW_TIMED_LYRICS.name),
+            getString("s_key_hp_show_timed_lyrics"),
+            getString("s_sub_hp_show_timed_lyrics")
+        ),
+
+        SettingsItemMultipleChoice(
+            SettingsValueState(Settings.KEY_HP_TOP_BAR_ACTION.name),
+            getString("s_key_hp_top_bar_action"), null,
+            PlayerViewTopBarAction.values().size,
+            false
+        ) {
+            getString(when (PlayerViewTopBarAction.values()[it]) {
+                PlayerViewTopBarAction.TOGGLE_LYRICS -> "s_option_hp_top_bar_action_toggle_lyrics"
+                PlayerViewTopBarAction.OPEN_LYRICS -> "s_option_hp_top_bar_action_open_lyrics"
+                PlayerViewTopBarAction.NONE -> "s_option_hp_top_bar_action_none"
+            })
+        },
+
+        SettingsGroup(getString("s_group_rec_feed")),
+
+        SettingsItemToggle(
+            SettingsValueState(Settings.KEY_FEED_SHOW_FILTERS.name),
+            getString("s_key_feed_show_filters"), null
+        ),
+
         SettingsItemSlider(
             SettingsValueState<Int>(Settings.KEY_FEED_INITIAL_ROWS.name),
             getString("s_key_feed_initial_rows"),

@@ -80,12 +80,11 @@ private class AccountMenuResponse(val actions: List<Action>) {
     class ActiveAccountHeaderRenderer(val accountName: TextRuns, val accountPhoto: MusicThumbnailRenderer.Thumbnail)
 
     fun getAritst(): Artist? {
-        val artist = Artist.fromId(getChannelId() ?: return null)
         val account = actions.first().openPopupAction.popup.multiPageMenuRenderer.header!!.activeAccountHeaderRenderer
-
-        artist.supplyTitle(account.accountName.first_text)
-        artist.supplyThumbnailProvider(MediaItem.ThumbnailProvider.fromThumbnails(account.accountPhoto.thumbnails))
-        return artist
+        return Artist.fromId(getChannelId() ?: return null).editArtistData {
+            supplyTitle(account.accountName.first_text)
+            supplyThumbnailProvider(MediaItem.ThumbnailProvider.fromThumbnails(account.accountPhoto.thumbnails))
+        }
     }
 
     fun getChannelId(): String? {

@@ -18,6 +18,42 @@ import okhttp3.internal.filterList
 import java.io.FileNotFoundException
 import java.net.URL
 
+class SongItemData(override val data_item: Song): MediaItemData(data_item) {
+
+    var song_type: Song.SongType? by mutableStateOf(null)
+        private set
+
+    fun supplySongType(value: Song.SongType?, certain: Boolean = false, cached: Boolean = false): Song {
+        if (value != song_type && (song_type == null || certain)) {
+            song_type = value
+            onChanged(cached)
+        }
+        return data_item
+    }
+
+    var duration: Long? by mutableStateOf(null)
+        private set
+
+    fun supplyDuration(value: Long?, certain: Boolean = false, cached: Boolean = false): Song {
+        if (value != duration && (duration == null || certain)) {
+            duration = value
+            onChanged(cached)
+        }
+        return data_item
+    }
+
+    var album: Playlist? by mutableStateOf(null)
+        private set
+
+    fun supplyAlbum(value: Playlist?, certain: Boolean = false, cached: Boolean = false): Song {
+        if (value != album && (album == null || certain)) {
+            album = value
+            onChanged(cached)
+        }
+        return data_item
+    }
+}
+
 class Song protected constructor (
     id: String
 ): MediaItem(id) {
@@ -25,6 +61,7 @@ class Song protected constructor (
     enum class AudioQuality {
         LOW, MEDIUM, HIGH
     }
+    enum class SongType { SONG, VIDEO }
 
     class SongDataRegistryEntry: DataRegistry.Entry() {
         var theme_colour: Int? by mutableStateOf(null)
@@ -33,43 +70,28 @@ class Song protected constructor (
         var thumbnail_rounding: Int? by mutableStateOf(null)
     }
     
-    val song_reg_entry: SongDataRegistryEntry = registry_entry as SongDataRegistryEntry
-    override fun getDefaultRegistryEntry(): DataRegistry.Entry = SongDataRegistryEntry()
-
     private var audio_formats: List<YoutubeVideoFormat>? = null
     private var stream_format: YoutubeVideoFormat? = null
     private var download_format: YoutubeVideoFormat? = null
 
-    enum class SongType { SONG, VIDEO }
-    var song_type: SongType? by mutableStateOf(null)
-        private set
+    override val data = SongItemData(this)
+    val song_reg_entry: SongDataRegistryEntry = registry_entry as SongDataRegistryEntry
+    override fun getDefaultRegistryEntry(): DataRegistry.Entry = SongDataRegistryEntry()
 
-    fun supplySongType(value: SongType?, certain: Boolean = false): Song {
-        if (value != null && (song_type == null || certain)) {
-            song_type = value
+    val song_type: SongType? get() = data.song_type
+    val duration: Long? get() = data.duration
+    val album: Playlist? get() = data.album
+
+    fun <T> editSongData(action: SongItemData.() -> T): T {
+        val ret = editData {
+            action(this as SongItemData)
         }
-        return this
+        return ret
     }
 
-    // TODO
-    var duration: Long? by mutableStateOf(null)
-        private set
-
-    fun supplyDuration(value: Long?, certain: Boolean = false): Song {
-        if (value != null && (duration == null || certain)) {
-            duration = value
-        }
-        return this
-    }
-
-    var album: Playlist? by mutableStateOf(null)
-        private set
-
-    fun supplyAlbum(value: Playlist?, certain: Boolean = false): Song {
-        if (value != null && (album == null || certain)) {
-            album = value
-        }
-        return this
+    fun editSongDataManual(action: SongItemData.() -> Unit): SongItemData {
+        action(data)
+        return data
     }
 
     override fun getSerialisedData(klaxon: Klaxon): List<String> {
@@ -78,9 +100,11 @@ class Song protected constructor (
 
     override fun supplyFromSerialisedData(data: MutableList<Any?>, klaxon: Klaxon): MediaItem {
         require(data.size >= 3)
-        data.removeLast()?.also { album = Playlist.fromId(it as String) }
-        data.removeLast()?.also { duration = (it as Int).toLong() }
-        data.removeLast()?.also { song_type = SongType.values()[it as Int] }
+        with(this@Song.data) {
+            data.removeLast()?.also { supplyAlbum(Playlist.fromId(it as String), cached = true) }
+            data.removeLast()?.also { supplyDuration((it as Int).toLong(), cached = true) }
+            data.removeLast()?.also { supplySongType(SongType.values()[it as Int], cached = true) }
+        }
         return super.supplyFromSerialisedData(data, klaxon)
     }
 

@@ -17,67 +17,69 @@ private data class RelatedItem(
     class IdItem(val id: String)
 }
 
-fun getMediaItemRelated(item: MediaItem): Result<List<List<RelatedGroup<MediaItem>>>> {
-
-    var error: Result<List<List<RelatedGroup<MediaItem>>>>? = null
-    fun loadBrowseEndpoint(browse_endpoint: MediaItem.BrowseEndpoint): List<RelatedGroup<MediaItem>>? {
-        val request = Request.Builder()
-            .ytUrl("/youtubei/v1/browse")
-            .addYtHeaders()
-            .post(DataApi.getYoutubeiRequestBody(
-                """
-            {
-                "browse": "${browse_endpoint.id}"
-            }
-        """
-            ))
-            .build()
-
-        val result = DataApi.request(request)
-        if (result.isFailure) {
-            error = result.cast()
-            return null
+private suspend fun loadBrowseEndpoint(browse_endpoint: MediaItem.BrowseEndpoint): Result<List<RelatedGroup<MediaItem>>> {
+    val request = Request.Builder()
+        .ytUrl("/youtubei/v1/browse")
+        .addYtHeaders()
+        .post(DataApi.getYoutubeiRequestBody(
+            """
+        {
+            "browse": "${browse_endpoint.id}"
         }
+    """
+        ))
+        .build()
 
-        val parsed = DataApi.klaxon.parseArray<RelatedGroup<RelatedItem>>(result.getOrThrowHere().body!!.charStream())!!
-
-        return List(parsed.size) { i ->
-            val group = parsed[i]
-
-            RelatedGroup(
-                group.title,
-                List(group.contents.size) { j ->
-                    val item = group.contents[j]
-
-                    if (item.videoId != null) {
-                        Song.fromId(item.videoId).loadData().getOrThrowHere()!!
-                    }
-                    else if (item.playlistId != null) {
-                        Playlist.fromId(item.playlistId).loadData().getOrThrowHere()!!
-                    }
-                    else if (item.browseId != null) {
-
-                        val media_item: MediaItem
-                        if (!item.browseId.startsWith("MPREb_")) {
-                            media_item = Artist.fromId(item.browseId).apply { addBrowseEndpoint(item.browseId, MediaItem.BrowseEndpoint.Type.ARTIST) }
-                        }
-                        else {
-                            media_item = Playlist.fromId(item.browseId).apply { addBrowseEndpoint(item.browseId, MediaItem.BrowseEndpoint.Type.ALBUM) }
-                        }
-
-                        media_item.loadData().getOrThrowHere()!!
-                    }
-                    else {
-                        throw NotImplementedError(item.toString())
-                    }
-                }
-            )
-        }
+    val result = DataApi.request(request)
+    if (result.isFailure) {
+        return result.cast()
     }
 
+    val parsed = DataApi.klaxon.parseArray<RelatedGroup<RelatedItem>>(result.getOrThrowHere().body!!.charStream())!!
+
+    return Result.success(List(parsed.size) { i ->
+        val group = parsed[i]
+
+        RelatedGroup(
+            group.title,
+            List(group.contents.size) { j ->
+                val item = group.contents[j]
+
+                if (item.videoId != null) {
+                    Song.fromId(item.videoId).loadData().getOrThrowHere()!!
+                }
+                else if (item.playlistId != null) {
+                    Playlist.fromId(item.playlistId).loadData().getOrThrowHere()!!
+                }
+                else if (item.browseId != null) {
+
+                    val media_item: MediaItem
+                    if (!item.browseId.startsWith("MPREb_")) {
+                        media_item = Artist.fromId(item.browseId).apply { addBrowseEndpoint(item.browseId, MediaItem.BrowseEndpoint.Type.ARTIST) }
+                    }
+                    else {
+                        media_item = Playlist.fromId(item.browseId).apply { addBrowseEndpoint(item.browseId, MediaItem.BrowseEndpoint.Type.ALBUM) }
+                    }
+
+                    media_item.loadData().getOrThrowHere()!!
+                }
+                else {
+                    throw NotImplementedError(item.toString())
+                }
+            }
+        )
+    })
+}
+
+suspend fun getMediaItemRelated(item: MediaItem): Result<List<List<RelatedGroup<MediaItem>>>> {
     val ret = mutableListOf<List<RelatedGroup<MediaItem>>>()
     for (endpoint in item.related_endpoints) {
-        ret.add(loadBrowseEndpoint(endpoint) ?: return error!!)
+        val load_result = loadBrowseEndpoint(endpoint)
+        if (load_result.isFailure) {
+            return load_result.cast()
+        }
+
+        ret.add(load_result.getOrThrow())
     }
 
     return Result.success(ret)

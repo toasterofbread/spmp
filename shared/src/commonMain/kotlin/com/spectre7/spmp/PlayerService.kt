@@ -3,7 +3,6 @@ package com.spectre7.spmp
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.setValue
-import androidx.compose.runtime.snapshotFlow
 import androidx.compose.ui.unit.*
 import com.spectre7.spmp.api.RadioInstance
 import com.spectre7.spmp.api.RadioModifier
@@ -296,6 +295,7 @@ class PlayerService : MediaPlayerService() {
         val song_artist_listener: (Artist?) -> Unit = {
             updateDiscordStatus(current_song)
         }
+        // TODO | Thumb listener for song and artist
 
         override fun onSongTransition(song: Song?) {
             current_song?.apply {
@@ -353,7 +353,8 @@ class PlayerService : MediaPlayerService() {
 
         discord_rpc = DiscordStatus(
             bot_token = ProjectBuildConfig.DISCORD_BOT_TOKEN,
-            custom_images_channel_id = ProjectBuildConfig.DISCORD_CUSTOM_IMAGES_CHANNEL,
+            custom_images_channel_category_id = ProjectBuildConfig.DISCORD_CUSTOM_IMAGES_CHANNEL_CATEGORY,
+            custom_images_channel_name_prefix = ProjectBuildConfig.DISCORD_CUSTOM_IMAGES_CHANNEL_NAME_PREFIX,
             account_token = account_token
         )
 
@@ -371,47 +372,48 @@ class PlayerService : MediaPlayerService() {
 
             check(song.artist?.title != null)
 
-            discord_status_update_thread = thread { runBlocking {
-
-                fun formatText(text: String): String {
-                    return text
-                        .replace("\$artist", song.artist!!.title!!)
-                        .replace("\$song", song.title!!)
-                }
-
-                val name = formatText(Settings.KEY_DISCORD_STATUS_NAME.get())
-                val text_a = formatText(Settings.KEY_DISCORD_STATUS_TEXT_A.get())
-                val text_b = formatText(Settings.KEY_DISCORD_STATUS_TEXT_B.get())
-                val text_c = formatText(Settings.KEY_DISCORD_STATUS_TEXT_C.get())
-
-                val large_image = getCustomImage(song.id) { song.loadThumbnail(MediaItem.ThumbnailQuality.LOW)!! }
-                val small_image = song.artist?.let { artist ->
-                    getCustomImage(artist.id) {
-                        artist.loadThumbnail(MediaItem.ThumbnailQuality.LOW)
+            discord_status_update_thread = thread { catchInterrupts {
+                runBlocking {
+                    fun formatText(text: String): String {
+                        return text
+                            .replace("\$artist", song.artist!!.title!!)
+                            .replace("\$song", song.title!!)
                     }
-                }
 
-                val buttons = mutableListOf<Pair<String, String>>().apply {
-                    if (Settings.KEY_DISCORD_SHOW_BUTTON_SONG.get()) {
-                        add(Settings.KEY_DISCORD_BUTTON_SONG_TEXT.get<String>() to song.url)
-                    }
-                    if (Settings.KEY_DISCORD_SHOW_BUTTON_PROJECT.get()) {
-                        add(Settings.KEY_DISCORD_BUTTON_PROJECT_TEXT.get<String>() to getString("project_url"))
-                    }
-                }
+                    val name = formatText(Settings.KEY_DISCORD_STATUS_NAME.get())
+                    val text_a = formatText(Settings.KEY_DISCORD_STATUS_TEXT_A.get())
+                    val text_b = formatText(Settings.KEY_DISCORD_STATUS_TEXT_B.get())
+                    val text_c = formatText(Settings.KEY_DISCORD_STATUS_TEXT_C.get())
 
-                setActivity(
-                    name = name,
-                    type = DiscordStatus.Type.LISTENING,
-                    details = text_a.ifEmpty { null },
-                    state = text_b.ifEmpty { null },
-                    buttons = buttons.ifEmpty { null },
-                    large_image = large_image,
-                    large_text = text_c.ifEmpty { null },
-                    small_image = small_image,
-                    small_text = if (small_image != null) song.artist?.title else null,
-                    application_id = DISCORD_APPLICATION_ID
-                )
+                    val large_image = getCustomImage(song.id) { song.loadThumbnail(MediaItem.ThumbnailQuality.LOW)!! }
+                    val small_image = song.artist?.let { artist ->
+                        getCustomImage(artist.id) {
+                            artist.loadThumbnail(MediaItem.ThumbnailQuality.LOW)
+                        }
+                    }
+
+                    val buttons = mutableListOf<Pair<String, String>>().apply {
+                        if (Settings.KEY_DISCORD_SHOW_BUTTON_SONG.get()) {
+                            add(Settings.KEY_DISCORD_BUTTON_SONG_TEXT.get<String>() to song.url)
+                        }
+                        if (Settings.KEY_DISCORD_SHOW_BUTTON_PROJECT.get()) {
+                            add(Settings.KEY_DISCORD_BUTTON_PROJECT_TEXT.get<String>() to getString("project_url"))
+                        }
+                    }
+
+                    setActivity(
+                        name = name,
+                        type = DiscordStatus.Type.LISTENING,
+                        details = text_a.ifEmpty { null },
+                        state = text_b.ifEmpty { null },
+                        buttons = buttons.ifEmpty { null },
+                        large_image = large_image,
+                        large_text = text_c.ifEmpty { null },
+                        small_image = small_image,
+                        small_text = if (small_image != null) song.artist?.title else null,
+                        application_id = DISCORD_APPLICATION_ID
+                    )
+                }
             }
         }}
     }

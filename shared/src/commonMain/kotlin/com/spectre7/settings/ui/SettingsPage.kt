@@ -1,11 +1,11 @@
 package com.spectre7.composesettings.ui
 
 import androidx.compose.animation.Crossfade
-import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
 import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.Gite
 import androidx.compose.material.icons.filled.Settings
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
@@ -15,12 +15,12 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
-import androidx.compose.ui.graphics.Color
-import com.spectre7.settings.model.SettingsGroup
 import com.spectre7.settings.model.SettingsItem
 import com.spectre7.spmp.platform.BackHandler
 import com.spectre7.utils.WidthShrinkText
-import com.spectre7.utils.background
+import com.spectre7.utils.getString
+import org.jetbrains.compose.resources.ExperimentalResourceApi
+import org.jetbrains.compose.resources.painterResource
 
 abstract class SettingsPage(private val getTitle: (() -> String?)? = null) {
     internal var id: Int? = null
@@ -37,6 +37,7 @@ abstract class SettingsPage(private val getTitle: (() -> String?)? = null) {
         }
     }
 
+    @OptIn(ExperimentalResourceApi::class)
     @Composable
     fun TitleBar(is_root: Boolean, modifier: Modifier = Modifier, goBack: () -> Unit) {
         Crossfade(getTitle?.invoke()) { title ->
@@ -54,7 +55,14 @@ abstract class SettingsPage(private val getTitle: (() -> String?)? = null) {
                     )
                 }
 
-                Spacer(Modifier.width(24.dp))
+                if (SpMp.context.canOpenUrl()) {
+                    IconButton({ SpMp.context.openUrl(getString("project_url")) }) {
+                        Icon(painterResource("drawable/ic_github.xml"), null)
+                    }
+                }
+                else {
+                    Spacer(Modifier.width(24.dp))
+                }
             }
         }
     }

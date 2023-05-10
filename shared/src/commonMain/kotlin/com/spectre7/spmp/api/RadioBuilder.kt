@@ -12,7 +12,7 @@ fun getBuiltRadio(radio_token: String): Result<Playlist?> {
     require(radio_token.startsWith("VLRDAT"))
     require(radio_token.contains('E'))
 
-    val playlist = Playlist.fromId(radio_token).supplyPlaylistType(Playlist.PlaylistType.RADIO, true)
+    val playlist = Playlist.fromId(radio_token).editPlaylistData { supplyPlaylistType(Playlist.PlaylistType.RADIO, true) }
     val result = playlist.loadData(true)
 
     if (result.isFailure) {

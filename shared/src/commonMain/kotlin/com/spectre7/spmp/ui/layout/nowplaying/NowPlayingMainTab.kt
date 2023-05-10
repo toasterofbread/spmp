@@ -476,7 +476,7 @@ private fun Controls(
                     title_text = PlayerServiceHost.status.m_song?.title ?: ""
                 }
 
-                Marquee(false) {
+                Marquee(autoscroll = false) {
                     Text(
                         title_text,
                         fontSize = 17.sp,

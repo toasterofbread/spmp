@@ -9,6 +9,8 @@ import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
 import com.spectre7.spmp.model.MediaItem
 import com.spectre7.spmp.platform.PlatformContext
+import android.content.Intent
+import android.net.Uri
 
 class MainActivity : ComponentActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
@@ -30,8 +32,12 @@ class MainActivity : ComponentActivity() {
         val context = PlatformContext(this)
         SpMp.init(context)
 
+        val open_uri: Uri? =
+            if (intent.action == Intent.ACTION_VIEW) intent.data
+            else null
+
         setContent {
-            SpMp.App()
+            SpMp.App(open_uri?.toString())
         }
     }
 

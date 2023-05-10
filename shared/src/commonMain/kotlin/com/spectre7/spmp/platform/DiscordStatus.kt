@@ -4,7 +4,9 @@ import androidx.compose.ui.graphics.ImageBitmap
 
 expect class DiscordStatus(
     bot_token: String? = null,
-    custom_images_channel_id: Long? = null,
+    guild_id: Long? = null,
+    custom_images_channel_category_id: Long? = null,
+    custom_images_channel_name_prefix: String = "",
     account_token: String? = null
 ) {
 

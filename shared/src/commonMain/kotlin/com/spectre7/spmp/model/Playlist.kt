@@ -9,6 +9,52 @@ import com.spectre7.spmp.ui.component.PlaylistPreviewLong
 import com.spectre7.spmp.ui.component.PlaylistPreviewSquare
 import com.spectre7.utils.getString
 
+class PlaylistItemData(override val data_item: Playlist): MediaItemWithLayoutsData(data_item) {
+    var playlist_type: Playlist.PlaylistType? by mutableStateOf(null)
+        private set
+
+    fun supplyPlaylistType(value: Playlist.PlaylistType?, certain: Boolean = false, cached: Boolean = false): Playlist {
+        if (value != playlist_type && (playlist_type == null || certain)) {
+            playlist_type = value
+            onChanged(cached)
+        }
+        return data_item
+    }
+
+    var total_duration: Long? by mutableStateOf(null)
+        private set
+
+    fun supplyTotalDuration(value: Long?, certain: Boolean = false, cached: Boolean = false): Playlist {
+        if (value != total_duration && (total_duration == null || certain)) {
+            total_duration = value
+            onChanged(cached)
+        }
+        return data_item
+    }
+
+    var item_count: Int? by mutableStateOf(null)
+        private set
+
+    fun supplyItemCount(value: Int?, certain: Boolean = false, cached: Boolean = false): Playlist {
+        if (value != item_count && (item_count == null || certain)) {
+            item_count = value
+            onChanged(cached)
+        }
+        return data_item
+    }
+
+    var year: Int? by mutableStateOf(null)
+        private set
+
+    fun supplyYear(value: Int?, certain: Boolean = false, cached: Boolean = false): Playlist {
+        if (value != year && (year == null || certain)) {
+            year = value
+            onChanged(cached)
+        }
+        return data_item
+    }
+}
+
 class Playlist private constructor (
     id: String
 ): MediaItemWithLayouts(id) {
@@ -27,44 +73,24 @@ class Playlist private constructor (
             }
         }
     }
-    var playlist_type: PlaylistType? by mutableStateOf(null)
-        private set
 
-    fun supplyPlaylistType(value: PlaylistType?, certain: Boolean): Playlist {
-        if (value != null && (playlist_type == null || certain)) {
-            playlist_type = value
+    override val data: PlaylistItemData = PlaylistItemData(this)
+
+    val playlist_type: PlaylistType? get() = data.playlist_type
+    val total_duration: Long? get() = data.total_duration
+    val item_count: Int? get() = data.item_count
+    val year: Int? get() = data.year
+
+    fun editPlaylistData(action: PlaylistItemData.() -> Unit): Playlist {
+        editData {
+            action(this as PlaylistItemData)
         }
         return this
     }
 
-    var total_duration: Long? by mutableStateOf(null)
-        private set
-
-    fun supplyTotalDuration(value: Long?, certain: Boolean = false): Playlist {
-        if (value != null && (total_duration == null || certain)) {
-            total_duration = value
-        }
-        return this
-    }
-
-    var item_count: Int? by mutableStateOf(null)
-        private set
-
-    fun supplyItemCount(value: Int?, certain: Boolean = false): Playlist {
-        if (value != null && (item_count == null || certain)) {
-            item_count = value
-        }
-        return this
-    }
-
-    var year: Int? by mutableStateOf(null)
-        private set
-
-    fun supplyYear(value: Int?, certain: Boolean = false): Playlist {
-        if (value != null && (year == null || certain)) {
-            year = value
-        }
-        return this
+    fun editPlaylistDataManual(action: PlaylistItemData.() -> Unit): PlaylistItemData {
+        action(data)
+        return data
     }
 
     override fun getSerialisedData(klaxon: Klaxon): List<String> {
@@ -73,10 +99,12 @@ class Playlist private constructor (
 
     override fun supplyFromSerialisedData(data: MutableList<Any?>, klaxon: Klaxon): MediaItem {
         require(data.size >= 4)
-        data.removeLast()?.also { year = it as Int }
-        data.removeLast()?.also { item_count = it as Int }
-        data.removeLast()?.also { total_duration = (it as Int).toLong() }
-        data.removeLast()?.also { playlist_type = PlaylistType.values()[it as Int] }
+        with(this@Playlist.data) {
+            data.removeLast()?.also { supplyYear(it as Int, cached = true) }
+            data.removeLast()?.also { supplyItemCount(it as Int, cached = true) }
+            data.removeLast()?.also { supplyTotalDuration((it as Int).toLong(), cached = true) }
+            data.removeLast()?.also { supplyPlaylistType(PlaylistType.values()[it as Int], cached = true) }
+        }
         return super.supplyFromSerialisedData(data, klaxon)
     }
 

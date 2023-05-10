@@ -2,7 +2,7 @@ package com.spectre7.spmp.platform
 
 
 expect class ProjectPreferences {
-    fun addListener(listener: Listener)
+    fun addListener(listener: Listener): Listener
     fun removeListener(listener: Listener)
 
     fun getString(key: String, defValue: String?): String?

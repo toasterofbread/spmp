@@ -9,20 +9,38 @@ import com.my.kizzyrpc.model.Activity
 import com.my.kizzyrpc.model.Assets
 import com.my.kizzyrpc.model.Metadata
 import com.my.kizzyrpc.model.Timestamps
+import com.spectre7.utils.indexOfFirstOrNull
+import com.spectre7.utils.indexOfOrNull
+import dev.kord.common.entity.DiscordChannel
+import dev.kord.common.entity.DiscordMessage
 import dev.kord.common.entity.Snowflake
 import dev.kord.core.Kord
+import dev.kord.core.behavior.channel.createTextChannel
+import dev.kord.core.cache.data.toData
+import dev.kord.core.entity.channel.CategorizableChannel
+import dev.kord.core.entity.channel.Category
 import dev.kord.core.exception.KordInitializationException
 import dev.kord.rest.NamedFile
-import dev.kord.rest.builder.message.EmbedBuilder
+import dev.kord.rest.builder.channel.TextChannelCreateBuilder
+import dev.kord.rest.json.request.ChannelModifyPatchRequest
+import dev.kord.rest.route.Position
 import dev.kord.rest.service.ChannelService
+import dev.kord.rest.service.createTextChannel
+import dev.kord.rest.service.patchCategory
 import io.ktor.client.request.forms.*
 import io.ktor.utils.io.jvm.javaio.*
 import kotlinx.coroutines.delay
+import kotlinx.coroutines.flow.filter
+import kotlinx.coroutines.flow.filterIsInstance
+import kotlinx.coroutines.flow.firstOrNull
+import kotlinx.coroutines.flow.toList
 import java.io.ByteArrayOutputStream
 
 actual class DiscordStatus actual constructor(
     private val bot_token: String?,
-    private val custom_images_channel_id: Long?,
+    private val guild_id: Long?,
+    private val custom_images_channel_category_id: Long?,
+    private val custom_images_channel_name_prefix: String,
     account_token: String?
 ) {
     actual companion object {
@@ -36,6 +54,10 @@ actual class DiscordStatus actual constructor(
         if (account_token == null || account_token.isBlank()) {
             throw IllegalArgumentException("Account token is required")
         }
+        if (guild_id == null && custom_images_channel_category_id == null) {
+            throw IllegalArgumentException("At least one of guild_id and custom_images_channel_category_id required")
+        }
+
         rpc = KizzyRPC(account_token)
     }
 
@@ -91,45 +113,87 @@ actual class DiscordStatus actual constructor(
 
     private fun getProxyUrlAttachment(proxy_url: String): String = "mp:" + Uri.parse(proxy_url).path!!.removePrefix("/")
 
+    private suspend fun ChannelService.firstMessageOrNull(channel_id: Snowflake, predicate: (DiscordMessage) -> Boolean): DiscordMessage? {
+        var position: Position? = null
+        while (true) {
+            val messages = getMessages(channel_id, position)
+            if (messages.isEmpty()) {
+                return null
+            }
+            for (message in messages) {
+                if (predicate(message)) {
+                    return message
+                }
+            }
+            position = Position.After(messages.last().id)
+        }
+    }
+
+    @Suppress("UNUSED_VALUE")
     actual suspend fun getCustomImage(unique_id: String, imageProvider: () -> ImageBitmap?): String? {
         check(bot_token != null)
-        check(custom_images_channel_id != null)
 
         var kord: Kord
         try {
             kord = Kord(bot_token)
         }
+        // Handle Discord rate limit
         catch (e: KordInitializationException) {
             val message = e.message ?: throw e
 
-            val start = message.indexOf("retry_after")
-            if (start == -1) {
-                throw e
-            }
+            val start = (message.indexOfOrNull("retry_after") ?: throw e) + 14
+            val end = message.indexOfFirstOrNull(start) { !it.isDigit() && it != '.' } ?: throw NotImplementedError(message)
 
-            val retry_after = message.substring(start + 14, message.indexOf("\"", start + 14)).toFloatOrNull()
-                ?: throw NotImplementedError(message)
-
+            val retry_after = message.substring(start, end).toFloatOrNull() ?: throw NotImplementedError(message)
             delay((retry_after * 1000L).toLong())
+
             kord = Kord(bot_token)
         }
 
         val result = with(kord.rest.channel) {
-            val channel = Snowflake(custom_images_channel_id)
+            val channel_name = custom_images_channel_name_prefix + unique_id.first()
 
-            val messages = getMessages(channel)
-            for (message in messages) {
-                if (message.author.id != kord.selfId) {
-                    continue
+            var channel: Snowflake?
+            val category: Category?
+
+            // Get existing channel from category or guild
+            if (custom_images_channel_category_id != null) {
+                category = Category(getChannel(Snowflake(custom_images_channel_category_id)).toData(), kord)
+                channel = category.channels.firstOrNull { it.name == channel_name }?.id
+            }
+            else {
+                check(guild_id != null)
+                category = null
+                channel = kord.defaultSupplier.getGuildChannels(Snowflake(guild_id)).firstOrNull { it.name == channel_name }?.id
+            }
+
+            // Find matching image from existing channel
+            if (channel != null) {
+                val message = firstMessageOrNull(channel) { message ->
+                    message.author.id == kord.selfId && message.content == unique_id
                 }
-
-                if (message.content == unique_id) {
+                if (message != null) {
                     return@with getProxyUrlAttachment(message.attachments.first().proxyUrl)
                 }
             }
 
+            // Get image from caller
             val image = imageProvider() ?: return null
 
+            // Create new channel if needed
+            if (channel == null) {
+                val channel_builder: TextChannelCreateBuilder.() -> Unit = {
+                    this
+                }
+
+                ChannelModifyPatchRequest()
+
+                channel =
+                    if (category != null) category.createTextChannel(channel_name, channel_builder).id
+                    else kord.rest.guild.createTextChannel(Snowflake(guild_id!!), channel_name, channel_builder).id
+            }
+
+            // Upload image data to channel
             val message = createMessage(channel) {
                 content = unique_id
 

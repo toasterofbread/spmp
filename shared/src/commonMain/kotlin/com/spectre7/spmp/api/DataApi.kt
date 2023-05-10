@@ -166,13 +166,15 @@ class DataApi {
         enum class YoutubeiContextType {
             BASE,
             ALT,
-            ANDROID;
+            ANDROID,
+            MOBILE;
 
             fun getContext(): JsonObject {
                 return when (this) {
                     BASE -> youtubei_context
                     ALT -> youtubei_context_alt
                     ANDROID -> youtubei_context_android
+                    MOBILE -> youtubei_context_mobile
                 }
             }
         }
@@ -183,6 +185,7 @@ class DataApi {
         private lateinit var youtubei_context: JsonObject
         private lateinit var youtubei_context_alt: JsonObject
         private lateinit var youtubei_context_android: JsonObject
+        private lateinit var youtubei_context_mobile: JsonObject
 
         private var youtubei_headers: Headers? = null
         private var header_update_thread: Thread? = null
@@ -233,6 +236,9 @@ class DataApi {
             )
             youtubei_context_android = klaxon.parseJsonObject(
                 context_substitutor.replace(getString("ytm_context_android")).reader()
+            )
+            youtubei_context_mobile = klaxon.parseJsonObject(
+                context_substitutor.replace(getString("ytm_context_mobile")).reader()
             )
         }
 

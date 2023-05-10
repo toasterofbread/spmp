@@ -1,5 +1,6 @@
 package com.spectre7.spmp.model
 
+import androidx.compose.runtime.*
 import com.beust.klaxon.Klaxon
 import com.spectre7.spmp.ProjectBuildConfig
 import com.spectre7.spmp.platform.ProjectPreferences
@@ -12,6 +13,39 @@ enum class AccentColourSource {
 }
 enum class NowPlayingQueueRadioInfoPosition {
     TOP_BAR, ABOVE_ITEMS
+}
+enum class PlayerViewTopBarAction {
+    TOGGLE_LYRICS, OPEN_LYRICS, NONE
+}
+
+@Composable
+fun <T> mutableSettingsState(settings_key: Settings, prefs: ProjectPreferences = Settings.prefs): MutableState<T> {
+    val state: MutableState<T> = remember { mutableStateOf(settings_key.get(prefs)) }
+    var set_to: T by remember { mutableStateOf(state.value) }
+
+    LaunchedEffect(state.value) {
+        if (state.value != set_to) {
+            set_to = state.value
+            settings_key.set(set_to, prefs)
+        }
+    }
+
+    DisposableEffect(settings_key) {
+        val listener = prefs.addListener(object : ProjectPreferences.Listener {
+            override fun onChanged(prefs: ProjectPreferences, key: String) {
+                if (key == settings_key.name) {
+                    set_to = settings_key.get(prefs)
+                    state.value = set_to
+                }
+            }
+        })
+
+        onDispose {
+            prefs.removeListener(listener)
+        }
+    }
+
+    return state
 }
 
 enum class Settings {
@@ -52,7 +86,13 @@ enum class Settings {
     KEY_ACC_VOL_INTERCEPT_NOTIFICATION,
     KEY_ACC_SCREEN_OFF,
 
-    // Home feed
+    // Home page
+    KEY_HP_SHOW_VISUALISER,
+    KEY_HP_SHOW_TIMED_LYRICS,
+    KEY_HP_TOP_BAR_ACTION,
+
+    // Recommendation feed
+    KEY_FEED_SHOW_FILTERS,
     KEY_FEED_INITIAL_ROWS,
     KEY_FEED_SHOW_RADIOS,
     KEY_FEED_SHOW_LISTEN_ROW,
@@ -174,6 +214,13 @@ enum class Settings {
                 KEY_ACC_VOL_INTERCEPT_NOTIFICATION -> false
                 KEY_ACC_SCREEN_OFF -> false
 
+                // Home page
+                KEY_HP_SHOW_VISUALISER -> true
+                KEY_HP_SHOW_TIMED_LYRICS -> true
+                KEY_HP_TOP_BAR_ACTION -> PlayerViewTopBarAction.TOGGLE_LYRICS.ordinal
+
+                // Recommendation feed
+                KEY_FEED_SHOW_FILTERS -> true
                 KEY_FEED_INITIAL_ROWS -> 5
                 KEY_FEED_SHOW_RADIOS -> false
                 KEY_FEED_SHOW_LISTEN_ROW -> true

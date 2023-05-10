@@ -166,7 +166,20 @@
     <string name="s_sub_data_lang">Language used for song and artist titles, etc.</string>
     <string name="language_change_restart_notice">An app restart is required for language changes to take effect</string>
 
-    <string name="s_cat_home_feed">Home feed</string>
+    <string name="s_cat_home_page">Home page</string>
+
+    <string name="s_key_hp_show_visualiser">Show music visualiser</string>
+    <string name="s_sub_hp_show_visualiser">Displayed on the top bar during playback</string>
+    <string name="s_key_hp_show_timed_lyrics">Show timed lyrics</string>
+    <string name="s_sub_hp_show_timed_lyrics">Timed lyrics will appear on the top bar if available</string>
+
+    <string name="s_key_hp_top_bar_action">Top bar click action</string>
+    <string name="s_option_hp_top_bar_action_toggle_lyrics">Toggle timed lyrics</string>
+    <string name="s_option_hp_top_bar_action_open_lyrics">Open displayed lyrics</string>
+    <string name="s_option_hp_top_bar_action_none">None</string>
+
+    <string name="s_group_rec_feed">Recommended feed</string>
+    <string name="s_key_feed_show_filters">Show filters if available</string>
     <string name="s_key_feed_initial_rows">Initial feed rows</string>
     <string name="s_sub_feed_initial_rows">Minimum amount of feed rows to load automatically</string>
     <string name="s_key_feed_show_radios">Show radio items in feed</string>

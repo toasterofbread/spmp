@@ -34,6 +34,21 @@
         \"user\": {}
     }}
     </string>
+    <string name="ytm_context_mobile" translatable="false">
+    { \"context\": {
+        \"client\":{
+            \"hl\": \"${hl}\",
+            \"platform\": \"MOBILE\",
+            \"clientName\": \"WEB_REMIX\",
+            \"clientVersion\": \"1.20230503.01.00\",
+            \"osName\": \"Android\",
+            \"osVersion\": \"12\",
+            \"userAgent\": \"Mozilla/5.0 (Linux; Android 12; Pixel 3a) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/95.0.4638.74 Mobile Safari/537.36,gzip(gfe)\",
+            \"acceptHeader\": \"text/html,application/xhtml+xml,application/xml;q=0.9,image/avif,image/webp,*/*;q=0.8\"
+        },
+        \"user\": {}
+    }}
+    </string>
     <string name="ytm_context_alt" translatable="false">
     { \"context\": {
         \"client\":{

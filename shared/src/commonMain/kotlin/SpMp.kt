@@ -36,9 +36,11 @@ import com.spectre7.spmp.model.Settings
 import com.spectre7.spmp.platform.PlatformAlertDialog
 import com.spectre7.spmp.platform.ProjectPreferences
 import com.spectre7.spmp.ui.layout.PlayerView
+import com.spectre7.spmp.ui.layout.PlayerViewContextImpl
 import com.spectre7.spmp.ui.theme.ApplicationTheme
 import com.spectre7.spmp.ui.theme.Theme
 import com.spectre7.utils.*
+import java.net.URI
 import java.util.*
 import kotlin.concurrent.thread
 import kotlin.math.roundToInt
@@ -109,13 +111,24 @@ object SpMp {
     }
 
     @Composable
-    fun App() {
+    fun App(open_uri: String?) {
         ApplicationTheme(context, getFontFamily(context)) {
             Theme.Update(context, MaterialTheme.colorScheme.primary)
 
+            val player = remember { PlayerViewContextImpl() }
+            player.init()
+
+            LaunchedEffect(open_uri) {
+                if (open_uri != null) {
+                    player.openUri(open_uri).onFailure {
+                        context.sendNotification(it)
+                    }
+                }
+            }
+
             Surface(modifier = Modifier.fillMaxSize()) {
                 if (PlayerServiceHost.service_connected) {
-                    PlayerView()
+                    PlayerView(player)
                 }
                 else if (!service_started) {
                     service_started = true

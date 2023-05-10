@@ -247,7 +247,7 @@ data class MediaItemLayout(
             }
 
             view_more?.also { view_more ->
-                OutlinedButton(
+                IconButton(
                     {
                         if (view_more.media_item != null) {
                             playerProvider().openMediaItem(view_more.media_item, true)
@@ -263,7 +263,7 @@ data class MediaItemLayout(
                         }
                     }
                 ) {
-                    Text(getStringTODO("More"))
+                    Icon(Icons.Default.MoreHoriz, null)
                 }
             }
         }

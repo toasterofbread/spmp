@@ -21,30 +21,24 @@ import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
-import androidx.compose.ui.draw.scale
 import androidx.compose.ui.graphics.*
 import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.layout.onSizeChanged
 import androidx.compose.ui.platform.LocalClipboardManager
 import androidx.compose.ui.platform.LocalDensity
+import androidx.compose.ui.platform.LocalLayoutDirection
 import androidx.compose.ui.text.*
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.input.ImeAction
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.text.style.TextOverflow
-import androidx.compose.ui.unit.IntOffset
-import androidx.compose.ui.unit.IntSize
-import androidx.compose.ui.unit.dp
-import androidx.compose.ui.unit.sp
-import androidx.compose.ui.zIndex
+import androidx.compose.ui.unit.*
 import com.spectre7.spmp.api.DataApi
 import com.spectre7.spmp.api.durationToString
-import com.spectre7.spmp.api.getOrReport
 import com.spectre7.spmp.model.*
 import com.spectre7.spmp.platform.PlatformAlertDialog
 import com.spectre7.spmp.platform.vibrateShort
-import com.spectre7.spmp.ui.component.LongPressMenuData
 import com.spectre7.spmp.ui.component.MediaItemLayout
 import com.spectre7.spmp.ui.component.PillMenu
 import com.spectre7.spmp.ui.component.SONG_THUMB_CORNER_ROUNDING
@@ -52,8 +46,6 @@ import com.spectre7.spmp.ui.theme.Theme
 import com.spectre7.utils.*
 import com.spectre7.utils.getString
 import kotlinx.coroutines.*
-import org.apache.commons.lang3.time.DurationFormatUtils
-import java.time.Duration
 import kotlin.concurrent.thread
 
 private const val ARTIST_IMAGE_SCROLL_MODIFIER = 0.25f
@@ -61,7 +53,7 @@ private const val ARTIST_IMAGE_SCROLL_MODIFIER = 0.25f
 @Composable
 fun PlaylistPage(
     pill_menu: PillMenu,
-    item: Playlist,
+    playlist: Playlist,
     playerProvider: () -> PlayerViewContext,
     previous_item: MediaItem? = null,
     close: () -> Unit
@@ -69,12 +61,12 @@ fun PlaylistPage(
     val status_bar_height = SpMp.context.getStatusBarHeight()
     var accent_colour: Color? by remember { mutableStateOf(null) }
 
-    LaunchedEffect(item) {
+    LaunchedEffect(playlist) {
         accent_colour = null
 
-        if (item.feed_layouts == null) {
+        if (playlist.feed_layouts == null) {
             thread {
-                val result = item.loadData()
+                val result = playlist.loadData()
                 result.fold(
                     { playlist ->
                         if (playlist == null) {
@@ -108,50 +100,66 @@ fun PlaylistPage(
 
         LazyColumn(verticalArrangement = Arrangement.spacedBy(10.dp)) {
             item {
-                PlaylistTopInfo(item, accent_colour, playerProvider) {
+                PlaylistTopInfo(playlist, accent_colour, playerProvider) {
                     if (accent_colour == null) {
-                        accent_colour = item.getDefaultThemeColour() ?: Theme.current.accent
+                        accent_colour = playlist.getDefaultThemeColour() ?: Theme.current.accent
                     }
                 }
             }
 
-            item.feed_layouts?.also { layouts ->
+            playlist.feed_layouts?.also { layouts ->
                 val layout = layouts.single()
 
                 item {
-                    val total_duration_text = remember(item.total_duration) {
-                        if (item.total_duration == null) ""
-                        else durationToString(item.total_duration!!, SpMp.ui_language, false)
-                    }
+                    Row(Modifier.fillMaxWidth().padding(top = 15.dp), verticalAlignment = Alignment.Bottom) {
+                        val total_duration_text = remember(playlist.total_duration) {
+                            if (playlist.total_duration == null) ""
+                            else durationToString(playlist.total_duration!!, SpMp.ui_language, false)
+                        }
 
-                    Text(
-                        "${(item.item_count ?: layout.items.size) + 1}曲 $total_duration_text",
-                        Modifier.padding(top = 15.dp),
-                        style = MaterialTheme.typography.titleMedium
-                    )
+                        Text(
+                            "${(playlist.item_count ?: layout.items.size) + 1}曲 $total_duration_text",
+                            style = MaterialTheme.typography.titleMedium
+                        )
+
+                        Spacer(Modifier.width(50.dp))
+                        Spacer(Modifier.fillMaxWidth().weight(1f))
+
+                        playlist.artist?.title?.also { artist ->
+                            Marquee(arrangement = Arrangement.End) {
+                                Text(
+                                    artist,
+                                    Modifier.clickable { playerProvider().onMediaItemClicked(playlist.artist!!) },
+                                    maxLines = 1,
+                                    overflow = TextOverflow.Ellipsis,
+                                    style = MaterialTheme.typography.titleMedium
+                                )
+                            }
+                        }
+                    }
                 }
 
                 items(layout.items.size) { i ->
-                    val song = layout.items[i]
-                    check(song is Song)
+                    val item = layout.items[i]
+                    check(item is Song)
 
                     Row(
-                        Modifier.fillMaxWidth(),
+                        Modifier.fillMaxWidth().clickable { playerProvider().onMediaItemClicked(item) },
                         verticalAlignment = Alignment.CenterVertically,
                         horizontalArrangement = Arrangement.spacedBy(10.dp)
                     ) {
-                        song.Thumbnail(MediaItem.ThumbnailQuality.LOW, Modifier.size(50.dp).clip(RoundedCornerShape(SONG_THUMB_CORNER_ROUNDING)))
+                        item.Thumbnail(MediaItem.ThumbnailQuality.LOW, Modifier.size(50.dp).clip(RoundedCornerShape(SONG_THUMB_CORNER_ROUNDING)))
                         Text(
-                            song.title!!,
+                            item.title!!,
                             Modifier.fillMaxWidth().weight(1f),
                             style = MaterialTheme.typography.titleSmall
                         )
 
-                        val duration_text = remember(song.duration!!) {
-                            durationToString(song.duration!!, SpMp.ui_language, true)
+                        val duration_text = remember(item.duration!!) {
+                            durationToString(item.duration!!, SpMp.ui_language, true)
                         }
 
-                        Text(duration_text)
+                        Text(duration_text, style = MaterialTheme.typography.labelLarge)
                     }
                 }
             }
@@ -183,10 +191,6 @@ private fun PlaylistTopInfo(playlist: Playlist, accent_colour: Color?, playerPro
                 )
             }
 
-//            playlist.artist?.title?.also { artist ->
-//                Text(artist, Modifier.align(Alignment.End))
-//            }
-
             Row {
                 IconButton({ TODO() }) {
                     Icon(Icons.Default.Radio, null)
@@ -207,7 +211,7 @@ private fun PlaylistTopInfo(playlist: Playlist, accent_colour: Color?, playerPro
             }
 
             Button(
-                { TODO() },
+                { playerProvider().playMediaItem(playlist) },
                 Modifier.fillMaxWidth(),
                 colors = ButtonDefaults.buttonColors(
                     containerColor = accent_colour ?: Theme.current.accent,
@@ -234,6 +238,7 @@ fun ArtistPlaylistPage(
     require(item !is Artist || !item.is_for_item)
 
     if (item is Playlist) {
+        println("ITEM $item")
         PlaylistPage(pill_menu, item, playerProvider, previous_item, close)
         return
     }
@@ -343,85 +348,115 @@ fun ArtistPlaylistPage(
 
             // Secondary action bar
             item {
-                LazyRow(
-                    background_modifier.fillMaxWidth(),
-                    horizontalArrangement = Arrangement.spacedBy(10.dp),
-                    contentPadding = content_padding
+                val play_button_size = 55.dp
+
+                Box(
+                    background_modifier.padding(bottom = 20.dp, end = 10.dp).fillMaxWidth(),
+                    contentAlignment = Alignment.CenterEnd
                 ) {
+                    LazyRow(
+                        Modifier.fillMaxWidth().padding(end = play_button_size / 2),
+                        horizontalArrangement = Arrangement.spacedBy(10.dp),
+                        contentPadding = content_padding.copy(end = content_padding.calculateEndPadding(LocalLayoutDirection.current) + (play_button_size / 2)),
+                    ) {
 
-                    fun chip(text: String, icon: ImageVector, onClick: () -> Unit) {
-                        item {
-                            ElevatedAssistChip(
-                                onClick,
-                                { Text(text, style = MaterialTheme.typography.labelLarge) },
-                                leadingIcon = {
-                                    Icon(icon, null, tint = accent_colour ?: Color.Unspecified)
-                                },
-                                colors = AssistChipDefaults.assistChipColors(
-                                    containerColor = Theme.current.background,
-                                    labelColor = Theme.current.on_background,
-                                    leadingIconContentColor = accent_colour ?: Color.Unspecified
+                        fun chip(text: String, icon: ImageVector, onClick: () -> Unit) {
+                            item {
+                                ElevatedAssistChip(
+                                    onClick,
+                                    { Text(text, style = MaterialTheme.typography.labelLarge) },
+                                    leadingIcon = {
+                                        Icon(icon, null, tint = accent_colour ?: Color.Unspecified)
+                                    },
+                                    colors = AssistChipDefaults.assistChipColors(
+                                        containerColor = Theme.current.background,
+                                        labelColor = Theme.current.on_background,
+                                        leadingIconContentColor = accent_colour ?: Color.Unspecified
+                                    )
                                 )
-                            )
+                            }
                         }
+
+                        if (item is Artist) {
+                            chip(getString("artist_chip_shuffle"), Icons.Outlined.Shuffle) { TODO() }
+                        }
+
+                        if (SpMp.context.canShare()) {
+                            chip(getString("action_share"), Icons.Outlined.Share) { SpMp.context.shareText(item.url, item.title) }
+                        }
+                        if (SpMp.context.canOpenUrl()) {
+                            chip(getString("artist_chip_open"), Icons.Outlined.OpenInNew) { SpMp.context.openUrl(item.url) }
+                        }
+
+                        chip(getString("artist_chip_details"), Icons.Outlined.Info) { show_info = !show_info }
                     }
 
-                    if (item is Artist) {
-                        chip(getString("artist_chip_shuffle"), Icons.Outlined.Shuffle) { TODO() }
+                    ShapedIconButton(
+                        { playerProvider().playMediaItem(item) },
+                        Modifier.size(play_button_size),
+                        colors = IconButtonDefaults.iconButtonColors(
+                            containerColor = accent_colour ?: LocalContentColor.current,
+                            contentColor = (accent_colour ?: LocalContentColor.current).getContrasted()
+                        )
+                    ) {
+                        Icon(Icons.Default.PlayArrow, null)
                     }
-
-                    if (SpMp.context.canShare()) {
-                        chip(getString("action_share"), Icons.Outlined.Share) { SpMp.context.shareText(item.url, item.title) }
-                    }
-                    if (SpMp.context.canOpenUrl()) {
-                        chip(getString("artist_chip_open"), Icons.Outlined.OpenInNew) { SpMp.context.openUrl(item.url) }
-                    }
-
-                    chip(getString("artist_chip_details"), Icons.Outlined.Info) { show_info = !show_info }
                 }
             }
 
             // Primary action bar
-            item {
-                Row(background_modifier.fillMaxWidth().padding(start = 20.dp, bottom = 10.dp)) {
-                    @Composable
-                    fun Btn(text: String, icon: ImageVector, modifier: Modifier = Modifier, onClick: () -> Unit) {
-                        OutlinedButton(onClick = onClick, modifier.height(45.dp)) {
-                            Row(verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(10.dp)) {
-                                Icon(icon, null, tint = accent_colour ?: Color.Unspecified)
-                                Text(text, softWrap = false, color = Theme.current.on_background)
-                            }
-                        }
-                    }
+//            item {
+//                Box(background_modifier.fillMaxWidth().height(50.dp)) {
+//                    Box(Modifier.padding(vertical = 10.dp).background(accent_colour ?: Color.Unspecified, RoundedCornerShape(16.dp)).fillMaxSize()) {
+//
+//                    }
+//                    ShapedIconButton(
+//                        {},
+//                        Modifier.align(Alignment.CenterEnd).fillMaxHeight().aspectRatio(1f),
+//                        colors = IconButtonDefaults.iconButtonColors(
+//                            containerColor = accent_colour ?: LocalContentColor.current,
+//                            contentColor = (accent_colour ?: LocalContentColor.current).getContrasted()
+//                        )
+//                    ) {
+//                        Icon(Icons.Default.PlayArrow, null)
+//                    }
+//                }
+//            }
 
-                    Btn(
-                        getString("artist_chip_play"),
-                        Icons.Outlined.PlayArrow,
-                        Modifier
-                            .fillMaxWidth(0.5f)
-                            .weight(1f)
-                    ) {
-                        playerProvider().playMediaItem(item)
-                    }
-
-                    Spacer(Modifier.requiredWidth(20.dp))
-
-                    Btn(
-                        getString(if (item is Artist) "artist_chip_radio" else "artist_chip_shuffle"),
-                        if (item is Artist) Icons.Outlined.Radio else Icons.Outlined.Shuffle,
-                        Modifier
-                            .fillMaxWidth(1f)
-                            .weight(1f)
-                    ) {
-                        if (item is Artist) {
-                            TODO()
-                        }
-                        else {
-                            playerProvider().playMediaItem(item, shuffle = true)
-                        }
-                    }
-                }
-            }
+//            item {
+//                Row(background_modifier.fillMaxWidth().padding(horizontal = 10.dp).padding(bottom = 10.dp), horizontalArrangement = Arrangement.spacedBy(10.dp)) {
+//                    @Composable
+//                    fun Btn(text: String, icon: ImageVector, modifier: Modifier = Modifier, onClick: () -> Unit) {
+//                        Button(onClick = onClick, modifier.height(45.dp), shape = RoundedCornerShape(16.dp)) {
+//                            Row(verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(10.dp)) {
+//                                Icon(icon, null, tint = accent_colour ?: Color.Unspecified)
+//                                Text(text, softWrap = false, color = Theme.current.on_background)
+//                            }
+//                        }
+//                    }
+//
+//                    Btn(
+//                        getString("artist_chip_play"),
+//                        Icons.Outlined.PlayArrow,
+//                        Modifier.fillMaxWidth(0.5f)
+//                    ) {
+//                        playerProvider().playMediaItem(item)
+//                    }
+//
+//                    Btn(
+//                        getString(if (item is Artist) "artist_chip_radio" else "artist_chip_shuffle"),
+//                        if (item is Artist) Icons.Outlined.Radio else Icons.Outlined.Shuffle,
+//                        Modifier.fillMaxWidth(1f)
+//                    ) {
+//                        if (item is Artist) {
+//                            TODO()
+//                        }
+//                        else {
+//                            playerProvider().playMediaItem(item, shuffle = true)
+//                        }
+//                    }
+//                }
+//            }
 
             if (item.feed_layouts == null) {
                 item {
@@ -495,7 +530,7 @@ private fun TitleBar(item: MediaItem, playerProvider: () -> PlayerViewContext, m
             if (editing) {
                 var edited_title by remember(item) { mutableStateOf(item.title!!) }
 
-                Column(Modifier.fillMaxWidth(), horizontalAlignment = Alignment.End) {
+                Column(Modifier.fillMaxWidth().padding(end = horizontal_padding), horizontalAlignment = Alignment.End) {
                     Row(Modifier.fillMaxWidth(), horizontalArrangement = spacedByEnd(10.dp)) {
                         @Composable
                         fun Action(icon: ImageVector, action: () -> Unit) {
@@ -558,7 +593,8 @@ private fun TitleBar(item: MediaItem, playerProvider: () -> PlayerViewContext, m
                                 editing_title = true
                             }
                         )
-                        .fillMaxWidth(),
+                        .fillMaxWidth()
+                        .padding(end = horizontal_padding),
                     style = LocalTextStyle.current.copy(
                         textAlign = TextAlign.Center,
                         fontSize = 35.sp,
@@ -566,11 +602,12 @@ private fun TitleBar(item: MediaItem, playerProvider: () -> PlayerViewContext, m
                 )
             }
 
-            // Interactions
             Row(verticalAlignment = Alignment.CenterVertically) {
                 if (item is Artist && (item.subscriber_count ?: 0) > 0) {
-                    Text(item.getFormattedSubscriberCount(), Modifier.fillMaxWidth().weight(1f), style = MaterialTheme.typography.labelLarge )
+                    Text(item.getFormattedSubscriberCount(), style = MaterialTheme.typography.labelLarge )
                 }
+
+                Spacer(Modifier.fillMaxWidth().weight(1f))
 
                 Crossfade(item.pinned_to_home) { pinned ->
                     IconButton({ item.setPinnedToHome(!pinned, playerProvider) }) {
@@ -721,7 +758,7 @@ private fun InfoDialog(item: MediaItem, close: () -> Unit) {
                             .weight(1f)) {
                         Text(name, style = MaterialTheme.typography.labelLarge)
                         Box(Modifier.fillMaxWidth()) {
-                            Marquee(false) {
+                            Marquee(autoscroll = false) {
                                 Text(value, softWrap = false)
                             }
                         }

@@ -50,8 +50,9 @@ actual class ProjectPreferences private constructor(private val context: Platfor
         stream.close()
     }
 
-    actual fun addListener(listener: Listener) {
+    actual fun addListener(listener: Listener): Listener {
         listeners.add(listener)
+        return listener
     }
 
     actual fun removeListener(listener: Listener) {

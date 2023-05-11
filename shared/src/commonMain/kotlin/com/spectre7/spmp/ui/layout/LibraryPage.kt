@@ -17,7 +17,7 @@ import com.spectre7.spmp.platform.PlayerDownloadManager
 import com.spectre7.spmp.platform.PlayerDownloadManager.DownloadStatus
 import com.spectre7.spmp.ui.component.PillMenu
 import com.spectre7.spmp.ui.theme.Theme
-import com.spectre7.utils.getStringTODO
+import com.spectre7.spmp.resources.getStringTODO
 
 @Composable
 fun LibraryPage(

@@ -1,5 +1,6 @@
 package com.spectre7.spmp.ui.layout.nowplaying
 
+import SpMp
 import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.animation.slideInVertically
 import androidx.compose.animation.slideOutVertically
@@ -18,11 +19,13 @@ import androidx.compose.ui.graphics.*
 import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.unit.*
 import com.spectre7.spmp.PlayerServiceHost
-import com.spectre7.spmp.platform.BackHandler
-import com.spectre7.spmp.platform.scrollWheelSwipeable
+import com.spectre7.spmp.platform.composable.BackHandler
+import com.spectre7.spmp.platform.composable.scrollWheelSwipeable
 import com.spectre7.spmp.ui.layout.PlayerViewContext
 import com.spectre7.spmp.ui.theme.Theme
 import com.spectre7.utils.*
+import com.spectre7.utils.composable.OnChangedEffect
+import com.spectre7.utils.composable.RecomposeOnInterval
 
 enum class ThemeMode { BACKGROUND, ELEMENTS, NONE }
 

@@ -5,7 +5,6 @@ import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
 import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.filled.Gite
 import androidx.compose.material.icons.filled.Settings
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
@@ -16,9 +15,9 @@ import androidx.compose.material3.MaterialTheme
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import com.spectre7.settings.model.SettingsItem
-import com.spectre7.spmp.platform.BackHandler
-import com.spectre7.utils.WidthShrinkText
-import com.spectre7.utils.getString
+import com.spectre7.spmp.platform.composable.BackHandler
+import com.spectre7.utils.composable.WidthShrinkText
+import com.spectre7.spmp.resources.getString
 import org.jetbrains.compose.resources.ExperimentalResourceApi
 import org.jetbrains.compose.resources.painterResource
 

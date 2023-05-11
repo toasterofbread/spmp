@@ -24,6 +24,8 @@ import androidx.compose.ui.text.Placeholder
 import androidx.compose.ui.text.PlaceholderVerticalAlign
 import androidx.compose.ui.unit.*
 import com.spectre7.spmp.model.Song
+import com.spectre7.utils.composable.MeasureUnconstrainedView
+import com.spectre7.utils.composable.SubtleLoadingIndicator
 
 data class TextData (
     val text: String,

@@ -16,7 +16,7 @@ import androidx.compose.ui.unit.sp
 import com.spectre7.spmp.model.MediaItem
 import com.spectre7.spmp.model.Playlist
 import com.spectre7.spmp.model.getReadable
-import com.spectre7.spmp.platform.platformClickable
+import com.spectre7.spmp.platform.composable.platformClickable
 import com.spectre7.utils.setAlpha
 
 @Composable

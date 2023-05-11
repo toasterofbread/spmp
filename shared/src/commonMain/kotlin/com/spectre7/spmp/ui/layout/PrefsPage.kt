@@ -2,7 +2,6 @@ package com.spectre7.spmp.ui.layout
 
 import SpMp
 import androidx.compose.animation.Crossfade
-import androidx.compose.foundation.background
 import androidx.compose.foundation.border
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.shape.CircleShape
@@ -25,14 +24,21 @@ import com.spectre7.settings.ui.SettingsItemThemeSelector
 import com.spectre7.spmp.PlayerAccessibilityService
 import com.spectre7.spmp.model.*
 import com.spectre7.spmp.platform.DiscordStatus
-import com.spectre7.spmp.platform.PlatformAlertDialog
 import com.spectre7.spmp.platform.PlatformContext
 import com.spectre7.spmp.platform.ProjectPreferences
+import com.spectre7.spmp.platform.composable.PlatformAlertDialog
+import com.spectre7.spmp.resources.getLanguageName
+import com.spectre7.spmp.resources.getString
+import com.spectre7.spmp.resources.getStringTODO
 import com.spectre7.spmp.ui.component.PillMenu
 import com.spectre7.spmp.ui.theme.Theme
 import com.spectre7.spmp.ui.theme.ThemeData
 import com.spectre7.spmp.ui.theme.ThemeManager
-import com.spectre7.utils.*
+import com.spectre7.utils.composable.OnChangedEffect
+import com.spectre7.utils.composable.ShapedIconButton
+import com.spectre7.utils.composable.WidthShrinkText
+import com.spectre7.utils.getContrasted
+import com.spectre7.utils.modifier.background
 
 private enum class Page { ROOT, YOUTUBE_MUSIC_LOGIN, DISCORD_LOGIN }
 private enum class Category {
@@ -142,7 +148,7 @@ fun PrefsPage(pill_menu: PillMenu, playerProvider: () -> PlayerViewContext, clos
     val alongside_action: @Composable PillMenu.Action.() -> Unit = {
         Row(fill_modifier
             .border(1.dp, background_colour, CircleShape)
-            .background(Theme.current.background, CircleShape)
+            .background(CircleShape, Theme.current.background_provider)
             .padding(horizontal = 5.dp)
         ) {
             for (category in Category.values()) {
@@ -227,7 +233,7 @@ fun PrefsPage(pill_menu: PillMenu, playerProvider: () -> PlayerViewContext, clos
 
     BoxWithConstraints(
         Modifier
-            .background { Theme.current.background }
+            .background(Theme.current.background_provider)
             .pointerInput(Unit) {}
     ) {
         settings_interface.Interface(

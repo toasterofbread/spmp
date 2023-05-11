@@ -1,5 +1,6 @@
 package com.spectre7.spmp.ui.layout.nowplaying.overlay.lyrics
 
+import SpMp
 import androidx.compose.animation.Crossfade
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
@@ -22,10 +23,10 @@ import androidx.compose.ui.unit.dp
 import com.spectre7.spmp.api.LyricsSearchResult
 import com.spectre7.spmp.api.searchForLyrics
 import com.spectre7.spmp.model.Song
-import com.spectre7.spmp.platform.BackHandler
+import com.spectre7.spmp.platform.composable.BackHandler
+import com.spectre7.spmp.resources.getString
+import com.spectre7.spmp.resources.getStringTODO
 import com.spectre7.spmp.ui.theme.Theme
-import com.spectre7.utils.getString
-import com.spectre7.utils.getStringTODO
 import com.spectre7.utils.setAlpha
 import kotlin.concurrent.thread
 

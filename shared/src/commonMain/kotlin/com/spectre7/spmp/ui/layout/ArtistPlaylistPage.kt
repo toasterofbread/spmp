@@ -2,6 +2,7 @@
 
 package com.spectre7.spmp.ui.layout
 
+import SpMp
 import androidx.compose.animation.Crossfade
 import androidx.compose.animation.animateContentSize
 import androidx.compose.foundation.*
@@ -37,14 +38,18 @@ import androidx.compose.ui.unit.*
 import com.spectre7.spmp.api.DataApi
 import com.spectre7.spmp.api.durationToString
 import com.spectre7.spmp.model.*
-import com.spectre7.spmp.platform.PlatformAlertDialog
+import com.spectre7.spmp.platform.composable.PlatformAlertDialog
 import com.spectre7.spmp.platform.vibrateShort
+import com.spectre7.spmp.resources.getString
+import com.spectre7.spmp.resources.getStringTODO
 import com.spectre7.spmp.ui.component.MediaItemLayout
 import com.spectre7.spmp.ui.component.PillMenu
 import com.spectre7.spmp.ui.component.SONG_THUMB_CORNER_ROUNDING
 import com.spectre7.spmp.ui.theme.Theme
 import com.spectre7.utils.*
-import com.spectre7.utils.getString
+import com.spectre7.utils.composable.*
+import com.spectre7.utils.modifier.background
+import com.spectre7.utils.modifier.brushBackground
 import kotlinx.coroutines.*
 import kotlin.concurrent.thread
 
@@ -344,7 +349,7 @@ fun ArtistPlaylistPage(
             }
 
             val content_padding = PaddingValues(horizontal = 10.dp)
-            val background_modifier = Modifier.background { Theme.current.background }
+            val background_modifier = Modifier.background(Theme.current.background_provider)
 
             // Secondary action bar
             item {
@@ -531,7 +536,7 @@ private fun TitleBar(item: MediaItem, playerProvider: () -> PlayerViewContext, m
                 var edited_title by remember(item) { mutableStateOf(item.title!!) }
 
                 Column(Modifier.fillMaxWidth().padding(end = horizontal_padding), horizontalAlignment = Alignment.End) {
-                    Row(Modifier.fillMaxWidth(), horizontalArrangement = spacedByEnd(10.dp)) {
+                    Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.spacedBy(10.dp, Alignment.End)) {
                         @Composable
                         fun Action(icon: ImageVector, action: () -> Unit) {
                             Box(

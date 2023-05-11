@@ -18,8 +18,7 @@ import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.unit.IntSize
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.zIndex
-import com.spectre7.utils.NoRipple
-import com.spectre7.utils.RowOrColumn
+import com.spectre7.utils.composable.NoRipple
 import com.spectre7.utils.addUnique
 import com.spectre7.utils.getContrasted
 
@@ -355,5 +354,20 @@ class PillMenu(
                 }
             }
         }
+    }
+}
+
+@Composable
+fun RowOrColumn(
+    row: Boolean,
+    modifier: Modifier = Modifier,
+    arrangement: Arrangement.HorizontalOrVertical = Arrangement.SpaceEvenly,
+    content: @Composable (getWeightModifier: (Float) -> Modifier) -> Unit,
+) {
+    if (row) {
+        Row(modifier, horizontalArrangement = arrangement, verticalAlignment = Alignment.CenterVertically) { content { Modifier.weight(it) } }
+    }
+    else {
+        Column(modifier, verticalArrangement = arrangement, horizontalAlignment = Alignment.CenterHorizontally) { content { Modifier.weight(it) } }
     }
 }

@@ -42,8 +42,8 @@ import android.view.Window
 import android.view.WindowInsetsController.APPEARANCE_LIGHT_STATUS_BARS
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.toArgb
-import com.spectre7.utils.getStringTODO
-import com.spectre7.utils.getString
+import com.spectre7.spmp.resources.getStringTODO
+import com.spectre7.spmp.resources.getString
 
 private const val DEFAULT_NOTIFICATION_CHANNEL_ID = "default_channel"
 private const val ERROR_NOTIFICATION_CHANNEL_ID = "download_error_channel"

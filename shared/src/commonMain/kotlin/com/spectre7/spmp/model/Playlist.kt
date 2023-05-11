@@ -7,7 +7,7 @@ import androidx.compose.runtime.setValue
 import com.beust.klaxon.Klaxon
 import com.spectre7.spmp.ui.component.PlaylistPreviewLong
 import com.spectre7.spmp.ui.component.PlaylistPreviewSquare
-import com.spectre7.utils.getString
+import com.spectre7.spmp.resources.getString
 
 class PlaylistItemData(override val data_item: Playlist): MediaItemWithLayoutsData(data_item) {
     var playlist_type: Playlist.PlaylistType? by mutableStateOf(null)

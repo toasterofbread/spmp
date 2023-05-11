@@ -7,22 +7,22 @@ import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
-import androidx.compose.material3.*
-import androidx.compose.runtime.*
+import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.Text
+import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
-import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.spectre7.spmp.api.LyricsSearchResult
 import com.spectre7.spmp.model.Song
-import com.spectre7.spmp.platform.BackHandler
+import com.spectre7.spmp.platform.composable.BackHandler
+import com.spectre7.spmp.resources.getString
+import com.spectre7.spmp.resources.getStringTODO
 import com.spectre7.spmp.ui.theme.Theme
 import com.spectre7.utils.getContrasted
-import com.spectre7.utils.getString
-import com.spectre7.utils.getStringTODO
 import com.spectre7.utils.setAlpha
 
 @Composable

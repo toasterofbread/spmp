@@ -5,7 +5,7 @@ import com.beust.klaxon.Klaxon
 import com.spectre7.spmp.ProjectBuildConfig
 import com.spectre7.spmp.platform.ProjectPreferences
 import com.spectre7.spmp.platform.PlatformContext
-import com.spectre7.utils.getString
+import com.spectre7.spmp.resources.getString
 import java.util.*
 
 enum class AccentColourSource {

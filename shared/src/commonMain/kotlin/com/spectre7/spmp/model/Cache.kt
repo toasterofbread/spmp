@@ -8,7 +8,7 @@ import java.io.Reader
 import java.time.Duration
 import java.time.Instant
 import kotlin.io.path.relativeTo
-import com.spectre7.utils.getString
+import com.spectre7.spmp.resources.getString
 import kotlin.concurrent.thread
 
 class Cache {

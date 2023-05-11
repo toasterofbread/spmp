@@ -20,7 +20,7 @@ import androidx.localbroadcastmanager.content.LocalBroadcastManager
 import com.spectre7.spmp.model.Settings
 import com.spectre7.spmp.platform.PlatformContext
 import com.spectre7.utils.Permissions
-import com.spectre7.utils.getString
+import com.spectre7.spmp.resources.getString
 import kotlinx.coroutines.*
 import java.lang.ref.WeakReference
 import java.util.*

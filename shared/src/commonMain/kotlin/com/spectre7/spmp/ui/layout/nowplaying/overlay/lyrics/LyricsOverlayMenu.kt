@@ -1,5 +1,6 @@
 package com.spectre7.spmp.ui.layout.nowplaying.overlay.lyrics
 
+import SpMp
 import androidx.compose.animation.*
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.gestures.scrollBy
@@ -26,12 +27,15 @@ import androidx.compose.ui.zIndex
 import com.spectre7.spmp.PlayerServiceHost
 import com.spectre7.spmp.model.Settings
 import com.spectre7.spmp.model.Song
+import com.spectre7.spmp.resources.getString
+import com.spectre7.spmp.resources.getStringTODO
 import com.spectre7.spmp.ui.component.PillMenu
 import com.spectre7.spmp.ui.layout.PlayerViewContext
 import com.spectre7.spmp.ui.layout.nowplaying.overlay.OverlayMenu
 import com.spectre7.spmp.ui.theme.Theme
-import com.spectre7.utils.*
-import com.spectre7.utils.getString
+import com.spectre7.utils.LongFuriganaText
+import com.spectre7.utils.TextData
+import com.spectre7.utils.setAlpha
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
 

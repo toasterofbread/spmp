@@ -10,7 +10,7 @@ import com.spectre7.spmp.platform.crop
 import com.spectre7.spmp.platform.toImageBitmap
 import com.spectre7.spmp.ui.component.SongPreviewLong
 import com.spectre7.spmp.ui.component.SongPreviewSquare
-import com.spectre7.utils.getString
+import com.spectre7.spmp.resources.getString
 import com.spectre7.utils.lazyAssert
 import com.spectre7.utils.toHiragana
 import kotlinx.coroutines.*

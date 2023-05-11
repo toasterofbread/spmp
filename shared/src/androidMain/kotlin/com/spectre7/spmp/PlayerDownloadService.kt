@@ -25,7 +25,7 @@ import java.net.ConnectException
 import java.net.HttpURLConnection
 import java.net.URL
 import java.util.concurrent.Executors
-import com.spectre7.utils.getString
+import com.spectre7.spmp.resources.getString
 
 private const val FILE_DOWNLOADING_SUFFIX = ".part"
 private const val NOTIFICATION_ID = 1

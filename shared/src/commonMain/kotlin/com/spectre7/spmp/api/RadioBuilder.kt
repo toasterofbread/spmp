@@ -5,7 +5,7 @@ import com.spectre7.spmp.api.DataApi.Companion.getStream
 import com.spectre7.spmp.api.DataApi.Companion.ytUrl
 import com.spectre7.spmp.model.MediaItem
 import com.spectre7.spmp.model.Playlist
-import com.spectre7.utils.getString
+import com.spectre7.spmp.resources.getString
 import okhttp3.Request
 
 fun getBuiltRadio(radio_token: String): Result<Playlist?> {

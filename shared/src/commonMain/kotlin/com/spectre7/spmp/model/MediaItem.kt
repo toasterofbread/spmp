@@ -18,9 +18,11 @@ import com.spectre7.spmp.api.TextRun
 import com.spectre7.spmp.api.loadMediaItemData
 import com.spectre7.spmp.platform.ProjectPreferences
 import com.spectre7.spmp.platform.toImageBitmap
+import com.spectre7.spmp.resources.getString
 import com.spectre7.spmp.ui.component.MediaItemLayout
 import com.spectre7.spmp.ui.layout.PlayerViewContext
 import com.spectre7.utils.*
+import com.spectre7.utils.composable.SubtleLoadingIndicator
 import kotlinx.coroutines.*
 import java.io.FileNotFoundException
 import java.io.Reader

@@ -1,7 +1,7 @@
 package com.spectre7.spmp.api
 
 import com.spectre7.spmp.model.Song
-import com.spectre7.utils.getString
+import com.spectre7.spmp.resources.getString
 import okhttp3.*
 import org.schabi.newpipe.extractor.NewPipe
 import org.schabi.newpipe.extractor.services.youtube.linkHandler.YoutubeStreamLinkHandlerFactory

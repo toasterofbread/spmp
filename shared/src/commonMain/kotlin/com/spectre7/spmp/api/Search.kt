@@ -12,7 +12,7 @@ import com.spectre7.spmp.model.MediaItem
 import com.spectre7.spmp.model.Playlist
 import com.spectre7.spmp.model.Song
 import com.spectre7.spmp.ui.component.MediaItemLayout
-import com.spectre7.utils.getStringTODO
+import com.spectre7.spmp.resources.getStringTODO
 import okhttp3.Request
 
 data class YoutubeiSearchResponse(

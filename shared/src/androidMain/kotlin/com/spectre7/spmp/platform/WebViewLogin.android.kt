@@ -1,7 +1,6 @@
 package com.spectre7.spmp.platform
 
 import android.graphics.Bitmap
-import android.net.Uri
 import android.view.ViewGroup
 import android.webkit.*
 import androidx.compose.animation.AnimatedVisibility
@@ -12,8 +11,9 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.graphicsLayer
 import androidx.compose.ui.viewinterop.AndroidView
+import com.spectre7.spmp.platform.composable.BackHandler
 import com.spectre7.spmp.ui.theme.Theme
-import com.spectre7.utils.OnChangedEffect
+import com.spectre7.utils.composable.OnChangedEffect
 import com.spectre7.utils.isDark
 
 actual fun isWebViewLoginSupported(): Boolean = true

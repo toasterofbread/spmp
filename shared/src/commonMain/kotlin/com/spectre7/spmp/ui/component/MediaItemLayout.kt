@@ -1,5 +1,6 @@
 package com.spectre7.spmp.ui.component
 
+import SpMp
 import androidx.compose.animation.*
 import androidx.compose.foundation.*
 import androidx.compose.foundation.interaction.MutableInteractionSource
@@ -30,10 +31,12 @@ import com.spectre7.spmp.api.*
 import com.spectre7.spmp.api.DataApi.Companion.addYtHeaders
 import com.spectre7.spmp.api.DataApi.Companion.ytUrl
 import com.spectre7.spmp.model.*
-import com.spectre7.spmp.platform.rememberImagePainter
+import com.spectre7.spmp.platform.composable.rememberImagePainter
+import com.spectre7.spmp.resources.getString
 import com.spectre7.spmp.ui.layout.PlayerViewContext
 import com.spectre7.spmp.ui.theme.Theme
 import com.spectre7.utils.*
+import com.spectre7.utils.composable.WidthShrinkText
 import okhttp3.Request
 
 data class MediaItemLayout(

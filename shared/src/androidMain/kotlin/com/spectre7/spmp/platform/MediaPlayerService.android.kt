@@ -44,7 +44,7 @@ import com.spectre7.spmp.model.MediaItem
 import com.spectre7.spmp.model.Settings
 import com.spectre7.spmp.model.Song
 import com.spectre7.spmp.platform.PlayerDownloadManager.DownloadStatus
-import com.spectre7.utils.getString
+import com.spectre7.spmp.resources.getString
 import kotlinx.coroutines.*
 import java.io.File
 import java.io.IOException

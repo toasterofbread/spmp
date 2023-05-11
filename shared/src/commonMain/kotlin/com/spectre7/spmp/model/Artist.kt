@@ -8,7 +8,7 @@ import com.beust.klaxon.Klaxon
 import com.spectre7.spmp.api.*
 import com.spectre7.spmp.ui.component.ArtistPreviewLong
 import com.spectre7.spmp.ui.component.ArtistPreviewSquare
-import com.spectre7.utils.getString
+import com.spectre7.spmp.resources.getString
 import kotlinx.coroutines.CoroutineScope
 import kotlin.concurrent.thread
 

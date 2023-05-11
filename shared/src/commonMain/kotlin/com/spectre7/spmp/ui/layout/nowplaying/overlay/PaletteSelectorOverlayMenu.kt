@@ -26,6 +26,7 @@ import com.spectre7.spmp.platform.generatePalette
 import com.spectre7.spmp.ui.layout.PlayerViewContext
 import com.spectre7.spmp.ui.layout.nowplaying.*
 import com.spectre7.utils.*
+import com.spectre7.utils.composable.OnChangedEffect
 import kotlin.concurrent.thread
 import kotlin.math.roundToInt
 

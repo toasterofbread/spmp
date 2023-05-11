@@ -1,5 +1,6 @@
 package com.spectre7.spmp.ui.component
 
+import SpMp
 import androidx.compose.animation.*
 import androidx.compose.animation.core.*
 import androidx.compose.foundation.*
@@ -23,12 +24,14 @@ import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.*
 import com.spectre7.spmp.model.*
-import com.spectre7.spmp.platform.PlatformDialog
+import com.spectre7.spmp.platform.composable.PlatformDialog
 import com.spectre7.spmp.platform.vibrateShort
+import com.spectre7.spmp.resources.getString
 import com.spectre7.spmp.ui.layout.PlayerViewContext
 import com.spectre7.spmp.ui.layout.nowplaying.overlay.DEFAULT_THUMBNAIL_ROUNDING
 import com.spectre7.spmp.ui.theme.Theme
 import com.spectre7.utils.*
+import com.spectre7.utils.composable.Marquee
 import kotlinx.coroutines.coroutineScope
 import kotlinx.coroutines.joinAll
 import kotlinx.coroutines.launch

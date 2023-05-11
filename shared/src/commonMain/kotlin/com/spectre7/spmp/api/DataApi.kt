@@ -9,8 +9,8 @@ import com.spectre7.spmp.model.MediaItem
 import com.spectre7.spmp.platform.ProjectPreferences
 import com.spectre7.spmp.model.Settings
 import com.spectre7.spmp.model.YoutubeMusicAuthInfo
-import com.spectre7.utils.getString
-import com.spectre7.utils.getStringArray
+import com.spectre7.spmp.resources.getString
+import com.spectre7.spmp.resources.getStringArray
 import okhttp3.*
 import okhttp3.MediaType.Companion.toMediaType
 import okhttp3.RequestBody.Companion.toRequestBody

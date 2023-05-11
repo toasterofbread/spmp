@@ -21,8 +21,8 @@ import com.spectre7.spmp.api.getSongLiked
 import com.spectre7.spmp.api.setSongLiked
 import com.spectre7.spmp.model.Song
 import com.spectre7.spmp.platform.vibrateShort
-import com.spectre7.utils.OnChangedEffect
-import com.spectre7.utils.SubtleLoadingIndicator
+import com.spectre7.utils.composable.OnChangedEffect
+import com.spectre7.utils.composable.SubtleLoadingIndicator
 import kotlin.concurrent.thread
 
 @OptIn(ExperimentalFoundationApi::class)

@@ -2,10 +2,13 @@
 
 package com.spectre7.spmp.ui.component
 
+import SpMp
 import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.animation.Crossfade
-import androidx.compose.animation.core.*
-import androidx.compose.foundation.*
+import androidx.compose.animation.core.tween
+import androidx.compose.foundation.ExperimentalFoundationApi
+import androidx.compose.foundation.clickable
+import androidx.compose.foundation.combinedClickable
 import androidx.compose.foundation.interaction.MutableInteractionSource
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.shape.CircleShape
@@ -13,7 +16,9 @@ import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.*
 import androidx.compose.material.ripple.rememberRipple
-import androidx.compose.material3.*
+import androidx.compose.material3.Icon
+import androidx.compose.material3.Surface
+import androidx.compose.material3.Text
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
@@ -22,13 +27,18 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.Shape
 import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.text.style.TextOverflow
-import androidx.compose.ui.unit.*
-import com.spectre7.spmp.platform.PlayerDownloadManager.DownloadStatus
+import androidx.compose.ui.unit.dp
+import androidx.compose.ui.unit.sp
 import com.spectre7.spmp.PlayerServiceHost
 import com.spectre7.spmp.model.MediaItem
 import com.spectre7.spmp.model.Song
-import com.spectre7.spmp.platform.*
-import com.spectre7.utils.*
+import com.spectre7.spmp.platform.PlayerDownloadManager.DownloadStatus
+import com.spectre7.spmp.platform.composable.platformClickable
+import com.spectre7.spmp.platform.vibrateShort
+import com.spectre7.spmp.resources.getString
+import com.spectre7.utils.composable.WidthShrinkText
+import com.spectre7.utils.getContrasted
+import com.spectre7.utils.isDebugBuild
 
 val SONG_THUMB_CORNER_ROUNDING = 10.dp
 

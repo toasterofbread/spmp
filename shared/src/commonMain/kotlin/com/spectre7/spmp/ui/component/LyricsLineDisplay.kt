@@ -8,7 +8,7 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import com.spectre7.spmp.model.Song
 import com.spectre7.utils.BasicFuriganaText
-import com.spectre7.utils.RecomposeOnInterval
+import com.spectre7.utils.composable.RecomposeOnInterval
 
 private const val UPDATE_INTERVAL_MS = 100L
 

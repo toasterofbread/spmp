@@ -25,7 +25,6 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.alpha
 import androidx.compose.ui.draw.clip
-import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.graphicsLayer
 import androidx.compose.ui.layout.onSizeChanged
@@ -35,17 +34,21 @@ import com.spectre7.spmp.PlayerServiceHost
 import com.spectre7.spmp.api.*
 import com.spectre7.spmp.model.*
 import com.spectre7.spmp.platform.*
+import com.spectre7.spmp.platform.composable.BackHandler
+import com.spectre7.spmp.platform.composable.SwipeRefresh
+import com.spectre7.spmp.resources.getString
 import com.spectre7.spmp.ui.component.*
 import com.spectre7.spmp.ui.layout.nowplaying.NOW_PLAYING_VERTICAL_PAGE_COUNT
 import com.spectre7.spmp.ui.layout.nowplaying.NowPlaying
 import com.spectre7.spmp.ui.layout.nowplaying.ThemeMode
 import com.spectre7.spmp.ui.theme.Theme
 import com.spectre7.utils.*
+import com.spectre7.utils.composable.NoRipple
+import com.spectre7.utils.composable.OnChangedEffect
+import com.spectre7.utils.modifier.background
 import kotlinx.coroutines.*
 import java.net.URI
 import java.net.URISyntaxException
-import java.nio.channels.ClosedByInterruptException
-import java.text.ParseException
 import java.util.concurrent.locks.ReentrantLock
 import kotlin.concurrent.thread
 

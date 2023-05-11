@@ -2,6 +2,7 @@
 
 package com.spectre7.spmp.ui.layout.nowplaying
 
+import SpMp
 import androidx.compose.animation.*
 import androidx.compose.animation.core.*
 import androidx.compose.foundation.*
@@ -32,12 +33,17 @@ import com.spectre7.spmp.model.Song
 import com.spectre7.spmp.platform.MediaPlayerRepeatMode
 import com.spectre7.spmp.platform.MediaPlayerService
 import com.spectre7.spmp.platform.vibrateShort
+import com.spectre7.spmp.resources.getString
 import com.spectre7.spmp.ui.layout.MINIMISED_NOW_PLAYING_HEIGHT
 import com.spectre7.spmp.ui.layout.PlayerViewContext
 import com.spectre7.utils.*
+import com.spectre7.utils.composable.Divider
+import com.spectre7.utils.composable.OnChangedEffect
+import com.spectre7.utils.composable.SubtleLoadingIndicator
+import com.spectre7.utils.composable.crossOut
+import com.spectre7.utils.modifier.background
 import org.burnoutcrew.reorderable.*
 import kotlin.math.roundToInt
-import com.spectre7.utils.getString
 
 private class QueueTabItem(val song: Song, val key: Int) {
 

@@ -19,11 +19,11 @@ import com.beust.klaxon.Klaxon
 import com.spectre7.spmp.api.failure
 import com.spectre7.spmp.api.getOrReport
 import com.spectre7.spmp.platform.WebViewLogin
+import com.spectre7.spmp.platform.composable.rememberImagePainter
 import com.spectre7.spmp.platform.isWebViewLoginSupported
-import com.spectre7.spmp.platform.rememberImagePainter
-import com.spectre7.utils.SubtleLoadingIndicator
+import com.spectre7.spmp.resources.getStringTODO
 import com.spectre7.utils.catchInterrupts
-import com.spectre7.utils.getStringTODO
+import com.spectre7.utils.composable.SubtleLoadingIndicator
 import okhttp3.OkHttpClient
 import okhttp3.Request
 import kotlin.concurrent.thread

@@ -1,6 +1,6 @@
 package com.spectre7.spmp.ui.layout.nowplaying
 
-import com.spectre7.spmp.ui.layout.nowplaying.overlay.MainOverlayMenu
+import SpMp
 import androidx.compose.animation.*
 import androidx.compose.animation.core.tween
 import androidx.compose.foundation.Image
@@ -36,17 +36,23 @@ import com.github.krottv.compose.sliders.SliderValueHorizontal
 import com.spectre7.spmp.PlayerServiceHost
 import com.spectre7.spmp.model.MediaItem
 import com.spectre7.spmp.model.Song
-import com.spectre7.spmp.platform.BackHandler
+import com.spectre7.spmp.platform.composable.BackHandler
 import com.spectre7.spmp.platform.getPixel
 import com.spectre7.spmp.platform.vibrateShort
+import com.spectre7.spmp.resources.getString
 import com.spectre7.spmp.ui.component.LikeDislikeButton
 import com.spectre7.spmp.ui.layout.MINIMISED_NOW_PLAYING_HEIGHT
 import com.spectre7.spmp.ui.layout.PlayerViewContext
 import com.spectre7.spmp.ui.layout.nowplaying.overlay.DEFAULT_THUMBNAIL_ROUNDING
+import com.spectre7.spmp.ui.layout.nowplaying.overlay.MainOverlayMenu
 import com.spectre7.spmp.ui.layout.nowplaying.overlay.OverlayMenu
 import com.spectre7.spmp.ui.theme.Theme
-import com.spectre7.utils.*
-import com.spectre7.utils.getString
+import com.spectre7.utils.composable.Marquee
+import com.spectre7.utils.composable.OnChangedEffect
+import com.spectre7.utils.composable.RecomposeOnInterval
+import com.spectre7.utils.formatElapsedTime
+import com.spectre7.utils.getInnerSquareSizeOfCircle
+import com.spectre7.utils.setAlpha
 import kotlin.concurrent.thread
 import kotlin.math.absoluteValue
 import kotlin.math.max

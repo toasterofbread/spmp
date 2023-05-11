@@ -1,8 +1,12 @@
 package com.spectre7.spmp.ui.layout.nowplaying.overlay
 
+import SpMp
 import androidx.compose.animation.Crossfade
 import androidx.compose.animation.core.Animatable
-import androidx.compose.foundation.*
+import androidx.compose.foundation.ExperimentalFoundationApi
+import androidx.compose.foundation.background
+import androidx.compose.foundation.clickable
+import androidx.compose.foundation.combinedClickable
 import androidx.compose.foundation.interaction.MutableInteractionSource
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.shape.CircleShape
@@ -19,17 +23,18 @@ import androidx.compose.ui.text.input.ImeAction
 import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.times
-import com.spectre7.spmp.*
+import com.spectre7.spmp.PlayerServiceHost
 import com.spectre7.spmp.model.MediaItem
 import com.spectre7.spmp.model.Song
 import com.spectre7.spmp.platform.PlayerDownloadManager
 import com.spectre7.spmp.platform.PlayerDownloadManager.DownloadStatus
 import com.spectre7.spmp.platform.vibrateShort
+import com.spectre7.spmp.resources.getStringTODO
 import com.spectre7.spmp.ui.layout.PlayerViewContext
 import com.spectre7.spmp.ui.layout.nowplaying.NOW_PLAYING_MAIN_PADDING
 import com.spectre7.spmp.ui.layout.nowplaying.overlay.lyrics.LyricsOverlayMenu
 import com.spectre7.spmp.ui.theme.Theme
-import com.spectre7.utils.*
+import com.spectre7.utils.composable.OnChangedEffect
 import kotlinx.coroutines.delay
 
 class MainOverlayMenu(
@@ -147,7 +152,7 @@ class MainOverlayMenu(
                     .clickable {} // Field interaction doesn't work without this for some reason
             )
 
-            Row(Modifier.fillMaxWidth(), horizontalArrangement = spacedByEnd(10.dp)) {
+            Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.spacedBy(10.dp, Alignment.End)) {
                 Box(
                     button_modifier.clickable {
                         edited_song_title = song.original_title!!
@@ -219,7 +224,10 @@ class MainOverlayMenu(
 
                 Box(
                     button_modifier
-                        .cliclableNoIndication {
+                        .clickable(
+                            remember { MutableInteractionSource() },
+                            null
+                        ) {
 //                            setOverlayMenu(
 //                                LyricsOverlayMenu(
 //                                    (screen_width_dp - (NOW_PLAYING_MAIN_PADDING * 2) - (15.dp * expansion * 2)).value * 0.9.dp

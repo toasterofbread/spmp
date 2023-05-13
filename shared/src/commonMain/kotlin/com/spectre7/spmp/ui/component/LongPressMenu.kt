@@ -136,7 +136,7 @@ fun LongPressMenu(
 ) {
     @Composable
     fun Thumb(modifier: Modifier) {
-        Crossfade(data.item.getThumbnail(MediaItem.ThumbnailQuality.LOW)) { thumbnail ->
+        Crossfade(data.item.loadAndGetThumbnail(MediaItem.ThumbnailQuality.LOW)) { thumbnail ->
             if (thumbnail != null) {
                 Image(
                     thumbnail,
@@ -263,7 +263,7 @@ fun LongPressMenu(
         val thumb_quality = MediaItem.ThumbnailQuality.LOW
         LaunchedEffect(data.item.isThumbnailLoaded(thumb_quality)) {
             if (!data.item.isThumbnailLoaded(thumb_quality)) {
-                data.item.getThumbnail(MediaItem.ThumbnailQuality.LOW)
+                data.item.loadAndGetThumbnail(MediaItem.ThumbnailQuality.LOW)
             }
             else {
                 applyPalette(data.item)

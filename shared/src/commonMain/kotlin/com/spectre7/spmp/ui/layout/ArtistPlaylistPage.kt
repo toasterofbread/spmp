@@ -272,7 +272,7 @@ fun ArtistPlaylistPage(
     }
 
     LaunchedEffect(item.canLoadThumbnail()) {
-        item.getThumbnail(MediaItem.ThumbnailQuality.HIGH)
+        item.loadAndGetThumbnail(MediaItem.ThumbnailQuality.HIGH)
     }
 
 //    LaunchedEffect(accent_colour) {
@@ -290,7 +290,7 @@ fun ArtistPlaylistPage(
         val lazy_column_state = rememberLazyListState()
 
         // Thumbnail
-        Crossfade(item.getThumbnail(MediaItem.ThumbnailQuality.HIGH)) { thumbnail ->
+        Crossfade(item.loadAndGetThumbnail(MediaItem.ThumbnailQuality.HIGH)) { thumbnail ->
             if (thumbnail != null) {
                 if (accent_colour == null) {
                     accent_colour = Theme.current.makeVibrant(item.getDefaultThemeColour() ?: Theme.current.accent)
@@ -324,6 +324,12 @@ fun ArtistPlaylistPage(
 
         LazyColumn(Modifier.fillMaxSize(), lazy_column_state) {
 
+            val content_padding = PaddingValues(horizontal = 10.dp)
+            val background_modifier = Modifier.background(Theme.current.background_provider)
+
+            val play_button_size = 55.dp
+            val filter_bar_height = 32.dp
+
             // Image spacing
             item {
                 Box(
@@ -341,22 +347,20 @@ fun ArtistPlaylistPage(
                     TitleBar(
                         item,
                         playerProvider,
-                        Modifier.offset {
-                            IntOffset(0, (lazy_column_state.firstVisibleItemScrollOffset * ARTIST_IMAGE_SCROLL_MODIFIER).toInt())
-                        }
+                        Modifier
+                            .offset {
+                                IntOffset(0, (lazy_column_state.firstVisibleItemScrollOffset * ARTIST_IMAGE_SCROLL_MODIFIER).toInt())
+                            }
+                            .padding(bottom = (play_button_size - filter_bar_height) / 2f)
                     )
                 }
             }
 
-            val content_padding = PaddingValues(horizontal = 10.dp)
-            val background_modifier = Modifier.background(Theme.current.background_provider)
-
-            // Secondary action bar
+            // Filter / play button bar
             item {
-                val play_button_size = 55.dp
 
                 Box(
-                    background_modifier.padding(bottom = 20.dp, end = 10.dp).fillMaxWidth(),
+                    background_modifier.padding(bottom = 20.dp, end = 10.dp).fillMaxWidth().requiredHeight(filter_bar_height),
                     contentAlignment = Alignment.CenterEnd
                 ) {
                     LazyRow(
@@ -370,6 +374,7 @@ fun ArtistPlaylistPage(
                                 ElevatedAssistChip(
                                     onClick,
                                     { Text(text, style = MaterialTheme.typography.labelLarge) },
+                                    Modifier.height(filter_bar_height),
                                     leadingIcon = {
                                         Icon(icon, null, tint = accent_colour ?: Color.Unspecified)
                                     },
@@ -383,7 +388,7 @@ fun ArtistPlaylistPage(
                         }
 
                         if (item is Artist) {
-                            chip(getString("artist_chip_shuffle"), Icons.Outlined.Shuffle) { TODO() }
+                            chip(getString("artist_chip_shuffle"), Icons.Outlined.Shuffle) { playerProvider().playMediaItem(item, true) }
                         }
 
                         if (SpMp.context.canShare()) {
@@ -396,15 +401,17 @@ fun ArtistPlaylistPage(
                         chip(getString("artist_chip_details"), Icons.Outlined.Info) { show_info = !show_info }
                     }
 
-                    ShapedIconButton(
-                        { playerProvider().playMediaItem(item) },
-                        Modifier.size(play_button_size),
-                        colors = IconButtonDefaults.iconButtonColors(
-                            containerColor = accent_colour ?: LocalContentColor.current,
-                            contentColor = (accent_colour ?: LocalContentColor.current).getContrasted()
-                        )
-                    ) {
-                        Icon(Icons.Default.PlayArrow, null)
+                    Box(Modifier.requiredHeight(filter_bar_height)) {
+                        ShapedIconButton(
+                            { playerProvider().playMediaItem(item) },
+                            Modifier.requiredSize(play_button_size),
+                            colors = IconButtonDefaults.iconButtonColors(
+                                containerColor = accent_colour ?: LocalContentColor.current,
+                                contentColor = (accent_colour ?: LocalContentColor.current).getContrasted()
+                            )
+                        ) {
+                            Icon(Icons.Default.PlayArrow, null)
+                        }
                     }
                 }
             }
@@ -609,7 +616,7 @@ private fun TitleBar(item: MediaItem, playerProvider: () -> PlayerViewContext, m
 
             Row(verticalAlignment = Alignment.CenterVertically) {
                 if (item is Artist && (item.subscriber_count ?: 0) > 0) {
-                    Text(item.getFormattedSubscriberCount(), style = MaterialTheme.typography.labelLarge )
+                    Text(item.getReadableSubscriberCount(), style = MaterialTheme.typography.labelLarge )
                 }
 
                 Spacer(Modifier.fillMaxWidth().weight(1f))

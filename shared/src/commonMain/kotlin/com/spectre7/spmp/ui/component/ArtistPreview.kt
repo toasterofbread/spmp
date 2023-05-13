@@ -28,7 +28,6 @@ import com.spectre7.spmp.model.Artist
 import com.spectre7.spmp.model.MediaItem
 import com.spectre7.spmp.platform.composable.platformClickable
 import com.spectre7.spmp.ui.layout.ArtistSubscribeButton
-import com.spectre7.spmp.resources.getStringTODO
 
 const val ARTIST_THUMB_CORNER_ROUNDING = 50
 
@@ -121,7 +120,7 @@ fun ArtistPreviewLong(
             )
 
             Text(
-                getStringTODO("${artist.getFormattedSubscriberCount()} subscribers"),
+                artist.getReadableSubscriberCount(),
                 Modifier.alpha(0.5f),
                 fontSize = 12.sp,
                 color = params.contentColour?.invoke() ?: Color.Unspecified,

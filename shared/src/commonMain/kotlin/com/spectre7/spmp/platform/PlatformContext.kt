@@ -34,6 +34,9 @@ fun PlatformContext.isScreenLarge(): Boolean {
     return height >= 600.dp && (width / height) > MIN_PORTRAIT_RATIO
 }
 
+@Composable
+fun PlatformContext.getDefaultHorizontalPadding(): Dp = if (isScreenLarge()) 30.dp else 10.dp
+
 expect class PlatformContext {
     fun getPrefs(): ProjectPreferences
 

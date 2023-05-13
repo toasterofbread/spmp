@@ -29,6 +29,7 @@ import androidx.compose.ui.unit.dp
 import com.beust.klaxon.Json
 import com.spectre7.spmp.api.*
 import com.spectre7.spmp.api.DataApi.Companion.addYtHeaders
+import com.spectre7.spmp.api.DataApi.Companion.getStream
 import com.spectre7.spmp.api.DataApi.Companion.ytUrl
 import com.spectre7.spmp.model.*
 import com.spectre7.spmp.platform.composable.rememberImagePainter
@@ -80,40 +81,68 @@ data class MediaItemLayout(
         type!!.Layout(this, playerProvider, modifier)
     }
 
-    class Continuation(var token: String, val type: Type, val id: String? = null) {
-        enum class Type { SONG, PLAYLIST }
+
+    data class Continuation(var token: String, var type: Type, val param: Any? = null) {
+        enum class Type {
+            SONG, // param is the song's ID
+            PLAYLIST, // param unused
+            PLAYLIST_INITIAL // param is the amount of songs to omit from the beginning
+        }
 
         init {
             if (type == Type.SONG) {
-                require(id != null)
+                require(param is String)
+            }
+            else if (type == Type.PLAYLIST_INITIAL) {
+                require(param is Int)
             }
         }
 
         fun loadContinuation(filters: List<RadioModifier> = emptyList()): Result<Pair<List<MediaItem>, String?>> {
             return when (type) {
                 Type.SONG -> loadSongContinuation(filters)
-                Type.PLAYLIST -> loadPlaylistContinuation()
+                Type.PLAYLIST -> loadPlaylistContinuation(false)
+                Type.PLAYLIST_INITIAL -> loadPlaylistContinuation(true)
             }
         }
 
         fun update(token: String) {
             this.token = token
+            if (type == Type.PLAYLIST_INITIAL) {
+                type = Type.PLAYLIST
+            }
         }
 
         private fun loadSongContinuation(filters: List<RadioModifier>): Result<Pair<List<MediaItem>, String?>> {
-            val result = getSongRadio(id!!, token, filters)
+            val result = getSongRadio(param as String, token, filters)
             return result.fold(
                 { Result.success(Pair(it.items, it.continuation)) },
                 { Result.failure(it) }
             )
         }
 
-        private fun loadPlaylistContinuation(): Result<Pair<List<MediaItem>, String?>> {
+        private fun loadPlaylistContinuation(initial: Boolean): Result<Pair<List<MediaItem>, String?>> {
+            if (initial) {
+                val playlist = Playlist.fromId(token)
+                playlist.feed_layouts?.single()?.also { layout ->
+                    return Result.success(Pair(
+                        layout.items.subList(param as Int, layout.items.size - 1),
+                        layout.continuation?.token
+                    ))
+                }
+            }
+
             val hl = SpMp.data_language
             val request = Request.Builder()
-                .ytUrl("/youtubei/v1/browse?ctoken=$token&continuation=$token&type=next")
+                .ytUrl(
+                    if (initial) "/youtubei/v1/browse"
+                    else "/youtubei/v1/browse?ctoken=$token&continuation=$token&type=next"
+                )
                 .addYtHeaders()
-                .post(DataApi.getYoutubeiRequestBody())
+                .post(DataApi.getYoutubeiRequestBody(
+                    if (initial) "{\"browseId\": \"$token\"}"
+                    else null
+                ))
                 .build()
 
             val result = DataApi.request(request)
@@ -121,12 +150,23 @@ data class MediaItemLayout(
                 return result.cast()
             }
 
-            val stream = result.getOrThrow().body!!.charStream()
+            val stream = result.getOrThrow().getStream()
             val parsed: YoutubeiBrowseResponse = DataApi.klaxon.parse(stream)!!
             stream.close()
 
-            val shelf = parsed.continuationContents!!.musicPlaylistShelfContinuation!!
-            return Result.success(Pair(shelf.contents!!.mapNotNull { it.toMediaItem(hl) }, shelf.continuations?.firstOrNull()?.nextContinuationData?.continuation))
+            val shelf =
+                if (initial) parsed.contents!!.singleColumnBrowseResultsRenderer.tabs.first().tabRenderer.content!!.sectionListRenderer.contents!!.single().musicPlaylistShelfRenderer!!
+                else parsed.continuationContents!!.musicPlaylistShelfContinuation!!
+
+            return Result.success(Pair(
+                shelf.contents!!.withIndex().mapNotNull { item ->
+                    if (item.index < param as Int) {
+                        return@mapNotNull null
+                    }
+                    item.value.toMediaItem(hl)
+                },
+                shelf.continuations?.firstOrNull()?.nextContinuationData?.continuation
+            ))
         }
     }
 
@@ -557,7 +597,7 @@ fun MediaItemList(
         layout.TitleBar(playerProvider, Modifier.padding(bottom = 5.dp))
 
         for (item in layout.items.withIndex()) {
-            Row(verticalAlignment = Alignment.CenterVertically) {
+            Row(verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(10.dp)) {
                 if (numbered) {
                     Text((item.index + 1).toString().padStart((layout.items.size + 1).toString().length, '0'), fontWeight = FontWeight.Light)
                 }

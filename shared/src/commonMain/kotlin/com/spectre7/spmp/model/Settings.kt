@@ -121,6 +121,9 @@ enum class Settings {
     KEY_DISCORD_SHOW_BUTTON_PROJECT,
     KEY_DISCORD_BUTTON_PROJECT_TEXT,
 
+    // Caching
+    KEY_THUMB_CACHE_ENABLED, // TODO Max size, management
+
     // Other
     KEY_OPEN_NP_ON_SONG_PLAYED,
     KEY_VOLUME_STEPS,
@@ -254,6 +257,9 @@ enum class Settings {
                 KEY_DISCORD_BUTTON_SONG_TEXT -> getString("discord_status_default_button_song")
                 KEY_DISCORD_SHOW_BUTTON_PROJECT -> true
                 KEY_DISCORD_BUTTON_PROJECT_TEXT -> getString("discord_status_default_button_project")
+
+                // Caching
+                KEY_THUMB_CACHE_ENABLED -> true
 
                 KEY_VOLUME_STEPS -> 50
                 KEY_OPEN_NP_ON_SONG_PLAYED -> true

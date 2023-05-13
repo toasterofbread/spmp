@@ -2,19 +2,19 @@ package com.spectre7.spmp.platform
 
 import androidx.compose.ui.graphics.*
 import androidx.compose.ui.graphics.Color
-import com.spectre7.utils.compare
 import de.androidpit.colorthief.ColorThief
-import de.androidpit.colorthief.MMCQ.VBox
 import org.jetbrains.skia.*
 import java.awt.image.BufferedImage
-import java.awt.image.BufferedImageOp
-import java.io.ByteArrayInputStream
 import java.io.ByteArrayOutputStream
 import java.io.IOException
 import javax.imageio.ImageIO
 
 actual fun ByteArray.toImageBitmap(): ImageBitmap =
     Image.makeFromEncoded(this).toComposeImageBitmap()
+
+actual fun ImageBitmap.toByteArray(): ByteArray {
+    TODO()
+}
 
 actual fun ImageBitmap.crop(x: Int, y: Int, width: Int, height: Int): ImageBitmap =
     toAwtImage().getSubimage(x, y, width, height).toComposeImageBitmap()
@@ -43,4 +43,3 @@ actual fun ImageBitmap.generatePalette(max_amount: Int): List<Color> {
     val palette = ColorThief.getColorMap(scaled, max_amount, 10, false).palette()
     return palette.map { Color(it[0], it[1], it[2]) }
 }
-

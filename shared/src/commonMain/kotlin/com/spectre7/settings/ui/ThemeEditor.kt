@@ -31,11 +31,14 @@ import com.godaddy.android.colorpicker.HsvColor
 import com.spectre7.composesettings.ui.SettingsPage
 import com.spectre7.settings.model.SettingsItem
 import com.spectre7.settings.model.SettingsValueState
+import com.spectre7.spmp.platform.vibrateShort
 import com.spectre7.spmp.ui.component.PillMenu
 import com.spectre7.spmp.ui.theme.Theme
 import com.spectre7.spmp.ui.theme.ThemeData
 import com.spectre7.utils.*
 import com.spectre7.utils.composable.OnChangedEffect
+import com.spectre7.utils.composable.ShapedIconButton
+import com.spectre7.utils.composable.WidthShrinkText
 import org.jetbrains.compose.resources.ExperimentalResourceApi
 import org.jetbrains.compose.resources.painterResource
 
@@ -47,7 +50,7 @@ class SettingsItemThemeSelector(
     val getThemeCount: () -> Int,
     val getTheme: (index: Int) -> ThemeData,
     val onThemeEdited: (index: Int, edited_theme: ThemeData) -> Unit,
-    val createTheme: () -> Unit,
+    val createTheme: (Int) -> Unit,
     val removeTheme: (index: Int) -> Unit
 ): SettingsItem() {
     override fun initialiseValueStates(
@@ -59,6 +62,9 @@ class SettingsItemThemeSelector(
 
     override fun resetValues() {
         state.reset()
+        for (i in getThemeCount() - 1 downTo 0) {
+            removeTheme(i)
+        }
     }
 
     @Composable
@@ -74,15 +80,32 @@ class SettingsItemThemeSelector(
                     .fillMaxWidth()
                     .weight(1f))
 
-                Text("#${state.value + 1}")
+                Text("${state.value + 1} / ${getThemeCount()}")
 
-                IconButton({ state.value-- }, enabled = state.value > 0) {
+                ShapedIconButton(
+                    { state.value = (state.value - 1).coerceAtLeast(0) },
+                    onLongClick = {
+                        context.vibrateShort()
+                        state.value = 0
+                    },
+                    enabled = state.value > 0
+                ) {
                     Icon(Icons.Filled.KeyboardArrowLeft, null)
                 }
-                IconButton({ state.value++ }, enabled = state.value + 1 < getThemeCount()) {
+                ShapedIconButton(
+                    { state.value = (state.value + 1).coerceAtMost(getThemeCount() - 1) },
+                    onLongClick = {
+                        context.vibrateShort()
+                        state.value = getThemeCount() - 1
+                    },
+                    enabled = state.value + 1 < getThemeCount()
+                ) {
                     Icon(Icons.Filled.KeyboardArrowRight, null)
                 }
-                IconButton(createTheme) {
+                IconButton({
+                    createTheme(state.value + 1)
+                    state.value++
+                }) {
                     Icon(Icons.Filled.Add, null)
                 }
             }
@@ -100,7 +123,7 @@ class SettingsItemThemeSelector(
                         .padding(start = 15.dp),
                         contentAlignment = Alignment.CenterStart
                     ) {
-                        Text(theme_data.name, color = theme.on_background)
+                        WidthShrinkText(theme_data.name)
                     }
 
                     IconButton(

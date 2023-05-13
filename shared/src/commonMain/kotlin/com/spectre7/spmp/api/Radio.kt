@@ -6,10 +6,7 @@ import androidx.compose.runtime.setValue
 import com.spectre7.spmp.api.DataApi.Companion.addYtHeaders
 import com.spectre7.spmp.api.DataApi.Companion.getStream
 import com.spectre7.spmp.api.DataApi.Companion.ytUrl
-import com.spectre7.spmp.model.Artist
-import com.spectre7.spmp.model.MediaItem
-import com.spectre7.spmp.model.Playlist
-import com.spectre7.spmp.model.Song
+import com.spectre7.spmp.model.*
 import com.spectre7.spmp.ui.component.MediaItemLayout
 import com.spectre7.utils.Listeners
 import kotlinx.coroutines.DelicateCoroutinesApi
@@ -17,6 +14,7 @@ import kotlinx.coroutines.GlobalScope
 import kotlinx.coroutines.Job
 import kotlinx.coroutines.launch
 import okhttp3.Request
+import kotlin.coroutines.Continuation
 
 private const val RADIO_ID_PREFIX = "RDAMVM"
 private const val MODIFIED_RADIO_ID_PREFIX = "RDAT"
@@ -141,7 +139,7 @@ class RadioInstance {
                     { Result.failure(it) }
                 )
             }
-            is Playlist -> {
+            is MediaItemWithLayouts -> {
                 if (item.feed_layouts == null) {
                     val result = item.loadData()
                     if (result.isFailure) {
@@ -154,10 +152,16 @@ class RadioInstance {
                     return Result.success(emptyList())
                 }
 
-                state.continuation = layout.continuation
+                val layout_item = layout.view_more?.media_item
+                if (layout_item is Playlist) {
+                    state.continuation = MediaItemLayout.Continuation(layout_item.id, MediaItemLayout.Continuation.Type.PLAYLIST_INITIAL, layout.items.size)
+                }
+                else {
+                    state.continuation = layout.continuation
+                }
+
                 return Result.success(layout.items.filterIsInstance<Song>())
             }
-            is Artist -> TODO()
             else -> throw NotImplementedError(item.javaClass.name)
         }
     }

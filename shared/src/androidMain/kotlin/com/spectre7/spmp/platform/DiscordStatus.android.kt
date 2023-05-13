@@ -2,6 +2,7 @@ package com.spectre7.spmp.platform
 
 import android.graphics.Bitmap
 import android.net.Uri
+import android.util.Log
 import androidx.compose.ui.graphics.ImageBitmap
 import androidx.compose.ui.graphics.asAndroidBitmap
 import com.my.kizzyrpc.KizzyRPC
@@ -159,7 +160,9 @@ actual class DiscordStatus actual constructor(
             // Get existing channel from category or guild
             if (custom_images_channel_category_id != null) {
                 category = Category(getChannel(Snowflake(custom_images_channel_category_id)).toData(), kord)
-                channel = category.channels.firstOrNull { it.name == channel_name }?.id
+                channel = category.channels.firstOrNull {
+                    it.name.equals(channel_name, true)
+                }?.id
             }
             else {
                 check(guild_id != null)

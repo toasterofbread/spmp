@@ -124,6 +124,7 @@ actual class PlayerDownloadManager actual constructor(val context: PlatformConte
         } ?: emptyList()
 
         val files = getDownloadDir(context).listFiles() ?: emptyArray()
+        println("FILES ${files.toList()}")
         callback(
             current_downloads + files.mapNotNull { file ->
                 if (current_downloads.any { it.file == file }) {

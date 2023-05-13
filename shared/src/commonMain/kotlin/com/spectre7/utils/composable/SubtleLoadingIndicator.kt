@@ -25,7 +25,7 @@ fun SubtleLoadingIndicator(modifier: Modifier = Modifier, colourProvider: (() ->
 		initialValue = 0f,
 		targetValue = 1f,
 		animationSpec = infiniteRepeatable(
-            animation = tween(1500, easing = LinearOutSlowInEasing),
+            animation = tween(1500, easing = FastOutLinearInEasing),
             repeatMode = RepeatMode.Restart
         )
 	)

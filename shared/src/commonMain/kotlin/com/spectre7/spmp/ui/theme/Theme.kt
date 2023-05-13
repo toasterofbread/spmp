@@ -166,7 +166,7 @@ class Theme(data: ThemeData) {
     }
 
     companion object {
-        val default = getDefaultTheme()
+        val default = getDefaultThemes()
         private var thumbnail_colour: Color? = null
         private var accent_colour_source: AccentColourSource by mutableStateOf(Settings.getEnum(Settings.KEY_ACCENT_COLOUR_SOURCE))
         private var system_accent_colour: Color? = null
@@ -191,21 +191,39 @@ class Theme(data: ThemeData) {
                 return _manager!!
             }
 
-        val theme: Theme = Theme(default)
-        val preview_theme: Theme = Theme(default)
+        val theme: Theme = Theme(default.first())
+        val preview_theme: Theme = Theme(default.first())
 
         var preview_active: Boolean by mutableStateOf(false)
             private set
         val current: Theme get() = if (preview_active) preview_theme else theme
 
-        fun getDefaultTheme(): ThemeData {
+        private fun getDefaultThemes(): List<ThemeData> {
             val palette = Catppuccin.MOCHA
-            return ThemeData(
-                "Catppuccin ${palette.name.capitalize(Locale.current)} Lavender",
-                Color(palette.crust.rgb),
-                Color(palette.text.rgb),
-                Color(palette.lavender.rgb)
-            )
+
+            return listOf(
+                Pair(Color(palette.mauve.rgb), "mauve"),
+                Pair(Color(palette.lavender.rgb), "lavender"),
+                Pair(Color(palette.red.rgb), "red"),
+                Pair(Color(palette.yellow.rgb), "yellow"),
+                Pair(Color(palette.green.rgb), "green"),
+                Pair(Color(palette.teal.rgb), "teal"),
+                Pair(Color(palette.pink.rgb), "pink"),
+                Pair(Color(palette.sapphire.rgb), "sapphire"),
+                Pair(Color(palette.rosewater.rgb), "rosewater"),
+                Pair(Color(palette.peach.rgb), "peach"),
+                Pair(Color(palette.sky.rgb), "sky"),
+                Pair(Color(palette.maroon.rgb), "maroon"),
+                Pair(Color(palette.blue.rgb), "blue"),
+                Pair(Color(palette.flamingo.rgb), "flamingo")
+            ).map { accent ->
+                ThemeData(
+                    "Catppuccin ${palette.name.capitalize(Locale.current)} (${accent.second})",
+                    Color(palette.crust.rgb),
+                    Color(palette.text.rgb),
+                    accent.first
+                )
+            }
         }
 
         @Composable
@@ -327,14 +345,14 @@ class ThemeManager(val prefs: ProjectPreferences) {
         saveThemes()
     }
 
-    fun addTheme(theme: ThemeData) {
-        themes = themes.toMutableList().also { it.add(theme) }
+    fun addTheme(theme: ThemeData, index: Int = themes.size) {
+        themes = themes.toMutableList().also { it.add(index, theme) }
         saveThemes()
     }
 
     fun removeTheme(index: Int) {
         if (themes.size == 1) {
-            themes = listOf(Theme.default)
+            themes = Theme.default
         }
         else {
             themes = themes.toMutableList().also { it.removeAt(index) }
@@ -351,7 +369,7 @@ class ThemeManager(val prefs: ProjectPreferences) {
     private fun loadThemes() {
         themes = Settings.getJsonArray(Settings.KEY_THEMES, klaxon, prefs)
         if (themes.isEmpty()) {
-            themes = listOf(Theme.default)
+            themes = Theme.default
         }
     }
 }

@@ -2,8 +2,10 @@
 
 package com.spectre7.utils.composable
 
+import androidx.compose.foundation.ExperimentalFoundationApi
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
+import androidx.compose.foundation.combinedClickable
 import androidx.compose.foundation.interaction.MutableInteractionSource
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.size
@@ -22,6 +24,7 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Shape
 import androidx.compose.ui.semantics.Role
 
+@OptIn(ExperimentalFoundationApi::class)
 @Composable
 fun ShapedIconButton(
     onClick: () -> Unit,
@@ -30,6 +33,7 @@ fun ShapedIconButton(
     enabled: Boolean = true,
     interactionSource: MutableInteractionSource = remember { MutableInteractionSource() },
     colors: IconButtonColors = IconButtonDefaults.iconButtonColors(),
+    onLongClick: (() -> Unit)? = null,
     content: @Composable () -> Unit,
 ) {
     Box(
@@ -38,8 +42,9 @@ fun ShapedIconButton(
             .minimumTouchTargetSize()
             .size(IconButtonTokens.StateLayerSize)
             .background(color = colors.containerColor(enabled).value, shape = shape)
-            .clickable(
+            .combinedClickable(
                 onClick = onClick,
+                onLongClick = onLongClick,
                 enabled = enabled,
                 role = Role.Button,
                 interactionSource = interactionSource,

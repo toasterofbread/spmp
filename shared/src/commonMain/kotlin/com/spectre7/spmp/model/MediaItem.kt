@@ -1,5 +1,6 @@
 package com.spectre7.spmp.model
 
+import SpMp
 import androidx.compose.animation.Crossfade
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.layout.fillMaxSize
@@ -13,10 +14,13 @@ import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.unit.IntSize
 import com.beust.klaxon.*
+import com.spectre7.spmp.api.DEFAULT_CONNECT_TIMEOUT
 import com.spectre7.spmp.api.DataApi
 import com.spectre7.spmp.api.TextRun
 import com.spectre7.spmp.api.loadMediaItemData
+import com.spectre7.spmp.platform.PlatformContext
 import com.spectre7.spmp.platform.ProjectPreferences
+import com.spectre7.spmp.platform.toByteArray
 import com.spectre7.spmp.platform.toImageBitmap
 import com.spectre7.spmp.resources.getString
 import com.spectre7.spmp.ui.component.MediaItemLayout
@@ -24,6 +28,7 @@ import com.spectre7.spmp.ui.layout.PlayerViewContext
 import com.spectre7.utils.*
 import com.spectre7.utils.composable.SubtleLoadingIndicator
 import kotlinx.coroutines.*
+import java.io.File
 import java.io.FileNotFoundException
 import java.io.Reader
 import java.net.URL
@@ -171,34 +176,52 @@ abstract class MediaItem(id: String) {
     var pinned_to_home: Boolean by mutableStateOf(false)
         private set
 
-    fun setPinnedToHome(value: Boolean, playerProvider: () -> PlayerViewContext) {
-        if (value == pinned_to_home) {
-            return
-        }
-
-        val key = when (type) {
-            Type.SONG -> Settings.INTERNAL_PINNED_SONGS
-            Type.ARTIST -> Settings.INTERNAL_PINNED_ARTISTS
-            Type.PLAYLIST -> Settings.INTERNAL_PINNED_PLAYLISTS
-        }
-
-        val set: MutableSet<String> = key.get<Set<String>>().toMutableSet()
-        if (value) {
-            set.add(id)
-        }
-        else {
-            set.remove(id)
-        }
-        key.set(set)
-
-        pinned_to_home = value
-
-        playerProvider().onMediaItemPinnedChanged(this, value)
-    }
-
-    private class ThumbState {
+    private inner class ThumbState(private val quality: ThumbnailQuality) {
+        var loading: Boolean by mutableStateOf(false)
         var image: ImageBitmap? by mutableStateOf(null)
-        var loading by mutableStateOf(false)
+
+        private val load_lock = Object()
+
+        fun load(context: PlatformContext): ImageBitmap? {
+            synchronized(load_lock) {
+                if (image != null) {
+                    return image
+                }
+
+                if (loading) {
+                    load_lock.wait()
+                    return image
+                }
+                loading = true
+            }
+
+            performLoad(context)
+
+            synchronized(load_lock) {
+                loading = false
+                load_lock.notifyAll()
+            }
+
+            return image
+        }
+
+        private fun performLoad(context: PlatformContext) {
+            val cache_file = getCacheFile(context)
+            if (cache_file.exists()) {
+                image = cache_file.readBytes().toImageBitmap()
+                return
+            }
+
+            image = downloadThumbnail(quality) ?: return
+
+            if (Settings.KEY_THUMB_CACHE_ENABLED.get()) {
+                cache_file.parentFile.mkdirs()
+                cache_file.writeBytes(image!!.toByteArray())
+            }
+        }
+
+        private fun getCacheFile(context: PlatformContext): File =
+            context.getCacheDir().resolve("thumbnails/$id.${quality.ordinal}.png")
     }
     private val thumb_states: Map<ThumbnailQuality, ThumbState>
 
@@ -206,7 +229,7 @@ abstract class MediaItem(id: String) {
         // Populate thumb_states
         val states = mutableMapOf<ThumbnailQuality, ThumbState>()
         for (quality in ThumbnailQuality.values()) {
-            states[quality] = ThumbState()
+            states[quality] = ThumbState(quality)
         }
         thumb_states = states
 
@@ -458,10 +481,10 @@ abstract class MediaItem(id: String) {
     var loading: Boolean by mutableStateOf(false)
 
     abstract class ThumbnailProvider {
-        abstract fun getThumbnail(quality: ThumbnailQuality): String?
+        abstract fun getThumbnailUrl(quality: ThumbnailQuality): String?
 
         data class SetProvider(val thumbnails: List<Thumbnail>): ThumbnailProvider() {
-            override fun getThumbnail(quality: ThumbnailQuality): String? {
+            override fun getThumbnailUrl(quality: ThumbnailQuality): String? {
                 return when (quality) {
                     ThumbnailQuality.HIGH -> thumbnails.minByOrNull { it.width * it.height }
                     ThumbnailQuality.LOW -> thumbnails.maxByOrNull { it.width * it.height }
@@ -470,7 +493,7 @@ abstract class MediaItem(id: String) {
         }
 
         data class DynamicProvider(val url_a: String, val url_b: String): ThumbnailProvider() {
-            override fun getThumbnail(quality: ThumbnailQuality): String {
+            override fun getThumbnailUrl(quality: ThumbnailQuality): String {
                 val target_size = quality.getTargetSize()
                 return "$url_a${target_size.width}-h${target_size.height}$url_b"
             }
@@ -590,62 +613,40 @@ abstract class MediaItem(id: String) {
     }
 
     fun getThumbUrl(quality: ThumbnailQuality): String? {
-        return thumbnail_provider?.getThumbnail(quality)
+        return thumbnail_provider?.getThumbnailUrl(quality)
     }
 
     fun isThumbnailLoaded(quality: ThumbnailQuality): Boolean {
         return thumb_states[quality]!!.image != null
     }
 
-    fun getThumbnail(quality: ThumbnailQuality): ImageBitmap? {
+    fun loadAndGetThumbnail(quality: ThumbnailQuality, context: PlatformContext = SpMp.context): ImageBitmap? {
         val state = thumb_states[quality]!!
         synchronized(state) {
             if (!state.loading) {
                 thread {
-                    loadThumbnail(quality)
+                    state.load(context)
                 }
             }
         }
         return state.image
     }
 
-    fun loadThumbnail(quality: ThumbnailQuality): ImageBitmap? {
+    fun loadThumbnail(quality: ThumbnailQuality, context: PlatformContext = SpMp.context): ImageBitmap? {
         if (!canLoadThumbnail()) {
             return null
         }
-
-        val state = thumb_states[quality]!!
-        synchronized(state) {
-            if (state.loading) {
-                (state as Object).wait()
-                return state.image
-            }
-
-            if (state.image != null) {
-                return state.image
-            }
-
-            state.loading = true
-        }
-
-        try {
-            state.image = downloadThumbnail(quality)
-        }
-        finally {
-            synchronized(state) {
-                state.loading = false
-                (state as Object).notifyAll()
-            }
-        }
-
-        return state.image
+        return thumb_states[quality]!!.load(context)
     }
 
     protected open fun downloadThumbnail(quality: ThumbnailQuality): ImageBitmap? {
         val url = getThumbUrl(quality) ?: return null
 
         try {
-            val stream = URL(url).openConnection().getInputStream()
+            val connection = URL(url).openConnection()
+            connection.connectTimeout = DEFAULT_CONNECT_TIMEOUT
+
+            val stream = connection.getInputStream()
             val bytes = stream.readBytes()
             stream.close()
 
@@ -654,6 +655,31 @@ abstract class MediaItem(id: String) {
         catch (_: FileNotFoundException) {
             return null
         }
+    }
+
+    fun setPinnedToHome(value: Boolean, playerProvider: () -> PlayerViewContext) {
+        if (value == pinned_to_home) {
+            return
+        }
+
+        val key = when (type) {
+            Type.SONG -> Settings.INTERNAL_PINNED_SONGS
+            Type.ARTIST -> Settings.INTERNAL_PINNED_ARTISTS
+            Type.PLAYLIST -> Settings.INTERNAL_PINNED_PLAYLISTS
+        }
+
+        val set: MutableSet<String> = key.get<Set<String>>().toMutableSet()
+        if (value) {
+            set.add(id)
+        }
+        else {
+            set.remove(id)
+        }
+        key.set(set)
+
+        pinned_to_home = value
+
+        playerProvider().onMediaItemPinnedChanged(this, value)
     }
 
     data class PreviewParams(
@@ -675,7 +701,7 @@ abstract class MediaItem(id: String) {
             if (!canLoadThumbnail()) {
                 thread { loadData() }
             }
-            getThumbnail(quality)
+            loadAndGetThumbnail(quality)
         }
 
         var loaded by remember { mutableStateOf(false) }

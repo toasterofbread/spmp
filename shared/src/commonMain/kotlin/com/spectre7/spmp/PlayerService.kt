@@ -71,7 +71,8 @@ class PlayerService : MediaPlayerService() {
         synchronized(radio) {
             clearQueue(from = index, keep_current = false, save = false)
 
-            radio.playMediaItem(item ?: getSong(index)!!)
+            val final_item = item ?: getSong(index)!!
+            radio.playMediaItem(final_item)
             radio.loadContinuation { result ->
                 if (result.isFailure) {
                     SpMp.error_manager.onError("startRadioAtIndex", result.exceptionOrNull()!!)
@@ -80,6 +81,12 @@ class PlayerService : MediaPlayerService() {
                 else {
                     context.mainThread {
                         addMultipleToQueue(result.getOrThrowHere(), index, skip_first)
+
+                        if (final_item !is Song) {
+                            final_item.editRegistry {
+                                it.play_count++
+                            }
+                        }
                     }
                 }
             }
@@ -317,6 +324,7 @@ class PlayerService : MediaPlayerService() {
             tracking_song_index = current_song_index
             song_marked_as_watched = false
 
+            checkRadioContinuation()
             updateDiscordStatus(song)
         }
         override fun onStateChanged(state: MediaPlayerState) {

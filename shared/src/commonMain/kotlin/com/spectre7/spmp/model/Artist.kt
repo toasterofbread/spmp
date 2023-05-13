@@ -9,7 +9,6 @@ import com.spectre7.spmp.api.*
 import com.spectre7.spmp.ui.component.ArtistPreviewLong
 import com.spectre7.spmp.ui.component.ArtistPreviewSquare
 import com.spectre7.spmp.resources.getString
-import kotlinx.coroutines.CoroutineScope
 import kotlin.concurrent.thread
 
 class ArtistItemData(override val data_item: Artist): MediaItemWithLayoutsData(data_item) {
@@ -132,7 +131,7 @@ class Artist private constructor (
 
     override val url: String get() = "https://music.youtube.com/channel/$id"
 
-    fun getFormattedSubscriberCount(): String {
+    fun getReadableSubscriberCount(): String {
         return getString("artist_x_subscribers").replace("\$x", subscriber_count?.let { amountToString(it, SpMp.ui_language) } ?: "0")
     }
 

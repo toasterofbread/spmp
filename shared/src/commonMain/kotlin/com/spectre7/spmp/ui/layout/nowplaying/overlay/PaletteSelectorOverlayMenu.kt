@@ -74,7 +74,7 @@ class PaletteSelectorOverlayMenu(
         LaunchedEffect(Unit) {
             val song = PlayerServiceHost.status.song!!
             thread {
-                val image = song.getThumbnail(MediaItem.ThumbnailQuality.HIGH)!!
+                val image = song.loadAndGetThumbnail(MediaItem.ThumbnailQuality.HIGH)!!
                 palette_colours = image.generatePalette(8)
             }
         }

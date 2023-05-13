@@ -66,11 +66,14 @@ fun RadioBuilderPage(
             val result = getRadioBuilderArtists { thumbnails ->
                 thumbnails.maxBy { it.width * it.height }
             }
-            result.fold({ artists ->
-                available_artists = artists
-            }, { exception ->
-                SpMp.error_manager.onError("radio_builder_artists", exception)
-            })
+            result.fold(
+                { artists ->
+                    available_artists = artists
+                },
+                { exception ->
+                    SpMp.error_manager.onError("radio_builder_artists", exception)
+                }
+            )
         }
     }
 

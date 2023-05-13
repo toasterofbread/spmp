@@ -27,6 +27,8 @@ import kotlin.concurrent.thread
 import org.schabi.newpipe.extractor.downloader.Request as NewPipeRequest
 import org.schabi.newpipe.extractor.downloader.Response as NewPipeResponse
 
+const val DEFAULT_CONNECT_TIMEOUT = 3000
+
 fun <T> Result.Companion.failure(response: Response): Result<T> {
     return failure<T>(RuntimeException("${response.message}: ${response.body?.string()} (${response.code})")).also { response.close() }
 }
@@ -64,7 +66,7 @@ fun <T> Result<T>.getOrReport(error_key: String): T? {
 class DataApi {
 
     companion object {
-        private val client: OkHttpClient = OkHttpClient.Builder().callTimeout(Duration.ofMillis(5000)).build().also {
+        private val client: OkHttpClient = OkHttpClient.Builder().callTimeout(Duration.ofMillis(DEFAULT_CONNECT_TIMEOUT.toLong())).build().also {
             Logger.getLogger(OkHttpClient::class.java.name).level = Level.FINE
         }
         val user_agent: String get() = getString("ytm_user_agent")

@@ -19,7 +19,7 @@ fun getBuiltRadio(radio_token: String): Result<Playlist?> {
         return result.cast()
     }
 
-    val thumb_url = playlist.thumbnail_provider?.getThumbnail(MediaItem.ThumbnailQuality.HIGH)
+    val thumb_url = playlist.thumbnail_provider?.getThumbnailUrl(MediaItem.ThumbnailQuality.HIGH)
     if (thumb_url?.contains("fallback") == true) {
         return Result.success(null)
     }

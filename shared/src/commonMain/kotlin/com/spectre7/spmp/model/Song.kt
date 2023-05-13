@@ -345,7 +345,10 @@ class Song protected constructor (
             }
 
             try {
-                val stream = URL(url).openConnection().getInputStream()
+                val connection = URL(url).openConnection()
+                connection.connectTimeout = DEFAULT_CONNECT_TIMEOUT
+
+                val stream = connection.getInputStream()
                 val bytes = stream.readBytes()
                 stream.close()
 

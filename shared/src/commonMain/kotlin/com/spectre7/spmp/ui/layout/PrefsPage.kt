@@ -136,44 +136,6 @@ fun PrefsPage(pill_menu: PillMenu, playerProvider: () -> PlayerViewContext, clos
         )
     }
 
-    val extra_action: @Composable PillMenu.Action.(Int) -> Unit = {
-        if (it == 1) {
-            ActionButton(
-                Icons.Filled.Refresh
-            ) {
-                show_reset_confirmation = true
-            }
-        }
-    }
-    val alongside_action: @Composable PillMenu.Action.() -> Unit = {
-        Row(fill_modifier
-            .border(1.dp, background_colour, CircleShape)
-            .background(CircleShape, Theme.current.background_provider)
-            .padding(horizontal = 5.dp)
-        ) {
-            for (category in Category.values()) {
-                Box(
-                    Modifier.fillMaxWidth(1f / (Category.values().size - category.ordinal).toFloat()),
-                    contentAlignment = Alignment.Center
-                ) {
-
-                    Crossfade(category == current_category) { current ->
-                        val button_colour = if (current) background_colour else Color.Transparent
-                        ShapedIconButton(
-                            { current_category = category },
-                            colors = IconButtonDefaults.iconButtonColors(
-                                containerColor = button_colour,
-                                contentColor = button_colour.getContrasted()
-                            )
-                        ) {
-                            Icon(category.getIcon(current), null)
-                        }
-                    }
-                }
-            }
-        }
-    }
-
     settings_interface = remember {
         SettingsInterface(
             { Theme.current },
@@ -216,6 +178,44 @@ fun PrefsPage(pill_menu: PillMenu, playerProvider: () -> PlayerViewContext, clos
     }
 
     DisposableEffect(settings_interface.current_page) {
+        val extra_action: @Composable PillMenu.Action.(Int) -> Unit = {
+            if (it == 1) {
+                ActionButton(
+                    Icons.Filled.Refresh
+                ) {
+                    show_reset_confirmation = true
+                }
+            }
+        }
+        val alongside_action: @Composable PillMenu.Action.() -> Unit = {
+            Row(fill_modifier
+                .border(1.dp, background_colour, CircleShape)
+                .background(CircleShape, Theme.current.background_provider)
+                .padding(horizontal = 5.dp)
+            ) {
+                for (category in Category.values()) {
+                    Box(
+                        Modifier.fillMaxWidth(1f / (Category.values().size - category.ordinal).toFloat()),
+                        contentAlignment = Alignment.Center
+                    ) {
+
+                        Crossfade(category == current_category) { current ->
+                            val button_colour = if (current) background_colour else Color.Transparent
+                            ShapedIconButton(
+                                { current_category = category },
+                                colors = IconButtonDefaults.iconButtonColors(
+                                    containerColor = button_colour,
+                                    contentColor = button_colour.getContrasted()
+                                )
+                            ) {
+                                Icon(category.getIcon(current), null)
+                            }
+                        }
+                    }
+                }
+            }
+        }
+
         if (settings_interface.current_page.id == Page.ROOT.ordinal) {
             pill_menu.addExtraAction(action = extra_action)
             pill_menu.addAlongsideAction(alongside_action)
@@ -438,7 +438,17 @@ private fun getDiscordStatusGroup(discord_auth: SettingsValueState<String>): Lis
 }
 
 private fun getOtherCategory(discord_auth: SettingsValueState<String>): List<SettingsItem> {
-    return getAccessibilityServiceGroup() + getDiscordStatusGroup(discord_auth)
+    return getCachingGroup() + getAccessibilityServiceGroup() + getDiscordStatusGroup(discord_auth)
+}
+
+private fun getCachingGroup(): List<SettingsItem> {
+    return listOf(
+        SettingsGroup(getStringTODO("Caching")),
+        SettingsItemToggle(
+            SettingsValueState(Settings.KEY_THUMB_CACHE_ENABLED.name),
+            getStringTODO("Enable thumbnail cache"), null
+        )
+    )
 }
 
 private fun getYoutubeMusicLoginPage(ytm_auth: SettingsValueState<YoutubeMusicAuthInfo>): SettingsPage {
@@ -691,7 +701,7 @@ private fun getThemeCategory(theme_manager: ThemeManager): List<SettingsItem> {
             { index: Int, edited_theme: ThemeData ->
                 theme_manager.updateTheme(index, edited_theme)
             },
-            { theme_manager.addTheme(Theme.default.copy(name = getString("theme_title_new"))) },
+            { theme_manager.addTheme(Theme.current.theme_data.copy(name = getString("theme_title_new")), it) },
             { theme_manager.removeTheme(it) }
         ),
 

@@ -8,9 +8,16 @@ import androidx.compose.ui.graphics.asAndroidBitmap
 import androidx.compose.ui.graphics.asImageBitmap
 import androidx.palette.graphics.Palette
 import com.spectre7.utils.compare
+import java.io.ByteArrayOutputStream
 
 actual fun ByteArray.toImageBitmap(): ImageBitmap =
     BitmapFactory.decodeByteArray(this, 0, size).asImageBitmap()
+
+actual fun ImageBitmap.toByteArray(): ByteArray {
+    val stream = ByteArrayOutputStream()
+    asAndroidBitmap().compress(Bitmap.CompressFormat.PNG, 100, stream)
+    return stream.toByteArray()
+}
 
 actual fun ImageBitmap.crop(x: Int, y: Int, width: Int, height: Int): ImageBitmap =
     Bitmap.createBitmap(this.asAndroidBitmap(), x, y, width, height).asImageBitmap()

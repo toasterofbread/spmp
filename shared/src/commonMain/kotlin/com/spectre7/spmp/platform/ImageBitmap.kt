@@ -4,6 +4,7 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.ImageBitmap
 
 expect fun ByteArray.toImageBitmap(): ImageBitmap
+expect fun ImageBitmap.toByteArray(): ByteArray
 
 expect fun ImageBitmap.crop(x: Int, y: Int, width: Int, height: Int): ImageBitmap
 expect fun ImageBitmap.getPixel(x: Int, y: Int): Color

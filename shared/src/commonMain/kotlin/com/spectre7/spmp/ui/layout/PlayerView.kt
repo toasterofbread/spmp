@@ -264,12 +264,7 @@ class PlayerViewContextImpl: PlayerViewContext(null, null, null) {
             PlayerServiceHost.player.playSong(item)
         }
         else {
-            PlayerServiceHost.player.clearQueue()
             PlayerServiceHost.player.startRadioAtIndex(0, item)
-
-            item.editRegistry {
-                it.play_count++
-            }
         }
 
         if (now_playing_swipe_state.targetValue == 0 && Settings.get(Settings.KEY_OPEN_NP_ON_SONG_PLAYED)) {
@@ -405,6 +400,8 @@ class PlayerViewContextImpl: PlayerViewContext(null, null, null) {
             val result = loadFeedLayouts(min_rows, allow_cached, params, if (continue_feed) feed_continuation else null)
             if (result.isFailure) {
                 SpMp.error_manager.onError("loadFeed", result.exceptionOrNull()!!)
+                main_page_layouts = emptyList()
+                main_page_filter_chips = null
             }
             else {
                 val (layouts, cont, chips) = result.getOrThrow()
@@ -462,7 +459,7 @@ class PlayerViewContextImpl: PlayerViewContext(null, null, null) {
                             else -> throw NotImplementedError()
                         }
                     }
-                    OverlayPage.LIBRARY -> LibraryPage(pill_menu, playerProvider, close)
+                    OverlayPage.LIBRARY -> LibraryPage(pill_menu, playerProvider, close = close)
                     OverlayPage.RADIO_BUILDER -> RadioBuilderPage(pill_menu, if (PlayerServiceHost.session_started) MINIMISED_NOW_PLAYING_HEIGHT.dp else 0.dp, playerProvider, close)
                     OverlayPage.YTM_LOGIN -> YoutubeMusicLogin(Modifier.fillMaxSize()) { result ->
                         result?.fold(
@@ -506,7 +503,7 @@ class PlayerViewContextImpl: PlayerViewContext(null, null, null) {
             }
         }
 
-        val padding by animateDpAsState(if (SpMp.context.isScreenLarge()) 30.dp else 10.dp)
+        val padding by animateDpAsState(SpMp.context.getDefaultHorizontalPadding())
 
         val artists_layout: MediaItemLayout = remember {
             MediaItemLayout(
@@ -545,7 +542,7 @@ class PlayerViewContextImpl: PlayerViewContext(null, null, null) {
             MainPageTopBar(
                 auth_info,
                 playerProvider,
-                { main_page_filter_chips },
+                { if (feed_load_state.value == FeedLoadState.LOADING) null else main_page_filter_chips },
                 getSelectedFilterChip,
                 { loadFeed(it, false) },
                 Modifier.padding(top = SpMp.context.getStatusBarHeight())
@@ -608,8 +605,13 @@ class PlayerViewContextImpl: PlayerViewContext(null, null, null) {
                     }
                     // Offline
                     false -> {
-                        // TODO
-                        Text("Offline", Modifier.padding(top = SpMp.context.getStatusBarHeight() + padding))
+                        LibraryPage(
+                            pill_menu,
+                            playerProvider,
+                            Modifier.graphicsLayer { alpha = state_alpha.value },
+                            close = {},
+                            inline = true
+                        )
                     }
                     // Loading
                     null -> {

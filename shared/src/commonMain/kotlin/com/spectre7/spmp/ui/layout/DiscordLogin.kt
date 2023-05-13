@@ -5,6 +5,9 @@ import androidx.compose.animation.Crossfade
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.shape.CircleShape
+import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.Error
+import androidx.compose.material3.Icon
 import androidx.compose.material3.Text
 import androidx.compose.runtime.*
 import androidx.compose.runtime.saveable.mapSaver
@@ -16,16 +19,17 @@ import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import com.beust.klaxon.JsonObject
 import com.beust.klaxon.Klaxon
-import com.spectre7.spmp.api.failure
-import com.spectre7.spmp.api.getOrReport
+import com.spectre7.spmp.api.*
 import com.spectre7.spmp.platform.WebViewLogin
 import com.spectre7.spmp.platform.composable.rememberImagePainter
 import com.spectre7.spmp.platform.isWebViewLoginSupported
 import com.spectre7.spmp.resources.getStringTODO
 import com.spectre7.utils.catchInterrupts
+import com.spectre7.utils.composable.Marquee
 import com.spectre7.utils.composable.SubtleLoadingIndicator
 import okhttp3.OkHttpClient
 import okhttp3.Request
+import java.time.Duration
 import kotlin.concurrent.thread
 
 private const val DISCORD_LOGIN_URL = "https://discord.com/login"
@@ -80,11 +84,12 @@ private fun getDiscordAccountInfo(account_token: String): Result<DiscordMeRespon
         .addHeader("authorization", account_token)
         .build()
 
-    val response = OkHttpClient().newCall(request).execute()
-    if (!response.isSuccessful) {
-        return Result.failure(response)
+    val result = DataApi.request(request)
+    if (result.isFailure) {
+        return result.cast()
     }
 
+    val response = result.getOrThrow()
     val me: DiscordMeResponse = Klaxon().parse(response.body!!.charStream())!!
     me.token = account_token
 
@@ -142,7 +147,9 @@ fun DiscordAccountPreview(account_token: String, modifier: Modifier = Modifier) 
                 SubtleLoadingIndicator(Modifier.fillMaxSize())
             }
             else if (state == false) {
-                Text(getStringTODO("ERROR"))
+                Box(Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
+                    Icon(Icons.Default.Error, null)
+                }
             }
             else if (state is DiscordMeResponse) {
                 Image(rememberImagePainter(state.getAvatarUrl()), null, Modifier.fillMaxHeight().aspectRatio(1f).clip(CircleShape))

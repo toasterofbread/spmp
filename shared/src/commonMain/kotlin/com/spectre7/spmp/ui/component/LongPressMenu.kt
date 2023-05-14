@@ -9,6 +9,7 @@ import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.*
+import androidx.compose.material.icons.outlined.PushPin
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
@@ -27,7 +28,9 @@ import com.spectre7.spmp.model.*
 import com.spectre7.spmp.platform.composable.PlatformDialog
 import com.spectre7.spmp.platform.vibrateShort
 import com.spectre7.spmp.resources.getString
-import com.spectre7.spmp.ui.layout.PlayerViewContext
+import com.spectre7.spmp.resources.getStringTODO
+import com.spectre7.spmp.ui.component.multiselect.MediaItemMultiSelectContext
+import com.spectre7.spmp.ui.layout.mainpage.PlayerViewContext
 import com.spectre7.spmp.ui.layout.nowplaying.overlay.DEFAULT_THUMBNAIL_ROUNDING
 import com.spectre7.spmp.ui.theme.Theme
 import com.spectre7.utils.*
@@ -98,6 +101,8 @@ data class LongPressMenuData(
     val thumb_shape: Shape? = null,
     val infoContent: (@Composable ColumnScope.(accent: Color) -> Unit)? = null,
     val info_title: String? = null,
+    val multiselect_context: MediaItemMultiSelectContext? = null,
+    val multiselect_key: Int? = null,
     val sideButton: (@Composable (Modifier, background: Color, accent: Color) -> Unit)? = null,
     val actions: (@Composable LongPressMenuActionProvider.(MediaItem) -> Unit)? = null
 ) {
@@ -134,21 +139,6 @@ fun LongPressMenu(
     data: LongPressMenuData,
     modifier: Modifier = Modifier
 ) {
-    @Composable
-    fun Thumb(modifier: Modifier) {
-        Crossfade(data.item.loadAndGetThumbnail(MediaItem.ThumbnailQuality.LOW)) { thumbnail ->
-            if (thumbnail != null) {
-                Image(
-                    thumbnail,
-                    contentDescription = null,
-                    contentScale = ContentScale.Crop,
-                    modifier = modifier
-                        .clip(data.thumb_shape ?: RoundedCornerShape(DEFAULT_THUMBNAIL_ROUNDING))
-                )
-            }
-        }
-    }
-
     var show by remember { mutableStateOf(showing) }
     LaunchedEffect(showing) {
         if (showing) {
@@ -188,8 +178,8 @@ fun LongPressMenu(
         }
         val panel_alpha = remember { Animatable(1f) }
 
-        var target_position: Offset? by remember { mutableStateOf(null) }
-        var target_size: IntSize? by remember { mutableStateOf(null) }
+        val target_position: MutableState<Offset?> = remember { mutableStateOf(null) }
+        val target_size: MutableState<IntSize?> = remember { mutableStateOf(null) }
 
         suspend fun animateValues(to_target: Boolean) {
 
@@ -199,9 +189,9 @@ fun LongPressMenu(
 
             if (to_target) {
                 with (density) {
-                    pos_target = DpOffset(target_position!!.x.toDp(), target_position!!.y.toDp())
-                    width_target = target_size!!.width.toDp().value
-                    height_target = target_size!!.height.toDp().value
+                    pos_target = DpOffset(target_position.value!!.x.toDp(), target_position.value!!.y.toDp())
+                    width_target = target_size.value!!.width.toDp().value
+                    height_target = target_size.value!!.height.toDp().value
                 }
             }
             else if (initial_pos != null) {
@@ -247,16 +237,11 @@ fun LongPressMenu(
 
         // UI
 
-        var accent_colour: Color? by remember { mutableStateOf(null) }
-
-        fun applyPalette(item: MediaItem) {
-            accent_colour = (item.getDefaultThemeColour() ?: Theme.current.background)
-                .contrastAgainst(Theme.current.background, 0.2f)
-        }
+        val accent_colour: MutableState<Color?> = remember { mutableStateOf(null) }
 
         LaunchedEffect(Unit) {
             if (data.item is Song && data.item.theme_colour != null) {
-                accent_colour = data.item.theme_colour!!
+                accent_colour.value = data.item.theme_colour!!
             }
         }
 
@@ -266,7 +251,8 @@ fun LongPressMenu(
                 data.item.loadAndGetThumbnail(MediaItem.ThumbnailQuality.LOW)
             }
             else {
-                applyPalette(data.item)
+                accent_colour.value = (data.item.getDefaultThemeColour() ?: Theme.current.background)
+                    .contrastAgainst(Theme.current.background, 0.2f)
             }
         }
 
@@ -284,189 +270,241 @@ fun LongPressMenu(
             }
         }
 
-        val y_offset = 10
-
         PlatformDialog(
             onDismissRequest = { close_requested = true },
             use_platform_default_width = false,
             dim_behind = false
         ) {
-            Box(
-                Modifier
-                    .requiredHeight(SpMp.context.getScreenHeight())
-                    .offset { IntOffset(0, y_offset) }
-                    .background(Color.Black.setAlpha(0.5f * panel_alpha.value))
-            ) {
-                val shape = RoundedCornerShape(topStart = 16.dp, topEnd = 16.dp)
+            MenuContent(
+                data,
+                accent_colour,
+                panel_alpha,
+                fully_open,
+                no_transition,
+                pos,
+                width,
+                height,
+                target_position,
+                target_size,
+                modifier,
+                playerProvider,
+                { close_requested = true }
+            )
+        }
+    }
+}
 
-                Column(Modifier.fillMaxSize()) {
-                    Spacer(Modifier
-                        .fillMaxSize()
-                        .weight(1f)
-                        .clickable(remember { MutableInteractionSource() }, null) {
-                            close_requested = true
+@Composable
+private fun MenuContent(
+    data: LongPressMenuData,
+    accent_colour: MutableState<Color?>,
+    panel_alpha: Animatable<Float, AnimationVector1D>,
+    fully_open: Boolean,
+    no_transition: Boolean,
+    pos: Animatable<DpOffset, AnimationVector2D>?,
+    width: Animatable<Float, AnimationVector1D>?,
+    height: Animatable<Float, AnimationVector1D>?,
+    target_position: MutableState<Offset?>,
+    target_size: MutableState<IntSize?>,
+    modifier: Modifier,
+    playerProvider: () -> PlayerViewContext,
+    close: () -> Unit
+) {
+    val y_offset = 10
+
+    @Composable
+    fun Thumb(modifier: Modifier) {
+        Crossfade(data.item.loadAndGetThumbnail(MediaItem.ThumbnailQuality.LOW)) { thumbnail ->
+            if (thumbnail != null) {
+                Image(
+                    thumbnail,
+                    contentDescription = null,
+                    contentScale = ContentScale.Crop,
+                    modifier = modifier
+                        .clip(data.thumb_shape ?: RoundedCornerShape(DEFAULT_THUMBNAIL_ROUNDING))
+                )
+            }
+        }
+    }
+
+    Box(
+        Modifier
+            .requiredHeight(SpMp.context.getScreenHeight())
+            .offset { IntOffset(0, y_offset) }
+            .background(Color.Black.setAlpha(0.5f * panel_alpha.value))
+    ) {
+        val shape = RoundedCornerShape(topStart = 16.dp, topEnd = 16.dp)
+
+        Column(Modifier.fillMaxSize()) {
+            Spacer(Modifier
+                .fillMaxSize()
+                .weight(1f)
+                .clickable(remember { MutableInteractionSource() }, null, onClick = close)
+            )
+
+            val item_spacing = 20.dp
+            val padding = 25.dp
+
+            Column(
+                modifier
+                    .alpha(panel_alpha.value)
+                    .background(Theme.current.background, shape)
+                    .fillMaxWidth()
+                    .padding(padding),
+                verticalArrangement = Arrangement.spacedBy(item_spacing)
+            ) {
+                Row(
+                    Modifier
+                        .height(80.dp)
+                        .fillMaxWidth()
+                ) {
+
+                    // Main item thumbnail
+                    Thumb(Modifier
+                        .drawWithContent {
+                            if (fully_open) {
+                                drawContent()
+                            }
+                        }
+                        .aspectRatio(1f)
+                        .onSizeChanged {
+                            target_size.value = it
+                        }
+                        .onGloballyPositioned {
+                            target_position.value = it.localPositionOf(
+                                it.parentCoordinates!!.parentCoordinates!!,
+                                it.positionInRoot()
+                            )
                         }
                     )
 
-                    val item_spacing = 20.dp
-                    val padding = 25.dp
-
+                    // Item info
                     Column(
-                        modifier
-                            .alpha(panel_alpha.value)
-                            .background(Theme.current.background, shape)
-                            .fillMaxWidth()
-                            .padding(padding),
-                        verticalArrangement = Arrangement.spacedBy(item_spacing)
+                        Modifier
+                            .fillMaxSize()
+                            .weight(1f)
+                            .padding(horizontal = 15.dp),
+                        verticalArrangement = Arrangement.SpaceEvenly
                     ) {
-                        Row(
-                            Modifier
-                                .height(80.dp)
-                                .fillMaxWidth()
-                        ) {
-
-                            Thumb(Modifier
-                                .drawWithContent {
-                                    if (fully_open) {
-                                        drawContent()
-                                    }
-                                }
-                                .aspectRatio(1f)
-                                .onSizeChanged {
-                                    target_size = it
-                                }
-                                .onGloballyPositioned {
-                                    target_position = it.localPositionOf(
-                                        it.parentCoordinates!!.parentCoordinates!!,
-                                        it.positionInRoot()
-                                    )
-                                }
+                        // Title
+                        Marquee(autoscroll = false) {
+                            Text(
+                                data.item.title ?: "",
+                                Modifier.fillMaxWidth(),
+                                color = Theme.current.on_background,
+                                softWrap = false,
+                                overflow = TextOverflow.Ellipsis
                             )
+                        }
 
-                            Column(
-                                Modifier
-                                    .fillMaxSize()
-                                    .weight(1f)
-                                    .padding(horizontal = 15.dp), 
-                                verticalArrangement = Arrangement.SpaceEvenly
-                            ) {
+                        // Artist
+                        if (data.item !is Artist) {
+                            val artist = data.item.artist
+                            if (artist != null) {
                                 Marquee(autoscroll = false) {
-                                    Text(
-                                        data.item.title ?: "",
-                                        Modifier.fillMaxWidth(),
-                                        color = Theme.current.on_background,
-                                        softWrap = false,
-                                        overflow = TextOverflow.Ellipsis
-                                    )
-                                }
-
-                                if (data.item !is Artist) {
-                                    val artist = data.item.artist
-                                    if (artist != null) {
-                                        Marquee(autoscroll = false) {
-                                            artist.PreviewLong(MediaItem.PreviewParams(
-                                                remember { { playerProvider().let { player ->
-                                                    player.copy(onClickedOverride = {
-                                                        close_requested = true
-                                                        player.onMediaItemClicked(it)
-                                                    })
-                                                }}},
-                                                Modifier.fillMaxWidth()
-                                            ))
-                                        }
-                                    }
-                                }
-                            }
-                        }
-
-                        var show_info by remember { mutableStateOf(false) }
-
-                        Row(Modifier.requiredHeight(1.dp)) {
-                            var info_title_width: Int by remember { mutableStateOf(0) }
-                            var box_width: Int by remember { mutableStateOf(-1) }
-
-                            Box(
-                                Modifier
-                                    .fillMaxWidth()
-                                    .weight(1f)
-                                    .onSizeChanged { box_width = it.width }
-                            ) {
-                                if (data.info_title != null) {
-                                    Text(
-                                        data.info_title,
-                                        Modifier.offset(y = (-10).dp).onSizeChanged { info_title_width = it.width },
-                                        color = Theme.current.on_background,
-                                        overflow = TextOverflow.Visible
-                                    )
-                                }
-
-                                Box(
-                                    Modifier
-                                        .run {
-                                            if (box_width < 0) fillMaxWidth()
-                                            else width(animateDpAsState(
-                                                with(LocalDensity.current) {
-                                                    if (show_info) (box_width - info_title_width).toDp() - 15.dp else box_width.toDp()
-                                                }
-                                            ).value)
-                                        }
-                                        .requiredHeight(20.dp)
-                                        .background(Theme.current.background)
-                                        .align(Alignment.CenterEnd),
-                                    contentAlignment = Alignment.Center
-                                ) {
-                                    Divider(
-                                        thickness = Dp.Hairline,
-                                        color = Theme.current.on_background
-                                    )
-                                }
-                            }
-
-                            if (data.infoContent != null) {
-                                IconButton({ show_info = !show_info }, Modifier.requiredHeight(40.dp)) {
-                                    Crossfade(show_info) { info ->
-                                        Icon(if (info) Icons.Filled.Close else Icons.Filled.Info, null)
-                                    }
-                                }
-                            }
-
-                            data.sideButton?.invoke(Modifier.requiredHeight(40.dp), Theme.current.background, accent_colour ?: Theme.current.accent)
-                        }
-
-                        Crossfade(show_info) { info ->
-                            Column(verticalArrangement = Arrangement.spacedBy(item_spacing)) {
-                                if (info) {
-                                    data.infoContent?.invoke(this, accent_colour ?: Theme.current.accent)
-                                }
-                                else {
-                                    Actions(data, accent_colour ?: Theme.current.accent, playerProvider) { close_requested = true }
+                                    artist.PreviewLong(MediaItem.PreviewParams(
+                                        remember { { playerProvider().let { player ->
+                                            player.copy(onClickedOverride = {
+                                                close()
+                                                player.onMediaItemClicked(it)
+                                            })
+                                        }}},
+                                        Modifier.fillMaxWidth()
+                                    ))
                                 }
                             }
                         }
                     }
                 }
 
-                if (!fully_open && pos != null && width != null && height != null) {
+                var show_info by remember { mutableStateOf(false) }
+
+                // Info header
+                Row(Modifier.requiredHeight(1.dp)) {
+                    var info_title_width: Int by remember { mutableStateOf(0) }
+                    var box_width: Int by remember { mutableStateOf(-1) }
+
                     Box(
                         Modifier
-                            .offset { IntOffset(pos.value.x.toPx().roundToInt(), pos.value.y.toPx().roundToInt() - y_offset) }
-                            .requiredSize(width.value.dp, height.value.dp)
-                            .clip(
-                                data.thumb_shape ?: RoundedCornerShape(DEFAULT_THUMBNAIL_ROUNDING)
-                            )
-                            .alpha(if (no_transition) panel_alpha.value else 1f)
+                            .fillMaxWidth()
+                            .weight(1f)
+                            .onSizeChanged { box_width = it.width }
                     ) {
-                        Thumb(Modifier.fillMaxSize())
-                        data.hide_thumb = true
+                        if (data.info_title != null) {
+                            Text(
+                                data.info_title,
+                                Modifier.offset(y = (-10).dp).onSizeChanged { info_title_width = it.width },
+                                color = Theme.current.on_background,
+                                overflow = TextOverflow.Visible
+                            )
+                        }
+
+                        Box(
+                            Modifier
+                                .run {
+                                    if (box_width < 0) fillMaxWidth()
+                                    else width(animateDpAsState(
+                                        with(LocalDensity.current) {
+                                            if (show_info) (box_width - info_title_width).toDp() - 15.dp else box_width.toDp()
+                                        }
+                                    ).value)
+                                }
+                                .requiredHeight(20.dp)
+                                .background(Theme.current.background)
+                                .align(Alignment.CenterEnd),
+                            contentAlignment = Alignment.Center
+                        ) {
+                            Divider(
+                                thickness = Dp.Hairline,
+                                color = Theme.current.on_background
+                            )
+                        }
+                    }
+
+                    if (data.infoContent != null) {
+                        IconButton({ show_info = !show_info }, Modifier.requiredHeight(40.dp)) {
+                            Crossfade(show_info) { info ->
+                                Icon(if (info) Icons.Filled.Close else Icons.Filled.Info, null)
+                            }
+                        }
+                    }
+
+                    data.sideButton?.invoke(Modifier.requiredHeight(40.dp), Theme.current.background, accent_colour.value ?: Theme.current.accent)
+                }
+
+                // Info/action list
+                Crossfade(show_info) { info ->
+                    Column(verticalArrangement = Arrangement.spacedBy(item_spacing)) {
+                        if (info) {
+                            data.infoContent?.invoke(this, accent_colour.value ?: Theme.current.accent)
+                        }
+                        else {
+                            MenuActions(data, accent_colour.value ?: Theme.current.accent, playerProvider, close = close)
+                        }
                     }
                 }
+            }
+        }
+
+        if (!fully_open && pos != null && width != null && height != null) {
+            Box(
+                Modifier
+                    .offset { IntOffset(pos.value.x.toPx().roundToInt(), pos.value.y.toPx().roundToInt() - y_offset) }
+                    .requiredSize(width.value.dp, height.value.dp)
+                    .clip(
+                        data.thumb_shape ?: RoundedCornerShape(DEFAULT_THUMBNAIL_ROUNDING)
+                    )
+                    .alpha(if (no_transition) panel_alpha.value else 1f)
+            ) {
+                Thumb(Modifier.fillMaxSize())
+                data.hide_thumb = true
             }
         }
     }
 }
 
 @Composable
-private fun Actions(data: LongPressMenuData, accent_colour: Color, playerProvider: () -> PlayerViewContext, close: () -> Unit) {
+private fun MenuActions(data: LongPressMenuData, accent_colour: Color, playerProvider: () -> PlayerViewContext, close: () -> Unit) {
     val accent_colour_provider = remember (accent_colour) { { accent_colour } }
 
     data.actions?.invoke(
@@ -480,18 +518,37 @@ private fun Actions(data: LongPressMenuData, accent_colour: Color, playerProvide
         data.item
     )
 
-    LongPressMenuActionProvider.ActionButton(
-        Icons.Filled.Pin, 
-        getString(
-            if (data.item.pinned_to_home) "lpm_action_home_unpin"
-            else "lpm_action_home_pin"
-        ), 
-        accent_colour_provider, 
-        onClick = {
-            data.item.setPinnedToHome(!data.item.pinned_to_home, playerProvider)
-        }, 
-        closeMenu = close
-    )
+    // Begin multiple selection
+    data.multiselect_context?.also { multiselect ->
+        Crossfade(multiselect.is_active) { active ->
+            LongPressMenuActionProvider.ActionButton(
+                Icons.Default.Checklist,
+                getStringTODO(if (active) "マルチセレクトをやめる" else "マルチセレクトを始める"),
+                accent_colour_provider,
+                onClick = {
+                    multiselect.setActive(!active)
+                    multiselect.toggleItem(data.item, data.multiselect_key)
+                },
+                closeMenu = close
+            )
+        }
+    }
+
+    // Pin / unpin
+    Crossfade(data.item.pinned_to_home) { pinned ->
+        LongPressMenuActionProvider.ActionButton(
+            if (pinned) Icons.Filled.PushPin else Icons.Outlined.PushPin,
+            getString(
+                if (pinned) "lpm_action_home_unpin"
+                else "lpm_action_home_pin"
+            ),
+            accent_colour_provider,
+            onClick = {
+                data.item.setPinnedToHome(!pinned, playerProvider)
+            },
+            closeMenu = close
+        )
+    }
 
     if (SpMp.context.canShare()) {
         LongPressMenuActionProvider.ActionButton(Icons.Filled.Share, getString("lpm_action_share"), accent_colour_provider, onClick = {

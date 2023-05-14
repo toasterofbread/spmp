@@ -24,7 +24,6 @@ import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.graphics.*
 import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.input.pointer.pointerInput
-import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.layout.onSizeChanged
 import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.text.font.FontWeight
@@ -41,8 +40,8 @@ import com.spectre7.spmp.platform.getPixel
 import com.spectre7.spmp.platform.vibrateShort
 import com.spectre7.spmp.resources.getString
 import com.spectre7.spmp.ui.component.LikeDislikeButton
-import com.spectre7.spmp.ui.layout.MINIMISED_NOW_PLAYING_HEIGHT
-import com.spectre7.spmp.ui.layout.PlayerViewContext
+import com.spectre7.spmp.ui.layout.mainpage.MINIMISED_NOW_PLAYING_HEIGHT
+import com.spectre7.spmp.ui.layout.mainpage.PlayerViewContext
 import com.spectre7.spmp.ui.layout.nowplaying.overlay.DEFAULT_THUMBNAIL_ROUNDING
 import com.spectre7.spmp.ui.layout.nowplaying.overlay.MainOverlayMenu
 import com.spectre7.spmp.ui.layout.nowplaying.overlay.OverlayMenu
@@ -53,7 +52,6 @@ import com.spectre7.utils.composable.RecomposeOnInterval
 import com.spectre7.utils.formatElapsedTime
 import com.spectre7.utils.getInnerSquareSizeOfCircle
 import com.spectre7.utils.setAlpha
-import kotlin.concurrent.thread
 import kotlin.math.absoluteValue
 import kotlin.math.max
 import kotlin.math.min
@@ -69,8 +67,6 @@ private const val MIN_EXPANSION = 0.07930607f
 fun ColumnScope.NowPlayingMainTab(
     expansionProvider: () -> Float,
     page_height: Dp,
-    thumbnail: ImageBitmap?,
-    _setThumbnail: (ImageBitmap?) -> Unit,
     playerProvider: () -> PlayerViewContext,
     scroll: (pages: Int) -> Unit
 ) {
@@ -87,7 +83,6 @@ fun ColumnScope.NowPlayingMainTab(
     }
     
     var seek_state by remember { mutableStateOf(-1f) }
-    var loaded_song: Song? by remember { mutableStateOf(null) }
 
     val disappear_scale = minOf(1f, if (expansion < 0.5f) 1f else (1f - ((expansion - 0.5f) * 2f)))
     val appear_scale = minOf(1f, if (expansion > 0.5f) 1f else (expansion * 2f))
@@ -96,38 +91,24 @@ fun ColumnScope.NowPlayingMainTab(
         Theme.currentThumbnnailColourChanged(theme_colour)
     }
 
-    fun loadThumbnail(song: Song, quality: MediaItem.ThumbnailQuality) {
-        _setThumbnail(song.loadThumbnail(quality))
+    fun onThumbnailLoaded(image: ImageBitmap?, song: Song?) {
+        if (song != PlayerServiceHost.status.m_song) {
+            return
+        }
 
-        if (song.theme_colour != null) {
+        if (song == null) {
+            theme_colour = null
+        }
+        else if (song.theme_colour != null) {
             theme_colour = song.theme_colour
         }
         else if (song.canGetThemeColour()) {
             theme_colour = song.getDefaultThemeColour()
         }
-
-        loaded_song = song
     }
 
-    LaunchedEffect(PlayerServiceHost.status.m_song, PlayerServiceHost.status.m_song?.canLoadThumbnail()) {
-        val song = PlayerServiceHost.status.song
-        if (loaded_song == song) {
-            return@LaunchedEffect
-        }
-
-        if (song == null || !song.canLoadThumbnail()) {
-            _setThumbnail(null)
-            theme_colour = null
-            loaded_song = null
-        }
-        else if (song.isThumbnailLoaded(MediaItem.ThumbnailQuality.HIGH)) {
-            loadThumbnail(song, MediaItem.ThumbnailQuality.HIGH)
-        }
-        else {
-            thread {
-                loadThumbnail(song, MediaItem.ThumbnailQuality.HIGH)
-            }
-        }
+    LaunchedEffect(PlayerServiceHost.status.m_song) {
+        onThumbnailLoaded(null, PlayerServiceHost.status.m_song)
     }
 
     val thumbnail_rounding: Int? = PlayerServiceHost.status.m_song?.song_reg_entry?.thumbnail_rounding
@@ -204,74 +185,144 @@ fun ColumnScope.NowPlayingMainTab(
         Spacer(Modifier)
 
         Box(Modifier.aspectRatio(1f)) {
-            Crossfade(thumbnail, animationSpec = tween(250)) { image ->
-                if (image == null) {
-                    Box(Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
-                        CircularProgressIndicator(color = Theme.current.accent)
-                    }
-                }
-                else {
-                    Image(
-                        image, null,
-                        contentScale = ContentScale.Crop,
-                        modifier = Modifier
-                            .aspectRatio(1f)
-                            .clip(thumbnail_shape)
-                            .onSizeChanged {
-                                image_size = it
-                            }
-                            .run {
-                                if (colourpick_callback == null) {
-                                    if (overlay_menu == null || overlay_menu!!.closeOnTap()) {
-                                        this.clickable(
-                                            enabled = expansion == 1f,
-                                            indication = null,
-                                            interactionSource = remember { MutableInteractionSource() }
-                                        ) {
-                                            overlay_menu = if (overlay_menu == null) MainOverlayMenu(
-                                                { overlay_menu = it },
-                                                { colourpick_callback = it },
-                                                {
-                                                    setThemeColour(it)
-                                                    overlay_menu = null
-                                                },
-                                                { SpMp.context.getScreenWidth() }
-                                            ) else null
-                                        }
-                                    }
-                                    else {
-                                        this
+
+            Crossfade(PlayerServiceHost.status.m_song, animationSpec = tween(250)) { song ->
+                var image: ImageBitmap? by remember { mutableStateOf(null) }
+                song?.Thumbnail(
+                    MediaItem.ThumbnailQuality.HIGH,
+                    contentColourProvider = { getNPOnBackground(playerProvider) },
+                    onLoaded = {
+                        image = it
+                        onThumbnailLoaded(image, song)
+                    },
+                    modifier = Modifier
+                        .aspectRatio(1f)
+                        .clip(thumbnail_shape)
+                        .onSizeChanged {
+                            image_size = it
+                        }
+                        .run {
+                            if (colourpick_callback == null) {
+                                if (overlay_menu == null || overlay_menu!!.closeOnTap()) {
+                                    this.clickable(
+                                        enabled = expansion == 1f,
+                                        indication = null,
+                                        interactionSource = remember { MutableInteractionSource() }
+                                    ) {
+                                        overlay_menu = if (overlay_menu == null) MainOverlayMenu(
+                                            { overlay_menu = it },
+                                            { colourpick_callback = it },
+                                            {
+                                                setThemeColour(it)
+                                                overlay_menu = null
+                                            },
+                                            { SpMp.context.getScreenWidth() }
+                                        ) else null
                                     }
                                 }
                                 else {
-                                    this.pointerInput(Unit) {
-                                        detectTapGestures(
-                                            onTap = { offset ->
-                                                if (colourpick_callback != null) {
-                                                    val bitmap_size = min(image.width, image.height)
+                                    this
+                                }
+                            }
+                            else {
+                                this.pointerInput(Unit) {
+                                    detectTapGestures(
+                                        onTap = { offset ->
+                                            if (colourpick_callback != null) {
+                                                image?.apply {
+                                                    val bitmap_size = min(width, height)
                                                     var x = (offset.x / image_size.width) * bitmap_size
                                                     var y = (offset.y / image_size.height) * bitmap_size
 
-                                                    if (image.width > image.height) {
-                                                        x += (image.width - image.height) / 2
+                                                    if (width > height) {
+                                                        x += (width - height) / 2
                                                     }
-                                                    else if (image.height > image.width) {
-                                                        y += (image.height - image.width) / 2
+                                                    else if (height > width) {
+                                                        y += (height - width) / 2
                                                     }
 
                                                     colourpick_callback?.invoke(
-                                                        image.getPixel(x.toInt(), y.toInt())
+                                                        getPixel(x.toInt(), y.toInt())
                                                     )
                                                     colourpick_callback = null
                                                 }
                                             }
-                                        )
-                                    }
+                                        }
+                                    )
                                 }
                             }
-                    )
-                }
+                        }
+                )
             }
+
+//            Crossfade(thumbnail, animationSpec = tween(250)) { image ->
+//                if (image == null) {
+//                    Box(Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
+//                        CircularProgressIndicator(color = Theme.current.accent)
+//                    }
+//                }
+//                else {
+//                    Image(
+//                        image, null,
+//                        contentScale = ContentScale.Crop,
+//                        modifier = Modifier
+//                            .aspectRatio(1f)
+//                            .clip(thumbnail_shape)
+//                            .onSizeChanged {
+//                                image_size = it
+//                            }
+//                            .run {
+//                                if (colourpick_callback == null) {
+//                                    if (overlay_menu == null || overlay_menu!!.closeOnTap()) {
+//                                        this.clickable(
+//                                            enabled = expansion == 1f,
+//                                            indication = null,
+//                                            interactionSource = remember { MutableInteractionSource() }
+//                                        ) {
+//                                            overlay_menu = if (overlay_menu == null) MainOverlayMenu(
+//                                                { overlay_menu = it },
+//                                                { colourpick_callback = it },
+//                                                {
+//                                                    setThemeColour(it)
+//                                                    overlay_menu = null
+//                                                },
+//                                                { SpMp.context.getScreenWidth() }
+//                                            ) else null
+//                                        }
+//                                    }
+//                                    else {
+//                                        this
+//                                    }
+//                                }
+//                                else {
+//                                    this.pointerInput(Unit) {
+//                                        detectTapGestures(
+//                                            onTap = { offset ->
+//                                                if (colourpick_callback != null) {
+//                                                    val bitmap_size = min(image.width, image.height)
+//                                                    var x = (offset.x / image_size.width) * bitmap_size
+//                                                    var y = (offset.y / image_size.height) * bitmap_size
+//
+//                                                    if (image.width > image.height) {
+//                                                        x += (image.width - image.height) / 2
+//                                                    }
+//                                                    else if (image.height > image.width) {
+//                                                        y += (image.height - image.width) / 2
+//                                                    }
+//
+//                                                    colourpick_callback?.invoke(
+//                                                        image.getPixel(x.toInt(), y.toInt())
+//                                                    )
+//                                                    colourpick_callback = null
+//                                                }
+//                                            }
+//                                        )
+//                                    }
+//                                }
+//                            }
+//                    )
+//                }
+//            }
 
             // Thumbnail overlay menu
             androidx.compose.animation.AnimatedVisibility(

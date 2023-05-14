@@ -141,7 +141,7 @@ class Artist private constructor (
         if (is_own_channel) {
             return
         }
-        subscribed = isSubscribedToArtist(this).getOrThrowHere()
+        subscribed = isSubscribedToArtist(this).getOrNull()
     }
 
     fun toggleSubscribe(toggle_before_fetch: Boolean = false, onFinished: ((success: Boolean, subscribing: Boolean) -> Unit)? = null) {

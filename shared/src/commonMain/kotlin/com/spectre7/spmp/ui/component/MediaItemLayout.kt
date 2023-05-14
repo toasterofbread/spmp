@@ -34,10 +34,12 @@ import com.spectre7.spmp.api.DataApi.Companion.ytUrl
 import com.spectre7.spmp.model.*
 import com.spectre7.spmp.platform.composable.rememberImagePainter
 import com.spectre7.spmp.resources.getString
-import com.spectre7.spmp.ui.layout.PlayerViewContext
+import com.spectre7.spmp.ui.component.multiselect.MediaItemMultiSelectContext
+import com.spectre7.spmp.ui.layout.mainpage.PlayerViewContext
 import com.spectre7.spmp.ui.theme.Theme
 import com.spectre7.utils.*
 import com.spectre7.utils.composable.WidthShrinkText
+import com.spectre7.utils.modifier.background
 import okhttp3.Request
 
 data class MediaItemLayout(
@@ -65,13 +67,19 @@ data class MediaItemLayout(
         CARD;
 
         @Composable
-        fun Layout(layout: MediaItemLayout, playerProvider: () -> PlayerViewContext, modifier: Modifier = Modifier) {
+        fun Layout(
+            layout: MediaItemLayout,
+            playerProvider: () -> PlayerViewContext,
+            modifier: Modifier = Modifier,
+            multiselect_context: MediaItemMultiSelectContext? = null
+        ) {
             when (this) {
-                GRID -> MediaItemGrid(layout, playerProvider, modifier)
-                ROW -> MediaItemGrid(layout, playerProvider, modifier, 1)
-                LIST -> MediaItemList(layout, false, playerProvider, modifier)
-                NUMBERED_LIST -> MediaItemList(layout, true, playerProvider, modifier)
-                CARD -> MediaItemCard(layout, playerProvider, modifier)
+                // TODO multiselect_context
+                GRID -> MediaItemGrid(layout, playerProvider, modifier, multiselect_context = multiselect_context)
+                ROW -> MediaItemGrid(layout, playerProvider, modifier, 1, multiselect_context = multiselect_context)
+                LIST -> MediaItemList(layout, false, playerProvider, modifier, multiselect_context = multiselect_context)
+                NUMBERED_LIST -> MediaItemList(layout, true, playerProvider, modifier, multiselect_context = multiselect_context)
+                CARD -> MediaItemCard(layout, playerProvider, modifier, multiselect_context = multiselect_context)
             }
         }
     }
@@ -238,75 +246,80 @@ data class MediaItemLayout(
         return if (thumbnail_item_type == MediaItem.Type.ARTIST) CircleShape else RectangleShape
     }
 
+    fun shouldShowTitleBar(): Boolean = thumbnail_source != null || title != null || subtitle != null || view_more != null
+
     @Composable
     fun TitleBar(
         playerProvider: () -> PlayerViewContext,
         modifier: Modifier = Modifier,
-        font_size: TextUnit? = null
+        font_size: TextUnit? = null,
+        multiselect_context: MediaItemMultiSelectContext? = null
     ) {
-        if (thumbnail_source == null && title == null && subtitle == null && view_more == null) {
-            return
-        }
+        AnimatedVisibility(shouldShowTitleBar()) {
+            val title_string: String? = remember { title?.getString() }
+            val subtitle_string: String? = remember { subtitle?.getString() }
 
-        val title_string: String? = remember { title?.getString() }
-        val subtitle_string: String? = remember { subtitle?.getString() }
-
-        Row(
-            modifier
-                .fillMaxWidth()
-                .height(IntrinsicSize.Max),
-            verticalAlignment = Alignment.CenterVertically,
-            horizontalArrangement = Arrangement.spacedBy(10.dp)
-        ) {
-            val thumbnail_url = thumbnail_source?.getThumbUrl(MediaItem.ThumbnailQuality.LOW)
-            if (thumbnail_url != null) {
-                Image(
-                    rememberImagePainter(thumbnail_url), 
-                    null,
-                    Modifier
-                        .fillMaxHeight()
-                        .aspectRatio(1f)
-                        .clip(getThumbShape())
-                )
-            }
-
-            Column(verticalArrangement = Arrangement.Center, modifier = Modifier.weight(1f)) {
-                if (subtitle_string != null) {
-                    WidthShrinkText(subtitle_string, style = MaterialTheme.typography.titleSmall.copy(color = Theme.current.on_background))
-                }
-
-                if (title_string != null) {
-                    WidthShrinkText(
-                        title_string,
-                        modifier = Modifier.fillMaxWidth(),
-                        style = MaterialTheme.typography.headlineMedium.let { style ->
-                            style.copy(
-                                color = Theme.current.on_background,
-                                fontSize = font_size ?: style.fontSize
-                            )
-                        }
+            Row(
+                modifier
+                    .fillMaxWidth()
+                    .height(IntrinsicSize.Max),
+                verticalAlignment = Alignment.CenterVertically,
+                horizontalArrangement = Arrangement.spacedBy(10.dp)
+            ) {
+                val thumbnail_url = thumbnail_source?.getThumbUrl(MediaItem.ThumbnailQuality.LOW)
+                if (thumbnail_url != null) {
+                    Image(
+                        rememberImagePainter(thumbnail_url),
+                        null,
+                        Modifier
+                            .fillMaxHeight()
+                            .aspectRatio(1f)
+                            .clip(getThumbShape())
                     )
                 }
-            }
 
-            view_more?.also { view_more ->
-                IconButton(
-                    {
-                        if (view_more.media_item != null) {
-                            playerProvider().openMediaItem(view_more.media_item, true)
-                        }
-                        else if (view_more.list_page_url != null) {
-                            TODO(view_more.list_page_url)
-                        }
-                        else if (view_more.action != null) {
-                            view_more.action.invoke()
-                        }
-                        else {
-                            throw NotImplementedError(view_more.toString())
+                Column(verticalArrangement = Arrangement.Center, modifier = Modifier.weight(1f)) {
+                    if (subtitle_string != null) {
+                        WidthShrinkText(subtitle_string, style = MaterialTheme.typography.titleSmall.copy(color = Theme.current.on_background))
+                    }
+
+                    if (title_string != null) {
+                        WidthShrinkText(
+                            title_string,
+                            modifier = Modifier.fillMaxWidth(),
+                            style = MaterialTheme.typography.headlineMedium.let { style ->
+                                style.copy(
+                                    color = Theme.current.on_background,
+                                    fontSize = font_size ?: style.fontSize
+                                )
+                            }
+                        )
+                    }
+                }
+
+                Row {
+                    view_more?.also { view_more ->
+                        IconButton(
+                            {
+                                if (view_more.media_item != null) {
+                                    playerProvider().openMediaItem(view_more.media_item, true)
+                                }
+                                else if (view_more.list_page_url != null) {
+                                    TODO(view_more.list_page_url)
+                                }
+                                else if (view_more.action != null) {
+                                    view_more.action.invoke()
+                                }
+                                else {
+                                    throw NotImplementedError(view_more.toString())
+                                }
+                            }
+                        ) {
+                            Icon(Icons.Default.MoreHoriz, null)
                         }
                     }
-                ) {
-                    Icon(Icons.Default.MoreHoriz, null)
+
+                    multiselect_context?.CollectionToggleButton(items)
                 }
             }
         }
@@ -330,6 +343,7 @@ fun LazyMediaItemLayoutColumn(
     layoutItem: LazyListScope.(layout: MediaItemLayout, i: Int, showLayout: LazyListScope.(MediaItemLayout) -> Unit) -> Unit = { layout, i, showLayout ->
         showLayout(this, layout)
     },
+    multiselect_context: MediaItemMultiSelectContext? = null,
     getType: ((MediaItemLayout) -> MediaItemLayout.Type)? = null
 ) {
     val layouts = layoutsProvider()
@@ -355,7 +369,7 @@ fun LazyMediaItemLayoutColumn(
                 { layout ->
                     item {
                         val type = getType?.invoke(layout) ?: layout.type!!
-                        type.Layout(layout, playerProvider, layout_modifier)
+                        type.Layout(layout, playerProvider, layout_modifier, multiselect_context)
                     }
                     item { Spacer(Modifier.height(spacing)) }
                 }
@@ -405,7 +419,8 @@ fun LazyMediaItemLayoutColumn(
 fun MediaItemCard(
     layout: MediaItemLayout,
     playerProvider: () -> PlayerViewContext,
-    modifier: Modifier = Modifier
+    modifier: Modifier = Modifier,
+    multiselect_context: MediaItemMultiSelectContext? = null
 ) {
     val item: MediaItem = layout.items.single()
     var accent_colour: Color? by remember { mutableStateOf(null) }
@@ -413,9 +428,9 @@ fun MediaItemCard(
     val shape = RoundedCornerShape(16.dp)
     val long_press_menu_data = remember (item) {
         when (item) {
-            is Song -> getSongLongPressMenuData(item, shape)
-            is Artist -> getArtistLongPressMenuData(item)
-            else -> LongPressMenuData(item, shape)
+            is Song -> getSongLongPressMenuData(item, shape, multiselect_context = multiselect_context)
+            is Artist -> getArtistLongPressMenuData(item, multiselect_context = multiselect_context)
+            else -> LongPressMenuData(item, shape, multiselect_context = multiselect_context)
         }
     }
 
@@ -453,7 +468,7 @@ fun MediaItemCard(
             verticalAlignment = Alignment.CenterVertically,
             horizontalArrangement = Arrangement.spacedBy(5.dp)
         ) {
-            layout.TitleBar(playerProvider, Modifier.fillMaxWidth().weight(1f))
+            layout.TitleBar(playerProvider, Modifier.fillMaxWidth().weight(1f), multiselect_context = multiselect_context)
 
             Text(if (item is Playlist) item.playlist_type.getReadable(false) else item.type.getReadable(false))
 
@@ -482,12 +497,16 @@ fun MediaItemCard(
                 .height(IntrinsicSize.Min),
             horizontalArrangement = Arrangement.spacedBy(10.dp)
         ) {
-            item.Thumbnail(
-                MediaItem.ThumbnailQuality.HIGH,
-                Modifier
-                    .longPressMenuIcon(long_press_menu_data)
-                    .size(100.dp),
-            )
+            Box(Modifier.width(IntrinsicSize.Min).height(IntrinsicSize.Min)) {
+                item.Thumbnail(
+                    MediaItem.ThumbnailQuality.HIGH,
+                    Modifier
+                        .longPressMenuIcon(long_press_menu_data)
+                        .size(100.dp),
+                )
+
+                multiselect_context?.SelectableItemOverlay(item, Modifier.fillMaxSize())
+            }
 
             Column(
                 Modifier
@@ -537,6 +556,7 @@ fun MediaItemGrid(
     playerProvider: () -> PlayerViewContext,
     modifier: Modifier = Modifier,
     rows: Int? = null,
+    multiselect_context: MediaItemMultiSelectContext? = null,
     startContent: (LazyGridScope.() -> Unit)? = null
 ) {
     val row_count = rows ?: if (layout.items.size <= 3) 1 else 2
@@ -544,43 +564,52 @@ fun MediaItemGrid(
     val item_size = layout.itemSizeProvider()
 
     Column(modifier, verticalArrangement = Arrangement.spacedBy(10.dp)) {
-        layout.TitleBar(playerProvider)
+        layout.TitleBar(playerProvider, multiselect_context = multiselect_context)
 
-        LazyHorizontalGrid(
-            rows = GridCells.Fixed(row_count),
-            modifier = Modifier.height(item_size.height * row_count),
-            horizontalArrangement = item_spacing,
-            verticalArrangement = item_spacing
-        ) {
-            startContent?.invoke(this)
+        Box(contentAlignment = Alignment.CenterEnd) {
+            LazyHorizontalGrid(
+                rows = GridCells.Fixed(row_count),
+                modifier = Modifier.height(item_size.height * row_count),
+                horizontalArrangement = item_spacing,
+                verticalArrangement = item_spacing
+            ) {
+                startContent?.invoke(this)
 
-            items(layout.items.size, { layout.items[it].id }) {
-                layout.items[it].PreviewSquare(MediaItem.PreviewParams(
-                    playerProvider,
-                    Modifier.size(item_size),
-                    contentColour = Theme.current.on_background_provider
-                ))
-//                    if(animate?.value == true) {
-//                        LaunchedEffect(Unit) {
-//                            animate.value = false
-//                        }
-//
-//                        var visible by remember { mutableStateOf(false) }
-//                        LaunchedEffect(visible) {
-//                            visible = true
-//                        }
-//                        AnimatedVisibility(
-//                            visible,
-//                            enter = fadeIn() + expandIn(expandFrom = Alignment.Center),
-//                            exit = fadeOut() + shrinkOut(shrinkTowards = Alignment.Center)
-//                        ) {
-//                            item.PreviewSquare(MediaItem.PreviewParams(
-//                                playerProvider, content_colour = Theme.current.on_background_provider
-//                            ))
-//                        }
-//                    }
-//                    else {
-//                    }
+                items(layout.items.size, { layout.items[it].id }) {
+                    layout.items[it].PreviewSquare(MediaItem.PreviewParams(
+                        playerProvider,
+                        Modifier.size(item_size),
+                        contentColour = Theme.current.on_background_provider,
+                        multiselect_context = multiselect_context
+                    ))
+    //                    if(animate?.value == true) {
+    //                        LaunchedEffect(Unit) {
+    //                            animate.value = false
+    //                        }
+    //
+    //                        var visible by remember { mutableStateOf(false) }
+    //                        LaunchedEffect(visible) {
+    //                            visible = true
+    //                        }
+    //                        AnimatedVisibility(
+    //                            visible,
+    //                            enter = fadeIn() + expandIn(expandFrom = Alignment.Center),
+    //                            exit = fadeOut() + shrinkOut(shrinkTowards = Alignment.Center)
+    //                        ) {
+    //                            item.PreviewSquare(MediaItem.PreviewParams(
+    //                                playerProvider, content_colour = Theme.current.on_background_provider
+    //                            ))
+    //                        }
+    //                    }
+    //                    else {
+    //                    }
+                }
+            }
+
+            if (multiselect_context != null && !layout.shouldShowTitleBar()) {
+                Box(Modifier.background(CircleShape, Theme.current.background_provider), contentAlignment = Alignment.Center) {
+                    multiselect_context.CollectionToggleButton(layout.items)
+                }
             }
         }
     }
@@ -591,10 +620,11 @@ fun MediaItemList(
     layout: MediaItemLayout,
     numbered: Boolean,
     playerProvider: () -> PlayerViewContext,
-    modifier: Modifier = Modifier
+    modifier: Modifier = Modifier,
+    multiselect_context: MediaItemMultiSelectContext? = null
 ) {
     Column(modifier) {
-        layout.TitleBar(playerProvider, Modifier.padding(bottom = 5.dp))
+        layout.TitleBar(playerProvider, Modifier.padding(bottom = 5.dp), multiselect_context = multiselect_context)
 
         for (item in layout.items.withIndex()) {
             Row(verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(10.dp)) {
@@ -603,7 +633,7 @@ fun MediaItemList(
                 }
 
                 Column {
-                    item.value.PreviewLong(MediaItem.PreviewParams(playerProvider))
+                    item.value.PreviewLong(MediaItem.PreviewParams(playerProvider, multiselect_context = multiselect_context))
                 }
             }
         }

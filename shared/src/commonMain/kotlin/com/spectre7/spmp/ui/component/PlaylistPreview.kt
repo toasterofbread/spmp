@@ -35,7 +35,12 @@ fun PlaylistPreviewSquare(
         params.modifier
             .platformClickable(
                 onClick = {
-                    params.playerProvider().onMediaItemClicked(playlist)
+                    if (params.multiselect_context?.is_active == true) {
+                        params.multiselect_context.toggleItem(playlist)
+                    }
+                    else {
+                        params.playerProvider().onMediaItemClicked(playlist)
+                    }
                 },
                 onAltClick = {
                     params.playerProvider().showLongPressMenu(long_press_menu_data)
@@ -50,6 +55,10 @@ fun PlaylistPreviewSquare(
                 Modifier.longPressMenuIcon(long_press_menu_data, params.enable_long_press_menu).aspectRatio(1f),
                 params.contentColour
             )
+
+            params.multiselect_context?.also { ctx ->
+                ctx.SelectableItemOverlay(playlist, Modifier.fillMaxSize())
+            }
         }
 
         Text(
@@ -69,10 +78,11 @@ fun PlaylistPreviewLong(
     playlist: Playlist, 
     params: MediaItem.PreviewParams
 ) {
-    val long_press_menu_data = remember(playlist) { LongPressMenuData(
-        playlist,
-        RoundedCornerShape(10.dp)
-    ) { } // TODO
+    val long_press_menu_data = remember(playlist) {
+        LongPressMenuData(
+            playlist,
+            RoundedCornerShape(10.dp)
+        ) { } // TODO
     }
 
     Row(
@@ -82,20 +92,31 @@ fun PlaylistPreviewLong(
                 interactionSource = remember { MutableInteractionSource() },
                 indication = null,
                 onClick = {
-                    params.playerProvider().onMediaItemClicked(playlist)
+                    if (params.multiselect_context?.is_active == true) {
+                        params.multiselect_context.toggleItem(playlist)
+                    }
+                    else {
+                        params.playerProvider().onMediaItemClicked(playlist)
+                    }
                 },
                 onLongClick = {
                     params.playerProvider().showLongPressMenu(long_press_menu_data)
                 }
             )
     ) {
-        playlist.Thumbnail(
-            MediaItem.ThumbnailQuality.LOW,
-            Modifier
-                .longPressMenuIcon(long_press_menu_data, params.enable_long_press_menu)
-                .size(40.dp),
-            params.contentColour
-        )
+        Box(Modifier.width(IntrinsicSize.Min).height(IntrinsicSize.Min), contentAlignment = Alignment.Center) {
+            playlist.Thumbnail(
+                MediaItem.ThumbnailQuality.LOW,
+                Modifier
+                    .longPressMenuIcon(long_press_menu_data, params.enable_long_press_menu)
+                    .size(40.dp),
+                params.contentColour
+            )
+
+            params.multiselect_context?.also { ctx ->
+                ctx.SelectableItemOverlay(playlist, Modifier.fillMaxSize())
+            }
+        }
 
         Column(
             Modifier.padding(10.dp).fillMaxWidth(),

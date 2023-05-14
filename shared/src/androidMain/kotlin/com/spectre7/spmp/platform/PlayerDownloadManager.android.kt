@@ -8,6 +8,7 @@ actual class PlayerDownloadManager actual constructor(val context: PlatformConte
     private var service: PlayerDownloadService? = null
     private var service_connecting = false
     private var service_connection: Any? = null
+    private val service_connect_callbacks: MutableList<(PlayerDownloadService) -> Unit> = mutableListOf()
 
     data class PlayerDownloadMessage(
         val action: PlayerDownloadService.IntentAction,
@@ -188,19 +189,37 @@ actual class PlayerDownloadManager actual constructor(val context: PlatformConte
 
     @Synchronized
     private fun startService(onConnected: ((PlayerDownloadService) -> Unit)? = null, onDisconnected: (() -> Unit)? = null) {
-        if (service_connecting || service != null) {
-            return
+        synchronized(service_connect_callbacks) {
+            if (service != null) {
+                onConnected?.invoke(service!!)
+                return
+            }
+
+            if (service_connecting) {
+                if (onConnected != null) {
+                    service_connect_callbacks.add(onConnected)
+                }
+                return
+            }
+
+            service_connecting = true
         }
 
-        service_connecting = true
         service_connection = PlatformService.startService(
             context,
             PlayerDownloadService::class.java,
             onConnected = { binder ->
-                service = (binder as PlayerDownloadService.ServiceBinder).getService()
-                service!!.addMessageReceiver(result_receiver)
-                service_connecting = false
-                onConnected?.invoke(service!!)
+                synchronized(service_connect_callbacks) {
+                    service = (binder as PlayerDownloadService.ServiceBinder).getService()
+                    service!!.addMessageReceiver(result_receiver)
+                    service_connecting = false
+
+                    onConnected?.invoke(service!!)
+                    for (callback in service_connect_callbacks) {
+                        callback(service!!)
+                    }
+                    service_connect_callbacks.clear()
+                }
             },
             onDisconnected = {
                 service = null

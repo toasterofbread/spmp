@@ -1,12 +1,14 @@
 package com.spectre7.spmp.model
 
 import SpMp
-import androidx.compose.animation.Crossfade
 import androidx.compose.foundation.Image
+import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.*
+import androidx.compose.material3.Icon
 import androidx.compose.runtime.*
+import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.ImageBitmap
@@ -24,13 +26,15 @@ import com.spectre7.spmp.platform.toByteArray
 import com.spectre7.spmp.platform.toImageBitmap
 import com.spectre7.spmp.resources.getString
 import com.spectre7.spmp.ui.component.MediaItemLayout
-import com.spectre7.spmp.ui.layout.PlayerViewContext
+import com.spectre7.spmp.ui.component.multiselect.MediaItemMultiSelectContext
+import com.spectre7.spmp.ui.layout.mainpage.PlayerViewContext
 import com.spectre7.utils.*
 import com.spectre7.utils.composable.SubtleLoadingIndicator
 import kotlinx.coroutines.*
 import java.io.File
 import java.io.FileNotFoundException
 import java.io.Reader
+import java.net.SocketTimeoutException
 import java.net.URL
 import java.time.Duration
 import java.util.*
@@ -176,7 +180,7 @@ abstract class MediaItem(id: String) {
     var pinned_to_home: Boolean by mutableStateOf(false)
         private set
 
-    private inner class ThumbState(private val quality: ThumbnailQuality) {
+    private inner class ThumbState(val quality: ThumbnailQuality) {
         var loading: Boolean by mutableStateOf(false)
         var image: ImageBitmap? by mutableStateOf(null)
 
@@ -212,7 +216,12 @@ abstract class MediaItem(id: String) {
                 return
             }
 
-            image = downloadThumbnail(quality) ?: return
+            try {
+                image = downloadThumbnail(quality) ?: return
+            }
+            catch (e: SocketTimeoutException) {
+                return
+            }
 
             if (Settings.KEY_THUMB_CACHE_ENABLED.get()) {
                 cache_file.parentFile.mkdirs()
@@ -687,7 +696,8 @@ abstract class MediaItem(id: String) {
         val modifier: Modifier = Modifier,
         val contentColour: (() -> Color)? = null,
         val enable_long_press_menu: Boolean = true,
-        val show_type: Boolean = true
+        val show_type: Boolean = true,
+        val multiselect_context: MediaItemMultiSelectContext? = null
     )
 
     @Composable
@@ -696,7 +706,12 @@ abstract class MediaItem(id: String) {
     abstract fun PreviewLong(params: PreviewParams)
 
     @Composable
-    fun Thumbnail(quality: ThumbnailQuality, modifier: Modifier = Modifier, contentColourProvider: (() -> Color)? = null, onLoaded: ((ImageBitmap) -> Unit)? = null) {
+    fun Thumbnail(
+        quality: ThumbnailQuality,
+        modifier: Modifier = Modifier,
+        contentColourProvider: (() -> Color)? = null,
+        onLoaded: ((ImageBitmap) -> Unit)? = null
+    ) {
         LaunchedEffect(quality, canLoadThumbnail()) {
             if (!canLoadThumbnail()) {
                 thread { loadData() }
@@ -704,14 +719,23 @@ abstract class MediaItem(id: String) {
             loadAndGetThumbnail(quality)
         }
 
+        val state = thumb_states.values.lastOrNull { state ->
+            state.quality <= quality && state.image != null
+        } ?: thumb_states[quality]!!
+
         var loaded by remember { mutableStateOf(false) }
 
-        Crossfade(thumb_states[quality]!!.image) { thumbnail ->
-            if (thumbnail == null) {
-                SubtleLoadingIndicator(modifier.fillMaxSize(), contentColourProvider)
+        if (state.loading) {
+            SubtleLoadingIndicator(modifier.fillMaxSize(), contentColourProvider)
+        }
+        else if (state.image == null) {
+            Box(Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
+                Icon(Icons.Default.WifiOff, null)
             }
-            else {
-                if (!loaded) {
+        }
+        else {
+            state.image?.also { thumbnail ->
+                if (!loaded && state.quality == quality) {
                     onLoaded?.invoke(thumbnail)
                     loaded = true
                 }

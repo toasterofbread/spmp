@@ -5,7 +5,7 @@ import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Modifier
 import com.spectre7.spmp.model.Song
-import com.spectre7.spmp.ui.layout.PlayerViewContext
+import com.spectre7.spmp.ui.layout.mainpage.PlayerViewContext
 
 class DownloadOverlayMenu: OverlayMenu() {
 

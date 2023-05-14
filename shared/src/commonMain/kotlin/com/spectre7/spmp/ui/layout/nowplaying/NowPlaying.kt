@@ -21,7 +21,7 @@ import androidx.compose.ui.unit.*
 import com.spectre7.spmp.PlayerServiceHost
 import com.spectre7.spmp.platform.composable.BackHandler
 import com.spectre7.spmp.platform.composable.scrollWheelSwipeable
-import com.spectre7.spmp.ui.layout.PlayerViewContext
+import com.spectre7.spmp.ui.layout.mainpage.PlayerViewContext
 import com.spectre7.spmp.ui.theme.Theme
 import com.spectre7.utils.*
 import com.spectre7.utils.composable.OnChangedEffect
@@ -136,7 +136,6 @@ fun NowPlayingCardContent(
     MinimisedProgressBar(playerProvider, expansionProvider)
 
     val screen_width_dp = SpMp.context.getScreenWidth()
-    val thumbnail = remember { mutableStateOf<ImageBitmap?>(null) }
 
     Column(Modifier.fillMaxHeight(), verticalArrangement = Arrangement.Top) {
         Column(
@@ -149,8 +148,6 @@ fun NowPlayingCardContent(
             NowPlayingMainTab(
                 expansionProvider,
                 page_height,
-                thumbnail.value,
-                { thumbnail.value = it },
                 remember {
                     {
                         playerProvider().copy(

@@ -27,6 +27,7 @@ import com.spectre7.spmp.PlayerServiceHost
 import com.spectre7.spmp.model.Artist
 import com.spectre7.spmp.model.MediaItem
 import com.spectre7.spmp.platform.composable.platformClickable
+import com.spectre7.spmp.ui.component.multiselect.MediaItemMultiSelectContext
 import com.spectre7.spmp.ui.layout.ArtistSubscribeButton
 
 const val ARTIST_THUMB_CORNER_ROUNDING = 50
@@ -44,14 +45,15 @@ fun ArtistPreviewSquare(
         params.modifier
             .platformClickable(
                 onClick = {
-                    params
-                        .playerProvider()
-                        .onMediaItemClicked(artist)
+                    if (params.multiselect_context?.is_active == true) {
+                        params.multiselect_context.toggleItem(artist)
+                    }
+                    else {
+                        params.playerProvider().onMediaItemClicked(artist)
+                    }
                 },
                 onAltClick = {
-                    params
-                        .playerProvider()
-                        .showLongPressMenu(long_press_menu_data)
+                    params.playerProvider().showLongPressMenu(long_press_menu_data)
                 }
             ),
         horizontalAlignment = Alignment.CenterHorizontally,
@@ -63,6 +65,10 @@ fun ArtistPreviewSquare(
                 Modifier.longPressMenuIcon(long_press_menu_data, params.enable_long_press_menu).aspectRatio(1f),
                 params.contentColour
             )
+
+            params.multiselect_context?.also { ctx ->
+                ctx.SelectableItemOverlay(artist, Modifier.fillMaxSize())
+            }
         }
 
         Text(
@@ -82,7 +88,7 @@ fun ArtistPreviewLong(
     params: MediaItem.PreviewParams
 ) {
     val long_press_menu_data = remember(artist) {
-        getArtistLongPressMenuData(artist)
+        getArtistLongPressMenuData(artist, multiselect_context = params.multiselect_context)
     }
 
     Row(
@@ -92,23 +98,30 @@ fun ArtistPreviewLong(
                 interactionSource = remember { MutableInteractionSource() },
                 indication = null,
                 onClick = {
-                    params
-                        .playerProvider()
-                        .onMediaItemClicked(artist)
+                    if (params.multiselect_context?.is_active == true) {
+                        params.multiselect_context.toggleItem(artist)
+                    }
+                    else {
+                        params.playerProvider().onMediaItemClicked(artist)
+                    }
                 },
                 onLongClick = {
-                    params
-                        .playerProvider()
-                        .showLongPressMenu(long_press_menu_data)
+                    params.playerProvider().showLongPressMenu(long_press_menu_data)
                 }
             )
     ) {
-        artist.Thumbnail(
-            MediaItem.ThumbnailQuality.LOW,
-            Modifier
-                .longPressMenuIcon(long_press_menu_data, params.enable_long_press_menu)
-                .size(40.dp)
-        )
+        Box(Modifier.width(IntrinsicSize.Min).height(IntrinsicSize.Min), contentAlignment = Alignment.Center) {
+            artist.Thumbnail(
+                MediaItem.ThumbnailQuality.LOW,
+                Modifier
+                    .longPressMenuIcon(long_press_menu_data, params.enable_long_press_menu)
+                    .size(40.dp)
+            )
+
+            params.multiselect_context?.also { ctx ->
+                ctx.SelectableItemOverlay(artist, Modifier.fillMaxSize())
+            }
+        }
 
         Column(Modifier.padding(8.dp)) {
             Text(
@@ -133,14 +146,13 @@ fun ArtistPreviewLong(
 
 fun getArtistLongPressMenuData(
     artist: Artist,
-    thumb_shape: Shape? = RoundedCornerShape(ARTIST_THUMB_CORNER_ROUNDING)
+    thumb_shape: Shape? = RoundedCornerShape(ARTIST_THUMB_CORNER_ROUNDING),
+    multiselect_context: MediaItemMultiSelectContext? = null
 ): LongPressMenuData {
     return LongPressMenuData(
         artist,
         thumb_shape,
-        actions = {
-            ArtistLongPressPopupActions(it)
-        },
+        multiselect_context = multiselect_context,
         sideButton = { modifier, background, accent ->
             ArtistSubscribeButton(
                 artist,
@@ -149,7 +161,9 @@ fun getArtistLongPressMenuData(
                 modifier = modifier
             )
         }
-    )
+    ) {
+        ArtistLongPressPopupActions(it)
+    }
 }
 
 @Composable

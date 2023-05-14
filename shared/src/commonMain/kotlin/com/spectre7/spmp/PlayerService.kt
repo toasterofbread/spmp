@@ -74,12 +74,12 @@ class PlayerService : MediaPlayerService() {
             val final_item = item ?: getSong(index)!!
             radio.playMediaItem(final_item)
             radio.loadContinuation { result ->
-                if (result.isFailure) {
-                    SpMp.error_manager.onError("startRadioAtIndex", result.exceptionOrNull()!!)
-                    savePersistentQueue()
-                }
-                else {
-                    context.mainThread {
+                context.mainThread {
+                    if (result.isFailure) {
+                        SpMp.error_manager.onError("startRadioAtIndex", result.exceptionOrNull()!!)
+                        savePersistentQueue()
+                    }
+                    else {
                         addMultipleToQueue(result.getOrThrowHere(), index, skip_first)
 
                         if (final_item !is Song) {
@@ -395,11 +395,19 @@ class PlayerService : MediaPlayerService() {
                     val text_b = formatText(Settings.KEY_DISCORD_STATUS_TEXT_B.get())
                     val text_c = formatText(Settings.KEY_DISCORD_STATUS_TEXT_C.get())
 
-                    val large_image = getCustomImage(song.id) { song.loadThumbnail(MediaItem.ThumbnailQuality.LOW)!! }
-                    val small_image = song.artist?.let { artist ->
-                        getCustomImage(artist.id) {
-                            artist.loadThumbnail(MediaItem.ThumbnailQuality.LOW)
+                    val large_image: String?
+                    val small_image: String?
+
+                    try {
+                        large_image = getCustomImage(song.id) { song.loadThumbnail(MediaItem.ThumbnailQuality.LOW)!! }.getOrThrow()
+                        small_image = song.artist?.let { artist ->
+                            getCustomImage(artist.id) {
+                                artist.loadThumbnail(MediaItem.ThumbnailQuality.LOW)
+                            }.getOrThrow()
                         }
+                    }
+                    catch (e: IOException) {
+                        return@runBlocking
                     }
 
                     val buttons = mutableListOf<Pair<String, String>>().apply {

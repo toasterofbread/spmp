@@ -9,7 +9,6 @@ import android.content.pm.PackageManager
 import android.graphics.drawable.Icon
 import androidx.core.app.ActivityCompat
 import androidx.core.app.NotificationManagerCompat
-import com.beust.klaxon.Klaxon
 import com.spectre7.spmp.api.cast
 import com.spectre7.spmp.model.Settings
 import com.spectre7.spmp.model.Song
@@ -533,13 +532,16 @@ class PlayerDownloadService: PlatformService() {
             }
 
             if (ActivityCompat.checkSelfPermission(this, "android.permission.POST_NOTIFICATIONS") == PackageManager.PERMISSION_GRANTED) {
-                NotificationManagerCompat.from(this).notify(
-                    NOTIFICATION_ID, builder.build().apply {
-                        if (downloads.isEmpty() || total_progress == 1f) {
-                            actions = arrayOf<Notification.Action>()
+                try {
+                    NotificationManagerCompat.from(this).notify(
+                        NOTIFICATION_ID, builder.build().apply {
+                            if (downloads.isEmpty() || total_progress == 1f) {
+                                actions = arrayOf<Notification.Action>()
+                            }
                         }
-                    }
-                )
+                    )
+                }
+                catch (_: Throwable) {}
             }
         }
     }

@@ -34,8 +34,8 @@ import com.spectre7.spmp.platform.MediaPlayerRepeatMode
 import com.spectre7.spmp.platform.MediaPlayerService
 import com.spectre7.spmp.platform.vibrateShort
 import com.spectre7.spmp.resources.getString
-import com.spectre7.spmp.ui.layout.MINIMISED_NOW_PLAYING_HEIGHT
-import com.spectre7.spmp.ui.layout.PlayerViewContext
+import com.spectre7.spmp.ui.layout.mainpage.MINIMISED_NOW_PLAYING_HEIGHT
+import com.spectre7.spmp.ui.layout.mainpage.PlayerViewContext
 import com.spectre7.utils.*
 import com.spectre7.utils.composable.Divider
 import com.spectre7.utils.composable.OnChangedEffect

@@ -4,6 +4,7 @@ import com.spectre7.spmp.model.Song
 import com.spectre7.spmp.resources.getString
 import okhttp3.*
 import org.schabi.newpipe.extractor.NewPipe
+import org.schabi.newpipe.extractor.exceptions.ParsingException
 import org.schabi.newpipe.extractor.services.youtube.linkHandler.YoutubeStreamLinkHandlerFactory
 import org.schabi.newpipe.extractor.stream.AudioStream
 import org.schabi.newpipe.extractor.stream.StreamInfo
@@ -105,12 +106,18 @@ private fun AudioStream.toYoutubeVideoFormat(): YoutubeVideoFormat {
 }
 
 fun getVideoFormats(id: String, filter: ((YoutubeVideoFormat) -> Boolean)? = null): Result<List<YoutubeVideoFormat>> {
+    val stream_info: StreamInfo
 
-    val stream_info = StreamInfo.getInfo(
-        NewPipe.getService(0).getStreamExtractor(
-            YoutubeStreamLinkHandlerFactory.getInstance().fromId(id)
+    try {
+        stream_info = StreamInfo.getInfo(
+            NewPipe.getService(0).getStreamExtractor(
+                YoutubeStreamLinkHandlerFactory.getInstance().fromId(id)
+            )
         )
-    )
+    }
+    catch (e: ParsingException) {
+        return Result.failure(e)
+    }
 
     return Result.success(
         stream_info.audioStreams.mapNotNull { stream ->

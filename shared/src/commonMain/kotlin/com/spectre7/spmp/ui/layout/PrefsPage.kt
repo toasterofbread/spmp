@@ -31,6 +31,8 @@ import com.spectre7.spmp.resources.getLanguageName
 import com.spectre7.spmp.resources.getString
 import com.spectre7.spmp.resources.getStringTODO
 import com.spectre7.spmp.ui.component.PillMenu
+import com.spectre7.spmp.ui.layout.mainpage.MINIMISED_NOW_PLAYING_HEIGHT
+import com.spectre7.spmp.ui.layout.mainpage.PlayerViewContext
 import com.spectre7.spmp.ui.theme.Theme
 import com.spectre7.spmp.ui.theme.ThemeData
 import com.spectre7.spmp.ui.theme.ThemeManager
@@ -600,6 +602,12 @@ private fun getGeneralCategory(
             SettingsValueState(Settings.KEY_OPEN_NP_ON_SONG_PLAYED.name),
             getString("s_key_open_np_on_song_played"),
             getString("s_sub_open_np_on_song_played")
+        ),
+
+        SettingsItemToggle(
+            SettingsValueState(Settings.KEY_MULTISELECT_CANCEL_ON_ACTION.name),
+            getStringTODO("Cancel multiselect after action"),
+            getStringTODO("Disable media item multiselect states once an action is performed")
         ),
 
         SettingsItemToggle(

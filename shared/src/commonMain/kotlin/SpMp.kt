@@ -38,8 +38,8 @@ import com.spectre7.spmp.platform.composable.PlatformAlertDialog
 import com.spectre7.spmp.resources.getString
 import com.spectre7.spmp.resources.getStringTODO
 import com.spectre7.spmp.resources.initResources
-import com.spectre7.spmp.ui.layout.PlayerView
-import com.spectre7.spmp.ui.layout.PlayerViewContextImpl
+import com.spectre7.spmp.ui.layout.mainpage.PlayerView
+import com.spectre7.spmp.ui.layout.mainpage.PlayerViewContextImpl
 import com.spectre7.spmp.ui.theme.ApplicationTheme
 import com.spectre7.spmp.ui.theme.Theme
 import com.spectre7.utils.*

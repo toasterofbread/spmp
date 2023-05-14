@@ -35,5 +35,5 @@ expect class DiscordStatus(
         buttons: List<Pair<String, String>>? = null
     )
 
-    suspend fun getCustomImage(unique_id: String, imageProvider: () -> ImageBitmap?): String?
+    suspend fun getCustomImage(unique_id: String, imageProvider: () -> ImageBitmap?): Result<String?>
 }

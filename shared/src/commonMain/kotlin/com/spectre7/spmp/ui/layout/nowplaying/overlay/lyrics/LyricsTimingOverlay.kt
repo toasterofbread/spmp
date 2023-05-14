@@ -13,7 +13,7 @@ import androidx.compose.ui.geometry.Rect
 import androidx.compose.ui.geometry.Size
 import com.spectre7.spmp.PlayerServiceHost
 import com.spectre7.spmp.model.Song
-import com.spectre7.spmp.ui.layout.PlayerViewContext
+import com.spectre7.spmp.ui.layout.mainpage.PlayerViewContext
 import com.spectre7.spmp.ui.layout.nowplaying.POSITION_UPDATE_INTERVAL_MS
 import com.spectre7.spmp.ui.layout.nowplaying.getNPBackground
 import kotlinx.coroutines.delay

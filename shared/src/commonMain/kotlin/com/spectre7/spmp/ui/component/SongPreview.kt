@@ -36,6 +36,7 @@ import com.spectre7.spmp.platform.PlayerDownloadManager.DownloadStatus
 import com.spectre7.spmp.platform.composable.platformClickable
 import com.spectre7.spmp.platform.vibrateShort
 import com.spectre7.spmp.resources.getString
+import com.spectre7.spmp.ui.component.multiselect.MediaItemMultiSelectContext
 import com.spectre7.utils.composable.WidthShrinkText
 import com.spectre7.utils.getContrasted
 import com.spectre7.utils.isDebugBuild
@@ -48,22 +49,28 @@ fun SongPreviewSquare(
     params: MediaItem.PreviewParams,
     queue_index: Int? = null
 ) {
-    val long_press_menu_data = remember(song) {
-        getSongLongPressMenuData(song, RoundedCornerShape(SONG_THUMB_CORNER_ROUNDING), queue_index = queue_index)
+    val long_press_menu_data = remember(song, params.multiselect_context) {
+        getSongLongPressMenuData(
+            song,
+            RoundedCornerShape(SONG_THUMB_CORNER_ROUNDING),
+            queue_index = queue_index,
+            multiselect_context = params.multiselect_context
+        )
     }
 
     Column(
         params.modifier
             .platformClickable(
                 onClick = {
-                    params
-                        .playerProvider()
-                        .onMediaItemClicked(song)
+                    if (params.multiselect_context?.is_active == true) {
+                        params.multiselect_context.toggleItem(song)
+                    }
+                    else {
+                        params.playerProvider().onMediaItemClicked(song)
+                    }
                 },
                 onAltClick = {
-                    params
-                        .playerProvider()
-                        .showLongPressMenu(long_press_menu_data)
+                    params.playerProvider().showLongPressMenu(long_press_menu_data)
                 }
             ),
         horizontalAlignment = Alignment.CenterHorizontally,
@@ -75,6 +82,10 @@ fun SongPreviewSquare(
                 Modifier.longPressMenuIcon(long_press_menu_data, params.enable_long_press_menu).aspectRatio(1f),
                 params.contentColour
             )
+
+            params.multiselect_context?.also { ctx ->
+                ctx.SelectableItemOverlay(song, Modifier.fillMaxSize(), key = queue_index)
+            }
         }
 
         Text(
@@ -95,7 +106,12 @@ fun SongPreviewLong(
     queue_index: Int? = null
 ) {
     val long_press_menu_data = remember(song, queue_index) {
-        getSongLongPressMenuData(song, RoundedCornerShape(SONG_THUMB_CORNER_ROUNDING), queue_index = queue_index)
+        getSongLongPressMenuData(
+            song,
+            RoundedCornerShape(SONG_THUMB_CORNER_ROUNDING),
+            queue_index = queue_index,
+            multiselect_context = params.multiselect_context
+        )
     }
 
     Row(
@@ -106,24 +122,31 @@ fun SongPreviewLong(
                 interactionSource = remember { MutableInteractionSource() },
                 indication = null,
                 onClick = {
-                    params
-                        .playerProvider()
-                        .onMediaItemClicked(song)
+                    if (params.multiselect_context?.is_active == true) {
+                        params.multiselect_context.toggleItem(song)
+                    }
+                    else {
+                        params.playerProvider().onMediaItemClicked(song)
+                    }
                 },
                 onLongClick = {
-                    params
-                        .playerProvider()
-                        .showLongPressMenu(long_press_menu_data)
+                    params.playerProvider().showLongPressMenu(long_press_menu_data)
                 }
             )
     ) {
-        song.Thumbnail(
-            MediaItem.ThumbnailQuality.LOW,
-            Modifier
-                .longPressMenuIcon(long_press_menu_data, params.enable_long_press_menu)
-                .size(40.dp),
-            params.contentColour
-        )
+        Box(Modifier.width(IntrinsicSize.Min).height(IntrinsicSize.Min), contentAlignment = Alignment.Center) {
+            song.Thumbnail(
+                MediaItem.ThumbnailQuality.LOW,
+                Modifier
+                    .longPressMenuIcon(long_press_menu_data, params.enable_long_press_menu)
+                    .size(40.dp),
+                params.contentColour
+            )
+
+            params.multiselect_context?.also { ctx ->
+                ctx.SelectableItemOverlay(song, Modifier.fillMaxSize(), key = queue_index)
+            }
+        }
 
         Column(
             Modifier
@@ -171,20 +194,22 @@ fun SongPreviewLong(
 fun getSongLongPressMenuData(
     song: Song,
     thumb_shape: Shape? = null,
-    queue_index: Int? = null
+    queue_index: Int? = null,
+    multiselect_context: MediaItemMultiSelectContext? = null
 ): LongPressMenuData {
     return LongPressMenuData(
         song,
         thumb_shape,
         { SongLongPressMenuInfo(song, queue_index, it) },
         getString("lpm_long_press_actions"),
-        actions = {
-            SongLongPressPopupActions(it, queue_index)
-        },
+        multiselect_context = multiselect_context,
+        multiselect_key = queue_index,
         sideButton = { modifier, background, _ ->
             LikeDislikeButton(song, modifier, { background.getContrasted() })
         }
-    )
+    ) {
+        SongLongPressPopupActions(it, queue_index)
+    }
 }
 
 @Composable

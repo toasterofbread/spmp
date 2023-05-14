@@ -28,6 +28,7 @@ import dev.kord.rest.route.Position
 import dev.kord.rest.service.ChannelService
 import dev.kord.rest.service.createTextChannel
 import dev.kord.rest.service.patchCategory
+import io.ktor.client.network.sockets.*
 import io.ktor.client.request.forms.*
 import io.ktor.utils.io.jvm.javaio.*
 import kotlinx.coroutines.delay
@@ -36,6 +37,8 @@ import kotlinx.coroutines.flow.filterIsInstance
 import kotlinx.coroutines.flow.firstOrNull
 import kotlinx.coroutines.flow.toList
 import java.io.ByteArrayOutputStream
+import java.io.IOException
+import java.net.ConnectException
 
 actual class DiscordStatus actual constructor(
     private val bot_token: String?,
@@ -131,7 +134,7 @@ actual class DiscordStatus actual constructor(
     }
 
     @Suppress("UNUSED_VALUE")
-    actual suspend fun getCustomImage(unique_id: String, imageProvider: () -> ImageBitmap?): String? {
+    actual suspend fun getCustomImage(unique_id: String, imageProvider: () -> ImageBitmap?): Result<String?> {
         check(bot_token != null)
 
         var kord: Kord
@@ -149,6 +152,9 @@ actual class DiscordStatus actual constructor(
             delay((retry_after * 1000L).toLong())
 
             kord = Kord(bot_token)
+        }
+        catch (e: ConnectTimeoutException) {
+            return Result.failure(IOException(e))
         }
 
         val result = with(kord.rest.channel) {
@@ -181,16 +187,11 @@ actual class DiscordStatus actual constructor(
             }
 
             // Get image from caller
-            val image = imageProvider() ?: return null
+            val image = imageProvider() ?: return@with null
 
             // Create new channel if needed
             if (channel == null) {
-                val channel_builder: TextChannelCreateBuilder.() -> Unit = {
-                    this
-                }
-
-                ChannelModifyPatchRequest()
-
+                val channel_builder: TextChannelCreateBuilder.() -> Unit = {}
                 channel =
                     if (category != null) category.createTextChannel(channel_name, channel_builder).id
                     else kord.rest.guild.createTextChannel(Snowflake(guild_id!!), channel_name, channel_builder).id
@@ -211,6 +212,6 @@ actual class DiscordStatus actual constructor(
         }
 
         kord.shutdown()
-        return result
+        return Result.success(result)
     }
 }

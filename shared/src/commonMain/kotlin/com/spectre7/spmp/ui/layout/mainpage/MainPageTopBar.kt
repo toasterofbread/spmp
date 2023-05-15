@@ -132,11 +132,33 @@ fun MainPageTopBar(
                 }
             }
 
+            var show_login_confirmation by remember { mutableStateOf(false) }
+            if (show_login_confirmation) {
+                PlatformAlertDialog(
+                    { show_login_confirmation = false },
+                    confirmButton = {
+                        FilledTonalButton({
+                            show_login_confirmation = false
+                            playerProvider().setOverlayPage(OverlayPage.YTM_LOGIN)
+                        }) {
+                            Text(getString("action_confirm_action"))
+                        }
+                    },
+                    dismissButton = { 
+                        TextButton({ show_login_confirmation = false }) { Text(getString("action_deny_action")) } 
+                    },
+                    title = { Text(getString("prompt_confirm_action")) },
+                    text = {
+                        LinkifyText(getString("warning_ytm_login"))
+                    }
+                )
+            }
+
             IconButton({
                 if (auth_info.initialised) {
                     playerProvider().onMediaItemClicked(auth_info.own_channel)
                 } else {
-                    playerProvider().setOverlayPage(OverlayPage.YTM_LOGIN)
+                    show_login_confirmation = true
                 }
             }) {
                 Crossfade(auth_info) { info ->

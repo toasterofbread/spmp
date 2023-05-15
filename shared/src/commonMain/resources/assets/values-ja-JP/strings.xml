@@ -130,8 +130,6 @@
     <string name="acc_ser_enable_dialog_btn_root">ルートを使う</string>
     <string name="s_key_feed_initial_rows">最初のフィード行数</string>
     <string name="s_sub_feed_initial_rows">自動的にロードするフィード行の最小数</string>
-    <string name="s_key_open_np_on_song_played">曲をタップしたらプレーヤーを開く</string>
-    <string name="s_sub_open_np_on_song_played">曲をタップしたときにプレーヤーが自動で開きます</string>
     <string name="s_key_persistent_queue">再生キューを覚える</string>
     <string name="s_sub_persistent_queue">アプリを閉じても曲キューは保持されます</string>
     <string name="s_key_add_songs_to_history">聴いた曲をYouTubeの歴史に追加する</string>
@@ -145,6 +143,13 @@
     <string name="s_key_feed_show_listen_row">「もう一度聴く」行を表示する</string>
     <string name="s_key_feed_show_moods_row">「おすすめのプレイリスト」行を表示する</string>
     <string name="s_key_feed_show_new_row">「新作」行を表示する</string>
+    
+    <string name="s_key_open_np_on_song_played">曲をタップしたらプレーヤーを開く</string>
+    <string name="s_sub_open_np_on_song_played">曲をタップしたときにプレーヤーが自動で開きます</string>
+    <string name="s_key_multiselect_cancel_on_action">アクション後に複数選択を解除する</string>
+    <string name="s_sub_multiselect_cancel_on_action">複数選択のアクションを使った後、複数選択モードが解除されます</string>
+
+    <string name="page_title_library">ライブラリー</string>
 
     <string name="s_cat_home_page">メインページ</string>
 
@@ -162,6 +167,7 @@
     <string name="s_key_feed_show_filters">フィルターを表示する</string>
 
     <string name="radio_builder_title">ラジオ番組を作成</string>
+    <string name="radio_builder_no_songs_match_criteria">条件に当てはまる曲がありません</string>
     <string name="radio_builder_next_button">次へ</string>
     <string name="radio_builder_play_last_button">以前のラジオを聴く</string>
     <string name="radio_builder_recent_button">最近のラジオ</string>
@@ -186,12 +192,18 @@
     <string name="radio_builder_modifier_filter_downbeat">ダウンビート</string>
     <string name="radio_builder_modifier_filter_focus">集中</string>
     <string name="radio_filter_all">すべて</string>
+
     <string name="search_filter_all">全て</string>
     <string name="search_filter_videos">動画</string>
+    <string name="search_entry_field_hint">検索</string>
+    <string name="search_results_loading">ロード中</string>
 
     <string name="s_group_discord_status">ディスコード　ユーザーステータス</string>
 
     <string name="s_discord_status_text_info">以下のキーワードをテキスト内で使うことで、流れてる曲の情報を表示することができます:&#xA;- $song (曲)&#xA;- $artist (アーティスト)</string>
+
+    <string name="s_group_caching">キャッシュ</string>
+    <string name="s_key_enable_thumbnail_cache">サムネール画像をキャッシュする</string>
 
     <string name="s_key_discord_status_name">ステータスタイトル</string>
     <string name="s_sub_discord_status_name">'Listening to'の次に表示されるテキスト</string>
@@ -225,7 +237,7 @@
 
     <string name="lpm_action_start_radio">ラジオを始める</string>
     <string name="lpm_action_play_after_1_song">次に再生する</string>
-    <string name="lpm_action_play_after_x_songs">$amount曲後に再生する</string>
+    <string name="lpm_action_play_after_x_songs">$x曲後に再生する</string>
     <string name="lpm_action_download">ダウンロード</string>
     <string name="lpm_action_go_to_artist">アーティストを見る</string>
     <string name="lpm_action_print_info">情報をコンソールに出力する</string>
@@ -240,6 +252,10 @@
 
     <string name="lpm_info_queue_index">再生リストでの位置: $index</string>
     <string name="lpm_info_id">ID: $id</string>
+
+    <string name="multiselect_x_items_selected">$x曲が選択されてます</string>
+    <string name="multiselect_begin">複数選択を始める</string>
+    <string name="multiselect_end">複数選択をやめる</string>
 
     <string name="notif_download_finished">ダウンロードが完了しました</string>
     <string name="notif_download_already_finished">ダウンロードはすでに完了しています</string>

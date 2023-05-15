@@ -79,10 +79,8 @@ class PlayerViewContextImpl: PlayerViewContext(null, null, null) {
         top = false,
         left = false
     )
-    override val main_multiselect_context: MediaItemMultiSelectContext = MediaItemMultiSelectContext({ this }) { multiselect ->
-
-    }
-
+    override val main_multiselect_context: MediaItemMultiSelectContext = getMainMultiselectContext { this }
+    
     init {
         low_memory_listener = {
             if (!main_page_showing) {
@@ -398,7 +396,8 @@ class PlayerViewContextImpl: PlayerViewContext(null, null, null) {
                     OverlayPage.MEDIAITEM -> Crossfade(page) { p ->
                         when (val item = p.second) {
                             null -> {}
-                            is Artist, is Playlist -> ArtistPlaylistPage(pill_menu, item, playerProvider, p.third, close)
+                            is Artist -> ArtistPage(pill_menu, item, playerProvider, p.third, close)
+                            is Playlist -> PlaylistPage(pill_menu, item, playerProvider, p.third, close)
                             else -> throw NotImplementedError()
                         }
                     }
@@ -432,3 +431,81 @@ private fun loadFeedLayouts(min_rows: Int, allow_cached: Boolean, params: String
     val (row_data, new_continuation, chips) = result.getOrThrowHere()
     return Result.success(Triple(row_data.filter { it.items.isNotEmpty() }, new_continuation, chips))
 }
+
+private fun getMainMultiselectContext(playerProvider: () -> PlayerViewContext): MediaItemMultiSelectContext =
+    MediaItemMultiSelectContext(
+        playerProvider,
+        selectedItemActions = { multiselect ->
+            // Play after button
+            Row(
+                Modifier.clickable {
+                    PlayerServiceHost.player.addMultipleToQueue(
+                        multiselect.getUniqueSelectedItems().filterIsInstance(),
+                        PlayerServiceHost.player.active_queue_index + 1,
+                        is_active_queue = true
+                    )
+                    multiselect.onActionPerformed()
+                },
+                horizontalArrangement = Arrangement.spacedBy(20.dp),
+                verticalAlignment = Alignment.CenterVertically
+            ) {
+                Icon(Icons.Filled.SubdirectoryArrowRight, null)
+                Text(getString(if (distance == 1) "lpm_action_play_after_1_song" else "lpm_action_play_after_x_songs").replace("\$x", distance.toString()), fontSize = 15.sp)
+            }
+        },
+        nextRowSelectedItemActions = { multiselect ->
+            // Play after controls and song indicator
+            Row(verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(10.dp)) {
+                val button_modifier = Modifier
+                    .size(30.dp)
+                    .fillMaxHeight()
+                    .aspectRatio(1f)
+                    .align(Alignment.CenterVertically)
+
+                Surface(
+                    button_modifier.combinedClickable(
+                        remember { MutableInteractionSource() },
+                        rememberRipple(),
+                        onClick = {
+                            PlayerServiceHost.player.updateActiveQueueIndex(-1)
+                        },
+                        onLongClick = {
+                            SpMp.context.vibrateShort()
+                            PlayerServiceHost.player.active_queue_index = PlayerServiceHost.player.current_song_index
+                        }
+                    ),
+                    shape = CircleShape
+                ) {
+                    Icon(Icons.Filled.Remove, null, tint = background_colour())
+                }
+
+                Surface(
+                    button_modifier.combinedClickable(
+                        remember { MutableInteractionSource() },
+                        rememberRipple(),
+                        onClick = {
+                            PlayerServiceHost.player.updateActiveQueueIndex(1)
+                        },
+                        onLongClick = {
+                            SpMp.context.vibrateShort()
+                            PlayerServiceHost.player.active_queue_index = PlayerServiceHost.player.song_count - 1
+                        }
+                    ),
+                    shape = CircleShape
+                ) {
+                    Icon(Icons.Filled.Add, null, tint = background_colour())
+                }
+
+                val active_queue_item = 
+                    if (PlayerServiceHost.player.active_queue_index < PlayerServiceHost.status.m_queue_size) 
+                        PlayerServiceHost.player.getSong(PlayerServiceHost.player.active_queue_index)
+                    else null
+
+                Crossfade(active_queue_item, animationSpec = tween(100)) {
+                    it?.PreviewLong(MediaItem.PreviewParams(
+                        { playerProvider().copy(onClickedOverride = { item -> playerProvider().openMediaItem(item) }) }
+                    ))
+                }
+            }
+        }
+    )

@@ -42,7 +42,13 @@ import com.spectre7.utils.composable.WidthShrinkText
 import com.spectre7.utils.getContrasted
 import com.spectre7.utils.modifier.background
 
-private enum class Page { ROOT, YOUTUBE_MUSIC_LOGIN, DISCORD_LOGIN }
+private enum class Page { 
+    ROOT, 
+    YOUTUBE_MUSIC_LOGIN, 
+    YOUTUBE_MUSIC_MANUAL_LOGIN, 
+    DISCORD_LOGIN,
+    DISCORD_MANUAL_LOGIN 
+}
 private enum class Category {
     GENERAL,
     FEED,
@@ -162,7 +168,9 @@ fun PrefsPage(pill_menu: PillMenu, playerProvider: () -> PlayerViewContext, clos
                         }
                     )
                     Page.YOUTUBE_MUSIC_LOGIN -> getYoutubeMusicLoginPage(ytm_auth)
+                    Page.YOUTUBE_MUSIC_MANUAL_LOGIN -> getYoutubeMusicManualLoginPage(ytm_auth)
                     Page.DISCORD_LOGIN -> getDiscordLoginPage(discord_auth)
+                    Page.DISCORD_MANUAL_LOGIN -> getDiscordManualLoginPage(discord_auth)
                 }
             },
             { page: Int? ->
@@ -390,8 +398,18 @@ private fun getDiscordStatusGroup(discord_auth: SettingsValueState<String>): Lis
             disabled_text = "Not signed in",
             enable_button = "Sign in",
             disable_button = "Sign out",
-            warning_text = getString("warning_discord_login"),
-            info_text = getString("info_discord_login")
+            warningContent = { dismiss ->
+                Column {
+                    LinkifyText(getString("warning_discord_login"))
+                    Button({
+                        dismiss()
+                        openPage(Page.DISCORD_MANUAL_LOGIN.ordinal)
+                    }) {
+                        Text(getStringTODO("Login manually"))
+                    }
+                }
+            },
+            infoContent = { LinkifyText(getString("info_discord_login")) }
         ) { target, setEnabled, _, openPage ->
             if (target) {
                 openPage(Page.DISCORD_LOGIN.ordinal)
@@ -445,10 +463,10 @@ private fun getOtherCategory(discord_auth: SettingsValueState<String>): List<Set
 
 private fun getCachingGroup(): List<SettingsItem> {
     return listOf(
-        SettingsGroup(getStringTODO("Caching")),
+        SettingsGroup(getString("s_group_caching")),
         SettingsItemToggle(
             SettingsValueState(Settings.KEY_THUMB_CACHE_ENABLED.name),
-            getStringTODO("Enable thumbnail cache"), null
+            getString("s_key_enable_thumbnail_cache"), null
         )
     )
 }
@@ -546,8 +564,18 @@ private fun getGeneralCategory(
             disabled_text = getStringTODO("Not signed in"),
             enable_button = getStringTODO("Sign in"),
             disable_button = getStringTODO("Sign out"),
-            warning_text = getString("warning_ytm_login"),
-            info_text = getString("info_ytm_login")
+            warningContent = { dismiss ->
+                Column {
+                    LinkifyText(getString("warning_ytm_login"))
+                    Button({
+                        dismiss()
+                        openPage(Page.YOUTUBE_MUSIC_MANUAL_LOGIN.ordinal)
+                    }) {
+                        Text(getStringTODO("Login manually"))
+                    }
+                }
+            },
+            infoContent = { LinkifyText(getString("info_ytm_login")) }
         ) { target, setEnabled, _, openPage ->
             if (target) {
                 openPage(Page.YOUTUBE_MUSIC_LOGIN.ordinal)
@@ -606,8 +634,8 @@ private fun getGeneralCategory(
 
         SettingsItemToggle(
             SettingsValueState(Settings.KEY_MULTISELECT_CANCEL_ON_ACTION.name),
-            getStringTODO("Cancel multiselect after action"),
-            getStringTODO("Disable media item multiselect states once an action is performed")
+            getString("s_key_multiselect_cancel_on_action"),
+            getString("s_sub_multiselect_cancel_on_action")
         ),
 
         SettingsItemToggle(

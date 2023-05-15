@@ -25,6 +25,8 @@
     <string name="home_feed_filter_commute">Commute</string>
     <string name="home_feed_filter_focus">Focus</string>
 
+    <string name="page_title_library">Library</string>
+
     <string name="song_name">Song name</string>
     <string name="videos">Videos</string>
 
@@ -92,6 +94,8 @@
 
     <string name="search_filter_all">All</string>
     <string name="search_filter_videos">Videos</string>
+    <string name="search_entry_field_hint">Search</string>
+    <string name="search_results_loading">Loading</string>
 
     <string name="lyrics_source_petitlyrics">PetitLyrics</string>
 
@@ -124,6 +128,10 @@
     <string name="lpm_info_queue_index">Queue index: $index</string>
     <string name="lpm_info_id">ID: $id</string>
 
+    <string name="multiselect_x_items_selected">$x items selected</string>
+    <string name="multiselect_begin">Begin multiple selection</string>
+    <string name="multiselect_end">End multiple selection</string>
+
     <string name="notif_download_finished">Download completed</string>
     <string name="notif_download_already_finished">Already downloaded</string>
     <string name="notif_download_cancelled">Download was cancelled</string>
@@ -132,6 +140,7 @@
     <string name="notif_copied_x_to_clipboard">Copied $x to clipboard</string>
 
     <string name="radio_builder_title">Create a radio</string>
+    <string name="radio_builder_no_songs_match_criteria">No songs match criteria</string>
     <string name="radio_builder_next_button">Next</string>
     <string name="radio_builder_play_last_button">Play last radio</string>
     <string name="radio_builder_recent_button">Recent radios</string>
@@ -194,6 +203,8 @@
 
     <string name="s_key_open_np_on_song_played">Open player when song clicked</string>
     <string name="s_sub_open_np_on_song_played">The now playing menu will open automatically when clicking and playing a song</string>
+    <string name="s_key_multiselect_cancel_on_action">Cancel multiple selection after action</string>
+    <string name="s_sub_multiselect_cancel_on_action">Disable media item multiselect states once an action is performed</string>
 
     <string name="s_key_persistent_queue">Persistent song queue</string>
     <string name="s_sub_persistent_queue">Song queue will persist even when closing the app</string>
@@ -269,6 +280,9 @@
     <string name="s_confirm_reset_stats">All recorded stats will be deleted</string>
 
     <string name="s_cat_other">Other</string>
+    
+    <string name="s_group_caching">Caching</string>
+    <string name="s_key_enable_thumbnail_cache">Enable thumbnail cache</string>
     
     <string name="s_group_acc_service">Accessibility service</string>
 

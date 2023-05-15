@@ -131,7 +131,6 @@ fun QueueTab(expansionProvider: () -> Float, playerProvider: () -> PlayerViewCon
     var key_inc by remember { mutableStateOf(0) }
     val radio_info_position: NowPlayingQueueRadioInfoPosition = Settings.getEnum(Settings.KEY_NP_QUEUE_RADIO_INFO_POSITION)
     val multiselect_context: MediaItemMultiSelectContext = remember { MediaItemMultiSelectContext(playerProvider) { multiselect ->
-
     } }
 
     val song_items: SnapshotStateList<QueueTabItem> = remember { mutableStateListOf<QueueTabItem>().also { list ->

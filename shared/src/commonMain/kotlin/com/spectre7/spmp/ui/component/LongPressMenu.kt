@@ -523,7 +523,7 @@ private fun MenuActions(data: LongPressMenuData, accent_colour: Color, playerPro
         Crossfade(multiselect.is_active) { active ->
             LongPressMenuActionProvider.ActionButton(
                 Icons.Default.Checklist,
-                getStringTODO(if (active) "マルチセレクトをやめる" else "マルチセレクトを始める"),
+                getString(if (active) "multiselect_end" else "multiselect_begin"),
                 accent_colour_provider,
                 onClick = {
                     multiselect.setActive(!active)

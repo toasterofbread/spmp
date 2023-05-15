@@ -51,6 +51,32 @@ fun DiscordLogin(modifier: Modifier = Modifier, onFinished: (Result<String?>?) -
     else {
         // TODO
         SpMp.context.openUrl(DISCORD_LOGIN_URL)
+        DiscordManualLogin(modifier, onFinished)
+    }
+}
+
+@Composable
+fun DiscordManualLogin(modifier: Modifier = Modifier, onFinished: (Result<String?>?) -> Unit) {
+    Column(modifier) {
+        Text(getStringTODO("TODO"))
+
+        var auth_value by remember { mutableStateOf("") }
+        TextField(
+            auth_value, 
+            { auth_value = it }, 
+            Modifier.fillMaxWidth(), 
+            label = {
+                Text("Authorization")
+            }
+        )
+
+        Button({
+            onFinished(Result.success(
+                TODO(auth_value)
+            ))
+        }) {
+            Text(getStringTODO("Done"))
+        }
     }
 }
 

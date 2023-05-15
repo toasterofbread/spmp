@@ -43,7 +43,8 @@ class MediaItemMultiSelectContext(
     val allow_songs: Boolean = true,
     val allow_artists: Boolean = true,
     val allow_playlists: Boolean = true,
-    val selectedItemActions: @Composable RowScope.(MediaItemMultiSelectContext) -> Unit
+    val nextRowSelectedItemActions: (@Composable ColumnScope.(MediaItemMultiSelectContext) -> Unit)? = null,
+    val selectedItemActions: (@Composable RowScope.(MediaItemMultiSelectContext) -> Unit)? = null
 ) {
     private val selected_items: MutableList<Pair<MediaItem, Int?>> = mutableStateListOf()
     var is_active: Boolean by mutableStateOf(false)
@@ -140,12 +141,15 @@ class MediaItemMultiSelectContext(
         }
 
         Column(modifier.fillMaxWidth()) {
-            Text(getStringTODO("${selected_items.size} items selected"), style = MaterialTheme.typography.labelLarge)
+            Text(
+                getString("multiselect_x_items_selected").replace("\$x", selected_items.size.toString()), 
+                style = MaterialTheme.typography.labelLarge
+            )
             Divider(Modifier.padding(top = 5.dp), color = LocalContentColor.current, thickness = hint_path_thickness)
 
             Row(Modifier.fillMaxWidth(), verticalAlignment = Alignment.CenterVertically) {
                 GeneralSelectedItemActions()
-                selectedItemActions(this@MediaItemMultiSelectContext)
+                selectedItemActions?.invoke(this@MediaItemMultiSelectContext)
 
                 Spacer(Modifier.fillMaxWidth().weight(1f))
 
@@ -156,12 +160,13 @@ class MediaItemMultiSelectContext(
                     Icon(Icons.Default.Close, null)
                 }
             }
+
+            nextRowSelectedItemActions?.invoke(this@MediaItemMultiSelectContext)
         }
     }
 
     @Composable
     private fun GeneralSelectedItemActions() {
-        println("UNIQUE ${getUniqueSelectedItems().toList()}")
         val all_pinned by remember { derivedStateOf {
             getUniqueSelectedItems().all { it.pinned_to_home }
         } }

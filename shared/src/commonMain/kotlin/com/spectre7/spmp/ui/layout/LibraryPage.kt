@@ -75,7 +75,7 @@ fun LibraryPage(
             item {
                 Column(Modifier.fillMaxWidth(), horizontalAlignment = Alignment.CenterHorizontally) {
                     Text(
-                        getStringTODO("Library"),
+                        getString("page_title_library"),
                         style = MaterialTheme.typography.headlineLarge.copy(
                             color = Theme.current.on_background
                         )

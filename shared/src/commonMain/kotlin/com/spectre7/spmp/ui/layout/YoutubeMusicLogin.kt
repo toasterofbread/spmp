@@ -62,6 +62,32 @@ fun YoutubeMusicLogin(modifier: Modifier = Modifier, onFinished: (Result<Youtube
     else {
         // TODO
         SpMp.context.openUrl(MUSIC_LOGIN_URL)
+        YoutubeMusicManualLogin(modifier, onFinished)
+    }
+}
+
+@Composable 
+fun YoutubeMusicManualLogin(modifier: Modifier = Modifier, onFinished: (Result<YoutubeMusicAuthInfo>?) -> Unit) {
+    Column(modifier) {
+        Text(getStringTODO("TODO"))
+
+        var headers_value by remember { mutableStateOf("") }
+        TextField(
+            headers_value, 
+            { headers_value = it }, 
+            Modifier.fillMaxWidth(), 
+            label = {
+                Text("Headers")
+            }
+        )
+
+        Button({
+            onFinished(Result.success(
+                TODO(headers_value)
+            ))
+        }) {
+            Text(getStringTODO("Done"))
+        }
     }
 }
 

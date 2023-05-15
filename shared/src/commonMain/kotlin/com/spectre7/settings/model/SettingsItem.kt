@@ -787,8 +787,8 @@ class SettingsItemLargeToggle(
     val disable_button: String,
     val enabled_content: (@Composable (Modifier) -> Unit)? = null,
     val disabled_content: (@Composable (Modifier) -> Unit)? = null,
-    val warning_text: String? = null,
-    val info_text: String? = null,
+    val warningContent: (@Composable (dismiss: () -> Unit) -> Unit)? = null,
+    val infoContent: (@Composable (dismiss: () -> Unit) -> Unit)? = null,
     val onClicked: (target: Boolean, setEnabled: (Boolean) -> Unit, setLoading: (Boolean) -> Unit, openPage: (Int) -> Unit) -> Unit =
         { target, setEnabled, _, _ -> setEnabled(target) }
 ): SettingsItem() {
@@ -836,13 +836,17 @@ class SettingsItemLargeToggle(
                     }
                 },
                 dismissButton =
-                if (showing_warning) ({
-                    TextButton({ showing_warning = false }) { Text(getString("action_deny_action")) }
-                })
-                else null,
+                    if (showing_warning) ({
+                        TextButton({ showing_warning = false }) { Text(getString("action_deny_action")) }
+                    })
+                    else null,
                 title = { Text(getString("prompt_confirm_action")) },
                 text = {
-                    LinkifyText(if (showing_warning) warning_text!! else info_text!!)
+                    val content = if (showing_warning) warningContent!! else infoContent!!
+                    content.invoke { 
+                        showing_warning = false
+                        showing_info = false
+                    }
                 }
             )
         }
@@ -866,7 +870,7 @@ class SettingsItemLargeToggle(
 
                     Button(
                         {
-                            if (!enabled && warning_text != null) {
+                            if (!enabled && warningContent != null) {
                                 showing_warning = true
                             }
                             else {
@@ -896,7 +900,7 @@ class SettingsItemLargeToggle(
                         }
                     }
 
-                    if (info_text != null) {
+                    if (infoContent != null) {
                         ShapedIconButton(
                             { showing_info = !showing_info },
                             shape = CircleShape,

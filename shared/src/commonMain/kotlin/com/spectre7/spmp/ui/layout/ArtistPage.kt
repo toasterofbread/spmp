@@ -57,199 +57,17 @@ import kotlin.concurrent.thread
 private const val ARTIST_IMAGE_SCROLL_MODIFIER = 0.25f
 
 @Composable
-fun PlaylistPage(
+fun ArtistPage(
     pill_menu: PillMenu,
-    playlist: Playlist,
+    item: Artist,
     playerProvider: () -> PlayerViewContext,
     previous_item: MediaItem? = null,
     close: () -> Unit
 ) {
-    val status_bar_height = SpMp.context.getStatusBarHeight()
-    var accent_colour: Color? by remember { mutableStateOf(null) }
-
-    LaunchedEffect(playlist) {
-        accent_colour = null
-
-        if (playlist.feed_layouts == null) {
-            thread {
-                val result = playlist.loadData()
-                result.fold(
-                    { playlist ->
-                        if (playlist == null) {
-                            SpMp.error_manager.onError("ArtistPlaylistPageLoad", Exception("loadData result is null"))
-                        }
-                    },
-                    { error ->
-                        SpMp.error_manager.onError("ArtistPlaylistPageLoad", error)
-                    }
-                )
-            }
-        }
-    }
-
-    Column(Modifier.fillMaxSize().padding(horizontal = 10.dp).padding(top = status_bar_height), verticalArrangement = Arrangement.spacedBy(10.dp)) {
-        if (previous_item != null) {
-            Row(Modifier.fillMaxWidth(), verticalAlignment = Alignment.CenterVertically) {
-                IconButton(close) {
-                    Icon(Icons.Default.KeyboardArrowLeft, null)
-                }
-
-                Spacer(Modifier.fillMaxWidth().weight(1f))
-                previous_item.title!!.also { Text(it) }
-                Spacer(Modifier.fillMaxWidth().weight(1f))
-
-                IconButton({ playerProvider().showLongPressMenu(previous_item) }) {
-                    Icon(Icons.Default.MoreVert, null)
-                }
-            }
-        }
-
-        LazyColumn(verticalArrangement = Arrangement.spacedBy(10.dp)) {
-            item {
-                PlaylistTopInfo(playlist, accent_colour, playerProvider) {
-                    if (accent_colour == null) {
-                        accent_colour = playlist.getDefaultThemeColour() ?: Theme.current.accent
-                    }
-                }
-            }
-
-            playlist.feed_layouts?.also { layouts ->
-                val layout = layouts.single()
-
-                item {
-                    Row(Modifier.fillMaxWidth().padding(top = 15.dp), verticalAlignment = Alignment.Bottom) {
-                        val total_duration_text = remember(playlist.total_duration) {
-                            if (playlist.total_duration == null) ""
-                            else durationToString(playlist.total_duration!!, SpMp.ui_language, false)
-                        }
-
-                        Text(
-                            "${(playlist.item_count ?: layout.items.size) + 1}曲 $total_duration_text",
-                            style = MaterialTheme.typography.titleMedium
-                        )
-
-                        Spacer(Modifier.width(50.dp))
-                        Spacer(Modifier.fillMaxWidth().weight(1f))
-
-                        playlist.artist?.title?.also { artist ->
-                            Marquee(arrangement = Arrangement.End) {
-                                Text(
-                                    artist,
-                                    Modifier.clickable { playerProvider().onMediaItemClicked(playlist.artist!!) },
-                                    maxLines = 1,
-                                    overflow = TextOverflow.Ellipsis,
-                                    style = MaterialTheme.typography.titleMedium
-                                )
-                            }
-                        }
-                    }
-                }
-
-                items(layout.items.size) { i ->
-                    val item = layout.items[i]
-                    check(item is Song)
-
-                    Row(
-                        Modifier.fillMaxWidth().clickable { playerProvider().onMediaItemClicked(item) },
-                        verticalAlignment = Alignment.CenterVertically,
-                        horizontalArrangement = Arrangement.spacedBy(10.dp)
-                    ) {
-                        item.Thumbnail(MediaItem.ThumbnailQuality.LOW, Modifier.size(50.dp).clip(RoundedCornerShape(SONG_THUMB_CORNER_ROUNDING)))
-                        Text(
-                            item.title!!,
-                            Modifier.fillMaxWidth().weight(1f),
-                            style = MaterialTheme.typography.titleSmall
-                        )
-
-                        val duration_text = remember(item.duration!!) {
-                            durationToString(item.duration!!, SpMp.ui_language, true)
-                        }
-
-                        Text(duration_text, style = MaterialTheme.typography.labelLarge)
-                    }
-                }
-            }
-        }
-    }
-}
-
-@Composable
-private fun PlaylistTopInfo(playlist: Playlist, accent_colour: Color?, playerProvider: () -> PlayerViewContext, onThumbLoaded: (ImageBitmap) -> Unit) {
-    val shape = RoundedCornerShape(10.dp)
-
-    Row(Modifier.height(IntrinsicSize.Max), horizontalArrangement = Arrangement.spacedBy(10.dp)) {
-
-        var thumb_size by remember { mutableStateOf(IntSize.Zero) }
-        playlist.Thumbnail(
-            MediaItem.ThumbnailQuality.HIGH,
-            Modifier.fillMaxWidth(0.5f).aspectRatio(1f).clip(shape).onSizeChanged {
-                thumb_size = it
-            },
-            onLoaded = onThumbLoaded
-        )
-
-        Column(Modifier.height(with(LocalDensity.current) { thumb_size.height.toDp() })) {
-            Box(Modifier.fillMaxHeight().weight(1f), contentAlignment = Alignment.CenterStart) {
-                Text(
-                    playlist.title!!,
-                    style = MaterialTheme.typography.headlineSmall,
-                    overflow = TextOverflow.Ellipsis
-                )
-            }
-
-            Row {
-                IconButton({ TODO() }) {
-                    Icon(Icons.Default.Radio, null)
-                }
-                IconButton({ TODO() }) {
-                    Icon(Icons.Default.Shuffle, null)
-                }
-                Crossfade(playlist.pinned_to_home) { pinned ->
-                    IconButton({ playlist.setPinnedToHome(!pinned, playerProvider) }) {
-                        Icon(if (pinned) Icons.Filled.PushPin else Icons.Outlined.PushPin, null)
-                    }
-                }
-                if (SpMp.context.canShare()) {
-                    IconButton({ SpMp.context.shareText(playlist.url, playlist.title!!) }) {
-                        Icon(Icons.Default.Share, null)
-                    }
-                }
-            }
-
-            Button(
-                { playerProvider().playMediaItem(playlist) },
-                Modifier.fillMaxWidth(),
-                colors = ButtonDefaults.buttonColors(
-                    containerColor = accent_colour ?: Theme.current.accent,
-                    contentColor = accent_colour?.getContrasted() ?: Theme.current.on_accent
-                ),
-                shape = shape
-            ) {
-                Icon(Icons.Default.PlayArrow, null)
-                Text(getString("playlist_chip_play"))
-            }
-        }
-    }
-}
-
-@Composable
-fun ArtistPlaylistPage(
-    pill_menu: PillMenu,
-    item: MediaItem,
-    playerProvider: () -> PlayerViewContext,
-    previous_item: MediaItem? = null,
-    close: () -> Unit
-) {
-    require(item is MediaItemWithLayouts)
-    require(item !is Artist || !item.is_for_item)
-
-    if (item is Playlist) {
-        println("ITEM $item")
-        PlaylistPage(pill_menu, item, playerProvider, previous_item, close)
-        return
-    }
+    require(!item.is_for_item)
 
     var show_info by remember { mutableStateOf(false) }
+    val multiselect_context = remember { MediaItemMultiSelectContext(playerProvider) { multiselect -> } }
 
     val gradient_size = 0.35f
     var accent_colour: Color? by remember { mutableStateOf(null) }
@@ -261,11 +79,11 @@ fun ArtistPlaylistPage(
                 result.fold(
                     { playlist ->
                         if (playlist == null) {
-                            SpMp.error_manager.onError("ArtistPlaylistPageLoad", Exception("loadData result is null"))
+                            SpMp.error_manager.onError("ArtistPageLoad", Exception("loadData result is null"))
                         }
                     },
                     { error ->
-                        SpMp.error_manager.onError("ArtistPlaylistPageLoad", error)
+                        SpMp.error_manager.onError("ArtistPageLoad", error)
                     }
                 )
             }
@@ -357,9 +175,8 @@ fun ArtistPlaylistPage(
                 }
             }
 
-            // Filter / play button bar
+            // Action / play button bar
             item {
-
                 Box(
                     background_modifier.padding(bottom = 20.dp, end = 10.dp).fillMaxWidth().requiredHeight(filter_bar_height),
                     contentAlignment = Alignment.CenterEnd
@@ -369,7 +186,6 @@ fun ArtistPlaylistPage(
                         horizontalArrangement = Arrangement.spacedBy(10.dp),
                         contentPadding = content_padding.copy(end = content_padding.calculateEndPadding(LocalLayoutDirection.current) + (play_button_size / 2)),
                     ) {
-
                         fun chip(text: String, icon: ImageVector, onClick: () -> Unit) {
                             item {
                                 ElevatedAssistChip(
@@ -417,59 +233,11 @@ fun ArtistPlaylistPage(
                 }
             }
 
-            // Primary action bar
-//            item {
-//                Box(background_modifier.fillMaxWidth().height(50.dp)) {
-//                    Box(Modifier.padding(vertical = 10.dp).background(accent_colour ?: Color.Unspecified, RoundedCornerShape(16.dp)).fillMaxSize()) {
-//
-//                    }
-//                    ShapedIconButton(
-//                        {},
-//                        Modifier.align(Alignment.CenterEnd).fillMaxHeight().aspectRatio(1f),
-//                        colors = IconButtonDefaults.iconButtonColors(
-//                            containerColor = accent_colour ?: LocalContentColor.current,
-//                            contentColor = (accent_colour ?: LocalContentColor.current).getContrasted()
-//                        )
-//                    ) {
-//                        Icon(Icons.Default.PlayArrow, null)
-//                    }
-//                }
-//            }
-
-//            item {
-//                Row(background_modifier.fillMaxWidth().padding(horizontal = 10.dp).padding(bottom = 10.dp), horizontalArrangement = Arrangement.spacedBy(10.dp)) {
-//                    @Composable
-//                    fun Btn(text: String, icon: ImageVector, modifier: Modifier = Modifier, onClick: () -> Unit) {
-//                        Button(onClick = onClick, modifier.height(45.dp), shape = RoundedCornerShape(16.dp)) {
-//                            Row(verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(10.dp)) {
-//                                Icon(icon, null, tint = accent_colour ?: Color.Unspecified)
-//                                Text(text, softWrap = false, color = Theme.current.on_background)
-//                            }
-//                        }
-//                    }
-//
-//                    Btn(
-//                        getString("artist_chip_play"),
-//                        Icons.Outlined.PlayArrow,
-//                        Modifier.fillMaxWidth(0.5f)
-//                    ) {
-//                        playerProvider().playMediaItem(item)
-//                    }
-//
-//                    Btn(
-//                        getString(if (item is Artist) "artist_chip_radio" else "artist_chip_shuffle"),
-//                        if (item is Artist) Icons.Outlined.Radio else Icons.Outlined.Shuffle,
-//                        Modifier.fillMaxWidth(1f)
-//                    ) {
-//                        if (item is Artist) {
-//                            TODO()
-//                        }
-//                        else {
-//                            playerProvider().playMediaItem(item, shuffle = true)
-//                        }
-//                    }
-//                }
-//            }
+            item {
+                AnimatedVisibility(multiselect_context.is_active) {
+                    multiselect_context.InfoDisplay()
+                }
+            }
 
             if (item.feed_layouts == null) {
                 item {
@@ -490,7 +258,7 @@ fun ArtistPlaylistPage(
                         Text((i + 1).toString().padStart((layout.items.size + 1).toString().length, '0'), fontWeight = FontWeight.Light)
 
                         Column {
-                            layout.items[i].PreviewLong(MediaItem.PreviewParams(playerProvider))
+                            layout.items[i].PreviewLong(MediaItem.PreviewParams(playerProvider, multiselect_context = multiselect_context))
                         }
                     }
                 }
@@ -503,14 +271,16 @@ fun ArtistPlaylistPage(
                             .padding(content_padding),
                         verticalArrangement = Arrangement.spacedBy(30.dp)
                     ) {
-                        for (row in item.feed_layouts!!) {
-                            val type = if (row.type == null) MediaItemLayout.Type.GRID
-                                else if (row.type == MediaItemLayout.Type.NUMBERED_LIST && item is Artist) MediaItemLayout.Type.LIST
-                                else row.type
+                        for (layout in item.feed_layouts!!) {
+                            val type = 
+                                if (layout.type == null) MediaItemLayout.Type.GRID
+                                else if (layout.type == MediaItemLayout.Type.NUMBERED_LIST && item is Artist) MediaItemLayout.Type.LIST
+                                else layout.type
 
                             type.Layout(
-                                if (previous_item == null) row else row.copy(title = null, subtitle = null),
-                                playerProvider
+                                if (previous_item == null) layout else layout.copy(title = null, subtitle = null),
+                                playerProvider,
+                                multiselect_context = multiselect_context
                             )
                         }
 
@@ -523,12 +293,6 @@ fun ArtistPlaylistPage(
                     }
                 }
             }
-
-//            // Loaded items
-//            item {
-//                Crossfade(if (opened_layout != null) opened_layout.view_more!!.layout?.let { listOf(it) } else item.feed_layouts) { layouts ->
-//                }
-//            }
         }
     }
 }

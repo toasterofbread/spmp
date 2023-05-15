@@ -220,7 +220,7 @@ class PlayerService : MediaPlayerService() {
         return added_index
     }
 
-    fun addMultipleToQueue(songs: List<Song>, index: Int = 0, skip_first: Boolean = false, save: Boolean = true) {
+    fun addMultipleToQueue(songs: List<Song>, index: Int = 0, skip_first: Boolean = false, save: Boolean = true, is_active_queue: Boolean = false) {
         if (songs.isEmpty()) {
             return
         }
@@ -233,6 +233,10 @@ class PlayerService : MediaPlayerService() {
 
             val item_index = index + song.index + index_offset
             addSong(song.value, item_index)
+        }
+
+        if (is_active_queue) {
+            active_queue_index = index + songs.size - 1 + index_offset
         }
 
         if (save) {

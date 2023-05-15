@@ -32,6 +32,7 @@ import androidx.compose.ui.unit.sp
 import com.spectre7.spmp.PlayerServiceHost
 import com.spectre7.spmp.model.MediaItem
 import com.spectre7.spmp.model.Song
+import com.spectre7.spmp.model.mediaItemPreviewInteraction
 import com.spectre7.spmp.platform.PlayerDownloadManager.DownloadStatus
 import com.spectre7.spmp.platform.composable.platformClickable
 import com.spectre7.spmp.platform.vibrateShort
@@ -59,20 +60,7 @@ fun SongPreviewSquare(
     }
 
     Column(
-        params.modifier
-            .platformClickable(
-                onClick = {
-                    if (params.multiselect_context?.is_active == true) {
-                        params.multiselect_context.toggleItem(song)
-                    }
-                    else {
-                        params.playerProvider().onMediaItemClicked(song)
-                    }
-                },
-                onAltClick = {
-                    params.playerProvider().showLongPressMenu(long_press_menu_data)
-                }
-            ),
+        params.modifier.mediaItemPreviewInteraction(song, params.playerProvider, long_press_menu_data),
         horizontalAlignment = Alignment.CenterHorizontally,
         verticalArrangement = Arrangement.spacedBy(5.dp)
     ) {
@@ -118,21 +106,7 @@ fun SongPreviewLong(
         verticalAlignment = Alignment.CenterVertically,
         modifier = params.modifier
             .fillMaxWidth()
-            .combinedClickable(
-                interactionSource = remember { MutableInteractionSource() },
-                indication = null,
-                onClick = {
-                    if (params.multiselect_context?.is_active == true) {
-                        params.multiselect_context.toggleItem(song)
-                    }
-                    else {
-                        params.playerProvider().onMediaItemClicked(song)
-                    }
-                },
-                onLongClick = {
-                    params.playerProvider().showLongPressMenu(long_press_menu_data)
-                }
-            )
+            .mediaItemPreviewInteraction(song, params.playerProvider, long_press_menu_data)
     ) {
         Box(Modifier.width(IntrinsicSize.Min).height(IntrinsicSize.Min), contentAlignment = Alignment.Center) {
             song.Thumbnail(

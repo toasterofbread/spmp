@@ -79,34 +79,9 @@ class PlayerViewContextImpl: PlayerViewContext(null, null, null) {
         top = false,
         left = false
     )
-    override val main_multiselect_context: MediaItemMultiSelectContext = MediaItemMultiSelectContext({ multiselect, onActionPerformed ->
-        val all_pinned by remember { derivedStateOf {
-            multiselect.getSelectedItems().all { it.first.pinned_to_home }
-        } }
+    override val main_multiselect_context: MediaItemMultiSelectContext = MediaItemMultiSelectContext({ this }) { multiselect ->
 
-        IconButton({
-            all_pinned.also { pinned ->
-                for (item in multiselect.getSelectedItems()) {
-                    item.first.setPinnedToHome(!pinned, playerProvider)
-                }
-            }
-            onActionPerformed()
-        }) {
-            Icon(if (all_pinned) Icons.Filled.PushPin else Icons.Outlined.PushPin, null)
-        }
-
-        IconButton({
-            for (item in multiselect.getSelectedItems()) {
-                if (item.first is Song) {
-                    PlayerServiceHost.download_manager.startDownload(item.first.id)
-                }
-            }
-            onActionPerformed()
-        }) {
-            Icon(Icons.Default.Download, null)
-        }
-
-    })
+    }
 
     init {
         low_memory_listener = {

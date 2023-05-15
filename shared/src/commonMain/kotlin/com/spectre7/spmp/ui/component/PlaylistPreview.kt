@@ -16,6 +16,7 @@ import androidx.compose.ui.unit.sp
 import com.spectre7.spmp.model.MediaItem
 import com.spectre7.spmp.model.Playlist
 import com.spectre7.spmp.model.getReadable
+import com.spectre7.spmp.model.mediaItemPreviewInteraction
 import com.spectre7.spmp.platform.composable.platformClickable
 import com.spectre7.utils.setAlpha
 
@@ -27,25 +28,13 @@ fun PlaylistPreviewSquare(
     val long_press_menu_data = remember(playlist) {
         LongPressMenuData(
             playlist,
-            RoundedCornerShape(10.dp)
+            RoundedCornerShape(10.dp),
+            multiselect_context = params.multiselect_context
         ) { } // TODO
     }
 
     Column(
-        params.modifier
-            .platformClickable(
-                onClick = {
-                    if (params.multiselect_context?.is_active == true) {
-                        params.multiselect_context.toggleItem(playlist)
-                    }
-                    else {
-                        params.playerProvider().onMediaItemClicked(playlist)
-                    }
-                },
-                onAltClick = {
-                    params.playerProvider().showLongPressMenu(long_press_menu_data)
-                }
-            ),
+        params.modifier.mediaItemPreviewInteraction(playlist, params.playerProvider, long_press_menu_data),
         horizontalAlignment = Alignment.CenterHorizontally,
         verticalArrangement = Arrangement.spacedBy(5.dp)
     ) {
@@ -81,28 +70,14 @@ fun PlaylistPreviewLong(
     val long_press_menu_data = remember(playlist) {
         LongPressMenuData(
             playlist,
-            RoundedCornerShape(10.dp)
+            RoundedCornerShape(10.dp),
+            multiselect_context = params.multiselect_context
         ) { } // TODO
     }
 
     Row(
         verticalAlignment = Alignment.CenterVertically,
-        modifier = params.modifier
-            .combinedClickable(
-                interactionSource = remember { MutableInteractionSource() },
-                indication = null,
-                onClick = {
-                    if (params.multiselect_context?.is_active == true) {
-                        params.multiselect_context.toggleItem(playlist)
-                    }
-                    else {
-                        params.playerProvider().onMediaItemClicked(playlist)
-                    }
-                },
-                onLongClick = {
-                    params.playerProvider().showLongPressMenu(long_press_menu_data)
-                }
-            )
+        modifier = params.modifier.mediaItemPreviewInteraction(playlist, params.playerProvider, long_press_menu_data)
     ) {
         Box(Modifier.width(IntrinsicSize.Min).height(IntrinsicSize.Min), contentAlignment = Alignment.Center) {
             playlist.Thumbnail(

@@ -26,6 +26,7 @@ import androidx.compose.ui.unit.sp
 import com.spectre7.spmp.PlayerServiceHost
 import com.spectre7.spmp.model.Artist
 import com.spectre7.spmp.model.MediaItem
+import com.spectre7.spmp.model.mediaItemPreviewInteraction
 import com.spectre7.spmp.platform.composable.platformClickable
 import com.spectre7.spmp.ui.component.multiselect.MediaItemMultiSelectContext
 import com.spectre7.spmp.ui.layout.ArtistSubscribeButton
@@ -38,24 +39,11 @@ fun ArtistPreviewSquare(
     params: MediaItem.PreviewParams
 ) {
     val long_press_menu_data = remember(artist) {
-        getArtistLongPressMenuData(artist)
+        getArtistLongPressMenuData(artist, multiselect_context = params.multiselect_context)
     }
 
     Column(
-        params.modifier
-            .platformClickable(
-                onClick = {
-                    if (params.multiselect_context?.is_active == true) {
-                        params.multiselect_context.toggleItem(artist)
-                    }
-                    else {
-                        params.playerProvider().onMediaItemClicked(artist)
-                    }
-                },
-                onAltClick = {
-                    params.playerProvider().showLongPressMenu(long_press_menu_data)
-                }
-            ),
+        params.modifier.mediaItemPreviewInteraction(artist, params.playerProvider, long_press_menu_data),
         horizontalAlignment = Alignment.CenterHorizontally,
         verticalArrangement = Arrangement.spacedBy(5.dp)
     ) {
@@ -93,22 +81,7 @@ fun ArtistPreviewLong(
 
     Row(
         verticalAlignment = Alignment.CenterVertically,
-        modifier = params.modifier
-            .combinedClickable(
-                interactionSource = remember { MutableInteractionSource() },
-                indication = null,
-                onClick = {
-                    if (params.multiselect_context?.is_active == true) {
-                        params.multiselect_context.toggleItem(artist)
-                    }
-                    else {
-                        params.playerProvider().onMediaItemClicked(artist)
-                    }
-                },
-                onLongClick = {
-                    params.playerProvider().showLongPressMenu(long_press_menu_data)
-                }
-            )
+        modifier = params.modifier.mediaItemPreviewInteraction(artist, params.playerProvider, long_press_menu_data)
     ) {
         Box(Modifier.width(IntrinsicSize.Min).height(IntrinsicSize.Min), contentAlignment = Alignment.Center) {
             artist.Thumbnail(

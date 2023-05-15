@@ -102,7 +102,7 @@ enum class Settings {
     KEY_FEED_SHOW_CHARTS_ROW,
 
     // Now playing queue
-    KEY_NP_QUEUE_RADIO_INFO_POSITION,
+    KEY_NP_QUEUE_RADIO_INFO_POSITION, // TODO prefs item
 
     // Server
     KEY_SPMS_PORT,

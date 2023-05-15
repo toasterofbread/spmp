@@ -22,6 +22,11 @@ enum class MediaPlayerRepeatMode {
 }
 
 expect open class MediaPlayerService(): PlatformService {
+    interface UndoRedoAction {
+        fun undo()
+        fun redo()
+    }
+
     open class Listener() {
         open fun onSongTransition(song: Song?)
         open fun onStateChanged(state: MediaPlayerState)
@@ -61,6 +66,8 @@ expect open class MediaPlayerService(): PlatformService {
     fun Visualiser(colour: Color, modifier: Modifier = Modifier, opacity: Float = 1f)
 
     fun undoableAction(action: MediaPlayerService.() -> Unit)
+    fun undoableActionWithCustom(action: MediaPlayerService.() -> UndoRedoAction?)
+
     fun redo()
     fun redoAll()
     fun undo()

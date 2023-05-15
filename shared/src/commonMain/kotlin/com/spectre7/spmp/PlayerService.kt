@@ -130,23 +130,34 @@ class PlayerService : MediaPlayerService() {
         updateActiveQueueIndex()
     }
 
-    fun shuffleQueue(start: Int = -1) {
+    fun shuffleQueue(start: Int = -1, end: Int = song_count - 1) {
         val range: IntRange =
-        if (start < 0) {
-            current_song_index + 1 until song_count
-        }
-        else if (song_count - start <= 1) {
-            return
-        }
-        else {
-            start until song_count
-        }
+            if (start < 0) {
+                current_song_index + 1 .. end
+            }
+            else if (song_count - start <= 1) {
+                return
+            }
+            else {
+                start .. end
+            }
+        shuffleQueue(range)
+    }
 
+    fun shuffleQueueAndIndices(indices: List<Int>) {
+        for (i in indices.withIndex()) {
+            val swap_index = Random.nextInt(indices.size)
+            swapQueuePositions(i.value, indices[swap_index], false)
+//            indices.swap(i.index, swap_index)
+        }
+        savePersistentQueue()
+    }
+
+    fun shuffleQueue(range: IntRange) {
         for (i in range) {
             val swap = Random.nextInt(range)
             swapQueuePositions(i, swap, false)
         }
-
         savePersistentQueue()
     }
 

@@ -20,8 +20,7 @@ import androidx.compose.runtime.*
 import androidx.compose.runtime.snapshots.SnapshotStateList
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.draw.clip
-import androidx.compose.ui.draw.rotate
+import androidx.compose.ui.draw.*
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.unit.*
@@ -34,6 +33,7 @@ import com.spectre7.spmp.platform.MediaPlayerRepeatMode
 import com.spectre7.spmp.platform.MediaPlayerService
 import com.spectre7.spmp.platform.vibrateShort
 import com.spectre7.spmp.resources.getString
+import com.spectre7.spmp.ui.component.multiselect.MediaItemMultiSelectContext
 import com.spectre7.spmp.ui.layout.mainpage.MINIMISED_NOW_PLAYING_HEIGHT
 import com.spectre7.spmp.ui.layout.mainpage.PlayerViewContext
 import com.spectre7.utils.*
@@ -70,6 +70,7 @@ private class QueueTabItem(val song: Song, val key: Int) {
         index: Int,
         backgroundColourProvider: () -> Color,
         playerProvider: () -> PlayerViewContext,
+        multiselect_context: MediaItemMultiSelectContext,
         requestRemove: () -> Unit
     ) {
         val swipe_state = queueElementSwipeState(requestRemove)
@@ -104,6 +105,7 @@ private class QueueTabItem(val song: Song, val key: Int) {
                                 thresholds = { _, _ -> FractionalThreshold(0.2f) }
                             ),
                         contentColour = { backgroundColourProvider().getContrasted() },
+                        multiselect_context = multiselect_context
                     ),
                     queue_index = index
                 )
@@ -128,6 +130,9 @@ fun QueueTab(expansionProvider: () -> Float, playerProvider: () -> PlayerViewCon
 
     var key_inc by remember { mutableStateOf(0) }
     val radio_info_position: NowPlayingQueueRadioInfoPosition = Settings.getEnum(Settings.KEY_NP_QUEUE_RADIO_INFO_POSITION)
+    val multiselect_context: MediaItemMultiSelectContext = remember { MediaItemMultiSelectContext(playerProvider) { multiselect ->
+
+    } }
 
     val song_items: SnapshotStateList<QueueTabItem> = remember { mutableStateListOf<QueueTabItem>().also { list ->
         PlayerServiceHost.player.iterateSongs { _, song: Song ->
@@ -144,7 +149,25 @@ fun QueueTab(expansionProvider: () -> Float, playerProvider: () -> PlayerViewCon
                 song_items.removeAt(index)
             }
             override fun onSongMoved(from: Int, to: Int) {
+                if (from == to) {
+                    return
+                }
+
                 song_items.add(to, song_items.removeAt(from))
+
+                for (item in multiselect_context.getSelectedItems().map { it.second!! }.withIndex()) {
+                    if (item.value == from) {
+                        multiselect_context.updateKey(item.index, to)
+                    }
+                    else if (from > to) {
+                        if (item.value in to until from) {
+                            multiselect_context.updateKey(item.index, item.value + 1)
+                        }
+                    }
+                    else if (item.value in (from + 1) .. to) {
+                        multiselect_context.updateKey(item.index, item.value - 1)
+                    }
+                }
             }
         }
     }
@@ -197,12 +220,23 @@ fun QueueTab(expansionProvider: () -> Float, playerProvider: () -> PlayerViewCon
 
                 Button(
                     onClick = {
-                        PlayerServiceHost.player.clearQueue(keep_current = PlayerServiceHost.status.queue_size > 1)
+                        PlayerServiceHost.player.undoableAction {
+                            if (multiselect_context.is_active) {
+                                for (item in multiselect_context.getSelectedItems().sortedByDescending { it.second!! }) {
+                                    PlayerServiceHost.player.removeFromQueue(item.second!!)
+                                }
+                                multiselect_context.onActionPerformed()
+                            }
+                            else {
+                                PlayerServiceHost.player.clearQueue(keep_current = PlayerServiceHost.status.queue_size > 1)
+                            }
+                        }
                     },
                     colors = ButtonDefaults.buttonColors(
                         containerColor = background_colour,
                         contentColor = background_colour.getContrasted()
-                    )
+                    ),
+                    border = multiselect_context.getActiveHintBorder()
                 ) {
                     Text(getString("queue_clear"))
                 }
@@ -210,29 +244,56 @@ fun QueueTab(expansionProvider: () -> Float, playerProvider: () -> PlayerViewCon
                 Surface(
                     Modifier.combinedClickable(
                         onClick = {
-                            PlayerServiceHost.player.undoableAction {
-                                PlayerServiceHost.player.shuffleQueue()
+                            if (multiselect_context.is_active) {
+                                PlayerServiceHost.player.undoableAction {
+                                    PlayerServiceHost.player.shuffleQueueAndIndices(multiselect_context.getSelectedItems().map { it.second!! })
+                                }
+//                                PlayerServiceHost.player.undoableActionWithCustom {
+//                                    val indices_to_shuffle = multiselect_context.getSelectedItems().map { it.second!! }.toMutableList()
+//                                    val original_keys = indices_to_shuffle.withIndex().associate { it.index to it.value }
+//
+//                                    PlayerServiceHost.player.shuffleQueueAndIndices(indices_to_shuffle)
+//                                    val swapped_keys = indices_to_shuffle.withIndex().associate { it.index to it.value }
+//
+//                                    return@undoableActionWithCustom object : MediaPlayerService.UndoRedoAction {
+//                                        override fun undo() {
+//                                            multiselect_context.updateKeys(original_keys)
+//                                        }
+//
+//                                        override fun redo() {
+//                                            multiselect_context.updateKeys(swapped_keys)
+//                                        }
+//                                    }
+//                                }
+                                multiselect_context.onActionPerformed()
+                            }
+                            else {
+                                PlayerServiceHost.player.undoableAction {
+                                    PlayerServiceHost.player.shuffleQueue()
+                                }
                             }
                         },
-                        onLongClick = {
-                            SpMp.context.vibrateShort()
+                        onLongClick = if (multiselect_context.is_active) null else ({
                             PlayerServiceHost.player.undoableAction {
-                                PlayerServiceHost.player.shuffleQueue(start = 0)
+                                if (!multiselect_context.is_active) {
+                                    SpMp.context.vibrateShort()
+                                    PlayerServiceHost.player.shuffleQueue(start = 0)
+                                }
                             }
-                        }
+                        })
                     ),
                     color = background_colour,
-                    shape = FilledButtonTokens.ContainerShape.toShape()
+                    shape = FilledButtonTokens.ContainerShape.toShape(),
+                    border = multiselect_context.getActiveHintBorder()
                 ) {
-                    Row(
+                    Box(
                         Modifier
                             .defaultMinSize(
                                 minWidth = ButtonDefaults.MinWidth,
                                 minHeight = ButtonDefaults.MinHeight
                             )
                             .padding(ButtonDefaults.ContentPadding),
-                        horizontalArrangement = Arrangement.Center,
-                        verticalAlignment = Alignment.CenterVertically
+                        contentAlignment = Alignment.Center
                     ) {
                         Text(
                             text = getString("queue_shuffle"),
@@ -270,7 +331,7 @@ fun QueueTab(expansionProvider: () -> Float, playerProvider: () -> PlayerViewCon
             }
 
             if (radio_info_position == NowPlayingQueueRadioInfoPosition.TOP_BAR) {
-                CurrentRadioIndicator(queueBackgroundColourProvider, backgroundColourProvider, playerProvider)
+                CurrentRadioIndicator(queueBackgroundColourProvider, backgroundColourProvider, playerProvider, multiselect_context)
             }
 
             Divider(Modifier.padding(horizontal = list_padding), 1.dp, backgroundColourProvider)
@@ -296,13 +357,12 @@ fun QueueTab(expansionProvider: () -> Float, playerProvider: () -> PlayerViewCon
                 contentPadding = PaddingValues(top = list_padding, bottom = 60.dp),
                 modifier = Modifier
                     .reorderable(state)
-                    .detectReorderAfterLongPress(state)
                     .padding(horizontal = list_padding),
                 horizontalAlignment = Alignment.CenterHorizontally
             ) {
                 if (radio_info_position == NowPlayingQueueRadioInfoPosition.ABOVE_ITEMS) {
                     item {
-                        CurrentRadioIndicator(queueBackgroundColourProvider, backgroundColourProvider, playerProvider)
+                        CurrentRadioIndicator(queueBackgroundColourProvider, backgroundColourProvider, playerProvider, multiselect_context)
                     }
                 }
 
@@ -325,7 +385,8 @@ fun QueueTab(expansionProvider: () -> Float, playerProvider: () -> PlayerViewCon
                                     if (current) backgroundColourProvider()
                                     else queueBackgroundColourProvider()
                                 },
-                                playerProvider
+                                playerProvider,
+                                multiselect_context
                             ) {
                                 PlayerServiceHost.player.undoableAction {
                                     PlayerServiceHost.player.removeFromQueue(index)
@@ -354,47 +415,54 @@ fun QueueTab(expansionProvider: () -> Float, playerProvider: () -> PlayerViewCon
 private fun CurrentRadioIndicator(
     backgroundColourProvider: () -> Color,
     accentColourProvider: () -> Color,
-    playerProvider: () -> PlayerViewContext
+    playerProvider: () -> PlayerViewContext,
+    multiselect_context: MediaItemMultiSelectContext
 ) {
-    Column {
+    val horizontal_padding = 15.dp
+    Column(Modifier.animateContentSize()) {
         val radio_item: MediaItem? = PlayerServiceHost.player.radio_item
         if (radio_item != null && radio_item !is Song) {
             radio_item.PreviewLong(MediaItem.PreviewParams(
                 playerProvider,
-                Modifier.padding(horizontal = 15.dp),
+                Modifier.padding(horizontal = horizontal_padding),
                 contentColour = { backgroundColourProvider().getContrasted() }
             ))
         }
 
         val filters = PlayerServiceHost.player.radio_filters
-        val current_filter = PlayerServiceHost.player.radio_current_filter
-        if (filters != null) {
-            Row(
-                Modifier.horizontalScroll(rememberScrollState()),
-                horizontalArrangement = Arrangement.spacedBy(15.dp)
-            ) {
-                Spacer(Modifier)
+        Crossfade(multiselect_context.is_active) { multiselect_active ->
+            if (multiselect_active) {
+                multiselect_context.InfoDisplay(Modifier.fillMaxWidth().padding(horizontal = horizontal_padding))
+            }
+            else if (filters != null) {
+                Row(
+                    Modifier.horizontalScroll(rememberScrollState()),
+                    horizontalArrangement = Arrangement.spacedBy(15.dp)
+                ) {
+                    Spacer(Modifier)
 
-                for (filter in listOf(null) + filters.withIndex()) {
-                    FilterChip(
-                        current_filter == filter?.index,
-                        onClick = {
-                            if (PlayerServiceHost.player.radio_current_filter != filter?.index) {
-                                PlayerServiceHost.player.radio_current_filter = filter?.index
-                            }
-                        },
-                        label = {
-                            Text(
-                                filter?.value?.joinToString("|") { it.getReadable() }
-                                    ?: getString("radio_filter_all")
+                    val current_filter = PlayerServiceHost.player.radio_current_filter
+                    for (filter in listOf(null) + filters.withIndex()) {
+                        FilterChip(
+                            current_filter == filter?.index,
+                            onClick = {
+                                if (PlayerServiceHost.player.radio_current_filter != filter?.index) {
+                                    PlayerServiceHost.player.radio_current_filter = filter?.index
+                                }
+                            },
+                            label = {
+                                Text(
+                                    filter?.value?.joinToString("|") { it.getReadable() }
+                                        ?: getString("radio_filter_all")
+                                )
+                            },
+                            colors = FilterChipDefaults.filterChipColors(
+                                labelColor = backgroundColourProvider().getContrasted(),
+                                selectedContainerColor = accentColourProvider(),
+                                selectedLabelColor = accentColourProvider().getContrasted()
                             )
-                        },
-                        colors = FilterChipDefaults.filterChipColors(
-                            labelColor = backgroundColourProvider().getContrasted(),
-                            selectedContainerColor = accentColourProvider(),
-                            selectedLabelColor = accentColourProvider().getContrasted()
                         )
-                    )
+                    }
                 }
             }
         }

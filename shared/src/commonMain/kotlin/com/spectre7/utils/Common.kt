@@ -178,3 +178,9 @@ fun String.indexOfFirstOrNull(start: Int = 0, predicate: (Char) -> Boolean): Int
 	}
 	return null
 }
+
+fun <T> MutableList<T>.swap(index_a: Int, index_b: Int){
+	val a = this[index_a]
+	this[index_a] = this[index_b]
+	this[index_b] = a
+}

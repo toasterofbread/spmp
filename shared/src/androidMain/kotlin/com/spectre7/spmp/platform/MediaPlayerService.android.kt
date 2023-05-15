@@ -58,6 +58,11 @@ private fun convertState(exo_state: Int): MediaPlayerState {
 
 actual open class MediaPlayerService: PlatformService() {
 
+    actual interface UndoRedoAction {
+        actual fun undo()
+        actual fun redo()
+    }
+
     actual open class Listener {
         actual open fun onSongTransition(song: Song?) {}
         actual open fun onStateChanged(state: MediaPlayerState) {}
@@ -114,8 +119,8 @@ actual open class MediaPlayerService: PlatformService() {
     private var notification_manager: PlayerNotificationManager? = null
 
     // Undo
-    private var current_action: MutableList<Action>? = null
-    private val action_list: MutableList<List<Action>> = mutableListOf()
+    private var current_action: MutableList<UndoRedoAction>? = null
+    private val action_list: MutableList<List<UndoRedoAction>> = mutableListOf()
     private var action_head: Int = 0
 
     private val audio_processor = FFTAudioProcessor()
@@ -502,10 +507,21 @@ actual open class MediaPlayerService: PlatformService() {
     }
 
     actual fun undoableAction(action: MediaPlayerService.() -> Unit) {
+        undoableActionWithCustom {
+            action()
+            null
+        }
+    }
+
+    actual fun undoableActionWithCustom(action: MediaPlayerService.() -> UndoRedoAction?) {
         synchronized(action_list) {
             assert(current_action == null)
             current_action = mutableListOf()
-            action(this)
+
+            val customAction = action(this)
+            if (customAction != null) {
+                performAction(customAction)
+            }
 
             for (i in 0 until redo_count) {
                 action_list.removeLast()
@@ -518,7 +534,7 @@ actual open class MediaPlayerService: PlatformService() {
         }
     }
 
-    private fun performAction(action: Action) {
+    private fun performAction(action: UndoRedoAction) {
         action.redo()
         current_action?.add(action)
     }
@@ -565,11 +581,8 @@ actual open class MediaPlayerService: PlatformService() {
         }
     }
 
-    private abstract inner class Action() {
+    private abstract inner class Action: UndoRedoAction {
         protected val is_undoable: Boolean get() = current_action != null
-
-        abstract fun redo()
-        abstract fun undo()
     }
     private inner class AddAction(val item: ExoMediaItem, val index: Int): Action() {
         override fun redo() {

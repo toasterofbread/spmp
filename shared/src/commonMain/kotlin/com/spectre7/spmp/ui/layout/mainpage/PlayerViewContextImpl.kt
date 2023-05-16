@@ -3,16 +3,23 @@ package com.spectre7.spmp.ui.layout.mainpage
 import SpMp
 import androidx.compose.animation.Crossfade
 import androidx.compose.animation.core.Animatable
+import androidx.compose.animation.core.tween
+import androidx.compose.foundation.ExperimentalFoundationApi
+import androidx.compose.foundation.clickable
+import androidx.compose.foundation.combinedClickable
+import androidx.compose.foundation.interaction.MutableInteractionSource
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyListState
+import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.material.ExperimentalMaterialApi
 import androidx.compose.material.SwipeableState
 import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.filled.Download
-import androidx.compose.material.icons.filled.PushPin
+import androidx.compose.material.icons.filled.*
 import androidx.compose.material.icons.outlined.PushPin
+import androidx.compose.material.ripple.rememberRipple
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
+import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.layout.onSizeChanged
 import androidx.compose.ui.platform.LocalDensity
@@ -25,6 +32,8 @@ import com.spectre7.spmp.model.*
 import com.spectre7.spmp.platform.ProjectPreferences
 import com.spectre7.spmp.platform.composable.BackHandler
 import com.spectre7.spmp.platform.isScreenLarge
+import com.spectre7.spmp.platform.vibrateShort
+import com.spectre7.spmp.resources.getString
 import com.spectre7.spmp.ui.component.*
 import com.spectre7.spmp.ui.component.multiselect.MediaItemMultiSelectContext
 import com.spectre7.spmp.ui.layout.*
@@ -408,7 +417,10 @@ class PlayerViewContextImpl: PlayerViewContext(null, null, null) {
                         playerProvider,
                         close
                     )
-                    OverlayPage.YTM_LOGIN -> YoutubeMusicLogin(Modifier.fillMaxSize()) { result ->
+                    OverlayPage.YTM_LOGIN, OverlayPage.YTM_MANUAL_LOGIN -> YoutubeMusicLogin(
+                        Modifier.fillMaxSize(),
+                        manual = page.first == OverlayPage.YTM_MANUAL_LOGIN
+                    ) { result ->
                         result?.fold(
                             { Settings.KEY_YTM_AUTH.set(it) },
                             { TODO(it.toString()) }
@@ -432,6 +444,7 @@ private fun loadFeedLayouts(min_rows: Int, allow_cached: Boolean, params: String
     return Result.success(Triple(row_data.filter { it.items.isNotEmpty() }, new_continuation, chips))
 }
 
+@OptIn(ExperimentalFoundationApi::class)
 private fun getMainMultiselectContext(playerProvider: () -> PlayerViewContext): MediaItemMultiSelectContext =
     MediaItemMultiSelectContext(
         playerProvider,
@@ -440,7 +453,7 @@ private fun getMainMultiselectContext(playerProvider: () -> PlayerViewContext): 
             Row(
                 Modifier.clickable {
                     PlayerServiceHost.player.addMultipleToQueue(
-                        multiselect.getUniqueSelectedItems().filterIsInstance(),
+                        multiselect.getUniqueSelectedItems().filterIsInstance<Song>(),
                         PlayerServiceHost.player.active_queue_index + 1,
                         is_active_queue = true
                     )
@@ -449,13 +462,25 @@ private fun getMainMultiselectContext(playerProvider: () -> PlayerViewContext): 
                 horizontalArrangement = Arrangement.spacedBy(20.dp),
                 verticalAlignment = Alignment.CenterVertically
             ) {
-                Icon(Icons.Filled.SubdirectoryArrowRight, null)
+                Icon(Icons.Default.SubdirectoryArrowRight, null)
+                val distance = PlayerServiceHost.player.active_queue_index - PlayerServiceHost.status.index + 1
                 Text(getString(if (distance == 1) "lpm_action_play_after_1_song" else "lpm_action_play_after_x_songs").replace("\$x", distance.toString()), fontSize = 15.sp)
             }
         },
         nextRowSelectedItemActions = { multiselect ->
             // Play after controls and song indicator
             Row(verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(10.dp)) {
+                val active_queue_item =
+                    if (PlayerServiceHost.player.active_queue_index < PlayerServiceHost.status.m_queue_size)
+                        PlayerServiceHost.player.getSong(PlayerServiceHost.player.active_queue_index)
+                    else null
+
+                Crossfade(active_queue_item, animationSpec = tween(100), modifier = Modifier.weight(1f)) {
+                    it?.PreviewLong(MediaItem.PreviewParams(
+                        { playerProvider().copy(onClickedOverride = { item -> playerProvider().openMediaItem(item) }) }
+                    ))
+                }
+
                 val button_modifier = Modifier
                     .size(30.dp)
                     .fillMaxHeight()
@@ -476,7 +501,7 @@ private fun getMainMultiselectContext(playerProvider: () -> PlayerViewContext): 
                     ),
                     shape = CircleShape
                 ) {
-                    Icon(Icons.Filled.Remove, null, tint = background_colour())
+                    Icon(Icons.Default.Remove, null)
                 }
 
                 Surface(
@@ -493,18 +518,7 @@ private fun getMainMultiselectContext(playerProvider: () -> PlayerViewContext): 
                     ),
                     shape = CircleShape
                 ) {
-                    Icon(Icons.Filled.Add, null, tint = background_colour())
-                }
-
-                val active_queue_item = 
-                    if (PlayerServiceHost.player.active_queue_index < PlayerServiceHost.status.m_queue_size) 
-                        PlayerServiceHost.player.getSong(PlayerServiceHost.player.active_queue_index)
-                    else null
-
-                Crossfade(active_queue_item, animationSpec = tween(100)) {
-                    it?.PreviewLong(MediaItem.PreviewParams(
-                        { playerProvider().copy(onClickedOverride = { item -> playerProvider().openMediaItem(item) }) }
-                    ))
+                    Icon(Icons.Filled.Add, null)
                 }
             }
         }

@@ -159,7 +159,7 @@
     <string name="s_sub_hp_show_timed_lyrics">流れてる曲に同期可能の歌詞があればトップバーに表示されます</string>
 
     <string name="s_key_hp_top_bar_action">トップバー押しアクション</string>
-    <string name="s_option_hp_top_bar_action_toggle_lyrics">トップバー歌詞の表示をトグルする</string>
+    <string name="s_option_hp_top_bar_action_toggle_lyrics">歌詞の表示をトグル</string>
     <string name="s_option_hp_top_bar_action_open_lyrics">表示中の歌詞を開ける</string>
     <string name="s_option_hp_top_bar_action_none">無し</string>
 

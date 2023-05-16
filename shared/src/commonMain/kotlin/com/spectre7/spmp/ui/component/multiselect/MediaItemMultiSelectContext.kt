@@ -30,6 +30,7 @@ import com.spectre7.spmp.PlayerServiceHost
 import com.spectre7.spmp.model.MediaItem
 import com.spectre7.spmp.model.Settings
 import com.spectre7.spmp.model.Song
+import com.spectre7.spmp.resources.getString
 import com.spectre7.spmp.resources.getStringTODO
 import com.spectre7.spmp.ui.layout.mainpage.PlayerViewContext
 import com.spectre7.utils.getContrasted
@@ -149,7 +150,7 @@ class MediaItemMultiSelectContext(
 
             Row(Modifier.fillMaxWidth(), verticalAlignment = Alignment.CenterVertically) {
                 GeneralSelectedItemActions()
-                selectedItemActions?.invoke(this@MediaItemMultiSelectContext)
+                selectedItemActions?.invoke(this, this@MediaItemMultiSelectContext)
 
                 Spacer(Modifier.fillMaxWidth().weight(1f))
 
@@ -161,7 +162,7 @@ class MediaItemMultiSelectContext(
                 }
             }
 
-            nextRowSelectedItemActions?.invoke(this@MediaItemMultiSelectContext)
+            nextRowSelectedItemActions?.invoke(this, this@MediaItemMultiSelectContext)
         }
     }
 

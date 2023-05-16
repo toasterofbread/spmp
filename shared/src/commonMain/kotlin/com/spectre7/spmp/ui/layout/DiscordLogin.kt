@@ -7,8 +7,7 @@ import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Error
-import androidx.compose.material3.Icon
-import androidx.compose.material3.Text
+import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.runtime.saveable.mapSaver
 import androidx.compose.runtime.saveable.rememberSaveable
@@ -21,10 +20,13 @@ import com.beust.klaxon.JsonObject
 import com.beust.klaxon.Klaxon
 import com.spectre7.spmp.api.*
 import com.spectre7.spmp.platform.WebViewLogin
+import com.spectre7.spmp.platform.composable.PlatformAlertDialog
 import com.spectre7.spmp.platform.composable.rememberImagePainter
 import com.spectre7.spmp.platform.isWebViewLoginSupported
+import com.spectre7.spmp.resources.getString
 import com.spectre7.spmp.resources.getStringTODO
 import com.spectre7.utils.catchInterrupts
+import com.spectre7.utils.composable.LinkifyText
 import com.spectre7.utils.composable.Marquee
 import com.spectre7.utils.composable.SubtleLoadingIndicator
 import okhttp3.OkHttpClient
@@ -37,8 +39,32 @@ private const val DISCORD_API_URL = "https://discord.com/api/"
 private const val DISCORD_DEFAULT_AVATAR = "https://discord.com/assets/1f0bfc0865d324c2587920a7d80c609b.png"
 
 @Composable
-fun DiscordLogin(modifier: Modifier = Modifier, onFinished: (Result<String?>?) -> Unit) {
-    if (isWebViewLoginSupported()) {
+fun DiscordLoginConfirmation(info_only: Boolean = false, onFinished: (proceed: Boolean) -> Unit) {
+    PlatformAlertDialog(
+        { onFinished(false) },
+        confirmButton = {
+            FilledTonalButton({
+                onFinished(!info_only)
+            }) {
+                Text(getString("action_confirm_action"))
+            }
+        },
+        dismissButton = if (info_only) null else ({
+            TextButton({ onFinished(false) }) { Text(getString("action_deny_action")) }
+        }),
+        title = if (info_only) null else ({ Text(getString("prompt_confirm_action")) }),
+        text = {
+            LinkifyText(getString(if (info_only) "info_discord_login" else "warning_discord_login"))
+        }
+    )
+}
+
+@Composable
+fun DiscordLogin(modifier: Modifier = Modifier, manual: Boolean = false, onFinished: (Result<String?>?) -> Unit) {
+    if (manual) {
+        DiscordManualLogin(modifier, onFinished)
+    }
+    else if (isWebViewLoginSupported()) {
         WebViewLogin(DISCORD_LOGIN_URL, modifier, { it.startsWith(DISCORD_LOGIN_URL) }) { request, openUrl, getCookie ->
             if (request.url.startsWith(DISCORD_API_URL)) {
                 val auth = request.requestHeaders["Authorization"]
@@ -55,6 +81,7 @@ fun DiscordLogin(modifier: Modifier = Modifier, onFinished: (Result<String?>?) -
     }
 }
 
+@OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun DiscordManualLogin(modifier: Modifier = Modifier, onFinished: (Result<String?>?) -> Unit) {
     Column(modifier) {

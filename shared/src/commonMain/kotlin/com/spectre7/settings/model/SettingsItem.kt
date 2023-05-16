@@ -787,8 +787,8 @@ class SettingsItemLargeToggle(
     val disable_button: String,
     val enabled_content: (@Composable (Modifier) -> Unit)? = null,
     val disabled_content: (@Composable (Modifier) -> Unit)? = null,
-    val warningContent: (@Composable (dismiss: () -> Unit) -> Unit)? = null,
-    val infoContent: (@Composable (dismiss: () -> Unit) -> Unit)? = null,
+    val warningDialog: (@Composable (dismiss: () -> Unit, openPage: (Int) -> Unit) -> Unit)? = null,
+    val infoDialog: (@Composable (dismiss: () -> Unit, openPage: (Int) -> Unit) -> Unit)? = null,
     val onClicked: (target: Boolean, setEnabled: (Boolean) -> Unit, setLoading: (Boolean) -> Unit, openPage: (Int) -> Unit) -> Unit =
         { target, setEnabled, _, _ -> setEnabled(target) }
 ): SettingsItem() {
@@ -806,50 +806,12 @@ class SettingsItemLargeToggle(
         val shape = RoundedCornerShape(20.dp)
         var loading: Boolean by remember { mutableStateOf(false) }
 
-        var showing_warning: Boolean by remember { mutableStateOf(false) }
-        var showing_info: Boolean by remember { mutableStateOf(false) }
+        var showing_dialog: (@Composable (dismiss: () -> Unit, openPage: (Int) -> Unit) -> Unit)? by remember { mutableStateOf(null) }
 
-        if (showing_warning || showing_info) {
-            assert(!(showing_warning && showing_info))
-
-            PlatformAlertDialog(
-                {
-                    showing_warning = false
-                    showing_info = false
-                },
-                confirmButton = {
-                    FilledTonalButton({
-                        if (showing_warning) {
-                            showing_warning = false
-                            onClicked(
-                                true,
-                                { state.value = it },
-                                { loading = it },
-                                openPage
-                            )
-                        }
-                        else {
-                            showing_info = false
-                        }
-                    }) {
-                        Text(getString("action_confirm_action"))
-                    }
-                },
-                dismissButton =
-                    if (showing_warning) ({
-                        TextButton({ showing_warning = false }) { Text(getString("action_deny_action")) }
-                    })
-                    else null,
-                title = { Text(getString("prompt_confirm_action")) },
-                text = {
-                    val content = if (showing_warning) warningContent!! else infoContent!!
-                    content.invoke { 
-                        showing_warning = false
-                        showing_info = false
-                    }
-                }
-            )
-        }
+        showing_dialog?.invoke(
+            { showing_dialog = null },
+            openPage
+        )
 
         Crossfade(state.value) { enabled ->
             CompositionLocalProvider(LocalContentColor provides if (!enabled) theme.on_background else theme.on_accent) {
@@ -870,8 +832,8 @@ class SettingsItemLargeToggle(
 
                     Button(
                         {
-                            if (!enabled && warningContent != null) {
-                                showing_warning = true
+                            if (!enabled && warningDialog != null) {
+                                showing_dialog = warningDialog
                             }
                             else {
                                 onClicked(
@@ -900,9 +862,9 @@ class SettingsItemLargeToggle(
                         }
                     }
 
-                    if (infoContent != null) {
+                    if (infoDialog != null) {
                         ShapedIconButton(
-                            { showing_info = !showing_info },
+                            { showing_dialog = if (showing_dialog == null) infoDialog else null },
                             shape = CircleShape,
                             colors = IconButtonDefaults.iconButtonColors(
                                 containerColor = if (enabled) theme.background else theme.vibrant_accent,

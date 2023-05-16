@@ -36,6 +36,7 @@ import com.spectre7.spmp.ui.layout.mainpage.PlayerViewContext
 import com.spectre7.spmp.ui.theme.Theme
 import com.spectre7.spmp.ui.theme.ThemeData
 import com.spectre7.spmp.ui.theme.ThemeManager
+import com.spectre7.utils.composable.LinkifyText
 import com.spectre7.utils.composable.OnChangedEffect
 import com.spectre7.utils.composable.ShapedIconButton
 import com.spectre7.utils.composable.WidthShrinkText
@@ -168,9 +169,9 @@ fun PrefsPage(pill_menu: PillMenu, playerProvider: () -> PlayerViewContext, clos
                         }
                     )
                     Page.YOUTUBE_MUSIC_LOGIN -> getYoutubeMusicLoginPage(ytm_auth)
-                    Page.YOUTUBE_MUSIC_MANUAL_LOGIN -> getYoutubeMusicManualLoginPage(ytm_auth)
+                    Page.YOUTUBE_MUSIC_MANUAL_LOGIN -> getYoutubeMusicLoginPage(ytm_auth, manual = true)
                     Page.DISCORD_LOGIN -> getDiscordLoginPage(discord_auth)
-                    Page.DISCORD_MANUAL_LOGIN -> getDiscordManualLoginPage(discord_auth)
+                    Page.DISCORD_MANUAL_LOGIN -> getDiscordLoginPage(discord_auth, manual = true)
                 }
             },
             { page: Int? ->
@@ -398,18 +399,19 @@ private fun getDiscordStatusGroup(discord_auth: SettingsValueState<String>): Lis
             disabled_text = "Not signed in",
             enable_button = "Sign in",
             disable_button = "Sign out",
-            warningContent = { dismiss ->
-                Column {
-                    LinkifyText(getString("warning_discord_login"))
-                    Button({
-                        dismiss()
-                        openPage(Page.DISCORD_MANUAL_LOGIN.ordinal)
-                    }) {
-                        Text(getStringTODO("Login manually"))
+            warningDialog = { dismiss, openPage ->
+                DiscordLoginConfirmation { proceed ->
+                    dismiss()
+                    if (proceed) {
+                        openPage(Page.DISCORD_LOGIN.ordinal)
                     }
                 }
             },
-            infoContent = { LinkifyText(getString("info_discord_login")) }
+            infoDialog = { dismiss, _ ->
+                DiscordLoginConfirmation(true) {
+                    dismiss()
+                }
+            }
         ) { target, setEnabled, _, openPage ->
             if (target) {
                 openPage(Page.DISCORD_LOGIN.ordinal)
@@ -471,7 +473,7 @@ private fun getCachingGroup(): List<SettingsItem> {
     )
 }
 
-private fun getYoutubeMusicLoginPage(ytm_auth: SettingsValueState<YoutubeMusicAuthInfo>): SettingsPage {
+private fun getYoutubeMusicLoginPage(ytm_auth: SettingsValueState<YoutubeMusicAuthInfo>, manual: Boolean = false): SettingsPage {
     return object : SettingsPage() {
         override val disable_padding: Boolean = true
         override val scrolling: Boolean = false
@@ -483,7 +485,7 @@ private fun getYoutubeMusicLoginPage(ytm_auth: SettingsValueState<YoutubeMusicAu
             openCustomPage: (SettingsPage) -> Unit,
             goBack: () -> Unit,
         ) {
-            YoutubeMusicLogin(Modifier.fillMaxSize()) { auth_info ->
+            YoutubeMusicLogin(Modifier.fillMaxSize(), manual = manual) { auth_info ->
                 auth_info?.fold({
                     ytm_auth.value = it
                 }, {
@@ -499,7 +501,7 @@ private fun getYoutubeMusicLoginPage(ytm_auth: SettingsValueState<YoutubeMusicAu
     }
 }
 
-private fun getDiscordLoginPage(discord_auth: SettingsValueState<String>): SettingsPage {
+private fun getDiscordLoginPage(discord_auth: SettingsValueState<String>, manual: Boolean = false): SettingsPage {
     return object : SettingsPage() {
         override val disable_padding: Boolean = true
         override val scrolling: Boolean = false
@@ -511,7 +513,7 @@ private fun getDiscordLoginPage(discord_auth: SettingsValueState<String>): Setti
             openCustomPage: (SettingsPage) -> Unit,
             goBack: () -> Unit,
         ) {
-            DiscordLogin(Modifier.fillMaxSize()) { auth_info ->
+            DiscordLogin(Modifier.fillMaxSize(), manual = manual) { auth_info ->
                 auth_info?.fold({
                     discord_auth.value = it ?: ""
                 }, {
@@ -564,18 +566,22 @@ private fun getGeneralCategory(
             disabled_text = getStringTODO("Not signed in"),
             enable_button = getStringTODO("Sign in"),
             disable_button = getStringTODO("Sign out"),
-            warningContent = { dismiss ->
-                Column {
-                    LinkifyText(getString("warning_ytm_login"))
-                    Button({
-                        dismiss()
+            warningDialog = { dismiss, openPage ->
+                YoutubeMusicLoginConfirmation { manual ->
+                    dismiss()
+                    if (manual == true) {
                         openPage(Page.YOUTUBE_MUSIC_MANUAL_LOGIN.ordinal)
-                    }) {
-                        Text(getStringTODO("Login manually"))
+                    }
+                    else if (manual == false) {
+                        openPage(Page.YOUTUBE_MUSIC_LOGIN.ordinal)
                     }
                 }
             },
-            infoContent = { LinkifyText(getString("info_ytm_login")) }
+            infoDialog = { dismiss, _ ->
+                YoutubeMusicLoginConfirmation(true) {
+                    dismiss()
+                }
+            }
         ) { target, setEnabled, _, openPage ->
             if (target) {
                 openPage(Page.YOUTUBE_MUSIC_LOGIN.ordinal)

@@ -1,14 +1,21 @@
 package com.spectre7.spmp.ui.layout
 
 import SpMp
-import androidx.compose.runtime.Composable
+import androidx.compose.foundation.layout.*
+import androidx.compose.material3.*
+import androidx.compose.runtime.*
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.unit.dp
 import com.spectre7.spmp.api.*
 import com.spectre7.spmp.model.Artist
 import com.spectre7.spmp.model.MediaItem
 import com.spectre7.spmp.model.YoutubeMusicAuthInfo
 import com.spectre7.spmp.platform.WebViewLogin
+import com.spectre7.spmp.platform.composable.PlatformAlertDialog
 import com.spectre7.spmp.platform.isWebViewLoginSupported
+import com.spectre7.spmp.resources.getString
+import com.spectre7.spmp.resources.getStringTODO
+import com.spectre7.utils.composable.LinkifyText
 import okhttp3.Request
 import java.net.URI
 
@@ -16,8 +23,39 @@ private const val MUSIC_URL = "https://music.youtube.com/"
 private const val MUSIC_LOGIN_URL = "https://accounts.google.com/v3/signin/identifier?dsh=S1527412391%3A1678373417598386&continue=https%3A%2F%2Fwww.youtube.com%2Fsignin%3Faction_handle_signin%3Dtrue%26app%3Ddesktop%26hl%3Den-GB%26next%3Dhttps%253A%252F%252Fmusic.youtube.com%252F%253Fcbrd%253D1%26feature%3D__FEATURE__&hl=en-GB&ifkv=AWnogHfK4OXI8X1zVlVjzzjybvICXS4ojnbvzpE4Gn_Pfddw7fs3ERdfk-q3tRimJuoXjfofz6wuzg&ltmpl=music&passive=true&service=youtube&uilel=3&flowName=GlifWebSignIn&flowEntry=ServiceLogin"
 
 @Composable
-fun YoutubeMusicLogin(modifier: Modifier = Modifier, onFinished: (Result<YoutubeMusicAuthInfo>?) -> Unit) {
-    if (isWebViewLoginSupported()) {
+fun YoutubeMusicLoginConfirmation(info_only: Boolean = false, onFinished: (manual: Boolean?) -> Unit) {
+    PlatformAlertDialog(
+        { onFinished(null) },
+        confirmButton = {
+            FilledTonalButton({
+                onFinished(if (info_only) null else false)
+            }) {
+                Text(getString("action_confirm_action"))
+            }
+        },
+        dismissButton = if (info_only) null else ({
+            TextButton({ onFinished(null) }) { Text(getString("action_deny_action")) }
+        }),
+        title = if (info_only) null else ({ Text(getString("prompt_confirm_action")) }),
+        text = {
+            Column {
+                LinkifyText(getString(if (info_only) "info_ytm_login" else "warning_ytm_login"))
+                if (!info_only) {
+                    FilledTonalButton({ onFinished(true) }, Modifier.fillMaxWidth().padding(top = 5.dp).offset(y = 20.dp)) {
+                        Text(getStringTODO("Log in manually"))
+                    }
+                }
+            }
+        }
+    )
+}
+
+@Composable
+fun YoutubeMusicLogin(modifier: Modifier = Modifier, manual: Boolean = false, onFinished: (Result<YoutubeMusicAuthInfo>?) -> Unit) {
+    if (manual) {
+        YoutubeMusicManualLogin(modifier, onFinished)
+    }
+    else if (isWebViewLoginSupported()) {
         WebViewLogin(MUSIC_URL, modifier, shouldShowPage = { !it.startsWith(MUSIC_URL) }) { request, openUrl, getCookie ->
             val url = URI(request.url)
             if (url.host == "music.youtube.com" && url.path?.startsWith("/youtubei/v1/") == true) {
@@ -66,7 +104,8 @@ fun YoutubeMusicLogin(modifier: Modifier = Modifier, onFinished: (Result<Youtube
     }
 }
 
-@Composable 
+@OptIn(ExperimentalMaterial3Api::class)
+@Composable
 fun YoutubeMusicManualLogin(modifier: Modifier = Modifier, onFinished: (Result<YoutubeMusicAuthInfo>?) -> Unit) {
     Column(modifier) {
         Text(getStringTODO("TODO"))

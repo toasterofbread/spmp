@@ -3,6 +3,7 @@
 package com.spectre7.spmp.ui.layout
 
 import SpMp
+import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.animation.Crossfade
 import androidx.compose.animation.animateContentSize
 import androidx.compose.foundation.*
@@ -45,6 +46,7 @@ import com.spectre7.spmp.resources.getStringTODO
 import com.spectre7.spmp.ui.component.MediaItemLayout
 import com.spectre7.spmp.ui.component.PillMenu
 import com.spectre7.spmp.ui.component.SONG_THUMB_CORNER_ROUNDING
+import com.spectre7.spmp.ui.component.multiselect.MediaItemMultiSelectContext
 import com.spectre7.spmp.ui.layout.mainpage.PlayerViewContext
 import com.spectre7.spmp.ui.theme.Theme
 import com.spectre7.utils.*

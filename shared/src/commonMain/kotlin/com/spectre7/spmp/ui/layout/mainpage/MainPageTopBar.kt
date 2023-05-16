@@ -22,8 +22,8 @@ import com.spectre7.spmp.api.LocalisedYoutubeString
 import com.spectre7.spmp.model.*
 import com.spectre7.spmp.platform.ProjectPreferences
 import com.spectre7.spmp.ui.component.LyricsLineDisplay
-import com.spectre7.spmp.ui.component.multiselect.MediaItemMultiSelectContext
 import com.spectre7.spmp.ui.layout.RadioBuilderIcon
+import com.spectre7.spmp.ui.layout.YoutubeMusicLoginConfirmation
 import com.spectre7.spmp.ui.theme.Theme
 import com.spectre7.utils.catchInterrupts
 import com.spectre7.utils.composable.NoRipple
@@ -134,24 +134,11 @@ fun MainPageTopBar(
 
             var show_login_confirmation by remember { mutableStateOf(false) }
             if (show_login_confirmation) {
-                PlatformAlertDialog(
-                    { show_login_confirmation = false },
-                    confirmButton = {
-                        FilledTonalButton({
-                            show_login_confirmation = false
-                            playerProvider().setOverlayPage(OverlayPage.YTM_LOGIN)
-                        }) {
-                            Text(getString("action_confirm_action"))
-                        }
-                    },
-                    dismissButton = { 
-                        TextButton({ show_login_confirmation = false }) { Text(getString("action_deny_action")) } 
-                    },
-                    title = { Text(getString("prompt_confirm_action")) },
-                    text = {
-                        LinkifyText(getString("warning_ytm_login"))
-                    }
-                )
+                YoutubeMusicLoginConfirmation { manual ->
+                    show_login_confirmation = false
+                    if (manual == true) playerProvider().setOverlayPage(OverlayPage.YTM_MANUAL_LOGIN)
+                    else if (manual == false) playerProvider().setOverlayPage(OverlayPage.YTM_LOGIN)
+                }
             }
 
             IconButton({

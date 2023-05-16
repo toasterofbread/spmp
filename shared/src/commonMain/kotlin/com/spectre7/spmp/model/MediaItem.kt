@@ -186,47 +186,51 @@ abstract class MediaItem(id: String) {
 
         private val load_lock = Object()
 
-        fun load(context: PlatformContext): ImageBitmap? {
+        fun load(context: PlatformContext): Result<ImageBitmap> {
             synchronized(load_lock) {
                 if (image != null) {
-                    return image
+                    return Result.success(image!!)
                 }
 
                 if (loading) {
                     load_lock.wait()
-                    return image
+                    return Result.success(image!!)
                 }
                 loading = true
             }
 
-            performLoad(context)
+            val result = performLoad(context)
 
             synchronized(load_lock) {
                 loading = false
                 load_lock.notifyAll()
             }
 
-            return image
+            return result
         }
 
-        private fun performLoad(context: PlatformContext) {
+        private fun performLoad(context: PlatformContext): Result<ImageBitmap> {
             val cache_file = getCacheFile(context)
             if (cache_file.exists()) {
-                image = cache_file.readBytes().toImageBitmap()
-                return
+                cache_file.readBytes().toImageBitmap().also {
+                    image = it
+                    return Result.success(it)
+                }
             }
 
             try {
-                image = downloadThumbnail(quality) ?: return
+                image = downloadThumbnail(quality) ?: return RuntimeException("No image loaded")
             }
             catch (e: SocketTimeoutException) {
-                return
+                return Result.failure(e) 
             }
 
             if (Settings.KEY_THUMB_CACHE_ENABLED.get()) {
                 cache_file.parentFile.mkdirs()
                 cache_file.writeBytes(image!!.toByteArray())
             }
+
+            return Result.success(image!!)
         }
 
         private fun getCacheFile(context: PlatformContext): File =

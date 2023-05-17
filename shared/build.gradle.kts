@@ -93,6 +93,10 @@ kotlin {
                 implementation(project(":library-ui"))
                 implementation(project(":extension-mediasession"))
 
+                implementation("androidx.media3:media3-exoplayer:1.0.2")
+                implementation("androidx.media3:media3-ui:1.0.2")
+                implementation("androidx.media3:media3-session:1.0.2")
+
                 implementation("com.google.accompanist:accompanist-pager:0.21.2-beta")
                 implementation("com.google.accompanist:accompanist-pager-indicators:0.21.2-beta")
                 implementation("com.google.accompanist:accompanist-systemuicontroller:0.21.2-beta")

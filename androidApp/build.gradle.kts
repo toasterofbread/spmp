@@ -13,12 +13,12 @@ android {
         }
     }
 
-    compileSdkVersion(33)
+    compileSdk = (findProperty("android.compileSdk") as String).toInt()
 
     defaultConfig {
         applicationId = "com.spectre7.spmp"
-        minSdkVersion(31)
-        targetSdkVersion(33)
+        minSdk = (findProperty("android.minSdk") as String).toInt()
+        targetSdk = (findProperty("android.targetSdk") as String).toInt()
         versionCode = 1
         versionName = "1.0"
 

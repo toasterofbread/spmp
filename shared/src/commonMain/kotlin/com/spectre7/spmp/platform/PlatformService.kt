@@ -1,29 +1,43 @@
 package com.spectre7.spmp.platform
 
-expect open class PlatformService() {
-    abstract class PlatformBinder()
+expect abstract class PlatformBinder()
 
+interface PlatformService {
     val context: PlatformContext
 
-    open fun onCreate()
-    open fun onDestroy()
+    fun onCreate()
+    fun onDestroy()
 
-    open fun onBind(): PlatformBinder?
+    fun onBind(): PlatformBinder?
 
-    protected fun sendMessageOut(data: Any?)
-    open fun onMessage(data: Any?)
+    fun sendMessageOut(data: Any?)
+    fun onMessage(data: Any?)
 
     fun addMessageReceiver(receiver: (Any?) -> Unit)
     fun removeMessageReceiver(receiver: (Any?) -> Unit)
-
-    companion object {
-        fun startService(
-            context: PlatformContext,
-            cls: Class<out PlatformService>,
-            onConnected: ((binder: PlatformBinder?) -> Unit)? = null,
-            onDisconnected: (() -> Unit)? = null
-        ): Any // Service connection
-
-        fun unbindService(context: PlatformContext, connection: Any)
-    }
 }
+
+expect class PlatformServiceImpl: PlatformService {
+    override val context: PlatformContext
+
+    override fun onCreate()
+    override fun onDestroy()
+
+    override fun onBind(): PlatformBinder?
+
+    override fun sendMessageOut(data: Any?)
+    override fun onMessage(data: Any?)
+
+    override fun addMessageReceiver(receiver: (Any?) -> Unit)
+    override fun removeMessageReceiver(receiver: (Any?) -> Unit)
+}
+
+
+expect fun startPlatformService(
+    context: PlatformContext,
+    cls: Class<out PlatformService>,
+    onConnected: ((binder: PlatformBinder?) -> Unit)? = null,
+    onDisconnected: (() -> Unit)? = null
+): Any // Service connection
+
+expect fun unbindPlatformService(context: PlatformContext, connection: Any)

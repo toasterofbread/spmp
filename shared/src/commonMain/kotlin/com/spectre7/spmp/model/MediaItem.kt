@@ -180,7 +180,7 @@ abstract class MediaItem(id: String) {
     var pinned_to_home: Boolean by mutableStateOf(false)
         private set
 
-    private inner class ThumbState(val quality: ThumbnailQuality) {
+    inner class ThumbState(val quality: ThumbnailQuality) {
         var loading: Boolean by mutableStateOf(false)
         var image: ImageBitmap? by mutableStateOf(null)
 
@@ -219,7 +219,7 @@ abstract class MediaItem(id: String) {
             }
 
             try {
-                image = downloadThumbnail(quality) ?: return RuntimeException("No image loaded")
+                image = downloadThumbnail(quality) ?: return Result.failure(RuntimeException("No image loaded"))
             }
             catch (e: SocketTimeoutException) {
                 return Result.failure(e) 
@@ -233,7 +233,7 @@ abstract class MediaItem(id: String) {
             return Result.success(image!!)
         }
 
-        private fun getCacheFile(context: PlatformContext): File =
+        fun getCacheFile(context: PlatformContext): File =
             context.getCacheDir().resolve("thumbnails/$id.${quality.ordinal}.png")
     }
     private val thumb_states: Map<ThumbnailQuality, ThumbState>
@@ -386,39 +386,15 @@ abstract class MediaItem(id: String) {
 
     companion object {
         val CACHE_LIFETIME: Duration = Duration.ofDays(1)
+        val data_registry: DataRegistry = DataRegistry()
+        val thumb_loader: MediaItemThumbnailLoader = MediaItemThumbnailLoader()
 
         fun getCacheKey(type: Type, id: String): String {
             return "M/${type.name}/$id"
         }
 
-        val data_registry: DataRegistry = DataRegistry()
-
         fun init(prefs: ProjectPreferences) {
             data_registry.load(prefs)
-        }
-
-        fun fromJsonData(reader: Reader): MediaItem {
-
-            val result = arrayListOf<Any?>()
-            val map = DataApi.klaxon.parser(Any::class).parse(reader) as JsonArray<*>
-            map.forEach { jo ->
-                if (jo == null || jo is JsonObject || jo is JsonArray<*>) {
-                    result.add(jo)
-                }
-                else {
-                    try {
-                        val converter = DataApi.klaxon.findConverterFromClass(Any::class.java, null)
-                        val convertedValue = converter.fromJson(JsonValue(jo, null, null, DataApi.klaxon))
-                        result.add(convertedValue)
-                    }
-                    catch (e: IllegalArgumentException) {
-                        println(jo)
-                        throw RuntimeException(e)
-                    }
-                }
-            }
-
-            return fromDataItems(result, DataApi.klaxon)
         }
 
         fun fromDataItems(data: List<Any?>, klaxon: Klaxon = DataApi.klaxon): MediaItem {
@@ -451,10 +427,10 @@ abstract class MediaItem(id: String) {
             }
         }
 
-        fun clearStoredItems() {
-            var amount = Song.clearStoredItems() + Artist.clearStoredItems() + Playlist.clearStoredItems()
-            println("Cleared $amount MediaItems")
-        }
+//        fun clearStoredItems() {
+//            var amount = Song.clearStoredItems() + Artist.clearStoredItems() + Playlist.clearStoredItems()
+//            println("Cleared $amount MediaItems")
+//        }
     }
 
     class BrowseEndpoint {
@@ -635,12 +611,8 @@ abstract class MediaItem(id: String) {
 
     fun loadAndGetThumbnail(quality: ThumbnailQuality, context: PlatformContext = SpMp.context): ImageBitmap? {
         val state = thumb_states[quality]!!
-        synchronized(state) {
-            if (!state.loading) {
-                thread {
-                    state.load(context)
-                }
-            }
+        thumb_loader.loadThumbnail(state, context) {
+            state.image = it.getOrNull()
         }
         return state.image
     }
@@ -649,8 +621,10 @@ abstract class MediaItem(id: String) {
         if (!canLoadThumbnail()) {
             return null
         }
-        return thumb_states[quality]!!.load(context)
+        return thumb_states[quality]!!.load(context).getOrNull()
     }
+
+    fun getThumbnailLocalFile(quality: ThumbnailQuality, context: PlatformContext = SpMp.context): File = thumb_states[quality]!!.getCacheFile(context)
 
     protected open fun downloadThumbnail(quality: ThumbnailQuality): ImageBitmap? {
         val url = getThumbUrl(quality) ?: return null

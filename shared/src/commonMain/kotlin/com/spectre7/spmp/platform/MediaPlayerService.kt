@@ -21,7 +21,7 @@ enum class MediaPlayerRepeatMode {
     ALL
 }
 
-expect open class MediaPlayerService(): PlatformService {
+expect open class MediaPlayerService() {
     interface UndoRedoAction {
         fun undo()
         fun redo()
@@ -47,6 +47,9 @@ expect open class MediaPlayerService(): PlatformService {
     var session_started: Boolean
         private set
 
+    var context: PlatformContext
+        private set
+
     val state: MediaPlayerState
     val is_playing: Boolean
     val song_count: Int
@@ -60,7 +63,10 @@ expect open class MediaPlayerService(): PlatformService {
     var volume: Float
 
     val has_focus: Boolean
-    val supports_waveform: Boolean
+    val supports_visualiser: Boolean
+
+    open fun onCreate()
+    open fun onDestroy()
 
     @Composable
     fun Visualiser(colour: Color, modifier: Modifier = Modifier, opacity: Float = 1f)
@@ -95,5 +101,8 @@ expect open class MediaPlayerService(): PlatformService {
 
     companion object {
         fun CoroutineScope.playerLaunch(action: CoroutineScope.() -> Unit)
+
+        fun <T: MediaPlayerService> connect(context: PlatformContext, cls: Class<T>, onConnected: (service: T) -> Unit, onDisconnected: () -> Unit)
+        fun disconnect(context: PlatformContext, service: MediaPlayerService)
     }
 }

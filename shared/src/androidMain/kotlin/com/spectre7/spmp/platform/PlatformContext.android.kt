@@ -7,43 +7,47 @@ import android.content.Context.MODE_APPEND
 import android.content.Context.MODE_PRIVATE
 import android.content.ContextWrapper
 import android.content.Intent
+import android.graphics.drawable.Icon
 import android.net.ConnectivityManager
 import android.net.NetworkCapabilities
+import android.net.Uri
 import android.os.Handler
 import android.os.Looper
 import android.os.VibrationEffect
 import android.os.VibratorManager
+import android.view.Window
+import android.view.WindowInsetsController.APPEARANCE_LIGHT_STATUS_BARS
+import android.view.WindowManager
 import android.widget.Toast
+import androidx.compose.foundation.layout.WindowInsets
 import androidx.compose.foundation.layout.size
+import androidx.compose.foundation.layout.systemBars
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.ContentCopy
 import androidx.compose.material.icons.filled.Share
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.platform.LocalClipboardManager
-import androidx.compose.ui.platform.LocalConfiguration
-import androidx.compose.ui.platform.LocalDensity
+import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.graphics.toArgb
+import androidx.compose.ui.platform.*
 import androidx.compose.ui.text.AnnotatedString
 import androidx.compose.ui.text.font.Font
 import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
 import androidx.core.app.NotificationManagerCompat
+import androidx.core.view.WindowCompat
+import androidx.core.view.WindowInsetsCompat
+import com.google.android.exoplayer2.util.Assertions
 import com.spectre7.spmp.model.Settings
+import com.spectre7.spmp.resources.getString
+import com.spectre7.spmp.resources.getStringTODO
 import java.io.File
 import java.io.FileInputStream
 import java.io.FileOutputStream
 import java.io.InputStream
-import java.lang.ref.WeakReference
 import kotlin.concurrent.thread
-import android.graphics.drawable.Icon
-import android.net.Uri
-import android.view.Window
-import android.view.WindowInsetsController.APPEARANCE_LIGHT_STATUS_BARS
-import androidx.compose.ui.graphics.Color
-import androidx.compose.ui.graphics.toArgb
-import com.spectre7.spmp.resources.getStringTODO
-import com.spectre7.spmp.resources.getString
+import kotlin.properties.Delegates
 
 private const val DEFAULT_NOTIFICATION_CHANNEL_ID = "default_channel"
 private const val ERROR_NOTIFICATION_CHANNEL_ID = "download_error_channel"
@@ -206,6 +210,12 @@ actual class PlatformContext(private val context: Context) {
 
     companion object {
         lateinit var main_activity: Class<out Activity>
+
+        var ic_spmp by Delegates.notNull<Int>()
+        var ic_thumb_up by Delegates.notNull<Int>()
+        var ic_thumb_up_off by Delegates.notNull<Int>()
+        var ic_skip_next by Delegates.notNull<Int>()
+        var ic_skip_previous by Delegates.notNull<Int>()
     }
 }
 

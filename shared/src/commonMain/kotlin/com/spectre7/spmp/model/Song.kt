@@ -17,6 +17,7 @@ import kotlinx.coroutines.*
 import okhttp3.internal.filterList
 import java.io.FileNotFoundException
 import java.net.URL
+import kotlin.concurrent.thread
 
 class SongItemData(override val data_item: Song): MediaItemData(data_item) {
 
@@ -106,6 +107,61 @@ class Song protected constructor (
             data.removeLast()?.also { supplySongType(SongType.values()[it as Int], cached = true) }
         }
         return super.supplyFromSerialisedData(data, klaxon)
+    }
+
+    enum class LikeStatus { UNKNOWN, LOADING, UNAVAILABLE, NEUTRAL, LIKED, DISLIKED }
+
+    private val like_status_state = mutableStateOf(LikeStatus.UNKNOWN)
+    var like_status: LikeStatus get() = like_status_state.value
+        private set(value) { like_status_state.value = value }
+    private var set_liked_thread: Thread? = null
+
+    @Synchronized
+    fun setLiked(liked: Boolean?) {
+        if (like_status == LikeStatus.UNAVAILABLE) {
+            return
+        }
+
+        set_liked_thread?.interrupt()
+        set_liked_thread = thread {
+            setSongLiked(id, liked)
+            updateLikedStatus(false)
+        }
+    }
+
+    fun updateLikedStatus(in_thread: Boolean = true) {
+        synchronized(like_status_state) {
+            if (like_status == LikeStatus.LOADING || like_status == LikeStatus.UNAVAILABLE) {
+                return
+            }
+            like_status = LikeStatus.LOADING
+        }
+
+
+        fun update() {
+            val result = getSongLiked(id)
+            synchronized(like_status_state) {
+                result.fold(
+                    { status ->
+                        like_status = when (status) {
+                            true -> LikeStatus.LIKED
+                            false -> LikeStatus.DISLIKED
+                            null -> LikeStatus.NEUTRAL
+                        }
+                    },
+                    {
+                        like_status = LikeStatus.UNAVAILABLE
+                    }
+                )
+            }
+        }
+
+        if (in_thread) {
+            thread { update() }
+        }
+        else {
+            update()
+        }
     }
 
     data class Lyrics(

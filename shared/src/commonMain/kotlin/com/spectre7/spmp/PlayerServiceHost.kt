@@ -13,7 +13,6 @@ class PlayerServiceHost() {
     private var player: PlayerService? by mutableStateOf(null)
 
     private var service_connecting = false
-    private var service_connection: Any? = null
 
     private val context: PlatformContext get() = SpMp.context
     private val download_manager = PlayerDownloadManager(context)
@@ -126,9 +125,9 @@ class PlayerServiceHost() {
     }
 
     private fun release() {
-        if (service_connection != null) {
-            PlatformService.unbindService(context, service_connection!!)
-            service_connection = null
+        player?.also {
+            MediaPlayerService.disconnect(context, it)
+            player = null
         }
         download_manager.release()
     }
@@ -140,11 +139,11 @@ class PlayerServiceHost() {
         }
 
         service_connecting = true
-        service_connection = PlatformService.startService(
+        MediaPlayerService.connect(
             context,
             PlayerService::class.java,
-            onConnected = { binder ->
-                player = (binder as PlayerService.PlayerBinder).getService()
+            onConnected = { service ->
+                player = service
                 status = PlayerStatus(player!!)
                 service_connecting = false
                 onConnected?.invoke()

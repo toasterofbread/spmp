@@ -2,11 +2,12 @@ package com.spectre7.spmp.exovisualiser
 
 import android.media.AudioTrack
 import android.media.AudioTrack.ERROR_BAD_VALUE
-import com.google.android.exoplayer2.C
-import com.google.android.exoplayer2.Format
-import com.google.android.exoplayer2.audio.AudioProcessor
-import com.google.android.exoplayer2.util.Assertions
-import com.google.android.exoplayer2.util.Util
+import androidx.media3.common.C
+import androidx.media3.common.Format
+import androidx.media3.common.audio.AudioProcessor
+import androidx.media3.common.util.Assertions
+import androidx.media3.common.util.UnstableApi
+import androidx.media3.common.util.Util
 import com.paramsen.noise.Noise
 import java.nio.ByteBuffer
 import java.nio.ByteOrder
@@ -18,6 +19,7 @@ import kotlin.math.max
  * The results of this transformation is a 'list' of frequencies with their amplitudes,
  * which will be forwarded to the listener
  */
+@UnstableApi
 class FFTAudioProcessor : AudioProcessor {
 
     companion object {

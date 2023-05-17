@@ -124,7 +124,7 @@ fun ColumnScope.NowPlayingMainTab(
             if (_expansion > 1f)
                 (
                     (-screen_height * ((NOW_PLAYING_VERTICAL_PAGE_COUNT * 0.5f) - _expansion))
-                    - ((TOP_BAR_HEIGHT.dp - MINIMISED_NOW_PLAYING_HEIGHT.dp + (status_bar_height * 0.5f)) * (_expansion - 1f))
+                    - ((TOP_BAR_HEIGHT.dp - MINIMISED_NOW_PLAYING_HEIGHT.dp + (status_bar_height * 1.5f)) * (_expansion - 1f))
                 ).toPx().toInt()
             else 0
         )

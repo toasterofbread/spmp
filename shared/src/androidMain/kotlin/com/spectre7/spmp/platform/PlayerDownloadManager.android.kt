@@ -125,7 +125,6 @@ actual class PlayerDownloadManager actual constructor(val context: PlatformConte
         } ?: emptyList()
 
         val files = getDownloadDir(context).listFiles() ?: emptyArray()
-        println("FILES ${files.toList()}")
         callback(
             current_downloads + files.mapNotNull { file ->
                 if (current_downloads.any { it.file == file }) {
@@ -205,7 +204,7 @@ actual class PlayerDownloadManager actual constructor(val context: PlatformConte
             service_connecting = true
         }
 
-        service_connection = PlatformService.startService(
+        service_connection = startPlatformService(
             context,
             PlayerDownloadService::class.java,
             onConnected = { binder ->
@@ -231,7 +230,7 @@ actual class PlayerDownloadManager actual constructor(val context: PlatformConte
 
     actual fun release() {
         if (service_connection != null) {
-            PlatformService.unbindService(context, service_connection!!)
+            unbindPlatformService(context, service_connection!!)
             service_connection = null
         }
     }

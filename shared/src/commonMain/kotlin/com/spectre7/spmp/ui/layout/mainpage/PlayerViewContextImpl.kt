@@ -231,15 +231,14 @@ class PlayerViewContextImpl: PlayerViewContext(null, null, null) {
         }
 
         val screen_height = SpMp.context.getScreenHeight()
-        val status_bar_height = SpMp.context.getStatusBarHeight()
 
-        LaunchedEffect(screen_height, status_bar_height) {
+        LaunchedEffect(screen_height) {
             val half_screen_height = screen_height.value * 0.5f
 
             now_playing_swipe_anchors = (0..NOW_PLAYING_VERTICAL_PAGE_COUNT)
                 .associateBy { anchor ->
                     if (anchor == 0) MINIMISED_NOW_PLAYING_HEIGHT.toFloat() - half_screen_height
-                    else ((screen_height + status_bar_height).value * anchor) - half_screen_height
+                    else ((screen_height).value * anchor) - half_screen_height
                 }
 
             val current_swipe_value = now_playing_swipe_state.targetValue

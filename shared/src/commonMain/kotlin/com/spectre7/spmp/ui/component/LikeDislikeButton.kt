@@ -38,60 +38,44 @@ fun LikeDislikeButton(
         return
     }
 
-    var loaded: Boolean by remember { mutableStateOf(false) }
-    var liked: Boolean? by remember { mutableStateOf(null) }
     LaunchedEffect(song) {
-        loaded = false
-        thread {
-            liked = getSongLiked(song.id).getOrNull()
-            loaded = true
-        }
-    }
-
-    fun setLiked(value: Boolean?) {
-        if (!loaded) {
-            return
-        }
-
-        thread {
-            if (setSongLiked(song.id, value).isSuccess) {
-                liked = value
-            }
-            else {
-                liked = getSongLiked(song.id).getOrNull()
-            }
-        }
+        song.updateLikedStatus()
     }
 
     Box(
         modifier,
         contentAlignment = Alignment.Center
     ) {
-        Crossfade(if (!loaded) null else liked != null) { active ->
-            if (active == null) {
+        val like_status = song.like_status
+        Crossfade(if (like_status == Song.LikeStatus.UNAVAILABLE || like_status == Song.LikeStatus.UNKNOWN) null else like_status) { status ->
+            if (status == Song.LikeStatus.LOADING) {
                 SubtleLoadingIndicator(Modifier.size(24.dp), colourProvider)
             }
-            else if (active == true) {
-                val rotation by animateFloatAsState(if (liked == false) 180f else 0f)
+            else if (status != null) {
+                check(status == Song.LikeStatus.LIKED || status == Song.LikeStatus.DISLIKED || status == Song.LikeStatus.NEUTRAL)
+
+                val rotation by animateFloatAsState(if (status == Song.LikeStatus.DISLIKED) 180f else 0f)
 
                 Icon(
-                    if (active) Icons.Filled.ThumbUp else Icons.Outlined.ThumbUp,
+                    if (status != Song.LikeStatus.NEUTRAL) Icons.Filled.ThumbUp else Icons.Outlined.ThumbUp,
                     null,
                     Modifier
                         .rotate(rotation)
                         .combinedClickable(
-                            onClick = { when (liked) {
-                                true -> setLiked(null)
-                                false -> setLiked(null)
-                                null -> setLiked(true)
+                            onClick = { when (status) {
+                                Song.LikeStatus.LIKED -> song.setLiked(null)
+                                Song.LikeStatus.DISLIKED -> song.setLiked(null)
+                                Song.LikeStatus.NEUTRAL -> song.setLiked(true)
+                                else -> throw IllegalStateException(status.name)
                             }},
                             onLongClick = {
-                                when (liked) {
-                                    true -> setLiked(false)
-                                    false -> setLiked(true)
-                                    null -> setLiked(false)
-                                }
                                 SpMp.context.vibrateShort()
+                                when (status) {
+                                    Song.LikeStatus.LIKED -> song.setLiked(false)
+                                    Song.LikeStatus.DISLIKED -> song.setLiked(true)
+                                    Song.LikeStatus.NEUTRAL -> song.setLiked(false)
+                                    else -> throw IllegalStateException(status.name)
+                                }
                             }
                         ),
                     tint = colourProvider()

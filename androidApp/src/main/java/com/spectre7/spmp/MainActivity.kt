@@ -11,6 +11,7 @@ import com.spectre7.spmp.model.MediaItem
 import com.spectre7.spmp.platform.PlatformContext
 import android.content.Intent
 import android.net.Uri
+import androidx.core.view.WindowCompat
 
 class MainActivity : ComponentActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
@@ -26,8 +27,15 @@ class MainActivity : ComponentActivity() {
             WindowManager.LayoutParams.FLAG_LAYOUT_NO_LIMITS,
             WindowManager.LayoutParams.FLAG_LAYOUT_NO_LIMITS
         )
+        WindowCompat.setDecorFitsSystemWindows(window, false)
 
         PlatformContext.main_activity = MainActivity::class.java
+
+        PlatformContext.ic_spmp = R.drawable.ic_spmp
+        PlatformContext.ic_thumb_up = R.drawable.ic_thumb_up
+        PlatformContext.ic_thumb_up_off = R.drawable.ic_thumb_up_off
+        PlatformContext.ic_skip_next = R.drawable.ic_skip_next
+        PlatformContext.ic_skip_previous = R.drawable.ic_skip_previous
 
         val context = PlatformContext(this)
         SpMp.init(context)

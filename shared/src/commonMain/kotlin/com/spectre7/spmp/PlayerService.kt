@@ -364,7 +364,7 @@ class PlayerService : MediaPlayerService() {
 //    private var vol_notif_instance: Int = 0
 
     // Persistent queue
-    private val queue_lock = ReentrantLock()
+    private val queue_lock = Semaphore(1)
     private var update_timer: Timer? = null
 
     private fun onDiscordAccountTokenChanged() {
@@ -456,7 +456,7 @@ class PlayerService : MediaPlayerService() {
             return
         }
 
-        if (!queue_lock.tryLock()) {
+        if (!queue_lock.tryAcquire()) {
             return
         }
 
@@ -471,7 +471,7 @@ class PlayerService : MediaPlayerService() {
 
         writer.close()
 
-        queue_lock.unlock()
+        queue_lock.release()
     }
 
     fun loadPersistentQueue() {
@@ -479,16 +479,16 @@ class PlayerService : MediaPlayerService() {
             return
         }
 
-        thread {
-            queue_lock.lock()
+        thread { runBlocking {
+            queue_lock.acquire()
 
             val reader: BufferedReader
             try {
                 reader = context.openFileInput("persistent_queue").bufferedReader()
             }
             catch (_: FileNotFoundException) {
-                queue_lock.unlock()
-                return@thread
+                queue_lock.release()
+                return@runBlocking
             }
 
             val pos_data = reader.readLine().split(',')
@@ -542,22 +542,23 @@ class PlayerService : MediaPlayerService() {
 
             // Pretty sure this is safe?
             while (first_song == null) { runBlocking { delay(100) } }
+            reader.close()
 
             context.mainThread {
                 addMultipleToQueue(songs as List<Song>, 1)
                 seekToSong(pos_data[0].toInt())
                 seekTo(pos_data[1].toLong())
 
-                queue_lock.unlock()
+                queue_lock.release()
             }
-        }
+        } }
     }
 
-    inner class PlayerBinder: PlatformBinder() {
-        fun getService(): PlayerService = this@PlayerService
-    }
-    private val binder = PlayerBinder()
-    override fun onBind(): PlatformBinder = binder
+//    inner class PlayerBinder: PlatformBinder() {
+//        fun getService(): PlayerService = this@PlayerService
+//    }
+//    private val binder = PlayerBinder()
+//    override fun onBind(): PlatformBinder = binder
 
     override fun onCreate() {
         super.onCreate()

@@ -12,9 +12,10 @@ import androidx.core.app.NotificationManagerCompat
 import com.spectre7.spmp.api.cast
 import com.spectre7.spmp.model.Settings
 import com.spectre7.spmp.model.Song
+import com.spectre7.spmp.platform.PlatformBinder
 import com.spectre7.spmp.platform.PlatformContext
 import com.spectre7.spmp.platform.PlayerDownloadManager.DownloadStatus
-import com.spectre7.spmp.platform.PlatformService
+import com.spectre7.spmp.platform.PlatformServiceImpl
 import com.spectre7.spmp.platform.PlayerDownloadManager
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.runBlocking
@@ -30,7 +31,7 @@ private const val FILE_DOWNLOADING_SUFFIX = ".part"
 private const val NOTIFICATION_ID = 1
 private const val NOTIFICATION_CHANNEL_ID = "download_channel"
 
-class PlayerDownloadService: PlatformService() {
+class PlayerDownloadService: PlatformServiceImpl() {
     private inner class Download(
         val id: String,
         val quality: Song.AudioQuality,

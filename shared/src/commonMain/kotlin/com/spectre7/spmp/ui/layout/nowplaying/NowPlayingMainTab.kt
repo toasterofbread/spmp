@@ -70,6 +70,8 @@ fun ColumnScope.NowPlayingMainTab(
     playerProvider: () -> PlayerViewContext,
     scroll: (pages: Int) -> Unit
 ) {
+    val current_song: Song? = rememberSongUpdateLyrics(PlayerServiceHost.status.m_song)
+    
     val _expansion = minOf(2f, expansionProvider())
     val expansion =
         if (_expansion <= 1f) maxOf(MIN_EXPANSION, _expansion)
@@ -79,7 +81,7 @@ fun ColumnScope.NowPlayingMainTab(
     var theme_colour by remember { mutableStateOf<Color?>(null) }
     fun setThemeColour(value: Color?) {
         theme_colour = value
-        PlayerServiceHost.status.song?.theme_colour = theme_colour
+        current_song?.theme_colour = theme_colour
     }
     
     var seek_state by remember { mutableStateOf(-1f) }
@@ -92,7 +94,7 @@ fun ColumnScope.NowPlayingMainTab(
     }
 
     fun onThumbnailLoaded(image: ImageBitmap?, song: Song?) {
-        if (song != PlayerServiceHost.status.m_song) {
+        if (song != current_song) {
             return
         }
 
@@ -107,11 +109,11 @@ fun ColumnScope.NowPlayingMainTab(
         }
     }
 
-    LaunchedEffect(PlayerServiceHost.status.m_song) {
-        onThumbnailLoaded(null, PlayerServiceHost.status.m_song)
+    LaunchedEffect(current_song) {
+        onThumbnailLoaded(null, current_song)
     }
 
-    val thumbnail_rounding: Int? = PlayerServiceHost.status.m_song?.song_reg_entry?.thumbnail_rounding
+    val thumbnail_rounding: Int? = current_song?.song_reg_entry?.thumbnail_rounding
     val thumbnail_shape = RoundedCornerShape(thumbnail_rounding ?: DEFAULT_THUMBNAIL_ROUNDING)
     var image_size by remember { mutableStateOf(IntSize(1, 1)) }
 
@@ -130,31 +132,49 @@ fun ColumnScope.NowPlayingMainTab(
         )
     }
 
-    Row(
+    Box(
         Modifier
             .fillMaxWidth()
             .requiredHeight(TOP_BAR_HEIGHT.dp * appear_scale)
             .alpha(1f - disappear_scale)
             .offset(offsetProvider)
-            .padding(horizontal = NOW_PLAYING_MAIN_PADDING.dp),
-        horizontalArrangement = Arrangement.End
+            .padding(horizontal = NOW_PLAYING_MAIN_PADDING.dp)
     ) {
-        AnimatedVisibility(PlayerServiceHost.status.m_song != null) {
-            if (PlayerServiceHost.status.m_song != null) {
+        Crossfade(current_song) { song ->
+            Row(
+                Modifier
+                    .fillMaxWidth()
+                    .requiredHeight(TOP_BAR_HEIGHT.dp * appear_scale)
+                    .alpha(1f - disappear_scale)
+                    .offset(offsetProvider)
+                    .padding(horizontal = NOW_PLAYING_MAIN_PADDING.dp),
+                horizontalArrangement = Arrangement.SpaceBetween
+            ) {
                 LikeDislikeButton(
-                    PlayerServiceHost.status.m_song!!,
+                    song,
                     Modifier.width(40.dp).fillMaxHeight(),
                     colourProvider = { getNPOnBackground(playerProvider).setAlpha(0.5f) }
                 )
+                
+                Crossfade(song?.lyrics?.lyrics, Modifier.fillMaxWidth().weight(1f)) { lyrics ->
+                    if (lyrics != null && lyrics.sync_type != Song.Lyrics.SyncType.NONE) {
+                        LyricsLineDisplay(
+                            lyrics,
+                            { PlayerServiceHost.status.position_ms + 500 },
+                            Theme.current.on_background_provider
+                        )
+                    }
+                }
+
+                IconButton({
+                    playerProvider().onMediaItemLongClicked(song, PlayerServiceHost.status.index)
+                }) {
+                    Icon(Icons.Filled.MoreHoriz, null, tint = getNPOnBackground(playerProvider).setAlpha(0.5f))
+                }
             }
         }
-
-        IconButton({
-            PlayerServiceHost.status.song?.let { playerProvider().onMediaItemLongClicked(it, PlayerServiceHost.status.index) }
-        }) {
-            Icon(Icons.Filled.MoreHoriz, null, tint = getNPOnBackground(playerProvider).setAlpha(0.5f))
-        }
     }
+
 
     Row(
         verticalAlignment = Alignment.CenterVertically,
@@ -186,7 +206,7 @@ fun ColumnScope.NowPlayingMainTab(
 
         Box(Modifier.aspectRatio(1f)) {
 
-            Crossfade(PlayerServiceHost.status.m_song, animationSpec = tween(250)) { song ->
+            Crossfade(current_song, animationSpec = tween(250)) { song ->
                 var image: ImageBitmap? by remember { mutableStateOf(null) }
                 song?.Thumbnail(
                     MediaItemThumbnailProvider.Quality.HIGH,
@@ -428,13 +448,13 @@ fun ColumnScope.NowPlayingMainTab(
 
             Column(Modifier.fillMaxSize().weight(1f), verticalArrangement = Arrangement.SpaceEvenly) {
                 Text(
-                    PlayerServiceHost.status.m_song?.title ?: "",
+                    current_song?.title ?: "",
                     maxLines = 1,
                     color = getNPOnBackground(playerProvider),
                     overflow = TextOverflow.Ellipsis
                 )
                 Text(
-                    PlayerServiceHost.status.m_song?.artist?.title ?: "",
+                    current_song?.artist?.title ?: "",
                     maxLines = 1,
                     color = getNPOnBackground(playerProvider),//.copy(alpha = 0.5f),
                     overflow = TextOverflow.Ellipsis,
@@ -463,6 +483,7 @@ fun ColumnScope.NowPlayingMainTab(
 
     if (expansion > 0.0f) {
         Controls(
+            current_song,
             playerProvider,
             {
                 PlayerServiceHost.player.seekTo((PlayerServiceHost.player.duration_ms * it).toLong())
@@ -482,6 +503,7 @@ fun ColumnScope.NowPlayingMainTab(
 
 @Composable
 private fun Controls(
+    song: Song?,
     playerProvider: () -> PlayerViewContext,
     seek: (Float) -> Unit,
     scroll: (pages: Int) -> Unit,
@@ -528,9 +550,9 @@ private fun Controls(
         Column(verticalArrangement = Arrangement.spacedBy(35.dp)) {
             Column(verticalArrangement = Arrangement.spacedBy(5.dp)) {
 
-                var title_text by remember { mutableStateOf(PlayerServiceHost.status.m_song?.title ?: "") }
-                OnChangedEffect(PlayerServiceHost.status.m_song?.title) {
-                    title_text = PlayerServiceHost.status.m_song?.title ?: ""
+                var title_text by remember { mutableStateOf(song?.title ?: "") }
+                OnChangedEffect(song?.title) {
+                    title_text = song?.title ?: ""
                 }
 
                 Marquee(autoscroll = false) {
@@ -546,7 +568,7 @@ private fun Controls(
                 }
 
                 Text(
-                    PlayerServiceHost.status.m_song?.artist?.title ?: "",
+                    song?.artist?.title ?: "",
                     fontSize = 12.sp,
                     color = getNPOnBackground(playerProvider),
                     textAlign = TextAlign.Center,
@@ -557,7 +579,7 @@ private fun Controls(
                         .clickable(
                             remember { MutableInteractionSource() },
                             indication = null,
-                            enabled = PlayerServiceHost.status.song?.artist?.is_for_item == false
+                            enabled = song?.artist?.is_for_item == false
                         ) {
                             PlayerServiceHost.status.song?.artist?.also {
                                 playerProvider().onMediaItemClicked(it)
@@ -582,7 +604,7 @@ private fun Controls(
                 // Play / pause
                 PlayerButton(
                     if (PlayerServiceHost.status.m_playing) Icons.Filled.Pause else Icons.Filled.PlayArrow,
-                    enabled = PlayerServiceHost.status.m_song != null
+                    enabled = song != null
                 ) {
                     PlayerServiceHost.player.playPause()
                 }

@@ -6,7 +6,7 @@ import androidx.compose.foundation.ExperimentalFoundationApi
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.filled.*
+import androidx.compose.material.Icons.Default.*
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
@@ -119,12 +119,11 @@ fun getArtistLongPressMenuData(
     return LongPressMenuData(
         artist,
         thumb_shape,
+        { ArtistLongPressMenuInfo(artist, it) },
         multiselect_context = multiselect_context,
         sideButton = { modifier, background, accent ->
             ArtistSubscribeButton(
                 artist,
-//                { background.getContrasted() },
-//                { accent },
                 modifier = modifier
             )
         }
@@ -137,65 +136,76 @@ fun getArtistLongPressMenuData(
 private fun LongPressMenuActionProvider.ArtistLongPressPopupActions(artist: MediaItem) {
     require(artist is Artist)
 
-    ActionButton(Icons.Filled.PlayArrow, "Start radio", onClick = {
-        TODO()
-    })
+    // TODO | Should radio actions be replaced with shuffle?
 
-    val queue_song = remember (PlayerServiceHost.player.active_queue_index) { PlayerServiceHost.player.getSong(PlayerServiceHost.player.active_queue_index) }
-    if (queue_song != null) {
-        Column {
-            Row(verticalAlignment = Alignment.CenterVertically) {
-                ActionButton(Icons.Filled.SubdirectoryArrowRight, "Start radio after",
-                    Modifier
-                        .fillMaxWidth()
-                        .weight(1f),
-                    onClick = {
-                        TODO()
-                    }
-                )
-
-                Row(verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(10.dp)) {
-                    val button_padding = PaddingValues(0.dp)
-                    val button_modifier = Modifier
-                        .size(30.dp)
-                        .fillMaxHeight()
-                        .aspectRatio(1f)
-                        .align(Alignment.CenterVertically)
-                    val button_colours = ButtonDefaults.buttonColors(
-                        containerColor = accent_colour(),
-                        contentColor = background_colour()
-                    )
-
-                    ElevatedButton(
-                        {
-                            PlayerServiceHost.player.updateActiveQueueIndex(-1)
-                        },
-                        button_modifier,
-                        contentPadding = button_padding,
-                        colors = button_colours,
-                    ) {
-                        Icon(Icons.Filled.Remove, null)
-                    }
-                    ElevatedButton(
-                        {
-                            PlayerServiceHost.player.updateActiveQueueIndex(1)
-                        },
-                        button_modifier,
-                        contentPadding = button_padding,
-                        colors = button_colours
-                    ) {
-                        Icon(Icons.Filled.Add, null)
-                    }
-                }
-            }
-
-            Crossfade(queue_song, animationSpec = tween(100)) {
-                it.PreviewLong(MediaItem.PreviewParams(playerProvider, contentColour = content_colour))
-            }
+    ActionButton(
+        Icons.Default.PlayArrow, 
+        getString("lpm_action_play"), 
+        onClick = {
+            TODO() // Play songs
+        },
+        onLongClick = {
+            TODO() // Play radio
         }
-    }
+    )
 
-    ActionButton(Icons.Filled.Person, "View artist", onClick = {
+    ActiveQueueIndexAction(
+        { distance ->
+            getString(if (distance == 1) "lpm_action_play_after_1_song" else "lpm_action_play_after_x_songs").replace("\$x", distance.toString()) 
+        },
+        onClick = { active_queue_index ->
+            TODO() // Insert songs
+        },
+        onLongClick = { active_queue_index ->
+            TODO() // Insert radio
+        }
+    )
+
+    ActionButton(Icons.Default.Person, getString(lpm_action_open_artist), onClick = {
         playerProvider().openMediaItem(artist)
     })
+}
+
+@Composable
+private fun ColumnScope.ArtistLongPressMenuInfo(artist: Artist, accent_colour: Color) {
+    @Composable
+    fun Item(icon: ImageVector, text: String, modifier: Modifier = Modifier) {
+        Row(
+            modifier,
+            horizontalArrangement = Arrangement.spacedBy(20.dp),
+            verticalAlignment = Alignment.CenterVertically
+        ) {
+            Icon(icon, null, tint = accent_colour)
+            WidthShrinkText(text, fontSize = 15.sp)
+        }
+    }
+    @Composable
+    fun Item() {
+        Spacer(Modifier.height(60.dp)) // TODO
+    }
+
+    Item(Icons.Default.PlayArrow, getString("lpm_action_radio"))
+    Item(Icons.Default.SubdirectoryArrowRight, getString("lpm_action_radio_after_x_songs"))
+
+    Spacer(
+        Modifier
+            .fillMaxHeight()
+            .weight(1f)
+    )
+
+    Row(Modifier.requiredHeight(20.dp), verticalAlignment = Alignment.CenterVertically) {
+        Text(
+            getString("lpm_info_id").replace("\$id", artist.id),
+            Modifier
+                .fillMaxWidth()
+                .weight(1f)
+        )
+        SpMp.context.CopyShareButtons { artist.id }
+    }
+
+    if (isDebugBuild()) {
+        Item(Icons.Default.Print, getString("lpm_action_print_info"), Modifier.clickable {
+            println(artist)
+        })
+    }
 }

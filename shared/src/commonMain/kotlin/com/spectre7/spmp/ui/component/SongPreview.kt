@@ -14,7 +14,7 @@ import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.filled.*
+import androidx.compose.material.Icons.Default.*
 import androidx.compose.material.ripple.rememberRipple
 import androidx.compose.material3.Icon
 import androidx.compose.material3.Surface
@@ -187,8 +187,65 @@ fun getSongLongPressMenuData(
 }
 
 @Composable
-private fun ColumnScope.SongLongPressMenuInfo(song: Song, queue_index: Int?, accent_colour: Color) {
+private fun LongPressMenuActionProvider.SongLongPressPopupActions(song: MediaItem, queue_index: Int?) {
+    require(song is Song)
 
+    ActionButton(
+        Icons.Default.Radio, getString("lpm_action_radio"),
+        onClick = {
+            PlayerServiceHost.player.playSong(song)
+        },
+        onLongClick = if (queue_index == null) null else {{
+            PlayerServiceHost.player.startRadioAtIndex(queue_index + 1, song, skip_first = true)
+        }}
+    )
+
+    ActiveQueueIndexAction(
+        { distance ->
+            getString(if (distance == 1) "lpm_action_play_after_1_song" else "lpm_action_play_after_x_songs").replace("\$x", distance.toString()) 
+        },
+        onClick = { active_queue_index ->
+            PlayerServiceHost.player.addToQueue(
+                song,
+                active_queue_index + 1,
+                is_active_queue = true,
+                start_radio = false
+            )
+        },
+        onLongClick = { active_queue_index ->
+            PlayerServiceHost.player.addToQueue(
+                song,
+                active_queue_index + 1,
+                is_active_queue = true,
+                start_radio = true
+            )
+        }
+    )
+
+    ActionButton(Icons.Default.Download, getString("lpm_action_download"), onClick = {
+        PlayerServiceHost.download_manager.startDownload(song.id) { status: DownloadStatus ->
+            when (status.status) {
+                DownloadStatus.Status.FINISHED -> SpMp.context.sendToast(getString("notif_download_finished"))
+                DownloadStatus.Status.ALREADY_FINISHED -> SpMp.context.sendToast(getString("notif_download_already_finished"))
+                DownloadStatus.Status.CANCELLED -> SpMp.context.sendToast(getString("notif_download_cancelled"))
+
+                // IDLE, DOWNLOADING, PAUSED
+                else -> {
+                    SpMp.context.sendToast(getString("notif_download_already_downloading"))
+                }
+            }
+        }
+    })
+
+    if (song.artist != null) {
+        ActionButton(Icons.Default.Person, getString("lpm_action_go_to_artist"), onClick = {
+            playerProvider().openMediaItem(song.artist!!)
+        })
+    }
+}
+
+@Composable
+private fun ColumnScope.SongLongPressMenuInfo(song: Song, queue_index: Int?, accent_colour: Color) {
     @Composable
     fun Item(icon: ImageVector, text: String, modifier: Modifier = Modifier) {
         Row(
@@ -200,11 +257,18 @@ private fun ColumnScope.SongLongPressMenuInfo(song: Song, queue_index: Int?, acc
             WidthShrinkText(text, fontSize = 15.sp)
         }
     }
-
-    Item(Icons.Filled.Radio, getString("lpm_action_start_radio_long_press"))
-    if (queue_index != null) {
-        Item(Icons.Filled.SubdirectoryArrowRight, getString("lpm_action_play_after_long_press"))
+    @Composable
+    fun Item() {
+        Spacer(Modifier.height(60.dp)) // TODO
     }
+
+    if (queue_index != null) {
+        Item(Icons.Default.Radio, getString("lpm_action_radio_at_song_pos"))
+    }
+    else {
+        Item()
+    }
+    Item(Icons.Default.SubdirectoryArrowRight, getString("lpm_action_radio_after_x_songs"))
 
     Spacer(
         Modifier
@@ -227,133 +291,8 @@ private fun ColumnScope.SongLongPressMenuInfo(song: Song, queue_index: Int?, acc
     }
 
     if (isDebugBuild()) {
-        Item(Icons.Filled.Print, getString("lpm_action_print_info"), Modifier.clickable {
+        Item(Icons.Default.Print, getString("lpm_action_print_info"), Modifier.clickable {
             println(song)
-        })
-    }
-}
-
-@Composable
-private fun LongPressMenuActionProvider.SongLongPressPopupActions(song: MediaItem, queue_index: Int?) {
-    require(song is Song)
-
-    ActionButton(
-        Icons.Filled.Radio, getString("lpm_action_start_radio"),
-        onClick = {
-            PlayerServiceHost.player.playSong(song)
-        },
-        onLongClick = if (queue_index == null) null else {{
-            PlayerServiceHost.player.startRadioAtIndex(queue_index + 1, song, skip_first = true)
-        }}
-    )
-
-    var active_queue_item: Song? by remember { mutableStateOf(null) }
-    AnimatedVisibility(PlayerServiceHost.player.active_queue_index < PlayerServiceHost.status.m_queue_size) {
-        if (PlayerServiceHost.player.active_queue_index < PlayerServiceHost.status.m_queue_size) {
-            active_queue_item = PlayerServiceHost.player.getSong(PlayerServiceHost.player.active_queue_index)
-        }
-
-        Column {
-            Row(
-                Modifier.fillMaxWidth(),
-                verticalAlignment = Alignment.CenterVertically,
-                horizontalArrangement = Arrangement.SpaceBetween
-            ) {
-                val distance = PlayerServiceHost.player.active_queue_index - PlayerServiceHost.status.index + 1
-                ActionButton(
-                    Icons.Filled.SubdirectoryArrowRight,
-                    getString(if (distance == 1) "lpm_action_play_after_1_song" else "lpm_action_play_after_x_songs").replace("\$x", distance.toString()),
-                    fill_width = false,
-                    onClick = {
-                        PlayerServiceHost.player.addToQueue(
-                            song,
-                            PlayerServiceHost.player.active_queue_index + 1,
-                            is_active_queue = true,
-                            start_radio = false
-                        )
-                    },
-                    onLongClick = {
-                        PlayerServiceHost.player.addToQueue(
-                            song,
-                            PlayerServiceHost.player.active_queue_index + 1,
-                            is_active_queue = true,
-                            start_radio = true
-                        )
-                    }
-                )
-
-                Row(verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(10.dp)) {
-                    val button_modifier = Modifier
-                        .size(30.dp)
-                        .fillMaxHeight()
-                        .aspectRatio(1f)
-                        .align(Alignment.CenterVertically)
-
-                    Surface(
-                        button_modifier.combinedClickable(
-                            remember { MutableInteractionSource() },
-                            rememberRipple(),
-                            onClick = {
-                                PlayerServiceHost.player.updateActiveQueueIndex(-1)
-                            },
-                            onLongClick = {
-                                SpMp.context.vibrateShort()
-                                PlayerServiceHost.player.active_queue_index = PlayerServiceHost.player.current_song_index
-                            }
-                        ),
-                        color = accent_colour(),
-                        shape = CircleShape
-                    ) {
-                        Icon(Icons.Filled.Remove, null, tint = background_colour())
-                    }
-
-                    Surface(
-                        button_modifier.combinedClickable(
-                            remember { MutableInteractionSource() },
-                            rememberRipple(),
-                            onClick = {
-                                PlayerServiceHost.player.updateActiveQueueIndex(1)
-                            },
-                            onLongClick = {
-                                SpMp.context.vibrateShort()
-                                PlayerServiceHost.player.active_queue_index = PlayerServiceHost.player.song_count - 1
-                            }
-                        ),
-                        color = accent_colour(),
-                        shape = CircleShape
-                    ) {
-                        Icon(Icons.Filled.Add, null, tint = background_colour())
-                    }
-                }
-            }
-
-            Crossfade(active_queue_item, animationSpec = tween(100)) {
-                it?.PreviewLong(MediaItem.PreviewParams(
-                    { playerProvider().copy(onClickedOverride = { item -> playerProvider().openMediaItem(item) }) },
-                    contentColour = content_colour
-                ))
-            }
-        }
-    }
-
-    ActionButton(Icons.Filled.Download, getString("lpm_action_download"), onClick = {
-        PlayerServiceHost.download_manager.startDownload(song.id) { status: DownloadStatus ->
-            when (status.status) {
-                DownloadStatus.Status.FINISHED -> SpMp.context.sendToast(getString("notif_download_finished"))
-                DownloadStatus.Status.ALREADY_FINISHED -> SpMp.context.sendToast(getString("notif_download_already_finished"))
-                DownloadStatus.Status.CANCELLED -> SpMp.context.sendToast(getString("notif_download_cancelled"))
-
-                // IDLE, DOWNLOADING, PAUSED
-                else -> {
-                    SpMp.context.sendToast(getString("notif_download_already_downloading"))
-                }
-            }
-        }
-    })
-
-    if (song.artist != null) {
-        ActionButton(Icons.Filled.Person, getString("lpm_action_go_to_artist"), onClick = {
-            playerProvider().openMediaItem(song.artist!!)
         })
     }
 }

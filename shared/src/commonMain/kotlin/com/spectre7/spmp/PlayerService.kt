@@ -18,7 +18,6 @@ import kotlinx.coroutines.sync.Semaphore
 import kotlinx.coroutines.sync.withPermit
 import java.io.*
 import java.util.*
-import java.util.concurrent.locks.ReentrantLock
 import kotlin.concurrent.thread
 import kotlin.random.Random
 import kotlin.random.nextInt
@@ -414,10 +413,10 @@ class PlayerService : MediaPlayerService() {
                     val small_image: String?
 
                     try {
-                        large_image = getCustomImage(song.id) { song.loadThumbnail(MediaItem.ThumbnailQuality.LOW)!! }.getOrThrow()
+                        large_image = getCustomImage(song.id) { song.loadThumbnail(MediaItemThumbnailProvider.Quality.LOW)!! }.getOrThrow()
                         small_image = song.artist?.let { artist ->
                             getCustomImage(artist.id) {
-                                artist.loadThumbnail(MediaItem.ThumbnailQuality.LOW)
+                                artist.loadThumbnail(MediaItemThumbnailProvider.Quality.LOW)
                             }.getOrThrow()
                         }
                     }

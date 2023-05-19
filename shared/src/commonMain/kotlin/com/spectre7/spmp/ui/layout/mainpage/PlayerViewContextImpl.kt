@@ -1,6 +1,7 @@
 package com.spectre7.spmp.ui.layout.mainpage
 
 import SpMp
+import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.animation.Crossfade
 import androidx.compose.animation.core.Animatable
 import androidx.compose.animation.core.tween
@@ -15,7 +16,6 @@ import androidx.compose.material.ExperimentalMaterialApi
 import androidx.compose.material.SwipeableState
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.*
-import androidx.compose.material.icons.outlined.PushPin
 import androidx.compose.material.ripple.rememberRipple
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
@@ -275,7 +275,6 @@ class PlayerViewContextImpl: PlayerViewContext(null, null, null) {
 
                 LongPressMenu(
                     long_press_menu_showing && current,
-                    (long_press_menu_direct && current) || data.thumb_shape == null,
                     {
                         if (current) {
                             hideLongPressMenu()
@@ -453,12 +452,12 @@ private fun getMainMultiselectContext(playerProvider: () -> PlayerViewContext): 
                 Modifier.clickable {
                     PlayerServiceHost.player.addMultipleToQueue(
                         multiselect.getUniqueSelectedItems().filterIsInstance<Song>(),
-                        PlayerServiceHost.player.active_queue_index + 1,
+                        (PlayerServiceHost.player.active_queue_index + 1).coerceAtMost(PlayerServiceHost.status.queue_size),
                         is_active_queue = true
                     )
                     multiselect.onActionPerformed()
                 },
-                horizontalArrangement = Arrangement.spacedBy(20.dp),
+                horizontalArrangement = Arrangement.spacedBy(5.dp),
                 verticalAlignment = Alignment.CenterVertically
             ) {
                 Icon(Icons.Default.SubdirectoryArrowRight, null)
@@ -468,57 +467,65 @@ private fun getMainMultiselectContext(playerProvider: () -> PlayerViewContext): 
         },
         nextRowSelectedItemActions = { multiselect ->
             // Play after controls and song indicator
-            Row(verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(10.dp)) {
-                val active_queue_item =
-                    if (PlayerServiceHost.player.active_queue_index < PlayerServiceHost.status.m_queue_size)
-                        PlayerServiceHost.player.getSong(PlayerServiceHost.player.active_queue_index)
-                    else null
-
-                Crossfade(active_queue_item, animationSpec = tween(100), modifier = Modifier.weight(1f)) {
-                    it?.PreviewLong(MediaItem.PreviewParams(
-                        { playerProvider().copy(onClickedOverride = { item -> playerProvider().openMediaItem(item) }) }
-                    ))
-                }
-
-                val button_modifier = Modifier
-                    .size(30.dp)
-                    .fillMaxHeight()
-                    .aspectRatio(1f)
-                    .align(Alignment.CenterVertically)
-
-                Surface(
-                    button_modifier.combinedClickable(
-                        remember { MutableInteractionSource() },
-                        rememberRipple(),
-                        onClick = {
-                            PlayerServiceHost.player.updateActiveQueueIndex(-1)
-                        },
-                        onLongClick = {
-                            SpMp.context.vibrateShort()
-                            PlayerServiceHost.player.active_queue_index = PlayerServiceHost.player.current_song_index
-                        }
-                    ),
-                    shape = CircleShape
-                ) {
-                    Icon(Icons.Default.Remove, null)
-                }
-
-                Surface(
-                    button_modifier.combinedClickable(
-                        remember { MutableInteractionSource() },
-                        rememberRipple(),
-                        onClick = {
-                            PlayerServiceHost.player.updateActiveQueueIndex(1)
-                        },
-                        onLongClick = {
-                            SpMp.context.vibrateShort()
-                            PlayerServiceHost.player.active_queue_index = PlayerServiceHost.player.song_count - 1
-                        }
-                    ),
-                    shape = CircleShape
-                ) {
-                    Icon(Icons.Filled.Add, null)
-                }
+            AnimatedVisibility(PlayerServiceHost.status.m_queue_size > 0) {
+                MultiSelectNextRowActions(playerProvider)
             }
         }
     )
+
+@OptIn(ExperimentalFoundationApi::class)
+@Composable
+fun MultiSelectNextRowActions(playerProvider: () -> PlayerViewContext) {
+    Row(verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(10.dp)) {
+        val active_queue_item =
+            if (PlayerServiceHost.player.active_queue_index < PlayerServiceHost.status.m_queue_size)
+                PlayerServiceHost.player.getSong(PlayerServiceHost.player.active_queue_index)
+            else null
+
+        Crossfade(active_queue_item, animationSpec = tween(100), modifier = Modifier.weight(1f)) {
+            it?.PreviewLong(MediaItem.PreviewParams(
+                { playerProvider().copy(onClickedOverride = { item -> playerProvider().openMediaItem(item) }) }
+            ))
+        }
+
+        val button_modifier = Modifier
+            .size(30.dp)
+            .fillMaxHeight()
+            .aspectRatio(1f)
+            .align(Alignment.CenterVertically)
+
+        Surface(
+            button_modifier.combinedClickable(
+                remember { MutableInteractionSource() },
+                rememberRipple(),
+                onClick = {
+                    PlayerServiceHost.player.updateActiveQueueIndex(-1)
+                },
+                onLongClick = {
+                    SpMp.context.vibrateShort()
+                    PlayerServiceHost.player.active_queue_index = PlayerServiceHost.player.current_song_index
+                }
+            ),
+            shape = CircleShape
+        ) {
+            Icon(Icons.Default.Remove, null)
+        }
+
+        Surface(
+            button_modifier.combinedClickable(
+                remember { MutableInteractionSource() },
+                rememberRipple(),
+                onClick = {
+                    PlayerServiceHost.player.updateActiveQueueIndex(1)
+                },
+                onLongClick = {
+                    SpMp.context.vibrateShort()
+                    PlayerServiceHost.player.active_queue_index = PlayerServiceHost.player.song_count - 1
+                }
+            ),
+            shape = CircleShape
+        ) {
+            Icon(Icons.Filled.Add, null)
+        }
+    }
+}

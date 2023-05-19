@@ -83,38 +83,10 @@ private fun unescape(input: String): String {
 class InvalidRadioException: Throwable()
 
 fun loadMediaItemData(item: MediaItem): Result<MediaItem?> {
-    val lock = item.loading_lock
     val item_id = item.id
 
-    synchronized(lock) {
-        if (item.loading) {
-            lock.wait()
-            return Result.success(item.getOrReplacedWith())
-        }
-        item.loading = true
-    }
-
-    fun finish(): Result<MediaItem> {
-        item.loading = false
-        synchronized(lock) {
-            lock.notifyAll()
-        }
-
-        return Result.success(item)
-    }
-
-    fun finish(result: Result<MediaItem?>): Result<MediaItem?> {
-        item.loading = false
-        synchronized(lock) {
-            lock.notifyAll()
-        }
-        return result
-    }
-
-    println("Load $item_id $item")
-
     if (item is Artist && item.is_for_item) {
-        return finish()
+        return Result.success(item)
     }
 
     val url = if (item is Song) "/youtubei/v1/next" else "/youtubei/v1/browse"
@@ -178,7 +150,7 @@ fun loadMediaItemData(item: MediaItem): Result<MediaItem?> {
 
                         supplyTitle(header_renderer.title.first_text, true)
                         supplyDescription(header_renderer.description?.first_text, true)
-                        supplyThumbnailProvider(MediaItem.ThumbnailProvider.fromThumbnails(header_renderer.getThumbnails()))
+                        supplyThumbnailProvider(MediaItemThumbnailProvider.fromThumbnails(header_renderer.getThumbnails()))
 
                         header_renderer.subtitle?.runs?.also { subtitle ->
                             val artist_run = subtitle.firstOrNull {
@@ -252,7 +224,7 @@ fun loadMediaItemData(item: MediaItem): Result<MediaItem?> {
                     supplyFeedLayouts(item_layouts, true)
                 }
 
-                return@editData finish()
+                return@editData Result.success(item)
             }
 
             check(item is Song)
@@ -290,13 +262,13 @@ fun loadMediaItemData(item: MediaItem): Result<MediaItem?> {
 
             val result = video.getArtist(item)
             if (result.isFailure) {
-                return@editData finish(result.cast())
+                return@editData result.cast()
             }
 
             val (artist, certain) = result.getOrThrow()
             if (artist != null) {
                 supplyArtist(artist, certain)
-                return@editData finish()
+                return@editData Result.success(item)
             }
         }
 
@@ -309,7 +281,7 @@ fun loadMediaItemData(item: MediaItem): Result<MediaItem?> {
 
         val result = DataApi.request(request)
         if (result.isFailure) {
-            return@editData finish(result.cast())
+            return@editData result.cast()
         }
 
         val stream = result.getOrThrowHere().getStream()
@@ -317,12 +289,12 @@ fun loadMediaItemData(item: MediaItem): Result<MediaItem?> {
         stream.close()
 
         if (video_data.videoDetails == null) {
-            return@editData finish(Result.success(null))
+            return@editData Result.success(null)
         }
 
         supplyTitle(video_data.videoDetails.title, true)
         supplyArtist(Artist.fromId(video_data.videoDetails.channelId), true)
 
-        return@editData finish()
+        return@editData Result.success(item)
     }
 }

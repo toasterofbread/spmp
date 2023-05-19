@@ -12,7 +12,6 @@ import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.LazyRow
 import androidx.compose.foundation.lazy.rememberLazyListState
 import androidx.compose.foundation.shape.CircleShape
-import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.text.KeyboardActions
 import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.material.icons.Icons
@@ -22,7 +21,6 @@ import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.*
 import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.layout.ContentScale
@@ -34,10 +32,8 @@ import androidx.compose.ui.text.*
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.input.ImeAction
 import androidx.compose.ui.text.style.TextAlign
-import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.*
 import com.spectre7.spmp.api.DataApi
-import com.spectre7.spmp.api.durationToString
 import com.spectre7.spmp.model.*
 import com.spectre7.spmp.platform.composable.PlatformAlertDialog
 import com.spectre7.spmp.platform.vibrateShort
@@ -45,7 +41,6 @@ import com.spectre7.spmp.resources.getString
 import com.spectre7.spmp.resources.getStringTODO
 import com.spectre7.spmp.ui.component.MediaItemLayout
 import com.spectre7.spmp.ui.component.PillMenu
-import com.spectre7.spmp.ui.component.SONG_THUMB_CORNER_ROUNDING
 import com.spectre7.spmp.ui.component.multiselect.MediaItemMultiSelectContext
 import com.spectre7.spmp.ui.layout.mainpage.PlayerViewContext
 import com.spectre7.spmp.ui.theme.Theme
@@ -93,7 +88,7 @@ fun ArtistPage(
     }
 
     LaunchedEffect(item.canLoadThumbnail()) {
-        item.loadAndGetThumbnail(MediaItem.ThumbnailQuality.HIGH)
+        item.loadAndGetThumbnail(MediaItemThumbnailProvider.Quality.HIGH)
     }
 
 //    LaunchedEffect(accent_colour) {
@@ -111,7 +106,7 @@ fun ArtistPage(
         val lazy_column_state = rememberLazyListState()
 
         // Thumbnail
-        Crossfade(item.loadAndGetThumbnail(MediaItem.ThumbnailQuality.HIGH)) { thumbnail ->
+        Crossfade(item.loadAndGetThumbnail(MediaItemThumbnailProvider.Quality.HIGH)) { thumbnail ->
             if (thumbnail != null) {
                 if (accent_colour == null) {
                     accent_colour = Theme.current.makeVibrant(item.getDefaultThemeColour() ?: Theme.current.accent)

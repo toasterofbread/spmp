@@ -27,7 +27,6 @@ import androidx.compose.ui.zIndex
 import com.spectre7.spmp.PlayerServiceHost
 import com.spectre7.spmp.model.Settings
 import com.spectre7.spmp.model.Song
-import com.spectre7.spmp.resources.getString
 import com.spectre7.spmp.resources.getStringTODO
 import com.spectre7.spmp.ui.component.PillMenu
 import com.spectre7.spmp.ui.layout.mainpage.PlayerViewContext
@@ -37,7 +36,6 @@ import com.spectre7.utils.LongFuriganaText
 import com.spectre7.utils.TextData
 import com.spectre7.utils.setAlpha
 import kotlinx.coroutines.delay
-import kotlinx.coroutines.launch
 
 class LyricsOverlayMenu(
     val size: Dp
@@ -55,24 +53,11 @@ class LyricsOverlayMenu(
         playerProvider: () -> PlayerViewContext
     ) {
 
-        var lyrics: Song.Lyrics? by remember { mutableStateOf(null) }
+        val lyrics: Song.Lyrics? = songProvider().lyrics.lyrics
         var show_furigana: Boolean by remember { mutableStateOf(Settings.KEY_LYRICS_DEFAULT_FURIGANA.get()) }
 
         val scroll_state = rememberLazyListState()
         var search_menu_open by remember { mutableStateOf(false) }
-        var reload_lyrics by remember { mutableStateOf(false) }
-
-        LaunchedEffect(songProvider().id, reload_lyrics) {
-            lyrics = null
-
-            launch {
-                lyrics = songProvider().loadLyrics()
-                if (lyrics == null) {
-                    SpMp.context.sendToast(getString("no_lyrics_found"))
-                    search_menu_open = true
-                }
-            }
-        }
 
         Text(lyrics?.id.toString() + " | " + lyrics?.sync_type.toString())
 
@@ -110,8 +95,7 @@ class LyricsOverlayMenu(
                 LyricsSearchMenu(songProvider()) { changed ->
                     search_menu_open = false
                     if (changed) {
-                        lyrics = null
-                        reload_lyrics = !reload_lyrics
+                        songProvider().lyrics.loadAndGet()
                     }
                 }
             }

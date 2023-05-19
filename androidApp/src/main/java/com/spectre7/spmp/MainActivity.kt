@@ -14,8 +14,30 @@ import android.net.Uri
 import androidx.core.view.WindowCompat
 
 class MainActivity : ComponentActivity() {
+    companion object {
+        init {
+            PlatformContext.main_activity = MainActivity::class.java
+            PlatformContext.ic_spmp = R.drawable.ic_spmp
+            PlatformContext.ic_thumb_up = R.drawable.ic_thumb_up
+            PlatformContext.ic_thumb_up_off = R.drawable.ic_thumb_up_off
+            PlatformContext.ic_skip_next = R.drawable.ic_skip_next
+            PlatformContext.ic_skip_previous = R.drawable.ic_skip_previous
+        }
+    }
+
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
+
+        if (!ProjectBuildConfig.IS_DEBUG) {
+            Thread.setDefaultUncaughtExceptionHandler { _: Thread, error: Throwable ->
+                error.printStackTrace()
+
+                startActivity(Intent(this@MainActivity, ErrorReportActivity::class.java).apply {
+                    putExtra("message", error.message)
+                    putExtra("stack_trace", error.stackTraceToString())
+                })
+            }
+        }
 
         StrictMode.setVmPolicy(VmPolicy.Builder()
             .detectLeakedClosableObjects()
@@ -28,14 +50,6 @@ class MainActivity : ComponentActivity() {
             WindowManager.LayoutParams.FLAG_LAYOUT_NO_LIMITS
         )
         WindowCompat.setDecorFitsSystemWindows(window, false)
-
-        PlatformContext.main_activity = MainActivity::class.java
-
-        PlatformContext.ic_spmp = R.drawable.ic_spmp
-        PlatformContext.ic_thumb_up = R.drawable.ic_thumb_up
-        PlatformContext.ic_thumb_up_off = R.drawable.ic_thumb_up_off
-        PlatformContext.ic_skip_next = R.drawable.ic_skip_next
-        PlatformContext.ic_skip_previous = R.drawable.ic_skip_previous
 
         val context = PlatformContext(this)
         SpMp.init(context)

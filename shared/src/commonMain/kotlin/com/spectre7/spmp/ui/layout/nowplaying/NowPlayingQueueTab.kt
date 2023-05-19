@@ -185,7 +185,7 @@ fun QueueTab(expansionProvider: () -> Float, playerProvider: () -> PlayerViewCon
     DisposableEffect(Unit) {
         PlayerServiceHost.player.addListener(queue_listener)
         onDispose {
-            PlayerServiceHost.player.removeListener(queue_listener)
+            PlayerServiceHost.nullable_player?.removeListener(queue_listener)
         }
     }
 

@@ -31,10 +31,10 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.spectre7.spmp.PlayerServiceHost
 import com.spectre7.spmp.model.MediaItem
+import com.spectre7.spmp.model.MediaItemThumbnailProvider
 import com.spectre7.spmp.model.Song
 import com.spectre7.spmp.model.mediaItemPreviewInteraction
 import com.spectre7.spmp.platform.PlayerDownloadManager.DownloadStatus
-import com.spectre7.spmp.platform.composable.platformClickable
 import com.spectre7.spmp.platform.vibrateShort
 import com.spectre7.spmp.resources.getString
 import com.spectre7.spmp.ui.component.multiselect.MediaItemMultiSelectContext
@@ -66,7 +66,7 @@ fun SongPreviewSquare(
     ) {
         Box(Modifier.fillMaxSize().weight(1f), contentAlignment = Alignment.Center) {
             song.Thumbnail(
-                MediaItem.ThumbnailQuality.LOW,
+                MediaItemThumbnailProvider.Quality.LOW,
                 Modifier.longPressMenuIcon(long_press_menu_data, params.enable_long_press_menu).aspectRatio(1f),
                 params.contentColour
             )
@@ -110,7 +110,7 @@ fun SongPreviewLong(
     ) {
         Box(Modifier.width(IntrinsicSize.Min).height(IntrinsicSize.Min), contentAlignment = Alignment.Center) {
             song.Thumbnail(
-                MediaItem.ThumbnailQuality.LOW,
+                MediaItemThumbnailProvider.Quality.LOW,
                 Modifier
                     .longPressMenuIcon(long_press_menu_data, params.enable_long_press_menu)
                     .size(40.dp),

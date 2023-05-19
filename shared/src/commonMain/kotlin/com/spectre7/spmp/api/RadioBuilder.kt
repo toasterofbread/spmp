@@ -3,7 +3,7 @@ package com.spectre7.spmp.api
 import com.spectre7.spmp.api.DataApi.Companion.addYtHeaders
 import com.spectre7.spmp.api.DataApi.Companion.getStream
 import com.spectre7.spmp.api.DataApi.Companion.ytUrl
-import com.spectre7.spmp.model.MediaItem
+import com.spectre7.spmp.model.MediaItemThumbnailProvider
 import com.spectre7.spmp.model.Playlist
 import com.spectre7.spmp.resources.getString
 import okhttp3.Request
@@ -19,7 +19,7 @@ fun getBuiltRadio(radio_token: String): Result<Playlist?> {
         return result.cast()
     }
 
-    val thumb_url = playlist.thumbnail_provider?.getThumbnailUrl(MediaItem.ThumbnailQuality.HIGH)
+    val thumb_url = playlist.thumbnail_provider?.getThumbnailUrl(MediaItemThumbnailProvider.Quality.HIGH)
     if (thumb_url?.contains("fallback") == true) {
         return Result.success(null)
     }
@@ -71,7 +71,7 @@ fun buildRadioToken(artists: Set<RadioBuilderArtist>, modifiers: Set<RadioModifi
 
 // https://gist.github.com/toasterofbread/8982ffebfca5919cb51e8967e0122982
 fun getRadioBuilderArtists(
-    selectThumbnail: (List<MediaItem.ThumbnailProvider.Thumbnail>) -> MediaItem.ThumbnailProvider.Thumbnail
+    selectThumbnail: (List<MediaItemThumbnailProvider.Thumbnail>) -> MediaItemThumbnailProvider.Thumbnail
 ): Result<List<RadioBuilderArtist>> {
     val request = Request.Builder()
         .ytUrl("/youtubei/v1/browse")
@@ -121,7 +121,7 @@ private class RadioBuilderBrowseResponse(
     class MusicRadioBuilderModel(val seedItems: List<SeedItem>)
     class SeedItem(val itemEntityKey: String, val musicThumbnail: MusicThumbnail, val title: String)
     class MusicThumbnail(val image: Image)
-    class Image(val sources: List<MediaItem.ThumbnailProvider.Thumbnail>)
+    class Image(val sources: List<MediaItemThumbnailProvider.Thumbnail>)
 
     class FrameworkUpdates(val entityBatchUpdate: EntityBatchUpdate)
     class EntityBatchUpdate(val mutations: List<Mutation>)
@@ -135,7 +135,7 @@ private class RadioBuilderBrowseResponse(
 class RadioBuilderArtist(
     val name: String,
     val token: String,
-    val thumbnail: MediaItem.ThumbnailProvider.Thumbnail
+    val thumbnail: MediaItemThumbnailProvider.Thumbnail
 )
 
 interface RadioModifier {

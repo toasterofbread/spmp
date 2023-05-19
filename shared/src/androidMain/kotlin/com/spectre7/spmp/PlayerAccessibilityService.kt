@@ -188,7 +188,7 @@ actual class PlayerAccessibilityService : AccessibilityService(), LifecycleOwner
 
         actual fun isEnabled(context: PlatformContext): Boolean {
             val enabled_services = AndroidSettings.Secure.getString(context.ctx.contentResolver, AndroidSettings.Secure.ENABLED_ACCESSIBILITY_SERVICES)
-            return enabled_services.contains("${context.ctx.packageName}/${PlayerAccessibilityService::class.java.canonicalName}")
+            return enabled_services?.contains("${context.ctx.packageName}/${PlayerAccessibilityService::class.java.canonicalName}") == true
         }
 
         actual fun enable(context: PlatformContext, root: Boolean) {

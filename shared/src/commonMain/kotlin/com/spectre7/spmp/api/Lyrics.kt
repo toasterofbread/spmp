@@ -13,27 +13,23 @@ import org.xmlpull.v1.XmlPullParserFactory
 import java.nio.channels.ClosedByInterruptException
 import java.util.*
 
-fun getSongLyrics(song: Song): Song.Lyrics? {
-    val ret: Song.Lyrics?
+fun getSongLyrics(song: Song, data: Pair<Int, Song.Lyrics.Source>?): Song.Lyrics? {
+    require(song.isFullyLoaded())
 
-    val id: Int? = song.song_reg_entry.lyrics_id
-    val source: Song.Lyrics.Source? = song.song_reg_entry.lyrics_source
+    val ret: Song.Lyrics =
+        if (data != null)
+            getLyrics(data.first, data.second).getOrThrowHere()
+        else {
+            val results = searchForLyrics(song.title!!, song.artist!!.title).getOrThrowHere()
+            if (results.isEmpty()) {
+                return null
+            }
 
-    if (id != null && source != null) {
-        ret = getLyrics(id, source).getOrThrowHere()
-    }
-    else {
-        val results = searchForLyrics(song.title!!, song.artist!!.title).getOrThrowHere()
-        if (results.isEmpty()) {
-            return null
+            val lyrics = results.first()
+            getLyrics(lyrics.id, lyrics.source).getOrThrowHere()
         }
 
-        val lyrics = results.first()
-        ret = getLyrics(lyrics.id, lyrics.source).getOrThrowHere()
-    }
-
-    song.song_reg_entry.lyrics_id = ret.id
-    song.song_reg_entry.lyrics_source = ret.source
+    song.song_reg_entry.updateLyrics(ret.id, ret.source)
     return ret
 }
 

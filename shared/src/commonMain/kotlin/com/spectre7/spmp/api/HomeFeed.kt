@@ -121,7 +121,7 @@ private fun processRows(rows: List<YoutubeiShelf>, hl: String): List<MediaItemLa
                         header.thumbnail?.musicThumbnailRenderer?.thumbnail?.thumbnails?.firstOrNull()?.let {
                             MediaItemLayout.ThumbnailSource(null, url = it.url)
                         },
-                    media_item_type: MediaItem.Type? = null,
+                    media_item_type: MediaItemType? = null,
                     view_more: MediaItemLayout.ViewMore? = null
                 ) {
 
@@ -344,7 +344,7 @@ data class BrowseEndpoint(
     val params: String? = null
 ) {
     fun getPageType(): String? = browseEndpointContextSupportedConfigs?.browseEndpointContextMusicConfig?.pageType
-    fun getMediaItemType(): MediaItem.Type? = getPageType()?.let { MediaItem.Type.fromBrowseEndpointType(it) }
+    fun getMediaItemType(): MediaItemType? = getPageType()?.let { MediaItemType.fromBrowseEndpointType(it) }
 
     fun getMediaItem(): MediaItem? {
         return getPageType()?.let { page_type ->
@@ -420,7 +420,7 @@ data class HeaderRenderer(
     val secondSubtitle: TextRuns? = null,
     val moreContentButton: MoreContentButton? = null
 ) {
-    fun getThumbnails(): List<MediaItem.ThumbnailProvider.Thumbnail> {
+    fun getThumbnails(): List<MediaItemThumbnailProvider.Thumbnail> {
         return (foregroundThumbnail ?: thumbnail)?.thumbnails ?: emptyList()
     }
 }
@@ -431,10 +431,10 @@ data class Thumbnails(val musicThumbnailRenderer: MusicThumbnailRenderer? = null
         assert(musicThumbnailRenderer != null || croppedSquareThumbnailRenderer != null)
     }
     @Json(ignored = true)
-    val thumbnails: List<MediaItem.ThumbnailProvider.Thumbnail> get() = (musicThumbnailRenderer ?: croppedSquareThumbnailRenderer!!).thumbnail.thumbnails
+    val thumbnails: List<MediaItemThumbnailProvider.Thumbnail> get() = (musicThumbnailRenderer ?: croppedSquareThumbnailRenderer!!).thumbnail.thumbnails
 }
 data class MusicThumbnailRenderer(val thumbnail: Thumbnail) {
-    data class Thumbnail(val thumbnails: List<MediaItem.ThumbnailProvider.Thumbnail>)
+    data class Thumbnail(val thumbnails: List<MediaItemThumbnailProvider.Thumbnail>)
 }
 data class TextRuns(
     @Json(name = "runs")
@@ -497,7 +497,7 @@ data class MusicTwoRowItemRenderer(val navigationEndpoint: NavigationEndpoint, v
             val browse_endpoint = run.navigationEndpoint?.browseEndpoint
 
             val endpoint_type = browse_endpoint?.getMediaItemType()
-            if (endpoint_type == MediaItem.Type.ARTIST) {
+            if (endpoint_type == MediaItemType.ARTIST) {
                 return Artist.fromId(browse_endpoint.browseId).editArtistData { supplyTitle(run.text) }
             }
         }
@@ -513,8 +513,8 @@ data class MusicTwoRowItemRenderer(val navigationEndpoint: NavigationEndpoint, v
     }
 }
 data class ThumbnailRenderer(val musicThumbnailRenderer: MusicThumbnailRenderer) {
-    fun toThumbnailProvider(): MediaItem.ThumbnailProvider {
-        return MediaItem.ThumbnailProvider.fromThumbnails(musicThumbnailRenderer.thumbnail.thumbnails)!!
+    fun toThumbnailProvider(): MediaItemThumbnailProvider {
+        return MediaItemThumbnailProvider.fromThumbnails(musicThumbnailRenderer.thumbnail.thumbnails)!!
     }
 }
 data class MusicResponsiveListItemRenderer(
@@ -688,7 +688,7 @@ data class ContentsItem(val musicTwoRowItemRenderer: MusicTwoRowItemRenderer? = 
                 if (artist == null && renderer.menu != null) {
                     for (item in renderer.menu.menuRenderer.items) {
                         val browse_endpoint = (item.menuNavigationItemRenderer ?: continue).navigationEndpoint.browseEndpoint ?: continue
-                        if (browse_endpoint.getMediaItemType() == MediaItem.Type.ARTIST) {
+                        if (browse_endpoint.getMediaItemType() == MediaItemType.ARTIST) {
                             artist = Artist.fromId(browse_endpoint.browseId)
                             break
                         }

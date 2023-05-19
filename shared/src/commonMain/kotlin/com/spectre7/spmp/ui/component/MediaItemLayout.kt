@@ -48,7 +48,7 @@ data class MediaItemLayout(
     val type: Type? = null,
     val items: MutableList<MediaItem> = mutableListOf(),
     val thumbnail_source: ThumbnailSource? = null,
-    val thumbnail_item_type: MediaItem.Type? = null,
+    val thumbnail_item_type: MediaItemType? = null,
     var view_more: ViewMore? = null,
     var continuation: Continuation? = null,
     @Json(ignored = true)
@@ -208,7 +208,7 @@ data class MediaItemLayout(
             check(media_item != null || url != null)
         }
 
-        fun getThumbUrl(quality: MediaItem.ThumbnailQuality): String? {
+        fun getThumbUrl(quality: MediaItemThumbnailProvider.Quality): String? {
             return url ?: media_item?.getThumbUrl(quality)
         }
     }
@@ -243,7 +243,7 @@ data class MediaItemLayout(
     }
 
     private fun getThumbShape(): Shape {
-        return if (thumbnail_item_type == MediaItem.Type.ARTIST) CircleShape else RectangleShape
+        return if (thumbnail_item_type == MediaItemType.ARTIST) CircleShape else RectangleShape
     }
 
     fun shouldShowTitleBar(): Boolean = thumbnail_source != null || title != null || subtitle != null || view_more != null
@@ -266,7 +266,7 @@ data class MediaItemLayout(
                 verticalAlignment = Alignment.CenterVertically,
                 horizontalArrangement = Arrangement.spacedBy(10.dp)
             ) {
-                val thumbnail_url = thumbnail_source?.getThumbUrl(MediaItem.ThumbnailQuality.LOW)
+                val thumbnail_url = thumbnail_source?.getThumbUrl(MediaItemThumbnailProvider.Quality.LOW)
                 if (thumbnail_url != null) {
                     Image(
                         rememberImagePainter(thumbnail_url),
@@ -499,7 +499,7 @@ fun MediaItemCard(
         ) {
             Box(Modifier.width(IntrinsicSize.Min).height(IntrinsicSize.Min)) {
                 item.Thumbnail(
-                    MediaItem.ThumbnailQuality.HIGH,
+                    MediaItemThumbnailProvider.Quality.HIGH,
                     Modifier
                         .longPressMenuIcon(long_press_menu_data)
                         .size(100.dp),
@@ -541,9 +541,9 @@ fun MediaItemCard(
                 )
             ) {
                 Text(getString(when (item.type) {
-                    MediaItem.Type.SONG -> "media_play"
-                    MediaItem.Type.ARTIST -> "artist_chip_play"
-                    MediaItem.Type.PLAYLIST -> "playlist_chip_play"
+                    MediaItemType.SONG -> "media_play"
+                    MediaItemType.ARTIST -> "artist_chip_play"
+                    MediaItemType.PLAYLIST -> "playlist_chip_play"
                 }))
             }
         }
@@ -651,8 +651,8 @@ fun List<MediaItem>.generateLayoutTitle(): Pair<String, String?> {
 
     for (item in this) {
         when (item.type) {
-            MediaItem.Type.SONG -> if ((item as Song).song_type == Song.SongType.VIDEO) videos++ else songs++
-            MediaItem.Type.ARTIST -> artists++
+            MediaItemType.SONG -> if ((item as Song).song_type == Song.SongType.VIDEO) videos++ else songs++
+            MediaItemType.ARTIST -> artists++
             else -> if ((item as Playlist).playlist_type == Playlist.PlaylistType.ALBUM) albums++ else playlists++
         }
     }

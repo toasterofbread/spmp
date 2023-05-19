@@ -8,13 +8,12 @@ import com.spectre7.spmp.api.DataApi.Companion.getStream
 import com.spectre7.spmp.api.DataApi.Companion.ytUrl
 import com.spectre7.spmp.model.*
 import com.spectre7.spmp.ui.component.MediaItemLayout
-import com.spectre7.utils.Listeners
+import com.spectre7.utils.ValueListeners
 import kotlinx.coroutines.DelicateCoroutinesApi
 import kotlinx.coroutines.GlobalScope
 import kotlinx.coroutines.Job
 import kotlinx.coroutines.launch
 import okhttp3.Request
-import kotlin.coroutines.Continuation
 
 private const val RADIO_ID_PREFIX = "RDAMVM"
 private const val MODIFIED_RADIO_ID_PREFIX = "RDAT"
@@ -29,8 +28,7 @@ class RadioInstance {
     private val lock = Object()
     private var current_job: Job? by mutableStateOf(null)
 
-    private val _filter_changed_listeners: MutableList<(List<RadioModifier>?) -> Unit> = mutableListOf()
-    val filter_changed_listeners = Listeners(_filter_changed_listeners)
+    val filter_changed_listeners = ValueListeners<List<RadioModifier>?>()
 
     fun playMediaItem(item: MediaItem) {
         synchronized(lock) {
@@ -48,9 +46,7 @@ class RadioInstance {
         state.continuation = null
 
         val filter = state.current_filter?.let { state.filters!![it] }
-        for (listener in _filter_changed_listeners) {
-            listener.invoke(filter)
-        }
+        filter_changed_listeners.call(filter)
     }
 
     class RadioState {

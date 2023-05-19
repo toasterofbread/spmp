@@ -1,7 +1,7 @@
 package com.spectre7.spmp.api
 
 import SpMp
-import com.spectre7.spmp.model.MediaItem
+import com.spectre7.spmp.model.MediaItemType
 import com.spectre7.spmp.model.Settings
 import com.spectre7.spmp.resources.getString
 import org.apache.commons.lang3.time.DurationFormatUtils
@@ -168,9 +168,9 @@ class LocalisedYoutubeString(
         fun filterChip(key: String): Int? = SpMp.yt_ui_translation.getFilterChipIndex(key, current_source_language)
         fun filterChip(index: Int): String = SpMp.yt_ui_translation.getFilterChip(index)
 
-        fun mediaItemPage(key: String, item_type: MediaItem.Type): LocalisedYoutubeString =
+        fun mediaItemPage(key: String, item_type: MediaItemType): LocalisedYoutubeString =
             when (item_type) {
-                MediaItem.Type.ARTIST -> artistPage(key)
+                MediaItemType.ARTIST -> artistPage(key)
                 else -> throw NotImplementedError(item_type.name)
             }
     }

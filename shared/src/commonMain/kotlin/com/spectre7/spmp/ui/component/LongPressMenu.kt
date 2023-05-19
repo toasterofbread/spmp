@@ -14,10 +14,7 @@ import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.draw.alpha
 import androidx.compose.ui.draw.clip
-import androidx.compose.ui.draw.drawWithContent
-import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.graphics.*
 import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.layout.*
@@ -28,17 +25,13 @@ import com.spectre7.spmp.model.*
 import com.spectre7.spmp.platform.composable.PlatformDialog
 import com.spectre7.spmp.platform.vibrateShort
 import com.spectre7.spmp.resources.getString
-import com.spectre7.spmp.resources.getStringTODO
 import com.spectre7.spmp.ui.component.multiselect.MediaItemMultiSelectContext
 import com.spectre7.spmp.ui.layout.mainpage.PlayerViewContext
 import com.spectre7.spmp.ui.layout.nowplaying.overlay.DEFAULT_THUMBNAIL_ROUNDING
 import com.spectre7.spmp.ui.theme.Theme
 import com.spectre7.utils.*
 import com.spectre7.utils.composable.Marquee
-import kotlinx.coroutines.coroutineScope
-import kotlinx.coroutines.joinAll
-import kotlinx.coroutines.launch
-import kotlin.math.roundToInt
+import kotlinx.coroutines.delay
 
 const val LONG_PRESS_ICON_MENU_OPEN_ANIM_MS = 150
 
@@ -105,191 +98,84 @@ data class LongPressMenuData(
     val multiselect_key: Int? = null,
     val sideButton: (@Composable (Modifier, background: Color, accent: Color) -> Unit)? = null,
     val actions: (@Composable LongPressMenuActionProvider.(MediaItem) -> Unit)? = null
-) {
-    internal var thumb_size: IntSize? = null
-    internal var thumb_position: Offset? = null
-    internal var hide_thumb: Boolean by mutableStateOf(false)
-}
+)
 
 fun Modifier.longPressMenuIcon(data: LongPressMenuData, enabled: Boolean = true): Modifier {
     if (!enabled) {
         return this.clip(data.thumb_shape ?: RoundedCornerShape(DEFAULT_THUMBNAIL_ROUNDING))
     }
-    return this
-        .onGloballyPositioned {
-            data.thumb_position = it.positionInWindow()
-        }
-        .onSizeChanged {
-            data.thumb_size = it
-        }
-        .drawWithContent {
-            if (!data.hide_thumb) {
-                drawContent()
-            }
-        }
-        .clip(data.thumb_shape ?: RoundedCornerShape(DEFAULT_THUMBNAIL_ROUNDING))
+    return this.clip(data.thumb_shape ?: RoundedCornerShape(DEFAULT_THUMBNAIL_ROUNDING))
 }
 
 @Composable
 fun LongPressMenu(
     showing: Boolean,
-    no_transition: Boolean,
     onDismissRequest: () -> Unit,
     playerProvider: () -> PlayerViewContext,
     data: LongPressMenuData,
     modifier: Modifier = Modifier
 ) {
-    var show by remember { mutableStateOf(showing) }
-    LaunchedEffect(showing) {
-        if (showing) {
-            show = true
+    var close_requested by remember { mutableStateOf(false) }
+    var show_dialog by remember { mutableStateOf(showing) }
+    var show_content by remember { mutableStateOf(true) }
+
+    suspend fun closePopup() {
+        show_content = false
+        delay(LONG_PRESS_ICON_MENU_OPEN_ANIM_MS.toLong())
+        show_dialog = false
+        onDismissRequest()
+    }
+
+    LaunchedEffect(showing, close_requested) {
+        if (!showing || close_requested) {
+            closePopup()
+            close_requested = false
+        }
+        else {
+            show_dialog = true
+            show_content = true
         }
     }
 
-    if (show && (data.thumb_shape == null || data.thumb_position != null)) {
-
-        // Animation logic
-
-        val density = LocalDensity.current
-        val status_bar_height = SpMp.context.getStatusBarHeight()
-
-        val initial_pos = remember {
-            if (data.thumb_position == null) null else
-            with (density) { DpOffset(data.thumb_position!!.x.toDp(), data.thumb_position!!.y.toDp() - status_bar_height) }
-        }
-        val initial_size = remember {
-            if (data.thumb_size == null) null else
-            with (density) { DpSize(data.thumb_size!!.width.toDp(), data.thumb_size!!.height.toDp()) }
-        }
-
-        var fully_open by remember { mutableStateOf(false) }
-
-        val pos = remember {
-            if (initial_pos == null) null else
-            Animatable(initial_pos, DpOffset.VectorConverter)
-        }
-        val width = remember {
-            if (initial_size == null) null else
-            Animatable(initial_size.width.value)
-        }
-        val height = remember {
-            if (initial_size == null) null else
-            Animatable(initial_size.height.value)
-        }
-        val panel_alpha = remember { Animatable(1f) }
-
-        val target_position: MutableState<Offset?> = remember { mutableStateOf(null) }
-        val target_size: MutableState<IntSize?> = remember { mutableStateOf(null) }
-
-        suspend fun animateValues(to_target: Boolean) {
-
-            var pos_target: DpOffset = DpOffset.Unspecified
-            var width_target: Float = Float.NaN
-            var height_target: Float = Float.NaN
-
-            if (to_target) {
-                with (density) {
-                    pos_target = DpOffset(target_position.value!!.x.toDp(), target_position.value!!.y.toDp())
-                    width_target = target_size.value!!.width.toDp().value
-                    height_target = target_size.value!!.height.toDp().value
-                }
-            }
-            else if (initial_pos != null) {
-                pos_target = initial_pos
-                width_target = initial_size!!.width.value
-                height_target = initial_size.height.value
-            }
-
-            if (!to_target) {
-                fully_open = false
-            }
-
-            coroutineScope {
-                val animation_duration = if (no_transition && to_target) 0 else LONG_PRESS_ICON_MENU_OPEN_ANIM_MS
-
-                launch {
-                    panel_alpha.animateTo(if (to_target) 1f else 0f, tween(animation_duration))
-                }
-
-                if ((!no_transition || to_target) && initial_pos != null) {
-                    listOf(
-                        launch {
-                            pos?.animateTo(pos_target, tween(animation_duration))
-                        },
-                        launch {
-                            width?.animateTo(width_target, tween(animation_duration))
-                        },
-                        launch {
-                            height?.animateTo(height_target, tween(animation_duration))
-                        }
-                    ).joinAll()
-                }
-
-                fully_open = to_target
-            }
-        }
-
-        LaunchedEffect(target_position) {
-            if (target_position != null) {
-                animateValues(true)
-            }
-        }
-
-        // UI
-
-        val accent_colour: MutableState<Color?> = remember { mutableStateOf(null) }
-
-        LaunchedEffect(Unit) {
-            if (data.item is Song && data.item.theme_colour != null) {
-                accent_colour.value = data.item.theme_colour!!
-            }
-        }
-
-        val thumb_quality = MediaItem.ThumbnailQuality.LOW
-        LaunchedEffect(data.item.isThumbnailLoaded(thumb_quality)) {
-            if (!data.item.isThumbnailLoaded(thumb_quality)) {
-                data.item.loadAndGetThumbnail(MediaItem.ThumbnailQuality.LOW)
-            }
-            else {
-                accent_colour.value = (data.item.getDefaultThemeColour() ?: Theme.current.background)
-                    .contrastAgainst(Theme.current.background, 0.2f)
-            }
-        }
-
-        suspend fun closePopup() {
-            animateValues(false)
-            data.hide_thumb = false
-            show = false
-            onDismissRequest()
-        }
-
-        var close_requested by remember { mutableStateOf(false) }
-        LaunchedEffect(showing, close_requested) {
-            if (!showing || close_requested) {
-                closePopup()
-            }
-        }
-
+    if (show_dialog) {
         PlatformDialog(
             onDismissRequest = { close_requested = true },
             use_platform_default_width = false,
             dim_behind = false
         ) {
-            MenuContent(
-                data,
-                accent_colour,
-                panel_alpha,
-                fully_open,
-                no_transition,
-                pos,
-                width,
-                height,
-                target_position,
-                target_size,
-                modifier,
-                playerProvider,
-                { close_requested = true }
-            )
+            AnimatedVisibility(
+                show_content,
+                // Can't find a way to disable Android Dialog's animations, or an alternative
+                enter = EnterTransition.None,
+                exit = slideOutVertically(tween(LONG_PRESS_ICON_MENU_OPEN_ANIM_MS)) { it }
+            ) {
+                val accent_colour: MutableState<Color?> = remember { mutableStateOf(null) }
+
+                LaunchedEffect(Unit) {
+                    if (data.item is Song && data.item.theme_colour != null) {
+                        accent_colour.value = data.item.theme_colour!!
+                    }
+                }
+
+                val thumb_quality = MediaItemThumbnailProvider.Quality.LOW
+                LaunchedEffect(data.item.isThumbnailLoaded(thumb_quality)) {
+                    if (!data.item.isThumbnailLoaded(thumb_quality)) {
+                        data.item.loadAndGetThumbnail(MediaItemThumbnailProvider.Quality.LOW)
+                    }
+                    else {
+                        accent_colour.value = (data.item.getDefaultThemeColour() ?: Theme.current.background)
+                            .contrastAgainst(Theme.current.background, 0.2f)
+                    }
+                }
+
+                MenuContent(
+                    data,
+                    accent_colour,
+                    modifier,
+                    playerProvider,
+                    { close_requested = true }
+                )
+            }
         }
     }
 }
@@ -298,40 +184,22 @@ fun LongPressMenu(
 private fun MenuContent(
     data: LongPressMenuData,
     accent_colour: MutableState<Color?>,
-    panel_alpha: Animatable<Float, AnimationVector1D>,
-    fully_open: Boolean,
-    no_transition: Boolean,
-    pos: Animatable<DpOffset, AnimationVector2D>?,
-    width: Animatable<Float, AnimationVector1D>?,
-    height: Animatable<Float, AnimationVector1D>?,
-    target_position: MutableState<Offset?>,
-    target_size: MutableState<IntSize?>,
     modifier: Modifier,
     playerProvider: () -> PlayerViewContext,
     close: () -> Unit
 ) {
-    val y_offset = 10
-
     @Composable
     fun Thumb(modifier: Modifier) {
-        Crossfade(data.item.loadAndGetThumbnail(MediaItem.ThumbnailQuality.LOW)) { thumbnail ->
-            if (thumbnail != null) {
-                Image(
-                    thumbnail,
-                    contentDescription = null,
-                    contentScale = ContentScale.Crop,
-                    modifier = modifier
-                        .clip(data.thumb_shape ?: RoundedCornerShape(DEFAULT_THUMBNAIL_ROUNDING))
-                )
-            }
-        }
+        data.item.Thumbnail(MediaItemThumbnailProvider.Quality.LOW, modifier.clip(data.thumb_shape ?: RoundedCornerShape(DEFAULT_THUMBNAIL_ROUNDING)))
     }
+
+    val y_offset = SpMp.context.getStatusBarHeight()
 
     Box(
         Modifier
             .requiredHeight(SpMp.context.getScreenHeight())
-            .offset { IntOffset(0, y_offset) }
-            .background(Color.Black.setAlpha(0.5f * panel_alpha.value))
+            .offset(y = y_offset)
+//            .background(Color.Black.setAlpha(0.5f))
     ) {
         val shape = RoundedCornerShape(topStart = 16.dp, topEnd = 16.dp)
 
@@ -347,7 +215,6 @@ private fun MenuContent(
 
             Column(
                 modifier
-                    .alpha(panel_alpha.value)
                     .background(Theme.current.background, shape)
                     .fillMaxWidth()
                     .padding(padding),
@@ -359,24 +226,7 @@ private fun MenuContent(
                         .fillMaxWidth()
                 ) {
 
-                    // Main item thumbnail
-                    Thumb(Modifier
-                        .drawWithContent {
-                            if (fully_open) {
-                                drawContent()
-                            }
-                        }
-                        .aspectRatio(1f)
-                        .onSizeChanged {
-                            target_size.value = it
-                        }
-                        .onGloballyPositioned {
-                            target_position.value = it.localPositionOf(
-                                it.parentCoordinates!!.parentCoordinates!!,
-                                it.positionInRoot()
-                            )
-                        }
-                    )
+                    Thumb(Modifier.aspectRatio(1f))
 
                     // Item info
                     Column(
@@ -483,21 +333,6 @@ private fun MenuContent(
                         }
                     }
                 }
-            }
-        }
-
-        if (!fully_open && pos != null && width != null && height != null) {
-            Box(
-                Modifier
-                    .offset { IntOffset(pos.value.x.toPx().roundToInt(), pos.value.y.toPx().roundToInt() - y_offset) }
-                    .requiredSize(width.value.dp, height.value.dp)
-                    .clip(
-                        data.thumb_shape ?: RoundedCornerShape(DEFAULT_THUMBNAIL_ROUNDING)
-                    )
-                    .alpha(if (no_transition) panel_alpha.value else 1f)
-            ) {
-                Thumb(Modifier.fillMaxSize())
-                data.hide_thumb = true
             }
         }
     }

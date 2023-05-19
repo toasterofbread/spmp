@@ -7,6 +7,7 @@ import androidx.compose.ui.geometry.CornerRadius
 import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.geometry.Size
 import androidx.compose.ui.graphics.Color
+import androidx.media3.common.util.UnstableApi
 import kotlin.math.cos
 import kotlin.math.floor
 import kotlin.math.pow
@@ -21,6 +22,7 @@ private val FREQUENCY_BAND_LIMITS = arrayOf(
     12500, 16000, 20000
 )
 
+@UnstableApi
 class ExoVisualizer(
     private val processor: FFTAudioProcessor
 ): FFTAudioProcessor.FFTListener {

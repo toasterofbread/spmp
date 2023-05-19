@@ -4,16 +4,10 @@ package com.spectre7.spmp.ui.layout
 
 import SpMp
 import androidx.compose.animation.Crossfade
-import androidx.compose.animation.animateContentSize
 import androidx.compose.foundation.*
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
-import androidx.compose.foundation.lazy.LazyRow
-import androidx.compose.foundation.lazy.rememberLazyListState
-import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
-import androidx.compose.foundation.text.KeyboardActions
-import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.*
 import androidx.compose.material.icons.outlined.*
@@ -23,34 +17,20 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.*
-import androidx.compose.ui.graphics.vector.ImageVector
-import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.layout.onSizeChanged
-import androidx.compose.ui.platform.LocalClipboardManager
 import androidx.compose.ui.platform.LocalDensity
-import androidx.compose.ui.platform.LocalLayoutDirection
 import androidx.compose.ui.text.*
-import androidx.compose.ui.text.font.FontWeight
-import androidx.compose.ui.text.input.ImeAction
-import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.*
-import com.spectre7.spmp.api.DataApi
 import com.spectre7.spmp.api.durationToString
 import com.spectre7.spmp.model.*
-import com.spectre7.spmp.platform.composable.PlatformAlertDialog
-import com.spectre7.spmp.platform.vibrateShort
 import com.spectre7.spmp.resources.getString
-import com.spectre7.spmp.resources.getStringTODO
-import com.spectre7.spmp.ui.component.MediaItemLayout
 import com.spectre7.spmp.ui.component.PillMenu
 import com.spectre7.spmp.ui.component.SONG_THUMB_CORNER_ROUNDING
 import com.spectre7.spmp.ui.layout.mainpage.PlayerViewContext
 import com.spectre7.spmp.ui.theme.Theme
 import com.spectre7.utils.*
 import com.spectre7.utils.composable.*
-import com.spectre7.utils.modifier.background
-import com.spectre7.utils.modifier.brushBackground
 import kotlinx.coroutines.*
 import kotlin.concurrent.thread
 
@@ -152,7 +132,7 @@ fun PlaylistPage(
                         verticalAlignment = Alignment.CenterVertically,
                         horizontalArrangement = Arrangement.spacedBy(10.dp)
                     ) {
-                        item.Thumbnail(MediaItem.ThumbnailQuality.LOW, Modifier.size(50.dp).clip(RoundedCornerShape(SONG_THUMB_CORNER_ROUNDING)))
+                        item.Thumbnail(MediaItemThumbnailProvider.Quality.LOW, Modifier.size(50.dp).clip(RoundedCornerShape(SONG_THUMB_CORNER_ROUNDING)))
                         Text(
                             item.title!!,
                             Modifier.fillMaxWidth().weight(1f),
@@ -179,7 +159,7 @@ private fun PlaylistTopInfo(playlist: Playlist, accent_colour: Color?, playerPro
 
         var thumb_size by remember { mutableStateOf(IntSize.Zero) }
         playlist.Thumbnail(
-            MediaItem.ThumbnailQuality.HIGH,
+            MediaItemThumbnailProvider.Quality.HIGH,
             Modifier.fillMaxWidth(0.5f).aspectRatio(1f).clip(shape).onSizeChanged {
                 thumb_size = it
             },

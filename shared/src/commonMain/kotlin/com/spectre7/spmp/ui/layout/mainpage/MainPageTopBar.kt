@@ -35,21 +35,7 @@ fun MainPageTopBar(
     onFilterChipSelected: (Int?) -> Unit,
     modifier: Modifier = Modifier
 ) {
-    var song: Song? by remember { mutableStateOf(null) }
-    val song_reg_lyrics_listener: (Pair<Int, Song.Lyrics.Source>?) -> Unit = remember { { data ->
-        val lyrics_holder = song!!.lyrics
-        if (data?.first != lyrics_holder.lyrics?.id || data?.second != lyrics_holder.lyrics?.source) {
-            lyrics_holder.loadAndGet()
-        }
-    } }
-
-    LaunchedEffect(PlayerServiceHost.status.m_song) {
-        song?.apply { song_reg_entry.lyrics_listeners.remove(song_reg_lyrics_listener) }
-        song = PlayerServiceHost.status.m_song?.apply {
-            song_reg_entry.lyrics_listeners.add(song_reg_lyrics_listener)
-            lyrics.loadAndGet()
-        }
-    }
+    val song: Song? = rememberSongUpdateLyrics(PlayerServiceHost.status.m_song)
 
     Column(modifier.animateContentSize()) {
         Row(Modifier.height(IntrinsicSize.Min)) {

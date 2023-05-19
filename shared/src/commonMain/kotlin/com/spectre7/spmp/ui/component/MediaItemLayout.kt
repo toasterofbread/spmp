@@ -427,10 +427,11 @@ fun MediaItemCard(
 
     val shape = RoundedCornerShape(16.dp)
     val long_press_menu_data = remember (item) {
+        // TODO Move to MediaItem
         when (item) {
             is Song -> getSongLongPressMenuData(item, shape, multiselect_context = multiselect_context)
             is Artist -> getArtistLongPressMenuData(item, multiselect_context = multiselect_context)
-            else -> LongPressMenuData(item, shape, multiselect_context = multiselect_context)
+            is Playlist -> getPlaylistLongPressMenuData(item, shape, multiselect_context = multiselect_context)
         }
     }
 

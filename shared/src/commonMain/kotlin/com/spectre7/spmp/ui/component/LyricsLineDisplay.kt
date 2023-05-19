@@ -14,6 +14,8 @@ private const val UPDATE_INTERVAL_MS = 100L
 
 @Composable
 fun LyricsLineDisplay(lyrics: Song.Lyrics, getTime: () -> Long, getColour: () -> Color, modifier: Modifier = Modifier) {
+    require(lyrics.sync_type != Song.Lyrics.SyncType.NONE)
+    
     RecomposeOnInterval(UPDATE_INTERVAL_MS) { s ->
         s
 

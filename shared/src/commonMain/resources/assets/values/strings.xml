@@ -110,7 +110,9 @@
     <string name="acc_ser_enable_dialog_btn_root">Use root</string>
     <string name="acc_ser_enable_dialog_btn_manual">Enable manually</string>
 
-    <string name="lpm_action_start_radio">Start radio</string>
+    <string name="lpm_action_radio">Start radio</string>
+    <string name="lpm_action_play">Play</string>
+    <string name="lpm_action_shuffle_playlist">Shuffle</string>
     <string name="lpm_action_play_after_1_song">Play after next song</string>
     <string name="lpm_action_play_after_x_songs">Play after $x songs</string>
     <string name="lpm_action_download">Download</string>
@@ -119,11 +121,14 @@
     <string name="lpm_action_home_pin">Pin to home</string>
     <string name="lpm_action_home_unpin">Unpin from home</string>
     <string name="lpm_action_share">Share</string>
+    <string name="lpm_action_open_artist">Open</string>
+    <string name="lpm_action_open_playlist">Open</string>
     <string name="lpm_action_open_external">Open externally</string>
 
     <string name="lpm_long_press_actions">Long press actions</string>
-    <string name="lpm_action_start_radio_long_press">Start radio at song position in queue</string>
-    <string name="lpm_action_play_after_long_press">Start radio after X song(s)</string>
+    <string name="lpm_action_radio_at_song_pos">Start radio at song position in queue</string>
+    <string name="lpm_action_radio_after_x_songs">Start radio after X song(s)</string>
+    <string name="lpm_action_play_shuffled_after_x_songs">Play shuffled after X song(s)</string>
 
     <string name="lpm_info_queue_index">Queue index: $index</string>
     <string name="lpm_info_id">ID: $id</string>

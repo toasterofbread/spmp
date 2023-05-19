@@ -20,11 +20,7 @@ fun PlaylistPreviewSquare(
     params: MediaItem.PreviewParams
 ) {
     val long_press_menu_data = remember(playlist) {
-        LongPressMenuData(
-            playlist,
-            RoundedCornerShape(10.dp),
-            multiselect_context = params.multiselect_context
-        ) { } // TODO
+        getPlaylistLongPressMenuData(playlist, multiselect_context = params.multiselect_context)
     }
 
     Column(
@@ -62,11 +58,7 @@ fun PlaylistPreviewLong(
     params: MediaItem.PreviewParams
 ) {
     val long_press_menu_data = remember(playlist) {
-        LongPressMenuData(
-            playlist,
-            RoundedCornerShape(10.dp),
-            multiselect_context = params.multiselect_context
-        ) { } // TODO
+        getPlaylistLongPressMenuData(playlist, multiselect_context = params.multiselect_context)
     }
 
     Row(
@@ -123,5 +115,101 @@ fun PlaylistPreviewLong(
                 }
             }
         }
+    }
+}
+
+fun getPlaylistLongPressMenuData(
+    playlist: Playlist,
+    thumb_shape: Shape? = RoundedCornerShape(10.dp),
+    multiselect_context: MediaItemMultiSelectContext? = null
+): LongPressMenuData {
+    return LongPressMenuData(
+        playlist,
+        thumb_shape,
+        { PlaylistLongPressMenuInfo(playlist, it) },
+        multiselect_context = multiselect_context
+    ) {
+        PlaylistLongPressPopupActions(it)
+    }
+}
+
+@Composable
+private fun LongPressMenuActionProvider.PlaylistLongPressPopupActions(playlist: MediaItem) {
+    require(playlist is Playlist)
+
+    ActionButton(
+        Icons.Default.PlayArrow, getString("lpm_action_play"),
+        onClick = {
+            TODO() // Play
+        }
+    )
+
+    ActionButton(
+        Icons.Default.Shuffle, getString("lpm_action_shuffle_playlist"),
+        onClick = {
+            TODO() // Shuffle
+        }
+    )
+
+    ActiveQueueIndexAction(
+        { distance ->
+            getString(if (distance == 1) "lpm_action_play_after_1_song" else "lpm_action_play_after_x_songs").replace("\$x", distance.toString()) 
+        },
+        onClick = { active_queue_index ->
+            TODO() // Insert at position
+        },
+        onLongClick = { active_queue_index ->
+            TODO() // Insert shuffled at position
+        }
+    )
+
+    ActionButton(Icons.Default.QueueMusic, getString("lpm_action_open_playlist"), onClick = {
+        playerProvider().openMediaItem(playlist)
+    })
+}
+
+@Composable
+private fun ColumnScope.PlaylistLongPressMenuInfo(playlist: Playlist, accent_colour: Color) {
+    @Composable
+    fun Item(icon: ImageVector, text: String, modifier: Modifier = Modifier) {
+        Row(
+            modifier,
+            horizontalArrangement = Arrangement.spacedBy(20.dp),
+            verticalAlignment = Alignment.CenterVertically
+        ) {
+            Icon(icon, null, tint = accent_colour)
+            WidthShrinkText(text, fontSize = 15.sp)
+        }
+    }
+    @Composable
+    fun Item() {
+        Spacer(Modifier.height(60.dp)) // TODO
+    }
+
+    Item() // Play
+    Item() // Shuffle
+
+    Item(Icons.Default.SubdirectoryArrowRight, getString("lpm_action_play_shuffled_after_x_songs"))
+
+    Spacer(
+        Modifier
+            .fillMaxHeight()
+            .weight(1f)
+    )
+
+    Row(Modifier.requiredHeight(20.dp), verticalAlignment = Alignment.CenterVertically) {
+        Text(
+            getString("lpm_info_id").replace("\$id", playlist.id),
+            Modifier
+                .fillMaxWidth()
+                .weight(1f)
+        )
+        SpMp.context.CopyShareButtons { playlist.id }
+    }
+
+    if (isDebugBuild()) {
+        Item(Icons.Default.Print, getString("lpm_action_print_info"), Modifier.clickable {
+            println(playlist)
+        })
     }
 }

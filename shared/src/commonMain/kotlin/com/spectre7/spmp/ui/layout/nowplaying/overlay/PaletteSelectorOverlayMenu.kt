@@ -20,7 +20,7 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.spectre7.spmp.PlayerServiceHost
-import com.spectre7.spmp.model.MediaItem
+import com.spectre7.spmp.model.MediaItemThumbnailProvider
 import com.spectre7.spmp.model.Song
 import com.spectre7.spmp.platform.generatePalette
 import com.spectre7.spmp.ui.layout.mainpage.PlayerViewContext
@@ -74,7 +74,7 @@ class PaletteSelectorOverlayMenu(
         LaunchedEffect(Unit) {
             val song = PlayerServiceHost.status.song!!
             thread {
-                val image = song.loadAndGetThumbnail(MediaItem.ThumbnailQuality.HIGH)!!
+                val image = song.loadAndGetThumbnail(MediaItemThumbnailProvider.Quality.HIGH)!!
                 palette_colours = image.generatePalette(8)
             }
         }

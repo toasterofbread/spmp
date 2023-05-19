@@ -1,7 +1,6 @@
 package com.spectre7.spmp.ui.component
 
 import androidx.compose.animation.Crossfade
-import androidx.compose.animation.core.Animatable
 import androidx.compose.animation.core.animateFloatAsState
 import androidx.compose.foundation.ExperimentalFoundationApi
 import androidx.compose.foundation.combinedClickable
@@ -18,14 +17,9 @@ import androidx.compose.ui.draw.rotate
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.unit.dp
 import com.spectre7.spmp.api.DataApi
-import com.spectre7.spmp.api.getOrThrowHere
-import com.spectre7.spmp.api.getSongLiked
-import com.spectre7.spmp.api.setSongLiked
 import com.spectre7.spmp.model.Song
 import com.spectre7.spmp.platform.vibrateShort
-import com.spectre7.utils.composable.OnChangedEffect
 import com.spectre7.utils.composable.SubtleLoadingIndicator
-import kotlin.concurrent.thread
 
 @OptIn(ExperimentalFoundationApi::class)
 @Composable
@@ -39,14 +33,14 @@ fun LikeDislikeButton(
     }
 
     LaunchedEffect(song) {
-        song.updateLikedStatus()
+        song.like_status.updateStatus()
     }
 
     Box(
         modifier,
         contentAlignment = Alignment.Center
     ) {
-        val like_status = song.like_status
+        val like_status = song.like_status.status
         Crossfade(if (like_status == Song.LikeStatus.UNAVAILABLE || like_status == Song.LikeStatus.UNKNOWN) null else like_status) { status ->
             if (status == Song.LikeStatus.LOADING) {
                 SubtleLoadingIndicator(Modifier.size(24.dp), colourProvider)
@@ -63,17 +57,17 @@ fun LikeDislikeButton(
                         .rotate(rotation)
                         .combinedClickable(
                             onClick = { when (status) {
-                                Song.LikeStatus.LIKED -> song.setLiked(null)
-                                Song.LikeStatus.DISLIKED -> song.setLiked(null)
-                                Song.LikeStatus.NEUTRAL -> song.setLiked(true)
+                                Song.LikeStatus.LIKED -> song.like_status.setLiked(null)
+                                Song.LikeStatus.DISLIKED -> song.like_status.setLiked(null)
+                                Song.LikeStatus.NEUTRAL -> song.like_status.setLiked(true)
                                 else -> throw IllegalStateException(status.name)
                             }},
                             onLongClick = {
                                 SpMp.context.vibrateShort()
                                 when (status) {
-                                    Song.LikeStatus.LIKED -> song.setLiked(false)
-                                    Song.LikeStatus.DISLIKED -> song.setLiked(true)
-                                    Song.LikeStatus.NEUTRAL -> song.setLiked(false)
+                                    Song.LikeStatus.LIKED -> song.like_status.setLiked(false)
+                                    Song.LikeStatus.DISLIKED -> song.like_status.setLiked(true)
+                                    Song.LikeStatus.NEUTRAL -> song.like_status.setLiked(false)
                                     else -> throw IllegalStateException(status.name)
                                 }
                             }

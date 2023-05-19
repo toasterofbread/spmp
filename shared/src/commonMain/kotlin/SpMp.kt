@@ -83,15 +83,6 @@ object SpMp {
     fun init(context: PlatformContext) {
         this.context = context
 
-//        Thread.setDefaultUncaughtExceptionHandler { _: Thread, error: Throwable ->
-//            error.printStackTrace()
-//
-//            context.startActivity(Intent(context, ErrorReportActivity::class.java).apply {
-//                putExtra("message", error.message)
-//                putExtra("stack_trace", error.stackTraceToString())
-//            })
-//        }
-
         context.getPrefs().addListener(prefs_change_listener)
         error_manager = ErrorManager(context)
 

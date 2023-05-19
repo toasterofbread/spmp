@@ -29,10 +29,10 @@ import com.spectre7.spmp.PlayerServiceHost
 import com.spectre7.spmp.api.*
 import com.spectre7.spmp.model.Artist
 import com.spectre7.spmp.model.MediaItem
+import com.spectre7.spmp.model.MediaItemThumbnailProvider
 import com.spectre7.spmp.model.Playlist
 import com.spectre7.spmp.platform.composable.BackHandler
 import com.spectre7.spmp.resources.getString
-import com.spectre7.spmp.resources.getStringTODO
 import com.spectre7.spmp.ui.component.*
 import com.spectre7.spmp.ui.layout.mainpage.PlayerViewContext
 import com.spectre7.spmp.ui.theme.Theme
@@ -512,7 +512,7 @@ private fun RadioArtistSelector(
                     val artist = remember(radio_artist) {
                         Artist.createTemp(index.toString()).editArtistData {
                             supplyTitle(radio_artist.name)
-                            supplyThumbnailProvider(MediaItem.ThumbnailProvider.fromThumbnails(listOf(radio_artist.thumbnail)))
+                            supplyThumbnailProvider(MediaItemThumbnailProvider.fromThumbnails(listOf(radio_artist.thumbnail)))
                         }
                     }
 
@@ -555,7 +555,7 @@ private fun RadioArtistSelector(
                                     )
                                 }
                                 artist.Thumbnail(
-                                    MediaItem.ThumbnailQuality.LOW,
+                                    MediaItemThumbnailProvider.Quality.LOW,
                                     Modifier
                                         .longPressMenuIcon(long_press_menu_data)
                                         .size(thumb_size)

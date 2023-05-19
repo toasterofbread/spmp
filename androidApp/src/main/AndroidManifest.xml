@@ -23,7 +23,8 @@
         android:roundIcon="@mipmap/ic_launcher_round"
         android:supportsRtl="true"
         android:theme="@style/Theme.MyApplication"
-        android:extractNativeLibs="true">
+        android:extractNativeLibs="true"
+        android:enableOnBackInvokedCallback="true">
         <activity
             android:name=".MainActivity"
             android:exported="true"
@@ -49,7 +50,7 @@
         <activity android:name=".ErrorReportActivity" />
 
         <service
-            android:name=".platform.ActualMediaPlayerService"
+            android:name=".platform.MediaPlayerServiceSession"
             android:exported="true"
             android:foregroundServiceType="mediaPlayback">
             <intent-filter>

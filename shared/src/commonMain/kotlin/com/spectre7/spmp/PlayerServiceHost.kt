@@ -13,6 +13,7 @@ class PlayerServiceHost() {
     private var player: PlayerService? by mutableStateOf(null)
 
     private var service_connecting = false
+    private var service_connected_listeners = mutableListOf<() -> Unit>()
 
     private val context: PlatformContext get() = SpMp.context
     private val download_manager = PlayerDownloadManager(context)
@@ -103,6 +104,7 @@ class PlayerServiceHost() {
         val status: PlayerStatus get() = instance!!.status
 
         val player: PlayerService get() = instance!!.player!!
+        val nullable_player: PlayerService? get() = instance?.player
         val download_manager: PlayerDownloadManager get() = instance!!.download_manager
         val service_connected: Boolean get() = instance?.player != null
         val session_started: Boolean get() = instance?.player?.session_started ?: false
@@ -132,10 +134,16 @@ class PlayerServiceHost() {
         download_manager.release()
     }
 
-    @Synchronized
     fun startService(onConnected: (() -> Unit)? = null, onDisconnected: (() -> Unit)? = null) {
-        if (service_connecting || player != null) {
-            return
+        synchronized(service_connected_listeners) {
+            if (player != null) {
+                onConnected?.invoke()
+                return
+            }
+            else if (service_connecting) {
+                onConnected?.also { service_connected_listeners.add(it) }
+                return
+            }
         }
 
         service_connecting = true
@@ -143,16 +151,29 @@ class PlayerServiceHost() {
             context,
             PlayerService::class.java,
             onConnected = { service ->
-                player = service
-                status = PlayerStatus(player!!)
-                service_connecting = false
-                onConnected?.invoke()
+                synchronized(service_connected_listeners) {
+                    player = service
+                    status = PlayerStatus(player!!)
+                    service_connecting = false
+
+                    onConnected?.invoke()
+                    service_connected_listeners.forEach { it() }
+                    service_connected_listeners.clear()
+                }
             },
             onDisconnected = {
-                player = null
-                service_connecting = false
-                onDisconnected?.invoke()
+                synchronized(service_connected_listeners) {
+                    player = null
+                    service_connecting = false
+                    onDisconnected?.invoke()
+                }
             }
         )
+    }
+
+    fun interactService(action: (player: PlayerService) -> Unit) {
+        startService({
+            player?.also { action(it) }
+        })
     }
 }

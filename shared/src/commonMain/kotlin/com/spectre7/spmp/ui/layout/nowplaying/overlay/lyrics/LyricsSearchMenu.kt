@@ -15,8 +15,10 @@ import androidx.compose.material.icons.filled.Search
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
+import androidx.compose.ui.ExperimentalComposeUiApi
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalFocusManager
+import androidx.compose.ui.platform.LocalSoftwareKeyboardController
 import androidx.compose.ui.text.input.ImeAction
 import androidx.compose.ui.text.input.TextFieldValue
 import androidx.compose.ui.unit.dp
@@ -30,15 +32,15 @@ import com.spectre7.spmp.ui.theme.Theme
 import com.spectre7.utils.setAlpha
 import kotlin.concurrent.thread
 
-@OptIn(ExperimentalMaterial3Api::class)
+@OptIn(ExperimentalMaterial3Api::class, ExperimentalComposeUiApi::class)
 @Composable
 fun LyricsSearchMenu(song: Song, close: (changed: Boolean) -> Unit) {
 
     val on_accent = Theme.current.on_accent
     val accent = Theme.current.accent
 
-    val check_lock = remember { Object() }
-    var checking by remember { mutableStateOf(false) }
+    val load_lock = remember { Object() }
+    var loading by remember { mutableStateOf(false) }
 
     val text_field_colours = TextFieldDefaults.textFieldColors(
         containerColor = accent.setAlpha(0.75f),
@@ -53,6 +55,7 @@ fun LyricsSearchMenu(song: Song, close: (changed: Boolean) -> Unit) {
     )
 
     val focus = LocalFocusManager.current
+    val keyboard_controller = LocalSoftwareKeyboardController.current
 
     var title = remember (song.title) { mutableStateOf(TextFieldValue(song.title ?: "")) }
     var artist = remember (song.artist?.title) { mutableStateOf(TextFieldValue(song.artist?.title ?: "")) }
@@ -61,33 +64,33 @@ fun LyricsSearchMenu(song: Song, close: (changed: Boolean) -> Unit) {
     var edit_page_open by remember { mutableStateOf(true) }
 
     fun performSearch() {
+        keyboard_controller?.hide()
+
         thread {
-            synchronized(check_lock) {
-                if (checking) {
-                    throw IllegalStateException()
-                }
-                checking = true
+            synchronized(load_lock) {
+                check(!loading)
+                loading = true
             }
 
             val result = searchForLyrics(title.value.text, if (artist.value.text.trim().isEmpty()) null else artist.value.text)
-            result.fold(
-                {
-                    search_results = it
-                },
-                {
-                    SpMp.error_manager.onError("performLyricsSearch", it)
-                }
-            )
 
-            synchronized(check_lock) {
-                checking = false
+            synchronized(load_lock) {
+                result.fold(
+                    {
+                        search_results = it
+                        if (search_results?.isNotEmpty() == true) {
+                            edit_page_open = false
+                        }
+                        else {
+                            SpMp.context.sendToast(getString("no_lyrics_found"))
+                        }
+                    },
+                    {
+                        SpMp.error_manager.onError("performLyricsSearch", it)
+                    }
+                )
 
-                if (search_results?.isNotEmpty() == true) {
-                    edit_page_open = false
-                }
-                else if (result.isSuccess) {
-                    SpMp.context.sendToast(getString("no_lyrics_found"))
-                }
+                loading = false
             }
         }
     }
@@ -144,8 +147,7 @@ fun LyricsSearchMenu(song: Song, close: (changed: Boolean) -> Unit) {
                     if (index != null) {
                         val selected = search_results!![index]
                         if (selected.id != song.song_reg_entry.lyrics_id || selected.source != song.song_reg_entry.lyrics_source) {
-                            song.song_reg_entry.lyrics_id = selected.id
-                            song.song_reg_entry.lyrics_source = selected.source
+                            song.song_reg_entry.updateLyrics(selected.id, selected.source)
                             song.saveRegistry()
                             close(true)
                         }
@@ -193,7 +195,7 @@ fun LyricsSearchMenu(song: Song, close: (changed: Boolean) -> Unit) {
                     },
                     Modifier.background(Theme.current.accent, CircleShape).requiredSize(40.dp),
                 ) {
-                    Crossfade(if (checking) 0 else if (edit_page_open) 1 else 2) { icon ->
+                    Crossfade(if (loading) 0 else if (edit_page_open) 1 else 2) { icon ->
                         when (icon) {
                             0 -> CircularProgressIndicator(Modifier.requiredSize(22.dp), color = on_accent, strokeWidth = 3.dp)
                             else -> {

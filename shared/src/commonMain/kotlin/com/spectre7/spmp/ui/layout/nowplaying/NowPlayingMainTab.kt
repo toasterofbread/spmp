@@ -33,7 +33,7 @@ import androidx.compose.ui.unit.*
 import com.github.krottv.compose.sliders.DefaultThumb
 import com.github.krottv.compose.sliders.SliderValueHorizontal
 import com.spectre7.spmp.PlayerServiceHost
-import com.spectre7.spmp.model.MediaItem
+import com.spectre7.spmp.model.MediaItemThumbnailProvider
 import com.spectre7.spmp.model.Song
 import com.spectre7.spmp.platform.composable.BackHandler
 import com.spectre7.spmp.platform.getPixel
@@ -189,7 +189,7 @@ fun ColumnScope.NowPlayingMainTab(
             Crossfade(PlayerServiceHost.status.m_song, animationSpec = tween(250)) { song ->
                 var image: ImageBitmap? by remember { mutableStateOf(null) }
                 song?.Thumbnail(
-                    MediaItem.ThumbnailQuality.HIGH,
+                    MediaItemThumbnailProvider.Quality.HIGH,
                     contentColourProvider = { getNPOnBackground(playerProvider) },
                     onLoaded = {
                         image = it

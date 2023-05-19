@@ -112,18 +112,21 @@ fun <T> SwipeableState<T>.init(anchors: Map<Float, T>) {
 operator fun IntSize.times(other: Float): IntSize =
 	IntSize(width = (width * other).toInt(), height = (height * other).toInt())
 
-class Listeners<T>(private val list: MutableList<T> = mutableListOf()) {
-	fun call(action: (T) -> Unit) {
-		list.forEach(action)
+class ValueListeners<T>(private val list: MutableList<(T) -> Unit> = mutableListOf()) {
+	fun call(value: T) {
+		list.forEach { it(value) }
 	}
 
-	fun add(value: T) {
+	fun add(value: (T) -> Unit) {
 		list.add(value)
 	}
-	fun remove(value: T) {
-		for (item in list.withIndex()) {
-			if (item.value == value) {
-				list.removeAt(item.index)
+
+	fun remove(value: (T) -> Unit) {
+		val iterator = list.iterator()
+		while (iterator.hasNext()) {
+			val item = iterator.next()
+			if (item == value) {
+				iterator.remove()
 				break
 			}
 		}

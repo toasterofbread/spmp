@@ -7,10 +7,7 @@ import androidx.compose.ui.graphics.vector.ImageVector
 import com.spectre7.spmp.api.DataApi.Companion.addYtHeaders
 import com.spectre7.spmp.api.DataApi.Companion.getStream
 import com.spectre7.spmp.api.DataApi.Companion.ytUrl
-import com.spectre7.spmp.model.Artist
-import com.spectre7.spmp.model.MediaItem
-import com.spectre7.spmp.model.Playlist
-import com.spectre7.spmp.model.Song
+import com.spectre7.spmp.model.*
 import com.spectre7.spmp.ui.component.MediaItemLayout
 import com.spectre7.spmp.resources.getStringTODO
 import okhttp3.Request
@@ -39,9 +36,9 @@ enum class SearchType {
 
     fun getIcon(): ImageVector {
         return when (this) {
-            SONG -> MediaItem.Type.SONG.getIcon()
-            PLAYLIST -> MediaItem.Type.ARTIST.getIcon()
-            ARTIST -> MediaItem.Type.PLAYLIST.getIcon()
+            SONG -> MediaItemType.SONG.getIcon()
+            PLAYLIST -> MediaItemType.ARTIST.getIcon()
+            ARTIST -> MediaItemType.PLAYLIST.getIcon()
             VIDEO -> Icons.Filled.PlayArrow
             ALBUM -> Icons.Filled.Album
         }

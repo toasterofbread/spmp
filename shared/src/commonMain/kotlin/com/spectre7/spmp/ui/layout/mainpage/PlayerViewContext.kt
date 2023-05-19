@@ -1,6 +1,7 @@
 package com.spectre7.spmp.ui.layout.mainpage
 
 import androidx.compose.ui.unit.*
+import com.spectre7.spmp.PlayerServiceHost
 import com.spectre7.spmp.model.*
 import com.spectre7.spmp.ui.component.*
 import com.spectre7.spmp.ui.component.multiselect.MediaItemMultiSelectContext
@@ -36,12 +37,18 @@ open class PlayerViewContext(
         when (path_parts.firstOrNull()) {
             "channel" -> {
                 val channel_id = path_parts.elementAtOrNull(1) ?: return failure("No channel ID")
-                openMediaItem(Artist.fromId(channel_id))
+
+                PlayerServiceHost.instance!!.interactService {
+                    openMediaItem(Artist.fromId(channel_id))
+                }
             }
             "watch" -> {
                 val v_start = (uri.query.indexOfOrNull("v=") ?: return failure("'v' query parameter not found")) + 2
                 val v_end = uri.query.indexOfOrNull("&", v_start) ?: uri.query.length
-                playMediaItem(Song.fromId(uri.query.substring(v_start, v_end)))
+
+                PlayerServiceHost.instance!!.interactService {
+                    playMediaItem(Song.fromId(uri.query.substring(v_start, v_end)))
+                }
             }
             else -> return failure("Uri path not implemented")
         }

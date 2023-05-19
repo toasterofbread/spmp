@@ -1,6 +1,5 @@
 package com.spectre7.spmp.ui.layout.mainpage
 
-import SpMp
 import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.animation.Crossfade
 import androidx.compose.animation.animateContentSize
@@ -25,7 +24,6 @@ import com.spectre7.spmp.ui.component.LyricsLineDisplay
 import com.spectre7.spmp.ui.layout.RadioBuilderIcon
 import com.spectre7.spmp.ui.layout.YoutubeMusicLoginConfirmation
 import com.spectre7.spmp.ui.theme.Theme
-import com.spectre7.utils.catchInterrupts
 import com.spectre7.utils.composable.NoRipple
 
 @Composable
@@ -37,42 +35,25 @@ fun MainPageTopBar(
     onFilterChipSelected: (Int?) -> Unit,
     modifier: Modifier = Modifier
 ) {
+    var song: Song? by remember { mutableStateOf(null) }
+    val song_reg_lyrics_listener: (Pair<Int, Song.Lyrics.Source>?) -> Unit = remember { { data ->
+        val lyrics_holder = song!!.lyrics
+        if (data?.first != lyrics_holder.lyrics?.id || data?.second != lyrics_holder.lyrics?.source) {
+            lyrics_holder.loadAndGet()
+        }
+    } }
+
+    LaunchedEffect(PlayerServiceHost.status.m_song) {
+        song?.apply { song_reg_entry.lyrics_listeners.remove(song_reg_lyrics_listener) }
+        song = PlayerServiceHost.status.m_song?.apply {
+            song_reg_entry.lyrics_listeners.add(song_reg_lyrics_listener)
+            lyrics.loadAndGet()
+        }
+    }
+
     Column(modifier.animateContentSize()) {
         Row(Modifier.height(IntrinsicSize.Min)) {
             RadioBuilderButton(playerProvider)
-
-            var lyrics: Song.Lyrics? by remember { mutableStateOf(null) }
-            var lyrics_loading: Boolean by remember { mutableStateOf(false) }
-            var load_thread: Thread? by remember { mutableStateOf(null) }
-
-            LaunchedEffect(PlayerServiceHost.status.m_song) {
-                load_thread?.interrupt()
-                load_thread = null
-
-                val song = PlayerServiceHost.status.m_song
-
-                if (song?.lyrics_loaded == true) {
-                    lyrics = song.lyrics
-                    lyrics_loading = false
-                } else {
-                    lyrics = null
-
-                    if (song != null) {
-                        lyrics_loading = true
-                        load_thread = SpMp.context.networkThread {
-                            catchInterrupts {
-                                val result = song.loadLyrics()
-                                if (!Thread.currentThread().isInterrupted) {
-                                    lyrics = result
-                                    lyrics_loading = false
-                                }
-                            }
-                        }
-                    } else {
-                        lyrics_loading = false
-                    }
-                }
-            }
 
             var show_lyrics: Boolean by remember { mutableStateOf(Settings.KEY_HP_SHOW_TIMED_LYRICS.get()) }
             var show_visualiser: Boolean by remember { mutableStateOf(Settings.KEY_HP_SHOW_VISUALISER.get()) }
@@ -105,8 +86,8 @@ fun MainPageTopBar(
                 ) {
                     val state by remember {
                         derivedStateOf {
-                            lyrics.let {
-                                if (show_lyrics && it != null && it.sync_type != Song.Lyrics.SyncType.NONE) it
+                            song?.lyrics?.lyrics.let { lyrics ->
+                                if (show_lyrics && lyrics != null && lyrics.sync_type != Song.Lyrics.SyncType.NONE) lyrics
                                 else if (show_visualiser && PlayerServiceHost.status.m_playing) 0
                                 else null
                             }
@@ -150,7 +131,7 @@ fun MainPageTopBar(
             }) {
                 Crossfade(auth_info) { info ->
                     if (auth_info.initialised) {
-                        info.own_channel.Thumbnail(MediaItem.ThumbnailQuality.LOW, Modifier.clip(CircleShape).size(27.dp))
+                        info.own_channel.Thumbnail(MediaItemThumbnailProvider.Quality.LOW, Modifier.clip(CircleShape).size(27.dp))
                     } else {
                         Icon(Icons.Filled.Person, null)
                     }

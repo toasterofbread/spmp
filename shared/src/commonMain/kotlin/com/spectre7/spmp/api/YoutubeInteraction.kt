@@ -109,7 +109,9 @@ fun setSongLiked(id: String, liked: Boolean?): Result<Any> {
         """))
         .build()
 
-    return DataApi.request(request)
+    val result = DataApi.request(request)
+    result.getOrNull()?.close()
+    return result
 }
 
 private data class PlaybackTrackingRepsonse(

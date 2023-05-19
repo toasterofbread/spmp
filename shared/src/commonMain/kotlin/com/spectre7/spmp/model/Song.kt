@@ -4,6 +4,7 @@ import androidx.compose.runtime.*
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.ImageBitmap
 import androidx.compose.ui.graphics.toArgb
+import com.beust.klaxon.Json
 import com.beust.klaxon.Klaxon
 import com.spectre7.spmp.api.*
 import com.spectre7.spmp.platform.crop
@@ -11,13 +12,12 @@ import com.spectre7.spmp.platform.toImageBitmap
 import com.spectre7.spmp.ui.component.SongPreviewLong
 import com.spectre7.spmp.ui.component.SongPreviewSquare
 import com.spectre7.spmp.resources.getString
+import com.spectre7.utils.ValueListeners
 import com.spectre7.utils.lazyAssert
 import com.spectre7.utils.toHiragana
-import kotlinx.coroutines.*
 import okhttp3.internal.filterList
 import java.io.FileNotFoundException
 import java.net.URL
-import kotlin.concurrent.thread
 
 class SongItemData(override val data_item: Song): MediaItemData(data_item) {
 
@@ -63,21 +63,51 @@ class Song protected constructor (
         LOW, MEDIUM, HIGH
     }
     enum class SongType { SONG, VIDEO }
+    enum class LikeStatus {
+        UNKNOWN, LOADING, UNAVAILABLE, NEUTRAL, LIKED, DISLIKED;
 
-    class SongDataRegistryEntry: DataRegistry.Entry() {
-        var theme_colour: Int? by mutableStateOf(null)
-        var lyrics_id: Int? by mutableStateOf(null)
-        var lyrics_source: Lyrics.Source? by mutableStateOf(null)
-        var thumbnail_rounding: Int? by mutableStateOf(null)
+        val is_available: Boolean get() = when(this) {
+            LIKED, DISLIKED, NEUTRAL -> true
+            else -> false
+        }
     }
-    
+
+    class SongDataRegistryEntry: MediaItemDataRegistry.Entry() {
+        var theme_colour: Int? by mutableStateOf(null)
+        var thumbnail_rounding: Int? by mutableStateOf(null)
+
+        var lyrics_id: Int? by mutableStateOf(null)
+            private set
+        var lyrics_source: Lyrics.Source? by mutableStateOf(null)
+            private set
+
+        @Json(ignored = true)
+        val lyrics_listeners = ValueListeners<Pair<Int, Lyrics.Source>?>()
+        fun updateLyrics(id: Int?, source: Lyrics.Source?) {
+            if (id == lyrics_id && source == lyrics_source) {
+                return
+            }
+
+            lyrics_id = id
+            lyrics_source = source
+
+            lyrics_listeners.call(getLyricsData())
+        }
+        fun getLyricsData(): Pair<Int, Lyrics.Source>? =
+            if (lyrics_id != null) Pair(lyrics_id!!, lyrics_source!!)
+            else null
+    }
+
     private var audio_formats: List<YoutubeVideoFormat>? = null
     private var stream_format: YoutubeVideoFormat? = null
     private var download_format: YoutubeVideoFormat? = null
 
     override val data = SongItemData(this)
     val song_reg_entry: SongDataRegistryEntry = registry_entry as SongDataRegistryEntry
-    override fun getDefaultRegistryEntry(): DataRegistry.Entry = SongDataRegistryEntry()
+    override fun getDefaultRegistryEntry(): MediaItemDataRegistry.Entry = SongDataRegistryEntry()
+
+    val like_status = SongLikeStatus(id)
+    val lyrics = SongLyricsHolder(this)
 
     val song_type: SongType? get() = data.song_type
     val duration: Long? get() = data.duration
@@ -107,61 +137,6 @@ class Song protected constructor (
             data.removeLast()?.also { supplySongType(SongType.values()[it as Int], cached = true) }
         }
         return super.supplyFromSerialisedData(data, klaxon)
-    }
-
-    enum class LikeStatus { UNKNOWN, LOADING, UNAVAILABLE, NEUTRAL, LIKED, DISLIKED }
-
-    private val like_status_state = mutableStateOf(LikeStatus.UNKNOWN)
-    var like_status: LikeStatus get() = like_status_state.value
-        private set(value) { like_status_state.value = value }
-    private var set_liked_thread: Thread? = null
-
-    @Synchronized
-    fun setLiked(liked: Boolean?) {
-        if (like_status == LikeStatus.UNAVAILABLE) {
-            return
-        }
-
-        set_liked_thread?.interrupt()
-        set_liked_thread = thread {
-            setSongLiked(id, liked)
-            updateLikedStatus(false)
-        }
-    }
-
-    fun updateLikedStatus(in_thread: Boolean = true) {
-        synchronized(like_status_state) {
-            if (like_status == LikeStatus.LOADING || like_status == LikeStatus.UNAVAILABLE) {
-                return
-            }
-            like_status = LikeStatus.LOADING
-        }
-
-
-        fun update() {
-            val result = getSongLiked(id)
-            synchronized(like_status_state) {
-                result.fold(
-                    { status ->
-                        like_status = when (status) {
-                            true -> LikeStatus.LIKED
-                            false -> LikeStatus.DISLIKED
-                            null -> LikeStatus.NEUTRAL
-                        }
-                    },
-                    {
-                        like_status = LikeStatus.UNAVAILABLE
-                    }
-                )
-            }
-        }
-
-        if (in_thread) {
-            thread { update() }
-        }
-        else {
-            update()
-        }
     }
 
     data class Lyrics(
@@ -284,22 +259,6 @@ class Song protected constructor (
         }
     }
 
-    var lyrics: Lyrics? by mutableStateOf(null)
-        private set
-    var lyrics_loaded: Boolean by mutableStateOf(false)
-        private set
-
-    @Synchronized
-    fun loadLyrics(): Lyrics? {
-        if (lyrics_loaded) {
-            return lyrics
-        }
-
-        lyrics = getSongLyrics(this)
-        lyrics_loaded = true
-        return lyrics
-    }
-
     var theme_colour: Color?
         get() = song_reg_entry.theme_colour?.let { Color(it) }
         set(value) {
@@ -380,23 +339,21 @@ class Song protected constructor (
         return Result.success(download_format!!)
     }
 
-    override fun canLoadThumbnail(): Boolean {
-        return true
-    }
+    override fun canLoadThumbnail(): Boolean = true
 
-    override fun downloadThumbnail(quality: ThumbnailQuality): ImageBitmap? {
+    override fun downloadThumbnail(quality: MediaItemThumbnailProvider.Quality): Result<ImageBitmap> {
         // Iterate through getThumbUrl URL and ThumbnailQuality URLs for passed quality and each lower quality
         for (i in 0 .. quality.ordinal + 1) {
 
             // Some static thumbnails are cropped for some reason
-            if (i == 0 && thumbnail_provider !is ThumbnailProvider.DynamicProvider) {
+            if (i == 0 && thumbnail_provider !is MediaItemThumbnailProvider.DynamicProvider) {
                 continue
             }
 
             val url = if (i == 0) getThumbUrl(quality) ?: continue else {
-                when (ThumbnailQuality.values()[quality.ordinal - i + 1]) {
-                    ThumbnailQuality.LOW -> "https://img.youtube.com/vi/$id/0.jpg"
-                    ThumbnailQuality.HIGH -> "https://img.youtube.com/vi/$id/maxresdefault.jpg"
+                when (MediaItemThumbnailProvider.Quality.values()[quality.ordinal - i + 1]) {
+                    MediaItemThumbnailProvider.Quality.LOW -> "https://img.youtube.com/vi/$id/0.jpg"
+                    MediaItemThumbnailProvider.Quality.HIGH -> "https://img.youtube.com/vi/$id/maxresdefault.jpg"
                 }
             }
 
@@ -410,21 +367,21 @@ class Song protected constructor (
 
                 val image = bytes.toImageBitmap()
                 if (image.width == image.height) {
-                    return image
+                    return Result.success(image)
                 }
 
                 // Crop image to 1:1
                 val size = (image.width * (9f/16f)).toInt()
-                return image.crop((image.width - size) / 2, (image.height - size) / 2, size, size)
+                return Result.success(image.crop((image.width - size) / 2, (image.height - size) / 2, size, size))
             }
             catch (e: FileNotFoundException) {
                 if (i == quality.ordinal + 1) {
-                    throw e
+                    return Result.failure(e)
                 }
             }
         }
 
-        throw IllegalStateException()
+        return Result.failure(IllegalStateException())
     }
 
     @Composable

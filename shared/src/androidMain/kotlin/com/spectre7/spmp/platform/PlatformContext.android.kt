@@ -125,6 +125,7 @@ actual class PlatformContext(private val context: Context) {
 
     actual fun sendToast(text: String, long: Boolean) {
         ctx.sendToast(text, long)
+        RuntimeException().printStackTrace()
     }
 
     actual fun vibrate(duration: Double) {
@@ -319,10 +320,10 @@ fun Context.isConnectionMetered(): Boolean {
 
 fun runInMainThread(block: () -> Unit) {
     val main_looper = Looper.getMainLooper()
-//    if (main_looper.thread == Thread.currentThread()) {
-//        block()
-//        return
-//    }
+    if (main_looper.thread == Thread.currentThread()) {
+        block()
+        return
+    }
     Handler(main_looper).post(block)
 }
 

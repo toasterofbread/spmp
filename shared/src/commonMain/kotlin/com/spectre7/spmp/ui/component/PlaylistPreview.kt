@@ -1,8 +1,6 @@
 package com.spectre7.spmp.ui.component
 
 import androidx.compose.foundation.ExperimentalFoundationApi
-import androidx.compose.foundation.combinedClickable
-import androidx.compose.foundation.interaction.MutableInteractionSource
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.Text
@@ -13,11 +11,7 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
-import com.spectre7.spmp.model.MediaItem
-import com.spectre7.spmp.model.Playlist
-import com.spectre7.spmp.model.getReadable
-import com.spectre7.spmp.model.mediaItemPreviewInteraction
-import com.spectre7.spmp.platform.composable.platformClickable
+import com.spectre7.spmp.model.*
 import com.spectre7.utils.setAlpha
 
 @Composable
@@ -40,7 +34,7 @@ fun PlaylistPreviewSquare(
     ) {
         Box(Modifier.fillMaxSize().weight(1f), contentAlignment = Alignment.Center) {
             playlist.Thumbnail(
-                MediaItem.ThumbnailQuality.LOW,
+                MediaItemThumbnailProvider.Quality.LOW,
                 Modifier.longPressMenuIcon(long_press_menu_data, params.enable_long_press_menu).aspectRatio(1f),
                 params.contentColour
             )
@@ -81,7 +75,7 @@ fun PlaylistPreviewLong(
     ) {
         Box(Modifier.width(IntrinsicSize.Min).height(IntrinsicSize.Min), contentAlignment = Alignment.Center) {
             playlist.Thumbnail(
-                MediaItem.ThumbnailQuality.LOW,
+                MediaItemThumbnailProvider.Quality.LOW,
                 Modifier
                     .longPressMenuIcon(long_press_menu_data, params.enable_long_press_menu)
                     .size(40.dp),

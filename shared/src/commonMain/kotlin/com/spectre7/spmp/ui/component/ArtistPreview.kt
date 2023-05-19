@@ -1,14 +1,8 @@
-@file:OptIn(ExperimentalFoundationApi::class, ExperimentalFoundationApi::class,
-    ExperimentalFoundationApi::class
-)
-
 package com.spectre7.spmp.ui.component
 
 import androidx.compose.animation.Crossfade
 import androidx.compose.animation.core.tween
 import androidx.compose.foundation.ExperimentalFoundationApi
-import androidx.compose.foundation.combinedClickable
-import androidx.compose.foundation.interaction.MutableInteractionSource
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
@@ -26,8 +20,8 @@ import androidx.compose.ui.unit.sp
 import com.spectre7.spmp.PlayerServiceHost
 import com.spectre7.spmp.model.Artist
 import com.spectre7.spmp.model.MediaItem
+import com.spectre7.spmp.model.MediaItemThumbnailProvider
 import com.spectre7.spmp.model.mediaItemPreviewInteraction
-import com.spectre7.spmp.platform.composable.platformClickable
 import com.spectre7.spmp.ui.component.multiselect.MediaItemMultiSelectContext
 import com.spectre7.spmp.ui.layout.ArtistSubscribeButton
 
@@ -49,7 +43,7 @@ fun ArtistPreviewSquare(
     ) {
         Box(Modifier.fillMaxSize().weight(1f), contentAlignment = Alignment.Center) {
             artist.Thumbnail(
-                MediaItem.ThumbnailQuality.LOW,
+                MediaItemThumbnailProvider.Quality.LOW,
                 Modifier.longPressMenuIcon(long_press_menu_data, params.enable_long_press_menu).aspectRatio(1f),
                 params.contentColour
             )
@@ -85,7 +79,7 @@ fun ArtistPreviewLong(
     ) {
         Box(Modifier.width(IntrinsicSize.Min).height(IntrinsicSize.Min), contentAlignment = Alignment.Center) {
             artist.Thumbnail(
-                MediaItem.ThumbnailQuality.LOW,
+                MediaItemThumbnailProvider.Quality.LOW,
                 Modifier
                     .longPressMenuIcon(long_press_menu_data, params.enable_long_press_menu)
                     .size(40.dp)

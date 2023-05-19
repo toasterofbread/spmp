@@ -1,12 +1,7 @@
 package com.spectre7.spmp.ui.component.multiselect
 
-import androidx.compose.animation.AnimatedVisibility
-import androidx.compose.animation.Crossfade
-import androidx.compose.animation.core.animateFloatAsState
-import androidx.compose.animation.fadeIn
-import androidx.compose.animation.fadeOut
+import androidx.compose.animation.*
 import androidx.compose.foundation.BorderStroke
-import androidx.compose.foundation.Canvas
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.*
 import androidx.compose.material.icons.Icons
@@ -16,28 +11,17 @@ import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.draw.drawBehind
-import androidx.compose.ui.geometry.CornerRadius
-import androidx.compose.ui.geometry.Offset
-import androidx.compose.ui.geometry.Size
-import androidx.compose.ui.graphics.Color
-import androidx.compose.ui.graphics.PathEffect
-import androidx.compose.ui.graphics.drawscope.Stroke
-import androidx.compose.ui.platform.LocalDensity
-import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
 import com.spectre7.spmp.PlayerServiceHost
 import com.spectre7.spmp.model.MediaItem
+import com.spectre7.spmp.model.MediaItemType
 import com.spectre7.spmp.model.Settings
 import com.spectre7.spmp.model.Song
 import com.spectre7.spmp.resources.getString
-import com.spectre7.spmp.resources.getStringTODO
 import com.spectre7.spmp.ui.layout.mainpage.PlayerViewContext
 import com.spectre7.utils.getContrasted
 import com.spectre7.utils.lazyAssert
 import com.spectre7.utils.setAlpha
-import com.spectre7.utils.toFloat
-import kotlinx.coroutines.delay
 
 class MediaItemMultiSelectContext(
     val playerProvider: () -> PlayerViewContext,
@@ -85,9 +69,9 @@ class MediaItemMultiSelectContext(
 
     fun toggleItem(item: MediaItem, key: Int? = null) {
         val allowed = when (item.type) {
-            MediaItem.Type.SONG -> allow_songs
-            MediaItem.Type.ARTIST -> allow_artists
-            MediaItem.Type.PLAYLIST -> allow_playlists
+            MediaItemType.SONG -> allow_songs
+            MediaItemType.ARTIST -> allow_artists
+            MediaItemType.PLAYLIST -> allow_playlists
         }
 
         if (!allowed) {
@@ -141,7 +125,7 @@ class MediaItemMultiSelectContext(
             }
         }
 
-        Column(modifier.fillMaxWidth()) {
+        Column(modifier.fillMaxWidth().animateContentSize()) {
             Text(
                 getString("multiselect_x_items_selected").replace("\$x", selected_items.size.toString()), 
                 style = MaterialTheme.typography.labelLarge
@@ -150,8 +134,9 @@ class MediaItemMultiSelectContext(
 
             Row(Modifier.fillMaxWidth(), verticalAlignment = Alignment.CenterVertically) {
                 GeneralSelectedItemActions()
-                selectedItemActions?.invoke(this, this@MediaItemMultiSelectContext)
 
+                Spacer(Modifier.fillMaxWidth().weight(1f))
+                selectedItemActions?.invoke(this, this@MediaItemMultiSelectContext)
                 Spacer(Modifier.fillMaxWidth().weight(1f))
 
                 IconButton({ selected_items.clear() }) {

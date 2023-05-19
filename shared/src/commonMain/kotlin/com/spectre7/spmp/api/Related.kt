@@ -17,7 +17,7 @@ private data class RelatedItem(
     class IdItem(val id: String)
 }
 
-private suspend fun loadBrowseEndpoint(browse_endpoint: MediaItem.BrowseEndpoint): Result<List<RelatedGroup<MediaItem>>> {
+private suspend fun loadBrowseEndpoint(browse_endpoint: MediaItemBrowseEndpoint): Result<List<RelatedGroup<MediaItem>>> {
     val request = Request.Builder()
         .ytUrl("/youtubei/v1/browse")
         .addYtHeaders()
@@ -55,10 +55,10 @@ private suspend fun loadBrowseEndpoint(browse_endpoint: MediaItem.BrowseEndpoint
 
                     val media_item: MediaItem
                     if (!item.browseId.startsWith("MPREb_")) {
-                        media_item = Artist.fromId(item.browseId).apply { addBrowseEndpoint(item.browseId, MediaItem.BrowseEndpoint.Type.ARTIST) }
+                        media_item = Artist.fromId(item.browseId).apply { addBrowseEndpoint(item.browseId, MediaItemBrowseEndpoint.Type.ARTIST) }
                     }
                     else {
-                        media_item = Playlist.fromId(item.browseId).apply { addBrowseEndpoint(item.browseId, MediaItem.BrowseEndpoint.Type.ALBUM) }
+                        media_item = Playlist.fromId(item.browseId).apply { addBrowseEndpoint(item.browseId, MediaItemBrowseEndpoint.Type.ALBUM) }
                     }
 
                     media_item.loadData().getOrThrowHere()!!

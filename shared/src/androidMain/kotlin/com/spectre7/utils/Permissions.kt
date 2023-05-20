@@ -3,7 +3,6 @@ package com.spectre7.utils
 import android.Manifest
 import android.app.AlertDialog
 import android.content.Context
-import com.spectre7.spmp.platform.PlatformContext
 import android.content.Intent
 import android.content.pm.PackageManager
 import android.provider.Settings

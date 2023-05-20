@@ -2,24 +2,18 @@
 
 package com.spectre7.spmp.ui.component
 
+import LocalPlayerState
 import SpMp
-import androidx.compose.animation.AnimatedVisibility
-import androidx.compose.animation.Crossfade
-import androidx.compose.animation.core.tween
 import androidx.compose.foundation.ExperimentalFoundationApi
 import androidx.compose.foundation.clickable
-import androidx.compose.foundation.combinedClickable
-import androidx.compose.foundation.interaction.MutableInteractionSource
 import androidx.compose.foundation.layout.*
-import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
-import androidx.compose.material.Icons.Default.*
-import androidx.compose.material.ripple.rememberRipple
+import androidx.compose.material.icons.filled.*
 import androidx.compose.material3.Icon
-import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
-import androidx.compose.runtime.*
+import androidx.compose.runtime.Composable
+import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.alpha
@@ -35,7 +29,6 @@ import com.spectre7.spmp.model.MediaItemThumbnailProvider
 import com.spectre7.spmp.model.Song
 import com.spectre7.spmp.model.mediaItemPreviewInteraction
 import com.spectre7.spmp.platform.PlayerDownloadManager.DownloadStatus
-import com.spectre7.spmp.platform.vibrateShort
 import com.spectre7.spmp.resources.getString
 import com.spectre7.spmp.ui.component.multiselect.MediaItemMultiSelectContext
 import com.spectre7.utils.composable.WidthShrinkText
@@ -60,7 +53,7 @@ fun SongPreviewSquare(
     }
 
     Column(
-        params.modifier.mediaItemPreviewInteraction(song, params.playerProvider, long_press_menu_data),
+        params.modifier.mediaItemPreviewInteraction(song, long_press_menu_data),
         horizontalAlignment = Alignment.CenterHorizontally,
         verticalArrangement = Arrangement.spacedBy(5.dp)
     ) {
@@ -106,7 +99,7 @@ fun SongPreviewLong(
         verticalAlignment = Alignment.CenterVertically,
         modifier = params.modifier
             .fillMaxWidth()
-            .mediaItemPreviewInteraction(song, params.playerProvider, long_press_menu_data)
+            .mediaItemPreviewInteraction(song, long_press_menu_data)
     ) {
         Box(Modifier.width(IntrinsicSize.Min).height(IntrinsicSize.Min), contentAlignment = Alignment.Center) {
             song.Thumbnail(
@@ -128,7 +121,6 @@ fun SongPreviewLong(
                 .fillMaxWidth(),
             verticalArrangement = Arrangement.spacedBy(5.dp)
         ) {
-
             Text(
                 song.title ?: "",
                 fontSize = 15.sp,
@@ -138,31 +130,31 @@ fun SongPreviewLong(
             )
 
             Row(horizontalArrangement = Arrangement.spacedBy(5.dp)) {
-                @Composable
-                fun InfoText(text: String) {
-                    Text(
-                        text,
-                        Modifier.alpha(0.5f),
-                        fontSize = 11.sp,
-                        color = params.contentColour?.invoke() ?: Color.Unspecified,
-                        maxLines = 1,
-                        overflow = TextOverflow.Ellipsis
-                    )
-                }
-
                 if (params.show_type) {
-                    InfoText(song.type.getReadable(false))
+                    InfoText(song.type.getReadable(false), params)
                 }
 
                 if (song.artist?.title != null) {
                     if (params.show_type) {
-                        InfoText("\u2022")
+                        InfoText("\u2022", params)
                     }
-                    InfoText(song.artist?.title!!)
+                    InfoText(song.artist?.title!!, params)
                 }
             }
         }
     }
+}
+
+@Composable
+private fun InfoText(text: String, params: MediaItem.PreviewParams) {
+    Text(
+        text,
+        Modifier.alpha(0.5f),
+        fontSize = 11.sp,
+        color = params.contentColour?.invoke() ?: Color.Unspecified,
+        maxLines = 1,
+        overflow = TextOverflow.Ellipsis
+    )
 }
 
 fun getSongLongPressMenuData(
@@ -189,6 +181,8 @@ fun getSongLongPressMenuData(
 @Composable
 private fun LongPressMenuActionProvider.SongLongPressPopupActions(song: MediaItem, queue_index: Int?) {
     require(song is Song)
+
+    val player = LocalPlayerState.current
 
     ActionButton(
         Icons.Default.Radio, getString("lpm_action_radio"),
@@ -239,7 +233,7 @@ private fun LongPressMenuActionProvider.SongLongPressPopupActions(song: MediaIte
 
     if (song.artist != null) {
         ActionButton(Icons.Default.Person, getString("lpm_action_go_to_artist"), onClick = {
-            playerProvider().openMediaItem(song.artist!!)
+            player.openMediaItem(song.artist!!)
         })
     }
 }
@@ -259,7 +253,7 @@ private fun ColumnScope.SongLongPressMenuInfo(song: Song, queue_index: Int?, acc
     }
     @Composable
     fun Item() {
-        Spacer(Modifier.height(60.dp)) // TODO
+        Spacer(Modifier.height(24.dp)) // TODO
     }
 
     if (queue_index != null) {
@@ -268,13 +262,14 @@ private fun ColumnScope.SongLongPressMenuInfo(song: Song, queue_index: Int?, acc
     else {
         Item()
     }
-    Item(Icons.Default.SubdirectoryArrowRight, getString("lpm_action_radio_after_x_songs"))
+    if (PlayerServiceHost.player.active_queue_index < PlayerServiceHost.status.m_queue_size) {
+        Item(Icons.Default.SubdirectoryArrowRight, getString("lpm_action_radio_after_x_songs"))
+    }
+    else {
+        Item()
+    }
 
-    Spacer(
-        Modifier
-            .fillMaxHeight()
-            .weight(1f)
-    )
+    Spacer(Modifier.fillMaxHeight().weight(1f))
 
     Row(Modifier.requiredHeight(20.dp), verticalAlignment = Alignment.CenterVertically) {
         Text(

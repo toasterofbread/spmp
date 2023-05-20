@@ -1,6 +1,5 @@
 package com.spectre7.settings.ui
 
-import com.spectre7.spmp.platform.ProjectPreferences
 import androidx.compose.animation.*
 import androidx.compose.foundation.*
 import androidx.compose.foundation.gestures.detectTapGestures
@@ -31,6 +30,7 @@ import com.godaddy.android.colorpicker.HsvColor
 import com.spectre7.composesettings.ui.SettingsPage
 import com.spectre7.settings.model.SettingsItem
 import com.spectre7.settings.model.SettingsValueState
+import com.spectre7.spmp.platform.ProjectPreferences
 import com.spectre7.spmp.platform.vibrateShort
 import com.spectre7.spmp.ui.component.PillMenu
 import com.spectre7.spmp.ui.theme.Theme

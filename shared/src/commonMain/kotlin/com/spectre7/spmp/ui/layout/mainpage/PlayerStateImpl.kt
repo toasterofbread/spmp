@@ -1,5 +1,6 @@
 package com.spectre7.spmp.ui.layout.mainpage
 
+import LocalPlayerState
 import SpMp
 import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.animation.Crossfade
@@ -58,7 +59,7 @@ fun getMainPageItemSize(): DpSize {
 }
 
 @OptIn(ExperimentalMaterialApi::class)
-class PlayerViewContextImpl: PlayerViewContext(null, null, null) {
+class PlayerStateImpl: PlayerState(null, null, null) {
     private var now_playing_switch_page: Int by mutableStateOf(-1)
     private val overlay_page_undo_stack: MutableList<Triple<OverlayPage, MediaItem?, MediaItem?>?> = mutableListOf()
     private val bottom_padding_anim = Animatable(PlayerServiceHost.session_started.toFloat() * MINIMISED_NOW_PLAYING_HEIGHT)
@@ -88,8 +89,8 @@ class PlayerViewContextImpl: PlayerViewContext(null, null, null) {
         top = false,
         left = false
     )
-    override val main_multiselect_context: MediaItemMultiSelectContext = getMainMultiselectContext { this }
-    
+    override val main_multiselect_context: MediaItemMultiSelectContext = getMainMultiselectContext()
+
     init {
         low_memory_listener = {
             if (!main_page_showing) {
@@ -152,7 +153,7 @@ class PlayerViewContextImpl: PlayerViewContext(null, null, null) {
         overlay_page = overlay_page_undo_stack.removeLastOrNull()
     }
 
-    override fun onMediaItemClicked(item: MediaItem) {
+    override fun onMediaItemClicked(item: MediaItem, multiselect_key: Int?) {
         if (item is Song || (item is Playlist && item.playlist_type == Playlist.PlaylistType.RADIO)) {
             playMediaItem(item)
         }
@@ -249,7 +250,7 @@ class PlayerViewContextImpl: PlayerViewContext(null, null, null) {
         }
 
         if (now_playing_swipe_anchors != null) {
-            com.spectre7.spmp.ui.layout.nowplaying.NowPlaying(remember { { this } }, now_playing_swipe_state, now_playing_swipe_anchors!!)
+            com.spectre7.spmp.ui.layout.nowplaying.NowPlaying(now_playing_swipe_state, now_playing_swipe_anchors!!)
         }
 
         OnChangedEffect(now_playing_switch_page) {
@@ -280,7 +281,6 @@ class PlayerViewContextImpl: PlayerViewContext(null, null, null) {
                             hideLongPressMenu()
                         }
                     },
-                    { this },
                     data,
                     Modifier
                         .onSizeChanged {
@@ -300,7 +300,6 @@ class PlayerViewContextImpl: PlayerViewContext(null, null, null) {
     }
 
     private val main_page_scroll_state = LazyListState()
-    private val playerProvider = { this }
     private var main_page_layouts: List<MediaItemLayout> by mutableStateOf(emptyList())
     private var main_page_filter_chips: List<Pair<Int, String>>? by mutableStateOf(null)
     private var main_page_selected_filter_chip: Int? by mutableStateOf(null)
@@ -381,7 +380,6 @@ class PlayerViewContextImpl: PlayerViewContext(null, null, null) {
                         MainPage(
                             pinned_items,
                             { main_page_layouts },
-                            playerProvider,
                             main_page_scroll_state,
                             feed_load_state,
                             remember { derivedStateOf { feed_continuation != null } }.value,
@@ -396,23 +394,21 @@ class PlayerViewContextImpl: PlayerViewContext(null, null, null) {
                     OverlayPage.SEARCH -> SearchPage(
                         pill_menu,
                         if (PlayerServiceHost.session_started) MINIMISED_NOW_PLAYING_HEIGHT.dp else 0.dp,
-                        playerProvider,
                         close
                     )
-                    OverlayPage.SETTINGS -> PrefsPage(pill_menu, playerProvider, close)
+                    OverlayPage.SETTINGS -> PrefsPage(pill_menu, close)
                     OverlayPage.MEDIAITEM -> Crossfade(page) { p ->
                         when (val item = p.second) {
                             null -> {}
-                            is Artist -> ArtistPage(pill_menu, item, playerProvider, p.third, close)
-                            is Playlist -> PlaylistPage(pill_menu, item, playerProvider, p.third, close)
+                            is Artist -> ArtistPage(pill_menu, item, p.third, close)
+                            is Playlist -> PlaylistPage(pill_menu, item, p.third, close)
                             else -> throw NotImplementedError()
                         }
                     }
-                    OverlayPage.LIBRARY -> LibraryPage(pill_menu, playerProvider, close = close)
+                    OverlayPage.LIBRARY -> LibraryPage(pill_menu, close = close)
                     OverlayPage.RADIO_BUILDER -> RadioBuilderPage(
                         pill_menu,
                         if (PlayerServiceHost.session_started) MINIMISED_NOW_PLAYING_HEIGHT.dp else 0.dp,
-                        playerProvider,
                         close
                     )
                     OverlayPage.YTM_LOGIN, OverlayPage.YTM_MANUAL_LOGIN -> YoutubeMusicLogin(
@@ -442,10 +438,8 @@ private fun loadFeedLayouts(min_rows: Int, allow_cached: Boolean, params: String
     return Result.success(Triple(row_data.filter { it.items.isNotEmpty() }, new_continuation, chips))
 }
 
-@OptIn(ExperimentalFoundationApi::class)
-private fun getMainMultiselectContext(playerProvider: () -> PlayerViewContext): MediaItemMultiSelectContext =
+private fun getMainMultiselectContext(): MediaItemMultiSelectContext =
     MediaItemMultiSelectContext(
-        playerProvider,
         selectedItemActions = { multiselect ->
             // Play after button
             Row(
@@ -468,24 +462,27 @@ private fun getMainMultiselectContext(playerProvider: () -> PlayerViewContext): 
         nextRowSelectedItemActions = { multiselect ->
             // Play after controls and song indicator
             AnimatedVisibility(PlayerServiceHost.status.m_queue_size > 0) {
-                MultiSelectNextRowActions(playerProvider)
+                MultiSelectNextRowActions()
             }
         }
     )
 
 @OptIn(ExperimentalFoundationApi::class)
 @Composable
-fun MultiSelectNextRowActions(playerProvider: () -> PlayerViewContext) {
+fun MultiSelectNextRowActions() {
     Row(verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(10.dp)) {
         val active_queue_item =
             if (PlayerServiceHost.player.active_queue_index < PlayerServiceHost.status.m_queue_size)
                 PlayerServiceHost.player.getSong(PlayerServiceHost.player.active_queue_index)
             else null
 
-        Crossfade(active_queue_item, animationSpec = tween(100), modifier = Modifier.weight(1f)) {
-            it?.PreviewLong(MediaItem.PreviewParams(
-                { playerProvider().copy(onClickedOverride = { item -> playerProvider().openMediaItem(item) }) }
-            ))
+        val player = LocalPlayerState.current
+        CompositionLocalProvider(LocalPlayerState provides remember {
+            player.copy(onClickedOverride = { item, _ -> player.openMediaItem(item) })
+        }) {
+            Crossfade(active_queue_item, animationSpec = tween(100), modifier = Modifier.weight(1f)) {
+                it?.PreviewLong(MediaItem.PreviewParams())
+            }
         }
 
         val button_modifier = Modifier

@@ -30,7 +30,6 @@ import com.spectre7.spmp.platform.PlayerDownloadManager
 import com.spectre7.spmp.platform.PlayerDownloadManager.DownloadStatus
 import com.spectre7.spmp.platform.vibrateShort
 import com.spectre7.spmp.resources.getStringTODO
-import com.spectre7.spmp.ui.layout.mainpage.PlayerViewContext
 import com.spectre7.spmp.ui.layout.nowplaying.NOW_PLAYING_MAIN_PADDING
 import com.spectre7.spmp.ui.layout.nowplaying.overlay.lyrics.LyricsOverlayMenu
 import com.spectre7.spmp.ui.theme.Theme
@@ -53,8 +52,7 @@ class MainOverlayMenu(
         expansion: Float,
         openShutterMenu: (@Composable () -> Unit) -> Unit,
         close: () -> Unit,
-        seek_state: Any,
-        playerProvider: () -> PlayerViewContext
+        getSeekState: () -> Any
     ) {
 
         val download_progress = remember { Animatable(0f) }
@@ -121,7 +119,6 @@ class MainOverlayMenu(
                 .padding(8.dp)
 
             song.artist?.PreviewLong(MediaItem.PreviewParams(
-                playerProvider,
                 contentColour = { Color.White },
             ))
 

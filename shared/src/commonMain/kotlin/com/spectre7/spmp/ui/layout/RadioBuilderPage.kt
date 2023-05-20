@@ -1,5 +1,6 @@
 package com.spectre7.spmp.ui.layout
 
+import LocalPlayerState
 import SpMp
 import androidx.compose.animation.*
 import androidx.compose.animation.core.*
@@ -34,7 +35,6 @@ import com.spectre7.spmp.model.Playlist
 import com.spectre7.spmp.platform.composable.BackHandler
 import com.spectre7.spmp.resources.getString
 import com.spectre7.spmp.ui.component.*
-import com.spectre7.spmp.ui.layout.mainpage.PlayerViewContext
 import com.spectre7.spmp.ui.theme.Theme
 import com.spectre7.utils.*
 import com.spectre7.utils.composable.*
@@ -56,7 +56,6 @@ fun RadioBuilderIcon(modifier: Modifier = Modifier) {
 fun RadioBuilderPage(
     pill_menu: PillMenu,
     bottom_padding: Dp,
-    playerProvider: () -> PlayerViewContext,
     close: () -> Unit
 ) {
     var available_artists: List<RadioBuilderArtist>? by remember { mutableStateOf(null) }
@@ -105,7 +104,7 @@ fun RadioBuilderPage(
             }
 
             if (selected == null) {
-                RadioArtistSelector(available_artists, pill_menu, playerProvider, Modifier.fillMaxSize()) { selected_artists = it.toSet() }
+                RadioArtistSelector(available_artists, pill_menu, Modifier.fillMaxSize()) { selected_artists = it.toSet() }
             }
             else {
                 BackHandler {
@@ -233,7 +232,7 @@ fun RadioBuilderPage(
                                 val layout = playlist.feed_layouts!!.first()
                                 LazyColumn(Modifier.fillMaxSize(), contentPadding = PaddingValues(bottom = bottom_padding)) {
                                     items(layout.items) { item ->
-                                        item.PreviewLong(MediaItem.PreviewParams(playerProvider))
+                                        item.PreviewLong(MediaItem.PreviewParams())
                                     }
                                 }
                             }
@@ -455,11 +454,11 @@ private fun MultiSelectRow(
 private fun RadioArtistSelector(
     radio_artists: List<RadioBuilderArtist>?,
     pill_menu: PillMenu,
-    playerProvider: () -> PlayerViewContext,
     modifier: Modifier = Modifier,
     onFinished: (List<Int>) -> Unit
 ) {
     val selected_artists: MutableList<Int> = remember { mutableStateListOf() }
+    val player = LocalPlayerState.current
 
     DisposableEffect(Unit) {
         val actions = pill_menu.run { listOf (
@@ -540,7 +539,7 @@ private fun RadioArtistSelector(
                                         }
                                     },
                                     onLongClick = {
-                                        playerProvider().showLongPressMenu(long_press_menu_data)
+                                        player.showLongPressMenu(long_press_menu_data)
                                     }
                                 )
                                 .aspectRatio(0.8f),

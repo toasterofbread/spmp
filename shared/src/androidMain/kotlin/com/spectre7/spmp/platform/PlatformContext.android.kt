@@ -17,11 +17,8 @@ import android.os.VibrationEffect
 import android.os.VibratorManager
 import android.view.Window
 import android.view.WindowInsetsController.APPEARANCE_LIGHT_STATUS_BARS
-import android.view.WindowManager
 import android.widget.Toast
-import androidx.compose.foundation.layout.WindowInsets
 import androidx.compose.foundation.layout.size
-import androidx.compose.foundation.layout.systemBars
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.ContentCopy
 import androidx.compose.material.icons.filled.Share
@@ -36,9 +33,6 @@ import androidx.compose.ui.text.font.Font
 import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
 import androidx.core.app.NotificationManagerCompat
-import androidx.core.view.WindowCompat
-import androidx.core.view.WindowInsetsCompat
-import com.google.android.exoplayer2.util.Assertions
 import com.spectre7.spmp.model.Settings
 import com.spectre7.spmp.resources.getString
 import com.spectre7.spmp.resources.getStringTODO

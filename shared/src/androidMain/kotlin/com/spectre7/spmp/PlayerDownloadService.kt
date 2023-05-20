@@ -14,9 +14,10 @@ import com.spectre7.spmp.model.Settings
 import com.spectre7.spmp.model.Song
 import com.spectre7.spmp.platform.PlatformBinder
 import com.spectre7.spmp.platform.PlatformContext
-import com.spectre7.spmp.platform.PlayerDownloadManager.DownloadStatus
 import com.spectre7.spmp.platform.PlatformServiceImpl
 import com.spectre7.spmp.platform.PlayerDownloadManager
+import com.spectre7.spmp.platform.PlayerDownloadManager.DownloadStatus
+import com.spectre7.spmp.resources.getString
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.runBlocking
 import java.io.File
@@ -25,7 +26,6 @@ import java.net.ConnectException
 import java.net.HttpURLConnection
 import java.net.URL
 import java.util.concurrent.Executors
-import com.spectre7.spmp.resources.getString
 
 private const val FILE_DOWNLOADING_SUFFIX = ".part"
 private const val NOTIFICATION_ID = 1

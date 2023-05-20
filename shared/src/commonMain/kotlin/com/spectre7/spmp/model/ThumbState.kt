@@ -9,11 +9,7 @@ import com.spectre7.spmp.platform.toByteArray
 import com.spectre7.spmp.platform.toImageBitmap
 import java.io.File
 import java.net.SocketTimeoutException
-import java.util.concurrent.Callable
-import java.util.concurrent.Executor
 import java.util.concurrent.ExecutorService
-import java.util.concurrent.Executors
-import java.util.concurrent.Future
 
 class ThumbState(
     private val item: MediaItem,

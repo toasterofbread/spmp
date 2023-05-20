@@ -2,6 +2,7 @@
 
 package com.spectre7.spmp.ui.layout
 
+import LocalPlayerState
 import SpMp
 import androidx.compose.animation.Crossfade
 import androidx.compose.foundation.*
@@ -27,7 +28,6 @@ import com.spectre7.spmp.model.*
 import com.spectre7.spmp.resources.getString
 import com.spectre7.spmp.ui.component.PillMenu
 import com.spectre7.spmp.ui.component.SONG_THUMB_CORNER_ROUNDING
-import com.spectre7.spmp.ui.layout.mainpage.PlayerViewContext
 import com.spectre7.spmp.ui.theme.Theme
 import com.spectre7.utils.*
 import com.spectre7.utils.composable.*
@@ -38,12 +38,12 @@ import kotlin.concurrent.thread
 fun PlaylistPage(
     pill_menu: PillMenu,
     playlist: Playlist,
-    playerProvider: () -> PlayerViewContext,
     previous_item: MediaItem? = null,
     close: () -> Unit
 ) {
     val status_bar_height = SpMp.context.getStatusBarHeight()
     var accent_colour: Color? by remember { mutableStateOf(null) }
+    val player = LocalPlayerState.current
 
     LaunchedEffect(playlist) {
         accent_colour = null
@@ -76,7 +76,7 @@ fun PlaylistPage(
                 previous_item.title!!.also { Text(it) }
                 Spacer(Modifier.fillMaxWidth().weight(1f))
 
-                IconButton({ playerProvider().showLongPressMenu(previous_item) }) {
+                IconButton({ player.showLongPressMenu(previous_item) }) {
                     Icon(Icons.Default.MoreVert, null)
                 }
             }
@@ -84,7 +84,7 @@ fun PlaylistPage(
 
         LazyColumn(verticalArrangement = Arrangement.spacedBy(10.dp)) {
             item {
-                PlaylistTopInfo(playlist, accent_colour, playerProvider) {
+                PlaylistTopInfo(playlist, accent_colour) {
                     if (accent_colour == null) {
                         accent_colour = playlist.getDefaultThemeColour() ?: Theme.current.accent
                     }
@@ -113,7 +113,7 @@ fun PlaylistPage(
                             Marquee(arrangement = Arrangement.End) {
                                 Text(
                                     artist,
-                                    Modifier.clickable { playerProvider().onMediaItemClicked(playlist.artist!!) },
+                                    Modifier.clickable { player.onMediaItemClicked(playlist.artist!!) },
                                     maxLines = 1,
                                     overflow = TextOverflow.Ellipsis,
                                     style = MaterialTheme.typography.titleMedium
@@ -128,7 +128,7 @@ fun PlaylistPage(
                     check(item is Song)
 
                     Row(
-                        Modifier.fillMaxWidth().clickable { playerProvider().onMediaItemClicked(item) },
+                        Modifier.fillMaxWidth().clickable { player.onMediaItemClicked(item) },
                         verticalAlignment = Alignment.CenterVertically,
                         horizontalArrangement = Arrangement.spacedBy(10.dp)
                     ) {
@@ -152,8 +152,9 @@ fun PlaylistPage(
 }
 
 @Composable
-private fun PlaylistTopInfo(playlist: Playlist, accent_colour: Color?, playerProvider: () -> PlayerViewContext, onThumbLoaded: (ImageBitmap) -> Unit) {
+private fun PlaylistTopInfo(playlist: Playlist, accent_colour: Color?, onThumbLoaded: (ImageBitmap) -> Unit) {
     val shape = RoundedCornerShape(10.dp)
+    val player = LocalPlayerState.current
 
     Row(Modifier.height(IntrinsicSize.Max), horizontalArrangement = Arrangement.spacedBy(10.dp)) {
 
@@ -183,7 +184,7 @@ private fun PlaylistTopInfo(playlist: Playlist, accent_colour: Color?, playerPro
                     Icon(Icons.Default.Shuffle, null)
                 }
                 Crossfade(playlist.pinned_to_home) { pinned ->
-                    IconButton({ playlist.setPinnedToHome(!pinned, playerProvider) }) {
+                    IconButton({ playlist.setPinnedToHome(!pinned) }) {
                         Icon(if (pinned) Icons.Filled.PushPin else Icons.Outlined.PushPin, null)
                     }
                 }
@@ -195,7 +196,7 @@ private fun PlaylistTopInfo(playlist: Playlist, accent_colour: Color?, playerPro
             }
 
             Button(
-                { playerProvider().playMediaItem(playlist) },
+                { player.playMediaItem(playlist) },
                 Modifier.fillMaxWidth(),
                 colors = ButtonDefaults.buttonColors(
                     containerColor = accent_colour ?: Theme.current.accent,

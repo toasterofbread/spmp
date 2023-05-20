@@ -1,19 +1,15 @@
 package com.spectre7.composesettings.ui
 
-import com.spectre7.spmp.platform.PlatformContext
-import com.spectre7.spmp.platform.ProjectPreferences
 import androidx.compose.animation.Crossfade
-import androidx.compose.foundation.ScrollState
-import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.*
-import androidx.compose.foundation.verticalScroll
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.layout.onSizeChanged
 import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
+import com.spectre7.spmp.platform.PlatformContext
+import com.spectre7.spmp.platform.ProjectPreferences
 import com.spectre7.spmp.ui.component.PillMenu
 import com.spectre7.spmp.ui.theme.Theme
 import com.spectre7.utils.thenIf

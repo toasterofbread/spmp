@@ -2,7 +2,7 @@ package com.spectre7.spmp.api
 
 import com.spectre7.spmp.model.Song
 import com.spectre7.spmp.resources.getString
-import okhttp3.*
+import okhttp3.Request
 import org.schabi.newpipe.extractor.NewPipe
 import org.schabi.newpipe.extractor.exceptions.ParsingException
 import org.schabi.newpipe.extractor.services.youtube.linkHandler.YoutubeStreamLinkHandlerFactory

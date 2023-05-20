@@ -123,6 +123,8 @@ class LocalisedYoutubeString(
     val type: Type,
     val source_language: Int? = null
 ) {
+    private var string: String? = null
+
     enum class Type {
         RAW,
         COMMON,
@@ -137,22 +139,26 @@ class LocalisedYoutubeString(
         }
     }
 
-    fun getString(): String = when (type) {
-        Type.RAW -> key
-        Type.COMMON -> getString(key)
-        Type.HOME_FEED -> {
-            val translation = SpMp.yt_ui_translation.translateHomeFeedString(key, source_language!!)
-            if (translation != null) {
-                translation
-            }
-            else {
-                println("WARNING: Using raw key '$key' as home feed string")
-                key
-            }
+    fun getString(): String {
+        if (string == null) {
+            string = when (type) {
+                Type.RAW -> key
+                Type.COMMON -> getString(key)
+                Type.HOME_FEED -> {
+                    val translation = SpMp.yt_ui_translation.translateHomeFeedString(key, source_language!!)
+                    if (translation != null) {
+                        translation
+                    } else {
+                        println("WARNING: Using raw key '$key' as home feed string")
+                        key
+                    }
+                }
+                Type.OWN_CHANNEL -> SpMp.yt_ui_translation.translateOwnChannelString(key, source_language!!)
+                Type.ARTIST_PAGE -> SpMp.yt_ui_translation.translateArtistPageString(key, source_language!!)
+            } ?: throw NotImplementedError("Key: '$key', Type: $type, Source lang: ${SpMp.getLanguageCode(source_language!!)}")
         }
-        Type.OWN_CHANNEL -> SpMp.yt_ui_translation.translateOwnChannelString(key, source_language!!)
-        Type.ARTIST_PAGE -> SpMp.yt_ui_translation.translateArtistPageString(key, source_language!!)
-    } ?: throw NotImplementedError("Key: '$key', Type: $type, Source lang: ${SpMp.getLanguageCode(source_language!!)}")
+        return string!!
+    }
 
     companion object {
         private val current_source_language: Int get() = Settings.KEY_LANG_DATA.get()

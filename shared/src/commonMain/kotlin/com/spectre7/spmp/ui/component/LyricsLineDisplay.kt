@@ -1,11 +1,13 @@
 package com.spectre7.spmp.ui.component
 
-import androidx.compose.animation.*
+import androidx.compose.animation.AnimatedVisibility
+import androidx.compose.animation.fadeOut
+import androidx.compose.animation.slideInVertically
+import androidx.compose.animation.slideOutVertically
 import androidx.compose.foundation.layout.Box
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.graphics.Color
 import com.spectre7.spmp.model.Song
 import com.spectre7.utils.BasicFuriganaText
 import com.spectre7.utils.composable.RecomposeOnInterval
@@ -13,7 +15,7 @@ import com.spectre7.utils.composable.RecomposeOnInterval
 private const val UPDATE_INTERVAL_MS = 100L
 
 @Composable
-fun LyricsLineDisplay(lyrics: Song.Lyrics, getTime: () -> Long, getColour: () -> Color, modifier: Modifier = Modifier) {
+fun LyricsLineDisplay(lyrics: Song.Lyrics, getTime: () -> Long, modifier: Modifier = Modifier) {
     require(lyrics.sync_type != Song.Lyrics.SyncType.NONE)
     
     RecomposeOnInterval(UPDATE_INTERVAL_MS) { s ->
@@ -60,7 +62,7 @@ fun LyricsLineDisplay(lyrics: Song.Lyrics, getTime: () -> Long, getColour: () ->
                 }
 
                 line?.also {
-                    BasicFuriganaText(lyrics.lines[it], text_colour = getColour())
+                    BasicFuriganaText(lyrics.lines[it])
                 }
             }
             AnimatedVisibility(line_b != null && !a, enter = enter, exit = exit) {
@@ -72,7 +74,7 @@ fun LyricsLineDisplay(lyrics: Song.Lyrics, getTime: () -> Long, getColour: () ->
                 }
 
                 line?.also {
-                    BasicFuriganaText(lyrics.lines[it], text_colour = getColour())
+                    BasicFuriganaText(lyrics.lines[it])
                 }
             }
         }

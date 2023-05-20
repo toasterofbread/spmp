@@ -37,6 +37,7 @@ import com.spectre7.spmp.PlayerServiceHost
 import com.spectre7.spmp.exovisualiser.FFTAudioProcessor
 import com.spectre7.spmp.model.MediaItemThumbnailProvider
 import com.spectre7.spmp.model.Song
+import com.spectre7.spmp.model.SongLikeStatus
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.runBlocking
 import java.io.File
@@ -58,10 +59,10 @@ class MediaPlayerServiceSession: MediaSessionService() {
     private var current_song: Song? = null
 
     private inner class PlayerListener: Player.Listener {
-        private fun onSongLikeStatusChanged(status: Song.LikeStatus?) {
-            if (status != Song.LikeStatus.LOADING) {
+        private fun onSongLikeStatusChanged(status: SongLikeStatus?) {
+            if (status?.loading == false) {
                 runInMainThread {
-                    updatePlayerCustomActions(status)
+                    updatePlayerCustomActions(status.status)
                 }
             }
         }
@@ -77,7 +78,7 @@ class MediaPlayerServiceSession: MediaSessionService() {
             song?.like_status?.listeners?.add(::onSongLikeStatusChanged)
             current_song = song
 
-            onSongLikeStatusChanged(song?.like_status?.status)
+            onSongLikeStatusChanged(song?.like_status)
         }
     }
 

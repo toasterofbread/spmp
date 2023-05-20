@@ -7,9 +7,8 @@ import java.io.FileNotFoundException
 import java.io.Reader
 import java.time.Duration
 import java.time.Instant
-import kotlin.io.path.relativeTo
-import com.spectre7.spmp.resources.getString
 import kotlin.concurrent.thread
+import kotlin.io.path.relativeTo
 
 class Cache {
     companion object {

@@ -13,7 +13,6 @@ import androidx.compose.ui.geometry.Rect
 import androidx.compose.ui.geometry.Size
 import com.spectre7.spmp.PlayerServiceHost
 import com.spectre7.spmp.model.Song
-import com.spectre7.spmp.ui.layout.mainpage.PlayerViewContext
 import com.spectre7.spmp.ui.layout.nowplaying.POSITION_UPDATE_INTERVAL_MS
 import com.spectre7.spmp.ui.layout.nowplaying.getNPBackground
 import kotlinx.coroutines.delay
@@ -21,7 +20,6 @@ import kotlin.math.abs
 
 @Composable
 fun LyricsTimingOverlay(
-    playerProvider: () -> PlayerViewContext,
     lyrics: Song.Lyrics,
     full_line: Boolean,
     seek_state: Any,
@@ -51,14 +49,14 @@ fun LyricsTimingOverlay(
             println("we drawin $highlight_position_y")
             if (highlight_instantly) {
                 drawRoundRect(
-                    getNPBackground(playerProvider),
+                    getNPBackground(),
                     Offset(highlight_position_x, highlight_position_y),
                     Size(highlight_width, highlight_height),
                     CornerRadius(25f, 25f)
                 )
             } else {
                 drawRoundRect(
-                    getNPBackground(playerProvider),
+                    getNPBackground(),
                     highlight_position_state.value,
                     Size(highlight_size_state.value.x, highlight_size_state.value.y),
                     CornerRadius(25f, 25f)

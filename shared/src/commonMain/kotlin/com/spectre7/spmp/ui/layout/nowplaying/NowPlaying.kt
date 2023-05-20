@@ -1,5 +1,7 @@
 package com.spectre7.spmp.ui.layout.nowplaying
 
+import GlobalPlayerState
+import LocalPlayerState
 import SpMp
 import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.animation.slideInVertically
@@ -21,7 +23,6 @@ import androidx.compose.ui.unit.*
 import com.spectre7.spmp.PlayerServiceHost
 import com.spectre7.spmp.platform.composable.BackHandler
 import com.spectre7.spmp.platform.composable.scrollWheelSwipeable
-import com.spectre7.spmp.ui.layout.mainpage.PlayerViewContext
 import com.spectre7.spmp.ui.theme.Theme
 import com.spectre7.utils.*
 import com.spectre7.utils.composable.OnChangedEffect
@@ -36,16 +37,16 @@ const val SEEK_CANCEL_THRESHOLD = 0.03f
 const val EXPANDED_THRESHOLD = 0.9f
 const val POSITION_UPDATE_INTERVAL_MS: Long = 100
 
-internal fun getNPBackground(playerProvider: () -> PlayerViewContext): Color {
-    return when (playerProvider().np_theme_mode) {
+internal fun getNPBackground(): Color {
+    return when (GlobalPlayerState.np_theme_mode) {
         ThemeMode.BACKGROUND -> Theme.current.accent
         ThemeMode.ELEMENTS -> Theme.current.background
         ThemeMode.NONE -> Theme.current.background
     }
 }
 
-internal fun getNPOnBackground(playerProvider: () -> PlayerViewContext): Color {
-    return when (playerProvider().np_theme_mode) {
+internal fun getNPOnBackground(): Color {
+    return when (GlobalPlayerState.np_theme_mode) {
         ThemeMode.BACKGROUND -> Theme.current.on_accent
         ThemeMode.ELEMENTS -> Theme.current.accent
         ThemeMode.NONE -> Theme.current.on_background
@@ -54,7 +55,7 @@ internal fun getNPOnBackground(playerProvider: () -> PlayerViewContext): Color {
 
 @OptIn(ExperimentalMaterialApi::class)
 @Composable
-fun NowPlaying(playerProvider: () -> PlayerViewContext, swipe_state: SwipeableState<Int>, swipe_anchors: Map<Float, Int>) {
+fun NowPlaying(swipe_state: SwipeableState<Int>, swipe_anchors: Map<Float, Int>) {
     AnimatedVisibility(
         PlayerServiceHost.session_started,
         enter = slideInVertically(),
@@ -74,7 +75,7 @@ fun NowPlaying(playerProvider: () -> PlayerViewContext, swipe_state: SwipeableSt
         }
 
         Card(
-            colors = CardDefaults.cardColors(containerColor = getNPBackground(playerProvider)),
+            colors = CardDefaults.cardColors(containerColor = getNPBackground(), contentColor = getNPOnBackground()),
             shape = RectangleShape,
             modifier = Modifier
                 .fillMaxWidth()
@@ -104,11 +105,14 @@ fun NowPlaying(playerProvider: () -> PlayerViewContext, swipe_state: SwipeableSt
 
             Column(Modifier.fillMaxSize(), horizontalAlignment = Alignment.CenterHorizontally) {
                 NowPlayingCardContent(
-                    remember(screen_height) { { (swipe_state.offset.value + half_screen_height) / screen_height.value } },
+                    remember(screen_height) { {
+                        val expansion = (swipe_state.offset.value + half_screen_height) / screen_height.value
+                        if (expansion < 1f) (1f / (1f - MIN_EXPANSION)) * (expansion - MIN_EXPANSION)
+                        else expansion
+                    } },
                     screen_height,
                     { switch_to_page = if (swipe_state.targetValue == 0) 1 else 0 },
                     { switch_to_page = swipe_state.targetValue + it },
-                    playerProvider
                 )
             }
         }
@@ -121,20 +125,22 @@ fun NowPlayingCardContent(
     page_height: Dp,
     close: () -> Unit,
     scroll: (pages: Int) -> Unit,
-    playerProvider: () -> PlayerViewContext
 ) {
     val status_bar_height = SpMp.context.getStatusBarHeight()
     val status_bar_height_percent = (status_bar_height.value * 0.75) / page_height.value
+    val player = LocalPlayerState.current
 
     val under_status_bar by remember { derivedStateOf { 1f - expansionProvider() < status_bar_height_percent } }
-    LaunchedEffect(key1 = under_status_bar, key2 = getNPBackground(playerProvider)) {
-        val colour = if (under_status_bar) getNPBackground(playerProvider) else Theme.current.background
+    LaunchedEffect(key1 = under_status_bar, key2 = getNPBackground()) {
+        val colour = if (under_status_bar) getNPBackground() else Theme.current.background
         SpMp.context.setStatusBarColour(colour, !colour.isDark())
     }
 
-    MinimisedProgressBar(playerProvider, expansionProvider)
+    MinimisedProgressBar(expansionProvider)
 
     val screen_width_dp = SpMp.context.getScreenWidth()
+
+    val full_expansion = if (expansionProvider() < 1f) (1f / (1f - MIN_EXPANSION)) * (expansionProvider() - MIN_EXPANSION) else minOf(2f, expansionProvider())
 
     Column(Modifier.fillMaxHeight(), verticalArrangement = Arrangement.Top) {
         Column(
@@ -142,23 +148,21 @@ fun NowPlayingCardContent(
             modifier = Modifier
                 .requiredHeight(page_height)
                 .requiredWidth(screen_width_dp)
-                .padding(top = (status_bar_height * expansionProvider().coerceAtLeast(0f)))
+                .padding(top = (status_bar_height * full_expansion.coerceAtLeast(0f)))
         ) {
-            NowPlayingMainTab(
-                expansionProvider,
-                page_height,
-                remember {
-                    {
-                        playerProvider().copy(
-                            onClickedOverride = {
-                                playerProvider().onMediaItemClicked(it)
-                                close()
-                            }
-                        )
+            CompositionLocalProvider(LocalPlayerState provides remember {
+                player.copy(
+                    onClickedOverride = { item, _ ->
+                        player.onMediaItemClicked(item)
+                        close()
                     }
-                },
-                scroll
-            )
+                )
+            }) {
+                NowPlayingMainTab(
+                    expansionProvider,
+                    scroll
+                )
+            }
         }
 
         Column(
@@ -167,20 +171,20 @@ fun NowPlayingCardContent(
                 .requiredHeight(page_height + (maxOf(0f, expansionProvider() - 2f) * page_height))
                 .requiredWidth(screen_width_dp)
         ) {
-            QueueTab(remember { { (expansionProvider() - 1f).coerceIn(0f, 1f) } }, playerProvider, scroll)
+            QueueTab(remember { { (expansionProvider() - 1f).coerceIn(0f, 1f) } }, scroll)
         }
     }
 }
 
 @Composable
-fun MinimisedProgressBar(playerProvider: () -> PlayerViewContext, expansionProvider: () -> Float) {
+fun MinimisedProgressBar(expansionProvider: () -> Float) {
     RecomposeOnInterval(POSITION_UPDATE_INTERVAL_MS) { state ->
         state
 
         LinearProgressIndicator(
             progress = PlayerServiceHost.status.position,
-            color = getNPOnBackground(playerProvider),
-            trackColor = getNPOnBackground(playerProvider).setAlpha(0.5f),
+            color = getNPOnBackground(),
+            trackColor = getNPOnBackground().setAlpha(0.5f),
             modifier = Modifier
                 .requiredHeight(2.dp)
                 .fillMaxWidth()

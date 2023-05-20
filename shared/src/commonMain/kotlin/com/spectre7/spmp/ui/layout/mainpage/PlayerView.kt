@@ -1,23 +1,30 @@
 package com.spectre7.spmp.ui.layout.mainpage
 
 import SpMp
-import androidx.compose.foundation.layout.*
+import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.foundation.layout.offset
 import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.filled.*
+import androidx.compose.material.icons.filled.Close
+import androidx.compose.material.icons.filled.LibraryMusic
+import androidx.compose.material.icons.filled.Search
+import androidx.compose.material.icons.filled.Settings
 import androidx.compose.runtime.*
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.unit.*
+import androidx.compose.ui.unit.IntOffset
 import com.spectre7.spmp.ui.theme.Theme
 import com.spectre7.utils.modifier.background
 
 const val MINIMISED_NOW_PLAYING_HEIGHT: Int = 64
+const val MINIMISED_NOW_PLAYING_V_PADDING: Int = 10
 const val MEDIAITEM_PREVIEW_SQUARE_SIZE_SMALL: Float = 100f
 const val MEDIAITEM_PREVIEW_SQUARE_SIZE_LARGE: Float = 200f
 
 enum class OverlayPage { SEARCH, SETTINGS, MEDIAITEM, LIBRARY, RADIO_BUILDER, YTM_LOGIN, YTM_MANUAL_LOGIN }
 
 @Composable
-fun PlayerView(player: PlayerViewContextImpl) {
+fun PlayerView(player: PlayerStateImpl) {
     player.LongPressMenu()
 
     DisposableEffect(Unit) {

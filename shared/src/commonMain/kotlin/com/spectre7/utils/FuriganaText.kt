@@ -15,7 +15,6 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.geometry.Rect
 import androidx.compose.ui.geometry.Size
 import androidx.compose.ui.graphics.Color
-import androidx.compose.ui.graphics.isUnspecified
 import androidx.compose.ui.layout.onPlaced
 import androidx.compose.ui.layout.positionInRoot
 import androidx.compose.ui.platform.LocalDensity
@@ -155,14 +154,11 @@ private fun calculateAnnotatedString(
 fun BasicFuriganaText(
     terms: List<Song.Lyrics.Term>,
     show_readings: Boolean = true,
-    font_size: TextUnit = TextUnit.Unspecified,
-    text_colour: Color = Color.Unspecified
+    font_size: TextUnit = LocalTextStyle.current.fontSize,
+    text_colour: Color = LocalContentColor.current
 ) {
-    val _font_size = if (font_size.isUnspecified) LocalTextStyle.current.fontSize else font_size
-    val _text_colour = if (text_colour.isUnspecified) LocalContentColor.current else text_colour
-
-    val reading_font_size = _font_size / 2
-    val line_height = with(LocalDensity.current) { (_font_size.value + (reading_font_size.value * 2)).sp.toDp() }
+    val reading_font_size = font_size / 2
+    val line_height = with(LocalDensity.current) { (font_size.value + (reading_font_size.value * 2)).sp.toDp() }
 
     val string_builder = AnnotatedString.Builder()
     val inline_content: MutableMap<String, InlineTextContent> = mutableMapOf()
@@ -183,7 +179,7 @@ fun BasicFuriganaText(
                     InlineTextContent(
                         placeholder = Placeholder(
                             width = width,
-                            height = (_font_size.value + (reading_font_size.value * 2)).sp,
+                            height = (font_size.value + (reading_font_size.value * 2)).sp,
                             placeholderVerticalAlign = PlaceholderVerticalAlign.Center,
                         )
                     ) { furi ->
@@ -192,8 +188,8 @@ fun BasicFuriganaText(
                             horizontalAlignment = Alignment.CenterHorizontally,
                             verticalArrangement = Arrangement.Bottom,
                         ) {
-                            Text(furi, Modifier.wrapContentWidth(unbounded = true), fontSize = reading_font_size, color = _text_colour)
-                            Text(text, fontSize = font_size, color = _text_colour)
+                            Text(furi, Modifier.wrapContentWidth(unbounded = true), fontSize = reading_font_size, color = text_colour)
+                            Text(text, fontSize = font_size, color = text_colour)
                             Text("", fontSize = reading_font_size) // Add spacing at bottom to keep main text centered
                         }
                     }
@@ -206,7 +202,7 @@ fun BasicFuriganaText(
         Text(
             string_builder.toAnnotatedString(),
             inlineContent = inline_content,
-            color = _text_colour
+            color = text_colour
         )
     }
 }

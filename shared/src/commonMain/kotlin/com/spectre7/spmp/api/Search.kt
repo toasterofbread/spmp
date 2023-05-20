@@ -1,5 +1,6 @@
 package com.spectre7.spmp.api
 
+import SpMp
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Album
 import androidx.compose.material.icons.filled.PlayArrow
@@ -7,9 +8,12 @@ import androidx.compose.ui.graphics.vector.ImageVector
 import com.spectre7.spmp.api.DataApi.Companion.addYtHeaders
 import com.spectre7.spmp.api.DataApi.Companion.getStream
 import com.spectre7.spmp.api.DataApi.Companion.ytUrl
-import com.spectre7.spmp.model.*
-import com.spectre7.spmp.ui.component.MediaItemLayout
+import com.spectre7.spmp.model.Artist
+import com.spectre7.spmp.model.MediaItemType
+import com.spectre7.spmp.model.Playlist
+import com.spectre7.spmp.model.Song
 import com.spectre7.spmp.resources.getStringTODO
+import com.spectre7.spmp.ui.component.MediaItemLayout
 import okhttp3.Request
 
 data class YoutubeiSearchResponse(

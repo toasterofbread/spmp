@@ -1,14 +1,15 @@
 package com.spectre7.spmp.api
 
+import SpMp
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.setValue
 import com.beust.klaxon.*
 import com.spectre7.spmp.model.Cache
 import com.spectre7.spmp.model.MediaItem
-import com.spectre7.spmp.platform.ProjectPreferences
 import com.spectre7.spmp.model.Settings
 import com.spectre7.spmp.model.YoutubeMusicAuthInfo
+import com.spectre7.spmp.platform.ProjectPreferences
 import com.spectre7.spmp.resources.getString
 import com.spectre7.spmp.resources.getStringArray
 import okhttp3.*

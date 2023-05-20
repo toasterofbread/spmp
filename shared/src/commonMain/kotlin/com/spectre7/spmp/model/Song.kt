@@ -1,17 +1,23 @@
 package com.spectre7.spmp.model
 
-import androidx.compose.runtime.*
+import androidx.compose.runtime.Composable
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.ImageBitmap
 import androidx.compose.ui.graphics.toArgb
 import com.beust.klaxon.Json
 import com.beust.klaxon.Klaxon
-import com.spectre7.spmp.api.*
+import com.spectre7.spmp.api.DEFAULT_CONNECT_TIMEOUT
+import com.spectre7.spmp.api.YoutubeVideoFormat
+import com.spectre7.spmp.api.cast
+import com.spectre7.spmp.api.getVideoFormats
 import com.spectre7.spmp.platform.crop
 import com.spectre7.spmp.platform.toImageBitmap
+import com.spectre7.spmp.resources.getString
 import com.spectre7.spmp.ui.component.SongPreviewLong
 import com.spectre7.spmp.ui.component.SongPreviewSquare
-import com.spectre7.spmp.resources.getString
 import com.spectre7.utils.ValueListeners
 import com.spectre7.utils.lazyAssert
 import com.spectre7.utils.toHiragana
@@ -64,7 +70,7 @@ class Song protected constructor (
     }
     enum class SongType { SONG, VIDEO }
     enum class LikeStatus {
-        UNKNOWN, LOADING, UNAVAILABLE, NEUTRAL, LIKED, DISLIKED;
+        UNKNOWN, UNAVAILABLE, NEUTRAL, LIKED, DISLIKED;
 
         val is_available: Boolean get() = when(this) {
             LIKED, DISLIKED, NEUTRAL -> true

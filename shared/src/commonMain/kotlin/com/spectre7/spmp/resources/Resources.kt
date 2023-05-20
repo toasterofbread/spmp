@@ -1,13 +1,14 @@
 package com.spectre7.spmp.resources
 
+import SpMp
 import com.beust.klaxon.Klaxon
 import com.spectre7.spmp.platform.PlatformContext
 import kotlinx.coroutines.runBlocking
+import org.xmlpull.v1.XmlPullParser
+import org.xmlpull.v1.XmlPullParserFactory
 import java.io.InputStream
 import java.util.*
 import kotlin.concurrent.thread
-import org.xmlpull.v1.XmlPullParser
-import org.xmlpull.v1.XmlPullParserFactory
 
 private lateinit var strings: Map<String, String>
 private lateinit var string_arrays: Map<String, List<String>>

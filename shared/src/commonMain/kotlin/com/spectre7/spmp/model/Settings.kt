@@ -1,10 +1,11 @@
 package com.spectre7.spmp.model
 
+import SpMp
 import androidx.compose.runtime.*
 import com.beust.klaxon.Klaxon
 import com.spectre7.spmp.ProjectBuildConfig
-import com.spectre7.spmp.platform.ProjectPreferences
 import com.spectre7.spmp.platform.PlatformContext
+import com.spectre7.spmp.platform.ProjectPreferences
 import com.spectre7.spmp.resources.getString
 import java.util.*
 
@@ -16,6 +17,9 @@ enum class NowPlayingQueueRadioInfoPosition {
 }
 enum class PlayerViewTopBarAction {
     TOGGLE_LYRICS, OPEN_LYRICS, NONE
+}
+enum class MusicTopBarMode {
+    VISUALISER, LYRICS
 }
 
 @Composable
@@ -86,6 +90,11 @@ enum class Settings {
     KEY_ACC_VOL_INTERCEPT_NOTIFICATION,
     KEY_ACC_SCREEN_OFF,
 
+    // Top bar content TODO
+    KEY_TOPBAR_DEFAULT_MODE_HOME,
+    KEY_TOPBAR_DEFAULT_MODE_NOWPLAYING,
+    KEY_TOPBAR_DEFAULT_MODE_QUEUE,
+
     // Home page
     KEY_HP_SHOW_VISUALISER,
     KEY_HP_SHOW_TIMED_LYRICS,
@@ -143,6 +152,8 @@ enum class Settings {
     fun <T> get(context: PlatformContext): T {
         return Settings.get(this, context.getPrefs())
     }
+
+    inline fun <reified T: Enum<T>> getEnum(): T = Settings.getEnum(this)
 
     fun <T> set(value: T?, preferences: ProjectPreferences = prefs) {
         Settings.set(this, value, preferences)
@@ -217,6 +228,11 @@ enum class Settings {
 //                KEY_ACC_VOL_INTERCEPT_MODE -> PlayerAccessibilityService.PlayerAccessibilityServiceVolumeInterceptMode.NEVER.ordinal
                 KEY_ACC_VOL_INTERCEPT_NOTIFICATION -> false
                 KEY_ACC_SCREEN_OFF -> false
+
+                // Top bar content TODO
+                KEY_TOPBAR_DEFAULT_MODE_HOME -> MusicTopBarMode.LYRICS.ordinal
+                KEY_TOPBAR_DEFAULT_MODE_NOWPLAYING -> MusicTopBarMode.LYRICS.ordinal
+                KEY_TOPBAR_DEFAULT_MODE_QUEUE -> MusicTopBarMode.LYRICS.ordinal
 
                 // Home page
                 KEY_HP_SHOW_VISUALISER -> true

@@ -1,17 +1,29 @@
 package com.spectre7.spmp.ui.component
 
+import LocalPlayerState
+import SpMp
 import androidx.compose.foundation.ExperimentalFoundationApi
+import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.*
+import androidx.compose.material3.Icon
 import androidx.compose.material3.Text
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.graphics.Shape
+import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.spectre7.spmp.model.*
+import com.spectre7.spmp.resources.getString
+import com.spectre7.spmp.ui.component.multiselect.MediaItemMultiSelectContext
+import com.spectre7.utils.composable.WidthShrinkText
+import com.spectre7.utils.isDebugBuild
 import com.spectre7.utils.setAlpha
 
 @Composable
@@ -24,7 +36,7 @@ fun PlaylistPreviewSquare(
     }
 
     Column(
-        params.modifier.mediaItemPreviewInteraction(playlist, params.playerProvider, long_press_menu_data),
+        params.modifier.mediaItemPreviewInteraction(playlist, long_press_menu_data),
         horizontalAlignment = Alignment.CenterHorizontally,
         verticalArrangement = Arrangement.spacedBy(5.dp)
     ) {
@@ -63,7 +75,7 @@ fun PlaylistPreviewLong(
 
     Row(
         verticalAlignment = Alignment.CenterVertically,
-        modifier = params.modifier.mediaItemPreviewInteraction(playlist, params.playerProvider, long_press_menu_data)
+        modifier = params.modifier.mediaItemPreviewInteraction(playlist, long_press_menu_data)
     ) {
         Box(Modifier.width(IntrinsicSize.Min).height(IntrinsicSize.Min), contentAlignment = Alignment.Center) {
             playlist.Thumbnail(
@@ -127,6 +139,7 @@ fun getPlaylistLongPressMenuData(
         playlist,
         thumb_shape,
         { PlaylistLongPressMenuInfo(playlist, it) },
+        getString("lpm_long_press_actions"),
         multiselect_context = multiselect_context
     ) {
         PlaylistLongPressPopupActions(it)
@@ -163,8 +176,9 @@ private fun LongPressMenuActionProvider.PlaylistLongPressPopupActions(playlist: 
         }
     )
 
+    val player = LocalPlayerState.current
     ActionButton(Icons.Default.QueueMusic, getString("lpm_action_open_playlist"), onClick = {
-        playerProvider().openMediaItem(playlist)
+        player.openMediaItem(playlist)
     })
 }
 

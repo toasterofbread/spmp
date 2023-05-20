@@ -72,7 +72,7 @@ class FFTAudioProcessor : AudioProcessor {
     private var fftBuffer: ByteBuffer
     private var outputBuffer: ByteBuffer
 
-    var listener: FFTListener? = null
+    var listeners: MutableList<FFTListener> = mutableListOf()
     private var inputEnded: Boolean = false
 
     private lateinit var srcBuffer: ByteBuffer
@@ -195,7 +195,7 @@ class FFTAudioProcessor : AudioProcessor {
     }
 
     private fun processFFT(buffer: ByteBuffer) {
-        if (listener == null) {
+        if (listeners.isEmpty()) {
             return
         }
         srcBuffer.put(buffer.array())
@@ -223,8 +223,11 @@ class FFTAudioProcessor : AudioProcessor {
             srcBuffer.compact()
             srcBufferPosition -= bytesToProcess
             srcBuffer.position(srcBufferPosition)
+
             val fft = noise?.fft(src, dst)!!
-            listener?.onFFTReady(inputAudioFormat.sampleRate, inputAudioFormat.channelCount, fft)
+            for (listener in listeners) {
+                listener.onFFTReady(inputAudioFormat.sampleRate, inputAudioFormat.channelCount, fft)
+            }
         }
     }
 

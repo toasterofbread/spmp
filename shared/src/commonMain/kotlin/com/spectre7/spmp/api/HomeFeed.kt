@@ -1,5 +1,6 @@
 package com.spectre7.spmp.api
 
+import SpMp
 import com.beust.klaxon.Json
 import com.spectre7.spmp.api.DataApi.Companion.addYtHeaders
 import com.spectre7.spmp.api.DataApi.Companion.getStream

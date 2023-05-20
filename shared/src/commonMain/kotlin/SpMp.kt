@@ -38,8 +38,9 @@ import com.spectre7.spmp.platform.composable.PlatformAlertDialog
 import com.spectre7.spmp.resources.getString
 import com.spectre7.spmp.resources.getStringTODO
 import com.spectre7.spmp.resources.initResources
+import com.spectre7.spmp.ui.layout.mainpage.PlayerState
+import com.spectre7.spmp.ui.layout.mainpage.PlayerStateImpl
 import com.spectre7.spmp.ui.layout.mainpage.PlayerView
-import com.spectre7.spmp.ui.layout.mainpage.PlayerViewContextImpl
 import com.spectre7.spmp.ui.theme.ApplicationTheme
 import com.spectre7.spmp.ui.theme.Theme
 import com.spectre7.utils.*
@@ -51,6 +52,9 @@ import kotlin.concurrent.thread
 import kotlin.math.roundToInt
 
 expect fun getPlatformName(): String
+
+val GlobalPlayerState = PlayerStateImpl()
+val LocalPlayerState: ProvidableCompositionLocal<PlayerState> = staticCompositionLocalOf { GlobalPlayerState }
 
 object SpMp {
 
@@ -111,7 +115,7 @@ object SpMp {
         ApplicationTheme(context, getFontFamily(context)) {
             Theme.Update(context, MaterialTheme.colorScheme.primary)
 
-            val player = remember { PlayerViewContextImpl() }
+            val player = GlobalPlayerState
             player.init()
 
             LaunchedEffect(open_uri) {

@@ -8,7 +8,7 @@ import kotlin.concurrent.thread
 
 class SongLyricsHolder(private val song: Song) {
     var lyrics: Song.Lyrics? by mutableStateOf(null)
-    val loading: Boolean get() = loading_data != null
+    var loading: Boolean by mutableStateOf(false)
     var loaded: Boolean by mutableStateOf(false)
 
     private val load_lock = Object()
@@ -26,10 +26,15 @@ class SongLyricsHolder(private val song: Song) {
                     return lyrics
                 }
             }
+            else if (loaded && loading_data == data) {
+                return lyrics
+            }
 
+            loading = true
             loaded = false
-            lyrics = null
             loading_data = data
+            lyrics = null
+
 
             song.onLoaded {
                 synchronized(load_lock) {
@@ -44,9 +49,9 @@ class SongLyricsHolder(private val song: Song) {
                             if (Thread.interrupted()) {
                                 return@thread
                             }
-                            lyrics = result
-                            loading_data = null
                             loaded = true
+                            loading = false
+                            lyrics = result
                         }
                     }
                 }

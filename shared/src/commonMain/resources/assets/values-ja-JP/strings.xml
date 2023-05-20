@@ -198,7 +198,7 @@
     <string name="search_entry_field_hint">検索</string>
     <string name="search_results_loading">ロード中</string>
 
-    <string name="s_group_discord_status">ディスコード　ユーザーステータス</string>
+    <string name="s_cat_discord_status">Discord ステータス</string>
 
     <string name="s_discord_status_text_info">以下のキーワードをテキスト内で使うことで、流れてる曲の情報を表示することができます:&#xA;- $song (曲)&#xA;- $artist (アーティスト)</string>
 
@@ -221,6 +221,21 @@
     <string name="s_key_discord_status_show_button_project">プロジェクトページのボタンを表示する</string>
     <string name="s_sub_discord_status_show_button_project">押されるとこのプロジェクトのページが GitHub で開かれます</string>
     <string name="s_key_discord_status_button_project_text">プロジェクトページボタンに表示されるテキスト</string>
+
+    <string name="s_group_topbar">音楽トップバー</string>
+    <string name="s_key_topbar_default_mode_home">デフォルトモード (メインページ)</string>
+    <string name="s_key_topbar_default_mode_nowplaying">デフォルトモード (プレイヤー)</string>
+    <string name="s_key_topbar_default_mode_queue">デフデフォルトモード (曲キュー)</string>
+    <string name="s_option_topbar_mode_visualiser">ビジュアライザー</string>
+    <string name="s_option_topbar_mode_lyrics">歌詞</string>
+
+    <string name="s_cat_desc_general">言語やアプリ動作などのオプション</string>
+    <string name="s_cat_desc_home_page">おすすめの曲やアーティストの調節</string>
+    <string name="s_cat_desc_theming">アプリ内の色をカスタマイズする</string>
+    <string name="s_cat_desc_lyrics">歌詞の表示や動作の設定</string>
+    <string name="s_cat_desc_download">ダウンロードの音質と自動ダウンロードのオプション</string>
+    <string name="s_cat_desc_discord_status">Discordアカウントの管理とステータスの表示の調節</string>
+    <string name="s_cat_desc_other">キャッシュとアクセシビリティサービスのオプション</string>
 
     <string name="discord_status_default_name">$artist</string>
     <string name="discord_status_default_text_a">$song</string>

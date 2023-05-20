@@ -1,19 +1,23 @@
 package com.spectre7.spmp.ui.layout.mainpage
 
-import androidx.compose.ui.unit.*
+import androidx.compose.ui.unit.Density
+import androidx.compose.ui.unit.Dp
 import com.spectre7.spmp.PlayerServiceHost
-import com.spectre7.spmp.model.*
-import com.spectre7.spmp.ui.component.*
+import com.spectre7.spmp.model.Artist
+import com.spectre7.spmp.model.MediaItem
+import com.spectre7.spmp.model.Song
+import com.spectre7.spmp.ui.component.LongPressMenuData
+import com.spectre7.spmp.ui.component.PillMenu
 import com.spectre7.spmp.ui.component.multiselect.MediaItemMultiSelectContext
 import com.spectre7.spmp.ui.layout.nowplaying.ThemeMode
-import com.spectre7.utils.*
+import com.spectre7.utils.indexOfOrNull
 import java.net.URI
 import java.net.URISyntaxException
 
-open class PlayerViewContext(
-    private val onClickedOverride: ((item: MediaItem) -> Unit)? = null,
+open class PlayerState(
+    private val onClickedOverride: ((item: MediaItem, multiselect_key: Int?) -> Unit)? = null,
     private val onLongClickedOverride: ((item: MediaItem) -> Unit)? = null,
-    private val upstream: PlayerViewContext? = null
+    private val upstream: PlayerState? = null
 ) {
     open val np_theme_mode: ThemeMode get() = upstream!!.np_theme_mode
     open val overlay_page: Triple<OverlayPage, MediaItem?, MediaItem?>? get() = upstream!!.overlay_page
@@ -21,8 +25,8 @@ open class PlayerViewContext(
     open val pill_menu: PillMenu get() = upstream!!.pill_menu
     open val main_multiselect_context: MediaItemMultiSelectContext get() = upstream!!.main_multiselect_context
 
-    fun copy(onClickedOverride: ((item: MediaItem) -> Unit)? = null, onLongClickedOverride: ((item: MediaItem) -> Unit)? = null): PlayerViewContext {
-        return PlayerViewContext(onClickedOverride, onLongClickedOverride, this)
+    fun copy(onClickedOverride: ((item: MediaItem, multiselect_key: Int?) -> Unit)? = null, onLongClickedOverride: ((item: MediaItem) -> Unit)? = null): PlayerState {
+        return PlayerState(onClickedOverride, onLongClickedOverride, this)
     }
 
     fun openUri(uri_string: String): Result<Unit> {
@@ -62,12 +66,12 @@ open class PlayerViewContext(
 
     open fun navigateBack() { upstream!!.navigateBack() }
 
-    open fun onMediaItemClicked(item: MediaItem) {
+    open fun onMediaItemClicked(item: MediaItem, multiselect_key: Int? = null) {
         if (onClickedOverride != null) {
-            onClickedOverride.invoke(item)
+            onClickedOverride.invoke(item, multiselect_key)
         }
         else {
-            upstream!!.onMediaItemClicked(item)
+            upstream!!.onMediaItemClicked(item, multiselect_key)
         }
     }
     open fun onMediaItemLongClicked(item: MediaItem, queue_index: Int? = null) {

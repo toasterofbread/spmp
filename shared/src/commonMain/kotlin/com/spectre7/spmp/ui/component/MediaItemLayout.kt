@@ -1,5 +1,6 @@
 package com.spectre7.spmp.ui.component
 
+import LocalPlayerState
 import SpMp
 import androidx.compose.animation.*
 import androidx.compose.foundation.*
@@ -35,7 +36,6 @@ import com.spectre7.spmp.model.*
 import com.spectre7.spmp.platform.composable.rememberImagePainter
 import com.spectre7.spmp.resources.getString
 import com.spectre7.spmp.ui.component.multiselect.MediaItemMultiSelectContext
-import com.spectre7.spmp.ui.layout.mainpage.PlayerViewContext
 import com.spectre7.spmp.ui.theme.Theme
 import com.spectre7.utils.*
 import com.spectre7.utils.composable.WidthShrinkText
@@ -69,24 +69,23 @@ data class MediaItemLayout(
         @Composable
         fun Layout(
             layout: MediaItemLayout,
-            playerProvider: () -> PlayerViewContext,
             modifier: Modifier = Modifier,
             multiselect_context: MediaItemMultiSelectContext? = null
         ) {
             when (this) {
                 // TODO multiselect_context
-                GRID -> MediaItemGrid(layout, playerProvider, modifier, multiselect_context = multiselect_context)
-                ROW -> MediaItemGrid(layout, playerProvider, modifier, 1, multiselect_context = multiselect_context)
-                LIST -> MediaItemList(layout, false, playerProvider, modifier, multiselect_context = multiselect_context)
-                NUMBERED_LIST -> MediaItemList(layout, true, playerProvider, modifier, multiselect_context = multiselect_context)
-                CARD -> MediaItemCard(layout, playerProvider, modifier, multiselect_context = multiselect_context)
+                GRID -> MediaItemGrid(layout, modifier, multiselect_context = multiselect_context)
+                ROW -> MediaItemGrid(layout, modifier, 1, multiselect_context = multiselect_context)
+                LIST -> MediaItemList(layout, false, modifier, multiselect_context = multiselect_context)
+                NUMBERED_LIST -> MediaItemList(layout, true, modifier, multiselect_context = multiselect_context)
+                CARD -> MediaItemCard(layout, modifier, multiselect_context = multiselect_context)
             }
         }
     }
 
     @Composable
-    fun Layout(playerProvider: () -> PlayerViewContext, modifier: Modifier = Modifier) {
-        type!!.Layout(this, playerProvider, modifier)
+    fun Layout(modifier: Modifier = Modifier) {
+        type!!.Layout(this, modifier)
     }
 
 
@@ -250,7 +249,6 @@ data class MediaItemLayout(
 
     @Composable
     fun TitleBar(
-        playerProvider: () -> PlayerViewContext,
         modifier: Modifier = Modifier,
         font_size: TextUnit? = null,
         multiselect_context: MediaItemMultiSelectContext? = null
@@ -299,10 +297,11 @@ data class MediaItemLayout(
 
                 Row {
                     view_more?.also { view_more ->
+                        val player = LocalPlayerState.current
                         IconButton(
                             {
                                 if (view_more.media_item != null) {
-                                    playerProvider().openMediaItem(view_more.media_item, true)
+                                    player.openMediaItem(view_more.media_item, true)
                                 }
                                 else if (view_more.list_page_url != null) {
                                     TODO(view_more.list_page_url)
@@ -329,7 +328,6 @@ data class MediaItemLayout(
 @Composable
 fun LazyMediaItemLayoutColumn(
     layoutsProvider: () -> List<MediaItemLayout>,
-    playerProvider: () -> PlayerViewContext,
     modifier: Modifier = Modifier,
     layout_modifier: Modifier = Modifier,
     padding: PaddingValues = PaddingValues(0.dp),
@@ -369,7 +367,7 @@ fun LazyMediaItemLayoutColumn(
                 { layout ->
                     item {
                         val type = getType?.invoke(layout) ?: layout.type!!
-                        type.Layout(layout, playerProvider, layout_modifier, multiselect_context)
+                        type.Layout(layout, layout_modifier, multiselect_context)
                     }
                     item { Spacer(Modifier.height(spacing)) }
                 }
@@ -378,7 +376,7 @@ fun LazyMediaItemLayoutColumn(
 //            when (val type = getType?.invoke(layout) ?: layout.type!!) {
 //                MediaItemLayout.Type.LIST, MediaItemLayout.Type.NUMBERED_LIST -> {
 //                    item {
-//                        layout.TitleBar(playerProvider)
+//                        layout.TitleBar()
 //                    }
 //                    items(layout.items.size) { index ->
 //                        val item = layout.items[index]
@@ -388,12 +386,12 @@ fun LazyMediaItemLayoutColumn(
 //                            }
 //
 //                            Column {
-//                                item.PreviewLong(MediaItem.PreviewParams(playerProvider, content_colour = Theme.current.on_background_provider))
+//                                item.PreviewLong(MediaItem.PreviewParams(content_colour = Theme.current.on_background_provider))
 //                            }
 //                        }
 //                    }
 //                }
-//                else -> item { type.Layout(layout, playerProvider, layout_modifier) }
+//                else -> item { type.Layout(layout, layout_modifier) }
 //            }
         }
 
@@ -418,12 +416,12 @@ fun LazyMediaItemLayoutColumn(
 @Composable
 fun MediaItemCard(
     layout: MediaItemLayout,
-    playerProvider: () -> PlayerViewContext,
     modifier: Modifier = Modifier,
     multiselect_context: MediaItemMultiSelectContext? = null
 ) {
     val item: MediaItem = layout.items.single()
     var accent_colour: Color? by remember { mutableStateOf(null) }
+    val player = LocalPlayerState.current
 
     val shape = RoundedCornerShape(16.dp)
     val long_press_menu_data = remember (item) {
@@ -432,6 +430,7 @@ fun MediaItemCard(
             is Song -> getSongLongPressMenuData(item, shape, multiselect_context = multiselect_context)
             is Artist -> getArtistLongPressMenuData(item, multiselect_context = multiselect_context)
             is Playlist -> getPlaylistLongPressMenuData(item, shape, multiselect_context = multiselect_context)
+            else -> throw NotImplementedError(item.javaClass.name)
         }
     }
 
@@ -457,10 +456,10 @@ fun MediaItemCard(
                 interactionSource = remember { MutableInteractionSource() },
                 indication = null,
                 onClick = {
-                    playerProvider().onMediaItemClicked(item)
+                    player.onMediaItemClicked(item)
                 },
                 onLongClick = {
-                    playerProvider().showLongPressMenu(long_press_menu_data)
+                    player.showLongPressMenu(long_press_menu_data)
                 }
             ),
         verticalArrangement = Arrangement.spacedBy(10.dp)
@@ -469,7 +468,7 @@ fun MediaItemCard(
             verticalAlignment = Alignment.CenterVertically,
             horizontalArrangement = Arrangement.spacedBy(5.dp)
         ) {
-            layout.TitleBar(playerProvider, Modifier.fillMaxWidth().weight(1f), multiselect_context = multiselect_context)
+            layout.TitleBar(Modifier.fillMaxWidth().weight(1f), multiselect_context = multiselect_context)
 
             Text(if (item is Playlist) item.playlist_type.getReadable(false) else item.type.getReadable(false))
 
@@ -521,7 +520,6 @@ fun MediaItemCard(
                     style = LocalTextStyle.current.copy(color = (accent_colour ?: Theme.current.accent).getContrasted())
                 )
                 item.artist?.PreviewLong(MediaItem.PreviewParams(
-                    playerProvider,
                     contentColour = { (accent_colour ?: Theme.current.accent).getContrasted() }
                 ))
             }
@@ -533,7 +531,7 @@ fun MediaItemCard(
             verticalAlignment = Alignment.CenterVertically
         ) {
             Button(
-                { playerProvider().playMediaItem(item) },
+                { player.playMediaItem(item) },
                 Modifier.fillMaxWidth(),
                 shape = shape,
                 colors = ButtonDefaults.buttonColors(
@@ -554,7 +552,6 @@ fun MediaItemCard(
 @Composable
 fun MediaItemGrid(
     layout: MediaItemLayout,
-    playerProvider: () -> PlayerViewContext,
     modifier: Modifier = Modifier,
     rows: Int? = null,
     multiselect_context: MediaItemMultiSelectContext? = null,
@@ -565,7 +562,7 @@ fun MediaItemGrid(
     val item_size = layout.itemSizeProvider()
 
     Column(modifier, verticalArrangement = Arrangement.spacedBy(10.dp)) {
-        layout.TitleBar(playerProvider, multiselect_context = multiselect_context)
+        layout.TitleBar(multiselect_context = multiselect_context)
 
         Box(contentAlignment = Alignment.CenterEnd) {
             LazyHorizontalGrid(
@@ -578,7 +575,6 @@ fun MediaItemGrid(
 
                 items(layout.items.size, { layout.items[it].id }) {
                     layout.items[it].PreviewSquare(MediaItem.PreviewParams(
-                        playerProvider,
                         Modifier.size(item_size),
                         contentColour = Theme.current.on_background_provider,
                         multiselect_context = multiselect_context
@@ -598,7 +594,7 @@ fun MediaItemGrid(
     //                            exit = fadeOut() + shrinkOut(shrinkTowards = Alignment.Center)
     //                        ) {
     //                            item.PreviewSquare(MediaItem.PreviewParams(
-    //                                playerProvider, content_colour = Theme.current.on_background_provider
+    //                                content_colour = Theme.current.on_background_provider
     //                            ))
     //                        }
     //                    }
@@ -620,12 +616,11 @@ fun MediaItemGrid(
 fun MediaItemList(
     layout: MediaItemLayout,
     numbered: Boolean,
-    playerProvider: () -> PlayerViewContext,
     modifier: Modifier = Modifier,
     multiselect_context: MediaItemMultiSelectContext? = null
 ) {
     Column(modifier) {
-        layout.TitleBar(playerProvider, Modifier.padding(bottom = 5.dp), multiselect_context = multiselect_context)
+        layout.TitleBar(Modifier.padding(bottom = 5.dp), multiselect_context = multiselect_context)
 
         for (item in layout.items.withIndex()) {
             Row(verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(10.dp)) {
@@ -634,7 +629,7 @@ fun MediaItemList(
                 }
 
                 Column {
-                    item.value.PreviewLong(MediaItem.PreviewParams(playerProvider, multiselect_context = multiselect_context))
+                    item.value.PreviewLong(MediaItem.PreviewParams(multiselect_context = multiselect_context))
                 }
             }
         }

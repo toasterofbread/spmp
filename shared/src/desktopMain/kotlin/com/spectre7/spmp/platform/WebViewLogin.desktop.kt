@@ -1,9 +1,7 @@
 package com.spectre7.spmp.platform
 
-import SpMp
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
-import com.spectre7.spmp.model.YoutubeMusicAuthInfo
 
 actual fun isWebViewLoginSupported(): Boolean = false
 

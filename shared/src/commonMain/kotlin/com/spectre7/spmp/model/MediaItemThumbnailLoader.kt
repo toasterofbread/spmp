@@ -1,10 +1,9 @@
 package com.spectre7.spmp.model
 
+import SpMp
 import androidx.compose.ui.graphics.ImageBitmap
-import com.spectre7.spmp.api.getOrThrowHere
-import java.util.concurrent.Executors
 import com.spectre7.spmp.platform.PlatformContext
-import kotlin.concurrent.thread
+import java.util.concurrent.Executors
 
 class MediaItemThumbnailLoader {
     private val executor = Executors.newFixedThreadPool(5)

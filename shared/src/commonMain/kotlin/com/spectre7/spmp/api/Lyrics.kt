@@ -1,6 +1,5 @@
 package com.spectre7.spmp.api
 
-import org.jsoup.Jsoup
 import com.atilika.kuromoji.ipadic.Tokenizer
 import com.spectre7.spmp.model.Song
 import com.spectre7.utils.hasKanjiAndHiragana
@@ -8,6 +7,7 @@ import com.spectre7.utils.isKanji
 import okhttp3.MediaType.Companion.toMediaType
 import okhttp3.Request
 import okhttp3.RequestBody.Companion.toRequestBody
+import org.jsoup.Jsoup
 import org.xmlpull.v1.XmlPullParser
 import org.xmlpull.v1.XmlPullParserFactory
 import java.nio.channels.ClosedByInterruptException
@@ -403,7 +403,7 @@ fun searchForLyrics(title: String, artist: String?): Result<List<LyricsSearchRes
     fun performSearch(params: String): Result<List<LyricsSearchResult>> {
         val request = Request.Builder()
             .url("https://petitlyrics.com/search_lyrics$params")
-            .header("User-Agent", DataApi.user_agent)
+            .header("User-Agent", "Mozilla/5.0 (X11; Linux x86_64; rv:109.0) Gecko/20100101 Firefox/114.0")
             .build()
 
         val result = DataApi.request(request)

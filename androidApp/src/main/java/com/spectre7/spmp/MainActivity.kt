@@ -1,17 +1,17 @@
 package com.spectre7.spmp
 
+import SpMp
 import android.content.ComponentCallbacks2
+import android.content.Intent
+import android.net.Uri
 import android.os.Bundle
 import android.os.StrictMode
 import android.os.StrictMode.VmPolicy
 import android.view.WindowManager
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
-import com.spectre7.spmp.model.MediaItem
-import com.spectre7.spmp.platform.PlatformContext
-import android.content.Intent
-import android.net.Uri
 import androidx.core.view.WindowCompat
+import com.spectre7.spmp.platform.PlatformContext
 
 class MainActivity : ComponentActivity() {
     companion object {

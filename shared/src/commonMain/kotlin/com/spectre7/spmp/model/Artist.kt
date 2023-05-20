@@ -1,14 +1,15 @@
 package com.spectre7.spmp.model
 
+import SpMp
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.setValue
 import com.beust.klaxon.Klaxon
 import com.spectre7.spmp.api.*
+import com.spectre7.spmp.resources.getString
 import com.spectre7.spmp.ui.component.ArtistPreviewLong
 import com.spectre7.spmp.ui.component.ArtistPreviewSquare
-import com.spectre7.spmp.resources.getString
 import kotlin.concurrent.thread
 
 class ArtistItemData(override val data_item: Artist): MediaItemWithLayoutsData(data_item) {

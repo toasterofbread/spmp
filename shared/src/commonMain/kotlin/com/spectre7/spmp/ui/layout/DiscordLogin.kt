@@ -27,11 +27,8 @@ import com.spectre7.spmp.resources.getString
 import com.spectre7.spmp.resources.getStringTODO
 import com.spectre7.utils.catchInterrupts
 import com.spectre7.utils.composable.LinkifyText
-import com.spectre7.utils.composable.Marquee
 import com.spectre7.utils.composable.SubtleLoadingIndicator
-import okhttp3.OkHttpClient
 import okhttp3.Request
-import java.time.Duration
 import kotlin.concurrent.thread
 
 private const val DISCORD_LOGIN_URL = "https://discord.com/login"

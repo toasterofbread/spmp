@@ -1,5 +1,6 @@
 package com.spectre7.spmp.ui.layout
 
+import LocalPlayerState
 import SpMp
 import androidx.compose.animation.*
 import androidx.compose.foundation.background
@@ -33,7 +34,6 @@ import com.spectre7.spmp.platform.composable.BackHandler
 import com.spectre7.spmp.resources.getString
 import com.spectre7.spmp.ui.component.MediaItemLayout
 import com.spectre7.spmp.ui.component.PillMenu
-import com.spectre7.spmp.ui.layout.mainpage.PlayerViewContext
 import com.spectre7.spmp.ui.theme.Theme
 import com.spectre7.utils.*
 import com.spectre7.utils.composable.ShapedIconButton
@@ -49,12 +49,12 @@ private val SEARCH_BAR_PADDING = 15.dp
 fun SearchPage(
     pill_menu: PillMenu,
     bottom_padding: Dp,
-    playerProvider: () -> PlayerViewContext,
     close: () -> Unit
 ) {
     val focus_state = remember { mutableStateOf(false) }
     val focus_manager = LocalFocusManager.current
     val keyboard_controller = LocalSoftwareKeyboardController.current
+    val player = LocalPlayerState.current
 
     var search_in_progress: Boolean by remember { mutableStateOf(false) }
     val search_lock = remember { Object() }
@@ -120,7 +120,6 @@ fun SearchPage(
             if (results != null) {
                 Results(
                     results,
-                    playerProvider,
                     bottom_padding + (SEARCH_BAR_HEIGHT * 2) + (SEARCH_BAR_PADDING * 2)
                 )
             }
@@ -146,7 +145,7 @@ fun SearchPage(
             Modifier
                 .align(Alignment.BottomCenter)
                 .offset {
-                    IntOffset(0, playerProvider().getNowPlayingTopOffset(screen_height, this))
+                    IntOffset(0, player.getNowPlayingTopOffset(screen_height, this))
                 },
             { query, filter ->
                 performSearch(query, filter?.let { SearchFilter(it, it.getDefaultParams()) })
@@ -162,7 +161,7 @@ fun SearchPage(
 }
 
 @Composable
-private fun Results(results: SearchResults, playerProvider: () -> PlayerViewContext, bottom_padding: Dp) {
+private fun Results(results: SearchResults, bottom_padding: Dp) {
     val horizontal_padding = 10.dp
     LazyColumn(
         Modifier.fillMaxSize(),
@@ -183,7 +182,7 @@ private fun Results(results: SearchResults, playerProvider: () -> PlayerViewCont
         for (category in results.categories) {
             val layout = category.first
             item {
-                (layout.type ?: MediaItemLayout.Type.LIST).Layout(layout, playerProvider)
+                (layout.type ?: MediaItemLayout.Type.LIST).Layout(layout)
             }
         }
     }

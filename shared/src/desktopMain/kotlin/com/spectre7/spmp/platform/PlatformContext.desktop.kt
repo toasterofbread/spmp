@@ -1,5 +1,6 @@
 package com.spectre7.spmp.platform
 
+import SpMp
 import androidx.compose.material3.ColorScheme
 import androidx.compose.material3.darkColorScheme
 import androidx.compose.material3.lightColorScheme
@@ -7,7 +8,6 @@ import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.setValue
-import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.text.font.Font
@@ -15,7 +15,6 @@ import androidx.compose.ui.text.platform.Font
 import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
 import com.spectre7.spmp.PlayerService
-import com.spectre7.spmp.resources.getString
 import org.jetbrains.skiko.OS
 import org.jetbrains.skiko.hostOs
 import java.awt.Desktop
@@ -29,7 +28,6 @@ import java.net.URI
 import java.nio.file.FileSystems
 import java.nio.file.Files
 import kotlin.io.path.name
-import kotlin.streams.toList
 
 private fun getHomeDir(): File = File(System.getProperty("user.home"))
 

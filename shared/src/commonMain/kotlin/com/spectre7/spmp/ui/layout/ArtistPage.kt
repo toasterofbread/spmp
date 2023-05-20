@@ -2,6 +2,7 @@
 
 package com.spectre7.spmp.ui.layout
 
+import LocalPlayerState
 import SpMp
 import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.animation.Crossfade
@@ -42,7 +43,6 @@ import com.spectre7.spmp.resources.getStringTODO
 import com.spectre7.spmp.ui.component.MediaItemLayout
 import com.spectre7.spmp.ui.component.PillMenu
 import com.spectre7.spmp.ui.component.multiselect.MediaItemMultiSelectContext
-import com.spectre7.spmp.ui.layout.mainpage.PlayerViewContext
 import com.spectre7.spmp.ui.theme.Theme
 import com.spectre7.utils.*
 import com.spectre7.utils.composable.*
@@ -57,14 +57,14 @@ private const val ARTIST_IMAGE_SCROLL_MODIFIER = 0.25f
 fun ArtistPage(
     pill_menu: PillMenu,
     item: Artist,
-    playerProvider: () -> PlayerViewContext,
     previous_item: MediaItem? = null,
     close: () -> Unit
 ) {
     require(!item.is_for_item)
 
     var show_info by remember { mutableStateOf(false) }
-    val multiselect_context = remember { MediaItemMultiSelectContext(playerProvider) { multiselect -> } }
+    val multiselect_context = remember { MediaItemMultiSelectContext() { multiselect -> } }
+    val player = LocalPlayerState.current
 
     val gradient_size = 0.35f
     var accent_colour: Color? by remember { mutableStateOf(null) }
@@ -162,7 +162,6 @@ fun ArtistPage(
                 ) {
                     TitleBar(
                         item,
-                        playerProvider,
                         Modifier
                             .offset {
                                 IntOffset(0, (lazy_column_state.firstVisibleItemScrollOffset * ARTIST_IMAGE_SCROLL_MODIFIER).toInt())
@@ -202,7 +201,7 @@ fun ArtistPage(
                         }
 
                         if (item is Artist) {
-                            chip(getString("artist_chip_shuffle"), Icons.Outlined.Shuffle) { playerProvider().playMediaItem(item, true) }
+                            chip(getString("artist_chip_shuffle"), Icons.Outlined.Shuffle) { player.playMediaItem(item, true) }
                         }
 
                         if (SpMp.context.canShare()) {
@@ -217,7 +216,7 @@ fun ArtistPage(
 
                     Box(Modifier.requiredHeight(filter_bar_height)) {
                         ShapedIconButton(
-                            { playerProvider().playMediaItem(item) },
+                            { player.playMediaItem(item) },
                             Modifier.requiredSize(play_button_size),
                             colors = IconButtonDefaults.iconButtonColors(
                                 containerColor = accent_colour ?: LocalContentColor.current,
@@ -247,7 +246,7 @@ fun ArtistPage(
                 val layout = item.feed_layouts!!.single()
 
                 item {
-                    layout.TitleBar(playerProvider, background_modifier.padding(bottom = 5.dp))
+                    layout.TitleBar(background_modifier.padding(bottom = 5.dp))
                 }
 
                 items(layout.items.size) { i ->
@@ -255,7 +254,7 @@ fun ArtistPage(
                         Text((i + 1).toString().padStart((layout.items.size + 1).toString().length, '0'), fontWeight = FontWeight.Light)
 
                         Column {
-                            layout.items[i].PreviewLong(MediaItem.PreviewParams(playerProvider, multiselect_context = multiselect_context))
+                            layout.items[i].PreviewLong(MediaItem.PreviewParams(multiselect_context = multiselect_context))
                         }
                     }
                 }
@@ -269,14 +268,13 @@ fun ArtistPage(
                         verticalArrangement = Arrangement.spacedBy(30.dp)
                     ) {
                         for (layout in item.feed_layouts!!) {
-                            val type = 
+                            val type =
                                 if (layout.type == null) MediaItemLayout.Type.GRID
                                 else if (layout.type == MediaItemLayout.Type.NUMBERED_LIST && item is Artist) MediaItemLayout.Type.LIST
                                 else layout.type
 
                             type.Layout(
                                 if (previous_item == null) layout else layout.copy(title = null, subtitle = null),
-                                playerProvider,
                                 multiselect_context = multiselect_context
                             )
                         }
@@ -296,7 +294,7 @@ fun ArtistPage(
 
 @OptIn(ExperimentalFoundationApi::class)
 @Composable
-private fun TitleBar(item: MediaItem, playerProvider: () -> PlayerViewContext, modifier: Modifier = Modifier) {
+private fun TitleBar(item: MediaItem, modifier: Modifier = Modifier) {
     val horizontal_padding = 20.dp
     var editing_title by remember { mutableStateOf(false) }
     Crossfade(editing_title) { editing ->
@@ -384,7 +382,7 @@ private fun TitleBar(item: MediaItem, playerProvider: () -> PlayerViewContext, m
                 Spacer(Modifier.fillMaxWidth().weight(1f))
 
                 Crossfade(item.pinned_to_home) { pinned ->
-                    IconButton({ item.setPinnedToHome(!pinned, playerProvider) }) {
+                    IconButton({ item.setPinnedToHome(!pinned) }) {
                         Icon(if (pinned) Icons.Filled.PushPin else Icons.Outlined.PushPin, null)
                     }
                 }
@@ -532,7 +530,7 @@ private fun InfoDialog(item: MediaItem, close: () -> Unit) {
                             .weight(1f)) {
                         Text(name, style = MaterialTheme.typography.labelLarge)
                         Box(Modifier.fillMaxWidth()) {
-                            Marquee(autoscroll = false) {
+                            Marquee {
                                 Text(value, softWrap = false)
                             }
                         }

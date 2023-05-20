@@ -18,13 +18,11 @@ import com.spectre7.spmp.model.MediaItemType
 import com.spectre7.spmp.model.Settings
 import com.spectre7.spmp.model.Song
 import com.spectre7.spmp.resources.getString
-import com.spectre7.spmp.ui.layout.mainpage.PlayerViewContext
 import com.spectre7.utils.getContrasted
 import com.spectre7.utils.lazyAssert
 import com.spectre7.utils.setAlpha
 
 class MediaItemMultiSelectContext(
-    val playerProvider: () -> PlayerViewContext,
     val allow_songs: Boolean = true,
     val allow_artists: Boolean = true,
     val allow_playlists: Boolean = true,
@@ -160,7 +158,7 @@ class MediaItemMultiSelectContext(
         IconButton({
             all_pinned.also { pinned ->
                 for (item in getUniqueSelectedItems()) {
-                    item.setPinnedToHome(!pinned, playerProvider)
+                    item.setPinnedToHome(!pinned)
                 }
             }
             onActionPerformed()

@@ -34,7 +34,6 @@ import com.spectre7.spmp.platform.LargeDropdownMenu
 import com.spectre7.spmp.platform.PlatformContext
 import com.spectre7.spmp.platform.ProjectPreferences
 import com.spectre7.spmp.platform.composable.PlatformAlertDialog
-import com.spectre7.spmp.resources.getString
 import com.spectre7.spmp.resources.getStringTODO
 import com.spectre7.spmp.ui.theme.Theme
 import com.spectre7.utils.*
@@ -537,7 +536,6 @@ class SettingsItemMultipleChoice(
         state.reset()
     }
 
-    @OptIn(ExperimentalMaterial3Api::class)
     @Composable
     override fun GetItem(
         theme: Theme,
@@ -570,7 +568,7 @@ class SettingsItemMultipleChoice(
                                         null
                                     ) { state.value = i }
                             ) {
-                                Text(get_choice(i), color = theme.on_accent)
+                                Text(get_choice(i))
                                 RadioButton(i == state.value, onClick = { state.value = i }, colors = RadioButtonDefaults.colors(theme.vibrant_accent))
                             }
                         }

@@ -16,10 +16,12 @@ import com.beust.klaxon.JsonValue
 import com.beust.klaxon.Klaxon
 import com.spectre7.spmp.model.AccentColourSource
 import com.spectre7.spmp.model.Settings
-import com.spectre7.utils.*
-import com.spectre7.spmp.platform.ProjectPreferences
 import com.spectre7.spmp.platform.PlatformContext
+import com.spectre7.spmp.platform.ProjectPreferences
+import com.spectre7.utils.compare
 import com.spectre7.utils.composable.OnChangedEffect
+import com.spectre7.utils.contrastAgainst
+import com.spectre7.utils.getContrasted
 import com.catppuccin.Palette as Catppuccin
 
 const val VIBRANT_ACCENT_CONTRAST: Float = 0.2f

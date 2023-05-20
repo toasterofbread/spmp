@@ -1,6 +1,5 @@
 package com.spectre7.spmp.ui.layout.nowplaying.overlay.lyrics
 
-import SpMp
 import androidx.compose.animation.*
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.gestures.scrollBy
@@ -29,7 +28,6 @@ import com.spectre7.spmp.model.Settings
 import com.spectre7.spmp.model.Song
 import com.spectre7.spmp.resources.getStringTODO
 import com.spectre7.spmp.ui.component.PillMenu
-import com.spectre7.spmp.ui.layout.mainpage.PlayerViewContext
 import com.spectre7.spmp.ui.layout.nowplaying.overlay.OverlayMenu
 import com.spectre7.spmp.ui.theme.Theme
 import com.spectre7.utils.LongFuriganaText
@@ -40,7 +38,7 @@ import kotlinx.coroutines.delay
 class LyricsOverlayMenu(
     val size: Dp
 ): OverlayMenu() {
-    
+
     override fun closeOnTap(): Boolean = false
 
     @Composable
@@ -49,8 +47,7 @@ class LyricsOverlayMenu(
         expansion: Float,
         openShutterMenu: (@Composable () -> Unit) -> Unit,
         close: () -> Unit,
-        seek_state: Any,
-        playerProvider: () -> PlayerViewContext
+        getSeekState: () -> Any
     ) {
 
         val lyrics: Song.Lyrics? = songProvider().lyrics.lyrics
@@ -100,14 +97,14 @@ class LyricsOverlayMenu(
                 }
             }
             else {
-                ScrollingLyricsDisplay(playerProvider, size, seek_state, lyrics, scroll_state, show_furigana)
+                ScrollingLyricsDisplay(size, getSeekState, lyrics, scroll_state, show_furigana)
             }
         }
     }
 }
 
 @Composable
-fun ScrollingLyricsDisplay(playerProvider: () -> PlayerViewContext, size: Dp, seek_state: Any, lyrics: Song.Lyrics?, scroll_state: LazyListState, show_furigana: Boolean) {
+fun ScrollingLyricsDisplay(size: Dp, seek_state: Any, lyrics: Song.Lyrics?, scroll_state: LazyListState, show_furigana: Boolean) {
     Box {
         Crossfade(targetState = lyrics) {
             if (it == null) {
@@ -118,20 +115,20 @@ fun ScrollingLyricsDisplay(playerProvider: () -> PlayerViewContext, size: Dp, se
                 }
             }
             else {
-                CoreLyricsDisplay(playerProvider, size, seek_state, it, scroll_state, show_furigana)
+                CoreLyricsDisplay(size, seek_state, it, scroll_state, show_furigana)
             }
         }
     }
 }
 
 @Composable
-fun CoreLyricsDisplay(playerProvider: () -> PlayerViewContext, size: Dp, seek_state: Any, lyrics: Song.Lyrics, scroll_state: LazyListState, show_furigana: Boolean) {
+fun CoreLyricsDisplay(size: Dp, seek_state: Any, lyrics: Song.Lyrics, scroll_state: LazyListState, show_furigana: Boolean) {
     val size_px = with(LocalDensity.current) { size.toPx() }
 
     val line_height = with (LocalDensity.current) { 20.sp.toPx() }
     val line_spacing = with (LocalDensity.current) { 25.dp.toPx() }
 
-//    LyricsTimingOverlay(playerProvider, lyrics, false, seek_state, scroll_state) { position ->
+//    LyricsTimingOverlay(lyrics, false, seek_state, scroll_state) { position ->
 //        if (!Settings.get<Boolean>(Settings.KEY_LYRICS_FOLLOW_ENABLED)) {
 //            return@LyricsTimingOverlay
 //        }

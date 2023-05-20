@@ -2,6 +2,7 @@
 
 package com.spectre7.spmp.ui.layout.nowplaying
 
+import LocalPlayerState
 import SpMp
 import androidx.compose.animation.*
 import androidx.compose.animation.core.*
@@ -35,7 +36,6 @@ import com.spectre7.spmp.platform.vibrateShort
 import com.spectre7.spmp.resources.getString
 import com.spectre7.spmp.ui.component.multiselect.MediaItemMultiSelectContext
 import com.spectre7.spmp.ui.layout.mainpage.MINIMISED_NOW_PLAYING_HEIGHT
-import com.spectre7.spmp.ui.layout.mainpage.PlayerViewContext
 import com.spectre7.utils.*
 import com.spectre7.utils.composable.Divider
 import com.spectre7.utils.composable.OnChangedEffect
@@ -69,7 +69,6 @@ private class QueueTabItem(val song: Song, val key: Int) {
         list_state: ReorderableLazyListState,
         index: Int,
         backgroundColourProvider: () -> Color,
-        playerProvider: () -> PlayerViewContext,
         multiselect_context: MediaItemMultiSelectContext,
         requestRemove: () -> Unit
     ) {
@@ -89,13 +88,6 @@ private class QueueTabItem(val song: Song, val key: Int) {
             ) {
                 song.PreviewLong(
                     MediaItem.PreviewParams(
-                        remember(index) {
-                            {
-                                playerProvider().copy(onClickedOverride = {
-                                    PlayerServiceHost.player.seekToSong(index)
-                                })
-                            }
-                        },
                         Modifier
                             .weight(1f)
                             .swipeable(
@@ -126,12 +118,11 @@ private class QueueTabItem(val song: Song, val key: Int) {
 
 @OptIn(ExperimentalFoundationApi::class)
 @Composable
-fun QueueTab(expansionProvider: () -> Float, playerProvider: () -> PlayerViewContext, scroll: (pages: Int) -> Unit) {
-
+fun QueueTab(expansionProvider: () -> Float, scroll: (pages: Int) -> Unit) {
     var key_inc by remember { mutableStateOf(0) }
     val radio_info_position: NowPlayingQueueRadioInfoPosition = Settings.getEnum(Settings.KEY_NP_QUEUE_RADIO_INFO_POSITION)
-    val multiselect_context: MediaItemMultiSelectContext = remember { MediaItemMultiSelectContext(playerProvider) { multiselect ->
-    } }
+    val multiselect_context: MediaItemMultiSelectContext = remember { MediaItemMultiSelectContext() { multiselect -> } }
+    val player = LocalPlayerState.current
 
     val song_items: SnapshotStateList<QueueTabItem> = remember { mutableStateListOf<QueueTabItem>().also { list ->
         PlayerServiceHost.player.iterateSongs { _, song: Song ->
@@ -189,10 +180,10 @@ fun QueueTab(expansionProvider: () -> Float, playerProvider: () -> PlayerViewCon
         }
     }
 
-    val background_colour = getNPBackground(playerProvider)
+    val background_colour = getNPBackground()
 
-    val backgroundColourProvider = { getNPBackground(playerProvider) }
-    val queueBackgroundColourProvider = { getNPBackground(playerProvider).amplify(0.15f, 0.15f) }
+    val backgroundColourProvider = { getNPBackground() }
+    val queueBackgroundColourProvider = { getNPBackground().amplify(0.15f, 0.15f) }
 
     val shape = RoundedCornerShape(topStart = 25.dp, topEnd = 25.dp)
     Box(
@@ -330,7 +321,7 @@ fun QueueTab(expansionProvider: () -> Float, playerProvider: () -> PlayerViewCon
             }
 
             if (radio_info_position == NowPlayingQueueRadioInfoPosition.TOP_BAR) {
-                CurrentRadioIndicator(queueBackgroundColourProvider, backgroundColourProvider, playerProvider, multiselect_context)
+                CurrentRadioIndicator(queueBackgroundColourProvider, backgroundColourProvider, multiselect_context)
             }
 
             Divider(Modifier.padding(horizontal = list_padding), 1.dp, backgroundColourProvider)
@@ -351,61 +342,66 @@ fun QueueTab(expansionProvider: () -> Float, playerProvider: () -> PlayerViewCon
                 }
             )
 
-            LazyColumn(
-                state = state.listState,
-                contentPadding = PaddingValues(top = list_padding, bottom = 60.dp),
-                modifier = Modifier
-                    .reorderable(state)
-                    .padding(horizontal = list_padding),
-                horizontalAlignment = Alignment.CenterHorizontally
+            CompositionLocalProvider(
+                LocalPlayerState provides remember { player.copy(onClickedOverride = { _, index: Int? ->
+                    PlayerServiceHost.player.seekToSong(index!!)
+                }) }
             ) {
-                if (radio_info_position == NowPlayingQueueRadioInfoPosition.ABOVE_ITEMS) {
-                    item {
-                        CurrentRadioIndicator(queueBackgroundColourProvider, backgroundColourProvider, playerProvider, multiselect_context)
-                    }
-                }
-
-                items(song_items.size, { song_items[it].key }) { index ->
-                    val item = song_items[index]
-                    ReorderableItem(state, key = item.key) { is_dragging ->
-                        LaunchedEffect(is_dragging) {
-                            if (is_dragging) {
-                                SpMp.context.vibrateShort()
-                                playing_key = song_items[PlayerServiceHost.status.index].key
-                            }
+                LazyColumn(
+                    state = state.listState,
+                    contentPadding = PaddingValues(top = list_padding, bottom = 60.dp),
+                    modifier = Modifier
+                        .reorderable(state)
+                        .padding(horizontal = list_padding),
+                    horizontalAlignment = Alignment.CenterHorizontally
+                ) {
+                    if (radio_info_position == NowPlayingQueueRadioInfoPosition.ABOVE_ITEMS) {
+                        item {
+                            CurrentRadioIndicator(queueBackgroundColourProvider, backgroundColourProvider, multiselect_context)
                         }
+                    }
 
-                        Box(Modifier.height(50.dp)) {
-                            item.QueueElement(
-                                state,
-                                index,
-                                {
-                                    val current = if (playing_key != null) playing_key == item.key else PlayerServiceHost.status.m_index == index
-                                    if (current) backgroundColourProvider()
-                                    else queueBackgroundColourProvider()
-                                },
-                                playerProvider,
-                                multiselect_context
-                            ) {
-                                PlayerServiceHost.player.undoableAction {
-                                    PlayerServiceHost.player.removeFromQueue(index)
+                    items(song_items.size, { song_items[it].key }) { index ->
+                        val item = song_items[index]
+                        ReorderableItem(state, key = item.key) { is_dragging ->
+                            LaunchedEffect(is_dragging) {
+                                if (is_dragging) {
+                                    SpMp.context.vibrateShort()
+                                    playing_key = song_items[PlayerServiceHost.status.index].key
+                                }
+                            }
+
+                            Box(Modifier.height(50.dp)) {
+                                item.QueueElement(
+                                    state,
+                                    index,
+                                    {
+                                        val current = if (playing_key != null) playing_key == item.key else PlayerServiceHost.status.m_index == index
+                                        if (current) backgroundColourProvider()
+                                        else queueBackgroundColourProvider()
+                                    },
+                                    multiselect_context
+                                ) {
+                                    PlayerServiceHost.player.undoableAction {
+                                        PlayerServiceHost.player.removeFromQueue(index)
+                                    }
                                 }
                             }
                         }
                     }
-                }
 
-                if (PlayerServiceHost.player.radio_loading) {
-                    item {
-                        Box(Modifier.height(50.dp), contentAlignment = Alignment.Center) {
-                            SubtleLoadingIndicator(colourProvider = { queueBackgroundColourProvider().getContrasted() })
+                    if (PlayerServiceHost.player.radio_loading) {
+                        item {
+                            Box(Modifier.height(50.dp), contentAlignment = Alignment.Center) {
+                                SubtleLoadingIndicator(colourProvider = { queueBackgroundColourProvider().getContrasted() })
+                            }
                         }
                     }
                 }
             }
         }
 
-        ActionBar(playerProvider, expansionProvider, scroll)
+        ActionBar(expansionProvider, scroll)
     }
 }
 
@@ -414,7 +410,6 @@ fun QueueTab(expansionProvider: () -> Float, playerProvider: () -> PlayerViewCon
 private fun CurrentRadioIndicator(
     backgroundColourProvider: () -> Color,
     accentColourProvider: () -> Color,
-    playerProvider: () -> PlayerViewContext,
     multiselect_context: MediaItemMultiSelectContext
 ) {
     val horizontal_padding = 15.dp
@@ -422,7 +417,6 @@ private fun CurrentRadioIndicator(
         val radio_item: MediaItem? = PlayerServiceHost.player.radio_item
         if (radio_item != null && radio_item !is Song) {
             radio_item.PreviewLong(MediaItem.PreviewParams(
-                playerProvider,
                 Modifier.padding(horizontal = horizontal_padding),
                 contentColour = { backgroundColourProvider().getContrasted() }
             ))
@@ -545,7 +539,7 @@ private fun StopAfterSongButton(backgroundColourProvider: () -> Color, modifier:
 }
 
 @Composable
-private fun BoxScope.ActionBar(playerProvider: () -> PlayerViewContext, expansionProvider: () -> Float, scroll: (pages: Int) -> Unit) {
+private fun BoxScope.ActionBar(expansionProvider: () -> Float, scroll: (pages: Int) -> Unit) {
     val slide_offset: (fullHeight: Int) -> Int = remember { { (it * 0.7).toInt() } }
 
     Box(
@@ -561,10 +555,10 @@ private fun BoxScope.ActionBar(playerProvider: () -> PlayerViewContext, expansio
             IconButton(
                 { scroll(-1) },
                 Modifier
-                    .background(getNPOnBackground(playerProvider), CircleShape)
+                    .background(getNPOnBackground(), CircleShape)
                     .size(40.dp)
             ) {
-                Icon(Icons.Filled.KeyboardArrowUp, null, tint = getNPBackground(playerProvider))
+                Icon(Icons.Filled.KeyboardArrowUp, null, tint = getNPBackground())
             }
         }
     }

@@ -52,14 +52,18 @@ class ExoVisualizer(
     @Composable
     fun Visualiser(colour: Color, modifier: Modifier, opacity: Float = 1f) {
         DisposableEffect(Unit) {
-            processor.listener = this@ExoVisualizer
+            processor.listeners.add(this@ExoVisualizer)
             onDispose {
-                processor.listener = null
+                processor.listeners.remove(this@ExoVisualizer)
             }
         }
 
         Canvas(modifier) {
             invalidate_state
+
+            if (size.height < 10f) {
+                return@Canvas
+            }
 
             // Set up counters and widgets
             var currentFftPosition = 0

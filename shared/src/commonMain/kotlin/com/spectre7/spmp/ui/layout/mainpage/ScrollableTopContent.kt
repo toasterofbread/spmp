@@ -1,5 +1,6 @@
 package com.spectre7.spmp.ui.layout.mainpage
 
+import LocalPlayerState
 import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.animation.expandVertically
 import androidx.compose.animation.shrinkVertically
@@ -21,7 +22,6 @@ import com.spectre7.spmp.ui.component.MediaItemLayout
 
 @Composable
 fun MainPageScrollableTopContent(
-    playerProvider: () -> PlayerViewContext,
     pinned_items: MutableList<MediaItem>,
     modifier: Modifier = Modifier
 ) {
@@ -42,7 +42,6 @@ fun MainPageScrollableTopContent(
         ) {
             MediaItemGrid(
                 pinned_layout,
-                playerProvider,
                 rows = 1,
                 startContent = {
                     item {
@@ -56,7 +55,7 @@ fun MainPageScrollableTopContent(
                             }
                             IconButton({
                                 for (i in 0 until pinned_items.size) {
-                                    pinned_items.first().setPinnedToHome(false, playerProvider)
+                                    pinned_items.first().setPinnedToHome(false)
                                 }
                             }, Modifier.size(30.dp)) {
                                 Icon(Icons.Filled.CleaningServices, null)
@@ -64,7 +63,7 @@ fun MainPageScrollableTopContent(
                         }
                     }
                 },
-                multiselect_context = playerProvider().main_multiselect_context
+                multiselect_context = LocalPlayerState.current.main_multiselect_context
             )
         }
     }

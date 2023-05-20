@@ -2,7 +2,6 @@ package com.spectre7.spmp.platform
 
 import android.graphics.Bitmap
 import android.net.Uri
-import android.util.Log
 import androidx.compose.ui.graphics.ImageBitmap
 import androidx.compose.ui.graphics.asAndroidBitmap
 import com.my.kizzyrpc.KizzyRPC
@@ -12,33 +11,25 @@ import com.my.kizzyrpc.model.Metadata
 import com.my.kizzyrpc.model.Timestamps
 import com.spectre7.utils.indexOfFirstOrNull
 import com.spectre7.utils.indexOfOrNull
-import dev.kord.common.entity.DiscordChannel
 import dev.kord.common.entity.DiscordMessage
 import dev.kord.common.entity.Snowflake
 import dev.kord.core.Kord
 import dev.kord.core.behavior.channel.createTextChannel
 import dev.kord.core.cache.data.toData
-import dev.kord.core.entity.channel.CategorizableChannel
 import dev.kord.core.entity.channel.Category
 import dev.kord.core.exception.KordInitializationException
 import dev.kord.rest.NamedFile
 import dev.kord.rest.builder.channel.TextChannelCreateBuilder
-import dev.kord.rest.json.request.ChannelModifyPatchRequest
 import dev.kord.rest.route.Position
 import dev.kord.rest.service.ChannelService
 import dev.kord.rest.service.createTextChannel
-import dev.kord.rest.service.patchCategory
 import io.ktor.client.network.sockets.*
 import io.ktor.client.request.forms.*
 import io.ktor.utils.io.jvm.javaio.*
 import kotlinx.coroutines.delay
-import kotlinx.coroutines.flow.filter
-import kotlinx.coroutines.flow.filterIsInstance
 import kotlinx.coroutines.flow.firstOrNull
-import kotlinx.coroutines.flow.toList
 import java.io.ByteArrayOutputStream
 import java.io.IOException
-import java.net.ConnectException
 
 actual class DiscordStatus actual constructor(
     private val bot_token: String?,

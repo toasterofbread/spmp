@@ -2,8 +2,8 @@ package com.spectre7.spmp.api
 
 import com.spectre7.spmp.api.DataApi.Companion.addYtHeaders
 import com.spectre7.spmp.api.DataApi.Companion.ytUrl
-import okhttp3.Request
 import com.spectre7.spmp.model.*
+import okhttp3.Request
 
 class RelatedGroup<T>(val title: String, val contents: List<T>)
 

@@ -313,7 +313,7 @@
     <string name="s_key_vol_intercept_notification">Volume change notification</string>
     <string name="s_sub_vol_intercept_notification">Show an on-screen popup when the service intercepts a volume key press</string>
 
-    <string name="s_group_discord_status">Discord status</string>
+    <string name="s_cat_discord_status">Discord status</string>
 
     <string name="s_discord_status_text_info">To display information about the current song, use the strings below:&#xA;- $song&#xA;- $artist</string>
 
@@ -333,6 +333,21 @@
     <string name="s_key_discord_status_show_button_project">Show project page button</string>
     <string name="s_sub_discord_status_show_button_project">Opens the project repository on GitHub</string>
     <string name="s_key_discord_status_button_project_text">Project page button text</string>
+
+    <string name="s_group_topbar">Music top bar</string>
+    <string name="s_key_topbar_default_mode_home">Default mode (main page)</string>
+    <string name="s_key_topbar_default_mode_nowplaying">Default mode (now playing)</string>
+    <string name="s_key_topbar_default_mode_queue">Default mode (song queue)</string>
+    <string name="s_option_topbar_mode_visualiser">Visualiser</string>
+    <string name="s_option_topbar_mode_lyrics">Lyrics</string>
+
+    <string name="s_cat_desc_general">Language, behaviour, and other options</string>
+    <string name="s_cat_desc_home_page">Cherry-pick song recommendations</string>
+    <string name="s_cat_desc_theming">Customise app colours and change accent source</string>
+    <string name="s_cat_desc_lyrics">Lyrics appearance and behaviour</string>
+    <string name="s_cat_desc_download">Download quality and automatic download options</string>
+    <string name="s_cat_desc_discord_status">Manage Discord account and customise status appearance</string>
+    <string name="s_cat_desc_other">Cache and accessibility service options</string>
 
     <string name="discord_status_default_name">$artist</string>
     <string name="discord_status_default_text_a">$song</string>

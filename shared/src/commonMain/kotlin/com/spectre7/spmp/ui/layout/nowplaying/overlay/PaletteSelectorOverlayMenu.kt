@@ -23,10 +23,10 @@ import com.spectre7.spmp.PlayerServiceHost
 import com.spectre7.spmp.model.MediaItemThumbnailProvider
 import com.spectre7.spmp.model.Song
 import com.spectre7.spmp.platform.generatePalette
-import com.spectre7.spmp.ui.layout.mainpage.PlayerViewContext
-import com.spectre7.spmp.ui.layout.nowplaying.*
-import com.spectre7.utils.*
+import com.spectre7.spmp.ui.layout.nowplaying.getNPBackground
+import com.spectre7.spmp.ui.layout.nowplaying.getNPOnBackground
 import com.spectre7.utils.composable.OnChangedEffect
+import com.spectre7.utils.setAlpha
 import kotlin.concurrent.thread
 import kotlin.math.roundToInt
 
@@ -49,8 +49,7 @@ class PaletteSelectorOverlayMenu(
         expansion: Float,
         openShutterMenu: (@Composable () -> Unit) -> Unit,
         close: () -> Unit,
-        seek_state: Any,
-        playerProvider: () -> PlayerViewContext
+        getSeekState: () -> Any
     ) {
 //        val palette_colours = remember(palette) {
 //            val colours = mutableListOf(Color.Black, Color.White)
@@ -122,8 +121,8 @@ class PaletteSelectorOverlayMenu(
                         }
                     },
                     colors = ButtonDefaults.buttonColors(
-                        containerColor = getNPBackground(playerProvider),
-                        contentColor = getNPOnBackground(playerProvider)
+                        containerColor = getNPBackground(),
+                        contentColor = getNPOnBackground()
                     )
                 ) {
                     Text("Pick from thumbnail")
@@ -158,7 +157,7 @@ class PaletteSelectorOverlayMenu(
                 Column(horizontalAlignment = Alignment.CenterHorizontally) {
                     val radius = (songProvider().song_reg_entry.thumbnail_rounding ?: DEFAULT_THUMBNAIL_ROUNDING) * 2
                     Text("Corner radius ${radius.toString().padStart(3, ' ')}", Modifier.offset(y = 10.dp), fontSize = 15.sp)
-                    val background_colour = getNPBackground(playerProvider)
+                    val background_colour = getNPBackground()
 
                     Row {
                         Slider(

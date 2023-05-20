@@ -3,25 +3,23 @@ package com.spectre7.composesettings.ui
 import androidx.compose.animation.Crossfade
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
-import androidx.compose.foundation.lazy.items
-import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.filled.Settings
 import androidx.compose.material3.Icon
-import androidx.compose.material3.IconButton
-import androidx.compose.ui.Modifier
-import androidx.compose.ui.text.font.FontWeight
-import androidx.compose.ui.unit.dp
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
+import androidx.compose.ui.Modifier
+import androidx.compose.ui.graphics.vector.ImageVector
+import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.unit.dp
+import com.spectre7.settings.model.SettingsGroup
 import com.spectre7.settings.model.SettingsItem
 import com.spectre7.spmp.platform.composable.BackHandler
 import com.spectre7.utils.composable.WidthShrinkText
-import com.spectre7.spmp.resources.getString
-import org.jetbrains.compose.resources.ExperimentalResourceApi
-import org.jetbrains.compose.resources.painterResource
 
-abstract class SettingsPage(private val getTitle: (() -> String?)? = null) {
+abstract class SettingsPage(
+    private val getTitle: (() -> String?)? = null,
+    private val getIcon: (@Composable () -> ImageVector?)? = null
+) {
     internal var id: Int? = null
     internal lateinit var settings_interface: SettingsInterface
 
@@ -36,12 +34,14 @@ abstract class SettingsPage(private val getTitle: (() -> String?)? = null) {
         }
     }
 
-    @OptIn(ExperimentalResourceApi::class)
     @Composable
     fun TitleBar(is_root: Boolean, modifier: Modifier = Modifier, goBack: () -> Unit) {
         Crossfade(getTitle?.invoke()) { title ->
             Row(modifier.fillMaxWidth(), horizontalArrangement = Arrangement.SpaceBetween, verticalAlignment = Alignment.CenterVertically) {
-                Icon(Icons.Filled.Settings, null)
+                val icon = getIcon?.invoke()
+                if (icon != null) {
+                    Icon(icon, null)
+                }
 
                 if (title != null) {
                     WidthShrinkText(
@@ -54,12 +54,7 @@ abstract class SettingsPage(private val getTitle: (() -> String?)? = null) {
                     )
                 }
 
-                if (SpMp.context.canOpenUrl()) {
-                    IconButton({ SpMp.context.openUrl(getString("project_url")) }) {
-                        Icon(painterResource("drawable/ic_github.xml"), null)
-                    }
-                }
-                else {
+                if (icon != null) {
                     Spacer(Modifier.width(24.dp))
                 }
             }
@@ -78,8 +73,9 @@ private const val SETTINGS_PAGE_WITH_ITEMS_SPACING = 20f
 class SettingsPageWithItems(
     getTitle: () -> String?,
     val getItems: () -> List<SettingsItem>,
-    val modifier: Modifier = Modifier
-): SettingsPage(getTitle) {
+    val modifier: Modifier = Modifier,
+    getIcon: (@Composable () -> ImageVector?)? = null
+): SettingsPage(getTitle, getIcon) {
 
     @Composable
     override fun PageView(
@@ -94,8 +90,13 @@ class SettingsPageWithItems(
                     Spacer(Modifier.requiredHeight(SETTINGS_PAGE_WITH_ITEMS_SPACING.dp))
                 }
 
-                items(items) { item ->
+                items(items.size) { i ->
+                    val item = items[i]
                     item.initialise(settings_interface.context, settings_interface.prefs, settings_interface.default_provider)
+
+                    if (i != 0 && item is SettingsGroup) {
+                        Spacer(Modifier.height(30.dp))
+                    }
                     item.GetItem(settings_interface.theme, openPage, openCustomPage)
                 }
             }

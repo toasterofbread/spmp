@@ -1,9 +1,11 @@
 package com.spectre7.spmp.platform
 
-import androidx.compose.ui.graphics.*
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.graphics.ImageBitmap
+import androidx.compose.ui.graphics.toAwtImage
+import androidx.compose.ui.graphics.toComposeImageBitmap
 import de.androidpit.colorthief.ColorThief
-import org.jetbrains.skia.*
+import org.jetbrains.skia.Image
 import java.awt.image.BufferedImage
 import java.io.ByteArrayOutputStream
 import java.io.IOException

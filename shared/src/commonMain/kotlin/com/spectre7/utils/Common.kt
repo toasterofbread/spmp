@@ -70,16 +70,6 @@ fun printJson(data: String, klaxon: Klaxon? = null) {
 }
 
 @Composable
-fun ButtonColors.toIconButtonColours(): IconButtonColors {
-	return IconButtonDefaults.iconButtonColors(
-		containerColor = containerColor(true).value,
-		contentColor = contentColor(true).value,
-		disabledContainerColor = containerColor(false).value,
-		disabledContentColor = contentColor(false).value
-	)
-}
-
-@Composable
 fun PaddingValues.copy(
 	start: Dp? = null,
 	top: Dp? = null,

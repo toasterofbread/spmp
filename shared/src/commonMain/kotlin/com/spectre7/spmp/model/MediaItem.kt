@@ -1,5 +1,6 @@
 package com.spectre7.spmp.model
 
+import GlobalPlayerState
 import SpMp
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.layout.Box
@@ -19,7 +20,6 @@ import com.spectre7.spmp.platform.PlatformContext
 import com.spectre7.spmp.platform.ProjectPreferences
 import com.spectre7.spmp.platform.toImageBitmap
 import com.spectre7.spmp.ui.component.multiselect.MediaItemMultiSelectContext
-import com.spectre7.spmp.ui.layout.mainpage.PlayerViewContext
 import com.spectre7.utils.*
 import com.spectre7.utils.composable.SubtleLoadingIndicator
 import kotlinx.coroutines.*
@@ -167,7 +167,7 @@ abstract class MediaItem(id: String) {
 
     // Remove?
     private var replaced_with: MediaItem? = null
-    
+
     var pinned_to_home: Boolean by mutableStateOf(false)
         private set
 
@@ -434,7 +434,7 @@ abstract class MediaItem(id: String) {
         }
     }
 
-    fun setPinnedToHome(value: Boolean, playerProvider: () -> PlayerViewContext) {
+    fun setPinnedToHome(value: Boolean) {
         if (value == pinned_to_home) {
             return
         }
@@ -456,11 +456,10 @@ abstract class MediaItem(id: String) {
 
         pinned_to_home = value
 
-        playerProvider().onMediaItemPinnedChanged(this, value)
+        GlobalPlayerState.onMediaItemPinnedChanged(this, value)
     }
 
     data class PreviewParams(
-        val playerProvider: () -> PlayerViewContext,
         val modifier: Modifier = Modifier,
         val contentColour: (() -> Color)? = null,
         val enable_long_press_menu: Boolean = true,
@@ -493,7 +492,7 @@ abstract class MediaItem(id: String) {
 
         var loaded by remember { mutableStateOf(false) }
 
-        if (state.loading) {
+        if (state.loading || (state.image == null && !state.loaded)) {
             SubtleLoadingIndicator(modifier.fillMaxSize(), contentColourProvider)
         }
         else if (state.image != null) {

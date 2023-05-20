@@ -1,5 +1,6 @@
 package com.spectre7.spmp.api
 
+import SpMp
 import com.spectre7.spmp.api.DataApi.Companion.addYtHeaders
 import com.spectre7.spmp.api.DataApi.Companion.getStream
 import com.spectre7.spmp.api.DataApi.Companion.ytUrl

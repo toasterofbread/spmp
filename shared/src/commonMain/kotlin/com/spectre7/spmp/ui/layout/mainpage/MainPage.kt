@@ -1,5 +1,6 @@
 package com.spectre7.spmp.ui.layout.mainpage
 
+import LocalPlayerState
 import SpMp
 import androidx.compose.animation.core.Animatable
 import androidx.compose.animation.core.animateDpAsState
@@ -31,7 +32,6 @@ import com.spectre7.spmp.ui.layout.LibraryPage
 fun MainPage(
     pinned_items: MutableList<MediaItem>,
     layoutsProvider: () -> List<MediaItemLayout>,
-    playerProvider: () -> PlayerViewContext,
     scroll_state: LazyListState,
     feed_load_state: MutableState<FeedLoadState>,
     can_continue_feed: Boolean,
@@ -78,7 +78,6 @@ fun MainPage(
 
         MainPageTopBar(
             auth_info,
-            playerProvider,
             { if (feed_load_state.value == FeedLoadState.LOADING) null else getFilterChips() },
             getSelectedFilterChip,
             { loadFeed(it, false) },
@@ -105,7 +104,7 @@ fun MainPage(
 
             @Composable
             fun TopContent() {
-                MainPageScrollableTopContent(playerProvider, pinned_items, Modifier.padding(bottom = 15.dp))
+                MainPageScrollableTopContent(pinned_items, Modifier.padding(bottom = 15.dp))
             }
 
             when (current_state) {
@@ -113,10 +112,9 @@ fun MainPage(
                 true -> {
                     LazyMediaItemLayoutColumn(
                         layoutsProvider,
-                        playerProvider,
                         layout_modifier = Modifier.graphicsLayer { alpha = state_alpha.value },
                         padding = PaddingValues(
-                            bottom = playerProvider().bottom_padding
+                            bottom = LocalPlayerState.current.bottom_padding
                         ),
                         onContinuationRequested = if (can_continue_feed) {
                             { loadFeed(getSelectedFilterChip(), true) }
@@ -138,14 +136,13 @@ fun MainPage(
 
                             showLayout(this, layout)
                         },
-                        multiselect_context = playerProvider().main_multiselect_context
+                        multiselect_context = LocalPlayerState.current.main_multiselect_context
                     ) { it.type ?: MediaItemLayout.Type.GRID }
                 }
                 // Offline
                 false -> {
                     LibraryPage(
                         pill_menu,
-                        playerProvider,
                         Modifier.graphicsLayer { alpha = state_alpha.value },
                         close = {},
                         inline = true
@@ -191,7 +188,7 @@ private fun populateArtistsLayout(artists_layout: MediaItemLayout, layoutsProvid
     }
 
     val artists = artists_map.mapNotNull { artist ->
-        if (artist.value == null || artist.value!! < 1) null
+        if (artist.value == null || artist.value!! < 2) null
         else Pair(artist.key, artist.value)
     }.sortedByDescending { it.second }
 

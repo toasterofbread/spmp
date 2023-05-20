@@ -7,7 +7,6 @@ import androidx.compose.ui.graphics.ImageBitmap
 import androidx.compose.ui.graphics.asAndroidBitmap
 import androidx.compose.ui.graphics.asImageBitmap
 import androidx.palette.graphics.Palette
-import com.spectre7.utils.compare
 import java.io.ByteArrayOutputStream
 
 actual fun ByteArray.toImageBitmap(): ImageBitmap =

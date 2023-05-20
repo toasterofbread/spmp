@@ -1,29 +1,37 @@
 package com.spectre7.spmp.ui.component
 
-import androidx.compose.animation.Crossfade
-import androidx.compose.animation.core.tween
-import androidx.compose.foundation.ExperimentalFoundationApi
+import LocalPlayerState
+import SpMp
+import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
-import androidx.compose.material.Icons.Default.*
-import androidx.compose.material3.*
-import androidx.compose.runtime.*
+import androidx.compose.material.icons.filled.Person
+import androidx.compose.material.icons.filled.PlayArrow
+import androidx.compose.material.icons.filled.Print
+import androidx.compose.material.icons.filled.SubdirectoryArrowRight
+import androidx.compose.material3.Icon
+import androidx.compose.material3.Text
+import androidx.compose.runtime.Composable
+import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.alpha
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.Shape
+import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
-import com.spectre7.spmp.PlayerServiceHost
 import com.spectre7.spmp.model.Artist
 import com.spectre7.spmp.model.MediaItem
 import com.spectre7.spmp.model.MediaItemThumbnailProvider
 import com.spectre7.spmp.model.mediaItemPreviewInteraction
+import com.spectre7.spmp.resources.getString
 import com.spectre7.spmp.ui.component.multiselect.MediaItemMultiSelectContext
 import com.spectre7.spmp.ui.layout.ArtistSubscribeButton
+import com.spectre7.utils.composable.WidthShrinkText
+import com.spectre7.utils.isDebugBuild
 
 const val ARTIST_THUMB_CORNER_ROUNDING = 50
 
@@ -37,7 +45,7 @@ fun ArtistPreviewSquare(
     }
 
     Column(
-        params.modifier.mediaItemPreviewInteraction(artist, params.playerProvider, long_press_menu_data),
+        params.modifier.mediaItemPreviewInteraction(artist, long_press_menu_data),
         horizontalAlignment = Alignment.CenterHorizontally,
         verticalArrangement = Arrangement.spacedBy(5.dp)
     ) {
@@ -75,7 +83,7 @@ fun ArtistPreviewLong(
 
     Row(
         verticalAlignment = Alignment.CenterVertically,
-        modifier = params.modifier.mediaItemPreviewInteraction(artist, params.playerProvider, long_press_menu_data)
+        modifier = params.modifier.mediaItemPreviewInteraction(artist, long_press_menu_data)
     ) {
         Box(Modifier.width(IntrinsicSize.Min).height(IntrinsicSize.Min), contentAlignment = Alignment.Center) {
             artist.Thumbnail(
@@ -120,6 +128,7 @@ fun getArtistLongPressMenuData(
         artist,
         thumb_shape,
         { ArtistLongPressMenuInfo(artist, it) },
+        getString("lpm_long_press_actions"),
         multiselect_context = multiselect_context,
         sideButton = { modifier, background, accent ->
             ArtistSubscribeButton(
@@ -161,8 +170,9 @@ private fun LongPressMenuActionProvider.ArtistLongPressPopupActions(artist: Medi
         }
     )
 
-    ActionButton(Icons.Default.Person, getString(lpm_action_open_artist), onClick = {
-        playerProvider().openMediaItem(artist)
+    val player = LocalPlayerState.current
+    ActionButton(Icons.Default.Person, getString("lpm_action_open_artist"), onClick = {
+        player.openMediaItem(artist)
     })
 }
 

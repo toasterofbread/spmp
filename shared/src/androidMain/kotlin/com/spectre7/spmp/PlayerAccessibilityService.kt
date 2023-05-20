@@ -4,8 +4,10 @@ import android.Manifest
 import android.accessibilityservice.AccessibilityService
 import android.accessibilityservice.AccessibilityServiceInfo
 import android.app.AlertDialog
-import android.content.*
-import com.spectre7.spmp.platform.ProjectPreferences
+import android.content.BroadcastReceiver
+import android.content.Context
+import android.content.Intent
+import android.content.IntentFilter
 import android.database.ContentObserver
 import android.os.Handler
 import android.view.KeyEvent
@@ -19,8 +21,9 @@ import androidx.lifecycle.lifecycleScope
 import androidx.localbroadcastmanager.content.LocalBroadcastManager
 import com.spectre7.spmp.model.Settings
 import com.spectre7.spmp.platform.PlatformContext
-import com.spectre7.utils.Permissions
+import com.spectre7.spmp.platform.ProjectPreferences
 import com.spectre7.spmp.resources.getString
+import com.spectre7.utils.Permissions
 import kotlinx.coroutines.*
 import java.lang.ref.WeakReference
 import java.util.*

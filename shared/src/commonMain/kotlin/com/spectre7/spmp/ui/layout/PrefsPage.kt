@@ -1,10 +1,12 @@
+@file:Suppress("INVISIBLE_MEMBER", "INVISIBLE_REFERENCE")
+
 package com.spectre7.spmp.ui.layout
 
 import SpMp
 import androidx.compose.animation.Crossfade
-import androidx.compose.foundation.border
 import androidx.compose.foundation.layout.*
-import androidx.compose.foundation.shape.CircleShape
+import androidx.compose.foundation.lazy.LazyColumn
+import androidx.compose.foundation.lazy.items
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.*
 import androidx.compose.material.icons.outlined.*
@@ -12,9 +14,9 @@ import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.input.pointer.pointerInput
+import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.unit.dp
 import com.spectre7.composesettings.ui.SettingsInterface
 import com.spectre7.composesettings.ui.SettingsPage
@@ -26,29 +28,26 @@ import com.spectre7.spmp.model.*
 import com.spectre7.spmp.platform.DiscordStatus
 import com.spectre7.spmp.platform.PlatformContext
 import com.spectre7.spmp.platform.ProjectPreferences
+import com.spectre7.spmp.platform.composable.BackHandler
 import com.spectre7.spmp.platform.composable.PlatformAlertDialog
 import com.spectre7.spmp.resources.getLanguageName
 import com.spectre7.spmp.resources.getString
 import com.spectre7.spmp.resources.getStringTODO
 import com.spectre7.spmp.ui.component.PillMenu
 import com.spectre7.spmp.ui.layout.mainpage.MINIMISED_NOW_PLAYING_HEIGHT
-import com.spectre7.spmp.ui.layout.mainpage.PlayerViewContext
 import com.spectre7.spmp.ui.theme.Theme
 import com.spectre7.spmp.ui.theme.ThemeData
 import com.spectre7.spmp.ui.theme.ThemeManager
-import com.spectre7.utils.composable.LinkifyText
-import com.spectre7.utils.composable.OnChangedEffect
-import com.spectre7.utils.composable.ShapedIconButton
 import com.spectre7.utils.composable.WidthShrinkText
-import com.spectre7.utils.getContrasted
 import com.spectre7.utils.modifier.background
+import org.jetbrains.compose.resources.*
 
-private enum class Page { 
-    ROOT, 
-    YOUTUBE_MUSIC_LOGIN, 
-    YOUTUBE_MUSIC_MANUAL_LOGIN, 
+private enum class Page {
+    ROOT,
+    YOUTUBE_MUSIC_LOGIN,
+    YOUTUBE_MUSIC_MANUAL_LOGIN,
     DISCORD_LOGIN,
-    DISCORD_MANUAL_LOGIN 
+    DISCORD_MANUAL_LOGIN
 }
 private enum class Category {
     GENERAL,
@@ -56,14 +55,18 @@ private enum class Category {
     THEME,
     LYRICS,
     DOWNLOAD,
+    DISCORD_STATUS,
     OTHER;
 
+    @OptIn(ExperimentalResourceApi::class)
+    @Composable
     fun getIcon(filled: Boolean = false): ImageVector = when (this) {
         GENERAL -> if (filled) Icons.Filled.Settings else Icons.Outlined.Settings
         FEED -> if (filled) Icons.Filled.FormatListBulleted else Icons.Outlined.FormatListBulleted
         THEME -> if (filled) Icons.Filled.Palette else Icons.Outlined.Palette
         LYRICS -> if (filled) Icons.Filled.MusicNote else Icons.Outlined.MusicNote
         DOWNLOAD -> if (filled) Icons.Filled.Download else Icons.Outlined.Download
+        DISCORD_STATUS -> resource("drawable/ic_discord.xml").readBytesSync().toImageVector(LocalDensity.current)
         OTHER -> if (filled) Icons.Filled.MoreHoriz else Icons.Outlined.MoreHoriz
     }
 
@@ -73,80 +76,89 @@ private enum class Category {
         THEME -> getString("s_cat_theming")
         LYRICS -> getString("s_cat_lyrics")
         DOWNLOAD -> getString("s_cat_download")
+        DISCORD_STATUS -> getString("s_cat_discord_status")
         OTHER -> getString("s_cat_other")
+    }
+
+    fun getDescription(): String = when (this) {
+        GENERAL -> getString("s_cat_desc_general")
+        FEED -> getString("s_cat_desc_home_page")
+        THEME -> getString("s_cat_desc_theming")
+        LYRICS -> getString("s_cat_desc_lyrics")
+        DOWNLOAD -> getString("s_cat_desc_download")
+        DISCORD_STATUS -> getString("s_cat_desc_discord_status")
+        OTHER -> getString("s_cat_desc_other")
     }
 }
 
 @Composable
-fun PrefsPage(pill_menu: PillMenu, playerProvider: () -> PlayerViewContext, close: () -> Unit) {
-    var current_category: Category by remember { mutableStateOf(Category.GENERAL) }
-
-    val ytm_auth = remember {
-        SettingsValueState(
-            Settings.KEY_YTM_AUTH.name,
-            converter = { set ->
-                set?.let { YoutubeMusicAuthInfo(it as Set<String>) } ?: YoutubeMusicAuthInfo()
-            }
-        ).init(Settings.prefs, Settings.Companion::provideDefault)
-    }
-
-    val discord_auth = remember {
-        SettingsValueState<String>(Settings.KEY_DISCORD_ACCOUNT_TOKEN.name).init(Settings.prefs, Settings.Companion::provideDefault)
-    }
-
-    lateinit var settings_interface: SettingsInterface
-
-    val pill_menu_action_overrider: @Composable PillMenu.Action.(i: Int) -> Boolean = remember { { i ->
-        if (i == 0) {
-            var go_back by remember { mutableStateOf(false) }
-            LaunchedEffect(go_back) {
-                if (go_back) {
-                    settings_interface.goBack()
-                }
-            }
-
-            ActionButton(
-                Icons.Filled.ArrowBack
-            ) {
-                go_back = true
-            }
-            true
+private fun ResetConfirmationDialog(show_state: MutableState<Boolean>, reset: suspend () -> Unit) {
+    var do_reset: Boolean by remember { mutableStateOf(false) }
+    LaunchedEffect(do_reset) {
+        if (do_reset) {
+            show_state.value = false
+            reset()
         }
-        else {
-            false
-        }
-    } }
-
-    var show_reset_confirmation by remember { mutableStateOf(false) }
-
-    var reset by remember { mutableStateOf(false) }
-    OnChangedEffect(reset) {
-        settings_interface.current_page.resetKeys()
     }
 
-    if (show_reset_confirmation) {
+    if (show_state.value) {
         PlatformAlertDialog(
-            { show_reset_confirmation = false },
+            { show_state.value = false },
             confirmButton = {
                 FilledTonalButton(
                     {
-                        reset = !reset
-                        show_reset_confirmation = false
+                        do_reset = true
                     }
                 ) {
                     Text(getString("action_confirm_action"))
                 }
             },
-            dismissButton = { TextButton( { show_reset_confirmation = false } ) { Text(getString("action_deny_action")) } },
+            dismissButton = { TextButton({ show_state.value = false }) { Text(getString("action_deny_action")) } },
             title = { Text(getString("prompt_confirm_action")) },
             text = {
                 Text(getString("prompt_confirm_settings_page_reset"))
             }
         )
     }
+}
 
-    settings_interface = remember {
-        SettingsInterface(
+@Composable
+private fun rememberSettingsInterface(pill_menu: PillMenu, getCategory: () -> Category?, close: () -> Unit): SettingsInterface {
+    return remember {
+        lateinit var settings_interface: SettingsInterface
+        val pill_menu_action_overrider: @Composable PillMenu.Action.(i: Int) -> Boolean = { i ->
+            if (i == 0) {
+                var go_back by remember { mutableStateOf(false) }
+                LaunchedEffect(go_back) {
+                    if (go_back) {
+                        settings_interface.goBack()
+                    }
+                }
+
+                ActionButton(
+                    Icons.Filled.ArrowBack
+                ) {
+                    go_back = true
+                }
+                true
+            }
+            else {
+                false
+            }
+        }
+
+        val ytm_auth =
+            SettingsValueState(
+                Settings.KEY_YTM_AUTH.name,
+                converter = { set ->
+                    set?.let { YoutubeMusicAuthInfo(it as Set<String>) } ?: YoutubeMusicAuthInfo()
+                }
+            ).init(Settings.prefs, Settings.Companion::provideDefault)
+
+        val discord_auth =
+            SettingsValueState<String>(Settings.KEY_DISCORD_ACCOUNT_TOKEN.name).init(Settings.prefs, Settings.Companion::provideDefault)
+
+        settings_interface = SettingsInterface(
             { Theme.current },
             Page.ROOT.ordinal,
             SpMp.context,
@@ -156,16 +168,30 @@ fun PrefsPage(pill_menu: PillMenu, playerProvider: () -> PlayerViewContext, clos
             {
                 when (Page.values()[it]) {
                     Page.ROOT -> SettingsPageWithItems(
-                        { current_category.getTitle() },
+                        { getCategory()?.getTitle() },
                         {
-                            when (current_category) {
-                                Category.GENERAL -> getGeneralCategory(ytm_auth, playerProvider)
+                            when (getCategory()) {
+                                Category.GENERAL -> getGeneralCategory(ytm_auth)
                                 Category.FEED -> getFeedCategory()
                                 Category.THEME -> getThemeCategory(Theme.manager)
                                 Category.LYRICS -> getLyricsCategory()
                                 Category.DOWNLOAD -> getDownloadCategory()
-                                Category.OTHER -> getOtherCategory(discord_auth)
+                                Category.DISCORD_STATUS -> getDiscordStatusGroup(discord_auth)
+                                Category.OTHER -> getOtherCategory()
+                                null -> emptyList()
                             }
+                        },
+                        getIcon = {
+                            val icon = getCategory()?.getIcon()
+                            var current_icon by remember { mutableStateOf(icon) }
+
+                            LaunchedEffect(icon) {
+                                if (icon != null) {
+                                    current_icon = icon
+                                }
+                            }
+
+                            return@SettingsPageWithItems current_icon
                         }
                     )
                     Page.YOUTUBE_MUSIC_LOGIN -> getYoutubeMusicLoginPage(ytm_auth)
@@ -182,76 +208,153 @@ fun PrefsPage(pill_menu: PillMenu, playerProvider: () -> PlayerViewContext, clos
                     pill_menu.addActionOverrider(pill_menu_action_overrider)
                 }
             },
-            {
-                close()
-            }
+            close
         )
+
+        return@remember settings_interface
+    }
+}
+
+@OptIn(ExperimentalMaterial3Api::class, ExperimentalResourceApi::class)
+@Composable
+fun PrefsPage(pill_menu: PillMenu, close: () -> Unit) {
+    var current_category: Category? by remember { mutableStateOf(null) }
+    val category_open by remember { derivedStateOf { current_category != null } }
+    val settings_interface: SettingsInterface =
+        rememberSettingsInterface(pill_menu, { current_category }, { current_category = null })
+    val show_reset_confirmation = remember { mutableStateOf(false) }
+
+    ResetConfirmationDialog(
+        show_reset_confirmation,
+        { settings_interface.current_page.resetKeys() }
+    )
+
+    BackHandler(category_open) {
+        current_category = null
     }
 
-    DisposableEffect(settings_interface.current_page) {
-        val extra_action: @Composable PillMenu.Action.(Int) -> Unit = {
-            if (it == 1) {
-                ActionButton(
-                    Icons.Filled.Refresh
-                ) {
-                    show_reset_confirmation = true
-                }
-            }
-        }
-        val alongside_action: @Composable PillMenu.Action.() -> Unit = {
-            Row(fill_modifier
-                .border(1.dp, background_colour, CircleShape)
-                .background(CircleShape, Theme.current.background_provider)
-                .padding(horizontal = 5.dp)
+    Crossfade(category_open) { open ->
+        if (!open) {
+            LazyColumn(
+                contentPadding = PaddingValues(
+                    bottom = MINIMISED_NOW_PLAYING_HEIGHT.dp,
+                    top = 20.dp,
+                    start = 20.dp,
+                    end = 20.dp
+                ),
+                verticalArrangement = Arrangement.spacedBy(10.dp)
             ) {
-                for (category in Category.values()) {
-                    Box(
-                        Modifier.fillMaxWidth(1f / (Category.values().size - category.ordinal).toFloat()),
-                        contentAlignment = Alignment.Center
+                item {
+                    Row(
+                        Modifier.fillMaxWidth().padding(bottom = 20.dp),
+                        verticalAlignment = Alignment.CenterVertically,
+                        horizontalArrangement = Arrangement.SpaceBetween
                     ) {
+                        Text(
+                            "設定",
+                            style = MaterialTheme.typography.displaySmall
+                        )
 
-                        Crossfade(category == current_category) { current ->
-                            val button_colour = if (current) background_colour else Color.Transparent
-                            ShapedIconButton(
-                                { current_category = category },
-                                colors = IconButtonDefaults.iconButtonColors(
-                                    containerColor = button_colour,
-                                    contentColor = button_colour.getContrasted()
-                                )
-                            ) {
-                                Icon(category.getIcon(current), null)
+                        if (SpMp.context.canOpenUrl()) {
+                            IconButton({ SpMp.context.openUrl(getString("project_url")) }) {
+                                Icon(painterResource("drawable/ic_github.xml"), null)
+                            }
+                        }
+                    }
+                }
+
+                items(Category.values()) { category ->
+                    ElevatedCard(
+                        onClick = { current_category = category },
+                        modifier = Modifier.fillMaxWidth()
+                    ) {
+                        Row(
+                            Modifier.padding(15.dp),
+                            verticalAlignment = Alignment.CenterVertically,
+                            horizontalArrangement = Arrangement.spacedBy(15.dp)
+                        ) {
+                            Icon(category.getIcon(), null)
+                            Column(verticalArrangement = Arrangement.spacedBy(5.dp)) {
+                                Text(category.getTitle(), style = MaterialTheme.typography.titleMedium)
+                                Text(category.getDescription(), style = MaterialTheme.typography.labelMedium)
                             }
                         }
                     }
                 }
             }
         }
-
-        if (settings_interface.current_page.id == Page.ROOT.ordinal) {
-            pill_menu.addExtraAction(action = extra_action)
-            pill_menu.addAlongsideAction(alongside_action)
-        }
         else {
-            pill_menu.removeExtraAction(extra_action)
-            pill_menu.removeAlongsideAction(alongside_action)
-        }
+            val extra_action: @Composable PillMenu.Action.(Int) -> Unit = remember { {
+                if (it == 1) {
+                    ActionButton(
+                        Icons.Filled.Refresh
+                    ) {
+                        show_reset_confirmation.value = true
+                    }
+                }
+            } }
 
-        onDispose {
-            pill_menu.removeExtraAction(extra_action)
-            pill_menu.removeAlongsideAction(alongside_action)
+            DisposableEffect(settings_interface.current_page) {
+                if (settings_interface.current_page.id == Page.ROOT.ordinal) {
+                    pill_menu.addExtraAction(action = extra_action)
+                }
+                else {
+                    pill_menu.removeExtraAction(extra_action)
+                }
+
+                onDispose {
+                    pill_menu.removeExtraAction(extra_action)
+                }
+            }
+
+            BoxWithConstraints(
+                Modifier
+                    .background(Theme.current.background_provider)
+                    .pointerInput(Unit) {}
+            ) {
+                settings_interface.Interface(
+                    SpMp.context.getScreenHeight() - SpMp.context.getStatusBarHeight(),
+                    content_padding = PaddingValues(bottom = MINIMISED_NOW_PLAYING_HEIGHT.dp * 2f)
+                )
+            }
         }
     }
+}
 
-    BoxWithConstraints(
-        Modifier
-            .background(Theme.current.background_provider)
-            .pointerInput(Unit) {}
-    ) {
-        settings_interface.Interface(
-            SpMp.context.getScreenHeight() - SpMp.context.getStatusBarHeight(),
-            content_padding = PaddingValues(bottom = MINIMISED_NOW_PLAYING_HEIGHT.dp * 2f)
-        )
+private fun getMusicTopBarGroup(): List<SettingsItem> {
+    fun MusicTopBarMode.getString(): String = when (this) {
+        MusicTopBarMode.VISUALISER -> getString("s_option_topbar_mode_visualiser")
+        MusicTopBarMode.LYRICS -> getString("s_option_topbar_mode_lyrics")
     }
+
+    return listOf(
+        SettingsGroup(getString("s_group_topbar")),
+
+        SettingsItemMultipleChoice(
+            SettingsValueState(Settings.KEY_TOPBAR_DEFAULT_MODE_HOME.name),
+            getString("s_key_topbar_default_mode_home"), null,
+            MusicTopBarMode.values().size,
+            true
+        ) {
+            MusicTopBarMode.values()[it].getString()
+        },
+        SettingsItemMultipleChoice(
+            SettingsValueState(Settings.KEY_TOPBAR_DEFAULT_MODE_NOWPLAYING.name),
+            getString("s_key_topbar_default_mode_nowplaying"), null,
+            MusicTopBarMode.values().size,
+            true
+        ) {
+            MusicTopBarMode.values()[it].getString()
+        },
+        SettingsItemMultipleChoice(
+            SettingsValueState(Settings.KEY_TOPBAR_DEFAULT_MODE_QUEUE.name),
+            getString("s_key_topbar_default_mode_queue"), null,
+            MusicTopBarMode.values().size,
+            true
+        ) {
+            MusicTopBarMode.values()[it].getString()
+        }
+    )
 }
 
 private fun getAccessibilityServiceGroup(): List<SettingsItem> {
@@ -315,33 +418,6 @@ private fun getAccessibilityServiceGroup(): List<SettingsItem> {
             }
         ),
 
-//        SettingsItemMultipleChoice(
-//            SettingsValueState(Settings.KEY_ACC_VOL_INTERCEPT_MODE.name),
-//            getString("s_key_vol_intercept_mode"),
-//            getString("s_sub_vol_intercept_mode"),
-//            PlayerAccessibilityService.PlayerAccessibilityServiceVolumeInterceptMode.values().size,
-//            false
-//        ) { mode ->
-//            when (mode) {
-//                0 -> getString("s_option_vol_intercept_mode_always")
-//                1 -> getString("s_option_vol_intercept_mode_app")
-//                else -> getString("s_option_vol_intercept_mode_never")
-//            }
-//        },
-
-        SettingsItemToggle(
-            SettingsValueState(Settings.KEY_ACC_SCREEN_OFF.name),
-            getString("s_key_acc_screen_off"),
-            getString("s_sub_acc_screen_off")
-        ) { checked, _, allowChange ->
-            if (!checked) {
-                allowChange(true)
-                return@SettingsItemToggle
-            }
-
-            PlayerAccessibilityService.requestRootPermission(allowChange)
-        },
-
         SettingsItemToggle(
             SettingsValueState(Settings.KEY_ACC_VOL_INTERCEPT_NOTIFICATION.name),
             getString("s_key_vol_intercept_notification"),
@@ -372,8 +448,6 @@ private fun getDiscordStatusGroup(discord_auth: SettingsValueState<String>): Lis
     var account_token by mutableStateOf(discord_auth.value)
 
     return listOf(
-        SettingsGroup(getString("s_group_discord_status")),
-
         SettingsItemLargeToggle(
             object : BasicSettingsValueState<Boolean> {
                 override var value: Boolean
@@ -459,8 +533,8 @@ private fun getDiscordStatusGroup(discord_auth: SettingsValueState<String>): Lis
     )
 }
 
-private fun getOtherCategory(discord_auth: SettingsValueState<String>): List<SettingsItem> {
-    return getCachingGroup() + getAccessibilityServiceGroup() + getDiscordStatusGroup(discord_auth)
+private fun getOtherCategory(): List<SettingsItem> {
+    return getCachingGroup() + getAccessibilityServiceGroup() + getMusicTopBarGroup()
 }
 
 private fun getCachingGroup(): List<SettingsItem> {
@@ -531,7 +605,6 @@ private fun getDiscordLoginPage(discord_auth: SettingsValueState<String>, manual
 
 private fun getGeneralCategory(
     ytm_auth: SettingsValueState<YoutubeMusicAuthInfo>,
-    playerProvider: () -> PlayerViewContext
 ): List<SettingsItem> {
     var own_channel by mutableStateOf(ytm_auth.value.getOwnChannelOrNull())
 
@@ -558,7 +631,6 @@ private fun getGeneralCategory(
 
                 own_channel?.PreviewLong(
                     MediaItem.PreviewParams(
-                        playerProvider,
                         modifier
                     )
                 )

@@ -1,15 +1,18 @@
 package com.spectre7.spmp.ui.component
 
+import LocalPlayerState
 import SpMp
 import androidx.compose.animation.*
 import androidx.compose.animation.core.*
 import androidx.compose.foundation.*
 import androidx.compose.foundation.interaction.MutableInteractionSource
 import androidx.compose.foundation.layout.*
+import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.*
 import androidx.compose.material.icons.outlined.PushPin
+import androidx.compose.material.ripple.rememberRipple
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
@@ -21,12 +24,12 @@ import androidx.compose.ui.layout.*
 import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.*
+import com.spectre7.spmp.PlayerServiceHost
 import com.spectre7.spmp.model.*
 import com.spectre7.spmp.platform.composable.PlatformDialog
 import com.spectre7.spmp.platform.vibrateShort
 import com.spectre7.spmp.resources.getString
 import com.spectre7.spmp.ui.component.multiselect.MediaItemMultiSelectContext
-import com.spectre7.spmp.ui.layout.mainpage.PlayerViewContext
 import com.spectre7.spmp.ui.layout.nowplaying.overlay.DEFAULT_THUMBNAIL_ROUNDING
 import com.spectre7.spmp.ui.theme.Theme
 import com.spectre7.utils.*
@@ -39,13 +42,13 @@ class LongPressMenuActionProvider(
     val content_colour: () -> Color,
     val accent_colour: () -> Color,
     val background_colour: () -> Color,
-    val playerProvider: () -> PlayerViewContext,
     val closeMenu: () -> Unit
 ) {
     @Composable
     fun ActionButton(icon: ImageVector, label: String, modifier: Modifier = Modifier, onClick: () -> Unit, onLongClick: (() -> Unit)? = null, fill_width: Boolean = true) =
         ActionButton(icon, label, accent_colour, modifier = modifier, onClick = onClick, onLongClick = onLongClick, closeMenu = closeMenu, fill_width = fill_width)
 
+    @OptIn(ExperimentalFoundationApi::class)
     @Composable
     fun ActiveQueueIndexAction(
         getText: (distance: Int) -> String,
@@ -70,7 +73,7 @@ class LongPressMenuActionProvider(
                         getText(distance),
                         fill_width = false,
                         onClick = { onClick(PlayerServiceHost.player.active_queue_index) },
-                        onLongClick = onLongClick?.let { it.invoke(PlayerServiceHost.player.active_queue_index) }
+                        onLongClick = onLongClick?.let { { it.invoke(PlayerServiceHost.player.active_queue_index) } }
                     )
 
                     Row(verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(10.dp)) {
@@ -119,10 +122,13 @@ class LongPressMenuActionProvider(
                 }
 
                 Crossfade(active_queue_item, animationSpec = tween(100)) {
-                    it?.PreviewLong(MediaItem.PreviewParams(
-                        { playerProvider().copy(onClickedOverride = { item -> playerProvider().openMediaItem(item) }) },
-                        contentColour = content_colour
-                    ))
+
+                    val player = LocalPlayerState.current
+                    CompositionLocalProvider(
+                        LocalPlayerState provides remember { player.copy(onClickedOverride = { item, _ -> player.openMediaItem(item) }) }
+                    ) {
+                        it?.PreviewLong(MediaItem.PreviewParams(contentColour = content_colour))
+                    }
                 }
             }
         }
@@ -193,7 +199,6 @@ fun Modifier.longPressMenuIcon(data: LongPressMenuData, enabled: Boolean = true)
 fun LongPressMenu(
     showing: Boolean,
     onDismissRequest: () -> Unit,
-    playerProvider: () -> PlayerViewContext,
     data: LongPressMenuData,
     modifier: Modifier = Modifier
 ) {
@@ -254,7 +259,6 @@ fun LongPressMenu(
                     data,
                     accent_colour,
                     modifier,
-                    playerProvider,
                     { close_requested = true }
                 )
             }
@@ -267,7 +271,6 @@ private fun MenuContent(
     data: LongPressMenuData,
     accent_colour: MutableState<Color?>,
     modifier: Modifier,
-    playerProvider: () -> PlayerViewContext,
     close: () -> Unit
 ) {
     @Composable
@@ -319,7 +322,7 @@ private fun MenuContent(
                         verticalArrangement = Arrangement.SpaceEvenly
                     ) {
                         // Title
-                        Marquee(autoscroll = false) {
+                        Marquee {
                             Text(
                                 data.item.title ?: "",
                                 Modifier.fillMaxWidth(),
@@ -333,16 +336,20 @@ private fun MenuContent(
                         if (data.item !is Artist) {
                             val artist = data.item.artist
                             if (artist != null) {
-                                Marquee(autoscroll = false) {
-                                    artist.PreviewLong(MediaItem.PreviewParams(
-                                        remember { { playerProvider().let { player ->
-                                            player.copy(onClickedOverride = {
-                                                close()
-                                                player.onMediaItemClicked(it)
-                                            })
-                                        }}},
-                                        Modifier.fillMaxWidth()
-                                    ))
+                                Marquee {
+                                    val player = LocalPlayerState.current
+                                    CompositionLocalProvider(
+                                        LocalPlayerState provides remember {
+                                            player.copy(
+                                                onClickedOverride = { item, _ ->
+                                                    close()
+                                                    player.onMediaItemClicked(item)
+                                                }
+                                            )
+                                        }
+                                    ) {
+                                        artist.PreviewLong(MediaItem.PreviewParams(Modifier.fillMaxWidth()))
+                                    }
                                 }
                             }
                         }
@@ -411,7 +418,7 @@ private fun MenuContent(
                             data.infoContent?.invoke(this, accent_colour.value ?: Theme.current.accent)
                         }
                         else {
-                            MenuActions(data, accent_colour.value ?: Theme.current.accent, playerProvider, close = close)
+                            MenuActions(data, accent_colour.value ?: Theme.current.accent, close = close)
                         }
                     }
                 }
@@ -421,7 +428,7 @@ private fun MenuContent(
 }
 
 @Composable
-private fun MenuActions(data: LongPressMenuData, accent_colour: Color, playerProvider: () -> PlayerViewContext, close: () -> Unit) {
+private fun MenuActions(data: LongPressMenuData, accent_colour: Color, close: () -> Unit) {
     val accent_colour_provider = remember (accent_colour) { { accent_colour } }
 
     data.actions?.invoke(
@@ -429,7 +436,6 @@ private fun MenuActions(data: LongPressMenuData, accent_colour: Color, playerPro
             Theme.current.on_background_provider,
             accent_colour_provider,
             Theme.current.background_provider,
-            playerProvider,
             close
         ),
         data.item
@@ -461,7 +467,7 @@ private fun MenuActions(data: LongPressMenuData, accent_colour: Color, playerPro
             ),
             accent_colour_provider,
             onClick = {
-                data.item.setPinnedToHome(!pinned, playerProvider)
+                data.item.setPinnedToHome(!pinned)
             },
             closeMenu = close
         )

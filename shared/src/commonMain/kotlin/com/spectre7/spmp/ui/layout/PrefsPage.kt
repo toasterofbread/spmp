@@ -284,7 +284,7 @@ fun PrefsPage(pill_menu: PillMenu, close: () -> Unit) {
             }
         }
         else {
-            val extra_action: @Composable PillMenu.Action.(Int) -> Unit = remember { {
+            val extra_action: @Composable PillMenu.Action.(action_count: Int) -> Unit = remember { {
                 if (it == 1) {
                     ActionButton(
                         Icons.Filled.Refresh
@@ -325,10 +325,16 @@ private fun getMusicTopBarGroup(): List<SettingsItem> {
     fun MusicTopBarMode.getString(): String = when (this) {
         MusicTopBarMode.VISUALISER -> getString("s_option_topbar_mode_visualiser")
         MusicTopBarMode.LYRICS -> getString("s_option_topbar_mode_lyrics")
+        MusicTopBarMode.NONE -> getString("s_option_topbar_mode_none")
     }
 
     return listOf(
         SettingsGroup(getString("s_group_topbar")),
+
+        SettingsItemToggle(
+            SettingsValueState(Settings.KEY_TOPBAR_LYRICS_LINGER.name),
+            getString("s_key_topbar_lyrics_linger"), getString("s_sub_topbar_lyrics_linger")
+        ),
 
         SettingsItemMultipleChoice(
             SettingsValueState(Settings.KEY_TOPBAR_DEFAULT_MODE_HOME.name),
@@ -346,6 +352,11 @@ private fun getMusicTopBarGroup(): List<SettingsItem> {
         ) {
             MusicTopBarMode.values()[it].getString()
         },
+
+        SettingsItemToggle(
+            SettingsValueState(Settings.KEY_TOPBAR_SHOW_IN_QUEUE.name),
+            getString("s_key_topbar_show_in_queue"), null
+        ),
         SettingsItemMultipleChoice(
             SettingsValueState(Settings.KEY_TOPBAR_DEFAULT_MODE_QUEUE.name),
             getString("s_key_topbar_default_mode_queue"), null,
@@ -732,31 +743,6 @@ private fun getGeneralCategory(
 
 private fun getFeedCategory(): List<SettingsItem> {
     return listOf(
-
-        SettingsItemToggle(
-            SettingsValueState(Settings.KEY_HP_SHOW_VISUALISER.name),
-            getString("s_key_hp_show_visualiser"),
-            getString("s_sub_hp_show_visualiser")
-        ),
-        SettingsItemToggle(
-            SettingsValueState(Settings.KEY_HP_SHOW_TIMED_LYRICS.name),
-            getString("s_key_hp_show_timed_lyrics"),
-            getString("s_sub_hp_show_timed_lyrics")
-        ),
-
-        SettingsItemMultipleChoice(
-            SettingsValueState(Settings.KEY_HP_TOP_BAR_ACTION.name),
-            getString("s_key_hp_top_bar_action"), null,
-            PlayerViewTopBarAction.values().size,
-            false
-        ) {
-            getString(when (PlayerViewTopBarAction.values()[it]) {
-                PlayerViewTopBarAction.TOGGLE_LYRICS -> "s_option_hp_top_bar_action_toggle_lyrics"
-                PlayerViewTopBarAction.OPEN_LYRICS -> "s_option_hp_top_bar_action_open_lyrics"
-                PlayerViewTopBarAction.NONE -> "s_option_hp_top_bar_action_none"
-            })
-        },
-
         SettingsGroup(getString("s_group_rec_feed")),
 
         SettingsItemToggle(

@@ -23,7 +23,7 @@ abstract class MediaItemWithLayoutsData(item: MediaItem): MediaItemData(item) {
 abstract class MediaItemWithLayouts(id: String): MediaItem(id) {
     abstract override val data: MediaItemWithLayoutsData
 
-    val feed_layouts: List<MediaItemLayout>? get() = data.feed_layouts
+    open val feed_layouts: List<MediaItemLayout>? get() = data.feed_layouts
 
     override fun getSerialisedData(klaxon: Klaxon): List<String> {
         return super.getSerialisedData(klaxon) + listOf(klaxon.toJsonString(feed_layouts))

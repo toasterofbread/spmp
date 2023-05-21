@@ -17,17 +17,11 @@ private data class RelatedItem(
     class IdItem(val id: String)
 }
 
-private suspend fun loadBrowseEndpoint(browse_endpoint: MediaItemBrowseEndpoint): Result<List<RelatedGroup<MediaItem>>> {
+private fun loadBrowseEndpoint(browse_endpoint: MediaItemBrowseEndpoint): Result<List<RelatedGroup<MediaItem>>> {
     val request = Request.Builder()
         .ytUrl("/youtubei/v1/browse")
         .addYtHeaders()
-        .post(DataApi.getYoutubeiRequestBody(
-            """
-        {
-            "browse": "${browse_endpoint.id}"
-        }
-    """
-        ))
+        .post(DataApi.getYoutubeiRequestBody("""{"browse": "${browse_endpoint.id}"}"""))
         .build()
 
     val result = DataApi.request(request)
@@ -71,7 +65,7 @@ private suspend fun loadBrowseEndpoint(browse_endpoint: MediaItemBrowseEndpoint)
     })
 }
 
-suspend fun getMediaItemRelated(item: MediaItem): Result<List<List<RelatedGroup<MediaItem>>>> {
+fun getMediaItemRelated(item: MediaItem): Result<List<List<RelatedGroup<MediaItem>>>> {
     val ret = mutableListOf<List<RelatedGroup<MediaItem>>>()
     for (endpoint in item.related_endpoints) {
         val load_result = loadBrowseEndpoint(endpoint)

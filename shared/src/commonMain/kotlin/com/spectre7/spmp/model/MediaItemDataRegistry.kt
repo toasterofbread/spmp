@@ -8,6 +8,7 @@ import com.beust.klaxon.Json
 import com.beust.klaxon.JsonObject
 import com.spectre7.spmp.api.DataApi
 import com.spectre7.spmp.platform.ProjectPreferences
+import com.spectre7.utils.printJson
 import kotlinx.coroutines.GlobalScope
 import kotlinx.coroutines.async
 import kotlinx.coroutines.joinAll
@@ -55,8 +56,13 @@ class MediaItemDataRegistry {
         runBlocking {
             parsed.entries.map { item ->
                 GlobalScope.async {
-                    val type = MediaItemType.values()[item.key.take(1).toInt()]
-                    entries[item.key] = type.parseRegistryEntry(item.value as JsonObject)
+                    try {
+                        val type = MediaItemType.values()[item.key.take(1).toInt()]
+                        entries[item.key] = type.parseRegistryEntry(item.value as JsonObject)
+                    }
+                    catch (e: Throwable) {
+                        e.printStackTrace()
+                    }
                 }
             }.joinAll()
         }

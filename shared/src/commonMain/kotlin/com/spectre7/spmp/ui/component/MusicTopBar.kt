@@ -22,6 +22,7 @@ private fun getModeState(mode: MusicTopBarMode, song: Song?): Any? {
             if (lyrics.sync_type != Song.Lyrics.SyncType.NONE) lyrics else null
         }
         MusicTopBarMode.VISUALISER -> if (PlayerServiceHost.status.m_playing) mode else null
+        MusicTopBarMode.NONE -> mode
     }
 }
 

@@ -158,11 +158,6 @@
     <string name="s_key_hp_show_timed_lyrics">同期可能の歌詞を表示する</string>
     <string name="s_sub_hp_show_timed_lyrics">流れてる曲に同期可能の歌詞があればトップバーに表示されます</string>
 
-    <string name="s_key_hp_top_bar_action">トップバー押しアクション</string>
-    <string name="s_option_hp_top_bar_action_toggle_lyrics">歌詞の表示をトグル</string>
-    <string name="s_option_hp_top_bar_action_open_lyrics">表示中の歌詞を開ける</string>
-    <string name="s_option_hp_top_bar_action_none">無し</string>
-
     <string name="s_group_rec_feed">おすすめフィード</string>
     <string name="s_key_feed_show_filters">フィルターを表示する</string>
 
@@ -223,11 +218,15 @@
     <string name="s_key_discord_status_button_project_text">プロジェクトページボタンに表示されるテキスト</string>
 
     <string name="s_group_topbar">音楽トップバー</string>
+    <string name="s_key_topbar_lyrics_linger">残り続ける歌詞</string>
+    <string name="s_sub_topbar_lyrics_linger">行が終わっても、次の行が始まるまで表示されます</string>
     <string name="s_key_topbar_default_mode_home">デフォルトモード (メインページ)</string>
     <string name="s_key_topbar_default_mode_nowplaying">デフォルトモード (プレイヤー)</string>
-    <string name="s_key_topbar_default_mode_queue">デフデフォルトモード (曲キュー)</string>
+    <string name="s_key_topbar_default_mode_queue">デフォルトモード (曲キュー)</string>
+    <string name="s_key_topbar_show_in_queue">曲キューで表示</string>
     <string name="s_option_topbar_mode_visualiser">ビジュアライザー</string>
     <string name="s_option_topbar_mode_lyrics">歌詞</string>
+    <string name="s_option_topbar_mode_none">無し</string>
 
     <string name="s_cat_desc_general">言語やアプリ動作などのオプション</string>
     <string name="s_cat_desc_home_page">おすすめの曲やアーティストの調節</string>

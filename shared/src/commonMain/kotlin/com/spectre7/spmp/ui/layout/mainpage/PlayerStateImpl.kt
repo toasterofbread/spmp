@@ -274,6 +274,12 @@ class PlayerStateImpl: PlayerState(null, null, null) {
                 val current = data == long_press_menu_data
                 var height_found by remember { mutableStateOf(false) }
 
+                LaunchedEffect(current) {
+                    if (!current) {
+                        height_found = false
+                    }
+                }
+
                 LongPressMenu(
                     long_press_menu_showing && current,
                     {
@@ -282,12 +288,13 @@ class PlayerStateImpl: PlayerState(null, null, null) {
                         }
                     },
                     data,
-                    Modifier
-                        .onSizeChanged {
-                            height = maxOf(height, it.height)
-                            height_found = true
-                        }
-                        .height(if (height_found && height > 0) with(LocalDensity.current) { height.toDp() } else Dp.Unspecified)
+//                    Modifier
+//                        .onSizeChanged {
+//                            height = maxOf(height, it.height)
+//                            height_found = true
+//                            println("SIZECHANGED $height")
+//                        }
+//                        .height(if (height_found && height > 0) with(LocalDensity.current) { height.toDp() } else Dp.Unspecified)
                 )
             }
         }
@@ -364,9 +371,9 @@ class PlayerStateImpl: PlayerState(null, null, null) {
                             main_page_showing = true
 
                             if (main_page_layouts.isEmpty()) {
-                                loadFeed(Settings.get(Settings.KEY_FEED_INITIAL_ROWS), allow_cached = true, continue_feed = false) {
-                                    if (it) {
-                                        PlayerServiceHost.player.loadPersistentQueue()
+                                loadFeed(Settings.get(Settings.KEY_FEED_INITIAL_ROWS), allow_cached = true, continue_feed = false) { success ->
+                                    if (success) {
+                                        PlayerServiceHost.player.loadPersistentQueue(2000L)
                                     }
                                 }
                             }

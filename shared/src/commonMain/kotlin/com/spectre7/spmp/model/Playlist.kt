@@ -1,11 +1,9 @@
 package com.spectre7.spmp.model
 
-import androidx.compose.runtime.Composable
-import androidx.compose.runtime.getValue
-import androidx.compose.runtime.mutableStateOf
-import androidx.compose.runtime.setValue
+import androidx.compose.runtime.*
 import com.beust.klaxon.Klaxon
 import com.spectre7.spmp.resources.getString
+import com.spectre7.spmp.ui.component.MediaItemLayout
 import com.spectre7.spmp.ui.component.PlaylistPreviewLong
 import com.spectre7.spmp.ui.component.PlaylistPreviewSquare
 
@@ -55,7 +53,36 @@ class PlaylistItemData(override val data_item: Playlist): MediaItemWithLayoutsDa
     }
 }
 
-class Playlist private constructor (
+class LocalPlaylist(id: String): Playlist(id) {
+    val items: MutableList<MediaItem> = mutableStateListOf()
+
+    override val feed_layouts: List<MediaItemLayout> = listOf(
+        MediaItemLayout(null, null, items = items, view_more = MediaItemLayout.ViewMore(media_item = this))
+    )
+
+    override val playlist_type: PlaylistType = PlaylistType.PLAYLIST
+    override val total_duration: Long? get() {
+        var sum = 0L
+        for (item in items) {
+            if (item !is Song) {
+                continue
+            }
+            if (item.duration == null) {
+                return null
+            }
+            sum += item.duration!!
+        }
+        return sum
+    }
+    override val item_count: Int get() = items.size
+    override val year: Int? get() = null
+
+    override fun getSerialisedData(klaxon: Klaxon): List<String> {
+        return super.getSerialisedData(klaxon) + listOf(klaxon.toJsonString(year))
+    }
+}
+
+open class Playlist protected constructor (
     id: String
 ): MediaItemWithLayouts(id) {
 
@@ -76,10 +103,10 @@ class Playlist private constructor (
 
     override val data: PlaylistItemData = PlaylistItemData(this)
 
-    val playlist_type: PlaylistType? get() = data.playlist_type
-    val total_duration: Long? get() = data.total_duration
-    val item_count: Int? get() = data.item_count
-    val year: Int? get() = data.year
+    open val playlist_type: PlaylistType? get() = data.playlist_type
+    open val total_duration: Long? get() = data.total_duration
+    open val item_count: Int? get() = data.item_count
+    open val year: Int? get() = data.year
 
     fun editPlaylistData(action: PlaylistItemData.() -> Unit): Playlist {
         editData {

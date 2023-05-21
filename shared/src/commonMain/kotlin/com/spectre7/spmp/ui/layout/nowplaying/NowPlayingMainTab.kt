@@ -62,7 +62,7 @@ const val NOW_PLAYING_MAIN_PADDING = 10f
 
 private const val MINIMISED_NOW_PLAYING_HORIZ_PADDING = 10f
 private const val OVERLAY_MENU_ANIMATION_DURATION: Int = 200
-private const val TOP_BAR_HEIGHT: Int = 50
+internal const val NOW_PLAYING_TOP_BAR_HEIGHT: Int = 40
 internal const val MIN_EXPANSION = 0.07930607f
 
 @Composable
@@ -386,7 +386,6 @@ fun ColumnScope.NowPlayingMainTab(
     }
 
     val screen_height = SpMp.context.getScreenHeight()
-    val status_bar_height = SpMp.context.getStatusBarHeight()
 
     val offsetProvider: Density.() -> IntOffset = remember {
         {
@@ -395,8 +394,7 @@ fun ColumnScope.NowPlayingMainTab(
                 0,
                 if (exp > 1f)
                     (
-                        (-screen_height * ((NOW_PLAYING_VERTICAL_PAGE_COUNT * 0.5f) - exp))
-                        - ((TOP_BAR_HEIGHT.dp - MINIMISED_NOW_PLAYING_HEIGHT.dp + (status_bar_height * 1.5f)) * (exp - 1f))
+                        -screen_height * ((NOW_PLAYING_VERTICAL_PAGE_COUNT * 0.5f) - exp)
                     ).toPx().toInt()
                 else 0
             )
@@ -409,13 +407,17 @@ fun ColumnScope.NowPlayingMainTab(
             .offset(offsetProvider),
         horizontalAlignment = Alignment.CenterHorizontally
     ) {
+        val show_top_bar_in_queue: Boolean = Settings.KEY_TOPBAR_SHOW_IN_QUEUE.get()
+        val top_bar_height = if (!show_top_bar_in_queue || _expansion < 1f) appear_scale else 1f
+        val top_bar_alpha = if (!show_top_bar_in_queue || _expansion < 1f) 1f - disappear_scale else 1f
+
         val top_bar_modifier = Modifier
             .fillMaxWidth()
-            .requiredHeight(TOP_BAR_HEIGHT.dp * appear_scale)
-            .alpha(1f - disappear_scale)
+            .requiredHeight(NOW_PLAYING_TOP_BAR_HEIGHT.dp * top_bar_height)
+            .alpha(top_bar_alpha)
             .padding(horizontal = NOW_PLAYING_MAIN_PADDING.dp)
 
-        if (disappear_scale < 1f) {
+        if (top_bar_alpha > 0f) {
             TopBar(top_bar_modifier)
         }
         else {

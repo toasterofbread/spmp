@@ -473,13 +473,15 @@ class PlayerService : MediaPlayerService() {
         queue_lock.release()
     }
 
-    fun loadPersistentQueue() {
+    fun loadPersistentQueue(start_delay: Long = 0) {
         if (Platform.is_desktop) {
             return
         }
 
         thread { runBlocking {
             queue_lock.acquire()
+
+            delay(start_delay)
 
             val reader: BufferedReader
             try {
@@ -496,7 +498,7 @@ class PlayerService : MediaPlayerService() {
             var first_song: Song? = null
             val request_limit = Semaphore(10)
 
-            runBlocking { withContext(Dispatchers.IO) { coroutineScope {
+            runBlocking { coroutineScope { withContext(Dispatchers.IO) {
                 var i = 0
                 var line = reader.readLine()
                 while (line != null) {
@@ -547,7 +549,6 @@ class PlayerService : MediaPlayerService() {
                 addMultipleToQueue(songs as List<Song>, 1)
                 seekToSong(pos_data[0].toInt())
                 seekTo(pos_data[1].toLong())
-
                 queue_lock.release()
             }
         } }

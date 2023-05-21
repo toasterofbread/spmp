@@ -181,234 +181,221 @@ fun QueueTab(expansionProvider: () -> Float, scroll: (pages: Int) -> Unit) {
     }
 
     val background_colour = getNPBackground()
-
     val backgroundColourProvider = { getNPBackground() }
-    val queueBackgroundColourProvider = { getNPBackground().amplify(0.15f, 0.15f) }
+    val queue_background_colour = getNPBackground().amplify(0.15f, 0.15f)
 
     val shape = RoundedCornerShape(topStart = 25.dp, topEnd = 25.dp)
-    Box(
-        Modifier
-            .fillMaxSize()
-            .padding(top = MINIMISED_NOW_PLAYING_HEIGHT.dp + (SpMp.context.getStatusBarHeight() * 0.5f))
-            .background(shape, queueBackgroundColourProvider)
-            .clip(shape)
-    ) {
-        val list_padding = 10.dp
 
-        Column(Modifier.fillMaxSize(), horizontalAlignment = Alignment.CenterHorizontally) {
-            val padding = 15.dp
-            Row(
-                Modifier
-                    .padding(top = padding, start = padding, end = padding, bottom = 10.dp)
-                    .height(40.dp)
-                    .fillMaxWidth(),
-                verticalAlignment = Alignment.CenterVertically,
-                horizontalArrangement = Arrangement.SpaceEvenly
-            ) {
-                RepeatButton(backgroundColourProvider, Modifier.fillMaxHeight())
-                StopAfterSongButton(backgroundColourProvider, Modifier.fillMaxHeight())
+    val show_top_bar_in_queue: Boolean by Settings.KEY_TOPBAR_SHOW_IN_QUEUE.rememberMutableState()
+    val top_bar_height = if (show_top_bar_in_queue) NOW_PLAYING_TOP_BAR_HEIGHT.dp else 0.dp
 
-                Button(
-                    onClick = {
-                        PlayerServiceHost.player.undoableAction {
-                            if (multiselect_context.is_active) {
-                                for (item in multiselect_context.getSelectedItems().sortedByDescending { it.second!! }) {
-                                    PlayerServiceHost.player.removeFromQueue(item.second!!)
-                                }
-                                multiselect_context.onActionPerformed()
-                            }
-                            else {
-                                PlayerServiceHost.player.clearQueue(keep_current = PlayerServiceHost.status.queue_size > 1)
-                            }
-                        }
-                    },
-                    colors = ButtonDefaults.buttonColors(
-                        containerColor = background_colour,
-                        contentColor = background_colour.getContrasted()
-                    ),
-                    border = multiselect_context.getActiveHintBorder()
+    CompositionLocalProvider(LocalContentColor provides queue_background_colour.getContrasted()) {
+        Box(
+            Modifier
+                .fillMaxSize()
+                .padding(top = MINIMISED_NOW_PLAYING_HEIGHT.dp + (SpMp.context.getStatusBarHeight() * 0.5f) + top_bar_height)
+                .background(queue_background_colour, shape)
+                .clip(shape)
+        ) {
+            val list_padding = 10.dp
+
+            Column(Modifier.fillMaxSize(), horizontalAlignment = Alignment.CenterHorizontally) {
+                val padding = 15.dp
+                Row(
+                    Modifier
+                        .padding(top = padding, start = padding, end = padding, bottom = 10.dp)
+                        .height(40.dp)
+                        .fillMaxWidth(),
+                    verticalAlignment = Alignment.CenterVertically,
+                    horizontalArrangement = Arrangement.SpaceEvenly
                 ) {
-                    Text(getString("queue_clear"))
-                }
+                    RepeatButton(backgroundColourProvider, Modifier.fillMaxHeight())
+                    StopAfterSongButton(backgroundColourProvider, Modifier.fillMaxHeight())
 
-                Surface(
-                    Modifier.combinedClickable(
+                    Button(
                         onClick = {
-                            if (multiselect_context.is_active) {
-                                PlayerServiceHost.player.undoableAction {
-                                    PlayerServiceHost.player.shuffleQueueAndIndices(multiselect_context.getSelectedItems().map { it.second!! })
+                            PlayerServiceHost.player.undoableAction {
+                                if (multiselect_context.is_active) {
+                                    for (item in multiselect_context.getSelectedItems().sortedByDescending { it.second!! }) {
+                                        PlayerServiceHost.player.removeFromQueue(item.second!!)
+                                    }
+                                    multiselect_context.onActionPerformed()
                                 }
-//                                PlayerServiceHost.player.undoableActionWithCustom {
-//                                    val indices_to_shuffle = multiselect_context.getSelectedItems().map { it.second!! }.toMutableList()
-//                                    val original_keys = indices_to_shuffle.withIndex().associate { it.index to it.value }
-//
-//                                    PlayerServiceHost.player.shuffleQueueAndIndices(indices_to_shuffle)
-//                                    val swapped_keys = indices_to_shuffle.withIndex().associate { it.index to it.value }
-//
-//                                    return@undoableActionWithCustom object : MediaPlayerService.UndoRedoAction {
-//                                        override fun undo() {
-//                                            multiselect_context.updateKeys(original_keys)
-//                                        }
-//
-//                                        override fun redo() {
-//                                            multiselect_context.updateKeys(swapped_keys)
-//                                        }
-//                                    }
-//                                }
-                                multiselect_context.onActionPerformed()
-                            }
-                            else {
-                                PlayerServiceHost.player.undoableAction {
-                                    PlayerServiceHost.player.shuffleQueue()
+                                else {
+                                    PlayerServiceHost.player.clearQueue(keep_current = PlayerServiceHost.status.queue_size > 1)
                                 }
                             }
                         },
-                        onLongClick = if (multiselect_context.is_active) null else ({
-                            PlayerServiceHost.player.undoableAction {
-                                if (!multiselect_context.is_active) {
-                                    SpMp.context.vibrateShort()
-                                    PlayerServiceHost.player.shuffleQueue(start = 0)
+                        colors = ButtonDefaults.buttonColors(
+                            containerColor = background_colour,
+                            contentColor = background_colour.getContrasted()
+                        ),
+                        border = multiselect_context.getActiveHintBorder()
+                    ) {
+                        Text(getString("queue_clear"))
+                    }
+
+                    Surface(
+                        Modifier.combinedClickable(
+                            onClick = {
+                                if (multiselect_context.is_active) {
+                                    PlayerServiceHost.player.undoableAction {
+                                        PlayerServiceHost.player.shuffleQueueAndIndices(multiselect_context.getSelectedItems().map { it.second!! })
+                                    }
+                                    multiselect_context.onActionPerformed()
                                 }
-                            }
-                        })
-                    ),
-                    color = background_colour,
-                    shape = FilledButtonTokens.ContainerShape.toShape(),
-                    border = multiselect_context.getActiveHintBorder()
-                ) {
-                    Box(
-                        Modifier
-                            .defaultMinSize(
-                                minWidth = ButtonDefaults.MinWidth,
-                                minHeight = ButtonDefaults.MinHeight
+                                else {
+                                    PlayerServiceHost.player.undoableAction {
+                                        PlayerServiceHost.player.shuffleQueue()
+                                    }
+                                }
+                            },
+                            onLongClick = if (multiselect_context.is_active) null else ({
+                                PlayerServiceHost.player.undoableAction {
+                                    if (!multiselect_context.is_active) {
+                                        SpMp.context.vibrateShort()
+                                        PlayerServiceHost.player.shuffleQueue(start = 0)
+                                    }
+                                }
+                            })
+                        ),
+                        color = background_colour,
+                        shape = FilledButtonTokens.ContainerShape.toShape(),
+                        border = multiselect_context.getActiveHintBorder()
+                    ) {
+                        Box(
+                            Modifier
+                                .defaultMinSize(
+                                    minWidth = ButtonDefaults.MinWidth,
+                                    minHeight = ButtonDefaults.MinHeight
+                                )
+                                .padding(ButtonDefaults.ContentPadding),
+                            contentAlignment = Alignment.Center
+                        ) {
+                            Text(
+                                text = getString("queue_shuffle"),
+//                                color = background_colour.getContrasted(),
+                                style = MaterialTheme.typography.labelLarge
                             )
-                            .padding(ButtonDefaults.ContentPadding),
+                        }
+                    }
+
+                    val undo_background = animateColorAsState(
+                        if (PlayerServiceHost.status.m_undo_count != 0) LocalContentColor.current
+                        else LocalContentColor.current.setAlpha(0.3f)
+                    ).value
+
+                    Box(
+                        modifier = Modifier
+                            .minimumTouchTargetSize()
+                            .background(
+                                undo_background,
+                                CircleShape
+                            )
+                            .combinedClickable(
+                                enabled = PlayerServiceHost.status.m_undo_count != 0,
+                                onClick = { PlayerServiceHost.player.undo() },
+                                onLongClick = {
+                                    SpMp.context.vibrateShort()
+                                    PlayerServiceHost.player.undoAll()
+                                }
+                            )
+                            .size(40.dp),
                         contentAlignment = Alignment.Center
                     ) {
-                        Text(
-                            text = getString("queue_shuffle"),
-                            color = background_colour.getContrasted(),
-                            style = MaterialTheme.typography.labelLarge
-                        )
+                        Icon(Icons.Filled.Undo, null, tint = undo_background.getContrasted(true))
                     }
                 }
 
-                val undo_background = animateColorAsState(
-                    if (PlayerServiceHost.status.m_undo_count != 0) background_colour
-                    else background_colour.setAlpha(0.3f)
-                ).value
+                if (radio_info_position == NowPlayingQueueRadioInfoPosition.TOP_BAR) {
+                    CurrentRadioIndicator(backgroundColourProvider, multiselect_context)
+                }
 
-                Box(
-                    modifier = Modifier
-                        .minimumTouchTargetSize()
-                        .background(
-                            undo_background,
-                            CircleShape
-                        )
-                        .combinedClickable(
-                            enabled = PlayerServiceHost.status.m_undo_count != 0,
-                            onClick = { PlayerServiceHost.player.undo() },
-                            onLongClick = {
-                                SpMp.context.vibrateShort()
-                                PlayerServiceHost.player.undoAll()
+                Divider(Modifier.padding(horizontal = list_padding), 1.dp, backgroundColourProvider)
+
+                val items_above_queue = if (radio_info_position == NowPlayingQueueRadioInfoPosition.ABOVE_ITEMS) 1 else 0
+                val state = rememberReorderableLazyListState(
+                    onMove = { from, to ->
+                        song_items.add(to.index - items_above_queue, song_items.removeAt(from.index - items_above_queue))
+                    },
+                    onDragEnd = { from, to ->
+                        if (from != to) {
+                            song_items.add(from - items_above_queue, song_items.removeAt(to - items_above_queue))
+                            PlayerServiceHost.player.undoableAction {
+                                moveSong(from - items_above_queue, to - items_above_queue)
                             }
-                        )
-                        .size(40.dp),
-                    contentAlignment = Alignment.Center
-                ) {
-                    Icon(Icons.Filled.Undo, null, tint = undo_background.getContrasted(true))
-                }
-            }
-
-            if (radio_info_position == NowPlayingQueueRadioInfoPosition.TOP_BAR) {
-                CurrentRadioIndicator(queueBackgroundColourProvider, backgroundColourProvider, multiselect_context)
-            }
-
-            Divider(Modifier.padding(horizontal = list_padding), 1.dp, backgroundColourProvider)
-
-            val items_above_queue = if (radio_info_position == NowPlayingQueueRadioInfoPosition.ABOVE_ITEMS) 1 else 0
-            val state = rememberReorderableLazyListState(
-                onMove = { from, to ->
-                    song_items.add(to.index - items_above_queue, song_items.removeAt(from.index - items_above_queue))
-                },
-                onDragEnd = { from, to ->
-                    if (from != to) {
-                        song_items.add(from - items_above_queue, song_items.removeAt(to - items_above_queue))
-                        PlayerServiceHost.player.undoableAction {
-                            moveSong(from - items_above_queue, to - items_above_queue)
-                        }
-                        playing_key = null
-                    }
-                }
-            )
-
-            CompositionLocalProvider(
-                LocalPlayerState provides remember { player.copy(onClickedOverride = { _, index: Int? ->
-                    PlayerServiceHost.player.seekToSong(index!!)
-                }) }
-            ) {
-                LazyColumn(
-                    state = state.listState,
-                    contentPadding = PaddingValues(top = list_padding, bottom = 60.dp),
-                    modifier = Modifier
-                        .reorderable(state)
-                        .padding(horizontal = list_padding),
-                    horizontalAlignment = Alignment.CenterHorizontally
-                ) {
-                    if (radio_info_position == NowPlayingQueueRadioInfoPosition.ABOVE_ITEMS) {
-                        item {
-                            CurrentRadioIndicator(queueBackgroundColourProvider, backgroundColourProvider, multiselect_context)
+                            playing_key = null
                         }
                     }
+                )
 
-                    items(song_items.size, { song_items[it].key }) { index ->
-                        val item = song_items[index]
-                        ReorderableItem(state, key = item.key) { is_dragging ->
-                            LaunchedEffect(is_dragging) {
-                                if (is_dragging) {
-                                    SpMp.context.vibrateShort()
-                                    playing_key = song_items[PlayerServiceHost.status.index].key
+                CompositionLocalProvider(
+                    LocalPlayerState provides remember { player.copy(onClickedOverride = { _, index: Int? ->
+                        PlayerServiceHost.player.seekToSong(index!!)
+                    }) }
+                ) {
+                    LazyColumn(
+                        state = state.listState,
+                        contentPadding = PaddingValues(top = list_padding, bottom = 60.dp),
+                        modifier = Modifier
+                            .reorderable(state)
+                            .padding(horizontal = list_padding),
+                        horizontalAlignment = Alignment.CenterHorizontally
+                    ) {
+                        if (radio_info_position == NowPlayingQueueRadioInfoPosition.ABOVE_ITEMS) {
+                            item {
+                                CurrentRadioIndicator(backgroundColourProvider, multiselect_context)
+                            }
+                        }
+
+                        items(song_items.size, { song_items[it].key }) { index ->
+                            val item = song_items[index]
+                            ReorderableItem(state, key = item.key) { is_dragging ->
+                                LaunchedEffect(is_dragging) {
+                                    if (is_dragging) {
+                                        SpMp.context.vibrateShort()
+                                        playing_key = song_items[PlayerServiceHost.status.index].key
+                                    }
                                 }
-                            }
 
-                            Box(Modifier.height(50.dp)) {
-                                item.QueueElement(
-                                    state,
-                                    index,
-                                    {
-                                        val current = if (playing_key != null) playing_key == item.key else PlayerServiceHost.status.m_index == index
-                                        if (current) backgroundColourProvider()
-                                        else queueBackgroundColourProvider()
-                                    },
-                                    multiselect_context
-                                ) {
-                                    PlayerServiceHost.player.undoableAction {
-                                        PlayerServiceHost.player.removeFromQueue(index)
+                                Box(Modifier.height(50.dp)) {
+                                    item.QueueElement(
+                                        state,
+                                        index,
+                                        {
+                                            val current = if (playing_key != null) playing_key == item.key else PlayerServiceHost.status.m_index == index
+                                            if (current) backgroundColourProvider()
+                                            else queue_background_colour
+                                        },
+                                        multiselect_context
+                                    ) {
+                                        PlayerServiceHost.player.undoableAction {
+                                            PlayerServiceHost.player.removeFromQueue(index)
+                                        }
                                     }
                                 }
                             }
                         }
-                    }
 
-                    if (PlayerServiceHost.player.radio_loading) {
-                        item {
-                            Box(Modifier.height(50.dp), contentAlignment = Alignment.Center) {
-                                SubtleLoadingIndicator(colourProvider = { queueBackgroundColourProvider().getContrasted() })
+                        if (PlayerServiceHost.player.radio_loading) {
+                            item {
+                                Box(Modifier.height(50.dp), contentAlignment = Alignment.Center) {
+                                    SubtleLoadingIndicator()
+                                }
                             }
                         }
                     }
                 }
             }
-        }
 
-        ActionBar(expansionProvider, scroll)
+            ActionBar(expansionProvider, scroll)
+        }
     }
 }
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 private fun CurrentRadioIndicator(
-    backgroundColourProvider: () -> Color,
     accentColourProvider: () -> Color,
     multiselect_context: MediaItemMultiSelectContext
 ) {
@@ -418,7 +405,7 @@ private fun CurrentRadioIndicator(
         if (radio_item != null && radio_item !is Song) {
             radio_item.PreviewLong(MediaItem.PreviewParams(
                 Modifier.padding(horizontal = horizontal_padding),
-                contentColour = { backgroundColourProvider().getContrasted() }
+//                contentColour = { backgroundColourProvider().getContrasted() }
             ))
         }
 
@@ -450,7 +437,7 @@ private fun CurrentRadioIndicator(
                                 )
                             },
                             colors = FilterChipDefaults.filterChipColors(
-                                labelColor = backgroundColourProvider().getContrasted(),
+                                labelColor = LocalContentColor.current,
                                 selectedContainerColor = accentColourProvider(),
                                 selectedLabelColor = accentColourProvider().getContrasted()
                             )

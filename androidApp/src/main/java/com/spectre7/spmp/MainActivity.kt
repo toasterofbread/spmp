@@ -28,15 +28,13 @@ class MainActivity : ComponentActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
 
-        if (!ProjectBuildConfig.IS_DEBUG) {
-            Thread.setDefaultUncaughtExceptionHandler { _: Thread, error: Throwable ->
-                error.printStackTrace()
+        Thread.setDefaultUncaughtExceptionHandler { _: Thread, error: Throwable ->
+            error.printStackTrace()
 
-                startActivity(Intent(this@MainActivity, ErrorReportActivity::class.java).apply {
-                    putExtra("message", error.message)
-                    putExtra("stack_trace", error.stackTraceToString())
-                })
-            }
+            startActivity(Intent(this@MainActivity, ErrorReportActivity::class.java).apply {
+                putExtra("message", error.message)
+                putExtra("stack_trace", error.stackTraceToString())
+            })
         }
 
         StrictMode.setVmPolicy(VmPolicy.Builder()

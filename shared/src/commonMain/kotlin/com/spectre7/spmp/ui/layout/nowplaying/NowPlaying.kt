@@ -140,15 +140,13 @@ fun NowPlayingCardContent(
 
     val screen_width_dp = SpMp.context.getScreenWidth()
 
-    val full_expansion = if (expansionProvider() < 1f) (1f / (1f - MIN_EXPANSION)) * (expansionProvider() - MIN_EXPANSION) else minOf(2f, expansionProvider())
-
     Column(Modifier.fillMaxHeight(), verticalArrangement = Arrangement.Top) {
         Column(
             verticalArrangement = Arrangement.Top,
             modifier = Modifier
                 .requiredHeight(page_height)
                 .requiredWidth(screen_width_dp)
-                .padding(top = (status_bar_height * full_expansion.coerceAtLeast(0f)))
+                .padding(top = (status_bar_height * expansionProvider().coerceIn(0f, 1f)))
         ) {
             CompositionLocalProvider(LocalPlayerState provides remember {
                 player.copy(

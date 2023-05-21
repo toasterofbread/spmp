@@ -33,6 +33,7 @@ import androidx.compose.ui.text.font.Font
 import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
 import androidx.core.app.NotificationManagerCompat
+import androidx.core.os.postDelayed
 import com.spectre7.spmp.model.Settings
 import com.spectre7.spmp.resources.getString
 import com.spectre7.spmp.resources.getStringTODO
@@ -312,6 +313,7 @@ fun Context.isConnectionMetered(): Boolean {
     return false
 }
 
+@Synchronized
 fun runInMainThread(block: () -> Unit) {
     val main_looper = Looper.getMainLooper()
     if (main_looper.thread == Thread.currentThread()) {

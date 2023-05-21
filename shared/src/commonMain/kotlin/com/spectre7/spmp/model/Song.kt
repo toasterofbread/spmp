@@ -83,9 +83,7 @@ class Song protected constructor (
         var thumbnail_rounding: Int? by mutableStateOf(null)
 
         var lyrics_id: Int? by mutableStateOf(null)
-            private set
         var lyrics_source: Lyrics.Source? by mutableStateOf(null)
-            private set
 
         @Json(ignored = true)
         val lyrics_listeners = ValueListeners<Pair<Int, Lyrics.Source>?>()

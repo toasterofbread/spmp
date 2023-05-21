@@ -15,11 +15,8 @@ enum class AccentColourSource {
 enum class NowPlayingQueueRadioInfoPosition {
     TOP_BAR, ABOVE_ITEMS
 }
-enum class PlayerViewTopBarAction {
-    TOGGLE_LYRICS, OPEN_LYRICS, NONE
-}
 enum class MusicTopBarMode {
-    VISUALISER, LYRICS
+    NONE, VISUALISER, LYRICS
 }
 
 @Composable
@@ -91,14 +88,11 @@ enum class Settings {
     KEY_ACC_SCREEN_OFF,
 
     // Top bar content TODO
+    KEY_TOPBAR_LYRICS_LINGER,
     KEY_TOPBAR_DEFAULT_MODE_HOME,
     KEY_TOPBAR_DEFAULT_MODE_NOWPLAYING,
     KEY_TOPBAR_DEFAULT_MODE_QUEUE,
-
-    // Home page
-    KEY_HP_SHOW_VISUALISER,
-    KEY_HP_SHOW_TIMED_LYRICS,
-    KEY_HP_TOP_BAR_ACTION,
+    KEY_TOPBAR_SHOW_IN_QUEUE,
 
     // Recommendation feed
     KEY_FEED_SHOW_FILTERS,
@@ -158,6 +152,10 @@ enum class Settings {
     fun <T> set(value: T?, preferences: ProjectPreferences = prefs) {
         Settings.set(this, value, preferences)
     }
+
+    @Composable
+    fun <T> rememberMutableState(preferences: ProjectPreferences = prefs): MutableState<T> =
+        mutableSettingsState(this, preferences)
 
     companion object {
         val prefs: ProjectPreferences get() = SpMp.context.getPrefs()
@@ -229,15 +227,12 @@ enum class Settings {
                 KEY_ACC_VOL_INTERCEPT_NOTIFICATION -> false
                 KEY_ACC_SCREEN_OFF -> false
 
-                // Top bar content TODO
+                // Top bar content
+                KEY_TOPBAR_LYRICS_LINGER -> true
                 KEY_TOPBAR_DEFAULT_MODE_HOME -> MusicTopBarMode.LYRICS.ordinal
                 KEY_TOPBAR_DEFAULT_MODE_NOWPLAYING -> MusicTopBarMode.LYRICS.ordinal
                 KEY_TOPBAR_DEFAULT_MODE_QUEUE -> MusicTopBarMode.LYRICS.ordinal
-
-                // Home page
-                KEY_HP_SHOW_VISUALISER -> true
-                KEY_HP_SHOW_TIMED_LYRICS -> true
-                KEY_HP_TOP_BAR_ACTION -> PlayerViewTopBarAction.TOGGLE_LYRICS.ordinal
+                KEY_TOPBAR_SHOW_IN_QUEUE -> true
 
                 // Recommendation feed
                 KEY_FEED_SHOW_FILTERS -> true

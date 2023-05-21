@@ -187,11 +187,6 @@
     <string name="s_key_hp_show_timed_lyrics">Show timed lyrics</string>
     <string name="s_sub_hp_show_timed_lyrics">Timed lyrics will appear on the top bar if available</string>
 
-    <string name="s_key_hp_top_bar_action">Top bar click action</string>
-    <string name="s_option_hp_top_bar_action_toggle_lyrics">Toggle timed lyrics</string>
-    <string name="s_option_hp_top_bar_action_open_lyrics">Open displayed lyrics</string>
-    <string name="s_option_hp_top_bar_action_none">None</string>
-
     <string name="s_group_rec_feed">Recommended feed</string>
     <string name="s_key_feed_show_filters">Show filters if available</string>
     <string name="s_key_feed_initial_rows">Initial feed rows</string>
@@ -335,11 +330,15 @@
     <string name="s_key_discord_status_button_project_text">Project page button text</string>
 
     <string name="s_group_topbar">Music top bar</string>
+    <string name="s_key_topbar_lyrics_linger">Lyrics linger</string>
+    <string name="s_sub_topbar_lyrics_linger">When a line ends, it will remain visible until the next line begins</string>
     <string name="s_key_topbar_default_mode_home">Default mode (main page)</string>
     <string name="s_key_topbar_default_mode_nowplaying">Default mode (now playing)</string>
     <string name="s_key_topbar_default_mode_queue">Default mode (song queue)</string>
+    <string name="s_key_topbar_show_in_queue">Show in music queue</string>
     <string name="s_option_topbar_mode_visualiser">Visualiser</string>
     <string name="s_option_topbar_mode_lyrics">Lyrics</string>
+    <string name="s_option_topbar_mode_none">Nothing</string>
 
     <string name="s_cat_desc_general">Language, behaviour, and other options</string>
     <string name="s_cat_desc_home_page">Cherry-pick song recommendations</string>

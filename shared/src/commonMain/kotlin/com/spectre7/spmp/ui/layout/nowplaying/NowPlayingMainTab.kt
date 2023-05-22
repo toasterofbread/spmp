@@ -2,31 +2,31 @@ package com.spectre7.spmp.ui.layout.nowplaying
 
 import LocalPlayerState
 import SpMp
-import androidx.compose.animation.*
-import androidx.compose.animation.core.tween
+import androidx.compose.animation.AnimatedVisibility
+import androidx.compose.animation.animateContentSize
+import androidx.compose.animation.expandHorizontally
+import androidx.compose.animation.shrinkHorizontally
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
-import androidx.compose.foundation.gestures.detectTapGestures
 import androidx.compose.foundation.interaction.MutableInteractionSource
 import androidx.compose.foundation.layout.*
-import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.*
 import androidx.compose.material.ripple.rememberRipple
-import androidx.compose.material3.*
+import androidx.compose.material3.Icon
+import androidx.compose.material3.IconButton
+import androidx.compose.material3.Text
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.alpha
-import androidx.compose.ui.draw.clip
-import androidx.compose.ui.draw.scale
 import androidx.compose.ui.geometry.Offset
-import androidx.compose.ui.graphics.*
+import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.graphics.ColorFilter
+import androidx.compose.ui.graphics.StrokeCap
+import androidx.compose.ui.graphics.graphicsLayer
 import androidx.compose.ui.graphics.vector.ImageVector
-import androidx.compose.ui.input.pointer.pointerInput
-import androidx.compose.ui.layout.onSizeChanged
-import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.text.style.TextOverflow
@@ -34,322 +34,30 @@ import androidx.compose.ui.unit.*
 import com.github.krottv.compose.sliders.DefaultThumb
 import com.github.krottv.compose.sliders.SliderValueHorizontal
 import com.spectre7.spmp.PlayerServiceHost
-import com.spectre7.spmp.model.MediaItemThumbnailProvider
-import com.spectre7.spmp.model.Settings
 import com.spectre7.spmp.model.Song
-import com.spectre7.spmp.platform.composable.BackHandler
-import com.spectre7.spmp.platform.getPixel
 import com.spectre7.spmp.platform.vibrateShort
-import com.spectre7.spmp.resources.getString
-import com.spectre7.spmp.ui.component.LikeDislikeButton
-import com.spectre7.spmp.ui.component.MusicTopBar
 import com.spectre7.spmp.ui.layout.mainpage.MINIMISED_NOW_PLAYING_HEIGHT
 import com.spectre7.spmp.ui.layout.mainpage.MINIMISED_NOW_PLAYING_V_PADDING
-import com.spectre7.spmp.ui.layout.nowplaying.overlay.DEFAULT_THUMBNAIL_ROUNDING
-import com.spectre7.spmp.ui.layout.nowplaying.overlay.MainOverlayMenu
-import com.spectre7.spmp.ui.layout.nowplaying.overlay.OverlayMenu
 import com.spectre7.spmp.ui.theme.Theme
 import com.spectre7.utils.composable.Marquee
 import com.spectre7.utils.composable.OnChangedEffect
 import com.spectre7.utils.composable.RecomposeOnInterval
 import com.spectre7.utils.formatElapsedTime
-import com.spectre7.utils.getInnerSquareSizeOfCircle
 import com.spectre7.utils.setAlpha
 import kotlin.math.absoluteValue
-import kotlin.math.min
 
 const val NOW_PLAYING_MAIN_PADDING = 10f
 
-private const val MINIMISED_NOW_PLAYING_HORIZ_PADDING = 10f
-private const val OVERLAY_MENU_ANIMATION_DURATION: Int = 200
+internal const val MINIMISED_NOW_PLAYING_HORIZ_PADDING = 10f
+internal const val OVERLAY_MENU_ANIMATION_DURATION: Int = 200
 internal const val NOW_PLAYING_TOP_BAR_HEIGHT: Int = 40
 internal const val MIN_EXPANSION = 0.07930607f
 
 @Composable
-fun TopBar(modifier: Modifier) {
-    val player = LocalPlayerState.current
-
-    Crossfade(PlayerServiceHost.status.m_song, modifier) { song ->
-        if (song == null) {
-            return@Crossfade
-        }
-        Row(Modifier.fillMaxSize(), horizontalArrangement = Arrangement.SpaceBetween) {
-            LikeDislikeButton(
-                song,
-                Modifier.width(40.dp).fillMaxHeight(),
-                colourProvider = { getNPOnBackground().setAlpha(0.5f) }
-            )
-
-            MusicTopBar(song, Settings.KEY_TOPBAR_DEFAULT_MODE_NOWPLAYING.getEnum(), Modifier.fillMaxSize().weight(1f))
-
-            IconButton({
-                player.onMediaItemLongClicked(song, PlayerServiceHost.status.index)
-            }) {
-                Icon(Icons.Filled.MoreHoriz, null, tint = getNPOnBackground().setAlpha(0.5f))
-            }
-        }
-    }
-}
-
-@Composable
-fun ThumbnailRow(
-    modifier: Modifier,
-    getExpansion: () -> Float,
-    getFullExpansion: () -> Float,
-    onThumbnailLoaded: (Song?) -> Unit,
-    setThemeColour: (Color?) -> Unit,
-    getSeekState: () -> Float
-) {
-    val expansion = getExpansion()
-    val current_song = PlayerServiceHost.status.m_song
-
-    val thumbnail_rounding: Int? = current_song?.song_reg_entry?.thumbnail_rounding
-    val thumbnail_shape = RoundedCornerShape(thumbnail_rounding ?: DEFAULT_THUMBNAIL_ROUNDING)
-    var image_size by remember { mutableStateOf(IntSize(1, 1)) }
-    val disappear_scale = minOf(1f, if (expansion < 0.5f) 1f else (1f - ((expansion - 0.5f) * 2f)))
-
-    Row(
-        modifier,
-        verticalAlignment = Alignment.CenterVertically,
-        horizontalArrangement = Arrangement.SpaceEvenly
-    ) {
-        var overlay_menu by remember { mutableStateOf<OverlayMenu?>(null) }
-        var colourpick_callback by remember { mutableStateOf<((Color?) -> Unit)?>(null) }
-
-        LaunchedEffect(expansion > 0f) {
-            overlay_menu = null
-        }
-
-        var get_shutter_menu by remember { mutableStateOf<(@Composable () -> Unit)?>(null) }
-        var shutter_menu_open by remember { mutableStateOf(false) }
-        LaunchedEffect(expansion >= EXPANDED_THRESHOLD) {
-            shutter_menu_open = false
-            overlay_menu = null
-        }
-
-        // Keep thumbnail centered
-        Spacer(Modifier)
-
-        Box(Modifier.aspectRatio(1f)) {
-
-            Crossfade(current_song, animationSpec = tween(250)) { song ->
-                var image: ImageBitmap? by remember { mutableStateOf(null) }
-                song?.Thumbnail(
-                    MediaItemThumbnailProvider.Quality.HIGH,
-                    contentColourProvider = { getNPOnBackground() },
-                    onLoaded = {
-                        image = it
-                        onThumbnailLoaded(song)
-                    },
-                    modifier = Modifier
-                        .aspectRatio(1f)
-                        .clip(thumbnail_shape)
-                        .onSizeChanged {
-                            image_size = it
-                        }
-                        .run {
-                            if (colourpick_callback == null) {
-                                if (overlay_menu == null || overlay_menu!!.closeOnTap()) {
-                                    this.clickable(
-                                        enabled = expansion == 1f,
-                                        indication = null,
-                                        interactionSource = remember { MutableInteractionSource() }
-                                    ) {
-                                        overlay_menu = if (overlay_menu == null) MainOverlayMenu(
-                                            { overlay_menu = it },
-                                            { colourpick_callback = it },
-                                            {
-                                                setThemeColour(it)
-                                                overlay_menu = null
-                                            },
-                                            { SpMp.context.getScreenWidth() }
-                                        ) else null
-                                    }
-                                }
-                                else {
-                                    this
-                                }
-                            }
-                            else {
-                                this.pointerInput(Unit) {
-                                    detectTapGestures(
-                                        onTap = { offset ->
-                                            if (colourpick_callback != null) {
-                                                image?.apply {
-                                                    val bitmap_size = min(width, height)
-                                                    var x = (offset.x / image_size.width) * bitmap_size
-                                                    var y = (offset.y / image_size.height) * bitmap_size
-
-                                                    if (width > height) {
-                                                        x += (width - height) / 2
-                                                    }
-                                                    else if (height > width) {
-                                                        y += (height - width) / 2
-                                                    }
-
-                                                    colourpick_callback?.invoke(
-                                                        getPixel(x.toInt(), y.toInt())
-                                                    )
-                                                    colourpick_callback = null
-                                                }
-                                            }
-                                        }
-                                    )
-                                }
-                            }
-                        }
-                )
-            }
-
-            // Thumbnail overlay menu
-            androidx.compose.animation.AnimatedVisibility(
-                overlay_menu != null,
-                enter = fadeIn(tween(OVERLAY_MENU_ANIMATION_DURATION)),
-                exit = fadeOut(tween(OVERLAY_MENU_ANIMATION_DURATION))
-            ) {
-                Box(
-                    Modifier
-                        .alpha(expansion)
-                        .fillMaxSize()
-                        .background(
-                            Color.DarkGray.setAlpha(0.85f),
-                            shape = thumbnail_shape
-                        ),
-                    contentAlignment = Alignment.Center
-                ) {
-                    Box(
-                        Modifier
-                            .size(with (LocalDensity.current) {
-                                getInnerSquareSizeOfCircle(
-                                    radius = image_size.height.toDp().value,
-                                    corner_percent = thumbnail_rounding ?: DEFAULT_THUMBNAIL_ROUNDING
-                                ).dp
-                            }),
-                        contentAlignment = Alignment.Center
-                    ) {
-                        Crossfade(overlay_menu) { menu ->
-                            if (menu != null) {
-                                BackHandler {
-                                    overlay_menu = null
-                                    colourpick_callback = null
-                                }
-                            }
-
-                            menu?.Menu(
-                                { PlayerServiceHost.status.m_song!! },
-                                expansion,
-                                {
-                                    get_shutter_menu = it
-                                    shutter_menu_open = true
-                                },
-                                {
-                                    overlay_menu = null
-                                },
-                                getSeekState
-                            )
-                        }
-                    }
-                }
-
-                androidx.compose.animation.AnimatedVisibility(
-                    shutter_menu_open,
-                    enter = expandVertically(tween(200)),
-                    exit = shrinkVertically(tween(200))
-                ) {
-                    val padding = 15.dp
-                    CompositionLocalProvider(
-                        LocalContentColor provides getNPOnBackground()
-                    ) {
-                        Column(
-                            Modifier
-                                .background(
-                                    getNPBackground().setAlpha(0.9f),
-                                    thumbnail_shape
-                                )
-                                .padding(start = padding, top = padding, end = padding)
-                                .fillMaxSize(),
-                            horizontalAlignment = Alignment.CenterHorizontally,
-                            verticalArrangement = Arrangement.SpaceBetween
-                        ) {
-                            Column(
-                                Modifier
-                                    .fillMaxHeight()
-                                    .weight(1f),
-                                horizontalAlignment = Alignment.CenterHorizontally,
-                                verticalArrangement = Arrangement.Center
-                            ) {
-                                get_shutter_menu?.invoke()
-                            }
-                            IconButton(onClick = { shutter_menu_open = false }) {
-                                Icon(
-                                    Icons.Filled.KeyboardArrowUp, null,
-                                    tint = getNPOnBackground(),
-                                    modifier = Modifier.size(50.dp)
-                                )
-                            }
-                        }
-                    }
-                }
-            }
-        }
-
-        Row(
-            Modifier
-                .fillMaxWidth(1f - getFullExpansion())
-                .scale(disappear_scale, 1f),
-            horizontalArrangement = Arrangement.End,
-            verticalAlignment = Alignment.CenterVertically
-        ) {
-            Spacer(Modifier.requiredWidth(10.dp))
-
-            Column(Modifier.fillMaxSize().weight(1f), verticalArrangement = Arrangement.SpaceEvenly) {
-                Text(
-                    current_song?.title ?: "",
-                    maxLines = 1,
-                    color = getNPOnBackground(),
-                    overflow = TextOverflow.Ellipsis
-                )
-                Text(
-                    current_song?.artist?.title ?: "",
-                    maxLines = 1,
-                    color = getNPOnBackground(),//.copy(alpha = 0.5f),
-                    overflow = TextOverflow.Ellipsis,
-                    style = MaterialTheme.typography.bodySmall
-                )
-            }
-
-            val player_button_modifier = Modifier.size(40.dp)
-            IconButton(PlayerServiceHost.player::playPause, player_button_modifier) {
-                Image(
-                    if (PlayerServiceHost.status.m_playing) Icons.Filled.Pause else Icons.Filled.PlayArrow,
-                    getString(if (PlayerServiceHost.status.m_playing) "media_pause" else "media_play"),
-                    colorFilter = ColorFilter.tint(getNPOnBackground())
-                )
-            }
-
-            IconButton(PlayerServiceHost.player::seekToNext, player_button_modifier) {
-                Image(
-                    Icons.Filled.SkipNext,
-                    null,
-                    colorFilter = ColorFilter.tint(getNPOnBackground())
-                )
-            }
-        }
-    }
-}
-
-@Composable
-fun ColumnScope.NowPlayingMainTab(
-    expansionProvider: () -> Float,
-    scroll: (pages: Int) -> Unit
-) {
+fun ColumnScope.NowPlayingMainTab() {
     val current_song: Song? = PlayerServiceHost.status.m_song
-
-    val _expansion = minOf(2f, expansionProvider())
-    val expansion =
-        if (_expansion <= 1f) _expansion
-        else 2f - _expansion
-
+    val expansion = LocalNowPlayingExpansion.current
+    
     var theme_colour by remember { mutableStateOf<Color?>(null) }
     fun setThemeColour(value: Color?) {
         theme_colour = value
@@ -357,9 +65,6 @@ fun ColumnScope.NowPlayingMainTab(
     }
 
     var seek_state by remember { mutableStateOf(-1f) }
-
-    val disappear_scale = minOf(1f, if (expansion < 0.5f) 1f else (1f - ((expansion - 0.5f) * 2f)))
-    val appear_scale = minOf(1f, if (expansion > 0.5f) 1f else (expansion * 2f))
 
     LaunchedEffect(theme_colour) {
         Theme.currentThumbnnailColourChanged(theme_colour)
@@ -389,12 +94,12 @@ fun ColumnScope.NowPlayingMainTab(
 
     val offsetProvider: Density.() -> IntOffset = remember {
         {
-            val exp = minOf(2f, expansionProvider())
+            val absolute = expansion.getBounded()
             IntOffset(
                 0,
-                if (exp > 1f)
+                if (absolute > 1f)
                     (
-                        -screen_height * ((NOW_PLAYING_VERTICAL_PAGE_COUNT * 0.5f) - exp)
+                        -screen_height * ((NOW_PLAYING_VERTICAL_PAGE_COUNT * 0.5f) - absolute)
                     ).toPx().toInt()
                 else 0
             )
@@ -407,56 +112,38 @@ fun ColumnScope.NowPlayingMainTab(
             .offset(offsetProvider),
         horizontalAlignment = Alignment.CenterHorizontally
     ) {
-        val show_top_bar_in_queue: Boolean = Settings.KEY_TOPBAR_SHOW_IN_QUEUE.get()
-        val top_bar_height = if (!show_top_bar_in_queue || _expansion < 1f) appear_scale else 1f
-        val top_bar_alpha = if (!show_top_bar_in_queue || _expansion < 1f) 1f - disappear_scale else 1f
-
-        val top_bar_modifier = Modifier
-            .fillMaxWidth()
-            .requiredHeight(NOW_PLAYING_TOP_BAR_HEIGHT.dp * top_bar_height)
-            .alpha(top_bar_alpha)
-            .padding(horizontal = NOW_PLAYING_MAIN_PADDING.dp)
-
-        if (top_bar_alpha > 0f) {
-            TopBar(top_bar_modifier)
-        }
-        else {
-            Spacer(top_bar_modifier)
-        }
+        TopBar()
 
         val screen_width = SpMp.context.getScreenWidth()
 
         ThumbnailRow(
             Modifier
-                .padding(top = MINIMISED_NOW_PLAYING_V_PADDING.dp * (1f - _expansion).coerceAtLeast(0f))
+                .padding(top = MINIMISED_NOW_PLAYING_V_PADDING.dp * (1f - expansion.getBounded()).coerceAtLeast(0f))
                 .height(
-                    (expansion * (screen_width - (NOW_PLAYING_MAIN_PADDING.dp * 2))).coerceAtLeast(MINIMISED_NOW_PLAYING_HEIGHT.dp - (MINIMISED_NOW_PLAYING_V_PADDING.dp * 2))
+                    (expansion.getAbsolute() * (screen_width - (NOW_PLAYING_MAIN_PADDING.dp * 2))).coerceAtLeast(MINIMISED_NOW_PLAYING_HEIGHT.dp - (MINIMISED_NOW_PLAYING_V_PADDING.dp * 2))
                 )
                 .width(
                     screen_width -
-                        (2 * (MINIMISED_NOW_PLAYING_HORIZ_PADDING.dp + ((MINIMISED_NOW_PLAYING_HORIZ_PADDING.dp - NOW_PLAYING_MAIN_PADDING.dp) * expansion)))
+                        (2 * (MINIMISED_NOW_PLAYING_HORIZ_PADDING.dp + ((MINIMISED_NOW_PLAYING_HORIZ_PADDING.dp - NOW_PLAYING_MAIN_PADDING.dp) * expansion.getAbsolute())))
                 ),
-            { expansion },
-            { expansion },
             { onThumbnailLoaded(it) },
             { setThemeColour(it) },
             { seek_state }
         )
     }
 
-    if (expansion > 0.0f) {
+    if (expansion.getAbsolute() > 0.0f) {
         Controls(
             current_song,
             {
                 PlayerServiceHost.player.seekTo((PlayerServiceHost.player.duration_ms * it).toLong())
                 seek_state = it
             },
-            scroll,
             Modifier
                 .weight(1f)
                 .offset(offsetProvider)
                 .graphicsLayer {
-                    alpha = 1f - (1f - _expansion).absoluteValue
+                    alpha = 1f - (1f - expansion.getBounded()).absoluteValue
                 }
                 .padding(horizontal = NOW_PLAYING_MAIN_PADDING.dp)
         )
@@ -467,7 +154,6 @@ fun ColumnScope.NowPlayingMainTab(
 private fun Controls(
     song: Song?,
     seek: (Float) -> Unit,
-    scroll: (pages: Int) -> Unit,
     modifier: Modifier = Modifier
 ) {
     val player = LocalPlayerState.current
@@ -604,8 +290,9 @@ private fun Controls(
                     }
                 }
 
+                val expansion = LocalNowPlayingExpansion.current
                 IconButton(
-                    { scroll(1) }
+                    { expansion.scroll(1) }
                 ) {
                     Icon(Icons.Filled.KeyboardArrowDown, null, tint = bottom_row_colour)
                 }

@@ -8,7 +8,7 @@ import com.spectre7.spmp.model.Playlist
 import com.spectre7.spmp.resources.getString
 import okhttp3.Request
 
-fun getBuiltRadio(radio_token: String): Result<Playlist?> {
+suspend fun getBuiltRadio(radio_token: String): Result<Playlist?> {
     require(radio_token.startsWith("VLRDAT"))
     require(radio_token.contains('E'))
 

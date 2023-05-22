@@ -41,6 +41,7 @@ import com.spectre7.spmp.ui.theme.ThemeManager
 import com.spectre7.utils.composable.WidthShrinkText
 import com.spectre7.utils.modifier.background
 import org.jetbrains.compose.resources.*
+import kotlin.math.roundToInt
 
 private enum class Page {
     ROOT,
@@ -334,6 +335,14 @@ private fun getMusicTopBarGroup(): List<SettingsItem> {
         SettingsItemToggle(
             SettingsValueState(Settings.KEY_TOPBAR_LYRICS_LINGER.name),
             getString("s_key_topbar_lyrics_linger"), getString("s_sub_topbar_lyrics_linger")
+        ),
+
+        SettingsItemSlider(
+            SettingsValueState<Float>(Settings.KEY_TOPBAR_VISUALISER_WIDTH.name),
+            getStringTODO("Visualiser width"), null,
+            getValueText = { value ->
+                "${(value * 100f).roundToInt()}%"
+            }
         ),
 
         SettingsItemMultipleChoice(

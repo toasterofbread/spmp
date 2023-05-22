@@ -12,6 +12,9 @@ import com.spectre7.spmp.model.YoutubeMusicAuthInfo
 import com.spectre7.spmp.platform.ProjectPreferences
 import com.spectre7.spmp.resources.getString
 import com.spectre7.spmp.resources.getStringArray
+import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.SupervisorJob
 import okhttp3.*
 import okhttp3.MediaType.Companion.toMediaType
 import okhttp3.RequestBody.Companion.toRequestBody
@@ -71,6 +74,7 @@ class DataApi {
             Logger.getLogger(OkHttpClient::class.java.name).level = Level.FINE
         }
         val user_agent: String get() = getString("ytm_user_agent")
+        val scope = CoroutineScope(Dispatchers.IO + SupervisorJob())
 
         private val enum_converter = object : Converter {
             override fun canConvert(cls: Class<*>): Boolean {

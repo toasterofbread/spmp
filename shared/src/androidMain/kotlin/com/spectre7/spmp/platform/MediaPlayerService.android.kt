@@ -46,8 +46,14 @@ actual open class MediaPlayerService {
         actual open fun onEvents() {}
 
         private val listener = object : Player.Listener {
+            var current_song: Song? = null
             override fun onMediaItemTransition(item: ExoMediaItem?, reason: Int) {
-                onSongTransition(item?.getSong())
+                val song = item?.getSong()
+                if (song == current_song) {
+                    return
+                }
+                current_song = song
+                onSongTransition(song)
             }
             override fun onPlaybackStateChanged(state: Int) {
                 onStateChanged(convertState(state))
@@ -318,6 +324,7 @@ actual open class MediaPlayerService {
 
     private fun release() {
         player.release()
+        onDestroy()
     }
     
     actual companion object {
@@ -333,6 +340,7 @@ actual open class MediaPlayerService {
                     val service = cls.newInstance()
                     service.player = controller_future.get()
                     service.context = context
+                    service.onCreate()
                     onConnected(service)
                 },
                 MoreExecutors.directExecutor()

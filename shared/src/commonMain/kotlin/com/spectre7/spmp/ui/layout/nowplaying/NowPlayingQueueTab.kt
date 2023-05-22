@@ -118,7 +118,7 @@ private class QueueTabItem(val song: Song, val key: Int) {
 
 @OptIn(ExperimentalFoundationApi::class)
 @Composable
-fun QueueTab(expansionProvider: () -> Float, scroll: (pages: Int) -> Unit) {
+fun QueueTab() {
     var key_inc by remember { mutableStateOf(0) }
     val radio_info_position: NowPlayingQueueRadioInfoPosition = Settings.getEnum(Settings.KEY_NP_QUEUE_RADIO_INFO_POSITION)
     val multiselect_context: MediaItemMultiSelectContext = remember { MediaItemMultiSelectContext() { multiselect -> } }
@@ -186,8 +186,9 @@ fun QueueTab(expansionProvider: () -> Float, scroll: (pages: Int) -> Unit) {
 
     val shape = RoundedCornerShape(topStart = 25.dp, topEnd = 25.dp)
 
+    val expansion = LocalNowPlayingExpansion.current
     val show_top_bar_in_queue: Boolean by Settings.KEY_TOPBAR_SHOW_IN_QUEUE.rememberMutableState()
-    val top_bar_height = if (show_top_bar_in_queue) NOW_PLAYING_TOP_BAR_HEIGHT.dp else 0.dp
+    val top_bar_height by animateDpAsState(if (show_top_bar_in_queue && expansion.top_bar_showing.value) NOW_PLAYING_TOP_BAR_HEIGHT.dp else 0.dp)
 
     CompositionLocalProvider(LocalContentColor provides queue_background_colour.getContrasted()) {
         Box(
@@ -388,7 +389,7 @@ fun QueueTab(expansionProvider: () -> Float, scroll: (pages: Int) -> Unit) {
                 }
             }
 
-            ActionBar(expansionProvider, scroll)
+            ActionBar()
         }
     }
 }
@@ -526,8 +527,9 @@ private fun StopAfterSongButton(backgroundColourProvider: () -> Color, modifier:
 }
 
 @Composable
-private fun BoxScope.ActionBar(expansionProvider: () -> Float, scroll: (pages: Int) -> Unit) {
+private fun BoxScope.ActionBar() {
     val slide_offset: (fullHeight: Int) -> Int = remember { { (it * 0.7).toInt() } }
+    val expansion = LocalNowPlayingExpansion.current
 
     Box(
         Modifier
@@ -535,12 +537,12 @@ private fun BoxScope.ActionBar(expansionProvider: () -> Float, scroll: (pages: I
             .padding(10.dp)) {
 
         AnimatedVisibility(
-            remember { derivedStateOf { expansionProvider() >= 0.975f } }.value,
+            remember { derivedStateOf { expansion.get() >= 0.975f } }.value,
             enter = slideInVertically(initialOffsetY = slide_offset),
             exit = slideOutVertically(targetOffsetY = slide_offset)
         ) {
             IconButton(
-                { scroll(-1) },
+                { expansion.scroll(-1) },
                 Modifier
                     .background(getNPOnBackground(), CircleShape)
                     .size(40.dp)

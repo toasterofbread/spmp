@@ -9,10 +9,7 @@ import com.spectre7.spmp.api.DataApi.Companion.ytUrl
 import com.spectre7.spmp.model.*
 import com.spectre7.spmp.ui.component.MediaItemLayout
 import com.spectre7.utils.ValueListeners
-import kotlinx.coroutines.DelicateCoroutinesApi
-import kotlinx.coroutines.GlobalScope
-import kotlinx.coroutines.Job
-import kotlinx.coroutines.launch
+import kotlinx.coroutines.*
 import okhttp3.Request
 
 private const val RADIO_ID_PREFIX = "RDAMVM"
@@ -116,7 +113,7 @@ class RadioInstance {
         }
     }
 
-    private fun getInitialSongs(): Result<List<Song>> {
+    private suspend fun getInitialSongs(): Result<List<Song>> {
         when (val item = state.item!!) {
             is Song -> {
                 val result = getSongRadio(item.id, null, state.current_filter?.let { state.filters?.get(it) } ?: emptyList())
@@ -198,7 +195,7 @@ data class YoutubeiNextResponse(
         val thumbnail: MusicThumbnailRenderer.Thumbnail
     ) {
         // Artist, certain
-        fun getArtist(host_item: Song): Result<Pair<Artist?, Boolean>> {
+        suspend fun getArtist(host_item: Song): Result<Pair<Artist?, Boolean>> {
             // Get artist ID directly
             for (run in longBylineText.runs!! + title.runs!!) {
                 if (run.browse_endpoint_type != "MUSIC_PAGE_TYPE_ARTIST" && run.browse_endpoint_type != "MUSIC_PAGE_TYPE_USER_CHANNEL") {
@@ -308,8 +305,7 @@ fun videoIdToRadio(video_id: String, filters: List<RadioModifier>): String {
     return ret.toString()
 }
 
-fun getSongRadio(video_id: String, continuation: String?, filters: List<RadioModifier> = emptyList()): Result<RadioData> {
-
+suspend fun getSongRadio(video_id: String, continuation: String?, filters: List<RadioModifier> = emptyList()): Result<RadioData> = withContext(Dispatchers.IO) {
     val request = Request.Builder()
         .ytUrl("/youtubei/v1/next")
         .addYtHeaders()
@@ -334,7 +330,7 @@ fun getSongRadio(video_id: String, continuation: String?, filters: List<RadioMod
     
     val result = DataApi.request(request)
     if (result.isFailure) {
-        return result.cast()
+        return@withContext result.cast()
     }
 
     val stream = result.getOrThrowHere().getStream()
@@ -368,16 +364,16 @@ fun getSongRadio(video_id: String, continuation: String?, filters: List<RadioMod
 
     stream.close()
 
-    return Result.success(
+    return@withContext Result.success(
         RadioData(
             radio.contents.map { item ->
                 val song = Song.fromId(item.playlistPanelVideoRenderer!!.videoId)
-                val error = song.editSongData<Result<RadioData>?> {
+                val error = song.editSongDataSuspend<Result<RadioData>?> {
                     supplyTitle(item.playlistPanelVideoRenderer.title.first_text) as Song
 
                     val artist_result = item.playlistPanelVideoRenderer.getArtist(song)
                     if (artist_result.isFailure) {
-                        return@editSongData artist_result.cast()
+                        return@editSongDataSuspend artist_result.cast()
                     }
 
                     val (artist, certain) = artist_result.getOrThrow()
@@ -389,7 +385,7 @@ fun getSongRadio(video_id: String, continuation: String?, filters: List<RadioMod
                 }
 
                 if (error != null) {
-                    return error
+                    return@withContext error
                 }
 
                 return@map song

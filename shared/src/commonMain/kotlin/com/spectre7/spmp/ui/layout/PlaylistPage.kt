@@ -49,19 +49,17 @@ fun PlaylistPage(
         accent_colour = null
 
         if (playlist.feed_layouts == null) {
-            thread {
-                val result = playlist.loadData()
-                result.fold(
-                    { playlist ->
-                        if (playlist == null) {
-                            SpMp.error_manager.onError("PlaylistPageLoad", Exception("loadData result is null"))
-                        }
-                    },
-                    { error ->
-                        SpMp.error_manager.onError("PlaylistPageLoad", error)
+            val result = playlist.loadData()
+            result.fold(
+                { playlist ->
+                    if (playlist == null) {
+                        SpMp.error_manager.onError("PlaylistPageLoad", Exception("loadData result is null"))
                     }
-                )
-            }
+                },
+                { error ->
+                    SpMp.error_manager.onError("PlaylistPageLoad", error)
+                }
+            )
         }
     }
 

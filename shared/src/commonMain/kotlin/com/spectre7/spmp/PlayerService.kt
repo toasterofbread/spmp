@@ -5,10 +5,7 @@ import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.unit.*
-import com.spectre7.spmp.api.RadioInstance
-import com.spectre7.spmp.api.RadioModifier
-import com.spectre7.spmp.api.getOrThrowHere
-import com.spectre7.spmp.api.markSongAsWatched
+import com.spectre7.spmp.api.*
 import com.spectre7.spmp.model.*
 import com.spectre7.spmp.platform.*
 import com.spectre7.spmp.resources.getString
@@ -39,7 +36,7 @@ class PlayerService : MediaPlayerService() {
     private var song_marked_as_watched: Boolean = false
 
     private var discord_rpc: DiscordStatus? = null
-    private var discord_status_update_thread: Thread? = null
+    private var discord_status_update_job: Job? = null
 
     fun updateActiveQueueIndex(delta: Int = 0) {
         if (delta != 0) {
@@ -386,7 +383,7 @@ class PlayerService : MediaPlayerService() {
     }
 
     private fun updateDiscordStatus(song: Song?) {
-        discord_status_update_thread?.interrupt()
+        discord_status_update_job?.cancel()
         discord_rpc?.apply {
             val song = song ?: getSong()
             if (song?.title == null) {
@@ -396,7 +393,7 @@ class PlayerService : MediaPlayerService() {
 
             check(song.artist?.title != null)
 
-            discord_status_update_thread = thread { catchInterrupts {
+            discord_status_update_job = DataApi.scope.launch { //catchInterrupts {
                 runBlocking {
                     fun formatText(text: String): String {
                         return text
@@ -446,7 +443,7 @@ class PlayerService : MediaPlayerService() {
                         application_id = DISCORD_APPLICATION_ID
                     )
                 }
-            }
+            //}
         }}
     }
 
@@ -498,7 +495,7 @@ class PlayerService : MediaPlayerService() {
             var first_song: Song? = null
             val request_limit = Semaphore(10)
 
-            runBlocking { coroutineScope { withContext(Dispatchers.IO) {
+            coroutineScope {
                 var i = 0
                 var line = reader.readLine()
                 while (line != null) {
@@ -539,7 +536,7 @@ class PlayerService : MediaPlayerService() {
                         }
                     }
                 }
-            }}}
+            }
 
             // Pretty sure this is safe?
             while (first_song == null) { runBlocking { delay(100) } }

@@ -171,7 +171,7 @@ fun getSongLongPressMenuData(
         multiselect_context = multiselect_context,
         multiselect_key = queue_index,
         sideButton = { modifier, background, _ ->
-            LikeDislikeButton(song, modifier, { background.getContrasted() })
+            LikeDislikeButton(song, modifier) { background.getContrasted() }
         }
     ) {
         SongLongPressPopupActions(it, queue_index)

@@ -329,6 +329,7 @@ class SettingsItemSlider(
     private var is_int: Boolean = false
     private var value_state by mutableStateOf(0f)
 
+    @Suppress("UNCHECKED_CAST")
     fun setValue(value: Float) {
         value_state = value
         if (is_int) {

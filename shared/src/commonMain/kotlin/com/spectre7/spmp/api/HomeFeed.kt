@@ -7,6 +7,8 @@ import com.spectre7.spmp.api.DataApi.Companion.getStream
 import com.spectre7.spmp.api.DataApi.Companion.ytUrl
 import com.spectre7.spmp.model.*
 import com.spectre7.spmp.ui.component.MediaItemLayout
+import kotlinx.coroutines.launch
+import kotlinx.coroutines.withContext
 import okhttp3.Request
 import java.io.InputStreamReader
 import java.time.Duration
@@ -230,11 +232,11 @@ private fun processRows(rows: List<YoutubeiShelf>, hl: String): List<MediaItemLa
                     header.thumbnail?.musicThumbnailRenderer?.thumbnail?.thumbnails?.firstOrNull()?.let {
                         MediaItemLayout.ThumbnailSource(url = it.url)
                     }
-                        ?: MediaItemLayout.ThumbnailSource(media_item = media_item).also {
-                            if (!media_item.canLoadThumbnail()) {
-                                thread { media_item.loadData() }
-                            }
+                    ?: MediaItemLayout.ThumbnailSource(media_item = media_item).also {
+                        if (!media_item.canLoadThumbnail()) {
+                            DataApi.scope.launch { media_item.loadData() }
                         }
+                    }
 
                 add(
                     LocalisedYoutubeString.raw(header.title.first_text),

@@ -105,7 +105,7 @@ data class MediaItemLayout(
             }
         }
 
-        fun loadContinuation(filters: List<RadioModifier> = emptyList()): Result<Pair<List<MediaItem>, String?>> {
+        suspend fun loadContinuation(filters: List<RadioModifier> = emptyList()): Result<Pair<List<MediaItem>, String?>> {
             return when (type) {
                 Type.SONG -> loadSongContinuation(filters)
                 Type.PLAYLIST -> loadPlaylistContinuation(false)
@@ -120,7 +120,7 @@ data class MediaItemLayout(
             }
         }
 
-        private fun loadSongContinuation(filters: List<RadioModifier>): Result<Pair<List<MediaItem>, String?>> {
+        private suspend fun loadSongContinuation(filters: List<RadioModifier>): Result<Pair<List<MediaItem>, String?>> {
             val result = getSongRadio(param as String, token, filters)
             return result.fold(
                 { Result.success(Pair(it.items, it.continuation)) },
@@ -128,7 +128,7 @@ data class MediaItemLayout(
             )
         }
 
-        private fun loadPlaylistContinuation(initial: Boolean): Result<Pair<List<MediaItem>, String?>> {
+        private suspend fun loadPlaylistContinuation(initial: Boolean): Result<Pair<List<MediaItem>, String?>> {
             if (initial) {
                 val playlist = Playlist.fromId(token)
                 playlist.feed_layouts?.single()?.also { layout ->
@@ -188,7 +188,7 @@ data class MediaItemLayout(
         var layout: MediaItemLayout? by mutableStateOf(null)
         init { check(list_page_url != null || media_item != null || action != null) }
 
-        fun loadLayout(): Result<MediaItemLayout> {
+        suspend fun loadLayout(): Result<MediaItemLayout> {
             check(media_item != null)
             check(browse_params != null)
 
@@ -216,30 +216,30 @@ data class MediaItemLayout(
     var loading_continuation: Boolean by mutableStateOf(false)
         private set
 
-    @Synchronized
-    fun loadContinuation(): Result<Any> {
-        check(continuation != null)
-
-        loading_continuation = true
-        val result = continuation!!.loadContinuation()
-        loading_continuation = false
-
-        if (result.isFailure) {
-            return result
-        }
-
-        val (new_items, cont_token) = result.getOrThrow()
-        items += new_items
-
-        if (cont_token == null) {
-            continuation = null
-        }
-        else {
-            continuation!!.update(cont_token)
-        }
-
-        return Result.success(Unit)
-    }
+//    @Synchronized
+//    fun loadContinuation(): Result<Any> {
+//        check(continuation != null)
+//
+//        loading_continuation = true
+//        val result = continuation!!.loadContinuation()
+//        loading_continuation = false
+//
+//        if (result.isFailure) {
+//            return result
+//        }
+//
+//        val (new_items, cont_token) = result.getOrThrow()
+//        items += new_items
+//
+//        if (cont_token == null) {
+//            continuation = null
+//        }
+//        else {
+//            continuation!!.update(cont_token)
+//        }
+//
+//        return Result.success(Unit)
+//    }
 
     private fun getThumbShape(): Shape {
         return if (thumbnail_item_type == MediaItemType.ARTIST) CircleShape else RectangleShape

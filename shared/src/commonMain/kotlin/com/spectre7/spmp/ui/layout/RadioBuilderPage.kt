@@ -150,7 +150,7 @@ fun RadioBuilderPage(
                         is_loading = true
                     }
 
-                    thread {
+                    DataApi.scope.launch {
                         val result = getBuiltRadio(radio_token)
 
                         result.fold(

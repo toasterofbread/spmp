@@ -71,19 +71,17 @@ fun ArtistPage(
 
     LaunchedEffect(item.id) {
         if (item.feed_layouts == null) {
-            thread {
-                val result = item.loadData()
-                result.fold(
-                    { playlist ->
-                        if (playlist == null) {
-                            SpMp.error_manager.onError("ArtistPageLoad", Exception("loadData result is null"))
-                        }
-                    },
-                    { error ->
-                        SpMp.error_manager.onError("ArtistPageLoad", error)
+            val result = item.loadData()
+            result.fold(
+                { playlist ->
+                    if (playlist == null) {
+                        SpMp.error_manager.onError("ArtistPageLoad", Exception("loadData result is null"))
                     }
-                )
-            }
+                },
+                { error ->
+                    SpMp.error_manager.onError("ArtistPageLoad", error)
+                }
+            )
         }
     }
 

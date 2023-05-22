@@ -124,6 +124,13 @@ class Song protected constructor (
         return ret
     }
 
+    suspend fun <T> editSongDataSuspend(action: suspend SongItemData.() -> T): T {
+        val ret = editDataSuspend {
+            action(this as SongItemData)
+        }
+        return ret
+    }
+
     fun editSongDataManual(action: SongItemData.() -> Unit): SongItemData {
         action(data)
         return data

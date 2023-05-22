@@ -22,8 +22,6 @@ import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.layout.onSizeChanged
-import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.unit.*
 import com.spectre7.spmp.PlayerServiceHost
 import com.spectre7.spmp.api.cast
@@ -39,6 +37,7 @@ import com.spectre7.spmp.ui.component.*
 import com.spectre7.spmp.ui.component.multiselect.MediaItemMultiSelectContext
 import com.spectre7.spmp.ui.layout.*
 import com.spectre7.spmp.ui.layout.nowplaying.NOW_PLAYING_VERTICAL_PAGE_COUNT
+import com.spectre7.spmp.ui.layout.nowplaying.NowPlayingExpansionState
 import com.spectre7.spmp.ui.layout.nowplaying.ThemeMode
 import com.spectre7.utils.addUnique
 import com.spectre7.utils.composable.OnChangedEffect
@@ -76,8 +75,10 @@ class PlayerStateImpl: PlayerState(null, null, null) {
     private var long_press_menu_showing: Boolean by mutableStateOf(false)
     private var long_press_menu_direct: Boolean by mutableStateOf(false)
 
-    private var now_playing_swipe_state: SwipeableState<Int> by mutableStateOf(SwipeableState(0))
-    private var now_playing_swipe_anchors: Map<Float, Int>? by mutableStateOf(null)
+    private val np_swipe_state: MutableState<SwipeableState<Int>> = mutableStateOf(SwipeableState(0))
+    private var np_swipe_anchors: Map<Float, Int>? by mutableStateOf(null)
+
+    val expansion_state = NowPlayingExpansionState(np_swipe_state)
 
     private val pinned_items: MutableList<MediaItem> = mutableStateListOf()
 
@@ -126,7 +127,7 @@ class PlayerStateImpl: PlayerState(null, null, null) {
     fun init() {
         val screen_height = SpMp.context.getScreenHeight().value
         LaunchedEffect(Unit) {
-            now_playing_swipe_state.init(mapOf(screen_height * -0.5f to 0))
+            np_swipe_state.value.init(mapOf(screen_height * -0.5f to 0))
         }
     }
 
@@ -136,7 +137,7 @@ class PlayerStateImpl: PlayerState(null, null, null) {
     }
 
     override fun getNowPlayingTopOffset(screen_height: Dp, density: Density): Int {
-        return with (density) { (-now_playing_swipe_state.offset.value.dp - (screen_height * 0.5f)).toPx().toInt() }
+        return with (density) { (-np_swipe_state.value.offset.value.dp - (screen_height * 0.5f)).toPx().toInt() }
     }
 
     override fun setOverlayPage(page: OverlayPage?, media_item: MediaItem?, from_current: Boolean) {
@@ -176,7 +177,7 @@ class PlayerStateImpl: PlayerState(null, null, null) {
 
         setOverlayPage(OverlayPage.MEDIAITEM, item, from_current)
 
-        if (now_playing_swipe_state.targetValue != 0) {
+        if (np_swipe_state.value.targetValue != 0) {
             switchNowPlayingPage(0)
         }
         hideLongPressMenu()
@@ -194,7 +195,7 @@ class PlayerStateImpl: PlayerState(null, null, null) {
             PlayerServiceHost.player.startRadioAtIndex(0, item)
         }
 
-        if (now_playing_swipe_state.targetValue == 0 && Settings.get(Settings.KEY_OPEN_NP_ON_SONG_PLAYED)) {
+        if (np_swipe_state.value.targetValue == 0 && Settings.get(Settings.KEY_OPEN_NP_ON_SONG_PLAYED)) {
             switchNowPlayingPage(1)
         }
     }
@@ -236,26 +237,26 @@ class PlayerStateImpl: PlayerState(null, null, null) {
         LaunchedEffect(screen_height) {
             val half_screen_height = screen_height.value * 0.5f
 
-            now_playing_swipe_anchors = (0..NOW_PLAYING_VERTICAL_PAGE_COUNT)
+            np_swipe_anchors = (0..NOW_PLAYING_VERTICAL_PAGE_COUNT)
                 .associateBy { anchor ->
                     if (anchor == 0) MINIMISED_NOW_PLAYING_HEIGHT.toFloat() - half_screen_height
                     else ((screen_height).value * anchor) - half_screen_height
                 }
 
-            val current_swipe_value = now_playing_swipe_state.targetValue
-            now_playing_swipe_state = SwipeableState(0).apply {
+            val current_swipe_value = np_swipe_state.value.targetValue
+            np_swipe_state.value = SwipeableState(0).apply {
                 init(mapOf(-half_screen_height to 0))
                 snapTo(current_swipe_value)
             }
         }
 
-        if (now_playing_swipe_anchors != null) {
-            com.spectre7.spmp.ui.layout.nowplaying.NowPlaying(now_playing_swipe_state, now_playing_swipe_anchors!!)
+        if (np_swipe_anchors != null) {
+            com.spectre7.spmp.ui.layout.nowplaying.NowPlaying(np_swipe_state.value, np_swipe_anchors!!)
         }
 
         OnChangedEffect(now_playing_switch_page) {
             if (now_playing_switch_page >= 0) {
-                now_playing_swipe_state.animateTo(now_playing_switch_page)
+                np_swipe_state.value.animateTo(now_playing_switch_page)
                 now_playing_switch_page = -1
             }
         }

@@ -93,6 +93,8 @@ enum class Settings {
     KEY_TOPBAR_DEFAULT_MODE_NOWPLAYING,
     KEY_TOPBAR_DEFAULT_MODE_QUEUE,
     KEY_TOPBAR_SHOW_IN_QUEUE,
+    KEY_TOPBAR_HIDE_WHEN_EMPTY_IN_QUEUE,
+    KEY_TOPBAR_VISUALISER_WIDTH,
 
     // Recommendation feed
     KEY_FEED_SHOW_FILTERS,
@@ -233,6 +235,8 @@ enum class Settings {
                 KEY_TOPBAR_DEFAULT_MODE_NOWPLAYING -> MusicTopBarMode.LYRICS.ordinal
                 KEY_TOPBAR_DEFAULT_MODE_QUEUE -> MusicTopBarMode.LYRICS.ordinal
                 KEY_TOPBAR_SHOW_IN_QUEUE -> true
+                KEY_TOPBAR_HIDE_WHEN_EMPTY_IN_QUEUE -> true
+                KEY_TOPBAR_VISUALISER_WIDTH -> 0.8f
 
                 // Recommendation feed
                 KEY_FEED_SHOW_FILTERS -> true

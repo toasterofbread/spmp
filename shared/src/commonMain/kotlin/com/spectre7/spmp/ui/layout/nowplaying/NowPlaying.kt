@@ -4,6 +4,8 @@ import GlobalPlayerState
 import LocalPlayerState
 import SpMp
 import androidx.compose.animation.AnimatedVisibility
+import androidx.compose.animation.core.Animatable
+import androidx.compose.animation.core.AnimationVector1D
 import androidx.compose.animation.slideInVertically
 import androidx.compose.animation.slideOutVertically
 import androidx.compose.foundation.*
@@ -53,9 +55,13 @@ internal fun getNPOnBackground(): Color {
     }
 }
 
+val LocalNowPlayingExpansion: ProvidableCompositionLocal<NowPlayingExpansionState> = staticCompositionLocalOf { GlobalPlayerState.expansion_state }
+
 @OptIn(ExperimentalMaterialApi::class)
 @Composable
 fun NowPlaying(swipe_state: SwipeableState<Int>, swipe_anchors: Map<Float, Int>) {
+    LocalNowPlayingExpansion.current.init()
+
     AnimatedVisibility(
         PlayerServiceHost.session_started,
         enter = slideInVertically(),
@@ -104,39 +110,26 @@ fun NowPlaying(swipe_state: SwipeableState<Int>, swipe_anchors: Map<Float, Int>)
             }
 
             Column(Modifier.fillMaxSize(), horizontalAlignment = Alignment.CenterHorizontally) {
-                NowPlayingCardContent(
-                    remember(screen_height) { {
-                        val expansion = (swipe_state.offset.value + half_screen_height) / screen_height.value
-                        if (expansion < 1f) (1f / (1f - MIN_EXPANSION)) * (expansion - MIN_EXPANSION)
-                        else expansion
-                    } },
-                    screen_height,
-                    { switch_to_page = if (swipe_state.targetValue == 0) 1 else 0 },
-                    { switch_to_page = swipe_state.targetValue + it },
-                )
+                NowPlayingCardContent(screen_height)
             }
         }
     }
 }
 
 @Composable
-fun NowPlayingCardContent(
-    expansionProvider: () -> Float,
-    page_height: Dp,
-    close: () -> Unit,
-    scroll: (pages: Int) -> Unit,
-) {
+fun NowPlayingCardContent(page_height: Dp) {
     val status_bar_height = SpMp.context.getStatusBarHeight()
     val status_bar_height_percent = (status_bar_height.value * 0.75) / page_height.value
     val player = LocalPlayerState.current
+    val expansion = LocalNowPlayingExpansion.current
 
-    val under_status_bar by remember { derivedStateOf { 1f - expansionProvider() < status_bar_height_percent } }
+    val under_status_bar by remember { derivedStateOf { 1f - expansion.get() < status_bar_height_percent } }
     LaunchedEffect(key1 = under_status_bar, key2 = getNPBackground()) {
         val colour = if (under_status_bar) getNPBackground() else Theme.current.background
         SpMp.context.setStatusBarColour(colour, !colour.isDark())
     }
 
-    MinimisedProgressBar(expansionProvider)
+    MinimisedProgressBar()
 
     val screen_width_dp = SpMp.context.getScreenWidth()
 
@@ -146,36 +139,34 @@ fun NowPlayingCardContent(
             modifier = Modifier
                 .requiredHeight(page_height)
                 .requiredWidth(screen_width_dp)
-                .padding(top = (status_bar_height * expansionProvider().coerceIn(0f, 1f)))
+                .padding(top = (status_bar_height * expansion.get().coerceIn(0f, 1f)))
         ) {
             CompositionLocalProvider(LocalPlayerState provides remember {
                 player.copy(
                     onClickedOverride = { item, _ ->
                         player.onMediaItemClicked(item)
-                        close()
+                        expansion.close()
                     }
                 )
             }) {
-                NowPlayingMainTab(
-                    expansionProvider,
-                    scroll
-                )
+                NowPlayingMainTab()
             }
         }
 
         Column(
             verticalArrangement = Arrangement.Top,
             modifier = Modifier
-                .requiredHeight(page_height + (maxOf(0f, expansionProvider() - 2f) * page_height))
+                .requiredHeight(page_height + (maxOf(0f, expansion.get() - 2f) * page_height))
                 .requiredWidth(screen_width_dp)
         ) {
-            QueueTab(remember { { (expansionProvider() - 1f).coerceIn(0f, 1f) } }, scroll)
+            QueueTab()
         }
     }
 }
 
 @Composable
-fun MinimisedProgressBar(expansionProvider: () -> Float) {
+fun MinimisedProgressBar() {
+    val expansion = LocalNowPlayingExpansion.current
     RecomposeOnInterval(POSITION_UPDATE_INTERVAL_MS) { state ->
         state
 
@@ -187,9 +178,8 @@ fun MinimisedProgressBar(expansionProvider: () -> Float) {
                 .requiredHeight(2.dp)
                 .fillMaxWidth()
                 .graphicsLayer {
-                    alpha = 1f - expansionProvider()
+                    alpha = 1f - expansion.get()
                 }
         )
     }
 }
-

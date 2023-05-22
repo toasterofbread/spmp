@@ -29,6 +29,9 @@ import java.net.URL
 import java.time.Duration
 import java.util.*
 import kotlin.concurrent.thread
+import kotlin.contracts.ExperimentalContracts
+import kotlin.contracts.InvocationKind
+import kotlin.contracts.contract
 
 open class MediaItemData(open val data_item: MediaItem) {
 
@@ -235,6 +238,12 @@ abstract class MediaItem(id: String) {
         return ret
     }
 
+    suspend fun <T> editDataSuspend(action: suspend MediaItemData.() -> T): T {
+        val ret = action(data)
+        saveToCache()
+        return ret
+    }
+
     fun editDataManual(action: (MediaItemData.() -> Unit)? = null): MediaItemData {
         action?.invoke(data)
         return data
@@ -298,7 +307,7 @@ abstract class MediaItem(id: String) {
         }
     }
 
-    fun loadData(force: Boolean = false): Result<MediaItem?> {
+    suspend fun loadData(force: Boolean = false): Result<MediaItem?> {
         if (!force && isFullyLoaded()) {
             loaded_callbacks?.forEach { it.invoke(this) }
             loaded_callbacks = null
@@ -481,7 +490,7 @@ abstract class MediaItem(id: String) {
     ) {
         LaunchedEffect(quality, canLoadThumbnail()) {
             if (!canLoadThumbnail()) {
-                thread { loadData() }
+                loadData()
             }
             loadAndGetThumbnail(quality)
         }

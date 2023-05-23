@@ -680,68 +680,8 @@ class SettingsItemDropdown(
                         state.value = it
                         open = false
                     }
-//                    DropdownMenu(
-//                        open,
-//                        { open = false },
-//                        Modifier.size(200.dp, 200.dp),
-//                        offset = DpOffset(50.dp, 0.dp)
-//                    ) {
-//                        for (i in 0 until item_count) {
-//                            DropdownMenuItem(onClick = { state.value = i; open = false }, text = {
-//                                Text(getItem(i))
-//                            })
-//                        }
-//                    }
                 }
             }
-
-//            Popup(Alignment.TopEnd, onDismissRequest = { open = false }) {
-//                Crossfade(open) {
-//                    Row(Modifier.fillMaxWidth().offset((-20).dp), horizontalArrangement = Arrangement.End) {
-//                        Box(
-//                            Modifier.background(theme.vibrant_accent, SETTINGS_ITEM_ROUNDED_SHAPE), contentAlignment = Alignment.TopEnd
-//                        ) {
-//                            if (it) {
-//                                LazyColumn(
-//                                    Modifier
-//                                        .width(100.dp)
-//                                        .padding(10.dp)
-//                                        .pointerInput(Unit) {
-//                                            detectTapGestures(onTap = {
-//
-//                                            })
-//                                        },
-//                                    verticalArrangement = Arrangement.spacedBy(10.dp)
-//                                ) {
-//                                    items(item_count) { i ->
-//                                        val item = getItem(i)
-//                                        Row(
-//                                            verticalAlignment = Alignment.CenterVertically,
-//                                            modifier = Modifier
-//                                                .height(30.dp).fillMaxWidth()
-//                                                .clickable {
-//                                                    open = false
-//                                                    state.value = i
-//                                                }
-//                                        ) {
-//                                            Icon(
-//                                                Icons.Filled.KeyboardArrowRight,
-//                                                null,
-//                                                tint = theme.on_accent
-//                                            )
-//                                            Text(
-//                                                item,
-//                                                color = theme.on_accent,
-//                                                fontWeight = FontWeight.Medium
-//                                            )
-//                                        }
-//                                    }
-//                                }
-//                            }
-//                        }
-//                    }
-//                }
-//            }
         }
     }
 }

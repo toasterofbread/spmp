@@ -63,7 +63,7 @@ fun ArtistPage(
     require(!item.is_for_item)
 
     var show_info by remember { mutableStateOf(false) }
-    val multiselect_context = remember { MediaItemMultiSelectContext() { multiselect -> } }
+    val multiselect_context = remember { MediaItemMultiSelectContext() {} }
     val player = LocalPlayerState.current
 
     val gradient_size = 0.35f
@@ -229,7 +229,7 @@ fun ArtistPage(
 
             item {
                 AnimatedVisibility(multiselect_context.is_active) {
-                    multiselect_context.InfoDisplay()
+                    multiselect_context.InfoDisplay(background_modifier)
                 }
             }
 

@@ -515,10 +515,12 @@ fun MediaItemCard(
                     .padding(horizontal = 15.dp, vertical = 5.dp),
                 verticalArrangement = Arrangement.SpaceEvenly
             ) {
-                WidthShrinkText(
-                    item.title!!,
-                    style = LocalTextStyle.current.copy(color = (accent_colour ?: Theme.current.accent).getContrasted())
-                )
+                Marquee {
+                    Text(
+                        item.title!!,
+                        style = LocalTextStyle.current.copy(color = (accent_colour ?: Theme.current.accent).getContrasted())
+                    )
+                }
                 item.artist?.PreviewLong(MediaItem.PreviewParams(
                     contentColour = { (accent_colour ?: Theme.current.accent).getContrasted() }
                 ))

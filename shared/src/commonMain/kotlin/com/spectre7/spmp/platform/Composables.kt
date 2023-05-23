@@ -5,7 +5,7 @@ import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.lazy.LazyColumn
-import androidx.compose.foundation.lazy.rememberLazyListState
+import androidx.compose.foundation.lazy.rememberLazylist_state
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.*
 import androidx.compose.runtime.Composable
@@ -33,19 +33,19 @@ fun LargeDropdownMenu(
 
     if (expanded) {
         PlatformDialog(
-            onDismissRequest = onDismissRequest,
+            onDismissRequest = onDismissRequest
         ) {
             Surface(
                 modifier,
                 shape = RoundedCornerShape(12.dp),
                 color = container_colour
             ) {
-                val listState = rememberLazyListState()
-                LaunchedEffect("ScrollToSelected") {
-                    listState.scrollToItem(index = selected)
+                val list_state = rememberLazylist_state()
+                LaunchedEffect(Unit) {
+                    list_state.scrollToItem(index = selected)
                 }
 
-                LazyColumn(modifier = Modifier.fillMaxWidth(), state = listState) {
+                LazyColumn(modifier = Modifier.fillMaxWidth(), state = list_state) {
                     items(item_count) { index ->
                         Box(
                             Modifier
@@ -77,12 +77,12 @@ fun LargeDropdownMenuItem(
     enabled: Boolean,
     onClick: () -> Unit,
 ) {
-    val contentColor = when {
+    val content_colour = when {
         selected -> MaterialTheme.colorScheme.primary
         else -> MaterialTheme.colorScheme.onSurface
     }
 
-    CompositionLocalProvider(LocalContentColor provides contentColor) {
+    CompositionLocalProvider(LocalContentColor provides content_colour) {
         Box(modifier = Modifier
             .clickable(enabled) { onClick() }
             .fillMaxWidth()

@@ -401,21 +401,42 @@ private fun CurrentRadioIndicator(
     multiselect_context: MediaItemMultiSelectContext
 ) {
     val horizontal_padding = 15.dp
-    Column(Modifier.animateContentSize()) {
+    Row(Modifier.animateContentSize()) {
+
+        var show_radio_info: Boolean by remember { mutableStateOf(false) }
         val radio_item: MediaItem? = PlayerServiceHost.player.radio_item
-        if (radio_item != null && radio_item !is Song) {
-            radio_item.PreviewLong(MediaItem.PreviewParams(
-                Modifier.padding(horizontal = horizontal_padding),
-//                contentColour = { backgroundColourProvider().getContrasted() }
-            ))
+        
+        LaunchedEffect(radio_item) {
+            if (radio_item == null) {
+                show_radio_info = false
+            }
+        }
+
+        AnimatedVisibility(radio_item != null) {
+            IconButton({ 
+                if (show_radio_info) {
+                    show_radio_info = false
+                }
+                else if (radio_item != null) {
+                    show_radio_info = true
+                }
+            }) {
+                Icon(Icons.Default.Info, null)
+            }
         }
 
         val filters = PlayerServiceHost.player.radio_filters
-        Crossfade(multiselect_context.is_active) { multiselect_active ->
-            if (multiselect_active) {
+
+        Crossfade(if (show_radio_info) radio_item else if (multiselect_context.is_active) true else filters ) { state ->
+            if (state == is MediaItem) {
+                state.PreviewLong(MediaItem.PreviewParams(
+                    Modifier.padding(horizontal = horizontal_padding)
+                ))
+            }
+            else if (state == true) {
                 multiselect_context.InfoDisplay(Modifier.fillMaxWidth().padding(horizontal = horizontal_padding))
             }
-            else if (filters != null) {
+            else if (state is List<List<RadioModifier>>) {
                 Row(
                     Modifier.horizontalScroll(rememberScrollState()),
                     horizontalArrangement = Arrangement.spacedBy(15.dp)
@@ -423,7 +444,7 @@ private fun CurrentRadioIndicator(
                     Spacer(Modifier)
 
                     val current_filter = PlayerServiceHost.player.radio_current_filter
-                    for (filter in listOf(null) + filters.withIndex()) {
+                    for (filter in listOf(null) + state.withIndex()) {
                         FilterChip(
                             current_filter == filter?.index,
                             onClick = {

@@ -34,6 +34,33 @@ import com.spectre7.utils.composable.*
 import kotlinx.coroutines.*
 import kotlin.concurrent.thread
 
+private enum class SortOption {
+    PLAYLIST, ALPHABET, DURATION, PLAY_COUNT,
+
+    fun getReadable(): String = 
+        getStringTODO(when(this) {
+            PLAYLIST -> "Playlist order"
+            ALPHABET -> "Name"
+            DURATION -> "Duration"
+            PLAY_COUNT -> "Listen count"
+        })
+
+    fun sortItems(items: List<MediaItem>, reverse: Boolean = false): List<MediaItem> = when (this) {
+        PLAYLIST -> 
+            if (reversed) items.asReversed() 
+            else items
+        ALPHABET -> 
+            if (reversed) items.sortedByDescending { it.title!! } 
+            else items.sortedBy { it.title!! }
+        DURATION ->
+            if (reversed) items.sortedByDescending { if (it is Song) it.duration ?: 0 else 0 }) 
+            else items.sortedBy { if (it is Song) it.duration ?: 0 else 0 }
+        PLAY_COUNT -> 
+            if (reversed) items.sortedByDescending { it.registry_entry.play_count } 
+            else items.sortedBy { it.registry_entry.play_count }
+    }
+}
+
 @Composable
 fun PlaylistPage(
     pill_menu: PillMenu,
@@ -44,6 +71,11 @@ fun PlaylistPage(
     val status_bar_height = SpMp.context.getStatusBarHeight()
     var accent_colour: Color? by remember { mutableStateOf(null) }
     val player = LocalPlayerState.current
+    val multiselect_context = remember { MediaItemMultiSelectContext() {} } }
+
+    var reorderable: Boolean by remember { mutableStateOf(false) } // TODO
+    var current_filter: String? by remember { mutableStateOf(null) }
+    var current_sort_option: SortOption by remember { mutableStateOf(SortOption.PLAYLIST) }
 
     LaunchedEffect(playlist) {
         accent_colour = null
@@ -90,61 +122,222 @@ fun PlaylistPage(
             }
 
             playlist.feed_layouts?.also { layouts ->
-                val layout = layouts.single()
-
                 item {
-                    Row(Modifier.fillMaxWidth().padding(top = 15.dp), verticalAlignment = Alignment.Bottom) {
-                        val total_duration_text = remember(playlist.total_duration) {
-                            if (playlist.total_duration == null) ""
-                            else durationToString(playlist.total_duration!!, SpMp.ui_language, false)
-                        }
+                    InteractionBar(
+                        playlist, 
+                        accent_colour,
+                        reorderable,
+                        { reorderable = it },
+                        { current_filter = it },
+                        current_sort_option,
+                        { current_sort_option = it },
+                        multiselect_context,
+                        Modifier.fillMaxWidth().padding(top = 15.dp)
+                    )
+                }
 
-                        Text(
-                            "${(playlist.item_count ?: layout.items.size) + 1}曲 $total_duration_text",
-                            style = MaterialTheme.typography.titleMedium
-                        )
+                val layout = layouts.single()
+                PlaylistItems(
+                    layout, 
+                    playlist, 
+                    multiselect_context, 
+                    reorderable,
+                    current_filter,
+                    current_sort_option,
+                    player,
+                )
+            }
+        }
+    }
+}
 
-                        Spacer(Modifier.width(50.dp))
-                        Spacer(Modifier.fillMaxWidth().weight(1f))
+private fun LazyListScope.PlaylistItems(
+    layout: MediaItemLayout, 
+    playlist: Playlist, 
+    multiselect_context: MediaItemMultiSelectContext,
+    reorderable: Boolean,
+    filter: String?,
+    sort_option: SortOption,
+    player: PlayerState
+) {
+    val sorted_items = remember(layout.items.size, sort_option) { 
+        sort_option.sortItems(layout.items)
+    }
 
-                        playlist.artist?.title?.also { artist ->
-                            Marquee(arrangement = Arrangement.End) {
-                                Text(
-                                    artist,
-                                    Modifier.clickable { player.onMediaItemClicked(playlist.artist!!) },
-                                    maxLines = 1,
-                                    overflow = TextOverflow.Ellipsis,
-                                    style = MaterialTheme.typography.titleMedium
-                                )
+    items(sorted_items.size) { i ->
+        val item = sorted_items[i]
+        check(item is Song)
+
+        if (filter != null && item.title!!.contains(filter, true)) {
+            return@items
+        }
+
+        val long_press_menu_data = remember(item) {
+            getSongLongPressMenuData(
+                song,
+                multiselect_context = multiselect_context
+            )
+        }
+
+        Row(
+            Modifier.fillMaxWidth().mediaItemPreviewInteraction(item, long_press_menu_data),
+            verticalAlignment = Alignment.CenterVertically,
+            horizontalArrangement = Arrangement.spacedBy(10.dp)
+        ) {
+            item.Thumbnail(
+                MediaItemThumbnailProvider.Quality.LOW, 
+                Modifier.size(50.dp).clip(RoundedCornerShape(SONG_THUMB_CORNER_ROUNDING)).longPressMenuIcon(long_press_menu_data)
+            )
+            Text(
+                item.title!!,
+                Modifier.fillMaxWidth().weight(1f),
+                style = MaterialTheme.typography.titleSmall
+            )
+
+            val duration_text = remember(item.duration!!) {
+                durationToString(item.duration!!, SpMp.ui_language, true)
+            }
+
+            Text(duration_text, style = MaterialTheme.typography.labelLarge)
+        }
+    }
+}
+
+@Composable
+private fun InteractionBar(
+    playlist: Playlist, 
+    accent_colour: Color?, 
+    reorderable: Boolean,
+    setReorderable: (Boolean) -> Unit,
+    setFilter: (String?) -> Unit,
+    sort_option: SortOption,
+    setSortOption: (SortOption) -> Unit,
+    multiselect_context: MediaItemMultiSelectContext,
+    modifier: Modifier = Modifier
+) {
+    val button_shape = RoundedCornerShape(10.dp)
+
+    // 0 -> search, 1 -> sort
+    var opened_menu: Int by remember { mutableStateOf(-1) }    
+
+    Column(modifier.animateContentSize()) {
+        Row(Modifier.fillMaxWidth()) {
+            val style = MaterialTheme.typography.titleMedium
+
+            Text(getStringTODO("${(playlist.item_count ?: layout.items.size) + 1}曲"), style = style)
+
+            val total_duration_text = remember(playlist.total_duration) {
+                if (playlist.total_duration == null) ""
+                else durationToString(playlist.total_duration!!, SpMp.ui_language, false)
+            }
+            Text(total_duration_text, style = style)
+
+            Spacer(Modifier.width(50.dp))
+            Spacer(Modifier.fillMaxWidth().weight(1f))
+
+            playlist.artist?.title?.also { artist ->
+                Marquee(arrangement = Arrangement.End) {
+                    Text(
+                        artist,
+                        Modifier.clickable { player.onMediaItemClicked(playlist.artist!!) },
+                        maxLines = 1,
+                        overflow = TextOverflow.Ellipsis,
+                        style = MaterialTheme.typography.titleMedium
+                    )
+                }
+            }
+        }
+
+        Row(Modifier.fillMaxWidth()) {
+            CompositionLocalProvider(LocalContentColor provides accent_colour ?: Theme.current.accent) {
+                
+                // Filter button
+                IconButton({
+                    if (opened_menu == 0) {
+                        opened_menu = -1
+                        setFilter(null)
+                    }
+                    else opened_menu = 0
+                }) {
+                    Crossfade(opened_menu == 0) { searching ->
+                        Icon(if (searching) Icons.Default.Done else Icons.Default.Search, null)
+                    }
+                }
+
+                // Animate between filter bar and remaining buttons
+                Box(Modifier.fillMaxWidth()) {
+                    AnimatedVisibility(opened_menu != 0) {
+                        Row(Modifier.fillMaxWidth()) {
+                            // Sort
+                            IconButton({ 
+                                if (opened_menu == 1) opened_menu = -1
+                                else opened_menu = 1
+                            }) {
+                                Icon(Icons.Default.Sort, null)
+                            }
+
+                            Spacer(Modifier.fillMaxWidth().weight(1f))
+
+                            // Reorder
+                            IconButton({ reorderable.value = !reorderable.value }) {
+                                Crossfade(reorderable.value) { reordering ->
+                                    Icon(if (reordering) Icons.Default.Done else Icons.Default.Reorder, null)
+                                }
+                            }
+                            // Add
+                            IconButton({ TODO() }) {
+                                Icon(Icons.Default.Add, null)
                             }
                         }
                     }
-                }
-
-                items(layout.items.size) { i ->
-                    val item = layout.items[i]
-                    check(item is Song)
-
-                    Row(
-                        Modifier.fillMaxWidth().clickable { player.onMediaItemClicked(item) },
-                        verticalAlignment = Alignment.CenterVertically,
-                        horizontalArrangement = Arrangement.spacedBy(10.dp)
-                    ) {
-                        item.Thumbnail(MediaItemThumbnailProvider.Quality.LOW, Modifier.size(50.dp).clip(RoundedCornerShape(SONG_THUMB_CORNER_ROUNDING)))
-                        Text(
-                            item.title!!,
-                            Modifier.fillMaxWidth().weight(1f),
-                            style = MaterialTheme.typography.titleSmall
-                        )
-
-                        val duration_text = remember(item.duration!!) {
-                            durationToString(item.duration!!, SpMp.ui_language, true)
-                        }
-
-                        Text(duration_text, style = MaterialTheme.typography.labelLarge)
+                    AnimatedVisibility(opened_menu == 0) {
+                        InteractionBarFilterBox(setFilter, Modifier.fillMaxWidth())
                     }
                 }
             }
+        }
+
+        AnimatedVisibility(multiselect_context.is_active) {
+            multiselect_context.InfoDisplay(background_modifier)
+        }
+
+        // Sort options
+        LargeDropdownMenu(
+            opened_menu == 1,
+            { if (opened_menu == 1) opened_menu = -1 },
+            SortOption.values().size,
+            sort_option.ordinal,
+            { SortOption.values()[it].getReadable() }
+        ) {
+            setSortOption(SortOption.values()[it])
+        }
+    }
+}
+
+@Composable
+private fun InteractionBarFilterBox(setFilter: (String?) -> Unit, modifier: Modifier = Modifier) {
+    Row(modifier) {
+        var current_filter = ""
+        TextField(
+            current_filter, 
+            { 
+                current_filter = it
+                setFilter(if (current_filter.isEmpty()) null else current_filter)
+            },
+            Modifier.fillMaxWidth().weight(1f)
+        )
+
+        IconButton(
+            {
+                current_filter = ""
+                setFilter(null)
+            },
+            colors = IconButtonDefaults.iconButtonColors(
+                containerColor = Color.Transparent,
+                contentColor = LocalContentColor.current
+            )
+        ) {
+            Icon(Icons.Default.Close, null)
         }
     }
 }

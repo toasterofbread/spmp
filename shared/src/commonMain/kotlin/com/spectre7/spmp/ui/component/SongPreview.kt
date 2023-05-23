@@ -46,7 +46,6 @@ fun SongPreviewSquare(
     val long_press_menu_data = remember(song, params.multiselect_context) {
         getSongLongPressMenuData(
             song,
-            RoundedCornerShape(SONG_THUMB_CORNER_ROUNDING),
             queue_index = queue_index,
             multiselect_context = params.multiselect_context
         )
@@ -89,7 +88,6 @@ fun SongPreviewLong(
     val long_press_menu_data = remember(song, queue_index) {
         getSongLongPressMenuData(
             song,
-            RoundedCornerShape(SONG_THUMB_CORNER_ROUNDING),
             queue_index = queue_index,
             multiselect_context = params.multiselect_context
         )
@@ -159,7 +157,7 @@ private fun InfoText(text: String, params: MediaItem.PreviewParams) {
 
 fun getSongLongPressMenuData(
     song: Song,
-    thumb_shape: Shape? = null,
+    thumb_shape: Shape? = RoundedCornerShape(SONG_THUMB_CORNER_ROUNDING),
     queue_index: Int? = null,
     multiselect_context: MediaItemMultiSelectContext? = null
 ): LongPressMenuData {

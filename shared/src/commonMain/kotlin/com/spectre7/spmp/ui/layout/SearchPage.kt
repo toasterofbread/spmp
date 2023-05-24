@@ -35,6 +35,7 @@ import com.spectre7.spmp.resources.getString
 import com.spectre7.spmp.ui.component.MediaItemLayout
 import com.spectre7.spmp.ui.component.PillMenu
 import com.spectre7.spmp.ui.theme.Theme
+import com.spectre7.spmp.ui.component.multiselect.MediaItemMultiSelectContext
 import com.spectre7.utils.*
 import com.spectre7.utils.composable.ShapedIconButton
 import com.spectre7.utils.composable.SubtleLoadingIndicator
@@ -55,6 +56,7 @@ fun SearchPage(
     val focus_manager = LocalFocusManager.current
     val keyboard_controller = LocalSoftwareKeyboardController.current
     val player = LocalPlayerState.current
+    val multiselect_context = remember { MediaItemMultiSelectContext() {} }
 
     var search_in_progress: Boolean by remember { mutableStateOf(false) }
     val search_lock = remember { Object() }
@@ -161,7 +163,7 @@ fun SearchPage(
 }
 
 @Composable
-private fun Results(results: SearchResults, bottom_padding: Dp) {
+private fun Results(results: SearchResults, bottom_padding: Dp, multiselect_context: MediaItemMultiSelectContext) {
     val horizontal_padding = 10.dp
     LazyColumn(
         Modifier.fillMaxSize(),
@@ -173,6 +175,12 @@ private fun Results(results: SearchResults, bottom_padding: Dp) {
         ),
         verticalArrangement = Arrangement.spacedBy(30.dp)
     ) {
+        item {
+            AnimatedVisibility(multiselect_context.is_active) {
+                multiselect_context.InfoDisplay(background_modifier)
+            }
+        }
+
         if (results.suggested_correction != null) {
             item {
                 Text(results.suggested_correction)
@@ -182,7 +190,7 @@ private fun Results(results: SearchResults, bottom_padding: Dp) {
         for (category in results.categories) {
             val layout = category.first
             item {
-                (layout.type ?: MediaItemLayout.Type.LIST).Layout(layout)
+                (layout.type ?: MediaItemLayout.Type.LIST).Layout(layout, multiselect_context = multiselect_context)
             }
         }
     }

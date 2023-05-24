@@ -60,7 +60,7 @@ fun getMainPageItemSize(): DpSize {
 @OptIn(ExperimentalMaterialApi::class)
 class PlayerStateImpl: PlayerState(null, null, null) {
     private var now_playing_switch_page: Int by mutableStateOf(-1)
-    private val overlay_page_undo_stack: MutableList<Triple<OverlayPage, MediaItem?, MediaItem?>?> = mutableListOf()
+    private val overlay_page_undo_stack: MutableList<Triple<OverlayPage, Data?, MediaItem?>?> = mutableListOf()
     private val bottom_padding_anim = Animatable(PlayerServiceHost.session_started.toFloat() * MINIMISED_NOW_PLAYING_HEIGHT)
     private var main_page_showing: Boolean by mutableStateOf(false)
 
@@ -83,7 +83,7 @@ class PlayerStateImpl: PlayerState(null, null, null) {
     private val pinned_items: MutableList<MediaItem> = mutableStateListOf()
 
     override var np_theme_mode: ThemeMode by mutableStateOf(Settings.getEnum(Settings.KEY_NOWPLAYING_THEME_MODE))
-    override var overlay_page: Triple<OverlayPage, MediaItem?, MediaItem?>? by mutableStateOf(null)
+    override var overlay_page: Triple<OverlayPage, Any?, MediaItem?>? by mutableStateOf(null)
         private set
     override val bottom_padding: Dp get() = bottom_padding_anim.value.dp
     override val pill_menu = PillMenu(
@@ -140,10 +140,10 @@ class PlayerStateImpl: PlayerState(null, null, null) {
         return with (density) { (-np_swipe_state.value.offset.value.dp - (screen_height * 0.5f)).toPx().toInt() }
     }
 
-    override fun setOverlayPage(page: OverlayPage?, media_item: MediaItem?, from_current: Boolean) {
-        val current = if (from_current) overlay_page!!.second!! else null
+    override fun setOverlayPage(page: OverlayPage?, data: Any?, from_current: Boolean) {
+        val current = if (from_current) (overlay_page!!.second as MediaItem) else null
 
-        val new_page = page?.let { Triple(page, media_item, current) }
+        val new_page = page?.let { Triple(page, data, current) }
         if (new_page != overlay_page) {
             overlay_page_undo_stack.add(overlay_page)
             overlay_page = new_page
@@ -181,6 +181,10 @@ class PlayerStateImpl: PlayerState(null, null, null) {
             switchNowPlayingPage(0)
         }
         hideLongPressMenu()
+    }
+
+    override fun openViewMoreURL(url: String) { 
+        
     }
 
     override fun playMediaItem(item: MediaItem, shuffle: Boolean) {
@@ -406,13 +410,14 @@ class PlayerStateImpl: PlayerState(null, null, null) {
                     )
                     OverlayPage.SETTINGS -> PrefsPage(pill_menu, close)
                     OverlayPage.MEDIAITEM -> Crossfade(page) { p ->
-                        when (val item = p.second) {
+                        when (val item = (p.second as MediaItem?)) {
                             null -> {}
                             is Artist -> ArtistPage(pill_menu, item, p.third, close)
                             is Playlist -> PlaylistPage(pill_menu, item, p.third, close)
                             else -> throw NotImplementedError()
                         }
                     }
+                    OverlayPage.VIEW_MORE_URL -> TODO(page.second as String)
                     OverlayPage.LIBRARY -> LibraryPage(pill_menu, close = close)
                     OverlayPage.RADIO_BUILDER -> RadioBuilderPage(
                         pill_menu,

@@ -84,8 +84,8 @@ data class MediaItemLayout(
     }
 
     @Composable
-    fun Layout(modifier: Modifier = Modifier) {
-        type!!.Layout(this, modifier)
+    fun Layout(modifier: Modifier = Modifier, multiselect_context: MediaItemMultiSelectContext? = null) {
+        type!!.Layout(this, modifier, multiselect_context)
     }
 
 

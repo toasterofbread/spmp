@@ -230,9 +230,17 @@ fun RadioBuilderPage(
                             }
                             else if (playlist?.feed_layouts?.isNotEmpty() == true) {
                                 val layout = playlist.feed_layouts!!.first()
+                                val multiselect_context = remember { MediaItemMultiSelectContext() {} }
+
                                 LazyColumn(Modifier.fillMaxSize(), contentPadding = PaddingValues(bottom = bottom_padding)) {
+                                    item {
+                                        AnimatedVisibility(multiselect_context.is_active) {
+                                            multiselect_context.InfoDisplay(background_modifier)
+                                        }
+                                    }
+                                    
                                     items(layout.items) { item ->
-                                        item.PreviewLong(MediaItem.PreviewParams())
+                                        item.PreviewLong(MediaItem.PreviewParams(multiselect_context = multiselect_context))
                                     }
                                 }
                             }

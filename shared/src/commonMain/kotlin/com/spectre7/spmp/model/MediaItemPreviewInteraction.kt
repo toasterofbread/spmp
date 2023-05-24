@@ -17,7 +17,7 @@ import com.spectre7.spmp.ui.layout.mainpage.PlayerState
 import com.spectre7.utils.composable.OnChangedEffect
 import kotlinx.coroutines.delay
 
-private enum class PressStage {
+enum class MediaItemPreviewInteractionPressStage {
     INSTANT, BRIEF, LONG_1, LONG_2;
 
     fun execute(item: MediaItem, long_press_menu_data: LongPressMenuData, player: PlayerState) {
@@ -57,13 +57,13 @@ fun Modifier.mediaItemPreviewInteraction(
 
     if (Platform.is_desktop) {
         return platformClickable(
-            onClick = { PressStage.INSTANT.execute(item, long_press_menu_data, player) },
-            onAltClick = { PressStage.LONG_1.execute(item, long_press_menu_data, player) },
+            onClick = { MediaItemPreviewInteractionPressStage.INSTANT.execute(item, long_press_menu_data, player) },
+            onAltClick = { MediaItemPreviewInteractionPressStage.LONG_1.execute(item, long_press_menu_data, player) },
             indication = getIndication()
         )
     }
 
-    var current_press_stage: PressStage by remember { mutableStateOf(PressStage.INSTANT) }
+    var current_press_stage: MediaItemPreviewInteractionPressStage by remember { mutableStateOf(MediaItemPreviewInteractionPressStage.INSTANT) }
     val long_press_timeout = LocalViewConfiguration.current.longPressTimeoutMillis
 
     val interaction_source = remember { MutableInteractionSource() }
@@ -72,20 +72,22 @@ fun Modifier.mediaItemPreviewInteraction(
     OnChangedEffect(pressed) {
         if (pressed) {
             var delays = 0
-            for (stage in PressStage.values()) {
+            for (stage in MediaItemPreviewInteractionPressStage.values()) {
                 if (stage.ordinal == 0 || !stage.isAvailable(long_press_menu_data)) {
                     continue
                 }
 
                 if (stage.ordinal == 1) {
                     current_press_stage = stage
+                    long_press_menu_data.current_interaction_stage = stage
                 }
                 else {
                     delay(long_press_timeout * (++delays))
                     current_press_stage = stage
+                    long_press_menu_data.current_interaction_stage = stage
                     SpMp.context.vibrateShort()
 
-                    if (stage == PressStage.values().last { it.isAvailable(long_press_menu_data) }) {
+                    if (stage == MediaItemPreviewInteractionPressStage.values().last { it.isAvailable(long_press_menu_data) }) {
                         current_press_stage.execute(item, long_press_menu_data, player)
                         break
                     }
@@ -93,10 +95,11 @@ fun Modifier.mediaItemPreviewInteraction(
             }
         }
         else {
-            if (current_press_stage != PressStage.values().last { it.isAvailable(long_press_menu_data) }) {
+            if (current_press_stage != MediaItemPreviewInteractionPressStage.values().last { it.isAvailable(long_press_menu_data) }) {
                 current_press_stage.execute(item, long_press_menu_data, player)
             }
-            current_press_stage = PressStage.INSTANT
+            current_press_stage = MediaItemPreviewInteractionPressStage.INSTANT
+            long_press_menu_data.current_interaction_stage = null
         }
     }
 

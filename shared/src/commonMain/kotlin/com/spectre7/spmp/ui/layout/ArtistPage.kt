@@ -296,7 +296,11 @@ private fun TitleBar(item: MediaItem, modifier: Modifier = Modifier) {
     val horizontal_padding = 20.dp
     var editing_title by remember { mutableStateOf(false) }
     Crossfade(editing_title) { editing ->
-        Column(modifier.padding(start = horizontal_padding), horizontalAlignment = Alignment.CenterHorizontally, verticalArrangement = Arrangement.spacedBy(10.dp, Alignment.Bottom)) {
+        Column(
+            modifier.padding(start = horizontal_padding), 
+            horizontalAlignment = Alignment.CenterHorizontally, 
+            verticalArrangement = Arrangement.spacedBy(10.dp, Alignment.Bottom)
+        ) {
             if (editing) {
                 var edited_title by remember(item) { mutableStateOf(item.title!!) }
 
@@ -322,6 +326,7 @@ private fun TitleBar(item: MediaItem, modifier: Modifier = Modifier) {
                             item.editRegistry {
                                 it.title = edited_title
                             }
+                            editing_title = false
                         }
                     }
 

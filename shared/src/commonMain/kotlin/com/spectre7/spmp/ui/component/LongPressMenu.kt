@@ -42,13 +42,24 @@ data class LongPressMenuData(
     val multiselect_key: Int? = null,
     val sideButton: (@Composable (Modifier, background: Color, accent: Color) -> Unit)? = null,
     val actions: (@Composable LongPressMenuActionProvider.(MediaItem) -> Unit)? = null
-)
+) {
+    var current_interaction_stage: MediaItemPreviewInteractionPressStage? by remember { mutableStateOf(null) }
+    private val HINT_MIN_STAGE = MediaItemPreviewInteractionPressStage.LONG_1
 
-fun Modifier.longPressMenuIcon(data: LongPressMenuData, enabled: Boolean = true): Modifier {
-    if (!enabled) {
-        return this.clip(data.thumb_shape ?: RoundedCornerShape(DEFAULT_THUMBNAIL_ROUNDING))
+    fun getInteractionHintScale(): Int {
+        if (current_interaction_stage == null || current_interaction_stage < HINT_MIN_STAGE) {
+            return 0
+        }
+        return current_interaction_stage.ordinal - HINT_MIN_STAGE.ordinal + 1
     }
-    return this.clip(data.thumb_shape ?: RoundedCornerShape(DEFAULT_THUMBNAIL_ROUNDING))
+}
+
+@Composable
+fun Modifier.longPressMenuIcon(data: LongPressMenuData, enabled: Boolean = true): Modifier {
+    val scale by animateFloatAsState(1f + (if (!enabled) 0f else data.getInteractionHintScale() * 1.2f))
+    return this
+        .clip(data.thumb_shape ?: RoundedCornerShape(DEFAULT_THUMBNAIL_ROUNDING))
+        .scale(scale)
 }
 
 @Composable

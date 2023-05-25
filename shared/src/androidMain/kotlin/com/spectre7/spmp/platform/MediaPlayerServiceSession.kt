@@ -38,8 +38,7 @@ import com.spectre7.spmp.exovisualiser.FFTAudioProcessor
 import com.spectre7.spmp.model.MediaItemThumbnailProvider
 import com.spectre7.spmp.model.Song
 import com.spectre7.spmp.model.SongLikeStatus
-import kotlinx.coroutines.delay
-import kotlinx.coroutines.runBlocking
+import kotlinx.coroutines.*
 import java.io.File
 import java.io.IOException
 import java.util.concurrent.Executors
@@ -53,6 +52,7 @@ private const val COMMAND_SET_LIKE_NEUTRAL = "com.spectre7.spmp.setlikeneutral"
 
 @UnstableApi
 class MediaPlayerServiceSession: MediaSessionService() {
+    private val coroutine_scope = CoroutineScope(Dispatchers.Main)
     private lateinit var player: ExoPlayer
     private lateinit var media_session: MediaSession
     private lateinit var notification_builder: NotificationCompat.Builder
@@ -111,7 +111,12 @@ class MediaPlayerServiceSession: MediaSessionService() {
                 actionFactory: MediaNotification.ActionFactory,
                 onNotificationChangedCallback: MediaNotification.Provider.Callback
             ): MediaNotification {
-                updatePlayerNotification(false)
+                synchronized(coroutine_scope) {
+                    coroutine_scope.coroutineContext.cancelChildren()
+                    coroutine_scope.launch {
+                        updatePlayerNotification()
+                    }
+                }
                 return MediaNotification(NOTIFICATION_ID, notification_builder.build())
             }
 
@@ -119,6 +124,13 @@ class MediaPlayerServiceSession: MediaSessionService() {
                 TODO("Action $action")
             }
         })
+    }
+
+    override fun onDestroy() {
+        coroutine_scope.cancel()
+        player.release()
+        media_session.release()
+        super.onDestroy()
     }
 
     private fun updatePlayerCustomActions(like_status: Song.LikeStatus?) {
@@ -139,16 +151,12 @@ class MediaPlayerServiceSession: MediaSessionService() {
         ))
     }
 
-    private fun updatePlayerNotification(send: Boolean) {
+    private suspend fun updatePlayerNotification() {
         val song = media_session.player.currentMediaItem?.getSong()
 
         val large_icon: Bitmap? =
             if (song != null)
-                getCurrentLargeIcon(song) {
-                    runInMainThread {
-                        updatePlayerNotification(true)
-                    }
-                }
+                getCurrentLargeIcon(song)
             else null
 
         notification_builder.apply {
@@ -159,13 +167,11 @@ class MediaPlayerServiceSession: MediaSessionService() {
             setContentText(song?.artist?.title ?: "")
         }
 
-        if (send) {
-            val manager = getSystemService(NOTIFICATION_SERVICE) as NotificationManager
-            manager.notify(NOTIFICATION_ID, notification_builder.build())
-        }
+        val manager = getSystemService(NOTIFICATION_SERVICE) as NotificationManager
+        manager.notify(NOTIFICATION_ID, notification_builder.build())
     }
 
-    private fun getCurrentLargeIcon(song: Song, callback: (Bitmap) -> Unit): Bitmap? {
+    private suspend fun getCurrentLargeIcon(song: Song): Bitmap? {
         fun getCroppedThumbnail(image: Bitmap?): Bitmap? {
             if (image == null) {
                 return null
@@ -174,19 +180,7 @@ class MediaPlayerServiceSession: MediaSessionService() {
         }
 
         try {
-            if (song.isThumbnailLoaded(MediaItemThumbnailProvider.Quality.HIGH)) {
-                return getCroppedThumbnail(song.loadThumbnail(MediaItemThumbnailProvider.Quality.HIGH)?.asAndroidBitmap())
-            }
-
-            // TODO
-            thread {
-                val cropped = getCroppedThumbnail(song.loadThumbnail(MediaItemThumbnailProvider.Quality.HIGH)?.asAndroidBitmap())
-                if (cropped != null) {
-                    callback(cropped)
-                }
-            }
-
-            return null
+            return getCroppedThumbnail(song.loadThumbnail(MediaItemThumbnailProvider.Quality.HIGH)?.asAndroidBitmap())
         }
         catch (e: IndexOutOfBoundsException) {
             return null
@@ -240,7 +234,9 @@ class MediaPlayerServiceSession: MediaSessionService() {
                 override fun loadBitmap(uri: Uri): ListenableFuture<Bitmap> {
                     val song = Song.fromId(uri.toString())
                     return executor.submit<Bitmap> {
-                        song.loadThumbnail(MediaItemThumbnailProvider.Quality.HIGH)!!.asAndroidBitmap()
+                        runBlocking {
+                            song.loadThumbnail(MediaItemThumbnailProvider.Quality.HIGH)!!.asAndroidBitmap()
+                        }
                     }
                 }
             })
@@ -388,12 +384,6 @@ class MediaPlayerServiceSession: MediaSessionService() {
                 enableVibration(false)
             }
         )
-    }
-
-    override fun onDestroy() {
-        player.release()
-        media_session.release()
-        super.onDestroy()
     }
 
     override fun onGetSession(controllerInfo: MediaSession.ControllerInfo): MediaSession? {

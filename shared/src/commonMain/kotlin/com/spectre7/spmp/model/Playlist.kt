@@ -52,6 +52,7 @@ class PlaylistItemData(override val data_item: Playlist): MediaItemWithLayoutsDa
         return data_item
     }
 
+    // TODO
     var is_editable: Boolean? by mutableStateOf(null)
         private set
 
@@ -145,7 +146,6 @@ open class Playlist protected constructor (
         }
     }
 
-    private val items: MutableList<MediaItem>? get() = layout?.items
     override val data: PlaylistItemData = PlaylistItemData(this)
     
     open val layout: MediaItemLayout? get() = feed_layouts?.single()
@@ -158,39 +158,43 @@ open class Playlist protected constructor (
     open fun getItems(): List<MediaItem>? = layout?.items
 
     open suspend fun addItem(item: MediaItem, index: Int): Result<Unit> {
-        check(is_editable)
+        check(is_editable == true)
         try {
-            items.add(index, item)
+            layout?.items!!.add(index, item)
         }
         catch (e: Throwable) {
             return Result.failure(e)
         }
         
-        TODO("Commit to account")
+        return saveItems()
     }
 
     open suspend fun removeItem(index: Int): Result<Unit> {
-        check(is_editable)
+        check(is_editable == true)
         try {
-            items.removeAt(index)
+            layout?.items!!.removeAt(index)
         }
         catch (e: Throwable) {
             return Result.failure(e)
         }
         
-        TODO("Commit to account")
+        return saveItems()
     }
     
     open suspend fun moveItem(from: Int, to: Int): Result<Unit> {
-        check(is_editable)
+        check(is_editable == true)
         try {
-            items.add(to, items.removeAt(from))
+            layout?.items!!.add(to, layout?.items!!.removeAt(from))
         }
         catch (e: Throwable) {
             return Result.failure(e)
         }
 
-        TODO("Commit to account")
+        return saveItems()
+    }
+
+    open suspend fun saveItems(): Result<Unit> {
+        TODO()
     }
 
     fun editPlaylistData(action: PlaylistItemData.() -> Unit): Playlist {

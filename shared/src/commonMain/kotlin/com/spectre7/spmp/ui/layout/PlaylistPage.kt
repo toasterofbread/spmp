@@ -11,6 +11,7 @@ import androidx.compose.foundation.*
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.LazyListScope
+import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.*
@@ -26,6 +27,7 @@ import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.text.*
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.*
+import androidx.compose.ui.zIndex
 import com.spectre7.spmp.api.durationToString
 import com.spectre7.spmp.model.*
 import com.spectre7.spmp.platform.LargeDropdownMenu
@@ -122,36 +124,56 @@ fun PlaylistPage(
 
         val layout = playlist.layout
 
-        val sorted_items = remember(layout?.items?.size, current_sort_option, current_filter) {
-            layout?.let {
-                current_sort_option.sortItems(
-                    it.items.filter {
-                        current_filter?.let { filter -> it.title!!.contains(filter, true) }
-                            ?: true
-                    }
+        val sorted_items: MutableList<Pair<MediaItem, Int>> = remember { mutableStateListOf() }
+        LaunchedEffect(layout?.items?.size, current_sort_option, current_filter) {
+            sorted_items.clear()
+            layout?.let { layout ->
+                sorted_items.addAll(
+                    current_sort_option.sortItems(
+                        layout.items.filter {
+                            current_filter?.let { filter -> it.title!!.contains(filter, true) }
+                                ?: true
+                        }
+                    ).withIndex().map { Pair(it.value, it.index) }
                 )
             }
         }
 
-        val items_above = 1
-        val playlist_items = remember(playlist.getItems()) { playlist.getItems()?.copy() }
+        LaunchedEffect(reorderable) {
+            if (reorderable) {
+                return@LaunchedEffect
+            }
+
+            layout?.items?.also { items ->
+                var update: Boolean = false
+                for (i in 0 until items.size) {
+                    val item = sorted_items[i].first
+                    if (items[i] != item) {
+                        items[i] = item
+                        update = true
+                    }
+                }
+
+                if (update) {
+                    playlist.saveItems()
+                }
+            }
+        }
+
+        val items_above = 2
+
         val list_state = rememberReorderableLazyListState(
             onMove = { from, to ->
-                playlist_items.add(to.index - items_above, playlist_items.removeAt(from.index - items_above))
-            },
-            onDragEnd = { from, to ->
-                if (from != to) {
-                    playlist_items.add(from - items_above, playlist_items.removeAt(to - items_above))
-                    // TODO commit after reorder finished
-                    playlist.moveItem(from - items_above, to - items_above)
+                if (to.index >= items_above) {
+                    sorted_items.add(to.index - items_above, sorted_items.removeAt(from.index - items_above))
                 }
             }
         )
 
         LazyColumn(
-            state = state.listState, 
+            state = list_state.listState,
             verticalArrangement = Arrangement.spacedBy(10.dp),
-            modifier = Modifier.reorderable(state)
+            modifier = Modifier.reorderable(list_state)
         ) {
             item {
                 PlaylistTopInfo(playlist, accent_colour) {
@@ -169,7 +191,7 @@ fun PlaylistPage(
                         accent_colour,
                         reorderable,
                         { 
-                            reorderable = playlist.is_editable && it
+                            reorderable = playlist.is_editable == true && it
                             if (reorderable) {
                                 current_sort_option = SortOption.PLAYLIST
                                 current_filter = null
@@ -191,6 +213,7 @@ fun PlaylistPage(
                 }
 
                 PlaylistItems(
+                    playlist,
                     layout,
                     list_state,
                     sorted_items ?: emptyList(),
@@ -205,16 +228,17 @@ fun PlaylistPage(
 }
 
 private fun LazyListScope.PlaylistItems(
+    playlist: Playlist,
     layout: MediaItemLayout,
     list_state: ReorderableLazyListState,
-    sorted_items: List<MediaItem>,
+    sorted_items: List<Pair<MediaItem, Int>>,
     multiselect_context: MediaItemMultiSelectContext,
     reorderable: Boolean,
     sort_option: SortOption,
     player: PlayerState
 ) {
-    items(sorted_items.size) { i ->
-        val item = sorted_items[i]
+    items(sorted_items, key = { it.second }) {
+        val (item, index) = it
         check(item is Song)
 
         val long_press_menu_data = remember(item) {
@@ -224,36 +248,54 @@ private fun LazyListScope.PlaylistItems(
             )
         }
 
-        Row(
-            Modifier.fillMaxWidth().mediaItemPreviewInteraction(item, long_press_menu_data),
-            verticalAlignment = Alignment.CenterVertically,
-            horizontalArrangement = Arrangement.spacedBy(10.dp)
-        ) {
-            Box(Modifier.size(50.dp)) {
-                item.Thumbnail(
-                    MediaItemThumbnailProvider.Quality.LOW,
-                    Modifier.fillMaxSize().clip(RoundedCornerShape(SONG_THUMB_CORNER_ROUNDING)).longPressMenuIcon(long_press_menu_data)
-                )
-                multiselect_context.SelectableItemOverlay(song, Modifier.fillMaxSize())
-            }
-
-            Column(verticalArrangement = Arrangement.SpaceEvenly) {
-                Text(
-                    item.title!!,
-                    Modifier.fillMaxWidth().weight(1f),
-                    style = MaterialTheme.typography.titleSmall
-                )
-
-                val duration_text = remember(item.duration!!) {
-                    durationToString(item.duration!!, SpMp.ui_language, true)
+        ReorderableItem(list_state, key = index) { dragging ->
+            Row(
+                Modifier.fillMaxWidth().mediaItemPreviewInteraction(item, long_press_menu_data),
+                verticalAlignment = Alignment.CenterVertically,
+                horizontalArrangement = Arrangement.spacedBy(10.dp)
+            ) {
+                Box(Modifier.size(50.dp)) {
+                    item.Thumbnail(
+                        MediaItemThumbnailProvider.Quality.LOW,
+                        Modifier.fillMaxSize().longPressMenuIcon(long_press_menu_data)
+                    )
+                    multiselect_context.SelectableItemOverlay(item, Modifier.fillMaxSize())
                 }
 
-                Text(duration_text, style = MaterialTheme.typography.labelLarge)
-            }
+                Column(
+                    Modifier.fillMaxWidth().weight(1f),
+                    verticalArrangement = Arrangement.spacedBy(5.dp)
+                ) {
+                    Text(
+                        item.title!!,
+                        style = MaterialTheme.typography.titleSmall
+                    )
 
-            AnimatedVisibility(reorderable) {
-                Icon(Icons.Default.Reorder, null, Modifier.detectReorder(list_state))
+                    val duration_text = remember(item.duration!!) {
+                        durationToString(item.duration!!, SpMp.ui_language, true)
+                    }
+                    Text(duration_text, style = MaterialTheme.typography.labelSmall)
+                }
+
+                AnimatedVisibility(reorderable) {
+                    Icon(Icons.Default.Reorder, null, Modifier.detectReorder(list_state))
+                }
             }
+        }
+    }
+}
+
+@Composable
+private fun PlaylistInfoText(playlist: Playlist, layout: MediaItemLayout) {
+    CompositionLocalProvider(LocalTextStyle provides MaterialTheme.typography.titleMedium) {
+        Row {
+            val total_duration_text = remember(playlist.total_duration) {
+                if (playlist.total_duration == null) ""
+                else durationToString(playlist.total_duration!!, SpMp.ui_language, false)
+            }
+            Text(total_duration_text)
+            Text("\u2022")
+            Text(getString("playlist_x_songs").replace("\$x", (playlist.item_count ?: layout.items.size).toString()))
         }
     }
 }
@@ -272,38 +314,30 @@ private fun InteractionBar(
     multiselect_context: MediaItemMultiSelectContext,
     modifier: Modifier = Modifier
 ) {
-    val button_shape = RoundedCornerShape(10.dp)
     val player = LocalPlayerState.current
 
     // 0 -> search, 1 -> sort
     var opened_menu: Int by remember { mutableStateOf(-1) }    
 
     Column(modifier.animateContentSize()) {
-        Row(Modifier.fillMaxWidth()) {
-            val style = MaterialTheme.typography.titleMedium
 
-            Text(getStringTODO("${(playlist.item_count ?: layout.items.size) + 1}曲"), style = style)
+        if (playlist.is_editable == true) {
+            Row(Modifier.fillMaxWidth()) {
+                PlaylistInfoText(playlist, layout)
 
-            Spacer(Modifier.width(10.dp))
+                Spacer(Modifier.width(50.dp))
+                Spacer(Modifier.fillMaxWidth().weight(1f))
 
-            val total_duration_text = remember(playlist.total_duration) {
-                if (playlist.total_duration == null) ""
-                else durationToString(playlist.total_duration!!, SpMp.ui_language, false)
-            }
-            Text(total_duration_text, style = style)
-
-            Spacer(Modifier.width(50.dp))
-            Spacer(Modifier.fillMaxWidth().weight(1f))
-
-            playlist.artist?.title?.also { artist ->
-                Marquee(arrangement = Arrangement.End) {
-                    Text(
-                        artist,
-                        Modifier.clickable { player.onMediaItemClicked(playlist.artist!!) },
-                        maxLines = 1,
-                        overflow = TextOverflow.Ellipsis,
-                        style = MaterialTheme.typography.titleMedium
-                    )
+                playlist.artist?.title?.also { artist ->
+                    Marquee(arrangement = Arrangement.End) {
+                        Text(
+                            artist,
+                            Modifier.clickable { player.onMediaItemClicked(playlist.artist!!) },
+                            maxLines = 1,
+                            overflow = TextOverflow.Ellipsis,
+                            style = MaterialTheme.typography.titleMedium
+                        )
+                    }
                 }
             }
         }
@@ -324,7 +358,7 @@ private fun InteractionBar(
                 // Animate between filter bar and remaining buttons
                 Box(Modifier.fillMaxWidth()) {
                     this@Row.AnimatedVisibility(opened_menu != 0) {
-                        Row(Modifier.fillMaxWidth()) {
+                        Row(Modifier.fillMaxWidth(), verticalAlignment = Alignment.CenterVertically) {
                             // Sort
                             IconButton({
                                 if (opened_menu == 1) opened_menu = -1
@@ -333,9 +367,9 @@ private fun InteractionBar(
                                 Icon(Icons.Default.Sort, null)
                             }
 
-                            if (playlist.is_editable) {
-                                Spacer(Modifier.fillMaxWidth().weight(1f))
+                            Spacer(Modifier.fillMaxWidth().weight(1f))
 
+                            if (playlist.is_editable == true) {
                                 // Reorder
                                 IconButton({ setReorderable(!reorderable) }) {
                                     Crossfade(reorderable) { reordering ->
@@ -346,6 +380,9 @@ private fun InteractionBar(
                                 IconButton({ TODO() }) {
                                     Icon(Icons.Default.Add, null)
                                 }
+                            }
+                            else {
+                                PlaylistInfoText(playlist, layout)
                             }
                         }
                     }

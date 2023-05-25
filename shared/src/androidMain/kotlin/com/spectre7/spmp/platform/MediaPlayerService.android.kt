@@ -232,6 +232,9 @@ actual open class MediaPlayerService {
             if (redo_count == 0) {
                 return
             }
+            for (action in action_list[action_head++]) {
+                action.redo()
+            }
         }
     }
 

@@ -31,9 +31,6 @@ import java.util.*
 import java.util.concurrent.locks.ReentrantLock
 import kotlin.concurrent.thread
 import kotlin.concurrent.withLock
-import kotlin.contracts.ExperimentalContracts
-import kotlin.contracts.InvocationKind
-import kotlin.contracts.contract
 
 open class MediaItemData(open val data_item: MediaItem) {
 
@@ -410,24 +407,17 @@ abstract class MediaItem(id: String) {
         return thumb_states[quality]!!.image != null
     }
 
-    fun loadAndGetThumbnail(quality: MediaItemThumbnailProvider.Quality, context: PlatformContext = SpMp.context): ImageBitmap? {
+    suspend fun loadThumbnail(quality: MediaItemThumbnailProvider.Quality, context: PlatformContext = SpMp.context): ImageBitmap? {
         if (!canLoadThumbnail()) {
             return null
         }
 
         val state = thumb_states[quality]!!
-        thumb_loader.loadThumbnail(state, context) {
-            state.image = it.getOrReport("loadAndGetThumbnail")
-        }
+        state.load(context)
         return state.image
     }
 
-    fun loadThumbnail(quality: MediaItemThumbnailProvider.Quality, context: PlatformContext = SpMp.context): ImageBitmap? {
-        if (!canLoadThumbnail()) {
-            return null
-        }
-        return thumb_states[quality]!!.load(context).getOrNull()
-    }
+    fun getThumbnail(quality: MediaItemThumbnailProvider.Quality): ImageBitmap? = thumb_states[quality]!!.image
 
     fun getThumbnailLocalFile(quality: MediaItemThumbnailProvider.Quality, context: PlatformContext = SpMp.context): File = thumb_states[quality]!!.getCacheFile(context)
 
@@ -498,7 +488,7 @@ abstract class MediaItem(id: String) {
             if (!canLoadThumbnail()) {
                 loadData()
             }
-            loadAndGetThumbnail(quality)
+            this@MediaItem.loadThumbnail(quality)
         }
 
         val state = thumb_states.values.lastOrNull { state ->
@@ -560,7 +550,6 @@ abstract class MediaItem(id: String) {
     companion object {
         val CACHE_LIFETIME: Duration = Duration.ofDays(1)
         val data_registry: MediaItemDataRegistry = MediaItemDataRegistry()
-        val thumb_loader: MediaItemThumbnailLoader = MediaItemThumbnailLoader()
 
         fun getCacheKey(type: MediaItemType, id: String): String {
             return "M/${type.name}/$id"

@@ -24,10 +24,7 @@ import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.spectre7.spmp.PlayerServiceHost
-import com.spectre7.spmp.model.MediaItem
-import com.spectre7.spmp.model.MediaItemThumbnailProvider
-import com.spectre7.spmp.model.Song
-import com.spectre7.spmp.model.mediaItemPreviewInteraction
+import com.spectre7.spmp.model.*
 import com.spectre7.spmp.platform.PlayerDownloadManager.DownloadStatus
 import com.spectre7.spmp.resources.getString
 import com.spectre7.spmp.ui.component.multiselect.MediaItemMultiSelectContext

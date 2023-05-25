@@ -97,7 +97,7 @@ class SettingsInterface(
                                 onPageChanged?.invoke(current_page.id)
                             }
                         },
-                        this::openPage,
+                        this@SettingsInterface::openPage,
                         { go_back = true }
                     )
                 }

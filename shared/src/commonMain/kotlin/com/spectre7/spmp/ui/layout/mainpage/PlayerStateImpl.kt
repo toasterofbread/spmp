@@ -43,10 +43,7 @@ import com.spectre7.utils.addUnique
 import com.spectre7.utils.composable.OnChangedEffect
 import com.spectre7.utils.init
 import com.spectre7.utils.toFloat
-import kotlinx.coroutines.Dispatchers
-import kotlinx.coroutines.cancelChildren
-import kotlinx.coroutines.launch
-import kotlinx.coroutines.withContext
+import kotlinx.coroutines.*
 import java.util.concurrent.locks.ReentrantLock
 
 enum class FeedLoadState { NONE, LOADING, CONTINUING }
@@ -389,13 +386,9 @@ class PlayerStateImpl: PlayerState(null, null, null) {
 
                             if (main_page_layouts.isEmpty()) {
                                 feed_coroutine_scope.coroutineContext.cancelChildren()
-                                val result = loadFeed(Settings.get(Settings.KEY_FEED_INITIAL_ROWS), allow_cached = true, continue_feed = false)
-                                try {
+                                feed_coroutine_scope.launch {
+                                    val result = loadFeed(Settings.get(Settings.KEY_FEED_INITIAL_ROWS), allow_cached = true, continue_feed = false)
                                     PlayerServiceHost.player.loadPersistentQueue(result?.isSuccess == true)
-                                }
-                                catch (e: Throwable) {
-                                    print("ERROR $e")
-                                    throw RuntimeException(e)
                                 }
                             }
                         }

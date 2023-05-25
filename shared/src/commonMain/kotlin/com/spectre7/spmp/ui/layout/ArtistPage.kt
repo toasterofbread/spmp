@@ -85,8 +85,8 @@ fun ArtistPage(
         }
     }
 
-    LaunchedEffect(item.canLoadThumbnail()) {
-        item.loadAndGetThumbnail(MediaItemThumbnailProvider.Quality.HIGH)
+    LaunchedEffect(item, item.canLoadThumbnail()) {
+        item.loadThumbnail(MediaItemThumbnailProvider.Quality.HIGH)
     }
 
 //    LaunchedEffect(accent_colour) {
@@ -104,7 +104,7 @@ fun ArtistPage(
         val lazy_column_state = rememberLazyListState()
 
         // Thumbnail
-        Crossfade(item.loadAndGetThumbnail(MediaItemThumbnailProvider.Quality.HIGH)) { thumbnail ->
+        Crossfade(item.getThumbnail(MediaItemThumbnailProvider.Quality.HIGH)) { thumbnail ->
             if (thumbnail != null) {
                 if (accent_colour == null) {
                     accent_colour = Theme.current.makeVibrant(item.getDefaultThemeColour() ?: Theme.current.accent)

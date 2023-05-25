@@ -124,7 +124,7 @@ fun LongPressMenu(
                 val thumb_quality = MediaItemThumbnailProvider.Quality.LOW
                 LaunchedEffect(data.item.isThumbnailLoaded(thumb_quality)) {
                     if (!data.item.isThumbnailLoaded(thumb_quality)) {
-                        data.item.loadAndGetThumbnail(MediaItemThumbnailProvider.Quality.LOW)
+                        data.item.loadThumbnail(MediaItemThumbnailProvider.Quality.LOW)
                     }
                     else {
                         accent_colour.value = (data.item.getDefaultThemeColour() ?: Theme.current.background)
@@ -136,11 +136,8 @@ fun LongPressMenu(
                     data,
                     accent_colour,
                     modifier,
-                    {
-                        if (Settings.KEY_LPM_CLOSE_ON_ACTION.get()) {
-                            close_requested = true
-                        }
-                    }
+                    { if (Settings.KEY_LPM_CLOSE_ON_ACTION.get()) close_requested = true },
+                    { close_requested = true }
                 )
             }
         }
@@ -152,6 +149,7 @@ private fun MenuContent(
     data: LongPressMenuData,
     accent_colour: MutableState<Color?>,
     modifier: Modifier,
+    onAction: () -> Unit,
     close: () -> Unit
 ) {
     @Composable
@@ -241,7 +239,7 @@ private fun MenuContent(
                                         LocalPlayerState provides remember {
                                             player.copy(
                                                 onClickedOverride = { item, _ ->
-                                                    close()
+                                                    onAction()
                                                     player.onMediaItemClicked(item)
                                                 }
                                             )
@@ -327,7 +325,7 @@ private fun MenuContent(
                                     main_actions_showing = false
                                 }
                             }
-                            MenuActions(data, accent_colour.value ?: Theme.current.accent, close = close)
+                            MenuActions(data, accent_colour.value ?: Theme.current.accent, onAction = onAction)
                         }
                     }
                 }
@@ -337,7 +335,7 @@ private fun MenuContent(
 }
 
 @Composable
-private fun MenuActions(data: LongPressMenuData, accent_colour: Color, close: () -> Unit) {
+private fun MenuActions(data: LongPressMenuData, accent_colour: Color, onAction: () -> Unit) {
     val accent_colour_provider = remember (accent_colour) { { accent_colour } }
 
     // Data-provided actions
@@ -346,7 +344,7 @@ private fun MenuActions(data: LongPressMenuData, accent_colour: Color, close: ()
             Theme.current.on_background_provider,
             accent_colour_provider,
             Theme.current.background_provider,
-            close
+            onAction
         ),
         data.item
     )
@@ -363,7 +361,7 @@ private fun MenuActions(data: LongPressMenuData, accent_colour: Color, close: ()
             onClick = {
                 data.item.setPinnedToHome(!pinned)
             },
-            closeMenu = close
+            onAction = onAction
         )
     }
 
@@ -371,13 +369,13 @@ private fun MenuActions(data: LongPressMenuData, accent_colour: Color, close: ()
     if (SpMp.context.canShare()) {
         LongPressMenuActionProvider.ActionButton(Icons.Filled.Share, getString("lpm_action_share"), accent_colour_provider, onClick = {
             SpMp.context.shareText(data.item.url, if (data.item is Song) data.item.title else null)
-        }, closeMenu = close)
+        }, onAction = onAction)
     }
 
     // Open
     if (SpMp.context.canOpenUrl()) {
         LongPressMenuActionProvider.ActionButton(Icons.Filled.OpenWith, getString("lpm_action_open_external"), accent_colour_provider, onClick = {
             SpMp.context.openUrl(data.item.url)
-        }, closeMenu = close)
+        }, onAction = onAction)
     }
 }

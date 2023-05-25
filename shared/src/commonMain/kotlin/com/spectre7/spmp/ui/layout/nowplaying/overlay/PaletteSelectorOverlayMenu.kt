@@ -72,10 +72,8 @@ class PaletteSelectorOverlayMenu(
         var palette_colours by remember { mutableStateOf<List<Color>?>(null) }
         LaunchedEffect(Unit) {
             val song = PlayerServiceHost.status.song!!
-            thread {
-                val image = song.loadAndGetThumbnail(MediaItemThumbnailProvider.Quality.HIGH)!!
-                palette_colours = image.generatePalette(8)
-            }
+            val image = song.loadThumbnail(MediaItemThumbnailProvider.Quality.HIGH)!!
+            palette_colours = image.generatePalette(8)
         }
 
         var colourpick_requested by remember { mutableStateOf(false) }

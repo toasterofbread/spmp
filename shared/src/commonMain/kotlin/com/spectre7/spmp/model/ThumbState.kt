@@ -7,6 +7,9 @@ import androidx.compose.ui.graphics.ImageBitmap
 import com.spectre7.spmp.platform.PlatformContext
 import com.spectre7.spmp.platform.toByteArray
 import com.spectre7.spmp.platform.toImageBitmap
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.job
+import kotlinx.coroutines.withContext
 import java.io.File
 import java.net.SocketTimeoutException
 import java.util.concurrent.ExecutorService
@@ -22,42 +25,28 @@ class ThumbState(
 
     private val load_lock = Object()
 
-    fun load(context: PlatformContext): Result<ImageBitmap> {
+    suspend fun load(context: PlatformContext): Result<ImageBitmap> = withContext(Dispatchers.IO) {
         synchronized(load_lock) {
             if (image != null) {
-                return Result.success(image!!)
+                return@withContext Result.success(image!!)
             }
 
             if (loading) {
                 load_lock.wait()
-                return Result.success(image!!)
+                return@withContext Result.success(image!!)
             }
             loading = true
             loaded = true
         }
 
-        return performLoad(context)
-    }
-
-    fun loadWithExecutor(context: PlatformContext, executor: ExecutorService, onLoaded: (Result<ImageBitmap>) -> Unit) {
-        synchronized(load_lock) {
-            if (image != null) {
-                onLoaded(Result.success(image!!))
-                return
+        this.coroutineContext.job.invokeOnCompletion {
+            synchronized(load_lock) {
+                loading = false
+                load_lock.notifyAll()
             }
-
-            if (loading) {
-                load_lock.wait()
-                onLoaded(Result.success(image!!))
-                return
-            }
-            loading = true
-            loaded = true
         }
 
-        executor.submit {
-            onLoaded(performLoad(context))
-        }
+        return@withContext performLoad(context)
     }
 
     private fun performLoad(context: PlatformContext): Result<ImageBitmap> {
@@ -90,11 +79,6 @@ class ThumbState(
         if (Settings.KEY_THUMB_CACHE_ENABLED.get()) {
             cache_file.parentFile.mkdirs()
             cache_file.writeBytes(image!!.toByteArray())
-        }
-
-        synchronized(load_lock) {
-            loading = false
-            load_lock.notifyAll()
         }
 
         return result

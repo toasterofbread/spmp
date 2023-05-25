@@ -20,7 +20,8 @@ abstract class SettingsPage(
     private val getTitle: (() -> String?)? = null,
     private val getIcon: (@Composable () -> ImageVector?)? = null
 ) {
-    internal var id: Int? = null
+    var id: Int? = null
+        internal set
     internal lateinit var settings_interface: SettingsInterface
 
     open val disable_padding: Boolean = false

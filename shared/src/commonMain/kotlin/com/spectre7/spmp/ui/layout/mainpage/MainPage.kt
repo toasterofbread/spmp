@@ -130,7 +130,7 @@ fun MainPage(
                             }
                         },
                         layoutItem = { layout, i, showLayout ->
-                            if (i == 0) {
+                            if (i == 0 && artists_layout.items.isNotEmpty()) {
                                 artists_layout.also { showLayout(this, it) }
                             }
 

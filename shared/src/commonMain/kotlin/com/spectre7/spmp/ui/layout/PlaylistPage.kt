@@ -38,6 +38,7 @@ import com.spectre7.spmp.ui.theme.Theme
 import com.spectre7.utils.*
 import com.spectre7.utils.composable.*
 import kotlinx.coroutines.*
+import org.burnoutcrew.reorderable.*
 
 private enum class SortOption {
     PLAYLIST, ALPHABET, DURATION, PLAY_COUNT;
@@ -78,7 +79,7 @@ fun PlaylistPage(
     val player = LocalPlayerState.current
     val multiselect_context = remember { MediaItemMultiSelectContext() {} }
 
-    var reorderable: Boolean by remember { mutableStateOf(false) } // TODO
+    var reorderable: Boolean by remember { mutableStateOf(false) }
     var current_filter: String? by remember { mutableStateOf(null) }
     var current_sort_option: SortOption by remember { mutableStateOf(SortOption.PLAYLIST) }
 
@@ -119,7 +120,7 @@ fun PlaylistPage(
             }
         }
 
-        val layout = playlist.feed_layouts?.single()
+        val layout = playlist.layout
 
         val sorted_items = remember(layout?.items?.size, current_sort_option, current_filter) {
             layout?.let {
@@ -132,7 +133,26 @@ fun PlaylistPage(
             }
         }
 
-        LazyColumn(verticalArrangement = Arrangement.spacedBy(10.dp)) {
+        val items_above = 1
+        val playlist_items = remember(playlist.getItems()) { playlist.getItems()?.copy() }
+        val list_state = rememberReorderableLazyListState(
+            onMove = { from, to ->
+                playlist_items.add(to.index - items_above, playlist_items.removeAt(from.index - items_above))
+            },
+            onDragEnd = { from, to ->
+                if (from != to) {
+                    playlist_items.add(from - items_above, playlist_items.removeAt(to - items_above))
+                    // TODO commit after reorder finished
+                    playlist.moveItem(from - items_above, to - items_above)
+                }
+            }
+        )
+
+        LazyColumn(
+            state = state.listState, 
+            verticalArrangement = Arrangement.spacedBy(10.dp),
+            modifier = Modifier.reorderable(state)
+        ) {
             item {
                 PlaylistTopInfo(playlist, accent_colour) {
                     if (accent_colour == null) {
@@ -148,11 +168,23 @@ fun PlaylistPage(
                         layout,
                         accent_colour,
                         reorderable,
-                        { reorderable = it },
+                        { 
+                            reorderable = playlist.is_editable && it
+                            if (reorderable) {
+                                current_sort_option = SortOption.PLAYLIST
+                                current_filter = null
+                            }
+                        },
                         current_filter,
-                        { current_filter = it },
+                        {
+                            check(!reorderable)
+                            current_filter = it 
+                        },
                         current_sort_option,
-                        { current_sort_option = it },
+                        {
+                            check(!reorderable)
+                            current_sort_option = it 
+                        },
                         multiselect_context,
                         Modifier.fillMaxWidth().padding(top = 15.dp)
                     )
@@ -160,6 +192,7 @@ fun PlaylistPage(
 
                 PlaylistItems(
                     layout,
+                    list_state,
                     sorted_items ?: emptyList(),
                     multiselect_context, 
                     reorderable,
@@ -173,6 +206,7 @@ fun PlaylistPage(
 
 private fun LazyListScope.PlaylistItems(
     layout: MediaItemLayout,
+    list_state: ReorderableLazyListState,
     sorted_items: List<MediaItem>,
     multiselect_context: MediaItemMultiSelectContext,
     reorderable: Boolean,
@@ -195,21 +229,31 @@ private fun LazyListScope.PlaylistItems(
             verticalAlignment = Alignment.CenterVertically,
             horizontalArrangement = Arrangement.spacedBy(10.dp)
         ) {
-            item.Thumbnail(
-                MediaItemThumbnailProvider.Quality.LOW, 
-                Modifier.size(50.dp).clip(RoundedCornerShape(SONG_THUMB_CORNER_ROUNDING)).longPressMenuIcon(long_press_menu_data)
-            )
-            Text(
-                item.title!!,
-                Modifier.fillMaxWidth().weight(1f),
-                style = MaterialTheme.typography.titleSmall
-            )
-
-            val duration_text = remember(item.duration!!) {
-                durationToString(item.duration!!, SpMp.ui_language, true)
+            Box(Modifier.size(50.dp)) {
+                item.Thumbnail(
+                    MediaItemThumbnailProvider.Quality.LOW,
+                    Modifier.fillMaxSize().clip(RoundedCornerShape(SONG_THUMB_CORNER_ROUNDING)).longPressMenuIcon(long_press_menu_data)
+                )
+                multiselect_context.SelectableItemOverlay(song, Modifier.fillMaxSize())
             }
 
-            Text(duration_text, style = MaterialTheme.typography.labelLarge)
+            Column(verticalArrangement = Arrangement.SpaceEvenly) {
+                Text(
+                    item.title!!,
+                    Modifier.fillMaxWidth().weight(1f),
+                    style = MaterialTheme.typography.titleSmall
+                )
+
+                val duration_text = remember(item.duration!!) {
+                    durationToString(item.duration!!, SpMp.ui_language, true)
+                }
+
+                Text(duration_text, style = MaterialTheme.typography.labelLarge)
+            }
+
+            AnimatedVisibility(reorderable) {
+                Icon(Icons.Default.Reorder, null, Modifier.detectReorder(list_state))
+            }
         }
     }
 }
@@ -239,6 +283,8 @@ private fun InteractionBar(
             val style = MaterialTheme.typography.titleMedium
 
             Text(getStringTODO("${(playlist.item_count ?: layout.items.size) + 1}曲"), style = style)
+
+            Spacer(Modifier.width(10.dp))
 
             val total_duration_text = remember(playlist.total_duration) {
                 if (playlist.total_duration == null) ""
@@ -287,17 +333,19 @@ private fun InteractionBar(
                                 Icon(Icons.Default.Sort, null)
                             }
 
-                            Spacer(Modifier.fillMaxWidth().weight(1f))
+                            if (playlist.is_editable) {
+                                Spacer(Modifier.fillMaxWidth().weight(1f))
 
-                            // Reorder
-                            IconButton({ setReorderable(!reorderable) }) {
-                                Crossfade(reorderable) { reordering ->
-                                    Icon(if (reordering) Icons.Default.Done else Icons.Default.Reorder, null)
+                                // Reorder
+                                IconButton({ setReorderable(!reorderable) }) {
+                                    Crossfade(reorderable) { reordering ->
+                                        Icon(if (reordering) Icons.Default.Done else Icons.Default.Reorder, null)
+                                    }
                                 }
-                            }
-                            // Add
-                            IconButton({ TODO() }) {
-                                Icon(Icons.Default.Add, null)
+                                // Add
+                                IconButton({ TODO() }) {
+                                    Icon(Icons.Default.Add, null)
+                                }
                             }
                         }
                     }

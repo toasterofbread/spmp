@@ -51,6 +51,19 @@ class SettingsInterface(
         }
     }
 
+    fun openPage(target_page: SettingsPage) {
+        if (target_page != current_page) {
+            target_page.settings_interface = this@SettingsInterface
+            page_stack.add(current_page)
+            current_page = target_page
+            onPageChanged?.invoke(current_page.id)
+        }
+    }
+
+    fun openPageById(page_id: Int) {
+        openPage(getUserPage(page_id))
+    }
+
     @Composable
     fun Interface(height: Dp, modifier: Modifier = Modifier, content_padding: PaddingValues = PaddingValues(0.dp)) {
         Crossfade(current_page, modifier = modifier.requiredHeight(height)) { page ->
@@ -84,14 +97,7 @@ class SettingsInterface(
                                 onPageChanged?.invoke(current_page.id)
                             }
                         },
-                        { target_page ->
-                            if (current_page != target_page) {
-                                target_page.settings_interface = this@SettingsInterface
-                                page_stack.add(current_page)
-                                current_page = target_page
-                                onPageChanged?.invoke(current_page.id)
-                            }
-                        },
+                        this::openPage,
                         { go_back = true }
                     )
                 }

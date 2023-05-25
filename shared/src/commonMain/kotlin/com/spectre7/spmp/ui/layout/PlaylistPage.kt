@@ -4,10 +4,13 @@ package com.spectre7.spmp.ui.layout
 
 import LocalPlayerState
 import SpMp
+import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.animation.Crossfade
+import androidx.compose.animation.animateContentSize
 import androidx.compose.foundation.*
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
+import androidx.compose.foundation.lazy.LazyListScope
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.*
@@ -25,17 +28,19 @@ import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.*
 import com.spectre7.spmp.api.durationToString
 import com.spectre7.spmp.model.*
+import com.spectre7.spmp.platform.LargeDropdownMenu
 import com.spectre7.spmp.resources.getString
-import com.spectre7.spmp.ui.component.PillMenu
-import com.spectre7.spmp.ui.component.SONG_THUMB_CORNER_ROUNDING
+import com.spectre7.spmp.resources.getStringTODO
+import com.spectre7.spmp.ui.component.*
+import com.spectre7.spmp.ui.component.multiselect.MediaItemMultiSelectContext
+import com.spectre7.spmp.ui.layout.mainpage.PlayerState
 import com.spectre7.spmp.ui.theme.Theme
 import com.spectre7.utils.*
 import com.spectre7.utils.composable.*
 import kotlinx.coroutines.*
-import kotlin.concurrent.thread
 
 private enum class SortOption {
-    PLAYLIST, ALPHABET, DURATION, PLAY_COUNT,
+    PLAYLIST, ALPHABET, DURATION, PLAY_COUNT;
 
     fun getReadable(): String = 
         getStringTODO(when(this) {
@@ -45,7 +50,7 @@ private enum class SortOption {
             PLAY_COUNT -> "Listen count"
         })
 
-    fun sortItems(items: List<MediaItem>, reverse: Boolean = false): List<MediaItem> = when (this) {
+    fun sortItems(items: List<MediaItem>, reversed: Boolean = false): List<MediaItem> = when (this) {
         PLAYLIST -> 
             if (reversed) items.asReversed() 
             else items
@@ -53,7 +58,7 @@ private enum class SortOption {
             if (reversed) items.sortedByDescending { it.title!! } 
             else items.sortedBy { it.title!! }
         DURATION ->
-            if (reversed) items.sortedByDescending { if (it is Song) it.duration ?: 0 else 0 }) 
+            if (reversed) items.sortedByDescending { if (it is Song) it.duration ?: 0 else 0 }
             else items.sortedBy { if (it is Song) it.duration ?: 0 else 0 }
         PLAY_COUNT -> 
             if (reversed) items.sortedByDescending { it.registry_entry.play_count } 
@@ -71,7 +76,7 @@ fun PlaylistPage(
     val status_bar_height = SpMp.context.getStatusBarHeight()
     var accent_colour: Color? by remember { mutableStateOf(null) }
     val player = LocalPlayerState.current
-    val multiselect_context = remember { MediaItemMultiSelectContext() {} } }
+    val multiselect_context = remember { MediaItemMultiSelectContext() {} }
 
     var reorderable: Boolean by remember { mutableStateOf(false) } // TODO
     var current_filter: String? by remember { mutableStateOf(null) }
@@ -81,17 +86,19 @@ fun PlaylistPage(
         accent_colour = null
 
         if (playlist.feed_layouts == null) {
-            val result = playlist.loadData()
-            result.fold(
-                { playlist ->
-                    if (playlist == null) {
-                        SpMp.error_manager.onError("PlaylistPageLoad", Exception("loadData result is null"))
+            launch {
+                val result = playlist.loadData()
+                result.fold(
+                    { playlist ->
+                        if (playlist == null) {
+                            SpMp.error_manager.onError("PlaylistPageLoad", Exception("loadData result is null"))
+                        }
+                    },
+                    { error ->
+                        SpMp.error_manager.onError("PlaylistPageLoad", error)
                     }
-                },
-                { error ->
-                    SpMp.error_manager.onError("PlaylistPageLoad", error)
-                }
-            )
+                )
+            }
         }
     }
 
@@ -112,6 +119,19 @@ fun PlaylistPage(
             }
         }
 
+        val layout = playlist.feed_layouts?.single()
+
+        val sorted_items = remember(layout?.items?.size, current_sort_option, current_filter) {
+            layout?.let {
+                current_sort_option.sortItems(
+                    it.items.filter {
+                        current_filter?.let { filter -> it.title!!.contains(filter, true) }
+                            ?: true
+                    }
+                )
+            }
+        }
+
         LazyColumn(verticalArrangement = Arrangement.spacedBy(10.dp)) {
             item {
                 PlaylistTopInfo(playlist, accent_colour) {
@@ -121,13 +141,15 @@ fun PlaylistPage(
                 }
             }
 
-            playlist.feed_layouts?.also { layouts ->
+            layout?.also { layout ->
                 item {
                     InteractionBar(
-                        playlist, 
+                        playlist,
+                        layout,
                         accent_colour,
                         reorderable,
                         { reorderable = it },
+                        current_filter,
                         { current_filter = it },
                         current_sort_option,
                         { current_sort_option = it },
@@ -136,13 +158,11 @@ fun PlaylistPage(
                     )
                 }
 
-                val layout = layouts.single()
                 PlaylistItems(
-                    layout, 
-                    playlist, 
+                    layout,
+                    sorted_items ?: emptyList(),
                     multiselect_context, 
                     reorderable,
-                    current_filter,
                     current_sort_option,
                     player,
                 )
@@ -152,29 +172,20 @@ fun PlaylistPage(
 }
 
 private fun LazyListScope.PlaylistItems(
-    layout: MediaItemLayout, 
-    playlist: Playlist, 
+    layout: MediaItemLayout,
+    sorted_items: List<MediaItem>,
     multiselect_context: MediaItemMultiSelectContext,
     reorderable: Boolean,
-    filter: String?,
     sort_option: SortOption,
     player: PlayerState
 ) {
-    val sorted_items = remember(layout.items.size, sort_option) { 
-        sort_option.sortItems(layout.items)
-    }
-
     items(sorted_items.size) { i ->
         val item = sorted_items[i]
         check(item is Song)
 
-        if (filter != null && item.title!!.contains(filter, true)) {
-            return@items
-        }
-
         val long_press_menu_data = remember(item) {
             getSongLongPressMenuData(
-                song,
+                item,
                 multiselect_context = multiselect_context
             )
         }
@@ -205,10 +216,12 @@ private fun LazyListScope.PlaylistItems(
 
 @Composable
 private fun InteractionBar(
-    playlist: Playlist, 
+    playlist: Playlist,
+    layout: MediaItemLayout,
     accent_colour: Color?, 
     reorderable: Boolean,
     setReorderable: (Boolean) -> Unit,
+    filter: String?,
     setFilter: (String?) -> Unit,
     sort_option: SortOption,
     setSortOption: (SortOption) -> Unit,
@@ -216,6 +229,7 @@ private fun InteractionBar(
     modifier: Modifier = Modifier
 ) {
     val button_shape = RoundedCornerShape(10.dp)
+    val player = LocalPlayerState.current
 
     // 0 -> search, 1 -> sort
     var opened_menu: Int by remember { mutableStateOf(-1) }    
@@ -249,14 +263,11 @@ private fun InteractionBar(
         }
 
         Row(Modifier.fillMaxWidth()) {
-            CompositionLocalProvider(LocalContentColor provides accent_colour ?: Theme.current.accent) {
+            CompositionLocalProvider(LocalContentColor provides (accent_colour ?: Theme.current.accent)) {
                 
                 // Filter button
                 IconButton({
-                    if (opened_menu == 0) {
-                        opened_menu = -1
-                        setFilter(null)
-                    }
+                    if (opened_menu == 0) opened_menu = -1
                     else opened_menu = 0
                 }) {
                     Crossfade(opened_menu == 0) { searching ->
@@ -266,10 +277,10 @@ private fun InteractionBar(
 
                 // Animate between filter bar and remaining buttons
                 Box(Modifier.fillMaxWidth()) {
-                    AnimatedVisibility(opened_menu != 0) {
+                    this@Row.AnimatedVisibility(opened_menu != 0) {
                         Row(Modifier.fillMaxWidth()) {
                             // Sort
-                            IconButton({ 
+                            IconButton({
                                 if (opened_menu == 1) opened_menu = -1
                                 else opened_menu = 1
                             }) {
@@ -279,8 +290,8 @@ private fun InteractionBar(
                             Spacer(Modifier.fillMaxWidth().weight(1f))
 
                             // Reorder
-                            IconButton({ reorderable.value = !reorderable.value }) {
-                                Crossfade(reorderable.value) { reordering ->
+                            IconButton({ setReorderable(!reorderable) }) {
+                                Crossfade(reorderable) { reordering ->
                                     Icon(if (reordering) Icons.Default.Done else Icons.Default.Reorder, null)
                                 }
                             }
@@ -290,15 +301,15 @@ private fun InteractionBar(
                             }
                         }
                     }
-                    AnimatedVisibility(opened_menu == 0) {
-                        InteractionBarFilterBox(setFilter, Modifier.fillMaxWidth())
+                    this@Row.AnimatedVisibility(opened_menu == 0) {
+                        InteractionBarFilterBox(filter, setFilter, Modifier.fillMaxWidth())
                     }
                 }
             }
         }
 
         AnimatedVisibility(multiselect_context.is_active) {
-            multiselect_context.InfoDisplay(background_modifier)
+            multiselect_context.InfoDisplay()
         }
 
         // Sort options
@@ -310,28 +321,23 @@ private fun InteractionBar(
             { SortOption.values()[it].getReadable() }
         ) {
             setSortOption(SortOption.values()[it])
+            opened_menu = -1
         }
     }
 }
 
 @Composable
-private fun InteractionBarFilterBox(setFilter: (String?) -> Unit, modifier: Modifier = Modifier) {
+private fun InteractionBarFilterBox(filter: String?, setFilter: (String?) -> Unit, modifier: Modifier = Modifier) {
     Row(modifier) {
-        var current_filter = ""
         TextField(
-            current_filter, 
-            { 
-                current_filter = it
-                setFilter(if (current_filter.isEmpty()) null else current_filter)
-            },
-            Modifier.fillMaxWidth().weight(1f)
+            filter ?: "",
+            {  setFilter(it.ifEmpty { null }) },
+            Modifier.fillMaxWidth().weight(1f),
+            singleLine = true
         )
 
         IconButton(
-            {
-                current_filter = ""
-                setFilter(null)
-            },
+            { setFilter(null) },
             colors = IconButtonDefaults.iconButtonColors(
                 containerColor = Color.Transparent,
                 contentColor = LocalContentColor.current

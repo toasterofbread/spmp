@@ -34,8 +34,8 @@ import com.spectre7.spmp.platform.composable.BackHandler
 import com.spectre7.spmp.resources.getString
 import com.spectre7.spmp.ui.component.MediaItemLayout
 import com.spectre7.spmp.ui.component.PillMenu
-import com.spectre7.spmp.ui.theme.Theme
 import com.spectre7.spmp.ui.component.multiselect.MediaItemMultiSelectContext
+import com.spectre7.spmp.ui.theme.Theme
 import com.spectre7.utils.*
 import com.spectre7.utils.composable.ShapedIconButton
 import com.spectre7.utils.composable.SubtleLoadingIndicator
@@ -122,7 +122,8 @@ fun SearchPage(
             if (results != null) {
                 Results(
                     results,
-                    bottom_padding + (SEARCH_BAR_HEIGHT * 2) + (SEARCH_BAR_PADDING * 2)
+                    bottom_padding + (SEARCH_BAR_HEIGHT * 2) + (SEARCH_BAR_PADDING * 2),
+                    multiselect_context
                 )
             }
             else if (search_in_progress) {
@@ -177,7 +178,7 @@ private fun Results(results: SearchResults, bottom_padding: Dp, multiselect_cont
     ) {
         item {
             AnimatedVisibility(multiselect_context.is_active) {
-                multiselect_context.InfoDisplay(background_modifier)
+                multiselect_context.InfoDisplay()
             }
         }
 

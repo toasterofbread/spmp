@@ -3,32 +3,42 @@ package com.spectre7.spmp.ui.component
 import LocalPlayerState
 import SpMp
 import androidx.compose.animation.*
-import androidx.compose.animation.core.*
-import androidx.compose.foundation.*
+import androidx.compose.animation.core.animateDpAsState
+import androidx.compose.animation.core.animateFloatAsState
+import androidx.compose.animation.core.tween
+import androidx.compose.foundation.background
+import androidx.compose.foundation.clickable
 import androidx.compose.foundation.interaction.MutableInteractionSource
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.*
 import androidx.compose.material.icons.outlined.PushPin
-import androidx.compose.material3.*
+import androidx.compose.material3.Divider
+import androidx.compose.material3.Icon
+import androidx.compose.material3.IconButton
+import androidx.compose.material3.Text
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
-import androidx.compose.ui.graphics.*
-import androidx.compose.ui.layout.*
+import androidx.compose.ui.draw.scale
+import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.graphics.Shape
+import androidx.compose.ui.layout.onSizeChanged
 import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.text.style.TextOverflow
-import androidx.compose.ui.unit.*
+import androidx.compose.ui.unit.Dp
+import androidx.compose.ui.unit.dp
 import com.spectre7.spmp.model.*
 import com.spectre7.spmp.platform.composable.PlatformDialog
 import com.spectre7.spmp.resources.getString
 import com.spectre7.spmp.ui.component.multiselect.MediaItemMultiSelectContext
 import com.spectre7.spmp.ui.layout.nowplaying.overlay.DEFAULT_THUMBNAIL_ROUNDING
 import com.spectre7.spmp.ui.theme.Theme
-import com.spectre7.utils.*
 import com.spectre7.utils.composable.Marquee
+import com.spectre7.utils.contrastAgainst
+import com.spectre7.utils.thenIf
 import kotlinx.coroutines.delay
 
 const val LONG_PRESS_ICON_MENU_OPEN_ANIM_MS = 150
@@ -43,20 +53,20 @@ data class LongPressMenuData(
     val sideButton: (@Composable (Modifier, background: Color, accent: Color) -> Unit)? = null,
     val actions: (@Composable LongPressMenuActionProvider.(MediaItem) -> Unit)? = null
 ) {
-    var current_interaction_stage: MediaItemPreviewInteractionPressStage? by remember { mutableStateOf(null) }
+    var current_interaction_stage: MediaItemPreviewInteractionPressStage? by mutableStateOf(null)
     private val HINT_MIN_STAGE = MediaItemPreviewInteractionPressStage.LONG_1
 
     fun getInteractionHintScale(): Int {
-        if (current_interaction_stage == null || current_interaction_stage < HINT_MIN_STAGE) {
-            return 0
-        }
-        return current_interaction_stage.ordinal - HINT_MIN_STAGE.ordinal + 1
+        return current_interaction_stage?.let {
+            if (it < HINT_MIN_STAGE) 0
+            else it.ordinal - HINT_MIN_STAGE.ordinal + 1
+        } ?: 0
     }
 }
 
 @Composable
 fun Modifier.longPressMenuIcon(data: LongPressMenuData, enabled: Boolean = true): Modifier {
-    val scale by animateFloatAsState(1f + (if (!enabled) 0f else data.getInteractionHintScale() * 1.2f))
+    val scale by animateFloatAsState(1f + (if (!enabled) 0f else data.getInteractionHintScale() * 0.2f))
     return this
         .clip(data.thumb_shape ?: RoundedCornerShape(DEFAULT_THUMBNAIL_ROUNDING))
         .scale(scale)

@@ -35,6 +35,7 @@ import com.spectre7.spmp.model.Playlist
 import com.spectre7.spmp.platform.composable.BackHandler
 import com.spectre7.spmp.resources.getString
 import com.spectre7.spmp.ui.component.*
+import com.spectre7.spmp.ui.component.multiselect.MediaItemMultiSelectContext
 import com.spectre7.spmp.ui.theme.Theme
 import com.spectre7.utils.*
 import com.spectre7.utils.composable.*
@@ -184,6 +185,8 @@ fun RadioBuilderPage(
                 }
 
                 Box {
+                    var action_buttons_visible: Boolean by remember { mutableStateOf(true) }
+
                     Box(Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
                         Crossfade(Triple(preview_loading, preview_playlist, invalid_modifiers)) {
                             val (loading, playlist, invalid) = it
@@ -232,38 +235,50 @@ fun RadioBuilderPage(
                                 val layout = playlist.feed_layouts!!.first()
                                 val multiselect_context = remember { MediaItemMultiSelectContext() {} }
 
-                                LazyColumn(Modifier.fillMaxSize(), contentPadding = PaddingValues(bottom = bottom_padding)) {
-                                    item {
-                                        AnimatedVisibility(multiselect_context.is_active) {
-                                            multiselect_context.InfoDisplay(background_modifier)
-                                        }
+                                DisposableEffect(multiselect_context.is_active) {
+                                    action_buttons_visible = !multiselect_context.is_active
+                                    onDispose {
+                                        action_buttons_visible = true
                                     }
-                                    
-                                    items(layout.items) { item ->
-                                        item.PreviewLong(MediaItem.PreviewParams(multiselect_context = multiselect_context))
+                                }
+
+                                Column {
+                                    AnimatedVisibility(multiselect_context.is_active) {
+                                        multiselect_context.InfoDisplay()
+                                    }
+                                    LazyColumn(Modifier.fillMaxSize(), contentPadding = PaddingValues(bottom = bottom_padding)) {
+                                        items(layout.items) { item ->
+                                            item.PreviewLong(MediaItem.PreviewParams(multiselect_context = multiselect_context))
+                                        }
                                     }
                                 }
                             }
                         }
                     }
 
-                    Column(Modifier.align(Alignment.TopEnd)) {
-                        val icon_button_colours = IconButtonDefaults.iconButtonColors(
-                            containerColor = Theme.current.accent,
-                            contentColor = Theme.current.on_accent
-                        )
-                        ShapedIconButton({ loadRadio(false) }, colors = icon_button_colours) {
-                            Crossfade(is_loading) { loading ->
-                                if (loading) {
-                                    SubtleLoadingIndicator(colourProvider = { Theme.current.on_accent })
-                                }
-                                else {
-                                    Icon(Icons.Filled.PlayArrow, null)
+                    androidx.compose.animation.AnimatedVisibility(
+                        action_buttons_visible,
+                        Modifier.align(Alignment.TopEnd),
+                        enter = fadeIn(),
+                        exit = fadeOut()
+                    ) {
+                        Column {
+                            val icon_button_colours = IconButtonDefaults.iconButtonColors(
+                                containerColor = Theme.current.accent,
+                                contentColor = Theme.current.on_accent
+                            )
+                            ShapedIconButton({ loadRadio(false) }, colors = icon_button_colours) {
+                                Crossfade(is_loading) { loading ->
+                                    if (loading) {
+                                        SubtleLoadingIndicator(colourProvider = { Theme.current.on_accent })
+                                    } else {
+                                        Icon(Icons.Filled.PlayArrow, null)
+                                    }
                                 }
                             }
-                        }
-                        ShapedIconButton({ loadRadio(true) }, colors = icon_button_colours) {
-                            Icon(Icons.Filled.RemoveRedEye, null)
+                            ShapedIconButton({ loadRadio(true) }, colors = icon_button_colours) {
+                                Icon(Icons.Filled.RemoveRedEye, null)
+                            }
                         }
                     }
                 }

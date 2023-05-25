@@ -26,6 +26,7 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.unit.*
 import com.spectre7.spmp.PlayerServiceHost
+import com.spectre7.spmp.api.RadioModifier
 import com.spectre7.spmp.model.MediaItem
 import com.spectre7.spmp.model.NowPlayingQueueRadioInfoPosition
 import com.spectre7.spmp.model.Settings
@@ -428,7 +429,7 @@ private fun CurrentRadioIndicator(
         val filters = PlayerServiceHost.player.radio_filters
 
         Crossfade(if (show_radio_info) radio_item else if (multiselect_context.is_active) true else filters ) { state ->
-            if (state == is MediaItem) {
+            if (state is MediaItem) {
                 state.PreviewLong(MediaItem.PreviewParams(
                     Modifier.padding(horizontal = horizontal_padding)
                 ))
@@ -436,12 +437,13 @@ private fun CurrentRadioIndicator(
             else if (state == true) {
                 multiselect_context.InfoDisplay(Modifier.fillMaxWidth().padding(horizontal = horizontal_padding))
             }
-            else if (state is List<List<RadioModifier>>) {
+            else if (state is List<*>) {
                 Row(
                     Modifier.horizontalScroll(rememberScrollState()),
                     horizontalArrangement = Arrangement.spacedBy(15.dp)
                 ) {
                     Spacer(Modifier)
+
 
                     val current_filter = PlayerServiceHost.player.radio_current_filter
                     for (filter in listOf(null) + state.withIndex()) {
@@ -454,7 +456,7 @@ private fun CurrentRadioIndicator(
                             },
                             label = {
                                 Text(
-                                    filter?.value?.joinToString("|") { it.getReadable() }
+                                    (filter?.value as List<RadioModifier>?)?.joinToString("|") { it.getReadable() }
                                         ?: getString("radio_filter_all")
                                 )
                             },

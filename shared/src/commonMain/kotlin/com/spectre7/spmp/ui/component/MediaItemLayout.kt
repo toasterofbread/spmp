@@ -23,6 +23,7 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.RectangleShape
 import androidx.compose.ui.graphics.Shape
 import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.DpSize
 import androidx.compose.ui.unit.TextUnit
@@ -515,12 +516,12 @@ fun MediaItemCard(
                     .padding(horizontal = 15.dp, vertical = 5.dp),
                 verticalArrangement = Arrangement.SpaceEvenly
             ) {
-                Marquee {
                     Text(
                         item.title!!,
-                        style = LocalTextStyle.current.copy(color = (accent_colour ?: Theme.current.accent).getContrasted())
+                        style = LocalTextStyle.current.copy(color = (accent_colour ?: Theme.current.accent).getContrasted()),
+                        softWrap = false,
+                        overflow = TextOverflow.Ellipsis
                     )
-                }
                 item.artist?.PreviewLong(MediaItem.PreviewParams(
                     contentColour = { (accent_colour ?: Theme.current.accent).getContrasted() }
                 ))

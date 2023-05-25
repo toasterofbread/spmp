@@ -89,6 +89,7 @@ fun Modifier.mediaItemPreviewInteraction(
 
                     if (stage == MediaItemPreviewInteractionPressStage.values().last { it.isAvailable(long_press_menu_data) }) {
                         current_press_stage.execute(item, long_press_menu_data, player)
+                        long_press_menu_data.current_interaction_stage = null
                         break
                     }
                 }

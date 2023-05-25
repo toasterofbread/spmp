@@ -43,8 +43,11 @@ import com.spectre7.utils.addUnique
 import com.spectre7.utils.composable.OnChangedEffect
 import com.spectre7.utils.init
 import com.spectre7.utils.toFloat
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.cancelChildren
+import kotlinx.coroutines.launch
+import kotlinx.coroutines.withContext
 import java.util.concurrent.locks.ReentrantLock
-import kotlin.concurrent.thread
 
 enum class FeedLoadState { NONE, LOADING, CONTINUING }
 
@@ -60,7 +63,7 @@ fun getMainPageItemSize(): DpSize {
 @OptIn(ExperimentalMaterialApi::class)
 class PlayerStateImpl: PlayerState(null, null, null) {
     private var now_playing_switch_page: Int by mutableStateOf(-1)
-    private val overlay_page_undo_stack: MutableList<Triple<OverlayPage, Data?, MediaItem?>?> = mutableListOf()
+    private val overlay_page_undo_stack: MutableList<Triple<OverlayPage, Any?, MediaItem?>?> = mutableListOf()
     private val bottom_padding_anim = Animatable(PlayerServiceHost.session_started.toFloat() * MINIMISED_NOW_PLAYING_HEIGHT)
     private var main_page_showing: Boolean by mutableStateOf(false)
 
@@ -320,49 +323,57 @@ class PlayerStateImpl: PlayerState(null, null, null) {
     private val feed_load_lock = ReentrantLock()
     private var feed_continuation: String? by mutableStateOf(null)
 
-    private fun loadFeed(min_rows: Int, allow_cached: Boolean, continue_feed: Boolean, filter_chip: Int? = null, onFinished: ((success: Boolean) -> Unit)? = null) {
-        thread {
-            if (!feed_load_lock.tryLock()) {
-                return@thread
-            }
-            check(feed_load_state.value == FeedLoadState.NONE)
-
-            main_page_selected_filter_chip = filter_chip
-            val params = filter_chip?.let { main_page_filter_chips!![it].second }
-
-            feed_load_state.value = if (continue_feed) FeedLoadState.CONTINUING else FeedLoadState.LOADING
-
-            val result = loadFeedLayouts(min_rows, allow_cached, params, if (continue_feed) feed_continuation else null)
-            if (result.isFailure) {
-                SpMp.error_manager.onError("loadFeed", result.exceptionOrNull()!!)
-                main_page_layouts = emptyList()
-                main_page_filter_chips = null
-            } else {
-                val (layouts, cont, chips) = result.getOrThrow()
-                for (layout in layouts) {
-                    layout.itemSizeProvider = { getMainPageItemSize() }
-                }
-
-                if (continue_feed) {
-                    main_page_layouts = main_page_layouts + layouts
-                } else {
-                    main_page_layouts = layouts
-                    main_page_filter_chips = chips
-                }
-
-                feed_continuation = cont
-            }
-
-            feed_load_state.value = FeedLoadState.NONE
-            feed_load_lock.unlock()
-
-            onFinished?.invoke(result.isSuccess)
+    private suspend fun loadFeed(
+        min_rows: Int,
+        allow_cached: Boolean,
+        continue_feed: Boolean,
+        filter_chip: Int? = null
+    ): Result<Unit>? = withContext(Dispatchers.IO) {
+        if (!feed_load_lock.tryLock()) {
+            return@withContext null
         }
+        check(feed_load_state.value == FeedLoadState.NONE)
+
+        main_page_selected_filter_chip = filter_chip
+        val params = filter_chip?.let { main_page_filter_chips!![it].second }
+
+        feed_load_state.value = if (continue_feed) FeedLoadState.CONTINUING else FeedLoadState.LOADING
+
+        val result = loadFeedLayouts(min_rows, allow_cached, params, if (continue_feed) feed_continuation else null)
+        if (result.isFailure) {
+            SpMp.error_manager.onError("loadFeed", result.exceptionOrNull()!!)
+            main_page_layouts = emptyList()
+            main_page_filter_chips = null
+        } else {
+            val (layouts, cont, chips) = result.getOrThrow()
+            for (layout in layouts) {
+                layout.itemSizeProvider = { getMainPageItemSize() }
+            }
+
+            if (continue_feed) {
+                main_page_layouts = main_page_layouts + layouts
+            } else {
+                main_page_layouts = layouts
+                main_page_filter_chips = chips
+            }
+
+            feed_continuation = cont
+        }
+
+        feed_load_state.value = FeedLoadState.NONE
+        feed_load_lock.unlock()
+
+        return@withContext result.fold(
+            { Result.success(Unit) },
+            { Result.failure(it) }
+        )
     }
 
     @Composable
     fun HomeFeed() {
         Crossfade(targetState = overlay_page) { page ->
+            val feed_coroutine_scope = rememberCoroutineScope()
+
             Column(Modifier.fillMaxSize()) {
                 if (page != null && page.first != OverlayPage.MEDIAITEM && page.first != OverlayPage.SEARCH) {
                     Spacer(Modifier.requiredHeight(SpMp.context.getStatusBarHeight()))
@@ -371,18 +382,25 @@ class PlayerStateImpl: PlayerState(null, null, null) {
                 val close = remember { { navigateBack() } }
                 when (page?.first) {
                     null -> {
-                        DisposableEffect(Unit) {
+
+                        LaunchedEffect(Unit) {
                             check(!main_page_showing)
                             main_page_showing = true
 
                             if (main_page_layouts.isEmpty()) {
-                                loadFeed(Settings.get(Settings.KEY_FEED_INITIAL_ROWS), allow_cached = true, continue_feed = false) { success ->
-                                    if (success) {
-                                        PlayerServiceHost.player.loadPersistentQueue(2000L)
-                                    }
+                                feed_coroutine_scope.coroutineContext.cancelChildren()
+                                val result = loadFeed(Settings.get(Settings.KEY_FEED_INITIAL_ROWS), allow_cached = true, continue_feed = false)
+                                try {
+                                    PlayerServiceHost.player.loadPersistentQueue(result?.isSuccess == true)
+                                }
+                                catch (e: Throwable) {
+                                    print("ERROR $e")
+                                    throw RuntimeException(e)
                                 }
                             }
+                        }
 
+                        DisposableEffect(Unit) {
                             onDispose {
                                 check(main_page_showing)
                                 main_page_showing = false
@@ -399,7 +417,10 @@ class PlayerStateImpl: PlayerState(null, null, null) {
                             { main_page_selected_filter_chip },
                             pill_menu,
                             { filter_chip: Int?, continuation: Boolean ->
-                                loadFeed(-1, false, continuation, filter_chip)
+                                feed_coroutine_scope.coroutineContext.cancelChildren()
+                                feed_coroutine_scope.launch {
+                                    loadFeed(-1, false, continuation, filter_chip)
+                                }
                             }
                         )
                     }

@@ -5,7 +5,7 @@ import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.lazy.LazyColumn
-import androidx.compose.foundation.lazy.rememberLazylist_state
+import androidx.compose.foundation.lazy.rememberLazyListState
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.*
 import androidx.compose.runtime.Composable
@@ -40,7 +40,7 @@ fun LargeDropdownMenu(
                 shape = RoundedCornerShape(12.dp),
                 color = container_colour
             ) {
-                val list_state = rememberLazylist_state()
+                val list_state = rememberLazyListState()
                 LaunchedEffect(Unit) {
                     list_state.scrollToItem(index = selected)
                 }

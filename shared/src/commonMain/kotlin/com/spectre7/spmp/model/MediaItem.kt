@@ -28,7 +28,9 @@ import java.io.FileNotFoundException
 import java.net.URL
 import java.time.Duration
 import java.util.*
+import java.util.concurrent.locks.ReentrantLock
 import kotlin.concurrent.thread
+import kotlin.concurrent.withLock
 import kotlin.contracts.ExperimentalContracts
 import kotlin.contracts.InvocationKind
 import kotlin.contracts.contract
@@ -147,7 +149,7 @@ abstract class MediaItem(id: String) {
     }
     val uid: String get() = "${type.ordinal}$_id"
 
-    protected abstract val data: MediaItemData
+    abstract val data: MediaItemData
     val registry_entry: MediaItemDataRegistry.Entry
 
     open fun getDefaultRegistryEntry(): MediaItemDataRegistry.Entry = MediaItemDataRegistry.Entry().apply { item = this@MediaItem }
@@ -289,15 +291,15 @@ abstract class MediaItem(id: String) {
         return this
     }
 
-    private val _loading_lock = Object()
     private var loaded_callbacks: MutableList<(MediaItem) -> Unit>? = mutableListOf()
-    private val loading_lock: Object get() = getOrReplacedWith()._loading_lock
+    private val loading_lock = ReentrantLock()
+    private val load_condition = loading_lock.newCondition()
 
     var loading: Boolean by mutableStateOf(false)
         private set
 
     fun onLoaded(action: (MediaItem) -> Unit) {
-        synchronized(loading_lock) {
+        loading_lock.withLock {
             if (isFullyLoaded()) {
                 action(this)
             }
@@ -307,32 +309,36 @@ abstract class MediaItem(id: String) {
         }
     }
 
-    suspend fun loadData(force: Boolean = false): Result<MediaItem?> {
+    suspend fun loadData(force: Boolean = false): Result<MediaItem?> = withContext(Dispatchers.IO) {
         if (!force && isFullyLoaded()) {
-            loaded_callbacks?.forEach { it.invoke(this) }
+            loaded_callbacks?.forEach { it.invoke(this@MediaItem) }
             loaded_callbacks = null
-            return Result.success(getOrReplacedWith())
+            return@withContext Result.success(getOrReplacedWith())
         }
 
-        synchronized(loading_lock) {
+        loading_lock.withLock {
             if (loading) {
-                loading_lock.wait()
-                return Result.success(getOrReplacedWith())
+                load_condition.await()
+                return@withContext Result.success(getOrReplacedWith())
             }
             loading = true
         }
 
-        val result = loadMediaItemData(getOrReplacedWith())
+        coroutineContext.job.invokeOnCompletion {
+            loading_lock.withLock {
+                load_condition.signalAll()
+            }
+        }
 
-        synchronized(loading_lock) {
-            loading_lock.notifyAll()
+        val result = loadMediaItemData(getOrReplacedWith())
+        loading_lock.withLock {
             if (isFullyLoaded()) {
-                loaded_callbacks?.forEach { it.invoke(this) }
+                loaded_callbacks?.forEach { it.invoke(this@MediaItem) }
                 loaded_callbacks = null
             }
         }
 
-        return result
+        return@withContext result
     }
 
     fun getOrReplacedWith(): MediaItem {
@@ -593,10 +599,5 @@ abstract class MediaItem(id: String) {
                 else -> throw NotImplementedError(page_type)
             }
         }
-
-//        fun clearStoredItems() {
-//            var amount = Song.clearStoredItems() + Artist.clearStoredItems() + Playlist.clearStoredItems()
-//            println("Cleared $amount MediaItems")
-//        }
     }
 }

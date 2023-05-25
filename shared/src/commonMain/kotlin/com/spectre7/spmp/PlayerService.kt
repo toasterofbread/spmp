@@ -11,11 +11,12 @@ import com.spectre7.spmp.platform.*
 import com.spectre7.spmp.resources.getString
 import com.spectre7.utils.*
 import kotlinx.coroutines.*
+import kotlinx.coroutines.sync.Mutex
 import kotlinx.coroutines.sync.Semaphore
+import kotlinx.coroutines.sync.withLock
 import kotlinx.coroutines.sync.withPermit
 import java.io.*
 import java.util.*
-import kotlin.concurrent.thread
 import kotlin.random.Random
 import kotlin.random.nextInt
 
@@ -360,7 +361,8 @@ class PlayerService : MediaPlayerService() {
 //    private var vol_notif_instance: Int = 0
 
     // Persistent queue
-    private val queue_lock = Semaphore(1)
+    private val queue_lock = Mutex()
+    private var persistent_queue_loaded: Boolean = false
     private var update_timer: Timer? = null
 
     private fun onDiscordAccountTokenChanged() {
@@ -393,66 +395,64 @@ class PlayerService : MediaPlayerService() {
 
             check(song.artist?.title != null)
 
-            discord_status_update_job = DataApi.scope.launch { //catchInterrupts {
-                runBlocking {
-                    fun formatText(text: String): String {
-                        return text
-                            .replace("\$artist", song.artist!!.title!!)
-                            .replace("\$song", song.title!!)
-                    }
-
-                    val name = formatText(Settings.KEY_DISCORD_STATUS_NAME.get())
-                    val text_a = formatText(Settings.KEY_DISCORD_STATUS_TEXT_A.get())
-                    val text_b = formatText(Settings.KEY_DISCORD_STATUS_TEXT_B.get())
-                    val text_c = formatText(Settings.KEY_DISCORD_STATUS_TEXT_C.get())
-
-                    val large_image: String?
-                    val small_image: String?
-
-                    try {
-                        large_image = getCustomImage(song.id) { song.loadThumbnail(MediaItemThumbnailProvider.Quality.LOW)!! }.getOrThrow()
-                        small_image = song.artist?.let { artist ->
-                            getCustomImage(artist.id) {
-                                artist.loadThumbnail(MediaItemThumbnailProvider.Quality.LOW)
-                            }.getOrThrow()
-                        }
-                    }
-                    catch (e: IOException) {
-                        return@runBlocking
-                    }
-
-                    val buttons = mutableListOf<Pair<String, String>>().apply {
-                        if (Settings.KEY_DISCORD_SHOW_BUTTON_SONG.get()) {
-                            add(Settings.KEY_DISCORD_BUTTON_SONG_TEXT.get<String>() to song.url)
-                        }
-                        if (Settings.KEY_DISCORD_SHOW_BUTTON_PROJECT.get()) {
-                            add(Settings.KEY_DISCORD_BUTTON_PROJECT_TEXT.get<String>() to getString("project_url"))
-                        }
-                    }
-
-                    setActivity(
-                        name = name,
-                        type = DiscordStatus.Type.LISTENING,
-                        details = text_a.ifEmpty { null },
-                        state = text_b.ifEmpty { null },
-                        buttons = buttons.ifEmpty { null },
-                        large_image = large_image,
-                        large_text = text_c.ifEmpty { null },
-                        small_image = small_image,
-                        small_text = if (small_image != null) song.artist?.title else null,
-                        application_id = DISCORD_APPLICATION_ID
-                    )
+            discord_status_update_job = DataApi.scope.launch {
+                fun formatText(text: String): String {
+                    return text
+                        .replace("\$artist", song.artist!!.title!!)
+                        .replace("\$song", song.title!!)
                 }
-            //}
-        }}
+
+                val name = formatText(Settings.KEY_DISCORD_STATUS_NAME.get())
+                val text_a = formatText(Settings.KEY_DISCORD_STATUS_TEXT_A.get())
+                val text_b = formatText(Settings.KEY_DISCORD_STATUS_TEXT_B.get())
+                val text_c = formatText(Settings.KEY_DISCORD_STATUS_TEXT_C.get())
+
+                val large_image: String?
+                val small_image: String?
+
+                try {
+                    large_image = getCustomImage(song.id) { song.loadThumbnail(MediaItemThumbnailProvider.Quality.LOW)!! }.getOrThrow()
+                    small_image = song.artist?.let { artist ->
+                        getCustomImage(artist.id) {
+                            artist.loadThumbnail(MediaItemThumbnailProvider.Quality.LOW)
+                        }.getOrThrow()
+                    }
+                }
+                catch (e: IOException) {
+                    return@launch
+                }
+
+                val buttons = mutableListOf<Pair<String, String>>().apply {
+                    if (Settings.KEY_DISCORD_SHOW_BUTTON_SONG.get()) {
+                        add(Settings.KEY_DISCORD_BUTTON_SONG_TEXT.get<String>() to song.url)
+                    }
+                    if (Settings.KEY_DISCORD_SHOW_BUTTON_PROJECT.get()) {
+                        add(Settings.KEY_DISCORD_BUTTON_PROJECT_TEXT.get<String>() to getString("project_url"))
+                    }
+                }
+
+                setActivity(
+                    name = name,
+                    type = DiscordStatus.Type.LISTENING,
+                    details = text_a.ifEmpty { null },
+                    state = text_b.ifEmpty { null },
+                    buttons = buttons.ifEmpty { null },
+                    large_image = large_image,
+                    large_text = text_c.ifEmpty { null },
+                    small_image = small_image,
+                    small_text = if (small_image != null) song.artist?.title else null,
+                    application_id = DISCORD_APPLICATION_ID
+                )
+            }
+        }
     }
 
     fun savePersistentQueue() {
-        if (Platform.is_desktop) {
+        if (Platform.is_desktop || !persistent_queue_loaded) {
             return
         }
 
-        if (!queue_lock.tryAcquire()) {
+        if (!queue_lock.tryLock()) {
             return
         }
 
@@ -465,37 +465,42 @@ class PlayerService : MediaPlayerService() {
             writer.newLine()
         }
 
+        SpMp.Log.info("savePersistentQueue saved $song_count songs")
+
         writer.close()
 
-        queue_lock.release()
+        queue_lock.unlock()
     }
 
-    fun loadPersistentQueue(start_delay: Long = 0) {
+    suspend fun loadPersistentQueue(apply: Boolean = true) = withContext(Dispatchers.IO) {
         if (Platform.is_desktop) {
-            return
+            return@withContext
         }
 
-        thread { runBlocking {
-            queue_lock.acquire()
+        if (!apply) {
+            persistent_queue_loaded = true
+            return@withContext
+        }
 
-            delay(start_delay)
-
+        queue_lock.withLock {
             val reader: BufferedReader
             try {
                 reader = context.openFileInput("persistent_queue").bufferedReader()
             }
             catch (_: FileNotFoundException) {
-                queue_lock.release()
-                return@runBlocking
+                SpMp.Log.info("loadPersistentQueue no file found")
+                persistent_queue_loaded = true
+                return@withContext
             }
 
             val pos_data = reader.readLine().split(',')
-            val songs: MutableList<Song?> = mutableListOf()
 
-            var first_song: Song? = null
-            val request_limit = Semaphore(10)
+            withContext(Dispatchers.Default) {
+                val songs: MutableList<Song?> = mutableListOf()
 
-            coroutineScope {
+                val request_limit = Semaphore(10)
+                val jobs: MutableList<Job> = mutableListOf()
+
                 var i = 0
                 var line = reader.readLine()
                 while (line != null) {
@@ -504,58 +509,40 @@ class PlayerService : MediaPlayerService() {
                     line = reader.readLine()
 
                     if (song.title != null) {
-                        if (index == 0) {
-                            context.mainThread {
-                                addToQueue(song, 0, save = false)
-                                first_song = song
-                            }
-                        }
-                        else {
-                            songs.add(song)
-                        }
+                        songs.add(song)
                         continue
                     }
 
-                    if (index != 0) {
-                        songs.add(null)
-                    }
+                    songs.add(null)
 
-                    launch {
-                        request_limit.withPermit {
-                            song.loadData().onSuccess { loaded ->
-                                if (index == 0) {
-                                    context.mainThread {
-                                        addToQueue(song, 0, save = false)
-                                        first_song = song
+                    jobs.add(
+                        launch {
+                            request_limit.withPermit {
+                                song.loadData().onSuccess { loaded ->
+                                    synchronized(songs) {
+                                        songs[index] = loaded as Song?
                                     }
-                                }
-                                else {
-                                    songs[index - 1] = song
                                 }
                             }
                         }
-                    }
+                    )
+                }
+
+                jobs.joinAll()
+                reader.close()
+
+                SpMp.Log.info("loadPersistentQueue adding ${songs.size} songs to $pos_data")
+
+                withContext(Dispatchers.Main) {
+                    addMultipleToQueue(songs.filterIsInstance<Song>(), 0)
+                    seekToSong(pos_data[0].toInt())
+                    seekTo(pos_data[1].toLong())
+                    persistent_queue_loaded = true
+                    check(queue_lock.isLocked)
                 }
             }
-
-            // Pretty sure this is safe?
-            while (first_song == null) { runBlocking { delay(100) } }
-            reader.close()
-
-            context.mainThread {
-                addMultipleToQueue(songs as List<Song>, 1)
-                seekToSong(pos_data[0].toInt())
-                seekTo(pos_data[1].toLong())
-                queue_lock.release()
-            }
-        } }
+        }
     }
-
-//    inner class PlayerBinder: PlatformBinder() {
-//        fun getService(): PlayerService = this@PlayerService
-//    }
-//    private val binder = PlayerBinder()
-//    override fun onBind(): PlatformBinder = binder
 
     override fun onCreate() {
         super.onCreate()

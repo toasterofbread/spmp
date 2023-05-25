@@ -54,6 +54,10 @@ enum class Settings {
     KEY_LANG_UI,
     KEY_LANG_DATA,
 
+    // Long press menu
+    KEY_LPM_CLOSE_ON_ACTION,
+    KEY_LPM_INCREMENT_PLAY_AFTER,
+
     // Theming
     KEY_CURRENT_THEME,
     KEY_THEMES,
@@ -205,6 +209,9 @@ enum class Settings {
         fun <T> getDefault(enum_key: Settings): T {
             return when (enum_key) {
                 KEY_LANG_UI, KEY_LANG_DATA -> SpMp.getLanguageIndex(Locale.getDefault().language)
+
+                KEY_LPM_CLOSE_ON_ACTION -> true
+                KEY_LPM_INCREMENT_PLAY_AFTER -> true
 
                 KEY_ACCENT_COLOUR_SOURCE -> AccentColourSource.THUMBNAIL.ordinal
                 KEY_CURRENT_THEME -> 0

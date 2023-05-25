@@ -200,7 +200,7 @@ private fun LongPressMenuActionProvider.SongLongPressPopupActions(song: MediaIte
             PlayerServiceHost.player.addToQueue(
                 song,
                 active_queue_index + 1,
-                is_active_queue = true,
+                is_active_queue = Settings.KEY_LPM_INCREMENT_PLAY_AFTER.get(),
                 start_radio = false
             )
         },
@@ -208,7 +208,7 @@ private fun LongPressMenuActionProvider.SongLongPressPopupActions(song: MediaIte
             PlayerServiceHost.player.addToQueue(
                 song,
                 active_queue_index + 1,
-                is_active_queue = true,
+                is_active_queue = Settings.KEY_LPM_INCREMENT_PLAY_AFTER.get(),
                 start_radio = true
             )
         }

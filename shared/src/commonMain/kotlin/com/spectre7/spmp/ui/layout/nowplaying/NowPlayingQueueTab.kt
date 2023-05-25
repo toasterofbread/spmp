@@ -299,7 +299,7 @@ fun QueueTab() {
                                 onClick = { PlayerServiceHost.player.undo() },
                                 onLongClick = {
                                     SpMp.context.vibrateShort()
-                                    PlayerServiceHost.player.undoAll()
+                                    PlayerServiceHost.player.redo()
                                 }
                             )
                             .size(40.dp),

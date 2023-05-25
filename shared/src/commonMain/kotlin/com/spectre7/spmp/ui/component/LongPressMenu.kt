@@ -136,7 +136,11 @@ fun LongPressMenu(
                     data,
                     accent_colour,
                     modifier,
-                    { close_requested = true }
+                    {
+                        if (Settings.KEY_LPM_CLOSE_ON_ACTION.get()) {
+                            close_requested = true
+                        }
+                    }
                 )
             }
         }
@@ -336,6 +340,7 @@ private fun MenuContent(
 private fun MenuActions(data: LongPressMenuData, accent_colour: Color, close: () -> Unit) {
     val accent_colour_provider = remember (accent_colour) { { accent_colour } }
 
+    // Data-provided actions
     data.actions?.invoke(
         LongPressMenuActionProvider(
             Theme.current.on_background_provider,
@@ -345,22 +350,6 @@ private fun MenuActions(data: LongPressMenuData, accent_colour: Color, close: ()
         ),
         data.item
     )
-
-    // Begin multiple selection
-    data.multiselect_context?.also { multiselect ->
-        Crossfade(multiselect.is_active) { active ->
-            LongPressMenuActionProvider.ActionButton(
-                Icons.Default.Checklist,
-                getString(if (active) "multiselect_end" else "multiselect_begin"),
-                accent_colour_provider,
-                onClick = {
-                    multiselect.setActive(!active)
-                    multiselect.toggleItem(data.item, data.multiselect_key)
-                },
-                closeMenu = close
-            )
-        }
-    }
 
     // Pin / unpin
     Crossfade(data.item.pinned_to_home) { pinned ->
@@ -378,12 +367,14 @@ private fun MenuActions(data: LongPressMenuData, accent_colour: Color, close: ()
         )
     }
 
+    // Share
     if (SpMp.context.canShare()) {
         LongPressMenuActionProvider.ActionButton(Icons.Filled.Share, getString("lpm_action_share"), accent_colour_provider, onClick = {
             SpMp.context.shareText(data.item.url, if (data.item is Song) data.item.title else null)
         }, closeMenu = close)
     }
 
+    // Open
     if (SpMp.context.canOpenUrl()) {
         LongPressMenuActionProvider.ActionButton(Icons.Filled.OpenWith, getString("lpm_action_open_external"), accent_colour_provider, onClick = {
             SpMp.context.openUrl(data.item.url)

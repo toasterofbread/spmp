@@ -51,15 +51,27 @@ class PlaylistItemData(override val data_item: Playlist): MediaItemWithLayoutsDa
         }
         return data_item
     }
+
+    var is_editable: Boolean? by mutableStateOf(null)
+        private set
+
+    fun supplyIsEditable(value: Boolean?, certain: Boolean = false, cached: Boolean = false): Playlist {
+        if (value != is_editable && (is_editable == null || certain)) {
+            is_editable = value
+            onChanged(cached)
+        }
+        return data_item
+    }
 }
 
 class LocalPlaylist(id: String): Playlist(id) {
-    val items: MutableList<MediaItem> = mutableStateListOf()
+    private val items: MutableList<MediaItem> = mutableStateListOf()
 
     override val feed_layouts: List<MediaItemLayout> = listOf(
         MediaItemLayout(null, null, items = items, view_more = MediaItemLayout.ViewMore(media_item = this))
     )
 
+    override val is_editable: Boolean = true
     override val playlist_type: PlaylistType = PlaylistType.PLAYLIST
     override val total_duration: Long? get() {
         var sum = 0L
@@ -75,7 +87,39 @@ class LocalPlaylist(id: String): Playlist(id) {
         return sum
     }
     override val item_count: Int get() = items.size
-    override val year: Int? get() = null
+    override val year: Int? get() = null // TODO
+
+    override fun getItems(): List<MediaItem> = items
+
+    override suspend fun addItem(item: MediaItem, index: Int): Result<Unit> {
+        try {
+            items.add(index, item)
+        }
+        catch (e: Throwable) {
+            return Result.failure(e)
+        }
+        return Result.success(Unit)
+    }
+
+    override suspend fun removeItem(index: Int): Result<Unit> {
+        try {
+            items.removeAt(index)
+        }
+        catch (e: Throwable) {
+            return Result.failure(e)
+        }
+        return Result.success(Unit)
+    }
+
+    override suspend fun moveItem(from: Int, to: Int): Result<Unit> {
+        try {
+            items.add(to, items.removeAt(from))
+        }
+        catch (e: Throwable) {
+            return Result.failure(e)
+        }
+        return Result.success(Unit)
+    }
 
     override fun getSerialisedData(klaxon: Klaxon): List<String> {
         return super.getSerialisedData(klaxon) + listOf(klaxon.toJsonString(year))
@@ -101,12 +145,53 @@ open class Playlist protected constructor (
         }
     }
 
+    private val items: MutableList<MediaItem>? get() = layout?.items
     override val data: PlaylistItemData = PlaylistItemData(this)
-
+    
+    open val layout: MediaItemLayout? get() = feed_layouts?.single()
+    open val is_editable: Boolean? get() = data.is_editable
     open val playlist_type: PlaylistType? get() = data.playlist_type
     open val total_duration: Long? get() = data.total_duration
     open val item_count: Int? get() = data.item_count
     open val year: Int? get() = data.year
+
+    open fun getItems(): List<MediaItem>? = layout?.items
+
+    open suspend fun addItem(item: MediaItem, index: Int): Result<Unit> {
+        check(is_editable)
+        try {
+            items.add(index, item)
+        }
+        catch (e: Throwable) {
+            return Result.failure(e)
+        }
+        
+        TODO("Commit to account")
+    }
+
+    open suspend fun removeItem(index: Int): Result<Unit> {
+        check(is_editable)
+        try {
+            items.removeAt(index)
+        }
+        catch (e: Throwable) {
+            return Result.failure(e)
+        }
+        
+        TODO("Commit to account")
+    }
+    
+    open suspend fun moveItem(from: Int, to: Int): Result<Unit> {
+        check(is_editable)
+        try {
+            items.add(to, items.removeAt(from))
+        }
+        catch (e: Throwable) {
+            return Result.failure(e)
+        }
+
+        TODO("Commit to account")
+    }
 
     fun editPlaylistData(action: PlaylistItemData.() -> Unit): Playlist {
         editData {

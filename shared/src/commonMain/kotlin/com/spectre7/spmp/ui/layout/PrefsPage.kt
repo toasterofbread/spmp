@@ -148,14 +148,6 @@ private fun rememberSettingsInterface(pill_menu: PillMenu, getCategory: () -> Ca
             }
         }
 
-        val ytm_auth =
-            SettingsValueState(
-                Settings.KEY_YTM_AUTH.name,
-                converter = { set ->
-                    set?.let { YoutubeMusicAuthInfo(it as Set<String>) } ?: YoutubeMusicAuthInfo()
-                }
-            ).init(Settings.prefs, Settings.Companion::provideDefault)
-
         val discord_auth =
             SettingsValueState<String>(Settings.KEY_DISCORD_ACCOUNT_TOKEN.name).init(Settings.prefs, Settings.Companion::provideDefault)
 
@@ -225,16 +217,55 @@ fun PrefsPage(pill_menu: PillMenu, close: () -> Unit) {
         rememberSettingsInterface(pill_menu, { current_category }, { current_category = null })
     val show_reset_confirmation = remember { mutableStateOf(false) }
 
+    val ytm_auth = remember {
+        SettingsValueState(
+            Settings.KEY_YTM_AUTH.name,
+            converter = { set ->
+                set?.let { YoutubeMusicAuthInfo(it as Set<String>) } ?: YoutubeMusicAuthInfo()
+            }
+        ).init(Settings.prefs, Settings.Companion::provideDefault)
+    }
+
     ResetConfirmationDialog(
         show_reset_confirmation,
-        { settings_interface.current_page.resetKeys() }
+        { 
+            if (category_open) {
+                settings_interface.current_page.resetKeys()
+            }
+            else {
+                TODO("Reset keys in all categories (w/ different confirmation text)")
+            }
+        }
     )
 
     BackHandler(category_open) {
         current_category = null
     }
 
-    Crossfade(category_open) { open ->
+    val extra_action: @Composable PillMenu.Action.(action_count: Int) -> Unit = remember {{
+        if (it == 1) {
+            ActionButton(
+                Icons.Filled.Refresh
+            ) {
+                show_reset_confirmation.value = true
+            }
+        }
+    }}
+
+    DisposableEffect(settings_interface.current_page) {
+        if (settings_interface.current_page.id == Page.ROOT.ordinal) {
+            pill_menu.addExtraAction(action = extra_action)
+        }
+        else {
+            pill_menu.removeExtraAction(extra_action)
+        }
+
+        onDispose {
+            pill_menu.removeExtraAction(extra_action)
+        }
+    }
+
+    Crossfade(category_open || settings_interface.current_page.id!! != Page.ROOT) { open ->
         if (!open) {
             LazyColumn(
                 contentPadding = PaddingValues(
@@ -264,6 +295,20 @@ fun PrefsPage(pill_menu: PillMenu, close: () -> Unit) {
                     }
                 }
 
+                item {
+                    var own_channel = remember { mutableStateOf(ytm_auth.value.getOwnChannelOrNull()) }
+                    val item = remember { 
+                        getYtmAuthItem(ytm_auth, own_channel).apply { 
+                            initialise(SpMp.context, Settings.prefs, Settings.Companion::provideDefault) 
+                        } 
+                    }
+                    item.GetItem(
+                        Theme.current,
+                        settings_interface::openPageById,
+                        settings_interface::openPage
+                    )
+                }
+
                 items(Category.values()) { category ->
                     ElevatedCard(
                         onClick = { current_category = category },
@@ -285,29 +330,6 @@ fun PrefsPage(pill_menu: PillMenu, close: () -> Unit) {
             }
         }
         else {
-            val extra_action: @Composable PillMenu.Action.(action_count: Int) -> Unit = remember { {
-                if (it == 1) {
-                    ActionButton(
-                        Icons.Filled.Refresh
-                    ) {
-                        show_reset_confirmation.value = true
-                    }
-                }
-            } }
-
-            DisposableEffect(settings_interface.current_page) {
-                if (settings_interface.current_page.id == Page.ROOT.ordinal) {
-                    pill_menu.addExtraAction(action = extra_action)
-                }
-                else {
-                    pill_menu.removeExtraAction(extra_action)
-                }
-
-                onDispose {
-                    pill_menu.removeExtraAction(extra_action)
-                }
-            }
-
             BoxWithConstraints(
                 Modifier
                     .background(Theme.current.background_provider)
@@ -623,68 +645,63 @@ private fun getDiscordLoginPage(discord_auth: SettingsValueState<String>, manual
     }
 }
 
-private fun getGeneralCategory(
-    ytm_auth: SettingsValueState<YoutubeMusicAuthInfo>,
-): List<SettingsItem> {
-    var own_channel by mutableStateOf(ytm_auth.value.getOwnChannelOrNull())
-
-    return listOf(
-        SettingsItemLargeToggle(
-            object : BasicSettingsValueState<Boolean> {
-                override var value: Boolean
-                    get() = ytm_auth.value.initialised
-                    set(value) {
-                        if (!value) {
-                            ytm_auth.value = YoutubeMusicAuthInfo()
-                        }
+private fun getYtmAuthItem(ytm_auth: SettingsValueState<YoutubeMusicAuthInfo>, own_channel: MutableState<Artist?>): SettingsItem =
+    SettingsItemLargeToggle(
+        object : BasicSettingsValueState<Boolean> {
+            override var value: Boolean
+                get() = ytm_auth.value.initialised
+                set(value) {
+                    if (!value) {
+                        ytm_auth.value = YoutubeMusicAuthInfo()
                     }
-                override fun init(prefs: ProjectPreferences, defaultProvider: (String) -> Any): BasicSettingsValueState<Boolean> = this
-                override fun reset() = ytm_auth.reset()
-                override fun save() = ytm_auth.save()
-                override fun getDefault(defaultProvider: (String) -> Any): Boolean =
-                    defaultProvider(Settings.KEY_YTM_AUTH.name) is YoutubeMusicAuthInfo
-            },
-            enabled_content = { modifier ->
-                ytm_auth.value.getOwnChannelOrNull()?.also {
-                    own_channel = it
                 }
+            override fun init(prefs: ProjectPreferences, defaultProvider: (String) -> Any): BasicSettingsValueState<Boolean> = this
+            override fun reset() = ytm_auth.reset()
+            override fun save() = ytm_auth.save()
+            override fun getDefault(defaultProvider: (String) -> Any): Boolean =
+                defaultProvider(Settings.KEY_YTM_AUTH.name) is YoutubeMusicAuthInfo
+        },
+        enabled_content = { modifier ->
+            ytm_auth.value.getOwnChannelOrNull()?.also {
+                own_channel.value = it
+            }
 
-                own_channel?.PreviewLong(
-                    MediaItem.PreviewParams(
-                        modifier
-                    )
+            own_channel.value?.PreviewLong(
+                MediaItem.PreviewParams(
+                    modifier
                 )
-            },
-            disabled_text = getStringTODO("Not signed in"),
-            enable_button = getStringTODO("Sign in"),
-            disable_button = getStringTODO("Sign out"),
-            warningDialog = { dismiss, openPage ->
-                YoutubeMusicLoginConfirmation { manual ->
-                    dismiss()
-                    if (manual == true) {
-                        openPage(Page.YOUTUBE_MUSIC_MANUAL_LOGIN.ordinal)
-                    }
-                    else if (manual == false) {
-                        openPage(Page.YOUTUBE_MUSIC_LOGIN.ordinal)
-                    }
+            )
+        },
+        disabled_text = getStringTODO("Not signed in"),
+        enable_button = getStringTODO("Sign in"),
+        disable_button = getStringTODO("Sign out"),
+        warningDialog = { dismiss, openPage ->
+            YoutubeMusicLoginConfirmation { manual ->
+                dismiss()
+                if (manual == true) {
+                    openPage(Page.YOUTUBE_MUSIC_MANUAL_LOGIN.ordinal)
                 }
-            },
-            infoDialog = { dismiss, _ ->
-                YoutubeMusicLoginConfirmation(true) {
-                    dismiss()
+                else if (manual == false) {
+                    openPage(Page.YOUTUBE_MUSIC_LOGIN.ordinal)
                 }
-            }
-        ) { target, setEnabled, _, openPage ->
-            if (target) {
-                openPage(Page.YOUTUBE_MUSIC_LOGIN.ordinal)
-            }
-            else {
-                setEnabled(false)
             }
         },
+        infoDialog = { dismiss, _ ->
+            YoutubeMusicLoginConfirmation(true) {
+                dismiss()
+            }
+        }
+    ) { target, setEnabled, _, openPage ->
+        if (target) {
+            openPage(Page.YOUTUBE_MUSIC_LOGIN.ordinal)
+        }
+        else {
+            setEnabled(false)
+        }
+    }
 
-        SettingsItemSpacer(5.dp),
-
+private fun getGeneralCategory(): List<SettingsItem> {
+    return listOf(
         SettingsItemComposable {
             WidthShrinkText(getString("language_change_restart_notice"))
         },

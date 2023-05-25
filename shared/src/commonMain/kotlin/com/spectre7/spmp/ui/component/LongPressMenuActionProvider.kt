@@ -36,11 +36,11 @@ class LongPressMenuActionProvider(
     val content_colour: () -> Color,
     val accent_colour: () -> Color,
     val background_colour: () -> Color,
-    val closeMenu: () -> Unit
+    val onAction: () -> Unit
 ) {
     @Composable
     fun ActionButton(icon: ImageVector, label: String, modifier: Modifier = Modifier, onClick: () -> Unit, onLongClick: (() -> Unit)? = null, fill_width: Boolean = true) =
-        ActionButton(icon, label, accent_colour, modifier = modifier, onClick = onClick, onLongClick = onLongClick, closeMenu = closeMenu, fill_width = fill_width)
+        ActionButton(icon, label, accent_colour, modifier = modifier, onClick = onClick, onLongClick = onLongClick, onAction = onAction, fill_width = fill_width)
 
     @OptIn(ExperimentalFoundationApi::class)
     @Composable
@@ -139,7 +139,7 @@ class LongPressMenuActionProvider(
             modifier: Modifier = Modifier,
             onClick: () -> Unit,
             onLongClick: (() -> Unit)? = null,
-            closeMenu: () -> Unit,
+            onAction: () -> Unit,
             fill_width: Boolean = true
         ) {
             Row(
@@ -149,13 +149,13 @@ class LongPressMenuActionProvider(
                         indication = null,
                         onClick = {
                             onClick()
-//                            closeMenu()
+                            onAction()
                         },
                         onLongClick = if (onLongClick == null) null else {
                             {
                                 SpMp.context.vibrateShort()
                                 onLongClick()
-//                                closeMenu()
+                                onAction()
                             }
                         }
                     )

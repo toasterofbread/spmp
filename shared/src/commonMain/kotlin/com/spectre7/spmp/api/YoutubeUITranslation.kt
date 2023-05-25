@@ -25,20 +25,17 @@ fun durationToString(duration: Long, hl: String, short: Boolean): String {
             val dur = Duration.ofMillis(duration)
             dur.toHours().also {
                 if (it != 0L) {
-                    f.append("$it${hms.splitter}${hms.hours} ")
+                    f.append("$it${hms.splitter}${hms.hours}")
                 }
             }
             dur.toMinutesPart().also {
                 if (it != 0) {
-                    f.append("$it${hms.splitter}${hms.minutes} ")
+                    f.append("${hms.splitter}$it${hms.splitter}${hms.minutes}")
                 }
             }
             dur.toSecondsPart().also {
                 if (it != 0) {
-                    f.append("$it${hms.splitter}${hms.seconds}")
-                }
-                else {
-                    f.removeSuffix(" ")
+                    f.append("${hms.splitter}$it${hms.splitter}${hms.seconds}")
                 }
             }
 

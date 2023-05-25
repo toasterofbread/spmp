@@ -121,7 +121,8 @@
     <string name="playlist_chip_radio">ラジオ</string>
     <string name="playlist_chip_details">情報</string>
     <string name="playlist_chip_open">開く</string>
-    <string name="artist_info_label">アーティスト情報</string>
+    <string name="artist_chip_open">開く</string>
+    <string name="playlist_x_songs">$x曲</string>
     <string name="download_service_name">ダウンロードサービス</string>
     <string name="download_service_error_name">ダウンロードサービスエラー</string>
     <string name="lyrics_sync_none">シンクなし</string>
@@ -143,7 +144,11 @@
     <string name="s_key_feed_show_listen_row">「もう一度聴く」行を表示する</string>
     <string name="s_key_feed_show_moods_row">「おすすめのプレイリスト」行を表示する</string>
     <string name="s_key_feed_show_new_row">「新作」行を表示する</string>
-    
+
+    <string name="s_group_long_press_menu">長押しメニュー</string>
+    <string name="s_key_lpm_close_on_action">アクションを行ったら閉じる</string>
+    <string name="s_key_lpm_increment_play_after">「○曲後に再生」使用時に曲数を増加</string>
+
     <string name="s_key_open_np_on_song_played">曲をタップしたらプレーヤーを開く</string>
     <string name="s_sub_open_np_on_song_played">曲をタップしたときにプレーヤーが自動で開きます</string>
     <string name="s_key_multiselect_cancel_on_action">アクション後に複数選択を解除する</string>

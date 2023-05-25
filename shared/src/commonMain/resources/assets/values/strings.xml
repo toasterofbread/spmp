@@ -67,6 +67,7 @@
     <string name="playlist_chip_radio">Radio</string>
     <string name="playlist_chip_details">Details</string>
     <string name="playlist_chip_open">Open</string>
+    <string name="playlist_x_songs">$x songs</string>
 
     <string name="artist_chip_play">Play</string>
     <string name="artist_chip_shuffle">Shuffle</string>
@@ -179,6 +180,9 @@
     <string name="s_key_data_lang">Data language</string>
     <string name="s_sub_data_lang">Language used for song and artist titles, etc.</string>
     <string name="language_change_restart_notice">An app restart is required for language changes to take effect</string>
+    <string name="s_group_long_press_menu">Long-press menu</string>
+    <string name="s_key_lpm_close_on_action">Close menu on action</string>
+    <string name="s_key_lpm_increment_play_after">Increment 'Play after' action on use</string>
 
     <string name="s_cat_home_page">Home page</string>
 

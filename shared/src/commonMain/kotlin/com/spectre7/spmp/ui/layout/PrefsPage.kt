@@ -124,7 +124,7 @@ private fun ResetConfirmationDialog(show_state: MutableState<Boolean>, reset: su
 }
 
 @Composable
-private fun rememberSettingsInterface(pill_menu: PillMenu, getCategory: () -> Category?, close: () -> Unit): SettingsInterface {
+private fun rememberSettingsInterface(pill_menu: PillMenu, ytm_auth: SettingsValueState<YoutubeMusicAuthInfo>, getCategory: () -> Category?, close: () -> Unit): SettingsInterface {
     return remember {
         lateinit var settings_interface: SettingsInterface
         val pill_menu_action_overrider: @Composable PillMenu.Action.(i: Int) -> Boolean = { i ->
@@ -164,7 +164,7 @@ private fun rememberSettingsInterface(pill_menu: PillMenu, getCategory: () -> Ca
                         { getCategory()?.getTitle() },
                         {
                             when (getCategory()) {
-                                Category.GENERAL -> getGeneralCategory(ytm_auth)
+                                Category.GENERAL -> getGeneralCategory()
                                 Category.FEED -> getFeedCategory()
                                 Category.THEME -> getThemeCategory(Theme.manager)
                                 Category.LYRICS -> getLyricsCategory()
@@ -211,12 +211,6 @@ private fun rememberSettingsInterface(pill_menu: PillMenu, getCategory: () -> Ca
 @OptIn(ExperimentalMaterial3Api::class, ExperimentalResourceApi::class)
 @Composable
 fun PrefsPage(pill_menu: PillMenu, close: () -> Unit) {
-    var current_category: Category? by remember { mutableStateOf(null) }
-    val category_open by remember { derivedStateOf { current_category != null } }
-    val settings_interface: SettingsInterface =
-        rememberSettingsInterface(pill_menu, { current_category }, { current_category = null })
-    val show_reset_confirmation = remember { mutableStateOf(false) }
-
     val ytm_auth = remember {
         SettingsValueState(
             Settings.KEY_YTM_AUTH.name,
@@ -225,6 +219,12 @@ fun PrefsPage(pill_menu: PillMenu, close: () -> Unit) {
             }
         ).init(Settings.prefs, Settings.Companion::provideDefault)
     }
+
+    var current_category: Category? by remember { mutableStateOf(null) }
+    val category_open by remember { derivedStateOf { current_category != null } }
+    val settings_interface: SettingsInterface =
+        rememberSettingsInterface(pill_menu, ytm_auth, { current_category }, { current_category = null })
+    val show_reset_confirmation = remember { mutableStateOf(false) }
 
     ResetConfirmationDialog(
         show_reset_confirmation,
@@ -265,7 +265,7 @@ fun PrefsPage(pill_menu: PillMenu, close: () -> Unit) {
         }
     }
 
-    Crossfade(category_open || settings_interface.current_page.id!! != Page.ROOT) { open ->
+    Crossfade(category_open || settings_interface.current_page.id!! != Page.ROOT.ordinal) { open ->
         if (!open) {
             LazyColumn(
                 contentPadding = PaddingValues(
@@ -763,6 +763,18 @@ private fun getGeneralCategory(): List<SettingsItem> {
             SettingsValueState(Settings.KEY_ADD_SONGS_TO_HISTORY.name),
             getString("s_key_add_songs_to_history"),
             getString("s_sub_add_songs_to_history")
+        ),
+
+        SettingsGroup(getString("s_group_long_press_menu")),
+
+        SettingsItemToggle(
+            SettingsValueState(Settings.KEY_LPM_CLOSE_ON_ACTION.name),
+            getString("s_key_lpm_close_on_action"), null
+        ),
+
+        SettingsItemToggle(
+            SettingsValueState(Settings.KEY_LPM_INCREMENT_PLAY_AFTER.name),
+            getString("s_key_lpm_increment_play_after"), null
         )
     )
 }

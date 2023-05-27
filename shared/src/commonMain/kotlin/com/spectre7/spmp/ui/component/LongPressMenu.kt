@@ -365,17 +365,19 @@ private fun MenuActions(data: LongPressMenuData, accent_colour: Color, onAction:
         )
     }
 
-    // Share
-    if (SpMp.context.canShare()) {
-        LongPressMenuActionProvider.ActionButton(Icons.Filled.Share, getString("lpm_action_share"), accent_colour_provider, onClick = {
-            SpMp.context.shareText(data.item.url, if (data.item is Song) data.item.title else null)
-        }, onAction = onAction)
-    }
+    data.item.url?.also { url ->
+        // Share
+        if (SpMp.context.canShare()) {
+            LongPressMenuActionProvider.ActionButton(Icons.Filled.Share, getString("lpm_action_share"), accent_colour_provider, onClick = {
+                SpMp.context.shareText(url, if (data.item is Song) data.item.title else null)
+            }, onAction = onAction)
+        }
 
-    // Open
-    if (SpMp.context.canOpenUrl()) {
-        LongPressMenuActionProvider.ActionButton(Icons.Filled.OpenWith, getString("lpm_action_open_external"), accent_colour_provider, onClick = {
-            SpMp.context.openUrl(data.item.url)
-        }, onAction = onAction)
+        // Open
+        if (SpMp.context.canOpenUrl()) {
+            LongPressMenuActionProvider.ActionButton(Icons.Filled.OpenWith, getString("lpm_action_open_external"), accent_colour_provider, onClick = {
+                SpMp.context.openUrl(url)
+            }, onAction = onAction)
+        }
     }
 }

@@ -7,7 +7,7 @@ import com.beust.klaxon.JsonArray
 import com.beust.klaxon.Klaxon
 import com.spectre7.spmp.ui.component.MediaItemLayout
 
-abstract class MediaItemWithLayoutsData(item: MediaItem): MediaItemData(item) {
+open class MediaItemWithLayoutsData(item: MediaItem): MediaItemData(item) {
     var feed_layouts: List<MediaItemLayout>? by mutableStateOf(null)
         private set
 

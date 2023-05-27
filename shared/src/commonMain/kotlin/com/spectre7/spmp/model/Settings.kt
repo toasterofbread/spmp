@@ -91,7 +91,7 @@ enum class Settings {
     KEY_ACC_VOL_INTERCEPT_NOTIFICATION,
     KEY_ACC_SCREEN_OFF,
 
-    // Top bar content TODO
+    // Top bar content
     KEY_TOPBAR_LYRICS_LINGER,
     KEY_TOPBAR_DEFAULT_MODE_HOME,
     KEY_TOPBAR_DEFAULT_MODE_NOWPLAYING,

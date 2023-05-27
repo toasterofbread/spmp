@@ -306,7 +306,7 @@ abstract class MediaItem(id: String) {
         }
     }
 
-    suspend fun loadData(force: Boolean = false): Result<MediaItem?> = withContext(Dispatchers.IO) {
+    open suspend fun loadData(force: Boolean = false): Result<MediaItem?> = withContext(Dispatchers.IO) {
         if (!force && isFullyLoaded()) {
             loaded_callbacks?.forEach { it.invoke(this@MediaItem) }
             loaded_callbacks = null
@@ -359,13 +359,13 @@ abstract class MediaItem(id: String) {
         replaced_with = when (type) {
             MediaItemType.SONG -> Song.fromId(new_id)
             MediaItemType.ARTIST -> Artist.fromId(new_id)
-            MediaItemType.PLAYLIST -> Playlist.fromId(new_id)
+            MediaItemType.PLAYLIST -> AccountPlaylist.fromId(new_id)
         }
 
         return replaced_with!!
     }
 
-    abstract val url: String
+    abstract val url: String?
 
     private val _related_endpoints = mutableListOf<MediaItemBrowseEndpoint>()
     val related_endpoints: List<MediaItemBrowseEndpoint>
@@ -568,7 +568,7 @@ abstract class MediaItem(id: String) {
             val item = when (type) {
                 MediaItemType.SONG -> Song.fromId(id)
                 MediaItemType.ARTIST -> Artist.fromId(id)
-                MediaItemType.PLAYLIST -> Playlist.fromId(id)
+                MediaItemType.PLAYLIST -> AccountPlaylist.fromId(id)
             }
 
             if (data.size > 2) {
@@ -582,7 +582,7 @@ abstract class MediaItem(id: String) {
         fun fromBrowseEndpointType(page_type: String, id: String): MediaItem {
             return when (page_type) {
                 "MUSIC_PAGE_TYPE_PLAYLIST", "MUSIC_PAGE_TYPE_ALBUM", "MUSIC_PAGE_TYPE_AUDIOBOOK" ->
-                    Playlist.fromId(id).editPlaylistData { supplyPlaylistType(Playlist.PlaylistType.fromTypeString(page_type), true) }
+                    AccountPlaylist.fromId(id).editPlaylistData { supplyPlaylistType(Playlist.PlaylistType.fromTypeString(page_type), true) }
                 "MUSIC_PAGE_TYPE_ARTIST", "MUSIC_PAGE_TYPE_USER_CHANNEL" ->
                     Artist.fromId(id)
                 else -> throw NotImplementedError(page_type)

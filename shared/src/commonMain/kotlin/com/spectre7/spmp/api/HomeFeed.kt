@@ -8,11 +8,9 @@ import com.spectre7.spmp.api.DataApi.Companion.ytUrl
 import com.spectre7.spmp.model.*
 import com.spectre7.spmp.ui.component.MediaItemLayout
 import kotlinx.coroutines.launch
-import kotlinx.coroutines.withContext
 import okhttp3.Request
 import java.io.InputStreamReader
 import java.time.Duration
-import kotlin.concurrent.thread
 
 private val CACHE_LIFETIME = Duration.ofDays(1)
 
@@ -169,7 +167,7 @@ private fun processRows(rows: List<YoutubeiShelf>, hl: String): List<MediaItemLa
                     "FEmusic_listen_again" -> {
                         if (Settings.get(Settings.KEY_FEED_SHOW_LISTEN_ROW)) {
                             add(
-                                LocalisedYoutubeString.common("home_feed_listen_again"),
+                                LocalisedYoutubeString.app("home_feed_listen_again"),
                                 null,
                                 thumbnail_source = null,
                                 view_more = MediaItemLayout.ViewMore(list_page_url = "https://music.youtube.com/listen_again")
@@ -180,7 +178,7 @@ private fun processRows(rows: List<YoutubeiShelf>, hl: String): List<MediaItemLa
                     "FEmusic_mixed_for_you" -> {
                         if (Settings.get(Settings.KEY_FEED_SHOW_MIX_ROW)) {
                             add(
-                                LocalisedYoutubeString.common("home_feed_mixed_for_you"),
+                                LocalisedYoutubeString.app("home_feed_mixed_for_you"),
                                 null,
                                 view_more = MediaItemLayout.ViewMore(list_page_url = "https://music.youtube.com/mixed_for_you")
                             )
@@ -190,7 +188,7 @@ private fun processRows(rows: List<YoutubeiShelf>, hl: String): List<MediaItemLa
                     "FEmusic_new_releases_albums" -> {
                         if (Settings.get(Settings.KEY_FEED_SHOW_NEW_ROW)) {
                             add(
-                                LocalisedYoutubeString.common("home_feed_new_releases"),
+                                LocalisedYoutubeString.app("home_feed_new_releases"),
                                 null,
                                 view_more = MediaItemLayout.ViewMore(list_page_url = "https://music.youtube.com/new_releases/albums")
                             )
@@ -200,7 +198,7 @@ private fun processRows(rows: List<YoutubeiShelf>, hl: String): List<MediaItemLa
                     "FEmusic_moods_and_genres" -> {
                         if (Settings.get(Settings.KEY_FEED_SHOW_MOODS_ROW)) {
                             add(
-                                LocalisedYoutubeString.common("home_feed_moods_and_genres"),
+                                LocalisedYoutubeString.app("home_feed_moods_and_genres"),
                                 null,
                                 view_more = MediaItemLayout.ViewMore(list_page_url = "https://music.youtube.com/moods_and_genres")
                             )
@@ -210,7 +208,7 @@ private fun processRows(rows: List<YoutubeiShelf>, hl: String): List<MediaItemLa
                     "FEmusic_charts" -> {
                         if (Settings.get(Settings.KEY_FEED_SHOW_CHARTS_ROW)) {
                             add(
-                                LocalisedYoutubeString.common("home_feed_charts"),
+                                LocalisedYoutubeString.app("home_feed_charts"),
                                 null,
                                 view_more = MediaItemLayout.ViewMore(list_page_url = "https://music.youtube.com/charts")
                             )
@@ -224,7 +222,7 @@ private fun processRows(rows: List<YoutubeiShelf>, hl: String): List<MediaItemLa
 
                 when (page_type) {
                     "MUSIC_PAGE_TYPE_ARTIST", "MUSIC_PAGE_TYPE_USER_CHANNEL" -> media_item = Artist.fromId(browse_endpoint.browseId)
-                    "MUSIC_PAGE_TYPE_PLAYLIST" -> media_item = Playlist.fromId(browse_endpoint.browseId).editPlaylistData { supplyTitle(header.title.first_text) }
+                    "MUSIC_PAGE_TYPE_PLAYLIST" -> media_item = AccountPlaylist.fromId(browse_endpoint.browseId).editPlaylistData { supplyTitle(header.title.first_text) }
                     else -> throw NotImplementedError(browse_endpoint.toString())
                 }
 
@@ -373,14 +371,14 @@ data class NavigationEndpoint(
                 return Song.fromId(watchEndpoint.videoId)
             }
             else if (watchEndpoint.playlistId != null) {
-                return Playlist.fromId(watchEndpoint.playlistId)
+                return AccountPlaylist.fromId(watchEndpoint.playlistId)
             }
         }
         if (browseEndpoint != null) {
             browseEndpoint.getMediaItem()?.also { return it }
         }
         if (watchPlaylistEndpoint != null) {
-            return Playlist.fromId(watchPlaylistEndpoint.playlistId)
+            return AccountPlaylist.fromId(watchPlaylistEndpoint.playlistId)
         }
         return null
     }
@@ -558,7 +556,7 @@ data class ContentsItem(val musicTwoRowItemRenderer: MusicTwoRowItemRenderer? = 
                     return null
                 }
 
-                item = Playlist.fromId(renderer.navigationEndpoint.watchPlaylistEndpoint.playlistId).editPlaylistData {
+                item = AccountPlaylist.fromId(renderer.navigationEndpoint.watchPlaylistEndpoint.playlistId).editPlaylistData {
                     supplyPlaylistType(Playlist.PlaylistType.RADIO, true)
                     supplyTitle(renderer.title.first_text)
                     supplyThumbnailProvider(renderer.thumbnailRenderer.toThumbnailProvider())
@@ -571,7 +569,7 @@ data class ContentsItem(val musicTwoRowItemRenderer: MusicTwoRowItemRenderer? = 
 
                 item = when (page_type) {
                     "MUSIC_PAGE_TYPE_ALBUM", "MUSIC_PAGE_TYPE_PLAYLIST", "MUSIC_PAGE_TYPE_AUDIOBOOK" ->
-                        Playlist.fromId(browse_id).editPlaylistData {
+                        AccountPlaylist.fromId(browse_id).editPlaylistData {
                             supplyPlaylistType(when (page_type) {
                                 "MUSIC_PAGE_TYPE_ALBUM" -> Playlist.PlaylistType.ALBUM
                                 "MUSIC_PAGE_TYPE_PLAYLIST" -> Playlist.PlaylistType.PLAYLIST
@@ -596,7 +594,7 @@ data class ContentsItem(val musicTwoRowItemRenderer: MusicTwoRowItemRenderer? = 
 
             var title: String? = null
             var artist: Artist? = null
-            var playlist: Playlist? = null
+            var playlist: AccountPlaylist? = null
             var duration: Long? = null
 
             if (video_id == null) {
@@ -604,7 +602,7 @@ data class ContentsItem(val musicTwoRowItemRenderer: MusicTwoRowItemRenderer? = 
                 when (page_type) {
                     "MUSIC_PAGE_TYPE_ALBUM", "MUSIC_PAGE_TYPE_PLAYLIST" -> {
                         video_is_main = false
-                        playlist = Playlist
+                        playlist = AccountPlaylist
                             .fromId(renderer.navigationEndpoint.browseEndpoint.browseId)
                             .editPlaylistData {
                                 supplyPlaylistType(Playlist.PlaylistType.fromTypeString(page_type), true)

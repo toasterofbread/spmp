@@ -562,7 +562,7 @@ private fun InfoDialog(item: MediaItem, close: () -> Unit) {
             Column(Modifier.fillMaxWidth(), verticalArrangement = Arrangement.Center) {
                 InfoValue("Name", item.title ?: "")
                 InfoValue("Id", item.id)
-                InfoValue("Url", item.url)
+                InfoValue("Url", item.url.toString())
             }
         }
     )

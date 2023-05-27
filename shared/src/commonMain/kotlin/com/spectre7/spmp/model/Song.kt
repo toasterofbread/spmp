@@ -143,7 +143,7 @@ class Song protected constructor (
     override fun supplyFromSerialisedData(data: MutableList<Any?>, klaxon: Klaxon): MediaItem {
         require(data.size >= 3)
         with(this@Song.data) {
-            data.removeLast()?.also { supplyAlbum(Playlist.fromId(it as String), cached = true) }
+            data.removeLast()?.also { supplyAlbum(AccountPlaylist.fromId(it as String), cached = true) }
             data.removeLast()?.also { supplyDuration((it as Int).toLong(), cached = true) }
             data.removeLast()?.also { supplySongType(SongType.values()[it as Int], cached = true) }
         }
@@ -245,9 +245,6 @@ class Song protected constructor (
 
         @Synchronized
         fun fromId(id: String): Song {
-            if (id.contains(',')) {
-                TODO()
-            }
             return songs.getOrPut(id) {
                 val song = Song(id)
                 song.loadFromCache()

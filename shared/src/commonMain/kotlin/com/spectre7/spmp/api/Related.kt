@@ -43,7 +43,7 @@ private suspend fun loadBrowseEndpoint(browse_endpoint: MediaItemBrowseEndpoint)
                     Song.fromId(item.videoId).loadData().getOrThrowHere()!!
                 }
                 else if (item.playlistId != null) {
-                    Playlist.fromId(item.playlistId).loadData().getOrThrowHere()!!
+                    AccountPlaylist.fromId(item.playlistId).loadData().getOrThrowHere()!!
                 }
                 else if (item.browseId != null) {
 
@@ -52,7 +52,7 @@ private suspend fun loadBrowseEndpoint(browse_endpoint: MediaItemBrowseEndpoint)
                         media_item = Artist.fromId(item.browseId).apply { addBrowseEndpoint(item.browseId, MediaItemBrowseEndpoint.Type.ARTIST) }
                     }
                     else {
-                        media_item = Playlist.fromId(item.browseId).apply { addBrowseEndpoint(item.browseId, MediaItemBrowseEndpoint.Type.ALBUM) }
+                        media_item = AccountPlaylist.fromId(item.browseId).apply { addBrowseEndpoint(item.browseId, MediaItemBrowseEndpoint.Type.ALBUM) }
                     }
 
                     media_item.loadData().getOrThrowHere()!!

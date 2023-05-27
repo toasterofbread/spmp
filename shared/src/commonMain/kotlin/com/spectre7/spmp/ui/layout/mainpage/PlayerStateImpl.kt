@@ -22,6 +22,7 @@ import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.unit.*
 import com.spectre7.spmp.PlayerServiceHost
 import com.spectre7.spmp.api.cast
@@ -39,6 +40,7 @@ import com.spectre7.spmp.ui.layout.*
 import com.spectre7.spmp.ui.layout.nowplaying.NOW_PLAYING_VERTICAL_PAGE_COUNT
 import com.spectre7.spmp.ui.layout.nowplaying.NowPlayingExpansionState
 import com.spectre7.spmp.ui.layout.nowplaying.ThemeMode
+import com.spectre7.spmp.ui.layout.prefspage.PrefsPage
 import com.spectre7.utils.addUnique
 import com.spectre7.utils.composable.OnChangedEffect
 import com.spectre7.utils.init
@@ -118,7 +120,7 @@ class PlayerStateImpl: PlayerState(null, null, null) {
             pinned_items.add(Artist.fromId(artist))
         }
         for (playlist in Settings.INTERNAL_PINNED_PLAYLISTS.get<Set<String>>()) {
-            pinned_items.add(Playlist.fromId(playlist))
+            pinned_items.add(AccountPlaylist.fromId(playlist))
         }
     }
 
@@ -136,8 +138,18 @@ class PlayerStateImpl: PlayerState(null, null, null) {
         Settings.prefs.removeListener(prefs_listener)
     }
 
-    override fun getNowPlayingTopOffset(screen_height: Dp, density: Density): Int {
-        return with (density) { (-np_swipe_state.value.offset.value.dp - (screen_height * 0.5f)).toPx().toInt() }
+    @Composable
+    override fun nowPlayingTopOffset(base: Modifier): Modifier {
+        val density = LocalDensity.current
+        val screen_height = SpMp.context.getScreenHeight()
+        val keyboard_insets = SpMp.context.getImeInsets()
+
+        return base.offset {
+            IntOffset(
+                0,
+                with (density) { (-np_swipe_state.value.offset.value.dp - (screen_height * 0.5f)).toPx().toInt() } -  (keyboard_insets?.getBottom(density) ?: 0)
+            )
+        }
     }
 
     override fun setOverlayPage(page: OverlayPage?, data: Any?, from_current: Boolean) {

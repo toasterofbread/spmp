@@ -4,8 +4,6 @@ import GlobalPlayerState
 import LocalPlayerState
 import SpMp
 import androidx.compose.animation.AnimatedVisibility
-import androidx.compose.animation.core.Animatable
-import androidx.compose.animation.core.AnimationVector1D
 import androidx.compose.animation.slideInVertically
 import androidx.compose.animation.slideOutVertically
 import androidx.compose.foundation.*
@@ -67,9 +65,11 @@ fun NowPlaying(swipe_state: SwipeableState<Int>, swipe_anchors: Map<Float, Int>)
         enter = slideInVertically(),
         exit = slideOutVertically()
     ) {
-        val screen_height = SpMp.context.getScreenHeight()
-        val half_screen_height = screen_height.value * 0.5f
         val density = LocalDensity.current
+        val keyboard_insets = SpMp.context.getImeInsets()
+        val screen_height = SpMp.context.getScreenHeight()
+
+        val half_screen_height = screen_height.value * 0.5f
         val is_shut by remember { derivedStateOf { swipe_state.targetValue == 0 } }
 
         var switch_to_page: Int by remember { mutableStateOf(-1) }
@@ -89,7 +89,9 @@ fun NowPlaying(swipe_state: SwipeableState<Int>, swipe_anchors: Map<Float, Int>)
                 .offset {
                     IntOffset(
                         0,
-                        with (density) { ((half_screen_height.dp * NOW_PLAYING_VERTICAL_PAGE_COUNT) - swipe_state.offset.value.dp).toPx().toInt() }
+                        with (density) {
+                            ((half_screen_height.dp * NOW_PLAYING_VERTICAL_PAGE_COUNT) - swipe_state.offset.value.dp).toPx().toInt() - (keyboard_insets?.getBottom(density) ?: 0)
+                        }
                     )
                 }
                 .scrollWheelSwipeable(

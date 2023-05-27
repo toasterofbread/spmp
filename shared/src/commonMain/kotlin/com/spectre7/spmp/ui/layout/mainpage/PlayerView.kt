@@ -45,8 +45,6 @@ fun PlayerView(player: PlayerStateImpl) {
         }
     }
 
-    val screen_height = SpMp.context.getScreenHeight()
-
     Column(
         Modifier
             .fillMaxSize()
@@ -79,9 +77,7 @@ fun PlayerView(player: PlayerStateImpl) {
                 },
                 if (!overlay_open) expand_state else null,
                 Theme.current.accent_provider,
-                container_modifier = Modifier.offset {
-                    IntOffset(0, player.getNowPlayingTopOffset(screen_height, this))
-                }
+                container_modifier = player.nowPlayingTopOffset(Modifier)
             )
 
             player.HomeFeed()

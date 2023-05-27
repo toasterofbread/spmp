@@ -150,10 +150,12 @@ fun getPlaylistLongPressMenuData(
 private fun LongPressMenuActionProvider.PlaylistLongPressPopupActions(playlist: MediaItem) {
     require(playlist is Playlist)
 
+    val player = LocalPlayerState.current
+
     ActionButton(
         Icons.Default.PlayArrow, getString("lpm_action_play"),
         onClick = {
-            TODO() // Play
+            player.playMediaItem(playlist)
         }
     )
 
@@ -176,7 +178,6 @@ private fun LongPressMenuActionProvider.PlaylistLongPressPopupActions(playlist: 
         }
     )
 
-    val player = LocalPlayerState.current
     ActionButton(Icons.Default.QueueMusic, getString("lpm_action_open_playlist"), onClick = {
         player.openMediaItem(playlist)
     })

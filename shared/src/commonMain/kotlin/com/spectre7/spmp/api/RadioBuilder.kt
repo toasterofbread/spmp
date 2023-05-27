@@ -3,6 +3,7 @@ package com.spectre7.spmp.api
 import com.spectre7.spmp.api.DataApi.Companion.addYtHeaders
 import com.spectre7.spmp.api.DataApi.Companion.getStream
 import com.spectre7.spmp.api.DataApi.Companion.ytUrl
+import com.spectre7.spmp.model.AccountPlaylist
 import com.spectre7.spmp.model.MediaItemThumbnailProvider
 import com.spectre7.spmp.model.Playlist
 import com.spectre7.spmp.resources.getString
@@ -12,7 +13,7 @@ suspend fun getBuiltRadio(radio_token: String): Result<Playlist?> {
     require(radio_token.startsWith("VLRDAT"))
     require(radio_token.contains('E'))
 
-    val playlist = Playlist.fromId(radio_token).editPlaylistData { supplyPlaylistType(Playlist.PlaylistType.RADIO, true) }
+    val playlist = AccountPlaylist.fromId(radio_token).editPlaylistData { supplyPlaylistType(Playlist.PlaylistType.RADIO, true) }
     val result = playlist.loadData(true)
 
     if (result.isFailure) {

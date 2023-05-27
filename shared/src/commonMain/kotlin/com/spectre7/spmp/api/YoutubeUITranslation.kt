@@ -124,14 +124,14 @@ class LocalisedYoutubeString(
 
     enum class Type {
         RAW,
-        COMMON,
+        APP,
         HOME_FEED,
         OWN_CHANNEL,
         ARTIST_PAGE
     }
 
     init {
-        if (type != Type.RAW && type != Type.COMMON) {
+        if (type != Type.RAW && type != Type.APP) {
             check(source_language != null)
         }
     }
@@ -140,7 +140,7 @@ class LocalisedYoutubeString(
         if (string == null) {
             string = when (type) {
                 Type.RAW -> key
-                Type.COMMON -> getString(key)
+                Type.APP -> getString(key)
                 Type.HOME_FEED -> {
                     val translation = SpMp.yt_ui_translation.translateHomeFeedString(key, source_language!!)
                     if (translation != null) {
@@ -163,7 +163,7 @@ class LocalisedYoutubeString(
         fun temp(string: String): LocalisedYoutubeString = LocalisedYoutubeString(string, Type.RAW, current_source_language)
 
         fun raw(string: String): LocalisedYoutubeString = LocalisedYoutubeString(string, Type.RAW, current_source_language)
-        fun common(key: String): LocalisedYoutubeString = LocalisedYoutubeString(key, Type.COMMON, current_source_language)
+        fun app(key: String): LocalisedYoutubeString = LocalisedYoutubeString(key, Type.APP, current_source_language)
         fun homeFeed(key: String): LocalisedYoutubeString = LocalisedYoutubeString(key, Type.HOME_FEED, current_source_language)
         fun ownChannel(key: String): LocalisedYoutubeString = LocalisedYoutubeString(key, Type.OWN_CHANNEL, current_source_language)
         fun artistPage(key: String): LocalisedYoutubeString = LocalisedYoutubeString(key, Type.ARTIST_PAGE, current_source_language)

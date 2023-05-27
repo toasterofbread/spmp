@@ -18,6 +18,8 @@ import android.os.VibratorManager
 import android.view.Window
 import android.view.WindowInsetsController.APPEARANCE_LIGHT_STATUS_BARS
 import android.widget.Toast
+import androidx.compose.foundation.layout.WindowInsets
+import androidx.compose.foundation.layout.ime
 import androidx.compose.foundation.layout.size
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.ContentCopy
@@ -30,10 +32,10 @@ import androidx.compose.ui.graphics.toArgb
 import androidx.compose.ui.platform.*
 import androidx.compose.ui.text.AnnotatedString
 import androidx.compose.ui.text.font.Font
+import androidx.compose.ui.unit.Density
 import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
 import androidx.core.app.NotificationManagerCompat
-import androidx.core.os.postDelayed
 import com.spectre7.spmp.model.Settings
 import com.spectre7.spmp.resources.getString
 import com.spectre7.spmp.resources.getStringTODO
@@ -81,6 +83,8 @@ actual class PlatformContext(private val context: Context) {
             }
         }
 
+
+
         throw RuntimeException()
     }
     actual fun setStatusBarColour(colour: Color, dark_icons: Boolean) {
@@ -89,6 +93,9 @@ actual class PlatformContext(private val context: Context) {
             window.statusBarColor = colour.toArgb()
         }
     }
+
+    @Composable
+    actual fun getImeInsets(): WindowInsets? = WindowInsets.ime
 
     actual fun getLightColorScheme(): ColorScheme = dynamicLightColorScheme(ctx)
     actual fun getDarkColorScheme(): ColorScheme = dynamicDarkColorScheme(ctx)

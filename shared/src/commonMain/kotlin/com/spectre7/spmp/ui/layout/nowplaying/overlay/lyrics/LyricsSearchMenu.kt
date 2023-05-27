@@ -29,7 +29,10 @@ import com.spectre7.spmp.platform.composable.BackHandler
 import com.spectre7.spmp.resources.getString
 import com.spectre7.spmp.resources.getStringTODO
 import com.spectre7.spmp.ui.theme.Theme
+import com.spectre7.utils.composable.OnChangedEffect
 import com.spectre7.utils.setAlpha
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.withContext
 import kotlin.concurrent.thread
 
 @OptIn(ExperimentalMaterial3Api::class, ExperimentalComposeUiApi::class)
@@ -57,16 +60,17 @@ fun LyricsSearchMenu(song: Song, close: (changed: Boolean) -> Unit) {
     val focus = LocalFocusManager.current
     val keyboard_controller = LocalSoftwareKeyboardController.current
 
-    var title = remember (song.title) { mutableStateOf(TextFieldValue(song.title ?: "")) }
-    var artist = remember (song.artist?.title) { mutableStateOf(TextFieldValue(song.artist?.title ?: "")) }
+    val title = remember (song.title) { mutableStateOf(TextFieldValue(song.title ?: "")) }
+    val artist = remember (song.artist?.title) { mutableStateOf(TextFieldValue(song.artist?.title ?: "")) }
+    var search_state: Boolean by remember { mutableStateOf(false) }
 
     var search_results: List<LyricsSearchResult>? by remember { mutableStateOf(null) }
     var edit_page_open by remember { mutableStateOf(true) }
 
-    fun performSearch() {
+    OnChangedEffect(search_state) {
         keyboard_controller?.hide()
 
-        thread {
+        withContext(Dispatchers.IO) {
             synchronized(load_lock) {
                 check(!loading)
                 loading = true
@@ -187,7 +191,7 @@ fun LyricsSearchMenu(song: Song, close: (changed: Boolean) -> Unit) {
                 IconButton(
                     {
                         if (edit_page_open) {
-                            performSearch()
+                            search_state = !search_state
                         }
                         else {
                             edit_page_open = true

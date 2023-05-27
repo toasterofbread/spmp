@@ -4,6 +4,8 @@ import com.atilika.kuromoji.ipadic.Tokenizer
 import com.spectre7.spmp.model.Song
 import com.spectre7.utils.hasKanjiAndHiragana
 import com.spectre7.utils.isKanji
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.withContext
 import okhttp3.MediaType.Companion.toMediaType
 import okhttp3.Request
 import okhttp3.RequestBody.Companion.toRequestBody
@@ -13,14 +15,16 @@ import org.xmlpull.v1.XmlPullParserFactory
 import java.nio.channels.ClosedByInterruptException
 import java.util.*
 
-fun getSongLyrics(song: Song, data: Pair<Int, Song.Lyrics.Source>?): Song.Lyrics? {
-    require(song.isFullyLoaded())
+suspend fun getSongLyrics(song: Song, data: Pair<Int, Song.Lyrics.Source>?): Song.Lyrics? {
+    if (song.title == null) {
+        return null
+    }
 
     val ret: Song.Lyrics =
         if (data != null)
             getLyrics(data.first, data.second).getOrThrowHere()
         else {
-            val results = searchForLyrics(song.title!!, song.artist!!.title).getOrThrowHere()
+            val results = searchForLyrics(song.title!!, song.artist?.title).getOrThrowHere()
             if (results.isEmpty()) {
                 return null
             }
@@ -340,7 +344,6 @@ private fun parseTimedLyrics(data: String): List<List<Song.Lyrics.Term>> {
 }
 
 fun getLyrics(lyrics_id: Int, lyrics_source: Song.Lyrics.Source): Result<Song.Lyrics> {
-
     when (lyrics_source) {
         Song.Lyrics.Source.PETITLYRICS -> {
             for (sync_type in Song.Lyrics.SyncType.byPriority()) {
@@ -391,7 +394,7 @@ data class LyricsSearchResult(
     var album_name: String?
 )
 
-fun searchForLyrics(title: String, artist: String?): Result<List<LyricsSearchResult>> {
+suspend fun searchForLyrics(title: String, artist: String?): Result<List<LyricsSearchResult>> = withContext(Dispatchers.IO) {
 
     val title_param = concatParams("?title=", title)
     val artist_param = if (artist != null) concatParams("&artist=", artist) else ""
@@ -501,12 +504,12 @@ fun searchForLyrics(title: String, artist: String?): Result<List<LyricsSearchRes
 
     val ret = performSearch(title_param + artist_param)
     if (!ret.isSuccess) {
-        return ret
+        return@withContext ret
     }
 
     if (ret.data.isEmpty() && artist != null) {
-        return performSearch(title_param)
+        return@withContext performSearch(title_param)
     }
 
-    return ret
+    return@withContext ret
 }

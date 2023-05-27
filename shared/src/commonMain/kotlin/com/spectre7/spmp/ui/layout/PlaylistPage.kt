@@ -470,9 +470,11 @@ private fun PlaylistTopInfo(playlist: Playlist, accent_colour: Color?, onThumbLo
                         Icon(if (pinned) Icons.Filled.PushPin else Icons.Outlined.PushPin, null)
                     }
                 }
-                if (SpMp.context.canShare()) {
-                    IconButton({ SpMp.context.shareText(playlist.url, playlist.title!!) }) {
-                        Icon(Icons.Default.Share, null)
+                playlist.url?.also { url ->
+                    if (SpMp.context.canShare()) {
+                        IconButton({ SpMp.context.shareText(url, playlist.title!!) }) {
+                            Icon(Icons.Default.Share, null)
+                        }
                     }
                 }
             }

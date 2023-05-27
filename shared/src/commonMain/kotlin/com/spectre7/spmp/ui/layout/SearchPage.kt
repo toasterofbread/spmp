@@ -140,16 +140,11 @@ fun SearchPage(
             }
         }
 
-        val screen_height = SpMp.context.getScreenHeight()
         SearchBar(
             search_in_progress,
             focus_state,
             current_filter,
-            Modifier
-                .align(Alignment.BottomCenter)
-                .offset {
-                    IntOffset(0, player.getNowPlayingTopOffset(screen_height, this))
-                },
+            player.nowPlayingTopOffset(Modifier.align(Alignment.BottomCenter)),
             { query, filter ->
                 performSearch(query, filter?.let { SearchFilter(it, it.getDefaultParams()) })
             },

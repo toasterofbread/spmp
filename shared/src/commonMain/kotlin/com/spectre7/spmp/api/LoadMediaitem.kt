@@ -127,12 +127,12 @@ suspend fun processDefaultResponse(item: MediaItem, data: MediaItemData, respons
                                 )
                             }
 
-                            if (data is PlaylistItemData) {
+                            if (data is AccountPlaylistItemData) {
                                 data.supplyYear(subtitle.lastOrNull { it.text.all { it.isDigit() } }?.text?.toInt(), true)
                             }
                         }
 
-                        if (data is PlaylistItemData) {
+                        if (data is AccountPlaylistItemData) {
                             header_renderer.secondSubtitle?.runs?.also { second_subtitle ->
                                 check(second_subtitle.size == 2) { second_subtitle.toString() }
 

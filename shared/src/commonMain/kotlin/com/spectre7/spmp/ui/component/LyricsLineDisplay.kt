@@ -16,13 +16,19 @@ import com.spectre7.utils.composable.RecomposeOnInterval
 
 private const val UPDATE_INTERVAL_MS = 100L
 
-private fun getCurrentLine(lyrics: Song.Lyrics, time: Long): Int? {
+private fun getCurrentLine(lyrics: Song.Lyrics, time: Long, linger: Boolean): Int? {
+    var last_before: Int? = null
     for (line in lyrics.lines.withIndex()) {
-        if (line.value.firstOrNull()?.line_range?.contains(time) == true) {
+        val range = line.value.firstOrNull()?.line_range ?: continue
+        if (range.contains(time)) {
             return line.index
         }
+
+        if (linger && range.last < time) {
+            last_before = line.index
+        }
     }
-    return null
+    return last_before
 }
 
 @Composable
@@ -34,14 +40,14 @@ fun LyricsLineDisplay(lyrics: Song.Lyrics, getTime: () -> Long, modifier: Modifi
     RecomposeOnInterval(UPDATE_INTERVAL_MS) { s ->
         s
 
-        var current_line: Int? by remember { mutableStateOf(getCurrentLine(lyrics, getTime())) }
+        var current_line: Int? by remember { mutableStateOf(getCurrentLine(lyrics, getTime(), lyrics_linger)) }
         var line_a: Int? by remember { mutableStateOf(current_line) }
         var line_b: Int? by remember { mutableStateOf(null) }
         var show_line_a: Boolean by remember { mutableStateOf(true) }
 
         OnChangedEffect(getTime()) {
-            val line = getCurrentLine(lyrics, getTime())
-            if (line == null && lyrics_linger) {
+            val line = getCurrentLine(lyrics, getTime(), lyrics_linger)
+            if (lyrics_linger && line == null) {
                 return@OnChangedEffect
             }
 

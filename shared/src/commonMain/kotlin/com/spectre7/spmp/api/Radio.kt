@@ -222,7 +222,7 @@ data class YoutubeiNextResponse(
                     continue
                 }
 
-                val playlist_result = Playlist.fromId(run.navigationEndpoint.browseEndpoint.browseId).loadData()
+                val playlist_result = AccountPlaylist.fromId(run.navigationEndpoint.browseEndpoint.browseId).loadData()
                 if (playlist_result.isFailure) {
                     return playlist_result.cast()
                 }

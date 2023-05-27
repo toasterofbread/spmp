@@ -1,5 +1,8 @@
 package com.spectre7.spmp.ui.layout.mainpage
 
+import androidx.compose.runtime.Composable
+import androidx.compose.ui.Modifier
+import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.unit.Density
 import androidx.compose.ui.unit.Dp
 import com.spectre7.spmp.PlayerServiceHost
@@ -60,7 +63,8 @@ open class PlayerState(
         return Result.success(Unit)
     }
 
-    open fun getNowPlayingTopOffset(screen_height: Dp, density: Density): Int = upstream!!.getNowPlayingTopOffset(screen_height, density)
+    @Composable
+    open fun nowPlayingTopOffset(base: Modifier): Modifier = upstream!!.nowPlayingTopOffset(base)
 
     open fun setOverlayPage(page: OverlayPage?, data: Any? = null, from_current: Boolean = false) { upstream!!.setOverlayPage(page, data, from_current) }
 

@@ -23,6 +23,8 @@ import kotlinx.coroutines.*
 import java.io.InterruptedIOException
 import java.util.*
 import java.util.concurrent.TimeUnit
+import kotlin.coroutines.CoroutineContext
+import kotlin.coroutines.EmptyCoroutineContext
 import kotlin.math.sqrt
 
 fun Boolean.toInt() = if (this) 1 else 0
@@ -176,4 +178,15 @@ fun <T> MutableList<T>.swap(index_a: Int, index_b: Int){
 	val a = this[index_a]
 	this[index_a] = this[index_b]
 	this[index_b] = a
+}
+
+fun CoroutineScope.launchSingle(
+	context: CoroutineContext = EmptyCoroutineContext,
+	start: CoroutineStart = CoroutineStart.DEFAULT,
+	block: suspend CoroutineScope.() -> Unit
+): Job {
+	synchronized(this) {
+		coroutineContext.cancelChildren()
+		return launch(context, start, block)
+	}
 }

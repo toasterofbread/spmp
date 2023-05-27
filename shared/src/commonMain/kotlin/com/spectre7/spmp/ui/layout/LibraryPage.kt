@@ -1,27 +1,36 @@
 package com.spectre7.spmp.ui.layout
 
-import androidx.compose.foundation.layout.Arrangement
-import androidx.compose.foundation.layout.Column
-import androidx.compose.foundation.layout.PaddingValues
-import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
+import androidx.compose.foundation.lazy.LazyRow
 import androidx.compose.foundation.lazy.items
+import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.Add
+import androidx.compose.material.icons.filled.MusicNote
+import androidx.compose.material3.Icon
+import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.*
+import androidx.compose.runtime.snapshots.SnapshotStateList
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
 import com.spectre7.spmp.PlayerServiceHost
 import com.spectre7.spmp.api.LocalisedYoutubeString
+import com.spectre7.spmp.model.LocalPlaylist
+import com.spectre7.spmp.model.MediaItem
+import com.spectre7.spmp.model.MediaItemType
 import com.spectre7.spmp.platform.PlayerDownloadManager
 import com.spectre7.spmp.platform.PlayerDownloadManager.DownloadStatus
+import com.spectre7.spmp.platform.getDefaultPaddingValues
 import com.spectre7.spmp.resources.getString
 import com.spectre7.spmp.ui.component.MediaItemLayout
 import com.spectre7.spmp.ui.component.PillMenu
 import com.spectre7.spmp.ui.layout.mainpage.MINIMISED_NOW_PLAYING_HEIGHT
 import com.spectre7.spmp.ui.theme.Theme
 import com.spectre7.utils.addUnique
+import kotlinx.coroutines.launch
 
 @Composable
 fun LibraryPage(
@@ -32,6 +41,7 @@ fun LibraryPage(
 ) {
     var layouts: List<MediaItemLayout> by remember { mutableStateOf(emptyList()) }
     val downloads: MutableList<DownloadStatus> = remember { mutableStateListOf() }
+    val coroutine_scope = rememberCoroutineScope()
 
     DisposableEffect(Unit) {
         PlayerServiceHost.download_manager.getDownloads {
@@ -65,19 +75,75 @@ fun LibraryPage(
     }
 
     LazyColumn(
-        modifier,
+        modifier.run {
+            if (!inline) padding(SpMp.context.getDefaultPaddingValues())
+            else this
+        },
         verticalArrangement = Arrangement.spacedBy(20.dp),
         contentPadding = PaddingValues(bottom = MINIMISED_NOW_PLAYING_HEIGHT.dp * 2f)
     ) {
         if (!inline) {
+            // Title bar
             item {
-                Column(Modifier.fillMaxWidth(), horizontalAlignment = Alignment.CenterHorizontally) {
+                Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.SpaceBetween) {
+                    Icon(Icons.Default.MusicNote, null)
+
                     Text(
                         getString("page_title_library"),
                         style = MaterialTheme.typography.headlineLarge.copy(
                             color = Theme.current.on_background
                         )
                     )
+
+                    Spacer(Modifier.width(24.dp))
+                }
+            }
+        }
+
+        // Playlists
+        item {
+            Column(Modifier.fillMaxWidth()) {
+                Row(horizontalArrangement = Arrangement.SpaceBetween, verticalAlignment = Alignment.CenterVertically) {
+                    Text(MediaItemType.PLAYLIST.getReadable(true), style = MaterialTheme.typography.headlineMedium)
+
+                    IconButton({ coroutine_scope.launch {
+                        val playlist = LocalPlaylist.createLocalPlaylist(SpMp.context)
+                        println("created $playlist")
+                    }}) {
+                        Icon(Icons.Default.Add, null)
+                    }
+                }
+
+                var local_playlists: MutableList<LocalPlaylist>? by remember { mutableStateOf(null) }
+
+                LaunchedEffect(Unit) {
+                    local_playlists = mutableStateListOf<LocalPlaylist>().apply { addAll(LocalPlaylist.getLocalPlaylists(SpMp.context).toMutableList()) }
+                }
+                DisposableEffect(Unit) {
+                    val listener = object : LocalPlaylist.Listener {
+                        override fun onAdded(playlist: LocalPlaylist) {
+                            local_playlists?.add(playlist)
+                        }
+                        override fun onRemoved(index: Int, playlist: LocalPlaylist) {}
+                    }
+                    LocalPlaylist.addPlaylistsListener(listener)
+
+                    onDispose {
+                        LocalPlaylist.removePlaylistsListener(listener)
+                    }
+                }
+
+                local_playlists?.also { playlists ->
+
+                    val layout = remember {
+                        MediaItemLayout(
+                            null, null,
+                            MediaItemLayout.Type.ROW,
+                            playlists as MutableList<MediaItem>
+                        )
+                    }
+
+                    layout.Layout(Modifier.fillMaxWidth())
                 }
             }
         }

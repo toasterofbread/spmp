@@ -131,7 +131,7 @@ data class MediaItemLayout(
 
         private suspend fun loadPlaylistContinuation(initial: Boolean): Result<Pair<List<MediaItem>, String?>> {
             if (initial) {
-                val playlist = Playlist.fromId(token)
+                val playlist = AccountPlaylist.fromId(token)
                 playlist.feed_layouts?.single()?.also { layout ->
                     return Result.success(Pair(
                         layout.items.subList(param as Int, layout.items.size - 1),

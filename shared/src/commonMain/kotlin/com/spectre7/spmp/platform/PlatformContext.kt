@@ -1,5 +1,7 @@
 package com.spectre7.spmp.platform
 
+import androidx.compose.foundation.layout.PaddingValues
+import androidx.compose.foundation.layout.WindowInsets
 import androidx.compose.material3.ColorScheme
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.graphics.Color
@@ -35,6 +37,11 @@ fun PlatformContext.isScreenLarge(): Boolean {
 
 @Composable
 fun PlatformContext.getDefaultHorizontalPadding(): Dp = if (isScreenLarge()) 30.dp else 10.dp
+@Composable
+fun PlatformContext.getDefaultVerticalPadding(): Dp = if (isScreenLarge()) 30.dp else 10.dp // TODO
+
+@Composable
+fun PlatformContext.getDefaultPaddingValues(): PaddingValues = PaddingValues(horizontal = getDefaultHorizontalPadding(), vertical = getDefaultVerticalPadding())
 
 expect class PlatformContext {
     fun getPrefs(): ProjectPreferences
@@ -47,6 +54,9 @@ expect class PlatformContext {
     @Composable
     fun getStatusBarHeight(): Dp
     fun setStatusBarColour(colour: Color, dark_icons: Boolean)
+
+    @Composable
+    fun getImeInsets(): WindowInsets?
 
     fun getLightColorScheme(): ColorScheme
     fun getDarkColorScheme(): ColorScheme

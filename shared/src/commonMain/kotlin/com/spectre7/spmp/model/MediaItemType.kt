@@ -33,6 +33,7 @@ enum class MediaItemType {
     fun parseRegistryEntry(obj: JsonObject): MediaItemDataRegistry.Entry {
         return when (this) {
             SONG -> DataApi.klaxon.parseFromJsonObject<Song.SongDataRegistryEntry>(obj)!!
+            PLAYLIST -> DataApi.klaxon.parseFromJsonObject<PlaylistDataRegistryEntry>(obj)!!
             else -> DataApi.klaxon.parseFromJsonObject(obj)!!
         }
     }

@@ -1,10 +1,43 @@
 package com.spectre7.spmp.model
 
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.setValue
+import com.beust.klaxon.Json
+import com.beust.klaxon.Klaxon
 import com.spectre7.spmp.resources.getString
 import com.spectre7.spmp.ui.component.MediaItemLayout
 import com.spectre7.spmp.ui.component.PlaylistPreviewLong
 import com.spectre7.spmp.ui.component.PlaylistPreviewSquare
+import com.spectre7.utils.ValueListeners
+
+abstract class PlaylistItemData(override val data_item: Playlist): MediaItemWithLayoutsData(data_item) {
+    var year: Int? by mutableStateOf(null)
+        private set
+
+    fun supplyYear(value: Int?, certain: Boolean = false, cached: Boolean = false): Playlist {
+        if (value != year && (year == null || certain)) {
+            year = value
+            onChanged(cached)
+        }
+        return data_item
+    }
+
+    override fun getSerialisedData(klaxon: Klaxon): List<String> {
+        return super.getSerialisedData(klaxon) + listOf(klaxon.toJsonString(year))
+    }
+
+    override fun supplyFromSerialisedData(data: MutableList<Any?>, klaxon: Klaxon): MediaItemData {
+        require(data.size >= 4)
+        data.removeLast()?.also { supplyYear(it as Int, cached = true) }
+        return super.supplyFromSerialisedData(data, klaxon)
+    }
+}
+
+class PlaylistDataRegistryEntry: MediaItemDataRegistry.Entry() {
+    var playlist_page_thumb_width: Float? by mutableStateOf(null)
+}
 
 abstract class Playlist protected constructor (id: String): MediaItemWithLayouts(id) {
     enum class PlaylistType {
@@ -30,12 +63,19 @@ abstract class Playlist protected constructor (id: String): MediaItemWithLayouts
     abstract val item_count: Int?
     abstract val year: Int?
 
+    val playlist_reg_entry: PlaylistDataRegistryEntry = registry_entry as PlaylistDataRegistryEntry
+    override fun getDefaultRegistryEntry(): PlaylistDataRegistryEntry = PlaylistDataRegistryEntry()
+
     open fun getItems(): List<MediaItem>? = layout?.items
 
-    open suspend fun addItem(item: MediaItem, index: Int): Result<Unit> {
+    open suspend fun addItem(item: MediaItem, index: Int = -1): Result<Unit> {
         check(is_editable == true)
         try {
-            layout?.items!!.add(index, item)
+            val items = layout?.items!!
+            items.add(
+                if (index == -1) items.size else index,
+                item
+            )
         }
         catch (e: Throwable) {
             return Result.failure(e)
@@ -68,7 +108,20 @@ abstract class Playlist protected constructor (id: String): MediaItemWithLayouts
         return saveItems()
     }
 
+    protected open suspend fun onDeleted() {
+        if (pinned_to_home) {
+            setPinnedToHome(false)
+        }
+    }
+
+    open suspend fun deletePlaylist(): Result<Unit> {
+        check(is_editable == true)
+        TODO()
+        onDeleted()
+    }
+
     open suspend fun saveItems(): Result<Unit> {
+        check(is_editable == true)
         TODO()
     }
 

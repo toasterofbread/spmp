@@ -84,8 +84,14 @@ class Cache {
             }
 
             val reader = file.bufferedReader()
-            val expiry = parseCacheMetadata(reader.readLine())
 
+            val meta_line = reader.readLine()
+            if (meta_line == null) {
+                reader.close()
+                return null
+            }
+
+            val expiry = parseCacheMetadata(meta_line)
             if (expiry.isBefore(Instant.now())) {
                 reader.close()
                 file.delete()

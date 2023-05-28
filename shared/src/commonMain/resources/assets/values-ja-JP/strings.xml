@@ -154,7 +154,16 @@
     <string name="s_key_multiselect_cancel_on_action">アクション後に複数選択を解除する</string>
     <string name="s_sub_multiselect_cancel_on_action">複数選択のアクションを使った後、複数選択モードが解除されます</string>
 
-    <string name="page_title_library">ライブラリ</string>
+    <string name="library_page_title">ライブラリ</string>
+    <string name="library_row_playlists">プレイリスト</string>
+    <string name="library_row_recent_songs">最近聴いてる曲</string>
+    <string name="library_row_downloads">ダウンロード</string>
+    <string name="library_playlists_empty">プレイリストはありません</string>
+    <string name="library_recent_songs_all">すべて</string>
+    <string name="library_recent_songs_year">年</string>
+    <string name="library_recent_songs_month">月</string>
+    <string name="library_recent_songs_week">週</string>
+    <string name="library_recent_songs_day">日</string>
 
     <string name="s_cat_home_page">メインページ</string>
 
@@ -285,4 +294,10 @@
     <string name="notif_download_cancelled">ダウンロードが停止されました</string>
     <string name="notif_download_already_downloading">ダウンロードはすでに開始されてます</string>
 
+    <string name="new_playlist_title">新しいプレイリスト</string>
+    <string name="playlist_empty">プレイリストに曲が入ってません</string>
+    <string name="song_add_to_playlist">プレイリストに追加する</string>
+    <string name="playlist_create">プレイリストを作成</string>
+    <string name="playlist_delete">プレイリストを消去</string>
+    <string name="toast_playlist_added">プレイリストに追加しました</string>
 </resources>

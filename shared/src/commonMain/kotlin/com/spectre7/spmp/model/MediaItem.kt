@@ -23,8 +23,10 @@ import com.spectre7.spmp.ui.component.multiselect.MediaItemMultiSelectContext
 import com.spectre7.utils.*
 import com.spectre7.utils.composable.SubtleLoadingIndicator
 import kotlinx.coroutines.*
+import java.io.BufferedReader
 import java.io.File
 import java.io.FileNotFoundException
+import java.io.Reader
 import java.net.URL
 import java.time.Duration
 import java.util.*
@@ -88,6 +90,24 @@ open class MediaItemData(open val data_item: MediaItem) {
         return data_item
     }
 
+    open fun getSerialisedData(klaxon: Klaxon = DataApi.klaxon): List<String> {
+        return listOf(
+            klaxon.toJsonString(original_title),
+            klaxon.toJsonString(artist?.id),
+            klaxon.toJsonString(description),
+            klaxon.toJsonString(thumbnail_provider)
+        )
+    }
+
+    open fun supplyFromSerialisedData(data: MutableList<Any?>, klaxon: Klaxon): MediaItemData {
+        require(data.size >= 4) { data }
+        data[data.size - 4]?.also { supplyTitle(it as String, cached = true) }
+        data[data.size - 3]?.also { supplyArtist(Artist.fromId(it as String), cached = true) }
+        data[data.size - 2]?.also { supplyDescription(it as String, cached = true) }
+        data[data.size - 1]?.also { supplyThumbnailProvider(MediaItemThumbnailProvider.fromJsonObject(it as JsonObject, klaxon), cached = true) }
+        return this
+    }
+
     open fun supplyDataFromSubtitle(runs: List<TextRun>) {
         var artist_found = false
         for (run in runs) {
@@ -126,13 +146,45 @@ open class MediaItemData(open val data_item: MediaItem) {
         }
     }
 
+    fun load() {
+        val reader = getDataReader() ?: return
+        thread {
+            val array = DataApi.klaxon.parseJsonArray(reader)
+            reader.close()
+
+            runBlocking {
+                var retries = 5
+                while (retries-- > 0) {
+                    try {
+                        data_item.supplyFromSerialisedData(array.toMutableList(), DataApi.klaxon)
+                        break
+                    }
+                    catch (e: IllegalStateException) {
+                        delay(100)
+                        if (retries == 0) {
+                            throw e
+                        }
+                    }
+                }
+            }
+        }
+    }
+
+    protected open fun getDataReader(): Reader? = Cache.get(data_item.cache_key)
+
     fun save() {
         if (!changes_made) {
             return
         }
+        saveData(DataApi.mediaitem_klaxon.toJsonString(data_item))
+    }
 
-        // TODO
-        Cache.setString(data_item.cache_key, DataApi.mediaitem_klaxon.toJsonString(data_item), MediaItem.CACHE_LIFETIME)
+    protected open fun saveData(data: String) {
+        Cache.setString(
+            data_item.cache_key,
+            DataApi.mediaitem_klaxon.toJsonString(data_item),
+            MediaItem.CACHE_LIFETIME
+        )
     }
 }
 
@@ -203,26 +255,13 @@ abstract class MediaItem(id: String) {
         else -> throw NotImplementedError(this.javaClass.name)
     }
 
-    protected fun stringToJson(string: String?): String {
-        return DataApi.klaxon.toJsonString(string)
+    fun getSerialisedData(klaxon: Klaxon = DataApi.klaxon): List<String> {
+        return data.getSerialisedData(klaxon)
     }
 
-    open fun getSerialisedData(klaxon: Klaxon = DataApi.klaxon): List<String> {
-        return listOf(stringToJson(original_title), stringToJson(artist?.id), stringToJson(description), klaxon.toJsonString(thumbnail_provider))
-    }
-    open fun supplyFromSerialisedData(data: MutableList<Any?>, klaxon: Klaxon): MediaItem {
-        require(data.size >= 4)
-        runBlocking {
-            with(this@MediaItem.data) {
-                with(Dispatchers.Main) {
-                    data[data.size - 4]?.also { supplyTitle(it as String, cached = true) }
-                    data[data.size - 3]?.also { supplyArtist(Artist.fromId(it as String), cached = true) }
-                    data[data.size - 2]?.also { supplyDescription(it as String, cached = true) }
-                    data[data.size - 1]?.also { supplyThumbnailProvider(MediaItemThumbnailProvider.fromJsonObject(it as JsonObject, klaxon), cached = true) }
-                }
-            }
-        }
-        return this@MediaItem
+    fun supplyFromSerialisedData(data: MutableList<Any?>, klaxon: Klaxon): MediaItem {
+        this@MediaItem.data.supplyFromSerialisedData(data, klaxon)
+        return this
     }
 
     open fun isFullyLoaded(): Boolean {
@@ -249,38 +288,7 @@ abstract class MediaItem(id: String) {
     }
 
     fun loadFromCache() {
-        val cached = Cache.get(cache_key)
-        if (cached != null) {
-            thread {
-                val str = cached.readText()
-                cached.close()
-                try {
-                    val array = DataApi.klaxon.parseJsonArray(str.reader())
-                    runBlocking {
-                        var retries = 5
-                        while (retries-- > 0) {
-                            try {
-                                editData {
-                                    supplyFromSerialisedData(array.toMutableList(), DataApi.klaxon)
-                                }
-                                break
-                            }
-                            catch (e: IllegalStateException) {
-                                delay(100)
-                                if (retries == 0) {
-                                    throw e
-                                }
-                            }
-                        }
-                    }
-                }
-                catch (e: KlaxonException) {
-                    println(this)
-                    printJson(str)
-                    throw e
-                }
-            }
-        }
+        data.load()
     }
 
     private fun saveToCache(): MediaItem {

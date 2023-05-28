@@ -552,6 +552,7 @@ fun MediaItemCard(
     }
 }
 
+@OptIn(ExperimentalFoundationApi::class)
 @Composable
 fun MediaItemGrid(
     layout: MediaItemLayout,
@@ -567,10 +568,10 @@ fun MediaItemGrid(
     Column(modifier, verticalArrangement = Arrangement.spacedBy(10.dp)) {
         layout.TitleBar(multiselect_context = multiselect_context)
 
-        Box(contentAlignment = Alignment.CenterEnd) {
+        Box(Modifier.fillMaxWidth(), contentAlignment = Alignment.CenterEnd) {
             LazyHorizontalGrid(
                 rows = GridCells.Fixed(row_count),
-                modifier = Modifier.height(item_size.height * row_count),
+                modifier = Modifier.height(item_size.height * row_count).fillMaxWidth(),
                 horizontalArrangement = item_spacing,
                 verticalArrangement = item_spacing
             ) {
@@ -578,31 +579,10 @@ fun MediaItemGrid(
 
                 items(layout.items.size, { layout.items[it].id }) {
                     layout.items[it].PreviewSquare(MediaItem.PreviewParams(
-                        Modifier.size(item_size),
+                        Modifier.size(item_size).animateItemPlacement(),
                         contentColour = Theme.current.on_background_provider,
                         multiselect_context = multiselect_context
                     ))
-    //                    if(animate?.value == true) {
-    //                        LaunchedEffect(Unit) {
-    //                            animate.value = false
-    //                        }
-    //
-    //                        var visible by remember { mutableStateOf(false) }
-    //                        LaunchedEffect(visible) {
-    //                            visible = true
-    //                        }
-    //                        AnimatedVisibility(
-    //                            visible,
-    //                            enter = fadeIn() + expandIn(expandFrom = Alignment.Center),
-    //                            exit = fadeOut() + shrinkOut(shrinkTowards = Alignment.Center)
-    //                        ) {
-    //                            item.PreviewSquare(MediaItem.PreviewParams(
-    //                                content_colour = Theme.current.on_background_provider
-    //                            ))
-    //                        }
-    //                    }
-    //                    else {
-    //                    }
                 }
             }
 

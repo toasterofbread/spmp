@@ -34,6 +34,18 @@ class ArtistItemData(override val data_item: Artist): MediaItemWithLayoutsData(d
         }
         return data_item
     }
+
+    override fun getSerialisedData(klaxon: Klaxon): List<String> {
+        return super.getSerialisedData(klaxon) + listOf(klaxon.toJsonString(subscribe_channel_id), klaxon.toJsonString(data_item.is_for_item), klaxon.toJsonString(subscriber_count))
+    }
+
+    override fun supplyFromSerialisedData(data: MutableList<Any?>, klaxon: Klaxon): MediaItemData {
+        require(data.size >= 3)
+        data.removeLast()?.also { supplySubscriberCount(it as Int, cached = true) }
+        data_item.is_for_item = data.removeLast() as Boolean
+        data.removeLast()?.also { supplySubscribeChannelId(it as String, cached = true) }
+        return super.supplyFromSerialisedData(data, klaxon)
+    }
 }
 
 class Artist private constructor (
@@ -44,7 +56,6 @@ class Artist private constructor (
     override val data: ArtistItemData = ArtistItemData(this)
 
     var is_for_item: Boolean = is_for_item
-        private set
     val is_temp: Boolean get() = id.isBlank()
 
     val subscribe_channel_id: String? get() = data.subscribe_channel_id
@@ -63,20 +74,6 @@ class Artist private constructor (
             }
         }
         return this
-    }
-
-    override fun getSerialisedData(klaxon: Klaxon): List<String> {
-        return super.getSerialisedData(klaxon) + listOf(stringToJson(subscribe_channel_id), klaxon.toJsonString(is_for_item), klaxon.toJsonString(subscriber_count))
-    }
-
-    override fun supplyFromSerialisedData(data: MutableList<Any?>, klaxon: Klaxon): MediaItem {
-        require(data.size >= 3)
-        with(this@Artist.data) {
-            data.removeLast()?.also { supplySubscriberCount(it as Int, cached = true) }
-            is_for_item = data.removeLast() as Boolean
-            data.removeLast()?.also { supplySubscribeChannelId(it as String, cached = true) }
-        }
-        return super.supplyFromSerialisedData(data, klaxon)
     }
 
     override fun isFullyLoaded(): Boolean {
@@ -133,7 +130,9 @@ class Artist private constructor (
     override val url: String get() = "https://music.youtube.com/channel/$id"
 
     fun getReadableSubscriberCount(): String {
-        return getString("artist_x_subscribers").replace("\$x", subscriber_count?.let { amountToString(it, SpMp.ui_language) } ?: "0")
+        return subscriber_count?.let { subs ->
+            getString("artist_x_subscribers").replace("\$x", amountToString(subs, SpMp.ui_language))
+        } ?: ""
     }
 
     fun updateSubscribed() {

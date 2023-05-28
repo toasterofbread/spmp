@@ -1,18 +1,16 @@
 package com.spectre7.spmp.model
 
-import androidx.compose.runtime.MutableState
-import androidx.compose.runtime.getValue
-import androidx.compose.runtime.mutableStateOf
-import androidx.compose.runtime.setValue
+import androidx.compose.runtime.*
 import com.beust.klaxon.Json
 import com.beust.klaxon.JsonObject
 import com.spectre7.spmp.api.DataApi
 import com.spectre7.spmp.platform.ProjectPreferences
-import com.spectre7.utils.printJson
 import kotlinx.coroutines.GlobalScope
 import kotlinx.coroutines.async
 import kotlinx.coroutines.joinAll
 import kotlinx.coroutines.runBlocking
+import java.time.LocalDate
+import java.time.temporal.ChronoUnit
 
 class MediaItemDataRegistry {
     private val entries: MutableMap<String, Entry> = mutableMapOf()
@@ -33,7 +31,40 @@ class MediaItemDataRegistry {
                     i.title_listeners.call(i.title)
                 }
             }
-        var play_count: Int by mutableStateOf(0)
+
+        @Suppress("UNCHECKED_CAST")
+        var play_counts: MutableMap<Int, Int> = mutableStateMapOf()
+            set(value) {
+                value as LinkedHashMap<String, Int>
+                for (entry in value) {
+                    field[entry.key.toInt()] = entry.value
+                }
+            }
+
+        private fun getCurrentDay(): Int = ChronoUnit.DAYS.between(LocalDate.ofEpochDay(0), LocalDate.now()).toInt()
+
+        fun incrementPlayCount(by: Int = 1) {
+            val key = getCurrentDay()
+            val current = play_counts[key] ?: 0
+            play_counts[key] = current + by
+        }
+
+        fun getPlayCount(range: ChronoUnit?): Int {
+            var play_count = 0
+            for (entry in play_counts) {
+                val key_days = entry.key.toLong()
+                val key_day = LocalDate.ofEpochDay(key_days)
+
+                if (
+                    range != null &&
+                    range.between(key_day, LocalDate.now()) > 1
+                ) {
+                    continue
+                }
+                play_count += entry.value
+            }
+            return play_count
+        }
     }
 
     @Synchronized

@@ -127,7 +127,6 @@ actual class PlatformContext(private val context: Context) {
 
     actual fun sendToast(text: String, long: Boolean) {
         ctx.sendToast(text, long)
-        RuntimeException().printStackTrace()
     }
 
     actual fun vibrate(duration: Double) {

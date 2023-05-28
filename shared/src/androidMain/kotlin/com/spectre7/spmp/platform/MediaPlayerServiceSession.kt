@@ -41,6 +41,7 @@ import com.spectre7.spmp.model.SongLikeStatus
 import kotlinx.coroutines.*
 import java.io.File
 import java.io.IOException
+import java.time.temporal.ChronoUnit
 import java.util.concurrent.Executors
 import kotlin.concurrent.thread
 
@@ -296,7 +297,7 @@ class MediaPlayerServiceSession: MediaSessionService() {
             }
 
             if (
-                song.registry_entry.play_count >= com.spectre7.spmp.model.Settings.KEY_AUTO_DOWNLOAD_THRESHOLD.get<Int>(this)
+                song.registry_entry.getPlayCount(ChronoUnit.WEEKS) >= com.spectre7.spmp.model.Settings.KEY_AUTO_DOWNLOAD_THRESHOLD.get<Int>(this)
                 && (com.spectre7.spmp.model.Settings.KEY_AUTO_DOWNLOAD_ON_METERED.get(this) || !isConnectionMetered())
             ) {
                 var done = false

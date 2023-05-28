@@ -141,10 +141,8 @@ enum class Settings {
     KEY_ADD_SONGS_TO_HISTORY,
 
     // Internal
-    INTERNAL_PINNED_SONGS,
-    INTERNAL_PINNED_ARTISTS,
-    INTERNAL_PINNED_PLAYLISTS;
-    
+    INTERNAL_PINNED_ITEMS;
+
     fun <T> get(preferences: ProjectPreferences = prefs): T {
         return Settings.get(this, preferences)
     }
@@ -290,9 +288,7 @@ enum class Settings {
                 KEY_PERSISTENT_QUEUE -> true
                 KEY_ADD_SONGS_TO_HISTORY -> false
 
-                INTERNAL_PINNED_SONGS -> emptySet<String>()
-                INTERNAL_PINNED_ARTISTS -> emptySet<String>()
-                INTERNAL_PINNED_PLAYLISTS -> emptySet<String>()
+                INTERNAL_PINNED_ITEMS -> emptySet<String>()
 
             } as T
         }

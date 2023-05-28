@@ -60,6 +60,7 @@
     <string name="playlist_create">Create playlist</string>
     <string name="playlist_delete">Delete playlist</string>
     <string name="toast_playlist_added">Added to playlist</string>
+    <string name="playlist_select_image">Select playlist image</string>
 
     <string name="feed_row_artists">Recommended artists</string>
     <string name="feed_row_playlists">Playlists</string>

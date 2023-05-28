@@ -4,9 +4,7 @@ package com.spectre7.spmp.ui.layout
 
 import LocalPlayerState
 import SpMp
-import androidx.compose.animation.AnimatedVisibility
-import androidx.compose.animation.Crossfade
-import androidx.compose.animation.animateContentSize
+import androidx.compose.animation.*
 import androidx.compose.foundation.*
 import androidx.compose.foundation.gestures.Orientation
 import androidx.compose.foundation.gestures.draggable
@@ -15,8 +13,8 @@ import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.LazyListScope
 import androidx.compose.foundation.lazy.items
-import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.foundation.text.BasicTextField
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.*
 import androidx.compose.material.icons.outlined.*
@@ -25,9 +23,12 @@ import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
+import androidx.compose.ui.draw.drawBehind
+import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.graphics.*
 import androidx.compose.ui.layout.onSizeChanged
 import androidx.compose.ui.platform.LocalDensity
+import androidx.compose.ui.platform.LocalLayoutDirection
 import androidx.compose.ui.text.*
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.*
@@ -35,6 +36,8 @@ import com.spectre7.spmp.api.durationToString
 import com.spectre7.spmp.model.*
 import com.spectre7.spmp.platform.LargeDropdownMenu
 import com.spectre7.spmp.platform.composable.platformClickable
+import com.spectre7.spmp.platform.composable.PlatformAlertDialog
+import com.spectre7.spmp.platform.vibrateShort
 import com.spectre7.spmp.resources.getString
 import com.spectre7.spmp.resources.getStringTODO
 import com.spectre7.spmp.ui.component.*
@@ -45,7 +48,6 @@ import com.spectre7.utils.*
 import com.spectre7.utils.composable.*
 import kotlinx.coroutines.*
 import org.burnoutcrew.reorderable.*
-import java.time.temporal.ChronoUnit
 
 private enum class SortOption {
     PLAYLIST, ALPHABET, DURATION, PLAY_COUNT;
@@ -81,11 +83,24 @@ fun PlaylistPage(
     previous_item: MediaItem? = null,
     close: () -> Unit
 ) {
-    val status_bar_height = SpMp.context.getStatusBarHeight()
-    var accent_colour: Color? by remember { mutableStateOf(null) }
     val player = LocalPlayerState.current
-    val multiselect_context = remember { MediaItemMultiSelectContext() {} }
+    val coroutine_scope = rememberCoroutineScope()
+    val status_bar_height = SpMp.context.getStatusBarHeight()
 
+    val multiselect_context = remember { MediaItemMultiSelectContext() { context ->
+        IconButton({ coroutine_scope.launch {
+            val items = context.getSelectedItems().sortedByDescending { it.second!! }
+            for (item in items) {
+                playlist.removeItem(item.second!!)
+                context.setItemSelected(item.first, false, item.second)
+            }
+            playlist.saveItems()
+        } }) {
+            Icon(Icons.Default.PlaylistRemove, null)
+        }
+    } }
+
+    var accent_colour: Color? by remember { mutableStateOf(null) }
     var reorderable: Boolean by remember { mutableStateOf(false) }
     var current_filter: String? by remember { mutableStateOf(null) }
     var current_sort_option: SortOption by remember { mutableStateOf(SortOption.PLAYLIST) }
@@ -110,7 +125,13 @@ fun PlaylistPage(
         }
     }
 
-    Column(Modifier.fillMaxSize().padding(horizontal = 10.dp).padding(top = status_bar_height), verticalArrangement = Arrangement.spacedBy(10.dp)) {
+    Column(
+        Modifier
+            .fillMaxSize()
+            .padding(horizontal = 10.dp)
+            .padding(top = status_bar_height + 20.dp),
+        verticalArrangement = Arrangement.spacedBy(10.dp)
+    ) {
         if (previous_item != null) {
             Row(Modifier.fillMaxWidth(), verticalAlignment = Alignment.CenterVertically) {
                 IconButton(close) {
@@ -128,6 +149,13 @@ fun PlaylistPage(
         }
 
         val layout = playlist.layout
+        val thumb_item = playlist.getThumbnailHolder()
+
+        LaunchedEffect(thumb_item) {
+            if (thumb_item == playlist) {
+                accent_colour = playlist.getThemeColour() ?: Theme.current.accent
+            }
+        }
 
         val sorted_items: MutableList<Pair<MediaItem, Int>> = remember { mutableStateListOf() }
         LaunchedEffect(layout?.items?.size, current_sort_option, current_filter) {
@@ -183,9 +211,7 @@ fun PlaylistPage(
         ) {
             item {
                 PlaylistTopInfo(playlist, accent_colour) {
-                    if (accent_colour == null) {
-                        accent_colour = playlist.getDefaultThemeColour() ?: Theme.current.accent
-                    }
+                    accent_colour = thumb_item.getThemeColour() ?: Theme.current.accent
                 }
             }
 
@@ -196,7 +222,7 @@ fun PlaylistPage(
                         layout,
                         accent_colour,
                         reorderable,
-                        { 
+                        {
                             reorderable = playlist.is_editable == true && it
                             if (reorderable) {
                                 current_sort_option = SortOption.PLAYLIST
@@ -206,12 +232,12 @@ fun PlaylistPage(
                         current_filter,
                         {
                             check(!reorderable)
-                            current_filter = it 
+                            current_filter = it
                         },
                         current_sort_option,
                         {
                             check(!reorderable)
-                            current_sort_option = it 
+                            current_sort_option = it
                         },
                         multiselect_context,
                         Modifier.fillMaxWidth()
@@ -243,7 +269,6 @@ private fun LazyListScope.PlaylistItems(
     sort_option: SortOption,
     player: PlayerState
 ) {
-
     if (sorted_items.isEmpty()) {
         item {
             Text(getString("playlist_empty"), Modifier.padding(top = 15.dp))
@@ -257,13 +282,18 @@ private fun LazyListScope.PlaylistItems(
         val long_press_menu_data = remember(item) {
             getSongLongPressMenuData(
                 item,
-                multiselect_context = multiselect_context
+                multiselect_context = multiselect_context,
+                multiselect_key = index
             )
         }
 
         ReorderableItem(list_state, key = index) { dragging ->
             Row(
-                Modifier.fillMaxWidth().mediaItemPreviewInteraction(item, long_press_menu_data),
+                Modifier
+                    .fillMaxWidth()
+                    .mediaItemPreviewInteraction(item, long_press_menu_data)
+                    .detectReorder(list_state),
+//                    .thenIf(reorderable) { Modifier.detectReorder(list_state) },
                 verticalAlignment = Alignment.CenterVertically,
                 horizontalArrangement = Arrangement.spacedBy(10.dp)
             ) {
@@ -272,7 +302,7 @@ private fun LazyListScope.PlaylistItems(
                         MediaItemThumbnailProvider.Quality.LOW,
                         Modifier.fillMaxSize().longPressMenuIcon(long_press_menu_data)
                     )
-                    multiselect_context.SelectableItemOverlay(item, Modifier.fillMaxSize())
+                    multiselect_context.SelectableItemOverlay(item, Modifier.fillMaxSize(), key = index)
                 }
 
                 Column(
@@ -292,9 +322,9 @@ private fun LazyListScope.PlaylistItems(
                     }
                 }
 
-                AnimatedVisibility(reorderable) {
-                    Icon(Icons.Default.Reorder, null, Modifier.detectReorder(list_state))
-                }
+//                AnimatedVisibility(reorderable) {
+//                    Icon(Icons.Default.Reorder, null, Modifier.detectReorder(list_state))
+//                }
             }
         }
     }
@@ -453,18 +483,94 @@ private fun InteractionBarFilterBox(filter: String?, setFilter: (String?) -> Uni
 }
 
 @Composable
+private fun TopInfoEditButtons(playlist: Playlist, onFinished: () -> Unit) {
+    Row {
+        IconButton(onFinished) {
+            Icon(Icons.Default.Done, null)
+        }
+
+        if (playlist.is_editable == true) {
+            var show_thumb_selection by remember { mutableStateOf(false) }
+
+            IconButton({ show_thumb_selection = true }) {
+                Icon(Icons.Default.Image, null)
+            }
+
+            if (show_thumb_selection) {
+                PlatformAlertDialog(
+                    onDismissRequest = { show_thumb_selection = false },
+                    confirmButton = {
+                        if (playlist.playlist_reg_entry.image_item_uid != null) {
+                            IconButton({
+                                playlist.playlist_reg_entry.image_item_uid = null
+                                show_thumb_selection = false
+                            }) {
+                                Icon(Icons.Default.Refresh, null)
+                            }
+                        }
+                    },
+                    dismissButton = {
+                        Button({ show_thumb_selection = false }) {
+                            Text(getString("action_cancel"))
+                        }
+                    },
+                    title = { Text(getString("playlist_select_image"), style = MaterialTheme.typography.headlineSmall) },
+                    text = {
+                        val player = LocalPlayerState.current
+                        val playlist_items = playlist.getItems() ?: emptyList()
+
+                        if (playlist_items.isEmpty()) {
+                            Text(getString("playlist_empty"))
+                        }
+                        else {
+                            CompositionLocalProvider(LocalPlayerState provides remember { player.copy(
+                                onClickedOverride = { item, _ ->
+                                    playlist.playlist_reg_entry.image_item_uid = item.uid
+                                    show_thumb_selection = false
+                                }
+                            ) }) {
+                                LazyColumn {
+                                    items(playlist_items) { item ->
+                                        item.PreviewLong(MediaItem.PreviewParams())
+                                    }
+                                }
+                            }
+                        }
+                    }
+                )
+            }
+        }
+    }
+}
+
+@Composable
 private fun PlaylistTopInfo(playlist: Playlist, accent_colour: Color?, onThumbLoaded: (ImageBitmap) -> Unit) {
     val shape = RoundedCornerShape(10.dp)
-    val min_height = 125.dp
+    val min_height = 120.dp
 
     val player = LocalPlayerState.current
     val density = LocalDensity.current
 
-    var editing_title by remember { mutableStateOf(false) }
-    var editing_thumbnail by remember { mutableStateOf(false) }
+    var editing_info by remember { mutableStateOf(false) }
+    var edited_title: String by remember { mutableStateOf("") }
 
-    var split_position by remember { mutableStateOf(0f) }
+    var split_position by remember(playlist) { mutableStateOf(playlist.playlist_reg_entry.playlist_page_thumb_width ?: 0f) }
     var width: Dp by remember { mutableStateOf(0.dp) }
+    var show_thumbnail by remember { mutableStateOf(true) }
+
+    DisposableEffect(Unit) {
+        onDispose {
+            if (editing_info) {
+                playlist.saveRegistry()
+            }
+        }
+    }
+
+    LaunchedEffect(editing_info) {
+        if (editing_info) {
+            edited_title = playlist.title!!
+        }
+    }
 
     Row(
         Modifier
@@ -475,40 +581,76 @@ private fun PlaylistTopInfo(playlist: Playlist, accent_colour: Color?, onThumbLo
                     return@onSizeChanged
                 }
                 width = width_dp
-                split_position = min_height / width_dp
+
+                if (split_position == 0f) {
+                    split_position = min_height / width
+                }
             },
         horizontalArrangement = Arrangement.spacedBy(10.dp)
     ) {
-
         var thumb_size by remember { mutableStateOf(IntSize.Zero) }
-        playlist.Thumbnail(
-            MediaItemThumbnailProvider.Quality.HIGH,
-            Modifier
-                .heightIn(min = min_height)
-                .fillMaxWidth(split_position)
-                .aspectRatio(1f)
-                .clip(shape)
-                .onSizeChanged {
-                    thumb_size = it
-                }
-                .platformClickable(
-                    onClick = {},
-                    onAltClick = { editing_thumbnail = !editing_thumbnail }
-                ),
-            onLoaded = onThumbLoaded
-        )
 
-        AnimatedVisibility(editing_thumbnail) {
+        AnimatedVisibility(show_thumbnail) {
+            Box(
+                Modifier
+                    .heightIn(min = min_height)
+                    .fillMaxWidth(split_position)
+            ) {
+                playlist.Thumbnail(
+                    MediaItemThumbnailProvider.Quality.HIGH,
+                    Modifier
+                        .fillMaxSize()
+                        .aspectRatio(1f)
+                        .clip(shape)
+                        .onSizeChanged {
+                            thumb_size = it
+                        }
+                        .platformClickable(
+                            onClick = {},
+                            onAltClick = {
+                                if (!editing_info) {
+                                    editing_info = true
+                                    SpMp.context.vibrateShort()
+                                }
+                            }
+                        ),
+                    onLoaded = onThumbLoaded
+                )
+            }
+        }
+
+        AnimatedVisibility(editing_info && !show_thumbnail) {
+            SpMp.context.getSystemInsets()?.also { system_insets ->
+                with(LocalDensity.current) {
+                    Spacer(Modifier.width(system_insets.getLeft(this, LocalLayoutDirection.current).toDp()))
+                }
+            }
+        }
+
+        AnimatedVisibility(editing_info) {
             Box(
                 Modifier
                     .fillMaxHeight()
-                    .width(10.dp)
+                    .width(12.dp)
                     .border(Dp.Hairline, LocalContentColor.current, shape)
                     .draggable(
                         orientation = Orientation.Horizontal,
                         state = rememberDraggableState { delta ->
                             val delta_dp = with(density) { delta.toDp() }
-                            split_position = (split_position + (delta_dp / width)).coerceIn(0.1f, 0.9f)
+                            if (!show_thumbnail) {
+                                if (delta_dp > 0.dp) {
+                                    show_thumbnail = true
+                                    split_position = min_height / width
+                                }
+                            }
+                            else {
+                                split_position = (split_position + (delta_dp / width)).coerceIn(0.1f, 0.9f)
+                                if (split_position * width < min_height) {
+                                    show_thumbnail = false
+                                }
+                            }
+
+                            playlist.playlist_reg_entry.playlist_page_thumb_width = split_position
                         }
                     ),
                 contentAlignment = Alignment.Center
@@ -519,9 +661,7 @@ private fun PlaylistTopInfo(playlist: Playlist, accent_colour: Color?, onThumbLo
 
         Column(Modifier.height(with(LocalDensity.current) { thumb_size.height.toDp().coerceAtLeast(min_height) })) {
             Box(Modifier.fillMaxHeight().weight(1f), contentAlignment = Alignment.CenterStart) {
-                var edited_title: String by remember { mutableStateOf("") }
-
-                Crossfade(editing_title) { editing ->
+                Crossfade(editing_info) { editing ->
                     if (!editing) {
                         Text(
                             playlist.title!!,
@@ -530,35 +670,73 @@ private fun PlaylistTopInfo(playlist: Playlist, accent_colour: Color?, onThumbLo
                             modifier = Modifier.platformClickable(
                                 onClick = {},
                                 onAltClick = {
-                                    edited_title = playlist.title!!
-                                    editing_title = true
+                                    editing_info = true
                                 }
                             )
                         )
                     }
                     else {
-                        TextField(edited_title, { edited_title = it })
+                        val colour = LocalContentColor.current
+                        val line_padding = with(LocalDensity.current) { 5.dp.toPx() }
+                        val line_width = with(LocalDensity.current) { 1.dp.toPx() }
+
+                        BasicTextField(
+                            edited_title,
+                            {
+                                edited_title = it.replace("\n", "")
+                                playlist.registry_entry.title = edited_title.trim()
+                            },
+                            Modifier
+                                .fillMaxWidth()
+                                .drawBehind {
+                                    drawLine(
+                                        colour,
+                                        center + Offset(-size.width / 2f, (size.height / 2f) + line_padding),
+                                        center + Offset(size.width / 2f, (size.height / 2f) + line_padding),
+                                        strokeWidth = line_width
+                                    )
+                                },
+                            textStyle = LocalTextStyle.current.copy(color = colour),
+                            cursorBrush = SolidColor(colour)
+                        )
                     }
                 }
             }
 
-            Row {
-                IconButton({ TODO() }) {
-                    Icon(Icons.Default.Radio, null)
-                }
-                IconButton({ TODO() }) {
-                    Icon(Icons.Default.Shuffle, null)
-                }
-                Crossfade(playlist.pinned_to_home) { pinned ->
-                    IconButton({ playlist.setPinnedToHome(!pinned) }) {
-                        Icon(if (pinned) Icons.Filled.PushPin else Icons.Outlined.PushPin, null)
+            Crossfade(editing_info) { editing ->
+                if (!editing) {
+                    Row {
+                        IconButton({ TODO() }) {
+                            Icon(Icons.Default.Radio, null)
+                        }
+                        IconButton({ TODO() }) {
+                            Icon(Icons.Default.Shuffle, null)
+                        }
+                        Crossfade(playlist.pinned_to_home) { pinned ->
+                            IconButton({ playlist.setPinnedToHome(!pinned) }) {
+                                Icon(if (pinned) Icons.Filled.PushPin else Icons.Outlined.PushPin, null)
+                            }
+                        }
+                        playlist.url?.also { url ->
+                            if (SpMp.context.canShare()) {
+                                IconButton({ SpMp.context.shareText(url, playlist.title!!) }) {
+                                    Icon(Icons.Default.Share, null)
+                                }
+                            }
+                        }
+
+                        if (!editing_info && !show_thumbnail) {
+                            Spacer(Modifier.fillMaxWidth().weight(1f))
+                            IconButton({ editing_info = true }) {
+                                Icon(Icons.Default.Edit, null)
+                            }
+                        }
                     }
                 }
-                playlist.url?.also { url ->
-                    if (SpMp.context.canShare()) {
-                        IconButton({ SpMp.context.shareText(url, playlist.title!!) }) {
-                            Icon(Icons.Default.Share, null)
-                        }
+                else {
+                    TopInfoEditButtons(playlist) {
+                        editing_info = false
+                        playlist.saveRegistry()
                     }
                 }
             }

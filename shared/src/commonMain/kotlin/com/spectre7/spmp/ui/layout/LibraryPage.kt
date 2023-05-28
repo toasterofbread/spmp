@@ -1,5 +1,8 @@
 package com.spectre7.spmp.ui.layout
 
+import LocalPlayerState
+import androidx.compose.animation.AnimatedVisibility
+import androidx.compose.animation.animateContentSize
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.LazyRow
@@ -27,6 +30,7 @@ import com.spectre7.spmp.platform.getDefaultPaddingValues
 import com.spectre7.spmp.resources.getString
 import com.spectre7.spmp.ui.component.MediaItemLayout
 import com.spectre7.spmp.ui.component.PillMenu
+import com.spectre7.spmp.ui.component.multiselect.MediaItemMultiSelectContext
 import com.spectre7.spmp.ui.layout.mainpage.MINIMISED_NOW_PLAYING_HEIGHT
 import com.spectre7.spmp.ui.theme.Theme
 import com.spectre7.utils.addUnique
@@ -37,32 +41,32 @@ fun LibraryPage(
     pill_menu: PillMenu,
     modifier: Modifier = Modifier,
     inline: Boolean = false,
+    outer_multiselect_context: MediaItemMultiSelectContext? = null,
     close: () -> Unit
 ) {
-    var layouts: List<MediaItemLayout> by remember { mutableStateOf(emptyList()) }
     val downloads: MutableList<DownloadStatus> = remember { mutableStateListOf() }
     val coroutine_scope = rememberCoroutineScope()
+    val player = LocalPlayerState.current
+    val multiselect_context = remember(outer_multiselect_context) { outer_multiselect_context ?: MediaItemMultiSelectContext {} }
+
+    val heading_text_style = MaterialTheme.typography.headlineSmall
 
     DisposableEffect(Unit) {
         PlayerServiceHost.download_manager.getDownloads {
             downloads.addAll(it)
-            layouts = generateLibraryLayouts(downloads)
         }
 
         val listener = object : PlayerDownloadManager.DownloadStatusListener() {
             override fun onDownloadAdded(status: DownloadStatus) {
                 downloads.add(status)
-                layouts = generateLibraryLayouts(downloads)
             }
             override fun onDownloadRemoved(id: String) {
                 downloads.removeIf { it.id == id }
-                layouts = generateLibraryLayouts(downloads)
             }
             override fun onDownloadChanged(status: DownloadStatus) {
                 for (i in downloads.indices) {
                     if (downloads[i].id == status.id) {
                         downloads[i] = status
-                        layouts = generateLibraryLayouts(downloads)
                     }
                 }
             }
@@ -74,101 +78,100 @@ fun LibraryPage(
         }
     }
 
-    LazyColumn(
+    Column(
         modifier.run {
-            if (!inline) padding(SpMp.context.getDefaultPaddingValues())
+            if (!inline) padding(horizontal = 20.dp, vertical = 10.dp)
             else this
-        },
-        verticalArrangement = Arrangement.spacedBy(20.dp),
-        contentPadding = PaddingValues(bottom = MINIMISED_NOW_PLAYING_HEIGHT.dp * 2f)
+        }
     ) {
+        // Title bar
         if (!inline) {
-            // Title bar
-            item {
-                Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.SpaceBetween) {
-                    Icon(Icons.Default.MusicNote, null)
+            Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.SpaceBetween, verticalAlignment = Alignment.CenterVertically) {
+                Icon(Icons.Default.MusicNote, null)
 
-                    Text(
-                        getString("page_title_library"),
-                        style = MaterialTheme.typography.headlineLarge.copy(
-                            color = Theme.current.on_background
-                        )
+                Text(
+                    getString("library_page_title"),
+                    style = MaterialTheme.typography.headlineLarge.copy(
+                        color = Theme.current.on_background
                     )
+                )
 
-                    Spacer(Modifier.width(24.dp))
-                }
+                Spacer(Modifier.width(24.dp))
             }
         }
 
-        // Playlists
-        item {
-            Column(Modifier.fillMaxWidth()) {
-                Row(horizontalArrangement = Arrangement.SpaceBetween, verticalAlignment = Alignment.CenterVertically) {
-                    Text(MediaItemType.PLAYLIST.getReadable(true), style = MaterialTheme.typography.headlineMedium)
+        AnimatedVisibility(outer_multiselect_context == null && multiselect_context.is_active) {
+            multiselect_context.InfoDisplay()
+        }
 
-                    IconButton({ coroutine_scope.launch {
-                        val playlist = LocalPlaylist.createLocalPlaylist(SpMp.context)
-                        println("created $playlist")
-                    }}) {
-                        Icon(Icons.Default.Add, null)
-                    }
-                }
+        LazyColumn(
+            verticalArrangement = Arrangement.spacedBy(30.dp),
+            contentPadding = PaddingValues(bottom = MINIMISED_NOW_PLAYING_HEIGHT.dp * 2f)
+        ) {
+            // Playlists
+            item {
+                Column(Modifier.fillMaxWidth().animateContentSize(), horizontalAlignment = Alignment.CenterHorizontally) {
+                    Row(
+                        Modifier.fillMaxWidth(),
+                        horizontalArrangement = Arrangement.SpaceBetween,
+                        verticalAlignment = Alignment.CenterVertically
+                    ) {
+                        Text(getString("library_row_playlists"), style = heading_text_style)
 
-                var local_playlists: MutableList<LocalPlaylist>? by remember { mutableStateOf(null) }
-
-                LaunchedEffect(Unit) {
-                    local_playlists = mutableStateListOf<LocalPlaylist>().apply { addAll(LocalPlaylist.getLocalPlaylists(SpMp.context).toMutableList()) }
-                }
-                DisposableEffect(Unit) {
-                    val listener = object : LocalPlaylist.Listener {
-                        override fun onAdded(playlist: LocalPlaylist) {
-                            local_playlists?.add(playlist)
+                        IconButton({ coroutine_scope.launch {
+                            val playlist = LocalPlaylist.createLocalPlaylist(SpMp.context)
+                            player.openMediaItem(playlist)
+                        }}) {
+                            Icon(Icons.Default.Add, null)
                         }
-                        override fun onRemoved(index: Int, playlist: LocalPlaylist) {}
                     }
-                    LocalPlaylist.addPlaylistsListener(listener)
 
-                    onDispose {
-                        LocalPlaylist.removePlaylistsListener(listener)
-                    }
-                }
-
-                local_playlists?.also { playlists ->
-
+                    val local_playlists = LocalPlaylist.rememberLocalPlaylistsListener()
                     val layout = remember {
                         MediaItemLayout(
                             null, null,
                             MediaItemLayout.Type.ROW,
-                            playlists as MutableList<MediaItem>
+                            local_playlists as MutableList<MediaItem>
                         )
                     }
+                    if (layout.items.isNotEmpty()) {
+                        layout.Layout(Modifier.fillMaxWidth(), multiselect_context = multiselect_context)
+                    }
+                    else {
+                        Text(getString("library_playlists_empty"), Modifier.padding(top = 10.dp))
+                    }
+                }
+            }
 
-                    layout.Layout(Modifier.fillMaxWidth())
+            // Songs
+            item {
+                Column(Modifier.fillMaxWidth().animateContentSize(), horizontalAlignment = Alignment.CenterHorizontally) {
+                    Text(
+                        getString("library_row_recent_songs"),
+                        Modifier.align(Alignment.Start),
+                        style = heading_text_style
+                    )
+
+                    if (downloads.isNotEmpty()) {
+                        var shown_songs = 0
+                        for (download in downloads) {
+                            if (download.progress < 1f) {
+                                continue
+                            }
+
+                            val song = download.song
+                            song.PreviewLong(MediaItem.PreviewParams())
+
+                            if (++shown_songs == 5) {
+                                break
+                            }
+                        }
+                    }
+                    else {
+                        Text("No songs downloaded", Modifier.padding(top = 10.dp))
+                    }
                 }
             }
         }
-
-        items(layouts) { layout ->
-            layout.Layout(Modifier.fillMaxWidth())
-        }
     }
-}
-
-fun generateLibraryLayouts(downloads: List<DownloadStatus>): List<MediaItemLayout> {
-    val top_songs = MediaItemLayout(LocalisedYoutubeString.temp("Top songs"), null, type = MediaItemLayout.Type.NUMBERED_LIST)
-    val artists = MediaItemLayout(LocalisedYoutubeString.temp("Artists"), null, type = MediaItemLayout.Type.ROW)
-
-    for (download in downloads) {
-        if (download.progress < 1f) {
-            continue
-        }
-        top_songs.items.add(download.song)
-
-        download.song.artist?.also {
-            artists.items.addUnique(it)
-        }
-    }
-    top_songs.items.sortByDescending { it.registry_entry.play_count }
-
-    return listOf(top_songs, artists)
 }

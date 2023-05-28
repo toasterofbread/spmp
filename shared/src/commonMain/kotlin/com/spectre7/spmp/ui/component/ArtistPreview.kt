@@ -136,8 +136,8 @@ fun getArtistLongPressMenuData(
                 modifier = modifier
             )
         }
-    ) {
-        ArtistLongPressPopupActions(it)
+    ) { item, _ ->
+        ArtistLongPressPopupActions(item)
     }
 }
 

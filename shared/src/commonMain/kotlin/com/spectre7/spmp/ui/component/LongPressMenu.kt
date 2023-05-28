@@ -41,7 +41,8 @@ import com.spectre7.utils.contrastAgainst
 import com.spectre7.utils.thenIf
 import kotlinx.coroutines.delay
 
-const val LONG_PRESS_ICON_MENU_OPEN_ANIM_MS = 150
+private const val LONG_PRESS_ICON_MENU_OPEN_ANIM_MS = 150
+private const val MENU_ITEM_SPACING = 20
 
 data class LongPressMenuData(
     val item: MediaItem,
@@ -51,7 +52,7 @@ data class LongPressMenuData(
     val multiselect_context: MediaItemMultiSelectContext? = null,
     val multiselect_key: Int? = null,
     val sideButton: (@Composable (Modifier, background: Color, accent: Color) -> Unit)? = null,
-    val actions: (@Composable LongPressMenuActionProvider.(MediaItem) -> Unit)? = null
+    val actions: (@Composable LongPressMenuActionProvider.(item: MediaItem, spacing: Dp) -> Unit)? = null
 ) {
     var current_interaction_stage: MediaItemPreviewInteractionPressStage? by mutableStateOf(null)
     private val HINT_MIN_STAGE = MediaItemPreviewInteractionPressStage.LONG_1
@@ -177,7 +178,6 @@ private fun MenuContent(
             var height by remember { mutableStateOf(0.dp) }
             val density = LocalDensity.current
 
-            val item_spacing = 20.dp
             val padding = 25.dp
 
             var show_info by remember { mutableStateOf(false) }
@@ -200,7 +200,7 @@ private fun MenuContent(
                         }
                     }
                     .thenIf(show_info || info_showing, Modifier.height(height)),
-                verticalArrangement = Arrangement.spacedBy(item_spacing)
+                verticalArrangement = Arrangement.spacedBy(MENU_ITEM_SPACING.dp)
             ) {
                 Row(
                     Modifier
@@ -308,7 +308,7 @@ private fun MenuContent(
 
                 // Info/action list
                 Crossfade(show_info) { info ->
-                    Column(verticalArrangement = Arrangement.spacedBy(item_spacing)) {
+                    Column(verticalArrangement = Arrangement.spacedBy(MENU_ITEM_SPACING.dp)) {
                         if (info) {
                             DisposableEffect(Unit) {
                                 info_showing = true
@@ -346,7 +346,8 @@ private fun MenuActions(data: LongPressMenuData, accent_colour: Color, onAction:
             Theme.current.background_provider,
             onAction
         ),
-        data.item
+        data.item,
+        MENU_ITEM_SPACING.dp
     )
 
     // Pin / unpin

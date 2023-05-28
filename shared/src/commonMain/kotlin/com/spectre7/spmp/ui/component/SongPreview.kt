@@ -4,6 +4,7 @@ package com.spectre7.spmp.ui.component
 
 import LocalPlayerState
 import SpMp
+import androidx.compose.animation.Crossfade
 import androidx.compose.foundation.ExperimentalFoundationApi
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
@@ -12,15 +13,17 @@ import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.*
 import androidx.compose.material3.Icon
 import androidx.compose.material3.Text
-import androidx.compose.runtime.Composable
-import androidx.compose.runtime.remember
+import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.alpha
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.Shape
 import androidx.compose.ui.graphics.vector.ImageVector
+import androidx.compose.ui.layout.onSizeChanged
+import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.text.style.TextOverflow
+import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.spectre7.spmp.PlayerServiceHost
@@ -28,9 +31,11 @@ import com.spectre7.spmp.model.*
 import com.spectre7.spmp.platform.PlayerDownloadManager.DownloadStatus
 import com.spectre7.spmp.resources.getString
 import com.spectre7.spmp.ui.component.multiselect.MediaItemMultiSelectContext
+import com.spectre7.spmp.ui.layout.PlaylistSelectMenu
 import com.spectre7.utils.composable.WidthShrinkText
 import com.spectre7.utils.getContrasted
 import com.spectre7.utils.isDebugBuild
+import com.spectre7.utils.launchSingle
 
 val SONG_THUMB_CORNER_ROUNDING = 10.dp
 
@@ -168,15 +173,57 @@ fun getSongLongPressMenuData(
         sideButton = { modifier, background, _ ->
             LikeDislikeButton(song, modifier) { background.getContrasted() }
         }
-    ) {
-        SongLongPressPopupActions(it, queue_index)
+    ) { item, spacing ->
+        SongLongPressPopupActions(item, spacing, queue_index)
     }
 }
 
 @Composable
-private fun LongPressMenuActionProvider.SongLongPressPopupActions(song: MediaItem, queue_index: Int?) {
+private fun LongPressMenuActionProvider.SongLongPressPopupActions(song: MediaItem, spacing: Dp, queue_index: Int?) {
     require(song is Song)
 
+    val density = LocalDensity.current
+    val player = LocalPlayerState.current
+    val coroutine_scope = rememberCoroutineScope()
+
+    var height: Dp? by remember { mutableStateOf(null) }
+    var adding_to_playlist by remember { mutableStateOf(false) }
+
+    Crossfade(adding_to_playlist) { playlist_interface ->
+        if (!playlist_interface) {
+            Column(
+                Modifier.onSizeChanged { height = with(density) { it.height.toDp() } },
+                verticalArrangement = Arrangement.spacedBy(spacing)
+            ) {
+                LPMActions(song, queue_index) { adding_to_playlist = true }
+            }
+        }
+        else {
+            PlaylistSelectMenu(
+                height?.let { Modifier.height(it) } ?: Modifier,
+                show_cancel_button = true
+            ) { playlist, new ->
+                if (playlist != null) {
+                    coroutine_scope.launchSingle {
+                        playlist.addItem(song)
+                        SpMp.context.sendToast(getString("toast_playlist_added"))
+                        playlist.saveItems()
+                    }
+
+                    onAction()
+                    if (new) {
+                        player.openMediaItem(playlist)
+                    }
+                }
+
+                adding_to_playlist = false
+            }
+        }
+    }
+}
+
+@Composable
+private fun LongPressMenuActionProvider.LPMActions(song: Song, queue_index: Int?, openPlaylistInterface: () -> Unit) {
     val player = LocalPlayerState.current
 
     ActionButton(
@@ -191,7 +238,7 @@ private fun LongPressMenuActionProvider.SongLongPressPopupActions(song: MediaIte
 
     ActiveQueueIndexAction(
         { distance ->
-            getString(if (distance == 1) "lpm_action_play_after_1_song" else "lpm_action_play_after_x_songs").replace("\$x", distance.toString()) 
+            getString(if (distance == 1) "lpm_action_play_after_1_song" else "lpm_action_play_after_x_songs").replace("\$x", distance.toString())
         },
         onClick = { active_queue_index ->
             PlayerServiceHost.player.addToQueue(
@@ -210,6 +257,8 @@ private fun LongPressMenuActionProvider.SongLongPressPopupActions(song: MediaIte
             )
         }
     )
+
+    ActionButton(Icons.Default.PlaylistAdd, getString("song_add_to_playlist"), onClick = openPlaylistInterface, onAction = {})
 
     ActionButton(Icons.Default.Download, getString("lpm_action_download"), onClick = {
         PlayerServiceHost.download_manager.startDownload(song.id) { status: DownloadStatus ->

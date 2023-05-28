@@ -59,6 +59,18 @@ class SongItemData(override val data_item: Song): MediaItemData(data_item) {
         }
         return data_item
     }
+
+    override fun getSerialisedData(klaxon: Klaxon): List<String> {
+        return super.getSerialisedData(klaxon) + listOf(klaxon.toJsonString(song_type?.ordinal), klaxon.toJsonString(duration), klaxon.toJsonString(album?.id))
+    }
+
+    override fun supplyFromSerialisedData(data: MutableList<Any?>, klaxon: Klaxon): MediaItemData {
+        require(data.size >= 3)
+        data.removeLast()?.also { supplyAlbum(com.spectre7.spmp.model.AccountPlaylist.fromId(it as String), cached = true) }
+        data.removeLast()?.also { supplyDuration((it as Int).toLong(), cached = true) }
+        data.removeLast()?.also { supplySongType(com.spectre7.spmp.model.Song.SongType.values()[it as Int], cached = true) }
+        return super.supplyFromSerialisedData(data, klaxon)
+    }
 }
 
 class Song protected constructor (
@@ -134,20 +146,6 @@ class Song protected constructor (
     fun editSongDataManual(action: SongItemData.() -> Unit): SongItemData {
         action(data)
         return data
-    }
-
-    override fun getSerialisedData(klaxon: Klaxon): List<String> {
-        return super.getSerialisedData(klaxon) + listOf(klaxon.toJsonString(song_type?.ordinal), klaxon.toJsonString(duration), klaxon.toJsonString(album?.id))
-    }
-
-    override fun supplyFromSerialisedData(data: MutableList<Any?>, klaxon: Klaxon): MediaItem {
-        require(data.size >= 3)
-        with(this@Song.data) {
-            data.removeLast()?.also { supplyAlbum(AccountPlaylist.fromId(it as String), cached = true) }
-            data.removeLast()?.also { supplyDuration((it as Int).toLong(), cached = true) }
-            data.removeLast()?.also { supplySongType(SongType.values()[it as Int], cached = true) }
-        }
-        return super.supplyFromSerialisedData(data, klaxon)
     }
 
     data class Lyrics(

@@ -1,18 +1,15 @@
 package com.spectre7.spmp.ui.layout.mainpage
 
-import SpMp
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.fillMaxSize
-import androidx.compose.foundation.layout.offset
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Close
-import androidx.compose.material.icons.filled.LibraryMusic
+import androidx.compose.material.icons.filled.MusicNote
 import androidx.compose.material.icons.filled.Search
 import androidx.compose.material.icons.filled.Settings
 import androidx.compose.runtime.*
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.unit.IntOffset
 import com.spectre7.spmp.ui.theme.Theme
 import com.spectre7.utils.modifier.background
 
@@ -58,11 +55,11 @@ fun PlayerView(player: PlayerStateImpl) {
                 if (overlay_open) 1 else 3,
                 { index, action_count ->
                     ActionButton(
-                        if (action_count == 1) Icons.Filled.Close else
+                        if (action_count == 1) Icons.Default.Close else
                             when (index) {
-                                0 -> Icons.Filled.Search
-                                1 -> Icons.Filled.LibraryMusic
-                                else -> Icons.Filled.Settings
+                                0 -> Icons.Default.Search
+                                1 -> Icons.Default.MusicNote
+                                else -> Icons.Default.Settings
                             }
                     ) {
                         player.setOverlayPage(if (action_count == 1) null else

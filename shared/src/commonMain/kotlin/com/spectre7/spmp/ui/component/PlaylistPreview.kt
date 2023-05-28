@@ -9,6 +9,7 @@ import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.*
 import androidx.compose.material3.Icon
+import androidx.compose.material3.LocalContentColor
 import androidx.compose.material3.Text
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
@@ -25,6 +26,7 @@ import com.spectre7.spmp.ui.component.multiselect.MediaItemMultiSelectContext
 import com.spectre7.utils.composable.WidthShrinkText
 import com.spectre7.utils.isDebugBuild
 import com.spectre7.utils.setAlpha
+import kotlinx.coroutines.launch
 
 @Composable
 fun PlaylistPreviewSquare(
@@ -55,7 +57,7 @@ fun PlaylistPreviewSquare(
         Text(
             playlist.title ?: "",
             fontSize = 12.sp,
-            color = params.contentColour?.invoke() ?: Color.Unspecified,
+            color = params.contentColour?.invoke() ?: LocalContentColor.current,
             maxLines = 1,
             lineHeight = 14.sp,
             overflow = TextOverflow.Ellipsis
@@ -98,7 +100,7 @@ fun PlaylistPreviewLong(
             Text(
                 playlist.title ?: "",
                 fontSize = 15.sp,
-                color = params.contentColour?.invoke() ?: Color.Unspecified,
+                color = params.contentColour?.invoke() ?: LocalContentColor.current,
                 maxLines = 1,
                 overflow = TextOverflow.Ellipsis
             )
@@ -109,7 +111,7 @@ fun PlaylistPreviewLong(
                     Text(
                         text,
                         fontSize = 11.sp,
-                        color = params.contentColour?.invoke() ?: Color.Unspecified.setAlpha(0.5f),
+                        color = params.contentColour?.invoke() ?: LocalContentColor.current.setAlpha(0.5f),
                         maxLines = 1,
                         overflow = TextOverflow.Ellipsis
                     )
@@ -141,8 +143,8 @@ fun getPlaylistLongPressMenuData(
         { PlaylistLongPressMenuInfo(playlist, it) },
         getString("lpm_long_press_actions"),
         multiselect_context = multiselect_context
-    ) {
-        PlaylistLongPressPopupActions(it)
+    ) { item, _ ->
+        PlaylistLongPressPopupActions(item)
     }
 }
 
@@ -151,6 +153,7 @@ private fun LongPressMenuActionProvider.PlaylistLongPressPopupActions(playlist: 
     require(playlist is Playlist)
 
     val player = LocalPlayerState.current
+    val coroutine_context = rememberCoroutineScope()
 
     ActionButton(
         Icons.Default.PlayArrow, getString("lpm_action_play"),
@@ -178,9 +181,19 @@ private fun LongPressMenuActionProvider.PlaylistLongPressPopupActions(playlist: 
         }
     )
 
-    ActionButton(Icons.Default.QueueMusic, getString("lpm_action_open_playlist"), onClick = {
+    ActionButton(Icons.Default.OpenWith, getString("lpm_action_open_playlist"), onClick = {
         player.openMediaItem(playlist)
     })
+
+    ActionButton(Icons.Default.OpenWith, getString("lpm_action_open_playlist"), onClick = {
+        player.openMediaItem(playlist)
+    })
+
+    if (playlist.is_editable == true) {
+        ActionButton(Icons.Default.Delete, getString("playlist_delete"), onClick = { coroutine_context.launch {
+            playlist.deletePlaylist()
+        } })
+    }
 }
 
 @Composable

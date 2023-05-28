@@ -25,7 +25,16 @@
     <string name="home_feed_filter_commute">Commute</string>
     <string name="home_feed_filter_focus">Focus</string>
 
-    <string name="page_title_library">Library</string>
+    <string name="library_page_title">Library</string>
+    <string name="library_row_playlists">Playlists</string>
+    <string name="library_row_recent_songs">Recent songs</string>
+    <string name="library_row_downloads">Downloads</string>
+    <string name="library_playlists_empty">No playlists</string>
+    <string name="library_recent_songs_all">All</string>
+    <string name="library_recent_songs_year">Year</string>
+    <string name="library_recent_songs_month">Month</string>
+    <string name="library_recent_songs_week">Week</string>
+    <string name="library_recent_songs_day">Day</string>
 
     <string name="song_name">Song name</string>
     <string name="videos">Videos</string>
@@ -44,6 +53,13 @@
     <string name="audiobooks">Audiobooks</string>
     <string name="radio">Radio</string>
     <string name="radios">Radios</string>
+
+    <string name="new_playlist_title">New playlist</string>
+    <string name="playlist_empty">Playlist is empty</string>
+    <string name="song_add_to_playlist">Add to playlist</string>
+    <string name="playlist_create">Create playlist</string>
+    <string name="playlist_delete">Delete playlist</string>
+    <string name="toast_playlist_added">Added to playlist</string>
 
     <string name="feed_row_artists">Recommended artists</string>
     <string name="feed_row_playlists">Playlists</string>

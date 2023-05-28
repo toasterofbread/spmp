@@ -145,7 +145,8 @@ fun MainPage(
                         pill_menu,
                         Modifier.graphicsLayer { alpha = state_alpha.value },
                         close = {},
-                        inline = true
+                        inline = true,
+                        outer_multiselect_context = LocalPlayerState.current.main_multiselect_context
                     )
                 }
                 // Loading

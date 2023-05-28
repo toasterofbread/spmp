@@ -1,9 +1,12 @@
 package com.spectre7.spmp.ui.component.multiselect
 
+import LocalPlayerState
 import androidx.compose.animation.*
 import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.*
+import androidx.compose.foundation.lazy.LazyColumn
+import androidx.compose.foundation.lazy.items
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.*
 import androidx.compose.material.icons.outlined.PushPin
@@ -13,14 +16,19 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
 import com.spectre7.spmp.PlayerServiceHost
-import com.spectre7.spmp.model.MediaItem
-import com.spectre7.spmp.model.MediaItemType
-import com.spectre7.spmp.model.Settings
-import com.spectre7.spmp.model.Song
+import com.spectre7.spmp.model.*
+import com.spectre7.spmp.platform.composable.PlatformAlertDialog
 import com.spectre7.spmp.resources.getString
 import com.spectre7.utils.getContrasted
 import com.spectre7.utils.lazyAssert
 import com.spectre7.utils.setAlpha
+import com.spectre7.spmp.platform.composable.PlatformDialog
+import com.spectre7.spmp.ui.layout.PlaylistSelectMenu
+import com.spectre7.spmp.ui.theme.Theme
+import com.spectre7.utils.composable.ShapedIconButton
+import com.spectre7.utils.launchSingle
+import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.launch
 
 class MediaItemMultiSelectContext(
     val allow_songs: Boolean = true,
@@ -134,7 +142,9 @@ class MediaItemMultiSelectContext(
                 GeneralSelectedItemActions()
 
                 Spacer(Modifier.fillMaxWidth().weight(1f))
-                selectedItemActions?.invoke(this, this@MediaItemMultiSelectContext)
+                AnimatedVisibility(selected_items.isNotEmpty()) {
+                    selectedItemActions?.invoke(this@Row, this@MediaItemMultiSelectContext)
+                }
                 Spacer(Modifier.fillMaxWidth().weight(1f))
 
                 IconButton({ selected_items.clear() }) {
@@ -150,31 +160,146 @@ class MediaItemMultiSelectContext(
     }
 
     @Composable
-    private fun GeneralSelectedItemActions() {
-        val all_pinned by remember { derivedStateOf {
-            getUniqueSelectedItems().all { it.pinned_to_home }
-        } }
+    private fun AddToPlaylistDialog(items: List<MediaItem>, coroutine_scope: CoroutineScope, onFinished: () -> Unit) {
+        val player = LocalPlayerState.current
 
-        IconButton({
-            all_pinned.also { pinned ->
-                for (item in getUniqueSelectedItems()) {
-                    item.setPinnedToHome(!pinned)
+        suspend fun onPlaylistSelected(playlist: Playlist?, new: Boolean = false) {
+            onFinished()
+
+            if (playlist != null) {
+                onActionPerformed()
+
+                for (item in items) {
+                    playlist.addItem(item)
                 }
+
+                if (new) {
+                    player.openMediaItem(playlist)
+                }
+                else {
+                    SpMp.context.sendToast(getString("toast_playlist_added"))
+                }
+
+                playlist.saveItems()
             }
-            onActionPerformed()
-        }) {
-            Icon(if (all_pinned) Icons.Filled.PushPin else Icons.Outlined.PushPin, null)
         }
 
-        IconButton({
-            for (item in getUniqueSelectedItems()) {
-                if (item is Song) {
-                    PlayerServiceHost.download_manager.startDownload(item.id)
+        PlatformAlertDialog(
+            onDismissRequest = onFinished,
+            confirmButton = {
+                ShapedIconButton(
+                    { coroutine_scope.launch {
+                        val playlist = LocalPlaylist.createLocalPlaylist(SpMp.context)
+                        onPlaylistSelected(playlist, true)
+                    } },
+                    colors = IconButtonDefaults.iconButtonColors(
+                        containerColor = Theme.current.accent,
+                        contentColor = Theme.current.on_accent
+                    )
+                ) {
+                    Icon(Icons.Default.Add, null)
+                }
+            },
+            dismissButton = {
+                Button(
+                    onFinished,
+                    colors = ButtonDefaults.buttonColors(
+                        containerColor = Theme.current.accent.setAlpha(0.5f),
+                        contentColor = Theme.current.on_accent
+                    )
+                ) {
+                    Text(getString("action_cancel"))
+                }
+            },
+            title = {
+                Text(getString("song_add_to_playlist"), style = MaterialTheme.typography.headlineSmall)
+            },
+            text = {
+                val playlists = LocalPlaylist.rememberLocalPlaylistsListener()
+
+                LazyColumn(Modifier.height(300.dp)) {
+                    items(playlists) { playlist ->
+                        CompositionLocalProvider(LocalPlayerState provides remember {
+                            player.copy(onClickedOverride = { playlist, _ -> coroutine_scope.launch {
+                                check(playlist is Playlist)
+                                onPlaylistSelected(playlist, false)
+                            } })
+                        }) {
+                            playlist.PreviewLong(MediaItem.PreviewParams())
+                        }
+                    }
                 }
             }
-            onActionPerformed()
-        }) {
-            Icon(Icons.Default.Download, null)
+        )
+    }
+
+    @Composable
+    private fun RowScope.GeneralSelectedItemActions() {
+        val coroutine_scope = rememberCoroutineScope()
+        val all_are_pinned by remember { derivedStateOf {
+            selected_items.isNotEmpty() && selected_items.all { it.first.pinned_to_home }
+        } }
+        val any_are_songs by remember { derivedStateOf {
+            selected_items.any { it.first is Song }
+        } }
+        val all_are_playlists by remember { derivedStateOf {
+            selected_items.isNotEmpty() && selected_items.all { it.first is Playlist }
+        } }
+
+        var adding_to_playlist: List<Song>? by remember { mutableStateOf(null) }
+        adding_to_playlist?.also { adding ->
+            AddToPlaylistDialog(adding, coroutine_scope) { adding_to_playlist = null }
+        }
+
+        // Pin
+        AnimatedVisibility(selected_items.isNotEmpty()) {
+            IconButton({
+                all_are_pinned.also { pinned ->
+                    for (item in getUniqueSelectedItems()) {
+                        item.setPinnedToHome(!pinned)
+                    }
+                }
+                onActionPerformed()
+            }) {
+                Icon(if (all_are_pinned) Icons.Filled.PushPin else Icons.Outlined.PushPin, null)
+            }
+        }
+
+        // Download
+        AnimatedVisibility(any_are_songs && selected_items.isNotEmpty()) {
+            IconButton({
+                for (item in getUniqueSelectedItems()) {
+                    if (item is Song) {
+                        PlayerServiceHost.download_manager.startDownload(item.id)
+                    }
+                }
+                onActionPerformed()
+            }) {
+                Icon(Icons.Default.Download, null)
+            }
+        }
+
+        // Add to playlist
+        AnimatedVisibility(any_are_songs && selected_items.isNotEmpty()) {
+            IconButton({
+                adding_to_playlist = getUniqueSelectedItems().filterIsInstance<Song>()
+            }) {
+                Icon(Icons.Default.PlaylistAdd, null)
+            }
+        }
+
+        // Delete playlist
+        AnimatedVisibility(all_are_playlists && selected_items.isNotEmpty()) {
+            IconButton({ coroutine_scope.launch {
+                for (playlist in getUniqueSelectedItems()) {
+                    if (playlist is Playlist) {
+                        playlist.deletePlaylist()
+                    }
+                }
+                onActionPerformed()
+            } }) {
+                Icon(Icons.Default.Delete, null)
+            }
         }
     }
 

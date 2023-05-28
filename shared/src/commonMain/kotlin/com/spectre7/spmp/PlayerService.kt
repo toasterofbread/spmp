@@ -81,7 +81,7 @@ class PlayerService : MediaPlayerService() {
 
                         if (final_item !is Song) {
                             final_item.editRegistry {
-                                it.play_count++
+                                it.incrementPlayCount()
                             }
                         }
                     }
@@ -658,7 +658,7 @@ class PlayerService : MediaPlayerService() {
 
                             val song = getSong()!!
                             song.editRegistry {
-                                it.play_count++
+                                it.incrementPlayCount()
                             }
 
                             if (Settings.KEY_ADD_SONGS_TO_HISTORY.get(context)) {

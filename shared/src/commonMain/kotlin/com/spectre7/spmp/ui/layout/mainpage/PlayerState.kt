@@ -2,8 +2,6 @@ package com.spectre7.spmp.ui.layout.mainpage
 
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.platform.LocalDensity
-import androidx.compose.ui.unit.Density
 import androidx.compose.ui.unit.Dp
 import com.spectre7.spmp.PlayerServiceHost
 import com.spectre7.spmp.model.Artist

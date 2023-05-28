@@ -8,10 +8,14 @@ import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.animation.Crossfade
 import androidx.compose.animation.animateContentSize
 import androidx.compose.foundation.*
+import androidx.compose.foundation.gestures.Orientation
+import androidx.compose.foundation.gestures.draggable
+import androidx.compose.foundation.gestures.rememberDraggableState
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.LazyListScope
 import androidx.compose.foundation.lazy.items
+import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.*
@@ -27,10 +31,10 @@ import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.text.*
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.*
-import androidx.compose.ui.zIndex
 import com.spectre7.spmp.api.durationToString
 import com.spectre7.spmp.model.*
 import com.spectre7.spmp.platform.LargeDropdownMenu
+import com.spectre7.spmp.platform.composable.platformClickable
 import com.spectre7.spmp.resources.getString
 import com.spectre7.spmp.resources.getStringTODO
 import com.spectre7.spmp.ui.component.*
@@ -41,6 +45,7 @@ import com.spectre7.utils.*
 import com.spectre7.utils.composable.*
 import kotlinx.coroutines.*
 import org.burnoutcrew.reorderable.*
+import java.time.temporal.ChronoUnit
 
 private enum class SortOption {
     PLAYLIST, ALPHABET, DURATION, PLAY_COUNT;
@@ -64,8 +69,8 @@ private enum class SortOption {
             if (reversed) items.sortedByDescending { if (it is Song) it.duration ?: 0 else 0 }
             else items.sortedBy { if (it is Song) it.duration ?: 0 else 0 }
         PLAY_COUNT -> 
-            if (reversed) items.sortedByDescending { it.registry_entry.play_count } 
-            else items.sortedBy { it.registry_entry.play_count }
+            if (reversed) items.sortedByDescending { it.registry_entry.getPlayCount(null) }
+            else items.sortedBy { it.registry_entry.getPlayCount(null) }
     }
 }
 
@@ -173,6 +178,7 @@ fun PlaylistPage(
         LazyColumn(
             state = list_state.listState,
             verticalArrangement = Arrangement.spacedBy(10.dp),
+            horizontalAlignment = Alignment.CenterHorizontally,
             modifier = Modifier.reorderable(list_state)
         ) {
             item {
@@ -208,7 +214,7 @@ fun PlaylistPage(
                             current_sort_option = it 
                         },
                         multiselect_context,
-                        Modifier.fillMaxWidth().padding(top = 15.dp)
+                        Modifier.fillMaxWidth()
                     )
                 }
 
@@ -216,7 +222,7 @@ fun PlaylistPage(
                     playlist,
                     layout,
                     list_state,
-                    sorted_items ?: emptyList(),
+                    sorted_items,
                     multiselect_context, 
                     reorderable,
                     current_sort_option,
@@ -237,6 +243,13 @@ private fun LazyListScope.PlaylistItems(
     sort_option: SortOption,
     player: PlayerState
 ) {
+
+    if (sorted_items.isEmpty()) {
+        item {
+            Text(getString("playlist_empty"), Modifier.padding(top = 15.dp))
+        }
+    }
+
     items(sorted_items, key = { it.second }) {
         val (item, index) = it
         check(item is Song)
@@ -271,10 +284,12 @@ private fun LazyListScope.PlaylistItems(
                         style = MaterialTheme.typography.titleSmall
                     )
 
-                    val duration_text = remember(item.duration!!) {
-                        durationToString(item.duration!!, SpMp.ui_language, true)
+                    val duration_text = remember(item.duration) {
+                        item.duration?.let { duration -> durationToString(duration, SpMp.ui_language, true) }
                     }
-                    Text(duration_text, style = MaterialTheme.typography.labelSmall)
+                    duration_text?.also { text ->
+                        Text(text, style = MaterialTheme.typography.labelSmall)
+                    }
                 }
 
                 AnimatedVisibility(reorderable) {
@@ -288,14 +303,20 @@ private fun LazyListScope.PlaylistItems(
 @Composable
 private fun PlaylistInfoText(playlist: Playlist, layout: MediaItemLayout) {
     CompositionLocalProvider(LocalTextStyle provides MaterialTheme.typography.titleMedium) {
-        Row {
-            val total_duration_text = remember(playlist.total_duration) {
-                if (playlist.total_duration == null) ""
-                else durationToString(playlist.total_duration!!, SpMp.ui_language, false)
+        val item_count = playlist.item_count ?: layout.items.size
+        if (item_count > 0) {
+            Row {
+                val total_duration_text = remember(playlist.total_duration) {
+                    if (playlist.total_duration == null) ""
+                    else durationToString(playlist.total_duration!!, SpMp.ui_language, false)
+                }
+                if (total_duration_text.isNotBlank()) {
+                    Text(total_duration_text)
+                    Text("\u2022")
+                }
+
+                Text(getString("playlist_x_songs").replace("\$x", item_count.toString()))
             }
-            Text(total_duration_text)
-            Text("\u2022")
-            Text(getString("playlist_x_songs").replace("\$x", (playlist.item_count ?: layout.items.size).toString()))
         }
     }
 }
@@ -343,52 +364,49 @@ private fun InteractionBar(
         }
 
         Row(Modifier.fillMaxWidth()) {
-            CompositionLocalProvider(LocalContentColor provides (accent_colour ?: Theme.current.accent)) {
-                
-                // Filter button
-                IconButton({
-                    if (opened_menu == 0) opened_menu = -1
-                    else opened_menu = 0
-                }) {
-                    Crossfade(opened_menu == 0) { searching ->
-                        Icon(if (searching) Icons.Default.Done else Icons.Default.Search, null)
-                    }
+            // Filter button
+            IconButton({
+                if (opened_menu == 0) opened_menu = -1
+                else opened_menu = 0
+            }) {
+                Crossfade(opened_menu == 0) { searching ->
+                    Icon(if (searching) Icons.Default.Done else Icons.Default.Search, null)
                 }
+            }
 
-                // Animate between filter bar and remaining buttons
-                Box(Modifier.fillMaxWidth()) {
-                    this@Row.AnimatedVisibility(opened_menu != 0) {
-                        Row(Modifier.fillMaxWidth(), verticalAlignment = Alignment.CenterVertically) {
-                            // Sort
-                            IconButton({
-                                if (opened_menu == 1) opened_menu = -1
-                                else opened_menu = 1
-                            }) {
-                                Icon(Icons.Default.Sort, null)
-                            }
+            // Animate between filter bar and remaining buttons
+            Box(Modifier.fillMaxWidth()) {
+                this@Row.AnimatedVisibility(opened_menu != 0) {
+                    Row(Modifier.fillMaxWidth(), verticalAlignment = Alignment.CenterVertically) {
+                        // Sort
+                        IconButton({
+                            if (opened_menu == 1) opened_menu = -1
+                            else opened_menu = 1
+                        }) {
+                            Icon(Icons.Default.Sort, null)
+                        }
 
-                            Spacer(Modifier.fillMaxWidth().weight(1f))
+                        Spacer(Modifier.fillMaxWidth().weight(1f))
 
-                            if (playlist.is_editable == true) {
-                                // Reorder
-                                IconButton({ setReorderable(!reorderable) }) {
-                                    Crossfade(reorderable) { reordering ->
-                                        Icon(if (reordering) Icons.Default.Done else Icons.Default.Reorder, null)
-                                    }
-                                }
-                                // Add
-                                IconButton({ TODO() }) {
-                                    Icon(Icons.Default.Add, null)
+                        if (playlist.is_editable == true) {
+                            // Reorder
+                            IconButton({ setReorderable(!reorderable) }) {
+                                Crossfade(reorderable) { reordering ->
+                                    Icon(if (reordering) Icons.Default.Done else Icons.Default.Reorder, null)
                                 }
                             }
-                            else {
-                                PlaylistInfoText(playlist, layout)
+                            // Add
+                            IconButton({ TODO() }) {
+                                Icon(Icons.Default.Add, null)
                             }
                         }
+                        else {
+                            PlaylistInfoText(playlist, layout)
+                        }
                     }
-                    this@Row.AnimatedVisibility(opened_menu == 0) {
-                        InteractionBarFilterBox(filter, setFilter, Modifier.fillMaxWidth())
-                    }
+                }
+                this@Row.AnimatedVisibility(opened_menu == 0) {
+                    InteractionBarFilterBox(filter, setFilter, Modifier.fillMaxWidth())
                 }
             }
         }
@@ -411,6 +429,7 @@ private fun InteractionBar(
     }
 }
 
+@OptIn(ExperimentalMaterial3Api::class)
 @Composable
 private fun InteractionBarFilterBox(filter: String?, setFilter: (String?) -> Unit, modifier: Modifier = Modifier) {
     Row(modifier) {
@@ -436,26 +455,91 @@ private fun InteractionBarFilterBox(filter: String?, setFilter: (String?) -> Uni
 @Composable
 private fun PlaylistTopInfo(playlist: Playlist, accent_colour: Color?, onThumbLoaded: (ImageBitmap) -> Unit) {
     val shape = RoundedCornerShape(10.dp)
-    val player = LocalPlayerState.current
+    val min_height = 125.dp
 
-    Row(Modifier.height(IntrinsicSize.Max), horizontalArrangement = Arrangement.spacedBy(10.dp)) {
+    val player = LocalPlayerState.current
+    val density = LocalDensity.current
+
+    var editing_title by remember { mutableStateOf(false) }
+    var editing_thumbnail by remember { mutableStateOf(false) }
+
+    var split_position by remember { mutableStateOf(0f) }
+    var width: Dp by remember { mutableStateOf(0.dp) }
+
+    Row(
+        Modifier
+            .height(IntrinsicSize.Max)
+            .onSizeChanged {
+                val width_dp = with(density) { it.width.toDp() }
+                if (width == width_dp) {
+                    return@onSizeChanged
+                }
+                width = width_dp
+                split_position = min_height / width_dp
+            },
+        horizontalArrangement = Arrangement.spacedBy(10.dp)
+    ) {
 
         var thumb_size by remember { mutableStateOf(IntSize.Zero) }
         playlist.Thumbnail(
             MediaItemThumbnailProvider.Quality.HIGH,
-            Modifier.fillMaxWidth(0.5f).aspectRatio(1f).clip(shape).onSizeChanged {
-                thumb_size = it
-            },
+            Modifier
+                .heightIn(min = min_height)
+                .fillMaxWidth(split_position)
+                .aspectRatio(1f)
+                .clip(shape)
+                .onSizeChanged {
+                    thumb_size = it
+                }
+                .platformClickable(
+                    onClick = {},
+                    onAltClick = { editing_thumbnail = !editing_thumbnail }
+                ),
             onLoaded = onThumbLoaded
         )
 
-        Column(Modifier.height(with(LocalDensity.current) { thumb_size.height.toDp() })) {
+        AnimatedVisibility(editing_thumbnail) {
+            Box(
+                Modifier
+                    .fillMaxHeight()
+                    .width(10.dp)
+                    .border(Dp.Hairline, LocalContentColor.current, shape)
+                    .draggable(
+                        orientation = Orientation.Horizontal,
+                        state = rememberDraggableState { delta ->
+                            val delta_dp = with(density) { delta.toDp() }
+                            split_position = (split_position + (delta_dp / width)).coerceIn(0.1f, 0.9f)
+                        }
+                    ),
+                contentAlignment = Alignment.Center
+            ) {
+                Icon(Icons.Default.MoreVert, null)
+            }
+        }
+
+        Column(Modifier.height(with(LocalDensity.current) { thumb_size.height.toDp().coerceAtLeast(min_height) })) {
             Box(Modifier.fillMaxHeight().weight(1f), contentAlignment = Alignment.CenterStart) {
-                Text(
-                    playlist.title!!,
-                    style = MaterialTheme.typography.headlineSmall,
-                    overflow = TextOverflow.Ellipsis
-                )
+                var edited_title: String by remember { mutableStateOf("") }
+
+                Crossfade(editing_title) { editing ->
+                    if (!editing) {
+                        Text(
+                            playlist.title!!,
+                            style = MaterialTheme.typography.headlineSmall,
+                            overflow = TextOverflow.Ellipsis,
+                            modifier = Modifier.platformClickable(
+                                onClick = {},
+                                onAltClick = {
+                                    edited_title = playlist.title!!
+                                    editing_title = true
+                                }
+                            )
+                        )
+                    }
+                    else {
+                        TextField(edited_title, { edited_title = it })
+                    }
+                }
             }
 
             Row {

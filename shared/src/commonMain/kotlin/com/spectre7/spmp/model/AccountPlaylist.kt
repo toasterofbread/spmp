@@ -8,7 +8,7 @@ import com.beust.klaxon.Klaxon
 import com.spectre7.spmp.ui.component.PlaylistPreviewLong
 import com.spectre7.spmp.ui.component.PlaylistPreviewSquare
 
-class AccountPlaylistItemData(override val data_item: AccountPlaylist): MediaItemWithLayoutsData(data_item) {
+class AccountPlaylistItemData(override val data_item: AccountPlaylist): PlaylistItemData(data_item) {
     var playlist_type: Playlist.PlaylistType? by mutableStateOf(null)
         private set
 
@@ -42,17 +42,6 @@ class AccountPlaylistItemData(override val data_item: AccountPlaylist): MediaIte
         return data_item
     }
 
-    var year: Int? by mutableStateOf(null)
-        private set
-
-    fun supplyYear(value: Int?, certain: Boolean = false, cached: Boolean = false): AccountPlaylist {
-        if (value != year && (year == null || certain)) {
-            year = value
-            onChanged(cached)
-        }
-        return data_item
-    }
-
     // TODO
     var is_editable: Boolean? by mutableStateOf(null)
         private set
@@ -63,6 +52,18 @@ class AccountPlaylistItemData(override val data_item: AccountPlaylist): MediaIte
             onChanged(cached)
         }
         return data_item
+    }
+
+    override fun getSerialisedData(klaxon: Klaxon): List<String> {
+        return super.getSerialisedData(klaxon) + listOf(klaxon.toJsonString(playlist_type?.ordinal), klaxon.toJsonString(total_duration), klaxon.toJsonString(item_count))
+    }
+
+    override fun supplyFromSerialisedData(data: MutableList<Any?>, klaxon: Klaxon): MediaItemData {
+        require(data.size >= 4)
+        data.removeLast()?.also { supplyItemCount(it as Int, cached = true) }
+        data.removeLast()?.also { supplyTotalDuration((it as Int).toLong(), cached = true) }
+        data.removeLast()?.also { supplyPlaylistType(com.spectre7.spmp.model.Playlist.PlaylistType.values()[it as Int], cached = true) }
+        return super.supplyFromSerialisedData(data, klaxon)
     }
 }
 
@@ -85,21 +86,6 @@ class AccountPlaylist private constructor(id: String): Playlist(id) {
     fun editPlaylistDataManual(action: AccountPlaylistItemData.() -> Unit): AccountPlaylistItemData {
         action(data)
         return data
-    }
-
-    override fun getSerialisedData(klaxon: Klaxon): List<String> {
-        return super.getSerialisedData(klaxon) + listOf(klaxon.toJsonString(playlist_type?.ordinal), klaxon.toJsonString(total_duration), klaxon.toJsonString(item_count), klaxon.toJsonString(year))
-    }
-
-    override fun supplyFromSerialisedData(data: MutableList<Any?>, klaxon: Klaxon): MediaItem {
-        require(data.size >= 4)
-        with(this@AccountPlaylist.data) {
-            data.removeLast()?.also { supplyYear(it as Int, cached = true) }
-            data.removeLast()?.also { supplyItemCount(it as Int, cached = true) }
-            data.removeLast()?.also { supplyTotalDuration((it as Int).toLong(), cached = true) }
-            data.removeLast()?.also { supplyPlaylistType(PlaylistType.values()[it as Int], cached = true) }
-        }
-        return super.supplyFromSerialisedData(data, klaxon)
     }
 
     companion object {

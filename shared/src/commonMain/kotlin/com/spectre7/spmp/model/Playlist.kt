@@ -1,16 +1,11 @@
 package com.spectre7.spmp.model
 
-import androidx.compose.runtime.Composable
-import androidx.compose.runtime.getValue
-import androidx.compose.runtime.mutableStateOf
-import androidx.compose.runtime.setValue
-import com.beust.klaxon.Json
+import androidx.compose.runtime.*
 import com.beust.klaxon.Klaxon
 import com.spectre7.spmp.resources.getString
 import com.spectre7.spmp.ui.component.MediaItemLayout
 import com.spectre7.spmp.ui.component.PlaylistPreviewLong
 import com.spectre7.spmp.ui.component.PlaylistPreviewSquare
-import com.spectre7.utils.ValueListeners
 
 abstract class PlaylistItemData(override val data_item: Playlist): MediaItemWithLayoutsData(data_item) {
     var year: Int? by mutableStateOf(null)
@@ -37,6 +32,7 @@ abstract class PlaylistItemData(override val data_item: Playlist): MediaItemWith
 
 class PlaylistDataRegistryEntry: MediaItemDataRegistry.Entry() {
     var playlist_page_thumb_width: Float? by mutableStateOf(null)
+    var image_item_uid: String? by mutableStateOf(null)
 }
 
 abstract class Playlist protected constructor (id: String): MediaItemWithLayouts(id) {
@@ -123,6 +119,17 @@ abstract class Playlist protected constructor (id: String): MediaItemWithLayouts
     open suspend fun saveItems(): Result<Unit> {
         check(is_editable == true)
         TODO()
+    }
+
+    @Composable
+    override fun getThumbnailHolder(): MediaItem {
+        var item: MediaItem by remember { mutableStateOf(this) }
+        LaunchedEffect(playlist_reg_entry.image_item_uid) {
+            val uid = playlist_reg_entry.image_item_uid
+            item = if (uid != null) fromUid(uid)
+                    else this@Playlist
+        }
+        return item
     }
 
     @Composable

@@ -300,4 +300,5 @@
     <string name="playlist_create">プレイリストを作成</string>
     <string name="playlist_delete">プレイリストを消去</string>
     <string name="toast_playlist_added">プレイリストに追加しました</string>
+    <string name="playlist_select_image">プレイリスト画像を選択</string>
 </resources>

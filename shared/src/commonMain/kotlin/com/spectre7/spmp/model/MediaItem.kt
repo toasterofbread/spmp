@@ -23,7 +23,6 @@ import com.spectre7.spmp.ui.component.multiselect.MediaItemMultiSelectContext
 import com.spectre7.utils.*
 import com.spectre7.utils.composable.SubtleLoadingIndicator
 import kotlinx.coroutines.*
-import java.io.BufferedReader
 import java.io.File
 import java.io.FileNotFoundException
 import java.io.Reader
@@ -37,7 +36,7 @@ import kotlin.concurrent.withLock
 open class MediaItemData(open val data_item: MediaItem) {
 
     private var changes_made: Boolean = false
-    protected fun onChanged(cached: Boolean) {
+    fun onChanged(cached: Boolean = false) {
         if (!cached) {
             changes_made = true
         }
@@ -120,7 +119,7 @@ open class MediaItemData(open val data_item: MediaItem) {
                         artist_found = true
                     }
                 }
-                MediaItemType.PLAYLIST -> {
+                MediaItemType.PLAYLIST_ACC -> {
                     check(this is SongItemData)
 
                     val playlist = run.navigationEndpoint?.browseEndpoint?.getMediaItem() as Playlist?
@@ -239,19 +238,15 @@ abstract class MediaItem(id: String) {
         registry_entry = data_registry.getEntry(this)
 
         // Get pinned status
-        val key = when (type) {
-            MediaItemType.SONG -> Settings.INTERNAL_PINNED_SONGS
-            MediaItemType.ARTIST -> Settings.INTERNAL_PINNED_ARTISTS
-            MediaItemType.PLAYLIST -> Settings.INTERNAL_PINNED_PLAYLISTS
-        }
-        pinned_to_home = key.get<Set<String>>().contains(id)
+        pinned_to_home = Settings.INTERNAL_PINNED_ITEMS.get<Set<String>>().contains(uid)
     }
 
     val type: MediaItemType
         get() = when(this) {
         is Song -> MediaItemType.SONG
         is Artist -> MediaItemType.ARTIST
-        is Playlist -> MediaItemType.PLAYLIST
+        is AccountPlaylist -> MediaItemType.PLAYLIST_ACC
+        is LocalPlaylist -> MediaItemType.PLAYLIST_LOC
         else -> throw NotImplementedError(this.javaClass.name)
     }
 
@@ -367,7 +362,8 @@ abstract class MediaItem(id: String) {
         replaced_with = when (type) {
             MediaItemType.SONG -> Song.fromId(new_id)
             MediaItemType.ARTIST -> Artist.fromId(new_id)
-            MediaItemType.PLAYLIST -> AccountPlaylist.fromId(new_id)
+            MediaItemType.PLAYLIST_ACC -> AccountPlaylist.fromId(new_id)
+            else -> TODO()
         }
 
         return replaced_with!!
@@ -452,20 +448,14 @@ abstract class MediaItem(id: String) {
             return
         }
 
-        val key = when (type) {
-            MediaItemType.SONG -> Settings.INTERNAL_PINNED_SONGS
-            MediaItemType.ARTIST -> Settings.INTERNAL_PINNED_ARTISTS
-            MediaItemType.PLAYLIST -> Settings.INTERNAL_PINNED_PLAYLISTS
-        }
-
-        val set: MutableSet<String> = key.get<Set<String>>().toMutableSet()
+        val set: MutableSet<String> = Settings.INTERNAL_PINNED_ITEMS.get<Set<String>>().toMutableSet()
         if (value) {
-            set.add(id)
+            set.add(uid)
         }
         else {
-            set.remove(id)
+            set.remove(uid)
         }
-        key.set(set)
+        Settings.INTERNAL_PINNED_ITEMS.set(set)
 
         pinned_to_home = value
 
@@ -486,24 +476,31 @@ abstract class MediaItem(id: String) {
     abstract fun PreviewLong(params: PreviewParams)
 
     @Composable
-    fun Thumbnail(
+    open fun getThumbnailHolder(): MediaItem = this
+
+    @Composable
+    open fun Thumbnail(
         quality: MediaItemThumbnailProvider.Quality,
         modifier: Modifier = Modifier,
         contentColourProvider: (() -> Color)? = null,
         onLoaded: ((ImageBitmap) -> Unit)? = null
     ) {
-        LaunchedEffect(quality, canLoadThumbnail()) {
-            if (!canLoadThumbnail()) {
-                loadData()
+        val thumb_item = getThumbnailHolder()
+        LaunchedEffect(thumb_item, quality, thumb_item.canLoadThumbnail()) {
+            if (!thumb_item.canLoadThumbnail()) {
+                thumb_item.loadData()
             }
-            this@MediaItem.loadThumbnail(quality)
+            thumb_item.loadThumbnail(quality)
         }
 
-        val state = thumb_states.values.lastOrNull { state ->
-            state.quality <= quality && state.image != null
-        } ?: thumb_states[quality]!!
-
         var loaded by remember { mutableStateOf(false) }
+        LaunchedEffect(thumb_item) {
+            loaded = false
+        }
+
+        val state = thumb_item.thumb_states.values.lastOrNull { state ->
+            state.quality <= quality && state.image != null
+        } ?: thumb_item.thumb_states[quality]!!
 
         if (state.loading || (state.image == null && !state.loaded)) {
             SubtleLoadingIndicator(modifier.fillMaxSize(), contentColourProvider)
@@ -530,7 +527,11 @@ abstract class MediaItem(id: String) {
         }
     }
 
-    fun canGetThemeColour(): Boolean = thumb_states.values.any { it.image != null }
+    open fun canGetThemeColour(): Boolean = thumb_states.values.any { it.image != null }
+
+    open fun getThemeColour(): Color? {
+        return getDefaultThemeColour()
+    }
 
     fun getDefaultThemeColour(): Color? {
         for (quality in MediaItemThumbnailProvider.Quality.values()) {
@@ -562,7 +563,15 @@ abstract class MediaItem(id: String) {
         fun getCacheKey(type: MediaItemType, id: String): String {
             return "M/${type.name}/$id"
         }
+        
+        suspend fun fromUid(uid: String): MediaItem {
+            val type_index = uid[0].toString().toInt()
+            require(type_index in 0 until MediaItemType.values().size) { uid }
 
+            val type = MediaItemType.values()[type_index]
+            return type.fromId(uid.substring(1))
+        }
+        
         fun init(prefs: ProjectPreferences) {
             data_registry.load(prefs)
         }
@@ -573,18 +582,21 @@ abstract class MediaItem(id: String) {
             val type = MediaItemType.values()[data[0] as Int]
             val id = data[1] as String
 
-            val item = when (type) {
-                MediaItemType.SONG -> Song.fromId(id)
-                MediaItemType.ARTIST -> Artist.fromId(id)
-                MediaItemType.PLAYLIST -> AccountPlaylist.fromId(id)
-            }
-
-            if (data.size > 2) {
-                item.editData {
-                    item.supplyFromSerialisedData(data.toMutableList(), klaxon)
+            return runBlocking {
+                val item = when (type) {
+                    MediaItemType.SONG -> Song.fromId(id)
+                    MediaItemType.ARTIST -> Artist.fromId(id)
+                    MediaItemType.PLAYLIST_ACC -> AccountPlaylist.fromId(id)
+                    MediaItemType.PLAYLIST_LOC -> LocalPlaylist.fromId(id)
                 }
+
+                if (data.size > 2) {
+                    item.editData {
+                        item.supplyFromSerialisedData(data.toMutableList(), klaxon)
+                    }
+                }
+                return@runBlocking item
             }
-            return item
         }
 
         fun fromBrowseEndpointType(page_type: String, id: String): MediaItem {

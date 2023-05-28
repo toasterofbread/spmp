@@ -273,6 +273,10 @@ class Song protected constructor (
             }
         }
 
+    override fun canGetThemeColour(): Boolean = theme_colour != null || super.canGetThemeColour()
+
+    override fun getThemeColour(): Color? = theme_colour ?: super.getThemeColour()
+
     // Expects formats to be sorted by bitrate (descending)
     private fun List<YoutubeVideoFormat>.getByQuality(quality: AudioQuality): YoutubeVideoFormat {
         check(isNotEmpty())

@@ -22,11 +22,8 @@ import com.spectre7.spmp.resources.getString
 import com.spectre7.utils.getContrasted
 import com.spectre7.utils.lazyAssert
 import com.spectre7.utils.setAlpha
-import com.spectre7.spmp.platform.composable.PlatformDialog
-import com.spectre7.spmp.ui.layout.PlaylistSelectMenu
 import com.spectre7.spmp.ui.theme.Theme
 import com.spectre7.utils.composable.ShapedIconButton
-import com.spectre7.utils.launchSingle
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.launch
 
@@ -77,7 +74,7 @@ class MediaItemMultiSelectContext(
         val allowed = when (item.type) {
             MediaItemType.SONG -> allow_songs
             MediaItemType.ARTIST -> allow_artists
-            MediaItemType.PLAYLIST -> allow_playlists
+            MediaItemType.PLAYLIST_ACC, MediaItemType.PLAYLIST_LOC -> allow_playlists
         }
 
         if (!allowed) {
@@ -141,7 +138,6 @@ class MediaItemMultiSelectContext(
             Row(Modifier.fillMaxWidth(), verticalAlignment = Alignment.CenterVertically) {
                 GeneralSelectedItemActions()
 
-                Spacer(Modifier.fillMaxWidth().weight(1f))
                 AnimatedVisibility(selected_items.isNotEmpty()) {
                     selectedItemActions?.invoke(this@Row, this@MediaItemMultiSelectContext)
                 }

@@ -545,7 +545,7 @@ fun MediaItemCard(
                 Text(getString(when (item.type) {
                     MediaItemType.SONG -> "media_play"
                     MediaItemType.ARTIST -> "artist_chip_play"
-                    MediaItemType.PLAYLIST -> "playlist_chip_play"
+                    MediaItemType.PLAYLIST_ACC, MediaItemType.PLAYLIST_LOC -> "playlist_chip_play"
                 }))
             }
         }

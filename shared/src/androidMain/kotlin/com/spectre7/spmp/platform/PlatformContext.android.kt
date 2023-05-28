@@ -18,9 +18,7 @@ import android.os.VibratorManager
 import android.view.Window
 import android.view.WindowInsetsController.APPEARANCE_LIGHT_STATUS_BARS
 import android.widget.Toast
-import androidx.compose.foundation.layout.WindowInsets
-import androidx.compose.foundation.layout.ime
-import androidx.compose.foundation.layout.size
+import androidx.compose.foundation.layout.*
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.ContentCopy
 import androidx.compose.material.icons.filled.Share
@@ -96,6 +94,8 @@ actual class PlatformContext(private val context: Context) {
 
     @Composable
     actual fun getImeInsets(): WindowInsets? = WindowInsets.ime
+    @Composable
+    actual fun getSystemInsets(): WindowInsets? = WindowInsets.systemGestures
 
     actual fun getLightColorScheme(): ColorScheme = dynamicLightColorScheme(ctx)
     actual fun getDarkColorScheme(): ColorScheme = dynamicDarkColorScheme(ctx)

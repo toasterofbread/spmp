@@ -47,6 +47,7 @@ import com.spectre7.utils.init
 import com.spectre7.utils.toFloat
 import kotlinx.coroutines.*
 import java.util.concurrent.locks.ReentrantLock
+import kotlin.concurrent.thread
 
 enum class FeedLoadState { NONE, LOADING, CONTINUING }
 
@@ -113,14 +114,12 @@ class PlayerStateImpl: PlayerState(null, null, null) {
         }
         Settings.prefs.addListener(prefs_listener)
 
-        for (song in Settings.INTERNAL_PINNED_SONGS.get<Set<String>>()) {
-            pinned_items.add(Song.fromId(song))
-        }
-        for (artist in Settings.INTERNAL_PINNED_ARTISTS.get<Set<String>>()) {
-            pinned_items.add(Artist.fromId(artist))
-        }
-        for (playlist in Settings.INTERNAL_PINNED_PLAYLISTS.get<Set<String>>()) {
-            pinned_items.add(AccountPlaylist.fromId(playlist))
+        runBlocking {
+            for (item in Settings.INTERNAL_PINNED_ITEMS.get<Set<String>>()) {
+                val a = MediaItem.fromUid(item)
+                pinned_items.add(a)
+                println("PINNED ITEM $item ${a.javaClass}")
+            }
         }
     }
 
@@ -176,7 +175,7 @@ class PlayerStateImpl: PlayerState(null, null, null) {
     }
     override fun onMediaItemLongClicked(item: MediaItem, queue_index: Int?) {
         showLongPressMenu(when (item) {
-            is Song -> getSongLongPressMenuData(item, queue_index = queue_index)
+            is Song -> getSongLongPressMenuData(item, multiselect_key = queue_index)
             is Artist -> getArtistLongPressMenuData(item)
             else -> LongPressMenuData(item)
         })

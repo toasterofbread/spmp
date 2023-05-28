@@ -57,6 +57,8 @@ expect class PlatformContext {
 
     @Composable
     fun getImeInsets(): WindowInsets?
+    @Composable
+    fun getSystemInsets(): WindowInsets?
 
     fun getLightColorScheme(): ColorScheme
     fun getDarkColorScheme(): ColorScheme

@@ -87,6 +87,7 @@ fun PaddingValues.copy(
 }
 
 fun Modifier.thenIf(condition: Boolean, modifier: Modifier): Modifier = if (condition) then(modifier) else this
+fun Modifier.thenIf(condition: Boolean, modifierProvider: () -> Modifier): Modifier = if (condition) then(modifierProvider()) else this
 
 fun <T> MutableList<T>.addUnique(item: T): Boolean {
 	if (!contains(item)) {

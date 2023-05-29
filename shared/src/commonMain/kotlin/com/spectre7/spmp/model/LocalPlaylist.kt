@@ -10,46 +10,29 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.ImageBitmap
+import com.spectre7.spmp.api.*
 import com.spectre7.spmp.platform.PlatformContext
 import com.spectre7.spmp.resources.getString
 import com.spectre7.spmp.ui.component.MediaItemLayout
 import com.spectre7.spmp.ui.theme.Theme
 import com.spectre7.utils.addUnique
 import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.Job
+import kotlinx.coroutines.launch
 import kotlinx.coroutines.sync.Mutex
 import kotlinx.coroutines.sync.withLock
 import kotlinx.coroutines.withContext
 import java.io.File
 import java.io.Reader
+import kotlin.coroutines.coroutineContext
 
 private fun getPlaylistsDirectory(context: PlatformContext): File =
     context.getFilesDir().resolve("localPlaylists")
 
 private fun getPlaylistFileFromId(context: PlatformContext, id: String): File = getPlaylistsDirectory(context).resolve(id)
 
-private class LocalPlaylistItemData(
-    item: LocalPlaylist,
-    private val playlist_items: MutableList<MediaItem>
-): PlaylistItemData(item) {
-    override var feed_layouts: List<MediaItemLayout>? = listOf(
-        MediaItemLayout(
-            null,
-            null,
-            MediaItemLayout.Type.LIST,
-            playlist_items
-        )
-    )
-        set(_) { throw IllegalStateException() }
-
-    override fun supplyFeedLayouts(value: List<MediaItemLayout>?, certain: Boolean, cached: Boolean): MediaItemWithLayoutsData {
-        if (value?.isNotEmpty() != true) {
-            playlist_items.clear()
-        }
-        else {
-            playlist_items.addAll(value.single().items)
-        }
-        return this
-    }
+private class LocalPlaylistItemData(item: LocalPlaylist): PlaylistItemData(item) {
+    override var items: MutableList<MediaItem>? = mutableStateListOf()
 
     override fun saveData(data: String) {
         val file = getPlaylistFileFromId(SpMp.context, data_item.id)
@@ -67,9 +50,9 @@ private class LocalPlaylistItemData(
 }
 
 class LocalPlaylist(id: String): Playlist(id) {
-    private val items: MutableList<MediaItem> = mutableStateListOf()
-    override val data: MediaItemWithLayoutsData = LocalPlaylistItemData(this, items)
+    override val data: PlaylistItemData = LocalPlaylistItemData(this)
 
+    override val items: MutableList<MediaItem> get() = data.items!!
     override val is_editable: Boolean = true
     override val playlist_type: PlaylistType = PlaylistType.PLAYLIST
     override val total_duration: Long? get() {
@@ -86,41 +69,20 @@ class LocalPlaylist(id: String): Playlist(id) {
         return sum
     }
     override val item_count: Int get() = items.size
-    override val year: Int? get() = null // TODO
 
-    override fun getItems(): List<MediaItem> = items
-
-    override suspend fun addItem(item: MediaItem, index: Int): Result<Unit> {
-        try {
-            items.add(if (index == -1) items.size else index, item)
-            data.onChanged()
-        }
-        catch (e: Throwable) {
-            return Result.failure(e)
-        }
-        return Result.success(Unit)
+    override fun addItem(item: MediaItem) {
+        super.addItem(item)
+        data.onChanged()
     }
 
-    override suspend fun removeItem(index: Int): Result<Unit> {
-        try {
-            items.removeAt(index)
-            data.onChanged()
-        }
-        catch (e: Throwable) {
-            return Result.failure(e)
-        }
-        return Result.success(Unit)
+    override fun removeItem(index: Int) {
+        super.removeItem(index)
+        data.onChanged()
     }
 
-    override suspend fun moveItem(from: Int, to: Int): Result<Unit> {
-        try {
-            items.add(to, items.removeAt(from))
-            data.onChanged()
-        }
-        catch (e: Throwable) {
-            return Result.failure(e)
-        }
-        return Result.success(Unit)
+    override fun moveItem(from: Int, to: Int) {
+        super.moveItem(from, to)
+        data.onChanged()
     }
 
     override suspend fun deletePlaylist(): Result<Unit> {
@@ -171,6 +133,35 @@ class LocalPlaylist(id: String): Playlist(id) {
                 tint = Theme.current.on_accent
             )
         }
+    }
+
+    suspend fun convertToAccountPlaylist(): Result<AccountPlaylist> {
+        check(DataApi.ytm_authenticated)
+
+        val create_result = createAccountPlaylist(title.orEmpty(), description.orEmpty())
+        if (create_result.isFailure) {
+            return create_result.cast()
+        }
+
+        val playlist_id = create_result.getOrThrow()
+
+        val add_result = addSongsToAccountPlaylist(playlist_id, items.mapNotNull { if (it is Song) it.id else null })
+        if (add_result.isFailure) {
+            return add_result.cast()
+        }
+
+        val playlist = AccountPlaylist
+            .fromId(playlist_id)
+            .editPlaylistData {
+                supplyTitle(this@LocalPlaylist.title, true)
+                supplyDescription(this@LocalPlaylist.description, true)
+                supplyYear(this@LocalPlaylist.year, true)
+                supplyPlaylistType(Playlist.PlaylistType.PLAYLIST, true)
+                supplyArtist(DataApi.ytm_auth.own_channel, true)
+                supplyItems(this@LocalPlaylist.items, true)
+            }
+
+        return Result.success(playlist)
     }
 
     interface Listener {

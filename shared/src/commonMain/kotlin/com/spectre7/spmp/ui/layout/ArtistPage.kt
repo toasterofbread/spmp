@@ -65,12 +65,13 @@ fun ArtistPage(
     var show_info by remember { mutableStateOf(false) }
     val multiselect_context = remember { MediaItemMultiSelectContext() {} }
     val player = LocalPlayerState.current
+    val feed_layouts = item.feed_layouts
 
     val gradient_size = 0.35f
     var accent_colour: Color? by remember { mutableStateOf(null) }
 
     LaunchedEffect(item.id) {
-        if (item.feed_layouts == null) {
+        if (item.getFeedLayouts() == null) {
             val result = item.loadData()
             result.fold(
                 { playlist ->
@@ -233,15 +234,15 @@ fun ArtistPage(
                 }
             }
 
-            if (item.feed_layouts == null) {
+            if (feed_layouts == null) {
                 item {
                     Box(background_modifier.fillMaxSize().padding(content_padding), contentAlignment = Alignment.Center) {
                         CircularProgressIndicator(color = accent_colour ?: Color.Unspecified)
                     }
                 }
             }
-            else if (item.feed_layouts!!.size == 1) {
-                val layout = item.feed_layouts!!.single()
+            else if (feed_layouts.size == 1) {
+                val layout = feed_layouts.single()
 
                 item {
                     layout.TitleBar(background_modifier.padding(bottom = 5.dp))

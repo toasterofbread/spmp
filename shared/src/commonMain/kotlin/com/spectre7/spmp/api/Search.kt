@@ -33,7 +33,7 @@ data class YoutubeiSearchResponse(
     data class ChipCloudChipRenderer(val navigationEndpoint: NavigationEndpoint, val text: TextRuns? = null)
 }
 
-data class ChipCloudRendererHeader(val chipCloudRenderer: YoutubeiSearchResponse.ChipCloudRenderer)
+data class ChipCloudRendererHeader(val chipCloudRenderer: YoutubeiSearchResponse.ChipCloudRenderer? = null)
 
 enum class SearchType {
     SONG, VIDEO, PLAYLIST, ALBUM, ARTIST;
@@ -97,7 +97,7 @@ fun searchYoutubeMusic(query: String, params: String?): Result<SearchResults> {
     }
 
     val category_layouts: MutableList<Pair<MediaItemLayout, SearchFilter?>> = mutableListOf()
-    val chips = tab.content.sectionListRenderer.header!!.chipCloudRenderer.chips
+    val chips = tab.content.sectionListRenderer.header!!.chipCloudRenderer!!.chips
 
     for (category in categories.withIndex()) {
 
@@ -111,7 +111,7 @@ fun searchYoutubeMusic(query: String, params: String?): Result<SearchResults> {
         }
 
         val shelf = category.value.musicShelfRenderer ?: continue
-        val items = shelf.contents?.mapNotNull { it.toMediaItem(hl) }?.toMutableList() ?: continue
+        val items = shelf.contents?.mapNotNull { it.toMediaItem(hl)?.first }?.toMutableList() ?: continue
         val search_params = if (category.index == 0) null else chips[category.index - 1].chipCloudChipRenderer.navigationEndpoint.searchEndpoint!!.params
 
         category_layouts.add(Pair(

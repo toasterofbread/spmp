@@ -1,13 +1,29 @@
 package com.spectre7.spmp.model
 
 import androidx.compose.runtime.*
+import com.beust.klaxon.JsonArray
 import com.beust.klaxon.Klaxon
 import com.spectre7.spmp.resources.getString
 import com.spectre7.spmp.ui.component.MediaItemLayout
 import com.spectre7.spmp.ui.component.PlaylistPreviewLong
 import com.spectre7.spmp.ui.component.PlaylistPreviewSquare
 
-abstract class PlaylistItemData(override val data_item: Playlist): MediaItemWithLayoutsData(data_item) {
+abstract class PlaylistItemData(override val data_item: Playlist): MediaItemData(data_item), MediaItemWithLayoutsData {
+    open var items: MutableList<MediaItem>? by mutableStateOf(null)
+
+    open fun supplyItems(value: List<MediaItem>?, certain: Boolean = false, cached: Boolean = false): Playlist {
+        println("SUPPLYITEMS $value $certain $cached")
+        if (items == null || certain) {
+            items = value?.toMutableStateList()
+            onChanged(cached)
+        }
+        return data_item
+    }
+
+    override fun supplyFeedLayouts(value: List<MediaItemLayout>?, certain: Boolean, cached: Boolean) {
+        supplyItems(value?.single()?.items, certain, cached)
+    }
+
     var year: Int? by mutableStateOf(null)
         private set
 
@@ -20,11 +36,12 @@ abstract class PlaylistItemData(override val data_item: Playlist): MediaItemWith
     }
 
     override fun getSerialisedData(klaxon: Klaxon): List<String> {
-        return super.getSerialisedData(klaxon) + listOf(klaxon.toJsonString(year))
+        return super.getSerialisedData(klaxon) + listOf(klaxon.toJsonString(year), klaxon.toJsonString(items))
     }
 
     override fun supplyFromSerialisedData(data: MutableList<Any?>, klaxon: Klaxon): MediaItemData {
-        require(data.size >= 4)
+        require(data.size >= 2)
+        data.removeLast()?.also { supplyItems(klaxon.parseFromJsonArray(it as JsonArray<*>), true, cached = true) }
         data.removeLast()?.also { supplyYear(it as Int, cached = true) }
         return super.supplyFromSerialisedData(data, klaxon)
     }
@@ -35,7 +52,7 @@ class PlaylistDataRegistryEntry: MediaItemDataRegistry.Entry() {
     var image_item_uid: String? by mutableStateOf(null)
 }
 
-abstract class Playlist protected constructor (id: String): MediaItemWithLayouts(id) {
+abstract class Playlist protected constructor (id: String): MediaItem(id), MediaItemWithLayouts {
     enum class PlaylistType {
         PLAYLIST, ALBUM, AUDIOBOOK, RADIO;
 
@@ -51,74 +68,57 @@ abstract class Playlist protected constructor (id: String): MediaItemWithLayouts
         }
     }
 
-    open val layout: MediaItemLayout? get() = feed_layouts?.single()
+    abstract override val data: PlaylistItemData
+
+    override fun isFullyLoaded(): Boolean = data.items != null && super.isFullyLoaded()
+
+    open val items: MutableList<MediaItem>? get() = data.items
+    val year: Int? get() = data.year
+
+    @Composable
+    fun getLayout(): MediaItemLayout? {
+        return remember(data.items) {
+            data.items?.let {
+                MediaItemLayout(null, null, MediaItemLayout.Type.LIST, it)
+            }
+        }
+    }
 
     abstract val is_editable: Boolean?
     abstract val playlist_type: PlaylistType?
     abstract val total_duration: Long?
     abstract val item_count: Int?
-    abstract val year: Int?
+
+    override val feed_layouts: List<MediaItemLayout>?
+        @Composable
+        get() = getLayout()?.let { listOf(it) }
+    override fun getFeedLayouts(): List<MediaItemLayout>? = data.items?.let { listOf(MediaItemLayout(null, null, MediaItemLayout.Type.LIST, it)) }
 
     val playlist_reg_entry: PlaylistDataRegistryEntry = registry_entry as PlaylistDataRegistryEntry
     override fun getDefaultRegistryEntry(): PlaylistDataRegistryEntry = PlaylistDataRegistryEntry()
 
-    open fun getItems(): List<MediaItem>? = layout?.items
-
-    open suspend fun addItem(item: MediaItem, index: Int = -1): Result<Unit> {
+    open fun addItem(item: MediaItem) {
         check(is_editable == true)
-        try {
-            val items = layout?.items!!
-            items.add(
-                if (index == -1) items.size else index,
-                item
-            )
-        }
-        catch (e: Throwable) {
-            return Result.failure(e)
-        }
-
-        return saveItems()
+        data.items!!.add(item)
     }
 
-    open suspend fun removeItem(index: Int): Result<Unit> {
+    open fun removeItem(index: Int) {
         check(is_editable == true)
-        try {
-            layout?.items!!.removeAt(index)
-        }
-        catch (e: Throwable) {
-            return Result.failure(e)
-        }
-
-        return saveItems()
+        data.items!!.removeAt(index)
     }
 
-    open suspend fun moveItem(from: Int, to: Int): Result<Unit> {
+    open fun moveItem(from: Int, to: Int) {
         check(is_editable == true)
-        try {
-            layout?.items!!.add(to, layout?.items!!.removeAt(from))
-        }
-        catch (e: Throwable) {
-            return Result.failure(e)
-        }
-
-        return saveItems()
+        data.items!!.add(to, data.items!!.removeAt(from))
     }
+
+    abstract suspend fun deletePlaylist(): Result<Unit>
+    abstract suspend fun saveItems(): Result<Unit>
 
     protected open suspend fun onDeleted() {
         if (pinned_to_home) {
             setPinnedToHome(false)
         }
-    }
-
-    open suspend fun deletePlaylist(): Result<Unit> {
-        check(is_editable == true)
-        TODO()
-        onDeleted()
-    }
-
-    open suspend fun saveItems(): Result<Unit> {
-        check(is_editable == true)
-        TODO()
     }
 
     @Composable

@@ -20,6 +20,7 @@ import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import com.spectre7.spmp.api.getOrReport
 import com.spectre7.spmp.model.*
 import com.spectre7.spmp.resources.getString
 import com.spectre7.spmp.ui.component.multiselect.MediaItemMultiSelectContext
@@ -191,7 +192,7 @@ private fun LongPressMenuActionProvider.PlaylistLongPressPopupActions(playlist: 
 
     if (playlist.is_editable == true) {
         ActionButton(Icons.Default.Delete, getString("playlist_delete"), onClick = { coroutine_context.launch {
-            playlist.deletePlaylist()
+            playlist.deletePlaylist().getOrReport("deletePlaylist")
         } })
     }
 }

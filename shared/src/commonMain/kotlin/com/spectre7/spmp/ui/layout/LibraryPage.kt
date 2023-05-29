@@ -10,6 +10,7 @@ import androidx.compose.foundation.lazy.items
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Add
 import androidx.compose.material.icons.filled.MusicNote
+import androidx.compose.material.icons.filled.Refresh
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
@@ -20,7 +21,9 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
 import com.spectre7.spmp.PlayerServiceHost
+import com.spectre7.spmp.api.DataApi
 import com.spectre7.spmp.api.LocalisedYoutubeString
+import com.spectre7.spmp.model.AccountPlaylist
 import com.spectre7.spmp.model.LocalPlaylist
 import com.spectre7.spmp.model.MediaItem
 import com.spectre7.spmp.model.MediaItemType
@@ -82,7 +85,8 @@ fun LibraryPage(
         modifier.run {
             if (!inline) padding(horizontal = 20.dp, vertical = 10.dp)
             else this
-        }
+        },
+        verticalArrangement = Arrangement.spacedBy(10.dp)
     ) {
         // Title bar
         if (!inline) {
@@ -110,13 +114,24 @@ fun LibraryPage(
         ) {
             // Playlists
             item {
+                val ytm_auth = DataApi.ytm_auth
+
                 Column(Modifier.fillMaxWidth().animateContentSize(), horizontalAlignment = Alignment.CenterHorizontally) {
                     Row(
                         Modifier.fillMaxWidth(),
-                        horizontalArrangement = Arrangement.SpaceBetween,
                         verticalAlignment = Alignment.CenterVertically
                     ) {
                         Text(getString("library_row_playlists"), style = heading_text_style)
+
+                        Spacer(Modifier.fillMaxWidth().weight(1f))
+
+                        if (ytm_auth.initialised) {
+                            IconButton({ coroutine_scope.launch {
+                                ytm_auth.loadOwnPlaylists()
+                            } }) {
+                                Icon(Icons.Default.Refresh, null)
+                            }
+                        }
 
                         IconButton({ coroutine_scope.launch {
                             val playlist = LocalPlaylist.createLocalPlaylist(SpMp.context)
@@ -140,6 +155,12 @@ fun LibraryPage(
                     else {
                         Text(getString("library_playlists_empty"), Modifier.padding(top = 10.dp))
                     }
+
+                    MediaItemLayout(
+                        LocalisedYoutubeString.raw("Account playlists"), null,
+                        MediaItemLayout.Type.ROW,
+                        ytm_auth.own_playlists.map { AccountPlaylist.fromId(it) }.toMutableList()
+                    ).Layout(Modifier.fillMaxWidth(), multiselect_context = multiselect_context)
                 }
             }
 

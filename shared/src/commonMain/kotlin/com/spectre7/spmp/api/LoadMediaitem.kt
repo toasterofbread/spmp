@@ -100,7 +100,7 @@ suspend fun processDefaultResponse(item: MediaItem, data: MediaItemData, respons
                         null, null,
                         MediaItemLayout.Type.LIST,
                         playlist_shelf.contents!!.mapNotNull { data ->
-                            return@mapNotNull data.toMediaItem(hl).also { check(it is Song) }
+                            return@mapNotNull data.toMediaItem(hl)?.first.also { check(it is Song) }
                         }.toMutableList(),
                         continuation = continuation?.let { MediaItemLayout.Continuation(it, MediaItemLayout.Continuation.Type.SONG, item.id) }
                     )
@@ -179,16 +179,22 @@ suspend fun processDefaultResponse(item: MediaItem, data: MediaItemData, respons
                             }
                         }
 
+                        val items = row.value.getMediaItemsAndSetIds(hl)
+
                         item_layouts.add(
                             MediaItemLayout(
                                 layout_title,
                                 null,
                                 if (row.index == 0) MediaItemLayout.Type.NUMBERED_LIST else MediaItemLayout.Type.GRID,
-                                row.value.getMediaItems(hl).toMutableList(),
+                                items.map { it.first }.toMutableList(),
                                 continuation = continuation,
                                 view_more = view_more
                             )
                         )
+
+                        if (item is AccountPlaylist) {
+                            item.item_set_ids = if (items.all { it.second != null }) items.map { it.second!! } else null
+                        }
                     }
                     data.supplyFeedLayouts(item_layouts, true)
                 }

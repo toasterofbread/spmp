@@ -1,12 +1,11 @@
 package com.spectre7.spmp.model
 
-import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.setValue
 import com.beust.klaxon.Klaxon
-import com.spectre7.spmp.ui.component.PlaylistPreviewLong
-import com.spectre7.spmp.ui.component.PlaylistPreviewSquare
+import com.spectre7.spmp.api.*
+import com.spectre7.spmp.ui.component.MediaItemLayout
 
 class AccountPlaylistItemData(override val data_item: AccountPlaylist): PlaylistItemData(data_item) {
     var playlist_type: Playlist.PlaylistType? by mutableStateOf(null)
@@ -42,16 +41,11 @@ class AccountPlaylistItemData(override val data_item: AccountPlaylist): Playlist
         return data_item
     }
 
-    // TODO
-    var is_editable: Boolean? by mutableStateOf(null)
-        private set
-
-    fun supplyIsEditable(value: Boolean?, certain: Boolean = false, cached: Boolean = false): AccountPlaylist {
-        if (value != is_editable && (is_editable == null || certain)) {
-            is_editable = value
-            onChanged(cached)
-        }
-        return data_item
+    var continuation: MediaItemLayout.Continuation? = null
+    override fun supplyFeedLayouts(value: List<MediaItemLayout>?, certain: Boolean, cached: Boolean) {
+        // TODO
+        continuation = value?.single()?.continuation
+        super.supplyFeedLayouts(value, certain, cached)
     }
 
     override fun getSerialisedData(klaxon: Klaxon): List<String> {
@@ -62,7 +56,7 @@ class AccountPlaylistItemData(override val data_item: AccountPlaylist): Playlist
         require(data.size >= 4)
         data.removeLast()?.also { supplyItemCount(it as Int, cached = true) }
         data.removeLast()?.also { supplyTotalDuration((it as Int).toLong(), cached = true) }
-        data.removeLast()?.also { supplyPlaylistType(com.spectre7.spmp.model.Playlist.PlaylistType.values()[it as Int], cached = true) }
+        data.removeLast()?.also { supplyPlaylistType(Playlist.PlaylistType.values()[it as Int], cached = true) }
         return super.supplyFromSerialisedData(data, klaxon)
     }
 }
@@ -70,11 +64,46 @@ class AccountPlaylistItemData(override val data_item: AccountPlaylist): Playlist
 class AccountPlaylist private constructor(id: String): Playlist(id) {
     override val data: AccountPlaylistItemData = AccountPlaylistItemData(this)
 
-    override val is_editable: Boolean? get() = data.is_editable
+    var item_set_ids: List<String>? = null
+
+    override var is_editable: Boolean? by mutableStateOf(null)
     override val playlist_type: PlaylistType? get() = data.playlist_type
     override val total_duration: Long? get() = data.total_duration
     override val item_count: Int? get() = data.item_count
-    override val year: Int? get() = data.year
+
+    private val pending_edit_actions: MutableList<AccountPlaylistEditAction> = mutableListOf()
+
+    override fun addItem(item: MediaItem) {
+        super.addItem(item)
+        pending_edit_actions.add(AccountPlaylistEditAction.Add(item.id))
+    }
+
+    override fun removeItem(index: Int) {
+        super.removeItem(index)
+        pending_edit_actions.add(AccountPlaylistEditAction.Remove(index))
+    }
+
+    override fun moveItem(from: Int, to: Int) {
+        super.moveItem(from, to)
+        pending_edit_actions.add(AccountPlaylistEditAction.Move(from, to))
+    }
+
+    override suspend fun deletePlaylist(): Result<Unit> {
+        val result = deleteAccountPlaylist(id)
+        if (result.isSuccess) {
+            onDeleted()
+        }
+        return result
+    }
+
+    override suspend fun saveItems(): Result<Unit> {
+        val actions: List<AccountPlaylistEditAction>
+        synchronized(pending_edit_actions) {
+            actions = pending_edit_actions.toList()
+            pending_edit_actions.clear()
+        }
+        return editAccountPlaylist(this, actions)
+    }
 
     fun editPlaylistData(action: AccountPlaylistItemData.() -> Unit): AccountPlaylist {
         editData {
@@ -98,12 +127,6 @@ class AccountPlaylist private constructor(id: String): Playlist(id) {
                 playlist.loadFromCache()
                 return@getOrPut playlist
             }.getOrReplacedWith() as AccountPlaylist
-        }
-
-        fun clearStoredItems(): Int {
-            val amount = playlists.size
-            playlists.clear()
-            return amount
         }
     }
 

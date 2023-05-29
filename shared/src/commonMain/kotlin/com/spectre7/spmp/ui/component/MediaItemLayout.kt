@@ -89,7 +89,6 @@ data class MediaItemLayout(
         type!!.Layout(this, modifier, multiselect_context)
     }
 
-
     data class Continuation(var token: String, var type: Type, val param: Any? = null) {
         enum class Type {
             SONG, // param is the song's ID
@@ -132,10 +131,10 @@ data class MediaItemLayout(
         private suspend fun loadPlaylistContinuation(initial: Boolean): Result<Pair<List<MediaItem>, String?>> {
             if (initial) {
                 val playlist = AccountPlaylist.fromId(token)
-                playlist.feed_layouts?.single()?.also { layout ->
+                playlist.data.items?.also { items ->
                     return Result.success(Pair(
-                        layout.items.subList(param as Int, layout.items.size - 1),
-                        layout.continuation?.token
+                        items.subList(param as Int, items.size - 1),
+                        playlist.data.continuation?.token
                     ))
                 }
             }
@@ -171,7 +170,7 @@ data class MediaItemLayout(
                     if (item.index < param as Int) {
                         return@mapNotNull null
                     }
-                    item.value.toMediaItem(hl)
+                    item.value.toMediaItem(hl)?.first
                 },
                 shelf.continuations?.firstOrNull()?.nextContinuationData?.continuation
             ))

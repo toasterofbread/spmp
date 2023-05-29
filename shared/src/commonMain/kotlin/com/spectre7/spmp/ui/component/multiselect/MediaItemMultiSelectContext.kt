@@ -16,6 +16,7 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
 import com.spectre7.spmp.PlayerServiceHost
+import com.spectre7.spmp.api.getOrReport
 import com.spectre7.spmp.model.*
 import com.spectre7.spmp.platform.composable.PlatformAlertDialog
 import com.spectre7.spmp.resources.getString
@@ -289,7 +290,7 @@ class MediaItemMultiSelectContext(
             IconButton({ coroutine_scope.launch {
                 for (playlist in getUniqueSelectedItems()) {
                     if (playlist is Playlist) {
-                        playlist.deletePlaylist()
+                        playlist.deletePlaylist().getOrReport("deletePlaylist")
                     }
                 }
                 onActionPerformed()

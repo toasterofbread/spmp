@@ -61,6 +61,8 @@
     <string name="playlist_delete">Delete playlist</string>
     <string name="toast_playlist_added">Added to playlist</string>
     <string name="playlist_select_image">Select playlist image</string>
+    <string name="playlist_info_local">Local playlist</string>
+    <string name="playlist_info_account">Account playlist</string>
 
     <string name="feed_row_artists">Recommended artists</string>
     <string name="feed_row_playlists">Playlists</string>

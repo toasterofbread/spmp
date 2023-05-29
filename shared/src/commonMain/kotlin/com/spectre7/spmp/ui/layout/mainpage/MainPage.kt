@@ -16,6 +16,7 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.graphicsLayer
 import androidx.compose.ui.unit.DpSize
 import androidx.compose.ui.unit.dp
+import com.spectre7.spmp.api.DataApi
 import com.spectre7.spmp.model.Artist
 import com.spectre7.spmp.model.MediaItem
 import com.spectre7.spmp.model.Settings
@@ -54,30 +55,15 @@ fun MainPage(
             }
         )
     }
-    var auth_info: YoutubeMusicAuthInfo by remember { mutableStateOf(YoutubeMusicAuthInfo(Settings.KEY_YTM_AUTH.get())) }
 
     LaunchedEffect(layoutsProvider()) {
-        populateArtistsLayout(artists_layout, layoutsProvider, auth_info.getOwnChannelOrNull())
-    }
-
-    DisposableEffect(Unit) {
-        val prefs_listener = Settings.prefs.addListener(object : ProjectPreferences.Listener {
-            override fun onChanged(prefs: ProjectPreferences, key: String) {
-                if (key == Settings.KEY_YTM_AUTH.name) {
-                    auth_info = YoutubeMusicAuthInfo(Settings.KEY_YTM_AUTH.get(prefs))
-                }
-            }
-        })
-
-        onDispose {
-            Settings.prefs.removeListener(prefs_listener)
-        }
+        populateArtistsLayout(artists_layout, layoutsProvider, DataApi.ytm_auth.getOwnChannelOrNull())
     }
 
     Column(Modifier.padding(horizontal = padding)) {
 
         MainPageTopBar(
-            auth_info,
+            DataApi.ytm_auth,
             { if (feed_load_state.value == FeedLoadState.LOADING) null else getFilterChips() },
             getSelectedFilterChip,
             { loadFeed(it, false) },

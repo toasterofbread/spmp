@@ -1,18 +1,27 @@
 package com.spectre7.spmp.model
 
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateListOf
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.setValue
+import com.spectre7.spmp.api.cast
+import com.spectre7.spmp.api.getAccountPlaylists
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.runBlocking
 import kotlinx.coroutines.withContext
 
 class YoutubeMusicAuthInfo: Set<String> {
-    enum class ValueType { CHANNEL, COOKIE, HEADER }
-    var initialised: Boolean = false
+    enum class ValueType { CHANNEL, COOKIE, HEADER, PLAYLIST }
+    var initialised: Boolean by mutableStateOf(false)
 
     lateinit var own_channel: Artist
         private set
     lateinit var cookie: String
         private set
     lateinit var headers: Map<String, String>
+        private set
+
+    var own_playlists: MutableList<String> = mutableStateListOf()
         private set
 
     fun initialisedOrNull(): YoutubeMusicAuthInfo? = if (initialised) this else null
@@ -55,6 +64,7 @@ class YoutubeMusicAuthInfo: Set<String> {
                 }
                 ValueType.COOKIE -> cookie = value
                 ValueType.HEADER -> stringToHeader(value).also { set_headers[it.first] = it.second }
+                ValueType.PLAYLIST -> own_playlists.add(value)
             }
         }
         headers = set_headers
@@ -62,7 +72,7 @@ class YoutubeMusicAuthInfo: Set<String> {
         initialised = true
     }
 
-    override val size: Int get() = if (initialised) 2 + headers!!.size else 0
+    override val size: Int get() = if (initialised) 2 + headers.size + own_playlists.size else 0
     override fun contains(element: String): Boolean = throw NotImplementedError()
     override fun containsAll(elements: Collection<String>): Boolean = throw NotImplementedError()
     override fun isEmpty(): Boolean = !initialised
@@ -74,9 +84,33 @@ class YoutubeMusicAuthInfo: Set<String> {
             return when (i++) {
                 0 ->    ValueType.CHANNEL.ordinal.toString() + own_channel.id
                 1 ->    ValueType.COOKIE.ordinal.toString()  + cookie
-                else -> ValueType.HEADER.ordinal.toString()  + headerToString(headers.entries.elementAt(i - 3))
+                else -> {
+                    val index = i - 3
+                    if (index >= headers.size)
+                        ValueType.PLAYLIST.ordinal.toString() + own_playlists[index - headers.size]
+                    else
+                        ValueType.HEADER.ordinal.toString()  + headerToString(headers.entries.elementAt(index))
+                }
             }
         }
+    }
+
+    suspend fun loadOwnPlaylists(): Result<Unit> {
+        check(initialised)
+
+        val result = getAccountPlaylists()
+        return result.fold(
+            { playlists ->
+                synchronized(own_playlists) {
+                    own_playlists.clear()
+                    for (playlist in playlists) {
+                        own_playlists.add(playlist.id)
+                    }
+                }
+                Result.success(Unit)
+            },
+            { Result.failure(it) }
+        )
     }
 
     private fun headerToString(header: Map.Entry<String, String>): String {

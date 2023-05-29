@@ -5,6 +5,7 @@ import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.setValue
 import com.beust.klaxon.*
+import com.spectre7.spmp.api.DataApi.Companion.getStream
 import com.spectre7.spmp.model.Cache
 import com.spectre7.spmp.model.MediaItem
 import com.spectre7.spmp.model.Settings
@@ -27,6 +28,7 @@ import java.time.Duration
 import java.util.logging.Level
 import java.util.logging.Logger
 import java.util.zip.GZIPInputStream
+import java.util.zip.ZipException
 import kotlin.concurrent.thread
 import org.schabi.newpipe.extractor.downloader.Request as NewPipeRequest
 import org.schabi.newpipe.extractor.downloader.Response as NewPipeResponse
@@ -34,8 +36,18 @@ import org.schabi.newpipe.extractor.downloader.Response as NewPipeResponse
 const val DEFAULT_CONNECT_TIMEOUT = 3000
 
 fun <T> Result.Companion.failure(response: Response): Result<T> {
-    return failure<T>(RuntimeException("${response.message}: ${response.body?.string()} (${response.code})")).also { response.close() }
+    var body: String
+    try {
+        val stream = response.getStream()
+        body = stream.reader().readText()
+        stream.close()
+    }
+    catch (e: ZipException) {
+        body = response.body!!.string()
+    }
+    return failure<T>(RuntimeException("${response.message}: $body (${response.code})")).also { response.close() }
 }
+
 fun <I, O> Result<I>.cast(): Result<O> {
     return fold(
         {
@@ -46,6 +58,14 @@ fun <I, O> Result<I>.cast(): Result<O> {
         }
     )
 }
+
+fun <T> Result<T>.unit(): Result<Unit> {
+    return fold(
+        { Result.success(Unit) },
+        { Result.failure(it) }
+    )
+}
+
 val <T> Result<T>.data get() = getOrThrowHere()
 
 fun <T> Result<T>.getOrThrowHere(): T {
@@ -167,9 +187,6 @@ class DataApi {
             .converter(enum_converter)
             .converter(mediaitem_converter)
 
-        fun getYtmAuth(): YoutubeMusicAuthInfo? =
-            Settings.get<Set<String>>(Settings.KEY_YTM_AUTH).let { if (it is YoutubeMusicAuthInfo) it else YoutubeMusicAuthInfo(it) }.initialisedOrNull()
-
         enum class YoutubeiContextType {
             BASE,
             ALT,
@@ -186,8 +203,14 @@ class DataApi {
             }
         }
 
-        var ytm_authenticated: Boolean by mutableStateOf(false)
+        var ytm_auth: YoutubeMusicAuthInfo by mutableStateOf(
+            Settings.get<Set<String>>(Settings.KEY_YTM_AUTH).let {
+                if (it is YoutubeMusicAuthInfo) it else YoutubeMusicAuthInfo(it)
+            }
+        )
             private set
+
+        val ytm_authenticated: Boolean get() = ytm_auth.initialised
 
         private lateinit var youtubei_context: JsonObject
         private lateinit var youtubei_context_alt: JsonObject
@@ -200,7 +223,7 @@ class DataApi {
         private val prefs_change_listener = object : ProjectPreferences.Listener {
             override fun onChanged(prefs: ProjectPreferences, key: String) {
                 when (key) {
-                    Settings.KEY_YTM_AUTH.name -> updateYtmHeaders()
+                    Settings.KEY_YTM_AUTH.name -> onYtmAuthChanged()
                     Settings.KEY_LANG_DATA.name -> {
                         updateYtmContext()
                         Cache.reset()
@@ -250,7 +273,7 @@ class DataApi {
         }
 
         @Synchronized
-        private fun updateYtmHeaders(): Thread {
+        private fun onYtmAuthChanged(): Thread {
             header_update_thread?.also { thread ->
                 if (thread.isAlive) {
                     return thread
@@ -258,10 +281,12 @@ class DataApi {
             }
 
             header_update_thread = thread {
+                val auth_state = Settings.get<Set<String>>(Settings.KEY_YTM_AUTH)
+                ytm_auth = if (auth_state is YoutubeMusicAuthInfo) auth_state else YoutubeMusicAuthInfo(auth_state)
+
                 val headers_builder = Headers.Builder().add("user-agent", user_agent)
 
-                val ytm_auth = getYtmAuth()
-                if (ytm_auth != null) {
+                if (ytm_auth.initialised) {
                     headers_builder["cookie"] = ytm_auth.cookie
                     for (header in ytm_auth.headers) {
                         headers_builder[header.key] = header.value
@@ -282,14 +307,13 @@ class DataApi {
                 headers_builder["user-agent"] = user_agent
 
                 youtubei_headers = headers_builder.build()
-                ytm_authenticated = ytm_auth != null
             }
             return header_update_thread!!
         }
 
         fun initialise() {
             updateYtmContext()
-            updateYtmHeaders()
+            onYtmAuthChanged()
 
             Settings.prefs.addListener(prefs_change_listener)
 
@@ -354,6 +378,14 @@ class DataApi {
 
         internal fun getYoutubeiRequestBody(body: String? = null, context: YoutubeiContextType = YoutubeiContextType.BASE): RequestBody {
             val final_body = if (body != null) context.getContext() + klaxon.parseJsonObject(body.reader()) else context.getContext()
+            return klaxon.toJsonString(final_body).toRequestBody("application/json".toMediaType())
+        }
+
+        internal fun getYoutubeiRequestBody(body: Map<String, Any>, context: YoutubeiContextType = YoutubeiContextType.BASE): RequestBody {
+            val final_body = context.getContext().toMutableMap()
+            for (entry in body) {
+                final_body[entry.key] = entry.value
+            }
             return klaxon.toJsonString(final_body).toRequestBody("application/json".toMediaType())
         }
     }

@@ -133,14 +133,14 @@ class RadioInstance {
                 )
             }
             is MediaItemWithLayouts -> {
-                if (item.feed_layouts == null) {
+                if (item.getFeedLayouts() == null) {
                     val result = item.loadData()
                     if (result.isFailure) {
                         return result.cast()
                     }
                 }
 
-                val layout = item.feed_layouts?.firstOrNull()
+                val layout = item.getFeedLayouts()?.firstOrNull()
                 if (layout == null) {
                     return Result.success(emptyList())
                 }

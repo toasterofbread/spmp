@@ -32,8 +32,8 @@ import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.IntSize
 import androidx.compose.ui.unit.dp
 import com.spectre7.spmp.PlayerServiceHost
-import com.spectre7.spmp.model.MediaItemThumbnailProvider
-import com.spectre7.spmp.model.Song
+import com.spectre7.spmp.model.mediaitem.MediaItemThumbnailProvider
+import com.spectre7.spmp.model.mediaitem.Song
 import com.spectre7.spmp.platform.composable.BackHandler
 import com.spectre7.spmp.platform.getPixel
 import com.spectre7.spmp.resources.getString

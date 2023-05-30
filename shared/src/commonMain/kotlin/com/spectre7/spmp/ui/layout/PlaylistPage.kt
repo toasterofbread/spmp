@@ -13,7 +13,6 @@ import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.LazyListScope
 import androidx.compose.foundation.lazy.items
-import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.text.BasicTextField
 import androidx.compose.material.icons.Icons
@@ -36,6 +35,7 @@ import androidx.compose.ui.unit.*
 import com.spectre7.spmp.api.durationToString
 import com.spectre7.spmp.api.getOrReport
 import com.spectre7.spmp.model.*
+import com.spectre7.spmp.model.mediaitem.*
 import com.spectre7.spmp.platform.LargeDropdownMenu
 import com.spectre7.spmp.platform.composable.platformClickable
 import com.spectre7.spmp.platform.composable.PlatformAlertDialog
@@ -91,6 +91,10 @@ fun PlaylistPage(
     val status_bar_height = SpMp.context.getStatusBarHeight()
 
     val multiselect_context = remember { MediaItemMultiSelectContext() { context ->
+        if (playlist.is_editable != true) {
+            return@MediaItemMultiSelectContext
+        }
+
         IconButton({ coroutine_scope.launch {
             val items = context.getSelectedItems().sortedByDescending { it.second!! }
             for (item in items) {
@@ -150,7 +154,7 @@ fun PlaylistPage(
             }
         }
 
-        val thumb_item = playlist.getThumbnailHolder()
+        val thumb_item = playlist.getThumbnailHolder().getHolder()
 
         LaunchedEffect(thumb_item) {
             if (thumb_item == playlist) {
@@ -177,23 +181,8 @@ fun PlaylistPage(
         }
 
         LaunchedEffect(reorderable) {
-            if (reorderable) {
-                return@LaunchedEffect
-            }
-
-            playlist.items?.also { items ->
-                var update: Boolean = false
-                for (i in 0 until items.size) {
-                    val item = sorted_items[i].first
-                    if (items[i] != item) {
-                        items[i] = item
-                        update = true
-                    }
-                }
-
-                if (update) {
-                    playlist.saveItems()
-                }
+            if (!reorderable) {
+                playlist.saveItems().getOrReport("PlaylistPageSaveItems")
             }
         }
 
@@ -224,7 +213,7 @@ fun PlaylistPage(
         ) {
             item {
                 PlaylistTopInfo(playlist, accent_colour ?: Theme.current.accent, Modifier.padding(top = status_bar_height + 10.dp)) {
-                    accent_colour = thumb_item.getThemeColour()
+                    accent_colour = thumb_item.item?.getThemeColour()
                 }
             }
 
@@ -239,9 +228,6 @@ fun PlaylistPage(
                             if (reorderable) {
                                 current_sort_option = SortOption.PLAYLIST
                                 current_filter = null
-                            }
-                            else {
-                                coroutine_scope.launch { playlist.saveItems() }
                             }
                         },
                         current_filter,
@@ -310,8 +296,7 @@ private fun LazyListScope.PlaylistItems(
             Row(
                 Modifier
                     .fillMaxWidth()
-                    .mediaItemPreviewInteraction(item, long_press_menu_data)
-                    .thenIf(reorderable) { Modifier.detectReorder(list_state) },
+                    .mediaItemPreviewInteraction(item, long_press_menu_data),
                 verticalAlignment = Alignment.CenterVertically,
                 horizontalArrangement = Arrangement.spacedBy(10.dp)
             ) {
@@ -341,7 +326,7 @@ private fun LazyListScope.PlaylistItems(
                 }
 
                 AnimatedVisibility(reorderable) {
-                    Icon(Icons.Default.Reorder, null, Modifier.padding(end = 20.dp))
+                    Icon(Icons.Default.Reorder, null, Modifier.padding(end = 20.dp).detectReorder(list_state))
                 }
             }
         }
@@ -553,10 +538,8 @@ private fun TopInfoEditButtons(playlist: Playlist, accent_colour: Color, modifie
                     }
                     coroutine_scope.launch {
                         converting = true
-                        val result = playlist.convertToAccountPlaylist()
+                        playlist.convertToAccountPlaylist().getOrReport("ConvertPlaylistToAccountPlaylist")
                         converting = false
-
-                        TODO("Replace with result playlist")
                     }
                 },
                 colors = ButtonDefaults.buttonColors(
@@ -591,8 +574,8 @@ private fun PlaylistTopInfo(playlist: Playlist, accent_colour: Color, modifier: 
     var edited_title: String by remember { mutableStateOf("") }
 
     var split_position by remember(playlist) { mutableStateOf(playlist.playlist_reg_entry.playlist_page_thumb_width ?: 0f) }
-    var width: Dp by remember { mutableStateOf(0.dp) }
-    var show_image by remember { mutableStateOf(true) }
+    var width: Dp by remember(playlist) { mutableStateOf(0.dp) }
+    var show_image by remember(playlist) { mutableStateOf(true) }
 
     DisposableEffect(Unit) {
         onDispose {
@@ -605,6 +588,9 @@ private fun PlaylistTopInfo(playlist: Playlist, accent_colour: Color, modifier: 
     LaunchedEffect(editing_info) {
         if (editing_info) {
             edited_title = playlist.title!!
+        }
+        else {
+            playlist.saveRegistry()
         }
     }
 

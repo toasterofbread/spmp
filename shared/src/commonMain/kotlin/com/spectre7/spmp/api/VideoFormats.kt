@@ -1,6 +1,6 @@
 package com.spectre7.spmp.api
 
-import com.spectre7.spmp.model.Song
+import com.spectre7.spmp.model.mediaitem.Song
 import com.spectre7.spmp.resources.getString
 import okhttp3.Request
 import org.schabi.newpipe.extractor.NewPipe

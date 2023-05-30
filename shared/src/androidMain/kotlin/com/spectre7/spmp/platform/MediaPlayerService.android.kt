@@ -12,7 +12,7 @@ import androidx.media3.session.MediaController
 import androidx.media3.session.SessionToken
 import com.google.common.util.concurrent.MoreExecutors
 import com.spectre7.spmp.exovisualiser.ExoVisualizer
-import com.spectre7.spmp.model.Song
+import com.spectre7.spmp.model.mediaitem.Song
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch

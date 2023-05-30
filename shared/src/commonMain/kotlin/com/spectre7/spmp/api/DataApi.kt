@@ -7,7 +7,7 @@ import androidx.compose.runtime.setValue
 import com.beust.klaxon.*
 import com.spectre7.spmp.api.DataApi.Companion.getStream
 import com.spectre7.spmp.model.Cache
-import com.spectre7.spmp.model.MediaItem
+import com.spectre7.spmp.model.mediaitem.MediaItem
 import com.spectre7.spmp.model.Settings
 import com.spectre7.spmp.model.YoutubeMusicAuthInfo
 import com.spectre7.spmp.platform.ProjectPreferences
@@ -45,7 +45,9 @@ fun <T> Result.Companion.failure(response: Response): Result<T> {
     catch (e: ZipException) {
         body = response.body!!.string()
     }
-    return failure<T>(RuntimeException("${response.message}: $body (${response.code})")).also { response.close() }
+
+    response.close()
+    return failure(RuntimeException(body))
 }
 
 fun <I, O> Result<I>.cast(): Result<O> {
@@ -191,7 +193,8 @@ class DataApi {
             BASE,
             ALT,
             ANDROID,
-            MOBILE;
+            MOBILE,
+            UI_LANGUAGE;
 
             fun getContext(): JsonObject {
                 return when (this) {
@@ -199,6 +202,7 @@ class DataApi {
                     ALT -> youtubei_context_alt
                     ANDROID -> youtubei_context_android
                     MOBILE -> youtubei_context_mobile
+                    UI_LANGUAGE -> youtube_context_ui_language
                 }
             }
         }
@@ -216,6 +220,7 @@ class DataApi {
         private lateinit var youtubei_context_alt: JsonObject
         private lateinit var youtubei_context_android: JsonObject
         private lateinit var youtubei_context_mobile: JsonObject
+        private lateinit var youtube_context_ui_language: JsonObject
 
         private var youtubei_headers: Headers? = null
         private var header_update_thread: Thread? = null
@@ -269,6 +274,15 @@ class DataApi {
             )
             youtubei_context_mobile = klaxon.parseJsonObject(
                 context_substitutor.replace(getString("ytm_context_mobile")).reader()
+            )
+            youtube_context_ui_language = klaxon.parseJsonObject(
+                StringSubstitutor(
+                    mapOf(
+                        "user_agent" to user_agent,
+                        "hl" to SpMp.ui_language
+                    ),
+                    "\${", "}"
+                ).replace(getString("ytm_context")).reader()
             )
         }
 

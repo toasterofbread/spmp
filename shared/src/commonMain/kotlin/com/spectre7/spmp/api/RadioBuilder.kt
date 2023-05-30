@@ -3,9 +3,9 @@ package com.spectre7.spmp.api
 import com.spectre7.spmp.api.DataApi.Companion.addYtHeaders
 import com.spectre7.spmp.api.DataApi.Companion.getStream
 import com.spectre7.spmp.api.DataApi.Companion.ytUrl
-import com.spectre7.spmp.model.AccountPlaylist
-import com.spectre7.spmp.model.MediaItemThumbnailProvider
-import com.spectre7.spmp.model.Playlist
+import com.spectre7.spmp.model.mediaitem.AccountPlaylist
+import com.spectre7.spmp.model.mediaitem.MediaItemThumbnailProvider
+import com.spectre7.spmp.model.mediaitem.Playlist
 import com.spectre7.spmp.resources.getString
 import okhttp3.Request
 

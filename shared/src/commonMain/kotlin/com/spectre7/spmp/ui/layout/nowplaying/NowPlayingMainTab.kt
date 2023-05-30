@@ -34,7 +34,7 @@ import androidx.compose.ui.unit.*
 import com.github.krottv.compose.sliders.DefaultThumb
 import com.github.krottv.compose.sliders.SliderValueHorizontal
 import com.spectre7.spmp.PlayerServiceHost
-import com.spectre7.spmp.model.Song
+import com.spectre7.spmp.model.mediaitem.Song
 import com.spectre7.spmp.platform.vibrateShort
 import com.spectre7.spmp.ui.layout.mainpage.MINIMISED_NOW_PLAYING_HEIGHT
 import com.spectre7.spmp.ui.layout.mainpage.MINIMISED_NOW_PLAYING_V_PADDING

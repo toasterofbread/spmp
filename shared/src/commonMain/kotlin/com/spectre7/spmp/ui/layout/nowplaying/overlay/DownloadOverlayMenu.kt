@@ -5,7 +5,7 @@ import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
-import com.spectre7.spmp.model.Song
+import com.spectre7.spmp.model.mediaitem.Song
 
 class DownloadOverlayMenu: OverlayMenu() {
 

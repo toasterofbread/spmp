@@ -1,6 +1,6 @@
 package com.spectre7.spmp.platform
 
-import com.spectre7.spmp.model.Song
+import com.spectre7.spmp.model.mediaitem.Song
 
 expect class PlayerDownloadManager(context: PlatformContext) {
     class DownloadStatus {

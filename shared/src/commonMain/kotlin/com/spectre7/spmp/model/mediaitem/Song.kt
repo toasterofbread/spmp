@@ -1,4 +1,4 @@
-package com.spectre7.spmp.model
+package com.spectre7.spmp.model.mediaitem
 
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
@@ -13,6 +13,7 @@ import com.spectre7.spmp.api.DEFAULT_CONNECT_TIMEOUT
 import com.spectre7.spmp.api.YoutubeVideoFormat
 import com.spectre7.spmp.api.cast
 import com.spectre7.spmp.api.getVideoFormats
+import com.spectre7.spmp.model.Settings
 import com.spectre7.spmp.platform.crop
 import com.spectre7.spmp.platform.toImageBitmap
 import com.spectre7.spmp.resources.getString
@@ -66,9 +67,9 @@ class SongItemData(override val data_item: Song): MediaItemData(data_item) {
 
     override fun supplyFromSerialisedData(data: MutableList<Any?>, klaxon: Klaxon): MediaItemData {
         require(data.size >= 3)
-        data.removeLast()?.also { supplyAlbum(com.spectre7.spmp.model.AccountPlaylist.fromId(it as String), cached = true) }
+        data.removeLast()?.also { supplyAlbum(AccountPlaylist.fromId(it as String), cached = true) }
         data.removeLast()?.also { supplyDuration((it as Int).toLong(), cached = true) }
-        data.removeLast()?.also { supplySongType(com.spectre7.spmp.model.Song.SongType.values()[it as Int], cached = true) }
+        data.removeLast()?.also { supplySongType(Song.SongType.values()[it as Int], cached = true) }
         return super.supplyFromSerialisedData(data, klaxon)
     }
 }
@@ -112,6 +113,14 @@ class Song protected constructor (
         fun getLyricsData(): Pair<Int, Lyrics.Source>? =
             if (lyrics_id != null) Pair(lyrics_id!!, lyrics_source!!)
             else null
+
+        override fun clear() {
+            super.clear()
+            theme_colour = null
+            thumbnail_rounding = null
+            lyrics_id = null
+            lyrics_source = null
+        }
     }
 
     private var audio_formats: List<YoutubeVideoFormat>? = null

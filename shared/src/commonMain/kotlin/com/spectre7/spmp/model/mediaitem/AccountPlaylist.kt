@@ -1,4 +1,4 @@
-package com.spectre7.spmp.model
+package com.spectre7.spmp.model.mediaitem
 
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
@@ -67,9 +67,9 @@ class AccountPlaylist private constructor(id: String): Playlist(id) {
     var item_set_ids: List<String>? = null
 
     override var is_editable: Boolean? by mutableStateOf(null)
-    override val playlist_type: PlaylistType? get() = data.playlist_type
-    override val total_duration: Long? get() = data.total_duration
-    override val item_count: Int? get() = data.item_count
+    override val playlist_type: PlaylistType? get() = checkNotDeleted(data.playlist_type)
+    override val total_duration: Long? get() = checkNotDeleted(data.total_duration)
+    override val item_count: Int? get() = checkNotDeleted(data.item_count)
 
     private val pending_edit_actions: MutableList<AccountPlaylistEditAction> = mutableListOf()
 
@@ -89,14 +89,17 @@ class AccountPlaylist private constructor(id: String): Playlist(id) {
     }
 
     override suspend fun deletePlaylist(): Result<Unit> {
+        checkNotDeleted()
         val result = deleteAccountPlaylist(id)
         if (result.isSuccess) {
             onDeleted()
         }
+        DataApi.ytm_auth.onOwnPlaylistDeleted(this)
         return result
     }
 
     override suspend fun saveItems(): Result<Unit> {
+        checkNotDeleted()
         val actions: List<AccountPlaylistEditAction>
         synchronized(pending_edit_actions) {
             actions = pending_edit_actions.toList()
@@ -106,6 +109,7 @@ class AccountPlaylist private constructor(id: String): Playlist(id) {
     }
 
     fun editPlaylistData(action: AccountPlaylistItemData.() -> Unit): AccountPlaylist {
+        checkNotDeleted()
         editData {
             action(this as AccountPlaylistItemData)
         }
@@ -113,6 +117,7 @@ class AccountPlaylist private constructor(id: String): Playlist(id) {
     }
 
     fun editPlaylistDataManual(action: AccountPlaylistItemData.() -> Unit): AccountPlaylistItemData {
+        checkNotDeleted()
         action(data)
         return data
     }
@@ -120,10 +125,13 @@ class AccountPlaylist private constructor(id: String): Playlist(id) {
     companion object {
         private val playlists: MutableMap<String, AccountPlaylist> = mutableMapOf()
 
+        fun formatId(id: String): String = id.removePrefix("VL")
+
         @Synchronized
         fun fromId(id: String): AccountPlaylist {
-            return playlists.getOrPut(id) {
-                val playlist = AccountPlaylist(id)
+            val formatted_id = id//formatId(id)
+            return playlists.getOrPut(formatted_id) {
+                val playlist = AccountPlaylist(formatted_id)
                 playlist.loadFromCache()
                 return@getOrPut playlist
             }.getOrReplacedWith() as AccountPlaylist

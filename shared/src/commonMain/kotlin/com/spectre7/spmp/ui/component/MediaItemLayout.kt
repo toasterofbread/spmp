@@ -34,6 +34,7 @@ import com.spectre7.spmp.api.DataApi.Companion.addYtHeaders
 import com.spectre7.spmp.api.DataApi.Companion.getStream
 import com.spectre7.spmp.api.DataApi.Companion.ytUrl
 import com.spectre7.spmp.model.*
+import com.spectre7.spmp.model.mediaitem.*
 import com.spectre7.spmp.platform.composable.rememberImagePainter
 import com.spectre7.spmp.resources.getString
 import com.spectre7.spmp.ui.component.multiselect.MediaItemMultiSelectContext
@@ -42,6 +43,8 @@ import com.spectre7.utils.*
 import com.spectre7.utils.composable.WidthShrinkText
 import com.spectre7.utils.modifier.background
 import okhttp3.Request
+
+private fun getDefaultItemSize(): DpSize = DpSize(100.dp, 130.dp)
 
 data class MediaItemLayout(
     val title: LocalisedYoutubeString?,
@@ -53,7 +56,7 @@ data class MediaItemLayout(
     var view_more: ViewMore? = null,
     var continuation: Continuation? = null,
     @Json(ignored = true)
-    var itemSizeProvider: @Composable () -> DpSize = { DpSize(100.dp, 130.dp) }
+    var itemSizeProvider: @Composable () -> DpSize = { getDefaultItemSize() }
 ) {
     init {
         title?.getString()
@@ -241,11 +244,7 @@ data class MediaItemLayout(
 //        return Result.success(Unit)
 //    }
 
-    private fun getThumbShape(): Shape {
-        return if (thumbnail_item_type == MediaItemType.ARTIST) CircleShape else RectangleShape
-    }
-
-    fun shouldShowTitleBar(): Boolean = thumbnail_source != null || title != null || subtitle != null || view_more != null
+    fun shouldShowTitleBar(): Boolean = shouldShowTitleBar(title, subtitle, view_more, thumbnail_source)
 
     @Composable
     fun TitleBar(
@@ -253,73 +252,95 @@ data class MediaItemLayout(
         font_size: TextUnit? = null,
         multiselect_context: MediaItemMultiSelectContext? = null
     ) {
-        AnimatedVisibility(shouldShowTitleBar()) {
-            val title_string: String? = remember { title?.getString() }
-            val subtitle_string: String? = remember { subtitle?.getString() }
+        TitleBar(items, title, subtitle, modifier, view_more, thumbnail_source, thumbnail_item_type, font_size, multiselect_context)
+    }
+}
 
-            Row(
-                modifier
-                    .fillMaxWidth()
-                    .height(IntrinsicSize.Max),
-                verticalAlignment = Alignment.CenterVertically,
-                horizontalArrangement = Arrangement.spacedBy(10.dp)
-            ) {
-                val thumbnail_url = thumbnail_source?.getThumbUrl(MediaItemThumbnailProvider.Quality.LOW)
-                if (thumbnail_url != null) {
-                    Image(
-                        rememberImagePainter(thumbnail_url),
-                        null,
-                        Modifier
-                            .fillMaxHeight()
-                            .aspectRatio(1f)
-                            .clip(getThumbShape())
+private fun shouldShowTitleBar(
+    title: LocalisedYoutubeString?,
+    subtitle: LocalisedYoutubeString?,
+    view_more: MediaItemLayout.ViewMore? = null,
+    thumbnail_source: MediaItemLayout.ThumbnailSource? = null
+): Boolean = thumbnail_source != null || title != null || subtitle != null || view_more != null
+
+@Composable
+private fun TitleBar(
+    items: List<MediaItemHolder>,
+    title: LocalisedYoutubeString?,
+    subtitle: LocalisedYoutubeString?,
+    modifier: Modifier = Modifier,
+    view_more: MediaItemLayout.ViewMore? = null,
+    thumbnail_source: MediaItemLayout.ThumbnailSource? = null,
+    thumbnail_item_type: MediaItemType? = null,
+    font_size: TextUnit? = null,
+    multiselect_context: MediaItemMultiSelectContext? = null
+) {
+    AnimatedVisibility(shouldShowTitleBar(title, subtitle, view_more, thumbnail_source)) {
+        val title_string: String? = remember { title?.getString() }
+        val subtitle_string: String? = remember { subtitle?.getString() }
+
+        Row(
+            modifier
+                .fillMaxWidth()
+                .height(IntrinsicSize.Max),
+            verticalAlignment = Alignment.CenterVertically,
+            horizontalArrangement = Arrangement.spacedBy(10.dp)
+        ) {
+            val thumbnail_url = thumbnail_source?.getThumbUrl(MediaItemThumbnailProvider.Quality.LOW)
+            if (thumbnail_url != null) {
+                Image(
+                    rememberImagePainter(thumbnail_url),
+                    null,
+                    Modifier
+                        .fillMaxHeight()
+                        .aspectRatio(1f)
+                        .clip(if (thumbnail_item_type == MediaItemType.ARTIST) CircleShape else RectangleShape)
+                )
+            }
+
+            Column(verticalArrangement = Arrangement.Center, modifier = Modifier.weight(1f)) {
+                if (subtitle_string != null) {
+                    WidthShrinkText(subtitle_string, style = MaterialTheme.typography.titleSmall.copy(color = Theme.current.on_background))
+                }
+
+                if (title_string != null) {
+                    WidthShrinkText(
+                        title_string,
+                        modifier = Modifier.fillMaxWidth(),
+                        style = MaterialTheme.typography.headlineMedium.let { style ->
+                            style.copy(
+                                color = Theme.current.on_background,
+                                fontSize = font_size ?: style.fontSize
+                            )
+                        }
                     )
                 }
+            }
 
-                Column(verticalArrangement = Arrangement.Center, modifier = Modifier.weight(1f)) {
-                    if (subtitle_string != null) {
-                        WidthShrinkText(subtitle_string, style = MaterialTheme.typography.titleSmall.copy(color = Theme.current.on_background))
-                    }
-
-                    if (title_string != null) {
-                        WidthShrinkText(
-                            title_string,
-                            modifier = Modifier.fillMaxWidth(),
-                            style = MaterialTheme.typography.headlineMedium.let { style ->
-                                style.copy(
-                                    color = Theme.current.on_background,
-                                    fontSize = font_size ?: style.fontSize
-                                )
+            Row {
+                view_more?.also { view_more ->
+                    val player = LocalPlayerState.current
+                    IconButton(
+                        {
+                            if (view_more.media_item != null) {
+                                player.openMediaItem(view_more.media_item, true)
                             }
-                        )
-                    }
-                }
-
-                Row {
-                    view_more?.also { view_more ->
-                        val player = LocalPlayerState.current
-                        IconButton(
-                            {
-                                if (view_more.media_item != null) {
-                                    player.openMediaItem(view_more.media_item, true)
-                                }
-                                else if (view_more.list_page_url != null) {
-                                    TODO(view_more.list_page_url)
-                                }
-                                else if (view_more.action != null) {
-                                    view_more.action.invoke()
-                                }
-                                else {
-                                    throw NotImplementedError(view_more.toString())
-                                }
+                            else if (view_more.list_page_url != null) {
+                                TODO(view_more.list_page_url)
                             }
-                        ) {
-                            Icon(Icons.Default.MoreHoriz, null)
+                            else if (view_more.action != null) {
+                                view_more.action.invoke()
+                            }
+                            else {
+                                throw NotImplementedError(view_more.toString())
+                            }
                         }
+                    ) {
+                        Icon(Icons.Default.MoreHoriz, null)
                     }
-
-                    multiselect_context?.CollectionToggleButton(items)
                 }
+
+                multiselect_context?.CollectionToggleButton(items)
             }
         }
     }
@@ -521,7 +542,8 @@ fun MediaItemCard(
                         softWrap = false,
                         overflow = TextOverflow.Ellipsis
                     )
-                item.artist?.PreviewLong(MediaItem.PreviewParams(
+                item.artist?.PreviewLong(
+                    MediaItem.PreviewParams(
                     contentColour = { (accent_colour ?: Theme.current.accent).getContrasted() }
                 ))
             }
@@ -576,8 +598,9 @@ fun MediaItemGrid(
             ) {
                 startContent?.invoke(this)
 
-                items(layout.items.size, { layout.items[it].id }) {
-                    layout.items[it].PreviewSquare(MediaItem.PreviewParams(
+                items(layout.items.size, { layout.items[it].item.id }) {
+                    layout.items[it].item.PreviewSquare(
+                        MediaItem.PreviewParams(
                         Modifier.size(item_size).animateItemPlacement(),
                         contentColour = Theme.current.on_background_provider,
                         multiselect_context = multiselect_context
@@ -588,6 +611,58 @@ fun MediaItemGrid(
             if (multiselect_context != null && !layout.shouldShowTitleBar()) {
                 Box(Modifier.background(CircleShape, Theme.current.background_provider), contentAlignment = Alignment.Center) {
                     multiselect_context.CollectionToggleButton(layout.items)
+                }
+            }
+        }
+    }
+}
+
+@OptIn(ExperimentalFoundationApi::class)
+@Composable
+fun MediaItemGrid(
+    items: List<MediaItemHolder>,
+    modifier: Modifier = Modifier,
+    rows: Int? = null,
+    title: LocalisedYoutubeString? = null,
+    subtitle: LocalisedYoutubeString? = null,
+    itemSizeProvider: @Composable () -> DpSize = { getDefaultItemSize() },
+    multiselect_context: MediaItemMultiSelectContext? = null,
+    startContent: (LazyGridScope.() -> Unit)? = null,
+) {
+    val row_count = rows ?: if (items.size <= 3) 1 else 2
+    val item_spacing = Arrangement.spacedBy(15.dp)
+    val item_size = itemSizeProvider()
+
+    Column(modifier, verticalArrangement = Arrangement.spacedBy(10.dp)) {
+        TitleBar(
+            items,
+            title,
+            subtitle,
+            multiselect_context = multiselect_context
+        )
+
+        Box(Modifier.fillMaxWidth(), contentAlignment = Alignment.CenterEnd) {
+            LazyHorizontalGrid(
+                rows = GridCells.Fixed(row_count),
+                modifier = Modifier.height(item_size.height * row_count).fillMaxWidth(),
+                horizontalArrangement = item_spacing,
+                verticalArrangement = item_spacing
+            ) {
+                startContent?.invoke(this)
+
+                items(items.size, { items[it].item?.id ?: "" }) {
+                    items[it].item?.PreviewSquare(
+                        MediaItem.PreviewParams(
+                            Modifier.size(item_size).animateItemPlacement(),
+                            contentColour = Theme.current.on_background_provider,
+                            multiselect_context = multiselect_context
+                        ))
+                }
+            }
+
+            if (multiselect_context != null && shouldShowTitleBar(title, subtitle)) {
+                Box(Modifier.background(CircleShape, Theme.current.background_provider), contentAlignment = Alignment.Center) {
+                    multiselect_context.CollectionToggleButton(items)
                 }
             }
         }

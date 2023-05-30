@@ -1,4 +1,4 @@
-package com.spectre7.spmp.model
+package com.spectre7.spmp.model.mediaitem
 
 import SpMp
 import androidx.compose.runtime.Composable

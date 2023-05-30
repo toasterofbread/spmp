@@ -17,11 +17,9 @@ import androidx.compose.ui.graphics.graphicsLayer
 import androidx.compose.ui.unit.DpSize
 import androidx.compose.ui.unit.dp
 import com.spectre7.spmp.api.DataApi
-import com.spectre7.spmp.model.Artist
-import com.spectre7.spmp.model.MediaItem
-import com.spectre7.spmp.model.Settings
-import com.spectre7.spmp.model.YoutubeMusicAuthInfo
-import com.spectre7.spmp.platform.ProjectPreferences
+import com.spectre7.spmp.model.mediaitem.Artist
+import com.spectre7.spmp.model.mediaitem.MediaItem
+import com.spectre7.spmp.model.mediaitem.MediaItemHolder
 import com.spectre7.spmp.platform.composable.SwipeRefresh
 import com.spectre7.spmp.platform.getDefaultHorizontalPadding
 import com.spectre7.spmp.ui.component.LazyMediaItemLayoutColumn
@@ -31,7 +29,7 @@ import com.spectre7.spmp.ui.layout.LibraryPage
 
 @Composable
 fun MainPage(
-    pinned_items: MutableList<MediaItem>,
+    pinned_items: List<MediaItemHolder>,
     layoutsProvider: () -> List<MediaItemLayout>,
     scroll_state: LazyListState,
     feed_load_state: MutableState<FeedLoadState>,

@@ -36,6 +36,10 @@ import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.*
 import com.spectre7.spmp.api.DataApi
 import com.spectre7.spmp.model.*
+import com.spectre7.spmp.model.mediaitem.Artist
+import com.spectre7.spmp.model.mediaitem.MediaItem
+import com.spectre7.spmp.model.mediaitem.MediaItemThumbnailProvider
+import com.spectre7.spmp.model.mediaitem.Playlist
 import com.spectre7.spmp.platform.composable.PlatformAlertDialog
 import com.spectre7.spmp.platform.vibrateShort
 import com.spectre7.spmp.resources.getString

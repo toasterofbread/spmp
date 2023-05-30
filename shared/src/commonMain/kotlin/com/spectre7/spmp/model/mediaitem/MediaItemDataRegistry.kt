@@ -1,9 +1,10 @@
-package com.spectre7.spmp.model
+package com.spectre7.spmp.model.mediaitem
 
 import androidx.compose.runtime.*
 import com.beust.klaxon.Json
 import com.beust.klaxon.JsonObject
 import com.spectre7.spmp.api.DataApi
+import com.spectre7.spmp.model.Settings
 import com.spectre7.spmp.platform.ProjectPreferences
 import kotlinx.coroutines.GlobalScope
 import kotlinx.coroutines.async
@@ -19,9 +20,13 @@ class MediaItemDataRegistry {
     open class Entry {
         @Json(ignored = true)
         var item: MediaItem? = null
-
         @Json(ignored = true)
         val title_state: MutableState<String?> = mutableStateOf(null)
+
+        open fun clear() {
+            title = null
+            play_counts.clear()
+        }
 
         var title: String?
             get() = title_state.value
@@ -35,8 +40,7 @@ class MediaItemDataRegistry {
         @Suppress("UNCHECKED_CAST")
         var play_counts: MutableMap<Int, Int> = mutableStateMapOf()
             set(value) {
-                value as LinkedHashMap<String, Int>
-                for (entry in value) {
+                for (entry in value as Map<String, Int>) {
                     field[entry.key.toInt()] = entry.value
                 }
             }

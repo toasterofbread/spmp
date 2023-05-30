@@ -4,7 +4,7 @@ import SpMp
 import com.spectre7.spmp.api.DataApi.Companion.addYtHeaders
 import com.spectre7.spmp.api.DataApi.Companion.getStream
 import com.spectre7.spmp.api.DataApi.Companion.ytUrl
-import com.spectre7.spmp.model.*
+import com.spectre7.spmp.model.mediaitem.*
 import com.spectre7.spmp.ui.component.MediaItemLayout
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
@@ -77,7 +77,7 @@ suspend fun processDefaultResponse(item: MediaItem, data: MediaItemData, respons
     return withContext(Dispatchers.IO) {
         val response_body = response.getStream()
 
-        val re = run {
+        val ret = run {
             if (data is MediaItemWithLayoutsData) {
                 val parsed: YoutubeiBrowseResponse = DataApi.klaxon.parse(response_body)!!
                 response_body.close()
@@ -134,10 +134,13 @@ suspend fun processDefaultResponse(item: MediaItem, data: MediaItemData, respons
 
                         if (data is AccountPlaylistItemData) {
                             header_renderer.secondSubtitle?.runs?.also { second_subtitle ->
-                                check(second_subtitle.size == 2) { second_subtitle.toString() }
-
-                                data.supplyItemCount(second_subtitle[0].text.filter { it.isDigit() }.toInt(), true)
-                                data.supplyTotalDuration(parseYoutubeDurationString(second_subtitle[1].text, hl), true)
+                                for (run in second_subtitle.withIndex()) {
+                                    when (run.index) {
+                                        0 -> data.supplyItemCount(run.value.text.filter { it.isDigit() }.toInt(), true)
+                                        1 -> data.supplyTotalDuration(parseYoutubeDurationString(run.value.text, hl), true)
+                                        else -> throw NotImplementedError(second_subtitle.toString())
+                                    }
+                                }
                             }
                         }
 
@@ -203,8 +206,8 @@ suspend fun processDefaultResponse(item: MediaItem, data: MediaItemData, respons
             } else null
         }
 
-        if (re != null) {
-            return@withContext re
+        if (ret != null) {
+            return@withContext ret
         }
 
         check(item is Song)
@@ -245,7 +248,6 @@ suspend fun processDefaultResponse(item: MediaItem, data: MediaItemData, respons
 
 suspend fun loadMediaItemData(item: MediaItem): Result<MediaItem?> {
     val item_id = item.id
-
 
     if (item is Artist && item.is_for_item) {
         return Result.success(item)

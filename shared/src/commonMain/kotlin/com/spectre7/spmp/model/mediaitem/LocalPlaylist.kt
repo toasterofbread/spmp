@@ -1,4 +1,4 @@
-package com.spectre7.spmp.model
+package com.spectre7.spmp.model.mediaitem
 
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Box
@@ -13,18 +13,15 @@ import androidx.compose.ui.graphics.ImageBitmap
 import com.spectre7.spmp.api.*
 import com.spectre7.spmp.platform.PlatformContext
 import com.spectre7.spmp.resources.getString
-import com.spectre7.spmp.ui.component.MediaItemLayout
 import com.spectre7.spmp.ui.theme.Theme
 import com.spectre7.utils.addUnique
 import kotlinx.coroutines.Dispatchers
-import kotlinx.coroutines.Job
-import kotlinx.coroutines.launch
+import kotlinx.coroutines.delay
 import kotlinx.coroutines.sync.Mutex
 import kotlinx.coroutines.sync.withLock
 import kotlinx.coroutines.withContext
 import java.io.File
 import java.io.Reader
-import kotlin.coroutines.coroutineContext
 
 private fun getPlaylistsDirectory(context: PlatformContext): File =
     context.getFilesDir().resolve("localPlaylists")
@@ -52,10 +49,11 @@ private class LocalPlaylistItemData(item: LocalPlaylist): PlaylistItemData(item)
 class LocalPlaylist(id: String): Playlist(id) {
     override val data: PlaylistItemData = LocalPlaylistItemData(this)
 
-    override val items: MutableList<MediaItem> get() = data.items!!
-    override val is_editable: Boolean = true
-    override val playlist_type: PlaylistType = PlaylistType.PLAYLIST
+    override val items: MutableList<MediaItem> get() = checkNotDeleted(data.items!!)
+    override val is_editable: Boolean = checkNotDeleted(true)
+    override val playlist_type: PlaylistType = checkNotDeleted(PlaylistType.PLAYLIST)
     override val total_duration: Long? get() {
+        checkNotDeleted()
         var sum = 0L
         for (item in items) {
             if (item !is Song) {
@@ -68,7 +66,7 @@ class LocalPlaylist(id: String): Playlist(id) {
         }
         return sum
     }
-    override val item_count: Int get() = items.size
+    override val item_count: Int get() = checkNotDeleted(items.size)
 
     override fun addItem(item: MediaItem) {
         super.addItem(item)
@@ -92,20 +90,21 @@ class LocalPlaylist(id: String): Playlist(id) {
     }
 
     override suspend fun saveItems(): Result<Unit> {
+        checkNotDeleted()
         data.save()
         return Result.success(Unit)
     }
 
-    override fun isFullyLoaded(): Boolean = true
-    override suspend fun loadData(force: Boolean): Result<MediaItem?> = Result.success(this)
+    override fun isFullyLoaded(): Boolean = checkNotDeleted(true)
+    override suspend fun loadData(force: Boolean): Result<MediaItem?> = checkNotDeleted(Result.success(this))
 
-    override val url: String? = null
+    override val url: String? = checkNotDeleted(null)
 
-    override fun canLoadThumbnail(): Boolean = true
-    override fun downloadThumbnail(quality: MediaItemThumbnailProvider.Quality): Result<ImageBitmap> = Result.failure(NotImplementedError())
+    override fun canLoadThumbnail(): Boolean = checkNotDeleted(true)
+    override fun downloadThumbnail(quality: MediaItemThumbnailProvider.Quality): Result<ImageBitmap> = checkNotDeleted(Result.failure(NotImplementedError()))
 
-    override fun canGetThemeColour(): Boolean = true
-    override fun getThemeColour(): Color = super.getThemeColour() ?: Theme.current.accent
+    override fun canGetThemeColour(): Boolean = checkNotDeleted(true)
+    override fun getThemeColour(): Color = checkNotDeleted(super.getThemeColour() ?: Theme.current.accent)
 
     @Composable
     override fun Thumbnail(
@@ -114,6 +113,8 @@ class LocalPlaylist(id: String): Playlist(id) {
         contentColourProvider: (() -> Color)?,
         onLoaded: ((ImageBitmap) -> Unit)?
     ) {
+        checkNotDeleted()
+
         var image_item: MediaItem? by remember { mutableStateOf(null) }
         LaunchedEffect(playlist_reg_entry.image_item_uid) {
             image_item = playlist_reg_entry.image_item_uid?.let { uid ->
@@ -135,7 +136,8 @@ class LocalPlaylist(id: String): Playlist(id) {
         }
     }
 
-    suspend fun convertToAccountPlaylist(): Result<AccountPlaylist> {
+    suspend fun convertToAccountPlaylist(context: PlatformContext = SpMp.context): Result<AccountPlaylist> {
+        checkNotDeleted()
         check(DataApi.ytm_authenticated)
 
         val create_result = createAccountPlaylist(title.orEmpty(), description.orEmpty())
@@ -143,25 +145,38 @@ class LocalPlaylist(id: String): Playlist(id) {
             return create_result.cast()
         }
 
-        val playlist_id = create_result.getOrThrow()
+        val playlist_id = create_result.getOrThrow().let {
+            if (!it.startsWith("VL")) "VL$it" else it
+        }
 
         val add_result = addSongsToAccountPlaylist(playlist_id, items.mapNotNull { if (it is Song) it.id else null })
         if (add_result.isFailure) {
             return add_result.cast()
         }
 
-        val playlist = AccountPlaylist
-            .fromId(playlist_id)
+        val account_playlist = AccountPlaylist.fromId(playlist_id)
             .editPlaylistData {
                 supplyTitle(this@LocalPlaylist.title, true)
                 supplyDescription(this@LocalPlaylist.description, true)
                 supplyYear(this@LocalPlaylist.year, true)
-                supplyPlaylistType(Playlist.PlaylistType.PLAYLIST, true)
+                supplyPlaylistType(PlaylistType.PLAYLIST, true)
                 supplyArtist(DataApi.ytm_auth.own_channel, true)
                 supplyItems(this@LocalPlaylist.items, true)
             }
 
-        return Result.success(playlist)
+        account_playlist.playlist_reg_entry.apply {
+            image_item_uid = playlist_reg_entry.image_item_uid
+            title = playlist_reg_entry.title
+            play_counts = playlist_reg_entry.play_counts
+            saveRegistry()
+        }
+
+        account_playlist.loadData()
+
+        onReplaced(account_playlist)
+        deleteLocalPlaylist(context, id)
+
+        return Result.success(account_playlist)
     }
 
     interface Listener {
@@ -273,6 +288,9 @@ class LocalPlaylist(id: String): Playlist(id) {
                 val playlist = local_playlists!!.removeAt(index)
 
                 assert(file.delete())
+
+                playlist.registry_entry.clear()
+                playlist.saveRegistry()
 
                 for (listener in playlists_listeners) {
                     listener.onRemoved(index, playlist)

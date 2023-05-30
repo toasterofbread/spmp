@@ -24,8 +24,8 @@ import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.times
 import com.spectre7.spmp.PlayerServiceHost
-import com.spectre7.spmp.model.MediaItem
-import com.spectre7.spmp.model.Song
+import com.spectre7.spmp.model.mediaitem.MediaItem
+import com.spectre7.spmp.model.mediaitem.Song
 import com.spectre7.spmp.platform.PlayerDownloadManager
 import com.spectre7.spmp.platform.PlayerDownloadManager.DownloadStatus
 import com.spectre7.spmp.platform.vibrateShort
@@ -118,7 +118,8 @@ class MainOverlayMenu(
                 .size(button_size)
                 .padding(8.dp)
 
-            song.artist?.PreviewLong(MediaItem.PreviewParams(
+            song.artist?.PreviewLong(
+                MediaItem.PreviewParams(
                 contentColour = { Color.White },
             ))
 

@@ -1,4 +1,4 @@
-package com.spectre7.spmp.model
+package com.spectre7.spmp.model.mediaitem
 
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf

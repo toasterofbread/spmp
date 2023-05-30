@@ -1,15 +1,10 @@
-package com.spectre7.spmp.model
+package com.spectre7.spmp.model.mediaitem
 
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.setValue
 import com.spectre7.spmp.api.getSongLyrics
 import kotlinx.coroutines.*
-import kotlinx.coroutines.sync.Mutex
-import kotlinx.coroutines.sync.withLock
-import okhttp3.internal.wait
-import java.util.Objects
-import kotlin.concurrent.thread
 
 class SongLyricsHolder(private val song: Song) {
     var lyrics: Song.Lyrics? by mutableStateOf(null)

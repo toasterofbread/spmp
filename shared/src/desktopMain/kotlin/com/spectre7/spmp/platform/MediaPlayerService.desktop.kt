@@ -6,7 +6,7 @@ import androidx.compose.runtime.setValue
 import com.beust.klaxon.Klaxon
 import com.spectre7.spmp.api.getOrThrowHere
 import com.spectre7.spmp.model.Settings
-import com.spectre7.spmp.model.Song
+import com.spectre7.spmp.model.mediaitem.Song
 import kotlinx.coroutines.CoroutineScope
 import org.zeromq.SocketType
 import org.zeromq.ZContext

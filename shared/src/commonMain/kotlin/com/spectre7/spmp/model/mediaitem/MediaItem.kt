@@ -1,4 +1,4 @@
-package com.spectre7.spmp.model
+package com.spectre7.spmp.model.mediaitem
 
 import GlobalPlayerState
 import SpMp
@@ -16,6 +16,8 @@ import androidx.compose.ui.graphics.ImageBitmap
 import androidx.compose.ui.layout.ContentScale
 import com.beust.klaxon.*
 import com.spectre7.spmp.api.*
+import com.spectre7.spmp.model.Cache
+import com.spectre7.spmp.model.Settings
 import com.spectre7.spmp.platform.PlatformContext
 import com.spectre7.spmp.platform.ProjectPreferences
 import com.spectre7.spmp.platform.toImageBitmap
@@ -188,7 +190,9 @@ open class MediaItemData(open val data_item: MediaItem) {
 }
 
 @Suppress("PLATFORM_CLASS_MAPPED_TO_KOTLIN")
-abstract class MediaItem(id: String) {
+abstract class MediaItem(id: String): MediaItemHolder {
+    override val item: MediaItem get() = this
+    open fun getHolder(): MediaItemHolder = this
 
     private val _id: String = id
     val id: String get() {

@@ -9,7 +9,7 @@ import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import com.spectre7.spmp.model.Settings
-import com.spectre7.spmp.model.Song
+import com.spectre7.spmp.model.mediaitem.Song
 import com.spectre7.utils.BasicFuriganaText
 import com.spectre7.utils.composable.OnChangedEffect
 import com.spectre7.utils.composable.RecomposeOnInterval

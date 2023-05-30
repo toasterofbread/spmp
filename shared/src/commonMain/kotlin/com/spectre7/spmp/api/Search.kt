@@ -8,10 +8,10 @@ import androidx.compose.ui.graphics.vector.ImageVector
 import com.spectre7.spmp.api.DataApi.Companion.addYtHeaders
 import com.spectre7.spmp.api.DataApi.Companion.getStream
 import com.spectre7.spmp.api.DataApi.Companion.ytUrl
-import com.spectre7.spmp.model.Artist
-import com.spectre7.spmp.model.MediaItemType
-import com.spectre7.spmp.model.Playlist
-import com.spectre7.spmp.model.Song
+import com.spectre7.spmp.model.mediaitem.Artist
+import com.spectre7.spmp.model.mediaitem.MediaItemType
+import com.spectre7.spmp.model.mediaitem.Playlist
+import com.spectre7.spmp.model.mediaitem.Song
 import com.spectre7.spmp.resources.getStringTODO
 import com.spectre7.spmp.ui.component.MediaItemLayout
 import okhttp3.Request

@@ -1,9 +1,10 @@
-package com.spectre7.spmp.model
+package com.spectre7.spmp.model.mediaitem
 
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.graphics.ImageBitmap
+import com.spectre7.spmp.model.Settings
 import com.spectre7.spmp.platform.PlatformContext
 import com.spectre7.spmp.platform.toByteArray
 import com.spectre7.spmp.platform.toImageBitmap
@@ -12,7 +13,6 @@ import kotlinx.coroutines.job
 import kotlinx.coroutines.withContext
 import java.io.File
 import java.net.SocketTimeoutException
-import java.util.concurrent.ExecutorService
 
 class ThumbState(
     private val item: MediaItem,

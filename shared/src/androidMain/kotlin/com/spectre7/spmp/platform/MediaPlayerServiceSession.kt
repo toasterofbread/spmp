@@ -35,15 +35,14 @@ import com.google.common.util.concurrent.ListenableFuture
 import com.google.common.util.concurrent.MoreExecutors
 import com.spectre7.spmp.PlayerServiceHost
 import com.spectre7.spmp.exovisualiser.FFTAudioProcessor
-import com.spectre7.spmp.model.MediaItemThumbnailProvider
-import com.spectre7.spmp.model.Song
-import com.spectre7.spmp.model.SongLikeStatus
+import com.spectre7.spmp.model.mediaitem.MediaItemThumbnailProvider
+import com.spectre7.spmp.model.mediaitem.Song
+import com.spectre7.spmp.model.mediaitem.SongLikeStatus
 import kotlinx.coroutines.*
 import java.io.File
 import java.io.IOException
 import java.time.temporal.ChronoUnit
 import java.util.concurrent.Executors
-import kotlin.concurrent.thread
 
 private const val NOTIFICATION_ID = 2
 private const val NOTIFICATION_CHANNEL_ID = "playback_channel"

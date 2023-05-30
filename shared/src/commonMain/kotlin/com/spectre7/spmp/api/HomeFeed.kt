@@ -6,6 +6,7 @@ import com.spectre7.spmp.api.DataApi.Companion.addYtHeaders
 import com.spectre7.spmp.api.DataApi.Companion.getStream
 import com.spectre7.spmp.api.DataApi.Companion.ytUrl
 import com.spectre7.spmp.model.*
+import com.spectre7.spmp.model.mediaitem.*
 import com.spectre7.spmp.ui.component.MediaItemLayout
 import kotlinx.coroutines.launch
 import okhttp3.Request
@@ -110,6 +111,10 @@ fun getHomeFeed(min_rows: Int = -1, allow_cached: Boolean = true, params: String
 private fun processRows(rows: List<YoutubeiShelf>, hl: String): List<MediaItemLayout> {
     val ret = mutableListOf<MediaItemLayout>()
     for (row in rows) {
+        if (!row.implemented) {
+            continue
+        }
+
         when (val renderer = row.getRenderer()) {
             is MusicDescriptionShelfRenderer -> continue
             is MusicCarouselShelfRenderer -> {
@@ -294,7 +299,8 @@ data class YoutubeiShelf(
     val musicPlaylistShelfRenderer: MusicShelfRenderer? = null,
     val musicCardShelfRenderer: MusicCardShelfRenderer? = null,
     val gridRenderer: GridRenderer? = null,
-    val itemSectionRenderer: ItemSectionRenderer? = null
+    val itemSectionRenderer: ItemSectionRenderer? = null,
+    val musicTastebuilderShelfRenderer: Any? = null
 ) {
     init {
         assert(
@@ -305,8 +311,11 @@ data class YoutubeiShelf(
             || musicCardShelfRenderer != null
             || gridRenderer != null
             || itemSectionRenderer != null
-        )
+            || musicTastebuilderShelfRenderer != null
+        ) { "No known shelf renderer" }
     }
+
+    val implemented: Boolean get() = musicTastebuilderShelfRenderer == null
 
     val title: TextRun? get() =
         if (musicShelfRenderer != null) musicShelfRenderer.title?.runs?.firstOrNull()
@@ -329,7 +338,7 @@ data class YoutubeiShelf(
     }
 
     fun getMediaItemsAndSetIds(hl: String): List<Pair<MediaItem, String?>> {
-        return (musicShelfRenderer?.contents ?: musicCarouselShelfRenderer?.contents ?: musicPlaylistShelfRenderer?.contents ?: gridRenderer!!.items).mapNotNull {
+        return (musicShelfRenderer?.contents ?: musicCarouselShelfRenderer?.contents ?: musicPlaylistShelfRenderer?.contents ?: gridRenderer?.items ?: emptyList()).mapNotNull {
             return@mapNotNull it.toMediaItem(hl)
         }
     }

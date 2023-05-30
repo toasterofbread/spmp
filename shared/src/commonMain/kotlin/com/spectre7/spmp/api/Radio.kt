@@ -7,6 +7,7 @@ import com.spectre7.spmp.api.DataApi.Companion.addYtHeaders
 import com.spectre7.spmp.api.DataApi.Companion.getStream
 import com.spectre7.spmp.api.DataApi.Companion.ytUrl
 import com.spectre7.spmp.model.*
+import com.spectre7.spmp.model.mediaitem.*
 import com.spectre7.spmp.ui.component.MediaItemLayout
 import com.spectre7.utils.ValueListeners
 import kotlinx.coroutines.*

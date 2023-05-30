@@ -2,7 +2,7 @@ package com.spectre7.spmp.ui.layout.prefspage
 
 import com.spectre7.settings.model.*
 import com.spectre7.spmp.model.Settings
-import com.spectre7.spmp.model.Song
+import com.spectre7.spmp.model.mediaitem.Song
 import com.spectre7.spmp.resources.getString
 
 internal fun getDownloadCategory(): List<SettingsItem> {

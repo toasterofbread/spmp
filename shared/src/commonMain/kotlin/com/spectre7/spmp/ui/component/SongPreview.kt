@@ -28,6 +28,10 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.spectre7.spmp.PlayerServiceHost
 import com.spectre7.spmp.model.*
+import com.spectre7.spmp.model.mediaitem.MediaItem
+import com.spectre7.spmp.model.mediaitem.MediaItemThumbnailProvider
+import com.spectre7.spmp.model.mediaitem.Song
+import com.spectre7.spmp.model.mediaitem.mediaItemPreviewInteraction
 import com.spectre7.spmp.platform.PlayerDownloadManager.DownloadStatus
 import com.spectre7.spmp.resources.getString
 import com.spectre7.spmp.ui.component.multiselect.MediaItemMultiSelectContext
@@ -41,7 +45,7 @@ val SONG_THUMB_CORNER_ROUNDING = 10.dp
 
 @Composable
 fun SongPreviewSquare(
-    song: Song, 
+    song: Song,
     params: MediaItem.PreviewParams,
     queue_index: Int? = null
 ) {

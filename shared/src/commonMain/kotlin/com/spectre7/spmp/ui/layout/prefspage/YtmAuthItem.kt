@@ -5,8 +5,8 @@ import com.spectre7.settings.model.BasicSettingsValueState
 import com.spectre7.settings.model.SettingsItem
 import com.spectre7.settings.model.SettingsItemLargeToggle
 import com.spectre7.settings.model.SettingsValueState
-import com.spectre7.spmp.model.Artist
-import com.spectre7.spmp.model.MediaItem
+import com.spectre7.spmp.model.mediaitem.Artist
+import com.spectre7.spmp.model.mediaitem.MediaItem
 import com.spectre7.spmp.model.Settings
 import com.spectre7.spmp.model.YoutubeMusicAuthInfo
 import com.spectre7.spmp.platform.ProjectPreferences

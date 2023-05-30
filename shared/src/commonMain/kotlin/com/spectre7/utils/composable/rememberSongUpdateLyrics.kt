@@ -1,7 +1,7 @@
 package com.spectre7.utils.composable
 
 import androidx.compose.runtime.*
-import com.spectre7.spmp.model.Song
+import com.spectre7.spmp.model.mediaitem.Song
 import com.spectre7.utils.launchSingle
 
 @Composable

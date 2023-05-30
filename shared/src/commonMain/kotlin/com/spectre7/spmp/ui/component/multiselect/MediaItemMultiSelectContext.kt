@@ -18,6 +18,7 @@ import androidx.compose.ui.unit.dp
 import com.spectre7.spmp.PlayerServiceHost
 import com.spectre7.spmp.api.getOrReport
 import com.spectre7.spmp.model.*
+import com.spectre7.spmp.model.mediaitem.*
 import com.spectre7.spmp.platform.composable.PlatformAlertDialog
 import com.spectre7.spmp.resources.getString
 import com.spectre7.utils.getContrasted
@@ -26,12 +27,10 @@ import com.spectre7.utils.setAlpha
 import com.spectre7.spmp.ui.theme.Theme
 import com.spectre7.utils.composable.ShapedIconButton
 import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.joinAll
 import kotlinx.coroutines.launch
 
 class MediaItemMultiSelectContext(
-    val allow_songs: Boolean = true,
-    val allow_artists: Boolean = true,
-    val allow_playlists: Boolean = true,
     val nextRowSelectedItemActions: (@Composable ColumnScope.(MediaItemMultiSelectContext) -> Unit)? = null,
     val selectedItemActions: (@Composable RowScope.(MediaItemMultiSelectContext) -> Unit)? = null
 ) {
@@ -63,6 +62,12 @@ class MediaItemMultiSelectContext(
         }
     }
 
+    private fun onSelectedItemsChanged() {
+        if (selected_items.isEmpty() && Settings.KEY_MULTISELECT_CANCEL_WHEN_NONE_SELECTED.get()) {
+            setActive(false)
+        }
+    }
+
     fun getSelectedItems(): List<Pair<MediaItem, Int?>> = selected_items
     fun getUniqueSelectedItems(): Set<MediaItem> = selected_items.map { it.first }.toSet()
 
@@ -72,27 +77,19 @@ class MediaItemMultiSelectContext(
     }
 
     fun toggleItem(item: MediaItem, key: Int? = null) {
-        val allowed = when (item.type) {
-            MediaItemType.SONG -> allow_songs
-            MediaItemType.ARTIST -> allow_artists
-            MediaItemType.PLAYLIST_ACC, MediaItemType.PLAYLIST_LOC -> allow_playlists
-        }
-
-        if (!allowed) {
-            return
-        }
-
         val iterator = selected_items.iterator()
         while (iterator.hasNext()) {
             iterator.next().apply {
                 if (first == item && second == key) {
                     iterator.remove()
+                    onSelectedItemsChanged()
                     return
                 }
             }
         }
 
         selected_items.add(Pair(item, key))
+        onSelectedItemsChanged()
     }
 
     fun setItemSelected(item: MediaItem, selected: Boolean, key: Int? = null) {
@@ -101,9 +98,10 @@ class MediaItemMultiSelectContext(
                 return
             }
             selected_items.add(Pair(item, key))
+            onSelectedItemsChanged()
         }
-        else {
-            selected_items.removeIf { it.first == item && it.second == key }
+        else if (selected_items.removeIf { it.first == item && it.second == key }) {
+            onSelectedItemsChanged()
         }
     }
 
@@ -288,11 +286,13 @@ class MediaItemMultiSelectContext(
         // Delete playlist
         AnimatedVisibility(all_are_playlists && selected_items.isNotEmpty()) {
             IconButton({ coroutine_scope.launch {
-                for (playlist in getUniqueSelectedItems()) {
-                    if (playlist is Playlist) {
-                        playlist.deletePlaylist().getOrReport("deletePlaylist")
+                getUniqueSelectedItems().map { playlist ->
+                    launch {
+                        if (playlist is Playlist) {
+                            playlist.deletePlaylist().getOrReport("deletePlaylist")
+                        }
                     }
-                }
+                }.joinAll()
                 onActionPerformed()
             } }) {
                 Icon(Icons.Default.Delete, null)
@@ -301,13 +301,19 @@ class MediaItemMultiSelectContext(
     }
 
     @Composable
-    fun CollectionToggleButton(items: List<MediaItem>) {
+    fun CollectionToggleButton(items: List<MediaItemHolder>) {
         AnimatedVisibility(is_active) {
-            val all_selected by remember { derivedStateOf { items.all { isItemSelected(it) } } }
+            val all_selected by remember { derivedStateOf {
+                items.all {
+                    it.item?.let { item -> isItemSelected(item) } ?: false
+                }
+            } }
             Crossfade(all_selected) { selected ->
                 IconButton({
                     for (item in items) {
-                        setItemSelected(item, !selected)
+                        item.item?.also {
+                            setItemSelected(it, !selected)
+                        }
                     }
                 }) {
                     Icon(if (selected) Icons.Default.RadioButtonChecked else Icons.Default.RadioButtonUnchecked, null)

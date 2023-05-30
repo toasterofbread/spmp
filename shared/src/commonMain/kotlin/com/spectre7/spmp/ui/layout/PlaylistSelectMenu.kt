@@ -17,9 +17,9 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
-import com.spectre7.spmp.model.LocalPlaylist
-import com.spectre7.spmp.model.MediaItem
-import com.spectre7.spmp.model.Playlist
+import com.spectre7.spmp.model.mediaitem.LocalPlaylist
+import com.spectre7.spmp.model.mediaitem.MediaItem
+import com.spectre7.spmp.model.mediaitem.Playlist
 import com.spectre7.spmp.platform.composable.BackHandler
 import com.spectre7.spmp.resources.getString
 import com.spectre7.spmp.ui.component.LongPressMenuActionProvider

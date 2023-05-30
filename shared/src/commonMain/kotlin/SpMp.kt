@@ -26,11 +26,12 @@ import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.text.font.FontFamily
 import androidx.compose.ui.unit.IntOffset
 import androidx.compose.ui.unit.dp
+import com.beust.klaxon.Klaxon
 import com.spectre7.spmp.PlayerServiceHost
 import com.spectre7.spmp.api.DataApi
 import com.spectre7.spmp.api.YoutubeUITranslation
 import com.spectre7.spmp.model.Cache
-import com.spectre7.spmp.model.MediaItem
+import com.spectre7.spmp.model.mediaitem.MediaItem
 import com.spectre7.spmp.model.Settings
 import com.spectre7.spmp.platform.PlatformContext
 import com.spectre7.spmp.platform.ProjectPreferences
@@ -172,13 +173,29 @@ object SpMp {
     val app_name: String get() = getString("app_name")
 }
 
+private data class YoutubeiErrorResponse(val error: Error) {
+    data class Error(val message: String)
+    fun getMessage(): String = error.message
+}
+
 class ErrorManager(private val context: PlatformContext) {
-    val SIDE_PADDING = 10.dp
-    val INDICATOR_SIZE = 50.dp
+    private val SIDE_PADDING = 10.dp
+    private val INDICATOR_SIZE = 50.dp
 
     private val errors = mutableStateMapOf<String, Throwable>()
 
     fun onError(key: String, error: Throwable) {
+        if (error is RuntimeException && error.message != null) {
+            try {
+                val error_response: YoutubeiErrorResponse? = Klaxon().parse(error.message!!)
+                error_response?.apply {
+                    context.sendToast(getMessage(), long = true)
+                    return
+                }
+            }
+            finally {}
+        }
+
         errors[key] = Exception(error)
     }
 

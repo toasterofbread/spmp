@@ -11,7 +11,7 @@ import androidx.core.app.ActivityCompat
 import androidx.core.app.NotificationManagerCompat
 import com.spectre7.spmp.api.cast
 import com.spectre7.spmp.model.Settings
-import com.spectre7.spmp.model.Song
+import com.spectre7.spmp.model.mediaitem.Song
 import com.spectre7.spmp.platform.PlatformBinder
 import com.spectre7.spmp.platform.PlatformContext
 import com.spectre7.spmp.platform.PlatformServiceImpl

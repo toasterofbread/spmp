@@ -29,6 +29,7 @@ import com.spectre7.spmp.api.cast
 import com.spectre7.spmp.api.getHomeFeed
 import com.spectre7.spmp.api.getOrThrowHere
 import com.spectre7.spmp.model.*
+import com.spectre7.spmp.model.mediaitem.*
 import com.spectre7.spmp.platform.ProjectPreferences
 import com.spectre7.spmp.platform.composable.BackHandler
 import com.spectre7.spmp.platform.isScreenLarge
@@ -47,7 +48,6 @@ import com.spectre7.utils.init
 import com.spectre7.utils.toFloat
 import kotlinx.coroutines.*
 import java.util.concurrent.locks.ReentrantLock
-import kotlin.concurrent.thread
 
 enum class FeedLoadState { NONE, LOADING, CONTINUING }
 
@@ -83,7 +83,7 @@ class PlayerStateImpl: PlayerState(null, null, null) {
 
     val expansion_state = NowPlayingExpansionState(np_swipe_state)
 
-    private val pinned_items: MutableList<MediaItem> = mutableStateListOf()
+    private val pinned_items: MutableList<MediaItemHolder> = mutableStateListOf()
 
     override var np_theme_mode: ThemeMode by mutableStateOf(Settings.getEnum(Settings.KEY_NOWPLAYING_THEME_MODE))
     override var overlay_page: Triple<OverlayPage, Any?, MediaItem?>? by mutableStateOf(null)
@@ -115,10 +115,9 @@ class PlayerStateImpl: PlayerState(null, null, null) {
         Settings.prefs.addListener(prefs_listener)
 
         runBlocking {
-            for (item in Settings.INTERNAL_PINNED_ITEMS.get<Set<String>>()) {
-                val a = MediaItem.fromUid(item)
-                pinned_items.add(a)
-                println("PINNED ITEM $item ${a.javaClass}")
+            for (uid in Settings.INTERNAL_PINNED_ITEMS.get<Set<String>>()) {
+                val item = MediaItem.fromUid(uid)
+                pinned_items.add(item.getHolder())
             }
         }
     }
@@ -186,7 +185,11 @@ class PlayerStateImpl: PlayerState(null, null, null) {
             return
         }
 
-        setOverlayPage(OverlayPage.MEDIAITEM, item, from_current)
+        setOverlayPage(
+            OverlayPage.MEDIAITEM,
+            if (item is Playlist) item.getHolder() else item,
+            from_current
+        )
 
         if (np_swipe_state.value.targetValue != 0) {
             switchNowPlayingPage(0)
@@ -217,10 +220,10 @@ class PlayerStateImpl: PlayerState(null, null, null) {
 
     override fun onMediaItemPinnedChanged(item: MediaItem, pinned: Boolean) {
         if (pinned) {
-            pinned_items.addUnique(item)
+            pinned_items.addUnique(item.getHolder())
         }
         else {
-            pinned_items.remove(item)
+            pinned_items.removeAll { it.item == item }
         }
     }
 
@@ -411,6 +414,8 @@ class PlayerStateImpl: PlayerState(null, null, null) {
                             }
                         }
 
+                        pinned_items.removeAll { it.item == null }
+
                         MainPage(
                             pinned_items,
                             { main_page_layouts },
@@ -435,11 +440,19 @@ class PlayerStateImpl: PlayerState(null, null, null) {
                     )
                     OverlayPage.SETTINGS -> PrefsPage(pill_menu, close)
                     OverlayPage.MEDIAITEM -> Crossfade(page) { p ->
-                        when (val item = (p.second as MediaItem?)) {
+                        when (val item = p.second) {
                             null -> {}
                             is Artist -> ArtistPage(pill_menu, item, p.third, close)
-                            is Playlist -> PlaylistPage(pill_menu, item, p.third, close)
-                            else -> throw NotImplementedError()
+                            is PlaylistHolder -> {
+                                val playlist = item.item
+                                if (playlist != null) {
+                                    PlaylistPage(pill_menu, playlist, p.third, close)
+                                }
+                                else {
+                                    close()
+                                }
+                            }
+                            else -> throw NotImplementedError(item.javaClass.name)
                         }
                     }
                     OverlayPage.VIEW_MORE_URL -> TODO(page.second as String)

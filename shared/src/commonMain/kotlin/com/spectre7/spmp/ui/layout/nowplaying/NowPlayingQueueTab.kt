@@ -27,10 +27,10 @@ import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.unit.*
 import com.spectre7.spmp.PlayerServiceHost
 import com.spectre7.spmp.api.RadioModifier
-import com.spectre7.spmp.model.MediaItem
+import com.spectre7.spmp.model.mediaitem.MediaItem
 import com.spectre7.spmp.model.NowPlayingQueueRadioInfoPosition
 import com.spectre7.spmp.model.Settings
-import com.spectre7.spmp.model.Song
+import com.spectre7.spmp.model.mediaitem.Song
 import com.spectre7.spmp.platform.MediaPlayerRepeatMode
 import com.spectre7.spmp.platform.MediaPlayerService
 import com.spectre7.spmp.platform.vibrateShort
@@ -430,7 +430,8 @@ private fun CurrentRadioIndicator(
 
         Crossfade(if (show_radio_info) radio_item else if (multiselect_context.is_active) true else filters ) { state ->
             if (state is MediaItem) {
-                state.PreviewLong(MediaItem.PreviewParams(
+                state.PreviewLong(
+                    MediaItem.PreviewParams(
                     Modifier.padding(horizontal = horizontal_padding)
                 ))
             }

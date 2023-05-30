@@ -7,6 +7,10 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.unit.*
 import com.spectre7.spmp.api.*
 import com.spectre7.spmp.model.*
+import com.spectre7.spmp.model.mediaitem.Artist
+import com.spectre7.spmp.model.mediaitem.MediaItem
+import com.spectre7.spmp.model.mediaitem.MediaItemThumbnailProvider
+import com.spectre7.spmp.model.mediaitem.Song
 import com.spectre7.spmp.platform.*
 import com.spectre7.spmp.resources.getString
 import com.spectre7.utils.*

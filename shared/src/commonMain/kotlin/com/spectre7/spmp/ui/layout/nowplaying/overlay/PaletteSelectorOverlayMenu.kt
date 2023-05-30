@@ -20,14 +20,13 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.spectre7.spmp.PlayerServiceHost
-import com.spectre7.spmp.model.MediaItemThumbnailProvider
-import com.spectre7.spmp.model.Song
+import com.spectre7.spmp.model.mediaitem.MediaItemThumbnailProvider
+import com.spectre7.spmp.model.mediaitem.Song
 import com.spectre7.spmp.platform.generatePalette
 import com.spectre7.spmp.ui.layout.nowplaying.getNPBackground
 import com.spectre7.spmp.ui.layout.nowplaying.getNPOnBackground
 import com.spectre7.utils.composable.OnChangedEffect
 import com.spectre7.utils.setAlpha
-import kotlin.concurrent.thread
 import kotlin.math.roundToInt
 
 //const val PALETTE_SIMILAR_COLOUR_THRESHOLD = 0.1f

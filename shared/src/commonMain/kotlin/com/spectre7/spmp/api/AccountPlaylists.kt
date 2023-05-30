@@ -3,13 +3,10 @@ package com.spectre7.spmp.api
 import com.spectre7.spmp.api.DataApi.Companion.addYtHeaders
 import com.spectre7.spmp.api.DataApi.Companion.getStream
 import com.spectre7.spmp.api.DataApi.Companion.ytUrl
-import com.spectre7.spmp.model.AccountPlaylist
-import com.spectre7.spmp.ui.component.MediaItemLayout
+import com.spectre7.spmp.model.mediaitem.AccountPlaylist
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
 import okhttp3.Request
-
-private fun formatPlaylistId(playlist_id: String): String = playlist_id.removePrefix("VL")
 
 suspend fun getAccountPlaylists(): Result<List<AccountPlaylist>> = withContext(Dispatchers.IO) {
     val hl = SpMp.data_language
@@ -60,9 +57,12 @@ suspend fun createAccountPlaylist(title: String, description: String): Result<St
     val request = Request.Builder()
         .ytUrl("/youtubei/v1/playlist/create")
         .addYtHeaders()
-        .post(DataApi.getYoutubeiRequestBody(
-            mapOf("title" to title, "description" to description)
-        ))
+        .post(
+            DataApi.getYoutubeiRequestBody(
+                mapOf("title" to title, "description" to description),
+                DataApi.Companion.YoutubeiContextType.UI_LANGUAGE
+            )
+        )
         .build()
 
     val result = DataApi.request(request)
@@ -82,7 +82,7 @@ suspend fun deleteAccountPlaylist(playlist_id: String): Result<Unit> = withConte
         .ytUrl("/youtubei/v1/playlist/delete")
         .addYtHeaders()
         .post(DataApi.getYoutubeiRequestBody(mapOf(
-            "playlistId" to formatPlaylistId(playlist_id)
+            "playlistId" to AccountPlaylist.formatId(playlist_id)
         )))
         .build()
 
@@ -90,10 +90,10 @@ suspend fun deleteAccountPlaylist(playlist_id: String): Result<Unit> = withConte
 }
 
 interface AccountPlaylistEditAction {
-    fun getData(playlist: AccountPlaylist): Map<String, String>
+    fun getData(playlist: AccountPlaylist, current_set_ids: MutableList<String>): Map<String, String>
 
     class Add(private val song_id: String): AccountPlaylistEditAction {
-        override fun getData(playlist: AccountPlaylist): Map<String, String> = mapOf(
+        override fun getData(playlist: AccountPlaylist, current_set_ids: MutableList<String>): Map<String, String> = mapOf(
             "action" to "ACTION_ADD_VIDEO",
             "addedVideoId" to song_id,
             "dedupeOption" to "DEDUPE_OPTION_SKIP"
@@ -101,7 +101,7 @@ interface AccountPlaylistEditAction {
     }
 
     class Remove(private val index: Int): AccountPlaylistEditAction {
-        override fun getData(playlist: AccountPlaylist): Map<String, String> = mapOf(
+        override fun getData(playlist: AccountPlaylist, current_set_ids: MutableList<String>): Map<String, String> = mapOf(
             "action" to "ACTION_REMOVE_VIDEO",
             "removedVideoId" to playlist.items!![index].id,
             "setVideoId" to playlist.item_set_ids!![index]
@@ -112,20 +112,23 @@ interface AccountPlaylistEditAction {
         private val from: Int,
         private val to: Int
     ): AccountPlaylistEditAction {
-        override fun getData(playlist: AccountPlaylist): Map<String, String> {
-            val items = playlist.items!!
-            check(from in items.indices)
-            check(to in items.indices)
-
-            val set_ids = playlist.item_set_ids!!
+        override fun getData(playlist: AccountPlaylist, current_set_ids: MutableList<String>): Map<String, String> {
+            val set_ids = playlist.item_set_ids!!.toMutableList()
+            check(set_ids.size == playlist.items!!.size)
+            check(from != to)
 
             val ret =  mutableMapOf(
                 "action" to "ACTION_MOVE_VIDEO_BEFORE",
                 "setVideoId" to set_ids[from]
             )
-            if (to + 1 < items.size) {
-                ret["movedSetVideoIdSuccessor"] = set_ids[to]
+
+            val to_index = if (to > from) to + 1 else to
+            if (to_index in set_ids.indices) {
+                ret["movedSetVideoIdSuccessor"] = set_ids[to_index]
             }
+
+            set_ids.add(to, set_ids.removeAt(from))
+            playlist.item_set_ids = set_ids
 
             return ret
         }
@@ -137,13 +140,15 @@ suspend fun editAccountPlaylist(playlist: AccountPlaylist, actions: List<Account
         return Result.success(Unit)
     }
 
+    val current_set_ids: MutableList<String> = playlist.item_set_ids!!.toMutableList()
+
     return withContext(Dispatchers.IO) {
         val request = Request.Builder()
             .ytUrl("/youtubei/v1/browse/edit_playlist")
             .addYtHeaders()
             .post(DataApi.getYoutubeiRequestBody(mapOf(
-                "playlistId" to formatPlaylistId(playlist.id),
-                "actions" to actions.map { it.getData(playlist) }
+                "playlistId" to AccountPlaylist.formatId(playlist.id),
+                "actions" to actions.map { it.getData(playlist, current_set_ids) }
             )))
             .build()
 
@@ -168,10 +173,13 @@ suspend fun addSongsToAccountPlaylist(playlist_id: String, song_ids: List<String
         .ytUrl("/youtubei/v1/browse/edit_playlist")
         .addYtHeaders()
         .post(DataApi.getYoutubeiRequestBody(mapOf(
-            "playlistId" to formatPlaylistId(playlist_id),
+            "playlistId" to AccountPlaylist.formatId(playlist_id),
             "actions" to actions
         )))
         .build()
 
-    return@withContext DataApi.request(request).unit()
+    val result = DataApi.request(request)
+    result.getOrNull()?.close()
+
+    return@withContext result.unit()
 }

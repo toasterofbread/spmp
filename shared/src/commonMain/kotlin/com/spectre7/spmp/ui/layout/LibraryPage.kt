@@ -5,8 +5,6 @@ import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.animation.animateContentSize
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
-import androidx.compose.foundation.lazy.LazyRow
-import androidx.compose.foundation.lazy.items
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Add
 import androidx.compose.material.icons.filled.MusicNote
@@ -16,27 +14,24 @@ import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.*
-import androidx.compose.runtime.snapshots.SnapshotStateList
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
 import com.spectre7.spmp.PlayerServiceHost
 import com.spectre7.spmp.api.DataApi
 import com.spectre7.spmp.api.LocalisedYoutubeString
-import com.spectre7.spmp.model.AccountPlaylist
-import com.spectre7.spmp.model.LocalPlaylist
-import com.spectre7.spmp.model.MediaItem
-import com.spectre7.spmp.model.MediaItemType
+import com.spectre7.spmp.model.mediaitem.AccountPlaylist
+import com.spectre7.spmp.model.mediaitem.LocalPlaylist
+import com.spectre7.spmp.model.mediaitem.MediaItem
 import com.spectre7.spmp.platform.PlayerDownloadManager
 import com.spectre7.spmp.platform.PlayerDownloadManager.DownloadStatus
-import com.spectre7.spmp.platform.getDefaultPaddingValues
 import com.spectre7.spmp.resources.getString
+import com.spectre7.spmp.ui.component.MediaItemGrid
 import com.spectre7.spmp.ui.component.MediaItemLayout
 import com.spectre7.spmp.ui.component.PillMenu
 import com.spectre7.spmp.ui.component.multiselect.MediaItemMultiSelectContext
 import com.spectre7.spmp.ui.layout.mainpage.MINIMISED_NOW_PLAYING_HEIGHT
 import com.spectre7.spmp.ui.theme.Theme
-import com.spectre7.utils.addUnique
 import kotlinx.coroutines.launch
 
 @Composable
@@ -142,25 +137,25 @@ fun LibraryPage(
                     }
 
                     val local_playlists = LocalPlaylist.rememberLocalPlaylistsListener()
-                    val layout = remember {
-                        MediaItemLayout(
-                            null, null,
-                            MediaItemLayout.Type.ROW,
-                            local_playlists as MutableList<MediaItem>
+                    if (local_playlists.isNotEmpty()) {
+                        MediaItemGrid(
+                            local_playlists,
+                            Modifier.fillMaxWidth(),
+                            rows = 1,
+                            multiselect_context = multiselect_context
                         )
-                    }
-                    if (layout.items.isNotEmpty()) {
-                        layout.Layout(Modifier.fillMaxWidth(), multiselect_context = multiselect_context)
                     }
                     else {
                         Text(getString("library_playlists_empty"), Modifier.padding(top = 10.dp))
                     }
 
-                    MediaItemLayout(
-                        LocalisedYoutubeString.raw("Account playlists"), null,
-                        MediaItemLayout.Type.ROW,
-                        ytm_auth.own_playlists.map { AccountPlaylist.fromId(it) }.toMutableList()
-                    ).Layout(Modifier.fillMaxWidth(), multiselect_context = multiselect_context)
+                    MediaItemGrid(
+                        ytm_auth.own_playlists.map { AccountPlaylist.fromId(it) },
+                        Modifier.fillMaxWidth(),
+                        title = LocalisedYoutubeString.raw("Account playlists"),
+                        rows = 1,
+                        multiselect_context = multiselect_context
+                    )
                 }
             }
 

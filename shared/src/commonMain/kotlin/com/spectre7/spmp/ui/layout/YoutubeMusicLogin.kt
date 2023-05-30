@@ -7,8 +7,8 @@ import androidx.compose.runtime.*
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
 import com.spectre7.spmp.api.*
-import com.spectre7.spmp.model.Artist
-import com.spectre7.spmp.model.MediaItemThumbnailProvider
+import com.spectre7.spmp.model.mediaitem.Artist
+import com.spectre7.spmp.model.mediaitem.MediaItemThumbnailProvider
 import com.spectre7.spmp.model.YoutubeMusicAuthInfo
 import com.spectre7.spmp.platform.WebViewLogin
 import com.spectre7.spmp.platform.composable.PlatformAlertDialog

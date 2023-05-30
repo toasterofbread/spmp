@@ -1,7 +1,7 @@
 package com.spectre7.spmp.api
 
 import com.atilika.kuromoji.ipadic.Tokenizer
-import com.spectre7.spmp.model.Song
+import com.spectre7.spmp.model.mediaitem.Song
 import com.spectre7.utils.hasKanjiAndHiragana
 import com.spectre7.utils.isKanji
 import kotlinx.coroutines.Dispatchers

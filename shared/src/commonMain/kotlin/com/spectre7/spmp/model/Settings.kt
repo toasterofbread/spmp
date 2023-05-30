@@ -4,6 +4,8 @@ import SpMp
 import androidx.compose.runtime.*
 import com.beust.klaxon.Klaxon
 import com.spectre7.spmp.ProjectBuildConfig
+import com.spectre7.spmp.model.mediaitem.Artist
+import com.spectre7.spmp.model.mediaitem.Song
 import com.spectre7.spmp.platform.PlatformContext
 import com.spectre7.spmp.platform.ProjectPreferences
 import com.spectre7.spmp.resources.getString
@@ -135,7 +137,8 @@ enum class Settings {
 
     // Other
     KEY_OPEN_NP_ON_SONG_PLAYED,
-    KEY_MULTISELECT_CANCEL_ON_ACTION,
+    KEY_MULTISELECT_CANCEL_ON_ACTION, // TODO
+    KEY_MULTISELECT_CANCEL_WHEN_NONE_SELECTED, // TODO
     KEY_VOLUME_STEPS,
     KEY_PERSISTENT_QUEUE,
     KEY_ADD_SONGS_TO_HISTORY,
@@ -285,6 +288,7 @@ enum class Settings {
                 KEY_VOLUME_STEPS -> 50
                 KEY_OPEN_NP_ON_SONG_PLAYED -> true
                 KEY_MULTISELECT_CANCEL_ON_ACTION -> true
+                KEY_MULTISELECT_CANCEL_WHEN_NONE_SELECTED -> true
                 KEY_PERSISTENT_QUEUE -> true
                 KEY_ADD_SONGS_TO_HISTORY -> false
 

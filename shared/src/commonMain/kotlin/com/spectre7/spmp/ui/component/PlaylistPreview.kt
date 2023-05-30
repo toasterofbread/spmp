@@ -22,6 +22,7 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.spectre7.spmp.api.getOrReport
 import com.spectre7.spmp.model.*
+import com.spectre7.spmp.model.mediaitem.*
 import com.spectre7.spmp.resources.getString
 import com.spectre7.spmp.ui.component.multiselect.MediaItemMultiSelectContext
 import com.spectre7.utils.composable.WidthShrinkText
@@ -69,7 +70,7 @@ fun PlaylistPreviewSquare(
 @OptIn(ExperimentalFoundationApi::class)
 @Composable
 fun PlaylistPreviewLong(
-    playlist: Playlist, 
+    playlist: Playlist,
     params: MediaItem.PreviewParams
 ) {
     val long_press_menu_data = remember(playlist) {

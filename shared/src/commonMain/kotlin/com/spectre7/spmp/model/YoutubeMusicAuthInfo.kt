@@ -4,8 +4,9 @@ import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateListOf
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.setValue
-import com.spectre7.spmp.api.cast
 import com.spectre7.spmp.api.getAccountPlaylists
+import com.spectre7.spmp.model.mediaitem.AccountPlaylist
+import com.spectre7.spmp.model.mediaitem.Artist
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.runBlocking
 import kotlinx.coroutines.withContext
@@ -23,6 +24,9 @@ class YoutubeMusicAuthInfo: Set<String> {
 
     var own_playlists: MutableList<String> = mutableStateListOf()
         private set
+    fun onOwnPlaylistDeleted(playlist: AccountPlaylist) {
+        own_playlists.remove(playlist.id)
+    }
 
     fun initialisedOrNull(): YoutubeMusicAuthInfo? = if (initialised) this else null
     fun getOwnChannelOrNull(): Artist? = initialisedOrNull()?.own_channel

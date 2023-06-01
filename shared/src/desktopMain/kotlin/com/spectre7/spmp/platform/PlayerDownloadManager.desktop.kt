@@ -1,6 +1,7 @@
 package com.spectre7.spmp.platform
 
 import com.spectre7.spmp.model.mediaitem.Song
+import com.spectre7.spmp.model.mediaitem.enums.SongAudioQuality
 
 actual class PlayerDownloadManager actual constructor(context: PlatformContext) {
     actual class DownloadStatus {
@@ -8,7 +9,7 @@ actual class PlayerDownloadManager actual constructor(context: PlatformContext) 
             get() = TODO("Not yet implemented")
         actual val status: Status
             get() = TODO("Not yet implemented")
-        actual val quality: Song.AudioQuality
+        actual val quality: SongAudioQuality
             get() = TODO("Not yet implemented")
         actual val progress: Float
             get() = TODO("Not yet implemented")

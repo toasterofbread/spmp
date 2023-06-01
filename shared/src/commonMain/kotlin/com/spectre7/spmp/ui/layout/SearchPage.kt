@@ -27,9 +27,9 @@ import androidx.compose.ui.platform.LocalSoftwareKeyboardController
 import androidx.compose.ui.text.input.ImeAction
 import androidx.compose.ui.unit.*
 import com.spectre7.spmp.api.*
-import com.spectre7.spmp.model.mediaitem.MediaItemType
-import com.spectre7.spmp.model.mediaitem.Playlist
-import com.spectre7.spmp.model.mediaitem.getReadable
+import com.spectre7.spmp.model.mediaitem.enums.MediaItemType
+import com.spectre7.spmp.model.mediaitem.enums.PlaylistType
+import com.spectre7.spmp.model.mediaitem.enums.getReadable
 import com.spectre7.spmp.platform.composable.BackHandler
 import com.spectre7.spmp.resources.getString
 import com.spectre7.spmp.ui.component.MediaItemLayout
@@ -233,8 +233,8 @@ private fun SearchBar(
                             SearchType.VIDEO -> getString("search_filter_videos")
                             SearchType.SONG -> MediaItemType.SONG.getReadable(true)
                             SearchType.ARTIST -> MediaItemType.ARTIST.getReadable(true)
-                            SearchType.PLAYLIST -> Playlist.PlaylistType.PLAYLIST.getReadable(true)
-                            SearchType.ALBUM -> Playlist.PlaylistType.ALBUM.getReadable(true)
+                            SearchType.PLAYLIST -> PlaylistType.PLAYLIST.getReadable(true)
+                            SearchType.ALBUM -> PlaylistType.ALBUM.getReadable(true)
                         })
                     },
                     colors = FilterChipDefaults.filterChipColors(

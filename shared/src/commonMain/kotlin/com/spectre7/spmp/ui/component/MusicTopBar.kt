@@ -11,13 +11,14 @@ import com.spectre7.spmp.PlayerServiceHost
 import com.spectre7.spmp.model.MusicTopBarMode
 import com.spectre7.spmp.model.Settings
 import com.spectre7.spmp.model.mediaitem.Song
+import com.spectre7.spmp.model.SongLyrics
 import com.spectre7.spmp.platform.composable.platformClickable
 import com.spectre7.utils.composable.rememberSongUpdateLyrics
 
 private fun getModeState(mode: MusicTopBarMode, song: Song?): Any? {
     return when (mode) {
         MusicTopBarMode.LYRICS -> song?.lyrics?.lyrics?.let {  lyrics ->
-            if (lyrics.sync_type != Song.Lyrics.SyncType.NONE) lyrics else null
+            if (lyrics.sync_type != SongLyrics.SyncType.NONE) lyrics else null
         }
         MusicTopBarMode.VISUALISER -> mode
         MusicTopBarMode.NONE -> mode
@@ -62,7 +63,7 @@ fun MusicTopBar(
                 }
             },
             onAltClick = {
-                if (current_state is Song.Lyrics) {
+                if (current_state is SongLyrics) {
                     TODO()
                 }
             }
@@ -70,7 +71,7 @@ fun MusicTopBar(
     ) { s ->
         Box(Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
             when (s) {
-                is Song.Lyrics -> {
+                is SongLyrics -> {
                     LyricsLineDisplay(
                         s,
                         { PlayerServiceHost.status.position_ms + 500 }

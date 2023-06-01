@@ -1,7 +1,7 @@
 package com.spectre7.spmp.api
 
-import com.spectre7.spmp.api.DataApi.Companion.addYtHeaders
-import com.spectre7.spmp.api.DataApi.Companion.ytUrl
+import com.spectre7.spmp.api.Api.Companion.addYtHeaders
+import com.spectre7.spmp.api.Api.Companion.ytUrl
 import com.spectre7.spmp.model.mediaitem.*
 import okhttp3.Request
 
@@ -21,15 +21,15 @@ private suspend fun loadBrowseEndpoint(browse_endpoint: MediaItemBrowseEndpoint)
     val request = Request.Builder()
         .ytUrl("/youtubei/v1/browse")
         .addYtHeaders()
-        .post(DataApi.getYoutubeiRequestBody("""{"browse": "${browse_endpoint.id}"}"""))
+        .post(Api.getYoutubeiRequestBody("""{"browse": "${browse_endpoint.id}"}"""))
         .build()
 
-    val result = DataApi.request(request)
+    val result = Api.request(request)
     if (result.isFailure) {
         return result.cast()
     }
 
-    val parsed = DataApi.klaxon.parseArray<RelatedGroup<RelatedItem>>(result.getOrThrowHere().body!!.charStream())!!
+    val parsed = Api.klaxon.parseArray<RelatedGroup<RelatedItem>>(result.getOrThrowHere().body!!.charStream())!!
 
     return Result.success(List(parsed.size) { i ->
         val group = parsed[i]
@@ -40,10 +40,10 @@ private suspend fun loadBrowseEndpoint(browse_endpoint: MediaItemBrowseEndpoint)
                 val item = group.contents[j]
 
                 if (item.videoId != null) {
-                    Song.fromId(item.videoId).loadData().getOrThrowHere()!!
+                    Song.fromId(item.videoId)
                 }
                 else if (item.playlistId != null) {
-                    AccountPlaylist.fromId(item.playlistId).loadData().getOrThrowHere()!!
+                    AccountPlaylist.fromId(item.playlistId)
                 }
                 else if (item.browseId != null) {
 
@@ -55,7 +55,7 @@ private suspend fun loadBrowseEndpoint(browse_endpoint: MediaItemBrowseEndpoint)
                         media_item = AccountPlaylist.fromId(item.browseId).apply { addBrowseEndpoint(item.browseId, MediaItemBrowseEndpoint.Type.ALBUM) }
                     }
 
-                    media_item.loadData().getOrThrowHere()!!
+                    media_item
                 }
                 else {
                     throw NotImplementedError(item.toString())

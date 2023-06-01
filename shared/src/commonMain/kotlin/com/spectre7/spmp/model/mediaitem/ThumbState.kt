@@ -27,13 +27,13 @@ class ThumbState(
 
     suspend fun load(context: PlatformContext): Result<ImageBitmap> = withContext(Dispatchers.IO) {
         synchronized(load_lock) {
-            if (image != null) {
-                return@withContext Result.success(image!!)
+            image?.also {
+                return@withContext Result.success(it)
             }
 
             if (loading) {
                 load_lock.wait()
-                return@withContext Result.success(image!!)
+                return@withContext image?.let { Result.success(it) } ?: Result.failure(RuntimeException("Image not loaded"))
             }
             loading = true
             loaded = true

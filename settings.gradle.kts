@@ -39,8 +39,6 @@ dependencyResolutionManagement {
     }
 }
 
-apply(from = "androidApp/src/thirdparty/ExoPlayer/core_settings.gradle")
-
 includeBuild("androidApp/src/thirdparty/NewPipeExtractor") {
     dependencySubstitution {
         substitute(module("com.github.TeamNewPipe:NewPipeExtractor")).using(project(":extractor"))

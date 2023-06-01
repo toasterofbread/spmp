@@ -9,19 +9,28 @@ import com.spectre7.utils.ValueListeners
 import kotlin.concurrent.thread
 
 class SongLikeStatus(private val id: String) {
-    var status: Song.LikeStatus
+    enum class Status {
+        UNKNOWN, UNAVAILABLE, NEUTRAL, LIKED, DISLIKED;
+
+        val is_available: Boolean get() = when(this) {
+            LIKED, DISLIKED, NEUTRAL -> true
+            else -> false
+        }
+    }
+    
+    var status: Status
         get() = status_state.value
         private set(value) { status_state.value = value }
     val listeners = ValueListeners<SongLikeStatus>()
     var loading: Boolean by mutableStateOf(false)
         private set
 
-    private val status_state = mutableStateOf(Song.LikeStatus.UNKNOWN)
+    private val status_state = mutableStateOf(Status.UNKNOWN)
     private var set_liked_thread: Thread? = null
 
     @Synchronized
     fun setLiked(liked: Boolean?) {
-        if (status == Song.LikeStatus.UNAVAILABLE) {
+        if (status == Status.UNAVAILABLE) {
             return
         }
 
@@ -34,7 +43,7 @@ class SongLikeStatus(private val id: String) {
 
     fun updateStatus(in_thread: Boolean = true) {
         synchronized(status_state) {
-            if (loading || status == Song.LikeStatus.UNAVAILABLE) {
+            if (loading || status == Status.UNAVAILABLE) {
                 return
             }
             loading = true
@@ -48,14 +57,14 @@ class SongLikeStatus(private val id: String) {
                 result.fold(
                     { status ->
                         this.status = when (status) {
-                            true -> Song.LikeStatus.LIKED
-                            false -> Song.LikeStatus.DISLIKED
-                            null -> Song.LikeStatus.NEUTRAL
+                            true -> Status.LIKED
+                            false -> Status.DISLIKED
+                            null -> Status.NEUTRAL
                         }
                         listeners.call(this)
                     },
                     {
-                        status = Song.LikeStatus.UNAVAILABLE
+                        status = Status.UNAVAILABLE
                         listeners.call(this)
                     }
                 )

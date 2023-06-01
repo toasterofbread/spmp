@@ -2,7 +2,7 @@ package com.spectre7.spmp.ui.layout.prefspage
 
 import com.spectre7.settings.model.*
 import com.spectre7.spmp.model.Settings
-import com.spectre7.spmp.model.mediaitem.Song
+import com.spectre7.spmp.model.mediaitem.enums.SongAudioQuality
 import com.spectre7.spmp.resources.getString
 
 internal fun getDownloadCategory(): List<SettingsItem> {
@@ -25,8 +25,8 @@ internal fun getDownloadCategory(): List<SettingsItem> {
             getString("s_key_stream_audio_quality"), getString("s_sub_stream_audio_quality"), 3
         ) { i ->
             when (i) {
-                Song.AudioQuality.HIGH.ordinal -> getString("s_option_audio_quality_high")
-                Song.AudioQuality.MEDIUM.ordinal -> getString("s_option_audio_quality_medium")
+                SongAudioQuality.HIGH.ordinal -> getString("s_option_audio_quality_high")
+                SongAudioQuality.MEDIUM.ordinal -> getString("s_option_audio_quality_medium")
                 else -> getString("s_option_audio_quality_low")
             }
         },
@@ -36,8 +36,8 @@ internal fun getDownloadCategory(): List<SettingsItem> {
             getString("s_key_download_audio_quality"), getString("s_sub_download_audio_quality"), 3
         ) { i ->
             when (i) {
-                Song.AudioQuality.HIGH.ordinal -> getString("s_option_audio_quality_high")
-                Song.AudioQuality.MEDIUM.ordinal -> getString("s_option_audio_quality_medium")
+                SongAudioQuality.HIGH.ordinal -> getString("s_option_audio_quality_high")
+                SongAudioQuality.MEDIUM.ordinal -> getString("s_option_audio_quality_medium")
                 else -> getString("s_option_audio_quality_low")
             }
         }

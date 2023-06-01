@@ -2,6 +2,7 @@ package com.spectre7.spmp.api
 
 import com.atilika.kuromoji.ipadic.Tokenizer
 import com.spectre7.spmp.model.mediaitem.Song
+import com.spectre7.spmp.model.SongLyrics
 import com.spectre7.utils.hasKanjiAndHiragana
 import com.spectre7.utils.isKanji
 import kotlinx.coroutines.Dispatchers
@@ -15,36 +16,39 @@ import org.xmlpull.v1.XmlPullParserFactory
 import java.nio.channels.ClosedByInterruptException
 import java.util.*
 
-suspend fun getSongLyrics(song: Song, data: Pair<Int, Song.Lyrics.Source>?): Song.Lyrics? {
+suspend fun getSongLyrics(song: Song, data: Pair<Int, SongLyrics.Source>?): SongLyrics? {
     if (song.title == null) {
         return null
     }
 
-    val ret: Song.Lyrics =
+    val ret: SongLyrics =
         if (data != null)
-            getLyrics(data.first, data.second).getOrThrowHere()
+            getLyrics(data.first, data.second).getOrReport("getSongLyrics")
+                ?: return null
         else {
-            val results = searchForLyrics(song.title!!, song.artist?.title).getOrThrowHere()
+            val results = searchForLyrics(song.title!!, song.artist?.title).getOrReport("getSongLyrics")
+                ?: return null
             if (results.isEmpty()) {
                 return null
             }
 
             val lyrics = results.first()
-            getLyrics(lyrics.id, lyrics.source).getOrThrowHere()
+            getLyrics(lyrics.id, lyrics.source).getOrReport("getSongLyrics")
+                ?: return null
         }
 
     song.song_reg_entry.updateLyrics(ret.id, ret.source)
     return ret
 }
 
-fun getLyricsData(lyrics_id: Int, sync_type: Song.Lyrics.SyncType): Result<String> {
+fun getLyricsData(lyrics_id: Int, sync_type: SongLyrics.SyncType): Result<String> {
     val body = "key_lyricsId=$lyrics_id&lyricsType=${sync_type.ordinal + 1}&terminalType=10&clientAppId=on354007".toRequestBody("application/x-www-form-urlencoded; charset=utf-8".toMediaType())
     val request = Request.Builder()
         .url("https://p1.petitlyrics.com/api/GetPetitLyricsData.php")
         .post(body)
         .build()
 
-    val result = DataApi.request(request)
+    val result = Api.request(request)
     if (result.isFailure) {
         return result.cast()
     }
@@ -60,7 +64,7 @@ fun getLyricsData(lyrics_id: Int, sync_type: Song.Lyrics.SyncType): Result<Strin
     return Result.success(String(decoded))
 }
 
-private fun trimOkurigana(term: Song.Lyrics.Term.Text): List<Song.Lyrics.Term.Text> {
+private fun trimOkurigana(term: SongLyrics.Term.Text): List<SongLyrics.Term.Text> {
 
     if (term.furi == null || !term.text.hasKanjiAndHiragana()) {
         return listOf(term)
@@ -82,18 +86,18 @@ private fun trimOkurigana(term: Song.Lyrics.Term.Text): List<Song.Lyrics.Term.Te
         }
     }
 
-    val terms: MutableList<Song.Lyrics.Term.Text> = mutableListOf()
-    val last_term: Song.Lyrics.Term.Text
+    val terms: MutableList<SongLyrics.Term.Text> = mutableListOf()
+    val last_term: SongLyrics.Term.Text
 
     if (trim_start > 0) {
         terms.add(
-            Song.Lyrics.Term.Text(
+            SongLyrics.Term.Text(
                 term.text.substring(0, trim_start),
                 null
             )
         )
 
-        last_term = Song.Lyrics.Term.Text(
+        last_term = SongLyrics.Term.Text(
             term.text.substring(trim_start),
             term.furi!!.substring(trim_start)
         )
@@ -104,13 +108,13 @@ private fun trimOkurigana(term: Song.Lyrics.Term.Text): List<Song.Lyrics.Term.Te
 
     if (trim_end > 0) {
         terms.add(
-            Song.Lyrics.Term.Text(
+            SongLyrics.Term.Text(
                 last_term.text.substring(0, last_term.text.length - trim_end),
                 last_term.furi!!.substring(0, last_term.furi!!.length - trim_end)
             )
         )
         terms.add(
-            Song.Lyrics.Term.Text(
+            SongLyrics.Term.Text(
                 last_term.text.takeLast(trim_end),
                 null
             )
@@ -123,12 +127,12 @@ private fun trimOkurigana(term: Song.Lyrics.Term.Text): List<Song.Lyrics.Term.Te
     return terms
 }
 
-private fun mergeAndFuriganiseTerms(tokeniser: Tokenizer, terms: List<Song.Lyrics.Term>): List<Song.Lyrics.Term> {
+private fun mergeAndFuriganiseTerms(tokeniser: Tokenizer, terms: List<SongLyrics.Term>): List<SongLyrics.Term> {
     if (terms.isEmpty()) {
         return emptyList()
     }
 
-    val ret: MutableList<Song.Lyrics.Term> = mutableListOf()
+    val ret: MutableList<SongLyrics.Term> = mutableListOf()
     val line_range = terms.first().line_range!!
 
     var terms_text: String = ""
@@ -166,7 +170,7 @@ private fun mergeAndFuriganiseTerms(tokeniser: Tokenizer, terms: List<Song.Lyric
             }
         }
 
-        val term = Song.Lyrics.Term(trimOkurigana(Song.Lyrics.Term.Text(text, token.reading)), start, end)
+        val term = SongLyrics.Term(trimOkurigana(SongLyrics.Term.Text(text, token.reading)), start, end)
         term.line_range = line_range
         ret.add(term)
     }
@@ -174,23 +178,23 @@ private fun mergeAndFuriganiseTerms(tokeniser: Tokenizer, terms: List<Song.Lyric
     return ret
 }
 
-private fun parseStaticLyrics(data: String): List<List<Song.Lyrics.Term>> {
+private fun parseStaticLyrics(data: String): List<List<SongLyrics.Term>> {
     val tokeniser = Tokenizer()
 
-    val ret: MutableList<List<Song.Lyrics.Term>> = mutableListOf()
+    val ret: MutableList<List<SongLyrics.Term>> = mutableListOf()
 
     for (line in data.split('\n')) {
         val tokens = tokeniser.tokenize(line)
         ret.add(tokens.mapNotNull { token ->
             if (token.surface.isBlank()) null
-            else Song.Lyrics.Term(listOf(Song.Lyrics.Term.Text(token.surface, token.reading)))
+            else SongLyrics.Term(listOf(SongLyrics.Term.Text(token.surface, token.reading)))
         })
     }
 
     return ret
 }
 
-private fun parseTimedLyrics(data: String): List<List<Song.Lyrics.Term>> {
+private fun parseTimedLyrics(data: String): List<List<SongLyrics.Term>> {
     val parser = XmlPullParserFactory.newInstance().newPullParser()
     parser.setFeature(XmlPullParser.FEATURE_PROCESS_NAMESPACES, false)
     parser.setInput(data.reader())
@@ -222,7 +226,7 @@ private fun parseTimedLyrics(data: String): List<List<Song.Lyrics.Term>> {
         return result
     }
 
-    fun parseTerm(): Song.Lyrics.Term? {
+    fun parseTerm(): SongLyrics.Term? {
         parser.require(XmlPullParser.START_TAG, null, "word")
 
         var text: String? = null
@@ -248,7 +252,7 @@ private fun parseTimedLyrics(data: String): List<List<Song.Lyrics.Term>> {
             return null
         }
 
-        return Song.Lyrics.Term(listOf(Song.Lyrics.Term.Text(text)), start!!, end!!)
+        return SongLyrics.Term(listOf(SongLyrics.Term.Text(text)), start!!, end!!)
     }
 
     val tokeniser: Tokenizer
@@ -264,13 +268,13 @@ private fun parseTimedLyrics(data: String): List<List<Song.Lyrics.Term>> {
         }
     }
 
-    fun parseLine(): List<Song.Lyrics.Term> {
+    fun parseLine(): List<SongLyrics.Term> {
         parser.require(XmlPullParser.START_TAG, null, "line")
 
         var line_start: Long? = null
         var line_end: Long? = null
 
-        val terms: MutableList<Song.Lyrics.Term> = mutableListOf()
+        val terms: MutableList<SongLyrics.Term> = mutableListOf()
         while (parser.next() != XmlPullParser.END_TAG) {
             if (parser.eventType != XmlPullParser.START_TAG) {
                 continue
@@ -311,7 +315,7 @@ private fun parseTimedLyrics(data: String): List<List<Song.Lyrics.Term>> {
         return mergeAndFuriganiseTerms(tokeniser, terms)
     }
 
-    val ret: MutableList<List<Song.Lyrics.Term>> = mutableListOf()
+    val ret: MutableList<List<SongLyrics.Term>> = mutableListOf()
 
     parser.require(XmlPullParser.START_TAG, null, "wsy")
     while (parser.next() != XmlPullParser.END_TAG) {
@@ -343,25 +347,25 @@ private fun parseTimedLyrics(data: String): List<List<Song.Lyrics.Term>> {
     return ret
 }
 
-fun getLyrics(lyrics_id: Int, lyrics_source: Song.Lyrics.Source): Result<Song.Lyrics> {
+fun getLyrics(lyrics_id: Int, lyrics_source: SongLyrics.Source): Result<SongLyrics> {
     when (lyrics_source) {
-        Song.Lyrics.Source.PETITLYRICS -> {
-            for (sync_type in Song.Lyrics.SyncType.byPriority()) {
+        SongLyrics.Source.PETITLYRICS -> {
+            for (sync_type in SongLyrics.SyncType.byPriority()) {
                 val result = getLyricsData(lyrics_id, sync_type)
                 if (!result.isSuccess) {
                     return result.cast()
                 }
 
-                val lyrics: List<List<Song.Lyrics.Term>>
+                val lyrics: List<List<SongLyrics.Term>>
                 if (result.data.startsWith("<wsy>")) {
                     lyrics = parseTimedLyrics(result.data)
                 }
                 else {
                     lyrics = parseStaticLyrics(result.data)
-                    return Result.success(Song.Lyrics(lyrics_id, lyrics_source, Song.Lyrics.SyncType.NONE, lyrics))
+                    return Result.success(SongLyrics(lyrics_id, lyrics_source, SongLyrics.SyncType.NONE, lyrics))
                 }
 
-                return Result.success(Song.Lyrics(lyrics_id, lyrics_source, sync_type, lyrics))
+                return Result.success(SongLyrics(lyrics_id, lyrics_source, sync_type, lyrics))
             }
         }
     }
@@ -385,9 +389,9 @@ private fun concatParams(first: String, second: String): String {
 
 data class LyricsSearchResult(
     var id: Int,
-    val source: Song.Lyrics.Source,
+    val source: SongLyrics.Source,
     var name: String,
-    var sync_type: Song.Lyrics.SyncType,
+    var sync_type: SongLyrics.SyncType,
     var artist_id: String?,
     var artist_name: String?,
     var album_id: String?,
@@ -409,7 +413,7 @@ suspend fun searchForLyrics(title: String, artist: String?): Result<List<LyricsS
             .header("User-Agent", "Mozilla/5.0 (X11; Linux x86_64; rv:109.0) Gecko/20100101 Firefox/114.0")
             .build()
 
-        val result = DataApi.request(request)
+        val result = Api.request(request)
         if (result.isFailure) {
             return result.cast()
         }
@@ -417,9 +421,9 @@ suspend fun searchForLyrics(title: String, artist: String?): Result<List<LyricsS
         val ret = mutableListOf<LyricsSearchResult>()
 
         var r_id: Int? = null
-        val r_source: Song.Lyrics.Source = Song.Lyrics.Source.PETITLYRICS
+        val r_source: SongLyrics.Source = SongLyrics.Source.PETITLYRICS
         var r_name: String? = null
-        var r_sync_type: Song.Lyrics.SyncType? = null
+        var r_sync_type: SongLyrics.SyncType? = null
         var r_artist_id: String? = null
         var r_artist_name: String? = null
         var r_album_id: String? = null
@@ -432,7 +436,7 @@ suspend fun searchForLyrics(title: String, artist: String?): Result<List<LyricsS
             if (!line.startsWith(RESULT_START)) {
                 if (r_id != null && r_sync_type == null && line.startsWith(SYNC_TYPE_START)) {
                     val sync_type = line.substring(SYNC_TYPE_START.length, line.indexOf('"', SYNC_TYPE_START.length))
-                    r_sync_type = Song.Lyrics.SyncType.fromKey(sync_type)
+                    r_sync_type = SongLyrics.SyncType.fromKey(sync_type)
                 }
                 continue
             }

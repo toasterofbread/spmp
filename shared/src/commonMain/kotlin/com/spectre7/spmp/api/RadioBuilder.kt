@@ -1,11 +1,12 @@
 package com.spectre7.spmp.api
 
-import com.spectre7.spmp.api.DataApi.Companion.addYtHeaders
-import com.spectre7.spmp.api.DataApi.Companion.getStream
-import com.spectre7.spmp.api.DataApi.Companion.ytUrl
+import com.spectre7.spmp.api.Api.Companion.addYtHeaders
+import com.spectre7.spmp.api.Api.Companion.getStream
+import com.spectre7.spmp.api.Api.Companion.ytUrl
 import com.spectre7.spmp.model.mediaitem.AccountPlaylist
 import com.spectre7.spmp.model.mediaitem.MediaItemThumbnailProvider
 import com.spectre7.spmp.model.mediaitem.Playlist
+import com.spectre7.spmp.model.mediaitem.enums.PlaylistType
 import com.spectre7.spmp.resources.getString
 import okhttp3.Request
 
@@ -13,8 +14,8 @@ suspend fun getBuiltRadio(radio_token: String): Result<Playlist?> {
     require(radio_token.startsWith("VLRDAT"))
     require(radio_token.contains('E'))
 
-    val playlist = AccountPlaylist.fromId(radio_token).editPlaylistData { supplyPlaylistType(Playlist.PlaylistType.RADIO, true) }
-    val result = playlist.loadData(true)
+    val playlist = AccountPlaylist.fromId(radio_token).editPlaylistData { supplyPlaylistType(PlaylistType.RADIO, true) }
+    val result = playlist.getThumbnailProvider()
 
     if (result.isFailure) {
         return result.cast()
@@ -77,16 +78,16 @@ fun getRadioBuilderArtists(
     val request = Request.Builder()
         .ytUrl("/youtubei/v1/browse")
         .addYtHeaders()
-        .post(DataApi.getYoutubeiRequestBody("""{ "browseId": "FEmusic_radio_builder" }""", context = DataApi.Companion.YoutubeiContextType.ANDROID))
+        .post(Api.getYoutubeiRequestBody("""{ "browseId": "FEmusic_radio_builder" }""", context = Api.Companion.YoutubeiContextType.ANDROID))
         .build()
 
-    val result = DataApi.request(request)
+    val result = Api.request(request)
     if (!result.isSuccess) {
         return result.cast()
     }
 
     val strean = result.getOrThrow().getStream()
-    val parsed: RadioBuilderBrowseResponse = DataApi.klaxon.parse(strean)!!
+    val parsed: RadioBuilderBrowseResponse = Api.klaxon.parse(strean)!!
     strean.close()
 
     return Result.success(parsed.items.zip(parsed.mutations).map { artist ->

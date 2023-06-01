@@ -12,7 +12,7 @@ import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.geometry.Rect
 import androidx.compose.ui.geometry.Size
 import com.spectre7.spmp.PlayerServiceHost
-import com.spectre7.spmp.model.mediaitem.Song
+import com.spectre7.spmp.model.SongLyrics
 import com.spectre7.spmp.ui.layout.nowplaying.POSITION_UPDATE_INTERVAL_MS
 import com.spectre7.spmp.ui.layout.nowplaying.getNPBackground
 import kotlinx.coroutines.delay
@@ -20,7 +20,7 @@ import kotlin.math.abs
 
 @Composable
 fun LyricsTimingOverlay(
-    lyrics: Song.Lyrics,
+    lyrics: SongLyrics,
     full_line: Boolean,
     seek_state: Any,
     scroll_state: LazyListState,
@@ -78,11 +78,11 @@ fun LyricsTimingOverlay(
         while (true) {
             delay(POSITION_UPDATE_INTERVAL_MS)
 
-            if (lyrics.sync_type == Song.Lyrics.SyncType.NONE) {
+            if (lyrics.sync_type == SongLyrics.SyncType.NONE) {
                 return@LaunchedEffect
             }
 
-            val terms = mutableListOf<Song.Lyrics.Term>()
+            val terms = mutableListOf<SongLyrics.Term>()
             var offset: Offset? = null
 
             for (item in scroll_state.layoutInfo.visibleItemsInfo) {

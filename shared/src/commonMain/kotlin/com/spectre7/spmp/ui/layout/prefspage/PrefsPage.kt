@@ -17,6 +17,7 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.input.pointer.pointerInput
 import androidx.compose.ui.platform.LocalDensity
+import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
 import com.spectre7.composesettings.ui.SettingsInterface
 import com.spectre7.settings.model.*
@@ -25,7 +26,6 @@ import com.spectre7.spmp.platform.composable.BackHandler
 import com.spectre7.spmp.resources.getString
 import com.spectre7.spmp.ui.component.PillMenu
 import com.spectre7.spmp.ui.layout.*
-import com.spectre7.spmp.ui.layout.mainpage.MINIMISED_NOW_PLAYING_HEIGHT
 import com.spectre7.spmp.ui.theme.Theme
 import com.spectre7.utils.modifier.background
 import org.jetbrains.compose.resources.*
@@ -85,7 +85,7 @@ internal enum class PrefsPageCategory {
 
 @OptIn(ExperimentalMaterial3Api::class, ExperimentalResourceApi::class)
 @Composable
-fun PrefsPage(pill_menu: PillMenu, close: () -> Unit) {
+fun PrefsPage(pill_menu: PillMenu, bottom_padding: Dp, close: () -> Unit) {
     val ytm_auth = remember {
         SettingsValueState(
             Settings.KEY_YTM_AUTH.name,
@@ -144,7 +144,7 @@ fun PrefsPage(pill_menu: PillMenu, close: () -> Unit) {
         if (!open) {
             LazyColumn(
                 contentPadding = PaddingValues(
-                    bottom = MINIMISED_NOW_PLAYING_HEIGHT.dp,
+                    bottom = bottom_padding,
                     top = 20.dp,
                     start = 20.dp,
                     end = 20.dp
@@ -212,7 +212,7 @@ fun PrefsPage(pill_menu: PillMenu, close: () -> Unit) {
             ) {
                 settings_interface.Interface(
                     SpMp.context.getScreenHeight() - SpMp.context.getStatusBarHeight(),
-                    content_padding = PaddingValues(bottom = MINIMISED_NOW_PLAYING_HEIGHT.dp * 2f)
+                    content_padding = PaddingValues(bottom = bottom_padding)
                 )
             }
         }

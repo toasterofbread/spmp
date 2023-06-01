@@ -5,7 +5,7 @@ import androidx.compose.runtime.*
 import com.beust.klaxon.Klaxon
 import com.spectre7.spmp.ProjectBuildConfig
 import com.spectre7.spmp.model.mediaitem.Artist
-import com.spectre7.spmp.model.mediaitem.Song
+import com.spectre7.spmp.model.mediaitem.enums.SongAudioQuality
 import com.spectre7.spmp.platform.PlatformContext
 import com.spectre7.spmp.platform.ProjectPreferences
 import com.spectre7.spmp.resources.getString
@@ -227,8 +227,8 @@ enum class Settings {
                 KEY_LYRICS_EXTRA_PADDING -> false
                 KEY_LYRICS_ENABLE_WORD_SYNC -> false
 
-                KEY_STREAM_AUDIO_QUALITY -> Song.AudioQuality.MEDIUM.ordinal
-                KEY_DOWNLOAD_AUDIO_QUALITY -> Song.AudioQuality.MEDIUM.ordinal
+                KEY_STREAM_AUDIO_QUALITY -> SongAudioQuality.MEDIUM.ordinal
+                KEY_DOWNLOAD_AUDIO_QUALITY -> SongAudioQuality.MEDIUM.ordinal
 
                 KEY_AUTO_DOWNLOAD_ENABLED -> true
                 KEY_AUTO_DOWNLOAD_THRESHOLD -> 1 // Listens

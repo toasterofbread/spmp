@@ -18,10 +18,8 @@ const val MINIMISED_NOW_PLAYING_V_PADDING: Int = 10
 const val MEDIAITEM_PREVIEW_SQUARE_SIZE_SMALL: Float = 100f
 const val MEDIAITEM_PREVIEW_SQUARE_SIZE_LARGE: Float = 200f
 
-enum class OverlayPage { SEARCH, SETTINGS, MEDIAITEM, VIEW_MORE_URL, LIBRARY, RADIO_BUILDER, YTM_LOGIN, YTM_MANUAL_LOGIN }
-
 @Composable
-fun PlayerView(player: PlayerStateImpl) {
+fun RootView(player: PlayerStateImpl) {
     player.LongPressMenu()
 
     DisposableEffect(Unit) {
@@ -64,9 +62,9 @@ fun PlayerView(player: PlayerStateImpl) {
                     ) {
                         player.setOverlayPage(if (action_count == 1) null else
                             when (index) {
-                                0 -> OverlayPage.SEARCH
-                                1 -> OverlayPage.LIBRARY
-                                else -> OverlayPage.SETTINGS
+                                0 -> PlayerOverlayPage.SearchPage
+                                1 -> PlayerOverlayPage.LibraryPage
+                                else -> PlayerOverlayPage.SettingsPage
                             }
                         )
                         expand_state.value = false
@@ -77,7 +75,7 @@ fun PlayerView(player: PlayerStateImpl) {
                 container_modifier = player.nowPlayingTopOffset(Modifier)
             )
 
-            player.HomeFeed()
+            player.HomePage()
         }
 
         player.NowPlaying()

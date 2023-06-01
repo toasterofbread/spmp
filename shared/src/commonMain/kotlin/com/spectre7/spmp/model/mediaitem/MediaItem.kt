@@ -16,195 +16,45 @@ import androidx.compose.ui.graphics.ImageBitmap
 import androidx.compose.ui.layout.ContentScale
 import com.beust.klaxon.*
 import com.spectre7.spmp.api.*
-import com.spectre7.spmp.model.Cache
 import com.spectre7.spmp.model.Settings
+import com.spectre7.spmp.model.mediaitem.data.MediaItemData
+import com.spectre7.spmp.model.mediaitem.enums.MediaItemType
+import com.spectre7.spmp.model.mediaitem.enums.PlaylistType
 import com.spectre7.spmp.platform.PlatformContext
 import com.spectre7.spmp.platform.ProjectPreferences
 import com.spectre7.spmp.platform.toImageBitmap
-import com.spectre7.spmp.ui.component.multiselect.MediaItemMultiSelectContext
 import com.spectre7.utils.*
 import com.spectre7.utils.composable.SubtleLoadingIndicator
 import kotlinx.coroutines.*
 import java.io.File
 import java.io.FileNotFoundException
-import java.io.Reader
 import java.net.URL
 import java.time.Duration
 import java.util.*
 import java.util.concurrent.locks.ReentrantLock
-import kotlin.concurrent.thread
 import kotlin.concurrent.withLock
 
-open class MediaItemData(open val data_item: MediaItem) {
-
-    private var changes_made: Boolean = false
-    fun onChanged(cached: Boolean = false) {
-        if (!cached) {
-            changes_made = true
-        }
-    }
-
-    var original_title: String? by mutableStateOf(null)
-
-    val title_listeners = ValueListeners<String?>()
-    fun supplyTitle(value: String?, certain: Boolean = false, cached: Boolean = false): MediaItem {
-        if (value != original_title && (original_title == null || certain)) {
-            original_title = value
-            title_listeners.call(data_item.title)
-            onChanged(cached)
-        }
-        return data_item
-    }
-
-    var artist: Artist? by mutableStateOf(null)
-        private set
-
-    val artist_listeners = ValueListeners<Artist?>()
-    fun supplyArtist(value: Artist?, certain: Boolean = false, cached: Boolean = false): MediaItem {
-        if (data_item !is Artist && value != artist && (artist == null || certain)) {
-            artist = value
-            artist_listeners.call(artist)
-            onChanged(cached)
-        }
-        return data_item
-    }
-
-    var description: String? by mutableStateOf(null)
-        private set
-
-    fun supplyDescription(value: String?, certain: Boolean = false, cached: Boolean = false): MediaItem {
-        if (value != description && (description == null || certain)) {
-            description = value
-            onChanged(cached)
-        }
-        return data_item
-    }
-
-    var thumbnail_provider: MediaItemThumbnailProvider? by mutableStateOf(null)
-        private set
-
-    fun supplyThumbnailProvider(value: MediaItemThumbnailProvider?, certain: Boolean = false, cached: Boolean = false): MediaItem {
-        if (value != thumbnail_provider && (thumbnail_provider == null || certain)) {
-            thumbnail_provider = value
-            onChanged(cached)
-        }
-        return data_item
-    }
-
-    open fun getSerialisedData(klaxon: Klaxon = DataApi.klaxon): List<String> {
-        return listOf(
-            klaxon.toJsonString(original_title),
-            klaxon.toJsonString(artist?.id),
-            klaxon.toJsonString(description),
-            klaxon.toJsonString(thumbnail_provider)
-        )
-    }
-
-    open fun supplyFromSerialisedData(data: MutableList<Any?>, klaxon: Klaxon): MediaItemData {
-        require(data.size >= 4) { data }
-        data[data.size - 4]?.also { supplyTitle(it as String, cached = true) }
-        data[data.size - 3]?.also { supplyArtist(Artist.fromId(it as String), cached = true) }
-        data[data.size - 2]?.also { supplyDescription(it as String, cached = true) }
-        data[data.size - 1]?.also { supplyThumbnailProvider(MediaItemThumbnailProvider.fromJsonObject(it as JsonObject, klaxon), cached = true) }
-        return this
-    }
-
-    open fun supplyDataFromSubtitle(runs: List<TextRun>) {
-        var artist_found = false
-        for (run in runs) {
-            val type = run.browse_endpoint_type ?: continue
-            when (MediaItemType.fromBrowseEndpointType(type)) {
-                MediaItemType.ARTIST -> {
-                    val artist = run.navigationEndpoint?.browseEndpoint?.getMediaItem()
-                    if (artist != null) {
-                        supplyArtist(artist as Artist, true)
-                        artist_found = true
-                    }
-                }
-                MediaItemType.PLAYLIST_ACC -> {
-                    check(this is SongItemData)
-
-                    val playlist = run.navigationEndpoint?.browseEndpoint?.getMediaItem() as Playlist?
-                    if (playlist != null) {
-                        check(playlist.playlist_type == Playlist.PlaylistType.ALBUM)
-
-                        playlist.editData {
-                            supplyTitle(run.text, true)
-                        }
-                        supplyAlbum(playlist, true)
-                    }
-                }
-                else -> {}
-            }
-        }
-
-        if (!artist_found && data_item !is Artist) {
-            val artist = Artist.createForItem(data_item)
-            artist.editData {
-                supplyTitle(runs[1].text)
-            }
-            supplyArtist(artist)
-        }
-    }
-
-    fun load() {
-        val reader = getDataReader() ?: return
-        thread {
-            val array = DataApi.klaxon.parseJsonArray(reader)
-            reader.close()
-
-            runBlocking {
-                var retries = 5
-                while (retries-- > 0) {
-                    try {
-                        data_item.supplyFromSerialisedData(array.toMutableList(), DataApi.klaxon)
-                        break
-                    }
-                    catch (e: IllegalStateException) {
-                        delay(100)
-                        if (retries == 0) {
-                            throw e
-                        }
-                    }
-                }
-            }
-        }
-    }
-
-    protected open fun getDataReader(): Reader? = Cache.get(data_item.cache_key)
-
-    fun save() {
-        if (!changes_made) {
-            return
-        }
-        saveData(DataApi.mediaitem_klaxon.toJsonString(data_item))
-    }
-
-    protected open fun saveData(data: String) {
-        Cache.setString(
-            data_item.cache_key,
-            DataApi.mediaitem_klaxon.toJsonString(data_item),
-            MediaItem.CACHE_LIFETIME
-        )
-    }
-}
-
 @Suppress("PLATFORM_CLASS_MAPPED_TO_KOTLIN")
-abstract class MediaItem(id: String): MediaItemHolder {
-    override val item: MediaItem get() = this
-    open fun getHolder(): MediaItemHolder = this
+abstract class MediaItem(val id: String): MediaItemHolder {
+    val uid: String get() = "${type.ordinal}$id"
+    abstract val url: String?
 
-    private val _id: String = id
-    val id: String get() {
-        requireValid()
-        return _id
-    }
-    val uid: String get() = "${type.ordinal}$_id"
+    val type: MediaItemType
+        get() = when(this) {
+            is Song -> MediaItemType.SONG
+            is Artist -> MediaItemType.ARTIST
+            is AccountPlaylist -> MediaItemType.PLAYLIST_ACC
+            is LocalPlaylist -> MediaItemType.PLAYLIST_LOC
+            else -> throw NotImplementedError(this.javaClass.name)
+        }
 
     abstract val data: MediaItemData
     val registry_entry: MediaItemDataRegistry.Entry
 
-    open fun getDefaultRegistryEntry(): MediaItemDataRegistry.Entry = MediaItemDataRegistry.Entry().apply { item = this@MediaItem }
+    var pinned_to_home: Boolean by mutableStateOf(false)
+        private set
+    var loading: Boolean by mutableStateOf(false)
+        private set
 
     val original_title: String? get() = data.original_title
     val title: String? get() = registry_entry.title ?: original_title
@@ -216,45 +66,66 @@ abstract class MediaItem(id: String): MediaItemHolder {
     val description: String? get() = data.description
     val thumbnail_provider: MediaItemThumbnailProvider? get() = data.thumbnail_provider
 
+    suspend fun getTitle(): Result<String> {
+        title?.also { return Result.success(it) }
+        val result = loadGeneralData()
+        if (result.isFailure) {
+            return result.cast()
+        }
+        return title?.let {
+            Result.success(it)
+        } ?: Result.failure(RuntimeException("Title not loaded $this"))
+    }
+
+    suspend fun getDescription(): Result<String> {
+        description?.also { return Result.success(it) }
+        val result = loadGeneralData()
+        if (result.isFailure) {
+            return result.cast()
+        }
+        return description?.let {
+            Result.success(it)
+        } ?: Result.failure(RuntimeException("Description not loaded $this"))
+    }
+
+    suspend fun getArtist(): Result<Artist> {
+        artist?.also { return Result.success(it) }
+        val result = loadGeneralData()
+        if (result.isFailure) {
+            return result.cast()
+        }
+        return artist?.let {
+            Result.success(it)
+        } ?: Result.failure(RuntimeException("Artist not loaded $this"))
+    }
+
+    // TODO remove
+    suspend fun getThumbnailProvider(): Result<MediaItemThumbnailProvider> {
+        thumbnail_provider?.also { return Result.success(it) }
+        val result = loadGeneralData()
+        if (result.isFailure) {
+            return result.cast()
+        }
+        return thumbnail_provider?.let {
+            Result.success(it)
+        } ?: Result.failure(RuntimeException("Thumbnail provider not loaded"))
+    }
+
     open fun canLoadThumbnail(): Boolean = thumbnail_provider != null
+
+    override fun toString(): String {
+        val artist_str = if (this is Artist) "" else ", artist=$artist"
+        return "$type(id=$id, title=$title$artist_str)"
+    }
+
+    override val item: MediaItem get() = this
+    open fun getHolder(): MediaItemHolder = this
 
     fun supplyDataFromSubtitle(runs: List<TextRun>) {
         data.supplyDataFromSubtitle(runs)
     }
 
-    // Remove?
-    private var replaced_with: MediaItem? = null
-
-    var pinned_to_home: Boolean by mutableStateOf(false)
-        private set
-
-    private val thumb_states: Map<MediaItemThumbnailProvider.Quality, ThumbState>
-
-    init {
-        // Populate thumb_states
-        val states = mutableMapOf<MediaItemThumbnailProvider.Quality, ThumbState>()
-        for (quality in MediaItemThumbnailProvider.Quality.values()) {
-            states[quality] = ThumbState(this, quality, ::downloadThumbnail)
-        }
-        thumb_states = states
-
-        // Get registry
-        registry_entry = data_registry.getEntry(this)
-
-        // Get pinned status
-        pinned_to_home = Settings.INTERNAL_PINNED_ITEMS.get<Set<String>>().contains(uid)
-    }
-
-    val type: MediaItemType
-        get() = when(this) {
-        is Song -> MediaItemType.SONG
-        is Artist -> MediaItemType.ARTIST
-        is AccountPlaylist -> MediaItemType.PLAYLIST_ACC
-        is LocalPlaylist -> MediaItemType.PLAYLIST_LOC
-        else -> throw NotImplementedError(this.javaClass.name)
-    }
-
-    fun getSerialisedData(klaxon: Klaxon = DataApi.klaxon): List<String> {
+    fun getSerialisedData(klaxon: Klaxon = Api.klaxon): List<String> {
         return data.getSerialisedData(klaxon)
     }
 
@@ -262,12 +133,6 @@ abstract class MediaItem(id: String): MediaItemHolder {
         this@MediaItem.data.supplyFromSerialisedData(data, klaxon)
         return this
     }
-
-    open fun isFullyLoaded(): Boolean {
-        return original_title != null && artist != null && canLoadThumbnail()
-    }
-
-    val cache_key: String get() = getCacheKey(type, id)
 
     fun <T> editData(action: MediaItemData.() -> T): T {
         val ret = action(data)
@@ -281,11 +146,6 @@ abstract class MediaItem(id: String): MediaItemHolder {
         return ret
     }
 
-    fun editDataManual(action: (MediaItemData.() -> Unit)? = null): MediaItemData {
-        action?.invoke(data)
-        return data
-    }
-
     fun loadFromCache() {
         data.load()
     }
@@ -295,103 +155,9 @@ abstract class MediaItem(id: String): MediaItemHolder {
         return this
     }
 
-    private var loaded_callbacks: MutableList<(MediaItem) -> Unit>? = mutableListOf()
-    private val loading_lock = ReentrantLock()
-    private val load_condition = loading_lock.newCondition()
-
-    var loading: Boolean by mutableStateOf(false)
-        private set
-
-    fun onLoaded(action: (MediaItem) -> Unit) {
-        loading_lock.withLock {
-            if (isFullyLoaded()) {
-                action(this)
-            }
-            else {
-                loaded_callbacks!!.add(action)
-            }
-        }
-    }
-
-    open suspend fun loadData(force: Boolean = false): Result<MediaItem?> = withContext(Dispatchers.IO) {
-        if (!force && isFullyLoaded()) {
-            loaded_callbacks?.forEach { it.invoke(this@MediaItem) }
-            loaded_callbacks = null
-            return@withContext Result.success(getOrReplacedWith())
-        }
-
-        loading_lock.withLock {
-            if (loading) {
-                load_condition.await()
-                return@withContext Result.success(getOrReplacedWith())
-            }
-            loading = true
-        }
-
-        coroutineContext.job.invokeOnCompletion {
-            loading_lock.withLock {
-                load_condition.signalAll()
-            }
-        }
-
-        val result = loadMediaItemData(getOrReplacedWith())
-        loading_lock.withLock {
-            if (isFullyLoaded()) {
-                loaded_callbacks?.forEach { it.invoke(this@MediaItem) }
-                loaded_callbacks = null
-            }
-        }
-
-        return@withContext result
-    }
-
-    fun getOrReplacedWith(): MediaItem {
-        return replaced_with?.getOrReplacedWith() ?: this
-    }
-
-    fun replaceWithItemWithId(new_id: String): MediaItem {
-        if (_id == new_id) {
-            return this
-        }
-
-        if (replaced_with != null) {
-            if (replaced_with!!.getOrReplacedWith()._id == new_id) {
-                return replaced_with!!.getOrReplacedWith()
-            }
-            throw IllegalStateException()
-        }
-
-        invalidate()
-
-        replaced_with = when (type) {
-            MediaItemType.SONG -> Song.fromId(new_id)
-            MediaItemType.ARTIST -> Artist.fromId(new_id)
-            MediaItemType.PLAYLIST_ACC -> AccountPlaylist.fromId(new_id)
-            else -> TODO()
-        }
-
-        return replaced_with!!
-    }
-
-    abstract val url: String?
-
-    private val _related_endpoints = mutableListOf<MediaItemBrowseEndpoint>()
+    private val _related_endpoints: MutableList<MediaItemBrowseEndpoint> = mutableListOf()
     val related_endpoints: List<MediaItemBrowseEndpoint>
         get() = _related_endpoints
-
-    private var invalidation_exception: Throwable? = null
-    val is_valid: Boolean
-        get() = invalidation_exception == null
-
-    private fun invalidate() {
-        invalidation_exception = RuntimeException()
-    }
-
-    fun requireValid() {
-        if (invalidation_exception != null) {
-            throw IllegalStateException("$this (replaced with $replaced_with) must be valid. Invalidated at cause.", invalidation_exception)
-        }
-    }
 
     fun addBrowseEndpoint(id: String, type: MediaItemBrowseEndpoint.Type): Boolean {
         for (endpoint in _related_endpoints) {
@@ -403,49 +169,38 @@ abstract class MediaItem(id: String): MediaItemHolder {
         return true
     }
 
-    fun addBrowseEndpoint(id: String, type_name: String): Boolean {
-        return addBrowseEndpoint(id, MediaItemBrowseEndpoint.Type.fromString(type_name))
-    }
+    fun getThumbUrl(quality: MediaItemThumbnailProvider.Quality): String? =
+        thumbnail_provider?.getThumbnailUrl(quality)
 
-    fun getThumbUrl(quality: MediaItemThumbnailProvider.Quality): String? {
-        return thumbnail_provider?.getThumbnailUrl(quality)
-    }
+    fun isThumbnailLoaded(quality: MediaItemThumbnailProvider.Quality): Boolean =
+        thumb_states[quality]!!.image != null
 
-    fun isThumbnailLoaded(quality: MediaItemThumbnailProvider.Quality): Boolean {
-        return thumb_states[quality]!!.image != null
-    }
-
-    suspend fun loadThumbnail(quality: MediaItemThumbnailProvider.Quality, context: PlatformContext = SpMp.context): ImageBitmap? {
+    suspend fun loadThumbnail(quality: MediaItemThumbnailProvider.Quality, context: PlatformContext = SpMp.context, allow_lower: Boolean = false): ImageBitmap? {
         if (!canLoadThumbnail()) {
             return null
         }
 
-        val state = thumb_states[quality]!!
-        state.load(context)
-        return state.image
+        for (q in quality.ordinal downTo 0) {
+            val state = thumb_states[quality]!!
+            state.load(context)
+
+            if (state.image != null) {
+                return state.image
+            }
+
+            if (!allow_lower) {
+                break
+            }
+        }
+
+        return null
     }
 
-    fun getThumbnail(quality: MediaItemThumbnailProvider.Quality): ImageBitmap? = thumb_states[quality]!!.image
+    fun getThumbnail(quality: MediaItemThumbnailProvider.Quality): ImageBitmap? =
+        thumb_states[quality]!!.image
 
-    fun getThumbnailLocalFile(quality: MediaItemThumbnailProvider.Quality, context: PlatformContext = SpMp.context): File = thumb_states[quality]!!.getCacheFile(context)
-
-    protected open fun downloadThumbnail(quality: MediaItemThumbnailProvider.Quality): Result<ImageBitmap> {
-        val url = getThumbUrl(quality) ?: return Result.failure(RuntimeException("getThumbUrl returned null"))
-
-        try {
-            val connection = URL(url).openConnection()
-            connection.connectTimeout = DEFAULT_CONNECT_TIMEOUT
-
-            val stream = connection.getInputStream()
-            val bytes = stream.readBytes()
-            stream.close()
-
-            return Result.success(bytes.toImageBitmap())
-        }
-        catch (e: FileNotFoundException) {
-            return Result.failure(e)
-        }
-    }
+    fun getThumbnailLocalFile(quality: MediaItemThumbnailProvider.Quality, context: PlatformContext = SpMp.context): File =
+        thumb_states[quality]!!.getCacheFile(context)
 
     fun setPinnedToHome(value: Boolean) {
         if (value == pinned_to_home) {
@@ -466,18 +221,10 @@ abstract class MediaItem(id: String): MediaItemHolder {
         GlobalPlayerState.onMediaItemPinnedChanged(this, value)
     }
 
-    data class PreviewParams(
-        val modifier: Modifier = Modifier,
-        val contentColour: (() -> Color)? = null,
-        val enable_long_press_menu: Boolean = true,
-        val show_type: Boolean = true,
-        val multiselect_context: MediaItemMultiSelectContext? = null
-    )
-
     @Composable
-    abstract fun PreviewSquare(params: PreviewParams)
+    abstract fun PreviewSquare(params: MediaItemPreviewParams)
     @Composable
-    abstract fun PreviewLong(params: PreviewParams)
+    abstract fun PreviewLong(params: MediaItemPreviewParams)
 
     @Composable
     open fun getThumbnailHolder(): MediaItem = this
@@ -492,7 +239,7 @@ abstract class MediaItem(id: String): MediaItemHolder {
         val thumb_item = getThumbnailHolder()
         LaunchedEffect(thumb_item, quality, thumb_item.canLoadThumbnail()) {
             if (!thumb_item.canLoadThumbnail()) {
-                thumb_item.loadData()
+                thumb_item.getThumbnailProvider().getOrReport("MediaItemThumbnail") ?: return@LaunchedEffect
             }
             thumb_item.loadThumbnail(quality)
         }
@@ -511,7 +258,7 @@ abstract class MediaItem(id: String): MediaItemHolder {
         }
         else if (state.image != null) {
             state.image!!.also { thumbnail ->
-                if (!loaded && state.quality == quality) {
+                if (!loaded) {
                     onLoaded?.invoke(thumbnail)
                     loaded = true
                 }
@@ -547,11 +294,6 @@ abstract class MediaItem(id: String): MediaItemHolder {
         return null
     }
 
-    override fun toString(): String {
-        val artist_str = if (this is Artist) "" else ", artist=$artist"
-        return "$type(id=$_id, title=$title$artist_str)"
-    }
-
     fun saveRegistry() {
         data_registry.save()
     }
@@ -560,14 +302,81 @@ abstract class MediaItem(id: String): MediaItemHolder {
         saveRegistry()
     }
 
+    private val thumb_states: Map<MediaItemThumbnailProvider.Quality, ThumbState>
+
+    private var loaded_callbacks: MutableList<(MediaItem) -> Unit>? = mutableListOf()
+    private val loading_lock = ReentrantLock()
+    private val load_condition = loading_lock.newCondition()
+    private var load_result: Result<Unit>? = null
+
+    init {
+        // Populate thumb_states
+        val states = mutableMapOf<MediaItemThumbnailProvider.Quality, ThumbState>()
+        for (quality in MediaItemThumbnailProvider.Quality.values()) {
+            states[quality] = ThumbState(this, quality, ::downloadThumbnail)
+        }
+        thumb_states = states
+
+        // Get registry
+        registry_entry = data_registry.getEntry(this, this::getDefaultRegistryEntry)
+
+        // Get pinned status
+        pinned_to_home = Settings.INTERNAL_PINNED_ITEMS.get<Set<String>>().contains(uid)
+    }
+
+    protected open suspend fun loadGeneralData(): Result<Unit> = withContext(Dispatchers.IO) {
+        loading_lock.withLock {
+            if (loading) {
+                load_condition.await()
+                return@withContext load_result ?: Result.failure(CancellationException())
+            }
+            loading = true
+        }
+
+        coroutineContext.job.invokeOnCompletion {
+            loading_lock.withLock {
+                load_condition.signalAll()
+                load_result = null
+            }
+        }
+
+        load_result = loadMediaItemData(this@MediaItem)
+        loading_lock.withLock {
+            loaded_callbacks?.forEach { it.invoke(this@MediaItem) }
+            loaded_callbacks = null
+        }
+
+        return@withContext load_result!!
+    }
+
+    protected open fun getDefaultRegistryEntry(): MediaItemDataRegistry.Entry = MediaItemDataRegistry.Entry().apply { item = this@MediaItem }
+
+    protected open fun downloadThumbnail(quality: MediaItemThumbnailProvider.Quality): Result<ImageBitmap> {
+        val url = getThumbUrl(quality) ?: return Result.failure(RuntimeException("getThumbUrl returned null"))
+
+        try {
+            val connection = URL(url).openConnection()
+            connection.connectTimeout = DEFAULT_CONNECT_TIMEOUT
+
+            val stream = connection.getInputStream()
+            val bytes = stream.readBytes()
+            stream.close()
+
+            return Result.success(bytes.toImageBitmap())
+        }
+        catch (e: FileNotFoundException) {
+            return Result.failure(e)
+        }
+    }
+
     companion object {
         val CACHE_LIFETIME: Duration = Duration.ofDays(1)
-        val data_registry: MediaItemDataRegistry = MediaItemDataRegistry()
+        private val data_registry: MediaItemDataRegistry = MediaItemDataRegistry()
 
-        fun getCacheKey(type: MediaItemType, id: String): String {
-            return "M/${type.name}/$id"
+        fun init(prefs: ProjectPreferences) {
+            data_registry.load(prefs)
         }
-        
+
         suspend fun fromUid(uid: String): MediaItem {
             val type_index = uid[0].toString().toInt()
             require(type_index in 0 until MediaItemType.values().size) { uid }
@@ -575,12 +384,8 @@ abstract class MediaItem(id: String): MediaItemHolder {
             val type = MediaItemType.values()[type_index]
             return type.fromId(uid.substring(1))
         }
-        
-        fun init(prefs: ProjectPreferences) {
-            data_registry.load(prefs)
-        }
 
-        fun fromDataItems(data: List<Any?>, klaxon: Klaxon = DataApi.klaxon): MediaItem {
+        fun fromDataItems(data: List<Any?>, klaxon: Klaxon = Api.klaxon): MediaItem {
             require(data.size >= 2)
 
             val type = MediaItemType.values()[data[0] as Int]
@@ -606,7 +411,7 @@ abstract class MediaItem(id: String): MediaItemHolder {
         fun fromBrowseEndpointType(page_type: String, id: String): MediaItem {
             return when (page_type) {
                 "MUSIC_PAGE_TYPE_PLAYLIST", "MUSIC_PAGE_TYPE_ALBUM", "MUSIC_PAGE_TYPE_AUDIOBOOK" ->
-                    AccountPlaylist.fromId(id).editPlaylistData { supplyPlaylistType(Playlist.PlaylistType.fromTypeString(page_type), true) }
+                    AccountPlaylist.fromId(id).editPlaylistData { supplyPlaylistType(PlaylistType.fromTypeString(page_type), true) }
                 "MUSIC_PAGE_TYPE_ARTIST", "MUSIC_PAGE_TYPE_USER_CHANNEL" ->
                     Artist.fromId(id)
                 else -> throw NotImplementedError(page_type)

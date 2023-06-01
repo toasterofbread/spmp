@@ -19,12 +19,13 @@ import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.graphics.ImageBitmap
 import androidx.compose.ui.text.input.ImeAction
 import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.times
 import com.spectre7.spmp.PlayerServiceHost
-import com.spectre7.spmp.model.mediaitem.MediaItem
+import com.spectre7.spmp.model.mediaitem.MediaItemPreviewParams
 import com.spectre7.spmp.model.mediaitem.Song
 import com.spectre7.spmp.platform.PlayerDownloadManager
 import com.spectre7.spmp.platform.PlayerDownloadManager.DownloadStatus
@@ -52,7 +53,8 @@ class MainOverlayMenu(
         expansion: Float,
         openShutterMenu: (@Composable () -> Unit) -> Unit,
         close: () -> Unit,
-        getSeekState: () -> Any
+        getSeekState: () -> Any,
+        getCurrentSongThumb: () -> ImageBitmap?
     ) {
 
         val download_progress = remember { Animatable(0f) }
@@ -119,9 +121,10 @@ class MainOverlayMenu(
                 .padding(8.dp)
 
             song.artist?.PreviewLong(
-                MediaItem.PreviewParams(
+                MediaItemPreviewParams(
                 contentColour = { Color.White },
-            ))
+            )
+            )
 
             var edited_song_title by remember(song) { mutableStateOf(song.title!!) }
             OutlinedTextField(

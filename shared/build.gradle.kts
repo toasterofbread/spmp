@@ -88,11 +88,6 @@ kotlin {
                 api("androidx.core:core-ktx:1.9.0")
                 api("androidx.appcompat:appcompat:1.6.1")
 
-                // Exoplayer
-                implementation(project(":library-core"))
-                implementation(project(":library-ui"))
-                implementation(project(":extension-mediasession"))
-
                 implementation("androidx.media3:media3-exoplayer:1.0.2")
                 implementation("androidx.media3:media3-ui:1.0.2")
                 implementation("androidx.media3:media3-session:1.0.2")

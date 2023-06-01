@@ -5,7 +5,7 @@ import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.setValue
 import com.beust.klaxon.*
-import com.spectre7.spmp.api.DataApi.Companion.getStream
+import com.spectre7.spmp.api.Api.Companion.getStream
 import com.spectre7.spmp.model.Cache
 import com.spectre7.spmp.model.mediaitem.MediaItem
 import com.spectre7.spmp.model.Settings
@@ -89,7 +89,7 @@ fun <T> Result<T>.getOrReport(error_key: String): T? {
     )
 }
 
-class DataApi {
+class Api {
 
     companion object {
         private val client: OkHttpClient = OkHttpClient.Builder().callTimeout(Duration.ofMillis(DEFAULT_CONNECT_TIMEOUT.toLong())).build().also {

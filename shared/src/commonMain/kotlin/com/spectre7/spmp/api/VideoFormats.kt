@@ -1,6 +1,6 @@
 package com.spectre7.spmp.api
 
-import com.spectre7.spmp.model.mediaitem.Song
+import com.spectre7.spmp.model.mediaitem.enums.SongAudioQuality
 import com.spectre7.spmp.resources.getString
 import okhttp3.Request
 import org.schabi.newpipe.extractor.NewPipe
@@ -19,10 +19,10 @@ private fun checkUrl(url: String): Boolean {
     val request = Request.Builder()
         .url(url)
         .header("Cookie", "CONSENT=YES+1")
-        .header("User-Agent", DataApi.user_agent)
+        .header("User-Agent", Api.user_agent)
         .build()
 
-    val response = DataApi.request(request, true).getOrNull() ?: return false
+    val response = Api.request(request, true).getOrNull() ?: return false
     val is_invalid = response.body!!.contentType().toString().startsWith("text/")
     response.close()
 
@@ -39,7 +39,7 @@ data class YoutubeVideoFormat(
     val identifier: Int = itag ?: bitrate
     var stream_url: String? = url
     val audio_only: Boolean get() = mimeType.startsWith("audio")
-    var matched_quality: Song.AudioQuality? = null
+    var matched_quality: SongAudioQuality? = null
 
     fun loadStreamUrl(video_id: String): Throwable? {
         if (stream_url != null) {
@@ -146,14 +146,14 @@ private data class PipedStreamsResponse(
 
 fun getVideoFormatsFallback1(id: String, filter: ((YoutubeVideoFormat) -> Boolean)? = null): Result<List<YoutubeVideoFormat>> {
     val request = Request.Builder().url("https://pipedapi.syncpundit.io/streams/$id").build()
-    val result = DataApi.request(request)
+    val result = Api.request(request)
 
     if (result.isFailure) {
         return result.cast()
     }
 
     val stream = result.getOrThrow().body!!.charStream()
-    val response: PipedStreamsResponse = DataApi.klaxon.parse(stream)!!
+    val response: PipedStreamsResponse = Api.klaxon.parse(stream)!!
     stream.close()
 
     return Result.success(response.audioStreams.let { if (filter != null) it.filter(filter) else it })
@@ -171,31 +171,31 @@ data class PlayabilityStatus(val status: String)
 private fun buildVideoFormatsRequest(id: String, alt: Boolean): Request {
     return Request.Builder()
         .url("https://music.youtube.com/youtubei/v1/player?key=${getString("yt_i_api_key")}")
-        .post(DataApi.getYoutubeiRequestBody("""{
+        .post(Api.getYoutubeiRequestBody("""{
             "videoId": "$id",
             "playlistId": null
-        }""", context = if (alt) DataApi.Companion.YoutubeiContextType.ALT else DataApi.Companion.YoutubeiContextType.BASE))
+        }""", context = if (alt) Api.Companion.YoutubeiContextType.ALT else Api.Companion.YoutubeiContextType.BASE))
         .build()
 }
 
 fun getVideoFormatsFallback2(id: String, filter: ((YoutubeVideoFormat) -> Boolean)? = null): Result<List<YoutubeVideoFormat>> {
-    var result = DataApi.request(buildVideoFormatsRequest(id, false))
+    var result = Api.request(buildVideoFormatsRequest(id, false))
     var formats: FormatsResponse? = null
 
     if (result.isSuccess) {
         val stream = result.getOrThrow().body!!.charStream()
-        formats = DataApi.klaxon.parse(stream)!!
+        formats = Api.klaxon.parse(stream)!!
         stream.close()
     }
 
     if (formats?.streamingData == null) {
-        result = DataApi.request(buildVideoFormatsRequest(id, true))
+        result = Api.request(buildVideoFormatsRequest(id, true))
         if (result.isFailure) {
             return result.cast()
         }
 
         val stream = result.getOrThrow().body!!.charStream()
-        formats = DataApi.klaxon.parse(stream)!!
+        formats = Api.klaxon.parse(stream)!!
         stream.close()
     }
 
@@ -238,11 +238,11 @@ private fun getVideoFormatsFallback3(id: String, filter: ((YoutubeVideoFormat) -
     val request = Request.Builder()
         .url("https://www.youtube.com/watch?v=$id")
         .header("Cookie", "CONSENT=YES+1")
-        .header("User-Agent", DataApi.user_agent)
+        .header("User-Agent", Api.user_agent)
         .build()
 
     fun getFormats(): Result<Pair<SignatureCipherDecrypter, List<YoutubeVideoFormat>>> {
-        var result = DataApi.request(request)
+        var result = Api.request(request)
         if (result.isFailure) {
             return result.cast()
         }
@@ -257,16 +257,16 @@ private fun getVideoFormatsFallback3(id: String, filter: ((YoutubeVideoFormat) -
         val start = html.indexOf(RESPONSE_DATA_START) + RESPONSE_DATA_START.length
         val end = html.indexOf("};", start) + 1
 
-        var streaming_data: FormatsResponse = DataApi.klaxon.parse(html.substring(start, end).reader())!!
+        var streaming_data: FormatsResponse = Api.klaxon.parse(html.substring(start, end).reader())!!
         if (!streaming_data.is_ok) {
-            result = DataApi.request(buildVideoFormatsRequest(id, true))
+            result = Api.request(buildVideoFormatsRequest(id, true))
 
             if (!result.isSuccess) {
                 return result.cast()
             }
 
             val stream = result.getOrThrow().body!!.charStream()
-            streaming_data = DataApi.klaxon.parse(stream)!!
+            streaming_data = Api.klaxon.parse(stream)!!
             stream.close()
 
             if (!streaming_data.is_ok) {
@@ -386,10 +386,10 @@ class SignatureCipherDecrypter(base_js: String) {
 
             val request = Request.Builder()
                 .url("https://www.youtube.com${player_html.substring(url_start, url_end)}")
-                .header("User-Agent", DataApi.user_agent)
+                .header("User-Agent", Api.user_agent)
                 .build()
 
-            val result = DataApi.request(request)
+            val result = Api.request(request)
             if (result.isFailure) {
                 return result.cast()
             }
@@ -405,10 +405,10 @@ class SignatureCipherDecrypter(base_js: String) {
             val request = Request.Builder()
                 .url(player_url)
                 .header("Cookie", "CONSENT=YES+1")
-                .header("User-Agent", DataApi.user_agent)
+                .header("User-Agent", Api.user_agent)
                 .build()
 
-            val response_result = DataApi.request(request)
+            val response_result = Api.request(request)
             if (response_result.isFailure) {
                 return response_result.cast()
             }

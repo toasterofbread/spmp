@@ -3,8 +3,9 @@ package com.spectre7.spmp.model.mediaitem
 import androidx.compose.runtime.*
 import com.beust.klaxon.Json
 import com.beust.klaxon.JsonObject
-import com.spectre7.spmp.api.DataApi
+import com.spectre7.spmp.api.Api
 import com.spectre7.spmp.model.Settings
+import com.spectre7.spmp.model.mediaitem.enums.MediaItemType
 import com.spectre7.spmp.platform.ProjectPreferences
 import kotlinx.coroutines.GlobalScope
 import kotlinx.coroutines.async
@@ -72,10 +73,8 @@ class MediaItemDataRegistry {
     }
 
     @Synchronized
-    fun getEntry(item: MediaItem): Entry {
-        return entries.getOrPut(item.uid) {
-            item.getDefaultRegistryEntry()
-        }.also { it.item = item }
+    fun getEntry(item: MediaItem, getDefault: () -> Entry): Entry {
+        return entries.getOrPut(item.uid, getDefault).also { it.item = item }
     }
 
     @Synchronized
@@ -87,7 +86,7 @@ class MediaItemDataRegistry {
 
         entries.clear()
 
-        val parsed = DataApi.klaxon.parseJsonObject(data.reader())
+        val parsed = Api.klaxon.parseJsonObject(data.reader())
         runBlocking {
             parsed.entries.map { item ->
                 GlobalScope.async {
@@ -106,7 +105,7 @@ class MediaItemDataRegistry {
     @Synchronized
     fun save(prefs: ProjectPreferences = Settings.prefs) {
         prefs.edit {
-            putString("data_registry", DataApi.klaxon.toJsonString(entries))
+            putString("data_registry", Api.klaxon.toJsonString(entries))
         }
     }
 }

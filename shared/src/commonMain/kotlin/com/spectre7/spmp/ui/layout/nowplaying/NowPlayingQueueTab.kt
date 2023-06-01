@@ -30,6 +30,7 @@ import com.spectre7.spmp.api.RadioModifier
 import com.spectre7.spmp.model.mediaitem.MediaItem
 import com.spectre7.spmp.model.NowPlayingQueueRadioInfoPosition
 import com.spectre7.spmp.model.Settings
+import com.spectre7.spmp.model.mediaitem.MediaItemPreviewParams
 import com.spectre7.spmp.model.mediaitem.Song
 import com.spectre7.spmp.platform.MediaPlayerRepeatMode
 import com.spectre7.spmp.platform.MediaPlayerService
@@ -88,7 +89,7 @@ private class QueueTabItem(val song: Song, val key: Int) {
                 modifier = Modifier.padding(start = 10.dp, end = 20.dp)
             ) {
                 song.PreviewLong(
-                    MediaItem.PreviewParams(
+                    MediaItemPreviewParams(
                         Modifier
                             .weight(1f)
                             .swipeable(
@@ -431,9 +432,10 @@ private fun CurrentRadioIndicator(
         Crossfade(if (show_radio_info) radio_item else if (multiselect_context.is_active) true else filters ) { state ->
             if (state is MediaItem) {
                 state.PreviewLong(
-                    MediaItem.PreviewParams(
+                    MediaItemPreviewParams(
                     Modifier.padding(horizontal = horizontal_padding)
-                ))
+                )
+                )
             }
             else if (state == true) {
                 multiselect_context.InfoDisplay(Modifier.fillMaxWidth().padding(horizontal = horizontal_padding))

@@ -1,5 +1,3 @@
-@file:OptIn(ExperimentalFoundationApi::class, ExperimentalFoundationApi::class)
-
 package com.spectre7.spmp.ui.component
 
 import LocalPlayerState
@@ -28,10 +26,7 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.spectre7.spmp.PlayerServiceHost
 import com.spectre7.spmp.model.*
-import com.spectre7.spmp.model.mediaitem.MediaItem
-import com.spectre7.spmp.model.mediaitem.MediaItemThumbnailProvider
-import com.spectre7.spmp.model.mediaitem.Song
-import com.spectre7.spmp.model.mediaitem.mediaItemPreviewInteraction
+import com.spectre7.spmp.model.mediaitem.*
 import com.spectre7.spmp.platform.PlayerDownloadManager.DownloadStatus
 import com.spectre7.spmp.resources.getString
 import com.spectre7.spmp.ui.component.multiselect.MediaItemMultiSelectContext
@@ -46,7 +41,7 @@ val SONG_THUMB_CORNER_ROUNDING = 10.dp
 @Composable
 fun SongPreviewSquare(
     song: Song,
-    params: MediaItem.PreviewParams,
+    params: MediaItemPreviewParams,
     queue_index: Int? = null
 ) {
     val long_press_menu_data = remember(song, params.multiselect_context) {
@@ -88,7 +83,7 @@ fun SongPreviewSquare(
 @Composable
 fun SongPreviewLong(
     song: Song,
-    params: MediaItem.PreviewParams,
+    params: MediaItemPreviewParams,
     queue_index: Int? = null
 ) {
     val long_press_menu_data = remember(song, queue_index) {
@@ -150,7 +145,7 @@ fun SongPreviewLong(
 }
 
 @Composable
-private fun InfoText(text: String, params: MediaItem.PreviewParams) {
+private fun InfoText(text: String, params: MediaItemPreviewParams) {
     Text(
         text,
         Modifier.alpha(0.5f),

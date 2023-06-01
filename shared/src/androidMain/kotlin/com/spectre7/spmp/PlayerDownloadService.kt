@@ -12,6 +12,7 @@ import androidx.core.app.NotificationManagerCompat
 import com.spectre7.spmp.api.cast
 import com.spectre7.spmp.model.Settings
 import com.spectre7.spmp.model.mediaitem.Song
+import com.spectre7.spmp.model.mediaitem.enums.SongAudioQuality
 import com.spectre7.spmp.platform.PlatformBinder
 import com.spectre7.spmp.platform.PlatformContext
 import com.spectre7.spmp.platform.PlatformServiceImpl
@@ -34,7 +35,7 @@ private const val NOTIFICATION_CHANNEL_ID = "download_channel"
 class PlayerDownloadService: PlatformServiceImpl() {
     private inner class Download(
         val id: String,
-        val quality: Song.AudioQuality,
+        val quality: SongAudioQuality,
         var silent: Boolean,
         val instance: Int,
         var file: File? = null
@@ -137,7 +138,7 @@ class PlayerDownloadService: PlatformServiceImpl() {
     
     data class FilenameData(
         val id: String,
-        val quality: Song.AudioQuality,
+        val quality: SongAudioQuality,
         val extension: String,
         val downloading: Boolean
     )
@@ -150,7 +151,7 @@ class PlayerDownloadService: PlatformServiceImpl() {
 
             return FilenameData(
                 split[0],
-                Song.AudioQuality.values()[split[1].toInt()],
+                SongAudioQuality.values()[split[1].toInt()],
                 split[2],
                 downloading
             )
@@ -162,14 +163,14 @@ class PlayerDownloadService: PlatformServiceImpl() {
 
         // Filename format: id.quality.mediatype(.part)
         // Return values: true = match, false = match (partial file), null = no match
-        fun fileMatchesDownload(filename: String, id: String, quality: Song.AudioQuality): Boolean? {
+        fun fileMatchesDownload(filename: String, id: String, quality: SongAudioQuality): Boolean? {
             if (!filename.startsWith("$id.${quality.ordinal}.")) {
                 return null
             }
             return !filename.endsWith(FILE_DOWNLOADING_SUFFIX)
         }
 
-        fun getDownloadPath(id: String, quality: Song.AudioQuality, extension: String, in_progress: Boolean): String {
+        fun getDownloadPath(id: String, quality: SongAudioQuality, extension: String, in_progress: Boolean): String {
             return "$id.${quality.ordinal}.$extension${ if (in_progress) FILE_DOWNLOADING_SUFFIX else ""}"
         }
     }

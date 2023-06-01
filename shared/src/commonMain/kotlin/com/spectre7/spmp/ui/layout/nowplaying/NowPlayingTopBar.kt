@@ -26,10 +26,7 @@ fun TopBar(modifier: Modifier = Modifier) {
     val expansion = LocalNowPlayingExpansion.current
 
     val show_in_queue: Boolean = Settings.KEY_TOPBAR_SHOW_IN_QUEUE.get()
-
     val top_bar_height = if (!show_in_queue || expansion.getBounded() < 1f) expansion.getAppearing() else 1f
-    val top_bar_alpha = if (!show_in_queue || expansion.getBounded() < 1f) 1f - expansion.getDisappearing() else 1f
-
     val hide_when_empty: Boolean by Settings.KEY_TOPBAR_HIDE_WHEN_EMPTY_IN_QUEUE.rememberMutableState()
 
     val max_height by animateDpAsState(
@@ -37,51 +34,47 @@ fun TopBar(modifier: Modifier = Modifier) {
         else NOW_PLAYING_TOP_BAR_HEIGHT.dp
     )
 
-    val bar_modifier = Modifier
-        .fillMaxWidth()
-        .requiredHeight(minOf(NOW_PLAYING_TOP_BAR_HEIGHT.dp * top_bar_height, max_height))
-        .padding(horizontal = NOW_PLAYING_MAIN_PADDING.dp)
-
     val target_mode: MutableState<MusicTopBarMode> = remember { mutableStateOf(Settings.KEY_TOPBAR_DEFAULT_MODE_NOWPLAYING.getEnum()) }
     val buttons_alpha = 1f - expansion.getDisappearing()
 
-    if (top_bar_alpha > 0f) {
-        Crossfade(PlayerServiceHost.status.m_song, modifier.then(bar_modifier).alpha(top_bar_alpha)) { song ->
-            if (song == null) {
-                return@Crossfade
-            }
-            Row(Modifier.fillMaxSize(), horizontalArrangement = Arrangement.SpaceBetween) {
-                val buttons_visible by remember { derivedStateOf { buttons_alpha > 0f } }
+    Crossfade(
+        PlayerServiceHost.status.m_song,
+        modifier
+            .fillMaxWidth()
+            .requiredHeight(minOf(NOW_PLAYING_TOP_BAR_HEIGHT.dp * top_bar_height, max_height))
+            .padding(horizontal = NOW_PLAYING_MAIN_PADDING.dp)
+            .graphicsLayer { alpha = if (!show_in_queue || expansion.getBounded() < 1f) 1f - expansion.getDisappearing() else 1f }
+    ) { song ->
+        if (song == null) {
+            return@Crossfade
+        }
+        Row(Modifier.fillMaxSize(), horizontalArrangement = Arrangement.SpaceBetween) {
+            val buttons_visible by remember { derivedStateOf { buttons_alpha > 0f } }
 
-                LikeDislikeButton(
-                    song,
-                    Modifier.width(40.dp * buttons_alpha).fillMaxHeight().graphicsLayer { alpha = buttons_alpha },
-                    buttons_visible,
-                    { getNPOnBackground().setAlpha(0.5f) }
-                )
+            LikeDislikeButton(
+                song,
+                Modifier.width(40.dp * buttons_alpha).fillMaxHeight().graphicsLayer { alpha = buttons_alpha },
+                buttons_visible,
+                { getNPOnBackground().setAlpha(0.5f) }
+            )
 
-                MusicTopBar(
-                    song,
-                    Settings.KEY_TOPBAR_DEFAULT_MODE_NOWPLAYING.getEnum(),
-                    Modifier.fillMaxSize().weight(1f),
-                    target_mode,
-                    expansion.top_bar_showing
-                )
+            MusicTopBar(
+                song,
+                Settings.KEY_TOPBAR_DEFAULT_MODE_NOWPLAYING.getEnum(),
+                Modifier.fillMaxSize().weight(1f),
+                target_mode,
+                expansion.top_bar_showing
+            )
 
-                IconButton(
-                    {
-                        player.onMediaItemLongClicked(song, PlayerServiceHost.status.index)
-                    },
-                    Modifier.graphicsLayer { alpha = buttons_alpha }.width(40.dp * buttons_alpha),
-                    enabled = buttons_visible
-                ) {
-                    Icon(Icons.Filled.MoreHoriz, null, tint = getNPOnBackground().setAlpha(0.5f))
-                }
+            IconButton(
+                {
+                    player.onMediaItemLongClicked(song, PlayerServiceHost.status.index)
+                },
+                Modifier.graphicsLayer { alpha = buttons_alpha }.width(40.dp * buttons_alpha),
+                enabled = buttons_visible
+            ) {
+                Icon(Icons.Filled.MoreHoriz, null, tint = getNPOnBackground().setAlpha(0.5f))
             }
         }
-    }
-    else {
-        Spacer(modifier.then(bar_modifier))
-        expansion.top_bar_showing.value = false
     }
 }

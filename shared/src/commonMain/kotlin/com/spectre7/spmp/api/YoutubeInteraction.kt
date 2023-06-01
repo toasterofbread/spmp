@@ -1,8 +1,8 @@
 package com.spectre7.spmp.api
 
-import com.spectre7.spmp.api.DataApi.Companion.addYtHeaders
-import com.spectre7.spmp.api.DataApi.Companion.getStream
-import com.spectre7.spmp.api.DataApi.Companion.ytUrl
+import com.spectre7.spmp.api.Api.Companion.addYtHeaders
+import com.spectre7.spmp.api.Api.Companion.getStream
+import com.spectre7.spmp.api.Api.Companion.ytUrl
 import com.spectre7.spmp.model.mediaitem.Artist
 import com.spectre7.spmp.resources.getString
 import okhttp3.HttpUrl.Companion.toHttpUrl
@@ -24,35 +24,35 @@ fun isSubscribedToArtist(artist: Artist): Result<Boolean?> {
     val request: Request = Request.Builder()
         .ytUrl("/youtubei/v1/browse")
         .addYtHeaders()
-        .post(DataApi.getYoutubeiRequestBody("""{ "browseId": "${artist.id}" }"""))
+        .post(Api.getYoutubeiRequestBody("""{ "browseId": "${artist.id}" }"""))
         .build()
 
-    val result = DataApi.request(request)
+    val result = Api.request(request)
     if (result.isFailure) {
         return result.cast()
     }
 
     val stream = result.getOrThrow().getStream()
-    val parsed: ArtistBrowseResponse = DataApi.klaxon.parse(stream)!!
+    val parsed: ArtistBrowseResponse = Api.klaxon.parse(stream)!!
     stream.close()
 
     return Result.success(parsed.getSubscribed())
 }
 
 fun subscribeOrUnsubscribeArtist(artist: Artist, subscribe: Boolean): Result<Any> {
-    check(DataApi.ytm_authenticated)
+    check(Api.ytm_authenticated)
 
     val request: Request = Request.Builder()
         .url("https://music.youtube.com/youtubei/v1/subscription/${if (subscribe) "subscribe" else "unsubscribe"}")
         .addYtHeaders()
-        .post(DataApi.getYoutubeiRequestBody("""
+        .post(Api.getYoutubeiRequestBody("""
             {
                 "channelIds": ["${artist.subscribe_channel_id}"]
             }
         """))
         .build()
 
-    return DataApi.request(request)
+    return Api.request(request)
 }
 
 private data class PlayerLikeResponse(
@@ -70,20 +70,20 @@ fun getSongLiked(id: String): Result<Boolean?> {
     val request: Request = Request.Builder()
         .url("https://music.youtube.com/youtubei/v1/next")
         .addYtHeaders()
-        .post(DataApi.getYoutubeiRequestBody("""
+        .post(Api.getYoutubeiRequestBody("""
             {
                 "videoId": "$id"
             }
         """))
         .build()
 
-    val result = DataApi.request(request)
+    val result = Api.request(request)
     if (result.isFailure) {
         return result.cast()
     }
 
     val stream = result.getOrThrow().getStream()
-    val parsed: PlayerLikeResponse = DataApi.klaxon.parse(stream)!!
+    val parsed: PlayerLikeResponse = Api.klaxon.parse(stream)!!
     stream.close()
 
     return Result.success(when (parsed.status.likeStatus) {
@@ -102,14 +102,14 @@ fun setSongLiked(id: String, liked: Boolean?): Result<Any> {
             null -> "like/removelike"
         })
         .addYtHeaders()
-        .post(DataApi.getYoutubeiRequestBody("""
+        .post(Api.getYoutubeiRequestBody("""
             {
                 "target": { "videoId": "$id" }
             }
         """))
         .build()
 
-    val result = DataApi.request(request)
+    val result = Api.request(request)
     result.getOrNull()?.close()
     return result
 }
@@ -134,21 +134,21 @@ fun markSongAsWatched(id: String): Result<Any> {
     fun buildRequest(alt: Boolean): Request {
         return Request.Builder()
             .url("https://music.youtube.com/youtubei/v1/player?key=${getString("yt_i_api_key")}")
-            .post(DataApi.getYoutubeiRequestBody(
+            .post(Api.getYoutubeiRequestBody(
                 """{ "videoId": "$id" }""",
-                context = if (alt) DataApi.Companion.YoutubeiContextType.ALT else DataApi.Companion.YoutubeiContextType.BASE
+                context = if (alt) Api.Companion.YoutubeiContextType.ALT else Api.Companion.YoutubeiContextType.BASE
             ))
             .addYtHeaders()
             .build()
     }
 
-    var result = DataApi.request(buildRequest(true))
+    var result = Api.request(buildRequest(true))
     if (result.isFailure) {
         return result.cast()
     }
 
     val stream = result.getOrThrow().body!!.charStream()
-    val data: PlaybackTrackingRepsonse = DataApi.klaxon.parse(stream)!!
+    val data: PlaybackTrackingRepsonse = Api.klaxon.parse(stream)!!
     stream.close()
 
     check(data.playback_url.contains("s.youtube.com"))
@@ -165,7 +165,7 @@ fun markSongAsWatched(id: String): Result<Any> {
         .addYtHeaders()
         .build()
 
-    result = DataApi.request(request)
+    result = Api.request(request)
     if (result.isFailure) {
         return result.cast()
     }

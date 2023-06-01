@@ -16,16 +16,16 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.graphicsLayer
 import androidx.compose.ui.unit.DpSize
 import androidx.compose.ui.unit.dp
-import com.spectre7.spmp.api.DataApi
+import com.spectre7.spmp.PlayerServiceHost
+import com.spectre7.spmp.api.Api
 import com.spectre7.spmp.model.mediaitem.Artist
-import com.spectre7.spmp.model.mediaitem.MediaItem
 import com.spectre7.spmp.model.mediaitem.MediaItemHolder
 import com.spectre7.spmp.platform.composable.SwipeRefresh
 import com.spectre7.spmp.platform.getDefaultHorizontalPadding
 import com.spectre7.spmp.ui.component.LazyMediaItemLayoutColumn
 import com.spectre7.spmp.ui.component.MediaItemLayout
 import com.spectre7.spmp.ui.component.PillMenu
-import com.spectre7.spmp.ui.layout.LibraryPage
+import com.spectre7.spmp.ui.layout.library.LibraryPage
 
 @Composable
 fun MainPage(
@@ -55,13 +55,13 @@ fun MainPage(
     }
 
     LaunchedEffect(layoutsProvider()) {
-        populateArtistsLayout(artists_layout, layoutsProvider, DataApi.ytm_auth.getOwnChannelOrNull())
+        populateArtistsLayout(artists_layout, layoutsProvider, Api.ytm_auth.getOwnChannelOrNull())
     }
 
     Column(Modifier.padding(horizontal = padding)) {
 
         MainPageTopBar(
-            DataApi.ytm_auth,
+            Api.ytm_auth,
             { if (feed_load_state.value == FeedLoadState.LOADING) null else getFilterChips() },
             getSelectedFilterChip,
             { loadFeed(it, false) },
@@ -76,11 +76,15 @@ fun MainPage(
             indicator = false
         ) {
             val layouts_empty by remember { derivedStateOf { layoutsProvider().isEmpty() } }
-            val state = if (feed_load_state.value == FeedLoadState.LOADING) null else !layouts_empty
+            val state = if (feed_load_state.value == FeedLoadState.LOADING || feed_load_state.value == FeedLoadState.PREINIT) null else !layouts_empty
             var current_state by remember { mutableStateOf(state) }
             val state_alpha = remember { Animatable(1f) }
 
             LaunchedEffect(state) {
+                if (current_state == state) {
+                    return@LaunchedEffect
+                }
+
                 state_alpha.animateTo(0f, tween(300))
                 current_state = state
                 state_alpha.animateTo(1f, tween(300))
@@ -127,6 +131,7 @@ fun MainPage(
                 false -> {
                     LibraryPage(
                         pill_menu,
+                        LocalPlayerState.current.bottom_padding,
                         Modifier.graphicsLayer { alpha = state_alpha.value },
                         close = {},
                         inline = true,

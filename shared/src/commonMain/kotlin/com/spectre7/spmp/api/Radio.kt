@@ -3,9 +3,9 @@ package com.spectre7.spmp.api
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.setValue
-import com.spectre7.spmp.api.DataApi.Companion.addYtHeaders
-import com.spectre7.spmp.api.DataApi.Companion.getStream
-import com.spectre7.spmp.api.DataApi.Companion.ytUrl
+import com.spectre7.spmp.api.Api.Companion.addYtHeaders
+import com.spectre7.spmp.api.Api.Companion.getStream
+import com.spectre7.spmp.api.Api.Companion.ytUrl
 import com.spectre7.spmp.model.*
 import com.spectre7.spmp.model.mediaitem.*
 import com.spectre7.spmp.ui.component.MediaItemLayout
@@ -134,14 +134,12 @@ class RadioInstance {
                 )
             }
             is MediaItemWithLayouts -> {
-                if (item.getFeedLayouts() == null) {
-                    val result = item.loadData()
-                    if (result.isFailure) {
-                        return result.cast()
-                    }
-                }
+                val feed_layouts = item.getFeedLayouts().fold(
+                    { it },
+                    { return Result.failure(it) }
+                )
 
-                val layout = item.getFeedLayouts()?.firstOrNull()
+                val layout = feed_layouts.firstOrNull()
                 if (layout == null) {
                     return Result.success(emptyList())
                 }
@@ -223,15 +221,13 @@ data class YoutubeiNextResponse(
                     continue
                 }
 
-                val playlist_result = AccountPlaylist.fromId(run.navigationEndpoint.browseEndpoint.browseId).loadData()
-                if (playlist_result.isFailure) {
-                    return playlist_result.cast()
-                }
-
-                val artist = playlist_result.getOrThrowHere()?.artist
-                if (artist != null) {
-                    return Result.success(Pair(artist, false))
-                }
+                val playlist = AccountPlaylist.fromId(run.navigationEndpoint.browseEndpoint.browseId)
+                return playlist.getArtist().fold(
+                    { artist ->
+                        Result.success(Pair(artist, false))
+                    },
+                    { Result.failure(it) }
+                )
             }
 
             // Get title-only artist (Resolves to 'Various artists' when viewed on YouTube)
@@ -310,7 +306,7 @@ suspend fun getSongRadio(video_id: String, continuation: String?, filters: List<
     val request = Request.Builder()
         .ytUrl("/youtubei/v1/next")
         .addYtHeaders()
-        .post(DataApi.getYoutubeiRequestBody(
+        .post(Api.getYoutubeiRequestBody(
         """
         {
             "enablePersistentPlaylistPanel": true,
@@ -329,7 +325,7 @@ suspend fun getSongRadio(video_id: String, continuation: String?, filters: List<
         ))
         .build()
     
-    val result = DataApi.request(request)
+    val result = Api.request(request)
     if (result.isFailure) {
         return@withContext result.cast()
     }
@@ -340,7 +336,7 @@ suspend fun getSongRadio(video_id: String, continuation: String?, filters: List<
     val out_filters: List<List<RadioModifier>>?
 
     if (continuation == null) {
-        val renderer = DataApi.klaxon.parse<YoutubeiNextResponse>(stream)!!
+        val renderer = Api.klaxon.parse<YoutubeiNextResponse>(stream)!!
             .contents
             .singleColumnMusicWatchNextResultsRenderer
             .tabbedRenderer
@@ -357,7 +353,7 @@ suspend fun getSongRadio(video_id: String, continuation: String?, filters: List<
         }
     }
     else {
-        radio = DataApi.klaxon.parse<YoutubeiNextContinuationResponse>(stream)!!
+        radio = Api.klaxon.parse<YoutubeiNextContinuationResponse>(stream)!!
             .continuationContents
             .playlistPanelContinuation
         out_filters = null

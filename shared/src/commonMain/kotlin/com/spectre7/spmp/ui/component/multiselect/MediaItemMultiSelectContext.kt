@@ -220,7 +220,7 @@ class MediaItemMultiSelectContext(
                                 onPlaylistSelected(playlist, false)
                             } })
                         }) {
-                            playlist.PreviewLong(MediaItem.PreviewParams())
+                            playlist.PreviewLong(MediaItemPreviewParams())
                         }
                     }
                 }

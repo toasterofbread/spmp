@@ -2,6 +2,7 @@ package com.spectre7.spmp.platform
 
 import com.spectre7.spmp.PlayerDownloadService
 import com.spectre7.spmp.model.mediaitem.Song
+import com.spectre7.spmp.model.mediaitem.enums.SongAudioQuality
 import java.io.File
 
 actual class PlayerDownloadManager actual constructor(val context: PlatformContext) {
@@ -26,7 +27,7 @@ actual class PlayerDownloadManager actual constructor(val context: PlatformConte
     actual data class DownloadStatus(
         actual val song: Song,
         actual val status: Status,
-        actual val quality: Song.AudioQuality,
+        actual val quality: SongAudioQuality,
         actual val progress: Float,
         actual val id: String,
         val file: File?

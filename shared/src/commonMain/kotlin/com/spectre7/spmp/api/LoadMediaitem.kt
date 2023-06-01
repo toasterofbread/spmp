@@ -1,10 +1,14 @@
 package com.spectre7.spmp.api
 
 import SpMp
-import com.spectre7.spmp.api.DataApi.Companion.addYtHeaders
-import com.spectre7.spmp.api.DataApi.Companion.getStream
-import com.spectre7.spmp.api.DataApi.Companion.ytUrl
+import com.spectre7.spmp.api.Api.Companion.addYtHeaders
+import com.spectre7.spmp.api.Api.Companion.getStream
+import com.spectre7.spmp.api.Api.Companion.ytUrl
 import com.spectre7.spmp.model.mediaitem.*
+import com.spectre7.spmp.model.mediaitem.data.AccountPlaylistItemData
+import com.spectre7.spmp.model.mediaitem.data.ArtistItemData
+import com.spectre7.spmp.model.mediaitem.data.MediaItemData
+import com.spectre7.spmp.model.mediaitem.enums.PlaylistType
 import com.spectre7.spmp.ui.component.MediaItemLayout
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
@@ -33,16 +37,16 @@ suspend fun loadBrowseId(browse_id: String, params: String? = null): Result<List
         val request = Request.Builder()
             .ytUrl("/youtubei/v1/browse")
             .addYtHeaders()
-            .post(DataApi.getYoutubeiRequestBody("""{ "browseId": "$browse_id"$params_str }"""))
+            .post(Api.getYoutubeiRequestBody("""{ "browseId": "$browse_id"$params_str }"""))
             .build()
 
-        val result = DataApi.request(request)
+        val result = Api.request(request)
         if (result.isFailure) {
             return@withContext result.cast()
         }
 
         val stream = result.getOrThrow().getStream()
-        val parsed: YoutubeiBrowseResponse = DataApi.klaxon.parse(stream)!!
+        val parsed: YoutubeiBrowseResponse = Api.klaxon.parse(stream)!!
         stream.close()
 
         val ret: MutableList<MediaItemLayout> = mutableListOf()
@@ -73,17 +77,17 @@ suspend fun loadBrowseId(browse_id: String, params: String? = null): Result<List
 
 class InvalidRadioException: Throwable()
 
-suspend fun processDefaultResponse(item: MediaItem, data: MediaItemData, response: Response, hl: String): Result<MediaItem?>? {
+suspend fun processDefaultResponse(item: MediaItem, data: MediaItemData, response: Response, hl: String): Result<Unit>? {
     return withContext(Dispatchers.IO) {
         val response_body = response.getStream()
 
         val ret = run {
             if (data is MediaItemWithLayoutsData) {
-                val parsed: YoutubeiBrowseResponse = DataApi.klaxon.parse(response_body)!!
+                val parsed: YoutubeiBrowseResponse = Api.klaxon.parse(response_body)!!
                 response_body.close()
 
                 // Skip unneeded information for radios
-                if (item is Playlist && item.playlist_type == Playlist.PlaylistType.RADIO) {
+                if (item is Playlist && item.playlist_type == PlaylistType.RADIO) {
                     val playlist_shelf = parsed
                         .contents!!
                         .singleColumnBrowseResultsRenderer
@@ -202,7 +206,7 @@ suspend fun processDefaultResponse(item: MediaItem, data: MediaItemData, respons
                     data.supplyFeedLayouts(item_layouts, true)
                 }
 
-                return@run Result.success(item)
+                return@run Result.success(Unit)
             } else null
         }
 
@@ -212,7 +216,7 @@ suspend fun processDefaultResponse(item: MediaItem, data: MediaItemData, respons
 
         check(item is Song)
 
-        val video = DataApi.klaxon.parse<YoutubeiNextResponse>(response_body)!!
+        val video = Api.klaxon.parse<YoutubeiNextResponse>(response_body)!!
             .contents
             .singleColumnMusicWatchNextResultsRenderer
             .tabbedRenderer
@@ -239,18 +243,18 @@ suspend fun processDefaultResponse(item: MediaItem, data: MediaItemData, respons
         val (artist, certain) = result.getOrThrow()
         if (artist != null) {
             data.supplyArtist(artist, certain)
-            return@withContext Result.success(item)
+            return@withContext Result.success(Unit)
         }
 
         return@withContext null
     }
 }
 
-suspend fun loadMediaItemData(item: MediaItem): Result<MediaItem?> {
+suspend fun loadMediaItemData(item: MediaItem): Result<Unit> {
     val item_id = item.id
 
     if (item is Artist && item.is_for_item) {
-        return Result.success(item)
+        return Result.success(Unit)
     }
 
     return withContext(Dispatchers.IO) {
@@ -268,14 +272,14 @@ suspend fun loadMediaItemData(item: MediaItem): Result<MediaItem?> {
         var request: Request = Request.Builder()
             .ytUrl(url)
             .addYtHeaders()
-            .post(DataApi.getYoutubeiRequestBody(
+            .post(Api.getYoutubeiRequestBody(
                 body,
-                if (item is Artist) DataApi.Companion.YoutubeiContextType.MOBILE
-                else DataApi.Companion.YoutubeiContextType.BASE
+                if (item is Artist) Api.Companion.YoutubeiContextType.MOBILE
+                else Api.Companion.YoutubeiContextType.BASE
             ))
             .build()
 
-        val response = DataApi.request(request).getOrNull()
+        val response = Api.request(request).getOrNull()
         return@withContext item.data.run {
             if (response != null) {
                 val result = processDefaultResponse(item, this, response, hl)
@@ -288,26 +292,27 @@ suspend fun loadMediaItemData(item: MediaItem): Result<MediaItem?> {
             request = Request.Builder()
                 .ytUrl("/youtubei/v1/player")
                 .addYtHeaders()
-                .post(DataApi.getYoutubeiRequestBody("""{ "videoId": "$item_id" }"""))
+                .post(Api.getYoutubeiRequestBody("""{ "videoId": "$item_id" }"""))
                 .build()
 
-            val result = DataApi.request(request)
+            val result = Api.request(request)
             if (result.isFailure) {
                 return@run result.cast()
             }
 
             val stream = result.getOrThrowHere().getStream()
-            val video_data = DataApi.klaxon.parse<PlayerData>(stream)!!
+            val video_data = Api.klaxon.parse<PlayerData>(stream)!!
             stream.close()
 
             if (video_data.videoDetails == null) {
-                return@run Result.success(null)
+                TODO(video_data.toString())
+//                return@run Result.success(null)
             }
 
             supplyTitle(video_data.videoDetails.title, true)
             supplyArtist(Artist.fromId(video_data.videoDetails.channelId), true)
 
-            return@run Result.success(item)
+            return@run Result.success(Unit)
         }
     }
 }

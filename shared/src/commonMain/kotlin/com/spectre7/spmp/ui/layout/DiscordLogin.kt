@@ -134,7 +134,7 @@ private fun getDiscordAccountInfo(account_token: String): Result<DiscordMeRespon
         .addHeader("authorization", account_token)
         .build()
 
-    val result = DataApi.request(request)
+    val result = Api.request(request)
     if (result.isFailure) {
         return result.cast()
     }

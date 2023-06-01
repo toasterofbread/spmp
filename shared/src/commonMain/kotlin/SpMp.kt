@@ -27,8 +27,9 @@ import androidx.compose.ui.text.font.FontFamily
 import androidx.compose.ui.unit.IntOffset
 import androidx.compose.ui.unit.dp
 import com.beust.klaxon.Klaxon
+import com.beust.klaxon.KlaxonException
 import com.spectre7.spmp.PlayerServiceHost
-import com.spectre7.spmp.api.DataApi
+import com.spectre7.spmp.api.Api
 import com.spectre7.spmp.api.YoutubeUITranslation
 import com.spectre7.spmp.model.Cache
 import com.spectre7.spmp.model.mediaitem.MediaItem
@@ -41,7 +42,7 @@ import com.spectre7.spmp.resources.getStringTODO
 import com.spectre7.spmp.resources.initResources
 import com.spectre7.spmp.ui.layout.mainpage.PlayerState
 import com.spectre7.spmp.ui.layout.mainpage.PlayerStateImpl
-import com.spectre7.spmp.ui.layout.mainpage.PlayerView
+import com.spectre7.spmp.ui.layout.mainpage.RootView
 import com.spectre7.spmp.ui.theme.ApplicationTheme
 import com.spectre7.spmp.ui.theme.Theme
 import com.spectre7.utils.*
@@ -101,7 +102,7 @@ object SpMp {
 
         _yt_ui_translation = YoutubeUITranslation(LANGUAGES)
         Cache.init(context)
-        DataApi.initialise()
+        Api.initialise()
 
         service_host = PlayerServiceHost.instance ?: PlayerServiceHost()
         service_started = false
@@ -113,7 +114,7 @@ object SpMp {
     }
 
     @Composable
-    fun App(open_uri: String?) {
+    fun App(open_uri: String? = null) {
         ApplicationTheme(context, getFontFamily(context)) {
             Theme.Update(context, MaterialTheme.colorScheme.primary)
 
@@ -130,7 +131,7 @@ object SpMp {
 
             Surface(modifier = Modifier.fillMaxSize()) {
                 if (PlayerServiceHost.service_connected) {
-                    PlayerView(player)
+                    RootView(player)
                 }
                 else if (!service_started) {
                     service_started = true
@@ -185,6 +186,7 @@ class ErrorManager(private val context: PlatformContext) {
     private val errors = mutableStateMapOf<String, Throwable>()
 
     fun onError(key: String, error: Throwable) {
+        println("Error reported with key '$key': $error")
         if (error is RuntimeException && error.message != null) {
             try {
                 val error_response: YoutubeiErrorResponse? = Klaxon().parse(error.message!!)
@@ -193,7 +195,7 @@ class ErrorManager(private val context: PlatformContext) {
                     return
                 }
             }
-            finally {}
+            catch (_: KlaxonException) {}
         }
 
         errors[key] = Exception(error)

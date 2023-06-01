@@ -34,12 +34,10 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.input.ImeAction
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.*
-import com.spectre7.spmp.api.DataApi
+import com.spectre7.spmp.api.Api
+import com.spectre7.spmp.api.getOrReport
 import com.spectre7.spmp.model.*
-import com.spectre7.spmp.model.mediaitem.Artist
-import com.spectre7.spmp.model.mediaitem.MediaItem
-import com.spectre7.spmp.model.mediaitem.MediaItemThumbnailProvider
-import com.spectre7.spmp.model.mediaitem.Playlist
+import com.spectre7.spmp.model.mediaitem.*
 import com.spectre7.spmp.platform.composable.PlatformAlertDialog
 import com.spectre7.spmp.platform.vibrateShort
 import com.spectre7.spmp.resources.getString
@@ -75,19 +73,7 @@ fun ArtistPage(
     var accent_colour: Color? by remember { mutableStateOf(null) }
 
     LaunchedEffect(item.id) {
-        if (item.getFeedLayouts() == null) {
-            val result = item.loadData()
-            result.fold(
-                { playlist ->
-                    if (playlist == null) {
-                        SpMp.error_manager.onError("ArtistPageLoad", Exception("loadData result is null"))
-                    }
-                },
-                { error ->
-                    SpMp.error_manager.onError("ArtistPageLoad", error)
-                }
-            )
-        }
+        item.getFeedLayouts().getOrReport("ArtistPageLoad")
     }
 
     LaunchedEffect(item, item.canLoadThumbnail()) {
@@ -257,7 +243,7 @@ fun ArtistPage(
                         Text((i + 1).toString().padStart((layout.items.size + 1).toString().length, '0'), fontWeight = FontWeight.Light)
 
                         Column {
-                            layout.items[i].PreviewLong(MediaItem.PreviewParams(multiselect_context = multiselect_context))
+                            layout.items[i].PreviewLong(MediaItemPreviewParams(multiselect_context = multiselect_context))
                         }
                     }
                 }
@@ -410,7 +396,7 @@ fun ArtistSubscribeButton(
     accentColourProvider: (() -> Color)? = null,
     icon_modifier: Modifier = Modifier
 ) {
-    if (!DataApi.ytm_authenticated) {
+    if (!Api.ytm_authenticated) {
         return
     }
 

@@ -245,7 +245,7 @@ private fun MenuContent(
                                             )
                                         }
                                     ) {
-                                        artist.PreviewLong(MediaItem.PreviewParams(Modifier.fillMaxWidth()))
+                                        artist.PreviewLong(MediaItemPreviewParams(Modifier.fillMaxWidth()))
                                     }
                                 }
                             }

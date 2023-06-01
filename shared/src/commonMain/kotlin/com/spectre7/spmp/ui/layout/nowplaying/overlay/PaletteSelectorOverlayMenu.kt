@@ -17,6 +17,7 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.graphics.ImageBitmap
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.spectre7.spmp.PlayerServiceHost
@@ -48,31 +49,16 @@ class PaletteSelectorOverlayMenu(
         expansion: Float,
         openShutterMenu: (@Composable () -> Unit) -> Unit,
         close: () -> Unit,
-        getSeekState: () -> Any
+        getSeekState: () -> Any,
+        getCurrentSongThumb: () -> ImageBitmap?
     ) {
-//        val palette_colours = remember(palette) {
-//            val colours = mutableListOf(Color.Black, Color.White)
-//
-//            fun addColour(colour: Color?) {
-//                if (colour != null && !colours.any { it == colour || it.compare(colour) <= PALETTE_SIMILAR_COLOUR_THRESHOLD }) {
-//                    colours.add(colour)
-//                }
-//            }
-//
-//            for (i in 0 until 7) {
-//                addColour(palette.getColour(i))
-//            }
-//
-//            addColour(defaultThemeColourProvider())
-//
-//            colours.sortByDescending { it.luminance()) }
-//            return@remember colours
-//        }
         var palette_colours by remember { mutableStateOf<List<Color>?>(null) }
-        LaunchedEffect(Unit) {
-            val song = PlayerServiceHost.status.song!!
-            val image = song.loadThumbnail(MediaItemThumbnailProvider.Quality.HIGH)!!
-            palette_colours = image.generatePalette(8)
+        val thumb_image = getCurrentSongThumb()
+
+        LaunchedEffect(thumb_image) {
+            println("IMAGE $thumb_image")
+            palette_colours = null
+            palette_colours = thumb_image?.generatePalette(8)
         }
 
         var colourpick_requested by remember { mutableStateOf(false) }

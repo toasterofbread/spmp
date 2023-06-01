@@ -54,10 +54,16 @@ fun ThumbnailRow(
     val current_song = PlayerServiceHost.status.m_song
     val expansion = LocalNowPlayingExpansion.current
 
+    var current_thumb_image: ImageBitmap? by remember { mutableStateOf(null) }
     val thumbnail_rounding: Int? = current_song?.song_reg_entry?.thumbnail_rounding
     val thumbnail_shape = RoundedCornerShape(thumbnail_rounding ?: DEFAULT_THUMBNAIL_ROUNDING)
     var image_size by remember { mutableStateOf(IntSize(1, 1)) }
     val disappear_scale = minOf(1f, if (expansion.getAbsolute() < 0.5f) 1f else (1f - ((expansion.getAbsolute() - 0.5f) * 2f)))
+
+    LaunchedEffect(current_song) {
+        println("RESET")
+        current_thumb_image = null
+    }
 
     Row(
         modifier,
@@ -84,12 +90,12 @@ fun ThumbnailRow(
         Box(Modifier.aspectRatio(1f)) {
 
             Crossfade(current_song, animationSpec = tween(250)) { song ->
-                var image: ImageBitmap? by remember { mutableStateOf(null) }
                 song?.Thumbnail(
                     MediaItemThumbnailProvider.Quality.HIGH,
                     contentColourProvider = { getNPOnBackground() },
                     onLoaded = {
-                        image = it
+                        println("ONLOAD $it")
+                        current_thumb_image = it
                         onThumbnailLoaded(song)
                     },
                     modifier = Modifier
@@ -124,7 +130,7 @@ fun ThumbnailRow(
                                     detectTapGestures(
                                         onTap = { offset ->
                                             if (colourpick_callback != null) {
-                                                image?.apply {
+                                                current_thumb_image?.apply {
                                                     val bitmap_size = min(width, height)
                                                     var x = (offset.x / image_size.width) * bitmap_size
                                                     var y = (offset.y / image_size.height) * bitmap_size
@@ -166,7 +172,7 @@ fun ThumbnailRow(
                     contentAlignment = Alignment.Center
                 ) {
                     Box(
-                        androidx.compose.ui.Modifier
+                        Modifier
                             .size(with(LocalDensity.current) {
                                 getInnerSquareSizeOfCircle(
                                     radius = image_size.height.toDp().value,
@@ -193,7 +199,8 @@ fun ThumbnailRow(
                                 {
                                     overlay_menu = null
                                 },
-                                getSeekState
+                                getSeekState,
+                                { current_thumb_image }
                             )
                         }
                     }
@@ -232,7 +239,7 @@ fun ThumbnailRow(
                                 Icon(
                                     Icons.Filled.KeyboardArrowUp, null,
                                     tint = getNPOnBackground(),
-                                    modifier = androidx.compose.ui.Modifier.size(50.dp)
+                                    modifier = Modifier.size(50.dp)
                                 )
                             }
                         }
@@ -248,7 +255,7 @@ fun ThumbnailRow(
             horizontalArrangement = Arrangement.End,
             verticalAlignment = Alignment.CenterVertically
         ) {
-            Spacer(androidx.compose.ui.Modifier.requiredWidth(10.dp))
+            Spacer(Modifier.requiredWidth(10.dp))
 
             Column(Modifier.fillMaxSize().weight(1f), verticalArrangement = Arrangement.SpaceEvenly) {
                 Text(
@@ -266,7 +273,7 @@ fun ThumbnailRow(
                 )
             }
 
-            val player_button_modifier = androidx.compose.ui.Modifier.size(40.dp)
+            val player_button_modifier = Modifier.size(40.dp)
             IconButton(PlayerServiceHost.player::playPause, player_button_modifier) {
                 Image(
                     if (PlayerServiceHost.status.m_playing) Icons.Filled.Pause else Icons.Filled.PlayArrow,

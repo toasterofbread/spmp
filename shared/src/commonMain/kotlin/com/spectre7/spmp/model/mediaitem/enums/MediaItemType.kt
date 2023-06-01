@@ -1,4 +1,4 @@
-package com.spectre7.spmp.model.mediaitem
+package com.spectre7.spmp.model.mediaitem.enums
 
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.MusicNote
@@ -6,7 +6,8 @@ import androidx.compose.material.icons.filled.Person
 import androidx.compose.material.icons.filled.PlaylistPlay
 import androidx.compose.ui.graphics.vector.ImageVector
 import com.beust.klaxon.JsonObject
-import com.spectre7.spmp.api.DataApi
+import com.spectre7.spmp.api.Api
+import com.spectre7.spmp.model.mediaitem.*
 import com.spectre7.spmp.resources.getString
 import com.spectre7.spmp.platform.PlatformContext
 
@@ -33,9 +34,9 @@ enum class MediaItemType {
 
     fun parseRegistryEntry(obj: JsonObject): MediaItemDataRegistry.Entry {
         return when (this) {
-            SONG -> DataApi.klaxon.parseFromJsonObject<Song.SongDataRegistryEntry>(obj)!!
-            PLAYLIST_ACC, PLAYLIST_LOC -> DataApi.klaxon.parseFromJsonObject<PlaylistDataRegistryEntry>(obj)!!
-            else -> DataApi.klaxon.parseFromJsonObject(obj)!!
+            SONG -> Api.klaxon.parseFromJsonObject<SongDataRegistryEntry>(obj)!!
+            PLAYLIST_ACC, PLAYLIST_LOC -> Api.klaxon.parseFromJsonObject<PlaylistDataRegistryEntry>(obj)!!
+            else -> Api.klaxon.parseFromJsonObject(obj)!!
         }
     }
     

@@ -2,13 +2,16 @@ package com.spectre7.spmp.api
 
 import SpMp
 import com.beust.klaxon.Json
-import com.spectre7.spmp.api.DataApi.Companion.addYtHeaders
-import com.spectre7.spmp.api.DataApi.Companion.getStream
-import com.spectre7.spmp.api.DataApi.Companion.ytUrl
+import com.spectre7.spmp.api.Api.Companion.addYtHeaders
+import com.spectre7.spmp.api.Api.Companion.getStream
+import com.spectre7.spmp.api.Api.Companion.ytUrl
 import com.spectre7.spmp.model.*
 import com.spectre7.spmp.model.mediaitem.*
+import com.spectre7.spmp.model.mediaitem.data.MediaItemData
+import com.spectre7.spmp.model.mediaitem.enums.MediaItemType
+import com.spectre7.spmp.model.mediaitem.enums.PlaylistType
+import com.spectre7.spmp.model.mediaitem.enums.SongType
 import com.spectre7.spmp.ui.component.MediaItemLayout
-import kotlinx.coroutines.launch
 import okhttp3.Request
 import java.io.InputStreamReader
 import java.time.Duration
@@ -24,13 +27,13 @@ fun getHomeFeed(min_rows: Int = -1, allow_cached: Boolean = true, params: String
             .ytUrl(if (ctoken == null) endpoint else "$endpoint?ctoken=$ctoken&continuation=$ctoken&type=next")
             .addYtHeaders()
             .post(
-                DataApi.getYoutubeiRequestBody(params?.let {
+                Api.getYoutubeiRequestBody(params?.let {
                     """{"params": "$it"}"""
                 })
             )
             .build()
 
-        val result = DataApi.request(request)
+        val result = Api.request(request)
         if (result.isFailure) {
             return result.cast()
         }
@@ -46,7 +49,7 @@ fun getHomeFeed(min_rows: Int = -1, allow_cached: Boolean = true, params: String
     if (allow_cached && continuation == null) {
         val cached_rows = Cache.get(rows_cache_key)
         if (cached_rows != null) {
-            val rows = DataApi.klaxon.parseArray<MediaItemLayout>(cached_rows)!!
+            val rows = Api.klaxon.parseArray<MediaItemLayout>(cached_rows)!!
             cached_rows.close()
 
             val ctoken = Cache.get(ctoken_cache_key)?.run {
@@ -56,7 +59,7 @@ fun getHomeFeed(min_rows: Int = -1, allow_cached: Boolean = true, params: String
             }
 
             val chips = Cache.get(chips_cache_key)?.run {
-                val chips: List<List<Any>> = DataApi.klaxon.parseArray(this)!!
+                val chips: List<List<Any>> = Api.klaxon.parseArray(this)!!
                 close()
                 chips.map { Pair(it[0] as Int, it[1] as String) }
             }
@@ -71,7 +74,7 @@ fun getHomeFeed(min_rows: Int = -1, allow_cached: Boolean = true, params: String
     }
 
     val response_reader = result.getOrThrowHere()
-    var data: YoutubeiBrowseResponse = DataApi.klaxon.parse(response_reader)!!
+    var data: YoutubeiBrowseResponse = Api.klaxon.parse(response_reader)!!
     response_reader.close()
 
     val rows: MutableList<MediaItemLayout> = processRows(data.getShelves(continuation != null), hl).toMutableList()
@@ -89,7 +92,7 @@ fun getHomeFeed(min_rows: Int = -1, allow_cached: Boolean = true, params: String
         if (!result.isSuccess) {
             return result.cast()
         }
-        data = DataApi.klaxon.parse(result.data)!!
+        data = Api.klaxon.parse(result.data)!!
         result.data.close()
 
         val shelves = data.getShelves(true)
@@ -100,9 +103,9 @@ fun getHomeFeed(min_rows: Int = -1, allow_cached: Boolean = true, params: String
     }
 
     if (continuation == null) {
-        Cache.set(rows_cache_key, DataApi.klaxon.toJsonString(rows).reader(), CACHE_LIFETIME)
+        Cache.set(rows_cache_key, Api.klaxon.toJsonString(rows).reader(), CACHE_LIFETIME)
         Cache.set(ctoken_cache_key, ctoken?.reader(), CACHE_LIFETIME)
-        Cache.set(chips_cache_key, chips?.let { DataApi.klaxon.toJsonString(it.map { chip -> listOf(chip.first, chip.second) }).reader() }, CACHE_LIFETIME)
+        Cache.set(chips_cache_key, chips?.let { Api.klaxon.toJsonString(it.map { chip -> listOf(chip.first, chip.second) }).reader() }, CACHE_LIFETIME)
     }
 
     return Result.success(Triple(rows, ctoken, chips))
@@ -130,25 +133,7 @@ private fun processRows(rows: List<YoutubeiShelf>, hl: String): List<MediaItemLa
                     media_item_type: MediaItemType? = null,
                     view_more: MediaItemLayout.ViewMore? = null
                 ) {
-
                     val items = row.getMediaItems(hl).toMutableList()
-
-//                    val final_title: String
-//                    val final_subtitle: String?
-//                    if (title == null || (!localised_title && SpMp.data_language != SpMp.ui_language)) {
-//                        val generated = items.generateLayoutTitle()
-//                        final_title = generated.first
-//                        final_subtitle = generated.second
-//                    }
-//                    else {
-//                        final_title = title
-//                        if (header.strapline?.runs?.isNotEmpty() == true && media_item_type != null) {
-//                            final_subtitle = if (thumbnail_source?.url != null) "home_feed_similar_to" else "home_feed_more_from"
-//                        }
-//                        else {
-//                            final_subtitle = null
-//                        }
-//                    }
 
                     ret.add(MediaItemLayout(
                         title, subtitle,
@@ -235,11 +220,7 @@ private fun processRows(rows: List<YoutubeiShelf>, hl: String): List<MediaItemLa
                     header.thumbnail?.musicThumbnailRenderer?.thumbnail?.thumbnails?.firstOrNull()?.let {
                         MediaItemLayout.ThumbnailSource(url = it.url)
                     }
-                    ?: MediaItemLayout.ThumbnailSource(media_item = media_item).also {
-                        if (!media_item.canLoadThumbnail()) {
-                            DataApi.scope.launch { media_item.loadData() }
-                        }
-                    }
+                    ?: MediaItemLayout.ThumbnailSource(media_item = media_item)
 
                 add(
                     LocalisedYoutubeString.raw(header.title.first_text),
@@ -525,7 +506,7 @@ data class MusicTwoRowItemRenderer(
         }
 
         if (host_item is Song) {
-            val index = if (host_item.song_type == Song.SongType.VIDEO) 0 else 1
+            val index = if (host_item.song_type == SongType.VIDEO) 0 else 1
             subtitle.runs?.getOrNull(index)?.also {
                 return Artist.createForItem(host_item).editArtistData { supplyTitle(it.text) }
             }
@@ -565,7 +546,7 @@ data class ContentsItem(val musicTwoRowItemRenderer: MusicTwoRowItemRenderer? = 
                 return Pair(
                     Song.fromId(renderer.navigationEndpoint.watchEndpoint.videoId).editSongData {
                         // TODO | Is this the best way of checking?
-                        supplySongType(if (first_thumbnail.height == first_thumbnail.width) Song.SongType.SONG else Song.SongType.VIDEO)
+                        supplySongType(if (first_thumbnail.height == first_thumbnail.width) SongType.SONG else SongType.VIDEO)
                         supplyTitle(renderer.title.first_text)
                         supplyArtist(renderer.getArtist(data_item))
                         supplyThumbnailProvider(renderer.thumbnailRenderer.toThumbnailProvider())
@@ -584,7 +565,7 @@ data class ContentsItem(val musicTwoRowItemRenderer: MusicTwoRowItemRenderer? = 
                 item = AccountPlaylist
                     .fromId(renderer.navigationEndpoint.watchPlaylistEndpoint.playlistId)
                     .editPlaylistData {
-                        supplyPlaylistType(Playlist.PlaylistType.RADIO, true)
+                        supplyPlaylistType(PlaylistType.RADIO, true)
                         supplyTitle(renderer.title.first_text)
                         supplyThumbnailProvider(renderer.thumbnailRenderer.toThumbnailProvider())
                     }
@@ -604,9 +585,9 @@ data class ContentsItem(val musicTwoRowItemRenderer: MusicTwoRowItemRenderer? = 
                             .fromId(browse_id)
                             .editPlaylistData {
                                 supplyPlaylistType(when (page_type) {
-                                    "MUSIC_PAGE_TYPE_ALBUM" -> Playlist.PlaylistType.ALBUM
-                                    "MUSIC_PAGE_TYPE_PLAYLIST" -> Playlist.PlaylistType.PLAYLIST
-                                    else -> Playlist.PlaylistType.AUDIOBOOK
+                                    "MUSIC_PAGE_TYPE_ALBUM" -> PlaylistType.ALBUM
+                                    "MUSIC_PAGE_TYPE_PLAYLIST" -> PlaylistType.PLAYLIST
+                                    else -> PlaylistType.AUDIOBOOK
                                 }, true)
                                 supplyArtist(renderer.getArtist(data_item))
                                 supplyTitle(renderer.title.first_text)
@@ -643,7 +624,7 @@ data class ContentsItem(val musicTwoRowItemRenderer: MusicTwoRowItemRenderer? = 
                         playlist = AccountPlaylist
                             .fromId(renderer.navigationEndpoint.browseEndpoint.browseId)
                             .editPlaylistData {
-                                supplyPlaylistType(Playlist.PlaylistType.fromTypeString(page_type), true)
+                                supplyPlaylistType(PlaylistType.fromTypeString(page_type), true)
                             }
                     }
                     "MUSIC_PAGE_TYPE_ARTIST", "MUSIC_PAGE_TYPE_USER_CHANNEL" -> {
@@ -704,7 +685,7 @@ data class ContentsItem(val musicTwoRowItemRenderer: MusicTwoRowItemRenderer? = 
                 item_data = Song.fromId(video_id).editSongDataManual {
                     supplyDuration(duration, true)
                     renderer.thumbnail?.musicThumbnailRenderer?.thumbnail?.thumbnails?.firstOrNull()?.also {
-                        supplySongType(if (it.height == it.width) Song.SongType.SONG else Song.SongType.VIDEO)
+                        supplySongType(if (it.height == it.width) SongType.SONG else SongType.VIDEO)
                     }
                 }
             }
@@ -712,7 +693,7 @@ data class ContentsItem(val musicTwoRowItemRenderer: MusicTwoRowItemRenderer? = 
                 return null
             }
             else {
-                item_data = (playlist?.editPlaylistDataManual { supplyTotalDuration(duration, true) }) ?: artist?.editDataManual() ?: return null
+                item_data = (playlist?.data?.apply { supplyTotalDuration(duration, true) }) ?: artist?.data ?: return null
             }
 
             // Handle songs with no artist (or 'Various artists')

@@ -5,13 +5,13 @@ import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Album
 import androidx.compose.material.icons.filled.PlayArrow
 import androidx.compose.ui.graphics.vector.ImageVector
-import com.spectre7.spmp.api.DataApi.Companion.addYtHeaders
-import com.spectre7.spmp.api.DataApi.Companion.getStream
-import com.spectre7.spmp.api.DataApi.Companion.ytUrl
-import com.spectre7.spmp.model.mediaitem.Artist
-import com.spectre7.spmp.model.mediaitem.MediaItemType
-import com.spectre7.spmp.model.mediaitem.Playlist
-import com.spectre7.spmp.model.mediaitem.Song
+import com.spectre7.spmp.api.Api.Companion.addYtHeaders
+import com.spectre7.spmp.api.Api.Companion.getStream
+import com.spectre7.spmp.api.Api.Companion.ytUrl
+import com.spectre7.spmp.model.mediaitem.*
+import com.spectre7.spmp.model.mediaitem.enums.MediaItemType
+import com.spectre7.spmp.model.mediaitem.enums.PlaylistType
+import com.spectre7.spmp.model.mediaitem.enums.SongType
 import com.spectre7.spmp.resources.getStringTODO
 import com.spectre7.spmp.ui.component.MediaItemLayout
 import okhttp3.Request
@@ -68,17 +68,17 @@ fun searchYoutubeMusic(query: String, params: String?): Result<SearchResults> {
     val request = Request.Builder()
         .ytUrl("/youtubei/v1/search")
         .addYtHeaders()
-        .post(DataApi.getYoutubeiRequestBody("""{ "query": "$query", "params": $params_str }"""))
+        .post(Api.getYoutubeiRequestBody("""{ "query": "$query", "params": $params_str }"""))
         .build()
 
-    val result = DataApi.request(request)
+    val result = Api.request(request)
     if (result.isFailure) {
         return result.cast()
     }
 
     val stream = result.getOrThrow().getStream()
     val str = stream.reader().readText()
-    val parsed: YoutubeiSearchResponse = DataApi.klaxon.parse(str)!!
+    val parsed: YoutubeiSearchResponse = Api.klaxon.parse(str)!!
     stream.close()
 
     val tab = parsed.contents.tabbedSearchResultsRenderer.tabs.first().tabRenderer
@@ -119,10 +119,10 @@ fun searchYoutubeMusic(query: String, params: String?): Result<SearchResults> {
             search_params?.let {
                 val item = items.firstOrNull() ?: return@let null
                 SearchFilter(when (item) {
-                    is Song -> if (item.song_type == Song.SongType.VIDEO) SearchType.VIDEO else SearchType.SONG
+                    is Song -> if (item.song_type == SongType.VIDEO) SearchType.VIDEO else SearchType.SONG
                     is Artist -> SearchType.ARTIST
                     is Playlist -> when (item.playlist_type) {
-                        Playlist.PlaylistType.ALBUM -> SearchType.ALBUM
+                        PlaylistType.ALBUM -> SearchType.ALBUM
                         else -> SearchType.PLAYLIST
                     }
                     else -> throw NotImplementedError(item.type.toString())

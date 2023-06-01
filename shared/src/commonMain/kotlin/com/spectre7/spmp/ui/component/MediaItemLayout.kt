@@ -21,7 +21,6 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.RectangleShape
-import androidx.compose.ui.graphics.Shape
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.Dp
@@ -30,11 +29,15 @@ import androidx.compose.ui.unit.TextUnit
 import androidx.compose.ui.unit.dp
 import com.beust.klaxon.Json
 import com.spectre7.spmp.api.*
-import com.spectre7.spmp.api.DataApi.Companion.addYtHeaders
-import com.spectre7.spmp.api.DataApi.Companion.getStream
-import com.spectre7.spmp.api.DataApi.Companion.ytUrl
+import com.spectre7.spmp.api.Api.Companion.addYtHeaders
+import com.spectre7.spmp.api.Api.Companion.getStream
+import com.spectre7.spmp.api.Api.Companion.ytUrl
 import com.spectre7.spmp.model.*
 import com.spectre7.spmp.model.mediaitem.*
+import com.spectre7.spmp.model.mediaitem.enums.MediaItemType
+import com.spectre7.spmp.model.mediaitem.enums.PlaylistType
+import com.spectre7.spmp.model.mediaitem.enums.SongType
+import com.spectre7.spmp.model.mediaitem.enums.getReadable
 import com.spectre7.spmp.platform.composable.rememberImagePainter
 import com.spectre7.spmp.resources.getString
 import com.spectre7.spmp.ui.component.multiselect.MediaItemMultiSelectContext
@@ -80,8 +83,8 @@ data class MediaItemLayout(
                 // TODO multiselect_context
                 GRID -> MediaItemGrid(layout, modifier, multiselect_context = multiselect_context)
                 ROW -> MediaItemGrid(layout, modifier, 1, multiselect_context = multiselect_context)
-                LIST -> MediaItemList(layout, false, modifier, multiselect_context = multiselect_context)
-                NUMBERED_LIST -> MediaItemList(layout, true, modifier, multiselect_context = multiselect_context)
+                LIST -> MediaItemList(layout, modifier, false, multiselect_context = multiselect_context)
+                NUMBERED_LIST -> MediaItemList(layout, modifier, true, multiselect_context = multiselect_context)
                 CARD -> MediaItemCard(layout, modifier, multiselect_context = multiselect_context)
             }
         }
@@ -149,19 +152,19 @@ data class MediaItemLayout(
                     else "/youtubei/v1/browse?ctoken=$token&continuation=$token&type=next"
                 )
                 .addYtHeaders()
-                .post(DataApi.getYoutubeiRequestBody(
+                .post(Api.getYoutubeiRequestBody(
                     if (initial) "{\"browseId\": \"$token\"}"
                     else null
                 ))
                 .build()
 
-            val result = DataApi.request(request)
+            val result = Api.request(request)
             if (result.isFailure) {
                 return result.cast()
             }
 
             val stream = result.getOrThrow().getStream()
-            val parsed: YoutubeiBrowseResponse = DataApi.klaxon.parse(stream)!!
+            val parsed: YoutubeiBrowseResponse = Api.klaxon.parse(stream)!!
             stream.close()
 
             val shelf =
@@ -499,10 +502,10 @@ fun MediaItemCard(
                     is Artist -> Icons.Filled.Person
                     is Playlist -> {
                         when (item.playlist_type) {
-                            Playlist.PlaylistType.PLAYLIST, null -> Icons.Filled.PlaylistPlay
-                            Playlist.PlaylistType.ALBUM -> Icons.Filled.Album
-                            Playlist.PlaylistType.AUDIOBOOK -> Icons.Filled.Book
-                            Playlist.PlaylistType.RADIO -> Icons.Filled.Radio
+                            PlaylistType.PLAYLIST, null -> Icons.Filled.PlaylistPlay
+                            PlaylistType.ALBUM -> Icons.Filled.Album
+                            PlaylistType.AUDIOBOOK -> Icons.Filled.Book
+                            PlaylistType.RADIO -> Icons.Filled.Radio
                         }
                     }
                     else -> throw NotImplementedError(item.type.toString())
@@ -543,7 +546,7 @@ fun MediaItemCard(
                         overflow = TextOverflow.Ellipsis
                     )
                 item.artist?.PreviewLong(
-                    MediaItem.PreviewParams(
+                    MediaItemPreviewParams(
                     contentColour = { (accent_colour ?: Theme.current.accent).getContrasted() }
                 ))
             }
@@ -573,7 +576,6 @@ fun MediaItemCard(
     }
 }
 
-@OptIn(ExperimentalFoundationApi::class)
 @Composable
 fun MediaItemGrid(
     layout: MediaItemLayout,
@@ -582,39 +584,7 @@ fun MediaItemGrid(
     multiselect_context: MediaItemMultiSelectContext? = null,
     startContent: (LazyGridScope.() -> Unit)? = null
 ) {
-    val row_count = rows ?: if (layout.items.size <= 3) 1 else 2
-    val item_spacing = Arrangement.spacedBy(15.dp)
-    val item_size = layout.itemSizeProvider()
-
-    Column(modifier, verticalArrangement = Arrangement.spacedBy(10.dp)) {
-        layout.TitleBar(multiselect_context = multiselect_context)
-
-        Box(Modifier.fillMaxWidth(), contentAlignment = Alignment.CenterEnd) {
-            LazyHorizontalGrid(
-                rows = GridCells.Fixed(row_count),
-                modifier = Modifier.height(item_size.height * row_count).fillMaxWidth(),
-                horizontalArrangement = item_spacing,
-                verticalArrangement = item_spacing
-            ) {
-                startContent?.invoke(this)
-
-                items(layout.items.size, { layout.items[it].item.id }) {
-                    layout.items[it].item.PreviewSquare(
-                        MediaItem.PreviewParams(
-                        Modifier.size(item_size).animateItemPlacement(),
-                        contentColour = Theme.current.on_background_provider,
-                        multiselect_context = multiselect_context
-                    ))
-                }
-            }
-
-            if (multiselect_context != null && !layout.shouldShowTitleBar()) {
-                Box(Modifier.background(CircleShape, Theme.current.background_provider), contentAlignment = Alignment.Center) {
-                    multiselect_context.CollectionToggleButton(layout.items)
-                }
-            }
-        }
-    }
+    MediaItemGrid(layout.items, modifier, rows, layout.title, layout.subtitle, layout.itemSizeProvider, multiselect_context, startContent)
 }
 
 @OptIn(ExperimentalFoundationApi::class)
@@ -652,11 +622,12 @@ fun MediaItemGrid(
 
                 items(items.size, { items[it].item?.id ?: "" }) {
                     items[it].item?.PreviewSquare(
-                        MediaItem.PreviewParams(
+                        MediaItemPreviewParams(
                             Modifier.size(item_size).animateItemPlacement(),
                             contentColour = Theme.current.on_background_provider,
                             multiselect_context = multiselect_context
-                        ))
+                        )
+                    )
                 }
             }
 
@@ -672,52 +643,41 @@ fun MediaItemGrid(
 @Composable
 fun MediaItemList(
     layout: MediaItemLayout,
-    numbered: Boolean,
     modifier: Modifier = Modifier,
+    numbered: Boolean = false,
+    multiselect_context: MediaItemMultiSelectContext? = null
+) {
+    MediaItemList(layout.items, modifier, numbered, layout.title, layout.subtitle, multiselect_context)
+}
+
+@Composable
+fun MediaItemList(
+    items: List<MediaItemHolder>,
+    modifier: Modifier = Modifier,
+    numbered: Boolean = false,
+    title: LocalisedYoutubeString? = null,
+    subtitle: LocalisedYoutubeString? = null,
     multiselect_context: MediaItemMultiSelectContext? = null
 ) {
     Column(modifier) {
-        layout.TitleBar(Modifier.padding(bottom = 5.dp), multiselect_context = multiselect_context)
+        TitleBar(
+            items,
+            title,
+            subtitle,
+            Modifier.padding(bottom = 5.dp),
+            multiselect_context = multiselect_context
+        )
 
-        for (item in layout.items.withIndex()) {
+        for (item in items.withIndex()) {
             Row(verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(10.dp)) {
                 if (numbered) {
-                    Text((item.index + 1).toString().padStart((layout.items.size + 1).toString().length, '0'), fontWeight = FontWeight.Light)
+                    Text((item.index + 1).toString().padStart((items.size + 1).toString().length, '0'), fontWeight = FontWeight.Light)
                 }
 
                 Column {
-                    item.value.PreviewLong(MediaItem.PreviewParams(multiselect_context = multiselect_context))
+                    item.value.item?.PreviewLong(MediaItemPreviewParams(multiselect_context = multiselect_context))
                 }
             }
         }
-    }
-}
-
-fun List<MediaItem>.generateLayoutTitle(): Pair<String, String?> {
-    check(isNotEmpty())
-
-    var songs = 0
-    var videos = 0
-    var artists = 0
-    var playlists = 0
-    var albums = 0
-
-    for (item in this) {
-        when (item.type) {
-            MediaItemType.SONG -> if ((item as Song).song_type == Song.SongType.VIDEO) videos++ else songs++
-            MediaItemType.ARTIST -> artists++
-            else -> if ((item as Playlist).playlist_type == Playlist.PlaylistType.ALBUM) albums++ else playlists++
-        }
-    }
-
-    return when (songs + videos + artists + playlists + albums) {
-        0 -> throw IllegalStateException()
-        videos ->             Pair("home_feed_rec_music_videos", null)
-        artists ->            Pair("home_feed_rec_artists", null)
-        songs + videos ->     Pair("home_feed_rec_songs", null)
-        playlists ->          Pair("home_feed_rec_playlists", null)
-        albums ->             Pair("home_feed_rec_albums", null)
-        playlists + albums -> Pair("home_feed_rec_albums_playlists", null)
-        else ->               Pair("home_feed_rec_general", null)
     }
 }

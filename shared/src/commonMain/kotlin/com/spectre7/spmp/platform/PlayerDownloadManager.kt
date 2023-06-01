@@ -1,12 +1,13 @@
 package com.spectre7.spmp.platform
 
 import com.spectre7.spmp.model.mediaitem.Song
+import com.spectre7.spmp.model.mediaitem.enums.SongAudioQuality
 
 expect class PlayerDownloadManager(context: PlatformContext) {
     class DownloadStatus {
         val song: Song
         val status: Status
-        val quality: Song.AudioQuality
+        val quality: SongAudioQuality
         val progress: Float
         val id: String
         enum class Status { IDLE, PAUSED, DOWNLOADING, CANCELLED, ALREADY_FINISHED, FINISHED }

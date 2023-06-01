@@ -18,7 +18,7 @@ import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
 import com.spectre7.spmp.model.mediaitem.LocalPlaylist
-import com.spectre7.spmp.model.mediaitem.MediaItem
+import com.spectre7.spmp.model.mediaitem.MediaItemPreviewParams
 import com.spectre7.spmp.model.mediaitem.Playlist
 import com.spectre7.spmp.platform.composable.BackHandler
 import com.spectre7.spmp.resources.getString
@@ -75,7 +75,7 @@ fun PlaylistSelectMenu(modifier: Modifier = Modifier, show_cancel_button: Boolea
                     }
                 })
             }) {
-                playlist.PreviewLong(MediaItem.PreviewParams())
+                playlist.PreviewLong(MediaItemPreviewParams())
             }
         }
     }

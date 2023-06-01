@@ -73,13 +73,13 @@ fun YoutubeMusicLogin(modifier: Modifier = Modifier, manual: Boolean = false, on
                             addHeader(header.key, header.value)
                         }
                     }
-                    .post(DataApi.getYoutubeiRequestBody())
+                    .post(Api.getYoutubeiRequestBody())
                     .build()
 
-                val result = DataApi.request(account_request)
+                val result = Api.request(account_request)
                 result.fold(
                     { response ->
-                        val parsed: AccountMenuResponse = DataApi.klaxon.parse(response.body!!.charStream())!!
+                        val parsed: AccountMenuResponse = Api.klaxon.parse(response.body!!.charStream())!!
                         response.close()
 
                         onFinished(Result.success(

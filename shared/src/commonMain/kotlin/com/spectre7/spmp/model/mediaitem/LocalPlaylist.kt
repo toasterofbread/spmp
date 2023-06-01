@@ -11,42 +11,22 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.ImageBitmap
 import com.spectre7.spmp.api.*
+import com.spectre7.spmp.model.mediaitem.data.PlaylistItemData
+import com.spectre7.spmp.model.mediaitem.enums.PlaylistType
 import com.spectre7.spmp.platform.PlatformContext
 import com.spectre7.spmp.resources.getString
 import com.spectre7.spmp.ui.theme.Theme
 import com.spectre7.utils.addUnique
 import kotlinx.coroutines.Dispatchers
-import kotlinx.coroutines.delay
 import kotlinx.coroutines.sync.Mutex
 import kotlinx.coroutines.sync.withLock
 import kotlinx.coroutines.withContext
 import java.io.File
 import java.io.Reader
 
-private fun getPlaylistsDirectory(context: PlatformContext): File =
-    context.getFilesDir().resolve("localPlaylists")
-
-private fun getPlaylistFileFromId(context: PlatformContext, id: String): File = getPlaylistsDirectory(context).resolve(id)
-
-private class LocalPlaylistItemData(item: LocalPlaylist): PlaylistItemData(item) {
-    override var items: MutableList<MediaItem>? = mutableStateListOf()
-
-    override fun saveData(data: String) {
-        val file = getPlaylistFileFromId(SpMp.context, data_item.id)
-        file.parentFile.mkdirs()
-        file.writeText(data)
-    }
-
-    override fun getDataReader(): Reader? {
-        val file = getPlaylistFileFromId(SpMp.context, data_item.id)
-        if (!file.isFile) {
-            return null
-        }
-        return file.reader()
-    }
-}
-
 class LocalPlaylist(id: String): Playlist(id) {
+    override val url: String? = checkNotDeleted(null)
+
     override val data: PlaylistItemData = LocalPlaylistItemData(this)
 
     override val items: MutableList<MediaItem> get() = checkNotDeleted(data.items!!)
@@ -95,11 +75,6 @@ class LocalPlaylist(id: String): Playlist(id) {
         return Result.success(Unit)
     }
 
-    override fun isFullyLoaded(): Boolean = checkNotDeleted(true)
-    override suspend fun loadData(force: Boolean): Result<MediaItem?> = checkNotDeleted(Result.success(this))
-
-    override val url: String? = checkNotDeleted(null)
-
     override fun canLoadThumbnail(): Boolean = checkNotDeleted(true)
     override fun downloadThumbnail(quality: MediaItemThumbnailProvider.Quality): Result<ImageBitmap> = checkNotDeleted(Result.failure(NotImplementedError()))
 
@@ -138,7 +113,7 @@ class LocalPlaylist(id: String): Playlist(id) {
 
     suspend fun convertToAccountPlaylist(context: PlatformContext = SpMp.context): Result<AccountPlaylist> {
         checkNotDeleted()
-        check(DataApi.ytm_authenticated)
+        check(Api.ytm_authenticated)
 
         val create_result = createAccountPlaylist(title.orEmpty(), description.orEmpty())
         if (create_result.isFailure) {
@@ -160,7 +135,7 @@ class LocalPlaylist(id: String): Playlist(id) {
                 supplyDescription(this@LocalPlaylist.description, true)
                 supplyYear(this@LocalPlaylist.year, true)
                 supplyPlaylistType(PlaylistType.PLAYLIST, true)
-                supplyArtist(DataApi.ytm_auth.own_channel, true)
+                supplyArtist(Api.ytm_auth.own_channel, true)
                 supplyItems(this@LocalPlaylist.items, true)
             }
 
@@ -171,13 +146,22 @@ class LocalPlaylist(id: String): Playlist(id) {
             saveRegistry()
         }
 
-        account_playlist.loadData()
+        var load_result: Result<*> = account_playlist.getTitle()
+        if (load_result.isFailure) return load_result.cast()
+
+        load_result = account_playlist.getDescription()
+        if (load_result.isFailure) return load_result.cast()
+
+        load_result = account_playlist.getThumbnailProvider()
+        if (load_result.isFailure) return load_result.cast()
 
         onReplaced(account_playlist)
         deleteLocalPlaylist(context, id)
 
         return Result.success(account_playlist)
     }
+
+    override suspend fun loadGeneralData(): Result<Unit> = checkNotDeleted(Result.success(Unit))
 
     interface Listener {
         fun onAdded(playlist: LocalPlaylist)
@@ -297,5 +281,28 @@ class LocalPlaylist(id: String): Playlist(id) {
                 }
             }
         }
+    }
+}
+
+private fun getPlaylistsDirectory(context: PlatformContext): File =
+    context.getFilesDir().resolve("localPlaylists")
+
+private fun getPlaylistFileFromId(context: PlatformContext, id: String): File = getPlaylistsDirectory(context).resolve(id)
+
+private class LocalPlaylistItemData(item: LocalPlaylist): PlaylistItemData(item) {
+    override var items: MutableList<MediaItem>? = mutableStateListOf()
+
+    override fun saveData(data: String) {
+        val file = getPlaylistFileFromId(SpMp.context, data_item.id)
+        file.parentFile.mkdirs()
+        file.writeText(data)
+    }
+
+    override fun getDataReader(): Reader? {
+        val file = getPlaylistFileFromId(SpMp.context, data_item.id)
+        if (!file.isFile) {
+            return null
+        }
+        return file.reader()
     }
 }

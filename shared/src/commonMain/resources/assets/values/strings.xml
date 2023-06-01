@@ -25,10 +25,14 @@
     <string name="home_feed_filter_commute">Commute</string>
     <string name="home_feed_filter_focus">Focus</string>
 
-    <string name="library_page_title">Library</string>
+    <string name="library_main_page_title">Library</string>
+    <string name="library_songs_page_title">Songs</string>
+
     <string name="library_row_playlists">Playlists</string>
-    <string name="library_row_recent_songs">Recent songs</string>
+    <string name="library_row_local_songs">Songs saved to device</string>
+    <string name="library_x_more_songs">and $x more songs</string>
     <string name="library_row_downloads">Downloads</string>
+    <string name="library_no_songs_downloaded">No songs downloaded</string>
     <string name="library_playlists_empty">No playlists</string>
     <string name="library_recent_songs_all">All</string>
     <string name="library_recent_songs_year">Year</string>

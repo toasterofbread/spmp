@@ -114,22 +114,7 @@ fun PlaylistPage(
 
     LaunchedEffect(playlist) {
         accent_colour = null
-
-        if (playlist.items == null) {
-            launch {
-                val result = playlist.loadData()
-                result.fold(
-                    { playlist ->
-                        if (playlist == null) {
-                            SpMp.error_manager.onError("PlaylistPageLoad", Exception("loadData result is null"))
-                        }
-                    },
-                    { error ->
-                        SpMp.error_manager.onError("PlaylistPageLoad", error)
-                    }
-                )
-            }
-        }
+        playlist.getFeedLayouts().getOrReport("PlaylistPageLoad")
     }
 
     Column(
@@ -515,7 +500,7 @@ private fun TopInfoEditButtons(playlist: Playlist, accent_colour: Color, modifie
                             ) }) {
                                 LazyColumn {
                                     items(playlist_items) { item ->
-                                        item.PreviewLong(MediaItem.PreviewParams())
+                                        item.PreviewLong(MediaItemPreviewParams())
                                     }
                                 }
                             }

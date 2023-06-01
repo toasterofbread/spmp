@@ -399,7 +399,7 @@ class PlayerService : MediaPlayerService() {
 
             check(song.artist?.title != null)
 
-            discord_status_update_job = DataApi.scope.launch {
+            discord_status_update_job = Api.scope.launch {
                 fun formatText(text: String): String {
                     return text
                         .replace("\$artist", song.artist!!.title!!)
@@ -497,54 +497,56 @@ class PlayerService : MediaPlayerService() {
                 return@withContext
             }
 
+            coroutineContext.job.invokeOnCompletion {
+                reader.close()
+            }
+
             val pos_data = reader.readLine().split(',')
 
-            withContext(Dispatchers.Default) {
-                val songs: MutableList<Song?> = mutableListOf()
+            val songs: MutableList<Song?> = mutableListOf()
+            val request_limit = Semaphore(10)
+            val jobs: MutableList<Job> = mutableListOf()
 
-                val request_limit = Semaphore(10)
-                val jobs: MutableList<Job> = mutableListOf()
+            var i = 0
+            var line = reader.readLine()
+            while (line != null) {
+                val song = Song.fromId(line)
+                val index = i++
+                line = reader.readLine()
 
-                var i = 0
-                var line = reader.readLine()
-                while (line != null) {
-                    val song = Song.fromId(line)
-                    val index = i++
-                    line = reader.readLine()
+                if (song.title != null) {
+                    songs.add(song)
+                    continue
+                }
 
-                    if (song.title != null) {
-                        songs.add(song)
-                        continue
-                    }
+                songs.add(null)
 
-                    songs.add(null)
+                jobs.add(
+                    launch {
+                        request_limit.withPermit {
+                            song.getTitle().getOrReport("loadPersistentQueue") ?: return@launch
+                            song.getArtist().getOrReport("loadPersistentQueue")
+                            song.getThumbnailProvider()
 
-                    jobs.add(
-                        launch {
-                            request_limit.withPermit {
-                                song.loadData().onSuccess { loaded ->
-                                    synchronized(songs) {
-                                        songs[index] = loaded as Song?
-                                    }
-                                }
+                            synchronized(songs) {
+                                songs[index] = song
                             }
                         }
-                    )
-                }
+                    }
+                )
+            }
 
-                jobs.joinAll()
-                reader.close()
+            jobs.joinAll()
 
-                SpMp.Log.info("loadPersistentQueue adding ${songs.size} songs to $pos_data")
+            SpMp.Log.info("loadPersistentQueue adding ${songs.size} songs to $pos_data")
 
-                withContext(Dispatchers.Main) {
-                    clearQueue(save = false)
-                    addMultipleToQueue(songs.filterIsInstance<Song>(), 0)
-                    seekToSong(pos_data[0].toInt())
-                    seekTo(pos_data[1].toLong())
-                    persistent_queue_loaded = true
-                    check(queue_lock.isLocked)
-                }
+            withContext(Dispatchers.Main) {
+                clearQueue(save = false)
+                addMultipleToQueue(songs.filterIsInstance<Song>(), 0)
+                seekToSong(pos_data[0].toInt())
+                seekTo(pos_data[1].toLong())
+                persistent_queue_loaded = true
+                check(queue_lock.isLocked)
             }
         }
     }

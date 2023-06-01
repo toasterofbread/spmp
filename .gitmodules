@@ -1,7 +1,3 @@
-[submodule "app/src/thirdparty/ExoPlayer"]
-	path = androidApp/src/thirdparty/ExoPlayer
-	url = https://github.com/spectreseven1138/ExoPlayer
-	branch = 2.18.1-custom
 [submodule "app/src/thirdparty/NewPipeExtractor"]
 	path = androidApp/src/thirdparty/NewPipeExtractor
 	url = https://github.com/TeamNewPipe/NewPipeExtractor

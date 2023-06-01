@@ -28,10 +28,7 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.spectre7.spmp.PlayerServiceHost
 import com.spectre7.spmp.api.*
-import com.spectre7.spmp.model.mediaitem.Artist
-import com.spectre7.spmp.model.mediaitem.MediaItem
-import com.spectre7.spmp.model.mediaitem.MediaItemThumbnailProvider
-import com.spectre7.spmp.model.mediaitem.Playlist
+import com.spectre7.spmp.model.mediaitem.*
 import com.spectre7.spmp.platform.composable.BackHandler
 import com.spectre7.spmp.resources.getString
 import com.spectre7.spmp.ui.component.*
@@ -151,7 +148,7 @@ fun RadioBuilderPage(
                         is_loading = true
                     }
 
-                    DataApi.scope.launch {
+                    Api.scope.launch {
                         val result = getBuiltRadio(radio_token)
 
                         result.fold(
@@ -248,7 +245,7 @@ fun RadioBuilderPage(
                                     }
                                     LazyColumn(Modifier.fillMaxSize(), contentPadding = PaddingValues(bottom = bottom_padding)) {
                                         items(layout.items) { item ->
-                                            item.PreviewLong(MediaItem.PreviewParams(multiselect_context = multiselect_context))
+                                            item.PreviewLong(MediaItemPreviewParams(multiselect_context = multiselect_context))
                                         }
                                     }
                                 }

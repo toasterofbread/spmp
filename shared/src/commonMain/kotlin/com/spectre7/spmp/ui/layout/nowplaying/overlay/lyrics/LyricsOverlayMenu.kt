@@ -18,6 +18,7 @@ import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.graphics.ImageBitmap
 import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.platform.LocalLayoutDirection
 import androidx.compose.ui.text.font.FontWeight
@@ -26,6 +27,7 @@ import androidx.compose.ui.zIndex
 import com.spectre7.spmp.PlayerServiceHost
 import com.spectre7.spmp.model.Settings
 import com.spectre7.spmp.model.mediaitem.Song
+import com.spectre7.spmp.model.SongLyrics
 import com.spectre7.spmp.model.mediaitem.SongLyricsHolder
 import com.spectre7.spmp.resources.getStringTODO
 import com.spectre7.spmp.ui.component.PillMenu
@@ -49,7 +51,8 @@ class LyricsOverlayMenu(
         expansion: Float,
         openShutterMenu: (@Composable () -> Unit) -> Unit,
         close: () -> Unit,
-        getSeekState: () -> Any
+        getSeekState: () -> Any,
+        getCurrentSongThumb: () -> ImageBitmap?
     ) {
         val lyrics_holder: SongLyricsHolder = songProvider().lyrics
         var show_furigana: Boolean by remember { mutableStateOf(Settings.KEY_LYRICS_DEFAULT_FURIGANA.get()) }
@@ -128,7 +131,7 @@ class LyricsOverlayMenu(
 }
 
 @Composable
-fun CoreLyricsDisplay(size: Dp, lyrics: Song.Lyrics, scroll_state: LazyListState, show_furigana: Boolean) {
+fun CoreLyricsDisplay(size: Dp, lyrics: SongLyrics, scroll_state: LazyListState, show_furigana: Boolean) {
     val size_px = with(LocalDensity.current) { size.toPx() }
 
     val line_height = with (LocalDensity.current) { 20.sp.toPx() }
@@ -175,7 +178,7 @@ fun CoreLyricsDisplay(size: Dp, lyrics: Song.Lyrics, scroll_state: LazyListState
     var current_range: IntRange? by remember { mutableStateOf(null) }
 
     LaunchedEffect(lyrics) {
-        if (lyrics.sync_type != Song.Lyrics.SyncType.NONE) {
+        if (lyrics.sync_type != SongLyrics.SyncType.NONE) {
             while (true) {
                 val time = PlayerServiceHost.status.position_ms
                 var start = -1
@@ -183,10 +186,10 @@ fun CoreLyricsDisplay(size: Dp, lyrics: Song.Lyrics, scroll_state: LazyListState
                 var next = Long.MAX_VALUE
 
                 for (item in terms.withIndex()) {
-                    val term = item.value.data as Song.Lyrics.Term
+                    val term = item.value.data as SongLyrics.Term
 
                     val range =
-                    if (lyrics.sync_type == Song.Lyrics.SyncType.WORD_SYNC && !Settings.get<Boolean>(Settings.KEY_LYRICS_ENABLE_WORD_SYNC)) {
+                    if (lyrics.sync_type == SongLyrics.SyncType.WORD_SYNC && !Settings.get<Boolean>(Settings.KEY_LYRICS_ENABLE_WORD_SYNC)) {
                         term.line_range ?: term.range
                     }
                     else {
@@ -225,7 +228,7 @@ fun CoreLyricsDisplay(size: Dp, lyrics: Song.Lyrics, scroll_state: LazyListState
             line_spacing = 5.dp,
             space_wrapped_lines = false,
             receiveTermRect = { term, rect ->
-                (term.data as Song.Lyrics.Term).data = rect
+                (term.data as SongLyrics.Term).data = rect
             },
 
             text_element = { is_reading: Boolean, text: String, font_size: TextUnit, index: Int, modifier: Modifier ->

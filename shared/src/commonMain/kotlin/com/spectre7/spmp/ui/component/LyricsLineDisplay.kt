@@ -9,14 +9,14 @@ import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import com.spectre7.spmp.model.Settings
-import com.spectre7.spmp.model.mediaitem.Song
+import com.spectre7.spmp.model.SongLyrics
 import com.spectre7.utils.BasicFuriganaText
 import com.spectre7.utils.composable.OnChangedEffect
 import com.spectre7.utils.composable.RecomposeOnInterval
 
 private const val UPDATE_INTERVAL_MS = 100L
 
-private fun getCurrentLine(lyrics: Song.Lyrics, time: Long, linger: Boolean): Int? {
+private fun getCurrentLine(lyrics: SongLyrics, time: Long, linger: Boolean): Int? {
     var last_before: Int? = null
     for (line in lyrics.lines.withIndex()) {
         val range = line.value.firstOrNull()?.line_range ?: continue
@@ -32,8 +32,8 @@ private fun getCurrentLine(lyrics: Song.Lyrics, time: Long, linger: Boolean): In
 }
 
 @Composable
-fun LyricsLineDisplay(lyrics: Song.Lyrics, getTime: () -> Long, modifier: Modifier = Modifier) {
-    require(lyrics.sync_type != Song.Lyrics.SyncType.NONE)
+fun LyricsLineDisplay(lyrics: SongLyrics, getTime: () -> Long, modifier: Modifier = Modifier) {
+    require(lyrics.sync_type != SongLyrics.SyncType.NONE)
 
     val lyrics_linger: Boolean by Settings.KEY_TOPBAR_LYRICS_LINGER.rememberMutableState()
 

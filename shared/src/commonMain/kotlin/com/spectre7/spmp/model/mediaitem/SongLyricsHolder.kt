@@ -4,26 +4,26 @@ import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.setValue
 import com.spectre7.spmp.api.getSongLyrics
+import com.spectre7.spmp.model.SongLyrics
 import kotlinx.coroutines.*
 
 class SongLyricsHolder(private val song: Song) {
-    var lyrics: Song.Lyrics? by mutableStateOf(null)
+    var lyrics: SongLyrics? by mutableStateOf(null)
     var loading: Boolean by mutableStateOf(false)
     var loaded: Boolean by mutableStateOf(false)
 
     private val load_lock = Object()
 
-    suspend fun loadAndGet(): Song.Lyrics? {
-        synchronized(load_lock) {
-            if (loading) {
-                load_lock.wait()
-                return lyrics
-            }
-            loading = true
-        }
-
-        val data = song.song_reg_entry.getLyricsData()
+    suspend fun loadAndGet(): SongLyrics? {
         withContext(Dispatchers.IO) {
+            synchronized(load_lock) {
+                if (loading) {
+                    load_lock.wait()
+                    return@withContext lyrics
+                }
+                loading = true
+            }
+
             coroutineContext.job.invokeOnCompletion {
                 synchronized(load_lock) {
                     loading = false
@@ -31,7 +31,7 @@ class SongLyricsHolder(private val song: Song) {
                 }
             }
 
-            val result = getSongLyrics(song, data)
+            val result = getSongLyrics(song, song.song_reg_entry.getLyricsData())
             synchronized(load_lock) {
                 loaded = true
                 lyrics = result

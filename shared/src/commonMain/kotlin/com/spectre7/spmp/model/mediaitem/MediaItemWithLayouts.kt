@@ -10,5 +10,5 @@ interface MediaItemWithLayoutsData {
 interface MediaItemWithLayouts {
     @get:Composable
     val feed_layouts: List<MediaItemLayout>?
-    fun getFeedLayouts(): List<MediaItemLayout>?
+    suspend fun getFeedLayouts(): Result<List<MediaItemLayout>>
 }

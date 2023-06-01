@@ -47,8 +47,8 @@ fun MainPageTopBar(
             if (show_login_confirmation) {
                 YoutubeMusicLoginConfirmation { manual ->
                     show_login_confirmation = false
-                    if (manual == true) player.setOverlayPage(OverlayPage.YTM_MANUAL_LOGIN)
-                    else if (manual == false) player.setOverlayPage(OverlayPage.YTM_LOGIN)
+                    if (manual == true) player.setOverlayPage(PlayerOverlayPage.YtmLoginPage(true))
+                    else if (manual == false) player.setOverlayPage(PlayerOverlayPage.YtmLoginPage())
                 }
             }
 
@@ -84,7 +84,7 @@ fun MainPageTopBar(
 @Composable
 private fun RadioBuilderButton() {
     val player = LocalPlayerState.current
-    IconButton({ player.setOverlayPage(OverlayPage.RADIO_BUILDER) }) {
+    IconButton({ player.setOverlayPage(PlayerOverlayPage.RadioBuilderPage) }) {
         RadioBuilderIcon()
     }
 }

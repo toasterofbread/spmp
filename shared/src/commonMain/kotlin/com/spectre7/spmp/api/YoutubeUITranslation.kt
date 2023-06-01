@@ -1,7 +1,7 @@
 package com.spectre7.spmp.api
 
 import SpMp
-import com.spectre7.spmp.model.mediaitem.MediaItemType
+import com.spectre7.spmp.model.mediaitem.enums.MediaItemType
 import com.spectre7.spmp.model.Settings
 import com.spectre7.spmp.resources.getString
 import org.apache.commons.lang3.time.DurationFormatUtils
@@ -252,8 +252,8 @@ class YoutubeUITranslation(languages: List<String>) {
                 ja to "カバーとリミックス"
             )
             addString(
-                en to "Covers and remixes",
-                ja to "カバーとリミックス"
+                en to "Recommended albums",
+                ja to "おすすめのアルバム"
             )
             addString(
                 en to "Forgotten favourites",

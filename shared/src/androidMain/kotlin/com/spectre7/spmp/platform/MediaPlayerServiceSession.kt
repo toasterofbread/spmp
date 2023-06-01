@@ -133,16 +133,16 @@ class MediaPlayerServiceSession: MediaSessionService() {
         super.onDestroy()
     }
 
-    private fun updatePlayerCustomActions(like_status: Song.LikeStatus?) {
+    private fun updatePlayerCustomActions(like_status: SongLikeStatus.Status?) {
         val like_action: CommandButton? =
             if (like_status != null && like_status.is_available)
                 CommandButton.Builder()
                     .setDisplayName("TODO")
                     .setSessionCommand(SessionCommand(
-                        if (like_status == Song.LikeStatus.NEUTRAL) COMMAND_SET_LIKE_TRUE else COMMAND_SET_LIKE_NEUTRAL,
+                        if (like_status == SongLikeStatus.Status.NEUTRAL) COMMAND_SET_LIKE_TRUE else COMMAND_SET_LIKE_NEUTRAL,
                         Bundle.EMPTY
                     ))
-                    .setIconResId(if (like_status == Song.LikeStatus.LIKED) PlatformContext.ic_thumb_up else PlatformContext.ic_thumb_up_off)
+                    .setIconResId(if (like_status == SongLikeStatus.Status.LIKED) PlatformContext.ic_thumb_up else PlatformContext.ic_thumb_up_off)
                     .build()
             else null
 

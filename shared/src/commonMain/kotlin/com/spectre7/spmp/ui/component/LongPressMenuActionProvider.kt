@@ -28,7 +28,7 @@ import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.spectre7.spmp.PlayerServiceHost
-import com.spectre7.spmp.model.mediaitem.MediaItem
+import com.spectre7.spmp.model.mediaitem.MediaItemPreviewParams
 import com.spectre7.spmp.model.mediaitem.Song
 import com.spectre7.spmp.platform.vibrateShort
 
@@ -121,7 +121,7 @@ class LongPressMenuActionProvider(
                     CompositionLocalProvider(
                         LocalPlayerState provides remember { player.copy(onClickedOverride = { item, _ -> player.openMediaItem(item) }) }
                     ) {
-                        it?.PreviewLong(MediaItem.PreviewParams(contentColour = content_colour))
+                        it?.PreviewLong(MediaItemPreviewParams(contentColour = content_colour))
                     }
                 }
             }

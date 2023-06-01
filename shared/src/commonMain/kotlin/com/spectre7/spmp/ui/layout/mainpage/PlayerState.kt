@@ -21,7 +21,7 @@ open class PlayerState(
     private val upstream: PlayerState? = null
 ) {
     open val np_theme_mode: ThemeMode get() = upstream!!.np_theme_mode
-    open val overlay_page: Triple<OverlayPage, Any?, MediaItem?>? get() = upstream!!.overlay_page
+    open val overlay_page: Pair<PlayerOverlayPage, MediaItem?>? get() = upstream!!.overlay_page
     open val bottom_padding: Dp get() = upstream!!.bottom_padding
     open val pill_menu: PillMenu get() = upstream!!.pill_menu
     open val main_multiselect_context: MediaItemMultiSelectContext get() = upstream!!.main_multiselect_context
@@ -64,7 +64,7 @@ open class PlayerState(
     @Composable
     open fun nowPlayingTopOffset(base: Modifier): Modifier = upstream!!.nowPlayingTopOffset(base)
 
-    open fun setOverlayPage(page: OverlayPage?, data: Any? = null, from_current: Boolean = false) { upstream!!.setOverlayPage(page, data, from_current) }
+    open fun setOverlayPage(page: PlayerOverlayPage?, from_current: Boolean = false) { upstream!!.setOverlayPage(page, from_current) }
 
     open fun navigateBack() { upstream!!.navigateBack() }
 
@@ -85,9 +85,9 @@ open class PlayerState(
         }
     }
 
+    open fun openPage(page: PlayerOverlayPage, from_current: Boolean = false) { upstream!!.openPage(page, from_current) }
     open fun openMediaItem(item: MediaItem, from_current: Boolean = false) { upstream!!.openMediaItem(item, from_current) }
     open fun playMediaItem(item: MediaItem, shuffle: Boolean = false) { upstream!!.playMediaItem(item, shuffle) }
-
     open fun openViewMoreURL(url: String) { upstream!!.openViewMoreURL(url) }
 
     open fun onMediaItemPinnedChanged(item: MediaItem, pinned: Boolean) { upstream!!.onMediaItemPinnedChanged(item, pinned) }

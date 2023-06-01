@@ -1,8 +1,8 @@
 package com.spectre7.spmp.api
 
-import com.spectre7.spmp.api.DataApi.Companion.addYtHeaders
-import com.spectre7.spmp.api.DataApi.Companion.getStream
-import com.spectre7.spmp.api.DataApi.Companion.ytUrl
+import com.spectre7.spmp.api.Api.Companion.addYtHeaders
+import com.spectre7.spmp.api.Api.Companion.getStream
+import com.spectre7.spmp.api.Api.Companion.ytUrl
 import com.spectre7.spmp.model.mediaitem.AccountPlaylist
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
@@ -13,16 +13,16 @@ suspend fun getAccountPlaylists(): Result<List<AccountPlaylist>> = withContext(D
     val request = Request.Builder()
         .ytUrl("/youtubei/v1/browse")
         .addYtHeaders()
-        .post(DataApi.getYoutubeiRequestBody("""{"browseId": "FEmusic_liked_playlists"}"""))
+        .post(Api.getYoutubeiRequestBody("""{"browseId": "FEmusic_liked_playlists"}"""))
         .build()
 
-    val result = DataApi.request(request)
+    val result = Api.request(request)
     if (result.isFailure) {
         return@withContext result.cast()
     }
 
     val stream = result.getOrThrow().getStream()
-    val parsed: YoutubeiBrowseResponse = DataApi.klaxon.parse(stream)!!
+    val parsed: YoutubeiBrowseResponse = Api.klaxon.parse(stream)!!
     stream.close()
 
     val playlist_data = parsed
@@ -58,20 +58,20 @@ suspend fun createAccountPlaylist(title: String, description: String): Result<St
         .ytUrl("/youtubei/v1/playlist/create")
         .addYtHeaders()
         .post(
-            DataApi.getYoutubeiRequestBody(
+            Api.getYoutubeiRequestBody(
                 mapOf("title" to title, "description" to description),
-                DataApi.Companion.YoutubeiContextType.UI_LANGUAGE
+                Api.Companion.YoutubeiContextType.UI_LANGUAGE
             )
         )
         .build()
 
-    val result = DataApi.request(request)
+    val result = Api.request(request)
     if (result.isFailure) {
         return@withContext result.cast()
     }
 
     val stream = result.getOrThrow().getStream()
-    val response: PlaylistCreateResponse = DataApi.klaxon.parse(stream)!!
+    val response: PlaylistCreateResponse = Api.klaxon.parse(stream)!!
     stream.close()
 
     return@withContext Result.success(response.playlistId)
@@ -81,12 +81,12 @@ suspend fun deleteAccountPlaylist(playlist_id: String): Result<Unit> = withConte
     val request = Request.Builder()
         .ytUrl("/youtubei/v1/playlist/delete")
         .addYtHeaders()
-        .post(DataApi.getYoutubeiRequestBody(mapOf(
+        .post(Api.getYoutubeiRequestBody(mapOf(
             "playlistId" to AccountPlaylist.formatId(playlist_id)
         )))
         .build()
 
-    return@withContext DataApi.request(request).unit()
+    return@withContext Api.request(request).unit()
 }
 
 interface AccountPlaylistEditAction {
@@ -146,13 +146,13 @@ suspend fun editAccountPlaylist(playlist: AccountPlaylist, actions: List<Account
         val request = Request.Builder()
             .ytUrl("/youtubei/v1/browse/edit_playlist")
             .addYtHeaders()
-            .post(DataApi.getYoutubeiRequestBody(mapOf(
+            .post(Api.getYoutubeiRequestBody(mapOf(
                 "playlistId" to AccountPlaylist.formatId(playlist.id),
                 "actions" to actions.map { it.getData(playlist, current_set_ids) }
             )))
             .build()
 
-        return@withContext DataApi.request(request).unit()
+        return@withContext Api.request(request).unit()
     }
 }
 
@@ -172,13 +172,13 @@ suspend fun addSongsToAccountPlaylist(playlist_id: String, song_ids: List<String
     val request = Request.Builder()
         .ytUrl("/youtubei/v1/browse/edit_playlist")
         .addYtHeaders()
-        .post(DataApi.getYoutubeiRequestBody(mapOf(
+        .post(Api.getYoutubeiRequestBody(mapOf(
             "playlistId" to AccountPlaylist.formatId(playlist_id),
             "actions" to actions
         )))
         .build()
 
-    val result = DataApi.request(request)
+    val result = Api.request(request)
     result.getOrNull()?.close()
 
     return@withContext result.unit()

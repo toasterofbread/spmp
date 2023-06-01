@@ -17,7 +17,7 @@ import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.spectre7.spmp.api.LyricsSearchResult
-import com.spectre7.spmp.model.mediaitem.Song
+import com.spectre7.spmp.model.SongLyrics
 import com.spectre7.spmp.platform.composable.BackHandler
 import com.spectre7.spmp.resources.getString
 import com.spectre7.spmp.resources.getStringTODO
@@ -83,7 +83,7 @@ internal fun ColumnScope.LyricsSearchResults(results: List<LyricsSearchResult>, 
 
                                 Spacer(Modifier.fillMaxWidth().weight(1f))
 
-                                val sync_colour = if (result.sync_type == Song.Lyrics.SyncType.NONE) Color.LightGray else Color.Magenta
+                                val sync_colour = if (result.sync_type == SongLyrics.SyncType.NONE) Color.LightGray else Color.Magenta
                                 Box(Modifier.background(sync_colour, CircleShape)) {
                                     text(result.sync_type.readable, sync_colour.getContrasted())
                                 }

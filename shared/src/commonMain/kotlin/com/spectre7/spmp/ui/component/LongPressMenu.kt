@@ -39,6 +39,7 @@ import com.spectre7.spmp.ui.layout.nowplaying.overlay.DEFAULT_THUMBNAIL_ROUNDING
 import com.spectre7.spmp.ui.theme.Theme
 import com.spectre7.utils.composable.Marquee
 import com.spectre7.utils.contrastAgainst
+import com.spectre7.utils.setAlpha
 import com.spectre7.utils.thenIf
 import kotlinx.coroutines.delay
 
@@ -159,13 +160,11 @@ private fun MenuContent(
         data.item.Thumbnail(MediaItemThumbnailProvider.Quality.LOW, modifier.clip(data.thumb_shape ?: RoundedCornerShape(DEFAULT_THUMBNAIL_ROUNDING)))
     }
 
-    val y_offset = SpMp.context.getStatusBarHeight()
-
     Box(
         Modifier
             .requiredHeight(SpMp.context.getScreenHeight())
-            .offset(y = y_offset)
-//            .background(Color.Black.setAlpha(0.5f))
+            .offset(y = -SpMp.context.getStatusBarHeight())
+            .background(Color.Black.setAlpha(0.5f))
     ) {
         val shape = RoundedCornerShape(topStart = 16.dp, topEnd = 16.dp)
 

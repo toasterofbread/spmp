@@ -183,14 +183,6 @@ private fun LongPressMenuActionProvider.PlaylistLongPressPopupActions(playlist: 
         }
     )
 
-    ActionButton(Icons.Default.OpenWith, getString("lpm_action_open_playlist"), onClick = {
-        player.openMediaItem(playlist)
-    })
-
-    ActionButton(Icons.Default.OpenWith, getString("lpm_action_open_playlist"), onClick = {
-        player.openMediaItem(playlist)
-    })
-
     if (playlist.is_editable == true) {
         ActionButton(Icons.Default.Delete, getString("playlist_delete"), onClick = { coroutine_context.launch {
             playlist.deletePlaylist().getOrReport("deletePlaylist")
@@ -213,7 +205,7 @@ private fun ColumnScope.PlaylistLongPressMenuInfo(playlist: Playlist, accent_col
     }
     @Composable
     fun Item() {
-        Spacer(Modifier.height(60.dp)) // TODO
+        Spacer(Modifier.height(25.dp))
     }
 
     Item() // Play

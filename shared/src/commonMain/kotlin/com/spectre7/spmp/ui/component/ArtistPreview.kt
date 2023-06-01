@@ -107,14 +107,17 @@ fun ArtistPreviewLong(
                 overflow = TextOverflow.Ellipsis
             )
 
-            Text(
-                artist.getReadableSubscriberCount(),
-                Modifier.alpha(0.5f),
-                fontSize = 12.sp,
-                color = params.contentColour?.invoke() ?: Color.Unspecified,
-                maxLines = 1,
-                overflow = TextOverflow.Ellipsis
-            )
+            val sub_count = artist.getReadableSubscriberCount()
+            if (sub_count.isNotEmpty()) {
+                Text(
+                    sub_count,
+                    Modifier.alpha(0.5f),
+                    fontSize = 12.sp,
+                    color = params.contentColour?.invoke() ?: Color.Unspecified,
+                    maxLines = 1,
+                    overflow = TextOverflow.Ellipsis
+                )
+            }
         }
     }
 }
@@ -191,7 +194,7 @@ private fun ColumnScope.ArtistLongPressMenuInfo(artist: Artist, accent_colour: C
     }
     @Composable
     fun Item() {
-        Spacer(Modifier.height(60.dp)) // TODO
+        Spacer(Modifier.height(25.dp)) // TODO
     }
 
     Item(Icons.Default.PlayArrow, getString("lpm_action_radio"))

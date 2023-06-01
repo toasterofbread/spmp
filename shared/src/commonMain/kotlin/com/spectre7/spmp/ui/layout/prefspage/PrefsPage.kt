@@ -40,6 +40,7 @@ internal enum class PrefsPageScreen {
 internal enum class PrefsPageCategory {
     GENERAL,
     FEED,
+    LIBRARY,
     THEME,
     LYRICS,
     DOWNLOAD,
@@ -51,6 +52,7 @@ internal enum class PrefsPageCategory {
     fun getIcon(filled: Boolean = false): ImageVector = when (this) {
         GENERAL -> if (filled) Icons.Filled.Settings else Icons.Outlined.Settings
         FEED -> if (filled) Icons.Filled.FormatListBulleted else Icons.Outlined.FormatListBulleted
+        LIBRARY -> if (filled) Icons.Filled.LibraryMusic else Icons.Outlined.LibraryMusic
         THEME -> if (filled) Icons.Filled.Palette else Icons.Outlined.Palette
         LYRICS -> if (filled) Icons.Filled.MusicNote else Icons.Outlined.MusicNote
         DOWNLOAD -> if (filled) Icons.Filled.Download else Icons.Outlined.Download
@@ -61,6 +63,7 @@ internal enum class PrefsPageCategory {
     fun getTitle(): String = when (this) {
         GENERAL -> getString("s_cat_general")
         FEED -> getString("s_cat_home_page")
+        LIBRARY -> getString("s_cat_library")
         THEME -> getString("s_cat_theming")
         LYRICS -> getString("s_cat_lyrics")
         DOWNLOAD -> getString("s_cat_download")
@@ -71,6 +74,7 @@ internal enum class PrefsPageCategory {
     fun getDescription(): String = when (this) {
         GENERAL -> getString("s_cat_desc_general")
         FEED -> getString("s_cat_desc_home_page")
+        LIBRARY -> getString("s_cat_desc_library")
         THEME -> getString("s_cat_desc_theming")
         LYRICS -> getString("s_cat_desc_lyrics")
         DOWNLOAD -> getString("s_cat_desc_download")

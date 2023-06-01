@@ -2,6 +2,7 @@ package com.spectre7.spmp.ui.layout
 
 import LocalPlayerState
 import androidx.compose.animation.AnimatedVisibility
+import androidx.compose.animation.Crossfade
 import androidx.compose.animation.animateContentSize
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
@@ -20,9 +21,11 @@ import androidx.compose.ui.unit.dp
 import com.spectre7.spmp.PlayerServiceHost
 import com.spectre7.spmp.api.DataApi
 import com.spectre7.spmp.api.LocalisedYoutubeString
+import com.spectre7.spmp.model.Settings
 import com.spectre7.spmp.model.mediaitem.AccountPlaylist
 import com.spectre7.spmp.model.mediaitem.LocalPlaylist
 import com.spectre7.spmp.model.mediaitem.MediaItem
+import com.spectre7.spmp.model.mediaitem.Playlist
 import com.spectre7.spmp.platform.PlayerDownloadManager
 import com.spectre7.spmp.platform.PlayerDownloadManager.DownloadStatus
 import com.spectre7.spmp.resources.getString
@@ -32,6 +35,8 @@ import com.spectre7.spmp.ui.component.PillMenu
 import com.spectre7.spmp.ui.component.multiselect.MediaItemMultiSelectContext
 import com.spectre7.spmp.ui.layout.mainpage.MINIMISED_NOW_PLAYING_HEIGHT
 import com.spectre7.spmp.ui.theme.Theme
+import com.spectre7.utils.composable.SubtleLoadingIndicator
+import kotlinx.coroutines.Job
 import kotlinx.coroutines.launch
 
 @Composable
@@ -121,10 +126,25 @@ fun LibraryPage(
                         Spacer(Modifier.fillMaxWidth().weight(1f))
 
                         if (ytm_auth.initialised) {
-                            IconButton({ coroutine_scope.launch {
+                            var load_job: Job? by remember(ytm_auth) { mutableStateOf(coroutine_scope.launch {
                                 ytm_auth.loadOwnPlaylists()
-                            } }) {
-                                Icon(Icons.Default.Refresh, null)
+                            }) }
+
+                            IconButton({
+                                if (load_job?.isActive != true) {
+                                    load_job = coroutine_scope.launch {
+                                        ytm_auth.loadOwnPlaylists()
+                                    }
+                                }
+                            }) {
+                                Crossfade(load_job?.isActive) { active ->
+                                    if (active == true) {
+                                        SubtleLoadingIndicator(Modifier.size(24.dp))
+                                    }
+                                    else {
+                                        Icon(Icons.Default.Refresh, null)
+                                    }
+                                }
                             }
                         }
 
@@ -136,10 +156,19 @@ fun LibraryPage(
                         }
                     }
 
-                    val local_playlists = LocalPlaylist.rememberLocalPlaylistsListener()
-                    if (local_playlists.isNotEmpty()) {
+                    val playlists: MutableList<Playlist> = LocalPlaylist.rememberLocalPlaylistsListener().toMutableList()
+                    val show_likes: Boolean by Settings.KEY_SHOW_LIKES_PLAYLIST.rememberMutableState()
+
+                    for (id in ytm_auth.own_playlists) {
+                        if (!show_likes && AccountPlaylist.formatId(id) == "LM") {
+                            continue
+                        }
+                        playlists.add(AccountPlaylist.fromId(id))
+                    }
+
+                    if (playlists.isNotEmpty()) {
                         MediaItemGrid(
-                            local_playlists,
+                            playlists,
                             Modifier.fillMaxWidth(),
                             rows = 1,
                             multiselect_context = multiselect_context
@@ -148,14 +177,6 @@ fun LibraryPage(
                     else {
                         Text(getString("library_playlists_empty"), Modifier.padding(top = 10.dp))
                     }
-
-                    MediaItemGrid(
-                        ytm_auth.own_playlists.map { AccountPlaylist.fromId(it) },
-                        Modifier.fillMaxWidth(),
-                        title = LocalisedYoutubeString.raw("Account playlists"),
-                        rows = 1,
-                        multiselect_context = multiselect_context
-                    )
                 }
             }
 

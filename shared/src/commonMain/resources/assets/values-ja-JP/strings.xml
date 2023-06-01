@@ -145,6 +145,10 @@
     <string name="s_key_feed_show_moods_row">「おすすめのプレイリスト」行を表示する</string>
     <string name="s_key_feed_show_new_row">「新作」行を表示する</string>
 
+    <string name="s_cat_library">ライブラリ</string>
+
+    <string name="s_key_show_likes_playlist">高評価のプレイシストを表示</string>
+
     <string name="s_group_long_press_menu">長押しメニュー</string>
     <string name="s_key_lpm_close_on_action">アクションを行ったら閉じる</string>
     <string name="s_key_lpm_increment_play_after">「○曲後に再生」使用時に曲数を増加</string>
@@ -244,11 +248,12 @@
 
     <string name="s_cat_desc_general">言語やアプリ動作などのオプション</string>
     <string name="s_cat_desc_home_page">おすすめの曲やアーティストの調節</string>
+    <string name="s_cat_desc_library">TODO</string>
     <string name="s_cat_desc_theming">アプリ内の色をカスタマイズする</string>
     <string name="s_cat_desc_lyrics">歌詞の表示や動作の設定</string>
-    <string name="s_cat_desc_download">ダウンロードの音質と自動ダウンロードのオプション</string>
-    <string name="s_cat_desc_discord_status">Discordアカウントの管理とステータスの表示の調節</string>
-    <string name="s_cat_desc_other">キャッシュとアクセシビリティサービスのオプション</string>
+    <string name="s_cat_desc_download">音質と自動ダウンロードのオプション</string>
+    <string name="s_cat_desc_discord_status">Discordアカウントとステータスの表示の調節</string>
+    <string name="s_cat_desc_other">キャッシュとアクセシビリティサービスの設定</string>
 
     <string name="discord_status_default_name">$artist</string>
     <string name="discord_status_default_text_a">$song</string>

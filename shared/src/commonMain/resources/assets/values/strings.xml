@@ -235,6 +235,10 @@
     <string name="s_key_add_songs_to_history">Add song to YT history</string>
     <string name="s_sub_add_songs_to_history">Songs listened to will be sent to YouTube and added to account history</string>
 
+    <string name="s_cat_library">Library</string>
+
+    <string name="s_key_show_likes_playlist">Show likes playlist</string>
+
     <string name="s_cat_theming">Theming</string>
 
     <string name="s_key_current_theme">Current theme</string>
@@ -365,6 +369,7 @@
 
     <string name="s_cat_desc_general">Language, behaviour, and other options</string>
     <string name="s_cat_desc_home_page">Cherry-pick song recommendations</string>
+    <string name="s_cat_desc_library">TODO</string>
     <string name="s_cat_desc_theming">Customise app colours and change accent source</string>
     <string name="s_cat_desc_lyrics">Lyrics appearance and behaviour</string>
     <string name="s_cat_desc_download">Download quality and automatic download options</string>

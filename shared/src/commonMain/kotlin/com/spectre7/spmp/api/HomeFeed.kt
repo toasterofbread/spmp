@@ -595,7 +595,11 @@ data class ContentsItem(val musicTwoRowItemRenderer: MusicTwoRowItemRenderer? = 
                 val page_type = renderer.navigationEndpoint.browseEndpoint.getPageType()!!
 
                 item = when (page_type) {
-                    "MUSIC_PAGE_TYPE_ALBUM", "MUSIC_PAGE_TYPE_PLAYLIST", "MUSIC_PAGE_TYPE_AUDIOBOOK" ->
+                    "MUSIC_PAGE_TYPE_ALBUM", "MUSIC_PAGE_TYPE_PLAYLIST", "MUSIC_PAGE_TYPE_AUDIOBOOK" -> {
+                        if (AccountPlaylist.formatId(browse_id).startsWith("RDAT") && !Settings.get<Boolean>(Settings.KEY_FEED_SHOW_RADIOS)) {
+                            return null
+                        }
+
                         AccountPlaylist
                             .fromId(browse_id)
                             .editPlaylistData {
@@ -612,6 +616,7 @@ data class ContentsItem(val musicTwoRowItemRenderer: MusicTwoRowItemRenderer? = 
                                 is_editable = renderer.menu?.menuRenderer?.items
                                     ?.any { it.menuNavigationItemRenderer?.icon?.iconType == "DELETE" } == true
                             }
+                    }
                     "MUSIC_PAGE_TYPE_ARTIST" -> Artist.fromId(browse_id)
                     else -> throw NotImplementedError("$page_type ($browse_id)")
                 }

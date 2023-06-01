@@ -301,7 +301,7 @@ private fun ColumnScope.SongLongPressMenuInfo(song: Song, queue_index: Int?, acc
     }
     @Composable
     fun Item() {
-        Spacer(Modifier.height(24.dp)) // TODO
+        Spacer(Modifier.height(25.dp))
     }
 
     if (queue_index != null) {

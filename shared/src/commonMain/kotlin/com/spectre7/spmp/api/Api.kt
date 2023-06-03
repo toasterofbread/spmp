@@ -50,14 +50,10 @@ fun <T> Result.Companion.failure(response: Response): Result<T> {
     return failure(RuntimeException(body))
 }
 
-fun <I, O> Result<I>.cast(): Result<O> {
+fun <I, O> Result<I>.cast(transform: (I) -> O = { it as O }): Result<O> {
     return fold(
-        {
-            Result.success(it as O)
-        },
-        {
-            Result.failure(it)
-        }
+        { Result.success(transform(it)) },
+        { Result.failure(it) }
     )
 }
 
@@ -92,9 +88,15 @@ fun <T> Result<T>.getOrReport(error_key: String): T? {
 class Api {
 
     companion object {
-        private val client: OkHttpClient = OkHttpClient.Builder().callTimeout(Duration.ofMillis(DEFAULT_CONNECT_TIMEOUT.toLong())).build().also {
-            Logger.getLogger(OkHttpClient::class.java.name).level = Level.FINE
-        }
+        private val client: OkHttpClient =
+            OkHttpClient.Builder()
+                .callTimeout(Duration.ofMillis(DEFAULT_CONNECT_TIMEOUT.toLong()))
+                .retryOnConnectionFailure(false)
+                .build()
+                .also {
+                    Logger.getLogger(OkHttpClient::class.java.name).level = Level.FINE
+                }
+
         val user_agent: String get() = getString("ytm_user_agent")
         val scope = CoroutineScope(Dispatchers.IO + SupervisorJob())
 

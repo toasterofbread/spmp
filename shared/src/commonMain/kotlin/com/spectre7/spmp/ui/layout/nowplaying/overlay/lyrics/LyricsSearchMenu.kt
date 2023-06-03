@@ -36,7 +36,7 @@ import kotlinx.coroutines.withContext
 
 @OptIn(ExperimentalMaterial3Api::class, ExperimentalComposeUiApi::class)
 @Composable
-fun LyricsSearchMenu(song: Song, close: (changed: Boolean) -> Unit) {
+fun LyricsSearchMenu(song: Song, modifier: Modifier = Modifier, close: (changed: Boolean) -> Unit) {
 
     val on_accent = Theme.current.on_accent
     val accent = Theme.current.accent
@@ -102,8 +102,8 @@ fun LyricsSearchMenu(song: Song, close: (changed: Boolean) -> Unit) {
         close(false)
     }
 
-    Crossfade(edit_page_open) { edit_page ->
-        Column(Modifier.padding(15.dp), verticalArrangement = Arrangement.spacedBy(10.dp)) {
+    Crossfade(edit_page_open, modifier) { edit_page ->
+        Column(Modifier.padding(15.dp).fillMaxSize(), verticalArrangement = Arrangement.spacedBy(10.dp)) {
             if (edit_page) {
                 Column(
                     Modifier

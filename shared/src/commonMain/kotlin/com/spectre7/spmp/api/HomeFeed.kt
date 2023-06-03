@@ -12,35 +12,22 @@ import com.spectre7.spmp.model.mediaitem.enums.MediaItemType
 import com.spectre7.spmp.model.mediaitem.enums.PlaylistType
 import com.spectre7.spmp.model.mediaitem.enums.SongType
 import com.spectre7.spmp.ui.component.MediaItemLayout
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.job
+import kotlinx.coroutines.withContext
 import okhttp3.Request
 import java.io.InputStreamReader
 import java.time.Duration
 
 private val CACHE_LIFETIME = Duration.ofDays(1)
 
-fun getHomeFeed(min_rows: Int = -1, allow_cached: Boolean = true, params: String? = null, continuation: String? = null): Result<Triple<List<MediaItemLayout>, String?, List<Pair<Int, String>>?>> {
-
+suspend fun getHomeFeed(
+    min_rows: Int = -1,
+    allow_cached: Boolean = true,
+    params: String? = null,
+    continuation: String? = null
+): Result<Triple<List<MediaItemLayout>, String?, List<Pair<Int, String>>?>> = withContext(Dispatchers.IO) {
     val hl = SpMp.data_language
-    fun postRequest(ctoken: String?): Result<InputStreamReader> {
-        val endpoint = "/youtubei/v1/browse"
-        val request = Request.Builder()
-            .ytUrl(if (ctoken == null) endpoint else "$endpoint?ctoken=$ctoken&continuation=$ctoken&type=next")
-            .addYtHeaders()
-            .post(
-                Api.getYoutubeiRequestBody(params?.let {
-                    """{"params": "$it"}"""
-                })
-            )
-            .build()
-
-        val result = Api.request(request)
-        if (result.isFailure) {
-            return result.cast()
-        }
-
-        return Result.success(result.getOrThrow().getStream().reader())
-    }
-
     val suffix = params ?: ""
     val rows_cache_key = "feed_rows$suffix"
     val ctoken_cache_key = "feed_ctoken$suffix"
@@ -64,16 +51,39 @@ fun getHomeFeed(min_rows: Int = -1, allow_cached: Boolean = true, params: String
                 chips.map { Pair(it[0] as Int, it[1] as String) }
             }
 
-            return Result.success(Triple(rows, ctoken, chips))
+            return@withContext Result.success(Triple(rows, ctoken, chips))
         }
     }
 
-    val result = postRequest(continuation)
-    if (!result.isSuccess) {
-        return result.cast()
+    var result: Result<InputStreamReader>? = null
+
+    suspend fun performRequest(ctoken: String?) = withContext(Dispatchers.IO) {
+        val endpoint = "/youtubei/v1/browse"
+        val request = Request.Builder()
+            .ytUrl(if (ctoken == null) endpoint else "$endpoint?ctoken=$ctoken&continuation=$ctoken&type=next")
+            .addYtHeaders()
+            .post(
+                Api.getYoutubeiRequestBody(params?.let {
+                    """{"params": "$it"}"""
+                })
+            )
+            .build()
+
+        result = Api.request(request).cast {
+            it.getStream().reader()
+        }
     }
 
-    val response_reader = result.getOrThrowHere()
+    coroutineContext.job.invokeOnCompletion {
+        result?.getOrNull()?.close()
+    }
+
+    performRequest(continuation)
+    result!!.onFailure {
+        return@withContext Result.failure(it)
+    }
+
+    val response_reader = result!!.getOrThrowHere()
     var data: YoutubeiBrowseResponse = Api.klaxon.parse(response_reader)!!
     response_reader.close()
 
@@ -88,12 +98,13 @@ fun getHomeFeed(min_rows: Int = -1, allow_cached: Boolean = true, params: String
             break
         }
 
-        val result = postRequest(ctoken)
-        if (!result.isSuccess) {
-            return result.cast()
+        performRequest(ctoken)
+        result!!.onFailure {
+            return@withContext Result.failure(it)
         }
-        data = Api.klaxon.parse(result.data)!!
-        result.data.close()
+
+        data = Api.klaxon.parse(result!!.data)!!
+        result!!.data.close()
 
         val shelves = data.getShelves(true)
         check(shelves.isNotEmpty())
@@ -108,7 +119,7 @@ fun getHomeFeed(min_rows: Int = -1, allow_cached: Boolean = true, params: String
         Cache.set(chips_cache_key, chips?.let { Api.klaxon.toJsonString(it.map { chip -> listOf(chip.first, chip.second) }).reader() }, CACHE_LIFETIME)
     }
 
-    return Result.success(Triple(rows, ctoken, chips))
+    return@withContext Result.success(Triple(rows, ctoken, chips))
 }
 
 private fun processRows(rows: List<YoutubeiShelf>, hl: String): List<MediaItemLayout> {

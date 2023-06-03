@@ -33,7 +33,7 @@ val buildConfigDebug = tasks.register("buildConfigDebug", GenerateBuildConfig::c
     buildConfig(true)
 }
 val buildConfigRelease = tasks.register("buildConfigRelease", GenerateBuildConfig::class.java) {
-    buildConfig(false)
+    buildConfig(true)
 }
 
 tasks.all {

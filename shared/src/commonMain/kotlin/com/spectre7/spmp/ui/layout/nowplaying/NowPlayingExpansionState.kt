@@ -5,6 +5,7 @@ import androidx.compose.material.ExperimentalMaterialApi
 import androidx.compose.material.SwipeableState
 import androidx.compose.runtime.*
 import androidx.compose.ui.unit.Dp
+import com.spectre7.spmp.model.MusicTopBarMode
 import com.spectre7.spmp.platform.PlatformContext
 
 @OptIn(ExperimentalMaterialApi::class)
@@ -13,7 +14,7 @@ class NowPlayingExpansionState(swipe_state: State<SwipeableState<Int>>, private 
     private var screen_height: Dp? = null
     private var switch_to_page: Int by mutableStateOf(-1)
 
-    var top_bar_showing: MutableState<Boolean> = mutableStateOf(false)
+    var top_bar_mode: MutableState<MusicTopBarMode> = mutableStateOf(MusicTopBarMode.NONE)
 
     @Composable
     fun init() {

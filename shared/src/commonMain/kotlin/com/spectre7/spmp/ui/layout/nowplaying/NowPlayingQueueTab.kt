@@ -27,6 +27,7 @@ import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.unit.*
 import com.spectre7.spmp.PlayerServiceHost
 import com.spectre7.spmp.api.RadioModifier
+import com.spectre7.spmp.model.MusicTopBarMode
 import com.spectre7.spmp.model.mediaitem.MediaItem
 import com.spectre7.spmp.model.NowPlayingQueueRadioInfoPosition
 import com.spectre7.spmp.model.Settings
@@ -188,9 +189,17 @@ fun QueueTab() {
 
     val shape = RoundedCornerShape(topStart = 25.dp, topEnd = 25.dp)
 
+    val show_lyrics_in_queue: Boolean by Settings.KEY_TOPBAR_SHOW_LYRICS_IN_QUEUE.rememberMutableState()
+    val show_visualiser_in_queue: Boolean by Settings.KEY_TOPBAR_SHOW_VISUALISER_IN_QUEUE.rememberMutableState()
+
     val expansion = LocalNowPlayingExpansion.current
-    val show_top_bar_in_queue: Boolean by Settings.KEY_TOPBAR_SHOW_IN_QUEUE.rememberMutableState()
-    val top_bar_height by animateDpAsState(if (show_top_bar_in_queue && expansion.top_bar_showing.value) NOW_PLAYING_TOP_BAR_HEIGHT.dp else 0.dp)
+    val top_bar_height by animateDpAsState(
+        when (expansion.top_bar_mode.value) {
+            MusicTopBarMode.NONE -> 0.dp
+            MusicTopBarMode.VISUALISER -> if (show_visualiser_in_queue) NOW_PLAYING_TOP_BAR_HEIGHT.dp else 0.dp
+            MusicTopBarMode.LYRICS -> if (show_lyrics_in_queue) NOW_PLAYING_TOP_BAR_HEIGHT.dp else 0.dp
+        }
+    )
 
     CompositionLocalProvider(LocalContentColor provides queue_background_colour.getContrasted()) {
         Box(

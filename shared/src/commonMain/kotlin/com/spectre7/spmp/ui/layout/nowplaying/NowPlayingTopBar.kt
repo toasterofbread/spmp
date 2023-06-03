@@ -10,7 +10,6 @@ import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.runtime.*
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.draw.alpha
 import androidx.compose.ui.graphics.graphicsLayer
 import androidx.compose.ui.unit.dp
 import com.spectre7.spmp.PlayerServiceHost
@@ -25,17 +24,25 @@ fun TopBar(modifier: Modifier = Modifier) {
     val player = LocalPlayerState.current
     val expansion = LocalNowPlayingExpansion.current
 
-    val show_in_queue: Boolean = Settings.KEY_TOPBAR_SHOW_IN_QUEUE.get()
-    val top_bar_height = if (!show_in_queue || expansion.getBounded() < 1f) expansion.getAppearing() else 1f
-    val hide_when_empty: Boolean by Settings.KEY_TOPBAR_HIDE_WHEN_EMPTY_IN_QUEUE.rememberMutableState()
-
-    val max_height by animateDpAsState(
-        if (!expansion.top_bar_showing.value && hide_when_empty) NOW_PLAYING_TOP_BAR_HEIGHT.dp * (2f - expansion.get().coerceIn(1f, 2f))
-        else NOW_PLAYING_TOP_BAR_HEIGHT.dp
-    )
-
     val target_mode: MutableState<MusicTopBarMode> = remember { mutableStateOf(Settings.KEY_TOPBAR_DEFAULT_MODE_NOWPLAYING.getEnum()) }
     val buttons_alpha = 1f - expansion.getDisappearing()
+
+    val show_lyrics_in_queue: Boolean by Settings.KEY_TOPBAR_SHOW_LYRICS_IN_QUEUE.rememberMutableState()
+    val show_visualiser_in_queue: Boolean by Settings.KEY_TOPBAR_SHOW_VISUALISER_IN_QUEUE.rememberMutableState()
+
+    val hide_in_queue =
+        when (expansion.top_bar_mode.value) {
+            MusicTopBarMode.NONE -> true
+            MusicTopBarMode.VISUALISER -> !show_visualiser_in_queue
+            MusicTopBarMode.LYRICS -> !show_lyrics_in_queue
+        }
+
+    val top_bar_height = if (hide_in_queue || expansion.getBounded() < 1f) expansion.getAppearing() else 1f
+
+    val max_height by animateDpAsState(
+        if (hide_in_queue) NOW_PLAYING_TOP_BAR_HEIGHT.dp * (2f - expansion.get().coerceIn(1f, 2f))
+        else NOW_PLAYING_TOP_BAR_HEIGHT.dp
+    )
 
     Crossfade(
         PlayerServiceHost.status.m_song,
@@ -43,7 +50,7 @@ fun TopBar(modifier: Modifier = Modifier) {
             .fillMaxWidth()
             .requiredHeight(minOf(NOW_PLAYING_TOP_BAR_HEIGHT.dp * top_bar_height, max_height))
             .padding(horizontal = NOW_PLAYING_MAIN_PADDING.dp)
-            .graphicsLayer { alpha = if (!show_in_queue || expansion.getBounded() < 1f) 1f - expansion.getDisappearing() else 1f }
+            .graphicsLayer { alpha = if (hide_in_queue || expansion.getBounded() < 1f) 1f - expansion.getDisappearing() else 1f }
     ) { song ->
         if (song == null) {
             return@Crossfade
@@ -63,7 +70,7 @@ fun TopBar(modifier: Modifier = Modifier) {
                 Settings.KEY_TOPBAR_DEFAULT_MODE_NOWPLAYING.getEnum(),
                 Modifier.fillMaxSize().weight(1f),
                 target_mode,
-                expansion.top_bar_showing
+                expansion.top_bar_mode
             )
 
             IconButton(

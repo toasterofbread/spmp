@@ -31,7 +31,7 @@ fun MusicTopBar(
     default_mode: MusicTopBarMode,
     modifier: Modifier = Modifier,
     target_mode_state: MutableState<MusicTopBarMode> = remember { mutableStateOf(default_mode) },
-    showing_state: MutableState<Boolean>? = null
+    mode_state: MutableState<MusicTopBarMode>? = null
 ) {
     var target_mode by target_mode_state
     val song_state by rememberSongUpdateLyrics(song, target_mode == MusicTopBarMode.LYRICS)
@@ -41,13 +41,15 @@ fun MusicTopBar(
 
     val current_state by remember {
         derivedStateOf {
-            for (mode in target_mode.ordinal downTo 0) {
-                val state = getModeState(MusicTopBarMode.values()[mode], song_state)
+            for (mode_i in target_mode.ordinal downTo 0) {
+                val mode = MusicTopBarMode.values()[mode_i]
+                val state = getModeState(mode, song_state)
                 if (state != null) {
+                    mode_state?.value = mode
                     return@derivedStateOf state
                 }
             }
-            return@derivedStateOf null
+            throw NotImplementedError(target_mode.toString())
         }
     }
 
@@ -74,9 +76,8 @@ fun MusicTopBar(
                 is SongLyrics -> {
                     LyricsLineDisplay(
                         s,
-                        { PlayerServiceHost.status.position_ms + 500 }
+                        { PlayerServiceHost.status.position_ms + song!!.song_reg_entry.getLyricsSyncOffset() }
                     )
-                    showing_state?.value = true
                 }
                 MusicTopBarMode.VISUALISER -> {
                     PlayerServiceHost.player.Visualiser(
@@ -84,11 +85,9 @@ fun MusicTopBar(
                         Modifier.fillMaxHeight().fillMaxWidth(visualiser_width).padding(vertical = 10.dp),
                         opacity = 0.5f
                     )
-                    showing_state?.value = true
                 }
                 else -> {
                     // TOOD State indicator
-                    showing_state?.value = false
                 }
             }
         }

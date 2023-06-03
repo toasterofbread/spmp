@@ -365,8 +365,8 @@
     <string name="s_sub_topbar_lyrics_linger">When a line ends, it will remain visible until the next line begins</string>
     <string name="s_key_topbar_default_mode_home">Default mode (main page)</string>
     <string name="s_key_topbar_default_mode_nowplaying">Default mode (now playing)</string>
-    <string name="s_key_topbar_default_mode_queue">Default mode (song queue)</string>
-    <string name="s_key_topbar_show_in_queue">Show in music queue</string>
+    <string name="s_key_topbar_show_lyrics_in_queue">Show lyrics in music queue</string>
+    <string name="s_key_topbar_show_visualiser_in_queue">Show visualiser in music queue</string>
     <string name="s_option_topbar_mode_visualiser">Visualiser</string>
     <string name="s_option_topbar_mode_lyrics">Lyrics</string>
     <string name="s_option_topbar_mode_none">Nothing</string>

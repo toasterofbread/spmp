@@ -53,7 +53,12 @@ data class SongLyrics(
         }
     }
 
-    data class Term(val subterms: List<Text>, val start: Long? = null, val end: Long? = null) {
+    data class Term(
+        val subterms: List<Text>,
+        var line_index: Int,
+        val start: Long? = null,
+        val end: Long? = null
+    ) {
         var line_range: LongRange? = null
         var data: Any? = null
 

@@ -5,4 +5,4 @@ import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
 
 @Composable
-expect fun Modifier.platformClickable(onClick: () -> Unit, onAltClick: (() -> Unit)? = null, indication: Indication? = null): Modifier
+expect fun Modifier.platformClickable(onClick: (() -> Unit)? = null, onAltClick: (() -> Unit)? = null, indication: Indication? = null): Modifier

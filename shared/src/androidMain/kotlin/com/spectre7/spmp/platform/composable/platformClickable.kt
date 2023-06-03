@@ -9,11 +9,11 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.composed
 
 @OptIn(ExperimentalFoundationApi::class)
-actual fun Modifier.platformClickable(onClick: () -> Unit, onAltClick: (() -> Unit)?, indication: Indication?): Modifier =
+actual fun Modifier.platformClickable(onClick: (() -> Unit)?, onAltClick: (() -> Unit)?, indication: Indication?): Modifier =
     composed { combinedClickable(
         interactionSource = remember { MutableInteractionSource() },
         indication = null,
-        onClick = onClick,
+        onClick = onClick ?: {},
         onLongClick = onAltClick
     ) }
 

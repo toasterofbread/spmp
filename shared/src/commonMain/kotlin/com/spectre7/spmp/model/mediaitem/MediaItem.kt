@@ -66,50 +66,18 @@ abstract class MediaItem(val id: String): MediaItemHolder {
     val description: String? get() = data.description
     val thumbnail_provider: MediaItemThumbnailProvider? get() = data.thumbnail_provider
 
-    suspend fun getTitle(): Result<String> {
-        title?.also { return Result.success(it) }
-        val result = loadGeneralData()
-        if (result.isFailure) {
-            return result.cast()
-        }
-        return title?.let {
-            Result.success(it)
-        } ?: Result.failure(RuntimeException("Title not loaded $this"))
-    }
+    suspend fun getTitle(): Result<String> =
+        getGeneralValue { title }
 
-    suspend fun getDescription(): Result<String> {
-        description?.also { return Result.success(it) }
-        val result = loadGeneralData()
-        if (result.isFailure) {
-            return result.cast()
-        }
-        return description?.let {
-            Result.success(it)
-        } ?: Result.failure(RuntimeException("Description not loaded $this"))
-    }
+    suspend fun getDescription(): Result<String> =
+        getGeneralValue { description }
 
-    suspend fun getArtist(): Result<Artist> {
-        artist?.also { return Result.success(it) }
-        val result = loadGeneralData()
-        if (result.isFailure) {
-            return result.cast()
-        }
-        return artist?.let {
-            Result.success(it)
-        } ?: Result.failure(RuntimeException("Artist not loaded $this"))
-    }
+    suspend fun getArtist(): Result<Artist> =
+        getGeneralValue { artist }
 
     // TODO remove
-    suspend fun getThumbnailProvider(): Result<MediaItemThumbnailProvider> {
-        thumbnail_provider?.also { return Result.success(it) }
-        val result = loadGeneralData()
-        if (result.isFailure) {
-            return result.cast()
-        }
-        return thumbnail_provider?.let {
-            Result.success(it)
-        } ?: Result.failure(RuntimeException("Thumbnail provider not loaded"))
-    }
+    suspend fun getThumbnailProvider(): Result<MediaItemThumbnailProvider> =
+        getGeneralValue { thumbnail_provider }
 
     open fun canLoadThumbnail(): Boolean = thumbnail_provider != null
 
@@ -347,6 +315,17 @@ abstract class MediaItem(val id: String): MediaItemHolder {
         }
 
         return@withContext load_result!!
+    }
+
+    protected suspend inline fun <reified T> getGeneralValue(getValue: () -> T?): Result<T> {
+        getValue()?.also { return Result.success(it) }
+        val result = loadGeneralData()
+        if (result.isFailure) {
+            return result.cast()
+        }
+        return getValue()?.let {
+            Result.success(it)
+        } ?: Result.failure(RuntimeException("Value with type '${T::class.simpleName}' not loaded"))
     }
 
     protected open fun getDefaultRegistryEntry(): MediaItemDataRegistry.Entry = MediaItemDataRegistry.Entry().apply { item = this@MediaItem }

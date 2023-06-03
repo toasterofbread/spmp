@@ -244,8 +244,8 @@
     <string name="s_sub_topbar_lyrics_linger">行が終わっても、次の行が始まるまで表示されます</string>
     <string name="s_key_topbar_default_mode_home">デフォルトモード (メインページ)</string>
     <string name="s_key_topbar_default_mode_nowplaying">デフォルトモード (プレイヤー)</string>
-    <string name="s_key_topbar_default_mode_queue">デフォルトモード (曲キュー)</string>
-    <string name="s_key_topbar_show_in_queue">曲キューで表示</string>
+    <string name="s_key_topbar_show_lyrics_in_queue">歌詞を曲キューで表示</string>
+    <string name="s_key_topbar_show_visualiser_in_queue">ビジュアライザーを曲キューで表示</string>
     <string name="s_option_topbar_mode_visualiser">ビジュアライザー</string>
     <string name="s_option_topbar_mode_lyrics">歌詞</string>
     <string name="s_option_topbar_mode_none">無し</string>

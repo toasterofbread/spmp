@@ -21,6 +21,7 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
 import com.spectre7.spmp.api.Api
+import com.spectre7.spmp.api.getOrReport
 import com.spectre7.spmp.model.Settings
 import com.spectre7.spmp.model.mediaitem.AccountPlaylist
 import com.spectre7.spmp.model.mediaitem.LocalPlaylist
@@ -70,21 +71,28 @@ fun LibraryMainPage(
                     Spacer(Modifier.fillMaxWidth().weight(1f))
 
                     if (ytm_auth.initialised) {
-                        var load_job: Job? by remember(ytm_auth) {
-                            mutableStateOf(coroutine_scope.launch {
-                                ytm_auth.loadOwnPlaylists()
-                            })
+                        var loading by remember { mutableStateOf(false) }
+
+                        fun loadPlaylists() {
+                            coroutine_scope.launch {
+                                check(!loading)
+                                loading = true
+                                ytm_auth.loadOwnPlaylists().getOrReport("LibraryMainPageLoadPlaylists")
+                                loading = false
+                            }
+                        }
+
+                        LaunchedEffect(Unit) {
+                            loadPlaylists()
                         }
 
                         IconButton({
-                            if (load_job?.isActive != true) {
-                                load_job = coroutine_scope.launch {
-                                    ytm_auth.loadOwnPlaylists()
-                                }
+                            if (!loading) {
+                                loadPlaylists()
                             }
                         }) {
-                            Crossfade(load_job?.isActive) { active ->
-                                if (active == true) {
+                            Crossfade(loading) { loading ->
+                                if (loading) {
                                     SubtleLoadingIndicator(Modifier.size(24.dp))
                                 } else {
                                     Icon(Icons.Default.Refresh, null)

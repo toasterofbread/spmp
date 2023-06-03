@@ -134,6 +134,7 @@ private fun mergeAndFuriganiseTerms(tokeniser: Tokenizer, terms: List<SongLyrics
 
     val ret: MutableList<SongLyrics.Term> = mutableListOf()
     val line_range = terms.first().line_range!!
+    val line_index = terms.first().line_index
 
     var terms_text: String = ""
     for (term in terms) {
@@ -170,7 +171,7 @@ private fun mergeAndFuriganiseTerms(tokeniser: Tokenizer, terms: List<SongLyrics
             }
         }
 
-        val term = SongLyrics.Term(trimOkurigana(SongLyrics.Term.Text(text, token.reading)), start, end)
+        val term = SongLyrics.Term(trimOkurigana(SongLyrics.Term.Text(text, token.reading)), line_index, start, end)
         term.line_range = line_range
         ret.add(term)
     }
@@ -187,7 +188,7 @@ private fun parseStaticLyrics(data: String): List<List<SongLyrics.Term>> {
         val tokens = tokeniser.tokenize(line)
         ret.add(tokens.mapNotNull { token ->
             if (token.surface.isBlank()) null
-            else SongLyrics.Term(listOf(SongLyrics.Term.Text(token.surface, token.reading)))
+            else SongLyrics.Term(listOf(SongLyrics.Term.Text(token.surface, token.reading)), ret.size)
         })
     }
 
@@ -226,7 +227,7 @@ private fun parseTimedLyrics(data: String): List<List<SongLyrics.Term>> {
         return result
     }
 
-    fun parseTerm(): SongLyrics.Term? {
+    fun parseTerm(line_index: Int): SongLyrics.Term? {
         parser.require(XmlPullParser.START_TAG, null, "word")
 
         var text: String? = null
@@ -252,7 +253,7 @@ private fun parseTimedLyrics(data: String): List<List<SongLyrics.Term>> {
             return null
         }
 
-        return SongLyrics.Term(listOf(SongLyrics.Term.Text(text)), start!!, end!!)
+        return SongLyrics.Term(listOf(SongLyrics.Term.Text(text)), line_index, start!!, end!!)
     }
 
     val tokeniser: Tokenizer
@@ -268,7 +269,7 @@ private fun parseTimedLyrics(data: String): List<List<SongLyrics.Term>> {
         }
     }
 
-    fun parseLine(): List<SongLyrics.Term> {
+    fun parseLine(index: Int): List<SongLyrics.Term> {
         parser.require(XmlPullParser.START_TAG, null, "line")
 
         var line_start: Long? = null
@@ -285,7 +286,7 @@ private fun parseTimedLyrics(data: String): List<List<SongLyrics.Term>> {
                 continue
             }
 
-            val term = parseTerm()
+            val term = parseTerm(index)
             if (term != null) {
                 terms.add(term)
 
@@ -328,7 +329,7 @@ private fun parseTimedLyrics(data: String): List<List<SongLyrics.Term>> {
             continue
         }
 
-        ret.add(parseLine())
+        ret.add(parseLine(ret.size))
     }
 
     while (ret.first().isEmpty()) {

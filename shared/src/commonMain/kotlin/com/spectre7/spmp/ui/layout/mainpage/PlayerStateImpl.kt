@@ -393,18 +393,22 @@ class PlayerStateImpl: PlayerState(null, null, null) {
         allow_cached: Boolean,
         continue_feed: Boolean,
         filter_chip: Int? = null
-    ): Result<Unit>? = withContext(Dispatchers.IO) {
-        if (!feed_load_lock.tryLock()) {
-            return@withContext null
-        }
+    ): Result<Unit> = withContext(Dispatchers.IO) {
+        main_page_selected_filter_chip = filter_chip
+
+        feed_load_lock.lock()
+
         check(feed_load_state.value == FeedLoadState.PREINIT || feed_load_state.value == FeedLoadState.NONE)
 
-        main_page_selected_filter_chip = filter_chip
-        val params = filter_chip?.let { main_page_filter_chips!![it].second }
-
+        val filter_params = filter_chip?.let { main_page_filter_chips!![it].second }
         feed_load_state.value = if (continue_feed) FeedLoadState.CONTINUING else FeedLoadState.LOADING
 
-        val result = loadFeedLayouts(min_rows, allow_cached, params, if (continue_feed) feed_continuation else null)
+        coroutineContext.job.invokeOnCompletion {
+            feed_load_state.value = FeedLoadState.NONE
+            feed_load_lock.unlock()
+        }
+
+        val result = loadFeedLayouts(min_rows, allow_cached, filter_params, if (continue_feed) feed_continuation else null)
         if (result.isFailure) {
             SpMp.error_manager.onError("loadFeed", result.exceptionOrNull()!!)
             main_page_layouts = emptyList()
@@ -426,7 +430,6 @@ class PlayerStateImpl: PlayerState(null, null, null) {
         }
 
         feed_load_state.value = FeedLoadState.NONE
-        feed_load_lock.unlock()
 
         return@withContext result.fold(
             { Result.success(Unit) },
@@ -478,8 +481,7 @@ class PlayerStateImpl: PlayerState(null, null, null) {
                         { main_page_selected_filter_chip },
                         pill_menu,
                         { filter_chip: Int?, continuation: Boolean ->
-                            feed_coroutine_scope.coroutineContext.cancelChildren()
-                            feed_coroutine_scope.launch {
+                            feed_coroutine_scope.launchSingle {
                                 loadFeed(-1, false, continuation, filter_chip)
                             }
                         }
@@ -498,7 +500,7 @@ class PlayerStateImpl: PlayerState(null, null, null) {
     }
 }
 
-private fun loadFeedLayouts(min_rows: Int, allow_cached: Boolean, params: String?, continuation: String? = null): Result<Triple<List<MediaItemLayout>, String?, List<Pair<Int, String>>?>> {
+private suspend fun loadFeedLayouts(min_rows: Int, allow_cached: Boolean, params: String?, continuation: String? = null): Result<Triple<List<MediaItemLayout>, String?, List<Pair<Int, String>>?>> {
     val result = getHomeFeed(allow_cached = allow_cached, min_rows = min_rows, params = params, continuation = continuation)
 
     if (!result.isSuccess) {

@@ -62,7 +62,7 @@ fun MainPage(
 
         MainPageTopBar(
             Api.ytm_auth,
-            { if (feed_load_state.value == FeedLoadState.LOADING) null else getFilterChips() },
+            getFilterChips,
             getSelectedFilterChip,
             { loadFeed(it, false) },
             Modifier.padding(top = SpMp.context.getStatusBarHeight())

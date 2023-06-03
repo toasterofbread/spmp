@@ -34,16 +34,12 @@ abstract class Playlist protected constructor (id: String): MediaItem(id), Media
         @Composable
         get() = getLayout()?.let { listOf(it) }
 
-    override suspend fun getFeedLayouts(): Result<List<MediaItemLayout>> {
-        data.items?.also { return Result.success(listOf(MediaItemLayout(null, null, MediaItemLayout.Type.LIST, it))) }
-        val result = loadGeneralData()
-        if (result.isFailure) {
-            return result.cast()
+    override suspend fun getFeedLayouts(): Result<List<MediaItemLayout>> =
+        getGeneralValue {
+            data.items?.let {
+                listOf(MediaItemLayout(null, null, MediaItemLayout.Type.LIST, it))
+            }
         }
-        return data.items?.let {
-            Result.success(listOf(MediaItemLayout(null, null, MediaItemLayout.Type.LIST, it)))
-        } ?: Result.failure(RuntimeException("Items not loaded"))
-    }
 
     @Composable
     fun getLayout(): MediaItemLayout? {

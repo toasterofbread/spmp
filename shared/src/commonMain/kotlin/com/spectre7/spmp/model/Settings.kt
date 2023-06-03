@@ -97,9 +97,8 @@ enum class Settings {
     KEY_TOPBAR_LYRICS_LINGER,
     KEY_TOPBAR_DEFAULT_MODE_HOME,
     KEY_TOPBAR_DEFAULT_MODE_NOWPLAYING,
-    KEY_TOPBAR_DEFAULT_MODE_QUEUE,
-    KEY_TOPBAR_SHOW_IN_QUEUE,
-    KEY_TOPBAR_HIDE_WHEN_EMPTY_IN_QUEUE,
+    KEY_TOPBAR_SHOW_LYRICS_IN_QUEUE,
+    KEY_TOPBAR_SHOW_VISUALISER_IN_QUEUE,
     KEY_TOPBAR_VISUALISER_WIDTH,
 
     // Recommendation feed
@@ -221,7 +220,7 @@ enum class Settings {
                 KEY_NOWPLAYING_THEME_MODE -> 0
 
                 KEY_LYRICS_FOLLOW_ENABLED -> true
-                KEY_LYRICS_FOLLOW_OFFSET -> 0.5f
+                KEY_LYRICS_FOLLOW_OFFSET -> 0.25f
                 KEY_LYRICS_DEFAULT_FURIGANA -> true
                 KEY_LYRICS_TEXT_ALIGNMENT -> 0 // Left, center, right
                 KEY_LYRICS_EXTRA_PADDING -> false
@@ -242,9 +241,8 @@ enum class Settings {
                 KEY_TOPBAR_LYRICS_LINGER -> true
                 KEY_TOPBAR_DEFAULT_MODE_HOME -> MusicTopBarMode.LYRICS.ordinal
                 KEY_TOPBAR_DEFAULT_MODE_NOWPLAYING -> MusicTopBarMode.LYRICS.ordinal
-                KEY_TOPBAR_DEFAULT_MODE_QUEUE -> MusicTopBarMode.LYRICS.ordinal
-                KEY_TOPBAR_SHOW_IN_QUEUE -> true
-                KEY_TOPBAR_HIDE_WHEN_EMPTY_IN_QUEUE -> true
+                KEY_TOPBAR_SHOW_LYRICS_IN_QUEUE -> true
+                KEY_TOPBAR_SHOW_VISUALISER_IN_QUEUE -> false
                 KEY_TOPBAR_VISUALISER_WIDTH -> 0.8f
 
                 // Recommendation feed

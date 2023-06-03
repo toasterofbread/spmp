@@ -31,16 +31,8 @@ class Artist private constructor (
         @Composable
         get() = data.feed_layouts
 
-    override suspend fun getFeedLayouts(): Result<List<MediaItemLayout>> {
-        data.feed_layouts?.also { return Result.success(it) }
-        val result = loadGeneralData()
-        if (result.isFailure) {
-            return result.cast()
-        }
-        return data.feed_layouts?.let {
-            Result.success(it)
-        } ?: Result.failure(RuntimeException("Feed layouts not loaded"))
-    }
+    override suspend fun getFeedLayouts(): Result<List<MediaItemLayout>> =
+        getGeneralValue { data.feed_layouts }
 
     fun getReadableSubscriberCount(): String {
         return subscriber_count?.let { subs ->

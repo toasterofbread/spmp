@@ -26,7 +26,6 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
-import com.spectre7.spmp.PlayerServiceHost
 import com.spectre7.spmp.model.mediaitem.MediaItemPreviewParams
 import com.spectre7.spmp.model.mediaitem.Song
 import com.spectre7.spmp.platform.vibrateShort
@@ -36,12 +35,14 @@ import com.spectre7.spmp.ui.component.multiselect.MediaItemMultiSelectContext
 fun getPlayerStateMultiSelectContext(): MediaItemMultiSelectContext =
     MediaItemMultiSelectContext(
         selectedItemActions = { multiselect ->
+            val player = LocalPlayerState.current
+
             // Play after button
             Row(
                 Modifier.clickable {
-                    PlayerServiceHost.player.addMultipleToQueue(
+                    player.player.addMultipleToQueue(
                         multiselect.getUniqueSelectedItems().filterIsInstance<Song>(),
-                        (PlayerServiceHost.player.active_queue_index + 1).coerceAtMost(PlayerServiceHost.status.queue_size),
+                        (player.player.active_queue_index + 1).coerceAtMost(player.status.m_song_count),
                         is_active_queue = true
                     )
                     multiselect.onActionPerformed()
@@ -50,7 +51,7 @@ fun getPlayerStateMultiSelectContext(): MediaItemMultiSelectContext =
                 verticalAlignment = Alignment.CenterVertically
             ) {
                 Icon(Icons.Default.SubdirectoryArrowRight, null)
-                val distance = PlayerServiceHost.player.active_queue_index - PlayerServiceHost.status.index + 1
+                val distance = player.player.active_queue_index - player.status.m_index + 1
                 Text(
                     getString(if (distance == 1) "lpm_action_play_after_1_song" else "lpm_action_play_after_x_songs").replace(
                         "\$x",
@@ -61,7 +62,7 @@ fun getPlayerStateMultiSelectContext(): MediaItemMultiSelectContext =
         },
         nextRowSelectedItemActions = { multiselect ->
             // Play after controls and song indicator
-            AnimatedVisibility(PlayerServiceHost.status.m_queue_size > 0) {
+            AnimatedVisibility(LocalPlayerState.current.status.m_song_count > 0) {
                 MultiSelectNextRowActions()
             }
         }
@@ -70,13 +71,14 @@ fun getPlayerStateMultiSelectContext(): MediaItemMultiSelectContext =
 @OptIn(ExperimentalFoundationApi::class)
 @Composable
 private fun MultiSelectNextRowActions() {
+    val player = LocalPlayerState.current
+
     Row(verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(10.dp)) {
         val active_queue_item =
-            if (PlayerServiceHost.player.active_queue_index < PlayerServiceHost.status.m_queue_size)
-                PlayerServiceHost.player.getSong(PlayerServiceHost.player.active_queue_index)
+            if (player.player.active_queue_index < player.status.m_song_count)
+                player.player.getSong(player.player.active_queue_index)
             else null
 
-        val player = LocalPlayerState.current
         CompositionLocalProvider(LocalPlayerState provides remember {
             player.copy(onClickedOverride = { item, _ -> player.openMediaItem(item) })
         }) {
@@ -96,11 +98,11 @@ private fun MultiSelectNextRowActions() {
                 remember { MutableInteractionSource() },
                 rememberRipple(),
                 onClick = {
-                    PlayerServiceHost.player.updateActiveQueueIndex(-1)
+                    player.player.updateActiveQueueIndex(-1)
                 },
                 onLongClick = {
                     SpMp.context.vibrateShort()
-                    PlayerServiceHost.player.active_queue_index = PlayerServiceHost.player.current_song_index
+                    player.player.active_queue_index = player.player.current_song_index
                 }
             ),
             shape = CircleShape
@@ -113,11 +115,11 @@ private fun MultiSelectNextRowActions() {
                 remember { MutableInteractionSource() },
                 rememberRipple(),
                 onClick = {
-                    PlayerServiceHost.player.updateActiveQueueIndex(1)
+                    player.player.updateActiveQueueIndex(1)
                 },
                 onLongClick = {
                     SpMp.context.vibrateShort()
-                    PlayerServiceHost.player.active_queue_index = PlayerServiceHost.player.song_count - 1
+                    player.player.active_queue_index = player.player.song_count - 1
                 }
             ),
             shape = CircleShape

@@ -13,16 +13,15 @@ import androidx.compose.runtime.*
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.unit.*
-import com.spectre7.spmp.PlayerServiceHost
+import com.spectre7.spmp.PlayerService
 import com.spectre7.spmp.api.cast
 import com.spectre7.spmp.api.getHomeFeed
 import com.spectre7.spmp.api.getOrThrowHere
 import com.spectre7.spmp.model.*
 import com.spectre7.spmp.model.mediaitem.*
 import com.spectre7.spmp.model.mediaitem.enums.PlaylistType
-import com.spectre7.spmp.platform.ProjectPreferences
+import com.spectre7.spmp.platform.*
 import com.spectre7.spmp.platform.composable.BackHandler
-import com.spectre7.spmp.platform.isScreenLarge
 import com.spectre7.spmp.ui.component.*
 import com.spectre7.spmp.ui.component.multiselect.MediaItemMultiSelectContext
 import com.spectre7.spmp.ui.layout.*
@@ -127,9 +126,12 @@ interface PlayerOverlayPage {
 
 @OptIn(ExperimentalMaterialApi::class)
 class PlayerStateImpl: PlayerState(null, null, null) {
+    private var _player: PlayerService? by mutableStateOf(null)
+    override val session_started: Boolean get() = _player?.session_started == true
+
     private var now_playing_switch_page: Int by mutableStateOf(-1)
     private val overlay_page_undo_stack: MutableList<Pair<PlayerOverlayPage, MediaItem?>?> = mutableListOf()
-    private val bottom_padding_anim = Animatable(PlayerServiceHost.session_started.toFloat() * MINIMISED_NOW_PLAYING_HEIGHT)
+    private val bottom_padding_anim = Animatable(session_started.toFloat() * MINIMISED_NOW_PLAYING_HEIGHT)
     private var main_page_showing: Boolean by mutableStateOf(false)
 
     private val low_memory_listener: () -> Unit
@@ -187,16 +189,29 @@ class PlayerStateImpl: PlayerState(null, null, null) {
         }
     }
 
-    @OptIn(ExperimentalMaterialApi::class)
+    private var initialised: Boolean = false
+    private lateinit var context: PlatformContext
+
+    override lateinit var download_manager: PlayerDownloadManager
+
     @Composable
-    fun init() {
-        val screen_height = SpMp.context.getScreenHeight().value
-        LaunchedEffect(Unit) {
+    fun init(context: PlatformContext) {
+        if (!initialised) {
+            this.context = context
+            download_manager = PlayerDownloadManager(context)
+            initialised = true
+
+            val screen_height = context.getScreenHeight().value
             np_swipe_state.value.init(mapOf(screen_height * -0.5f to 0))
         }
     }
 
     fun release() {
+        _player?.also {
+            MediaPlayerService.disconnect(context, it)
+            _player = null
+        }
+        download_manager.release()
         SpMp.removeLowMemoryListener(low_memory_listener)
         Settings.prefs.removeListener(prefs_listener)
     }
@@ -270,10 +285,10 @@ class PlayerStateImpl: PlayerState(null, null, null) {
         }
 
         if (item is Song) {
-            PlayerServiceHost.player.playSong(item)
+            player!!.playSong(item)
         }
         else {
-            PlayerServiceHost.player.startRadioAtIndex(0, item)
+            player!!.startRadioAtIndex(0, item)
         }
 
         if (np_swipe_state.value.targetValue == 0 && Settings.get(Settings.KEY_OPEN_NP_ON_SONG_PLAYED)) {
@@ -309,8 +324,8 @@ class PlayerStateImpl: PlayerState(null, null, null) {
 
     @Composable
     fun NowPlaying() {
-        OnChangedEffect(PlayerServiceHost.session_started) {
-            bottom_padding_anim.animateTo(PlayerServiceHost.session_started.toFloat() * MINIMISED_NOW_PLAYING_HEIGHT)
+        OnChangedEffect(session_started) {
+            bottom_padding_anim.animateTo(session_started.toFloat() * MINIMISED_NOW_PLAYING_HEIGHT)
         }
 
         val screen_height = SpMp.context.getScreenHeight()
@@ -457,7 +472,7 @@ class PlayerStateImpl: PlayerState(null, null, null) {
                         if (main_page_layouts == null) {
                             feed_coroutine_scope.launchSingle {
                                 val result = loadFeed(Settings.get(Settings.KEY_FEED_INITIAL_ROWS), allow_cached = true, continue_feed = false)
-                                PlayerServiceHost.player.loadPersistentQueue(result?.isSuccess == true)
+                                player.loadPersistentQueue(result.isSuccess)
                             }
                         }
                     }
@@ -491,12 +506,76 @@ class PlayerStateImpl: PlayerState(null, null, null) {
                     page.first.getPage(
                         pill_menu,
                         page.second,
-                        if (PlayerServiceHost.session_started) MINIMISED_NOW_PLAYING_HEIGHT.dp else 0.dp,
+                        if (session_started) MINIMISED_NOW_PLAYING_HEIGHT.dp else 0.dp,
                         close
                     )
                 }
             }
         }
+    }
+
+    // PlayerServiceHost
+
+    override val player: PlayerService get() = _player!!
+    override val nullable_player: PlayerService? get() = _player
+
+    val service_connected: Boolean get() = _player != null
+
+    private var service_connecting = false
+    private var service_connected_listeners = mutableListOf<() -> Unit>()
+
+    override lateinit var status: PlayerStatus
+        private set
+
+    fun startService(onConnected: (() -> Unit)? = null, onDisconnected: (() -> Unit)? = null) {
+        synchronized(service_connected_listeners) {
+            if (_player != null) {
+                onConnected?.invoke()
+                return
+            }
+            else if (service_connecting) {
+                onConnected?.also { service_connected_listeners.add(it) }
+                return
+            }
+        }
+
+        service_connecting = true
+        MediaPlayerService.connect(
+            context,
+            PlayerService::class.java,
+            onConnected = { service ->
+                synchronized(service_connected_listeners) {
+                    _player = service
+                    status = PlayerStatus(_player!!)
+                    service_connecting = false
+
+                    onConnected?.invoke()
+                    service_connected_listeners.forEach { it() }
+                    service_connected_listeners.clear()
+                }
+            },
+            onDisconnected = {
+                synchronized(service_connected_listeners) {
+                    _player = null
+                    service_connecting = false
+                    onDisconnected?.invoke()
+                }
+            }
+        )
+    }
+
+    override fun interactService(action: (player: PlayerService) -> Unit) {
+        startService({
+            _player?.also { action(it) }
+        })
+    }
+
+    override fun isRunningAndFocused(): Boolean {
+        if (!player.has_focus) {
+            return false
+        }
+
+        return true
     }
 }
 

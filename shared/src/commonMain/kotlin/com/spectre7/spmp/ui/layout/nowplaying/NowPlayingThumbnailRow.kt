@@ -1,5 +1,6 @@
 package com.spectre7.spmp.ui.layout.nowplaying
 
+import LocalPlayerState
 import SpMp
 import androidx.compose.animation.*
 import androidx.compose.animation.core.tween
@@ -31,7 +32,6 @@ import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.IntSize
 import androidx.compose.ui.unit.dp
-import com.spectre7.spmp.PlayerServiceHost
 import com.spectre7.spmp.model.mediaitem.MediaItemThumbnailProvider
 import com.spectre7.spmp.model.mediaitem.Song
 import com.spectre7.spmp.platform.composable.BackHandler
@@ -51,7 +51,8 @@ fun ThumbnailRow(
     setThemeColour: (Color?) -> Unit,
     getSeekState: () -> Float
 ) {
-    val current_song = PlayerServiceHost.status.m_song
+    val player = LocalPlayerState.current
+    val current_song = player.status.m_song
     val expansion = LocalNowPlayingExpansion.current
 
     var current_thumb_image: ImageBitmap? by remember { mutableStateOf(null) }
@@ -190,7 +191,7 @@ fun ThumbnailRow(
                             }
 
                             menu?.Menu(
-                                { PlayerServiceHost.status.m_song!! },
+                                { player.status.m_song!! },
                                 expansion.getAbsolute(),
                                 {
                                     get_shutter_menu = it
@@ -274,15 +275,15 @@ fun ThumbnailRow(
             }
 
             val player_button_modifier = Modifier.size(40.dp)
-            IconButton(PlayerServiceHost.player::playPause, player_button_modifier) {
+            IconButton(player.player::playPause, player_button_modifier) {
                 Image(
-                    if (PlayerServiceHost.status.m_playing) Icons.Filled.Pause else Icons.Filled.PlayArrow,
-                    getString(if (PlayerServiceHost.status.m_playing) "media_pause" else "media_play"),
+                    if (player.status.m_playing) Icons.Filled.Pause else Icons.Filled.PlayArrow,
+                    getString(if (player.status.m_playing) "media_pause" else "media_play"),
                     colorFilter = ColorFilter.tint(getNPOnBackground())
                 )
             }
 
-            IconButton(PlayerServiceHost.player::seekToNext, player_button_modifier) {
+            IconButton(player.player::seekToNext, player_button_modifier) {
                 Image(
                     Icons.Filled.SkipNext,
                     null,

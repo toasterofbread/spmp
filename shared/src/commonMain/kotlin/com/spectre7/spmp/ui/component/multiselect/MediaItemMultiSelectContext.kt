@@ -15,7 +15,6 @@ import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
-import com.spectre7.spmp.PlayerServiceHost
 import com.spectre7.spmp.api.getOrReport
 import com.spectre7.spmp.model.*
 import com.spectre7.spmp.model.mediaitem.*
@@ -231,6 +230,8 @@ class MediaItemMultiSelectContext(
     @Composable
     private fun RowScope.GeneralSelectedItemActions() {
         val coroutine_scope = rememberCoroutineScope()
+        val player = LocalPlayerState.current
+
         val all_are_pinned by remember { derivedStateOf {
             selected_items.isNotEmpty() && selected_items.all { it.first.pinned_to_home }
         } }
@@ -265,7 +266,7 @@ class MediaItemMultiSelectContext(
             IconButton({
                 for (item in getUniqueSelectedItems()) {
                     if (item is Song) {
-                        PlayerServiceHost.download_manager.startDownload(item.id)
+                        player.download_manager.startDownload(item.id)
                     }
                 }
                 onActionPerformed()

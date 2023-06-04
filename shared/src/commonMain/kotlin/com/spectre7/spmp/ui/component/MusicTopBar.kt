@@ -1,5 +1,6 @@
 package com.spectre7.spmp.ui.component
 
+import LocalPlayerState
 import androidx.compose.animation.Crossfade
 import androidx.compose.foundation.layout.*
 import androidx.compose.material3.LocalContentColor
@@ -7,7 +8,6 @@ import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
-import com.spectre7.spmp.PlayerServiceHost
 import com.spectre7.spmp.model.MusicTopBarMode
 import com.spectre7.spmp.model.Settings
 import com.spectre7.spmp.model.mediaitem.Song
@@ -35,6 +35,7 @@ fun MusicTopBar(
 ) {
     var target_mode by target_mode_state
     val song_state by rememberSongUpdateLyrics(song, target_mode == MusicTopBarMode.LYRICS)
+    val player = LocalPlayerState.current
 
     val visualiser_width: Float by Settings.KEY_TOPBAR_VISUALISER_WIDTH.rememberMutableState()
     check(visualiser_width in 0f .. 1f)
@@ -76,11 +77,11 @@ fun MusicTopBar(
                 is SongLyrics -> {
                     LyricsLineDisplay(
                         s,
-                        { PlayerServiceHost.status.position_ms + song!!.song_reg_entry.getLyricsSyncOffset() }
+                        { player.player.current_position_ms + song!!.song_reg_entry.getLyricsSyncOffset() }
                     )
                 }
                 MusicTopBarMode.VISUALISER -> {
-                    PlayerServiceHost.player.Visualiser(
+                    player.player.Visualiser(
                         LocalContentColor.current,
                         Modifier.fillMaxHeight().fillMaxWidth(visualiser_width).padding(vertical = 10.dp),
                         opacity = 0.5f

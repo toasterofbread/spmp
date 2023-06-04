@@ -1,5 +1,6 @@
 package com.spectre7.spmp.ui.layout.nowplaying.overlay
 
+import LocalPlayerState
 import SpMp
 import androidx.compose.animation.Crossfade
 import androidx.compose.animation.core.Animatable
@@ -24,7 +25,6 @@ import androidx.compose.ui.text.input.ImeAction
 import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.times
-import com.spectre7.spmp.PlayerServiceHost
 import com.spectre7.spmp.model.mediaitem.MediaItemPreviewParams
 import com.spectre7.spmp.model.mediaitem.Song
 import com.spectre7.spmp.platform.PlayerDownloadManager
@@ -56,6 +56,7 @@ class MainOverlayMenu(
         getSeekState: () -> Any,
         getCurrentSongThumb: () -> ImageBitmap?
     ) {
+        val player = LocalPlayerState.current
 
         val download_progress = remember { Animatable(0f) }
         var download_progress_target: Float by remember { mutableStateOf(0f) }
@@ -66,7 +67,7 @@ class MainOverlayMenu(
             download_progress.snapTo(0f)
             download_progress_target = 0f
 
-            PlayerServiceHost.download_manager.getDownload(songProvider()) {
+            player.download_manager.getDownload(songProvider()) {
                 download_status = it
             }
         }
@@ -79,10 +80,10 @@ class MainOverlayMenu(
                     }
                 }
             }
-            PlayerServiceHost.download_manager.addDownloadStatusListener(status_listener)
+            player.download_manager.addDownloadStatusListener(status_listener)
 
             onDispose {
-                PlayerServiceHost.download_manager.removeDownloadStatusListener(status_listener)
+                player.download_manager.removeDownloadStatusListener(status_listener)
             }
         }
 
@@ -93,7 +94,7 @@ class MainOverlayMenu(
         LaunchedEffect(Unit) {
             while (true) {
                 if (download_status?.status == DownloadStatus.Status.DOWNLOADING || download_status?.status == DownloadStatus.Status.PAUSED) {
-                    PlayerServiceHost.download_manager.getDownload(songProvider()) {
+                    player.download_manager.getDownload(songProvider()) {
                         download_progress_target = it!!.progress
                     }
                 }
@@ -247,7 +248,7 @@ class MainOverlayMenu(
                             .fillMaxSize()
                             .clickable {
                                 if (download_status?.status != DownloadStatus.Status.FINISHED && download_status?.status != DownloadStatus.Status.ALREADY_FINISHED) {
-                                    PlayerServiceHost.download_manager.startDownload(songProvider().id)
+                                    player.download_manager.startDownload(songProvider().id)
                                 }
                             },
                         contentAlignment = Alignment.Center

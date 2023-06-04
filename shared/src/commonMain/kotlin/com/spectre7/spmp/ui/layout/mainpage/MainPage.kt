@@ -16,7 +16,6 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.graphicsLayer
 import androidx.compose.ui.unit.DpSize
 import androidx.compose.ui.unit.dp
-import com.spectre7.spmp.PlayerServiceHost
 import com.spectre7.spmp.api.Api
 import com.spectre7.spmp.model.mediaitem.Artist
 import com.spectre7.spmp.model.mediaitem.MediaItemHolder

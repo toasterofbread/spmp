@@ -20,7 +20,6 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.ImageBitmap
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
-import com.spectre7.spmp.PlayerServiceHost
 import com.spectre7.spmp.model.mediaitem.MediaItemThumbnailProvider
 import com.spectre7.spmp.model.mediaitem.Song
 import com.spectre7.spmp.platform.generatePalette

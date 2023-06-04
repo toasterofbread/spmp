@@ -1,5 +1,6 @@
 package com.spectre7.spmp.platform
 
+import GlobalPlayerState
 import android.app.NotificationChannel
 import android.app.NotificationManager
 import android.app.PendingIntent
@@ -33,7 +34,6 @@ import com.google.common.collect.ImmutableList
 import com.google.common.util.concurrent.Futures
 import com.google.common.util.concurrent.ListenableFuture
 import com.google.common.util.concurrent.MoreExecutors
-import com.spectre7.spmp.PlayerServiceHost
 import com.spectre7.spmp.exovisualiser.FFTAudioProcessor
 import com.spectre7.spmp.model.mediaitem.MediaItemThumbnailProvider
 import com.spectre7.spmp.model.mediaitem.Song
@@ -288,7 +288,7 @@ class MediaPlayerServiceSession: MediaSessionService() {
 
             val song = Song.fromId(data_spec.uri.toString())
 
-            val download_manager = PlayerServiceHost.download_manager
+            val download_manager = GlobalPlayerState.download_manager
             var local_file: File? = download_manager.getSongLocalFile(song)
             if (local_file != null) {
                 println("Playing song ${song.title} from local file $local_file")

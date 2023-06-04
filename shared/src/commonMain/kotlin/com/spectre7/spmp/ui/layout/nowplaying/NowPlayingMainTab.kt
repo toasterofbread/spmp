@@ -33,7 +33,6 @@ import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.*
 import com.github.krottv.compose.sliders.DefaultThumb
 import com.github.krottv.compose.sliders.SliderValueHorizontal
-import com.spectre7.spmp.PlayerServiceHost
 import com.spectre7.spmp.model.mediaitem.Song
 import com.spectre7.spmp.platform.vibrateShort
 import com.spectre7.spmp.ui.layout.mainpage.MINIMISED_NOW_PLAYING_HEIGHT
@@ -55,7 +54,8 @@ internal const val MIN_EXPANSION = 0.07930607f
 
 @Composable
 fun ColumnScope.NowPlayingMainTab() {
-    val current_song: Song? = PlayerServiceHost.status.m_song
+    val player = LocalPlayerState.current
+    val current_song: Song? = player.status.m_song
     val expansion = LocalNowPlayingExpansion.current
     
     var theme_colour by remember { mutableStateOf<Color?>(null) }
@@ -136,7 +136,7 @@ fun ColumnScope.NowPlayingMainTab() {
         Controls(
             current_song,
             {
-                PlayerServiceHost.player.seekTo((PlayerServiceHost.player.duration_ms * it).toLong())
+                player.player.seekTo((player.player.duration_ms * it).toLong())
                 seek_state = it
             },
             Modifier
@@ -232,7 +232,7 @@ private fun Controls(
                             indication = null,
                             enabled = song?.artist?.is_for_item == false
                         ) {
-                            PlayerServiceHost.status.song?.artist?.also {
+                            player.status.m_song?.artist?.also {
                                 player.onMediaItemClicked(it)
                             }
                         }
@@ -248,21 +248,21 @@ private fun Controls(
                     .weight(1f),
             ) {
                 // Previous
-                PlayerButton(Icons.Filled.SkipPrevious, enabled = PlayerServiceHost.status.m_has_previous) {
-                    PlayerServiceHost.player.seekToPrevious()
+                PlayerButton(Icons.Filled.SkipPrevious, enabled = player.status.m_has_previous) {
+                    player.player.seekToPrevious()
                 }
 
                 // Play / pause
                 PlayerButton(
-                    if (PlayerServiceHost.status.m_playing) Icons.Filled.Pause else Icons.Filled.PlayArrow,
+                    if (player.status.m_playing) Icons.Filled.Pause else Icons.Filled.PlayArrow,
                     enabled = song != null
                 ) {
-                    PlayerServiceHost.player.playPause()
+                    player.player.playPause()
                 }
 
                 // Next
-                PlayerButton(Icons.Filled.SkipNext, enabled = PlayerServiceHost.status.m_has_next) {
-                    PlayerServiceHost.player.seekToNext()
+                PlayerButton(Icons.Filled.SkipNext, enabled = player.status.m_has_next) {
+                    player.player.seekToNext()
                 }
             }
 
@@ -311,9 +311,9 @@ private fun Controls(
 private fun VolumeSlider(colour: Color, modifier: Modifier = Modifier) {
     TODO()
 //    SliderValueHorizontal(
-//        value = PlayerServiceHost.status.m_volume,
+//        value = player.status.m_volume,
 //        onValueChange = {
-//            PlayerServiceHost.status.volume = it
+//            player.status.volume = it
 //        },
 //        thumbSizeInDp = DpSize(12.dp, 12.dp),
 //        track = { a, b, c, d, e -> DefaultTrack(a, b, c, d, e, colour.setAlpha(0.5f), colour) },
@@ -323,9 +323,10 @@ private fun VolumeSlider(colour: Color, modifier: Modifier = Modifier) {
 }
 
 @Composable
-private fun SeekBarTimeText(time: Float, colour: Color) {
+private fun SeekBarTimeText(time: Long, colour: Color) {
+    val seconds = time / 1000f
     Text(
-        remember(time) { if (time < 0f) "??:??" else formatElapsedTime(time.toLong()) },
+        remember(seconds) { if (seconds < 0f) "??:??" else formatElapsedTime(seconds.toLong()) },
         fontSize = 10.sp,
         fontWeight = FontWeight.Light,
         color = colour
@@ -334,15 +335,16 @@ private fun SeekBarTimeText(time: Float, colour: Color) {
 
 @Composable
 private fun SeekBar(seek: (Float) -> Unit) {
-    var position_override by remember { mutableStateOf<Float?>(null) }
+    val player = LocalPlayerState.current
 
+    var position_override by remember { mutableStateOf<Float?>(null) }
     var old_position by remember { mutableStateOf<Float?>(null) }
     var grab_start_position by remember { mutableStateOf<Float?>(null) }
     var cancel_area_side: Int? by remember { mutableStateOf(null) }
 
     fun getSliderValue(): Float {
         if (position_override != null && old_position != null) {
-            if (PlayerServiceHost.status.position != old_position) {
+            if (player.status.getProgress() != old_position) {
                 old_position = null
                 position_override = null
             }
@@ -350,23 +352,23 @@ private fun SeekBar(seek: (Float) -> Unit) {
                 return position_override!!
             }
         }
-        return position_override ?: PlayerServiceHost.status.position
+        return position_override ?: player.status.getProgress()
     }
 
-    RecomposeOnInterval(POSITION_UPDATE_INTERVAL_MS, PlayerServiceHost.status.m_playing) { state ->
+    RecomposeOnInterval(POSITION_UPDATE_INTERVAL_MS, player.status.m_playing) { state ->
         state
         Row(
             verticalAlignment = Alignment.CenterVertically,
             horizontalArrangement = Arrangement.spacedBy(5.dp)
         ) {
 
-            SeekBarTimeText(PlayerServiceHost.status.position_seconds, getNPOnBackground())
+            SeekBarTimeText(player.status.getPositionMillis(), getNPOnBackground())
 
             SliderValueHorizontal(
                 value = getSliderValue(),
                 onValueChange = {
                     if (grab_start_position == null) {
-                        grab_start_position = PlayerServiceHost.status.position
+                        grab_start_position = player.status.getProgress()
                     }
 
                     position_override = it
@@ -386,7 +388,7 @@ private fun SeekBar(seek: (Float) -> Unit) {
                     else {
                         seek(position_override!!)
                     }
-                    old_position = PlayerServiceHost.status.position
+                    old_position = player.status.getProgress()
                     grab_start_position = null
                     cancel_area_side = null
                 },
@@ -396,7 +398,7 @@ private fun SeekBar(seek: (Float) -> Unit) {
                 modifier = Modifier.weight(1f)
             )
 
-            SeekBarTimeText(PlayerServiceHost.status.m_duration, getNPOnBackground())
+            SeekBarTimeText(player.status.m_duration_ms, getNPOnBackground())
         }
     }
 }

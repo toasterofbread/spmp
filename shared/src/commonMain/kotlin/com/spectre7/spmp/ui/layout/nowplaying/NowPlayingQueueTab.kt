@@ -25,7 +25,6 @@ import androidx.compose.ui.draw.*
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.unit.*
-import com.spectre7.spmp.PlayerServiceHost
 import com.spectre7.spmp.api.RadioModifier
 import com.spectre7.spmp.model.MusicTopBarMode
 import com.spectre7.spmp.model.mediaitem.MediaItem
@@ -128,7 +127,7 @@ fun QueueTab() {
     val player = LocalPlayerState.current
 
     val song_items: SnapshotStateList<QueueTabItem> = remember { mutableStateListOf<QueueTabItem>().also { list ->
-        PlayerServiceHost.player.iterateSongs { _, song: Song ->
+        player.player.iterateSongs { _, song: Song ->
             list.add(QueueTabItem(song, key_inc++))
         }
     } }
@@ -166,10 +165,9 @@ fun QueueTab() {
     }
 
     var playing_key: Int? by remember { mutableStateOf(null) }
-    LaunchedEffect(PlayerServiceHost.status.m_index, song_items.size) {
-        val index = PlayerServiceHost.status.index
-        if (index in song_items.indices) {
-            playing_key = song_items[index].key
+    LaunchedEffect(player.status.m_index, song_items.size) {
+        if (player.status.m_index in song_items.indices) {
+            playing_key = song_items[player.status.m_index].key
         }
         else {
             playing_key = null
@@ -177,9 +175,9 @@ fun QueueTab() {
     }
 
     DisposableEffect(Unit) {
-        PlayerServiceHost.player.addListener(queue_listener)
+        player.player.addListener(queue_listener)
         onDispose {
-            PlayerServiceHost.nullable_player?.removeListener(queue_listener)
+            player.nullable_player?.removeListener(queue_listener)
         }
     }
 
@@ -226,15 +224,15 @@ fun QueueTab() {
 
                     Button(
                         onClick = {
-                            PlayerServiceHost.player.undoableAction {
+                            player.player.undoableAction {
                                 if (multiselect_context.is_active) {
                                     for (item in multiselect_context.getSelectedItems().sortedByDescending { it.second!! }) {
-                                        PlayerServiceHost.player.removeFromQueue(item.second!!)
+                                        player.player.removeFromQueue(item.second!!)
                                     }
                                     multiselect_context.onActionPerformed()
                                 }
                                 else {
-                                    PlayerServiceHost.player.clearQueue(keep_current = PlayerServiceHost.status.queue_size > 1)
+                                    player.player.clearQueue(keep_current = player.status.m_song_count > 1)
                                 }
                             }
                         },
@@ -251,22 +249,22 @@ fun QueueTab() {
                         Modifier.combinedClickable(
                             onClick = {
                                 if (multiselect_context.is_active) {
-                                    PlayerServiceHost.player.undoableAction {
-                                        PlayerServiceHost.player.shuffleQueueAndIndices(multiselect_context.getSelectedItems().map { it.second!! })
+                                    player.player.undoableAction {
+                                        player.player.shuffleQueueAndIndices(multiselect_context.getSelectedItems().map { it.second!! })
                                     }
                                     multiselect_context.onActionPerformed()
                                 }
                                 else {
-                                    PlayerServiceHost.player.undoableAction {
-                                        PlayerServiceHost.player.shuffleQueue()
+                                    player.player.undoableAction {
+                                        player.player.shuffleQueue()
                                     }
                                 }
                             },
                             onLongClick = if (multiselect_context.is_active) null else ({
-                                PlayerServiceHost.player.undoableAction {
+                                player.player.undoableAction {
                                     if (!multiselect_context.is_active) {
                                         SpMp.context.vibrateShort()
-                                        PlayerServiceHost.player.shuffleQueue(start = 0)
+                                        player.player.shuffleQueue(start = 0)
                                     }
                                 }
                             })
@@ -293,7 +291,7 @@ fun QueueTab() {
                     }
 
                     val undo_background = animateColorAsState(
-                        if (PlayerServiceHost.status.m_undo_count != 0) LocalContentColor.current
+                        if (player.status.m_undo_count != 0) LocalContentColor.current
                         else LocalContentColor.current.setAlpha(0.3f)
                     ).value
 
@@ -305,11 +303,11 @@ fun QueueTab() {
                                 CircleShape
                             )
                             .combinedClickable(
-                                enabled = PlayerServiceHost.status.m_undo_count != 0,
-                                onClick = { PlayerServiceHost.player.undo() },
+                                enabled = player.status.m_undo_count != 0,
+                                onClick = { player.player.undo() },
                                 onLongClick = {
                                     SpMp.context.vibrateShort()
-                                    PlayerServiceHost.player.redo()
+                                    player.player.redo()
                                 }
                             )
                             .size(40.dp),
@@ -333,7 +331,7 @@ fun QueueTab() {
                     onDragEnd = { from, to ->
                         if (from != to) {
                             song_items.add(from - items_above_queue, song_items.removeAt(to - items_above_queue))
-                            PlayerServiceHost.player.undoableAction {
+                            player.player.undoableAction {
                                 moveSong(from - items_above_queue, to - items_above_queue)
                             }
                             playing_key = null
@@ -343,7 +341,7 @@ fun QueueTab() {
 
                 CompositionLocalProvider(
                     LocalPlayerState provides remember { player.copy(onClickedOverride = { _, index: Int? ->
-                        PlayerServiceHost.player.seekToSong(index!!)
+                        player.player.seekToSong(index!!)
                     }) }
                 ) {
                     LazyColumn(
@@ -366,7 +364,7 @@ fun QueueTab() {
                                 LaunchedEffect(is_dragging) {
                                     if (is_dragging) {
                                         SpMp.context.vibrateShort()
-                                        playing_key = song_items[PlayerServiceHost.status.index].key
+                                        playing_key = song_items[player.status.m_index].key
                                     }
                                 }
 
@@ -375,21 +373,21 @@ fun QueueTab() {
                                         state,
                                         index,
                                         {
-                                            val current = if (playing_key != null) playing_key == item.key else PlayerServiceHost.status.m_index == index
+                                            val current = if (playing_key != null) playing_key == item.key else player.status.m_index == index
                                             if (current) backgroundColourProvider()
                                             else queue_background_colour
                                         },
                                         multiselect_context
                                     ) {
-                                        PlayerServiceHost.player.undoableAction {
-                                            PlayerServiceHost.player.removeFromQueue(index)
+                                        player.player.undoableAction {
+                                            player.player.removeFromQueue(index)
                                         }
                                     }
                                 }
                             }
                         }
 
-                        if (PlayerServiceHost.player.radio_loading) {
+                        if (player.player.radio_loading) {
                             item {
                                 Box(Modifier.height(50.dp), contentAlignment = Alignment.Center) {
                                     SubtleLoadingIndicator()
@@ -411,12 +409,13 @@ private fun CurrentRadioIndicator(
     accentColourProvider: () -> Color,
     multiselect_context: MediaItemMultiSelectContext
 ) {
+    val player = LocalPlayerState.current
     val horizontal_padding = 15.dp
     Row(Modifier.animateContentSize()) {
 
         var show_radio_info: Boolean by remember { mutableStateOf(false) }
-        val radio_item: MediaItem? = PlayerServiceHost.player.radio_item
-        
+        val radio_item: MediaItem? = player.player.radio_item
+
         LaunchedEffect(radio_item) {
             if (radio_item == null) {
                 show_radio_info = false
@@ -424,7 +423,7 @@ private fun CurrentRadioIndicator(
         }
 
         AnimatedVisibility(radio_item != null) {
-            IconButton({ 
+            IconButton({
                 if (show_radio_info) {
                     show_radio_info = false
                 }
@@ -436,7 +435,7 @@ private fun CurrentRadioIndicator(
             }
         }
 
-        val filters = PlayerServiceHost.player.radio_filters
+        val filters = player.player.radio_filters
 
         Crossfade(if (show_radio_info) radio_item else if (multiselect_context.is_active) true else filters ) { state ->
             if (state is MediaItem) {
@@ -457,13 +456,13 @@ private fun CurrentRadioIndicator(
                     Spacer(Modifier)
 
 
-                    val current_filter = PlayerServiceHost.player.radio_current_filter
+                    val current_filter = player.player.radio_current_filter
                     for (filter in listOf(null) + state.withIndex()) {
                         FilterChip(
                             current_filter == filter?.index,
                             onClick = {
-                                if (PlayerServiceHost.player.radio_current_filter != filter?.index) {
-                                    PlayerServiceHost.player.radio_current_filter = filter?.index
+                                if (player.player.radio_current_filter != filter?.index) {
+                                    player.player.radio_current_filter = filter?.index
                                 }
                             },
                             label = {
@@ -487,6 +486,7 @@ private fun CurrentRadioIndicator(
 
 @Composable
 private fun RepeatButton(backgroundColourProvider: () -> Color, modifier: Modifier = Modifier) {
+    val player = LocalPlayerState.current
     Box(
         modifier = modifier
             .minimumTouchTargetSize()
@@ -496,8 +496,8 @@ private fun RepeatButton(backgroundColourProvider: () -> Color, modifier: Modifi
                 interactionSource = remember { MutableInteractionSource() },
                 indication = null,
                 onClick = {
-                    PlayerServiceHost.player.repeat_mode =
-                        when (PlayerServiceHost.player.repeat_mode) {
+                    player.player.repeat_mode =
+                        when (player.player.repeat_mode) {
                             MediaPlayerRepeatMode.ALL -> MediaPlayerRepeatMode.ONE
                             MediaPlayerRepeatMode.ONE -> MediaPlayerRepeatMode.OFF
                             else -> MediaPlayerRepeatMode.ALL
@@ -505,7 +505,7 @@ private fun RepeatButton(backgroundColourProvider: () -> Color, modifier: Modifi
                 }
             )
             .crossOut(
-                crossed_out = PlayerServiceHost.status.m_repeat_mode == MediaPlayerRepeatMode.OFF,
+                crossed_out = player.status.m_repeat_mode == MediaPlayerRepeatMode.OFF,
                 colourProvider = { backgroundColourProvider().getContrasted() },
             ) {
                 return@crossOut IntSize(
@@ -516,7 +516,7 @@ private fun RepeatButton(backgroundColourProvider: () -> Color, modifier: Modifi
         contentAlignment = Alignment.Center
     ) {
         Icon(
-            when (PlayerServiceHost.status.m_repeat_mode) {
+            when (player.status.m_repeat_mode) {
                 MediaPlayerRepeatMode.ONE -> Icons.Filled.RepeatOne
                 else -> Icons.Filled.Repeat
             },
@@ -530,14 +530,15 @@ private fun RepeatButton(backgroundColourProvider: () -> Color, modifier: Modifi
 @OptIn(ExperimentalFoundationApi::class)
 @Composable
 private fun StopAfterSongButton(backgroundColourProvider: () -> Color, modifier: Modifier = Modifier) {
+    val player = LocalPlayerState.current
     val rotation = remember { Animatable(0f) }
-    OnChangedEffect(PlayerServiceHost.player.stop_after_current_song) {
+    OnChangedEffect(player.player.stop_after_current_song) {
         rotation.animateTo(
-            if (PlayerServiceHost.player.stop_after_current_song) 180f else 0f
+            if (player.player.stop_after_current_song) 180f else 0f
         )
     }
 
-    Crossfade(PlayerServiceHost.player.stop_after_current_song) { stopping ->
+    Crossfade(player.player.stop_after_current_song) { stopping ->
         Box(
             modifier = modifier
                 .minimumTouchTargetSize()
@@ -547,7 +548,7 @@ private fun StopAfterSongButton(backgroundColourProvider: () -> Color, modifier:
                 .combinedClickable(
                     interactionSource = remember { MutableInteractionSource() },
                     indication = null,
-                    onClick = { PlayerServiceHost.player.stop_after_current_song = !stopping },
+                    onClick = { player.player.stop_after_current_song = !stopping },
                     onLongClick = {}
                 ),
             contentAlignment = Alignment.Center

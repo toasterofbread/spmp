@@ -28,7 +28,6 @@ import androidx.compose.ui.unit.IntOffset
 import androidx.compose.ui.unit.dp
 import com.beust.klaxon.Klaxon
 import com.beust.klaxon.KlaxonException
-import com.spectre7.spmp.PlayerServiceHost
 import com.spectre7.spmp.api.Api
 import com.spectre7.spmp.api.YoutubeUITranslation
 import com.spectre7.spmp.model.Cache
@@ -69,7 +68,6 @@ object SpMp {
     private var _yt_ui_translation: YoutubeUITranslation? = null
     val yt_ui_translation: YoutubeUITranslation get() = _yt_ui_translation!!
 
-    private lateinit var service_host: PlayerServiceHost
     private var service_started = false
 
     private val prefs_change_listener =
@@ -104,12 +102,11 @@ object SpMp {
         Cache.init(context)
         Api.initialise()
 
-        service_host = PlayerServiceHost.instance ?: PlayerServiceHost()
         service_started = false
     }
 
     fun release() {
-        PlayerServiceHost.release()
+        GlobalPlayerState.release()
         _yt_ui_translation = null
     }
 
@@ -119,7 +116,7 @@ object SpMp {
             Theme.Update(context, MaterialTheme.colorScheme.primary)
 
             val player = GlobalPlayerState
-            player.init()
+            player.init(context)
 
             LaunchedEffect(open_uri) {
                 if (open_uri != null) {
@@ -130,12 +127,12 @@ object SpMp {
             }
 
             Surface(modifier = Modifier.fillMaxSize()) {
-                if (PlayerServiceHost.service_connected) {
+                if (player.service_connected) {
                     RootView(player)
                 }
                 else if (!service_started) {
                     service_started = true
-                    service_host.startService({ service_started = false })
+                    player.startService { service_started = false }
                 }
 
                 error_manager.Indicator(Theme.current.accent_provider)

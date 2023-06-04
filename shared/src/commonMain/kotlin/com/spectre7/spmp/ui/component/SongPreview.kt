@@ -3,7 +3,6 @@ package com.spectre7.spmp.ui.component
 import LocalPlayerState
 import SpMp
 import androidx.compose.animation.Crossfade
-import androidx.compose.foundation.ExperimentalFoundationApi
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.shape.RoundedCornerShape
@@ -24,7 +23,6 @@ import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
-import com.spectre7.spmp.PlayerServiceHost
 import com.spectre7.spmp.model.*
 import com.spectre7.spmp.model.mediaitem.*
 import com.spectre7.spmp.platform.PlayerDownloadManager.DownloadStatus
@@ -228,10 +226,10 @@ private fun LongPressMenuActionProvider.LPMActions(song: Song, queue_index: Int?
     ActionButton(
         Icons.Default.Radio, getString("lpm_action_radio"),
         onClick = {
-            PlayerServiceHost.player.playSong(song)
+            player.player.playSong(song)
         },
         onLongClick = if (queue_index == null) null else {{
-            PlayerServiceHost.player.startRadioAtIndex(queue_index + 1, song, skip_first = true)
+            player.player.startRadioAtIndex(queue_index + 1, song, skip_first = true)
         }}
     )
 
@@ -240,7 +238,7 @@ private fun LongPressMenuActionProvider.LPMActions(song: Song, queue_index: Int?
             getString(if (distance == 1) "lpm_action_play_after_1_song" else "lpm_action_play_after_x_songs").replace("\$x", distance.toString())
         },
         onClick = { active_queue_index ->
-            PlayerServiceHost.player.addToQueue(
+            player.player.addToQueue(
                 song,
                 active_queue_index + 1,
                 is_active_queue = Settings.KEY_LPM_INCREMENT_PLAY_AFTER.get(),
@@ -248,7 +246,7 @@ private fun LongPressMenuActionProvider.LPMActions(song: Song, queue_index: Int?
             )
         },
         onLongClick = { active_queue_index ->
-            PlayerServiceHost.player.addToQueue(
+            player.player.addToQueue(
                 song,
                 active_queue_index + 1,
                 is_active_queue = Settings.KEY_LPM_INCREMENT_PLAY_AFTER.get(),
@@ -260,7 +258,7 @@ private fun LongPressMenuActionProvider.LPMActions(song: Song, queue_index: Int?
     ActionButton(Icons.Default.PlaylistAdd, getString("song_add_to_playlist"), onClick = openPlaylistInterface, onAction = {})
 
     ActionButton(Icons.Default.Download, getString("lpm_action_download"), onClick = {
-        PlayerServiceHost.download_manager.startDownload(song.id) { status: DownloadStatus ->
+        player.download_manager.startDownload(song.id) { status: DownloadStatus ->
             when (status.status) {
                 DownloadStatus.Status.FINISHED -> SpMp.context.sendToast(getString("notif_download_finished"))
                 DownloadStatus.Status.ALREADY_FINISHED -> SpMp.context.sendToast(getString("notif_download_already_finished"))
@@ -305,7 +303,9 @@ private fun ColumnScope.SongLongPressMenuInfo(song: Song, queue_index: Int?, acc
     else {
         Item()
     }
-    if (PlayerServiceHost.player.active_queue_index < PlayerServiceHost.status.m_queue_size) {
+
+    val player = LocalPlayerState.current
+    if (player.player.active_queue_index < player.status.m_song_count) {
         Item(Icons.Default.SubdirectoryArrowRight, getString("lpm_action_radio_after_x_songs"))
     }
     else {

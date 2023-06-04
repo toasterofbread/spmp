@@ -25,18 +25,31 @@ data class ReadingTextData (
     val data: Any? = null
 )
 
+data class AnnotatedReadingTerm(
+    val annotated_string: AnnotatedString,
+    val inline_content: Map<String, InlineTextContent>
+)
+
 fun calculateReadingsAnnotatedString(
     text_content: List<ReadingTextData>,
     show_readings: Boolean,
     font_size: TextUnit,
-    textElement: @Composable (is_reading: Boolean, text: String, font_size: TextUnit, index: Int, modifier: Modifier) -> Unit
-): List<Pair<AnnotatedString, Map<String, InlineTextContent>>> {
-    val ret = mutableListOf<Pair<AnnotatedString, Map<String, InlineTextContent>>>()
+    textElement: @Composable (
+        is_reading: Boolean,
+        text: String,
+        font_size: TextUnit,
+        index: Int,
+        modifier: Modifier,
+        getLine: () -> AnnotatedReadingTerm
+    ) -> Unit,
+    getLine: (term_index: Int) -> AnnotatedReadingTerm
+): List<AnnotatedReadingTerm> {
+    val ret = mutableListOf<AnnotatedReadingTerm>()
     val inline_content = mutableMapOf<String, InlineTextContent>()
     var string = AnnotatedString.Builder()
 
     for (element in text_content.withIndex()) {
-        annotateString(element.value, element.index, inline_content, string, show_readings, font_size, textElement)
+        annotateString(element.value, element.index, inline_content, string, show_readings, font_size, textElement, getLine)
 
         var first = true
         for (char in element.value.text) {
@@ -48,7 +61,7 @@ fun calculateReadingsAnnotatedString(
                     string.appendInlineContent("\n", "\n")
                 }
 
-                ret.add(string.toAnnotatedString() to inline_content)
+                ret.add(AnnotatedReadingTerm(string.toAnnotatedString(), inline_content))
                 string = AnnotatedString.Builder()
             }
         }
@@ -120,7 +133,15 @@ private fun annotateString(
     string: AnnotatedString.Builder,
     show_readings: Boolean,
     font_size: TextUnit,
-    textElement: @Composable (is_reading: Boolean, text: String, font_size: TextUnit, index: Int, modifier: Modifier) -> Unit
+    textElement: @Composable (
+        is_reading: Boolean,
+        text: String,
+        font_size: TextUnit,
+        index: Int,
+        modifier: Modifier,
+        getLine: () -> AnnotatedReadingTerm
+    ) -> Unit,
+    getLine: (term_index: Int) -> AnnotatedReadingTerm
 ) {
     val text = elem.text.filterNot { it == '\n' }
     if (text.isEmpty()) {
@@ -150,11 +171,11 @@ private fun annotateString(
             ) {
                 Box(modifier = Modifier.requiredHeight(box_height + 3.dp)) {
                     if (show_readings && reading != null) {
-                        textElement(true, reading, reading_font_size, child_index, Modifier.wrapContentWidth(unbounded = true))
+                        textElement(true, reading, reading_font_size, child_index, Modifier.wrapContentWidth(unbounded = true)) { getLine(child_index) }
                     }
                 }
 
-                textElement(false, text, font_size, child_index, Modifier)
+                textElement(false, text, font_size, child_index, Modifier) { getLine(child_index) }
             }
         }
     )

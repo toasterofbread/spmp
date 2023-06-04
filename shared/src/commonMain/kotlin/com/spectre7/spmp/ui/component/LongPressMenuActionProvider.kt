@@ -27,7 +27,6 @@ import androidx.compose.ui.graphics.isUnspecified
 import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
-import com.spectre7.spmp.PlayerServiceHost
 import com.spectre7.spmp.model.mediaitem.MediaItemPreviewParams
 import com.spectre7.spmp.model.mediaitem.Song
 import com.spectre7.spmp.platform.vibrateShort
@@ -49,10 +48,11 @@ class LongPressMenuActionProvider(
         onClick: (active_queue_index: Int) -> Unit,
         onLongClick: ((active_queue_index: Int) -> Unit)? = null
     ) {
+        val player = LocalPlayerState.current
         var active_queue_item: Song? by remember { mutableStateOf(null) }
-        AnimatedVisibility(PlayerServiceHost.player.active_queue_index < PlayerServiceHost.status.m_queue_size) {
-            if (PlayerServiceHost.player.active_queue_index < PlayerServiceHost.status.m_queue_size) {
-                active_queue_item = PlayerServiceHost.player.getSong(PlayerServiceHost.player.active_queue_index)
+        AnimatedVisibility(player.player.active_queue_index < player.status.m_song_count) {
+            if (player.player.active_queue_index < player.status.m_song_count) {
+                active_queue_item = player.player.getSong(player.player.active_queue_index)
             }
 
             Column {
@@ -61,13 +61,13 @@ class LongPressMenuActionProvider(
                     verticalAlignment = Alignment.CenterVertically,
                     horizontalArrangement = Arrangement.SpaceBetween
                 ) {
-                    val distance = PlayerServiceHost.player.active_queue_index - PlayerServiceHost.status.index + 1
+                    val distance = player.player.active_queue_index - player.player.current_song_index + 1
                     ActionButton(
                         Icons.Filled.SubdirectoryArrowRight,
                         getText(distance),
                         fill_width = false,
-                        onClick = { onClick(PlayerServiceHost.player.active_queue_index) },
-                        onLongClick = onLongClick?.let { { it.invoke(PlayerServiceHost.player.active_queue_index) } }
+                        onClick = { onClick(player.player.active_queue_index) },
+                        onLongClick = onLongClick?.let { { it.invoke(player.player.active_queue_index) } }
                     )
 
                     Row(verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(10.dp)) {
@@ -82,11 +82,11 @@ class LongPressMenuActionProvider(
                                 remember { MutableInteractionSource() },
                                 rememberRipple(),
                                 onClick = {
-                                    PlayerServiceHost.player.updateActiveQueueIndex(-1)
+                                    player.player.updateActiveQueueIndex(-1)
                                 },
                                 onLongClick = {
                                     SpMp.context.vibrateShort()
-                                    PlayerServiceHost.player.updateActiveQueueIndex(Int.MIN_VALUE)
+                                    player.player.updateActiveQueueIndex(Int.MIN_VALUE)
                                 }
                             ),
                             color = accent_colour(),
@@ -100,11 +100,11 @@ class LongPressMenuActionProvider(
                                 remember { MutableInteractionSource() },
                                 rememberRipple(),
                                 onClick = {
-                                    PlayerServiceHost.player.updateActiveQueueIndex(1)
+                                    player.player.updateActiveQueueIndex(1)
                                 },
                                 onLongClick = {
                                     SpMp.context.vibrateShort()
-                                    PlayerServiceHost.player.updateActiveQueueIndex(Int.MAX_VALUE)
+                                    player.player.updateActiveQueueIndex(Int.MAX_VALUE)
                                 }
                             ),
                             color = accent_colour(),
@@ -116,8 +116,6 @@ class LongPressMenuActionProvider(
                 }
 
                 Crossfade(active_queue_item, animationSpec = tween(100)) {
-
-                    val player = LocalPlayerState.current
                     CompositionLocalProvider(
                         LocalPlayerState provides remember { player.copy(onClickedOverride = { item, _ -> player.openMediaItem(item) }) }
                     ) {

@@ -26,7 +26,6 @@ import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
-import com.spectre7.spmp.PlayerServiceHost
 import com.spectre7.spmp.api.*
 import com.spectre7.spmp.model.mediaitem.*
 import com.spectre7.spmp.platform.composable.BackHandler
@@ -56,6 +55,8 @@ fun RadioBuilderPage(
     bottom_padding: Dp,
     close: () -> Unit
 ) {
+    val player = LocalPlayerState.current
+
     var available_artists: List<RadioBuilderArtist>? by remember { mutableStateOf(null) }
     var selected_artists: Set<Int>? by remember { mutableStateOf(null) }
 
@@ -141,7 +142,7 @@ fun RadioBuilderPage(
                         preview_loading = true
                     }
                     else if (preview_playlist?.id == radio_token) {
-                        PlayerServiceHost.player.startRadioAtIndex(0, preview_playlist)
+                        player.player.startRadioAtIndex(0, preview_playlist)
                         return
                     }
                     else {
@@ -161,7 +162,7 @@ fun RadioBuilderPage(
                                 }
                                 else {
                                     SpMp.context.mainThread {
-                                        PlayerServiceHost.player.startRadioAtIndex(0, it)
+                                        player.player.startRadioAtIndex(0, it)
                                     }
                                 }
                             },

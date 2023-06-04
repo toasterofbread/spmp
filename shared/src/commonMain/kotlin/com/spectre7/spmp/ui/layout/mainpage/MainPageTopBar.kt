@@ -14,7 +14,6 @@ import androidx.compose.runtime.*
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.unit.dp
-import com.spectre7.spmp.PlayerServiceHost
 import com.spectre7.spmp.api.LocalisedYoutubeString
 import com.spectre7.spmp.model.*
 import com.spectre7.spmp.model.mediaitem.MediaItemThumbnailProvider
@@ -38,7 +37,7 @@ fun MainPageTopBar(
             RadioBuilderButton()
 
             MusicTopBar(
-                PlayerServiceHost.status.m_song,
+                player.status.m_song,
                 Settings.KEY_TOPBAR_DEFAULT_MODE_HOME.getEnum(),
                 Modifier.fillMaxSize().weight(1f)
             )

@@ -20,7 +20,6 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.*
 import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.unit.*
-import com.spectre7.spmp.PlayerServiceHost
 import com.spectre7.spmp.platform.composable.BackHandler
 import com.spectre7.spmp.platform.composable.scrollWheelSwipeable
 import com.spectre7.spmp.ui.theme.Theme
@@ -61,9 +60,9 @@ fun NowPlaying(swipe_state: SwipeableState<Int>, swipe_anchors: Map<Float, Int>)
     LocalNowPlayingExpansion.current.init()
 
     AnimatedVisibility(
-        PlayerServiceHost.session_started,
+        LocalPlayerState.current.session_started,
+        exit = slideOutVertically(),
         enter = slideInVertically(),
-        exit = slideOutVertically()
     ) {
         val density = LocalDensity.current
         val keyboard_insets = SpMp.context.getImeInsets()
@@ -173,7 +172,7 @@ fun MinimisedProgressBar() {
         state
 
         LinearProgressIndicator(
-            progress = PlayerServiceHost.status.position,
+            progress = LocalPlayerState.current.status.getProgress(),
             color = getNPOnBackground(),
             trackColor = getNPOnBackground().setAlpha(0.5f),
             modifier = Modifier

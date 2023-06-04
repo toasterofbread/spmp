@@ -25,7 +25,6 @@ import androidx.compose.ui.unit.dp
 import com.spectre7.spmp.api.LyricsSearchResult
 import com.spectre7.spmp.api.searchForLyrics
 import com.spectre7.spmp.model.mediaitem.Song
-import com.spectre7.spmp.platform.composable.BackHandler
 import com.spectre7.spmp.resources.getString
 import com.spectre7.spmp.resources.getStringTODO
 import com.spectre7.spmp.ui.theme.Theme
@@ -96,10 +95,6 @@ fun LyricsSearchMenu(song: Song, modifier: Modifier = Modifier, close: (changed:
                 loading = false
             }
         }
-    }
-
-    BackHandler {
-        close(false)
     }
 
     Crossfade(edit_page_open, modifier) { edit_page ->

@@ -12,7 +12,6 @@ import androidx.compose.runtime.*
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.graphicsLayer
 import androidx.compose.ui.unit.dp
-import com.spectre7.spmp.PlayerServiceHost
 import com.spectre7.spmp.model.MusicTopBarMode
 import com.spectre7.spmp.model.Settings
 import com.spectre7.spmp.ui.component.LikeDislikeButton
@@ -45,7 +44,7 @@ fun TopBar(modifier: Modifier = Modifier) {
     )
 
     Crossfade(
-        PlayerServiceHost.status.m_song,
+        player.status.m_song,
         modifier
             .fillMaxWidth()
             .requiredHeight(minOf(NOW_PLAYING_TOP_BAR_HEIGHT.dp * top_bar_height, max_height))
@@ -75,7 +74,7 @@ fun TopBar(modifier: Modifier = Modifier) {
 
             IconButton(
                 {
-                    player.onMediaItemLongClicked(song, PlayerServiceHost.status.index)
+                    player.onMediaItemLongClicked(song, player.status.m_index)
                 },
                 Modifier.graphicsLayer { alpha = buttons_alpha }.width(40.dp * buttons_alpha),
                 enabled = buttons_visible

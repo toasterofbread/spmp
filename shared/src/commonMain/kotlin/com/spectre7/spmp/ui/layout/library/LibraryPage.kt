@@ -1,5 +1,6 @@
 package com.spectre7.spmp.ui.layout.library
 
+import LocalPlayerState
 import androidx.compose.animation.Crossfade
 import androidx.compose.foundation.layout.*
 import androidx.compose.material.icons.Icons
@@ -13,7 +14,6 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
-import com.spectre7.spmp.PlayerServiceHost
 import com.spectre7.spmp.platform.PlayerDownloadManager
 import com.spectre7.spmp.platform.PlayerDownloadManager.DownloadStatus
 import com.spectre7.spmp.platform.composable.BackHandler
@@ -47,13 +47,14 @@ fun LibraryPage(
 ) {
     require(inline == (outer_multiselect_context != null))
 
+    val player = LocalPlayerState.current
     val multiselect_context = remember(outer_multiselect_context) { outer_multiselect_context ?: MediaItemMultiSelectContext {} }
 
     val downloads: MutableList<DownloadStatus> = remember { mutableStateListOf() }
     var subpage: LibrarySubPage? by remember { mutableStateOf(null) }
 
     DisposableEffect(Unit) {
-        PlayerServiceHost.download_manager.getDownloads {
+        player.download_manager.getDownloads {
             downloads.addAll(it)
         }
 
@@ -72,10 +73,10 @@ fun LibraryPage(
                 }
             }
         }
-        PlayerServiceHost.download_manager.addDownloadStatusListener(listener)
+        player.download_manager.addDownloadStatusListener(listener)
 
         onDispose {
-            PlayerServiceHost.download_manager.removeDownloadStatusListener(listener)
+            player.download_manager.removeDownloadStatusListener(listener)
         }
     }
 

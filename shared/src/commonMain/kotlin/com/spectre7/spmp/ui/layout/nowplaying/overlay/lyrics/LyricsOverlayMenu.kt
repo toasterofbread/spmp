@@ -1,6 +1,7 @@
 @file:Suppress("INVISIBLE_MEMBER", "INVISIBLE_REFERENCE")
 package com.spectre7.spmp.ui.layout.nowplaying.overlay.lyrics
 
+import LocalPlayerState
 import androidx.compose.animation.*
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.gestures.scrollBy
@@ -27,17 +28,19 @@ import androidx.compose.ui.graphics.ImageBitmap
 import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.platform.LocalLayoutDirection
 import androidx.compose.ui.text.AnnotatedString
+import androidx.compose.ui.text.TextStyle
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.*
 import androidx.compose.ui.zIndex
-import com.spectre7.spmp.PlayerServiceHost
 import com.spectre7.spmp.model.Settings
 import com.spectre7.spmp.model.mediaitem.Song
 import com.spectre7.spmp.model.SongLyrics
 import com.spectre7.spmp.model.mediaitem.SongLyricsHolder
+import com.spectre7.spmp.platform.composable.BackHandler
 import com.spectre7.spmp.platform.composable.platformClickable
 import com.spectre7.spmp.resources.getStringTODO
 import com.spectre7.spmp.ui.component.PillMenu
+import com.spectre7.spmp.ui.layout.nowplaying.LocalNowPlayingExpansion
 import com.spectre7.spmp.ui.layout.nowplaying.overlay.OverlayMenu
 import com.spectre7.spmp.ui.theme.Theme
 import com.spectre7.utils.*
@@ -71,7 +74,17 @@ class LyricsOverlayMenu(
         var show_furigana: Boolean by remember { mutableStateOf(Settings.KEY_LYRICS_DEFAULT_FURIGANA.get()) }
 
         var submenu: LyricsOverlaySubmenu? by remember { mutableStateOf(null) }
-        var lyrics_sync_line: Int? by remember { mutableStateOf(null) }
+        var lyrics_sync_line: AnnotatedReadingTerm? by remember { mutableStateOf(null) }
+        var selecting_sync_line: Boolean by remember { mutableStateOf(false) }
+
+        BackHandler(submenu != null || selecting_sync_line) {
+            if (selecting_sync_line) {
+                selecting_sync_line = false
+            }
+            else {
+                submenu = null
+            }
+        }
 
         LaunchedEffect(lyrics_holder.loading) {
             if (!lyrics_holder.loading && lyrics_holder.loaded && lyrics_holder.lyrics == null && submenu == null) {
@@ -83,12 +96,22 @@ class LyricsOverlayMenu(
             // Pill menu
             AnimatedVisibility(submenu != LyricsOverlaySubmenu.SEARCH, Modifier.zIndex(10f), enter = fadeIn(), exit = fadeOut()) {
                 pill_menu.PillMenu(
-                    if (submenu == null) 4 else 1,
+                    if (submenu != null || selecting_sync_line) 1 else 4,
                     { index, _ ->
                         when (index) {
-                            0 -> ActionButton(Icons.Filled.Close, close)
+                            0 -> ActionButton(Icons.Filled.Close) {
+                                if (submenu != null) {
+                                    close()
+                                }
+                                else if (selecting_sync_line) {
+                                    selecting_sync_line = false
+                                }
+                                else {
+                                    submenu = null
+                                }
+                            }
                             1 -> ActionButton(Icons.Filled.Search) { submenu = LyricsOverlaySubmenu.SEARCH }
-                            2 -> ActionButton(Icons.Default.HourglassEmpty) { submenu = LyricsOverlaySubmenu.SYNC }
+                            2 -> ActionButton(Icons.Default.HourglassEmpty) { selecting_sync_line = true }
                             3 -> Box(
                                 Modifier.size(48.dp),
                                 contentAlignment = Alignment.Center
@@ -124,7 +147,7 @@ class LyricsOverlayMenu(
                         }
                     }
                 }
-                else if (current_submenu == LyricsOverlaySubmenu.SYNC && lyrics_sync_line != null) {
+                else if (current_submenu == LyricsOverlaySubmenu.SYNC) {
                     if (lyrics != null) {
                         LyricsSyncMenu(song, lyrics, lyrics_sync_line!!, Modifier.fillMaxSize())
                     }
@@ -133,19 +156,28 @@ class LyricsOverlayMenu(
                     }
                 }
                 else if (lyrics != null) {
-                    CoreLyricsDisplay(
-                        size,
-                        lyrics,
-                        song,
-                        scroll_state,
-                        show_furigana,
-                        Modifier.fillMaxSize(),
-                        if (current_submenu == LyricsOverlaySubmenu.SYNC) { term ->
-                            lyrics_sync_line = TODO()
-                            submenu = LyricsOverlaySubmenu.SYNC
+                    Box(Modifier.fillMaxSize()) {
+                        CoreLyricsDisplay(
+                            size,
+                            lyrics,
+                            song,
+                            scroll_state,
+                            show_furigana,
+                            Modifier.fillMaxSize(),
+                            {
+                                if (selecting_sync_line) { line ->
+                                    submenu = LyricsOverlaySubmenu.SYNC
+                                    lyrics_sync_line = line
+                                    selecting_sync_line = false
+                                }
+                                else null
+                            }
+                        )
+
+                        AnimatedVisibility(selecting_sync_line) {
+                            Text(getStringTODO("Select line to sync with"))
                         }
-                        else null
-                    )
+                    }
                 }
                 else {
                     Column(Modifier.size(size), horizontalAlignment = Alignment.CenterHorizontally, verticalArrangement = Arrangement.Center) {
@@ -167,8 +199,10 @@ fun CoreLyricsDisplay(
     scroll_state: LazyListState,
     show_furigana: Boolean,
     modifier: Modifier = Modifier,
-    onLongClick: ((term_index: Int) -> Unit)?
+    getOnLongClick: () -> ((line: AnnotatedReadingTerm) -> Unit)?
 ) {
+    val player = LocalPlayerState.current
+
     val size_px = with(LocalDensity.current) { size.toPx() }
     val line_height = with (LocalDensity.current) { 20.sp.toPx() }
     val line_spacing = with (LocalDensity.current) { 25.dp.toPx() }
@@ -183,25 +217,7 @@ fun CoreLyricsDisplay(
         }
     }
 
-    LaunchedEffect(Unit) {
-        scroll_state.scrollBy(if (add_padding) (size_px - line_height - (line_spacing * 2)) else (line_height - line_spacing))
-    }
-
-    val terms = remember { mutableListOf<ReadingTextData>().apply {
-        for (line in lyrics.lines) {
-            for (term in line.withIndex()) {
-                for (subterm in term.value.subterms.withIndex()) {
-                    if (subterm.index + 1 == term.value.subterms.size && term.index + 1 == line.size) {
-                        add(ReadingTextData(subterm.value.text + "\n", subterm.value.furi, term.value))
-                    }
-                    else {
-                        add(ReadingTextData(subterm.value.text, subterm.value.furi, term.value))
-                    }
-                }
-            }
-        }
-    } }
-
+    val terms = remember(lyrics) { lyrics.getReadingTerms() }
     var current_range: IntRange? by remember { mutableStateOf(null) }
 
     LaunchedEffect(lyrics) {
@@ -210,7 +226,7 @@ fun CoreLyricsDisplay(
         }
 
         while (true) {
-            val time = PlayerServiceHost.status.position_ms + song.song_reg_entry.getLyricsSyncOffset()
+            val time = player.status.getPositionMillis() + song.song_reg_entry.getLyricsSyncOffset()
             var start = -1
             var end = -1
             var next = Long.MAX_VALUE
@@ -261,29 +277,30 @@ fun CoreLyricsDisplay(
     }
 
     val font_size = 20.sp
-    val reading_font_size = font_size / 2
 
-    var data_with_readings: List<Pair<AnnotatedString, Map<String, InlineTextContent>>>? by remember { mutableStateOf(null) }
-    var data_without_readings: List<Pair<AnnotatedString, Map<String, InlineTextContent>>>? by remember { mutableStateOf(null) }
+    var data_with_readings: List<AnnotatedReadingTerm>? by remember { mutableStateOf(null) }
+    var data_without_readings: List<AnnotatedReadingTerm>? by remember { mutableStateOf(null) }
 
     LaunchedEffect(terms) {
         data_with_readings = null
         data_without_readings = null
 
-        val text_element: @Composable (is_reading: Boolean, text: String, font_size: TextUnit, index: Int, modifier: Modifier) -> Unit =
-            { is_reading: Boolean, text: String, font_size: TextUnit, index: Int, modifier: Modifier ->
+        val text_element: @Composable (is_reading: Boolean, text: String, font_size: TextUnit, index: Int, modifier: Modifier, getLine: () -> AnnotatedReadingTerm) -> Unit =
+            { is_reading: Boolean, text: String, font_size: TextUnit, index: Int, modifier: Modifier, getLine: () -> AnnotatedReadingTerm ->
                 val is_current by remember { derivedStateOf { lyrics.sync_type == SongLyrics.SyncType.NONE || current_range?.contains(index) == true } }
                 val colour by animateColorAsState(
                     if (is_current) Color.White
                     else Color.White.setAlpha(0.5f)
                 )
 
+                val onLongClick = getOnLongClick()
+
                 Text(
                     text,
                     modifier.thenIf(
                         onLongClick != null,
                         Modifier.platformClickable(
-                            onAltClick = { onLongClick?.invoke(index) }
+                            onAltClick = { onLongClick?.invoke(getLine()) }
                         )
                     ),
                     fontSize = font_size,
@@ -292,12 +309,12 @@ fun CoreLyricsDisplay(
             }
 
         if (show_furigana) {
-            data_with_readings = calculateReadingsAnnotatedString(terms, true, font_size, text_element)
-            data_without_readings = calculateReadingsAnnotatedString(terms, false, font_size, text_element)
+            data_with_readings = calculateReadingsAnnotatedString(terms, true, font_size, text_element) { data_with_readings!!.getLineOfTerm(it) }
+            data_without_readings = calculateReadingsAnnotatedString(terms, false, font_size, text_element) { data_without_readings!!.getLineOfTerm(it) }
         }
         else {
-            data_without_readings = calculateReadingsAnnotatedString(terms, false, font_size, text_element)
-            data_with_readings = calculateReadingsAnnotatedString(terms, true, font_size, text_element)
+            data_without_readings = calculateReadingsAnnotatedString(terms, false, font_size, text_element) { data_without_readings!!.getLineOfTerm(it) }
+            data_with_readings = calculateReadingsAnnotatedString(terms, true, font_size, text_element) { data_with_readings!!.getLineOfTerm(it) }
         }
     }
 
@@ -314,14 +331,13 @@ fun CoreLyricsDisplay(
 
                 var term_count = 0
                 for (line in text_data.withIndex()) {
-                    term_count += line.value.first.annotations?.size ?: 0
+                    term_count += line.value.annotated_string.annotations?.size ?: 0
 
                     if (term_count > range_start) {
                         val offset: Float = line_height - (size_px * Settings.KEY_LYRICS_FOLLOW_OFFSET.get<Float>())
 
                         if (first_scroll) {
                             first_scroll = false
-                            delay(25)
                             scroll_state.scrollToItem(
                                 line.index,
                                 offset.toInt()
@@ -337,8 +353,6 @@ fun CoreLyricsDisplay(
                     }
                 }
             }
-
-            val text_line_height = font_size.value + reading_font_size.value + 10
 
             LazyColumn(
                 Modifier
@@ -358,15 +372,47 @@ fun CoreLyricsDisplay(
             ) {
                 itemsIndexed(text_data) { line, item ->
                     Text(
-                        item.first,
-                        inlineContent = item.second,
-                        style = LocalTextStyle.current.copy(
-                            fontSize = font_size,
-                            lineHeight = text_line_height.sp
-                        )
+                        item.annotated_string,
+                        inlineContent = item.inline_content,
+                        style = getLyricsTextStyle(font_size)
                     )
                 }
             }
         }
     }
 }
+
+fun SongLyrics.getReadingTerms(): MutableList<ReadingTextData> =
+    mutableListOf<ReadingTextData>().apply {
+        for (line in lines) {
+            for (term in line.withIndex()) {
+                for (subterm in term.value.subterms.withIndex()) {
+                    if (subterm.index + 1 == term.value.subterms.size && term.index + 1 == line.size) {
+                        add(ReadingTextData(subterm.value.text + "\n", subterm.value.furi, term.value))
+                    }
+                    else {
+                        add(ReadingTextData(subterm.value.text, subterm.value.furi, term.value))
+                    }
+                }
+            }
+        }
+    }
+
+fun List<AnnotatedReadingTerm>.getLineOfTerm(term_index: Int): AnnotatedReadingTerm {
+    var term_count = 0
+    for (line in withIndex()) {
+        val line_terms = line.value.annotated_string.annotations?.size ?: 0
+        if (term_index < term_count + line_terms) {
+            return line.value
+        }
+        term_count += line_terms
+    }
+    throw IndexOutOfBoundsException(term_index)
+}
+
+@Composable
+fun getLyricsTextStyle(font_size: TextUnit): TextStyle =
+    LocalTextStyle.current.copy(
+        fontSize = font_size,
+        lineHeight = ((font_size.value * 1.5) + 10).sp
+    )

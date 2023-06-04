@@ -1,5 +1,6 @@
 package com.spectre7.spmp
 
+import GlobalPlayerState
 import android.Manifest
 import android.accessibilityservice.AccessibilityService
 import android.accessibilityservice.AccessibilityServiceInfo
@@ -29,6 +30,8 @@ import java.lang.ref.WeakReference
 import java.util.*
 import kotlin.collections.set
 import android.provider.Settings as AndroidSettings
+
+enum class SERVICE_INTENT_ACTIONS { BUTTON_VOLUME }
 
 actual class PlayerAccessibilityService : AccessibilityService(), LifecycleOwner {
 
@@ -106,7 +109,7 @@ actual class PlayerAccessibilityService : AccessibilityService(), LifecycleOwner
         if (event.keyCode == KEYCODE_VOLUME_UP || event.keyCode == KEYCODE_VOLUME_DOWN) {
             when (volume_intercept_mode) {
                 PlayerAccessibilityServiceVolumeInterceptMode.ALWAYS -> {
-                    !PlayerServiceHost.isRunningAndFocused()
+                    !GlobalPlayerState.isRunningAndFocused()
                 }
                 PlayerAccessibilityServiceVolumeInterceptMode.APP_OPEN -> {
                     if (!context.isAppInForeground()) {

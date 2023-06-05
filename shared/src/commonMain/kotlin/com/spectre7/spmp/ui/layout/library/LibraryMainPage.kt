@@ -23,10 +23,7 @@ import androidx.compose.ui.unit.dp
 import com.spectre7.spmp.api.Api
 import com.spectre7.spmp.api.getOrReport
 import com.spectre7.spmp.model.Settings
-import com.spectre7.spmp.model.mediaitem.AccountPlaylist
-import com.spectre7.spmp.model.mediaitem.LocalPlaylist
-import com.spectre7.spmp.model.mediaitem.MediaItemPreviewParams
-import com.spectre7.spmp.model.mediaitem.Playlist
+import com.spectre7.spmp.model.mediaitem.*
 import com.spectre7.spmp.platform.PlayerDownloadManager
 import com.spectre7.spmp.resources.getString
 import com.spectre7.spmp.ui.component.MediaItemGrid
@@ -34,6 +31,7 @@ import com.spectre7.spmp.ui.component.multiselect.MediaItemMultiSelectContext
 import com.spectre7.utils.composable.SubtleLoadingIndicator
 import kotlinx.coroutines.Job
 import kotlinx.coroutines.launch
+import kotlin.math.absoluteValue
 
 private const val LOCAL_SONGS_PREVIEW_AMOUNT = 5
 
@@ -43,7 +41,8 @@ fun LibraryMainPage(
     multiselect_context: MediaItemMultiSelectContext,
     bottom_padding: Dp,
     inline: Boolean,
-    openPage: (LibrarySubPage?) -> Unit
+    openPage: (LibrarySubPage?) -> Unit,
+    onSongClicked: (songs: List<Song>, song: Song, index: Int) -> Unit
 ) {
     val heading_text_style = MaterialTheme.typography.headlineSmall
     val coroutine_scope = rememberCoroutineScope()
@@ -150,31 +149,40 @@ fun LibraryMainPage(
                     }
                 }
 
+
                 if (downloads.isNotEmpty()) {
-                    var shown_songs = 0
-
-                    for (download in downloads) {
-                        if (download.progress < 1f) {
-                            continue
-                        }
-
-                        val song = download.song
-                        song.PreviewLong(MediaItemPreviewParams())
-
-                        if (++shown_songs == LOCAL_SONGS_PREVIEW_AMOUNT) {
-                            break
-                        }
-                    }
-
-                    if (shown_songs == LOCAL_SONGS_PREVIEW_AMOUNT) {
-                        val total_songs = downloads.count { it.progress >= 1f }
-                        Text(
-                            getString("library_x_more_songs").replace("\$x", (total_songs - shown_songs).toString()),
-                            Modifier
-                                .padding(top = 5.dp)
-                                .align(Alignment.CenterHorizontally)
-                                .clickable { openPage(LibrarySubPage.SONGS) }
+                    CompositionLocalProvider(LocalPlayerState provides remember { player.copy(onClickedOverride = { item, index ->
+                        onSongClicked(
+                            downloads.mapNotNull { if (it.progress < 1f) null else it.song },
+                            item as Song,
+                            index!!
                         )
+                    }) }) {
+                        var shown_songs = 0
+
+                        for (download in downloads) {
+                            if (download.progress < 1f) {
+                                continue
+                            }
+
+                            val song = download.song
+                            song.PreviewLong(MediaItemPreviewParams(multiselect_context = multiselect_context), queue_index = shown_songs)
+
+                            if (++shown_songs == LOCAL_SONGS_PREVIEW_AMOUNT) {
+                                break
+                            }
+                        }
+
+                        if (shown_songs == LOCAL_SONGS_PREVIEW_AMOUNT) {
+                            val total_songs = downloads.count { it.progress >= 1f }
+                            Text(
+                                getString("library_x_more_songs").replace("\$x", (total_songs - shown_songs).toString()),
+                                Modifier
+                                    .padding(top = 5.dp)
+                                    .align(Alignment.CenterHorizontally)
+                                    .clickable { openPage(LibrarySubPage.SONGS) }
+                            )
+                        }
                     }
                 } else {
                     Text("No songs downloaded", Modifier.padding(top = 10.dp).align(Alignment.CenterHorizontally))

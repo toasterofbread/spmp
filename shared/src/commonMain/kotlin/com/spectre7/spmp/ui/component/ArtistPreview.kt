@@ -50,7 +50,7 @@ fun ArtistPreviewSquare(
             artist.Thumbnail(
                 MediaItemThumbnailProvider.Quality.LOW,
                 Modifier.longPressMenuIcon(long_press_menu_data, params.enable_long_press_menu).aspectRatio(1f),
-                params.contentColour
+                contentColourProvider = params.contentColour
             )
 
             params.multiselect_context?.also { ctx ->

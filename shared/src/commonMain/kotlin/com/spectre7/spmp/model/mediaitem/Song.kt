@@ -146,7 +146,7 @@ class Song private constructor (id: String): MediaItem(id) {
                 val size = (image.width * (9f/16f)).toInt()
                 return Result.success(image.crop((image.width - size) / 2, (image.height - size) / 2, size, size))
             }
-            catch (e: FileNotFoundException) {
+            catch (e: Throwable) {
                 if (i == quality.ordinal + 1) {
                     return Result.failure(e)
                 }

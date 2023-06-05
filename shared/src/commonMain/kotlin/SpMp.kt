@@ -36,6 +36,7 @@ import com.spectre7.spmp.model.Settings
 import com.spectre7.spmp.platform.PlatformContext
 import com.spectre7.spmp.platform.ProjectPreferences
 import com.spectre7.spmp.platform.composable.PlatformAlertDialog
+import com.spectre7.spmp.platform.vibrateShort
 import com.spectre7.spmp.resources.getString
 import com.spectre7.spmp.resources.getStringTODO
 import com.spectre7.spmp.resources.initResources
@@ -260,6 +261,10 @@ class ErrorManager(private val context: PlatformContext) {
                             .size(INDICATOR_SIZE)
                             .offset { IntOffset(swipe_state.offset.value.roundToInt(), 0) },
                         CircleShape,
+                        onLongClick = {
+                            dismiss = true
+                            SpMp.context.vibrateShort()
+                        },
                         colors = IconButtonDefaults.iconButtonColors(
                             containerColor = colour(),
                             contentColor = colour().getContrasted()
@@ -276,6 +281,7 @@ class ErrorManager(private val context: PlatformContext) {
     fun InfoPopup(dismiss: () -> Unit, close: () -> Unit) {
         PlatformAlertDialog(
             close,
+            modifier = Modifier.fillMaxSize(),
             confirmButton = {
                 Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.SpaceBetween) {
                     FilledIconButton(close) {
@@ -293,12 +299,10 @@ class ErrorManager(private val context: PlatformContext) {
             text = {
                 var expanded_error by remember { mutableStateOf(-1) }
 
-                LazyColumn(Modifier
-                    .fillMaxWidth()
-                    .height(300.dp)) {
+                LazyColumn(Modifier.fillMaxSize(), verticalArrangement = Arrangement.spacedBy(20.dp)) {
                     items(errors.size, { errors.values.elementAt(it) }) { index ->
-                        val error = errors.values.elementAt(index)
-                        ErrorItem(error, index, index == expanded_error) {
+                        val error = errors.entries.elementAt(index)
+                        ErrorItem(error.key, error.value, index, index == expanded_error) {
                             if (expanded_error == index) {
                                 expanded_error = -1
                             }
@@ -313,7 +317,7 @@ class ErrorManager(private val context: PlatformContext) {
     }
 
     @Composable
-    private fun ErrorItem(error: Throwable, index: Int, expanded: Boolean, onClick: () -> Unit) {
+    private fun ErrorItem(key: String, error: Throwable, index: Int, expanded: Boolean, onClick: () -> Unit) {
         Column(Modifier
             .animateContentSize()
             .clickable(
@@ -324,18 +328,22 @@ class ErrorManager(private val context: PlatformContext) {
             .horizontalScroll(rememberScrollState()),
             verticalArrangement = Arrangement.spacedBy(10.dp)
         ) {
-            Row(
-                Modifier.fillMaxWidth(),
-                verticalAlignment = Alignment.CenterVertically,
-                horizontalArrangement = Arrangement.SpaceEvenly
-            ) {
-                Box(Modifier
-                    .size(20.dp)
-                    .background(Color.Red, RoundedCornerShape(16.dp))) {
-                    Text(index.toString(), Modifier.align(Alignment.Center))
+            Column {
+                Row(
+                    Modifier.fillMaxWidth(),
+                    verticalAlignment = Alignment.CenterVertically,
+                    horizontalArrangement = Arrangement.SpaceEvenly
+                ) {
+                    Box(Modifier
+                        .size(20.dp)
+                        .background(Color.Red, RoundedCornerShape(16.dp))) {
+                        Text(index.toString(), Modifier.align(Alignment.Center))
+                    }
+
+                    Text(error.message ?: getStringTODO("No message"))
                 }
 
-                Text(error.message ?: getStringTODO("No message"))
+                Text("Key: $key")
             }
 
             AnimatedVisibility(expanded, enter = expandVertically(), exit = shrinkVertically()) {

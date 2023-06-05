@@ -13,6 +13,7 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.ImageBitmap
+import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.layout.ContentScale
 import com.beust.klaxon.*
 import com.spectre7.spmp.api.*
@@ -201,13 +202,19 @@ abstract class MediaItem(val id: String): MediaItemHolder {
     open fun Thumbnail(
         quality: MediaItemThumbnailProvider.Quality,
         modifier: Modifier = Modifier,
+        failure_icon: ImageVector? = Icons.Default.CloudOff,
         contentColourProvider: (() -> Color)? = null,
         onLoaded: ((ImageBitmap) -> Unit)? = null
     ) {
         val thumb_item = getThumbnailHolder()
         LaunchedEffect(thumb_item, quality, thumb_item.canLoadThumbnail()) {
             if (!thumb_item.canLoadThumbnail()) {
-                thumb_item.getThumbnailProvider().getOrReport("MediaItemThumbnail") ?: return@LaunchedEffect
+                val provider_result = thumb_item.getThumbnailProvider()
+                if (provider_result.isFailure) {
+                    thumb_item.thumb_states[quality]!!.loaded = true
+                    provider_result.getOrReport("MediaItemThumbnail")
+                    return@LaunchedEffect
+                }
             }
             thumb_item.loadThumbnail(quality)
         }
@@ -240,8 +247,10 @@ abstract class MediaItem(val id: String): MediaItemHolder {
             }
         }
         else if (state.loaded) {
-            Box(modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
-                Icon(Icons.Default.WifiOff, null)
+            if (failure_icon != null) {
+                Box(modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
+                    Icon(failure_icon, null)
+                }
             }
         }
     }

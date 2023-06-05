@@ -81,6 +81,7 @@ fun MainPage(
 
             LaunchedEffect(state) {
                 if (current_state == state) {
+                    state_alpha.animateTo(1f, tween(300))
                     return@LaunchedEffect
                 }
 

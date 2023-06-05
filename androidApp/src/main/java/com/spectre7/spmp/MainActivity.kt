@@ -29,6 +29,13 @@ class MainActivity : ComponentActivity() {
         super.onCreate(savedInstanceState)
 
         Thread.setDefaultUncaughtExceptionHandler { _: Thread, error: Throwable ->
+            if (
+                error is java.nio.channels.UnresolvedAddressException // Thrown by Kizzy
+            ) {
+                SpMp.Log.warning("Skipping error: ${error.stackTraceToString()}")
+                return@setDefaultUncaughtExceptionHandler
+            }
+
             error.printStackTrace()
 
             startActivity(Intent(this@MainActivity, ErrorReportActivity::class.java).apply {

@@ -77,7 +77,7 @@ fun MusicTopBar(
                 is SongLyrics -> {
                     LyricsLineDisplay(
                         s,
-                        { player.player.current_position_ms + song!!.song_reg_entry.getLyricsSyncOffset() }
+                        { player.player.current_position_ms + (song?.song_reg_entry?.getLyricsSyncOffset() ?: 0) }
                     )
                 }
                 MusicTopBarMode.VISUALISER -> {

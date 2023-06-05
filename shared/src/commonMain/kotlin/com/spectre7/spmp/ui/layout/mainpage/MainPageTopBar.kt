@@ -60,9 +60,13 @@ fun MainPageTopBar(
             }) {
                 Crossfade(auth_info) { info ->
                     if (auth_info.initialised) {
-                        info.own_channel.Thumbnail(MediaItemThumbnailProvider.Quality.LOW, Modifier.clip(CircleShape).size(27.dp))
+                        info.own_channel.Thumbnail(
+                            MediaItemThumbnailProvider.Quality.LOW,
+                            Modifier.clip(CircleShape).size(27.dp),
+                            failure_icon = Icons.Default.Person
+                        )
                     } else {
-                        Icon(Icons.Filled.Person, null)
+                        Icon(Icons.Default.Person, null)
                     }
                 }
             }

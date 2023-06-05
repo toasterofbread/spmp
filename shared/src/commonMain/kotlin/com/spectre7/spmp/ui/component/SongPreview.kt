@@ -59,7 +59,7 @@ fun SongPreviewSquare(
             song.Thumbnail(
                 MediaItemThumbnailProvider.Quality.LOW,
                 Modifier.longPressMenuIcon(long_press_menu_data, params.enable_long_press_menu).aspectRatio(1f),
-                params.contentColour
+                contentColourProvider = params.contentColour
             )
 
             params.multiselect_context?.also { ctx ->
@@ -104,7 +104,7 @@ fun SongPreviewLong(
                 Modifier
                     .longPressMenuIcon(long_press_menu_data, params.enable_long_press_menu)
                     .size(40.dp),
-                params.contentColour
+                contentColourProvider = params.contentColour
             )
 
             params.multiselect_context?.also { ctx ->

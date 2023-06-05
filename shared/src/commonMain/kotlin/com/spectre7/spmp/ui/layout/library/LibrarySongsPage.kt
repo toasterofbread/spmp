@@ -1,12 +1,11 @@
 package com.spectre7.spmp.ui.layout.library
 
-import androidx.compose.animation.AnimatedVisibility
+import LocalPlayerState
 import androidx.compose.animation.Crossfade
-import androidx.compose.foundation.ExperimentalFoundationApi
 import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.lazy.LazyColumn
-import androidx.compose.foundation.lazy.items
+import androidx.compose.foundation.lazy.itemsIndexed
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextField
@@ -25,7 +24,8 @@ fun LibrarySongsPage(
     multiselect_context: MediaItemMultiSelectContext,
     bottom_padding: Dp,
     inline: Boolean,
-    openPage: (LibrarySubPage?) -> Unit
+    openPage: (LibrarySubPage?) -> Unit,
+    onSongClicked: (songs: List<Song>, song: Song, index: Int) -> Unit
 ) {
     var filter: String? by remember { mutableStateOf(null) }
     var sorted_songs: List<Song> by remember { mutableStateOf(emptyList()) }
@@ -52,14 +52,20 @@ fun LibrarySongsPage(
                 { filter = it },
                 Modifier.fillMaxWidth(),
                 singleLine = true,
-                enabled = !active
+                enabled = !active,
+                label = { Text("Filter songs") }
             )
         }
     }
 
-    LazyColumn(contentPadding = PaddingValues(bottom = bottom_padding)) {
-        items(sorted_songs, { it.id }) { song ->
-            song.PreviewLong(MediaItemPreviewParams(multiselect_context = multiselect_context))
+    val player = LocalPlayerState.current
+    CompositionLocalProvider(LocalPlayerState provides remember { player.copy(onClickedOverride = { item, index ->
+        onSongClicked(sorted_songs, item as Song, index!!)
+    }) }) {
+        LazyColumn(contentPadding = PaddingValues(bottom = bottom_padding)) {
+            itemsIndexed(sorted_songs, { _, item -> item.id }) { index, song ->
+                song.PreviewLong(MediaItemPreviewParams(multiselect_context = multiselect_context), queue_index = index)
+            }
         }
     }
 }

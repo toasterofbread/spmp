@@ -10,6 +10,7 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.ImageBitmap
+import androidx.compose.ui.graphics.vector.ImageVector
 import com.spectre7.spmp.api.*
 import com.spectre7.spmp.model.mediaitem.data.PlaylistItemData
 import com.spectre7.spmp.model.mediaitem.enums.PlaylistType
@@ -85,6 +86,7 @@ class LocalPlaylist(id: String): Playlist(id) {
     override fun Thumbnail(
         quality: MediaItemThumbnailProvider.Quality,
         modifier: Modifier,
+        failure_icon: ImageVector?,
         contentColourProvider: (() -> Color)?,
         onLoaded: ((ImageBitmap) -> Unit)?
     ) {
@@ -98,7 +100,7 @@ class LocalPlaylist(id: String): Playlist(id) {
         }
 
         image_item?.also { item ->
-            item.Thumbnail(quality, modifier, contentColourProvider, onLoaded)
+            item.Thumbnail(quality, modifier, failure_icon, contentColourProvider, onLoaded)
             return
         }
 

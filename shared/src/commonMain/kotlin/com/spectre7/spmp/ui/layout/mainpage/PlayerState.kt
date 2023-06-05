@@ -40,9 +40,10 @@ class PlayerStatus internal constructor(private val player: PlayerService) {
         private set
     var m_repeat_mode: MediaPlayerRepeatMode by mutableStateOf(player.repeat_mode)
         private set
-    var m_has_next: Boolean by mutableStateOf(false)
+    // TODO
+    var m_has_next: Boolean by mutableStateOf(true)
         private set
-    var m_has_previous: Boolean by mutableStateOf(false)
+    var m_has_previous: Boolean by mutableStateOf(true)
         private set
     var m_volume: Float by mutableStateOf(player.volume)
         private set

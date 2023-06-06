@@ -138,7 +138,7 @@ fun LongPressMenu(
                 MenuContent(
                     data,
                     accent_colour,
-                    modifier,
+                    modifier.offset { IntOffset(0, 1) },
                     { if (Settings.KEY_LPM_CLOSE_ON_ACTION.get()) close_requested = true },
                     { close_requested = true }
                 )

@@ -584,7 +584,7 @@ fun MediaItemGrid(
     multiselect_context: MediaItemMultiSelectContext? = null,
     startContent: (LazyGridScope.() -> Unit)? = null
 ) {
-    MediaItemGrid(layout.items, modifier, rows, layout.title, layout.subtitle, layout.itemSizeProvider, multiselect_context, startContent)
+    MediaItemGrid(layout.items, modifier, rows, layout.title, layout.subtitle, layout.view_more, layout.itemSizeProvider, multiselect_context, startContent)
 }
 
 @OptIn(ExperimentalFoundationApi::class)
@@ -595,9 +595,10 @@ fun MediaItemGrid(
     rows: Int? = null,
     title: LocalisedYoutubeString? = null,
     subtitle: LocalisedYoutubeString? = null,
+    view_more: ViewMore? = null,
     itemSizeProvider: @Composable () -> DpSize = { getDefaultItemSize() },
     multiselect_context: MediaItemMultiSelectContext? = null,
-    startContent: (LazyGridScope.() -> Unit)? = null,
+    startContent: (LazyGridScope.() -> Unit)? = null
 ) {
     val row_count = rows ?: if (items.size <= 3) 1 else 2
     val item_spacing = Arrangement.spacedBy(15.dp)
@@ -608,6 +609,7 @@ fun MediaItemGrid(
             items,
             title,
             subtitle,
+            view_more = view_more,
             multiselect_context = multiselect_context
         )
 
@@ -631,7 +633,7 @@ fun MediaItemGrid(
                 }
             }
 
-            if (multiselect_context != null && shouldShowTitleBar(title, subtitle)) {
+            if (multiselect_context != null && !shouldShowTitleBar(title, subtitle)) {
                 Box(Modifier.background(CircleShape, Theme.current.background_provider), contentAlignment = Alignment.Center) {
                     multiselect_context.CollectionToggleButton(items)
                 }

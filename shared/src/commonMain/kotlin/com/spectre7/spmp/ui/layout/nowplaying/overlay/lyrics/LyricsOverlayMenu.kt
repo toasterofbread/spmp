@@ -92,11 +92,17 @@ class LyricsOverlayMenu(
             }
         }
 
+        LaunchedEffect(lyrics_holder.lyrics) {
+            submenu = null
+            lyrics_sync_line = null
+            selecting_sync_line = false
+        }
+
         Box(contentAlignment = Alignment.Center) {
             // Pill menu
             AnimatedVisibility(submenu != LyricsOverlaySubmenu.SEARCH, Modifier.zIndex(10f), enter = fadeIn(), exit = fadeOut()) {
                 pill_menu.PillMenu(
-                    if (submenu != null || selecting_sync_line) 1 else 4,
+                    if (submenu != null || selecting_sync_line) 1 else if (!lyrics_holder.lyrics.synced) 3 else 4,
                     { index, _ ->
                         when (index) {
                             0 -> ActionButton(Icons.Filled.Close) {
@@ -111,8 +117,7 @@ class LyricsOverlayMenu(
                                 }
                             }
                             1 -> ActionButton(Icons.Filled.Search) { submenu = LyricsOverlaySubmenu.SEARCH }
-                            2 -> ActionButton(Icons.Default.HourglassEmpty) { selecting_sync_line = true }
-                            3 -> Box(
+                            2 -> Box(
                                 Modifier.size(48.dp),
                                 contentAlignment = Alignment.Center
                             ) {
@@ -127,6 +132,7 @@ class LyricsOverlayMenu(
                                         })
                                 )
                             }
+                            3 -> ActionButton(Icons.Default.HourglassEmpty) { selecting_sync_line = true }
                         }
                     },
                     _background_colour = Theme.current.accent_provider,
@@ -149,7 +155,11 @@ class LyricsOverlayMenu(
                 }
                 else if (current_submenu == LyricsOverlaySubmenu.SYNC) {
                     if (lyrics != null) {
-                        LyricsSyncMenu(song, lyrics, lyrics_sync_line!!, Modifier.fillMaxSize())
+                        lyrics_sync_line?.also { line ->
+                            LyricsSyncMenu(song, lyrics, line, Modifier.fillMaxSize()) {
+                                submenu = null
+                            }
+                        }
                     }
                     else {
                         submenu = null
@@ -164,15 +174,15 @@ class LyricsOverlayMenu(
                             scroll_state,
                             show_furigana,
                             Modifier.fillMaxSize(),
-                            {
-                                if (selecting_sync_line) { line ->
-                                    submenu = LyricsOverlaySubmenu.SYNC
-                                    lyrics_sync_line = line
-                                    selecting_sync_line = false
-                                }
-                                else null
+                            enable_autoscroll = !selecting_sync_line
+                        ) {
+                            if (selecting_sync_line) { index, line ->
+                                submenu = LyricsOverlaySubmenu.SYNC
+                                lyrics_sync_line = Pair(line, index)
+                                selecting_sync_line = false
                             }
-                        )
+                            else null
+                        }
 
                         AnimatedVisibility(selecting_sync_line) {
                             Text(getStringTODO("Select line to sync with"))
@@ -199,6 +209,7 @@ fun CoreLyricsDisplay(
     scroll_state: LazyListState,
     show_furigana: Boolean,
     modifier: Modifier = Modifier,
+    enable_autoscroll: Boolean = true,
     getOnLongClick: () -> ((line: AnnotatedReadingTerm) -> Unit)?
 ) {
     val player = LocalPlayerState.current
@@ -221,55 +232,18 @@ fun CoreLyricsDisplay(
     var current_range: IntRange? by remember { mutableStateOf(null) }
 
     LaunchedEffect(lyrics) {
-        if (lyrics.sync_type == SongLyrics.SyncType.NONE) {
+        if (!lyrics.synced) {
             return@LaunchedEffect
         }
 
         while (true) {
-            val time = player.status.getPositionMillis() + song.song_reg_entry.getLyricsSyncOffset()
-            var start = -1
-            var end = -1
-            var next = Long.MAX_VALUE
-            var last_before: Int? = null
+            val (range, next) = terms.getTermRangeOfTime(
+                lyrics,
+                player.status.getPositionMillis() + song.song_reg_entry.getLyricsSyncOffset()
+            )
 
-            for (item in terms.withIndex()) {
-                val term = item.value.data as SongLyrics.Term
-
-                val range =
-                    if (lyrics.sync_type == SongLyrics.SyncType.WORD_SYNC && !Settings.get<Boolean>(Settings.KEY_LYRICS_ENABLE_WORD_SYNC)) {
-                        term.line_range ?: term.range
-                    }
-                    else {
-                        term.range
-                    }
-
-                if (range.contains(time)) {
-                    if (start == -1) {
-                        start = item.index
-                    }
-                    end = item.index
-                }
-                else if (start != -1) {
-                    if (term.start!! > time) {
-                        next = term.start - time
-                    }
-                    break
-                }
-                else if (time > range.last) {
-                    last_before = item.index
-                }
-            }
-
-            if (start != -1) {
-                current_range = start..end
-            }
-            else if (last_before != null) {
-                for (i in last_before - 1 downTo 0) {
-                    if (terms[i].text.contains('\n')) {
-                        current_range = i + 1 .. last_before
-                        break
-                    }
-                }
+            if (range != null) {
+                current_range = range
             }
 
             delay(minOf(next, 100))
@@ -287,7 +261,7 @@ fun CoreLyricsDisplay(
 
         val text_element: @Composable (is_reading: Boolean, text: String, font_size: TextUnit, index: Int, modifier: Modifier, getLine: () -> AnnotatedReadingTerm) -> Unit =
             { is_reading: Boolean, text: String, font_size: TextUnit, index: Int, modifier: Modifier, getLine: () -> AnnotatedReadingTerm ->
-                val is_current by remember { derivedStateOf { lyrics.sync_type == SongLyrics.SyncType.NONE || current_range?.contains(index) == true } }
+                val is_current by remember { derivedStateOf { !lyrics.synced || current_range?.contains(index) == true } }
                 val colour by animateColorAsState(
                     if (is_current) Color.White
                     else Color.White.setAlpha(0.5f)
@@ -327,6 +301,10 @@ fun CoreLyricsDisplay(
         else {
             var first_scroll by remember { mutableStateOf(true) }
             LaunchedEffect(current_range) {
+                if (!enable_autoscroll) {
+                    return@LaunchedEffect
+                }
+
                 val range_start = current_range?.first ?: return@LaunchedEffect
 
                 var term_count = 0
@@ -380,6 +358,56 @@ fun CoreLyricsDisplay(
             }
         }
     }
+}
+
+fun List<ReadingTextData>.getTermRangeOfTime(lyrics: SongLyrics, time: Long): Pair<IntRange?, Long> {
+    require(lyrics.synced)
+    
+    var start = -1
+    var end = -1
+    var next = Long.MAX_VALUE
+    var last_before: Int? = null
+
+    for (item in withIndex()) {
+        val term = item.value.data as SongLyrics.Term
+
+        val range =
+            if (lyrics.sync_type == SongLyrics.SyncType.WORD_SYNC && !Settings.get<Boolean>(Settings.KEY_LYRICS_ENABLE_WORD_SYNC)) {
+                term.line_range ?: term.range
+            }
+            else {
+                term.range
+            }
+
+        if (range.contains(time)) {
+            if (start == -1) {
+                start = item.index
+            }
+            end = item.index
+        }
+        else if (start != -1) {
+            if (term.start!! > time) {
+                next = term.start - time
+            }
+            break
+        }
+        else if (time > range.last) {
+            last_before = item.index
+        }
+    }
+
+    if (start != -1) {
+        return Pair(start .. end, next)
+    }
+    else if (last_before != null) {
+        for (i in last_before - 1 downTo 0) {
+            if (get(i).text.contains('\n')) {
+                return Pair(i + 1 .. last_before, next)
+            }
+        }
+    }
+
+    return Pair(null, next)
 }
 
 fun SongLyrics.getReadingTerms(): MutableList<ReadingTextData> =

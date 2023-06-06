@@ -18,15 +18,56 @@ fun LyricsSyncMenu(
     song: Song,
     lyrics: SongLyrics,
     line: AnnotatedReadingTerm,
-    modifier: Modifier = Modifier
+    modifier: Modifier = Modifier,
+    close: () -> Unit
 ) {
-    val player = LocalPlayerState.current
+    require(lyrics.synced)
 
-    Box(modifier, contentAlignment = Alignment.Center) {
+    val player = LocalPlayerState.current.player
+
+    LaunchedEffect(line) {
+        player.pause()
+        player.seekBy(-500)
+    }
+
+    Column(
+        modifier,
+        horizontalAlignment = Alignment.CenterHorizontally,
+        verticalArrangement = Arrangement.spacedBy(20.dp)
+    ) {
+        Text(getStringTODO("Press the center button when this line begins"))
+        
         Text(
             line.annotated_string,
             inlineContent = line.inline_content,
             style = getLyricsTextStyle(20.sp)
         )
+
+        PlayerControls(player) {
+            val current_time: Long = player.current_position_ms
+            val line_range: LongRange = (line.text_data.data as SongLyrics.Term).line_range!!
+
+            song.song_reg_entry.lyrics_sync_offset = long_range.start - current_time
+            song.saveRegistry()
+
+            close()
+        }
+    }
+}
+
+@Composable
+private fun PlayerControls(player: PlayerService, onSelected: () -> Unit) {
+    Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.SpaceEvenly) {
+        IconButton({ player.seekBy(-500) }) {
+            Icon(Icons.Default.Rewind5, null)
+        }
+
+        IconButton(onSelected) {
+            Icon(Icons.Default.CheckCircle, null)
+        }
+
+        IconButton({ player.seekBy(500) }) {
+            Icon(Icons.Default.Forward5)
+        }
     }
 }

@@ -33,7 +33,7 @@ private fun getCurrentLine(lyrics: SongLyrics, time: Long, linger: Boolean): Int
 
 @Composable
 fun LyricsLineDisplay(lyrics: SongLyrics, getTime: () -> Long, modifier: Modifier = Modifier) {
-    require(lyrics.sync_type != SongLyrics.SyncType.NONE)
+    require(lyrics.synced)
 
     val lyrics_linger: Boolean by Settings.KEY_TOPBAR_LYRICS_LINGER.rememberMutableState()
 

@@ -208,7 +208,7 @@ class PlayerService : MediaPlayerService() {
                     }
                     else {
                         context.mainThread {
-                            addMultipleToQueue(result.getOrThrowHere(), added_index, save = save)
+                            addMultipleToQueue(result.getOrThrowHere(), added_index + 1, save = save)
                         }
                     }
                 }
@@ -253,6 +253,10 @@ class PlayerService : MediaPlayerService() {
             savePersistentQueue()
         }
         return song
+    }
+
+    fun seekBy(delta_ms: Long) {
+        seekTo(current_position_ms + delta_ms)
     }
 
     override fun seekToNext() {

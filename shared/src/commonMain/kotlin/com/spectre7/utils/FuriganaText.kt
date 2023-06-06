@@ -19,7 +19,7 @@ import androidx.compose.ui.text.PlaceholderVerticalAlign
 import androidx.compose.ui.unit.*
 import com.spectre7.spmp.model.SongLyrics
 
-data class ReadingTextData (
+data class ReadingTextData(
     val text: String,
     val reading: String? = null,
     val data: Any? = null
@@ -27,7 +27,8 @@ data class ReadingTextData (
 
 data class AnnotatedReadingTerm(
     val annotated_string: AnnotatedString,
-    val inline_content: Map<String, InlineTextContent>
+    val inline_content: Map<String, InlineTextContent>,
+    val text_data: ReadingTextData
 )
 
 fun calculateReadingsAnnotatedString(
@@ -61,7 +62,7 @@ fun calculateReadingsAnnotatedString(
                     string.appendInlineContent("\n", "\n")
                 }
 
-                ret.add(AnnotatedReadingTerm(string.toAnnotatedString(), inline_content))
+                ret.add(AnnotatedReadingTerm(string.toAnnotatedString(), inline_content, element.value))
                 string = AnnotatedString.Builder()
             }
         }

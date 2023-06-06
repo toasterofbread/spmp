@@ -11,6 +11,8 @@ data class SongLyrics(
     val sync_type: SyncType,
     val lines: List<List<Term>>
 ) {
+    val synced: Boolean get() = sync_type != SyncType.NONE
+
     enum class Source {
         PETITLYRICS;
 

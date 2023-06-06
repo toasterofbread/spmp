@@ -18,7 +18,7 @@ import com.spectre7.utils.composable.rememberSongUpdateLyrics
 private fun getModeState(mode: MusicTopBarMode, song: Song?): Any? {
     return when (mode) {
         MusicTopBarMode.LYRICS -> song?.lyrics?.lyrics?.let {  lyrics ->
-            if (lyrics.sync_type != SongLyrics.SyncType.NONE) lyrics else null
+            if (lyrics.synced) lyrics else null
         }
         MusicTopBarMode.VISUALISER -> mode
         MusicTopBarMode.NONE -> mode

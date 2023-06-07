@@ -219,19 +219,20 @@ fun CoreLyricsDisplay(
     val line_spacing = with (LocalDensity.current) { 25.dp.toPx() }
 
     val add_padding: Boolean = Settings.get(Settings.KEY_LYRICS_EXTRA_PADDING)
-    val padding_height = with (LocalDensity.current) {
-        if (add_padding) {
-            (size_px - line_height - line_spacing).toDp()
-        }
-        else {
-            line_height.toDp()
-        }
-    }
+    val static_scroll_offset = with(LocalDensity.current) { 2.dp.toPx().toInt() }
+    val padding_height =
+        if (add_padding) (size_px + line_height + line_spacing).toInt() + static_scroll_offset
+        else line_height.toInt() + static_scroll_offset
 
     val terms = remember(lyrics) { lyrics.getReadingTerms() }
     var current_range: IntRange? by remember { mutableStateOf(null) }
 
+    fun getScrollOffset(follow_offset: Float = Settings.KEY_LYRICS_FOLLOW_OFFSET.get()): Int =
+        (padding_height - static_scroll_offset - size_px * follow_offset).toInt()
+
     LaunchedEffect(lyrics) {
+        scroll_state.scrollToItem(0, getScrollOffset(0f))
+
         if (!lyrics.synced) {
             return@LaunchedEffect
         }
@@ -312,19 +313,17 @@ fun CoreLyricsDisplay(
                     term_count += line.value.annotated_string.annotations?.size ?: 0
 
                     if (term_count > range_start) {
-                        val offset: Float = line_height - (size_px * Settings.KEY_LYRICS_FOLLOW_OFFSET.get<Float>())
-
                         if (first_scroll) {
                             first_scroll = false
                             scroll_state.scrollToItem(
                                 line.index,
-                                offset.toInt()
+                                getScrollOffset()
                             )
                         }
                         else {
                             scroll_state.animateScrollToItem(
                                 line.index,
-                                offset.toInt()
+                                getScrollOffset()
                             )
                         }
                         break
@@ -343,10 +342,12 @@ fun CoreLyricsDisplay(
                     else -> if (LocalLayoutDirection.current == LayoutDirection.Ltr) Alignment.End else Alignment.Start
                 },
                 verticalArrangement = Arrangement.spacedBy(5.dp),
-                contentPadding = PaddingValues(
-                    top = padding_height,
-                    bottom = padding_height - if (add_padding) with (LocalDensity.current) { (line_spacing * 2).toDp() } else 0.dp
-                )
+                contentPadding = with(LocalDensity.current) { padding_height.toDp() }.let { padding ->
+                    PaddingValues(
+                        top = padding,
+                        bottom = padding + if (add_padding) 5.dp else 0.dp
+                    )
+                }
             ) {
                 itemsIndexed(text_data) { line, item ->
                     Text(

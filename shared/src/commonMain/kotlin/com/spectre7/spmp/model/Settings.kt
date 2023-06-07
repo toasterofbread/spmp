@@ -223,7 +223,7 @@ enum class Settings {
                 KEY_LYRICS_FOLLOW_OFFSET -> 0.25f
                 KEY_LYRICS_DEFAULT_FURIGANA -> true
                 KEY_LYRICS_TEXT_ALIGNMENT -> 0 // Left, center, right
-                KEY_LYRICS_EXTRA_PADDING -> false
+                KEY_LYRICS_EXTRA_PADDING -> true
                 KEY_LYRICS_ENABLE_WORD_SYNC -> false
 
                 KEY_STREAM_AUDIO_QUALITY -> SongAudioQuality.MEDIUM.ordinal

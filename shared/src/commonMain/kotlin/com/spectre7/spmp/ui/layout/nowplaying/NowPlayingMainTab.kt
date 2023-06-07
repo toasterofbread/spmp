@@ -32,6 +32,7 @@ import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.*
 import com.github.krottv.compose.sliders.DefaultThumb
+import com.github.krottv.compose.sliders.DefaultTrack
 import com.github.krottv.compose.sliders.SliderValueHorizontal
 import com.spectre7.spmp.model.mediaitem.Song
 import com.spectre7.spmp.platform.vibrateShort
@@ -309,17 +310,17 @@ private fun Controls(
 
 @Composable
 private fun VolumeSlider(colour: Color, modifier: Modifier = Modifier) {
-    TODO()
-//    SliderValueHorizontal(
-//        value = player.status.m_volume,
-//        onValueChange = {
-//            player.status.volume = it
-//        },
-//        thumbSizeInDp = DpSize(12.dp, 12.dp),
-//        track = { a, b, c, d, e -> DefaultTrack(a, b, c, d, e, colour.setAlpha(0.5f), colour) },
-//        thumb = { a, b, c, d, e -> DefaultThumb(a, b, c, d, e, colour, 1f) },
-//        modifier = modifier
-//    )
+    val player = LocalPlayerState.current
+    SliderValueHorizontal(
+        value = player.status.m_volume,
+        onValueChange = {
+            player.player.volume = it
+        },
+        thumbSizeInDp = DpSize(12.dp, 12.dp),
+        track = { a, b, c, d, e -> DefaultTrack(a, b, c, d, e, colour.setAlpha(0.5f), colour) },
+        thumb = { a, b, c, d, e -> DefaultThumb(a, b, c, d, e, colour, 1f) },
+        modifier = modifier
+    )
 }
 
 @Composable

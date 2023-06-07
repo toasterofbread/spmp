@@ -231,7 +231,7 @@ class PlayerStateImpl: PlayerState(null, null, null) {
     }
 
     override fun setOverlayPage(page: PlayerOverlayPage?, from_current: Boolean) {
-        val current = if (from_current) (overlay_page!!.second as MediaItem) else null
+        val current = if (from_current) overlay_page?.second else null
 
         val new_page = page?.let { Pair(page, current) }
         if (new_page != overlay_page) {

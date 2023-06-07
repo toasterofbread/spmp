@@ -102,7 +102,7 @@ class LyricsOverlayMenu(
             // Pill menu
             AnimatedVisibility(submenu != LyricsOverlaySubmenu.SEARCH, Modifier.zIndex(10f), enter = fadeIn(), exit = fadeOut()) {
                 pill_menu.PillMenu(
-                    if (submenu != null || selecting_sync_line) 1 else if (!lyrics_holder.lyrics.synced) 3 else 4,
+                    if (submenu != null || selecting_sync_line) 1 else if (lyrics_holder.lyrics?.synced == true) 4 else 3,
                     { index, _ ->
                         when (index) {
                             0 -> ActionButton(Icons.Filled.Close) {
@@ -176,9 +176,9 @@ class LyricsOverlayMenu(
                             Modifier.fillMaxSize(),
                             enable_autoscroll = !selecting_sync_line
                         ) {
-                            if (selecting_sync_line) { index, line ->
+                            if (selecting_sync_line) { line ->
                                 submenu = LyricsOverlaySubmenu.SYNC
-                                lyrics_sync_line = Pair(line, index)
+                                lyrics_sync_line = line
                                 selecting_sync_line = false
                             }
                             else null

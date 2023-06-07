@@ -1,17 +1,32 @@
 package com.spectre7.spmp.ui.layout.nowplaying.overlay.lyrics
 
 import LocalPlayerState
-import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.text.InlineTextContent
+import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.CheckCircle
+import androidx.compose.material.icons.filled.Forward5
+import androidx.compose.material.icons.filled.Replay5
+import androidx.compose.material3.Icon
+import androidx.compose.material3.IconButton
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.text.AnnotatedString
+import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import com.spectre7.spmp.PlayerService
 import com.spectre7.spmp.model.SongLyrics
 import com.spectre7.spmp.model.mediaitem.Song
+import com.spectre7.spmp.resources.getStringTODO
 import com.spectre7.utils.AnnotatedReadingTerm
+
+private const val SONG_SEEK_MS = 5000L
+
+fun AnnotatedReadingTerm.getLineRange(): LongRange =
+    (text_data.data as SongLyrics.Term).line_range!!
 
 @Composable
 fun LyricsSyncMenu(
@@ -26,8 +41,7 @@ fun LyricsSyncMenu(
     val player = LocalPlayerState.current.player
 
     LaunchedEffect(line) {
-        player.pause()
-        player.seekBy(-500)
+        player.seekTo(line.getLineRange().first - SONG_SEEK_MS)
     }
 
     Column(
@@ -45,11 +59,9 @@ fun LyricsSyncMenu(
 
         PlayerControls(player) {
             val current_time: Long = player.current_position_ms
-            val line_range: LongRange = (line.text_data.data as SongLyrics.Term).line_range!!
+            song.song_reg_entry.lyrics_sync_offset = (line.getLineRange().first - current_time).toInt()
 
-            song.song_reg_entry.lyrics_sync_offset = long_range.start - current_time
             song.saveRegistry()
-
             close()
         }
     }
@@ -58,16 +70,16 @@ fun LyricsSyncMenu(
 @Composable
 private fun PlayerControls(player: PlayerService, onSelected: () -> Unit) {
     Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.SpaceEvenly) {
-        IconButton({ player.seekBy(-500) }) {
-            Icon(Icons.Default.Rewind5, null)
+        IconButton({ player.seekBy(-SONG_SEEK_MS) }) {
+            Icon(Icons.Default.Replay5, null)
         }
 
         IconButton(onSelected) {
             Icon(Icons.Default.CheckCircle, null)
         }
 
-        IconButton({ player.seekBy(500) }) {
-            Icon(Icons.Default.Forward5)
+        IconButton({ player.seekBy(SONG_SEEK_MS) }) {
+            Icon(Icons.Default.Forward5, null)
         }
     }
 }

@@ -76,6 +76,9 @@ abstract class MediaItem(val id: String): MediaItemHolder {
     suspend fun getArtist(): Result<Artist> =
         getGeneralValue { artist }
 
+    suspend fun getArtistOrNull(): Result<Artist?> =
+        getGeneralValueOrNull { artist }
+
     // TODO remove
     suspend fun getThumbnailProvider(): Result<MediaItemThumbnailProvider> =
         getGeneralValue { thumbnail_provider }
@@ -326,15 +329,23 @@ abstract class MediaItem(val id: String): MediaItemHolder {
         return@withContext load_result!!
     }
 
-    protected suspend inline fun <reified T> getGeneralValue(getValue: () -> T?): Result<T> {
+    protected suspend inline fun <reified T> getGeneralValueOrNull(getValue: () -> T?): Result<T?> {
         getValue()?.also { return Result.success(it) }
         val result = loadGeneralData()
         if (result.isFailure) {
             return result.cast()
         }
-        return getValue()?.let {
-            Result.success(it)
-        } ?: Result.failure(RuntimeException("Value with type '${T::class.simpleName}' not loaded"))
+        return Result.success(getValue())
+    }
+
+    protected suspend inline fun <reified T> getGeneralValue(getValue: () -> T?): Result<T> {
+        return getGeneralValueOrNull(getValue).fold(
+            { value ->
+                if (value != null) Result.success(value)
+                else Result.failure(RuntimeException("Value with type '${T::class.simpleName}' not loaded in item $this"))
+            },
+            { Result.failure(it) }
+        )
     }
 
     protected open fun getDefaultRegistryEntry(): MediaItemDataRegistry.Entry = MediaItemDataRegistry.Entry().apply { item = this@MediaItem }

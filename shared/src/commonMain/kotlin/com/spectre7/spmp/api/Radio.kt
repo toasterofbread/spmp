@@ -222,7 +222,7 @@ data class YoutubeiNextResponse(
                 }
 
                 val playlist = AccountPlaylist.fromId(run.navigationEndpoint.browseEndpoint.browseId)
-                return playlist.getArtist().fold(
+                return playlist.getArtistOrNull().fold(
                     { artist ->
                         Result.success(Pair(artist, false))
                     },

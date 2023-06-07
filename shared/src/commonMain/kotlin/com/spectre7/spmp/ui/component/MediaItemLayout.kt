@@ -595,7 +595,7 @@ fun MediaItemGrid(
     rows: Int? = null,
     title: LocalisedYoutubeString? = null,
     subtitle: LocalisedYoutubeString? = null,
-    view_more: ViewMore? = null,
+    view_more: MediaItemLayout.ViewMore? = null,
     itemSizeProvider: @Composable () -> DpSize = { getDefaultItemSize() },
     multiselect_context: MediaItemMultiSelectContext? = null,
     startContent: (LazyGridScope.() -> Unit)? = null

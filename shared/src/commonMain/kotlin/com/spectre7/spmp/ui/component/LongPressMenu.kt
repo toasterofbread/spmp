@@ -29,6 +29,7 @@ import androidx.compose.ui.layout.onSizeChanged
 import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.Dp
+import androidx.compose.ui.unit.IntOffset
 import androidx.compose.ui.unit.dp
 import com.spectre7.spmp.model.*
 import com.spectre7.spmp.model.mediaitem.*
@@ -138,7 +139,7 @@ fun LongPressMenu(
                 MenuContent(
                     data,
                     accent_colour,
-                    modifier.offset { IntOffset(0, 1) },
+                    modifier,
                     { if (Settings.KEY_LPM_CLOSE_ON_ACTION.get()) close_requested = true },
                     { close_requested = true }
                 )
@@ -162,7 +163,7 @@ private fun MenuContent(
 
     Box(
         Modifier
-            .requiredHeight(SpMp.context.getScreenHeight())
+            .requiredHeight(SpMp.context.getScreenHeight() + 1.dp)
             .offset(y = -SpMp.context.getStatusBarHeight())
             .background(Color.Black.setAlpha(0.5f))
     ) {

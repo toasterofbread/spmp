@@ -7,7 +7,7 @@ import com.beust.klaxon.Json
 import com.spectre7.spmp.model.SongLyrics
 import com.spectre7.utils.ValueListeners
 
-const val SONG_DEFAULT_LYRICS_SYNC_OFFSET = 500
+const val SONG_STATIC_LYRICS_SYNC_OFFSET = 500
 
 class SongDataRegistryEntry: MediaItemDataRegistry.Entry() {
     var theme_colour: Int? by mutableStateOf(null)
@@ -33,8 +33,7 @@ class SongDataRegistryEntry: MediaItemDataRegistry.Entry() {
         if (lyrics_id != null) Pair(lyrics_id!!, lyrics_source!!)
         else null
 
-    fun getLyricsSyncOffset(): Int =
-        lyrics_sync_offset ?: SONG_DEFAULT_LYRICS_SYNC_OFFSET
+    fun getLyricsSyncOffset(): Int = (lyrics_sync_offset ?: 0) + SONG_STATIC_LYRICS_SYNC_OFFSET
 
     override fun clear() {
         super.clear()

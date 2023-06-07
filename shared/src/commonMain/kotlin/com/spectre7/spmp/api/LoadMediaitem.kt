@@ -305,8 +305,7 @@ suspend fun loadMediaItemData(item: MediaItem): Result<Unit> {
             stream.close()
 
             if (video_data.videoDetails == null) {
-                TODO(video_data.toString())
-//                return@run Result.success(null)
+                return@run Result.failure(NotImplementedError("videoDetails is null ($item_id)"))
             }
 
             supplyTitle(video_data.videoDetails.title, true)

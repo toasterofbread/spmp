@@ -285,10 +285,10 @@ class PlayerStateImpl: PlayerState(null, null, null) {
         }
 
         if (item is Song) {
-            player!!.playSong(item)
+            player.playSong(item)
         }
         else {
-            player!!.startRadioAtIndex(0, item)
+            player.startRadioAtIndex(0, item)
         }
 
         if (np_swipe_state.value.targetValue == 0 && Settings.get(Settings.KEY_OPEN_NP_ON_SONG_PLAYED)) {

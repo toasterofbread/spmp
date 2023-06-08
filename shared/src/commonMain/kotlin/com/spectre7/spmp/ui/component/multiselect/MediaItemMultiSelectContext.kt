@@ -20,6 +20,7 @@ import com.spectre7.spmp.model.*
 import com.spectre7.spmp.model.mediaitem.*
 import com.spectre7.spmp.platform.composable.PlatformAlertDialog
 import com.spectre7.spmp.resources.getString
+import com.spectre7.spmp.ui.layout.PlaylistSelectMenu
 import com.spectre7.utils.getContrasted
 import com.spectre7.utils.lazyAssert
 import com.spectre7.utils.setAlpha
@@ -155,8 +156,6 @@ class MediaItemMultiSelectContext(
 
     @Composable
     private fun AddToPlaylistDialog(items: List<MediaItem>, coroutine_scope: CoroutineScope, onFinished: () -> Unit) {
-        val player = LocalPlayerState.current
-
         val selected_playlists = remember { mutableStateListOf<Playlist>() }
         val button_colours = IconButtonDefaults.iconButtonColors(
             containerColor = Theme.current.accent,
@@ -177,10 +176,6 @@ class MediaItemMultiSelectContext(
 
                     SpMp.context.sendToast(getString("toast_playlist_added"))
                 }
-
-                if (selected_playlists.size == 1) {
-                    player.openMediaItem(selected_playlists.first())
-                }
             }
 
             onActionPerformed()
@@ -193,7 +188,7 @@ class MediaItemMultiSelectContext(
                     ShapedIconButton(
                         { coroutine_scope.launch {
                             val playlist = LocalPlaylist.createLocalPlaylist(SpMp.context)
-                            selected.add(playlist)
+                            selected_playlists.add(playlist)
                         } },
                         colors = button_colours
                     ) {
@@ -202,16 +197,20 @@ class MediaItemMultiSelectContext(
 
                     ShapedIconButton(
                         { onPlaylistsSelected() },
-                        colors = button_colours
+                        colors = button_colours,
+                        enabled = selected_playlists.isNotEmpty()
                     ) {
-                        Icon(Icons.Default.Add, null)
+                        Icon(Icons.Default.Done, null)
                     }
                 }
             },
             dismissButton = {
                 Button(
                     onFinished,
-                    colors = button_colours
+                    colors = ButtonDefaults.buttonColors(
+                        containerColor = Theme.current.accent,
+                        contentColor = Theme.current.on_accent
+                    )
                 ) {
                     Text(getString("action_cancel"))
                 }
@@ -220,7 +219,9 @@ class MediaItemMultiSelectContext(
                 Text(getString("song_add_to_playlist"), style = MaterialTheme.typography.headlineSmall)
             },
             text = {
-                PlaylistSelectMenu(selected_playlists)
+                CompositionLocalProvider(LocalContentColor provides Theme.current.accent) {
+                    PlaylistSelectMenu(selected_playlists, Modifier.height(300.dp))
+                }
             }
         )
     }

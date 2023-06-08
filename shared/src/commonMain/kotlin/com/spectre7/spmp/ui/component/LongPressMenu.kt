@@ -14,10 +14,7 @@ import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.*
 import androidx.compose.material.icons.outlined.PushPin
-import androidx.compose.material3.Divider
-import androidx.compose.material3.Icon
-import androidx.compose.material3.IconButton
-import androidx.compose.material3.Text
+import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
@@ -39,6 +36,7 @@ import com.spectre7.spmp.ui.component.multiselect.MediaItemMultiSelectContext
 import com.spectre7.spmp.ui.layout.nowplaying.overlay.DEFAULT_THUMBNAIL_ROUNDING
 import com.spectre7.spmp.ui.theme.Theme
 import com.spectre7.utils.composable.Marquee
+import com.spectre7.utils.composable.NoRipple
 import com.spectre7.utils.contrastAgainst
 import com.spectre7.utils.setAlpha
 import com.spectre7.utils.thenIf
@@ -189,7 +187,6 @@ private fun MenuContent(
                 modifier
                     .background(Theme.current.background, shape)
                     .fillMaxWidth()
-                    .padding(padding)
                     .onSizeChanged {
                         if (show_info || !main_actions_showing) {
                             return@onSizeChanged
@@ -201,145 +198,160 @@ private fun MenuContent(
                         }
                     }
                     .thenIf(show_info || info_showing, Modifier.height(height)),
-                verticalArrangement = Arrangement.spacedBy(MENU_ITEM_SPACING.dp)
             ) {
-                Row(
-                    Modifier
-                        .height(80.dp)
-                        .fillMaxWidth()
-                ) {
-
-                    Thumb(Modifier.aspectRatio(1f))
-
-                    // Item info
-                    Column(
-                        Modifier
-                            .fillMaxSize()
-                            .weight(1f)
-                            .padding(horizontal = 15.dp),
-                        verticalArrangement = Arrangement.SpaceEvenly
-                    ) {
-                        // Title
-                        Marquee {
-                            Text(
-                                data.item.title ?: "",
-                                Modifier.fillMaxWidth(),
-                                color = Theme.current.on_background,
-                                softWrap = false,
-                                overflow = TextOverflow.Ellipsis
-                            )
+                Box(Modifier.height(padding).fillMaxWidth()) {
+                    NoRipple {
+                        val pin_button_size = 24.dp
+                        val pin_button_padding = 15.dp
+                        Crossfade(
+                            data.item.pinned_to_home,
+                            Modifier.align(Alignment.CenterEnd).offset(x = -pin_button_padding, y = pin_button_padding)
+                        ) { pinned ->
+                            IconButton(
+                                {
+                                    data.item.setPinnedToHome(!pinned)
+                                },
+                                Modifier.size(pin_button_size)
+                            ) {
+                                Icon(
+                                    if (pinned) Icons.Filled.PushPin
+                                    else Icons.Outlined.PushPin,
+                                    null
+                                )
+                            }
                         }
+                    }
+                }
 
-                        // Artist
-                        if (data.item !is Artist) {
-                            val artist = data.item.artist
-                            if (artist != null) {
+                Column(
+                    Modifier.padding(start = padding, end = padding, bottom = padding).fillMaxWidth(),
+                    verticalArrangement = Arrangement.spacedBy(MENU_ITEM_SPACING.dp)
+                ) {
+                    CompositionLocalProvider(LocalContentColor provides Theme.current.on_background) {
+                        Row(
+                            Modifier
+                                .height(80.dp)
+                                .fillMaxWidth()
+                        ) {
+
+                            Thumb(Modifier.aspectRatio(1f))
+
+                            // Item info
+                            Column(
+                                Modifier
+                                    .fillMaxSize()
+                                    .weight(1f)
+                                    .padding(horizontal = 15.dp),
+                                verticalArrangement = Arrangement.SpaceEvenly
+                            ) {
+                                // Title
                                 Marquee {
-                                    val player = LocalPlayerState.current
-                                    CompositionLocalProvider(
-                                        LocalPlayerState provides remember {
-                                            player.copy(
-                                                onClickedOverride = { item, _ ->
-                                                    onAction()
-                                                    player.onMediaItemClicked(item)
+                                    Text(
+                                        data.item.title ?: "",
+                                        Modifier.fillMaxWidth(),
+                                        softWrap = false,
+                                        overflow = TextOverflow.Ellipsis
+                                    )
+                                }
+
+                                // Artist
+                                if (data.item !is Artist) {
+                                    val artist = data.item.artist
+                                    if (artist != null) {
+                                        Marquee {
+                                            val player = LocalPlayerState.current
+                                            CompositionLocalProvider(
+                                                LocalPlayerState provides remember {
+                                                    player.copy(
+                                                        onClickedOverride = { item, _ ->
+                                                            onAction()
+                                                            player.onMediaItemClicked(item)
+                                                        }
+                                                    )
                                                 }
-                                            )
+                                            ) {
+                                                artist.PreviewLong(MediaItemPreviewParams(Modifier.fillMaxWidth()))
+                                            }
                                         }
-                                    ) {
-                                        artist.PreviewLong(MediaItemPreviewParams(Modifier.fillMaxWidth()))
                                     }
                                 }
                             }
                         }
-                    }
-                }
 
-                // Info header
-                Row(Modifier.requiredHeight(1.dp)) {
-                    var info_title_width: Int by remember { mutableStateOf(0) }
-                    var box_width: Int by remember { mutableStateOf(-1) }
+                        // Info header
+                        Row(Modifier.requiredHeight(1.dp)) {
+                            var info_title_width: Int by remember { mutableStateOf(0) }
+                            var box_width: Int by remember { mutableStateOf(-1) }
 
-                    Box(
-                        Modifier
-                            .fillMaxWidth()
-                            .weight(1f)
-                            .onSizeChanged { box_width = it.width }
-                    ) {
-                        if (data.info_title != null) {
-                            Text(
-                                data.info_title,
-                                Modifier.offset(y = (-10).dp).onSizeChanged { info_title_width = it.width },
-                                color = Theme.current.on_background,
-                                overflow = TextOverflow.Visible
-                            )
-                        }
-                        else {
-                            Crossfade(data.item.pinned_to_home) { pinned ->
-                                IconButton({
-                                    data.item.setPinnedToHome(!pinned)
-                                }) {
-                                    Icon(
-                                        if (pinned) Icons.Filled.PushPin
-                                        else Icons.Outlined.PushPin,
-                                        null
+                            Box(
+                                Modifier
+                                    .fillMaxWidth()
+                                    .weight(1f)
+                                    .onSizeChanged { box_width = it.width }
+                            ) {
+                                if (data.info_title != null) {
+                                    Text(
+                                        data.info_title,
+                                        Modifier.offset(y = (-10).dp).onSizeChanged { info_title_width = it.width },
+                                        overflow = TextOverflow.Visible
+                                    )
+                                }
+
+                                Box(
+                                    Modifier
+                                        .run {
+                                            if (box_width < 0) fillMaxWidth()
+                                            else width(animateDpAsState(
+                                                with(LocalDensity.current) {
+                                                    if (show_info) (box_width - info_title_width).toDp() - 15.dp else box_width.toDp()
+                                                }
+                                            ).value)
+                                        }
+                                        .requiredHeight(20.dp)
+                                        .background(Theme.current.background)
+                                        .align(Alignment.CenterEnd),
+                                    contentAlignment = Alignment.Center
+                                ) {
+                                    Divider(
+                                        thickness = Dp.Hairline,
+                                        color = Theme.current.on_background
                                     )
                                 }
                             }
+
+                            if (data.infoContent != null) {
+                                IconButton({ show_info = !show_info }, Modifier.requiredHeight(40.dp)) {
+                                    Crossfade(show_info) { info ->
+                                        Icon(if (info) Icons.Filled.Close else Icons.Filled.Info, null)
+                                    }
+                                }
+                            }
+
+                            data.sideButton?.invoke(Modifier.requiredHeight(40.dp), Theme.current.background, accent_colour.value ?: Theme.current.accent)
                         }
 
-                        Box(
-                            Modifier
-                                .run {
-                                    if (box_width < 0) fillMaxWidth()
-                                    else width(animateDpAsState(
-                                        with(LocalDensity.current) {
-                                            if (show_info) (box_width - info_title_width).toDp() - 15.dp else box_width.toDp() - 30.dp
+                        // Info/action list
+                        Crossfade(show_info) { info ->
+                            Column(verticalArrangement = Arrangement.spacedBy(MENU_ITEM_SPACING.dp)) {
+                                if (info) {
+                                    DisposableEffect(Unit) {
+                                        info_showing = true
+                                        onDispose {
+                                            info_showing = false
                                         }
-                                    ).value)
+                                    }
+                                    data.infoContent?.invoke(this, accent_colour.value ?: Theme.current.accent)
                                 }
-                                .requiredHeight(20.dp)
-                                .background(Theme.current.background)
-                                .align(Alignment.CenterEnd),
-                            contentAlignment = Alignment.Center
-                        ) {
-                            Divider(
-                                thickness = Dp.Hairline,
-                                color = Theme.current.on_background
-                            )
-                        }
-                    }
-
-                    if (data.infoContent != null) {
-                        IconButton({ show_info = !show_info }, Modifier.requiredHeight(40.dp)) {
-                            Crossfade(show_info) { info ->
-                                Icon(if (info) Icons.Filled.Close else Icons.Filled.Info, null)
-                            }
-                        }
-                    }
-
-                    data.sideButton?.invoke(Modifier.requiredHeight(40.dp), Theme.current.background, accent_colour.value ?: Theme.current.accent)
-                }
-
-                // Info/action list
-                Crossfade(show_info) { info ->
-                    Column(verticalArrangement = Arrangement.spacedBy(MENU_ITEM_SPACING.dp)) {
-                        if (info) {
-                            DisposableEffect(Unit) {
-                                info_showing = true
-                                onDispose {
-                                    info_showing = false
+                                else {
+                                    DisposableEffect(Unit) {
+                                        main_actions_showing = true
+                                        onDispose {
+                                            main_actions_showing = false
+                                        }
+                                    }
+                                    MenuActions(data, accent_colour.value ?: Theme.current.accent, onAction = onAction)
                                 }
                             }
-                            data.infoContent?.invoke(this, accent_colour.value ?: Theme.current.accent)
-                        }
-                        else {
-                            DisposableEffect(Unit) {
-                                main_actions_showing = true
-                                onDispose {
-                                    main_actions_showing = false
-                                }
-                            }
-                            MenuActions(data, accent_colour.value ?: Theme.current.accent, onAction = onAction)
                         }
                     }
                 }

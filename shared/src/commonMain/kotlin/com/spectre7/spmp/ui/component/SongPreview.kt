@@ -3,12 +3,15 @@ package com.spectre7.spmp.ui.component
 import LocalPlayerState
 import SpMp
 import androidx.compose.animation.Crossfade
+import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.*
 import androidx.compose.material3.Icon
+import androidx.compose.material3.IconButtonDefaults
+import androidx.compose.material3.LocalContentColor
 import androidx.compose.material3.Text
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
@@ -29,10 +32,13 @@ import com.spectre7.spmp.platform.PlayerDownloadManager.DownloadStatus
 import com.spectre7.spmp.resources.getString
 import com.spectre7.spmp.ui.component.multiselect.MediaItemMultiSelectContext
 import com.spectre7.spmp.ui.layout.PlaylistSelectMenu
+import com.spectre7.spmp.ui.theme.Theme
+import com.spectre7.utils.composable.ShapedIconButton
 import com.spectre7.utils.composable.WidthShrinkText
 import com.spectre7.utils.getContrasted
 import com.spectre7.utils.isDebugBuild
 import com.spectre7.utils.launchSingle
+import kotlinx.coroutines.launch
 
 val SONG_THUMB_CORNER_ROUNDING = 10.dp
 
@@ -205,7 +211,7 @@ private fun LongPressMenuActionProvider.SongLongPressPopupActions(song: MediaIte
                     )
             ) {
                 val selected_playlists = remember { mutableStateListOf<Playlist>() }
-                PlaylistSelectMenu(selected_playlists)
+                PlaylistSelectMenu(selected_playlists, Modifier.fillMaxHeight().weight(1f))
                 
                 val button_colours = IconButtonDefaults.iconButtonColors(
                     containerColor = Theme.current.accent,
@@ -242,10 +248,6 @@ private fun LongPressMenuActionProvider.SongLongPressPopupActions(song: MediaIte
                                 }
 
                                 onAction()
-
-                                if (selected_playlists.size == 1) {
-                                    player.openMediaItem(selected_playlists.first())
-                                }
                             }
 
                             adding_to_playlist = false
@@ -269,8 +271,8 @@ private fun LongPressMenuActionProvider.LPMActions(song: Song, queue_index: Int?
         onClick = {
             player.player.playSong(song)
         },
-        onLongClick = if (queue_index == null) null else {{
-            player.player.startRadioAtIndex(queue_index + 1, song, skip_first = true)
+        onLongClick = queue_index?.let { index -> {
+            player.player.startRadioAtIndex(index + 1, song, index, skip_first = true)
         }}
     )
 

@@ -2,14 +2,14 @@
 <img align="left" width="140" src="androidApp/src/main/ic_launcher-playstore.png">
 
 # SpMp
-A YouTube Music client with a focus on language and metadata customisation, built primarily for Android using Jetpack Compose and Kotlin.
+A YouTube Music client with a focus on language and metadata customisation, built for Android using Jetpack Compose and Kotlin.
 
 <br>
 
 ## Development status
-SpMp is partially functional (I've already replaced YouTube Music with it), but many bugs remain and performance can be poor.
+SpMp is partially functional (I'm already using it daily instead of YTM), but many bugs remain and performance can be poor.
 
-Support for Compose Multiplatform on desktop is [in-progress](https://github.com/toasterofbread/spmp-server) but will not be a priority until the main project is stable.
+Support for Compose Multiplatform on desktop is [planned](https://github.com/toasterofbread/spmp-server) but will not be a priority until the main project is stable.
 
 <br>
 
@@ -28,16 +28,17 @@ Support for Compose Multiplatform on desktop is [in-progress](https://github.com
 #### QOL
 - Pin any song, playlist, album, or artist to the main page
 - Download songs for offline playback
+- Select multiple songs/artists/playlists from any screen to perform general or context-specific actions (ex. shuffle just part of the queue)
 
-#### Other
-- Display lyrics from [PetitLyrics](https://petitlyrics.com/), with timed lyrics support (in-progress)
+#### Lyrics
+- Display lyrics from [PetitLyrics](https://petitlyrics.com/), with timed lyrics support
+- Timed lyrics are displayed above the home feed and at the top of the player UI (other screens are planned)
 - Show furigana for Japanese kanji within lyrics using [Kuromoji](https://github.com/atilika/kuromoji)
 
 ##### And more (see [the wiki](https://github.com/toasterofbread/spmp/wiki) for a full list of features)
 
 ## Planned features
 - Full offline functionality
-- Playlist editing
 - ...?
 
 <details open>

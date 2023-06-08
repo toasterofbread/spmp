@@ -273,6 +273,19 @@ private fun MenuContent(
                                 overflow = TextOverflow.Visible
                             )
                         }
+                        else {
+                            Crossfade(data.item.pinned_to_home) { pinned ->
+                                IconButton({
+                                    data.item.setPinnedToHome(!pinned)
+                                }) {
+                                    Icon(
+                                        if (pinned) Icons.Filled.PushPin
+                                        else Icons.Outlined.PushPin,
+                                        null
+                                    )
+                                }
+                            }
+                        }
 
                         Box(
                             Modifier
@@ -280,7 +293,7 @@ private fun MenuContent(
                                     if (box_width < 0) fillMaxWidth()
                                     else width(animateDpAsState(
                                         with(LocalDensity.current) {
-                                            if (show_info) (box_width - info_title_width).toDp() - 15.dp else box_width.toDp()
+                                            if (show_info) (box_width - info_title_width).toDp() - 15.dp else box_width.toDp() - 30.dp
                                         }
                                     ).value)
                                 }
@@ -350,22 +363,6 @@ private fun MenuActions(data: LongPressMenuData, accent_colour: Color, onAction:
         data.item,
         MENU_ITEM_SPACING.dp
     )
-
-    // Pin / unpin
-    Crossfade(data.item.pinned_to_home) { pinned ->
-        LongPressMenuActionProvider.ActionButton(
-            if (pinned) Icons.Filled.PushPin else Icons.Outlined.PushPin,
-            getString(
-                if (pinned) "lpm_action_home_unpin"
-                else "lpm_action_home_pin"
-            ),
-            accent_colour_provider,
-            onClick = {
-                data.item.setPinnedToHome(!pinned)
-            },
-            onAction = onAction
-        )
-    }
 
     data.item.url?.also { url ->
         // Share

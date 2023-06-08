@@ -73,7 +73,7 @@ class PlayerService : MediaPlayerService() {
             clearQueue(from = index, keep_current = false, save = false)
 
             val final_item = item ?: getSong(index)!!
-            radio.playMediaItem(final_item)
+            radio.playMediaItem(final_item, index)
             radio.loadContinuation { result ->
                 context.mainThread {
                     if (result.isFailure) {
@@ -81,7 +81,7 @@ class PlayerService : MediaPlayerService() {
                         savePersistentQueue()
                     }
                     else {
-                        addMultipleToQueue(result.getOrThrowHere(), index, skip_first)
+                        addMultipleToQueue(result.getOrThrowHere(), index, skip_first, skip_existing = true)
 
                         if (final_item !is Song) {
                             final_item.editRegistry {
@@ -105,7 +105,7 @@ class PlayerService : MediaPlayerService() {
                 }
                 else {
                     context.mainThread {
-                        addMultipleToQueue(result.getOrThrowHere(), song_count, false)
+                        addMultipleToQueue(result.getOrThrowHere(), song_count, false, skip_existing = true)
                     }
                 }
             }
@@ -198,7 +198,7 @@ class PlayerService : MediaPlayerService() {
             clearQueue(added_index + 1, save = false)
 
             synchronized(radio) {
-                radio.playMediaItem(song)
+                radio.playMediaItem(song, added_index)
                 radio.loadContinuation { result ->
                     if (result.isFailure) {
                         SpMp.error_manager.onError("addToQueue", result.exceptionOrNull()!!)
@@ -208,7 +208,7 @@ class PlayerService : MediaPlayerService() {
                     }
                     else {
                         context.mainThread {
-                            addMultipleToQueue(result.getOrThrowHere(), added_index + 1, save = save)
+                            addMultipleToQueue(result.getOrThrowHere(), added_index + 1, save = save, skip_existing = true)
                         }
                     }
                 }
@@ -221,13 +221,26 @@ class PlayerService : MediaPlayerService() {
         return added_index
     }
 
-    fun addMultipleToQueue(songs: List<Song>, index: Int = 0, skip_first: Boolean = false, save: Boolean = true, is_active_queue: Boolean = false) {
-        if (songs.isEmpty()) {
+    fun addMultipleToQueue(songs: List<Song>, index: Int = 0, skip_first: Boolean = false, save: Boolean = true, is_active_queue: Boolean = false, skip_existing: Boolean = false) {
+        
+        val to_add: List<Song> = 
+            if (!skip_existing) {
+                songs
+            }
+            else {
+                songs.toMutableList().apply {
+                    iterateSongs { _, song ->
+                        removeAll { it == song }
+                    } 
+                }
+            }
+        
+        if (to_add.isEmpty()) {
             return
         }
 
         val index_offset = if (skip_first) -1 else 0
-        for (song in songs.withIndex()) {
+        for (song in to_add.withIndex()) {
             if (skip_first && song.index == 0) {
                 continue
             }
@@ -237,7 +250,7 @@ class PlayerService : MediaPlayerService() {
         }
 
         if (is_active_queue) {
-            active_queue_index = index + songs.size - 1 + index_offset
+            active_queue_index = index + to_add.size - 1 + index_offset
         }
 
         if (save) {
@@ -269,7 +282,8 @@ class PlayerService : MediaPlayerService() {
     }
 
     val radio_loading: Boolean get() = radio.loading
-    val radio_item: MediaItem? get() = radio.state.item
+    val radio_item: MediaItem? get() = radio.state.item.first
+    val radio_item_index: Int? get() = radio.state.item.second
     val radio_filters: List<List<RadioModifier>>? get() = radio.state.filters
     var radio_current_filter: Int?
         get() = radio.state.current_filter
@@ -279,11 +293,14 @@ class PlayerService : MediaPlayerService() {
 
     private val radio = RadioInstance()
     private fun onRadioFiltersChanged(filters: List<RadioModifier>?) {
+        val item = radio.state.item
+        val add_index = maxOf(item.second ?: -1, current_song_index) + 1
+
         radio.cancelJob()
         radio.loadContinuation({
             runBlocking {
                 playerLaunch {
-                    clearQueue(current_song_index + 1, cancel_radio = false, save = false)
+                    clearQueue(add_index, cancel_radio = false, save = false)
                 }
             }
         }) { result ->
@@ -291,7 +308,7 @@ class PlayerService : MediaPlayerService() {
                 { songs ->
                     runBlocking {
                         playerLaunch {
-                            addMultipleToQueue(songs, current_song_index + 1)
+                            addMultipleToQueue(songs, add_index, skip_existing = true)
                         }
                     }
                 },
@@ -300,6 +317,10 @@ class PlayerService : MediaPlayerService() {
                 }
             )
         }
+    }
+
+    override fun onSongMoved(from: Int, to: Int) {
+        radio.onSongMoved(from, to)
     }
 
     private val prefs_listener = object : ProjectPreferences.Listener {

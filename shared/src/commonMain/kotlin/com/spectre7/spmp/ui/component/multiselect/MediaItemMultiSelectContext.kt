@@ -157,50 +157,61 @@ class MediaItemMultiSelectContext(
     private fun AddToPlaylistDialog(items: List<MediaItem>, coroutine_scope: CoroutineScope, onFinished: () -> Unit) {
         val player = LocalPlayerState.current
 
-        suspend fun onPlaylistSelected(playlist: Playlist?, new: Boolean = false) {
+        val selected_playlists = remember { mutableStateListOf<Playlist>() }
+        val button_colours = IconButtonDefaults.iconButtonColors(
+            containerColor = Theme.current.accent,
+            contentColor = Theme.current.on_accent
+        )
+
+        fun onPlaylistsSelected() {
             onFinished()
+            
+            if (selected_playlists.isNotEmpty()) {
+                coroutine_scope.launch {
+                    for (playlist in selected_playlists) {
+                        for (item in items) {
+                            playlist.addItem(item)
+                        }
+                        playlist.saveItems()
+                    }
 
-            if (playlist != null) {
-                onActionPerformed()
-
-                for (item in items) {
-                    playlist.addItem(item)
-                }
-
-                if (new) {
-                    player.openMediaItem(playlist)
-                }
-                else {
                     SpMp.context.sendToast(getString("toast_playlist_added"))
                 }
 
-                playlist.saveItems()
+                if (selected_playlists.size == 1) {
+                    player.openMediaItem(selected_playlists.first())
+                }
             }
+
+            onActionPerformed()
         }
 
         PlatformAlertDialog(
             onDismissRequest = onFinished,
             confirmButton = {
-                ShapedIconButton(
-                    { coroutine_scope.launch {
-                        val playlist = LocalPlaylist.createLocalPlaylist(SpMp.context)
-                        onPlaylistSelected(playlist, true)
-                    } },
-                    colors = IconButtonDefaults.iconButtonColors(
-                        containerColor = Theme.current.accent,
-                        contentColor = Theme.current.on_accent
-                    )
-                ) {
-                    Icon(Icons.Default.Add, null)
+                Row {
+                    ShapedIconButton(
+                        { coroutine_scope.launch {
+                            val playlist = LocalPlaylist.createLocalPlaylist(SpMp.context)
+                            selected.add(playlist)
+                        } },
+                        colors = button_colours
+                    ) {
+                        Icon(Icons.Default.Add, null)
+                    }
+
+                    ShapedIconButton(
+                        { onPlaylistsSelected() },
+                        colors = button_colours
+                    ) {
+                        Icon(Icons.Default.Add, null)
+                    }
                 }
             },
             dismissButton = {
                 Button(
                     onFinished,
-                    colors = ButtonDefaults.buttonColors(
-                        containerColor = Theme.current.accent.setAlpha(0.5f),
-                        contentColor = Theme.current.on_accent
-                    )
+                    colors = button_colours
                 ) {
                     Text(getString("action_cancel"))
                 }
@@ -209,20 +220,7 @@ class MediaItemMultiSelectContext(
                 Text(getString("song_add_to_playlist"), style = MaterialTheme.typography.headlineSmall)
             },
             text = {
-                val playlists = LocalPlaylist.rememberLocalPlaylistsListener()
-
-                LazyColumn(Modifier.height(300.dp)) {
-                    items(playlists) { playlist ->
-                        CompositionLocalProvider(LocalPlayerState provides remember {
-                            player.copy(onClickedOverride = { playlist, _ -> coroutine_scope.launch {
-                                check(playlist is Playlist)
-                                onPlaylistSelected(playlist, false)
-                            } })
-                        }) {
-                            playlist.PreviewLong(MediaItemPreviewParams())
-                        }
-                    }
-                }
+                PlaylistSelectMenu(selected_playlists)
             }
         )
     }

@@ -37,6 +37,13 @@ internal fun getLyricsCategory(): List<SettingsItem> {
         SettingsItemToggle(
             SettingsValueState(Settings.KEY_LYRICS_EXTRA_PADDING.name),
             getString("s_key_lyrics_extra_padding"), getString("s_sub_lyrics_extra_padding")
+        ),
+
+        SettingsGroup(getString("s_group_top_bar_lyrics")),
+
+        SettingsItemToggle(
+            SettingsValueState(Settings.KEY_TOPBAR_LYRICS_SHOW_FURIGANA.name),
+            getString("s_key_top_bar_lyrics_show_furigana"), null
         )
     )
 }

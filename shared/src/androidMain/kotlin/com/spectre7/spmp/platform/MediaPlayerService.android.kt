@@ -194,6 +194,8 @@ actual open class MediaPlayerService {
         listeners.remove(listener)
     }
 
+    actual protected open fun onSongMoved(from: Int, to: Int) {}
+
     actual fun undoableAction(action: MediaPlayerService.() -> Unit) {
         undoableActionWithCustom {
             action()
@@ -289,10 +291,12 @@ actual open class MediaPlayerService {
         override fun redo() {
             player.moveMediaItem(from, to)
             listeners.forEach { it.onSongMoved(from, to) }
+            onSongMoved(from, to)
         }
         override fun undo() {
             player.moveMediaItem(to, from)
             listeners.forEach { it.onSongMoved(to, from) }
+            onSongMoved(to, from)
         }
     }
     private inner class RemoveAction(val index: Int): Action() {

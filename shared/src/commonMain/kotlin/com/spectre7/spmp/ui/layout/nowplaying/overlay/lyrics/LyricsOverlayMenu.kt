@@ -167,6 +167,8 @@ class LyricsOverlayMenu(
                 }
                 else if (lyrics != null) {
                     Box(Modifier.fillMaxSize()) {
+                        val lyrics_follow_enabled: Boolean by Settings.KEY_LYRICS_FOLLOW_ENABLED.rememberMutableState()
+
                         CoreLyricsDisplay(
                             size,
                             lyrics,
@@ -174,7 +176,7 @@ class LyricsOverlayMenu(
                             scroll_state,
                             show_furigana,
                             Modifier.fillMaxSize(),
-                            enable_autoscroll = !selecting_sync_line
+                            enable_autoscroll = lyrics_follow_enabled && !selecting_sync_line
                         ) {
                             if (selecting_sync_line) { line ->
                                 submenu = LyricsOverlaySubmenu.SYNC

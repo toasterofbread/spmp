@@ -42,6 +42,7 @@ fun LibraryMainPage(
     bottom_padding: Dp,
     inline: Boolean,
     openPage: (LibrarySubPage?) -> Unit,
+    topContent: (@Composable () -> Unit)? = null,
     onSongClicked: (songs: List<Song>, song: Song, index: Int) -> Unit
 ) {
     val heading_text_style = MaterialTheme.typography.headlineSmall
@@ -56,6 +57,12 @@ fun LibraryMainPage(
         verticalArrangement = Arrangement.spacedBy(30.dp),
         contentPadding = PaddingValues(bottom = bottom_padding)
     ) {
+        if (topContent != null) {
+            item {
+                topContent.invoke()
+            }
+        }
+
         // Playlists
         item {
             val ytm_auth = Api.ytm_auth

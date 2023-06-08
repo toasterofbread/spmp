@@ -301,9 +301,7 @@ class MediaPlayerServiceSession: MediaSessionService() {
             ) {
                 var done = false
                 runBlocking {
-
                     download_manager.getDownload(song) { initial_status ->
-
                         when (initial_status?.status) {
                             PlayerDownloadManager.DownloadStatus.Status.DOWNLOADING -> {
                                 val listener = object : PlayerDownloadManager.DownloadStatusListener() {
@@ -337,7 +335,6 @@ class MediaPlayerServiceSession: MediaSessionService() {
                             }
                             PlayerDownloadManager.DownloadStatus.Status.ALREADY_FINISHED, PlayerDownloadManager.DownloadStatus.Status.FINISHED -> throw IllegalStateException()
                         }
-
                     }
 
                     var elapsed = 0

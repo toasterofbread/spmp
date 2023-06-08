@@ -72,6 +72,10 @@
     <string name="s_key_auto_download_quality">オートダウンロードの音質</string>
     <string name="s_key_auto_download_on_metered">従量制接続でオートダウンロードを行う</string>
     <string name="s_key_lyrics_extra_padding">パディングを増やす</string>
+
+    <string name="s_group_top_bar_lyrics">トップバーの歌詞</string>
+    <string name="s_key_top_bar_lyrics_show_furigana">ふりがなを表示</string>
+
     <string name="s_key_vol_intercept_mode">音量インターセプトモード</string>
     <string name="s_key_vol_intercept_notification">音量変化の通知</string>
     <string name="s_key_vol_steps">音量変化のステップ</string>
@@ -280,8 +284,6 @@
     <string name="lpm_action_download">ダウンロード</string>
     <string name="lpm_action_go_to_artist">アーティストを見る</string>
     <string name="lpm_action_print_info">情報をコンソールに出力する</string>
-    <string name="lpm_action_home_pin">ホームに貼り付ける</string>
-    <string name="lpm_action_home_unpin">ホームから外す</string>
     <string name="lpm_action_share">共有</string>
     <string name="lpm_action_open_artist">開く</string>
     <string name="lpm_action_open_playlist">開く</string>
@@ -297,6 +299,8 @@
     <string name="multiselect_x_items_selected">$xアイテムが選択されてます</string>
     <string name="multiselect_begin">複数選択を始める</string>
     <string name="multiselect_end">複数選択をやめる</string>
+    
+    <string name="topbar_mode_unavailable">(現在不可)</string>
 
     <string name="notif_download_finished">ダウンロードが完了しました</string>
     <string name="notif_download_already_finished">ダウンロードはすでに完了しています</string>

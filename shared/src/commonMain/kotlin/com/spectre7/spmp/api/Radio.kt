@@ -28,11 +28,11 @@ class RadioInstance {
 
     val filter_changed_listeners = ValueListeners<List<RadioModifier>?>()
 
-    fun playMediaItem(item: MediaItem) {
+    fun playMediaItem(item: MediaItem, index: Int? = null) {
         synchronized(lock) {
             cancelJob()
             state = RadioState()
-            state.item = item
+            state.item = Pair(item, index)
         }
     }
 
@@ -47,8 +47,25 @@ class RadioInstance {
         filter_changed_listeners.call(filter)
     }
 
+    fun onSongMoved(from: Int, to: Int) {
+        if (from == to) {
+            return
+        }
+
+        val current_index = state.item?.second
+        if (from == current_index) {
+            state.item = state.item?.copy(second = to)
+        }
+        else if (current_index > from && current_index <= to) {
+            state.item = state.item?.copy(second = current_index - 1)
+        }
+        else if (current_index < from && current_index >= to) {
+            state.item = state.item?.copy(second = current_index + 1)
+        }
+    }
+
     class RadioState {
-        var item: MediaItem? by mutableStateOf(null)
+        var item: Pair<MediaItem, Int?>? by mutableStateOf(null)
         var continuation: MediaItemLayout.Continuation? by mutableStateOf(null)
         var filters: List<List<RadioModifier>>? by mutableStateOf(null)
         var current_filter: Int? by mutableStateOf(null)
@@ -115,7 +132,7 @@ class RadioInstance {
     }
 
     private suspend fun getInitialSongs(): Result<List<Song>> {
-        when (val item = state.item!!) {
+        when (val item = state.item!!.first) {
             is Song -> {
                 val result = getSongRadio(item.id, null, state.current_filter?.let { state.filters?.get(it) } ?: emptyList())
                 return result.fold(

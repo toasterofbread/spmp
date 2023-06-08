@@ -196,24 +196,65 @@ private fun LongPressMenuActionProvider.SongLongPressPopupActions(song: MediaIte
             }
         }
         else {
-            PlaylistSelectMenu(
-                height?.let { Modifier.height(it) } ?: Modifier,
-                show_cancel_button = true
-            ) { playlist, new ->
-                if (playlist != null) {
-                    coroutine_scope.launchSingle {
-                        playlist.addItem(song)
-                        SpMp.context.sendToast(getString("toast_playlist_added"))
-                        playlist.saveItems()
+            Column(
+                Modifier
+                    .border(1.dp, LocalContentColor.current, RoundedCornerShape(16.dp))
+                    .fillMaxWidth()
+                    .then(
+                        height?.let { Modifier.height(it) } ?: Modifier
+                    )
+            ) {
+                val selected_playlists = remember { mutableStateListOf<Playlist>() }
+                PlaylistSelectMenu(selected_playlists)
+                
+                val button_colours = IconButtonDefaults.iconButtonColors(
+                    containerColor = Theme.current.accent,
+                    contentColor = Theme.current.on_accent
+                )
+
+                Row(verticalAlignment = Alignment.CenterVertically) {
+                    ShapedIconButton({ adding_to_playlist = false }, colors = button_colours) {
+                        Icon(Icons.Default.Close, null)
                     }
 
-                    onAction()
-                    if (new) {
-                        player.openMediaItem(playlist)
+                    Spacer(Modifier.fillMaxWidth().weight(1f))
+
+                    ShapedIconButton(
+                        {
+                            coroutine_scope.launch {
+                                val playlist = LocalPlaylist.createLocalPlaylist(SpMp.context)
+                                selected_playlists.add(playlist)
+                            }
+                        },
+                        colors = button_colours
+                    ) {
+                        Icon(Icons.Default.Add, null)
+                    }
+                    ShapedIconButton(
+                        {
+                            if (selected_playlists.isNotEmpty()) {
+                                coroutine_scope.launch {
+                                    for (playlist in selected_playlists) {
+                                        playlist.addItem(song)
+                                        playlist.saveItems()
+                                    }
+                                    SpMp.context.sendToast(getString("toast_playlist_added"))
+                                }
+
+                                onAction()
+
+                                if (selected_playlists.size == 1) {
+                                    player.openMediaItem(selected_playlists.first())
+                                }
+                            }
+
+                            adding_to_playlist = false
+                        },
+                        colors = button_colours
+                    ) {
+                        Icon(Icons.Default.Done, null)
                     }
                 }
-
-                adding_to_playlist = false
             }
         }
     }

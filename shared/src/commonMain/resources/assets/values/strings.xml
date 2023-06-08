@@ -142,8 +142,6 @@
     <string name="lpm_action_download">Download</string>
     <string name="lpm_action_go_to_artist">Go to artist</string>
     <string name="lpm_action_print_info">Print info</string>
-    <string name="lpm_action_home_pin">Pin to home</string>
-    <string name="lpm_action_home_unpin">Unpin from home</string>
     <string name="lpm_action_share">Share</string>
     <string name="lpm_action_open_artist">Open</string>
     <string name="lpm_action_open_playlist">Open</string>
@@ -160,6 +158,8 @@
     <string name="multiselect_x_items_selected">$x items selected</string>
     <string name="multiselect_begin">Begin multiple selection</string>
     <string name="multiselect_end">End multiple selection</string>
+
+    <string name="topbar_mode_unavailable">(Unavailable)</string>
 
     <string name="notif_download_finished">Download completed</string>
     <string name="notif_download_already_finished">Already downloaded</string>
@@ -277,6 +277,9 @@
 
     <string name="s_key_lyrics_extra_padding">Extra padding</string>
     <string name="s_sub_lyrics_extra_padding">Add extra padding above and below lyrics for increased scrolling range</string>
+
+    <string name="s_group_top_bar_lyrics">Top bar lyrics</string>
+    <string name="s_key_top_bar_lyrics_show_furigana">Show furigana</string>
 
     <string name="s_cat_audio_video">Audio / Video</string>
 

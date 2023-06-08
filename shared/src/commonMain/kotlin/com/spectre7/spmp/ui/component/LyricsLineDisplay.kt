@@ -32,10 +32,14 @@ private fun getCurrentLine(lyrics: SongLyrics, time: Long, linger: Boolean): Int
 }
 
 @Composable
-fun LyricsLineDisplay(lyrics: SongLyrics, getTime: () -> Long, modifier: Modifier = Modifier) {
+fun LyricsLineDisplay(
+    lyrics: SongLyrics,
+    getTime: () -> Long,
+    lyrics_linger: Boolean = true,
+    show_furigana: Boolean = true,
+    modifier: Modifier = Modifier
+) {
     require(lyrics.synced)
-
-    val lyrics_linger: Boolean by Settings.KEY_TOPBAR_LYRICS_LINGER.rememberMutableState()
 
     RecomposeOnInterval(UPDATE_INTERVAL_MS) { s ->
         s
@@ -76,7 +80,7 @@ fun LyricsLineDisplay(lyrics: SongLyrics, getTime: () -> Long, modifier: Modifie
                 }
 
                 line?.also {
-                    BasicFuriganaText(lyrics.lines[it])
+                    BasicFuriganaText(lyrics.lines[it], show_readings = show_furigana)
                 }
             }
             AnimatedVisibility(line_b != null && !show_line_a, enter = enter, exit = exit) {
@@ -88,7 +92,7 @@ fun LyricsLineDisplay(lyrics: SongLyrics, getTime: () -> Long, modifier: Modifie
                 }
 
                 line?.also {
-                    BasicFuriganaText(lyrics.lines[it])
+                    BasicFuriganaText(lyrics.lines[it], show_readings = show_furigana)
                 }
             }
         }

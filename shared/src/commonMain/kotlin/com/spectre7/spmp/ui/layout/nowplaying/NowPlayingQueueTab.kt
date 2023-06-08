@@ -15,6 +15,7 @@ import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.*
+import androidx.compose.material.icons.default.*
 import androidx.compose.material3.*
 import androidx.compose.material3.tokens.FilledButtonTokens
 import androidx.compose.runtime.*
@@ -77,6 +78,7 @@ private class QueueTabItem(val song: Song, val key: Int) {
         val swipe_state = queueElementSwipeState(requestRemove)
         val max_offset = with(LocalDensity.current) { SpMp.context.getScreenWidth().toPx() }
         val anchors = mapOf(-max_offset to 0, 0f to 1, max_offset to 2)
+        val player = LocalPlayerState.current
 
         Box(
             Modifier
@@ -104,9 +106,14 @@ private class QueueTabItem(val song: Song, val key: Int) {
                     queue_index = index
                 )
 
+                val radio_item_index = player.player.radio_item_index
+                if (radio_item_index == index) {
+                    Icon(Icons.Default.Radio, null, Modifier.size(15.dp))
+                }
+
                 // Drag handle
                 Icon(
-                    Icons.Filled.Menu,
+                    Icons.Default.Menu,
                     null,
                     Modifier
                         .detectReorder(list_state)
@@ -411,10 +418,15 @@ private fun CurrentRadioIndicator(
 ) {
     val player = LocalPlayerState.current
     val horizontal_padding = 15.dp
+    
     Row(Modifier.animateContentSize()) {
 
+        val filters = player.player.radio_filters
         var show_radio_info: Boolean by remember { mutableStateOf(false) }
-        val radio_item: MediaItem? = player.player.radio_item
+        val radio_item: MediaItem? = player.player.radio_item.also { item ->
+            if (item !is Song || player.player.radio_item_index == null) item
+            else null
+        }
 
         LaunchedEffect(radio_item) {
             if (radio_item == null) {
@@ -422,31 +434,44 @@ private fun CurrentRadioIndicator(
             }
         }
 
-        AnimatedVisibility(radio_item != null) {
-            IconButton({
-                if (show_radio_info) {
-                    show_radio_info = false
+        AnimatedVisibility(radio_item != null && filters != null) {
+            IconButton(
+                {
+                    if (show_radio_info) {
+                        show_radio_info = false
+                    }
+                    else if (radio_item != null) {
+                        show_radio_info = true
+                    }
+                },
+                Modifier.padding(start = horizontal_padding)
+            ) {
+                Box {
+                    Icon(Icons.Default.Radio, null)
+                    Icon(Icons.Default.Info, null, Modifier.align(Alignment.BottomEnd))
                 }
-                else if (radio_item != null) {
-                    show_radio_info = true
-                }
-            }) {
-                Icon(Icons.Default.Info, null)
             }
         }
 
-        val filters = player.player.radio_filters
-
-        Crossfade(if (show_radio_info) radio_item else if (multiselect_context.is_active) true else filters ) { state ->
-            if (state is MediaItem) {
+        Crossfade(if (show_radio_info || filters != null) radio_item else if (multiselect_context.is_active) true else filters ) { state ->
+            if (state == null) {
+                show_radio_info = false
+            }
+            else if (state is MediaItem) {
                 state.PreviewLong(
                     MediaItemPreviewParams(
-                    Modifier.padding(horizontal = horizontal_padding)
-                )
+                        Modifier
+                            .padding(end = horizontal_padding)
+                            .background(RoundedCornerShape(45), accentColourProvider)
+                    )
                 )
             }
             else if (state == true) {
-                multiselect_context.InfoDisplay(Modifier.fillMaxWidth().padding(horizontal = horizontal_padding))
+                multiselect_context.InfoDisplay(
+                    Modifier
+                        .fillMaxWidth()
+                        .padding(horizontal = horizontal_padding)
+                        )
             }
             else if (state is List<*>) {
                 Row(
@@ -454,7 +479,6 @@ private fun CurrentRadioIndicator(
                     horizontalArrangement = Arrangement.spacedBy(15.dp)
                 ) {
                     Spacer(Modifier)
-
 
                     val current_filter = player.player.radio_current_filter
                     for (filter in listOf(null) + state.withIndex()) {

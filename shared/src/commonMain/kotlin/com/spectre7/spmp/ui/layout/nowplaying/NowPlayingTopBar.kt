@@ -54,6 +54,7 @@ fun TopBar(modifier: Modifier = Modifier) {
         if (song == null) {
             return@Crossfade
         }
+        
         Row(Modifier.fillMaxSize(), horizontalArrangement = Arrangement.SpaceBetween) {
             val buttons_visible by remember { derivedStateOf { buttons_alpha > 0f } }
 

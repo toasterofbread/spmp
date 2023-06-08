@@ -135,7 +135,8 @@ fun MainPage(
                         Modifier.graphicsLayer { alpha = state_alpha.value },
                         close = {},
                         inline = true,
-                        outer_multiselect_context = LocalPlayerState.current.main_multiselect_context
+                        outer_multiselect_context = LocalPlayerState.current.main_multiselect_context,
+                        mainTopContent = { TopContent() }
                     )
                 }
                 // Loading

@@ -46,6 +46,7 @@ fun LibraryPage(
     modifier: Modifier = Modifier,
     inline: Boolean = false,
     outer_multiselect_context: MediaItemMultiSelectContext? = null,
+    mainTopContent: (@Composable () -> Unit)? = null,
     close: () -> Unit
 ) {
     require(inline == (outer_multiselect_context != null))
@@ -117,7 +118,8 @@ fun LibraryPage(
                     multiselect_context,
                     bottom_padding,
                     inline,
-                    { subpage = it }
+                    { subpage = it },
+                    mainTopContent,
                 ) { songs, song, index ->
                     onSongClicked(songs, player, song, index)
                 }

@@ -215,7 +215,6 @@ abstract class MediaItem(val id: String): MediaItemHolder {
                 val provider_result = thumb_item.getThumbnailProvider()
                 if (provider_result.isFailure) {
                     thumb_item.thumb_states[quality]!!.loaded = true
-                    provider_result.getOrReport("MediaItemThumbnail")
                     return@LaunchedEffect
                 }
             }

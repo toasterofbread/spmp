@@ -18,7 +18,13 @@ enum class NowPlayingQueueRadioInfoPosition {
     TOP_BAR, ABOVE_ITEMS
 }
 enum class MusicTopBarMode {
-    NONE, VISUALISER, LYRICS
+    NONE, VISUALISER, LYRICS;
+
+    fun getIcon(): ImageVector = when (this) {
+        LYRICS -> Icons.Default.Lyrics
+        VISUALISER -> Icons.Default.GraphicEq
+        NONE -> Icons.Default.Block
+    }
 }
 
 @Composable
@@ -95,6 +101,7 @@ enum class Settings {
 
     // Top bar content
     KEY_TOPBAR_LYRICS_LINGER,
+    KEY_TOPBAR_LYRICS_SHOW_FURIGANA,
     KEY_TOPBAR_DEFAULT_MODE_HOME,
     KEY_TOPBAR_DEFAULT_MODE_NOWPLAYING,
     KEY_TOPBAR_SHOW_LYRICS_IN_QUEUE,
@@ -239,6 +246,7 @@ enum class Settings {
 
                 // Top bar content
                 KEY_TOPBAR_LYRICS_LINGER -> true
+                KEY_TOPBAR_LYRICS_SHOW_FURIGANA -> true
                 KEY_TOPBAR_DEFAULT_MODE_HOME -> MusicTopBarMode.LYRICS.ordinal
                 KEY_TOPBAR_DEFAULT_MODE_NOWPLAYING -> MusicTopBarMode.LYRICS.ordinal
                 KEY_TOPBAR_SHOW_LYRICS_IN_QUEUE -> true

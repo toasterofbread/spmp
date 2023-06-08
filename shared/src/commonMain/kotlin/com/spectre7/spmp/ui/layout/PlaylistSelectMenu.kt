@@ -26,57 +26,53 @@ import com.spectre7.spmp.ui.component.LongPressMenuActionProvider
 import com.spectre7.utils.launchSingle
 
 @Composable
-fun PlaylistSelectMenu(modifier: Modifier = Modifier, show_cancel_button: Boolean = false, onFinished: (playlist: Playlist?, new: Boolean) -> Unit) {
+fun PlaylistSelectMenu(
+    selected: SnapshotStateList<Playlist>,
+    modifier: Modifier = Modifier
+) {
     val player = LocalPlayerState.current
-    val coroutine_scope = rememberCoroutineScope()
 
-    val playlists = LocalPlaylist.rememberLocalPlaylistsListener()
+    val local_playlists = LocalPlaylist.rememberLocalPlaylistsListener()
+    val account_playlists = Api.ytm_auth.own_playlists
 
-    BackHandler {
-        onFinished(null, false)
+    CompositionLocalProvider(LocalPlayerState provides remember {
+        player.copy(onClickedOverride = { item, _ ->
+            check(item is Playlist)
+            
+            val index = selected.indexOf(item)
+            if (index != -1) {
+                selected.removeAt(index)
+            }
+            else {
+                selected.add(item)
+            }
+        })
+    }) {
+        LazyColumn(modifier) {
+            items(local_playlists) { playlist ->
+                PlaylistItem(playlist)
+            }
+            items(account_playlists) { playlist ->
+                PlaylistItem(playlist)
+            }
+        }
     }
+}
 
-    LazyColumn(modifier) {
-        item {
-            Row(Modifier.fillMaxWidth().padding(bottom = 10.dp), horizontalArrangement = Arrangement.SpaceBetween) {
-                // Create new
-                LongPressMenuActionProvider.ActionButton(
-                    Icons.Default.Add,
-                    getString("playlist_create"),
-                    fill_width = false,
-                    onClick = {
-                        coroutine_scope.launchSingle {
-                            val playlist = LocalPlaylist.createLocalPlaylist(SpMp.context)
-                            onFinished(playlist, true)
-                        }
-                    },
-                    onAction = {}
-                )
-
-                // Cancel
-                if (show_cancel_button) {
-                    LongPressMenuActionProvider.ActionButton(
-                        Icons.Default.Close,
-                        getString("action_cancel"),
-                        fill_width = false,
-                        onClick = { onFinished(null, false) },
-                        onAction = {}
-                    )
+@Composable
+private fun PlaylistItem(selected: SnapshotStateList<Playlist>, playlist: Playlist) {
+    Row(verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(5.dp)) {
+        Checkbox(
+            selected.contains(playlist),
+            { checked ->
+                if (checked) {
+                    selected.addUnique(playlist)
+                }
+                else {
+                    selected.remove(playlist)
                 }
             }
-        }
-
-        items(playlists) { playlist ->
-            CompositionLocalProvider(LocalPlayerState provides remember {
-                player.copy(onClickedOverride = { playlist, _ ->
-                    coroutine_scope.launchSingle {
-                        check(playlist is Playlist)
-                        onFinished(playlist, false)
-                    }
-                })
-            }) {
-                playlist.PreviewLong(MediaItemPreviewParams())
-            }
-        }
+        )
+        playlist.PreviewLong(MediaItemPreviewParams())
     }
 }

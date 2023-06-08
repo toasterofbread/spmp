@@ -99,6 +99,8 @@ expect open class MediaPlayerService() {
     fun addListener(listener: Listener)
     fun removeListener(listener: Listener)
 
+    protected open fun onSongMoved(from: Int, to: Int)
+
     companion object {
         fun CoroutineScope.playerLaunch(action: CoroutineScope.() -> Unit)
 

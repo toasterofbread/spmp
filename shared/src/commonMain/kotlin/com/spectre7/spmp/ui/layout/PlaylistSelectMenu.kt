@@ -8,6 +8,7 @@ import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
+import androidx.compose.material.Checkbox
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Add
 import androidx.compose.material.icons.filled.Close
@@ -15,14 +16,19 @@ import androidx.compose.runtime.Composable
 import androidx.compose.runtime.CompositionLocalProvider
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberCoroutineScope
+import androidx.compose.runtime.snapshots.SnapshotStateList
+import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
+import com.spectre7.spmp.api.Api
+import com.spectre7.spmp.model.mediaitem.AccountPlaylist
 import com.spectre7.spmp.model.mediaitem.LocalPlaylist
 import com.spectre7.spmp.model.mediaitem.MediaItemPreviewParams
 import com.spectre7.spmp.model.mediaitem.Playlist
 import com.spectre7.spmp.platform.composable.BackHandler
 import com.spectre7.spmp.resources.getString
 import com.spectre7.spmp.ui.component.LongPressMenuActionProvider
+import com.spectre7.utils.addUnique
 import com.spectre7.utils.launchSingle
 
 @Composable
@@ -50,10 +56,10 @@ fun PlaylistSelectMenu(
     }) {
         LazyColumn(modifier) {
             items(local_playlists) { playlist ->
-                PlaylistItem(playlist)
+                PlaylistItem(selected, playlist)
             }
             items(account_playlists) { playlist ->
-                PlaylistItem(playlist)
+                PlaylistItem(selected, AccountPlaylist.fromId(playlist))
             }
         }
     }

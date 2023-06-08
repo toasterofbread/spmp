@@ -15,7 +15,6 @@ import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.*
-import androidx.compose.material.icons.default.*
 import androidx.compose.material3.*
 import androidx.compose.material3.tokens.FilledButtonTokens
 import androidx.compose.runtime.*
@@ -28,9 +27,9 @@ import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.unit.*
 import com.spectre7.spmp.api.RadioModifier
 import com.spectre7.spmp.model.MusicTopBarMode
-import com.spectre7.spmp.model.mediaitem.MediaItem
 import com.spectre7.spmp.model.NowPlayingQueueRadioInfoPosition
 import com.spectre7.spmp.model.Settings
+import com.spectre7.spmp.model.mediaitem.MediaItem
 import com.spectre7.spmp.model.mediaitem.MediaItemPreviewParams
 import com.spectre7.spmp.model.mediaitem.Song
 import com.spectre7.spmp.platform.MediaPlayerRepeatMode
@@ -86,7 +85,7 @@ private class QueueTabItem(val song: Song, val key: Int) {
                 .background(RoundedCornerShape(45), backgroundColourProvider)
         ) {
             Row(
-                horizontalArrangement = Arrangement.End,
+                horizontalArrangement = Arrangement.spacedBy(10.dp),
                 verticalAlignment = Alignment.CenterVertically,
                 modifier = Modifier.padding(start = 10.dp, end = 20.dp)
             ) {
@@ -108,7 +107,7 @@ private class QueueTabItem(val song: Song, val key: Int) {
 
                 val radio_item_index = player.player.radio_item_index
                 if (radio_item_index == index) {
-                    Icon(Icons.Default.Radio, null, Modifier.size(15.dp))
+                    Icon(Icons.Default.Radio, null, Modifier.size(20.dp))
                 }
 
                 // Drag handle
@@ -423,9 +422,8 @@ private fun CurrentRadioIndicator(
 
         val filters = player.player.radio_filters
         var show_radio_info: Boolean by remember { mutableStateOf(false) }
-        val radio_item: MediaItem? = player.player.radio_item.also { item ->
-            if (item !is Song || player.player.radio_item_index == null) item
-            else null
+        val radio_item: MediaItem? = player.player.radio_item.takeIf { item ->
+            item !is Song || player.player.radio_item_index == null
         }
 
         LaunchedEffect(radio_item) {
@@ -436,73 +434,74 @@ private fun CurrentRadioIndicator(
 
         AnimatedVisibility(radio_item != null && filters != null) {
             IconButton(
-                {
-                    if (show_radio_info) {
-                        show_radio_info = false
-                    }
-                    else if (radio_item != null) {
-                        show_radio_info = true
-                    }
-                },
+                { show_radio_info = !show_radio_info },
                 Modifier.padding(start = horizontal_padding)
             ) {
                 Box {
                     Icon(Icons.Default.Radio, null)
-                    Icon(Icons.Default.Info, null, Modifier.align(Alignment.BottomEnd))
+                    val content_colour = LocalContentColor.current
+                    Icon(
+                        Icons.Default.Info, null,
+                        Modifier
+                            .align(Alignment.BottomEnd)
+                            .offset(5.dp, 5.dp)
+                            .size(18.dp)
+                            // Fill gap in info icon
+                            .drawBehind {
+                                drawCircle(content_colour, size.width / 4)
+                            },
+                        tint = accentColourProvider()
+                    )
                 }
             }
         }
 
-        Crossfade(if (show_radio_info || filters != null) radio_item else if (multiselect_context.is_active) true else filters ) { state ->
-            if (state == null) {
-                show_radio_info = false
-            }
-            else if (state is MediaItem) {
-                state.PreviewLong(
-                    MediaItemPreviewParams(
-                        Modifier
-                            .padding(end = horizontal_padding)
-                            .background(RoundedCornerShape(45), accentColourProvider)
+        Crossfade(if (show_radio_info) radio_item else if (multiselect_context.is_active) true else filters ?: radio_item) { state ->
+            when (state) {
+                is MediaItem ->
+                    state.PreviewLong(
+                        MediaItemPreviewParams(
+                            Modifier
+                                .padding(end = horizontal_padding)
+                                .background(RoundedCornerShape(45), accentColourProvider)
+                        )
                     )
-                )
-            }
-            else if (state == true) {
-                multiselect_context.InfoDisplay(
-                    Modifier
-                        .fillMaxWidth()
-                        .padding(horizontal = horizontal_padding)
-                        )
-            }
-            else if (state is List<*>) {
-                Row(
-                    Modifier.horizontalScroll(rememberScrollState()),
-                    horizontalArrangement = Arrangement.spacedBy(15.dp)
-                ) {
-                    Spacer(Modifier)
+                true ->
+                    multiselect_context.InfoDisplay(
+                        Modifier
+                            .fillMaxWidth()
+                            .padding(horizontal = horizontal_padding)
+                    )
+                is List<*> ->
+                    Row(
+                        Modifier.horizontalScroll(rememberScrollState()),
+                        horizontalArrangement = Arrangement.spacedBy(15.dp)
+                    ) {
+                        Spacer(Modifier)
 
-                    val current_filter = player.player.radio_current_filter
-                    for (filter in listOf(null) + state.withIndex()) {
-                        FilterChip(
-                            current_filter == filter?.index,
-                            onClick = {
-                                if (player.player.radio_current_filter != filter?.index) {
-                                    player.player.radio_current_filter = filter?.index
-                                }
-                            },
-                            label = {
-                                Text(
-                                    (filter?.value as List<RadioModifier>?)?.joinToString("|") { it.getReadable() }
-                                        ?: getString("radio_filter_all")
+                        val current_filter = player.player.radio_current_filter
+                        for (filter in listOf(null) + state.withIndex()) {
+                            FilterChip(
+                                current_filter == filter?.index,
+                                onClick = {
+                                    if (player.player.radio_current_filter != filter?.index) {
+                                        player.player.radio_current_filter = filter?.index
+                                    }
+                                },
+                                label = {
+                                    Text(
+                                        (filter?.value as List<RadioModifier>?)?.joinToString("|") { it.getReadable() }
+                                            ?: getString("radio_filter_all")
+                                    )
+                                },
+                                colors = FilterChipDefaults.filterChipColors(
+                                    labelColor = LocalContentColor.current,
+                                    selectedContainerColor = accentColourProvider(),
+                                    selectedLabelColor = accentColourProvider().getContrasted()
                                 )
-                            },
-                            colors = FilterChipDefaults.filterChipColors(
-                                labelColor = LocalContentColor.current,
-                                selectedContainerColor = accentColourProvider(),
-                                selectedLabelColor = accentColourProvider().getContrasted()
                             )
-                        )
+                        }
                     }
-                }
             }
         }
     }

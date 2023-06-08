@@ -1,7 +1,13 @@
 package com.spectre7.spmp.model
 
 import SpMp
+import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.Block
+import androidx.compose.material.icons.filled.Close
+import androidx.compose.material.icons.filled.GraphicEq
+import androidx.compose.material.icons.filled.Lyrics
 import androidx.compose.runtime.*
+import androidx.compose.ui.graphics.vector.ImageVector
 import com.beust.klaxon.Klaxon
 import com.spectre7.spmp.ProjectBuildConfig
 import com.spectre7.spmp.model.mediaitem.Artist
@@ -23,7 +29,7 @@ enum class MusicTopBarMode {
     fun getIcon(): ImageVector = when (this) {
         LYRICS -> Icons.Default.Lyrics
         VISUALISER -> Icons.Default.GraphicEq
-        NONE -> Icons.Default.Block
+        NONE -> Icons.Default.Close
     }
 }
 

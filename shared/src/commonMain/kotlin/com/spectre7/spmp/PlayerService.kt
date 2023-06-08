@@ -65,15 +65,19 @@ class PlayerService : MediaPlayerService() {
             }
         }
 
-        startRadioAtIndex(1, song, true)
+        startRadioAtIndex(1, song, 0, true)
     }
 
-    fun startRadioAtIndex(index: Int, item: MediaItem? = null, skip_first: Boolean = false) {
+    fun startRadioAtIndex(index: Int, item: MediaItem? = null, item_index: Int? = null, skip_first: Boolean = false) {
+        require(item_index == null || item != null)
+
         synchronized(radio) {
             clearQueue(from = index, keep_current = false, save = false)
 
             val final_item = item ?: getSong(index)!!
-            radio.playMediaItem(final_item, index)
+            val final_index = if (item != null) item_index else index
+
+            radio.playMediaItem(final_item, final_index)
             radio.loadContinuation { result ->
                 context.mainThread {
                     if (result.isFailure) {
@@ -282,8 +286,8 @@ class PlayerService : MediaPlayerService() {
     }
 
     val radio_loading: Boolean get() = radio.loading
-    val radio_item: MediaItem? get() = radio.state.item.first
-    val radio_item_index: Int? get() = radio.state.item.second
+    val radio_item: MediaItem? get() = radio.state.item?.first
+    val radio_item_index: Int? get() = radio.state.item?.second
     val radio_filters: List<List<RadioModifier>>? get() = radio.state.filters
     var radio_current_filter: Int?
         get() = radio.state.current_filter
@@ -294,7 +298,7 @@ class PlayerService : MediaPlayerService() {
     private val radio = RadioInstance()
     private fun onRadioFiltersChanged(filters: List<RadioModifier>?) {
         val item = radio.state.item
-        val add_index = maxOf(item.second ?: -1, current_song_index) + 1
+        val add_index = maxOf(item?.second ?: -1, current_song_index) + 1
 
         radio.cancelJob()
         radio.loadContinuation({

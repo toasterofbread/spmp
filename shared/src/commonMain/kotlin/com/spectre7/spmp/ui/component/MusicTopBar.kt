@@ -2,18 +2,29 @@ package com.spectre7.spmp.ui.component
 
 import LocalPlayerState
 import androidx.compose.animation.Crossfade
+import androidx.compose.animation.core.Animatable
+import androidx.compose.foundation.background
+import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
+import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.material3.Icon
 import androidx.compose.material3.LocalContentColor
+import androidx.compose.material3.Text
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.graphics.graphicsLayer
 import androidx.compose.ui.unit.dp
 import com.spectre7.spmp.model.MusicTopBarMode
 import com.spectre7.spmp.model.Settings
 import com.spectre7.spmp.model.mediaitem.Song
 import com.spectre7.spmp.model.SongLyrics
 import com.spectre7.spmp.platform.composable.platformClickable
+import com.spectre7.spmp.resources.getString
 import com.spectre7.utils.composable.rememberSongUpdateLyrics
+import com.spectre7.utils.getContrasted
+import com.spectre7.utils.launchSingle
+import kotlinx.coroutines.delay
 
 private fun getModeState(mode: MusicTopBarMode, song: Song?): Any? {
     return when (mode) {
@@ -37,6 +48,7 @@ fun MusicTopBar(
     val song_state by rememberSongUpdateLyrics(song, target_mode == MusicTopBarMode.LYRICS)
     val player = LocalPlayerState.current
 
+    var show_toast by remember { mutableStateOf(false) }
     val visualiser_width: Float by Settings.KEY_TOPBAR_VISUALISER_WIDTH.rememberMutableState()
     check(visualiser_width in 0f .. 1f)
 
@@ -54,65 +66,67 @@ fun MusicTopBar(
         }
     }
 
-    Box(modifier, contentAlignment = Alignment.Center) {
-        val mode_toast_alpha = remember { Animatable(0f) }
-        val coroutine_scope = rememberCoroutineScope()
-
-        LaunchedEffect(target_mode) {
-            coroutine_scope.launchSingle {
-                toast_alpha.animateTo(1f)
-                delay(1000)
-                toast_alpha.animateTo(0f)
+    Box(
+        modifier.platformClickable(
+            onClick = {
+                if (target_mode.ordinal == 0) {
+                    target_mode = MusicTopBarMode.values().last()
+                }
+                else {
+                    target_mode = MusicTopBarMode.values()[target_mode.ordinal - 1]
+                }
+                show_toast = true
+            },
+            onAltClick = {
+                if (current_state is SongLyrics) {
+                    TODO()
+                }
             }
-        }
+        ),
+        contentAlignment = Alignment.Center
+    ) {
 
         Crossfade(Pair(target_mode, mode_state.value)) { state ->
             val (target, current) = state
 
-            Row(
-                Modifier
-                    .background(LocalContentColor.current, RoundedCornerShape(10.dp))
-                    .graphicsLayer{ alpha = mode_toast_alpha.value * 0.8f }
-                    .clickable {
-                        if (mode_toast_alpha.value == 1f) {
-                            coroutine_scope.launchSingle {
-                                toast_alpha.animateTo(0f)
-                            }
-                        }
-                    },
-                verticalAlignment = Alignment.CenterVertically, 
-                horizontalArrangement = Arrangement.spacedBy(5.dp)
-            ) {
-                Icon(
-                    target.getIcon(),
-                    null,
-                    tint = LocalContentColor.current.getContrasted()
-                )
+            val toast_alpha = remember { Animatable(if (show_toast) 1f else 0f) }
+            LaunchedEffect(Unit) {
+                if (!show_toast) {
+                    return@LaunchedEffect
+                }
 
-                if (target != current) {
-                    Text(getString("topbar_mode_unavailable"))
+                show_toast = false
+                delay(500)
+                toast_alpha.animateTo(0f)
+            }
+
+            Box(Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
+                Box(
+                    Modifier
+                        .graphicsLayer { alpha = toast_alpha.value }
+                        .background(LocalContentColor.current, RoundedCornerShape(16.dp)),
+                ) {
+                    Row(
+                        Modifier.padding(vertical = 5.dp, horizontal = 15.dp),
+                        verticalAlignment = Alignment.CenterVertically,
+                        horizontalArrangement = Arrangement.spacedBy(5.dp)
+                    ) {
+                        val colour = LocalContentColor.current.getContrasted()
+                        Icon(
+                            target.getIcon(),
+                            null,
+                            tint = colour
+                        )
+
+                        if (target != current) {
+                            Text(getString("topbar_mode_unavailable"), color = colour)
+                        }
+                    }
                 }
             }
         }
 
-        Crossfade(
-            current_state,
-            modifier.platformClickable(
-                onClick = {
-                    if (target_mode.ordinal == 0) {
-                        target_mode = MusicTopBarMode.values().last()
-                    }
-                    else {
-                        target_mode = MusicTopBarMode.values()[target_mode.ordinal - 1]
-                    }
-                },
-                onAltClick = {
-                    if (current_state is SongLyrics) {
-                        TODO()
-                    }
-                }
-            )
-        ) { s ->
+        Crossfade(current_state) { s ->
             when (s) {
                 is SongLyrics -> {
                     val linger: Boolean by Settings.KEY_TOPBAR_LYRICS_LINGER.rememberMutableState()
@@ -138,5 +152,4 @@ fun MusicTopBar(
             }
         }
     }
-
 }

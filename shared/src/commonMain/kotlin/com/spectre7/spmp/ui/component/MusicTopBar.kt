@@ -21,6 +21,7 @@ import com.spectre7.spmp.model.mediaitem.Song
 import com.spectre7.spmp.model.SongLyrics
 import com.spectre7.spmp.platform.composable.platformClickable
 import com.spectre7.spmp.resources.getString
+import com.spectre7.spmp.ui.layout.nowplaying.LocalNowPlayingExpansion
 import com.spectre7.utils.composable.rememberSongUpdateLyrics
 import com.spectre7.utils.getContrasted
 import com.spectre7.utils.launchSingle
@@ -41,12 +42,12 @@ fun MusicTopBar(
     song: Song?,
     default_mode: MusicTopBarMode,
     modifier: Modifier = Modifier,
-    target_mode_state: MutableState<MusicTopBarMode> = remember { mutableStateOf(default_mode) },
-    mode_state: MutableState<MusicTopBarMode> = remember { mutableStateOf(MusicTopBarMode.NONE) }
+    target_mode_state: MutableState<MusicTopBarMode> = remember { mutableStateOf(default_mode) }
 ) {
+    val player = LocalPlayerState.current
+    val mode_state = LocalNowPlayingExpansion.current.top_bar_mode
     var target_mode by target_mode_state
     val song_state by rememberSongUpdateLyrics(song, target_mode == MusicTopBarMode.LYRICS)
-    val player = LocalPlayerState.current
 
     var show_toast by remember { mutableStateOf(false) }
     val visualiser_width: Float by Settings.KEY_TOPBAR_VISUALISER_WIDTH.rememberMutableState()

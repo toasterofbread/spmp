@@ -194,19 +194,24 @@ class PlayerStateImpl: PlayerState(null, null, null) {
 
     override lateinit var download_manager: PlayerDownloadManager
 
-    @Composable
     fun init(context: PlatformContext) {
         if (!initialised) {
             this.context = context
             download_manager = PlayerDownloadManager(context)
             initialised = true
+        }
+    }
 
-            val screen_height = context.getScreenHeight().value
+    @Composable
+    fun initComposable(context: PlatformContext) {
+        val screen_height = context.getScreenHeight().value
+        LaunchedEffect(Unit) {
             np_swipe_state.value.init(mapOf(screen_height * -0.5f to 0))
         }
     }
 
     fun release() {
+        println("PLAYER STATE RELEASED $_player")
         _player?.also {
             MediaPlayerService.disconnect(context, it)
             _player = null
@@ -284,7 +289,7 @@ class PlayerStateImpl: PlayerState(null, null, null) {
             player.playSong(item, start_radio = true, shuffle = shuffle)
         }
         else {
-            player.startRadioAtIndex(0, item, shuffle)
+            player.startRadioAtIndex(0, item, shuffle = shuffle)
         }
 
         if (np_swipe_state.value.targetValue == 0 && Settings.get(Settings.KEY_OPEN_NP_ON_SONG_PLAYED)) {

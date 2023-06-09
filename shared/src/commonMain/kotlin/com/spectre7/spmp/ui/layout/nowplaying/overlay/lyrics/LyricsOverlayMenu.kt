@@ -38,6 +38,7 @@ import com.spectre7.spmp.model.SongLyrics
 import com.spectre7.spmp.model.mediaitem.SongLyricsHolder
 import com.spectre7.spmp.platform.composable.BackHandler
 import com.spectre7.spmp.platform.composable.platformClickable
+import com.spectre7.spmp.resources.getString
 import com.spectre7.spmp.resources.getStringTODO
 import com.spectre7.spmp.ui.component.PillMenu
 import com.spectre7.spmp.ui.layout.nowplaying.LocalNowPlayingExpansion

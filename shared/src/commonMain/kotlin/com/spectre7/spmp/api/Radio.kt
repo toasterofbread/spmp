@@ -60,11 +60,9 @@ class RadioInstance {
         }
         else if (current_index in from..to) {
             state.item = state.item?.copy(second = current_index - 1)
-            println("MOVE RADIO INDEX DOWN")
         }
         else if (current_index in to .. from) {
             state.item = state.item?.copy(second = current_index + 1)
-            println("MOVE RADIO INDEX UP")
         }
     }
 

@@ -649,7 +649,7 @@ fun MediaItemList(
     numbered: Boolean = false,
     multiselect_context: MediaItemMultiSelectContext? = null
 ) {
-    MediaItemList(layout.items, modifier, numbered, layout.title, layout.subtitle, multiselect_context)
+    MediaItemList(layout.items, modifier, numbered, layout.title, layout.subtitle, layout.view_more, multiselect_context)
 }
 
 @Composable
@@ -659,6 +659,7 @@ fun MediaItemList(
     numbered: Boolean = false,
     title: LocalisedYoutubeString? = null,
     subtitle: LocalisedYoutubeString? = null,
+    view_more: MediaItemLayout.ViewMore? = null,
     multiselect_context: MediaItemMultiSelectContext? = null
 ) {
     Column(modifier) {
@@ -667,6 +668,7 @@ fun MediaItemList(
             title,
             subtitle,
             Modifier.padding(bottom = 5.dp),
+            view_more = view_more,
             multiselect_context = multiselect_context
         )
 

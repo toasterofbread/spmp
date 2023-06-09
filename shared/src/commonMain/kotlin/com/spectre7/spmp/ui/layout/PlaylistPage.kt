@@ -56,11 +56,11 @@ private enum class SortOption {
     PLAYLIST, ALPHABET, DURATION, PLAY_COUNT;
 
     fun getReadable(): String = 
-        getStringTODO(when(this) {
-            PLAYLIST -> "Playlist order"
-            ALPHABET -> "Name"
-            DURATION -> "Duration"
-            PLAY_COUNT -> "Listen count"
+        getString(when(this) {
+            PLAYLIST ->   "playlist_sort_option_playlist"
+            ALPHABET ->   "playlist_sort_option_alphabet"
+            DURATION ->   "playlist_sort_option_duration"
+            PLAY_COUNT -> "playlist_sort_option_playcount"
         })
 
     fun sortItems(items: List<MediaItem>, reversed: Boolean = false): List<MediaItem> = when (this) {
@@ -532,7 +532,7 @@ private fun TopInfoEditButtons(playlist: Playlist, accent_colour: Color, modifie
                     contentColor = accent_colour.getContrasted()
                 )
             ) {
-                Text(getStringTODO("Upload to account"))
+                Text(getString("playlist_upload_to_account"))
                 Spacer(Modifier.width(10.dp))
                 Crossfade(converting) { active ->
                     if (active) {
@@ -741,10 +741,7 @@ private fun PlaylistTopInfo(playlist: Playlist, accent_colour: Color, modifier: 
             }
             else {
                 Row(Modifier.fillMaxWidth(), verticalAlignment = Alignment.CenterVertically) {
-                    IconButton({ TODO() }) {
-                        Icon(Icons.Default.Radio, null)
-                    }
-                    IconButton({ TODO() }) {
+                    IconButton({ player.playMediaItem(playlist, true) }) {
                         Icon(Icons.Default.Shuffle, null)
                     }
                     Crossfade(playlist.pinned_to_home) { pinned ->

@@ -85,6 +85,13 @@
     <string name="queue_shuffle">Shuffle</string>
     <string name="queue_clear">Clear</string>
 
+    <string name="playlist_upload_to_account">Upload to account</string>
+
+    <string name="playlist_sort_option_playlist">Playlist order</string>
+    <string name="playlist_sort_option_alphabet">Name</string>
+    <string name="playlist_sort_option_duration">Duration</string>
+    <string name="playlist_sort_option_playcount">Listen count</string>
+
     <string name="playlist_chip_play">Play</string>
     <string name="playlist_chip_shuffle">Shuffle</string>
     <string name="playlist_chip_radio">Radio</string>
@@ -110,8 +117,6 @@
     <string name="now_playing_queue">Queue</string>
     <string name="now_playing_related">Related</string>
 
-    <string name="no_lyrics_found">No lyrics found</string>
-
     <string name="player_service_name">Player Service</string>
     <string name="download_service_name">Download Service</string>
     <string name="download_service_error_name">Download Service errors</string>
@@ -121,6 +126,12 @@
     <string name="search_entry_field_hint">Search</string>
     <string name="search_results_loading">Loading</string>
 
+    <string name="lyrics_none_found">No lyrics found</string>
+    <string name="lyrics_no_more_results">No more results</string>
+    <string name="lyrics_search">Search for lyrics</string>
+    <string name="lyrics_loading">Loading lyrics</string>
+    <string name="lyrics_select_sync_line">Select line to sync by</string>
+    
     <string name="lyrics_source_petitlyrics">PetitLyrics</string>
 
     <string name="lyrics_sync_none">No sync</string>
@@ -194,6 +205,10 @@
     <string name="radio_builder_modifier_filter_downbeat">Downbeat</string>
     <string name="radio_builder_modifier_filter_focus">Focus</string>
     <string name="radio_filter_all">All</string>
+    
+    <string name="settings_value_out_of_$range">Value is out of range ($range)</string>
+    <string name="settings_value_not_int">Value is not an integer</string>
+    <string name="settings_value_not_float">Value is not a float</string>
 
     <string name="s_page_preferences">Preferences</string>
 
@@ -366,6 +381,7 @@
     <string name="s_group_topbar">Music top bar</string>
     <string name="s_key_topbar_lyrics_linger">Lyrics linger</string>
     <string name="s_sub_topbar_lyrics_linger">When a line ends, it will remain visible until the next line begins</string>
+    <string name="s_key_topbar_visualiser_width">Visualiser width</string>
     <string name="s_key_topbar_default_mode_home">Default mode (main page)</string>
     <string name="s_key_topbar_default_mode_nowplaying">Default mode (now playing)</string>
     <string name="s_key_topbar_show_lyrics_in_queue">Show lyrics in music queue</string>
@@ -389,6 +405,10 @@
     <string name="discord_status_default_text_c">Listening on SpMp</string>
     <string name="discord_status_default_button_song">Open on YouTube</string>
     <string name="discord_status_default_button_project">Visit project page</string>
+
+    <string name="ytm_auth_not_signed_in">Not signed in</string>
+    <string name="ytm_auth_sign_in">Sign in</string>
+    <string name="ytm_auth_sign_out">Sign out</string>
 
     <string name="warning_ytm_login">You will be directed to an in-app webview in order to log into YouTube Music.&#xA;&#xA;Once logged in, your session cookie will be extracted, stored, and used only for API requests to YouTube Music such as getting your recommended feed and subscribing to artists.&#xA;&#xA;Continue?</string>
     <string name="info_ytm_login">You will be directed to an in-app webview in order to log into YouTube Music.&#xA;&#xA;Once logged in, your session cookie will be extracted, stored, and used only for API requests to YouTube Music such as getting your recommended feed and subscribing to artists.</string>

@@ -27,7 +27,7 @@ private fun getMusicTopBarGroup(): List<SettingsItem> {
 
         SettingsItemSlider(
             SettingsValueState<Float>(Settings.KEY_TOPBAR_VISUALISER_WIDTH.name),
-            getStringTODO("Visualiser width"), null,
+            getString("s_key_topbar_visualiser_width"), null,
             getValueText = { value ->
                 "${(value * 100f).roundToInt()}%"
             }

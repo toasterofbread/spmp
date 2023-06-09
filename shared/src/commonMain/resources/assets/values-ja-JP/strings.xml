@@ -7,11 +7,15 @@
     <string name="media_pause">停止</string>
     <string name="media_play">再生</string>
     <string name="now_playing_related">関係</string>
-    <string name="no_lyrics_found">歌詞が見つかりませんでした</string>
     <string name="player_service_name">プレイヤーサービス</string>
     <string name="s_cat_lyrics">歌詞</string>
     <string name="lyrics_source_petitlyrics">プチリリ</string>
     <string name="generic_error">エラーが発生しました</string>
+
+    <string name="settings_value_out_of_$range">入力は範囲外です （$range）</string>
+    <string name="settings_value_not_int">入力は整数ではありません</string>
+    <string name="settings_value_not_float">入力は数ではありません </string>
+
     <string name="s_page_preferences">設定</string>
     <string name="s_cat_theming">テーマ</string>
     <string name="s_key_accent_source">アクセント色</string>
@@ -120,18 +124,35 @@
     <string name="theme_title_default">デフォルトテーマ</string>
     <string name="queue_shuffle">シャッフル</string>
     <string name="queue_clear">クリア</string>
+
+    <string name="playlist_upload_to_account">アカウントにアップロードする</string>
+
+    <string name="playlist_sort_option_playlist">プレイリストの順番</string>
+    <string name="playlist_sort_option_alphabet">名前</string>
+    <string name="playlist_sort_option_duration">長さ</string>
+    <string name="playlist_sort_option_playcount">再生数</string>
+
     <string name="playlist_chip_play">再生</string>
     <string name="playlist_chip_shuffle">シャッフル</string>
     <string name="playlist_chip_radio">ラジオ</string>
     <string name="playlist_chip_details">情報</string>
     <string name="playlist_chip_open">開く</string>
-    <string name="artist_chip_open">開く</string>
     <string name="playlist_x_songs">$x曲</string>
-    <string name="download_service_name">ダウンロードサービス</string>
-    <string name="download_service_error_name">ダウンロードサービスエラー</string>
+
+    <string name="lyrics_none_found">歌詞が見つかりませんでした</string>
+    <string name="lyrics_no_more_results">以上</string>
+    <string name="lyrics_search">歌詞を探す</string>
+    <string name="lyrics_loading">歌詞をロード中</string>
+    <string name="lyrics_select_sync_line">シンクに使う行を選んでください</string>
+
     <string name="lyrics_sync_none">シンクなし</string>
     <string name="lyrics_sync_line">行をシンク</string>
     <string name="lyrics_sync_word">字をシンク</string>
+
+    <string name="artist_chip_open">開く</string>
+    <string name="download_service_name">ダウンロードサービス</string>
+    <string name="download_service_error_name">ダウンロードサービスエラー</string>
+    
     <string name="acc_ser_enable_dialog_btn_root">ルートを使う</string>
     <string name="s_key_feed_initial_rows">最初のフィード行数</string>
     <string name="s_sub_feed_initial_rows">自動的にロードするフィード行の最小数</string>
@@ -161,21 +182,6 @@
     <string name="s_sub_open_np_on_song_played">曲をタップしたときにプレーヤーが自動で開きます</string>
     <string name="s_key_multiselect_cancel_on_action">アクション後に複数選択を解除する</string>
     <string name="s_sub_multiselect_cancel_on_action">複数選択のアクションを使った後、複数選択モードが解除されます</string>
-
-    <string name="library_page_title">ライブラリ</string>
-    <string name="library_songs_page_title">保存済みの曲</string>
-
-    <string name="library_row_playlists">プレイリスト</string>
-    <string name="library_row_local_songs">保存済みの曲</string>
-    <string name="library_x_more_songs">他$x曲</string>
-    <string name="library_row_downloads">ダウンロード</string>
-    <string name="library_no_songs_downloaded">ダウンロードされている曲がありません</string>
-    <string name="library_playlists_empty">プレイリストはありません</string>
-    <string name="library_recent_songs_all">すべて</string>
-    <string name="library_recent_songs_year">年</string>
-    <string name="library_recent_songs_month">月</string>
-    <string name="library_recent_songs_week">週</string>
-    <string name="library_recent_songs_day">日</string>
 
     <string name="s_cat_home_page">メインページ</string>
 
@@ -246,6 +252,7 @@
     <string name="s_group_topbar">音楽トップバー</string>
     <string name="s_key_topbar_lyrics_linger">残り続ける歌詞</string>
     <string name="s_sub_topbar_lyrics_linger">行が終わっても、次の行が始まるまで表示されます</string>
+    <string name="s_key_topbar_visualiser_width">ビジュアライザーの横幅</string>
     <string name="s_key_topbar_default_mode_home">デフォルトモード (メインページ)</string>
     <string name="s_key_topbar_default_mode_nowplaying">デフォルトモード (プレイヤー)</string>
     <string name="s_key_topbar_show_lyrics_in_queue">歌詞を曲キューで表示</string>
@@ -269,6 +276,10 @@
     <string name="discord_status_default_text_c">Listening on SpMp</string>
     <string name="discord_status_default_button_song">Open on YouTube</string>
     <string name="discord_status_default_button_project">Visit project page</string>
+
+    <string name="ytm_auth_not_signed_in">ログインされていません</string>
+    <string name="ytm_auth_sign_in">ログイン</string>
+    <string name="ytm_auth_sign_out">ログアウト</string>
 
     <string name="warning_ytm_login">今からアプリ内で YouTube Music のログインページに移動します。&#xA;&#xA;ログインを終えたら、セッションクッキーを取って、保存し、オススメフィードやチャンネル登録などの YouTube Music への API リクエストのみに使います。&#xA;&#xA;よろしいですか？</string>
     <string name="info_ytm_login">アプリ内で YouTube Music のログインページに移動します。&#xA;&#xA;ログインを終えたら、セッションクッキーを取って、保存し、オススメフィードやチャンネル登録などの YouTube Music への API リクエストのみに使います。</string>
@@ -306,6 +317,21 @@
     <string name="notif_download_already_finished">ダウンロードはすでに完了しています</string>
     <string name="notif_download_cancelled">ダウンロードが停止されました</string>
     <string name="notif_download_already_downloading">ダウンロードはすでに開始されてます</string>
+
+    <string name="library_page_title">ライブラリ</string>
+    <string name="library_songs_page_title">保存済みの曲</string>
+
+    <string name="library_row_playlists">プレイリスト</string>
+    <string name="library_row_local_songs">保存済みの曲</string>
+    <string name="library_x_more_songs">他$x曲</string>
+    <string name="library_row_downloads">ダウンロード</string>
+    <string name="library_no_songs_downloaded">ダウンロードされている曲がありません</string>
+    <string name="library_playlists_empty">プレイリストはありません</string>
+    <string name="library_recent_songs_all">すべて</string>
+    <string name="library_recent_songs_year">年</string>
+    <string name="library_recent_songs_month">月</string>
+    <string name="library_recent_songs_week">週</string>
+    <string name="library_recent_songs_day">日</string>
 
     <string name="new_playlist_title">新しいプレイリスト</string>
     <string name="playlist_empty">プレイリストに曲が入ってません</string>

@@ -69,8 +69,6 @@ object SpMp {
     private var _yt_ui_translation: YoutubeUITranslation? = null
     val yt_ui_translation: YoutubeUITranslation get() = _yt_ui_translation!!
 
-    private var service_started = false
-
     private val prefs_change_listener =
         object : ProjectPreferences.Listener {
             override fun onChanged(prefs: ProjectPreferences, key: String) {
@@ -103,7 +101,12 @@ object SpMp {
         Cache.init(context)
         Api.initialise()
 
-        service_started = false
+        val player = GlobalPlayerState
+        player.init(context)
+        player.startService(
+            onConnected = { println("CONNECTED") },
+            onDisconnected = { println("DISCONNECTED") }
+        )
     }
 
     fun release() {
@@ -117,7 +120,7 @@ object SpMp {
             Theme.Update(context, MaterialTheme.colorScheme.primary)
 
             val player = GlobalPlayerState
-            player.init(context)
+            player.initComposable(context)
 
             LaunchedEffect(open_uri) {
                 if (open_uri != null) {
@@ -131,11 +134,6 @@ object SpMp {
                 if (player.service_connected) {
                     RootView(player)
                 }
-                else if (!service_started) {
-                    service_started = true
-                    player.startService { service_started = false }
-                }
-
                 error_manager.Indicator(Theme.current.accent_provider)
             }
         }

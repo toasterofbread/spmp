@@ -10,7 +10,7 @@ import com.spectre7.spmp.model.Settings
 import com.spectre7.spmp.model.YoutubeMusicAuthInfo
 import com.spectre7.spmp.model.mediaitem.MediaItemPreviewParams
 import com.spectre7.spmp.platform.ProjectPreferences
-import com.spectre7.spmp.resources.getStringTODO
+import com.spectre7.spmp.resources.getString
 import com.spectre7.spmp.ui.layout.YoutubeMusicLoginConfirmation
 
 internal fun getYtmAuthItem(ytm_auth: SettingsValueState<YoutubeMusicAuthInfo>, own_channel: MutableState<Artist?>): SettingsItem =

@@ -69,8 +69,7 @@ fun TopBar(modifier: Modifier = Modifier) {
                 song,
                 Settings.KEY_TOPBAR_DEFAULT_MODE_NOWPLAYING.getEnum(),
                 Modifier.fillMaxSize().weight(1f),
-                target_mode,
-                expansion.top_bar_mode
+                target_mode
             )
 
             IconButton(

@@ -84,7 +84,7 @@ fun LyricsSearchMenu(song: Song, modifier: Modifier = Modifier, close: (changed:
                             edit_page_open = false
                         }
                         else {
-                            SpMp.context.sendToast(getString("no_lyrics_found"))
+                            SpMp.context.sendToast(getString("lyrics_none_found"))
                         }
                     },
                     {
@@ -112,7 +112,7 @@ fun LyricsSearchMenu(song: Song, modifier: Modifier = Modifier, close: (changed:
                         Modifier
                             .background(Theme.current.accent, CircleShape)
                             .padding(10.dp)) {
-                        Text(getStringTODO("Search for lyrics"), color = on_accent)
+                        Text(getString("lyrics_search"), color = on_accent)
                     }
 
                     @Composable

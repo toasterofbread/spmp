@@ -187,13 +187,13 @@ class LyricsOverlayMenu(
                         }
 
                         AnimatedVisibility(selecting_sync_line) {
-                            Text(getStringTODO("Select line to sync with"))
+                            Text(getString("lyrics_select_sync_line"))
                         }
                     }
                 }
                 else {
                     Column(Modifier.size(size), horizontalAlignment = Alignment.CenterHorizontally, verticalArrangement = Arrangement.Center) {
-                        Text(getStringTODO("Loading lyrics"), fontWeight = FontWeight.Light)
+                        Text(getString("lyrics_loading"), fontWeight = FontWeight.Light)
                         Spacer(Modifier.height(20.dp))
                         LinearProgressIndicator(Modifier.fillMaxWidth(0.5f), color = Theme.current.accent, trackColor = Theme.current.on_accent)
                     }

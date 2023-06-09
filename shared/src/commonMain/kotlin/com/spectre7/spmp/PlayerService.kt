@@ -52,7 +52,9 @@ class PlayerService : MediaPlayerService() {
         }
     }
 
-    fun playSong(song: Song, start_radio: Boolean = true) {
+    fun playSong(song: Song, start_radio: Boolean = true, shuffle: Boolean = false) {
+        require(start_radio || !shuffle)
+        
         if (song == getSong() && start_radio) {
             clearQueue(keep_current = true, save = false)
         }
@@ -65,10 +67,16 @@ class PlayerService : MediaPlayerService() {
             }
         }
 
-        startRadioAtIndex(1, song, 0, true)
+        startRadioAtIndex(
+            1, 
+            song, 
+            0, 
+            skip_first = true, 
+            shuffle = shuffle
+        )
     }
 
-    fun startRadioAtIndex(index: Int, item: MediaItem? = null, item_index: Int? = null, skip_first: Boolean = false) {
+    fun startRadioAtIndex(index: Int, item: MediaItem? = null, item_index: Int? = null, skip_first: Boolean = false, shuffle: Boolean = false) {
         require(item_index == null || item != null)
 
         synchronized(radio) {
@@ -77,7 +85,7 @@ class PlayerService : MediaPlayerService() {
             val final_item = item ?: getSong(index)!!
             val final_index = if (item != null) item_index else index
 
-            radio.playMediaItem(final_item, final_index)
+            radio.playMediaItem(final_item, final_index, shuffle)
             radio.loadContinuation { result ->
                 context.mainThread {
                     if (result.isFailure) {

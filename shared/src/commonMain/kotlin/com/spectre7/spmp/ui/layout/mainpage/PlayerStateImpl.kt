@@ -280,15 +280,11 @@ class PlayerStateImpl: PlayerState(null, null, null) {
     }
 
     override fun playMediaItem(item: MediaItem, shuffle: Boolean) {
-        if (shuffle) {
-            TODO()
-        }
-
         if (item is Song) {
-            player.playSong(item)
+            player.playSong(item, start_radio = true, shuffle = shuffle)
         }
         else {
-            player.startRadioAtIndex(0, item)
+            player.startRadioAtIndex(0, item, shuffle)
         }
 
         if (np_swipe_state.value.targetValue == 0 && Settings.get(Settings.KEY_OPEN_NP_ON_SONG_PLAYED)) {

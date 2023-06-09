@@ -41,7 +41,7 @@ internal fun ColumnScope.LyricsSearchResults(results: List<LyricsSearchResult>, 
             items(results.size + 1, { if (it == results.size) 0 else results[it].id }) {
 
                 if (it == results.size) {
-                    Text(getStringTODO("No more results"), color = Theme.current.accent)
+                    Text(getString("lyrics_no_more_results"), color = Theme.current.accent)
                 }
                 else {
                     val result = results[it]

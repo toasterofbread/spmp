@@ -28,11 +28,12 @@ class RadioInstance {
 
     val filter_changed_listeners = ValueListeners<List<RadioModifier>?>()
 
-    fun playMediaItem(item: MediaItem, index: Int? = null) {
+    fun playMediaItem(item: MediaItem, index: Int? = null, shuffle: Boolean = false) {
         synchronized(lock) {
             cancelJob()
             state = RadioState()
             state.item = Pair(item, index)
+            state.shuffle = shuffle
         }
     }
 
@@ -72,6 +73,7 @@ class RadioInstance {
         var continuation: MediaItemLayout.Continuation? by mutableStateOf(null)
         var filters: List<List<RadioModifier>>? by mutableStateOf(null)
         var current_filter: Int? by mutableStateOf(null)
+        var shuffle: Boolean = false
     }
 
     fun setRadioState(new_state: RadioState) {
@@ -98,6 +100,15 @@ class RadioInstance {
         current_job = null
     }
 
+    private fun formatContinuationResult(result: Result<List<Song>>): Result<List<Song>> =
+        result.fold(
+            { songs ->
+                if (state.shuffle) Result.success(songs.shuffled())
+                else result
+            },
+            { result }
+        )
+
     fun loadContinuation(onStart: (() -> Unit)? = null, callback: (Result<List<Song>>) -> Unit) {
         synchronized(lock) {
             check(current_job == null)
@@ -106,7 +117,7 @@ class RadioInstance {
                 onStart?.invoke()
 
                 if (state.continuation == null) {
-                    callback(getInitialSongs())
+                    callback(formatContinuationResult(getInitialSongs()))
                     return@launch
                 }
 
@@ -125,7 +136,7 @@ class RadioInstance {
                     state.continuation = null
                 }
 
-                callback(Result.success(items.filterIsInstance<Song>()))
+                callback(formatContinuationResult(Result.success(items.filterIsInstance<Song>())))
             }
 
             current_job!!.invokeOnCompletion {

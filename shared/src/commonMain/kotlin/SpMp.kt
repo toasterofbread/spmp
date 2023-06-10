@@ -101,17 +101,19 @@ object SpMp {
         Cache.init(context)
         Api.initialise()
 
-        val player = GlobalPlayerState
-        player.init(context)
-        player.startService(
-            onConnected = { println("CONNECTED") },
-            onDisconnected = { println("DISCONNECTED") }
-        )
+        GlobalPlayerState.init(context)
     }
 
     fun release() {
-        GlobalPlayerState.release()
         _yt_ui_translation = null
+    }
+
+    fun onStart() {
+        GlobalPlayerState.onStart()
+    }
+
+    fun onStop() {
+        GlobalPlayerState.onStop()
     }
 
     @Composable

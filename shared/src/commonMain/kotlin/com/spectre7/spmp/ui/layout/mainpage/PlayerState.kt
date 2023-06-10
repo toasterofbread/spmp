@@ -144,6 +144,8 @@ open class PlayerState protected constructor(
 
     @Composable
     open fun nowPlayingTopOffset(base: Modifier): Modifier = upstream!!.nowPlayingTopOffset(base)
+    @Composable
+    open fun nowPlayingBottomPadding(): Dp = upstream!!.nowPlayingBottomPadding()
 
     open fun setOverlayPage(page: PlayerOverlayPage?, from_current: Boolean = false) { upstream!!.setOverlayPage(page, from_current) }
 

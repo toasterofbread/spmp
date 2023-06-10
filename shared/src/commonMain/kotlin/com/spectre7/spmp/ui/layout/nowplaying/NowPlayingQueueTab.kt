@@ -38,6 +38,7 @@ import com.spectre7.spmp.platform.vibrateShort
 import com.spectre7.spmp.resources.getString
 import com.spectre7.spmp.ui.component.multiselect.MediaItemMultiSelectContext
 import com.spectre7.spmp.ui.layout.mainpage.MINIMISED_NOW_PLAYING_HEIGHT
+import com.spectre7.spmp.ui.layout.mainpage.MINIMISED_NOW_PLAYING_V_PADDING
 import com.spectre7.utils.*
 import com.spectre7.utils.composable.Divider
 import com.spectre7.utils.composable.OnChangedEffect
@@ -209,7 +210,7 @@ fun QueueTab() {
         Box(
             Modifier
                 .fillMaxSize()
-                .padding(top = MINIMISED_NOW_PLAYING_HEIGHT.dp + (SpMp.context.getStatusBarHeight() * 0.5f) + top_bar_height)
+                .padding(top = MINIMISED_NOW_PLAYING_HEIGHT.dp + (SpMp.context.getStatusBarHeight() * 0.5f) + top_bar_height + MINIMISED_NOW_PLAYING_V_PADDING.dp)
                 .background(queue_background_colour, shape)
                 .clip(shape)
         ) {

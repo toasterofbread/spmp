@@ -58,7 +58,7 @@ fun ColumnScope.NowPlayingMainTab() {
     val player = LocalPlayerState.current
     val current_song: Song? = player.status.m_song
     val expansion = LocalNowPlayingExpansion.current
-    
+
     var theme_colour by remember { mutableStateOf<Color?>(null) }
     fun setThemeColour(value: Color?) {
         theme_colour = value
@@ -119,9 +119,16 @@ fun ColumnScope.NowPlayingMainTab() {
 
         ThumbnailRow(
             Modifier
-                .padding(top = MINIMISED_NOW_PLAYING_V_PADDING.dp * (1f - expansion.getBounded()).coerceAtLeast(0f))
+                .padding(
+                    top = MINIMISED_NOW_PLAYING_V_PADDING.dp
+                        * (1f - expansion.getBounded())
+                        .coerceAtLeast(0f)
+                )
                 .height(
-                    (expansion.getAbsolute() * (screen_width - (NOW_PLAYING_MAIN_PADDING.dp * 2))).coerceAtLeast(MINIMISED_NOW_PLAYING_HEIGHT.dp - (MINIMISED_NOW_PLAYING_V_PADDING.dp * 2))
+                    (expansion.getAbsolute() * (screen_width - (NOW_PLAYING_MAIN_PADDING.dp * 2)))
+                        .coerceAtLeast(
+                            MINIMISED_NOW_PLAYING_HEIGHT.dp - (MINIMISED_NOW_PLAYING_V_PADDING.dp * 2)
+                        )
                 )
                 .width(
                     screen_width -

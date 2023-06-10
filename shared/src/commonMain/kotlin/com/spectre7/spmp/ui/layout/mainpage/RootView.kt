@@ -1,8 +1,6 @@
 package com.spectre7.spmp.ui.layout.mainpage
 
-import androidx.compose.foundation.layout.Box
-import androidx.compose.foundation.layout.Column
-import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.foundation.layout.*
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Close
 import androidx.compose.material.icons.filled.MusicNote
@@ -10,23 +8,21 @@ import androidx.compose.material.icons.filled.Search
 import androidx.compose.material.icons.filled.Settings
 import androidx.compose.runtime.*
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.platform.LocalDensity
+import androidx.compose.ui.unit.Dp
+import androidx.compose.ui.unit.coerceAtLeast
+import androidx.compose.ui.unit.dp
 import com.spectre7.spmp.ui.theme.Theme
 import com.spectre7.utils.modifier.background
 
 const val MINIMISED_NOW_PLAYING_HEIGHT: Int = 64
-const val MINIMISED_NOW_PLAYING_V_PADDING: Int = 10
+const val MINIMISED_NOW_PLAYING_V_PADDING: Int = 7
 const val MEDIAITEM_PREVIEW_SQUARE_SIZE_SMALL: Float = 100f
 const val MEDIAITEM_PREVIEW_SQUARE_SIZE_LARGE: Float = 200f
 
 @Composable
 fun RootView(player: PlayerStateImpl) {
     player.LongPressMenu()
-
-    DisposableEffect(Unit) {
-        onDispose {
-            player.release()
-        }
-    }
 
     LaunchedEffect(player.overlay_page) {
         if (player.overlay_page == null) {

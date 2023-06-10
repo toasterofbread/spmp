@@ -90,7 +90,7 @@ class MediaPlayerServiceSession: MediaSessionService() {
     override fun onCreate() {
         super.onCreate()
 
-        initializeSessionAndPlayer()
+        initialiseSessionAndPlayer()
         createNotificationChannel()
         updatePlayerCustomActions(null)
 
@@ -130,6 +130,7 @@ class MediaPlayerServiceSession: MediaSessionService() {
         coroutine_scope.cancel()
         player.release()
         media_session.release()
+        clearListener()
         super.onDestroy()
     }
 
@@ -187,7 +188,7 @@ class MediaPlayerServiceSession: MediaSessionService() {
         }
     }
 
-    private fun initializeSessionAndPlayer() {
+    private fun initialiseSessionAndPlayer() {
         val renderers_factory = RenderersFactory { handler: Handler?, _, audioListener: AudioRendererEventListener?, _, _ ->
             arrayOf(
                 MediaCodecAudioRenderer(
@@ -261,8 +262,7 @@ class MediaPlayerServiceSession: MediaSessionService() {
                         .buildUpon()
                         .add(SessionCommand(COMMAND_SET_LIKE_TRUE, Bundle()))
                         .add(SessionCommand(COMMAND_SET_LIKE_NEUTRAL, Bundle()))
-                        .build()
-                    return MediaSession.ConnectionResult.accept(session_commands, result.availablePlayerCommands)
+                    return MediaSession.ConnectionResult.accept(session_commands.build(), result.availablePlayerCommands)
                 }
 
                 override fun onCustomCommand(

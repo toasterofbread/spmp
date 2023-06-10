@@ -59,6 +59,8 @@ expect class PlatformContext {
     fun getImeInsets(): WindowInsets?
     @Composable
     fun getSystemInsets(): WindowInsets?
+    @Composable
+    fun getNavigationBarHeight(): Dp
 
     fun getLightColorScheme(): ColorScheme
     fun getDarkColorScheme(): ColorScheme

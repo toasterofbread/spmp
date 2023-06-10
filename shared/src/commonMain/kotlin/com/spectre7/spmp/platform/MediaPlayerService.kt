@@ -104,7 +104,7 @@ expect open class MediaPlayerService() {
     companion object {
         fun CoroutineScope.playerLaunch(action: CoroutineScope.() -> Unit)
 
-        fun <T: MediaPlayerService> connect(context: PlatformContext, cls: Class<T>, onConnected: (service: T) -> Unit, onDisconnected: () -> Unit): Any
+        fun <T: MediaPlayerService> connect(context: PlatformContext, cls: Class<T>, instance: T? = null, onConnected: (service: T) -> Unit): Any
         fun disconnect(context: PlatformContext, connection: Any)
     }
 }

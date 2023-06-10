@@ -39,6 +39,7 @@ class PlayerService : MediaPlayerService() {
     var stop_after_current_song: Boolean by mutableStateOf(false)
     var active_queue_index: Int by mutableStateOf(0)
     private var song_marked_as_watched: Boolean = false
+    private val coroutine_scope = CoroutineScope(Job())
 
     private var discord_rpc: DiscordStatus? = null
     private var discord_status_update_job: Job? = null
@@ -87,7 +88,7 @@ class PlayerService : MediaPlayerService() {
 
             radio.playMediaItem(final_item, final_index, shuffle)
             radio.loadContinuation { result ->
-                context.mainThread {
+                coroutine_scope.launch(Dispatchers.Main) {
                     if (result.isFailure) {
                         SpMp.error_manager.onError("startRadioAtIndex", result.exceptionOrNull()!!)
                         savePersistentQueue()
@@ -575,11 +576,16 @@ class PlayerService : MediaPlayerService() {
 
             jobs.joinAll()
 
+            val to_add = songs.filterIsInstance<Song>()
+            if (to_add.isEmpty()) {
+                return@withContext
+            }
+
             SpMp.Log.info("loadPersistentQueue adding ${songs.size} songs to $pos_data")
 
             withContext(Dispatchers.Main) {
                 clearQueue(save = false)
-                addMultipleToQueue(songs.filterIsInstance<Song>(), 0)
+                addMultipleToQueue(to_add, 0)
                 seekToSong(pos_data[0].toInt())
                 seekTo(pos_data[1].toLong())
                 persistent_queue_loaded = true
@@ -635,6 +641,9 @@ class PlayerService : MediaPlayerService() {
     }
 
     override fun onDestroy() {
+        removeListener(player_listener)
+        coroutine_scope.cancel()
+
         radio.filter_changed_listeners.remove(this::onRadioFiltersChanged)
 
         update_timer?.cancel()

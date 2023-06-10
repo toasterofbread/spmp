@@ -88,9 +88,10 @@ kotlin {
                 api("androidx.core:core-ktx:1.9.0")
                 api("androidx.appcompat:appcompat:1.6.1")
 
-                implementation("androidx.media3:media3-exoplayer:1.0.2")
-                implementation("androidx.media3:media3-ui:1.0.2")
-                implementation("androidx.media3:media3-session:1.0.2")
+                val media3_version = "1.1.0-beta01"
+                implementation("androidx.media3:media3-exoplayer:$media3_version")
+                implementation("androidx.media3:media3-ui:$media3_version")
+                implementation("androidx.media3:media3-session:$media3_version")
 
                 implementation("com.google.accompanist:accompanist-pager:0.21.2-beta")
                 implementation("com.google.accompanist:accompanist-pager-indicators:0.21.2-beta")

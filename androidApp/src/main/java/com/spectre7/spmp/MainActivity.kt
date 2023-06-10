@@ -12,6 +12,7 @@ import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
 import androidx.core.view.WindowCompat
 import com.spectre7.spmp.platform.PlatformContext
+import java.util.concurrent.Future
 
 class MainActivity : ComponentActivity() {
     companion object {
@@ -28,27 +29,27 @@ class MainActivity : ComponentActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
 
-        Thread.setDefaultUncaughtExceptionHandler { _: Thread, error: Throwable ->
-            if (
-                error is java.nio.channels.UnresolvedAddressException // Thrown by Kizzy
-            ) {
-                SpMp.Log.warning("Skipping error: ${error.stackTraceToString()}")
-                return@setDefaultUncaughtExceptionHandler
-            }
-
-            error.printStackTrace()
-
-            startActivity(Intent(this@MainActivity, ErrorReportActivity::class.java).apply {
-                putExtra("message", error.message)
-                putExtra("stack_trace", error.stackTraceToString())
-            })
-        }
-
-        StrictMode.setVmPolicy(VmPolicy.Builder()
-            .detectLeakedClosableObjects()
-            .penaltyLog()
-            .build()
-        )
+//        Thread.setDefaultUncaughtExceptionHandler { _: Thread, error: Throwable ->
+//            if (
+//                error is java.nio.channels.UnresolvedAddressException // Thrown by Kizzy
+//            ) {
+//                SpMp.Log.warning("Skipping error: ${error.stackTraceToString()}")
+//                return@setDefaultUncaughtExceptionHandler
+//            }
+//
+//            error.printStackTrace()
+//
+//            startActivity(Intent(this@MainActivity, ErrorReportActivity::class.java).apply {
+//                putExtra("message", error.message)
+//                putExtra("stack_trace", error.stackTraceToString())
+//            })
+//        }
+//
+//        StrictMode.setVmPolicy(VmPolicy.Builder()
+//            .detectLeakedClosableObjects()
+//            .penaltyLog()
+//            .build()
+//        )
 
         window.setFlags(
             WindowManager.LayoutParams.FLAG_LAYOUT_NO_LIMITS,
@@ -71,6 +72,16 @@ class MainActivity : ComponentActivity() {
     override fun onDestroy() {
         SpMp.release()
         super.onDestroy()
+    }
+
+    override fun onStart() {
+        super.onStart()
+        SpMp.onStart()
+    }
+
+    override fun onStop() {
+        super.onStop()
+        SpMp.onStop()
     }
 
     // TODO

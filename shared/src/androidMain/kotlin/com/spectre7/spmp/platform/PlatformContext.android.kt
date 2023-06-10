@@ -1,5 +1,6 @@
 package com.spectre7.spmp.platform
 
+import SpMp
 import android.annotation.SuppressLint
 import android.app.*
 import android.content.Context
@@ -15,8 +16,10 @@ import android.os.Handler
 import android.os.Looper
 import android.os.VibrationEffect
 import android.os.VibratorManager
+import android.view.View
 import android.view.Window
 import android.view.WindowInsetsController.APPEARANCE_LIGHT_STATUS_BARS
+import android.view.WindowManager
 import android.widget.Toast
 import androidx.compose.foundation.layout.*
 import androidx.compose.material.icons.Icons
@@ -30,7 +33,6 @@ import androidx.compose.ui.graphics.toArgb
 import androidx.compose.ui.platform.*
 import androidx.compose.ui.text.AnnotatedString
 import androidx.compose.ui.text.font.Font
-import androidx.compose.ui.unit.Density
 import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
 import androidx.core.app.NotificationManagerCompat
@@ -43,6 +45,7 @@ import java.io.FileOutputStream
 import java.io.InputStream
 import kotlin.concurrent.thread
 import kotlin.properties.Delegates
+
 
 private const val DEFAULT_NOTIFICATION_CHANNEL_ID = "default_channel"
 private const val ERROR_NOTIFICATION_CHANNEL_ID = "download_error_channel"
@@ -81,8 +84,6 @@ actual class PlatformContext(private val context: Context) {
             }
         }
 
-
-
         throw RuntimeException()
     }
     actual fun setStatusBarColour(colour: Color, dark_icons: Boolean) {
@@ -96,6 +97,14 @@ actual class PlatformContext(private val context: Context) {
     actual fun getImeInsets(): WindowInsets? = WindowInsets.ime
     @Composable
     actual fun getSystemInsets(): WindowInsets? = WindowInsets.systemGestures
+
+    @Composable
+    @SuppressLint("InternalInsetResource", "DiscouragedApi")
+    actual fun getNavigationBarHeight(): Dp = with(LocalDensity.current) {
+        val resources = SpMp.context.ctx.resources
+        val resource_id = resources.getIdentifier("navigation_bar_height", "dimen", "android")
+        if (resource_id > 0) resources.getDimensionPixelSize(resource_id).toDp() else 0.dp
+    }
 
     actual fun getLightColorScheme(): ColorScheme = dynamicLightColorScheme(ctx)
     actual fun getDarkColorScheme(): ColorScheme = dynamicDarkColorScheme(ctx)
@@ -167,6 +176,7 @@ actual class PlatformContext(private val context: Context) {
         }
     }
 
+    // TODO Remove
     actual fun mainThread(block: () -> Unit) = runInMainThread(block)
     actual fun networkThread(block: () -> Unit): Thread = runInNetworkThread(block)
 
@@ -174,7 +184,7 @@ actual class PlatformContext(private val context: Context) {
 
     @Composable
     actual fun getScreenHeight(): Dp {
-        return LocalConfiguration.current.screenHeightDp.dp
+        return LocalConfiguration.current.screenHeightDp.dp + getStatusBarHeight()
     }
 
     @Composable

@@ -10,6 +10,7 @@ import androidx.media3.common.Player
 import androidx.media3.common.util.UnstableApi
 import androidx.media3.session.MediaController
 import androidx.media3.session.SessionToken
+import com.google.common.util.concurrent.ListenableFuture
 import com.google.common.util.concurrent.MoreExecutors
 import com.spectre7.spmp.exovisualiser.ExoVisualizer
 import com.spectre7.spmp.model.mediaitem.Song
@@ -339,9 +340,12 @@ actual open class MediaPlayerService {
             launch(Dispatchers.Main, block = action)
         }
 
-        actual fun <T: MediaPlayerService> connect(context: PlatformContext, cls: Class<T>, onConnected: (service: T) -> Unit, onDisconnected: () -> Unit) {
-            val session_token = SessionToken(context.ctx, ComponentName(context.ctx, MediaPlayerServiceSession::class.java))
-            val controller_future = MediaController.Builder(context.ctx, session_token).buildAsync()
+        actual fun <T: MediaPlayerService> connect(context: PlatformContext, cls: Class<T>, onConnected: (service: T) -> Unit, onDisconnected: () -> Unit): Any {
+            val controller_future = MediaController.Builder(
+                context.ctx,
+                SessionToken(context.ctx, ComponentName(context.ctx, MediaPlayerServiceSession::class.java))
+            ).buildAsync()
+
             controller_future.addListener(
                 {
                     val service = cls.newInstance()
@@ -352,9 +356,11 @@ actual open class MediaPlayerService {
                 },
                 MoreExecutors.directExecutor()
             )
+
+            return controller_future
         }
-        actual fun disconnect(context: PlatformContext, service: MediaPlayerService) {
-            service.release()
+        actual fun disconnect(context: PlatformContext, connection: Any) {
+            MediaController.releaseFuture(connection as ListenableFuture<MediaController>)
         }
     }
 }

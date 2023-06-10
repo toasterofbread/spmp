@@ -1,5 +1,6 @@
 package com.spectre7.spmp.ui.layout.mainpage
 
+import LocalPlayerState
 import SpMp
 import androidx.compose.animation.Crossfade
 import androidx.compose.animation.core.Animatable
@@ -210,30 +211,68 @@ class PlayerStateImpl: PlayerState(null, null, null) {
         }
     }
 
-    fun release() {
-        println("PLAYER STATE RELEASED $_player")
-        _player?.also {
-            MediaPlayerService.disconnect(context, it)
-            _player = null
-        }
+    fun onStart() {
+        check(!service_connecting)
+
+        service_connecting = true
+        service_connection = MediaPlayerService.connect(
+            context,
+            PlayerService::class.java,
+            onConnected = { service ->
+                synchronized(service_connected_listeners) {
+                    _player = service
+                    status = PlayerStatus(_player!!)
+                    service_connecting = false
+
+                    service_connected_listeners.forEach { it(service) }
+                    service_connected_listeners.clear()
+                }
+            },
+            onDisconnected = {
+                synchronized(service_connected_listeners) {
+                    _player = null
+                    service_connecting = false
+                }
+            }
+        )
+    }
+
+    fun onStop() {
+        MediaPlayerService.disconnect(context, service_connection)
         download_manager.release()
         SpMp.removeLowMemoryListener(low_memory_listener)
         Settings.prefs.removeListener(prefs_listener)
+    }
+
+    override fun interactService(action: (player: PlayerService) -> Unit) {
+        synchronized(service_connected_listeners) {
+            _player?.also {
+                action(it)
+                return
+            }
+
+            service_connected_listeners.add(action)
+        }
     }
 
     @Composable
     override fun nowPlayingTopOffset(base: Modifier): Modifier {
         val density = LocalDensity.current
         val screen_height = SpMp.context.getScreenHeight()
-        val keyboard_insets = SpMp.context.getImeInsets()
+        val bottom_padding = SpMp.context.getNavigationBarHeight()
 
         return base.offset {
             IntOffset(
                 0,
-                with (density) { (-np_swipe_state.value.offset.value.dp - (screen_height * 0.5f)).toPx().toInt() } -  (keyboard_insets?.getBottom(density) ?: 0)
+                with (density) {
+                    (-np_swipe_state.value.offset.value.dp - (screen_height * 0.5f) - bottom_padding).toPx().toInt()
+                }
             )
         }
     }
+
+    @Composable
+    override fun nowPlayingBottomPadding(): Dp = SpMp.context.getNavigationBarHeight()
 
     override fun setOverlayPage(page: PlayerOverlayPage?, from_current: Boolean) {
         val current = if (from_current) overlay_page?.second else null
@@ -523,53 +562,11 @@ class PlayerStateImpl: PlayerState(null, null, null) {
     val service_connected: Boolean get() = _player != null
 
     private var service_connecting = false
-    private var service_connected_listeners = mutableListOf<() -> Unit>()
+    private var service_connected_listeners = mutableListOf<(PlayerService) -> Unit>()
+    private lateinit var service_connection: Any
 
     override lateinit var status: PlayerStatus
         private set
-
-    fun startService(onConnected: (() -> Unit)? = null, onDisconnected: (() -> Unit)? = null) {
-        synchronized(service_connected_listeners) {
-            if (_player != null) {
-                onConnected?.invoke()
-                return
-            }
-            else if (service_connecting) {
-                onConnected?.also { service_connected_listeners.add(it) }
-                return
-            }
-        }
-
-        service_connecting = true
-        MediaPlayerService.connect(
-            context,
-            PlayerService::class.java,
-            onConnected = { service ->
-                synchronized(service_connected_listeners) {
-                    _player = service
-                    status = PlayerStatus(_player!!)
-                    service_connecting = false
-
-                    onConnected?.invoke()
-                    service_connected_listeners.forEach { it() }
-                    service_connected_listeners.clear()
-                }
-            },
-            onDisconnected = {
-                synchronized(service_connected_listeners) {
-                    _player = null
-                    service_connecting = false
-                    onDisconnected?.invoke()
-                }
-            }
-        )
-    }
-
-    override fun interactService(action: (player: PlayerService) -> Unit) {
-        startService({
-            _player?.also { action(it) }
-        })
-    }
 
     override fun isRunningAndFocused(): Boolean {
         if (!player.has_focus) {

@@ -62,7 +62,6 @@ fun ThumbnailRow(
     val disappear_scale = minOf(1f, if (expansion.getAbsolute() < 0.5f) 1f else (1f - ((expansion.getAbsolute() - 0.5f) * 2f)))
 
     LaunchedEffect(current_song) {
-        println("RESET")
         current_thumb_image = null
     }
 
@@ -95,7 +94,6 @@ fun ThumbnailRow(
                     MediaItemThumbnailProvider.Quality.HIGH,
                     contentColourProvider = { getNPOnBackground() },
                     onLoaded = {
-                        println("ONLOAD $it")
                         current_thumb_image = it
                         onThumbnailLoaded(song)
                     },

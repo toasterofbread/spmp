@@ -92,7 +92,15 @@ actual open class MediaPlayerService {
 
     actual val supports_visualiser: Boolean = true
 
-    actual open fun onCreate() {}
+    actual open fun onCreate() {
+        session_started = player.mediaItemCount > 0
+        for (i in 0 until player.mediaItemCount) {
+            val song = player.getMediaItemAt(i).getSong()
+            for (listener in listeners) {
+                listener.onSongAdded(i, song)
+            }
+        }
+    }
     actual open fun onDestroy() {}
 
     @Composable
@@ -195,7 +203,7 @@ actual open class MediaPlayerService {
         listeners.remove(listener)
     }
 
-    actual protected open fun onSongMoved(from: Int, to: Int) {}
+    protected actual open fun onSongMoved(from: Int, to: Int) {}
 
     actual fun undoableAction(action: MediaPlayerService.() -> Unit) {
         undoableActionWithCustom {
@@ -340,19 +348,20 @@ actual open class MediaPlayerService {
             launch(Dispatchers.Main, block = action)
         }
 
-        actual fun <T: MediaPlayerService> connect(context: PlatformContext, cls: Class<T>, onConnected: (service: T) -> Unit, onDisconnected: () -> Unit): Any {
+        actual fun <T: MediaPlayerService> connect(context: PlatformContext, cls: Class<T>, instance: T?, onConnected: (controller: T) -> Unit): Any {
+            val ctx = context.ctx.applicationContext
             val controller_future = MediaController.Builder(
-                context.ctx,
-                SessionToken(context.ctx, ComponentName(context.ctx, MediaPlayerServiceSession::class.java))
+                ctx,
+                SessionToken(ctx, ComponentName(ctx, MediaPlayerServiceSession::class.java))
             ).buildAsync()
 
             controller_future.addListener(
                 {
-                    val service = cls.newInstance()
-                    service.player = controller_future.get()
-                    service.context = context
-                    service.onCreate()
-                    onConnected(service)
+                    val controller = instance ?: cls.newInstance()
+                    controller.player = controller_future.get()
+                    controller.context = PlatformContext(ctx)
+                    controller.onCreate()
+                    onConnected(controller)
                 },
                 MoreExecutors.directExecutor()
             )

@@ -3,8 +3,10 @@ package com.spectre7.spmp.model.mediaitem.data
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.setValue
+import com.beust.klaxon.JsonArray
 import com.beust.klaxon.JsonObject
 import com.beust.klaxon.Klaxon
+import com.beust.klaxon.KlaxonException
 import com.spectre7.spmp.api.Api
 import com.spectre7.spmp.api.TextRun
 import com.spectre7.spmp.model.Cache
@@ -130,8 +132,16 @@ open class MediaItemData(open val data_item: MediaItem) {
     fun load() {
         val reader = getDataReader() ?: return
         thread {
-            val array = Api.klaxon.parseJsonArray(reader)
-            reader.close()
+            val array: JsonArray<*>
+            try {
+                array = Api.klaxon.parseJsonArray(reader)
+            }
+            catch (_: KlaxonException) {
+                return@thread
+            }
+            finally {
+                reader.close()
+            }
 
             runBlocking {
                 var retries = 5

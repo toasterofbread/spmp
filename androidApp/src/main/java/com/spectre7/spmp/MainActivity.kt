@@ -12,44 +12,39 @@ import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
 import androidx.core.view.WindowCompat
 import com.spectre7.spmp.platform.PlatformContext
-import java.util.concurrent.Future
 
 class MainActivity : ComponentActivity() {
-    companion object {
-        init {
-            PlatformContext.main_activity = MainActivity::class.java
-            PlatformContext.ic_spmp = R.drawable.ic_spmp
-            PlatformContext.ic_thumb_up = R.drawable.ic_thumb_up
-            PlatformContext.ic_thumb_up_off = R.drawable.ic_thumb_up_off
-            PlatformContext.ic_skip_next = R.drawable.ic_skip_next
-            PlatformContext.ic_skip_previous = R.drawable.ic_skip_previous
-        }
-    }
-
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
 
-//        Thread.setDefaultUncaughtExceptionHandler { _: Thread, error: Throwable ->
-//            if (
-//                error is java.nio.channels.UnresolvedAddressException // Thrown by Kizzy
-//            ) {
-//                SpMp.Log.warning("Skipping error: ${error.stackTraceToString()}")
-//                return@setDefaultUncaughtExceptionHandler
-//            }
-//
-//            error.printStackTrace()
-//
-//            startActivity(Intent(this@MainActivity, ErrorReportActivity::class.java).apply {
-//                putExtra("message", error.message)
-//                putExtra("stack_trace", error.stackTraceToString())
-//            })
-//        }
-//
-//        StrictMode.setVmPolicy(VmPolicy.Builder()
-//            .detectLeakedClosableObjects()
-//            .penaltyLog()
-//            .build()
-//        )
+        PlatformContext.main_activity = MainActivity::class.java
+        PlatformContext.ic_spmp = R.drawable.ic_spmp
+        PlatformContext.ic_thumb_up = R.drawable.ic_thumb_up
+        PlatformContext.ic_thumb_up_off = R.drawable.ic_thumb_up_off
+        PlatformContext.ic_skip_next = R.drawable.ic_skip_next
+        PlatformContext.ic_skip_previous = R.drawable.ic_skip_previous
+
+        Thread.setDefaultUncaughtExceptionHandler { _: Thread, error: Throwable ->
+            if (
+                error is java.nio.channels.UnresolvedAddressException // Thrown by Kizzy
+            ) {
+                SpMp.Log.warning("Skipping error: ${error.stackTraceToString()}")
+                return@setDefaultUncaughtExceptionHandler
+            }
+
+            error.printStackTrace()
+
+            startActivity(Intent(this@MainActivity, ErrorReportActivity::class.java).apply {
+                putExtra("message", error.message)
+                putExtra("stack_trace", error.stackTraceToString())
+            })
+        }
+
+        StrictMode.setVmPolicy(VmPolicy.Builder()
+            .detectLeakedClosableObjects()
+            .penaltyLog()
+            .build()
+        )
 
         window.setFlags(
             WindowManager.LayoutParams.FLAG_LAYOUT_NO_LIMITS,

@@ -4,6 +4,7 @@ import GlobalPlayerState
 import android.app.NotificationChannel
 import android.app.NotificationManager
 import android.app.PendingIntent
+import android.content.Intent
 import android.graphics.Bitmap
 import android.net.Uri
 import android.os.Build
@@ -132,6 +133,10 @@ class MediaPlayerServiceSession: MediaSessionService() {
         media_session.release()
         clearListener()
         super.onDestroy()
+    }
+
+    override fun onTaskRemoved(rootIntent: Intent?) {
+        super.onTaskRemoved(rootIntent)
     }
 
     private fun updatePlayerCustomActions(like_status: SongLikeStatus.Status?) {

@@ -12,7 +12,6 @@ import com.spectre7.spmp.model.mediaitem.MediaItem
 import com.spectre7.spmp.model.mediaitem.Song
 import com.spectre7.spmp.platform.MediaPlayerRepeatMode
 import com.spectre7.spmp.platform.MediaPlayerService
-import com.spectre7.spmp.platform.PlatformContext
 import com.spectre7.spmp.platform.PlayerDownloadManager
 import com.spectre7.spmp.ui.component.LongPressMenuData
 import com.spectre7.spmp.ui.component.PillMenu

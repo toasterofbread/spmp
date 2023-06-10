@@ -1,6 +1,5 @@
 package com.spectre7.spmp.ui.layout.mainpage
 
-import LocalPlayerState
 import SpMp
 import androidx.compose.animation.Crossfade
 import androidx.compose.animation.core.Animatable
@@ -191,7 +190,7 @@ class PlayerStateImpl: PlayerState(null, null, null) {
     }
 
     private var initialised: Boolean = false
-    private lateinit var context: PlatformContext
+    lateinit var context: PlatformContext
 
     override lateinit var download_manager: PlayerDownloadManager
 
@@ -218,23 +217,17 @@ class PlayerStateImpl: PlayerState(null, null, null) {
         service_connection = MediaPlayerService.connect(
             context,
             PlayerService::class.java,
-            onConnected = { service ->
-                synchronized(service_connected_listeners) {
-                    _player = service
-                    status = PlayerStatus(_player!!)
-                    service_connecting = false
+            _player
+        ) { service ->
+            synchronized(service_connected_listeners) {
+                _player = service
+                status = PlayerStatus(_player!!)
+                service_connecting = false
 
-                    service_connected_listeners.forEach { it(service) }
-                    service_connected_listeners.clear()
-                }
-            },
-            onDisconnected = {
-                synchronized(service_connected_listeners) {
-                    _player = null
-                    service_connecting = false
-                }
+                service_connected_listeners.forEach { it(service) }
+                service_connected_listeners.clear()
             }
-        )
+        }
     }
 
     fun onStop() {

@@ -37,7 +37,6 @@ import com.spectre7.utils.composable.ShapedIconButton
 import com.spectre7.utils.composable.WidthShrinkText
 import com.spectre7.utils.getContrasted
 import com.spectre7.utils.isDebugBuild
-import com.spectre7.utils.launchSingle
 import kotlinx.coroutines.launch
 
 val SONG_THUMB_CORNER_ROUNDING = 10.dp

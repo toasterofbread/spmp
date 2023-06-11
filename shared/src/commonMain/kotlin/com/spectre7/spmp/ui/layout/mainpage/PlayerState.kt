@@ -170,7 +170,7 @@ open class PlayerState protected constructor(
     open fun openPage(page: PlayerOverlayPage, from_current: Boolean = false) { upstream!!.openPage(page, from_current) }
     open fun openMediaItem(item: MediaItem, from_current: Boolean = false) { upstream!!.openMediaItem(item, from_current) }
     open fun playMediaItem(item: MediaItem, shuffle: Boolean = false) { upstream!!.playMediaItem(item, shuffle) }
-    open fun openViewMoreURL(url: String) { upstream!!.openViewMoreURL(url) }
+    open fun openViewMorePage(browse_id: String) { upstream!!.openViewMorePage(browse_id) }
 
     open fun onMediaItemPinnedChanged(item: MediaItem, pinned: Boolean) { upstream!!.onMediaItemPinnedChanged(item, pinned) }
 

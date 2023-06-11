@@ -141,15 +141,22 @@ class LyricsOverlayMenu(
                 )
             }
 
-            Crossfade(Triple(submenu, songProvider(), lyrics_holder.lyrics), Modifier.fillMaxSize()) {
-                val (current_submenu, song, lyrics) = it
+            Crossfade(Triple(submenu, songProvider(), lyrics_holder.lyrics), Modifier.fillMaxSize()) { state ->
+                val (current_submenu, song, lyrics) = state
 
                 if (current_submenu == LyricsOverlaySubmenu.SEARCH) {
                     LyricsSearchMenu(songProvider(), Modifier.fillMaxSize()) { changed ->
                         submenu = null
                         if (changed) {
                             coroutine_scope.launchSingle {
-                                songProvider().lyrics.loadAndGet()
+                                val result = songProvider().lyrics.loadAndGet()
+                                result.fold(
+                                    {},
+                                    { error ->
+                                        // TODO
+                                        SpMp.context.sendToast(error.toString())
+                                    }
+                                )
                             }
                         }
                     }

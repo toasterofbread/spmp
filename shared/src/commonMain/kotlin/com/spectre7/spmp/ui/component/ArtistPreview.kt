@@ -144,17 +144,16 @@ fun getArtistLongPressMenuData(
 @Composable
 private fun LongPressMenuActionProvider.ArtistLongPressPopupActions(artist: MediaItem) {
     require(artist is Artist)
-
-    // TODO | Should radio actions be replaced with shuffle?
+    val player = LocalPlayerState.current
 
     ActionButton(
         Icons.Default.PlayArrow, 
         getString("lpm_action_play"), 
         onClick = {
-            TODO() // Play songs
+            player.playMediaItem(artist)
         },
         onLongClick = {
-            TODO() // Play radio
+            player.playMediaItem(artist, shuffle = true)
         }
     )
 
@@ -170,7 +169,6 @@ private fun LongPressMenuActionProvider.ArtistLongPressPopupActions(artist: Medi
         }
     )
 
-    val player = LocalPlayerState.current
     ActionButton(Icons.Default.Person, getString("lpm_action_open_artist"), onClick = {
         player.openMediaItem(artist)
     })

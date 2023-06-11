@@ -460,13 +460,18 @@ private fun CurrentRadioIndicator(
         Crossfade(if (show_radio_info) radio_item else if (multiselect_context.is_active) true else filters ?: radio_item) { state ->
             when (state) {
                 is MediaItem ->
-                    state.PreviewLong(
-                        MediaItemPreviewParams(
+                    Box(
+                        Modifier
+                            .fillMaxWidth()
+                            .padding(horizontal = horizontal_padding)
+                            .background(RoundedCornerShape(45), accentColourProvider)
+                    ) {
+                        state.PreviewLong(MediaItemPreviewParams(
                             Modifier
-                                .padding(end = horizontal_padding)
-                                .background(RoundedCornerShape(45), accentColourProvider)
-                        )
-                    )
+                                .fillMaxWidth()
+                                .padding(horizontal = 5.dp, vertical = 3.dp)
+                        ))
+                    }
                 true ->
                     multiselect_context.InfoDisplay(
                         Modifier

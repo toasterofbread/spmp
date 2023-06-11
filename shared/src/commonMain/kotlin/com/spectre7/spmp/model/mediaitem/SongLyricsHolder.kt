@@ -14,30 +14,28 @@ class SongLyricsHolder(private val song: Song) {
 
     private val load_lock = Object()
 
-    suspend fun loadAndGet(): SongLyrics? {
-        withContext(Dispatchers.IO) {
-            synchronized(load_lock) {
-                if (loading) {
-                    load_lock.wait()
-                    return@withContext lyrics
-                }
-                loading = true
+    suspend fun loadAndGet(): Result<SongLyrics> = withContext(Dispatchers.IO) {
+        synchronized(load_lock) {
+            if (loading) {
+                load_lock.wait()
+                return@withContext lyrics?.let { Result.success(it) } ?: Result.failure(RuntimeException("Lyrics not loaded"))
             }
+            loading = true
+        }
 
-            coroutineContext.job.invokeOnCompletion {
-                synchronized(load_lock) {
-                    loading = false
-                    load_lock.notifyAll()
-                }
-            }
-
-            val result = getSongLyrics(song, song.song_reg_entry.getLyricsData())
+        coroutineContext.job.invokeOnCompletion {
             synchronized(load_lock) {
-                loaded = true
-                lyrics = result
+                loading = false
+                load_lock.notifyAll()
             }
         }
 
-        return lyrics
+        val result = getSongLyrics(song, song.song_reg_entry.getLyricsData())
+        synchronized(load_lock) {
+            loaded = true
+            lyrics = result.getOrNull()
+        }
+
+        return@withContext result
     }
 }

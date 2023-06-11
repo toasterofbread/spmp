@@ -36,7 +36,6 @@ import com.spectre7.spmp.model.*
 import com.spectre7.spmp.model.mediaitem.*
 import com.spectre7.spmp.model.mediaitem.enums.MediaItemType
 import com.spectre7.spmp.model.mediaitem.enums.PlaylistType
-import com.spectre7.spmp.model.mediaitem.enums.SongType
 import com.spectre7.spmp.model.mediaitem.enums.getReadable
 import com.spectre7.spmp.platform.composable.rememberImagePainter
 import com.spectre7.spmp.resources.getString
@@ -47,7 +46,7 @@ import com.spectre7.utils.composable.WidthShrinkText
 import com.spectre7.utils.modifier.background
 import okhttp3.Request
 
-private fun getDefaultItemSize(): DpSize = DpSize(100.dp, 130.dp)
+fun getDefaultMediaItemPreviewSize(): DpSize = DpSize(100.dp, 130.dp)
 
 data class MediaItemLayout(
     val title: LocalisedYoutubeString?,
@@ -59,7 +58,7 @@ data class MediaItemLayout(
     var view_more: ViewMore? = null,
     var continuation: Continuation? = null,
     @Json(ignored = true)
-    var itemSizeProvider: @Composable () -> DpSize = { getDefaultItemSize() }
+    var itemSizeProvider: @Composable () -> DpSize = { getDefaultMediaItemPreviewSize() }
 ) {
     init {
         title?.getString()
@@ -184,7 +183,7 @@ data class MediaItemLayout(
     }
 
     data class ViewMore(
-        val list_page_url: String? = null,
+        val list_page_browse_id: String? = null,
         val media_item: MediaItem? = null,
         val action: (() -> Unit)? = null,
 
@@ -192,7 +191,7 @@ data class MediaItemLayout(
         val browse_params: String? = null
     ) {
         var layout: MediaItemLayout? by mutableStateOf(null)
-        init { check(list_page_url != null || media_item != null || action != null) }
+        init { check(list_page_browse_id != null || media_item != null || action != null) }
 
         suspend fun loadLayout(): Result<MediaItemLayout> {
             check(media_item != null)
@@ -328,8 +327,8 @@ private fun TitleBar(
                             if (view_more.media_item != null) {
                                 player.openMediaItem(view_more.media_item, true)
                             }
-                            else if (view_more.list_page_url != null) {
-                                TODO(view_more.list_page_url)
+                            else if (view_more.list_page_browse_id != null) {
+                                player.openViewMorePage(view_more.list_page_browse_id)
                             }
                             else if (view_more.action != null) {
                                 view_more.action.invoke()
@@ -584,7 +583,17 @@ fun MediaItemGrid(
     multiselect_context: MediaItemMultiSelectContext? = null,
     startContent: (LazyGridScope.() -> Unit)? = null
 ) {
-    MediaItemGrid(layout.items, modifier, rows, layout.title, layout.subtitle, layout.view_more, layout.itemSizeProvider, multiselect_context, startContent)
+    MediaItemGrid(
+        layout.items,
+        modifier,
+        rows,
+        layout.title,
+        layout.subtitle,
+        layout.view_more,
+        itemSizeProvider = layout.itemSizeProvider,
+        multiselect_context = multiselect_context,
+        startContent = startContent
+    )
 }
 
 @OptIn(ExperimentalFoundationApi::class)
@@ -596,7 +605,8 @@ fun MediaItemGrid(
     title: LocalisedYoutubeString? = null,
     subtitle: LocalisedYoutubeString? = null,
     view_more: MediaItemLayout.ViewMore? = null,
-    itemSizeProvider: @Composable () -> DpSize = { getDefaultItemSize() },
+    content_padding: PaddingValues = PaddingValues(),
+    itemSizeProvider: @Composable () -> DpSize = { getDefaultMediaItemPreviewSize() },
     multiselect_context: MediaItemMultiSelectContext? = null,
     startContent: (LazyGridScope.() -> Unit)? = null
 ) {
@@ -618,7 +628,8 @@ fun MediaItemGrid(
                 rows = GridCells.Fixed(row_count),
                 modifier = Modifier.height(item_size.height * row_count).fillMaxWidth(),
                 horizontalArrangement = item_spacing,
-                verticalArrangement = item_spacing
+                verticalArrangement = item_spacing,
+                contentPadding = content_padding
             ) {
                 startContent?.invoke(this)
 

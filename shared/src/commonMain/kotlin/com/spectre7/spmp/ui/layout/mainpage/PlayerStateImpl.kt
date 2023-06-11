@@ -65,13 +65,6 @@ interface PlayerOverlayPage {
         }
     }
 
-    data class FeedViewMorePage(private val url: String): PlayerOverlayPage {
-        @Composable
-        override fun getPage(pill_menu: PillMenu, previous_item: MediaItemHolder?, bottom_padding: Dp, close: () -> Unit) {
-            TODO(url)
-        }
-    }
-
     data class YtmLoginPage(private val manual: Boolean = false): PlayerOverlayPage {
         @Composable
         override fun getPage(pill_menu: PillMenu, previous_item: MediaItemHolder?, bottom_padding: Dp, close: () -> Unit) {
@@ -88,7 +81,21 @@ interface PlayerOverlayPage {
         }
     }
 
+    private data class GenericFeedViewMorePage(private val browse_id: String): PlayerOverlayPage {
+        @Composable
+        override fun getPage(pill_menu: PillMenu, previous_item: MediaItemHolder?, bottom_padding: Dp, close: () -> Unit) {
+            GenericFeedViewMorePage(browse_id, Modifier.fillMaxSize(), bottom_padding = bottom_padding)
+        }
+    }
+
     companion object {
+        fun getViewMorePage(browse_id: String): PlayerOverlayPage = when (browse_id) {
+            "FEmusic_listen_again", "FEmusic_mixed_for_you", "FEmusic_new_releases_albums" -> GenericFeedViewMorePage(browse_id)
+            "FEmusic_moods_and_genres" -> TODO(browse_id)
+            "FEmusic_charts" -> TODO(browse_id)
+            else -> throw NotImplementedError(browse_id)
+        }
+
         val RadioBuilderPage = object : PlayerOverlayPage {
             @Composable
             override fun getPage(pill_menu: PillMenu, previous_item: MediaItemHolder?, bottom_padding: Dp, close: () -> Unit) {
@@ -312,8 +319,8 @@ class PlayerStateImpl: PlayerState(null, null, null) {
         openPage(PlayerOverlayPage.MediaItemPage(item.getHolder()), from_current)
     }
 
-    override fun openViewMoreURL(url: String) { 
-        openPage(PlayerOverlayPage.FeedViewMorePage(url))
+    override fun openViewMorePage(browse_id: String) {
+        openPage(PlayerOverlayPage.getViewMorePage(browse_id))
     }
 
     override fun playMediaItem(item: MediaItem, shuffle: Boolean) {
@@ -440,7 +447,8 @@ class PlayerStateImpl: PlayerState(null, null, null) {
         min_rows: Int,
         allow_cached: Boolean,
         continue_feed: Boolean,
-        filter_chip: Int? = null
+        filter_chip: Int? = null,
+        report_error: Boolean = false
     ): Result<Unit> = withContext(Dispatchers.IO) {
         main_page_selected_filter_chip = filter_chip
 
@@ -458,7 +466,9 @@ class PlayerStateImpl: PlayerState(null, null, null) {
 
         val result = loadFeedLayouts(min_rows, allow_cached, filter_params, if (continue_feed) feed_continuation else null)
         if (result.isFailure) {
-            SpMp.error_manager.onError("loadFeed", result.exceptionOrNull()!!)
+            if (report_error) {
+                SpMp.reportActionError(result.exceptionOrNull())
+            }
             main_page_layouts = emptyList()
             main_page_filter_chips = null
         } else {
@@ -530,7 +540,7 @@ class PlayerStateImpl: PlayerState(null, null, null) {
                         pill_menu,
                         { filter_chip: Int?, continuation: Boolean ->
                             feed_coroutine_scope.launchSingle {
-                                loadFeed(-1, false, continuation, filter_chip)
+                                loadFeed(-1, false, continuation, filter_chip, report_error = true)
                             }
                         }
                     )

@@ -161,7 +161,7 @@ private fun MenuContent(
 
     Box(
         Modifier
-            .requiredHeight(SpMp.context.getScreenHeight() + 1.dp)
+            .requiredHeight(SpMp.context.getScreenHeight() + SpMp.context.getNavigationBarHeight())
             .offset(y = -SpMp.context.getStatusBarHeight())
             .background(Color.Black.setAlpha(0.5f))
     ) {
@@ -186,6 +186,7 @@ private fun MenuContent(
             Column(
                 modifier
                     .background(Theme.current.background, shape)
+                    .padding(bottom = SpMp.context.getNavigationBarHeight())
                     .fillMaxWidth()
                     .onSizeChanged {
                         if (show_info || !main_actions_showing) {

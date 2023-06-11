@@ -35,7 +35,9 @@ import com.spectre7.spmp.ui.component.multiselect.MediaItemMultiSelectContext
 import com.spectre7.spmp.ui.theme.Theme
 import com.spectre7.utils.*
 import com.spectre7.utils.composable.*
+import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
+import kotlinx.coroutines.withContext
 import kotlin.concurrent.thread
 import kotlin.math.ceil
 
@@ -57,22 +59,14 @@ fun RadioBuilderPage(
 ) {
     val player = LocalPlayerState.current
 
-    var available_artists: List<RadioBuilderArtist>? by remember { mutableStateOf(null) }
+    var artists_result: Result<List<RadioBuilderArtist>>? by remember { mutableStateOf(null) }
     var selected_artists: Set<Int>? by remember { mutableStateOf(null) }
 
     LaunchedEffect(Unit) {
-        thread {
-            val result = getRadioBuilderArtists { thumbnails ->
+        withContext(Dispatchers.IO) {
+            artists_result = getRadioBuilderArtists { thumbnails ->
                 thumbnails.maxBy { it.width * it.height }
             }
-            result.fold(
-                { artists ->
-                    available_artists = artists
-                },
-                { exception ->
-                    SpMp.error_manager.onError("radio_builder_artists", exception)
-                }
-            )
         }
     }
 
@@ -103,7 +97,13 @@ fun RadioBuilderPage(
             }
 
             if (selected == null) {
-                RadioArtistSelector(available_artists, pill_menu, Modifier.fillMaxSize()) { selected_artists = it.toSet() }
+                if (artists_result?.isFailure == true) {
+                    // TODO
+                    SpMp.ErrorDisplay(artists_result?.exceptionOrNull())
+                }
+                else {
+                    RadioArtistSelector(artists_result?.getOrNull(), pill_menu, Modifier.fillMaxSize()) { selected_artists = it.toSet() }
+                }
             }
             else {
                 BackHandler {
@@ -133,7 +133,7 @@ fun RadioBuilderPage(
                     }
 
                     val radio_token = buildRadioToken(
-                        selected_artists!!.map { available_artists!![it] }.toSet(),
+                        selected_artists!!.map { artists_result!!.getOrThrow()[it] }.toSet(),
                         setOf(selection_type.value, artist_variety.value, filter_a.value, filter_b.value)
                     )
 
@@ -201,7 +201,7 @@ fun RadioBuilderPage(
                                     Row {
                                         SpMp.context.CopyShareButtons(name = "") {
                                             buildRadioToken(
-                                                selected_artists!!.map { i -> available_artists!![i] }.toSet(),
+                                                selected_artists!!.map { i -> artists_result!!.getOrThrow()[i] }.toSet(),
                                                 setOf(selection_type.value, artist_variety.value, filter_a.value, filter_b.value)
                                             )
                                         }

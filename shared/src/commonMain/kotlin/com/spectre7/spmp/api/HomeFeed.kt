@@ -164,66 +164,29 @@ private fun processRows(rows: List<YoutubeiShelf>, hl: String): List<MediaItemLa
                     continue
                 }
 
-                when (browse_endpoint.browseId) {
-                    "FEmusic_listen_again" -> {
-                        if (Settings.get(Settings.KEY_FEED_SHOW_LISTEN_ROW)) {
-                            add(
-                                LocalisedYoutubeString.app("home_feed_listen_again"),
-                                null,
-                                thumbnail_source = null,
-                                view_more = MediaItemLayout.ViewMore(list_page_url = "https://music.youtube.com/listen_again")
-                            )
-                        }
-                        continue
-                    }
-                    "FEmusic_mixed_for_you" -> {
-                        if (Settings.get(Settings.KEY_FEED_SHOW_MIX_ROW)) {
-                            add(
-                                LocalisedYoutubeString.app("home_feed_mixed_for_you"),
-                                null,
-                                view_more = MediaItemLayout.ViewMore(list_page_url = "https://music.youtube.com/mixed_for_you")
-                            )
-                        }
-                        continue
-                    }
-                    "FEmusic_new_releases_albums" -> {
-                        if (Settings.get(Settings.KEY_FEED_SHOW_NEW_ROW)) {
-                            add(
-                                LocalisedYoutubeString.app("home_feed_new_releases"),
-                                null,
-                                view_more = MediaItemLayout.ViewMore(list_page_url = "https://music.youtube.com/new_releases/albums")
-                            )
-                        }
-                        continue
-                    }
-                    "FEmusic_moods_and_genres" -> {
-                        if (Settings.get(Settings.KEY_FEED_SHOW_MOODS_ROW)) {
-                            add(
-                                LocalisedYoutubeString.app("home_feed_moods_and_genres"),
-                                null,
-                                view_more = MediaItemLayout.ViewMore(list_page_url = "https://music.youtube.com/moods_and_genres")
-                            )
-                        }
-                        continue
-                    }
-                    "FEmusic_charts" -> {
-                        if (Settings.get(Settings.KEY_FEED_SHOW_CHARTS_ROW)) {
-                            add(
-                                LocalisedYoutubeString.app("home_feed_charts"),
-                                null,
-                                view_more = MediaItemLayout.ViewMore(list_page_url = "https://music.youtube.com/charts")
-                            )
-                        }
-                        continue
-                    }
+                val view_more_page_title_key = when (browse_endpoint.browseId) {
+                    "FEmusic_listen_again" -> if (Settings.KEY_FEED_SHOW_LISTEN_ROW.get()) "home_feed_listen_again" else null
+                    "FEmusic_mixed_for_you" -> if (Settings.KEY_FEED_SHOW_MIX_ROW.get()) "home_feed_mixed_for_you" else null
+                    "FEmusic_new_releases_albums" -> if (Settings.KEY_FEED_SHOW_NEW_ROW.get()) "home_feed_new_releases" else null
+                    "FEmusic_moods_and_genres" -> if (Settings.KEY_FEED_SHOW_MOODS_ROW.get()) "home_feed_moods_and_genres" else null
+                    "FEmusic_charts" -> if (Settings.KEY_FEED_SHOW_CHARTS_ROW.get()) "home_feed_charts" else null
+                    else -> null
+                }
+
+                if (view_more_page_title_key != null) {
+                    add(
+                        LocalisedYoutubeString.app(view_more_page_title_key),
+                        null,
+                        view_more = MediaItemLayout.ViewMore(list_page_browse_id = browse_endpoint.browseId)
+                    )
+                    continue
                 }
 
                 val page_type = browse_endpoint.browseEndpointContextSupportedConfigs?.browseEndpointContextMusicConfig?.pageType
-                val media_item: MediaItem
 
-                when (page_type) {
-                    "MUSIC_PAGE_TYPE_ARTIST", "MUSIC_PAGE_TYPE_USER_CHANNEL" -> media_item = Artist.fromId(browse_endpoint.browseId)
-                    "MUSIC_PAGE_TYPE_PLAYLIST" -> media_item = AccountPlaylist.fromId(browse_endpoint.browseId).editPlaylistData { supplyTitle(header.title.first_text) }
+                val media_item: MediaItem = when (page_type) {
+                    "MUSIC_PAGE_TYPE_ARTIST", "MUSIC_PAGE_TYPE_USER_CHANNEL" -> Artist.fromId(browse_endpoint.browseId)
+                    "MUSIC_PAGE_TYPE_PLAYLIST" -> AccountPlaylist.fromId(browse_endpoint.browseId).editPlaylistData { supplyTitle(header.title.first_text) }
                     else -> throw NotImplementedError(browse_endpoint.toString())
                 }
 
@@ -507,7 +470,7 @@ data class MusicTwoRowItemRenderer(
     val menu: YoutubeiNextResponse.Menu? = null
 ) {
     fun getArtist(host_item: MediaItem): Artist? {
-        for (run in subtitle!!.runs!!) {
+        for (run in subtitle?.runs ?: emptyList()) {
             val browse_endpoint = run.navigationEndpoint?.browseEndpoint
 
             val endpoint_type = browse_endpoint?.getMediaItemType()
@@ -518,7 +481,7 @@ data class MusicTwoRowItemRenderer(
 
         if (host_item is Song) {
             val index = if (host_item.song_type == SongType.VIDEO) 0 else 1
-            subtitle.runs?.getOrNull(index)?.also {
+            subtitle?.runs?.getOrNull(index)?.also {
                 return Artist.createForItem(host_item).editArtistData { supplyTitle(it.text) }
             }
         }

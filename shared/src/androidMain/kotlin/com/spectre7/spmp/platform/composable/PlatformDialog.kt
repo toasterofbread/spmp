@@ -19,7 +19,7 @@ actual fun PlatformDialog(
 ) {
     Dialog(
         onDismissRequest,
-        DialogProperties(usePlatformDefaultWidth = use_platform_default_width)
+        DialogProperties(usePlatformDefaultWidth = use_platform_default_width, decorFitsSystemWindows = false)
     ) {
         if (!dim_behind) {
             val dialog = LocalView.current.parent as DialogWindowProvider

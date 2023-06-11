@@ -16,29 +16,30 @@ import org.xmlpull.v1.XmlPullParserFactory
 import java.nio.channels.ClosedByInterruptException
 import java.util.*
 
-suspend fun getSongLyrics(song: Song, data: Pair<Int, SongLyrics.Source>?): SongLyrics? {
+suspend fun getSongLyrics(song: Song, data: Pair<Int, SongLyrics.Source>?): Result<SongLyrics> {
     if (song.title == null) {
-        return null
+        return Result.failure(RuntimeException("Song has no title"))
     }
 
-    val ret: SongLyrics =
-        if (data != null)
-            getLyrics(data.first, data.second).getOrReport("getSongLyrics")
-                ?: return null
+    val result: Result<SongLyrics> =
+        if (data != null) getLyrics(data.first, data.second)
         else {
-            val results = searchForLyrics(song.title!!, song.artist?.title).getOrReport("getSongLyrics")
-                ?: return null
-            if (results.isEmpty()) {
-                return null
-            }
-
-            val lyrics = results.first()
-            getLyrics(lyrics.id, lyrics.source).getOrReport("getSongLyrics")
-                ?: return null
+            searchForLyrics(song.title!!, song.artist?.title).fold(
+                { results ->
+                    if (results.isEmpty()) Result.failure(RuntimeException("No lyrics found"))
+                    else getLyrics(results.first().id, results.first().source)
+                },
+                {
+                    Result.failure(it)
+                }
+            )
         }
 
-    song.song_reg_entry.updateLyrics(ret.id, ret.source)
-    return ret
+    result.getOrNull()?.also { lyrics ->
+        song.song_reg_entry.updateLyrics(lyrics.id, lyrics.source)
+    }
+
+    return result
 }
 
 fun getLyricsData(lyrics_id: Int, sync_type: SongLyrics.SyncType): Result<String> {

@@ -79,11 +79,16 @@ fun LibraryMainPage(
                     if (ytm_auth.initialised) {
                         var loading by remember { mutableStateOf(false) }
 
-                        fun loadPlaylists() {
+                        fun loadPlaylists(report: Boolean = false) {
                             coroutine_scope.launch {
                                 check(!loading)
                                 loading = true
-                                ytm_auth.loadOwnPlaylists().getOrReport("LibraryMainPageLoadPlaylists")
+
+                                val result = ytm_auth.loadOwnPlaylists()
+                                if (result.isFailure && report) {
+                                    SpMp.reportActionError(result.exceptionOrNull())
+                                }
+
                                 loading = false
                             }
                         }
@@ -94,7 +99,7 @@ fun LibraryMainPage(
 
                         IconButton({
                             if (!loading) {
-                                loadPlaylists()
+                                loadPlaylists(true)
                             }
                         }) {
                             Crossfade(loading) { loading ->

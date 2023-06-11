@@ -152,6 +152,17 @@ object SpMp {
         low_memory_listeners.forEach { it.invoke() }
     }
 
+    fun reportActionError(exception: Throwable?) {
+        // TODO add option to disable
+        context.sendToast(exception.toString())
+    }
+
+    @Composable
+    fun ErrorDisplay(exception: Throwable?, modifier: Modifier = Modifier) {
+        // TODO
+        Text(exception.toString())
+    }
+
     private fun getFontFamily(context: PlatformContext): FontFamily {
         val locale = ui_language
         val font_dirs = context.listResourceFiles("")!!.filter { it.length > 4 && it.startsWith("font") }

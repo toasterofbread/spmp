@@ -87,9 +87,7 @@ fun LyricsSearchMenu(song: Song, modifier: Modifier = Modifier, close: (changed:
                             SpMp.context.sendToast(getString("lyrics_none_found"))
                         }
                     },
-                    {
-                        SpMp.error_manager.onError("performLyricsSearch", it)
-                    }
+                    { SpMp.reportActionError(it) }
                 )
 
                 loading = false

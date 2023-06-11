@@ -184,7 +184,7 @@ actual class PlatformContext(private val context: Context) {
 
     @Composable
     actual fun getScreenHeight(): Dp {
-        return LocalConfiguration.current.screenHeightDp.dp + getStatusBarHeight()
+        return LocalConfiguration.current.screenHeightDp.dp// + getStatusBarHeight()
     }
 
     @Composable

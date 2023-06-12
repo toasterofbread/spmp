@@ -181,7 +181,7 @@ private fun processRows(rows: List<YoutubeiShelf>, hl: String): List<MediaItemLa
                         null,
                         view_more = MediaItemLayout.ViewMore(list_page_browse_id = browse_endpoint.browseId),
                         type = when(browse_endpoint.browseId) {
-                            "FEmusic_listen_again" -> MediaItemlayout.Type.GRID_ALT
+                            "FEmusic_listen_again" -> MediaItemLayout.Type.GRID_ALT
                             else -> null
                         }
                     )
@@ -329,8 +329,9 @@ data class BrowseEndpoint(
         }
     }
 
-    fun getViewMore(): MediaItemLayout.ViewMore? {
-        return getMediaItem()?.let { MediaItemLayout.ViewMore(media_item = it, browse_params = params) }
+    fun getViewMore(): MediaItemLayout.ViewMore {
+        val media_item = getMediaItem() ?: Artist.fromId(browseId)
+        return media_item.let { MediaItemLayout.ViewMore(media_item = it, browse_params = params) }
     }
 }
 data class SearchEndpoint(val query: String, val params: String? = null)
@@ -361,7 +362,7 @@ data class NavigationEndpoint(
 
     fun getViewMore(): MediaItemLayout.ViewMore? {
         if (browseEndpoint != null) {
-            browseEndpoint.getViewMore()?.also { return it }
+            browseEndpoint.getViewMore().also { return it }
         }
         return getMediaItem()?.let { MediaItemLayout.ViewMore(media_item = it) }
     }

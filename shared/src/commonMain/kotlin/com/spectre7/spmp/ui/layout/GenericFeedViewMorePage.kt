@@ -12,8 +12,10 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
 import com.spectre7.spmp.api.getGenericFeedViewMorePage
+import com.spectre7.spmp.model.Settings
 import com.spectre7.spmp.model.mediaitem.MediaItem
 import com.spectre7.spmp.model.mediaitem.MediaItemPreviewParams
+import com.spectre7.spmp.ui.component.MusicTopBar
 import com.spectre7.spmp.ui.component.getDefaultMediaItemPreviewSize
 import com.spectre7.spmp.ui.component.multiselect.MediaItemMultiSelectContext
 import com.spectre7.utils.composable.SubtleLoadingIndicator

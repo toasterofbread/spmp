@@ -27,6 +27,7 @@ import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.spectre7.spmp.api.*
+import com.spectre7.spmp.model.Settings
 import com.spectre7.spmp.model.mediaitem.*
 import com.spectre7.spmp.platform.composable.BackHandler
 import com.spectre7.spmp.resources.getString

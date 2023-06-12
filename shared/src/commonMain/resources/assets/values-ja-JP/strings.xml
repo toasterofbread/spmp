@@ -260,9 +260,6 @@
     <string name="s_key_topbar_visualiser_width">ビジュアライザーの横幅</string>
     <string name="s_key_topbar_show_lyrics_in_queue">歌詞を曲キューで表示</string>
     <string name="s_key_topbar_show_visualiser_in_queue">ビジュアライザーを曲キューで表示</string>
-    <string name="s_option_topbar_mode_visualiser">ビジュアライザー</string>
-    <string name="s_option_topbar_mode_lyrics">歌詞</string>
-    <string name="s_option_topbar_mode_none">無し</string>
 
     <string name="s_cat_desc_general">言語やアプリ動作などのオプション</string>
     <string name="s_cat_desc_home_page">おすすめの曲やアーティストの調節</string>

@@ -14,7 +14,7 @@ class NowPlayingExpansionState(swipe_state: State<SwipeableState<Int>>, private 
     private var screen_height: Dp? = null
     private var switch_to_page: Int by mutableStateOf(-1)
 
-    val top_bar_mode: MutableState<MusicTopBarMode> = mutableStateOf(MusicTopBarMode.NONE)
+    val top_bar_mode: MutableState<MusicTopBarMode> = mutableStateOf(MusicTopBarMode.default)
 
     @Composable
     fun init() {

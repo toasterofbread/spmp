@@ -1,5 +1,8 @@
 package com.spectre7.spmp.model
 
+import androidx.compose.runtime.*
+import com.spectre7.spmp.platform.ProjectPreferences
+
 @Composable
 fun <T> mutableSettingsState(settings_key: Settings, prefs: ProjectPreferences = Settings.prefs): MutableState<T> {
     val state: MutableState<T> = remember { mutableStateOf(settings_key.get(prefs)) }

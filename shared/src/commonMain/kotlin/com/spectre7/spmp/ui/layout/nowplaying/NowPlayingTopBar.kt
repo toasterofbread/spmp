@@ -30,7 +30,6 @@ fun TopBar(modifier: Modifier = Modifier) {
 
     val hide_in_queue =
         when (expansion.top_bar_mode.value) {
-            MusicTopBarMode.NONE -> true
             MusicTopBarMode.VISUALISER -> !show_visualiser_in_queue
             MusicTopBarMode.LYRICS -> !show_lyrics_in_queue
         }

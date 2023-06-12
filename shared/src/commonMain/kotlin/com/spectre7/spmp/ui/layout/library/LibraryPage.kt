@@ -14,16 +14,18 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
+import com.spectre7.spmp.model.Settings
 import com.spectre7.spmp.model.mediaitem.Song
 import com.spectre7.spmp.platform.PlayerDownloadManager
 import com.spectre7.spmp.platform.PlayerDownloadManager.DownloadStatus
 import com.spectre7.spmp.platform.composable.BackHandler
 import com.spectre7.spmp.resources.getString
+import com.spectre7.spmp.ui.component.MusicTopBar
 import com.spectre7.spmp.ui.component.PillMenu
 import com.spectre7.spmp.ui.component.multiselect.MediaItemMultiSelectContext
 import com.spectre7.spmp.ui.layout.mainpage.PlayerState
 import com.spectre7.spmp.ui.theme.Theme
-import kotlin.math.absoluteValue
+import com.spectre7.utils.thenIf
 
 enum class LibrarySubPage { SONGS }
 
@@ -95,11 +97,14 @@ fun LibraryPage(
     ) {
         MusicTopBar(
             Settings.INTERNAL_TOPBAR_MODE_LIBRARY,
-            Modifier.fillMaxWidth()
+            Modifier
+                .fillMaxWidth()
+                .padding(bottom = 20.dp)
         )
 
-        Crossfade(subpage) { page ->
+        Crossfade(subpage, Modifier.fillMaxSize()) { page ->
             Column(
+                Modifier.fillMaxSize(),
                 verticalArrangement = Arrangement.spacedBy(25.dp)
             ) {
                 // Title bar

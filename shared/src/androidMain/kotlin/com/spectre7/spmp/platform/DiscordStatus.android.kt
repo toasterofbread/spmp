@@ -124,6 +124,13 @@ actual class DiscordStatus actual constructor(
         }
     }
 
+    private fun getChannelNameFor(first_char: Char): String {
+        return custom_images_channel_name_prefix + when (first_char) {
+            '-' -> "hyphen"
+            else -> first_char
+        }
+    }
+
     @Suppress("UNUSED_VALUE")
     actual suspend fun getCustomImage(unique_id: String, imageProvider: suspend () -> ImageBitmap?): Result<String?> {
         check(bot_token != null)
@@ -149,7 +156,7 @@ actual class DiscordStatus actual constructor(
         }
 
         val result = with(kord.rest.channel) {
-            val channel_name = custom_images_channel_name_prefix + unique_id.first()
+            val channel_name = getChannelNameFor(unique_id.first())
 
             var channel: Snowflake?
             val category: Category?

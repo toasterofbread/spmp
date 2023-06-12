@@ -47,7 +47,7 @@ internal fun getLyricsCategory(): List<SettingsItem> {
         SettingsItemSlider(
             SettingsValueState(Settings.KEY_LYRICS_FONT_SIZE.name),
             getString("s_key_lyrics_font_size"), null
-        )
+        ),
 
         SettingsGroup(getString("s_group_top_bar_lyrics")),
 

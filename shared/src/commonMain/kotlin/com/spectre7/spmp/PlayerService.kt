@@ -689,13 +689,13 @@ class PlayerService : MediaPlayerService() {
             scheduleAtFixedRate(
                 object : TimerTask() {
                     override fun run() {
-                        coroutine_scope.launch(Dispatchers.IO) {
+                        coroutine_scope.launch(Dispatchers.Main) {
                             savePersistentQueue()
                             markWatched()
                         }
                     }
 
-                    suspend fun markWatched() {
+                    suspend fun markWatched() = withContext(Dispatchers.Main) {
                         if (
                             !song_marked_as_watched
                             && is_playing

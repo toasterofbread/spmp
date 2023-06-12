@@ -11,12 +11,6 @@ import com.spectre7.spmp.resources.getStringTODO
 import kotlin.math.roundToInt
 
 private fun getMusicTopBarGroup(): List<SettingsItem> {
-    fun MusicTopBarMode.getString(): String = when (this) {
-        MusicTopBarMode.VISUALISER -> getString("s_option_topbar_mode_visualiser")
-        MusicTopBarMode.LYRICS -> getString("s_option_topbar_mode_lyrics")
-        MusicTopBarMode.NONE -> getString("s_option_topbar_mode_none")
-    }
-
     return listOf(
         SettingsGroup(getString("s_group_topbar")),
 

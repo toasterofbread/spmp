@@ -126,7 +126,7 @@ interface PlayerOverlayPage {
         val LibraryPage = object : PlayerOverlayPage {
             @Composable
             override fun getPage(pill_menu: PillMenu, previous_item: MediaItemHolder?, bottom_padding: Dp, close: () -> Unit) {
-                LibraryPage(pill_menu, bottom_padding, close = close)
+                LibraryPage(pill_menu, bottom_padding, Modifier.fillMaxSize(), close = close)
             }
         }
     }

@@ -24,6 +24,7 @@ import com.spectre7.settings.model.*
 import com.spectre7.spmp.model.*
 import com.spectre7.spmp.platform.composable.BackHandler
 import com.spectre7.spmp.resources.getString
+import com.spectre7.spmp.ui.component.MusicTopBar
 import com.spectre7.spmp.ui.component.PillMenu
 import com.spectre7.spmp.ui.layout.*
 import com.spectre7.spmp.ui.theme.Theme

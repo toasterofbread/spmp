@@ -219,37 +219,6 @@ data class MediaItemLayout(
         }
     }
 
-    @Json(ignored = true)
-    var loading_continuation: Boolean by mutableStateOf(false)
-        private set
-
-//    @Synchronized
-//    fun loadContinuation(): Result<Any> {
-//        check(continuation != null)
-//
-//        loading_continuation = true
-//        val result = continuation!!.loadContinuation()
-//        loading_continuation = false
-//
-//        if (result.isFailure) {
-//            return result
-//        }
-//
-//        val (new_items, cont_token) = result.getOrThrow()
-//        items += new_items
-//
-//        if (cont_token == null) {
-//            continuation = null
-//        }
-//        else {
-//            continuation!!.update(cont_token)
-//        }
-//
-//        return Result.success(Unit)
-//    }
-
-    fun shouldShowTitleBar(): Boolean = shouldShowTitleBar(title, subtitle, view_more, thumbnail_source)
-
     @Composable
     fun TitleBar(
         modifier: Modifier = Modifier,
@@ -326,6 +295,10 @@ private fun TitleBar(
                     val player = LocalPlayerState.current
                     IconButton(
                         {
+                            if (view_more.browse_params != null) {
+                                TODO(view_more.browse_params)
+                            }
+
                             if (view_more.media_item != null) {
                                 player.openMediaItem(view_more.media_item, true)
                             }
@@ -610,14 +583,13 @@ fun MediaItemGrid(
     subtitle: LocalisedYoutubeString? = null,
     view_more: MediaItemLayout.ViewMore? = null,
     alt_style: Boolean = false,
-    content_padding: PaddingValues = PaddingValues(),
     itemSizeProvider: @Composable () -> DpSize = { getDefaultMediaItemPreviewSize() },
     multiselect_context: MediaItemMultiSelectContext? = null,
     startContent: (LazyGridScope.() -> Unit)? = null
 ) {
     val row_count = (rows ?: if (items.size <= 3) 1 else 2) * (if (alt_style) 2 else 1)
-    val item_spacing = Arrangement.spacedBy(15.dp)
-    val item_size = itemSizeProvider() * (if (alt_style) 0.5f else 1)
+    val item_spacing = Arrangement.spacedBy(if (alt_style) 0.dp else 15.dp)
+    val item_size = if (alt_style) DpSize(0.dp, 50.dp) else itemSizeProvider()
 
     Column(modifier, verticalArrangement = Arrangement.spacedBy(10.dp)) {
         TitleBar(
@@ -640,11 +612,11 @@ fun MediaItemGrid(
                 startContent?.invoke(this)
 
                 items(items.size, { items[it].item?.id ?: "" }) { i ->
-                    val item = items[it].item ?: return@items
+                    val item = items[i].item ?: return@items
                     val params = MediaItemPreviewParams(
                         Modifier.animateItemPlacement().then(
-                            if (alt_style) Modifier.size(maxWidth, item_size) 
-                            else Modifier.size(item_height)
+                            if (alt_style) Modifier.width(maxWidth * 0.8f)
+                            else Modifier.size(item_size)
                         ),
                         contentColour = Theme.current.on_background_provider,
                         multiselect_context = multiselect_context
@@ -688,6 +660,8 @@ fun MediaItemList(
     view_more: MediaItemLayout.ViewMore? = null,
     multiselect_context: MediaItemMultiSelectContext? = null
 ) {
+    println("AAAAAAA $view_more")
+
     Column(modifier) {
         TitleBar(
             items,

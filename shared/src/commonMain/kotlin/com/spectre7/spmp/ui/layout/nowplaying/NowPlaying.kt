@@ -22,6 +22,7 @@ import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.unit.*
 import com.spectre7.spmp.platform.composable.BackHandler
 import com.spectre7.spmp.platform.composable.scrollWheelSwipeable
+import com.spectre7.spmp.ui.layout.mainpage.MINIMISED_NOW_PLAYING_HEIGHT
 import com.spectre7.spmp.ui.theme.Theme
 import com.spectre7.utils.*
 import com.spectre7.utils.composable.OnChangedEffect
@@ -170,7 +171,7 @@ fun NowPlayingCardContent(page_height: Dp) {
 }
 
 @Composable
-fun MinimisedProgressBar() {
+fun MinimisedProgressBar(modifier: Modifier = Modifier) {
     val expansion = LocalNowPlayingExpansion.current
     RecomposeOnInterval(POSITION_UPDATE_INTERVAL_MS) { state ->
         state
@@ -179,7 +180,7 @@ fun MinimisedProgressBar() {
             progress = LocalPlayerState.current.status.getProgress(),
             color = getNPOnBackground(),
             trackColor = getNPOnBackground().setAlpha(0.5f),
-            modifier = Modifier
+            modifier = modifier
                 .requiredHeight(2.dp)
                 .fillMaxWidth()
                 .graphicsLayer {

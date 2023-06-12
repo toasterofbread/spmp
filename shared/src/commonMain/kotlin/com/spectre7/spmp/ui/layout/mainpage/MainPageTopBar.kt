@@ -38,7 +38,8 @@ fun MainPageTopBar(
 
             MusicTopBar(
                 Settings.INTERNAL_TOPBAR_MODE_HOME,
-                Modifier.fillMaxSize().weight(1f)
+                Modifier.fillMaxSize().weight(1f),
+                hide_while_inactive = false
             )
 
             var show_login_confirmation by remember { mutableStateOf(false) }

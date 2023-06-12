@@ -34,6 +34,7 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.input.ImeAction
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.*
+import androidx.compose.ui.zIndex
 import com.spectre7.spmp.api.Api
 import com.spectre7.spmp.api.getOrReport
 import com.spectre7.spmp.model.*
@@ -42,6 +43,7 @@ import com.spectre7.spmp.platform.composable.PlatformAlertDialog
 import com.spectre7.spmp.platform.vibrateShort
 import com.spectre7.spmp.resources.getString
 import com.spectre7.spmp.resources.getStringTODO
+import com.spectre7.spmp.ui.component.MusicTopBar
 import com.spectre7.spmp.ui.component.MediaItemLayout
 import com.spectre7.spmp.ui.component.PillMenu
 import com.spectre7.spmp.ui.component.multiselect.MediaItemMultiSelectContext
@@ -71,6 +73,7 @@ fun ArtistPage(
 
     val gradient_size = 0.35f
     var accent_colour: Color? by remember { mutableStateOf(null) }
+    val background_modifier = Modifier.background(Theme.current.background_provider)
 
     LaunchedEffect(item.id) {
         item.getFeedLayouts().getOrReport("ArtistPageLoad")
@@ -91,9 +94,11 @@ fun ArtistPage(
     }
 
     Column {
+        val top_bar_padding = 10.dp
         MusicTopBar(
             Settings.INTERNAL_TOPBAR_MODE_ARTIST,
-            Modifier.fillMaxWidth()
+            background_modifier.fillMaxWidth().zIndex(1f),
+            padding = PaddingValues(bottom = top_bar_padding, top = top_bar_padding + SpMp.context.getStatusBarHeight())
         )
 
         Box(Modifier.fillMaxSize(), contentAlignment = Alignment.TopCenter) {
@@ -136,8 +141,6 @@ fun ArtistPage(
             LazyColumn(Modifier.fillMaxSize(), lazy_column_state) {
 
                 val content_padding = PaddingValues(horizontal = 10.dp)
-                val background_modifier = Modifier.background(Theme.current.background_provider)
-
                 val play_button_size = 55.dp
                 val filter_bar_height = 32.dp
 
@@ -225,7 +228,7 @@ fun ArtistPage(
                 }
 
                 item {
-                    AnimatedVisibility(multiselect_context.is_active) {
+                    this@Column.AnimatedVisibility(multiselect_context.is_active) {
                         multiselect_context.InfoDisplay(background_modifier)
                     }
                 }

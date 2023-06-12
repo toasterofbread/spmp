@@ -324,7 +324,7 @@ class SettingsItemSlider(
     val max_label: String? = null,
     val steps: Int = 0,
     val range: ClosedFloatingPointRange<Float> = 0f .. 1f,
-    val getValueText: ((value: Float) -> String?)? = { it.roundToInt().toString() }
+    val getValueText: ((value: Float) -> String?)? = { it.roundTo(2).toString() }
 ): SettingsItem() {
 
     private var is_int: Boolean = false

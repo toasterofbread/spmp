@@ -24,12 +24,15 @@ enum class NowPlayingQueueRadioInfoPosition {
     TOP_BAR, ABOVE_ITEMS
 }
 enum class MusicTopBarMode {
-    NONE, VISUALISER, LYRICS;
+    VISUALISER, LYRICS;
 
     fun getIcon(): ImageVector = when (this) {
         LYRICS -> Icons.Default.Lyrics
         VISUALISER -> Icons.Default.GraphicEq
-        NONE -> Icons.Default.Close
+    }
+
+    companion object {
+        val default: MusicTopBarMode get() = LYRICS
     }
 }
 

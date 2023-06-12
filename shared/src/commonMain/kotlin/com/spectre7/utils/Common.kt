@@ -21,10 +21,13 @@ import com.spectre7.spmp.ProjectBuildConfig
 import com.spectre7.spmp.resources.*
 import kotlinx.coroutines.*
 import java.io.InterruptedIOException
+import java.lang.Math.round
 import java.util.*
 import java.util.concurrent.TimeUnit
 import kotlin.coroutines.CoroutineContext
 import kotlin.coroutines.EmptyCoroutineContext
+import kotlin.math.pow
+import kotlin.math.roundToInt
 import kotlin.math.sqrt
 
 fun Boolean.toInt() = if (this) 1 else 0
@@ -190,4 +193,9 @@ fun CoroutineScope.launchSingle(
 		coroutineContext.cancelChildren()
 		return launch(context, start, block)
 	}
+}
+
+fun Float.roundTo(decimals: Int): Float {
+	val multiplier = 10f.pow(decimals)
+	return (this * multiplier).roundToInt() / multiplier
 }

@@ -302,7 +302,7 @@ private fun MenuContent(
                                         )
                                     }
                                     else if (current) {
-                                        info_title_width = 0.dp
+                                        info_title_width = 0
                                     }
                                 }
 
@@ -312,7 +312,7 @@ private fun MenuContent(
                                             if (box_width < 0) fillMaxWidth()
                                             else width(animateDpAsState(
                                                 with(LocalDensity.current) {
-                                                    if (info_title_width == 0.dp) box_width.toDp() else (box_width - info_title_width).toDp() - 15.dp
+                                                    if (info_title_width == 0) box_width.toDp() else (box_width - info_title_width).toDp() - 15.dp
                                                 }
                                             ).value)
                                         }

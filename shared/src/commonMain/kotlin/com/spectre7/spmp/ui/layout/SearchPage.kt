@@ -27,12 +27,14 @@ import androidx.compose.ui.platform.LocalSoftwareKeyboardController
 import androidx.compose.ui.text.input.ImeAction
 import androidx.compose.ui.unit.*
 import com.spectre7.spmp.api.*
+import com.spectre7.spmp.model.Settings
 import com.spectre7.spmp.model.mediaitem.enums.MediaItemType
 import com.spectre7.spmp.model.mediaitem.enums.PlaylistType
 import com.spectre7.spmp.model.mediaitem.enums.getReadable
 import com.spectre7.spmp.platform.composable.BackHandler
 import com.spectre7.spmp.resources.getString
 import com.spectre7.spmp.ui.component.MediaItemLayout
+import com.spectre7.spmp.ui.component.MusicTopBar
 import com.spectre7.spmp.ui.component.PillMenu
 import com.spectre7.spmp.ui.component.multiselect.MediaItemMultiSelectContext
 import com.spectre7.spmp.ui.theme.Theme
@@ -69,6 +71,8 @@ fun SearchPage(
     var error: Throwable? by remember { mutableStateOf(null) }
 
     fun performSearch(query: String, filter: SearchFilter? = null) {
+        keyboard_controller?.hide()
+
         synchronized(search_lock) {
             if (search_in_progress) {
                 return
@@ -121,7 +125,7 @@ fun SearchPage(
         Column(Modifier.fillMaxSize()) {
             MusicTopBar(
                 Settings.INTERNAL_TOPBAR_MODE_SEARCH,
-                Modifier.fillMaxWidth()
+                Modifier.fillMaxWidth().padding(top = SpMp.context.getStatusBarHeight())
             )
 
             Crossfade(current_results) { results ->

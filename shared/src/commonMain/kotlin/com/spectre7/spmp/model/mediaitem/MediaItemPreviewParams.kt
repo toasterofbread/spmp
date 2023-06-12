@@ -1,5 +1,6 @@
 package com.spectre7.spmp.model.mediaitem
 
+import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import com.spectre7.spmp.ui.component.multiselect.MediaItemMultiSelectContext

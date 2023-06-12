@@ -26,6 +26,7 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.unit.*
 import com.spectre7.spmp.api.RadioModifier
+import com.spectre7.spmp.api.durationToString
 import com.spectre7.spmp.model.MusicTopBarMode
 import com.spectre7.spmp.model.NowPlayingQueueRadioInfoPosition
 import com.spectre7.spmp.model.Settings
@@ -79,13 +80,13 @@ private class QueueTabItem(val song: Song, val key: Int) {
         
         var delta = 0L
         for (i in indices) {
-            delta += player.player.getSong(i) ?: 0
+            delta += player.player.getSong(i)?.duration ?: 0
         }
 
         return remember(delta) { 
             (
-                if (index < playing_index) getString("lpm_song_played_$x_ago")
-                else getString("lpm_song_playing_in_$x")
+                if (index < playing_index) getString("lpm_song_played_\$x_ago")
+                else getString("lpm_song_playing_in_\$x")
             ).replace("\$x", durationToString(delta, true) )
         }
     }
@@ -225,7 +226,6 @@ fun QueueTab() {
     val expansion = LocalNowPlayingExpansion.current
     val top_bar_height by animateDpAsState(
         when (expansion.top_bar_mode.value) {
-            MusicTopBarMode.NONE -> 0.dp
             MusicTopBarMode.VISUALISER -> if (show_visualiser_in_queue) NOW_PLAYING_TOP_BAR_HEIGHT.dp else 0.dp
             MusicTopBarMode.LYRICS -> if (show_lyrics_in_queue) NOW_PLAYING_TOP_BAR_HEIGHT.dp else 0.dp
         }

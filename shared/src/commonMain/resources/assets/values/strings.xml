@@ -392,9 +392,6 @@
     <string name="s_key_topbar_visualiser_width">Visualiser width</string>
     <string name="s_key_topbar_show_lyrics_in_queue">Show lyrics in music queue</string>
     <string name="s_key_topbar_show_visualiser_in_queue">Show visualiser in music queue</string>
-    <string name="s_option_topbar_mode_visualiser">Visualiser</string>
-    <string name="s_option_topbar_mode_lyrics">Lyrics</string>
-    <string name="s_option_topbar_mode_none">Nothing</string>
 
     <string name="s_cat_desc_general">Language, behaviour, and other options</string>
     <string name="s_cat_desc_home_page">Cherry-pick song recommendations</string>

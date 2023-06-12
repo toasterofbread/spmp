@@ -102,6 +102,7 @@ interface PlayerOverlayPage {
                 RadioBuilderPage(
                     pill_menu,
                     bottom_padding,
+                    Modifier.fillMaxSize(),
                     close
                 )
             }
@@ -119,7 +120,7 @@ interface PlayerOverlayPage {
         val SettingsPage = object : PlayerOverlayPage {
             @Composable
             override fun getPage(pill_menu: PillMenu, previous_item: MediaItemHolder?, bottom_padding: Dp, close: () -> Unit) {
-                PrefsPage(pill_menu, bottom_padding, close)
+                PrefsPage(pill_menu, bottom_padding, Modifier.fillMaxSize(), close)
             }
         }
         val LibraryPage = object : PlayerOverlayPage {

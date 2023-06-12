@@ -23,7 +23,6 @@ fun TopBar(modifier: Modifier = Modifier) {
     val player = LocalPlayerState.current
     val expansion = LocalNowPlayingExpansion.current
 
-    val target_mode: MutableState<MusicTopBarMode> = remember { mutableStateOf(Settings.KEY_TOPBAR_DEFAULT_MODE_NOWPLAYING.getEnum()) }
     val buttons_alpha = 1f - expansion.getDisappearing()
 
     val show_lyrics_in_queue: Boolean by Settings.KEY_TOPBAR_SHOW_LYRICS_IN_QUEUE.rememberMutableState()
@@ -66,10 +65,9 @@ fun TopBar(modifier: Modifier = Modifier) {
             )
 
             MusicTopBar(
-                song,
-                Settings.KEY_TOPBAR_DEFAULT_MODE_NOWPLAYING.getEnum(),
+                Settings.INTERNAL_TOPBAR_MODE_NOWPLAYING,
                 Modifier.fillMaxSize().weight(1f),
-                target_mode
+                song = song
             )
 
             IconButton(

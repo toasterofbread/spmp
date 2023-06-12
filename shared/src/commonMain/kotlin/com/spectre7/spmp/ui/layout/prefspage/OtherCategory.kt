@@ -33,23 +33,6 @@ private fun getMusicTopBarGroup(): List<SettingsItem> {
             }
         ),
 
-        SettingsItemMultipleChoice(
-            SettingsValueState(Settings.KEY_TOPBAR_DEFAULT_MODE_HOME.name),
-            getString("s_key_topbar_default_mode_home"), null,
-            MusicTopBarMode.values().size,
-            true
-        ) {
-            MusicTopBarMode.values()[it].getString()
-        },
-        SettingsItemMultipleChoice(
-            SettingsValueState(Settings.KEY_TOPBAR_DEFAULT_MODE_NOWPLAYING.name),
-            getString("s_key_topbar_default_mode_nowplaying"), null,
-            MusicTopBarMode.values().size,
-            true
-        ) {
-            MusicTopBarMode.values()[it].getString()
-        },
-
         SettingsItemToggle(
             SettingsValueState(Settings.KEY_TOPBAR_SHOW_LYRICS_IN_QUEUE.name),
             getString("s_key_topbar_show_lyrics_in_queue"), null

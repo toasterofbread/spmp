@@ -139,6 +139,11 @@ fun PlaylistPage(
             }
         }
 
+        MusicTopBar(
+            Settings.INTERNAL_TOPBAR_MODE_PLAYLIST,
+            Modifier.fillMaxWidth()
+        )
+
         val thumb_item = playlist.getThumbnailHolder().getHolder()
 
         LaunchedEffect(thumb_item) {

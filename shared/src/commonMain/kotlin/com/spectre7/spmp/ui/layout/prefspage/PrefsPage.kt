@@ -85,7 +85,7 @@ internal enum class PrefsPageCategory {
 
 @OptIn(ExperimentalMaterial3Api::class, ExperimentalResourceApi::class)
 @Composable
-fun PrefsPage(pill_menu: PillMenu, bottom_padding: Dp, close: () -> Unit) {
+fun PrefsPage(pill_menu: PillMenu, bottom_padding: Dp, modifier: Modifier = Modifier, close: () -> Unit) {
     val ytm_auth = remember {
         SettingsValueState(
             Settings.KEY_YTM_AUTH.name,
@@ -140,80 +140,87 @@ fun PrefsPage(pill_menu: PillMenu, bottom_padding: Dp, close: () -> Unit) {
         }
     }
 
-    Crossfade(category_open || settings_interface.current_page.id!! != PrefsPageScreen.ROOT.ordinal) { open ->
-        if (!open) {
-            LazyColumn(
-                contentPadding = PaddingValues(
-                    bottom = bottom_padding,
-                    top = 20.dp,
-                    start = 20.dp,
-                    end = 20.dp
-                ),
-                verticalArrangement = Arrangement.spacedBy(10.dp)
-            ) {
-                item {
-                    Row(
-                        Modifier.fillMaxWidth().padding(bottom = 20.dp),
-                        verticalAlignment = Alignment.CenterVertically,
-                        horizontalArrangement = Arrangement.SpaceBetween
-                    ) {
-                        Text(
-                            "設定",
-                            style = MaterialTheme.typography.displaySmall
-                        )
+    Column(modifier) {
+        MusicTopBar(
+            Settings.INTERNAL_TOPBAR_MODE_SETTINGS,
+            Modifier.fillMaxWidth()
+        )
 
-                        if (SpMp.context.canOpenUrl()) {
-                            IconButton({ SpMp.context.openUrl(getString("project_url")) }) {
-                                Icon(painterResource("drawable/ic_github.xml"), null)
+        Crossfade(category_open || settings_interface.current_page.id!! != PrefsPageScreen.ROOT.ordinal) { open ->
+            if (!open) {
+                LazyColumn(
+                    contentPadding = PaddingValues(
+                        bottom = bottom_padding,
+                        top = 20.dp,
+                        start = 20.dp,
+                        end = 20.dp
+                    ),
+                    verticalArrangement = Arrangement.spacedBy(10.dp)
+                ) {
+                    item {
+                        Row(
+                            Modifier.fillMaxWidth().padding(bottom = 20.dp),
+                            verticalAlignment = Alignment.CenterVertically,
+                            horizontalArrangement = Arrangement.SpaceBetween
+                        ) {
+                            Text(
+                                "設定",
+                                style = MaterialTheme.typography.displaySmall
+                            )
+
+                            if (SpMp.context.canOpenUrl()) {
+                                IconButton({ SpMp.context.openUrl(getString("project_url")) }) {
+                                    Icon(painterResource("drawable/ic_github.xml"), null)
+                                }
                             }
                         }
                     }
-                }
 
-                item {
-                    val own_channel = remember { mutableStateOf(ytm_auth.value.getOwnChannelOrNull()) }
-                    val item = remember { 
-                        getYtmAuthItem(ytm_auth, own_channel).apply {
-                            initialise(SpMp.context, Settings.prefs, Settings.Companion::provideDefault) 
-                        } 
+                    item {
+                        val own_channel = remember { mutableStateOf(ytm_auth.value.getOwnChannelOrNull()) }
+                        val item = remember { 
+                            getYtmAuthItem(ytm_auth, own_channel).apply {
+                                initialise(SpMp.context, Settings.prefs, Settings.Companion::provideDefault) 
+                            } 
+                        }
+                        item.GetItem(
+                            Theme.current,
+                            settings_interface::openPageById,
+                            settings_interface::openPage
+                        )
                     }
-                    item.GetItem(
-                        Theme.current,
-                        settings_interface::openPageById,
-                        settings_interface::openPage
-                    )
-                }
 
-                items(PrefsPageCategory.values()) { category ->
-                    ElevatedCard(
-                        onClick = { current_category = category },
-                        modifier = Modifier.fillMaxWidth()
-                    ) {
-                        Row(
-                            Modifier.padding(15.dp),
-                            verticalAlignment = Alignment.CenterVertically,
-                            horizontalArrangement = Arrangement.spacedBy(15.dp)
+                    items(PrefsPageCategory.values()) { category ->
+                        ElevatedCard(
+                            onClick = { current_category = category },
+                            modifier = Modifier.fillMaxWidth()
                         ) {
-                            Icon(category.getIcon(), null)
-                            Column(verticalArrangement = Arrangement.spacedBy(5.dp)) {
-                                Text(category.getTitle(), style = MaterialTheme.typography.titleMedium)
-                                Text(category.getDescription(), style = MaterialTheme.typography.labelMedium)
+                            Row(
+                                Modifier.padding(15.dp),
+                                verticalAlignment = Alignment.CenterVertically,
+                                horizontalArrangement = Arrangement.spacedBy(15.dp)
+                            ) {
+                                Icon(category.getIcon(), null)
+                                Column(verticalArrangement = Arrangement.spacedBy(5.dp)) {
+                                    Text(category.getTitle(), style = MaterialTheme.typography.titleMedium)
+                                    Text(category.getDescription(), style = MaterialTheme.typography.labelMedium)
+                                }
                             }
                         }
                     }
                 }
             }
-        }
-        else {
-            BoxWithConstraints(
-                Modifier
-                    .background(Theme.current.background_provider)
-                    .pointerInput(Unit) {}
-            ) {
-                settings_interface.Interface(
-                    SpMp.context.getScreenHeight() - SpMp.context.getStatusBarHeight(),
-                    content_padding = PaddingValues(bottom = bottom_padding)
-                )
+            else {
+                BoxWithConstraints(
+                    Modifier
+                        .background(Theme.current.background_provider)
+                        .pointerInput(Unit) {}
+                ) {
+                    settings_interface.Interface(
+                        SpMp.context.getScreenHeight() - SpMp.context.getStatusBarHeight(),
+                        content_padding = PaddingValues(bottom = bottom_padding)
+                    )
+                }
             }
         }
     }

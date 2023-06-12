@@ -118,24 +118,31 @@ fun SearchPage(
     }
 
     Box(Modifier.fillMaxSize()) {
-        Crossfade(current_results) { results ->
-            if (results != null) {
-                Results(
-                    results,
-                    bottom_padding + (SEARCH_BAR_HEIGHT * 2) + (SEARCH_BAR_PADDING * 2),
-                    multiselect_context
-                )
-            }
-            else if (search_in_progress) {
-                Column(
-                    Modifier.fillMaxSize(),
-                    horizontalAlignment = Alignment.CenterHorizontally,
-                    verticalArrangement = Arrangement.Center
-                ) {
-                    Box(Modifier.size(20.dp), contentAlignment = Alignment.Center) {
-                        SubtleLoadingIndicator(colourProvider = { Theme.current.on_background }, size = 20.dp)
+        Column(Modifier.fillMaxSize()) {
+            MusicTopBar(
+                Settings.INTERNAL_TOPBAR_MODE_SEARCH,
+                Modifier.fillMaxWidth()
+            )
+
+            Crossfade(current_results) { results ->
+                if (results != null) {
+                    Results(
+                        results,
+                        bottom_padding + (SEARCH_BAR_HEIGHT * 2) + (SEARCH_BAR_PADDING * 2),
+                        multiselect_context
+                    )
+                }
+                else if (search_in_progress) {
+                    Column(
+                        Modifier.fillMaxSize(),
+                        horizontalAlignment = Alignment.CenterHorizontally,
+                        verticalArrangement = Arrangement.Center
+                    ) {
+                        Box(Modifier.size(20.dp), contentAlignment = Alignment.Center) {
+                            SubtleLoadingIndicator(colourProvider = { Theme.current.on_background }, size = 20.dp)
+                        }
+                        Text(getString("search_results_loading"), Modifier.padding(top = 5.dp))
                     }
-                    Text(getString("search_results_loading"), Modifier.padding(top = 5.dp))
                 }
             }
         }

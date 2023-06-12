@@ -62,7 +62,7 @@ class MediaPlayerServiceSession: MediaSessionService() {
     private inner class PlayerListener: Player.Listener {
         private fun onSongLikeStatusChanged(status: SongLikeStatus?) {
             if (status?.loading == false) {
-                runInMainThread {
+                coroutine_scope.launch {
                     updatePlayerCustomActions(status.status)
                 }
             }

@@ -162,6 +162,9 @@
     <string name="lpm_action_radio_at_song_pos">Start radio at song position in queue</string>
     <string name="lpm_action_radio_after_x_songs">Start radio after X song(s)</string>
     <string name="lpm_action_play_shuffled_after_x_songs">Play shuffled after X song(s)</string>
+    <string name="lpm_song_now_playing">Now playing</string>
+    <string name="lpm_song_played_$x_ago">Played $x ago</string>
+    <string name="lpm_song_playing_in_$x">Playing in $x</string>
 
     <string name="lpm_info_queue_index">Queue index: $index</string>
     <string name="lpm_info_id">ID: $id</string>
@@ -292,6 +295,11 @@
 
     <string name="s_key_lyrics_extra_padding">Extra padding</string>
     <string name="s_sub_lyrics_extra_padding">Add extra padding above and below lyrics for increased scrolling range</string>
+    
+    <string name="s_key_lyrics_enable_word_sync">Enable word sync</string>
+    <string name="s_sub_lyrics_enable_word_sync">When available, lyrics sync will be displayed per-word instead of per-line</string>
+
+    <string name="s_key_lyrics_font_size">Font size</string>
 
     <string name="s_group_top_bar_lyrics">Top bar lyrics</string>
     <string name="s_key_top_bar_lyrics_show_furigana">Show furigana</string>
@@ -392,7 +400,7 @@
 
     <string name="s_cat_desc_general">Language, behaviour, and other options</string>
     <string name="s_cat_desc_home_page">Cherry-pick song recommendations</string>
-    <string name="s_cat_desc_library">TODO</string>
+    <string name="s_cat_desc_library">Control how the library is displayed</string>
     <string name="s_cat_desc_theming">Customise app colours and change accent source</string>
     <string name="s_cat_desc_lyrics">Lyrics appearance and behaviour</string>
     <string name="s_cat_desc_download">Download quality and automatic download options</string>

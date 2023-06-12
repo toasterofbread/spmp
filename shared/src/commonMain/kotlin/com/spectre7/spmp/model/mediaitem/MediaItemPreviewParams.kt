@@ -9,5 +9,6 @@ data class MediaItemPreviewParams(
     val contentColour: (() -> Color)? = null,
     val enable_long_press_menu: Boolean = true,
     val show_type: Boolean = true,
-    val multiselect_context: MediaItemMultiSelectContext? = null
+    val multiselect_context: MediaItemMultiSelectContext? = null,
+    val getInfoText: (@Composable () -> String?)? = null
 )

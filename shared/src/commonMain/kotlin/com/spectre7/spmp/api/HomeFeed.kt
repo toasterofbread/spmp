@@ -142,7 +142,8 @@ private fun processRows(rows: List<YoutubeiShelf>, hl: String): List<MediaItemLa
                             MediaItemLayout.ThumbnailSource(null, url = it.url)
                         },
                     media_item_type: MediaItemType? = null,
-                    view_more: MediaItemLayout.ViewMore? = null
+                    view_more: MediaItemLayout.ViewMore? = null,
+                    type: MediaItemLayout.Type? = null
                 ) {
                     val items = row.getMediaItems(hl).toMutableList()
 
@@ -151,7 +152,8 @@ private fun processRows(rows: List<YoutubeiShelf>, hl: String): List<MediaItemLa
                         items = items,
                         thumbnail_source = thumbnail_source,
                         view_more = view_more,
-                        thumbnail_item_type = media_item_type
+                        thumbnail_item_type = media_item_type,
+                        type = type
                     ))
                 }
 
@@ -177,7 +179,11 @@ private fun processRows(rows: List<YoutubeiShelf>, hl: String): List<MediaItemLa
                     add(
                         LocalisedYoutubeString.app(view_more_page_title_key),
                         null,
-                        view_more = MediaItemLayout.ViewMore(list_page_browse_id = browse_endpoint.browseId)
+                        view_more = MediaItemLayout.ViewMore(list_page_browse_id = browse_endpoint.browseId),
+                        type = when(browse_endpoint.browseId) {
+                            "FEmusic_listen_again" -> MediaItemlayout.Type.GRID_ALT
+                            else -> null
+                        }
                     )
                     continue
                 }
@@ -519,7 +525,7 @@ data class ContentsItem(val musicTwoRowItemRenderer: MusicTwoRowItemRenderer? = 
                 val first_thumbnail = renderer.thumbnailRenderer.musicThumbnailRenderer.thumbnail.thumbnails.first()
                 return Pair(
                     Song.fromId(renderer.navigationEndpoint.watchEndpoint.videoId).editSongData {
-                        // TODO | Is this the best way of checking?
+                        // Is this the best way of checking?
                         supplySongType(if (first_thumbnail.height == first_thumbnail.width) SongType.SONG else SongType.VIDEO)
                         supplyTitle(renderer.title.first_text)
                         supplyArtist(renderer.getArtist(data_item))

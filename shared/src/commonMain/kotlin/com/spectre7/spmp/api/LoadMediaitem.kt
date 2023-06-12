@@ -15,8 +15,6 @@ import kotlinx.coroutines.withContext
 import okhttp3.Request
 import okhttp3.Response
 
-// TODO Organise and split
-
 data class PlayerData(
     val videoDetails: VideoDetails? = null,
 //    val streamingData: StreamingData? = null

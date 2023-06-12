@@ -176,10 +176,6 @@ actual class PlatformContext(private val context: Context) {
         }
     }
 
-    // TODO Remove
-    actual fun mainThread(block: () -> Unit) = runInMainThread(block)
-    actual fun networkThread(block: () -> Unit): Thread = runInNetworkThread(block)
-
     actual fun isConnectionMetered(): Boolean = ctx.isConnectionMetered()
 
     @Composable
@@ -327,24 +323,6 @@ fun Context.isConnectionMetered(): Boolean {
     }
 
     return false
-}
-
-@Synchronized
-fun runInMainThread(block: () -> Unit) {
-    val main_looper = Looper.getMainLooper()
-    if (main_looper.thread == Thread.currentThread()) {
-        block()
-        return
-    }
-    Handler(main_looper).post(block)
-}
-
-fun runInNetworkThread(block: () -> Unit): Thread {
-//    if (Looper.getMainLooper().thread != Thread.currentThread()) {
-//        block()
-//        return Thread.currentThread()
-//    }
-    return thread(block = block)
 }
 
 fun <T> Settings.get(context: Context): T {

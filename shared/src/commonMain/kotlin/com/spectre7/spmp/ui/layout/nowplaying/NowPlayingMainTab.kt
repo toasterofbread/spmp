@@ -235,15 +235,22 @@ private fun Controls(
                     overflow = TextOverflow.Ellipsis,
                     modifier = Modifier
                         .fillMaxWidth()
-                        .clickable(
-                            remember { MutableInteractionSource() },
-                            indication = null,
-                            enabled = song?.artist?.is_for_item == false
-                        ) {
-                            player.status.m_song?.artist?.also {
-                                player.onMediaItemClicked(it)
+                        .platformClickable(
+                            onClick = {
+                                if (song?.artist?.is_for_item == false) {
+                                    player.status.m_song?.artist?.also {
+                                        player.onMediaItemClicked(it)
+                                    }
+                                }
+                            },
+                            onAltClick = {
+                                if (song?.artist?.is_for_item == false) {
+                                    player.status.m_song?.artist?.also {
+                                        player.onMediaItemLongClicked(it)
+                                    }
+                                }
                             }
-                        }
+                        )
                 )
             }
 

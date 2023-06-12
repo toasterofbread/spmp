@@ -129,16 +129,6 @@ actual open class PlatformContext {
         return Font(path, bytes)
     }
 
-    actual fun mainThread(block: () -> Unit) {
-        // TODO
-        block()
-    }
-
-    actual fun networkThread(block: () -> Unit): Thread {
-        // TODO
-        block()
-    }
-
     actual fun isConnectionMetered(): Boolean {
         TODO("Not yet implemented")
     }

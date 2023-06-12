@@ -67,6 +67,7 @@ data class MediaItemLayout(
 
     enum class Type {
         GRID,
+        GRID_ALT,
         ROW,
         LIST,
         NUMBERED_LIST,
@@ -81,6 +82,7 @@ data class MediaItemLayout(
             when (this) {
                 // TODO multiselect_context
                 GRID -> MediaItemGrid(layout, modifier, multiselect_context = multiselect_context)
+                GRID_ALT -> MediaItemGrid(layout, modifier, alt_style = true, multiselect_context = multiselect_context)
                 ROW -> MediaItemGrid(layout, modifier, 1, multiselect_context = multiselect_context)
                 LIST -> MediaItemList(layout, modifier, false, multiselect_context = multiselect_context)
                 NUMBERED_LIST -> MediaItemList(layout, modifier, true, multiselect_context = multiselect_context)
@@ -580,6 +582,7 @@ fun MediaItemGrid(
     layout: MediaItemLayout,
     modifier: Modifier = Modifier,
     rows: Int? = null,
+    alt_style: Boolean = false,
     multiselect_context: MediaItemMultiSelectContext? = null,
     startContent: (LazyGridScope.() -> Unit)? = null
 ) {
@@ -590,6 +593,7 @@ fun MediaItemGrid(
         layout.title,
         layout.subtitle,
         layout.view_more,
+        alt_style = alt_style,
         itemSizeProvider = layout.itemSizeProvider,
         multiselect_context = multiselect_context,
         startContent = startContent
@@ -605,14 +609,15 @@ fun MediaItemGrid(
     title: LocalisedYoutubeString? = null,
     subtitle: LocalisedYoutubeString? = null,
     view_more: MediaItemLayout.ViewMore? = null,
+    alt_style: Boolean = false,
     content_padding: PaddingValues = PaddingValues(),
     itemSizeProvider: @Composable () -> DpSize = { getDefaultMediaItemPreviewSize() },
     multiselect_context: MediaItemMultiSelectContext? = null,
     startContent: (LazyGridScope.() -> Unit)? = null
 ) {
-    val row_count = rows ?: if (items.size <= 3) 1 else 2
+    val row_count = (rows ?: if (items.size <= 3) 1 else 2) * (if (alt_style) 2 else 1)
     val item_spacing = Arrangement.spacedBy(15.dp)
-    val item_size = itemSizeProvider()
+    val item_size = itemSizeProvider() * (if (alt_style) 0.5f else 1)
 
     Column(modifier, verticalArrangement = Arrangement.spacedBy(10.dp)) {
         TitleBar(
@@ -623,24 +628,34 @@ fun MediaItemGrid(
             multiselect_context = multiselect_context
         )
 
-        Box(Modifier.fillMaxWidth(), contentAlignment = Alignment.CenterEnd) {
+        BoxWithConstraints(Modifier.fillMaxWidth(), contentAlignment = Alignment.CenterEnd) {
             LazyHorizontalGrid(
                 rows = GridCells.Fixed(row_count),
-                modifier = Modifier.height(item_size.height * row_count).fillMaxWidth(),
+                modifier = Modifier
+                    .height(item_size.height * row_count)
+                    .fillMaxWidth(),
                 horizontalArrangement = item_spacing,
-                verticalArrangement = item_spacing,
-                contentPadding = content_padding
+                verticalArrangement = item_spacing
             ) {
                 startContent?.invoke(this)
 
-                items(items.size, { items[it].item?.id ?: "" }) {
-                    items[it].item?.PreviewSquare(
-                        MediaItemPreviewParams(
-                            Modifier.size(item_size).animateItemPlacement(),
-                            contentColour = Theme.current.on_background_provider,
-                            multiselect_context = multiselect_context
-                        )
+                items(items.size, { items[it].item?.id ?: "" }) { i ->
+                    val item = items[it].item ?: return@items
+                    val params = MediaItemPreviewParams(
+                        Modifier.animateItemPlacement().then(
+                            if (alt_style) Modifier.size(maxWidth, item_size) 
+                            else Modifier.size(item_height)
+                        ),
+                        contentColour = Theme.current.on_background_provider,
+                        multiselect_context = multiselect_context
                     )
+
+                    if (alt_style) {
+                        item.PreviewLong(params)
+                    }
+                    else {
+                        item.PreviewSquare(params)
+                    }
                 }
             }
 

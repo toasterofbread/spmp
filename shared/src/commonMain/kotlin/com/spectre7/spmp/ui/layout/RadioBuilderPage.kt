@@ -161,7 +161,7 @@ fun RadioBuilderPage(
                                     preview_playlist = it
                                 }
                                 else {
-                                    SpMp.context.mainThread {
+                                    withContext(Dispatchers.Main) {
                                         player.player.startRadioAtIndex(0, it)
                                     }
                                 }

@@ -85,6 +85,7 @@ enum class Settings {
     KEY_LYRICS_TEXT_ALIGNMENT,
     KEY_LYRICS_EXTRA_PADDING,
     KEY_LYRICS_ENABLE_WORD_SYNC,
+    KEY_LYRICS_FONT_SIZE,
     
     // Audio & Video
     KEY_STREAM_AUDIO_QUALITY,
@@ -238,6 +239,7 @@ enum class Settings {
                 KEY_LYRICS_TEXT_ALIGNMENT -> 0 // Left, center, right
                 KEY_LYRICS_EXTRA_PADDING -> true
                 KEY_LYRICS_ENABLE_WORD_SYNC -> false
+                KEY_LYRICS_FONT_SIZE -> 0.5f
 
                 KEY_STREAM_AUDIO_QUALITY -> SongAudioQuality.MEDIUM.ordinal
                 KEY_DOWNLOAD_AUDIO_QUALITY -> SongAudioQuality.MEDIUM.ordinal

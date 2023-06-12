@@ -66,6 +66,30 @@ private class QueueTabItem(val song: Song, val key: Int) {
         return swipe_state
     }
 
+    @Composable
+    private fun getInfoText(index: Int): String? {
+        val player = LocalPlayerState.current
+        val playing_index = player.status.m_index
+
+        if (index == playing_index) {
+            return getString("lpm_song_now_playing")
+        }
+
+        val indices = if (index < playing_index) index + 1 .. playing_index else playing_index until index
+        
+        var delta = 0L
+        for (i in indices) {
+            delta += player.player.getSong(i) ?: 0
+        }
+
+        return remember(delta) { 
+            (
+                if (index < playing_index) getString("lpm_song_played_$x_ago")
+                else getString("lpm_song_playing_in_$x")
+            ).replace("\$x", durationToString(delta, true) )
+        }
+    }
+
     @OptIn(ExperimentalMaterial3Api::class)
     @Composable
     fun QueueElement(
@@ -101,7 +125,8 @@ private class QueueTabItem(val song: Song, val key: Int) {
                                 thresholds = { _, _ -> FractionalThreshold(0.2f) }
                             ),
                         contentColour = { backgroundColourProvider().getContrasted() },
-                        multiselect_context = multiselect_context
+                        multiselect_context = multiselect_context,
+                        getInfoText = { getInfoText(index) } 
                     ),
                     queue_index = index
                 )

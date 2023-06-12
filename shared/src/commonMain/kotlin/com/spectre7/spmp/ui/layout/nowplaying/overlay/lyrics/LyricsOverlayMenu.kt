@@ -261,7 +261,8 @@ fun CoreLyricsDisplay(
         }
     }
 
-    val font_size = 20.sp
+    val font_size_percent: Float by Settings.KEY_LYRICS_FONT_SIZE.rememberMutableState()
+    val font_size = 10.sp + (font_size_percent * 20.sp)
 
     var data_with_readings: List<AnnotatedReadingTerm>? by remember { mutableStateOf(null) }
     var data_without_readings: List<AnnotatedReadingTerm>? by remember { mutableStateOf(null) }

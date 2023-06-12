@@ -360,7 +360,9 @@ actual open class MediaPlayerService {
                     val controller = instance ?: cls.newInstance()
                     controller.player = controller_future.get()
                     controller.context = PlatformContext(ctx)
-                    controller.onCreate()
+                    if (instance == null) {
+                        controller.onCreate()
+                    }
                     onConnected(controller)
                 },
                 MoreExecutors.directExecutor()

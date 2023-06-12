@@ -51,7 +51,8 @@ fun SongPreviewSquare(
         getSongLongPressMenuData(
             song,
             multiselect_key = queue_index,
-            multiselect_context = params.multiselect_context
+            multiselect_context = params.multiselect_context,
+            getInfoText = params.getInfoText
         )
     }
 
@@ -93,7 +94,8 @@ fun SongPreviewLong(
         getSongLongPressMenuData(
             song,
             multiselect_key = queue_index,
-            multiselect_context = params.multiselect_context
+            multiselect_context = params.multiselect_context,
+            getInfoText = params.getInfoText
         )
     }
 
@@ -163,13 +165,15 @@ fun getSongLongPressMenuData(
     song: Song,
     thumb_shape: Shape? = RoundedCornerShape(SONG_THUMB_CORNER_ROUNDING),
     multiselect_key: Int? = null,
-    multiselect_context: MediaItemMultiSelectContext? = null
+    multiselect_context: MediaItemMultiSelectContext? = null,
+    getInfoText: (@Composable () -> String?)? = null
 ): LongPressMenuData {
     return LongPressMenuData(
         song,
         thumb_shape,
         { SongLongPressMenuInfo(song, multiselect_key, it) },
         getString("lpm_long_press_actions"),
+        getInitialInfoTitle = getInfoText,
         multiselect_context = multiselect_context,
         multiselect_key = multiselect_key,
         sideButton = { modifier, background, _ ->

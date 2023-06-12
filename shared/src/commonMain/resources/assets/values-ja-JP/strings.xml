@@ -77,6 +77,11 @@
     <string name="s_key_auto_download_on_metered">従量制接続でオートダウンロードを行う</string>
     <string name="s_key_lyrics_extra_padding">パディングを増やす</string>
 
+    <string name="s_key_lyrics_enable_word_sync">文字ごとにシンクする</string>
+    <string name="s_sub_lyrics_enable_word_sync">可能ならば、行ごとにではなく文字ごとにシンクを表示します</string>
+
+    <string name="s_key_lyrics_font_size">フォントサイズ</string>
+
     <string name="s_group_top_bar_lyrics">トップバーの歌詞</string>
     <string name="s_key_top_bar_lyrics_show_furigana">ふりがなを表示</string>
 
@@ -263,7 +268,7 @@
 
     <string name="s_cat_desc_general">言語やアプリ動作などのオプション</string>
     <string name="s_cat_desc_home_page">おすすめの曲やアーティストの調節</string>
-    <string name="s_cat_desc_library">TODO</string>
+    <string name="s_cat_desc_library">ライブラリの表示設定</string>
     <string name="s_cat_desc_theming">アプリ内の色をカスタマイズする</string>
     <string name="s_cat_desc_lyrics">歌詞の表示や動作の設定</string>
     <string name="s_cat_desc_download">音質と自動ダウンロードのオプション</string>
@@ -303,6 +308,9 @@
     <string name="lpm_long_press_actions">長押しアクション</string>
     <string name="lpm_action_radio_at_song_pos">この曲の位置にラジオを入れる</string>
     <string name="lpm_action_radio_after_x_songs">X曲後にラジオを入れる</string>
+    <string name="lpm_song_now_playing">再生中</string>
+    <string name="lpm_song_played_$x_ago">$x前に再生ずみ</string>
+    <string name="lpm_song_playing_in_$x">$x後に再生します</string>
 
     <string name="lpm_info_queue_index">再生リストでの位置: $index</string>
     <string name="lpm_info_id">ID: $id</string>

@@ -117,9 +117,7 @@ class PlayerService : MediaPlayerService() {
                     SpMp.error_manager.onError("continueRadio", result.exceptionOrNull()!!)
                 }
                 else {
-                    context.mainThread {
-                        addMultipleToQueue(result.getOrThrowHere(), song_count, false, skip_existing = true)
-                    }
+                    addMultipleToQueue(result.getOrThrowHere(), song_count, false, skip_existing = true)
                 }
             }
         }
@@ -220,9 +218,7 @@ class PlayerService : MediaPlayerService() {
                         }
                     }
                     else {
-                        context.mainThread {
-                            addMultipleToQueue(result.getOrThrowHere(), added_index + 1, save = save, skip_existing = true)
-                        }
+                        addMultipleToQueue(result.getOrThrowHere(), added_index + 1, save = save, skip_existing = true)
                     }
                 }
             }
@@ -358,7 +354,6 @@ class PlayerService : MediaPlayerService() {
         val song_artist_listener: (Artist?) -> Unit = {
             updateDiscordStatus(current_song)
         }
-        // TODO | Thumb listener for song and artist
 
         override fun onSongTransition(song: Song?) {
             current_song?.apply {
@@ -694,13 +689,13 @@ class PlayerService : MediaPlayerService() {
             scheduleAtFixedRate(
                 object : TimerTask() {
                     override fun run() {
-                        context.mainThread {
+                        coroutine_scope.launch(Dispatchers.IO) {
                             savePersistentQueue()
                             markWatched()
                         }
                     }
 
-                    fun markWatched() {
+                    suspend fun markWatched() {
                         if (
                             !song_marked_as_watched
                             && is_playing
@@ -714,7 +709,7 @@ class PlayerService : MediaPlayerService() {
                             }
 
                             if (Settings.KEY_ADD_SONGS_TO_HISTORY.get(context)) {
-                                context.networkThread {
+                                withContext(Dispatchers.IO) {
                                     val result = markSongAsWatched(song.id)
                                     if (result.isFailure) {
                                         SpMp.error_manager.onError("autoMarkSongAsWatched", result.exceptionOrNull()!!)

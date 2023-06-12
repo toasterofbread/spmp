@@ -87,9 +87,6 @@ expect class PlatformContext {
 
     fun loadFontFromFile(path: String): Font
 
-    fun mainThread(block: () -> Unit)
-    fun networkThread(block: () -> Unit): Thread
-
     fun isConnectionMetered(): Boolean
 
     @Composable

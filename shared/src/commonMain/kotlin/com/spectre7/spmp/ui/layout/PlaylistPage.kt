@@ -303,7 +303,7 @@ private fun LazyListScope.PlaylistItems(
                     )
 
                     val duration_text = remember(item.duration) {
-                        item.duration?.let { duration -> durationToString(duration, SpMp.ui_language, true) }
+                        item.duration?.let { duration -> durationToString(duration, true, hl = SpMp.ui_language) }
                     }
                     duration_text?.also { text ->
                         Text(text, style = MaterialTheme.typography.labelSmall)
@@ -326,7 +326,7 @@ private fun PlaylistInfoText(playlist: Playlist, items: List<MediaItem>) {
             if (item_count > 0) {
                 val total_duration_text = remember(playlist.total_duration) {
                     if (playlist.total_duration == null) ""
-                    else durationToString(playlist.total_duration!!, SpMp.ui_language, false)
+                    else durationToString(playlist.total_duration!!, hl = SpMp.ui_language)
                 }
                 if (total_duration_text.isNotBlank()) {
                     Text(total_duration_text)

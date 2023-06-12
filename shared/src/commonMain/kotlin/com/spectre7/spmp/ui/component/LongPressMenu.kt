@@ -50,6 +50,7 @@ data class LongPressMenuData(
     val thumb_shape: Shape? = null,
     val infoContent: (@Composable ColumnScope.(accent: Color) -> Unit)? = null,
     val info_title: String? = null,
+    val getInitialInfoTitle: (@Composable () -> String?)? = null,
     val multiselect_context: MediaItemMultiSelectContext? = null,
     val multiselect_key: Int? = null,
     val sideButton: (@Composable (Modifier, background: Color, accent: Color) -> Unit)? = null,
@@ -290,12 +291,19 @@ private fun MenuContent(
                                     .weight(1f)
                                     .onSizeChanged { box_width = it.width }
                             ) {
-                                if (data.info_title != null) {
-                                    Text(
-                                        data.info_title,
-                                        Modifier.offset(y = (-10).dp).onSizeChanged { info_title_width = it.width },
-                                        overflow = TextOverflow.Visible
-                                    )
+                                Crossfade(show_info) { info ->
+                                    val text = if (info) data.info_title else data.getInitialInfoTitle?.invoke()
+                                    val current = info == show_info
+                                    if (text != null) {
+                                        Text(
+                                            text,
+                                            Modifier.offset(y = (-10).dp).onSizeChanged { if (current) info_title_width = it.width },
+                                            overflow = TextOverflow.Visible
+                                        )
+                                    }
+                                    else if (current) {
+                                        info_title_width = 0.dp
+                                    }
                                 }
 
                                 Box(
@@ -304,7 +312,7 @@ private fun MenuContent(
                                             if (box_width < 0) fillMaxWidth()
                                             else width(animateDpAsState(
                                                 with(LocalDensity.current) {
-                                                    if (show_info) (box_width - info_title_width).toDp() - 15.dp else box_width.toDp()
+                                                    if (info_title_width == 0.dp) box_width.toDp() else (box_width - info_title_width).toDp() - 15.dp
                                                 }
                                             ).value)
                                         }

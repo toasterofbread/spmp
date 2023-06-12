@@ -39,6 +39,16 @@ internal fun getLyricsCategory(): List<SettingsItem> {
             getString("s_key_lyrics_extra_padding"), getString("s_sub_lyrics_extra_padding")
         ),
 
+        SettingsItemToggle(
+            SettingsValueState(Settings.KEY_LYRICS_ENABLE_WORD_SYNC.name),
+            getString("s_key_lyrics_enable_word_sync"), getString("s_sub_lyrics_enable_word_sync")
+        ),
+
+        SettingsItemSlider(
+            SettingsValueState(Settings.KEY_LYRICS_FONT_SIZE.name),
+            getString("s_key_lyrics_font_size"), null
+        )
+
         SettingsGroup(getString("s_group_top_bar_lyrics")),
 
         SettingsItemToggle(

@@ -33,36 +33,6 @@ enum class MusicTopBarMode {
     }
 }
 
-@Composable
-fun <T> mutableSettingsState(settings_key: Settings, prefs: ProjectPreferences = Settings.prefs): MutableState<T> {
-    val state: MutableState<T> = remember { mutableStateOf(settings_key.get(prefs)) }
-    var set_to: T by remember { mutableStateOf(state.value) }
-
-    LaunchedEffect(state.value) {
-        if (state.value != set_to) {
-            set_to = state.value
-            settings_key.set(set_to, prefs)
-        }
-    }
-
-    DisposableEffect(settings_key) {
-        val listener = prefs.addListener(object : ProjectPreferences.Listener {
-            override fun onChanged(prefs: ProjectPreferences, key: String) {
-                if (key == settings_key.name) {
-                    set_to = settings_key.get(prefs)
-                    state.value = set_to
-                }
-            }
-        })
-
-        onDispose {
-            prefs.removeListener(listener)
-        }
-    }
-
-    return state
-}
-
 enum class Settings {
     // Language
     KEY_LANG_UI,
@@ -109,8 +79,6 @@ enum class Settings {
     // Top bar content
     KEY_TOPBAR_LYRICS_LINGER,
     KEY_TOPBAR_LYRICS_SHOW_FURIGANA,
-    KEY_TOPBAR_DEFAULT_MODE_HOME,
-    KEY_TOPBAR_DEFAULT_MODE_NOWPLAYING,
     KEY_TOPBAR_SHOW_LYRICS_IN_QUEUE,
     KEY_TOPBAR_SHOW_VISUALISER_IN_QUEUE,
     KEY_TOPBAR_VISUALISER_WIDTH,
@@ -158,7 +126,19 @@ enum class Settings {
     KEY_ADD_SONGS_TO_HISTORY,
 
     // Internal
-    INTERNAL_PINNED_ITEMS;
+    INTERNAL_PINNED_ITEMS,
+    INTERNAL_TOPBAR_MODE_HOME,
+    INTERNAL_TOPBAR_MODE_NOWPLAYING,
+    INTERNAL_TOPBAR_MODE_LIBRARY,
+    INTERNAL_TOPBAR_MODE_RADIOBUILDER,
+    INTERNAL_TOPBAR_MODE_SETTINGS,
+    INTERNAL_TOPBAR_MODE_LOGIN,
+    INTERNAL_TOPBAR_MODE_PLAYLIST,
+    INTERNAL_TOPBAR_MODE_ARTIST,
+    INTERNAL_TOPBAR_MODE_VIEWMORE,
+    INTERNAL_TOPBAR_MODE_SEARCH
+    
+    ;
 
     fun <T> get(preferences: ProjectPreferences = prefs): T {
         return Settings.get(this, preferences)
@@ -177,6 +157,10 @@ enum class Settings {
     @Composable
     fun <T> rememberMutableState(preferences: ProjectPreferences = prefs): MutableState<T> =
         mutableSettingsState(this, preferences)
+
+    @Composable
+    inline fun <reified T: Enum<T>> rememberMutableEnumState(preferences: ProjectPreferences = prefs): MutableState<T> =
+        mutableSettingsEnumState(this, preferences)
 
     companion object {
         val prefs: ProjectPreferences get() = SpMp.context.getPrefs()
@@ -255,8 +239,6 @@ enum class Settings {
                 // Top bar content
                 KEY_TOPBAR_LYRICS_LINGER -> true
                 KEY_TOPBAR_LYRICS_SHOW_FURIGANA -> true
-                KEY_TOPBAR_DEFAULT_MODE_HOME -> MusicTopBarMode.LYRICS.ordinal
-                KEY_TOPBAR_DEFAULT_MODE_NOWPLAYING -> MusicTopBarMode.LYRICS.ordinal
                 KEY_TOPBAR_SHOW_LYRICS_IN_QUEUE -> true
                 KEY_TOPBAR_SHOW_VISUALISER_IN_QUEUE -> false
                 KEY_TOPBAR_VISUALISER_WIDTH -> 0.8f
@@ -272,8 +254,6 @@ enum class Settings {
                 KEY_FEED_SHOW_CHARTS_ROW -> true
 
                 KEY_NP_QUEUE_RADIO_INFO_POSITION -> NowPlayingQueueRadioInfoPosition.TOP_BAR.ordinal
-
-                KEY_SPMS_PORT -> 3973
 
                 KEY_YTM_AUTH -> {
                     with(ProjectBuildConfig) {
@@ -308,7 +288,20 @@ enum class Settings {
                 KEY_PERSISTENT_QUEUE -> true
                 KEY_ADD_SONGS_TO_HISTORY -> false
 
+                KEY_SPMS_PORT -> 3973
+
+                // Internal
                 INTERNAL_PINNED_ITEMS -> emptySet<String>()
+                INTERNAL_TOPBAR_MODE_HOME -> MusicTopBarMode.LYRICS.ordinal
+                INTERNAL_TOPBAR_MODE_NOWPLAYING -> MusicTopBarMode.LYRICS.ordinal
+                INTERNAL_TOPBAR_MODE_LIBRARY -> MusicTopBarMode.LYRICS.ordinal
+                INTERNAL_TOPBAR_MODE_RADIOBUILDER -> MusicTopBarMode.LYRICS.ordinal
+                INTERNAL_TOPBAR_MODE_SETTINGS -> MusicTopBarMode.LYRICS.ordinal
+                INTERNAL_TOPBAR_MODE_LOGIN -> MusicTopBarMode.LYRICS.ordinal
+                INTERNAL_TOPBAR_MODE_PLAYLIST -> MusicTopBarMode.LYRICS.ordinal
+                INTERNAL_TOPBAR_MODE_ARTIST -> MusicTopBarMode.LYRICS.ordinal
+                INTERNAL_TOPBAR_MODE_VIEWMORE -> MusicTopBarMode.LYRICS.ordinal
+                INTERNAL_TOPBAR_MODE_SEARCH -> MusicTopBarMode.LYRICS.ordinal
 
             } as T
         }

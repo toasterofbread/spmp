@@ -55,6 +55,7 @@ fun RadioBuilderIcon(modifier: Modifier = Modifier) {
 fun RadioBuilderPage(
     pill_menu: PillMenu,
     bottom_padding: Dp,
+    modifier: Modifier = Modifier,
     close: () -> Unit
 ) {
     val player = LocalPlayerState.current
@@ -70,212 +71,217 @@ fun RadioBuilderPage(
         }
     }
 
-    Crossfade(selected_artists) { selected ->
-        Column(
-            Modifier
-                .fillMaxSize()
-                .padding(10.dp, 0.dp),
-            verticalArrangement = Arrangement.spacedBy(15.dp)
-        ) {
-            Row(
-                Modifier.padding(vertical = 10.dp).fillMaxWidth(),
-                horizontalArrangement = Arrangement.SpaceBetween,
-                verticalAlignment = Alignment.CenterVertically
+    Column(modifier.padding(horizontal = 10.dp)) {
+        MusicTopBar(
+            Settings.INTERNAL_TOPBAR_MODE_RADIOBUILDER,
+            Modifier.fillMaxWidth()
+        )
+
+        Crossfade(selected_artists) { selected ->
+            Column(
+                Modifier.fillMaxSize(),
+                verticalArrangement = Arrangement.spacedBy(15.dp)
             ) {
-                RadioBuilderIcon()
+                Row(
+                    Modifier.padding(vertical = 10.dp).fillMaxWidth(),
+                    horizontalArrangement = Arrangement.SpaceBetween,
+                    verticalAlignment = Alignment.CenterVertically
+                ) {
+                    RadioBuilderIcon()
 
-//                Text(getString("radio_builder_title"), fontSize = 15.sp)
-                Text(
-                    getString(
-                        if (selected == null) "radio_builder_artists_title"
-                        else "radio_builder_modifiers_title"
-                    ),
-                    style = MaterialTheme.typography.headlineMedium
-                )
-
-                Spacer(Modifier.width(RADIO_BUILDER_ICON_WIDTH.dp))
-            }
-
-            if (selected == null) {
-                if (artists_result?.isFailure == true) {
-                    // TODO
-                    SpMp.ErrorDisplay(artists_result?.exceptionOrNull())
-                }
-                else {
-                    RadioArtistSelector(artists_result?.getOrNull(), pill_menu, Modifier.fillMaxSize()) { selected_artists = it.toSet() }
-                }
-            }
-            else {
-                BackHandler {
-                    selected_artists = null
-                }
-
-                val selection_type = remember { mutableStateOf(RadioModifier.SelectionType.BLEND) }
-                SelectionTypeRow(selection_type)
-
-                val artist_variety = remember { mutableStateOf(RadioModifier.Variety.MEDIUM) }
-                ArtistVarietyRow(artist_variety)
-
-                val filter_a: MutableState<RadioModifier.FilterA?> = remember { mutableStateOf(null) }
-                FilterARow(filter_a)
-
-                val filter_b: MutableState<RadioModifier.FilterB?> = remember { mutableStateOf(null) }
-                FilterBRow(filter_b)
-
-                var is_loading by remember { mutableStateOf(false) }
-                var preview_loading by remember { mutableStateOf(false) }
-                var preview_playlist: Playlist? by remember { mutableStateOf(null) }
-                var invalid_modifiers: Boolean by remember { mutableStateOf(false) }
-
-                fun loadRadio(preview: Boolean) {
-                    if (is_loading || preview_loading) {
-                        return
-                    }
-
-                    val radio_token = buildRadioToken(
-                        selected_artists!!.map { artists_result!!.getOrThrow()[it] }.toSet(),
-                        setOf(selection_type.value, artist_variety.value, filter_a.value, filter_b.value)
+    //                Text(getString("radio_builder_title"), fontSize = 15.sp)
+                    Text(
+                        getString(
+                            if (selected == null) "radio_builder_artists_title"
+                            else "radio_builder_modifiers_title"
+                        ),
+                        style = MaterialTheme.typography.headlineMedium
                     )
 
-                    invalid_modifiers = false
-                    if (preview) {
-                        preview_loading = true
-                    }
-                    else if (preview_playlist?.id == radio_token) {
-                        player.player.startRadioAtIndex(0, preview_playlist)
-                        return
-                    }
-                    else {
-                        is_loading = true
-                    }
-
-                    Api.scope.launch {
-                        val result = getBuiltRadio(radio_token)
-
-                        result.fold(
-                            {
-                                if (it == null) {
-                                    invalid_modifiers = true
-                                }
-                                else if (preview) {
-                                    preview_playlist = it
-                                }
-                                else {
-                                    withContext(Dispatchers.Main) {
-                                        player.player.startRadioAtIndex(0, it)
-                                    }
-                                }
-                            },
-                            {
-                                if (it is InvalidRadioException) {
-                                    invalid_modifiers = true
-                                    preview_playlist = null
-                                }
-                                else {
-                                    SpMp.error_manager.onError("radio_builder_load_radio", result.exceptionOrNull()!!)
-                                }
-                            }
-                        )
-
-                        is_loading = false
-                        preview_loading = false
-                    }
+                    Spacer(Modifier.width(RADIO_BUILDER_ICON_WIDTH.dp))
                 }
 
-                Box {
-                    var action_buttons_visible: Boolean by remember { mutableStateOf(true) }
+                if (selected == null) {
+                    if (artists_result?.isFailure == true) {
+                        // TODO
+                        SpMp.ErrorDisplay(artists_result?.exceptionOrNull())
+                    }
+                    else {
+                        RadioArtistSelector(artists_result?.getOrNull(), pill_menu, Modifier.fillMaxSize()) { selected_artists = it.toSet() }
+                    }
+                }
+                else {
+                    BackHandler {
+                        selected_artists = null
+                    }
 
-                    Box(Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
-                        Crossfade(Triple(preview_loading, preview_playlist, invalid_modifiers)) {
-                            val (loading, playlist, invalid) = it
-                            if (invalid) {
-                                Column(
-                                    Modifier
-                                        .fillMaxHeight()
-                                        .padding(bottom = bottom_padding),
-                                    horizontalAlignment = Alignment.CenterHorizontally,
-                                    verticalArrangement = Arrangement.Center
-                                ) {
-                                    Text(getString("radio_builder_no_songs_match_criteria"), Modifier.padding(10.dp))
+                    val selection_type = remember { mutableStateOf(RadioModifier.SelectionType.BLEND) }
+                    SelectionTypeRow(selection_type)
 
-                                    Row {
-                                        SpMp.context.CopyShareButtons(name = "") {
-                                            buildRadioToken(
-                                                selected_artists!!.map { i -> artists_result!!.getOrThrow()[i] }.toSet(),
-                                                setOf(selection_type.value, artist_variety.value, filter_a.value, filter_b.value)
-                                            )
+                    val artist_variety = remember { mutableStateOf(RadioModifier.Variety.MEDIUM) }
+                    ArtistVarietyRow(artist_variety)
+
+                    val filter_a: MutableState<RadioModifier.FilterA?> = remember { mutableStateOf(null) }
+                    FilterARow(filter_a)
+
+                    val filter_b: MutableState<RadioModifier.FilterB?> = remember { mutableStateOf(null) }
+                    FilterBRow(filter_b)
+
+                    var is_loading by remember { mutableStateOf(false) }
+                    var preview_loading by remember { mutableStateOf(false) }
+                    var preview_playlist: Playlist? by remember { mutableStateOf(null) }
+                    var invalid_modifiers: Boolean by remember { mutableStateOf(false) }
+
+                    fun loadRadio(preview: Boolean) {
+                        if (is_loading || preview_loading) {
+                            return
+                        }
+
+                        val radio_token = buildRadioToken(
+                            selected_artists!!.map { artists_result!!.getOrThrow()[it] }.toSet(),
+                            setOf(selection_type.value, artist_variety.value, filter_a.value, filter_b.value)
+                        )
+
+                        invalid_modifiers = false
+                        if (preview) {
+                            preview_loading = true
+                        }
+                        else if (preview_playlist?.id == radio_token) {
+                            player.player.startRadioAtIndex(0, preview_playlist)
+                            return
+                        }
+                        else {
+                            is_loading = true
+                        }
+
+                        Api.scope.launch {
+                            val result = getBuiltRadio(radio_token)
+
+                            result.fold(
+                                {
+                                    if (it == null) {
+                                        invalid_modifiers = true
+                                    }
+                                    else if (preview) {
+                                        preview_playlist = it
+                                    }
+                                    else {
+                                        withContext(Dispatchers.Main) {
+                                            player.player.startRadioAtIndex(0, it)
+                                        }
+                                    }
+                                },
+                                {
+                                    if (it is InvalidRadioException) {
+                                        invalid_modifiers = true
+                                        preview_playlist = null
+                                    }
+                                    else {
+                                        SpMp.error_manager.onError("radio_builder_load_radio", result.exceptionOrNull()!!)
+                                    }
+                                }
+                            )
+
+                            is_loading = false
+                            preview_loading = false
+                        }
+                    }
+
+                    Box {
+                        var action_buttons_visible: Boolean by remember { mutableStateOf(true) }
+
+                        Box(Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
+                            Crossfade(Triple(preview_loading, preview_playlist, invalid_modifiers)) {
+                                val (loading, playlist, invalid) = it
+                                if (invalid) {
+                                    Column(
+                                        Modifier
+                                            .fillMaxHeight()
+                                            .padding(bottom = bottom_padding),
+                                        horizontalAlignment = Alignment.CenterHorizontally,
+                                        verticalArrangement = Arrangement.Center
+                                    ) {
+                                        Text(getString("radio_builder_no_songs_match_criteria"), Modifier.padding(10.dp))
+
+                                        Row {
+                                            SpMp.context.CopyShareButtons(name = "") {
+                                                buildRadioToken(
+                                                    selected_artists!!.map { i -> artists_result!!.getOrThrow()[i] }.toSet(),
+                                                    setOf(selection_type.value, artist_variety.value, filter_a.value, filter_b.value)
+                                                )
+                                            }
+                                        }
+
+    //                                    val clipboard = LocalClipboardManager.current
+    //                                    Button(
+    //                                        {
+    //                                            clipboard.setText(AnnotatedString(
+    //                                                buildRadioToken(
+    //                                                    selected_artists!!.map { i -> available_artists!![i] }.toSet(),
+    //                                                    setOf(selection_type.value, artist_variety.value, filter_a.value, filter_b.value)
+    //                                                )
+    //                                            ))
+    //                                        },
+    //                                        colors = ButtonDefaults.buttonColors(
+    //                                            containerColor = Theme.current.accent,
+    //                                            contentColor = Theme.current.on_accent
+    //                                        )
+    //                                    ) {
+    //                                        Text(getString("Copy radio token"))
+    //                                    }
+                                    }
+                                }
+                                else if (loading) {
+                                    SubtleLoadingIndicator(Modifier.offset(y = -bottom_padding), { Theme.current.on_background })
+                                }
+                                else if (playlist?.feed_layouts?.isNotEmpty() == true) {
+                                    val layout = playlist.feed_layouts!!.first()
+                                    val multiselect_context = remember { MediaItemMultiSelectContext() {} }
+
+                                    DisposableEffect(multiselect_context.is_active) {
+                                        action_buttons_visible = !multiselect_context.is_active
+                                        onDispose {
+                                            action_buttons_visible = true
                                         }
                                     }
 
-//                                    val clipboard = LocalClipboardManager.current
-//                                    Button(
-//                                        {
-//                                            clipboard.setText(AnnotatedString(
-//                                                buildRadioToken(
-//                                                    selected_artists!!.map { i -> available_artists!![i] }.toSet(),
-//                                                    setOf(selection_type.value, artist_variety.value, filter_a.value, filter_b.value)
-//                                                )
-//                                            ))
-//                                        },
-//                                        colors = ButtonDefaults.buttonColors(
-//                                            containerColor = Theme.current.accent,
-//                                            contentColor = Theme.current.on_accent
-//                                        )
-//                                    ) {
-//                                        Text(getString("Copy radio token"))
-//                                    }
-                                }
-                            }
-                            else if (loading) {
-                                SubtleLoadingIndicator(Modifier.offset(y = -bottom_padding), { Theme.current.on_background })
-                            }
-                            else if (playlist?.feed_layouts?.isNotEmpty() == true) {
-                                val layout = playlist.feed_layouts!!.first()
-                                val multiselect_context = remember { MediaItemMultiSelectContext() {} }
-
-                                DisposableEffect(multiselect_context.is_active) {
-                                    action_buttons_visible = !multiselect_context.is_active
-                                    onDispose {
-                                        action_buttons_visible = true
-                                    }
-                                }
-
-                                Column {
-                                    AnimatedVisibility(multiselect_context.is_active) {
-                                        multiselect_context.InfoDisplay()
-                                    }
-                                    LazyColumn(Modifier.fillMaxSize(), contentPadding = PaddingValues(bottom = bottom_padding)) {
-                                        items(layout.items) { item ->
-                                            item.PreviewLong(MediaItemPreviewParams(multiselect_context = multiselect_context))
+                                    Column {
+                                        AnimatedVisibility(multiselect_context.is_active) {
+                                            multiselect_context.InfoDisplay()
+                                        }
+                                        LazyColumn(Modifier.fillMaxSize(), contentPadding = PaddingValues(bottom = bottom_padding)) {
+                                            items(layout.items) { item ->
+                                                item.PreviewLong(MediaItemPreviewParams(multiselect_context = multiselect_context))
+                                            }
                                         }
                                     }
                                 }
                             }
                         }
-                    }
 
-                    androidx.compose.animation.AnimatedVisibility(
-                        action_buttons_visible,
-                        Modifier.align(Alignment.TopEnd),
-                        enter = fadeIn(),
-                        exit = fadeOut()
-                    ) {
-                        Column {
-                            val icon_button_colours = IconButtonDefaults.iconButtonColors(
-                                containerColor = Theme.current.accent,
-                                contentColor = Theme.current.on_accent
-                            )
-                            ShapedIconButton({ loadRadio(false) }, colors = icon_button_colours) {
-                                Crossfade(is_loading) { loading ->
-                                    if (loading) {
-                                        SubtleLoadingIndicator(colourProvider = { Theme.current.on_accent })
-                                    } else {
-                                        Icon(Icons.Filled.PlayArrow, null)
+                        androidx.compose.animation.AnimatedVisibility(
+                            action_buttons_visible,
+                            Modifier.align(Alignment.TopEnd),
+                            enter = fadeIn(),
+                            exit = fadeOut()
+                        ) {
+                            Column {
+                                val icon_button_colours = IconButtonDefaults.iconButtonColors(
+                                    containerColor = Theme.current.accent,
+                                    contentColor = Theme.current.on_accent
+                                )
+                                ShapedIconButton({ loadRadio(false) }, colors = icon_button_colours) {
+                                    Crossfade(is_loading) { loading ->
+                                        if (loading) {
+                                            SubtleLoadingIndicator(colourProvider = { Theme.current.on_accent })
+                                        } else {
+                                            Icon(Icons.Filled.PlayArrow, null)
+                                        }
                                     }
                                 }
-                            }
-                            ShapedIconButton({ loadRadio(true) }, colors = icon_button_colours) {
-                                Icon(Icons.Filled.RemoveRedEye, null)
+                                ShapedIconButton({ loadRadio(true) }, colors = icon_button_colours) {
+                                    Icon(Icons.Filled.RemoveRedEye, null)
+                                }
                             }
                         }
                     }

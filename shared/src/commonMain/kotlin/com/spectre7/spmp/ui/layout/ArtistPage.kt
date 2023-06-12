@@ -90,190 +90,197 @@ fun ArtistPage(
         InfoDialog(item) { show_info = false }
     }
 
-    Box(Modifier.fillMaxSize(), contentAlignment = Alignment.TopCenter) {
+    Column {
+        MusicTopBar(
+            Settings.INTERNAL_TOPBAR_MODE_ARTIST,
+            Modifier.fillMaxWidth()
+        )
 
-        val lazy_column_state = rememberLazyListState()
+        Box(Modifier.fillMaxSize(), contentAlignment = Alignment.TopCenter) {
 
-        // Thumbnail
-        Crossfade(item.getThumbnail(MediaItemThumbnailProvider.Quality.HIGH)) { thumbnail ->
-            if (thumbnail != null) {
-                if (accent_colour == null) {
-                    accent_colour = Theme.current.makeVibrant(item.getDefaultThemeColour() ?: Theme.current.accent)
-                }
+            val lazy_column_state = rememberLazyListState()
 
-                Image(
-                    thumbnail,
-                    contentDescription = null,
-                    contentScale = ContentScale.Crop,
-                    modifier = Modifier
-                        .fillMaxWidth()
-                        .aspectRatio(1f)
-                        .offset {
-                            IntOffset(0, (lazy_column_state.firstVisibleItemScrollOffset * -ARTIST_IMAGE_SCROLL_MODIFIER).toInt())
-                        }
-                )
+            // Thumbnail
+            Crossfade(item.getThumbnail(MediaItemThumbnailProvider.Quality.HIGH)) { thumbnail ->
+                if (thumbnail != null) {
+                    if (accent_colour == null) {
+                        accent_colour = Theme.current.makeVibrant(item.getDefaultThemeColour() ?: Theme.current.accent)
+                    }
 
-                Spacer(
-                    Modifier
-                        .fillMaxWidth()
-                        .aspectRatio(1f)
-                        .brushBackground {
-                            Brush.verticalGradient(
-                                0f to Theme.current.background,
-                                gradient_size to Color.Transparent
-                            )
-                        }
-                )
-            }
-        }
-
-        LazyColumn(Modifier.fillMaxSize(), lazy_column_state) {
-
-            val content_padding = PaddingValues(horizontal = 10.dp)
-            val background_modifier = Modifier.background(Theme.current.background_provider)
-
-            val play_button_size = 55.dp
-            val filter_bar_height = 32.dp
-
-            // Image spacing
-            item {
-                Box(
-                    Modifier
-                        .fillMaxWidth()
-                        .aspectRatio(1.1f)
-                        .brushBackground {
-                            Brush.verticalGradient(
-                                1f - gradient_size to Color.Transparent,
-                                1f to Theme.current.background
-                            )
-                        },
-                    contentAlignment = Alignment.BottomCenter
-                ) {
-                    TitleBar(
-                        item,
-                        Modifier
+                    Image(
+                        thumbnail,
+                        contentDescription = null,
+                        contentScale = ContentScale.Crop,
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .aspectRatio(1f)
                             .offset {
-                                IntOffset(0, (lazy_column_state.firstVisibleItemScrollOffset * ARTIST_IMAGE_SCROLL_MODIFIER).toInt())
+                                IntOffset(0, (lazy_column_state.firstVisibleItemScrollOffset * -ARTIST_IMAGE_SCROLL_MODIFIER).toInt())
                             }
-                            .padding(bottom = (play_button_size - filter_bar_height) / 2f)
+                    )
+
+                    Spacer(
+                        Modifier
+                            .fillMaxWidth()
+                            .aspectRatio(1f)
+                            .brushBackground {
+                                Brush.verticalGradient(
+                                    0f to Theme.current.background,
+                                    gradient_size to Color.Transparent
+                                )
+                            }
                     )
                 }
             }
 
-            // Action / play button bar
-            item {
-                Box(
-                    background_modifier.padding(bottom = 20.dp, end = 10.dp).fillMaxWidth().requiredHeight(filter_bar_height),
-                    contentAlignment = Alignment.CenterEnd
-                ) {
-                    LazyRow(
-                        Modifier.fillMaxWidth().padding(end = play_button_size / 2),
-                        horizontalArrangement = Arrangement.spacedBy(10.dp),
-                        contentPadding = content_padding.copy(end = content_padding.calculateEndPadding(LocalLayoutDirection.current) + (play_button_size / 2)),
-                    ) {
-                        fun chip(text: String, icon: ImageVector, onClick: () -> Unit) {
-                            item {
-                                ElevatedAssistChip(
-                                    onClick,
-                                    { Text(text, style = MaterialTheme.typography.labelLarge) },
-                                    Modifier.height(filter_bar_height),
-                                    leadingIcon = {
-                                        Icon(icon, null, tint = accent_colour ?: Color.Unspecified)
-                                    },
-                                    colors = AssistChipDefaults.assistChipColors(
-                                        containerColor = Theme.current.background,
-                                        labelColor = Theme.current.on_background,
-                                        leadingIconContentColor = accent_colour ?: Color.Unspecified
-                                    )
+            LazyColumn(Modifier.fillMaxSize(), lazy_column_state) {
+
+                val content_padding = PaddingValues(horizontal = 10.dp)
+                val background_modifier = Modifier.background(Theme.current.background_provider)
+
+                val play_button_size = 55.dp
+                val filter_bar_height = 32.dp
+
+                // Image spacing
+                item {
+                    Box(
+                        Modifier
+                            .fillMaxWidth()
+                            .aspectRatio(1.1f)
+                            .brushBackground {
+                                Brush.verticalGradient(
+                                    1f - gradient_size to Color.Transparent,
+                                    1f to Theme.current.background
                                 )
+                            },
+                        contentAlignment = Alignment.BottomCenter
+                    ) {
+                        TitleBar(
+                            item,
+                            Modifier
+                                .offset {
+                                    IntOffset(0, (lazy_column_state.firstVisibleItemScrollOffset * ARTIST_IMAGE_SCROLL_MODIFIER).toInt())
+                                }
+                                .padding(bottom = (play_button_size - filter_bar_height) / 2f)
+                        )
+                    }
+                }
+
+                // Action / play button bar
+                item {
+                    Box(
+                        background_modifier.padding(bottom = 20.dp, end = 10.dp).fillMaxWidth().requiredHeight(filter_bar_height),
+                        contentAlignment = Alignment.CenterEnd
+                    ) {
+                        LazyRow(
+                            Modifier.fillMaxWidth().padding(end = play_button_size / 2),
+                            horizontalArrangement = Arrangement.spacedBy(10.dp),
+                            contentPadding = content_padding.copy(end = content_padding.calculateEndPadding(LocalLayoutDirection.current) + (play_button_size / 2)),
+                        ) {
+                            fun chip(text: String, icon: ImageVector, onClick: () -> Unit) {
+                                item {
+                                    ElevatedAssistChip(
+                                        onClick,
+                                        { Text(text, style = MaterialTheme.typography.labelLarge) },
+                                        Modifier.height(filter_bar_height),
+                                        leadingIcon = {
+                                            Icon(icon, null, tint = accent_colour ?: Color.Unspecified)
+                                        },
+                                        colors = AssistChipDefaults.assistChipColors(
+                                            containerColor = Theme.current.background,
+                                            labelColor = Theme.current.on_background,
+                                            leadingIconContentColor = accent_colour ?: Color.Unspecified
+                                        )
+                                    )
+                                }
+                            }
+
+                            if (item is Artist) {
+                                chip(getString("artist_chip_shuffle"), Icons.Outlined.Shuffle) { player.playMediaItem(item, true) }
+                            }
+
+                            if (SpMp.context.canShare()) {
+                                chip(getString("action_share"), Icons.Outlined.Share) { SpMp.context.shareText(item.url, item.title) }
+                            }
+                            if (SpMp.context.canOpenUrl()) {
+                                chip(getString("artist_chip_open"), Icons.Outlined.OpenInNew) { SpMp.context.openUrl(item.url) }
+                            }
+
+                            chip(getString("artist_chip_details"), Icons.Outlined.Info) { show_info = !show_info }
+                        }
+
+                        Box(Modifier.requiredHeight(filter_bar_height)) {
+                            ShapedIconButton(
+                                { player.playMediaItem(item) },
+                                Modifier.requiredSize(play_button_size),
+                                colors = IconButtonDefaults.iconButtonColors(
+                                    containerColor = accent_colour ?: LocalContentColor.current,
+                                    contentColor = (accent_colour ?: LocalContentColor.current).getContrasted()
+                                )
+                            ) {
+                                Icon(Icons.Default.PlayArrow, null)
                             }
                         }
+                    }
+                }
 
-                        if (item is Artist) {
-                            chip(getString("artist_chip_shuffle"), Icons.Outlined.Shuffle) { player.playMediaItem(item, true) }
-                        }
+                item {
+                    AnimatedVisibility(multiselect_context.is_active) {
+                        multiselect_context.InfoDisplay(background_modifier)
+                    }
+                }
 
-                        if (SpMp.context.canShare()) {
-                            chip(getString("action_share"), Icons.Outlined.Share) { SpMp.context.shareText(item.url, item.title) }
+                if (feed_layouts == null) {
+                    item {
+                        Box(background_modifier.fillMaxSize().padding(content_padding), contentAlignment = Alignment.Center) {
+                            CircularProgressIndicator(color = accent_colour ?: Color.Unspecified)
                         }
-                        if (SpMp.context.canOpenUrl()) {
-                            chip(getString("artist_chip_open"), Icons.Outlined.OpenInNew) { SpMp.context.openUrl(item.url) }
-                        }
+                    }
+                }
+                else if (feed_layouts.size == 1) {
+                    val layout = feed_layouts.single()
 
-                        chip(getString("artist_chip_details"), Icons.Outlined.Info) { show_info = !show_info }
+                    item {
+                        layout.TitleBar(background_modifier.padding(bottom = 5.dp))
                     }
 
-                    Box(Modifier.requiredHeight(filter_bar_height)) {
-                        ShapedIconButton(
-                            { player.playMediaItem(item) },
-                            Modifier.requiredSize(play_button_size),
-                            colors = IconButtonDefaults.iconButtonColors(
-                                containerColor = accent_colour ?: LocalContentColor.current,
-                                contentColor = (accent_colour ?: LocalContentColor.current).getContrasted()
-                            )
+                    items(layout.items.size) { i ->
+                        Row(background_modifier, verticalAlignment = Alignment.CenterVertically) {
+                            Text((i + 1).toString().padStart((layout.items.size + 1).toString().length, '0'), fontWeight = FontWeight.Light)
+
+                            Column {
+                                layout.items[i].PreviewLong(MediaItemPreviewParams(multiselect_context = multiselect_context))
+                            }
+                        }
+                    }
+                }
+                else {
+                    item {
+                        Column(
+                            background_modifier
+                                .fillMaxSize()
+                                .padding(content_padding),
+                            verticalArrangement = Arrangement.spacedBy(30.dp)
                         ) {
-                            Icon(Icons.Default.PlayArrow, null)
+                            for (layout in item.feed_layouts!!) {
+                                val type =
+                                    if (layout.type == null) MediaItemLayout.Type.GRID
+                                    else if (layout.type == MediaItemLayout.Type.NUMBERED_LIST && item is Artist) MediaItemLayout.Type.LIST
+                                    else layout.type
+
+                                type.Layout(
+                                    if (previous_item == null) layout else layout.copy(title = null, subtitle = null),
+                                    multiselect_context = multiselect_context
+                                )
+                            }
+
+                            val description = item.description
+                            if (description?.isNotBlank() == true) {
+                                DescriptionCard(description, { Theme.current.background }, { accent_colour }) { show_info = !show_info }
+                            }
+
+                            Spacer(Modifier.requiredHeight(50.dp))
                         }
-                    }
-                }
-            }
-
-            item {
-                AnimatedVisibility(multiselect_context.is_active) {
-                    multiselect_context.InfoDisplay(background_modifier)
-                }
-            }
-
-            if (feed_layouts == null) {
-                item {
-                    Box(background_modifier.fillMaxSize().padding(content_padding), contentAlignment = Alignment.Center) {
-                        CircularProgressIndicator(color = accent_colour ?: Color.Unspecified)
-                    }
-                }
-            }
-            else if (feed_layouts.size == 1) {
-                val layout = feed_layouts.single()
-
-                item {
-                    layout.TitleBar(background_modifier.padding(bottom = 5.dp))
-                }
-
-                items(layout.items.size) { i ->
-                    Row(background_modifier, verticalAlignment = Alignment.CenterVertically) {
-                        Text((i + 1).toString().padStart((layout.items.size + 1).toString().length, '0'), fontWeight = FontWeight.Light)
-
-                        Column {
-                            layout.items[i].PreviewLong(MediaItemPreviewParams(multiselect_context = multiselect_context))
-                        }
-                    }
-                }
-            }
-            else {
-                item {
-                    Column(
-                        background_modifier
-                            .fillMaxSize()
-                            .padding(content_padding),
-                        verticalArrangement = Arrangement.spacedBy(30.dp)
-                    ) {
-                        for (layout in item.feed_layouts!!) {
-                            val type =
-                                if (layout.type == null) MediaItemLayout.Type.GRID
-                                else if (layout.type == MediaItemLayout.Type.NUMBERED_LIST && item is Artist) MediaItemLayout.Type.LIST
-                                else layout.type
-
-                            type.Layout(
-                                if (previous_item == null) layout else layout.copy(title = null, subtitle = null),
-                                multiselect_context = multiselect_context
-                            )
-                        }
-
-                        val description = item.description
-                        if (description?.isNotBlank() == true) {
-                            DescriptionCard(description, { Theme.current.background }, { accent_colour }) { show_info = !show_info }
-                        }
-
-                        Spacer(Modifier.requiredHeight(50.dp))
                     }
                 }
             }

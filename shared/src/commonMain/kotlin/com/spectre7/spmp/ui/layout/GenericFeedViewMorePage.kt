@@ -26,44 +26,51 @@ fun GenericFeedViewMorePage(browse_id: String, modifier: Modifier = Modifier, bo
         items_result = getGenericFeedViewMorePage(browse_id)
     }
 
-    items_result?.fold(
-        { items ->
-            val multiselect_context = remember { MediaItemMultiSelectContext() }
+    Column(modifier) {
+        MusicTopBar(
+            Settings.INTERNAL_TOPBAR_MODE_VIEWMORE,
+            Modifier.fillMaxWidth()
+        )
 
-            val item_size = getDefaultMediaItemPreviewSize()
-            val item_spacing = 20.dp
-            val item_arrangement = Arrangement.spacedBy(item_spacing)
+        items_result?.fold(
+            { items ->
+                val multiselect_context = remember { MediaItemMultiSelectContext() }
 
-            Column(modifier.padding(horizontal = item_spacing)) {
-                AnimatedVisibility(multiselect_context.is_active) {
-                    multiselect_context.InfoDisplay(Modifier.fillMaxWidth().padding(top = item_spacing))
-                }
+                val item_size = getDefaultMediaItemPreviewSize()
+                val item_spacing = 20.dp
+                val item_arrangement = Arrangement.spacedBy(item_spacing)
 
-                LazyVerticalGrid(
-                    GridCells.Adaptive(item_size.width),
-                    Modifier.fillMaxWidth(),
-                    contentPadding = PaddingValues(
-                        top = item_spacing,
-                        bottom = bottom_padding
-                    ),
-                    verticalArrangement = item_arrangement,
-                    horizontalArrangement = item_arrangement
-                ) {
-                    items(items) { item ->
-                        item.PreviewSquare(MediaItemPreviewParams(
-                            Modifier.size(item_size),
-                            multiselect_context = multiselect_context
-                        ))
+                Column(Modifier.fillMaxSize().padding(horizontal = item_spacing)) {
+                    AnimatedVisibility(multiselect_context.is_active) {
+                        multiselect_context.InfoDisplay(Modifier.fillMaxWidth().padding(top = item_spacing))
+                    }
+
+                    LazyVerticalGrid(
+                        GridCells.Adaptive(item_size.width),
+                        Modifier.fillMaxWidth(),
+                        contentPadding = PaddingValues(
+                            top = item_spacing,
+                            bottom = bottom_padding
+                        ),
+                        verticalArrangement = item_arrangement,
+                        horizontalArrangement = item_arrangement
+                    ) {
+                        items(items) { item ->
+                            item.PreviewSquare(MediaItemPreviewParams(
+                                Modifier.size(item_size),
+                                multiselect_context = multiselect_context
+                            ))
+                        }
                     }
                 }
-            }
 
-        },
-        { error ->
-            // TODO
-            Text(error.stackTraceToString())
+            },
+            { error ->
+                // TODO
+                Text(error.stackTraceToString())
+            }
+        ) ?: Box(Modifier.fillMaxSize().weight(1f), contentAlignment = Alignment.Center) {
+            SubtleLoadingIndicator()
         }
-    ) ?: Box(Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
-        SubtleLoadingIndicator()
     }
 }

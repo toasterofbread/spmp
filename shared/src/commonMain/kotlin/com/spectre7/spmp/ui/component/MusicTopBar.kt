@@ -39,14 +39,13 @@ private fun getModeState(mode: MusicTopBarMode, song: Song?): Any? {
 
 @Composable
 fun MusicTopBar(
-    song: Song?,
-    default_mode: MusicTopBarMode,
+    target_mode_key: Settings,
     modifier: Modifier = Modifier,
-    target_mode_state: MutableState<MusicTopBarMode> = remember { mutableStateOf(default_mode) }
+    song: Song? = LocalPlayerState.status.m_song
 ) {
     val player = LocalPlayerState.current
     val mode_state = LocalNowPlayingExpansion.current.top_bar_mode
-    var target_mode by target_mode_state
+    var target_mode by target_mode_key.rememberMutableEnumState()
     val song_state by rememberSongUpdateLyrics(song, target_mode == MusicTopBarMode.LYRICS)
 
     var show_toast by remember { mutableStateOf(false) }
@@ -80,7 +79,7 @@ fun MusicTopBar(
             },
             onAltClick = {
                 if (current_state is SongLyrics) {
-                    TODO()
+                    TODO("Open full lyrics in NowPlaying")
                 }
             }
         ),

@@ -37,8 +37,7 @@ fun MainPageTopBar(
             RadioBuilderButton()
 
             MusicTopBar(
-                player.status.m_song,
-                Settings.KEY_TOPBAR_DEFAULT_MODE_HOME.getEnum(),
+                Settings.INTERNAL_TOPBAR_MODE_HOME,
                 Modifier.fillMaxSize().weight(1f)
             )
 

@@ -88,50 +88,57 @@ fun LibraryPage(
         subpage = null
     }
 
-    Crossfade(subpage) { page ->
-        Column(
-            modifier.run {
-                if (!inline) padding(horizontal = 20.dp, vertical = 10.dp)
-                else this
-            },
-            verticalArrangement = Arrangement.spacedBy(25.dp)
-        ) {
-            // Title bar
-            if (!inline) {
-                Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.SpaceBetween, verticalAlignment = Alignment.CenterVertically) {
-                    Icon(page.getIcon(), null)
+    Column(
+        modifier.thenIf(!inline) {
+            Modifier.padding(horizontal = 20.dp, vertical = 10.dp)
+        }
+    ) {
+        MusicTopBar(
+            Settings.INTERNAL_TOPBAR_MODE_LIBRARY,
+            Modifier.fillMaxWidth()
+        )
 
-                    Text(
-                        page.getReadable(),
-                        style = MaterialTheme.typography.headlineLarge.copy(
-                            color = Theme.current.on_background
+        Crossfade(subpage) { page ->
+            Column(
+                verticalArrangement = Arrangement.spacedBy(25.dp)
+            ) {
+                // Title bar
+                if (!inline) {
+                    Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.SpaceBetween, verticalAlignment = Alignment.CenterVertically) {
+                        Icon(page.getIcon(), null)
+
+                        Text(
+                            page.getReadable(),
+                            style = MaterialTheme.typography.headlineLarge.copy(
+                                color = Theme.current.on_background
+                            )
                         )
-                    )
 
-                    Spacer(Modifier.width(24.dp))
-                }
-            }
-
-            when (page) {
-                null -> LibraryMainPage(
-                    downloads,
-                    multiselect_context,
-                    bottom_padding,
-                    inline,
-                    { subpage = it },
-                    mainTopContent,
-                ) { songs, song, index ->
-                    onSongClicked(songs, player, song, index)
+                        Spacer(Modifier.width(24.dp))
+                    }
                 }
 
-                LibrarySubPage.SONGS -> LibrarySongsPage(
-                    downloads,
-                    multiselect_context,
-                    bottom_padding,
-                    inline,
-                    { subpage = it }
-                ) { songs, song, index ->
-                    onSongClicked(songs, player, song, index)
+                when (page) {
+                    null -> LibraryMainPage(
+                        downloads,
+                        multiselect_context,
+                        bottom_padding,
+                        inline,
+                        { subpage = it },
+                        mainTopContent,
+                    ) { songs, song, index ->
+                        onSongClicked(songs, player, song, index)
+                    }
+
+                    LibrarySubPage.SONGS -> LibrarySongsPage(
+                        downloads,
+                        multiselect_context,
+                        bottom_padding,
+                        inline,
+                        { subpage = it }
+                    ) { songs, song, index ->
+                        onSongClicked(songs, player, song, index)
+                    }
                 }
             }
         }

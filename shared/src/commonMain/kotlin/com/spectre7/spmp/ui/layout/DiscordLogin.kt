@@ -58,23 +58,32 @@ fun DiscordLoginConfirmation(info_only: Boolean = false, onFinished: (proceed: B
 
 @Composable
 fun DiscordLogin(modifier: Modifier = Modifier, manual: Boolean = false, onFinished: (Result<String?>?) -> Unit) {
-    if (manual) {
-        DiscordManualLogin(modifier, onFinished)
-    }
-    else if (isWebViewLoginSupported()) {
-        WebViewLogin(DISCORD_LOGIN_URL, modifier, { it.startsWith(DISCORD_LOGIN_URL) }) { request, openUrl, getCookie ->
-            if (request.url.startsWith(DISCORD_API_URL)) {
-                val auth = request.requestHeaders["Authorization"]
-                if (auth != null) {
-                    onFinished(Result.success(auth))
+    Column(modifier) {
+        MusicTopBar(
+            Settings.INTERNAL_TOPBAR_MODE_LOGIN,
+            Modifier.fillMaxWidth()
+        )
+
+        if (manual) {
+            DiscordManualLogin(Modifier.fillMaxSize().weight(1f), onFinished)
+        }
+        else if (isWebViewLoginSupported()) {
+            WebViewLogin(DISCORD_LOGIN_URL, Modifier.fillMaxSize().weight(1f), { it.startsWith(DISCORD_LOGIN_URL) }) { request, openUrl, getCookie ->
+                if (request.url.startsWith(DISCORD_API_URL)) {
+                    val auth = request.requestHeaders["Authorization"]
+                    if (auth != null) {
+                        onFinished(Result.success(auth))
+                    }
                 }
             }
         }
-    }
-    else {
-        // TODO
-        SpMp.context.openUrl(DISCORD_LOGIN_URL)
-        DiscordManualLogin(modifier, onFinished)
+        else {
+            // TODO
+            LaunchedEffect(Unit) {
+                SpMp.context.openUrl(DISCORD_LOGIN_URL)
+            }
+            DiscordManualLogin(Modifier.fillMaxSize().weight(1f), onFinished)
+        }
     }
 }
 

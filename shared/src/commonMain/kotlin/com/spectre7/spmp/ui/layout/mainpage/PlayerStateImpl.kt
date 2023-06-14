@@ -243,6 +243,7 @@ class PlayerStateImpl: PlayerState(null, null, null) {
         download_manager.release()
         SpMp.removeLowMemoryListener(low_memory_listener)
         Settings.prefs.removeListener(prefs_listener)
+        _player = null
     }
 
     override fun interactService(action: (player: PlayerService) -> Unit) {

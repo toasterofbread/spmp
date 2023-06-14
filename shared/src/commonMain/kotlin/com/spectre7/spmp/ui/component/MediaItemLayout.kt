@@ -615,7 +615,7 @@ fun MediaItemGrid(
                     val item = items[i].item ?: return@items
                     val params = MediaItemPreviewParams(
                         Modifier.animateItemPlacement().then(
-                            if (alt_style) Modifier.width(maxWidth * 0.8f)
+                            if (alt_style) Modifier.width(maxWidth * 0.9f)
                             else Modifier.size(item_size)
                         ),
                         contentColour = Theme.current.on_background_provider,
@@ -660,8 +660,6 @@ fun MediaItemList(
     view_more: MediaItemLayout.ViewMore? = null,
     multiselect_context: MediaItemMultiSelectContext? = null
 ) {
-    println("AAAAAAA $view_more")
-
     Column(modifier) {
         TitleBar(
             items,

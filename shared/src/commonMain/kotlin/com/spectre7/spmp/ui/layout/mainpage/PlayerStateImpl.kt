@@ -561,8 +561,7 @@ class PlayerStateImpl: PlayerState(null, null, null) {
 
     // PlayerServiceHost
 
-    override val player: PlayerService get() = _player!!
-    override val nullable_player: PlayerService? get() = _player
+    override val player: PlayerService? get() = _player
 
     val service_connected: Boolean get() = _player != null
 

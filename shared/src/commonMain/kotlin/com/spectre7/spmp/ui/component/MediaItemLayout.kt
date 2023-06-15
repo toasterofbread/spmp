@@ -193,19 +193,10 @@ data class MediaItemLayout(
         val browse_params: String? = null
     ) {
         var layout: MediaItemLayout? by mutableStateOf(null)
-        init { check(list_page_browse_id != null || media_item != null || action != null) }
-
-        suspend fun loadLayout(): Result<MediaItemLayout> {
-            check(media_item != null)
-            check(browse_params != null)
-
-            val result = loadBrowseId(media_item.id, browse_params)
-            if (result.isFailure) {
-                return result.cast()
-            }
-
-            layout = result.getOrThrow().single()
-            return Result.success(layout!!)
+        
+        init {
+            check(list_page_browse_id != null || media_item != null || action != null) 
+            check(browse_params == null || list_page_browse_id != null)
         }
     }
 
@@ -295,15 +286,18 @@ private fun TitleBar(
                     val player = LocalPlayerState.current
                     IconButton(
                         {
-                            if (view_more.browse_params != null) {
-                                TODO(view_more.browse_params)
-                            }
-
                             if (view_more.media_item != null) {
                                 player.openMediaItem(view_more.media_item, true)
                             }
                             else if (view_more.list_page_browse_id != null) {
-                                player.openViewMorePage(view_more.list_page_browse_id)
+                                if (view_more.browse_params != null) {
+                                    player.openMediaItem(
+                                        BrowseParamsPlaylist.fromId(view_more.list_page_browse_id, view_more.browse_params)
+                                    )
+                                }
+                                else {
+                                    player.openViewMorePage(view_more.list_page_browse_id)
+                                }
                             }
                             else if (view_more.action != null) {
                                 view_more.action.invoke()

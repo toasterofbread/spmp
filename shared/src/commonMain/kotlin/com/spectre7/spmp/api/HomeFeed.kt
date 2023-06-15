@@ -84,8 +84,15 @@ suspend fun getHomeFeed(
     }
 
     val response_reader = result!!.getOrThrowHere()
-    var data: YoutubeiBrowseResponse = Api.klaxon.parse(response_reader)!!
+    val data_result: Result<YoutubeiBrowseResponse> = runCatching {
+        Api.klaxon.parse(response_reader)!!
+    }
     response_reader.close()
+
+    var data = data_result.fold(
+        { it },
+        { return@withContext Result.failure(it) }
+    )
 
     val rows: MutableList<MediaItemLayout> = processRows(data.getShelves(continuation != null), hl).toMutableList()
     check(rows.isNotEmpty())
@@ -320,18 +327,27 @@ data class BrowseEndpoint(
     val browseEndpointContextSupportedConfigs: BrowseEndpointContextSupportedConfigs? = null,
     val params: String? = null
 ) {
-    fun getPageType(): String? = browseEndpointContextSupportedConfigs?.browseEndpointContextMusicConfig?.pageType
-    fun getMediaItemType(): MediaItemType? = getPageType()?.let { MediaItemType.fromBrowseEndpointType(it) }
+    fun getPageType(): String? = 
+        browseEndpointContextSupportedConfigs?.browseEndpointContextMusicConfig?.pageType
+    fun getMediaItemType(): MediaItemType? = 
+        getPageType()?.let { MediaItemType.fromBrowseEndpointType(it) }
 
-    fun getMediaItem(): MediaItem? {
-        return getPageType()?.let { page_type ->
+    fun getMediaItem(): MediaItem? =
+        getPageType()?.let { page_type ->
             MediaItem.fromBrowseEndpointType(page_type, browseId)
         }
-    }
 
     fun getViewMore(): MediaItemLayout.ViewMore {
-        val media_item = getMediaItem() ?: Artist.fromId(browseId)
-        return media_item.let { MediaItemLayout.ViewMore(media_item = it, browse_params = params) }
+        val item = getMediaItem()
+        if (item != null) {
+            return MediaItemLayout.ViewMore(media_item = item)
+        }
+        else {
+            return MediaItemLayout.ViewMore(
+                list_page_browse_id = browseId,
+                browse_params = params 
+            ) 
+        }
     }
 }
 data class SearchEndpoint(val query: String, val params: String? = null)

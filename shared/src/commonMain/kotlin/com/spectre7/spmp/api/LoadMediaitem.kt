@@ -30,12 +30,17 @@ data class VideoDetails(
 
 suspend fun loadBrowseId(browse_id: String, params: String? = null): Result<List<MediaItemLayout>> {
     return withContext(Dispatchers.IO) {
-        val params_str = if (params == null) "" else """, "params": "$params" """
         val hl = SpMp.data_language
         val request = Request.Builder()
             .ytUrl("/youtubei/v1/browse")
             .addYtHeaders()
-            .post(Api.getYoutubeiRequestBody("""{ "browseId": "$browse_id"$params_str }"""))
+            .post(Api.getYoutubeiRequestBody(
+                mutableMapOf("browseId" to browse_id ).apply {
+                    if (params != null) {
+                        put("params", params)
+                    }
+                }
+            ))
             .build()
 
         val result = Api.request(request)
@@ -44,8 +49,15 @@ suspend fun loadBrowseId(browse_id: String, params: String? = null): Result<List
         }
 
         val stream = result.getOrThrow().getStream()
-        val parsed: YoutubeiBrowseResponse = Api.klaxon.parse(stream)!!
+        val parse_result: Result<YoutubeiBrowseResponse> = runCatching {
+            Api.klaxon.parse(stream)!!
+        }
         stream.close()
+        
+        val parsed = parse_result.fold(
+            { it },
+            { return@withContext Result.failure(it) }
+        )
 
         val ret: MutableList<MediaItemLayout> = mutableListOf()
         for (row in parsed.contents!!.singleColumnBrowseResultsRenderer.tabs.first().tabRenderer.content!!.sectionListRenderer.contents!!.withIndex()) {
@@ -81,8 +93,15 @@ suspend fun processDefaultResponse(item: MediaItem, data: MediaItemData, respons
 
         val ret = run {
             if (data is MediaItemWithLayoutsData) {
-                val parsed: YoutubeiBrowseResponse = Api.klaxon.parse(response_body)!!
+                val parse_result: Result<YoutubeiBrowseResponse> = runCatching {
+                    Api.klaxon.parse(response_body)!!
+                }
                 response_body.close()
+                
+                val parsed: YoutubeiBrowseResponse = parse_result.fold(
+                    { it },
+                    { return@run Result.failure(it) }
+                )
 
                 // Skip unneeded information for radios
                 if (item is Playlist && item.playlist_type == PlaylistType.RADIO) {
@@ -214,22 +233,29 @@ suspend fun processDefaultResponse(item: MediaItem, data: MediaItemData, respons
 
         check(item is Song)
 
-        val video = Api.klaxon.parse<YoutubeiNextResponse>(response_body)!!
-            .contents
-            .singleColumnMusicWatchNextResultsRenderer
-            .tabbedRenderer
-            .watchNextTabbedResultsRenderer
-            .tabs
-            .first()
-            .tabRenderer
-            .content!!
-            .musicQueueRenderer
-            .content
-            .playlistPanelRenderer
-            .contents
-            .first()
-            .playlistPanelVideoRenderer!!
+        val parse_result = runCatching { 
+            Api.klaxon.parse<YoutubeiNextResponse>(response_body)!!
+                .contents
+                .singleColumnMusicWatchNextResultsRenderer
+                .tabbedRenderer
+                .watchNextTabbedResultsRenderer
+                .tabs
+                .first()
+                .tabRenderer
+                .content!!
+                .musicQueueRenderer
+                .content
+                .playlistPanelRenderer
+                .contents
+                .first()
+                .playlistPanelVideoRenderer!!
+        }
         response_body.close()
+
+        val video = parse_result.fold(
+            { it },
+            { return@withContext Result.failure(it) }
+        )
 
         data.supplyTitle(video.title.first_text, true)
 
@@ -248,9 +274,11 @@ suspend fun processDefaultResponse(item: MediaItem, data: MediaItemData, respons
     }
 }
 
-suspend fun loadMediaItemData(item: MediaItem): Result<Unit> {
-    val item_id = item.id
-
+suspend fun loadMediaItemData(
+    item: MediaItem, 
+    item_id: String = item.id, 
+    browse_params: String? = null
+): Result<Unit> {
     if (item is Artist && item.is_for_item) {
         return Result.success(Unit)
     }
@@ -259,12 +287,19 @@ suspend fun loadMediaItemData(item: MediaItem): Result<Unit> {
         val url = if (item is Song) "/youtubei/v1/next" else "/youtubei/v1/browse"
         val body =
             if (item is Song)
-                """{
-                "enablePersistentPlaylistPanel": true,
-                "isAudioOnly": true,
-                "videoId": "$item_id"
-            }"""
-            else """{ "browseId": "$item_id" }"""
+                mapOf(
+                    "enablePersistentPlaylistPanel" to true,
+                    "isAudioOnly" to true,
+                    "videoId" to item_id,
+                )
+            else 
+                mutableMapOf(
+                    "browseId" to item_id
+                ).apply {
+                    if (browse_params != null) {
+                        put("params", browse_params)
+                    }
+                }
 
         val hl = SpMp.data_language
         var request: Request = Request.Builder()

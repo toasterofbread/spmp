@@ -362,74 +362,74 @@ private fun InteractionBar(
     // 0 -> search, 1 -> sort
     var opened_menu: Int by remember { mutableStateOf(-1) }    
 
-    Column(modifier.animateContentSize()) {
-
-        Row(Modifier.fillMaxWidth()) {
-            // Filter button
-            IconButton(
-                {
-                    if (opened_menu == 0) opened_menu = -1
-                    else opened_menu = 0
-                },
-                enabled = !reorderable
-            ) {
-                Crossfade(opened_menu == 0) { searching ->
-                    Icon(if (searching) Icons.Default.Done else Icons.Default.Search, null)
+    Crossfade(multiselect_context.is_active) { selecting ->
+        if (!selecting) {
+            Row(Modifier.fillMaxWidth()) {
+                // Filter button
+                IconButton(
+                    {
+                        if (opened_menu == 0) opened_menu = -1
+                        else opened_menu = 0
+                    },
+                    enabled = !reorderable
+                ) {
+                    Crossfade(opened_menu == 0) { searching ->
+                        Icon(if (searching) Icons.Default.Done else Icons.Default.Search, null)
+                    }
                 }
-            }
 
-            // Animate between filter bar and remaining buttons
-            Box(Modifier.fillMaxWidth()) {
-                this@Row.AnimatedVisibility(opened_menu != 0) {
-                    Row(Modifier.fillMaxWidth(), verticalAlignment = Alignment.CenterVertically) {
-                        // Sort
-                        IconButton(
-                            {
-                                if (opened_menu == 1) opened_menu = -1
-                                else opened_menu = 1
-                            },
-                            enabled = !reorderable
-                        ) {
-                            Icon(Icons.Default.Sort, null)
-                        }
-
-                        Spacer(Modifier.fillMaxWidth().weight(1f))
-
-                        if (playlist.is_editable == true) {
-                            // Reorder
-                            IconButton({ setReorderable(!reorderable) }) {
-                                Crossfade(reorderable) { reordering ->
-                                    Icon(if (reordering) Icons.Default.Done else Icons.Default.Reorder, null)
-                                }
+                // Animate between filter bar and remaining buttons
+                Box(Modifier.fillMaxWidth()) {
+                    this@Row.AnimatedVisibility(opened_menu != 0) {
+                        Row(Modifier.fillMaxWidth(), verticalAlignment = Alignment.CenterVertically) {
+                            // Sort
+                            IconButton(
+                                {
+                                    if (opened_menu == 1) opened_menu = -1
+                                    else opened_menu = 1
+                                },
+                                enabled = !reorderable
+                            ) {
+                                Icon(Icons.Default.Sort, null)
                             }
-                            // Add
-                            IconButton({ TODO() }) {
-                                Icon(Icons.Default.Add, null)
+
+                            Spacer(Modifier.fillMaxWidth().weight(1f))
+
+                            if (playlist.is_editable == true) {
+                                // Reorder
+                                IconButton({ setReorderable(!reorderable) }) {
+                                    Crossfade(reorderable) { reordering ->
+                                        Icon(if (reordering) Icons.Default.Done else Icons.Default.Reorder, null)
+                                    }
+                                }
+                                // Add
+                                IconButton({ TODO() }) {
+                                    Icon(Icons.Default.Add, null)
+                                }
                             }
                         }
                     }
-                }
-                this@Row.AnimatedVisibility(opened_menu == 0) {
-                    InteractionBarFilterBox(filter, setFilter, Modifier.fillMaxWidth())
+                    this@Row.AnimatedVisibility(opened_menu == 0) {
+                        InteractionBarFilterBox(filter, setFilter, Modifier.fillMaxWidth())
+                    }
                 }
             }
         }
-
-        AnimatedVisibility(multiselect_context.is_active) {
+        else {
             multiselect_context.InfoDisplay()
         }
+    }
 
-        // Sort options
-        LargeDropdownMenu(
-            opened_menu == 1,
-            { if (opened_menu == 1) opened_menu = -1 },
-            SortOption.values().size,
-            sort_option.ordinal,
-            { SortOption.values()[it].getReadable() }
-        ) {
-            setSortOption(SortOption.values()[it])
-            opened_menu = -1
-        }
+    // Sort options
+    LargeDropdownMenu(
+        opened_menu == 1,
+        { if (opened_menu == 1) opened_menu = -1 },
+        SortOption.values().size,
+        sort_option.ordinal,
+        { SortOption.values()[it].getReadable() }
+    ) {
+        setSortOption(SortOption.values()[it])
+        opened_menu = -1
     }
 }
 

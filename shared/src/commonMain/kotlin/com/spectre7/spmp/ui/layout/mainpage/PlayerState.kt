@@ -94,8 +94,7 @@ open class PlayerState protected constructor(
     open val pill_menu: PillMenu get() = upstream!!.pill_menu
     open val main_multiselect_context: MediaItemMultiSelectContext get() = upstream!!.main_multiselect_context
 
-    open val player: PlayerService get() = upstream!!.player
-    open val nullable_player: PlayerService? get() = upstream!!.player
+    open val player: PlayerService? get() = upstream!!.player
     open val download_manager: PlayerDownloadManager get() = upstream!!.download_manager
     open val status: PlayerStatus get() = upstream!!.status
     open val session_started: Boolean get() = upstream!!.session_started

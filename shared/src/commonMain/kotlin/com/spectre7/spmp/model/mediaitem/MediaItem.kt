@@ -303,7 +303,7 @@ abstract class MediaItem(val id: String): MediaItemHolder {
         pinned_to_home = Settings.INTERNAL_PINNED_ITEMS.get<Set<String>>().contains(uid)
     }
 
-    protected open suspend fun loadGeneralData(): Result<Unit> = withContext(Dispatchers.IO) {
+    protected open suspend fun loadGeneralData(item_id: String = id, browse_params: String? = null): Result<Unit> = withContext(Dispatchers.IO) {
         loading_lock.withLock {
             if (loading) {
                 load_condition.await()
@@ -319,7 +319,7 @@ abstract class MediaItem(val id: String): MediaItemHolder {
             }
         }
 
-        load_result = loadMediaItemData(this@MediaItem)
+        load_result = loadMediaItemData(this@MediaItem, item_id, browse_params)
         loading_lock.withLock {
             loaded_callbacks?.forEach { it.invoke(this@MediaItem) }
             loaded_callbacks = null
@@ -362,7 +362,7 @@ abstract class MediaItem(val id: String): MediaItemHolder {
 
             return Result.success(bytes.toImageBitmap())
         }
-        catch (e: FileNotFoundException) {
+        catch (e: Throwable) {
             return Result.failure(e)
         }
     }

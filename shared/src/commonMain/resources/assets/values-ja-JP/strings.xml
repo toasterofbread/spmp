@@ -277,6 +277,7 @@
     <string name="discord_status_default_button_song">Open on YouTube</string>
     <string name="discord_status_default_button_project">Visit project page</string>
 
+    <string name="action_login_manually">手動でログインする</string>
     <string name="ytm_auth_not_signed_in">ログインされていません</string>
     <string name="ytm_auth_sign_in">ログイン</string>
     <string name="ytm_auth_sign_out">ログアウト</string>

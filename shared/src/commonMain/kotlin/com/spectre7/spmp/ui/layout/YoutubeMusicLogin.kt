@@ -44,7 +44,7 @@ fun YoutubeMusicLoginConfirmation(info_only: Boolean = false, onFinished: (manua
                 LinkifyText(getString(if (info_only) "info_ytm_login" else "warning_ytm_login"))
                 if (!info_only) {
                     FilledTonalButton({ onFinished(true) }, Modifier.fillMaxWidth().padding(top = 5.dp).offset(y = 20.dp)) {
-                        Text(getStringTODO("Log in manually"))
+                        Text(getString("action_login_manually"))
                     }
                 }
             }

@@ -24,6 +24,7 @@ import com.spectre7.spmp.resources.getStringTODO
 import com.spectre7.utils.AnnotatedReadingTerm
 
 private const val SONG_SEEK_MS = 5000L
+private val SYNC_MENU_LYRICS_SHOW_RANGE = -1 .. 0
 
 fun AnnotatedReadingTerm.getLineRange(): LongRange =
     (text_data.data as SongLyrics.Term).line_range!!
@@ -32,7 +33,8 @@ fun AnnotatedReadingTerm.getLineRange(): LongRange =
 fun LyricsSyncMenu(
     song: Song,
     lyrics: SongLyrics,
-    line: AnnotatedReadingTerm,
+    line_index: Int,
+    lines: List<AnnotatedReadingTerm>,
     modifier: Modifier = Modifier,
     close: () -> Unit
 ) {
@@ -40,8 +42,10 @@ fun LyricsSyncMenu(
 
     val player = LocalPlayerState.current.player
 
-    LaunchedEffect(line) {
-        player.seekTo(line.getLineRange().first - SONG_SEEK_MS)
+    LaunchedEffect(line_index) {
+        player.seekTo(
+            lines[line_index].getLineRange().first - SONG_SEEK_MS
+        )
     }
 
     Column(
@@ -51,11 +55,13 @@ fun LyricsSyncMenu(
     ) {
         Text(getStringTODO("Press the center button when this line begins"))
         
-        Text(
-            line.annotated_string,
-            inlineContent = line.inline_content,
-            style = getLyricsTextStyle(20.sp)
-        )
+        for (line in SYNC_MENU_LYRICS_SHOW_RANGE) {
+            Text(
+                lines[line_index + line].annotated_string,
+                inlineContent = line.inline_content,
+                style = getLyricsTextStyle(20.sp)
+            )
+        }
 
         PlayerControls(player) {
             val current_time: Long = player.current_position_ms

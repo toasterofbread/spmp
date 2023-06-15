@@ -335,11 +335,14 @@ fun QueueTab() {
                                 CircleShape
                             )
                             .combinedClickable(
-                                enabled = player.status.m_undo_count != 0,
-                                onClick = { player.player.undo() },
-                                onLongClick = {
+                                enabled = player.status.m_undo_count != 0 || player.status.m_redo_count != 0,
+                                onClick = { 
+                                    player.player.undo() 
                                     SpMp.context.vibrateShort()
+                                },
+                                onLongClick = {
                                     player.player.redo()
+                                    SpMp.context.vibrateShort()
                                 }
                             )
                             .size(40.dp),

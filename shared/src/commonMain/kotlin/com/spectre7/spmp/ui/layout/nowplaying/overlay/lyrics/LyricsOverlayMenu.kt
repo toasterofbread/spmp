@@ -75,7 +75,7 @@ class LyricsOverlayMenu(
         var show_furigana: Boolean by remember { mutableStateOf(Settings.KEY_LYRICS_DEFAULT_FURIGANA.get()) }
 
         var submenu: LyricsOverlaySubmenu? by remember { mutableStateOf(null) }
-        var lyrics_sync_line: AnnotatedReadingTerm? by remember { mutableStateOf(null) }
+        var lyrics_sync_line_data: Pair<Int, List<AnnotatedReadingTerm>>? by remember { mutableStateOf(null) }
         var selecting_sync_line: Boolean by remember { mutableStateOf(false) }
 
         BackHandler(submenu != null || selecting_sync_line) {
@@ -95,7 +95,7 @@ class LyricsOverlayMenu(
 
         LaunchedEffect(lyrics_holder.lyrics) {
             submenu = null
-            lyrics_sync_line = null
+            lyrics_sync_line_data = null
             selecting_sync_line = false
         }
 
@@ -163,8 +163,14 @@ class LyricsOverlayMenu(
                 }
                 else if (current_submenu == LyricsOverlaySubmenu.SYNC) {
                     if (lyrics != null) {
-                        lyrics_sync_line?.also { line ->
-                            LyricsSyncMenu(song, lyrics, line, Modifier.fillMaxSize()) {
+                        lyrics_sync_line_data?.also { line_data ->
+                            LyricsSyncMenu(
+                                song, 
+                                lyrics, 
+                                line_data.first, 
+                                line_data.second, 
+                                Modifier.fillMaxSize()
+                            ) {
                                 submenu = null
                             }
                         }
@@ -186,9 +192,9 @@ class LyricsOverlayMenu(
                             Modifier.fillMaxSize(),
                             enable_autoscroll = lyrics_follow_enabled && !selecting_sync_line
                         ) {
-                            if (selecting_sync_line) { line ->
+                            if (selecting_sync_line) { line_data ->
                                 submenu = LyricsOverlaySubmenu.SYNC
-                                lyrics_sync_line = line
+                                lyrics_sync_line_data = line
                                 selecting_sync_line = false
                             }
                             else null
@@ -220,7 +226,7 @@ fun CoreLyricsDisplay(
     show_furigana: Boolean,
     modifier: Modifier = Modifier,
     enable_autoscroll: Boolean = true,
-    getOnLongClick: () -> ((line: AnnotatedReadingTerm) -> Unit)?
+    getOnLongClick: () -> ((line_data: Pair<Int, List<AnnotatedReadingTerm>>) -> Unit)?
 ) {
     val player = LocalPlayerState.current
 
@@ -271,8 +277,8 @@ fun CoreLyricsDisplay(
         data_with_readings = null
         data_without_readings = null
 
-        val text_element: @Composable (is_reading: Boolean, text: String, font_size: TextUnit, index: Int, modifier: Modifier, getLine: () -> AnnotatedReadingTerm) -> Unit =
-            { is_reading: Boolean, text: String, font_size: TextUnit, index: Int, modifier: Modifier, getLine: () -> AnnotatedReadingTerm ->
+        val text_element: @Composable (is_reading: Boolean, text: String, font_size: TextUnit, index: Int, modifier: Modifier, getLine: () -> Pair<Int, List<AnnotatedReadingTerm>>) -> Unit =
+            { is_reading: Boolean, text: String, font_size: TextUnit, index: Int, modifier: Modifier, getLine: () -> Pair<Int, List<AnnotatedReadingTerm>> ->
                 val is_current by remember { derivedStateOf { !lyrics.synced || current_range?.contains(index) == true } }
                 val colour by animateColorAsState(
                     if (is_current) Color.White
@@ -295,12 +301,20 @@ fun CoreLyricsDisplay(
             }
 
         if (show_furigana) {
-            data_with_readings = calculateReadingsAnnotatedString(terms, true, font_size, text_element) { data_with_readings!!.getLineOfTerm(it) }
-            data_without_readings = calculateReadingsAnnotatedString(terms, false, font_size, text_element) { data_without_readings!!.getLineOfTerm(it) }
+            data_with_readings = calculateReadingsAnnotatedString(terms, true, font_size, text_element) { 
+                Pair(data_with_readings!!.getLineIndexOfTerm(it), data_with_readings)
+            }
+            data_without_readings = calculateReadingsAnnotatedString(terms, false, font_size, text_element) { 
+                Pair(data_without_readings!!.getLineIndexOfTerm(it), data_without_readings)
+            }
         }
         else {
-            data_without_readings = calculateReadingsAnnotatedString(terms, false, font_size, text_element) { data_without_readings!!.getLineOfTerm(it) }
-            data_with_readings = calculateReadingsAnnotatedString(terms, true, font_size, text_element) { data_with_readings!!.getLineOfTerm(it) }
+            data_without_readings = calculateReadingsAnnotatedString(terms, false, font_size, text_element) { 
+                Pair(data_without_readings!!.getLineIndexOfTerm(it), data_without_readings)
+            }
+            data_with_readings = calculateReadingsAnnotatedString(terms, true, font_size, text_element) { 
+                Pair(data_with_readings!!.getLineIndexOfTerm(it), data_with_readings)
+            }
         }
     }
 
@@ -438,12 +452,12 @@ fun SongLyrics.getReadingTerms(): MutableList<ReadingTextData> =
         }
     }
 
-fun List<AnnotatedReadingTerm>.getLineOfTerm(term_index: Int): AnnotatedReadingTerm {
+fun List<AnnotatedReadingTerm>.getLineIndexOfTerm(term_index: Int): Int {
     var term_count = 0
     for (line in withIndex()) {
         val line_terms = line.value.annotated_string.annotations?.size ?: 0
         if (term_index < term_count + line_terms) {
-            return line.value
+            return line.index
         }
         term_count += line_terms
     }

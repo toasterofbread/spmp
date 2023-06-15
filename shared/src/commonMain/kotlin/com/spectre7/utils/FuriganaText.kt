@@ -41,9 +41,9 @@ fun calculateReadingsAnnotatedString(
         font_size: TextUnit,
         index: Int,
         modifier: Modifier,
-        getLine: () -> AnnotatedReadingTerm
+        getLine: () -> Pair<Int, List<AnnotatedReadingTerm>>
     ) -> Unit,
-    getLine: (term_index: Int) -> AnnotatedReadingTerm
+    getLine: (term_index: Int) -> Pair<Int, List<AnnotatedReadingTerm>>
 ): List<AnnotatedReadingTerm> {
     val ret = mutableListOf<AnnotatedReadingTerm>()
     val inline_content = mutableMapOf<String, InlineTextContent>()
@@ -140,9 +140,9 @@ private fun annotateString(
         font_size: TextUnit,
         index: Int,
         modifier: Modifier,
-        getLine: () -> AnnotatedReadingTerm
+        getLine: () -> Pair<Int, List<AnnotatedReadingTerm>>
     ) -> Unit,
-    getLine: (term_index: Int) -> AnnotatedReadingTerm
+    getLine: (term_index: Int) -> Pair<Int, List<AnnotatedReadingTerm>>
 ) {
     val text = elem.text.filterNot { it == '\n' }
     if (text.isEmpty()) {

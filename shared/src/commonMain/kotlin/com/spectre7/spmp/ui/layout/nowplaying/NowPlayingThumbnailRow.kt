@@ -188,19 +188,21 @@ fun ThumbnailRow(
                                 }
                             }
 
-                            menu?.Menu(
-                                { player.status.m_song!! },
-                                expansion.getAbsolute(),
-                                {
-                                    get_shutter_menu = it
-                                    shutter_menu_open = true
-                                },
-                                {
-                                    overlay_menu = null
-                                },
-                                getSeekState,
-                                { current_thumb_image }
-                            )
+                            CompositionLocalProvider(LocalContentColor provides Color.White) {
+                                menu?.Menu(
+                                    { player.status.m_song!! },
+                                    expansion.getAbsolute(),
+                                    {
+                                        get_shutter_menu = it
+                                        shutter_menu_open = true
+                                    },
+                                    {
+                                        overlay_menu = null
+                                    },
+                                    getSeekState,
+                                    { current_thumb_image }
+                                )
+                            }
                         }
                     }
                 }
@@ -273,7 +275,7 @@ fun ThumbnailRow(
             }
 
             val player_button_modifier = Modifier.size(40.dp)
-            IconButton(player.player::playPause, player_button_modifier) {
+            IconButton({ player.player?.playPause() }, player_button_modifier) {
                 Image(
                     if (player.status.m_playing) Icons.Filled.Pause else Icons.Filled.PlayArrow,
                     getString(if (player.status.m_playing) "media_pause" else "media_play"),
@@ -281,7 +283,7 @@ fun ThumbnailRow(
                 )
             }
 
-            IconButton(player.player::seekToNext, player_button_modifier) {
+            IconButton({ player.player?.seekToNext() }, player_button_modifier) {
                 Image(
                     Icons.Filled.SkipNext,
                     null,

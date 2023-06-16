@@ -145,7 +145,9 @@ fun ColumnScope.NowPlayingMainTab() {
         Controls(
             current_song,
             {
-                player.player.seekTo((player.player.duration_ms * it).toLong())
+                player.withPlayer {
+                    seekTo((duration_ms * it).toLong())
+                }
                 seek_state = it
             },
             Modifier
@@ -266,7 +268,7 @@ private fun Controls(
             ) {
                 // Previous
                 PlayerButton(Icons.Filled.SkipPrevious, enabled = player.status.m_has_previous) {
-                    player.player.seekToPrevious()
+                    player.player?.seekToPrevious()
                 }
 
                 // Play / pause
@@ -274,12 +276,12 @@ private fun Controls(
                     if (player.status.m_playing) Icons.Filled.Pause else Icons.Filled.PlayArrow,
                     enabled = song != null
                 ) {
-                    player.player.playPause()
+                    player.player?.playPause()
                 }
 
                 // Next
                 PlayerButton(Icons.Filled.SkipNext, enabled = player.status.m_has_next) {
-                    player.player.seekToNext()
+                    player.player?.seekToNext()
                 }
             }
 
@@ -330,7 +332,7 @@ private fun VolumeSlider(colour: Color, modifier: Modifier = Modifier) {
     SliderValueHorizontal(
         value = player.status.m_volume,
         onValueChange = {
-            player.player.volume = it
+            player.player?.volume = it
         },
         thumbSizeInDp = DpSize(12.dp, 12.dp),
         track = { a, b, c, d, e -> DefaultTrack(a, b, c, d, e, colour.setAlpha(0.5f), colour) },

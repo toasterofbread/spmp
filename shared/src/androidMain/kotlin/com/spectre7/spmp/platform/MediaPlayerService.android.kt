@@ -217,9 +217,9 @@ actual open class MediaPlayerService {
             assert(current_action == null)
             current_action = mutableListOf()
 
-            val customAction = action(this)
-            if (customAction != null) {
-                performAction(customAction)
+            val custom_action = action(this)
+            if (custom_action != null) {
+                performAction(custom_action)
             }
 
             for (i in 0 until redo_count) {

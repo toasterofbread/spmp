@@ -20,6 +20,8 @@ import com.spectre7.spmp.ui.layout.nowplaying.ThemeMode
 import com.spectre7.utils.indexOfOrNull
 import java.net.URI
 import java.net.URISyntaxException
+import kotlin.contracts.CallsInPlace
+import kotlin.contracts.contract
 
 class PlayerStatus internal constructor(private val player: PlayerService) {
     fun getProgress(): Float = player.duration_ms.let { duration ->
@@ -95,6 +97,10 @@ open class PlayerState protected constructor(
     open val main_multiselect_context: MediaItemMultiSelectContext get() = upstream!!.main_multiselect_context
 
     open val player: PlayerService? get() = upstream!!.player
+    open fun withPlayer(action: PlayerService.() -> Unit) {
+        upstream!!.withPlayer(action)
+    }
+
     open val download_manager: PlayerDownloadManager get() = upstream!!.download_manager
     open val status: PlayerStatus get() = upstream!!.status
     open val session_started: Boolean get() = upstream!!.session_started

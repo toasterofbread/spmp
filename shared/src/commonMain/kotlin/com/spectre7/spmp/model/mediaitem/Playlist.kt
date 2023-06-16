@@ -23,7 +23,7 @@ class PlaylistDataRegistryEntry: MediaItemDataRegistry.Entry() {
 
 abstract class Playlist protected constructor (id: String): MediaItem(id), MediaItemWithLayouts {
     abstract override val data: PlaylistItemData
-    val playlist_reg_entry: PlaylistDataRegistryEntry = registry_entry as PlaylistDataRegistryEntry
+    val playlist_reg_entry: PlaylistDataRegistryEntry get() = registry_entry as PlaylistDataRegistryEntry
 
     abstract val is_editable: Boolean?
     abstract val playlist_type: PlaylistType?

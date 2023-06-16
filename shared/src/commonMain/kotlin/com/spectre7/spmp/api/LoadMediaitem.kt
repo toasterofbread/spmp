@@ -10,6 +10,7 @@ import com.spectre7.spmp.model.mediaitem.data.ArtistItemData
 import com.spectre7.spmp.model.mediaitem.data.MediaItemData
 import com.spectre7.spmp.model.mediaitem.enums.PlaylistType
 import com.spectre7.spmp.ui.component.MediaItemLayout
+import com.spectre7.utils.printJson
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
 import okhttp3.Request
@@ -93,8 +94,9 @@ suspend fun processDefaultResponse(item: MediaItem, data: MediaItemData, respons
 
         val ret = run {
             if (data is MediaItemWithLayoutsData) {
+                val str = response_body.reader().readText()
                 val parse_result: Result<YoutubeiBrowseResponse> = runCatching {
-                    Api.klaxon.parse(response_body)!!
+                    Api.klaxon.parse(str)!!
                 }
                 response_body.close()
                 
@@ -128,8 +130,8 @@ suspend fun processDefaultResponse(item: MediaItem, data: MediaItemData, respons
 
                     data.supplyFeedLayouts(listOf(layout), true)
                 } else {
-                    if (parsed.header != null) {
-                        val header_renderer = parsed.header.getRenderer()
+                    val header_renderer = parsed.header?.getRenderer()
+                    if (header_renderer != null) {
 
                         data.supplyTitle(header_renderer.title.first_text, true)
                         data.supplyDescription(header_renderer.description?.first_text, true)

@@ -163,7 +163,8 @@ class LocalPlaylist(id: String): Playlist(id) {
         return Result.success(account_playlist)
     }
 
-    override suspend fun loadGeneralData(): Result<Unit> = checkNotDeleted(Result.success(Unit))
+    override suspend fun loadGeneralData(item_id: String, browse_params: String?): Result<Unit> =
+        checkNotDeleted(Result.success(Unit))
 
     interface Listener {
         fun onAdded(playlist: LocalPlaylist)

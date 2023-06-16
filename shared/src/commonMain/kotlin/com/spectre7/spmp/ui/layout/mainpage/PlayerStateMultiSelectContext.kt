@@ -40,24 +40,28 @@ fun getPlayerStateMultiSelectContext(): MediaItemMultiSelectContext =
             // Play after button
             Row(
                 Modifier.clickable {
-                    player.player.addMultipleToQueue(
-                        multiselect.getUniqueSelectedItems().filterIsInstance<Song>(),
-                        (player.player.active_queue_index + 1).coerceAtMost(player.status.m_song_count),
-                        is_active_queue = true
-                    )
+                    player.withPlayer {
+                        addMultipleToQueue(
+                            multiselect.getUniqueSelectedItems().filterIsInstance<Song>(),
+                            (active_queue_index + 1).coerceAtMost(player.status.m_song_count),
+                            is_active_queue = true
+                        )
+                    }
                     multiselect.onActionPerformed()
                 },
                 horizontalArrangement = Arrangement.spacedBy(5.dp),
                 verticalAlignment = Alignment.CenterVertically
             ) {
                 Icon(Icons.Default.SubdirectoryArrowRight, null)
-                val distance = player.player.active_queue_index - player.status.m_index + 1
-                Text(
-                    getString(if (distance == 1) "lpm_action_play_after_1_song" else "lpm_action_play_after_x_songs").replace(
-                        "\$x",
-                        distance.toString()
-                    ), fontSize = 15.sp
-                )
+                player.player?.apply {
+                    val distance = active_queue_index - player.status.m_index + 1
+                    Text(
+                        getString(if (distance == 1) "lpm_action_play_after_1_song" else "lpm_action_play_after_x_songs").replace(
+                            "\$x",
+                            distance.toString()
+                        ), fontSize = 15.sp
+                    )
+                }
             }
         },
         nextRowSelectedItemActions = { multiselect ->
@@ -75,9 +79,11 @@ private fun MultiSelectNextRowActions() {
 
     Row(verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(10.dp)) {
         val active_queue_item =
-            if (player.player.active_queue_index < player.status.m_song_count)
-                player.player.getSong(player.player.active_queue_index)
-            else null
+            player.player?.run {
+                if (active_queue_index < song_count)
+                    getSong(active_queue_index)
+                else null
+            }
 
         CompositionLocalProvider(LocalPlayerState provides remember {
             player.copy(onClickedOverride = { item, _ -> player.openMediaItem(item) })
@@ -98,11 +104,13 @@ private fun MultiSelectNextRowActions() {
                 remember { MutableInteractionSource() },
                 rememberRipple(),
                 onClick = {
-                    player.player.updateActiveQueueIndex(-1)
+                    player.player?.updateActiveQueueIndex(-1)
                 },
                 onLongClick = {
                     SpMp.context.vibrateShort()
-                    player.player.active_queue_index = player.player.current_song_index
+                    player.withPlayer {
+                        active_queue_index = current_song_index
+                    }
                 }
             ),
             shape = CircleShape
@@ -115,11 +123,13 @@ private fun MultiSelectNextRowActions() {
                 remember { MutableInteractionSource() },
                 rememberRipple(),
                 onClick = {
-                    player.player.updateActiveQueueIndex(1)
+                    player.player?.updateActiveQueueIndex(1)
                 },
                 onLongClick = {
                     SpMp.context.vibrateShort()
-                    player.player.active_queue_index = player.player.song_count - 1
+                    player.withPlayer {
+                        active_queue_index = song_count - 1
+                    }
                 }
             ),
             shape = CircleShape

@@ -18,6 +18,7 @@ import androidx.compose.material.icons.filled.HourglassEmpty
 import androidx.compose.material.icons.filled.Search
 import androidx.compose.material.ripple.rememberRipple
 import androidx.compose.material3.LinearProgressIndicator
+import androidx.compose.material3.LocalContentColor
 import androidx.compose.material3.LocalTextStyle
 import androidx.compose.material3.Text
 import androidx.compose.runtime.*
@@ -194,7 +195,7 @@ class LyricsOverlayMenu(
                         ) {
                             if (selecting_sync_line) { line_data ->
                                 submenu = LyricsOverlaySubmenu.SYNC
-                                lyrics_sync_line_data = line
+                                lyrics_sync_line_data = line_data
                                 selecting_sync_line = false
                             }
                             else null
@@ -281,8 +282,13 @@ fun CoreLyricsDisplay(
             { is_reading: Boolean, text: String, font_size: TextUnit, index: Int, modifier: Modifier, getLine: () -> Pair<Int, List<AnnotatedReadingTerm>> ->
                 val is_current by remember { derivedStateOf { !lyrics.synced || current_range?.contains(index) == true } }
                 val colour by animateColorAsState(
-                    if (is_current) Color.White
-                    else Color.White.setAlpha(0.5f)
+                    LocalContentColor.current.let { colour ->
+                        colour.setAlpha(
+                            if (colour.alpha == 0f) 1f
+                            else if (colour.alpha == 1f && is_current) 1f
+                            else 0.65f
+                        )
+                    }
                 )
 
                 val onLongClick = getOnLongClick()
@@ -302,18 +308,18 @@ fun CoreLyricsDisplay(
 
         if (show_furigana) {
             data_with_readings = calculateReadingsAnnotatedString(terms, true, font_size, text_element) { 
-                Pair(data_with_readings!!.getLineIndexOfTerm(it), data_with_readings)
+                data_with_readings!!.getLineIndexOfTerm(it)
             }
             data_without_readings = calculateReadingsAnnotatedString(terms, false, font_size, text_element) { 
-                Pair(data_without_readings!!.getLineIndexOfTerm(it), data_without_readings)
+                data_without_readings!!.getLineIndexOfTerm(it)
             }
         }
         else {
             data_without_readings = calculateReadingsAnnotatedString(terms, false, font_size, text_element) { 
-                Pair(data_without_readings!!.getLineIndexOfTerm(it), data_without_readings)
+                data_without_readings!!.getLineIndexOfTerm(it)
             }
             data_with_readings = calculateReadingsAnnotatedString(terms, true, font_size, text_element) { 
-                Pair(data_with_readings!!.getLineIndexOfTerm(it), data_with_readings)
+                data_with_readings!!.getLineIndexOfTerm(it)
             }
         }
     }

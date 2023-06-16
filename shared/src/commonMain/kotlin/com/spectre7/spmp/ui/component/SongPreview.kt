@@ -272,10 +272,10 @@ private fun LongPressMenuActionProvider.LPMActions(song: Song, queue_index: Int?
     ActionButton(
         Icons.Default.Radio, getString("lpm_action_radio"),
         onClick = {
-            player.player.playSong(song)
+            player.player?.playSong(song)
         },
         onLongClick = queue_index?.let { index -> {
-            player.player.startRadioAtIndex(index + 1, song, index, skip_first = true)
+            player.player?.startRadioAtIndex(index + 1, song, index, skip_first = true)
         }}
     )
 
@@ -284,7 +284,7 @@ private fun LongPressMenuActionProvider.LPMActions(song: Song, queue_index: Int?
             getString(if (distance == 1) "lpm_action_play_after_1_song" else "lpm_action_play_after_x_songs").replace("\$x", distance.toString())
         },
         onClick = { active_queue_index ->
-            player.player.addToQueue(
+            player.player?.addToQueue(
                 song,
                 active_queue_index + 1,
                 is_active_queue = Settings.KEY_LPM_INCREMENT_PLAY_AFTER.get(),
@@ -292,7 +292,7 @@ private fun LongPressMenuActionProvider.LPMActions(song: Song, queue_index: Int?
             )
         },
         onLongClick = { active_queue_index ->
-            player.player.addToQueue(
+            player.player?.addToQueue(
                 song,
                 active_queue_index + 1,
                 is_active_queue = Settings.KEY_LPM_INCREMENT_PLAY_AFTER.get(),
@@ -351,7 +351,7 @@ private fun ColumnScope.SongLongPressMenuInfo(song: Song, queue_index: Int?, acc
     }
 
     val player = LocalPlayerState.current
-    if (player.player.active_queue_index < player.status.m_song_count) {
+    if ((player.player?.active_queue_index ?: Int.MAX_VALUE) < player.status.m_song_count) {
         Item(Icons.Default.SubdirectoryArrowRight, getString("lpm_action_radio_after_x_songs"))
     }
     else {

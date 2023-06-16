@@ -1,12 +1,15 @@
 package com.spectre7.spmp.model.mediaitem
 
-class BrowseParamsPlaylist(val playlist_id: String, val params: String, id: String): Playlist(id) {
-    override val data = object : PlaylistItemData(this)
+import androidx.compose.runtime.*
+import com.spectre7.spmp.model.mediaitem.data.PlaylistItemData
+
+class BrowseParamsPlaylist(val artist_id: String, val params: String, id: String): Playlist(id) {
+    override val data = BrowseParamsPlaylistItemData(this)
     override val is_editable = false
     override val playlist_type = null
     override val total_duration: Long? get() {
         val items = data.items ?: return null
-        
+
         var sum = 0L
         for (item in items) {
             if (item is Song) {
@@ -18,20 +21,28 @@ class BrowseParamsPlaylist(val playlist_id: String, val params: String, id: Stri
     override val item_count: Int? = data.items?.size
 
     override suspend fun loadGeneralData(item_id: String, browse_params: String?): Result<Unit> {
-        return super.loadGeneralData(playlist_id, params)
+        return super.loadGeneralData(artist_id, params)
     }
 
     override suspend fun deletePlaylist(): Result<Unit> { throw NotImplementedError() }
-    override fun saveItems(): Result<Unit> { throw NotImplementedError() }
+    override suspend fun saveItems(): Result<Unit> { throw NotImplementedError() }
+
+    override val url: String
+        get() = "https://music.youtube.com/channel/$artist_id"
+
+    @Composable
+    override fun getThumbnailHolder(): MediaItem =
+        Artist.fromId(artist_id)
+    override fun getDefaultRegistryEntry(): PlaylistDataRegistryEntry = PlaylistDataRegistryEntry()
 
     companion object {
         private val browse_params_playlists: MutableMap<String, BrowseParamsPlaylist> = mutableMapOf()
 
         @Synchronized
-        fun fromId(playlist_id: String, browse_params: String): BrowseParamsPlaylist {
-            val id = playlist_id + browse_params
+        fun fromId(item_id: String, browse_params: String): BrowseParamsPlaylist {
+            val id = item_id// + browse_params
             return browse_params_playlists.getOrPut(id) {
-                val playlist = BrowseParamsPlaylist(playlist_id, browse_params, id)
+                val playlist = BrowseParamsPlaylist(item_id, browse_params, id)
                 playlist.loadFromCache()
                 return@getOrPut playlist
             }

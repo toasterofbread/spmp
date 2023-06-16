@@ -49,10 +49,12 @@ class LongPressMenuActionProvider(
         onLongClick: ((active_queue_index: Int) -> Unit)? = null
     ) {
         val player = LocalPlayerState.current
+        val service = LocalPlayerState.current.player ?: return
+        
         var active_queue_item: Song? by remember { mutableStateOf(null) }
-        AnimatedVisibility(player.player.active_queue_index < player.status.m_song_count) {
-            if (player.player.active_queue_index < player.status.m_song_count) {
-                active_queue_item = player.player.getSong(player.player.active_queue_index)
+        AnimatedVisibility(service.active_queue_index < player.status.m_song_count) {
+            if (service.active_queue_index < player.status.m_song_count) {
+                active_queue_item = service.getSong(service.active_queue_index)
             }
 
             Column {
@@ -61,13 +63,13 @@ class LongPressMenuActionProvider(
                     verticalAlignment = Alignment.CenterVertically,
                     horizontalArrangement = Arrangement.SpaceBetween
                 ) {
-                    val distance = player.player.active_queue_index - player.player.current_song_index + 1
+                    val distance = service.active_queue_index - service.current_song_index + 1
                     ActionButton(
                         Icons.Filled.SubdirectoryArrowRight,
                         getText(distance),
                         fill_width = false,
-                        onClick = { onClick(player.player.active_queue_index) },
-                        onLongClick = onLongClick?.let { { it.invoke(player.player.active_queue_index) } }
+                        onClick = { onClick(service.active_queue_index) },
+                        onLongClick = onLongClick?.let { { it.invoke(service.active_queue_index) } }
                     )
 
                     Row(verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(10.dp)) {
@@ -82,11 +84,11 @@ class LongPressMenuActionProvider(
                                 remember { MutableInteractionSource() },
                                 rememberRipple(),
                                 onClick = {
-                                    player.player.updateActiveQueueIndex(-1)
+                                    service.updateActiveQueueIndex(-1)
                                 },
                                 onLongClick = {
                                     SpMp.context.vibrateShort()
-                                    player.player.updateActiveQueueIndex(Int.MIN_VALUE)
+                                    service.updateActiveQueueIndex(Int.MIN_VALUE)
                                 }
                             ),
                             color = accent_colour(),
@@ -100,11 +102,11 @@ class LongPressMenuActionProvider(
                                 remember { MutableInteractionSource() },
                                 rememberRipple(),
                                 onClick = {
-                                    player.player.updateActiveQueueIndex(1)
+                                    service.updateActiveQueueIndex(1)
                                 },
                                 onLongClick = {
                                     SpMp.context.vibrateShort()
-                                    player.player.updateActiveQueueIndex(Int.MAX_VALUE)
+                                    service.updateActiveQueueIndex(Int.MAX_VALUE)
                                 }
                             ),
                             color = accent_colour(),

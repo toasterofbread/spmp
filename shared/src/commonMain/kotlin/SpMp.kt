@@ -194,6 +194,7 @@ class ErrorManager(private val context: PlatformContext) {
 
     private val errors = mutableStateMapOf<String, Throwable>()
 
+    @Synchronized
     fun onError(key: String, error: Throwable) {
         println("Error reported with key '$key': $error")
         if (error is RuntimeException && error.message != null) {

@@ -12,13 +12,18 @@ import com.spectre7.spmp.resources.getString
 import com.spectre7.spmp.platform.PlatformContext
 
 enum class MediaItemType {
-    SONG, ARTIST, PLAYLIST_ACC, PLAYLIST_LOC;
+    SONG, ARTIST, PLAYLIST_ACC, PLAYLIST_LOC, PLAYLIST_BROWSEPARAMS;
+
+    fun isPlaylist(): Boolean = when (this) {
+        PLAYLIST_ACC, PLAYLIST_LOC, PLAYLIST_BROWSEPARAMS -> true
+        else -> false
+    }
 
     fun getIcon(): ImageVector {
         return when (this) {
             SONG     -> Icons.Filled.MusicNote
             ARTIST   -> Icons.Filled.Person
-            PLAYLIST_ACC, PLAYLIST_LOC -> Icons.Filled.PlaylistPlay
+            PLAYLIST_ACC, PLAYLIST_LOC, PLAYLIST_BROWSEPARAMS -> Icons.Filled.PlaylistPlay
         }
     }
 
@@ -27,16 +32,20 @@ enum class MediaItemType {
             when (this) {
                 SONG -> if (plural) "songs" else "song"
                 ARTIST -> if (plural) "artists" else "artist"
-                PLAYLIST_ACC, PLAYLIST_LOC -> if (plural) "playlists" else "playlist"
+                PLAYLIST_ACC, PLAYLIST_LOC, PLAYLIST_BROWSEPARAMS -> if (plural) "playlists" else "playlist"
             }
         )
     }
 
     fun parseRegistryEntry(obj: JsonObject): MediaItemDataRegistry.Entry {
-        return when (this) {
-            SONG -> Api.klaxon.parseFromJsonObject<SongDataRegistryEntry>(obj)!!
-            PLAYLIST_ACC, PLAYLIST_LOC -> Api.klaxon.parseFromJsonObject<PlaylistDataRegistryEntry>(obj)!!
-            else -> Api.klaxon.parseFromJsonObject(obj)!!
+        if (isPlaylist()) {
+            return Api.klaxon.parseFromJsonObject<PlaylistDataRegistryEntry>(obj)!!
+        }
+        else if (this == SONG) {
+            return Api.klaxon.parseFromJsonObject<SongDataRegistryEntry>(obj)!!
+        }
+        else {
+            return Api.klaxon.parseFromJsonObject(obj)!!
         }
     }
     
@@ -45,6 +54,7 @@ enum class MediaItemType {
         ARTIST -> Artist.fromId(id)
         PLAYLIST_ACC -> AccountPlaylist.fromId(id)
         PLAYLIST_LOC -> LocalPlaylist.fromId(id, context)
+        PLAYLIST_BROWSEPARAMS -> throw NotImplementedError(id)
     }
 
     override fun toString(): String {

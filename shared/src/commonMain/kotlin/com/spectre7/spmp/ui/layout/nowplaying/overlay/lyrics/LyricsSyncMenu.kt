@@ -1,20 +1,23 @@
 package com.spectre7.spmp.ui.layout.nowplaying.overlay.lyrics
 
 import LocalPlayerState
+import androidx.compose.foundation.border
 import androidx.compose.foundation.layout.*
+import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.text.InlineTextContent
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.CheckCircle
+import androidx.compose.material.icons.filled.Done
 import androidx.compose.material.icons.filled.Forward5
 import androidx.compose.material.icons.filled.Replay5
-import androidx.compose.material3.Icon
-import androidx.compose.material3.IconButton
-import androidx.compose.material3.Text
+import androidx.compose.material3.*
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.CompositionLocalProvider
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.text.AnnotatedString
+import androidx.compose.ui.text.input.TextFieldValue
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.spectre7.spmp.PlayerService
@@ -22,9 +25,10 @@ import com.spectre7.spmp.model.SongLyrics
 import com.spectre7.spmp.model.mediaitem.Song
 import com.spectre7.spmp.resources.getStringTODO
 import com.spectre7.utils.AnnotatedReadingTerm
+import com.spectre7.utils.setAlpha
 
 private const val SONG_SEEK_MS = 5000L
-private val SYNC_MENU_LYRICS_SHOW_RANGE = -1 .. 0
+private val SYNC_MENU_LYRICS_SHOW_RANGE = -3 .. 0
 
 fun AnnotatedReadingTerm.getLineRange(): LongRange =
     (text_data.data as SongLyrics.Term).line_range!!
@@ -43,49 +47,75 @@ fun LyricsSyncMenu(
     val player = LocalPlayerState.current.player
 
     LaunchedEffect(line_index) {
-        player.seekTo(
+        player?.seekTo(
             lines[line_index].getLineRange().first - SONG_SEEK_MS
         )
     }
 
     Column(
         modifier,
-        horizontalAlignment = Alignment.CenterHorizontally,
-        verticalArrangement = Arrangement.spacedBy(20.dp)
+        horizontalAlignment = Alignment.CenterHorizontally
     ) {
-        Text(getStringTODO("Press the center button when this line begins"))
-        
-        for (line in SYNC_MENU_LYRICS_SHOW_RANGE) {
-            Text(
-                lines[line_index + line].annotated_string,
-                inlineContent = line.inline_content,
-                style = getLyricsTextStyle(20.sp)
-            )
-        }
+        for (line_offset in SYNC_MENU_LYRICS_SHOW_RANGE) {
+            val line = lines.getOrNull(line_index + line_offset) ?: continue
 
-        PlayerControls(player) {
-            val current_time: Long = player.current_position_ms
-            song.song_reg_entry.lyrics_sync_offset = (line.getLineRange().first - current_time).toInt()
+            if (line_offset == 0) {
+                Spacer(Modifier.height(15.dp))
+            }
 
-            song.saveRegistry()
-            close()
+            Column(
+                if (line_offset == 0) Modifier
+                    .border(1.dp, LocalContentColor.current, RoundedCornerShape(16.dp))
+                    .padding(10.dp)
+                    .fillMaxWidth(0.9f)
+                else Modifier,
+                verticalArrangement = Arrangement.spacedBy(10.dp),
+                horizontalAlignment = Alignment.CenterHorizontally
+            ) {
+                if (line_offset == 0) {
+                    Text(getStringTODO("Press button when this line begins"))
+                }
+
+                CompositionLocalProvider(
+                    LocalContentColor provides LocalContentColor.current
+                        .setAlpha(if (line_offset == 0) 0f else 0.1f)
+                ) {
+                    Text(
+                        line.annotated_string,
+                        inlineContent = line.inline_content,
+                        style = getLyricsTextStyle(20.sp)
+                    )
+                }
+
+                if (line_offset == 0) {
+                    PlayerControls(player) {
+                        val current_time: Long = player?.current_position_ms ?: return@PlayerControls
+                        song.song_reg_entry.lyrics_sync_offset = (lines[line_index].getLineRange().first - current_time).toInt()
+
+                        song.saveRegistry()
+                        close()
+                    }
+                }
+            }
         }
     }
 }
 
 @Composable
-private fun PlayerControls(player: PlayerService, onSelected: () -> Unit) {
+private fun PlayerControls(player: PlayerService?, onSelected: () -> Unit) {
+    val button_modifier = Modifier.size(40.dp)
+
     Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.SpaceEvenly) {
-        IconButton({ player.seekBy(-SONG_SEEK_MS) }) {
-            Icon(Icons.Default.Replay5, null)
+        IconButton({ player?.seekBy(-SONG_SEEK_MS) }) {
+            Icon(Icons.Default.Replay5, null, button_modifier)
         }
 
         IconButton(onSelected) {
-            Icon(Icons.Default.CheckCircle, null)
+            Icon(Icons.Default.Done, null, button_modifier)
         }
 
-        IconButton({ player.seekBy(SONG_SEEK_MS) }) {
-            Icon(Icons.Default.Forward5, null)
+        IconButton({ player?.seekBy(SONG_SEEK_MS) }) {
+            Icon(Icons.Default.Forward5, null, button_modifier)
         }
     }
 }

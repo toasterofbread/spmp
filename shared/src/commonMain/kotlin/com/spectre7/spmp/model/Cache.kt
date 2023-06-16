@@ -4,6 +4,7 @@ import com.spectre7.spmp.platform.PlatformContext
 import java.io.BufferedReader
 import java.io.File
 import java.io.FileNotFoundException
+import java.io.IOException
 import java.io.Reader
 import java.time.Duration
 import java.time.Instant
@@ -59,7 +60,13 @@ class Cache {
             }
 
             file.parentFile?.mkdirs()
-            file.createNewFile()
+
+            try {
+                file.createNewFile()
+            }
+            catch (e: IOException) {
+                throw RuntimeException(file.absolutePath, e)
+            }
 
             val expiry: String = if (lifetime != null) Instant.now().plusSeconds(lifetime.toSeconds()).epochSecond.toString() else ""
 

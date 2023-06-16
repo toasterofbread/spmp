@@ -43,14 +43,14 @@ fun calculateReadingsAnnotatedString(
         modifier: Modifier,
         getLine: () -> Pair<Int, List<AnnotatedReadingTerm>>
     ) -> Unit,
-    getLine: (term_index: Int) -> Pair<Int, List<AnnotatedReadingTerm>>
+    getLine: (term_index: Int) -> Int
 ): List<AnnotatedReadingTerm> {
     val ret = mutableListOf<AnnotatedReadingTerm>()
     val inline_content = mutableMapOf<String, InlineTextContent>()
     var string = AnnotatedString.Builder()
 
     for (element in text_content.withIndex()) {
-        annotateString(element.value, element.index, inline_content, string, show_readings, font_size, textElement, getLine)
+        annotateString(element.value, element.index, inline_content, string, show_readings, font_size, textElement) { Pair(getLine(it), ret) }
 
         var first = true
         for (char in element.value.text) {

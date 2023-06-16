@@ -151,27 +151,29 @@ fun LibraryPage(
 }
 
 private fun onSongClicked(songs: List<Song>, player: PlayerState, song: Song, index: Int) {
-    // TODO Config
-    val ADD_BEFORE = 2
-    val ADD_AFTER = 7
+    player.withPlayer {
+        // TODO Config
+        val ADD_BEFORE = 2
+        val ADD_AFTER = 7
 
-    val add_songs = songs
-        .mapIndexedNotNull { song_index, song ->
-            if (song_index < index && index - song_index > ADD_BEFORE) {
-                return@mapIndexedNotNull null
+        val add_songs = songs
+            .mapIndexedNotNull { song_index, song ->
+                if (song_index < index && index - song_index > ADD_BEFORE) {
+                    return@mapIndexedNotNull null
+                }
+
+                if (song_index > index && song_index - index > ADD_AFTER) {
+                    return@mapIndexedNotNull null
+                }
+
+                song
             }
 
-            if (song_index > index && song_index - index > ADD_AFTER) {
-                return@mapIndexedNotNull null
-            }
+        val song_index = minOf(ADD_BEFORE, index)
+        assert(add_songs[song_index] == song)
 
-            song
-        }
-
-    val song_index = minOf(ADD_BEFORE, index)
-    assert(add_songs[song_index] == song)
-
-    player.player.clearQueue(save = false)
-    player.player.addMultipleToQueue(add_songs)
-    player.player.seekToSong(song_index)
+        clearQueue(save = false)
+        addMultipleToQueue(add_songs)
+        seekToSong(song_index)
+    }
 }

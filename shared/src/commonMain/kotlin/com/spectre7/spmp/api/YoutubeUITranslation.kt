@@ -173,7 +173,7 @@ class LocalisedYoutubeString(
 
         fun mediaItemPage(key: String, item_type: MediaItemType): LocalisedYoutubeString =
             when (item_type) {
-                MediaItemType.ARTIST -> artistPage(key)
+                MediaItemType.ARTIST, MediaItemType.PLAYLIST_BROWSEPARAMS -> artistPage(key)
                 else -> throw NotImplementedError(item_type.name)
             }
     }

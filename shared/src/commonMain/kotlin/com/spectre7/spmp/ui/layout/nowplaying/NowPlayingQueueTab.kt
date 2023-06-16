@@ -79,8 +79,10 @@ private class QueueTabItem(val song: Song, val key: Int) {
         val indices = if (index < playing_index) index + 1 .. playing_index else playing_index until index
         
         var delta = 0L
-        for (i in indices) {
-            delta += player.player.getSong(i)?.duration ?: 0
+        player.withPlayer {
+            for (i in indices) {
+                delta += getSong(i)?.duration ?: 0
+            }
         }
 
         return remember(delta) { 
@@ -132,7 +134,7 @@ private class QueueTabItem(val song: Song, val key: Int) {
                     queue_index = index
                 )
 
-                val radio_item_index = player.player.radio_item_index
+                val radio_item_index = player.player?.radio_item_index
                 if (radio_item_index == index) {
                     Icon(Icons.Default.Radio, null, Modifier.size(20.dp))
                 }
@@ -160,7 +162,7 @@ fun QueueTab() {
     val player = LocalPlayerState.current
 
     val song_items: SnapshotStateList<QueueTabItem> = remember { mutableStateListOf<QueueTabItem>().also { list ->
-        player.player.iterateSongs { _, song: Song ->
+        player.player?.iterateSongs { _, song: Song ->
             list.add(QueueTabItem(song, key_inc++))
         }
     } }
@@ -208,9 +210,9 @@ fun QueueTab() {
     }
 
     DisposableEffect(Unit) {
-        player.player.addListener(queue_listener)
+        player.player?.addListener(queue_listener)
         onDispose {
-            player.nullable_player?.removeListener(queue_listener)
+            player.player?.removeListener(queue_listener)
         }
     }
 
@@ -256,15 +258,15 @@ fun QueueTab() {
 
                     Button(
                         onClick = {
-                            player.player.undoableAction {
+                            player.player?.undoableAction {
                                 if (multiselect_context.is_active) {
                                     for (item in multiselect_context.getSelectedItems().sortedByDescending { it.second!! }) {
-                                        player.player.removeFromQueue(item.second!!)
+                                        player.player?.removeFromQueue(item.second!!)
                                     }
                                     multiselect_context.onActionPerformed()
                                 }
                                 else {
-                                    player.player.clearQueue(keep_current = player.status.m_song_count > 1)
+                                    player.player?.clearQueue(keep_current = player.status.m_song_count > 1)
                                 }
                             }
                         },
@@ -281,22 +283,22 @@ fun QueueTab() {
                         Modifier.combinedClickable(
                             onClick = {
                                 if (multiselect_context.is_active) {
-                                    player.player.undoableAction {
-                                        player.player.shuffleQueueAndIndices(multiselect_context.getSelectedItems().map { it.second!! })
+                                    player.player?.undoableAction {
+                                        player.player?.shuffleQueueAndIndices(multiselect_context.getSelectedItems().map { it.second!! })
                                     }
                                     multiselect_context.onActionPerformed()
                                 }
                                 else {
-                                    player.player.undoableAction {
-                                        player.player.shuffleQueue()
+                                    player.player?.undoableAction {
+                                        player.player?.shuffleQueue()
                                     }
                                 }
                             },
                             onLongClick = if (multiselect_context.is_active) null else ({
-                                player.player.undoableAction {
+                                player.player?.undoableAction {
                                     if (!multiselect_context.is_active) {
                                         SpMp.context.vibrateShort()
-                                        player.player.shuffleQueue(start = 0)
+                                        player.player?.shuffleQueue(start = 0)
                                     }
                                 }
                             })
@@ -337,11 +339,11 @@ fun QueueTab() {
                             .combinedClickable(
                                 enabled = player.status.m_undo_count != 0 || player.status.m_redo_count != 0,
                                 onClick = { 
-                                    player.player.undo() 
+                                    player.player?.undo() 
                                     SpMp.context.vibrateShort()
                                 },
                                 onLongClick = {
-                                    player.player.redo()
+                                    player.player?.redo()
                                     SpMp.context.vibrateShort()
                                 }
                             )
@@ -366,7 +368,7 @@ fun QueueTab() {
                     onDragEnd = { from, to ->
                         if (from != to) {
                             song_items.add(from - items_above_queue, song_items.removeAt(to - items_above_queue))
-                            player.player.undoableAction {
+                            player.player?.undoableAction {
                                 moveSong(from - items_above_queue, to - items_above_queue)
                             }
                             playing_key = null
@@ -376,7 +378,7 @@ fun QueueTab() {
 
                 CompositionLocalProvider(
                     LocalPlayerState provides remember { player.copy(onClickedOverride = { _, index: Int? ->
-                        player.player.seekToSong(index!!)
+                        player.player?.seekToSong(index!!)
                     }) }
                 ) {
                     LazyColumn(
@@ -414,15 +416,15 @@ fun QueueTab() {
                                         },
                                         multiselect_context
                                     ) {
-                                        player.player.undoableAction {
-                                            player.player.removeFromQueue(index)
+                                        player.player?.undoableAction {
+                                            player.player?.removeFromQueue(index)
                                         }
                                     }
                                 }
                             }
                         }
 
-                        if (player.player.radio_loading) {
+                        if (player.player?.radio_loading == true) {
                             item {
                                 Box(Modifier.height(50.dp), contentAlignment = Alignment.Center) {
                                     SubtleLoadingIndicator()
@@ -449,10 +451,10 @@ private fun CurrentRadioIndicator(
     
     Row(Modifier.animateContentSize()) {
 
-        val filters = player.player.radio_filters
+        val filters = player.player?.radio_filters
         var show_radio_info: Boolean by remember { mutableStateOf(false) }
-        val radio_item: MediaItem? = player.player.radio_item.takeIf { item ->
-            item !is Song || player.player.radio_item_index == null
+        val radio_item: MediaItem? = player.player?.radio_item.takeIf { item ->
+            item !is Song || player.player?.radio_item_index == null
         }
 
         LaunchedEffect(radio_item) {
@@ -513,13 +515,13 @@ private fun CurrentRadioIndicator(
                     ) {
                         Spacer(Modifier)
 
-                        val current_filter = player.player.radio_current_filter
+                        val current_filter = player.player?.radio_current_filter
                         for (filter in listOf(null) + state.withIndex()) {
                             FilterChip(
                                 current_filter == filter?.index,
                                 onClick = {
-                                    if (player.player.radio_current_filter != filter?.index) {
-                                        player.player.radio_current_filter = filter?.index
+                                    if (player.player?.radio_current_filter != filter?.index) {
+                                        player.player?.radio_current_filter = filter?.index
                                     }
                                 },
                                 label = {
@@ -553,8 +555,8 @@ private fun RepeatButton(backgroundColourProvider: () -> Color, modifier: Modifi
                 interactionSource = remember { MutableInteractionSource() },
                 indication = null,
                 onClick = {
-                    player.player.repeat_mode =
-                        when (player.player.repeat_mode) {
+                    player.player?.repeat_mode =
+                        when (player.player?.repeat_mode) {
                             MediaPlayerRepeatMode.ALL -> MediaPlayerRepeatMode.ONE
                             MediaPlayerRepeatMode.ONE -> MediaPlayerRepeatMode.OFF
                             else -> MediaPlayerRepeatMode.ALL
@@ -589,13 +591,13 @@ private fun RepeatButton(backgroundColourProvider: () -> Color, modifier: Modifi
 private fun StopAfterSongButton(backgroundColourProvider: () -> Color, modifier: Modifier = Modifier) {
     val player = LocalPlayerState.current
     val rotation = remember { Animatable(0f) }
-    OnChangedEffect(player.player.stop_after_current_song) {
+    OnChangedEffect(player.player?.stop_after_current_song) {
         rotation.animateTo(
-            if (player.player.stop_after_current_song) 180f else 0f
+            if (player.player?.stop_after_current_song == true) 180f else 0f
         )
     }
 
-    Crossfade(player.player.stop_after_current_song) { stopping ->
+    Crossfade(player.player?.stop_after_current_song == true) { stopping ->
         Box(
             modifier = modifier
                 .minimumTouchTargetSize()
@@ -605,7 +607,7 @@ private fun StopAfterSongButton(backgroundColourProvider: () -> Color, modifier:
                 .combinedClickable(
                     interactionSource = remember { MutableInteractionSource() },
                     indication = null,
-                    onClick = { player.player.stop_after_current_song = !stopping },
+                    onClick = { player.player?.stop_after_current_song = !stopping },
                     onLongClick = {}
                 ),
             contentAlignment = Alignment.Center

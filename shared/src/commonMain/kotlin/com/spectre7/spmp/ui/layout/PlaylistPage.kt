@@ -170,7 +170,7 @@ fun PlaylistPage(
             }
         }
 
-        LaunchedEffect(reorderable) {
+        OnChangedEffect(reorderable) {
             if (!reorderable) {
                 playlist.saveItems().getOrReport("PlaylistPageSaveItems")
             }

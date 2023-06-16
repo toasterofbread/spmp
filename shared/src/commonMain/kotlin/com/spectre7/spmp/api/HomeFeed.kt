@@ -287,7 +287,7 @@ data class YoutubeiShelf(
 
     val title: TextRun? get() =
         if (musicShelfRenderer != null) musicShelfRenderer.title?.runs?.firstOrNull()
-        else if (musicCarouselShelfRenderer != null) musicCarouselShelfRenderer.header.getRenderer().title.runs?.firstOrNull()
+        else if (musicCarouselShelfRenderer != null) musicCarouselShelfRenderer.header.getRenderer()?.title?.runs?.firstOrNull()
         else if (musicDescriptionShelfRenderer != null) musicDescriptionShelfRenderer.header.runs?.firstOrNull()
         else if (musicCardShelfRenderer != null) musicCardShelfRenderer.title.runs?.firstOrNull()
         else if (gridRenderer != null) gridRenderer.header?.gridHeaderRenderer?.title?.runs?.firstOrNull()
@@ -391,8 +391,13 @@ data class Header(
     val musicEditablePlaylistDetailHeaderRenderer: MusicEditablePlaylistDetailHeaderRenderer? = null,
     val musicCardShelfHeaderBasicRenderer: HeaderRenderer? = null
 ) {
-    fun getRenderer(): HeaderRenderer {
-        return musicCarouselShelfBasicHeaderRenderer ?: musicImmersiveHeaderRenderer ?: musicVisualHeaderRenderer ?: musicDetailHeaderRenderer ?: musicCardShelfHeaderBasicRenderer ?: musicEditablePlaylistDetailHeaderRenderer!!.header.getRenderer()
+    fun getRenderer(): HeaderRenderer? {
+        return musicCarouselShelfBasicHeaderRenderer
+            ?: musicImmersiveHeaderRenderer
+            ?: musicVisualHeaderRenderer
+            ?: musicDetailHeaderRenderer
+            ?: musicCardShelfHeaderBasicRenderer
+            ?: musicEditablePlaylistDetailHeaderRenderer?.header?.getRenderer()
     }
 
     data class MusicEditablePlaylistDetailHeaderRenderer(val header: Header)

@@ -46,6 +46,7 @@ abstract class MediaItem(val id: String): MediaItemHolder {
             is Artist -> MediaItemType.ARTIST
             is AccountPlaylist -> MediaItemType.PLAYLIST_ACC
             is LocalPlaylist -> MediaItemType.PLAYLIST_LOC
+            is BrowseParamsPlaylist -> MediaItemType.PLAYLIST_BROWSEPARAMS
             else -> throw NotImplementedError(this.javaClass.name)
         }
 
@@ -297,7 +298,7 @@ abstract class MediaItem(val id: String): MediaItemHolder {
         thumb_states = states
 
         // Get registry
-        registry_entry = data_registry.getEntry(this, this::getDefaultRegistryEntry)
+        registry_entry = data_registry.getEntry(this) { getDefaultRegistryEntry() }
 
         // Get pinned status
         pinned_to_home = Settings.INTERNAL_PINNED_ITEMS.get<Set<String>>().contains(uid)
@@ -395,6 +396,7 @@ abstract class MediaItem(val id: String): MediaItemHolder {
                     MediaItemType.ARTIST -> Artist.fromId(id)
                     MediaItemType.PLAYLIST_ACC -> AccountPlaylist.fromId(id)
                     MediaItemType.PLAYLIST_LOC -> LocalPlaylist.fromId(id)
+                    MediaItemType.PLAYLIST_BROWSEPARAMS -> throw IllegalStateException(id)
                 }
 
                 if (data.size > 2) {

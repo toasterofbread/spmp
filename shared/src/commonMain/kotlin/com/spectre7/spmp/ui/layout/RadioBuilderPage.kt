@@ -148,7 +148,7 @@ fun RadioBuilderPage(
                             preview_loading = true
                         }
                         else if (preview_playlist?.id == radio_token) {
-                            player.player.startRadioAtIndex(0, preview_playlist)
+                            player.player?.startRadioAtIndex(0, preview_playlist)
                             return
                         }
                         else {
@@ -168,7 +168,7 @@ fun RadioBuilderPage(
                                     }
                                     else {
                                         withContext(Dispatchers.Main) {
-                                            player.player.startRadioAtIndex(0, it)
+                                            player.player?.startRadioAtIndex(0, it)
                                         }
                                     }
                                 },

@@ -292,7 +292,11 @@ private fun TitleBar(
                             else if (view_more.list_page_browse_id != null) {
                                 if (view_more.browse_params != null) {
                                     player.openMediaItem(
-                                        BrowseParamsPlaylist.fromId(view_more.list_page_browse_id, view_more.browse_params)
+                                        BrowseParamsPlaylist
+                                            .fromId(view_more.list_page_browse_id, view_more.browse_params)
+                                            .apply { editData {
+                                                supplyTitle(title?.getString() ?: "")
+                                            }}
                                     )
                                 }
                                 else {
@@ -537,7 +541,7 @@ fun MediaItemCard(
                 Text(getString(when (item.type) {
                     MediaItemType.SONG -> "media_play"
                     MediaItemType.ARTIST -> "artist_chip_play"
-                    MediaItemType.PLAYLIST_ACC, MediaItemType.PLAYLIST_LOC -> "playlist_chip_play"
+                    MediaItemType.PLAYLIST_ACC, MediaItemType.PLAYLIST_LOC, MediaItemType.PLAYLIST_BROWSEPARAMS -> "playlist_chip_play"
                 }))
             }
         }

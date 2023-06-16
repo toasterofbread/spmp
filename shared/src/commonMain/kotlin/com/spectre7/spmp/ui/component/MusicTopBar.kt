@@ -145,13 +145,16 @@ fun MusicTopBar(
 
                             LyricsLineDisplay(
                                 s,
-                                { player.player.current_position_ms + (song?.song_reg_entry?.getLyricsSyncOffset() ?: 0) },
+                                {
+                                    (player.player?.current_position_ms ?: 0) +
+                                        (song?.song_reg_entry?.getLyricsSyncOffset() ?: 0)
+                                },
                                 linger,
                                 show_furigana
                             )
                         }
                         MusicTopBarMode.VISUALISER -> {
-                            player.player.Visualiser(
+                            player.player?.Visualiser(
                                 LocalContentColor.current,
                                 Modifier.fillMaxHeight().fillMaxWidth(visualiser_width).padding(vertical = 10.dp),
                                 opacity = 0.5f

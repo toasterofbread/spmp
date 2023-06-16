@@ -219,7 +219,9 @@ class PlayerStateImpl: PlayerState(null, null, null) {
     }
 
     fun onStart() {
-        check(!service_connecting)
+        if (service_connecting) {
+            return
+        }
 
         service_connecting = true
         service_connection = MediaPlayerService.connect(
@@ -326,15 +328,17 @@ class PlayerStateImpl: PlayerState(null, null, null) {
     }
 
     override fun playMediaItem(item: MediaItem, shuffle: Boolean) {
-        if (item is Song) {
-            player.playSong(item, start_radio = true, shuffle = shuffle)
-        }
-        else {
-            player.startRadioAtIndex(0, item, shuffle = shuffle)
-        }
+        withPlayer {
+            if (item is Song) {
+                playSong(item, start_radio = true, shuffle = shuffle)
+            }
+            else {
+                startRadioAtIndex(0, item, shuffle = shuffle)
+            }
 
-        if (np_swipe_state.value.targetValue == 0 && Settings.get(Settings.KEY_OPEN_NP_ON_SONG_PLAYED)) {
-            switchNowPlayingPage(1)
+            if (np_swipe_state.value.targetValue == 0 && Settings.get(Settings.KEY_OPEN_NP_ON_SONG_PLAYED)) {
+                switchNowPlayingPage(1)
+            }
         }
     }
 
@@ -516,8 +520,10 @@ class PlayerStateImpl: PlayerState(null, null, null) {
 
                         if (main_page_layouts == null) {
                             feed_coroutine_scope.launchSingle {
-                                val result = loadFeed(Settings.get(Settings.KEY_FEED_INITIAL_ROWS), allow_cached = true, continue_feed = false)
-                                player.loadPersistentQueue(result.isSuccess)
+                                player?.also { player ->
+                                    val result = loadFeed(Settings.get(Settings.KEY_FEED_INITIAL_ROWS), allow_cached = true, continue_feed = false)
+                                    player.loadPersistentQueue(result.isSuccess)
+                                }
                             }
                         }
                     }
@@ -562,6 +568,9 @@ class PlayerStateImpl: PlayerState(null, null, null) {
     // PlayerServiceHost
 
     override val player: PlayerService? get() = _player
+    override fun withPlayer(action: PlayerService.() -> Unit) {
+        _player?.also { action(it) }
+    }
 
     val service_connected: Boolean get() = _player != null
 
@@ -573,11 +582,7 @@ class PlayerStateImpl: PlayerState(null, null, null) {
         private set
 
     override fun isRunningAndFocused(): Boolean {
-        if (!player.has_focus) {
-            return false
-        }
-
-        return true
+        return player?.has_focus == true
     }
 }
 

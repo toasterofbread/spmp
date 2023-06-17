@@ -4,7 +4,6 @@ import LocalPlayerState
 import androidx.compose.animation.*
 import androidx.compose.animation.core.Animatable
 import androidx.compose.foundation.background
-import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.Icon
@@ -47,8 +46,10 @@ fun MusicTopBar(
     target_mode_key: Settings,
     modifier: Modifier = Modifier,
     song: Song? = LocalPlayerState.current.status.m_song,
+    can_show_visualiser: Boolean = false,
     hide_while_inactive: Boolean = true,
-    padding: PaddingValues = PaddingValues()
+    padding: PaddingValues = PaddingValues(),
+    onShowingChanged: ((Boolean) -> Unit)? = null
 ) {
     val player = LocalPlayerState.current
     val mode_state = LocalNowPlayingExpansion.current.top_bar_mode
@@ -73,17 +74,20 @@ fun MusicTopBar(
         }
     }
 
+    val show = !hide_while_inactive || isStateActive(current_state)
+    DisposableEffect(show) {
+        onShowingChanged?.invoke(show)
+        onDispose {
+            onShowingChanged?.invoke(false)
+        }
+    }
+
     AnimatedVisibility(
-        !hide_while_inactive || isStateActive(current_state),
+        show,
         modifier
             .platformClickable(
                 onClick = {
-                    if (target_mode.ordinal == 0) {
-                        target_mode = MusicTopBarMode.values().last()
-                    }
-                    else {
-                        target_mode = MusicTopBarMode.values()[target_mode.ordinal - 1]
-                    }
+                    target_mode = target_mode.getNext(can_show_visualiser)
                     show_toast = true
                 },
                 onAltClick = {

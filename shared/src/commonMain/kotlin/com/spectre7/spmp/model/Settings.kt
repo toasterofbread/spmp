@@ -31,6 +31,18 @@ enum class MusicTopBarMode {
         VISUALISER -> Icons.Default.GraphicEq
     }
 
+    fun getNext(can_show_visualiser: Boolean): MusicTopBarMode {
+        val next =
+            if (ordinal == 0) values().last()
+            else values()[ordinal - 1]
+
+        if (!can_show_visualiser && next == VISUALISER) {
+            return next.getNext(false)
+        }
+
+        return next
+    }
+
     companion object {
         val default: MusicTopBarMode get() = LYRICS
     }

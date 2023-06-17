@@ -58,8 +58,8 @@ interface PlayerOverlayPage {
         override fun getPage(pill_menu: PillMenu, previous_item: MediaItemHolder?, bottom_padding: Dp, close: () -> Unit) {
             when (val item = holder.item) {
                 null -> close()
-                is Playlist -> PlaylistPage(pill_menu, item, previous_item?.item, close)
-                is Artist -> ArtistPage(pill_menu, item, previous_item?.item, close)
+                is Playlist -> PlaylistPage(pill_menu, item, previous_item?.item, bottom_padding, close)
+                is Artist -> ArtistPage(pill_menu, item, previous_item?.item, bottom_padding, close)
                 else -> throw NotImplementedError(item.type.toString())
             }
         }

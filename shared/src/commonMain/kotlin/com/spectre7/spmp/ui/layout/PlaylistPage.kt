@@ -5,6 +5,7 @@ package com.spectre7.spmp.ui.layout
 import LocalPlayerState
 import SpMp
 import androidx.compose.animation.*
+import androidx.compose.animation.core.animateDpAsState
 import androidx.compose.foundation.*
 import androidx.compose.foundation.gestures.Orientation
 import androidx.compose.foundation.gestures.draggable
@@ -84,6 +85,7 @@ fun PlaylistPage(
     pill_menu: PillMenu,
     playlist: Playlist,
     previous_item: MediaItem? = null,
+    bottom_padding: Dp = 0.dp,
     close: () -> Unit
 ) {
     val player = LocalPlayerState.current
@@ -139,10 +141,13 @@ fun PlaylistPage(
             }
         }
 
+        var top_bar_showing: Boolean by remember { mutableStateOf(false) }
         MusicTopBar(
             Settings.INTERNAL_TOPBAR_MODE_PLAYLIST,
-            Modifier.fillMaxWidth()
-        )
+            Modifier.fillMaxWidth().padding(top = SpMp.context.getStatusBarHeight())
+        ) { showing ->
+            top_bar_showing = showing
+        }
 
         val thumb_item = playlist.getThumbnailHolder().getHolder()
 
@@ -199,10 +204,16 @@ fun PlaylistPage(
             state = list_state.listState,
             verticalArrangement = Arrangement.spacedBy(10.dp),
             horizontalAlignment = Alignment.CenterHorizontally,
-            modifier = Modifier.reorderable(list_state)
+            modifier = Modifier.reorderable(list_state),
+            contentPadding = PaddingValues(bottom = bottom_padding)
         ) {
             item {
-                PlaylistTopInfo(playlist, accent_colour ?: Theme.current.accent, Modifier.padding(top = status_bar_height + 10.dp)) {
+                val top_padding by animateDpAsState(if (top_bar_showing) 0.dp else status_bar_height + 10.dp)
+                PlaylistTopInfo(
+                    playlist,
+                    accent_colour ?: Theme.current.accent,
+                    Modifier.padding(top = top_padding)
+                ) {
                     accent_colour = thumb_item.item?.getThemeColour()
                 }
             }
@@ -245,10 +256,6 @@ fun PlaylistPage(
                     current_sort_option,
                     player,
                 )
-            }
-
-            item {
-                Spacer(Modifier.height(MINIMISED_NOW_PLAYING_HEIGHT.dp * 2))
             }
         }
     }

@@ -62,6 +62,7 @@ fun ArtistPage(
     pill_menu: PillMenu,
     item: Artist,
     previous_item: MediaItem? = null,
+    bottom_padding: Dp = 0.dp,
     close: () -> Unit
 ) {
     require(!item.is_for_item)
@@ -138,7 +139,7 @@ fun ArtistPage(
                 }
             }
 
-            LazyColumn(Modifier.fillMaxSize(), lazy_column_state) {
+            LazyColumn(Modifier.fillMaxSize(), lazy_column_state, contentPadding = PaddingValues(bottom = bottom_padding)) {
 
                 val content_padding = PaddingValues(horizontal = 10.dp)
                 val play_button_size = 55.dp
@@ -244,16 +245,12 @@ fun ArtistPage(
                     val layout = feed_layouts.single()
 
                     item {
-                        layout.TitleBar(background_modifier.padding(bottom = 5.dp))
+                        layout.TitleBar(background_modifier.padding(content_padding).padding(bottom = 5.dp))
                     }
 
                     items(layout.items.size) { i ->
-                        Row(background_modifier, verticalAlignment = Alignment.CenterVertically) {
-                            Text((i + 1).toString().padStart((layout.items.size + 1).toString().length, '0'), fontWeight = FontWeight.Light)
-
-                            Column {
-                                layout.items[i].PreviewLong(MediaItemPreviewParams(multiselect_context = multiselect_context))
-                            }
+                        Row(background_modifier.padding(content_padding), verticalAlignment = Alignment.CenterVertically) {
+                            layout.items[i].PreviewLong(MediaItemPreviewParams(multiselect_context = multiselect_context))
                         }
                     }
                 }

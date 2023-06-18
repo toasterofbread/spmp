@@ -303,6 +303,15 @@
 
     <string name="s_group_top_bar_lyrics">Top bar lyrics</string>
     <string name="s_key_top_bar_lyrics_show_furigana">Show furigana</string>
+    <string name="s_key_top_bar_lyrics_show_in_library"ライブラリで表示</string>
+    <string name="s_key_top_bar_lyrics_show_in_radiobuilder"ラジオ作成画面で表示</string>
+    <string name="s_key_top_bar_lyrics_show_in_settings"設定で表示</string>
+    <string name="s_key_top_bar_lyrics_show_in_login"Show ログイン画面で表示</string>
+    <string name="s_key_top_bar_lyrics_show_in_playlist"プライリストで表示</string>
+    <string name="s_key_top_bar_lyrics_show_in_artist"アーティストで表示</string>
+    <string name="s_key_top_bar_lyrics_show_in_viewmore"ホームの「もっと見る」画面で表示</string>
+    <string name="s_key_top_bar_lyrics_show_in_search"検索画面で表示</string>
+
 
     <string name="s_cat_audio_video">Audio / Video</string>
 

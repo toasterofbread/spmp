@@ -97,7 +97,7 @@ fun ArtistPage(
     Column {
         val top_bar_padding = 10.dp
         MusicTopBar(
-            Settings.INTERNAL_TOPBAR_MODE_ARTIST,
+            Settings.KEY_LYRICS_SHOW_IN_ARTIST,
             background_modifier.fillMaxWidth().zIndex(1f),
             padding = PaddingValues(bottom = top_bar_padding, top = top_bar_padding + SpMp.context.getStatusBarHeight())
         )

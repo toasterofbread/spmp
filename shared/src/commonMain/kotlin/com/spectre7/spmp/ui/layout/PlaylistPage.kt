@@ -143,12 +143,12 @@ fun PlaylistPage(
 
         var top_bar_showing: Boolean by remember { mutableStateOf(false) }
         MusicTopBar(
-            Settings.INTERNAL_TOPBAR_MODE_PLAYLIST,
+            Settings.KEY_LYRICS_SHOW_IN_PLAYLIST,
             Modifier.fillMaxWidth().padding(top = SpMp.context.getStatusBarHeight())
         ) { showing ->
             top_bar_showing = showing
         }
-
+        
         val thumb_item = playlist.getThumbnailHolder().getHolder()
 
         LaunchedEffect(thumb_item) {

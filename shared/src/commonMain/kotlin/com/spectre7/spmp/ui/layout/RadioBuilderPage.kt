@@ -74,7 +74,7 @@ fun RadioBuilderPage(
 
     Column(modifier.padding(horizontal = 10.dp)) {
         MusicTopBar(
-            Settings.INTERNAL_TOPBAR_MODE_RADIOBUILDER,
+            Settings.KEY_LYRICS_SHOW_IN_RADIOBUILDER,
             Modifier.fillMaxWidth()
         )
 

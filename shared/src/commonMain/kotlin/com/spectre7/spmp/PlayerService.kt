@@ -218,7 +218,9 @@ class PlayerService : MediaPlayerService() {
                         }
                     }
                     else {
-                        addMultipleToQueue(result.getOrThrowHere(), added_index + 1, save = save, skip_existing = true)
+                        playerLaunch {
+                            addMultipleToQueue(result.getOrThrowHere(), added_index + 1, save = save, skip_existing = true)
+                        }
                     }
                 }
             }

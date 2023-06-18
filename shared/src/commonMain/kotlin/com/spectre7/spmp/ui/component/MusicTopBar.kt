@@ -42,7 +42,7 @@ private fun isStateActive(state: Any): Boolean = when (state) {
 }
 
 @Composable
-fun MusicTopBar(
+fun MusicTopBarWithVisualiser(
     target_mode_key: Settings,
     modifier: Modifier = Modifier,
     song: Song? = LocalPlayerState.current.status.m_song,
@@ -51,12 +51,108 @@ fun MusicTopBar(
     padding: PaddingValues = PaddingValues(),
     onShowingChanged: ((Boolean) -> Unit)? = null
 ) {
-    val player = LocalPlayerState.current
-    val mode_state = LocalNowPlayingExpansion.current.top_bar_mode
     var target_mode: MusicTopBarMode by target_mode_key.rememberMutableEnumState()
+    val mode_state = LocalNowPlayingExpansion.current.top_bar_mode
+    var show_toast by remember { mutableStateOf(false) }
+
+    @Composable
+    fun InnerContent() {
+        Crossfade(Pair(target_mode, mode_state.value), Modifier.fillMaxSize()) { state ->
+            val (target, current) = state
+
+            val toast_alpha = remember { Animatable(if (show_toast) 1f else 0f) }
+            LaunchedEffect(Unit) {
+                if (!show_toast) {
+                    return@LaunchedEffect
+                }
+
+                show_toast = false
+                delay(500)
+                toast_alpha.animateTo(0f)
+            }
+
+            Box(Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
+                Box(
+                    Modifier
+                        .graphicsLayer { alpha = toast_alpha.value }
+                        .background(LocalContentColor.current, RoundedCornerShape(16.dp)),
+                ) {
+                    Row(
+                        Modifier.padding(vertical = 5.dp, horizontal = 15.dp),
+                        verticalAlignment = Alignment.CenterVertically,
+                        horizontalArrangement = Arrangement.spacedBy(5.dp)
+                    ) {
+                        val colour = LocalContentColor.current.getContrasted()
+                        Icon(
+                            target.getIcon(),
+                            null,
+                            tint = colour
+                        )
+
+                        if (target != current) {
+                            Text(getString("topbar_mode_unavailable"), color = colour)
+                        }
+                    }
+                }
+            }
+        }
+    }
+    
+    MusicTopBar(
+        target_mode,
+        true,
+        can_show_visualiser,
+        hide_while_inactive,
+        modifier,
+        mode_state,
+        song,
+        padding,
+        innerContent = { InnerContent() },
+        onClick = {
+            target_mode = target_mode.getNext(can_show_visualiser)
+            show_toast = true
+        },
+        onShowingChanged = onShowingChanged
+    )
+}
+
+@Composable
+fun MusicTopBar(
+    can_show_key: Settings,
+    modifier: Modifier = Modifier,
+    padding: PaddingValues = PaddingValues(),
+    onShowingChanged: ((Boolean) -> Unit)? = null
+) {
+    val can_show: Boolean by can_show_key.rememberMutableState()
+    MusicTopBar(
+        target_mode = MusicTopBarMode.LYRICS,
+        can_show = can_show,
+        can_show_visualiser = false,
+        hide_while_inactive = true,
+        modifier = modifier,
+        song = song,
+        padding = padding,
+        onShowingChanged = onShowingChanged
+    )
+}
+
+@Composable
+private fun MusicTopBar(
+    target_mode: MusicTopBarMode,
+    can_show: Boolean,
+    can_show_visualiser: Boolean,
+    hide_while_inactive: Boolean,
+    modifier: Modifier = Modifier,
+    mode_state: MutableState<MusicTopBarMode>? = null,
+    song: Song? = LocalPlayerState.current.status.m_song,
+    padding: PaddingValues = PaddingValues(),
+    innerContent: (@Composable () -> Unit)? = null,
+    onClick: (() -> Unit)? = null,
+    onShowingChanged: ((Boolean) -> Unit)? = null
+) {
+    val player = LocalPlayerState.current
     val song_state by rememberSongUpdateLyrics(song, target_mode == MusicTopBarMode.LYRICS)
 
-    var show_toast by remember { mutableStateOf(false) }
     val visualiser_width: Float by Settings.KEY_TOPBAR_VISUALISER_WIDTH.rememberMutableState()
     check(visualiser_width in 0f .. 1f)
 
@@ -66,7 +162,7 @@ fun MusicTopBar(
                 val mode = MusicTopBarMode.values()[mode_i]
                 val state = getModeState(mode, song_state)
                 if (state != null) {
-                    mode_state.value = mode
+                    mode_state?.value = mode
                     return@derivedStateOf state
                 }
             }
@@ -84,61 +180,19 @@ fun MusicTopBar(
 
     AnimatedVisibility(
         show,
-        modifier
-            .platformClickable(
-                onClick = {
-                    target_mode = target_mode.getNext(can_show_visualiser)
-                    show_toast = true
-                },
-                onAltClick = {
-                    if (current_state is SongLyrics) {
-                        TODO("Open full lyrics in NowPlaying")
-                    }
+        modifier.platformClickable(
+            onClick = onClick,
+            onAltClick = {
+                if (current_state is SongLyrics) {
+                    TODO("Open full lyrics in NowPlaying")
                 }
-            ),
+            }
+        ),
         enter = expandVertically(),
         exit = shrinkVertically()
     ) {
         Box(Modifier.padding(padding).height(30.dp), contentAlignment = Alignment.Center) {
-            Crossfade(Pair(target_mode, mode_state.value), Modifier.fillMaxSize()) { state ->
-                val (target, current) = state
-
-                val toast_alpha = remember { Animatable(if (show_toast) 1f else 0f) }
-                LaunchedEffect(Unit) {
-                    if (!show_toast) {
-                        return@LaunchedEffect
-                    }
-
-                    show_toast = false
-                    delay(500)
-                    toast_alpha.animateTo(0f)
-                }
-
-                Box(Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
-                    Box(
-                        Modifier
-                            .graphicsLayer { alpha = toast_alpha.value }
-                            .background(LocalContentColor.current, RoundedCornerShape(16.dp)),
-                    ) {
-                        Row(
-                            Modifier.padding(vertical = 5.dp, horizontal = 15.dp),
-                            verticalAlignment = Alignment.CenterVertically,
-                            horizontalArrangement = Arrangement.spacedBy(5.dp)
-                        ) {
-                            val colour = LocalContentColor.current.getContrasted()
-                            Icon(
-                                target.getIcon(),
-                                null,
-                                tint = colour
-                            )
-
-                            if (target != current) {
-                                Text(getString("topbar_mode_unavailable"), color = colour)
-                            }
-                        }
-                    }
-                }
-            }
+            innerContent()
 
             Crossfade(current_state, Modifier.fillMaxSize()) { s ->
                 Box(Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {

@@ -84,6 +84,14 @@
 
     <string name="s_group_top_bar_lyrics">トップバーの歌詞</string>
     <string name="s_key_top_bar_lyrics_show_furigana">ふりがなを表示</string>
+    <string name="s_key_top_bar_lyrics_show_in_library"Show in library</string>
+    <string name="s_key_top_bar_lyrics_show_in_radiobuilder"Show in the radio builder</string>
+    <string name="s_key_top_bar_lyrics_show_in_settings"Show in settings</string>
+    <string name="s_key_top_bar_lyrics_show_in_login"Show in login pages</string>
+    <string name="s_key_top_bar_lyrics_show_in_playlist"Show in playlist pages</string>
+    <string name="s_key_top_bar_lyrics_show_in_artist"Show in artist pages</string>
+    <string name="s_key_top_bar_lyrics_show_in_viewmore"Show in home feed view more pages</string>
+    <string name="s_key_top_bar_lyrics_show_in_search"Show in search page</string>
 
     <string name="s_key_vol_intercept_mode">音量インターセプトモード</string>
     <string name="s_key_vol_intercept_notification">音量変化の通知</string>

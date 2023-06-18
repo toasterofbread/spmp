@@ -72,6 +72,15 @@ enum class Settings {
     KEY_LYRICS_ENABLE_WORD_SYNC,
     KEY_LYRICS_FONT_SIZE,
     
+    KEY_LYRICS_SHOW_IN_LIBRARY,
+    KEY_LYRICS_SHOW_IN_RADIOBUILDER,
+    KEY_LYRICS_SHOW_IN_SETTINGS,
+    KEY_LYRICS_SHOW_IN_LOGIN,
+    KEY_LYRICS_SHOW_IN_PLAYLIST,
+    KEY_LYRICS_SHOW_IN_ARTIST,
+    KEY_LYRICS_SHOW_IN_VIEWMORE,
+    KEY_LYRICS_SHOW_IN_SEARCH,
+
     // Audio & Video
     KEY_STREAM_AUDIO_QUALITY,
     KEY_DOWNLOAD_AUDIO_QUALITY,
@@ -143,15 +152,7 @@ enum class Settings {
     // Internal
     INTERNAL_PINNED_ITEMS,
     INTERNAL_TOPBAR_MODE_HOME,
-    INTERNAL_TOPBAR_MODE_NOWPLAYING,
-    INTERNAL_TOPBAR_MODE_LIBRARY,
-    INTERNAL_TOPBAR_MODE_RADIOBUILDER,
-    INTERNAL_TOPBAR_MODE_SETTINGS,
-    INTERNAL_TOPBAR_MODE_LOGIN,
-    INTERNAL_TOPBAR_MODE_PLAYLIST,
-    INTERNAL_TOPBAR_MODE_ARTIST,
-    INTERNAL_TOPBAR_MODE_VIEWMORE,
-    INTERNAL_TOPBAR_MODE_SEARCH
+    INTERNAL_TOPBAR_MODE_NOWPLAYING
     
     ;
 
@@ -240,6 +241,15 @@ enum class Settings {
                 KEY_LYRICS_ENABLE_WORD_SYNC -> false
                 KEY_LYRICS_FONT_SIZE -> 0.5f
 
+                KEY_LYRICS_SHOW_IN_LIBRARY -> true
+                KEY_LYRICS_SHOW_IN_RADIOBUILDER -> true
+                KEY_LYRICS_SHOW_IN_SETTINGS -> true
+                KEY_LYRICS_SHOW_IN_LOGIN -> true
+                KEY_LYRICS_SHOW_IN_PLAYLIST -> true
+                KEY_LYRICS_SHOW_IN_ARTIST -> true
+                KEY_LYRICS_SHOW_IN_VIEWMORE -> true
+                KEY_LYRICS_SHOW_IN_SEARCH -> true
+
                 KEY_STREAM_AUDIO_QUALITY -> SongAudioQuality.MEDIUM.ordinal
                 KEY_DOWNLOAD_AUDIO_QUALITY -> SongAudioQuality.MEDIUM.ordinal
 
@@ -309,15 +319,6 @@ enum class Settings {
                 INTERNAL_PINNED_ITEMS -> emptySet<String>()
                 INTERNAL_TOPBAR_MODE_HOME -> MusicTopBarMode.LYRICS.ordinal
                 INTERNAL_TOPBAR_MODE_NOWPLAYING -> MusicTopBarMode.LYRICS.ordinal
-                INTERNAL_TOPBAR_MODE_LIBRARY -> MusicTopBarMode.LYRICS.ordinal
-                INTERNAL_TOPBAR_MODE_RADIOBUILDER -> MusicTopBarMode.LYRICS.ordinal
-                INTERNAL_TOPBAR_MODE_SETTINGS -> MusicTopBarMode.LYRICS.ordinal
-                INTERNAL_TOPBAR_MODE_LOGIN -> MusicTopBarMode.LYRICS.ordinal
-                INTERNAL_TOPBAR_MODE_PLAYLIST -> MusicTopBarMode.LYRICS.ordinal
-                INTERNAL_TOPBAR_MODE_ARTIST -> MusicTopBarMode.LYRICS.ordinal
-                INTERNAL_TOPBAR_MODE_VIEWMORE -> MusicTopBarMode.LYRICS.ordinal
-                INTERNAL_TOPBAR_MODE_SEARCH -> MusicTopBarMode.LYRICS.ordinal
-
             } as T
         }
 

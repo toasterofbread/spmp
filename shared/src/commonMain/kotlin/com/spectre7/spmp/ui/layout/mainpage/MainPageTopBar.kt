@@ -36,7 +36,7 @@ fun MainPageTopBar(
         Row(Modifier.height(IntrinsicSize.Min)) {
             RadioBuilderButton()
 
-            MusicTopBar(
+            MusicTopBarWithVisualiser(
                 Settings.INTERNAL_TOPBAR_MODE_HOME,
                 Modifier.fillMaxSize().weight(1f),
                 hide_while_inactive = false,

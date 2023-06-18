@@ -124,7 +124,7 @@ fun SearchPage(
     Box(Modifier.fillMaxSize()) {
         Column(Modifier.fillMaxSize()) {
             MusicTopBar(
-                Settings.INTERNAL_TOPBAR_MODE_SEARCH,
+                Settings.KEY_LYRICS_SHOW_IN_SEARCH,
                 Modifier.fillMaxWidth().padding(top = SpMp.context.getStatusBarHeight())
             )
 

@@ -30,7 +30,7 @@ fun GenericFeedViewMorePage(browse_id: String, modifier: Modifier = Modifier, bo
 
     Column(modifier) {
         MusicTopBar(
-            Settings.INTERNAL_TOPBAR_MODE_VIEWMORE,
+            Settings.KEY_LYRICS_SHOW_IN_VIEWMORE,
             Modifier.fillMaxWidth()
         )
 

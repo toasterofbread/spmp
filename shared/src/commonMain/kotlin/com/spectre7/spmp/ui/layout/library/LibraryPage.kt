@@ -96,7 +96,7 @@ fun LibraryPage(
         }
     ) {
         MusicTopBar(
-            Settings.INTERNAL_TOPBAR_MODE_LIBRARY,
+            Settings.KEY_LYRICS_SHOW_IN_LIBRARY,
             Modifier
                 .fillMaxWidth()
                 .padding(bottom = 20.dp)

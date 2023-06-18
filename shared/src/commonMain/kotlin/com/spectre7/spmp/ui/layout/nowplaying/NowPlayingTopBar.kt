@@ -63,7 +63,7 @@ fun TopBar(modifier: Modifier = Modifier) {
                 { getNPOnBackground().setAlpha(0.5f) }
             )
 
-            MusicTopBar(
+            MusicTopBarWithVisualiser(
                 Settings.INTERNAL_TOPBAR_MODE_NOWPLAYING,
                 Modifier.fillMaxSize().weight(1f),
                 song = song

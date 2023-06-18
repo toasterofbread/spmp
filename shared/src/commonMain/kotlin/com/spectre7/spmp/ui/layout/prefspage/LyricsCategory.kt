@@ -54,6 +54,39 @@ internal fun getLyricsCategory(): List<SettingsItem> {
         SettingsItemToggle(
             SettingsValueState(Settings.KEY_TOPBAR_LYRICS_SHOW_FURIGANA.name),
             getString("s_key_top_bar_lyrics_show_furigana"), null
+        ),
+
+        SettingsItemToggle(
+            SettingsValueState(Settings.KEY_LYRICS_SHOW_IN_LIBRARY.name),
+            getString("s_key_top_bar_lyrics_show_in_library"), null
+        ),
+        SettingsItemToggle(
+            SettingsValueState(Settings.KEY_LYRICS_SHOW_IN_RADIOBUILDER.name),
+            getString("s_key_top_bar_lyrics_show_in_radiobuilder"), null
+        ),
+        SettingsItemToggle(
+            SettingsValueState(Settings.KEY_LYRICS_SHOW_IN_SETTINGS.name),
+            getString("s_key_top_bar_lyrics_show_in_settings"), null
+        ),
+        SettingsItemToggle(
+            SettingsValueState(Settings.KEY_LYRICS_SHOW_IN_LOGIN.name),
+            getString("s_key_top_bar_lyrics_show_in_login"), null
+        ),
+        SettingsItemToggle(
+            SettingsValueState(Settings.KEY_LYRICS_SHOW_IN_PLAYLIST.name),
+            getString("s_key_top_bar_lyrics_show_in_playlist"), null
+        ),
+        SettingsItemToggle(
+            SettingsValueState(Settings.KEY_LYRICS_SHOW_IN_ARTIST.name),
+            getString("s_key_top_bar_lyrics_show_in_artist"), null
+        ),
+        SettingsItemToggle(
+            SettingsValueState(Settings.KEY_LYRICS_SHOW_IN_VIEWMORE.name),
+            getString("s_key_top_bar_lyrics_show_in_viewmore"), null
+        ),
+        SettingsItemToggle(
+            SettingsValueState(Settings.KEY_LYRICS_SHOW_IN_SEARCH.name),
+            getString("s_key_top_bar_lyrics_show_in_search"), null
         )
     )
 }

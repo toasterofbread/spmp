@@ -143,7 +143,7 @@ fun PrefsPage(pill_menu: PillMenu, bottom_padding: Dp, modifier: Modifier = Modi
 
     Column(modifier) {
         MusicTopBar(
-            Settings.INTERNAL_TOPBAR_MODE_SETTINGS,
+            Settings.KEY_LYRICS_SHOW_IN_SETTINGS,
             Modifier.fillMaxWidth()
         )
 

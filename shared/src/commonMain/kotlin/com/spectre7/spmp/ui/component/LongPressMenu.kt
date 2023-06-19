@@ -160,6 +160,36 @@ private fun MenuContent(
         data.item.Thumbnail(MediaItemThumbnailProvider.Quality.LOW, modifier.clip(data.thumb_shape ?: RoundedCornerShape(DEFAULT_THUMBNAIL_ROUNDING)))
     }
 
+    var show_title_edit_dialog: Boolean by remember { mutableStateOf(false) }
+    if (show_title_edit_dialog) {
+        var edited_title: String by remember { mutableStateOf(data.item.title ?: "") }
+        PlatformAlertDialog(
+            { show_title_edit_dialog = false },
+            { Button({
+                data.item.editRegistry {
+                    it.title = edited_title
+                }
+                show_title_edit_dialog = false
+            }) {
+                Text(getString("action_confirm_action"))
+            } },
+            dismissButton = {
+                Button({ show_title_edit_dialog = false }) {
+                    Text(getString("action_cancel"))
+                }
+            },
+            title = {
+                Text(getStringTODO("Edit ${data.item.type.getReadable(false)} title"))
+            },
+            text = {
+                TextField(
+                    edited_title,
+                    { edited_title = it }
+                )
+            }
+        )
+    }
+
     Box(
         Modifier
             .requiredHeight(SpMp.context.getScreenHeight() + SpMp.context.getNavigationBarHeight())
@@ -247,7 +277,13 @@ private fun MenuContent(
                                 verticalArrangement = Arrangement.SpaceEvenly
                             ) {
                                 // Title
-                                Marquee {
+                                Marquee(
+                                    Modifier.platformClickable(
+                                        onAltClick = {
+                                            show_title_edit_dialog = !show_title_edit_dialog
+                                        }
+                                    )
+                                ) {
                                     Text(
                                         data.item.title ?: "",
                                         Modifier.fillMaxWidth(),

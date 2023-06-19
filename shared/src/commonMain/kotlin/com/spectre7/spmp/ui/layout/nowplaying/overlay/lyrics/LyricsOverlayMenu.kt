@@ -202,7 +202,7 @@ class LyricsOverlayMenu(
                         }
 
                         AnimatedVisibility(selecting_sync_line) {
-                            Text(getString("lyrics_select_sync_line"))
+                            Text(getString("lyrics_sync_select_line"))
                         }
                     }
                 }

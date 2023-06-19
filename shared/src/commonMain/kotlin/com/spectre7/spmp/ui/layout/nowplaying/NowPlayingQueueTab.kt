@@ -71,18 +71,16 @@ private class QueueTabItem(val song: Song, val key: Int) {
     private fun getInfoText(index: Int): String? {
         val player = LocalPlayerState.current
         val playing_index = player.status.m_index
-
         if (index == playing_index) {
             return getString("lpm_song_now_playing")
         }
 
-        val indices = if (index < playing_index) index + 1 .. playing_index else playing_index until index
-        
+        val service = _player ?: return null
+
         var delta = 0L
-        player.withPlayer {
-            for (i in indices) {
-                delta += getSong(i)?.duration ?: 0
-            }
+        val indices = if (index < playing_index) index + 1 .. playing_index else playing_index until index
+        for (i in indices) {
+            delta += service.getSong(i)?.duration ?: return null
         }
 
         return remember(delta) { 

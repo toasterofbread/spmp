@@ -130,7 +130,8 @@
     <string name="lyrics_no_more_results">No more results</string>
     <string name="lyrics_search">Search for lyrics</string>
     <string name="lyrics_loading">Loading lyrics</string>
-    <string name="lyrics_select_sync_line">Select line to sync by</string>
+    <string name="lyrics_sync_select_line">Select line to sync by</string>
+    <string name="lyrics_sync_press_button_when_line_begins">Press button when this line begins</string>
     
     <string name="lyrics_source_petitlyrics">PetitLyrics</string>
 

@@ -73,7 +73,7 @@ fun LyricsSyncMenu(
                 horizontalAlignment = Alignment.CenterHorizontally
             ) {
                 if (line_offset == 0) {
-                    Text(getStringTODO("Press button when this line begins"))
+                    Text(getString("lyrics_sync_press_button_when_line_begins"))
                 }
 
                 CompositionLocalProvider(

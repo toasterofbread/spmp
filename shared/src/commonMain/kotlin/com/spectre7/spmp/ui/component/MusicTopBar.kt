@@ -130,7 +130,6 @@ fun MusicTopBar(
         can_show_visualiser = false,
         hide_while_inactive = true,
         modifier = modifier,
-        song = song,
         padding = padding,
         onShowingChanged = onShowingChanged
     )
@@ -192,7 +191,7 @@ private fun MusicTopBar(
         exit = shrinkVertically()
     ) {
         Box(Modifier.padding(padding).height(30.dp), contentAlignment = Alignment.Center) {
-            innerContent()
+            innerContent?.invoke()
 
             Crossfade(current_state, Modifier.fillMaxSize()) { s ->
                 Box(Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {

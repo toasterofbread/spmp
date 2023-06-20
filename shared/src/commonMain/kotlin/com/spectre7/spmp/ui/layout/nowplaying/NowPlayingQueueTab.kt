@@ -75,7 +75,7 @@ private class QueueTabItem(val song: Song, val key: Int) {
             return getString("lpm_song_now_playing")
         }
 
-        val service = _player ?: return null
+        val service = player.player ?: return null
 
         var delta = 0L
         val indices = if (index < playing_index) index + 1 .. playing_index else playing_index until index

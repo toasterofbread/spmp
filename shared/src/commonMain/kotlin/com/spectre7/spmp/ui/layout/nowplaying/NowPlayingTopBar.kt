@@ -15,7 +15,7 @@ import androidx.compose.ui.unit.dp
 import com.spectre7.spmp.model.MusicTopBarMode
 import com.spectre7.spmp.model.Settings
 import com.spectre7.spmp.ui.component.LikeDislikeButton
-import com.spectre7.spmp.ui.component.MusicTopBar
+import com.spectre7.spmp.ui.component.MusicTopBarWithVisualiser
 import com.spectre7.utils.setAlpha
 
 @Composable

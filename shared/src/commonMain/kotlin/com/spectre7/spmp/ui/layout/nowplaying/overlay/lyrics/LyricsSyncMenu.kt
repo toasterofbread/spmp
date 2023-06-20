@@ -23,6 +23,7 @@ import androidx.compose.ui.unit.sp
 import com.spectre7.spmp.PlayerService
 import com.spectre7.spmp.model.SongLyrics
 import com.spectre7.spmp.model.mediaitem.Song
+import com.spectre7.spmp.resources.getString
 import com.spectre7.spmp.resources.getStringTODO
 import com.spectre7.utils.AnnotatedReadingTerm
 import com.spectre7.utils.setAlpha

@@ -17,7 +17,7 @@ import androidx.compose.ui.unit.dp
 import com.spectre7.spmp.api.LocalisedYoutubeString
 import com.spectre7.spmp.model.*
 import com.spectre7.spmp.model.mediaitem.MediaItemThumbnailProvider
-import com.spectre7.spmp.ui.component.MusicTopBar
+import com.spectre7.spmp.ui.component.MusicTopBarWithVisualiser
 import com.spectre7.spmp.ui.layout.RadioBuilderIcon
 import com.spectre7.spmp.ui.layout.YoutubeMusicLoginConfirmation
 import com.spectre7.spmp.ui.theme.Theme

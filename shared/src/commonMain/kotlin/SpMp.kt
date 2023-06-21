@@ -188,6 +188,7 @@ private data class YoutubeiErrorResponse(val error: Error) {
     fun getMessage(): String = error.message
 }
 
+// TODO Remove (all errors should be handled by UI)
 class ErrorManager(private val context: PlatformContext) {
     private val SIDE_PADDING = 10.dp
     private val INDICATOR_SIZE = 50.dp
@@ -196,6 +197,11 @@ class ErrorManager(private val context: PlatformContext) {
 
     @Synchronized
     fun onError(key: String, error: Throwable) {
+        if (error is CancellationException) {
+            println("Skipping cancellation error reported with key '$key': $error")
+            return
+        }
+
         println("Error reported with key '$key': $error")
         if (error is RuntimeException && error.message != null) {
             try {

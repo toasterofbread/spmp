@@ -60,6 +60,7 @@ interface PlayerOverlayPage {
                 null -> close()
                 is Playlist -> PlaylistPage(pill_menu, item, previous_item?.item, bottom_padding, close)
                 is Artist -> ArtistPage(pill_menu, item, previous_item?.item, bottom_padding, close)
+                is Song -> SongRelatedPage(pill_menu, item, Modifier.fillMaxSize(), previous_item?.item, bottom_padding, close)
                 else -> throw NotImplementedError(item.type.toString())
             }
         }

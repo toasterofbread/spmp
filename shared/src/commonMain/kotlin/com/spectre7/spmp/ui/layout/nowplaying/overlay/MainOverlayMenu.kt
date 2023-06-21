@@ -205,18 +205,20 @@ class MainOverlayMenu(
                         .combinedClickable(
                             interactionSource = remember { MutableInteractionSource() },
                             indication = null,
-                            onClick = { setOverlayMenu(
-                                LyricsOverlayMenu(
-                                    (screen_width - (NOW_PLAYING_MAIN_PADDING.dp * 2) - (15.dp * expansion * 2)).value * 0.9.dp
-                                )
-                            ) },
+                            onClick = { 
+                                setOverlayMenu(
+                                    LyricsOverlayMenu(
+                                        (screen_width - (NOW_PLAYING_MAIN_PADDING.dp * 2) - (15.dp * expansion * 2)).value * 0.9.dp
+                                    )
+                                ) 
+                            },
                             onLongClick = {
-                                SpMp.context.vibrateShort()
                                 setOverlayMenu(
                                     LyricsOverlayMenu(
                                         (screen_width - (NOW_PLAYING_MAIN_PADDING.dp * 2) - (15.dp * expansion * 2)).value * 0.9.dp
                                     )
                                 )
+                                SpMp.context.vibrateShort()
                             }
                         ),
                     contentAlignment = Alignment.Center
@@ -229,16 +231,12 @@ class MainOverlayMenu(
                         .clickable(
                             remember { MutableInteractionSource() },
                             null
-                        ) {
-//                            setOverlayMenu(
-//                                LyricsOverlayMenu(
-//                                    (screen_width_dp - (NOW_PLAYING_MAIN_PADDING * 2) - (15.dp * expansion * 2)).value * 0.9.dp
-//                                )
-//                            )
+                        ) { 
+                            setOverlayMenu(RelatedContentOverlayMenu()) 
                         },
                     contentAlignment = Alignment.Center
                 ) {
-                    Icon(Icons.Filled.BarChart, null, tint = button_colour)
+                    Icon(MediaItem.RELATED_CONTENT_ICON, null, tint = button_colour)
                 }
 
                 Box(contentAlignment = Alignment.Center) {

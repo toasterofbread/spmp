@@ -417,5 +417,7 @@ abstract class MediaItem(val id: String): MediaItemHolder {
                 else -> throw NotImplementedError(page_type)
             }
         }
+
+        val RELATED_CONTENT_ICON: ImageVector get() = Icons.Default.Browse
     }
 }

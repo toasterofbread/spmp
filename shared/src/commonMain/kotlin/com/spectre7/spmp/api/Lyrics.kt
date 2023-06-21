@@ -508,14 +508,16 @@ suspend fun searchForLyrics(title: String, artist: String?): Result<List<LyricsS
         return Result.success(ret)
     }
 
-    val ret = performSearch(title_param + artist_param)
-    if (!ret.isSuccess) {
-        return@withContext ret
+    try {
+        val result = performSearch(title_param + artist_param)
+        result.onSuccess { results ->
+            if (results.isEmpty() && artist != null) {
+                return@withContext performSearch(title_param)
+            }
+        }
+        return@withContext result
     }
-
-    if (ret.data.isEmpty() && artist != null) {
-        return@withContext performSearch(title_param)
+    catch (e: Throwable) {
+        return@withContext Result.failure(e)
     }
-
-    return@withContext ret
 }

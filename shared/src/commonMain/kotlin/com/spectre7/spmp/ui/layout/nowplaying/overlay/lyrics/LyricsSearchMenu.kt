@@ -33,6 +33,8 @@ import com.spectre7.utils.setAlpha
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
 
+private const val LYRICS_SEARCH_RETRY_COUNT = 3
+
 @OptIn(ExperimentalMaterial3Api::class, ExperimentalComposeUiApi::class)
 @Composable
 fun LyricsSearchMenu(song: Song, modifier: Modifier = Modifier, close: (changed: Boolean) -> Unit) {
@@ -74,22 +76,33 @@ fun LyricsSearchMenu(song: Song, modifier: Modifier = Modifier, close: (changed:
                 loading = true
             }
 
-            val result = searchForLyrics(title.value.text, if (artist.value.text.trim().isEmpty()) null else artist.value.text)
+            var result: Result<List<LyricsSearchResult>>? = null
+            var retry_count = LYRICS_SEARCH_RETRY_COUNT
+
+            while (retry_count-- > 0) {
+                result = searchForLyrics(title.value.text, if (artist.value.text.trim().isEmpty()) null else artist.value.text)
+                
+                val error = result.exceptionOrNull() ?: break
+                if (error !is IOException) {
+                    SpMp.reportActionError(error)
+                    break
+                }
+            }
+
+            result?.fold(
+                {
+                    search_results = it
+                    if (search_results?.isNotEmpty() == true) {
+                        edit_page_open = false
+                    }
+                    else {
+                        SpMp.context.sendToast(getString("lyrics_none_found"))
+                    }
+                },
+                { SpMp.reportActionError(it) }
+            )
 
             synchronized(load_lock) {
-                result.fold(
-                    {
-                        search_results = it
-                        if (search_results?.isNotEmpty() == true) {
-                            edit_page_open = false
-                        }
-                        else {
-                            SpMp.context.sendToast(getString("lyrics_none_found"))
-                        }
-                    },
-                    { SpMp.reportActionError(it) }
-                )
-
                 loading = false
             }
         }

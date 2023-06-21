@@ -318,11 +318,15 @@ private fun LongPressMenuActionProvider.LPMActions(song: Song, queue_index: Int?
         }
     })
 
-    if (song.artist != null) {
+    song.artist?.also { artist ->
         ActionButton(Icons.Default.Person, getString("lpm_action_go_to_artist"), onClick = {
-            player.openMediaItem(song.artist!!)
+            player.openMediaItem(artist)
         })
     }
+
+    ActionButton(MediaItem.RELATED_CONTENT_ICON, getStringTODO("Show related content"), onClick = {
+        player.openMediaItem(song)
+    })
 }
 
 @Composable

@@ -2,9 +2,9 @@ package com.spectre7.utils
 
 import java.lang.Character.UnicodeBlock.*
 
-fun Char.isKanji(): Boolean = Character.UnicodeBlock.of(this) == CJK_UNIFIED_IDEOGRAPHS
-fun Char.isHiragana(): Boolean = Character.UnicodeBlock.of(this) == HIRAGANA
-fun Char.isKatakana(): Boolean = Character.UnicodeBlock.of(this) == KATAKANA
+fun Char.isKanji(): Boolean = of(this) == CJK_UNIFIED_IDEOGRAPHS
+fun Char.isHiragana(): Boolean = of(this) == HIRAGANA
+fun Char.isKatakana(): Boolean = of(this) == KATAKANA
 
 fun Char.isHalfWidthKatakana(): Boolean {
     return ('\uff66' <= this) && (this <= '\uff9d')
@@ -36,7 +36,7 @@ fun String.hasKanjiAndHiragana(): Boolean {
     var has_kanji = false
     var has_hiragana = false
     for (char in this) {
-        when (Character.UnicodeBlock.of(char)) {
+        when (of(char)) {
             CJK_UNIFIED_IDEOGRAPHS -> {
                 if (has_hiragana)
                     return true

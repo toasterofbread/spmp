@@ -78,7 +78,7 @@ fun getRadioBuilderArtists(
     val request = Request.Builder()
         .ytUrl("/youtubei/v1/browse")
         .addYtHeaders()
-        .post(Api.getYoutubeiRequestBody("""{ "browseId": "FEmusic_radio_builder" }""", context = Api.Companion.YoutubeiContextType.ANDROID))
+        .post(Api.getYoutubeiRequestBody(mapOf("browseId" to "FEmusic_radio_builder"), context = Api.Companion.YoutubeiContextType.ANDROID))
         .build()
 
     val result = Api.request(request)

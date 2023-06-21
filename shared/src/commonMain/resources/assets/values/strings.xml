@@ -153,6 +153,7 @@
     <string name="lpm_action_play_after_x_songs">Play after $x songs</string>
     <string name="lpm_action_download">Download</string>
     <string name="lpm_action_go_to_artist">Go to artist</string>
+    <string name="lpm_action_song_related">Show related content</string>
     <string name="lpm_action_print_info">Print info</string>
     <string name="lpm_action_share">Share</string>
     <string name="lpm_action_open_artist">Open</string>

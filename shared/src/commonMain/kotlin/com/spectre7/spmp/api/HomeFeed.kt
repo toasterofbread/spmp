@@ -5,11 +5,11 @@ import com.beust.klaxon.Json
 import com.spectre7.spmp.api.Api.Companion.addYtHeaders
 import com.spectre7.spmp.api.Api.Companion.getStream
 import com.spectre7.spmp.api.Api.Companion.ytUrl
+import com.spectre7.spmp.api.model.YoutubeiShelf
+import com.spectre7.spmp.api.model.YoutubeiShelfContentsItem
 import com.spectre7.spmp.model.*
 import com.spectre7.spmp.model.mediaitem.*
-import com.spectre7.spmp.model.mediaitem.data.MediaItemData
 import com.spectre7.spmp.model.mediaitem.enums.MediaItemType
-import com.spectre7.spmp.model.mediaitem.enums.PlaylistType
 import com.spectre7.spmp.model.mediaitem.enums.SongType
 import com.spectre7.spmp.ui.component.MediaItemLayout
 import kotlinx.coroutines.Dispatchers
@@ -64,7 +64,7 @@ suspend fun getHomeFeed(
             .addYtHeaders()
             .post(
                 Api.getYoutubeiRequestBody(params?.let {
-                    """{"params": "$it"}"""
+                    mapOf("params" to it)
                 })
             )
             .build()
@@ -260,63 +260,7 @@ data class ItemSectionRenderer(val contents: List<ItemSectionRendererContent>)
 data class ItemSectionRendererContent(val didYouMeanRenderer: DidYouMeanRenderer? = null)
 data class DidYouMeanRenderer(val correctedQuery: TextRuns)
 
-data class YoutubeiShelf(
-    val musicShelfRenderer: MusicShelfRenderer? = null,
-    val musicCarouselShelfRenderer: MusicCarouselShelfRenderer? = null,
-    val musicDescriptionShelfRenderer: MusicDescriptionShelfRenderer? = null,
-    val musicPlaylistShelfRenderer: MusicShelfRenderer? = null,
-    val musicCardShelfRenderer: MusicCardShelfRenderer? = null,
-    val gridRenderer: GridRenderer? = null,
-    val itemSectionRenderer: ItemSectionRenderer? = null,
-    val musicTastebuilderShelfRenderer: Any? = null
-) {
-    init {
-        assert(
-            musicShelfRenderer != null
-            || musicCarouselShelfRenderer != null
-            || musicDescriptionShelfRenderer != null
-            || musicPlaylistShelfRenderer != null
-            || musicCardShelfRenderer != null
-            || gridRenderer != null
-            || itemSectionRenderer != null
-            || musicTastebuilderShelfRenderer != null
-        ) { "No known shelf renderer" }
-    }
-
-    val implemented: Boolean get() = musicTastebuilderShelfRenderer == null
-
-    val title: TextRun? get() =
-        if (musicShelfRenderer != null) musicShelfRenderer.title?.runs?.firstOrNull()
-        else if (musicCarouselShelfRenderer != null) musicCarouselShelfRenderer.header.getRenderer()?.title?.runs?.firstOrNull()
-        else if (musicDescriptionShelfRenderer != null) musicDescriptionShelfRenderer.header.runs?.firstOrNull()
-        else if (musicCardShelfRenderer != null) musicCardShelfRenderer.title.runs?.firstOrNull()
-        else if (gridRenderer != null) gridRenderer.header?.gridHeaderRenderer?.title?.runs?.firstOrNull()
-        else null
-
-    val description: String? get() = musicDescriptionShelfRenderer?.description?.first_text
-
-    fun getNavigationEndpoint(): NavigationEndpoint? {
-        return musicShelfRenderer?.bottomEndpoint ?: musicCarouselShelfRenderer?.header?.getRenderer()?.moreContentButton?.buttonRenderer?.navigationEndpoint
-    }
-
-    fun getMediaItems(hl: String): List<MediaItem> {
-        return (musicShelfRenderer?.contents ?: musicCarouselShelfRenderer?.contents ?: musicPlaylistShelfRenderer?.contents ?: gridRenderer!!.items).mapNotNull {
-            return@mapNotNull it.toMediaItem(hl)?.first
-        }
-    }
-
-    fun getMediaItemsAndSetIds(hl: String): List<Pair<MediaItem, String?>> {
-        return (musicShelfRenderer?.contents ?: musicCarouselShelfRenderer?.contents ?: musicPlaylistShelfRenderer?.contents ?: gridRenderer?.items ?: emptyList()).mapNotNull {
-            return@mapNotNull it.toMediaItem(hl)
-        }
-    }
-
-    fun getRenderer(): Any {
-        return musicShelfRenderer ?: musicCarouselShelfRenderer ?: musicDescriptionShelfRenderer!!
-    }
-}
-
-data class GridRenderer(val items: List<ContentsItem>, val header: GridHeader? = null)
+data class GridRenderer(val items: List<YoutubeiShelfContentsItem>, val header: GridHeader? = null)
 data class GridHeader(val gridHeaderRenderer: HeaderRenderer)
 
 data class WatchEndpoint(val videoId: String? = null, val playlistId: String? = null)
@@ -451,7 +395,7 @@ data class TextRun(val text: String, val strapline: TextRuns? = null, val naviga
 
 data class MusicShelfRenderer(
     val title: TextRuns? = null,
-    val contents: List<ContentsItem>? = null,
+    val contents: List<YoutubeiShelfContentsItem>? = null,
     val continuations: List<YoutubeiNextResponse.Continuation>? = null,
     val bottomEndpoint: NavigationEndpoint? = null
 )
@@ -459,7 +403,7 @@ data class MoreContentButton(val buttonRenderer: ButtonRenderer)
 data class ButtonRenderer(val navigationEndpoint: NavigationEndpoint)
 data class MusicCarouselShelfRenderer(
     val header: Header,
-    val contents: List<ContentsItem>
+    val contents: List<YoutubeiShelfContentsItem>
 )
 data class MusicDescriptionShelfRenderer(val header: TextRuns, val description: TextRuns)
 data class MusicCardShelfRenderer(
@@ -535,199 +479,3 @@ data class RendererPlaylistItemData(val videoId: String, val playlistSetVideoId:
 data class FlexColumn(val musicResponsiveListItemFlexColumnRenderer: MusicResponsiveListItemColumnRenderer)
 data class FixedColumn(val musicResponsiveListItemFixedColumnRenderer: MusicResponsiveListItemColumnRenderer)
 data class MusicResponsiveListItemColumnRenderer(val text: TextRuns)
-
-data class ContentsItem(val musicTwoRowItemRenderer: MusicTwoRowItemRenderer? = null, val musicResponsiveListItemRenderer: MusicResponsiveListItemRenderer? = null) {
-    // Pair(item, playlistSetVideoId)
-    fun toMediaItem(hl: String): Pair<MediaItem, String?>? {
-        if (musicTwoRowItemRenderer != null) {
-            val renderer = musicTwoRowItemRenderer
-
-            // Video
-            if (renderer.navigationEndpoint.watchEndpoint?.videoId != null) {
-                val first_thumbnail = renderer.thumbnailRenderer.musicThumbnailRenderer.thumbnail.thumbnails.first()
-                return Pair(
-                    Song.fromId(renderer.navigationEndpoint.watchEndpoint.videoId).editSongData {
-                        // Is this the best way of checking?
-                        supplySongType(if (first_thumbnail.height == first_thumbnail.width) SongType.SONG else SongType.VIDEO)
-                        supplyTitle(renderer.title.first_text)
-                        supplyArtist(renderer.getArtist(data_item))
-                        supplyThumbnailProvider(renderer.thumbnailRenderer.toThumbnailProvider())
-                    },
-                    null
-                )
-            }
-
-            val item: MediaItem
-
-            if (renderer.navigationEndpoint.watchPlaylistEndpoint != null) {
-                if (!Settings.get<Boolean>(Settings.KEY_FEED_SHOW_RADIOS)) {
-                    return null
-                }
-
-                item = AccountPlaylist
-                    .fromId(renderer.navigationEndpoint.watchPlaylistEndpoint.playlistId)
-                    .editPlaylistData {
-                        supplyPlaylistType(PlaylistType.RADIO, true)
-                        supplyTitle(renderer.title.first_text)
-                        supplyThumbnailProvider(renderer.thumbnailRenderer.toThumbnailProvider())
-                    }
-            }
-            else {
-                // Playlist or artist
-                val browse_id = renderer.navigationEndpoint.browseEndpoint!!.browseId
-                val page_type = renderer.navigationEndpoint.browseEndpoint.getPageType()!!
-
-                item = when (page_type) {
-                    "MUSIC_PAGE_TYPE_ALBUM", "MUSIC_PAGE_TYPE_PLAYLIST", "MUSIC_PAGE_TYPE_AUDIOBOOK" -> {
-                        if (AccountPlaylist.formatId(browse_id).startsWith("RDAT") && !Settings.get<Boolean>(Settings.KEY_FEED_SHOW_RADIOS)) {
-                            return null
-                        }
-
-                        AccountPlaylist
-                            .fromId(browse_id)
-                            .editPlaylistData {
-                                supplyPlaylistType(when (page_type) {
-                                    "MUSIC_PAGE_TYPE_ALBUM" -> PlaylistType.ALBUM
-                                    "MUSIC_PAGE_TYPE_PLAYLIST" -> PlaylistType.PLAYLIST
-                                    else -> PlaylistType.AUDIOBOOK
-                                }, true)
-                                supplyArtist(renderer.getArtist(data_item))
-                                supplyTitle(renderer.title.first_text)
-                                supplyThumbnailProvider(renderer.thumbnailRenderer.toThumbnailProvider())
-                            }
-                            .apply {
-                                is_editable = renderer.menu?.menuRenderer?.items
-                                    ?.any { it.menuNavigationItemRenderer?.icon?.iconType == "DELETE" } == true
-                            }
-                    }
-                    "MUSIC_PAGE_TYPE_ARTIST" -> Artist.fromId(browse_id)
-                    else -> throw NotImplementedError("$page_type ($browse_id)")
-                }
-            }
-
-            return Pair(item, null)
-        }
-        else if (musicResponsiveListItemRenderer != null) {
-            val renderer = musicResponsiveListItemRenderer
-
-            var video_id: String? = renderer.playlistItemData?.videoId ?: renderer.navigationEndpoint?.watchEndpoint?.videoId
-            var video_is_main: Boolean = true
-
-            var title: String? = null
-            var artist: Artist? = null
-            var playlist: AccountPlaylist? = null
-            var duration: Long? = null
-
-            if (video_id == null) {
-                val page_type = renderer.navigationEndpoint?.browseEndpoint?.getPageType()
-                when (page_type) {
-                    "MUSIC_PAGE_TYPE_ALBUM", "MUSIC_PAGE_TYPE_PLAYLIST" -> {
-                        video_is_main = false
-                        playlist = AccountPlaylist
-                            .fromId(renderer.navigationEndpoint.browseEndpoint.browseId)
-                            .editPlaylistData {
-                                supplyPlaylistType(PlaylistType.fromTypeString(page_type), true)
-                            }
-                    }
-                    "MUSIC_PAGE_TYPE_ARTIST", "MUSIC_PAGE_TYPE_USER_CHANNEL" -> {
-                        video_is_main = false
-                        artist = Artist.fromId(renderer.navigationEndpoint.browseEndpoint.browseId)
-                    }
-                }
-            }
-
-            if (renderer.flexColumns != null) {
-                for (column in renderer.flexColumns.withIndex()) {
-                    val text = column.value.musicResponsiveListItemFlexColumnRenderer.text
-                    if (text.runs == null) {
-                        continue
-                    }
-
-                    if (column.index == 0) {
-                        title = text.first_text
-                    }
-
-                    for (run in text.runs!!) {
-                        if (run.navigationEndpoint == null) {
-                            continue
-                        }
-
-                        if (run.navigationEndpoint.watchEndpoint != null) {
-                            if (video_id == null) {
-                                video_id = run.navigationEndpoint.watchEndpoint.videoId!!
-                            }
-                            continue
-                        }
-
-                        val browse_endpoint = run.navigationEndpoint.browseEndpoint
-                        when (browse_endpoint?.getPageType()) {
-                            "MUSIC_PAGE_TYPE_ARTIST", "MUSIC_PAGE_TYPE_USER_CHANNEL" -> {
-                                if (artist == null) {
-                                    artist = Artist.fromId(browse_endpoint.browseId).editArtistData { supplyTitle(run.text) }
-                                }
-                            }
-                        }
-                    }
-                }
-            }
-
-            if (renderer.fixedColumns != null) {
-                for (column in renderer.fixedColumns) {
-                    val text = column.musicResponsiveListItemFixedColumnRenderer.text.first_text
-                    val parsed = parseYoutubeDurationString(text, hl)
-                    if (parsed != null) {
-                        duration = parsed
-                        break
-                    }
-                }
-            }
-
-            val item_data: MediaItemData
-            if (video_id != null) {
-                item_data = Song.fromId(video_id).editSongDataManual {
-                    supplyDuration(duration, true)
-                    renderer.thumbnail?.musicThumbnailRenderer?.thumbnail?.thumbnails?.firstOrNull()?.also {
-                        supplySongType(if (it.height == it.width) SongType.SONG else SongType.VIDEO)
-                    }
-                }
-            }
-            else if (video_is_main) {
-                return null
-            }
-            else {
-                item_data = (playlist?.data?.apply { supplyTotalDuration(duration, true) }) ?: artist?.data ?: return null
-            }
-
-            // Handle songs with no artist (or 'Various artists')
-            if (artist == null) {
-                if (renderer.flexColumns != null && renderer.flexColumns.size > 1) {
-                    val text = renderer.flexColumns[1].musicResponsiveListItemFlexColumnRenderer.text
-                    if (text.runs != null) {
-                        artist = Artist.createForItem(item_data.data_item).editArtistData { supplyTitle(text.first_text) }
-                    }
-                }
-
-                if (artist == null && renderer.menu != null) {
-                    for (item in renderer.menu.menuRenderer.items) {
-                        val browse_endpoint = (item.menuNavigationItemRenderer ?: continue).navigationEndpoint.browseEndpoint ?: continue
-                        if (browse_endpoint.getMediaItemType() == MediaItemType.ARTIST) {
-                            artist = Artist.fromId(browse_endpoint.browseId)
-                            break
-                        }
-                    }
-                }
-            }
-
-            with(item_data) {
-                supplyTitle(title)
-                supplyArtist(artist)
-                supplyThumbnailProvider(renderer.thumbnail?.toThumbnailProvider())
-                save()
-            }
-
-            return Pair(item_data.data_item, renderer.playlistItemData?.playlistSetVideoId)
-        }
-
-        throw NotImplementedError()
-    }
-}

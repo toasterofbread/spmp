@@ -3,11 +3,9 @@ package com.spectre7.spmp.ui.layout.prefspage
 import SpMp
 import com.spectre7.settings.model.*
 import com.spectre7.spmp.PlayerAccessibilityService
-import com.spectre7.spmp.model.MusicTopBarMode
 import com.spectre7.spmp.model.Settings
 import com.spectre7.spmp.platform.PlatformContext
 import com.spectre7.spmp.resources.getString
-import com.spectre7.spmp.resources.getStringTODO
 import kotlin.math.roundToInt
 
 private fun getMusicTopBarGroup(): List<SettingsItem> {

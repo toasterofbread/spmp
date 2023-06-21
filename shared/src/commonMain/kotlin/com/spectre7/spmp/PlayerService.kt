@@ -117,7 +117,9 @@ class PlayerService : MediaPlayerService() {
                     SpMp.error_manager.onError("continueRadio", result.exceptionOrNull()!!)
                 }
                 else {
-                    addMultipleToQueue(result.getOrThrowHere(), song_count, false, skip_existing = true)
+                    withContext(Dispatchers.Main) {
+                        addMultipleToQueue(result.getOrThrowHere(), song_count, false, skip_existing = true)
+                    }
                 }
             }
         }
@@ -218,10 +220,8 @@ class PlayerService : MediaPlayerService() {
                         }
                     }
                     else {
-                        runBlocking {
-                            playerLaunch {
-                                addMultipleToQueue(result.getOrThrowHere(), added_index + 1, save = save, skip_existing = true)
-                            }
+                        withContext(Dispatchers.Main) {
+                            addMultipleToQueue(result.getOrThrowHere(), added_index + 1, save = save, skip_existing = true)
                         }
                     }
                 }
@@ -311,18 +311,14 @@ class PlayerService : MediaPlayerService() {
 
         radio.cancelJob()
         radio.loadContinuation({
-            runBlocking {
-                playerLaunch {
-                    clearQueue(add_index, cancel_radio = false, save = false)
-                }
+            withContext(Dispatchers.Main) {
+                clearQueue(add_index, cancel_radio = false, save = false)
             }
         }) { result ->
             result.fold(
                 { songs ->
-                    runBlocking {
-                        playerLaunch {
-                            addMultipleToQueue(songs, add_index, skip_existing = true)
-                        }
+                    withContext(Dispatchers.Main) {
+                        addMultipleToQueue(songs, add_index, skip_existing = true)
                     }
                 },
                 { error ->

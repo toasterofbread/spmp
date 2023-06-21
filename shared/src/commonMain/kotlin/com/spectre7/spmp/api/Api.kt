@@ -392,15 +392,9 @@ class Api {
             return url("https://music.youtube.com$endpoint${joiner}prettyPrint=false")
         }
 
-        // TODO remove
-        internal fun getYoutubeiRequestBody(body: String? = null, context: YoutubeiContextType = YoutubeiContextType.BASE): RequestBody {
-            val final_body = if (body != null) context.getContext() + klaxon.parseJsonObject(body.reader()) else context.getContext()
-            return klaxon.toJsonString(final_body).toRequestBody("application/json".toMediaType())
-        }
-
-        internal fun getYoutubeiRequestBody(body: Map<String, Any>, context: YoutubeiContextType = YoutubeiContextType.BASE): RequestBody {
+        internal fun getYoutubeiRequestBody(body: Map<String, Any?>?, context: YoutubeiContextType = YoutubeiContextType.BASE): RequestBody {
             val final_body = context.getContext().toMutableMap()
-            for (entry in body) {
+            for (entry in body ?: emptyMap()) {
                 final_body[entry.key] = entry.value
             }
             return klaxon.toJsonString(final_body).toRequestBody("application/json".toMediaType())

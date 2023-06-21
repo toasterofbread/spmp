@@ -8,42 +8,16 @@ import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
 import okhttp3.Request
 
-class RelatedGroup<T>(val title: String, val contents: List<T>)
+class RelatedGroup(val title: String, val items: List<MediaItem>?, val description: String?)
 
-private data class RelatedItem(
-    val videoId: String? = null,
-    val playlistId: String? = null,
-    val browseId: String? = null,
-    val artists: List<IdItem> = listOf(),
-    val album: IdItem? = null
-) {
-    class IdItem(val id: String)
+private class BrowseResponse(val contents: YoutubeiBrowseResponse.Content)
 
-    fun toMediaItem(): MediaItem {
-        if (videoId != null) {
-            return Song.fromId(videoId)
-        }
-        else if (playlistId != null) {
-            return AccountPlaylist.fromId(playlistId)
-        }
-        else if (browseId != null) {
-            if (!browseId.startsWith("MPREb_")) {
-                return Artist.fromId(browseId).apply { addBrowseEndpoint(browseId, MediaItemBrowseEndpoint.Type.ARTIST) }
-            }
-            else {
-                return AccountPlaylist.fromId(browseId).apply { addBrowseEndpoint(browseId, MediaItemBrowseEndpoint.Type.ALBUM) }
-            }
-        }
-
-        throw NotImplementedError(toString())
-    }
-}
-
-private suspend fun loadBrowseEndpoint(browse_endpoint: MediaItemBrowseEndpoint): Result<List<RelatedGroup<MediaItem>>> = withContext(Dispatchers.IO) {
+private suspend fun loadBrowseEndpoint(browse_id: String): Result<List<RelatedGroup>> = withContext(Dispatchers.IO) {
+    val hl = SpMp.data_language
     val request = Request.Builder()
         .ytUrl("/youtubei/v1/browse")
         .addYtHeaders()
-        .post(Api.getYoutubeiRequestBody(mapOf("browse" to browse_endpoint.id)))
+        .post(Api.getYoutubeiRequestBody(mapOf("browseId" to browse_id)))
         .build()
 
     val result = Api.request(request)
@@ -52,15 +26,14 @@ private suspend fun loadBrowseEndpoint(browse_endpoint: MediaItemBrowseEndpoint)
     }
 
     val stream = result.getOrThrow().getStream()
-    
-    try {
-        val parsed = Api.klaxon.parseArray<RelatedGroup<RelatedItem>>(stream)!!
-        return@withContext Result.success(List(parsed.size) { i ->
-            val group = parsed[i]
 
+    try {
+        val parsed: BrowseResponse = Api.klaxon.parse(stream)!!
+        return@withContext Result.success(parsed.contents.sectionListRenderer.contents!!.map { group ->
             RelatedGroup(
-                group.title,
-                group.contents.map { it.toMediaItem() }
+                group.title!!.text,
+                group.getMediaItemsOrNull(hl),
+                group.description
             )
         })
     }
@@ -72,16 +45,9 @@ private suspend fun loadBrowseEndpoint(browse_endpoint: MediaItemBrowseEndpoint)
     }
 }
 
-suspend fun getMediaItemRelated(item: MediaItem): Result<List<RelatedGroup<MediaItem>>> {
-    val ret: MutableList<RelatedGroup<MediaItem>> = mutableListOf()
-    for (endpoint in item.related_endpoints) {
-        val load_result = loadBrowseEndpoint(endpoint)
-        if (load_result.isFailure) {
-            return load_result.cast()
-        }
-
-        ret.addAll(load_result.getOrThrow())
-    }
-
-    return Result.success(ret)
+suspend fun getSongRelated(song: Song): Result<List<RelatedGroup>> {
+    return song.getRelatedBrowseId().fold(
+        { loadBrowseEndpoint(it) },
+        { Result.failure(it) }
+    )
 }

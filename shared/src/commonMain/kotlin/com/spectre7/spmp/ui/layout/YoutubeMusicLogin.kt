@@ -7,16 +7,14 @@ import androidx.compose.runtime.*
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
 import com.spectre7.spmp.api.*
-import com.spectre7.spmp.model.Settings
+import com.spectre7.spmp.model.YoutubeMusicAuthInfo
 import com.spectre7.spmp.model.mediaitem.Artist
 import com.spectre7.spmp.model.mediaitem.MediaItemThumbnailProvider
-import com.spectre7.spmp.model.YoutubeMusicAuthInfo
 import com.spectre7.spmp.platform.WebViewLogin
 import com.spectre7.spmp.platform.composable.PlatformAlertDialog
 import com.spectre7.spmp.platform.isWebViewLoginSupported
 import com.spectre7.spmp.resources.getString
 import com.spectre7.spmp.resources.getStringTODO
-import com.spectre7.spmp.ui.component.MusicTopBar
 import com.spectre7.utils.composable.LinkifyText
 import okhttp3.Request
 import java.net.URI
@@ -75,7 +73,7 @@ fun YoutubeMusicLogin(modifier: Modifier = Modifier, manual: Boolean = false, on
                             addHeader(header.key, header.value)
                         }
                     }
-                    .post(Api.getYoutubeiRequestBody())
+                    .post(Api.getYoutubeiRequestBody(null))
                     .build()
 
                 val result = Api.request(account_request)

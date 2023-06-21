@@ -53,20 +53,44 @@ interface PlayerOverlayPage {
     @Composable
     fun getPage(pill_menu: PillMenu, previous_item: MediaItemHolder?, bottom_padding: Dp, close: () -> Unit)
 
+    fun getItem(): MediaItem?
+
     data class MediaItemPage(private val holder: MediaItemHolder): PlayerOverlayPage {
+        override fun getItem(): MediaItem? = holder.item
+
         @Composable
         override fun getPage(pill_menu: PillMenu, previous_item: MediaItemHolder?, bottom_padding: Dp, close: () -> Unit) {
             when (val item = holder.item) {
                 null -> close()
-                is Playlist -> PlaylistPage(pill_menu, item, previous_item?.item, bottom_padding, close)
+                is Playlist -> PlaylistPage(
+                    pill_menu,
+                    item,
+                    previous_item?.item,
+                    PaddingValues(top = SpMp.context.getStatusBarHeight(), bottom = bottom_padding),
+                    close
+                )
                 is Artist -> ArtistPage(pill_menu, item, previous_item?.item, bottom_padding, close)
-                is Song -> SongRelatedPage(pill_menu, item, Modifier.fillMaxSize(), previous_item?.item, bottom_padding, close)
+                is Song -> SongRelatedPage(
+                    pill_menu,
+                    item,
+                    Modifier.fillMaxSize(),
+                    previous_item?.item,
+                    PaddingValues(
+                        top = SpMp.context.getStatusBarHeight(),
+                        bottom = bottom_padding,
+                        start = SpMp.context.getDefaultHorizontalPadding(),
+                        end = SpMp.context.getDefaultHorizontalPadding()
+                    ),
+                    close = close
+                )
                 else -> throw NotImplementedError(item.type.toString())
             }
         }
     }
 
     data class YtmLoginPage(private val manual: Boolean = false): PlayerOverlayPage {
+        override fun getItem(): MediaItem? = null
+
         @Composable
         override fun getPage(pill_menu: PillMenu, previous_item: MediaItemHolder?, bottom_padding: Dp, close: () -> Unit) {
             YoutubeMusicLogin(
@@ -83,6 +107,8 @@ interface PlayerOverlayPage {
     }
 
     private data class GenericFeedViewMorePage(private val browse_id: String): PlayerOverlayPage {
+        override fun getItem(): MediaItem? = null
+
         @Composable
         override fun getPage(pill_menu: PillMenu, previous_item: MediaItemHolder?, bottom_padding: Dp, close: () -> Unit) {
             GenericFeedViewMorePage(browse_id, Modifier.fillMaxSize(), bottom_padding = bottom_padding)
@@ -98,6 +124,8 @@ interface PlayerOverlayPage {
         }
 
         val RadioBuilderPage = object : PlayerOverlayPage {
+            override fun getItem(): MediaItem? = null
+
             @Composable
             override fun getPage(pill_menu: PillMenu, previous_item: MediaItemHolder?, bottom_padding: Dp, close: () -> Unit) {
                 RadioBuilderPage(
@@ -109,6 +137,8 @@ interface PlayerOverlayPage {
             }
         }
         val SearchPage = object : PlayerOverlayPage {
+            override fun getItem(): MediaItem? = null
+
             @Composable
             override fun getPage(pill_menu: PillMenu, previous_item: MediaItemHolder?, bottom_padding: Dp, close: () -> Unit) {
                 SearchPage(
@@ -119,12 +149,16 @@ interface PlayerOverlayPage {
             }
         }
         val SettingsPage = object : PlayerOverlayPage {
+            override fun getItem(): MediaItem? = null
+
             @Composable
             override fun getPage(pill_menu: PillMenu, previous_item: MediaItemHolder?, bottom_padding: Dp, close: () -> Unit) {
                 PrefsPage(pill_menu, bottom_padding, Modifier.fillMaxSize(), close)
             }
         }
         val LibraryPage = object : PlayerOverlayPage {
+            override fun getItem(): MediaItem? = null
+
             @Composable
             override fun getPage(pill_menu: PillMenu, previous_item: MediaItemHolder?, bottom_padding: Dp, close: () -> Unit) {
                 LibraryPage(pill_menu, bottom_padding, Modifier.fillMaxSize(), close = close)
@@ -280,7 +314,7 @@ class PlayerStateImpl: PlayerState(null, null, null) {
     override fun nowPlayingBottomPadding(): Dp = SpMp.context.getNavigationBarHeight()
 
     override fun setOverlayPage(page: PlayerOverlayPage?, from_current: Boolean) {
-        val current = if (from_current) overlay_page?.second else null
+        val current = if (from_current) overlay_page?.first?.getItem() else null
 
         val new_page = page?.let { Pair(page, current) }
         if (new_page != overlay_page) {
@@ -558,7 +592,7 @@ class PlayerStateImpl: PlayerState(null, null, null) {
                     page.first.getPage(
                         pill_menu,
                         page.second,
-                        if (session_started) MINIMISED_NOW_PLAYING_HEIGHT.dp else 0.dp,
+                        (if (session_started) MINIMISED_NOW_PLAYING_HEIGHT.dp else 0.dp) + 10.dp,
                         close
                     )
                 }

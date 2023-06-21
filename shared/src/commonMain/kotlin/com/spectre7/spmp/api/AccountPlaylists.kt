@@ -13,7 +13,7 @@ suspend fun getAccountPlaylists(): Result<List<AccountPlaylist>> = withContext(D
     val request = Request.Builder()
         .ytUrl("/youtubei/v1/browse")
         .addYtHeaders()
-        .post(Api.getYoutubeiRequestBody("""{"browseId": "FEmusic_liked_playlists"}"""))
+        .post(Api.getYoutubeiRequestBody(mapOf("browseId" to "FEmusic_liked_playlists")))
         .build()
 
     val result = Api.request(request)

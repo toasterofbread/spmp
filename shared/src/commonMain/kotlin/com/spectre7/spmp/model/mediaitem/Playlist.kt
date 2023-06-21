@@ -1,7 +1,6 @@
 package com.spectre7.spmp.model.mediaitem
 
 import androidx.compose.runtime.*
-import com.spectre7.spmp.api.cast
 import com.spectre7.spmp.model.Settings
 import com.spectre7.spmp.model.mediaitem.data.PlaylistItemData
 import com.spectre7.spmp.model.mediaitem.enums.PlaylistType

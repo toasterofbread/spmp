@@ -68,7 +68,6 @@ fun PlaylistPreviewSquare(
     }
 }
 
-@OptIn(ExperimentalFoundationApi::class)
 @Composable
 fun PlaylistPreviewLong(
     playlist: Playlist,

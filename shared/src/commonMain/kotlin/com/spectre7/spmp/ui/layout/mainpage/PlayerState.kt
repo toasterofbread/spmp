@@ -20,8 +20,6 @@ import com.spectre7.spmp.ui.layout.nowplaying.ThemeMode
 import com.spectre7.utils.indexOfOrNull
 import java.net.URI
 import java.net.URISyntaxException
-import kotlin.contracts.CallsInPlace
-import kotlin.contracts.contract
 
 class PlayerStatus internal constructor(private val player: PlayerService) {
     fun getProgress(): Float = player.duration_ms.let { duration ->

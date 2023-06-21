@@ -7,7 +7,6 @@ import com.beust.klaxon.Klaxon
 import com.spectre7.spmp.api.getOrThrowHere
 import com.spectre7.spmp.model.Settings
 import com.spectre7.spmp.model.mediaitem.Song
-import kotlinx.coroutines.CoroutineScope
 import org.zeromq.SocketType
 import org.zeromq.ZContext
 import org.zeromq.ZMQ.Socket
@@ -466,10 +465,4 @@ actual open class MediaPlayerService actual constructor() : PlatformService() {
 
     actual fun addListener(listener: Listener) { listeners.add(listener) }
     actual fun removeListener(listener: Listener) { listeners.remove(listener) }
-
-    actual companion object {
-        actual fun CoroutineScope.playerLaunch(action: CoroutineScope.() -> Unit) {
-            action()
-        }
-    }
 }

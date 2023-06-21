@@ -50,6 +50,7 @@ import com.spectre7.utils.composable.OnChangedEffect
 import com.spectre7.utils.composable.ShapedIconButton
 import com.spectre7.utils.composable.WidthShrinkText
 import java.util.*
+import java.util.concurrent.CancellationException
 import java.util.logging.Logger
 import kotlin.concurrent.thread
 import kotlin.math.roundToInt

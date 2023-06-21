@@ -6,7 +6,9 @@ import androidx.compose.foundation.Image
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.filled.*
+import androidx.compose.material.icons.filled.CloudOff
+import androidx.compose.material.icons.filled.Dashboard
+import androidx.compose.material.icons.filled.GridView
 import androidx.compose.material3.Icon
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
@@ -28,7 +30,6 @@ import com.spectre7.utils.*
 import com.spectre7.utils.composable.SubtleLoadingIndicator
 import kotlinx.coroutines.*
 import java.io.File
-import java.io.FileNotFoundException
 import java.net.URL
 import java.time.Duration
 import java.util.*
@@ -315,6 +316,7 @@ abstract class MediaItem(val id: String): MediaItemHolder {
 
         coroutineContext.job.invokeOnCompletion {
             loading_lock.withLock {
+                loading = false
                 load_condition.signalAll()
                 load_result = null
             }
@@ -418,6 +420,6 @@ abstract class MediaItem(val id: String): MediaItemHolder {
             }
         }
 
-        val RELATED_CONTENT_ICON: ImageVector get() = Icons.Default.Browse
+        val RELATED_CONTENT_ICON: ImageVector get() = Icons.Default.GridView
     }
 }

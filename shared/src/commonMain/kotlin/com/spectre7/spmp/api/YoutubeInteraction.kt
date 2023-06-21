@@ -70,11 +70,7 @@ fun getSongLiked(id: String): Result<Boolean?> {
     val request: Request = Request.Builder()
         .url("https://music.youtube.com/youtubei/v1/next")
         .addYtHeaders()
-        .post(Api.getYoutubeiRequestBody("""
-            {
-                "videoId": "$id"
-            }
-        """))
+        .post(Api.getYoutubeiRequestBody(mapOf("videoId" to id)))
         .build()
 
     val result = Api.request(request)

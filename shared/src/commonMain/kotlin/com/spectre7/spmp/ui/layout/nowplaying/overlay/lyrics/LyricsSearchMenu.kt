@@ -32,6 +32,7 @@ import com.spectre7.utils.composable.OnChangedEffect
 import com.spectre7.utils.setAlpha
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
+import java.io.IOException
 
 private const val LYRICS_SEARCH_RETRY_COUNT = 3
 

@@ -25,6 +25,7 @@ import androidx.compose.ui.text.input.ImeAction
 import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.times
+import com.spectre7.spmp.model.mediaitem.MediaItem
 import com.spectre7.spmp.model.mediaitem.MediaItemPreviewParams
 import com.spectre7.spmp.model.mediaitem.Song
 import com.spectre7.spmp.platform.PlayerDownloadManager

@@ -1,8 +1,11 @@
 package com.spectre7.spmp.api
 
 import com.spectre7.spmp.api.Api.Companion.addYtHeaders
+import com.spectre7.spmp.api.Api.Companion.getStream
 import com.spectre7.spmp.api.Api.Companion.ytUrl
 import com.spectre7.spmp.model.mediaitem.*
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.withContext
 import okhttp3.Request
 
 class RelatedGroup<T>(val title: String, val contents: List<T>)
@@ -40,7 +43,7 @@ private suspend fun loadBrowseEndpoint(browse_endpoint: MediaItemBrowseEndpoint)
     val request = Request.Builder()
         .ytUrl("/youtubei/v1/browse")
         .addYtHeaders()
-        .post(Api.getYoutubeiRequestBody(mapOf("browse" to browse_endpoint.id))
+        .post(Api.getYoutubeiRequestBody(mapOf("browse" to browse_endpoint.id)))
         .build()
 
     val result = Api.request(request)

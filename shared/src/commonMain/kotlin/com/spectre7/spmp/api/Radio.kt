@@ -21,10 +21,11 @@ class RadioInstance {
     var state: RadioState by mutableStateOf(RadioState())
         private set
     val active: Boolean get() = state.item != null
-    val loading: Boolean get() = current_job != null
+    var loading: Boolean by mutableStateOf(false)
+        private set
 
-    private val lock = Object()
-    private var current_job: Job? by mutableStateOf(null)
+    private val coroutine_scope = CoroutineScope(Dispatchers.IO)
+    private val lock = coroutine_scope
 
     val filter_changed_listeners = ValueListeners<List<RadioModifier>?>()
 
@@ -94,8 +95,8 @@ class RadioInstance {
     }
 
     fun cancelJob() {
-        current_job?.cancel()
-        current_job = null
+        coroutine_scope.coroutineContext.cancelChildren()
+        loading = false
     }
 
     private fun formatContinuationResult(result: Result<List<Song>>): Result<List<Song>> =
@@ -109,13 +110,24 @@ class RadioInstance {
 
     fun loadContinuation(onStart: (() -> Unit)? = null, callback: (Result<List<Song>>) -> Unit) {
         synchronized(lock) {
-            check(current_job == null)
+            check(!loading)
 
-            current_job = GlobalScope.launch {
+            coroutine_scope.launch {
+                coroutineContext.job.invokeOnCompletion {
+                    synchronized(lock) {
+                        loading = false
+                    }
+                }
+                synchronized(lock) {
+                    loading = true
+                }
+
                 onStart?.invoke()
 
                 if (state.continuation == null) {
-                    callback(formatContinuationResult(getInitialSongs()))
+                    val initial_songs = getInitialSongs()
+                    val formatted = formatContinuationResult(initial_songs)
+                    callback(formatted)
                     return@launch
                 }
 
@@ -135,10 +147,6 @@ class RadioInstance {
                 }
 
                 callback(formatContinuationResult(Result.success(items.filterIsInstance<Song>())))
-            }
-
-            current_job!!.invokeOnCompletion {
-                synchronized(lock) { current_job = null }
             }
         }
     }
@@ -335,25 +343,23 @@ suspend fun getSongRadio(video_id: String, continuation: String?, filters: List<
     val request = Request.Builder()
         .ytUrl("/youtubei/v1/next")
         .addYtHeaders()
-        .post(Api.getYoutubeiRequestBody(
-        """
-        {
-            "enablePersistentPlaylistPanel": true,
-            "tunerSettingValue": "AUTOMIX_SETTING_NORMAL",
-            "playlistId": "${videoIdToRadio(video_id, filters)}",
-            "watchEndpointMusicSupportedConfigs": {
-                "watchEndpointMusicConfig": {
-                    "hasPersistentPlaylistPanel": true,
-                    "musicVideoType": "MUSIC_VIDEO_TYPE_ATV"
-                }
-            },
-            "isAudioOnly": true
-            ${if (continuation != null) ", \"continuation\": \"$continuation\" " else ""}
-        }
-        """
-        ))
+        .post(Api.getYoutubeiRequestBody(mapOf(
+            "enablePersistentPlaylistPanel" to true,
+            "tunerSettingValue" to "AUTOMIX_SETTING_NORMAL",
+            "playlistId" to videoIdToRadio(video_id, filters),
+            "watchEndpointMusicSupportedConfigs" to mapOf(
+                "watchEndpointMusicConfig" to mapOf(
+                    "hasPersistentPlaylistPanel" to true,
+                    "musicVideoType" to "MUSIC_VIDEO_TYPE_ATV"
+                )
+            ),
+            "isAudioOnly" to true
+        ).let {
+            if (continuation == null) it
+            else it + mapOf("continuation" to continuation)
+        }))
         .build()
-    
+
     val result = Api.request(request)
     if (result.isFailure) {
         return@withContext result.cast()
@@ -395,7 +401,7 @@ suspend fun getSongRadio(video_id: String, continuation: String?, filters: List<
             radio.contents.map { item ->
                 val song = Song.fromId(item.playlistPanelVideoRenderer!!.videoId)
                 val error = song.editSongDataSuspend<Result<RadioData>?> {
-                    supplyTitle(item.playlistPanelVideoRenderer.title.first_text) as Song
+                    supplyTitle(item.playlistPanelVideoRenderer.title.first_text)
 
                     val artist_result = item.playlistPanelVideoRenderer.getArtist(song)
                     if (artist_result.isFailure) {

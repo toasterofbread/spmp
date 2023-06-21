@@ -4,7 +4,6 @@ import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import com.spectre7.spmp.model.mediaitem.Song
-import kotlinx.coroutines.CoroutineScope
 
 internal const val AUTO_DOWNLOAD_SOFT_TIMEOUT = 1500 // ms
 
@@ -102,8 +101,6 @@ expect open class MediaPlayerService() {
     protected open fun onSongMoved(from: Int, to: Int)
 
     companion object {
-        fun CoroutineScope.playerLaunch(action: CoroutineScope.() -> Unit)
-
         fun <T: MediaPlayerService> connect(context: PlatformContext, cls: Class<T>, instance: T? = null, onConnected: (service: T) -> Unit): Any
         fun disconnect(context: PlatformContext, connection: Any)
     }

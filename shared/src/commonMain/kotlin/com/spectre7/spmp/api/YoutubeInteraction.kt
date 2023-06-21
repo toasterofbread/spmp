@@ -24,7 +24,7 @@ fun isSubscribedToArtist(artist: Artist): Result<Boolean?> {
     val request: Request = Request.Builder()
         .ytUrl("/youtubei/v1/browse")
         .addYtHeaders()
-        .post(Api.getYoutubeiRequestBody("""{ "browseId": "${artist.id}" }"""))
+        .post(Api.getYoutubeiRequestBody(mapOf("browseId" to artist.id)))
         .build()
 
     val result = Api.request(request)
@@ -45,11 +45,9 @@ fun subscribeOrUnsubscribeArtist(artist: Artist, subscribe: Boolean): Result<Any
     val request: Request = Request.Builder()
         .url("https://music.youtube.com/youtubei/v1/subscription/${if (subscribe) "subscribe" else "unsubscribe"}")
         .addYtHeaders()
-        .post(Api.getYoutubeiRequestBody("""
-            {
-                "channelIds": ["${artist.subscribe_channel_id}"]
-            }
-        """))
+        .post(Api.getYoutubeiRequestBody(
+            mapOf("channelIds" to listOf(artist.subscribe_channel_id))
+        ))
         .build()
 
     return Api.request(request)
@@ -98,11 +96,9 @@ fun setSongLiked(id: String, liked: Boolean?): Result<Any> {
             null -> "like/removelike"
         })
         .addYtHeaders()
-        .post(Api.getYoutubeiRequestBody("""
-            {
-                "target": { "videoId": "$id" }
-            }
-        """))
+        .post(Api.getYoutubeiRequestBody(
+            mapOf("target" to mapOf("videoId" to id))
+        ))
         .build()
 
     val result = Api.request(request)
@@ -131,7 +127,7 @@ fun markSongAsWatched(id: String): Result<Any> {
         return Request.Builder()
             .url("https://music.youtube.com/youtubei/v1/player?key=${getString("yt_i_api_key")}")
             .post(Api.getYoutubeiRequestBody(
-                """{ "videoId": "$id" }""",
+                mapOf("videoId" to id),
                 context = if (alt) Api.Companion.YoutubeiContextType.ALT else Api.Companion.YoutubeiContextType.BASE
             ))
             .addYtHeaders()

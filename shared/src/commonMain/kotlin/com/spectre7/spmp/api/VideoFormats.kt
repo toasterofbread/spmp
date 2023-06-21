@@ -171,10 +171,13 @@ data class PlayabilityStatus(val status: String)
 private fun buildVideoFormatsRequest(id: String, alt: Boolean): Request {
     return Request.Builder()
         .url("https://music.youtube.com/youtubei/v1/player?key=${getString("yt_i_api_key")}")
-        .post(Api.getYoutubeiRequestBody("""{
-            "videoId": "$id",
-            "playlistId": null
-        }""", context = if (alt) Api.Companion.YoutubeiContextType.ALT else Api.Companion.YoutubeiContextType.BASE))
+        .post(Api.getYoutubeiRequestBody(
+            mapOf(
+                "videoId" to id,
+                "playlistId" to null
+            ),
+            context = if (alt) Api.Companion.YoutubeiContextType.ALT else Api.Companion.YoutubeiContextType.BASE
+        ))
         .build()
 }
 

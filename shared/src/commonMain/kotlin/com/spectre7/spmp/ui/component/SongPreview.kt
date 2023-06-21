@@ -26,11 +26,10 @@ import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
-import com.spectre7.spmp.model.*
+import com.spectre7.spmp.model.Settings
 import com.spectre7.spmp.model.mediaitem.*
 import com.spectre7.spmp.platform.PlayerDownloadManager.DownloadStatus
 import com.spectre7.spmp.resources.getString
-import com.spectre7.spmp.resources.getStringTODO
 import com.spectre7.spmp.ui.component.multiselect.MediaItemMultiSelectContext
 import com.spectre7.spmp.ui.layout.PlaylistSelectMenu
 import com.spectre7.spmp.ui.theme.Theme
@@ -190,7 +189,6 @@ private fun LongPressMenuActionProvider.SongLongPressPopupActions(song: MediaIte
     require(song is Song)
 
     val density = LocalDensity.current
-    val player = LocalPlayerState.current
     val coroutine_scope = rememberCoroutineScope()
 
     var height: Dp? by remember { mutableStateOf(null) }
@@ -325,7 +323,7 @@ private fun LongPressMenuActionProvider.LPMActions(song: Song, queue_index: Int?
         })
     }
 
-    ActionButton(MediaItem.RELATED_CONTENT_ICON, getStringTODO("Show related content"), onClick = {
+    ActionButton(MediaItem.RELATED_CONTENT_ICON, getString("lpm_action_song_related"), onClick = {
         player.openMediaItem(song)
     })
 }

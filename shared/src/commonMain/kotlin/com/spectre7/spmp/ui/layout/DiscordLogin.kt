@@ -19,14 +19,12 @@ import androidx.compose.ui.unit.dp
 import com.beust.klaxon.JsonObject
 import com.beust.klaxon.Klaxon
 import com.spectre7.spmp.api.*
-import com.spectre7.spmp.model.Settings
 import com.spectre7.spmp.platform.WebViewLogin
 import com.spectre7.spmp.platform.composable.PlatformAlertDialog
 import com.spectre7.spmp.platform.composable.rememberImagePainter
 import com.spectre7.spmp.platform.isWebViewLoginSupported
 import com.spectre7.spmp.resources.getString
 import com.spectre7.spmp.resources.getStringTODO
-import com.spectre7.spmp.ui.component.MusicTopBar
 import com.spectre7.utils.catchInterrupts
 import com.spectre7.utils.composable.LinkifyText
 import com.spectre7.utils.composable.SubtleLoadingIndicator
@@ -197,20 +195,22 @@ fun DiscordAccountPreview(account_token: String, modifier: Modifier = Modifier) 
 
     Crossfade(if (!me.isEmpty()) me else if (started) load_thread != null else null, modifier.fillMaxHeight()) { state ->
         Row(horizontalArrangement = Arrangement.spacedBy(5.dp), verticalAlignment = Alignment.CenterVertically) {
-            if (state == true) {
-                SubtleLoadingIndicator(Modifier.fillMaxSize())
-            }
-            else if (state == false) {
-                Box(Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
-                    Icon(Icons.Default.Error, null)
+            when (state) {
+                true -> {
+                    SubtleLoadingIndicator(Modifier.fillMaxSize())
                 }
-            }
-            else if (state is DiscordMeResponse) {
-                Image(rememberImagePainter(state.getAvatarUrl()), null, Modifier.fillMaxHeight().aspectRatio(1f).clip(CircleShape))
+                false -> {
+                    Box(Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
+                        Icon(Icons.Default.Error, null)
+                    }
+                }
+                is DiscordMeResponse -> {
+                    Image(rememberImagePainter(state.getAvatarUrl()), null, Modifier.fillMaxHeight().aspectRatio(1f).clip(CircleShape))
 
-                Column(Modifier.fillMaxHeight(), verticalArrangement = Arrangement.SpaceEvenly) {
-                    Text(state.username!!, overflow = TextOverflow.Ellipsis, maxLines = 1)
-                    Text("#${state.discriminator}")
+                    Column(Modifier.fillMaxHeight(), verticalArrangement = Arrangement.SpaceEvenly) {
+                        Text(state.username!!, overflow = TextOverflow.Ellipsis, maxLines = 1)
+                        Text("#${state.discriminator}")
+                    }
                 }
             }
         }

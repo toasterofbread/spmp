@@ -40,9 +40,8 @@ class BrowseParamsPlaylist(val artist_id: String, val params: String, id: String
 
         @Synchronized
         fun fromId(item_id: String, browse_params: String): BrowseParamsPlaylist {
-            val id = item_id// + browse_params
-            return browse_params_playlists.getOrPut(id) {
-                val playlist = BrowseParamsPlaylist(item_id, browse_params, id)
+            return browse_params_playlists.getOrPut(item_id) {
+                val playlist = BrowseParamsPlaylist(item_id, browse_params, item_id)
                 playlist.loadFromCache()
                 return@getOrPut playlist
             }
@@ -50,4 +49,4 @@ class BrowseParamsPlaylist(val artist_id: String, val params: String, id: String
     }
 }
 
-class BrowseParamsPlaylistItemData(item: BrowseParamsPlaylist): PlaylistItemData(item) {}
+class BrowseParamsPlaylistItemData(item: BrowseParamsPlaylist): PlaylistItemData(item)

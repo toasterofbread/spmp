@@ -17,7 +17,6 @@ import com.spectre7.spmp.platform.toImageBitmap
 import com.spectre7.spmp.ui.component.SongPreviewLong
 import com.spectre7.spmp.ui.component.SongPreviewSquare
 import okhttp3.internal.filterList
-import java.io.FileNotFoundException
 import java.net.URL
 
 class Song private constructor (id: String): MediaItem(id) {
@@ -43,6 +42,9 @@ class Song private constructor (id: String): MediaItem(id) {
 
     override fun canGetThemeColour(): Boolean = theme_colour != null || super.canGetThemeColour()
     override fun getThemeColour(): Color? = theme_colour ?: super.getThemeColour()
+
+    suspend fun getRelatedBrowseId(): Result<String> =
+        getGeneralValue { data.related_browse_id }
 
     fun <T> editSongData(action: SongItemData.() -> T): T {
         val ret = editData {

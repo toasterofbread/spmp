@@ -44,6 +44,8 @@ import com.spectre7.spmp.ui.theme.Theme
 import com.spectre7.utils.*
 import com.spectre7.utils.composable.WidthShrinkText
 import com.spectre7.utils.modifier.background
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.withContext
 import okhttp3.Request
 
 fun getDefaultMediaItemPreviewSize(): DpSize = DpSize(100.dp, 130.dp)
@@ -135,11 +137,11 @@ data class MediaItemLayout(
             )
         }
 
-        private suspend fun loadPlaylistContinuation(initial: Boolean): Result<Pair<List<MediaItem>, String?>> {
+        private suspend fun loadPlaylistContinuation(initial: Boolean): Result<Pair<List<MediaItem>, String?>> = withContext(Dispatchers.IO) {
             if (initial) {
                 val playlist = AccountPlaylist.fromId(token)
                 playlist.data.items?.also { items ->
-                    return Result.success(Pair(
+                    return@withContext Result.success(Pair(
                         items.subList(param as Int, items.size - 1),
                         playlist.data.continuation?.token
                     ))
@@ -154,25 +156,32 @@ data class MediaItemLayout(
                 )
                 .addYtHeaders()
                 .post(Api.getYoutubeiRequestBody(
-                    if (initial) "{\"browseId\": \"$token\"}"
+                    if (initial) mapOf("browseId" to token)
                     else null
                 ))
                 .build()
 
             val result = Api.request(request)
             if (result.isFailure) {
-                return result.cast()
+                return@withContext result.cast()
             }
 
             val stream = result.getOrThrow().getStream()
-            val parsed: YoutubeiBrowseResponse = Api.klaxon.parse(stream)!!
-            stream.close()
+            val parsed: YoutubeiBrowseResponse = try {
+                Api.klaxon.parse(stream)!!
+            }
+            catch (e: Throwable) {
+                return@withContext Result.failure(e)
+            }
+            finally {
+                stream.close()
+            }
 
             val shelf =
                 if (initial) parsed.contents!!.singleColumnBrowseResultsRenderer.tabs.first().tabRenderer.content!!.sectionListRenderer.contents!!.single().musicPlaylistShelfRenderer!!
                 else parsed.continuationContents!!.musicPlaylistShelfContinuation!!
 
-            return Result.success(Pair(
+            return@withContext Result.success(Pair(
                 shelf.contents!!.withIndex().mapNotNull { item ->
                     if (item.index < param as Int) {
                         return@mapNotNull null

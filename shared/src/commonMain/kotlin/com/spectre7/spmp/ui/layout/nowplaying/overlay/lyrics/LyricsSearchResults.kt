@@ -20,7 +20,6 @@ import com.spectre7.spmp.api.LyricsSearchResult
 import com.spectre7.spmp.model.SongLyrics
 import com.spectre7.spmp.platform.composable.BackHandler
 import com.spectre7.spmp.resources.getString
-import com.spectre7.spmp.resources.getStringTODO
 import com.spectre7.spmp.ui.theme.Theme
 import com.spectre7.utils.getContrasted
 import com.spectre7.utils.setAlpha

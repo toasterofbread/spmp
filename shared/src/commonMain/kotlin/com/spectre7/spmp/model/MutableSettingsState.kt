@@ -36,7 +36,7 @@ fun <T> mutableSettingsState(settings_key: Settings, prefs: ProjectPreferences =
 @Composable
 inline fun <reified T: Enum<T>> mutableSettingsEnumState(settings_key: Settings, prefs: ProjectPreferences = Settings.prefs): MutableState<T> {
     val state: MutableState<T> = remember { mutableStateOf(
-        enumValues<T>()[settings_key.get<Int>(prefs)]
+        enumValues<T>()[settings_key.get(prefs)]
     ) }
     var set_to: T by remember { mutableStateOf(state.value) }
 
@@ -51,7 +51,7 @@ inline fun <reified T: Enum<T>> mutableSettingsEnumState(settings_key: Settings,
         val listener = prefs.addListener(object : ProjectPreferences.Listener {
             override fun onChanged(prefs: ProjectPreferences, key: String) {
                 if (key == settings_key.name) {
-                    set_to = enumValues<T>()[settings_key.get<Int>(prefs)]
+                    set_to = enumValues<T>()[settings_key.get(prefs)]
                     state.value = set_to
                 }
             }

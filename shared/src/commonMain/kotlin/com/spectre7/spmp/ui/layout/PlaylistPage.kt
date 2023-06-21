@@ -5,7 +5,6 @@ package com.spectre7.spmp.ui.layout
 import LocalPlayerState
 import SpMp
 import androidx.compose.animation.*
-import androidx.compose.animation.core.animateDpAsState
 import androidx.compose.foundation.*
 import androidx.compose.foundation.gestures.Orientation
 import androidx.compose.foundation.gestures.draggable
@@ -38,14 +37,12 @@ import com.spectre7.spmp.api.getOrReport
 import com.spectre7.spmp.model.*
 import com.spectre7.spmp.model.mediaitem.*
 import com.spectre7.spmp.platform.LargeDropdownMenu
-import com.spectre7.spmp.platform.composable.platformClickable
 import com.spectre7.spmp.platform.composable.PlatformAlertDialog
+import com.spectre7.spmp.platform.composable.platformClickable
 import com.spectre7.spmp.platform.vibrateShort
 import com.spectre7.spmp.resources.getString
-import com.spectre7.spmp.resources.getStringTODO
 import com.spectre7.spmp.ui.component.*
 import com.spectre7.spmp.ui.component.multiselect.MediaItemMultiSelectContext
-import com.spectre7.spmp.ui.layout.mainpage.MINIMISED_NOW_PLAYING_HEIGHT
 import com.spectre7.spmp.ui.layout.mainpage.PlayerState
 import com.spectre7.spmp.ui.theme.Theme
 import com.spectre7.utils.*
@@ -64,19 +61,22 @@ private enum class SortOption {
             PLAY_COUNT -> "playlist_sort_option_playcount"
         })
 
-    fun sortItems(items: List<MediaItem>, reversed: Boolean = false): List<MediaItem> = when (this) {
-        PLAYLIST ->
-            if (reversed) items.asReversed() 
-            else items
-        ALPHABET -> 
-            if (reversed) items.sortedByDescending { it.title!! }
-            else items.sortedBy { it.title!! }
-        DURATION ->
-            if (reversed) items.sortedByDescending { if (it is Song) it.duration ?: 0 else 0 }
-            else items.sortedBy { if (it is Song) it.duration ?: 0 else 0 }
-        PLAY_COUNT -> 
-            if (reversed) items.sortedByDescending { it.registry_entry.getPlayCount(null) }
-            else items.sortedBy { it.registry_entry.getPlayCount(null) }
+    fun sortItems(items: List<MediaItem>, reversed: Boolean = false): List<MediaItem> {
+        val selector: (MediaItem) -> Comparable<*> = when (this) {
+            PLAYLIST ->
+                return if (reversed) items.asReversed()
+                else items
+            ALPHABET -> {
+                { it.title!! }
+            }
+            DURATION -> {
+                { if (it is Song) it.duration ?: 0 else 0 }
+            }
+            PLAY_COUNT -> {
+                { it.registry_entry.getPlayCount(null) }
+            }
+        }
+        return items.sortedWith(if (reversed) compareByDescending(selector) else compareBy(selector))
     }
 }
 
@@ -85,12 +85,11 @@ fun PlaylistPage(
     pill_menu: PillMenu,
     playlist: Playlist,
     previous_item: MediaItem? = null,
-    bottom_padding: Dp = 0.dp,
+    padding: PaddingValues = PaddingValues(),
     close: () -> Unit
 ) {
     val player = LocalPlayerState.current
     val coroutine_scope = rememberCoroutineScope()
-    val status_bar_height = SpMp.context.getStatusBarHeight()
 
     val multiselect_context = remember { MediaItemMultiSelectContext() { context ->
         if (playlist.is_editable != true) {
@@ -126,7 +125,7 @@ fun PlaylistPage(
         verticalArrangement = Arrangement.spacedBy(10.dp)
     ) {
         if (previous_item != null) {
-            Row(Modifier.fillMaxWidth(), verticalAlignment = Alignment.CenterVertically) {
+            Row(Modifier.fillMaxWidth().padding(top = padding.calculateTopPadding()), verticalAlignment = Alignment.CenterVertically) {
                 IconButton(close) {
                     Icon(Icons.Default.KeyboardArrowLeft, null)
                 }
@@ -169,8 +168,9 @@ fun PlaylistPage(
                 sorted_items.addAll(
                     current_sort_option
                         .sortItems(filtered_items)
-                        .withIndex()
-                        .map { Pair(it.value, it.index) }
+                        .mapIndexed { index, value ->
+                            Pair(value, index)
+                        }
                 )
             }
         }
@@ -205,14 +205,12 @@ fun PlaylistPage(
             verticalArrangement = Arrangement.spacedBy(10.dp),
             horizontalAlignment = Alignment.CenterHorizontally,
             modifier = Modifier.reorderable(list_state),
-            contentPadding = PaddingValues(bottom = bottom_padding)
+            contentPadding = if (previous_item != null) padding.copy(top = 0.dp) else padding
         ) {
             item {
-                val top_padding by animateDpAsState(if (top_bar_showing) 0.dp else status_bar_height + 10.dp)
                 PlaylistTopInfo(
                     playlist,
-                    accent_colour ?: Theme.current.accent,
-                    Modifier.padding(top = top_padding)
+                    accent_colour ?: Theme.current.accent
                 ) {
                     accent_colour = thumb_item.item?.getThemeColour()
                 }
@@ -734,8 +732,8 @@ private fun PlaylistTopInfo(playlist: Playlist, accent_colour: Color, modifier: 
                     { player.playMediaItem(playlist) },
                     Modifier.fillMaxWidth(),
                     colors = ButtonDefaults.buttonColors(
-                        containerColor = accent_colour ?: Theme.current.accent,
-                        contentColor = accent_colour?.getContrasted() ?: Theme.current.on_accent
+                        containerColor = accent_colour,
+                        contentColor = accent_colour.getContrasted()
                     ),
                     shape = shape
                 ) {

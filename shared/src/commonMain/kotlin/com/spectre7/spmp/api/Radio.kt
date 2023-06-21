@@ -16,7 +16,6 @@ import okhttp3.Request
 private const val RADIO_ID_PREFIX = "RDAMVM"
 private const val MODIFIED_RADIO_ID_PREFIX = "RDAT"
 
-@OptIn(DelicateCoroutinesApi::class)
 class RadioInstance {
     var state: RadioState by mutableStateOf(RadioState())
         private set
@@ -108,7 +107,7 @@ class RadioInstance {
             { result }
         )
 
-    fun loadContinuation(onStart: (() -> Unit)? = null, callback: (Result<List<Song>>) -> Unit) {
+    fun loadContinuation(onStart: (suspend () -> Unit)? = null, callback: suspend (Result<List<Song>>) -> Unit) {
         synchronized(lock) {
             check(!loading)
 
@@ -206,7 +205,8 @@ data class YoutubeiNextResponse(
     class TabbedRenderer(val watchNextTabbedResultsRenderer: WatchNextTabbedResultsRenderer)
     class WatchNextTabbedResultsRenderer(val tabs: List<Tab>)
     class Tab(val tabRenderer: TabRenderer)
-    class TabRenderer(val content: Content? = null)
+    class TabRenderer(val content: Content? = null, val endpoint: TabRendererEndpoint? = null)
+    class TabRendererEndpoint(val browseEndpoint: BrowseEndpoint)
     class Content(val musicQueueRenderer: MusicQueueRenderer)
     class MusicQueueRenderer(val content: MusicQueueRendererContent, val subHeaderChipCloud: SubHeaderChipCloud? = null)
 

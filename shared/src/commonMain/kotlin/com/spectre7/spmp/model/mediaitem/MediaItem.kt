@@ -7,7 +7,6 @@ import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.CloudOff
-import androidx.compose.material.icons.filled.Dashboard
 import androidx.compose.material.icons.filled.GridView
 import androidx.compose.material3.Icon
 import androidx.compose.runtime.*
@@ -127,20 +126,6 @@ abstract class MediaItem(val id: String): MediaItemHolder {
     private fun saveToCache(): MediaItem {
         data.save()
         return this
-    }
-
-    private val _related_endpoints: MutableList<MediaItemBrowseEndpoint> = mutableListOf()
-    val related_endpoints: List<MediaItemBrowseEndpoint>
-        get() = _related_endpoints
-
-    fun addBrowseEndpoint(id: String, type: MediaItemBrowseEndpoint.Type): Boolean {
-        for (endpoint in _related_endpoints) {
-            if (endpoint.id == id && endpoint.type == type) {
-                return false
-            }
-        }
-        _related_endpoints.add(MediaItemBrowseEndpoint(id, type))
-        return true
     }
 
     fun getThumbUrl(quality: MediaItemThumbnailProvider.Quality): String? =

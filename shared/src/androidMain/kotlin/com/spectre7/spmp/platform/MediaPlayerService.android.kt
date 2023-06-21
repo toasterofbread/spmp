@@ -14,9 +14,6 @@ import com.google.common.util.concurrent.ListenableFuture
 import com.google.common.util.concurrent.MoreExecutors
 import com.spectre7.spmp.exovisualiser.ExoVisualizer
 import com.spectre7.spmp.model.mediaitem.Song
-import kotlinx.coroutines.CoroutineScope
-import kotlinx.coroutines.Dispatchers
-import kotlinx.coroutines.launch
 import kotlin.properties.Delegates
 import androidx.media3.common.MediaItem as ExoMediaItem
 
@@ -320,7 +317,7 @@ actual open class MediaPlayerService {
             listeners.forEach { it.onSongAdded(index, item.getSong()) }
         }
     }
-    private inner class ClearAction(): Action() {
+    private inner class ClearAction : Action() {
         private var items: List<ExoMediaItem>? = null
         override fun redo() {
             if (items == null && is_undoable) {
@@ -344,10 +341,6 @@ actual open class MediaPlayerService {
     }
     
     actual companion object {
-        actual fun CoroutineScope.playerLaunch(action: CoroutineScope.() -> Unit) {
-            launch(Dispatchers.Main, block = action)
-        }
-
         actual fun <T: MediaPlayerService> connect(context: PlatformContext, cls: Class<T>, instance: T?, onConnected: (controller: T) -> Unit): Any {
             val ctx = context.ctx.applicationContext
             val controller_future = MediaController.Builder(

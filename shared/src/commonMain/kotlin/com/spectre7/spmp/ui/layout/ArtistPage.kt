@@ -30,7 +30,6 @@ import androidx.compose.ui.platform.LocalClipboardManager
 import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.platform.LocalLayoutDirection
 import androidx.compose.ui.text.*
-import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.input.ImeAction
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.*
@@ -43,8 +42,8 @@ import com.spectre7.spmp.platform.composable.PlatformAlertDialog
 import com.spectre7.spmp.platform.vibrateShort
 import com.spectre7.spmp.resources.getString
 import com.spectre7.spmp.resources.getStringTODO
-import com.spectre7.spmp.ui.component.MusicTopBar
 import com.spectre7.spmp.ui.component.MediaItemLayout
+import com.spectre7.spmp.ui.component.MusicTopBar
 import com.spectre7.spmp.ui.component.PillMenu
 import com.spectre7.spmp.ui.component.multiselect.MediaItemMultiSelectContext
 import com.spectre7.spmp.ui.theme.Theme

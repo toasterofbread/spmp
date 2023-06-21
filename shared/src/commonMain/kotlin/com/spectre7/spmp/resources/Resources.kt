@@ -113,7 +113,7 @@ fun initResources(language: String, context: PlatformContext) {
 
 fun getString(key: String): String = strings[key] ?: throw NotImplementedError(key)
 fun getStringOrNull(key: String): String? = strings[key]
-fun getStringTODO(temp_string: String): String = "$temp_string //TODO" // Strings to be localised
+fun getStringTODO(temp_string: String): String = "$temp_string // TODO" // Strings to be localised
 fun getStringArray(key: String): List<String> = string_arrays[key] ?: throw NotImplementedError(key)
 
 fun getLanguageName(language_code: String): String {

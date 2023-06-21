@@ -304,6 +304,7 @@
     <string name="lpm_action_play_after_x_songs">$x曲後に再生する</string>
     <string name="lpm_action_download">ダウンロード</string>
     <string name="lpm_action_go_to_artist">アーティストを見る</string>
+    <string name="lpm_action_song_related">関係コンテンツを表示</string>
     <string name="lpm_action_print_info">情報をコンソールに出力する</string>
     <string name="lpm_action_share">共有</string>
     <string name="lpm_action_open_artist">開く</string>

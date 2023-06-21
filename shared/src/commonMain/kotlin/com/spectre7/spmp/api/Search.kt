@@ -8,6 +8,7 @@ import androidx.compose.ui.graphics.vector.ImageVector
 import com.spectre7.spmp.api.Api.Companion.addYtHeaders
 import com.spectre7.spmp.api.Api.Companion.getStream
 import com.spectre7.spmp.api.Api.Companion.ytUrl
+import com.spectre7.spmp.api.model.YoutubeiShelf
 import com.spectre7.spmp.model.mediaitem.*
 import com.spectre7.spmp.model.mediaitem.enums.MediaItemType
 import com.spectre7.spmp.model.mediaitem.enums.PlaylistType
@@ -68,7 +69,7 @@ fun searchYoutubeMusic(query: String, params: String?): Result<SearchResults> {
     val request = Request.Builder()
         .ytUrl("/youtubei/v1/search")
         .addYtHeaders()
-        .post(Api.getYoutubeiRequestBody("""{ "query": "$query", "params": $params_str }"""))
+        .post(Api.getYoutubeiRequestBody(mapOf("query" to query, "params" to params_str)))
         .build()
 
     val result = Api.request(request)

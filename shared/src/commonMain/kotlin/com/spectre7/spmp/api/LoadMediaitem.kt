@@ -8,9 +8,9 @@ import com.spectre7.spmp.model.mediaitem.*
 import com.spectre7.spmp.model.mediaitem.data.AccountPlaylistItemData
 import com.spectre7.spmp.model.mediaitem.data.ArtistItemData
 import com.spectre7.spmp.model.mediaitem.data.MediaItemData
+import com.spectre7.spmp.model.mediaitem.data.SongItemData
 import com.spectre7.spmp.model.mediaitem.enums.PlaylistType
 import com.spectre7.spmp.ui.component.MediaItemLayout
-import com.spectre7.utils.printJson
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
 import okhttp3.Request
@@ -151,17 +151,21 @@ suspend fun processDefaultResponse(item: MediaItem, data: MediaItemData, respons
                             }
 
                             if (data is AccountPlaylistItemData) {
-                                data.supplyYear(subtitle.lastOrNull { it.text.all { it.isDigit() } }?.text?.toInt(), true)
+                                data.supplyYear(
+                                    subtitle.lastOrNull { last_run ->
+                                        last_run.text.all { it.isDigit() }
+                                    }?.text?.toInt(),
+                                    true
+                                )
                             }
                         }
 
                         if (data is AccountPlaylistItemData) {
                             header_renderer.secondSubtitle?.runs?.also { second_subtitle ->
-                                for (run in second_subtitle.withIndex()) {
+                                for (run in second_subtitle.reversed().withIndex()) {
                                     when (run.index) {
-                                        0 -> data.supplyItemCount(run.value.text.filter { it.isDigit() }.toInt(), true)
-                                        1 -> data.supplyTotalDuration(parseYoutubeDurationString(run.value.text, hl), true)
-                                        else -> throw NotImplementedError(second_subtitle.toString())
+                                        0 -> data.supplyTotalDuration(parseYoutubeDurationString(run.value.text, hl), true)
+                                        1 -> data.supplyItemCount(run.value.text.filter { it.isDigit() }.toInt(), true)
                                     }
                                 }
                             }
@@ -235,29 +239,32 @@ suspend fun processDefaultResponse(item: MediaItem, data: MediaItemData, respons
 
         check(item is Song)
 
-        val parse_result = runCatching { 
+        val tabs: List<YoutubeiNextResponse.Tab> = try {
             Api.klaxon.parse<YoutubeiNextResponse>(response_body)!!
                 .contents
                 .singleColumnMusicWatchNextResultsRenderer
                 .tabbedRenderer
                 .watchNextTabbedResultsRenderer
                 .tabs
-                .first()
-                .tabRenderer
-                .content!!
-                .musicQueueRenderer
-                .content
-                .playlistPanelRenderer
-                .contents
-                .first()
-                .playlistPanelVideoRenderer!!
         }
-        response_body.close()
+        catch (e: Throwable) {
+            return@withContext Result.failure(e)
+        }
+        finally {
+            response_body.close()
+        }
 
-        val video = parse_result.fold(
-            { it },
-            { return@withContext Result.failure(it) }
-        )
+        if (data is SongItemData) {
+            val related = tabs.getOrNull(2)?.tabRenderer?.endpoint?.browseEndpoint?.browseId
+            data.supplyRelatedBrowseId(related, true)
+        }
+
+        val video: YoutubeiNextResponse.PlaylistPanelVideoRenderer = try {
+            tabs[0].tabRenderer.content!!.musicQueueRenderer.content.playlistPanelRenderer.contents.first().playlistPanelVideoRenderer!!
+        }
+        catch (e: Throwable) {
+            return@withContext Result.failure(e)
+        }
 
         data.supplyTitle(video.title.first_text, true)
 
@@ -327,7 +334,7 @@ suspend fun loadMediaItemData(
             request = Request.Builder()
                 .ytUrl("/youtubei/v1/player")
                 .addYtHeaders()
-                .post(Api.getYoutubeiRequestBody("""{ "videoId": "$item_id" }"""))
+                .post(Api.getYoutubeiRequestBody(mapOf("videoId" to item_id)))
                 .build()
 
             val result = Api.request(request)

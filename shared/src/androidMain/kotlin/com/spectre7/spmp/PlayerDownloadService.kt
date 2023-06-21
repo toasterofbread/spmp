@@ -486,7 +486,7 @@ class PlayerDownloadService: PlatformServiceImpl() {
             val total_progress = downloads.getTotalProgress()
 
             if (!downloads.any { !it.silent }) {
-                builder.setProgress(0, 0, false);
+                builder.setProgress(0, 0, false)
                 builder.setOngoing(false)
                 builder.setDeleteIntent(notification_delete_intent)
 

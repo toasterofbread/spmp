@@ -69,6 +69,12 @@ suspend fun getHomeFeed(
             )
             .build()
 
+        val response = Api.request(request)
+        result = response.fold(
+            { runCatching { it.getStream().reader() } },
+            { Result.failure(it) }
+        )
+
         result = Api.request(request).cast {
             it.getStream().reader()
         }

@@ -95,12 +95,14 @@ fun LibraryPage(
             Modifier.padding(horizontal = 20.dp, vertical = 10.dp)
         }
     ) {
-        MusicTopBar(
-            Settings.KEY_LYRICS_SHOW_IN_LIBRARY,
-            Modifier
-                .fillMaxWidth()
-                .padding(bottom = 20.dp)
-        )
+        if (!inline) {
+            MusicTopBar(
+                Settings.KEY_LYRICS_SHOW_IN_LIBRARY,
+                Modifier
+                    .fillMaxWidth()
+                    .padding(bottom = 20.dp)
+            )
+        }
 
         Crossfade(subpage, Modifier.fillMaxSize()) { page ->
             Column(

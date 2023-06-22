@@ -59,6 +59,7 @@ fun SearchPage(
     val keyboard_controller = LocalSoftwareKeyboardController.current
     val player = LocalPlayerState.current
     val multiselect_context = remember { MediaItemMultiSelectContext() {} }
+    val coroutine_scope = rememberCoroutineScope()
 
     var search_in_progress: Boolean by remember { mutableStateOf(false) }
     val search_lock = remember { Object() }
@@ -74,41 +75,38 @@ fun SearchPage(
         keyboard_controller?.hide()
 
         synchronized(search_lock) {
-            if (search_in_progress) {
-                return
-            }
             search_in_progress = true
 
             current_results = null
             current_query = query
             current_filter = filter?.type
-        }
 
-        thread {
-            searchYoutubeMusic(query, filter?.params).fold(
-                { results ->
-                    for (result in results.categories) {
-                        if (result.second != null) {
-                            result.first.view_more = MediaItemLayout.ViewMore(
-                                action = {
-                                    performSearch(current_query!!, result.second)
-                                }
-                            )
+            coroutine_scope.launchSingle {
+                searchYoutubeMusic(query, filter?.params).fold(
+                    { results ->
+                        for (result in results.categories) {
+                            if (result.second != null) {
+                                result.first.view_more = MediaItemLayout.ViewMore(
+                                    action = {
+                                        performSearch(current_query!!, result.second)
+                                    }
+                                )
+                            }
+                        }
+
+                        synchronized(search_lock) {
+                            current_results = results
+                            search_in_progress = false
+                        }
+                    },
+                    {
+                        SpMp.error_manager.onError("SearchPage", it)
+                        synchronized(search_lock) {
+                            search_in_progress = false
                         }
                     }
-
-                    synchronized(search_lock) {
-                        current_results = results
-                        search_in_progress = false
-                    }
-                },
-                {
-                    SpMp.error_manager.onError("SearchPage", it)
-                    synchronized(search_lock) {
-                        search_in_progress = false
-                    }
-                }
-            )
+                )
+            }
         }
     }
 

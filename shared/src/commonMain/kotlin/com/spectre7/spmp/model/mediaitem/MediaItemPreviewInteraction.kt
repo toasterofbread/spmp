@@ -22,7 +22,6 @@ enum class MediaItemPreviewInteractionPressStage {
 
     fun execute(item: MediaItem, long_press_menu_data: LongPressMenuData, player: PlayerState) {
         when (this) {
-            BRIEF -> {}
             INSTANT -> {
                 if (long_press_menu_data.multiselect_context?.is_active == true) {
                     long_press_menu_data.multiselect_context.toggleItem(item, long_press_menu_data.multiselect_key)
@@ -31,6 +30,7 @@ enum class MediaItemPreviewInteractionPressStage {
                     player.onMediaItemClicked(item, long_press_menu_data.multiselect_key)
                 }
             }
+            BRIEF -> {}
             LONG_1 -> player.showLongPressMenu(long_press_menu_data)
             LONG_2 -> long_press_menu_data.multiselect_context?.apply {
                 setActive(true)

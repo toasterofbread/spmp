@@ -33,7 +33,6 @@ import com.spectre7.spmp.platform.composable.PlatformAlertDialog
 import com.spectre7.spmp.platform.composable.PlatformDialog
 import com.spectre7.spmp.platform.composable.platformClickable
 import com.spectre7.spmp.resources.getString
-import com.spectre7.spmp.resources.getStringTODO
 import com.spectre7.spmp.ui.component.multiselect.MediaItemMultiSelectContext
 import com.spectre7.spmp.ui.layout.nowplaying.overlay.DEFAULT_THUMBNAIL_ROUNDING
 import com.spectre7.spmp.ui.theme.Theme
@@ -165,32 +164,7 @@ private fun MenuContent(
 
     var show_title_edit_dialog: Boolean by remember { mutableStateOf(false) }
     if (show_title_edit_dialog) {
-        var edited_title: String by remember { mutableStateOf(data.item.title ?: "") }
-        PlatformAlertDialog(
-            { show_title_edit_dialog = false },
-            { Button({
-                data.item.editRegistry {
-                    it.title = edited_title
-                }
-                show_title_edit_dialog = false
-            }) {
-                Text(getString("action_confirm_action"))
-            } },
-            dismissButton = {
-                Button({ show_title_edit_dialog = false }) {
-                    Text(getString("action_cancel"))
-                }
-            },
-            title = {
-                Text(getStringTODO("Edit ${data.item.type.getReadable(false)} title"))
-            },
-            text = {
-                TextField(
-                    edited_title,
-                    { edited_title = it }
-                )
-            }
-        )
+        MediaItemTitleEditDialog(data.item, show_title_edit_dialog)
     }
 
     Box(
@@ -284,6 +258,7 @@ private fun MenuContent(
                                     Modifier.platformClickable(
                                         onAltClick = {
                                             show_title_edit_dialog = !show_title_edit_dialog
+                                            SpMp.context.vibrateShort()
                                         }
                                     )
                                 ) {

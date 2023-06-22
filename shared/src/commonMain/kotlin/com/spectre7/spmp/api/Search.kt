@@ -63,7 +63,7 @@ enum class SearchType {
 data class SearchFilter(val type: SearchType, val params: String)
 data class SearchResults(val suggested_correction: String?, val categories: List<Pair<MediaItemLayout, SearchFilter?>>)
 
-fun searchYoutubeMusic(query: String, params: String?): Result<SearchResults> {
+suspend fun searchYoutubeMusic(query: String, params: String?): Result<SearchResults> = withContext(Dispatchers.IO) {
     val params_str: String = if (params != null) "\"$params\"" else "null"
     val hl = SpMp.data_language
     val request = Request.Builder()
@@ -74,13 +74,19 @@ fun searchYoutubeMusic(query: String, params: String?): Result<SearchResults> {
 
     val result = Api.request(request)
     if (result.isFailure) {
-        return result.cast()
+        return@withContext result.cast()
     }
 
     val stream = result.getOrThrow().getStream()
-    val str = stream.reader().readText()
-    val parsed: YoutubeiSearchResponse = Api.klaxon.parse(str)!!
-    stream.close()
+    val parsed: YoutubeiSearchResponse = try {
+        Api.klaxon.parse(stream)!!
+    }
+    catch (e: Throwable) {
+        return@withContext Result.failure(e)
+    }
+    finally {
+        stream.close()
+    }
 
     val tab = parsed.contents.tabbedSearchResultsRenderer.tabs.first().tabRenderer
 
@@ -105,7 +111,12 @@ fun searchYoutubeMusic(query: String, params: String?): Result<SearchResults> {
         val card = category.value.musicCardShelfRenderer
         if (card != null) {
             category_layouts.add(Pair(
-                MediaItemLayout(LocalisedYoutubeString.raw(getStringTODO(card.header.musicCardShelfHeaderBasicRenderer!!.title.first_text)), null, items = mutableListOf(card.getMediaItem()), type = MediaItemLayout.Type.CARD),
+                MediaItemLayout(
+                    LocalisedYoutubeString.raw(getStringTODO(card.header.musicCardShelfHeaderBasicRenderer!!.title.first_text)), 
+                    null, 
+                    items = mutableListOf(card.getMediaItem()), 
+                    type = MediaItemLayout.Type.CARD
+                ),
                 null
             ))
             continue
@@ -132,5 +143,5 @@ fun searchYoutubeMusic(query: String, params: String?): Result<SearchResults> {
         ))
     }
 
-    return Result.success(SearchResults(correction_suggestion, category_layouts))
+    return@withContext Result.success(SearchResults(correction_suggestion, category_layouts))
 }

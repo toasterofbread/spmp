@@ -18,7 +18,7 @@ class ArtistBrowseResponse(val header: Header) {
     fun getSubscribed(): Boolean? = header.musicImmersiveHeaderRenderer?.subscriptionButton?.subscribeButtonRenderer?.subscribed
 }
 
-fun isSubscribedToArtist(artist: Artist): Result<Boolean?> {
+suspend fun isSubscribedToArtist(artist: Artist): Result<Boolean?> = withContext(Dispatchers.IO) {
     check(!artist.is_for_item)
 
     val request: Request = Request.Builder()
@@ -29,12 +29,19 @@ fun isSubscribedToArtist(artist: Artist): Result<Boolean?> {
 
     val result = Api.request(request)
     if (result.isFailure) {
-        return result.cast()
+        return@withContext result.cast()
     }
 
     val stream = result.getOrThrow().getStream()
-    val parsed: ArtistBrowseResponse = Api.klaxon.parse(stream)!!
-    stream.close()
+    val parsed: ArtistBrowseResponse = try {
+        Api.klaxon.parse(stream)!!
+    }
+    catch (e: Throwable) {
+        return@withContext Result.failure(e)
+    }
+    finally {
+        stream.close()
+    }
 
     return Result.success(parsed.getSubscribed())
 }

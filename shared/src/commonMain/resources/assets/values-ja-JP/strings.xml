@@ -42,6 +42,9 @@
     <string name="audiobooks">オーディオブック</string>
     <string name="radio">ラジオ</string>
     <string name="radios">ラジオ</string>
+
+    <string name="edit_$x_title_dialog_title">$xのタイトルを変更</string>
+    
     <string name="song_name">曲名</string>
     <string name="feed_row_artists">おすすめのアーティスト</string>
     <string name="feed_row_playlists">プレイリスト</string>

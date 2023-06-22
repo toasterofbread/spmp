@@ -58,6 +58,8 @@
     <string name="radio">Radio</string>
     <string name="radios">Radios</string>
 
+    <string name="edit_$x_title_dialog_title">Edit $x title</string>
+
     <string name="new_playlist_title">New playlist</string>
     <string name="playlist_empty">Playlist is empty</string>
     <string name="song_add_to_playlist">Add to playlist</string>

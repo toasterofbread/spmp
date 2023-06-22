@@ -294,7 +294,7 @@ private fun TitleBar(item: MediaItem, modifier: Modifier = Modifier) {
     var editing_title by remember { mutableStateOf(false) }
     Crossfade(editing_title) { editing ->
         Column(
-            modifier.padding(start = horizontal_padding), 
+            modifier.padding(start = horizontal_padding).fillMaxHeight(), 
             horizontalAlignment = Alignment.CenterHorizontally, 
             verticalArrangement = Arrangement.spacedBy(10.dp, Alignment.Bottom)
         ) {
@@ -381,6 +381,12 @@ private fun TitleBar(item: MediaItem, modifier: Modifier = Modifier) {
 
                 Spacer(Modifier.fillMaxWidth().weight(1f))
 
+                if (!editing_title) {
+                    IconButton({ editing_title = true }) {
+                        Icon(Icons.Default.Edit, getString("edit_\$x_title_dialog_title").replace("\$x", MediaItemType.ARTIST.getReadable()))
+                    }
+                }
+
                 Crossfade(item.pinned_to_home) { pinned ->
                     IconButton({ item.setPinnedToHome(!pinned) }) {
                         Icon(if (pinned) Icons.Filled.PushPin else Icons.Outlined.PushPin, null)
@@ -406,9 +412,11 @@ fun ArtistSubscribeButton(
         return
     }
 
+    val coroutine_scope = rememberCoroutineScope()
+
     LaunchedEffect(artist, artist.is_own_channel) {
         if (!artist.is_own_channel) {
-            thread {
+            coroutine_scope.launch {
                 artist.updateSubscribed()
             }
         }
@@ -418,12 +426,11 @@ fun ArtistSubscribeButton(
         if (subscribed != null) {
             ShapedIconButton(
                 {
-                    artist.toggleSubscribe(
-                        toggle_before_fetch = false,
-                    ) { success, subscribing ->
-                        if (!success) {
+                    coroutine_scope.launch {
+                        val result = artist.toggleSubscribe(false)
+                        if (result.isFailure) {
                             SpMp.context.sendToast(getStringTODO(
-                                if (subscribing) "Subscribing to ${artist.title} failed"
+                                if (artist.subscribed != true) "Subscribing to ${artist.title} failed"
                                 else "Unsubscribing from ${artist.title} failed"
                             ))
                         }

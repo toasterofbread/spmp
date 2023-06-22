@@ -210,22 +210,29 @@ private fun Controls(
         Column(verticalArrangement = Arrangement.spacedBy(35.dp)) {
             Column(verticalArrangement = Arrangement.spacedBy(5.dp)) {
 
-                var title_text by remember { mutableStateOf(song?.title ?: "") }
-                OnChangedEffect(song?.title) {
-                    title_text = song?.title ?: ""
+                var show_title_edit_dialog: Boolean by remember { mutableStateOf(false) }
+                if (show_title_edit_dialog) {
+                    MediaItemTitleEditDialog(data.item, show_title_edit_dialog)
                 }
 
                 Marquee(Modifier.fillMaxWidth()) {
                     Text(
-                        title_text,
-                        fontSize = 17.sp,
+                        song?.title ?: "",
+                        fontSize = 20.sp,
                         color = getNPOnBackground(),
                         textAlign = TextAlign.Center,
                         maxLines = 1,
                         softWrap = false,
                         // TODO Using ellipsis makes this go weird, no clue why
                         overflow = TextOverflow.Clip,
-                        modifier = Modifier.fillMaxWidth()
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .platformClickable(
+                                onAltClick = {
+                                    show_title_edit_dialog = !show_title_edit_dialog
+                                    SpMp.context.vibrateShort()
+                                }
+                            )
                     )
                 }
 

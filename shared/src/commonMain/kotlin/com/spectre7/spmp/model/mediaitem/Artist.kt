@@ -40,35 +40,34 @@ class Artist private constructor (
         } ?: ""
     }
 
-    fun updateSubscribed() {
+    suspend fun updateSubscribed(): Result<Unit> {
         check(!is_for_item)
 
         if (is_own_channel) {
             return
         }
-        subscribed = isSubscribedToArtist(this).getOrNull()
+
+        val result = isSubscribedToArtist(this)
+        subscribed = result.getOrNull()
+
+        return result.unit()
     }
 
-    fun toggleSubscribe(toggle_before_fetch: Boolean = false, onFinished: ((success: Boolean, subscribing: Boolean) -> Unit)? = null) {
+    suspend fun toggleSubscribe(toggle_before_fetch: Boolean = false): Result<Unit> = withContext(Dispatchers.IO) {
         check(!is_for_item)
         check(Api.ytm_authenticated)
 
-        thread {
-            if (subscribed == null) {
-                throw IllegalStateException()
-            }
-
-            val target = !subscribed!!
-
-            if (toggle_before_fetch) {
-                subscribed = target
-            }
-
-            subscribeOrUnsubscribeArtist(this, target).getOrThrowHere()
-            updateSubscribed()
-
-            onFinished?.invoke(subscribed == target, target)
+        if (subscribed == null) {
+            return@withContext Result.failure(IllegalStateException())
         }
+
+        val target = !subscribed!!
+        if (toggle_before_fetch) {
+            subscribed = target
+        }
+
+        val result = subscribeOrUnsubscribeArtist(this, target)
+        return@withContext result.unit()
     }
 
     fun editArtistData(action: ArtistItemData.() -> Unit): Artist {

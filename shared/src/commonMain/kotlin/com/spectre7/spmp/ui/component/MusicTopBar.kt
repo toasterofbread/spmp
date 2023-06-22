@@ -35,9 +35,9 @@ private fun getModeState(mode: MusicTopBarMode, song: Song?): Any? {
 }
 
 @Composable
-private fun isStateActive(state: Any): Boolean = when (state) {
+private fun isStateActive(state: Any, can_show_visualiser: Boolean): Boolean = when (state) {
     is SongLyrics -> true
-    MusicTopBarMode.VISUALISER -> LocalPlayerState.current.status.m_playing
+    MusicTopBarMode.VISUALISER -> can_show_visualiser && LocalPlayerState.current.status.m_playing
     else -> false
 }
 
@@ -169,7 +169,7 @@ private fun MusicTopBar(
         }
     }
 
-    val show = !hide_while_inactive || isStateActive(current_state)
+    val show = !hide_while_inactive || isStateActive(current_state, can_show_visualiser)
     DisposableEffect(show) {
         onShowingChanged?.invoke(show)
         onDispose {

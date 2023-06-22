@@ -52,7 +52,7 @@ fun <T> Result.Companion.failure(response: Response): Result<T> {
 
 fun <I, O> Result<I>.cast(transform: (I) -> O = { it as O }): Result<O> {
     return fold(
-        { Result.success(transform(it)) },
+        { runCatching { transform(it) } },
         { Result.failure(it) }
     )
 }

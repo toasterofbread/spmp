@@ -32,6 +32,7 @@ import com.spectre7.spmp.model.mediaitem.*
 import com.spectre7.spmp.platform.composable.PlatformAlertDialog
 import com.spectre7.spmp.platform.composable.PlatformDialog
 import com.spectre7.spmp.platform.composable.platformClickable
+import com.spectre7.spmp.platform.vibrateShort
 import com.spectre7.spmp.resources.getString
 import com.spectre7.spmp.ui.component.multiselect.MediaItemMultiSelectContext
 import com.spectre7.spmp.ui.layout.nowplaying.overlay.DEFAULT_THUMBNAIL_ROUNDING
@@ -164,7 +165,9 @@ private fun MenuContent(
 
     var show_title_edit_dialog: Boolean by remember { mutableStateOf(false) }
     if (show_title_edit_dialog) {
-        MediaItemTitleEditDialog(data.item, show_title_edit_dialog)
+        MediaItemTitleEditDialog(data.item) {
+            show_title_edit_dialog = false
+        }
     }
 
     Box(

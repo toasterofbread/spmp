@@ -37,6 +37,7 @@ import com.github.krottv.compose.sliders.SliderValueHorizontal
 import com.spectre7.spmp.model.mediaitem.Song
 import com.spectre7.spmp.platform.composable.platformClickable
 import com.spectre7.spmp.platform.vibrateShort
+import com.spectre7.spmp.ui.component.MediaItemTitleEditDialog
 import com.spectre7.spmp.ui.layout.mainpage.MINIMISED_NOW_PLAYING_HEIGHT
 import com.spectre7.spmp.ui.layout.mainpage.MINIMISED_NOW_PLAYING_V_PADDING
 import com.spectre7.spmp.ui.theme.Theme
@@ -168,6 +169,15 @@ private fun Controls(
     modifier: Modifier = Modifier
 ) {
     val player = LocalPlayerState.current
+    var show_title_edit_dialog: Boolean by remember { mutableStateOf(false) }
+
+    LaunchedEffect(song) {
+        show_title_edit_dialog = false
+    }
+
+    if (show_title_edit_dialog && song != null) {
+        MediaItemTitleEditDialog(song) { show_title_edit_dialog = false }
+    }
 
     Spacer(Modifier.requiredHeight(30.dp))
 
@@ -209,11 +219,6 @@ private fun Controls(
 
         Column(verticalArrangement = Arrangement.spacedBy(35.dp)) {
             Column(verticalArrangement = Arrangement.spacedBy(5.dp)) {
-
-                var show_title_edit_dialog: Boolean by remember { mutableStateOf(false) }
-                if (show_title_edit_dialog) {
-                    MediaItemTitleEditDialog(data.item, show_title_edit_dialog)
-                }
 
                 Marquee(Modifier.fillMaxWidth()) {
                     Text(

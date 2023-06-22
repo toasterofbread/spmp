@@ -38,6 +38,7 @@ import com.spectre7.spmp.api.Api
 import com.spectre7.spmp.api.getOrReport
 import com.spectre7.spmp.model.*
 import com.spectre7.spmp.model.mediaitem.*
+import com.spectre7.spmp.model.mediaitem.enums.MediaItemType
 import com.spectre7.spmp.platform.composable.PlatformAlertDialog
 import com.spectre7.spmp.platform.vibrateShort
 import com.spectre7.spmp.resources.getString
@@ -52,7 +53,6 @@ import com.spectre7.utils.composable.*
 import com.spectre7.utils.modifier.background
 import com.spectre7.utils.modifier.brushBackground
 import kotlinx.coroutines.*
-import kotlin.concurrent.thread
 
 private const val ARTIST_IMAGE_SCROLL_MODIFIER = 0.25f
 
@@ -83,12 +83,6 @@ fun ArtistPage(
         item.loadThumbnail(MediaItemThumbnailProvider.Quality.HIGH)
     }
 
-//    LaunchedEffect(accent_colour) {
-//        if (accent_colour != null) {
-//            pill_menu.setBackgroundColourOverride(accent_colour)
-//        }
-//    }
-
     if (show_info) {
         InfoDialog(item) { show_info = false }
     }
@@ -100,6 +94,10 @@ fun ArtistPage(
             background_modifier.fillMaxWidth().zIndex(1f),
             padding = PaddingValues(bottom = top_bar_padding, top = top_bar_padding + SpMp.context.getStatusBarHeight())
         )
+
+        AnimatedVisibility(multiselect_context.is_active) {
+            multiselect_context.InfoDisplay(background_modifier)
+        }
 
         Box(Modifier.fillMaxSize(), contentAlignment = Alignment.TopCenter) {
 
@@ -224,12 +222,6 @@ fun ArtistPage(
                                 Icon(Icons.Default.PlayArrow, null)
                             }
                         }
-                    }
-                }
-
-                item {
-                    this@Column.AnimatedVisibility(multiselect_context.is_active) {
-                        multiselect_context.InfoDisplay(background_modifier)
                     }
                 }
 

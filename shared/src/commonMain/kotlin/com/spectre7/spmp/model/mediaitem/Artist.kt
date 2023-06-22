@@ -11,6 +11,8 @@ import com.spectre7.spmp.resources.getString
 import com.spectre7.spmp.ui.component.ArtistPreviewLong
 import com.spectre7.spmp.ui.component.ArtistPreviewSquare
 import com.spectre7.spmp.ui.component.MediaItemLayout
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.withContext
 import kotlin.concurrent.thread
 
 class Artist private constructor (
@@ -44,7 +46,7 @@ class Artist private constructor (
         check(!is_for_item)
 
         if (is_own_channel) {
-            return
+            return Result.success(Unit)
         }
 
         val result = isSubscribedToArtist(this)
@@ -66,7 +68,7 @@ class Artist private constructor (
             subscribed = target
         }
 
-        val result = subscribeOrUnsubscribeArtist(this, target)
+        val result = subscribeOrUnsubscribeArtist(this@Artist, target)
         return@withContext result.unit()
     }
 

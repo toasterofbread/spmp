@@ -5,6 +5,8 @@ import com.spectre7.spmp.api.Api.Companion.getStream
 import com.spectre7.spmp.api.Api.Companion.ytUrl
 import com.spectre7.spmp.model.mediaitem.Artist
 import com.spectre7.spmp.resources.getString
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.withContext
 import okhttp3.HttpUrl.Companion.toHttpUrl
 import okhttp3.Request
 import java.util.*
@@ -43,7 +45,7 @@ suspend fun isSubscribedToArtist(artist: Artist): Result<Boolean?> = withContext
         stream.close()
     }
 
-    return Result.success(parsed.getSubscribed())
+    return@withContext Result.success(parsed.getSubscribed())
 }
 
 fun subscribeOrUnsubscribeArtist(artist: Artist, subscribe: Boolean): Result<Any> {

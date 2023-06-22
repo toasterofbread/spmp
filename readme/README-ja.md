@@ -1,4 +1,4 @@
-[英語のREADMEへ](../README.md)
+[To the English README](../README.md)
 
 ###
 <img align="left" width="140" src="../androidApp/src/main/ic_launcher-playstore.png">

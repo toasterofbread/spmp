@@ -1,3 +1,5 @@
+[To the Japanese README](readme/README-ja.md)
+
 ###
 <img align="left" width="140" src="androidApp/src/main/ic_launcher-playstore.png">
 

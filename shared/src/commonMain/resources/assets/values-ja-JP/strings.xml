@@ -25,6 +25,9 @@
     <string name="s_option_np_accent_background">バックグラウンドをアクセント色で彩る</string>
     <string name="s_option_np_accent_elements">エレメントをアクセント色で彩る</string>
     <string name="s_option_np_accent_none">アクセント色不使用</string>
+
+    <string name="s_key_np_default_gradient_depth">Default gradient depth</string>
+
     <string name="loading_feed">フィードをロード中</string>
     <string name="now_playing_player">プレイヤー</string>
     <string name="artists">アーティスト</string>
@@ -136,8 +139,14 @@
     <string name="action_cancel">キャンセル</string>
     <string name="action_confirm_action">はい</string>
     <string name="action_deny_action">いいえ</string>
+
+    <string name="song_theme_menu_pick_colour_from_thumb">サムネールから選ぶ</string>
+    <string name="song_theme_menu_corner_radius_$x">コーナーの半径: $x</string>
+    <string name="song_theme_menu_gradient_depth_$x">グラデーションの深さ</string>
+
     <string name="theme_title_new">新しいテーマ</string>
     <string name="theme_title_default">デフォルトテーマ</string>
+
     <string name="queue_shuffle">シャッフル</string>
     <string name="queue_clear">クリア</string>
 

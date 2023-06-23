@@ -12,10 +12,9 @@ import androidx.compose.foundation.interaction.MutableInteractionSource
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.filled.KeyboardArrowUp
-import androidx.compose.material.icons.filled.Pause
-import androidx.compose.material.icons.filled.PlayArrow
-import androidx.compose.material.icons.filled.SkipNext
+import androidx.compose.material.icons.rounded.Pause
+import androidx.compose.material.icons.rounded.PlayArrow
+import androidx.compose.material.icons.rounded.SkipNext
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
@@ -73,14 +72,10 @@ fun ThumbnailRow(
         var overlay_menu by remember { mutableStateOf<OverlayMenu?>(null) }
         var colourpick_callback by remember { mutableStateOf<((Color?) -> Unit)?>(null) }
 
-        LaunchedEffect(expansion.getAbsolute() > 0f) {
-            overlay_menu = null
-        }
-
-        var get_shutter_menu by remember { mutableStateOf<(@Composable () -> Unit)?>(null) }
-        var shutter_menu_open by remember { mutableStateOf(false) }
-        LaunchedEffect(expansion.getAbsolute() >= EXPANDED_THRESHOLD) {
-            shutter_menu_open = false
+        LaunchedEffect(
+            expansion.getAbsolute() > 0f,
+            expansion.getAbsolute() >= EXPANDED_THRESHOLD
+        ) {
             overlay_menu = null
         }
 
@@ -193,55 +188,10 @@ fun ThumbnailRow(
                                     { player.status.m_song!! },
                                     expansion.getAbsolute(),
                                     {
-                                        get_shutter_menu = it
-                                        shutter_menu_open = true
-                                    },
-                                    {
                                         overlay_menu = null
                                     },
-                                    getSeekState,
-                                    { current_thumb_image }
-                                )
-                            }
-                        }
-                    }
-                }
-
-                androidx.compose.animation.AnimatedVisibility(
-                    shutter_menu_open,
-                    enter = expandVertically(tween(200)),
-                    exit = shrinkVertically(tween(200))
-                ) {
-                    val padding = 15.dp
-                    CompositionLocalProvider(
-                        LocalContentColor provides getNPOnBackground()
-                    ) {
-                        Column(
-                            Modifier
-                                .background(
-                                    getNPBackground().setAlpha(0.9f),
-                                    thumbnail_shape
-                                )
-                                .padding(start = padding, top = padding, end = padding)
-                                .fillMaxSize(),
-                            horizontalAlignment = Alignment.CenterHorizontally,
-                            verticalArrangement = Arrangement.SpaceBetween
-                        ) {
-                            Column(
-                                Modifier
-                                    .fillMaxHeight()
-                                    .weight(1f),
-                                horizontalAlignment = Alignment.CenterHorizontally,
-                                verticalArrangement = Arrangement.Center
-                            ) {
-                                get_shutter_menu?.invoke()
-                            }
-                            IconButton(onClick = { shutter_menu_open = false }) {
-                                Icon(
-                                    Icons.Filled.KeyboardArrowUp, null,
-                                    tint = getNPOnBackground(),
-                                    modifier = Modifier.size(50.dp)
-                                )
+                                    getSeekState
+                                ) { current_thumb_image }
                             }
                         }
                     }
@@ -277,7 +227,7 @@ fun ThumbnailRow(
             val player_button_modifier = Modifier.size(40.dp)
             IconButton({ player.player?.playPause() }, player_button_modifier) {
                 Image(
-                    if (player.status.m_playing) Icons.Filled.Pause else Icons.Filled.PlayArrow,
+                    if (player.status.m_playing) Icons.Rounded.Pause else Icons.Rounded.PlayArrow,
                     getString(if (player.status.m_playing) "media_pause" else "media_play"),
                     colorFilter = ColorFilter.tint(getNPOnBackground())
                 )
@@ -285,7 +235,7 @@ fun ThumbnailRow(
 
             IconButton({ player.player?.seekToNext() }, player_button_modifier) {
                 Image(
-                    Icons.Filled.SkipNext,
+                    Icons.Rounded.SkipNext,
                     null,
                     colorFilter = ColorFilter.tint(getNPOnBackground())
                 )

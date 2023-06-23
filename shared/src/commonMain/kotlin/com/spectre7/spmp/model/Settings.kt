@@ -60,6 +60,7 @@ enum class Settings {
     KEY_THEMES,
     KEY_ACCENT_COLOUR_SOURCE,
     KEY_NOWPLAYING_THEME_MODE,
+    KEY_NOWPLAYING_DEFAULT_GRADIENT_DEPTH,
 
     // Lyrics
     KEY_LYRICS_FOLLOW_ENABLED,
@@ -230,6 +231,7 @@ enum class Settings {
                 KEY_CURRENT_THEME -> 0
                 KEY_THEMES -> "[]"
                 KEY_NOWPLAYING_THEME_MODE -> 0
+                KEY_NOWPLAYING_DEFAULT_GRADIENT_DEPTH -> 1f
 
                 KEY_LYRICS_FOLLOW_ENABLED -> true
                 KEY_LYRICS_FOLLOW_OFFSET -> 0.25f

@@ -9,7 +9,6 @@ abstract class OverlayMenu {
     abstract fun Menu(
         songProvider: () -> Song,
         expansion: Float,
-        openShutterMenu: (@Composable () -> Unit) -> Unit,
         close: () -> Unit,
         getSeekState: () -> Any,
         getCurrentSongThumb: () -> ImageBitmap?

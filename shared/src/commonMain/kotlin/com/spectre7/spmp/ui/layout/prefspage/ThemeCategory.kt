@@ -2,6 +2,7 @@ package com.spectre7.spmp.ui.layout.prefspage
 
 import com.spectre7.settings.model.SettingsItem
 import com.spectre7.settings.model.SettingsItemMultipleChoice
+import com.spectre7.settings.model.SettingsItemSlider
 import com.spectre7.settings.model.SettingsValueState
 import com.spectre7.settings.ui.SettingsItemThemeSelector
 import com.spectre7.spmp.model.AccentColourSource
@@ -51,6 +52,11 @@ internal fun getThemeCategory(theme_manager: ThemeManager): List<SettingsItem> {
                 1 -> getString("s_option_np_accent_elements")
                 else -> getString("s_option_np_accent_none")
             }
-        }
+        },
+
+        SettingsItemSlider(
+            SettingsValueState(Settings.KEY_NOWPLAYING_DEFAULT_GRADIENT_DEPTH.name),
+            getString("s_key_np_default_gradient_depth"), null
+        )
     )
 }

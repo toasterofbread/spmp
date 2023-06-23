@@ -4,16 +4,22 @@ import LocalPlayerState
 import SpMp
 import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.animation.animateContentSize
+import androidx.compose.animation.core.Spring
+import androidx.compose.animation.core.animateFloatAsState
+import androidx.compose.animation.core.spring
 import androidx.compose.animation.expandHorizontally
 import androidx.compose.animation.shrinkHorizontally
-import androidx.compose.foundation.Image
+import androidx.compose.foundation.Canvas
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.interaction.MutableInteractionSource
 import androidx.compose.foundation.layout.*
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.*
-import androidx.compose.material.ripple.rememberRipple
+import androidx.compose.material.icons.rounded.Pause
+import androidx.compose.material.icons.rounded.PlayArrow
+import androidx.compose.material.icons.rounded.SkipNext
+import androidx.compose.material.icons.rounded.SkipPrevious
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.Text
@@ -22,11 +28,9 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.alpha
 import androidx.compose.ui.geometry.Offset
-import androidx.compose.ui.graphics.Color
-import androidx.compose.ui.graphics.ColorFilter
-import androidx.compose.ui.graphics.StrokeCap
-import androidx.compose.ui.graphics.graphicsLayer
+import androidx.compose.ui.graphics.*
 import androidx.compose.ui.graphics.vector.ImageVector
+import androidx.compose.ui.graphics.vector.rememberVectorPainter
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.text.style.TextOverflow
@@ -42,7 +46,6 @@ import com.spectre7.spmp.ui.layout.mainpage.MINIMISED_NOW_PLAYING_HEIGHT
 import com.spectre7.spmp.ui.layout.mainpage.MINIMISED_NOW_PLAYING_V_PADDING
 import com.spectre7.spmp.ui.theme.Theme
 import com.spectre7.utils.composable.Marquee
-import com.spectre7.utils.composable.OnChangedEffect
 import com.spectre7.utils.composable.RecomposeOnInterval
 import com.spectre7.utils.formatElapsedTime
 import com.spectre7.utils.setAlpha
@@ -54,6 +57,8 @@ internal const val MINIMISED_NOW_PLAYING_HORIZ_PADDING = 10f
 internal const val OVERLAY_MENU_ANIMATION_DURATION: Int = 200
 internal const val NOW_PLAYING_TOP_BAR_HEIGHT: Int = 40
 internal const val MIN_EXPANSION = 0.07930607f
+
+private const val SEEK_BAR_GRADIENT_OVERFLOW_RATIO = 0.3f
 
 @Composable
 fun ColumnScope.NowPlayingMainTab() {
@@ -187,37 +192,48 @@ private fun Controls(
     ) {
 
         @Composable
-        fun PlayerButton(image: ImageVector, size: Dp = 60.dp, alpha: Float = 1f, colourProvider: (() -> Color)? = null, label: String? = null, enabled: Boolean = true, on_click: () -> Unit) {
+        fun PlayerButton(
+            image: ImageVector,
+            size: Dp = 60.dp,
+            enabled: Boolean = true,
+            onClick: () -> Unit
+        ) {
             Box(
                 contentAlignment = Alignment.Center,
                 modifier = Modifier
                     .clickable(
-                        onClick = on_click,
-                        indication = rememberRipple(
-                            radius = 25.dp,
-                            bounded = false
-                        ),
+                        onClick = onClick,
+                        indication = null,
                         interactionSource = remember { MutableInteractionSource() },
                         enabled = enabled
                     )
                     .alpha(if (enabled) 1.0f else 0.5f)
             ) {
-                val colour = colourProvider?.invoke() ?: getNPOnBackground()
-                Image(
-                    image, null,
+                val painter = rememberVectorPainter(image)
+
+                Canvas(
                     Modifier
-                        .requiredSize(size, 60.dp)
-                        .offset(y = if (label != null) (-7).dp else 0.dp),
-                    colorFilter = ColorFilter.tint(colour),
-                    alpha = alpha
-                )
-                if (label != null) {
-                    Text(label, color = colour, fontSize = 10.sp, modifier = Modifier.offset(y = (10).dp))
+                        .requiredSize(size)
+                        // https://stackoverflow.com/a/67820996
+                        .graphicsLayer { alpha = 0.99f }
+                ) {
+                    with(painter) {
+                        draw(this@Canvas.size)
+                    }
+
+                    val gradient_end = this@Canvas.size.width * 1.7f
+                    drawRect(
+                        Brush.linearGradient(
+                            listOf(getNPOnBackground(), getNPBackground()),
+                            end = Offset(gradient_end, gradient_end)
+                        ),
+                        blendMode = BlendMode.SrcAtop
+                    )
                 }
             }
         }
 
-        Column(verticalArrangement = Arrangement.spacedBy(35.dp)) {
+        Column(verticalArrangement = Arrangement.spacedBy(25.dp)) {
             Column(verticalArrangement = Arrangement.spacedBy(5.dp)) {
 
                 Marquee(Modifier.fillMaxWidth()) {
@@ -274,28 +290,38 @@ private fun Controls(
 
             Row(
                 horizontalArrangement = Arrangement.Center,
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .weight(1f),
+                verticalAlignment = Alignment.CenterVertically,
+                modifier = Modifier.fillMaxWidth()
             ) {
                 // Previous
-                PlayerButton(Icons.Filled.SkipPrevious, enabled = player.status.m_has_previous) {
+                PlayerButton(
+                    Icons.Rounded.SkipPrevious,
+                    enabled = player.status.m_has_previous,
+                    size = 60.dp
+                ) {
                     player.player?.seekToPrevious()
                 }
 
                 // Play / pause
                 PlayerButton(
-                    if (player.status.m_playing) Icons.Filled.Pause else Icons.Filled.PlayArrow,
-                    enabled = song != null
+                    if (player.status.m_playing) Icons.Rounded.Pause else Icons.Rounded.PlayArrow,
+                    enabled = song != null,
+                    size = 75.dp
                 ) {
                     player.player?.playPause()
                 }
 
                 // Next
-                PlayerButton(Icons.Filled.SkipNext, enabled = player.status.m_has_next) {
+                PlayerButton(
+                    Icons.Rounded.SkipNext,
+                    enabled = player.status.m_has_next,
+                    size = 60.dp
+                ) {
                     player.player?.seekToNext()
                 }
             }
+
+            Spacer(Modifier.fillMaxHeight().weight(1f))
 
             val bottom_row_colour = getNPOnBackground().setAlpha(0.5f)
             Row(
@@ -319,13 +345,6 @@ private fun Controls(
                     AnimatedVisibility(volume_slider_visible) {
                         VolumeSlider(bottom_row_colour)
                     }
-                }
-
-                val expansion = LocalNowPlayingExpansion.current
-                IconButton(
-                    { expansion.scroll(1) }
-                ) {
-                    Icon(Icons.Filled.KeyboardArrowDown, null, tint = bottom_row_colour)
                 }
 
                 AnimatedVisibility(!volume_slider_visible, enter = expandHorizontally(), exit = shrinkHorizontally()) {
@@ -357,7 +376,7 @@ private fun VolumeSlider(colour: Color, modifier: Modifier = Modifier) {
 private fun SeekBarTimeText(time: Long, colour: Color) {
     val seconds = time / 1000f
     Text(
-        remember(seconds) { if (seconds < 0f) "??:??" else formatElapsedTime(seconds.toLong()) },
+        remember(seconds) { if (seconds < 0f) "" else formatElapsedTime(seconds.toLong()) },
         fontSize = 10.sp,
         fontWeight = FontWeight.Light,
         color = colour
@@ -370,7 +389,6 @@ private fun SeekBar(seek: (Float) -> Unit) {
 
     var position_override by remember { mutableStateOf<Float?>(null) }
     var old_position by remember { mutableStateOf<Float?>(null) }
-    var grab_start_position by remember { mutableStateOf<Float?>(null) }
     var cancel_area_side: Int? by remember { mutableStateOf(null) }
 
     fun getSliderValue(): Float {
@@ -388,48 +406,27 @@ private fun SeekBar(seek: (Float) -> Unit) {
 
     RecomposeOnInterval(POSITION_UPDATE_INTERVAL_MS, player.status.m_playing) { state ->
         state
-        Row(
-            verticalAlignment = Alignment.CenterVertically,
-            horizontalArrangement = Arrangement.spacedBy(5.dp)
-        ) {
 
-            SeekBarTimeText(player.status.getPositionMillis(), getNPOnBackground())
+        Column(verticalArrangement = Arrangement.spacedBy(5.dp)) {
+            Row(Modifier.fillMaxWidth().padding(horizontal = 7.dp), horizontalArrangement = Arrangement.SpaceBetween) {
+                SeekBarTimeText(player.status.getPositionMillis(), getNPOnBackground())
+                SeekBarTimeText(player.status.m_duration_ms, getNPOnBackground())
+            }
 
             SliderValueHorizontal(
                 value = getSliderValue(),
                 onValueChange = {
-                    if (grab_start_position == null) {
-                        grab_start_position = player.status.getProgress()
-                    }
-
                     position_override = it
-
-                    val side = if (it <= grab_start_position!! - SEEK_CANCEL_THRESHOLD / 2.0) -1 else if (it >= grab_start_position!! + SEEK_CANCEL_THRESHOLD / 2.0) 1 else 0
-                    if (side != cancel_area_side) {
-                        if (side == 0 || side + (cancel_area_side ?: 0) == 0) {
-                            SpMp.context.vibrateShort()
-                        }
-                        cancel_area_side = side
-                    }
                 },
                 onValueChangeFinished = {
-                    if (cancel_area_side == 0 && grab_start_position != null) {
-                        SpMp.context.vibrateShort()
-                    }
-                    else {
-                        seek(position_override!!)
-                    }
+                    seek(position_override!!)
                     old_position = player.status.getProgress()
-                    grab_start_position = null
                     cancel_area_side = null
                 },
                 thumbSizeInDp = DpSize(12.dp, 12.dp),
-                track = { a, b, _, _, e -> SeekTrack(a, b, e, grab_start_position, getNPOnBackground().setAlpha(0.5f), getNPOnBackground()) },
-                thumb = { a, b, c, d, e -> DefaultThumb(a, b, c, d, e, getNPOnBackground(), 1f) },
-                modifier = Modifier.weight(1f)
+                track = { a, b, _, _, e -> SeekTrack(a, b, e, getNPAltOnBackground(), getNPOnBackground()) },
+                thumb = { a, b, c, d, e -> DefaultThumb(a, b, c, d, e, getNPOnBackground(), 1f) }
             )
-
-            SeekBarTimeText(player.status.m_duration_ms, getNPOnBackground())
         }
     }
 }
@@ -439,25 +436,30 @@ fun SeekTrack(
     modifier: Modifier,
     progress: Float,
     enabled: Boolean,
-    grab_start_position: Float?,
-    track_colour: Color = Color(0xffD3B4F7),
-    progress_colour: Color = Color(0xff7000F8),
-    height: Dp = 4.dp,
-    highlight_colour: Color = Color.Red.setAlpha(0.2f)
+    track_colour: Color,
+    progress_colour: Color,
+    height: Dp = 4.dp
 ) {
-    androidx.compose.foundation.Canvas(
+    val visual_progress by animateFloatAsState(progress, spring(stiffness = Spring.StiffnessLow))
+
+    Canvas(
         Modifier
             .then(modifier)
             .height(height)
     ) {
-
         val left = Offset(0f, center.y)
         val right = Offset(size.width, center.y)
         val start = if (layoutDirection == LayoutDirection.Rtl) right else left
         val end = if (layoutDirection == LayoutDirection.Rtl) left else right
 
+        val progress_width = (end.x - start.x) * visual_progress
+
         drawLine(
-            track_colour,
+            Brush.horizontalGradient(
+                listOf(progress_colour, track_colour),
+                startX = progress_width,
+                endX = progress_width + ((size.width - progress_width) * SEEK_BAR_GRADIENT_OVERFLOW_RATIO)
+            ),
             start,
             end,
             size.height,
@@ -472,25 +474,12 @@ fun SeekTrack(
                 center.y
             ),
             Offset(
-                start.x + (end.x - start.x) * progress,
+                start.x + progress_width,
                 center.y
             ),
             size.height,
             StrokeCap.Round,
             alpha = if (enabled) 1f else 0.6f
         )
-
-        if (grab_start_position != null) {
-            drawLine(
-                highlight_colour,
-                Offset(size.width * (grab_start_position - SEEK_CANCEL_THRESHOLD / 2.0f),
-                    center.y),
-                Offset(size.width * (grab_start_position + SEEK_CANCEL_THRESHOLD / 2.0f),
-                    center.y),
-                size.height,
-                StrokeCap.Square,
-                alpha = if (enabled) 1f else 0.6f
-            )
-        }
     }
 }

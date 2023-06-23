@@ -12,6 +12,7 @@ const val SONG_STATIC_LYRICS_SYNC_OFFSET = 500
 class SongDataRegistryEntry: MediaItemDataRegistry.Entry() {
     var theme_colour: Int? by mutableStateOf(null)
     var thumbnail_rounding: Int? by mutableStateOf(null)
+    var np_gradient_depth: Float? by mutableStateOf(null)
 
     var lyrics_id: Int? by mutableStateOf(null)
     var lyrics_source: SongLyrics.Source? by mutableStateOf(null)
@@ -39,6 +40,7 @@ class SongDataRegistryEntry: MediaItemDataRegistry.Entry() {
         super.clear()
         theme_colour = null
         thumbnail_rounding = null
+        np_gradient_depth = null
         lyrics_id = null
         lyrics_source = null
         lyrics_sync_offset = null

@@ -162,7 +162,9 @@ actual open class MediaPlayerService {
         addSong(song, song_count)
     }
     actual fun addSong(song: Song, index: Int) {
-        require(index in 0 .. song_count) { "$index | $song_count" }
+        if (index !in 0 .. song_count) {
+            return
+        }
 
         val item = ExoMediaItem.Builder()
             .setRequestMetadata(ExoMediaItem.RequestMetadata.Builder().setMediaUri(song.id.toUri()).build())

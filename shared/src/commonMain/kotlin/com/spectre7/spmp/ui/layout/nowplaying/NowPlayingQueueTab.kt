@@ -216,7 +216,7 @@ fun QueueTab() {
 
     val background_colour = getNPBackground()
     val backgroundColourProvider = { getNPBackground() }
-    val queue_background_colour = getNPBackground().amplify(0.15f, 0.15f)
+    val queue_background_colour = getNPAltOnBackground()
 
     val shape = RoundedCornerShape(topStart = 25.dp, topEnd = 25.dp)
 
@@ -432,8 +432,6 @@ fun QueueTab() {
                     }
                 }
             }
-
-            ActionBar()
         }
     }
 }
@@ -619,29 +617,3 @@ private fun StopAfterSongButton(backgroundColourProvider: () -> Color, modifier:
     }
 }
 
-@Composable
-private fun BoxScope.ActionBar() {
-    val slide_offset: (fullHeight: Int) -> Int = remember { { (it * 0.7).toInt() } }
-    val expansion = LocalNowPlayingExpansion.current
-
-    Box(
-        Modifier
-            .align(Alignment.BottomStart)
-            .padding(10.dp)) {
-
-        AnimatedVisibility(
-            remember { derivedStateOf { expansion.get() >= 0.975f } }.value,
-            enter = slideInVertically(initialOffsetY = slide_offset),
-            exit = slideOutVertically(targetOffsetY = slide_offset)
-        ) {
-            IconButton(
-                { expansion.scroll(-1) },
-                Modifier
-                    .background(getNPOnBackground(), CircleShape)
-                    .size(40.dp)
-            ) {
-                Icon(Icons.Filled.KeyboardArrowUp, null, tint = getNPBackground())
-            }
-        }
-    }
-}

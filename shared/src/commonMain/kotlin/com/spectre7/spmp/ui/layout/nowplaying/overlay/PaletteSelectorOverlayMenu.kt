@@ -20,8 +20,10 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.ImageBitmap
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import com.spectre7.spmp.model.Settings
 import com.spectre7.spmp.model.mediaitem.Song
 import com.spectre7.spmp.platform.generatePalette
+import com.spectre7.spmp.resources.getString
 import com.spectre7.spmp.ui.layout.nowplaying.getNPBackground
 import com.spectre7.spmp.ui.layout.nowplaying.getNPOnBackground
 import com.spectre7.utils.composable.OnChangedEffect
@@ -45,11 +47,11 @@ class PaletteSelectorOverlayMenu(
     override fun Menu(
         songProvider: () -> Song,
         expansion: Float,
-        openShutterMenu: (@Composable () -> Unit) -> Unit,
         close: () -> Unit,
         getSeekState: () -> Any,
         getCurrentSongThumb: () -> ImageBitmap?
     ) {
+        val song = songProvider()
         var palette_colours by remember { mutableStateOf<List<Color>?>(null) }
         val thumb_image = getCurrentSongThumb()
 
@@ -91,65 +93,42 @@ class PaletteSelectorOverlayMenu(
                     }
                 }
 
-                Button(
-                    {
-                        colourpick_requested = true
-                        requestColourPicker {
-                            colourpick_requested = false
-                            if (it != null) {
-                                onColourSelected(it)
+                Row {
+                    Button(
+                        {
+                            colourpick_requested = true
+                            requestColourPicker {
+                                colourpick_requested = false
+                                if (it != null) {
+                                    onColourSelected(it)
+                                }
                             }
-                        }
-                    },
-                    colors = ButtonDefaults.buttonColors(
-                        containerColor = getNPBackground(),
-                        contentColor = getNPOnBackground()
-                    )
-                ) {
-                    Text("Pick from thumbnail")
-                }
-
-                var slider_value by remember { mutableStateOf(
-                    ((songProvider().song_reg_entry.thumbnail_rounding ?: DEFAULT_THUMBNAIL_ROUNDING) - MIN_THUMBNAIL_ROUNDING) / (MAX_THUMBNAIL_ROUNDING - MIN_THUMBNAIL_ROUNDING).toFloat()
-                ) }
-
-                val anim_state = remember { Animatable(0f) }
-                var anim_target: Float? by remember { mutableStateOf(null) }
-                OnChangedEffect(anim_target) {
-                    anim_state.animateTo(anim_target!!)
-                }
-
-                var value_change_count by remember { mutableStateOf(0) }
-                OnChangedEffect(slider_value) {
-                    if (value_change_count > 1) {
-                        anim_state.snapTo(slider_value)
-                    }
-                }
-
-                OnChangedEffect(anim_state.value) {
-                    songProvider().apply {
-                        song_reg_entry.thumbnail_rounding = MIN_THUMBNAIL_ROUNDING + ((MAX_THUMBNAIL_ROUNDING - MIN_THUMBNAIL_ROUNDING) * anim_state.value).roundToInt()
-                        if (!anim_state.isRunning) {
-                            saveRegistry()
-                        }
+                        },
+                        colors = ButtonDefaults.buttonColors(
+                            containerColor = getNPBackground(),
+                            contentColor = getNPOnBackground()
+                        )
+                    ) {
+                        Text(getString("song_theme_menu_pick_colour_from_thumb"))
                     }
                 }
 
                 Column(horizontalAlignment = Alignment.CenterHorizontally) {
-                    val radius = (songProvider().song_reg_entry.thumbnail_rounding ?: DEFAULT_THUMBNAIL_ROUNDING) * 2
-                    Text("Corner radius ${radius.toString().padStart(3, ' ')}", Modifier.offset(y = 10.dp), fontSize = 15.sp)
+                    val gradient_depth = songProvider().song_reg_entry.np_gradient_depth ?: Settings.KEY_NOWPLAYING_DEFAULT_GRADIENT_DEPTH.get()
+                    Text(
+                        getString("song_theme_menu_gradient_depth_\$x")
+                            .replace("\$x", gradient_depth.toString().padStart(3, ' ')),
+                        Modifier.offset(y = 10.dp),
+                        fontSize = 15.sp
+                    )
                     val background_colour = getNPBackground()
 
                     Row {
                         Slider(
-                            value = slider_value,
-                            onValueChange = {
-                                slider_value = it
-                                value_change_count += 1
-                            },
-                            onValueChangeFinished = {
-                                value_change_count = 0
-                                anim_target = slider_value
+                            value = gradient_depth,
+                            onValueChange = { value ->
+                                songProvider().song_reg_entry.np_gradient_depth =
+                                    if (value == Settings.KEY_NOWPLAYING_DEFAULT_GRADIENT_DEPTH.get()) null else value
                             },
                             colors = SliderDefaults.colors(
                                 thumbColor = background_colour,
@@ -159,8 +138,70 @@ class PaletteSelectorOverlayMenu(
                             modifier = Modifier.weight(1f)
                         )
                         IconButton({
-                            slider_value = (DEFAULT_THUMBNAIL_ROUNDING - MIN_THUMBNAIL_ROUNDING) / (MAX_THUMBNAIL_ROUNDING - MIN_THUMBNAIL_ROUNDING).toFloat()
-                            anim_target = slider_value
+                            songProvider().song_reg_entry.np_gradient_depth = null
+                        }) {
+                            Icon(Icons.Filled.Refresh, null)
+                        }
+                    }
+                }
+
+                var corner_slider_value by remember { mutableStateOf(
+                    ((song.song_reg_entry.thumbnail_rounding ?: DEFAULT_THUMBNAIL_ROUNDING) - MIN_THUMBNAIL_ROUNDING) / (MAX_THUMBNAIL_ROUNDING - MIN_THUMBNAIL_ROUNDING).toFloat()
+                ) }
+
+                val anim_state = remember { Animatable(0f) }
+                var anim_target: Float? by remember { mutableStateOf(null) }
+                OnChangedEffect(anim_target) {
+                    anim_state.animateTo(anim_target!!)
+                }
+
+                var value_change_count by remember { mutableStateOf(0) }
+                OnChangedEffect(corner_slider_value) {
+                    if (value_change_count > 1) {
+                        anim_state.snapTo(corner_slider_value)
+                    }
+                }
+
+                OnChangedEffect(anim_state.value) {
+                    song.apply {
+                        song_reg_entry.thumbnail_rounding = MIN_THUMBNAIL_ROUNDING + ((MAX_THUMBNAIL_ROUNDING - MIN_THUMBNAIL_ROUNDING) * anim_state.value).roundToInt()
+                        if (!anim_state.isRunning) {
+                            saveRegistry()
+                        }
+                    }
+                }
+
+                Column(horizontalAlignment = Alignment.CenterHorizontally) {
+                    val radius = (songProvider().song_reg_entry.thumbnail_rounding ?: DEFAULT_THUMBNAIL_ROUNDING) * 2
+                    Text(
+                        getString("song_theme_menu_corner_radius_\$x")
+                            .replace("\$x", radius.toString().padStart(3, ' ')),
+                        Modifier.offset(y = 10.dp),
+                        fontSize = 15.sp
+                    )
+                    val background_colour = getNPBackground()
+
+                    Row {
+                        Slider(
+                            value = corner_slider_value,
+                            onValueChange = {
+                                corner_slider_value = it
+                                value_change_count += 1
+                            },
+                            onValueChangeFinished = {
+                                value_change_count = 0
+                                anim_target = corner_slider_value
+                            },
+                            colors = SliderDefaults.colors(
+                                thumbColor = background_colour,
+                                activeTrackColor = background_colour,
+                                inactiveTrackColor = background_colour.setAlpha(0.2f)
+                            ),
+                            modifier = Modifier.weight(1f)
+                        )
+                        IconButton({
+                            corner_slider_value = (DEFAULT_THUMBNAIL_ROUNDING - MIN_THUMBNAIL_ROUNDING) / (MAX_THUMBNAIL_ROUNDING - MIN_THUMBNAIL_ROUNDING).toFloat()
+                            anim_target = corner_slider_value
                         }) {
                             Icon(Icons.Filled.Refresh, null)
                         }
@@ -170,43 +211,3 @@ class PaletteSelectorOverlayMenu(
         }
     }
 }
-
-//private fun km(image: ImageBitmap, k: Int): List<Color> {
-//    // Scale the image down to reduce the number of pixels to process
-//    val scaled = image.scale(50, 50)
-//
-//    // Get the pixel values from the scaled image
-//    val pixels = IntArray(scaled.width * scaled.height)
-//    scaled.readPixels(pixels, 0, scaled.width, 0, 0, scaled.width, scaled.height)
-//
-//    // Convert the pixel values to Color objects
-//    val colors = pixels.map { Color(it) }
-//
-//    // Initialize the k-means algorithm
-//    val centroids = colors.shuffled().take(k).toMutableList()
-//    var prevCentroids: List<Color>
-//
-//    do {
-//        // Assign each color to its nearest centroid
-//        val clusters = colors.groupBy { color ->
-//            centroids.minByOrNull { centroid -> color.distanceTo(centroid) }!!
-//        }
-//
-//        // Update the centroids based on the mean of the colors in each cluster
-//        prevCentroids = centroids.toList()
-//        centroids.clear()
-//        for ((centroid, cluster) in clusters) {
-//            val mean = Color(
-//                red = cluster.map { it.red }.average().toInt(),
-//                green = cluster.map { it.green }.average().toInt(),
-//                blue = cluster.map { it.blue }.average().toInt(),
-//                alpha = cluster.map { it.alpha }.average().toInt()
-//            )
-//            centroids.add(mean)
-//        }
-//    } while (centroids != prevCentroids)
-//
-//    // Return the final centroids as the dominant colors
-//    return centroids
-//}
-//

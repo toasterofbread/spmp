@@ -16,6 +16,7 @@ import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.job
 import kotlinx.coroutines.withContext
 import okhttp3.Request
+import java.io.InputStream
 import java.io.InputStreamReader
 import java.time.Duration
 
@@ -55,7 +56,7 @@ suspend fun getHomeFeed(
         }
     }
 
-    var result: Result<InputStreamReader>? = null
+    var result: Result<InputStream>? = null
 
     suspend fun performRequest(ctoken: String?) = withContext(Dispatchers.IO) {
         val endpoint = "/youtubei/v1/browse"
@@ -69,14 +70,8 @@ suspend fun getHomeFeed(
             )
             .build()
 
-        val response = Api.request(request)
-        result = response.fold(
-            { runCatching { it.getStream().reader() } },
-            { Result.failure(it) }
-        )
-
         result = Api.request(request).cast {
-            it.getStream().reader()
+            it.getStream()
         }
     }
 
@@ -85,20 +80,21 @@ suspend fun getHomeFeed(
     }
 
     performRequest(continuation)
-    result!!.onFailure {
-        return@withContext Result.failure(it)
-    }
 
-    val response_reader = result!!.getOrThrowHere()
-    val data_result: Result<YoutubeiBrowseResponse> = runCatching {
-        Api.klaxon.parse(response_reader)!!
-    }
-    response_reader.close()
-
-    var data = data_result.fold(
+    val response_reader = result!!.fold(
         { it },
         { return@withContext Result.failure(it) }
     )
+
+    var data: YoutubeiBrowseResponse = try {
+        Api.klaxon.parse(response_reader)!!
+    }
+    catch (e: Throwable) {
+        return@withContext Result.failure(e)
+    }
+    finally {
+        response_reader.close()
+    }
 
     val rows: MutableList<MediaItemLayout> = processRows(data.getShelves(continuation != null), hl).toMutableList()
     check(rows.isNotEmpty())
@@ -116,8 +112,16 @@ suspend fun getHomeFeed(
             return@withContext Result.failure(it)
         }
 
-        data = Api.klaxon.parse(result!!.data)!!
-        result!!.data.close()
+        val reader = result!!.data
+        data = try {
+            Api.klaxon.parse(reader)!!
+        }
+        catch (e: Throwable) {
+            return@withContext Result.failure(e)
+        }
+        finally {
+            reader.close()
+        }
 
         val shelves = data.getShelves(true)
         check(shelves.isNotEmpty())

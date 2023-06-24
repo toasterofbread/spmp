@@ -38,6 +38,8 @@ val NOW_PLAYING_VERTICAL_PAGE_COUNT = NowPlayingVerticalPage.values().size
 
 const val EXPANDED_THRESHOLD = 0.9f
 const val POSITION_UPDATE_INTERVAL_MS: Long = 100
+private const val GRADIENT_BOTTOM_PADDING_DP = 100
+private const val GRADIENT_TOP_START_RATIO = 0.7f
 
 internal fun getNPBackground(): Color {
     return when (GlobalPlayerState.np_theme_mode) {
@@ -58,16 +60,17 @@ internal fun getNPOnBackground(): Color {
 internal fun getNPAltBackground(): Color {
     return when (GlobalPlayerState.np_theme_mode) {
         ThemeMode.BACKGROUND -> {
-            val neutral = Theme.current.accent.getNeutral()
-            if (neutral.compare(Theme.current.accent) >= 0.9f) getNPAltOnBackground()
-            else neutral
+            return getNPBackground().amplifyPercent(-0.6f)
+//            if (amplified == Theme.current.accent) Theme.current.accent.getNeutral()
+//            else amplified
         }
         else -> Theme.current.background
     }
 }
 
 internal fun getNPAltOnBackground(): Color =
-    getNPBackground().amplify(0.15f)
+//    getNPBackground().amplify(0.15f)
+    getNPBackground().amplifyPercent(-0.4f)
 
 val LocalNowPlayingExpansion: ProvidableCompositionLocal<NowPlayingExpansionState> = staticCompositionLocalOf { GlobalPlayerState.expansion_state }
 
@@ -135,14 +138,11 @@ fun NowPlaying(swipe_state: SwipeableState<Int>, swipe_anchors: Map<Float, Int>)
                         val gradient_depth = 1f - (player.status.m_song?.song_reg_entry?.np_gradient_depth ?: default_gradient_depth)
                         check(gradient_depth in 0f .. 1f)
 
-                        Brush.linearGradient(
+                        Brush.verticalGradient(
                             listOf(getNPBackground(), getNPAltBackground()),
-                            start = Offset(0f, v_offset),
-                            end = Offset(
-                                screen_width.toPx(),
-                                v_offset + (
-                                    screen_height_px * (1.2f + (gradient_depth * 2f))
-                                )
+                            startY = v_offset + (screen_height.toPx() * GRADIENT_TOP_START_RATIO),
+                            endY = v_offset - GRADIENT_BOTTOM_PADDING_DP.dp.toPx() + (
+                                screen_height_px * (1.2f + (gradient_depth * 2f))
                             )
                         )
                     }

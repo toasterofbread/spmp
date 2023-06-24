@@ -53,6 +53,30 @@ fun Color.amplify(by: Float, opposite: Float = by): Color {
     return offsetRGB(if (isDark()) opposite else -opposite)
 }
 
+fun Color.amplifyPercent(by_percent: Float, allow_reverse: Boolean = true): Color {
+    val by = if (isDark()) by_percent else -by_percent
+    val ret = if (by < 0f)
+        Color(
+            red * (1f + by),
+            green * (1f + by),
+            blue * (1f + by),
+            alpha
+        )
+    else
+        Color(
+            red + ((1f - red) * by),
+            green + ((1f - green) * by),
+            blue + ((1f - blue) * by),
+            alpha
+        )
+
+    if (allow_reverse && compare(ret) > 0.95f) {
+        return amplifyPercent(-by_percent, false)
+    }
+
+    return ret
+}
+
 fun Color.compare(against: Color): Float {
     return 1f - (((red - against.red).absoluteValue + (green - against.green).absoluteValue + (blue - against.blue).absoluteValue) / 3f)
 }
@@ -115,13 +139,11 @@ fun ImageBitmap.getThemeColour(): Color? {
     }
 }
 
-fun Color.isDark(): Boolean {
-    return luminance() < 0.4
-}
+fun Color.isDark(): Boolean =
+    luminance() < 0.2
 
-fun Color.contrastAgainst(against: Color, by: Float = 0.5f): Color {
-    return offsetRGB(if (against.isDark()) by else -by)
-}
+fun Color.contrastAgainst(against: Color, by: Float = 0.5f): Color =
+    offsetRGB(if (against.isDark()) by else -by)
 
 fun Color.getContrasted(keep_alpha: Boolean = false): Color {
     val colour =

@@ -56,7 +56,6 @@ class PaletteSelectorOverlayMenu(
         val thumb_image = getCurrentSongThumb()
 
         LaunchedEffect(thumb_image) {
-            println("IMAGE $thumb_image")
             palette_colours = null
             palette_colours = thumb_image?.generatePalette(8)
         }

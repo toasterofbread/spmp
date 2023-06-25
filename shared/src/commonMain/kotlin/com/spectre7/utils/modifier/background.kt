@@ -6,8 +6,13 @@ import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.Shape
 import androidx.compose.ui.graphics.drawOutline
+import androidx.compose.ui.graphics.drawscope.DrawScope
 
 fun Modifier.background(colourProvider: () -> Color) = drawBehind {
+    drawRect(colourProvider())
+}
+
+fun Modifier.drawScopeBackground(colourProvider: DrawScope.() -> Color) = drawBehind {
     drawRect(colourProvider())
 }
 

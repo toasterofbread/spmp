@@ -60,7 +60,7 @@ internal fun getNPOnBackground(): Color {
 internal fun getNPAltBackground(): Color {
     return when (GlobalPlayerState.np_theme_mode) {
         ThemeMode.BACKGROUND -> {
-            return getNPBackground().amplifyPercent(-0.6f)
+            return getNPBackground().amplifyPercent(-0.4f)
 //            if (amplified == Theme.current.accent) Theme.current.accent.getNeutral()
 //            else amplified
         }
@@ -70,7 +70,7 @@ internal fun getNPAltBackground(): Color {
 
 internal fun getNPAltOnBackground(): Color =
 //    getNPBackground().amplify(0.15f)
-    getNPBackground().amplifyPercent(-0.4f)
+    getNPBackground().amplifyPercent(-0.4f, opposite_percent = -0.1f)
 
 val LocalNowPlayingExpansion: ProvidableCompositionLocal<NowPlayingExpansionState> = staticCompositionLocalOf { GlobalPlayerState.expansion_state }
 

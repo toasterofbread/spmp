@@ -143,7 +143,7 @@ fun PlaylistPage(
         var top_bar_showing: Boolean by remember { mutableStateOf(false) }
         MusicTopBar(
             Settings.KEY_LYRICS_SHOW_IN_PLAYLIST,
-            Modifier.fillMaxWidth().padding(top = SpMp.context.getStatusBarHeight())
+            Modifier.fillMaxWidth().thenIf(previous_item == null) { Modifier.padding(top = padding.calculateTopPadding()) }
         ) { showing ->
             top_bar_showing = showing
         }

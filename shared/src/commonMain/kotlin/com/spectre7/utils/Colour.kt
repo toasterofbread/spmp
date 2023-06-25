@@ -53,7 +53,7 @@ fun Color.amplify(by: Float, opposite: Float = by): Color {
     return offsetRGB(if (isDark()) opposite else -opposite)
 }
 
-fun Color.amplifyPercent(by_percent: Float, allow_reverse: Boolean = true): Color {
+fun Color.amplifyPercent(by_percent: Float, opposite_percent: Float = by_percent, allow_reverse: Boolean = true): Color {
     val by = if (isDark()) by_percent else -by_percent
     val ret = if (by < 0f)
         Color(
@@ -70,8 +70,8 @@ fun Color.amplifyPercent(by_percent: Float, allow_reverse: Boolean = true): Colo
             alpha
         )
 
-    if (allow_reverse && compare(ret) > 0.95f) {
-        return amplifyPercent(-by_percent, false)
+    if (allow_reverse && compare(ret) > 0.975f) {
+        return amplifyPercent(-opposite_percent, allow_reverse = false)
     }
 
     return ret

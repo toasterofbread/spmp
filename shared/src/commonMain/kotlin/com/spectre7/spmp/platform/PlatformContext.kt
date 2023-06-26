@@ -8,6 +8,7 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.text.font.Font
 import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
+import com.spectre7.spmp.ui.layout.mainpage.PlayerStateImpl
 import java.io.File
 import java.io.FileInputStream
 import java.io.FileOutputStream
@@ -44,6 +45,8 @@ fun PlatformContext.getDefaultVerticalPadding(): Dp = if (isScreenLarge()) 30.dp
 fun PlatformContext.getDefaultPaddingValues(): PaddingValues = PaddingValues(horizontal = getDefaultHorizontalPadding(), vertical = getDefaultVerticalPadding())
 
 expect class PlatformContext {
+    val player_state: PlayerStateImpl
+
     fun getPrefs(): ProjectPreferences
 
     fun getFilesDir(): File

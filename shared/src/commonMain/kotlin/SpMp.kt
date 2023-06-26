@@ -57,8 +57,7 @@ import kotlin.math.roundToInt
 
 expect fun getPlatformName(): String
 
-val GlobalPlayerState = PlayerStateImpl()
-val LocalPlayerState: ProvidableCompositionLocal<PlayerState> = staticCompositionLocalOf { GlobalPlayerState }
+val LocalPlayerState: ProvidableCompositionLocal<PlayerState> = staticCompositionLocalOf { SpMp.context.player_state }
 
 object SpMp {
     private val LANGUAGES = listOf("af", "am", "ar", "as", "az", "be", "bg", "bn", "bs", "ca", "cs", "da", "de", "el", "en-GB", "en-IN", "en", "es", "es-419", "es-US", "et", "eu", "fa", "fi", "fil", "fr-CA", "fr", "gl", "gu", "hi", "hr", "hu", "hy", "id", "is", "it", "iw", "ja", "ka", "kk", "km", "kn", "ko", "ky", "lo", "lt", "lv", "mk", "ml", "mn", "mr", "ms", "my", "no", "ne", "nl", "or", "pa", "pl", "pt", "pt-PT", "ro", "ru", "si", "sk", "sl", "sq", "sr-Latn", "sr", "sv", "sw", "ta", "te", "th", "tr", "uk", "ur", "uz", "vi", "zh-CN", "zh-HK", "zh-TW", "zu")
@@ -101,8 +100,6 @@ object SpMp {
         _yt_ui_translation = YoutubeUITranslation(LANGUAGES)
         Cache.init(context)
         Api.initialise()
-
-        GlobalPlayerState.init(context)
     }
 
     fun release() {
@@ -110,11 +107,11 @@ object SpMp {
     }
 
     fun onStart() {
-        GlobalPlayerState.onStart()
+        context.player_state.onStart()
     }
 
     fun onStop() {
-        GlobalPlayerState.onStop()
+        context.player_state.onStop()
     }
 
     @Composable
@@ -122,7 +119,7 @@ object SpMp {
         ApplicationTheme(context, getFontFamily(context)) {
             Theme.Update(context, MaterialTheme.colorScheme.primary)
 
-            val player = GlobalPlayerState
+            val player = context.player_state
             player.initComposable(context)
 
             LaunchedEffect(open_uri) {
@@ -134,8 +131,10 @@ object SpMp {
             }
 
             Surface(modifier = Modifier.fillMaxSize()) {
-                if (player.service_connected) {
-                    RootView(player)
+                CompositionLocalProvider(LocalPlayerState provides context.player_state) {
+                    if (player.service_connected) {
+                        RootView(player)
+                    }
                 }
                 error_manager.Indicator(Theme.current.accent_provider)
             }

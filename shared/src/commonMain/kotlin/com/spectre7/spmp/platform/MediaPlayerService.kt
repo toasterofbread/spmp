@@ -62,7 +62,6 @@ expect open class MediaPlayerService() {
     var volume: Float
 
     val has_focus: Boolean
-    val supports_visualiser: Boolean
 
     open fun onCreate()
     open fun onDestroy()

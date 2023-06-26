@@ -1,6 +1,5 @@
 package com.spectre7.spmp.model.mediaitem
 
-import GlobalPlayerState
 import SpMp
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.layout.Box
@@ -177,7 +176,7 @@ abstract class MediaItem(val id: String): MediaItemHolder {
 
         pinned_to_home = value
 
-        GlobalPlayerState.onMediaItemPinnedChanged(this, value)
+        SpMp.context.player_state.onMediaItemPinnedChanged(this, value)
     }
 
     @Composable

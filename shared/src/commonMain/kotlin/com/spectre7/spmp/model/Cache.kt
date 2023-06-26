@@ -38,12 +38,12 @@ class Cache {
                 }
 
                 val reader = file.bufferedReader()
-                val metadata = reader.readLine()
+                val metadata: String? = reader.readLine()
                 reader.close()
 
-                if (parseCacheMetadata(metadata).isBefore(now)) {
+                if (metadata == null || parseCacheMetadata(metadata).isBefore(now)) {
                     file.delete()
-                    println("Deleted expired cache file at ${file.toPath().relativeTo(cache_dir.toPath())}")
+                    println("Deleted expired/invalid cache file at ${file.toPath().relativeTo(cache_dir.toPath())}")
                 }
             }
         }

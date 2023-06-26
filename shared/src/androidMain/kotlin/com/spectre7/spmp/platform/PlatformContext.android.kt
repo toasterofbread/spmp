@@ -36,12 +36,11 @@ import androidx.core.app.NotificationManagerCompat
 import com.spectre7.spmp.model.Settings
 import com.spectre7.spmp.resources.getString
 import com.spectre7.spmp.resources.getStringTODO
+import com.spectre7.spmp.ui.layout.mainpage.PlayerStateImpl
 import java.io.File
 import java.io.FileInputStream
 import java.io.FileOutputStream
 import java.io.InputStream
-import kotlin.properties.Delegates
-
 
 private const val DEFAULT_NOTIFICATION_CHANNEL_ID = "default_channel"
 private const val ERROR_NOTIFICATION_CHANNEL_ID = "download_error_channel"
@@ -53,6 +52,7 @@ fun getAppName(context: Context): String {
 }
 
 actual class PlatformContext(private val context: Context) {
+    actual val player_state = PlayerStateImpl(this)
 
 //    private val context: WeakReference<Context> = WeakReference(context)
     val ctx: Context get() = context
@@ -214,12 +214,6 @@ actual class PlatformContext(private val context: Context) {
 
     companion object {
         lateinit var main_activity: Class<out Activity>
-
-        var ic_spmp by Delegates.notNull<Int>()
-        var ic_thumb_up by Delegates.notNull<Int>()
-        var ic_thumb_up_off by Delegates.notNull<Int>()
-        var ic_skip_next by Delegates.notNull<Int>()
-        var ic_skip_previous by Delegates.notNull<Int>()
     }
 }
 

@@ -425,7 +425,7 @@
     <string name="discord_status_default_text_a">$song</string>
     <string name="discord_status_default_text_b">$artist</string>
     <string name="discord_status_default_text_c">Listening on SpMp</string>
-    <string name="discord_status_default_button_song">Open on YouTube</string>
+    <string name="discord_status_default_button_song">Open song on YouTube</string>
     <string name="discord_status_default_button_project">Visit project page</string>
 
     <string name="action_login_manually">Log in manually</string>

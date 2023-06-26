@@ -168,7 +168,7 @@ interface PlayerOverlayPage {
 }
 
 @OptIn(ExperimentalMaterialApi::class)
-class PlayerStateImpl: PlayerState(null, null, null) {
+class PlayerStateImpl(private val context: PlatformContext): PlayerState(null, null, null) {
     private var _player: PlayerService? by mutableStateOf(null)
     override val session_started: Boolean get() = _player?.session_started == true
 
@@ -191,11 +191,12 @@ class PlayerStateImpl: PlayerState(null, null, null) {
     private val np_swipe_state: MutableState<SwipeableState<Int>> = mutableStateOf(SwipeableState(0))
     private var np_swipe_anchors: Map<Float, Int>? by mutableStateOf(null)
 
-    val expansion_state = NowPlayingExpansionState(np_swipe_state)
-
     private val pinned_items: MutableList<MediaItemHolder> = mutableStateListOf()
 
-    override var np_theme_mode: ThemeMode by mutableStateOf(Settings.getEnum(Settings.KEY_NOWPLAYING_THEME_MODE))
+    val expansion_state = NowPlayingExpansionState(np_swipe_state, context)
+    override var download_manager = PlayerDownloadManager(context)
+
+    override var np_theme_mode: ThemeMode by mutableStateOf(Settings.getEnum(Settings.KEY_NOWPLAYING_THEME_MODE, context.getPrefs()))
     override var overlay_page: Pair<PlayerOverlayPage, MediaItem?>? by mutableStateOf(null)
         private set
     override val bottom_padding: Dp get() = bottom_padding_anim.value.dp
@@ -222,26 +223,14 @@ class PlayerStateImpl: PlayerState(null, null, null) {
                 }
             }
         }
-        Settings.prefs.addListener(prefs_listener)
+        val prefs = context.getPrefs()
+        context.getPrefs().addListener(prefs_listener)
 
         runBlocking {
-            for (uid in Settings.INTERNAL_PINNED_ITEMS.get<Set<String>>()) {
+            for (uid in Settings.INTERNAL_PINNED_ITEMS.get<Set<String>>(prefs)) {
                 val item = MediaItem.fromUid(uid)
                 pinned_items.add(item.getHolder())
             }
-        }
-    }
-
-    private var initialised: Boolean = false
-    lateinit var context: PlatformContext
-
-    override lateinit var download_manager: PlayerDownloadManager
-
-    fun init(context: PlatformContext) {
-        if (!initialised) {
-            this.context = context
-            download_manager = PlayerDownloadManager(context)
-            initialised = true
         }
     }
 
@@ -254,6 +243,7 @@ class PlayerStateImpl: PlayerState(null, null, null) {
     }
 
     fun onStart() {
+        println("START STATE $service_connecting $this")
         if (service_connecting) {
             return
         }
@@ -265,6 +255,7 @@ class PlayerStateImpl: PlayerState(null, null, null) {
             _player
         ) { service ->
             synchronized(service_connected_listeners) {
+                println("START STATE DONG $service $this")
                 _player = service
                 status = PlayerStatus(_player!!)
                 service_connecting = false
@@ -297,8 +288,8 @@ class PlayerStateImpl: PlayerState(null, null, null) {
     @Composable
     override fun nowPlayingTopOffset(base: Modifier): Modifier {
         val density = LocalDensity.current
-        val screen_height = SpMp.context.getScreenHeight()
-        val bottom_padding = SpMp.context.getNavigationBarHeight()
+        val screen_height = context.getScreenHeight()
+        val bottom_padding = context.getNavigationBarHeight()
 
         return base.offset {
             IntOffset(
@@ -311,7 +302,7 @@ class PlayerStateImpl: PlayerState(null, null, null) {
     }
 
     @Composable
-    override fun nowPlayingBottomPadding(): Dp = SpMp.context.getNavigationBarHeight()
+    override fun nowPlayingBottomPadding(): Dp = context.getNavigationBarHeight()
 
     override fun setOverlayPage(page: PlayerOverlayPage?, from_current: Boolean) {
         val current = if (from_current) overlay_page?.first?.getItem() else null
@@ -409,7 +400,7 @@ class PlayerStateImpl: PlayerState(null, null, null) {
             bottom_padding_anim.animateTo(session_started.toFloat() * MINIMISED_NOW_PLAYING_HEIGHT)
         }
 
-        val screen_height = SpMp.context.getScreenHeight()
+        val screen_height = context.getScreenHeight()
 
         LaunchedEffect(screen_height) {
             val half_screen_height = screen_height.value * 0.5f
@@ -543,7 +534,7 @@ class PlayerStateImpl: PlayerState(null, null, null) {
 
             Column(Modifier.fillMaxSize()) {
                 if (page != null && page.first !is PlayerOverlayPage.MediaItemPage && page.first != PlayerOverlayPage.SearchPage) {
-                    Spacer(Modifier.requiredHeight(SpMp.context.getStatusBarHeight()))
+                    Spacer(Modifier.requiredHeight(context.getStatusBarHeight()))
                 }
 
                 val close = remember { { navigateBack() } }

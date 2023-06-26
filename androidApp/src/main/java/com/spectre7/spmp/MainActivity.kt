@@ -18,11 +18,6 @@ class MainActivity : ComponentActivity() {
         super.onCreate(savedInstanceState)
 
         PlatformContext.main_activity = MainActivity::class.java
-        PlatformContext.ic_spmp = R.drawable.ic_spmp
-        PlatformContext.ic_thumb_up = R.drawable.ic_thumb_up
-        PlatformContext.ic_thumb_up_off = R.drawable.ic_thumb_up_off
-        PlatformContext.ic_skip_next = R.drawable.ic_skip_next
-        PlatformContext.ic_skip_previous = R.drawable.ic_skip_previous
 
         Thread.setDefaultUncaughtExceptionHandler { _: Thread, error: Throwable ->
             if (

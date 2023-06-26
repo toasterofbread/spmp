@@ -1,6 +1,5 @@
 package com.spectre7.spmp.platform
 
-import GlobalPlayerState
 import android.app.NotificationChannel
 import android.app.NotificationManager
 import android.app.PendingIntent
@@ -44,6 +43,7 @@ import java.io.File
 import java.io.IOException
 import java.time.temporal.ChronoUnit
 import java.util.concurrent.Executors
+import com.spectre7.spmp.shared.R
 
 private const val NOTIFICATION_ID = 2
 private const val NOTIFICATION_CHANNEL_ID = "playback_channel"
@@ -96,7 +96,7 @@ class MediaPlayerServiceSession: MediaSessionService() {
         updatePlayerCustomActions(null)
 
         notification_builder = NotificationCompat.Builder(this, NOTIFICATION_CHANNEL_ID)
-            .setSmallIcon(PlatformContext.ic_spmp)
+            .setSmallIcon(R.drawable.ic_spmp)
             .setStyle(MediaStyleNotificationHelper.MediaStyle(media_session))
             .setContentIntent(PendingIntent.getActivity(
                 this,
@@ -148,7 +148,7 @@ class MediaPlayerServiceSession: MediaSessionService() {
                         if (like_status == SongLikeStatus.Status.NEUTRAL) COMMAND_SET_LIKE_TRUE else COMMAND_SET_LIKE_NEUTRAL,
                         Bundle.EMPTY
                     ))
-                    .setIconResId(if (like_status == SongLikeStatus.Status.LIKED) PlatformContext.ic_thumb_up else PlatformContext.ic_thumb_up_off)
+                    .setIconResId(if (like_status == SongLikeStatus.Status.LIKED) R.drawable.ic_thumb_up else R.drawable.ic_thumb_up_off)
                     .build()
             else null
 
@@ -293,7 +293,7 @@ class MediaPlayerServiceSession: MediaSessionService() {
 
             val song = Song.fromId(data_spec.uri.toString())
 
-            val download_manager = GlobalPlayerState.download_manager
+            val download_manager = SpMp.context.player_state.download_manager
             var local_file: File? = download_manager.getSongLocalFile(song)
             if (local_file != null) {
                 println("Playing song ${song.title} from local file $local_file")

@@ -1,6 +1,5 @@
 package com.spectre7.spmp
 
-import GlobalPlayerState
 import android.Manifest
 import android.accessibilityservice.AccessibilityService
 import android.accessibilityservice.AccessibilityServiceInfo
@@ -109,7 +108,7 @@ actual class PlayerAccessibilityService : AccessibilityService(), LifecycleOwner
         if (event.keyCode == KEYCODE_VOLUME_UP || event.keyCode == KEYCODE_VOLUME_DOWN) {
             when (volume_intercept_mode) {
                 PlayerAccessibilityServiceVolumeInterceptMode.ALWAYS -> {
-                    !GlobalPlayerState.isRunningAndFocused()
+                    !context.player_state.isRunningAndFocused()
                 }
                 PlayerAccessibilityServiceVolumeInterceptMode.APP_OPEN -> {
                     if (!context.isAppInForeground()) {

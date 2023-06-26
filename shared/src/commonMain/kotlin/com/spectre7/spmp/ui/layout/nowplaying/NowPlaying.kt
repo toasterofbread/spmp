@@ -1,6 +1,5 @@
 package com.spectre7.spmp.ui.layout.nowplaying
 
-import GlobalPlayerState
 import LocalPlayerState
 import SpMp
 import androidx.compose.animation.AnimatedVisibility
@@ -42,7 +41,7 @@ private const val GRADIENT_BOTTOM_PADDING_DP = 100
 private const val GRADIENT_TOP_START_RATIO = 0.7f
 
 internal fun getNPBackground(): Color {
-    return when (GlobalPlayerState.np_theme_mode) {
+    return when (SpMp.context.player_state.np_theme_mode) {
         ThemeMode.BACKGROUND -> Theme.current.accent
         ThemeMode.ELEMENTS -> Theme.current.background
         ThemeMode.NONE -> Theme.current.background
@@ -50,7 +49,7 @@ internal fun getNPBackground(): Color {
 }
 
 internal fun getNPOnBackground(): Color {
-    return when (GlobalPlayerState.np_theme_mode) {
+    return when (SpMp.context.player_state.np_theme_mode) {
         ThemeMode.BACKGROUND -> Theme.current.on_accent
         ThemeMode.ELEMENTS -> Theme.current.accent
         ThemeMode.NONE -> Theme.current.on_background
@@ -58,103 +57,100 @@ internal fun getNPOnBackground(): Color {
 }
 
 internal fun getNPAltBackground(): Color {
-    return when (GlobalPlayerState.np_theme_mode) {
-        ThemeMode.BACKGROUND -> {
-            return getNPBackground().amplifyPercent(-0.4f)
-//            if (amplified == Theme.current.accent) Theme.current.accent.getNeutral()
-//            else amplified
-        }
+    return when (SpMp.context.player_state.np_theme_mode) {
+        ThemeMode.BACKGROUND -> getNPBackground().amplifyPercent(-0.4f)
         else -> Theme.current.background
     }
 }
 
 internal fun getNPAltOnBackground(): Color =
-//    getNPBackground().amplify(0.15f)
     getNPBackground().amplifyPercent(-0.4f, opposite_percent = -0.1f)
 
-val LocalNowPlayingExpansion: ProvidableCompositionLocal<NowPlayingExpansionState> = staticCompositionLocalOf { GlobalPlayerState.expansion_state }
+val LocalNowPlayingExpansion: ProvidableCompositionLocal<NowPlayingExpansionState> = staticCompositionLocalOf { SpMp.context.player_state.expansion_state }
 
 @OptIn(ExperimentalMaterialApi::class)
 @Composable
 fun NowPlaying(swipe_state: SwipeableState<Int>, swipe_anchors: Map<Float, Int>) {
-    LocalNowPlayingExpansion.current.init()
+    CompositionLocalProvider(LocalNowPlayingExpansion provides SpMp.context.player_state.expansion_state) {
+        LocalNowPlayingExpansion.current.init()
 
-    AnimatedVisibility(
-        LocalPlayerState.current.session_started,
-        exit = slideOutVertically(),
-        enter = slideInVertically(),
-    ) {
-        val density = LocalDensity.current
-        val player = LocalPlayerState.current
-        val expansion = LocalNowPlayingExpansion.current
+        AnimatedVisibility(
+            LocalPlayerState.current.session_started,
+            exit = slideOutVertically(),
+            enter = slideInVertically(),
+        ) {
+            val density = LocalDensity.current
+            val player = LocalPlayerState.current
+            val expansion = LocalNowPlayingExpansion.current
 
-        val keyboard_insets = SpMp.context.getImeInsets()
-        val bottom_padding = player.nowPlayingBottomPadding()
-        val screen_height = SpMp.context.getScreenHeight()
-        val screen_width = SpMp.context.getScreenWidth()
-        val default_gradient_depth: Float by Settings.KEY_NOWPLAYING_DEFAULT_GRADIENT_DEPTH.rememberMutableState()
+            val keyboard_insets = SpMp.context.getImeInsets()
+            val bottom_padding = player.nowPlayingBottomPadding()
+            val screen_height = SpMp.context.getScreenHeight()
+            val screen_width = SpMp.context.getScreenWidth()
+            val default_gradient_depth: Float by Settings.KEY_NOWPLAYING_DEFAULT_GRADIENT_DEPTH.rememberMutableState()
 
-        val half_screen_height = screen_height.value * 0.5f
-        val is_shut by remember { derivedStateOf { swipe_state.targetValue == 0 } }
+            val half_screen_height = screen_height.value * 0.5f
+            val is_shut by remember { derivedStateOf { swipe_state.targetValue == 0 } }
 
-        var switch_to_page: Int by remember { mutableStateOf(-1) }
-        OnChangedEffect(switch_to_page) {
-            if (switch_to_page >= 0) {
-                swipe_state.animateTo(switch_to_page)
-                switch_to_page = -1
-            }
-        }
-
-        Box(
-            modifier = Modifier
-                .fillMaxWidth()
-                .requiredHeight(screen_height * (NOW_PLAYING_VERTICAL_PAGE_COUNT + 1))
-                .offset {
-                    IntOffset(
-                        0,
-                        with(density) {
-                            val keyboard_bottom_padding = if (keyboard_insets == null || swipe_state.targetValue != 0) 0 else keyboard_insets.getBottom(density)
-                            ((half_screen_height.dp * NOW_PLAYING_VERTICAL_PAGE_COUNT) - swipe_state.offset.value.dp).toPx().toInt() - keyboard_bottom_padding - bottom_padding.toPx().toInt()
-                        }
-                    )
+            var switch_to_page: Int by remember { mutableStateOf(-1) }
+            OnChangedEffect(switch_to_page) {
+                if (switch_to_page >= 0) {
+                    swipe_state.animateTo(switch_to_page)
+                    switch_to_page = -1
                 }
-                .scrollWheelSwipeable(
-                    state = swipe_state,
-                    anchors = swipe_anchors,
-                    thresholds = { _, _ -> FractionalThreshold(0.2f) },
-                    orientation = Orientation.Vertical,
-                    reverseDirection = true,
-                )
-                .clickable(
-                    interactionSource = remember { MutableInteractionSource() },
-                    enabled = is_shut,
-                    indication = null
-                ) { switch_to_page = if (swipe_state.targetValue == 0) 1 else 0 }
-                .brushBackground {
-                    with(density) {
-                        val screen_height_px = screen_height.toPx()
-                        val v_offset = (expansion.get() - 1f).coerceAtLeast(0f) * screen_height_px
+            }
 
-                        val gradient_depth = 1f - (player.status.m_song?.song_reg_entry?.np_gradient_depth ?: default_gradient_depth)
-                        check(gradient_depth in 0f .. 1f)
-
-                        Brush.verticalGradient(
-                            listOf(getNPBackground(), getNPAltBackground()),
-                            startY = v_offset + (screen_height.toPx() * GRADIENT_TOP_START_RATIO),
-                            endY = v_offset - GRADIENT_BOTTOM_PADDING_DP.dp.toPx() + (
-                                screen_height_px * (1.2f + (gradient_depth * 2f))
-                            )
+            Box(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .requiredHeight(screen_height * (NOW_PLAYING_VERTICAL_PAGE_COUNT + 1))
+                    .offset {
+                        IntOffset(
+                            0,
+                            with(density) {
+                                val keyboard_bottom_padding = if (keyboard_insets == null || swipe_state.targetValue != 0) 0 else keyboard_insets.getBottom(density)
+                                ((half_screen_height.dp * NOW_PLAYING_VERTICAL_PAGE_COUNT) - swipe_state.offset.value.dp).toPx().toInt() - keyboard_bottom_padding - bottom_padding.toPx().toInt()
+                            }
                         )
                     }
-                }
-        ) {
-            CompositionLocalProvider(LocalContentColor provides getNPOnBackground()) {
-                BackHandler(!is_shut) {
-                    switch_to_page = swipe_state.targetValue - 1
-                }
+                    .scrollWheelSwipeable(
+                        state = swipe_state,
+                        anchors = swipe_anchors,
+                        thresholds = { _, _ -> FractionalThreshold(0.2f) },
+                        orientation = Orientation.Vertical,
+                        reverseDirection = true,
+                    )
+                    .clickable(
+                        interactionSource = remember { MutableInteractionSource() },
+                        enabled = is_shut,
+                        indication = null
+                    ) { switch_to_page = if (swipe_state.targetValue == 0) 1 else 0 }
+                    .brushBackground {
+                        with(density) {
+                            val screen_height_px = screen_height.toPx()
+                            val v_offset = (expansion.get() - 1f).coerceAtLeast(0f) * screen_height_px
 
-                Column(Modifier.fillMaxSize(), horizontalAlignment = Alignment.CenterHorizontally) {
-                    NowPlayingCardContent(screen_height)
+                            val gradient_depth = 1f - (player.status.m_song?.song_reg_entry?.np_gradient_depth ?: default_gradient_depth)
+                            check(gradient_depth in 0f .. 1f)
+
+                            Brush.verticalGradient(
+                                listOf(getNPBackground(), getNPAltBackground()),
+                                startY = v_offset + (screen_height.toPx() * GRADIENT_TOP_START_RATIO),
+                                endY = v_offset - GRADIENT_BOTTOM_PADDING_DP.dp.toPx() + (
+                                    screen_height_px * (1.2f + (gradient_depth * 2f))
+                                )
+                            )
+                        }
+                    }
+            ) {
+                CompositionLocalProvider(LocalContentColor provides getNPOnBackground()) {
+                    BackHandler(!is_shut) {
+                        switch_to_page = swipe_state.targetValue - 1
+                    }
+
+                    Column(Modifier.fillMaxSize(), horizontalAlignment = Alignment.CenterHorizontally) {
+                        NowPlayingCardContent(screen_height)
+                    }
                 }
             }
         }

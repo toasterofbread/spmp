@@ -243,7 +243,6 @@ class PlayerStateImpl(private val context: PlatformContext): PlayerState(null, n
     }
 
     fun onStart() {
-        println("START STATE $service_connecting $this")
         if (service_connecting) {
             return
         }
@@ -255,7 +254,6 @@ class PlayerStateImpl(private val context: PlatformContext): PlayerState(null, n
             _player
         ) { service ->
             synchronized(service_connected_listeners) {
-                println("START STATE DONG $service $this")
                 _player = service
                 status = PlayerStatus(_player!!)
                 service_connecting = false

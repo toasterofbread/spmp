@@ -11,10 +11,7 @@ import android.os.Bundle
 import android.os.Handler
 import androidx.compose.ui.graphics.asAndroidBitmap
 import androidx.core.app.NotificationCompat
-import androidx.media3.common.AudioAttributes
-import androidx.media3.common.C
-import androidx.media3.common.MediaItem
-import androidx.media3.common.Player
+import androidx.media3.common.*
 import androidx.media3.common.util.UnstableApi
 import androidx.media3.datasource.DataSource
 import androidx.media3.datasource.DataSpec
@@ -27,6 +24,7 @@ import androidx.media3.exoplayer.audio.AudioRendererEventListener
 import androidx.media3.exoplayer.audio.MediaCodecAudioRenderer
 import androidx.media3.exoplayer.mediacodec.MediaCodecSelector
 import androidx.media3.exoplayer.source.DefaultMediaSourceFactory
+import androidx.media3.exoplayer.upstream.LoadErrorHandlingPolicy
 import androidx.media3.extractor.mkv.MatroskaExtractor
 import androidx.media3.extractor.mp4.FragmentedMp4Extractor
 import androidx.media3.session.*
@@ -38,12 +36,10 @@ import com.spectre7.spmp.exovisualiser.FFTAudioProcessor
 import com.spectre7.spmp.model.mediaitem.MediaItemThumbnailProvider
 import com.spectre7.spmp.model.mediaitem.Song
 import com.spectre7.spmp.model.mediaitem.SongLikeStatus
-import kotlinx.coroutines.*
-import java.io.File
-import java.io.IOException
-import java.time.temporal.ChronoUnit
-import java.util.concurrent.Executors
 import com.spectre7.spmp.shared.R
+import kotlinx.coroutines.*
+import java.io.IOException
+import java.util.concurrent.Executors
 
 private const val NOTIFICATION_ID = 2
 private const val NOTIFICATION_CHANNEL_ID = "playback_channel"
@@ -80,6 +76,11 @@ class MediaPlayerServiceSession: MediaSessionService() {
             current_song = song
 
             onSongLikeStatusChanged(song?.like_status)
+        }
+
+        override fun onPlayerError(error: PlaybackException) {
+            println("PLAYER ERRRRRRRRRROR $error")
+            super.onPlayerError(error)
         }
     }
 
@@ -211,8 +212,27 @@ class MediaPlayerServiceSession: MediaSessionService() {
             this,
             renderers_factory,
             DefaultMediaSourceFactory(
-                createDataSourceFactory()
-            ) { arrayOf(MatroskaExtractor(), FragmentedMp4Extractor()) }
+                createDataSourceFactory(),
+                { arrayOf(MatroskaExtractor(), FragmentedMp4Extractor()) }
+            )
+            .setLoadErrorHandlingPolicy(
+                object : LoadErrorHandlingPolicy {
+                    override fun getFallbackSelectionFor(
+                        fallbackOptions: LoadErrorHandlingPolicy.FallbackOptions,
+                        loadErrorInfo: LoadErrorHandlingPolicy.LoadErrorInfo
+                    ): LoadErrorHandlingPolicy.FallbackSelection? {
+                        return null
+                    }
+
+                    override fun getRetryDelayMsFor(loadErrorInfo: LoadErrorHandlingPolicy.LoadErrorInfo): Long {
+                        return 1000
+                    }
+
+                    override fun getMinimumLoadableRetryCount(dataType: Int): Int {
+                        return Int.MAX_VALUE
+                    }
+                }
+            )
         )
             .setAudioAttributes(
                 AudioAttributes.Builder()
@@ -290,82 +310,11 @@ class MediaPlayerServiceSession: MediaSessionService() {
         return ResolvingDataSource.Factory({
             DefaultDataSource.Factory(this).createDataSource()
         }) { data_spec: DataSpec ->
-
-            val song = Song.fromId(data_spec.uri.toString())
-
-            val download_manager = SpMp.context.player_state.download_manager
-            var local_file: File? = download_manager.getSongLocalFile(song)
-            if (local_file != null) {
-                println("Playing song ${song.title} from local file $local_file")
-                return@Factory data_spec.withUri(Uri.fromFile(local_file))
+            try {
+                return@Factory processMediaDataSpec(data_spec, this, isConnectionMetered())
             }
-
-            if (
-                song.registry_entry.getPlayCount(ChronoUnit.WEEKS) >= com.spectre7.spmp.model.Settings.KEY_AUTO_DOWNLOAD_THRESHOLD.get<Int>(this)
-                && (com.spectre7.spmp.model.Settings.KEY_AUTO_DOWNLOAD_ON_METERED.get(this) || !isConnectionMetered())
-            ) {
-                var done = false
-                runBlocking {
-                    download_manager.getDownload(song) { initial_status ->
-                        when (initial_status?.status) {
-                            PlayerDownloadManager.DownloadStatus.Status.DOWNLOADING -> {
-                                val listener = object : PlayerDownloadManager.DownloadStatusListener() {
-                                    override fun onDownloadChanged(status: PlayerDownloadManager.DownloadStatus) {
-                                        if (status.song != song) {
-                                            return
-                                        }
-
-                                        when (status.status) {
-                                            PlayerDownloadManager.DownloadStatus.Status.IDLE, PlayerDownloadManager.DownloadStatus.Status.DOWNLOADING -> return
-                                            PlayerDownloadManager.DownloadStatus.Status.PAUSED -> throw IllegalStateException()
-                                            PlayerDownloadManager.DownloadStatus.Status.CANCELLED -> {
-                                                done = true
-                                            }
-                                            PlayerDownloadManager.DownloadStatus.Status.FINISHED, PlayerDownloadManager.DownloadStatus.Status.ALREADY_FINISHED -> {
-                                                local_file = download_manager.getSongLocalFile(song)
-                                                done = true
-                                            }
-                                        }
-
-                                        download_manager.removeDownloadStatusListener(this)
-                                    }
-                                }
-                                download_manager.addDownloadStatusListener(listener)
-                            }
-                            PlayerDownloadManager.DownloadStatus.Status.IDLE, PlayerDownloadManager.DownloadStatus.Status.CANCELLED, PlayerDownloadManager.DownloadStatus.Status.PAUSED, null -> {
-                                download_manager.startDownload(song.id, true) { status ->
-                                    local_file = status.file
-                                    done = true
-                                }
-                            }
-                            PlayerDownloadManager.DownloadStatus.Status.ALREADY_FINISHED, PlayerDownloadManager.DownloadStatus.Status.FINISHED -> throw IllegalStateException()
-                        }
-                    }
-
-                    var elapsed = 0
-                    while (!done && elapsed < AUTO_DOWNLOAD_SOFT_TIMEOUT) {
-                        delay(100)
-                        elapsed += 100
-                    }
-                }
-
-                if (local_file != null) {
-                    println("Playing song ${song.title} from local file $local_file")
-                    return@Factory data_spec.withUri(Uri.fromFile(local_file))
-                }
-            }
-
-            val format = song.getStreamFormat()
-            if (format.isFailure) {
-                throw IOException(format.exceptionOrNull()!!)
-            }
-
-            return@Factory if (local_file != null) {
-                println("Playing song ${song.title} from local file $local_file")
-                data_spec.withUri(Uri.fromFile(local_file))
-            } else {
-                println("Playing song ${song.title} from external format ${format.getOrThrow()}")
-                data_spec.withUri(Uri.parse(format.getOrThrow().stream_url))
+            catch (e: Throwable) {
+                throw IOException(e)
             }
         }
     }

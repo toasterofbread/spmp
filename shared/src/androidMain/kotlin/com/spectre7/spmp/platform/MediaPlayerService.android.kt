@@ -88,11 +88,9 @@ actual open class MediaPlayerService {
     private var action_head: Int = 0
 
     actual open fun onCreate() {
-        println("CREATED $listeners ${player.mediaItemCount} $this")
         session_started = player.mediaItemCount > 0
         for (i in 0 until player.mediaItemCount) {
             val song = player.getMediaItemAt(i).getSong()
-            println("ADD $song")
             for (listener in listeners) {
                 listener.onSongAdded(i, song)
             }

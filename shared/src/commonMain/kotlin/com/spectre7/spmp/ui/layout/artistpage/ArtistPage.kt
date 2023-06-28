@@ -44,10 +44,13 @@ import com.spectre7.spmp.platform.composable.PlatformAlertDialog
 import com.spectre7.spmp.platform.vibrateShort
 import com.spectre7.spmp.resources.getString
 import com.spectre7.spmp.resources.getStringTODO
+import com.spectre7.spmp.resources.uilocalisation.YoutubeUILocalisation
+import com.spectre7.spmp.ui.component.LongPressMenuData
 import com.spectre7.spmp.ui.component.MediaItemLayout
 import com.spectre7.spmp.ui.component.MusicTopBar
 import com.spectre7.spmp.ui.component.PillMenu
 import com.spectre7.spmp.ui.component.multiselect.MediaItemMultiSelectContext
+import com.spectre7.spmp.ui.layout.mainpage.PlayerState
 import com.spectre7.spmp.ui.theme.Theme
 import com.spectre7.utils.*
 import com.spectre7.utils.composable.*
@@ -265,27 +268,27 @@ fun ArtistPage(
                         verticalArrangement = Arrangement.spacedBy(30.dp)
                     ) {
                         for (layout in item.feed_layouts!!) {
-                            val player = LocalPlayerState.current
-                            val is_singles = layout.title?.getID() == YoutubeUILocalisation.StringID.ARTIST_PAGE_SINGLES
+                            val is_singles = Settings.KEY_TREAT_SINGLES_AS_SONG.get() && layout.title?.getID() == YoutubeUILocalisation.StringID.ARTIST_PAGE_SINGLES
 
                             CompositionLocalProvider(LocalPlayerState provides remember { 
                                 if (!is_singles) player
                                 else player.copy(
-                                    onClickedOverride = { item, key ->
+                                    onClickedOverride = { item, multiselect_key ->
                                         if (item is Playlist) {
-                                            TODO("Treat as contained song")
+                                            onSinglePlaylistClicked(item, player)
                                         }
                                         else {
-                                            player.onMediaItemClicked(item, key)
+                                            player.onMediaItemClicked(item, multiselect_key)
                                         }
                                     },
-                                    onLongClickedOverride = { item, index ->
-                                        if (item is Playlist) {
-                                            TODO("Treat as contained song")
-                                        }
-                                        else {
-                                            player.onMediaItemLongClicked(item, index)
-                                        }
+                                    onLongClickedOverride = { item, long_press_data ->
+                                        player.onMediaItemLongClicked(
+                                            item,
+                                            if (item is Playlist)
+                                                long_press_data?.copy(playlist_as_song = true)
+                                                ?: LongPressMenuData(item, playlist_as_song = true)
+                                            else long_press_data
+                                        )
                                     }
                                 )
                             }) {
@@ -308,6 +311,18 @@ fun ArtistPage(
 
                         Spacer(Modifier.requiredHeight(50.dp))
                     }
+                }
+            }
+        }
+    }
+}
+
+private fun onSinglePlaylistClicked(playlist: Playlist, player: PlayerState) {
+    Api.scope.launch {
+        playlist.getFeedLayouts().onSuccess { layouts ->
+            layouts.firstOrNull()?.items?.firstOrNull()?.also {
+                withContext(Dispatchers.Main) {
+                    player.onMediaItemClicked(it)
                 }
             }
         }

@@ -175,19 +175,17 @@ fun getSongLongPressMenuData(
         getString("lpm_long_press_actions"),
         getInitialInfoTitle = getInfoText,
         multiselect_context = multiselect_context,
-        multiselect_key = multiselect_key,
-        sideButton = { modifier, background, _ ->
-            LikeDislikeButton(song, modifier) { background.getContrasted() }
-        }
-    ) { item, spacing ->
-        SongLongPressPopupActions(item, spacing, multiselect_key)
-    }
+        multiselect_key = multiselect_key
+    )
 }
 
 @Composable
-private fun LongPressMenuActionProvider.SongLongPressPopupActions(song: MediaItem, spacing: Dp, queue_index: Int?) {
-    require(song is Song)
-
+fun LongPressMenuActionProvider.SongLongPressMenuActions(
+    item: MediaItem,
+    spacing: Dp,
+    queue_index: Int?,
+    withSong: (suspend (Song) -> Unit) -> Unit,
+) {
     val density = LocalDensity.current
     val coroutine_scope = rememberCoroutineScope()
 
@@ -200,7 +198,7 @@ private fun LongPressMenuActionProvider.SongLongPressPopupActions(song: MediaIte
                 Modifier.onSizeChanged { height = with(density) { it.height.toDp() } },
                 verticalArrangement = Arrangement.spacedBy(spacing)
             ) {
-                LPMActions(song, queue_index) { adding_to_playlist = true }
+                LPMActions(item, withSong, queue_index) { adding_to_playlist = true }
             }
         }
         else {
@@ -241,7 +239,7 @@ private fun LongPressMenuActionProvider.SongLongPressPopupActions(song: MediaIte
                     ShapedIconButton(
                         {
                             if (selected_playlists.isNotEmpty()) {
-                                coroutine_scope.launch {
+                                withSong { song ->
                                     for (playlist in selected_playlists) {
                                         playlist.addItem(song)
                                         playlist.saveItems()
@@ -265,16 +263,25 @@ private fun LongPressMenuActionProvider.SongLongPressPopupActions(song: MediaIte
 }
 
 @Composable
-private fun LongPressMenuActionProvider.LPMActions(song: Song, queue_index: Int?, openPlaylistInterface: () -> Unit) {
+private fun LongPressMenuActionProvider.LPMActions(
+    item: MediaItem,
+    withSong: (suspend (Song) -> Unit) -> Unit,
+    queue_index: Int?,
+    openPlaylistInterface: () -> Unit
+) {
     val player = LocalPlayerState.current
 
     ActionButton(
         Icons.Default.Radio, getString("lpm_action_radio"),
         onClick = {
-            player.player?.playSong(song)
+            withSong {
+                player.player?.playSong(it)
+            }
         },
         onLongClick = queue_index?.let { index -> {
-            player.player?.startRadioAtIndex(index + 1, song, index, skip_first = true)
+            withSong {
+                player.player?.startRadioAtIndex(index + 1, it, index, skip_first = true)
+            }
         }}
     )
 
@@ -283,48 +290,56 @@ private fun LongPressMenuActionProvider.LPMActions(song: Song, queue_index: Int?
             getString(if (distance == 1) "lpm_action_play_after_1_song" else "lpm_action_play_after_x_songs").replace("\$x", distance.toString())
         },
         onClick = { active_queue_index ->
-            player.player?.addToQueue(
-                song,
-                active_queue_index + 1,
-                is_active_queue = Settings.KEY_LPM_INCREMENT_PLAY_AFTER.get(),
-                start_radio = false
-            )
+            withSong {
+                player.player?.addToQueue(
+                    it,
+                    active_queue_index + 1,
+                    is_active_queue = Settings.KEY_LPM_INCREMENT_PLAY_AFTER.get(),
+                    start_radio = false
+                )
+            }
         },
         onLongClick = { active_queue_index ->
-            player.player?.addToQueue(
-                song,
-                active_queue_index + 1,
-                is_active_queue = Settings.KEY_LPM_INCREMENT_PLAY_AFTER.get(),
-                start_radio = true
-            )
+            withSong {
+                player.player?.addToQueue(
+                    it,
+                    active_queue_index + 1,
+                    is_active_queue = Settings.KEY_LPM_INCREMENT_PLAY_AFTER.get(),
+                    start_radio = true
+                )
+            }
         }
     )
 
     ActionButton(Icons.Default.PlaylistAdd, getString("song_add_to_playlist"), onClick = openPlaylistInterface, onAction = {})
 
     ActionButton(Icons.Default.Download, getString("lpm_action_download"), onClick = {
-        player.download_manager.startDownload(song.id) { status: DownloadStatus ->
-            when (status.status) {
-                DownloadStatus.Status.FINISHED -> SpMp.context.sendToast(getString("notif_download_finished"))
-                DownloadStatus.Status.ALREADY_FINISHED -> SpMp.context.sendToast(getString("notif_download_already_finished"))
-                DownloadStatus.Status.CANCELLED -> SpMp.context.sendToast(getString("notif_download_cancelled"))
+        withSong {
+            player.download_manager.startDownload(it.id) { status: DownloadStatus ->
+                when (status.status) {
+                    DownloadStatus.Status.FINISHED -> SpMp.context.sendToast(getString("notif_download_finished"))
+                    DownloadStatus.Status.ALREADY_FINISHED -> SpMp.context.sendToast(getString("notif_download_already_finished"))
+                    DownloadStatus.Status.CANCELLED -> SpMp.context.sendToast(getString("notif_download_cancelled"))
 
-                // IDLE, DOWNLOADING, PAUSED
-                else -> {
-                    SpMp.context.sendToast(getString("notif_download_already_downloading"))
+                    // IDLE, DOWNLOADING, PAUSED
+                    else -> {
+                        SpMp.context.sendToast(getString("notif_download_already_downloading"))
+                    }
                 }
             }
         }
     })
 
-    song.artist?.also { artist ->
+    item.artist?.also { artist ->
         ActionButton(Icons.Default.Person, getString("lpm_action_go_to_artist"), onClick = {
             player.openMediaItem(artist)
         })
     }
 
     ActionButton(MediaItem.RELATED_CONTENT_ICON, getString("lpm_action_song_related"), onClick = {
-        player.openMediaItem(song)
+        withSong {
+            player.openMediaItem(it)
+        }
     })
 }
 

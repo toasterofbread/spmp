@@ -265,6 +265,9 @@
     <string name="s_key_add_songs_to_history">Add song to YT history</string>
     <string name="s_sub_add_songs_to_history">Songs listened to will be sent to YouTube and added to account history</string>
 
+    <string name="s_key_treat_singles_as_song">Treat artist singles as a song</string>
+    <string name="s_sub_treat_singles_as_song">Playlists contained in the 'Singles' tab on an artist's page will be treated as the contained song, if there is only one</string>
+
     <string name="s_cat_library">Library</string>
 
     <string name="s_key_show_likes_playlist">Show likes playlist</string>

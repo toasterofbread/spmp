@@ -72,6 +72,12 @@ internal fun getGeneralCategory(): List<SettingsItem> {
             getString("s_sub_add_songs_to_history")
         ),
 
+        SettingsItemToggle(
+            SettingsValueState(Settings.KEY_TREAT_SINGLES_AS_SONG.name),
+            getString("s_key_treat_singles_as_song"),
+            getString("s_sub_treat_singles_as_song")
+        ),
+
         SettingsGroup(getString("s_group_long_press_menu")),
 
         SettingsItemToggle(

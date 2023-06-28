@@ -39,7 +39,7 @@ class LocalisedYoutubeString(
                         localisation
                     } else {
                         println("WARNING: Using raw key '$key' as home feed string")
-                        key
+                        Pair(key, null)
                     }
                 }
                 Type.OWN_CHANNEL -> SpMp.yt_ui_localisation.localiseOwnChannelString(key, source_language!!)
@@ -92,7 +92,7 @@ class YoutubeUILocalisation(languages: List<String>) {
         @Synchronized
         fun add(vararg strings: Pair<Int, String>, id: StringID? = null) {
             if (id != null) {
-                id_items[items.size] = id
+                item_ids[items.size] = id
             }
 
             items.add(mutableMapOf<Int, Pair<String, String?>>().also { map ->
@@ -108,20 +108,25 @@ class YoutubeUILocalisation(languages: List<String>) {
             })
         }
     }
-    
-    private val HOME_FEED_STRINGS: LocalisationSet = getYoutubeHomeFeedLocalisations(::getLanguage)
-    private val OWN_CHANNEL_STRINGS: LocalisationSet = getYoutubeOwnChannelLocalisations(::getLanguage)
-    private val ARTIST_PAGE_STRINGS: LocalisationSet = getYoutubeArtistPageLocalisations(::getLanguage)
-    private val FILTER_CHIPS: LocalisationSet = getYoutubeFilterChipsLocalisations(::getLanguage)
+
+    private fun getLanguage(key: String, languages: List<String>): Int =
+        languages.indexOf(key).also {
+            check(it != -1)
+        }
+
+    private val HOME_FEED_STRINGS: LocalisationSet = getYoutubeHomeFeedLocalisations { getLanguage(it, languages) }
+    private val OWN_CHANNEL_STRINGS: LocalisationSet = getYoutubeOwnChannelLocalisations { getLanguage(it, languages) }
+    private val ARTIST_PAGE_STRINGS: LocalisationSet = getYoutubeArtistPageLocalisations { getLanguage(it, languages) }
+    private val FILTER_CHIPS: LocalisationSet = getYoutubeFilterChipsLocalisations { getLanguage(it, languages) }
 
     private fun getLocalised(string: String, localisations: LocalisationSet, source_language: Int): Pair<String, StringID?>? {
         val target: Int = Settings.KEY_LANG_UI.get()
 
         for (localisation in localisations.items.withIndex()) {
             if (localisation.value[source_language]?.first == string) {
-                val string: Pair<String, String?> = localisation.value[target] ?: break
-                val id = localisations.item_ids.getOrNull(localisation.index)
-                return Pair(string.second ?: string.first, id)
+                val string_data: Pair<String, String?> = localisation.value[target] ?: break
+                val id = localisations.item_ids[localisation.index]
+                return Pair(string_data.second ?: string_data.first, id)
             }
         }
 
@@ -133,19 +138,14 @@ class YoutubeUILocalisation(languages: List<String>) {
     fun localiseArtistPageString(string: String, source_language: Int): Pair<String, StringID?>? = getLocalised(string, ARTIST_PAGE_STRINGS, source_language)
 
     fun getFilterChipIndex(string: String, source_language: Int): Int? {
-        val index = FILTER_CHIPS.indexOfFirst { it[source_language]?.first == string }
+        val index = FILTER_CHIPS.items.indexOfFirst { it[source_language]?.first == string }
         if (index == -1) {
             return null
         }
         return index
     }
     fun getFilterChip(index: Int): String {
-        val chip = FILTER_CHIPS.elementAt(index)[Settings.KEY_LANG_UI.get()]!!
+        val chip = FILTER_CHIPS.items.elementAt(index)[Settings.KEY_LANG_UI.get()]!!
         return chip.second ?: chip.first
     }
-
-    fun getLanguage(key: String): Int =
-        languages.indexOf(key).also {
-            check(it != -1)
-        }
 }

@@ -2,7 +2,6 @@ package com.spectre7.spmp.ui.component
 
 import LocalPlayerState
 import SpMp
-import androidx.compose.foundation.ExperimentalFoundationApi
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.shape.RoundedCornerShape
@@ -21,7 +20,6 @@ import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.spectre7.spmp.api.getOrReport
-import com.spectre7.spmp.model.*
 import com.spectre7.spmp.model.mediaitem.*
 import com.spectre7.spmp.model.mediaitem.enums.getReadable
 import com.spectre7.spmp.resources.getString
@@ -145,13 +143,11 @@ fun getPlaylistLongPressMenuData(
         { PlaylistLongPressMenuInfo(playlist, it) },
         getString("lpm_long_press_actions"),
         multiselect_context = multiselect_context
-    ) { item, _ ->
-        PlaylistLongPressPopupActions(item)
-    }
+    )
 }
 
 @Composable
-private fun LongPressMenuActionProvider.PlaylistLongPressPopupActions(playlist: MediaItem) {
+fun LongPressMenuActionProvider.PlaylistLongPressMenuActions(playlist: MediaItem) {
     require(playlist is Playlist)
 
     val player = LocalPlayerState.current

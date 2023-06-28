@@ -35,14 +35,19 @@ import com.spectre7.spmp.platform.composable.platformClickable
 import com.spectre7.spmp.platform.vibrateShort
 import com.spectre7.spmp.resources.getString
 import com.spectre7.spmp.ui.component.multiselect.MediaItemMultiSelectContext
+import com.spectre7.spmp.ui.layout.artistpage.ArtistSubscribeButton
 import com.spectre7.spmp.ui.layout.nowplaying.overlay.DEFAULT_THUMBNAIL_ROUNDING
 import com.spectre7.spmp.ui.theme.Theme
 import com.spectre7.utils.composable.Marquee
 import com.spectre7.utils.composable.NoRipple
 import com.spectre7.utils.contrastAgainst
+import com.spectre7.utils.getContrasted
 import com.spectre7.utils.setAlpha
 import com.spectre7.utils.thenIf
+import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.delay
+import kotlinx.coroutines.launch
 
 private const val LONG_PRESS_ICON_MENU_OPEN_ANIM_MS = 150
 private const val MENU_ITEM_SPACING = 20
@@ -55,10 +60,10 @@ data class LongPressMenuData(
     val getInitialInfoTitle: (@Composable () -> String?)? = null,
     val multiselect_context: MediaItemMultiSelectContext? = null,
     val multiselect_key: Int? = null,
-    val sideButton: (@Composable (Modifier, background: Color, accent: Color) -> Unit)? = null,
-    val actions: (@Composable LongPressMenuActionProvider.(item: MediaItem, spacing: Dp) -> Unit)? = null
+    val playlist_as_song: Boolean = false
 ) {
     var current_interaction_stage: MediaItemPreviewInteractionPressStage? by mutableStateOf(null)
+    private val coroutine_scope = CoroutineScope(Dispatchers.Main)
     private val HINT_MIN_STAGE = MediaItemPreviewInteractionPressStage.LONG_1
 
     fun getInteractionHintScale(): Int {
@@ -66,6 +71,46 @@ data class LongPressMenuData(
             if (it < HINT_MIN_STAGE) 0
             else it.ordinal - HINT_MIN_STAGE.ordinal + 1
         } ?: 0
+    }
+
+    @Composable
+    fun Actions(provider: LongPressMenuActionProvider, spacing: Dp) {
+        with(provider) {
+            if (item is Song || (item is Playlist && playlist_as_song)) {
+                SongLongPressMenuActions(item, spacing, multiselect_key) { callback ->
+                    coroutine_scope.launch {
+                        if (item is Song) {
+                            callback(item)
+                        }
+                        else {
+                            check(item is Playlist)
+                            item.getFeedLayouts().onSuccess { layouts ->
+                                layouts.firstOrNull()?.items?.firstOrNull()?.also {
+                                    callback(it as Song)
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+            else if (item is Playlist) {
+                PlaylistLongPressMenuActions(item)
+            }
+            else if (item is Artist) {
+                ArtistLongPressMenuActions(item)
+            }
+            else {
+                throw NotImplementedError(item.type.toString())
+            }
+        }
+    }
+
+    @Composable
+    fun SideButton(modifier: Modifier, background: Color, accent: Color) {
+        when (item) {
+            is Song -> LikeDislikeButton(item, modifier) { background.getContrasted() }
+            is Artist -> ArtistSubscribeButton(item, modifier)
+        }
     }
 }
 
@@ -149,7 +194,6 @@ fun LongPressMenu(
     }
 }
 
-@OptIn(ExperimentalMaterial3Api::class)
 @Composable
 private fun MenuContent(
     data: LongPressMenuData,
@@ -353,7 +397,7 @@ private fun MenuContent(
                                 }
                             }
 
-                            data.sideButton?.invoke(Modifier.requiredHeight(40.dp), Theme.current.background, accent_colour.value ?: Theme.current.accent)
+                            data.SideButton(Modifier.requiredHeight(40.dp), Theme.current.background, accent_colour.value ?: Theme.current.accent)
                         }
 
                         // Info/action list
@@ -391,14 +435,13 @@ private fun MenuActions(data: LongPressMenuData, accent_colour: Color, onAction:
     val accent_colour_provider = remember (accent_colour) { { accent_colour } }
 
     // Data-provided actions
-    data.actions?.invoke(
+    data.Actions(
         LongPressMenuActionProvider(
             Theme.current.on_background_provider,
             accent_colour_provider,
             Theme.current.background_provider,
             onAction
         ),
-        data.item,
         MENU_ITEM_SPACING.dp
     )
 

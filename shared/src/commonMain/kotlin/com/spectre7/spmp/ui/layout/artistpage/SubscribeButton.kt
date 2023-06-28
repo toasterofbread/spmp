@@ -1,5 +1,24 @@
 package com.spectre7.spmp.ui.layout.artistpage
 
+import androidx.compose.animation.Crossfade
+import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.PersonRemove
+import androidx.compose.material.icons.outlined.PersonAddAlt1
+import androidx.compose.material3.Icon
+import androidx.compose.material3.IconButtonDefaults
+import androidx.compose.material3.LocalContentColor
+import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.rememberCoroutineScope
+import androidx.compose.ui.Modifier
+import androidx.compose.ui.graphics.Color
+import com.spectre7.spmp.api.Api
+import com.spectre7.spmp.model.mediaitem.Artist
+import com.spectre7.spmp.resources.getStringTODO
+import com.spectre7.utils.composable.ShapedIconButton
+import com.spectre7.utils.getContrasted
+import kotlinx.coroutines.launch
+
 @Composable
 fun ArtistSubscribeButton(
     artist: Artist,

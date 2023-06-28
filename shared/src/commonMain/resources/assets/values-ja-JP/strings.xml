@@ -184,8 +184,13 @@
     <string name="s_sub_feed_initial_rows">自動的にロードするフィード行の最小数</string>
     <string name="s_key_persistent_queue">再生キューを覚える</string>
     <string name="s_sub_persistent_queue">アプリを閉じても曲キューは保持されます</string>
+
     <string name="s_key_add_songs_to_history">聴いた曲をYouTubeの歴史に追加する</string>
     <string name="s_sub_add_songs_to_history">アプリ内で流された曲をYouTubeに通信し、アカウントの歴史に追加されます</string>
+
+    <string name="s_key_treat_singles_as_song">アーティストのシングルを曲として扱う</string>
+    <string name="s_sub_treat_singles_as_song">アーティストの「シングル」セクションに入ってるプレイリストは、曲が一つしか含まれていなければその曲として扱われます</string>
+
     <string name="s_key_current_theme">現在のテーマ</string>
     <string name="s_theme_editor_title">テーマを変更する</string>
     <string name="s_option_accent_theme">テーマから</string>

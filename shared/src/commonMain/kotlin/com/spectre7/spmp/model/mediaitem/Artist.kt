@@ -8,6 +8,7 @@ import androidx.compose.runtime.setValue
 import com.spectre7.spmp.api.*
 import com.spectre7.spmp.model.mediaitem.data.ArtistItemData
 import com.spectre7.spmp.resources.getString
+import com.spectre7.spmp.resources.uilocalisation.amountToString
 import com.spectre7.spmp.ui.component.ArtistPreviewLong
 import com.spectre7.spmp.ui.component.ArtistPreviewSquare
 import com.spectre7.spmp.ui.component.MediaItemLayout

@@ -1,5 +1,29 @@
 package com.spectre7.spmp.ui.layout.artistpage
 
+import androidx.compose.animation.animateContentSize
+import androidx.compose.foundation.layout.*
+import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.ArrowDropDown
+import androidx.compose.material.icons.filled.ArrowDropUp
+import androidx.compose.material.icons.outlined.Info
+import androidx.compose.material3.*
+import androidx.compose.runtime.Composable
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.setValue
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
+import androidx.compose.ui.Modifier
+import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.layout.onSizeChanged
+import androidx.compose.ui.platform.LocalDensity
+import androidx.compose.ui.unit.dp
+import com.spectre7.spmp.resources.getString
+import com.spectre7.spmp.ui.theme.Theme
+import com.spectre7.utils.composable.LinkifyText
+import com.spectre7.utils.composable.NoRipple
+import com.spectre7.utils.setAlpha
+
+@OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun DescriptionCard(description_text: String, backgroundColourProvider: () -> Color, accentColourProvider: () -> Color?, toggleInfo: () -> Unit) {
     var expanded by remember { mutableStateOf(false) }

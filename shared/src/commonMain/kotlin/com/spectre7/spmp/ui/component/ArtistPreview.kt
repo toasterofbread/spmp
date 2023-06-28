@@ -26,7 +26,7 @@ import androidx.compose.ui.unit.sp
 import com.spectre7.spmp.model.mediaitem.*
 import com.spectre7.spmp.resources.getString
 import com.spectre7.spmp.ui.component.multiselect.MediaItemMultiSelectContext
-import com.spectre7.spmp.ui.layout.ArtistSubscribeButton
+import com.spectre7.spmp.ui.layout.artistpage.ArtistSubscribeButton
 import com.spectre7.utils.composable.WidthShrinkText
 import com.spectre7.utils.isDebugBuild
 
@@ -129,20 +129,12 @@ fun getArtistLongPressMenuData(
         thumb_shape,
         { ArtistLongPressMenuInfo(artist, it) },
         getString("lpm_long_press_actions"),
-        multiselect_context = multiselect_context,
-        sideButton = { modifier, background, accent ->
-            ArtistSubscribeButton(
-                artist,
-                modifier = modifier
-            )
-        }
-    ) { item, _ ->
-        ArtistLongPressPopupActions(item)
-    }
+        multiselect_context = multiselect_context
+    )
 }
 
 @Composable
-private fun LongPressMenuActionProvider.ArtistLongPressPopupActions(artist: MediaItem) {
+fun LongPressMenuActionProvider.ArtistLongPressMenuActions(artist: MediaItem) {
     require(artist is Artist)
     val player = LocalPlayerState.current
 

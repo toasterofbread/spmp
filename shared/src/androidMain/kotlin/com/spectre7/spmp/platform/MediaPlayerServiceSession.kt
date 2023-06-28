@@ -40,6 +40,7 @@ import com.spectre7.spmp.shared.R
 import kotlinx.coroutines.*
 import java.io.IOException
 import java.util.concurrent.Executors
+import kotlin.math.roundToInt
 
 private const val NOTIFICATION_ID = 2
 private const val NOTIFICATION_CHANNEL_ID = "playback_channel"
@@ -184,11 +185,11 @@ class MediaPlayerServiceSession: MediaSessionService() {
         val height: Int
         if (image.width > image.height) {
             width = image.height
-            height = image.height * aspect
+            height = (image.height * aspect).roundToInt()
         }
         else {
             width = image.width
-            height = image.width * aspect
+            height = (image.width * aspect).roundToInt()
         }
         
         return Bitmap.createBitmap(

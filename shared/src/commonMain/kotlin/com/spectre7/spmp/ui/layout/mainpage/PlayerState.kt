@@ -55,6 +55,10 @@ class PlayerStatus internal constructor(private val player: PlayerService) {
 
     init {
         player.addListener(object : MediaPlayerService.Listener() {
+            init {
+                onEvents()
+            }
+
             override fun onSongTransition(song: Song?) {
                 m_song = song
             }
@@ -85,7 +89,7 @@ class PlayerStatus internal constructor(private val player: PlayerService) {
 
 open class PlayerState protected constructor(
     private val onClickedOverride: ((item: MediaItem, multiselect_key: Int?) -> Unit)? = null,
-    private val onLongClickedOverride: ((item: MediaItem) -> Unit)? = null,
+    private val onLongClickedOverride: ((item: MediaItem, queue_index: Int?) -> Unit)? = null,
     private val upstream: PlayerState? = null
 ) {
     open val np_theme_mode: ThemeMode get() = upstream!!.np_theme_mode
@@ -108,7 +112,7 @@ open class PlayerState protected constructor(
 
     fun copy(
         onClickedOverride: ((item: MediaItem, multiselect_key: Int?) -> Unit)? = null,
-        onLongClickedOverride: ((item: MediaItem) -> Unit)? = null
+        onLongClickedOverride: ((item: MediaItem, queue_index: Int?) -> Unit)? = null
     ): PlayerState {
         return PlayerState(onClickedOverride, onLongClickedOverride, this)
     }
@@ -163,7 +167,7 @@ open class PlayerState protected constructor(
     }
     open fun onMediaItemLongClicked(item: MediaItem, queue_index: Int? = null) {
         if (onLongClickedOverride != null) {
-            onLongClickedOverride.invoke(item)
+            onLongClickedOverride.invoke(item, queue_index)
         }
         else {
             upstream!!.onMediaItemLongClicked(item, queue_index)

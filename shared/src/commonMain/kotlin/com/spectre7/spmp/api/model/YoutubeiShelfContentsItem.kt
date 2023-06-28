@@ -2,7 +2,7 @@ package com.spectre7.spmp.api.model
 
 import com.spectre7.spmp.api.MusicResponsiveListItemRenderer
 import com.spectre7.spmp.api.MusicTwoRowItemRenderer
-import com.spectre7.spmp.api.parseYoutubeDurationString
+import com.spectre7.spmp.resources.uilocalisation.parseYoutubeDurationString
 import com.spectre7.spmp.model.Settings
 import com.spectre7.spmp.model.mediaitem.AccountPlaylist
 import com.spectre7.spmp.model.mediaitem.Artist

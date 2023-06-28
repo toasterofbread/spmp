@@ -32,7 +32,7 @@ import androidx.compose.ui.platform.LocalLayoutDirection
 import androidx.compose.ui.text.*
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.*
-import com.spectre7.spmp.api.durationToString
+import com.spectre7.spmp.resources.uilocalisation.durationToString
 import com.spectre7.spmp.api.getOrReport
 import com.spectre7.spmp.model.*
 import com.spectre7.spmp.model.mediaitem.*

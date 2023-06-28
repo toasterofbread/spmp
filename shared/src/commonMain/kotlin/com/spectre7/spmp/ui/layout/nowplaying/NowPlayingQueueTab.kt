@@ -26,7 +26,7 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.unit.*
 import com.spectre7.spmp.api.RadioModifier
-import com.spectre7.spmp.api.durationToString
+import com.spectre7.spmp.resources.uilocalisation.durationToString
 import com.spectre7.spmp.model.MusicTopBarMode
 import com.spectre7.spmp.model.NowPlayingQueueRadioInfoPosition
 import com.spectre7.spmp.model.Settings

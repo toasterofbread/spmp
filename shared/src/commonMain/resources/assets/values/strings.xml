@@ -187,7 +187,7 @@
     <string name="notif_download_already_finished">Already downloaded</string>
     <string name="notif_download_cancelled">Download was cancelled</string>
     <string name="notif_download_already_downloading">Already downloading</string>
-    <string name="notif_copied_to_clipboard">Copied to clipboar</string>
+    <string name="notif_copied_to_clipboard">Copied to clipboard</string>
     <string name="notif_copied_x_to_clipboard">Copied $x to clipboard</string>
 
     <string name="radio_builder_title">Create a radio</string>

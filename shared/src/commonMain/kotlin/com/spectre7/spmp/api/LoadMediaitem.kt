@@ -10,6 +10,9 @@ import com.spectre7.spmp.model.mediaitem.data.ArtistItemData
 import com.spectre7.spmp.model.mediaitem.data.MediaItemData
 import com.spectre7.spmp.model.mediaitem.data.SongItemData
 import com.spectre7.spmp.model.mediaitem.enums.PlaylistType
+import com.spectre7.spmp.resources.uilocalisation.LocalisedYoutubeString
+import com.spectre7.spmp.resources.uilocalisation.parseYoutubeDurationString
+import com.spectre7.spmp.resources.uilocalisation.parseYoutubeSubscribersString
 import com.spectre7.spmp.ui.component.MediaItemLayout
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext

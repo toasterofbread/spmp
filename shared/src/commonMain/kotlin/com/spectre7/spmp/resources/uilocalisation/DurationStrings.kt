@@ -1,5 +1,8 @@
 package com.spectre7.spmp.resources.uilocalisation
 
+import org.apache.commons.lang3.time.DurationFormatUtils
+import java.time.Duration
+
 private const val HOUR: Long = 3600000L
 
 fun durationToString(duration: Long, short: Boolean = false, hl: String = SpMp.ui_language): String {

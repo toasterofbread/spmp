@@ -89,7 +89,7 @@ class PlayerStatus internal constructor(private val player: PlayerService) {
 
 open class PlayerState protected constructor(
     private val onClickedOverride: ((item: MediaItem, multiselect_key: Int?) -> Unit)? = null,
-    private val onLongClickedOverride: ((item: MediaItem, queue_index: Int?) -> Unit)? = null,
+    private val onLongClickedOverride: ((item: MediaItem, long_press_data: LongPressMenuData?) -> Unit)? = null,
     private val upstream: PlayerState? = null
 ) {
     open val np_theme_mode: ThemeMode get() = upstream!!.np_theme_mode
@@ -112,7 +112,7 @@ open class PlayerState protected constructor(
 
     fun copy(
         onClickedOverride: ((item: MediaItem, multiselect_key: Int?) -> Unit)? = null,
-        onLongClickedOverride: ((item: MediaItem, queue_index: Int?) -> Unit)? = null
+        onLongClickedOverride: ((item: MediaItem, long_press_data: LongPressMenuData?) -> Unit)? = null
     ): PlayerState {
         return PlayerState(onClickedOverride, onLongClickedOverride, this)
     }
@@ -165,13 +165,17 @@ open class PlayerState protected constructor(
             upstream!!.onMediaItemClicked(item, multiselect_key)
         }
     }
-    open fun onMediaItemLongClicked(item: MediaItem, queue_index: Int? = null) {
+    open fun onMediaItemLongClicked(item: MediaItem, long_press_data: LongPressMenuData? = null) {
         if (onLongClickedOverride != null) {
-            onLongClickedOverride.invoke(item, queue_index)
+            onLongClickedOverride.invoke(item, long_press_data)
         }
         else {
-            upstream!!.onMediaItemLongClicked(item, queue_index)
+            upstream!!.onMediaItemLongClicked(item, long_press_data)
         }
+    }
+
+    fun onMediaItemLongClicked(item: MediaItem, queue_index: Int) {
+        onMediaItemLongClicked(item, LongPressMenuData(item, multiselect_key = queue_index))
     }
 
     open fun openPage(page: PlayerOverlayPage, from_current: Boolean = false) { upstream!!.openPage(page, from_current) }

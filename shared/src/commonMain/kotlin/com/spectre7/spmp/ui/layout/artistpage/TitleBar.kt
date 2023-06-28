@@ -1,6 +1,40 @@
 package com.spectre7.spmp.ui.layout.artistpage
 
-@OptIn(ExperimentalFoundationApi::class)
+import androidx.compose.animation.Crossfade
+import androidx.compose.foundation.ExperimentalFoundationApi
+import androidx.compose.foundation.background
+import androidx.compose.foundation.clickable
+import androidx.compose.foundation.combinedClickable
+import androidx.compose.foundation.layout.*
+import androidx.compose.foundation.shape.CircleShape
+import androidx.compose.foundation.text.KeyboardActions
+import androidx.compose.foundation.text.KeyboardOptions
+import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.*
+import androidx.compose.material.icons.outlined.PushPin
+import androidx.compose.material3.*
+import androidx.compose.runtime.Composable
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.setValue
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
+import androidx.compose.ui.Alignment
+import androidx.compose.ui.Modifier
+import androidx.compose.ui.graphics.vector.ImageVector
+import androidx.compose.ui.text.input.ImeAction
+import androidx.compose.ui.text.style.TextAlign
+import androidx.compose.ui.unit.dp
+import androidx.compose.ui.unit.sp
+import com.spectre7.spmp.model.mediaitem.Artist
+import com.spectre7.spmp.model.mediaitem.MediaItem
+import com.spectre7.spmp.model.mediaitem.enums.MediaItemType
+import com.spectre7.spmp.platform.vibrateShort
+import com.spectre7.spmp.resources.getString
+import com.spectre7.spmp.resources.getStringTODO
+import com.spectre7.spmp.ui.theme.Theme
+import com.spectre7.utils.composable.WidthShrinkText
+
+@OptIn(ExperimentalMaterial3Api::class, ExperimentalFoundationApi::class)
 @Composable
 fun TitleBar(item: MediaItem, modifier: Modifier = Modifier) {
     val horizontal_padding = 20.dp
@@ -8,7 +42,7 @@ fun TitleBar(item: MediaItem, modifier: Modifier = Modifier) {
     Crossfade(editing_title) { editing ->
         Column(
             modifier.padding(start = horizontal_padding).fillMaxHeight(), 
-            horizontalAlignment = Alignment.CenterHorizontally, 
+            horizontalAlignment = Alignment.CenterHorizontally,
             verticalArrangement = Arrangement.spacedBy(10.dp, Alignment.Bottom)
         ) {
             if (editing) {

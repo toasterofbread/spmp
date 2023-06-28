@@ -4,12 +4,15 @@ import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.MusicNote
 import androidx.compose.material.icons.filled.Person
 import androidx.compose.material.icons.filled.PlaylistPlay
+import androidx.compose.runtime.Composable
 import androidx.compose.ui.graphics.vector.ImageVector
+import androidx.compose.ui.unit.Dp
 import com.beust.klaxon.JsonObject
 import com.spectre7.spmp.api.Api
 import com.spectre7.spmp.model.mediaitem.*
 import com.spectre7.spmp.resources.getString
 import com.spectre7.spmp.platform.PlatformContext
+import com.spectre7.spmp.ui.component.*
 
 enum class MediaItemType {
     SONG, ARTIST, PLAYLIST_ACC, PLAYLIST_LOC, PLAYLIST_BROWSEPARAMS;
@@ -48,7 +51,7 @@ enum class MediaItemType {
             return Api.klaxon.parseFromJsonObject(obj)!!
         }
     }
-    
+
     suspend fun fromId(id: String, context: PlatformContext = SpMp.context): MediaItem = when (this) {
         SONG -> Song.fromId(id)
         ARTIST -> Artist.fromId(id)

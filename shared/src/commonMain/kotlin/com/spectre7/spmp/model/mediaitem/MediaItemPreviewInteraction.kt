@@ -31,7 +31,7 @@ enum class MediaItemPreviewInteractionPressStage {
                 }
             }
             BRIEF -> {}
-            LONG_1 -> player.showLongPressMenu(long_press_menu_data)
+            LONG_1 -> player.onMediaItemLongClicked(item, long_press_menu_data)
             LONG_2 -> long_press_menu_data.multiselect_context?.apply {
                 setActive(true)
                 toggleItem(item, long_press_menu_data.multiselect_key)

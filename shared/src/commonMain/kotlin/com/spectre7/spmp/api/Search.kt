@@ -14,6 +14,7 @@ import com.spectre7.spmp.model.mediaitem.enums.MediaItemType
 import com.spectre7.spmp.model.mediaitem.enums.PlaylistType
 import com.spectre7.spmp.model.mediaitem.enums.SongType
 import com.spectre7.spmp.resources.getStringTODO
+import com.spectre7.spmp.resources.uilocalisation.LocalisedYoutubeString
 import com.spectre7.spmp.ui.component.MediaItemLayout
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
@@ -114,8 +115,8 @@ suspend fun searchYoutubeMusic(query: String, params: String?): Result<SearchRes
         if (card != null) {
             category_layouts.add(Pair(
                 MediaItemLayout(
-                    LocalisedYoutubeString.raw(getStringTODO(card.header.musicCardShelfHeaderBasicRenderer!!.title.first_text)), 
-                    null, 
+                    LocalisedYoutubeString.raw(getStringTODO(card.header.musicCardShelfHeaderBasicRenderer!!.title.first_text)),
+                    null,
                     items = mutableListOf(card.getMediaItem()), 
                     type = MediaItemLayout.Type.CARD
                 ),

@@ -25,6 +25,7 @@ import com.spectre7.spmp.platform.composable.BackHandler
 import com.spectre7.spmp.ui.component.*
 import com.spectre7.spmp.ui.component.multiselect.MediaItemMultiSelectContext
 import com.spectre7.spmp.ui.layout.*
+import com.spectre7.spmp.ui.layout.artistpage.ArtistPage
 import com.spectre7.spmp.ui.layout.library.LibraryPage
 import com.spectre7.spmp.ui.layout.nowplaying.NOW_PLAYING_VERTICAL_PAGE_COUNT
 import com.spectre7.spmp.ui.layout.nowplaying.NowPlayingExpansionState
@@ -324,11 +325,11 @@ class PlayerStateImpl(private val context: PlatformContext): PlayerState(null, n
             openMediaItem(item)
         }
     }
-    override fun onMediaItemLongClicked(item: MediaItem, queue_index: Int?) {
+    override fun onMediaItemLongClicked(item: MediaItem, long_press_data: LongPressMenuData?) {
         showLongPressMenu(when (item) {
-            is Song -> getSongLongPressMenuData(item, multiselect_key = queue_index)
-            is Artist -> getArtistLongPressMenuData(item)
-            else -> LongPressMenuData(item)
+            is Song -> long_press_data ?: getSongLongPressMenuData(item)
+            is Artist -> long_press_data ?: getArtistLongPressMenuData(item)
+            else -> long_press_data ?: LongPressMenuData(item)
         })
     }
 

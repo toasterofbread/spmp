@@ -14,9 +14,9 @@ import androidx.compose.runtime.*
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.unit.dp
-import com.spectre7.spmp.api.LocalisedYoutubeString
 import com.spectre7.spmp.model.*
 import com.spectre7.spmp.model.mediaitem.MediaItemThumbnailProvider
+import com.spectre7.spmp.resources.uilocalisation.LocalisedYoutubeString
 import com.spectre7.spmp.ui.component.MusicTopBarWithVisualiser
 import com.spectre7.spmp.ui.layout.RadioBuilderIcon
 import com.spectre7.spmp.ui.layout.YoutubeMusicLoginConfirmation

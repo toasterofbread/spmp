@@ -1,5 +1,25 @@
 package com.spectre7.spmp.ui.layout.artistpage
 
+import androidx.compose.foundation.layout.*
+import androidx.compose.material.IconButton
+import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.ContentCopy
+import androidx.compose.material.icons.filled.Share
+import androidx.compose.material3.*
+import androidx.compose.runtime.Composable
+import androidx.compose.ui.Alignment
+import androidx.compose.ui.Modifier
+import androidx.compose.ui.platform.LocalClipboardManager
+import androidx.compose.ui.text.AnnotatedString
+import androidx.compose.ui.unit.dp
+import com.spectre7.spmp.model.mediaitem.Artist
+import com.spectre7.spmp.model.mediaitem.MediaItem
+import com.spectre7.spmp.model.mediaitem.Playlist
+import com.spectre7.spmp.platform.composable.PlatformAlertDialog
+import com.spectre7.spmp.resources.getString
+import com.spectre7.spmp.resources.getStringTODO
+import com.spectre7.utils.composable.Marquee
+
 @Composable
 fun InfoDialog(item: MediaItem, close: () -> Unit) {
     PlatformAlertDialog(

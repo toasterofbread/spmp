@@ -39,6 +39,7 @@ import com.spectre7.spmp.model.mediaitem.enums.PlaylistType
 import com.spectre7.spmp.model.mediaitem.enums.getReadable
 import com.spectre7.spmp.platform.composable.rememberImagePainter
 import com.spectre7.spmp.resources.getString
+import com.spectre7.spmp.resources.uilocalisation.LocalisedYoutubeString
 import com.spectre7.spmp.ui.component.multiselect.MediaItemMultiSelectContext
 import com.spectre7.spmp.ui.theme.Theme
 import com.spectre7.utils.*

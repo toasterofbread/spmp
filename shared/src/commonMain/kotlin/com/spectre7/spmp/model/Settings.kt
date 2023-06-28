@@ -147,6 +147,7 @@ enum class Settings {
     KEY_VOLUME_STEPS,
     KEY_PERSISTENT_QUEUE,
     KEY_ADD_SONGS_TO_HISTORY,
+    KEY_TREAT_SINGLES_AS_SONG,
 
     // Internal
     INTERNAL_PINNED_ITEMS,
@@ -312,6 +313,7 @@ enum class Settings {
                 KEY_SHOW_LIKES_PLAYLIST -> true
                 KEY_PERSISTENT_QUEUE -> true
                 KEY_ADD_SONGS_TO_HISTORY -> false
+                KEY_TREAT_SINGLES_AS_SONG -> false
 
                 KEY_SPMS_PORT -> 3973
 

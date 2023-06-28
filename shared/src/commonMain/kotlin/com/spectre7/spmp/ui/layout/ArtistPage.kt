@@ -265,15 +265,40 @@ fun ArtistPage(
                         verticalArrangement = Arrangement.spacedBy(30.dp)
                     ) {
                         for (layout in item.feed_layouts!!) {
-                            val type =
-                                if (layout.type == null) MediaItemLayout.Type.GRID
-                                else if (layout.type == MediaItemLayout.Type.NUMBERED_LIST && item is Artist) MediaItemLayout.Type.LIST
-                                else layout.type
+                            val player = LocalPlayerState.current
+                            val is_singles = layout.title?.getID() == YoutubeUILocalisation.StringID.ARTIST_PAGE_SINGLES
 
-                            type.Layout(
-                                if (previous_item == null) layout else layout.copy(title = null, subtitle = null),
-                                multiselect_context = multiselect_context
-                            )
+                            CompositionLocalProvider(LocalPlayerState provides remember { 
+                                if (!is_singles) player
+                                else player.copy(
+                                    onClickedOverride = { item, key ->
+                                        if (item is Playlist) {
+                                            TODO("Treat as contained song")
+                                        }
+                                        else {
+                                            player.onMediaItemClicked(item, key)
+                                        }
+                                    },
+                                    onLongClickedOverride = { item, index ->
+                                        if (item is Playlist) {
+                                            TODO("Treat as contained song")
+                                        }
+                                        else {
+                                            player.onMediaItemLongClicked(item, index)
+                                        }
+                                    }
+                                )
+                            }) {
+                                val type =
+                                    if (layout.type == null) MediaItemLayout.Type.GRID
+                                    else if (layout.type == MediaItemLayout.Type.NUMBERED_LIST && item is Artist) MediaItemLayout.Type.LIST
+                                    else layout.type
+
+                                type.Layout(
+                                    if (previous_item == null) layout else layout.copy(title = null, subtitle = null),
+                                    multiselect_context = multiselect_context
+                                )
+                            }
                         }
 
                         val description = item.description

@@ -29,7 +29,7 @@ import androidx.compose.ui.unit.dp
 import com.beust.klaxon.Klaxon
 import com.beust.klaxon.KlaxonException
 import com.spectre7.spmp.api.Api
-import com.spectre7.spmp.api.YoutubeUITranslation
+import com.spectre7.spmp.resources.uilocalisation.YoutubeUILocalisation
 import com.spectre7.spmp.model.Cache
 import com.spectre7.spmp.model.mediaitem.MediaItem
 import com.spectre7.spmp.model.Settings
@@ -66,8 +66,8 @@ object SpMp {
     lateinit var context: PlatformContext
     lateinit var error_manager: ErrorManager
 
-    private var _yt_ui_translation: YoutubeUITranslation? = null
-    val yt_ui_translation: YoutubeUITranslation get() = _yt_ui_translation!!
+    private var _yt_ui_localisation: YoutubeUILocalisation? = null
+    val yt_ui_localisation: YoutubeUILocalisation get() = _yt_ui_localisation!!
 
     private val prefs_change_listener =
         object : ProjectPreferences.Listener {
@@ -97,13 +97,13 @@ object SpMp {
         val ui_lang: Int = Settings.get(Settings.KEY_LANG_UI)
         initResources(LANGUAGES.elementAt(ui_lang), context)
 
-        _yt_ui_translation = YoutubeUITranslation(LANGUAGES)
+        _yt_ui_localisation = YoutubeUILocalisation(LANGUAGES)
         Cache.init(context)
         Api.initialise()
     }
 
     fun release() {
-        _yt_ui_translation = null
+        _yt_ui_localisation = null
     }
 
     fun onStart() {

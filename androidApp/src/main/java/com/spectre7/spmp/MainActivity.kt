@@ -47,8 +47,9 @@ class MainActivity : ComponentActivity() {
         )
         WindowCompat.setDecorFitsSystemWindows(window, false)
 
-        val context = PlatformContext(this)
-        SpMp.init(context)
+        PlatformContext(this) {
+            SpMp.init(it)
+        }
 
         val open_uri: Uri? =
             if (intent.action == Intent.ACTION_VIEW) intent.data

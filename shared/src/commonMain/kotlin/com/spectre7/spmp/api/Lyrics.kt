@@ -5,6 +5,7 @@ import com.spectre7.spmp.model.mediaitem.Song
 import com.spectre7.spmp.model.SongLyrics
 import com.spectre7.utils.hasKanjiAndHiragana
 import com.spectre7.utils.isKanji
+import com.spectre7.utils.isJP
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
 import okhttp3.MediaType.Companion.toMediaType
@@ -134,6 +135,31 @@ private fun mergeAndFuriganiseTerms(tokeniser: Tokenizer, terms: List<SongLyrics
     }
 
     val ret: MutableList<SongLyrics.Term> = mutableListOf()
+    val terms_to_process: MutableList<SongLyrics.Term> = mutableListOf()
+
+    for (term in terms) {
+        val text = term.subterms.single().text
+        if (text.any { it.isJP() }) {
+            terms_to_process.add(term)
+        }
+        else {
+            ret.addAll(_mergeAndFuriganiseTerms(tokeniser, terms_to_process))
+            terms_to_process.clear()
+            ret.add(term)
+        }
+    }
+
+    ret.addAll(_mergeAndFuriganiseTerms(tokeniser, terms_to_process))
+
+    return ret
+}
+
+private fun _mergeAndFuriganiseTerms(tokeniser: Tokenizer, terms: List<SongLyrics.Term>): List<SongLyrics.Term> {
+    if (terms.isEmpty()) {
+        return emptyList()
+    }
+
+    val ret: MutableList<SongLyrics.Term> = mutableListOf()
     val line_range = terms.first().line_range!!
     val line_index = terms.first().line_index
 
@@ -250,7 +276,7 @@ private fun parseTimedLyrics(data: String): List<List<SongLyrics.Term>> {
 
         parser.require(XmlPullParser.END_TAG, null, "word")
 
-        if (text!!.isBlank()) {
+        if (text!!.isEmpty()) {
             return null
         }
 

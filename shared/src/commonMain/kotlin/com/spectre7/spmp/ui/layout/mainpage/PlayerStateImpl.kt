@@ -229,7 +229,7 @@ class PlayerStateImpl(private val context: PlatformContext): PlayerState(null, n
 
         runBlocking {
             for (uid in Settings.INTERNAL_PINNED_ITEMS.get<Set<String>>(prefs)) {
-                val item = MediaItem.fromUid(uid)
+                val item = MediaItem.fromUid(uid, context)
                 pinned_items.add(item.getHolder())
             }
         }

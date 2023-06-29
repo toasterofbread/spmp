@@ -15,6 +15,7 @@ import com.spectre7.spmp.resources.uilocalisation.parseYoutubeDurationString
 import com.spectre7.spmp.resources.uilocalisation.parseYoutubeSubscribersString
 import com.spectre7.spmp.ui.component.MediaItemLayout
 import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.job
 import kotlinx.coroutines.withContext
 import okhttp3.Request
 import okhttp3.Response
@@ -325,6 +326,10 @@ suspend fun loadMediaItemData(
             .build()
 
         val response = Api.request(request).getOrNull()
+        coroutineContext.job.invokeOnCompletion {
+            response?.close()
+        }
+
         return@withContext item.data.run {
             if (response != null) {
                 val result = processDefaultResponse(item, this, response, hl)

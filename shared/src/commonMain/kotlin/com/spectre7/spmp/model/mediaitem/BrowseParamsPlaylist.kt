@@ -2,8 +2,14 @@ package com.spectre7.spmp.model.mediaitem
 
 import androidx.compose.runtime.*
 import com.spectre7.spmp.model.mediaitem.data.PlaylistItemData
+import com.spectre7.spmp.platform.PlatformContext
 
-class BrowseParamsPlaylist(val artist_id: String, val params: String, id: String): Playlist(id) {
+class BrowseParamsPlaylist(
+    val artist_id: String,
+    val params: String,
+    id: String,
+    context: PlatformContext,
+): Playlist(id, context) {
     override val data = BrowseParamsPlaylistItemData(this)
     override val is_editable = false
     override val playlist_type = null
@@ -39,9 +45,9 @@ class BrowseParamsPlaylist(val artist_id: String, val params: String, id: String
         private val browse_params_playlists: MutableMap<String, BrowseParamsPlaylist> = mutableMapOf()
 
         @Synchronized
-        fun fromId(item_id: String, browse_params: String): BrowseParamsPlaylist {
+        fun fromId(item_id: String, browse_params: String, context: PlatformContext = SpMp.context): BrowseParamsPlaylist {
             return browse_params_playlists.getOrPut(item_id) {
-                val playlist = BrowseParamsPlaylist(item_id, browse_params, item_id)
+                val playlist = BrowseParamsPlaylist(item_id, browse_params, item_id, context)
                 playlist.loadFromCache()
                 return@getOrPut playlist
             }

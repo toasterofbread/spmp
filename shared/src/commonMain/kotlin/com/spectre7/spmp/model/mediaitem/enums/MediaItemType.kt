@@ -53,9 +53,9 @@ enum class MediaItemType {
     }
 
     suspend fun fromId(id: String, context: PlatformContext = SpMp.context): MediaItem = when (this) {
-        SONG -> Song.fromId(id)
-        ARTIST -> Artist.fromId(id)
-        PLAYLIST_ACC -> AccountPlaylist.fromId(id)
+        SONG -> Song.fromId(id, context)
+        ARTIST -> Artist.fromId(id, context)
+        PLAYLIST_ACC -> AccountPlaylist.fromId(id, context)
         PLAYLIST_LOC -> LocalPlaylist.fromId(id, context)
         PLAYLIST_BROWSEPARAMS -> throw NotImplementedError(id)
     }

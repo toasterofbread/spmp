@@ -7,6 +7,7 @@ import com.spectre7.spmp.model.mediaitem.enums.PlaylistType
 import com.spectre7.spmp.ui.component.MediaItemLayout
 import com.spectre7.spmp.ui.component.PlaylistPreviewLong
 import com.spectre7.spmp.ui.component.PlaylistPreviewSquare
+import com.spectre7.spmp.platform.PlatformContext
 import com.spectre7.utils.addUnique
 
 class PlaylistDataRegistryEntry: MediaItemDataRegistry.Entry() {
@@ -20,7 +21,7 @@ class PlaylistDataRegistryEntry: MediaItemDataRegistry.Entry() {
     }
 }
 
-abstract class Playlist protected constructor (id: String): MediaItem(id), MediaItemWithLayouts {
+abstract class Playlist protected constructor (id: String, context: PlatformContext): MediaItem(id, context), MediaItemWithLayouts {
     abstract override val data: PlaylistItemData
     val playlist_reg_entry: PlaylistDataRegistryEntry get() = registry_entry as PlaylistDataRegistryEntry
 

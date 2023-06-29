@@ -25,7 +25,7 @@ import kotlinx.coroutines.withContext
 import java.io.File
 import java.io.Reader
 
-class LocalPlaylist(id: String): Playlist(id) {
+class LocalPlaylist(id: String, context: PlatformContext): Playlist(id, context) {
     override val url: String? = checkNotDeleted(null)
 
     override val data: PlaylistItemData = LocalPlaylistItemData(this)
@@ -226,7 +226,7 @@ class LocalPlaylist(id: String): Playlist(id) {
                     if (dir.isDirectory) {
                         val files = dir.listFiles() ?: emptyArray()
                         local_playlists = files.map { file ->
-                            LocalPlaylist(file.name).apply { loadFromCache() }
+                            LocalPlaylist(file.name, context).apply { loadFromCache() }
                         }.toMutableList()
                     }
                     else {
@@ -250,7 +250,7 @@ class LocalPlaylist(id: String): Playlist(id) {
                 val file = getPlaylistFileFromId(context, id.toString())
                 check(!file.exists())
 
-                val playlist = LocalPlaylist(id.toString())
+                val playlist = LocalPlaylist(id.toString(), context)
                 playlist.editData {
                     supplyTitle(getString("new_playlist_title"))
                 }

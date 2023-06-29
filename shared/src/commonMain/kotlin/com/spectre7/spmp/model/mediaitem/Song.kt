@@ -16,10 +16,11 @@ import com.spectre7.spmp.platform.crop
 import com.spectre7.spmp.platform.toImageBitmap
 import com.spectre7.spmp.ui.component.SongPreviewLong
 import com.spectre7.spmp.ui.component.SongPreviewSquare
+import com.spectre7.spmp.platform.PlatformContext
 import okhttp3.internal.filterList
 import java.net.URL
 
-class Song private constructor (id: String): MediaItem(id) {
+class Song private constructor (id: String, context: PlatformContext): MediaItem(id, context) {
     override val url: String get() = "https://music.youtube.com/watch?v=$id"
 
     override val data = SongItemData(this)
@@ -197,9 +198,9 @@ class Song private constructor (id: String): MediaItem(id) {
         private val songs: MutableMap<String, Song> = mutableMapOf()
 
         @Synchronized
-        fun fromId(id: String): Song {
+        fun fromId(id: String, context: PlatformContext = SpMp.context): Song {
             return songs.getOrPut(id) {
-                val song = Song(id)
+                val song = Song(id, context)
                 song.loadFromCache()
                 return@getOrPut song
             }

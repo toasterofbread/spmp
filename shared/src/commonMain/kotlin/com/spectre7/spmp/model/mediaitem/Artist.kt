@@ -9,17 +9,18 @@ import com.spectre7.spmp.api.*
 import com.spectre7.spmp.model.mediaitem.data.ArtistItemData
 import com.spectre7.spmp.resources.getString
 import com.spectre7.spmp.resources.uilocalisation.amountToString
+import com.spectre7.spmp.platform.PlatformContext
 import com.spectre7.spmp.ui.component.ArtistPreviewLong
 import com.spectre7.spmp.ui.component.ArtistPreviewSquare
 import com.spectre7.spmp.ui.component.MediaItemLayout
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
-import kotlin.concurrent.thread
 
 class Artist private constructor (
     id: String,
-    var is_for_item: Boolean = false
-): MediaItem(id), MediaItemWithLayouts {
+    context: PlatformContext,
+    var is_for_item: Boolean = false,
+): MediaItem(id, context), MediaItemWithLayouts {
 
     override val url: String get() = "https://music.youtube.com/channel/$id"
     override val data: ArtistItemData = ArtistItemData(this)
@@ -100,23 +101,23 @@ class Artist private constructor (
     companion object {
         private val artists: MutableMap<String, Artist> = mutableMapOf()
 
-        fun fromId(id: String): Artist {
+        fun fromId(id: String, context: PlatformContext = SpMp.context): Artist {
             check(id.isNotBlank())
 
             synchronized(artists) {
                 return artists.getOrPut(id) {
-                    val artist = Artist(id)
+                    val artist = Artist(id, context)
                     artist.loadFromCache()
                     return@getOrPut artist
                 }
             }
         }
 
-        fun createForItem(item: MediaItem): Artist {
+        fun createForItem(item: MediaItem, context: PlatformContext = SpMp.context): Artist {
             synchronized(artists) {
                 val id = "FS" + item.id
                 return artists.getOrPut(id) {
-                    val artist = Artist(id, true)
+                    val artist = Artist(id, context, true)
                     artist.loadFromCache()
                     return@getOrPut artist
                 }
@@ -124,7 +125,7 @@ class Artist private constructor (
         }
 
         fun createTemp(id: String = ""): Artist {
-            return Artist(id)
+            return Artist(id, SpMp.context)
         }
     }
 }

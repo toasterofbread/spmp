@@ -6,15 +6,12 @@ import LocalPlayerState
 import SpMp
 import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.animation.Crossfade
-import androidx.compose.animation.animateContentSize
+import androidx.compose.animation.core.animateFloatAsState
 import androidx.compose.foundation.*
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.LazyRow
 import androidx.compose.foundation.lazy.rememberLazyListState
-import androidx.compose.foundation.shape.CircleShape
-import androidx.compose.foundation.text.KeyboardActions
-import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.*
 import androidx.compose.material.icons.outlined.*
@@ -26,24 +23,15 @@ import androidx.compose.ui.graphics.*
 import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.input.pointer.pointerInput
 import androidx.compose.ui.layout.ContentScale
-import androidx.compose.ui.layout.onSizeChanged
-import androidx.compose.ui.platform.LocalClipboardManager
-import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.platform.LocalLayoutDirection
 import androidx.compose.ui.text.*
-import androidx.compose.ui.text.input.ImeAction
-import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.*
 import androidx.compose.ui.zIndex
 import com.spectre7.spmp.api.Api
 import com.spectre7.spmp.api.getOrReport
 import com.spectre7.spmp.model.*
 import com.spectre7.spmp.model.mediaitem.*
-import com.spectre7.spmp.model.mediaitem.enums.MediaItemType
-import com.spectre7.spmp.platform.composable.PlatformAlertDialog
-import com.spectre7.spmp.platform.vibrateShort
 import com.spectre7.spmp.resources.getString
-import com.spectre7.spmp.resources.getStringTODO
 import com.spectre7.spmp.resources.uilocalisation.YoutubeUILocalisation
 import com.spectre7.spmp.ui.component.LongPressMenuData
 import com.spectre7.spmp.ui.component.MediaItemLayout
@@ -96,27 +84,29 @@ fun ArtistPage(
     }
 
     Box(Modifier.fillMaxSize(), contentAlignment = Alignment.TopCenter) {
+        var music_top_bar_showing by remember { mutableStateOf(false) }
+        val top_bar_alpha by animateFloatAsState(if (music_top_bar_showing || multiselect_context.is_active) 1f else 0f)
+
         Column(
             Modifier
                 .drawScopeBackground {
                     Theme.current.background.setAlpha(
-                        if (main_column_state.firstVisibleItemIndex > 0) 1f
-                        else 0.5f + ((main_column_state.firstVisibleItemScrollOffset / screen_width.toPx()) * 0.5f)
+                        if (main_column_state.firstVisibleItemIndex > 0) top_bar_alpha
+                        else (0.5f + ((main_column_state.firstVisibleItemScrollOffset / screen_width.toPx()) * 0.5f)) * top_bar_alpha
                     )
                 }
                 .padding(top = SpMp.context.getStatusBarHeight())
                 .padding(content_padding)
                 .zIndex(1f)
-                .pointerInput(Unit) {},
-            verticalArrangement = Arrangement.spacedBy(10.dp)
+                .pointerInput(Unit) {}
         ) {
             MusicTopBar(
                 Settings.KEY_LYRICS_SHOW_IN_ARTIST,
                 Modifier.fillMaxWidth()
-            )
+            ) { music_top_bar_showing = it }
 
             AnimatedVisibility(multiselect_context.is_active) {
-                multiselect_context.InfoDisplay()
+                multiselect_context.InfoDisplay(Modifier.padding(top = 10.dp))
             }
         }
 

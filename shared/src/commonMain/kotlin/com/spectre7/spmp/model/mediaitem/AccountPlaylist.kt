@@ -6,8 +6,9 @@ import androidx.compose.runtime.setValue
 import com.spectre7.spmp.api.*
 import com.spectre7.spmp.model.mediaitem.data.AccountPlaylistItemData
 import com.spectre7.spmp.model.mediaitem.enums.PlaylistType
+import com.spectre7.spmp.platform.PlatformContext
 
-class AccountPlaylist private constructor(id: String): Playlist(id) {
+class AccountPlaylist private constructor(id: String, context: PlatformContext): Playlist(id, context) {
     override val url: String get() = "https://music.youtube.com/playlist?list=$id"
 
     override val data: AccountPlaylistItemData = AccountPlaylistItemData(this)
@@ -70,9 +71,9 @@ class AccountPlaylist private constructor(id: String): Playlist(id) {
         fun formatId(id: String): String = id.removePrefix("VL")
 
         @Synchronized
-        fun fromId(id: String): AccountPlaylist {
+        fun fromId(id: String, context: PlatformContext = SpMp.context): AccountPlaylist {
             return playlists.getOrPut(id) {
-                val playlist = AccountPlaylist(id)
+                val playlist = AccountPlaylist(id, context)
                 playlist.loadFromCache()
                 return@getOrPut playlist
             }

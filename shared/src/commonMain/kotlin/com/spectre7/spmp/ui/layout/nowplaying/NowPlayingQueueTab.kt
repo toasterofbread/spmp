@@ -223,6 +223,22 @@ fun QueueTab() {
     val show_lyrics_in_queue: Boolean by Settings.KEY_TOPBAR_SHOW_LYRICS_IN_QUEUE.rememberMutableState()
     val show_visualiser_in_queue: Boolean by Settings.KEY_TOPBAR_SHOW_VISUALISER_IN_QUEUE.rememberMutableState()
 
+    val items_above_queue = if (radio_info_position == NowPlayingQueueRadioInfoPosition.ABOVE_ITEMS) 1 else 0
+    val queue_list_state = rememberReorderableLazyListState(
+        onMove = { from, to ->
+            song_items.add(to.index - items_above_queue, song_items.removeAt(from.index - items_above_queue))
+        },
+        onDragEnd = { from, to ->
+            if (from != to) {
+                song_items.add(from - items_above_queue, song_items.removeAt(to - items_above_queue))
+                player.player?.undoableAction {
+                    moveSong(from - items_above_queue, to - items_above_queue)
+                }
+                playing_key = null
+            }
+        }
+    )
+
     val expansion = LocalNowPlayingExpansion.current
     val top_bar_height by animateDpAsState(
         when (expansion.top_bar_mode.value) {
@@ -230,6 +246,13 @@ fun QueueTab() {
             MusicTopBarMode.LYRICS -> if (show_lyrics_in_queue) NOW_PLAYING_TOP_BAR_HEIGHT.dp else 0.dp
         }
     )
+
+    val expanded by remember { derivedStateOf { expansion.get() > 1f } }
+    LaunchedEffect(expanded) {
+        if (expanded) {
+            queue_list_state.listState.scrollToItem(player.status.m_index)
+        }
+    }
 
     CompositionLocalProvider(LocalContentColor provides queue_background_colour.getContrasted()) {
         Box(
@@ -358,32 +381,16 @@ fun QueueTab() {
 
                 Divider(Modifier.padding(horizontal = list_padding), 1.dp, backgroundColourProvider)
 
-                val items_above_queue = if (radio_info_position == NowPlayingQueueRadioInfoPosition.ABOVE_ITEMS) 1 else 0
-                val state = rememberReorderableLazyListState(
-                    onMove = { from, to ->
-                        song_items.add(to.index - items_above_queue, song_items.removeAt(from.index - items_above_queue))
-                    },
-                    onDragEnd = { from, to ->
-                        if (from != to) {
-                            song_items.add(from - items_above_queue, song_items.removeAt(to - items_above_queue))
-                            player.player?.undoableAction {
-                                moveSong(from - items_above_queue, to - items_above_queue)
-                            }
-                            playing_key = null
-                        }
-                    }
-                )
-
                 CompositionLocalProvider(
                     LocalPlayerState provides remember { player.copy(onClickedOverride = { _, index: Int? ->
                         player.player?.seekToSong(index!!)
                     }) }
                 ) {
                     LazyColumn(
-                        state = state.listState,
+                        state = queue_list_state.listState,
                         contentPadding = PaddingValues(top = list_padding, bottom = 60.dp),
                         modifier = Modifier
-                            .reorderable(state)
+                            .reorderable(queue_list_state)
                             .padding(horizontal = list_padding),
                         horizontalAlignment = Alignment.CenterHorizontally
                     ) {
@@ -395,7 +402,7 @@ fun QueueTab() {
 
                         items(song_items.size, { song_items[it].key }) { index ->
                             val item = song_items[index]
-                            ReorderableItem(state, key = item.key) { is_dragging ->
+                            ReorderableItem(queue_list_state, key = item.key) { is_dragging ->
                                 LaunchedEffect(is_dragging) {
                                     if (is_dragging) {
                                         SpMp.context.vibrateShort()
@@ -405,7 +412,7 @@ fun QueueTab() {
 
                                 Box(Modifier.height(50.dp)) {
                                     item.QueueElement(
-                                        state,
+                                        queue_list_state,
                                         index,
                                         {
                                             val current = if (playing_key != null) playing_key == item.key else player.status.m_index == index

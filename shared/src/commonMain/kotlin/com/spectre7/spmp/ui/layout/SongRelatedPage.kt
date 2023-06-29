@@ -1,25 +1,32 @@
 package com.spectre7.spmp.ui.layout
 
 import androidx.compose.animation.Crossfade
+import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
+import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.material3.LocalContentColor
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.text.TextStyle
 import androidx.compose.ui.unit.dp
 import com.spectre7.spmp.api.RelatedGroup
 import com.spectre7.spmp.api.getSongRelated
 import com.spectre7.spmp.model.mediaitem.MediaItem
+import com.spectre7.spmp.model.mediaitem.MediaItemPreviewParams
 import com.spectre7.spmp.model.mediaitem.Song
 import com.spectre7.spmp.resources.getStringTODO
 import com.spectre7.spmp.ui.component.ErrorInfoDisplay
 import com.spectre7.spmp.ui.component.MediaItemGrid
 import com.spectre7.spmp.ui.component.PillMenu
 import com.spectre7.utils.composable.SubtleLoadingIndicator
+import com.spectre7.utils.getContrasted
+import com.spectre7.utils.setAlpha
 
 @Composable
 fun SongRelatedPage(
@@ -30,6 +37,7 @@ fun SongRelatedPage(
     padding: PaddingValues = PaddingValues(),
     title_text_style: TextStyle = MaterialTheme.typography.headlineMedium,
     description_text_style: TextStyle = MaterialTheme.typography.bodyLarge,
+    accent_colour: Color = LocalContentColor.current,
     close: () -> Unit
 ) {
     var related_result: Result<List<RelatedGroup>>? by remember { mutableStateOf(null) }
@@ -56,6 +64,15 @@ fun SongRelatedPage(
                     verticalArrangement = Arrangement.spacedBy(20.dp),
                     contentPadding = padding
                 ) {
+                    item {
+                        Box(Modifier.background(accent_colour, RoundedCornerShape(16.dp))) {
+                            song.PreviewLong(MediaItemPreviewParams(
+                                Modifier.fillMaxWidth().padding(horizontal = 6.dp, vertical = 3.dp),
+                                contentColour = { accent_colour.getContrasted() }
+                            ))
+                        }
+                    }
+
                     items(related) { group ->
                         Column(verticalArrangement = Arrangement.spacedBy(10.dp)) {
                             Text(group.title, style = title_text_style)

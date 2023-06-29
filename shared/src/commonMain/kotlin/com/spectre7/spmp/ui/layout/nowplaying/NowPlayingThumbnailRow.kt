@@ -65,8 +65,8 @@ fun ThumbnailRow(
     getSeekState: () -> Float
 ) {
     val player = LocalPlayerState.current
-    val current_song = player.status.m_song
     val expansion = LocalNowPlayingExpansion.current
+    val current_song = player.status.m_song
 
     var overlay_menu by player.np_overlay_menu
     var current_thumb_image: ImageBitmap? by remember { mutableStateOf(null) }

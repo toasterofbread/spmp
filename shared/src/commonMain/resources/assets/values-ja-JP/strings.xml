@@ -1,5 +1,9 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
+    <string name="project_url_name">プロジェクトのURL</string>
+    <string name="notif_copied_to_clipboard">コピーしました</string>
+    <string name="notif_copied_x_to_clipboard">$xをコピーしました</string>
+
     <string name="videos">動画</string>
     <string name="songs">曲</string>
     <string name="playlists">プレイリスト</string>

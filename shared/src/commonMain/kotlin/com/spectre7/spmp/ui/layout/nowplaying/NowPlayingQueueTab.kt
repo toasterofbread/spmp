@@ -593,12 +593,9 @@ private fun RepeatButton(backgroundColourProvider: () -> Color, modifier: Modifi
 @Composable
 private fun StopAfterSongButton(backgroundColourProvider: () -> Color, modifier: Modifier = Modifier) {
     val player = LocalPlayerState.current
-    val rotation = remember { Animatable(0f) }
-    OnChangedEffect(player.player?.stop_after_current_song) {
-        rotation.animateTo(
-            if (player.player?.stop_after_current_song == true) 180f else 0f
-        )
-    }
+    val rotation by animateFloatAsState(
+        if (player.player?.stop_after_current_song == true) 180f else 0f
+    )
 
     Crossfade(player.player?.stop_after_current_song == true) { stopping ->
         Box(

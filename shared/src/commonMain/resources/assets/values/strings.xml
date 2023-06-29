@@ -3,6 +3,8 @@
     <string name="project_url" translatable="false">https://github.com/toasterofbread/spmp</string>
     <string name="yt_i_api_key" translatable="false">AIzaSyAOghZGza2MQSZkY_zfZ370N-PUdXEo8AI</string>
 
+    <string name="project_url_name">project URL</string>
+    
     <string name="home_feed_listen_again">Listen again</string>
     <string name="home_feed_mixed_for_you">Mixed for you</string>
     <string name="home_feed_new_releases">New releases</string>

@@ -183,7 +183,7 @@ private fun MusicTopBar(
             onClick = onClick,
             onAltClick = {
                 if (current_state is SongLyrics) {
-                    TODO("Open full lyrics in NowPlaying")
+                    player.openNowPlayingOverlayMenu(OverlayMenu.getLyricsMenu())
                 }
             }
         ),

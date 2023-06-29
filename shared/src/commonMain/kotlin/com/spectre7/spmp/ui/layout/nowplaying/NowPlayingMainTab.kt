@@ -141,9 +141,9 @@ fun ColumnScope.NowPlayingMainTab() {
                     screen_width -
                         (2 * (MINIMISED_NOW_PLAYING_HORIZ_PADDING.dp + ((MINIMISED_NOW_PLAYING_HORIZ_PADDING.dp - NOW_PLAYING_MAIN_PADDING.dp) * expansion.getAbsolute())))
                 ),
-            { onThumbnailLoaded(it) },
-            { setThemeColour(it) },
-            { seek_state }
+            onThumbnailLoaded = { onThumbnailLoaded(it) },
+            setThemeColour = { setThemeColour(it) },
+            getSeekState = { seek_state }
         )
     }
 

@@ -50,9 +50,7 @@ enum class LyricsOverlaySubmenu {
     SEARCH, SYNC
 }
 
-class LyricsOverlayMenu(
-    val size: Dp
-): OverlayMenu() {
+class LyricsOverlayMenu: OverlayMenu() {
 
     override fun closeOnTap(): Boolean = false
 
@@ -203,7 +201,7 @@ class LyricsOverlayMenu(
                     }
                 }
                 else {
-                    Column(Modifier.size(size), horizontalAlignment = Alignment.CenterHorizontally, verticalArrangement = Arrangement.Center) {
+                    Column(Modifier.fillMaxSize(), horizontalAlignment = Alignment.CenterHorizontally, verticalArrangement = Arrangement.Center) {
                         Text(getString("lyrics_loading"), fontWeight = FontWeight.Light)
                         Spacer(Modifier.height(20.dp))
                         LinearProgressIndicator(Modifier.fillMaxWidth(0.5f), color = Theme.current.accent, trackColor = Theme.current.on_accent)

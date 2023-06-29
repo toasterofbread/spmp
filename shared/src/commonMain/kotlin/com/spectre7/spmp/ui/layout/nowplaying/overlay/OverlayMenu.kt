@@ -15,4 +15,8 @@ abstract class OverlayMenu {
     )
 
     abstract fun closeOnTap(): Boolean
+
+    companion object {
+        fun getLyricsMenu(): OverlayMenu = LyricsOverlayMenu()
+    }
 }

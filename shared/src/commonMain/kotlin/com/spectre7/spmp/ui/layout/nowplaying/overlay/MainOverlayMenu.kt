@@ -202,25 +202,9 @@ class MainOverlayMenu(
                 val screen_width = getScreenWidth()
                 Box(
                     button_modifier
-                        .combinedClickable(
-                            interactionSource = remember { MutableInteractionSource() },
-                            indication = null,
-                            onClick = { 
-                                setOverlayMenu(
-                                    LyricsOverlayMenu(
-                                        (screen_width - (NOW_PLAYING_MAIN_PADDING.dp * 2) - (15.dp * expansion * 2)).value * 0.9.dp
-                                    )
-                                ) 
-                            },
-                            onLongClick = {
-                                setOverlayMenu(
-                                    LyricsOverlayMenu(
-                                        (screen_width - (NOW_PLAYING_MAIN_PADDING.dp * 2) - (15.dp * expansion * 2)).value * 0.9.dp
-                                    )
-                                )
-                                SpMp.context.vibrateShort()
-                            }
-                        ),
+                        .clickable { 
+                            setOverlayMenu(OverlayMenu.getLyricsMenu()) 
+                        },
                     contentAlignment = Alignment.Center
                 ) {
                     Icon(Icons.Filled.MusicNote, null, tint = button_colour)

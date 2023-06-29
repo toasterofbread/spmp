@@ -86,6 +86,7 @@ object SpMp {
 
     fun init(context: PlatformContext) {
         this.context = context
+        Cache.init(context)
 
         context.getPrefs().addListener(prefs_change_listener)
         error_manager = ErrorManager(context)
@@ -98,7 +99,6 @@ object SpMp {
         initResources(LANGUAGES.elementAt(ui_lang), context)
 
         _yt_ui_localisation = YoutubeUILocalisation(LANGUAGES)
-        Cache.init(context)
         Api.initialise()
     }
 

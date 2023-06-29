@@ -43,9 +43,23 @@ import com.spectre7.utils.getInnerSquareSizeOfCircle
 import com.spectre7.utils.setAlpha
 import kotlin.math.min
 
+private fun handleColourPick(image: ImageBitmap, tap_offset: Offset, onPicked: (Color) -> Unit) {
+    val bitmap_size = min(image.width, image.height)
+    var x = (tap_offset.x / image_size.width) * bitmap_size
+    var y = (tap_offset.y / image_size.height) * bitmap_size
+
+    if (image.width > image.height) {
+        x += (image.width - image.height) / 2
+    } else if (image.height > image.width) {
+        y += (image.height - image.width) / 2
+    }
+
+    onPicked(image.getPixel(x.toInt(), y.toInt()))
+}
+
 @Composable
 fun ThumbnailRow(
-    modifier: Modifier,
+    modifier: Modifier = Modifier,
     onThumbnailLoaded: (Song?) -> Unit,
     setThemeColour: (Color?) -> Unit,
     getSeekState: () -> Float
@@ -54,6 +68,7 @@ fun ThumbnailRow(
     val current_song = player.status.m_song
     val expansion = LocalNowPlayingExpansion.current
 
+    var overlay_menu by player.np_overlay_menu
     var current_thumb_image: ImageBitmap? by remember { mutableStateOf(null) }
     val thumbnail_rounding: Int? = current_song?.song_reg_entry?.thumbnail_rounding
     val thumbnail_shape = RoundedCornerShape(thumbnail_rounding ?: DEFAULT_THUMBNAIL_ROUNDING)
@@ -69,7 +84,6 @@ fun ThumbnailRow(
         verticalAlignment = Alignment.CenterVertically,
         horizontalArrangement = Arrangement.SpaceEvenly
     ) {
-        var overlay_menu by remember { mutableStateOf<OverlayMenu?>(null) }
         var colourpick_callback by remember { mutableStateOf<((Color?) -> Unit)?>(null) }
 
         LaunchedEffect(
@@ -98,53 +112,31 @@ fun ThumbnailRow(
                         .onSizeChanged {
                             image_size = it
                         }
-                        .run {
-                            if (colourpick_callback == null) {
-                                if (overlay_menu == null || overlay_menu!!.closeOnTap()) {
-                                    this.clickable(
-                                        enabled = expansion.getAbsolute() == 1f,
-                                        indication = null,
-                                        interactionSource = remember { MutableInteractionSource() }
-                                    ) {
-                                        overlay_menu = if (overlay_menu == null) MainOverlayMenu(
-                                            { overlay_menu = it },
-                                            { colourpick_callback = it },
-                                            {
-                                                setThemeColour(it)
-                                                overlay_menu = null
-                                            },
-                                            { SpMp.context.getScreenWidth() }
-                                        ) else null
+                        .pointerInput(Unit) {
+                            detectTapGestures(
+                                onTap = { offset ->
+                                    colourpick_callback?.also { callback -> 
+                                    current_thumb_image?.also { image ->
+                                        handleColourPick(callback, image)
+                                        return@onTap
+                                    }}
+
+                                    if (expansion.get() in 0.9f .. 1.1f) {
+                                        overlay_menu =
+                                            if (overlay_menu == null)
+                                                MainOverlayMenu(
+                                                    { overlay_menu = it },
+                                                    { colourpick_callback = it },
+                                                    {
+                                                        setThemeColour(it)
+                                                        overlay_menu = null
+                                                    },
+                                                    { SpMp.context.getScreenWidth() }
+                                                )
+                                            else null
                                     }
-                                } else {
-                                    this
                                 }
-                            } else {
-                                this.pointerInput(Unit) {
-                                    detectTapGestures(
-                                        onTap = { offset ->
-                                            if (colourpick_callback != null) {
-                                                current_thumb_image?.apply {
-                                                    val bitmap_size = min(width, height)
-                                                    var x = (offset.x / image_size.width) * bitmap_size
-                                                    var y = (offset.y / image_size.height) * bitmap_size
-
-                                                    if (width > height) {
-                                                        x += (width - height) / 2
-                                                    } else if (height > width) {
-                                                        y += (height - width) / 2
-                                                    }
-
-                                                    colourpick_callback?.invoke(
-                                                        getPixel(x.toInt(), y.toInt())
-                                                    )
-                                                    colourpick_callback = null
-                                                }
-                                            }
-                                        }
-                                    )
-                                }
-                            }
+                            )
                         }
                 )
             }

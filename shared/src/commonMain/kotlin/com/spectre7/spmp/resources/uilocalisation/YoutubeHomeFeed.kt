@@ -64,17 +64,17 @@ fun getYoutubeHomeFeedLocalisations(getLanguage: (String) -> Int): YoutubeUILoca
         add(
             en to "Hits by decade",
             ja to "Hits by decade",
-            ja to "TODO"
+            ja to "年代別のヒット"
         )
         add(
             en to "JUST UPDATED",
             ja to "JUST UPDATED",
-            ja to "TODO"
+            ja to "最近の更新"
         )
         add(
             en to "Today's hits",
             ja to "Today's hits",
-            ja to "TODO"
+            ja to "今日のヒット"
         )
         add(
             en to "Long listening",
@@ -83,17 +83,17 @@ fun getYoutubeHomeFeedLocalisations(getLanguage: (String) -> Int): YoutubeUILoca
         add(
             en to "Celebrating Africa Month",
             ja to "Celebrating Africa Month",
-            ja to "TODO"
+            ja to "アフリカ月を祝う"
         )
         add(
             en to "Feel good",
             ja to "Feel good",
-            ja to "TODO"
+            ja to "いい気分"
         )
         add(
             en to "Fresh new music",
             ja to "Fresh new music",
-            ja to "TODO"
+            ja to "新鮮な曲"
         )
         add(
             en to "#TBT",

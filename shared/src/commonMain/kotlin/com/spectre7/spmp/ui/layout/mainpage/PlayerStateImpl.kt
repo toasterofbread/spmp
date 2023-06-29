@@ -197,7 +197,6 @@ class PlayerStateImpl(private val context: PlatformContext): PlayerState(null, n
     val expansion_state = NowPlayingExpansionState(np_swipe_state, context)
     override var download_manager = PlayerDownloadManager(context)
 
-    override var np_theme_mode: ThemeMode by mutableStateOf(Settings.getEnum(Settings.KEY_NOWPLAYING_THEME_MODE, context.getPrefs()))
     override var overlay_page: Pair<PlayerOverlayPage, MediaItem?>? by mutableStateOf(null)
         private set
     override val bottom_padding: Dp get() = bottom_padding_anim.value.dp
@@ -206,6 +205,8 @@ class PlayerStateImpl(private val context: PlatformContext): PlayerState(null, n
         left = false
     )
     override val main_multiselect_context: MediaItemMultiSelectContext = getPlayerStateMultiSelectContext()
+    override var np_theme_mode: ThemeMode by mutableStateOf(Settings.getEnum(Settings.KEY_NOWPLAYING_THEME_MODE, context.getPrefs()))
+    override val np_overlay_menu: MutableState<OverlayMenu?> = mutableStateOf(null)
 
     init {
         low_memory_listener = {
@@ -350,6 +351,11 @@ class PlayerStateImpl(private val context: PlatformContext): PlayerState(null, n
 
     override fun openViewMorePage(browse_id: String) {
         openPage(PlayerOverlayPage.getViewMorePage(browse_id))
+    }
+
+    override fun openNowPlayingOverlayMenu(menu: OverlayMenu?) {
+        np_overlay_menu.value = menu
+        expansion_state.scrollTo(1)
     }
 
     override fun playMediaItem(item: MediaItem, shuffle: Boolean) {

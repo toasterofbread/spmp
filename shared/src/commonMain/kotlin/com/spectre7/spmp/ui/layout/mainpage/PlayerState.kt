@@ -92,11 +92,12 @@ open class PlayerState protected constructor(
     private val onLongClickedOverride: ((item: MediaItem, long_press_data: LongPressMenuData?) -> Unit)? = null,
     private val upstream: PlayerState? = null
 ) {
-    open val np_theme_mode: ThemeMode get() = upstream!!.np_theme_mode
     open val overlay_page: Pair<PlayerOverlayPage, MediaItem?>? get() = upstream!!.overlay_page
     open val bottom_padding: Dp get() = upstream!!.bottom_padding
     open val pill_menu: PillMenu get() = upstream!!.pill_menu
     open val main_multiselect_context: MediaItemMultiSelectContext get() = upstream!!.main_multiselect_context
+    open val np_theme_mode: ThemeMode get() = upstream!!.np_theme_mode
+    open val np_overlay_menu: MutableState<OverlayMenu?> get() = upstream!!.np_overlay_menu
 
     open val player: PlayerService? get() = upstream!!.player
     open fun withPlayer(action: PlayerService.() -> Unit) {
@@ -182,6 +183,7 @@ open class PlayerState protected constructor(
     open fun openMediaItem(item: MediaItem, from_current: Boolean = false) { upstream!!.openMediaItem(item, from_current) }
     open fun playMediaItem(item: MediaItem, shuffle: Boolean = false) { upstream!!.playMediaItem(item, shuffle) }
     open fun openViewMorePage(browse_id: String) { upstream!!.openViewMorePage(browse_id) }
+    open fun openNowPlayingOverlayMenu(menu: OverlayMenu? = null) { upstream!!.openNowPlayingOverlayMenu(menu) }
 
     open fun onMediaItemPinnedChanged(item: MediaItem, pinned: Boolean) { upstream!!.onMediaItemPinnedChanged(item, pinned) }
 

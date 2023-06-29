@@ -50,6 +50,29 @@ private const val COMMAND_SET_LIKE_NEUTRAL = "com.spectre7.spmp.setlikeneutral"
 
 private const val A13_MEDIA_NOTIFICATION_ASPECT = 2.9f / 5.7f
 
+private fun formatMediaNotificationImage(image: Bitmap, offset: Offset = Offset.Zero)): Bitmap {
+    val aspect = if (Build.VERSION.SDK_INT >= 33) A13_MEDIA_NOTIFICATION_ASPECT else 1f
+    
+    val width: Int
+    val height: Int
+    if (image.width > image.height) {
+        width = image.height
+        height = (image.height * aspect).roundToInt()
+    }
+    else {
+        width = image.width
+        height = (image.width * aspect).roundToInt()
+    }
+    
+    return Bitmap.createBitmap(
+        image, 
+        (((image.width - width) / 2) + offset.x).coerceIn(0, image.width),
+        (((image.height - height) / 2) + offset.y).coerceIn(0, image.height),
+        width,
+        height
+    )
+}
+
 @UnstableApi
 class MediaPlayerServiceSession: MediaSessionService() {
     private val coroutine_scope = CoroutineScope(Dispatchers.Main)
@@ -178,33 +201,10 @@ class MediaPlayerServiceSession: MediaSessionService() {
         manager.notify(NOTIFICATION_ID, notification_builder.build())
     }
 
-    private fun formatNotificationImage(image: Bitmap): Bitmap {
-        val aspect = if (Build.VERSION.SDK_INT >= 33) A13_MEDIA_NOTIFICATION_ASPECT else 1f
-        
-        val width: Int
-        val height: Int
-        if (image.width > image.height) {
-            width = image.height
-            height = (image.height * aspect).roundToInt()
-        }
-        else {
-            width = image.width
-            height = (image.width * aspect).roundToInt()
-        }
-        
-        return Bitmap.createBitmap(
-            image, 
-            (image.width - width) / 2,
-            (image.height - height) / 2,
-            width,
-            height
-        )
-    }
-
     private suspend fun getCurrentLargeIcon(song: Song): Bitmap? {
         try {
             val image = song.loadThumbnail(MediaItemThumbnailProvider.Quality.HIGH)?.asAndroidBitmap() ?: return null
-            return formatNotificationImage(image)
+            return formatMediaNotificationImage(image)
         }
         catch (e: IndexOutOfBoundsException) {
             return null
@@ -278,7 +278,7 @@ class MediaPlayerServiceSession: MediaSessionService() {
                     val song = Song.fromId(uri.toString())
                     return executor.submit<Bitmap> {
                         runBlocking {
-                            formatNotificationImage(
+                            formatMediaNotificationImage(
                                 song.loadThumbnail(MediaItemThumbnailProvider.Quality.HIGH)!!.asAndroidBitmap()
                             )
                         }

@@ -157,7 +157,7 @@ private fun annotateString(
     inline_content[text] = InlineTextContent(
         placeholder = Placeholder(
             width = (text.length.toDouble() + (text.length - 1) * 0.05).em * (
-                if (text.any { it.isKanji() || it.isHiragana() || it.isKatakana() }) 1f
+                if (text.any { it.isJP() }) 1f
                 else 0.5f
             ),
             height = 1.97.em,

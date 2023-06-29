@@ -169,11 +169,32 @@ fun PrefsPage(pill_menu: PillMenu, bottom_padding: Dp, modifier: Modifier = Modi
                                 style = MaterialTheme.typography.displaySmall
                             )
 
-                            if (SpMp.context.canOpenUrl()) {
-                                IconButton({ SpMp.context.openUrl(getString("project_url")) }) {
-                                    Icon(painterResource("drawable/ic_github.xml"), null)
-                                }
+                            val clipboard = LocalClipboardManager.current
+                            fun copyProjectUrl() {
+                                clipboard.setText(AnnotatedString(getString("project_url")))
+                                SpMp.context.sendToast(getString("notif_copied_x_to_clipboard").replace("\$x", getString("project_url_name")))
                             }
+
+                            Icon(
+                                painterResource("drawable/ic_github.xml"), 
+                                null,
+                                Modifier.platformClickable(
+                                    onClick = {
+                                        if (SpMp.context.canOpenUrl()) {
+                                            SpMp.context.openUrl(getString("project_url"))
+                                        }
+                                        else {
+                                            copyProjectUrl()
+                                        }
+                                    },
+                                    onAltClick = {
+                                        if (SpMp.context.canOpenUrl()) {
+                                            copyProjectUrl()
+                                            SpMp.context.vibrateShort()
+                                        }
+                                    }
+                                )
+                            )
                         }
                     }
 

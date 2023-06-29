@@ -15,6 +15,7 @@ class NowPlayingExpansionState(swipe_state: State<SwipeableState<Int>>, private 
     private var switch_to_page: Int by mutableStateOf(-1)
 
     val top_bar_mode: MutableState<MusicTopBarMode> = mutableStateOf(MusicTopBarMode.default)
+    val page_range: IntRange get() = 0 .. 2
 
     @Composable
     fun init() {
@@ -31,8 +32,14 @@ class NowPlayingExpansionState(swipe_state: State<SwipeableState<Int>>, private 
     }
 
     fun scroll(pages: Int) {
-        switch_to_page = swipe_state.targetValue + pages
+        switch_to_page = (swipe_state.targetValue + pages).coerceIn(page_range)
     }
+
+    fun scrollTo(page: Int) {
+        require(page in page_range)
+        switch_to_page = page
+    }
+
 
     fun close() {
         switch_to_page = if (swipe_state.targetValue == 0) 1 else 0

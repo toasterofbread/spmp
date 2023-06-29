@@ -83,7 +83,6 @@ data class MediaItemLayout(
             multiselect_context: MediaItemMultiSelectContext? = null
         ) {
             when (this) {
-                // TODO multiselect_context
                 GRID -> MediaItemGrid(layout, modifier, multiselect_context = multiselect_context)
                 GRID_ALT -> MediaItemGrid(layout, modifier, alt_style = true, multiselect_context = multiselect_context)
                 ROW -> MediaItemGrid(layout, modifier, 1, multiselect_context = multiselect_context)

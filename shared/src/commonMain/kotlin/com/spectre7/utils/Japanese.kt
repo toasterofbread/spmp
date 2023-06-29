@@ -2,6 +2,7 @@ package com.spectre7.utils
 
 import java.lang.Character.UnicodeBlock.*
 
+fun Char.isJP(): Boolean = isKanji() || isHiragana() || isKatakana()
 fun Char.isKanji(): Boolean = of(this) == CJK_UNIFIED_IDEOGRAPHS
 fun Char.isHiragana(): Boolean = of(this) == HIRAGANA
 fun Char.isKatakana(): Boolean = of(this) == KATAKANA

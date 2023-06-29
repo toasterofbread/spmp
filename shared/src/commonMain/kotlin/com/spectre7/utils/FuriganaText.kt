@@ -152,12 +152,14 @@ private fun annotateString(
     val reading = elem.reading
     val reading_font_size = font_size / 2
 
-    val width = (text.length.toDouble() + (text.length - 1) * 0.05).em
     string.appendInlineContent(text, index.toString())
 
     inline_content[text] = InlineTextContent(
         placeholder = Placeholder(
-            width = width,
+            width = (text.length.toDouble() + (text.length - 1) * 0.05).em * (
+                if (text.any { it.isKanji() || it.isHiragana() || it.isKatakana() }) 1f
+                else 0.5f
+            ),
             height = 1.97.em,
             placeholderVerticalAlign = PlaceholderVerticalAlign.Bottom,
         ),

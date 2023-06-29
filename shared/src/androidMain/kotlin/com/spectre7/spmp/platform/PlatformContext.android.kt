@@ -51,7 +51,11 @@ fun getAppName(context: Context): String {
     return if (string_id == 0) info.nonLocalizedLabel.toString() else context.getString(string_id)
 }
 
-actual class PlatformContext(private val context: Context) {
+actual class PlatformContext(private val context: Context, onInit: ((PlatformContext) -> Unit)? = null) {
+    init {
+        onInit?.invoke(this)
+    }
+
     actual val player_state = PlayerStateImpl(this)
 
 //    private val context: WeakReference<Context> = WeakReference(context)

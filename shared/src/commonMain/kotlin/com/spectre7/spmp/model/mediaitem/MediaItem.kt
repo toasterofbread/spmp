@@ -35,7 +35,7 @@ import java.util.concurrent.locks.ReentrantLock
 import kotlin.concurrent.withLock
 
 @Suppress("PLATFORM_CLASS_MAPPED_TO_KOTLIN")
-abstract class MediaItem(val id: String): MediaItemHolder {
+abstract class MediaItem(val id: String, context: PlatformContext): MediaItemHolder {
     val uid: String get() = "${type.ordinal}$id"
     abstract val url: String?
 
@@ -286,7 +286,7 @@ abstract class MediaItem(val id: String): MediaItemHolder {
         registry_entry = data_registry.getEntry(this) { getDefaultRegistryEntry() }
 
         // Get pinned status
-        pinned_to_home = Settings.INTERNAL_PINNED_ITEMS.get<Set<String>>().contains(uid)
+        pinned_to_home = Settings.INTERNAL_PINNED_ITEMS.get<Set<String>>(context).contains(uid)
     }
 
     protected open suspend fun loadGeneralData(item_id: String = id, browse_params: String? = null): Result<Unit> = withContext(Dispatchers.IO) {
@@ -362,12 +362,12 @@ abstract class MediaItem(val id: String): MediaItemHolder {
             data_registry.load(prefs)
         }
 
-        suspend fun fromUid(uid: String): MediaItem {
+        suspend fun fromUid(uid: String, context: PlatformContext = SpMp.context): MediaItem {
             val type_index = uid[0].toString().toInt()
             require(type_index in 0 until MediaItemType.values().size) { uid }
 
             val type = MediaItemType.values()[type_index]
-            return type.fromId(uid.substring(1))
+            return type.fromId(uid.substring(1), context)
         }
 
         fun fromDataItems(data: List<Any?>, klaxon: Klaxon = Api.klaxon): MediaItem {

@@ -3,6 +3,8 @@ package com.spectre7.spmp.ui.layout.nowplaying
 import LocalPlayerState
 import androidx.compose.animation.Crossfade
 import androidx.compose.animation.core.animateDpAsState
+import androidx.compose.foundation.background
+import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.MoreHoriz
@@ -10,6 +12,7 @@ import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.runtime.*
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.graphicsLayer
 import androidx.compose.ui.unit.dp
 import com.spectre7.spmp.model.MusicTopBarMode
@@ -22,8 +25,6 @@ import com.spectre7.utils.setAlpha
 fun TopBar(modifier: Modifier = Modifier) {
     val player = LocalPlayerState.current
     val expansion = LocalNowPlayingExpansion.current
-
-    val buttons_alpha = 1f - expansion.getDisappearing()
 
     val show_lyrics_in_queue: Boolean by Settings.KEY_TOPBAR_SHOW_LYRICS_IN_QUEUE.rememberMutableState()
     val show_visualiser_in_queue: Boolean by Settings.KEY_TOPBAR_SHOW_VISUALISER_IN_QUEUE.rememberMutableState()
@@ -54,12 +55,13 @@ fun TopBar(modifier: Modifier = Modifier) {
         }
         
         Row(Modifier.fillMaxSize(), horizontalArrangement = Arrangement.SpaceBetween) {
-            val buttons_visible by remember { derivedStateOf { buttons_alpha > 0f } }
+            val buttons_alpha = 1f - expansion.getDisappearing()
+            val buttons_enabled = buttons_alpha > 0f
 
             LikeDislikeButton(
                 song,
                 Modifier.width(40.dp * buttons_alpha).fillMaxHeight().graphicsLayer { alpha = buttons_alpha },
-                buttons_visible,
+                buttons_enabled,
                 { getNPOnBackground().setAlpha(0.5f) }
             )
 
@@ -74,7 +76,7 @@ fun TopBar(modifier: Modifier = Modifier) {
                     player.onMediaItemLongClicked(song, player.status.m_index)
                 },
                 Modifier.graphicsLayer { alpha = buttons_alpha }.width(40.dp * buttons_alpha),
-                enabled = buttons_visible
+                enabled = buttons_enabled
             ) {
                 Icon(Icons.Filled.MoreHoriz, null, tint = getNPOnBackground().setAlpha(0.5f))
             }

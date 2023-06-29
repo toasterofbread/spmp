@@ -66,7 +66,7 @@ data class SongLyrics(
 
         data class Text(val text: String, var furi: String? = null) {
             init {
-                require(text.isNotBlank())
+                require(text.isNotEmpty())
 
                 if (furi != null) {
                     if (furi == "*") {

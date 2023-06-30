@@ -15,9 +15,9 @@ val keystore_props = Properties()
 keystore_props.load(FileInputStream(keystore_props_file))
 
 fun getString(key: String): String {
-    val stream = FileInputStream(keystore_props_file)
+    val reader = strings_file.reader()
     val parser = XmlPullParserFactory.newInstance().newPullParser()
-    parser.setInput(stream)
+    parser.setInput(reader)
 
     while (parser.eventType != XmlPullParser.END_DOCUMENT) {
         if (parser.eventType != XmlPullParser.START_TAG) {
@@ -31,17 +31,17 @@ fun getString(key: String): String {
         }
 
         val ret = parser.nextText()
-        stream.close()
+        reader.close()
         return ret
     }
 
-    stream.close()
+    reader.close()
     throw NoSuchElementException(key)
 }
 
 android {
     signingConfigs {
-        getByName("main") {
+        create("main") {
             storeFile = file(keystore_props["storeFile"] as String)
             storePassword = keystore_props["storePassword"] as String
             keyAlias = keystore_props["keyAlias"] as String
@@ -66,7 +66,7 @@ android {
         getByName("debug") {
             applicationIdSuffix = ".debug"
             manifestPlaceholders["appAuthRedirectScheme"] = "com.toasterofbread.spmp.debug"
-            manifestPlaceholders["appName"] = getString("SpMp")
+            manifestPlaceholders["appName"] = getString("app_name_debug")
             signingConfig = signingConfigs.getByName("main")
         }
         getByName("release") {

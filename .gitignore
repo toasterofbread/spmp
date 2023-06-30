@@ -16,3 +16,4 @@ app/release/
 keys.properties
 debug_keys.properties
 keystore.properties
+**.keystore

@@ -1,6 +1,6 @@
-package com.spectre7.spmp
+package com.toasterofbread.spmp
 
-import com.spectre7.spmp.platform.PlatformContext
+import com.toasterofbread.spmp.platform.PlatformContext
 
 actual class PlayerAccessibilityService actual constructor() {
     actual companion object {

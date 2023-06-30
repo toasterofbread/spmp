@@ -1,6 +1,6 @@
 @file:Suppress("INVISIBLE_MEMBER", "INVISIBLE_REFERENCE")
 
-package com.spectre7.spmp.ui.layout.nowplaying
+package com.toasterofbread.spmp.ui.layout.nowplaying
 
 import LocalPlayerState
 import SpMp
@@ -25,27 +25,27 @@ import androidx.compose.ui.draw.*
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.unit.*
-import com.spectre7.spmp.api.RadioModifier
-import com.spectre7.spmp.resources.uilocalisation.durationToString
-import com.spectre7.spmp.model.MusicTopBarMode
-import com.spectre7.spmp.model.NowPlayingQueueRadioInfoPosition
-import com.spectre7.spmp.model.Settings
-import com.spectre7.spmp.model.mediaitem.MediaItem
-import com.spectre7.spmp.model.mediaitem.MediaItemPreviewParams
-import com.spectre7.spmp.model.mediaitem.Song
-import com.spectre7.spmp.platform.MediaPlayerRepeatMode
-import com.spectre7.spmp.platform.MediaPlayerService
-import com.spectre7.spmp.platform.vibrateShort
-import com.spectre7.spmp.resources.getString
-import com.spectre7.spmp.ui.component.multiselect.MediaItemMultiSelectContext
-import com.spectre7.spmp.ui.layout.mainpage.MINIMISED_NOW_PLAYING_HEIGHT
-import com.spectre7.spmp.ui.layout.mainpage.MINIMISED_NOW_PLAYING_V_PADDING
-import com.spectre7.utils.*
-import com.spectre7.utils.composable.Divider
-import com.spectre7.utils.composable.OnChangedEffect
-import com.spectre7.utils.composable.SubtleLoadingIndicator
-import com.spectre7.utils.composable.crossOut
-import com.spectre7.utils.modifier.background
+import com.toasterofbread.spmp.api.RadioModifier
+import com.toasterofbread.spmp.resources.uilocalisation.durationToString
+import com.toasterofbread.spmp.model.MusicTopBarMode
+import com.toasterofbread.spmp.model.NowPlayingQueueRadioInfoPosition
+import com.toasterofbread.spmp.model.Settings
+import com.toasterofbread.spmp.model.mediaitem.MediaItem
+import com.toasterofbread.spmp.model.mediaitem.MediaItemPreviewParams
+import com.toasterofbread.spmp.model.mediaitem.Song
+import com.toasterofbread.spmp.platform.MediaPlayerRepeatMode
+import com.toasterofbread.spmp.platform.MediaPlayerService
+import com.toasterofbread.spmp.platform.vibrateShort
+import com.toasterofbread.spmp.resources.getString
+import com.toasterofbread.spmp.ui.component.multiselect.MediaItemMultiSelectContext
+import com.toasterofbread.spmp.ui.layout.mainpage.MINIMISED_NOW_PLAYING_HEIGHT
+import com.toasterofbread.spmp.ui.layout.mainpage.MINIMISED_NOW_PLAYING_V_PADDING
+import com.toasterofbread.utils.*
+import com.toasterofbread.utils.composable.Divider
+import com.toasterofbread.utils.composable.OnChangedEffect
+import com.toasterofbread.utils.composable.SubtleLoadingIndicator
+import com.toasterofbread.utils.composable.crossOut
+import com.toasterofbread.utils.modifier.background
 import org.burnoutcrew.reorderable.*
 import kotlin.math.roundToInt
 

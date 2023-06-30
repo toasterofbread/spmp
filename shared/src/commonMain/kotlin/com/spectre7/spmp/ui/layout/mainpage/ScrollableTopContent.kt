@@ -1,4 +1,4 @@
-package com.spectre7.spmp.ui.layout.mainpage
+package com.toasterofbread.spmp.ui.layout.mainpage
 
 import LocalPlayerState
 import androidx.compose.animation.AnimatedVisibility
@@ -15,8 +15,8 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.alpha
 import androidx.compose.ui.unit.dp
-import com.spectre7.spmp.model.mediaitem.MediaItemHolder
-import com.spectre7.spmp.ui.component.MediaItemGrid
+import com.toasterofbread.spmp.model.mediaitem.MediaItemHolder
+import com.toasterofbread.spmp.ui.component.MediaItemGrid
 
 @Composable
 fun MainPageScrollableTopContent(

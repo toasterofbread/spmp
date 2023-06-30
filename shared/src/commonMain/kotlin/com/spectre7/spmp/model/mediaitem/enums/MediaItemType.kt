@@ -1,4 +1,4 @@
-package com.spectre7.spmp.model.mediaitem.enums
+package com.toasterofbread.spmp.model.mediaitem.enums
 
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.MusicNote
@@ -8,11 +8,11 @@ import androidx.compose.runtime.Composable
 import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.unit.Dp
 import com.beust.klaxon.JsonObject
-import com.spectre7.spmp.api.Api
-import com.spectre7.spmp.model.mediaitem.*
-import com.spectre7.spmp.resources.getString
-import com.spectre7.spmp.platform.PlatformContext
-import com.spectre7.spmp.ui.component.*
+import com.toasterofbread.spmp.api.Api
+import com.toasterofbread.spmp.model.mediaitem.*
+import com.toasterofbread.spmp.resources.getString
+import com.toasterofbread.spmp.platform.PlatformContext
+import com.toasterofbread.spmp.ui.component.*
 
 enum class MediaItemType {
     SONG, ARTIST, PLAYLIST_ACC, PLAYLIST_LOC, PLAYLIST_BROWSEPARAMS;

@@ -1,4 +1,4 @@
-package com.spectre7.spmp.ui.layout.nowplaying.overlay.lyrics
+package com.toasterofbread.spmp.ui.layout.nowplaying.overlay.lyrics
 
 import LocalPlayerState
 import androidx.compose.foundation.border
@@ -19,12 +19,12 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
-import com.spectre7.spmp.PlayerService
-import com.spectre7.spmp.model.SongLyrics
-import com.spectre7.spmp.model.mediaitem.Song
-import com.spectre7.spmp.resources.getString
-import com.spectre7.utils.AnnotatedReadingTerm
-import com.spectre7.utils.setAlpha
+import com.toasterofbread.spmp.PlayerService
+import com.toasterofbread.spmp.model.SongLyrics
+import com.toasterofbread.spmp.model.mediaitem.Song
+import com.toasterofbread.spmp.resources.getString
+import com.toasterofbread.utils.AnnotatedReadingTerm
+import com.toasterofbread.utils.setAlpha
 
 private const val SONG_SEEK_MS = 5000L
 private val SYNC_MENU_LYRICS_SHOW_RANGE = -3 .. 0

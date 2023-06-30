@@ -1,4 +1,4 @@
-package com.spectre7.spmp.ui.component
+package com.toasterofbread.spmp.ui.component
 
 import SpMp
 import androidx.compose.animation.Crossfade
@@ -17,11 +17,11 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.rotate
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.unit.dp
-import com.spectre7.spmp.api.Api
-import com.spectre7.spmp.model.mediaitem.Song
-import com.spectre7.spmp.model.mediaitem.SongLikeStatus
-import com.spectre7.spmp.platform.vibrateShort
-import com.spectre7.utils.composable.SubtleLoadingIndicator
+import com.toasterofbread.spmp.api.Api
+import com.toasterofbread.spmp.model.mediaitem.Song
+import com.toasterofbread.spmp.model.mediaitem.SongLikeStatus
+import com.toasterofbread.spmp.platform.vibrateShort
+import com.toasterofbread.utils.composable.SubtleLoadingIndicator
 
 @OptIn(ExperimentalFoundationApi::class)
 @Composable

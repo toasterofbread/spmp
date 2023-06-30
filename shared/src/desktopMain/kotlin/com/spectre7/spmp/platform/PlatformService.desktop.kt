@@ -1,4 +1,4 @@
-package com.spectre7.spmp.platform
+package com.toasterofbread.spmp.platform
 
 actual open class PlatformService: PlatformContext() {
     actual abstract class PlatformBinder actual constructor()

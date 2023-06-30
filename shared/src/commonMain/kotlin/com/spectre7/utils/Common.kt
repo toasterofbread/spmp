@@ -1,6 +1,6 @@
 @file:Suppress("INVISIBLE_MEMBER", "INVISIBLE_REFERENCE")
 
-package com.spectre7.utils
+package com.toasterofbread.utils
 
 import androidx.compose.animation.core.*
 import androidx.compose.foundation.*
@@ -17,8 +17,8 @@ import androidx.compose.ui.platform.*
 import androidx.compose.ui.text.*
 import androidx.compose.ui.unit.*
 import com.beust.klaxon.Klaxon
-import com.spectre7.spmp.ProjectBuildConfig
-import com.spectre7.spmp.resources.*
+import com.toasterofbread.spmp.ProjectBuildConfig
+import com.toasterofbread.spmp.resources.*
 import kotlinx.coroutines.*
 import java.io.InterruptedIOException
 import java.util.*

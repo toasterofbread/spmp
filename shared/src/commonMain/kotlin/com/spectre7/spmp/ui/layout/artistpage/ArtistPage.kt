@@ -1,6 +1,6 @@
 @file:OptIn(ExperimentalMaterial3Api::class)
 
-package com.spectre7.spmp.ui.layout.artistpage
+package com.toasterofbread.spmp.ui.layout.artistpage
 
 import LocalPlayerState
 import SpMp
@@ -27,24 +27,24 @@ import androidx.compose.ui.platform.LocalLayoutDirection
 import androidx.compose.ui.text.*
 import androidx.compose.ui.unit.*
 import androidx.compose.ui.zIndex
-import com.spectre7.spmp.api.Api
-import com.spectre7.spmp.api.getOrReport
-import com.spectre7.spmp.model.*
-import com.spectre7.spmp.model.mediaitem.*
-import com.spectre7.spmp.resources.getString
-import com.spectre7.spmp.resources.uilocalisation.YoutubeUILocalisation
-import com.spectre7.spmp.ui.component.LongPressMenuData
-import com.spectre7.spmp.ui.component.MediaItemLayout
-import com.spectre7.spmp.ui.component.MusicTopBar
-import com.spectre7.spmp.ui.component.PillMenu
-import com.spectre7.spmp.ui.component.multiselect.MediaItemMultiSelectContext
-import com.spectre7.spmp.ui.layout.mainpage.PlayerState
-import com.spectre7.spmp.ui.theme.Theme
-import com.spectre7.utils.*
-import com.spectre7.utils.composable.*
-import com.spectre7.utils.modifier.background
-import com.spectre7.utils.modifier.brushBackground
-import com.spectre7.utils.modifier.drawScopeBackground
+import com.toasterofbread.spmp.api.Api
+import com.toasterofbread.spmp.api.getOrReport
+import com.toasterofbread.spmp.model.*
+import com.toasterofbread.spmp.model.mediaitem.*
+import com.toasterofbread.spmp.resources.getString
+import com.toasterofbread.spmp.resources.uilocalisation.YoutubeUILocalisation
+import com.toasterofbread.spmp.ui.component.LongPressMenuData
+import com.toasterofbread.spmp.ui.component.MediaItemLayout
+import com.toasterofbread.spmp.ui.component.MusicTopBar
+import com.toasterofbread.spmp.ui.component.PillMenu
+import com.toasterofbread.spmp.ui.component.multiselect.MediaItemMultiSelectContext
+import com.toasterofbread.spmp.ui.layout.mainpage.PlayerState
+import com.toasterofbread.spmp.ui.theme.Theme
+import com.toasterofbread.utils.*
+import com.toasterofbread.utils.composable.*
+import com.toasterofbread.utils.modifier.background
+import com.toasterofbread.utils.modifier.brushBackground
+import com.toasterofbread.utils.modifier.drawScopeBackground
 import kotlinx.coroutines.*
 
 private const val ARTIST_IMAGE_SCROLL_MODIFIER = 0.25f

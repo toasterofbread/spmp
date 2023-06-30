@@ -1,13 +1,13 @@
-package com.spectre7.spmp.model.mediaitem
+package com.toasterofbread.spmp.model.mediaitem
 
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.graphics.ImageBitmap
-import com.spectre7.spmp.model.Settings
-import com.spectre7.spmp.platform.PlatformContext
-import com.spectre7.spmp.platform.toByteArray
-import com.spectre7.spmp.platform.toImageBitmap
+import com.toasterofbread.spmp.model.Settings
+import com.toasterofbread.spmp.platform.PlatformContext
+import com.toasterofbread.spmp.platform.toByteArray
+import com.toasterofbread.spmp.platform.toImageBitmap
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.job
 import kotlinx.coroutines.withContext

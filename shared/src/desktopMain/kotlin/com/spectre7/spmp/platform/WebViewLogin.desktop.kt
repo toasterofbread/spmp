@@ -1,4 +1,4 @@
-package com.spectre7.spmp.platform
+package com.toasterofbread.spmp.platform
 
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier

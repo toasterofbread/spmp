@@ -1,7 +1,7 @@
-package com.spectre7.spmp.api.model
+package com.toasterofbread.spmp.api.model
 
-import com.spectre7.spmp.api.*
-import com.spectre7.spmp.model.mediaitem.MediaItem
+import com.toasterofbread.spmp.api.*
+import com.toasterofbread.spmp.model.mediaitem.MediaItem
 
 data class YoutubeiShelf(
     val musicShelfRenderer: MusicShelfRenderer? = null,

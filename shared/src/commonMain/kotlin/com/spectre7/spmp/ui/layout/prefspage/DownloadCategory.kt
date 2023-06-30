@@ -1,9 +1,9 @@
-package com.spectre7.spmp.ui.layout.prefspage
+package com.toasterofbread.spmp.ui.layout.prefspage
 
-import com.spectre7.settings.model.*
-import com.spectre7.spmp.model.Settings
-import com.spectre7.spmp.model.mediaitem.enums.SongAudioQuality
-import com.spectre7.spmp.resources.getString
+import com.toasterofbread.settings.model.*
+import com.toasterofbread.spmp.model.Settings
+import com.toasterofbread.spmp.model.mediaitem.enums.SongAudioQuality
+import com.toasterofbread.spmp.resources.getString
 
 internal fun getDownloadCategory(): List<SettingsItem> {
     return listOf(

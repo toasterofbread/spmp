@@ -1,6 +1,6 @@
 @file:OptIn(ExperimentalMaterial3Api::class)
 
-package com.spectre7.spmp.ui.layout
+package com.toasterofbread.spmp.ui.layout
 
 import LocalPlayerState
 import SpMp
@@ -32,21 +32,21 @@ import androidx.compose.ui.platform.LocalLayoutDirection
 import androidx.compose.ui.text.*
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.*
-import com.spectre7.spmp.resources.uilocalisation.durationToString
-import com.spectre7.spmp.api.getOrReport
-import com.spectre7.spmp.model.*
-import com.spectre7.spmp.model.mediaitem.*
-import com.spectre7.spmp.platform.LargeDropdownMenu
-import com.spectre7.spmp.platform.composable.PlatformAlertDialog
-import com.spectre7.spmp.platform.composable.platformClickable
-import com.spectre7.spmp.platform.vibrateShort
-import com.spectre7.spmp.resources.getString
-import com.spectre7.spmp.ui.component.*
-import com.spectre7.spmp.ui.component.multiselect.MediaItemMultiSelectContext
-import com.spectre7.spmp.ui.layout.mainpage.PlayerState
-import com.spectre7.spmp.ui.theme.Theme
-import com.spectre7.utils.*
-import com.spectre7.utils.composable.*
+import com.toasterofbread.spmp.resources.uilocalisation.durationToString
+import com.toasterofbread.spmp.api.getOrReport
+import com.toasterofbread.spmp.model.*
+import com.toasterofbread.spmp.model.mediaitem.*
+import com.toasterofbread.spmp.platform.LargeDropdownMenu
+import com.toasterofbread.spmp.platform.composable.PlatformAlertDialog
+import com.toasterofbread.spmp.platform.composable.platformClickable
+import com.toasterofbread.spmp.platform.vibrateShort
+import com.toasterofbread.spmp.resources.getString
+import com.toasterofbread.spmp.ui.component.*
+import com.toasterofbread.spmp.ui.component.multiselect.MediaItemMultiSelectContext
+import com.toasterofbread.spmp.ui.layout.mainpage.PlayerState
+import com.toasterofbread.spmp.ui.theme.Theme
+import com.toasterofbread.utils.*
+import com.toasterofbread.utils.composable.*
 import kotlinx.coroutines.*
 import org.burnoutcrew.reorderable.*
 

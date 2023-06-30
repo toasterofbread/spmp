@@ -1,4 +1,4 @@
-package com.spectre7.spmp.ui.layout.artistpage
+package com.toasterofbread.spmp.ui.layout.artistpage
 
 import androidx.compose.animation.Crossfade
 import androidx.compose.material.icons.Icons
@@ -12,11 +12,11 @@ import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
-import com.spectre7.spmp.api.Api
-import com.spectre7.spmp.model.mediaitem.Artist
-import com.spectre7.spmp.resources.getStringTODO
-import com.spectre7.utils.composable.ShapedIconButton
-import com.spectre7.utils.getContrasted
+import com.toasterofbread.spmp.api.Api
+import com.toasterofbread.spmp.model.mediaitem.Artist
+import com.toasterofbread.spmp.resources.getStringTODO
+import com.toasterofbread.utils.composable.ShapedIconButton
+import com.toasterofbread.utils.getContrasted
 import kotlinx.coroutines.launch
 
 @Composable

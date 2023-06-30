@@ -1,4 +1,4 @@
-package com.spectre7.spmp.ui.layout.nowplaying.overlay.lyrics
+package com.toasterofbread.spmp.ui.layout.nowplaying.overlay.lyrics
 
 import SpMp
 import androidx.compose.animation.Crossfade
@@ -22,13 +22,13 @@ import androidx.compose.ui.platform.LocalSoftwareKeyboardController
 import androidx.compose.ui.text.input.ImeAction
 import androidx.compose.ui.text.input.TextFieldValue
 import androidx.compose.ui.unit.dp
-import com.spectre7.spmp.api.LyricsSearchResult
-import com.spectre7.spmp.api.searchForLyrics
-import com.spectre7.spmp.model.mediaitem.Song
-import com.spectre7.spmp.resources.getString
-import com.spectre7.spmp.ui.theme.Theme
-import com.spectre7.utils.composable.OnChangedEffect
-import com.spectre7.utils.setAlpha
+import com.toasterofbread.spmp.api.LyricsSearchResult
+import com.toasterofbread.spmp.api.searchForLyrics
+import com.toasterofbread.spmp.model.mediaitem.Song
+import com.toasterofbread.spmp.resources.getString
+import com.toasterofbread.spmp.ui.theme.Theme
+import com.toasterofbread.utils.composable.OnChangedEffect
+import com.toasterofbread.utils.setAlpha
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
 import java.io.IOException

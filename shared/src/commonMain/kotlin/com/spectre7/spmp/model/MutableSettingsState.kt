@@ -1,7 +1,7 @@
-package com.spectre7.spmp.model
+package com.toasterofbread.spmp.model
 
 import androidx.compose.runtime.*
-import com.spectre7.spmp.platform.ProjectPreferences
+import com.toasterofbread.spmp.platform.ProjectPreferences
 
 @Composable
 fun <T> mutableSettingsState(settings_key: Settings, prefs: ProjectPreferences = Settings.prefs): MutableState<T> {

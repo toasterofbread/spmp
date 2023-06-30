@@ -1,4 +1,4 @@
-package com.spectre7.spmp.ui.layout.nowplaying
+package com.toasterofbread.spmp.ui.layout.nowplaying
 
 import LocalPlayerState
 import SpMp
@@ -19,15 +19,15 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.*
 import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.unit.*
-import com.spectre7.spmp.model.Settings
-import com.spectre7.spmp.platform.BackHandler
-import com.spectre7.spmp.platform.composable.scrollWheelSwipeable
-import com.spectre7.spmp.platform.composeScope
-import com.spectre7.spmp.ui.theme.Theme
-import com.spectre7.utils.*
-import com.spectre7.utils.composable.OnChangedEffect
-import com.spectre7.utils.composable.RecomposeOnInterval
-import com.spectre7.utils.modifier.brushBackground
+import com.toasterofbread.spmp.model.Settings
+import com.toasterofbread.spmp.platform.BackHandler
+import com.toasterofbread.spmp.platform.composable.scrollWheelSwipeable
+import com.toasterofbread.spmp.platform.composeScope
+import com.toasterofbread.spmp.ui.theme.Theme
+import com.toasterofbread.utils.*
+import com.toasterofbread.utils.composable.OnChangedEffect
+import com.toasterofbread.utils.composable.RecomposeOnInterval
+import com.toasterofbread.utils.modifier.brushBackground
 
 enum class ThemeMode { BACKGROUND, ELEMENTS, NONE }
 

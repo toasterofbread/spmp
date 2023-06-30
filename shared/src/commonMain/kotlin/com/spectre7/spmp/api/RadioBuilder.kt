@@ -1,13 +1,13 @@
-package com.spectre7.spmp.api
+package com.toasterofbread.spmp.api
 
-import com.spectre7.spmp.api.Api.Companion.addYtHeaders
-import com.spectre7.spmp.api.Api.Companion.getStream
-import com.spectre7.spmp.api.Api.Companion.ytUrl
-import com.spectre7.spmp.model.mediaitem.AccountPlaylist
-import com.spectre7.spmp.model.mediaitem.MediaItemThumbnailProvider
-import com.spectre7.spmp.model.mediaitem.Playlist
-import com.spectre7.spmp.model.mediaitem.enums.PlaylistType
-import com.spectre7.spmp.resources.getString
+import com.toasterofbread.spmp.api.Api.Companion.addYtHeaders
+import com.toasterofbread.spmp.api.Api.Companion.getStream
+import com.toasterofbread.spmp.api.Api.Companion.ytUrl
+import com.toasterofbread.spmp.model.mediaitem.AccountPlaylist
+import com.toasterofbread.spmp.model.mediaitem.MediaItemThumbnailProvider
+import com.toasterofbread.spmp.model.mediaitem.Playlist
+import com.toasterofbread.spmp.model.mediaitem.enums.PlaylistType
+import com.toasterofbread.spmp.resources.getString
 import okhttp3.Request
 
 suspend fun getBuiltRadio(radio_token: String): Result<Playlist?> {

@@ -1,4 +1,4 @@
-package com.spectre7.spmp.ui.layout
+package com.toasterofbread.spmp.ui.layout
 
 import LocalPlayerState
 import SpMp
@@ -26,21 +26,21 @@ import androidx.compose.ui.platform.LocalFocusManager
 import androidx.compose.ui.platform.LocalSoftwareKeyboardController
 import androidx.compose.ui.text.input.ImeAction
 import androidx.compose.ui.unit.*
-import com.spectre7.spmp.api.*
-import com.spectre7.spmp.model.Settings
-import com.spectre7.spmp.model.mediaitem.enums.MediaItemType
-import com.spectre7.spmp.model.mediaitem.enums.PlaylistType
-import com.spectre7.spmp.model.mediaitem.enums.getReadable
-import com.spectre7.spmp.platform.composable.BackHandler
-import com.spectre7.spmp.resources.getString
-import com.spectre7.spmp.ui.component.MediaItemLayout
-import com.spectre7.spmp.ui.component.MusicTopBar
-import com.spectre7.spmp.ui.component.PillMenu
-import com.spectre7.spmp.ui.component.multiselect.MediaItemMultiSelectContext
-import com.spectre7.spmp.ui.theme.Theme
-import com.spectre7.utils.*
-import com.spectre7.utils.composable.ShapedIconButton
-import com.spectre7.utils.composable.SubtleLoadingIndicator
+import com.toasterofbread.spmp.api.*
+import com.toasterofbread.spmp.model.Settings
+import com.toasterofbread.spmp.model.mediaitem.enums.MediaItemType
+import com.toasterofbread.spmp.model.mediaitem.enums.PlaylistType
+import com.toasterofbread.spmp.model.mediaitem.enums.getReadable
+import com.toasterofbread.spmp.platform.composable.BackHandler
+import com.toasterofbread.spmp.resources.getString
+import com.toasterofbread.spmp.ui.component.MediaItemLayout
+import com.toasterofbread.spmp.ui.component.MusicTopBar
+import com.toasterofbread.spmp.ui.component.PillMenu
+import com.toasterofbread.spmp.ui.component.multiselect.MediaItemMultiSelectContext
+import com.toasterofbread.spmp.ui.theme.Theme
+import com.toasterofbread.utils.*
+import com.toasterofbread.utils.composable.ShapedIconButton
+import com.toasterofbread.utils.composable.SubtleLoadingIndicator
 import kotlin.concurrent.thread
 
 val SEARCH_FIELD_FONT_SIZE: TextUnit = 18.sp

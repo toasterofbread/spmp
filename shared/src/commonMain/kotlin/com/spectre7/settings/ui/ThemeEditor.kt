@@ -1,4 +1,4 @@
-package com.spectre7.settings.ui
+package com.toasterofbread.settings.ui
 
 import androidx.compose.animation.*
 import androidx.compose.foundation.*
@@ -27,18 +27,18 @@ import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
 import com.godaddy.android.colorpicker.ClassicColorPicker
 import com.godaddy.android.colorpicker.HsvColor
-import com.spectre7.composesettings.ui.SettingsPage
-import com.spectre7.settings.model.SettingsItem
-import com.spectre7.settings.model.SettingsValueState
-import com.spectre7.spmp.platform.ProjectPreferences
-import com.spectre7.spmp.platform.vibrateShort
-import com.spectre7.spmp.ui.component.PillMenu
-import com.spectre7.spmp.ui.theme.Theme
-import com.spectre7.spmp.ui.theme.ThemeData
-import com.spectre7.utils.*
-import com.spectre7.utils.composable.OnChangedEffect
-import com.spectre7.utils.composable.ShapedIconButton
-import com.spectre7.utils.composable.WidthShrinkText
+import com.toasterofbread.composesettings.ui.SettingsPage
+import com.toasterofbread.settings.model.SettingsItem
+import com.toasterofbread.settings.model.SettingsValueState
+import com.toasterofbread.spmp.platform.ProjectPreferences
+import com.toasterofbread.spmp.platform.vibrateShort
+import com.toasterofbread.spmp.ui.component.PillMenu
+import com.toasterofbread.spmp.ui.theme.Theme
+import com.toasterofbread.spmp.ui.theme.ThemeData
+import com.toasterofbread.utils.*
+import com.toasterofbread.utils.composable.OnChangedEffect
+import com.toasterofbread.utils.composable.ShapedIconButton
+import com.toasterofbread.utils.composable.WidthShrinkText
 import org.jetbrains.compose.resources.ExperimentalResourceApi
 import org.jetbrains.compose.resources.painterResource
 

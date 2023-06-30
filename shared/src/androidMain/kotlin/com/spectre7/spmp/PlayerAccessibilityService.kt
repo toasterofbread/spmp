@@ -1,4 +1,4 @@
-package com.spectre7.spmp
+package com.toasterofbread.spmp
 
 import android.Manifest
 import android.accessibilityservice.AccessibilityService
@@ -19,11 +19,11 @@ import androidx.lifecycle.LifecycleOwner
 import androidx.lifecycle.LifecycleRegistry
 import androidx.lifecycle.lifecycleScope
 import androidx.localbroadcastmanager.content.LocalBroadcastManager
-import com.spectre7.spmp.model.Settings
-import com.spectre7.spmp.platform.PlatformContext
-import com.spectre7.spmp.platform.ProjectPreferences
-import com.spectre7.spmp.resources.getString
-import com.spectre7.utils.Permissions
+import com.toasterofbread.spmp.model.Settings
+import com.toasterofbread.spmp.platform.PlatformContext
+import com.toasterofbread.spmp.platform.ProjectPreferences
+import com.toasterofbread.spmp.resources.getString
+import com.toasterofbread.utils.Permissions
 import kotlinx.coroutines.*
 import java.lang.ref.WeakReference
 import java.util.*

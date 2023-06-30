@@ -1,6 +1,6 @@
-package com.spectre7.spmp.model.mediaitem.enums
+package com.toasterofbread.spmp.model.mediaitem.enums
 
-import com.spectre7.spmp.resources.getString
+import com.toasterofbread.spmp.resources.getString
 
 enum class PlaylistType {
     PLAYLIST, ALBUM, AUDIOBOOK, RADIO;

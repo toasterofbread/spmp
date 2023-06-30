@@ -1,7 +1,7 @@
-package com.spectre7.spmp.platform
+package com.toasterofbread.spmp.platform
 
-import com.spectre7.spmp.model.mediaitem.Song
-import com.spectre7.spmp.model.mediaitem.enums.SongAudioQuality
+import com.toasterofbread.spmp.model.mediaitem.Song
+import com.toasterofbread.spmp.model.mediaitem.enums.SongAudioQuality
 
 expect class PlayerDownloadManager(context: PlatformContext) {
     class DownloadStatus {

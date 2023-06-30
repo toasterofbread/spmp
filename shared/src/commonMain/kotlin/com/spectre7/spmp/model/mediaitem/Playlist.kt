@@ -1,14 +1,14 @@
-package com.spectre7.spmp.model.mediaitem
+package com.toasterofbread.spmp.model.mediaitem
 
 import androidx.compose.runtime.*
-import com.spectre7.spmp.model.Settings
-import com.spectre7.spmp.model.mediaitem.data.PlaylistItemData
-import com.spectre7.spmp.model.mediaitem.enums.PlaylistType
-import com.spectre7.spmp.ui.component.MediaItemLayout
-import com.spectre7.spmp.ui.component.PlaylistPreviewLong
-import com.spectre7.spmp.ui.component.PlaylistPreviewSquare
-import com.spectre7.spmp.platform.PlatformContext
-import com.spectre7.utils.addUnique
+import com.toasterofbread.spmp.model.Settings
+import com.toasterofbread.spmp.model.mediaitem.data.PlaylistItemData
+import com.toasterofbread.spmp.model.mediaitem.enums.PlaylistType
+import com.toasterofbread.spmp.ui.component.MediaItemLayout
+import com.toasterofbread.spmp.ui.component.PlaylistPreviewLong
+import com.toasterofbread.spmp.ui.component.PlaylistPreviewSquare
+import com.toasterofbread.spmp.platform.PlatformContext
+import com.toasterofbread.utils.addUnique
 
 class PlaylistDataRegistryEntry: MediaItemDataRegistry.Entry() {
     var playlist_page_thumb_width: Float? by mutableStateOf(null)

@@ -1,13 +1,13 @@
-package com.spectre7.spmp.model.mediaitem.data
+package com.toasterofbread.spmp.model.mediaitem.data
 
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.setValue
 import com.beust.klaxon.JsonArray
 import com.beust.klaxon.Klaxon
-import com.spectre7.spmp.model.mediaitem.Artist
-import com.spectre7.spmp.model.mediaitem.MediaItemWithLayoutsData
-import com.spectre7.spmp.ui.component.MediaItemLayout
+import com.toasterofbread.spmp.model.mediaitem.Artist
+import com.toasterofbread.spmp.model.mediaitem.MediaItemWithLayoutsData
+import com.toasterofbread.spmp.ui.component.MediaItemLayout
 
 class ArtistItemData(override val data_item: Artist): MediaItemData(data_item), MediaItemWithLayoutsData {
     var subscribe_channel_id: String? by mutableStateOf(null)

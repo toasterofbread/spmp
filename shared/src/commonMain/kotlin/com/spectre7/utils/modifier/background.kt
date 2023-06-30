@@ -1,4 +1,4 @@
-package com.spectre7.utils.modifier
+package com.toasterofbread.utils.modifier
 
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.drawBehind

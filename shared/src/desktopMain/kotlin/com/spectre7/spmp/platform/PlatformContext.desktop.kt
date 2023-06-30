@@ -1,4 +1,4 @@
-package com.spectre7.spmp.platform
+package com.toasterofbread.spmp.platform
 
 import SpMp
 import androidx.compose.material3.ColorScheme
@@ -14,7 +14,7 @@ import androidx.compose.ui.text.font.Font
 import androidx.compose.ui.text.platform.Font
 import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
-import com.spectre7.spmp.PlayerService
+import com.toasterofbread.spmp.PlayerService
 import org.jetbrains.skiko.OS
 import org.jetbrains.skiko.hostOs
 import java.awt.Desktop

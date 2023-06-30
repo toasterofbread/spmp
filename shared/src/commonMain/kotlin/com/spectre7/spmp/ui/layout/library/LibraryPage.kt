@@ -1,4 +1,4 @@
-package com.spectre7.spmp.ui.layout.library
+package com.toasterofbread.spmp.ui.layout.library
 
 import LocalPlayerState
 import androidx.compose.animation.Crossfade
@@ -14,18 +14,18 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
-import com.spectre7.spmp.model.Settings
-import com.spectre7.spmp.model.mediaitem.Song
-import com.spectre7.spmp.platform.PlayerDownloadManager
-import com.spectre7.spmp.platform.PlayerDownloadManager.DownloadStatus
-import com.spectre7.spmp.platform.composable.BackHandler
-import com.spectre7.spmp.resources.getString
-import com.spectre7.spmp.ui.component.MusicTopBar
-import com.spectre7.spmp.ui.component.PillMenu
-import com.spectre7.spmp.ui.component.multiselect.MediaItemMultiSelectContext
-import com.spectre7.spmp.ui.layout.mainpage.PlayerState
-import com.spectre7.spmp.ui.theme.Theme
-import com.spectre7.utils.thenIf
+import com.toasterofbread.spmp.model.Settings
+import com.toasterofbread.spmp.model.mediaitem.Song
+import com.toasterofbread.spmp.platform.PlayerDownloadManager
+import com.toasterofbread.spmp.platform.PlayerDownloadManager.DownloadStatus
+import com.toasterofbread.spmp.platform.composable.BackHandler
+import com.toasterofbread.spmp.resources.getString
+import com.toasterofbread.spmp.ui.component.MusicTopBar
+import com.toasterofbread.spmp.ui.component.PillMenu
+import com.toasterofbread.spmp.ui.component.multiselect.MediaItemMultiSelectContext
+import com.toasterofbread.spmp.ui.layout.mainpage.PlayerState
+import com.toasterofbread.spmp.ui.theme.Theme
+import com.toasterofbread.utils.thenIf
 
 enum class LibrarySubPage { SONGS }
 

@@ -1,4 +1,4 @@
-package com.spectre7.spmp.resources.uilocalisation
+package com.toasterofbread.spmp.resources.uilocalisation
 
 import org.apache.commons.lang3.time.DurationFormatUtils
 import java.time.Duration

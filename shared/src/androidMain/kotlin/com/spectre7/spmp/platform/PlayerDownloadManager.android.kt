@@ -1,8 +1,8 @@
-package com.spectre7.spmp.platform
+package com.toasterofbread.spmp.platform
 
-import com.spectre7.spmp.PlayerDownloadService
-import com.spectre7.spmp.model.mediaitem.Song
-import com.spectre7.spmp.model.mediaitem.enums.SongAudioQuality
+import com.toasterofbread.spmp.PlayerDownloadService
+import com.toasterofbread.spmp.model.mediaitem.Song
+import com.toasterofbread.spmp.model.mediaitem.enums.SongAudioQuality
 import java.io.File
 
 actual class PlayerDownloadManager actual constructor(val context: PlatformContext) {

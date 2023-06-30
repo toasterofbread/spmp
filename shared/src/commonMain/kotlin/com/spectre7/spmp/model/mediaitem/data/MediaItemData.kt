@@ -1,4 +1,4 @@
-package com.spectre7.spmp.model.mediaitem.data
+package com.toasterofbread.spmp.model.mediaitem.data
 
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
@@ -7,13 +7,13 @@ import com.beust.klaxon.JsonArray
 import com.beust.klaxon.JsonObject
 import com.beust.klaxon.Klaxon
 import com.beust.klaxon.KlaxonException
-import com.spectre7.spmp.api.Api
-import com.spectre7.spmp.api.TextRun
-import com.spectre7.spmp.model.Cache
-import com.spectre7.spmp.model.mediaitem.*
-import com.spectre7.spmp.model.mediaitem.enums.MediaItemType
-import com.spectre7.spmp.model.mediaitem.enums.PlaylistType
-import com.spectre7.utils.ValueListeners
+import com.toasterofbread.spmp.api.Api
+import com.toasterofbread.spmp.api.TextRun
+import com.toasterofbread.spmp.model.Cache
+import com.toasterofbread.spmp.model.mediaitem.*
+import com.toasterofbread.spmp.model.mediaitem.enums.MediaItemType
+import com.toasterofbread.spmp.model.mediaitem.enums.PlaylistType
+import com.toasterofbread.utils.ValueListeners
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.runBlocking
 import java.io.Reader

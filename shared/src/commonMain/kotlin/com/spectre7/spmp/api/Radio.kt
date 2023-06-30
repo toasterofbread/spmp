@@ -1,15 +1,15 @@
-package com.spectre7.spmp.api
+package com.toasterofbread.spmp.api
 
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.setValue
-import com.spectre7.spmp.api.Api.Companion.addYtHeaders
-import com.spectre7.spmp.api.Api.Companion.getStream
-import com.spectre7.spmp.api.Api.Companion.ytUrl
-import com.spectre7.spmp.model.*
-import com.spectre7.spmp.model.mediaitem.*
-import com.spectre7.spmp.ui.component.MediaItemLayout
-import com.spectre7.utils.ValueListeners
+import com.toasterofbread.spmp.api.Api.Companion.addYtHeaders
+import com.toasterofbread.spmp.api.Api.Companion.getStream
+import com.toasterofbread.spmp.api.Api.Companion.ytUrl
+import com.toasterofbread.spmp.model.*
+import com.toasterofbread.spmp.model.mediaitem.*
+import com.toasterofbread.spmp.ui.component.MediaItemLayout
+import com.toasterofbread.utils.ValueListeners
 import kotlinx.coroutines.*
 import okhttp3.Request
 

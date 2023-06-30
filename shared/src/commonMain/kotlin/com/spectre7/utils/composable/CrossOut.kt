@@ -1,4 +1,4 @@
-package com.spectre7.utils.composable
+package com.toasterofbread.utils.composable
 
 import androidx.compose.animation.core.Animatable
 import androidx.compose.runtime.getValue
@@ -15,7 +15,7 @@ import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.IntSize
 import androidx.compose.ui.unit.dp
-import com.spectre7.utils.toFloat
+import com.toasterofbread.utils.toFloat
 
 fun Modifier.crossOut(
     crossed_out: Boolean,

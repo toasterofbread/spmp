@@ -1,4 +1,4 @@
-package com.spectre7.spmp.ui.layout.mainpage
+package com.toasterofbread.spmp.ui.layout.mainpage
 
 import LocalPlayerState
 import SpMp
@@ -16,15 +16,15 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.graphicsLayer
 import androidx.compose.ui.unit.DpSize
 import androidx.compose.ui.unit.dp
-import com.spectre7.spmp.api.Api
-import com.spectre7.spmp.model.mediaitem.Artist
-import com.spectre7.spmp.model.mediaitem.MediaItemHolder
-import com.spectre7.spmp.platform.composable.SwipeRefresh
-import com.spectre7.spmp.platform.getDefaultHorizontalPadding
-import com.spectre7.spmp.ui.component.LazyMediaItemLayoutColumn
-import com.spectre7.spmp.ui.component.MediaItemLayout
-import com.spectre7.spmp.ui.component.PillMenu
-import com.spectre7.spmp.ui.layout.library.LibraryPage
+import com.toasterofbread.spmp.api.Api
+import com.toasterofbread.spmp.model.mediaitem.Artist
+import com.toasterofbread.spmp.model.mediaitem.MediaItemHolder
+import com.toasterofbread.spmp.platform.composable.SwipeRefresh
+import com.toasterofbread.spmp.platform.getDefaultHorizontalPadding
+import com.toasterofbread.spmp.ui.component.LazyMediaItemLayoutColumn
+import com.toasterofbread.spmp.ui.component.MediaItemLayout
+import com.toasterofbread.spmp.ui.component.PillMenu
+import com.toasterofbread.spmp.ui.layout.library.LibraryPage
 
 @Composable
 fun MainPage(

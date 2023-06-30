@@ -1,16 +1,16 @@
-package com.spectre7.spmp.ui.layout.prefspage
+package com.toasterofbread.spmp.ui.layout.prefspage
 
 import SpMp
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.ArrowBack
 import androidx.compose.runtime.*
-import com.spectre7.composesettings.ui.SettingsInterface
-import com.spectre7.composesettings.ui.SettingsPageWithItems
-import com.spectre7.settings.model.SettingsValueState
-import com.spectre7.spmp.model.Settings
-import com.spectre7.spmp.model.YoutubeMusicAuthInfo
-import com.spectre7.spmp.ui.component.PillMenu
-import com.spectre7.spmp.ui.theme.Theme
+import com.toasterofbread.composesettings.ui.SettingsInterface
+import com.toasterofbread.composesettings.ui.SettingsPageWithItems
+import com.toasterofbread.settings.model.SettingsValueState
+import com.toasterofbread.spmp.model.Settings
+import com.toasterofbread.spmp.model.YoutubeMusicAuthInfo
+import com.toasterofbread.spmp.ui.component.PillMenu
+import com.toasterofbread.spmp.ui.theme.Theme
 
 @Composable
 internal fun rememberPrefsPageSettingsInterfade(pill_menu: PillMenu, ytm_auth: SettingsValueState<YoutubeMusicAuthInfo>, getCategory: () -> PrefsPageCategory?, close: () -> Unit): SettingsInterface {

@@ -1,4 +1,4 @@
-package com.spectre7.spmp.platform
+package com.toasterofbread.spmp.platform
 
 import android.content.Context
 import android.content.SharedPreferences
@@ -9,7 +9,7 @@ actual class ProjectPreferences private constructor(private val prefs: SharedPre
         private var instance: ProjectPreferences? = null
 
         fun getInstance(context: Context): ProjectPreferences {
-            return getInstance(context.getSharedPreferences("com.spectre7.spmp.PREFERENCES", Context.MODE_PRIVATE))
+            return getInstance(context.getSharedPreferences("com.toasterofbread.spmp.PREFERENCES", Context.MODE_PRIVATE))
         }
         private fun getInstance(prefs: SharedPreferences): ProjectPreferences {
             if (instance == null) {

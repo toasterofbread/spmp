@@ -1,4 +1,4 @@
-package com.spectre7.utils.composable
+package com.toasterofbread.utils.composable
 
 import androidx.compose.foundation.gestures.detectTapGestures
 import androidx.compose.material3.LocalContentColor
@@ -17,7 +17,7 @@ import androidx.compose.ui.text.TextStyle
 import androidx.compose.ui.text.buildAnnotatedString
 import androidx.compose.ui.text.style.TextDecoration
 import androidx.compose.ui.text.style.TextOverflow
-import com.spectre7.spmp.ui.theme.Theme
+import com.toasterofbread.spmp.ui.theme.Theme
 import java.util.regex.Pattern
 
 // https://stackoverflow.com/a/66235329

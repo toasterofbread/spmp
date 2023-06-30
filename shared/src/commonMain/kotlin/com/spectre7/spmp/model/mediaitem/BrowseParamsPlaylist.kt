@@ -1,8 +1,8 @@
-package com.spectre7.spmp.model.mediaitem
+package com.toasterofbread.spmp.model.mediaitem
 
 import androidx.compose.runtime.*
-import com.spectre7.spmp.model.mediaitem.data.PlaylistItemData
-import com.spectre7.spmp.platform.PlatformContext
+import com.toasterofbread.spmp.model.mediaitem.data.PlaylistItemData
+import com.toasterofbread.spmp.platform.PlatformContext
 
 class BrowseParamsPlaylist(
     val artist_id: String,

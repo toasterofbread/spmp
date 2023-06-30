@@ -1,4 +1,4 @@
-package com.spectre7.spmp.ui.layout.nowplaying.overlay
+package com.toasterofbread.spmp.ui.layout.nowplaying.overlay
 
 import androidx.compose.animation.Crossfade
 import androidx.compose.animation.core.Animatable
@@ -21,12 +21,12 @@ import androidx.compose.ui.input.pointer.pointerInput
 import androidx.compose.ui.unit.IntOffset
 import androidx.compose.ui.unit.IntSize
 import androidx.compose.ui.unit.dp
-import com.spectre7.spmp.model.mediaitem.Song
-import com.spectre7.spmp.platform.getMediaNotificationImageMaxOffset
-import com.spectre7.spmp.platform.getMediaNotificationImageSize
-import com.spectre7.spmp.resources.getString
-import com.spectre7.utils.composable.SubtleLoadingIndicator
-import com.spectre7.utils.launchSingle
+import com.toasterofbread.spmp.model.mediaitem.Song
+import com.toasterofbread.spmp.platform.getMediaNotificationImageMaxOffset
+import com.toasterofbread.spmp.platform.getMediaNotificationImageSize
+import com.toasterofbread.spmp.resources.getString
+import com.toasterofbread.utils.composable.SubtleLoadingIndicator
+import com.toasterofbread.utils.launchSingle
 import kotlin.math.roundToInt
 
 actual fun notifImageOverlayMenuButtonText(): String? = getString("song_notif_image_menu_open")

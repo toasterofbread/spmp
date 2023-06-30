@@ -1,4 +1,4 @@
-package com.spectre7.spmp.ui.layout
+package com.toasterofbread.spmp.ui.layout
 
 import SpMp
 import androidx.compose.animation.Crossfade
@@ -18,16 +18,16 @@ import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import com.beust.klaxon.JsonObject
 import com.beust.klaxon.Klaxon
-import com.spectre7.spmp.api.*
-import com.spectre7.spmp.platform.WebViewLogin
-import com.spectre7.spmp.platform.composable.PlatformAlertDialog
-import com.spectre7.spmp.platform.composable.rememberImagePainter
-import com.spectre7.spmp.platform.isWebViewLoginSupported
-import com.spectre7.spmp.resources.getString
-import com.spectre7.spmp.resources.getStringTODO
-import com.spectre7.utils.catchInterrupts
-import com.spectre7.utils.composable.LinkifyText
-import com.spectre7.utils.composable.SubtleLoadingIndicator
+import com.toasterofbread.spmp.api.*
+import com.toasterofbread.spmp.platform.WebViewLogin
+import com.toasterofbread.spmp.platform.composable.PlatformAlertDialog
+import com.toasterofbread.spmp.platform.composable.rememberImagePainter
+import com.toasterofbread.spmp.platform.isWebViewLoginSupported
+import com.toasterofbread.spmp.resources.getString
+import com.toasterofbread.spmp.resources.getStringTODO
+import com.toasterofbread.utils.catchInterrupts
+import com.toasterofbread.utils.composable.LinkifyText
+import com.toasterofbread.utils.composable.SubtleLoadingIndicator
 import okhttp3.Request
 import kotlin.concurrent.thread
 

@@ -1,10 +1,10 @@
-package com.spectre7.spmp.api
+package com.toasterofbread.spmp.api
 
-import com.spectre7.spmp.api.Api.Companion.addYtHeaders
-import com.spectre7.spmp.api.Api.Companion.getStream
-import com.spectre7.spmp.api.Api.Companion.ytUrl
-import com.spectre7.spmp.model.mediaitem.Artist
-import com.spectre7.spmp.resources.getString
+import com.toasterofbread.spmp.api.Api.Companion.addYtHeaders
+import com.toasterofbread.spmp.api.Api.Companion.getStream
+import com.toasterofbread.spmp.api.Api.Companion.ytUrl
+import com.toasterofbread.spmp.model.mediaitem.Artist
+import com.toasterofbread.spmp.resources.getString
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
 import okhttp3.HttpUrl.Companion.toHttpUrl

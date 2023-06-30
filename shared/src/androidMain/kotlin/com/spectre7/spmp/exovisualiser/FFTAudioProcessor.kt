@@ -24,7 +24,7 @@ SOFTWARE.
 
  */
 
-package com.spectre7.spmp.exovisualiser
+package com.toasterofbread.spmp.exovisualiser
 
 import android.media.AudioTrack
 import android.media.AudioTrack.ERROR_BAD_VALUE

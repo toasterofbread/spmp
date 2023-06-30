@@ -1,6 +1,6 @@
 @file:Suppress("INVISIBLE_MEMBER", "INVISIBLE_REFERENCE")
 
-package com.spectre7.spmp.ui.layout.prefspage
+package com.toasterofbread.spmp.ui.layout.prefspage
 
 import SpMp
 import androidx.compose.animation.Crossfade
@@ -21,18 +21,18 @@ import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.text.AnnotatedString
 import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
-import com.spectre7.composesettings.ui.SettingsInterface
-import com.spectre7.settings.model.*
-import com.spectre7.spmp.model.*
-import com.spectre7.spmp.platform.composable.BackHandler
-import com.spectre7.spmp.platform.composable.platformClickable
-import com.spectre7.spmp.platform.vibrateShort
-import com.spectre7.spmp.resources.getString
-import com.spectre7.spmp.ui.component.MusicTopBar
-import com.spectre7.spmp.ui.component.PillMenu
-import com.spectre7.spmp.ui.layout.*
-import com.spectre7.spmp.ui.theme.Theme
-import com.spectre7.utils.modifier.background
+import com.toasterofbread.composesettings.ui.SettingsInterface
+import com.toasterofbread.settings.model.*
+import com.toasterofbread.spmp.model.*
+import com.toasterofbread.spmp.platform.composable.BackHandler
+import com.toasterofbread.spmp.platform.composable.platformClickable
+import com.toasterofbread.spmp.platform.vibrateShort
+import com.toasterofbread.spmp.resources.getString
+import com.toasterofbread.spmp.ui.component.MusicTopBar
+import com.toasterofbread.spmp.ui.component.PillMenu
+import com.toasterofbread.spmp.ui.layout.*
+import com.toasterofbread.spmp.ui.theme.Theme
+import com.toasterofbread.utils.modifier.background
 import org.jetbrains.compose.resources.*
 
 internal enum class PrefsPageScreen {

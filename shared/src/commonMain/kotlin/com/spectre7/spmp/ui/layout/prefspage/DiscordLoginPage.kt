@@ -1,12 +1,12 @@
-package com.spectre7.spmp.ui.layout.prefspage
+package com.toasterofbread.spmp.ui.layout.prefspage
 
 import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
-import com.spectre7.composesettings.ui.SettingsPage
-import com.spectre7.settings.model.SettingsValueState
-import com.spectre7.spmp.ui.layout.DiscordLogin
+import com.toasterofbread.composesettings.ui.SettingsPage
+import com.toasterofbread.settings.model.SettingsValueState
+import com.toasterofbread.spmp.ui.layout.DiscordLogin
 
 internal fun getDiscordLoginPage(discord_auth: SettingsValueState<String>, manual: Boolean = false): SettingsPage {
     return object : SettingsPage() {

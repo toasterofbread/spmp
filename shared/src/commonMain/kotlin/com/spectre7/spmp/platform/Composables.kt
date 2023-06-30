@@ -1,4 +1,4 @@
-package com.spectre7.spmp.platform
+package com.toasterofbread.spmp.platform
 
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Box
@@ -14,8 +14,8 @@ import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.unit.dp
-import com.spectre7.spmp.platform.composable.PlatformDialog
-import com.spectre7.spmp.platform.composable.BackHandler
+import com.toasterofbread.spmp.platform.composable.PlatformDialog
+import com.toasterofbread.spmp.platform.composable.BackHandler
 
 @Composable
 fun LargeDropdownMenu(

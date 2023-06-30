@@ -1,4 +1,4 @@
-package com.spectre7.spmp.ui.theme
+package com.toasterofbread.spmp.ui.theme
 
 import androidx.compose.animation.Animatable
 import androidx.compose.animation.core.Animatable
@@ -14,14 +14,14 @@ import androidx.compose.ui.text.intl.Locale
 import com.beust.klaxon.Converter
 import com.beust.klaxon.JsonValue
 import com.beust.klaxon.Klaxon
-import com.spectre7.spmp.model.AccentColourSource
-import com.spectre7.spmp.model.Settings
-import com.spectre7.spmp.platform.PlatformContext
-import com.spectre7.spmp.platform.ProjectPreferences
-import com.spectre7.utils.compare
-import com.spectre7.utils.composable.OnChangedEffect
-import com.spectre7.utils.contrastAgainst
-import com.spectre7.utils.getContrasted
+import com.toasterofbread.spmp.model.AccentColourSource
+import com.toasterofbread.spmp.model.Settings
+import com.toasterofbread.spmp.platform.PlatformContext
+import com.toasterofbread.spmp.platform.ProjectPreferences
+import com.toasterofbread.utils.compare
+import com.toasterofbread.utils.composable.OnChangedEffect
+import com.toasterofbread.utils.contrastAgainst
+import com.toasterofbread.utils.getContrasted
 import com.catppuccin.Palette as Catppuccin
 
 const val VIBRANT_ACCENT_CONTRAST: Float = 0.2f

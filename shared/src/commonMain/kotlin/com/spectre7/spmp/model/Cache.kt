@@ -1,6 +1,6 @@
-package com.spectre7.spmp.model
+package com.toasterofbread.spmp.model
 
-import com.spectre7.spmp.platform.PlatformContext
+import com.toasterofbread.spmp.platform.PlatformContext
 import java.io.BufferedReader
 import java.io.File
 import java.io.FileNotFoundException

@@ -1,4 +1,4 @@
-package com.spectre7.spmp.ui.layout
+package com.toasterofbread.spmp.ui.layout
 
 import SpMp
 import androidx.compose.foundation.layout.*
@@ -6,16 +6,16 @@ import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
-import com.spectre7.spmp.api.*
-import com.spectre7.spmp.model.YoutubeMusicAuthInfo
-import com.spectre7.spmp.model.mediaitem.Artist
-import com.spectre7.spmp.model.mediaitem.MediaItemThumbnailProvider
-import com.spectre7.spmp.platform.WebViewLogin
-import com.spectre7.spmp.platform.composable.PlatformAlertDialog
-import com.spectre7.spmp.platform.isWebViewLoginSupported
-import com.spectre7.spmp.resources.getString
-import com.spectre7.spmp.resources.getStringTODO
-import com.spectre7.utils.composable.LinkifyText
+import com.toasterofbread.spmp.api.*
+import com.toasterofbread.spmp.model.YoutubeMusicAuthInfo
+import com.toasterofbread.spmp.model.mediaitem.Artist
+import com.toasterofbread.spmp.model.mediaitem.MediaItemThumbnailProvider
+import com.toasterofbread.spmp.platform.WebViewLogin
+import com.toasterofbread.spmp.platform.composable.PlatformAlertDialog
+import com.toasterofbread.spmp.platform.isWebViewLoginSupported
+import com.toasterofbread.spmp.resources.getString
+import com.toasterofbread.spmp.resources.getStringTODO
+import com.toasterofbread.utils.composable.LinkifyText
 import okhttp3.Request
 import java.net.URI
 

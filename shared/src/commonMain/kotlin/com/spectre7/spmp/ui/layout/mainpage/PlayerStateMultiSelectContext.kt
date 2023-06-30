@@ -1,4 +1,4 @@
-package com.spectre7.spmp.ui.layout.mainpage
+package com.toasterofbread.spmp.ui.layout.mainpage
 
 import LocalPlayerState
 import SpMp
@@ -26,11 +26,11 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
-import com.spectre7.spmp.model.mediaitem.MediaItemPreviewParams
-import com.spectre7.spmp.model.mediaitem.Song
-import com.spectre7.spmp.platform.vibrateShort
-import com.spectre7.spmp.resources.getString
-import com.spectre7.spmp.ui.component.multiselect.MediaItemMultiSelectContext
+import com.toasterofbread.spmp.model.mediaitem.MediaItemPreviewParams
+import com.toasterofbread.spmp.model.mediaitem.Song
+import com.toasterofbread.spmp.platform.vibrateShort
+import com.toasterofbread.spmp.resources.getString
+import com.toasterofbread.spmp.ui.component.multiselect.MediaItemMultiSelectContext
 
 fun getPlayerStateMultiSelectContext(): MediaItemMultiSelectContext =
     MediaItemMultiSelectContext(

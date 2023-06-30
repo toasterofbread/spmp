@@ -1,4 +1,4 @@
-package com.spectre7.spmp.platform.composable
+package com.toasterofbread.spmp.platform.composable
 
 import androidx.compose.foundation.ExperimentalFoundationApi
 import androidx.compose.foundation.Indication
@@ -7,7 +7,7 @@ import androidx.compose.foundation.onClick
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.input.pointer.PointerButton
-import com.spectre7.utils.thenIf
+import com.toasterofbread.utils.thenIf
 
 @OptIn(ExperimentalFoundationApi::class)
 @Composable

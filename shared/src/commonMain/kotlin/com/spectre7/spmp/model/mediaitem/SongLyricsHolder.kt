@@ -1,10 +1,10 @@
-package com.spectre7.spmp.model.mediaitem
+package com.toasterofbread.spmp.model.mediaitem
 
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.setValue
-import com.spectre7.spmp.api.getSongLyrics
-import com.spectre7.spmp.model.SongLyrics
+import com.toasterofbread.spmp.api.getSongLyrics
+import com.toasterofbread.spmp.model.SongLyrics
 import kotlinx.coroutines.*
 
 class SongLyricsHolder(private val song: Song) {

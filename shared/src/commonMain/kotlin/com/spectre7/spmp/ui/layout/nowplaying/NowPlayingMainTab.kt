@@ -1,4 +1,4 @@
-package com.spectre7.spmp.ui.layout.nowplaying
+package com.toasterofbread.spmp.ui.layout.nowplaying
 
 import LocalPlayerState
 import SpMp
@@ -38,18 +38,18 @@ import androidx.compose.ui.unit.*
 import com.github.krottv.compose.sliders.DefaultThumb
 import com.github.krottv.compose.sliders.DefaultTrack
 import com.github.krottv.compose.sliders.SliderValueHorizontal
-import com.spectre7.spmp.model.mediaitem.Song
-import com.spectre7.spmp.platform.composable.platformClickable
-import com.spectre7.spmp.platform.composeScope
-import com.spectre7.spmp.platform.vibrateShort
-import com.spectre7.spmp.ui.component.MediaItemTitleEditDialog
-import com.spectre7.spmp.ui.layout.mainpage.MINIMISED_NOW_PLAYING_HEIGHT
-import com.spectre7.spmp.ui.layout.mainpage.MINIMISED_NOW_PLAYING_V_PADDING
-import com.spectre7.spmp.ui.theme.Theme
-import com.spectre7.utils.composable.Marquee
-import com.spectre7.utils.composable.RecomposeOnInterval
-import com.spectre7.utils.formatElapsedTime
-import com.spectre7.utils.setAlpha
+import com.toasterofbread.spmp.model.mediaitem.Song
+import com.toasterofbread.spmp.platform.composable.platformClickable
+import com.toasterofbread.spmp.platform.composeScope
+import com.toasterofbread.spmp.platform.vibrateShort
+import com.toasterofbread.spmp.ui.component.MediaItemTitleEditDialog
+import com.toasterofbread.spmp.ui.layout.mainpage.MINIMISED_NOW_PLAYING_HEIGHT
+import com.toasterofbread.spmp.ui.layout.mainpage.MINIMISED_NOW_PLAYING_V_PADDING
+import com.toasterofbread.spmp.ui.theme.Theme
+import com.toasterofbread.utils.composable.Marquee
+import com.toasterofbread.utils.composable.RecomposeOnInterval
+import com.toasterofbread.utils.formatElapsedTime
+import com.toasterofbread.utils.setAlpha
 import kotlin.math.absoluteValue
 
 const val NOW_PLAYING_MAIN_PADDING = 10f

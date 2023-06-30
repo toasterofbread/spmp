@@ -1,4 +1,4 @@
-package com.spectre7.utils.composable
+package com.toasterofbread.utils.composable
 
 import androidx.compose.foundation.gestures.Orientation
 import androidx.compose.foundation.gestures.scrollable

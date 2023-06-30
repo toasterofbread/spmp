@@ -1,6 +1,6 @@
 @file:OptIn(ExperimentalMaterialApi::class)
 
-package com.spectre7.spmp.platform.composable
+package com.toasterofbread.spmp.platform.composable
 
 import androidx.compose.foundation.gestures.Orientation
 import androidx.compose.material.ExperimentalMaterialApi

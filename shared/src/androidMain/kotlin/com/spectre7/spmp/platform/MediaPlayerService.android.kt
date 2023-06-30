@@ -1,4 +1,4 @@
-package com.spectre7.spmp.platform
+package com.toasterofbread.spmp.platform
 
 import android.content.ComponentName
 import androidx.compose.runtime.*
@@ -12,8 +12,8 @@ import androidx.media3.session.MediaController
 import androidx.media3.session.SessionToken
 import com.google.common.util.concurrent.ListenableFuture
 import com.google.common.util.concurrent.MoreExecutors
-import com.spectre7.spmp.exovisualiser.ExoVisualizer
-import com.spectre7.spmp.model.mediaitem.Song
+import com.toasterofbread.spmp.exovisualiser.ExoVisualizer
+import com.toasterofbread.spmp.model.mediaitem.Song
 import kotlin.properties.Delegates
 import androidx.media3.common.MediaItem as ExoMediaItem
 

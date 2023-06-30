@@ -1,4 +1,4 @@
-package com.spectre7.spmp.ui.layout.nowplaying
+package com.toasterofbread.spmp.ui.layout.nowplaying
 
 import LocalPlayerState
 import SpMp
@@ -30,16 +30,16 @@ import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.IntSize
 import androidx.compose.ui.unit.dp
-import com.spectre7.spmp.model.mediaitem.MediaItemThumbnailProvider
-import com.spectre7.spmp.model.mediaitem.Song
-import com.spectre7.spmp.platform.composable.BackHandler
-import com.spectre7.spmp.platform.getPixel
-import com.spectre7.spmp.resources.getString
-import com.spectre7.spmp.ui.layout.nowplaying.overlay.DEFAULT_THUMBNAIL_ROUNDING
-import com.spectre7.spmp.ui.layout.nowplaying.overlay.MainOverlayMenu
-import com.spectre7.utils.composable.OnChangedEffect
-import com.spectre7.utils.getInnerSquareSizeOfCircle
-import com.spectre7.utils.setAlpha
+import com.toasterofbread.spmp.model.mediaitem.MediaItemThumbnailProvider
+import com.toasterofbread.spmp.model.mediaitem.Song
+import com.toasterofbread.spmp.platform.composable.BackHandler
+import com.toasterofbread.spmp.platform.getPixel
+import com.toasterofbread.spmp.resources.getString
+import com.toasterofbread.spmp.ui.layout.nowplaying.overlay.DEFAULT_THUMBNAIL_ROUNDING
+import com.toasterofbread.spmp.ui.layout.nowplaying.overlay.MainOverlayMenu
+import com.toasterofbread.utils.composable.OnChangedEffect
+import com.toasterofbread.utils.getInnerSquareSizeOfCircle
+import com.toasterofbread.utils.setAlpha
 import kotlin.math.absoluteValue
 import kotlin.math.min
 

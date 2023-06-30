@@ -1,7 +1,7 @@
-package com.spectre7.spmp.api
+package com.toasterofbread.spmp.api
 
-import com.spectre7.spmp.model.mediaitem.enums.SongAudioQuality
-import com.spectre7.spmp.resources.getString
+import com.toasterofbread.spmp.model.mediaitem.enums.SongAudioQuality
+import com.toasterofbread.spmp.resources.getString
 import okhttp3.Request
 import org.schabi.newpipe.extractor.NewPipe
 import org.schabi.newpipe.extractor.exceptions.ParsingException

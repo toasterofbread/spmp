@@ -1,11 +1,11 @@
-package com.spectre7.spmp.ui.layout.prefspage
+package com.toasterofbread.spmp.ui.layout.prefspage
 
 import SpMp
-import com.spectre7.settings.model.*
-import com.spectre7.spmp.PlayerAccessibilityService
-import com.spectre7.spmp.model.Settings
-import com.spectre7.spmp.platform.PlatformContext
-import com.spectre7.spmp.resources.getString
+import com.toasterofbread.settings.model.*
+import com.toasterofbread.spmp.PlayerAccessibilityService
+import com.toasterofbread.spmp.model.Settings
+import com.toasterofbread.spmp.platform.PlatformContext
+import com.toasterofbread.spmp.resources.getString
 import kotlin.math.roundToInt
 
 private fun getMusicTopBarGroup(): List<SettingsItem> {

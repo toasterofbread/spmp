@@ -1,4 +1,4 @@
-package com.spectre7.spmp.ui.component
+package com.toasterofbread.spmp.ui.component
 
 import LocalPlayerState
 import SpMp
@@ -27,9 +27,9 @@ import androidx.compose.ui.graphics.isUnspecified
 import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
-import com.spectre7.spmp.model.mediaitem.MediaItemPreviewParams
-import com.spectre7.spmp.model.mediaitem.Song
-import com.spectre7.spmp.platform.vibrateShort
+import com.toasterofbread.spmp.model.mediaitem.MediaItemPreviewParams
+import com.toasterofbread.spmp.model.mediaitem.Song
+import com.toasterofbread.spmp.platform.vibrateShort
 
 class LongPressMenuActionProvider(
     val content_colour: () -> Color,

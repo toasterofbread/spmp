@@ -1,17 +1,17 @@
-package com.spectre7.spmp.api.model
+package com.toasterofbread.spmp.api.model
 
-import com.spectre7.spmp.api.MusicResponsiveListItemRenderer
-import com.spectre7.spmp.api.MusicTwoRowItemRenderer
-import com.spectre7.spmp.resources.uilocalisation.parseYoutubeDurationString
-import com.spectre7.spmp.model.Settings
-import com.spectre7.spmp.model.mediaitem.AccountPlaylist
-import com.spectre7.spmp.model.mediaitem.Artist
-import com.spectre7.spmp.model.mediaitem.MediaItem
-import com.spectre7.spmp.model.mediaitem.Song
-import com.spectre7.spmp.model.mediaitem.data.MediaItemData
-import com.spectre7.spmp.model.mediaitem.enums.MediaItemType
-import com.spectre7.spmp.model.mediaitem.enums.PlaylistType
-import com.spectre7.spmp.model.mediaitem.enums.SongType
+import com.toasterofbread.spmp.api.MusicResponsiveListItemRenderer
+import com.toasterofbread.spmp.api.MusicTwoRowItemRenderer
+import com.toasterofbread.spmp.resources.uilocalisation.parseYoutubeDurationString
+import com.toasterofbread.spmp.model.Settings
+import com.toasterofbread.spmp.model.mediaitem.AccountPlaylist
+import com.toasterofbread.spmp.model.mediaitem.Artist
+import com.toasterofbread.spmp.model.mediaitem.MediaItem
+import com.toasterofbread.spmp.model.mediaitem.Song
+import com.toasterofbread.spmp.model.mediaitem.data.MediaItemData
+import com.toasterofbread.spmp.model.mediaitem.enums.MediaItemType
+import com.toasterofbread.spmp.model.mediaitem.enums.PlaylistType
+import com.toasterofbread.spmp.model.mediaitem.enums.SongType
 
 data class YoutubeiShelfContentsItem(val musicTwoRowItemRenderer: MusicTwoRowItemRenderer? = null, val musicResponsiveListItemRenderer: MusicResponsiveListItemRenderer? = null) {
     // Pair(item, playlistSetVideoId)

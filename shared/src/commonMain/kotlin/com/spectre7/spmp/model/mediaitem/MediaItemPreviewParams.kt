@@ -1,9 +1,9 @@
-package com.spectre7.spmp.model.mediaitem
+package com.toasterofbread.spmp.model.mediaitem
 
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
-import com.spectre7.spmp.ui.component.multiselect.MediaItemMultiSelectContext
+import com.toasterofbread.spmp.ui.component.multiselect.MediaItemMultiSelectContext
 
 data class MediaItemPreviewParams(
     val modifier: Modifier = Modifier,

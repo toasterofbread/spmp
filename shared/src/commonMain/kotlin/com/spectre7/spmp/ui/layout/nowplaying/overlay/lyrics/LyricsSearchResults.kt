@@ -1,4 +1,4 @@
-package com.spectre7.spmp.ui.layout.nowplaying.overlay.lyrics
+package com.toasterofbread.spmp.ui.layout.nowplaying.overlay.lyrics
 
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
@@ -16,13 +16,13 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
-import com.spectre7.spmp.api.LyricsSearchResult
-import com.spectre7.spmp.model.SongLyrics
-import com.spectre7.spmp.platform.composable.BackHandler
-import com.spectre7.spmp.resources.getString
-import com.spectre7.spmp.ui.theme.Theme
-import com.spectre7.utils.getContrasted
-import com.spectre7.utils.setAlpha
+import com.toasterofbread.spmp.api.LyricsSearchResult
+import com.toasterofbread.spmp.model.SongLyrics
+import com.toasterofbread.spmp.platform.composable.BackHandler
+import com.toasterofbread.spmp.resources.getString
+import com.toasterofbread.spmp.ui.theme.Theme
+import com.toasterofbread.utils.getContrasted
+import com.toasterofbread.utils.setAlpha
 
 @Composable
 internal fun ColumnScope.LyricsSearchResults(results: List<LyricsSearchResult>, modifier: Modifier = Modifier, onFinished: (Int?) -> Unit) {

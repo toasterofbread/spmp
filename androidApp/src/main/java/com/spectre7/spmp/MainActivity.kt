@@ -1,4 +1,4 @@
-package com.spectre7.spmp
+package com.toasterofbread.spmp
 
 import SpMp
 import android.content.ComponentCallbacks2
@@ -11,7 +11,7 @@ import android.view.WindowManager
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
 import androidx.core.view.WindowCompat
-import com.spectre7.spmp.platform.PlatformContext
+import com.toasterofbread.spmp.platform.PlatformContext
 
 class MainActivity : ComponentActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {

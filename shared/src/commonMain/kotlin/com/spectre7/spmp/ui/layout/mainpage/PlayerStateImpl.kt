@@ -1,4 +1,4 @@
-package com.spectre7.spmp.ui.layout.mainpage
+package com.toasterofbread.spmp.ui.layout.mainpage
 
 import SpMp
 import androidx.compose.animation.Crossfade
@@ -13,30 +13,30 @@ import androidx.compose.runtime.*
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.unit.*
-import com.spectre7.spmp.PlayerService
-import com.spectre7.spmp.api.cast
-import com.spectre7.spmp.api.getHomeFeed
-import com.spectre7.spmp.api.getOrThrowHere
-import com.spectre7.spmp.model.*
-import com.spectre7.spmp.model.mediaitem.*
-import com.spectre7.spmp.model.mediaitem.enums.PlaylistType
-import com.spectre7.spmp.platform.*
-import com.spectre7.spmp.platform.composable.BackHandler
-import com.spectre7.spmp.ui.component.*
-import com.spectre7.spmp.ui.component.multiselect.MediaItemMultiSelectContext
-import com.spectre7.spmp.ui.layout.*
-import com.spectre7.spmp.ui.layout.artistpage.ArtistPage
-import com.spectre7.spmp.ui.layout.library.LibraryPage
-import com.spectre7.spmp.ui.layout.nowplaying.NOW_PLAYING_VERTICAL_PAGE_COUNT
-import com.spectre7.spmp.ui.layout.nowplaying.NowPlayingExpansionState
-import com.spectre7.spmp.ui.layout.nowplaying.ThemeMode
-import com.spectre7.spmp.ui.layout.nowplaying.overlay.OverlayMenu
-import com.spectre7.spmp.ui.layout.prefspage.PrefsPage
-import com.spectre7.utils.addUnique
-import com.spectre7.utils.composable.OnChangedEffect
-import com.spectre7.utils.init
-import com.spectre7.utils.launchSingle
-import com.spectre7.utils.toFloat
+import com.toasterofbread.spmp.PlayerService
+import com.toasterofbread.spmp.api.cast
+import com.toasterofbread.spmp.api.getHomeFeed
+import com.toasterofbread.spmp.api.getOrThrowHere
+import com.toasterofbread.spmp.model.*
+import com.toasterofbread.spmp.model.mediaitem.*
+import com.toasterofbread.spmp.model.mediaitem.enums.PlaylistType
+import com.toasterofbread.spmp.platform.*
+import com.toasterofbread.spmp.platform.composable.BackHandler
+import com.toasterofbread.spmp.ui.component.*
+import com.toasterofbread.spmp.ui.component.multiselect.MediaItemMultiSelectContext
+import com.toasterofbread.spmp.ui.layout.*
+import com.toasterofbread.spmp.ui.layout.artistpage.ArtistPage
+import com.toasterofbread.spmp.ui.layout.library.LibraryPage
+import com.toasterofbread.spmp.ui.layout.nowplaying.NOW_PLAYING_VERTICAL_PAGE_COUNT
+import com.toasterofbread.spmp.ui.layout.nowplaying.NowPlayingExpansionState
+import com.toasterofbread.spmp.ui.layout.nowplaying.ThemeMode
+import com.toasterofbread.spmp.ui.layout.nowplaying.overlay.OverlayMenu
+import com.toasterofbread.spmp.ui.layout.prefspage.PrefsPage
+import com.toasterofbread.utils.addUnique
+import com.toasterofbread.utils.composable.OnChangedEffect
+import com.toasterofbread.utils.init
+import com.toasterofbread.utils.launchSingle
+import com.toasterofbread.utils.toFloat
 import kotlinx.coroutines.*
 import java.util.concurrent.locks.ReentrantLock
 
@@ -425,7 +425,7 @@ class PlayerStateImpl(private val context: PlatformContext): PlayerState(null, n
         }
 
         if (np_swipe_anchors != null) {
-            com.spectre7.spmp.ui.layout.nowplaying.NowPlaying(np_swipe_state.value, np_swipe_anchors!!)
+            com.toasterofbread.spmp.ui.layout.nowplaying.NowPlaying(np_swipe_state.value, np_swipe_anchors!!)
         }
 
         OnChangedEffect(now_playing_switch_page) {

@@ -1,18 +1,18 @@
-package com.spectre7.spmp.model.mediaitem
+package com.toasterofbread.spmp.model.mediaitem
 
 import SpMp
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.setValue
-import com.spectre7.spmp.api.*
-import com.spectre7.spmp.model.mediaitem.data.ArtistItemData
-import com.spectre7.spmp.resources.getString
-import com.spectre7.spmp.resources.uilocalisation.amountToString
-import com.spectre7.spmp.platform.PlatformContext
-import com.spectre7.spmp.ui.component.ArtistPreviewLong
-import com.spectre7.spmp.ui.component.ArtistPreviewSquare
-import com.spectre7.spmp.ui.component.MediaItemLayout
+import com.toasterofbread.spmp.api.*
+import com.toasterofbread.spmp.model.mediaitem.data.ArtistItemData
+import com.toasterofbread.spmp.resources.getString
+import com.toasterofbread.spmp.resources.uilocalisation.amountToString
+import com.toasterofbread.spmp.platform.PlatformContext
+import com.toasterofbread.spmp.ui.component.ArtistPreviewLong
+import com.toasterofbread.spmp.ui.component.ArtistPreviewSquare
+import com.toasterofbread.spmp.ui.component.MediaItemLayout
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
 

@@ -1,4 +1,4 @@
-package com.spectre7.spmp.ui.layout.library
+package com.toasterofbread.spmp.ui.layout.library
 
 import LocalPlayerState
 import SpMp
@@ -21,14 +21,14 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
-import com.spectre7.spmp.api.Api
-import com.spectre7.spmp.model.Settings
-import com.spectre7.spmp.model.mediaitem.*
-import com.spectre7.spmp.platform.PlayerDownloadManager
-import com.spectre7.spmp.resources.getString
-import com.spectre7.spmp.ui.component.MediaItemGrid
-import com.spectre7.spmp.ui.component.multiselect.MediaItemMultiSelectContext
-import com.spectre7.utils.composable.SubtleLoadingIndicator
+import com.toasterofbread.spmp.api.Api
+import com.toasterofbread.spmp.model.Settings
+import com.toasterofbread.spmp.model.mediaitem.*
+import com.toasterofbread.spmp.platform.PlayerDownloadManager
+import com.toasterofbread.spmp.resources.getString
+import com.toasterofbread.spmp.ui.component.MediaItemGrid
+import com.toasterofbread.spmp.ui.component.multiselect.MediaItemMultiSelectContext
+import com.toasterofbread.utils.composable.SubtleLoadingIndicator
 import kotlinx.coroutines.launch
 
 private const val LOCAL_SONGS_PREVIEW_AMOUNT = 5

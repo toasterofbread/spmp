@@ -1,4 +1,4 @@
-package com.spectre7.spmp.ui.layout.nowplaying.overlay
+package com.toasterofbread.spmp.ui.layout.nowplaying.overlay
 
 import LocalPlayerState
 import androidx.compose.animation.Crossfade
@@ -21,14 +21,14 @@ import androidx.compose.ui.graphics.ImageBitmap
 import androidx.compose.ui.text.input.ImeAction
 import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
-import com.spectre7.spmp.model.mediaitem.MediaItem
-import com.spectre7.spmp.model.mediaitem.MediaItemPreviewParams
-import com.spectre7.spmp.model.mediaitem.Song
-import com.spectre7.spmp.platform.PlayerDownloadManager
-import com.spectre7.spmp.platform.PlayerDownloadManager.DownloadStatus
-import com.spectre7.spmp.resources.getStringTODO
-import com.spectre7.spmp.ui.theme.Theme
-import com.spectre7.utils.composable.OnChangedEffect
+import com.toasterofbread.spmp.model.mediaitem.MediaItem
+import com.toasterofbread.spmp.model.mediaitem.MediaItemPreviewParams
+import com.toasterofbread.spmp.model.mediaitem.Song
+import com.toasterofbread.spmp.platform.PlayerDownloadManager
+import com.toasterofbread.spmp.platform.PlayerDownloadManager.DownloadStatus
+import com.toasterofbread.spmp.resources.getStringTODO
+import com.toasterofbread.spmp.ui.theme.Theme
+import com.toasterofbread.utils.composable.OnChangedEffect
 import kotlinx.coroutines.delay
 
 class MainOverlayMenu(

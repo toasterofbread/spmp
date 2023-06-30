@@ -1,5 +1,5 @@
 -dontobfuscate
--keep class com.spectre7.spmp.** { *; }
+-keep class com.toasterofbread.spmp.** { *; }
 
 # Klaxon
 -keep class kotlin.reflect.jvm.internal.**

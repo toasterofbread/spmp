@@ -1,4 +1,4 @@
-package com.spectre7.utils.composable
+package com.toasterofbread.utils.composable
 
 import androidx.compose.animation.core.*
 import androidx.compose.foundation.layout.Box
@@ -15,7 +15,7 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
-import com.spectre7.utils.modifier.background
+import com.toasterofbread.utils.modifier.background
 import kotlin.random.Random
 
 @Composable

@@ -1,18 +1,18 @@
-package com.spectre7.spmp.api
+package com.toasterofbread.spmp.api
 
 import SpMp
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.setValue
 import com.beust.klaxon.*
-import com.spectre7.spmp.api.Api.Companion.getStream
-import com.spectre7.spmp.model.Cache
-import com.spectre7.spmp.model.mediaitem.MediaItem
-import com.spectre7.spmp.model.Settings
-import com.spectre7.spmp.model.YoutubeMusicAuthInfo
-import com.spectre7.spmp.platform.ProjectPreferences
-import com.spectre7.spmp.resources.getString
-import com.spectre7.spmp.resources.getStringArray
+import com.toasterofbread.spmp.api.Api.Companion.getStream
+import com.toasterofbread.spmp.model.Cache
+import com.toasterofbread.spmp.model.mediaitem.MediaItem
+import com.toasterofbread.spmp.model.Settings
+import com.toasterofbread.spmp.model.YoutubeMusicAuthInfo
+import com.toasterofbread.spmp.platform.ProjectPreferences
+import com.toasterofbread.spmp.resources.getString
+import com.toasterofbread.spmp.resources.getStringArray
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.SupervisorJob

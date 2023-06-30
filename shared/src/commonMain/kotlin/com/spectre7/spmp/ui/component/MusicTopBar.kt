@@ -21,6 +21,7 @@ import com.spectre7.spmp.model.SongLyrics
 import com.spectre7.spmp.platform.composable.platformClickable
 import com.spectre7.spmp.resources.getString
 import com.spectre7.spmp.ui.layout.nowplaying.LocalNowPlayingExpansion
+import com.spectre7.spmp.ui.layout.nowplaying.overlay.OverlayMenu
 import com.spectre7.utils.composable.rememberSongUpdateLyrics
 import com.spectre7.utils.getContrasted
 import kotlinx.coroutines.delay
@@ -52,65 +53,60 @@ fun MusicTopBarWithVisualiser(
     onShowingChanged: ((Boolean) -> Unit)? = null
 ) {
     var target_mode: MusicTopBarMode by target_mode_key.rememberMutableEnumState()
-    val mode_state = LocalNowPlayingExpansion.current.top_bar_mode
-    var show_toast by remember { mutableStateOf(false) }
+    val show_toast = remember { mutableStateOf(false) }
 
-    @Composable
-    fun InnerContent() {
-        Crossfade(Pair(target_mode, mode_state.value), Modifier.fillMaxSize()) { state ->
-            val (target, current) = state
-
-            val toast_alpha = remember { Animatable(if (show_toast) 1f else 0f) }
-            LaunchedEffect(Unit) {
-                if (!show_toast) {
-                    return@LaunchedEffect
-                }
-
-                show_toast = false
-                delay(500)
-                toast_alpha.animateTo(0f)
-            }
-
-            Box(Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
-                Box(
-                    Modifier
-                        .graphicsLayer { alpha = toast_alpha.value }
-                        .background(LocalContentColor.current, RoundedCornerShape(16.dp)),
-                ) {
-                    Row(
-                        Modifier.padding(vertical = 5.dp, horizontal = 15.dp),
-                        verticalAlignment = Alignment.CenterVertically,
-                        horizontalArrangement = Arrangement.spacedBy(5.dp)
-                    ) {
-                        val colour = LocalContentColor.current.getContrasted()
-                        Icon(
-                            target.getIcon(),
-                            null,
-                            tint = colour
-                        )
-
-                        if (target != current) {
-                            Text(getString("topbar_mode_unavailable"), color = colour)
-                        }
-                    }
-                }
-            }
-        }
-    }
-    
     MusicTopBar(
-        target_mode,
+        { target_mode },
         true,
         can_show_visualiser,
         hide_while_inactive,
         modifier,
-        mode_state,
         song,
         padding,
-        innerContent = { InnerContent() },
+        innerContent = { mode ->
+            Crossfade(Pair(target_mode, mode), Modifier.fillMaxSize()) { state ->
+                val (target, current) = state
+
+                val toast_alpha = remember { Animatable(if (show_toast.value) 1f else 0f) }
+                LaunchedEffect(Unit) {
+                    if (!show_toast.value) {
+                        return@LaunchedEffect
+                    }
+
+                    show_toast.value = false
+                    delay(500)
+                    toast_alpha.animateTo(0f)
+                }
+
+                Box(Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
+                    Box(
+                        Modifier
+                            .graphicsLayer { alpha = toast_alpha.value }
+                            .background(LocalContentColor.current, RoundedCornerShape(16.dp)),
+                    ) {
+                        Row(
+                            Modifier.padding(vertical = 5.dp, horizontal = 15.dp),
+                            verticalAlignment = Alignment.CenterVertically,
+                            horizontalArrangement = Arrangement.spacedBy(5.dp)
+                        ) {
+                            val colour = LocalContentColor.current.getContrasted()
+                            Icon(
+                                target.getIcon(),
+                                null,
+                                tint = colour
+                            )
+
+                            if (target != current) {
+                                Text(getString("topbar_mode_unavailable"), color = colour)
+                            }
+                        }
+                    }
+                }
+            }
+        },
         onClick = {
             target_mode = target_mode.getNext(can_show_visualiser)
-            show_toast = true
+            show_toast.value = true
         },
         onShowingChanged = onShowingChanged
     )
@@ -125,7 +121,7 @@ fun MusicTopBar(
 ) {
     val can_show: Boolean by can_show_key.rememberMutableState()
     MusicTopBar(
-        target_mode = MusicTopBarMode.LYRICS,
+        { MusicTopBarMode.LYRICS },
         can_show = can_show,
         can_show_visualiser = false,
         hide_while_inactive = true,
@@ -137,35 +133,36 @@ fun MusicTopBar(
 
 @Composable
 private fun MusicTopBar(
-    target_mode: MusicTopBarMode,
+    getTargetMode: () -> MusicTopBarMode,
     can_show: Boolean,
     can_show_visualiser: Boolean,
     hide_while_inactive: Boolean,
     modifier: Modifier = Modifier,
-    mode_state: MutableState<MusicTopBarMode>? = null,
     song: Song? = LocalPlayerState.current.status.m_song,
     padding: PaddingValues = PaddingValues(),
-    innerContent: (@Composable () -> Unit)? = null,
+    innerContent: (@Composable (MusicTopBarMode) -> Unit)? = null,
     onClick: (() -> Unit)? = null,
     onShowingChanged: ((Boolean) -> Unit)? = null
 ) {
     val player = LocalPlayerState.current
-    val song_state by rememberSongUpdateLyrics(song, target_mode == MusicTopBarMode.LYRICS)
+    val song_state by rememberSongUpdateLyrics(song, getTargetMode() == MusicTopBarMode.LYRICS)
+    var mode_state: MusicTopBarMode by mutableStateOf(getTargetMode())
 
     val visualiser_width: Float by Settings.KEY_TOPBAR_VISUALISER_WIDTH.rememberMutableState()
     check(visualiser_width in 0f .. 1f)
 
     val current_state by remember {
         derivedStateOf {
-            for (mode_i in target_mode.ordinal downTo 0) {
+            val target = getTargetMode()
+            for (mode_i in target.ordinal downTo 0) {
                 val mode = MusicTopBarMode.values()[mode_i]
                 val state = getModeState(mode, song_state)
                 if (state != null) {
-                    mode_state?.value = mode
+                    mode_state = mode
                     return@derivedStateOf state
                 }
             }
-            throw NotImplementedError(target_mode.toString())
+            throw NotImplementedError(target.toString())
         }
     }
 
@@ -191,7 +188,7 @@ private fun MusicTopBar(
         exit = shrinkVertically()
     ) {
         Box(Modifier.padding(padding).height(30.dp), contentAlignment = Alignment.Center) {
-            innerContent?.invoke()
+            innerContent?.invoke(mode_state)
 
             Crossfade(current_state, Modifier.fillMaxSize()) { s ->
                 Box(Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {

@@ -28,7 +28,7 @@ import com.spectre7.utils.composable.SubtleLoadingIndicator
 fun LikeDislikeButton(
     song: Song,
     modifier: Modifier = Modifier,
-    enabled: Boolean = true,
+    getEnabled: (() -> Boolean)? = null,
     colourProvider: () -> Color
 ) {
     if (!Api.ytm_authenticated) {
@@ -64,7 +64,7 @@ fun LikeDislikeButton(
                     Modifier
                         .rotate(rotation)
                         .combinedClickable(
-                            enabled = enabled,
+                            enabled = getEnabled?.invoke() != false,
                             onClick = { when (status) {
                                 SongLikeStatus.Status.LIKED -> song.like_status.setLiked(null)
                                 SongLikeStatus.Status.DISLIKED -> song.like_status.setLiked(null)

@@ -12,7 +12,6 @@ import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.runtime.*
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.graphicsLayer
 import androidx.compose.ui.unit.dp
 import com.spectre7.spmp.model.MusicTopBarMode
@@ -35,12 +34,17 @@ fun TopBar(modifier: Modifier = Modifier) {
             MusicTopBarMode.LYRICS -> !show_lyrics_in_queue
         }
 
-    val top_bar_height = if (hide_in_queue || expansion.getBounded() < 1f) expansion.getAppearing() else 1f
+    val top_bar_height by remember { derivedStateOf {
+        if (hide_in_queue || expansion.getBounded() < 1f) expansion.getAppearing() else 1f
+    } }
 
     val max_height by animateDpAsState(
         if (hide_in_queue) NOW_PLAYING_TOP_BAR_HEIGHT.dp * (2f - expansion.get().coerceIn(1f, 2f))
         else NOW_PLAYING_TOP_BAR_HEIGHT.dp
     )
+
+    fun getAlpha() = if (hide_in_queue || expansion.getBounded() < 1f) 1f - expansion.getDisappearing() else 1f
+    val hide_content by remember { derivedStateOf { getAlpha() <= 0f } }
 
     Crossfade(
         player.status.m_song,
@@ -48,20 +52,19 @@ fun TopBar(modifier: Modifier = Modifier) {
             .fillMaxWidth()
             .requiredHeight(minOf(NOW_PLAYING_TOP_BAR_HEIGHT.dp * top_bar_height, max_height))
             .padding(horizontal = NOW_PLAYING_MAIN_PADDING.dp)
-            .graphicsLayer { alpha = if (hide_in_queue || expansion.getBounded() < 1f) 1f - expansion.getDisappearing() else 1f }
+            .graphicsLayer { alpha = getAlpha() }
     ) { song ->
-        if (song == null) {
+        if (song == null || hide_content) {
             return@Crossfade
         }
         
         Row(Modifier.fillMaxSize(), horizontalArrangement = Arrangement.SpaceBetween) {
-            val buttons_alpha = 1f - expansion.getDisappearing()
-            val buttons_enabled = buttons_alpha > 0f
+            val buttons_alpha by remember { derivedStateOf { (2f - expansion.getBounded()).coerceIn(0f, 1f) } }
 
             LikeDislikeButton(
                 song,
                 Modifier.width(40.dp * buttons_alpha).fillMaxHeight().graphicsLayer { alpha = buttons_alpha },
-                buttons_enabled,
+                { 1f - expansion.getDisappearing() > 0f },
                 { getNPOnBackground().setAlpha(0.5f) }
             )
 
@@ -73,10 +76,11 @@ fun TopBar(modifier: Modifier = Modifier) {
 
             IconButton(
                 {
-                    player.onMediaItemLongClicked(song, player.status.m_index)
+                    if (1f - expansion.getDisappearing() > 0f) {
+                        player.onMediaItemLongClicked(song, player.status.m_index)
+                    }
                 },
-                Modifier.graphicsLayer { alpha = buttons_alpha }.width(40.dp * buttons_alpha),
-                enabled = buttons_enabled
+                Modifier.graphicsLayer { alpha = buttons_alpha }.width(40.dp * buttons_alpha)
             ) {
                 Icon(Icons.Filled.MoreHoriz, null, tint = getNPOnBackground().setAlpha(0.5f))
             }

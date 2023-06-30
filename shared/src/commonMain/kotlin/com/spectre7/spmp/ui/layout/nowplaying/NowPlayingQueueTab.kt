@@ -153,7 +153,7 @@ private class QueueTabItem(val song: Song, val key: Int) {
 
 @OptIn(ExperimentalFoundationApi::class)
 @Composable
-fun QueueTab() {
+fun QueueTab(page_height: Dp, modifier: Modifier = Modifier) {
     var key_inc by remember { mutableStateOf(0) }
     val radio_info_position: NowPlayingQueueRadioInfoPosition = Settings.getEnum(Settings.KEY_NP_QUEUE_RADIO_INFO_POSITION)
     val multiselect_context: MediaItemMultiSelectContext = remember { MediaItemMultiSelectContext() { multiselect -> } }
@@ -256,8 +256,10 @@ fun QueueTab() {
 
     CompositionLocalProvider(LocalContentColor provides queue_background_colour.getContrasted()) {
         Box(
-            Modifier
-                .fillMaxSize()
+            modifier
+                // Add extra height for overscroll
+                .requiredHeight(page_height + player.nowPlayingBottomPadding() + 200.dp)
+                .requiredWidth(SpMp.context.getScreenWidth())
                 .padding(top = MINIMISED_NOW_PLAYING_HEIGHT.dp + (SpMp.context.getStatusBarHeight() * 0.5f) + top_bar_height + MINIMISED_NOW_PLAYING_V_PADDING.dp)
                 .background(queue_background_colour, shape)
                 .clip(shape)
@@ -603,7 +605,7 @@ private fun StopAfterSongButton(backgroundColourProvider: () -> Color, modifier:
                 .minimumTouchTargetSize()
                 .aspectRatio(1f)
                 .background(CircleShape, backgroundColourProvider)
-                .rotate(rotation.value)
+                .rotate(rotation)
                 .combinedClickable(
                     interactionSource = remember { MutableInteractionSource() },
                     indication = null,

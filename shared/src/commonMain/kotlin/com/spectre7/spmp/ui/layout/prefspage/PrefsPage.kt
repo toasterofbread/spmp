@@ -16,13 +16,17 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.input.pointer.pointerInput
+import androidx.compose.ui.platform.LocalClipboardManager
 import androidx.compose.ui.platform.LocalDensity
+import androidx.compose.ui.text.AnnotatedString
 import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
 import com.spectre7.composesettings.ui.SettingsInterface
 import com.spectre7.settings.model.*
 import com.spectre7.spmp.model.*
 import com.spectre7.spmp.platform.composable.BackHandler
+import com.spectre7.spmp.platform.composable.platformClickable
+import com.spectre7.spmp.platform.vibrateShort
 import com.spectre7.spmp.resources.getString
 import com.spectre7.spmp.ui.component.MusicTopBar
 import com.spectre7.spmp.ui.component.PillMenu

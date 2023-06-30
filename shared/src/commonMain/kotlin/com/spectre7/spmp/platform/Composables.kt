@@ -15,6 +15,7 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.unit.dp
 import com.spectre7.spmp.platform.composable.PlatformDialog
+import com.spectre7.spmp.platform.composable.BackHandler
 
 @Composable
 fun LargeDropdownMenu(
@@ -93,4 +94,14 @@ fun LargeDropdownMenuItem(
             )
         }
     }
+}
+
+@Composable
+fun composeScope(block: @Composable () -> Unit) {
+    block()
+}
+
+@Composable
+fun BackHandler(getEnabled: @Composable () -> Boolean, action: () -> Unit) {
+    BackHandler(getEnabled(), action)
 }

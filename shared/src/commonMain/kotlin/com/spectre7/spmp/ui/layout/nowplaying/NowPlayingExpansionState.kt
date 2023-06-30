@@ -40,7 +40,6 @@ class NowPlayingExpansionState(swipe_state: State<SwipeableState<Int>>, private 
         switch_to_page = page
     }
 
-
     fun close() {
         switch_to_page = if (swipe_state.targetValue == 0) 1 else 0
     }
@@ -55,7 +54,7 @@ class NowPlayingExpansionState(swipe_state: State<SwipeableState<Int>>, private 
         }
     }
 
-    fun getBounded(): Float = get().coerceIn(0f, 2f)
+    fun getBounded(): Float = get().coerceIn(page_range.first.toFloat(), page_range.last.toFloat())
     fun getAbsolute(): Float {
         val bounded = getBounded()
         if (bounded <= 1f) {

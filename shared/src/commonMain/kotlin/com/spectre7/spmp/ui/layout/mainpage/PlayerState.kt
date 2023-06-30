@@ -1,9 +1,6 @@
 package com.spectre7.spmp.ui.layout.mainpage
 
-import androidx.compose.runtime.Composable
-import androidx.compose.runtime.getValue
-import androidx.compose.runtime.mutableStateOf
-import androidx.compose.runtime.setValue
+import androidx.compose.runtime.*
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.Dp
 import com.spectre7.spmp.PlayerService
@@ -17,6 +14,7 @@ import com.spectre7.spmp.ui.component.LongPressMenuData
 import com.spectre7.spmp.ui.component.PillMenu
 import com.spectre7.spmp.ui.component.multiselect.MediaItemMultiSelectContext
 import com.spectre7.spmp.ui.layout.nowplaying.ThemeMode
+import com.spectre7.spmp.ui.layout.nowplaying.overlay.OverlayMenu
 import com.spectre7.utils.indexOfOrNull
 import java.net.URI
 import java.net.URISyntaxException

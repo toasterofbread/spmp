@@ -148,7 +148,7 @@ suspend fun processDefaultResponse(item: MediaItem, data: MediaItemData, respons
                             if (artist_run != null) {
                                 data.supplyArtist(
                                     Artist.fromId(artist_run.navigationEndpoint!!.browseEndpoint!!.browseId).editArtistData {
-                                        supplyTitle(artist_run.text, true)
+                                        supplyTitle(artist_run.text, false)
                                     },
                                     false
                                 )

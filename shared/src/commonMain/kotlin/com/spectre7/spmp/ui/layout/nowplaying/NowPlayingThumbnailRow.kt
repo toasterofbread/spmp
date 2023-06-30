@@ -76,6 +76,7 @@ fun ThumbnailRow(
 
     LaunchedEffect(current_song) {
         current_thumb_image = null
+        onThumbnailLoaded(null)
     }
 
     Row(

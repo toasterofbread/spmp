@@ -30,6 +30,7 @@ import com.spectre7.spmp.ui.layout.library.LibraryPage
 import com.spectre7.spmp.ui.layout.nowplaying.NOW_PLAYING_VERTICAL_PAGE_COUNT
 import com.spectre7.spmp.ui.layout.nowplaying.NowPlayingExpansionState
 import com.spectre7.spmp.ui.layout.nowplaying.ThemeMode
+import com.spectre7.spmp.ui.layout.nowplaying.overlay.OverlayMenu
 import com.spectre7.spmp.ui.layout.prefspage.PrefsPage
 import com.spectre7.utils.addUnique
 import com.spectre7.utils.composable.OnChangedEffect

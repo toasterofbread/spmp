@@ -45,22 +45,25 @@ class PaletteSelectorOverlayMenu(
 
     @Composable
     override fun Menu(
-        songProvider: () -> Song,
-        expansion: Float,
-        close: () -> Unit,
+        getSong: () -> Song,
+        getExpansion: () -> Float,
+        openMenu: (OverlayMenu?) -> Unit,
         getSeekState: () -> Any,
         getCurrentSongThumb: () -> ImageBitmap?
     ) {
-        val song = songProvider()
-        var palette_colours by remember { mutableStateOf<List<Color>?>(null) }
+        val song = getSong()
         val thumb_image = getCurrentSongThumb()
+        var palette_colours by remember { mutableStateOf<List<Color>?>(null) }
+        var colourpick_requested by remember { mutableStateOf(false) }
+        val button_colours = ButtonDefaults.buttonColors(
+            containerColor = getNPBackground(),
+            contentColor = getNPOnBackground()
+        )
 
         LaunchedEffect(thumb_image) {
             palette_colours = null
             palette_colours = thumb_image?.generatePalette(8)
         }
-
-        var colourpick_requested by remember { mutableStateOf(false) }
 
         AnimatedVisibility(
             !colourpick_requested,
@@ -103,17 +106,14 @@ class PaletteSelectorOverlayMenu(
                                 }
                             }
                         },
-                        colors = ButtonDefaults.buttonColors(
-                            containerColor = getNPBackground(),
-                            contentColor = getNPOnBackground()
-                        )
+                        colors = button_colours
                     ) {
                         Text(getString("song_theme_menu_pick_colour_from_thumb"))
                     }
                 }
 
                 Column(horizontalAlignment = Alignment.CenterHorizontally) {
-                    val gradient_depth = songProvider().song_reg_entry.np_gradient_depth ?: Settings.KEY_NOWPLAYING_DEFAULT_GRADIENT_DEPTH.get()
+                    val gradient_depth = getSong().song_reg_entry.np_gradient_depth ?: Settings.KEY_NOWPLAYING_DEFAULT_GRADIENT_DEPTH.get()
                     Text(
                         getString("song_theme_menu_gradient_depth_\$x")
                             .replace("\$x", gradient_depth.toString().padStart(3, ' ')),
@@ -126,7 +126,7 @@ class PaletteSelectorOverlayMenu(
                         Slider(
                             value = gradient_depth,
                             onValueChange = { value ->
-                                songProvider().song_reg_entry.np_gradient_depth =
+                                getSong().song_reg_entry.np_gradient_depth =
                                     if (value == Settings.KEY_NOWPLAYING_DEFAULT_GRADIENT_DEPTH.get()) null else value
                             },
                             colors = SliderDefaults.colors(
@@ -137,7 +137,7 @@ class PaletteSelectorOverlayMenu(
                             modifier = Modifier.weight(1f)
                         )
                         IconButton({
-                            songProvider().song_reg_entry.np_gradient_depth = null
+                            getSong().song_reg_entry.np_gradient_depth = null
                         }) {
                             Icon(Icons.Filled.Refresh, null)
                         }
@@ -171,7 +171,7 @@ class PaletteSelectorOverlayMenu(
                 }
 
                 Column(horizontalAlignment = Alignment.CenterHorizontally) {
-                    val radius = (songProvider().song_reg_entry.thumbnail_rounding ?: DEFAULT_THUMBNAIL_ROUNDING) * 2
+                    val radius = (getSong().song_reg_entry.thumbnail_rounding ?: DEFAULT_THUMBNAIL_ROUNDING) * 2
                     Text(
                         getString("song_theme_menu_corner_radius_\$x")
                             .replace("\$x", radius.toString().padStart(3, ' ')),
@@ -204,6 +204,13 @@ class PaletteSelectorOverlayMenu(
                         }) {
                             Icon(Icons.Filled.Refresh, null)
                         }
+                    }
+                }
+
+                val notif_image_menu_button_text = notifImageOverlayMenuButtonText()
+                if (notif_image_menu_button_text != null) {
+                    Button({ openMenu(NotifImageOverlayMenu()) }, colors = button_colours) {
+                        Text(notif_image_menu_button_text)
                     }
                 }
             }

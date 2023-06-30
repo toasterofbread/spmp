@@ -148,6 +148,10 @@
     <string name="song_theme_menu_corner_radius_$x">コーナーの半径: $x</string>
     <string name="song_theme_menu_gradient_depth_$x">グラデーションの深さ</string>
 
+    <string name="song_notif_image_menu_open">通知イメージの調整</string>
+    <string name="song_notif_image_menu_adjust_offset">イメージの位置を変える</string>
+    <string name="song_notif_image_menu_adjust_offset_desc">再生中の曲が一度変わってから変化されます</string>
+
     <string name="theme_title_new">新しいテーマ</string>
     <string name="theme_title_default">デフォルトテーマ</string>
 

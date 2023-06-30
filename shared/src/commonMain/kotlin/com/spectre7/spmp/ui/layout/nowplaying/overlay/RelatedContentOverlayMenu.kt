@@ -3,7 +3,6 @@ package com.spectre7.spmp.ui.layout.nowplaying.overlay
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.fillMaxSize
-import androidx.compose.foundation.layout.padding
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Close
 import androidx.compose.material3.LocalContentColor
@@ -25,9 +24,9 @@ class RelatedContentOverlayMenu : OverlayMenu() {
 
     @Composable
     override fun Menu(
-        songProvider: () -> Song,
-        expansion: Float,
-        close: () -> Unit,
+        getSong: () -> Song,
+        getExpansion: () -> Float,
+        openMenu: (OverlayMenu?) -> Unit,
         getSeekState: () -> Any,
         getCurrentSongThumb: () -> ImageBitmap?
     ) {
@@ -38,11 +37,11 @@ class RelatedContentOverlayMenu : OverlayMenu() {
         Box(Modifier.fillMaxSize(), contentAlignment = Alignment.BottomEnd) {
             SongRelatedPage(
                 pill_menu,
-                songProvider(),
+                getSong(),
                 Modifier.fillMaxSize(),
                 title_text_style = MaterialTheme.typography.headlineSmall,
                 description_text_style = MaterialTheme.typography.bodyMedium,
-                close = close,
+                close = { openMenu(null) },
                 padding = PaddingValues(10.dp),
                 accent_colour = LocalContentColor.current.setAlpha(0.75f)
             )
@@ -53,7 +52,7 @@ class RelatedContentOverlayMenu : OverlayMenu() {
                     when (index) {
                         0 -> 
                             ActionButton(Icons.Filled.Close) {
-                                close()
+                                openMenu(null)
                             }
                         else -> throw NotImplementedError(index.toString())
                     }

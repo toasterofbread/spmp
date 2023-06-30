@@ -87,6 +87,10 @@
     <string name="song_theme_menu_corner_radius_$x">Corner radius: $x</string>
     <string name="song_theme_menu_gradient_depth_$x">Gradient depth: $x</string>
 
+    <string name="song_notif_image_menu_open">Adjust notification image</string>
+    <string name="song_notif_image_menu_adjust_offset">Change image offset</string>
+    <string name="song_notif_image_menu_adjust_offset_desc">Changes will be applied after the song changes</string>
+
     <string name="theme_title_default">Default theme</string>
     <string name="theme_title_new">New theme</string>
 

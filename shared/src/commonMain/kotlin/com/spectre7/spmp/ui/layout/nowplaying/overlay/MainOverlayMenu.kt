@@ -1,13 +1,10 @@
 package com.spectre7.spmp.ui.layout.nowplaying.overlay
 
 import LocalPlayerState
-import SpMp
 import androidx.compose.animation.Crossfade
 import androidx.compose.animation.core.Animatable
-import androidx.compose.foundation.ExperimentalFoundationApi
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
-import androidx.compose.foundation.combinedClickable
 import androidx.compose.foundation.interaction.MutableInteractionSource
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.shape.CircleShape
@@ -24,16 +21,12 @@ import androidx.compose.ui.graphics.ImageBitmap
 import androidx.compose.ui.text.input.ImeAction
 import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
-import androidx.compose.ui.unit.times
 import com.spectre7.spmp.model.mediaitem.MediaItem
 import com.spectre7.spmp.model.mediaitem.MediaItemPreviewParams
 import com.spectre7.spmp.model.mediaitem.Song
 import com.spectre7.spmp.platform.PlayerDownloadManager
 import com.spectre7.spmp.platform.PlayerDownloadManager.DownloadStatus
-import com.spectre7.spmp.platform.vibrateShort
 import com.spectre7.spmp.resources.getStringTODO
-import com.spectre7.spmp.ui.layout.nowplaying.NOW_PLAYING_MAIN_PADDING
-import com.spectre7.spmp.ui.layout.nowplaying.overlay.lyrics.LyricsOverlayMenu
 import com.spectre7.spmp.ui.theme.Theme
 import com.spectre7.utils.composable.OnChangedEffect
 import kotlinx.coroutines.delay
@@ -47,12 +40,12 @@ class MainOverlayMenu(
 
     override fun closeOnTap(): Boolean = true
 
-    @OptIn(ExperimentalFoundationApi::class, ExperimentalMaterial3Api::class)
+    @OptIn(ExperimentalMaterial3Api::class)
     @Composable
     override fun Menu(
-        songProvider: () -> Song,
-        expansion: Float,
-        close: () -> Unit,
+        getSong: () -> Song,
+        getExpansion: () -> Float,
+        openMenu: (OverlayMenu?) -> Unit,
         getSeekState: () -> Any,
         getCurrentSongThumb: () -> ImageBitmap?
     ) {
@@ -62,12 +55,12 @@ class MainOverlayMenu(
         var download_progress_target: Float by remember { mutableStateOf(0f) }
         var download_status: DownloadStatus? by remember { mutableStateOf(null) }
 
-        LaunchedEffect(songProvider().id) {
+        LaunchedEffect(getSong().id) {
             download_status = null
             download_progress.snapTo(0f)
             download_progress_target = 0f
 
-            player.download_manager.getDownload(songProvider()) {
+            player.download_manager.getDownload(getSong()) {
                 download_status = it
             }
         }
@@ -75,7 +68,7 @@ class MainOverlayMenu(
         DisposableEffect(Unit) {
             val status_listener = object : PlayerDownloadManager.DownloadStatusListener() {
                 override fun onDownloadChanged(status: DownloadStatus) {
-                    if (status.song == songProvider()) {
+                    if (status.song == getSong()) {
                         download_status = status
                     }
                 }
@@ -94,7 +87,7 @@ class MainOverlayMenu(
         LaunchedEffect(Unit) {
             while (true) {
                 if (download_status?.status == DownloadStatus.Status.DOWNLOADING || download_status?.status == DownloadStatus.Status.PAUSED) {
-                    player.download_manager.getDownload(songProvider()) {
+                    player.download_manager.getDownload(getSong()) {
                         download_progress_target = it!!.progress
                     }
                 }
@@ -109,7 +102,7 @@ class MainOverlayMenu(
             verticalArrangement = Arrangement.spacedBy(10.dp),
             horizontalAlignment = Alignment.CenterHorizontally
         ) {
-            val song = songProvider()
+            val song = getSong()
 
             val button_colour = Theme.current.on_accent
             val button_size = 42.dp
@@ -188,7 +181,7 @@ class MainOverlayMenu(
                         .clickable {
                             setOverlayMenu(
                                 PaletteSelectorOverlayMenu(
-                                    songProvider()::getDefaultThemeColour,
+                                    getSong()::getDefaultThemeColour,
                                     requestColourPicker,
                                     onColourSelected
                                 )
@@ -230,7 +223,7 @@ class MainOverlayMenu(
                             .fillMaxSize()
                             .clickable {
                                 if (download_status?.status != DownloadStatus.Status.FINISHED && download_status?.status != DownloadStatus.Status.ALREADY_FINISHED) {
-                                    player.download_manager.startDownload(songProvider().id)
+                                    player.download_manager.startDownload(getSong().id)
                                 }
                             },
                         contentAlignment = Alignment.Center

@@ -4,7 +4,6 @@ package com.spectre7.spmp.ui.layout.nowplaying.overlay.lyrics
 import LocalPlayerState
 import SpMp
 import androidx.compose.animation.*
-import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.interaction.MutableInteractionSource
 import androidx.compose.foundation.layout.*
@@ -24,7 +23,6 @@ import androidx.compose.material3.Text
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.ImageBitmap
 import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.platform.LocalLayoutDirection
@@ -40,6 +38,7 @@ import com.spectre7.spmp.platform.composable.BackHandler
 import com.spectre7.spmp.platform.composable.platformClickable
 import com.spectre7.spmp.resources.getString
 import com.spectre7.spmp.ui.component.PillMenu
+import com.spectre7.spmp.ui.layout.nowplaying.NOW_PLAYING_MAIN_PADDING
 import com.spectre7.spmp.ui.layout.nowplaying.overlay.OverlayMenu
 import com.spectre7.spmp.ui.theme.Theme
 import com.spectre7.utils.*
@@ -56,9 +55,9 @@ class LyricsOverlayMenu: OverlayMenu() {
 
     @Composable
     override fun Menu(
-        songProvider: () -> Song,
-        expansion: Float,
-        close: () -> Unit,
+        getSong: () -> Song,
+        getExpansion: () -> Float,
+        openMenu: (OverlayMenu?) -> Unit,
         getSeekState: () -> Any,
         getCurrentSongThumb: () -> ImageBitmap?
     ) {
@@ -66,7 +65,7 @@ class LyricsOverlayMenu: OverlayMenu() {
         val scroll_state = rememberLazyListState()
         val coroutine_scope = rememberCoroutineScope()
 
-        val lyrics_holder: SongLyricsHolder = songProvider().lyrics
+        val lyrics_holder: SongLyricsHolder = getSong().lyrics
         var show_furigana: Boolean by remember { mutableStateOf(Settings.KEY_LYRICS_DEFAULT_FURIGANA.get()) }
 
         var submenu: LyricsOverlaySubmenu? by remember { mutableStateOf(null) }
@@ -103,7 +102,7 @@ class LyricsOverlayMenu: OverlayMenu() {
                         when (index) {
                             0 -> ActionButton(Icons.Filled.Close) {
                                 if (submenu != null) {
-                                    close()
+                                    openMenu(null)
                                 }
                                 else if (selecting_sync_line) {
                                     selecting_sync_line = false
@@ -136,15 +135,15 @@ class LyricsOverlayMenu: OverlayMenu() {
                 )
             }
 
-            Crossfade(Triple(submenu, songProvider(), lyrics_holder.lyrics), Modifier.fillMaxSize()) { state ->
+            Crossfade(Triple(submenu, getSong(), lyrics_holder.lyrics), Modifier.fillMaxSize()) { state ->
                 val (current_submenu, song, lyrics) = state
 
                 if (current_submenu == LyricsOverlaySubmenu.SEARCH) {
-                    LyricsSearchMenu(songProvider(), Modifier.fillMaxSize()) { changed ->
+                    LyricsSearchMenu(getSong(), Modifier.fillMaxSize()) { changed ->
                         submenu = null
                         if (changed) {
                             coroutine_scope.launchSingle {
-                                val result = songProvider().lyrics.loadAndGet()
+                                val result = getSong().lyrics.loadAndGet()
                                 result.fold(
                                     {},
                                     { error ->
@@ -179,10 +178,10 @@ class LyricsOverlayMenu: OverlayMenu() {
                         val lyrics_follow_enabled: Boolean by Settings.KEY_LYRICS_FOLLOW_ENABLED.rememberMutableState()
 
                         CoreLyricsDisplay(
-                            size,
                             lyrics,
                             song,
                             scroll_state,
+                            getExpansion,
                             show_furigana,
                             Modifier.fillMaxSize(),
                             enable_autoscroll = lyrics_follow_enabled && !selecting_sync_line
@@ -214,10 +213,10 @@ class LyricsOverlayMenu: OverlayMenu() {
 
 @Composable
 fun CoreLyricsDisplay(
-    size: Dp,
     lyrics: SongLyrics,
     song: Song,
     scroll_state: LazyListState,
+    getExpansion: () -> Float,
     show_furigana: Boolean,
     modifier: Modifier = Modifier,
     enable_autoscroll: Boolean = true,
@@ -225,7 +224,8 @@ fun CoreLyricsDisplay(
 ) {
     val player = LocalPlayerState.current
 
-    val size_px = with(LocalDensity.current) { size.toPx() }
+    val screen_width = SpMp.context.getScreenWidth()
+    val size_px = with(LocalDensity.current) { ((screen_width - (NOW_PLAYING_MAIN_PADDING.dp * 2) - (15.dp * getExpansion() * 2)).value * 0.9.dp).toPx() }
     val line_height = with (LocalDensity.current) { 20.sp.toPx() }
     val line_spacing = with (LocalDensity.current) { 25.dp.toPx() }
 
@@ -326,7 +326,7 @@ fun CoreLyricsDisplay(
         }
         else {
             var first_scroll by remember { mutableStateOf(true) }
-            LaunchedEffect(current_range) {
+            LaunchedEffect(current_range, size_px) {
                 if (!enable_autoscroll) {
                     return@LaunchedEffect
                 }

@@ -40,6 +40,7 @@ import com.github.krottv.compose.sliders.DefaultTrack
 import com.github.krottv.compose.sliders.SliderValueHorizontal
 import com.spectre7.spmp.model.mediaitem.Song
 import com.spectre7.spmp.platform.composable.platformClickable
+import com.spectre7.spmp.platform.composeScope
 import com.spectre7.spmp.platform.vibrateShort
 import com.spectre7.spmp.ui.component.MediaItemTitleEditDialog
 import com.spectre7.spmp.ui.layout.mainpage.MINIMISED_NOW_PLAYING_HEIGHT
@@ -124,30 +125,33 @@ fun ColumnScope.NowPlayingMainTab() {
 
         val screen_width = SpMp.context.getScreenWidth()
 
-        ThumbnailRow(
-            Modifier
-                .padding(
-                    top = MINIMISED_NOW_PLAYING_V_PADDING.dp
-                        * (1f - expansion.getBounded())
-                        .coerceAtLeast(0f)
-                )
-                .height(
-                    (expansion.getAbsolute() * (screen_width - (NOW_PLAYING_MAIN_PADDING.dp * 2)))
-                        .coerceAtLeast(
-                            MINIMISED_NOW_PLAYING_HEIGHT.dp - (MINIMISED_NOW_PLAYING_V_PADDING.dp * 2)
-                        )
-                )
-                .width(
-                    screen_width -
-                        (2 * (MINIMISED_NOW_PLAYING_HORIZ_PADDING.dp + ((MINIMISED_NOW_PLAYING_HORIZ_PADDING.dp - NOW_PLAYING_MAIN_PADDING.dp) * expansion.getAbsolute())))
-                ),
-            onThumbnailLoaded = { onThumbnailLoaded(it) },
-            setThemeColour = { setThemeColour(it) },
-            getSeekState = { seek_state }
-        )
+        composeScope {
+            ThumbnailRow(
+                Modifier
+                    .padding(
+                        top = MINIMISED_NOW_PLAYING_V_PADDING.dp
+                            * (1f - expansion.getBounded())
+                            .coerceAtLeast(0f)
+                    )
+                    .height(
+                        (expansion.getAbsolute() * (screen_width - (NOW_PLAYING_MAIN_PADDING.dp * 2)))
+                            .coerceAtLeast(
+                                MINIMISED_NOW_PLAYING_HEIGHT.dp - (MINIMISED_NOW_PLAYING_V_PADDING.dp * 2)
+                            )
+                    )
+                    .width(
+                        screen_width -
+                            (2 * (MINIMISED_NOW_PLAYING_HORIZ_PADDING.dp + ((MINIMISED_NOW_PLAYING_HORIZ_PADDING.dp - NOW_PLAYING_MAIN_PADDING.dp) * expansion.getAbsolute())))
+                    ),
+                onThumbnailLoaded = { onThumbnailLoaded(it) },
+                setThemeColour = { setThemeColour(it) },
+                getSeekState = { seek_state }
+            )
+        }
     }
 
-    if (expansion.getAbsolute() > 0.0f) {
+    val controls_visible by remember { derivedStateOf { expansion.getAbsolute() > 0.0f } }
+    if (controls_visible) {
         Controls(
             current_song,
             {

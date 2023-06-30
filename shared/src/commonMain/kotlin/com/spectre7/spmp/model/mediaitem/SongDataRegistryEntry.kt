@@ -13,6 +13,8 @@ class SongDataRegistryEntry: MediaItemDataRegistry.Entry() {
     var theme_colour: Int? by mutableStateOf(null)
     var thumbnail_rounding: Int? by mutableStateOf(null)
     var np_gradient_depth: Float? by mutableStateOf(null)
+    var notif_image_offset_x: Int? by mutableStateOf(null)
+    var notif_image_offset_y: Int? by mutableStateOf(null)
 
     var lyrics_id: Int? by mutableStateOf(null)
     var lyrics_source: SongLyrics.Source? by mutableStateOf(null)
@@ -41,6 +43,8 @@ class SongDataRegistryEntry: MediaItemDataRegistry.Entry() {
         theme_colour = null
         thumbnail_rounding = null
         np_gradient_depth = null
+        notif_image_offset_x = null
+        notif_image_offset_y = null
         lyrics_id = null
         lyrics_source = null
         lyrics_sync_offset = null

@@ -10,6 +10,8 @@ import android.os.Build
 import android.os.Bundle
 import android.os.Handler
 import androidx.compose.ui.graphics.asAndroidBitmap
+import androidx.compose.ui.unit.IntOffset
+import androidx.compose.ui.unit.IntSize
 import androidx.core.app.NotificationCompat
 import androidx.media3.common.*
 import androidx.media3.common.util.UnstableApi
@@ -50,26 +52,48 @@ private const val COMMAND_SET_LIKE_NEUTRAL = "com.spectre7.spmp.setlikeneutral"
 
 private const val A13_MEDIA_NOTIFICATION_ASPECT = 2.9f / 5.7f
 
-private fun formatMediaNotificationImage(image: Bitmap, offset: Offset = Offset.Zero)): Bitmap {
+fun getMediaNotificationImageMaxOffset(image: Bitmap): IntOffset {
+    val dimensions = getMediaNotificationImageSize(image)
+    return IntOffset(
+        (image.width - dimensions.width) / 2,
+        (image.height - dimensions.height) / 2
+    )
+}
+
+fun getMediaNotificationImageSize(image: Bitmap): IntSize {
     val aspect = if (Build.VERSION.SDK_INT >= 33) A13_MEDIA_NOTIFICATION_ASPECT else 1f
-    
-    val width: Int
-    val height: Int
     if (image.width > image.height) {
-        width = image.height
-        height = (image.height * aspect).roundToInt()
+        return IntSize(
+            image.height,
+            (image.height * aspect).roundToInt()
+        )
     }
     else {
-        width = image.width
-        height = (image.width * aspect).roundToInt()
+        return IntSize(
+            image.width,
+            (image.width * aspect).roundToInt()
+        )
     }
-    
+}
+
+private fun formatMediaNotificationImage(
+    image: Bitmap,
+    song: Song,
+): Bitmap {
+    val dimensions = getMediaNotificationImageSize(image)
+    val offset = with(song.song_reg_entry) {
+        IntOffset(
+            notif_image_offset_x ?: 0,
+            notif_image_offset_y ?: 0
+        )
+    }
+
     return Bitmap.createBitmap(
-        image, 
-        (((image.width - width) / 2) + offset.x).coerceIn(0, image.width),
-        (((image.height - height) / 2) + offset.y).coerceIn(0, image.height),
-        width,
-        height
+        image,
+        (((image.width - dimensions.width) / 2) + offset.x).coerceIn(0, image.width - dimensions.width),
+        (((image.height - dimensions.height) / 2) + offset.y).coerceIn(0, image.height - dimensions.height),
+        dimensions.width,
+        dimensions.height
     )
 }
 
@@ -204,7 +228,7 @@ class MediaPlayerServiceSession: MediaSessionService() {
     private suspend fun getCurrentLargeIcon(song: Song): Bitmap? {
         try {
             val image = song.loadThumbnail(MediaItemThumbnailProvider.Quality.HIGH)?.asAndroidBitmap() ?: return null
-            return formatMediaNotificationImage(image)
+            return formatMediaNotificationImage(image, song)
         }
         catch (e: IndexOutOfBoundsException) {
             return null
@@ -279,7 +303,8 @@ class MediaPlayerServiceSession: MediaSessionService() {
                     return executor.submit<Bitmap> {
                         runBlocking {
                             formatMediaNotificationImage(
-                                song.loadThumbnail(MediaItemThumbnailProvider.Quality.HIGH)!!.asAndroidBitmap()
+                                song.loadThumbnail(MediaItemThumbnailProvider.Quality.HIGH)!!.asAndroidBitmap(),
+                                song
                             )
                         }
                     }

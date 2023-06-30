@@ -236,8 +236,8 @@ class MediaItemMultiSelectContext(
         val any_are_songs by remember { derivedStateOf {
             selected_items.any { it.first is Song }
         } }
-        val all_are_playlists by remember { derivedStateOf {
-            selected_items.isNotEmpty() && selected_items.all { it.first is Playlist }
+        val all_are_editable_playlists by remember { derivedStateOf {
+            selected_items.isNotEmpty() && selected_items.all { it.first is Playlist && (it.first as Playlist).is_editable == true }
         } }
 
         var adding_to_playlist: List<Song>? by remember { mutableStateOf(null) }
@@ -283,7 +283,7 @@ class MediaItemMultiSelectContext(
         }
 
         // Delete playlist
-        AnimatedVisibility(all_are_playlists && selected_items.isNotEmpty()) {
+        AnimatedVisibility(all_are_editable_playlists && selected_items.isNotEmpty()) {
             IconButton({ coroutine_scope.launch {
                 getUniqueSelectedItems().map { playlist ->
                     launch {

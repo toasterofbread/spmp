@@ -3,7 +3,6 @@ package com.spectre7.spmp.ui.layout.nowplaying
 import LocalPlayerState
 import SpMp
 import androidx.compose.animation.AnimatedVisibility
-import androidx.compose.animation.animateColorAsState
 import androidx.compose.animation.slideInVertically
 import androidx.compose.animation.slideOutVertically
 import androidx.compose.foundation.*
@@ -17,13 +16,13 @@ import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.graphics.*
 import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.unit.*
 import com.spectre7.spmp.model.Settings
-import com.spectre7.spmp.platform.composable.BackHandler
+import com.spectre7.spmp.platform.BackHandler
 import com.spectre7.spmp.platform.composable.scrollWheelSwipeable
+import com.spectre7.spmp.platform.composeScope
 import com.spectre7.spmp.ui.theme.Theme
 import com.spectre7.utils.*
 import com.spectre7.utils.composable.OnChangedEffect
@@ -35,7 +34,7 @@ enum class ThemeMode { BACKGROUND, ELEMENTS, NONE }
 private enum class NowPlayingVerticalPage { MAIN, QUEUE }
 val NOW_PLAYING_VERTICAL_PAGE_COUNT = NowPlayingVerticalPage.values().size
 
-const val EXPANDED_THRESHOLD = 0.9f
+const val EXPANDED_THRESHOLD = 0.1f
 const val POSITION_UPDATE_INTERVAL_MS: Long = 100
 private const val GRADIENT_BOTTOM_PADDING_DP = 100
 private const val GRADIENT_TOP_START_RATIO = 0.7f
@@ -73,7 +72,6 @@ val LocalNowPlayingExpansion: ProvidableCompositionLocal<NowPlayingExpansionStat
 fun NowPlaying(swipe_state: SwipeableState<Int>, swipe_anchors: Map<Float, Int>) {
     CompositionLocalProvider(LocalNowPlayingExpansion provides SpMp.context.player_state.expansion_state) {
         LocalNowPlayingExpansion.current.init()
-
         AnimatedVisibility(
             LocalPlayerState.current.session_started,
             exit = slideOutVertically(),
@@ -86,7 +84,6 @@ fun NowPlaying(swipe_state: SwipeableState<Int>, swipe_anchors: Map<Float, Int>)
             val keyboard_insets = SpMp.context.getImeInsets()
             val bottom_padding = player.nowPlayingBottomPadding()
             val screen_height = SpMp.context.getScreenHeight()
-            val screen_width = SpMp.context.getScreenWidth()
             val default_gradient_depth: Float by Settings.KEY_NOWPLAYING_DEFAULT_GRADIENT_DEPTH.rememberMutableState()
 
             val half_screen_height = screen_height.value * 0.5f
@@ -122,9 +119,12 @@ fun NowPlaying(swipe_state: SwipeableState<Int>, swipe_anchors: Map<Float, Int>)
                     )
                     .clickable(
                         interactionSource = remember { MutableInteractionSource() },
-                        enabled = is_shut,
                         indication = null
-                    ) { switch_to_page = if (swipe_state.targetValue == 0) 1 else 0 }
+                    ) {
+                        if (is_shut) {
+                            switch_to_page = if (swipe_state.targetValue == 0) 1 else 0
+                        }
+                    }
                     .brushBackground {
                         with(density) {
                             val screen_height_px = screen_height.toPx()
@@ -143,11 +143,11 @@ fun NowPlaying(swipe_state: SwipeableState<Int>, swipe_anchors: Map<Float, Int>)
                         }
                     }
             ) {
-                CompositionLocalProvider(LocalContentColor provides getNPOnBackground()) {
-                    BackHandler(!is_shut) {
-                        switch_to_page = swipe_state.targetValue - 1
-                    }
+                BackHandler({ !is_shut }) {
+                    switch_to_page = swipe_state.targetValue - 1
+                }
 
+                CompositionLocalProvider(LocalContentColor provides getNPOnBackground()) {
                     Column(Modifier.fillMaxSize(), horizontalAlignment = Alignment.CenterHorizontally) {
                         NowPlayingCardContent(screen_height)
                     }
@@ -158,20 +158,26 @@ fun NowPlaying(swipe_state: SwipeableState<Int>, swipe_anchors: Map<Float, Int>)
 }
 
 @Composable
-fun NowPlayingCardContent(page_height: Dp) {
+private fun StatusBarColourHandler(page_height: Dp) {
+    val expansion = LocalNowPlayingExpansion.current
     val status_bar_height = SpMp.context.getStatusBarHeight()
+    val background_colour = getNPBackground()
+
     val status_bar_height_percent = (status_bar_height.value * 0.75) / page_height.value
+    val under_status_bar by remember { derivedStateOf { 1f - expansion.get() < status_bar_height_percent } }
+
+    LaunchedEffect(key1 = under_status_bar, key2 = background_colour) {
+        val colour = if (under_status_bar) background_colour else Theme.current.background
+        SpMp.context.setStatusBarColour(colour, !colour.isDark())
+    }
+}
+
+@Composable
+private fun NowPlayingCardContent(page_height: Dp) {
     val player = LocalPlayerState.current
     val expansion = LocalNowPlayingExpansion.current
 
-    val under_status_bar by remember { derivedStateOf { 1f - expansion.get() < status_bar_height_percent } }
-    val np_background = getNPBackground()
-
-    LaunchedEffect(key1 = under_status_bar, key2 = np_background) {
-        val colour = if (under_status_bar) np_background else Theme.current.background
-        SpMp.context.setStatusBarColour(colour, !colour.isDark())
-    }
-
+    StatusBarColourHandler(page_height)
     MinimisedProgressBar()
 
     val screen_width_dp = SpMp.context.getScreenWidth()
@@ -182,8 +188,13 @@ fun NowPlayingCardContent(page_height: Dp) {
             modifier = Modifier
                 .requiredHeight(page_height)
                 .requiredWidth(screen_width_dp)
-                .padding(top = (status_bar_height * expansion.get().coerceIn(0f, 1f)))
         ) {
+            composeScope {
+                Spacer(Modifier.height(
+                    SpMp.context.getStatusBarHeight() * expansion.get().coerceIn(0f, 1f))
+                )
+            }
+
             CompositionLocalProvider(LocalPlayerState provides remember {
                 player.copy(
                     onClickedOverride = { item, _ ->
@@ -196,14 +207,7 @@ fun NowPlayingCardContent(page_height: Dp) {
             }
         }
 
-        Column(
-            verticalArrangement = Arrangement.Top,
-            modifier = Modifier
-                .requiredHeight(page_height + (maxOf(0f, expansion.get() - 2f) * page_height) + player.nowPlayingBottomPadding())
-                .requiredWidth(screen_width_dp)
-        ) {
-            QueueTab()
-        }
+        QueueTab(page_height)
     }
 }
 

@@ -6,9 +6,7 @@ import androidx.compose.animation.*
 import androidx.compose.animation.core.tween
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
-import androidx.compose.foundation.clickable
 import androidx.compose.foundation.gestures.detectTapGestures
-import androidx.compose.foundation.interaction.MutableInteractionSource
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
@@ -19,12 +17,13 @@ import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.draw.alpha
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.draw.scale
+import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.ColorFilter
 import androidx.compose.ui.graphics.ImageBitmap
+import androidx.compose.ui.graphics.graphicsLayer
 import androidx.compose.ui.input.pointer.pointerInput
 import androidx.compose.ui.layout.onSizeChanged
 import androidx.compose.ui.platform.LocalDensity
@@ -38,12 +37,13 @@ import com.spectre7.spmp.platform.getPixel
 import com.spectre7.spmp.resources.getString
 import com.spectre7.spmp.ui.layout.nowplaying.overlay.DEFAULT_THUMBNAIL_ROUNDING
 import com.spectre7.spmp.ui.layout.nowplaying.overlay.MainOverlayMenu
-import com.spectre7.spmp.ui.layout.nowplaying.overlay.OverlayMenu
+import com.spectre7.utils.composable.OnChangedEffect
 import com.spectre7.utils.getInnerSquareSizeOfCircle
 import com.spectre7.utils.setAlpha
+import kotlin.math.absoluteValue
 import kotlin.math.min
 
-private fun handleColourPick(image: ImageBitmap, tap_offset: Offset, onPicked: (Color) -> Unit) {
+private fun handleColourPick(image: ImageBitmap, image_size: IntSize, tap_offset: Offset, onPicked: (Color) -> Unit) {
     val bitmap_size = min(image.width, image.height)
     var x = (tap_offset.x / image_size.width) * bitmap_size
     var y = (tap_offset.y / image_size.height) * bitmap_size
@@ -73,7 +73,6 @@ fun ThumbnailRow(
     val thumbnail_rounding: Int? = current_song?.song_reg_entry?.thumbnail_rounding
     val thumbnail_shape = RoundedCornerShape(thumbnail_rounding ?: DEFAULT_THUMBNAIL_ROUNDING)
     var image_size by remember { mutableStateOf(IntSize(1, 1)) }
-    val disappear_scale = minOf(1f, if (expansion.getAbsolute() < 0.5f) 1f else (1f - ((expansion.getAbsolute() - 0.5f) * 2f)))
 
     LaunchedEffect(current_song) {
         current_thumb_image = null
@@ -85,12 +84,22 @@ fun ThumbnailRow(
         horizontalArrangement = Arrangement.SpaceEvenly
     ) {
         var colourpick_callback by remember { mutableStateOf<((Color?) -> Unit)?>(null) }
+        LaunchedEffect(overlay_menu) {
+            colourpick_callback = null
+        }
 
-        LaunchedEffect(
-            expansion.getAbsolute() > 0f,
-            expansion.getAbsolute() >= EXPANDED_THRESHOLD
-        ) {
-            overlay_menu = null
+        var opened by remember { mutableStateOf(false) }
+        val expanded by remember { derivedStateOf {
+            (expansion.get() - 1f).absoluteValue <= EXPANDED_THRESHOLD
+        } }
+
+        OnChangedEffect(expanded) {
+            if (expanded) {
+                opened = true
+            }
+            else if (opened) {
+                overlay_menu = null
+            }
         }
 
         // Keep thumbnail centered
@@ -117,8 +126,8 @@ fun ThumbnailRow(
                                 onTap = { offset ->
                                     colourpick_callback?.also { callback -> 
                                     current_thumb_image?.also { image ->
-                                        handleColourPick(callback, image)
-                                        return@onTap
+                                        handleColourPick(image, image_size, offset, callback)
+                                        return@detectTapGestures
                                     }}
 
                                     if (expansion.get() in 0.9f .. 1.1f) {
@@ -149,7 +158,7 @@ fun ThumbnailRow(
             ) {
                 Box(
                     Modifier
-                        .alpha(expansion.getAbsolute())
+                        .graphicsLayer { alpha = expansion.getAbsolute() }
                         .fillMaxSize()
                         .background(
                             Color.DarkGray.setAlpha(0.85f),
@@ -178,10 +187,8 @@ fun ThumbnailRow(
                             CompositionLocalProvider(LocalContentColor provides Color.White) {
                                 menu?.Menu(
                                     { player.status.m_song!! },
-                                    expansion.getAbsolute(),
-                                    {
-                                        overlay_menu = null
-                                    },
+                                    { expansion.getAbsolute() },
+                                    { overlay_menu = it },
                                     getSeekState
                                 ) { current_thumb_image }
                             }
@@ -194,7 +201,10 @@ fun ThumbnailRow(
         Row(
             Modifier
                 .fillMaxWidth(1f - expansion.getAbsolute())
-                .scale(disappear_scale, 1f),
+                .scale(
+                    minOf(1f, if (expansion.getAbsolute() < 0.5f) 1f else (1f - ((expansion.getAbsolute() - 0.5f) * 2f))),
+                    1f
+                ),
             horizontalArrangement = Arrangement.End,
             verticalAlignment = Alignment.CenterVertically
         ) {
@@ -210,7 +220,7 @@ fun ThumbnailRow(
                 Text(
                     current_song?.artist?.title ?: "",
                     maxLines = 1,
-                    color = getNPOnBackground(),//.copy(alpha = 0.5f),
+                    color = getNPOnBackground(),
                     overflow = TextOverflow.Ellipsis,
                     style = MaterialTheme.typography.bodySmall
                 )

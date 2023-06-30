@@ -32,6 +32,9 @@ open class MediaItemData(open val data_item: MediaItem) {
 
     val title_listeners = ValueListeners<String?>()
     fun supplyTitle(value: String?, certain: Boolean = false, cached: Boolean = false): MediaItem {
+        // DEBUG
+        assert(value?.contains(" - トピック") != true) { value.toString() }
+
         if (value != original_title && (original_title == null || certain)) {
             original_title = value
             title_listeners.call(data_item.title)

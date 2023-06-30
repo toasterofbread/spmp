@@ -1,11 +1,11 @@
-package com.spectre7.spmp.model.mediaitem
+package com.toasterofbread.spmp.model.mediaitem
 
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.setValue
-import com.spectre7.spmp.api.getSongLiked
-import com.spectre7.spmp.api.setSongLiked
-import com.spectre7.utils.ValueListeners
+import com.toasterofbread.spmp.api.getSongLiked
+import com.toasterofbread.spmp.api.setSongLiked
+import com.toasterofbread.utils.ValueListeners
 import kotlin.concurrent.thread
 
 class SongLikeStatus(private val id: String) {

@@ -1,4 +1,4 @@
-package com.spectre7.spmp.model.mediaitem
+package com.toasterofbread.spmp.model.mediaitem
 
 import SpMp
 import androidx.compose.foundation.Image
@@ -16,16 +16,16 @@ import androidx.compose.ui.graphics.ImageBitmap
 import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.layout.ContentScale
 import com.beust.klaxon.*
-import com.spectre7.spmp.api.*
-import com.spectre7.spmp.model.Settings
-import com.spectre7.spmp.model.mediaitem.data.MediaItemData
-import com.spectre7.spmp.model.mediaitem.enums.MediaItemType
-import com.spectre7.spmp.model.mediaitem.enums.PlaylistType
-import com.spectre7.spmp.platform.PlatformContext
-import com.spectre7.spmp.platform.ProjectPreferences
-import com.spectre7.spmp.platform.toImageBitmap
-import com.spectre7.utils.*
-import com.spectre7.utils.composable.SubtleLoadingIndicator
+import com.toasterofbread.spmp.api.*
+import com.toasterofbread.spmp.model.Settings
+import com.toasterofbread.spmp.model.mediaitem.data.MediaItemData
+import com.toasterofbread.spmp.model.mediaitem.enums.MediaItemType
+import com.toasterofbread.spmp.model.mediaitem.enums.PlaylistType
+import com.toasterofbread.spmp.platform.PlatformContext
+import com.toasterofbread.spmp.platform.ProjectPreferences
+import com.toasterofbread.spmp.platform.toImageBitmap
+import com.toasterofbread.utils.*
+import com.toasterofbread.utils.composable.SubtleLoadingIndicator
 import kotlinx.coroutines.*
 import java.io.File
 import java.net.URL

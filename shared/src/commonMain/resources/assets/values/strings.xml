@@ -1,5 +1,7 @@
 <resources>
     <string name="app_name" translatable="false">SpMp</string>
+    <string name="app_name_debug" translatable="false">SpMp (debug)</string>
+    <string name="version_string" translatable="false">0.1.0</string>
     <string name="project_url" translatable="false">https://github.com/toasterofbread/spmp</string>
     <string name="yt_i_api_key" translatable="false">AIzaSyAOghZGza2MQSZkY_zfZ370N-PUdXEo8AI</string>
 

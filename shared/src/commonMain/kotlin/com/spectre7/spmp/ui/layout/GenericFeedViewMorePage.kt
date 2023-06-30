@@ -1,4 +1,4 @@
-package com.spectre7.spmp.ui.layout
+package com.toasterofbread.spmp.ui.layout
 
 import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.foundation.layout.*
@@ -11,14 +11,14 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
-import com.spectre7.spmp.api.getGenericFeedViewMorePage
-import com.spectre7.spmp.model.Settings
-import com.spectre7.spmp.model.mediaitem.MediaItem
-import com.spectre7.spmp.model.mediaitem.MediaItemPreviewParams
-import com.spectre7.spmp.ui.component.MusicTopBar
-import com.spectre7.spmp.ui.component.getDefaultMediaItemPreviewSize
-import com.spectre7.spmp.ui.component.multiselect.MediaItemMultiSelectContext
-import com.spectre7.utils.composable.SubtleLoadingIndicator
+import com.toasterofbread.spmp.api.getGenericFeedViewMorePage
+import com.toasterofbread.spmp.model.Settings
+import com.toasterofbread.spmp.model.mediaitem.MediaItem
+import com.toasterofbread.spmp.model.mediaitem.MediaItemPreviewParams
+import com.toasterofbread.spmp.ui.component.MusicTopBar
+import com.toasterofbread.spmp.ui.component.getDefaultMediaItemPreviewSize
+import com.toasterofbread.spmp.ui.component.multiselect.MediaItemMultiSelectContext
+import com.toasterofbread.utils.composable.SubtleLoadingIndicator
 
 @Composable
 fun GenericFeedViewMorePage(browse_id: String, modifier: Modifier = Modifier, bottom_padding: Dp = 0.dp) {

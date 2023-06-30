@@ -1,4 +1,4 @@
-package com.spectre7.spmp.ui.layout.mainpage
+package com.toasterofbread.spmp.ui.layout.mainpage
 
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
@@ -10,8 +10,8 @@ import androidx.compose.material.icons.filled.Search
 import androidx.compose.material.icons.filled.Settings
 import androidx.compose.runtime.*
 import androidx.compose.ui.Modifier
-import com.spectre7.spmp.ui.theme.Theme
-import com.spectre7.utils.modifier.background
+import com.toasterofbread.spmp.ui.theme.Theme
+import com.toasterofbread.utils.modifier.background
 
 const val MINIMISED_NOW_PLAYING_HEIGHT: Int = 64
 const val MINIMISED_NOW_PLAYING_V_PADDING: Int = 7

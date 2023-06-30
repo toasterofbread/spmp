@@ -1,4 +1,4 @@
-package com.spectre7.spmp.ui.layout.mainpage
+package com.toasterofbread.spmp.ui.layout.mainpage
 
 import androidx.compose.foundation.layout.*
 import androidx.compose.material3.LinearProgressIndicator
@@ -9,8 +9,8 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.alpha
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
-import com.spectre7.spmp.resources.getString
-import com.spectre7.spmp.ui.theme.Theme
+import com.toasterofbread.spmp.resources.getString
+import com.toasterofbread.spmp.ui.theme.Theme
 
 @Composable
 fun MainPageLoadingView(modifier: Modifier = Modifier) {

@@ -1,4 +1,4 @@
-package com.spectre7.spmp.resources.uilocalisation
+package com.toasterofbread.spmp.resources.uilocalisation
 
 fun getYoutubeOwnChannelLocalisations(getLanguage: (String) -> Int): YoutubeUILocalisation.LocalisationSet {
     val en = getLanguage("en")

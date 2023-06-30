@@ -1,12 +1,12 @@
-package com.spectre7.spmp.ui.layout.nowplaying
+package com.toasterofbread.spmp.ui.layout.nowplaying
 
 import SpMp
 import androidx.compose.material.ExperimentalMaterialApi
 import androidx.compose.material.SwipeableState
 import androidx.compose.runtime.*
 import androidx.compose.ui.unit.Dp
-import com.spectre7.spmp.model.MusicTopBarMode
-import com.spectre7.spmp.platform.PlatformContext
+import com.toasterofbread.spmp.model.MusicTopBarMode
+import com.toasterofbread.spmp.platform.PlatformContext
 
 @OptIn(ExperimentalMaterialApi::class)
 class NowPlayingExpansionState(swipe_state: State<SwipeableState<Int>>, private val context: PlatformContext = SpMp.context) {

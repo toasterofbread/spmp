@@ -1,4 +1,4 @@
-package com.spectre7.spmp.model.mediaitem
+package com.toasterofbread.spmp.model.mediaitem
 
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Box
@@ -11,13 +11,13 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.ImageBitmap
 import androidx.compose.ui.graphics.vector.ImageVector
-import com.spectre7.spmp.api.*
-import com.spectre7.spmp.model.mediaitem.data.PlaylistItemData
-import com.spectre7.spmp.model.mediaitem.enums.PlaylistType
-import com.spectre7.spmp.platform.PlatformContext
-import com.spectre7.spmp.resources.getString
-import com.spectre7.spmp.ui.theme.Theme
-import com.spectre7.utils.addUnique
+import com.toasterofbread.spmp.api.*
+import com.toasterofbread.spmp.model.mediaitem.data.PlaylistItemData
+import com.toasterofbread.spmp.model.mediaitem.enums.PlaylistType
+import com.toasterofbread.spmp.platform.PlatformContext
+import com.toasterofbread.spmp.resources.getString
+import com.toasterofbread.spmp.ui.theme.Theme
+import com.toasterofbread.utils.addUnique
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.sync.Mutex
 import kotlinx.coroutines.sync.withLock

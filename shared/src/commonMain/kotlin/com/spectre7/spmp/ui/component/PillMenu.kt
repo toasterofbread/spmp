@@ -1,4 +1,4 @@
-package com.spectre7.spmp.ui.component
+package com.toasterofbread.spmp.ui.component
 
 import androidx.compose.animation.*
 import androidx.compose.animation.core.tween
@@ -21,9 +21,9 @@ import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.unit.IntSize
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.zIndex
-import com.spectre7.utils.addUnique
-import com.spectre7.utils.composable.NoRipple
-import com.spectre7.utils.getContrasted
+import com.toasterofbread.utils.addUnique
+import com.toasterofbread.utils.composable.NoRipple
+import com.toasterofbread.utils.getContrasted
 
 class PillMenu(
     private val action_count: Int = 0,

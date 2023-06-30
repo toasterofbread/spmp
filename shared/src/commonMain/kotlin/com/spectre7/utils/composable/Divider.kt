@@ -1,4 +1,4 @@
-package com.spectre7.utils.composable
+package com.toasterofbread.utils.composable
 
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.fillMaxWidth
@@ -10,7 +10,7 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
-import com.spectre7.utils.modifier.background
+import com.toasterofbread.utils.modifier.background
 
 @Composable
 fun Divider(

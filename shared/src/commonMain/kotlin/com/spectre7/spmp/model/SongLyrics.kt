@@ -1,9 +1,9 @@
-package com.spectre7.spmp.model
+package com.toasterofbread.spmp.model
 
 import androidx.compose.ui.graphics.Color
-import com.spectre7.spmp.resources.getString
-import com.spectre7.utils.lazyAssert
-import com.spectre7.utils.toHiragana
+import com.toasterofbread.spmp.resources.getString
+import com.toasterofbread.utils.lazyAssert
+import com.toasterofbread.utils.toHiragana
 
 data class SongLyrics(
     val id: Int,

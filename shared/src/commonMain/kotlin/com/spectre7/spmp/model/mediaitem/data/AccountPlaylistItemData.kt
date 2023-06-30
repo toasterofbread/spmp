@@ -1,12 +1,12 @@
-package com.spectre7.spmp.model.mediaitem.data
+package com.toasterofbread.spmp.model.mediaitem.data
 
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.setValue
 import com.beust.klaxon.Klaxon
-import com.spectre7.spmp.model.mediaitem.AccountPlaylist
-import com.spectre7.spmp.model.mediaitem.enums.PlaylistType
-import com.spectre7.spmp.ui.component.MediaItemLayout
+import com.toasterofbread.spmp.model.mediaitem.AccountPlaylist
+import com.toasterofbread.spmp.model.mediaitem.enums.PlaylistType
+import com.toasterofbread.spmp.ui.component.MediaItemLayout
 
 class AccountPlaylistItemData(override val data_item: AccountPlaylist): PlaylistItemData(data_item) {
     var playlist_type: PlaylistType? by mutableStateOf(null)

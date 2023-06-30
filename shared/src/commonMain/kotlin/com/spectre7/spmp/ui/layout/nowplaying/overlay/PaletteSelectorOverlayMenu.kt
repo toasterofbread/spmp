@@ -1,4 +1,4 @@
-package com.spectre7.spmp.ui.layout.nowplaying.overlay
+package com.toasterofbread.spmp.ui.layout.nowplaying.overlay
 
 import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.animation.core.Animatable
@@ -20,14 +20,14 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.ImageBitmap
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
-import com.spectre7.spmp.model.Settings
-import com.spectre7.spmp.model.mediaitem.Song
-import com.spectre7.spmp.platform.generatePalette
-import com.spectre7.spmp.resources.getString
-import com.spectre7.spmp.ui.layout.nowplaying.getNPBackground
-import com.spectre7.spmp.ui.layout.nowplaying.getNPOnBackground
-import com.spectre7.utils.composable.OnChangedEffect
-import com.spectre7.utils.setAlpha
+import com.toasterofbread.spmp.model.Settings
+import com.toasterofbread.spmp.model.mediaitem.Song
+import com.toasterofbread.spmp.platform.generatePalette
+import com.toasterofbread.spmp.resources.getString
+import com.toasterofbread.spmp.ui.layout.nowplaying.getNPBackground
+import com.toasterofbread.spmp.ui.layout.nowplaying.getNPOnBackground
+import com.toasterofbread.utils.composable.OnChangedEffect
+import com.toasterofbread.utils.setAlpha
 import kotlin.math.roundToInt
 
 //const val PALETTE_SIMILAR_COLOUR_THRESHOLD = 0.1f

@@ -1,4 +1,4 @@
-package com.spectre7.utils
+package com.toasterofbread.utils
 
 // Originally based on https://github.com/mainrs/android-compose-furigana
 
@@ -17,7 +17,7 @@ import androidx.compose.ui.text.AnnotatedString
 import androidx.compose.ui.text.Placeholder
 import androidx.compose.ui.text.PlaceholderVerticalAlign
 import androidx.compose.ui.unit.*
-import com.spectre7.spmp.model.SongLyrics
+import com.toasterofbread.spmp.model.SongLyrics
 
 data class ReadingTextData(
     val text: String,

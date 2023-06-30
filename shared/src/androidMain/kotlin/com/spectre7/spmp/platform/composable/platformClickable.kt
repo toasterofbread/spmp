@@ -1,4 +1,4 @@
-package com.spectre7.spmp.platform.composable
+package com.toasterofbread.spmp.platform.composable
 
 import androidx.compose.foundation.ExperimentalFoundationApi
 import androidx.compose.foundation.Indication

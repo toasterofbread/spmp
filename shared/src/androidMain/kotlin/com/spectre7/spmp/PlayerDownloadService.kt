@@ -1,4 +1,4 @@
-package com.spectre7.spmp
+package com.toasterofbread.spmp
 
 import android.app.Notification
 import android.app.NotificationChannel
@@ -9,16 +9,16 @@ import android.content.pm.PackageManager
 import android.graphics.drawable.Icon
 import androidx.core.app.ActivityCompat
 import androidx.core.app.NotificationManagerCompat
-import com.spectre7.spmp.api.cast
-import com.spectre7.spmp.model.Settings
-import com.spectre7.spmp.model.mediaitem.Song
-import com.spectre7.spmp.model.mediaitem.enums.SongAudioQuality
-import com.spectre7.spmp.platform.PlatformBinder
-import com.spectre7.spmp.platform.PlatformContext
-import com.spectre7.spmp.platform.PlatformServiceImpl
-import com.spectre7.spmp.platform.PlayerDownloadManager
-import com.spectre7.spmp.platform.PlayerDownloadManager.DownloadStatus
-import com.spectre7.spmp.resources.getString
+import com.toasterofbread.spmp.api.cast
+import com.toasterofbread.spmp.model.Settings
+import com.toasterofbread.spmp.model.mediaitem.Song
+import com.toasterofbread.spmp.model.mediaitem.enums.SongAudioQuality
+import com.toasterofbread.spmp.platform.PlatformBinder
+import com.toasterofbread.spmp.platform.PlatformContext
+import com.toasterofbread.spmp.platform.PlatformServiceImpl
+import com.toasterofbread.spmp.platform.PlayerDownloadManager
+import com.toasterofbread.spmp.platform.PlayerDownloadManager.DownloadStatus
+import com.toasterofbread.spmp.resources.getString
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.runBlocking
 import java.io.File

@@ -1,6 +1,6 @@
 @file:Suppress("MemberVisibilityCanBePrivate")
 
-package com.spectre7.settings.model
+package com.toasterofbread.settings.model
 
 import androidx.compose.animation.*
 import androidx.compose.animation.core.SpringSpec
@@ -29,15 +29,15 @@ import com.github.krottv.compose.sliders.DefaultThumb
 import com.github.krottv.compose.sliders.DefaultTrack
 import com.github.krottv.compose.sliders.ListenOnPressed
 import com.github.krottv.compose.sliders.SliderValueHorizontal
-import com.spectre7.composesettings.ui.SettingsPage
-import com.spectre7.spmp.platform.LargeDropdownMenu
-import com.spectre7.spmp.platform.PlatformContext
-import com.spectre7.spmp.platform.ProjectPreferences
-import com.spectre7.spmp.platform.composable.PlatformAlertDialog
-import com.spectre7.spmp.resources.getString
-import com.spectre7.spmp.ui.theme.Theme
-import com.spectre7.utils.*
-import com.spectre7.utils.composable.*
+import com.toasterofbread.composesettings.ui.SettingsPage
+import com.toasterofbread.spmp.platform.LargeDropdownMenu
+import com.toasterofbread.spmp.platform.PlatformContext
+import com.toasterofbread.spmp.platform.ProjectPreferences
+import com.toasterofbread.spmp.platform.composable.PlatformAlertDialog
+import com.toasterofbread.spmp.resources.getString
+import com.toasterofbread.spmp.ui.theme.Theme
+import com.toasterofbread.utils.*
+import com.toasterofbread.utils.composable.*
 import kotlin.math.roundToInt
 
 val SETTINGS_ITEM_ROUNDED_SHAPE = RoundedCornerShape(20.dp)

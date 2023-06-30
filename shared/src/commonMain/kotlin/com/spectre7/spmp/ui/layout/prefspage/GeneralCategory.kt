@@ -1,11 +1,11 @@
-package com.spectre7.spmp.ui.layout.prefspage
+package com.toasterofbread.spmp.ui.layout.prefspage
 
 import SpMp
-import com.spectre7.settings.model.*
-import com.spectre7.spmp.model.Settings
-import com.spectre7.spmp.resources.getLanguageName
-import com.spectre7.spmp.resources.getString
-import com.spectre7.utils.composable.WidthShrinkText
+import com.toasterofbread.settings.model.*
+import com.toasterofbread.spmp.model.Settings
+import com.toasterofbread.spmp.resources.getLanguageName
+import com.toasterofbread.spmp.resources.getString
+import com.toasterofbread.utils.composable.WidthShrinkText
 
 internal fun getGeneralCategory(): List<SettingsItem> {
     return listOf(

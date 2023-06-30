@@ -1,11 +1,11 @@
-package com.spectre7.spmp.api
+package com.toasterofbread.spmp.api
 
 import com.atilika.kuromoji.ipadic.Tokenizer
-import com.spectre7.spmp.model.mediaitem.Song
-import com.spectre7.spmp.model.SongLyrics
-import com.spectre7.utils.hasKanjiAndHiragana
-import com.spectre7.utils.isKanji
-import com.spectre7.utils.isJP
+import com.toasterofbread.spmp.model.mediaitem.Song
+import com.toasterofbread.spmp.model.SongLyrics
+import com.toasterofbread.utils.hasKanjiAndHiragana
+import com.toasterofbread.utils.isKanji
+import com.toasterofbread.utils.isJP
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
 import okhttp3.MediaType.Companion.toMediaType

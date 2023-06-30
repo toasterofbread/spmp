@@ -1,7 +1,7 @@
-package com.spectre7.spmp.platform
+package com.toasterofbread.spmp.platform
 
-import com.spectre7.spmp.model.mediaitem.Song
-import com.spectre7.spmp.model.mediaitem.enums.SongAudioQuality
+import com.toasterofbread.spmp.model.mediaitem.Song
+import com.toasterofbread.spmp.model.mediaitem.enums.SongAudioQuality
 
 actual class PlayerDownloadManager actual constructor(context: PlatformContext) {
     actual class DownloadStatus {

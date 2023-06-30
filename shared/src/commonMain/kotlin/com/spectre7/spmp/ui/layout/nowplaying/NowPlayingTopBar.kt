@@ -1,4 +1,4 @@
-package com.spectre7.spmp.ui.layout.nowplaying
+package com.toasterofbread.spmp.ui.layout.nowplaying
 
 import LocalPlayerState
 import androidx.compose.animation.Crossfade
@@ -14,11 +14,11 @@ import androidx.compose.runtime.*
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.graphicsLayer
 import androidx.compose.ui.unit.dp
-import com.spectre7.spmp.model.MusicTopBarMode
-import com.spectre7.spmp.model.Settings
-import com.spectre7.spmp.ui.component.LikeDislikeButton
-import com.spectre7.spmp.ui.component.MusicTopBarWithVisualiser
-import com.spectre7.utils.setAlpha
+import com.toasterofbread.spmp.model.MusicTopBarMode
+import com.toasterofbread.spmp.model.Settings
+import com.toasterofbread.spmp.ui.component.LikeDislikeButton
+import com.toasterofbread.spmp.ui.component.MusicTopBarWithVisualiser
+import com.toasterofbread.utils.setAlpha
 
 @Composable
 fun TopBar(modifier: Modifier = Modifier) {

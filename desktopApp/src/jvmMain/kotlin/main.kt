@@ -1,7 +1,7 @@
 import androidx.compose.runtime.*
 import androidx.compose.ui.window.Window
 import androidx.compose.ui.window.application
-import com.spectre7.spmp.platform.PlatformContext
+import com.toasterofbread.spmp.platform.PlatformContext
 import kotlinx.coroutines.delay
 
 private const val SCREEN_SIZE_UPDATE_INTERVAL: Long = 100

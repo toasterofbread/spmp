@@ -1,4 +1,4 @@
-package com.spectre7.spmp.model.mediaitem
+package com.toasterofbread.spmp.model.mediaitem
 
 import androidx.compose.ui.unit.IntSize
 import com.beust.klaxon.JsonObject

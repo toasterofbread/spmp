@@ -1,8 +1,8 @@
-package com.spectre7.spmp.resources
+package com.toasterofbread.spmp.resources
 
 import SpMp
 import com.beust.klaxon.Klaxon
-import com.spectre7.spmp.platform.PlatformContext
+import com.toasterofbread.spmp.platform.PlatformContext
 import kotlinx.coroutines.runBlocking
 import org.xmlpull.v1.XmlPullParser
 import org.xmlpull.v1.XmlPullParserFactory

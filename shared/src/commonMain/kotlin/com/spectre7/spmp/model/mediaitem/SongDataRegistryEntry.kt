@@ -1,11 +1,11 @@
-package com.spectre7.spmp.model.mediaitem
+package com.toasterofbread.spmp.model.mediaitem
 
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.setValue
 import com.beust.klaxon.Json
-import com.spectre7.spmp.model.SongLyrics
-import com.spectre7.utils.ValueListeners
+import com.toasterofbread.spmp.model.SongLyrics
+import com.toasterofbread.utils.ValueListeners
 
 const val SONG_STATIC_LYRICS_SYNC_OFFSET = 500
 

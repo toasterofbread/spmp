@@ -1,5 +1,5 @@
 @file:Suppress("INVISIBLE_MEMBER", "INVISIBLE_REFERENCE")
-package com.spectre7.spmp.ui.layout.nowplaying.overlay.lyrics
+package com.toasterofbread.spmp.ui.layout.nowplaying.overlay.lyrics
 
 import LocalPlayerState
 import SpMp
@@ -30,19 +30,19 @@ import androidx.compose.ui.text.TextStyle
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.*
 import androidx.compose.ui.zIndex
-import com.spectre7.spmp.model.Settings
-import com.spectre7.spmp.model.SongLyrics
-import com.spectre7.spmp.model.mediaitem.Song
-import com.spectre7.spmp.model.mediaitem.SongLyricsHolder
-import com.spectre7.spmp.platform.composable.BackHandler
-import com.spectre7.spmp.platform.composable.platformClickable
-import com.spectre7.spmp.resources.getString
-import com.spectre7.spmp.ui.component.PillMenu
-import com.spectre7.spmp.ui.layout.nowplaying.NOW_PLAYING_MAIN_PADDING
-import com.spectre7.spmp.ui.layout.nowplaying.overlay.OverlayMenu
-import com.spectre7.spmp.ui.theme.Theme
-import com.spectre7.utils.*
-import com.spectre7.utils.composable.SubtleLoadingIndicator
+import com.toasterofbread.spmp.model.Settings
+import com.toasterofbread.spmp.model.SongLyrics
+import com.toasterofbread.spmp.model.mediaitem.Song
+import com.toasterofbread.spmp.model.mediaitem.SongLyricsHolder
+import com.toasterofbread.spmp.platform.composable.BackHandler
+import com.toasterofbread.spmp.platform.composable.platformClickable
+import com.toasterofbread.spmp.resources.getString
+import com.toasterofbread.spmp.ui.component.PillMenu
+import com.toasterofbread.spmp.ui.layout.nowplaying.NOW_PLAYING_MAIN_PADDING
+import com.toasterofbread.spmp.ui.layout.nowplaying.overlay.OverlayMenu
+import com.toasterofbread.spmp.ui.theme.Theme
+import com.toasterofbread.utils.*
+import com.toasterofbread.utils.composable.SubtleLoadingIndicator
 import kotlinx.coroutines.delay
 
 enum class LyricsOverlaySubmenu {

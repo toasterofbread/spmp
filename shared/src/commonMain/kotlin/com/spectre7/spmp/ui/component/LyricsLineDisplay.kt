@@ -1,4 +1,4 @@
-package com.spectre7.spmp.ui.component
+package com.toasterofbread.spmp.ui.component
 
 import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.animation.fadeOut
@@ -8,10 +8,10 @@ import androidx.compose.foundation.layout.Box
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import com.spectre7.spmp.model.SongLyrics
-import com.spectre7.utils.BasicFuriganaText
-import com.spectre7.utils.composable.OnChangedEffect
-import com.spectre7.utils.composable.RecomposeOnInterval
+import com.toasterofbread.spmp.model.SongLyrics
+import com.toasterofbread.utils.BasicFuriganaText
+import com.toasterofbread.utils.composable.OnChangedEffect
+import com.toasterofbread.utils.composable.RecomposeOnInterval
 
 private const val UPDATE_INTERVAL_MS = 100L
 

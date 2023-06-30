@@ -1,4 +1,4 @@
-package com.spectre7.spmp.ui.component
+package com.toasterofbread.spmp.ui.component
 
 import androidx.compose.material3.Button
 import androidx.compose.material3.ExperimentalMaterial3Api
@@ -10,9 +10,9 @@ import androidx.compose.runtime.setValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.ui.Modifier
-import com.spectre7.spmp.model.mediaitem.MediaItem
-import com.spectre7.spmp.platform.composable.PlatformAlertDialog
-import com.spectre7.spmp.resources.getString
+import com.toasterofbread.spmp.model.mediaitem.MediaItem
+import com.toasterofbread.spmp.platform.composable.PlatformAlertDialog
+import com.toasterofbread.spmp.resources.getString
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable

@@ -1,4 +1,4 @@
-package com.spectre7.utils
+package com.toasterofbread.utils
 
 import java.lang.Character.UnicodeBlock.*
 

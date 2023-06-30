@@ -1,4 +1,4 @@
-package com.spectre7.spmp.model
+package com.toasterofbread.spmp.model
 
 import SpMp
 import androidx.compose.material.icons.Icons
@@ -7,12 +7,12 @@ import androidx.compose.material.icons.filled.Lyrics
 import androidx.compose.runtime.*
 import androidx.compose.ui.graphics.vector.ImageVector
 import com.beust.klaxon.Klaxon
-import com.spectre7.spmp.ProjectBuildConfig
-import com.spectre7.spmp.model.mediaitem.Artist
-import com.spectre7.spmp.model.mediaitem.enums.SongAudioQuality
-import com.spectre7.spmp.platform.PlatformContext
-import com.spectre7.spmp.platform.ProjectPreferences
-import com.spectre7.spmp.resources.getString
+import com.toasterofbread.spmp.ProjectBuildConfig
+import com.toasterofbread.spmp.model.mediaitem.Artist
+import com.toasterofbread.spmp.model.mediaitem.enums.SongAudioQuality
+import com.toasterofbread.spmp.platform.PlatformContext
+import com.toasterofbread.spmp.platform.ProjectPreferences
+import com.toasterofbread.spmp.resources.getString
 import java.util.*
 
 enum class AccentColourSource {

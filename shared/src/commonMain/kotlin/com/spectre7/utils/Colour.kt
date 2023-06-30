@@ -1,4 +1,4 @@
-package com.spectre7.utils
+package com.toasterofbread.utils
 
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.ImageBitmap

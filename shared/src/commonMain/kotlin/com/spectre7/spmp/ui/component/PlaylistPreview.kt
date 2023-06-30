@@ -1,4 +1,4 @@
-package com.spectre7.spmp.ui.component
+package com.toasterofbread.spmp.ui.component
 
 import LocalPlayerState
 import SpMp
@@ -19,14 +19,14 @@ import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
-import com.spectre7.spmp.api.getOrReport
-import com.spectre7.spmp.model.mediaitem.*
-import com.spectre7.spmp.model.mediaitem.enums.getReadable
-import com.spectre7.spmp.resources.getString
-import com.spectre7.spmp.ui.component.multiselect.MediaItemMultiSelectContext
-import com.spectre7.utils.composable.WidthShrinkText
-import com.spectre7.utils.isDebugBuild
-import com.spectre7.utils.setAlpha
+import com.toasterofbread.spmp.api.getOrReport
+import com.toasterofbread.spmp.model.mediaitem.*
+import com.toasterofbread.spmp.model.mediaitem.enums.getReadable
+import com.toasterofbread.spmp.resources.getString
+import com.toasterofbread.spmp.ui.component.multiselect.MediaItemMultiSelectContext
+import com.toasterofbread.utils.composable.WidthShrinkText
+import com.toasterofbread.utils.isDebugBuild
+import com.toasterofbread.utils.setAlpha
 import kotlinx.coroutines.launch
 
 @Composable

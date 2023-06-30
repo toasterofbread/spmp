@@ -1,11 +1,11 @@
-package com.spectre7.spmp.ui.layout.prefspage
+package com.toasterofbread.spmp.ui.layout.prefspage
 
 import androidx.compose.material3.FilledTonalButton
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
 import androidx.compose.runtime.*
-import com.spectre7.spmp.platform.composable.PlatformAlertDialog
-import com.spectre7.spmp.resources.getString
+import com.toasterofbread.spmp.platform.composable.PlatformAlertDialog
+import com.toasterofbread.spmp.resources.getString
 
 @Composable
 internal fun ResetConfirmationDialog(show_state: MutableState<Boolean>, reset: suspend () -> Unit) {

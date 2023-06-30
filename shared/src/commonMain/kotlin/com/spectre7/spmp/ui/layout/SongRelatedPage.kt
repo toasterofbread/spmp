@@ -1,4 +1,4 @@
-package com.spectre7.spmp.ui.layout
+package com.toasterofbread.spmp.ui.layout
 
 import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.animation.Crossfade
@@ -17,20 +17,20 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.LocalLayoutDirection
 import androidx.compose.ui.text.TextStyle
 import androidx.compose.ui.unit.dp
-import com.spectre7.spmp.api.RelatedGroup
-import com.spectre7.spmp.api.getSongRelated
-import com.spectre7.spmp.model.mediaitem.MediaItem
-import com.spectre7.spmp.model.mediaitem.MediaItemPreviewParams
-import com.spectre7.spmp.model.mediaitem.Song
-import com.spectre7.spmp.resources.getStringTODO
-import com.spectre7.spmp.ui.component.ErrorInfoDisplay
-import com.spectre7.spmp.ui.component.MediaItemGrid
-import com.spectre7.spmp.ui.component.PillMenu
-import com.spectre7.spmp.ui.component.multiselect.MediaItemMultiSelectContext
-import com.spectre7.utils.composable.SubtleLoadingIndicator
-import com.spectre7.utils.getContrasted
-import com.spectre7.utils.modifier.horizontal
-import com.spectre7.utils.modifier.vertical
+import com.toasterofbread.spmp.api.RelatedGroup
+import com.toasterofbread.spmp.api.getSongRelated
+import com.toasterofbread.spmp.model.mediaitem.MediaItem
+import com.toasterofbread.spmp.model.mediaitem.MediaItemPreviewParams
+import com.toasterofbread.spmp.model.mediaitem.Song
+import com.toasterofbread.spmp.resources.getStringTODO
+import com.toasterofbread.spmp.ui.component.ErrorInfoDisplay
+import com.toasterofbread.spmp.ui.component.MediaItemGrid
+import com.toasterofbread.spmp.ui.component.PillMenu
+import com.toasterofbread.spmp.ui.component.multiselect.MediaItemMultiSelectContext
+import com.toasterofbread.utils.composable.SubtleLoadingIndicator
+import com.toasterofbread.utils.getContrasted
+import com.toasterofbread.utils.modifier.horizontal
+import com.toasterofbread.utils.modifier.vertical
 
 @Composable
 fun SongRelatedPage(

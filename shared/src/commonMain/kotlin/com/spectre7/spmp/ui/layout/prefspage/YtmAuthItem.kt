@@ -1,17 +1,17 @@
-package com.spectre7.spmp.ui.layout.prefspage
+package com.toasterofbread.spmp.ui.layout.prefspage
 
 import androidx.compose.runtime.MutableState
-import com.spectre7.settings.model.BasicSettingsValueState
-import com.spectre7.settings.model.SettingsItem
-import com.spectre7.settings.model.SettingsItemLargeToggle
-import com.spectre7.settings.model.SettingsValueState
-import com.spectre7.spmp.model.mediaitem.Artist
-import com.spectre7.spmp.model.Settings
-import com.spectre7.spmp.model.YoutubeMusicAuthInfo
-import com.spectre7.spmp.model.mediaitem.MediaItemPreviewParams
-import com.spectre7.spmp.platform.ProjectPreferences
-import com.spectre7.spmp.resources.getString
-import com.spectre7.spmp.ui.layout.YoutubeMusicLoginConfirmation
+import com.toasterofbread.settings.model.BasicSettingsValueState
+import com.toasterofbread.settings.model.SettingsItem
+import com.toasterofbread.settings.model.SettingsItemLargeToggle
+import com.toasterofbread.settings.model.SettingsValueState
+import com.toasterofbread.spmp.model.mediaitem.Artist
+import com.toasterofbread.spmp.model.Settings
+import com.toasterofbread.spmp.model.YoutubeMusicAuthInfo
+import com.toasterofbread.spmp.model.mediaitem.MediaItemPreviewParams
+import com.toasterofbread.spmp.platform.ProjectPreferences
+import com.toasterofbread.spmp.resources.getString
+import com.toasterofbread.spmp.ui.layout.YoutubeMusicLoginConfirmation
 
 internal fun getYtmAuthItem(ytm_auth: SettingsValueState<YoutubeMusicAuthInfo>, own_channel: MutableState<Artist?>): SettingsItem =
     SettingsItemLargeToggle(

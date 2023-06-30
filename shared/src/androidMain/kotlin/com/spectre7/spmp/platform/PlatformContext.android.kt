@@ -1,4 +1,4 @@
-package com.spectre7.spmp.platform
+package com.toasterofbread.spmp.platform
 
 import SpMp
 import android.annotation.SuppressLint
@@ -33,10 +33,10 @@ import androidx.compose.ui.text.font.Font
 import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
 import androidx.core.app.NotificationManagerCompat
-import com.spectre7.spmp.model.Settings
-import com.spectre7.spmp.resources.getString
-import com.spectre7.spmp.resources.getStringTODO
-import com.spectre7.spmp.ui.layout.mainpage.PlayerStateImpl
+import com.toasterofbread.spmp.model.Settings
+import com.toasterofbread.spmp.resources.getString
+import com.toasterofbread.spmp.resources.getStringTODO
+import com.toasterofbread.spmp.ui.layout.mainpage.PlayerStateImpl
 import java.io.File
 import java.io.FileInputStream
 import java.io.FileOutputStream

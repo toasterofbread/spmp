@@ -1,14 +1,14 @@
-package com.spectre7.spmp.model.mediaitem.data
+package com.toasterofbread.spmp.model.mediaitem.data
 
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.setValue
 import com.beust.klaxon.Klaxon
-import com.spectre7.spmp.model.mediaitem.AccountPlaylist
-import com.spectre7.spmp.model.mediaitem.MediaItem
-import com.spectre7.spmp.model.mediaitem.Playlist
-import com.spectre7.spmp.model.mediaitem.Song
-import com.spectre7.spmp.model.mediaitem.enums.SongType
+import com.toasterofbread.spmp.model.mediaitem.AccountPlaylist
+import com.toasterofbread.spmp.model.mediaitem.MediaItem
+import com.toasterofbread.spmp.model.mediaitem.Playlist
+import com.toasterofbread.spmp.model.mediaitem.Song
+import com.toasterofbread.spmp.model.mediaitem.enums.SongType
 
 class SongItemData(override val data_item: Song): MediaItemData(data_item) {
 

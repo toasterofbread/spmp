@@ -1,4 +1,4 @@
-package com.spectre7.spmp.ui.layout.artistpage
+package com.toasterofbread.spmp.ui.layout.artistpage
 
 import androidx.compose.animation.animateContentSize
 import androidx.compose.foundation.layout.*
@@ -17,11 +17,11 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.layout.onSizeChanged
 import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.unit.dp
-import com.spectre7.spmp.resources.getString
-import com.spectre7.spmp.ui.theme.Theme
-import com.spectre7.utils.composable.LinkifyText
-import com.spectre7.utils.composable.NoRipple
-import com.spectre7.utils.setAlpha
+import com.toasterofbread.spmp.resources.getString
+import com.toasterofbread.spmp.ui.theme.Theme
+import com.toasterofbread.utils.composable.LinkifyText
+import com.toasterofbread.utils.composable.NoRipple
+import com.toasterofbread.utils.setAlpha
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable

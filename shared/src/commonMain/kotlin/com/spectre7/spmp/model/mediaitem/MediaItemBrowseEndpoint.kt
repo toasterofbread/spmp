@@ -1,4 +1,4 @@
-package com.spectre7.spmp.model.mediaitem
+package com.toasterofbread.spmp.model.mediaitem
 
 class MediaItemBrowseEndpoint {
     val id: String

@@ -1,4 +1,4 @@
-package com.spectre7.spmp
+package com.toasterofbread.spmp
 
 import android.content.Intent
 import android.os.Bundle
@@ -21,8 +21,8 @@ import androidx.compose.ui.text.AnnotatedString
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.beust.klaxon.Klaxon
-import com.spectre7.spmp.platform.PlatformContext
-import com.spectre7.spmp.ui.theme.ApplicationTheme
+import com.toasterofbread.spmp.platform.PlatformContext
+import com.toasterofbread.spmp.ui.theme.ApplicationTheme
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
 import okhttp3.MediaType.Companion.toMediaType

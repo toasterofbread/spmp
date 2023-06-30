@@ -1,4 +1,4 @@
-package com.spectre7.composesettings.ui
+package com.toasterofbread.composesettings.ui
 
 import androidx.compose.animation.Crossfade
 import androidx.compose.foundation.layout.*
@@ -8,11 +8,11 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.layout.onSizeChanged
 import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
-import com.spectre7.spmp.platform.PlatformContext
-import com.spectre7.spmp.platform.ProjectPreferences
-import com.spectre7.spmp.ui.component.PillMenu
-import com.spectre7.spmp.ui.theme.Theme
-import com.spectre7.utils.thenIf
+import com.toasterofbread.spmp.platform.PlatformContext
+import com.toasterofbread.spmp.platform.ProjectPreferences
+import com.toasterofbread.spmp.ui.component.PillMenu
+import com.toasterofbread.spmp.ui.theme.Theme
+import com.toasterofbread.utils.thenIf
 
 class SettingsInterface(
     val themeProvider: () -> Theme,

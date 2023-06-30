@@ -1,4 +1,4 @@
-package com.spectre7.spmp.platform
+package com.toasterofbread.spmp.platform
 
 import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.WindowInsets
@@ -8,7 +8,7 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.text.font.Font
 import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
-import com.spectre7.spmp.ui.layout.mainpage.PlayerStateImpl
+import com.toasterofbread.spmp.ui.layout.mainpage.PlayerStateImpl
 import java.io.File
 import java.io.FileInputStream
 import java.io.FileOutputStream

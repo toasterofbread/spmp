@@ -1,4 +1,4 @@
-package com.spectre7.spmp.model.mediaitem
+package com.toasterofbread.spmp.model.mediaitem
 
 interface MediaItemHolder {
     // If item is null, consider it deleted

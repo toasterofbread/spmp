@@ -1,4 +1,4 @@
-package com.spectre7.spmp.platform
+package com.toasterofbread.spmp.platform
 
 import android.app.NotificationChannel
 import android.app.NotificationManager
@@ -34,11 +34,11 @@ import com.google.common.collect.ImmutableList
 import com.google.common.util.concurrent.Futures
 import com.google.common.util.concurrent.ListenableFuture
 import com.google.common.util.concurrent.MoreExecutors
-import com.spectre7.spmp.exovisualiser.FFTAudioProcessor
-import com.spectre7.spmp.model.mediaitem.MediaItemThumbnailProvider
-import com.spectre7.spmp.model.mediaitem.Song
-import com.spectre7.spmp.model.mediaitem.SongLikeStatus
-import com.spectre7.spmp.shared.R
+import com.toasterofbread.spmp.exovisualiser.FFTAudioProcessor
+import com.toasterofbread.spmp.model.mediaitem.MediaItemThumbnailProvider
+import com.toasterofbread.spmp.model.mediaitem.Song
+import com.toasterofbread.spmp.model.mediaitem.SongLikeStatus
+import com.toasterofbread.spmp.shared.R
 import kotlinx.coroutines.*
 import java.io.IOException
 import java.util.concurrent.Executors
@@ -47,8 +47,8 @@ import kotlin.math.roundToInt
 private const val NOTIFICATION_ID = 2
 private const val NOTIFICATION_CHANNEL_ID = "playback_channel"
 
-private const val COMMAND_SET_LIKE_TRUE = "com.spectre7.spmp.setliketrue"
-private const val COMMAND_SET_LIKE_NEUTRAL = "com.spectre7.spmp.setlikeneutral"
+private const val COMMAND_SET_LIKE_TRUE = "com.toasterofbread.spmp.setliketrue"
+private const val COMMAND_SET_LIKE_NEUTRAL = "com.toasterofbread.spmp.setlikeneutral"
 
 private const val A13_MEDIA_NOTIFICATION_ASPECT = 2.9f / 5.7f
 

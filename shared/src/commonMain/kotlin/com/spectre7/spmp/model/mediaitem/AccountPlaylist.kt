@@ -1,12 +1,12 @@
-package com.spectre7.spmp.model.mediaitem
+package com.toasterofbread.spmp.model.mediaitem
 
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.setValue
-import com.spectre7.spmp.api.*
-import com.spectre7.spmp.model.mediaitem.data.AccountPlaylistItemData
-import com.spectre7.spmp.model.mediaitem.enums.PlaylistType
-import com.spectre7.spmp.platform.PlatformContext
+import com.toasterofbread.spmp.api.*
+import com.toasterofbread.spmp.model.mediaitem.data.AccountPlaylistItemData
+import com.toasterofbread.spmp.model.mediaitem.enums.PlaylistType
+import com.toasterofbread.spmp.platform.PlatformContext
 
 class AccountPlaylist private constructor(id: String, context: PlatformContext): Playlist(id, context) {
     override val url: String get() = "https://music.youtube.com/playlist?list=$id"

@@ -1,4 +1,4 @@
-package com.spectre7.spmp.model.mediaitem
+package com.toasterofbread.spmp.model.mediaitem
 
 import LocalPlayerState
 import SpMp
@@ -9,12 +9,12 @@ import androidx.compose.foundation.interaction.collectIsPressedAsState
 import androidx.compose.runtime.*
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalViewConfiguration
-import com.spectre7.spmp.platform.Platform
-import com.spectre7.spmp.platform.composable.platformClickable
-import com.spectre7.spmp.platform.vibrateShort
-import com.spectre7.spmp.ui.component.LongPressMenuData
-import com.spectre7.spmp.ui.layout.mainpage.PlayerState
-import com.spectre7.utils.composable.OnChangedEffect
+import com.toasterofbread.spmp.platform.Platform
+import com.toasterofbread.spmp.platform.composable.platformClickable
+import com.toasterofbread.spmp.platform.vibrateShort
+import com.toasterofbread.spmp.ui.component.LongPressMenuData
+import com.toasterofbread.spmp.ui.layout.mainpage.PlayerState
+import com.toasterofbread.utils.composable.OnChangedEffect
 import kotlinx.coroutines.delay
 
 enum class MediaItemPreviewInteractionPressStage {

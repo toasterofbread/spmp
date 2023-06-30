@@ -1,4 +1,4 @@
-package com.spectre7.spmp.platform
+package com.toasterofbread.spmp.platform
 
 import android.graphics.Bitmap
 import android.view.ViewGroup
@@ -11,10 +11,10 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.graphicsLayer
 import androidx.compose.ui.viewinterop.AndroidView
-import com.spectre7.spmp.platform.composable.BackHandler
-import com.spectre7.spmp.ui.theme.Theme
-import com.spectre7.utils.composable.OnChangedEffect
-import com.spectre7.utils.isDark
+import com.toasterofbread.spmp.platform.composable.BackHandler
+import com.toasterofbread.spmp.ui.theme.Theme
+import com.toasterofbread.utils.composable.OnChangedEffect
+import com.toasterofbread.utils.isDark
 
 actual fun isWebViewLoginSupported(): Boolean = true
 

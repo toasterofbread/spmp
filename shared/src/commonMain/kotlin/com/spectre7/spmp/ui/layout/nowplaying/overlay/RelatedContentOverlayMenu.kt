@@ -1,4 +1,4 @@
-package com.spectre7.spmp.ui.layout.nowplaying.overlay
+package com.toasterofbread.spmp.ui.layout.nowplaying.overlay
 
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.PaddingValues
@@ -13,11 +13,11 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.ImageBitmap
 import androidx.compose.ui.unit.dp
-import com.spectre7.spmp.model.mediaitem.Song
-import com.spectre7.spmp.ui.component.PillMenu
-import com.spectre7.spmp.ui.layout.SongRelatedPage
-import com.spectre7.spmp.ui.theme.Theme
-import com.spectre7.utils.setAlpha
+import com.toasterofbread.spmp.model.mediaitem.Song
+import com.toasterofbread.spmp.ui.component.PillMenu
+import com.toasterofbread.spmp.ui.layout.SongRelatedPage
+import com.toasterofbread.spmp.ui.theme.Theme
+import com.toasterofbread.utils.setAlpha
 
 class RelatedContentOverlayMenu : OverlayMenu() {
     override fun closeOnTap(): Boolean = false

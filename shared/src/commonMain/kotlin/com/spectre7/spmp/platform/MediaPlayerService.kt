@@ -1,9 +1,9 @@
-package com.spectre7.spmp.platform
+package com.toasterofbread.spmp.platform
 
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
-import com.spectre7.spmp.model.mediaitem.Song
+import com.toasterofbread.spmp.model.mediaitem.Song
 
 internal const val AUTO_DOWNLOAD_SOFT_TIMEOUT = 1500 // ms
 

@@ -1,21 +1,21 @@
-package com.spectre7.spmp.ui.layout.mainpage
+package com.toasterofbread.spmp.ui.layout.mainpage
 
 import androidx.compose.runtime.*
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.Dp
-import com.spectre7.spmp.PlayerService
-import com.spectre7.spmp.model.mediaitem.Artist
-import com.spectre7.spmp.model.mediaitem.MediaItem
-import com.spectre7.spmp.model.mediaitem.Song
-import com.spectre7.spmp.platform.MediaPlayerRepeatMode
-import com.spectre7.spmp.platform.MediaPlayerService
-import com.spectre7.spmp.platform.PlayerDownloadManager
-import com.spectre7.spmp.ui.component.LongPressMenuData
-import com.spectre7.spmp.ui.component.PillMenu
-import com.spectre7.spmp.ui.component.multiselect.MediaItemMultiSelectContext
-import com.spectre7.spmp.ui.layout.nowplaying.ThemeMode
-import com.spectre7.spmp.ui.layout.nowplaying.overlay.OverlayMenu
-import com.spectre7.utils.indexOfOrNull
+import com.toasterofbread.spmp.PlayerService
+import com.toasterofbread.spmp.model.mediaitem.Artist
+import com.toasterofbread.spmp.model.mediaitem.MediaItem
+import com.toasterofbread.spmp.model.mediaitem.Song
+import com.toasterofbread.spmp.platform.MediaPlayerRepeatMode
+import com.toasterofbread.spmp.platform.MediaPlayerService
+import com.toasterofbread.spmp.platform.PlayerDownloadManager
+import com.toasterofbread.spmp.ui.component.LongPressMenuData
+import com.toasterofbread.spmp.ui.component.PillMenu
+import com.toasterofbread.spmp.ui.component.multiselect.MediaItemMultiSelectContext
+import com.toasterofbread.spmp.ui.layout.nowplaying.ThemeMode
+import com.toasterofbread.spmp.ui.layout.nowplaying.overlay.OverlayMenu
+import com.toasterofbread.utils.indexOfOrNull
 import java.net.URI
 import java.net.URISyntaxException
 

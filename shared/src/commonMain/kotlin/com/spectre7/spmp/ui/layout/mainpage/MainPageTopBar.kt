@@ -1,4 +1,4 @@
-package com.spectre7.spmp.ui.layout.mainpage
+package com.toasterofbread.spmp.ui.layout.mainpage
 
 import LocalPlayerState
 import androidx.compose.animation.AnimatedVisibility
@@ -14,13 +14,13 @@ import androidx.compose.runtime.*
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.unit.dp
-import com.spectre7.spmp.model.*
-import com.spectre7.spmp.model.mediaitem.MediaItemThumbnailProvider
-import com.spectre7.spmp.resources.uilocalisation.LocalisedYoutubeString
-import com.spectre7.spmp.ui.component.MusicTopBarWithVisualiser
-import com.spectre7.spmp.ui.layout.RadioBuilderIcon
-import com.spectre7.spmp.ui.layout.YoutubeMusicLoginConfirmation
-import com.spectre7.spmp.ui.theme.Theme
+import com.toasterofbread.spmp.model.*
+import com.toasterofbread.spmp.model.mediaitem.MediaItemThumbnailProvider
+import com.toasterofbread.spmp.resources.uilocalisation.LocalisedYoutubeString
+import com.toasterofbread.spmp.ui.component.MusicTopBarWithVisualiser
+import com.toasterofbread.spmp.ui.layout.RadioBuilderIcon
+import com.toasterofbread.spmp.ui.layout.YoutubeMusicLoginConfirmation
+import com.toasterofbread.spmp.ui.theme.Theme
 
 @Composable
 fun MainPageTopBar(

@@ -10,7 +10,7 @@ plugins {
 val buildConfigDir get() = project.layout.buildDirectory.dir("generated/buildconfig")
 
 fun GenerateBuildConfig.buildConfig(debug: Boolean) {
-    class_fq_name.set("com.spectre7.spmp.ProjectBuildConfig")
+    class_fq_name.set("com.toasterofbread.spmp.ProjectBuildConfig")
     generated_output_dir.set(buildConfigDir)
 
     val keys = Properties()
@@ -119,7 +119,7 @@ kotlin {
 
 android {
     compileSdk = (findProperty("android.compileSdk") as String).toInt()
-    namespace = "com.spectre7.spmp.shared"
+    namespace = "com.toasterofbread.spmp.shared"
 
     sourceSets["main"].manifest.srcFile("src/androidMain/AndroidManifest.xml")
     sourceSets["main"].res.srcDirs("src/androidMain/res")

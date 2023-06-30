@@ -1,4 +1,4 @@
-package com.spectre7.composesettings.ui
+package com.toasterofbread.composesettings.ui
 
 import androidx.compose.animation.Crossfade
 import androidx.compose.foundation.layout.*
@@ -11,10 +11,10 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
-import com.spectre7.settings.model.SettingsGroup
-import com.spectre7.settings.model.SettingsItem
-import com.spectre7.spmp.platform.composable.BackHandler
-import com.spectre7.utils.composable.WidthShrinkText
+import com.toasterofbread.settings.model.SettingsGroup
+import com.toasterofbread.settings.model.SettingsItem
+import com.toasterofbread.spmp.platform.composable.BackHandler
+import com.toasterofbread.utils.composable.WidthShrinkText
 
 abstract class SettingsPage(
     private val getTitle: (() -> String?)? = null,

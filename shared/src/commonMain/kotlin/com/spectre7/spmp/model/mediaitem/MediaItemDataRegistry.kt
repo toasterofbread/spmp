@@ -1,12 +1,12 @@
-package com.spectre7.spmp.model.mediaitem
+package com.toasterofbread.spmp.model.mediaitem
 
 import androidx.compose.runtime.*
 import com.beust.klaxon.Json
 import com.beust.klaxon.JsonObject
-import com.spectre7.spmp.api.Api
-import com.spectre7.spmp.model.Settings
-import com.spectre7.spmp.model.mediaitem.enums.MediaItemType
-import com.spectre7.spmp.platform.ProjectPreferences
+import com.toasterofbread.spmp.api.Api
+import com.toasterofbread.spmp.model.Settings
+import com.toasterofbread.spmp.model.mediaitem.enums.MediaItemType
+import com.toasterofbread.spmp.platform.ProjectPreferences
 import kotlinx.coroutines.GlobalScope
 import kotlinx.coroutines.async
 import kotlinx.coroutines.joinAll

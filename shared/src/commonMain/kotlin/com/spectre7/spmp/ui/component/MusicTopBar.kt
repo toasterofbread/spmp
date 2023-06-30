@@ -1,4 +1,4 @@
-package com.spectre7.spmp.ui.component
+package com.toasterofbread.spmp.ui.component
 
 import LocalPlayerState
 import androidx.compose.animation.*
@@ -14,16 +14,16 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.graphicsLayer
 import androidx.compose.ui.unit.dp
-import com.spectre7.spmp.model.MusicTopBarMode
-import com.spectre7.spmp.model.Settings
-import com.spectre7.spmp.model.mediaitem.Song
-import com.spectre7.spmp.model.SongLyrics
-import com.spectre7.spmp.platform.composable.platformClickable
-import com.spectre7.spmp.resources.getString
-import com.spectre7.spmp.ui.layout.nowplaying.LocalNowPlayingExpansion
-import com.spectre7.spmp.ui.layout.nowplaying.overlay.OverlayMenu
-import com.spectre7.utils.composable.rememberSongUpdateLyrics
-import com.spectre7.utils.getContrasted
+import com.toasterofbread.spmp.model.MusicTopBarMode
+import com.toasterofbread.spmp.model.Settings
+import com.toasterofbread.spmp.model.mediaitem.Song
+import com.toasterofbread.spmp.model.SongLyrics
+import com.toasterofbread.spmp.platform.composable.platformClickable
+import com.toasterofbread.spmp.resources.getString
+import com.toasterofbread.spmp.ui.layout.nowplaying.LocalNowPlayingExpansion
+import com.toasterofbread.spmp.ui.layout.nowplaying.overlay.OverlayMenu
+import com.toasterofbread.utils.composable.rememberSongUpdateLyrics
+import com.toasterofbread.utils.getContrasted
 import kotlinx.coroutines.delay
 
 private fun getModeState(mode: MusicTopBarMode, song: Song?): Any? {

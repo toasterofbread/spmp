@@ -1,4 +1,4 @@
-package com.spectre7.spmp.ui.layout.library
+package com.toasterofbread.spmp.ui.layout.library
 
 import LocalPlayerState
 import androidx.compose.animation.Crossfade
@@ -12,10 +12,10 @@ import androidx.compose.material3.TextField
 import androidx.compose.runtime.*
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.Dp
-import com.spectre7.spmp.model.mediaitem.MediaItemPreviewParams
-import com.spectre7.spmp.model.mediaitem.Song
-import com.spectre7.spmp.platform.PlayerDownloadManager
-import com.spectre7.spmp.ui.component.multiselect.MediaItemMultiSelectContext
+import com.toasterofbread.spmp.model.mediaitem.MediaItemPreviewParams
+import com.toasterofbread.spmp.model.mediaitem.Song
+import com.toasterofbread.spmp.platform.PlayerDownloadManager
+import com.toasterofbread.spmp.ui.component.multiselect.MediaItemMultiSelectContext
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable

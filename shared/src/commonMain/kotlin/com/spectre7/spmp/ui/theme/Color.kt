@@ -1,4 +1,4 @@
-package com.spectre7.spmp.ui.theme
+package com.toasterofbread.spmp.ui.theme
 
 import androidx.compose.ui.graphics.Color
 

@@ -1,9 +1,9 @@
-package com.spectre7.utils.composable
+package com.toasterofbread.utils.composable
 
 import androidx.compose.runtime.*
-import com.spectre7.spmp.model.mediaitem.Song
-import com.spectre7.spmp.model.SongLyrics
-import com.spectre7.utils.launchSingle
+import com.toasterofbread.spmp.model.mediaitem.Song
+import com.toasterofbread.spmp.model.SongLyrics
+import com.toasterofbread.utils.launchSingle
 
 @Composable
 fun rememberSongUpdateLyrics(song: Song?, update_lyrics: Boolean = true): State<Song?> {

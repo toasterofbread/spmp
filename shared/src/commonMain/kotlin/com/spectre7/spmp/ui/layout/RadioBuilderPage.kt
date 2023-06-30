@@ -1,4 +1,4 @@
-package com.spectre7.spmp.ui.layout
+package com.toasterofbread.spmp.ui.layout
 
 import LocalPlayerState
 import SpMp
@@ -26,16 +26,16 @@ import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
-import com.spectre7.spmp.api.*
-import com.spectre7.spmp.model.Settings
-import com.spectre7.spmp.model.mediaitem.*
-import com.spectre7.spmp.platform.composable.BackHandler
-import com.spectre7.spmp.resources.getString
-import com.spectre7.spmp.ui.component.*
-import com.spectre7.spmp.ui.component.multiselect.MediaItemMultiSelectContext
-import com.spectre7.spmp.ui.theme.Theme
-import com.spectre7.utils.*
-import com.spectre7.utils.composable.*
+import com.toasterofbread.spmp.api.*
+import com.toasterofbread.spmp.model.Settings
+import com.toasterofbread.spmp.model.mediaitem.*
+import com.toasterofbread.spmp.platform.composable.BackHandler
+import com.toasterofbread.spmp.resources.getString
+import com.toasterofbread.spmp.ui.component.*
+import com.toasterofbread.spmp.ui.component.multiselect.MediaItemMultiSelectContext
+import com.toasterofbread.spmp.ui.theme.Theme
+import com.toasterofbread.utils.*
+import com.toasterofbread.utils.composable.*
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext

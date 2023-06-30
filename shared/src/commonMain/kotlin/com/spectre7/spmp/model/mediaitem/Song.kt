@@ -1,22 +1,22 @@
-package com.spectre7.spmp.model.mediaitem
+package com.toasterofbread.spmp.model.mediaitem
 
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.ImageBitmap
 import androidx.compose.ui.graphics.toArgb
-import com.spectre7.spmp.api.DEFAULT_CONNECT_TIMEOUT
-import com.spectre7.spmp.api.YoutubeVideoFormat
-import com.spectre7.spmp.api.cast
-import com.spectre7.spmp.api.getVideoFormats
-import com.spectre7.spmp.model.Settings
-import com.spectre7.spmp.model.mediaitem.data.SongItemData
-import com.spectre7.spmp.model.mediaitem.enums.SongAudioQuality
-import com.spectre7.spmp.model.mediaitem.enums.SongType
-import com.spectre7.spmp.platform.crop
-import com.spectre7.spmp.platform.toImageBitmap
-import com.spectre7.spmp.ui.component.SongPreviewLong
-import com.spectre7.spmp.ui.component.SongPreviewSquare
-import com.spectre7.spmp.platform.PlatformContext
+import com.toasterofbread.spmp.api.DEFAULT_CONNECT_TIMEOUT
+import com.toasterofbread.spmp.api.YoutubeVideoFormat
+import com.toasterofbread.spmp.api.cast
+import com.toasterofbread.spmp.api.getVideoFormats
+import com.toasterofbread.spmp.model.Settings
+import com.toasterofbread.spmp.model.mediaitem.data.SongItemData
+import com.toasterofbread.spmp.model.mediaitem.enums.SongAudioQuality
+import com.toasterofbread.spmp.model.mediaitem.enums.SongType
+import com.toasterofbread.spmp.platform.crop
+import com.toasterofbread.spmp.platform.toImageBitmap
+import com.toasterofbread.spmp.ui.component.SongPreviewLong
+import com.toasterofbread.spmp.ui.component.SongPreviewSquare
+import com.toasterofbread.spmp.platform.PlatformContext
 import okhttp3.internal.filterList
 import java.net.URL
 

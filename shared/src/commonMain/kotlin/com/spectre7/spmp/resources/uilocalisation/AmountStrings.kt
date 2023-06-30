@@ -1,4 +1,4 @@
-package com.spectre7.spmp.resources.uilocalisation
+package com.toasterofbread.spmp.resources.uilocalisation
 
 fun parseYoutubeSubscribersString(string: String, hl: String): Int? {
     val suffixes = getAmountSuffixes(hl)

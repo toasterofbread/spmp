@@ -1,10 +1,10 @@
-package com.spectre7.spmp.platform
+package com.toasterofbread.spmp.platform
 
 import android.content.Context
 import android.net.Uri
 import androidx.media3.common.util.UnstableApi
 import androidx.media3.datasource.DataSpec
-import com.spectre7.spmp.model.mediaitem.Song
+import com.toasterofbread.spmp.model.mediaitem.Song
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.runBlocking
 import java.io.File
@@ -23,8 +23,8 @@ internal fun processMediaDataSpec(data_spec: DataSpec, context: Context, metered
     }
 
     if (
-        song.registry_entry.getPlayCount(ChronoUnit.WEEKS) >= com.spectre7.spmp.model.Settings.KEY_AUTO_DOWNLOAD_THRESHOLD.get<Int>(context)
-        && (com.spectre7.spmp.model.Settings.KEY_AUTO_DOWNLOAD_ON_METERED.get(context) || !metered)
+        song.registry_entry.getPlayCount(ChronoUnit.WEEKS) >= com.toasterofbread.spmp.model.Settings.KEY_AUTO_DOWNLOAD_THRESHOLD.get<Int>(context)
+        && (com.toasterofbread.spmp.model.Settings.KEY_AUTO_DOWNLOAD_ON_METERED.get(context) || !metered)
     ) {
         var done = false
         runBlocking {

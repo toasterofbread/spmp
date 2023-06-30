@@ -1,15 +1,15 @@
-package com.spectre7.spmp.ui.layout.prefspage
+package com.toasterofbread.spmp.ui.layout.prefspage
 
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.setValue
-import com.spectre7.settings.model.*
-import com.spectre7.spmp.model.Settings
-import com.spectre7.spmp.platform.DiscordStatus
-import com.spectre7.spmp.platform.ProjectPreferences
-import com.spectre7.spmp.resources.getString
-import com.spectre7.spmp.ui.layout.DiscordAccountPreview
-import com.spectre7.spmp.ui.layout.DiscordLoginConfirmation
+import com.toasterofbread.settings.model.*
+import com.toasterofbread.spmp.model.Settings
+import com.toasterofbread.spmp.platform.DiscordStatus
+import com.toasterofbread.spmp.platform.ProjectPreferences
+import com.toasterofbread.spmp.resources.getString
+import com.toasterofbread.spmp.ui.layout.DiscordAccountPreview
+import com.toasterofbread.spmp.ui.layout.DiscordLoginConfirmation
 
 internal fun getDiscordStatusGroup(discord_auth: SettingsValueState<String>): List<SettingsItem> {
     if (!DiscordStatus.isSupported()) {

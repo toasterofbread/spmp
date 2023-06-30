@@ -1,4 +1,4 @@
-package com.spectre7.spmp.ui.component
+package com.toasterofbread.spmp.ui.component
 
 import androidx.compose.animation.animateContentSize
 import androidx.compose.foundation.clickable
@@ -12,9 +12,9 @@ import androidx.compose.material3.Text
 import androidx.compose.runtime.*
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
-import com.spectre7.spmp.resources.getStringTODO
-import com.spectre7.spmp.ui.theme.Theme
-import com.spectre7.utils.modifier.background
+import com.toasterofbread.spmp.resources.getStringTODO
+import com.toasterofbread.spmp.ui.theme.Theme
+import com.toasterofbread.utils.modifier.background
 
 @Composable
 fun ErrorInfoDisplay(error: Throwable, modifier: Modifier = Modifier) {

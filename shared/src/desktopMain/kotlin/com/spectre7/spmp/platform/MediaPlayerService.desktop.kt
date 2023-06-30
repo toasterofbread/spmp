@@ -1,12 +1,12 @@
-package com.spectre7.spmp.platform
+package com.toasterofbread.spmp.platform
 
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.setValue
 import com.beust.klaxon.Klaxon
-import com.spectre7.spmp.api.getOrThrowHere
-import com.spectre7.spmp.model.Settings
-import com.spectre7.spmp.model.mediaitem.Song
+import com.toasterofbread.spmp.api.getOrThrowHere
+import com.toasterofbread.spmp.model.Settings
+import com.toasterofbread.spmp.model.mediaitem.Song
 import org.zeromq.SocketType
 import org.zeromq.ZContext
 import org.zeromq.ZMQ.Socket

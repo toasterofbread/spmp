@@ -1,4 +1,4 @@
-package com.spectre7.spmp.platform
+package com.toasterofbread.spmp.platform
 
 import android.graphics.Bitmap
 import android.net.Uri
@@ -9,8 +9,8 @@ import com.my.kizzyrpc.model.Activity
 import com.my.kizzyrpc.model.Assets
 import com.my.kizzyrpc.model.Metadata
 import com.my.kizzyrpc.model.Timestamps
-import com.spectre7.utils.indexOfFirstOrNull
-import com.spectre7.utils.indexOfOrNull
+import com.toasterofbread.utils.indexOfFirstOrNull
+import com.toasterofbread.utils.indexOfOrNull
 import dev.kord.common.entity.DiscordMessage
 import dev.kord.common.entity.Snowflake
 import dev.kord.core.Kord

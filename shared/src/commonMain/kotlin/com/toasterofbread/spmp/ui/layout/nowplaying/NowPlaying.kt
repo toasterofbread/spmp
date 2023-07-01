@@ -23,6 +23,7 @@ import com.toasterofbread.spmp.model.Settings
 import com.toasterofbread.spmp.platform.BackHandler
 import com.toasterofbread.spmp.platform.composable.scrollWheelSwipeable
 import com.toasterofbread.spmp.platform.composeScope
+import com.toasterofbread.spmp.ui.layout.nowplaying.queue.QueueTab
 import com.toasterofbread.spmp.ui.theme.Theme
 import com.toasterofbread.utils.*
 import com.toasterofbread.utils.composable.OnChangedEffect

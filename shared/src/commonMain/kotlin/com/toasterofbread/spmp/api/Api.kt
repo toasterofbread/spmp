@@ -320,6 +320,7 @@ class Api {
 
                 headers_builder["accept-encoding"] = "gzip, deflate"
                 headers_builder["content-encoding"] = "gzip"
+                headers_builder["origin"] = "https://music.youtube.com"
                 headers_builder["user-agent"] = user_agent
 
                 youtubei_headers = headers_builder.build()
@@ -377,8 +378,9 @@ class Api {
             }
 
             if (plain) {
-                for (header in listOf("accept-language", "user-agent", "accept-encoding", "content-encoding")) {
-                    header(header, youtubei_headers!![header]!!)
+                for (header in listOf("accept-language", "user-agent", "accept-encoding", "content-encoding", "origin")) {
+                    val value = youtubei_headers!![header] ?: continue
+                    header(header, value)
                 }
             }
             else {
@@ -392,7 +394,7 @@ class Api {
             return url("https://music.youtube.com$endpoint${joiner}prettyPrint=false")
         }
 
-        internal fun getYoutubeiRequestBody(body: Map<String, Any?>?, context: YoutubeiContextType = YoutubeiContextType.BASE): RequestBody {
+        internal fun getYoutubeiRequestBody(body: Map<String, Any?>? = null, context: YoutubeiContextType = YoutubeiContextType.BASE): RequestBody {
             val final_body = context.getContext().toMutableMap()
             for (entry in body ?: emptyMap()) {
                 final_body[entry.key] = entry.value

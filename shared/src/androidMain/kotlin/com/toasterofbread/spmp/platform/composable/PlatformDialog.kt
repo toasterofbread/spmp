@@ -30,6 +30,20 @@ actual fun PlatformDialog(
 }
 
 @Composable
+actual fun PlatformDialog(
+    onDismissRequest: () -> Unit,
+    content: @Composable () -> Unit
+) {
+    Dialog(
+        onDismissRequest,
+        DialogProperties(decorFitsSystemWindows = false)
+    ) {
+        content()
+    }
+}
+
+
+@Composable
 actual fun PlatformAlertDialog(
     onDismissRequest: () -> Unit,
     confirmButton: @Composable () -> Unit,

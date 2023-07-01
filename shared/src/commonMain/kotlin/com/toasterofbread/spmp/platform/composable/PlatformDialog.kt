@@ -14,6 +14,12 @@ expect fun PlatformDialog(
 )
 
 @Composable
+expect fun PlatformDialog(
+    onDismissRequest: () -> Unit,
+    content: @Composable () -> Unit
+)
+
+@Composable
 expect fun PlatformAlertDialog(
     onDismissRequest: () -> Unit,
     confirmButton: @Composable () -> Unit,
@@ -34,8 +40,8 @@ expect fun PlatformAlertDialog(
     onDismissRequest: () -> Unit,
     confirmButton: @Composable () -> Unit,
     modifier: Modifier = Modifier,
-    dismissButton: @Composable() (() -> Unit)? = null,
-    icon: @Composable() (() -> Unit)? = null,
-    title: @Composable() (() -> Unit)? = null,
-    text: @Composable() (() -> Unit)? = null
+    dismissButton: @Composable (() -> Unit)? = null,
+    icon: @Composable (() -> Unit)? = null,
+    title: @Composable (() -> Unit)? = null,
+    text: @Composable (() -> Unit)? = null
 )

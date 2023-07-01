@@ -14,7 +14,6 @@ import com.toasterofbread.spmp.platform.WebViewLogin
 import com.toasterofbread.spmp.platform.composable.PlatformAlertDialog
 import com.toasterofbread.spmp.platform.isWebViewLoginSupported
 import com.toasterofbread.spmp.resources.getString
-import com.toasterofbread.spmp.resources.getStringTODO
 import com.toasterofbread.utils.composable.LinkifyText
 import okhttp3.Request
 import java.net.URI
@@ -79,7 +78,7 @@ fun YoutubeMusicLogin(modifier: Modifier = Modifier, manual: Boolean = false, on
                 val result = Api.request(account_request)
                 result.fold(
                     { response ->
-                        val parsed: AccountMenuResponse = Api.klaxon.parse(response.body!!.charStream())!!
+                        val parsed: YTAccountMenuResponse = Api.klaxon.parse(response.body!!.charStream())!!
                         response.close()
 
                         onFinished(Result.success(
@@ -106,45 +105,19 @@ fun YoutubeMusicLogin(modifier: Modifier = Modifier, manual: Boolean = false, on
     }
 }
 
-@OptIn(ExperimentalMaterial3Api::class)
-@Composable
-fun YoutubeMusicManualLogin(modifier: Modifier = Modifier, onFinished: (Result<YoutubeMusicAuthInfo>?) -> Unit) {
-    Column(modifier) {
-        Text(getStringTODO("TODO"))
+data class YTAccountMenuResponse(val actions: List<Action>) {
+    data class Action(val openPopupAction: OpenPopupAction)
+    data class OpenPopupAction(val popup: Popup)
+    data class Popup(val multiPageMenuRenderer: MultiPageMenuRenderer)
+    data class MultiPageMenuRenderer(val sections: List<Section>, val header: Header? = null)
 
-        var headers_value by remember { mutableStateOf("") }
-        TextField(
-            headers_value, 
-            { headers_value = it }, 
-            Modifier.fillMaxWidth(), 
-            label = {
-                Text("Headers")
-            }
-        )
+    data class Section(val multiPageMenuSectionRenderer: MultiPageMenuSectionRenderer)
+    data class MultiPageMenuSectionRenderer(val items: List<Item>)
+    data class Item(val compactLinkRenderer: CompactLinkRenderer)
+    data class CompactLinkRenderer(val navigationEndpoint: NavigationEndpoint? = null)
 
-        Button({
-            onFinished(Result.success(
-                TODO(headers_value)
-            ))
-        }) {
-            Text(getStringTODO("Done"))
-        }
-    }
-}
-
-private class AccountMenuResponse(val actions: List<Action>) {
-    class Action(val openPopupAction: OpenPopupAction)
-    class OpenPopupAction(val popup: Popup)
-    class Popup(val multiPageMenuRenderer: MultiPageMenuRenderer)
-    class MultiPageMenuRenderer(val sections: List<Section>, val header: Header? = null)
-
-    class Section(val multiPageMenuSectionRenderer: MultiPageMenuSectionRenderer)
-    class MultiPageMenuSectionRenderer(val items: List<Item>)
-    class Item(val compactLinkRenderer: CompactLinkRenderer)
-    class CompactLinkRenderer(val navigationEndpoint: NavigationEndpoint? = null)
-
-    class Header(val activeAccountHeaderRenderer: ActiveAccountHeaderRenderer)
-    class ActiveAccountHeaderRenderer(val accountName: TextRuns, val accountPhoto: MusicThumbnailRenderer.Thumbnail)
+    data class Header(val activeAccountHeaderRenderer: ActiveAccountHeaderRenderer)
+    data class ActiveAccountHeaderRenderer(val accountName: TextRuns, val accountPhoto: MusicThumbnailRenderer.Thumbnail)
 
     fun getAritst(): Artist? {
         val account = actions.first().openPopupAction.popup.multiPageMenuRenderer.header!!.activeAccountHeaderRenderer

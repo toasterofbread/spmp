@@ -20,10 +20,10 @@ actual fun PlatformAlertDialog(
     onDismissRequest: () -> Unit,
     confirmButton: @Composable () -> Unit,
     modifier: Modifier,
-    dismissButton: @Composable() (() -> Unit)?,
-    icon: @Composable() (() -> Unit)?,
-    title: @Composable() (() -> Unit)?,
-    text: @Composable() (() -> Unit)?,
+    dismissButton: @Composable (() -> Unit)?,
+    icon: @Composable (() -> Unit)?,
+    title: @Composable (() -> Unit)?,
+    text: @Composable (() -> Unit)?,
     shape: Shape,
     containerColor: Color,
     iconContentColor: Color,
@@ -38,10 +38,10 @@ actual fun PlatformAlertDialog(
     onDismissRequest: () -> Unit,
     confirmButton: @Composable () -> Unit,
     modifier: Modifier,
-    dismissButton: @Composable() (() -> Unit)?,
-    icon: @Composable() (() -> Unit)?,
-    title: @Composable() (() -> Unit)?,
-    text: @Composable() (() -> Unit)?
+    dismissButton: @Composable (() -> Unit)?,
+    icon: @Composable (() -> Unit)?,
+    title: @Composable (() -> Unit)?,
+    text: @Composable (() -> Unit)?
 ) {
     TODO()
 }

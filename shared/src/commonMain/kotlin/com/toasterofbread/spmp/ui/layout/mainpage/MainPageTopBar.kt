@@ -60,7 +60,7 @@ fun MainPageTopBar(
                 }
             }) {
                 Crossfade(auth_info) { info ->
-                    if (auth_info.initialised) {
+                    if (info.initialised) {
                         info.own_channel.Thumbnail(
                             MediaItemThumbnailProvider.Quality.LOW,
                             Modifier.clip(CircleShape).size(27.dp),

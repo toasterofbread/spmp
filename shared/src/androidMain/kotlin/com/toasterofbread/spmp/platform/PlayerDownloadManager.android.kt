@@ -160,7 +160,7 @@ actual class PlayerDownloadManager actual constructor(val context: PlatformConte
         onService {
             val instance = result_callback_id++
             if (onCompleted != null) {
-                addResultCallback(PlayerDownloadService.IntentAction.START_DOWNLOAD, song_id, instance) { data ->
+                addResultCallback(PlayerDownloadService.IntentAction.STATUS_CHANGED, song_id, instance) { data ->
                     onCompleted(data["status"] as DownloadStatus)
                 }
             }

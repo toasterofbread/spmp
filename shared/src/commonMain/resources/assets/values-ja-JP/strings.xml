@@ -232,6 +232,16 @@
     <string name="s_group_rec_feed">おすすめフィード</string>
     <string name="s_key_feed_show_filters">フィルターを表示する</string>
 
+    <string name="s_cat_player">プレイヤー</string>
+
+    <string name="s_key_np_queue_wave_border_mode">曲キューの波ボーダーのアニメーションモード</string>
+    <string name="s_sub_np_queue_wave_border_mode">曲キューと操作ボタンの間にある波型ボーダーのアニメーション方法</string>
+    <string name="s_option_wave_border_mode_time">時の流れ</string>
+    <string name="s_option_wave_border_mode_time_sync">時の流れ（再生時のみ）</string>
+    <string name="s_option_wave_border_mode_scroll">曲キューのスクロールと</string>
+    <string name="s_option_wave_border_mode_none">アニメーションなし</string>
+    <string name="s_option_wave_border_mode_line">線型ボーダー</string>
+
     <string name="radio_builder_title">ラジオ番組を作成</string>
     <string name="radio_builder_no_songs_match_criteria">条件に当てはまる曲がありません</string>
     <string name="radio_builder_next_button">次へ</string>
@@ -264,7 +274,7 @@
     <string name="search_entry_field_hint">検索</string>
     <string name="search_results_loading">ロード中</string>
 
-    <string name="s_cat_discord_status">Discord ステータス</string>
+    <string name="s_cat_discord_status">Discordステータス</string>
 
     <string name="s_discord_status_text_info">以下のキーワードをテキスト内で使うことで、流れてる曲の情報を表示することができます:&#xA;- $song (曲)&#xA;- $artist (アーティスト)</string>
 
@@ -297,6 +307,7 @@
 
     <string name="s_cat_desc_general">言語やアプリ動作などのオプション</string>
     <string name="s_cat_desc_home_page">おすすめの曲やアーティストの調節</string>
+    <string name="s_cat_desc_player">音楽プレイヤー画面の変更</string>
     <string name="s_cat_desc_library">ライブラリの表示設定</string>
     <string name="s_cat_desc_theming">アプリ内の色をカスタマイズする</string>
     <string name="s_cat_desc_lyrics">歌詞の表示や動作の設定</string>

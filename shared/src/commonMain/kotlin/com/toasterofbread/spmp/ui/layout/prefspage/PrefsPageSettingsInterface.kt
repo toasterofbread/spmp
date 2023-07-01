@@ -54,6 +54,7 @@ internal fun rememberPrefsPageSettingsInterfade(pill_menu: PillMenu, ytm_auth: S
                             when (getCategory()) {
                                 PrefsPageCategory.GENERAL -> getGeneralCategory()
                                 PrefsPageCategory.FEED -> getFeedCategory()
+                                PrefsPageCategory.PLAYER -> getPlayerCategory()
                                 PrefsPageCategory.LIBRARY -> getLibraryCategory()
                                 PrefsPageCategory.THEME -> getThemeCategory(Theme.manager)
                                 PrefsPageCategory.LYRICS -> getLyricsCategory()

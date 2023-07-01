@@ -8,6 +8,7 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.layout.onSizeChanged
 import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
+import androidx.compose.ui.zIndex
 import com.toasterofbread.spmp.platform.PlatformContext
 import com.toasterofbread.spmp.platform.ProjectPreferences
 import com.toasterofbread.spmp.ui.component.PillMenu
@@ -85,7 +86,12 @@ class SettingsInterface(
                     }
                 }
 
-                page.TitleBar(page.id == root_page, Modifier.requiredHeight(30.dp)) { go_back = true }
+                page.TitleBar(
+                    page.id == root_page,
+                    Modifier.zIndex(10f)
+                ) {
+                    go_back = true
+                }
 
                 Box(
                     contentAlignment = Alignment.TopCenter

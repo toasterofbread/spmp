@@ -21,6 +21,7 @@ import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.text.AnnotatedString
 import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
+import androidx.compose.ui.zIndex
 import com.toasterofbread.composesettings.ui.SettingsInterface
 import com.toasterofbread.settings.model.*
 import com.toasterofbread.spmp.model.*
@@ -42,9 +43,10 @@ internal enum class PrefsPageScreen {
     DISCORD_LOGIN,
     DISCORD_MANUAL_LOGIN
 }
-internal enum class PrefsPageCategory {
+enum class PrefsPageCategory {
     GENERAL,
     FEED,
+    PLAYER,
     LIBRARY,
     THEME,
     LYRICS,
@@ -57,6 +59,7 @@ internal enum class PrefsPageCategory {
     fun getIcon(filled: Boolean = false): ImageVector = when (this) {
         GENERAL -> if (filled) Icons.Filled.Settings else Icons.Outlined.Settings
         FEED -> if (filled) Icons.Filled.FormatListBulleted else Icons.Outlined.FormatListBulleted
+        PLAYER -> if (filled) Icons.Filled.PlayArrow else Icons.Outlined.PlayArrow
         LIBRARY -> if (filled) Icons.Filled.LibraryMusic else Icons.Outlined.LibraryMusic
         THEME -> if (filled) Icons.Filled.Palette else Icons.Outlined.Palette
         LYRICS -> if (filled) Icons.Filled.MusicNote else Icons.Outlined.MusicNote
@@ -68,6 +71,7 @@ internal enum class PrefsPageCategory {
     fun getTitle(): String = when (this) {
         GENERAL -> getString("s_cat_general")
         FEED -> getString("s_cat_home_page")
+        PLAYER -> getString("s_cat_player")
         LIBRARY -> getString("s_cat_library")
         THEME -> getString("s_cat_theming")
         LYRICS -> getString("s_cat_lyrics")
@@ -79,6 +83,7 @@ internal enum class PrefsPageCategory {
     fun getDescription(): String = when (this) {
         GENERAL -> getString("s_cat_desc_general")
         FEED -> getString("s_cat_desc_home_page")
+        PLAYER -> getString("s_cat_desc_player")
         LIBRARY -> getString("s_cat_desc_library")
         THEME -> getString("s_cat_desc_theming")
         LYRICS -> getString("s_cat_desc_lyrics")
@@ -90,7 +95,13 @@ internal enum class PrefsPageCategory {
 
 @OptIn(ExperimentalMaterial3Api::class, ExperimentalResourceApi::class)
 @Composable
-fun PrefsPage(pill_menu: PillMenu, bottom_padding: Dp, modifier: Modifier = Modifier, close: () -> Unit) {
+fun PrefsPage(
+    pill_menu: PillMenu,
+    bottom_padding: Dp,
+    category_state: MutableState<PrefsPageCategory?>,
+    modifier: Modifier = Modifier,
+    close: () -> Unit,
+) {
     val ytm_auth = remember {
         SettingsValueState(
             Settings.KEY_YTM_AUTH.name,
@@ -100,7 +111,7 @@ fun PrefsPage(pill_menu: PillMenu, bottom_padding: Dp, modifier: Modifier = Modi
         ).init(Settings.prefs, Settings.Companion::provideDefault)
     }
 
-    var current_category: PrefsPageCategory? by remember { mutableStateOf(null) }
+    var current_category by category_state
     val category_open by remember { derivedStateOf { current_category != null } }
     val settings_interface: SettingsInterface =
         rememberPrefsPageSettingsInterfade(pill_menu, ytm_auth, { current_category }, { current_category = null })
@@ -148,7 +159,8 @@ fun PrefsPage(pill_menu: PillMenu, bottom_padding: Dp, modifier: Modifier = Modi
     Column(modifier) {
         MusicTopBar(
             Settings.KEY_LYRICS_SHOW_IN_SETTINGS,
-            Modifier.fillMaxWidth()
+            Modifier.fillMaxWidth().zIndex(10f),
+            bottom_border_colour = if (current_category == null) Theme.current.background else null
         )
 
         Crossfade(category_open || settings_interface.current_page.id!! != PrefsPageScreen.ROOT.ordinal) { open ->

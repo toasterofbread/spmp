@@ -42,7 +42,6 @@ import com.toasterofbread.utils.setAlpha
 
 @Composable
 fun ManualLoginPage(
-    title: String,
     steps: List<String>,
     suffix: String,
     entry_label: String,
@@ -57,19 +56,15 @@ fun ManualLoginPage(
     Column(
         modifier
             .padding(
-                horizontal = SpMp.context.getDefaultHorizontalPadding(),
                 vertical = SpMp.context.getDefaultVerticalPadding()
             )
-            .padding(bottom = player.nowPlayingBottomPadding(true))
+            .padding(
+                top = 40.dp,
+                bottom = player.nowPlayingBottomPadding(true)
+            )
             .fillMaxHeight(),
         verticalArrangement = Arrangement.spacedBy(30.dp)
     ) {
-        Text(
-            title,
-            Modifier.align(Alignment.CenterHorizontally).padding(bottom = 25.dp),
-            style = MaterialTheme.typography.headlineLarge
-        )
-
         if (desktop_browser_needed) {
             Text(
                 getString("manual_login_desktop_browser_may_be_needed"),
@@ -82,7 +77,7 @@ fun ManualLoginPage(
         fun step(text: String, index: Int, modifier: Modifier = Modifier, shrink: Boolean = false) {
             Row(modifier.alpha(0.85f), horizontalArrangement = Arrangement.spacedBy(5.dp), verticalAlignment = Alignment.Bottom) {
                 Text(
-                    index.toString(),
+                    (index + 1).toString(),
                     style = MaterialTheme.typography.bodySmall
                 )
 

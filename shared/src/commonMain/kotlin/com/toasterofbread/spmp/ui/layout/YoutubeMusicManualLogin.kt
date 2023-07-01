@@ -13,7 +13,6 @@ import kotlinx.coroutines.launch
 fun YoutubeMusicManualLogin(modifier: Modifier = Modifier, onFinished: (Result<YoutubeMusicAuthInfo>?) -> Unit) {
     val coroutine_scope = rememberCoroutineScope()
     ManualLoginPage(
-        title = getString("youtube_manual_login_title"),
         steps = getStringArray("youtube_manual_login_steps"),
         suffix = getString("youtube_manual_login_suffix"),
         entry_label = getString("youtube_manual_login_field"),

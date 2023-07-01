@@ -332,7 +332,7 @@ private fun TitleBar(
 
 @Composable
 fun LazyMediaItemLayoutColumn(
-    layoutsProvider: () -> List<MediaItemLayout>,
+    getLayouts: () -> List<MediaItemLayout>,
     modifier: Modifier = Modifier,
     layout_modifier: Modifier = Modifier,
     padding: PaddingValues = PaddingValues(0.dp),
@@ -349,7 +349,7 @@ fun LazyMediaItemLayoutColumn(
     multiselect_context: MediaItemMultiSelectContext? = null,
     getType: ((MediaItemLayout) -> MediaItemLayout.Type)? = null
 ) {
-    val layouts = layoutsProvider()
+    val layouts = getLayouts()
     require(getType != null || layouts.all { it.type != null })
 
     LazyColumn(

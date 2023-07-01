@@ -15,6 +15,7 @@ import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.layout.onSizeChanged
 import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.unit.IntOffset
 import androidx.compose.ui.unit.dp
@@ -85,6 +86,7 @@ class QueueTabItem(val song: Song, val key: Int) {
         val anchors = mapOf(-max_offset to 0, 0f to 1, max_offset to 2)
         val player = LocalPlayerState.current
 
+        val density = LocalDensity.current
         Box(
             Modifier
                 .offset { IntOffset(swipe_state.offset.value.roundToInt(), 0) }

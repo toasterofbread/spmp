@@ -1,12 +1,14 @@
 package com.toasterofbread.utils.composable
 
 import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.requiredHeight
 import androidx.compose.foundation.text.InlineTextContent
 import androidx.compose.material3.LocalContentColor
 import androidx.compose.material3.LocalTextStyle
 import androidx.compose.material3.Text
 import androidx.compose.runtime.*
+import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.drawWithContent
 import androidx.compose.ui.graphics.Color
@@ -30,10 +32,10 @@ fun WidthShrinkText(
 
 	val delta = 0.05
 
-    Box {
+    Box(modifier) {
         Text(
             string,
-            modifier.drawWithContent { if (ready_to_draw) drawContent() },
+            Modifier.fillMaxWidth().drawWithContent { if (ready_to_draw) drawContent() },
             maxLines = 1,
             softWrap = false,
             style = text_style,
@@ -51,7 +53,7 @@ fun WidthShrinkText(
         text_style_large?.also {
             Text(
                 string,
-                modifier.drawWithContent {}.requiredHeight(1.dp),
+                Modifier.fillMaxWidth().drawWithContent {}.requiredHeight(1.dp),
                 maxLines = 1,
                 softWrap = false,
                 style = it,

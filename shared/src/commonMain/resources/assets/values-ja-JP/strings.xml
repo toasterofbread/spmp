@@ -312,9 +312,9 @@
     <string name="discord_status_default_button_project">Visit project page</string>
 
     <string name="action_login_manually">手動でログインする</string>
-    <string name="ytm_auth_not_signed_in">ログインされていません</string>
-    <string name="ytm_auth_sign_in">ログイン</string>
-    <string name="ytm_auth_sign_out">ログアウト</string>
+    <string name="auth_not_signed_in">ログインされていません</string>
+    <string name="auth_sign_in">ログイン</string>
+    <string name="auth_sign_out">ログアウト</string>
 
     <string name="warning_ytm_login">今からアプリ内で YouTube Music のログインページに移動します。&#xA;&#xA;ログインを終えたら、セッションクッキーを取って、保存し、オススメフィードやチャンネル登録などの YouTube Music への API リクエストのみに使います。&#xA;&#xA;よろしいですか？</string>
     <string name="info_ytm_login">アプリ内で YouTube Music のログインページに移動します。&#xA;&#xA;ログインを終えたら、セッションクッキーを取って、保存し、オススメフィードやチャンネル登録などの YouTube Music への API リクエストのみに使います。</string>
@@ -322,19 +322,32 @@
     <string name="warning_discord_login">今からアプリ内で Discord のログインページに移動します。&#xA;&#xA;ログインを終えたら、ユーザトーケンを取って、保存し、ステータスを変えるための Discord への API リクエストのみに使います。&#xA;&#xA;詳しくは https://github.com/dead8309/Kizzy をご覧ください。&#xA;&#xA;よろしいですか？</string>
     <string name="info_discord_login">アプリ内で Discord のログインページに移動します。&#xA;&#xA;ログインを終えたら、ユーザトーケンを取って、保存し、ステータスを変えるための Discord への API リクエストのみに使います。&#xA;&#xA;詳しくは https://github.com/dead8309/Kizzy をご覧ください。</string>
 
-    <string name="info_youtube_manual_login_title">YouTube手動ログイン</string>
-    <string name="info_youtube_manual_login_prefix">この手順を行うには、デスクトップ上のブラウザーが必要かもしれません</string>
-    <string-array name="info_youtube_manual_login_steps">
+    <string name="youtube_manual_login_title">YouTube手動ログイン</string>
+    <string-array name="youtube_manual_login_steps">
         <item>ブラウザーで新しいタブを開く</item>
         <item>開発者コンソールを開く (多くのブラウザーではctrl+shift+I)</item>
         <item>「ネットワーク」タブへ移動</item>
-        <item>そのタブでhttps://music.youtube.com/を開く</item>
+        <item>そのタブでhttps://music.youtube.comを開く</item>
         <item>https://music.youtube.com/youtubei/v1/...　へ配信されたPOSTリクエストを探す（/browse や /account_menu　など）</item>
         <item>リクエストのヘッダーをコピして、以下に入力</item>
     </string-array>
-    <string name="info_youtube_manual_login_suffix">Firefoxではリクエストを右クリックし、「Copy value」そして「Copy Request Headers」を選択すると必要な情報がコピーされます。&#xA;&#xA;他のブラウザーでは, リクエストを選択して「Headers」タブを開き、「Request headers」まで降りて「Accept: */*」からの情報をすべてコピーしてください。</string>
-    <string name="info_youtube_manual_login_field">ヘッダー</string>
+    <string name="youtube_manual_login_suffix">Firefoxではリクエストを右クリックし、「Copy value」そして「Copy Request Headers」を選択すると必要な情報がコピーされます。&#xA;&#xA;他のブラウザーでは, リクエストを選択して「Headers」タブを開き、「Request headers」まで降りて「Accept: */*」からの情報をすべてコピーしてください。</string>
+    <string name="youtube_manual_login_field">ヘッダー</string>
+
+    <string name="discord_manual_login_title">Discord manual log-in</string>
+    <string-array name="discord_manual_login_steps">
+        <item>ブラウザーで新しいタブを開く</item>
+        <item>開発者コンソールを開く (多くのブラウザーではctrl+shift+I)</item>
+        <item>「ネットワーク」タブへ移動</item>
+        <item>そのタブでhttps://discord.com/appを開く</item>
+        <item>https://discord.com/api/v9/...　へ配信されたPOSTリクエストを探す（/survey や /player　など）</item>
+        <item>「Authorization」のリクエストのヘッダーをコピして、以下に入力</item>
+    </string-array>
+    <string name="discord_manual_login_suffix"></string>
+    <string name="discord_manual_login_field">Authorization</string>
+
     <string name="manual_login_error_missing_following_headers">以下のヘッダーが含まれていません：</string>
+    <string name="manual_login_desktop_browser_may_be_needed">この手順を行うには、デスクトップ上のブラウザーが必要かもしれません</string>
 
     <string name="lpm_action_radio">ラジオを始める</string>
     <string name="lpm_action_play">再生</string>

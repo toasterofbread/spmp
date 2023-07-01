@@ -440,18 +440,17 @@
     <string name="discord_status_default_button_project">Visit project page</string>
 
     <string name="action_login_manually">Log in manually</string>
-    <string name="ytm_auth_not_signed_in">Not signed in</string>
-    <string name="ytm_auth_sign_in">Sign in</string>
-    <string name="ytm_auth_sign_out">Sign out</string>
+    <string name="auth_not_signed_in">Not signed in</string>
+    <string name="auth_sign_in">Sign in</string>
+    <string name="auth_sign_out">Sign out</string>
 
     <string name="warning_ytm_login">You will be directed to an in-app webview in order to log into YouTube Music.&#xA;&#xA;Once logged in, your session cookie will be extracted, stored, and used only for API requests to YouTube Music such as getting your recommended feed and subscribing to artists.&#xA;&#xA;Continue?</string>
     <string name="info_ytm_login">You will be directed to an in-app webview in order to log into YouTube Music.&#xA;&#xA;Once logged in, your session cookie will be extracted, stored, and used only for API requests to YouTube Music such as getting your recommended feed and subscribing to artists.</string>
     <string name="warning_discord_login">You will be directed to an in-app webview in order to log into Discord.&#xA;&#xA;Once logged in, your account token will be extracted, stored, and used only for gateway connections to Discord for setting your current status.&#xA;&#xA;See https://github.com/dead8309/Kizzy for more information.&#xA;&#xA;Continue?</string>
     <string name="info_discord_login">You will be directed to an in-app webview in order to log into Discord.&#xA;&#xA;Once logged in, your account token will be extracted, stored, and used only for gateway connections to Discord for setting your current status.&#xA;&#xA;See https://github.com/dead8309/Kizzy for more information.</string>
 
-    <string name="info_youtube_manual_login_title">YouTube manual log-in</string>
-    <string name="info_youtube_manual_login_prefix">You may need to use a desktop browser to complete these steps</string>
-    <string-array name="info_youtube_manual_login_steps">
+    <string name="youtube_manual_login_title">YouTube manual log-in</string>
+    <string-array name="youtube_manual_login_steps">
         <item>Open a new browser tab</item>
         <item>Open the developer console (ctrl+shift+I on most browsers)</item>
         <item>Go to the network tab</item>
@@ -459,9 +458,23 @@
         <item>Find any POST request to https://music.youtube.com/youtubei/v1/... such as /browse or /account_menu</item>
         <item>Copy the request headers and enter them below</item>
     </string-array>
-    <string name="info_youtube_manual_login_suffix">On Firefox, this can be done by right-clicking the request and selecting 'Copy value' and then 'Copy Request Headers'.&#xA;&#xA;In other browsers, click on the request and go to the 'Headers' tab, scroll down to 'Request headers', and copy all of the headers in that section starting from 'Accept: */*'.</string>
-    <string name="info_youtube_manual_login_field">Headers</string>
+    <string name="youtube_manual_login_suffix">On Firefox, this can be done by right-clicking the request and selecting 'Copy value' and then 'Copy Request Headers'.&#xA;&#xA;In other browsers, click on the request and go to the 'Headers' tab, scroll down to 'Request headers', and copy all of the headers in that section starting from 'Accept: */*'.</string>
+    <string name="youtube_manual_login_field">Headers</string>
+
     <string name="manual_login_error_missing_following_headers">Missing the following headers:</string>
+    <string name="manual_login_desktop_browser_may_be_needed">You may need to use a desktop browser to complete these steps</string>
+
+    <string name="discord_manual_login_title">Discord manual log-in</string>
+    <string-array name="discord_manual_login_steps">
+        <item>Open a new browser tab</item>
+        <item>Open the developer console (ctrl+shift+I on most browsers)</item>
+        <item>Go to the network tab</item>
+        <item>Go to https://discord.com/app</item>
+        <item>Find a POST request to https://discord.com/api/v9/... with such as /survey or /player</item>
+        <item>Copy the 'Authorization' header from the request headers section and enter it below</item>
+    </string-array>
+    <string name="discord_manual_login_suffix"></string>
+    <string name="discord_manual_login_field">Authorization</string>
 
     <string name="err_root_not_granted">Could not get root privledges</string>
     <string name="err_secure_settings_grant_failed">Granting secure settings permission failed</string>

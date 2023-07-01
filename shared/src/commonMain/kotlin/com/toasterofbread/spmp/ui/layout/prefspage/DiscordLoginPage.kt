@@ -6,6 +6,7 @@ import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
 import com.toasterofbread.composesettings.ui.SettingsPage
 import com.toasterofbread.settings.model.SettingsValueState
+import com.toasterofbread.spmp.api.getOrReport
 import com.toasterofbread.spmp.ui.layout.DiscordLogin
 
 internal fun getDiscordLoginPage(discord_auth: SettingsValueState<String>, manual: Boolean = false): SettingsPage {
@@ -21,12 +22,24 @@ internal fun getDiscordLoginPage(discord_auth: SettingsValueState<String>, manua
             goBack: () -> Unit,
         ) {
             DiscordLogin(Modifier.fillMaxSize(), manual = manual) { auth_info ->
-                auth_info?.fold({
-                    discord_auth.value = it ?: ""
-                }, {
-                    throw RuntimeException(it)
-                })
-                goBack()
+                if (auth_info == null) {
+                    goBack()
+                    return@DiscordLogin
+                }
+
+                auth_info.fold(
+                    {
+                        if (it != null) {
+                            discord_auth.value = it
+                        }
+                        goBack()
+                    },
+                    { error ->
+                        error.message?.also {
+                            SpMp.context.sendToast(it)
+                        }
+                    }
+                )
             }
         }
 

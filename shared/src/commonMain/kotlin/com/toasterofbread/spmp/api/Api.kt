@@ -35,16 +35,23 @@ import org.schabi.newpipe.extractor.downloader.Response as NewPipeResponse
 
 const val DEFAULT_CONNECT_TIMEOUT = 3000
 
-fun <T> Result.Companion.failure(response: Response): Result<T> {
+fun <T> Result.Companion.failure(response: Response, is_gzip: Boolean = true): Result<T> {
     var body: String
-    try {
-        val stream = response.getStream()
-        body = stream.reader().readText()
-        stream.close()
+    if (is_gzip) {
+        try {
+            val stream = response.getStream()
+            body = stream.reader().readText()
+            stream.close()
+        }
+        catch (e: ZipException) {
+            body = response.body!!.string()
+        }
     }
-    catch (e: ZipException) {
+    else {
         body = response.body!!.string()
     }
+
+    println("FAAAAAAAAIL $body")
 
     response.close()
     return failure(RuntimeException(body))
@@ -239,13 +246,13 @@ class Api {
             }
         }
 
-        fun request(request: Request, allow_fail_response: Boolean = false): Result<Response> {
+        fun request(request: Request, allow_fail_response: Boolean = false, is_gzip: Boolean = true): Result<Response> {
             try {
                 val response = client.newCall(request).execute()
                 if (response.isSuccessful || allow_fail_response) {
                     return Result.success(response)
                 }
-                return Result.failure(response)
+                return Result.failure(response, is_gzip)
             }
             catch (e: Throwable) {
                 return Result.failure(e)

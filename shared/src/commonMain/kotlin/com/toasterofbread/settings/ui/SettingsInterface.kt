@@ -38,6 +38,8 @@ class SettingsInterface(
     }
 
     suspend fun goBack() {
+        pill_menu?.clearAlongsideActions()
+        pill_menu?.clearExtraActions()
         if (page_stack.size > 0) {
             val target_page = page_stack.removeLast()
             if (current_page != target_page) {

@@ -1,6 +1,7 @@
 package com.toasterofbread.spmp.platform
 
 import android.graphics.Bitmap
+import android.os.Build
 import android.view.ViewGroup
 import android.webkit.*
 import androidx.compose.animation.AnimatedVisibility
@@ -48,8 +49,13 @@ actual fun WebViewLogin(
 
     OnChangedEffect(web_view, is_dark) {
         web_view?.apply {
-            @Suppress("DEPRECATION")
-            settings.forceDark = if (is_dark) WebSettings.FORCE_DARK_ON else WebSettings.FORCE_DARK_OFF
+            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
+                settings.isAlgorithmicDarkeningAllowed = is_dark
+            }
+            else {
+                @Suppress("DEPRECATION")
+                settings.forceDark = if (is_dark) WebSettings.FORCE_DARK_ON else WebSettings.FORCE_DARK_OFF
+            }
         }
     }
 

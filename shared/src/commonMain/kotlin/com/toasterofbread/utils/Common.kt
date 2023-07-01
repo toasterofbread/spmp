@@ -164,10 +164,11 @@ fun catchInterrupts(action: () -> Unit): Boolean {
 	return false
 }
 
-fun String.indexOfOrNull(string: String, start_index: Int = 0, ignore_case: Boolean = false): Int? {
-	val index = indexOf(string, start_index, ignore_case)
-	return if (index == -1) null else index
-}
+fun String.indexOfOrNull(string: String, start_index: Int = 0, ignore_case: Boolean = false): Int? =
+	indexOf(string, start_index, ignore_case).takeIf { it != -1 }
+
+fun String.indexOfOrNull(char: Char, start_index: Int = 0, ignore_case: Boolean = false): Int? =
+	indexOf(char, start_index, ignore_case).takeIf { it != -1 }
 
 fun String.indexOfFirstOrNull(start: Int = 0, predicate: (Char) -> Boolean): Int? {
 	for (i in start until length) {

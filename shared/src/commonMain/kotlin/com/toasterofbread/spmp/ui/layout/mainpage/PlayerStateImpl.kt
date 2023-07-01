@@ -3,6 +3,7 @@ package com.toasterofbread.spmp.ui.layout.mainpage
 import SpMp
 import androidx.compose.animation.Crossfade
 import androidx.compose.animation.core.Animatable
+import androidx.compose.animation.core.animateDpAsState
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyListState
 import androidx.compose.material.ExperimentalMaterialApi
@@ -292,18 +293,27 @@ class PlayerStateImpl(private val context: PlatformContext): PlayerState(null, n
         val screen_height = context.getScreenHeight()
         val bottom_padding = context.getNavigationBarHeight()
 
+        val keyboard_insets = SpMp.context.getImeInsets()
+        val keyboard_bottom_padding = if (keyboard_insets == null || np_swipe_state.value.targetValue != 0) 0 else keyboard_insets.getBottom(density)
+
         return base.offset {
             IntOffset(
                 0,
                 with (density) {
-                    (-np_swipe_state.value.offset.value.dp - (screen_height * 0.5f) - bottom_padding).toPx().toInt()
+                    (-np_swipe_state.value.offset.value.dp - (screen_height * 0.5f) - bottom_padding).toPx().toInt() - keyboard_bottom_padding
                 }
             )
         }
     }
 
     @Composable
-    override fun nowPlayingBottomPadding(): Dp = context.getNavigationBarHeight()
+    override fun nowPlayingBottomPadding(include_np: Boolean): Dp {
+        if (include_np) {
+            val np by animateDpAsState(if (session_started) MINIMISED_NOW_PLAYING_HEIGHT.dp else 0.dp)
+            return context.getNavigationBarHeight() + np
+        }
+        return context.getNavigationBarHeight()
+    }
 
     override fun setOverlayPage(page: PlayerOverlayPage?, from_current: Boolean) {
         val current = if (from_current) overlay_page?.first?.getItem() else null

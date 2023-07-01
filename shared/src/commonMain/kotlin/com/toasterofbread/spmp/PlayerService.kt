@@ -579,10 +579,13 @@ class PlayerService : MediaPlayerService() {
             SpMp.Log.info("loadPersistentQueue adding ${songs.size} songs to $pos_data")
 
             withContext(Dispatchers.Main) {
-                clearQueue(save = false)
-                addMultipleToQueue(to_add, 0)
-                seekToSong(pos_data[0].toInt())
-                seekTo(pos_data[1].toLong())
+                if (song_count == 0) {
+                    clearQueue(save = false)
+                    addMultipleToQueue(to_add, 0)
+                    seekToSong(pos_data[0].toInt())
+                    seekTo(pos_data[1].toLong())
+                }
+
                 persistent_queue_loaded = true
                 check(queue_lock.isLocked)
             }

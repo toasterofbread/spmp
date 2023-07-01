@@ -30,7 +30,7 @@ fun GenerateBuildConfig.buildConfig(debug: Boolean) {
 }
 
 val buildConfigDebug = tasks.register("buildConfigDebug", GenerateBuildConfig::class.java) {
-    buildConfig(true)
+    buildConfig(false)
 }
 val buildConfigRelease = tasks.register("buildConfigRelease", GenerateBuildConfig::class.java) {
     buildConfig(false)
@@ -99,7 +99,7 @@ kotlin {
                 implementation("com.google.accompanist:accompanist-swiperefresh:0.21.2-beta")
                 implementation("androidx.localbroadcastmanager:localbroadcastmanager:1.1.0")
                 implementation("androidx.palette:palette:1.0.0")
-                implementation("ro.andob.androidawt:androidawt:1.0.4")
+                implementation("com.github.andob:android-awt:1.0.0")
                 implementation("io.coil-kt:coil-compose:2.3.0")
                 implementation("com.github.dead8309:KizzyRPC:1.0.71")
                 implementation("dev.kord:kord-core:0.9.0")

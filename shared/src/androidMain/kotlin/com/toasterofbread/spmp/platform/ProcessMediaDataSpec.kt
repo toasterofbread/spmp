@@ -4,6 +4,7 @@ import android.content.Context
 import android.net.Uri
 import androidx.media3.common.util.UnstableApi
 import androidx.media3.datasource.DataSpec
+import com.toasterofbread.spmp.model.Settings
 import com.toasterofbread.spmp.model.mediaitem.Song
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.runBlocking
@@ -23,37 +24,13 @@ internal fun processMediaDataSpec(data_spec: DataSpec, context: Context, metered
     }
 
     if (
-        song.registry_entry.getPlayCount(ChronoUnit.WEEKS) >= com.toasterofbread.spmp.model.Settings.KEY_AUTO_DOWNLOAD_THRESHOLD.get<Int>(context)
-        && (com.toasterofbread.spmp.model.Settings.KEY_AUTO_DOWNLOAD_ON_METERED.get(context) || !metered)
+        song.registry_entry.getPlayCount(ChronoUnit.WEEKS) >= Settings.KEY_AUTO_DOWNLOAD_THRESHOLD.get<Int>(context)
+        && (Settings.KEY_AUTO_DOWNLOAD_ON_METERED.get(context) || !metered)
     ) {
         var done = false
         runBlocking {
             download_manager.getDownload(song) { initial_status ->
                 when (initial_status?.status) {
-                    PlayerDownloadManager.DownloadStatus.Status.DOWNLOADING -> {
-                        val listener = object : PlayerDownloadManager.DownloadStatusListener() {
-                            override fun onDownloadChanged(status: PlayerDownloadManager.DownloadStatus) {
-                                if (status.song != song) {
-                                    return
-                                }
-
-                                when (status.status) {
-                                    PlayerDownloadManager.DownloadStatus.Status.IDLE, PlayerDownloadManager.DownloadStatus.Status.DOWNLOADING -> return
-                                    PlayerDownloadManager.DownloadStatus.Status.PAUSED -> throw IllegalStateException()
-                                    PlayerDownloadManager.DownloadStatus.Status.CANCELLED -> {
-                                        done = true
-                                    }
-                                    PlayerDownloadManager.DownloadStatus.Status.FINISHED, PlayerDownloadManager.DownloadStatus.Status.ALREADY_FINISHED -> {
-                                        local_file = download_manager.getSongLocalFile(song)
-                                        done = true
-                                    }
-                                }
-
-                                download_manager.removeDownloadStatusListener(this)
-                            }
-                        }
-                        download_manager.addDownloadStatusListener(listener)
-                    }
                     PlayerDownloadManager.DownloadStatus.Status.IDLE, PlayerDownloadManager.DownloadStatus.Status.CANCELLED, PlayerDownloadManager.DownloadStatus.Status.PAUSED, null -> {
                         download_manager.startDownload(song.id, true) { status ->
                             local_file = status.file
@@ -61,7 +38,31 @@ internal fun processMediaDataSpec(data_spec: DataSpec, context: Context, metered
                         }
                     }
                     PlayerDownloadManager.DownloadStatus.Status.ALREADY_FINISHED, PlayerDownloadManager.DownloadStatus.Status.FINISHED -> throw IllegalStateException()
+                    else -> {}
                 }
+
+                val listener = object : PlayerDownloadManager.DownloadStatusListener() {
+                    override fun onDownloadChanged(status: PlayerDownloadManager.DownloadStatus) {
+                        if (status.song != song) {
+                            return
+                        }
+
+                        when (status.status) {
+                            PlayerDownloadManager.DownloadStatus.Status.IDLE, PlayerDownloadManager.DownloadStatus.Status.DOWNLOADING -> return
+                            PlayerDownloadManager.DownloadStatus.Status.PAUSED -> throw IllegalStateException()
+                            PlayerDownloadManager.DownloadStatus.Status.CANCELLED -> {
+                                done = true
+                            }
+                            PlayerDownloadManager.DownloadStatus.Status.FINISHED, PlayerDownloadManager.DownloadStatus.Status.ALREADY_FINISHED -> {
+                                local_file = download_manager.getSongLocalFile(song)
+                                done = true
+                            }
+                        }
+
+                        download_manager.removeDownloadStatusListener(this)
+                    }
+                }
+                download_manager.addDownloadStatusListener(listener)
             }
 
             var elapsed = 0

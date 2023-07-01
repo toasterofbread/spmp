@@ -132,7 +132,7 @@ class PillMenu(
     @Composable
     fun PillMenu(
         action_count: Int = this.action_count,
-        getAction: @Composable() (Action.(i: Int, action_count: Int) -> Unit) = this.getAction,
+        getAction: @Composable (Action.(i: Int, action_count: Int) -> Unit) = this.getAction,
         expand_state: MutableState<Boolean>? = this.expand_state,
         _background_colour: () -> Color = this._background_colour,
         top: Boolean = this.top,
@@ -285,23 +285,24 @@ class PillMenu(
                         val action = remember(background_colour) { Action(background_colour, background_colour.getContrasted(), getWeightModifier(Float.MAX_VALUE).then(fill_modifier)) }
 
                         @Composable
-                        fun Alongside() {
-                            if (start && alongsideContent != null) {
-                                alongsideContent(action)
-                            }
+                        fun AlongsideContent() {
+                            Row(getWeightModifier(1f).fillMaxSize()) {
+                                if (start && alongsideContent != null) {
+                                    alongsideContent(action)
+                                }
 
-                            for (extra in extra_alongside_actions.let { if (start) it.asReversed() else it }) {
-                                extra(action)
-                            }
+                                for (extra in extra_alongside_actions.let { if (start) it.asReversed() else it }) {
+                                    extra(action)
+                                }
 
-                            if (!start && alongsideContent != null) {
-                                alongsideContent(action)
+                                if (!start && alongsideContent != null) {
+                                    alongsideContent(action)
+                                }
                             }
                         }
 
                         if (!start) {
-                            Alongside()
-                            Spacer(fill_modifier.then(getWeightModifier(1f)))
+                            AlongsideContent()
                         }
 
                         AnimatedVisibility(
@@ -350,8 +351,7 @@ class PillMenu(
                         }
 
                         if (start) {
-                            Spacer(fill_modifier.then(getWeightModifier(1f)))
-                            Alongside()
+                            AlongsideContent()
                         }
                     }
                 }

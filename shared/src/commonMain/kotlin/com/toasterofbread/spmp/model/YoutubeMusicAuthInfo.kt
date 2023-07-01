@@ -4,12 +4,23 @@ import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateListOf
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.setValue
+import com.toasterofbread.spmp.api.Api
+import com.toasterofbread.spmp.api.Api.Companion.addYtHeaders
+import com.toasterofbread.spmp.api.Api.Companion.getStream
+import com.toasterofbread.spmp.api.Api.Companion.ytUrl
+import com.toasterofbread.spmp.api.cast
 import com.toasterofbread.spmp.api.getAccountPlaylists
 import com.toasterofbread.spmp.model.mediaitem.AccountPlaylist
 import com.toasterofbread.spmp.model.mediaitem.Artist
+import com.toasterofbread.spmp.ui.layout.YTAccountMenuResponse
+import com.toasterofbread.utils.printJson
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.runBlocking
 import kotlinx.coroutines.withContext
+import okhttp3.Headers
+import okhttp3.Headers.Companion.headersOf
+import okhttp3.Headers.Companion.toHeaders
+import okhttp3.Request
 
 class YoutubeMusicAuthInfo: Set<String> {
     enum class ValueType { CHANNEL, COOKIE, HEADER, PLAYLIST }
@@ -35,14 +46,7 @@ class YoutubeMusicAuthInfo: Set<String> {
 
     constructor(own_channel: Artist, cookie: String, headers: Map<String, String>) {
         this.own_channel = own_channel
-
-        runBlocking {
-            with(own_channel) {
-                withContext(Dispatchers.IO) {
-                    is_own_channel = true
-                }
-            }
-        }
+        own_channel.is_own_channel = true
 
         this.cookie = cookie
         this.headers = headers
@@ -124,4 +128,50 @@ class YoutubeMusicAuthInfo: Set<String> {
         val split = header.split('=', limit = 2)
         return Pair(split[0], split[1])
     }
+
+    companion object {
+        val REQUIRED_KEYS = listOf("authorization", "cookie")
+
+        suspend fun fromHeaders(headers: Map<String, String>): Result<YoutubeMusicAuthInfo> = withContext(Dispatchers.IO) {
+            for (key in REQUIRED_KEYS) {
+                check(headers.contains(key))
+            }
+
+            val request = Request.Builder()
+                .ytUrl("/youtubei/v1/account/account_menu")
+                .addYtHeaders(true)
+                .apply {
+                    for (key in REQUIRED_KEYS) {
+                        header(key, headers[key]!!)
+                    }
+                }
+                .post(Api.getYoutubeiRequestBody())
+                .build()
+
+            val result = Api.request(request)
+
+            val response = result.getOrNull() ?: return@withContext result.cast()
+            val stream = response.getStream()
+
+            val parsed: YTAccountMenuResponse = try {
+                Api.klaxon.parse(stream)!!
+            }
+            catch (e: Throwable) {
+                return@withContext Result.failure(e)
+            }
+            finally {
+                stream.close()
+            }
+
+            return@withContext Result.success(
+                YoutubeMusicAuthInfo(
+                    parsed.getAritst()!!,
+                    headers["cookie"]!!,
+                    headers
+                )
+            )
+        }
+    }
 }
+
+private class AccountMenuResponse

@@ -75,10 +75,13 @@ class SettingsItemThemeSelector(
     ) {
         Column {
             Row(verticalAlignment = Alignment.CenterVertically) {
-                ItemTitleText(title, theme)
-                Spacer(Modifier
-                    .fillMaxWidth()
-                    .weight(1f))
+                ItemTitleText(
+                    title,
+                    theme,
+                    Modifier
+                        .fillMaxWidth()
+                        .weight(1f)
+                )
 
                 Text("${state.value + 1} / ${getThemeCount()}")
 
@@ -116,15 +119,15 @@ class SettingsItemThemeSelector(
                     verticalAlignment = Alignment.CenterVertically,
                     horizontalArrangement = Arrangement.spacedBy(10.dp)
                 ) {
-                    Box(Modifier
-                        .border(2.dp, theme_data.accent, CircleShape)
-                        .fillMaxHeight()
-                        .weight(1f)
-                        .padding(start = 15.dp),
-                        contentAlignment = Alignment.CenterStart
-                    ) {
-                        WidthShrinkText(theme_data.name)
-                    }
+                    WidthShrinkText(
+                        theme_data.name,
+                        Modifier
+                            .border(2.dp, theme_data.accent, CircleShape)
+                            .fillMaxHeight()
+                            .weight(1f)
+                            .padding(start = 15.dp),
+                        alignment = Alignment.CenterStart
+                    )
 
                     IconButton(
                         {
@@ -160,7 +163,9 @@ private fun getEditPage(
     theme: ThemeData,
     onEditCompleted: (theme_data: ThemeData) -> Unit
 ): SettingsPage {
-    return object : SettingsPage({ editor_title }) {
+    return object : SettingsPage() {
+        override val title: String? = editor_title
+
         private var reset by mutableStateOf(false)
         private var close by mutableStateOf(false)
 

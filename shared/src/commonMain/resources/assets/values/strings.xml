@@ -276,6 +276,16 @@
     <string name="s_key_treat_singles_as_song">Treat artist singles as a song</string>
     <string name="s_sub_treat_singles_as_song">Playlists contained in the 'Singles' tab on an artist's page will be treated as the contained song, if there is only one</string>
 
+    <string name="s_cat_player">Player</string>
+
+    <string name="s_key_np_queue_wave_border_mode">Queue wave border mode</string>
+    <string name="s_sub_np_queue_wave_border_mode">Animation mode of the wave border between the queued songs and option buttons</string>
+    <string name="s_option_wave_border_mode_time">Animate over time</string>
+    <string name="s_option_wave_border_mode_time_sync">Animate over time while playing</string>
+    <string name="s_option_wave_border_mode_scroll">Animate on queue scroll</string>
+    <string name="s_option_wave_border_mode_none">No animation</string>
+    <string name="s_option_wave_border_mode_line">Line border</string>
+
     <string name="s_cat_library">Library</string>
 
     <string name="s_key_show_likes_playlist">Show likes playlist</string>
@@ -425,6 +435,7 @@
 
     <string name="s_cat_desc_general">Language, behaviour, and other options</string>
     <string name="s_cat_desc_home_page">Cherry-pick song recommendations</string>
+    <string name="s_cat_desc_player">Adjust music player view</string>
     <string name="s_cat_desc_library">Control how the library is displayed</string>
     <string name="s_cat_desc_theming">Customise app colours and change accent source</string>
     <string name="s_cat_desc_lyrics">Lyrics appearance and behaviour</string>

@@ -33,6 +33,7 @@ import com.toasterofbread.spmp.ui.layout.nowplaying.NowPlayingExpansionState
 import com.toasterofbread.spmp.ui.layout.nowplaying.ThemeMode
 import com.toasterofbread.spmp.ui.layout.nowplaying.overlay.OverlayMenu
 import com.toasterofbread.spmp.ui.layout.prefspage.PrefsPage
+import com.toasterofbread.spmp.ui.layout.prefspage.PrefsPageCategory
 import com.toasterofbread.utils.addUnique
 import com.toasterofbread.utils.composable.OnChangedEffect
 import com.toasterofbread.utils.init
@@ -154,9 +155,11 @@ interface PlayerOverlayPage {
         val SettingsPage = object : PlayerOverlayPage {
             override fun getItem(): MediaItem? = null
 
+            val current_category: MutableState<PrefsPageCategory?> = mutableStateOf(null)
+
             @Composable
             override fun getPage(pill_menu: PillMenu, previous_item: MediaItemHolder?, bottom_padding: Dp, close: () -> Unit) {
-                PrefsPage(pill_menu, bottom_padding, Modifier.fillMaxSize(), close)
+                PrefsPage(pill_menu, bottom_padding, current_category, Modifier.fillMaxSize(), close)
             }
         }
         val LibraryPage = object : PlayerOverlayPage {
@@ -317,7 +320,6 @@ class PlayerStateImpl(private val context: PlatformContext): PlayerState(null, n
 
     override fun setOverlayPage(page: PlayerOverlayPage?, from_current: Boolean) {
         val current = if (from_current) overlay_page?.first?.getItem() else null
-
         val new_page = page?.let { Pair(page, current) }
         if (new_page != overlay_page) {
             overlay_page_undo_stack.add(overlay_page)

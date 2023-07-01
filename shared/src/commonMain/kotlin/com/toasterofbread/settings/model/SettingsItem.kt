@@ -66,22 +66,26 @@ abstract class SettingsItem {
     )
 
     @Composable
-    protected fun ItemTitleText(text: String?, theme: Theme) {
+    protected fun ItemTitleText(text: String?, theme: Theme, modifier: Modifier = Modifier) {
         if (text?.isNotBlank() == true) {
-            WidthShrinkText(text, style = LocalTextStyle.current.copy(color = theme.on_background))
+            WidthShrinkText(
+                text,
+                modifier,
+                style = MaterialTheme.typography.titleMedium.copy(color = theme.on_background)
+            )
         }
     }
 
     @Composable
-    protected fun ItemText(text: String?, colour: Color, font_size: TextUnit = TextUnit.Unspecified) {
+    protected fun ItemText(text: String?, colour: Color) {
         if (text?.isNotBlank() == true) {
-            Text(text, color = colour, fontSize = font_size)
+            Text(text, color = colour, style = MaterialTheme.typography.bodySmall)
         }
     }
 
     @Composable
-    protected fun ItemText(text: String?, theme: Theme, font_size: TextUnit = TextUnit.Unspecified) {
-        ItemText(text, theme.on_background.setAlpha(0.75f), font_size)
+    protected fun ItemText(text: String?, theme: Theme) {
+        ItemText(text, theme.on_background.setAlpha(0.75f))
     }
 }
 
@@ -443,7 +447,7 @@ class SettingsItemSlider(
             }
             Row(Modifier.fillMaxWidth(), verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(10.dp)) {
                 if (min_label != null) {
-                    ItemText(min_label, theme, 12.sp)
+                    ItemText(min_label, theme)
                 }
                 SliderValueHorizontal(
                     value = getValue(),
@@ -513,7 +517,7 @@ class SettingsItemSlider(
                     valueRange = range
                 )
                 if (max_label != null) {
-                    ItemText(max_label, theme, 12.sp)
+                    ItemText(max_label, theme)
                 }
             }
         }
@@ -545,8 +549,8 @@ class SettingsItemMultipleChoice(
     ) {
         Column {
             Column(Modifier.fillMaxWidth()) {
-                ItemTitleText(title, theme)
-                ItemText(subtitle, theme, 15.sp)
+                ItemTitleText(title, theme, Modifier.padding(bottom = 7.dp))
+                ItemText(subtitle, theme)
 
                 Spacer(Modifier.height(10.dp))
 
@@ -742,7 +746,7 @@ class SettingsItemLargeToggle(
         openPage: (Int) -> Unit,
         openCustomPage: (SettingsPage) -> Unit
     ) {
-        val shape = RoundedCornerShape(20.dp)
+        val shape = RoundedCornerShape(25.dp)
         var loading: Boolean by remember { mutableStateOf(false) }
 
         var showing_dialog: (@Composable (dismiss: () -> Unit, openPage: (Int) -> Unit) -> Unit)? by remember { mutableStateOf(null) }
@@ -761,7 +765,7 @@ class SettingsItemLargeToggle(
                             shape
                         )
                         .border(2.dp, theme.vibrant_accent, shape)
-                        .padding(horizontal = 10.dp)
+                        .padding(horizontal = 10.dp, vertical = 5.dp)
                         .fillMaxWidth()
                         .height(IntrinsicSize.Max),
                     horizontalArrangement = Arrangement.spacedBy(3.dp), verticalAlignment = Alignment.CenterVertically

@@ -2,44 +2,71 @@ package com.toasterofbread.spmp.ui.layout.nowplaying.queue
 
 import LocalPlayerState
 import SpMp
-import androidx.compose.animation.core.*
-import androidx.compose.foundation.*
-import androidx.compose.foundation.layout.*
-import androidx.compose.foundation.lazy.*
+import androidx.compose.animation.core.animateDpAsState
+import androidx.compose.foundation.background
+import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.PaddingValues
+import androidx.compose.foundation.layout.Spacer
+import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.height
+import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.requiredHeight
+import androidx.compose.foundation.layout.requiredWidth
+import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.shape.RoundedCornerShape
-import androidx.compose.material3.*
-import androidx.compose.runtime.*
+import androidx.compose.material3.Divider
+import androidx.compose.material3.LocalContentColor
+import androidx.compose.runtime.Composable
+import androidx.compose.runtime.CompositionLocalProvider
+import androidx.compose.runtime.DisposableEffect
+import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.derivedStateOf
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateListOf
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
+import androidx.compose.runtime.setValue
 import androidx.compose.runtime.snapshots.SnapshotStateList
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.draw.*
+import androidx.compose.ui.draw.clip
 import androidx.compose.ui.layout.onPlaced
 import androidx.compose.ui.layout.positionInParent
 import androidx.compose.ui.platform.LocalDensity
-import androidx.compose.ui.unit.*
+import androidx.compose.ui.unit.Dp
+import androidx.compose.ui.unit.dp
+import androidx.compose.ui.zIndex
 import com.toasterofbread.spmp.model.MusicTopBarMode
 import com.toasterofbread.spmp.model.NowPlayingQueueRadioInfoPosition
+import com.toasterofbread.spmp.model.NowPlayingQueueWaveBorderMode
 import com.toasterofbread.spmp.model.Settings
 import com.toasterofbread.spmp.model.mediaitem.Song
 import com.toasterofbread.spmp.platform.MediaPlayerService
+import com.toasterofbread.spmp.ui.component.WaveBorder
 import com.toasterofbread.spmp.ui.component.multiselect.MediaItemMultiSelectContext
 import com.toasterofbread.spmp.ui.layout.mainpage.MINIMISED_NOW_PLAYING_HEIGHT
 import com.toasterofbread.spmp.ui.layout.mainpage.MINIMISED_NOW_PLAYING_V_PADDING
-import com.toasterofbread.spmp.ui.layout.nowplaying.*
+import com.toasterofbread.spmp.ui.layout.nowplaying.LocalNowPlayingExpansion
 import com.toasterofbread.spmp.ui.layout.nowplaying.NOW_PLAYING_TOP_BAR_HEIGHT
 import com.toasterofbread.spmp.ui.layout.nowplaying.getNPAltOnBackground
 import com.toasterofbread.spmp.ui.layout.nowplaying.getNPBackground
-import com.toasterofbread.utils.*
-import com.toasterofbread.utils.composable.Divider
 import com.toasterofbread.utils.composable.SubtleLoadingIndicator
-import org.burnoutcrew.reorderable.*
+import com.toasterofbread.utils.getContrasted
+import kotlinx.coroutines.delay
+import org.burnoutcrew.reorderable.ReorderableLazyListState
+import org.burnoutcrew.reorderable.rememberReorderableLazyListState
+import org.burnoutcrew.reorderable.reorderable
 
 @Composable
 fun QueueTab(page_height: Dp, modifier: Modifier = Modifier) {
+    val player = LocalPlayerState.current
+    val density = LocalDensity.current
+
     var key_inc by remember { mutableStateOf(0) }
     val radio_info_position: NowPlayingQueueRadioInfoPosition = Settings.getEnum(Settings.KEY_NP_QUEUE_RADIO_INFO_POSITION)
     val multiselect_context: MediaItemMultiSelectContext = remember { MediaItemMultiSelectContext() }
-    val player = LocalPlayerState.current
 
     val song_items: SnapshotStateList<QueueTabItem> = remember { mutableStateListOf<QueueTabItem>().also { list ->
         player.player?.iterateSongs { _, song: Song ->
@@ -157,18 +184,22 @@ fun QueueTab(page_height: Dp, modifier: Modifier = Modifier) {
                     CurrentRadioIndicator(backgroundColourProvider, multiselect_context)
                 }
 
-                Divider(Modifier.padding(horizontal = list_padding), 1.dp, backgroundColourProvider)
+                val wave_border_mode: NowPlayingQueueWaveBorderMode by Settings.KEY_NP_QUEUE_WAVE_BORDER_MODE.rememberMutableEnumState()
+                QueueBorder(wave_border_mode, list_padding, queue_list_state)
 
                 CompositionLocalProvider(
                     LocalPlayerState provides remember { player.copy(onClickedOverride = { _, index: Int? ->
                         player.player?.seekToSong(index!!)
                     }) }
                 ) {
-                    val density = LocalDensity.current
                     var list_position by remember { mutableStateOf(0.dp) }
                     LazyColumn(
                         state = queue_list_state.listState,
-                        contentPadding = PaddingValues(top = list_padding),
+                        contentPadding = PaddingValues(
+                            top = list_padding +
+                                // Extra space to prevent initial wave border overlap
+                                if (wave_border_mode != NowPlayingQueueWaveBorderMode.LINE) 15.dp else 0.dp
+                        ),
                         modifier = Modifier
                             .reorderable(queue_list_state)
                             .padding(horizontal = list_padding)
@@ -209,5 +240,56 @@ fun QueueTab(page_height: Dp, modifier: Modifier = Modifier) {
                 }
             }
         }
+    }
+}
+
+private const val WAVE_BORDER_TIME_SPEED: Float = 0.15f
+
+@Composable
+private fun QueueBorder(
+    wave_border_mode: NowPlayingQueueWaveBorderMode,
+    list_padding: Dp,
+    queue_list_state: ReorderableLazyListState
+) {
+    if (wave_border_mode == NowPlayingQueueWaveBorderMode.LINE) {
+        Divider(Modifier.padding(horizontal = list_padding), 1.dp, getNPBackground())
+    }
+    else {
+        val player = LocalPlayerState.current
+        var wave_border_offset: Float by remember { mutableStateOf(0f) }
+
+        LaunchedEffect(wave_border_mode) {
+            val update_interval: Long = 1000 / 30
+            when (wave_border_mode) {
+                NowPlayingQueueWaveBorderMode.TIME -> {
+                    while (true) {
+                        wave_border_offset += update_interval * WAVE_BORDER_TIME_SPEED
+                        delay(update_interval)
+                    }
+                }
+                NowPlayingQueueWaveBorderMode.TIME_SYNC -> {
+                    while (true) {
+                        wave_border_offset = player.status.getPositionMillis() * WAVE_BORDER_TIME_SPEED
+                        delay(update_interval)
+                    }
+                }
+                else -> wave_border_offset = 0f
+            }
+        }
+
+        WaveBorder(
+            Modifier.fillMaxWidth().zIndex(1f),
+            colour = getNPAltOnBackground(),
+            getOffset = {
+                when (wave_border_mode) {
+                    NowPlayingQueueWaveBorderMode.SCROLL -> {
+                        ((50.dp.toPx() * queue_list_state.listState.firstVisibleItemIndex) + queue_list_state.listState.firstVisibleItemScrollOffset)
+                    }
+                    else -> wave_border_offset
+                }
+            },
+            border_thickness = 1.5.dp,
+            border_colour = getNPBackground()
+        )
     }
 }

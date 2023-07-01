@@ -24,7 +24,8 @@ fun WidthShrinkText(
     string: AnnotatedString,
     modifier: Modifier = Modifier,
     style: TextStyle = LocalTextStyle.current,
-    inline_content: Map<String, InlineTextContent> = mapOf()
+    inline_content: Map<String, InlineTextContent> = mapOf(),
+    alignment: Alignment = Alignment.TopStart
 ) {
 	var text_style by remember(style) { mutableStateOf(style) }
 	var text_style_large: TextStyle? by remember(style) { mutableStateOf(null) }
@@ -32,7 +33,7 @@ fun WidthShrinkText(
 
 	val delta = 0.05
 
-    Box(modifier) {
+    Box(modifier, contentAlignment = alignment) {
         Text(
             string,
             Modifier.fillMaxWidth().drawWithContent { if (ready_to_draw) drawContent() },
@@ -73,16 +74,30 @@ fun WidthShrinkText(
 fun WidthShrinkText(
     text: String,
     modifier: Modifier = Modifier,
-    style: TextStyle = LocalTextStyle.current
+    style: TextStyle = LocalTextStyle.current,
+    alignment: Alignment = Alignment.TopStart
 ) {
-    WidthShrinkText(AnnotatedString(text), modifier, style)
+    WidthShrinkText(
+        AnnotatedString(text),
+        modifier,
+        style,
+        alignment = alignment
+    )
 }
 
 @Composable
-fun WidthShrinkText(text: String, fontSize: TextUnit, modifier: Modifier = Modifier, fontWeight: FontWeight? = null, colour: Color = LocalContentColor.current) {
+fun WidthShrinkText(
+    text: String,
+    fontSize: TextUnit,
+    modifier: Modifier = Modifier,
+    fontWeight: FontWeight? = null,
+    colour: Color = LocalContentColor.current,
+    alignment: Alignment = Alignment.TopStart
+) {
     WidthShrinkText(
         text,
         modifier,
-        LocalTextStyle.current.copy(fontSize = fontSize, fontWeight = fontWeight, color = colour)
+        LocalTextStyle.current.copy(fontSize = fontSize, fontWeight = fontWeight, color = colour),
+        alignment
     )
 }

@@ -45,6 +45,9 @@ enum class MusicTopBarMode {
         val default: MusicTopBarMode get() = LYRICS
     }
 }
+enum class NowPlayingQueueWaveBorderMode {
+    TIME, TIME_SYNC, SCROLL, NONE, LINE
+}
 
 enum class Settings {
     // Language
@@ -118,6 +121,7 @@ enum class Settings {
 
     // Now playing queue
     KEY_NP_QUEUE_RADIO_INFO_POSITION, // TODO prefs item
+    KEY_NP_QUEUE_WAVE_BORDER_MODE,
 
     // Server
     KEY_SPMS_PORT,
@@ -280,6 +284,7 @@ enum class Settings {
                 KEY_FEED_SHOW_CHARTS_ROW -> true
 
                 KEY_NP_QUEUE_RADIO_INFO_POSITION -> NowPlayingQueueRadioInfoPosition.TOP_BAR.ordinal
+                KEY_NP_QUEUE_WAVE_BORDER_MODE -> NowPlayingQueueWaveBorderMode.TIME.ordinal
 
                 KEY_YTM_AUTH -> {
                     with(ProjectBuildConfig) {

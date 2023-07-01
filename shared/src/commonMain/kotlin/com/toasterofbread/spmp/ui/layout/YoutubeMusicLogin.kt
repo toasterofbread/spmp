@@ -55,44 +55,55 @@ fun YoutubeMusicLogin(modifier: Modifier = Modifier, manual: Boolean = false, on
         YoutubeMusicManualLogin(modifier, onFinished)
     }
     else if (isWebViewLoginSupported()) {
+        var finished: Boolean by remember { mutableStateOf(false) }
+        val lock = remember { Object() }
+
         WebViewLogin(MUSIC_URL, modifier, shouldShowPage = { !it.startsWith(MUSIC_URL) }) { request, openUrl, getCookie ->
-            val url = URI(request.url)
-            if (url.host == "music.youtube.com" && url.path?.startsWith("/youtubei/v1/") == true) {
-                if (!request.requestHeaders.containsKey("Authorization")) {
-                    openUrl(MUSIC_LOGIN_URL)
+            synchronized(lock) {
+                if (finished) {
                     return@WebViewLogin
                 }
 
-                val cookie = getCookie(MUSIC_URL)
-                val account_request = Request.Builder()
-                    .url("https://music.youtube.com/youtubei/v1/account/account_menu")
-                    .addHeader("cookie", cookie)
-                    .apply {
-                        for (header in request.requestHeaders) {
-                            addHeader(header.key, header.value)
+                val url = URI(request.url)
+                if (url.host == "music.youtube.com" && url.path?.startsWith("/youtubei/v1/") == true) {
+                    if (!request.requestHeaders.containsKey("Authorization")) {
+                        openUrl(MUSIC_LOGIN_URL)
+                        return@WebViewLogin
+                    }
+
+                    finished = true
+
+                    val cookie = getCookie(MUSIC_URL)
+                    val account_request = Request.Builder()
+                        .url("https://music.youtube.com/youtubei/v1/account/account_menu")
+                        .addHeader("cookie", cookie)
+                        .apply {
+                            for (header in request.requestHeaders) {
+                                addHeader(header.key, header.value)
+                            }
                         }
-                    }
-                    .post(Api.getYoutubeiRequestBody(null))
-                    .build()
+                        .post(Api.getYoutubeiRequestBody(null))
+                        .build()
 
-                val result = Api.request(account_request)
-                result.fold(
-                    { response ->
-                        val parsed: YTAccountMenuResponse = Api.klaxon.parse(response.body!!.charStream())!!
-                        response.close()
+                    val result = Api.request(account_request)
+                    result.fold(
+                        { response ->
+                            val parsed: YTAccountMenuResponse = Api.klaxon.parse(response.body!!.charStream())!!
+                            response.close()
 
-                        onFinished(Result.success(
-                            YoutubeMusicAuthInfo(
-                                parsed.getAritst()!!,
-                                cookie,
-                                request.requestHeaders
-                            )
-                        ))
-                    },
-                    {
-                        onFinished(result.cast())
-                    }
-                )
+                            onFinished(Result.success(
+                                YoutubeMusicAuthInfo(
+                                    parsed.getAritst()!!,
+                                    cookie,
+                                    request.requestHeaders
+                                )
+                            ))
+                        },
+                        {
+                            onFinished(result.cast())
+                        }
+                    )
+                }
             }
         }
     }

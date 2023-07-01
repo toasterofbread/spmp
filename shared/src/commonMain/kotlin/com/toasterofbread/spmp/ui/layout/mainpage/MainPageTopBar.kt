@@ -4,6 +4,7 @@ import LocalPlayerState
 import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.animation.Crossfade
 import androidx.compose.animation.animateContentSize
+import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyRow
 import androidx.compose.foundation.shape.CircleShape
@@ -13,11 +14,14 @@ import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
+import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.unit.dp
+import androidx.compose.ui.zIndex
 import com.toasterofbread.spmp.model.*
 import com.toasterofbread.spmp.model.mediaitem.MediaItemThumbnailProvider
 import com.toasterofbread.spmp.resources.uilocalisation.LocalisedYoutubeString
 import com.toasterofbread.spmp.ui.component.MusicTopBarWithVisualiser
+import com.toasterofbread.spmp.ui.component.WaveBorder
 import com.toasterofbread.spmp.ui.layout.RadioBuilderIcon
 import com.toasterofbread.spmp.ui.layout.YoutubeMusicLoginConfirmation
 import com.toasterofbread.spmp.ui.theme.Theme
@@ -32,7 +36,7 @@ fun MainPageTopBar(
 ) {
     val player = LocalPlayerState.current
 
-    Column(modifier.animateContentSize()) {
+    Column(modifier) {
         Row(Modifier.height(IntrinsicSize.Min)) {
             RadioBuilderButton()
 
@@ -82,6 +86,8 @@ fun MainPageTopBar(
                 FilterChipsRow(getFilterChips, getSelectedFilterChip, onFilterChipSelected)
             }
         }
+
+        WaveBorder(Modifier.requiredWidth(SpMp.context.getScreenWidth()))
     }
 }
 

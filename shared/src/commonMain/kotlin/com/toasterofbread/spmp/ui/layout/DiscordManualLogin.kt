@@ -13,7 +13,6 @@ fun DiscordManualLogin(modifier: Modifier = Modifier, onFinished: (Result<String
     val coroutine_scope = rememberCoroutineScope()
 
     ManualLoginPage(
-        title = getString("discord_manual_login_title"),
         steps = getStringArray("discord_manual_login_steps"),
         suffix = getString("discord_manual_login_suffix"),
         entry_label = getString("discord_manual_login_field"),

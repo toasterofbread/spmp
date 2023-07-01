@@ -502,7 +502,9 @@ class PlayerService : MediaPlayerService() {
             writer.newLine()
         }
 
-        SpMp.Log.info("savePersistentQueue saved $song_count songs")
+        if (song_count > 0) {
+            SpMp.Log.info("savePersistentQueue saved $song_count songs")
+        }
 
         writer.close()
 

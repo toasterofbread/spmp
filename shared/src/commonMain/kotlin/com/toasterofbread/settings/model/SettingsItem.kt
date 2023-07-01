@@ -760,14 +760,14 @@ class SettingsItemLargeToggle(
                             if (!enabled) theme.background else theme.vibrant_accent,
                             shape
                         )
-                        .border(Dp.Hairline, theme.vibrant_accent, shape)
+                        .border(2.dp, theme.vibrant_accent, shape)
                         .padding(horizontal = 10.dp)
                         .fillMaxWidth()
                         .height(IntrinsicSize.Max),
                     horizontalArrangement = Arrangement.spacedBy(3.dp), verticalAlignment = Alignment.CenterVertically
                 ) {
                     (if (enabled) enabled_content else disabled_content)?.invoke(Modifier.weight(1f).padding(vertical = 5.dp))
-                    (if (enabled) enabled_text else disabled_text)?.also { Text(it, Modifier.fillMaxWidth().weight(1f)) }
+                    (if (enabled) enabled_text else disabled_text)?.also { WidthShrinkText(it, Modifier.fillMaxWidth().weight(1f)) }
 
                     Button(
                         {

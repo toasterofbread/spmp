@@ -43,14 +43,17 @@ internal fun getDiscordStatusGroup(discord_auth: SettingsValueState<String>): Li
                     DiscordAccountPreview(account_token, modifier)
                 }
             },
-            disabled_text = "Not signed in",
-            enable_button = "Sign in",
-            disable_button = "Sign out",
+            disabled_text = getString("auth_not_signed_in"),
+            enable_button = getString("auth_sign_in"),
+            disable_button = getString("auth_sign_out"),
             warningDialog = { dismiss, openPage ->
-                DiscordLoginConfirmation { proceed ->
+                DiscordLoginConfirmation { manual ->
                     dismiss()
-                    if (proceed) {
-                        openPage(PrefsPageScreen.DISCORD_LOGIN.ordinal)
+                    if (manual != null) {
+                        openPage(
+                            if (manual) PrefsPageScreen.DISCORD_MANUAL_LOGIN.ordinal
+                            else PrefsPageScreen.DISCORD_LOGIN.ordinal
+                        )
                     }
                 }
             },

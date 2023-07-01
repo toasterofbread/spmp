@@ -99,6 +99,7 @@ kotlin {
                 implementation("com.google.accompanist:accompanist-swiperefresh:0.21.2-beta")
                 implementation("androidx.localbroadcastmanager:localbroadcastmanager:1.1.0")
                 implementation("androidx.palette:palette:1.0.0")
+                //noinspection GradleDependency
                 implementation("com.github.andob:android-awt:1.0.0")
                 implementation("io.coil-kt:coil-compose:2.3.0")
                 implementation("com.github.dead8309:KizzyRPC:1.0.71")
@@ -160,27 +161,28 @@ open class GenerateBuildConfig : DefaultTask() {
         dir.deleteRecursively()
         dir.mkdirs()
 
-        val fqName = class_fq_name.get()
-        val parts = fqName.split(".")
-        val className = parts.last()
-        val file = dir.resolve("$className.kt")
+        val class_parts = class_fq_name.get().split(".")
+        val class_name = class_parts.last()
+        val file = dir.resolve("$class_name.kt")
+
         val content = buildString {
-            if (parts.size > 1) {
+            if (class_parts.size > 1) {
                 appendLine("@file:Suppress(\"RedundantNullableReturnType\", \"MayBeConstant\")\n")
-                appendLine("package ${parts.dropLast(1).joinToString(".")}")
+                appendLine("package ${class_parts.dropLast(1).joinToString(".")}")
             }
 
             appendLine()
-            appendLine("/* GENERATED ON BUILD */")
-            appendLine("object $className {")
+            appendLine("/* Generated on build in shared/build.gradle.kts */")
+            appendLine("object $class_name {")
 
             for (field in fields_to_generate.get().sortedBy { it.first }) {
-                val type = if (field.second == null) "" else ": ${field.second}"
+                val type = field.second?.let { ": $it" } ?: ""
                 appendLine("    val ${field.first}$type = ${field.third}")
             }
 
             appendLine("}")
         }
+
         file.writeText(content)
     }
 }

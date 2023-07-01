@@ -24,34 +24,40 @@ import com.toasterofbread.spmp.platform.composable.PlatformAlertDialog
 import com.toasterofbread.spmp.platform.composable.rememberImagePainter
 import com.toasterofbread.spmp.platform.isWebViewLoginSupported
 import com.toasterofbread.spmp.resources.getString
-import com.toasterofbread.spmp.resources.getStringTODO
-import com.toasterofbread.utils.catchInterrupts
 import com.toasterofbread.utils.composable.LinkifyText
 import com.toasterofbread.utils.composable.SubtleLoadingIndicator
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.withContext
 import okhttp3.Request
-import kotlin.concurrent.thread
 
 private const val DISCORD_LOGIN_URL = "https://discord.com/login"
 private const val DISCORD_API_URL = "https://discord.com/api/"
 private const val DISCORD_DEFAULT_AVATAR = "https://discord.com/assets/1f0bfc0865d324c2587920a7d80c609b.png"
 
 @Composable
-fun DiscordLoginConfirmation(info_only: Boolean = false, onFinished: (proceed: Boolean) -> Unit) {
+fun DiscordLoginConfirmation(info_only: Boolean = false, onFinished: (manual: Boolean?) -> Unit) {
     PlatformAlertDialog(
         { onFinished(false) },
         confirmButton = {
             FilledTonalButton({
-                onFinished(!info_only)
+                onFinished(if (info_only) null else false)
             }) {
                 Text(getString("action_confirm_action"))
             }
         },
         dismissButton = if (info_only) null else ({
-            TextButton({ onFinished(false) }) { Text(getString("action_deny_action")) }
+            TextButton({ onFinished(null) }) { Text(getString("action_deny_action")) }
         }),
         title = if (info_only) null else ({ Text(getString("prompt_confirm_action")) }),
         text = {
-            LinkifyText(getString(if (info_only) "info_discord_login" else "warning_discord_login"))
+            Column {
+                LinkifyText(getString(if (info_only) "info_discord_login" else "warning_discord_login"))
+                if (!info_only) {
+                    FilledTonalButton({ onFinished(true) }, Modifier.fillMaxWidth().padding(top = 5.dp).offset(y = 20.dp)) {
+                        Text(getString("action_login_manually"))
+                    }
+                }
+            }
         }
     )
 }
@@ -80,33 +86,7 @@ fun DiscordLogin(modifier: Modifier = Modifier, manual: Boolean = false, onFinis
     }
 }
 
-@OptIn(ExperimentalMaterial3Api::class)
-@Composable
-fun DiscordManualLogin(modifier: Modifier = Modifier, onFinished: (Result<String?>?) -> Unit) {
-    Column(modifier) {
-        Text(getStringTODO("TODO"))
-
-        var auth_value by remember { mutableStateOf("") }
-        TextField(
-            auth_value, 
-            { auth_value = it }, 
-            Modifier.fillMaxWidth(), 
-            label = {
-                Text("Authorization")
-            }
-        )
-
-        Button({
-            onFinished(Result.success(
-                TODO(auth_value)
-            ))
-        }) {
-            Text(getStringTODO("Done"))
-        }
-    }
-}
-
-private data class DiscordMeResponse(
+data class DiscordMeResponse(
     val id: String? = null,
     val username: String? = null,
     val avatar: String? = null,
@@ -130,23 +110,28 @@ private data class DiscordMeResponse(
     }
 }
 
-private fun getDiscordAccountInfo(account_token: String): Result<DiscordMeResponse> {
+suspend fun getDiscordAccountInfo(account_token: String): Result<DiscordMeResponse> = withContext(Dispatchers.IO) {
     val request = Request.Builder()
         .url("https://discord.com/api/v9/users/@me")
         .addHeader("authorization", account_token)
         .build()
 
-    val result = Api.request(request)
-    if (result.isFailure) {
-        return result.cast()
-    }
+    val result = Api.request(request, is_gzip = false)
+    val response = result.getOrNull() ?: return@withContext result.cast()
 
-    val response = result.getOrThrow()
-    val me: DiscordMeResponse = Klaxon().parse(response.body!!.charStream())!!
+    val stream = response.body!!.charStream()
+    val me: DiscordMeResponse = try {
+        Klaxon().parse(stream)!!
+    }
+    catch (e: Throwable) {
+        return@withContext Result.failure(e)
+    }
+    finally {
+        stream.close()
+    }
     me.token = account_token
 
-    response.close()
-    return Result.success(me)
+    return@withContext Result.success(me)
 }
 
 private val DiscordMeResponseSaver = run {
@@ -169,31 +154,21 @@ private val DiscordMeResponseSaver = run {
 
 @Composable
 fun DiscordAccountPreview(account_token: String, modifier: Modifier = Modifier) {
-    var load_thread: Thread? by remember { mutableStateOf(null) }
-    var me by rememberSaveable(stateSaver = DiscordMeResponseSaver) { mutableStateOf(DiscordMeResponse.EMPTY) }
+    var account_info by rememberSaveable(stateSaver = DiscordMeResponseSaver) { mutableStateOf(DiscordMeResponse.EMPTY) }
     var started by remember { mutableStateOf(false) }
+    var loading by remember { mutableStateOf(false) }
 
-    DisposableEffect(account_token) {
-        load_thread?.interrupt()
-
-        if (me.token != account_token) {
-            load_thread = thread {
-                catchInterrupts {
-                    me = getDiscordAccountInfo(account_token).getOrReport("DiscordAccountPreview") ?: DiscordMeResponse.EMPTY
-                    load_thread = null
-                }
-            }
-
-            me = DiscordMeResponse.EMPTY
+    LaunchedEffect(account_token) {
+        if (account_info.token != account_token) {
+            account_info = DiscordMeResponse.EMPTY
+            loading = true
             started = true
+            account_info = getDiscordAccountInfo(account_token).getOrReport("DiscordAccountPreview") ?: DiscordMeResponse.EMPTY
         }
-
-        onDispose {
-            load_thread?.interrupt()
-        }
+        loading = false
     }
 
-    Crossfade(if (!me.isEmpty()) me else if (started) load_thread != null else null, modifier.fillMaxHeight()) { state ->
+    Crossfade(if (!account_info.isEmpty()) account_info else if (started) loading else null, modifier.fillMaxHeight()) { state ->
         Row(horizontalArrangement = Arrangement.spacedBy(5.dp), verticalAlignment = Alignment.CenterVertically) {
             when (state) {
                 true -> {
@@ -208,8 +183,7 @@ fun DiscordAccountPreview(account_token: String, modifier: Modifier = Modifier) 
                     Image(rememberImagePainter(state.getAvatarUrl()), null, Modifier.fillMaxHeight().aspectRatio(1f).clip(CircleShape))
 
                     Column(Modifier.fillMaxHeight(), verticalArrangement = Arrangement.SpaceEvenly) {
-                        Text(state.username!!, overflow = TextOverflow.Ellipsis, maxLines = 1)
-                        Text("#${state.discriminator}")
+                        Text(state.username ?: "?", overflow = TextOverflow.Ellipsis, maxLines = 1)
                     }
                 }
             }

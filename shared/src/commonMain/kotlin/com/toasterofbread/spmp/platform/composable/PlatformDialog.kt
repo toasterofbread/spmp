@@ -14,12 +14,6 @@ expect fun PlatformDialog(
 )
 
 @Composable
-expect fun PlatformDialog(
-    onDismissRequest: () -> Unit,
-    content: @Composable () -> Unit
-)
-
-@Composable
 expect fun PlatformAlertDialog(
     onDismissRequest: () -> Unit,
     confirmButton: @Composable () -> Unit,

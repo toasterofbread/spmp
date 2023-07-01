@@ -41,9 +41,9 @@ internal fun getYtmAuthItem(ytm_auth: SettingsValueState<YoutubeMusicAuthInfo>, 
                 )
             )
         },
-        disabled_text = getString("ytm_auth_not_signed_in"),
-        enable_button = getString("ytm_auth_sign_in"),
-        disable_button = getString("ytm_auth_sign_out"),
+        disabled_text = getString("auth_not_signed_in"),
+        enable_button = getString("auth_sign_in"),
+        disable_button = getString("auth_sign_out"),
         warningDialog = { dismiss, openPage ->
             YoutubeMusicLoginConfirmation { manual ->
                 dismiss()

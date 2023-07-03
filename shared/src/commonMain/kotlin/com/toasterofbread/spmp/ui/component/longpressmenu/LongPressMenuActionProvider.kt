@@ -1,4 +1,4 @@
-package com.toasterofbread.spmp.ui.component
+package com.toasterofbread.spmp.ui.component.longpressmenu
 
 import LocalPlayerState
 import SpMp

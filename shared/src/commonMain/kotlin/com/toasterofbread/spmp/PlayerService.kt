@@ -130,11 +130,13 @@ class PlayerService : MediaPlayerService() {
             radio.cancelRadio()
         }
 
-        for (i in song_count - 1 downTo from) {
-            if (keep_current && i == current_song_index) {
-                continue
+        undoableAction {
+            for (i in song_count - 1 downTo from) {
+                if (keep_current && i == current_song_index) {
+                    continue
+                }
+                removeFromQueue(i, save = false)
             }
-            removeFromQueue(i, save = false)
         }
 
         if (save) {
@@ -158,19 +160,22 @@ class PlayerService : MediaPlayerService() {
         shuffleQueue(range)
     }
 
-    fun shuffleQueueAndIndices(indices: List<Int>) {
-        for (i in indices.withIndex()) {
-            val swap_index = Random.nextInt(indices.size)
-            swapQueuePositions(i.value, indices[swap_index], false)
-//            indices.swap(i.index, swap_index)
+    fun shuffleQueue(range: IntRange) {
+        undoableAction {
+            for (i in range) {
+                val swap = Random.nextInt(range)
+                swapQueuePositions(i, swap, false)
+            }
         }
         savePersistentQueue()
     }
 
-    fun shuffleQueue(range: IntRange) {
-        for (i in range) {
-            val swap = Random.nextInt(range)
-            swapQueuePositions(i, swap, false)
+    fun shuffleQueueIndices(indices: List<Int>) {
+        undoableAction {
+            for (i in indices.withIndex()) {
+                val swap_index = Random.nextInt(indices.size)
+                swapQueuePositions(i.value, indices[swap_index], false)
+            }
         }
         savePersistentQueue()
     }
@@ -184,8 +189,11 @@ class PlayerService : MediaPlayerService() {
         assert(b in 0 until song_count)
 
         val offset_b = b + (if (b > a) -1 else 1)
-        moveSong(a, b)
-        moveSong(offset_b, a)
+        
+        undoableAction {
+            moveSong(a, b)
+            moveSong(offset_b, a)
+        }
 
         if (save) {
             savePersistentQueue()
@@ -193,49 +201,66 @@ class PlayerService : MediaPlayerService() {
     }
 
     fun addToQueue(song: Song, index: Int? = null, is_active_queue: Boolean = false, start_radio: Boolean = false, save: Boolean = true): Int {
-        val added_index: Int
+        val add_to_index: Int
         if (index == null) {
-            addSong(song)
-            added_index = song_count - 1
+            add_to_index = song_count - 1
         }
         else {
-            addSong(song, index)
-            added_index = if (index < song_count) index else song_count - 1
+            add_to_index = if (index < song_count) index else song_count - 1
         }
 
         if (is_active_queue) {
-            active_queue_index = added_index
+            active_queue_index = add_to_index
         }
 
-        if (start_radio) {
-            clearQueue(added_index + 1, save = false)
+        customUndoableAction { furtherAction ->
+            addSong(song, add_to_index)
+            if (start_radio) {
+                clearQueue(add_to_index + 1, save = false)
 
-            synchronized(radio) {
-                radio.playMediaItem(song, added_index)
-                radio.loadContinuation { result ->
-                    if (result.isFailure) {
-                        SpMp.error_manager.onError("addToQueue", result.exceptionOrNull()!!)
-                        if (save) {
-                            savePersistentQueue()
+                val radio_state: RadioState
+                val previous_radio_state: RadioState
+
+                synchronized(radio) {
+                    previous_radio_state = radio.playMediaItem(song, add_to_index)
+                    radio_state = radio.state
+
+                    radio.loadContinuation { result ->
+                        if (result.isFailure) {
+                            SpMp.error_manager.onError("addToQueue", result.exceptionOrNull()!!)
+                            if (save) {
+                                savePersistentQueue()
+                            }
                         }
-                    }
-                    else {
-                        withContext(Dispatchers.Main) {
-                            addMultipleToQueue(result.getOrThrowHere(), added_index + 1, save = save, skip_existing = true)
+                        else {
+                            withContext(Dispatchers.Main) {
+                                furtherAction {
+                                    addMultipleToQueue(result.getOrThrowHere(), add_to_index + 1, save = save, skip_existing = true)
+                                }
+                            }
                         }
                     }
                 }
+
+                return@customUndoableAction object : UndoRedoAction {
+                    override fun redo() {
+                        radio.setRadioState(radio_state)
+                    }
+                    override fun undo() {
+                        radio.setRadioState(previous_radio_state)
+                    }
+                }
+            }
+            else if (save) {
+                savePersistentQueue()
+                return@customUndoableAction null    
             }
         }
-        else if (save) {
-            savePersistentQueue()
-        }
 
-        return added_index
+        return add_to_index
     }
 
     fun addMultipleToQueue(songs: List<Song>, index: Int = 0, skip_first: Boolean = false, save: Boolean = true, is_active_queue: Boolean = false, skip_existing: Boolean = false) {
-        
         val to_add: List<Song> = 
             if (!skip_existing) {
                 songs
@@ -328,10 +353,6 @@ class PlayerService : MediaPlayerService() {
         }
     }
 
-    override fun onSongMoved(from: Int, to: Int) {
-        radio.onSongMoved(from, to)
-    }
-
     private val prefs_listener = object : ProjectPreferences.Listener {
         override fun onChanged(prefs: ProjectPreferences, key: String) {
             when (key) {
@@ -376,6 +397,17 @@ class PlayerService : MediaPlayerService() {
             checkRadioContinuation()
             updateDiscordStatus(song)
         }
+
+        override fun onSongMoved(from: Int, to: Int) {
+            checkRadioContinuation()
+            radio.onSongMoved(from, to)
+        }
+
+        override fun onSongRemoved(index: Int) {
+            checkRadioContinuation()
+            radio.onSongRemoved(index)
+        }
+
         override fun onStateChanged(state: MediaPlayerState) {
             if (state == MediaPlayerState.ENDED) {
                 onSongEnded()
@@ -421,6 +453,7 @@ class PlayerService : MediaPlayerService() {
         updateDiscordStatus(null)
     }
 
+    @Synchronized
     private fun updateDiscordStatus(song: Song?) {
         discord_status_update_job?.cancel()
         discord_rpc?.apply {
@@ -432,7 +465,7 @@ class PlayerService : MediaPlayerService() {
 
             check(song.artist?.title != null)
 
-            discord_status_update_job = Api.scope.launch {
+            discord_status_update_job = coroutine_scope.launch {
                 fun formatText(text: String): String {
                     return text
                         .replace("\$artist", song.artist!!.title!!)

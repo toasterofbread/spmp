@@ -84,6 +84,7 @@ actual open class MediaPlayerService {
 
     // Undo
     private var current_action: MutableList<UndoRedoAction>? = null
+    private var current_action_is_further: Boolean = false
     private val action_list: MutableList<List<UndoRedoAction>> = mutableListOf()
     private var action_head: Int = 0
 
@@ -200,39 +201,74 @@ actual open class MediaPlayerService {
         listeners.remove(listener)
     }
 
-    protected actual open fun onSongMoved(from: Int, to: Int) {}
-
-    actual fun undoableAction(action: MediaPlayerService.() -> Unit) {
-        undoableActionWithCustom {
-            action()
+    actual fun undoableAction(action: MediaPlayerService.(furtherAction: (MediaPlayerService.() -> Unit) -> Unit) -> Unit) {
+        customUndoableAction { furtherAction ->
+            action {
+                furtherAction(it)
+            }
             null
         }
     }
 
-    actual fun undoableActionWithCustom(action: MediaPlayerService.() -> UndoRedoAction?) {
-        synchronized(action_list) {
-            assert(current_action == null)
-            current_action = mutableListOf()
-
+    actual fun customUndoableAction(action: MediaPlayerService.(furtherAction: (MediaPlayerService.() -> UndoRedoAction?) -> Unit) -> UndoRedoAction?) {
+        if (current_action != null) {
             val custom_action = action(this)
             if (custom_action != null) {
                 performAction(custom_action)
             }
+            return
+        }
 
-            for (i in 0 until redo_count) {
-                action_list.removeLast()
+        synchronized(action_list) {
+            val c_action = mutableListOf()
+            current_action = c_action
+
+            val custom_action = action(this) { further ->
+                synchronized(action_list) {
+                    current_action_is_further = true
+                    current_action = c_action
+                    
+                    val custom_action = further()
+                    if (custom_action != null) {
+                        performAction(custom_action)
+                    }
+
+                    current_action = null
+                    current_action_is_further = false
+                }
             }
-            action_list.add(current_action!!)
-            action_head++
+            if (custom_action != null) {
+                performAction(custom_action)
+            }
 
+            commitActionList(c_action)
             current_action = null
-            listeners.forEach { it.onUndoStateChanged() }
         }
     }
 
+    private fun commitActionList(actions: List<UndoRedoAction>) {
+        for (i in 0 until redo_count) {
+            action_list.removeLast()
+        }
+        action_list.add(actions)
+        action_head++
+
+        listeners.forEach { it.onUndoStateChanged() }
+    }
+
     private fun performAction(action: UndoRedoAction) {
-        action.redo()
-        current_action?.add(action)
+        synchronized(action_list) {
+            action.redo()
+
+            val current = current_action
+            if (current != null) {
+                current.add(action)
+            }
+            else if (!current_action_is_further) {
+                // If not being performed as part of an undoableAction, commit as a single aciton        
+                commitActionList(listOf(action))
+            }
+        }
     }
 
     actual fun redo() {
@@ -297,12 +333,10 @@ actual open class MediaPlayerService {
         override fun redo() {
             player.moveMediaItem(from, to)
             listeners.forEach { it.onSongMoved(from, to) }
-            onSongMoved(from, to)
         }
         override fun undo() {
             player.moveMediaItem(to, from)
             listeners.forEach { it.onSongMoved(to, from) }
-            onSongMoved(to, from)
         }
     }
     private inner class RemoveAction(val index: Int): Action() {
@@ -315,23 +349,6 @@ actual open class MediaPlayerService {
         override fun undo() {
             player.addMediaItem(index, item)
             listeners.forEach { it.onSongAdded(index, item.getSong()) }
-        }
-    }
-    private inner class ClearAction : Action() {
-        private var items: List<ExoMediaItem>? = null
-        override fun redo() {
-            if (items == null && is_undoable) {
-                items = List(player.mediaItemCount) {
-                    player.getMediaItemAt(it)
-                }
-            }
-            player.clearMediaItems()
-        }
-        override fun undo() {
-            assert(items != null && player.mediaItemCount == 0)
-            for (item in items!!) {
-                player.addMediaItem(item)
-            }
         }
     }
 

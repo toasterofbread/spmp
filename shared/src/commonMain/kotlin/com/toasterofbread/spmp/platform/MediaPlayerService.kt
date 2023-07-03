@@ -69,8 +69,8 @@ expect open class MediaPlayerService() {
     @Composable
     fun Visualiser(colour: Color, modifier: Modifier = Modifier, opacity: Float = 1f)
 
-    fun undoableAction(action: MediaPlayerService.() -> Unit)
-    fun undoableActionWithCustom(action: MediaPlayerService.() -> UndoRedoAction?)
+    fun undoableAction(action: MediaPlayerService.(furtherAction: (MediaPlayerService.() -> Unit) -> Unit) -> Unit)
+    fun customUndoableAction(action: MediaPlayerService.(furtherAction: (MediaPlayerService.() -> UndoRedoAction?) -> Unit) -> UndoRedoAction?)
 
     fun redo()
     fun redoAll()
@@ -96,8 +96,6 @@ expect open class MediaPlayerService() {
 
     fun addListener(listener: Listener)
     fun removeListener(listener: Listener)
-
-    protected open fun onSongMoved(from: Int, to: Int)
 
     companion object {
         fun <T: MediaPlayerService> connect(context: PlatformContext, cls: Class<T>, instance: T? = null, onConnected: (service: T) -> Unit): Any

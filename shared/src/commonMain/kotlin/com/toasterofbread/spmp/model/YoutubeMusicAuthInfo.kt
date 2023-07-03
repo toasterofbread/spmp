@@ -33,6 +33,7 @@ class YoutubeMusicAuthInfo: Set<String> {
     lateinit var headers: Map<String, String>
         private set
 
+    var own_playlists_loaded: Boolean by mutableStateOf(false)
     var own_playlists: MutableList<String> = mutableStateListOf()
         private set
     fun onOwnPlaylistDeleted(playlist: AccountPlaylist) {
@@ -115,6 +116,7 @@ class YoutubeMusicAuthInfo: Set<String> {
                         own_playlists.add(playlist.id)
                     }
                 }
+                own_playlists_loaded = true
                 Result.success(Unit)
             },
             { Result.failure(it) }

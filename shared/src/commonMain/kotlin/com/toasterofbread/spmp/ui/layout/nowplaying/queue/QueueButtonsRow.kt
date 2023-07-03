@@ -73,7 +73,7 @@ fun QueueButtonsRow(
                 onClick = {
                     if (multiselect_context.is_active) {
                         player.player?.undoableAction {
-                            player.player?.shuffleQueueAndIndices(multiselect_context.getSelectedItems().map { it.second!! })
+                            player.player?.shuffleQueueIndices(multiselect_context.getSelectedItems().map { it.second!! })
                         }
                         multiselect_context.onActionPerformed()
                     } else {

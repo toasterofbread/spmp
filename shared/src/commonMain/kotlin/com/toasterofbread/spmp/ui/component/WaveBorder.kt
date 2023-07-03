@@ -95,8 +95,5 @@ private fun DrawScope.wavePath(
         )
     }
 
-//    path.moveTo(size.width, y_offset)
-//    path.moveTo(0f, y_offset)
-
     return path
 }

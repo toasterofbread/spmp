@@ -10,7 +10,7 @@ import com.toasterofbread.spmp.model.mediaitem.Song
 import com.toasterofbread.spmp.platform.MediaPlayerRepeatMode
 import com.toasterofbread.spmp.platform.MediaPlayerService
 import com.toasterofbread.spmp.platform.PlayerDownloadManager
-import com.toasterofbread.spmp.ui.component.LongPressMenuData
+import com.toasterofbread.spmp.ui.component.longpressmenu.LongPressMenuData
 import com.toasterofbread.spmp.ui.component.PillMenu
 import com.toasterofbread.spmp.ui.component.multiselect.MediaItemMultiSelectContext
 import com.toasterofbread.spmp.ui.layout.nowplaying.ThemeMode

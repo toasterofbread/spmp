@@ -184,14 +184,17 @@ class MediaItemMultiSelectContext(
             onDismissRequest = onFinished,
             confirmButton = {
                 Row {
-                    ShapedIconButton(
+                    Button(
                         { coroutine_scope.launch {
                             val playlist = LocalPlaylist.createLocalPlaylist(SpMp.context)
                             selected_playlists.add(playlist)
-                        } },
-                        colors = button_colours
+                        }},
+                        colors = ButtonDefaults.buttonColors(
+                            containerColor = Theme.current.accent,
+                            contentColor = Theme.current.on_accent
+                        )
                     ) {
-                        Icon(Icons.Default.Add, null)
+                        Text(getString("playlist_create"))
                     }
 
                     ShapedIconButton(
@@ -204,14 +207,8 @@ class MediaItemMultiSelectContext(
                 }
             },
             dismissButton = {
-                Button(
-                    onFinished,
-                    colors = ButtonDefaults.buttonColors(
-                        containerColor = Theme.current.accent,
-                        contentColor = Theme.current.on_accent
-                    )
-                ) {
-                    Text(getString("action_cancel"))
+                ShapedIconButton(onFinished, colors = button_coloursz) {
+                    Icon(Icons.Default.Close, null)
                 }
             },
             title = {

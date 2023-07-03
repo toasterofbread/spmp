@@ -29,6 +29,25 @@ fun PlaylistSelectMenu(
 
     val local_playlists = LocalPlaylist.rememberLocalPlaylistsListener()
     val account_playlists = Api.ytm_auth.own_playlists
+    var loading by remember { mutableStateOf(false) }
+    val coroutine_scope = rememberCoroutineScope()
+
+    fun refreshAccountPlaylists() {
+        coroutine_scope.launchSingle {
+            if (!Api.ytm_auth.own_playlists_loaded) {
+                loading = true
+                val result = Api.ytm_auth.loadOwnPlaylists()
+                result.onFailure { error ->
+                    SpMp.context.sendToast(error.toString())
+                }
+            }
+            loading = false
+        }
+    }
+
+    LaunchedEffect(Api.ytm_auth) {
+        refreshAccountPlaylists()
+    }
 
     CompositionLocalProvider(LocalPlayerState provides remember {
         player.copy(onClickedOverride = { item, _ ->
@@ -43,12 +62,18 @@ fun PlaylistSelectMenu(
             }
         })
     }) {
-        LazyColumn(modifier) {
-            items(local_playlists) { playlist ->
-                PlaylistItem(selected, playlist)
-            }
-            items(account_playlists) { playlist ->
-                PlaylistItem(selected, AccountPlaylist.fromId(playlist))
+        SwipeRefresh(
+            loading,
+            { refreshAccountPlaylists() },
+            modifier
+        ) {
+            LazyColumn(Modifier.fillMaxSize()) {
+                items(local_playlists) { playlist ->
+                    PlaylistItem(selected, playlist)
+                }
+                items(account_playlists) { playlist ->
+                    PlaylistItem(selected, AccountPlaylist.fromId(playlist))
+                }
             }
         }
     }
@@ -66,7 +91,12 @@ private fun PlaylistItem(selected: SnapshotStateList<Playlist>, playlist: Playli
                 else {
                     selected.remove(playlist)
                 }
-            }
+            },
+            colors = CheckboxDefaults.colors(
+                uncheckedColor = LocalContentColor.current,
+                checkedColor = Theme.current.accent,
+                checkmarkColor = Theme.current.on_accent
+            )
         )
         playlist.PreviewLong(MediaItemPreviewParams())
     }

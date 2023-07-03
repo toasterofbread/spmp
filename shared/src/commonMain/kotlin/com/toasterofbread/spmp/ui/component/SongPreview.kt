@@ -225,17 +225,19 @@ fun LongPressMenuActionProvider.SongLongPressMenuActions(
 
                     Spacer(Modifier.fillMaxWidth().weight(1f))
 
-                    ShapedIconButton(
-                        {
-                            coroutine_scope.launch {
+                    Button(
+                        { coroutine_scope.launch {
                                 val playlist = LocalPlaylist.createLocalPlaylist(SpMp.context)
                                 selected_playlists.add(playlist)
-                            }
-                        },
-                        colors = button_colours
+                        }},
+                        colors = ButtonDefaults.buttonColors(
+                            containerColor = Theme.current.accent,
+                            contentColor = Theme.current.on_accent
+                        )
                     ) {
-                        Icon(Icons.Default.Add, null)
+                        Text(getString("playlist_create"))
                     }
+
                     ShapedIconButton(
                         {
                             if (selected_playlists.isNotEmpty()) {

@@ -1,10 +1,8 @@
 package com.toasterofbread.spmp.ui.component
 
 import androidx.compose.foundation.Canvas
-import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.offset
-import androidx.compose.foundation.layout.padding
 import androidx.compose.material.LocalContentColor
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
@@ -13,29 +11,44 @@ import androidx.compose.ui.graphics.ClipOp
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.Path
 import androidx.compose.ui.graphics.drawscope.DrawScope
-import androidx.compose.ui.graphics.drawscope.DrawStyle
 import androidx.compose.ui.graphics.drawscope.Stroke
 import androidx.compose.ui.graphics.drawscope.clipPath
+import androidx.compose.ui.platform.LocalDensity
+import androidx.compose.ui.unit.Density
 import androidx.compose.ui.unit.Dp
+import androidx.compose.ui.unit.IntOffset
 import androidx.compose.ui.unit.dp
 import com.toasterofbread.spmp.ui.theme.Theme
 import kotlin.math.ceil
+import kotlin.math.roundToInt
+
+const val WAVE_BORDER_DEFAULT_HEIGHT: Float = 20f
 
 @Composable
 fun WaveBorder(
     modifier: Modifier = Modifier,
     colour: Color = Theme.current.background,
-    height: Dp = 20.dp,
+    height: Dp = WAVE_BORDER_DEFAULT_HEIGHT.dp,
+    getOffset: ((height: Int) -> Int)? = null,
     waves: Int = 3,
-    getOffset: (DrawScope.() -> Float)? = null,
+    getWaveOffset: (DrawScope.() -> Float)? = null,
     border_thickness: Dp = 0.dp,
     border_colour: Color = LocalContentColor.current
 ) {
-    Canvas(modifier.fillMaxWidth().offset(y = height * 0)) {
+    Canvas(
+        modifier
+            .fillMaxWidth()
+            .offset {
+                IntOffset(
+                    0,
+                    getOffset?.invoke(height.toPx().roundToInt()) ?: 0
+                )
+            }
+    ) {
         val path = Path()
 
         // Above equilibrium (cut out from rect)
-        wavePath(path, -1, getOffset, height, waves)
+        wavePath(path, -1, getWaveOffset, height, waves)
         clipPath(
             path,
             ClipOp.Difference
@@ -54,7 +67,7 @@ fun WaveBorder(
         }
 
         // Below equilibrium
-        wavePath(path, 1, getOffset, height, waves)
+        wavePath(path, 1, getWaveOffset, height, waves)
         drawPath(path, colour)
 
         // Lower border

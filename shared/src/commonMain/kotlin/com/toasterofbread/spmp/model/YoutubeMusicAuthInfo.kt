@@ -13,13 +13,9 @@ import com.toasterofbread.spmp.api.getAccountPlaylists
 import com.toasterofbread.spmp.model.mediaitem.AccountPlaylist
 import com.toasterofbread.spmp.model.mediaitem.Artist
 import com.toasterofbread.spmp.ui.layout.YTAccountMenuResponse
-import com.toasterofbread.utils.printJson
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.runBlocking
 import kotlinx.coroutines.withContext
-import okhttp3.Headers
-import okhttp3.Headers.Companion.headersOf
-import okhttp3.Headers.Companion.toHeaders
 import okhttp3.Request
 
 class YoutubeMusicAuthInfo: Set<String> {

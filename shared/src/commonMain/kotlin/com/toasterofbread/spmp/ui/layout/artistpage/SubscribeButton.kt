@@ -1,5 +1,6 @@
 package com.toasterofbread.spmp.ui.layout.artistpage
 
+import SpMp
 import androidx.compose.animation.Crossfade
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.PersonRemove

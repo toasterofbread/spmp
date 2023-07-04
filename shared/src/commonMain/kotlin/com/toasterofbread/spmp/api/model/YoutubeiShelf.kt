@@ -1,6 +1,13 @@
 package com.toasterofbread.spmp.api.model
 
-import com.toasterofbread.spmp.api.*
+import com.toasterofbread.spmp.api.GridRenderer
+import com.toasterofbread.spmp.api.ItemSectionRenderer
+import com.toasterofbread.spmp.api.MusicCardShelfRenderer
+import com.toasterofbread.spmp.api.MusicCarouselShelfRenderer
+import com.toasterofbread.spmp.api.MusicDescriptionShelfRenderer
+import com.toasterofbread.spmp.api.MusicShelfRenderer
+import com.toasterofbread.spmp.api.NavigationEndpoint
+import com.toasterofbread.spmp.api.TextRun
 import com.toasterofbread.spmp.model.mediaitem.MediaItem
 
 data class YoutubeiShelf(

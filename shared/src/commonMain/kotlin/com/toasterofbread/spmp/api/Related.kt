@@ -1,9 +1,11 @@
 package com.toasterofbread.spmp.api
 
+import SpMp
 import com.toasterofbread.spmp.api.Api.Companion.addYtHeaders
 import com.toasterofbread.spmp.api.Api.Companion.getStream
 import com.toasterofbread.spmp.api.Api.Companion.ytUrl
-import com.toasterofbread.spmp.model.mediaitem.*
+import com.toasterofbread.spmp.model.mediaitem.MediaItem
+import com.toasterofbread.spmp.model.mediaitem.Song
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
 import okhttp3.Request

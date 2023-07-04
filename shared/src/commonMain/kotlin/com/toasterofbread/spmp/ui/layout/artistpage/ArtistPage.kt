@@ -23,6 +23,7 @@ import androidx.compose.ui.graphics.*
 import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.input.pointer.pointerInput
 import androidx.compose.ui.layout.ContentScale
+import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.platform.LocalLayoutDirection
 import androidx.compose.ui.text.*
 import androidx.compose.ui.unit.*
@@ -33,10 +34,10 @@ import com.toasterofbread.spmp.model.*
 import com.toasterofbread.spmp.model.mediaitem.*
 import com.toasterofbread.spmp.resources.getString
 import com.toasterofbread.spmp.resources.uilocalisation.YoutubeUILocalisation
-import com.toasterofbread.spmp.ui.component.longpressmenu.LongPressMenuData
 import com.toasterofbread.spmp.ui.component.MediaItemLayout
 import com.toasterofbread.spmp.ui.component.MusicTopBar
 import com.toasterofbread.spmp.ui.component.PillMenu
+import com.toasterofbread.spmp.ui.component.longpressmenu.LongPressMenuData
 import com.toasterofbread.spmp.ui.component.multiselect.MediaItemMultiSelectContext
 import com.toasterofbread.spmp.ui.layout.mainpage.PlayerState
 import com.toasterofbread.spmp.ui.theme.Theme
@@ -59,12 +60,14 @@ fun ArtistPage(
 ) {
     require(!item.is_for_item)
 
+    val player = LocalPlayerState.current
+    val density = LocalDensity.current
+    val screen_width = SpMp.context.getScreenWidth()
+
+    val main_column_state = rememberLazyListState()
     var show_info by remember { mutableStateOf(false) }
     val multiselect_context = remember { MediaItemMultiSelectContext() {} }
-    val player = LocalPlayerState.current
     val feed_layouts = item.feed_layouts
-    val screen_width = SpMp.context.getScreenWidth()
-    val main_column_state = rememberLazyListState()
 
     val background_modifier = Modifier.background(Theme.current.background_provider)
     val content_padding = PaddingValues(horizontal = 10.dp)
@@ -87,26 +90,30 @@ fun ArtistPage(
         var music_top_bar_showing by remember { mutableStateOf(false) }
         val top_bar_alpha by animateFloatAsState(if (music_top_bar_showing || multiselect_context.is_active) 1f else 0f)
 
+        fun Density.getBackgroundColour(): Color =
+            Theme.current.background.setAlpha(
+                if (main_column_state.firstVisibleItemIndex > 0) top_bar_alpha
+                else (0.5f + ((main_column_state.firstVisibleItemScrollOffset / screen_width.toPx()) * 0.5f)) * top_bar_alpha
+            )
+
         Column(
             Modifier
                 .drawScopeBackground {
-                    Theme.current.background.setAlpha(
-                        if (main_column_state.firstVisibleItemIndex > 0) top_bar_alpha
-                        else (0.5f + ((main_column_state.firstVisibleItemScrollOffset / screen_width.toPx()) * 0.5f)) * top_bar_alpha
-                    )
+                    getBackgroundColour()
                 }
                 .padding(top = SpMp.context.getStatusBarHeight())
-                .padding(content_padding)
-                .zIndex(1f)
+                .zIndex(10f)
                 .pointerInput(Unit) {}
         ) {
             MusicTopBar(
                 Settings.KEY_LYRICS_SHOW_IN_ARTIST,
-                Modifier.fillMaxWidth()
+                Modifier.fillMaxWidth(),
+                getBottomBorderColour = { with(density) { getBackgroundColour() } },
+                padding = content_padding
             ) { music_top_bar_showing = it }
 
             AnimatedVisibility(multiselect_context.is_active) {
-                multiselect_context.InfoDisplay(Modifier.padding(top = 10.dp))
+                multiselect_context.InfoDisplay(Modifier.padding(top = 10.dp).padding(content_padding))
             }
         }
 

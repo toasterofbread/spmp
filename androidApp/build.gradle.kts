@@ -1,7 +1,7 @@
-import java.util.Properties
-import java.io.FileInputStream
 import org.xmlpull.v1.XmlPullParser
 import org.xmlpull.v1.XmlPullParserFactory
+import java.io.FileInputStream
+import java.util.Properties
 
 plugins {
     id("com.android.application")

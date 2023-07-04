@@ -1,7 +1,11 @@
 package com.toasterofbread.spmp.platform
 
 import android.content.ComponentName
-import androidx.compose.runtime.*
+import androidx.compose.runtime.Composable
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.core.net.toUri
@@ -14,6 +18,7 @@ import com.google.common.util.concurrent.ListenableFuture
 import com.google.common.util.concurrent.MoreExecutors
 import com.toasterofbread.spmp.exovisualiser.ExoVisualizer
 import com.toasterofbread.spmp.model.mediaitem.Song
+import com.toasterofbread.utils.synchronizedBlock
 import kotlin.properties.Delegates
 import androidx.media3.common.MediaItem as ExoMediaItem
 
@@ -161,7 +166,8 @@ actual open class MediaPlayerService {
         addSong(song, song_count)
     }
     actual fun addSong(song: Song, index: Int) {
-        if (index !in 0 .. song_count) {
+        val add_index = if (index < 0) song_count else index
+        if (add_index !in 0 .. song_count) {
             return
         }
 
@@ -176,7 +182,7 @@ actual open class MediaPlayerService {
                 ).build()
             )
             .build()
-        performAction(AddAction(item, index))
+        performAction(AddAction(item, add_index))
 
         session_started = true // TODO
 //        addNotificationToPlayer()
@@ -204,15 +210,35 @@ actual open class MediaPlayerService {
     actual fun undoableAction(action: MediaPlayerService.(furtherAction: (MediaPlayerService.() -> Unit) -> Unit) -> Unit) {
         customUndoableAction { furtherAction ->
             action {
-                furtherAction(it)
+                furtherAction {
+                    it()
+                    null
+                }
             }
             null
         }
     }
 
+    private fun handleFurtherAction(current: MutableList<UndoRedoAction>, further: MediaPlayerService.() -> UndoRedoAction?) {
+        synchronized(action_list) {
+            current_action_is_further = true
+            current_action = current
+
+            val custom_action = further(this)
+            if (custom_action != null) {
+                performAction(custom_action)
+            }
+
+            current_action = null
+            current_action_is_further = false
+        }
+    }
+
     actual fun customUndoableAction(action: MediaPlayerService.(furtherAction: (MediaPlayerService.() -> UndoRedoAction?) -> Unit) -> UndoRedoAction?) {
-        if (current_action != null) {
-            val custom_action = action(this)
+        current_action?.also { c_action ->
+            val custom_action = action(this) { further ->
+                handleFurtherAction(c_action, further)
+            }
             if (custom_action != null) {
                 performAction(custom_action)
             }
@@ -220,22 +246,11 @@ actual open class MediaPlayerService {
         }
 
         synchronized(action_list) {
-            val c_action = mutableListOf()
+            val c_action: MutableList<UndoRedoAction> = mutableListOf()
             current_action = c_action
 
             val custom_action = action(this) { further ->
-                synchronized(action_list) {
-                    current_action_is_further = true
-                    current_action = c_action
-                    
-                    val custom_action = further()
-                    if (custom_action != null) {
-                        performAction(custom_action)
-                    }
-
-                    current_action = null
-                    current_action_is_further = false
-                }
+                handleFurtherAction(c_action, further)
             }
             if (custom_action != null) {
                 performAction(custom_action)
@@ -257,7 +272,7 @@ actual open class MediaPlayerService {
     }
 
     private fun performAction(action: UndoRedoAction) {
-        synchronized(action_list) {
+        synchronizedBlock(action_list) {
             action.redo()
 
             val current = current_action

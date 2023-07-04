@@ -1,11 +1,11 @@
 package com.toasterofbread.spmp.api
 
 import com.atilika.kuromoji.ipadic.Tokenizer
-import com.toasterofbread.spmp.model.mediaitem.Song
 import com.toasterofbread.spmp.model.SongLyrics
+import com.toasterofbread.spmp.model.mediaitem.Song
 import com.toasterofbread.utils.hasKanjiAndHiragana
-import com.toasterofbread.utils.isKanji
 import com.toasterofbread.utils.isJP
+import com.toasterofbread.utils.isKanji
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
 import okhttp3.MediaType.Companion.toMediaType

@@ -11,7 +11,9 @@ import android.content.IntentFilter
 import android.database.ContentObserver
 import android.os.Handler
 import android.view.KeyEvent
-import android.view.KeyEvent.*
+import android.view.KeyEvent.ACTION_DOWN
+import android.view.KeyEvent.KEYCODE_VOLUME_DOWN
+import android.view.KeyEvent.KEYCODE_VOLUME_UP
 import android.view.ViewConfiguration.getLongPressTimeout
 import android.view.accessibility.AccessibilityEvent
 import androidx.lifecycle.Lifecycle
@@ -24,9 +26,14 @@ import com.toasterofbread.spmp.platform.PlatformContext
 import com.toasterofbread.spmp.platform.ProjectPreferences
 import com.toasterofbread.spmp.resources.getString
 import com.toasterofbread.utils.Permissions
-import kotlinx.coroutines.*
+import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.Job
+import kotlinx.coroutines.isActive
+import kotlinx.coroutines.launch
 import java.lang.ref.WeakReference
-import java.util.*
+import java.util.Timer
+import java.util.TimerTask
 import kotlin.collections.set
 import android.provider.Settings as AndroidSettings
 

@@ -1,13 +1,18 @@
 package com.toasterofbread.spmp.model.mediaitem
 
-import androidx.compose.runtime.*
+import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
+import androidx.compose.runtime.setValue
 import com.toasterofbread.spmp.model.Settings
 import com.toasterofbread.spmp.model.mediaitem.data.PlaylistItemData
 import com.toasterofbread.spmp.model.mediaitem.enums.PlaylistType
+import com.toasterofbread.spmp.platform.PlatformContext
 import com.toasterofbread.spmp.ui.component.MediaItemLayout
 import com.toasterofbread.spmp.ui.component.PlaylistPreviewLong
 import com.toasterofbread.spmp.ui.component.PlaylistPreviewSquare
-import com.toasterofbread.spmp.platform.PlatformContext
 import com.toasterofbread.utils.addUnique
 
 class PlaylistDataRegistryEntry: MediaItemDataRegistry.Entry() {

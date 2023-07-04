@@ -200,3 +200,7 @@ fun Float.roundTo(decimals: Int): Float {
 	val multiplier = 10f.pow(decimals)
 	return (this * multiplier).roundToInt() / multiplier
 }
+
+inline fun synchronizedBlock(lock: Any, block: () -> Unit) {
+	synchronized(lock, block)
+}

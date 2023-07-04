@@ -32,7 +32,7 @@ import androidx.compose.ui.platform.LocalLayoutDirection
 import androidx.compose.ui.text.*
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.*
-import com.toasterofbread.spmp.resources.uilocalisation.durationToString
+import androidx.compose.ui.zIndex
 import com.toasterofbread.spmp.api.getOrReport
 import com.toasterofbread.spmp.model.*
 import com.toasterofbread.spmp.model.mediaitem.*
@@ -41,7 +41,9 @@ import com.toasterofbread.spmp.platform.composable.PlatformAlertDialog
 import com.toasterofbread.spmp.platform.composable.platformClickable
 import com.toasterofbread.spmp.platform.vibrateShort
 import com.toasterofbread.spmp.resources.getString
+import com.toasterofbread.spmp.resources.uilocalisation.durationToString
 import com.toasterofbread.spmp.ui.component.*
+import com.toasterofbread.spmp.ui.component.longpressmenu.longPressMenuIcon
 import com.toasterofbread.spmp.ui.component.multiselect.MediaItemMultiSelectContext
 import com.toasterofbread.spmp.ui.layout.mainpage.PlayerState
 import com.toasterofbread.spmp.ui.theme.Theme
@@ -143,7 +145,14 @@ fun PlaylistPage(
         var top_bar_showing: Boolean by remember { mutableStateOf(false) }
         MusicTopBar(
             Settings.KEY_LYRICS_SHOW_IN_PLAYLIST,
-            Modifier.fillMaxWidth().thenIf(previous_item == null) { Modifier.padding(top = padding.calculateTopPadding()) }
+            Modifier
+                .fillMaxWidth()
+                .zIndex(1f)
+                .thenIf(previous_item == null) { Modifier.padding(top = padding.calculateTopPadding()) },
+            getBottomBorderColour = Theme.current.background_provider,
+            getBottomBorderOffset = { height ->
+                height / 2
+            }
         ) { showing ->
             top_bar_showing = showing
         }

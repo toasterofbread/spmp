@@ -3,7 +3,7 @@ package com.toasterofbread.utils
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.ImageBitmap
 import androidx.compose.ui.graphics.luminance
-import java.util.*
+import java.util.Random
 import kotlin.math.absoluteValue
 
 fun Color.Companion.red(argb: Int): Int = argb shr 16 and 0xFF

@@ -1,5 +1,6 @@
 package com.toasterofbread.spmp
 
+import SpMp
 import android.content.Intent
 import android.os.Bundle
 import androidx.activity.ComponentActivity

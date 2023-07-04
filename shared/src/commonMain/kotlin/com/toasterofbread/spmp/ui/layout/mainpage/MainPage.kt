@@ -9,21 +9,26 @@ import androidx.compose.animation.core.tween
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.PaddingValues
-import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
-import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.LazyListState
-import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.lazy.itemsIndexed
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.KeyboardDoubleArrowDown
 import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
-import androidx.compose.runtime.*
+import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.MutableState
+import androidx.compose.runtime.derivedStateOf
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateListOf
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.graphicsLayer
@@ -35,9 +40,9 @@ import com.toasterofbread.spmp.model.mediaitem.Artist
 import com.toasterofbread.spmp.model.mediaitem.MediaItemHolder
 import com.toasterofbread.spmp.platform.composable.SwipeRefresh
 import com.toasterofbread.spmp.platform.getDefaultHorizontalPadding
-import com.toasterofbread.spmp.ui.component.LazyMediaItemLayoutColumn
 import com.toasterofbread.spmp.ui.component.MediaItemLayout
 import com.toasterofbread.spmp.ui.component.PillMenu
+import com.toasterofbread.spmp.ui.component.WAVE_BORDER_DEFAULT_HEIGHT
 import com.toasterofbread.spmp.ui.layout.library.LibraryPage
 import com.toasterofbread.spmp.ui.theme.Theme
 
@@ -75,6 +80,7 @@ fun MainPage(
 
     Column(Modifier.padding(horizontal = padding)) {
 
+        val top_padding = WAVE_BORDER_DEFAULT_HEIGHT.dp
         MainPageTopBar(
             Api.ytm_auth,
             getFilterChips,
@@ -106,9 +112,10 @@ fun MainPage(
                 state_alpha.animateTo(1f, tween(300))
             }
 
+            val top_content_visible = pinned_items.isNotEmpty()
             @Composable
             fun TopContent() {
-                MainPageScrollableTopContent(pinned_items, Modifier.padding(bottom = 15.dp))
+                MainPageScrollableTopContent(pinned_items, Modifier.padding(bottom = 10.dp), top_content_visible)
             }
 
             when (current_state) {
@@ -123,15 +130,20 @@ fun MainPage(
                         Modifier.graphicsLayer { alpha = state_alpha.value },
                         state = scroll_state,
                         contentPadding = PaddingValues(
-                            bottom = LocalPlayerState.current.bottom_padding
+                            bottom = LocalPlayerState.current.bottom_padding,
+                            top = top_padding
                         ),
                         userScrollEnabled = !state_alpha.isRunning,
                         verticalArrangement = Arrangement.spacedBy(30.dp)
                     ) {
-                        item {
-                            Column {
-                                TopContent()
-                                artists_layout.Layout(multiselect_context = player.main_multiselect_context)
+                        if (top_content_visible || artists_layout.items.isNotEmpty()) {
+                            item {
+                                Column {
+                                    TopContent()
+                                    if (artists_layout.items.isNotEmpty()) {
+                                        artists_layout.Layout(multiselect_context = player.main_multiselect_context)
+                                    }
+                                }
                             }
                         }
 
@@ -165,7 +177,9 @@ fun MainPage(
                     LibraryPage(
                         pill_menu,
                         LocalPlayerState.current.bottom_padding,
-                        Modifier.graphicsLayer { alpha = state_alpha.value },
+                        Modifier
+                            .graphicsLayer { alpha = state_alpha.value }
+                            .padding(top = top_padding),
                         close = {},
                         inline = true,
                         outer_multiselect_context = LocalPlayerState.current.main_multiselect_context,

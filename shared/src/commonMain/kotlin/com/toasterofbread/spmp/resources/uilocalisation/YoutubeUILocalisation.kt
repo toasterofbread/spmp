@@ -1,11 +1,9 @@
 package com.toasterofbread.spmp.resources.uilocalisation
 
 import SpMp
-import com.toasterofbread.spmp.model.mediaitem.enums.MediaItemType
 import com.toasterofbread.spmp.model.Settings
+import com.toasterofbread.spmp.model.mediaitem.enums.MediaItemType
 import com.toasterofbread.spmp.resources.getString
-import org.apache.commons.lang3.time.DurationFormatUtils
-import java.time.Duration
 
 class LocalisedYoutubeString(
     val key: String,

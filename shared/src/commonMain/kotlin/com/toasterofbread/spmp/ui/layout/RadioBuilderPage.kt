@@ -26,12 +26,14 @@ import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import androidx.compose.ui.zIndex
 import com.toasterofbread.spmp.api.*
 import com.toasterofbread.spmp.model.Settings
 import com.toasterofbread.spmp.model.mediaitem.*
 import com.toasterofbread.spmp.platform.composable.BackHandler
 import com.toasterofbread.spmp.resources.getString
 import com.toasterofbread.spmp.ui.component.*
+import com.toasterofbread.spmp.ui.component.longpressmenu.longPressMenuIcon
 import com.toasterofbread.spmp.ui.component.multiselect.MediaItemMultiSelectContext
 import com.toasterofbread.spmp.ui.theme.Theme
 import com.toasterofbread.utils.*
@@ -82,23 +84,28 @@ fun RadioBuilderPage(
                 Modifier.fillMaxSize(),
                 verticalArrangement = Arrangement.spacedBy(15.dp)
             ) {
-                Row(
-                    Modifier.padding(vertical = 10.dp).fillMaxWidth(),
-                    horizontalArrangement = Arrangement.SpaceBetween,
-                    verticalAlignment = Alignment.CenterVertically
-                ) {
-                    RadioBuilderIcon()
+                Column(Modifier.padding(vertical = 10.dp).fillMaxWidth().zIndex(10f)) {
+                    Row(
+                        Modifier.fillMaxWidth(),
+                        horizontalArrangement = Arrangement.SpaceBetween,
+                        verticalAlignment = Alignment.CenterVertically
+                    ) {
+                        RadioBuilderIcon()
 
-    //                Text(getString("radio_builder_title"), fontSize = 15.sp)
-                    Text(
-                        getString(
-                            if (selected == null) "radio_builder_artists_title"
-                            else "radio_builder_modifiers_title"
-                        ),
-                        style = MaterialTheme.typography.headlineMedium
-                    )
+                        Text(
+                            getString(
+                                if (selected == null) "radio_builder_artists_title"
+                                else "radio_builder_modifiers_title"
+                            ),
+                            style = MaterialTheme.typography.headlineMedium
+                        )
 
-                    Spacer(Modifier.width(RADIO_BUILDER_ICON_WIDTH.dp))
+                        Spacer(Modifier.width(RADIO_BUILDER_ICON_WIDTH.dp))
+                    }
+
+                    if (selected == null) {
+                        WaveBorder(Modifier.fillMaxWidth(), offset_by_height = true)
+                    }
                 }
 
                 if (selected == null) {

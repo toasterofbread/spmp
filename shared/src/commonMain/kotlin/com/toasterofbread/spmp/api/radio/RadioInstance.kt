@@ -3,18 +3,22 @@ package com.toasterofbread.spmp.api.radio
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.setValue
-import com.toasterofbread.spmp.api.Api.Companion.addYtHeaders
-import com.toasterofbread.spmp.api.Api.Companion.getStream
-import com.toasterofbread.spmp.api.Api.Companion.ytUrl
-import com.toasterofbread.spmp.model.*
-import com.toasterofbread.spmp.model.mediaitem.*
+import com.toasterofbread.spmp.api.RadioModifier
+import com.toasterofbread.spmp.api.cast
+import com.toasterofbread.spmp.model.mediaitem.MediaItem
+import com.toasterofbread.spmp.model.mediaitem.MediaItemWithLayouts
+import com.toasterofbread.spmp.model.mediaitem.Playlist
+import com.toasterofbread.spmp.model.mediaitem.Song
 import com.toasterofbread.spmp.ui.component.MediaItemLayout
 import com.toasterofbread.utils.ValueListeners
-import kotlinx.coroutines.*
-import okhttp3.Request
-
-private const val RADIO_ID_PREFIX = "RDAMVM"
-private const val MODIFIED_RADIO_ID_PREFIX = "RDAT"
+import com.toasterofbread.utils.launchSingle
+import com.toasterofbread.utils.synchronizedBlock
+import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.cancelChildren
+import kotlinx.coroutines.job
+import kotlinx.coroutines.launch
+import java.lang.RuntimeException
 
 class RadioInstance {
     var state: RadioState by mutableStateOf(RadioState())
@@ -26,31 +30,29 @@ class RadioInstance {
     private val coroutine_scope = CoroutineScope(Dispatchers.IO)
     private val lock = coroutine_scope
 
-    val filter_changed_listeners = ValueListeners<List<RadioModifier>?>()
-
     fun playMediaItem(item: MediaItem, index: Int? = null, shuffle: Boolean = false): RadioState {
         synchronized(lock) {
-            cancelJob()
-            val old = setRadioState(RadioState())
-            state.item = Pair(item, index)
-            state.shuffle = shuffle
-            return old
+            return setRadioState(RadioState().also { state ->
+                state.item = Pair(item, index)
+                state.shuffle = shuffle
+            })
         }
     }
 
     fun setFilter(filter_index: Int?) {
-        if (filter_index == state.current_filter) {
-            return
-        }
-        state.current_filter = filter_index
-        state.continuation = null
+        synchronized(lock) {
+            if (filter_index == state.current_filter) {
+                return
+            }
+            state.current_filter = filter_index
+            state.continuation = null
 
-        val filter = state.current_filter?.let { state.filters!![it] }
-        filter_changed_listeners.call(filter)
+            cancelJob()
+        }
     }
 
     fun onSongRemoved(index: Int) {
-        synchronized(lock) {
+        synchronizedBlock(lock) {
             val current_index = state.item?.second ?: return
             if (index == current_index) {
                 cancelRadio()
@@ -87,14 +89,19 @@ class RadioInstance {
         var filters: List<List<RadioModifier>>? by mutableStateOf(null)
         var current_filter: Int? by mutableStateOf(null)
         var shuffle: Boolean = false
+
+        override fun toString(): String {
+            return "RadioState(item=$item, continuation=$continuation)"
+        }
     }
 
     fun setRadioState(new_state: RadioState): RadioState {
-        if (state == new_state) {
-            return state
-        }
         synchronized(lock) {
-            cancelRadio()
+            if (state == new_state) {
+                return state
+            }
+
+            cancelJob()
             val old = state
             state = new_state
             return old
@@ -125,9 +132,7 @@ class RadioInstance {
 
     fun loadContinuation(onStart: (suspend () -> Unit)? = null, callback: suspend (Result<List<Song>>) -> Unit) {
         synchronized(lock) {
-            check(!loading)
-
-            coroutine_scope.launch {
+            coroutine_scope.launchSingle {
                 coroutineContext.job.invokeOnCompletion {
                     synchronized(lock) {
                         loading = false
@@ -143,13 +148,13 @@ class RadioInstance {
                     val initial_songs = getInitialSongs()
                     val formatted = formatContinuationResult(initial_songs)
                     callback(formatted)
-                    return@launch
+                    return@launchSingle
                 }
 
                 val result = state.continuation!!.loadContinuation(state.current_filter?.let { state.filters?.get(it) } ?: emptyList())
                 if (result.isFailure) {
                     callback(result.cast())
-                    return@launch
+                    return@launchSingle
                 }
 
                 val (items, cont) = result.getOrThrow()

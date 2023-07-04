@@ -1,5 +1,6 @@
 package com.toasterofbread.spmp.resources.uilocalisation
 
+import SpMp
 import org.apache.commons.lang3.time.DurationFormatUtils
 import java.time.Duration
 

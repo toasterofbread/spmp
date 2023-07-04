@@ -5,7 +5,9 @@ import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.setValue
 import com.toasterofbread.spmp.api.getSongLyrics
 import com.toasterofbread.spmp.model.SongLyrics
-import kotlinx.coroutines.*
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.job
+import kotlinx.coroutines.withContext
 
 class SongLyricsHolder(private val song: Song) {
     var lyrics: SongLyrics? by mutableStateOf(null)

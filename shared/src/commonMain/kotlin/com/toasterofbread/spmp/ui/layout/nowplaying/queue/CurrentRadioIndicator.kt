@@ -27,7 +27,6 @@ import com.toasterofbread.spmp.ui.component.multiselect.MediaItemMultiSelectCont
 import com.toasterofbread.utils.getContrasted
 import com.toasterofbread.utils.modifier.background
 
-@OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun CurrentRadioIndicator(
     accentColourProvider: () -> Color,
@@ -104,15 +103,25 @@ fun CurrentRadioIndicator(
                                 .padding(horizontal = horizontal_padding)
                         )
                     is List<*> -> 
-                        FiltersRow(state as List<List<RadioModifier>>, Modifier.horizontalScroll(filters_scroll_state))
+                        FiltersRow(
+                            state as List<List<RadioModifier>>,
+                            accentColourProvider,
+                            Modifier.horizontalScroll(filters_scroll_state)
+                        )
                 }
             }
         }
     }
 }
 
+@OptIn(ExperimentalMaterial3Api::class)
 @Composable
-private fun FiltersRow(filters: List<List<RadioModifier>>, modifier: Modifier = Modifier) {
+private fun FiltersRow(
+    filters: List<List<RadioModifier>>,
+    accentColourProvider: () -> Color,
+    modifier: Modifier = Modifier,
+) {
+    val player = LocalPlayerState.current
     Row(
         modifier,
         horizontalArrangement = Arrangement.spacedBy(15.dp)
@@ -120,7 +129,7 @@ private fun FiltersRow(filters: List<List<RadioModifier>>, modifier: Modifier = 
         Spacer(Modifier)
 
         val current_filter = player.player?.radio_current_filter
-        for (filter in listOf(null) + filters) {
+        for (filter in listOf(null) + filters.withIndex()) {
             FilterChip(
                 current_filter == filter?.index,
                 onClick = {

@@ -22,8 +22,8 @@ enum class MediaPlayerRepeatMode {
 
 expect open class MediaPlayerService() {
     interface UndoRedoAction {
-        fun undo()
         fun redo()
+        fun undo()
     }
 
     open class Listener() {

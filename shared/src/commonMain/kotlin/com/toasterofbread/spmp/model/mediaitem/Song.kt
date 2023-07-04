@@ -1,5 +1,6 @@
 package com.toasterofbread.spmp.model.mediaitem
 
+import SpMp
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.ImageBitmap
@@ -12,11 +13,11 @@ import com.toasterofbread.spmp.model.Settings
 import com.toasterofbread.spmp.model.mediaitem.data.SongItemData
 import com.toasterofbread.spmp.model.mediaitem.enums.SongAudioQuality
 import com.toasterofbread.spmp.model.mediaitem.enums.SongType
+import com.toasterofbread.spmp.platform.PlatformContext
 import com.toasterofbread.spmp.platform.crop
 import com.toasterofbread.spmp.platform.toImageBitmap
 import com.toasterofbread.spmp.ui.component.SongPreviewLong
 import com.toasterofbread.spmp.ui.component.SongPreviewSquare
-import com.toasterofbread.spmp.platform.PlatformContext
 import okhttp3.internal.filterList
 import java.net.URL
 

@@ -3,7 +3,13 @@ package com.toasterofbread.spmp.ui.layout.prefspage
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.setValue
-import com.toasterofbread.settings.model.*
+import com.toasterofbread.settings.model.BasicSettingsValueState
+import com.toasterofbread.settings.model.SettingsItem
+import com.toasterofbread.settings.model.SettingsItemInfoText
+import com.toasterofbread.settings.model.SettingsItemLargeToggle
+import com.toasterofbread.settings.model.SettingsItemTextField
+import com.toasterofbread.settings.model.SettingsItemToggle
+import com.toasterofbread.settings.model.SettingsValueState
 import com.toasterofbread.spmp.model.Settings
 import com.toasterofbread.spmp.platform.DiscordStatus
 import com.toasterofbread.spmp.platform.ProjectPreferences

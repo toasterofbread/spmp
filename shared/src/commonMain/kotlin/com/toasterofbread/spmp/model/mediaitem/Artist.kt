@@ -5,11 +5,14 @@ import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.setValue
-import com.toasterofbread.spmp.api.*
+import com.toasterofbread.spmp.api.Api
+import com.toasterofbread.spmp.api.isSubscribedToArtist
+import com.toasterofbread.spmp.api.subscribeOrUnsubscribeArtist
+import com.toasterofbread.spmp.api.unit
 import com.toasterofbread.spmp.model.mediaitem.data.ArtistItemData
+import com.toasterofbread.spmp.platform.PlatformContext
 import com.toasterofbread.spmp.resources.getString
 import com.toasterofbread.spmp.resources.uilocalisation.amountToString
-import com.toasterofbread.spmp.platform.PlatformContext
 import com.toasterofbread.spmp.ui.component.ArtistPreviewLong
 import com.toasterofbread.spmp.ui.component.ArtistPreviewSquare
 import com.toasterofbread.spmp.ui.component.MediaItemLayout

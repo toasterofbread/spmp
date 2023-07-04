@@ -12,6 +12,7 @@ import com.toasterofbread.spmp.platform.vibrateShort
 import com.toasterofbread.spmp.ui.component.multiselect.MediaItemMultiSelectContext
 import com.toasterofbread.spmp.ui.layout.mainpage.PlayerState
 import com.toasterofbread.spmp.ui.layout.nowplaying.getNPAltBackground
+import com.toasterofbread.spmp.ui.layout.nowplaying.getNPAltOnBackground
 import com.toasterofbread.spmp.ui.layout.nowplaying.getNPBackground
 import org.burnoutcrew.reorderable.ReorderableItem
 import org.burnoutcrew.reorderable.ReorderableLazyListState
@@ -42,7 +43,7 @@ fun LazyListScope.QueueItems(
                         val playing_key = getPlayingKey()
                         val current = if (playing_key != null) playing_key == item.key else player.status.m_index == index
                         if (current) getNPBackground()
-                        else getNPAltBackground()
+                        else getNPAltOnBackground()
                     },
                     multiselect_context
                 ) {

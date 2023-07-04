@@ -15,6 +15,7 @@ import androidx.compose.foundation.layout.fillMaxHeight
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
+import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.text.KeyboardActions
 import androidx.compose.foundation.text.KeyboardOptions
@@ -148,10 +149,8 @@ fun TitleBar(item: MediaItem, modifier: Modifier = Modifier) {
 
                 Spacer(Modifier.fillMaxWidth().weight(1f))
 
-                if (!editing_title) {
-                    IconButton({ editing_title = true }) {
-                        Icon(Icons.Default.Edit, getString("edit_\$x_title_dialog_title").replace("\$x", MediaItemType.ARTIST.getReadable()))
-                    }
+                if (item is Artist) {
+                    ArtistSubscribeButton(item)
                 }
 
                 Crossfade(item.pinned_to_home) { pinned ->
@@ -160,9 +159,13 @@ fun TitleBar(item: MediaItem, modifier: Modifier = Modifier) {
                     }
                 }
 
-                if (item is Artist) {
-                    ArtistSubscribeButton(item, Modifier.padding(end = horizontal_padding - 10.dp))
+                if (!editing_title) {
+                    IconButton({ editing_title = true }) {
+                        Icon(Icons.Default.Edit, getString("edit_\$x_title_dialog_title").replace("\$x", MediaItemType.ARTIST.getReadable()))
+                    }
                 }
+
+                Spacer(Modifier.width(horizontal_padding - 10.dp))
             }
         }
     }

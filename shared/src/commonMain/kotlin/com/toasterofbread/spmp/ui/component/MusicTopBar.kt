@@ -253,11 +253,10 @@ private fun MusicTopBar(
             }
 
             composeScope {
-                val bottom_border_colour = getBottomBorderColour?.invoke()
-                if (bottom_border_colour != null) {
+                if (getBottomBorderColour != null) {
                     WaveBorder(
                         Modifier.fillMaxWidth().zIndex(-1f),
-                        colour = bottom_border_colour,
+                        getColour = { getBottomBorderColour() },
                         getOffset = getBottomBorderOffset
                     )
                 }

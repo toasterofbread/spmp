@@ -27,13 +27,13 @@ const val WAVE_BORDER_DEFAULT_HEIGHT: Float = 20f
 @Composable
 fun WaveBorder(
     modifier: Modifier = Modifier,
-    colour: Color = Theme.current.background,
+    getColour: DrawScope.() -> Color = { Theme.current.background },
     height: Dp = WAVE_BORDER_DEFAULT_HEIGHT.dp,
     getOffset: ((height: Int) -> Int)? = null,
     waves: Int = 3,
     getWaveOffset: (DrawScope.() -> Float)? = null,
     border_thickness: Dp = 0.dp,
-    border_colour: Color = LocalContentColor.current
+    border_colour: Color = LocalContentColor.current,
 ) {
     Canvas(
         modifier
@@ -46,6 +46,7 @@ fun WaveBorder(
             }
     ) {
         val path = Path()
+        val colour = getColour()
 
         // Above equilibrium (cut out from rect)
         wavePath(path, -1, getWaveOffset, height, waves)

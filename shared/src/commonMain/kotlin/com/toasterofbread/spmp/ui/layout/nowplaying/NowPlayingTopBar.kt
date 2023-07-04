@@ -16,6 +16,7 @@ import androidx.compose.material.icons.filled.MoreHoriz
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.State
 import androidx.compose.runtime.derivedStateOf
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.remember
@@ -30,29 +31,38 @@ import com.toasterofbread.spmp.ui.component.MusicTopBarWithVisualiser
 import com.toasterofbread.utils.setAlpha
 
 @Composable
+fun rememberTopBarShouldShowInQueue(mode: MusicTopBarMode): State<Boolean> {
+    val player = LocalPlayerState.current
+    val show_lyrics_in_queue: Boolean by Settings.KEY_TOPBAR_SHOW_LYRICS_IN_QUEUE.rememberMutableState()
+    val show_visualiser_in_queue: Boolean by Settings.KEY_TOPBAR_SHOW_VISUALISER_IN_QUEUE.rememberMutableState()
+
+    return remember {
+        derivedStateOf {
+            when (mode) {
+                MusicTopBarMode.VISUALISER -> show_visualiser_in_queue
+                MusicTopBarMode.LYRICS -> show_lyrics_in_queue && player.status.m_song?.lyrics?.lyrics != null
+            }
+        }
+    }
+}
+
+@Composable
 fun TopBar(modifier: Modifier = Modifier) {
     val player = LocalPlayerState.current
     val expansion = LocalNowPlayingExpansion.current
 
-    val show_lyrics_in_queue: Boolean by Settings.KEY_TOPBAR_SHOW_LYRICS_IN_QUEUE.rememberMutableState()
-    val show_visualiser_in_queue: Boolean by Settings.KEY_TOPBAR_SHOW_VISUALISER_IN_QUEUE.rememberMutableState()
-
-    val hide_in_queue =
-        when (expansion.top_bar_mode.value) {
-            MusicTopBarMode.VISUALISER -> !show_visualiser_in_queue
-            MusicTopBarMode.LYRICS -> !show_lyrics_in_queue
-        }
+    val show_in_queue by rememberTopBarShouldShowInQueue(expansion.top_bar_mode.value)
 
     val top_bar_height by remember { derivedStateOf {
-        if (hide_in_queue || expansion.getBounded() < 1f) expansion.getAppearing() else 1f
+        if (!show_in_queue || expansion.getBounded() < 1f) expansion.getAppearing() else 1f
     } }
 
     val max_height by animateDpAsState(
-        if (hide_in_queue) NOW_PLAYING_TOP_BAR_HEIGHT.dp * (2f - expansion.get().coerceIn(1f, 2f))
+        if (!show_in_queue) NOW_PLAYING_TOP_BAR_HEIGHT.dp * (2f - expansion.get().coerceIn(1f, 2f))
         else NOW_PLAYING_TOP_BAR_HEIGHT.dp
     )
 
-    fun getAlpha() = if (hide_in_queue || expansion.getBounded() < 1f) 1f - expansion.getDisappearing() else 1f
+    fun getAlpha() = if (!show_in_queue || expansion.getBounded() < 1f) 1f - expansion.getDisappearing() else 1f
     val hide_content by remember { derivedStateOf { getAlpha() <= 0f } }
 
     Crossfade(

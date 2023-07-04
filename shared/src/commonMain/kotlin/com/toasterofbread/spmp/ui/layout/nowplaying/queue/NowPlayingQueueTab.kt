@@ -52,6 +52,7 @@ import com.toasterofbread.spmp.ui.layout.nowplaying.LocalNowPlayingExpansion
 import com.toasterofbread.spmp.ui.layout.nowplaying.NOW_PLAYING_TOP_BAR_HEIGHT
 import com.toasterofbread.spmp.ui.layout.nowplaying.getNPAltOnBackground
 import com.toasterofbread.spmp.ui.layout.nowplaying.getNPBackground
+import com.toasterofbread.spmp.ui.layout.nowplaying.rememberTopBarShouldShowInQueue
 import com.toasterofbread.utils.composable.SubtleLoadingIndicator
 import com.toasterofbread.utils.getContrasted
 import kotlinx.coroutines.delay
@@ -62,6 +63,7 @@ import org.burnoutcrew.reorderable.reorderable
 @Composable
 fun QueueTab(page_height: Dp, modifier: Modifier = Modifier) {
     val player = LocalPlayerState.current
+    val expansion = LocalNowPlayingExpansion.current
     val density = LocalDensity.current
 
     var key_inc by remember { mutableStateOf(0) }
@@ -128,9 +130,6 @@ fun QueueTab(page_height: Dp, modifier: Modifier = Modifier) {
 
     val shape = RoundedCornerShape(topStart = 25.dp, topEnd = 25.dp)
 
-    val show_lyrics_in_queue: Boolean by Settings.KEY_TOPBAR_SHOW_LYRICS_IN_QUEUE.rememberMutableState()
-    val show_visualiser_in_queue: Boolean by Settings.KEY_TOPBAR_SHOW_VISUALISER_IN_QUEUE.rememberMutableState()
-
     val items_above_queue = if (radio_info_position == NowPlayingQueueRadioInfoPosition.ABOVE_ITEMS) 1 else 0
     val queue_list_state = rememberReorderableLazyListState(
         onMove = { from, to ->
@@ -147,12 +146,9 @@ fun QueueTab(page_height: Dp, modifier: Modifier = Modifier) {
         }
     )
 
-    val expansion = LocalNowPlayingExpansion.current
+    val show_top_bar by rememberTopBarShouldShowInQueue(expansion.top_bar_mode.value)
     val top_bar_height by animateDpAsState(
-        when (expansion.top_bar_mode.value) {
-            MusicTopBarMode.VISUALISER -> if (show_visualiser_in_queue) NOW_PLAYING_TOP_BAR_HEIGHT.dp else 0.dp
-            MusicTopBarMode.LYRICS -> if (show_lyrics_in_queue) NOW_PLAYING_TOP_BAR_HEIGHT.dp else 0.dp
-        }
+        if (show_top_bar) NOW_PLAYING_TOP_BAR_HEIGHT.dp else 0.dp
     )
 
     val expanded by remember { derivedStateOf { expansion.get() > 1f } }
@@ -279,7 +275,7 @@ private fun QueueBorder(
 
         WaveBorder(
             Modifier.fillMaxWidth().zIndex(1f),
-            colour = getNPAltOnBackground(),
+            getColour = { getNPAltOnBackground() },
             getWaveOffset = {
                 when (wave_border_mode) {
                     NowPlayingQueueWaveBorderMode.SCROLL -> {

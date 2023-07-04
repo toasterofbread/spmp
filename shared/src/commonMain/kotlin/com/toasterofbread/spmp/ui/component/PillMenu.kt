@@ -303,14 +303,16 @@ class PillMenu(
                     ToggleButton(Action(background_colour, background_colour.getContrasted(), Modifier))
 
                     val start = if (vertical) top else left
-                    val fill_modifier = if (vertical) Modifier.fillMaxHeight() else Modifier.fillMaxWidth()
+                    val fill_modifier = Modifier//if (vertical) Modifier.fillMaxHeight() else Modifier.fillMaxWidth()
 
                     RowOrColumn(!vertical, fill_modifier.height(IntrinsicSize.Max), Arrangement.spacedBy(10.dp)) { getWeightModifier ->
                         val action = remember(background_colour) { Action(background_colour, background_colour.getContrasted(), getWeightModifier(Float.MAX_VALUE).then(fill_modifier)) }
 
                         @Composable
                         fun AlongsideContent() {
-                            Row(getWeightModifier(1f).fillMaxSize()) {
+                            Row(getWeightModifier(1f).run {
+                                if (vertical) fillMaxHeight() else fillMaxWidth()
+                            }) {
                                 if (start && alongsideContent != null) {
                                     alongsideContent(action)
                                 }

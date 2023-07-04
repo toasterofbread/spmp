@@ -108,6 +108,7 @@ enum class Settings {
     KEY_TOPBAR_SHOW_LYRICS_IN_QUEUE,
     KEY_TOPBAR_SHOW_VISUALISER_IN_QUEUE,
     KEY_TOPBAR_VISUALISER_WIDTH,
+    KEY_TOPBAR_DISPLAY_OVER_ARTIST_IMAGE,
 
     // Recommendation feed
     KEY_FEED_SHOW_FILTERS,
@@ -272,6 +273,7 @@ enum class Settings {
                 KEY_TOPBAR_SHOW_LYRICS_IN_QUEUE -> true
                 KEY_TOPBAR_SHOW_VISUALISER_IN_QUEUE -> false
                 KEY_TOPBAR_VISUALISER_WIDTH -> 0.8f
+                KEY_TOPBAR_DISPLAY_OVER_ARTIST_IMAGE -> false
 
                 // Recommendation feed
                 KEY_FEED_SHOW_FILTERS -> true

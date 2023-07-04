@@ -58,7 +58,7 @@ internal fun getNPOnBackground(): Color {
 
 internal fun getNPAltBackground(): Color {
     return when (SpMp.context.player_state.np_theme_mode) {
-        ThemeMode.BACKGROUND -> getNPBackground().amplifyPercent(-0.4f)
+        ThemeMode.BACKGROUND -> getNPBackground().amplifyPercent(-0.4f, opposite_percent = -0.2f)
         else -> Theme.current.background
     }
 }

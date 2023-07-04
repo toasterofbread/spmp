@@ -104,7 +104,7 @@ fun RadioBuilderPage(
                     }
 
                     if (selected == null) {
-                        WaveBorder(Modifier.fillMaxWidth(), offset_by_height = true)
+                        WaveBorder(Modifier.fillMaxWidth(), getOffset = { it })
                     }
                 }
 

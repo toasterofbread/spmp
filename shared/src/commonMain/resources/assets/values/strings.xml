@@ -432,6 +432,7 @@
     <string name="s_key_topbar_visualiser_width">Visualiser width</string>
     <string name="s_key_topbar_show_lyrics_in_queue">Show lyrics in music queue</string>
     <string name="s_key_topbar_show_visualiser_in_queue">Show visualiser in music queue</string>
+    <string name="s_key_topbar_display_over_artist_image">Display over main image on artist page</string>
 
     <string name="s_cat_desc_general">Language, behaviour, and other options</string>
     <string name="s_cat_desc_home_page">Cherry-pick song recommendations</string>

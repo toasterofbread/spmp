@@ -37,6 +37,11 @@ private fun getMusicTopBarGroup(): List<SettingsItem> {
         SettingsItemToggle(
             SettingsValueState(Settings.KEY_TOPBAR_SHOW_VISUALISER_IN_QUEUE.name),
             getString("s_key_topbar_show_visualiser_in_queue"), null
+        ),
+
+        SettingsItemToggle(
+            SettingsValueState(Settings.KEY_TOPBAR_DISPLAY_OVER_ARTIST_IMAGE.name),
+            getString("s_key_topbar_display_over_artist_image"), null
         )
     )
 }

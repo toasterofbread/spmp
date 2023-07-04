@@ -1,25 +1,48 @@
 package com.toasterofbread.spmp.ui.component
 
 import LocalPlayerState
-import androidx.compose.animation.*
+import androidx.compose.animation.AnimatedVisibility
+import androidx.compose.animation.Crossfade
 import androidx.compose.animation.core.Animatable
+import androidx.compose.animation.expandVertically
+import androidx.compose.animation.shrinkVertically
 import androidx.compose.foundation.background
-import androidx.compose.foundation.layout.*
+import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.PaddingValues
+import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.fillMaxHeight
+import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.height
+import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.Icon
 import androidx.compose.material3.LocalContentColor
 import androidx.compose.material3.Text
-import androidx.compose.runtime.*
+import androidx.compose.runtime.Composable
+import androidx.compose.runtime.DisposableEffect
+import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.derivedStateOf
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.graphicsLayer
+import androidx.compose.ui.unit.Density
+import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
+import androidx.compose.ui.zIndex
 import com.toasterofbread.spmp.model.MusicTopBarMode
 import com.toasterofbread.spmp.model.Settings
-import com.toasterofbread.spmp.model.mediaitem.Song
 import com.toasterofbread.spmp.model.SongLyrics
+import com.toasterofbread.spmp.model.mediaitem.Song
 import com.toasterofbread.spmp.platform.composable.platformClickable
+import com.toasterofbread.spmp.platform.composeScope
 import com.toasterofbread.spmp.resources.getString
 import com.toasterofbread.spmp.ui.layout.nowplaying.overlay.OverlayMenu
 import com.toasterofbread.utils.composable.rememberSongUpdateLyrics
@@ -117,7 +140,8 @@ fun MusicTopBar(
     can_show_key: Settings,
     modifier: Modifier = Modifier,
     padding: PaddingValues = PaddingValues(),
-    bottom_border_colour: Color? = null,
+    getBottomBorderOffset: ((height: Int) -> Int)? = null,
+    getBottomBorderColour: (() -> Color)? = null,
     onShowingChanged: ((Boolean) -> Unit)? = null
 ) {
     val can_show: Boolean by can_show_key.rememberMutableState()
@@ -128,7 +152,8 @@ fun MusicTopBar(
         hide_while_inactive = true,
         modifier = modifier,
         padding = padding,
-        bottom_border_colour = bottom_border_colour,
+        getBottomBorderOffset = getBottomBorderOffset,
+        getBottomBorderColour = getBottomBorderColour,
         onShowingChanged = onShowingChanged
     )
 }
@@ -143,7 +168,8 @@ private fun MusicTopBar(
     song: Song? = LocalPlayerState.current.status.m_song,
     padding: PaddingValues = PaddingValues(),
     innerContent: (@Composable (MusicTopBarMode) -> Unit)? = null,
-    bottom_border_colour: Color? = null,
+    getBottomBorderOffset: ((height: Int) -> Int)? = null,
+    getBottomBorderColour: (() -> Color)? = null,
     onClick: (() -> Unit)? = null,
     onShowingChanged: ((Boolean) -> Unit)? = null
 ) {
@@ -190,43 +216,50 @@ private fun MusicTopBar(
         enter = expandVertically(),
         exit = shrinkVertically()
     ) {
-        Column(Modifier.padding(padding).height(30.dp)) {
-            innerContent?.invoke(mode_state)
+        Column(Modifier.height(30.dp)) {
+            Box(Modifier.padding(padding)) {
+                innerContent?.invoke(mode_state)
 
-            Crossfade(current_state, Modifier.fillMaxSize()) { s ->
-                Box(Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
-                    when (s) {
-                        is SongLyrics -> {
-                            val linger: Boolean by Settings.KEY_TOPBAR_LYRICS_LINGER.rememberMutableState()
-                            val show_furigana: Boolean by Settings.KEY_TOPBAR_LYRICS_SHOW_FURIGANA.rememberMutableState()
+                Crossfade(current_state, Modifier.fillMaxSize()) { s ->
+                    Box(Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
+                        when (s) {
+                            is SongLyrics -> {
+                                val linger: Boolean by Settings.KEY_TOPBAR_LYRICS_LINGER.rememberMutableState()
+                                val show_furigana: Boolean by Settings.KEY_TOPBAR_LYRICS_SHOW_FURIGANA.rememberMutableState()
 
-                            LyricsLineDisplay(
-                                s,
-                                {
-                                    (player.player?.current_position_ms ?: 0) +
-                                        (song?.song_reg_entry?.getLyricsSyncOffset() ?: 0)
-                                },
-                                linger,
-                                show_furigana
-                            )
-                        }
-                        MusicTopBarMode.VISUALISER -> {
-                            player.player?.Visualiser(
-                                LocalContentColor.current,
-                                Modifier.fillMaxHeight().fillMaxWidth(visualiser_width).padding(vertical = 10.dp),
-                                opacity = 0.5f
-                            )
-                        }
-                        else -> {
-                            // TOOD State indicator
+                                LyricsLineDisplay(
+                                    s,
+                                    {
+                                        (player.player?.current_position_ms ?: 0) +
+                                            (song?.song_reg_entry?.getLyricsSyncOffset() ?: 0)
+                                    },
+                                    linger,
+                                    show_furigana
+                                )
+                            }
+                            MusicTopBarMode.VISUALISER -> {
+                                player.player?.Visualiser(
+                                    LocalContentColor.current,
+                                    Modifier.fillMaxHeight().fillMaxWidth(visualiser_width).padding(vertical = 10.dp),
+                                    opacity = 0.5f
+                                )
+                            }
+                            else -> {
+                                // TOOD State indicator
+                            }
                         }
                     }
                 }
             }
 
-            Crossfade(bottom_border_colour) { bottom_border_colour ->
+            composeScope {
+                val bottom_border_colour = getBottomBorderColour?.invoke()
                 if (bottom_border_colour != null) {
-                    WaveBorder(Modifier.fillMaxWidth(), colour = bottom_border_colour)
+                    WaveBorder(
+                        Modifier.fillMaxWidth().zIndex(-1f),
+                        colour = bottom_border_colour,
+                        getOffset = getBottomBorderOffset
+                    )
                 }
             }
         }

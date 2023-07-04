@@ -1,6 +1,8 @@
 package com.toasterofbread.spmp.ui.layout.prefspage
 
-import com.toasterofbread.settings.model.*
+import com.toasterofbread.settings.model.SettingsItem
+import com.toasterofbread.settings.model.SettingsItemMultipleChoice
+import com.toasterofbread.settings.model.SettingsValueState
 import com.toasterofbread.spmp.model.NowPlayingQueueWaveBorderMode
 import com.toasterofbread.spmp.model.Settings
 import com.toasterofbread.spmp.resources.getString

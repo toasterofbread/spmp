@@ -1,5 +1,19 @@
 package com.toasterofbread.spmp.ui.component.longpressmenu
 
+import SpMp
+import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.OpenWith
+import androidx.compose.material.icons.filled.Share
+import androidx.compose.runtime.Composable
+import androidx.compose.runtime.remember
+import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.unit.dp
+import com.toasterofbread.spmp.model.mediaitem.Song
+import com.toasterofbread.spmp.resources.getString
+import com.toasterofbread.spmp.ui.theme.Theme
+
+const val MENU_ITEM_SPACING: Int = 20
+
 @Composable
 internal fun LongPressMenuActions(data: LongPressMenuData, accent_colour: Color, onAction: () -> Unit) {
     val accent_colour_provider = remember (accent_colour) { { accent_colour } }

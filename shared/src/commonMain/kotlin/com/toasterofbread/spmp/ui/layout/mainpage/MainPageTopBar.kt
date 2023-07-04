@@ -1,9 +1,9 @@
 package com.toasterofbread.spmp.ui.layout.mainpage
 
 import LocalPlayerState
+import SpMp
 import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.animation.Crossfade
-import androidx.compose.animation.animateContentSize
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyRow

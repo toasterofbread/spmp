@@ -4,8 +4,9 @@ import SpMp
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.setValue
-import androidx.compose.ui.unit.*
 import com.toasterofbread.spmp.api.*
+import com.toasterofbread.spmp.api.radio.RadioInstance
+import com.toasterofbread.spmp.api.radio.RadioInstance.RadioState
 import com.toasterofbread.spmp.model.*
 import com.toasterofbread.spmp.model.mediaitem.Artist
 import com.toasterofbread.spmp.model.mediaitem.MediaItem
@@ -13,7 +14,6 @@ import com.toasterofbread.spmp.model.mediaitem.MediaItemThumbnailProvider
 import com.toasterofbread.spmp.model.mediaitem.Song
 import com.toasterofbread.spmp.platform.*
 import com.toasterofbread.spmp.resources.getString
-import com.toasterofbread.utils.*
 import kotlinx.coroutines.*
 import kotlinx.coroutines.sync.Mutex
 import kotlinx.coroutines.sync.Semaphore
@@ -33,7 +33,6 @@ private const val SONG_MARK_WATCHED_POSITION = 1000 // ms
 private const val DISCORD_APPLICATION_ID = "1081929293979992134"
 private const val DISCORD_ASSET_ICON_PRIMARY = "1103702923852132372"
 
-@Suppress("OPT_IN_USAGE")
 class PlayerService : MediaPlayerService() {
 
     var stop_after_current_song: Boolean by mutableStateOf(false)
@@ -55,54 +54,51 @@ class PlayerService : MediaPlayerService() {
 
     fun playSong(song: Song, start_radio: Boolean = true, shuffle: Boolean = false) {
         require(start_radio || !shuffle)
-        
-        if (song == getSong() && start_radio) {
-            clearQueue(keep_current = true, save = false)
-        }
-        else {
-            clearQueue(keep_current = false, save = false)
-            addToQueue(song)
 
-            if (!start_radio) {
-                return
+        undoableAction {
+            if (song == getSong() && start_radio) {
+                clearQueue(keep_current = true, save = false)
             }
-        }
+            else {
+                clearQueue(keep_current = false, save = false, cancel_radio = !start_radio)
+                addToQueue(song)
 
-        startRadioAtIndex(
-            1, 
-            song, 
-            0, 
-            skip_first = true, 
-            shuffle = shuffle
-        )
+                if (!start_radio) {
+                    return@undoableAction
+                }
+            }
+
+            startRadioAtIndex(
+                1,
+                song,
+                0,
+                skip_first = true,
+                shuffle = shuffle
+            )
+        }
     }
 
     fun startRadioAtIndex(index: Int, item: MediaItem? = null, item_index: Int? = null, skip_first: Boolean = false, shuffle: Boolean = false) {
         require(item_index == null || item != null)
 
-        synchronized(radio) {
-            clearQueue(from = index, keep_current = false, save = false)
+        customUndoableAction { furtherAction ->
+            synchronized(radio) {
+                clearQueue(from = index, keep_current = false, save = false, cancel_radio = false)
 
-            val final_item = item ?: getSong(index)!!
-            val final_index = if (item != null) item_index else index
+                val final_item = item ?: getSong(index)!!
+                val final_index = if (item != null) item_index else index
 
-            radio.playMediaItem(final_item, final_index, shuffle)
-            radio.loadContinuation { result ->
-                coroutine_scope.launch(Dispatchers.Main) {
-                    if (result.isFailure) {
-                        SpMp.error_manager.onError("startRadioAtIndex", result.exceptionOrNull()!!)
-                        savePersistentQueue()
-                    }
-                    else {
-                        addMultipleToQueue(result.getOrThrowHere(), index, skip_first, skip_existing = true)
-
-                        if (final_item !is Song) {
-                            final_item.editRegistry {
-                                it.incrementPlayCount()
-                            }
-                        }
+                if (final_item !is Song) {
+                    final_item.editRegistry {
+                        it.incrementPlayCount()
                     }
                 }
+
+                return@customUndoableAction getRadioChangeUndoRedo(
+                    radio.playMediaItem(final_item, final_index, shuffle),
+                    index,
+                    furtherAction = furtherAction
+                )
             }
         }
     }
@@ -216,45 +212,22 @@ class PlayerService : MediaPlayerService() {
         customUndoableAction { furtherAction ->
             addSong(song, add_to_index)
             if (start_radio) {
-                clearQueue(add_to_index + 1, save = false)
-
-                val radio_state: RadioState
-                val previous_radio_state: RadioState
+                clearQueue(add_to_index + 1, save = false, cancel_radio = false)
 
                 synchronized(radio) {
-                    previous_radio_state = radio.playMediaItem(song, add_to_index)
-                    radio_state = radio.state
-
-                    radio.loadContinuation { result ->
-                        if (result.isFailure) {
-                            SpMp.error_manager.onError("addToQueue", result.exceptionOrNull()!!)
-                            if (save) {
-                                savePersistentQueue()
-                            }
-                        }
-                        else {
-                            withContext(Dispatchers.Main) {
-                                furtherAction {
-                                    addMultipleToQueue(result.getOrThrowHere(), add_to_index + 1, save = save, skip_existing = true)
-                                }
-                            }
-                        }
-                    }
-                }
-
-                return@customUndoableAction object : UndoRedoAction {
-                    override fun redo() {
-                        radio.setRadioState(radio_state)
-                    }
-                    override fun undo() {
-                        radio.setRadioState(previous_radio_state)
-                    }
+                    return@customUndoableAction getRadioChangeUndoRedo(
+                        radio.playMediaItem(song, add_to_index),
+                        add_to_index + 1,
+                        save = save,
+                        furtherAction =  furtherAction
+                    )
                 }
             }
             else if (save) {
                 savePersistentQueue()
-                return@customUndoableAction null    
             }
+
+            return@customUndoableAction null
         }
 
         return add_to_index
@@ -278,13 +251,16 @@ class PlayerService : MediaPlayerService() {
         }
 
         val index_offset = if (skip_first) -1 else 0
-        for (song in to_add.withIndex()) {
-            if (skip_first && song.index == 0) {
-                continue
-            }
 
-            val item_index = index + song.index + index_offset
-            addSong(song.value, item_index)
+        undoableAction {
+            for (song in to_add.withIndex()) {
+                if (skip_first && song.index == 0) {
+                    continue
+                }
+
+                val item_index = index + song.index + index_offset
+                addSong(song.value, item_index)
+            }
         }
 
         if (is_active_queue) {
@@ -298,12 +274,58 @@ class PlayerService : MediaPlayerService() {
 
     fun removeFromQueue(index: Int, save: Boolean = true): Song {
         val song = getSong(index)!!
-        removeSong(index)
+
+        undoableAction {
+            removeSong(index)
+        }
 
         if (save) {
             savePersistentQueue()
         }
         return song
+    }
+
+    private fun getRadioChangeUndoRedo(
+        previous_radio_state: RadioState,
+        continuation_index: Int,
+        save: Boolean = true,
+        skip_existing: Boolean = true,
+        furtherAction: (MediaPlayerService.() -> UndoRedoAction?) -> Unit,
+    ): UndoRedoAction {
+        val radio_state: RadioState = radio.state
+
+        synchronized(radio) {
+            radio.loadContinuation { result ->
+                if (result.isFailure) {
+                    SpMp.error_manager.onError("addToQueue", result.exceptionOrNull()!!)
+                    if (save) {
+                        savePersistentQueue()
+                    }
+                }
+                else {
+                    withContext(Dispatchers.Main) {
+                        furtherAction {
+                            addMultipleToQueue(
+                                result.getOrThrowHere(),
+                                continuation_index,
+                                save = save,
+                                skip_existing = skip_existing
+                            )
+                            null
+                        }
+                    }
+                }
+            }
+        }
+
+        return object : UndoRedoAction {
+            override fun redo() {
+                radio.setRadioState(radio_state)
+            }
+            override fun undo() {
+                radio.setRadioState(previous_radio_state)
+            }
+        }
     }
 
     fun seekBy(delta_ms: Long) {
@@ -325,31 +347,55 @@ class PlayerService : MediaPlayerService() {
     val radio_filters: List<List<RadioModifier>>? get() = radio.state.filters
     var radio_current_filter: Int?
         get() = radio.state.current_filter
-        set(value) { radio.setFilter(value) }
+        set(value) { setRadioFilter(value) }
 
     // --- Internal ---
 
     private val radio = RadioInstance()
-    private fun onRadioFiltersChanged(filters: List<RadioModifier>?) {
+    private fun setRadioFilter(filter_index: Int?) = synchronized(radio) {
+        if (filter_index == radio.state.current_filter) {
+            return
+        }
+
+        val previous_filter_index = radio.state.current_filter
+        radio.setFilter(filter_index)
+
         val item = radio.state.item
         val add_index = maxOf(item?.second ?: -1, current_song_index) + 1
 
-        radio.cancelJob()
-        radio.loadContinuation({
-            withContext(Dispatchers.Main) {
-                clearQueue(add_index, cancel_radio = false, save = false)
-            }
-        }) { result ->
-            result.fold(
-                { songs ->
-                    withContext(Dispatchers.Main) {
-                        addMultipleToQueue(songs, add_index, skip_existing = true)
+        customUndoableAction { furtherAction ->
+            radio.loadContinuation({
+                withContext(Dispatchers.Main) {
+                    furtherAction {
+                        clearQueue(add_index, cancel_radio = false, save = false)
+                        null
                     }
-                },
-                { error ->
-                    SpMp.error_manager.onError("onRadioFiltersChanged", error)
                 }
-            )
+            }) { result ->
+                result.fold(
+                    { songs ->
+                        withContext(Dispatchers.Main) {
+                            furtherAction {
+                                addMultipleToQueue(songs, add_index, skip_existing = true)
+                                null
+                            }
+                        }
+                    },
+                    { error ->
+                        SpMp.error_manager.onError("onRadioFiltersChanged", error)
+                    }
+                )
+            }
+
+            object : UndoRedoAction {
+                override fun redo() {
+                    radio.setFilter(filter_index)
+                }
+
+                override fun undo() {
+                    radio.setFilter(previous_filter_index)
+                }
+            }
         }
     }
 
@@ -668,7 +714,6 @@ class PlayerService : MediaPlayerService() {
         if (update_timer == null) {
             update_timer = createUpdateTimer()
         }
-        radio.filter_changed_listeners.add(this::onRadioFiltersChanged)
 
         onDiscordAccountTokenChanged()
     }
@@ -676,8 +721,6 @@ class PlayerService : MediaPlayerService() {
     override fun onDestroy() {
         removeListener(player_listener)
         coroutine_scope.cancel()
-
-        radio.filter_changed_listeners.remove(this::onRadioFiltersChanged)
 
         update_timer?.cancel()
         update_timer = null

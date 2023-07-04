@@ -7,8 +7,14 @@ import com.toasterofbread.spmp.api.Api.Companion.getStream
 import com.toasterofbread.spmp.api.Api.Companion.ytUrl
 import com.toasterofbread.spmp.api.model.YoutubeiShelf
 import com.toasterofbread.spmp.api.model.YoutubeiShelfContentsItem
-import com.toasterofbread.spmp.model.*
-import com.toasterofbread.spmp.model.mediaitem.*
+import com.toasterofbread.spmp.api.radio.YoutubeiNextResponse
+import com.toasterofbread.spmp.model.Cache
+import com.toasterofbread.spmp.model.Settings
+import com.toasterofbread.spmp.model.mediaitem.AccountPlaylist
+import com.toasterofbread.spmp.model.mediaitem.Artist
+import com.toasterofbread.spmp.model.mediaitem.MediaItem
+import com.toasterofbread.spmp.model.mediaitem.MediaItemThumbnailProvider
+import com.toasterofbread.spmp.model.mediaitem.Song
 import com.toasterofbread.spmp.model.mediaitem.enums.MediaItemType
 import com.toasterofbread.spmp.model.mediaitem.enums.SongType
 import com.toasterofbread.spmp.resources.uilocalisation.LocalisedYoutubeString
@@ -18,7 +24,6 @@ import kotlinx.coroutines.job
 import kotlinx.coroutines.withContext
 import okhttp3.Request
 import java.io.InputStream
-import java.io.InputStreamReader
 import java.time.Duration
 
 private val CACHE_LIFETIME = Duration.ofDays(1)

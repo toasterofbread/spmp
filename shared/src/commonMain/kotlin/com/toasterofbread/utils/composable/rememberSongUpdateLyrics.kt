@@ -1,8 +1,14 @@
 package com.toasterofbread.utils.composable
 
-import androidx.compose.runtime.*
-import com.toasterofbread.spmp.model.mediaitem.Song
+import androidx.compose.runtime.Composable
+import androidx.compose.runtime.DisposableEffect
+import androidx.compose.runtime.MutableState
+import androidx.compose.runtime.State
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
+import androidx.compose.runtime.rememberCoroutineScope
 import com.toasterofbread.spmp.model.SongLyrics
+import com.toasterofbread.spmp.model.mediaitem.Song
 import com.toasterofbread.utils.launchSingle
 
 @Composable

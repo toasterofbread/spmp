@@ -160,7 +160,7 @@ fun PrefsPage(
         MusicTopBar(
             Settings.KEY_LYRICS_SHOW_IN_SETTINGS,
             Modifier.fillMaxWidth().zIndex(10f),
-            bottom_border_colour = if (current_category == null) Theme.current.background else null
+            getBottomBorderColour = if (current_category == null) Theme.current.background_provider else null
         )
 
         Crossfade(category_open || settings_interface.current_page.id!! != PrefsPageScreen.ROOT.ordinal) { open ->

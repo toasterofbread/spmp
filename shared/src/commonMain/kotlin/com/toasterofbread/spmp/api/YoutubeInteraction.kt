@@ -9,7 +9,7 @@ import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
 import okhttp3.HttpUrl.Companion.toHttpUrl
 import okhttp3.Request
-import java.util.*
+import java.util.Random
 
 class ArtistBrowseResponse(val header: Header) {
     class Header(val musicImmersiveHeaderRenderer: MusicImmersiveHeaderRenderer? = null)

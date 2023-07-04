@@ -280,7 +280,7 @@ private fun QueueBorder(
         WaveBorder(
             Modifier.fillMaxWidth().zIndex(1f),
             colour = getNPAltOnBackground(),
-            getOffset = {
+            getWaveOffset = {
                 when (wave_border_mode) {
                     NowPlayingQueueWaveBorderMode.SCROLL -> {
                         ((50.dp.toPx() * queue_list_state.listState.firstVisibleItemIndex) + queue_list_state.listState.firstVisibleItemScrollOffset)

@@ -1,5 +1,30 @@
 package com.toasterofbread.spmp.ui.component.longpressmenu
 
+import androidx.compose.foundation.layout.ColumnScope
+import androidx.compose.runtime.Composable
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.setValue
+import androidx.compose.ui.Modifier
+import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.graphics.Shape
+import androidx.compose.ui.unit.Dp
+import com.toasterofbread.spmp.model.mediaitem.Artist
+import com.toasterofbread.spmp.model.mediaitem.MediaItem
+import com.toasterofbread.spmp.model.mediaitem.MediaItemPreviewInteractionPressStage
+import com.toasterofbread.spmp.model.mediaitem.Playlist
+import com.toasterofbread.spmp.model.mediaitem.Song
+import com.toasterofbread.spmp.ui.component.ArtistLongPressMenuActions
+import com.toasterofbread.spmp.ui.component.LikeDislikeButton
+import com.toasterofbread.spmp.ui.component.PlaylistLongPressMenuActions
+import com.toasterofbread.spmp.ui.component.SongLongPressMenuActions
+import com.toasterofbread.spmp.ui.component.multiselect.MediaItemMultiSelectContext
+import com.toasterofbread.spmp.ui.layout.artistpage.ArtistSubscribeButton
+import com.toasterofbread.utils.getContrasted
+import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.launch
+
 data class LongPressMenuData(
     val item: MediaItem,
     val thumb_shape: Shape? = null,

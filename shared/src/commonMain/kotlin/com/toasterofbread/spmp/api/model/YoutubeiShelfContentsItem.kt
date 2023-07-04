@@ -2,7 +2,6 @@ package com.toasterofbread.spmp.api.model
 
 import com.toasterofbread.spmp.api.MusicResponsiveListItemRenderer
 import com.toasterofbread.spmp.api.MusicTwoRowItemRenderer
-import com.toasterofbread.spmp.resources.uilocalisation.parseYoutubeDurationString
 import com.toasterofbread.spmp.model.Settings
 import com.toasterofbread.spmp.model.mediaitem.AccountPlaylist
 import com.toasterofbread.spmp.model.mediaitem.Artist
@@ -12,6 +11,7 @@ import com.toasterofbread.spmp.model.mediaitem.data.MediaItemData
 import com.toasterofbread.spmp.model.mediaitem.enums.MediaItemType
 import com.toasterofbread.spmp.model.mediaitem.enums.PlaylistType
 import com.toasterofbread.spmp.model.mediaitem.enums.SongType
+import com.toasterofbread.spmp.resources.uilocalisation.parseYoutubeDurationString
 
 data class YoutubeiShelfContentsItem(val musicTwoRowItemRenderer: MusicTwoRowItemRenderer? = null, val musicResponsiveListItemRenderer: MusicResponsiveListItemRenderer? = null) {
     // Pair(item, playlistSetVideoId)

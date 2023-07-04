@@ -4,7 +4,12 @@ import LocalPlayerState
 import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.animation.expandVertically
 import androidx.compose.animation.shrinkVertically
-import androidx.compose.foundation.layout.*
+import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.fillMaxHeight
+import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.size
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.CleaningServices
 import androidx.compose.material.icons.filled.PushPin
@@ -21,11 +26,12 @@ import com.toasterofbread.spmp.ui.component.MediaItemGrid
 @Composable
 fun MainPageScrollableTopContent(
     pinned_items: List<MediaItemHolder>,
-    modifier: Modifier = Modifier
+    modifier: Modifier = Modifier,
+    visible: Boolean = pinned_items.isNotEmpty()
 ) {
     Column(modifier.fillMaxWidth(), verticalArrangement = Arrangement.spacedBy(20.dp)) {
         AnimatedVisibility(
-            pinned_items.isNotEmpty(),
+            visible,
             enter = expandVertically(),
             exit = shrinkVertically()
         ) {

@@ -5,9 +5,9 @@ import com.toasterofbread.settings.model.BasicSettingsValueState
 import com.toasterofbread.settings.model.SettingsItem
 import com.toasterofbread.settings.model.SettingsItemLargeToggle
 import com.toasterofbread.settings.model.SettingsValueState
-import com.toasterofbread.spmp.model.mediaitem.Artist
 import com.toasterofbread.spmp.model.Settings
 import com.toasterofbread.spmp.model.YoutubeMusicAuthInfo
+import com.toasterofbread.spmp.model.mediaitem.Artist
 import com.toasterofbread.spmp.model.mediaitem.MediaItemPreviewParams
 import com.toasterofbread.spmp.platform.ProjectPreferences
 import com.toasterofbread.spmp.resources.getString

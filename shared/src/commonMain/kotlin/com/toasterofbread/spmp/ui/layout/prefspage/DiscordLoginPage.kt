@@ -1,15 +1,13 @@
 package com.toasterofbread.spmp.ui.layout.prefspage
 
+import SpMp
 import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.fillMaxSize
-import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.filled.PlayCircle
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.vector.ImageVector
 import com.toasterofbread.composesettings.ui.SettingsPage
 import com.toasterofbread.settings.model.SettingsValueState
-import com.toasterofbread.spmp.api.getOrReport
 import com.toasterofbread.spmp.resources.getString
 import com.toasterofbread.spmp.ui.layout.DiscordLogin
 

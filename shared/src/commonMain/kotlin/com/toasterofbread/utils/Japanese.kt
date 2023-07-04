@@ -1,6 +1,9 @@
 package com.toasterofbread.utils
 
-import java.lang.Character.UnicodeBlock.*
+import java.lang.Character.UnicodeBlock.CJK_UNIFIED_IDEOGRAPHS
+import java.lang.Character.UnicodeBlock.HIRAGANA
+import java.lang.Character.UnicodeBlock.KATAKANA
+import java.lang.Character.UnicodeBlock.of
 
 fun Char.isJP(): Boolean = isKanji() || isHiragana() || isKatakana()
 fun Char.isKanji(): Boolean = of(this) == CJK_UNIFIED_IDEOGRAPHS

@@ -492,7 +492,7 @@ class PlayerService : MediaPlayerService() {
         discord_rpc = DiscordStatus(
             bot_token = ProjectBuildConfig.DISCORD_BOT_TOKEN,
             custom_images_channel_category_id = ProjectBuildConfig.DISCORD_CUSTOM_IMAGES_CHANNEL_CATEGORY,
-            custom_images_channel_name_prefix = ProjectBuildConfig.DISCORD_CUSTOM_IMAGES_CHANNEL_NAME_PREFIX,
+            custom_images_channel_name_prefix = ProjectBuildConfig.DISCORD_CUSTOM_IMAGES_CHANNEL_NAME_PREFIX ?: "",
             account_token = account_token
         )
 

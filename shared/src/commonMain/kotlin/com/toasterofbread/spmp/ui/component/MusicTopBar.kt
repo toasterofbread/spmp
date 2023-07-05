@@ -48,6 +48,7 @@ import com.toasterofbread.spmp.ui.layout.nowplaying.overlay.OverlayMenu
 import com.toasterofbread.utils.composable.rememberSongUpdateLyrics
 import com.toasterofbread.utils.getContrasted
 import kotlinx.coroutines.delay
+import com.toasterofbread.utils.composable.pauseableInfiniteRepeatableAnimation
 
 @Composable
 fun MusicTopBarWithVisualiser(

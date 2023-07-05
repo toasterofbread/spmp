@@ -7,34 +7,63 @@ plugins {
     id("org.jetbrains.compose")
 }
 
-val DEBUG_KEYS = listOf("YTM_CHANNEL_ID", "YTM_COOKIE", "YTM_HEADERS", "DISCORD_ACCOUNT_TOKEN", "DISCORD_ERROR_REPORT_WEBHOOK")
+val KEY_NAMES = mapOf(
+    "DISCORD_BOT_TOKEN" to "String", 
+    "DISCORD_CUSTOM_IMAGES_CHANNEL_CATEGORY" to "Long", 
+    "DISCORD_CUSTOM_IMAGES_CHANNEL_NAME_PREFIX" to "String"
+)
+val DEBUG_KEY_NAMES = listOf("YTM_CHANNEL_ID", "YTM_COOKIE", "YTM_HEADERS", "DISCORD_ACCOUNT_TOKEN", "DISCORD_ERROR_REPORT_WEBHOOK")
+
 val buildConfigDir get() = project.layout.buildDirectory.dir("generated/buildconfig")
 
 fun GenerateBuildConfig.buildConfig(debug: Boolean) {
+    val keys = Properties()
+    
+    fun loadKeys(file: File, getType: (key: String) -> String, key_names: Collection<String>) {
+        if (file.isFile()) {
+            keys.clear()
+            keys.load(FileInputStream(file))
+
+            for (item in keys) {
+                val key = item.key.toString()
+                fields_to_generate.add(
+                    Triple(
+                        key, 
+                        getType(key) + '?', 
+                        if (debug) item.value.toString() else null.toString()
+                    )
+                )
+            }
+        }
+        else {
+            for (key in key_names) {
+                fields_to_generate.add(
+                    Triple(
+                        key, 
+                        getType(key) + '?', 
+                        null.toString()
+                    )
+                )
+            }
+        }
+    }
+    
     class_fq_name.set("com.toasterofbread.spmp.ProjectBuildConfig")
     generated_output_dir.set(buildConfigDir)
 
-    val keys = Properties()
+    loadKeys(
+        rootProject.file("keys.properties"),
+        { key -> 
+            KEY_NAMES[key]!!
+        },
+        KEY_NAMES.keys
+    )
 
-    keys.load(FileInputStream(rootProject.file("keys.properties")))
-    for (item in keys) {
-        fields_to_generate.add(Triple(item.key.toString(), null, item.value.toString()))
-    }
-
-    val debug_keys_file = rootProject.file("debug_keys.properties")
-    if (debug_keys_file.isFile()) {
-        keys.clear()
-
-        keys.load(FileInputStream(debug_keys_file))
-        for (item in keys) {
-            fields_to_generate.add(Triple(item.key.toString(), "String?", if (debug) item.value.toString() else null.toString()))
-        }
-    }
-    else {
-        for (key in DEBUG_KEYS) {
-            fields_to_generate.add(Triple(key, "String?", null.toString()))
-        }
-    }
+    loadKeys(
+        rootProject.file("debug_keys.properties"),
+        { "String" },
+        DEBUG_KEY_NAMES
+    )
 
     fields_to_generate.add(Triple("IS_DEBUG", "Boolean", debug.toString()))
 }

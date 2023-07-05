@@ -61,7 +61,7 @@ fun ArtistPreviewSquare(
     val long_press_menu_data = remember(artist) {
         getArtistLongPressMenuData(artist, multiselect_context = params.multiselect_context)
     }
-    MediaItemPreviewSquare(artist, params)
+    MediaItemPreviewSquare(artist, params, long_press_menu_data)
 }
 
 @Composable

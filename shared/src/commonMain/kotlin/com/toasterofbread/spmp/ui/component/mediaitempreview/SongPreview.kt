@@ -1,4 +1,4 @@
-package com.toasterofbread.spmp.ui.component
+package com.toasterofbread.spmp.ui.component.mediaitempreview
 
 import LocalPlayerState
 import SpMp
@@ -94,33 +94,7 @@ fun SongPreviewSquare(
             getInfoText = params.getInfoText
         )
     }
-
-    Column(
-        params.modifier.mediaItemPreviewInteraction(song, long_press_menu_data),
-        horizontalAlignment = Alignment.CenterHorizontally,
-        verticalArrangement = Arrangement.spacedBy(5.dp)
-    ) {
-        Box(Modifier.fillMaxSize().weight(1f), contentAlignment = Alignment.Center) {
-            song.Thumbnail(
-                MediaItemThumbnailProvider.Quality.LOW,
-                Modifier.longPressMenuIcon(long_press_menu_data, params.enable_long_press_menu).aspectRatio(1f),
-                contentColourProvider = params.contentColour
-            )
-
-            params.multiselect_context?.also { ctx ->
-                ctx.SelectableItemOverlay(song, Modifier.fillMaxSize(), key = queue_index)
-            }
-        }
-
-        Text(
-            song.title ?: "",
-            fontSize = 12.sp,
-            color = params.contentColour?.invoke() ?: Color.Unspecified,
-            maxLines = 1,
-            lineHeight = 14.sp,
-            overflow = TextOverflow.Ellipsis
-        )
-    }
+    MediaItemPreviewSquare(song, params, long_press_menu_data)
 }
 
 @Composable

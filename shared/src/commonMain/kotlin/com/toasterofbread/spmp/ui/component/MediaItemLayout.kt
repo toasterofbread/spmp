@@ -62,6 +62,7 @@ data class MediaItemLayout(
     val thumbnail_item_type: MediaItemType? = null,
     var view_more: ViewMore? = null,
     var continuation: Continuation? = null,
+    var square_item_max_text_rows: Int? = null,
     @Json(ignored = true)
     var itemSizeProvider: @Composable () -> DpSize = { getDefaultMediaItemPreviewSize() }
 ) {
@@ -628,7 +629,8 @@ fun MediaItemGrid(
                             else Modifier.size(item_size)
                         ),
                         contentColour = Theme.current.on_background_provider,
-                        multiselect_context = multiselect_context
+                        multiselect_context = multiselect_context,
+                        square_item_max_text_rows = square_item_max_text_rows
                     )
 
                     if (alt_style) {

@@ -16,8 +16,8 @@ import com.toasterofbread.spmp.model.mediaitem.enums.SongType
 import com.toasterofbread.spmp.platform.PlatformContext
 import com.toasterofbread.spmp.platform.crop
 import com.toasterofbread.spmp.platform.toImageBitmap
-import com.toasterofbread.spmp.ui.component.SongPreviewLong
-import com.toasterofbread.spmp.ui.component.SongPreviewSquare
+import com.toasterofbread.spmp.ui.component.mediaitempreview.SongPreviewLong
+import com.toasterofbread.spmp.ui.component.mediaitempreview.SongPreviewSquare
 import okhttp3.internal.filterList
 import java.net.URL
 

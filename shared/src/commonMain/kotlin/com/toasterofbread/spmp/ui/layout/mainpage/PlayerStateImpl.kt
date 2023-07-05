@@ -517,27 +517,35 @@ class PlayerStateImpl(private val context: PlatformContext): PlayerState(null, n
         }
 
         val result = loadFeedLayouts(min_rows, allow_cached, filter_params, if (continue_feed) feed_continuation else null)
-        if (result.isFailure) {
-            if (report_error) {
-                SpMp.reportActionError(result.exceptionOrNull())
-            }
-            main_page_layouts = emptyList()
-            main_page_filter_chips = null
-        } else {
-            val (layouts, cont, chips) = result.getOrThrow()
-            for (layout in layouts) {
-                layout.itemSizeProvider = { getMainPageItemSize() }
-            }
+        
+        result.fold(
+            { data ->
+                val (layouts, cont, chips) = data
+                
+                val square_item_max_text_rows: Int = Settings.KEY_FEED_SQUARE_PREVIEW_TEXT_LINES.get()
+                val itemSizeProvider: @Composable () -> DpSize = { getMainPageItemSize() }
+                for (layout in layouts) {
+                    layout.itemSizeProvider = itemSizeProvider
+                    layout.square_item_max_text_rows = square_item_max_text_rows
+                }
 
-            if (continue_feed) {
-                main_page_layouts = (main_page_layouts ?: emptyList()) + layouts
-            } else {
-                main_page_layouts = layouts
-                main_page_filter_chips = chips
-            }
+                if (continue_feed) {
+                    main_page_layouts = (main_page_layouts ?: emptyList()) + layouts
+                } else {
+                    main_page_layouts = layouts
+                    main_page_filter_chips = chips
+                }
 
-            feed_continuation = cont
-        }
+                feed_continuation = cont
+            },
+            { error ->
+                if (report_error) {
+                    SpMp.reportActionError(error)
+                }
+                main_page_layouts = emptyList()
+                main_page_filter_chips = null
+            }
+        )
 
         feed_load_state.value = FeedLoadState.NONE
 

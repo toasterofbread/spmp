@@ -1,4 +1,4 @@
-package com.toasterofbread.spmp.ui.component
+package com.toasterofbread.spmp.ui.component.mediaitempreview
 
 import LocalPlayerState
 import SpMp
@@ -21,31 +21,27 @@ import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.filled.Delete
+import androidx.compose.material.icons.filled.Person
 import androidx.compose.material.icons.filled.PlayArrow
 import androidx.compose.material.icons.filled.Print
-import androidx.compose.material.icons.filled.Shuffle
 import androidx.compose.material.icons.filled.SubdirectoryArrowRight
 import androidx.compose.material3.Icon
-import androidx.compose.material3.LocalContentColor
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.remember
-import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.alpha
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.Shape
 import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
-import com.toasterofbread.spmp.api.getOrReport
+import com.toasterofbread.spmp.model.mediaitem.Artist
 import com.toasterofbread.spmp.model.mediaitem.MediaItem
 import com.toasterofbread.spmp.model.mediaitem.MediaItemPreviewParams
 import com.toasterofbread.spmp.model.mediaitem.MediaItemThumbnailProvider
-import com.toasterofbread.spmp.model.mediaitem.Playlist
-import com.toasterofbread.spmp.model.mediaitem.enums.getReadable
 import com.toasterofbread.spmp.model.mediaitem.mediaItemPreviewInteraction
 import com.toasterofbread.spmp.resources.getString
 import com.toasterofbread.spmp.ui.component.longpressmenu.LongPressMenuActionProvider
@@ -54,144 +50,97 @@ import com.toasterofbread.spmp.ui.component.longpressmenu.longPressMenuIcon
 import com.toasterofbread.spmp.ui.component.multiselect.MediaItemMultiSelectContext
 import com.toasterofbread.utils.composable.WidthShrinkText
 import com.toasterofbread.utils.isDebugBuild
-import com.toasterofbread.utils.setAlpha
-import kotlinx.coroutines.launch
+
+const val ARTIST_THUMB_CORNER_ROUNDING = 50
 
 @Composable
-fun PlaylistPreviewSquare(
-    playlist: Playlist,
+fun ArtistPreviewSquare(
+    artist: Artist,
     params: MediaItemPreviewParams
 ) {
-    val long_press_menu_data = remember(playlist) {
-        getPlaylistLongPressMenuData(playlist, multiselect_context = params.multiselect_context)
+    val long_press_menu_data = remember(artist) {
+        getArtistLongPressMenuData(artist, multiselect_context = params.multiselect_context)
     }
-
-    Column(
-        params.modifier.mediaItemPreviewInteraction(playlist, long_press_menu_data),
-        horizontalAlignment = Alignment.CenterHorizontally,
-        verticalArrangement = Arrangement.spacedBy(5.dp)
-    ) {
-        Box(Modifier.fillMaxSize().weight(1f), contentAlignment = Alignment.Center) {
-            playlist.Thumbnail(
-                MediaItemThumbnailProvider.Quality.LOW,
-                Modifier.longPressMenuIcon(long_press_menu_data, params.enable_long_press_menu).aspectRatio(1f),
-                contentColourProvider = params.contentColour
-            )
-
-            params.multiselect_context?.also { ctx ->
-                ctx.SelectableItemOverlay(playlist, Modifier.fillMaxSize())
-            }
-        }
-
-        Text(
-            playlist.title ?: "",
-            fontSize = 12.sp,
-            color = params.contentColour?.invoke() ?: LocalContentColor.current,
-            maxLines = 1,
-            lineHeight = 14.sp,
-            overflow = TextOverflow.Ellipsis
-        )
-    }
+    MediaItemPreviewSquare(artist, params)
 }
 
 @Composable
-fun PlaylistPreviewLong(
-    playlist: Playlist,
+fun ArtistPreviewLong(
+    artist: Artist,
     params: MediaItemPreviewParams
 ) {
-    val long_press_menu_data = remember(playlist) {
-        getPlaylistLongPressMenuData(playlist, multiselect_context = params.multiselect_context)
+    val long_press_menu_data = remember(artist) {
+        getArtistLongPressMenuData(artist, multiselect_context = params.multiselect_context)
     }
 
     Row(
         verticalAlignment = Alignment.CenterVertically,
-        modifier = params.modifier.mediaItemPreviewInteraction(playlist, long_press_menu_data)
+        modifier = params.modifier.mediaItemPreviewInteraction(artist, long_press_menu_data)
     ) {
         Box(Modifier.width(IntrinsicSize.Min).height(IntrinsicSize.Min), contentAlignment = Alignment.Center) {
-            playlist.Thumbnail(
+            artist.Thumbnail(
                 MediaItemThumbnailProvider.Quality.LOW,
                 Modifier
                     .longPressMenuIcon(long_press_menu_data, params.enable_long_press_menu)
-                    .size(40.dp),
-                contentColourProvider = params.contentColour
+                    .size(40.dp)
             )
 
             params.multiselect_context?.also { ctx ->
-                ctx.SelectableItemOverlay(playlist, Modifier.fillMaxSize())
+                ctx.SelectableItemOverlay(artist, Modifier.fillMaxSize())
             }
         }
 
-        Column(
-            Modifier.padding(10.dp).fillMaxWidth(),
-            verticalArrangement = Arrangement.spacedBy(5.dp)
-        ) {
+        Column(Modifier.padding(8.dp)) {
             Text(
-                playlist.title ?: "",
+                artist.title ?: "",
                 fontSize = 15.sp,
-                color = params.contentColour?.invoke() ?: LocalContentColor.current,
+                color = params.contentColour?.invoke() ?: Color.Unspecified,
                 maxLines = 1,
                 overflow = TextOverflow.Ellipsis
             )
 
-            Row(horizontalArrangement = Arrangement.spacedBy(5.dp)) {
-                @Composable
-                fun InfoText(text: String) {
-                    Text(
-                        text,
-                        fontSize = 11.sp,
-                        color = params.contentColour?.invoke() ?: LocalContentColor.current.setAlpha(0.5f),
-                        maxLines = 1,
-                        overflow = TextOverflow.Ellipsis
-                    )
-                }
-
-                if (params.show_type) {
-                    InfoText(playlist.playlist_type.getReadable(false))
-                }
-
-                if (playlist.artist?.title != null) {
-                    if (params.show_type) {
-                        InfoText("\u2022")
-                    }
-                    InfoText(playlist.artist?.title!!)
-                }
+            val sub_count = artist.getReadableSubscriberCount()
+            if (sub_count.isNotEmpty()) {
+                Text(
+                    sub_count,
+                    Modifier.alpha(0.5f),
+                    fontSize = 12.sp,
+                    color = params.contentColour?.invoke() ?: Color.Unspecified,
+                    maxLines = 1,
+                    overflow = TextOverflow.Ellipsis
+                )
             }
         }
     }
 }
 
-fun getPlaylistLongPressMenuData(
-    playlist: Playlist,
-    thumb_shape: Shape? = RoundedCornerShape(10.dp),
+fun getArtistLongPressMenuData(
+    artist: Artist,
+    thumb_shape: Shape? = RoundedCornerShape(ARTIST_THUMB_CORNER_ROUNDING),
     multiselect_context: MediaItemMultiSelectContext? = null
 ): LongPressMenuData {
     return LongPressMenuData(
-        playlist,
+        artist,
         thumb_shape,
-        { PlaylistLongPressMenuInfo(playlist, it) },
+        { ArtistLongPressMenuInfo(artist, it) },
         getString("lpm_long_press_actions"),
         multiselect_context = multiselect_context
     )
 }
 
 @Composable
-fun LongPressMenuActionProvider.PlaylistLongPressMenuActions(playlist: MediaItem) {
-    require(playlist is Playlist)
-
+fun LongPressMenuActionProvider.ArtistLongPressMenuActions(artist: MediaItem) {
+    require(artist is Artist)
     val player = LocalPlayerState.current
-    val coroutine_context = rememberCoroutineScope()
 
     ActionButton(
-        Icons.Default.PlayArrow, getString("lpm_action_play"),
+        Icons.Default.PlayArrow, 
+        getString("lpm_action_play"), 
         onClick = {
-            player.playMediaItem(playlist)
-        }
-    )
-
-    ActionButton(
-        Icons.Default.Shuffle, getString("lpm_action_shuffle_playlist"),
-        onClick = {
-            TODO() // Shuffle
+            player.playMediaItem(artist)
+        },
+        onLongClick = {
+            player.playMediaItem(artist, shuffle = true)
         }
     )
 
@@ -200,22 +149,20 @@ fun LongPressMenuActionProvider.PlaylistLongPressMenuActions(playlist: MediaItem
             getString(if (distance == 1) "lpm_action_play_after_1_song" else "lpm_action_play_after_x_songs").replace("\$x", distance.toString()) 
         },
         onClick = { active_queue_index ->
-            TODO() // Insert at position
+            TODO() // Insert songs
         },
         onLongClick = { active_queue_index ->
-            TODO() // Insert shuffled at position
+            TODO() // Insert radio
         }
     )
 
-    if (playlist.is_editable == true) {
-        ActionButton(Icons.Default.Delete, getString("playlist_delete"), onClick = { coroutine_context.launch {
-            playlist.deletePlaylist().getOrReport("deletePlaylist")
-        } })
-    }
+    ActionButton(Icons.Default.Person, getString("lpm_action_open_artist"), onClick = {
+        player.openMediaItem(artist)
+    })
 }
 
 @Composable
-private fun ColumnScope.PlaylistLongPressMenuInfo(playlist: Playlist, accent_colour: Color) {
+private fun ColumnScope.ArtistLongPressMenuInfo(artist: Artist, accent_colour: Color) {
     @Composable
     fun Item(icon: ImageVector, text: String, modifier: Modifier = Modifier) {
         Row(
@@ -229,13 +176,11 @@ private fun ColumnScope.PlaylistLongPressMenuInfo(playlist: Playlist, accent_col
     }
     @Composable
     fun Item() {
-        Spacer(Modifier.height(25.dp))
+        Spacer(Modifier.height(25.dp)) // TODO
     }
 
-    Item() // Play
-    Item() // Shuffle
-
-    Item(Icons.Default.SubdirectoryArrowRight, getString("lpm_action_play_shuffled_after_x_songs"))
+    Item(Icons.Default.PlayArrow, getString("lpm_action_radio"))
+    Item(Icons.Default.SubdirectoryArrowRight, getString("lpm_action_radio_after_x_songs"))
 
     Spacer(
         Modifier
@@ -245,17 +190,17 @@ private fun ColumnScope.PlaylistLongPressMenuInfo(playlist: Playlist, accent_col
 
     Row(Modifier.requiredHeight(20.dp), verticalAlignment = Alignment.CenterVertically) {
         Text(
-            getString("lpm_info_id").replace("\$id", playlist.id),
+            getString("lpm_info_id").replace("\$id", artist.id),
             Modifier
                 .fillMaxWidth()
                 .weight(1f)
         )
-        SpMp.context.CopyShareButtons { playlist.id }
+        SpMp.context.CopyShareButtons { artist.id }
     }
 
     if (isDebugBuild()) {
         Item(Icons.Default.Print, getString("lpm_action_print_info"), Modifier.clickable {
-            println(playlist)
+            println(artist)
         })
     }
 }

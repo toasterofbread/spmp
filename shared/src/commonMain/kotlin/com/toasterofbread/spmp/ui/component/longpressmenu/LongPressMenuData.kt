@@ -14,10 +14,10 @@ import com.toasterofbread.spmp.model.mediaitem.MediaItem
 import com.toasterofbread.spmp.model.mediaitem.MediaItemPreviewInteractionPressStage
 import com.toasterofbread.spmp.model.mediaitem.Playlist
 import com.toasterofbread.spmp.model.mediaitem.Song
-import com.toasterofbread.spmp.ui.component.ArtistLongPressMenuActions
+import com.toasterofbread.spmp.ui.component.mediaitempreview.ArtistLongPressMenuActions
 import com.toasterofbread.spmp.ui.component.LikeDislikeButton
-import com.toasterofbread.spmp.ui.component.PlaylistLongPressMenuActions
-import com.toasterofbread.spmp.ui.component.SongLongPressMenuActions
+import com.toasterofbread.spmp.ui.component.mediaitempreview.PlaylistLongPressMenuActions
+import com.toasterofbread.spmp.ui.component.mediaitempreview.SongLongPressMenuActions
 import com.toasterofbread.spmp.ui.component.multiselect.MediaItemMultiSelectContext
 import com.toasterofbread.spmp.ui.layout.artistpage.ArtistSubscribeButton
 import com.toasterofbread.utils.getContrasted

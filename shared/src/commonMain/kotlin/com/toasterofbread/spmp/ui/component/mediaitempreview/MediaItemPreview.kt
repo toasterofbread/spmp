@@ -1,5 +1,25 @@
 package com.toasterofbread.spmp.ui.component.mediaitempreview
 
+import com.toasterofbread.spmp.model.mediaitem.MediaItem
+import androidx.compose.runtime.Composable
+import com.toasterofbread.spmp.model.mediaitem.MediaItemPreviewParams
+import com.toasterofbread.spmp.model.mediaitem.mediaItemPreviewInteraction
+import com.toasterofbread.spmp.ui.component.longpressmenu.LongPressMenuData
+import com.toasterofbread.spmp.ui.component.longpressmenu.longPressMenuIcon
+import com.toasterofbread.spmp.model.mediaitem.MediaItemThumbnailProvider
+import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.ui.Alignment
+import androidx.compose.ui.Modifier
+import androidx.compose.foundation.layout.Box
+import androidx.compose.material3.Text
+import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.ui.unit.dp
+import androidx.compose.ui.unit.sp
+import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.text.style.TextOverflow
+import androidx.compose.foundation.layout.aspectRatio
+
 @Composable
 fun MediaItemPreviewSquare(
     item: MediaItem,
@@ -19,7 +39,7 @@ fun MediaItemPreviewSquare(
             )
 
             params.multiselect_context?.also { ctx ->
-                ctx.SelectableItemOverlay(item, Modifier.fillMaxSize(), key = queue_index)
+                ctx.SelectableItemOverlay(item, Modifier.fillMaxSize(), key = long_press_menu_data.multiselect_key)
             }
         }
 

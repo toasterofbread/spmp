@@ -17,6 +17,9 @@ import com.toasterofbread.spmp.model.SongLyrics
 import com.toasterofbread.utils.BasicFuriganaText
 import com.toasterofbread.utils.composable.OnChangedEffect
 import com.toasterofbread.utils.composable.RecomposeOnInterval
+import kotlinx.coroutines.delay
+import androidx.compose.animation.Crossfade
+import androidx.compose.foundation.layout.fillMaxWidth
 
 private const val UPDATE_INTERVAL_MS = 100L
 

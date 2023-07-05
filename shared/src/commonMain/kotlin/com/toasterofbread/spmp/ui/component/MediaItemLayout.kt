@@ -50,6 +50,7 @@ import com.toasterofbread.utils.modifier.background
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
 import okhttp3.Request
+import com.toasterofbread.spmp.ui.component.mediaitempreview.*
 
 fun getDefaultMediaItemPreviewSize(): DpSize = DpSize(100.dp, 130.dp)
 
@@ -577,6 +578,7 @@ fun MediaItemGrid(
         layout.subtitle,
         layout.view_more,
         alt_style = alt_style,
+        square_item_max_text_rows = layout.square_item_max_text_rows,
         itemSizeProvider = layout.itemSizeProvider,
         multiselect_context = multiselect_context,
         startContent = startContent
@@ -593,6 +595,7 @@ fun MediaItemGrid(
     subtitle: LocalisedYoutubeString? = null,
     view_more: MediaItemLayout.ViewMore? = null,
     alt_style: Boolean = false,
+    square_item_max_text_rows: Int? = null,
     itemSizeProvider: @Composable () -> DpSize = { getDefaultMediaItemPreviewSize() },
     multiselect_context: MediaItemMultiSelectContext? = null,
     startContent: (LazyGridScope.() -> Unit)? = null

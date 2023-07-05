@@ -38,6 +38,8 @@ import com.toasterofbread.spmp.ui.component.multiselect.MediaItemMultiSelectCont
 import com.toasterofbread.spmp.ui.theme.Theme
 import com.toasterofbread.utils.*
 import com.toasterofbread.utils.composable.*
+import com.toasterofbread.spmp.ui.component.mediaitempreview.getArtistLongPressMenuData
+import com.toasterofbread.spmp.ui.component.mediaitempreview.ARTIST_THUMB_CORNER_ROUNDING
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext

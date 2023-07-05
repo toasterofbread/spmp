@@ -51,6 +51,7 @@ import com.toasterofbread.utils.*
 import com.toasterofbread.utils.composable.*
 import kotlinx.coroutines.*
 import org.burnoutcrew.reorderable.*
+import com.toasterofbread.spmp.ui.component.mediaitempreview.getSongLongPressMenuData
 
 private enum class SortOption {
     PLAYLIST, ALPHABET, DURATION, PLAY_COUNT;

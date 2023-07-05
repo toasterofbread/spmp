@@ -43,6 +43,8 @@ fun getString(key: String): String {
 }
 
 android {
+    namespace = "com.toasterofbread.spmp.shared"
+
     signingConfigs {
         create("main") {
             storeFile = file(keystore_props["storeFile"] as String)

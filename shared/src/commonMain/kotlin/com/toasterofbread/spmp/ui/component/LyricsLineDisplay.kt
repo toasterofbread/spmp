@@ -41,22 +41,21 @@ fun LyricsLineDisplay(
     getTime: () -> Long,
     lyrics_linger: Boolean = true,
     show_furigana: Boolean = true,
-    modifier: Modifier = Modifier
+    modifier: Modifier = Modifier,
+    emptyContent: (@Composable () -> Unit)? = null
 ) {
     require(lyrics.synced)
 
-    RecomposeOnInterval(UPDATE_INTERVAL_MS) { s ->
-        s
+    var current_line: Int? by remember { mutableStateOf(getCurrentLine(lyrics, getTime(), lyrics_linger)) }
+    var line_a: Int? by remember { mutableStateOf(current_line) }
+    var line_b: Int? by remember { mutableStateOf(null) }
+    var show_line_a: Boolean by remember { mutableStateOf(true) }
 
-        var current_line: Int? by remember { mutableStateOf(getCurrentLine(lyrics, getTime(), lyrics_linger)) }
-        var line_a: Int? by remember { mutableStateOf(current_line) }
-        var line_b: Int? by remember { mutableStateOf(null) }
-        var show_line_a: Boolean by remember { mutableStateOf(true) }
-
-        OnChangedEffect(getTime()) {
+    LaunchedEffect(Unit) {
+        while (true) {
             val line = getCurrentLine(lyrics, getTime(), lyrics_linger)
             if (lyrics_linger && line == null) {
-                return@OnChangedEffect
+                continue
             }
 
             if (line != current_line) {
@@ -69,34 +68,46 @@ fun LyricsLineDisplay(
                 current_line = line
                 show_line_a = !show_line_a
             }
+            delay(UPDATE_INTERVAL_MS)
         }
+    }
 
-        val enter = slideInVertically { it }
-        val exit = slideOutVertically { -it } + fadeOut()
+    val enter = slideInVertically { it }
+    val exit = slideOutVertically { -it } + fadeOut()
 
-        Box(modifier, contentAlignment = Alignment.Center) {
-            AnimatedVisibility(line_a != null && show_line_a, enter = enter, exit = exit) {
-                var line by remember { mutableStateOf(line_a) }
-                LaunchedEffect(line_a) {
-                    if (line_a != null) {
-                        line = line_a
-                    }
-                }
+    Box(modifier, contentAlignment = Alignment.Center) {
+        val show_a = line_a != null && show_line_a
+        val show_b = line_b != null && !show_line_a
 
-                line?.also {
-                    BasicFuriganaText(lyrics.lines[it], show_readings = show_furigana)
+        AnimatedVisibility(show_a, enter = enter, exit = exit) {
+            var line by remember { mutableStateOf(line_a) }
+            LaunchedEffect(line_a) {
+                if (line_a != null) {
+                    line = line_a
                 }
             }
-            AnimatedVisibility(line_b != null && !show_line_a, enter = enter, exit = exit) {
-                var line by remember { mutableStateOf(line_b) }
-                LaunchedEffect(line_b) {
-                    if (line_a != null) {
-                        line = line_b
-                    }
-                }
 
-                line?.also {
-                    BasicFuriganaText(lyrics.lines[it], show_readings = show_furigana)
+            line?.also {
+                BasicFuriganaText(lyrics.lines[it], show_readings = show_furigana)
+            }
+        }
+        AnimatedVisibility(show_b, enter = enter, exit = exit) {
+            var line by remember { mutableStateOf(line_b) }
+            LaunchedEffect(line_b) {
+                if (line_a != null) {
+                    line = line_b
+                }
+            }
+
+            line?.also {
+                BasicFuriganaText(lyrics.lines[it], show_readings = show_furigana)
+            }
+        }
+
+        Crossfade(if (show_a || show_b) null else emptyContent, Modifier.fillMaxWidth()) { content ->
+            if (content != null) {
+                Box(Modifier.fillMaxWidth(), contentAlignment = Alignment.Center) {
+                    content?.invoke()
                 }
             }
         }

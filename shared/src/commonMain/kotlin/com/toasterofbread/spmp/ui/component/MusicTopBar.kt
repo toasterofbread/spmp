@@ -49,22 +49,6 @@ import com.toasterofbread.utils.composable.rememberSongUpdateLyrics
 import com.toasterofbread.utils.getContrasted
 import kotlinx.coroutines.delay
 
-private fun getModeState(mode: MusicTopBarMode, song: Song?): Any? {
-    return when (mode) {
-        MusicTopBarMode.LYRICS -> song?.lyrics?.lyrics?.let {  lyrics ->
-            if (lyrics.synced) lyrics else null
-        }
-        MusicTopBarMode.VISUALISER -> mode
-    }
-}
-
-@Composable
-private fun isStateActive(state: Any, can_show_visualiser: Boolean): Boolean = when (state) {
-    is SongLyrics -> true
-    MusicTopBarMode.VISUALISER -> can_show_visualiser && LocalPlayerState.current.status.m_playing
-    else -> false
-}
-
 @Composable
 fun MusicTopBarWithVisualiser(
     target_mode_key: Settings,
@@ -220,21 +204,24 @@ private fun MusicTopBar(
             Box(Modifier.padding(padding)) {
                 innerContent?.invoke(mode_state)
 
-                Crossfade(current_state, Modifier.fillMaxSize()) { s ->
+                Crossfade(current_state, Modifier.fillMaxSize()) { state ->
                     Box(Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
-                        when (s) {
+                        when (state) {
                             is SongLyrics -> {
                                 val linger: Boolean by Settings.KEY_TOPBAR_LYRICS_LINGER.rememberMutableState()
                                 val show_furigana: Boolean by Settings.KEY_TOPBAR_LYRICS_SHOW_FURIGANA.rememberMutableState()
 
                                 LyricsLineDisplay(
-                                    s,
+                                    state,
                                     {
                                         (player.player?.current_position_ms ?: 0) +
                                             (song?.song_reg_entry?.getLyricsSyncOffset() ?: 0)
                                     },
                                     linger,
-                                    show_furigana
+                                    show_furigana,
+                                    emptyContent = {
+                                        TopBarEmptyContent()
+                                    }
                                 )
                             }
                             MusicTopBarMode.VISUALISER -> {
@@ -243,9 +230,6 @@ private fun MusicTopBar(
                                     Modifier.fillMaxHeight().fillMaxWidth(visualiser_width).padding(vertical = 10.dp),
                                     opacity = 0.5f
                                 )
-                            }
-                            else -> {
-                                // TOOD State indicator
                             }
                         }
                     }
@@ -263,4 +247,42 @@ private fun MusicTopBar(
             }
         }
     }
+}
+
+@Composable
+private fun TopBarEmptyContent() {
+    val player = LocalPlayerState.current
+    val wave_offset by pauseableInfiniteRepeatableAnimation(
+        start = 0f,
+        end = 1f,
+        period = 2000,
+        getPlaying = {
+            player.status.m_playing
+        }
+    )
+
+    WaveBorder(
+        Modifier
+            .fillMaxWidth()
+            .height(WAVE_BORDER_DEFAULT_HEIGHT.dp),
+        getWaveOffset = {
+            wave_offset * size.width
+        }
+    )
+}
+
+private fun getModeState(mode: MusicTopBarMode, song: Song?): Any? {
+    return when (mode) {
+        MusicTopBarMode.LYRICS -> song?.lyrics?.lyrics?.let {  lyrics ->
+            if (lyrics.synced) lyrics else null
+        }
+        MusicTopBarMode.VISUALISER -> mode
+    }
+}
+
+@Composable
+private fun isStateActive(state: Any, can_show_visualiser: Boolean): Boolean = when (state) {
+    is SongLyrics -> true
+    MusicTopBarMode.VISUALISER -> can_show_visualiser && LocalPlayerState.current.status.m_playing
+    else -> false
 }

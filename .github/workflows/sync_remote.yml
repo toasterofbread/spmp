@@ -1,0 +1,20 @@
+name: Sync remote-work branch
+
+on:
+  push:
+    branches: [ "main" ]
+
+jobs:
+  sync:
+    runs-on: ubuntu-latest
+
+    steps:
+      - uses: actions/checkout@v3
+        with:
+          ref: remote-work
+        
+      - name: Fetch main
+        run: git fetch origin main
+        
+      - name: Merge from main and push
+        run: git merge --ff-only origin/main && git push origin remote-work || echo "Not possible to fast-forward, skipping"

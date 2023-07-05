@@ -7,6 +7,7 @@ plugins {
     id("org.jetbrains.compose")
 }
 
+val DEBUG_KEYS = listOf("YTM_CHANNEL_ID", "YTM_COOKIE", "YTM_HEADERS", "DISCORD_ACCOUNT_TOKEN", "DISCORD_ERROR_REPORT_WEBHOOK")
 val buildConfigDir get() = project.layout.buildDirectory.dir("generated/buildconfig")
 
 fun GenerateBuildConfig.buildConfig(debug: Boolean) {
@@ -20,10 +21,19 @@ fun GenerateBuildConfig.buildConfig(debug: Boolean) {
         fields_to_generate.add(Triple(item.key.toString(), null, item.value.toString()))
     }
 
-    keys.clear()
-    keys.load(FileInputStream(rootProject.file("debug_keys.properties")))
-    for (item in keys) {
-        fields_to_generate.add(Triple(item.key.toString(), "String?", if (debug) item.value.toString() else null.toString()))
+    val debug_keys_file = rootProject.file("debug_keys.properties")
+    if (debug_keys_file.isFile()) {
+        keys.clear()
+
+        keys.load(FileInputStream(debug_keys_file))
+        for (item in keys) {
+            fields_to_generate.add(Triple(item.key.toString(), "String?", if (debug) item.value.toString() else null.toString()))
+        }
+    }
+    else {
+        for (key in DEBUG_KEYS) {
+            fields_to_generate.add(Triple(key, "String?", null.toString()))
+        }
     }
 
     fields_to_generate.add(Triple("IS_DEBUG", "Boolean", debug.toString()))

@@ -73,7 +73,7 @@ enum class Settings {
     KEY_LYRICS_EXTRA_PADDING,
     KEY_LYRICS_ENABLE_WORD_SYNC,
     KEY_LYRICS_FONT_SIZE,
-    
+
     KEY_LYRICS_SHOW_IN_LIBRARY,
     KEY_LYRICS_SHOW_IN_RADIOBUILDER,
     KEY_LYRICS_SHOW_IN_SETTINGS,
@@ -158,7 +158,7 @@ enum class Settings {
     INTERNAL_PINNED_ITEMS,
     INTERNAL_TOPBAR_MODE_HOME,
     INTERNAL_TOPBAR_MODE_NOWPLAYING
-    
+
     ;
 
     fun <T> get(preferences: ProjectPreferences = prefs): T {
@@ -290,11 +290,11 @@ enum class Settings {
 
                 KEY_YTM_AUTH -> {
                     with(ProjectBuildConfig) {
-                        if (IS_DEBUG)
+                        if (YTM_CHANNEL_ID != null && YTM_COOKIE != null && YTM_HEADERS != null)
                             YoutubeMusicAuthInfo(
-                                Artist.fromId(YTM_CHANNEL_ID!!),
-                                YTM_COOKIE!!,
-                                Klaxon().parse(YTM_HEADERS!!.reader())!!
+                                Artist.fromId(YTM_CHANNEL_ID),
+                                YTM_COOKIE,
+                                Klaxon().parse(YTM_HEADERS.reader())!!
                             )
                         else emptySet()
                     }

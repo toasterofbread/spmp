@@ -15,5 +15,5 @@ app/release/
 
 keys.properties
 debug_keys.properties
-keystore.properties
-**.keystore
+androidApp/keystore.properties
+androidApp/main.keystore

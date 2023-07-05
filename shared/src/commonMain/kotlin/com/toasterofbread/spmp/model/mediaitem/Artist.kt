@@ -13,8 +13,8 @@ import com.toasterofbread.spmp.model.mediaitem.data.ArtistItemData
 import com.toasterofbread.spmp.platform.PlatformContext
 import com.toasterofbread.spmp.resources.getString
 import com.toasterofbread.spmp.resources.uilocalisation.amountToString
-import com.toasterofbread.spmp.ui.component.ArtistPreviewLong
-import com.toasterofbread.spmp.ui.component.ArtistPreviewSquare
+import com.toasterofbread.spmp.ui.component.mediaitempreview.ArtistPreviewLong
+import com.toasterofbread.spmp.ui.component.mediaitempreview.ArtistPreviewSquare
 import com.toasterofbread.spmp.ui.component.MediaItemLayout
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext

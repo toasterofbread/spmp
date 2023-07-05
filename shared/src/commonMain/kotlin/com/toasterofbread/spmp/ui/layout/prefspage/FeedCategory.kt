@@ -26,6 +26,15 @@ internal fun getFeedCategory(): List<SettingsItem> {
             range = 1f..10f
         ),
 
+        SettingsItemSlider(
+            SettingsValueState<Int>(Settings.KEY_FEED_SQUARE_PREVIEW_TEXT_LINES.name),
+            getString("s_key_feed_square_preview_text_lines"),
+            null,
+            "1",
+            "5",
+            range = 1f..5f
+        ),
+
         SettingsItemToggle(
             SettingsValueState(Settings.KEY_FEED_SHOW_RADIOS.name),
             getString("s_key_feed_show_radios"), null

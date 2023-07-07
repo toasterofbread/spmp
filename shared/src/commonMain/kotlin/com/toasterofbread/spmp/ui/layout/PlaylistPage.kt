@@ -301,7 +301,13 @@ private fun LazyListScope.PlaylistItems(
             Row(
                 Modifier
                     .fillMaxWidth()
-                    .mediaItemPreviewInteraction(item, long_press_menu_data),
+                    .mediaItemPreviewInteraction(
+                        item, 
+                        long_press_menu_data,
+                        onClick = { item, index ->
+                            player.playPlaylist(playlist, index!!)
+                        }
+                    ),
                 verticalAlignment = Alignment.CenterVertically,
                 horizontalArrangement = Arrangement.spacedBy(10.dp)
             ) {

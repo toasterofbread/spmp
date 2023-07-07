@@ -31,6 +31,8 @@ import kotlinx.coroutines.flow.firstOrNull
 import java.io.ByteArrayOutputStream
 import java.io.IOException
 
+private const val RATE_LIMIT_ADDITIONAL_WAIT_MS: Long = 1000
+
 actual class DiscordStatus actual constructor(
     private val bot_token: String?,
     private val guild_id: Long?,
@@ -147,7 +149,7 @@ actual class DiscordStatus actual constructor(
             val end = message.indexOfFirstOrNull(start) { !it.isDigit() && it != '.' } ?: throw NotImplementedError(message)
 
             val retry_after = message.substring(start, end).toFloatOrNull() ?: throw NotImplementedError(message)
-            delay((retry_after * 1000L).toLong())
+            delay((retry_after * 1000L).toLong() + RATE_LIMIT_ADDITIONAL_WAIT_MS)
 
             kord = Kord(bot_token)
         }

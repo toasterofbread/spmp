@@ -389,6 +389,15 @@ class PlayerStateImpl(private val context: PlatformContext): PlayerState(null, n
         }
     }
 
+    override fun playPlaylist(playlist: Playlist, from_index: Int) {
+        withPlayer {
+            startRadioAtIndex(0, playlist)
+            if (from_index != 0) {
+                seekToSong(from_index)
+            }
+        }
+    }
+
     override fun onMediaItemPinnedChanged(item: MediaItem, pinned: Boolean) {
         if (pinned) {
             pinned_items.addUnique(item.getHolder())

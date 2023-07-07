@@ -24,18 +24,23 @@ import kotlinx.coroutines.delay
 enum class MediaItemPreviewInteractionPressStage {
     INSTANT, BRIEF, LONG_1, LONG_2;
 
-    fun execute(item: MediaItem, long_press_menu_data: LongPressMenuData, player: PlayerState) {
+    fun execute(
+        item: MediaItem, 
+        long_press_menu_data: LongPressMenuData, 
+        onClick: (item: MediaItem, multiselect_key: Int?) -> Unit,
+        onLongClick: (item: MediaItem, long_press_menu_data: LongPressMenuData) -> Unit
+    ) {
         when (this) {
             INSTANT -> {
                 if (long_press_menu_data.multiselect_context?.is_active == true) {
                     long_press_menu_data.multiselect_context.toggleItem(item, long_press_menu_data.multiselect_key)
                 }
                 else {
-                    player.onMediaItemClicked(item, long_press_menu_data.multiselect_key)
+                    onClick(item, long_press_menu_data.multiselect_key)
                 }
             }
             BRIEF -> {}
-            LONG_1 -> player.onMediaItemLongClicked(item, long_press_menu_data)
+            LONG_1 -> onLongClick(item, long_press_menu_data)
             LONG_2 -> long_press_menu_data.multiselect_context?.apply {
                 setActive(true)
                 toggleItem(item, long_press_menu_data.multiselect_key)
@@ -55,14 +60,19 @@ private fun getIndication(): Indication? = null
 @Composable
 fun Modifier.mediaItemPreviewInteraction(
     item: MediaItem,
-    long_press_menu_data: LongPressMenuData
+    long_press_menu_data: LongPressMenuData,
+    onClick: ((item: MediaItem, multiselect_key: Int?) -> Unit)? = null,
+    onLongClick: ((item: MediaItem, long_press_menu_data: LongPressMenuData) -> Unit)? = null
 ): Modifier {
     val player = LocalPlayerState.current
+    
+    val onClick = onClick ?: player::onMediaItemClicked
+    val onLongClick = onLongClick ?: player::onMediaItemLongClicked
 
     if (Platform.is_desktop) {
         return platformClickable(
-            onClick = { MediaItemPreviewInteractionPressStage.INSTANT.execute(item, long_press_menu_data, player) },
-            onAltClick = { MediaItemPreviewInteractionPressStage.LONG_1.execute(item, long_press_menu_data, player) },
+            onClick = { MediaItemPreviewInteractionPressStage.INSTANT.execute(item, long_press_menu_data, onClick, onLongClick) },
+            onAltClick = { MediaItemPreviewInteractionPressStage.LONG_1.execute(item, long_press_menu_data, onClick, onLongClick) },
             indication = getIndication()
         )
     }
@@ -92,7 +102,7 @@ fun Modifier.mediaItemPreviewInteraction(
                     SpMp.context.vibrateShort()
 
                     if (stage == MediaItemPreviewInteractionPressStage.values().last { it.isAvailable(long_press_menu_data) }) {
-                        current_press_stage.execute(item, long_press_menu_data, player)
+                        current_press_stage.execute(item, long_press_menu_data, onClick, onLongClick)
                         long_press_menu_data.current_interaction_stage = null
                         break
                     }
@@ -101,7 +111,7 @@ fun Modifier.mediaItemPreviewInteraction(
         }
         else {
             if (current_press_stage != MediaItemPreviewInteractionPressStage.values().last { it.isAvailable(long_press_menu_data) }) {
-                current_press_stage.execute(item, long_press_menu_data, player)
+                current_press_stage.execute(item, long_press_menu_data, onClick, onLongClick)
             }
             current_press_stage = MediaItemPreviewInteractionPressStage.INSTANT
             long_press_menu_data.current_interaction_stage = null
@@ -109,6 +119,6 @@ fun Modifier.mediaItemPreviewInteraction(
     }
 
     return clickable(interaction_source, getIndication(), onClick = {
-        current_press_stage.execute(item, long_press_menu_data, player)
+        current_press_stage.execute(item, long_press_menu_data, onClick, onLongClick)
     })
 }

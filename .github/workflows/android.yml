@@ -23,7 +23,6 @@ jobs:
       with:
         java-version: '11'
         distribution: 'temurin'
-        cache: gradle
     
     - name: Create and populate keys.properties
       run: |

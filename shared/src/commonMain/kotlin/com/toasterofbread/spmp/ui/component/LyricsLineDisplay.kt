@@ -56,6 +56,8 @@ fun LyricsLineDisplay(
 
     LaunchedEffect(Unit) {
         while (true) {
+            delay(UPDATE_INTERVAL_MS)
+
             val line = getCurrentLine(lyrics, getTime(), lyrics_linger)
             if (lyrics_linger && line == null) {
                 continue
@@ -71,7 +73,6 @@ fun LyricsLineDisplay(
                 current_line = line
                 show_line_a = !show_line_a
             }
-            delay(UPDATE_INTERVAL_MS)
         }
     }
 
@@ -110,7 +111,7 @@ fun LyricsLineDisplay(
         Crossfade(if (show_a || show_b) null else emptyContent, Modifier.fillMaxWidth()) { content ->
             if (content != null) {
                 Box(Modifier.fillMaxWidth(), contentAlignment = Alignment.Center) {
-                    content?.invoke()
+                    content()
                 }
             }
         }

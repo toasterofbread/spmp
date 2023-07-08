@@ -51,6 +51,7 @@ import kotlinx.coroutines.*
 
 private const val ARTIST_IMAGE_SCROLL_MODIFIER = 0.25f
 
+@OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun ArtistPage(
     pill_menu: PillMenu,

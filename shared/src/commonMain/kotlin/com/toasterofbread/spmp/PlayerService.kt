@@ -78,7 +78,14 @@ class PlayerService : MediaPlayerService() {
         }
     }
 
-    fun startRadioAtIndex(index: Int, item: MediaItem? = null, item_index: Int? = null, skip_first: Boolean = false, shuffle: Boolean = false) {
+    fun startRadioAtIndex(
+        index: Int,
+        item: MediaItem? = null,
+        item_index: Int? = null,
+        skip_first: Boolean = false,
+        shuffle: Boolean = false,
+        onLoad: (suspend (success: Boolean) -> Unit)? = null
+    ) {
         require(item_index == null || item != null)
 
         customUndoableAction { furtherAction ->
@@ -97,7 +104,8 @@ class PlayerService : MediaPlayerService() {
                 return@customUndoableAction getRadioChangeUndoRedo(
                     radio.playMediaItem(final_item, final_index, shuffle),
                     index,
-                    furtherAction = furtherAction
+                    furtherAction = furtherAction,
+                    onLoad = onLoad
                 )
             }
         }
@@ -290,7 +298,8 @@ class PlayerService : MediaPlayerService() {
         continuation_index: Int,
         save: Boolean = true,
         skip_existing: Boolean = true,
-        furtherAction: (MediaPlayerService.() -> UndoRedoAction?) -> Unit,
+        onLoad: (suspend (success: Boolean) -> Unit)? = null,
+        furtherAction: (MediaPlayerService.() -> UndoRedoAction?) -> Unit
     ): UndoRedoAction {
         val radio_state: RadioState = radio.state
 
@@ -315,6 +324,8 @@ class PlayerService : MediaPlayerService() {
                         }
                     }
                 }
+
+                onLoad?.invoke(result.isSuccess)
             }
         }
 

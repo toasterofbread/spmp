@@ -133,7 +133,6 @@ actual class DiscordStatus actual constructor(
         }
     }
 
-    @Suppress("UNUSED_VALUE")
     actual suspend fun getCustomImage(unique_id: String, imageProvider: suspend () -> ImageBitmap?): Result<String?> {
         check(bot_token != null)
 

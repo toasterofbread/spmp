@@ -6,6 +6,7 @@ import androidx.compose.animation.Crossfade
 import androidx.compose.animation.core.Animatable
 import androidx.compose.animation.expandVertically
 import androidx.compose.animation.shrinkVertically
+import androidx.compose.foundation.Canvas
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
@@ -31,8 +32,11 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.clipToBounds
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.graphics.Path
 import androidx.compose.ui.graphics.graphicsLayer
+import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.unit.Density
 import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
@@ -49,6 +53,7 @@ import com.toasterofbread.utils.composable.rememberSongUpdateLyrics
 import com.toasterofbread.utils.getContrasted
 import kotlinx.coroutines.delay
 import com.toasterofbread.utils.composable.pauseableInfiniteRepeatableAnimation
+import com.toasterofbread.utils.setAlpha
 
 @Composable
 fun MusicTopBarWithVisualiser(
@@ -256,20 +261,32 @@ private fun TopBarEmptyContent() {
     val wave_offset by pauseableInfiniteRepeatableAnimation(
         start = 0f,
         end = 1f,
-        period = 2000,
+        period = 10000,
         getPlaying = {
             player.status.m_playing
         }
     )
 
-    WaveBorder(
+    val colour = LocalContentColor.current.setAlpha(0.15f)
+    val stroke_width = with(LocalDensity.current) { 3.dp.toPx() }
+
+    Canvas(
         Modifier
+            .padding(horizontal = 10.dp)
+            .height(20.dp)
             .fillMaxWidth()
-            .height(WAVE_BORDER_DEFAULT_HEIGHT.dp),
-        getWaveOffset = {
-            wave_offset * size.width
-        }
-    )
+            .clipToBounds()
+    ) {
+        drawWave(
+            height = size.height / 2,
+            waves = 3,
+            stroke_width = stroke_width,
+            getWaveOffset = {
+                wave_offset * size.width
+            },
+            getColour = { colour }
+        )
+    }
 }
 
 private fun getModeState(mode: MusicTopBarMode, song: Song?): Any? {

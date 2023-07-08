@@ -63,7 +63,7 @@ import com.toasterofbread.spmp.platform.composable.BackHandler
 import com.toasterofbread.spmp.platform.composable.platformClickable
 import com.toasterofbread.spmp.resources.getString
 import com.toasterofbread.spmp.ui.component.PillMenu
-import com.toasterofbread.spmp.ui.layout.nowplaying.NOW_PLAYING_MAIN_PADDING
+import com.toasterofbread.spmp.ui.layout.nowplaying.maintab.NOW_PLAYING_MAIN_PADDING
 import com.toasterofbread.spmp.ui.layout.nowplaying.overlay.OverlayMenu
 import com.toasterofbread.spmp.ui.theme.Theme
 import com.toasterofbread.utils.AnnotatedReadingTerm
@@ -468,14 +468,16 @@ fun List<ReadingTextData>.getTermRangeOfTime(lyrics: SongLyrics, time: Long): Pa
 
 fun SongLyrics.getReadingTerms(): MutableList<ReadingTextData> =
     mutableListOf<ReadingTextData>().apply {
-        for (line in lines) {
-            for (term in line.withIndex()) {
-                for (subterm in term.value.subterms.withIndex()) {
-                    if (subterm.index + 1 == term.value.subterms.size && term.index + 1 == line.size) {
-                        add(ReadingTextData(subterm.value.text + "\n", subterm.value.furi, term.value))
-                    }
-                    else {
-                        add(ReadingTextData(subterm.value.text, subterm.value.furi, term.value))
+        synchronized(lines) {
+            for (line in lines) {
+                for (term in line.withIndex()) {
+                    for (subterm in term.value.subterms.withIndex()) {
+                        if (subterm.index + 1 == term.value.subterms.size && term.index + 1 == line.size) {
+                            add(ReadingTextData(subterm.value.text + "\n", subterm.value.furi, term.value))
+                        }
+                        else {
+                            add(ReadingTextData(subterm.value.text, subterm.value.furi, term.value))
+                        }
                     }
                 }
             }

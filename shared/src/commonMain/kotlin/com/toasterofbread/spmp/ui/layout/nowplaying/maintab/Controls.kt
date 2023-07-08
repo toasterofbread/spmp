@@ -1,7 +1,70 @@
 package com.toasterofbread.spmp.ui.layout.nowplaying.maintab
 
+import LocalPlayerState
+import SpMp
+import androidx.compose.animation.AnimatedVisibility
+import androidx.compose.animation.animateContentSize
+import androidx.compose.animation.expandHorizontally
+import androidx.compose.animation.shrinkHorizontally
+import androidx.compose.foundation.Canvas
+import androidx.compose.foundation.background
+import androidx.compose.foundation.clickable
+import androidx.compose.foundation.interaction.MutableInteractionSource
+import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.Spacer
+import androidx.compose.foundation.layout.fillMaxHeight
+import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.requiredHeight
+import androidx.compose.foundation.layout.requiredSize
+import androidx.compose.foundation.layout.width
+import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.VolumeUp
+import androidx.compose.material.icons.rounded.Pause
+import androidx.compose.material.icons.rounded.PlayArrow
+import androidx.compose.material.icons.rounded.SkipNext
+import androidx.compose.material.icons.rounded.SkipPrevious
+import androidx.compose.material3.Icon
+import androidx.compose.material3.IconButton
+import androidx.compose.material3.Text
+import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
+import androidx.compose.runtime.setValue
+import androidx.compose.ui.Alignment
+import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.alpha
+import androidx.compose.ui.geometry.Offset
+import androidx.compose.ui.graphics.BlendMode
+import androidx.compose.ui.graphics.Brush
+import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.graphics.graphicsLayer
+import androidx.compose.ui.graphics.vector.ImageVector
+import androidx.compose.ui.graphics.vector.rememberVectorPainter
+import androidx.compose.ui.text.style.TextAlign
+import androidx.compose.ui.text.style.TextOverflow
+import androidx.compose.ui.unit.Dp
+import androidx.compose.ui.unit.DpSize
+import androidx.compose.ui.unit.dp
+import androidx.compose.ui.unit.sp
+import com.github.krottv.compose.sliders.DefaultThumb
+import com.github.krottv.compose.sliders.DefaultTrack
+import com.github.krottv.compose.sliders.SliderValueHorizontal
+import com.toasterofbread.spmp.model.mediaitem.Song
+import com.toasterofbread.spmp.platform.composable.platformClickable
+import com.toasterofbread.spmp.platform.vibrateShort
+import com.toasterofbread.spmp.ui.component.MediaItemTitleEditDialog
+import com.toasterofbread.spmp.ui.layout.nowplaying.getNPBackground
+import com.toasterofbread.spmp.ui.layout.nowplaying.getNPOnBackground
+import com.toasterofbread.utils.composable.Marquee
+import com.toasterofbread.utils.setAlpha
+
 @Composable
-private fun Controls(
+internal fun Controls(
     song: Song?,
     seek: (Float) -> Unit,
     modifier: Modifier = Modifier
@@ -153,31 +216,37 @@ private fun Controls(
                     player.player?.seekToNext()
                 }
             }
-            
-            Spacer(Modifier.fillMaxHeight().weight(2f))
 
-            var volume_slider_visible by remember { mutableStateOf(false) }
-            val bottom_row_content_colour = getNPOnBackground().setAlpha(0.5f)
+            Spacer(Modifier.fillMaxHeight().weight(1f))
 
-            AnimatedVisibility(
-                volume_slider_visible, 
-                Modifier.fillMaxSize().weight(1f),
-                enter = expandVertically(),
-                exit = shrinkVertically()
-            ) {
-                Box(Modifier.fillMaxSize(), contentAlignment = Alignment.BottomEnd)
-                VolumeSlider(bottom_row_content_colour)
-            }
-            
+            val bottom_row_colour = getNPOnBackground().setAlpha(0.5f)
             Row(
                 Modifier.fillMaxWidth(),
-                horizontalArrangement = Arrangement.End,
-                verticalAlignment = Alignment.Bottom
+                verticalAlignment = Alignment.CenterVertically,
+                horizontalArrangement = Arrangement.SpaceBetween
             ) {
-                IconButton(
-                    { volume_slider_visible = !volume_slider_visible }
+                var volume_slider_visible by remember { mutableStateOf(false) }
+                Row(
+                    Modifier
+                        .weight(1f, false)
+                        .animateContentSize(),
+                    verticalAlignment = Alignment.CenterVertically
                 ) {
-                    Icon(Icons.Filled.VolumeUp, null, tint = bottom_row_content_colour)
+                    IconButton(
+                        { volume_slider_visible = !volume_slider_visible }
+                    ) {
+                        Icon(Icons.Filled.VolumeUp, null, tint = bottom_row_colour)
+                    }
+
+                    AnimatedVisibility(volume_slider_visible) {
+                        VolumeSlider(bottom_row_colour)
+                    }
+                }
+
+                AnimatedVisibility(!volume_slider_visible, enter = expandHorizontally(), exit = shrinkHorizontally()) {
+                    Spacer(Modifier
+                        .width(48.dp)
+                        .background(Color.Green))
                 }
             }
         }
@@ -187,7 +256,7 @@ private fun Controls(
 @Composable
 private fun VolumeSlider(colour: Color, modifier: Modifier = Modifier) {
     val player = LocalPlayerState.current
-    SliderValueVertical(
+    SliderValueHorizontal(
         value = player.status.m_volume,
         onValueChange = {
             player.player?.volume = it
@@ -198,4 +267,3 @@ private fun VolumeSlider(colour: Color, modifier: Modifier = Modifier) {
         modifier = modifier
     )
 }
-

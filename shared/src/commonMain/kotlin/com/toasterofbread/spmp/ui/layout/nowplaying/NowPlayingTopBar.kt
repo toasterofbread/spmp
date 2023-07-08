@@ -19,15 +19,19 @@ import androidx.compose.runtime.Composable
 import androidx.compose.runtime.State
 import androidx.compose.runtime.derivedStateOf
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.graphicsLayer
+import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
 import com.toasterofbread.spmp.model.MusicTopBarMode
 import com.toasterofbread.spmp.model.Settings
 import com.toasterofbread.spmp.platform.composeScope
 import com.toasterofbread.spmp.ui.component.LikeDislikeButton
 import com.toasterofbread.spmp.ui.component.MusicTopBarWithVisualiser
+import com.toasterofbread.spmp.ui.layout.nowplaying.maintab.NOW_PLAYING_MAIN_PADDING
+import com.toasterofbread.spmp.ui.layout.nowplaying.maintab.NOW_PLAYING_TOP_BAR_HEIGHT
 import com.toasterofbread.utils.setAlpha
 
 @Composable
@@ -47,6 +51,15 @@ fun rememberTopBarShouldShowInQueue(mode: MusicTopBarMode): State<Boolean> {
 }
 
 @Composable
+private fun getMaxHeight(show_in_queue: Boolean): State<Dp> {
+    val expansion = LocalNowPlayingExpansion.current
+    return animateDpAsState(
+        if (!show_in_queue) NOW_PLAYING_TOP_BAR_HEIGHT.dp * (2f - expansion.get().coerceIn(1f, 2f))
+        else NOW_PLAYING_TOP_BAR_HEIGHT.dp
+    )
+}
+
+@Composable
 fun TopBar(modifier: Modifier = Modifier) {
     val player = LocalPlayerState.current
     val expansion = LocalNowPlayingExpansion.current
@@ -57,10 +70,7 @@ fun TopBar(modifier: Modifier = Modifier) {
         if (!show_in_queue || expansion.getBounded() < 1f) expansion.getAppearing() else 1f
     } }
 
-    val max_height by animateDpAsState(
-        if (!show_in_queue) NOW_PLAYING_TOP_BAR_HEIGHT.dp * (2f - expansion.get().coerceIn(1f, 2f))
-        else NOW_PLAYING_TOP_BAR_HEIGHT.dp
-    )
+    val max_height by getMaxHeight(show_in_queue)
 
     fun getAlpha() = if (!show_in_queue || expansion.getBounded() < 1f) 1f - expansion.getDisappearing() else 1f
     val hide_content by remember { derivedStateOf { getAlpha() <= 0f } }

@@ -15,18 +15,18 @@ suspend fun getBuiltRadio(radio_token: String): Result<Playlist?> {
     require(radio_token.contains('E'))
 
     val playlist = AccountPlaylist.fromId(radio_token).editPlaylistData { supplyPlaylistType(PlaylistType.RADIO, true) }
-    val result = playlist.getThumbnailProvider()
 
-    if (result.isFailure) {
-        return result.cast()
-    }
+    val thumbnail_provider = playlist.getThumbnailProvider().fold(
+        { it },
+        { return Result.failure(it) }
+    )
 
-    val thumb_url = playlist.thumbnail_provider?.getThumbnailUrl(MediaItemThumbnailProvider.Quality.HIGH)
+    val thumb_url = thumbnail_provider.getThumbnailUrl(MediaItemThumbnailProvider.Quality.HIGH)
     if (thumb_url?.contains("fallback") == true) {
         return Result.success(null)
     }
 
-    return result.cast()
+    return Result.success(playlist)
 }
 
 fun buildRadioToken(artists: Set<RadioBuilderArtist>, modifiers: Set<RadioModifier?>): String {

@@ -48,7 +48,7 @@ enum class LibrarySubPage { SONGS }
 
 fun LibrarySubPage?.getReadable(): String =
     getString(when (this) {
-        null -> "library_page_title"
+        null -> "library_main_page_title"
         LibrarySubPage.SONGS -> "library_songs_page_title"
     })
 

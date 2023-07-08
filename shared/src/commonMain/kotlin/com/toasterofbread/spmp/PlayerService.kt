@@ -308,7 +308,9 @@ class PlayerService : MediaPlayerService() {
                 if (result.isFailure) {
                     SpMp.error_manager.onError("addToQueue", result.exceptionOrNull()!!)
                     if (save) {
-                        savePersistentQueue()
+                        withContext(Dispatchers.Main) {
+                            savePersistentQueue()
+                        }
                     }
                 }
                 else {
@@ -626,7 +628,7 @@ class PlayerService : MediaPlayerService() {
                 reader.close()
             }
 
-            val pos_data = reader.readLine().split(',')
+            val pos_data = (reader.readLine() ?: return@withLock).split(',')
 
             val songs: MutableList<Song?> = mutableListOf()
             val request_limit = Semaphore(10)

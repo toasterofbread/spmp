@@ -12,8 +12,10 @@ import android.graphics.drawable.Icon
 import android.net.ConnectivityManager
 import android.net.NetworkCapabilities
 import android.net.Uri
+import android.os.Build
 import android.os.Looper
 import android.os.VibrationEffect
+import android.os.Vibrator
 import android.os.VibratorManager
 import android.view.Window
 import android.view.WindowInsetsController.APPEARANCE_LIGHT_STATUS_BARS
@@ -33,6 +35,7 @@ import androidx.compose.ui.text.font.Font
 import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
 import androidx.core.app.NotificationManagerCompat
+import androidx.core.content.ContextCompat.getSystemService
 import com.toasterofbread.spmp.model.Settings
 import com.toasterofbread.spmp.resources.getString
 import com.toasterofbread.spmp.resources.getStringTODO
@@ -41,6 +44,7 @@ import java.io.File
 import java.io.FileInputStream
 import java.io.FileOutputStream
 import java.io.InputStream
+
 
 private const val DEFAULT_NOTIFICATION_CHANNEL_ID = "default_channel"
 private const val ERROR_NOTIFICATION_CHANNEL_ID = "download_error_channel"
@@ -88,7 +92,9 @@ actual class PlatformContext(private val context: Context, onInit: ((PlatformCon
     }
     actual fun setStatusBarColour(colour: Color, dark_icons: Boolean) {
         ctx.findWindow()?.also { window ->
-            window.insetsController?.setSystemBarsAppearance(if (dark_icons) APPEARANCE_LIGHT_STATUS_BARS else 0, APPEARANCE_LIGHT_STATUS_BARS)
+            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.R) {
+                window.insetsController?.setSystemBarsAppearance(if (dark_icons) APPEARANCE_LIGHT_STATUS_BARS else 0, APPEARANCE_LIGHT_STATUS_BARS)
+            }
             window.statusBarColor = colour.toArgb()
         }
     }
@@ -106,8 +112,12 @@ actual class PlatformContext(private val context: Context, onInit: ((PlatformCon
         if (resource_id > 0) resources.getDimensionPixelSize(resource_id).toDp() else 0.dp
     }
 
-    actual fun getLightColorScheme(): ColorScheme = dynamicLightColorScheme(ctx)
-    actual fun getDarkColorScheme(): ColorScheme = dynamicDarkColorScheme(ctx)
+    actual fun getLightColorScheme(): ColorScheme =
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.S) dynamicLightColorScheme(ctx)
+        else lightColorScheme()
+    actual fun getDarkColorScheme(): ColorScheme =
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.S) dynamicDarkColorScheme(ctx)
+        else darkColorScheme()
 
     actual fun canShare(): Boolean = true
     actual fun shareText(text: String, title: String?) {
@@ -139,8 +149,8 @@ actual class PlatformContext(private val context: Context, onInit: ((PlatformCon
     }
 
     actual fun vibrate(duration: Double) {
-        val vibrator = (ctx.getSystemService(Context.VIBRATOR_MANAGER_SERVICE) as VibratorManager).defaultVibrator
-        vibrator.vibrate(VibrationEffect.createOneShot((duration * 1000.0).toLong(), VibrationEffect.DEFAULT_AMPLITUDE))
+        val vibrator = ctx.getSystemService(Context.VIBRATOR_SERVICE) as Vibrator?
+        vibrator?.vibrate(VibrationEffect.createOneShot((duration * 1000.0).toLong(), VibrationEffect.DEFAULT_AMPLITUDE))
     }
 
     actual fun openFileInput(name: String): FileInputStream = ctx.openFileInput(name)
@@ -287,11 +297,6 @@ fun Context.sendToast(text: String, long: Boolean = false) {
         Looper.prepare()
         Toast.makeText(this, text, if (long) Toast.LENGTH_LONG else Toast.LENGTH_SHORT).show()
     }
-}
-
-fun Context.vibrate(duration: Double) {
-    val vibrator = (getSystemService(Context.VIBRATOR_MANAGER_SERVICE) as VibratorManager).defaultVibrator
-    vibrator.vibrate(VibrationEffect.createOneShot((duration * 1000.0).toLong(), VibrationEffect.DEFAULT_AMPLITUDE))
 }
 
 fun Context.isAppInForeground(): Boolean {

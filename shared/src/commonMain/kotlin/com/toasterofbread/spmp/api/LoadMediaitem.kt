@@ -140,6 +140,11 @@ suspend fun processDefaultResponse(item: MediaItem, data: MediaItemData, respons
                     )
 
                     data.supplyFeedLayouts(listOf(layout), true)
+
+                    val header_renderer = parsed.header?.getRenderer()
+                    if (header_renderer != null) {
+                        data.supplyThumbnailProvider(MediaItemThumbnailProvider.fromThumbnails(header_renderer.getThumbnails()))
+                    }
                 } else {
                     val header_renderer = parsed.header?.getRenderer()
                     if (header_renderer != null) {

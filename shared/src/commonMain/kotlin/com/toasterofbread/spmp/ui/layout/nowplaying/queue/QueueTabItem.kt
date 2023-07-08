@@ -90,15 +90,17 @@ class QueueTabItem(val song: Song, val key: Int) {
                 .offset { IntOffset(swipe_state.offset.value.roundToInt(), 0) }
                 .background(RoundedCornerShape(45), backgroundColourProvider)
         ) {
+            val padding = 7.dp
             Row(
                 horizontalArrangement = Arrangement.spacedBy(10.dp),
                 verticalAlignment = Alignment.CenterVertically,
-                modifier = Modifier.padding(start = 10.dp, end = 20.dp)
+                modifier = Modifier.padding(start = padding, end = 10.dp)
             ) {
                 song.PreviewLong(
                     MediaItemPreviewParams(
                         Modifier
                             .weight(1f)
+                            .padding(vertical = padding)
                             .swipeable(
                                 swipe_state,
                                 anchors,

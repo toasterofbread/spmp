@@ -270,6 +270,9 @@
     <string name="radio_builder_modifier_filter_focus">集中</string>
     <string name="radio_filter_all">すべて</string>
 
+    <string name="radio_of_$artists_title">$artistsのラジオ</string>
+    <string name="radio_title_artists_splitter">・</string>
+
     <string name="search_filter_all">全て</string>
     <string name="search_filter_videos">動画</string>
     <string name="search_entry_field_hint">検索</string>
@@ -379,6 +382,7 @@
     <string name="lpm_long_press_actions">長押しアクション</string>
     <string name="lpm_action_radio_at_song_pos">この曲の位置にラジオを入れる</string>
     <string name="lpm_action_radio_after_x_songs">X曲後にラジオを入れる</string>
+    <string name="lpm_action_play_shuffled_after_x_songs">X曲後にシャッフルして入れる</string>
     <string name="lpm_song_now_playing">再生中</string>
     <string name="lpm_song_played_$x_ago">$x前に再生ずみ</string>
     <string name="lpm_song_playing_in_$x">$x後に再生します</string>
@@ -397,7 +401,7 @@
     <string name="notif_download_cancelled">ダウンロードが停止されました</string>
     <string name="notif_download_already_downloading">ダウンロードはすでに開始されてます</string>
 
-    <string name="library_page_title">ライブラリ</string>
+    <string name="library_main_page_title">ライブラリ</string>
     <string name="library_songs_page_title">保存済みの曲</string>
 
     <string name="library_row_playlists">プレイリスト</string>

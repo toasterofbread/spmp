@@ -90,19 +90,7 @@ private fun getAccessibilityServiceGroup(): List<SettingsItem> {
                         return
                     }
 
-                    TODO()
-//                    val dialog = AlertDialog.Builder(MainActivity.context)
-//                    dialog.setCancelable(true)
-//                    dialog.setTitle(getString("acc_ser_enable_dialog_title"))
-//                    dialog.setMessage(getString("acc_ser_enable_dialog_body"))
-//                    dialog.setPositiveButton(getString("acc_ser_enable_dialog_btn_root")) { _, _ ->
-//                        PlayerAccessibilityService.enable(MainActivity.context, true)
-//                    }
-//                    dialog.setNeutralButton(getString("acc_ser_enable_dialog_btn_manual")) { _, _ ->
-//                        PlayerAccessibilityService.enable(MainActivity.context, false)
-//                    }
-//                    dialog.setNegativeButton(getString("action_cancel")) { _, _ -> }
-//                    dialog.create().show()
+                    PlayerAccessibilityService.enableInteractive(context)
                 }
             }
         ),

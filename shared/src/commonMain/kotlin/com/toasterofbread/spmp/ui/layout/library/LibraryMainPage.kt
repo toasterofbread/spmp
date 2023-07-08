@@ -163,7 +163,7 @@ fun LibraryMainPage(
 
         // Songs
         item {
-            Column(Modifier.fillMaxWidth().animateContentSize()) {
+            Column(Modifier.fillMaxWidth().animateContentSize(), verticalArrangement = Arrangement.spacedBy(10.dp)) {
                 Row(verticalAlignment = Alignment.CenterVertically) {
                     Text(
                         getString("library_row_local_songs"),

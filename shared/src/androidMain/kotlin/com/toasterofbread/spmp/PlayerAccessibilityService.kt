@@ -203,6 +203,21 @@ actual class PlayerAccessibilityService : AccessibilityService(), LifecycleOwner
             return enabled_services?.contains("${context.ctx.packageName}/${PlayerAccessibilityService::class.java.canonicalName}") == true
         }
 
+        actual fun enableInteractive(context: PlatformContext) {
+            val dialog = AlertDialog.Builder(context.ctx)
+            dialog.setCancelable(true)
+            dialog.setTitle(getString("acc_ser_enable_dialog_title"))
+            dialog.setMessage(getString("acc_ser_enable_dialog_body"))
+            dialog.setPositiveButton(getString("acc_ser_enable_dialog_btn_root")) { _, _ ->
+                enable(context, true)
+            }
+            dialog.setNeutralButton(getString("acc_ser_enable_dialog_btn_manual")) { _, _ ->
+                enable(context, false)
+            }
+            dialog.setNegativeButton(getString("action_cancel")) { _, _ -> }
+            dialog.create().show()
+        }
+
         actual fun enable(context: PlatformContext, root: Boolean) {
             if (!root) {
                 val intent = Intent(AndroidSettings.ACTION_ACCESSIBILITY_SETTINGS)

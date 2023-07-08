@@ -10,7 +10,7 @@ plugins {
 
 val strings_file = rootProject.file("shared/src/commonMain/resources/assets/values/strings.xml")
 var keystore_props_file = rootProject.file("androidApp/keystore.properties")
-if (!keystore_props_file.isFile()) {
+if (!keystore_props_file.isFile) {
     keystore_props_file = rootProject.file("androidApp/keystore.properties.debug")
 }
 

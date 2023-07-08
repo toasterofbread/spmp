@@ -25,12 +25,12 @@ fun durationToString(duration: Long, short: Boolean = false, hl: String = SpMp.u
                     f.append("$it${hms.splitter}${hms.hours}")
                 }
             }
-            dur.toMinutesPart().also {
+            (dur.toMinutes() % 60L).toInt().also {
                 if (it != 0) {
                     f.append("${hms.splitter}$it${hms.splitter}${hms.minutes}")
                 }
             }
-            dur.toSecondsPart().also {
+            (dur.seconds % 60L).toInt().also {
                 if (it != 0) {
                     f.append("${hms.splitter}$it${hms.splitter}${hms.seconds}")
                 }
@@ -77,26 +77,31 @@ private fun getHMS(hl: String): HMSData? =
     }
 
 private fun parseHhMmSsDurationString(string: String, hms: HMSData): Long? {
-    val parts = string.split(' ')
+    try {
+        val parts = string.split(' ').map { it.removeSuffix("+") }
 
-    val h = parts.indexOf(hms.hours)
-    val hours =
-        if (h != -1) parts[h - 1].toLong()
-        else null
+        val h = parts.indexOf(hms.hours)
+        val hours =
+            if (h != -1) parts[h - 1].toLong()
+            else null
 
-    val m = parts.indexOf(hms.minutes)
-    val minutes =
-        if (m != -1) parts[m - 1].toLong()
-        else null
+        val m = parts.indexOf(hms.minutes)
+        val minutes =
+            if (m != -1) parts[m - 1].toLong()
+            else null
 
-    val s = parts.indexOf(hms.seconds)
-    val seconds =
-        if (s != -1) parts[s - 1].toLong()
-        else null
+        val s = parts.indexOf(hms.seconds)
+        val seconds =
+            if (s != -1) parts[s - 1].toLong()
+            else null
 
-    if (hours == null && minutes == null && seconds == null) {
-        return null
+        if (hours == null && minutes == null && seconds == null) {
+            return null
+        }
+
+        return (((hours ?: 0) * 60 + (minutes ?: 0)) * 60 + (seconds ?: 0)) * 1000
     }
-
-    return (((hours ?: 0) * 60 + (minutes ?: 0)) * 60 + (seconds ?: 0)) * 1000
+    catch (e: Throwable) {
+        throw RuntimeException("Parsing duration string $string $hms failed", e)
+    }
 }

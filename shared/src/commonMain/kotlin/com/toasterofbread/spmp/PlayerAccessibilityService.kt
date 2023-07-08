@@ -16,6 +16,7 @@ expect class PlayerAccessibilityService() {
         fun removeEnabledListener(listener: (Boolean) -> Unit, context: PlatformContext)
         fun isEnabled(context: PlatformContext): Boolean
 
+        fun enableInteractive(context: PlatformContext)
         fun enable(context: PlatformContext, root: Boolean)
         fun disable()
 

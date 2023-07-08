@@ -48,14 +48,14 @@ actual class DiscordStatus actual constructor(
     private val rpc: KizzyRPC
 
     init {
-        if (account_token == null || account_token.isBlank()) {
+        if (account_token.isNullOrBlank()) {
             throw IllegalArgumentException("Account token is required")
         }
         if (guild_id == null && custom_images_channel_category_id == null) {
             throw IllegalArgumentException("At least one of guild_id and custom_images_channel_category_id required")
         }
 
-        rpc = KizzyRPC(account_token)
+        rpc = KizzyRPC(account_token, loggingEnabled = false)
     }
 
     actual fun close() {
@@ -150,7 +150,12 @@ actual class DiscordStatus actual constructor(
             val retry_after = message.substring(start, end).toFloatOrNull() ?: throw NotImplementedError(message)
             delay((retry_after * 1000L).toLong() + RATE_LIMIT_ADDITIONAL_WAIT_MS)
 
-            kord = Kord(bot_token)
+            try {
+                kord = Kord(bot_token)
+            }
+            catch (e: Throwable) {
+                return Result.failure(e)
+            }
         }
         catch (e: ConnectTimeoutException) {
             return Result.failure(IOException(e))

@@ -181,7 +181,7 @@ fun PrefsPage(
                             horizontalArrangement = Arrangement.SpaceBetween
                         ) {
                             Text(
-                                "設定",
+                                getString("s_page_preferences"),
                                 style = MaterialTheme.typography.displaySmall
                             )
 

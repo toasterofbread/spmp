@@ -4,7 +4,7 @@ import com.toasterofbread.spmp.api.Api.Companion.addYtHeaders
 import com.toasterofbread.spmp.api.Api.Companion.getStream
 import com.toasterofbread.spmp.api.Api.Companion.ytUrl
 import com.toasterofbread.spmp.model.mediaitem.Artist
-import com.toasterofbread.spmp.resources.getString
+import com.toasterofbread.utils.printJson
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
 import okhttp3.HttpUrl.Companion.toHttpUrl
@@ -86,8 +86,15 @@ fun getSongLiked(id: String): Result<Boolean?> {
     }
 
     val stream = result.getOrThrow().getStream()
-    val parsed: PlayerLikeResponse = Api.klaxon.parse(stream)!!
-    stream.close()
+    val parsed: PlayerLikeResponse = try {
+        Api.klaxon.parse(stream)!!
+    }
+    catch (e: Throwable) {
+        return Result.failure(e)
+    }
+    finally {
+        stream.close()
+    }
 
     return Result.success(when (parsed.status.likeStatus) {
         "LIKE" -> true
@@ -131,28 +138,38 @@ private fun generateCpn(): String {
     return (0 until 16).map { CPN_ALPHABET[Random().nextInt(256) and 63] }.joinToString("")
 }
 
+private fun buildPlayerRequest(id: String, alt: Boolean): Request {
+    return Request.Builder()
+        .ytUrl("/youtubei/v1/player")
+        .post(Api.getYoutubeiRequestBody(
+            mapOf("videoId" to id),
+            context = if (alt) Api.Companion.YoutubeiContextType.ALT else Api.Companion.YoutubeiContextType.BASE
+        ))
+        .addYtHeaders()
+        .build()
+}
+
 fun markSongAsWatched(id: String): Result<Any> {
-    fun buildRequest(alt: Boolean): Request {
-        return Request.Builder()
-            .url("https://music.youtube.com/youtubei/v1/player?key=${getString("yt_i_api_key")}")
-            .post(Api.getYoutubeiRequestBody(
-                mapOf("videoId" to id),
-                context = if (alt) Api.Companion.YoutubeiContextType.ALT else Api.Companion.YoutubeiContextType.BASE
-            ))
-            .addYtHeaders()
-            .build()
-    }
-
-    var result = Api.request(buildRequest(true))
+    var result = Api.request(buildPlayerRequest(id, false))
     if (result.isFailure) {
-        return result.cast()
+        result = Api.request(buildPlayerRequest(id, true))
     }
 
-    val stream = result.getOrThrow().body!!.charStream()
-    val data: PlaybackTrackingRepsonse = Api.klaxon.parse(stream)!!
-    stream.close()
+    val response = result.getOrNull() ?: return result.cast()
 
-    check(data.playback_url.contains("s.youtube.com"))
+    val stream = response.getStream()
+    val data: PlaybackTrackingRepsonse =
+        try {
+            Api.klaxon.parse(stream)!!
+        }
+        catch (e: Throwable) {
+            return Result.failure(e)
+        }
+        finally {
+            stream.close()
+        }
+
+    check(data.playback_url.contains("s.youtube.com")) { data.playback_url }
 
     val playback_url = data.playback_url.replace("s.youtube.com", "music.youtube.com")
         .toHttpUrl().newBuilder()
@@ -163,13 +180,8 @@ fun markSongAsWatched(id: String): Result<Any> {
 
     val request = Request.Builder()
         .url(playback_url)
-        .addYtHeaders()
+        .addYtHeaders(include = listOf("cookie", "user-agent"))
         .build()
 
-    result = Api.request(request)
-    if (result.isFailure) {
-        return result.cast()
-    }
-
-    return Result.success(Unit)
+    return Api.request(request).unit()
 }

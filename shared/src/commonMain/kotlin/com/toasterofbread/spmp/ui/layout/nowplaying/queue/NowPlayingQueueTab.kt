@@ -162,7 +162,7 @@ fun QueueTab(page_height: Dp, modifier: Modifier = Modifier) {
         Box(
             modifier
                 // Add extra height for overscroll
-                .requiredHeight(page_height + player.nowPlayingBottomPadding() + 200.dp)
+                .requiredHeight(page_height + 200.dp)
                 .requiredWidth(SpMp.context.getScreenWidth())
                 .padding(top = MINIMISED_NOW_PLAYING_HEIGHT.dp + (SpMp.context.getStatusBarHeight() * 0.5f) + top_bar_height + MINIMISED_NOW_PLAYING_V_PADDING.dp)
                 .background(queue_background_colour, shape)
@@ -229,7 +229,7 @@ fun QueueTab(page_height: Dp, modifier: Modifier = Modifier) {
 
                         item {
                             Spacer(Modifier.height(
-                                60.dp + list_position + MINIMISED_NOW_PLAYING_HEIGHT.dp + top_bar_height
+                                NOW_PLAYING_TOP_BAR_HEIGHT.dp + MINIMISED_NOW_PLAYING_HEIGHT.dp + list_position + list_padding
                             ))
                         }
                     }

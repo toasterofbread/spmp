@@ -34,7 +34,6 @@ import java.util.*
 import java.util.concurrent.locks.ReentrantLock
 import kotlin.concurrent.withLock
 
-@Suppress("PLATFORM_CLASS_MAPPED_TO_KOTLIN")
 abstract class MediaItem(val id: String, context: PlatformContext): MediaItemHolder {
     val uid: String get() = "${type.ordinal}$id"
     abstract val url: String?

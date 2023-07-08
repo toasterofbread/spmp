@@ -77,61 +77,7 @@ fun PlaylistPreviewLong(
         getPlaylistLongPressMenuData(playlist, multiselect_context = params.multiselect_context)
     }
 
-    Row(
-        verticalAlignment = Alignment.CenterVertically,
-        modifier = params.modifier.mediaItemPreviewInteraction(playlist, long_press_menu_data)
-    ) {
-        Box(Modifier.width(IntrinsicSize.Min).height(IntrinsicSize.Min), contentAlignment = Alignment.Center) {
-            playlist.Thumbnail(
-                MediaItemThumbnailProvider.Quality.LOW,
-                Modifier
-                    .longPressMenuIcon(long_press_menu_data, params.enable_long_press_menu)
-                    .size(40.dp),
-                contentColourProvider = params.contentColour
-            )
-
-            params.multiselect_context?.also { ctx ->
-                ctx.SelectableItemOverlay(playlist, Modifier.fillMaxSize())
-            }
-        }
-
-        Column(
-            Modifier.padding(10.dp).fillMaxWidth(),
-            verticalArrangement = Arrangement.spacedBy(5.dp)
-        ) {
-            Text(
-                playlist.title ?: "",
-                fontSize = 15.sp,
-                color = params.contentColour?.invoke() ?: LocalContentColor.current,
-                maxLines = 1,
-                overflow = TextOverflow.Ellipsis
-            )
-
-            Row(horizontalArrangement = Arrangement.spacedBy(5.dp)) {
-                @Composable
-                fun InfoText(text: String) {
-                    Text(
-                        text,
-                        fontSize = 11.sp,
-                        color = params.contentColour?.invoke() ?: LocalContentColor.current.setAlpha(0.5f),
-                        maxLines = 1,
-                        overflow = TextOverflow.Ellipsis
-                    )
-                }
-
-                if (params.show_type) {
-                    InfoText(playlist.playlist_type.getReadable(false))
-                }
-
-                if (playlist.artist?.title != null) {
-                    if (params.show_type) {
-                        InfoText("\u2022")
-                    }
-                    InfoText(playlist.artist?.title!!)
-                }
-            }
-        }
-    }
+    MediaItemPreviewLong(playlist, params, long_press_menu_data)
 }
 
 fun getPlaylistLongPressMenuData(

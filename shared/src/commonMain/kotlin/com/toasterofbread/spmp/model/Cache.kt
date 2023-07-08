@@ -68,7 +68,7 @@ class Cache {
                 throw RuntimeException(file.absolutePath, e)
             }
 
-            val expiry: String = if (lifetime != null) Instant.now().plusSeconds(lifetime.toSeconds()).epochSecond.toString() else ""
+            val expiry: String = if (lifetime != null) Instant.now().plusSeconds(lifetime.seconds).epochSecond.toString() else ""
 
             val writer = file.writer()
             writer.write(expiry + "\n")

@@ -22,6 +22,7 @@ class MainActivity : ComponentActivity() {
         Thread.setDefaultUncaughtExceptionHandler { _: Thread, error: Throwable ->
             if (
                 error is java.nio.channels.UnresolvedAddressException // Thrown by Kizzy
+                || error::class.simpleName == "KordInitializationException" // Thrown by Kord
             ) {
                 SpMp.Log.warning("Skipping error: ${error.stackTraceToString()}")
                 return@setDefaultUncaughtExceptionHandler

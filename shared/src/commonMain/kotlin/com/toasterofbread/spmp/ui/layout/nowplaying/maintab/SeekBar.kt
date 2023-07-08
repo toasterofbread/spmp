@@ -1,18 +1,43 @@
 package com.toasterofbread.spmp.ui.layout.nowplaying.maintab
 
-@Composable
-private fun SeekBarTimeText(time: Long, colour: Color) {
-    val seconds = time / 1000f
-    Text(
-        remember(seconds) { if (seconds < 0f) "" else formatElapsedTime(seconds.toLong()) },
-        fontSize = 10.sp,
-        fontWeight = FontWeight.Light,
-        color = colour
-    )
-}
+import LocalPlayerState
+import androidx.compose.animation.core.Spring
+import androidx.compose.animation.core.animateFloatAsState
+import androidx.compose.animation.core.spring
+import androidx.compose.foundation.Canvas
+import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.height
+import androidx.compose.foundation.layout.padding
+import androidx.compose.material3.Text
+import androidx.compose.runtime.Composable
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
+import androidx.compose.runtime.setValue
+import androidx.compose.ui.Modifier
+import androidx.compose.ui.geometry.Offset
+import androidx.compose.ui.graphics.Brush
+import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.graphics.StrokeCap
+import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.unit.Dp
+import androidx.compose.ui.unit.DpSize
+import androidx.compose.ui.unit.LayoutDirection
+import androidx.compose.ui.unit.dp
+import androidx.compose.ui.unit.sp
+import com.github.krottv.compose.sliders.DefaultThumb
+import com.github.krottv.compose.sliders.SliderValueHorizontal
+import com.toasterofbread.spmp.ui.layout.nowplaying.POSITION_UPDATE_INTERVAL_MS
+import com.toasterofbread.spmp.ui.layout.nowplaying.getNPAltOnBackground
+import com.toasterofbread.spmp.ui.layout.nowplaying.getNPOnBackground
+import com.toasterofbread.utils.composable.RecomposeOnInterval
+import com.toasterofbread.utils.formatElapsedTime
 
 @Composable
-private fun SeekBar(seek: (Float) -> Unit) {
+fun SeekBar(seek: (Float) -> Unit) {
     val player = LocalPlayerState.current
 
     var position_override by remember { mutableStateOf<Float?>(null) }
@@ -60,7 +85,18 @@ private fun SeekBar(seek: (Float) -> Unit) {
 }
 
 @Composable
-fun SeekTrack(
+private fun SeekBarTimeText(time: Long, colour: Color) {
+    val seconds = time / 1000f
+    Text(
+        remember(seconds) { if (seconds < 0f) "" else formatElapsedTime(seconds.toLong()) },
+        fontSize = 10.sp,
+        fontWeight = FontWeight.Light,
+        color = colour
+    )
+}
+
+@Composable
+private fun SeekTrack(
     modifier: Modifier,
     progress: Float,
     enabled: Boolean,

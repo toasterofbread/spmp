@@ -56,6 +56,7 @@ import com.toasterofbread.spmp.model.mediaitem.Song
 import com.toasterofbread.spmp.platform.composable.BackHandler
 import com.toasterofbread.spmp.platform.getPixel
 import com.toasterofbread.spmp.resources.getString
+import com.toasterofbread.spmp.ui.layout.nowplaying.maintab.OVERLAY_MENU_ANIMATION_DURATION
 import com.toasterofbread.spmp.ui.layout.nowplaying.overlay.DEFAULT_THUMBNAIL_ROUNDING
 import com.toasterofbread.spmp.ui.layout.nowplaying.overlay.MainOverlayMenu
 import com.toasterofbread.utils.composable.OnChangedEffect

@@ -298,11 +298,10 @@ class PlayerStateImpl(private val context: PlatformContext): PlayerState(null, n
         val density = LocalDensity.current
         val screen_height = context.getScreenHeight()
         val bottom_padding = context.getNavigationBarHeight()
-
         val keyboard_insets = SpMp.context.getImeInsets()
-        val keyboard_bottom_padding = if (keyboard_insets == null || np_swipe_state.value.targetValue != 0) 0 else keyboard_insets.getBottom(density)
 
         return base.offset {
+            val keyboard_bottom_padding = if (keyboard_insets == null || np_swipe_state.value.targetValue != 0) 0 else keyboard_insets.getBottom(density)
             IntOffset(
                 0,
                 with (density) {
@@ -391,10 +390,19 @@ class PlayerStateImpl(private val context: PlatformContext): PlayerState(null, n
 
     override fun playPlaylist(playlist: Playlist, from_index: Int) {
         withPlayer {
-            startRadioAtIndex(0, playlist)
-            if (from_index != 0) {
-                seekToSong(from_index)
-            }
+            startRadioAtIndex(
+                0,
+                playlist,
+                onLoad =
+                    if (from_index <= 0) null
+                    else { success ->
+                        if (success) {
+                            withContext(Dispatchers.Main) {
+                                seekToSong(from_index)
+                            }
+                        }
+                    }
+            )
         }
     }
 

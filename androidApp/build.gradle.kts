@@ -43,7 +43,7 @@ fun getString(key: String): String {
 }
 
 android {
-    namespace = "com.toasterofbread.spmp.shared"
+    namespace = "com.toasterofbread.spmp"
 
     signingConfigs {
         create("main") {

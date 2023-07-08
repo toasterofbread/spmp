@@ -19,6 +19,7 @@ import androidx.compose.ui.unit.sp
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.foundation.layout.aspectRatio
+import com.toasterofbread.utils.modifier.recomposeHighlighter
 
 @Composable
 fun MediaItemPreviewSquare(
@@ -27,7 +28,7 @@ fun MediaItemPreviewSquare(
     long_press_menu_data: LongPressMenuData
 ) {
     Column(
-        params.modifier.mediaItemPreviewInteraction(item, long_press_menu_data),
+        params.modifier.mediaItemPreviewInteraction(item, long_press_menu_data).recomposeHighlighter(),
         horizontalAlignment = Alignment.CenterHorizontally,
         verticalArrangement = Arrangement.spacedBy(5.dp)
     ) {

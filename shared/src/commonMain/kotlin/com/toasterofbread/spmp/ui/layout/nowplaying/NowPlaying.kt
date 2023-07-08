@@ -23,6 +23,7 @@ import com.toasterofbread.spmp.model.Settings
 import com.toasterofbread.spmp.platform.BackHandler
 import com.toasterofbread.spmp.platform.composable.scrollWheelSwipeable
 import com.toasterofbread.spmp.platform.composeScope
+import com.toasterofbread.spmp.ui.layout.nowplaying.maintab.NowPlayingMainTab
 import com.toasterofbread.spmp.ui.layout.nowplaying.queue.QueueTab
 import com.toasterofbread.spmp.ui.theme.Theme
 import com.toasterofbread.utils.*
@@ -71,6 +72,8 @@ val LocalNowPlayingExpansion: ProvidableCompositionLocal<NowPlayingExpansionStat
 @OptIn(ExperimentalMaterialApi::class)
 @Composable
 fun NowPlaying(swipe_state: SwipeableState<Int>, swipe_anchors: Map<Float, Int>) {
+    LocalNowPlayingExpansion.current.init()
+
     CompositionLocalProvider(LocalNowPlayingExpansion provides SpMp.context.player_state.expansion_state) {
         LocalNowPlayingExpansion.current.init()
         AnimatedVisibility(

@@ -89,10 +89,12 @@ data class SongLyrics(
 
     init {
         lazyAssert {
-            for (line in lines) {
-                for (term in line) {
-                    if (sync_type != SyncType.NONE && (term.start == null || term.end == null)) {
-                        return@lazyAssert false
+            synchronized(lines) {
+                for (line in lines) {
+                    for (term in line) {
+                        if (sync_type != SyncType.NONE && (term.start == null || term.end == null)) {
+                            return@lazyAssert false
+                        }
                     }
                 }
             }

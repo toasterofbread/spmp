@@ -13,8 +13,6 @@ import androidx.compose.ui.graphics.Path
 import androidx.compose.ui.graphics.drawscope.DrawScope
 import androidx.compose.ui.graphics.drawscope.Stroke
 import androidx.compose.ui.graphics.drawscope.clipPath
-import androidx.compose.ui.platform.LocalDensity
-import androidx.compose.ui.unit.Density
 import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.IntOffset
 import androidx.compose.ui.unit.dp
@@ -49,7 +47,7 @@ fun WaveBorder(
         val colour = getColour()
 
         // Above equilibrium (cut out from rect)
-        wavePath(path, -1, getWaveOffset, height, waves)
+        wavePath(path, -1, height.toPx(), waves, getWaveOffset)
         clipPath(
             path,
             ClipOp.Difference
@@ -68,7 +66,7 @@ fun WaveBorder(
         }
 
         // Below equilibrium
-        wavePath(path, 1, getWaveOffset, height, waves)
+        wavePath(path, 1, height.toPx(), waves, getWaveOffset)
         drawPath(path, colour)
 
         // Lower border
@@ -78,16 +76,36 @@ fun WaveBorder(
     }
 }
 
+fun DrawScope.drawWave(
+    waves: Int,
+    height: Float = size.height,
+    stroke_width: Float = 2f,
+    getWaveOffset: (DrawScope.() -> Float)? = null,
+    getColour: DrawScope.() -> Color,
+) {
+    val path = Path()
+    val colour = getColour()
+    val stroke = Stroke(stroke_width)
+
+    // Above equilibrium
+    wavePath(path, -1, height, waves, getWaveOffset)
+    drawPath(path, colour, style = stroke)
+
+    // Below equilibrium
+    wavePath(path, 1, height, waves, getWaveOffset)
+    drawPath(path, colour, style = stroke)
+}
+
 private fun DrawScope.wavePath(
     path: Path,
     direction: Int,
-    getOffset: (DrawScope.() -> Float)?,
-    height: Dp,
+    height: Float,
     waves: Int,
+    getOffset: (DrawScope.() -> Float)? = null
 ): Path {
     path.reset()
 
-    val y_offset = height.toPx() / 2
+    val y_offset = height / 2
     val half_period = (size.width / (waves - 1)) / 2
     val offset_px = getOffset?.invoke(this)?.let { offset ->
         offset % size.width - (if (offset > 0f) size.width else 0f)
@@ -103,7 +121,7 @@ private fun DrawScope.wavePath(
 
         path.relativeQuadraticBezierTo(
             dx1 = half_period / 2,
-            dy1 = height.toPx() / 2 * direction,
+            dy1 = height / 2 * direction,
             dx2 = half_period,
             dy2 = 0f,
         )

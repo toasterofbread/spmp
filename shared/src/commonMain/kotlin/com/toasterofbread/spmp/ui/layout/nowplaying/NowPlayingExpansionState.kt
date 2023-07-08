@@ -7,6 +7,7 @@ import androidx.compose.runtime.*
 import androidx.compose.ui.unit.Dp
 import com.toasterofbread.spmp.model.MusicTopBarMode
 import com.toasterofbread.spmp.platform.PlatformContext
+import com.toasterofbread.spmp.ui.layout.nowplaying.maintab.MIN_EXPANSION
 
 @OptIn(ExperimentalMaterialApi::class)
 class NowPlayingExpansionState(swipe_state: State<SwipeableState<Int>>, private val context: PlatformContext = SpMp.context) {

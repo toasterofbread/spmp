@@ -23,8 +23,15 @@ suspend fun getAccountPlaylists(): Result<List<AccountPlaylist>> = withContext(D
     }
 
     val stream = result.getOrThrow().getStream()
-    val parsed: YoutubeiBrowseResponse = Api.klaxon.parse(stream)!!
-    stream.close()
+    val parsed: YoutubeiBrowseResponse = try {
+        Api.klaxon.parse(stream)!!
+    }
+    catch (e: Throwable) {
+        return@withContext Result.failure(e)
+    }
+    finally {
+        stream.close()
+    }
 
     val playlist_data = parsed
         .contents!!
@@ -153,7 +160,14 @@ suspend fun editAccountPlaylist(playlist: AccountPlaylist, actions: List<Account
             )))
             .build()
 
-        return@withContext Api.request(request).unit()
+        val result = Api.request(request)
+        return@withContext result.fold(
+            {
+                it.close()
+                Result.success(Unit)
+            },
+            { Result.failure(it) }
+        )
     }
 }
 

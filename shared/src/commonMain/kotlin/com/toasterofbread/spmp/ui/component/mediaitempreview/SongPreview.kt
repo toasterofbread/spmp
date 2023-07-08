@@ -112,66 +112,7 @@ fun SongPreviewLong(
         )
     }
 
-    Row(
-        verticalAlignment = Alignment.CenterVertically,
-        modifier = params.modifier
-            .fillMaxWidth()
-            .mediaItemPreviewInteraction(song, long_press_menu_data)
-    ) {
-        Box(Modifier.width(IntrinsicSize.Min).height(IntrinsicSize.Min), contentAlignment = Alignment.Center) {
-            song.Thumbnail(
-                MediaItemThumbnailProvider.Quality.LOW,
-                Modifier
-                    .longPressMenuIcon(long_press_menu_data, params.enable_long_press_menu)
-                    .size(40.dp),
-                contentColourProvider = params.contentColour
-            )
-
-            params.multiselect_context?.also { ctx ->
-                ctx.SelectableItemOverlay(song, Modifier.fillMaxSize(), key = queue_index)
-            }
-        }
-
-        Column(
-            Modifier
-                .padding(horizontal = 10.dp, vertical = 8.dp)
-                .fillMaxWidth(),
-            verticalArrangement = Arrangement.spacedBy(5.dp)
-        ) {
-            Text(
-                song.title ?: "",
-                fontSize = 15.sp,
-                color = params.contentColour?.invoke() ?: Color.Unspecified,
-                maxLines = 1,
-                overflow = TextOverflow.Ellipsis
-            )
-
-            Row(horizontalArrangement = Arrangement.spacedBy(5.dp)) {
-                if (params.show_type) {
-                    InfoText(song.type.getReadable(false), params)
-                }
-
-                if (song.artist?.title != null) {
-                    if (params.show_type) {
-                        InfoText("\u2022", params)
-                    }
-                    InfoText(song.artist?.title!!, params)
-                }
-            }
-        }
-    }
-}
-
-@Composable
-private fun InfoText(text: String, params: MediaItemPreviewParams) {
-    Text(
-        text,
-        Modifier.alpha(0.5f),
-        fontSize = 11.sp,
-        color = params.contentColour?.invoke() ?: Color.Unspecified,
-        maxLines = 1,
-        overflow = TextOverflow.Ellipsis
-    )
+    MediaItemPreviewLong(song, params, long_press_menu_data)
 }
 
 fun getSongLongPressMenuData(

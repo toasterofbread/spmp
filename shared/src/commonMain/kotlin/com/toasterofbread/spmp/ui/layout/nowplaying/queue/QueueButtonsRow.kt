@@ -31,7 +31,7 @@ fun QueueButtonsRow(
     backgroundColourProvider: () -> Color,
     multiselect_context: MediaItemMultiSelectContext
 ) {
-    val padding = 15.dp
+    val padding = 10.dp
     val player = LocalPlayerState.current
     val background_colour = getNPBackground()
 

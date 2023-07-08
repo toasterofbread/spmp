@@ -28,6 +28,7 @@ import androidx.compose.ui.unit.DpSize
 import androidx.compose.ui.unit.TextUnit
 import androidx.compose.ui.unit.dp
 import com.beust.klaxon.Json
+import com.toasterofbread.spmp.PlayerService
 import com.toasterofbread.spmp.api.*
 import com.toasterofbread.spmp.api.Api.Companion.addYtHeaders
 import com.toasterofbread.spmp.api.Api.Companion.getStream
@@ -51,6 +52,7 @@ import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
 import okhttp3.Request
 import com.toasterofbread.spmp.ui.component.mediaitempreview.*
+import com.toasterofbread.spmp.ui.layout.mainpage.PlayerState
 
 fun getDefaultMediaItemPreviewSize(): DpSize = DpSize(100.dp, 130.dp)
 
@@ -211,6 +213,32 @@ data class MediaItemLayout(
             check(list_page_browse_id != null || media_item != null || action != null) 
             check(browse_params == null || list_page_browse_id != null)
         }
+
+        fun openViewMore(player: PlayerState, title: LocalisedYoutubeString?) {
+            if (media_item != null) {
+                player.openMediaItem(media_item, true)
+            }
+            else if (list_page_browse_id != null) {
+                if (browse_params != null) {
+                    player.openMediaItem(
+                        BrowseParamsPlaylist
+                            .fromId(list_page_browse_id, browse_params)
+                            .apply { editData {
+                                supplyTitle(title?.getString() ?: "")
+                            }}
+                    )
+                }
+                else {
+                    player.openViewMorePage(list_page_browse_id)
+                }
+            }
+            else if (action != null) {
+                action.invoke()
+            }
+            else {
+                throw NotImplementedError(toString())
+            }
+        }
     }
 
     class ThumbnailSource(val media_item: MediaItem? = null, val url: String? = null) {
@@ -294,129 +322,16 @@ private fun TitleBar(
                 }
             }
 
-            Row {
-                view_more?.also { view_more ->
-                    val player = LocalPlayerState.current
-                    IconButton(
-                        {
-                            if (view_more.media_item != null) {
-                                player.openMediaItem(view_more.media_item, true)
-                            }
-                            else if (view_more.list_page_browse_id != null) {
-                                if (view_more.browse_params != null) {
-                                    player.openMediaItem(
-                                        BrowseParamsPlaylist
-                                            .fromId(view_more.list_page_browse_id, view_more.browse_params)
-                                            .apply { editData {
-                                                supplyTitle(title?.getString() ?: "")
-                                            }}
-                                    )
-                                }
-                                else {
-                                    player.openViewMorePage(view_more.list_page_browse_id)
-                                }
-                            }
-                            else if (view_more.action != null) {
-                                view_more.action.invoke()
-                            }
-                            else {
-                                throw NotImplementedError(view_more.toString())
-                            }
-                        }
-                    ) {
-                        Icon(Icons.Default.MoreHoriz, null)
-                    }
-                }
-
-                multiselect_context?.CollectionToggleButton(items)
-            }
-        }
-    }
-}
-
-@Composable
-fun LazyMediaItemLayoutColumn(
-    getLayouts: () -> List<MediaItemLayout>,
-    modifier: Modifier = Modifier,
-    layout_modifier: Modifier = Modifier,
-    padding: PaddingValues = PaddingValues(0.dp),
-    topContent: (LazyListScope.() -> Unit)? = null,
-    onContinuationRequested: (() -> Unit)? = null,
-    loading_continuation: Boolean = false,
-    continuation_alignment: Alignment.Horizontal = Alignment.CenterHorizontally,
-    scroll_state: LazyListState = rememberLazyListState(),
-    scroll_enabled: Boolean = true,
-    spacing: Dp = 0.dp,
-    layoutItem: LazyListScope.(layout: MediaItemLayout, i: Int, showLayout: LazyListScope.(MediaItemLayout) -> Unit) -> Unit = { layout, i, showLayout ->
-        showLayout(this, layout)
-    },
-    multiselect_context: MediaItemMultiSelectContext? = null,
-    getType: ((MediaItemLayout) -> MediaItemLayout.Type)? = null
-) {
-    val layouts = getLayouts()
-    require(getType != null || layouts.all { it.type != null })
-
-    LazyColumn(
-        modifier,
-        state = scroll_state,
-        contentPadding = padding,
-        userScrollEnabled = scroll_enabled
-    ) {
-        topContent?.invoke(this)
-
-        for (layout in layouts.withIndex()) {
-            if (layout.value.items.isEmpty()) {
-                continue
-            }
-
-            layoutItem(
-                this,
-                layout.value,
-                layout.index,
-                { layout ->
-                    item {
-                        val type = getType?.invoke(layout) ?: layout.type!!
-                        type.Layout(layout, layout_modifier, multiselect_context)
-                    }
-                    item { Spacer(Modifier.height(spacing)) }
-                }
-            )
-
-//            when (val type = getType?.invoke(layout) ?: layout.type!!) {
-//                MediaItemLayout.Type.LIST, MediaItemLayout.Type.NUMBERED_LIST -> {
-//                    item {
-//                        layout.TitleBar()
-//                    }
-//                    items(layout.items.size) { index ->
-//                        val item = layout.items[index]
-//                        Row(verticalAlignment = Alignment.CenterVertically) {
-//                            if (type == MediaItemLayout.Type.NUMBERED_LIST) {
-//                                Text((index + 1).toString().padStart((layout.items.size + 1).toString().length, '0'), fontWeight = FontWeight.Light)
-//                            }
-//
-//                            Column {
-//                                item.PreviewLong(MediaItem.PreviewParams(content_colour = Theme.current.on_background_provider))
-//                            }
-//                        }
+//            Row {
+//                view_more?.also { view_more ->
+//                    val player = LocalPlayerState.current
+//                    IconButton({ view_more.openViewMore(player, title) }, Modifier.height(20.dp)) {
+//                        Icon(Icons.Default.MoreHoriz, null)
 //                    }
 //                }
-//                else -> item { type.Layout(layout, layout_modifier) }
+//
+//                multiselect_context?.CollectionToggleButton(items)
 //            }
-        }
-
-        item {
-            Crossfade(Pair(onContinuationRequested, loading_continuation)) { data ->
-                Column(Modifier.fillMaxWidth(), horizontalAlignment = continuation_alignment) {
-                    if (data.second) {
-//                        CircularProgressIndicator(color = Theme.current.on_background)
-                    }
-                    else if (data.first != null) {
-                        IconButton({ data.first!!.invoke() }) {
-                            Icon(Icons.Filled.KeyboardDoubleArrowDown, null, tint = Theme.current.on_background)
-                        }
-                    }
-                }
-            }
         }
     }
 }
@@ -601,8 +516,8 @@ fun MediaItemGrid(
     startContent: (LazyGridScope.() -> Unit)? = null
 ) {
     val row_count = (rows ?: if (items.size <= 3) 1 else 2) * (if (alt_style) 2 else 1)
-    val item_spacing = Arrangement.spacedBy(if (alt_style) 0.dp else 15.dp)
-    val item_size = if (alt_style) DpSize(0.dp, 50.dp) else itemSizeProvider()
+    val item_spacing = Arrangement.spacedBy(if (alt_style) 7.dp else 15.dp)
+    val item_size = if (alt_style) DpSize(0.dp, MEDIA_ITEM_PREVIEW_LONG_HEIGHT.dp) else itemSizeProvider()
 
     Column(modifier, verticalArrangement = Arrangement.spacedBy(10.dp)) {
         TitleBar(
@@ -617,7 +532,7 @@ fun MediaItemGrid(
             LazyHorizontalGrid(
                 rows = GridCells.Fixed(row_count),
                 modifier = Modifier
-                    .height(item_size.height * row_count)
+                    .height( item_size.height * row_count + item_spacing.spacing * (row_count - 1) )
                     .fillMaxWidth(),
                 horizontalArrangement = item_spacing,
                 verticalArrangement = item_spacing
@@ -674,7 +589,7 @@ fun MediaItemList(
     view_more: MediaItemLayout.ViewMore? = null,
     multiselect_context: MediaItemMultiSelectContext? = null
 ) {
-    Column(modifier) {
+    Column(modifier, verticalArrangement = Arrangement.spacedBy(10.dp)) {
         TitleBar(
             items,
             title,

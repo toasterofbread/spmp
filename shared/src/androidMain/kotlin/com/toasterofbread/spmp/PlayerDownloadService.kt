@@ -7,6 +7,7 @@ import android.app.PendingIntent
 import android.content.Intent
 import android.content.pm.PackageManager
 import android.graphics.drawable.Icon
+import android.os.Build
 import androidx.core.app.ActivityCompat
 import androidx.core.app.NotificationManagerCompat
 import com.toasterofbread.spmp.api.cast
@@ -571,7 +572,6 @@ class PlayerDownloadService: PlatformServiceImpl() {
             .setOnlyAlertOnce(true)
             .setOngoing(true)
             .setProgress(100, 0, false)
-            .setForegroundServiceBehavior(Notification.FOREGROUND_SERVICE_IMMEDIATE)
             .addAction(pause_resume_action)
             .addAction(Notification.Action.Builder(
                 Icon.createWithResource(this, android.R.drawable.ic_menu_close_clear_cancel),
@@ -583,6 +583,11 @@ class PlayerDownloadService: PlatformServiceImpl() {
                     PendingIntent.FLAG_IMMUTABLE
                 )
             ).build())
+            .apply {
+                if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.S) {
+                    setForegroundServiceBehavior(Notification.FOREGROUND_SERVICE_IMMEDIATE)
+                }
+            }
     }
 
     private fun getNotificationChannel(): String {

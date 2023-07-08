@@ -37,7 +37,8 @@ internal fun getYtmAuthItem(ytm_auth: SettingsValueState<YoutubeMusicAuthInfo>, 
 
             own_channel.value?.PreviewLong(
                 MediaItemPreviewParams(
-                    modifier
+                    modifier,
+                    show_type = false
                 )
             )
         },

@@ -20,7 +20,6 @@ import com.toasterofbread.spmp.api.getHomeFeed
 import com.toasterofbread.spmp.api.getOrThrowHere
 import com.toasterofbread.spmp.model.*
 import com.toasterofbread.spmp.model.mediaitem.*
-import com.toasterofbread.spmp.model.mediaitem.enums.PlaylistType
 import com.toasterofbread.spmp.platform.*
 import com.toasterofbread.spmp.platform.composable.BackHandler
 import com.toasterofbread.spmp.ui.component.*
@@ -37,6 +36,8 @@ import com.toasterofbread.spmp.ui.layout.nowplaying.overlay.OverlayMenu
 import com.toasterofbread.spmp.ui.layout.prefspage.PrefsPage
 import com.toasterofbread.spmp.ui.layout.prefspage.PrefsPageCategory
 import com.toasterofbread.spmp.ui.component.mediaitempreview.*
+import com.toasterofbread.spmp.ui.layout.playlistpage.PlaylistPage
+import com.toasterofbread.spmp.ui.layout.radiobuilder.RadioBuilderPage
 import com.toasterofbread.utils.addUnique
 import com.toasterofbread.utils.composable.OnChangedEffect
 import com.toasterofbread.utils.init
@@ -334,7 +335,7 @@ class PlayerStateImpl(private val context: PlatformContext): PlayerState(null, n
     }
 
     override fun onMediaItemClicked(item: MediaItem, multiselect_key: Int?) {
-        if (item is Song || (item is Playlist && item.playlist_type == PlaylistType.RADIO)) {
+        if (item is Song) {
             playMediaItem(item)
         }
         else {

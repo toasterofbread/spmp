@@ -153,7 +153,7 @@ class MediaItemMultiSelectContext(
         val background_colour = LocalContentColor.current.getContrasted().setAlpha(0.5f)
 
         AnimatedVisibility(selected, modifier, enter = fadeIn(), exit = fadeOut()) {
-            Box(Modifier.fillMaxSize().background(background_colour), contentAlignment = Alignment.Center) {
+            Box(Modifier.background(background_colour), contentAlignment = Alignment.Center) {
                 Icon(Icons.Default.Check, null)
             }
         }
@@ -201,7 +201,9 @@ class MediaItemMultiSelectContext(
         val selected_playlists = remember { mutableStateListOf<Playlist>() }
         val button_colours = IconButtonDefaults.iconButtonColors(
             containerColor = Theme.current.accent,
-            contentColor = Theme.current.on_accent
+            disabledContainerColor = Theme.current.accent,
+            contentColor = Theme.current.on_accent,
+            disabledContentColor = Theme.current.on_accent.setAlpha(0.5f)
         )
 
         fun onPlaylistsSelected() {
@@ -227,6 +229,10 @@ class MediaItemMultiSelectContext(
             onDismissRequest = onFinished,
             confirmButton = {
                 Row {
+                    ShapedIconButton(onFinished, colors = button_colours) {
+                        Icon(Icons.Default.Close, null)
+                    }
+
                     Button(
                         { coroutine_scope.launch {
                             val playlist = LocalPlaylist.createLocalPlaylist(SpMp.context)
@@ -249,18 +255,13 @@ class MediaItemMultiSelectContext(
                     }
                 }
             },
-            dismissButton = {
-                ShapedIconButton(onFinished, colors = button_colours) {
-                    Icon(Icons.Default.Close, null)
-                }
-            },
             title = {
                 Text(getString("song_add_to_playlist"), style = MaterialTheme.typography.headlineSmall)
             },
             text = {
-                CompositionLocalProvider(LocalContentColor provides Theme.current.accent) {
+//                CompositionLocalProvider(LocalContentColor provides Theme.current.accent) {
                     PlaylistSelectMenu(selected_playlists, Modifier.height(300.dp))
-                }
+//                }
             }
         )
     }

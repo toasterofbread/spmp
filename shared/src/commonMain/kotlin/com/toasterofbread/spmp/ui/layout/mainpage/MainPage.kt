@@ -80,7 +80,7 @@ fun MainPage(
 
     Column(Modifier.padding(horizontal = padding)) {
 
-        val top_padding = WAVE_BORDER_DEFAULT_HEIGHT.dp
+        val top_padding = WAVE_BORDER_DEFAULT_HEIGHT.dp * 0.5f
         MainPageTopBar(
             Api.ytm_auth,
             getFilterChips,
@@ -134,7 +134,7 @@ fun MainPage(
                             top = top_padding
                         ),
                         userScrollEnabled = !state_alpha.isRunning,
-                        verticalArrangement = Arrangement.spacedBy(30.dp)
+                        verticalArrangement = Arrangement.spacedBy(20.dp)
                     ) {
                         if (top_content_visible || artists_layout.items.isNotEmpty()) {
                             item {

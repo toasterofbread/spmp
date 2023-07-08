@@ -573,7 +573,7 @@ class SettingsItemMultipleChoice(
                                         null
                                     ) { state.value = i }
                             ) {
-                                Text(get_choice(i))
+                                WidthShrinkText(get_choice(i))
                                 RadioButton(i == state.value, onClick = { state.value = i }, colors = RadioButtonDefaults.colors(theme.vibrant_accent))
                             }
                         }
@@ -604,7 +604,10 @@ class SettingsItemMultipleChoice(
                                     .background(colour.value, SETTINGS_ITEM_ROUNDED_SHAPE)
                             ) {
                                 Box(Modifier.padding(horizontal = 10.dp)) {
-                                    Text(get_choice(i), color = if (state.value == i) theme.on_accent else theme.on_background)
+                                    WidthShrinkText(
+                                        get_choice(i),
+                                        style = LocalTextStyle.current.copy(color = if (state.value == i) theme.on_accent else theme.on_background)
+                                    )
                                 }
                             }
                         }

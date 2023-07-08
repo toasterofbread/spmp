@@ -39,6 +39,7 @@ import org.schabi.newpipe.extractor.downloader.Request as NewPipeRequest
 import org.schabi.newpipe.extractor.downloader.Response as NewPipeResponse
 
 const val DEFAULT_CONNECT_TIMEOUT = 3000
+val PLAIN_HEADERS = listOf("accept-language", "user-agent", "accept-encoding", "content-encoding", "origin")
 
 fun <T> Result.Companion.failure(response: Response, is_gzip: Boolean = true): Result<T> {
     var body: String
@@ -55,8 +56,6 @@ fun <T> Result.Companion.failure(response: Response, is_gzip: Boolean = true): R
     else {
         body = response.body!!.string()
     }
-
-    println("FAAAAAAAAIL $body")
 
     response.close()
     return failure(RuntimeException(body))
@@ -104,6 +103,7 @@ class Api {
             OkHttpClient.Builder()
                 .callTimeout(Duration.ofMillis(DEFAULT_CONNECT_TIMEOUT.toLong()))
                 .retryOnConnectionFailure(false)
+                .protocols(listOf(Protocol.HTTP_1_1))
                 .build()
                 .also {
                     Logger.getLogger(OkHttpClient::class.java.name).level = Level.FINE
@@ -384,13 +384,16 @@ class Api {
             })
         }
 
-        internal fun Request.Builder.addYtHeaders(plain: Boolean = false): Request.Builder {
+        internal fun Request.Builder.addYtHeaders(plain: Boolean = false, include: List<String>? = null): Request.Builder {
             if (youtubei_headers == null) {
                 header_update_thread!!.join()
             }
 
-            if (plain) {
-                for (header in listOf("accept-language", "user-agent", "accept-encoding", "content-encoding", "origin")) {
+            if (plain || !include.isNullOrEmpty()) {
+                val headers =
+                    if (!include.isNullOrEmpty()) include
+                    else PLAIN_HEADERS
+                for (header in headers) {
                     val value = youtubei_headers!![header] ?: continue
                     header(header, value)
                 }

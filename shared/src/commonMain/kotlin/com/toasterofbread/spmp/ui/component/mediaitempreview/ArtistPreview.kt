@@ -73,45 +73,7 @@ fun ArtistPreviewLong(
         getArtistLongPressMenuData(artist, multiselect_context = params.multiselect_context)
     }
 
-    Row(
-        verticalAlignment = Alignment.CenterVertically,
-        modifier = params.modifier.mediaItemPreviewInteraction(artist, long_press_menu_data)
-    ) {
-        Box(Modifier.width(IntrinsicSize.Min).height(IntrinsicSize.Min), contentAlignment = Alignment.Center) {
-            artist.Thumbnail(
-                MediaItemThumbnailProvider.Quality.LOW,
-                Modifier
-                    .longPressMenuIcon(long_press_menu_data, params.enable_long_press_menu)
-                    .size(40.dp)
-            )
-
-            params.multiselect_context?.also { ctx ->
-                ctx.SelectableItemOverlay(artist, Modifier.fillMaxSize())
-            }
-        }
-
-        Column(Modifier.padding(8.dp)) {
-            Text(
-                artist.title ?: "",
-                fontSize = 15.sp,
-                color = params.contentColour?.invoke() ?: Color.Unspecified,
-                maxLines = 1,
-                overflow = TextOverflow.Ellipsis
-            )
-
-            val sub_count = artist.getReadableSubscriberCount()
-            if (sub_count.isNotEmpty()) {
-                Text(
-                    sub_count,
-                    Modifier.alpha(0.5f),
-                    fontSize = 12.sp,
-                    color = params.contentColour?.invoke() ?: Color.Unspecified,
-                    maxLines = 1,
-                    overflow = TextOverflow.Ellipsis
-                )
-            }
-        }
-    }
+    MediaItemPreviewLong(artist, params, long_press_menu_data)
 }
 
 fun getArtistLongPressMenuData(

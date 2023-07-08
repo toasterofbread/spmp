@@ -141,7 +141,7 @@ kotlin {
                 //noinspection GradleDependency
                 implementation("com.github.andob:android-awt:1.0.0")
                 implementation("io.coil-kt:coil-compose:2.3.0")
-                implementation("com.github.dead8309:KizzyRPC:1.0.71")
+                implementation("com.github.toasterofbread:KizzyRPC:84e79614b4")
                 implementation("dev.kord:kord-core:0.9.0")
             }
         }

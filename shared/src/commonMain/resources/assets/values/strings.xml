@@ -224,7 +224,10 @@
     <string name="radio_builder_modifier_filter_downbeat">Downbeat</string>
     <string name="radio_builder_modifier_filter_focus">Focus</string>
     <string name="radio_filter_all">All</string>
-    
+
+    <string name="radio_of_$artists_title">Radio of $artists</string>
+    <string name="radio_title_artists_splitter">, </string>
+
     <string name="settings_value_out_of_$range">Value is out of range ($range)</string>
     <string name="settings_value_not_int">Value is not an integer</string>
     <string name="settings_value_not_float">Value is not a float</string>

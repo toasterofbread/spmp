@@ -19,6 +19,7 @@ import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.clipToBounds
 import androidx.compose.ui.graphics.*
 import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.input.pointer.pointerInput
@@ -63,7 +64,6 @@ fun ArtistPage(
     require(!item.is_for_item)
 
     val player = LocalPlayerState.current
-    val density = LocalDensity.current
     val screen_width = SpMp.context.getScreenWidth()
 
     val main_column_state = rememberLazyListState()
@@ -105,13 +105,17 @@ fun ArtistPage(
                 .drawScopeBackground {
                     getBackgroundColour()
                 }
-                .padding(top = SpMp.context.getStatusBarHeight())
-                .zIndex(10f)
                 .pointerInput(Unit) {}
+                .zIndex(1f)
         ) {
+            val showing = music_top_bar_showing || multiselect_context.is_active
+            AnimatedVisibility(showing) {
+                Spacer(Modifier.height(SpMp.context.getStatusBarHeight()))
+            }
+
             MusicTopBar(
                 Settings.KEY_LYRICS_SHOW_IN_ARTIST,
-                Modifier.fillMaxWidth(),
+                Modifier.fillMaxWidth().zIndex(1f),
                 padding = content_padding
             ) { music_top_bar_showing = it }
 
@@ -119,7 +123,9 @@ fun ArtistPage(
                 multiselect_context.InfoDisplay(Modifier.padding(top = 10.dp).padding(content_padding))
             }
 
-            WaveBorder(Modifier.fillMaxWidth().zIndex(1f), getColour = { getBackgroundColour() })
+            AnimatedVisibility(showing) {
+                WaveBorder(Modifier.fillMaxWidth(), getColour = { getBackgroundColour() })
+            }
         }
     }
 

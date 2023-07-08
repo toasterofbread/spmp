@@ -77,9 +77,10 @@ fun CurrentRadioIndicator(
         Crossfade(
             if (show_radio_info) radio_item 
             else if (multiselect_context.is_active) true 
-            else filters ?: radio_item
+            else filters ?: radio_item,
+            Modifier.fillMaxWidth()
         ) { state ->
-            Box(contentAlignment = Alignment.Center) {
+            Box(Modifier.fillMaxWidth(), contentAlignment = Alignment.Center) {
                 when (state) {
                     is MediaItem ->
                         Box(
@@ -87,14 +88,9 @@ fun CurrentRadioIndicator(
                                 .fillMaxWidth()
                                 .padding(horizontal = horizontal_padding)
                                 .background(RoundedCornerShape(45), accentColourProvider)
+                                .padding(5.dp)
                         ) {
-                            state.PreviewLong(
-                                MediaItemPreviewParams(
-                                    Modifier
-                                        .fillMaxWidth()
-                                        .padding(horizontal = 5.dp, vertical = 3.dp)
-                                )
-                            )
+                            state.PreviewLong(MediaItemPreviewParams())
                         }
                     true ->
                         multiselect_context.InfoDisplay(
@@ -106,7 +102,7 @@ fun CurrentRadioIndicator(
                         FiltersRow(
                             state as List<List<RadioModifier>>,
                             accentColourProvider,
-                            Modifier.horizontalScroll(filters_scroll_state)
+                            Modifier.horizontalScroll(filters_scroll_state).padding(bottom = 5.dp)
                         )
                 }
             }
@@ -132,6 +128,7 @@ private fun FiltersRow(
         for (filter in listOf(null) + filters.withIndex()) {
             FilterChip(
                 current_filter == filter?.index,
+                modifier = Modifier.height(32.dp),
                 onClick = {
                     if (player.player?.radio_current_filter != filter?.index) {
                         player.player?.radio_current_filter = filter?.index

@@ -3,6 +3,7 @@ package com.toasterofbread.spmp.ui.layout
 import LocalPlayerState
 import SpMp
 import androidx.compose.animation.*
+import androidx.compose.animation.core.animateDpAsState
 import androidx.compose.foundation.background
 import androidx.compose.foundation.horizontalScroll
 import androidx.compose.foundation.layout.*
@@ -22,6 +23,7 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.focus.FocusRequester
 import androidx.compose.ui.focus.focusRequester
 import androidx.compose.ui.focus.onFocusChanged
+import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.LocalFocusManager
 import androidx.compose.ui.platform.LocalSoftwareKeyboardController
 import androidx.compose.ui.text.input.ImeAction
@@ -32,7 +34,9 @@ import com.toasterofbread.spmp.model.mediaitem.enums.MediaItemType
 import com.toasterofbread.spmp.model.mediaitem.enums.PlaylistType
 import com.toasterofbread.spmp.model.mediaitem.enums.getReadable
 import com.toasterofbread.spmp.platform.composable.BackHandler
+import com.toasterofbread.spmp.platform.getDefaultHorizontalPadding
 import com.toasterofbread.spmp.resources.getString
+import com.toasterofbread.spmp.ui.component.ErrorInfoDisplay
 import com.toasterofbread.spmp.ui.component.MediaItemLayout
 import com.toasterofbread.spmp.ui.component.MusicTopBar
 import com.toasterofbread.spmp.ui.component.PillMenu
@@ -55,10 +59,10 @@ fun SearchPage(
 ) {
     val focus_state = remember { mutableStateOf(false) }
     val focus_manager = LocalFocusManager.current
-    val keyboard_controller = LocalSoftwareKeyboardController.current
     val player = LocalPlayerState.current
     val multiselect_context = remember { MediaItemMultiSelectContext() {} }
     val coroutine_scope = rememberCoroutineScope()
+    val keyboard_controller = LocalSoftwareKeyboardController.current
 
     var search_in_progress: Boolean by remember { mutableStateOf(false) }
     val search_lock = remember { Object() }
@@ -71,6 +75,7 @@ fun SearchPage(
     var error: Throwable? by remember { mutableStateOf(null) }
 
     fun performSearch(query: String, filter: SearchFilter? = null) {
+        focus_manager.clearFocus()
         keyboard_controller?.hide()
 
         synchronized(search_lock) {
@@ -79,6 +84,7 @@ fun SearchPage(
             current_results = null
             current_query = query
             current_filter = filter?.type
+            multiselect_context.setActive(false)
 
             coroutine_scope.launchSingle {
                 searchYoutubeMusic(query, filter?.params).fold(
@@ -99,7 +105,7 @@ fun SearchPage(
                         }
                     },
                     {
-                        SpMp.error_manager.onError("SearchPage", it)
+                        error = it
                         synchronized(search_lock) {
                             search_in_progress = false
                         }
@@ -119,19 +125,54 @@ fun SearchPage(
     }
 
     Box(Modifier.fillMaxSize()) {
-        Column(Modifier.fillMaxSize()) {
+        Column(
+            Modifier
+                .fillMaxSize()
+                .padding(horizontal = SpMp.context.getDefaultHorizontalPadding())
+        ) {
+            val status_bar_height = SpMp.context.getStatusBarHeight()
+            var top_bar_showing by remember { mutableStateOf(false) }
+
             MusicTopBar(
                 Settings.KEY_LYRICS_SHOW_IN_SEARCH,
-                Modifier.fillMaxWidth().padding(top = SpMp.context.getStatusBarHeight())
+                Modifier.fillMaxWidth().padding(top = status_bar_height),
+                onShowingChanged = { top_bar_showing = it }
             )
 
-            Crossfade(current_results) { results ->
-                if (results != null) {
+            AnimatedVisibility(multiselect_context.is_active) {
+                multiselect_context.InfoDisplay(
+                    Modifier.padding(
+                        top = animateDpAsState(if (!top_bar_showing) status_bar_height else 0.dp).value
+                    )
+                )
+            }
+
+            val total_bottom_padding = bottom_padding + (SEARCH_BAR_HEIGHT) + (SEARCH_BAR_PADDING)
+
+            Crossfade(
+                error ?: current_results
+            ) { results ->
+                if (results is SearchResults) {
                     Results(
                         results,
-                        bottom_padding + (SEARCH_BAR_HEIGHT * 2) + (SEARCH_BAR_PADDING * 2),
+                        PaddingValues(
+                            top = animateDpAsState(
+                                if (!top_bar_showing && !multiselect_context.is_active) status_bar_height else 0.dp
+                            ).value,
+                            bottom = total_bottom_padding
+                        ),
                         multiselect_context
                     )
+                }
+                else if (results is Throwable) {
+                    Box(
+                        Modifier
+                            .fillMaxSize()
+                            .padding(top = status_bar_height, bottom = total_bottom_padding),
+                        contentAlignment = Alignment.Center
+                    ) {
+                        ErrorInfoDisplay(results, Modifier.fillMaxWidth())
+                    }
                 }
                 else if (search_in_progress) {
                     Column(
@@ -167,32 +208,21 @@ fun SearchPage(
 }
 
 @Composable
-private fun Results(results: SearchResults, bottom_padding: Dp, multiselect_context: MediaItemMultiSelectContext) {
-    val horizontal_padding = 10.dp
+private fun Results(results: SearchResults, padding: PaddingValues, multiselect_context: MediaItemMultiSelectContext) {
     LazyColumn(
         Modifier.fillMaxSize(),
-        contentPadding = PaddingValues(
-            top = SpMp.context.getStatusBarHeight() + 20.dp,
-            bottom = bottom_padding,
-            start = horizontal_padding,
-            end = horizontal_padding
-        ),
-        verticalArrangement = Arrangement.spacedBy(30.dp)
+        contentPadding = padding,
+        verticalArrangement = Arrangement.spacedBy(25.dp)
     ) {
-        item {
-            AnimatedVisibility(multiselect_context.is_active) {
-                multiselect_context.InfoDisplay()
-            }
-        }
-
         if (results.suggested_correction != null) {
             item {
+                // TODO
                 Text(results.suggested_correction)
             }
         }
 
-        for (category in results.categories) {
-            val layout = category.first
+        for (category in results.categories.withIndex()) {
+            val layout = category.value.first
             item {
                 (layout.type ?: MediaItemLayout.Type.LIST).Layout(layout, multiselect_context = multiselect_context)
             }
@@ -211,8 +241,12 @@ private fun SearchBar(
     onFilterChanged: (SearchType?) -> Unit,
     close: () -> Unit
 ) {
-    val focus_requester = remember { FocusRequester() }
     var query_text by remember { mutableStateOf("") }
+    val focus_requester = remember { FocusRequester() }
+
+    LaunchedEffect(Unit) {
+        focus_requester.requestFocus()
+    }
 
     Column(
         modifier
@@ -282,7 +316,11 @@ private fun SearchBar(
                 ),
                 modifier = Modifier
                     .height(SEARCH_BAR_HEIGHT)
-                    .weight(1f),
+                    .weight(1f)
+                    .focusRequester(focus_requester)
+                    .onFocusChanged {
+                        focus_state.value = it.isFocused
+                    },
                 decorationBox = { innerTextField ->
                     Row(
                         Modifier
@@ -291,11 +329,7 @@ private fun SearchBar(
                                 CircleShape
                             )
                             .padding(horizontal = 10.dp)
-                            .fillMaxSize()
-                            .focusRequester(focus_requester)
-                            .onFocusChanged {
-                                focus_state.value = it.isFocused
-                            },
+                            .fillMaxSize(),
                         horizontalArrangement = Arrangement.End,
                         verticalAlignment = Alignment.CenterVertically
                     ) {

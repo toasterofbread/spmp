@@ -69,20 +69,17 @@ data class SearchFilter(val type: SearchType, val params: String)
 data class SearchResults(val suggested_correction: String?, val categories: List<Pair<MediaItemLayout, SearchFilter?>>)
 
 suspend fun searchYoutubeMusic(query: String, params: String?): Result<SearchResults> = withContext(Dispatchers.IO) {
-    val params_str: String = if (params != null) "\"$params\"" else "null"
     val hl = SpMp.data_language
     val request = Request.Builder()
         .ytUrl("/youtubei/v1/search")
         .addYtHeaders()
-        .post(Api.getYoutubeiRequestBody(mapOf("query" to query, "params" to params_str)))
+        .post(Api.getYoutubeiRequestBody(mapOf("query" to query, "params" to params)))
         .build()
 
     val result = Api.request(request)
-    if (result.isFailure) {
-        return@withContext result.cast()
-    }
+    val response = result.getOrNull() ?: return@withContext result.cast()
 
-    val stream = result.getOrThrow().getStream()
+    val stream = response.getStream()
     val parsed: YoutubeiSearchResponse = try {
         Api.klaxon.parse(stream)!!
     }

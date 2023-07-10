@@ -20,7 +20,7 @@ fun GenerateBuildConfig.buildConfig(debug: Boolean) {
     val keys = Properties()
     
     fun loadKeys(file: File, getType: (key: String) -> String, key_names: Collection<String>) {
-        if (file.isFile()) {
+        if (file.isFile) {
             keys.clear()
             keys.load(FileInputStream(file))
 

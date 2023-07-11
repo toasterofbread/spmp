@@ -59,6 +59,7 @@ import androidx.compose.ui.graphics.SolidColor
 import androidx.compose.ui.layout.onSizeChanged
 import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.platform.LocalLayoutDirection
+import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.IntSize
@@ -72,12 +73,15 @@ import com.toasterofbread.spmp.platform.composable.platformClickable
 import com.toasterofbread.spmp.platform.vibrateShort
 import com.toasterofbread.spmp.resources.getString
 import com.toasterofbread.spmp.resources.uilocalisation.durationToString
+import com.toasterofbread.utils.composable.WidthShrinkText
 import com.toasterofbread.utils.getContrasted
 
 @Composable
 internal fun PlaylistTopInfo(
     playlist: Playlist,
     accent_colour: Color,
+    editing_info: Boolean,
+    setEditingInfo: (Boolean) -> Unit,
     modifier: Modifier = Modifier,
     onThumbLoaded: (ImageBitmap) -> Unit,
 ) {
@@ -87,7 +91,6 @@ internal fun PlaylistTopInfo(
     val player = LocalPlayerState.current
     val density = LocalDensity.current
 
-    var editing_info by remember { mutableStateOf(false) }
     var edited_title: String by remember { mutableStateOf("") }
 
     var split_position by remember(playlist) { mutableStateOf(playlist.playlist_reg_entry.playlist_page_thumb_width ?: 0f) }
@@ -110,212 +113,153 @@ internal fun PlaylistTopInfo(
         }
     }
 
-    Column(modifier.animateContentSize(), verticalArrangement = Arrangement.spacedBy(10.dp)) {
-        Row(
-            Modifier
-                .height(IntrinsicSize.Max)
-                .onSizeChanged {
-                    val width_dp = with(density) { it.width.toDp() }
-                    if (width == width_dp) {
-                        return@onSizeChanged
-                    }
-                    width = width_dp
-
-                    if (split_position == 0f) {
-                        split_position = min_height / width
-                    }
-                },
-            horizontalArrangement = Arrangement.spacedBy(10.dp)
-        ) {
-            var image_size by remember { mutableStateOf(IntSize.Zero) }
-
-            // Playlist image
-            AnimatedVisibility(show_image) {
-                Box(
-                    Modifier
-                        .heightIn(min = min_height)
-                        .fillMaxWidth(split_position)
-                ) {
-                    playlist.Thumbnail(
-                        MediaItemThumbnailProvider.Quality.HIGH,
-                        Modifier
-                            .fillMaxSize()
-                            .aspectRatio(1f)
-                            .clip(shape)
-                            .onSizeChanged {
-                                image_size = it
-                            }
-                            .platformClickable(
-                                onClick = {},
-                                onAltClick = {
-                                    if (!editing_info) {
-                                        editing_info = true
-                                        SpMp.context.vibrateShort()
-                                    }
-                                }
-                            ),
-                        onLoaded = onThumbLoaded
-                    )
+    Row(
+        Modifier
+            .height(IntrinsicSize.Max)
+            .onSizeChanged {
+                val width_dp = with(density) { it.width.toDp() }
+                if (width == width_dp) {
+                    return@onSizeChanged
                 }
-            }
+                width = width_dp
 
-            // System insets spacing
-            AnimatedVisibility(editing_info && !show_image) {
-                SpMp.context.getSystemInsets()?.also { system_insets ->
-                    with(LocalDensity.current) {
-                        Spacer(Modifier.width(system_insets.getLeft(this, LocalLayoutDirection.current).toDp()))
-                    }
+                if (split_position == 0f) {
+                    split_position = min_height / width
                 }
-            }
+            },
+        horizontalArrangement = Arrangement.spacedBy(10.dp)
+    ) {
+        var image_size by remember { mutableStateOf(IntSize.Zero) }
 
-            // Split position drag handle
-            AnimatedVisibility(editing_info) {
-                Box(
+        // Playlist image
+        AnimatedVisibility(show_image) {
+            Box(
+                Modifier
+                    .heightIn(min = min_height)
+                    .fillMaxWidth(split_position)
+            ) {
+                playlist.Thumbnail(
+                    MediaItemThumbnailProvider.Quality.HIGH,
                     Modifier
-                        .fillMaxHeight()
-                        .width(12.dp)
-                        .border(Dp.Hairline, LocalContentColor.current, shape)
-                        .draggable(
-                            orientation = Orientation.Horizontal,
-                            state = rememberDraggableState { delta ->
-                                val delta_dp = with(density) { delta.toDp() }
-                                if (!show_image) {
-                                    if (delta_dp > 0.dp) {
-                                        show_image = true
-                                        split_position = min_height / width
-                                    }
-                                } else {
-                                    split_position = (split_position + (delta_dp / width)).coerceIn(0.1f, 0.9f)
-                                    if (split_position * width < min_height) {
-                                        show_image = false
-                                    }
+                        .fillMaxSize()
+                        .aspectRatio(1f)
+                        .clip(shape)
+                        .onSizeChanged {
+                            image_size = it
+                        }
+                        .platformClickable(
+                            onClick = {},
+                            onAltClick = {
+                                if (!editing_info) {
+                                    setEditingInfo(true)
+                                    SpMp.context.vibrateShort()
                                 }
-
-                                playlist.playlist_reg_entry.playlist_page_thumb_width = split_position
                             }
                         ),
-                    contentAlignment = Alignment.Center
-                ) {
-                    Icon(Icons.Default.MoreVert, null)
-                }
+                    onLoaded = onThumbLoaded
+                )
             }
+        }
 
-            // Main info column
-            Column(Modifier.height(with(LocalDensity.current) { image_size.height.toDp().coerceAtLeast(min_height) })) {
-
-                // Title text
-                Box(Modifier.fillMaxHeight().weight(1f), contentAlignment = Alignment.CenterStart) {
-                    Crossfade(editing_info) { editing ->
-                        if (!editing) {
-                            Text(
-                                playlist.title!!,
-                                style = MaterialTheme.typography.headlineSmall,
-                                overflow = TextOverflow.Ellipsis,
-                                modifier = Modifier.platformClickable(
-                                    onClick = {},
-                                    onAltClick = {
-                                        editing_info = true
-                                    }
-                                )
-                            )
-                        } else {
-                            val colour = LocalContentColor.current
-                            val line_padding = with(LocalDensity.current) { 5.dp.toPx() }
-                            val line_width = with(LocalDensity.current) { 1.dp.toPx() }
-
-                            BasicTextField(
-                                edited_title,
-                                {
-                                    edited_title = it.replace("\n", "")
-                                    playlist.registry_entry.title = edited_title.trim()
-                                },
-                                Modifier
-                                    .fillMaxWidth()
-                                    .drawBehind {
-                                        drawLine(
-                                            colour,
-                                            center + Offset(-size.width / 2f, (size.height / 2f) + line_padding),
-                                            center + Offset(size.width / 2f, (size.height / 2f) + line_padding),
-                                            strokeWidth = line_width
-                                        )
-                                    },
-                                textStyle = LocalTextStyle.current.copy(color = colour),
-                                cursorBrush = SolidColor(colour)
-                            )
-                        }
-                    }
-                }
-
-                // Play button
-                Button(
-                    { player.playMediaItem(playlist) },
-                    Modifier.fillMaxWidth(),
-                    colors = ButtonDefaults.buttonColors(
-                        containerColor = accent_colour,
-                        contentColor = accent_colour.getContrasted()
-                    ),
-                    shape = shape
-                ) {
-                    Icon(Icons.Default.PlayArrow, null)
-                    Text(getString("playlist_chip_play"))
+        // System insets spacing
+        AnimatedVisibility(editing_info && !show_image) {
+            SpMp.context.getSystemInsets()?.also { system_insets ->
+                with(LocalDensity.current) {
+                    Spacer(Modifier.width(system_insets.getLeft(this, LocalLayoutDirection.current).toDp()))
                 }
             }
         }
 
-        Crossfade(editing_info) { editing ->
-            if (editing) {
-                TopInfoEditButtons(playlist, accent_colour, Modifier.fillMaxWidth()) {
-                    editing_info = false
-                }
-            } else {
-                Row(Modifier.fillMaxWidth(), verticalAlignment = Alignment.CenterVertically) {
-                    IconButton({ player.playMediaItem(playlist, true) }) {
-                        Icon(Icons.Default.Shuffle, null)
-                    }
-                    Crossfade(playlist.pinned_to_home) { pinned ->
-                        IconButton({ playlist.setPinnedToHome(!pinned) }) {
-                            Icon(if (pinned) Icons.Filled.PushPin else Icons.Outlined.PushPin, null)
-                        }
-                    }
-                    playlist.url?.also { url ->
-                        if (SpMp.context.canShare()) {
-                            IconButton({ SpMp.context.shareText(url, playlist.title!!) }) {
-                                Icon(Icons.Default.Share, null)
+        // Split position drag handle
+        AnimatedVisibility(editing_info) {
+            Box(
+                Modifier
+                    .fillMaxHeight()
+                    .width(12.dp)
+                    .border(Dp.Hairline, LocalContentColor.current, shape)
+                    .draggable(
+                        orientation = Orientation.Horizontal,
+                        state = rememberDraggableState { delta ->
+                            val delta_dp = with(density) { delta.toDp() }
+                            if (!show_image) {
+                                if (delta_dp > 0.dp) {
+                                    show_image = true
+                                    split_position = min_height / width
+                                }
+                            } else {
+                                split_position = (split_position + (delta_dp / width)).coerceIn(0.1f, 0.9f)
+                                if (split_position * width < min_height) {
+                                    show_image = false
+                                }
                             }
+
+                            playlist.playlist_reg_entry.playlist_page_thumb_width = split_position
                         }
-                    }
+                    ),
+                contentAlignment = Alignment.Center
+            ) {
+                Icon(Icons.Default.MoreVert, null)
+            }
+        }
 
-                    IconButton({ editing_info = true }) {
-                        Icon(Icons.Default.Edit, null)
-                    }
+        // Main info column
+        Column(Modifier.height(with(LocalDensity.current) { image_size.height.toDp().coerceAtLeast(min_height) })) {
 
-                    Spacer(Modifier.fillMaxWidth().weight(1f))
+            // Title text
+            Box(Modifier.fillMaxHeight().weight(1f), contentAlignment = Alignment.CenterStart) {
+                Crossfade(editing_info) { editing ->
+                    if (!editing) {
+                        Text(
+                            playlist.title!!,
+                            style = MaterialTheme.typography.headlineSmall,
+                            overflow = TextOverflow.Ellipsis,
+                            modifier = Modifier.platformClickable(
+                                onClick = {},
+                                onAltClick = {
+                                    setEditingInfo(true)
+                                }
+                            )
+                        )
+                    } else {
+                        val colour = LocalContentColor.current
+                        val line_padding = with(LocalDensity.current) { 5.dp.toPx() }
+                        val line_width = with(LocalDensity.current) { 1.dp.toPx() }
 
-                    playlist.items?.also {
-                        PlaylistInfoText(playlist, it)
+                        BasicTextField(
+                            edited_title,
+                            {
+                                edited_title = it.replace("\n", "")
+                                playlist.registry_entry.title = edited_title.trim()
+                            },
+                            Modifier
+                                .fillMaxWidth()
+                                .drawBehind {
+                                    drawLine(
+                                        colour,
+                                        center + Offset(-size.width / 2f, (size.height / 2f) + line_padding),
+                                        center + Offset(size.width / 2f, (size.height / 2f) + line_padding),
+                                        strokeWidth = line_width
+                                    )
+                                },
+                            textStyle = LocalTextStyle.current.copy(color = colour),
+                            cursorBrush = SolidColor(colour)
+                        )
                     }
                 }
             }
-        }
-    }
-}
 
-@Composable
-private fun PlaylistInfoText(playlist: Playlist, items: List<MediaItem>) {
-    CompositionLocalProvider(LocalTextStyle provides MaterialTheme.typography.titleMedium) {
-        Row(verticalAlignment = Alignment.CenterVertically) {
-            val item_count = playlist.item_count ?: items.size
-            if (item_count > 0) {
-                val total_duration_text = remember(playlist.total_duration) {
-                    if (playlist.total_duration == null) ""
-                    else durationToString(playlist.total_duration!!, hl = SpMp.ui_language)
-                }
-                if (total_duration_text.isNotBlank()) {
-                    Text(total_duration_text)
-                    Text("\u2022")
-                }
-
-                Text(getString("playlist_x_songs").replace("\$x", item_count.toString()))
+            // Play button
+            Button(
+                { player.playMediaItem(playlist) },
+                Modifier.fillMaxWidth(),
+                colors = ButtonDefaults.buttonColors(
+                    containerColor = accent_colour,
+                    contentColor = accent_colour.getContrasted()
+                ),
+                shape = shape
+            ) {
+                Icon(Icons.Default.PlayArrow, null)
+                Text(getString("playlist_chip_play"))
             }
         }
     }

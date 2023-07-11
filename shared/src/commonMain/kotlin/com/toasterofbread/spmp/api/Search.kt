@@ -15,7 +15,6 @@ import com.toasterofbread.spmp.model.mediaitem.Song
 import com.toasterofbread.spmp.model.mediaitem.enums.MediaItemType
 import com.toasterofbread.spmp.model.mediaitem.enums.PlaylistType
 import com.toasterofbread.spmp.model.mediaitem.enums.SongType
-import com.toasterofbread.spmp.resources.getStringTODO
 import com.toasterofbread.spmp.resources.uilocalisation.LocalisedYoutubeString
 import com.toasterofbread.spmp.ui.component.MediaItemLayout
 import kotlinx.coroutines.Dispatchers
@@ -114,7 +113,7 @@ suspend fun searchYoutubeMusic(query: String, params: String?): Result<SearchRes
         if (card != null) {
             category_layouts.add(Pair(
                 MediaItemLayout(
-                    LocalisedYoutubeString.raw(getStringTODO(card.header.musicCardShelfHeaderBasicRenderer!!.title.first_text)),
+                    LocalisedYoutubeString.searchPage(card.header.musicCardShelfHeaderBasicRenderer!!.title.first_text),
                     null,
                     items = mutableListOf(card.getMediaItem()), 
                     type = MediaItemLayout.Type.CARD
@@ -129,7 +128,7 @@ suspend fun searchYoutubeMusic(query: String, params: String?): Result<SearchRes
         val search_params = if (category.index == 0) null else chips[category.index - 1].chipCloudChipRenderer.navigationEndpoint.searchEndpoint!!.params
 
         category_layouts.add(Pair(
-            MediaItemLayout(LocalisedYoutubeString.temp(shelf.title!!.first_text), null, items = items),
+            MediaItemLayout(LocalisedYoutubeString.searchPage(shelf.title!!.first_text), null, items = items),
             search_params?.let {
                 val item = items.firstOrNull() ?: return@let null
                 SearchFilter(when (item) {

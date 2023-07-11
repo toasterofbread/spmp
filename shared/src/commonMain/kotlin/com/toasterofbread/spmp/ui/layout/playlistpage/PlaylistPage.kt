@@ -3,6 +3,7 @@ package com.toasterofbread.spmp.ui.layout.playlistpage
 import LocalPlayerState
 import SpMp
 import androidx.compose.animation.*
+import androidx.compose.foundation.ExperimentalFoundationApi
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.LazyListScope
@@ -14,11 +15,17 @@ import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.*
+import androidx.compose.ui.layout.findRootCoordinates
+import androidx.compose.ui.layout.onGloballyPositioned
+import androidx.compose.ui.layout.onSizeChanged
+import androidx.compose.ui.layout.positionInWindow
+import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.unit.*
 import androidx.compose.ui.zIndex
 import com.toasterofbread.spmp.api.getOrReport
 import com.toasterofbread.spmp.model.*
 import com.toasterofbread.spmp.model.mediaitem.*
+import com.toasterofbread.spmp.platform.getDefaultHorizontalPadding
 import com.toasterofbread.spmp.resources.getString
 import com.toasterofbread.spmp.resources.uilocalisation.durationToString
 import com.toasterofbread.spmp.ui.component.*
@@ -31,8 +38,7 @@ import com.toasterofbread.utils.composable.*
 import kotlinx.coroutines.*
 import org.burnoutcrew.reorderable.*
 import com.toasterofbread.spmp.ui.component.mediaitempreview.getSongLongPressMenuData
-
-private const val PLAYLIST_PAGE_PADDING = 10f
+import com.toasterofbread.utils.modifier.background
 
 @Composable
 fun PlaylistPage(
@@ -66,19 +72,14 @@ fun PlaylistPage(
     var reorderable: Boolean by remember { mutableStateOf(false) }
     var current_filter: String? by remember { mutableStateOf(null) }
     var current_sort_option: SortOption by remember { mutableStateOf(SortOption.PLAYLIST) }
-    val top_padding = padding.calculateTopPadding() + PLAYLIST_PAGE_PADDING.dp
+    val top_padding = padding.calculateTopPadding()
 
     LaunchedEffect(playlist) {
         accent_colour = null
         playlist.getFeedLayouts().getOrReport("PlaylistPageLoad")
     }
 
-    Column(
-        Modifier
-            .fillMaxSize()
-            .padding(horizontal = PLAYLIST_PAGE_PADDING.dp),
-        verticalArrangement = Arrangement.spacedBy(10.dp)
-    ) {
+    Column(Modifier.fillMaxSize()) {
         if (previous_item != null) {
             Row(Modifier.fillMaxWidth().padding(top = top_padding), verticalAlignment = Alignment.CenterVertically) {
                 IconButton(close) {
@@ -95,21 +96,6 @@ fun PlaylistPage(
             }
         }
 
-        var top_bar_showing: Boolean by remember { mutableStateOf(false) }
-        MusicTopBar(
-            Settings.KEY_LYRICS_SHOW_IN_PLAYLIST,
-            Modifier
-                .fillMaxWidth()
-                .zIndex(1f)
-                .thenIf(previous_item == null) { Modifier.padding(top = top_padding) },
-            getBottomBorderColour = Theme.current.background_provider,
-            getBottomBorderOffset = { height ->
-                height / 2
-            }
-        ) { showing ->
-            top_bar_showing = showing
-        }
-        
         val thumb_item = playlist.getThumbnailHolder().getHolder()
 
         LaunchedEffect(thumb_item) {
@@ -144,7 +130,6 @@ fun PlaylistPage(
         }
 
         val items_above = 2
-
         val list_state = rememberReorderableLazyListState(
             onMove = { from, to ->
                 check(reorderable)
@@ -162,47 +147,76 @@ fun PlaylistPage(
             }
         )
 
+        var editing_info by remember { mutableStateOf(false) }
+        val horizontal_padding = SpMp.context.getDefaultHorizontalPadding()
+
+        val final_padding by MultiselectAndMusicTopBar(
+            multiselect_context,
+            Modifier.fillMaxWidth(),
+            show_wave_border = false,
+            padding = PaddingValues(
+                top = if (previous_item != null) 0.dp else top_padding,
+                start = horizontal_padding,
+                end = horizontal_padding
+            )
+        )
+
         LazyColumn(
             state = list_state.listState,
-            verticalArrangement = Arrangement.spacedBy(10.dp),
             horizontalAlignment = Alignment.CenterHorizontally,
             modifier = Modifier.reorderable(list_state),
-            contentPadding = padding.copy(top = if (previous_item != null) 0.dp else top_padding)
+            contentPadding = final_padding
         ) {
             item {
                 PlaylistTopInfo(
                     playlist,
-                    accent_colour ?: Theme.current.accent
+                    accent_colour ?: Theme.current.accent,
+                    editing_info,
+                    { editing_info = it }
                 ) {
                     accent_colour = thumb_item.item?.getThemeColour()
                 }
             }
 
+            item {
+                PlaylistButtonBar(
+                    playlist,
+                    accent_colour ?: Theme.current.accent,
+                    editing_info,
+                    { editing_info = it }
+                )
+            }
+
             playlist.items?.also { items ->
-                item {
+                stickyHeaderWithTopPadding(
+                    list_state.listState,
+                    final_padding.calculateTopPadding(),
+                    Modifier.zIndex(1f),
+                    Theme.current.background_provider
+                ) {
                     InteractionBar(
-                        playlist,
-                        items,
-                        reorderable,
-                        {
+                        modifier = Modifier.fillMaxWidth(),
+                        playlist = playlist,
+                        items = items,
+                        reorderable = reorderable,
+                        setReorderable = {
                             reorderable = playlist.is_editable == true && it
                             if (reorderable) {
                                 current_sort_option = SortOption.PLAYLIST
                                 current_filter = null
                             }
                         },
-                        current_filter,
-                        {
+                        filter = current_filter,
+                        setFilter = {
                             check(!reorderable)
                             current_filter = it
                         },
-                        current_sort_option,
-                        {
+                        sort_option = current_sort_option,
+                        setSortOption = {
                             check(!reorderable)
                             current_sort_option = it
                         },
-                        multiselect_context,
-                        Modifier.fillMaxWidth()
+                        multiselect_context = multiselect_context
                     )
                 }
 
@@ -211,7 +225,7 @@ fun PlaylistPage(
                     items,
                     list_state,
                     sorted_items,
-                    multiselect_context, 
+                    multiselect_context,
                     reorderable,
                     current_sort_option,
                     player,
@@ -253,8 +267,9 @@ private fun LazyListScope.PlaylistItems(
             Row(
                 Modifier
                     .fillMaxWidth()
+                    .padding(top = 10.dp)
                     .mediaItemPreviewInteraction(
-                        item, 
+                        item,
                         long_press_menu_data,
                         onClick = { item, index ->
                             player.playPlaylist(playlist, index!!)

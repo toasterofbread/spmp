@@ -125,8 +125,7 @@ class SettingsItemThemeSelector(
                             .border(2.dp, theme_data.accent, CircleShape)
                             .fillMaxHeight()
                             .weight(1f)
-                            .padding(start = 15.dp),
-                        alignment = Alignment.CenterStart
+                            .padding(start = 15.dp)
                     )
 
                     IconButton(

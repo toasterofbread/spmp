@@ -88,6 +88,21 @@ fun PaddingValues.copy(
 	)
 }
 
+fun PaddingValues.copy(
+	layout_direction: LayoutDirection,
+	start: Dp? = null,
+	top: Dp? = null,
+	end: Dp? = null,
+	bottom: Dp? = null,
+): PaddingValues {
+	return PaddingValues(
+		start ?: calculateStartPadding(layout_direction),
+		top ?: calculateTopPadding(),
+		end ?: calculateEndPadding(layout_direction),
+		bottom ?: calculateBottomPadding()
+	)
+}
+
 fun Modifier.thenIf(condition: Boolean, modifier: Modifier): Modifier = if (condition) then(modifier) else this
 @Composable
 fun Modifier.thenIf(condition: Boolean, modifierProvider: @Composable () -> Modifier): Modifier = if (condition) then(modifierProvider()) else this

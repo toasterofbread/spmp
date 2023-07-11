@@ -53,6 +53,7 @@ import com.toasterofbread.utils.composable.rememberSongUpdateLyrics
 import com.toasterofbread.utils.getContrasted
 import kotlinx.coroutines.delay
 import com.toasterofbread.utils.composable.pauseableInfiniteRepeatableAnimation
+import com.toasterofbread.utils.modifier.vertical
 import com.toasterofbread.utils.setAlpha
 
 @Composable
@@ -206,7 +207,7 @@ private fun MusicTopBar(
         enter = expandVertically(),
         exit = shrinkVertically()
     ) {
-        Column(Modifier.height(30.dp)) {
+        Column(Modifier.height(30.dp + padding.calculateTopPadding() + padding.calculateBottomPadding())) {
             Box(Modifier.padding(padding)) {
                 innerContent?.invoke(mode_state)
 

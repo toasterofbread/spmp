@@ -27,6 +27,7 @@ import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.DpSize
 import androidx.compose.ui.unit.TextUnit
 import androidx.compose.ui.unit.dp
+import androidx.compose.ui.unit.sp
 import com.beust.klaxon.Json
 import com.toasterofbread.spmp.PlayerService
 import com.toasterofbread.spmp.api.*
@@ -280,12 +281,12 @@ private fun TitleBar(
     font_size: TextUnit? = null,
     multiselect_context: MediaItemMultiSelectContext? = null
 ) {
-    AnimatedVisibility(shouldShowTitleBar(title, subtitle, view_more, thumbnail_source)) {
+    AnimatedVisibility(shouldShowTitleBar(title, subtitle, view_more, thumbnail_source), modifier) {
         val title_string: String? = remember { title?.getString() }
         val subtitle_string: String? = remember { subtitle?.getString() }
 
         Row(
-            modifier
+            Modifier
                 .fillMaxWidth()
                 .height(IntrinsicSize.Max),
             verticalAlignment = Alignment.CenterVertically,
@@ -394,7 +395,11 @@ fun MediaItemCard(
         ) {
             layout.TitleBar(Modifier.fillMaxWidth().weight(1f), multiselect_context = multiselect_context)
 
-            Text(if (item is Playlist) item.playlist_type.getReadable(false) else item.type.getReadable(false))
+            Text(
+                if (item is Playlist) item.playlist_type.getReadable(false)
+                else item.type.getReadable(false),
+                fontSize = 15.sp
+            )
 
             Icon(
                 when (item) {

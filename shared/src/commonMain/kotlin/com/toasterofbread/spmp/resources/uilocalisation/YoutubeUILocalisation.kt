@@ -17,7 +17,8 @@ class LocalisedYoutubeString(
         APP,
         HOME_FEED,
         OWN_CHANNEL,
-        ARTIST_PAGE
+        ARTIST_PAGE,
+        SEARCH_PAGE
     }
 
     init {
@@ -42,6 +43,7 @@ class LocalisedYoutubeString(
                 }
                 Type.OWN_CHANNEL -> SpMp.yt_ui_localisation.localiseOwnChannelString(key, source_language!!)
                 Type.ARTIST_PAGE -> SpMp.yt_ui_localisation.localiseArtistPageString(key, source_language!!)
+                Type.SEARCH_PAGE -> SpMp.yt_ui_localisation.localiseSearchPageString(key, source_language!!)
             } ?: throw NotImplementedError("Key: '$key', Type: $type, Source lang: ${SpMp.getLanguageCode(source_language!!)}")
         }
     }
@@ -59,13 +61,14 @@ class LocalisedYoutubeString(
     companion object {
         private val current_source_language: Int get() = Settings.KEY_LANG_DATA.get()
 
-        fun temp(string: String): LocalisedYoutubeString = LocalisedYoutubeString(string, Type.RAW, current_source_language)
+        fun temp(string: String): LocalisedYoutubeString = LocalisedYoutubeString("$string // TEMP", Type.RAW, current_source_language)
 
         fun raw(string: String): LocalisedYoutubeString = LocalisedYoutubeString(string, Type.RAW, current_source_language)
         fun app(key: String): LocalisedYoutubeString = LocalisedYoutubeString(key, Type.APP, current_source_language)
         fun homeFeed(key: String): LocalisedYoutubeString = LocalisedYoutubeString(key, Type.HOME_FEED, current_source_language)
         fun ownChannel(key: String): LocalisedYoutubeString = LocalisedYoutubeString(key, Type.OWN_CHANNEL, current_source_language)
         fun artistPage(key: String): LocalisedYoutubeString = LocalisedYoutubeString(key, Type.ARTIST_PAGE, current_source_language)
+        fun searchPage(key: String): LocalisedYoutubeString = LocalisedYoutubeString(key, Type.SEARCH_PAGE, current_source_language)
 
         fun filterChip(key: String): Int? = SpMp.yt_ui_localisation.getFilterChipIndex(key, current_source_language)
         fun filterChip(index: Int): String = SpMp.yt_ui_localisation.getFilterChip(index)
@@ -115,6 +118,7 @@ class YoutubeUILocalisation(languages: List<String>) {
     private val HOME_FEED_STRINGS: LocalisationSet = getYoutubeHomeFeedLocalisations { getLanguage(it, languages) }
     private val OWN_CHANNEL_STRINGS: LocalisationSet = getYoutubeOwnChannelLocalisations { getLanguage(it, languages) }
     private val ARTIST_PAGE_STRINGS: LocalisationSet = getYoutubeArtistPageLocalisations { getLanguage(it, languages) }
+    private val SEARCH_PAGE_STRINGS: LocalisationSet = getYoutubeSearchPageLocalisations { getLanguage(it, languages) }
     private val FILTER_CHIPS: LocalisationSet = getYoutubeFilterChipsLocalisations { getLanguage(it, languages) }
 
     private fun getLocalised(string: String, localisations: LocalisationSet, source_language: Int): Pair<String, StringID?>? {
@@ -134,6 +138,7 @@ class YoutubeUILocalisation(languages: List<String>) {
     fun localiseHomeFeedString(string: String, source_language: Int): Pair<String, StringID?>? = getLocalised(string, HOME_FEED_STRINGS, source_language)
     fun localiseOwnChannelString(string: String, source_language: Int): Pair<String, StringID?>? = getLocalised(string, OWN_CHANNEL_STRINGS, source_language)
     fun localiseArtistPageString(string: String, source_language: Int): Pair<String, StringID?>? = getLocalised(string, ARTIST_PAGE_STRINGS, source_language)
+    fun localiseSearchPageString(string: String, source_language: Int): Pair<String, StringID?>? = getLocalised(string, SEARCH_PAGE_STRINGS, source_language)
 
     fun getFilterChipIndex(string: String, source_language: Int): Int? {
         val index = FILTER_CHIPS.items.indexOfFirst { it[source_language]?.first == string }

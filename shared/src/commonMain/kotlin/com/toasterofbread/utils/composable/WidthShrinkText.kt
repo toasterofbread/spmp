@@ -19,6 +19,7 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.text.AnnotatedString
 import androidx.compose.ui.text.TextStyle
 import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.TextUnit
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
@@ -29,7 +30,7 @@ fun WidthShrinkText(
     modifier: Modifier = Modifier,
     style: TextStyle = LocalTextStyle.current,
     inline_content: Map<String, InlineTextContent> = mapOf(),
-    alignment: Alignment = Alignment.TopStart
+    alignment: TextAlign? = null
 ) {
 	var text_style by remember(style) { mutableStateOf(style) }
 	var text_style_large: TextStyle? by remember(style) { mutableStateOf(null) }
@@ -37,7 +38,7 @@ fun WidthShrinkText(
 
 	val delta = 0.05
 
-    Box(modifier, contentAlignment = alignment) {
+    Box(modifier, contentAlignment = Alignment.CenterStart) {
         Text(
             string,
             Modifier.fillMaxWidth().drawWithContent { if (ready_to_draw) drawContent() },
@@ -45,6 +46,7 @@ fun WidthShrinkText(
             softWrap = false,
             style = text_style,
             inlineContent = inline_content,
+            textAlign = alignment,
             onTextLayout = { layout_result ->
                 if (!layout_result.didOverflowWidth) {
                     ready_to_draw = true
@@ -63,6 +65,7 @@ fun WidthShrinkText(
                 softWrap = false,
                 style = it,
                 inlineContent = inline_content,
+                textAlign = alignment,
                 onTextLayout = { layout_result ->
                     if (!layout_result.didOverflowWidth) {
                         text_style_large = it.copy(fontSize = minOf(style.fontSize.value, it.fontSize.value * (1.0f + delta.toFloat())).sp)
@@ -79,7 +82,7 @@ fun WidthShrinkText(
     text: String,
     modifier: Modifier = Modifier,
     style: TextStyle = LocalTextStyle.current,
-    alignment: Alignment = Alignment.TopStart
+    alignment: TextAlign? = null
 ) {
     WidthShrinkText(
         AnnotatedString(text),
@@ -96,7 +99,7 @@ fun WidthShrinkText(
     modifier: Modifier = Modifier,
     fontWeight: FontWeight? = null,
     colour: Color = LocalContentColor.current,
-    alignment: Alignment = Alignment.TopStart
+    alignment: TextAlign? = null
 ) {
     WidthShrinkText(
         text,

@@ -3,6 +3,7 @@ package com.toasterofbread.spmp.ui.layout.playlistpage
 import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.animation.Crossfade
 import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxWidth
@@ -30,6 +31,7 @@ import androidx.compose.ui.graphics.Color
 import com.toasterofbread.spmp.model.mediaitem.MediaItem
 import com.toasterofbread.spmp.model.mediaitem.Playlist
 import com.toasterofbread.spmp.platform.LargeDropdownMenu
+import com.toasterofbread.spmp.ui.component.MultiselectAndMusicTopBar
 import com.toasterofbread.spmp.ui.component.multiselect.MediaItemMultiSelectContext
 
 @Composable
@@ -45,64 +47,57 @@ internal fun InteractionBar(
     multiselect_context: MediaItemMultiSelectContext,
     modifier: Modifier = Modifier
 ) {
-
     // 0 -> search, 1 -> sort
     var opened_menu: Int by remember { mutableStateOf(-1) }
 
-    Crossfade(multiselect_context.is_active) { selecting ->
-        if (!selecting) {
-            Row(Modifier.fillMaxWidth()) {
-                // Filter button
-                IconButton(
-                    {
-                        if (opened_menu == 0) opened_menu = -1
-                        else opened_menu = 0
-                    },
-                    enabled = !reorderable
-                ) {
-                    Crossfade(opened_menu == 0) { searching ->
-                        Icon(if (searching) Icons.Default.Done else Icons.Default.Search, null)
+    Row(Modifier.fillMaxWidth()) {
+        // Filter button
+        IconButton(
+            {
+                if (opened_menu == 0) opened_menu = -1
+                else opened_menu = 0
+            },
+            enabled = !reorderable
+        ) {
+            Crossfade(opened_menu == 0) { searching ->
+                Icon(if (searching) Icons.Default.Done else Icons.Default.Search, null)
+            }
+        }
+
+        // Animate between filter bar and remaining buttons
+        Box(Modifier.fillMaxWidth()) {
+            this@Row.AnimatedVisibility(opened_menu != 0) {
+                Row(Modifier.fillMaxWidth(), verticalAlignment = Alignment.CenterVertically) {
+                    // Sort
+                    IconButton(
+                        {
+                            if (opened_menu == 1) opened_menu = -1
+                            else opened_menu = 1
+                        },
+                        enabled = !reorderable
+                    ) {
+                        Icon(Icons.Default.Sort, null)
                     }
-                }
 
-                // Animate between filter bar and remaining buttons
-                Box(Modifier.fillMaxWidth()) {
-                    this@Row.AnimatedVisibility(opened_menu != 0) {
-                        Row(Modifier.fillMaxWidth(), verticalAlignment = Alignment.CenterVertically) {
-                            // Sort
-                            IconButton(
-                                {
-                                    if (opened_menu == 1) opened_menu = -1
-                                    else opened_menu = 1
-                                },
-                                enabled = !reorderable
-                            ) {
-                                Icon(Icons.Default.Sort, null)
-                            }
+                    Spacer(Modifier.fillMaxWidth().weight(1f))
 
-                            Spacer(Modifier.fillMaxWidth().weight(1f))
-
-                            if (playlist.is_editable == true) {
-                                // Reorder
-                                IconButton({ setReorderable(!reorderable) }) {
-                                    Crossfade(reorderable) { reordering ->
-                                        Icon(if (reordering) Icons.Default.Done else Icons.Default.Reorder, null)
-                                    }
-                                }
-                                // Add
-                                IconButton({ TODO() }) {
-                                    Icon(Icons.Default.Add, null)
-                                }
+                    if (playlist.is_editable == true) {
+                        // Reorder
+                        IconButton({ setReorderable(!reorderable) }) {
+                            Crossfade(reorderable) { reordering ->
+                                Icon(if (reordering) Icons.Default.Done else Icons.Default.Reorder, null)
                             }
                         }
-                    }
-                    this@Row.AnimatedVisibility(opened_menu == 0) {
-                        InteractionBarFilterBox(filter, setFilter, Modifier.fillMaxWidth())
+                        // Add
+                        IconButton({ TODO() }) {
+                            Icon(Icons.Default.Add, null)
+                        }
                     }
                 }
             }
-        } else {
-            multiselect_context.InfoDisplay()
+            this@Row.AnimatedVisibility(opened_menu == 0) {
+                InteractionBarFilterBox(filter, setFilter, Modifier.fillMaxWidth())
+            }
         }
     }
 

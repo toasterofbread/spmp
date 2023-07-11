@@ -4,12 +4,16 @@ import SpMp
 import androidx.compose.animation.Crossfade
 import androidx.compose.animation.core.animateFloatAsState
 import androidx.compose.foundation.ExperimentalFoundationApi
+import androidx.compose.foundation.IndicationInstance
 import androidx.compose.foundation.combinedClickable
+import androidx.compose.foundation.interaction.MutableInteractionSource
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.size
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.ThumbUp
 import androidx.compose.material.icons.outlined.ThumbUp
+import androidx.compose.material.ripple.LocalRippleTheme
+import androidx.compose.material.ripple.rememberRipple
 import androidx.compose.material3.Icon
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
@@ -35,6 +39,8 @@ fun LikeDislikeButton(
         return
     }
 
+    val rotation by animateFloatAsState(if (song.like_status.status == SongLikeStatus.Status.DISLIKED) 180f else 0f)
+
     LaunchedEffect(song) {
         if (song.like_status.status == SongLikeStatus.Status.UNKNOWN) {
             song.like_status.updateStatus()
@@ -56,7 +62,6 @@ fun LikeDislikeButton(
             if (status.is_available) {
                 check(status == SongLikeStatus.Status.LIKED || status == SongLikeStatus.Status.DISLIKED || status == SongLikeStatus.Status.NEUTRAL)
 
-                val rotation by animateFloatAsState(if (status == SongLikeStatus.Status.DISLIKED) 180f else 0f)
 
                 Icon(
                     if (status != SongLikeStatus.Status.NEUTRAL) Icons.Filled.ThumbUp else Icons.Outlined.ThumbUp,
@@ -64,6 +69,8 @@ fun LikeDislikeButton(
                     Modifier
                         .rotate(rotation)
                         .combinedClickable(
+                            remember { MutableInteractionSource() },
+                            rememberRipple(false),
                             enabled = getEnabled?.invoke() != false,
                             onClick = { when (status) {
                                 SongLikeStatus.Status.LIKED -> song.like_status.setLiked(null)

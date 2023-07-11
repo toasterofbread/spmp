@@ -3,7 +3,6 @@ package com.toasterofbread.spmp.ui.layout
 import LocalPlayerState
 import SpMp
 import androidx.compose.animation.*
-import androidx.compose.animation.core.animateDpAsState
 import androidx.compose.foundation.background
 import androidx.compose.foundation.horizontalScroll
 import androidx.compose.foundation.layout.*
@@ -23,13 +22,12 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.focus.FocusRequester
 import androidx.compose.ui.focus.focusRequester
 import androidx.compose.ui.focus.onFocusChanged
-import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.LocalFocusManager
 import androidx.compose.ui.platform.LocalSoftwareKeyboardController
 import androidx.compose.ui.text.input.ImeAction
 import androidx.compose.ui.unit.*
+import androidx.compose.ui.zIndex
 import com.toasterofbread.spmp.api.*
-import com.toasterofbread.spmp.model.Settings
 import com.toasterofbread.spmp.model.mediaitem.enums.MediaItemType
 import com.toasterofbread.spmp.model.mediaitem.enums.PlaylistType
 import com.toasterofbread.spmp.model.mediaitem.enums.getReadable
@@ -38,7 +36,7 @@ import com.toasterofbread.spmp.platform.getDefaultHorizontalPadding
 import com.toasterofbread.spmp.resources.getString
 import com.toasterofbread.spmp.ui.component.ErrorInfoDisplay
 import com.toasterofbread.spmp.ui.component.MediaItemLayout
-import com.toasterofbread.spmp.ui.component.MusicTopBar
+import com.toasterofbread.spmp.ui.component.MultiselectAndMusicTopBar
 import com.toasterofbread.spmp.ui.component.PillMenu
 import com.toasterofbread.spmp.ui.component.multiselect.MediaItemMultiSelectContext
 import com.toasterofbread.spmp.ui.theme.Theme
@@ -71,7 +69,6 @@ fun SearchPage(
     var current_query: String? by remember { mutableStateOf(null) }
     var current_filter: SearchType? by remember { mutableStateOf(null) }
 
-    // TODO
     var error: Throwable? by remember { mutableStateOf(null) }
 
     fun performSearch(query: String, filter: SearchFilter? = null) {
@@ -125,29 +122,18 @@ fun SearchPage(
     }
 
     Box(Modifier.fillMaxSize()) {
-        Column(
-            Modifier
-                .fillMaxSize()
-                .padding(horizontal = SpMp.context.getDefaultHorizontalPadding())
-        ) {
-            val status_bar_height = SpMp.context.getStatusBarHeight()
-            var top_bar_showing by remember { mutableStateOf(false) }
-
-            MusicTopBar(
-                Settings.KEY_LYRICS_SHOW_IN_SEARCH,
-                Modifier.fillMaxWidth().padding(top = status_bar_height),
-                onShowingChanged = { top_bar_showing = it }
-            )
-
-            AnimatedVisibility(multiselect_context.is_active) {
-                multiselect_context.InfoDisplay(
-                    Modifier.padding(
-                        top = animateDpAsState(if (!top_bar_showing) status_bar_height else 0.dp).value
-                    )
+        Column(Modifier.fillMaxSize()) {
+            val horizontal_padding = SpMp.context.getDefaultHorizontalPadding()
+            val padding by MultiselectAndMusicTopBar(
+                multiselect_context,
+                Modifier.fillMaxWidth().zIndex(1f),
+                padding = PaddingValues(
+                    start = horizontal_padding,
+                    end = horizontal_padding,
+                    top = SpMp.context.getStatusBarHeight(),
+                    bottom = bottom_padding + (SEARCH_BAR_HEIGHT) + (SEARCH_BAR_PADDING)
                 )
-            }
-
-            val total_bottom_padding = bottom_padding + (SEARCH_BAR_HEIGHT) + (SEARCH_BAR_PADDING)
+            )
 
             Crossfade(
                 error ?: current_results
@@ -155,12 +141,7 @@ fun SearchPage(
                 if (results is SearchResults) {
                     Results(
                         results,
-                        PaddingValues(
-                            top = animateDpAsState(
-                                if (!top_bar_showing && !multiselect_context.is_active) status_bar_height else 0.dp
-                            ).value,
-                            bottom = total_bottom_padding
-                        ),
+                        padding,
                         multiselect_context
                     )
                 }
@@ -168,7 +149,7 @@ fun SearchPage(
                     Box(
                         Modifier
                             .fillMaxSize()
-                            .padding(top = status_bar_height, bottom = total_bottom_padding),
+                            .padding(padding),
                         contentAlignment = Alignment.Center
                     ) {
                         ErrorInfoDisplay(results, Modifier.fillMaxWidth())
@@ -176,7 +157,7 @@ fun SearchPage(
                 }
                 else if (search_in_progress) {
                     Column(
-                        Modifier.fillMaxSize(),
+                        Modifier.fillMaxSize().padding(padding),
                         horizontalAlignment = Alignment.CenterHorizontally,
                         verticalArrangement = Arrangement.Center
                     ) {

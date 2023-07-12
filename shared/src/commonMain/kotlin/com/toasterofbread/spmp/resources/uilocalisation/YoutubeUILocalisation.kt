@@ -48,7 +48,7 @@ class LocalisedYoutubeString(
             
             if (localised == null) {
                 println("WARNING: Localised string key '$key' of type $type has not been implemented. Source lang: ${SpMp.getLanguageCode(source_language!!)}")
-                localised = key
+                localised = Pair(key, null)
             }
         }
     }

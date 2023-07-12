@@ -57,11 +57,12 @@ android {
     compileSdk = (findProperty("android.compileSdk") as String).toInt()
 
     defaultConfig {
+        versionCode = 3
+        versionName = getString("version_string")
+
         applicationId = "com.toasterofbread.spmp"
         minSdk = (findProperty("android.minSdk") as String).toInt()
         targetSdk = (findProperty("android.targetSdk") as String).toInt()
-        versionCode = 2
-        versionName = getString("version_string")
 
         testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
         vectorDrawables.useSupportLibrary = true

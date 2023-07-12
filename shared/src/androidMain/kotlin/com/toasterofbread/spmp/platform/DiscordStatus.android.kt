@@ -117,12 +117,22 @@ actual class DiscordStatus actual constructor(
             if (messages.isEmpty()) {
                 return null
             }
+
+            var last_message: DiscordMessage = messages.first()
             for (message in messages) {
                 if (predicate(message)) {
                     return message
                 }
+
+                if (last_message.timestamp < message.timestamp) {
+                    last_message = message
+                }
             }
-            position = Position.After(messages.last().id)
+
+            if (position?.value == last_message.id) {
+                return null
+            }
+            position = Position.After(last_message.id)
         }
     }
 
@@ -134,7 +144,9 @@ actual class DiscordStatus actual constructor(
     }
 
     actual suspend fun getCustomImage(unique_id: String, imageProvider: suspend () -> ImageBitmap?): Result<String?> {
-        check(bot_token != null)
+        if (bot_token == null) {
+            return Result.failure(NullPointerException("bot_token is null"))
+        }
 
         var kord: Kord
         try {

@@ -8,8 +8,8 @@ plugins {
 }
 
 val KEY_NAMES = mapOf(
-    "DISCORD_BOT_TOKEN" to "String", 
-    "DISCORD_CUSTOM_IMAGES_CHANNEL_CATEGORY" to "Long", 
+    "DISCORD_BOT_TOKEN" to "String",
+    "DISCORD_CUSTOM_IMAGES_CHANNEL_CATEGORY" to "Long",
     "DISCORD_CUSTOM_IMAGES_CHANNEL_NAME_PREFIX" to "String"
 )
 val DEBUG_KEY_NAMES = listOf("YTM_CHANNEL_ID", "YTM_COOKIE", "YTM_HEADERS", "DISCORD_ACCOUNT_TOKEN", "DISCORD_ERROR_REPORT_WEBHOOK")
@@ -18,8 +18,8 @@ val buildConfigDir get() = project.layout.buildDirectory.dir("generated/buildcon
 
 fun GenerateBuildConfig.buildConfig(debug: Boolean) {
     val keys = Properties()
-    
-    fun loadKeys(file: File, getType: (key: String) -> String, key_names: Collection<String>) {
+
+    fun loadKeys(file: File, getType: (key: String) -> String, key_names: Collection<String>, debug_only: Boolean = true) {
         if (file.isFile) {
             keys.clear()
             keys.load(FileInputStream(file))
@@ -28,9 +28,9 @@ fun GenerateBuildConfig.buildConfig(debug: Boolean) {
                 val key = item.key.toString()
                 fields_to_generate.add(
                     Triple(
-                        key, 
-                        getType(key) + '?', 
-                        if (debug) item.value.toString() else null.toString()
+                        key,
+                        getType(key) + '?',
+                        if (debug_only && !debug) null.toString() else item.value.toString()
                     )
                 )
             }
@@ -39,30 +39,32 @@ fun GenerateBuildConfig.buildConfig(debug: Boolean) {
             for (key in key_names) {
                 fields_to_generate.add(
                     Triple(
-                        key, 
-                        getType(key) + '?', 
+                        key,
+                        getType(key) + '?',
                         null.toString()
                     )
                 )
             }
         }
     }
-    
+
     class_fq_name.set("com.toasterofbread.spmp.ProjectBuildConfig")
     generated_output_dir.set(buildConfigDir)
 
     loadKeys(
         rootProject.file("keys.properties"),
-        { key -> 
+        { key ->
             KEY_NAMES[key]!!
         },
-        KEY_NAMES.keys
+        KEY_NAMES.keys,
+        debug_only = false
     )
 
     loadKeys(
         rootProject.file("debug_keys.properties"),
         { "String" },
-        DEBUG_KEY_NAMES
+        DEBUG_KEY_NAMES,
+        debug_only = true
     )
 
     fields_to_generate.add(Triple("IS_DEBUG", "Boolean", debug.toString()))
@@ -72,7 +74,7 @@ val buildConfigDebug = tasks.register("buildConfigDebug", GenerateBuildConfig::c
     buildConfig(debug = true)
 }
 val buildConfigRelease = tasks.register("buildConfigRelease", GenerateBuildConfig::class.java) {
-    buildConfig(debug = true)
+    buildConfig(debug = false)
 }
 
 tasks.all {

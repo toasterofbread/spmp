@@ -1,10 +1,11 @@
 <resources>
+    <string name="version_string" translatable="false">0.1.1</string>
+
     <string name="app_name" translatable="false">SpMp</string>
     <string name="app_name_debug" translatable="false">SpMp (debug)</string>
-    <string name="version_string" translatable="false">0.1.0</string>
-    <string name="project_url" translatable="false">https://github.com/toasterofbread/spmp</string>
     <string name="yt_i_api_key" translatable="false">AIzaSyAOghZGza2MQSZkY_zfZ370N-PUdXEo8AI</string>
 
+    <string name="project_url" translatable="false">https://github.com/toasterofbread/spmp</string>
     <string name="project_url_name">project URL</string>
     
     <string name="home_feed_listen_again">Listen again</string>
@@ -127,10 +128,6 @@
     <string name="media_pause">Pause</string>
     <string name="media_play">Play</string>
 
-    <string name="now_playing_player">Player</string>
-    <string name="now_playing_queue">Queue</string>
-    <string name="now_playing_related">Related</string>
-
     <string name="player_service_name">Player Service</string>
     <string name="download_service_name">Download Service</string>
     <string name="download_service_error_name">Download Service errors</string>
@@ -184,6 +181,8 @@
 
     <string name="lpm_info_queue_index">Queue index: $index</string>
     <string name="lpm_info_id">ID: $id</string>
+
+    <string name="song_related_group_other">Other</string>
 
     <string name="multiselect_x_items_selected">$x items selected</string>
     <string name="multiselect_begin">Begin multiple selection</string>

@@ -44,7 +44,12 @@ class LocalisedYoutubeString(
                 Type.OWN_CHANNEL -> SpMp.yt_ui_localisation.localiseOwnChannelString(key, source_language!!)
                 Type.ARTIST_PAGE -> SpMp.yt_ui_localisation.localiseArtistPageString(key, source_language!!)
                 Type.SEARCH_PAGE -> SpMp.yt_ui_localisation.localiseSearchPageString(key, source_language!!)
-            } ?: throw NotImplementedError("Key: '$key', Type: $type, Source lang: ${SpMp.getLanguageCode(source_language!!)}")
+            }
+            
+            if (localised == null) {
+                println("WARNING: Localised string key '$key' of type $type has not been implemented. Source lang: ${SpMp.getLanguageCode(source_language!!)}")
+                localised = key
+            }
         }
     }
 

@@ -21,5 +21,9 @@ fun getYoutubeOwnChannelLocalisations(getLanguage: (String) -> Int): YoutubeUILo
             en to "Playlists on repeat",
             ja to "繰り返し再生するプレイリスト"
         )
+        add(
+            en to "Playlists",
+            ja to "再生リスト"
+        )
     }
 }

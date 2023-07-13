@@ -113,7 +113,7 @@ suspend fun searchYoutubeMusic(query: String, params: String?): Result<SearchRes
         if (card != null) {
             category_layouts.add(Pair(
                 MediaItemLayout(
-                    LocalisedYoutubeString.searchPage(card.header.musicCardShelfHeaderBasicRenderer!!.title.first_text),
+                    LocalisedYoutubeString.searchPage(card.header.musicCardShelfHeaderBasicRenderer!!.title!!.first_text),
                     null,
                     items = mutableListOf(card.getMediaItem()), 
                     type = MediaItemLayout.Type.CARD

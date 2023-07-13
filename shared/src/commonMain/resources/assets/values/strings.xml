@@ -150,7 +150,13 @@
     <string name="lyrics_sync_line">Line sync</string>
     <string name="lyrics_sync_word">Word sync</string>
 
-    <string name="generic_error">A error occurred</string>
+    <string name="error_message_generic">A error occurred</string>
+    <string name="error_yt_feed_parse_failed">YouTube feed parsing failed</string>
+
+    <string name="throw_error">Throw</string>
+    <string name="wrap_text_switch_label">Wrap text</string>
+    <string name="upload_to_paste_dot_ee">Upload to Paste.ee</string>
+    <string name="error_info_display_show_json_data">Show JSON data</string>
 
     <string name="acc_ser_enable_dialog_title">Enabling accessibility service</string>
     <string name="acc_ser_enable_dialog_body">Service can be enabled automatically by granting write secure settings permission using root</string>

@@ -10,11 +10,17 @@
     <string name="albums">アルバム</string>
     <string name="media_pause">停止</string>
     <string name="media_play">再生</string>
-    <string name="now_playing_related">関係</string>
     <string name="player_service_name">プレイヤーサービス</string>
     <string name="s_cat_lyrics">歌詞</string>
     <string name="lyrics_source_petitlyrics">プチリリ</string>
-    <string name="generic_error">エラーが発生しました</string>
+
+    <string name="error_message_generic">エラーが発生しました</string>
+    <string name="error_yt_feed_parse_failed">YouTubeフィード解析に失敗しました</string>
+
+    <string name="throw_error">スロー</string>
+    <string name="wrap_text_switch_label">折り返す</string>
+    <string name="error_info_display_show_json_data">JSONデータを表示</string>
+    <string name="upload_to_paste_dot_ee">Paste.eeにアップロード</string>
 
     <string name="settings_value_out_of_$range">入力は範囲外です （$range）</string>
     <string name="settings_value_not_int">入力は整数ではありません</string>
@@ -33,9 +39,7 @@
     <string name="s_key_np_default_gradient_depth">Default gradient depth</string>
 
     <string name="loading_feed">フィードをロード中</string>
-    <string name="now_playing_player">プレイヤー</string>
     <string name="artists">アーティスト</string>
-    <string name="now_playing_queue">曲キュー</string>
     <string name="s_cat_general">一般</string>
     <string name="s_key_interface_lang">インタフェース言語</string>
     <string name="s_key_data_lang">データ言語</string>
@@ -389,6 +393,8 @@
 
     <string name="lpm_info_queue_index">再生リストでの位置: $index</string>
     <string name="lpm_info_id">ID: $id</string>
+
+    <string name="song_related_group_other">その他</string>
 
     <string name="multiselect_x_items_selected">$xアイテムが選択されてます</string>
     <string name="multiselect_begin">複数選択を始める</string>

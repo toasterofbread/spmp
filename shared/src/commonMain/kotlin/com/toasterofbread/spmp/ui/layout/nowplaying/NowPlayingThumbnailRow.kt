@@ -3,12 +3,15 @@ package com.toasterofbread.spmp.ui.layout.nowplaying
 import LocalPlayerState
 import SpMp
 import androidx.compose.animation.Crossfade
+import androidx.compose.animation.core.animateFloatAsState
 import androidx.compose.animation.core.tween
 import androidx.compose.animation.fadeIn
 import androidx.compose.animation.fadeOut
 import androidx.compose.foundation.Image
-import androidx.compose.foundation.background
+import androidx.compose.foundation.LocalIndication
+import androidx.compose.foundation.clickable
 import androidx.compose.foundation.gestures.detectTapGestures
+import androidx.compose.foundation.interaction.MutableInteractionSource
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
@@ -19,7 +22,9 @@ import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.requiredWidth
 import androidx.compose.foundation.layout.size
+import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.rounded.Pause
 import androidx.compose.material.icons.rounded.PlayArrow
@@ -61,6 +66,8 @@ import com.toasterofbread.spmp.ui.layout.nowplaying.overlay.DEFAULT_THUMBNAIL_RO
 import com.toasterofbread.spmp.ui.layout.nowplaying.overlay.MainOverlayMenu
 import com.toasterofbread.utils.composable.OnChangedEffect
 import com.toasterofbread.utils.getInnerSquareSizeOfCircle
+import com.toasterofbread.utils.modifier.background
+import com.toasterofbread.utils.modifier.disableParentScroll
 import com.toasterofbread.utils.setAlpha
 import kotlin.math.absoluteValue
 import kotlin.math.min
@@ -144,31 +151,21 @@ fun ThumbnailRow(
                         .onSizeChanged {
                             image_size = it
                         }
-                        .pointerInput(Unit) {
-                            detectTapGestures(
-                                onTap = { offset ->
-                                    colourpick_callback?.also { callback -> 
-                                    current_thumb_image?.also { image ->
-                                        handleColourPick(image, image_size, offset, callback)
-                                        return@detectTapGestures
-                                    }}
-
-                                    if (expansion.get() in 0.9f .. 1.1f) {
-                                        overlay_menu =
-                                            if (overlay_menu == null)
-                                                MainOverlayMenu(
-                                                    { overlay_menu = it },
-                                                    { colourpick_callback = it },
-                                                    {
-                                                        setThemeColour(it)
-                                                        overlay_menu = null
-                                                    },
-                                                    { SpMp.context.getScreenWidth() }
-                                                )
-                                            else null
-                                    }
-                                }
-                            )
+                        .clickable(
+                            interactionSource = remember { MutableInteractionSource() },
+                            indication = null
+                        ) {
+                            if (overlay_menu == null && expansion.get() in 0.9f .. 1.1f) {
+                                overlay_menu = MainOverlayMenu(
+                                    { overlay_menu = it },
+                                    { colourpick_callback = it },
+                                    {
+                                        setThemeColour(it)
+                                        overlay_menu = null
+                                    },
+                                    { SpMp.context.getScreenWidth() }
+                                )
+                            }
                         }
                 )
             }
@@ -176,16 +173,36 @@ fun ThumbnailRow(
             // Thumbnail overlay menu
             androidx.compose.animation.AnimatedVisibility(
                 overlay_menu != null,
+                Modifier.fillMaxSize(),
                 enter = fadeIn(tween(OVERLAY_MENU_ANIMATION_DURATION)),
                 exit = fadeOut(tween(OVERLAY_MENU_ANIMATION_DURATION))
             ) {
+                val overlay_background_alpha by animateFloatAsState(if (colourpick_callback != null) 0.4f else 0.85f)
+
                 Box(
                     Modifier
+                        .disableParentScroll(child_does_not_scroll = true)
+                        .pointerInput(Unit) {
+                            detectTapGestures(
+                                onTap = { offset ->
+                                    colourpick_callback?.also { callback ->
+                                        current_thumb_image?.also { image ->
+                                            handleColourPick(image, image_size, offset, callback)
+                                            return@detectTapGestures
+                                        }
+                                    }
+
+                                    if (expansion.get() in 0.9f .. 1.1f && overlay_menu?.closeOnTap() == true) {
+                                        overlay_menu = null
+                                    }
+                                }
+                            )
+                        }
                         .graphicsLayer { alpha = expansion.getAbsolute() }
                         .fillMaxSize()
                         .background(
-                            Color.DarkGray.setAlpha(0.85f),
-                            shape = thumbnail_shape
+                            thumbnail_shape,
+                            { Color.DarkGray.setAlpha(overlay_background_alpha) }
                         ),
                     contentAlignment = Alignment.Center
                 ) {

@@ -6,6 +6,7 @@ import com.toasterofbread.spmp.api.Api.Companion.getStream
 import com.toasterofbread.spmp.api.Api.Companion.ytUrl
 import com.toasterofbread.spmp.model.mediaitem.MediaItem
 import com.toasterofbread.spmp.model.mediaitem.Song
+import com.toasterofbread.spmp.resources.getString
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
 import okhttp3.Request
@@ -33,7 +34,7 @@ private suspend fun loadBrowseEndpoint(browse_id: String): Result<List<RelatedGr
         val parsed: BrowseResponse = Api.klaxon.parse(stream)!!
         return@withContext Result.success(parsed.contents.sectionListRenderer.contents!!.map { group ->
             RelatedGroup(
-                group.title!!.text,
+                group.title?.text ?: getString("song_related_group_other"),
                 group.getMediaItemsOrNull(hl),
                 group.description
             )

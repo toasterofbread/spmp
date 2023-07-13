@@ -62,7 +62,6 @@ class PillMenu(
     private val alongsideContent: (@Composable Action.() -> Unit)? = null,
     private val modifier: Modifier = Modifier
 ) {
-
     var top by mutableStateOf(top)
     var left by mutableStateOf(left)
     var vertical by mutableStateOf(vertical)

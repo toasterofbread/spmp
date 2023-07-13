@@ -14,6 +14,7 @@ import com.toasterofbread.spmp.model.mediaitem.MediaItemThumbnailProvider
 import com.toasterofbread.spmp.model.mediaitem.Song
 import com.toasterofbread.spmp.platform.*
 import com.toasterofbread.spmp.resources.getString
+import com.toasterofbread.spmp.resources.getStringTODO
 import kotlinx.coroutines.*
 import kotlinx.coroutines.sync.Mutex
 import kotlinx.coroutines.sync.Semaphore
@@ -193,7 +194,7 @@ class PlayerService : MediaPlayerService() {
         assert(b in 0 until song_count)
 
         val offset_b = b + (if (b > a) -1 else 1)
-        
+
         undoableAction {
             moveSong(a, b)
             moveSong(offset_b, a)
@@ -242,7 +243,7 @@ class PlayerService : MediaPlayerService() {
     }
 
     fun addMultipleToQueue(songs: List<Song>, index: Int = 0, skip_first: Boolean = false, save: Boolean = true, is_active_queue: Boolean = false, skip_existing: Boolean = false) {
-        val to_add: List<Song> = 
+        val to_add: List<Song> =
             if (!skip_existing) {
                 songs
             }
@@ -250,10 +251,10 @@ class PlayerService : MediaPlayerService() {
                 songs.toMutableList().apply {
                     iterateSongs { _, song ->
                         removeAll { it == song }
-                    } 
+                    }
                 }
             }
-        
+
         if (to_add.isEmpty()) {
             return
         }
@@ -522,12 +523,10 @@ class PlayerService : MediaPlayerService() {
                 return
             }
 
-            check(song.artist?.title != null)
-
             discord_status_update_job = coroutine_scope.launch {
                 fun formatText(text: String): String {
                     return text
-                        .replace("\$artist", song.artist!!.title!!)
+                        .replace("\$artist", song.artist?.title ?: getStringTODO("Unknown"))
                         .replace("\$song", song.title!!)
                 }
 
@@ -547,7 +546,7 @@ class PlayerService : MediaPlayerService() {
                         }.getOrThrow()
                     }
                 }
-                catch (e: IOException) {
+                catch (e: Throwable) {
                     return@launch
                 }
 

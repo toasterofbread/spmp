@@ -41,6 +41,8 @@ import org.schabi.newpipe.extractor.downloader.Response as NewPipeResponse
 const val DEFAULT_CONNECT_TIMEOUT = 3000
 val PLAIN_HEADERS = listOf("accept-language", "user-agent", "accept-encoding", "content-encoding", "origin")
 
+class JsonParseException(val json_obj: JsonObject, message: String? = null, cause: Throwable? = null): RuntimeException(message, cause)
+
 fun <T> Result.Companion.failure(response: Response, is_gzip: Boolean = true): Result<T> {
     var body: String
     if (is_gzip) {

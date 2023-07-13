@@ -12,6 +12,7 @@ import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.lazy.LazyColumn
@@ -33,6 +34,7 @@ import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.text.TextStyle
 import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
 import com.toasterofbread.spmp.api.Api
@@ -52,6 +54,155 @@ import kotlinx.coroutines.launch
 private const val LOCAL_SONGS_PREVIEW_AMOUNT = 5
 
 @Composable
+private fun PlaylistsRow(heading_text_style: TextStyle, multiselect_context: MediaItemMultiSelectContext) {
+    val player = LocalPlayerState.current
+    val ytm_auth = Api.ytm_auth
+    val coroutine_scope = rememberCoroutineScope()
+
+    Column(Modifier.fillMaxWidth().animateContentSize(), horizontalAlignment = Alignment.CenterHorizontally) {
+        Row(
+            Modifier.fillMaxWidth(),
+            verticalAlignment = Alignment.CenterVertically
+        ) {
+            Text(getString("library_row_playlists"), style = heading_text_style)
+
+            Spacer(Modifier.fillMaxWidth().weight(1f))
+
+            if (ytm_auth.initialised) {
+                var loading by remember { mutableStateOf(false) }
+
+                fun loadPlaylists(report: Boolean = false) {
+                    coroutine_scope.launch {
+                        check(!loading)
+                        loading = true
+
+                        val result = ytm_auth.loadOwnPlaylists()
+                        if (result.isFailure && report) {
+                            SpMp.reportActionError(result.exceptionOrNull())
+                        }
+
+                        loading = false
+                    }
+                }
+
+                LaunchedEffect(Unit) {
+                    loadPlaylists()
+                }
+
+                IconButton({
+                    if (!loading) {
+                        loadPlaylists(true)
+                    }
+                }) {
+                    Crossfade(loading) { loading ->
+                        if (loading) {
+                            SubtleLoadingIndicator(Modifier.size(24.dp))
+                        } else {
+                            Icon(Icons.Default.Refresh, null)
+                        }
+                    }
+                }
+            }
+
+            IconButton({
+                coroutine_scope.launch {
+                    val playlist = LocalPlaylist.createLocalPlaylist(SpMp.context)
+                    player.openMediaItem(playlist)
+                }
+            }) {
+                Icon(Icons.Default.Add, null)
+            }
+        }
+
+        val playlists: MutableList<Playlist> = LocalPlaylist.rememberLocalPlaylistsListener().toMutableList()
+        val show_likes: Boolean by Settings.KEY_SHOW_LIKES_PLAYLIST.rememberMutableState()
+
+        for (id in ytm_auth.own_playlists) {
+            if (!show_likes && AccountPlaylist.formatId(id) == "LM") {
+                continue
+            }
+            playlists.add(AccountPlaylist.fromId(id))
+        }
+
+        if (playlists.isNotEmpty()) {
+            MediaItemGrid(
+                playlists,
+                Modifier.fillMaxWidth(),
+                rows = 1,
+                multiselect_context = multiselect_context
+            )
+        } else {
+            Text(getString("library_playlists_empty"), Modifier.padding(top = 10.dp))
+        }
+    }
+}
+
+@Composable
+internal fun ArtistsRow(
+    heading_text_style: TextStyle,
+    multiselect_context: MediaItemMultiSelectContext,
+    downloads: List<PlayerDownloadManager.DownloadStatus>,
+    openPage: (LibrarySubPage?) -> Unit,
+    onSongClicked: (songs: List<Song>, song: Song, index: Int) -> Unit
+) {
+    val player = LocalPlayerState.current
+
+    Column(Modifier.fillMaxWidth().animateContentSize(), verticalArrangement = Arrangement.spacedBy(10.dp)) {
+        Row(verticalAlignment = Alignment.CenterVertically) {
+            Text(
+                getString("library_row_local_songs"),
+                style = heading_text_style
+            )
+
+            Spacer(Modifier.fillMaxWidth().weight(1f))
+
+            IconButton({ openPage(LibrarySubPage.SONGS) }) {
+                Icon(Icons.Default.MoreHoriz, null)
+            }
+        }
+
+
+        if (downloads.isNotEmpty()) {
+            CompositionLocalProvider(LocalPlayerState provides remember { player.copy(onClickedOverride = { item, index ->
+                onSongClicked(
+                    downloads.mapNotNull { if (it.progress < 1f) null else it.song },
+                    item as Song,
+                    index!!
+                )
+            }) }) {
+                var shown_songs = 0
+
+                for (download in downloads) {
+                    if (download.progress < 1f) {
+                        continue
+                    }
+
+                    val song = download.song
+                    song.PreviewLong(MediaItemPreviewParams(multiselect_context = multiselect_context), queue_index = shown_songs)
+
+                    if (++shown_songs == LOCAL_SONGS_PREVIEW_AMOUNT) {
+                        break
+                    }
+                }
+
+                if (shown_songs == LOCAL_SONGS_PREVIEW_AMOUNT) {
+                    val total_songs = downloads.count { it.progress >= 1f }
+                    Text(
+                        getString("library_x_more_songs").replace("\$x", (total_songs - shown_songs).toString()),
+                        Modifier
+                            .padding(top = 5.dp)
+                            .align(Alignment.CenterHorizontally)
+                            .clickable { openPage(LibrarySubPage.SONGS) }
+                    )
+                }
+            }
+        } else {
+            Text("No songs downloaded", Modifier.padding(top = 10.dp).align(Alignment.CenterHorizontally))
+        }
+    }
+}
+
+@Composable
 fun LibraryMainPage(
     downloads: List<PlayerDownloadManager.DownloadStatus>,
     multiselect_context: MediaItemMultiSelectContext,
@@ -61,18 +212,14 @@ fun LibraryMainPage(
     topContent: (@Composable () -> Unit)? = null,
     onSongClicked: (songs: List<Song>, song: Song, index: Int) -> Unit
 ) {
+    val spacing = 20.dp
     val heading_text_style = MaterialTheme.typography.headlineSmall
-    val coroutine_scope = rememberCoroutineScope()
-    val player = LocalPlayerState.current
 
     AnimatedVisibility(!inline && multiselect_context.is_active) {
         multiselect_context.InfoDisplay()
     }
 
-    LazyColumn(
-        verticalArrangement = Arrangement.spacedBy(30.dp),
-        contentPadding = PaddingValues(bottom = bottom_padding)
-    ) {
+    LazyColumn(contentPadding = PaddingValues(bottom = bottom_padding)) {
         if (topContent != null) {
             item {
                 topContent.invoke()
@@ -81,141 +228,16 @@ fun LibraryMainPage(
 
         // Playlists
         item {
-            val ytm_auth = Api.ytm_auth
+            PlaylistsRow(heading_text_style, multiselect_context)
+        }
 
-            Column(Modifier.fillMaxWidth().animateContentSize(), horizontalAlignment = Alignment.CenterHorizontally) {
-                Row(
-                    Modifier.fillMaxWidth(),
-                    verticalAlignment = Alignment.CenterVertically
-                ) {
-                    Text(getString("library_row_playlists"), style = heading_text_style)
-
-                    Spacer(Modifier.fillMaxWidth().weight(1f))
-
-                    if (ytm_auth.initialised) {
-                        var loading by remember { mutableStateOf(false) }
-
-                        fun loadPlaylists(report: Boolean = false) {
-                            coroutine_scope.launch {
-                                check(!loading)
-                                loading = true
-
-                                val result = ytm_auth.loadOwnPlaylists()
-                                if (result.isFailure && report) {
-                                    SpMp.reportActionError(result.exceptionOrNull())
-                                }
-
-                                loading = false
-                            }
-                        }
-
-                        LaunchedEffect(Unit) {
-                            loadPlaylists()
-                        }
-
-                        IconButton({
-                            if (!loading) {
-                                loadPlaylists(true)
-                            }
-                        }) {
-                            Crossfade(loading) { loading ->
-                                if (loading) {
-                                    SubtleLoadingIndicator(Modifier.size(24.dp))
-                                } else {
-                                    Icon(Icons.Default.Refresh, null)
-                                }
-                            }
-                        }
-                    }
-
-                    IconButton({
-                        coroutine_scope.launch {
-                            val playlist = LocalPlaylist.createLocalPlaylist(SpMp.context)
-                            player.openMediaItem(playlist)
-                        }
-                    }) {
-                        Icon(Icons.Default.Add, null)
-                    }
-                }
-
-                val playlists: MutableList<Playlist> = LocalPlaylist.rememberLocalPlaylistsListener().toMutableList()
-                val show_likes: Boolean by Settings.KEY_SHOW_LIKES_PLAYLIST.rememberMutableState()
-
-                for (id in ytm_auth.own_playlists) {
-                    if (!show_likes && AccountPlaylist.formatId(id) == "LM") {
-                        continue
-                    }
-                    playlists.add(AccountPlaylist.fromId(id))
-                }
-
-                if (playlists.isNotEmpty()) {
-                    MediaItemGrid(
-                        playlists,
-                        Modifier.fillMaxWidth(),
-                        rows = 1,
-                        multiselect_context = multiselect_context
-                    )
-                } else {
-                    Text(getString("library_playlists_empty"), Modifier.padding(top = 10.dp))
-                }
-            }
+        item {
+            Spacer(Modifier.height(spacing))
         }
 
         // Songs
         item {
-            Column(Modifier.fillMaxWidth().animateContentSize(), verticalArrangement = Arrangement.spacedBy(10.dp)) {
-                Row(verticalAlignment = Alignment.CenterVertically) {
-                    Text(
-                        getString("library_row_local_songs"),
-                        style = heading_text_style
-                    )
-
-                    Spacer(Modifier.fillMaxWidth().weight(1f))
-
-                    IconButton({ openPage(LibrarySubPage.SONGS) }) {
-                        Icon(Icons.Default.MoreHoriz, null)
-                    }
-                }
-
-
-                if (downloads.isNotEmpty()) {
-                    CompositionLocalProvider(LocalPlayerState provides remember { player.copy(onClickedOverride = { item, index ->
-                        onSongClicked(
-                            downloads.mapNotNull { if (it.progress < 1f) null else it.song },
-                            item as Song,
-                            index!!
-                        )
-                    }) }) {
-                        var shown_songs = 0
-
-                        for (download in downloads) {
-                            if (download.progress < 1f) {
-                                continue
-                            }
-
-                            val song = download.song
-                            song.PreviewLong(MediaItemPreviewParams(multiselect_context = multiselect_context), queue_index = shown_songs)
-
-                            if (++shown_songs == LOCAL_SONGS_PREVIEW_AMOUNT) {
-                                break
-                            }
-                        }
-
-                        if (shown_songs == LOCAL_SONGS_PREVIEW_AMOUNT) {
-                            val total_songs = downloads.count { it.progress >= 1f }
-                            Text(
-                                getString("library_x_more_songs").replace("\$x", (total_songs - shown_songs).toString()),
-                                Modifier
-                                    .padding(top = 5.dp)
-                                    .align(Alignment.CenterHorizontally)
-                                    .clickable { openPage(LibrarySubPage.SONGS) }
-                            )
-                        }
-                    }
-                } else {
-                    Text("No songs downloaded", Modifier.padding(top = 10.dp).align(Alignment.CenterHorizontally))
-                }
-            }
+            ArtistsRow(heading_text_style, multiselect_context, downloads, openPage, onSongClicked)
         }
     }
 }

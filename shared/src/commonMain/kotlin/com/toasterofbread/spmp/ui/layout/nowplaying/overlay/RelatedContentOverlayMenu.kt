@@ -16,6 +16,7 @@ import androidx.compose.ui.unit.dp
 import com.toasterofbread.spmp.model.mediaitem.Song
 import com.toasterofbread.spmp.ui.component.PillMenu
 import com.toasterofbread.spmp.ui.layout.SongRelatedPage
+import com.toasterofbread.spmp.ui.layout.nowplaying.getNPBackground
 import com.toasterofbread.spmp.ui.theme.Theme
 import com.toasterofbread.utils.setAlpha
 
@@ -43,7 +44,7 @@ class RelatedContentOverlayMenu : OverlayMenu() {
                 description_text_style = MaterialTheme.typography.bodyMedium,
                 close = { openMenu(null) },
                 padding = PaddingValues(10.dp),
-                accent_colour = LocalContentColor.current.setAlpha(0.75f)
+                accent_colour = getNPBackground()
             )
 
             pill_menu.PillMenu(

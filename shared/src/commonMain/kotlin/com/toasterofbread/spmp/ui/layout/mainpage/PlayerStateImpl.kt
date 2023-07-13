@@ -17,7 +17,6 @@ import androidx.compose.ui.unit.*
 import com.toasterofbread.spmp.PlayerService
 import com.toasterofbread.spmp.api.cast
 import com.toasterofbread.spmp.api.getHomeFeed
-import com.toasterofbread.spmp.api.getOrThrowHere
 import com.toasterofbread.spmp.model.*
 import com.toasterofbread.spmp.model.mediaitem.*
 import com.toasterofbread.spmp.platform.*
@@ -507,6 +506,7 @@ class PlayerStateImpl(private val context: PlatformContext): PlayerState(null, n
 
     private val main_page_scroll_state = LazyListState()
     private var main_page_layouts: List<MediaItemLayout>? by mutableStateOf(null)
+    private var main_page_load_error: Throwable? by mutableStateOf(null)
     private var main_page_filter_chips: List<Pair<Int, String>>? by mutableStateOf(null)
     private var main_page_selected_filter_chip: Int? by mutableStateOf(null)
 
@@ -518,8 +518,7 @@ class PlayerStateImpl(private val context: PlatformContext): PlayerState(null, n
         min_rows: Int,
         allow_cached: Boolean,
         continue_feed: Boolean,
-        filter_chip: Int? = null,
-        report_error: Boolean = false
+        filter_chip: Int? = null
     ): Result<Unit> = withContext(Dispatchers.IO) {
         main_page_selected_filter_chip = filter_chip
 
@@ -558,9 +557,7 @@ class PlayerStateImpl(private val context: PlatformContext): PlayerState(null, n
                 feed_continuation = cont
             },
             { error ->
-                if (report_error) {
-                    SpMp.reportActionError(error)
-                }
+                main_page_load_error = error
                 main_page_layouts = emptyList()
                 main_page_filter_chips = null
             }
@@ -615,13 +612,14 @@ class PlayerStateImpl(private val context: PlatformContext): PlayerState(null, n
                         { main_page_layouts ?: emptyList() },
                         main_page_scroll_state,
                         feed_load_state,
+                        main_page_load_error,
                         remember { derivedStateOf { feed_continuation != null } }.value,
                         { main_page_filter_chips },
                         { main_page_selected_filter_chip },
                         pill_menu,
                         { filter_chip: Int?, continuation: Boolean ->
                             feed_coroutine_scope.launchSingle {
-                                loadFeed(-1, false, continuation, filter_chip, report_error = true)
+                                loadFeed(-1, false, continuation, filter_chip)
                             }
                         }
                     )
@@ -659,13 +657,19 @@ class PlayerStateImpl(private val context: PlatformContext): PlayerState(null, n
     }
 }
 
-private suspend fun loadFeedLayouts(min_rows: Int, allow_cached: Boolean, params: String?, continuation: String? = null): Result<Triple<List<MediaItemLayout>, String?, List<Pair<Int, String>>?>> {
-    val result = getHomeFeed(allow_cached = allow_cached, min_rows = min_rows, params = params, continuation = continuation)
+private suspend fun loadFeedLayouts(
+    min_rows: Int,
+    allow_cached: Boolean,
+    params: String?,
+    continuation: String? = null,
+): Result<Triple<List<MediaItemLayout>, String?, List<Pair<Int, String>>?>> {
+    val result = getHomeFeed(
+        allow_cached = allow_cached,
+        min_rows = min_rows,
+        params = params,
+        continuation = continuation
+    )
 
-    if (!result.isSuccess) {
-        return result.cast()
-    }
-
-    val (row_data, new_continuation, chips) = result.getOrThrowHere()
+    val (row_data, new_continuation, chips) = result.getOrNull() ?: return result.cast()
     return Result.success(Triple(row_data.filter { it.items.isNotEmpty() }, new_continuation, chips))
 }

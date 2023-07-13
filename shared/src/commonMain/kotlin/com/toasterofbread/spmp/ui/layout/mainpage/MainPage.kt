@@ -2,6 +2,7 @@ package com.toasterofbread.spmp.ui.layout.mainpage
 
 import LocalPlayerState
 import SpMp
+import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.animation.Crossfade
 import androidx.compose.animation.core.Animatable
 import androidx.compose.animation.core.animateDpAsState
@@ -9,6 +10,7 @@ import androidx.compose.animation.core.tween
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.PaddingValues
+import androidx.compose.foundation.layout.fillMaxHeight
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
@@ -23,7 +25,6 @@ import androidx.compose.material3.IconButton
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.MutableState
-import androidx.compose.runtime.derivedStateOf
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateListOf
 import androidx.compose.runtime.mutableStateOf
@@ -40,6 +41,9 @@ import com.toasterofbread.spmp.model.mediaitem.Artist
 import com.toasterofbread.spmp.model.mediaitem.MediaItemHolder
 import com.toasterofbread.spmp.platform.composable.SwipeRefresh
 import com.toasterofbread.spmp.platform.getDefaultHorizontalPadding
+import com.toasterofbread.spmp.platform.getDefaultVerticalPadding
+import com.toasterofbread.spmp.resources.getString
+import com.toasterofbread.spmp.ui.component.ErrorInfoDisplay
 import com.toasterofbread.spmp.ui.component.MediaItemLayout
 import com.toasterofbread.spmp.ui.component.PillMenu
 import com.toasterofbread.spmp.ui.component.WAVE_BORDER_DEFAULT_HEIGHT
@@ -52,6 +56,7 @@ fun MainPage(
     getLayouts: () -> List<MediaItemLayout>,
     scroll_state: LazyListState,
     feed_load_state: MutableState<FeedLoadState>,
+    feed_load_error: Throwable?,
     can_continue_feed: Boolean,
     getFilterChips: () -> List<Pair<Int, String>>?,
     getSelectedFilterChip: () -> Int?,
@@ -80,7 +85,7 @@ fun MainPage(
 
     Column(Modifier.padding(horizontal = padding)) {
 
-        val top_padding = WAVE_BORDER_DEFAULT_HEIGHT.dp * 0.5f
+        val top_padding = WAVE_BORDER_DEFAULT_HEIGHT.dp
         MainPageTopBar(
             Api.ytm_auth,
             getFilterChips,
@@ -96,19 +101,18 @@ fun MainPage(
             swipe_enabled = feed_load_state.value == FeedLoadState.NONE,
             indicator = false
         ) {
-            val layouts_empty by remember { derivedStateOf { getLayouts().isEmpty() } }
-            val state = if (feed_load_state.value == FeedLoadState.LOADING || feed_load_state.value == FeedLoadState.PREINIT) null else !layouts_empty
-            var current_state by remember { mutableStateOf(state) }
+            val target_state = if (feed_load_state.value == FeedLoadState.LOADING || feed_load_state.value == FeedLoadState.PREINIT) null else getLayouts().ifEmpty { feed_load_error ?: false }
+            var current_state by remember { mutableStateOf(target_state) }
             val state_alpha = remember { Animatable(1f) }
 
-            LaunchedEffect(state) {
-                if (current_state == state) {
+            LaunchedEffect(target_state) {
+                if (current_state == target_state) {
                     state_alpha.animateTo(1f, tween(300))
                     return@LaunchedEffect
                 }
 
                 state_alpha.animateTo(0f, tween(300))
-                current_state = state
+                current_state = target_state
                 state_alpha.animateTo(1f, tween(300))
             }
 
@@ -118,79 +122,102 @@ fun MainPage(
                 MainPageScrollableTopContent(pinned_items, Modifier.padding(bottom = 10.dp), top_content_visible)
             }
 
-            when (current_state) {
-                // Loaded
-                true -> {
-                    val onContinuationRequested = if (can_continue_feed) {
-                        { loadFeed(getSelectedFilterChip(), true) }
-                    } else null
-                    val loading_continuation = feed_load_state.value != FeedLoadState.NONE
+            current_state.also { state ->
+                when (state) {
+                    // Loaded
+                    is List<*> -> {
+                        val onContinuationRequested = if (can_continue_feed) {
+                            { loadFeed(getSelectedFilterChip(), true) }
+                        } else null
+                        val loading_continuation = feed_load_state.value != FeedLoadState.NONE
 
-                    LazyColumn(
-                        Modifier.graphicsLayer { alpha = state_alpha.value },
-                        state = scroll_state,
-                        contentPadding = PaddingValues(
-                            bottom = LocalPlayerState.current.bottom_padding,
-                            top = top_padding
-                        ),
-                        userScrollEnabled = !state_alpha.isRunning,
-                        verticalArrangement = Arrangement.spacedBy(20.dp)
-                    ) {
-                        if (top_content_visible || artists_layout.items.isNotEmpty()) {
-                            item {
-                                Column {
-                                    TopContent()
-                                    if (artists_layout.items.isNotEmpty()) {
-                                        artists_layout.Layout(multiselect_context = player.main_multiselect_context)
+                        LazyColumn(
+                            Modifier.graphicsLayer { alpha = state_alpha.value },
+                            state = scroll_state,
+                            contentPadding = PaddingValues(
+                                bottom = LocalPlayerState.current.bottom_padding,
+                                top = top_padding
+                            ),
+                            userScrollEnabled = !state_alpha.isRunning,
+                            verticalArrangement = Arrangement.spacedBy(20.dp)
+                        ) {
+                            if (top_content_visible || artists_layout.items.isNotEmpty()) {
+                                item {
+                                    Column {
+                                        TopContent()
+                                        if (artists_layout.items.isNotEmpty()) {
+                                            artists_layout.Layout(multiselect_context = player.main_multiselect_context)
+                                        }
                                     }
                                 }
                             }
-                        }
 
-                        itemsIndexed(getLayouts()) { index, layout ->
-                            if (layout.items.isEmpty()) {
-                                return@itemsIndexed
+                            itemsIndexed(state as List<MediaItemLayout>) { index, layout ->
+                                if (layout.items.isEmpty()) {
+                                    return@itemsIndexed
+                                }
+
+                                val type = layout.type ?: MediaItemLayout.Type.GRID
+                                type.Layout(layout, multiselect_context = player.main_multiselect_context)
                             }
 
-                            val type = layout.type ?: MediaItemLayout.Type.GRID
-                            type.Layout(layout, multiselect_context = player.main_multiselect_context)
-                        }
-
-                        item {
-                            Crossfade(Pair(onContinuationRequested, loading_continuation)) { data ->
-                                Column(Modifier.fillMaxWidth(), horizontalAlignment = Alignment.Start) {
-                                    if (data.second) {
-                                        CircularProgressIndicator(color = Theme.current.on_background)
-                                    }
-                                    else if (data.first != null) {
-                                        IconButton({ data.first!!.invoke() }) {
-                                            Icon(Icons.Filled.KeyboardDoubleArrowDown, null, tint = Theme.current.on_background)
+                            item {
+                                Crossfade(Pair(onContinuationRequested, loading_continuation)) { data ->
+                                    Column(Modifier.fillMaxWidth(), horizontalAlignment = Alignment.Start) {
+                                        if (data.second) {
+                                            CircularProgressIndicator(color = Theme.current.on_background)
+                                        }
+                                        else if (data.first != null) {
+                                            IconButton({ data.first!!.invoke() }) {
+                                                Icon(Icons.Filled.KeyboardDoubleArrowDown, null, tint = Theme.current.on_background)
+                                            }
                                         }
                                     }
                                 }
                             }
                         }
                     }
-                }
-                // Offline
-                false -> {
-                    LibraryPage(
-                        pill_menu,
-                        LocalPlayerState.current.bottom_padding,
-                        Modifier
-                            .graphicsLayer { alpha = state_alpha.value }
-                            .padding(top = top_padding),
-                        close = {},
-                        inline = true,
-                        outer_multiselect_context = LocalPlayerState.current.main_multiselect_context,
-                        mainTopContent = { TopContent() }
-                    )
-                }
-                // Loading
-                null -> {
-                    Column(Modifier.fillMaxSize()) {
-                        TopContent()
-                        MainPageLoadingView(Modifier.graphicsLayer { alpha = state_alpha.value }.fillMaxSize())
+
+                    // Loading
+                    null -> {
+                        Column(Modifier.fillMaxSize()) {
+                            TopContent()
+                            MainPageLoadingView(Modifier.graphicsLayer { alpha = state_alpha.value }.fillMaxSize())
+                        }
+                    }
+
+                    // Offline
+                    else -> {
+                        var error_dismissed by remember { mutableStateOf(false) }
+
+                        Column(
+                            Modifier
+                                .graphicsLayer { alpha = state_alpha.value }
+                                .padding(top = top_padding)
+                                .fillMaxHeight()
+                        ) {
+                            if (state is Throwable) {
+                                AnimatedVisibility(!error_dismissed) {
+                                    ErrorInfoDisplay(
+                                        state,
+                                        expanded_modifier = Modifier.padding(bottom = SpMp.context.getDefaultVerticalPadding()),
+                                        message = getString("error_yt_feed_parse_failed"),
+                                        onDismiss = {
+                                            error_dismissed = true
+                                        }
+                                    )
+                                }
+                            }
+
+                            LibraryPage(
+                                pill_menu,
+                                LocalPlayerState.current.bottom_padding,
+                                close = {},
+                                inline = true,
+                                outer_multiselect_context = LocalPlayerState.current.main_multiselect_context,
+                                mainTopContent = { TopContent() }
+                            )
+                        }
                     }
                 }
             }

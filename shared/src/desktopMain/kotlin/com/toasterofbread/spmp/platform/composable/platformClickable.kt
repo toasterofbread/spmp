@@ -12,9 +12,9 @@ import com.toasterofbread.utils.thenIf
 @OptIn(ExperimentalFoundationApi::class)
 @Composable
 actual fun Modifier.platformClickable(onClick: (() -> Unit)?, onAltClick: (() -> Unit)?, indication: Indication?): Modifier =
-    this.thenIf(onClick != null) { Modifier.onClick(onClick = onClick!!) }
+    this.thenIf(onClick != null) { onClick(onClick = onClick!!) }
         .thenIf(onAltClick != null) {
-            Modifier.onClick(
+            onClick(
                 matcher = PointerMatcher.mouse(PointerButton.Secondary),
                 onClick = onAltClick!!
             )

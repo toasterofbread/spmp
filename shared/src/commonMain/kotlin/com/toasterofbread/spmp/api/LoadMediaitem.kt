@@ -149,7 +149,7 @@ suspend fun processDefaultResponse(item: MediaItem, data: MediaItemData, respons
                     val header_renderer = parsed.header?.getRenderer()
                     if (header_renderer != null) {
 
-                        data.supplyTitle(header_renderer.title.first_text, true)
+                        data.supplyTitle(header_renderer.title!!.first_text, true)
                         data.supplyDescription(header_renderer.description?.first_text, true)
                         data.supplyThumbnailProvider(MediaItemThumbnailProvider.fromThumbnails(header_renderer.getThumbnails()))
 
@@ -367,7 +367,7 @@ suspend fun loadMediaItemData(
             stream.close()
 
             if (video_data.videoDetails == null) {
-                return@run Result.failure(NotImplementedError("videoDetails is null ($item_id)"))
+                return@run Result.success(Unit)
             }
 
             supplyTitle(video_data.videoDetails.title, true)

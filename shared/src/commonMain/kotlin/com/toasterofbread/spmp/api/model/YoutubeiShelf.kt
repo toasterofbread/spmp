@@ -63,6 +63,13 @@ data class YoutubeiShelf(
             it.toMediaItem(hl)
         }
 
-    fun getRenderer(): Any =
-        musicShelfRenderer ?: musicCarouselShelfRenderer ?: musicDescriptionShelfRenderer!!
+    fun getRenderer(): Any? =
+        musicShelfRenderer ?:
+        musicCarouselShelfRenderer ?:
+        musicDescriptionShelfRenderer ?:
+        musicPlaylistShelfRenderer ?:
+        musicCardShelfRenderer ?:
+        gridRenderer ?:
+        itemSectionRenderer ?:
+        musicTastebuilderShelfRenderer
 }

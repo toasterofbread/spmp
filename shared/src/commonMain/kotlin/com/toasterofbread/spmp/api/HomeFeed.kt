@@ -2,6 +2,7 @@ package com.toasterofbread.spmp.api
 
 import SpMp
 import com.beust.klaxon.Json
+import com.beust.klaxon.JsonObject
 import com.toasterofbread.spmp.api.Api.Companion.addYtHeaders
 import com.toasterofbread.spmp.api.Api.Companion.getStream
 import com.toasterofbread.spmp.api.Api.Companion.ytUrl
@@ -20,14 +21,13 @@ import com.toasterofbread.spmp.model.mediaitem.enums.SongType
 import com.toasterofbread.spmp.resources.uilocalisation.LocalisedYoutubeString
 import com.toasterofbread.spmp.ui.component.MediaItemLayout
 import kotlinx.coroutines.Dispatchers
-import kotlinx.coroutines.job
 import kotlinx.coroutines.withContext
 import okhttp3.Request
-import java.io.InputStream
 import java.time.Duration
 
 private val CACHE_LIFETIME = Duration.ofDays(1)
 
+// TODO Why doesn't this return a class?
 suspend fun getHomeFeed(
     min_rows: Int = -1,
     allow_cached: Boolean = true,
@@ -62,9 +62,7 @@ suspend fun getHomeFeed(
         }
     }
 
-    var result: Result<InputStream>? = null
-
-    suspend fun performRequest(ctoken: String?) = withContext(Dispatchers.IO) {
+    fun performRequest(ctoken: String?): Result<YoutubeiBrowseResponse> {
         val endpoint = "/youtubei/v1/browse"
         val request = Request.Builder()
             .ytUrl(if (ctoken == null) endpoint else "$endpoint?ctoken=$ctoken&continuation=$ctoken&type=next")
@@ -76,73 +74,91 @@ suspend fun getHomeFeed(
             )
             .build()
 
-        result = Api.request(request).cast {
-            it.getStream()
+        val result = Api.request(request)
+        val stream = result.getOrNull()?.getStream() ?: return result.cast()
+
+        try {
+            return stream.use {
+                Result.success(Api.klaxon.parse(it)!!)
+            }
+        }
+        catch (error: Throwable) {
+            val retry_result = Api.request(request)
+            val retry_stream = retry_result.getOrNull()?.getStream() ?: return retry_result.cast()
+
+            return retry_stream.use {
+                Result.failure(
+                    JsonParseException(
+                        Api.klaxon.parseJsonObject(it.reader()).apply {
+                            // Remove unneeded keys from JSON object
+
+                            remove("responseContext")
+
+                            val items: MutableList<Any> = mutableListOf(this)
+                            val keys_to_remove = listOf("trackingParams", "clickTrackingParams", "serializedShareEntity", "serializedContextData", "loggingContext")
+
+                            while (items.isNotEmpty()) {
+                                val obj = items.removeLast()
+
+                                if (obj is Collection<*>) {
+                                    items.addAll(obj as Collection<Any>)
+                                    continue
+                                }
+
+                                check(obj is JsonObject)
+
+                                for (key in keys_to_remove) {
+                                    obj.remove(key)
+                                }
+
+                                for (value in obj.values) {
+                                    if (value is JsonObject) {
+                                        items.add(value)
+                                    }
+                                    else if (value is Collection<*>) {
+                                        items.addAll(value.filterIsInstance<JsonObject>())
+                                    }
+                                }
+                            }
+                        },
+                        cause = error
+                    )
+                )
+            }
         }
     }
 
-    coroutineContext.job.invokeOnCompletion {
-        result?.getOrNull()?.close()
-    }
+    return@withContext kotlin.runCatching {
+        var data = performRequest(continuation).getOrThrow()
 
-    performRequest(continuation)
+        val rows: MutableList<MediaItemLayout> = processRows(data.getShelves(continuation != null), hl).toMutableList()
+        check(rows.isNotEmpty())
 
-    val response_reader = result!!.fold(
-        { it },
-        { return@withContext Result.failure(it) }
-    )
+        val chips = data.getHeaderChips()
 
-    var data: YoutubeiBrowseResponse = try {
-        Api.klaxon.parse(response_reader)!!
-    }
-    catch (e: Throwable) {
-        return@withContext Result.failure(e)
-    }
-    finally {
-        response_reader.close()
-    }
+        var ctoken: String? = data.ctoken
+        while (min_rows >= 1 && rows.size < min_rows) {
+            if (ctoken == null) {
+                break
+            }
 
-    val rows: MutableList<MediaItemLayout> = processRows(data.getShelves(continuation != null), hl).toMutableList()
-    check(rows.isNotEmpty())
+            data = performRequest(ctoken).getOrThrow()
 
-    val chips = data.getHeaderChips()
+            val shelves = data.getShelves(true)
+            check(shelves.isNotEmpty())
+            rows.addAll(processRows(shelves, hl))
 
-    var ctoken: String? = data.ctoken
-    while (min_rows >= 1 && rows.size < min_rows) {
-        if (ctoken == null) {
-            break
+            ctoken = data.ctoken
         }
 
-        performRequest(ctoken)
-        result!!.onFailure {
-            return@withContext Result.failure(it)
+        if (continuation == null) {
+            Cache.set(rows_cache_key, Api.klaxon.toJsonString(rows).reader(), CACHE_LIFETIME)
+            Cache.set(ctoken_cache_key, ctoken?.reader(), CACHE_LIFETIME)
+            Cache.set(chips_cache_key, chips?.let { Api.klaxon.toJsonString(it.map { chip -> listOf(chip.first, chip.second) }).reader() }, CACHE_LIFETIME)
         }
 
-        val reader = result!!.data
-        data = try {
-            Api.klaxon.parse(reader)!!
-        }
-        catch (e: Throwable) {
-            return@withContext Result.failure(e)
-        }
-        finally {
-            reader.close()
-        }
-
-        val shelves = data.getShelves(true)
-        check(shelves.isNotEmpty())
-        rows.addAll(processRows(shelves, hl))
-
-        ctoken = data.ctoken
+        return@runCatching Triple(rows, ctoken, chips)
     }
-
-    if (continuation == null) {
-        Cache.set(rows_cache_key, Api.klaxon.toJsonString(rows).reader(), CACHE_LIFETIME)
-        Cache.set(ctoken_cache_key, ctoken?.reader(), CACHE_LIFETIME)
-        Cache.set(chips_cache_key, chips?.let { Api.klaxon.toJsonString(it.map { chip -> listOf(chip.first, chip.second) }).reader() }, CACHE_LIFETIME)
-    }
-
-    return@withContext Result.success(Triple(rows, ctoken, chips))
 }
 
 private fun processRows(rows: List<YoutubeiShelf>, hl: String): List<MediaItemLayout> {
@@ -154,8 +170,8 @@ private fun processRows(rows: List<YoutubeiShelf>, hl: String): List<MediaItemLa
 
         when (val renderer = row.getRenderer()) {
             is MusicDescriptionShelfRenderer -> continue
-            is MusicCarouselShelfRenderer -> {
-                val header = renderer.header.musicCarouselShelfBasicHeaderRenderer!!
+            is YoutubeiHeaderContainer -> {
+                val header = renderer.header?.header_renderer ?: continue
 
                 fun add(
                     title: LocalisedYoutubeString,
@@ -180,10 +196,10 @@ private fun processRows(rows: List<YoutubeiShelf>, hl: String): List<MediaItemLa
                     ))
                 }
 
-                val browse_endpoint = header.title.runs?.first()?.navigationEndpoint?.browseEndpoint
+                val browse_endpoint = header.title?.runs?.first()?.navigationEndpoint?.browseEndpoint
                 if (browse_endpoint == null) {
                     add(
-                        LocalisedYoutubeString.homeFeed(header.title.first_text),
+                        LocalisedYoutubeString.homeFeed(header.title!!.first_text),
                         header.subtitle?.first_text?.let { LocalisedYoutubeString.homeFeed(it) }
                     )
                     continue
@@ -276,8 +292,11 @@ data class ItemSectionRenderer(val contents: List<ItemSectionRendererContent>)
 data class ItemSectionRendererContent(val didYouMeanRenderer: DidYouMeanRenderer? = null)
 data class DidYouMeanRenderer(val correctedQuery: TextRuns)
 
-data class GridRenderer(val items: List<YoutubeiShelfContentsItem>, val header: GridHeader? = null)
-data class GridHeader(val gridHeaderRenderer: HeaderRenderer)
+data class GridRenderer(val items: List<YoutubeiShelfContentsItem>, override val header: GridHeader? = null): YoutubeiHeaderContainer
+data class GridHeader(val gridHeaderRenderer: HeaderRenderer): YoutubeiHeader {
+    override val header_renderer: HeaderRenderer?
+        get() = gridHeaderRenderer
+}
 
 data class WatchEndpoint(val videoId: String? = null, val playlistId: String? = null)
 data class BrowseEndpointContextMusicConfig(val pageType: String)
@@ -350,7 +369,7 @@ data class Header(
     val musicDetailHeaderRenderer: HeaderRenderer? = null,
     val musicEditablePlaylistDetailHeaderRenderer: MusicEditablePlaylistDetailHeaderRenderer? = null,
     val musicCardShelfHeaderBasicRenderer: HeaderRenderer? = null
-) {
+): YoutubeiHeader {
     fun getRenderer(): HeaderRenderer? {
         return musicCarouselShelfBasicHeaderRenderer
             ?: musicImmersiveHeaderRenderer
@@ -361,6 +380,9 @@ data class Header(
     }
 
     data class MusicEditablePlaylistDetailHeaderRenderer(val header: Header)
+
+    override val header_renderer: HeaderRenderer?
+        get() = getRenderer()
 }
 
 //val thumbnails = (header.obj("thumbnail") ?: header.obj("foregroundThumbnail")!!)
@@ -368,8 +390,15 @@ data class Header(
 //    .obj("thumbnail")!!
 //    .array<JsonObject>("thumbnails")!!
 
+interface YoutubeiHeaderContainer {
+    val header: YoutubeiHeader?
+}
+interface YoutubeiHeader {
+    val header_renderer: HeaderRenderer?
+}
+
 data class HeaderRenderer(
-    val title: TextRuns,
+    val title: TextRuns? = null,
     val strapline: TextRuns? = null,
     val subscriptionButton: SubscriptionButton? = null,
     val description: TextRuns? = null,
@@ -418,17 +447,17 @@ data class MusicShelfRenderer(
 data class MoreContentButton(val buttonRenderer: ButtonRenderer)
 data class ButtonRenderer(val navigationEndpoint: NavigationEndpoint)
 data class MusicCarouselShelfRenderer(
-    val header: Header,
+    override val header: Header,
     val contents: List<YoutubeiShelfContentsItem>
-)
+): YoutubeiHeaderContainer
 data class MusicDescriptionShelfRenderer(val header: TextRuns, val description: TextRuns)
 data class MusicCardShelfRenderer(
     val thumbnail: ThumbnailRenderer,
     val title: TextRuns,
     val subtitle: TextRuns,
     val menu: YoutubeiNextResponse.Menu,
-    val header: Header
-) {
+    override val header: Header
+): YoutubeiHeaderContainer {
     fun getMediaItem(): MediaItem {
         val item: MediaItem
 

@@ -48,9 +48,7 @@ class Artist private constructor (
     }
 
     suspend fun updateSubscribed(): Result<Unit> {
-        check(!is_for_item)
-
-        if (is_own_channel) {
+        if (is_for_item || is_own_channel) {
             return Result.success(Unit)
         }
 

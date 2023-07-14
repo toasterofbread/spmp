@@ -84,7 +84,7 @@ suspend fun loadBrowseId(browse_id: String, params: String? = null): Result<List
             view_more?.layout_type = MediaItemLayout.Type.LIST
 
             ret.add(MediaItemLayout(
-                row.value.title?.text?.let { LocalisedYoutubeString.raw(it) },
+                row.value.title?.text?.let { LocalisedYoutubeString.Type.RAW.create(it) },
                 null,
                 if (row.index == 0) MediaItemLayout.Type.NUMBERED_LIST else MediaItemLayout.Type.GRID,
                 row.value.getMediaItems(hl).toMutableList(),
@@ -212,7 +212,7 @@ suspend fun processDefaultResponse(item: MediaItem, data: MediaItemData, respons
                             }
 
                         val layout_title = row.value.title?.text?.let {
-                            if (item is Artist && item.is_own_channel) LocalisedYoutubeString.ownChannel(it)
+                            if (item is Artist && item.is_own_channel) LocalisedYoutubeString.Type.OWN_CHANNEL.create(it)
                             else LocalisedYoutubeString.mediaItemPage(it, item.type)
                         }
 

@@ -26,7 +26,7 @@ import com.toasterofbread.spmp.ui.theme.Theme
 @Composable
 fun MainPageTopBar(
     auth_info: YoutubeMusicAuthInfo,
-    getFilterChips: () -> List<Pair<Int, String>>?,
+    getFilterChips: () -> List<FilterChip>?,
     getSelectedFilterChip: () -> Int?,
     onFilterChipSelected: (Int?) -> Unit,
     modifier: Modifier = Modifier
@@ -98,34 +98,35 @@ private fun RadioBuilderButton() {
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
-private fun ColumnScope.FilterChipsRow(getFilterChips: () -> List<Pair<Int, String>>?, getSelectedFilterChip: () -> Int?, onFilterChipSelected: (Int?) -> Unit) {
+private fun ColumnScope.FilterChipsRow(getFilterChips: () -> List<FilterChip>?, getSelectedFilterChip: () -> Int?, onFilterChipSelected: (Int?) -> Unit) {
     val enabled: Boolean by mutableSettingsState(Settings.KEY_FEED_SHOW_FILTERS)
     val filter_chips = getFilterChips()
 
-    AnimatedVisibility(enabled && filter_chips?.isNotEmpty() == true) {
-        LazyRow(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.spacedBy(10.dp)) {
-            val selected_filter_chip = getSelectedFilterChip()
+    Crossfade(if (enabled) filter_chips else null) { chips ->
+        if (chips?.isNotEmpty() == true) {
+            LazyRow(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.spacedBy(10.dp)) {
+                val selected_filter_chip = getSelectedFilterChip()
 
-            items(filter_chips?.size ?: 0) { i ->
-                val chip_index = filter_chips!![i].first
-                ElevatedFilterChip(
-                    i == selected_filter_chip,
-                    {
-                        onFilterChipSelected(if (i == selected_filter_chip) null else i)
-                    },
-                    { Text(LocalisedYoutubeString.filterChip(chip_index)) },
-                    colors = with(Theme.current) {
-                        FilterChipDefaults.elevatedFilterChipColors(
-                            containerColor = background,
-                            labelColor = on_background,
-                            selectedContainerColor = accent,
-                            selectedLabelColor = on_accent
+                items(chips.size) { i ->
+                    ElevatedFilterChip(
+                        i == selected_filter_chip,
+                        {
+                            onFilterChipSelected(if (i == selected_filter_chip) null else i)
+                        },
+                        { Text(chips[i].text.getString()) },
+                        colors = with(Theme.current) {
+                            FilterChipDefaults.elevatedFilterChipColors(
+                                containerColor = background,
+                                labelColor = on_background,
+                                selectedContainerColor = accent,
+                                selectedLabelColor = on_accent
+                            )
+                        },
+                        border = FilterChipDefaults.filterChipBorder(
+                            borderColor = Theme.current.on_background
                         )
-                    },
-                    border = FilterChipDefaults.filterChipBorder(
-                        borderColor = Theme.current.on_background
                     )
-                )
+                }
             }
         }
     }

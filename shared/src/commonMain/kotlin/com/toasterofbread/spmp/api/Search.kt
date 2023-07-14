@@ -113,7 +113,7 @@ suspend fun searchYoutubeMusic(query: String, params: String?): Result<SearchRes
         if (card != null) {
             category_layouts.add(Pair(
                 MediaItemLayout(
-                    LocalisedYoutubeString.searchPage(card.header.musicCardShelfHeaderBasicRenderer!!.title!!.first_text),
+                    LocalisedYoutubeString.Type.SEARCH_PAGE.create(card.header.musicCardShelfHeaderBasicRenderer!!.title!!.first_text),
                     null,
                     items = mutableListOf(card.getMediaItem()), 
                     type = MediaItemLayout.Type.CARD
@@ -128,7 +128,7 @@ suspend fun searchYoutubeMusic(query: String, params: String?): Result<SearchRes
         val search_params = if (category.index == 0) null else chips[category.index - 1].chipCloudChipRenderer.navigationEndpoint.searchEndpoint!!.params
 
         category_layouts.add(Pair(
-            MediaItemLayout(LocalisedYoutubeString.searchPage(shelf.title!!.first_text), null, items = items),
+            MediaItemLayout(LocalisedYoutubeString.Type.SEARCH_PAGE.create(shelf.title!!.first_text), null, items = items),
             search_params?.let {
                 val item = items.firstOrNull() ?: return@let null
                 SearchFilter(when (item) {

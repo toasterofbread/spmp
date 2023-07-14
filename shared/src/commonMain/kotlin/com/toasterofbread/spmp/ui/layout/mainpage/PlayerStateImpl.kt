@@ -507,7 +507,7 @@ class PlayerStateImpl(private val context: PlatformContext): PlayerState(null, n
     private val main_page_scroll_state = LazyListState()
     private var main_page_layouts: List<MediaItemLayout>? by mutableStateOf(null)
     private var main_page_load_error: Throwable? by mutableStateOf(null)
-    private var main_page_filter_chips: List<Pair<Int, String>>? by mutableStateOf(null)
+    private var main_page_filter_chips: List<FilterChip>? by mutableStateOf(null)
     private var main_page_selected_filter_chip: Int? by mutableStateOf(null)
 
     private val feed_load_state = mutableStateOf(FeedLoadState.PREINIT)
@@ -526,7 +526,7 @@ class PlayerStateImpl(private val context: PlatformContext): PlayerState(null, n
 
         check(feed_load_state.value == FeedLoadState.PREINIT || feed_load_state.value == FeedLoadState.NONE)
 
-        val filter_params = filter_chip?.let { main_page_filter_chips!![it].second }
+        val filter_params = filter_chip?.let { main_page_filter_chips!![it].params }
         feed_load_state.value = if (continue_feed) FeedLoadState.CONTINUING else FeedLoadState.LOADING
 
         coroutineContext.job.invokeOnCompletion {
@@ -662,7 +662,7 @@ private suspend fun loadFeedLayouts(
     allow_cached: Boolean,
     params: String?,
     continuation: String? = null,
-): Result<Triple<List<MediaItemLayout>, String?, List<Pair<Int, String>>?>> {
+): Result<Triple<List<MediaItemLayout>, String?, List<FilterChip>?>> {
     val result = getHomeFeed(
         allow_cached = allow_cached,
         min_rows = min_rows,

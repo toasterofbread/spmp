@@ -58,7 +58,7 @@ fun MainPage(
     feed_load_state: MutableState<FeedLoadState>,
     feed_load_error: Throwable?,
     can_continue_feed: Boolean,
-    getFilterChips: () -> List<Pair<Int, String>>?,
+    getFilterChips: () -> List<FilterChip>?,
     getSelectedFilterChip: () -> Int?,
     pill_menu: PillMenu,
     loadFeed: (filter_chip: Int?, continuation: Boolean) -> Unit

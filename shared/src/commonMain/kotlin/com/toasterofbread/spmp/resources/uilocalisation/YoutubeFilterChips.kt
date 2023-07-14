@@ -25,5 +25,9 @@ fun getYoutubeFilterChipsLocalisations(getLanguage: (String) -> Int): YoutubeUIL
             en to "Focus",
             ja to "フォーカス"
         )
+        add(
+            en to "Podcasts",
+            ja to "ポッドキャスト"
+        )
     }
 }

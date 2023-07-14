@@ -20,9 +20,11 @@ import com.toasterofbread.spmp.model.mediaitem.enums.MediaItemType
 import com.toasterofbread.spmp.model.mediaitem.enums.SongType
 import com.toasterofbread.spmp.resources.uilocalisation.LocalisedYoutubeString
 import com.toasterofbread.spmp.ui.component.MediaItemLayout
+import com.toasterofbread.spmp.ui.layout.mainpage.FilterChip
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
 import okhttp3.Request
+import okio.use
 import java.time.Duration
 
 private val CACHE_LIFETIME = Duration.ofDays(1)
@@ -33,7 +35,7 @@ suspend fun getHomeFeed(
     allow_cached: Boolean = true,
     params: String? = null,
     continuation: String? = null
-): Result<Triple<List<MediaItemLayout>, String?, List<Pair<Int, String>>?>> = withContext(Dispatchers.IO) {
+): Result<Triple<List<MediaItemLayout>, String?, List<FilterChip>?>> = withContext(Dispatchers.IO) {
     val hl = SpMp.data_language
     val suffix = params ?: ""
     val rows_cache_key = "feed_rows$suffix"
@@ -41,21 +43,15 @@ suspend fun getHomeFeed(
     val chips_cache_key = "feed_chips$suffix"
 
     if (allow_cached && continuation == null) {
-        val cached_rows = Cache.get(rows_cache_key)
-        if (cached_rows != null) {
+        Cache.get(rows_cache_key)?.use { cached_rows ->
             val rows = Api.klaxon.parseArray<MediaItemLayout>(cached_rows)!!
-            cached_rows.close()
 
-            val ctoken = Cache.get(ctoken_cache_key)?.run {
-                val ctoken = readText()
-                close()
-                ctoken
+            val ctoken = Cache.get(ctoken_cache_key)?.use {
+                it.readText()
             }
 
-            val chips = Cache.get(chips_cache_key)?.run {
-                val chips: List<List<Any>> = Api.klaxon.parseArray(this)!!
-                close()
-                chips.map { Pair(it[0] as Int, it[1] as String) }
+            val chips: List<FilterChip>? = Cache.get(chips_cache_key)?.use {
+                Api.klaxon.parseArray(it)!!
             }
 
             return@withContext Result.success(Triple(rows, ctoken, chips))
@@ -154,14 +150,14 @@ suspend fun getHomeFeed(
         if (continuation == null) {
             Cache.set(rows_cache_key, Api.klaxon.toJsonString(rows).reader(), CACHE_LIFETIME)
             Cache.set(ctoken_cache_key, ctoken?.reader(), CACHE_LIFETIME)
-            Cache.set(chips_cache_key, chips?.let { Api.klaxon.toJsonString(it.map { chip -> listOf(chip.first, chip.second) }).reader() }, CACHE_LIFETIME)
+            Cache.set(chips_cache_key, Api.klaxon.toJsonString(chips).reader(), CACHE_LIFETIME)
         }
 
         return@runCatching Triple(rows, ctoken, chips)
     }
 }
 
-private fun processRows(rows: List<YoutubeiShelf>, hl: String): List<MediaItemLayout> {
+private suspend fun processRows(rows: List<YoutubeiShelf>, hl: String): List<MediaItemLayout> {
     val ret = mutableListOf<MediaItemLayout>()
     for (row in rows) {
         if (!row.implemented) {
@@ -199,8 +195,8 @@ private fun processRows(rows: List<YoutubeiShelf>, hl: String): List<MediaItemLa
                 val browse_endpoint = header.title?.runs?.first()?.navigationEndpoint?.browseEndpoint
                 if (browse_endpoint == null) {
                     add(
-                        LocalisedYoutubeString.homeFeed(header.title!!.first_text),
-                        header.subtitle?.first_text?.let { LocalisedYoutubeString.homeFeed(it) }
+                        LocalisedYoutubeString.Type.HOME_FEED.create(header.title!!.first_text),
+                        header.subtitle?.first_text?.let { LocalisedYoutubeString.Type.HOME_FEED.create(it) }
                     )
                     continue
                 }
@@ -216,7 +212,7 @@ private fun processRows(rows: List<YoutubeiShelf>, hl: String): List<MediaItemLa
 
                 if (view_more_page_title_key != null) {
                     add(
-                        LocalisedYoutubeString.app(view_more_page_title_key),
+                        LocalisedYoutubeString.Type.APP.create(view_more_page_title_key),
                         null,
                         view_more = MediaItemLayout.ViewMore(list_page_browse_id = browse_endpoint.browseId),
                         type = when(browse_endpoint.browseId) {
@@ -227,12 +223,14 @@ private fun processRows(rows: List<YoutubeiShelf>, hl: String): List<MediaItemLa
                     continue
                 }
 
-                val page_type = browse_endpoint.browseEndpointContextSupportedConfigs?.browseEndpointContextMusicConfig?.pageType
+                val page_type = browse_endpoint.browseEndpointContextSupportedConfigs?.browseEndpointContextMusicConfig?.pageType!!
 
-                val media_item: MediaItem = when (page_type) {
-                    "MUSIC_PAGE_TYPE_ARTIST", "MUSIC_PAGE_TYPE_USER_CHANNEL" -> Artist.fromId(browse_endpoint.browseId)
-                    "MUSIC_PAGE_TYPE_PLAYLIST" -> AccountPlaylist.fromId(browse_endpoint.browseId).editPlaylistData { supplyTitle(header.title.first_text) }
-                    else -> throw NotImplementedError(browse_endpoint.toString())
+                val media_item = MediaItemType.fromBrowseEndpointType(page_type)!!.fromId(browse_endpoint.browseId).apply {
+                    editData {
+                        header.title.runs?.getOrNull(0)?.also { title ->
+                            supplyTitle(title.text)
+                        }
+                    }
                 }
 
                 val thumbnail_source =
@@ -242,8 +240,8 @@ private fun processRows(rows: List<YoutubeiShelf>, hl: String): List<MediaItemLa
                     ?: MediaItemLayout.ThumbnailSource(media_item = media_item)
 
                 add(
-                    LocalisedYoutubeString.raw(header.title.first_text),
-                    header.subtitle?.first_text?.let { LocalisedYoutubeString.homeFeed(it) },
+                    LocalisedYoutubeString.Type.RAW.create(header.title.first_text),
+                    header.subtitle?.first_text?.let { LocalisedYoutubeString.Type.HOME_FEED.create(it) },
                     view_more = MediaItemLayout.ViewMore(media_item = media_item),
                     thumbnail_source = thumbnail_source,
                     media_item_type = media_item.type
@@ -270,10 +268,10 @@ data class YoutubeiBrowseResponse(
                else contents?.singleColumnBrowseResultsRenderer?.tabs?.firstOrNull()?.tabRenderer?.content?.sectionListRenderer?.contents ?: emptyList()
     }
 
-    fun getHeaderChips(): List<Pair<Int, String>>? =
+    fun getHeaderChips(): List<FilterChip>? =
         contents?.singleColumnBrowseResultsRenderer?.tabs?.first()?.tabRenderer?.content?.sectionListRenderer?.header?.chipCloudRenderer?.chips?.map {
-            Pair(
-                LocalisedYoutubeString.filterChip(it.chipCloudChipRenderer.text!!.first_text) ?: throw NotImplementedError(it.chipCloudChipRenderer.text.first_text),
+            FilterChip(
+                LocalisedYoutubeString.Type.FILTER_CHIP.create(it.chipCloudChipRenderer.text!!.first_text),
                 it.chipCloudChipRenderer.navigationEndpoint.browseEndpoint!!.params!!
             )
         }

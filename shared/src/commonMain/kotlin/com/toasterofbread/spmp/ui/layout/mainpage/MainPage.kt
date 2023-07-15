@@ -135,7 +135,7 @@ fun MainPage(
                             Modifier.graphicsLayer { alpha = state_alpha.value },
                             state = scroll_state,
                             contentPadding = PaddingValues(
-                                bottom = LocalPlayerState.current.bottom_padding,
+                                bottom = LocalPlayerState.current.bottom_padding_dp,
                                 top = top_padding
                             ),
                             userScrollEnabled = !state_alpha.isRunning,
@@ -211,7 +211,7 @@ fun MainPage(
 
                             LibraryPage(
                                 pill_menu,
-                                LocalPlayerState.current.bottom_padding,
+                                LocalPlayerState.current.bottom_padding_dp,
                                 close = {},
                                 inline = true,
                                 outer_multiselect_context = LocalPlayerState.current.main_multiselect_context,

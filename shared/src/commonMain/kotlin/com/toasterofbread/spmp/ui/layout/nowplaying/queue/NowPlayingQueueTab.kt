@@ -45,9 +45,8 @@ import com.toasterofbread.spmp.model.mediaitem.Song
 import com.toasterofbread.spmp.platform.MediaPlayerService
 import com.toasterofbread.spmp.ui.component.WaveBorder
 import com.toasterofbread.spmp.ui.component.multiselect.MediaItemMultiSelectContext
-import com.toasterofbread.spmp.ui.layout.mainpage.MINIMISED_NOW_PLAYING_HEIGHT
-import com.toasterofbread.spmp.ui.layout.mainpage.MINIMISED_NOW_PLAYING_V_PADDING
-import com.toasterofbread.spmp.ui.layout.nowplaying.LocalNowPlayingExpansion
+import com.toasterofbread.spmp.ui.layout.mainpage.MINIMISED_NOW_PLAYING_HEIGHT_DP
+import com.toasterofbread.spmp.ui.layout.mainpage.MINIMISED_NOW_PLAYING_V_PADDING_DP
 import com.toasterofbread.spmp.ui.layout.nowplaying.LocalNowPlayingExpansion
 import com.toasterofbread.spmp.ui.layout.nowplaying.getNPAltOnBackground
 import com.toasterofbread.spmp.ui.layout.nowplaying.getNPBackground
@@ -164,7 +163,7 @@ fun QueueTab(page_height: Dp, modifier: Modifier = Modifier) {
                 // Add extra height for overscroll
                 .requiredHeight(page_height + 200.dp)
                 .requiredWidth(SpMp.context.getScreenWidth())
-                .padding(top = MINIMISED_NOW_PLAYING_HEIGHT.dp + (SpMp.context.getStatusBarHeight() * 0.5f) + top_bar_height + MINIMISED_NOW_PLAYING_V_PADDING.dp)
+                .padding(top = MINIMISED_NOW_PLAYING_HEIGHT_DP.dp + (SpMp.context.getStatusBarHeight() * 0.5f) + top_bar_height + MINIMISED_NOW_PLAYING_V_PADDING_DP.dp)
                 .background(queue_background_colour, shape)
                 .clip(shape)
         ) {
@@ -229,7 +228,7 @@ fun QueueTab(page_height: Dp, modifier: Modifier = Modifier) {
 
                         item {
                             Spacer(Modifier.height(
-                                NOW_PLAYING_TOP_BAR_HEIGHT.dp + MINIMISED_NOW_PLAYING_HEIGHT.dp + list_position + list_padding
+                                NOW_PLAYING_TOP_BAR_HEIGHT.dp + MINIMISED_NOW_PLAYING_HEIGHT_DP.dp + list_position + list_padding
                             ))
                         }
                     }

@@ -183,8 +183,14 @@ class PlayerStateImpl(private val context: PlatformContext): PlayerState(null, n
 
     private var now_playing_switch_page: Int by mutableStateOf(-1)
     private val overlay_page_undo_stack: MutableList<Pair<PlayerOverlayPage, MediaItem?>?> = mutableListOf()
-    private val bottom_padding_anim = Animatable(session_started.toFloat() * MINIMISED_NOW_PLAYING_HEIGHT)
     private var main_page_showing: Boolean by mutableStateOf(false)
+
+    @Composable
+    private fun getCurrentBottomPadding(): Float =
+        with(LocalDensity.current) {
+            (session_started.toFloat() * MINIMISED_NOW_PLAYING_HEIGHT_DP.dp.toPx()) + SpMp.context.getNavigationBarHeight()
+        }
+    private val bottom_padding_anim = Animatable(SpMp.context.getNavigationBarHeight().toFloat())
 
     private val low_memory_listener: () -> Unit
     private val prefs_listener: ProjectPreferences.Listener
@@ -207,7 +213,7 @@ class PlayerStateImpl(private val context: PlatformContext): PlayerState(null, n
 
     override var overlay_page: Pair<PlayerOverlayPage, MediaItem?>? by mutableStateOf(null)
         private set
-    override val bottom_padding: Dp get() = bottom_padding_anim.value.dp
+    override val bottom_padding: Float get() = bottom_padding_anim.value
     override val pill_menu = PillMenu(
         top = false,
         left = false
@@ -297,7 +303,7 @@ class PlayerStateImpl(private val context: PlatformContext): PlayerState(null, n
     override fun nowPlayingTopOffset(base: Modifier): Modifier {
         val density = LocalDensity.current
         val screen_height = context.getScreenHeight()
-        val bottom_padding = context.getNavigationBarHeight()
+        val bottom_padding = context.getNavigationBarHeightDp()
         val keyboard_insets = SpMp.context.getImeInsets()
 
         return base.offset {
@@ -314,10 +320,10 @@ class PlayerStateImpl(private val context: PlatformContext): PlayerState(null, n
     @Composable
     override fun nowPlayingBottomPadding(include_np: Boolean): Dp {
         if (include_np) {
-            val np by animateDpAsState(if (session_started) MINIMISED_NOW_PLAYING_HEIGHT.dp else 0.dp)
-            return context.getNavigationBarHeight() + np
+            val np by animateDpAsState(if (session_started) MINIMISED_NOW_PLAYING_HEIGHT_DP.dp else 0.dp)
+            return context.getNavigationBarHeightDp() + np
         }
-        return context.getNavigationBarHeight()
+        return context.getNavigationBarHeightDp()
     }
 
     override fun setOverlayPage(page: PlayerOverlayPage?, from_current: Boolean) {
@@ -434,8 +440,9 @@ class PlayerStateImpl(private val context: PlatformContext): PlayerState(null, n
 
     @Composable
     fun NowPlaying() {
-        OnChangedEffect(session_started) {
-            bottom_padding_anim.animateTo(session_started.toFloat() * MINIMISED_NOW_PLAYING_HEIGHT)
+        val bottom_padding = getCurrentBottomPadding()
+        OnChangedEffect(bottom_padding) {
+            bottom_padding_anim.animateTo(bottom_padding)
         }
 
         val screen_height = context.getScreenHeight()
@@ -445,7 +452,7 @@ class PlayerStateImpl(private val context: PlatformContext): PlayerState(null, n
 
             np_swipe_anchors = (0..NOW_PLAYING_VERTICAL_PAGE_COUNT)
                 .associateBy { anchor ->
-                    if (anchor == 0) MINIMISED_NOW_PLAYING_HEIGHT.toFloat() - half_screen_height
+                    if (anchor == 0) MINIMISED_NOW_PLAYING_HEIGHT_DP.toFloat() - half_screen_height
                     else ((screen_height).value * anchor) - half_screen_height
                 }
 
@@ -628,7 +635,7 @@ class PlayerStateImpl(private val context: PlatformContext): PlayerState(null, n
                     page.first.getPage(
                         pill_menu,
                         page.second,
-                        (if (session_started) MINIMISED_NOW_PLAYING_HEIGHT.dp else 0.dp) + 10.dp,
+                        (if (session_started) MINIMISED_NOW_PLAYING_HEIGHT_DP.dp else 0.dp) + SpMp.context.getNavigationBarHeightDp(),
                         close
                     )
                 }

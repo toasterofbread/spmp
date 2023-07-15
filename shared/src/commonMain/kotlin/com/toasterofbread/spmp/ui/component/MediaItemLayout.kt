@@ -185,7 +185,7 @@ data class MediaItemLayout(
             }
 
             val shelf =
-                if (initial) parsed.contents!!.singleColumnBrowseResultsRenderer.tabs.first().tabRenderer.content!!.sectionListRenderer.contents!!.single().musicPlaylistShelfRenderer!!
+                if (initial) parsed.contents!!.singleColumnBrowseResultsRenderer!!.tabs.first().tabRenderer.content!!.sectionListRenderer.contents!!.single().musicPlaylistShelfRenderer!!
                 else parsed.continuationContents!!.musicPlaylistShelfContinuation!!
 
             return@withContext Result.success(Pair(
@@ -410,6 +410,7 @@ fun MediaItemCard(
                             PlaylistType.PLAYLIST, null -> Icons.Filled.PlaylistPlay
                             PlaylistType.ALBUM -> Icons.Filled.Album
                             PlaylistType.AUDIOBOOK -> Icons.Filled.Book
+                            PlaylistType.PODCAST -> Icons.Filled.Podcasts
                             PlaylistType.RADIO -> Icons.Filled.Radio
                         }
                     }

@@ -109,7 +109,7 @@ fun MediaItemPreviewLong(
 
             Row(horizontalArrangement = Arrangement.spacedBy(5.dp)) {
                 if (params.show_type) {
-                    InfoText(item.type.getReadable(false), params)
+                    InfoText(item.getReadableType(false), params)
                 }
 
                 if (item !is Artist && item.artist?.title != null) {

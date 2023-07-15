@@ -12,12 +12,10 @@ import com.toasterofbread.spmp.api.radio.YoutubeiNextResponse
 import com.toasterofbread.spmp.model.Cache
 import com.toasterofbread.spmp.model.Settings
 import com.toasterofbread.spmp.model.mediaitem.AccountPlaylist
-import com.toasterofbread.spmp.model.mediaitem.Artist
 import com.toasterofbread.spmp.model.mediaitem.MediaItem
 import com.toasterofbread.spmp.model.mediaitem.MediaItemThumbnailProvider
 import com.toasterofbread.spmp.model.mediaitem.Song
 import com.toasterofbread.spmp.model.mediaitem.enums.MediaItemType
-import com.toasterofbread.spmp.model.mediaitem.enums.SongType
 import com.toasterofbread.spmp.resources.uilocalisation.LocalisedYoutubeString
 import com.toasterofbread.spmp.ui.component.MediaItemLayout
 import com.toasterofbread.spmp.ui.layout.mainpage.FilterChip
@@ -58,7 +56,11 @@ suspend fun getHomeFeed(
         }
     }
 
+    var last_request: Request? = null
+
     fun performRequest(ctoken: String?): Result<YoutubeiBrowseResponse> {
+        last_request = null
+
         val endpoint = "/youtubei/v1/browse"
         val request = Request.Builder()
             .ytUrl(if (ctoken == null) endpoint else "$endpoint?ctoken=$ctoken&continuation=$ctoken&type=next")
@@ -73,58 +75,19 @@ suspend fun getHomeFeed(
         val result = Api.request(request)
         val stream = result.getOrNull()?.getStream() ?: return result.cast()
 
+        last_request = request
+
         try {
             return stream.use {
                 Result.success(Api.klaxon.parse(it)!!)
             }
         }
-        catch (error: Throwable) {
-            val retry_result = Api.request(request)
-            val retry_stream = retry_result.getOrNull()?.getStream() ?: return retry_result.cast()
-
-            return retry_stream.use {
-                Result.failure(
-                    JsonParseException(
-                        Api.klaxon.parseJsonObject(it.reader()).apply {
-                            // Remove unneeded keys from JSON object
-
-                            remove("responseContext")
-
-                            val items: MutableList<Any> = mutableListOf(this)
-                            val keys_to_remove = listOf("trackingParams", "clickTrackingParams", "serializedShareEntity", "serializedContextData", "loggingContext")
-
-                            while (items.isNotEmpty()) {
-                                val obj = items.removeLast()
-
-                                if (obj is Collection<*>) {
-                                    items.addAll(obj as Collection<Any>)
-                                    continue
-                                }
-
-                                check(obj is JsonObject)
-
-                                for (key in keys_to_remove) {
-                                    obj.remove(key)
-                                }
-
-                                for (value in obj.values) {
-                                    if (value is JsonObject) {
-                                        items.add(value)
-                                    }
-                                    else if (value is Collection<*>) {
-                                        items.addAll(value.filterIsInstance<JsonObject>())
-                                    }
-                                }
-                            }
-                        },
-                        cause = error
-                    )
-                )
-            }
+        catch (e: Throwable) {
+            return Result.failure(e)
         }
     }
 
-    return@withContext kotlin.runCatching {
+    try {
         var data = performRequest(continuation).getOrThrow()
 
         val rows: MutableList<MediaItemLayout> = processRows(data.getShelves(continuation != null), hl).toMutableList()
@@ -153,7 +116,53 @@ suspend fun getHomeFeed(
             Cache.set(chips_cache_key, Api.klaxon.toJsonString(chips).reader(), CACHE_LIFETIME)
         }
 
-        return@runCatching Triple(rows, ctoken, chips)
+        return@withContext Result.success(Triple(rows, ctoken, chips))
+    }
+    catch (error: Throwable) {
+        val request = last_request ?: return@withContext Result.failure(error)
+
+        val retry_result = Api.request(request)
+        val retry_stream = retry_result.getOrNull()?.getStream() ?: return@withContext retry_result.cast()
+
+        return@withContext retry_stream.use {
+            Result.failure(
+                JsonParseException(
+                    Api.klaxon.parseJsonObject(it.reader()).apply {
+                        // Remove unneeded keys from JSON object
+
+                        remove("responseContext")
+
+                        val items: MutableList<Any> = mutableListOf(this)
+                        val keys_to_remove = listOf("trackingParams", "clickTrackingParams", "serializedShareEntity", "serializedContextData", "loggingContext")
+
+                        while (items.isNotEmpty()) {
+                            val obj = items.removeLast()
+
+                            if (obj is Collection<*>) {
+                                items.addAll(obj as Collection<Any>)
+                                continue
+                            }
+
+                            check(obj is JsonObject)
+
+                            for (key in keys_to_remove) {
+                                obj.remove(key)
+                            }
+
+                            for (value in obj.values) {
+                                if (value is JsonObject) {
+                                    items.add(value)
+                                }
+                                else if (value is Collection<*>) {
+                                    items.addAll(value.filterIsInstance<JsonObject>())
+                                }
+                            }
+                        }
+                    },
+                    cause = error
+                )
+            )
+        }
     }
 }
 
@@ -261,7 +270,7 @@ data class YoutubeiBrowseResponse(
 ) {
     val ctoken: String?
         get() = continuationContents?.sectionListContinuation?.continuations?.firstOrNull()?.nextContinuationData?.continuation
-                ?: contents!!.singleColumnBrowseResultsRenderer.tabs.first().tabRenderer.content?.sectionListRenderer?.continuations?.firstOrNull()?.nextContinuationData?.continuation
+                ?: contents?.singleColumnBrowseResultsRenderer?.tabs?.firstOrNull()?.tabRenderer?.content?.sectionListRenderer?.continuations?.firstOrNull()?.nextContinuationData?.continuation
 
     fun getShelves(has_continuation: Boolean): List<YoutubeiShelf> {
         return if (has_continuation) continuationContents?.sectionListContinuation?.contents ?: emptyList()
@@ -276,12 +285,19 @@ data class YoutubeiBrowseResponse(
             )
         }
 
-    data class Contents(val singleColumnBrowseResultsRenderer: SingleColumnBrowseResultsRenderer)
+    data class Contents(
+        val singleColumnBrowseResultsRenderer: SingleColumnBrowseResultsRenderer? = null,
+        val twoColumnBrowseResultsRenderer: TwoColumnBrowseResultsRenderer? = null
+    )
     data class SingleColumnBrowseResultsRenderer(val tabs: List<Tab>)
     data class Tab(val tabRenderer: TabRenderer)
     data class TabRenderer(val content: Content? = null)
     data class Content(val sectionListRenderer: SectionListRenderer)
     open class SectionListRenderer(val contents: List<YoutubeiShelf>? = null, val header: ChipCloudRendererHeader? = null, val continuations: List<YoutubeiNextResponse.Continuation>? = null)
+
+    class TwoColumnBrowseResultsRenderer(val tabs: List<Tab>, val secondaryContents: SecondaryContents) {
+        class SecondaryContents(val sectionListRenderer: SectionListRenderer)
+    }
 
     data class ContinuationContents(val sectionListContinuation: SectionListRenderer? = null, val musicPlaylistShelfContinuation: MusicShelfRenderer? = null)
 }
@@ -477,47 +493,11 @@ data class MusicCardShelfRenderer(
     }
 }
 
-data class MusicTwoRowItemRenderer(
-    val navigationEndpoint: NavigationEndpoint,
-    val title: TextRuns,
-    val subtitle: TextRuns? = null,
-    val thumbnailRenderer: ThumbnailRenderer,
-    val menu: YoutubeiNextResponse.Menu? = null
-) {
-    fun getArtist(host_item: MediaItem): Artist? {
-        for (run in subtitle?.runs ?: emptyList()) {
-            val browse_endpoint = run.navigationEndpoint?.browseEndpoint
-
-            val endpoint_type = browse_endpoint?.getMediaItemType()
-            if (endpoint_type == MediaItemType.ARTIST) {
-                return Artist.fromId(browse_endpoint.browseId).editArtistData { supplyTitle(run.text) }
-            }
-        }
-
-        if (host_item is Song) {
-            val index = if (host_item.song_type == SongType.VIDEO) 0 else 1
-            subtitle?.runs?.getOrNull(index)?.also {
-                return Artist.createForItem(host_item).editArtistData { supplyTitle(it.text) }
-            }
-        }
-
-        return null
-    }
-}
 data class ThumbnailRenderer(val musicThumbnailRenderer: MusicThumbnailRenderer) {
     fun toThumbnailProvider(): MediaItemThumbnailProvider {
         return MediaItemThumbnailProvider.fromThumbnails(musicThumbnailRenderer.thumbnail.thumbnails)!!
     }
 }
-data class MusicResponsiveListItemRenderer(
-    val playlistItemData: RendererPlaylistItemData? = null,
-    val flexColumns: List<FlexColumn>? = null,
-    val fixedColumns: List<FixedColumn>? = null,
-    val thumbnail: ThumbnailRenderer? = null,
-    val navigationEndpoint: NavigationEndpoint? = null,
-    val menu: YoutubeiNextResponse.Menu? = null
-)
-data class RendererPlaylistItemData(val videoId: String, val playlistSetVideoId: String? = null)
 
 data class FlexColumn(val musicResponsiveListItemFlexColumnRenderer: MusicResponsiveListItemColumnRenderer)
 data class FixedColumn(val musicResponsiveListItemFixedColumnRenderer: MusicResponsiveListItemColumnRenderer)

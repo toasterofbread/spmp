@@ -628,7 +628,7 @@ class PlayerStateImpl(private val context: PlatformContext): PlayerState(null, n
                     page.first.getPage(
                         pill_menu,
                         page.second,
-                        (if (session_started) MINIMISED_NOW_PLAYING_HEIGHT.dp * 2 else MINIMISED_NOW_PLAYING_HEIGHT.dp) + 10.dp,
+                        (if (session_started) MINIMISED_NOW_PLAYING_HEIGHT.dp else 0.dp) + 10.dp,
                         close
                     )
                 }

@@ -35,7 +35,7 @@ suspend fun getAccountPlaylists(): Result<List<AccountPlaylist>> = withContext(D
 
     val playlist_data = parsed
         .contents!!
-        .singleColumnBrowseResultsRenderer
+        .singleColumnBrowseResultsRenderer!!
         .tabs
         .first()
         .tabRenderer

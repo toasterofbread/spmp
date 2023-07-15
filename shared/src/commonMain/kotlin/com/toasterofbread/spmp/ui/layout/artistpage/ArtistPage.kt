@@ -325,8 +325,6 @@ fun ArtistPage(
                             if (description?.isNotBlank() == true) {
                                 DescriptionCard(description, { Theme.current.background }, { accent_colour }) { show_info = !show_info }
                             }
-
-                            Spacer(Modifier.requiredHeight(50.dp))
                         }
                     }
                 }

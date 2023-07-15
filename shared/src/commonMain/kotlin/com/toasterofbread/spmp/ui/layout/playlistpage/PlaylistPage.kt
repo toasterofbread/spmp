@@ -154,7 +154,7 @@ fun PlaylistPage(
             multiselect_context,
             Modifier.fillMaxWidth(),
             show_wave_border = false,
-            padding = PaddingValues(
+            padding = padding.copy(
                 top = if (previous_item != null) 0.dp else top_padding,
                 start = horizontal_padding,
                 end = horizontal_padding

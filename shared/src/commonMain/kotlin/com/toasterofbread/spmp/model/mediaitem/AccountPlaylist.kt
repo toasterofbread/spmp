@@ -67,6 +67,12 @@ class AccountPlaylist private constructor(id: String, context: PlatformContext):
         return this
     }
 
+    fun editPlaylistDataManual(action: AccountPlaylistItemData.() -> Unit): AccountPlaylistItemData {
+        checkNotDeleted()
+        action(data)
+        return data
+    }
+
     private val pending_edit_actions: MutableList<AccountPlaylistEditAction> = mutableListOf()
 
     companion object {

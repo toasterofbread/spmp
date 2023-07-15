@@ -60,6 +60,8 @@
     <string name="album">Album</string>
     <string name="audiobook">Audiobook</string>
     <string name="audiobooks">Audiobooks</string>
+    <string name="podcast">Podcast</string>
+    <string name="podcasts">Podcasts</string>
     <string name="radio">Radio</string>
     <string name="radios">Radios</string>
 

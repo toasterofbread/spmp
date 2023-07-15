@@ -124,7 +124,7 @@ fun SearchPage(
     Box(Modifier.fillMaxSize()) {
         Column(Modifier.fillMaxSize()) {
             val horizontal_padding = SpMp.context.getDefaultHorizontalPadding()
-            val padding by MultiselectAndMusicTopBar(
+            val padding = MultiselectAndMusicTopBar(
                 multiselect_context,
                 Modifier.fillMaxWidth().zIndex(1f),
                 padding = PaddingValues(

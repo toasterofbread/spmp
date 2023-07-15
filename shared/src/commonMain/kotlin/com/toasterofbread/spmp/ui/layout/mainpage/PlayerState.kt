@@ -6,6 +6,7 @@ import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.unit.Dp
 import com.toasterofbread.spmp.PlayerService
 import com.toasterofbread.spmp.model.mediaitem.Artist
@@ -96,7 +97,7 @@ open class PlayerState protected constructor(
     private val upstream: PlayerState? = null
 ) {
     open val overlay_page: Pair<PlayerOverlayPage, MediaItem?>? get() = upstream!!.overlay_page
-    open val bottom_padding: Dp get() = upstream!!.bottom_padding
+    open val bottom_padding: Float get() = upstream!!.bottom_padding
     open val pill_menu: PillMenu get() = upstream!!.pill_menu
     open val main_multiselect_context: MediaItemMultiSelectContext get() = upstream!!.main_multiselect_context
     open val np_theme_mode: ThemeMode get() = upstream!!.np_theme_mode
@@ -113,6 +114,11 @@ open class PlayerState protected constructor(
 
     open fun interactService(action: (player: PlayerService) -> Unit) { upstream!!.interactService(action) }
     open fun isRunningAndFocused(): Boolean = upstream!!.isRunningAndFocused()
+
+    val bottom_padding_dp: Dp
+        @Composable get() = with(LocalDensity.current) {
+            bottom_padding.toDp()
+        }
 
     fun copy(
         onClickedOverride: ((item: MediaItem, multiselect_key: Int?) -> Unit)? = null,
@@ -195,8 +201,4 @@ open class PlayerState protected constructor(
     fun showLongPressMenu(item: MediaItem) { showLongPressMenu(LongPressMenuData(item)) }
 
     open fun hideLongPressMenu() { upstream!!.hideLongPressMenu() }
-
-    // PlayerServiceHost
-
-
 }

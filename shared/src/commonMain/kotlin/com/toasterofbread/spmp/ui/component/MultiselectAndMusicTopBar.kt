@@ -27,7 +27,7 @@ fun MultiselectAndMusicTopBar(
     modifier: Modifier = Modifier,
     padding: PaddingValues = PaddingValues(),
     show_wave_border: Boolean = true
-): State<PaddingValues> {
+): PaddingValues {
     val top_padding = padding.calculateTopPadding()
     var top_bar_showing by remember { mutableStateOf(false) }
 
@@ -58,12 +58,8 @@ fun MultiselectAndMusicTopBar(
     val layout_direction = LocalLayoutDirection.current
     val out_top_padding by animateDpAsState(if (!top_bar_showing && !multiselect_context.is_active) top_padding else 0.dp)
 
-    return remember {
-        derivedStateOf {
-            padding.copy(
-                layout_direction,
-                top = out_top_padding
-            )
-        }
-    }
+    return padding.copy(
+        layout_direction,
+        top = out_top_padding
+    )
 }

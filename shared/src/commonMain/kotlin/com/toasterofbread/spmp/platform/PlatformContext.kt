@@ -5,6 +5,7 @@ import androidx.compose.foundation.layout.WindowInsets
 import androidx.compose.material3.ColorScheme
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.text.font.Font
 import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
@@ -44,6 +45,11 @@ fun PlatformContext.getDefaultVerticalPadding(): Dp = if (isScreenLarge()) 30.dp
 @Composable
 fun PlatformContext.getDefaultPaddingValues(): PaddingValues = PaddingValues(horizontal = getDefaultHorizontalPadding(), vertical = getDefaultVerticalPadding())
 
+@Composable
+fun PlatformContext.getNavigationBarHeightDp(): Dp = with(LocalDensity.current) {
+    getNavigationBarHeight().toDp()
+}
+
 expect class PlatformContext {
     val player_state: PlayerStateImpl
 
@@ -62,8 +68,7 @@ expect class PlatformContext {
     fun getImeInsets(): WindowInsets?
     @Composable
     fun getSystemInsets(): WindowInsets?
-    @Composable
-    fun getNavigationBarHeight(): Dp
+    fun getNavigationBarHeight(): Int
 
     fun getLightColorScheme(): ColorScheme
     fun getDarkColorScheme(): ColorScheme

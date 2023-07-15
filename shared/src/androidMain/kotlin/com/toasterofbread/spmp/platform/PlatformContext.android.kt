@@ -16,7 +16,6 @@ import android.os.Build
 import android.os.Looper
 import android.os.VibrationEffect
 import android.os.Vibrator
-import android.os.VibratorManager
 import android.view.Window
 import android.view.WindowInsetsController.APPEARANCE_LIGHT_STATUS_BARS
 import android.widget.Toast
@@ -35,7 +34,6 @@ import androidx.compose.ui.text.font.Font
 import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
 import androidx.core.app.NotificationManagerCompat
-import androidx.core.content.ContextCompat.getSystemService
 import com.toasterofbread.spmp.model.Settings
 import com.toasterofbread.spmp.resources.getString
 import com.toasterofbread.spmp.resources.getStringTODO
@@ -104,12 +102,11 @@ actual class PlatformContext(private val context: Context, onInit: ((PlatformCon
     @Composable
     actual fun getSystemInsets(): WindowInsets? = WindowInsets.systemGestures
 
-    @Composable
     @SuppressLint("InternalInsetResource", "DiscouragedApi")
-    actual fun getNavigationBarHeight(): Dp = with(LocalDensity.current) {
+    actual fun getNavigationBarHeight(): Int {
         val resources = SpMp.context.ctx.resources
         val resource_id = resources.getIdentifier("navigation_bar_height", "dimen", "android")
-        if (resource_id > 0) resources.getDimensionPixelSize(resource_id).toDp() else 0.dp
+        return if (resource_id > 0) resources.getDimensionPixelSize(resource_id) else 0
     }
 
     actual fun getLightColorScheme(): ColorScheme =

@@ -27,8 +27,8 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.times
 import com.toasterofbread.spmp.model.mediaitem.Song
 import com.toasterofbread.spmp.platform.composeScope
-import com.toasterofbread.spmp.ui.layout.mainpage.MINIMISED_NOW_PLAYING_HEIGHT
-import com.toasterofbread.spmp.ui.layout.mainpage.MINIMISED_NOW_PLAYING_V_PADDING
+import com.toasterofbread.spmp.ui.layout.mainpage.MINIMISED_NOW_PLAYING_HEIGHT_DP
+import com.toasterofbread.spmp.ui.layout.mainpage.MINIMISED_NOW_PLAYING_V_PADDING_DP
 import com.toasterofbread.spmp.ui.layout.nowplaying.LocalNowPlayingExpansion
 import com.toasterofbread.spmp.ui.layout.nowplaying.NOW_PLAYING_VERTICAL_PAGE_COUNT
 import com.toasterofbread.spmp.ui.layout.nowplaying.ThumbnailRow
@@ -112,14 +112,14 @@ fun ColumnScope.NowPlayingMainTab() {
             ThumbnailRow(
                 Modifier
                     .padding(
-                        top = MINIMISED_NOW_PLAYING_V_PADDING.dp
+                        top = MINIMISED_NOW_PLAYING_V_PADDING_DP.dp
                             * (1f - expansion.getBounded())
                             .coerceAtLeast(0f)
                     )
                     .height(
                         (expansion.getAbsolute() * (screen_width - (NOW_PLAYING_MAIN_PADDING.dp * 2)))
                             .coerceAtLeast(
-                                MINIMISED_NOW_PLAYING_HEIGHT.dp - (MINIMISED_NOW_PLAYING_V_PADDING.dp * 2)
+                                MINIMISED_NOW_PLAYING_HEIGHT_DP.dp - (MINIMISED_NOW_PLAYING_V_PADDING_DP.dp * 2)
                             )
                     )
                     .width(

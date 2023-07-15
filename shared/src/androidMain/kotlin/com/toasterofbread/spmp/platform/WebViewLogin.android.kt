@@ -1,5 +1,6 @@
 package com.toasterofbread.spmp.platform
 
+import android.annotation.SuppressLint
 import android.graphics.Bitmap
 import android.os.Build
 import android.view.ViewGroup
@@ -30,6 +31,7 @@ class WebResourceRequestReader(private val request: WebResourceRequest): WebView
         get() = request.requestHeaders
 }
 
+@SuppressLint("SetJavaScriptEnabled")
 @Composable
 actual fun WebViewLogin(
     initial_url: String,
@@ -52,7 +54,7 @@ actual fun WebViewLogin(
             if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
                 settings.isAlgorithmicDarkeningAllowed = is_dark
             }
-            else {
+            else if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.Q) {
                 @Suppress("DEPRECATION")
                 settings.forceDark = if (is_dark) WebSettings.FORCE_DARK_ON else WebSettings.FORCE_DARK_OFF
             }

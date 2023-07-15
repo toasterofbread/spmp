@@ -26,6 +26,7 @@ import com.toasterofbread.spmp.api.getOrReport
 import com.toasterofbread.spmp.model.*
 import com.toasterofbread.spmp.model.mediaitem.*
 import com.toasterofbread.spmp.platform.getDefaultHorizontalPadding
+import com.toasterofbread.spmp.platform.getDefaultVerticalPadding
 import com.toasterofbread.spmp.resources.getString
 import com.toasterofbread.spmp.resources.uilocalisation.durationToString
 import com.toasterofbread.spmp.ui.component.*
@@ -72,7 +73,8 @@ fun PlaylistPage(
     var reorderable: Boolean by remember { mutableStateOf(false) }
     var current_filter: String? by remember { mutableStateOf(null) }
     var current_sort_option: SortOption by remember { mutableStateOf(SortOption.PLAYLIST) }
-    val top_padding = padding.calculateTopPadding()
+    val vertical_padding = SpMp.context.getDefaultVerticalPadding()
+    val top_padding = padding.calculateTopPadding() + vertical_padding
 
     LaunchedEffect(playlist) {
         accent_colour = null
@@ -150,14 +152,15 @@ fun PlaylistPage(
         var editing_info by remember { mutableStateOf(false) }
         val horizontal_padding = SpMp.context.getDefaultHorizontalPadding()
 
-        val final_padding by MultiselectAndMusicTopBar(
+        val final_padding = MultiselectAndMusicTopBar(
             multiselect_context,
             Modifier.fillMaxWidth(),
             show_wave_border = false,
             padding = padding.copy(
                 top = if (previous_item != null) 0.dp else top_padding,
                 start = horizontal_padding,
-                end = horizontal_padding
+                end = horizontal_padding,
+                bottom = padding.calculateBottomPadding() + vertical_padding
             )
         )
 

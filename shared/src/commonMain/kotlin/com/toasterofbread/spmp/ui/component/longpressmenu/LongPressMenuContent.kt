@@ -54,6 +54,7 @@ import com.toasterofbread.spmp.model.mediaitem.Artist
 import com.toasterofbread.spmp.model.mediaitem.MediaItemPreviewParams
 import com.toasterofbread.spmp.model.mediaitem.MediaItemThumbnailProvider
 import com.toasterofbread.spmp.platform.composable.platformClickable
+import com.toasterofbread.spmp.platform.getNavigationBarHeightDp
 import com.toasterofbread.spmp.platform.vibrateShort
 import com.toasterofbread.spmp.ui.component.MediaItemTitleEditDialog
 import com.toasterofbread.spmp.ui.layout.nowplaying.overlay.DEFAULT_THUMBNAIL_ROUNDING
@@ -85,7 +86,7 @@ internal fun LongPressMenuContent(
 
     Box(
         Modifier
-            .requiredHeight(SpMp.context.getScreenHeight() + SpMp.context.getNavigationBarHeight())
+            .requiredHeight(SpMp.context.getScreenHeight() + SpMp.context.getNavigationBarHeightDp())
             .offset(y = -SpMp.context.getStatusBarHeight())
             .background(Color.Black.setAlpha(0.5f))
     ) {
@@ -110,7 +111,7 @@ internal fun LongPressMenuContent(
             Column(
                 modifier
                     .background(Theme.current.background, shape)
-                    .padding(bottom = SpMp.context.getNavigationBarHeight())
+                    .padding(bottom = SpMp.context.getNavigationBarHeightDp())
                     .fillMaxWidth()
                     .onSizeChanged {
                         if (show_info || !main_actions_showing) {

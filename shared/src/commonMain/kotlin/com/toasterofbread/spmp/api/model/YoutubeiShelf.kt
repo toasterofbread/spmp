@@ -6,8 +6,11 @@ import com.toasterofbread.spmp.api.MusicCardShelfRenderer
 import com.toasterofbread.spmp.api.MusicCarouselShelfRenderer
 import com.toasterofbread.spmp.api.MusicDescriptionShelfRenderer
 import com.toasterofbread.spmp.api.MusicShelfRenderer
+import com.toasterofbread.spmp.api.MusicThumbnailRenderer
 import com.toasterofbread.spmp.api.NavigationEndpoint
 import com.toasterofbread.spmp.api.TextRun
+import com.toasterofbread.spmp.api.TextRuns
+import com.toasterofbread.spmp.api.Thumbnails
 import com.toasterofbread.spmp.model.mediaitem.MediaItem
 
 data class YoutubeiShelf(
@@ -18,7 +21,9 @@ data class YoutubeiShelf(
     val musicCardShelfRenderer: MusicCardShelfRenderer? = null,
     val gridRenderer: GridRenderer? = null,
     val itemSectionRenderer: ItemSectionRenderer? = null,
-    val musicTastebuilderShelfRenderer: Any? = null
+    val musicTastebuilderShelfRenderer: Any? = null,
+    val musicMultiRowListItemRenderer: MusicMultiRowListItemRenderer? = null,
+    val musicResponsiveHeaderRenderer: MusicResponsiveHeaderRenderer? = null
 ) {
     init {
         assert(
@@ -30,6 +35,8 @@ data class YoutubeiShelf(
             || gridRenderer != null
             || itemSectionRenderer != null
             || musicTastebuilderShelfRenderer != null
+            || musicMultiRowListItemRenderer != null
+            || musicResponsiveHeaderRenderer != null
         ) { "No known shelf renderer" }
     }
 
@@ -72,4 +79,14 @@ data class YoutubeiShelf(
         gridRenderer ?:
         itemSectionRenderer ?:
         musicTastebuilderShelfRenderer
+}
+
+class MusicResponsiveHeaderRenderer(
+    val thumbnail: Thumbnails,
+    val title: TextRuns,
+    val straplineThumbnail: Thumbnails,
+    val straplineTextOne: TextRuns,
+    val description: Description? = null
+) {
+    class Description(val musicDescriptionShelfRenderer: MusicDescriptionShelfRenderer?)
 }

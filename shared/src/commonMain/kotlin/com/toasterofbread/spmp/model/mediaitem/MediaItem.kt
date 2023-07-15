@@ -21,6 +21,8 @@ import com.toasterofbread.spmp.model.Settings
 import com.toasterofbread.spmp.model.mediaitem.data.MediaItemData
 import com.toasterofbread.spmp.model.mediaitem.enums.MediaItemType
 import com.toasterofbread.spmp.model.mediaitem.enums.PlaylistType
+import com.toasterofbread.spmp.model.mediaitem.enums.SongType
+import com.toasterofbread.spmp.model.mediaitem.enums.getReadable
 import com.toasterofbread.spmp.platform.PlatformContext
 import com.toasterofbread.spmp.platform.ProjectPreferences
 import com.toasterofbread.spmp.platform.toImageBitmap
@@ -30,7 +32,6 @@ import kotlinx.coroutines.*
 import java.io.File
 import java.net.URL
 import java.time.Duration
-import java.util.*
 import java.util.concurrent.locks.ReentrantLock
 import kotlin.concurrent.withLock
 
@@ -46,6 +47,17 @@ abstract class MediaItem(val id: String, context: PlatformContext): MediaItemHol
             is LocalPlaylist -> MediaItemType.PLAYLIST_LOC
             is BrowseParamsPlaylist -> MediaItemType.PLAYLIST_BROWSEPARAMS
             else -> throw NotImplementedError(this.javaClass.name)
+        }
+
+    fun getReadableType(plural: Boolean): String =
+        when(this) {
+            is Song ->
+                if (song_type == SongType.PODCAST)
+                    PlaylistType.PODCAST.getReadable(plural)
+                else if (album?.playlist_type == PlaylistType.PODCAST || album?.playlist_type == PlaylistType.AUDIOBOOK)
+                    album?.playlist_type.getReadable(plural)
+                else MediaItemType.SONG.getReadable(plural)
+            else -> type.getReadable(plural)
         }
 
     abstract val data: MediaItemData

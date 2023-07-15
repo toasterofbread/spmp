@@ -51,6 +51,8 @@
     <string name="artist">アーティスト</string>
     <string name="audiobook">オーディオブック</string>
     <string name="audiobooks">オーディオブック</string>
+    <string name="podcast">ポッドキャスト</string>
+    <string name="podcasts">ポッドキャスト</string>
     <string name="radio">ラジオ</string>
     <string name="radios">ラジオ</string>
 

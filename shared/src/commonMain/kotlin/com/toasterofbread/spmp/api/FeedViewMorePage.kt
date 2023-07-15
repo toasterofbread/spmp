@@ -10,7 +10,6 @@ import kotlinx.coroutines.withContext
 import okhttp3.Request
 
 suspend fun getGenericFeedViewMorePage(browse_id: String): Result<List<MediaItem>> = withContext(Dispatchers.IO) {
-
     val hl = SpMp.data_language
     val request = Request.Builder()
         .ytUrl("/youtubei/v1/browse")
@@ -28,7 +27,7 @@ suspend fun getGenericFeedViewMorePage(browse_id: String): Result<List<MediaItem
 
     val items = parsed
         .contents!!
-        .singleColumnBrowseResultsRenderer
+        .singleColumnBrowseResultsRenderer!!
         .tabs
         .first()
         .tabRenderer

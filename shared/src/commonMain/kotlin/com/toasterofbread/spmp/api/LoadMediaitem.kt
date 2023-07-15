@@ -17,6 +17,7 @@ import com.toasterofbread.spmp.model.mediaitem.data.ArtistItemData
 import com.toasterofbread.spmp.model.mediaitem.data.MediaItemData
 import com.toasterofbread.spmp.model.mediaitem.data.SongItemData
 import com.toasterofbread.spmp.model.mediaitem.enums.PlaylistType
+import com.toasterofbread.spmp.model.mediaitem.enums.SongType
 import com.toasterofbread.spmp.resources.uilocalisation.LocalisedYoutubeString
 import com.toasterofbread.spmp.resources.uilocalisation.parseYoutubeDurationString
 import com.toasterofbread.spmp.resources.uilocalisation.parseYoutubeSubscribersString
@@ -72,7 +73,7 @@ suspend fun loadBrowseId(browse_id: String, params: String? = null): Result<List
         )
 
         val ret: MutableList<MediaItemLayout> = mutableListOf()
-        for (row in parsed.contents!!.singleColumnBrowseResultsRenderer.tabs.first().tabRenderer.content!!.sectionListRenderer.contents!!.withIndex()) {
+        for (row in parsed.contents!!.singleColumnBrowseResultsRenderer!!.tabs.first().tabRenderer.content!!.sectionListRenderer.contents!!.withIndex()) {
             if (row.value.description != null) {
                 continue
             }
@@ -120,7 +121,7 @@ suspend fun processDefaultResponse(item: MediaItem, data: MediaItemData, respons
                 if (item is Playlist && item.playlist_type == PlaylistType.RADIO) {
                     val playlist_shelf = parsed
                         .contents!!
-                        .singleColumnBrowseResultsRenderer
+                        .singleColumnBrowseResultsRenderer!!
                         .tabs[0]
                         .tabRenderer
                         .content!!
@@ -196,7 +197,17 @@ suspend fun processDefaultResponse(item: MediaItem, data: MediaItemData, respons
                     }
 
                     val item_layouts: MutableList<MediaItemLayout> = mutableListOf()
-                    for (row in parsed.contents!!.singleColumnBrowseResultsRenderer.tabs.first().tabRenderer.content!!.sectionListRenderer.contents!!.withIndex()) {
+
+                    val rows = with (parsed.contents!!) {
+                        if (singleColumnBrowseResultsRenderer != null) {
+                            singleColumnBrowseResultsRenderer.tabs.first().tabRenderer.content!!.sectionListRenderer.contents!!
+                        }
+                        else {
+                            twoColumnBrowseResultsRenderer!!.secondaryContents.sectionListRenderer.contents!!
+                        }
+                    }
+
+                    for (row in rows.withIndex()) {
                         val description = row.value.description
                         if (description != null) {
                             data.supplyDescription(description, true)
@@ -232,7 +243,15 @@ suspend fun processDefaultResponse(item: MediaItem, data: MediaItemData, respons
                                 layout_title,
                                 null,
                                 if (row.index == 0) MediaItemLayout.Type.NUMBERED_LIST else MediaItemLayout.Type.GRID,
-                                items.map { it.first }.toMutableList(),
+                                items.map {
+                                    if (item is Artist && it.first is Song && (it.first as Song).song_type == SongType.PODCAST) {
+                                        it.first.editData {
+                                            supplyArtist(item, true)
+                                        }
+                                    }
+
+                                    it.first
+                                }.toMutableList(),
                                 continuation = continuation,
                                 view_more = view_more
                             )

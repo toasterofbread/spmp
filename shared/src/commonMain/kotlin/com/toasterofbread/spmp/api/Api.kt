@@ -38,7 +38,7 @@ import kotlin.concurrent.thread
 import org.schabi.newpipe.extractor.downloader.Request as NewPipeRequest
 import org.schabi.newpipe.extractor.downloader.Response as NewPipeResponse
 
-const val DEFAULT_CONNECT_TIMEOUT = 3000
+const val DEFAULT_CONNECT_TIMEOUT = 10000
 val PLAIN_HEADERS = listOf("accept-language", "user-agent", "accept-encoding", "content-encoding", "origin")
 
 class JsonParseException(val json_obj: JsonObject, message: String? = null, cause: Throwable? = null): RuntimeException(message, cause)

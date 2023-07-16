@@ -57,7 +57,7 @@ android {
     compileSdk = (findProperty("android.compileSdk") as String).toInt()
 
     defaultConfig {
-        versionCode = 3
+        versionCode = 4
         versionName = getString("version_string")
 
         applicationId = "com.toasterofbread.spmp"

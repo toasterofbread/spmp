@@ -4,6 +4,12 @@ import SpMp
 import com.toasterofbread.spmp.model.Settings
 import com.toasterofbread.spmp.model.mediaitem.enums.MediaItemType
 import com.toasterofbread.spmp.resources.getString
+import com.toasterofbread.spmp.resources.uilocalisation.localised.Languages
+import com.toasterofbread.spmp.resources.uilocalisation.localised.getYoutubeArtistPageLocalisations
+import com.toasterofbread.spmp.resources.uilocalisation.localised.getYoutubeFilterChipsLocalisations
+import com.toasterofbread.spmp.resources.uilocalisation.localised.getYoutubeHomeFeedLocalisations
+import com.toasterofbread.spmp.resources.uilocalisation.localised.getYoutubeOwnChannelLocalisations
+import com.toasterofbread.spmp.resources.uilocalisation.localised.getYoutubeSearchPageLocalisations
 
 class LocalisedYoutubeString private constructor(
     val key: String,
@@ -83,7 +89,7 @@ class LocalisedYoutubeString private constructor(
     }
 }
 
-class YoutubeUILocalisation(languages: List<String>) {
+class YoutubeUILocalisation(languages: Languages) {
     enum class StringID {
         ARTIST_PAGE_SINGLES
     }
@@ -112,16 +118,11 @@ class YoutubeUILocalisation(languages: List<String>) {
         }
     }
 
-    private fun getLanguage(key: String, languages: List<String>): Int =
-        languages.indexOf(key).also {
-            check(it != -1)
-        }
-
-    internal val HOME_FEED_STRINGS: LocalisationSet = getYoutubeHomeFeedLocalisations { getLanguage(it, languages) }
-    internal val OWN_CHANNEL_STRINGS: LocalisationSet = getYoutubeOwnChannelLocalisations { getLanguage(it, languages) }
-    internal val ARTIST_PAGE_STRINGS: LocalisationSet = getYoutubeArtistPageLocalisations { getLanguage(it, languages) }
-    internal val SEARCH_PAGE_STRINGS: LocalisationSet = getYoutubeSearchPageLocalisations { getLanguage(it, languages) }
-    internal val FILTER_CHIPS: LocalisationSet = getYoutubeFilterChipsLocalisations { getLanguage(it, languages) }
+    internal val HOME_FEED_STRINGS: LocalisationSet = getYoutubeHomeFeedLocalisations(languages)
+    internal val OWN_CHANNEL_STRINGS: LocalisationSet = getYoutubeOwnChannelLocalisations(languages)
+    internal val ARTIST_PAGE_STRINGS: LocalisationSet = getYoutubeArtistPageLocalisations(languages)
+    internal val SEARCH_PAGE_STRINGS: LocalisationSet = getYoutubeSearchPageLocalisations(languages)
+    internal val FILTER_CHIPS: LocalisationSet = getYoutubeFilterChipsLocalisations(languages)
 
     internal fun getLocalised(string: String, localisations: LocalisationSet, source_language: Int): Pair<String, StringID?>? {
         val target: Int = Settings.KEY_LANG_UI.get()

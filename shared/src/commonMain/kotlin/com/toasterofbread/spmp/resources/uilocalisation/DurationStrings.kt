@@ -1,46 +1,50 @@
 package com.toasterofbread.spmp.resources.uilocalisation
 
 import SpMp
+import com.toasterofbread.spmp.resources.uilocalisation.localised.HMSData
+import com.toasterofbread.spmp.resources.uilocalisation.localised.getHoursMinutesSecondsSuffixes
 import org.apache.commons.lang3.time.DurationFormatUtils
 import java.time.Duration
 
-private const val HOUR: Long = 3600000L
+private const val HOUR_MS: Long = 3600000L
 
-fun durationToString(duration: Long, short: Boolean = false, hl: String = SpMp.ui_language): String {
+fun durationToString(duration_ms: Long, short: Boolean = false, hl: String = SpMp.ui_language): String {
     if (short) {
         return DurationFormatUtils.formatDuration(
-            duration,
-            if (duration >= HOUR) "H:mm:ss" else "mm:ss",
+            duration_ms,
+            if (duration_ms >= HOUR_MS) "H:mm:ss" else "mm:ss",
             true
         )
     }
-    else {
-        val hms = getHMS(hl)
-        if (hms != null) {
-            val f = StringBuilder()
 
-            val dur = Duration.ofMillis(duration)
-            dur.toHours().also {
-                if (it != 0L) {
-                    f.append("$it${hms.splitter}${hms.hours}")
-                }
-            }
-            (dur.toMinutes() % 60L).toInt().also {
-                if (it != 0) {
-                    f.append("${hms.splitter}$it${hms.splitter}${hms.minutes}")
-                }
-            }
-            (dur.seconds % 60L).toInt().also {
-                if (it != 0) {
-                    f.append("${hms.splitter}$it${hms.splitter}${hms.seconds}")
-                }
-            }
+    var hms = getHoursMinutesSecondsSuffixes(hl)
+    if (hms == null) {
+        SpMp.Log.warning("HMS duration strings not implemented for language '$hl'")
+        hms = getHoursMinutesSecondsSuffixes("en")
+    }
 
-            return f.toString()
+    checkNotNull(hms)
+
+    val string = StringBuilder()
+
+    val duration = Duration.ofMillis(duration_ms)
+    duration.toHours().also {
+        if (it != 0L) {
+            string.append("$it${hms.splitter}${hms.hours}")
+        }
+    }
+    (duration.toMinutes() % 60L).toInt().also {
+        if (it != 0) {
+            string.append("${hms.splitter}$it${hms.splitter}${hms.minutes}")
+        }
+    }
+    (duration.seconds % 60L).toInt().also {
+        if (it != 0) {
+            string.append("${hms.splitter}$it${hms.splitter}${hms.seconds}")
         }
     }
 
-    throw NotImplementedError(hl.split('-', limit = 2).first())
+    return string.toString()
 }
 
 fun parseYoutubeDurationString(string: String, hl: String): Long? {
@@ -57,24 +61,15 @@ fun parseYoutubeDurationString(string: String, hl: String): Long? {
 
         return ((hours * 60 + minutes) * 60 + seconds) * 1000
     }
-    else {
-        val hms = getHMS(hl)
-        if (hms != null) {
-            return parseHhMmSsDurationString(string, hms)
-        }
+
+    var hms = getHoursMinutesSecondsSuffixes(hl)
+    if (hms == null) {
+        SpMp.Log.warning("HMS duration strings not implemented for language '$hl'")
+        hms = getHoursMinutesSecondsSuffixes("en")
     }
 
-    throw NotImplementedError(hl.split('-', limit = 2).first())
+    return parseHhMmSsDurationString(string, hms!!)
 }
-
-private data class HMSData(val hours: String, val minutes: String, val seconds: String, val splitter: String = "")
-
-private fun getHMS(hl: String): HMSData? =
-    when (hl.split('-', limit = 2).first()) {
-        "en" -> HMSData("hours", "minutes", "seconds", " ")
-        "ja" -> HMSData("時間", "分", "秒")
-        else -> null
-    }
 
 private fun parseHhMmSsDurationString(string: String, hms: HMSData): Long? {
     try {
@@ -102,6 +97,7 @@ private fun parseHhMmSsDurationString(string: String, hms: HMSData): Long? {
         return (((hours ?: 0) * 60 + (minutes ?: 0)) * 60 + (seconds ?: 0)) * 1000
     }
     catch (e: Throwable) {
-        throw RuntimeException("Parsing duration string $string $hms failed", e)
+        SpMp.Log.warning("Parsing duration string $string $hms failed\n${e.stackTraceToString()}")
+        return null
     }
 }

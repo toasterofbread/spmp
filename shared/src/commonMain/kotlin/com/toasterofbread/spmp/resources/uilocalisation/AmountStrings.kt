@@ -1,5 +1,7 @@
 package com.toasterofbread.spmp.resources.uilocalisation
 
+import com.toasterofbread.spmp.resources.uilocalisation.localised.getAmountSuffixes
+
 fun parseYoutubeSubscribersString(string: String, hl: String): Int? {
     val suffixes = getAmountSuffixes(hl)
     if (suffixes != null) {
@@ -7,11 +9,18 @@ fun parseYoutubeSubscribersString(string: String, hl: String): Int? {
             return string.toFloat().toInt()
         }
 
-        val multiplier = suffixes[string.last()] ?: throw NotImplementedError(string.last().toString())
+        val multiplier = suffixes[string.last()]
+        if (multiplier == null) {
+            SpMp.Log.warning("Amount suffix '${string.last()}' not implemented for language '$hl'")
+            return null
+        }
+
         return (string.substring(0, string.length - 1).toFloat() * multiplier).toInt()
     }
 
-    throw NotImplementedError(hl)
+    SpMp.Log.warning("Amount suffixes not implemented for language '$hl'")
+
+    return null
 }
 
 fun amountToString(amount: Int, hl: String): String {
@@ -26,21 +35,7 @@ fun amountToString(amount: Int, hl: String): String {
         return amount.toString()
     }
 
-    throw NotImplementedError(hl)
+    SpMp.Log.warning("Amount suffixes not implemented for language '$hl'")
+    return amount.toString()
 }
 
-private fun getAmountSuffixes(hl: String): Map<Char, Int>? =
-    when (hl) {
-        "en" -> mapOf(
-            'B' to 1000000000,
-            'M' to 1000000,
-            'K' to 1000
-        )
-        "ja" -> mapOf(
-            '億' to 100000000,
-            '万' to 10000,
-            '千' to 1000,
-            '百' to 100
-        )
-        else -> null
-    }

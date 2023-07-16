@@ -1,5 +1,5 @@
 <resources>
-    <string name="version_string" translatable="false">0.1.1</string>
+    <string name="version_string" translatable="false">0.1.2</string>
 
     <string name="app_name" translatable="false">SpMp</string>
     <string name="app_name_debug" translatable="false">SpMp (debug)</string>

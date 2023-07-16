@@ -40,6 +40,7 @@ import com.toasterofbread.spmp.resources.getString
 import com.toasterofbread.spmp.resources.getStringTODO
 import com.toasterofbread.spmp.resources.initResources
 import com.toasterofbread.spmp.resources.uilocalisation.YoutubeUILocalisation
+import com.toasterofbread.spmp.resources.uilocalisation.localised.Languages
 import com.toasterofbread.spmp.ui.layout.mainpage.PlayerState
 import com.toasterofbread.spmp.ui.layout.mainpage.RootView
 import com.toasterofbread.spmp.ui.theme.ApplicationTheme
@@ -97,7 +98,13 @@ object SpMp {
         val ui_lang: Int = Settings.get(Settings.KEY_LANG_UI)
         initResources(LANGUAGES.elementAt(ui_lang), context)
 
-        _yt_ui_localisation = YoutubeUILocalisation(LANGUAGES)
+        val language_data = Languages { key ->
+            LANGUAGES.indexOf(key).also {
+                check(it != -1)
+            }
+        }
+        _yt_ui_localisation = YoutubeUILocalisation(language_data)
+
         Api.initialise()
     }
 

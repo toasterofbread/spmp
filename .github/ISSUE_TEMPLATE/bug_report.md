@@ -10,8 +10,6 @@ assignees: ''
 ## Before making a report
 Please check existing issues in case your bug has already been reported. Feel free to join the discussion there if you find one, or create a new issue if you don't.
 
-<br>
-
 **Describe the bug**
 A clear and concise description of what the bug is.
 

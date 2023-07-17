@@ -35,23 +35,23 @@ Support for Compose Multiplatform on desktop is [planned](https://github.com/toa
 <details open>
     <summary><h2>Screenshots</h2></summary>
     <p align="center">
-        <img src="readme/screenshot_11.png" style="max-height:70vh;object-fit:contain;" width="30%">
-        <img src="readme/screenshot_5.png" style="max-height:70vh;object-fit:contain;" width="30%">
-        <img src="readme/screenshot_10.png" style="max-height:70vh;object-fit:contain;" width="30%">
+        <img src="readme/screenshot_11.png" style="max-height:70vh;object-fit:contain;" width="25%">
+        <img src="readme/screenshot_5.png" style="max-height:70vh;object-fit:contain;" width="25%">
+        <img src="readme/screenshot_10.png" style="max-height:70vh;object-fit:contain;" width="25%">
     </p>
 </details>
 
 <details closed>
     <summary><h2>More Screenshots</h2></summary>
     <p align="center">
-        <img src="readme/screenshot_15.png" style="max-height:70vh;object-fit:contain;" width="30%">
-        <img src="readme/screenshot_19.png" style="max-height:70vh;object-fit:contain;" width="30%">
-        <img src="readme/screenshot_16.png" style="max-height:70vh;object-fit:contain;" width="30%">
+        <img src="readme/screenshot_15.png" style="max-height:70vh;object-fit:contain;" width="25%">
+        <img src="readme/screenshot_19.png" style="max-height:70vh;object-fit:contain;" width="25%">
+        <img src="readme/screenshot_16.png" style="max-height:70vh;object-fit:contain;" width="25%">
     </p>
     <p align="center">
-        <img src="readme/screenshot_14.png" style="max-height:70vh;object-fit:contain;" width="30%">
-        <img src="readme/screenshot_17.png" style="max-height:70vh;object-fit:contain;" width="30%">
-        <img src="readme/screenshot_8.png" style="max-height:70vh;object-fit:contain;" width="30%">
+        <img src="readme/screenshot_14.png" style="max-height:70vh;object-fit:contain;" width="25%">
+        <img src="readme/screenshot_17.png" style="max-height:70vh;object-fit:contain;" width="25%">
+        <img src="readme/screenshot_8.png" style="max-height:70vh;object-fit:contain;" width="25%">
     </p>
 </details>
 

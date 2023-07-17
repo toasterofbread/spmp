@@ -2,6 +2,7 @@
 
 ###
 <img align="left" width="140" src="androidApp/src/main/ic_launcher-playstore.png">
+<a href="https://github.com/toasterofbread/spmp/releases"><img src="https://img.shields.io/github/v/release/toasterofbread/spmp?logo=github&style=for-the-badge" align="right"></a>
 
 # SpMp
 A YouTube Music client with a focus on language and metadata customisation, built for Android using Jetpack Compose and Kotlin.
@@ -17,32 +18,19 @@ Support for Compose Multiplatform on desktop is [planned](https://github.com/toa
 
 <img align="right" width="20%" src="readme/screenshot_2.png">
 
-## Key features
-
-#### Metadata
+# Features
 - Edit song, artist, and playlist titles
 - Set separate languages for app UI and metadata like song titles
-
-#### QOL
+- In-app YouTube Music login
+- Display time-synchronised lyrics from [PetitLyrics](https://petitlyrics.com/)
+    - Timed lyrics are displayed in a toggleable bar above every app page
+    - Furigana (readings) display above Japanese kanji within lyrics
+- Select multiple songs for batch actions on any screen
 - Pin any song, playlist, album, or artist to the top of the main page
-- Download songs for offline playback
-- Select multiple songs/artists/playlists from any screen to perform general or context-specific actions (ex. shuffle just part of the queue)
-- When adding a song to the queue from the long press menu, a specific position can be selected and songs are placed in the order you add them by default
-
-#### Connectivity
-- In-app YouTube Music login for feed personalisation and interaction
-- Customisable Discord rich presence (with image support) using [KizzyRPC](https://github.com/dead8309/KizzyRPC)
-
-#### Lyrics
-- Display lyrics from [PetitLyrics](https://petitlyrics.com/), with timed lyrics support
-- Timed lyrics are displayed in a toggleable bar above every UI page in the app
-- Show furigana for Japanese kanji within lyrics using [Kuromoji](https://github.com/atilika/kuromoji)
+- Customisable Discord rich presence
+- Easily insert songs at any position in the queue
 
 ##### And more (see [the wiki](https://github.com/toasterofbread/spmp/wiki) for a ~~full~~ more complete list of features)
-
-## Planned features
-- Full offline functionality
-- ...?
 
 <details open>
     <summary><h2>Screenshots</h2></summary>
@@ -75,9 +63,13 @@ I started this project after I got tired of dealing with YouTube's official musi
 So instead of spending a few weeks learning the codebase of an existing project and contributing to it, I decided to spend almost a year (as of writing) creating my own solution.
 
 ## Contributing
-Pull requests and feature suggestions are welcome! This is my first Compose project (and also the largest project I've ever done in general) so there's probably plenty of room for improvement.
+Pull requests, bug reports, and feature suggestions are welcome! This is my first Compose project (and also the largest project I've ever done in general) so there's probably plenty of room for improvement.
 
-The app is currently being developed for both English and Japanese. Contributions for other languages would be greatly appreciated!
+The app is currently being developed for both English and Japanese. Contributions for other languages would be greatly appreciated! Information about app localisation can be found [here](https://github.com/toasterofbread/spmp/wiki/App-localisation).
+
+## Also available on
+
+<a href="https://apt.izzysoft.de/fdroid/index/apk/com.toasterofbread.spmp/"><img src="https://gitlab.com/IzzyOnDroid/repo/-/raw/master/assets/IzzyOnDroid.png" height=100></a>
 
 ## Thanks to
 - [ytmusicapi](https://github.com/sigma67/ytmusicapi/): Used as a reference for the YouTube Music API

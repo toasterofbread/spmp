@@ -24,20 +24,24 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
-import com.toasterofbread.spmp.api.LyricsSearchResult
+import com.toasterofbread.spmp.api.lyrics.LyricsSource
+import com.toasterofbread.spmp.api.lyrics.LyricsSource.SearchResult
 import com.toasterofbread.spmp.model.SongLyrics
 import com.toasterofbread.spmp.platform.composable.BackHandler
 import com.toasterofbread.spmp.resources.getString
 import com.toasterofbread.spmp.ui.theme.Theme
 import com.toasterofbread.utils.getContrasted
 import com.toasterofbread.utils.setAlpha
+import androidx.compose.runtime.remember
+import com.toasterofbread.spmp.resources.getStringTODO
 
 @Composable
-internal fun ColumnScope.LyricsSearchResults(results: List<LyricsSearchResult>, modifier: Modifier = Modifier, onFinished: (Int?) -> Unit) {
-
+internal fun ColumnScope.LyricsSearchResults(results_and_source: Pair<List<SearchResult>, Int>, modifier: Modifier = Modifier, onFinished: (Int?) -> Unit) {
     BackHandler {
         onFinished(null)
     }
+
+    val (results, source_idx) = results_and_source
 
     if (results.isNotEmpty()) {
         LazyColumn(
@@ -94,8 +98,11 @@ internal fun ColumnScope.LyricsSearchResults(results: List<LyricsSearchResult>, 
                                 Box(Modifier.background(sync_colour, CircleShape)) {
                                     text(result.sync_type.readable, sync_colour.getContrasted())
                                 }
-                                Box(Modifier.background(result.source.colour, CircleShape)) {
-                                    text(result.source.readable, result.source.colour.getContrasted())
+
+                                val source = remember(source_idx) { LyricsSource.fromIdx(source_idx) } 
+                                val source_colour = source.getColour()
+                                Box(Modifier.background(source_colour, CircleShape)) {
+                                    text(source.getReadable(), source_colour.getContrasted())
                                 }
                             }
 
@@ -125,6 +132,6 @@ internal fun ColumnScope.LyricsSearchResults(results: List<LyricsSearchResult>, 
         }
     }
     else {
-        Text("No results found", modifier, color = Theme.current.accent)
+        Text(getStringTODO("No results found"), modifier, color = Theme.current.accent)
     }
 }

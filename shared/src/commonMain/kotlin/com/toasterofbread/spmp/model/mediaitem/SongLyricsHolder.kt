@@ -3,7 +3,7 @@ package com.toasterofbread.spmp.model.mediaitem
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.setValue
-import com.toasterofbread.spmp.api.getSongLyrics
+import com.toasterofbread.spmp.api.lyrics.getSongLyrics
 import com.toasterofbread.spmp.model.SongLyrics
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.job

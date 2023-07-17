@@ -12,7 +12,9 @@
     <string name="media_play">再生</string>
     <string name="player_service_name">プレイヤーサービス</string>
     <string name="s_cat_lyrics">歌詞</string>
-    <string name="lyrics_source_petitlyrics">プチリリ</string>
+    
+    <string name="lyrics_source_petit">プチリリ</string>
+    <string name="lyrics_source_kugou">KuGou</string>
 
     <string name="error_message_generic">エラーが発生しました</string>
     <string name="error_yt_feed_parse_failed">YouTubeフィード解析に失敗しました</string>

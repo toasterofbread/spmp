@@ -17,12 +17,12 @@ class SongDataRegistryEntry: MediaItemDataRegistry.Entry() {
     var notif_image_offset_y: Int? by mutableStateOf(null)
 
     var lyrics_id: Int? by mutableStateOf(null)
-    var lyrics_source: SongLyrics.Source? by mutableStateOf(null)
+    var lyrics_source: Int? by mutableStateOf(null)
     var lyrics_sync_offset: Int? by mutableStateOf(null)
 
     @Json(ignored = true)
-    val lyrics_listeners = ValueListeners<Pair<Int, SongLyrics.Source>?>()
-    fun updateLyrics(id: Int?, source: SongLyrics.Source?) {
+    val lyrics_listeners = ValueListeners<Pair<Int, Int>?>()
+    fun updateLyrics(id: Int?, source: Int?) {
         if (id == lyrics_id && source == lyrics_source) {
             return
         }
@@ -32,7 +32,7 @@ class SongDataRegistryEntry: MediaItemDataRegistry.Entry() {
 
         lyrics_listeners.call(getLyricsData())
     }
-    fun getLyricsData(): Pair<Int, SongLyrics.Source>? =
+    fun getLyricsData(): Pair<Int, Int>? =
         if (lyrics_id != null) Pair(lyrics_id!!, lyrics_source!!)
         else null
 

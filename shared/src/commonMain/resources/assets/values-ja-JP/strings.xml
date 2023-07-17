@@ -182,7 +182,7 @@
 
     <string name="lyrics_none_found">歌詞が見つかりませんでした</string>
     <string name="lyrics_no_more_results">以上</string>
-    <string name="lyrics_search">歌詞を探す</string>
+    <string name="lyrics_search_on_$source">$sourceで歌詞を探す</string>
     <string name="lyrics_loading">歌詞をロード中</string>
     <string name="lyrics_sync_select_line">シンクに使う行を選んでください</string>
     <string name="lyrics_sync_press_button_when_line_begins">この行が始まったらボタンを押して下さい</string>

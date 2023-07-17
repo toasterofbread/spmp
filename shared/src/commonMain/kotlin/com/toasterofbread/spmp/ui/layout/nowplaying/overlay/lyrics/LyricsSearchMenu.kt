@@ -142,11 +142,37 @@ fun LyricsSearchMenu(song: Song, modifier: Modifier = Modifier, close: (changed:
                     horizontalAlignment = Alignment.CenterHorizontally,
                     verticalArrangement = Arrangement.SpaceEvenly
                 ) {
-                    Box(
+                    var source_selector_open: Boolean by remember { mutableStateOf(false) }
+                    Row(
                         Modifier
                             .background(Theme.current.accent, CircleShape)
-                            .padding(10.dp)) {
-                        Text(getString("lyrics_search"), color = on_accent)
+                            .padding(10.dp)
+                            .clickable { source_selector_open = !source_selector_open },
+                        verticalAlignment = Alignment.CenterVertically
+                    ) {
+                        Icon(Icons.Default.ArrowDropDown, null)
+
+                        Text(
+                            remember(selected_source_idx) {
+                                getString("lyrics_search_on_\$source")
+                                    .replace("\$source", LyricsSource.fromIdx(selected_source_idx).getReadable())
+                            },
+                            color = on_accent
+                        )
+
+                        LargeDropdownMenu(
+                            source_selector_open,
+                            { source_selector_open = false },
+                            LyricsSource.SOURCE_AMOUNT,
+                            selected_source_idx,
+                            { source_idx ->
+                                LyricsSource.fromIdx(source_idx).getReadable()
+                            },
+                            selected_item_colour = Theme.current.vibrant_accent
+                        ) { source_idx ->
+                            selected_source_idx = source_idx
+                            source_selector_open = false
+                        }
                     }
 
                     @Composable
@@ -172,30 +198,6 @@ fun LyricsSearchMenu(song: Song, modifier: Modifier = Modifier, close: (changed:
 
                     Field(title, getString("song_name"))
                     Field(artist, getString("artist"))
-
-                    var source_selector_open: Boolean by remember { mutableStateOf(false) }
-                    Button({ source_selector_open = !source_selector_open }) {
-                        Row {
-                            Icon(Icons.Default.ArrowDropDown, null)
-                            Text(remember(selected_source_idx) { 
-                                LyricsSource.fromIdx(selected_source_idx).getReadable()
-                            })
-                        }
-                        
-                        LargeDropdownMenu(
-                            source_selector_open,
-                            { source_selector_open = false },
-                            LyricsSource.SOURCE_AMOUNT,
-                            selected_source_idx,
-                            { source_idx ->
-                                LyricsSource.fromIdx(source_idx).getReadable()
-                            },
-                            selected_item_colour = Theme.current.vibrant_accent
-                        ) { source_idx ->
-                            selected_source_idx = source_idx
-                            source_selector_open = false
-                        }
-                    }
                 }
             }
             else if (search_results != null) {

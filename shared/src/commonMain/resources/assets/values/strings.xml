@@ -141,7 +141,7 @@
 
     <string name="lyrics_none_found">No lyrics found</string>
     <string name="lyrics_no_more_results">No more results</string>
-    <string name="lyrics_search">Search for lyrics</string>
+    <string name="lyrics_search_on_$source">Search for lyrics on $source</string>
     <string name="lyrics_loading">Loading lyrics</string>
     <string name="lyrics_sync_select_line">Select line to sync by</string>
     <string name="lyrics_sync_press_button_when_line_begins">Press button when this line begins</string>

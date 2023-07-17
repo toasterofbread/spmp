@@ -2,13 +2,11 @@ package com.toasterofbread.spmp.api.lyrics
 
 import com.toasterofbread.spmp.model.SongLyrics
 import com.toasterofbread.spmp.model.mediaitem.Song
-import okhttp3.Request
-import org.xmlpull.v1.XmlPullParser
-import org.xmlpull.v1.XmlPullParserFactory
 import androidx.compose.ui.graphics.Color
 import com.toasterofbread.spmp.resources.getStringTODO
+import kotlin.reflect.KClass
 
-sealed class LyricsSource protected constructor(val idx: Int) {
+sealed class LyricsSource(val idx: Int) {
     data class SearchResult(
         var id: Int,
         var name: String,
@@ -24,10 +22,15 @@ sealed class LyricsSource protected constructor(val idx: Int) {
     abstract suspend fun searchForLyrics(title: String, artist_name: String? = null): Result<List<SearchResult>>
 
     companion object {
-        val SOURCE_AMOUNT: Int = 1
-        fun fromIdx(source_idx: Int): LyricsSource = when (source_idx) {
-            0 -> PetitLyricsSource(source_idx)
-            else -> throw NotImplementedError(source_idx.toString())
+        private val lyrics_sources: List<KClass<out LyricsSource>> = listOf(
+            PetitLyricsSource::class
+        )
+        val SOURCE_AMOUNT: Int get() = lyrics_sources.size
+
+        @Suppress("NO_REFLECTION_IN_CLASS_PATH")
+        fun fromIdx(source_idx: Int): LyricsSource {
+            val cls = lyrics_sources[source_idx]
+            return cls.constructors.first().call(source_idx)
         }
     }
 }

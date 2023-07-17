@@ -68,7 +68,19 @@
     <string name="s_cat_audio_video">音・動画</string>
     <string name="s_key_acc_screen_off">画面がオフ状態でも有効にする</string>
     <string name="s_key_download_audio_quality">ダウンロードの音質</string>
+
+    <string name="s_key_lyrics_default_source">デフォルトの歌詞元</string>
+
+    <string name="s_key_lyrics_follow_enabled">現在の行をたどる</string>
+    <string name="s_sub_lyrics_follow_enabled">同期可能こ歌詞が表示されてる時、自動的に現在の行までスクロールします</string>
+
+    <string name="s_key_lyrics_follow_offset">たどった歌詞行の位置</string>
+    <string name="s_sub_lyrics_follow_offset">現在の行までスクロールする時、その行の画面内の最終位置</string>
+    <string name="s_option_lyrics_follow_offset_top">上</string>
+    <string name="s_option_lyrics_follow_offset_bottom">下</string>
+
     <string name="s_key_lyrics_default_furigana">ふりがなをデフォルトで表示する</string>
+
     <string name="s_key_lyrics_text_alignment">歌詞のアラインメント</string>
     <string name="s_key_stream_audio_quality">ストリームの音質</string>
     <string name="s_option_audio_quality_low">低</string>
@@ -77,8 +89,6 @@
     <string name="s_option_lyrics_text_alignment_left">左</string>
     <string name="s_option_lyrics_text_alignment_right">右</string>
     <string name="s_option_lyrics_text_alignment_center">中</string>
-    <string name="s_option_lyrics_follow_offset_top">上</string>
-    <string name="s_option_lyrics_follow_offset_bottom">下</string>
     <string name="s_sub_acc_screen_off">ルート許可が必要です</string>
     <string name="action_share">共有</string>
     <string name="artist_chip_details">情報</string>

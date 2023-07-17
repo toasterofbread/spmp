@@ -3,12 +3,15 @@ package com.toasterofbread.spmp.api.lyrics
 import com.toasterofbread.spmp.model.SongLyrics
 import com.toasterofbread.spmp.model.mediaitem.Song
 import androidx.compose.ui.graphics.Color
+import com.toasterofbread.spmp.model.Settings
 import com.toasterofbread.spmp.resources.getStringTODO
 import kotlin.reflect.KClass
 
-sealed class LyricsSource(val idx: Int) {
+data class LyricsReference(val id: String, val source_idx: Int)
+
+sealed class LyricsSource(val source_idx: Int) {
     data class SearchResult(
-        var id: Int,
+        var id: String,
         var name: String,
         var sync_type: SongLyrics.SyncType,
         var artist_name: String?,
@@ -18,12 +21,13 @@ sealed class LyricsSource(val idx: Int) {
     abstract fun getReadable(): String
     abstract fun getColour(): Color
     
-    abstract suspend fun getLyrics(lyrics_id: Int): Result<SongLyrics>
+    abstract suspend fun getLyrics(lyrics_id: String): Result<SongLyrics>
     abstract suspend fun searchForLyrics(title: String, artist_name: String? = null): Result<List<SearchResult>>
 
     companion object {
         private val lyrics_sources: List<KClass<out LyricsSource>> = listOf(
-            PetitLyricsSource::class
+            PetitLyricsSource::class,
+            KugouLyricsSource::class
         )
         val SOURCE_AMOUNT: Int get() = lyrics_sources.size
 
@@ -32,21 +36,26 @@ sealed class LyricsSource(val idx: Int) {
             val cls = lyrics_sources[source_idx]
             return cls.constructors.first().call(source_idx)
         }
+
+        inline fun iterateByPriority(default: Int = Settings.KEY_LYRICS_DEFAULT_SOURCE.get(), action: (LyricsSource) -> Unit) {
+            for (i in 0 until SOURCE_AMOUNT) {
+                val source = fromIdx(if (i == 0) default else if (i > default) i - 1 else i)
+                action(source)
+            }
+        }
     }
 }
 
-suspend fun getSongLyrics(song: Song, data: Pair<Int, Int>?): Result<SongLyrics> {
+suspend fun getSongLyrics(song: Song, reference: LyricsReference? = null): Result<SongLyrics> {
     val title = song.title ?: return Result.failure(RuntimeException("Song has no title"))
 
-    if (data != null) {
-        val source = LyricsSource.fromIdx(data.second)
-        return source.getLyrics(data.first)
+    if (reference != null) {
+        val source = LyricsSource.fromIdx(reference.source_idx)
+        return source.getLyrics(reference.id)
     }
 
     var fail_result: Result<SongLyrics>? = null
-    for (source_idx in 0 until LyricsSource.SOURCE_AMOUNT) {
-        val source = LyricsSource.fromIdx(source_idx)
-
+    LyricsSource.iterateByPriority { source ->
         val result: LyricsSource.SearchResult = source.searchForLyrics(title, song.artist?.title).fold(
             { results ->
                 if (results.isEmpty()) {
@@ -63,7 +72,7 @@ suspend fun getSongLyrics(song: Song, data: Pair<Int, Int>?): Result<SongLyrics>
                 }
                 null
             }
-        ) ?: continue
+        ) ?: return@iterateByPriority
 
         val lyrics_result = source.getLyrics(result.id)
         if (lyrics_result.isSuccess) {

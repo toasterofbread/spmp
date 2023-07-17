@@ -2,11 +2,10 @@ package com.toasterofbread.spmp.api.lyrics.petit
 
 import com.toasterofbread.spmp.model.SongLyrics
 import com.toasterofbread.spmp.api.lyrics.mergeAndFuriganiseTerms
-import okhttp3.RequestBody.Companion.toRequestBody
 import org.xmlpull.v1.XmlPullParser
 import org.xmlpull.v1.XmlPullParserFactory
 import com.atilika.kuromoji.ipadic.Tokenizer
-import java.nio.channels.ClosedByInterruptException
+import com.toasterofbread.spmp.api.lyrics.createTokeniser
 
 internal fun parseStaticLyrics(data: String): List<List<SongLyrics.Term>> {
     val tokeniser = Tokenizer()
@@ -85,18 +84,7 @@ internal fun parseTimedLyrics(data: String): List<List<SongLyrics.Term>> {
         return SongLyrics.Term(listOf(SongLyrics.Term.Text(text)), line_index, start!!, end!!)
     }
 
-    val tokeniser: Tokenizer
-    try {
-        tokeniser = Tokenizer()
-    }
-    catch (e: RuntimeException) {
-        if (e.cause is ClosedByInterruptException) {
-            throw InterruptedException()
-        }
-        else {
-            throw e
-        }
-    }
+    val tokeniser: Tokenizer = createTokeniser()
 
     fun parseLine(index: Int): List<SongLyrics.Term> {
         parser.require(XmlPullParser.START_TAG, null, "line")

@@ -52,7 +52,7 @@ internal suspend fun searchPetitLyrics(params: String): Result<List<SearchResult
             if (r_id != null) {
                 ret.add(
                     SearchResult(
-                        r_id,
+                        r_id.toString(),
                         r_name!!,
                         r_sync_type!!,
                         r_artist_name,
@@ -86,7 +86,7 @@ internal suspend fun searchPetitLyrics(params: String): Result<List<SearchResult
     if (r_id != null) {
         ret.add(
             SearchResult(
-                r_id,
+                r_id.toString(),
                 r_name!!,
                 r_sync_type!!,
                 r_artist_name,

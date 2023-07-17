@@ -22,6 +22,7 @@ class SongLyricsHolder(private val song: Song) {
                 load_lock.wait()
                 return@withContext lyrics?.let { Result.success(it) } ?: Result.failure(RuntimeException("Lyrics not loaded"))
             }
+            lyrics = null
             loading = true
         }
 
@@ -32,7 +33,7 @@ class SongLyricsHolder(private val song: Song) {
             }
         }
 
-        val result = getSongLyrics(song, song.song_reg_entry.getLyricsData())
+        val result = getSongLyrics(song, song.song_reg_entry.getLyricsReference())
         synchronized(load_lock) {
             loaded = true
             lyrics = result.getOrNull()

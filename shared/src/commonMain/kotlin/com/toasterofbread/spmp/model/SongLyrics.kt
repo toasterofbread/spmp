@@ -1,31 +1,16 @@
 package com.toasterofbread.spmp.model
 
-import androidx.compose.ui.graphics.Color
 import com.toasterofbread.spmp.resources.getString
 import com.toasterofbread.utils.lazyAssert
 import com.toasterofbread.utils.toHiragana
 
 data class SongLyrics(
     val id: Int,
-    val source: Source,
+    val source: Int,
     val sync_type: SyncType,
     val lines: List<List<Term>>
 ) {
     val synced: Boolean get() = sync_type != SyncType.NONE
-
-    enum class Source {
-        PETITLYRICS;
-
-        val readable: String
-            get() = when (this) {
-                PETITLYRICS -> getString("lyrics_source_petitlyrics")
-            }
-
-        val colour: Color
-            get() = when (this) {
-                PETITLYRICS -> Color(0xFFBD0A0F)
-            }
-    }
 
     enum class SyncType {
         NONE,

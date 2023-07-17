@@ -15,7 +15,7 @@ import com.toasterofbread.utils.launchSingle
 fun rememberSongUpdateLyrics(song: Song?, update_lyrics: Boolean = true): State<Song?> {
     val current_song: MutableState<Song?> = remember { mutableStateOf(song) }
     val coroutine_scope = rememberCoroutineScope()
-    val reg_lyrics_listener: (Pair<Int, SongLyrics.Source>?) -> Unit = remember(update_lyrics) { { data ->
+    val reg_lyrics_listener: (Pair<Int, Int>?) -> Unit = remember(update_lyrics) { { data ->
         if (update_lyrics) {
             val lyrics_holder = current_song.value!!.lyrics
             if (data?.first != lyrics_holder.lyrics?.id || data?.second != lyrics_holder.lyrics?.source) {

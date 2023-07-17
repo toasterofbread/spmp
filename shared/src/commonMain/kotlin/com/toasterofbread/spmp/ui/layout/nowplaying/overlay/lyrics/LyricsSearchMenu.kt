@@ -19,6 +19,7 @@ import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Close
 import androidx.compose.material.icons.filled.Edit
 import androidx.compose.material.icons.filled.Search
+import androidx.compose.material.icons.filled.ArrowDropDown
 import androidx.compose.material3.Button
 import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.CircularProgressIndicator
@@ -42,8 +43,7 @@ import androidx.compose.ui.platform.LocalSoftwareKeyboardController
 import androidx.compose.ui.text.input.ImeAction
 import androidx.compose.ui.text.input.TextFieldValue
 import androidx.compose.ui.unit.dp
-import com.toasterofbread.spmp.api.LyricsSearchResult
-import com.toasterofbread.spmp.api.searchForLyrics
+import com.toasterofbread.spmp.api.lyrics.LyricsSource
 import com.toasterofbread.spmp.model.mediaitem.Song
 import com.toasterofbread.spmp.resources.getString
 import com.toasterofbread.spmp.ui.theme.Theme
@@ -52,6 +52,7 @@ import com.toasterofbread.utils.setAlpha
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
 import java.io.IOException
+import com.toasterofbread.spmp.platform.LargeDropdownMenu
 
 private const val LYRICS_SEARCH_RETRY_COUNT = 3
 
@@ -83,8 +84,9 @@ fun LyricsSearchMenu(song: Song, modifier: Modifier = Modifier, close: (changed:
     val title = remember (song.title) { mutableStateOf(TextFieldValue(song.title ?: "")) }
     val artist = remember (song.artist?.title) { mutableStateOf(TextFieldValue(song.artist?.title ?: "")) }
     var search_state: Boolean by remember { mutableStateOf(false) }
+    var selected_source_idx: Int by remember { mutableStateOf(0) }
 
-    var search_results: List<LyricsSearchResult>? by remember { mutableStateOf(null) }
+    var search_results: Pair<List<LyricsSource.SearchResult>, Int>? by remember { mutableStateOf(null) }
     var edit_page_open by remember { mutableStateOf(true) }
 
     OnChangedEffect(search_state) {
@@ -96,11 +98,12 @@ fun LyricsSearchMenu(song: Song, modifier: Modifier = Modifier, close: (changed:
                 loading = true
             }
 
-            var result: Result<List<LyricsSearchResult>>? = null
+            var result: Result<List<LyricsSource.SearchResult>>? = null
             var retry_count = LYRICS_SEARCH_RETRY_COUNT
+            val source = LyricsSource.fromIdx(selected_source_idx)
 
             while (retry_count-- > 0) {
-                result = searchForLyrics(title.value.text, if (artist.value.text.trim().isEmpty()) null else artist.value.text)
+                result = source.searchForLyrics(title.value.text, if (artist.value.text.trim().isEmpty()) null else artist.value.text)
                 
                 val error = result.exceptionOrNull() ?: break
                 if (error !is IOException) {
@@ -111,8 +114,8 @@ fun LyricsSearchMenu(song: Song, modifier: Modifier = Modifier, close: (changed:
 
             result?.fold(
                 {
-                    search_results = it
-                    if (search_results?.isNotEmpty() == true) {
+                    search_results = Pair(it, source.idx)
+                    if (search_results?.first?.isNotEmpty() == true) {
                         edit_page_open = false
                     }
                     else {
@@ -159,7 +162,7 @@ fun LyricsSearchMenu(song: Song, modifier: Modifier = Modifier, close: (changed:
                             }),
                             trailingIcon = {
                                 IconButton({ state.value = TextFieldValue() }) {
-                                    Icon(Icons.Filled.Close, null)
+                                    Icon(Icons.Default.Close, null)
                                 }
                             },
                             colors = text_field_colours,
@@ -169,14 +172,39 @@ fun LyricsSearchMenu(song: Song, modifier: Modifier = Modifier, close: (changed:
 
                     Field(title, getString("song_name"))
                     Field(artist, getString("artist"))
+
+                    var source_selector_open: Boolean by remember { mutableStateOf(false) }
+                    Button({ source_selector_open = !source_selector_open }) {
+                        Row {
+                            Icon(Icons.Default.ArrowDropDown, null)
+                            Text(remember(selected_source_idx) { 
+                                LyricsSource.fromIdx(selected_source_idx).getReadable()
+                            })
+                        }
+                        
+                        LargeDropdownMenu(
+                            source_selector_open,
+                            { source_selector_open = false },
+                            LyricsSource.SOURCE_AMOUNT,
+                            selected_source_idx,
+                            { source_idx ->
+                                LyricsSource.fromIdx(source_idx).getReadable()
+                            },
+                            selected_item_colour = Theme.current.vibrant_accent
+                        ) { source_idx ->
+                            selected_source_idx = source_idx
+                            source_selector_open = false
+                        }
+                    }
                 }
             }
             else if (search_results != null) {
-                LyricsSearchResults(search_results!!) { index ->
+                val results = search_results!!
+                LyricsSearchResults(results) { index ->
                     if (index != null) {
-                        val selected = search_results!![index]
-                        if (selected.id != song.song_reg_entry.lyrics_id || selected.source != song.song_reg_entry.lyrics_source) {
-                            song.song_reg_entry.updateLyrics(selected.id, selected.source)
+                        val selected = results.first[index]
+                        if (selected.id != song.song_reg_entry.lyrics_id || results.second != song.song_reg_entry.lyrics_source) {
+                            song.song_reg_entry.updateLyrics(selected.id, results.second)
                             song.saveRegistry()
                             close(true)
                         }
@@ -229,7 +257,7 @@ fun LyricsSearchMenu(song: Song, modifier: Modifier = Modifier, close: (changed:
                             0 -> CircularProgressIndicator(Modifier.requiredSize(22.dp), color = on_accent, strokeWidth = 3.dp)
                             else -> {
                                 Icon(
-                                    if (icon == 1) Icons.Filled.Search else Icons.Filled.Edit,
+                                    if (icon == 1) Icons.Default.Search else Icons.Default.Edit,
                                     null,
                                     tint = on_accent
                                 )

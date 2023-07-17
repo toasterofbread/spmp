@@ -15,14 +15,14 @@ import java.util.*
 private const val DATA_START = "<lyricsData>"
 private const val DATA_END = "</lyricsData>"
 
-internal class PetitLyricsSource(idx: Int): LyricsSource(idx) {
+internal class PetitLyricsSource(source_idx: Int): LyricsSource(source_idx) {
     override fun getReadable(): String = getString("lyrics_source_petit")
     override fun getColour(): Color = Color(0xFFBD0A0F)
     
-    override suspend fun getLyrics(lyrics_id: Int): Result<SongLyrics> {
+    override suspend fun getLyrics(lyrics_id: String): Result<SongLyrics> {
         var fail_result: Result<SongLyrics>? = null
         for (sync_type in SongLyrics.SyncType.byPriority()) {
-            val result = getLyricsData(lyrics_id, sync_type)
+            val result = getLyricsData(lyrics_id.toInt(), sync_type)
             if (!result.isSuccess) {
                 if (fail_result == null) {
                     fail_result = result.cast()
@@ -33,11 +33,11 @@ internal class PetitLyricsSource(idx: Int): LyricsSource(idx) {
             val lyrics: List<List<SongLyrics.Term>>
             if (result.data.startsWith("<wsy>")) {
                 lyrics = parseTimedLyrics(result.data)
-                return Result.success(SongLyrics(lyrics_id, idx, sync_type, lyrics))
+                return Result.success(SongLyrics(LyricsReference(lyrics_id, source_idx), sync_type, lyrics))
             }
             else {
                 lyrics = parseStaticLyrics(result.data)
-                return Result.success(SongLyrics(lyrics_id, idx, SongLyrics.SyncType.NONE, lyrics))
+                return Result.success(SongLyrics(LyricsReference(lyrics_id, source_idx), SongLyrics.SyncType.NONE, lyrics))
             }
         }
 

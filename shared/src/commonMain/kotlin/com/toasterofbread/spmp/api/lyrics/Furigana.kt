@@ -5,6 +5,45 @@ import com.atilika.kuromoji.ipadic.Tokenizer
 import com.toasterofbread.utils.hasKanjiAndHiragana
 import com.toasterofbread.utils.isJP
 import com.toasterofbread.utils.isKanji
+import java.nio.channels.ClosedByInterruptException
+
+fun createTokeniser(): Tokenizer {
+    try {
+        return Tokenizer()
+    }
+    catch (e: RuntimeException) {
+        if (e.cause is ClosedByInterruptException) {
+            throw InterruptedException()
+        }
+        else {
+            throw e
+        }
+    }
+}
+
+fun mergeAndFuriganiseTerms(tokeniser: Tokenizer, terms: List<SongLyrics.Term>): List<SongLyrics.Term> {
+    if (terms.isEmpty()) {
+        return emptyList()
+    }
+
+    val ret: MutableList<SongLyrics.Term> = mutableListOf()
+    val terms_to_process: MutableList<SongLyrics.Term> = mutableListOf()
+
+    for (term in terms) {
+        val text = term.subterms.single().text
+        if (text.any { it.isJP() }) {
+            terms_to_process.add(term)
+        }
+        else {
+            ret.addAll(_mergeAndFuriganiseTerms(tokeniser, terms_to_process))
+            terms_to_process.clear()
+        }
+    }
+
+    ret.addAll(_mergeAndFuriganiseTerms(tokeniser, terms_to_process))
+
+    return ret
+}
 
 private fun trimOkurigana(term: SongLyrics.Term.Text): List<SongLyrics.Term.Text> {
     if (term.furi == null || !term.text.hasKanjiAndHiragana()) {
@@ -68,31 +107,6 @@ private fun trimOkurigana(term: SongLyrics.Term.Text): List<SongLyrics.Term.Text
     return terms
 }
 
-fun mergeAndFuriganiseTerms(tokeniser: Tokenizer, terms: List<SongLyrics.Term>): List<SongLyrics.Term> {
-    if (terms.isEmpty()) {
-        return emptyList()
-    }
-
-    val ret: MutableList<SongLyrics.Term> = mutableListOf()
-    val terms_to_process: MutableList<SongLyrics.Term> = mutableListOf()
-
-    for (term in terms) {
-        val text = term.subterms.single().text
-        if (text.any { it.isJP() }) {
-            terms_to_process.add(term)
-        }
-        else {
-            ret.addAll(_mergeAndFuriganiseTerms(tokeniser, terms_to_process))
-            terms_to_process.clear()
-            ret.add(term)
-        }
-    }
-
-    ret.addAll(_mergeAndFuriganiseTerms(tokeniser, terms_to_process))
-
-    return ret
-}
-
 private fun _mergeAndFuriganiseTerms(tokeniser: Tokenizer, terms: List<SongLyrics.Term>): List<SongLyrics.Term> {
     if (terms.isEmpty()) {
         return emptyList()
@@ -131,7 +145,7 @@ private fun _mergeAndFuriganiseTerms(tokeniser: Tokenizer, terms: List<SongLyric
                 term_head += needed
             }
             else {
-                text += subterm.text
+                text += subterm.text.substring(term_head)
                 term_head = 0
                 current_term++
             }

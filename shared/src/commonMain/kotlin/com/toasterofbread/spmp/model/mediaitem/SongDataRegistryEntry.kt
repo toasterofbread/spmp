@@ -4,7 +4,7 @@ import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.setValue
 import com.beust.klaxon.Json
-import com.toasterofbread.spmp.model.SongLyrics
+import com.toasterofbread.spmp.api.lyrics.LyricsReference
 import com.toasterofbread.utils.ValueListeners
 
 const val SONG_STATIC_LYRICS_SYNC_OFFSET = 500
@@ -16,24 +16,24 @@ class SongDataRegistryEntry: MediaItemDataRegistry.Entry() {
     var notif_image_offset_x: Int? by mutableStateOf(null)
     var notif_image_offset_y: Int? by mutableStateOf(null)
 
-    var lyrics_id: Int? by mutableStateOf(null)
-    var lyrics_source: Int? by mutableStateOf(null)
+    var lyrics_id: String? by mutableStateOf(null)
+    var lyrics_source_idx: Int? by mutableStateOf(null)
     var lyrics_sync_offset: Int? by mutableStateOf(null)
 
     @Json(ignored = true)
-    val lyrics_listeners = ValueListeners<Pair<Int, Int>?>()
-    fun updateLyrics(id: Int?, source: Int?) {
-        if (id == lyrics_id && source == lyrics_source) {
+    val lyrics_listeners = ValueListeners<LyricsReference?>()
+    fun updateLyrics(id: String?, source_idx: Int?) {
+        if (id == lyrics_id && source_idx == lyrics_source_idx) {
             return
         }
 
         lyrics_id = id
-        lyrics_source = source
+        lyrics_source_idx = source_idx
 
-        lyrics_listeners.call(getLyricsData())
+        lyrics_listeners.call(getLyricsReference())
     }
-    fun getLyricsData(): Pair<Int, Int>? =
-        if (lyrics_id != null) Pair(lyrics_id!!, lyrics_source!!)
+    fun getLyricsReference(): LyricsReference? =
+        if (lyrics_id != null) LyricsReference(lyrics_id!!, lyrics_source_idx!!)
         else null
 
     fun getLyricsSyncOffset(): Int = (lyrics_sync_offset ?: 0) + SONG_STATIC_LYRICS_SYNC_OFFSET
@@ -46,7 +46,7 @@ class SongDataRegistryEntry: MediaItemDataRegistry.Entry() {
         notif_image_offset_x = null
         notif_image_offset_y = null
         lyrics_id = null
-        lyrics_source = null
+        lyrics_source_idx = null
         lyrics_sync_offset = null
     }
 }

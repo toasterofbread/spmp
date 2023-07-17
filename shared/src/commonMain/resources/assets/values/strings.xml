@@ -321,6 +321,8 @@
 
     <string name="s_cat_lyrics">Lyrics</string>
 
+    <string name="s_key_lyrics_default_source">Default lyrics source</string>
+
     <string name="s_key_lyrics_follow_enabled">Follow current line</string>
     <string name="s_sub_lyrics_follow_enabled">When displaying timed lyrics, scroll to the current line automatically</string>
 

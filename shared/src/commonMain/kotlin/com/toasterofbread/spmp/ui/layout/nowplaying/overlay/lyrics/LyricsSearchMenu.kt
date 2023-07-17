@@ -44,6 +44,7 @@ import androidx.compose.ui.text.input.ImeAction
 import androidx.compose.ui.text.input.TextFieldValue
 import androidx.compose.ui.unit.dp
 import com.toasterofbread.spmp.api.lyrics.LyricsSource
+import com.toasterofbread.spmp.model.Settings
 import com.toasterofbread.spmp.model.mediaitem.Song
 import com.toasterofbread.spmp.resources.getString
 import com.toasterofbread.spmp.ui.theme.Theme
@@ -84,7 +85,7 @@ fun LyricsSearchMenu(song: Song, modifier: Modifier = Modifier, close: (changed:
     val title = remember (song.title) { mutableStateOf(TextFieldValue(song.title ?: "")) }
     val artist = remember (song.artist?.title) { mutableStateOf(TextFieldValue(song.artist?.title ?: "")) }
     var search_state: Boolean by remember { mutableStateOf(false) }
-    var selected_source_idx: Int by remember { mutableStateOf(0) }
+    var selected_source_idx: Int by remember { mutableStateOf(Settings.KEY_LYRICS_DEFAULT_SOURCE.get()) }
 
     var search_results: Pair<List<LyricsSource.SearchResult>, Int>? by remember { mutableStateOf(null) }
     var edit_page_open by remember { mutableStateOf(true) }
@@ -114,7 +115,7 @@ fun LyricsSearchMenu(song: Song, modifier: Modifier = Modifier, close: (changed:
 
             result?.fold(
                 {
-                    search_results = Pair(it, source.idx)
+                    search_results = Pair(it, source.source_idx)
                     if (search_results?.first?.isNotEmpty() == true) {
                         edit_page_open = false
                     }
@@ -150,7 +151,7 @@ fun LyricsSearchMenu(song: Song, modifier: Modifier = Modifier, close: (changed:
                             .clickable { source_selector_open = !source_selector_open },
                         verticalAlignment = Alignment.CenterVertically
                     ) {
-                        Icon(Icons.Default.ArrowDropDown, null)
+                        Icon(Icons.Default.ArrowDropDown, null, tint = on_accent)
 
                         Text(
                             remember(selected_source_idx) {
@@ -205,7 +206,7 @@ fun LyricsSearchMenu(song: Song, modifier: Modifier = Modifier, close: (changed:
                 LyricsSearchResults(results) { index ->
                     if (index != null) {
                         val selected = results.first[index]
-                        if (selected.id != song.song_reg_entry.lyrics_id || results.second != song.song_reg_entry.lyrics_source) {
+                        if (selected.id != song.song_reg_entry.lyrics_id || results.second != song.song_reg_entry.lyrics_source_idx) {
                             song.song_reg_entry.updateLyrics(selected.id, results.second)
                             song.saveRegistry()
                             close(true)

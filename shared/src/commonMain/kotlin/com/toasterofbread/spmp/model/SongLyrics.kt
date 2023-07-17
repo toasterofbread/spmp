@@ -1,16 +1,18 @@
 package com.toasterofbread.spmp.model
 
+import com.toasterofbread.spmp.api.lyrics.LyricsReference
 import com.toasterofbread.spmp.resources.getString
 import com.toasterofbread.utils.lazyAssert
 import com.toasterofbread.utils.toHiragana
 
 data class SongLyrics(
-    val id: Int,
-    val source: Int,
+    val reference: LyricsReference,
     val sync_type: SyncType,
     val lines: List<List<Term>>
 ) {
     val synced: Boolean get() = sync_type != SyncType.NONE
+    val id: String get() = reference.id
+    val source_idx: Int get() = reference.source_idx
 
     enum class SyncType {
         NONE,

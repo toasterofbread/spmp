@@ -6,11 +6,20 @@ import com.toasterofbread.settings.model.SettingsItemDropdown
 import com.toasterofbread.settings.model.SettingsItemSlider
 import com.toasterofbread.settings.model.SettingsItemToggle
 import com.toasterofbread.settings.model.SettingsValueState
+import com.toasterofbread.spmp.api.lyrics.LyricsSource
 import com.toasterofbread.spmp.model.Settings
 import com.toasterofbread.spmp.resources.getString
 
 internal fun getLyricsCategory(): List<SettingsItem> {
     return listOf(
+        SettingsItemDropdown(
+            SettingsValueState(Settings.KEY_LYRICS_DEFAULT_SOURCE.name),
+            getString("s_key_lyrics_default_source"), null,
+            LyricsSource.SOURCE_AMOUNT
+        ) { i ->
+            LyricsSource.fromIdx(i).getReadable()
+        },
+
         SettingsItemToggle(
             SettingsValueState(Settings.KEY_LYRICS_FOLLOW_ENABLED.name),
             getString("s_key_lyrics_follow_enabled"), getString("s_sub_lyrics_follow_enabled")

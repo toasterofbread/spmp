@@ -14,14 +14,16 @@
         tools:ignore="QueryAllPackagesPermission" />
 
     <application
+        android:label="${appName}"
+        android:supportsRtl="true"
+        android:theme="@style/Theme.MyApplication"
+
+        android:icon="@mipmap/ic_launcher"
+        android:roundIcon="@mipmap/ic_launcher_round"
+
         android:allowBackup="true"
         android:dataExtractionRules="@xml/data_extraction_rules"
         android:fullBackupContent="@xml/backup_rules"
-        android:icon="@mipmap/ic_launcher"
-        android:label="${appName}"
-        android:roundIcon="@mipmap/ic_launcher_round"
-        android:supportsRtl="true"
-        android:theme="@style/Theme.MyApplication"
         android:extractNativeLibs="true"
         android:enableOnBackInvokedCallback="true">
         <activity

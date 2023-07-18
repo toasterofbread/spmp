@@ -30,14 +30,22 @@ internal class PetitLyricsSource(source_idx: Int): LyricsSource(source_idx) {
                 continue
             }
 
-            val lyrics: List<List<SongLyrics.Term>>
             if (result.data.startsWith("<wsy>")) {
-                lyrics = parseTimedLyrics(result.data)
-                return Result.success(SongLyrics(LyricsReference(lyrics_id, source_idx), sync_type, lyrics))
+                val parse_result = parseTimedLyrics(result.data)
+                val lyrics = parse_result.getOrNull() ?: return parse_result.cast()
+
+                return Result.success(SongLyrics(
+                    LyricsReference(lyrics_id, source_idx),
+                    sync_type,
+                    lyrics
+                ))
             }
             else {
-                lyrics = parseStaticLyrics(result.data)
-                return Result.success(SongLyrics(LyricsReference(lyrics_id, source_idx), SongLyrics.SyncType.NONE, lyrics))
+                return Result.success(SongLyrics(
+                    LyricsReference(lyrics_id, source_idx),
+                    SongLyrics.SyncType.NONE,
+                    parseStaticLyrics(result.data)
+                ))
             }
         }
 

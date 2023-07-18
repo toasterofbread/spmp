@@ -36,6 +36,7 @@ fun mergeAndFuriganiseTerms(tokeniser: Tokenizer, terms: List<SongLyrics.Term>):
         }
         else {
             ret.addAll(_mergeAndFuriganiseTerms(tokeniser, terms_to_process))
+            ret.add(term)
             terms_to_process.clear()
         }
     }

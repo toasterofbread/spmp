@@ -6,6 +6,7 @@ import org.xmlpull.v1.XmlPullParser
 import org.xmlpull.v1.XmlPullParserFactory
 import com.atilika.kuromoji.ipadic.Tokenizer
 import com.toasterofbread.spmp.api.lyrics.createTokeniser
+import com.toasterofbread.spmp.resources.getStringTODO
 
 internal fun parseStaticLyrics(data: String): List<List<SongLyrics.Term>> {
     val tokeniser = Tokenizer()
@@ -23,7 +24,7 @@ internal fun parseStaticLyrics(data: String): List<List<SongLyrics.Term>> {
     return ret
 }
 
-internal fun parseTimedLyrics(data: String): List<List<SongLyrics.Term>> {
+internal fun parseTimedLyrics(data: String): Result<List<List<SongLyrics.Term>>> {
     val parser = XmlPullParserFactory.newInstance().newPullParser()
     parser.setFeature(XmlPullParser.FEATURE_PROCESS_NAMESPACES, false)
     parser.setInput(data.reader())
@@ -141,6 +142,7 @@ internal fun parseTimedLyrics(data: String): List<List<SongLyrics.Term>> {
             continue
         }
 
+        println("NAME ${parser.name}")
         if (parser.name != "line") {
             skip()
             continue
@@ -149,9 +151,17 @@ internal fun parseTimedLyrics(data: String): List<List<SongLyrics.Term>> {
         ret.add(parseLine(ret.size))
     }
 
+    if (ret.isEmpty()) {
+        return Result.failure(RuntimeException(getStringTODO("Lyrics data is empty")))
+    }
+
     while (ret.first().isEmpty()) {
         ret.removeFirst()
+        if (ret.isEmpty()) {
+            return Result.failure(RuntimeException(getStringTODO("Lyrics data is empty")))
+        }
     }
+
     while (ret.last().isEmpty()) {
         ret.removeLast()
     }
@@ -162,5 +172,5 @@ internal fun parseTimedLyrics(data: String): List<List<SongLyrics.Term>> {
         }
     }
 
-    return ret
+    return Result.success(ret)
 }

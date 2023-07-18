@@ -1,3 +1,5 @@
+@file:Suppress("UnstableApiUsage")
+
 import org.xmlpull.v1.XmlPullParser
 import org.xmlpull.v1.XmlPullParserFactory
 import java.io.FileInputStream
@@ -82,6 +84,16 @@ android {
             manifestPlaceholders["appAuthRedirectScheme"] = "com.toasterofbread.spmp"
             manifestPlaceholders["appName"] = getString("app_name")
             signingConfig = signingConfigs.getByName("main")
+        }
+    }
+
+    splits {
+        abi {
+            isEnable = true
+            reset()
+
+            isUniversalApk = true
+            include("armeabi-v7a", "arm64-v8a", "x86", "x86_64")
         }
     }
 

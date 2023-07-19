@@ -2,7 +2,6 @@ package com.toasterofbread.spmp.api
 
 import SpMp
 import com.beust.klaxon.Json
-import com.beust.klaxon.JsonObject
 import com.toasterofbread.spmp.api.Api.Companion.addYtHeaders
 import com.toasterofbread.spmp.api.Api.Companion.getStream
 import com.toasterofbread.spmp.api.Api.Companion.ytUrl
@@ -120,49 +119,13 @@ suspend fun getHomeFeed(
     }
     catch (error: Throwable) {
         val request = last_request ?: return@withContext Result.failure(error)
-
-        val retry_result = Api.request(request)
-        val retry_stream = retry_result.getOrNull()?.getStream() ?: return@withContext retry_result.cast()
-
-        return@withContext retry_stream.use {
-            Result.failure(
-                JsonParseException(
-                    Api.klaxon.parseJsonObject(it.reader()).apply {
-                        // Remove unneeded keys from JSON object
-
-                        remove("responseContext")
-
-                        val items: MutableList<Any> = mutableListOf(this)
-                        val keys_to_remove = listOf("trackingParams", "clickTrackingParams", "serializedShareEntity", "serializedContextData", "loggingContext")
-
-                        while (items.isNotEmpty()) {
-                            val obj = items.removeLast()
-
-                            if (obj is Collection<*>) {
-                                items.addAll(obj as Collection<Any>)
-                                continue
-                            }
-
-                            check(obj is JsonObject)
-
-                            for (key in keys_to_remove) {
-                                obj.remove(key)
-                            }
-
-                            for (value in obj.values) {
-                                if (value is JsonObject) {
-                                    items.add(value)
-                                }
-                                else if (value is Collection<*>) {
-                                    items.addAll(value.filterIsInstance<JsonObject>())
-                                }
-                            }
-                        }
-                    },
-                    cause = error
-                )
+        return@withContext Result.failure(
+            DataParseException.ofYoutubeJsonRequest(
+                request,
+                cause = error,
+                klaxon = Api.klaxon
             )
-        }
+        )
     }
 }
 

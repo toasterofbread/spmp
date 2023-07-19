@@ -19,6 +19,15 @@ import kotlinx.coroutines.cancelChildren
 import kotlinx.coroutines.job
 import kotlinx.coroutines.launch
 import java.lang.RuntimeException
+import androidx.compose.runtime.Composable
+import androidx.compose.ui.Modifier
+import androidx.compose.ui.Alignment
+import androidx.compose.foundation.layout.Box
+import com.toasterofbread.utils.composable.SubtleLoadingIndicator
+import androidx.compose.animation.Crossfade
+import com.toasterofbread.spmp.ui.component.ErrorInfoDisplay
+import com.toasterofbread.spmp.resources.getString
+import androidx.compose.material3.Text
 
 class RadioInstance {
     var state: RadioState by mutableStateOf(RadioState())
@@ -29,6 +38,19 @@ class RadioInstance {
 
     private val coroutine_scope = CoroutineScope(Dispatchers.IO)
     private val lock = coroutine_scope
+    private var failed_load: Pair<Throwable, (suspend (Result<List<Song>>, Boolean) -> Unit)?>? by mutableStateOf(null)
+
+    class RadioState {
+        var item: Pair<MediaItem, Int?>? by mutableStateOf(null)
+        var continuation: MediaItemLayout.Continuation? by mutableStateOf(null)
+        var filters: List<List<RadioModifier>>? by mutableStateOf(null)
+        var current_filter: Int? by mutableStateOf(null)
+        var shuffle: Boolean = false
+
+        override fun toString(): String {
+            return "RadioState(item=$item, continuation=$continuation)"
+        }
+    }
 
     fun playMediaItem(item: MediaItem, index: Int? = null, shuffle: Boolean = false): RadioState {
         synchronized(lock) {
@@ -83,18 +105,6 @@ class RadioInstance {
         }
     }
 
-    class RadioState {
-        var item: Pair<MediaItem, Int?>? by mutableStateOf(null)
-        var continuation: MediaItemLayout.Continuation? by mutableStateOf(null)
-        var filters: List<List<RadioModifier>>? by mutableStateOf(null)
-        var current_filter: Int? by mutableStateOf(null)
-        var shuffle: Boolean = false
-
-        override fun toString(): String {
-            return "RadioState(item=$item, continuation=$continuation)"
-        }
-    }
-
     fun setRadioState(new_state: RadioState): RadioState {
         synchronized(lock) {
             if (state == new_state) {
@@ -121,16 +131,12 @@ class RadioInstance {
         loading = false
     }
 
-    private fun formatContinuationResult(result: Result<List<Song>>): Result<List<Song>> =
-        result.fold(
-            { songs ->
-                if (state.shuffle) Result.success(songs.shuffled())
-                else result
-            },
-            { result }
-        )
-
-    fun loadContinuation(onStart: (suspend () -> Unit)? = null, callback: suspend (Result<List<Song>>) -> Unit) {
+    fun loadContinuation(
+        onStart: (suspend () -> Unit)? = null, 
+        can_retry: Boolean = false,
+        is_retry: Boolean = false,
+        callback: suspend (result: Result<List<Song>>, is_retry: Boolean) -> Unit
+    ) {
         synchronized(lock) {
             coroutine_scope.launchSingle {
                 coroutineContext.job.invokeOnCompletion {
@@ -140,24 +146,41 @@ class RadioInstance {
                 }
                 synchronized(lock) {
                     loading = true
+                    failed_load = null
                 }
 
                 onStart?.invoke()
 
                 if (state.continuation == null) {
                     val initial_songs = getInitialSongs()
+                    initial_songs.onFailure { error ->
+                        synchronized(lock) {
+                            failed_load = Pair(
+                                error,
+                                if (can_retry) callback else null
+                            )
+                        }
+                    }
+
                     val formatted = formatContinuationResult(initial_songs)
-                    callback(formatted)
+                    callback(formatted, is_retry)
                     return@launchSingle
                 }
 
                 val result = state.continuation!!.loadContinuation(state.current_filter?.let { state.filters?.get(it) } ?: emptyList())
-                if (result.isFailure) {
-                    callback(result.cast())
-                    return@launchSingle
-                }
-
-                val (items, cont) = result.getOrThrow()
+                val (items, cont) = result.fold(
+                    { it },
+                    { error ->
+                        synchronized(lock) {
+                            failed_load = Pair(
+                                error,
+                                if (can_retry) callback else null
+                            )
+                        }
+                        callback(result.cast(), is_retry)
+                        return@launchSingle
+                    }
+                )
 
                 if (cont != null) {
                     state.continuation!!.update(cont)
@@ -166,10 +189,58 @@ class RadioInstance {
                     state.continuation = null
                 }
 
-                callback(formatContinuationResult(Result.success(items.filterIsInstance<Song>())))
+                callback(formatContinuationResult(Result.success(items.filterIsInstance<Song>())), is_retry)
             }
         }
     }
+
+    @Composable
+    fun LoadStatus(
+        modifier: Modifier = Modifier, 
+        expanded_modifier: Modifier = Modifier,
+        disable_parent_scroll: Boolean = false
+    ) {
+        Box(modifier, contentAlignment = Alignment.Center) {
+            Crossfade(Pair(loading, failed_load)) {
+                if (it.first) {
+                    SubtleLoadingIndicator()
+                }
+                else if (it.second != null) {
+                    val (error, callback) = it.second!!
+                    ErrorInfoDisplay(
+                        error,
+                        expanded_modifier = expanded_modifier,
+                        disable_parent_scroll = disable_parent_scroll,
+                        extraButtonContent = { Text(getString("radio_action_retry_failed_load")) },
+                        onExtraButtonPressed = 
+                            if (callback != null) {{
+                                loadContinuation(
+                                    null,
+                                    can_retry = true,
+                                    is_retry = true,
+                                    callback = callback
+                                )
+                            }} 
+                            else null,
+                        onDismiss = {
+                            synchronized(lock) {
+                                failed_load = null
+                            }
+                        }
+                    )
+                }
+            }
+        }
+    }
+
+    private fun formatContinuationResult(result: Result<List<Song>>): Result<List<Song>> =
+        result.fold(
+            { songs ->
+                if (state.shuffle) Result.success(songs.shuffled())
+                else result
+            },
+            { result }
+        )
 
     private suspend fun getInitialSongs(): Result<List<Song>> {
         when (val item = state.item!!.first) {

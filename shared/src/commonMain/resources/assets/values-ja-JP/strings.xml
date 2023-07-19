@@ -290,6 +290,7 @@
 
     <string name="radio_of_$artists_title">$artistsのラジオ</string>
     <string name="radio_title_artists_splitter">・</string>
+    <string name="radio_action_retry_failed_load">再試行</string>
 
     <string name="search_filter_all">全て</string>
     <string name="search_filter_videos">動画</string>

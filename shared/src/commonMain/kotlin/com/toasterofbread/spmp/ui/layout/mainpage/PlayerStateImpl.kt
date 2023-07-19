@@ -44,6 +44,8 @@ import com.toasterofbread.utils.launchSingle
 import com.toasterofbread.utils.toFloat
 import kotlinx.coroutines.*
 import java.util.concurrent.locks.ReentrantLock
+import com.toasterofbread.spmp.api.HomeFeedLoadResult
+import com.toasterofbread.spmp.api.unit
 
 enum class FeedLoadState { PREINIT, NONE, LOADING, CONTINUING }
 
@@ -545,23 +547,21 @@ class PlayerStateImpl(private val context: PlatformContext): PlayerState(null, n
         
         result.fold(
             { data ->
-                val (layouts, cont, chips) = data
-                
                 val square_item_max_text_rows: Int = Settings.KEY_FEED_SQUARE_PREVIEW_TEXT_LINES.get()
                 val itemSizeProvider: @Composable () -> DpSize = { getMainPageItemSize() }
-                for (layout in layouts) {
+                for (layout in data.layouts) {
                     layout.itemSizeProvider = itemSizeProvider
                     layout.square_item_max_text_rows = square_item_max_text_rows
                 }
 
                 if (continue_feed) {
-                    main_page_layouts = (main_page_layouts ?: emptyList()) + layouts
+                    main_page_layouts = (main_page_layouts ?: emptyList()) + data.layouts
                 } else {
-                    main_page_layouts = layouts
-                    main_page_filter_chips = chips
+                    main_page_layouts = data.layouts
+                    main_page_filter_chips = data.filter_chips
                 }
 
-                feed_continuation = cont
+                feed_continuation = data.ctoken
             },
             { error ->
                 main_page_load_error = error
@@ -572,10 +572,7 @@ class PlayerStateImpl(private val context: PlatformContext): PlayerState(null, n
 
         feed_load_state.value = FeedLoadState.NONE
 
-        return@withContext result.fold(
-            { Result.success(Unit) },
-            { Result.failure(it) }
-        )
+        return@withContext result.unit()
     }
 
     @Composable
@@ -669,7 +666,7 @@ private suspend fun loadFeedLayouts(
     allow_cached: Boolean,
     params: String?,
     continuation: String? = null,
-): Result<Triple<List<MediaItemLayout>, String?, List<FilterChip>?>> {
+): Result<HomeFeedLoadResult> {
     val result = getHomeFeed(
         allow_cached = allow_cached,
         min_rows = min_rows,
@@ -677,6 +674,10 @@ private suspend fun loadFeedLayouts(
         continuation = continuation
     )
 
-    val (row_data, new_continuation, chips) = result.getOrNull() ?: return result.cast()
-    return Result.success(Triple(row_data.filter { it.items.isNotEmpty() }, new_continuation, chips))
+    val data = result.getOrNull() ?: return result.cast()
+    return Result.success(
+        data.copy(
+            layouts = data.layouts.filter { it.items.isNotEmpty() }
+        )
+    )
 }

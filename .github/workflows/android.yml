@@ -35,8 +35,8 @@ jobs:
     - name: Build release APK
       run: ./gradlew packageRelease
 
-    - name: Upload release APK artifact
+    - name: Upload universal release APK artifact
       uses: actions/upload-artifact@v3
       with:
-        name: androidApp-release.apk
-        path: androidApp/build/outputs/apk/release/androidApp-release.apk
+        name: androidApp-universal-release.apk
+        path: androidApp/build/outputs/apk/release/androidApp-universal-release.apk

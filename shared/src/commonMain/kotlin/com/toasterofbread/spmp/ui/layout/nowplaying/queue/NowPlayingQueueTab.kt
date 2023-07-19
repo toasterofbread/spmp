@@ -52,7 +52,6 @@ import com.toasterofbread.spmp.ui.layout.nowplaying.getNPAltOnBackground
 import com.toasterofbread.spmp.ui.layout.nowplaying.getNPBackground
 import com.toasterofbread.spmp.ui.layout.nowplaying.maintab.NOW_PLAYING_TOP_BAR_HEIGHT
 import com.toasterofbread.spmp.ui.layout.nowplaying.rememberTopBarShouldShowInQueue
-import com.toasterofbread.utils.composable.SubtleLoadingIndicator
 import com.toasterofbread.utils.getContrasted
 import kotlinx.coroutines.delay
 import org.burnoutcrew.reorderable.ReorderableLazyListState
@@ -193,7 +192,9 @@ fun QueueTab(page_height: Dp, modifier: Modifier = Modifier) {
                         contentPadding = PaddingValues(
                             top = list_padding +
                                 // Extra space to prevent initial wave border overlap
-                                if (wave_border_mode != NowPlayingQueueWaveBorderMode.LINE) 15.dp else 0.dp
+                                if (wave_border_mode != NowPlayingQueueWaveBorderMode.LINE) 15.dp else 0.dp,
+
+                            bottom = NOW_PLAYING_TOP_BAR_HEIGHT.dp + (MINIMISED_NOW_PLAYING_HEIGHT_DP.dp * 2) + list_position + list_padding
                         ),
                         modifier = Modifier
                             .reorderable(queue_list_state)
@@ -218,18 +219,14 @@ fun QueueTab(page_height: Dp, modifier: Modifier = Modifier) {
                             { playing_key = it }
                         )
 
-                        if (player.player?.radio_loading == true) {
-                            item {
-                                Box(Modifier.height(50.dp), contentAlignment = Alignment.Center) {
-                                    SubtleLoadingIndicator()
-                                }
-                            }
-                        }
-
                         item {
-                            Spacer(Modifier.height(
-                                NOW_PLAYING_TOP_BAR_HEIGHT.dp + MINIMISED_NOW_PLAYING_HEIGHT_DP.dp + list_position + list_padding
-                            ))
+                            player.player?.RadioLoadStatus(
+                                Modifier
+                                    // .heightIn(min = 50.dp)
+                                    .padding(top = list_padding)
+                                    .fillMaxWidth(),
+                                expanded_modifier = Modifier.height(page_height)
+                            )
                         }
                     }
                 }

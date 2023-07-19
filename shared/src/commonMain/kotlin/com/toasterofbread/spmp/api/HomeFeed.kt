@@ -26,13 +26,19 @@ import java.time.Duration
 
 private val CACHE_LIFETIME = Duration.ofDays(1)
 
+data class HomeFeedLoadResult(
+    val layouts: List<MediaItemLayout>,
+    val ctoken: String?,
+    val filter_chips: List<FilterChip>?
+)
+
 // TODO Why doesn't this return a class?
 suspend fun getHomeFeed(
     min_rows: Int = -1,
     allow_cached: Boolean = true,
     params: String? = null,
     continuation: String? = null
-): Result<Triple<List<MediaItemLayout>, String?, List<FilterChip>?>> = withContext(Dispatchers.IO) {
+): Result<HomeFeedLoadResult> = withContext(Dispatchers.IO) {
     val hl = SpMp.data_language
     val suffix = params ?: ""
     val rows_cache_key = "feed_rows$suffix"
@@ -51,7 +57,7 @@ suspend fun getHomeFeed(
                 Api.klaxon.parseArray(it)!!
             }
 
-            return@withContext Result.success(Triple(rows, ctoken, chips))
+            return@withContext Result.success(HomeFeedLoadResult(rows, ctoken, chips))
         }
     }
 
@@ -115,7 +121,7 @@ suspend fun getHomeFeed(
             Cache.set(chips_cache_key, Api.klaxon.toJsonString(chips).reader(), CACHE_LIFETIME)
         }
 
-        return@withContext Result.success(Triple(rows, ctoken, chips))
+        return@withContext Result.success(HomeFeedLoadResult(rows, ctoken, chips))
     }
     catch (error: Throwable) {
         val request = last_request ?: return@withContext Result.failure(error)

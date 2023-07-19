@@ -235,6 +235,7 @@
 
     <string name="radio_of_$artists_title">Radio of $artists</string>
     <string name="radio_title_artists_splitter">, </string>
+    <string name="radio_action_retry_failed_load">Retry</string>
 
     <string name="settings_value_out_of_$range">Value is out of range ($range)</string>
     <string name="settings_value_not_int">Value is not an integer</string>

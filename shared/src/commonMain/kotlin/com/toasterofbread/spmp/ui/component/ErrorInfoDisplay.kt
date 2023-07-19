@@ -71,68 +71,86 @@ fun ErrorInfoDisplay(
     modifier: Modifier = Modifier,
     message: String? = null,
     expanded_modifier: Modifier = Modifier,
+    disable_parent_scroll: Boolean = true,
+    extraButtonContent: (@Composable () -> Unit)? = null,
+    onExtraButtonPressed: (() -> Unit)? = null,
     onDismiss: (() -> Unit)? = null
 ) {
     var expanded: Boolean by remember { mutableStateOf(false) }
     val shape = RoundedCornerShape(20.dp)
 
     CompositionLocalProvider(LocalContentColor provides Theme.current.background) {
-        Column(
-            (if (expanded) expanded_modifier else modifier)
-                .heightIn(min = 50.dp)
-                .animateContentSize()
-                .background(shape, Theme.current.accent_provider)
-                .padding(
-                    vertical = 3.dp,
-                    horizontal = 10.dp
-                ),
-            verticalArrangement = Arrangement.Center
-        ) {
-            Row(
-                Modifier.clickable(
-                    indication = null,
-                    interactionSource = remember { MutableInteractionSource() }
-                ) {
-                    expanded = !expanded
-                },
-                verticalAlignment = Alignment.CenterVertically,
-                horizontalArrangement = Arrangement.spacedBy(5.dp)
+        Box(modifier.thenIf(expanded, expanded_modifier), contentAlignment = Alignment.TopCenter) {
+            Column(
+                Modifier
+                    .heightIn(min = 50.dp)
+                    .animateContentSize()
+                    .background(shape, Theme.current.accent_provider)
+                    .padding(
+                        vertical = 3.dp,
+                        horizontal = 10.dp
+                    ),
+                verticalArrangement = Arrangement.Center
             ) {
-                Crossfade(expanded) { expanded ->
-                    Icon(
-                        if (expanded) Icons.Default.KeyboardArrowUp else Icons.Default.KeyboardArrowDown,
-                        null
-                    )
-                }
-
-                WidthShrinkText(
-                    message ?: error::class.java.simpleName,
-                    modifier = Modifier.fillMaxWidth().weight(1f)
-                )
-
-                if (onDismiss != null) {
-                    ShapedIconButton(
-                        onDismiss,
-                        shape = shape,
-                        colors = IconButtonDefaults.iconButtonColors(
-                            containerColor = Theme.current.background,
-                            contentColor = Theme.current.on_background
-                        )
+                Row(
+                    Modifier.clickable(
+                        indication = null,
+                        interactionSource = remember { MutableInteractionSource() }
                     ) {
-                        Icon(Icons.Default.Close, null)
+                        expanded = !expanded
+                    },
+                    verticalAlignment = Alignment.CenterVertically,
+                    horizontalArrangement = Arrangement.spacedBy(5.dp)
+                ) {
+                    Crossfade(expanded) { expanded ->
+                        Icon(
+                            if (expanded) Icons.Default.KeyboardArrowUp else Icons.Default.KeyboardArrowDown,
+                            null
+                        )
+                    }
+
+                    WidthShrinkText(
+                        message ?: error::class.java.simpleName,
+                        modifier = Modifier.fillMaxWidth().weight(1f)
+                    )
+
+                    if (onExtraButtonPressed != null) {
+                        Button(
+                            onExtraButtonPressed,
+                            shape = shape,
+                            colors = ButtonDefaults.buttonColors(
+                                containerColor = Theme.current.background,
+                                contentColor = Theme.current.on_background
+                            )
+                        ) {
+                            extraButtonContent!!.invoke()
+                        }
+                    }
+
+                    if (onDismiss != null) {
+                        ShapedIconButton(
+                            onDismiss,
+                            shape = shape,
+                            colors = IconButtonDefaults.iconButtonColors(
+                                containerColor = Theme.current.background,
+                                contentColor = Theme.current.on_background
+                            )
+                        ) {
+                            Icon(Icons.Default.Close, null)
+                        }
                     }
                 }
-            }
 
-            if (expanded) {
-                ExpandedContent(error, shape)
+                if (expanded) {
+                    ExpandedContent(error, shape, disable_parent_scroll)
+                }
             }
         }
     }
 }
 
 @Composable
-private fun ExpandedContent(error: Throwable, shape: Shape) {
+private fun ExpandedContent(error: Throwable, shape: Shape, disable_parent_scroll: Boolean) {
     val coroutine_scope = rememberCoroutineScope()
     var text_to_show: String? by remember { mutableStateOf(null) }
     var wrap_text by remember { mutableStateOf(false) }
@@ -182,9 +200,9 @@ private fun ExpandedContent(error: Throwable, shape: Shape) {
                 Crossfade(text_to_show ?: error.stackTraceToString()) { text ->
                     Column(
                         Modifier
-                            .disableParentScroll(disable_x = false)
                             .verticalScroll(rememberScrollState())
                             .thenIf(!wrap_text) { horizontalScroll(rememberScrollState()) }
+                            .thenIf(disable_parent_scroll) { disableParentScroll(disable_x = false) }
                     ) {
                         SelectionContainer {
                             Text(

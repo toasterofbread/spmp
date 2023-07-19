@@ -24,6 +24,8 @@ import java.io.*
 import java.util.*
 import kotlin.random.Random
 import kotlin.random.nextInt
+import androidx.compose.runtime.Composable
+import androidx.compose.ui.Modifier
 
 // Radio continuation will be added if the amount of remaining songs (including current) falls below this
 private const val RADIO_MIN_LENGTH: Int = 10
@@ -117,13 +119,12 @@ class PlayerService : MediaPlayerService() {
             if (radio.loading) {
                 return
             }
-            radio.loadContinuation { result ->
-                if (result.isFailure) {
-                    SpMp.error_manager.onError("continueRadio", result.exceptionOrNull()!!)
-                }
-                else {
+            radio.loadContinuation(
+                can_retry = true
+            ) { result, is_retry ->
+                result.onSuccess { songs ->
                     withContext(Dispatchers.Main) {
-                        addMultipleToQueue(result.getOrThrowHere(), song_count, false, skip_existing = true)
+                        addMultipleToQueue(songs, song_count, false, skip_existing = true)
                     }
                 }
             }
@@ -305,28 +306,31 @@ class PlayerService : MediaPlayerService() {
         val radio_state: RadioState = radio.state
 
         synchronized(radio) {
-            radio.loadContinuation { result ->
-                if (result.isFailure) {
-                    SpMp.error_manager.onError("addToQueue", result.exceptionOrNull()!!)
-                    if (save) {
+            radio.loadContinuation(
+                can_retry = true
+            ) { result, is_retry ->
+                result.fold(
+                    { songs ->
                         withContext(Dispatchers.Main) {
-                            savePersistentQueue()
+                            furtherAction {
+                                addMultipleToQueue(
+                                    songs,
+                                    continuation_index,
+                                    save = save,
+                                    skip_existing = skip_existing
+                                    )
+                                    null
+                                }
+                            }
+                        },
+                    {
+                        if (save) {
+                            withContext(Dispatchers.Main) {
+                                savePersistentQueue()
+                            }
                         }
                     }
-                }
-                else {
-                    withContext(Dispatchers.Main) {
-                        furtherAction {
-                            addMultipleToQueue(
-                                result.getOrThrowHere(),
-                                continuation_index,
-                                save = save,
-                                skip_existing = skip_existing
-                            )
-                            null
-                        }
-                    }
-                }
+                )
 
                 onLoad?.invoke(result.isSuccess)
             }
@@ -363,6 +367,11 @@ class PlayerService : MediaPlayerService() {
         get() = radio.state.current_filter
         set(value) { setRadioFilter(value) }
 
+    @Composable
+    fun RadioLoadStatus(modifier: Modifier, expanded_modifier: Modifier) {
+        radio.LoadStatus(modifier, expanded_modifier)
+    }
+
     // --- Internal ---
 
     private val radio = RadioInstance()
@@ -378,27 +387,25 @@ class PlayerService : MediaPlayerService() {
         val add_index = maxOf(item?.second ?: -1, current_song_index) + 1
 
         customUndoableAction { furtherAction ->
-            radio.loadContinuation({
-                withContext(Dispatchers.Main) {
-                    furtherAction {
-                        clearQueue(add_index, cancel_radio = false, save = false)
-                        null
+            radio.loadContinuation(
+                onStart = {
+                    withContext(Dispatchers.Main) {
+                        furtherAction {
+                            clearQueue(add_index, cancel_radio = false, save = false)
+                            null
+                        }
+                    }
+                },
+                can_retry = true
+            ) { result, is_retry ->
+                result.onSuccess { songs ->
+                    withContext(Dispatchers.Main) {
+                        furtherAction {
+                            addMultipleToQueue(songs, add_index, skip_existing = true)
+                            null
+                        }
                     }
                 }
-            }) { result ->
-                result.fold(
-                    { songs ->
-                        withContext(Dispatchers.Main) {
-                            furtherAction {
-                                addMultipleToQueue(songs, add_index, skip_existing = true)
-                                null
-                            }
-                        }
-                    },
-                    { error ->
-                        SpMp.error_manager.onError("onRadioFiltersChanged", error)
-                    }
-                )
             }
 
             object : UndoRedoAction {

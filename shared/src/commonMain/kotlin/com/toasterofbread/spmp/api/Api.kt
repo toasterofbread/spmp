@@ -21,6 +21,7 @@ import com.toasterofbread.spmp.resources.getStringArray
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.SupervisorJob
+import kotlinx.coroutines.withContext
 import okhttp3.*
 import okhttp3.MediaType.Companion.toMediaType
 import okhttp3.RequestBody.Companion.toRequestBody
@@ -29,6 +30,7 @@ import org.schabi.newpipe.extractor.NewPipe
 import org.schabi.newpipe.extractor.downloader.Downloader
 import org.schabi.newpipe.extractor.exceptions.ReCaptchaException
 import java.io.InputStream
+import java.io.Reader
 import java.time.Duration
 import java.util.logging.Level
 import java.util.logging.Logger
@@ -40,8 +42,72 @@ import org.schabi.newpipe.extractor.downloader.Response as NewPipeResponse
 
 const val DEFAULT_CONNECT_TIMEOUT = 10000
 private val PLAIN_HEADERS = listOf("accept-language", "user-agent", "accept-encoding", "content-encoding", "origin")
+private val YOUTUBE_JSON_DATA_KEYS_TO_REMOVE = listOf("responseContext", "trackingParams", "clickTrackingParams", "serializedShareEntity", "serializedContextData", "loggingContext")
 
-class JsonParseException(val json_obj: JsonObject, message: String? = null, cause: Throwable? = null): RuntimeException(message, cause)
+class DataParseException(private val causeDataProvider: suspend () -> Result<String>, message: String? = null, cause: Throwable? = null): RuntimeException(message, cause) {
+    private var cause_data: String? = null
+    suspend fun getCauseData(): Result<String> {
+        val data = cause_data
+        if (data != null) {
+            return Result.success(data)
+        }
+
+        val result = causeDataProvider()
+        cause_data = result.getOrNull()
+        return result
+    }
+
+    companion object {
+        fun ofYoutubeJsonRequest(
+            request: Request,
+            message: String? = null,
+            cause: Throwable? = null,
+            klaxon: Klaxon = Klaxon(),
+            getResponseStream: (Response) -> Reader = { it.getStream().reader() },
+            keys_to_remove: List<String> = YOUTUBE_JSON_DATA_KEYS_TO_REMOVE
+        ) = DataParseException(
+            { runCatching {
+                val json_object = withContext(Dispatchers.IO) {
+                    val stream = getResponseStream(Api.request(request).getOrThrow())
+                    stream.use {
+                        klaxon.parseJsonObject(it)
+                    }
+                }
+
+                // Remove unneeded keys from JSON object
+                val items: MutableList<Any> = mutableListOf(json_object)
+
+                while (items.isNotEmpty()) {
+                    val obj = items.removeLast()
+
+                    if (obj is Collection<*>) {
+                        items.addAll(obj as Collection<Any>)
+                        continue
+                    }
+
+                    check(obj is JsonObject)
+
+                    for (key in keys_to_remove) {
+                        obj.remove(key)
+                    }
+
+                    for (value in obj.values) {
+                        if (value is JsonObject) {
+                            items.add(value)
+                        }
+                        else if (value is Collection<*>) {
+                            items.addAll(value.filterIsInstance<JsonObject>())
+                        }
+                    }
+                }
+
+                json_object.toJsonString(true)
+            }},
+            message,
+            cause
+        )
+    }
+}
 
 fun <T> Result.Companion.failure(response: Response, is_gzip: Boolean = true): Result<T> {
     var body: String
@@ -420,55 +486,3 @@ class Api {
         }
     }
 }
-
-//fun getApiAuthHeaders(callback: (header: Headers) -> Unit) {
-//    getAuthToken { token ->
-//        callback(Headers.Builder().add("Authorization", "Bearer $token").build())
-//    }
-//}
-//
-//fun getAuthToken(callback: (String) -> Unit) {
-//    val auth_state = MainActivity.auth_state
-//    val auth_service = MainActivity.auth_service
-//
-//    fun onFinished() {
-//        auth_state.performActionWithFreshTokens(auth_service) { token: String?, id: String?, exception: AuthorizationException? ->
-//            if (exception != null) {
-//                throw exception
-//            }
-//            callback(token!!)
-//        }
-//    }
-//
-//    fun requestToken() {
-//        auth_service.performTokenRequest(
-//            auth_state.lastAuthorizationResponse!!.createTokenExchangeRequest()
-//        ) { response, exception ->
-//            if (exception != null) {
-//                throw exception
-//            }
-//
-//            auth_state.update(response, null)
-//            MainActivity.saveAuthState()
-//
-//            onFinished()
-//        }
-//    }
-//
-//    if (auth_state.refreshToken == null) {
-//        MainActivity.startAuthLogin { exception ->
-//            if (exception != null) {
-//                throw exception
-//            }
-//            requestToken()
-//        }
-//        return
-//    }
-//
-//    if (auth_state.needsTokenRefresh) {
-//        requestToken()
-//        return
-//    }
-//
-//    onFinished()
-//}

@@ -46,15 +46,18 @@ import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import com.toasterofbread.spmp.ProjectBuildConfig
 import com.toasterofbread.spmp.api.Api
-import com.toasterofbread.spmp.api.JsonParseException
+import com.toasterofbread.spmp.api.DataParseException
+import com.toasterofbread.spmp.api.cast
 import com.toasterofbread.spmp.resources.getString
 import com.toasterofbread.spmp.ui.theme.Theme
 import com.toasterofbread.utils.composable.ShapedIconButton
+import com.toasterofbread.utils.composable.SubtleLoadingIndicator
 import com.toasterofbread.utils.composable.WidthShrinkText
 import com.toasterofbread.utils.modifier.background
 import com.toasterofbread.utils.modifier.disableParentScroll
 import com.toasterofbread.utils.thenIf
 import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.job
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
 import okhttp3.MediaType.Companion.toMediaType
@@ -208,19 +211,36 @@ private fun ExpandedContent(error: Throwable, shape: Shape) {
                 val extra_button_text =
                     if (text_to_show != null) getString("action_cancel")
                     else when (error) {
-                        is JsonParseException -> getString("error_info_display_show_json_data")
+                        is DataParseException -> getString("error_info_display_show_json_data")
                         else -> null
                     }
+
+                var cause_data_loading by remember { mutableStateOf(false) }
 
                 if (extra_button_text != null) {
                     Button(
                         {
+                            if (cause_data_loading) {
+                                return@Button
+                            }
+
                             if (text_to_show != null) {
                                 text_to_show = null
                             } else {
                                 when (error) {
-                                    is JsonParseException -> {
-                                        text_to_show = error.json_obj.toJsonString(true)
+                                    is DataParseException -> {
+                                        coroutine_scope.launch {
+                                            coroutineContext.job.invokeOnCompletion {
+                                                cause_data_loading = false
+                                            }
+
+                                            cause_data_loading = true
+
+                                            error.getCauseData().fold(
+                                                { text_to_show = it },
+                                                { SpMp.context.sendToast(it.toString()) }
+                                            )
+                                        }
                                     }
                                 }
                             }
@@ -228,7 +248,14 @@ private fun ExpandedContent(error: Throwable, shape: Shape) {
                         shape = shape,
                         colors = button_colours
                     ) {
-                        Text(extra_button_text, softWrap = false)
+                        Crossfade(cause_data_loading) { loading ->
+                            if (loading) {
+                                SubtleLoadingIndicator()
+                            }
+                            else {
+                                Text(extra_button_text, softWrap = false)
+                            }
+                        }
                     }
                 }
 
@@ -246,18 +273,30 @@ private fun ExpandedContent(error: Throwable, shape: Shape) {
 }
 
 private suspend fun uploadErrorToPasteEe(error: Throwable, token: String): Result<String> = withContext(Dispatchers.IO) {
-    val data = mapOf(
-        "sections" to listOf(
-            mapOf("name" to "MESSAGE", "contents" to error.message.toString()),
-            mapOf("name" to "STACKTRACE", "contents" to error.stackTraceToString()),
-        ) + if (error is JsonParseException) listOf(mapOf("name" to "JSON DATA", "syntax" to "json", "contents" to error.json_obj.toJsonString()))
-            else emptyList()
+    val sections = mutableListOf(
+        mapOf("name" to "MESSAGE", "contents" to error.message.toString()),
+        mapOf("name" to "STACKTRACE", "contents" to error.stackTraceToString()),
     )
+
+    if (error is DataParseException) {
+        val cause_data_result = error.getCauseData()
+        val cause_data = cause_data_result.getOrNull() ?: return@withContext cause_data_result.cast()
+
+        sections.add(
+            mapOf(
+                "name" to "DATA",
+                "contents" to cause_data
+            )
+        )
+    }
 
     val request = Request.Builder()
         .url("https://api.paste.ee/v1/pastes")
         .header("X-Auth-Token", token)
-        .post(Api.klaxon.toJsonString(data).toRequestBody("application/json".toMediaType()))
+        .post(
+            Api.klaxon.toJsonString(mapOf("sections" to sections))
+                .toRequestBody("application/json".toMediaType())
+        )
         .build()
 
     try {

@@ -202,7 +202,9 @@ class PlayerDownloadService: PlatformServiceImpl() {
     override fun onCreate() {
         super.onCreate()
 
-        downloads.clear()
+        synchronized(downloads) {
+            downloads.clear()
+        }
 
         notification_manager = NotificationManagerCompat.from(this)
         notification_delete_intent = PendingIntent.getService(
@@ -225,7 +227,10 @@ class PlayerDownloadService: PlatformServiceImpl() {
 
     override fun onDestroy() {
         executor.shutdownNow()
-        downloads.clear()
+        try {
+            downloads.clear()
+        }
+        catch (_: Throwable) {}
         super.onDestroy()
     }
 
@@ -478,73 +483,75 @@ class PlayerDownloadService: PlatformServiceImpl() {
     }
 
     private fun onDownloadProgress() {
-        if (downloads.isNotEmpty() && downloads.all { it.silent }) {
-            return
-        }
-
-        notification_builder?.also { builder ->
-            notification_update_time = System.currentTimeMillis()
-            val total_progress = downloads.getTotalProgress()
-
-            if (!downloads.any { !it.silent }) {
-                builder.setProgress(0, 0, false)
-                builder.setOngoing(false)
-                builder.setDeleteIntent(notification_delete_intent)
-
-                if (cancelled) {
-                    builder.setContentTitle("Download cancelled")
-                    builder.setSmallIcon(android.R.drawable.ic_menu_close_clear_cancel)
-                }
-                else if (completed_downloads == 0) {
-                    builder.setContentTitle("Download failed")
-                    builder.setSmallIcon(android.R.drawable.stat_notify_error)
-                }
-                else {
-                    NotificationManagerCompat.from(this).cancel(NOTIFICATION_ID)
-                    return
-//                    builder.setContentTitle("Download completed")
-//                    builder.setSmallIcon(android.R.drawable.stat_sys_download_done)
-                }
-
-                builder.setContentText("")
+        synchronized(downloads) {
+            if (downloads.isNotEmpty() && downloads.all { it.silent }) {
+                return
             }
-            else {
-                builder.setProgress(100, (total_progress * 100).toInt(), false)
 
-                val title = if (downloads.size == 1) {
-                    if (downloads.first().song.title != null) {
-                        "Downloading ${downloads.first().song.title}"
+            notification_builder?.also { builder ->
+                notification_update_time = System.currentTimeMillis()
+                val total_progress = downloads.getTotalProgress()
+
+                if (!downloads.any { !it.silent }) {
+                    builder.setProgress(0, 0, false)
+                    builder.setOngoing(false)
+                    builder.setDeleteIntent(notification_delete_intent)
+
+                    if (cancelled) {
+                        builder.setContentTitle("Download cancelled")
+                        builder.setSmallIcon(android.R.drawable.ic_menu_close_clear_cancel)
+                    }
+                    else if (completed_downloads == 0) {
+                        builder.setContentTitle("Download failed")
+                        builder.setSmallIcon(android.R.drawable.stat_notify_error)
                     }
                     else {
-                        "Downloading 1 song"
+                        NotificationManagerCompat.from(this).cancel(NOTIFICATION_ID)
+                        return
+    //                    builder.setContentTitle("Download completed")
+    //                    builder.setSmallIcon(android.R.drawable.stat_sys_download_done)
                     }
+
+                    builder.setContentText("")
                 }
                 else {
-                    "Downloading ${downloads.size} songs"
-                }
+                    builder.setProgress(100, (total_progress * 100).toInt(), false)
 
-                builder.setContentTitle(if (paused) "$title (paused)" else title)
-                builder.setContentText(getNotificationText())
-
-                val elapsed_minutes = ((System.currentTimeMillis() - start_time) / 60000f).toInt()
-                builder.setSubText(when(elapsed_minutes) {
-                    0 -> "Just started"
-                    1 -> "Started 1 min ago"
-                    else -> "Started $elapsed_minutes mins ago"
-                })
-            }
-
-            if (ActivityCompat.checkSelfPermission(this, "android.permission.POST_NOTIFICATIONS") == PackageManager.PERMISSION_GRANTED) {
-                try {
-                    NotificationManagerCompat.from(this).notify(
-                        NOTIFICATION_ID, builder.build().apply {
-                            if (downloads.isEmpty() || total_progress == 1f) {
-                                actions = arrayOf<Notification.Action>()
-                            }
+                    val title = if (downloads.size == 1) {
+                        if (downloads.first().song.title != null) {
+                            "Downloading ${downloads.first().song.title}"
                         }
-                    )
+                        else {
+                            "Downloading 1 song"
+                        }
+                    }
+                    else {
+                        "Downloading ${downloads.size} songs"
+                    }
+
+                    builder.setContentTitle(if (paused) "$title (paused)" else title)
+                    builder.setContentText(getNotificationText())
+
+                    val elapsed_minutes = ((System.currentTimeMillis() - start_time) / 60000f).toInt()
+                    builder.setSubText(when(elapsed_minutes) {
+                        0 -> "Just started"
+                        1 -> "Started 1 min ago"
+                        else -> "Started $elapsed_minutes mins ago"
+                    })
                 }
-                catch (_: Throwable) {}
+
+                if (ActivityCompat.checkSelfPermission(this, "android.permission.POST_NOTIFICATIONS") == PackageManager.PERMISSION_GRANTED) {
+                    try {
+                        NotificationManagerCompat.from(this).notify(
+                            NOTIFICATION_ID, builder.build().apply {
+                                if (downloads.isEmpty() || total_progress == 1f) {
+                                    actions = arrayOf<Notification.Action>()
+                                }
+                            }
+                        )
+                    }
+                    catch (_: Throwable) {}
+                }
             }
         }
     }

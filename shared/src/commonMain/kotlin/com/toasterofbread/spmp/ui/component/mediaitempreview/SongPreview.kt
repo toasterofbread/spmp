@@ -4,23 +4,14 @@ import LocalPlayerState
 import SpMp
 import androidx.compose.animation.Crossfade
 import androidx.compose.foundation.border
-import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
-import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.ColumnScope
-import androidx.compose.foundation.layout.IntrinsicSize
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
-import androidx.compose.foundation.layout.aspectRatio
 import androidx.compose.foundation.layout.fillMaxHeight
-import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
-import androidx.compose.foundation.layout.padding
-import androidx.compose.foundation.layout.requiredHeight
-import androidx.compose.foundation.layout.size
-import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Close
@@ -28,7 +19,6 @@ import androidx.compose.material.icons.filled.Done
 import androidx.compose.material.icons.filled.Download
 import androidx.compose.material.icons.filled.Person
 import androidx.compose.material.icons.filled.PlaylistAdd
-import androidx.compose.material.icons.filled.Print
 import androidx.compose.material.icons.filled.Radio
 import androidx.compose.material.icons.filled.SubdirectoryArrowRight
 import androidx.compose.material3.Button
@@ -46,13 +36,11 @@ import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.draw.alpha
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.Shape
 import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.layout.onSizeChanged
 import androidx.compose.ui.platform.LocalDensity
-import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
@@ -60,22 +48,18 @@ import com.toasterofbread.spmp.model.Settings
 import com.toasterofbread.spmp.model.mediaitem.LocalPlaylist
 import com.toasterofbread.spmp.model.mediaitem.MediaItem
 import com.toasterofbread.spmp.model.mediaitem.MediaItemPreviewParams
-import com.toasterofbread.spmp.model.mediaitem.MediaItemThumbnailProvider
 import com.toasterofbread.spmp.model.mediaitem.Playlist
 import com.toasterofbread.spmp.model.mediaitem.Song
-import com.toasterofbread.spmp.model.mediaitem.mediaItemPreviewInteraction
 import com.toasterofbread.spmp.platform.PlayerDownloadManager.DownloadStatus
 import com.toasterofbread.spmp.platform.composable.BackHandler
 import com.toasterofbread.spmp.resources.getString
 import com.toasterofbread.spmp.ui.component.longpressmenu.LongPressMenuActionProvider
 import com.toasterofbread.spmp.ui.component.longpressmenu.LongPressMenuData
-import com.toasterofbread.spmp.ui.component.longpressmenu.longPressMenuIcon
 import com.toasterofbread.spmp.ui.component.multiselect.MediaItemMultiSelectContext
 import com.toasterofbread.spmp.ui.layout.PlaylistSelectMenu
 import com.toasterofbread.spmp.ui.theme.Theme
 import com.toasterofbread.utils.composable.ShapedIconButton
 import com.toasterofbread.utils.composable.WidthShrinkText
-import com.toasterofbread.utils.isDebugBuild
 import kotlinx.coroutines.launch
 
 val SONG_THUMB_CORNER_ROUNDING = 10.dp
@@ -177,7 +161,7 @@ fun LongPressMenuActionProvider.SongLongPressMenuActions(
                 )
 
                 Row(verticalAlignment = Alignment.CenterVertically) {
-                    ShapedIconButton({ adding_to_playlist = false }, colors = button_colours) {
+                    ShapedIconButton({ adding_to_playlist = false }, colours = button_colours) {
                         Icon(Icons.Default.Close, null)
                     }
 
@@ -212,7 +196,7 @@ fun LongPressMenuActionProvider.SongLongPressMenuActions(
 
                             adding_to_playlist = false
                         },
-                        colors = button_colours
+                        colours = button_colours
                     ) {
                         Icon(Icons.Default.Done, null)
                     }
@@ -304,7 +288,7 @@ private fun LongPressMenuActionProvider.LPMActions(
 }
 
 @Composable
-private fun ColumnScope.SongLongPressMenuInfo(song: Song, queue_index: Int?, accent_colour: Color) {
+private fun ColumnScope.SongLongPressMenuInfo(song: Song, queue_index: Int?, getAccentColour: () -> Color) {
     @Composable
     fun Item(icon: ImageVector, text: String, modifier: Modifier = Modifier) {
         Row(
@@ -312,7 +296,7 @@ private fun ColumnScope.SongLongPressMenuInfo(song: Song, queue_index: Int?, acc
             horizontalArrangement = Arrangement.spacedBy(20.dp),
             verticalAlignment = Alignment.CenterVertically
         ) {
-            Icon(icon, null, tint = accent_colour)
+            Icon(icon, null, tint = getAccentColour())
             WidthShrinkText(text, fontSize = 15.sp)
         }
     }
@@ -338,23 +322,7 @@ private fun ColumnScope.SongLongPressMenuInfo(song: Song, queue_index: Int?, acc
 
     Spacer(Modifier.fillMaxHeight().weight(1f))
 
-    Row(Modifier.requiredHeight(20.dp), verticalAlignment = Alignment.CenterVertically) {
-        Text(
-            getString("lpm_info_id").replace("\$id", song.id),
-            Modifier
-                .fillMaxWidth()
-                .weight(1f)
-        )
-        SpMp.context.CopyShareButtons { song.id }
-    }
-
     if (queue_index != null) {
         Text(getString("lpm_info_queue_index").replace("\$index", queue_index.toString()))
-    }
-
-    if (isDebugBuild()) {
-        Item(Icons.Default.Print, getString("lpm_action_print_info"), Modifier.clickable {
-            println(song)
-        })
     }
 }

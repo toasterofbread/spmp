@@ -179,6 +179,7 @@
     <string name="lpm_action_open_artist">Open</string>
     <string name="lpm_action_open_playlist">Open</string>
     <string name="lpm_action_open_external">Open externally</string>
+    <string name="lpm_action_hide">Hide</string>
 
     <string name="lpm_long_press_actions">Long press actions</string>
     <string name="lpm_action_radio_at_song_pos">Start radio at song position in queue</string>
@@ -237,6 +238,8 @@
     <string name="radio_title_artists_splitter">, </string>
     <string name="radio_action_retry_failed_load">Retry</string>
 
+    <string name="settings_string_set_item_empty">No items added</string>
+    <string name="settings_string_set_item_already_added">Item already added</string>
     <string name="settings_value_out_of_$range">Value is out of range ($range)</string>
     <string name="settings_value_not_int">Value is not an integer</string>
     <string name="settings_value_not_float">Value is not a float</string>
@@ -257,8 +260,12 @@
     
     <string name="s_key_filter_enable">Enable item filter</string>
     <string name="s_key_filter_title_keywords">Title filter keywords</string>
-    <string name="s_sub_filter_title_keywords">If an item's title contains any of these keywords, it will be filtered</string>
-    
+    <string name="s_sub_filter_title_keywords">If an item's title contains any of these keywords, it will be hidden</string>
+    <string name="s_key_filter_apply_to_playlist_items">Apply filter to playlist items</string>
+    <string name="s_key_filter_apply_to_artists">Apply filter to artists</string>
+    <string name="s_key_filter_apply_to_artist_items">Apply filter to artist items</string>
+    <string name="s_filter_title_keywords_dialog_title">Add keyword</string>
+
     <string name="s_cat_home_page">Home page</string>
 
     <string name="s_key_hp_show_visualiser">Show music visualiser</string>

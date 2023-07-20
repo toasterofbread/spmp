@@ -9,7 +9,7 @@ import com.beust.klaxon.Klaxon
 import com.toasterofbread.spmp.model.mediaitem.MediaItem
 import com.toasterofbread.spmp.model.mediaitem.MediaItemWithLayoutsData
 import com.toasterofbread.spmp.model.mediaitem.Playlist
-import com.toasterofbread.spmp.ui.component.MediaItemLayout
+import com.toasterofbread.spmp.ui.component.mediaitemlayout.MediaItemLayout
 
 abstract class PlaylistItemData(override val data_item: Playlist): MediaItemData(data_item), MediaItemWithLayoutsData {
     open var items: MutableList<MediaItem>? by mutableStateOf(null)

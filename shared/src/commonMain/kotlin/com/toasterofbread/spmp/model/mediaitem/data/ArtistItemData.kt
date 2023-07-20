@@ -7,7 +7,7 @@ import com.beust.klaxon.JsonArray
 import com.beust.klaxon.Klaxon
 import com.toasterofbread.spmp.model.mediaitem.Artist
 import com.toasterofbread.spmp.model.mediaitem.MediaItemWithLayoutsData
-import com.toasterofbread.spmp.ui.component.MediaItemLayout
+import com.toasterofbread.spmp.ui.component.mediaitemlayout.MediaItemLayout
 
 class ArtistItemData(override val data_item: Artist): MediaItemData(data_item), MediaItemWithLayoutsData {
     var subscribe_channel_id: String? by mutableStateOf(null)

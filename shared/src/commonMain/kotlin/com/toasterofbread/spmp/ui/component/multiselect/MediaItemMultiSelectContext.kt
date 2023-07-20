@@ -15,7 +15,6 @@ import androidx.compose.foundation.layout.ColumnScope
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.RowScope
 import androidx.compose.foundation.layout.Spacer
-import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
@@ -41,7 +40,6 @@ import androidx.compose.material3.LocalContentColor
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
-import androidx.compose.runtime.CompositionLocalProvider
 import androidx.compose.runtime.DisposableEffect
 import androidx.compose.runtime.derivedStateOf
 import androidx.compose.runtime.getValue
@@ -229,7 +227,7 @@ class MediaItemMultiSelectContext(
             onDismissRequest = onFinished,
             confirmButton = {
                 Row {
-                    ShapedIconButton(onFinished, colors = button_colours) {
+                    ShapedIconButton(onFinished, colours = button_colours) {
                         Icon(Icons.Default.Close, null)
                     }
 
@@ -248,7 +246,7 @@ class MediaItemMultiSelectContext(
 
                     ShapedIconButton(
                         { onPlaylistsSelected() },
-                        colors = button_colours,
+                        colours = button_colours,
                         enabled = selected_playlists.isNotEmpty()
                     ) {
                         Icon(Icons.Default.Done, null)

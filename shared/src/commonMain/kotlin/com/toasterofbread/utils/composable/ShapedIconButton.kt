@@ -31,7 +31,7 @@ fun ShapedIconButton(
     shape: Shape = CircleShape,
     enabled: Boolean = true,
     interactionSource: MutableInteractionSource = remember { MutableInteractionSource() },
-    colors: IconButtonColors = IconButtonDefaults.iconButtonColors(),
+    colours: IconButtonColors = IconButtonDefaults.iconButtonColors(),
     onLongClick: (() -> Unit)? = null,
     content: @Composable () -> Unit,
 ) {
@@ -40,7 +40,7 @@ fun ShapedIconButton(
         modifier
             .minimumTouchTargetSize()
             .size(IconButtonTokens.StateLayerSize)
-            .background(color = colors.containerColor(enabled).value, shape = shape)
+            .background(color = colours.containerColor(enabled).value, shape = shape)
             .combinedClickable(
                 onClick = onClick,
                 onLongClick = onLongClick,
@@ -54,7 +54,7 @@ fun ShapedIconButton(
             ),
         contentAlignment = Alignment.Center
     ) {
-        val contentColor = colors.contentColor(enabled).value
+        val contentColor = colours.contentColor(enabled).value
         CompositionLocalProvider(LocalContentColor provides contentColor, content = content)
     }
 }

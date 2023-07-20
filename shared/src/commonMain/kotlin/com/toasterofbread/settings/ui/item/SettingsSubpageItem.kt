@@ -1,5 +1,16 @@
 package com.toasterofbread.composesettings.ui.item
 
+import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.material3.Button
+import androidx.compose.material3.ButtonDefaults
+import androidx.compose.material3.Text
+import androidx.compose.runtime.Composable
+import androidx.compose.ui.Modifier
+import com.toasterofbread.composesettings.ui.SettingsPage
+import com.toasterofbread.spmp.platform.ProjectPreferences
+import com.toasterofbread.spmp.ui.theme.Theme
+
 class SettingsSubpageItem(
     val title: String,
     val subtitle: String?,

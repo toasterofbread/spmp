@@ -23,8 +23,8 @@ import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
-import com.toasterofbread.settings.ui.item.SettingsGroupItem
-import com.toasterofbread.settings.ui.item.SettingsItem
+import com.toasterofbread.composesettings.ui.item.SettingsGroupItem
+import com.toasterofbread.composesettings.ui.item.SettingsItem
 import com.toasterofbread.spmp.platform.composable.BackHandler
 import com.toasterofbread.spmp.ui.component.WaveBorder
 import com.toasterofbread.utils.composable.WidthShrinkText

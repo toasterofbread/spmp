@@ -1,7 +1,7 @@
 package com.toasterofbread.spmp.model.mediaitem
 
 import androidx.compose.runtime.Composable
-import com.toasterofbread.spmp.ui.component.MediaItemLayout
+import com.toasterofbread.spmp.ui.component.mediaitemlayout.MediaItemLayout
 
 interface MediaItemWithLayoutsData {
     fun supplyFeedLayouts(value: List<MediaItemLayout>?, certain: Boolean, cached: Boolean = false)

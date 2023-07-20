@@ -1,155 +1,12 @@
-<?xml version="1.0" encoding="utf-8"?>
 <resources>
     <string name="project_url_name">プロジェクトのURL</string>
-    <string name="notif_copied_to_clipboard">コピーしました</string>
-    <string name="notif_copied_x_to_clipboard">$xをコピーしました</string>
-
-    <string name="videos">動画</string>
-    <string name="songs">曲</string>
-    <string name="playlists">プレイリスト</string>
-    <string name="albums">アルバム</string>
-    <string name="media_pause">停止</string>
-    <string name="media_play">再生</string>
-    <string name="player_service_name">プレイヤーサービス</string>
-    <string name="s_cat_lyrics">歌詞</string>
     
-    <string name="lyrics_source_petit">プチリリ</string>
-    <string name="lyrics_source_kugou">KuGou</string>
-
-    <string name="error_message_generic">エラーが発生しました</string>
-    <string name="error_yt_feed_parse_failed">YouTubeフィード解析に失敗しました</string>
-
-    <string name="throw_error">スロー</string>
-    <string name="wrap_text_switch_label">折り返す</string>
-    <string name="error_info_display_show_json_data">JSONデータを表示</string>
-    <string name="upload_to_paste_dot_ee">Paste.eeにアップロード</string>
-
-    <string name="settings_value_out_of_$range">入力は範囲外です （$range）</string>
-    <string name="settings_value_not_int">入力は整数ではありません</string>
-    <string name="settings_value_not_float">入力は数ではありません </string>
-
-    <string name="s_page_preferences">設定</string>
-    <string name="s_cat_theming">テーマ</string>
-    <string name="s_key_accent_source">アクセント色</string>
-    <string name="s_option_accent_thumbnail">サムネールから</string>
-    <string name="s_option_accent_system">システムテーマから</string>
-    <string name="s_key_np_theme_mode">再生画面テーマモード</string>
-    <string name="s_option_np_accent_background">バックグラウンドをアクセント色で彩る</string>
-    <string name="s_option_np_accent_elements">エレメントをアクセント色で彩る</string>
-    <string name="s_option_np_accent_none">アクセント色不使用</string>
-
-    <string name="s_key_np_default_gradient_depth">Default gradient depth</string>
-
-    <string name="loading_feed">フィードをロード中</string>
-    <string name="artists">アーティスト</string>
-    <string name="s_cat_general">一般</string>
-    <string name="s_key_interface_lang">インタフェース言語</string>
-    <string name="s_key_data_lang">データ言語</string>
-    <string name="s_sub_interface_lang">アプリのUIに使われる言語</string>
-    <string name="s_sub_data_lang">曲の名前などに使われる言語</string>
-    <string name="language_change_restart_notice">言語の変更を有効にするには、アプリの再起動が必要です</string>
-    <string name="s_cat_other">その他</string>
-    <string name="album">アルバム</string>
-    <string name="artist">アーティスト</string>
-    <string name="audiobook">オーディオブック</string>
-    <string name="audiobooks">オーディオブック</string>
-    <string name="podcast">ポッドキャスト</string>
-    <string name="podcasts">ポッドキャスト</string>
-    <string name="radio">ラジオ</string>
-    <string name="radios">ラジオ</string>
-
-    <string name="s_cat_filter">フィルター</string>
-
-    <string name="s_key_filter_enable">アイテムフィルターを使用</string>
-    <string name="s_key_filter_title_keywords">題名フィルターのキーワード</string>
-    <string name="s_sub_filter_title_keywords">アイテムの題名にどれかのキーワードが含まれていれば、そのアイテムは隠されます</string>
-
-    <string name="edit_$x_title_dialog_title">$xのタイトルを変更</string>
-    
-    <string name="song_name">曲名</string>
-    <string name="feed_row_artists">おすすめのアーティスト</string>
-    <string name="feed_row_playlists">プレイリスト</string>
-    <string name="err_root_not_granted">ルート許可を得ることができませんでした</string>
-    <string name="action_close">閉じる</string>
-    <string name="s_cat_audio_video">音・動画</string>
-    <string name="s_key_acc_screen_off">画面がオフ状態でも有効にする</string>
-    <string name="s_key_download_audio_quality">ダウンロードの音質</string>
-
-    <string name="s_key_lyrics_default_source">デフォルトの歌詞元</string>
-
-    <string name="s_key_lyrics_follow_enabled">現在の行をたどる</string>
-    <string name="s_sub_lyrics_follow_enabled">同期可能こ歌詞が表示されてる時、自動的に現在の行までスクロールします</string>
-
-    <string name="s_key_lyrics_follow_offset">たどった歌詞行の位置</string>
-    <string name="s_sub_lyrics_follow_offset">現在の行までスクロールする時、その行の画面内の最終位置</string>
-    <string name="s_option_lyrics_follow_offset_top">上</string>
-    <string name="s_option_lyrics_follow_offset_bottom">下</string>
-
-    <string name="s_key_lyrics_default_furigana">ふりがなをデフォルトで表示する</string>
-
-    <string name="s_key_lyrics_text_alignment">歌詞のアラインメント</string>
-    <string name="s_key_stream_audio_quality">ストリームの音質</string>
-    <string name="s_option_audio_quality_low">低</string>
-    <string name="s_option_audio_quality_high">高</string>
-    <string name="s_option_audio_quality_medium">中</string>
-    <string name="s_option_lyrics_text_alignment_left">左</string>
-    <string name="s_option_lyrics_text_alignment_right">右</string>
-    <string name="s_option_lyrics_text_alignment_center">中</string>
-    <string name="s_sub_acc_screen_off">ルート許可が必要です</string>
-    <string name="action_share">共有</string>
-    <string name="artist_chip_details">情報</string>
-    <string name="artist_chip_play">再生</string>
-    <string name="artist_chip_radio">ラジオ</string>
-    <string name="artist_chip_shuffle">シャッフル</string>
-    <string name="artist_chip_open">開く</string>
-    <string name="artist_x_subscribers">登録者$x人</string>
-    <string name="prompt_confirm_action">確認してください</string>
-    <string name="prompt_confirm_settings_page_reset">このページのバリューを全てリセットしますか？</string>
-    <string name="s_group_acc_service">アクセシビリティサービス</string>
-    <string name="s_cat_download">ダウンロード</string>
-    <string name="s_key_auto_download_quality">オートダウンロードの音質</string>
-    <string name="s_key_auto_download_on_metered">従量制接続でオートダウンロードを行う</string>
-    <string name="s_key_lyrics_extra_padding">パディングを増やす</string>
-
-    <string name="s_key_lyrics_enable_word_sync">文字ごとにシンクする</string>
-    <string name="s_sub_lyrics_enable_word_sync">可能ならば、行ごとにではなく文字ごとにシンクを表示します</string>
-
-    <string name="s_key_lyrics_font_size">フォントサイズ</string>
-
-    <string name="s_group_top_bar_lyrics">トップバーの歌詞</string>
-    <string name="s_key_top_bar_lyrics_show_furigana">ふりがなを表示</string>
-    <string name="s_key_top_bar_lyrics_show_in_library">Show in library</string>
-    <string name="s_key_top_bar_lyrics_show_in_radiobuilder">Show in the radio builder</string>
-    <string name="s_key_top_bar_lyrics_show_in_settings">Show in settings</string>
-    <string name="s_key_top_bar_lyrics_show_in_login">Show in login pages</string>
-    <string name="s_key_top_bar_lyrics_show_in_playlist">Show in playlist pages</string>
-    <string name="s_key_top_bar_lyrics_show_in_artist">Show in artist pages</string>
-    <string name="s_key_top_bar_lyrics_show_in_viewmore">Show in home feed view more pages</string>
-    <string name="s_key_top_bar_lyrics_show_in_search">Show in search page</string>
-
-    <string name="s_key_vol_intercept_mode">音量インターセプトモード</string>
-    <string name="s_key_vol_intercept_notification">音量変化の通知</string>
-    <string name="s_key_vol_steps">音量変化のステップ</string>
-    <string name="s_option_vol_intercept_mode_never">有効にしない</string>
-    <string name="s_option_vol_intercept_mode_app">アプリ使用時に有効</string>
-    <string name="s_option_vol_intercept_mode_always">メディア再生時に有効</string>
-    <string name="s_key_auto_download_enabled">曲を自動的にダウンロードする</string>
-    <string name="s_key_auto_download_threshold">自動曲ダウンロード最低再生数</string>
-    <string name="s_sub_auto_download_threshold">この数以上再生された曲のみが自動的にダウンロードされます</string>
-    <string name="s_sub_auto_download_quality">オートダウンロードした曲の音質</string>
-    <string name="s_sub_download_audio_quality">オートダウンロードした曲の合計のサイズはこの制限を超えません</string>
-    <string name="s_sub_lyrics_extra_padding">歌詞の上と下にパディングを増やす</string>
-    <string name="s_sub_stream_audio_quality">曲をストリーム再生する時の音質</string>
-    <string name="s_sub_vol_intercept_mode">アクセシビリティサービスはボリュームボタンをインターセプトして、システム音量の代わりに SpMp の音量を変えることができます</string>
-    <string name="s_sub_vol_intercept_notification">アクセシビリティサービスがボリュームボタンをインターセプトした時に画面にメッセージを表示しする</string>
-    <string name="s_sub_vol_steps">アクセシビリティサービスで音量を変える時のステップ量</string>
     <string name="home_feed_listen_again">もう一度聴く</string>
     <string name="home_feed_mixed_for_you">おすすめのミックス</string>
+    <string name="home_feed_new_releases">新作</string>
     <string name="home_feed_moods_and_genres">おすすめのプレイリスト</string>
     <string name="home_feed_charts">チャート</string>
-    <string name="home_feed_new_releases">新作</string>
-    <string name="home_feed_similar_to">似ているかも</string>
-    <string name="home_feed_more_from">他の曲</string>
+
     <string name="home_feed_rec_general">おすすめ</string>
     <string name="home_feed_rec_songs">おすすめの曲</string>
     <string name="home_feed_rec_artists">おすすめのアーティスト</string>
@@ -157,16 +14,72 @@
     <string name="home_feed_rec_playlists">おすすめのプレイリスト</string>
     <string name="home_feed_rec_music_videos">おすすめのミュージックビデオ</string>
     <string name="home_feed_rec_albums_playlists">アルバムとプレイリスト</string>
+    <string name="home_feed_similar_to">似ているかも</string>
+    <string name="home_feed_more_from">他の曲</string>
+
     <string name="home_feed_filter_energise">エナジー</string>
     <string name="home_feed_filter_relax">リラックス</string>
     <string name="home_feed_filter_workout">ワークアウト</string>
     <string name="home_feed_filter_commute">通勤・通学</string>
     <string name="home_feed_filter_focus">フォーカス</string>
-    <string name="playlist">プレイリスト</string>
+
+    <string name="library_main_page_title">ライブラリ</string>
+    <string name="library_songs_page_title">保存済みの曲</string>
+
+    <string name="library_row_playlists">プレイリスト</string>
+    <string name="library_row_local_songs">保存済みの曲</string>
+    <string name="library_x_more_songs">他$x曲</string>
+    <string name="library_row_downloads">ダウンロード</string>
+    <string name="library_no_songs_downloaded">ダウンロードされている曲がありません</string>
+    <string name="library_playlists_empty">プレイリストはありません</string>
+    <string name="library_recent_songs_all">すべて</string>
+    <string name="library_recent_songs_year">年</string>
+    <string name="library_recent_songs_month">月</string>
+    <string name="library_recent_songs_week">週</string>
+    <string name="library_recent_songs_day">日</string>
+
+    <string name="song_name">曲名</string>
+    <string name="videos">動画</string>
+
+    <string name="songs">曲</string>
     <string name="song">曲</string>
+
+    <string name="artists">アーティスト</string>
+    <string name="artist">アーティスト</string>
+
+    <string name="playlists">プレイリスト</string>
+    <string name="playlist">プレイリスト</string>
+    <string name="albums">アルバム</string>
+    <string name="album">アルバム</string>
+    <string name="audiobook">オーディオブック</string>
+    <string name="audiobooks">オーディオブック</string>
+    <string name="podcast">ポッドキャスト</string>
+    <string name="podcasts">ポッドキャスト</string>
+    <string name="radio">ラジオ</string>
+    <string name="radios">ラジオ</string>
+
+    <string name="edit_$x_title_dialog_title">$xのタイトルを変更</string>
+
+    <string name="new_playlist_title">新しいプレイリスト</string>
+    <string name="playlist_empty">プレイリストに曲が入ってません</string>
+    <string name="song_add_to_playlist">プレイリストに追加する</string>
+    <string name="playlist_create">プレイリストを作成</string>
+    <string name="playlist_delete">プレイリストを消去</string>
+    <string name="toast_playlist_added">プレイリストに追加しました</string>
+    <string name="playlist_select_image">プレイリスト画像を選択</string>
+    <string name="playlist_info_local">ローカルプレイリスト</string>
+    <string name="playlist_info_account">アカウントプレイリスト</string>
+
+    <string name="feed_row_artists">おすすめのアーティスト</string>
+    <string name="feed_row_playlists">プレイリスト</string>
+
+    <string name="action_close">閉じる</string>
     <string name="action_cancel">キャンセル</string>
+    <string name="action_share">共有</string>
     <string name="action_confirm_action">はい</string>
     <string name="action_deny_action">いいえ</string>
+    <string name="prompt_confirm_action">確認してください</string>
+    <string name="prompt_confirm_settings_page_reset">このページのバリューを全てリセットしますか？</string>
 
     <string name="song_theme_menu_pick_colour_from_thumb">サムネールから選ぶ</string>
     <string name="song_theme_menu_corner_radius_$x">コーナーの半径: $x</string>
@@ -176,8 +89,8 @@
     <string name="song_notif_image_menu_adjust_offset">イメージの位置を変える</string>
     <string name="song_notif_image_menu_adjust_offset_desc">再生中の曲が一度変わってから変化されます</string>
 
-    <string name="theme_title_new">新しいテーマ</string>
     <string name="theme_title_default">デフォルトテーマ</string>
+    <string name="theme_title_new">新しいテーマ</string>
 
     <string name="queue_shuffle">シャッフル</string>
     <string name="queue_clear">クリア</string>
@@ -196,76 +109,96 @@
     <string name="playlist_chip_open">開く</string>
     <string name="playlist_x_songs">$x曲</string>
 
+    <string name="artist_chip_play">再生</string>
+    <string name="artist_chip_shuffle">シャッフル</string>
+    <string name="artist_chip_radio">ラジオ</string>
+    <string name="artist_chip_details">情報</string>
+    <string name="artist_chip_open">開く</string>
+    <string name="artist_info_label"></string> <!--TODO-->
+
+    <string name="artist_x_subscribers">登録者$x人</string>
+
+    <string name="loading_feed">フィードをロード中</string>
+
+    <string name="media_pause">停止</string>
+    <string name="media_play">再生</string>
+
+    <string name="player_service_name">プレイヤーサービス</string>
+    <string name="download_service_name">ダウンロードサービス</string>
+    <string name="download_service_error_name">ダウンロードサービスエラー</string>
+
+    <string name="search_filter_all">全て</string>
+    <string name="search_filter_videos">動画</string>
+    <string name="search_entry_field_hint">検索</string>
+    <string name="search_results_loading">ロード中</string>
+
     <string name="lyrics_none_found">歌詞が見つかりませんでした</string>
     <string name="lyrics_no_more_results">以上</string>
     <string name="lyrics_search_on_$source">$sourceで歌詞を探す</string>
     <string name="lyrics_loading">歌詞をロード中</string>
     <string name="lyrics_sync_select_line">シンクに使う行を選んでください</string>
     <string name="lyrics_sync_press_button_when_line_begins">この行が始まったらボタンを押して下さい</string>
+    
+    <string name="lyrics_source_petit">プチリリ</string>
+    <string name="lyrics_source_kugou">KuGou</string>
 
     <string name="lyrics_sync_none">シンクなし</string>
     <string name="lyrics_sync_line">行をシンク</string>
     <string name="lyrics_sync_word">字をシンク</string>
 
-    <string name="artist_chip_open">開く</string>
-    <string name="download_service_name">ダウンロードサービス</string>
-    <string name="download_service_error_name">ダウンロードサービスエラー</string>
-    
+    <string name="error_message_generic">エラーが発生しました</string>
+    <string name="error_yt_feed_parse_failed">YouTubeフィード解析に失敗しました</string>
+
+    <string name="throw_error">スロー</string>
+    <string name="wrap_text_switch_label">折り返す</string>
+    <string name="upload_to_paste_dot_ee">Paste.eeにアップロード</string>
+    <string name="error_info_display_show_json_data">JSONデータを表示</string>
+
+    <string name="acc_ser_enable_dialog_title"></string> <!--TODO-->
+    <string name="acc_ser_enable_dialog_body"></string> <!--TODO-->
     <string name="acc_ser_enable_dialog_btn_root">ルートを使う</string>
-    <string name="s_key_feed_initial_rows">最初のフィード行数</string>
-    <string name="s_key_feed_square_preview_text_lines">四角形アイテムの最高テキスト行数</string>
-    <string name="s_sub_feed_initial_rows">自動的にロードするフィード行の最小数</string>
-    <string name="s_key_persistent_queue">再生キューを覚える</string>
-    <string name="s_sub_persistent_queue">アプリを閉じても曲キューは保持されます</string>
+    <string name="acc_ser_enable_dialog_btn_manual"></string> <!--TODO-->
 
-    <string name="s_key_add_songs_to_history">聴いた曲をYouTubeの歴史に追加する</string>
-    <string name="s_sub_add_songs_to_history">アプリ内で流された曲をYouTubeに通信し、アカウントの歴史に追加されます</string>
+    <string name="lpm_action_radio">ラジオを始める</string>
+    <string name="lpm_action_play">再生</string>
+    <string name="lpm_action_shuffle_playlist">シャッフル再生</string>
+    <string name="lpm_action_play_after_1_song">次に再生する</string>
+    <string name="lpm_action_play_after_x_songs">$x曲後に再生する</string>
+    <string name="lpm_action_download">ダウンロード</string>
+    <string name="lpm_action_go_to_artist">アーティストを見る</string>
+    <string name="lpm_action_song_related">関係コンテンツを表示</string>
+    <string name="lpm_action_print_info">情報をコンソールに出力する</string>
+    <string name="lpm_action_share">共有</string>
+    <string name="lpm_action_open_artist">開く</string>
+    <string name="lpm_action_open_playlist">開く</string>
+    <string name="lpm_action_open_external">外部アプリで開く</string>
+    <string name="lpm_action_hide">隠す</string>
 
-    <string name="s_key_treat_singles_as_song">アーティストのシングルを曲として扱う</string>
-    <string name="s_sub_treat_singles_as_song">アーティストの「シングル」セクションに入ってるプレイリストは、曲が一つしか含まれていなければその曲として扱われます</string>
+    <string name="lpm_long_press_actions">長押しアクション</string>
+    <string name="lpm_action_radio_at_song_pos">この曲の位置にラジオを入れる</string>
+    <string name="lpm_action_radio_after_x_songs">X曲後にラジオを入れる</string>
+    <string name="lpm_action_play_shuffled_after_x_songs">X曲後にシャッフルして入れる</string>
+    <string name="lpm_song_now_playing">再生中</string>
+    <string name="lpm_song_played_$x_ago">$x前に再生ずみ</string>
+    <string name="lpm_song_playing_in_$x">$x後に再生します</string>
 
-    <string name="s_key_current_theme">現在のテーマ</string>
-    <string name="s_theme_editor_title">テーマを変更する</string>
-    <string name="s_option_accent_theme">テーマから</string>
-    <string name="s_key_feed_show_radios">フィードにラジオを表示する</string>
-    <string name="s_key_feed_show_charts_row">「チャート」行を表示する</string>
-    <string name="s_key_feed_show_mix_row">「おすすめのミックス」行を表示する</string>
-    <string name="s_key_feed_show_listen_row">「もう一度聴く」行を表示する</string>
-    <string name="s_key_feed_show_moods_row">「おすすめのプレイリスト」行を表示する</string>
-    <string name="s_key_feed_show_new_row">「新作」行を表示する</string>
+    <string name="lpm_info_queue_index">再生リストでの位置: $index</string>
+    <string name="lpm_info_id">ID: $id</string>
 
-    <string name="s_cat_library">ライブラリ</string>
+    <string name="song_related_group_other">その他</string>
 
-    <string name="s_key_show_likes_playlist">高評価のプレイシストを表示</string>
+    <string name="multiselect_x_items_selected">$xアイテムが選択されてます</string>
+    <string name="multiselect_begin">複数選択を始める</string>
+    <string name="multiselect_end">複数選択をやめる</string>
 
-    <string name="s_group_long_press_menu">長押しメニュー</string>
-    <string name="s_key_lpm_close_on_action">アクションを行ったら閉じる</string>
-    <string name="s_key_lpm_increment_play_after">「○曲後に再生」使用時に曲数を増加</string>
+    <string name="topbar_mode_unavailable">(現在不可)</string>
 
-    <string name="s_key_open_np_on_song_played">曲をタップしたらプレーヤーを開く</string>
-    <string name="s_sub_open_np_on_song_played">曲をタップしたときにプレーヤーが自動で開きます</string>
-    <string name="s_key_multiselect_cancel_on_action">アクション後に複数選択を解除する</string>
-    <string name="s_sub_multiselect_cancel_on_action">複数選択のアクションを使った後、複数選択モードが解除されます</string>
-
-    <string name="s_cat_home_page">メインページ</string>
-
-    <string name="s_key_hp_show_visualiser">音楽ビジュアライザーを表示する</string>
-    <string name="s_sub_hp_show_visualiser">再生時にトップバーに表示されます</string>
-    <string name="s_key_hp_show_timed_lyrics">同期可能の歌詞を表示する</string>
-    <string name="s_sub_hp_show_timed_lyrics">流れてる曲に同期可能の歌詞があればトップバーに表示されます</string>
-
-    <string name="s_group_rec_feed">おすすめフィード</string>
-    <string name="s_key_feed_show_filters">フィルターを表示する</string>
-
-    <string name="s_cat_player">プレイヤー</string>
-
-    <string name="s_key_np_queue_wave_border_mode">曲キューの波ボーダーのアニメーションモード</string>
-    <string name="s_sub_np_queue_wave_border_mode">曲キューと操作ボタンの間にある波型ボーダーのアニメーション方法</string>
-    <string name="s_option_wave_border_mode_time">時の流れ</string>
-    <string name="s_option_wave_border_mode_time_sync">時の流れ（再生時のみ）</string>
-    <string name="s_option_wave_border_mode_scroll">曲キューのスクロールと</string>
-    <string name="s_option_wave_border_mode_none">アニメーションなし</string>
-    <string name="s_option_wave_border_mode_line">線型ボーダー</string>
+    <string name="notif_download_finished">ダウンロードが完了しました</string>
+    <string name="notif_download_already_finished">ダウンロードはすでに完了しています</string>
+    <string name="notif_download_cancelled">ダウンロードが停止されました</string>
+    <string name="notif_download_already_downloading">ダウンロードはすでに開始されてます</string>
+    <string name="notif_copied_to_clipboard">コピーしました</string>
+    <string name="notif_copied_x_to_clipboard">$xをコピーしました</string>
 
     <string name="radio_builder_title">ラジオ番組を作成</string>
     <string name="radio_builder_no_songs_match_criteria">条件に当てはまる曲がありません</string>
@@ -298,17 +231,204 @@
     <string name="radio_title_artists_splitter">・</string>
     <string name="radio_action_retry_failed_load">再試行</string>
 
-    <string name="search_filter_all">全て</string>
-    <string name="search_filter_videos">動画</string>
-    <string name="search_entry_field_hint">検索</string>
-    <string name="search_results_loading">ロード中</string>
+    <string name="settings_string_set_item_empty">なにも入っていません</string>
+    <string name="settings_string_set_item_already_added">そのアイテムはすでに含まれてます</string>
+    <string name="settings_value_out_of_$range">入力は範囲外です （$range）</string>
+    <string name="settings_value_not_int">入力は整数ではありません</string>
+    <string name="settings_value_not_float">入力は数ではありません</string>
+
+    <string name="s_page_preferences">設定</string>
+
+    <string name="s_cat_general">一般</string>
+    <string name="s_key_interface_lang">インタフェース言語</string>
+    <string name="s_sub_interface_lang">アプリのUIに使われる言語</string>
+    <string name="s_key_data_lang">データ言語</string>
+    <string name="s_sub_data_lang">曲の名前などに使われる言語</string>
+    <string name="language_change_restart_notice">言語の変更を有効にするには、アプリの再起動が必要です</string>
+    <string name="s_group_long_press_menu">長押しメニュー</string>
+    <string name="s_key_lpm_close_on_action">アクションを行ったら閉じる</string>
+    <string name="s_key_lpm_increment_play_after">「○曲後に再生」使用時に曲数を増加</string>
+
+    <string name="s_cat_filter">フィルター</string>
+    
+    <string name="s_key_filter_enable">アイテムフィルターを使用</string>
+    <string name="s_key_filter_title_keywords">題名フィルターのキーワード</string>
+    <string name="s_sub_filter_title_keywords">アイテムの題名にどれかのキーワードが含まれていれば、そのアイテムは隠されます</string>
+    <string name="s_key_filter_apply_to_playlist_items">プレイリストのアイテムにフィルターを適用</string>
+    <string name="s_key_filter_apply_to_artists">アーティストにフィルターを適用</string>
+    <string name="s_key_filter_apply_to_artist_items">アーティストのアイテムにフィルターを適用</string>
+    <string name="s_filter_title_keywords_dialog_title">キーワードを追加</string>
+    
+    <string name="s_cat_home_page">メインページ</string>
+
+    <string name="s_key_hp_show_visualiser">音楽ビジュアライザーを表示する</string>
+    <string name="s_sub_hp_show_visualiser">再生時にトップバーに表示されます</string>
+    <string name="s_key_hp_show_timed_lyrics">同期可能の歌詞を表示する</string>
+    <string name="s_sub_hp_show_timed_lyrics">流れてる曲に同期可能の歌詞があればトップバーに表示されます</string>
+
+    <string name="s_group_rec_feed">おすすめフィード</string>
+    <string name="s_key_feed_show_filters">フィルターを表示する</string>
+    <string name="s_key_feed_initial_rows">最初のフィード行数</string>
+    <string name="s_key_feed_square_preview_text_lines">四角形アイテムの最高テキスト行数</string>
+    <string name="s_sub_feed_initial_rows">自動的にロードするフィード行の最小数</string>
+    <string name="s_key_feed_show_radios">フィードにラジオを表示する</string>
+    <string name="s_key_feed_show_listen_row">「もう一度聴く」行を表示する</string>
+    <string name="s_key_feed_show_mix_row">「おすすめのミックス」行を表示する</string>
+    <string name="s_key_feed_show_new_row">「新作」行を表示する</string>
+    <string name="s_key_feed_show_moods_row">「おすすめのプレイリスト」行を表示する</string>
+    <string name="s_key_feed_show_charts_row">「チャート」行を表示する</string>
+
+    <string name="s_key_vol_steps">音量変化のステップ</string>
+    <string name="s_sub_vol_steps">アクセシビリティサービスで音量を変える時のステップ量</string>
+
+    <string name="s_key_open_np_on_song_played">曲をタップしたらプレーヤーを開く</string>
+    <string name="s_sub_open_np_on_song_played">曲をタップしたときにプレーヤーが自動で開きます</string>
+    <string name="s_key_multiselect_cancel_on_action">アクション後に複数選択を解除する</string>
+    <string name="s_sub_multiselect_cancel_on_action">複数選択のアクションを使った後、複数選択モードが解除されます</string>
+
+    <string name="s_key_persistent_queue">再生キューを覚える</string>
+    <string name="s_sub_persistent_queue">アプリを閉じても曲キューは保持されます</string>
+
+    <string name="s_key_add_songs_to_history">聴いた曲をYouTubeの歴史に追加する</string>
+    <string name="s_sub_add_songs_to_history">アプリ内で流された曲をYouTubeに通信し、アカウントの歴史に追加されます</string>
+
+    <string name="s_key_treat_singles_as_song">アーティストのシングルを曲として扱う</string>
+    <string name="s_sub_treat_singles_as_song">アーティストの「シングル」セクションに入ってるプレイリストは、曲が一つしか含まれていなければその曲として扱われます</string>
+
+    <string name="s_cat_player">プレイヤー</string>
+
+    <string name="s_key_np_queue_wave_border_mode">曲キューの波ボーダーのアニメーションモード</string>
+    <string name="s_sub_np_queue_wave_border_mode">曲キューと操作ボタンの間にある波型ボーダーのアニメーション方法</string>
+    <string name="s_option_wave_border_mode_time">時の流れ</string>
+    <string name="s_option_wave_border_mode_time_sync">時の流れ（再生時のみ）</string>
+    <string name="s_option_wave_border_mode_scroll">曲キューのスクロールと</string>
+    <string name="s_option_wave_border_mode_none">アニメーションなし</string>
+    <string name="s_option_wave_border_mode_line">線型ボーダー</string>
+
+    <string name="s_cat_library">ライブラリ</string>
+
+    <string name="s_key_show_likes_playlist">高評価のプレイシストを表示</string>
+
+    <string name="s_cat_theming">テーマ</string>
+
+    <string name="s_key_current_theme">現在のテーマ</string>
+    <string name="s_theme_editor_title">テーマを変更する</string>
+
+    <string name="s_key_accent_source">アクセント色</string>
+    <string name="s_option_accent_theme">テーマから</string>
+    <string name="s_option_accent_thumbnail">サムネールから</string>
+    <string name="s_option_accent_system">システムテーマから</string>
+
+    <string name="s_key_np_theme_mode">再生画面テーマモード</string>
+    <string name="s_option_np_accent_background">バックグラウンドをアクセント色で彩る</string>
+    <string name="s_option_np_accent_elements">エレメントをアクセント色で彩る</string>
+    <string name="s_option_np_accent_none">アクセント色不使用</string>
+
+    <string name="s_key_np_default_gradient_depth">Default gradient depth</string>
+
+    <string name="s_cat_lyrics">歌詞</string>
+
+    <string name="s_key_lyrics_default_source">デフォルトの歌詞元</string>
+
+    <string name="s_key_lyrics_follow_enabled">現在の行をたどる</string>
+    <string name="s_sub_lyrics_follow_enabled">同期可能こ歌詞が表示されてる時、自動的に現在の行までスクロールします</string>
+
+    <string name="s_key_lyrics_follow_offset">たどった歌詞行の位置</string>
+    <string name="s_sub_lyrics_follow_offset">現在の行までスクロールする時、その行の画面内の最終位置</string>
+    <string name="s_option_lyrics_follow_offset_top">上</string>
+    <string name="s_option_lyrics_follow_offset_bottom">下</string>
+
+    <string name="s_key_lyrics_default_furigana">ふりがなをデフォルトで表示する</string>
+
+    <string name="s_key_lyrics_text_alignment">歌詞のアラインメント</string>
+    <string name="s_option_lyrics_text_alignment_left">左</string>
+    <string name="s_option_lyrics_text_alignment_center">中</string>
+    <string name="s_option_lyrics_text_alignment_right">右</string>
+
+    <string name="s_key_lyrics_extra_padding">パディングを増やす</string>
+    <string name="s_sub_lyrics_extra_padding">歌詞の上と下にパディングを増やす</string>
+    
+    <string name="s_key_lyrics_enable_word_sync">文字ごとにシンクする</string>
+    <string name="s_sub_lyrics_enable_word_sync">可能ならば、行ごとにではなく文字ごとにシンクを表示します</string>
+
+    <string name="s_key_lyrics_font_size">フォントサイズ</string>
+
+    <string name="s_group_top_bar_lyrics">トップバーの歌詞</string>
+    <string name="s_key_top_bar_lyrics_show_furigana">ふりがなを表示</string>
+    <string name="s_key_top_bar_lyrics_show_in_library">Show in library</string>
+    <string name="s_key_top_bar_lyrics_show_in_radiobuilder">Show in the radio builder</string>
+    <string name="s_key_top_bar_lyrics_show_in_settings">Show in settings</string>
+    <string name="s_key_top_bar_lyrics_show_in_login">Show in login pages</string>
+    <string name="s_key_top_bar_lyrics_show_in_playlist">Show in playlist pages</string>
+    <string name="s_key_top_bar_lyrics_show_in_artist">Show in artist pages</string>
+    <string name="s_key_top_bar_lyrics_show_in_viewmore">Show in home feed view more pages</string>
+    <string name="s_key_top_bar_lyrics_show_in_search">Show in search page</string>
+
+
+    <string name="s_cat_audio_video">音・動画</string>
+
+    <string name="s_key_stream_audio_quality">ストリームの音質</string>
+    <string name="s_sub_stream_audio_quality">曲をストリーム再生する時の音質</string>
+    <string name="s_key_download_audio_quality">ダウンロードの音質</string>
+    <string name="s_sub_download_audio_quality">オートダウンロードした曲の合計のサイズはこの制限を超えません</string>
+
+    <string name="s_option_audio_quality_high">高</string>
+    <string name="s_option_audio_quality_medium">中</string>
+    <string name="s_option_audio_quality_low">低</string>
+
+    <string name="s_cat_download">ダウンロード</string>
+
+    <string name="s_key_auto_download_enabled">曲を自動的にダウンロードする</string>
+    <string name="s_key_auto_download_threshold">自動曲ダウンロード最低再生数</string>
+    <string name="s_sub_auto_download_threshold">この数以上再生された曲のみが自動的にダウンロードされます</string>
+    <string name="s_key_auto_download_quality">オートダウンロードの音質</string>
+    <string name="s_sub_auto_download_quality">オートダウンロードした曲の音質</string>
+    <string name="s_key_auto_download_on_metered">従量制接続でオートダウンロードを行う</string>
+
+    <string name="s_cat_stats"></string> <!--TODO-->
+
+    <string name="s_key_enable_stats"></string> <!--TODO-->
+    <string name="s_sub_enable_stats"></string> <!--TODO-->
+    <string name="s_key_listen_count_threshold"></string> <!--TODO-->
+    <string name="s_sub_listen_count_threshold"></string> <!--TODO-->
+    <string name="s_key_listen_count_type"></string> <!--TODO-->
+    <string name="s_option_listen_count_threshold_type_absolute"></string> <!--TODO-->
+    <string name="s_option_listen_count_threshold_type_percent"></string> <!--TODO-->
+    <string name="s_button_reset_stats"></string> <!--TODO-->
+    <string name="s_confirm_reset_stats"></string> <!--TODO-->
+
+    <string name="s_cat_other">その他</string>
+    
+    <string name="s_group_caching">キャッシュ</string>
+    <string name="s_key_enable_thumbnail_cache">サムネール画像をキャッシュする</string>
+    
+    <string name="s_group_acc_service">アクセシビリティサービス</string>
+
+    <string name="s_acc_service_enabled"></string> <!--TODO-->
+    <string name="s_acc_service_disabled"></string> <!--TODO-->
+    <string name="s_acc_service_enable"></string> <!--TODO-->
+    <string name="s_acc_service_disable"></string> <!--TODO-->
+
+    <string name="s_discord_status_enabled"></string> <!--TODO-->
+    <string name="s_discord_status_disabled"></string> <!--TODO-->
+    <string name="s_discord_status_enable"></string> <!--TODO-->
+    <string name="s_discord_status_disable"></string> <!--TODO-->
+
+    <string name="s_key_vol_intercept_mode">音量インターセプトモード</string>
+    <string name="s_sub_vol_intercept_mode">アクセシビリティサービスはボリュームボタンをインターセプトして、システム音量の代わりに SpMp の音量を変えることができます</string>
+    <string name="s_option_vol_intercept_mode_always">メディア再生時に有効</string>
+    <string name="s_option_vol_intercept_mode_app">アプリ使用時に有効</string>
+    <string name="s_option_vol_intercept_mode_never">有効にしない</string>
+
+    <string name="s_key_acc_screen_off">画面がオフ状態でも有効にする</string>
+    <string name="s_sub_acc_screen_off">ルート許可が必要です</string>
+
+    <string name="s_key_vol_intercept_notification">音量変化の通知</string>
+    <string name="s_sub_vol_intercept_notification">アクセシビリティサービスがボリュームボタンをインターセプトした時に画面にメッセージを表示しする</string>
 
     <string name="s_cat_discord_status">Discordステータス</string>
 
     <string name="s_discord_status_text_info">以下のキーワードをテキスト内で使うことで、流れてる曲の情報を表示することができます:&#xA;- $song (曲)&#xA;- $artist (アーティスト)</string>
-
-    <string name="s_group_caching">キャッシュ</string>
-    <string name="s_key_enable_thumbnail_cache">サムネール画像をキャッシュする</string>
 
     <string name="s_key_discord_status_name">ステータスタイトル</string>
     <string name="s_sub_discord_status_name">'Listening to'の次に表示されるテキスト</string>
@@ -360,7 +480,6 @@
 
     <string name="warning_ytm_login">今からアプリ内で YouTube Music のログインページに移動します。&#xA;&#xA;ログインを終えたら、セッションクッキーを取って、保存し、オススメフィードやチャンネル登録などの YouTube Music への API リクエストのみに使います。&#xA;&#xA;よろしいですか？</string>
     <string name="info_ytm_login">アプリ内で YouTube Music のログインページに移動します。&#xA;&#xA;ログインを終えたら、セッションクッキーを取って、保存し、オススメフィードやチャンネル登録などの YouTube Music への API リクエストのみに使います。</string>
-
     <string name="warning_discord_login">今からアプリ内で Discord のログインページに移動します。&#xA;&#xA;ログインを終えたら、ユーザトーケンを取って、保存し、ステータスを変えるための Discord への API リクエストのみに使います。&#xA;&#xA;詳しくは https://github.com/dead8309/Kizzy をご覧ください。&#xA;&#xA;よろしいですか？</string>
     <string name="info_discord_login">アプリ内で Discord のログインページに移動します。&#xA;&#xA;ログインを終えたら、ユーザトーケンを取って、保存し、ステータスを変えるための Discord への API リクエストのみに使います。&#xA;&#xA;詳しくは https://github.com/dead8309/Kizzy をご覧ください。</string>
 
@@ -376,6 +495,9 @@
     <string name="youtube_manual_login_suffix">Firefoxではリクエストを右クリックし、「Copy value」そして「Copy Request Headers」を選択すると必要な情報がコピーされます。&#xA;&#xA;他のブラウザーでは, リクエストを選択して「Headers」タブを開き、「Request headers」まで降りて「Accept: */*」からの情報をすべてコピーしてください。</string>
     <string name="youtube_manual_login_field">ヘッダー</string>
 
+    <string name="manual_login_error_missing_following_headers">以下のヘッダーが含まれていません：</string>
+    <string name="manual_login_desktop_browser_may_be_needed">この手順を行うには、デスクトップ上のブラウザーが必要かもしれません</string>
+
     <string name="discord_manual_login_title">Discord manual log-in</string>
     <string-array name="discord_manual_login_steps">
         <item>ブラウザーで新しいタブを開く</item>
@@ -388,69 +510,7 @@
     <string name="discord_manual_login_suffix"></string>
     <string name="discord_manual_login_field">Authorization</string>
 
-    <string name="manual_login_error_missing_following_headers">以下のヘッダーが含まれていません：</string>
-    <string name="manual_login_desktop_browser_may_be_needed">この手順を行うには、デスクトップ上のブラウザーが必要かもしれません</string>
+    <string name="err_root_not_granted">ルート許可を得ることができませんでした</string>
+    <string name="err_secure_settings_grant_failed"></string> <!--TODO-->
 
-    <string name="lpm_action_radio">ラジオを始める</string>
-    <string name="lpm_action_play">再生</string>
-    <string name="lpm_action_shuffle_playlist">シャッフル再生</string>
-    <string name="lpm_action_play_after_1_song">次に再生する</string>
-    <string name="lpm_action_play_after_x_songs">$x曲後に再生する</string>
-    <string name="lpm_action_download">ダウンロード</string>
-    <string name="lpm_action_go_to_artist">アーティストを見る</string>
-    <string name="lpm_action_song_related">関係コンテンツを表示</string>
-    <string name="lpm_action_print_info">情報をコンソールに出力する</string>
-    <string name="lpm_action_share">共有</string>
-    <string name="lpm_action_open_artist">開く</string>
-    <string name="lpm_action_open_playlist">開く</string>
-    <string name="lpm_action_open_external">外部アプリで開く</string>
-
-    <string name="lpm_long_press_actions">長押しアクション</string>
-    <string name="lpm_action_radio_at_song_pos">この曲の位置にラジオを入れる</string>
-    <string name="lpm_action_radio_after_x_songs">X曲後にラジオを入れる</string>
-    <string name="lpm_action_play_shuffled_after_x_songs">X曲後にシャッフルして入れる</string>
-    <string name="lpm_song_now_playing">再生中</string>
-    <string name="lpm_song_played_$x_ago">$x前に再生ずみ</string>
-    <string name="lpm_song_playing_in_$x">$x後に再生します</string>
-
-    <string name="lpm_info_queue_index">再生リストでの位置: $index</string>
-    <string name="lpm_info_id">ID: $id</string>
-
-    <string name="song_related_group_other">その他</string>
-
-    <string name="multiselect_x_items_selected">$xアイテムが選択されてます</string>
-    <string name="multiselect_begin">複数選択を始める</string>
-    <string name="multiselect_end">複数選択をやめる</string>
-    
-    <string name="topbar_mode_unavailable">(現在不可)</string>
-
-    <string name="notif_download_finished">ダウンロードが完了しました</string>
-    <string name="notif_download_already_finished">ダウンロードはすでに完了しています</string>
-    <string name="notif_download_cancelled">ダウンロードが停止されました</string>
-    <string name="notif_download_already_downloading">ダウンロードはすでに開始されてます</string>
-
-    <string name="library_main_page_title">ライブラリ</string>
-    <string name="library_songs_page_title">保存済みの曲</string>
-
-    <string name="library_row_playlists">プレイリスト</string>
-    <string name="library_row_local_songs">保存済みの曲</string>
-    <string name="library_x_more_songs">他$x曲</string>
-    <string name="library_row_downloads">ダウンロード</string>
-    <string name="library_no_songs_downloaded">ダウンロードされている曲がありません</string>
-    <string name="library_playlists_empty">プレイリストはありません</string>
-    <string name="library_recent_songs_all">すべて</string>
-    <string name="library_recent_songs_year">年</string>
-    <string name="library_recent_songs_month">月</string>
-    <string name="library_recent_songs_week">週</string>
-    <string name="library_recent_songs_day">日</string>
-
-    <string name="new_playlist_title">新しいプレイリスト</string>
-    <string name="playlist_empty">プレイリストに曲が入ってません</string>
-    <string name="song_add_to_playlist">プレイリストに追加する</string>
-    <string name="playlist_create">プレイリストを作成</string>
-    <string name="playlist_delete">プレイリストを消去</string>
-    <string name="toast_playlist_added">プレイリストに追加しました</string>
-    <string name="playlist_select_image">プレイリスト画像を選択</string>
-    <string name="playlist_info_local">ローカルプレイリスト</string>
-    <string name="playlist_info_account">アカウントプレイリスト</string>
 </resources>

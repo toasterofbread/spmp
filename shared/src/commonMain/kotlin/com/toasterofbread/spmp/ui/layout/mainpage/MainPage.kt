@@ -44,9 +44,9 @@ import com.toasterofbread.spmp.platform.getDefaultHorizontalPadding
 import com.toasterofbread.spmp.platform.getDefaultVerticalPadding
 import com.toasterofbread.spmp.resources.getString
 import com.toasterofbread.spmp.ui.component.ErrorInfoDisplay
-import com.toasterofbread.spmp.ui.component.MediaItemLayout
 import com.toasterofbread.spmp.ui.component.PillMenu
 import com.toasterofbread.spmp.ui.component.WAVE_BORDER_DEFAULT_HEIGHT
+import com.toasterofbread.spmp.ui.component.mediaitemlayout.MediaItemLayout
 import com.toasterofbread.spmp.ui.layout.library.LibraryPage
 import com.toasterofbread.spmp.ui.theme.Theme
 
@@ -146,7 +146,7 @@ fun MainPage(
                                     Column {
                                         TopContent()
                                         if (artists_layout.items.isNotEmpty()) {
-                                            artists_layout.Layout(multiselect_context = player.main_multiselect_context)
+                                            artists_layout.Layout(multiselect_context = player.main_multiselect_context, apply_filter = true)
                                         }
                                     }
                                 }
@@ -158,7 +158,7 @@ fun MainPage(
                                 }
 
                                 val type = layout.type ?: MediaItemLayout.Type.GRID
-                                type.Layout(layout, multiselect_context = player.main_multiselect_context)
+                                type.Layout(layout, multiselect_context = player.main_multiselect_context, apply_filter = true)
                             }
 
                             item {

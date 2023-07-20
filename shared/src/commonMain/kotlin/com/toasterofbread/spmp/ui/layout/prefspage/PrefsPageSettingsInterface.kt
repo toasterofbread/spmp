@@ -11,7 +11,7 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import com.toasterofbread.composesettings.ui.SettingsInterface
 import com.toasterofbread.composesettings.ui.SettingsPageWithItems
-import com.toasterofbread.settings.ui.item.SettingsValueState
+import com.toasterofbread.composesettings.ui.item.SettingsValueState
 import com.toasterofbread.spmp.model.Settings
 import com.toasterofbread.spmp.model.YoutubeMusicAuthInfo
 import com.toasterofbread.spmp.ui.component.PillMenu

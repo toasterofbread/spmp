@@ -78,11 +78,11 @@ fun LongPressMenu(
                 enter = EnterTransition.None,
                 exit = slideOutVertically(tween(LONG_PRESS_ICON_MENU_OPEN_ANIM_MS)) { it }
             ) {
-                val accent_colour: MutableState<Color?> = remember { mutableStateOf(null) }
+                var accent_colour: Color? by remember { mutableStateOf(null) }
 
                 LaunchedEffect(Unit) {
                     if (data.item is Song && data.item.theme_colour != null) {
-                        accent_colour.value = data.item.theme_colour!!
+                        accent_colour = data.item.theme_colour!!
                     }
                 }
 
@@ -92,14 +92,14 @@ fun LongPressMenu(
                         data.item.loadThumbnail(MediaItemThumbnailProvider.Quality.LOW)
                     }
                     else {
-                        accent_colour.value = (data.item.getDefaultThemeColour() ?: Theme.current.background)
+                        accent_colour = (data.item.getDefaultThemeColour() ?: Theme.current.background)
                             .contrastAgainst(Theme.current.background, 0.2f)
                     }
                 }
 
                 LongPressMenuContent(
                     data,
-                    accent_colour,
+                    { accent_colour },
                     modifier,
                     { if (Settings.KEY_LPM_CLOSE_ON_ACTION.get()) close_requested = true },
                     { close_requested = true }

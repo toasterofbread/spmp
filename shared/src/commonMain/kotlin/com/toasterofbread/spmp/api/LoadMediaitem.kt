@@ -21,7 +21,7 @@ import com.toasterofbread.spmp.model.mediaitem.enums.SongType
 import com.toasterofbread.spmp.resources.uilocalisation.LocalisedYoutubeString
 import com.toasterofbread.spmp.resources.uilocalisation.parseYoutubeDurationString
 import com.toasterofbread.spmp.resources.uilocalisation.parseYoutubeSubscribersString
-import com.toasterofbread.spmp.ui.component.MediaItemLayout
+import com.toasterofbread.spmp.ui.component.mediaitemlayout.MediaItemLayout
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.job
 import kotlinx.coroutines.withContext
@@ -84,14 +84,16 @@ suspend fun loadBrowseId(browse_id: String, params: String? = null): Result<List
             val view_more = row.value.getNavigationEndpoint()?.getViewMore()
             view_more?.layout_type = MediaItemLayout.Type.LIST
 
-            ret.add(MediaItemLayout(
+            ret.add(
+                MediaItemLayout(
                 row.value.title?.text?.let { LocalisedYoutubeString.Type.RAW.create(it) },
                 null,
                 if (row.index == 0) MediaItemLayout.Type.NUMBERED_LIST else MediaItemLayout.Type.GRID,
                 row.value.getMediaItems(hl).toMutableList(),
                 continuation = continuation,
                 view_more = view_more
-            ))
+            )
+            )
         }
 
         return@withContext Result.success(ret)

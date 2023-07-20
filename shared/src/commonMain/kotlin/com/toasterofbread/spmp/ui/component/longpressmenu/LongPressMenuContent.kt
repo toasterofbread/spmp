@@ -67,7 +67,7 @@ import com.toasterofbread.utils.thenIf
 @Composable
 internal fun LongPressMenuContent(
     data: LongPressMenuData,
-    accent_colour: MutableState<Color?>,
+    getAccentColour: () -> Color?,
     modifier: Modifier,
     onAction: () -> Unit,
     close: () -> Unit
@@ -267,7 +267,7 @@ internal fun LongPressMenuContent(
                                 }
                             }
 
-                            data.SideButton(Modifier.requiredHeight(40.dp), Theme.current.background, accent_colour.value ?: Theme.current.accent)
+                            data.SideButton(Modifier.requiredHeight(40.dp), Theme.current.background)
                         }
 
                         // Info/action list
@@ -280,7 +280,7 @@ internal fun LongPressMenuContent(
                                             info_showing = false
                                         }
                                     }
-                                    data.infoContent?.invoke(this, accent_colour.value ?: Theme.current.accent)
+                                    LongPressMenuInfoActions(data, { getAccentColour() ?: Theme.current.accent }, onAction = onAction)
                                 }
                                 else {
                                     DisposableEffect(Unit) {
@@ -289,7 +289,7 @@ internal fun LongPressMenuContent(
                                             main_actions_showing = false
                                         }
                                     }
-                                    LongPressMenuActions(data, accent_colour.value ?: Theme.current.accent, onAction = onAction)
+                                    LongPressMenuActions(data, { getAccentColour() ?: Theme.current.accent }, onAction = onAction)
                                 }
                             }
                         }

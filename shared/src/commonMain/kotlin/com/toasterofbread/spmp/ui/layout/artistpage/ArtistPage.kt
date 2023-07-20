@@ -19,12 +19,10 @@ import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.draw.clipToBounds
 import androidx.compose.ui.graphics.*
 import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.input.pointer.pointerInput
 import androidx.compose.ui.layout.ContentScale
-import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.platform.LocalLayoutDirection
 import androidx.compose.ui.text.*
 import androidx.compose.ui.unit.*
@@ -35,7 +33,7 @@ import com.toasterofbread.spmp.model.*
 import com.toasterofbread.spmp.model.mediaitem.*
 import com.toasterofbread.spmp.resources.getString
 import com.toasterofbread.spmp.resources.uilocalisation.YoutubeUILocalisation
-import com.toasterofbread.spmp.ui.component.MediaItemLayout
+import com.toasterofbread.spmp.ui.component.mediaitemlayout.MediaItemLayout
 import com.toasterofbread.spmp.ui.component.MusicTopBar
 import com.toasterofbread.spmp.ui.component.PillMenu
 import com.toasterofbread.spmp.ui.component.WaveBorder
@@ -71,6 +69,7 @@ fun ArtistPage(
     val multiselect_context = remember { MediaItemMultiSelectContext() {} }
     val feed_layouts = item.feed_layouts
 
+    val apply_filter: Boolean by Settings.KEY_FILTER_APPLY_TO_ARTIST_ITEMS.rememberMutableState()
     val background_modifier = Modifier.background(Theme.current.background_provider)
     val content_padding = PaddingValues(horizontal = 10.dp)
     val gradient_size = 0.35f
@@ -247,7 +246,7 @@ fun ArtistPage(
                             ShapedIconButton(
                                 { player.playMediaItem(item) },
                                 Modifier.requiredSize(play_button_size),
-                                colors = IconButtonDefaults.iconButtonColors(
+                                colours = IconButtonDefaults.iconButtonColors(
                                     containerColor = accent_colour ?: LocalContentColor.current,
                                     contentColor = (accent_colour ?: LocalContentColor.current).getContrasted()
                                 )
@@ -316,7 +315,8 @@ fun ArtistPage(
 
                                     type.Layout(
                                         if (previous_item == null) layout else layout.copy(title = null, subtitle = null),
-                                        multiselect_context = multiselect_context
+                                        multiselect_context = multiselect_context,
+                                        apply_filter = apply_filter
                                     )
                                 }
                             }

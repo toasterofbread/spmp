@@ -201,7 +201,7 @@ fun FilterSelectionPage(
                     containerColor = Theme.current.accent,
                     contentColor = Theme.current.on_accent
                 )
-                ShapedIconButton({ loadRadio(false) }, colors = icon_button_colours) {
+                ShapedIconButton({ loadRadio(false) }, colours = icon_button_colours) {
                     Crossfade(is_loading) { loading ->
                         if (loading) {
                             SubtleLoadingIndicator(colourProvider = { Theme.current.on_accent })
@@ -210,7 +210,7 @@ fun FilterSelectionPage(
                         }
                     }
                 }
-                ShapedIconButton({ loadRadio(true) }, colors = icon_button_colours) {
+                ShapedIconButton({ loadRadio(true) }, colours = icon_button_colours) {
                     Icon(Icons.Filled.RemoveRedEye, null)
                 }
             }

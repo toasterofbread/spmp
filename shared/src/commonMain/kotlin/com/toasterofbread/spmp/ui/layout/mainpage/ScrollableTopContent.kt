@@ -21,7 +21,7 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.alpha
 import androidx.compose.ui.unit.dp
 import com.toasterofbread.spmp.model.mediaitem.MediaItemHolder
-import com.toasterofbread.spmp.ui.component.MediaItemGrid
+import com.toasterofbread.spmp.ui.component.mediaitemlayout.MediaItemGrid
 
 @Composable
 fun MainPageScrollableTopContent(

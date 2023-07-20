@@ -65,6 +65,8 @@ abstract class MediaItem(val id: String, context: PlatformContext): MediaItemHol
 
     var pinned_to_home: Boolean by mutableStateOf(false)
         private set
+    var hidden: Boolean by mutableStateOf(false)
+        private set
     var loading: Boolean by mutableStateOf(false)
         private set
 
@@ -103,10 +105,6 @@ abstract class MediaItem(val id: String, context: PlatformContext): MediaItemHol
 
     override val item: MediaItem get() = this
     open fun getHolder(): MediaItemHolder = this
-
-    fun supplyDataFromSubtitle(runs: List<TextRun>) {
-        data.supplyDataFromSubtitle(runs)
-    }
 
     fun getSerialisedData(klaxon: Klaxon = Api.klaxon): List<String> {
         return data.getSerialisedData(klaxon)
@@ -176,18 +174,33 @@ abstract class MediaItem(val id: String, context: PlatformContext): MediaItemHol
             return
         }
 
-        val set: MutableSet<String> = Settings.INTERNAL_PINNED_ITEMS.get<Set<String>>().toMutableSet()
+        val set: Set<String> = Settings.INTERNAL_PINNED_ITEMS.get()
         if (value) {
-            set.add(uid)
+            Settings.INTERNAL_PINNED_ITEMS.set(set.plus(uid))
         }
         else {
-            set.remove(uid)
+            Settings.INTERNAL_PINNED_ITEMS.set(set.minus(uid))
         }
-        Settings.INTERNAL_PINNED_ITEMS.set(set)
 
         pinned_to_home = value
 
         SpMp.context.player_state.onMediaItemPinnedChanged(this, value)
+    }
+
+    fun setItemHidden(value: Boolean) {
+        if (value == hidden) {
+            return
+        }
+
+        hidden = value
+
+        val set: Set<String> = Settings.INTERNAL_HIDDEN_ITEMS.get()
+        if (value) {
+            Settings.INTERNAL_HIDDEN_ITEMS.set(set.plus(uid))
+        }
+        else {
+            Settings.INTERNAL_HIDDEN_ITEMS.set(set.minus(uid))
+        }
     }
 
     @Composable
@@ -298,6 +311,9 @@ abstract class MediaItem(val id: String, context: PlatformContext): MediaItemHol
 
         // Get pinned status
         pinned_to_home = Settings.INTERNAL_PINNED_ITEMS.get<Set<String>>(context).contains(uid)
+
+        // Get hidden status
+        hidden = Settings.INTERNAL_HIDDEN_ITEMS.get<Set<String>>(context).contains(uid)
     }
 
     protected open suspend fun loadGeneralData(item_id: String = id, browse_params: String? = null): Result<Unit> = withContext(Dispatchers.IO) {

@@ -6,7 +6,7 @@ import androidx.compose.runtime.setValue
 import com.beust.klaxon.Klaxon
 import com.toasterofbread.spmp.model.mediaitem.AccountPlaylist
 import com.toasterofbread.spmp.model.mediaitem.enums.PlaylistType
-import com.toasterofbread.spmp.ui.component.MediaItemLayout
+import com.toasterofbread.spmp.ui.component.mediaitemlayout.MediaItemLayout
 
 class AccountPlaylistItemData(override val data_item: AccountPlaylist): PlaylistItemData(data_item) {
     var playlist_type: PlaylistType? by mutableStateOf(null)

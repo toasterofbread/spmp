@@ -131,7 +131,7 @@ fun ErrorInfoDisplay(
                         ShapedIconButton(
                             onDismiss,
                             shape = shape,
-                            colors = IconButtonDefaults.iconButtonColors(
+                            colours = IconButtonDefaults.iconButtonColors(
                                 containerColor = Theme.current.background,
                                 contentColor = Theme.current.on_background
                             )

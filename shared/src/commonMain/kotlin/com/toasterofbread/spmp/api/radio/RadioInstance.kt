@@ -9,16 +9,13 @@ import com.toasterofbread.spmp.model.mediaitem.MediaItem
 import com.toasterofbread.spmp.model.mediaitem.MediaItemWithLayouts
 import com.toasterofbread.spmp.model.mediaitem.Playlist
 import com.toasterofbread.spmp.model.mediaitem.Song
-import com.toasterofbread.spmp.ui.component.MediaItemLayout
-import com.toasterofbread.utils.ValueListeners
+import com.toasterofbread.spmp.ui.component.mediaitemlayout.MediaItemLayout
 import com.toasterofbread.utils.launchSingle
 import com.toasterofbread.utils.synchronizedBlock
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.cancelChildren
 import kotlinx.coroutines.job
-import kotlinx.coroutines.launch
-import java.lang.RuntimeException
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.Alignment
@@ -28,6 +25,8 @@ import androidx.compose.animation.Crossfade
 import com.toasterofbread.spmp.ui.component.ErrorInfoDisplay
 import com.toasterofbread.spmp.resources.getString
 import androidx.compose.material3.Text
+import com.toasterofbread.spmp.model.Settings
+import com.toasterofbread.spmp.model.mediaitem.isMediaItemHidden
 
 class RadioInstance {
     var state: RadioState by mutableStateOf(RadioState())
@@ -236,8 +235,11 @@ class RadioInstance {
     private fun formatContinuationResult(result: Result<List<Song>>): Result<List<Song>> =
         result.fold(
             { songs ->
-                if (state.shuffle) Result.success(songs.shuffled())
-                else result
+                val filtered = songs.filter { !isMediaItemHidden(it) }
+                Result.success(
+                    if (state.shuffle) filtered.shuffled()
+                    else filtered
+                )
             },
             { result }
         )

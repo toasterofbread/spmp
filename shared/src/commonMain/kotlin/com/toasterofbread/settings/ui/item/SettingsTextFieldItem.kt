@@ -1,5 +1,17 @@
 package com.toasterofbread.composesettings.ui.item
 
+import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.material3.ExperimentalMaterial3Api
+import androidx.compose.material3.TextField
+import androidx.compose.runtime.Composable
+import androidx.compose.ui.Modifier
+import androidx.compose.ui.unit.dp
+import com.toasterofbread.composesettings.ui.SettingsPage
+import com.toasterofbread.spmp.platform.ProjectPreferences
+import com.toasterofbread.spmp.ui.theme.Theme
+
 // TODO Styling
 class SettingsTextFieldItem(
     val state: BasicSettingsValueState<String>,

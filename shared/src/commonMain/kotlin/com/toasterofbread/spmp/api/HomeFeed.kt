@@ -16,7 +16,7 @@ import com.toasterofbread.spmp.model.mediaitem.MediaItemThumbnailProvider
 import com.toasterofbread.spmp.model.mediaitem.Song
 import com.toasterofbread.spmp.model.mediaitem.enums.MediaItemType
 import com.toasterofbread.spmp.resources.uilocalisation.LocalisedYoutubeString
-import com.toasterofbread.spmp.ui.component.MediaItemLayout
+import com.toasterofbread.spmp.ui.component.mediaitemlayout.MediaItemLayout
 import com.toasterofbread.spmp.ui.layout.mainpage.FilterChip
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
@@ -32,7 +32,6 @@ data class HomeFeedLoadResult(
     val filter_chips: List<FilterChip>?
 )
 
-// TODO Why doesn't this return a class?
 suspend fun getHomeFeed(
     min_rows: Int = -1,
     allow_cached: Boolean = true,
@@ -160,14 +159,16 @@ private suspend fun processRows(rows: List<YoutubeiShelf>, hl: String): List<Med
                 ) {
                     val items = row.getMediaItems(hl).toMutableList()
 
-                    ret.add(MediaItemLayout(
+                    ret.add(
+                        MediaItemLayout(
                         title, subtitle,
                         items = items,
                         thumbnail_source = thumbnail_source,
                         view_more = view_more,
                         thumbnail_item_type = media_item_type,
                         type = type
-                    ))
+                    )
+                    )
                 }
 
                 val browse_endpoint = header.title?.runs?.first()?.navigationEndpoint?.browseEndpoint

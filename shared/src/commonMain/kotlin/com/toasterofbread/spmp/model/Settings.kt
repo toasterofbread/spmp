@@ -149,6 +149,9 @@ enum class Settings {
     // Filter
     KEY_FILTER_ENABLE,
     KEY_FILTER_TITLE_KEYWORDS,
+    KEY_FILTER_APPLY_TO_ARTISTS,
+    KEY_FILTER_APPLY_TO_ARTIST_ITEMS,
+    KEY_FILTER_APPLY_TO_PLAYLIST_ITEMS,
 
     // Other
     KEY_OPEN_NP_ON_SONG_PLAYED,
@@ -163,7 +166,8 @@ enum class Settings {
     // Internal
     INTERNAL_PINNED_ITEMS,
     INTERNAL_TOPBAR_MODE_HOME,
-    INTERNAL_TOPBAR_MODE_NOWPLAYING
+    INTERNAL_TOPBAR_MODE_NOWPLAYING,
+    INTERNAL_HIDDEN_ITEMS,
 
     ;
 
@@ -324,6 +328,9 @@ enum class Settings {
                 // Filter
                 KEY_FILTER_ENABLE -> true
                 KEY_FILTER_TITLE_KEYWORDS -> emptySet<String>()
+                KEY_FILTER_APPLY_TO_ARTISTS -> false
+                KEY_FILTER_APPLY_TO_ARTIST_ITEMS -> false
+                KEY_FILTER_APPLY_TO_PLAYLIST_ITEMS -> false
 
                 KEY_VOLUME_STEPS -> 50
                 KEY_OPEN_NP_ON_SONG_PLAYED -> true
@@ -340,6 +347,7 @@ enum class Settings {
                 INTERNAL_PINNED_ITEMS -> emptySet<String>()
                 INTERNAL_TOPBAR_MODE_HOME -> MusicTopBarMode.LYRICS.ordinal
                 INTERNAL_TOPBAR_MODE_NOWPLAYING -> MusicTopBarMode.LYRICS.ordinal
+                INTERNAL_HIDDEN_ITEMS -> emptySet<String>()
             } as T
         }
 

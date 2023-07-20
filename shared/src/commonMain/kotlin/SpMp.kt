@@ -289,7 +289,7 @@ class ErrorManager(private val context: PlatformContext) {
                             dismiss = true
                             SpMp.context.vibrateShort()
                         },
-                        colors = IconButtonDefaults.iconButtonColors(
+                        colours = IconButtonDefaults.iconButtonColors(
                             containerColor = colour(),
                             contentColor = colour().getContrasted()
                         )

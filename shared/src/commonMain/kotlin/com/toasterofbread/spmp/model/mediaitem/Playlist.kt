@@ -10,7 +10,7 @@ import com.toasterofbread.spmp.model.Settings
 import com.toasterofbread.spmp.model.mediaitem.data.PlaylistItemData
 import com.toasterofbread.spmp.model.mediaitem.enums.PlaylistType
 import com.toasterofbread.spmp.platform.PlatformContext
-import com.toasterofbread.spmp.ui.component.MediaItemLayout
+import com.toasterofbread.spmp.ui.component.mediaitemlayout.MediaItemLayout
 import com.toasterofbread.spmp.ui.component.mediaitempreview.PlaylistPreviewLong
 import com.toasterofbread.spmp.ui.component.mediaitempreview.PlaylistPreviewSquare
 import com.toasterofbread.utils.addUnique

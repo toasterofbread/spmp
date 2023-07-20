@@ -1,12 +1,12 @@
 package com.toasterofbread.spmp.ui.layout.prefspage
 
 import SpMp
-import com.toasterofbread.settings.ui.item.SettingsGroupItem
-import com.toasterofbread.settings.ui.item.SettingsItem
-import com.toasterofbread.settings.ui.item.SettingsAccessibilityServiceItem
-import com.toasterofbread.settings.ui.item.SettingsSliderItem
-import com.toasterofbread.settings.ui.item.SettingsToggleItem
-import com.toasterofbread.settings.ui.item.SettingsValueState
+import com.toasterofbread.composesettings.ui.item.SettingsAccessibilityServiceItem
+import com.toasterofbread.composesettings.ui.item.SettingsGroupItem
+import com.toasterofbread.composesettings.ui.item.SettingsItem
+import com.toasterofbread.composesettings.ui.item.SettingsSliderItem
+import com.toasterofbread.composesettings.ui.item.SettingsToggleItem
+import com.toasterofbread.composesettings.ui.item.SettingsValueState
 import com.toasterofbread.spmp.PlayerAccessibilityService
 import com.toasterofbread.spmp.model.Settings
 import com.toasterofbread.spmp.platform.PlatformContext

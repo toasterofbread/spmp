@@ -1,44 +1,21 @@
 @file:Suppress("MemberVisibilityCanBePrivate")
 
-package com.toasterofbread.settings.ui.item
+package com.toasterofbread.composesettings.ui.item
 
 import androidx.compose.animation.*
-import androidx.compose.animation.core.SpringSpec
-import androidx.compose.animation.core.TweenSpec
-import androidx.compose.animation.core.animateFloatAsState
-import androidx.compose.foundation.background
-import androidx.compose.foundation.border
-import androidx.compose.foundation.clickable
-import androidx.compose.foundation.interaction.MutableInteractionSource
 import androidx.compose.foundation.layout.*
-import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
-import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.filled.ArrowDropDown
-import androidx.compose.material.icons.filled.Edit
-import androidx.compose.material.icons.filled.Info
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.*
 import androidx.compose.ui.graphics.Color
-import androidx.compose.ui.graphics.graphicsLayer
-import androidx.compose.ui.platform.LocalDensity
-import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.*
-import com.github.krottv.compose.sliders.DefaultThumb
-import com.github.krottv.compose.sliders.DefaultTrack
-import com.github.krottv.compose.sliders.ListenOnPressed
-import com.github.krottv.compose.sliders.SliderValueHorizontal
 import com.toasterofbread.composesettings.ui.SettingsPage
-import com.toasterofbread.spmp.platform.LargeDropdownMenu
 import com.toasterofbread.spmp.platform.PlatformContext
 import com.toasterofbread.spmp.platform.ProjectPreferences
-import com.toasterofbread.spmp.platform.composable.PlatformAlertDialog
-import com.toasterofbread.spmp.resources.getString
 import com.toasterofbread.spmp.ui.theme.Theme
 import com.toasterofbread.utils.*
 import com.toasterofbread.utils.composable.*
-import kotlin.math.roundToInt
 
 val SETTINGS_ITEM_ROUNDED_SHAPE = RoundedCornerShape(20.dp)
 

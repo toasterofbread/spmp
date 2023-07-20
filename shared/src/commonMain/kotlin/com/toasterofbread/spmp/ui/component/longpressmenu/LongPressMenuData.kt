@@ -28,7 +28,7 @@ import kotlinx.coroutines.launch
 data class LongPressMenuData(
     val item: MediaItem,
     val thumb_shape: Shape? = null,
-    val infoContent: (@Composable ColumnScope.(accent: Color) -> Unit)? = null,
+    val infoContent: (@Composable ColumnScope.(accent: () -> Color) -> Unit)? = null,
     val info_title: String? = null,
     val getInitialInfoTitle: (@Composable () -> String?)? = null,
     val multiselect_context: MediaItemMultiSelectContext? = null,
@@ -79,7 +79,7 @@ data class LongPressMenuData(
     }
 
     @Composable
-    fun SideButton(modifier: Modifier, background: Color, accent: Color) {
+    fun SideButton(modifier: Modifier, background: Color) {
         when (item) {
             is Song -> LikeDislikeButton(item, modifier) { background.getContrasted() }
             is Artist -> ArtistSubscribeButton(item, modifier)

@@ -1,10 +1,10 @@
 package com.toasterofbread.spmp.ui.layout.prefspage
 
 import androidx.compose.runtime.MutableState
-import com.toasterofbread.settings.ui.item.BasicSettingsValueState
-import com.toasterofbread.settings.ui.item.SettingsItem
-import com.toasterofbread.settings.ui.item.SettingsLargeToggleItem
-import com.toasterofbread.settings.ui.item.SettingsValueState
+import com.toasterofbread.composesettings.ui.item.BasicSettingsValueState
+import com.toasterofbread.composesettings.ui.item.SettingsItem
+import com.toasterofbread.composesettings.ui.item.SettingsLargeToggleItem
+import com.toasterofbread.composesettings.ui.item.SettingsValueState
 import com.toasterofbread.spmp.model.Settings
 import com.toasterofbread.spmp.model.YoutubeMusicAuthInfo
 import com.toasterofbread.spmp.model.mediaitem.Artist

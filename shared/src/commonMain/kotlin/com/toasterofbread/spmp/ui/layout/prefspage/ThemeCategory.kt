@@ -1,10 +1,10 @@
 package com.toasterofbread.spmp.ui.layout.prefspage
 
-import com.toasterofbread.settings.ui.item.SettingsItem
-import com.toasterofbread.settings.ui.item.SettingsMultipleChoiceItem
-import com.toasterofbread.settings.ui.item.SettingsSliderItem
-import com.toasterofbread.settings.ui.item.SettingsValueState
-import com.toasterofbread.settings.ui.SettingsItemThemeSelector
+import com.toasterofbread.composesettings.ui.SettingsItemThemeSelector
+import com.toasterofbread.composesettings.ui.item.SettingsItem
+import com.toasterofbread.composesettings.ui.item.SettingsMultipleChoiceItem
+import com.toasterofbread.composesettings.ui.item.SettingsSliderItem
+import com.toasterofbread.composesettings.ui.item.SettingsValueState
 import com.toasterofbread.spmp.model.AccentColourSource
 import com.toasterofbread.spmp.model.Settings
 import com.toasterofbread.spmp.resources.getString

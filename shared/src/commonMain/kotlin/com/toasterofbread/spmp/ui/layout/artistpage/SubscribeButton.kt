@@ -56,7 +56,7 @@ fun ArtistSubscribeButton(
                     }
                 },
                 icon_modifier,
-                colors = IconButtonDefaults.iconButtonColors(
+                colours = IconButtonDefaults.iconButtonColors(
                     containerColor = if (subscribed && accentColourProvider != null) accentColourProvider() else Color.Transparent,
                     contentColor = if (subscribed && accentColourProvider != null) accentColourProvider().getContrasted() else LocalContentColor.current
                 )

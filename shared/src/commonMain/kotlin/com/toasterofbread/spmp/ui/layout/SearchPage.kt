@@ -35,7 +35,7 @@ import com.toasterofbread.spmp.platform.composable.BackHandler
 import com.toasterofbread.spmp.platform.getDefaultHorizontalPadding
 import com.toasterofbread.spmp.resources.getString
 import com.toasterofbread.spmp.ui.component.ErrorInfoDisplay
-import com.toasterofbread.spmp.ui.component.MediaItemLayout
+import com.toasterofbread.spmp.ui.component.mediaitemlayout.MediaItemLayout
 import com.toasterofbread.spmp.ui.component.MultiselectAndMusicTopBar
 import com.toasterofbread.spmp.ui.component.PillMenu
 import com.toasterofbread.spmp.ui.component.multiselect.MediaItemMultiSelectContext
@@ -279,7 +279,7 @@ private fun SearchBar(
                 Modifier
                     .fillMaxHeight()
                     .aspectRatio(1f),
-                colors = IconButtonDefaults.iconButtonColors(
+                colours = IconButtonDefaults.iconButtonColors(
                     containerColor = Theme.current.accent,
                     contentColor = Theme.current.on_accent
                 )
@@ -364,7 +364,7 @@ private fun SearchBar(
                 Modifier
                     .fillMaxHeight()
                     .aspectRatio(1f),
-                colors = IconButtonDefaults.iconButtonColors(
+                colours = IconButtonDefaults.iconButtonColors(
                     containerColor = Theme.current.accent,
                     contentColor = Theme.current.on_accent
                 )

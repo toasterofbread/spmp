@@ -23,7 +23,7 @@ import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.zIndex
 import com.toasterofbread.composesettings.ui.SettingsInterface
-import com.toasterofbread.settings.ui.item.*
+import com.toasterofbread.composesettings.ui.item.*
 import com.toasterofbread.spmp.model.*
 import com.toasterofbread.spmp.platform.composable.BackHandler
 import com.toasterofbread.spmp.platform.composable.platformClickable

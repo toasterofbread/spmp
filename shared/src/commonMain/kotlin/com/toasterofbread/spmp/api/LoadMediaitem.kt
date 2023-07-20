@@ -297,7 +297,7 @@ suspend fun processDefaultResponse(item: MediaItem, data: MediaItemData, respons
         }
 
         val video: YoutubeiNextResponse.PlaylistPanelVideoRenderer = try {
-            tabs[0].tabRenderer.content!!.musicQueueRenderer.content.playlistPanelRenderer.contents.first().playlistPanelVideoRenderer!!
+            tabs[0].tabRenderer.content!!.musicQueueRenderer.content.playlistPanelRenderer.contents.first().getRenderer()
         }
         catch (e: Throwable) {
             return@withContext Result.failure(e)

@@ -72,6 +72,38 @@ suspend fun getSongRadio(
                 .playlistPanelContinuation
             out_filters = null
         }
+
+        return@withContext Result.success(
+            RadioData(
+                radio.contents.map { item ->
+                    val renderer = item.getRenderer()
+                    val song = Song.fromId(renderer.videoId)
+                    val error = song.editSongDataSuspend<Result<RadioData>?> {
+                        supplyTitle(renderer.title.first_text)
+
+                        val artist_result = renderer.getArtist(song)
+                        if (artist_result.isFailure) {
+                            return@editSongDataSuspend artist_result.cast()
+                        }
+
+                        val (artist, certain) = artist_result.getOrThrow()
+                        if (artist != null) {
+                            supplyArtist(artist, certain)
+                        }
+
+                        null
+                    }
+
+                    if (error != null) {
+                        return@withContext error
+                    }
+
+                    return@map song
+                },
+                radio.continuations?.firstOrNull()?.data?.continuation,
+                out_filters
+            )
+        )
     }
     catch (error: Throwable) {
         return@withContext Result.failure(
@@ -84,37 +116,6 @@ suspend fun getSongRadio(
     finally {
         stream.close()
     }
-
-    return@withContext Result.success(
-        RadioData(
-            radio.contents.map { item ->
-                val song = Song.fromId(item.playlistPanelVideoRenderer!!.videoId)
-                val error = song.editSongDataSuspend<Result<RadioData>?> {
-                    supplyTitle(item.playlistPanelVideoRenderer.title.first_text)
-
-                    val artist_result = item.playlistPanelVideoRenderer.getArtist(song)
-                    if (artist_result.isFailure) {
-                        return@editSongDataSuspend artist_result.cast()
-                    }
-
-                    val (artist, certain) = artist_result.getOrThrow()
-                    if (artist != null) {
-                        supplyArtist(artist, certain)
-                    }
-
-                    null
-                }
-
-                if (error != null) {
-                    return@withContext error
-                }
-
-                return@map song
-            },
-            radio.continuations?.firstOrNull()?.data?.continuation,
-            out_filters
-        )
-    )
 }
 
 private fun radioToFilters(radio: String, video_id: String): List<RadioModifier>? {

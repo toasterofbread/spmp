@@ -1,3 +1,5 @@
+@file:Suppress("MemberVisibilityCanBePrivate")
+
 package com.toasterofbread.spmp.api.radio
 
 import com.toasterofbread.spmp.api.BrowseEndpoint
@@ -34,7 +36,27 @@ data class YoutubeiNextResponse(
 
     class MusicQueueRendererContent(val playlistPanelRenderer: PlaylistPanelRenderer)
     class PlaylistPanelRenderer(val contents: List<ResponseRadioItem>, val continuations: List<Continuation>? = null)
-    class ResponseRadioItem(val playlistPanelVideoRenderer: PlaylistPanelVideoRenderer? = null)
+    data class ResponseRadioItem(
+        val playlistPanelVideoRenderer: PlaylistPanelVideoRenderer? = null,
+        val playlistPanelVideoWrapperRenderer: PlaylistPanelVideoWrapperRenderer? = null
+    ) {
+        fun getRenderer(): PlaylistPanelVideoRenderer {
+            if (playlistPanelVideoRenderer != null) {
+                return playlistPanelVideoRenderer
+            }
+
+            if (playlistPanelVideoWrapperRenderer == null) {
+                throw NotImplementedError("Unimplemented renderer object in ResponseRadioItem")
+            }
+
+            return playlistPanelVideoWrapperRenderer.primaryRenderer.getRenderer()
+        }
+    }
+
+    class PlaylistPanelVideoWrapperRenderer(
+        val primaryRenderer: ResponseRadioItem
+    )
+
     class PlaylistPanelVideoRenderer(
         val videoId: String,
         val title: TextRuns,

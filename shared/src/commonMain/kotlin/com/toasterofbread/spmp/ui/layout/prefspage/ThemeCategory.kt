@@ -1,9 +1,9 @@
 package com.toasterofbread.spmp.ui.layout.prefspage
 
-import com.toasterofbread.settings.model.SettingsItem
-import com.toasterofbread.settings.model.SettingsItemMultipleChoice
-import com.toasterofbread.settings.model.SettingsItemSlider
-import com.toasterofbread.settings.model.SettingsValueState
+import com.toasterofbread.settings.ui.item.SettingsItem
+import com.toasterofbread.settings.ui.item.SettingsMultipleChoiceItem
+import com.toasterofbread.settings.ui.item.SettingsSliderItem
+import com.toasterofbread.settings.ui.item.SettingsValueState
 import com.toasterofbread.settings.ui.SettingsItemThemeSelector
 import com.toasterofbread.spmp.model.AccentColourSource
 import com.toasterofbread.spmp.model.Settings
@@ -30,7 +30,7 @@ internal fun getThemeCategory(theme_manager: ThemeManager): List<SettingsItem> {
             { theme_manager.removeTheme(it) }
         ),
 
-        SettingsItemMultipleChoice(
+        SettingsMultipleChoiceItem(
             SettingsValueState(Settings.KEY_ACCENT_COLOUR_SOURCE.name),
             getString("s_key_accent_source"), null,
             3, false
@@ -42,7 +42,7 @@ internal fun getThemeCategory(theme_manager: ThemeManager): List<SettingsItem> {
             }
         },
 
-        SettingsItemMultipleChoice(
+        SettingsMultipleChoiceItem(
             SettingsValueState(Settings.KEY_NOWPLAYING_THEME_MODE.name),
             getString("s_key_np_theme_mode"), null,
             3, false
@@ -54,7 +54,7 @@ internal fun getThemeCategory(theme_manager: ThemeManager): List<SettingsItem> {
             }
         },
 
-        SettingsItemSlider(
+        SettingsSliderItem(
             SettingsValueState(Settings.KEY_NOWPLAYING_DEFAULT_GRADIENT_DEPTH.name),
             getString("s_key_np_default_gradient_depth"), null
         )

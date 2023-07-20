@@ -1,22 +1,22 @@
 package com.toasterofbread.spmp.ui.layout.prefspage
 
-import com.toasterofbread.settings.model.SettingsItem
-import com.toasterofbread.settings.model.SettingsItemDropdown
-import com.toasterofbread.settings.model.SettingsItemSlider
-import com.toasterofbread.settings.model.SettingsItemToggle
-import com.toasterofbread.settings.model.SettingsValueState
+import com.toasterofbread.settings.ui.item.SettingsItem
+import com.toasterofbread.settings.ui.item.SettingsDropdownItem
+import com.toasterofbread.settings.ui.item.SettingsSliderItem
+import com.toasterofbread.settings.ui.item.SettingsToggleItem
+import com.toasterofbread.settings.ui.item.SettingsValueState
 import com.toasterofbread.spmp.model.Settings
 import com.toasterofbread.spmp.model.mediaitem.enums.SongAudioQuality
 import com.toasterofbread.spmp.resources.getString
 
 internal fun getDownloadCategory(): List<SettingsItem> {
     return listOf(
-        SettingsItemToggle(
+        SettingsToggleItem(
             SettingsValueState(Settings.KEY_AUTO_DOWNLOAD_ENABLED.name),
             getString("s_key_auto_download_enabled"), null
         ),
 
-        SettingsItemSlider(
+        SettingsSliderItem(
             SettingsValueState<Int>(Settings.KEY_AUTO_DOWNLOAD_THRESHOLD.name),
             getString("s_key_auto_download_threshold"), getString("s_sub_auto_download_threshold"),
             range = 1f..10f,
@@ -24,7 +24,7 @@ internal fun getDownloadCategory(): List<SettingsItem> {
             max_label = "10"
         ),
 
-        SettingsItemDropdown(
+        SettingsDropdownItem(
             SettingsValueState(Settings.KEY_STREAM_AUDIO_QUALITY.name),
             getString("s_key_stream_audio_quality"), getString("s_sub_stream_audio_quality"), 3
         ) { i ->
@@ -35,7 +35,7 @@ internal fun getDownloadCategory(): List<SettingsItem> {
             }
         },
 
-        SettingsItemDropdown(
+        SettingsDropdownItem(
             SettingsValueState(Settings.KEY_DOWNLOAD_AUDIO_QUALITY.name),
             getString("s_key_download_audio_quality"), getString("s_sub_download_audio_quality"), 3
         ) { i ->

@@ -58,6 +58,12 @@
     <string name="radio">ラジオ</string>
     <string name="radios">ラジオ</string>
 
+    <string name="s_cat_filter">フィルター</string>
+
+    <string name="s_key_filter_enable">アイテムフィルターを使用</string>
+    <string name="s_key_filter_title_keywords">題名フィルターのキーワード</string>
+    <string name="s_sub_filter_title_keywords">アイテムの題名にどれかのキーワードが含まれていれば、そのアイテムは隠されます</string>
+
     <string name="edit_$x_title_dialog_title">$xのタイトルを変更</string>
     
     <string name="song_name">曲名</string>
@@ -330,6 +336,7 @@
     <string name="s_key_topbar_display_over_artist_image">アーティストページのメイン画像の上に表示</string>
 
     <string name="s_cat_desc_general">言語やアプリ動作などのオプション</string>
+    <string name="s_cat_desc_filter">キーワードを含む曲やプレイリストを隠す</string>
     <string name="s_cat_desc_home_page">おすすめの曲やアーティストの調節</string>
     <string name="s_cat_desc_player">音楽プレイヤー画面の変更</string>
     <string name="s_cat_desc_library">ライブラリの表示設定</string>

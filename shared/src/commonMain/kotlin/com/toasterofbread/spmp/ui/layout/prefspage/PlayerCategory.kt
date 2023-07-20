@@ -1,15 +1,15 @@
 package com.toasterofbread.spmp.ui.layout.prefspage
 
-import com.toasterofbread.settings.model.SettingsItem
-import com.toasterofbread.settings.model.SettingsItemMultipleChoice
-import com.toasterofbread.settings.model.SettingsValueState
+import com.toasterofbread.settings.ui.item.SettingsItem
+import com.toasterofbread.settings.ui.item.SettingsMultipleChoiceItem
+import com.toasterofbread.settings.ui.item.SettingsValueState
 import com.toasterofbread.spmp.model.NowPlayingQueueWaveBorderMode
 import com.toasterofbread.spmp.model.Settings
 import com.toasterofbread.spmp.resources.getString
 
 internal fun getPlayerCategory(): List<SettingsItem> {
     return listOf(
-        SettingsItemMultipleChoice(
+        SettingsMultipleChoiceItem(
             SettingsValueState(Settings.KEY_NP_QUEUE_WAVE_BORDER_MODE.name),
             getString("s_key_np_queue_wave_border_mode"),
             getString("s_sub_np_queue_wave_border_mode"),

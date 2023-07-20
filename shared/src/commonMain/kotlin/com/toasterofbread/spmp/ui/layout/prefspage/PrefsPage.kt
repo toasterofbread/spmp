@@ -23,7 +23,7 @@ import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.zIndex
 import com.toasterofbread.composesettings.ui.SettingsInterface
-import com.toasterofbread.settings.model.*
+import com.toasterofbread.settings.ui.item.*
 import com.toasterofbread.spmp.model.*
 import com.toasterofbread.spmp.platform.composable.BackHandler
 import com.toasterofbread.spmp.platform.composable.platformClickable
@@ -45,6 +45,7 @@ internal enum class PrefsPageScreen {
 }
 enum class PrefsPageCategory {
     GENERAL,
+    FILTER,
     FEED,
     PLAYER,
     LIBRARY,
@@ -58,6 +59,7 @@ enum class PrefsPageCategory {
     @Composable
     fun getIcon(filled: Boolean = false): ImageVector = when (this) {
         GENERAL -> if (filled) Icons.Filled.Settings else Icons.Outlined.Settings
+        FILTER -> if (filled) Icons.Filled.FilterAlt else Icons.Outlined.FilterAlt
         FEED -> if (filled) Icons.Filled.FormatListBulleted else Icons.Outlined.FormatListBulleted
         PLAYER -> if (filled) Icons.Filled.PlayArrow else Icons.Outlined.PlayArrow
         LIBRARY -> if (filled) Icons.Filled.LibraryMusic else Icons.Outlined.LibraryMusic
@@ -70,6 +72,7 @@ enum class PrefsPageCategory {
 
     fun getTitle(): String = when (this) {
         GENERAL -> getString("s_cat_general")
+        FILTER -> getString("s_cat_filter")
         FEED -> getString("s_cat_home_page")
         PLAYER -> getString("s_cat_player")
         LIBRARY -> getString("s_cat_library")
@@ -82,6 +85,7 @@ enum class PrefsPageCategory {
 
     fun getDescription(): String = when (this) {
         GENERAL -> getString("s_cat_desc_general")
+        FILTER -> getString("s_cat_desc_filter")
         FEED -> getString("s_cat_desc_home_page")
         PLAYER -> getString("s_cat_desc_player")
         LIBRARY -> getString("s_cat_desc_library")

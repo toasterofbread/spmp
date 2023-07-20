@@ -11,7 +11,7 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import com.toasterofbread.composesettings.ui.SettingsInterface
 import com.toasterofbread.composesettings.ui.SettingsPageWithItems
-import com.toasterofbread.settings.model.SettingsValueState
+import com.toasterofbread.settings.ui.item.SettingsValueState
 import com.toasterofbread.spmp.model.Settings
 import com.toasterofbread.spmp.model.YoutubeMusicAuthInfo
 import com.toasterofbread.spmp.ui.component.PillMenu
@@ -58,6 +58,7 @@ internal fun rememberPrefsPageSettingsInterfade(pill_menu: PillMenu, ytm_auth: S
                         {
                             when (getCategory()) {
                                 PrefsPageCategory.GENERAL -> getGeneralCategory()
+                                PrefsPageCategory.FILTER -> getFilterCategory()
                                 PrefsPageCategory.FEED -> getFeedCategory()
                                 PrefsPageCategory.PLAYER -> getPlayerCategory()
                                 PrefsPageCategory.LIBRARY -> getLibraryCategory()

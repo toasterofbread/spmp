@@ -253,6 +253,12 @@
     <string name="s_key_lpm_close_on_action">Close menu on action</string>
     <string name="s_key_lpm_increment_play_after">Increment 'Play after' action on use</string>
 
+    <string name="s_cat_filter">Filter</string>
+    
+    <string name="s_key_filter_enable">Enable item filter</string>
+    <string name="s_key_filter_title_keywords">Title filter keywords</string>
+    <string name="s_sub_filter_title_keywords">If an item's title contains any of these keywords, it will be filtered</string>
+    
     <string name="s_cat_home_page">Home page</string>
 
     <string name="s_key_hp_show_visualiser">Show music visualiser</string>
@@ -450,6 +456,7 @@
     <string name="s_key_topbar_display_over_artist_image">Display over main image on artist page</string>
 
     <string name="s_cat_desc_general">Language, behaviour, and other options</string>
+    <string name="s_cat_desc_filter">Hide songs and playlists by keyword</string>
     <string name="s_cat_desc_home_page">Cherry-pick song recommendations</string>
     <string name="s_cat_desc_player">Adjust music player view</string>
     <string name="s_cat_desc_library">Control how the library is displayed</string>

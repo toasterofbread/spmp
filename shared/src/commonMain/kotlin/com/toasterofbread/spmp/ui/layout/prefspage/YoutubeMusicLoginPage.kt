@@ -8,7 +8,7 @@ import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.vector.ImageVector
 import com.toasterofbread.composesettings.ui.SettingsPage
-import com.toasterofbread.settings.model.SettingsValueState
+import com.toasterofbread.settings.ui.item.SettingsValueState
 import com.toasterofbread.spmp.model.YoutubeMusicAuthInfo
 import com.toasterofbread.spmp.resources.getString
 import com.toasterofbread.spmp.ui.layout.YoutubeMusicLogin

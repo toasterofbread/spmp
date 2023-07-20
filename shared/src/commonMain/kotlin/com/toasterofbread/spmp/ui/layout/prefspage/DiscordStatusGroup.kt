@@ -3,13 +3,13 @@ package com.toasterofbread.spmp.ui.layout.prefspage
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.setValue
-import com.toasterofbread.settings.model.BasicSettingsValueState
-import com.toasterofbread.settings.model.SettingsItem
-import com.toasterofbread.settings.model.SettingsItemInfoText
-import com.toasterofbread.settings.model.SettingsItemLargeToggle
-import com.toasterofbread.settings.model.SettingsItemTextField
-import com.toasterofbread.settings.model.SettingsItemToggle
-import com.toasterofbread.settings.model.SettingsValueState
+import com.toasterofbread.settings.ui.item.BasicSettingsValueState
+import com.toasterofbread.settings.ui.item.SettingsItem
+import com.toasterofbread.settings.ui.item.SettingsItemInfoText
+import com.toasterofbread.settings.ui.item.SettingsLargeToggleItem
+import com.toasterofbread.settings.ui.item.SettingsTextFieldItem
+import com.toasterofbread.settings.ui.item.SettingsToggleItem
+import com.toasterofbread.settings.ui.item.SettingsValueState
 import com.toasterofbread.spmp.model.Settings
 import com.toasterofbread.spmp.platform.DiscordStatus
 import com.toasterofbread.spmp.platform.ProjectPreferences
@@ -25,7 +25,7 @@ internal fun getDiscordStatusGroup(discord_auth: SettingsValueState<String>): Li
     var account_token by mutableStateOf(discord_auth.value)
 
     return listOf(
-        SettingsItemLargeToggle(
+        SettingsLargeToggleItem(
             object : BasicSettingsValueState<Boolean> {
                 override var value: Boolean
                     get() = discord_auth.value.isNotEmpty()
@@ -78,36 +78,36 @@ internal fun getDiscordStatusGroup(discord_auth: SettingsValueState<String>): Li
 
         SettingsItemInfoText(getString("s_discord_status_text_info")),
 
-        SettingsItemTextField(
+        SettingsTextFieldItem(
             SettingsValueState(Settings.KEY_DISCORD_STATUS_NAME.name),
             getString("s_key_discord_status_name"), getString("s_sub_discord_status_name")
         ),
-        SettingsItemTextField(
+        SettingsTextFieldItem(
             SettingsValueState(Settings.KEY_DISCORD_STATUS_TEXT_A.name),
             getString("s_key_discord_status_text_a"), getString("s_sub_discord_status_text_a")
         ),
-        SettingsItemTextField(
+        SettingsTextFieldItem(
             SettingsValueState(Settings.KEY_DISCORD_STATUS_TEXT_B.name),
             getString("s_key_discord_status_text_b"), getString("s_sub_discord_status_text_b")
         ),
-        SettingsItemTextField(
+        SettingsTextFieldItem(
             SettingsValueState(Settings.KEY_DISCORD_STATUS_TEXT_C.name),
             getString("s_key_discord_status_text_c"), getString("s_sub_discord_status_text_c")
         ),
 
-        SettingsItemToggle(
+        SettingsToggleItem(
             SettingsValueState(Settings.KEY_DISCORD_SHOW_BUTTON_SONG.name),
             getString("s_key_discord_status_show_button_song"), getString("s_sub_discord_status_show_button_song")
         ),
-        SettingsItemTextField(
+        SettingsTextFieldItem(
             SettingsValueState(Settings.KEY_DISCORD_BUTTON_SONG_TEXT.name),
             getString("s_key_discord_status_button_song_text"), null
         ),
-        SettingsItemToggle(
+        SettingsToggleItem(
             SettingsValueState(Settings.KEY_DISCORD_SHOW_BUTTON_PROJECT.name),
             getString("s_key_discord_status_show_button_project"), getString("s_sub_discord_status_show_button_project")
         ),
-        SettingsItemTextField(
+        SettingsTextFieldItem(
             SettingsValueState(Settings.KEY_DISCORD_BUTTON_PROJECT_TEXT.name),
             getString("s_key_discord_status_button_project_text"), null
         )

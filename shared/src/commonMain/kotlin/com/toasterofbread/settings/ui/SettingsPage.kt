@@ -23,8 +23,8 @@ import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
-import com.toasterofbread.settings.model.SettingsGroup
-import com.toasterofbread.settings.model.SettingsItem
+import com.toasterofbread.settings.ui.item.SettingsGroupItem
+import com.toasterofbread.settings.ui.item.SettingsItem
 import com.toasterofbread.spmp.platform.composable.BackHandler
 import com.toasterofbread.spmp.ui.component.WaveBorder
 import com.toasterofbread.utils.composable.WidthShrinkText
@@ -122,7 +122,7 @@ class SettingsPageWithItems(
                     val item = items[i]
                     item.initialise(settings_interface.context, settings_interface.prefs, settings_interface.default_provider)
 
-                    if (i != 0 && item is SettingsGroup) {
+                    if (i != 0 && item is SettingsGroupItem) {
                         Spacer(Modifier.height(30.dp))
                     }
                     item.GetItem(settings_interface.theme, openPage, openCustomPage)

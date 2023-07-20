@@ -28,8 +28,8 @@ import androidx.compose.ui.unit.dp
 import com.godaddy.android.colorpicker.ClassicColorPicker
 import com.godaddy.android.colorpicker.HsvColor
 import com.toasterofbread.composesettings.ui.SettingsPage
-import com.toasterofbread.settings.model.SettingsItem
-import com.toasterofbread.settings.model.SettingsValueState
+import com.toasterofbread.settings.ui.item.SettingsItem
+import com.toasterofbread.settings.ui.item.SettingsValueState
 import com.toasterofbread.spmp.platform.ProjectPreferences
 import com.toasterofbread.spmp.platform.vibrateShort
 import com.toasterofbread.spmp.ui.component.PillMenu

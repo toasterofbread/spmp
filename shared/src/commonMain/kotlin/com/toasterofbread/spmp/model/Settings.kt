@@ -146,11 +146,15 @@ enum class Settings {
     // Caching
     KEY_THUMB_CACHE_ENABLED, // TODO Max size, management
 
+    // Filter
+    KEY_FILTER_ENABLE,
+    KEY_FILTER_TITLE_KEYWORDS,
+
     // Other
     KEY_OPEN_NP_ON_SONG_PLAYED,
-    KEY_MULTISELECT_CANCEL_ON_ACTION, // TODO
+    KEY_MULTISELECT_CANCEL_ON_ACTION,
     KEY_MULTISELECT_CANCEL_WHEN_NONE_SELECTED, // TODO
-    KEY_SHOW_LIKES_PLAYLIST, // TODO
+    KEY_SHOW_LIKES_PLAYLIST,
     KEY_VOLUME_STEPS,
     KEY_PERSISTENT_QUEUE,
     KEY_ADD_SONGS_TO_HISTORY,
@@ -316,6 +320,10 @@ enum class Settings {
 
                 // Caching
                 KEY_THUMB_CACHE_ENABLED -> true
+
+                // Filter
+                KEY_FILTER_ENABLE -> true
+                KEY_FILTER_TITLE_KEYWORDS -> emptySet<String>()
 
                 KEY_VOLUME_STEPS -> 50
                 KEY_OPEN_NP_ON_SONG_PLAYED -> true

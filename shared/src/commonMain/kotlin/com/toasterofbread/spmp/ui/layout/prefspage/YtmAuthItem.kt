@@ -1,10 +1,10 @@
 package com.toasterofbread.spmp.ui.layout.prefspage
 
 import androidx.compose.runtime.MutableState
-import com.toasterofbread.settings.model.BasicSettingsValueState
-import com.toasterofbread.settings.model.SettingsItem
-import com.toasterofbread.settings.model.SettingsItemLargeToggle
-import com.toasterofbread.settings.model.SettingsValueState
+import com.toasterofbread.settings.ui.item.BasicSettingsValueState
+import com.toasterofbread.settings.ui.item.SettingsItem
+import com.toasterofbread.settings.ui.item.SettingsLargeToggleItem
+import com.toasterofbread.settings.ui.item.SettingsValueState
 import com.toasterofbread.spmp.model.Settings
 import com.toasterofbread.spmp.model.YoutubeMusicAuthInfo
 import com.toasterofbread.spmp.model.mediaitem.Artist
@@ -14,7 +14,7 @@ import com.toasterofbread.spmp.resources.getString
 import com.toasterofbread.spmp.ui.layout.YoutubeMusicLoginConfirmation
 
 internal fun getYtmAuthItem(ytm_auth: SettingsValueState<YoutubeMusicAuthInfo>, own_channel: MutableState<Artist?>): SettingsItem =
-    SettingsItemLargeToggle(
+    SettingsLargeToggleItem(
         object : BasicSettingsValueState<Boolean> {
             override var value: Boolean
                 get() = ytm_auth.value.initialised

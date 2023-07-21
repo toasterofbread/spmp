@@ -40,7 +40,7 @@ actual fun WebViewLogin(
     onRequestIntercepted: (WebViewRequest, openUrl: (String) -> Unit, getCookie: (String) -> String) -> Unit
 ) {
     var web_view: WebView? by remember { mutableStateOf(null) }
-    val is_dark by remember { derivedStateOf { Theme.current.background.isDark() } }
+    val is_dark by remember { derivedStateOf { Theme.background.isDark() } }
 
     var requested_url: String? by remember { mutableStateOf(null) }
     OnChangedEffect(requested_url) {

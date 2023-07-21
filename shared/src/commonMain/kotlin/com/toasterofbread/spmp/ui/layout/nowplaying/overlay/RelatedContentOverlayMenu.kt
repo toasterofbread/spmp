@@ -32,7 +32,7 @@ class RelatedContentOverlayMenu : OverlayMenu() {
         getCurrentSongThumb: () -> ImageBitmap?
     ) {
         val pill_menu = remember { PillMenu(
-            _background_colour = Theme.current.accent_provider
+            _background_colour = Theme.accent_provider
         ) }
 
         Box(Modifier.fillMaxSize(), contentAlignment = Alignment.BottomEnd) {

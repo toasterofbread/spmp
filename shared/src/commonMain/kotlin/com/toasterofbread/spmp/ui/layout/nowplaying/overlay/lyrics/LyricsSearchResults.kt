@@ -52,13 +52,13 @@ internal fun ColumnScope.LyricsSearchResults(results_and_source: Pair<List<Searc
             items(results.size + 1, { if (it == results.size) 0 else results[it].id }) {
 
                 if (it == results.size) {
-                    Text(getString("lyrics_no_more_results"), color = Theme.current.accent)
+                    Text(getString("lyrics_no_more_results"), color = Theme.accent)
                 }
                 else {
                     val result = results[it]
                     Box(
                         Modifier
-                            .background(Theme.current.accent, RoundedCornerShape(16))
+                            .background(Theme.accent, RoundedCornerShape(16))
                             .clickable {
                                 onFinished(it)
                             }
@@ -79,7 +79,7 @@ internal fun ColumnScope.LyricsSearchResults(results_and_source: Pair<List<Searc
                             val shape = RoundedCornerShape(16)
 
                             Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.spacedBy(10.dp), verticalAlignment = Alignment.CenterVertically) {
-                                Text(result.name, color = Theme.current.on_accent)
+                                Text(result.name, color = Theme.on_accent)
 
                                 @Composable
                                 fun text(text: String, colour: Color) {
@@ -108,9 +108,9 @@ internal fun ColumnScope.LyricsSearchResults(results_and_source: Pair<List<Searc
 
                             Column(
                                 Modifier
-                                    .border(Dp.Hairline, Theme.current.on_accent, shape)
+                                    .border(Dp.Hairline, Theme.on_accent, shape)
                                     .background(
-                                        Theme.current
+                                        Theme
                                             .on_accent
                                             .setAlpha(0.1f), shape
                                     )
@@ -118,10 +118,10 @@ internal fun ColumnScope.LyricsSearchResults(results_and_source: Pair<List<Searc
                                     .fillMaxWidth()
                             ) {
                                 if (result.artist_name != null) {
-                                    Item(getString("artist"), result.artist_name!!, Theme.current.on_accent)
+                                    Item(getString("artist"), result.artist_name!!, Theme.on_accent)
                                 }
                                 if (result.album_name != null) {
-                                    Item(getString("album"), result.album_name!!, Theme.current.on_accent)
+                                    Item(getString("album"), result.album_name!!, Theme.on_accent)
                                 }
                             }
                         }
@@ -132,6 +132,6 @@ internal fun ColumnScope.LyricsSearchResults(results_and_source: Pair<List<Searc
         }
     }
     else {
-        Text(getStringTODO("No results found"), modifier, color = Theme.current.accent)
+        Text(getStringTODO("No results found"), modifier, color = Theme.accent)
     }
 }

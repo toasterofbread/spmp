@@ -101,7 +101,7 @@ fun MediaItemGrid(
                             if (alt_style) Modifier.width(maxWidth * 0.9f)
                             else Modifier.size(item_size)
                         ),
-                        contentColour = Theme.current.on_background_provider,
+                        contentColour = Theme.on_background_provider,
                         multiselect_context = multiselect_context,
                         square_item_max_text_rows = square_item_max_text_rows
                     )
@@ -115,7 +115,7 @@ fun MediaItemGrid(
             }
 
             if (multiselect_context != null && !shouldShowTitleBar(title, subtitle)) {
-                Box(Modifier.background(CircleShape, Theme.current.background_provider), contentAlignment = Alignment.Center) {
+                Box(Modifier.background(CircleShape, Theme.background_provider), contentAlignment = Alignment.Center) {
                     multiselect_context.CollectionToggleButton(filtered_items)
                 }
             }

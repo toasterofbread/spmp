@@ -104,11 +104,11 @@ class MainOverlayMenu(
         ) {
             val song = getSong()
 
-            val button_colour = Theme.current.on_accent
+            val button_colour = Theme.on_accent
             val button_size = 42.dp
             val button_modifier = Modifier
                 .background(
-                    Theme.current.accent,
+                    Theme.accent,
                     CircleShape
                 )
                 .size(button_size)
@@ -243,7 +243,7 @@ class MainOverlayMenu(
                                     Modifier
                                         .size(10.dp)
                                         .offset(offset, offset)
-                                        .background(button_colour, CircleShape), tint = Theme.current.accent)
+                                        .background(button_colour, CircleShape), tint = Theme.accent)
                             }
                         }
                     }

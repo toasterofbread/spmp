@@ -20,6 +20,8 @@ import com.toasterofbread.utils.composable.RecomposeOnInterval
 import kotlinx.coroutines.delay
 import androidx.compose.animation.Crossfade
 import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.material3.LocalContentColor
+import androidx.compose.ui.graphics.Color
 
 private const val UPDATE_INTERVAL_MS = 100L
 
@@ -45,6 +47,7 @@ fun LyricsLineDisplay(
     lyrics_linger: Boolean = true,
     show_furigana: Boolean = true,
     modifier: Modifier = Modifier,
+    text_colour: Color = LocalContentColor.current,
     emptyContent: (@Composable () -> Unit)? = null
 ) {
     require(lyrics.synced)
@@ -92,7 +95,7 @@ fun LyricsLineDisplay(
             }
 
             line?.also {
-                BasicFuriganaText(lyrics.lines[it], show_readings = show_furigana)
+                BasicFuriganaText(lyrics.lines[it], show_readings = show_furigana, text_colour = text_colour)
             }
         }
         AnimatedVisibility(show_b, enter = enter, exit = exit) {
@@ -104,7 +107,7 @@ fun LyricsLineDisplay(
             }
 
             line?.also {
-                BasicFuriganaText(lyrics.lines[it], show_readings = show_furigana)
+                BasicFuriganaText(lyrics.lines[it], show_readings = show_furigana, text_colour = text_colour)
             }
         }
 

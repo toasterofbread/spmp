@@ -171,19 +171,19 @@ fun MediaItemCard(
             Column(
                 Modifier
                     .fillMaxSize()
-                    .background(accent_colour ?: Theme.current.accent, shape)
+                    .background(accent_colour ?: Theme.accent, shape)
                     .padding(horizontal = 15.dp, vertical = 5.dp),
                 verticalArrangement = Arrangement.SpaceEvenly
             ) {
                 Text(
                     item.title!!,
-                    style = LocalTextStyle.current.copy(color = (accent_colour ?: Theme.current.accent).getContrasted()),
+                    style = LocalTextStyle.current.copy(color = (accent_colour ?: Theme.accent).getContrasted()),
                     softWrap = false,
                     overflow = TextOverflow.Ellipsis
                 )
                 item.artist?.PreviewLong(
                     MediaItemPreviewParams(
-                        contentColour = { (accent_colour ?: Theme.current.accent).getContrasted() }
+                        contentColour = { (accent_colour ?: Theme.accent).getContrasted() }
                     ))
             }
         }
@@ -198,8 +198,8 @@ fun MediaItemCard(
                 Modifier.fillMaxWidth(),
                 shape = shape,
                 colors = ButtonDefaults.buttonColors(
-                    containerColor = accent_colour ?: Theme.current.vibrant_accent,
-                    contentColor = (accent_colour ?: Theme.current.vibrant_accent).getContrasted()
+                    containerColor = accent_colour ?: Theme.vibrant_accent,
+                    contentColor = (accent_colour ?: Theme.vibrant_accent).getContrasted()
                 )
             ) {
                 Text(

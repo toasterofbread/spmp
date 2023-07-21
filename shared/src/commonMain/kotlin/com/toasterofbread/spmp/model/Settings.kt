@@ -16,7 +16,7 @@ import com.toasterofbread.spmp.resources.getString
 import java.util.*
 
 enum class AccentColourSource {
-    THEME, THUMBNAIL, SYSTEM
+    THEME, THUMBNAIL
 }
 enum class NowPlayingQueueRadioInfoPosition {
     TOP_BAR, ABOVE_ITEMS

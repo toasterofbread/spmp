@@ -156,8 +156,8 @@ fun LongPressMenuActionProvider.SongLongPressMenuActions(
                 PlaylistSelectMenu(selected_playlists, Modifier.fillMaxHeight().weight(1f))
                 
                 val button_colours = IconButtonDefaults.iconButtonColors(
-                    containerColor = Theme.current.accent,
-                    contentColor = Theme.current.on_accent
+                    containerColor = Theme.accent,
+                    contentColor = Theme.on_accent
                 )
 
                 Row(verticalAlignment = Alignment.CenterVertically) {
@@ -173,8 +173,8 @@ fun LongPressMenuActionProvider.SongLongPressMenuActions(
                                 selected_playlists.add(playlist)
                         }},
                         colors = ButtonDefaults.buttonColors(
-                            containerColor = Theme.current.accent,
-                            contentColor = Theme.current.on_accent
+                            containerColor = Theme.accent,
+                            contentColor = Theme.on_accent
                         )
                     ) {
                         Text(getString("playlist_create"))

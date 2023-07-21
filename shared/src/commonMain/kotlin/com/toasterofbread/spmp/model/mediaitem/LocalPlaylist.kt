@@ -92,7 +92,7 @@ class LocalPlaylist(id: String, context: PlatformContext): Playlist(id, context)
     override fun downloadThumbnail(quality: MediaItemThumbnailProvider.Quality): Result<ImageBitmap> = checkNotDeleted(Result.failure(NotImplementedError()))
 
     override fun canGetThemeColour(): Boolean = checkNotDeleted(true)
-    override fun getThemeColour(): Color = checkNotDeleted(super.getThemeColour() ?: Theme.current.accent)
+    override fun getThemeColour(): Color = checkNotDeleted(super.getThemeColour() ?: Theme.accent)
 
     @Composable
     override fun Thumbnail(
@@ -116,11 +116,11 @@ class LocalPlaylist(id: String, context: PlatformContext): Playlist(id, context)
             return
         }
 
-        Box(modifier.background(Theme.current.accent), contentAlignment = Alignment.Center) {
+        Box(modifier.background(Theme.accent), contentAlignment = Alignment.Center) {
             Icon(
                 Icons.Default.MusicNote,
                 null,
-                tint = Theme.current.on_accent
+                tint = Theme.on_accent
             )
         }
     }

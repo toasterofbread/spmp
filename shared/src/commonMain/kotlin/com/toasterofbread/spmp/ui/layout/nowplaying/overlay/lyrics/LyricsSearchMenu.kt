@@ -61,8 +61,8 @@ private const val LYRICS_SEARCH_RETRY_COUNT = 3
 @Composable
 fun LyricsSearchMenu(song: Song, modifier: Modifier = Modifier, close: (changed: Boolean) -> Unit) {
 
-    val on_accent = Theme.current.on_accent
-    val accent = Theme.current.accent
+    val on_accent = Theme.on_accent
+    val accent = Theme.accent
 
     val load_lock = remember { Object() }
     var loading by remember { mutableStateOf(false) }
@@ -146,7 +146,7 @@ fun LyricsSearchMenu(song: Song, modifier: Modifier = Modifier, close: (changed:
                     var source_selector_open: Boolean by remember { mutableStateOf(false) }
                     Row(
                         Modifier
-                            .background(Theme.current.accent, CircleShape)
+                            .background(Theme.accent, CircleShape)
                             .padding(10.dp)
                             .clickable { source_selector_open = !source_selector_open },
                         verticalAlignment = Alignment.CenterVertically
@@ -169,7 +169,7 @@ fun LyricsSearchMenu(song: Song, modifier: Modifier = Modifier, close: (changed:
                             { source_idx ->
                                 LyricsSource.fromIdx(source_idx).getReadable()
                             },
-                            selected_item_colour = Theme.current.vibrant_accent
+                            selected_item_colour = Theme.vibrant_accent
                         ) { source_idx ->
                             selected_source_idx = source_idx
                             source_selector_open = false
@@ -224,7 +224,7 @@ fun LyricsSearchMenu(song: Song, modifier: Modifier = Modifier, close: (changed:
                 ) {
                     CircularProgressIndicator(
                         Modifier.requiredSize(22.dp),
-                        color = Theme.current.accent,
+                        color = Theme.accent,
                         strokeWidth = 3.dp
                     )
                 }
@@ -237,7 +237,7 @@ fun LyricsSearchMenu(song: Song, modifier: Modifier = Modifier, close: (changed:
                         .fillMaxWidth()
                         .weight(1f),
                     colors = ButtonDefaults.buttonColors(
-                        containerColor = Theme.current.accent,
+                        containerColor = Theme.accent,
                         contentColor = on_accent
                     )
                 ) {
@@ -253,7 +253,7 @@ fun LyricsSearchMenu(song: Song, modifier: Modifier = Modifier, close: (changed:
                             edit_page_open = true
                         }
                     },
-                    Modifier.background(Theme.current.accent, CircleShape).requiredSize(40.dp),
+                    Modifier.background(Theme.accent, CircleShape).requiredSize(40.dp),
                 ) {
                     Crossfade(if (loading) 0 else if (edit_page_open) 1 else 2) { icon ->
                         when (icon) {

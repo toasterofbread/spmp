@@ -58,7 +58,7 @@ internal fun SelectionTypeRow(state: MutableState<RadioModifier.SelectionType>) 
                     }
                 }
 
-                RecordArc(size.value.dp, arc_angle.value, offset.value, Theme.current.vibrant_accent)
+                RecordArc(size.value.dp, arc_angle.value, offset.value, Theme.vibrant_accent)
             }
         }
 
@@ -96,7 +96,7 @@ internal fun SelectionTypeRow(state: MutableState<RadioModifier.SelectionType>) 
 //                    horizontalAlignment = Alignment.CenterHorizontally,
 //                    verticalArrangement = Arrangement.spacedBy(15.dp)
 //                ) {
-//                    RadioSelectionTypeAnimation(type, animate, colour = if (state.value == type) Theme.current.vibrant_accent else Theme.current.on_background)
+//                    RadioSelectionTypeAnimation(type, animate, colour = if (state.value == type) Theme.vibrant_accent else Theme.on_background)
 //                    Text(text)
 //                }
 //            }
@@ -185,8 +185,8 @@ internal fun MultiSelectRow(
                                         { if (nullable) onSelected(null) },
                                         Modifier.fillMaxWidth(),
                                         colors = ButtonDefaults.buttonColors(
-                                            containerColor = Theme.current.accent,
-                                            contentColor = Theme.current.on_accent
+                                            containerColor = Theme.accent,
+                                            contentColor = Theme.on_accent
                                         ),
                                         contentPadding = button_padding,
                                         shape = shape
@@ -198,7 +198,7 @@ internal fun MultiSelectRow(
                                         { onSelected(i) },
                                         Modifier.fillMaxWidth(),
                                         colors = ButtonDefaults.outlinedButtonColors(
-                                            contentColor = Theme.current.on_background
+                                            contentColor = Theme.on_background
                                         ),
                                         contentPadding = button_padding,
                                         shape = shape

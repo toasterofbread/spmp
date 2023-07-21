@@ -15,8 +15,10 @@ import androidx.compose.foundation.layout.requiredWidth
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.material3.Icon
+import androidx.compose.material3.LocalContentColor
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.CompositionLocalProvider
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.vector.ImageVector
@@ -44,7 +46,9 @@ abstract class SettingsPage {
 
     @Composable
     fun Page(content_padding: PaddingValues, openPage: (Int) -> Unit, openCustomPage: (SettingsPage) -> Unit, goBack: () -> Unit) {
-        PageView(content_padding, openPage, openCustomPage, goBack)
+        CompositionLocalProvider(LocalContentColor provides settings_interface.theme.on_background) {
+            PageView(content_padding, openPage, openCustomPage, goBack)
+        }
         BackHandler {
             goBack()
         }
@@ -125,6 +129,7 @@ class SettingsPageWithItems(
                     if (i != 0 && item is SettingsGroupItem) {
                         Spacer(Modifier.height(30.dp))
                     }
+
                     item.GetItem(settings_interface.theme, openPage, openCustomPage)
                 }
             }

@@ -36,7 +36,7 @@ fun DescriptionCard(description_text: String, backgroundColourProvider: () -> Co
             .fillMaxWidth()
             .animateContentSize(),
         colors = CardDefaults.elevatedCardColors(
-            containerColor = Theme.current.on_background.setAlpha(0.05f)
+            containerColor = Theme.on_background.setAlpha(0.05f)
         )
     ) {
         Column(Modifier.padding(10.dp), verticalArrangement = Arrangement.spacedBy(20.dp)) {
@@ -51,7 +51,7 @@ fun DescriptionCard(description_text: String, backgroundColourProvider: () -> Co
                     },
                     colors = AssistChipDefaults.assistChipColors(
                         containerColor = backgroundColourProvider(),
-                        labelColor = Theme.current.on_background,
+                        labelColor = Theme.on_background,
                         leadingIconContentColor = accentColourProvider() ?: Color.Unspecified
                     )
                 )
@@ -79,8 +79,8 @@ fun DescriptionCard(description_text: String, backgroundColourProvider: () -> Co
                     .then(
                         if (expanded) Modifier else Modifier.height(200.dp)
                     ),
-                Theme.current.on_background.setAlpha(0.8f),
-                Theme.current.on_background,
+                Theme.on_background.setAlpha(0.8f),
+                Theme.on_background,
                 MaterialTheme.typography.bodyMedium
             )
         }

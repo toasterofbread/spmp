@@ -14,6 +14,7 @@ import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.graphics.compositeOver
 import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.input.pointer.pointerInput
 import androidx.compose.ui.platform.LocalClipboardManager
@@ -33,7 +34,9 @@ import com.toasterofbread.spmp.ui.component.MusicTopBar
 import com.toasterofbread.spmp.ui.component.PillMenu
 import com.toasterofbread.spmp.ui.layout.*
 import com.toasterofbread.spmp.ui.theme.Theme
+import com.toasterofbread.utils.blendWith
 import com.toasterofbread.utils.modifier.background
+import com.toasterofbread.utils.setAlpha
 import org.jetbrains.compose.resources.*
 
 internal enum class PrefsPageScreen {
@@ -164,7 +167,7 @@ fun PrefsPage(
         MusicTopBar(
             Settings.KEY_LYRICS_SHOW_IN_SETTINGS,
             Modifier.fillMaxWidth().zIndex(10f),
-            getBottomBorderColour = if (current_category == null) Theme.current.background_provider else null
+            getBottomBorderColour = if (current_category == null) Theme.background_provider else null
         )
 
         Crossfade(category_open || settings_interface.current_page.id!! != PrefsPageScreen.ROOT.ordinal) { open ->
@@ -226,7 +229,7 @@ fun PrefsPage(
                             } 
                         }
                         item.GetItem(
-                            Theme.current,
+                            Theme,
                             settings_interface::openPageById,
                             settings_interface::openPage
                         )
@@ -235,7 +238,11 @@ fun PrefsPage(
                     items(PrefsPageCategory.values()) { category ->
                         ElevatedCard(
                             onClick = { current_category = category },
-                            modifier = Modifier.fillMaxWidth()
+                            modifier = Modifier.fillMaxWidth(),
+                            colors = CardDefaults.elevatedCardColors(
+                                containerColor = Theme.accent.blendWith(Theme.background, 0.05f),
+                                contentColor = Theme.on_background
+                            )
                         ) {
                             Row(
                                 Modifier.padding(15.dp),
@@ -255,13 +262,15 @@ fun PrefsPage(
             else {
                 BoxWithConstraints(
                     Modifier
-                        .background(Theme.current.background_provider)
+                        .background(Theme.background_provider)
                         .pointerInput(Unit) {}
                 ) {
-                    settings_interface.Interface(
-                        SpMp.context.getScreenHeight() - SpMp.context.getStatusBarHeight(),
-                        content_padding = PaddingValues(bottom = bottom_padding)
-                    )
+                    CompositionLocalProvider(LocalContentColor provides Theme.on_background) {
+                        settings_interface.Interface(
+                            SpMp.context.getScreenHeight() - SpMp.context.getStatusBarHeight(),
+                            content_padding = PaddingValues(bottom = bottom_padding)
+                        )
+                    }
                 }
             }
         }

@@ -137,7 +137,7 @@ fun LibraryPage(
                         Text(
                             page.getReadable(),
                             style = MaterialTheme.typography.headlineLarge.copy(
-                                color = Theme.current.on_background
+                                color = Theme.on_background
                             )
                         )
 

@@ -160,7 +160,7 @@ class LyricsOverlayMenu: OverlayMenu() {
                             3 -> ActionButton(Icons.Default.HourglassEmpty) { selecting_sync_line = true }
                         }
                     },
-                    _background_colour = Theme.current.accent_provider,
+                    _background_colour = Theme.accent_provider,
                     vertical = true
                 )
             }
@@ -233,7 +233,7 @@ class LyricsOverlayMenu: OverlayMenu() {
                     Column(Modifier.fillMaxSize(), horizontalAlignment = Alignment.CenterHorizontally, verticalArrangement = Arrangement.Center) {
                         Text(getString("lyrics_loading"), fontWeight = FontWeight.Light)
                         Spacer(Modifier.height(20.dp))
-                        LinearProgressIndicator(Modifier.fillMaxWidth(0.5f), color = Theme.current.accent, trackColor = Theme.current.on_accent)
+                        LinearProgressIndicator(Modifier.fillMaxWidth(0.5f), color = Theme.accent, trackColor = Theme.on_accent)
                     }
                 }
             }

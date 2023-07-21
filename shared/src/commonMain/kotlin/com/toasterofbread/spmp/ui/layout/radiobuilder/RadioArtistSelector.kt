@@ -100,7 +100,7 @@ internal fun RadioArtistSelector(
     Crossfade(radio_artists) { artists ->
         if (artists == null) {
             Box(modifier, contentAlignment = Alignment.Center) {
-                SubtleLoadingIndicator(colourProvider = { Theme.current.on_background })
+                SubtleLoadingIndicator(colourProvider = { Theme.on_background })
             }
         } else {
             val thumb_size = 80.dp
@@ -153,7 +153,7 @@ internal fun RadioArtistSelector(
                                     Box(
                                         Modifier
                                             .size(thumb_size + selected_border_size * border_expansion.value)
-                                            .border(1.dp, Theme.current.on_background, RoundedCornerShape(ARTIST_THUMB_CORNER_ROUNDING))
+                                            .border(1.dp, Theme.on_background, RoundedCornerShape(ARTIST_THUMB_CORNER_ROUNDING))
                                     )
                                 }
                                 artist.Thumbnail(
@@ -167,7 +167,7 @@ internal fun RadioArtistSelector(
                             Text(
                                 artist.title ?: "",
                                 fontSize = 12.sp,
-                                color = Theme.current.on_background,
+                                color = Theme.on_background,
                                 maxLines = 1,
                                 lineHeight = 14.sp,
                                 overflow = TextOverflow.Ellipsis

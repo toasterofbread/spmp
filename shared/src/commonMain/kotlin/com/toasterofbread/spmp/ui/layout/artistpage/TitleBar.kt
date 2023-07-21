@@ -75,13 +75,13 @@ fun TitleBar(item: MediaItem, modifier: Modifier = Modifier) {
                         fun Action(icon: ImageVector, action: () -> Unit) {
                             Box(
                                 Modifier
-                                    .background(Theme.current.accent, CircleShape)
+                                    .background(Theme.accent, CircleShape)
                                     .size(42.dp)
                                     .padding(8.dp)
                                     .clickable(onClick = action),
                                 contentAlignment = Alignment.Center
                             ) {
-                                Icon(icon, null, tint = Theme.current.on_accent)
+                                Icon(icon, null, tint = Theme.on_accent)
                             }
                         }
 
@@ -95,7 +95,7 @@ fun TitleBar(item: MediaItem, modifier: Modifier = Modifier) {
                         }
                     }
 
-                    val field_colour = Theme.current.on_accent
+                    val field_colour = Theme.on_accent
                     OutlinedTextField(
                         edited_title,
                         onValueChange = { text ->

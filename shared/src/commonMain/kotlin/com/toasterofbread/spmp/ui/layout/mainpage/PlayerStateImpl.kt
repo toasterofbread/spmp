@@ -40,6 +40,7 @@ import com.toasterofbread.spmp.ui.layout.playlistpage.PlaylistPage
 import com.toasterofbread.spmp.ui.layout.prefspage.PrefsPage
 import com.toasterofbread.spmp.ui.layout.prefspage.PrefsPageCategory
 import com.toasterofbread.spmp.ui.layout.radiobuilder.RadioBuilderPage
+import com.toasterofbread.spmp.ui.theme.Theme
 import com.toasterofbread.utils.addUnique
 import com.toasterofbread.utils.composable.OnChangedEffect
 import com.toasterofbread.utils.init
@@ -578,64 +579,66 @@ class PlayerStateImpl(private val context: PlatformContext): PlayerState(null, n
 
     @Composable
     fun HomePage() {
-        Crossfade(targetState = overlay_page) { page ->
-            val feed_coroutine_scope = rememberCoroutineScope()
+        CompositionLocalProvider(LocalContentColor provides Theme.on_background) {
+            Crossfade(targetState = overlay_page) { page ->
+                val feed_coroutine_scope = rememberCoroutineScope()
 
-            Column(Modifier.fillMaxSize()) {
-                if (page != null && page.first !is PlayerOverlayPage.MediaItemPage && page.first != PlayerOverlayPage.SearchPage) {
-                    Spacer(Modifier.requiredHeight(context.getStatusBarHeight()))
-                }
+                Column(Modifier.fillMaxSize()) {
+                    if (page != null && page.first !is PlayerOverlayPage.MediaItemPage && page.first != PlayerOverlayPage.SearchPage) {
+                        Spacer(Modifier.requiredHeight(context.getStatusBarHeight()))
+                    }
 
-                val close = remember { { navigateBack() } }
+                    val close = remember { { navigateBack() } }
 
-                if (page == null) {
-                    LaunchedEffect(Unit) {
-                        check(!main_page_showing)
-                        main_page_showing = true
+                    if (page == null) {
+                        LaunchedEffect(Unit) {
+                            check(!main_page_showing)
+                            main_page_showing = true
 
-                        if (main_page_layouts == null) {
-                            feed_coroutine_scope.launchSingle {
-                                player?.also { player ->
-                                    val result = loadFeed(Settings.get(Settings.KEY_FEED_INITIAL_ROWS), allow_cached = true, continue_feed = false)
-                                    player.loadPersistentQueue(result.isSuccess)
+                            if (main_page_layouts == null) {
+                                feed_coroutine_scope.launchSingle {
+                                    player?.also { player ->
+                                        val result = loadFeed(Settings.get(Settings.KEY_FEED_INITIAL_ROWS), allow_cached = true, continue_feed = false)
+                                        player.loadPersistentQueue(result.isSuccess)
+                                    }
                                 }
                             }
                         }
-                    }
 
-                    DisposableEffect(Unit) {
-                        onDispose {
-                            check(main_page_showing)
-                            main_page_showing = false
-                        }
-                    }
-
-                    pinned_items.removeAll { it.item == null }
-
-                    MainPage(
-                        pinned_items,
-                        { main_page_layouts ?: emptyList() },
-                        main_page_scroll_state,
-                        feed_load_state,
-                        main_page_load_error,
-                        remember { derivedStateOf { feed_continuation != null } }.value,
-                        { main_page_filter_chips },
-                        { main_page_selected_filter_chip },
-                        pill_menu,
-                        { filter_chip: Int?, continuation: Boolean ->
-                            feed_coroutine_scope.launchSingle {
-                                loadFeed(-1, false, continuation, filter_chip)
+                        DisposableEffect(Unit) {
+                            onDispose {
+                                check(main_page_showing)
+                                main_page_showing = false
                             }
                         }
-                    )
-                }
-                else {
-                    page.first.getPage(
-                        pill_menu,
-                        page.second,
-                        (if (session_started) MINIMISED_NOW_PLAYING_HEIGHT_DP.dp else 0.dp) + SpMp.context.getNavigationBarHeightDp(),
-                        close
-                    )
+
+                        pinned_items.removeAll { it.item == null }
+
+                        MainPage(
+                            pinned_items,
+                            { main_page_layouts ?: emptyList() },
+                            main_page_scroll_state,
+                            feed_load_state,
+                            main_page_load_error,
+                            remember { derivedStateOf { feed_continuation != null } }.value,
+                            { main_page_filter_chips },
+                            { main_page_selected_filter_chip },
+                            pill_menu,
+                            { filter_chip: Int?, continuation: Boolean ->
+                                feed_coroutine_scope.launchSingle {
+                                    loadFeed(-1, false, continuation, filter_chip)
+                                }
+                            }
+                        )
+                    }
+                    else {
+                        page.first.getPage(
+                            pill_menu,
+                            page.second,
+                            (if (session_started) MINIMISED_NOW_PLAYING_HEIGHT_DP.dp else 0.dp) + SpMp.context.getNavigationBarHeightDp(),
+                            close
+                        )
+                    }
                 }
             }
         }

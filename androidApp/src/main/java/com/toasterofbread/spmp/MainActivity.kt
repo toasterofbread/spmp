@@ -12,6 +12,9 @@ import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
 import androidx.core.view.WindowCompat
 import com.toasterofbread.spmp.platform.PlatformContext
+import com.toasterofbread.spmp.ui.theme.Theme
+import com.toasterofbread.utils.isDark
+import com.toasterofbread.utils.isDebugBuild
 
 class MainActivity : ComponentActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
@@ -36,20 +39,26 @@ class MainActivity : ComponentActivity() {
             })
         }
 
-        StrictMode.setVmPolicy(VmPolicy.Builder()
-            .detectLeakedClosableObjects()
-            .penaltyLog()
-            .build()
-        )
+        if (isDebugBuild()) {
+            StrictMode.setVmPolicy(VmPolicy.Builder()
+                .detectLeakedClosableObjects()
+                .penaltyLog()
+                .build()
+            )
+        }
 
-        window.setFlags(
-            WindowManager.LayoutParams.FLAG_LAYOUT_NO_LIMITS,
-            WindowManager.LayoutParams.FLAG_LAYOUT_NO_LIMITS
-        )
         WindowCompat.setDecorFitsSystemWindows(window, false)
 
-        PlatformContext(this) {
-            SpMp.init(it)
+        val context = PlatformContext(this) { context ->
+            SpMp.init(context)
+
+            if (!context.isDisplayingAboveNavigationBar()) {
+                window.setFlags(
+                    WindowManager.LayoutParams.FLAG_LAYOUT_NO_LIMITS,
+                    WindowManager.LayoutParams.FLAG_LAYOUT_NO_LIMITS
+                )
+            }
+            context.setNavigationBarColour(null)
         }
 
         val open_uri: Uri? =
@@ -57,6 +66,7 @@ class MainActivity : ComponentActivity() {
             else null
 
         setContent {
+            context.setStatusBarColour(Theme.current.background, !Theme.current.background.isDark())
             SpMp.App(open_uri?.toString())
         }
     }

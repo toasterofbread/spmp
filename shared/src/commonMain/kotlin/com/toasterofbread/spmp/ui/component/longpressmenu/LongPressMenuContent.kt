@@ -86,8 +86,8 @@ internal fun LongPressMenuContent(
 
     Box(
         Modifier
-            .requiredHeight(SpMp.context.getScreenHeight() + SpMp.context.getNavigationBarHeightDp())
-            .offset(y = -SpMp.context.getStatusBarHeight())
+            .requiredHeight(SpMp.context.getScreenHeight() + SpMp.context.getStatusBarHeight())
+            .offset(y = 1.dp)
             .background(Color.Black.setAlpha(0.5f))
     ) {
         val shape = RoundedCornerShape(topStart = 16.dp, topEnd = 16.dp)
@@ -111,7 +111,6 @@ internal fun LongPressMenuContent(
             Column(
                 modifier
                     .background(Theme.current.background, shape)
-                    .padding(bottom = SpMp.context.getNavigationBarHeightDp())
                     .fillMaxWidth()
                     .onSizeChanged {
                         if (show_info || !main_actions_showing) {
@@ -150,7 +149,7 @@ internal fun LongPressMenuContent(
                 }
 
                 Column(
-                    Modifier.padding(start = padding, end = padding, bottom = padding).fillMaxWidth(),
+                    Modifier.padding(start = padding, end = padding, bottom = padding * 2).fillMaxWidth(),
                     verticalArrangement = Arrangement.spacedBy(MENU_ITEM_SPACING.dp)
                 ) {
                     CompositionLocalProvider(LocalContentColor provides Theme.current.on_background) {
@@ -159,7 +158,6 @@ internal fun LongPressMenuContent(
                                 .height(80.dp)
                                 .fillMaxWidth()
                         ) {
-
                             Thumb(Modifier.aspectRatio(1f))
 
                             // Item info

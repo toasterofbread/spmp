@@ -44,7 +44,7 @@ fun rememberTopBarShouldShowInQueue(mode: MusicTopBarMode): State<Boolean> {
         derivedStateOf {
             when (mode) {
                 MusicTopBarMode.VISUALISER -> show_visualiser_in_queue
-                MusicTopBarMode.LYRICS -> show_lyrics_in_queue && player.status.m_song?.lyrics?.lyrics != null
+                MusicTopBarMode.LYRICS -> show_lyrics_in_queue && player.status.m_song?.lyrics?.lyrics?.synced == true
             }
         }
     }

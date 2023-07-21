@@ -5,8 +5,13 @@ import androidx.compose.animation.EnterTransition
 import androidx.compose.animation.core.animateFloatAsState
 import androidx.compose.animation.core.tween
 import androidx.compose.animation.slideOutVertically
+import androidx.compose.foundation.background
+import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.foundation.layout.offset
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.DisposableEffect
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.MutableState
 import androidx.compose.runtime.getValue
@@ -74,15 +79,21 @@ fun LongPressMenu(
         ) {
             AnimatedVisibility(
                 show_content,
+                Modifier.fillMaxSize(),
                 // Can't find a way to disable Android Dialog's animations, or an alternative
                 enter = EnterTransition.None,
                 exit = slideOutVertically(tween(LONG_PRESS_ICON_MENU_OPEN_ANIM_MS)) { it }
             ) {
                 var accent_colour: Color? by remember { mutableStateOf(null) }
 
-                LaunchedEffect(Unit) {
+                DisposableEffect(Unit) {
                     if (data.item is Song && data.item.theme_colour != null) {
                         accent_colour = data.item.theme_colour!!
+                    }
+
+                    SpMp.context.setNavigationBarColour(Theme.current.background)
+                    onDispose {
+                        SpMp.context.setNavigationBarColour(null)
                     }
                 }
 

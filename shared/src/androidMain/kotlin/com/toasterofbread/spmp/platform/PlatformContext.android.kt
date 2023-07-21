@@ -18,6 +18,7 @@ import android.os.VibrationEffect
 import android.os.Vibrator
 import android.view.Window
 import android.view.WindowInsetsController.APPEARANCE_LIGHT_STATUS_BARS
+import android.view.WindowManager
 import android.widget.Toast
 import androidx.compose.foundation.layout.*
 import androidx.compose.material.icons.Icons
@@ -88,6 +89,7 @@ actual class PlatformContext(private val context: Context, onInit: ((PlatformCon
 
         throw RuntimeException()
     }
+
     actual fun setStatusBarColour(colour: Color, dark_icons: Boolean) {
         ctx.findWindow()?.also { window ->
             if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.R) {
@@ -95,6 +97,23 @@ actual class PlatformContext(private val context: Context, onInit: ((PlatformCon
             }
             window.statusBarColor = colour.toArgb()
         }
+    }
+
+    actual fun setNavigationBarColour(colour: Color?) {
+        val window = ctx.findWindow()!!
+        window.navigationBarColor = (colour ?: Color.Transparent).toArgb()
+    }
+
+    @SuppressLint("DiscouragedApi")
+    actual fun isDisplayingAboveNavigationBar(): Boolean {
+        val resources = context.resources
+
+        val resource_id: Int = resources.getIdentifier("config_navBarInteractionMode", "integer", "android")
+        if (resource_id > 0) {
+            return resources.getInteger(resource_id) != 2
+        }
+
+        return false
     }
 
     @Composable
@@ -187,7 +206,11 @@ actual class PlatformContext(private val context: Context, onInit: ((PlatformCon
 
     @Composable
     actual fun getScreenHeight(): Dp {
-        return LocalConfiguration.current.screenHeightDp.dp// + getStatusBarHeight()
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.R) {
+            val window_manager = ctx.getSystemService(Service.WINDOW_SERVICE) as WindowManager
+            return with(LocalDensity.current) { window_manager.currentWindowMetrics.bounds.height().toDp() } - SpMp.context.getNavigationBarHeightDp()
+        }
+        return LocalConfiguration.current.screenHeightDp.dp
     }
 
     @Composable

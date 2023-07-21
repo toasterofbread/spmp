@@ -23,6 +23,7 @@ import com.toasterofbread.spmp.model.Settings
 import com.toasterofbread.spmp.platform.BackHandler
 import com.toasterofbread.spmp.platform.composable.scrollWheelSwipeable
 import com.toasterofbread.spmp.platform.composeScope
+import com.toasterofbread.spmp.platform.getNavigationBarHeightDp
 import com.toasterofbread.spmp.ui.layout.nowplaying.maintab.NowPlayingMainTab
 import com.toasterofbread.spmp.ui.layout.nowplaying.queue.QueueTab
 import com.toasterofbread.spmp.ui.theme.Theme
@@ -167,7 +168,9 @@ private fun StatusBarColourHandler(page_height: Dp) {
     val status_bar_height = SpMp.context.getStatusBarHeight()
     val background_colour = getNPBackground()
 
-    val status_bar_height_percent = (status_bar_height.value * 0.75) / page_height.value
+    val status_bar_height_percent = (
+        status_bar_height.value * (if (SpMp.context.isDisplayingAboveNavigationBar()) 1f else 0.75f)
+    ) / page_height.value
     val under_status_bar by remember { derivedStateOf { 1f - expansion.get() < status_bar_height_percent } }
 
     LaunchedEffect(key1 = under_status_bar, key2 = background_colour) {

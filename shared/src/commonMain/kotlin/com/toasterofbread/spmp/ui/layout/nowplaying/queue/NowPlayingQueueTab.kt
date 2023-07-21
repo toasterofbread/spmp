@@ -43,6 +43,7 @@ import com.toasterofbread.spmp.model.NowPlayingQueueWaveBorderMode
 import com.toasterofbread.spmp.model.Settings
 import com.toasterofbread.spmp.model.mediaitem.Song
 import com.toasterofbread.spmp.platform.MediaPlayerService
+import com.toasterofbread.spmp.platform.getNavigationBarHeightDp
 import com.toasterofbread.spmp.ui.component.WaveBorder
 import com.toasterofbread.spmp.ui.component.multiselect.MediaItemMultiSelectContext
 import com.toasterofbread.spmp.ui.layout.mainpage.MINIMISED_NOW_PLAYING_HEIGHT_DP
@@ -192,9 +193,7 @@ fun QueueTab(page_height: Dp, modifier: Modifier = Modifier) {
                         contentPadding = PaddingValues(
                             top = list_padding +
                                 // Extra space to prevent initial wave border overlap
-                                if (wave_border_mode != NowPlayingQueueWaveBorderMode.LINE) 15.dp else 0.dp,
-
-                            bottom = NOW_PLAYING_TOP_BAR_HEIGHT.dp + (MINIMISED_NOW_PLAYING_HEIGHT_DP.dp * 2) + list_position + list_padding
+                                if (wave_border_mode != NowPlayingQueueWaveBorderMode.LINE) 15.dp else 0.dp
                         ),
                         modifier = Modifier
                             .reorderable(queue_list_state)
@@ -227,6 +226,20 @@ fun QueueTab(page_height: Dp, modifier: Modifier = Modifier) {
                                     .fillMaxWidth(),
                                 expanded_modifier = Modifier.height(page_height)
                             )
+                        }
+
+
+                        item {
+                            val navbar_height = SpMp.context.getNavigationBarHeightDp()
+                            println("BAR HEIGHT $navbar_height")
+                            Spacer(Modifier.height(
+                                NOW_PLAYING_TOP_BAR_HEIGHT.dp
+                                + MINIMISED_NOW_PLAYING_HEIGHT_DP.dp
+                                + list_position
+                                + list_padding
+//                                + SpMp.context.getNavigationBarHeightDp()
+//                                - SpMp.context.getStatusBarHeight()
+                            ))
                         }
                     }
                 }

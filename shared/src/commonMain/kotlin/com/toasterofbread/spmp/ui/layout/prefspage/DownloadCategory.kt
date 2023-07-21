@@ -1,7 +1,7 @@
 package com.toasterofbread.spmp.ui.layout.prefspage
 
-import com.toasterofbread.composesettings.ui.item.SettingsDropdownItem
 import com.toasterofbread.composesettings.ui.item.SettingsItem
+import com.toasterofbread.composesettings.ui.item.SettingsDropdownItem
 import com.toasterofbread.composesettings.ui.item.SettingsSliderItem
 import com.toasterofbread.composesettings.ui.item.SettingsToggleItem
 import com.toasterofbread.composesettings.ui.item.SettingsValueState

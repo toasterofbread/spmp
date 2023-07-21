@@ -142,7 +142,6 @@ internal fun parseTimedLyrics(data: String): Result<List<List<SongLyrics.Term>>>
             continue
         }
 
-        println("NAME ${parser.name}")
         if (parser.name != "line") {
             skip()
             continue

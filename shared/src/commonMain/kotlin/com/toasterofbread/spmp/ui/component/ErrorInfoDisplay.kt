@@ -79,13 +79,13 @@ fun ErrorInfoDisplay(
     var expanded: Boolean by remember { mutableStateOf(false) }
     val shape = RoundedCornerShape(20.dp)
 
-    CompositionLocalProvider(LocalContentColor provides Theme.current.background) {
+    CompositionLocalProvider(LocalContentColor provides Theme.background) {
         Box(modifier.thenIf(expanded, expanded_modifier), contentAlignment = Alignment.TopCenter) {
             Column(
                 Modifier
                     .heightIn(min = 50.dp)
                     .animateContentSize()
-                    .background(shape, Theme.current.accent_provider)
+                    .background(shape, Theme.accent_provider)
                     .padding(
                         vertical = 3.dp,
                         horizontal = 10.dp
@@ -119,8 +119,8 @@ fun ErrorInfoDisplay(
                             onExtraButtonPressed,
                             shape = shape,
                             colors = ButtonDefaults.buttonColors(
-                                containerColor = Theme.current.background,
-                                contentColor = Theme.current.on_background
+                                containerColor = Theme.background,
+                                contentColor = Theme.on_background
                             )
                         ) {
                             extraButtonContent!!.invoke()
@@ -132,8 +132,8 @@ fun ErrorInfoDisplay(
                             onDismiss,
                             shape = shape,
                             colours = IconButtonDefaults.iconButtonColors(
-                                containerColor = Theme.current.background,
-                                contentColor = Theme.current.on_background
+                                containerColor = Theme.background,
+                                contentColor = Theme.on_background
                             )
                         ) {
                             Icon(Icons.Default.Close, null)
@@ -155,8 +155,8 @@ private fun ExpandedContent(error: Throwable, shape: Shape, disable_parent_scrol
     var text_to_show: String? by remember { mutableStateOf(null) }
     var wrap_text by remember { mutableStateOf(false) }
     val button_colours = ButtonDefaults.buttonColors(
-        containerColor = Theme.current.accent,
-        contentColor = Theme.current.background
+        containerColor = Theme.accent,
+        contentColor = Theme.background
     )
 
     Box(
@@ -164,10 +164,10 @@ private fun ExpandedContent(error: Throwable, shape: Shape, disable_parent_scrol
             .fillMaxWidth()
             .clip(shape)
             .padding(bottom = 10.dp)
-            .background(Theme.current.background_provider)
+            .background(Theme.background_provider)
             .padding(10.dp)
     ) {
-        CompositionLocalProvider(LocalContentColor provides Theme.current.on_background) {
+        CompositionLocalProvider(LocalContentColor provides Theme.on_background) {
             Column(
                 Modifier.fillMaxSize(),
                 verticalArrangement = Arrangement.spacedBy(10.dp)
@@ -175,7 +175,7 @@ private fun ExpandedContent(error: Throwable, shape: Shape, disable_parent_scrol
                 Row(verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(10.dp)) {
                     Text(
                         getString("wrap_text_switch_label"),
-                        color = Theme.current.on_background
+                        color = Theme.on_background
                     )
                     Switch(wrap_text, { wrap_text = !wrap_text }, Modifier.padding(end = 10.dp))
 
@@ -207,7 +207,7 @@ private fun ExpandedContent(error: Throwable, shape: Shape, disable_parent_scrol
                         SelectionContainer {
                             Text(
                                 text,
-                                color = Theme.current.on_background,
+                                color = Theme.on_background,
                                 softWrap = wrap_text
                             )
                         }

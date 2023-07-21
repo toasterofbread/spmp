@@ -66,7 +66,7 @@ class MainActivity : ComponentActivity() {
             else null
 
         setContent {
-            context.setStatusBarColour(Theme.current.background, !Theme.current.background.isDark())
+            context.setStatusBarColour(Theme.background, !Theme.background.isDark())
             SpMp.App(open_uri?.toString())
         }
     }

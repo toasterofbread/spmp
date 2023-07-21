@@ -1,7 +1,7 @@
 package com.toasterofbread.spmp.ui.layout.prefspage
 
-import com.toasterofbread.composesettings.ui.SettingsItemThemeSelector
 import com.toasterofbread.composesettings.ui.item.SettingsItem
+import com.toasterofbread.composesettings.ui.item.SettingsItemThemeSelector
 import com.toasterofbread.composesettings.ui.item.SettingsMultipleChoiceItem
 import com.toasterofbread.composesettings.ui.item.SettingsSliderItem
 import com.toasterofbread.composesettings.ui.item.SettingsValueState
@@ -10,35 +10,30 @@ import com.toasterofbread.spmp.model.Settings
 import com.toasterofbread.spmp.resources.getString
 import com.toasterofbread.spmp.ui.theme.Theme
 import com.toasterofbread.spmp.ui.theme.ThemeData
-import com.toasterofbread.spmp.ui.theme.ThemeManager
 
-internal fun getThemeCategory(theme_manager: ThemeManager): List<SettingsItem> {
+internal fun getThemeCategory(theme_manager: Theme): List<SettingsItem> {
     return listOf(
         SettingsItemThemeSelector(
             SettingsValueState(Settings.KEY_CURRENT_THEME.name),
             getString("s_key_current_theme"), null,
             getString("s_theme_editor_title"),
-            {
-                check(theme_manager.themes.isNotEmpty())
-                theme_manager.themes.size
-            },
-            { theme_manager.themes[it] },
+            { theme_manager.getThemeCount() },
+            { theme_manager.getThemes()[it] },
             { index: Int, edited_theme: ThemeData ->
                 theme_manager.updateTheme(index, edited_theme)
             },
-            { theme_manager.addTheme(Theme.current.theme_data.copy(name = getString("theme_title_new")), it) },
+            { theme_manager.addTheme(Theme.getCurrentTheme().toStaticThemeData(getString("theme_title_new")), it) },
             { theme_manager.removeTheme(it) }
         ),
 
         SettingsMultipleChoiceItem(
             SettingsValueState(Settings.KEY_ACCENT_COLOUR_SOURCE.name),
             getString("s_key_accent_source"), null,
-            3, false
+            AccentColourSource.values().size, false
         ) { choice ->
             when (AccentColourSource.values()[choice]) {
                 AccentColourSource.THEME -> getString("s_option_accent_theme")
                 AccentColourSource.THUMBNAIL -> getString("s_option_accent_thumbnail")
-                AccentColourSource.SYSTEM -> getString("s_option_accent_system")
             }
         },
 

@@ -26,7 +26,7 @@ fun LinkifyText(
     text: String,
     modifier: Modifier = Modifier,
     colour: Color = LocalContentColor.current,
-    highlight_colour: Color = Theme.current.accent,
+    highlight_colour: Color = Theme.accent,
     style: TextStyle = LocalTextStyle.current
 ) {
 	val annotated_string = buildAnnotatedString {

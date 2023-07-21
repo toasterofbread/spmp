@@ -110,7 +110,7 @@ internal fun LongPressMenuContent(
 
             Column(
                 modifier
-                    .background(Theme.current.background, shape)
+                    .background(Theme.background, shape)
                     .fillMaxWidth()
                     .onSizeChanged {
                         if (show_info || !main_actions_showing) {
@@ -152,7 +152,7 @@ internal fun LongPressMenuContent(
                     Modifier.padding(start = padding, end = padding, bottom = padding * 2).fillMaxWidth(),
                     verticalArrangement = Arrangement.spacedBy(MENU_ITEM_SPACING.dp)
                 ) {
-                    CompositionLocalProvider(LocalContentColor provides Theme.current.on_background) {
+                    CompositionLocalProvider(LocalContentColor provides Theme.on_background) {
                         Row(
                             Modifier
                                 .height(80.dp)
@@ -246,13 +246,13 @@ internal fun LongPressMenuContent(
                                             ).value)
                                         }
                                         .requiredHeight(20.dp)
-                                        .background(Theme.current.background)
+                                        .background(Theme.background)
                                         .align(Alignment.CenterEnd),
                                     contentAlignment = Alignment.Center
                                 ) {
                                     Divider(
                                         thickness = Dp.Hairline,
-                                        color = Theme.current.on_background
+                                        color = Theme.on_background
                                     )
                                 }
                             }
@@ -265,7 +265,7 @@ internal fun LongPressMenuContent(
                                 }
                             }
 
-                            data.SideButton(Modifier.requiredHeight(40.dp), Theme.current.background)
+                            data.SideButton(Modifier.requiredHeight(40.dp), Theme.background)
                         }
 
                         // Info/action list
@@ -278,7 +278,7 @@ internal fun LongPressMenuContent(
                                             info_showing = false
                                         }
                                     }
-                                    LongPressMenuInfoActions(data, { getAccentColour() ?: Theme.current.accent }, onAction = onAction)
+                                    LongPressMenuInfoActions(data, { getAccentColour() ?: Theme.accent }, onAction = onAction)
                                 }
                                 else {
                                     DisposableEffect(Unit) {
@@ -287,7 +287,7 @@ internal fun LongPressMenuContent(
                                             main_actions_showing = false
                                         }
                                     }
-                                    LongPressMenuActions(data, { getAccentColour() ?: Theme.current.accent }, onAction = onAction)
+                                    LongPressMenuActions(data, { getAccentColour() ?: Theme.accent }, onAction = onAction)
                                 }
                             }
                         }

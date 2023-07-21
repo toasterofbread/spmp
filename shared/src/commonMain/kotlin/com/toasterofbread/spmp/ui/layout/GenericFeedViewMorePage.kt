@@ -46,7 +46,7 @@ fun GenericFeedViewMorePage(browse_id: String, modifier: Modifier = Modifier, bo
         MusicTopBar(
             Settings.KEY_LYRICS_SHOW_IN_VIEWMORE,
             Modifier.fillMaxWidth().zIndex(10f),
-            getBottomBorderColour = Theme.current.background_provider
+            getBottomBorderColour = Theme.background_provider
         )
 
         items_result?.fold(

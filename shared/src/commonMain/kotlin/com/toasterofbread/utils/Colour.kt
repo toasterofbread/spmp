@@ -2,6 +2,7 @@ package com.toasterofbread.utils
 
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.ImageBitmap
+import androidx.compose.ui.graphics.compositeOver
 import androidx.compose.ui.graphics.luminance
 import java.util.Random
 import kotlin.math.absoluteValue
@@ -21,6 +22,10 @@ fun Color.Companion.random(randomise_alpha: Boolean = false, rnd: Random = Rando
 
 fun Color.setAlpha(alpha: Float): Color {
     return copy(alpha = alpha)
+}
+
+fun Color.blendWith(other: Color, ratio: Float = 0.5f): Color {
+    return copy(alpha = alpha * ratio).compositeOver(other)
 }
 
 fun Color.offsetRGB(offset: Float, clip: Boolean = true): Color {

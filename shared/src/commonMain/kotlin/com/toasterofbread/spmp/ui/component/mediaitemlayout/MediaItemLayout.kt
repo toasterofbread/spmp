@@ -300,7 +300,7 @@ internal fun TitleBar(
 
             Column(verticalArrangement = Arrangement.Center, modifier = Modifier.weight(1f)) {
                 if (subtitle_string != null) {
-                    WidthShrinkText(subtitle_string, style = MaterialTheme.typography.titleSmall.copy(color = Theme.current.on_background))
+                    WidthShrinkText(subtitle_string, style = MaterialTheme.typography.titleSmall.copy(color = Theme.on_background))
                 }
 
                 if (title_string != null) {
@@ -309,7 +309,7 @@ internal fun TitleBar(
                         modifier = Modifier.fillMaxWidth(),
                         style = MaterialTheme.typography.headlineMedium.let { style ->
                             style.copy(
-                                color = Theme.current.on_background,
+                                color = Theme.on_background,
                                 fontSize = font_size ?: style.fontSize
                             )
                         }

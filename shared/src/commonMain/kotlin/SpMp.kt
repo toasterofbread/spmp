@@ -123,7 +123,7 @@ object SpMp {
     @Composable
     fun App(open_uri: String? = null) {
         ApplicationTheme(context, getFontFamily(context)) {
-            Theme.Update(context, MaterialTheme.colorScheme.primary)
+            Theme.Update(context)
 
             val player = context.player_state
             player.initComposable(context)
@@ -142,7 +142,7 @@ object SpMp {
                         RootView(player)
                     }
                 }
-                error_manager.Indicator(Theme.current.accent_provider)
+                error_manager.Indicator(Theme.accent_provider)
             }
         }
     }

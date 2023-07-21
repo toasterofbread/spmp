@@ -44,24 +44,24 @@ private const val GRADIENT_TOP_START_RATIO = 0.7f
 
 internal fun getNPBackground(): Color {
     return when (SpMp.context.player_state.np_theme_mode) {
-        ThemeMode.BACKGROUND -> Theme.current.accent
-        ThemeMode.ELEMENTS -> Theme.current.background
-        ThemeMode.NONE -> Theme.current.background
+        ThemeMode.BACKGROUND -> Theme.accent
+        ThemeMode.ELEMENTS -> Theme.background
+        ThemeMode.NONE -> Theme.background
     }
 }
 
 internal fun getNPOnBackground(): Color {
     return when (SpMp.context.player_state.np_theme_mode) {
-        ThemeMode.BACKGROUND -> Theme.current.on_accent
-        ThemeMode.ELEMENTS -> Theme.current.accent
-        ThemeMode.NONE -> Theme.current.on_background
+        ThemeMode.BACKGROUND -> Theme.on_accent
+        ThemeMode.ELEMENTS -> Theme.accent
+        ThemeMode.NONE -> Theme.on_background
     }
 }
 
 internal fun getNPAltBackground(): Color {
     return when (SpMp.context.player_state.np_theme_mode) {
         ThemeMode.BACKGROUND -> getNPBackground().amplifyPercent(-0.4f, opposite_percent = -0.2f)
-        else -> Theme.current.background
+        else -> Theme.background
     }
 }
 
@@ -174,7 +174,7 @@ private fun StatusBarColourHandler(page_height: Dp) {
     val under_status_bar by remember { derivedStateOf { 1f - expansion.get() < status_bar_height_percent } }
 
     LaunchedEffect(key1 = under_status_bar, key2 = background_colour) {
-        val colour = if (under_status_bar) background_colour else Theme.current.background
+        val colour = if (under_status_bar) background_colour else Theme.background
         SpMp.context.setStatusBarColour(colour, !colour.isDark())
     }
 }

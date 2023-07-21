@@ -91,6 +91,7 @@
 
     <string name="theme_title_default">デフォルトテーマ</string>
     <string name="theme_title_new">新しいテーマ</string>
+    <string name="theme_title_system">システムテーマ</string>
 
     <string name="queue_shuffle">シャッフル</string>
     <string name="queue_clear">クリア</string>
@@ -317,7 +318,6 @@
     <string name="s_key_accent_source">アクセント色</string>
     <string name="s_option_accent_theme">テーマから</string>
     <string name="s_option_accent_thumbnail">サムネールから</string>
-    <string name="s_option_accent_system">システムテーマから</string>
 
     <string name="s_key_np_theme_mode">再生画面テーマモード</string>
     <string name="s_option_np_accent_background">バックグラウンドをアクセント色で彩る</string>

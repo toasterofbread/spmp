@@ -162,7 +162,7 @@ fun SearchPage(
                         verticalArrangement = Arrangement.Center
                     ) {
                         Box(Modifier.size(20.dp), contentAlignment = Alignment.Center) {
-                            SubtleLoadingIndicator(colourProvider = { Theme.current.on_background }, size = 20.dp)
+                            SubtleLoadingIndicator(colourProvider = { Theme.on_background }, size = 20.dp)
                         }
                         Text(getString("search_results_loading"), Modifier.padding(top = 5.dp))
                     }
@@ -261,10 +261,10 @@ private fun SearchBar(
                         })
                     },
                     colors = FilterChipDefaults.filterChipColors(
-                        containerColor = Theme.current.background,
-                        labelColor = Theme.current.on_background,
-                        selectedContainerColor = Theme.current.accent,
-                        selectedLabelColor = Theme.current.on_accent
+                        containerColor = Theme.background,
+                        labelColor = Theme.on_background,
+                        selectedContainerColor = Theme.accent,
+                        selectedLabelColor = Theme.on_accent
                     )
                 )
             }
@@ -280,8 +280,8 @@ private fun SearchBar(
                     .fillMaxHeight()
                     .aspectRatio(1f),
                 colours = IconButtonDefaults.iconButtonColors(
-                    containerColor = Theme.current.accent,
-                    contentColor = Theme.current.on_accent
+                    containerColor = Theme.accent,
+                    contentColor = Theme.on_accent
                 )
             ) {
                 Icon(Icons.Filled.Close, null)
@@ -293,7 +293,7 @@ private fun SearchBar(
                 singleLine = true,
                 textStyle = LocalTextStyle.current.copy(
                     fontSize = SEARCH_FIELD_FONT_SIZE,
-                    color = Theme.current.on_accent
+                    color = Theme.on_accent
                 ),
                 modifier = Modifier
                     .height(SEARCH_BAR_HEIGHT)
@@ -306,7 +306,7 @@ private fun SearchBar(
                     Row(
                         Modifier
                             .background(
-                                Theme.current.accent,
+                                Theme.accent,
                                 CircleShape
                             )
                             .padding(horizontal = 10.dp)
@@ -320,7 +320,7 @@ private fun SearchBar(
 
                             // Query hint
                             if (query_text.isEmpty()) {
-                                Text(getString("search_entry_field_hint"), fontSize = SEARCH_FIELD_FONT_SIZE, color = Theme.current.on_accent)
+                                Text(getString("search_entry_field_hint"), fontSize = SEARCH_FIELD_FONT_SIZE, color = Theme.on_accent)
                             }
 
                             // Text input
@@ -329,7 +329,7 @@ private fun SearchBar(
 
                         // Clear field button
                         IconButton(onClick = { query_text = "" }, Modifier.fillMaxWidth()) {
-                            Icon(Icons.Filled.Clear, null, Modifier, Theme.current.on_accent)
+                            Icon(Icons.Filled.Clear, null, Modifier, Theme.on_accent)
                         }
 
                         // Search button / search indicator
@@ -365,8 +365,8 @@ private fun SearchBar(
                     .fillMaxHeight()
                     .aspectRatio(1f),
                 colours = IconButtonDefaults.iconButtonColors(
-                    containerColor = Theme.current.accent,
-                    contentColor = Theme.current.on_accent
+                    containerColor = Theme.accent,
+                    contentColor = Theme.on_accent
                 )
             ) {
                 Icon(Icons.Filled.Search, null)

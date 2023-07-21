@@ -108,8 +108,8 @@ private fun PlaylistItem(selected: SnapshotStateList<Playlist>, playlist: Playli
             },
             colors = CheckboxDefaults.colors(
                 uncheckedColor = LocalContentColor.current,
-                checkedColor = Theme.current.accent,
-                checkmarkColor = Theme.current.on_accent
+                checkedColor = Theme.accent,
+                checkmarkColor = Theme.on_accent
             )
         )
         playlist.PreviewLong(MediaItemPreviewParams())

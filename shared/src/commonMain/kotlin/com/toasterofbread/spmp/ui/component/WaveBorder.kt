@@ -25,7 +25,7 @@ const val WAVE_BORDER_DEFAULT_HEIGHT: Float = 20f
 @Composable
 fun WaveBorder(
     modifier: Modifier = Modifier,
-    getColour: DrawScope.() -> Color = { Theme.current.background },
+    getColour: DrawScope.() -> Color = { Theme.background },
     height: Dp = WAVE_BORDER_DEFAULT_HEIGHT.dp,
     getOffset: ((height: Int) -> Int)? = null,
     waves: Int = 3,

@@ -49,6 +49,7 @@ import com.toasterofbread.spmp.platform.composable.platformClickable
 import com.toasterofbread.spmp.platform.composeScope
 import com.toasterofbread.spmp.resources.getString
 import com.toasterofbread.spmp.ui.layout.nowplaying.overlay.OverlayMenu
+import com.toasterofbread.spmp.ui.theme.Theme
 import com.toasterofbread.utils.composable.rememberSongUpdateLyrics
 import com.toasterofbread.utils.getContrasted
 import kotlinx.coroutines.delay

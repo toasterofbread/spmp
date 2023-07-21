@@ -19,12 +19,12 @@ import com.toasterofbread.spmp.ui.theme.Theme
 @Composable
 fun MainPageLoadingView(modifier: Modifier = Modifier) {
     Column(modifier, verticalArrangement = Arrangement.Center, horizontalAlignment = Alignment.CenterHorizontally) {
-        Text(getString("loading_feed"), Modifier.alpha(0.4f), fontSize = 12.sp, color = Theme.current.on_background)
+        Text(getString("loading_feed"), Modifier.alpha(0.4f), fontSize = 12.sp, color = Theme.on_background)
         Spacer(Modifier.height(5.dp))
         LinearProgressIndicator(
             Modifier
                 .alpha(0.4f)
-                .fillMaxWidth(0.35f), color = Theme.current.on_background
+                .fillMaxWidth(0.35f), color = Theme.on_background
         )
     }
 }

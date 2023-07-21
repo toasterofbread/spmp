@@ -129,7 +129,7 @@ fun PlaylistPage(
 
         LaunchedEffect(thumb_item) {
             if (thumb_item == playlist) {
-                accent_colour = playlist.getThemeColour() ?: Theme.current.accent
+                accent_colour = playlist.getThemeColour() ?: Theme.accent
             }
         }
 
@@ -209,7 +209,7 @@ fun PlaylistPage(
             item {
                 PlaylistTopInfo(
                     playlist,
-                    accent_colour ?: Theme.current.accent,
+                    accent_colour ?: Theme.accent,
                     editing_info,
                     { editing_info = it }
                 ) {
@@ -220,7 +220,7 @@ fun PlaylistPage(
             item {
                 PlaylistButtonBar(
                     playlist,
-                    accent_colour ?: Theme.current.accent,
+                    accent_colour ?: Theme.accent,
                     editing_info,
                     { editing_info = it }
                 )
@@ -231,7 +231,7 @@ fun PlaylistPage(
                     list_state.listState,
                     final_padding.calculateTopPadding(),
                     Modifier.zIndex(1f),
-                    Theme.current.background_provider
+                    Theme.background_provider
                 ) {
                     InteractionBar(
                         modifier = Modifier.fillMaxWidth(),

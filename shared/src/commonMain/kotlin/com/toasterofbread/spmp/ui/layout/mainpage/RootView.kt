@@ -42,7 +42,7 @@ fun RootView(player: PlayerStateImpl) {
     Column(
         Modifier
             .fillMaxSize()
-            .background(Theme.current.background_provider)
+            .background(Theme.background_provider)
     ) {
         Box {
             val expand_state = remember { mutableStateOf(false) }
@@ -70,7 +70,7 @@ fun RootView(player: PlayerStateImpl) {
                     }
                 },
                 if (!overlay_open) expand_state else null,
-                Theme.current.accent_provider,
+                Theme.accent_provider,
                 container_modifier = player.nowPlayingTopOffset(Modifier)
             )
 

@@ -45,7 +45,7 @@ internal fun rememberPrefsPageSettingsInterfade(pill_menu: PillMenu, ytm_auth: S
             SettingsValueState<String>(Settings.KEY_DISCORD_ACCOUNT_TOKEN.name).init(Settings.prefs, Settings.Companion::provideDefault)
 
         settings_interface = SettingsInterface(
-            { Theme.current },
+            { Theme },
             PrefsPageScreen.ROOT.ordinal,
             SpMp.context,
             Settings.prefs,
@@ -62,7 +62,7 @@ internal fun rememberPrefsPageSettingsInterfade(pill_menu: PillMenu, ytm_auth: S
                                 PrefsPageCategory.FEED -> getFeedCategory()
                                 PrefsPageCategory.PLAYER -> getPlayerCategory()
                                 PrefsPageCategory.LIBRARY -> getLibraryCategory()
-                                PrefsPageCategory.THEME -> getThemeCategory(Theme.manager)
+                                PrefsPageCategory.THEME -> getThemeCategory(Theme)
                                 PrefsPageCategory.LYRICS -> getLyricsCategory()
                                 PrefsPageCategory.DOWNLOAD -> getDownloadCategory()
                                 PrefsPageCategory.DISCORD_STATUS -> getDiscordStatusGroup(discord_auth)

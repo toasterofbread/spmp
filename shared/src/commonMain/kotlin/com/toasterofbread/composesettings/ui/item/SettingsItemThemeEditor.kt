@@ -1,4 +1,4 @@
-package com.toasterofbread.composesettings.ui
+package com.toasterofbread.composesettings.ui.item
 
 import androidx.compose.animation.*
 import androidx.compose.foundation.*
@@ -28,11 +28,10 @@ import androidx.compose.ui.unit.dp
 import com.godaddy.android.colorpicker.ClassicColorPicker
 import com.godaddy.android.colorpicker.HsvColor
 import com.toasterofbread.composesettings.ui.SettingsPage
-import com.toasterofbread.composesettings.ui.item.SettingsItem
-import com.toasterofbread.composesettings.ui.item.SettingsValueState
 import com.toasterofbread.spmp.platform.ProjectPreferences
 import com.toasterofbread.spmp.platform.vibrateShort
 import com.toasterofbread.spmp.ui.component.PillMenu
+import com.toasterofbread.spmp.ui.theme.StaticThemeData
 import com.toasterofbread.spmp.ui.theme.Theme
 import com.toasterofbread.spmp.ui.theme.ThemeData
 import com.toasterofbread.utils.*
@@ -112,7 +111,8 @@ class SettingsItemThemeSelector(
                     Icon(Icons.Filled.Add, null)
                 }
             }
-            Crossfade(getTheme(state.value)) { theme_data ->
+            Crossfade(state.value) { theme_index ->
+                val theme_data = getTheme(theme_index)
                 val height = 40.dp
                 Row(
                     Modifier.height(height),
@@ -128,25 +128,35 @@ class SettingsItemThemeSelector(
                             .padding(start = 15.dp)
                     )
 
-                    IconButton(
+                    val icon_button_colours = IconButtonDefaults.iconButtonColors(
+                        containerColor = theme_data.accent,
+                        contentColor = theme_data.accent.getContrasted(),
+                        disabledContainerColor = theme_data.accent.setAlpha(0.1f)
+                    )
+
+                    ShapedIconButton(
                         {
                             openCustomPage(
                                 getEditPage(editor_title, theme_data) {
-                                    onThemeEdited(state.value, it)
+                                    onThemeEdited(theme_index, it)
                                 }
                             )
                         },
-                        Modifier.background(theme_data.accent, CircleShape).size(height)
+                        Modifier.size(height),
+                        colours = icon_button_colours,
+                        enabled = theme_data.isEditable()
                     ) {
                         Icon(Icons.Filled.Edit, null, tint = theme_data.accent.getContrasted())
                     }
 
-                    IconButton(
+                    ShapedIconButton(
                         {
-                            removeTheme(state.value)
-                            state.value = maxOf(0, state.value - 1)
+                            removeTheme(theme_index)
+                            state.value = maxOf(0, theme_index - 1)
                         },
-                        Modifier.background(theme_data.accent, CircleShape).size(height)
+                        Modifier.size(height),
+                        colours = icon_button_colours,
+                        enabled = theme_data.isEditable()
                     ) {
                         Icon(Icons.Filled.Close, null, tint = theme_data.accent.getContrasted())
                     }
@@ -198,7 +208,7 @@ private fun getEditPage(
                 if (pill_extra == null) {
                     pill_extra = {
                         ActionButton(Icons.Filled.Done) {
-                            onEditCompleted(ThemeData(name, background, on_background, accent))
+                            onEditCompleted(StaticThemeData(name, background, on_background, accent))
                             close = true
                         }
                     }
@@ -231,6 +241,8 @@ private fun getEditPage(
                             Text("Preview", Modifier.padding(start = 5.dp))
                         }
 
+                        Spacer(Modifier.width(10.dp))
+
                         Box(
                             Modifier
                                 .clickable { randomise = !randomise }
@@ -254,10 +266,10 @@ private fun getEditPage(
 
             OnChangedEffect(previewing) {
                 if (previewing) {
-                    Theme.startPreview(ThemeData(name, background, on_background, accent))
+                    Theme.setPreviewThemeData(StaticThemeData(name, background, on_background, accent))
                 }
                 else {
-                    Theme.stopPreview()
+                    Theme.setPreviewThemeData(null)
                 }
             }
 
@@ -299,6 +311,17 @@ private fun getEditPage(
                     })
                 )
 
+                fun updatePreview() {
+                    if (Theme.preview_active) {
+                        Theme.setPreviewThemeData(StaticThemeData(
+                            "",
+                            background,
+                            on_background,
+                            accent
+                        ))
+                    }
+                }
+
                 ColourField(
                     "Background",
                     ui_theme,
@@ -307,10 +330,7 @@ private fun getEditPage(
                     randomise
                 ) { colour ->
                     background = colour
-
-                    if (Theme.preview_active) {
-                        Theme.preview_theme.setBackground(colour)
-                    }
+                    updatePreview()
                 }
                 ColourField(
                     "On background",
@@ -320,10 +340,7 @@ private fun getEditPage(
                     randomise
                 ) { colour ->
                     on_background = colour
-
-                    if (Theme.preview_active) {
-                        Theme.preview_theme.setOnBackground(colour)
-                    }
+                    updatePreview()
                 }
                 ColourField(
                     "Accent",
@@ -333,10 +350,7 @@ private fun getEditPage(
                     randomise
                 ) { colour ->
                     accent = colour
-
-                    if (Theme.preview_active) {
-                        Theme.preview_theme.setAccent(colour)
-                    }
+                    updatePreview()
                 }
             }
         }
@@ -351,7 +365,7 @@ private fun getEditPage(
 
         override suspend fun onClosed() {
             super.onClosed()
-            Theme.stopPreview()
+            Theme.setPreviewThemeData(null)
 
             if (pill_extra != null) {
                 settings_interface.pill_menu?.removeExtraAction(pill_extra!!)

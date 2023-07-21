@@ -112,7 +112,7 @@ private fun ColumnScope.FilterChipsRow(getFilterChips: () -> List<FilterChip>?, 
                             onFilterChipSelected(if (i == selected_filter_chip) null else i)
                         },
                         { Text(chips[i].text.getString()) },
-                        colors = with(Theme.current) {
+                        colors = with(Theme) {
                             FilterChipDefaults.elevatedFilterChipColors(
                                 containerColor = background,
                                 labelColor = on_background,
@@ -121,7 +121,7 @@ private fun ColumnScope.FilterChipsRow(getFilterChips: () -> List<FilterChip>?, 
                             )
                         },
                         border = FilterChipDefaults.filterChipBorder(
-                            borderColor = Theme.current.on_background
+                            borderColor = Theme.on_background
                         )
                     )
                 }

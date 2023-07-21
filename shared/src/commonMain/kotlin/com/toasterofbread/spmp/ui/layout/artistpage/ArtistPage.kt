@@ -70,7 +70,7 @@ fun ArtistPage(
     val feed_layouts = item.feed_layouts
 
     val apply_filter: Boolean by Settings.KEY_FILTER_APPLY_TO_ARTIST_ITEMS.rememberMutableState()
-    val background_modifier = Modifier.background(Theme.current.background_provider)
+    val background_modifier = Modifier.background(Theme.background_provider)
     val content_padding = PaddingValues(horizontal = 10.dp)
     val gradient_size = 0.35f
     var accent_colour: Color? by remember { mutableStateOf(null) }
@@ -92,7 +92,7 @@ fun ArtistPage(
     val top_bar_alpha by animateFloatAsState(if (!top_bar_over_image || music_top_bar_showing || multiselect_context.is_active) 1f else 0f)
 
     fun Density.getBackgroundColour(): Color =
-        Theme.current.background.setAlpha(
+        Theme.background.setAlpha(
             if (!top_bar_over_image || main_column_state.firstVisibleItemIndex > 0) top_bar_alpha
             else (0.5f + ((main_column_state.firstVisibleItemScrollOffset / screen_width.toPx()) * 0.5f)) * top_bar_alpha
         )
@@ -142,7 +142,7 @@ fun ArtistPage(
             Crossfade(item.getThumbnail(MediaItemThumbnailProvider.Quality.HIGH)) { thumbnail ->
                 if (thumbnail != null) {
                     if (accent_colour == null) {
-                        accent_colour = Theme.current.makeVibrant(item.getDefaultThemeColour() ?: Theme.current.accent)
+                        accent_colour = Theme.makeVibrant(item.getDefaultThemeColour() ?: Theme.accent)
                     }
 
                     Image(
@@ -163,7 +163,7 @@ fun ArtistPage(
                             .aspectRatio(1f)
                             .brushBackground {
                                 Brush.verticalGradient(
-                                    0f to Theme.current.background,
+                                    0f to Theme.background,
                                     gradient_size to Color.Transparent
                                 )
                             }
@@ -185,7 +185,7 @@ fun ArtistPage(
                             .brushBackground {
                                 Brush.verticalGradient(
                                     1f - gradient_size to Color.Transparent,
-                                    1f to Theme.current.background
+                                    1f to Theme.background
                                 )
                             },
                         contentAlignment = Alignment.BottomCenter
@@ -222,8 +222,8 @@ fun ArtistPage(
                                             Icon(icon, null, tint = accent_colour ?: Color.Unspecified)
                                         },
                                         colors = AssistChipDefaults.assistChipColors(
-                                            containerColor = Theme.current.background,
-                                            labelColor = Theme.current.on_background,
+                                            containerColor = Theme.background,
+                                            labelColor = Theme.on_background,
                                             leadingIconContentColor = accent_colour ?: Color.Unspecified
                                         )
                                     )
@@ -323,7 +323,7 @@ fun ArtistPage(
 
                             val description = item.description
                             if (description?.isNotBlank() == true) {
-                                DescriptionCard(description, { Theme.current.background }, { accent_colour }) { show_info = !show_info }
+                                DescriptionCard(description, { Theme.background }, { accent_colour }) { show_info = !show_info }
                             }
                         }
                     }

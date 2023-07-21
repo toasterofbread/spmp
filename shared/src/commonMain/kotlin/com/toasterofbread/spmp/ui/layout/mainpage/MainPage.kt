@@ -165,11 +165,11 @@ fun MainPage(
                                 Crossfade(Pair(onContinuationRequested, loading_continuation)) { data ->
                                     Column(Modifier.fillMaxWidth(), horizontalAlignment = Alignment.Start) {
                                         if (data.second) {
-                                            CircularProgressIndicator(color = Theme.current.on_background)
+                                            CircularProgressIndicator(color = Theme.on_background)
                                         }
                                         else if (data.first != null) {
                                             IconButton({ data.first!!.invoke() }) {
-                                                Icon(Icons.Filled.KeyboardDoubleArrowDown, null, tint = Theme.current.on_background)
+                                                Icon(Icons.Filled.KeyboardDoubleArrowDown, null, tint = Theme.on_background)
                                             }
                                         }
                                     }

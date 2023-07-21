@@ -91,7 +91,7 @@ fun LongPressMenu(
                         accent_colour = data.item.theme_colour!!
                     }
 
-                    SpMp.context.setNavigationBarColour(Theme.current.background)
+                    SpMp.context.setNavigationBarColour(Theme.background)
                     onDispose {
                         SpMp.context.setNavigationBarColour(null)
                     }
@@ -103,8 +103,8 @@ fun LongPressMenu(
                         data.item.loadThumbnail(MediaItemThumbnailProvider.Quality.LOW)
                     }
                     else {
-                        accent_colour = (data.item.getDefaultThemeColour() ?: Theme.current.background)
-                            .contrastAgainst(Theme.current.background, 0.2f)
+                        accent_colour = (data.item.getDefaultThemeColour() ?: Theme.background)
+                            .contrastAgainst(Theme.background, 0.2f)
                     }
                 }
 

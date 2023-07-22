@@ -18,6 +18,7 @@ import com.google.common.util.concurrent.ListenableFuture
 import com.google.common.util.concurrent.MoreExecutors
 import com.toasterofbread.spmp.exovisualiser.ExoVisualizer
 import com.toasterofbread.spmp.model.mediaitem.Song
+import com.toasterofbread.spmp.model.mediaitem.SongData
 import com.toasterofbread.utils.synchronizedBlock
 import kotlin.properties.Delegates
 import androidx.media3.common.MediaItem as ExoMediaItem
@@ -411,7 +412,7 @@ fun ExoMediaItem.getSong(): Song {
         is Song -> tag
         else -> {
             check(mediaId.isNotBlank())
-            Song.fromId(mediaId)
+            SongData(mediaId)
         }
     }
 }

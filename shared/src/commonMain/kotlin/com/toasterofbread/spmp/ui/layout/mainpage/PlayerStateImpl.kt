@@ -348,7 +348,7 @@ class PlayerStateImpl(private val context: PlatformContext): PlayerState(null, n
             playMediaItem(item)
         }
         else {
-            openMediaItem(item)
+            openMediaItem(item,)
         }
     }
     override fun onMediaItemLongClicked(item: MediaItem, long_press_data: LongPressMenuData?) {

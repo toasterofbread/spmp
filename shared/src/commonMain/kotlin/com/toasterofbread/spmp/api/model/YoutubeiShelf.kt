@@ -12,6 +12,7 @@ import com.toasterofbread.spmp.api.TextRun
 import com.toasterofbread.spmp.api.TextRuns
 import com.toasterofbread.spmp.api.Thumbnails
 import com.toasterofbread.spmp.model.mediaitem.MediaItem
+import com.toasterofbread.spmp.model.mediaitem.MediaItemData
 
 data class YoutubeiShelf(
     val musicShelfRenderer: MusicShelfRenderer? = null,
@@ -55,17 +56,17 @@ data class YoutubeiShelf(
     fun getNavigationEndpoint(): NavigationEndpoint? =
         musicShelfRenderer?.bottomEndpoint ?: musicCarouselShelfRenderer?.header?.getRenderer()?.moreContentButton?.buttonRenderer?.navigationEndpoint
 
-    fun getMediaItems(hl: String): List<MediaItem> =
+    fun getMediaItems(hl: String): List<MediaItemData> =
         (musicShelfRenderer?.contents ?: musicCarouselShelfRenderer?.contents ?: musicPlaylistShelfRenderer?.contents ?: gridRenderer!!.items).mapNotNull {
             it.toMediaItem(hl)?.first
         }
 
-    fun getMediaItemsOrNull(hl: String): List<MediaItem>? =
+    fun getMediaItemsOrNull(hl: String): List<MediaItemData>? =
         (musicShelfRenderer?.contents ?: musicCarouselShelfRenderer?.contents ?: musicPlaylistShelfRenderer?.contents ?: gridRenderer?.items)?.mapNotNull {
             it.toMediaItem(hl)?.first
         }
 
-    fun getMediaItemsAndSetIds(hl: String): List<Pair<MediaItem, String?>> =
+    fun getMediaItemsAndSetIds(hl: String): List<Pair<MediaItemData, String?>> =
         (musicShelfRenderer?.contents ?: musicCarouselShelfRenderer?.contents ?: musicPlaylistShelfRenderer?.contents ?: gridRenderer?.items ?: emptyList()).mapNotNull {
             it.toMediaItem(hl)
         }

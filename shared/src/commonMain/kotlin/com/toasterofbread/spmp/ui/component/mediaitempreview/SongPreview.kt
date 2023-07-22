@@ -276,13 +276,13 @@ private fun LongPressMenuActionProvider.LPMActions(
 
     item.artist?.also { artist ->
         ActionButton(Icons.Default.Person, getString("lpm_action_go_to_artist"), onClick = {
-            player.openMediaItem(artist)
+            player.openMediaItem(artist,)
         })
     }
 
     ActionButton(MediaItem.RELATED_CONTENT_ICON, getString("lpm_action_song_related"), onClick = {
         withSong {
-            player.openMediaItem(it)
+            player.openMediaItem(it,)
         }
     })
 }

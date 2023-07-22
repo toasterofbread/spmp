@@ -42,7 +42,7 @@ class LocalPlaylist(id: String, context: PlatformContext): Playlist(id, context)
 
     override val data: PlaylistItemData = LocalPlaylistItemData(this)
 
-    override val items: MutableList<MediaItem> get() = checkNotDeleted(data.items!!)
+    override val items: List<MediaItem>? get() = checkNotDeleted(data.items!!)
     override val is_editable: Boolean = checkNotDeleted(true)
     override val playlist_type: PlaylistType = checkNotDeleted(PlaylistType.PLAYLIST)
     override val total_duration: Long? get() {
@@ -125,7 +125,7 @@ class LocalPlaylist(id: String, context: PlatformContext): Playlist(id, context)
         }
     }
 
-    suspend fun convertToAccountPlaylist(context: PlatformContext = SpMp.context): Result<AccountPlaylist> {
+    suspend fun convertToAccountPlaylist(context: PlatformContext = SpMp.context): Result<PlaylistData> {
         checkNotDeleted()
         check(Api.ytm_authenticated)
 
@@ -143,7 +143,7 @@ class LocalPlaylist(id: String, context: PlatformContext): Playlist(id, context)
             return add_result.cast()
         }
 
-        val account_playlist = AccountPlaylist.fromId(playlist_id)
+        val account_playlist = PlaylistData(playlist_id)
             .editPlaylistData {
                 supplyTitle(this@LocalPlaylist.title, true)
                 supplyDescription(this@LocalPlaylist.description, true)

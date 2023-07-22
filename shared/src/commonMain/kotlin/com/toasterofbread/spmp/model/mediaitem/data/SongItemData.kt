@@ -4,7 +4,7 @@ import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.setValue
 import com.beust.klaxon.Klaxon
-import com.toasterofbread.spmp.model.mediaitem.AccountPlaylist
+import com.toasterofbread.spmp.model.mediaitem.PlaylistData
 import com.toasterofbread.spmp.model.mediaitem.MediaItem
 import com.toasterofbread.spmp.model.mediaitem.Playlist
 import com.toasterofbread.spmp.model.mediaitem.Song
@@ -68,7 +68,7 @@ class SongItemData(override val data_item: Song): MediaItemData(data_item) {
     override fun supplyFromSerialisedData(data: MutableList<Any?>, klaxon: Klaxon): MediaItemData {
         require(data.size >= 3)
         data.removeLast()?.also { supplyRelatedBrowseId(it as String, cached = true) }
-        data.removeLast()?.also { supplyAlbum(AccountPlaylist.fromId(it as String), cached = true) }
+        data.removeLast()?.also { supplyAlbum(PlaylistData(it as String), cached = true) }
         data.removeLast()?.also { supplyDuration((it as Int).toLong(), cached = true) }
         data.removeLast()?.also { supplySongType(SongType.values()[it as Int], cached = true) }
         return super.supplyFromSerialisedData(data, klaxon)

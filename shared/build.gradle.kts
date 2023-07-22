@@ -5,6 +5,7 @@ plugins {
     kotlin("multiplatform")
     id("com.android.library")
     id("org.jetbrains.compose")
+    id("app.cash.sqldelight") version "2.0.0-rc02"
 }
 
 val KEY_NAMES = mapOf(
@@ -91,8 +92,6 @@ kotlin {
     jvm("desktop")
 
     sourceSets {
-        val compose_version = extra["compose.version"] as String
-
         commonMain {
             dependencies {
                 implementation(compose.runtime)
@@ -146,6 +145,7 @@ kotlin {
                 implementation("io.coil-kt:coil-compose:2.3.0")
                 implementation("com.github.toasterofbread:KizzyRPC:84e79614b4")
                 implementation("dev.kord:kord-core:0.9.0")
+                implementation("app.cash.sqldelight:android-driver:2.0.0-rc02")
             }
         }
 
@@ -184,6 +184,14 @@ android {
     }
     buildFeatures {
         compose = true
+    }
+}
+
+sqldelight {
+    databases {
+        create("Database") {
+            packageName.set("com.toasterofbread")
+        }
     }
 }
 

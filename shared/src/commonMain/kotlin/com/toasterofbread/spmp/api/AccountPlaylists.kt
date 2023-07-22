@@ -4,12 +4,14 @@ import SpMp
 import com.toasterofbread.spmp.api.Api.Companion.addYtHeaders
 import com.toasterofbread.spmp.api.Api.Companion.getStream
 import com.toasterofbread.spmp.api.Api.Companion.ytUrl
-import com.toasterofbread.spmp.model.mediaitem.AccountPlaylist
+import com.toasterofbread.spmp.api.model.YoutubeiBrowseResponse
+import com.toasterofbread.spmp.model.mediaitem.Playlist
+import com.toasterofbread.spmp.model.mediaitem.PlaylistData
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
 import okhttp3.Request
 
-suspend fun getAccountPlaylists(): Result<List<AccountPlaylist>> = withContext(Dispatchers.IO) {
+suspend fun getAccountPlaylists(): Result<List<PlaylistData>> = withContext(Dispatchers.IO) {
     val hl = SpMp.data_language
     val request = Request.Builder()
         .ytUrl("/youtubei/v1/browse")
@@ -46,14 +48,14 @@ suspend fun getAccountPlaylists(): Result<List<AccountPlaylist>> = withContext(D
         .gridRenderer!!
         .items
 
-    val playlists: List<AccountPlaylist> = playlist_data.mapNotNull {
+    val playlists: List<PlaylistData> = playlist_data.mapNotNull {
         // Skip 'New playlist' item
         if (it.musicTwoRowItemRenderer?.navigationEndpoint?.browseEndpoint == null) {
             return@mapNotNull null
         }
 
         val item = it.toMediaItem(hl)?.first
-        return@mapNotNull if (item is AccountPlaylist) item else null
+        return@mapNotNull if (item is PlaylistData) item else null
     }
 
     return@withContext Result.success(playlists)
@@ -90,7 +92,7 @@ suspend fun deleteAccountPlaylist(playlist_id: String): Result<Unit> = withConte
         .ytUrl("/youtubei/v1/playlist/delete")
         .addYtHeaders()
         .post(Api.getYoutubeiRequestBody(mapOf(
-            "playlistId" to AccountPlaylist.formatId(playlist_id)
+            "playlistId" to Playlist.formatYoutubeId(playlist_id)
         )))
         .build()
 
@@ -98,10 +100,10 @@ suspend fun deleteAccountPlaylist(playlist_id: String): Result<Unit> = withConte
 }
 
 interface AccountPlaylistEditAction {
-    fun getData(playlist: AccountPlaylist, current_set_ids: MutableList<String>): Map<String, String>
+    fun getData(playlist: PlaylistData, current_set_ids: MutableList<String>): Map<String, String>
 
     class Add(private val song_id: String): AccountPlaylistEditAction {
-        override fun getData(playlist: AccountPlaylist, current_set_ids: MutableList<String>): Map<String, String> = mapOf(
+        override fun getData(playlist: PlaylistData, current_set_ids: MutableList<String>): Map<String, String> = mapOf(
             "action" to "ACTION_ADD_VIDEO",
             "addedVideoId" to song_id,
             "dedupeOption" to "DEDUPE_OPTION_SKIP"
@@ -109,7 +111,7 @@ interface AccountPlaylistEditAction {
     }
 
     class Remove(private val index: Int): AccountPlaylistEditAction {
-        override fun getData(playlist: AccountPlaylist, current_set_ids: MutableList<String>): Map<String, String> = mapOf(
+        override fun getData(playlist: PlaylistData, current_set_ids: MutableList<String>): Map<String, String> = mapOf(
             "action" to "ACTION_REMOVE_VIDEO",
             "removedVideoId" to playlist.items!![index].id,
             "setVideoId" to playlist.item_set_ids!![index]
@@ -120,7 +122,7 @@ interface AccountPlaylistEditAction {
         private val from: Int,
         private val to: Int
     ): AccountPlaylistEditAction {
-        override fun getData(playlist: AccountPlaylist, current_set_ids: MutableList<String>): Map<String, String> {
+        override fun getData(playlist: PlaylistData, current_set_ids: MutableList<String>): Map<String, String> {
             val set_ids = playlist.item_set_ids!!.toMutableList()
             check(set_ids.size == playlist.items!!.size)
             check(from != to)
@@ -143,7 +145,7 @@ interface AccountPlaylistEditAction {
     }
 }
 
-suspend fun editAccountPlaylist(playlist: AccountPlaylist, actions: List<AccountPlaylistEditAction>): Result<Unit> {
+suspend fun editAccountPlaylist(playlist: PlaylistData, actions: List<AccountPlaylistEditAction>): Result<Unit> {
     if (actions.isEmpty()) {
         return Result.success(Unit)
     }
@@ -155,7 +157,7 @@ suspend fun editAccountPlaylist(playlist: AccountPlaylist, actions: List<Account
             .ytUrl("/youtubei/v1/browse/edit_playlist")
             .addYtHeaders()
             .post(Api.getYoutubeiRequestBody(mapOf(
-                "playlistId" to AccountPlaylist.formatId(playlist.id),
+                "playlistId" to Playlist.formatYoutubeId(playlist.id),
                 "actions" to actions.map { it.getData(playlist, current_set_ids) }
             )))
             .build()
@@ -188,7 +190,7 @@ suspend fun addSongsToAccountPlaylist(playlist_id: String, song_ids: List<String
         .ytUrl("/youtubei/v1/browse/edit_playlist")
         .addYtHeaders()
         .post(Api.getYoutubeiRequestBody(mapOf(
-            "playlistId" to AccountPlaylist.formatId(playlist_id),
+            "playlistId" to Playlist.formatYoutubeId(playlist_id),
             "actions" to actions
         )))
         .build()

@@ -4,15 +4,15 @@ import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.setValue
 import com.beust.klaxon.Klaxon
-import com.toasterofbread.spmp.model.mediaitem.AccountPlaylist
+import com.toasterofbread.spmp.model.mediaitem.PlaylistData
 import com.toasterofbread.spmp.model.mediaitem.enums.PlaylistType
 import com.toasterofbread.spmp.ui.component.mediaitemlayout.MediaItemLayout
 
-class AccountPlaylistItemData(override val data_item: AccountPlaylist): PlaylistItemData(data_item) {
+class AccountPlaylistItemData(override val data_item: PlaylistData): PlaylistItemData(data_item) {
     var playlist_type: PlaylistType? by mutableStateOf(null)
         private set
 
-    fun supplyPlaylistType(value: PlaylistType?, certain: Boolean = false, cached: Boolean = false): AccountPlaylist {
+    fun supplyPlaylistType(value: PlaylistType?, certain: Boolean = false, cached: Boolean = false): PlaylistData {
         if (value != playlist_type && (playlist_type == null || certain)) {
             playlist_type = value
             onChanged(cached)
@@ -23,7 +23,7 @@ class AccountPlaylistItemData(override val data_item: AccountPlaylist): Playlist
     var total_duration: Long? by mutableStateOf(null)
         private set
 
-    fun supplyTotalDuration(value: Long?, certain: Boolean = false, cached: Boolean = false): AccountPlaylist {
+    fun supplyTotalDuration(value: Long?, certain: Boolean = false, cached: Boolean = false): PlaylistData {
         if (value != total_duration && (total_duration == null || certain)) {
             total_duration = value
             onChanged(cached)
@@ -34,7 +34,7 @@ class AccountPlaylistItemData(override val data_item: AccountPlaylist): Playlist
     var item_count: Int? by mutableStateOf(null)
         private set
 
-    fun supplyItemCount(value: Int?, certain: Boolean = false, cached: Boolean = false): AccountPlaylist {
+    fun supplyItemCount(value: Int?, certain: Boolean = false, cached: Boolean = false): PlaylistData {
         if (value != item_count && (item_count == null || certain)) {
             item_count = value
             onChanged(cached)

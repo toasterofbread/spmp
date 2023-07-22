@@ -374,7 +374,7 @@ class PlayerService : MediaPlayerService() {
 
     // --- Internal ---
 
-    private val radio = RadioInstance()
+    private val radio = RadioInstance(context.database)
     private fun setRadioFilter(filter_index: Int?) = synchronized(radio) {
         if (filter_index == radio.state.current_filter) {
             return
@@ -643,7 +643,7 @@ class PlayerService : MediaPlayerService() {
             var i = 0
             var line = reader.readLine()
             while (line != null) {
-                val song = Song.fromId(line)
+                val song = SongData(line)
                 val index = i++
                 line = reader.readLine()
 

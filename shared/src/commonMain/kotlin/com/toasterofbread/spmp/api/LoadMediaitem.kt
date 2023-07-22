@@ -4,29 +4,30 @@ import SpMp
 import com.toasterofbread.spmp.api.Api.Companion.addYtHeaders
 import com.toasterofbread.spmp.api.Api.Companion.getStream
 import com.toasterofbread.spmp.api.Api.Companion.ytUrl
+import com.toasterofbread.spmp.api.model.YoutubeiBrowseResponse
 import com.toasterofbread.spmp.api.radio.YoutubeiNextResponse
-import com.toasterofbread.spmp.model.mediaitem.AccountPlaylist
 import com.toasterofbread.spmp.model.mediaitem.Artist
-import com.toasterofbread.spmp.model.mediaitem.MediaItem
+import com.toasterofbread.spmp.model.mediaitem.ArtistData
+import com.toasterofbread.spmp.model.mediaitem.DataWithArtist
+import com.toasterofbread.spmp.model.mediaitem.MediaItemData
 import com.toasterofbread.spmp.model.mediaitem.MediaItemThumbnailProvider
-import com.toasterofbread.spmp.model.mediaitem.MediaItemWithLayoutsData
-import com.toasterofbread.spmp.model.mediaitem.Playlist
+import com.toasterofbread.spmp.model.mediaitem.PlaylistData
 import com.toasterofbread.spmp.model.mediaitem.Song
-import com.toasterofbread.spmp.model.mediaitem.data.AccountPlaylistItemData
-import com.toasterofbread.spmp.model.mediaitem.data.ArtistItemData
-import com.toasterofbread.spmp.model.mediaitem.data.MediaItemData
-import com.toasterofbread.spmp.model.mediaitem.data.SongItemData
+import com.toasterofbread.spmp.model.mediaitem.SongData
 import com.toasterofbread.spmp.model.mediaitem.enums.PlaylistType
 import com.toasterofbread.spmp.model.mediaitem.enums.SongType
+import com.toasterofbread.spmp.model.mediaitem.isOwnChannel
 import com.toasterofbread.spmp.resources.uilocalisation.LocalisedYoutubeString
 import com.toasterofbread.spmp.resources.uilocalisation.parseYoutubeDurationString
 import com.toasterofbread.spmp.resources.uilocalisation.parseYoutubeSubscribersString
 import com.toasterofbread.spmp.ui.component.mediaitemlayout.MediaItemLayout
 import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.coroutineScope
 import kotlinx.coroutines.job
 import kotlinx.coroutines.withContext
 import okhttp3.Request
 import okhttp3.Response
+import java.io.InputStream
 
 data class PlayerData(
     val videoDetails: VideoDetails? = null,
@@ -41,288 +42,9 @@ data class VideoDetails(
     val channelId: String,
 )
 
-suspend fun loadBrowseId(browse_id: String, params: String? = null): Result<List<MediaItemLayout>> {
-    return withContext(Dispatchers.IO) {
-        val hl = SpMp.data_language
-        val request = Request.Builder()
-            .ytUrl("/youtubei/v1/browse")
-            .addYtHeaders()
-            .post(Api.getYoutubeiRequestBody(
-                mutableMapOf("browseId" to browse_id ).apply {
-                    if (params != null) {
-                        put("params", params)
-                    }
-                }
-            ))
-            .build()
-
-        val result = Api.request(request)
-        if (result.isFailure) {
-            return@withContext result.cast()
-        }
-
-        val stream = result.getOrThrow().getStream()
-        val parse_result: Result<YoutubeiBrowseResponse> = runCatching {
-            Api.klaxon.parse(stream)!!
-        }
-        stream.close()
-        
-        val parsed = parse_result.fold(
-            { it },
-            { return@withContext Result.failure(it) }
-        )
-
-        val ret: MutableList<MediaItemLayout> = mutableListOf()
-        for (row in parsed.contents!!.singleColumnBrowseResultsRenderer!!.tabs.first().tabRenderer.content!!.sectionListRenderer.contents!!.withIndex()) {
-            if (row.value.description != null) {
-                continue
-            }
-
-            val continuation: MediaItemLayout.Continuation? =
-                row.value.musicPlaylistShelfRenderer?.continuations?.firstOrNull()?.nextContinuationData?.continuation?.let { MediaItemLayout.Continuation(it, MediaItemLayout.Continuation.Type.PLAYLIST) }
-
-            val view_more = row.value.getNavigationEndpoint()?.getViewMore()
-            view_more?.layout_type = MediaItemLayout.Type.LIST
-
-            ret.add(
-                MediaItemLayout(
-                row.value.title?.text?.let { LocalisedYoutubeString.Type.RAW.create(it) },
-                null,
-                if (row.index == 0) MediaItemLayout.Type.NUMBERED_LIST else MediaItemLayout.Type.GRID,
-                row.value.getMediaItems(hl).toMutableList(),
-                continuation = continuation,
-                view_more = view_more
-            )
-            )
-        }
-
-        return@withContext Result.success(ret)
-    }
-}
-
-class InvalidRadioException: Throwable()
-
-suspend fun processDefaultResponse(item: MediaItem, data: MediaItemData, response: Response, hl: String): Result<Unit>? {
-    return withContext(Dispatchers.IO) {
-        val response_body = response.getStream()
-
-        val ret = run {
-            if (data is MediaItemWithLayoutsData) {
-                val str = response_body.reader().readText()
-                val parse_result: Result<YoutubeiBrowseResponse> = runCatching {
-                    Api.klaxon.parse(str)!!
-                }
-                response_body.close()
-                
-                val parsed: YoutubeiBrowseResponse = parse_result.fold(
-                    { it },
-                    { return@run Result.failure(it) }
-                )
-
-                // Skip unneeded information for radios
-                if (item is Playlist && item.playlist_type == PlaylistType.RADIO) {
-                    val playlist_shelf = parsed
-                        .contents!!
-                        .singleColumnBrowseResultsRenderer!!
-                        .tabs[0]
-                        .tabRenderer
-                        .content!!
-                        .sectionListRenderer
-                        .contents!![0]
-                        .musicPlaylistShelfRenderer!!
-
-                    val continuation = playlist_shelf.continuations?.firstOrNull()?.nextRadioContinuationData?.continuation
-
-                    val layout = MediaItemLayout(
-                        null, null,
-                        MediaItemLayout.Type.LIST,
-                        playlist_shelf.contents!!.mapNotNull { data ->
-                            return@mapNotNull data.toMediaItem(hl)?.first.also { check(it is Song) }
-                        }.toMutableList(),
-                        continuation = continuation?.let { MediaItemLayout.Continuation(it, MediaItemLayout.Continuation.Type.SONG, item.id) }
-                    )
-
-                    data.supplyFeedLayouts(listOf(layout), true)
-
-                    val header_renderer = parsed.header?.getRenderer()
-                    if (header_renderer != null) {
-                        data.supplyThumbnailProvider(MediaItemThumbnailProvider.fromThumbnails(header_renderer.getThumbnails()))
-                    }
-                } else {
-                    val header_renderer = parsed.header?.getRenderer()
-                    if (header_renderer != null) {
-
-                        data.supplyTitle(header_renderer.title!!.first_text, true)
-                        data.supplyDescription(header_renderer.description?.first_text, true)
-                        data.supplyThumbnailProvider(MediaItemThumbnailProvider.fromThumbnails(header_renderer.getThumbnails()))
-
-                        header_renderer.subtitle?.runs?.also { subtitle ->
-                            val artist_run = subtitle.firstOrNull {
-                                it.navigationEndpoint?.browseEndpoint?.getPageType() == "MUSIC_PAGE_TYPE_USER_CHANNEL"
-                            }
-                            if (artist_run != null) {
-                                data.supplyArtist(
-                                    Artist.fromId(artist_run.navigationEndpoint!!.browseEndpoint!!.browseId).editArtistData {
-                                        supplyTitle(artist_run.text, false)
-                                    },
-                                    false
-                                )
-                            }
-
-                            if (data is AccountPlaylistItemData) {
-                                data.supplyYear(
-                                    subtitle.lastOrNull { last_run ->
-                                        last_run.text.all { it.isDigit() }
-                                    }?.text?.toInt(),
-                                    true
-                                )
-                            }
-                        }
-
-                        if (data is AccountPlaylistItemData) {
-                            header_renderer.secondSubtitle?.runs?.also { second_subtitle ->
-                                for (run in second_subtitle.reversed().withIndex()) {
-                                    when (run.index) {
-                                        0 -> data.supplyTotalDuration(parseYoutubeDurationString(run.value.text, hl), true)
-                                        1 -> data.supplyItemCount(run.value.text.filter { it.isDigit() }.toInt(), true)
-                                    }
-                                }
-                            }
-                        }
-
-                        if (header_renderer.subscriptionButton != null && data is ArtistItemData) {
-                            val subscribe_button = header_renderer.subscriptionButton.subscribeButtonRenderer
-                            data.supplySubscribeChannelId(subscribe_button.channelId, true)
-                            data.supplySubscriberCount(parseYoutubeSubscribersString(subscribe_button.subscriberCountText.first_text, hl), true)
-                            (item as Artist).subscribed = subscribe_button.subscribed
-                        }
-                    }
-
-                    val item_layouts: MutableList<MediaItemLayout> = mutableListOf()
-
-                    val rows = with (parsed.contents!!) {
-                        if (singleColumnBrowseResultsRenderer != null) {
-                            singleColumnBrowseResultsRenderer.tabs.first().tabRenderer.content!!.sectionListRenderer.contents!!
-                        }
-                        else {
-                            twoColumnBrowseResultsRenderer!!.secondaryContents.sectionListRenderer.contents!!
-                        }
-                    }
-
-                    for (row in rows.withIndex()) {
-                        val description = row.value.description
-                        if (description != null) {
-                            data.supplyDescription(description, true)
-                            continue
-                        }
-
-                        val continuation: MediaItemLayout.Continuation? =
-                            row.value.musicPlaylistShelfRenderer?.continuations?.firstOrNull()?.nextContinuationData?.continuation?.let {
-                                MediaItemLayout.Continuation(
-                                    it,
-                                    MediaItemLayout.Continuation.Type.PLAYLIST
-                                )
-                            }
-
-                        val layout_title = row.value.title?.text?.let {
-                            if (item is Artist && item.is_own_channel) LocalisedYoutubeString.Type.OWN_CHANNEL.create(it)
-                            else LocalisedYoutubeString.mediaItemPage(it, item.type)
-                        }
-
-                        val view_more = row.value.getNavigationEndpoint()?.getViewMore()
-                        view_more?.layout_type = MediaItemLayout.Type.LIST
-                        if (item is Artist) {
-                            view_more?.media_item?.editData {
-                                supplyArtist(item, true)
-                                supplyTitle(layout_title?.getString(), false)
-                            }
-                        }
-
-                        val items = row.value.getMediaItemsAndSetIds(hl)
-
-                        item_layouts.add(
-                            MediaItemLayout(
-                                layout_title,
-                                null,
-                                if (row.index == 0) MediaItemLayout.Type.NUMBERED_LIST else MediaItemLayout.Type.GRID,
-                                items.map {
-                                    if (item is Artist && it.first is Song && (it.first as Song).song_type == SongType.PODCAST) {
-                                        it.first.editData {
-                                            supplyArtist(item, true)
-                                        }
-                                    }
-
-                                    it.first
-                                }.toMutableList(),
-                                continuation = continuation,
-                                view_more = view_more
-                            )
-                        )
-
-                        if (item is AccountPlaylist) {
-                            item.item_set_ids = if (items.all { it.second != null }) items.map { it.second!! } else null
-                        }
-                    }
-                    data.supplyFeedLayouts(item_layouts, true)
-                }
-
-                return@run Result.success(Unit)
-            } else null
-        }
-
-        if (ret != null) {
-            return@withContext ret
-        }
-
-        check(item is Song)
-
-        val tabs: List<YoutubeiNextResponse.Tab> = try {
-            Api.klaxon.parse<YoutubeiNextResponse>(response_body)!!
-                .contents
-                .singleColumnMusicWatchNextResultsRenderer
-                .tabbedRenderer
-                .watchNextTabbedResultsRenderer
-                .tabs
-        }
-        catch (e: Throwable) {
-            return@withContext Result.failure(e)
-        }
-        finally {
-            response_body.close()
-        }
-
-        if (data is SongItemData) {
-            val related = tabs.getOrNull(2)?.tabRenderer?.endpoint?.browseEndpoint?.browseId
-            data.supplyRelatedBrowseId(related, true)
-        }
-
-        val video: YoutubeiNextResponse.PlaylistPanelVideoRenderer = try {
-            tabs[0].tabRenderer.content!!.musicQueueRenderer.content.playlistPanelRenderer.contents.first().getRenderer()
-        }
-        catch (e: Throwable) {
-            return@withContext Result.failure(e)
-        }
-
-        data.supplyTitle(video.title.first_text, true)
-
-        val result = video.getArtist(item)
-        if (result.isFailure) {
-            return@withContext result.cast()
-        }
-
-        val (artist, certain) = result.getOrThrow()
-        if (artist != null) {
-            data.supplyArtist(artist, certain)
-            return@withContext Result.success(Unit)
-        }
-
-        return@withContext null
-    }
-}
-
 suspend fun loadMediaItemData(
-    item: MediaItem, 
-    item_id: String = item.id, 
+    item: MediaItemData,
+    item_id: String = item.id,
     browse_params: String? = null
 ): Result<Unit> {
     if (item is Artist && item.is_for_item) {
@@ -338,7 +60,7 @@ suspend fun loadMediaItemData(
                     "isAudioOnly" to true,
                     "videoId" to item_id,
                 )
-            else 
+            else
                 mutableMapOf(
                     "browseId" to item_id
                 ).apply {
@@ -363,38 +85,257 @@ suspend fun loadMediaItemData(
             response?.close()
         }
 
-        return@withContext item.data.run {
-            if (response != null) {
-                val result = processDefaultResponse(item, this, response, hl)
-                if (result != null) {
-                    return@run result
+        if (response != null) {
+            val result = processDefaultResponse(item, response, hl)
+            if (result != null) {
+                return@withContext result
+            }
+        }
+
+        // 'next' endpoint has no artist, use 'player' instead
+        request = Request.Builder()
+            .ytUrl("/youtubei/v1/player")
+            .addYtHeaders()
+            .post(Api.getYoutubeiRequestBody(mapOf("videoId" to item_id)))
+            .build()
+
+        val result = Api.request(request)
+        if (result.isFailure) {
+            return@withContext result.cast()
+        }
+
+        val stream = result.getOrThrowHere().getStream()
+        val video_data = Api.klaxon.parse<PlayerData>(stream)!!
+        stream.close()
+
+        if (video_data.videoDetails == null) {
+            return@withContext Result.success(Unit)
+        }
+
+        item.title = video_data.videoDetails.title
+        if (item is DataWithArtist) {
+            item.artist = ArtistData(video_data.videoDetails.channelId)
+        }
+
+        return@withContext Result.success(Unit)
+    }
+}
+
+class InvalidRadioException: Throwable()
+
+suspend fun processSong(song: SongData, response_body: InputStream): Result<Unit>? {
+    val tabs: List<YoutubeiNextResponse.Tab> = try {
+        Api.klaxon.parse<YoutubeiNextResponse>(response_body)!!
+            .contents
+            .singleColumnMusicWatchNextResultsRenderer
+            .tabbedRenderer
+            .watchNextTabbedResultsRenderer
+            .tabs
+    }
+    catch (e: Throwable) {
+        return Result.failure(e)
+    }
+
+    song.related_browse_id = tabs.getOrNull(2)?.tabRenderer?.endpoint?.browseEndpoint?.browseId
+
+    val video: YoutubeiNextResponse.PlaylistPanelVideoRenderer = try {
+        tabs[0].tabRenderer.content!!.musicQueueRenderer.content.playlistPanelRenderer.contents.first().playlistPanelVideoRenderer!!
+    }
+    catch (e: Throwable) {
+        return Result.failure(e)
+    }
+
+    song.title = video.title.first_text
+
+    val result = video.getArtist(song)
+    if (result.isFailure) {
+        return result.cast()
+    }
+
+    val (artist, certain) = result.getOrThrow()
+    if (artist != null) {
+        song.artist = artist
+        return Result.success(Unit)
+    }
+
+    return null
+}
+
+//suspend fun processDefaultResponse(item: MediaItemData, response: Response, hl: String): Result<Unit>? {
+suspend fun processDefaultResponse(item: MediaItemData, response: Response, hl: String): Any? {
+    return withContext(Dispatchers.IO) {
+        val response_body = response.getStream()
+        return@withContext response_body.use {
+            if (item is SongData) {
+                return@use processSong(item, response_body)
+            }
+
+            val parse_result: Result<YoutubeiBrowseResponse> = runCatching {
+                response_body.use {
+                    Api.klaxon.parse(it)!!
                 }
             }
 
-            // 'next' endpoint has no artist, use 'player' instead
-            request = Request.Builder()
-                .ytUrl("/youtubei/v1/player")
-                .addYtHeaders()
-                .post(Api.getYoutubeiRequestBody(mapOf("videoId" to item_id)))
-                .build()
+            val parsed: YoutubeiBrowseResponse = parse_result.fold(
+                { it },
+                { return@use Result.failure(it) }
+            )
 
-            val result = Api.request(request)
-            if (result.isFailure) {
-                return@run result.cast()
+            // Skip unneeded information for radios
+            if (item is PlaylistData && item.playlist_type == PlaylistType.RADIO) {
+                val playlist_shelf = parsed
+                    .contents!!
+                    .singleColumnBrowseResultsRenderer!!
+                    .tabs[0]
+                    .tabRenderer
+                    .content!!
+                    .sectionListRenderer
+                    .contents!![0]
+                    .musicPlaylistShelfRenderer!!
+
+                item.items = playlist_shelf.contents!!.mapNotNull { data ->
+                    return@mapNotNull data.toMediaItem(hl)?.first
+                }
+
+                val continuation = playlist_shelf.continuations?.firstOrNull()?.nextRadioContinuationData?.continuation
+                if (continuation != null) {
+                    item.continuation = MediaItemLayout.Continuation(continuation, MediaItemLayout.Continuation.Type.SONG, item.id)
+                }
+
+                val header_renderer = parsed.header?.getRenderer()
+                if (header_renderer != null) {
+                    item.thumbnail_provider = MediaItemThumbnailProvider.fromThumbnails(header_renderer.getThumbnails())
+                }
+            }
+            else {
+                val header_renderer = parsed.header?.getRenderer()
+                if (header_renderer != null) {
+                    item.title = header_renderer.title!!.first_text
+                    item.description = header_renderer.description?.first_text
+                    item.thumbnail_provider = MediaItemThumbnailProvider.fromThumbnails(header_renderer.getThumbnails())
+
+                    header_renderer.subtitle?.runs?.also { subtitle ->
+
+                        if (item is DataWithArtist) {
+                            val artist_run = subtitle.firstOrNull {
+                                it.navigationEndpoint?.browseEndpoint?.getPageType() == "MUSIC_PAGE_TYPE_USER_CHANNEL"
+                            }
+                            if (artist_run != null) {
+                                item.artist = ArtistData(artist_run.navigationEndpoint!!.browseEndpoint!!.browseId).apply {
+                                    title = artist_run.text
+                                }
+                            }
+                        }
+
+                        if (item is PlaylistData) {
+                            item.year = subtitle.lastOrNull { last_run ->
+                                last_run.text.all { it.isDigit() }
+                            }?.text?.toInt()
+                        }
+                    }
+
+                    if (item is PlaylistData) {
+                        header_renderer.secondSubtitle?.runs?.also { second_subtitle ->
+                            for (run in second_subtitle.reversed().withIndex()) {
+                                when (run.index) {
+                                    0 -> item.total_duration = parseYoutubeDurationString(run.value.text, hl)
+                                    1 -> item.item_count = run.value.text.filter { it.isDigit() }.toInt()
+                                }
+                            }
+                        }
+                    }
+
+                    if (header_renderer.subscriptionButton != null && item is ArtistData) {
+                        val subscribe_button = header_renderer.subscriptionButton.subscribeButtonRenderer
+                        item.subscribe_channel_id = subscribe_button.channelId
+                        item.subscriber_count = parseYoutubeSubscribersString(subscribe_button.subscriberCountText.first_text, hl)
+                        item.subscribed = subscribe_button.subscribed
+                    }
+                }
+
+                val rows = with (parsed.contents!!) {
+                    if (singleColumnBrowseResultsRenderer != null) {
+                        singleColumnBrowseResultsRenderer.tabs.first().tabRenderer.content!!.sectionListRenderer.contents!!
+                    }
+                    else {
+                        twoColumnBrowseResultsRenderer!!.secondaryContents.sectionListRenderer.contents!!
+                    }
+                }
+
+                for (row in rows.withIndex()) {
+                    val description = row.value.description
+                    if (description != null) {
+                        item.description = description
+                        continue
+                    }
+
+                    val continuation: MediaItemLayout.Continuation? =
+                        row.value.musicPlaylistShelfRenderer?.continuations?.firstOrNull()?.nextContinuationData?.continuation?.let {
+                            MediaItemLayout.Continuation(
+                                it,
+                                MediaItemLayout.Continuation.Type.PLAYLIST
+                            )
+                        }
+
+                    val items = row.value.getMediaItemsAndSetIds(hl)
+                    val items_mapped = items.map {
+                        if (it.first is SongData && item is Artist) {
+                            val song_data = it.first as SongData
+                            if (song_data.song_type == SongType.PODCAST) {
+                                song_data.artist = item
+                            }
+                        }
+
+                        it.first
+                    }
+
+                    if (item is PlaylistData) {
+                        item.items = items_mapped
+                        item.continuation = continuation
+                        break
+                    }
+
+                    val layout_title = row.value.title?.text?.let {
+                        if (item is Artist && item.isOwnChannel()) LocalisedYoutubeString.Type.OWN_CHANNEL.create(it)
+                        else LocalisedYoutubeString.mediaItemPage(it, item)
+                    }
+
+                    val view_more = row.value.getNavigationEndpoint()?.getViewMore()
+                    if (item is ArtistData && view_more is MediaItemLayout.MediaItemViewMore) {
+                        val view_more_item = view_more.media_item as MediaItemData
+                        view_more_item.title = layout_title?.getString()
+                        if (view_more_item is DataWithArtist) {
+                            view_more_item.artist = item
+                        }
+                    }
+
+                    check(item is ArtistData)
+
+                    item.layouts.add(
+                        MediaItemLayout(
+                            layout_title,
+                            null,
+                            if (row.index == 0) MediaItemLayout.Type.NUMBERED_LIST else MediaItemLayout.Type.GRID,
+                            items_mapped.toMutableList(),
+                            continuation = continuation,
+                            view_more = view_more
+                        )
+                    )
+
+                }
+
+                if (item is PlaylistData) {
+                    item.item_set_ids = if (items.all { it.second != null }) items.map { it.second!! } else null
+                }
+
+                when (item) {
+                    is ArtistData -> TODO()
+                    is PlaylistData -> TODO()
+                    is SongData -> TODO()
+                }
             }
 
-            val stream = result.getOrThrowHere().getStream()
-            val video_data = Api.klaxon.parse<PlayerData>(stream)!!
-            stream.close()
-
-            if (video_data.videoDetails == null) {
-                return@run Result.success(Unit)
-            }
-
-            supplyTitle(video_data.videoDetails.title, true)
-            supplyArtist(Artist.fromId(video_data.videoDetails.channelId), true)
-
-            return@run Result.success(Unit)
+            return@use Result.success(Unit)
         }
     }
 }

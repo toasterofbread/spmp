@@ -1,0 +1,37 @@
+CREATE TABLE Song (
+    id TEXT NOT NULL PRIMARY KEY,
+
+    song_type INTEGER,
+    duration INTEGER,
+    artist TEXT,
+    album TEXT,
+    lyrics_source INTEGER,
+    lyrics_id INTEGER,
+    related_browse_id TEXT,
+
+    FOREIGN KEY (artist) REFERENCES Artist(id),
+    FOREIGN KEY (album) REFERENCES Playlist(id),
+    FOREIGN KEY (lyrics_source, lyrics_id) REFERENCES Lyrics(source, id),
+
+    FOREIGN KEY (id) REFERENCES MediaItem(id)
+);
+
+byId: SELECT * FROM Song WHERE id == :id;
+
+songTypeById: SELECT song_type FROM Song WHERE id == :id;
+updateSongTypeById: UPDATE Song SET song_type = :value WHERE id == :id;
+
+durationById: SELECT duration FROM Song WHERE id == :id;
+updateDurationById: UPDATE Song SET duration = :value WHERE id == :id;
+
+artistById: SELECT artist FROM Song WHERE id == :id;
+updateArtistById: UPDATE Song SET artist = :value WHERE id == :id;
+
+albumById: SELECT album FROM Song WHERE id == :id;
+updateAlbumById: UPDATE Song SET album = :value WHERE id == :id;
+
+lyricsById: SELECT lyrics_source, lyrics_id FROM Song WHERE id == :id;
+updateLyricsById: UPDATE Song SET lyrics_source = :lyrics_source, lyrics_id = :lyrics_id WHERE id == :id;
+
+relatedBrowseIdById: SELECT related_browse_id FROM Song WHERE id == :id;
+updateRelatedBrowseIdById: UPDATE Song SET related_browse_id = :related_browse_id WHERE id == :id;

@@ -7,7 +7,7 @@ import com.toasterofbread.spmp.api.MusicThumbnailRenderer
 import com.toasterofbread.spmp.api.NavigationEndpoint
 import com.toasterofbread.spmp.api.TextRuns
 import com.toasterofbread.spmp.api.WatchEndpoint
-import com.toasterofbread.spmp.model.mediaitem.AccountPlaylist
+import com.toasterofbread.spmp.model.mediaitem.PlaylistData
 import com.toasterofbread.spmp.model.mediaitem.Artist
 import com.toasterofbread.spmp.model.mediaitem.Song
 
@@ -73,7 +73,7 @@ data class YoutubeiNextResponse(
                 }
 
                 return Result.success(Pair(
-                    Artist.fromId(run.navigationEndpoint!!.browseEndpoint!!.browseId).editArtistData { supplyTitle(run.text) },
+                    ArtistData(run.navigationEndpoint!!.browseEndpoint!!.browseId).editArtistData { supplyTitle(run.text) },
                     true
                 ))
             }
@@ -81,7 +81,7 @@ data class YoutubeiNextResponse(
             val menu_artist = menu.menuRenderer.getArtist()?.menuNavigationItemRenderer?.navigationEndpoint?.browseEndpoint?.browseId
             if (menu_artist != null) {
                 return Result.success(Pair(
-                    Artist.fromId(menu_artist),
+                    ArtistData(menu_artist),
                     false
                 ))
             }
@@ -92,7 +92,7 @@ data class YoutubeiNextResponse(
                     continue
                 }
 
-                val playlist = AccountPlaylist.fromId(run.navigationEndpoint.browseEndpoint.browseId)
+                val playlist = PlaylistData(run.navigationEndpoint.browseEndpoint.browseId)
                 return playlist.getArtistOrNull().fold(
                     { artist ->
                         Result.success(Pair(artist, false))

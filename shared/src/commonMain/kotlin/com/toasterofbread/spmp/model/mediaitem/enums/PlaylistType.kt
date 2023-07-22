@@ -3,7 +3,7 @@ package com.toasterofbread.spmp.model.mediaitem.enums
 import com.toasterofbread.spmp.resources.getString
 
 enum class PlaylistType {
-    PLAYLIST, ALBUM, AUDIOBOOK, PODCAST, RADIO;
+    LOCAL, PLAYLIST, ALBUM, AUDIOBOOK, PODCAST, RADIO;
 
     companion object {
         fun fromTypeString(type: String): PlaylistType {
@@ -21,7 +21,7 @@ enum class PlaylistType {
 
 fun PlaylistType?.getReadable(plural: Boolean): String {
     return getString(when (this) {
-        PlaylistType.PLAYLIST, null -> if (plural) "playlists" else "playlist"
+        PlaylistType.PLAYLIST, PlaylistType.LOCAL, null -> if (plural) "playlists" else "playlist"
         PlaylistType.ALBUM -> if (plural) "albums" else "album"
         PlaylistType.AUDIOBOOK -> if (plural) "audiobooks" else "audiobook"
         PlaylistType.PODCAST -> if (plural) "podcasts" else "podcast"

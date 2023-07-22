@@ -139,3 +139,7 @@ android {
         }
     }
 }
+
+configurations.all {
+    exclude(group = "com.github.UstadMobile.door", module = "room-annotations")
+}

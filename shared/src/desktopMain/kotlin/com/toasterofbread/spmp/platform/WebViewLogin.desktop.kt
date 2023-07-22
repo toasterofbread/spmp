@@ -9,6 +9,7 @@ actual fun isWebViewLoginSupported(): Boolean = false
 actual fun WebViewLogin(
     initial_url: String,
     modifier: Modifier,
+    loading_message: String?,
     shouldShowPage: (url: String) -> Boolean,
     onRequestIntercepted: (WebViewRequest, openUrl: (String) -> Unit, getCookie: (String) -> String) -> Unit
 ) {

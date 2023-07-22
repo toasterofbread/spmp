@@ -100,7 +100,7 @@ internal fun RadioArtistSelector(
     Crossfade(radio_artists) { artists ->
         if (artists == null) {
             Box(modifier, contentAlignment = Alignment.Center) {
-                SubtleLoadingIndicator(colourProvider = { Theme.on_background })
+                SubtleLoadingIndicator(getColour = { Theme.on_background })
             }
         } else {
             val thumb_size = 80.dp

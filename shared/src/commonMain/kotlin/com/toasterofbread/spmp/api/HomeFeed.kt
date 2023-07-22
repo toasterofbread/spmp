@@ -315,11 +315,14 @@ data class BrowseEndpoint(
 }
 data class SearchEndpoint(val query: String, val params: String? = null)
 data class WatchPlaylistEndpoint(val playlistId: String, val params: String)
+data class ChannelCreationFormEndpoint(val channelCreationToken: String)
 data class NavigationEndpoint(
     val watchEndpoint: WatchEndpoint? = null,
     val browseEndpoint: BrowseEndpoint? = null,
     val searchEndpoint: SearchEndpoint? = null,
-    val watchPlaylistEndpoint: WatchPlaylistEndpoint? = null
+    val watchPlaylistEndpoint: WatchPlaylistEndpoint? = null,
+    val channelCreationFormEndpoint: ChannelCreationFormEndpoint? = null,
+    val urlEndpoint: String? = null
 ) {
     fun getMediaItem(): MediaItem? {
         if (watchEndpoint != null) {
@@ -416,6 +419,8 @@ data class TextRuns(
     val runs: List<TextRun>? get() = _runs?.filter { it.text != " \u2022 " }
     @Json(ignored = true)
     val first_text: String get() = runs!![0].text
+
+    fun firstTextOrNull(): String? = runs?.getOrNull(0)?.text
 }
 data class TextRun(val text: String, val strapline: TextRuns? = null, val navigationEndpoint: NavigationEndpoint? = null) {
     @Json(ignored = true)

@@ -241,7 +241,7 @@ abstract class MediaItem(val id: String, context: PlatformContext): MediaItemHol
         } ?: thumb_item.thumb_states[quality]!!
 
         if (state.loading || (state.image == null && !state.loaded)) {
-            SubtleLoadingIndicator(modifier.fillMaxSize(), contentColourProvider)
+            SubtleLoadingIndicator(modifier.fillMaxSize(), getColour = contentColourProvider)
         }
         else if (state.image != null) {
             state.image!!.also { thumbnail ->

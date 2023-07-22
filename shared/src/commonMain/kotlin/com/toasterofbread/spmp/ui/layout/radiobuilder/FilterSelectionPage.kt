@@ -160,7 +160,7 @@ fun FilterSelectionPage(
                         }
                     }
                 } else if (loading) {
-                    SubtleLoadingIndicator(Modifier.offset(y = -bottom_padding), { Theme.on_background })
+                    SubtleLoadingIndicator(Modifier.offset(y = -bottom_padding)) { Theme.on_background }
                 } else if (playlist?.feed_layouts?.isNotEmpty() == true) {
                     val layout = playlist.feed_layouts!!.first()
                     val multiselect_context = remember { MediaItemMultiSelectContext() {} }
@@ -204,7 +204,7 @@ fun FilterSelectionPage(
                 ShapedIconButton({ loadRadio(false) }, colours = icon_button_colours) {
                     Crossfade(is_loading) { loading ->
                         if (loading) {
-                            SubtleLoadingIndicator(colourProvider = { Theme.on_accent })
+                            SubtleLoadingIndicator(getColour = { Theme.on_accent })
                         } else {
                             Icon(Icons.Filled.PlayArrow, null)
                         }

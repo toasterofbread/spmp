@@ -18,6 +18,12 @@ import kotlinx.coroutines.runBlocking
 import kotlinx.coroutines.withContext
 import okhttp3.Request
 
+class YoutubeChannelNotCreatedException(
+    val cookie: String,
+    val headers: Map<String, String>,
+    val channel_creation_token: String?
+): RuntimeException()
+
 class YoutubeMusicAuthInfo: Set<String> {
     enum class ValueType { CHANNEL, COOKIE, HEADER, PLAYLIST }
     var initialised: Boolean by mutableStateOf(false)
@@ -130,6 +136,25 @@ class YoutubeMusicAuthInfo: Set<String> {
     companion object {
         val REQUIRED_KEYS = listOf("authorization", "cookie")
 
+        fun fromYTAccountMenuResponse(response: YTAccountMenuResponse, cookie: String, headers: Map<String, String>): Result<YoutubeMusicAuthInfo> {
+            val artist = response.getAritst()
+            if (artist == null) {
+                return Result.failure(YoutubeChannelNotCreatedException(
+                    cookie,
+                    headers,
+                    response.getChannelCreationToken()
+                ))
+            }
+
+            return Result.success(
+                YoutubeMusicAuthInfo(
+                    artist,
+                    cookie,
+                    headers
+                )
+            )
+        }
+
         suspend fun fromHeaders(headers: Map<String, String>): Result<YoutubeMusicAuthInfo> = withContext(Dispatchers.IO) {
             for (key in REQUIRED_KEYS) {
                 check(headers.contains(key))
@@ -161,15 +186,7 @@ class YoutubeMusicAuthInfo: Set<String> {
                 stream.close()
             }
 
-            return@withContext Result.success(
-                YoutubeMusicAuthInfo(
-                    parsed.getAritst()!!,
-                    headers["cookie"]!!,
-                    headers
-                )
-            )
+            return@withContext fromYTAccountMenuResponse(parsed, headers["cookie"]!!, headers)
         }
     }
 }
-
-private class AccountMenuResponse

@@ -495,6 +495,13 @@
     <string name="youtube_manual_login_suffix">Firefoxではリクエストを右クリックし、「Copy value」そして「Copy Request Headers」を選択すると必要な情報がコピーされます。&#xA;&#xA;他のブラウザーでは, リクエストを選択して「Headers」タブを開き、「Request headers」まで降りて「Accept: */*」からの情報をすべてコピーしてください。</string>
     <string name="youtube_manual_login_field">ヘッダー</string>
 
+    <string name="youtube_login_load_message">ログインページをロード中</string>
+    <string name="youtube_channel_creation_load_message">チャンネル作成ページをロード中</string>
+
+    <string name="youtube_channel_creation_title">YouTube Musicプロフィールを作成</string>
+    <string name="youtube_channel_creation_subtitle">https://music.youtube.com/の「チャンネル」に行って作成することもできます</string>
+    <string name="youtube_channel_creation_confirm">作成</string>
+
     <string name="manual_login_error_missing_following_headers">以下のヘッダーが含まれていません：</string>
     <string name="manual_login_desktop_browser_may_be_needed">この手順を行うには、デスクトップ上のブラウザーが必要かもしれません</string>
 

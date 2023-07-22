@@ -7,6 +7,7 @@ import androidx.media3.common.util.UnstableApi
 import androidx.media3.datasource.DataSpec
 import com.toasterofbread.spmp.model.Settings
 import com.toasterofbread.spmp.model.mediaitem.Song
+import com.toasterofbread.spmp.model.mediaitem.SongData
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.runBlocking
 import java.io.File
@@ -15,7 +16,7 @@ import java.time.temporal.ChronoUnit
 
 @UnstableApi
 internal fun processMediaDataSpec(data_spec: DataSpec, context: Context, metered: Boolean): DataSpec {
-    val song = Song.fromId(data_spec.uri.toString())
+    val song = SongData(data_spec.uri.toString())
 
     val download_manager = SpMp.context.player_state.download_manager
     var local_file: File? = download_manager.getSongLocalFile(song)

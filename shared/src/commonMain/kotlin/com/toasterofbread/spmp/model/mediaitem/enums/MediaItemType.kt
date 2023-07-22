@@ -1,6 +1,5 @@
 package com.toasterofbread.spmp.model.mediaitem.enums
 
-import SpMp
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.MusicNote
 import androidx.compose.material.icons.filled.Person
@@ -8,15 +7,13 @@ import androidx.compose.material.icons.filled.PlaylistPlay
 import androidx.compose.ui.graphics.vector.ImageVector
 import com.beust.klaxon.JsonObject
 import com.toasterofbread.spmp.api.Api
-import com.toasterofbread.spmp.model.mediaitem.AccountPlaylist
-import com.toasterofbread.spmp.model.mediaitem.Artist
-import com.toasterofbread.spmp.model.mediaitem.LocalPlaylist
-import com.toasterofbread.spmp.model.mediaitem.MediaItem
+import com.toasterofbread.spmp.model.mediaitem.ArtistData
+import com.toasterofbread.spmp.model.mediaitem.MediaItemData
 import com.toasterofbread.spmp.model.mediaitem.MediaItemDataRegistry
+import com.toasterofbread.spmp.model.mediaitem.PlaylistData
 import com.toasterofbread.spmp.model.mediaitem.PlaylistDataRegistryEntry
-import com.toasterofbread.spmp.model.mediaitem.Song
+import com.toasterofbread.spmp.model.mediaitem.SongData
 import com.toasterofbread.spmp.model.mediaitem.SongDataRegistryEntry
-import com.toasterofbread.spmp.platform.PlatformContext
 import com.toasterofbread.spmp.resources.getString
 
 enum class MediaItemType {
@@ -57,11 +54,11 @@ enum class MediaItemType {
         }
     }
 
-    suspend fun fromId(id: String, context: PlatformContext = SpMp.context): MediaItem = when (this) {
-        SONG -> Song.fromId(id, context)
-        ARTIST -> Artist.fromId(id, context)
-        PLAYLIST_ACC -> AccountPlaylist.fromId(id, context)
-        PLAYLIST_LOC -> LocalPlaylist.fromId(id, context)
+    fun emptyDataFromId(id: String): MediaItemData = when (this) {
+        SONG -> SongData(id)
+        ARTIST -> ArtistData(id)
+        PLAYLIST_ACC -> PlaylistData(id)
+        PLAYLIST_LOC -> PlaylistData(id, playlist_type = PlaylistType.LOCAL)
         PLAYLIST_BROWSEPARAMS -> throw NotImplementedError(id)
     }
 

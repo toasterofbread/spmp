@@ -2,6 +2,9 @@ package com.toasterofbread.spmp.resources.uilocalisation
 
 import SpMp
 import com.toasterofbread.spmp.model.Settings
+import com.toasterofbread.spmp.model.mediaitem.Artist
+import com.toasterofbread.spmp.model.mediaitem.MediaItem
+import com.toasterofbread.spmp.model.mediaitem.Playlist
 import com.toasterofbread.spmp.model.mediaitem.enums.MediaItemType
 import com.toasterofbread.spmp.resources.getString
 import com.toasterofbread.spmp.resources.uilocalisation.localised.Languages
@@ -11,7 +14,7 @@ import com.toasterofbread.spmp.resources.uilocalisation.localised.getYoutubeHome
 import com.toasterofbread.spmp.resources.uilocalisation.localised.getYoutubeOwnChannelLocalisations
 import com.toasterofbread.spmp.resources.uilocalisation.localised.getYoutubeSearchPageLocalisations
 
-class LocalisedYoutubeString private constructor(
+class LocalisedYoutubeString(
     val key: String,
     val type: Type,
     @Suppress("MemberVisibilityCanBePrivate")
@@ -81,11 +84,12 @@ class LocalisedYoutubeString private constructor(
     companion object {
         private val current_source_language: Int get() = Settings.KEY_LANG_DATA.get()
 
-        fun mediaItemPage(key: String, item_type: MediaItemType): LocalisedYoutubeString =
-            when (item_type) {
-                MediaItemType.ARTIST, MediaItemType.PLAYLIST_BROWSEPARAMS -> Type.ARTIST_PAGE.create(key)
-                else -> throw NotImplementedError(item_type.name)
+        fun mediaItemPage(key: String, item: MediaItem): LocalisedYoutubeString {
+            check(item is Artist || (item is Playlist && item.browse_params != null)) {
+                "$key | $item"
             }
+            return Type.ARTIST_PAGE.create(key)
+        }
     }
 }
 

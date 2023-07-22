@@ -141,7 +141,7 @@ open class PlayerState protected constructor(
                 val channel_id = path_parts.elementAtOrNull(1) ?: return failure("No channel ID")
 
                 interactService {
-                    openMediaItem(Artist.fromId(channel_id))
+                    openMediaItem(ArtistData(channel_id),)
                 }
             }
             "watch" -> {
@@ -149,7 +149,7 @@ open class PlayerState protected constructor(
                 val v_end = uri.query.indexOfOrNull("&", v_start) ?: uri.query.length
 
                 interactService {
-                    playMediaItem(Song.fromId(uri.query.substring(v_start, v_end)))
+                    playMediaItem(SongData(uri.query.substring(v_start, v_end)))
                 }
             }
             else -> return failure("Uri path not implemented")

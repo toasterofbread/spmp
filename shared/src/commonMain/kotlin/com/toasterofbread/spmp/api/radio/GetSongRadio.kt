@@ -77,7 +77,7 @@ suspend fun getSongRadio(
             RadioData(
                 radio.contents.map { item ->
                     val renderer = item.getRenderer()
-                    val song = Song.fromId(renderer.videoId)
+                    val song = SongData(renderer.videoId)
                     val error = song.editSongDataSuspend<Result<RadioData>?> {
                         supplyTitle(renderer.title.first_text)
 

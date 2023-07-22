@@ -1,0 +1,54 @@
+CREATE TABLE ArtistLayout (
+    artist_id TEXT NOT NULL,
+    layout_index INTEGER NOT NULL,
+
+    type INTEGER NOT NULL,
+
+    title_type INTEGER,
+    title_key TEXT,
+    subtitle_type INTEGER,
+    subtitle_key TEXT,
+
+    PRIMARY KEY (artist_id, layout_index)
+);
+
+byArtistId:
+SELECT *
+FROM ArtistLayout
+WHERE artist_id == :artist_id
+ORDER BY layout_index;
+
+layoutCountByArtistId:
+SELECT MAX(layout_index) + 1
+FROM ArtistLayout
+WHERE artist_id == :artist_id;
+
+addLayout:
+INSERT INTO ArtistLayout
+VALUES (:artist_id, :layout_index, :type, :title_type, :title_key, :subtitle_type, :subtitle_key);
+
+CREATE TABLE ArtistLayoutItem (
+    item_index INTEGER NOT NULL,
+    item_id TEXT NOT NULL,
+    artist_id TEXT NOT NULL,
+    layout_index INTEGER NOT NULL,
+
+    PRIMARY KEY (item_index, artist_id, layout_index),
+    FOREIGN KEY (artist_id, layout_index) REFERENCES ArtistLayout(artist_id, layout_index),
+    FOREIGN KEY (item_id) REFERENCES MediaItem(id)
+);
+
+layoutItems:
+SELECT item_index, item_id
+FROM ArtistLayoutItem
+WHERE artist_id == :artist_id AND layout_index == :layout_index
+ORDER BY item_index;
+
+addLayoutItem:
+INSERT INTO ArtistLayoutItem
+VALUES (:item_index, :item_id, :artist_id, :layout_index);
+
+itemCountOfLayout:
+SELECT MAX(item_index) + 1
+FROM ArtistLayoutItem
+WHERE artist_id == :artist_id AND layout_index == :layout_index;

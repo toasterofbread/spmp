@@ -142,7 +142,7 @@ data class YTAccountMenuResponse(val actions: List<Action>) {
 
     fun getAritst(): Artist? {
         val account = actions.first().openPopupAction.popup.multiPageMenuRenderer.header!!.activeAccountHeaderRenderer
-        return Artist.fromId(getChannelId() ?: return null).editArtistData {
+        return ArtistData(getChannelId() ?: return null).editArtistData {
             supplyTitle(account.accountName.first_text)
             supplyThumbnailProvider(MediaItemThumbnailProvider.fromThumbnails(account.accountPhoto.thumbnails))
         }

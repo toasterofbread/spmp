@@ -304,7 +304,7 @@ enum class Settings {
                     with(ProjectBuildConfig) {
                         if (YTM_CHANNEL_ID != null && YTM_COOKIE != null && YTM_HEADERS != null)
                             YoutubeMusicAuthInfo(
-                                Artist.fromId(YTM_CHANNEL_ID),
+                                ArtistData(YTM_CHANNEL_ID),
                                 YTM_COOKIE,
                                 Klaxon().parse(YTM_HEADERS.reader())!!
                             )

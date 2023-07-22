@@ -39,7 +39,7 @@ import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
 import com.toasterofbread.spmp.api.Api
 import com.toasterofbread.spmp.model.Settings
-import com.toasterofbread.spmp.model.mediaitem.AccountPlaylist
+import com.toasterofbread.spmp.model.mediaitem.PlaylistData
 import com.toasterofbread.spmp.model.mediaitem.LocalPlaylist
 import com.toasterofbread.spmp.model.mediaitem.MediaItemPreviewParams
 import com.toasterofbread.spmp.model.mediaitem.Playlist
@@ -107,7 +107,7 @@ private fun PlaylistsRow(heading_text_style: TextStyle, multiselect_context: Med
             IconButton({
                 coroutine_scope.launch {
                     val playlist = LocalPlaylist.createLocalPlaylist(SpMp.context)
-                    player.openMediaItem(playlist)
+                    player.openMediaItem(playlist,)
                 }
             }) {
                 Icon(Icons.Default.Add, null)
@@ -118,10 +118,10 @@ private fun PlaylistsRow(heading_text_style: TextStyle, multiselect_context: Med
         val show_likes: Boolean by Settings.KEY_SHOW_LIKES_PLAYLIST.rememberMutableState()
 
         for (id in ytm_auth.own_playlists) {
-            if (!show_likes && AccountPlaylist.formatId(id) == "LM") {
+            if (!show_likes && PlaylistData.formatId(id) == "LM") {
                 continue
             }
-            playlists.add(AccountPlaylist.fromId(id))
+            playlists.add(PlaylistData(id))
         }
 
         if (playlists.isNotEmpty()) {

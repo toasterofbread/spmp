@@ -99,7 +99,7 @@ fun LongPressMenuActionProvider.ArtistLongPressMenuActions(artist: MediaItem) {
     )
 
     ActionButton(Icons.Default.Person, getString("lpm_action_open_artist"), onClick = {
-        player.openMediaItem(artist)
+        player.openMediaItem(artist,)
     })
 }
 

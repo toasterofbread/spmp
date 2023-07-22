@@ -119,7 +119,7 @@ class LongPressMenuActionProvider(
 
                 Crossfade(active_queue_item, animationSpec = tween(100)) {
                     CompositionLocalProvider(
-                        LocalPlayerState provides remember { player.copy(onClickedOverride = { item, _ -> player.openMediaItem(item) }) }
+                        LocalPlayerState provides remember { player.copy(onClickedOverride = { item, _ -> player.openMediaItem(item,) }) }
                     ) {
                         it?.PreviewLong(MediaItemPreviewParams(contentColour = content_colour))
                     }

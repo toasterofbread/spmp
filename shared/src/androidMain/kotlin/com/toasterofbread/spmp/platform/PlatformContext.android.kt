@@ -60,6 +60,7 @@ actual class PlatformContext(private val context: Context, onInit: ((PlatformCon
     }
 
     actual val player_state = PlayerStateImpl(this)
+    actual val database = createDatabase()
 
 //    private val context: WeakReference<Context> = WeakReference(context)
     val ctx: Context get() = context

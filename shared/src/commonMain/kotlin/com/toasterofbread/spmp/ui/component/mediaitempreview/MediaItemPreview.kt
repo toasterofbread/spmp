@@ -14,6 +14,7 @@ import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.alpha
@@ -22,34 +23,70 @@ import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.toasterofbread.spmp.model.mediaitem.Artist
+import com.toasterofbread.spmp.model.mediaitem.ArtistData
 import com.toasterofbread.spmp.model.mediaitem.MediaItem
 import com.toasterofbread.spmp.model.mediaitem.MediaItemPreviewParams
 import com.toasterofbread.spmp.model.mediaitem.MediaItemThumbnailProvider
+import com.toasterofbread.spmp.model.mediaitem.ObservableMediaItem
+import com.toasterofbread.spmp.model.mediaitem.Playlist
+import com.toasterofbread.spmp.model.mediaitem.PlaylistData
+import com.toasterofbread.spmp.model.mediaitem.Song
+import com.toasterofbread.spmp.model.mediaitem.SongData
+import com.toasterofbread.spmp.model.mediaitem.WithArtist
+import com.toasterofbread.spmp.model.mediaitem.enums.MediaItemType
 import com.toasterofbread.spmp.model.mediaitem.mediaItemPreviewInteraction
 import com.toasterofbread.spmp.ui.component.longpressmenu.LongPressMenuData
 import com.toasterofbread.spmp.ui.component.longpressmenu.longPressMenuIcon
+import com.toasterofbread.spmp.ui.component.multiselect.MediaItemMultiSelectContext
 
 const val MEDIA_ITEM_PREVIEW_LONG_HEIGHT: Float = 40f
+
+fun MediaItem.getLongPressMenuData(
+    multiselect_context: MediaItemMultiSelectContext? = null,
+    multiselect_key: Int? = null,
+    getInfoText: (@Composable () -> String?)? = null
+): LongPressMenuData = when (this) {
+    is Song -> getSongLongPressMenuData(
+        this,
+        multiselect_key = multiselect_key,
+        multiselect_context = multiselect_context,
+        getInfoText = getInfoText
+    )
+    is Artist -> getArtistLongPressMenuData(this, multiselect_context = multiselect_context)
+    is Playlist -> getPlaylistLongPressMenuData(this, multiselect_context = multiselect_context)
+    else -> throw NotImplementedError(this.getType().toString())
+}
 
 @Composable
 fun MediaItemPreviewSquare(
     item: MediaItem,
-    params: MediaItemPreviewParams,
-    long_press_menu_data: LongPressMenuData
+    modifier: Modifier = Modifier,
+    contentColour: (() -> Color)? = null,
+    enable_long_press_menu: Boolean = true,
+    show_type: Boolean = true,
+    multiselect_context: MediaItemMultiSelectContext? = null,
+    multiselect_key: Int? = null,
+    getInfoText: (@Composable () -> String?)? = null,
+    max_text_rows: Int? = null,
+    long_press_menu_data: LongPressMenuData = remember(item) { item.getLongPressMenuData(
+        multiselect_context,
+        multiselect_key,
+        getInfoText
+    ) }
 ) {
     Column(
-        params.modifier.mediaItemPreviewInteraction(item, long_press_menu_data),
+        modifier.mediaItemPreviewInteraction(item, long_press_menu_data),
         horizontalAlignment = Alignment.CenterHorizontally,
         verticalArrangement = Arrangement.spacedBy(5.dp)
     ) {
         Box(Modifier.fillMaxWidth(), contentAlignment = Alignment.Center) {
             item.Thumbnail(
                 MediaItemThumbnailProvider.Quality.LOW,
-                Modifier.longPressMenuIcon(long_press_menu_data, params.enable_long_press_menu).aspectRatio(1f),
-                contentColourProvider = params.contentColour
+                Modifier.longPressMenuIcon(long_press_menu_data, enable_long_press_menu).aspectRatio(1f),
+                contentColourProvider = contentColour
             )
 
-            params.multiselect_context?.also { ctx ->
+            multiselect_context?.also { ctx ->
                 ctx.SelectableItemOverlay(item, Modifier.fillMaxWidth().aspectRatio(1f), key = long_press_menu_data.multiselect_key)
             }
         }
@@ -58,8 +95,8 @@ fun MediaItemPreviewSquare(
             item.title ?: "",
 //            Modifier.fillMaxSize().weight(1f),
             fontSize = 12.sp,
-            color = params.contentColour?.invoke() ?: Color.Unspecified,
-            maxLines = params.square_item_max_text_rows ?: 1,
+            color = contentColour?.invoke() ?: Color.Unspecified,
+            maxLines = max_text_rows ?: 1,
             lineHeight = 14.sp,
             overflow = TextOverflow.Ellipsis
         )
@@ -69,12 +106,22 @@ fun MediaItemPreviewSquare(
 @Composable
 fun MediaItemPreviewLong(
     item: MediaItem,
-    params: MediaItemPreviewParams,
-    long_press_menu_data: LongPressMenuData
+    modifier: Modifier = Modifier,
+    contentColour: (() -> Color)? = null,
+    enable_long_press_menu: Boolean = true,
+    show_type: Boolean = true,
+    multiselect_context: MediaItemMultiSelectContext? = null,
+    multiselect_key: Int? = null,
+    getInfoText: (@Composable () -> String?)? = null,
+    long_press_menu_data: LongPressMenuData = remember(item) { item.getLongPressMenuData(
+        multiselect_context,
+        multiselect_key,
+        getInfoText
+    ) }
 ) {
     Row(
         verticalAlignment = Alignment.CenterVertically,
-        modifier = params.modifier
+        modifier = modifier
             .fillMaxWidth()
             .mediaItemPreviewInteraction(item, long_press_menu_data)
             .height(MEDIA_ITEM_PREVIEW_LONG_HEIGHT.dp)
@@ -83,12 +130,12 @@ fun MediaItemPreviewLong(
             item.Thumbnail(
                 MediaItemThumbnailProvider.Quality.LOW,
                 Modifier
-                    .longPressMenuIcon(long_press_menu_data, params.enable_long_press_menu)
+                    .longPressMenuIcon(long_press_menu_data, enable_long_press_menu)
                     .size(MEDIA_ITEM_PREVIEW_LONG_HEIGHT.dp),
-                contentColourProvider = params.contentColour
+                contentColourProvider = contentColour
             )
 
-            params.multiselect_context?.also { ctx ->
+            multiselect_context?.also { ctx ->
                 ctx.SelectableItemOverlay(item, Modifier.fillMaxSize(), key = long_press_menu_data.multiselect_key)
             }
         }
@@ -102,21 +149,21 @@ fun MediaItemPreviewLong(
             Text(
                 item.title ?: "",
                 fontSize = 15.sp,
-                color = params.contentColour?.invoke() ?: Color.Unspecified,
+                color = contentColour?.invoke() ?: Color.Unspecified,
                 maxLines = 1,
                 overflow = TextOverflow.Ellipsis
             )
 
             Row(horizontalArrangement = Arrangement.spacedBy(5.dp)) {
-                if (params.show_type) {
-                    InfoText(item.getReadableType(false), params)
+                if (show_type) {
+                    InfoText(item.getType().getReadable(false), contentColour)
                 }
 
-                if (item !is Artist && item.artist?.title != null) {
-                    if (params.show_type) {
-                        InfoText("\u2022", params)
+                if (item is WithArtist && item.artist?.title != null) {
+                    if (show_type) {
+                        InfoText("\u2022", contentColour)
                     }
-                    InfoText(item.artist?.title!!, params)
+                    InfoText(item.artist?.title!!, contentColour)
                 }
             }
         }
@@ -124,12 +171,12 @@ fun MediaItemPreviewLong(
 }
 
 @Composable
-private fun InfoText(text: String, params: MediaItemPreviewParams) {
+private fun InfoText(text: String, contentColour: (() -> Color)?) {
     Text(
         text,
         Modifier.alpha(0.5f),
         fontSize = 11.sp,
-        color = params.contentColour?.invoke() ?: Color.Unspecified,
+        color = contentColour?.invoke() ?: Color.Unspecified,
         maxLines = 1,
         overflow = TextOverflow.Ellipsis
     )

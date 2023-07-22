@@ -1,0 +1,15 @@
+CREATE TABLE PlaylistItem (
+    item_index INTEGER NOT NULL,
+    playlist_id TEXT NOT NULL,
+    song_id TEXT NOT NULL,
+
+    PRIMARY KEY (item_index, playlist_id),
+    FOREIGN KEY (playlist_id) REFERENCES Playlist(id),
+    FOREIGN KEY (song_id) REFERENCES Song(id)
+);
+
+byPlaylistId:
+SELECT *
+FROM PlaylistItem
+WHERE playlist_id == ?
+ORDER BY item_index;

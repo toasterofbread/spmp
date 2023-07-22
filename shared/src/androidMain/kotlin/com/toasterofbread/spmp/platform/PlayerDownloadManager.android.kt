@@ -2,6 +2,7 @@ package com.toasterofbread.spmp.platform
 
 import com.toasterofbread.spmp.PlayerDownloadService
 import com.toasterofbread.spmp.model.mediaitem.Song
+import com.toasterofbread.spmp.model.mediaitem.SongData
 import com.toasterofbread.spmp.model.mediaitem.enums.SongAudioQuality
 import java.io.File
 
@@ -106,7 +107,7 @@ actual class PlayerDownloadManager actual constructor(val context: PlatformConte
             val data = PlayerDownloadService.getFilenameData(file.name)
             if (data.id == song.id) {
                 callback(DownloadStatus(
-                    Song.fromId(data.id),
+                    SongData(data.id),
                     if (data.downloading) DownloadStatus.Status.IDLE else DownloadStatus.Status.FINISHED,
                     data.quality,
                     if (data.downloading) -1f else 1f,
@@ -134,7 +135,7 @@ actual class PlayerDownloadManager actual constructor(val context: PlatformConte
 
                 val data = PlayerDownloadService.getFilenameData(file.name)
                 DownloadStatus(
-                    Song.fromId(data.id),
+                    SongData(data.id),
                     if (data.downloading) DownloadStatus.Status.IDLE else DownloadStatus.Status.FINISHED,
                     data.quality,
                     if (data.downloading) -1f else 1f,

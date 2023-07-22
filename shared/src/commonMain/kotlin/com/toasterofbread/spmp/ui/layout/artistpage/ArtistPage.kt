@@ -38,6 +38,7 @@ import com.toasterofbread.spmp.ui.component.MusicTopBar
 import com.toasterofbread.spmp.ui.component.PillMenu
 import com.toasterofbread.spmp.ui.component.WaveBorder
 import com.toasterofbread.spmp.ui.component.longpressmenu.LongPressMenuData
+import com.toasterofbread.spmp.ui.component.mediaitempreview.MediaItemPreviewLong
 import com.toasterofbread.spmp.ui.component.multiselect.MediaItemMultiSelectContext
 import com.toasterofbread.spmp.ui.layout.mainpage.PlayerState
 import com.toasterofbread.spmp.ui.theme.Theme
@@ -54,12 +55,12 @@ private const val ARTIST_IMAGE_SCROLL_MODIFIER = 0.25f
 @Composable
 fun ArtistPage(
     pill_menu: PillMenu,
-    item: Artist,
-    previous_item: MediaItem? = null,
+    artist: Artist,
+    previous_item: ObservableMediaItem? = null,
     bottom_padding: Dp = 0.dp,
     close: () -> Unit
 ) {
-    require(!item.is_for_item)
+    require(!artist.is_for_item)
 
     val player = LocalPlayerState.current
     val screen_width = SpMp.context.getScreenWidth()
@@ -67,7 +68,7 @@ fun ArtistPage(
     val main_column_state = rememberLazyListState()
     var show_info by remember { mutableStateOf(false) }
     val multiselect_context = remember { MediaItemMultiSelectContext() {} }
-    val feed_layouts = item.feed_layouts
+    val feed_layouts = artist.layouts
 
     val apply_filter: Boolean by Settings.KEY_FILTER_APPLY_TO_ARTIST_ITEMS.rememberMutableState()
     val background_modifier = Modifier.background(Theme.background_provider)
@@ -75,16 +76,16 @@ fun ArtistPage(
     val gradient_size = 0.35f
     var accent_colour: Color? by remember { mutableStateOf(null) }
 
-    LaunchedEffect(item.id) {
-        item.getFeedLayouts().getOrReport("ArtistPageLoad")
+    LaunchedEffect(artist.id) {
+        artist.getFeedLayouts().getOrReport("ArtistPageLoad")
     }
 
-    LaunchedEffect(item, item.canLoadThumbnail()) {
-        item.loadThumbnail(MediaItemThumbnailProvider.Quality.HIGH)
+    LaunchedEffect(artist, artist.canLoadThumbnail()) {
+        artist.loadThumbnail(MediaItemThumbnailProvider.Quality.HIGH)
     }
 
     if (show_info) {
-        InfoDialog(item) { show_info = false }
+        InfoDialog(artist) { show_info = false }
     }
 
     val top_bar_over_image: Boolean by Settings.KEY_TOPBAR_DISPLAY_OVER_ARTIST_IMAGE.rememberMutableState()
@@ -139,7 +140,7 @@ fun ArtistPage(
             }
 
             // Thumbnail
-            Crossfade(item.getThumbnail(MediaItemThumbnailProvider.Quality.HIGH)) { thumbnail ->
+            Crossfade(artist.getThumbnail(MediaItemThumbnailProvider.Quality.HIGH)) { thumbnail ->
                 if (thumbnail != null) {
                     if (accent_colour == null) {
                         accent_colour = Theme.makeVibrant(item.getDefaultThemeColour() ?: Theme.accent)
@@ -191,7 +192,7 @@ fun ArtistPage(
                         contentAlignment = Alignment.BottomCenter
                     ) {
                         TitleBar(
-                            item,
+                            artist,
                             Modifier
                                 .offset {
                                     IntOffset(0, (main_column_state.firstVisibleItemScrollOffset * ARTIST_IMAGE_SCROLL_MODIFIER).toInt())
@@ -230,13 +231,13 @@ fun ArtistPage(
                                 }
                             }
 
-                            chip(getString("artist_chip_shuffle"), Icons.Outlined.Shuffle) { player.playMediaItem(item, true) }
+                            chip(getString("artist_chip_shuffle"), Icons.Outlined.Shuffle) { player.playMediaItem(artist, true) }
 
                             if (SpMp.context.canShare()) {
-                                chip(getString("action_share"), Icons.Outlined.Share) { SpMp.context.shareText(item.url, item.title) }
+                                chip(getString("action_share"), Icons.Outlined.Share) { SpMp.context.shareText(artist.getURL(), artist.title) }
                             }
                             if (SpMp.context.canOpenUrl()) {
-                                chip(getString("artist_chip_open"), Icons.Outlined.OpenInNew) { SpMp.context.openUrl(item.url) }
+                                chip(getString("artist_chip_open"), Icons.Outlined.OpenInNew) { SpMp.context.openUrl(artist.getURL()) }
                             }
 
                             chip(getString("artist_chip_details"), Icons.Outlined.Info) { show_info = !show_info }
@@ -244,7 +245,7 @@ fun ArtistPage(
 
                         Box(Modifier.requiredHeight(filter_bar_height)) {
                             ShapedIconButton(
-                                { player.playMediaItem(item) },
+                                { player.playMediaItem(artist) },
                                 Modifier.requiredSize(play_button_size),
                                 colours = IconButtonDefaults.iconButtonColors(
                                     containerColor = accent_colour ?: LocalContentColor.current,
@@ -272,7 +273,10 @@ fun ArtistPage(
 
                     items(layout.items.size) { i ->
                         Row(background_modifier.padding(content_padding), verticalAlignment = Alignment.CenterVertically) {
-                            layout.items[i].PreviewLong(MediaItemPreviewParams(multiselect_context = multiselect_context))
+                            MediaItemPreviewLong(
+                                layout.items[i],
+                                multiselect_context = multiselect_context
+                            )
                         }
                     }
                 } else {
@@ -283,7 +287,7 @@ fun ArtistPage(
                                 .padding(content_padding),
                             verticalArrangement = Arrangement.spacedBy(30.dp)
                         ) {
-                            for (layout in item.feed_layouts!!) {
+                            for (layout in artist.feed_layouts!!) {
                                 val is_singles =
                                     Settings.KEY_TREAT_SINGLES_AS_SONG.get() && layout.title?.getID() == YoutubeUILocalisation.StringID.ARTIST_PAGE_SINGLES
 
@@ -310,7 +314,7 @@ fun ArtistPage(
                                 }) {
                                     val type =
                                         if (layout.type == null) MediaItemLayout.Type.GRID
-                                        else if (layout.type == MediaItemLayout.Type.NUMBERED_LIST && item is Artist) MediaItemLayout.Type.LIST
+                                        else if (layout.type == MediaItemLayout.Type.NUMBERED_LIST && artist is Artist) MediaItemLayout.Type.LIST
                                         else layout.type
 
                                     type.Layout(
@@ -321,7 +325,7 @@ fun ArtistPage(
                                 }
                             }
 
-                            val description = item.description
+                            val description = artist.description
                             if (description?.isNotBlank() == true) {
                                 DescriptionCard(description, { Theme.background }, { accent_colour }) { show_info = !show_info }
                             }

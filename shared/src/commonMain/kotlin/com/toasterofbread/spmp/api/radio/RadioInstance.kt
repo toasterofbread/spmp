@@ -3,6 +3,7 @@ package com.toasterofbread.spmp.api.radio
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.setValue
+import com.toasterofbread.Database
 import com.toasterofbread.spmp.api.RadioModifier
 import com.toasterofbread.spmp.api.cast
 import com.toasterofbread.spmp.model.mediaitem.MediaItem
@@ -28,7 +29,9 @@ import androidx.compose.material3.Text
 import com.toasterofbread.spmp.model.Settings
 import com.toasterofbread.spmp.model.mediaitem.isMediaItemHidden
 
-class RadioInstance {
+class RadioInstance(
+    val database: Database
+) {
     var state: RadioState by mutableStateOf(RadioState())
         private set
     val active: Boolean get() = state.item != null

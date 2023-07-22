@@ -36,6 +36,7 @@ import androidx.compose.ui.graphics.graphicsLayer
 import androidx.compose.ui.unit.DpSize
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.zIndex
+import com.toasterofbread.Database
 import com.toasterofbread.spmp.api.Api
 import com.toasterofbread.spmp.model.mediaitem.Artist
 import com.toasterofbread.spmp.model.mediaitem.MediaItemHolder

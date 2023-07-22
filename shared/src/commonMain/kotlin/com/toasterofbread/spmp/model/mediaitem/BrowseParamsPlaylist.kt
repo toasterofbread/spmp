@@ -6,7 +6,7 @@ import com.toasterofbread.spmp.model.mediaitem.data.PlaylistItemData
 import com.toasterofbread.spmp.platform.PlatformContext
 
 class BrowseParamsPlaylist(
-    val artist_id: String,
+    internal val artist: Artist?,
     val params: String,
     id: String,
     context: PlatformContext,
@@ -28,18 +28,18 @@ class BrowseParamsPlaylist(
     override val item_count: Int? = data.items?.size
 
     override suspend fun loadGeneralData(item_id: String, browse_params: String?): Result<Unit> {
-        return super.loadGeneralData(artist_id, params)
+        return super.loadGeneralData(artist, params)
     }
 
     override suspend fun deletePlaylist(): Result<Unit> { throw NotImplementedError() }
     override suspend fun saveItems(): Result<Unit> { throw NotImplementedError() }
 
     override val url: String
-        get() = "https://music.youtube.com/channel/$artist_id"
+        get() = "https://music.youtube.com/channel/$artist"
 
     @Composable
     override fun getThumbnailHolder(): MediaItem =
-        Artist.fromId(artist_id)
+        ArtistData(artist)
     override fun getDefaultRegistryEntry(): PlaylistDataRegistryEntry = PlaylistDataRegistryEntry()
 
     companion object {

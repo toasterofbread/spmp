@@ -23,7 +23,7 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
 import com.toasterofbread.spmp.api.Api
-import com.toasterofbread.spmp.model.mediaitem.AccountPlaylist
+import com.toasterofbread.spmp.model.mediaitem.PlaylistData
 import com.toasterofbread.spmp.model.mediaitem.LocalPlaylist
 import com.toasterofbread.spmp.model.mediaitem.MediaItemPreviewParams
 import com.toasterofbread.spmp.model.mediaitem.Playlist
@@ -86,7 +86,7 @@ fun PlaylistSelectMenu(
                     PlaylistItem(selected, playlist)
                 }
                 items(account_playlists) { playlist ->
-                    PlaylistItem(selected, AccountPlaylist.fromId(playlist))
+                    PlaylistItem(selected, PlaylistData(playlist))
                 }
             }
         }

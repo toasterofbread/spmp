@@ -1,0 +1,38 @@
+CREATE TABLE Playlist (
+    id TEXT NOT NULL PRIMARY KEY,
+
+    browse_params TEXT,
+    playlist_type INTEGER,
+    items_loaded INTEGER,
+    item_count INTEGER,
+    year INTEGER,
+    total_duration INTEGER,
+    artist TEXT,
+
+    FOREIGN KEY (artist) REFERENCES Artist(id),
+
+    FOREIGN KEY (id) REFERENCES MediaItem(id)
+);
+
+byId: SELECT * FROM Playlist WHERE id == :id;
+
+browseParamsById: SELECT browse_params FROM Playlist WHERE id == :id;
+updateBrowseParamsById: UPDATE Playlist SET browse_params = :browse_params WHERE id == :id;
+
+playlistTypeById: SELECT playlist_type FROM Playlist WHERE id == :id;
+updatePlaylistTypeById: UPDATE Playlist SET playlist_type = :playlist_type WHERE id == :id;
+
+areItemsLoadedById: SELECT items_loaded FROM Playlist WHERE id == :id;
+updateAreItemsLoadedById: UPDATE Playlist SET items_loaded = :items_loaded WHERE id == :id;
+
+itemCountById: SELECT item_count FROM Playlist WHERE id == :id;
+updateItemCountById: UPDATE Playlist SET item_count = :item_count WHERE id == :id;
+
+yearById: SELECT year FROM Playlist WHERE id == :id;
+updateYearById: UPDATE Playlist SET year = :year WHERE id == :id;
+
+totalDurationById: SELECT total_duration FROM Playlist WHERE id == :id;
+updateTotalDurationById: UPDATE Playlist SET total_duration = :total_duration WHERE id == :id;
+
+artistById: SELECT artist FROM Playlist WHERE id == :id;
+updateArtistById: UPDATE Playlist SET artist = :artist WHERE id == :id;

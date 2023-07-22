@@ -35,6 +35,7 @@ import com.toasterofbread.spmp.model.mediaitem.MediaItem
 import com.toasterofbread.spmp.platform.PlatformContext
 import com.toasterofbread.spmp.platform.ProjectPreferences
 import com.toasterofbread.spmp.platform.composable.PlatformAlertDialog
+import com.toasterofbread.spmp.platform.createDatabase
 import com.toasterofbread.spmp.platform.vibrateShort
 import com.toasterofbread.spmp.resources.getString
 import com.toasterofbread.spmp.resources.getStringTODO
@@ -106,6 +107,9 @@ object SpMp {
         _yt_ui_localisation = YoutubeUILocalisation(language_data)
 
         Api.initialise()
+
+//        val database = createDatabase(context)
+//        database.songQueries.
     }
 
     fun release() {

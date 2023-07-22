@@ -315,7 +315,7 @@ class MediaPlayerServiceSession: MediaSessionService() {
                 }
 
                 override fun loadBitmap(uri: Uri): ListenableFuture<Bitmap> {
-                    val song = Song.fromId(uri.toString())
+                    val song = SongData(uri.toString())
                     return executor.submit<Bitmap> {
                         runBlocking {
                             formatMediaNotificationImage(

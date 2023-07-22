@@ -38,7 +38,7 @@ abstract class MediaItemThumbnailProvider {
             }
         }
     }
-    data class Thumbnail(val url: String, val width: Int, val height: Int)
+    data class Thumbnail(val url: String, val width: Int = 0, val height: Int = 0)
 
     companion object {
         fun fromThumbnails(thumbnails: List<Thumbnail>): MediaItemThumbnailProvider? {

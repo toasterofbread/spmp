@@ -22,6 +22,8 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Shape
 import androidx.compose.ui.semantics.Role
+import com.toasterofbread.spmp.ui.theme.Theme
+import com.toasterofbread.utils.setAlpha
 
 @OptIn(ExperimentalFoundationApi::class)
 @Composable
@@ -31,7 +33,11 @@ fun ShapedIconButton(
     shape: Shape = CircleShape,
     enabled: Boolean = true,
     interactionSource: MutableInteractionSource = remember { MutableInteractionSource() },
-    colours: IconButtonColors = IconButtonDefaults.iconButtonColors(),
+    colours: IconButtonColors = IconButtonDefaults.iconButtonColors(
+        containerColor = Theme.accent,
+        contentColor = Theme.on_accent,
+        disabledContainerColor = Theme.accent.setAlpha(0.5f)
+    ),
     onLongClick: (() -> Unit)? = null,
     content: @Composable () -> Unit,
 ) {

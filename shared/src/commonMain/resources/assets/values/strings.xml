@@ -502,6 +502,13 @@
     <string name="youtube_manual_login_suffix">On Firefox, this can be done by right-clicking the request and selecting 'Copy value' and then 'Copy Request Headers'.&#xA;&#xA;In other browsers, click on the request and go to the 'Headers' tab, scroll down to 'Request headers', and copy all of the headers in that section starting from 'Accept: */*'.</string>
     <string name="youtube_manual_login_field">Headers</string>
 
+    <string name="youtube_login_load_message">Loading login page</string>
+    <string name="youtube_channel_creation_load_message">Loading channel creation form</string>
+
+    <string name="youtube_channel_creation_title">Register YouTube Music profile</string>
+    <string name="youtube_channel_creation_subtitle">This can also be done on https://music.youtube.com/ by logging in and going to 'Your channel'</string>
+    <string name="youtube_channel_creation_confirm">Create</string>
+
     <string name="manual_login_error_missing_following_headers">Missing the following headers:</string>
     <string name="manual_login_desktop_browser_may_be_needed">You may need to use a desktop browser to complete these steps</string>
 

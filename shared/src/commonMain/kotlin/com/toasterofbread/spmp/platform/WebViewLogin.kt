@@ -16,6 +16,7 @@ interface WebViewRequest {
 expect fun WebViewLogin(
     initial_url: String,
     modifier: Modifier = Modifier,
-    shouldShowPage: (url: String) -> Boolean = { true },
-    onRequestIntercepted: (WebViewRequest, openUrl: (String) -> Unit, getCookie: (String) -> String) -> Unit // if true, interception will stop
+    loading_message: String? = null,
+    shouldShowPage: (url: String) -> Boolean,
+    onRequestIntercepted: (WebViewRequest, openUrl: (String) -> Unit, getCookie: (String) -> String) -> Unit
 )

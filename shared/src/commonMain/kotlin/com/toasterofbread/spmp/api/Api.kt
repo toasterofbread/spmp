@@ -332,8 +332,13 @@ class Api {
             }
         }
 
-        fun Response.getStream(): InputStream {
-            return GZIPInputStream(body!!.byteStream())
+        fun Response.getStream(is_gzip: Boolean = true): InputStream {
+            if (is_gzip) {
+                return GZIPInputStream(body!!.byteStream())
+            }
+            else {
+                return body!!.byteStream()
+            }
         }
 
         private fun updateYtmContext() {

@@ -90,7 +90,7 @@ fun LikeDislikeButton(
                 )
             }
             else if (loading) {
-                SubtleLoadingIndicator(Modifier.size(24.dp), colourProvider)
+                SubtleLoadingIndicator(Modifier.size(24.dp), getColour = colourProvider)
             }
         }
     }

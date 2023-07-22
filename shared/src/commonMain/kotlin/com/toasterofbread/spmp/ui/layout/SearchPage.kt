@@ -162,7 +162,7 @@ fun SearchPage(
                         verticalArrangement = Arrangement.Center
                     ) {
                         Box(Modifier.size(20.dp), contentAlignment = Alignment.Center) {
-                            SubtleLoadingIndicator(colourProvider = { Theme.on_background }, size = 20.dp)
+                            SubtleLoadingIndicator(getColour = { Theme.on_background }, size = 20.dp)
                         }
                         Text(getString("search_results_loading"), Modifier.padding(top = 5.dp))
                     }

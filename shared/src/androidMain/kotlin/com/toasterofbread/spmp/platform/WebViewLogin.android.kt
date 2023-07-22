@@ -7,7 +7,6 @@ import android.view.ViewGroup
 import android.webkit.*
 import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.foundation.layout.Box
-import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
@@ -16,6 +15,7 @@ import androidx.compose.ui.viewinterop.AndroidView
 import com.toasterofbread.spmp.platform.composable.BackHandler
 import com.toasterofbread.spmp.ui.theme.Theme
 import com.toasterofbread.utils.composable.OnChangedEffect
+import com.toasterofbread.utils.composable.SubtleLoadingIndicator
 import com.toasterofbread.utils.isDark
 
 actual fun isWebViewLoginSupported(): Boolean = true
@@ -36,6 +36,7 @@ class WebResourceRequestReader(private val request: WebResourceRequest): WebView
 actual fun WebViewLogin(
     initial_url: String,
     modifier: Modifier,
+    loading_message: String?,
     shouldShowPage: (url: String) -> Boolean,
     onRequestIntercepted: (WebViewRequest, openUrl: (String) -> Unit, getCookie: (String) -> String) -> Unit
 ) {
@@ -69,7 +70,7 @@ actual fun WebViewLogin(
 
     Box(contentAlignment = Alignment.Center) {
         AnimatedVisibility(!show_webview) {
-            CircularProgressIndicator()
+            SubtleLoadingIndicator(message = loading_message)
         }
 
         AndroidView(

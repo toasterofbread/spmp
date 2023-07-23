@@ -1,30 +1,17 @@
 package com.toasterofbread.spmp.ui.layout.mainpage
 
-import androidx.compose.foundation.layout.Arrangement
-import androidx.compose.foundation.layout.Column
-import androidx.compose.foundation.layout.Spacer
-import androidx.compose.foundation.layout.fillMaxWidth
-import androidx.compose.foundation.layout.height
-import androidx.compose.material3.LinearProgressIndicator
-import androidx.compose.material3.Text
+import androidx.compose.foundation.layout.Box
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.draw.alpha
 import androidx.compose.ui.unit.dp
-import androidx.compose.ui.unit.sp
 import com.toasterofbread.spmp.resources.getString
 import com.toasterofbread.spmp.ui.theme.Theme
+import com.toasterofbread.utils.composable.SubtleLoadingIndicator
 
 @Composable
 fun MainPageLoadingView(modifier: Modifier = Modifier) {
-    Column(modifier, verticalArrangement = Arrangement.Center, horizontalAlignment = Alignment.CenterHorizontally) {
-        Text(getString("loading_feed"), Modifier.alpha(0.4f), fontSize = 12.sp, color = Theme.on_background)
-        Spacer(Modifier.height(5.dp))
-        LinearProgressIndicator(
-            Modifier
-                .alpha(0.4f)
-                .fillMaxWidth(0.35f), color = Theme.on_background
-        )
+    Box(modifier, contentAlignment = Alignment.Center) {
+        SubtleLoadingIndicator(message = getString("loading_feed"), getColour = Theme.on_background_provider)
     }
 }

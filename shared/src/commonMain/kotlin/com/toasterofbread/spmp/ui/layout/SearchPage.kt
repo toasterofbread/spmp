@@ -43,6 +43,7 @@ import com.toasterofbread.spmp.ui.theme.Theme
 import com.toasterofbread.utils.*
 import com.toasterofbread.utils.composable.ShapedIconButton
 import com.toasterofbread.utils.composable.SubtleLoadingIndicator
+import com.toasterofbread.spmp.ui.layout.nowplaying.LocalNowPlayingExpansion
 
 val SEARCH_FIELD_FONT_SIZE: TextUnit = 18.sp
 private val SEARCH_BAR_HEIGHT = 45.dp
@@ -131,7 +132,7 @@ fun SearchPage(
                     start = horizontal_padding,
                     end = horizontal_padding,
                     top = SpMp.context.getStatusBarHeight(),
-                    bottom = bottom_padding + (SEARCH_BAR_HEIGHT) + (SEARCH_BAR_PADDING)
+                    bottom = bottom_padding + SEARCH_BAR_HEIGHT
                 )
             )
 
@@ -156,15 +157,11 @@ fun SearchPage(
                     }
                 }
                 else if (search_in_progress) {
-                    Column(
+                    Box(
                         Modifier.fillMaxSize().padding(padding),
-                        horizontalAlignment = Alignment.CenterHorizontally,
-                        verticalArrangement = Arrangement.Center
+                        contentAlignment = Alignment.Center
                     ) {
-                        Box(Modifier.size(20.dp), contentAlignment = Alignment.Center) {
-                            SubtleLoadingIndicator(getColour = { Theme.on_background }, size = 20.dp)
-                        }
-                        Text(getString("search_results_loading"), Modifier.padding(top = 5.dp))
+                        SubtleLoadingIndicator(getColour = { Theme.on_background }, message = getString("search_results_loading"))
                     }
                 }
             }
@@ -222,11 +219,14 @@ private fun SearchBar(
     onFilterChanged: (SearchType?) -> Unit,
     close: () -> Unit
 ) {
+    val expansion = LocalNowPlayingExpansion.current
     var query_text by remember { mutableStateOf("") }
     val focus_requester = remember { FocusRequester() }
 
     LaunchedEffect(Unit) {
-        focus_requester.requestFocus()
+        if (expansion.getPage() == 0) {
+            focus_requester.requestFocus()
+        }
     }
 
     Column(

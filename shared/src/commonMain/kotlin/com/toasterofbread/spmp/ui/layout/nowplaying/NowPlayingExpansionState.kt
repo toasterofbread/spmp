@@ -1,6 +1,7 @@
 package com.toasterofbread.spmp.ui.layout.nowplaying
 
 import SpMp
+import kotlin.math.roundToInt
 import androidx.compose.material.ExperimentalMaterialApi
 import androidx.compose.material.SwipeableState
 import androidx.compose.runtime.*
@@ -43,6 +44,10 @@ class NowPlayingExpansionState(swipe_state: State<SwipeableState<Int>>, private 
 
     fun close() {
         switch_to_page = if (swipe_state.targetValue == 0) 1 else 0
+    }
+
+    fun getPage(): Int {
+        return get().roundToInt().coerceIn(page_range)
     }
 
     fun get(): Float {

@@ -230,10 +230,8 @@ class LyricsOverlayMenu: OverlayMenu() {
                     }
                 }
                 else {
-                    Column(Modifier.fillMaxSize(), horizontalAlignment = Alignment.CenterHorizontally, verticalArrangement = Arrangement.Center) {
-                        Text(getString("lyrics_loading"), fontWeight = FontWeight.Light)
-                        Spacer(Modifier.height(20.dp))
-                        LinearProgressIndicator(Modifier.fillMaxWidth(0.5f), color = Theme.accent, trackColor = Theme.on_accent)
+                    Box(Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
+                        SubtleLoadingIndicator(message = getString("lyrics_loading"))
                     }
                 }
             }

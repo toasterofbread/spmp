@@ -8,6 +8,7 @@ import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxHeight
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.requiredHeight
 import androidx.compose.foundation.layout.width
@@ -91,19 +92,23 @@ fun TopBar(modifier: Modifier = Modifier) {
             val buttons_alpha by remember { derivedStateOf { (2f - expansion.getBounded()).coerceIn(0f, 1f) } }
 
             composeScope {
-                LikeDislikeButton(
-                    song,
-                    Modifier.width(40.dp * buttons_alpha).fillMaxHeight().graphicsLayer { alpha = buttons_alpha },
-                    { 1f - expansion.getDisappearing() > 0f },
-                    { getNPOnBackground().setAlpha(0.5f) }
-                )
+                Box(Modifier.width(40.dp * buttons_alpha)) {
+                    LikeDislikeButton(
+                        song,
+                        Modifier.fillMaxSize().graphicsLayer { alpha = buttons_alpha },
+                        { 1f - expansion.getDisappearing() > 0f },
+                        { getNPOnBackground().setAlpha(0.5f) }
+                    )
+                }
             }
 
-            MusicTopBarWithVisualiser(
-                Settings.INTERNAL_TOPBAR_MODE_NOWPLAYING,
-                Modifier.fillMaxSize().weight(1f),
-                song = song
-            )
+            Box(Modifier.fillMaxSize().weight(1f)) {
+                MusicTopBarWithVisualiser(
+                    Settings.INTERNAL_TOPBAR_MODE_NOWPLAYING,
+                    Modifier.fillMaxSize(),
+                    song = song
+                )
+            }
 
             composeScope {
                 IconButton(

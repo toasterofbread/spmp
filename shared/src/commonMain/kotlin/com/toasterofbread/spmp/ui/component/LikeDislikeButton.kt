@@ -60,7 +60,6 @@ fun LikeDislikeButton(
             if (status.is_available) {
                 check(status == SongLikeStatus.Status.LIKED || status == SongLikeStatus.Status.DISLIKED || status == SongLikeStatus.Status.NEUTRAL)
 
-
                 Icon(
                     if (status != SongLikeStatus.Status.NEUTRAL) Icons.Filled.ThumbUp else Icons.Outlined.ThumbUp,
                     null,

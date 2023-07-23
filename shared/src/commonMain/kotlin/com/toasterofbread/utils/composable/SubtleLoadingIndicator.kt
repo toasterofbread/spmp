@@ -42,7 +42,7 @@ fun SubtleLoadingIndicator(modifier: Modifier = Modifier, message: String? = nul
         )
 	)
 
-    Column(horizontalAlignment = Alignment.CenterHorizontally, verticalArrangement = Arrangement.spacedBy(10.dp)) {
+    Column(horizontalAlignment = Alignment.CenterHorizontally, verticalArrangement = Arrangement.spacedBy(7.dp)) {
         Box(Modifier.sizeIn(minWidth = size, minHeight = size).then(modifier), contentAlignment = Alignment.Center) {
             val current_anim = if (anim + random_offset > 1f) anim + random_offset - 1f else anim + random_offset
             val size_percent = if (current_anim < 0.5f) current_anim else 1f - current_anim

@@ -20,6 +20,7 @@ import androidx.compose.ui.unit.dp
 import com.toasterofbread.spmp.model.Settings
 import com.toasterofbread.spmp.ui.component.multiselect.MediaItemMultiSelectContext
 import com.toasterofbread.utils.copy
+import androidx.compose.ui.zIndex
 
 @Composable
 fun MultiselectAndMusicTopBar(
@@ -34,7 +35,7 @@ fun MultiselectAndMusicTopBar(
     Column(modifier, verticalArrangement = Arrangement.spacedBy(10.dp)) {
         MusicTopBar(
             Settings.KEY_LYRICS_SHOW_IN_SEARCH,
-            Modifier.fillMaxWidth(),
+            Modifier.fillMaxWidth().zIndex(1f),
             padding = padding.copy(bottom = 0.dp),
             onShowingChanged = { top_bar_showing = it }
         )
@@ -56,10 +57,11 @@ fun MultiselectAndMusicTopBar(
     }
 
     val layout_direction = LocalLayoutDirection.current
-    val out_top_padding by animateDpAsState(if (!top_bar_showing && !multiselect_context.is_active) top_padding else 0.dp)
+    val out_top_padding by animateDpAsState(if (!top_bar_showing && !multiselect_context.is_active) top_padding else WAVE_BORDER_DEFAULT_HEIGHT.dp)
 
     return padding.copy(
         layout_direction,
-        top = out_top_padding
+        top = out_top_padding,
+        bottom = padding.calculateBottomPadding() + out_top_padding
     )
 }

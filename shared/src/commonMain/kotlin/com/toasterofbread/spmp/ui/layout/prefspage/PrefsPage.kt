@@ -103,7 +103,6 @@ enum class PrefsPageCategory {
 @OptIn(ExperimentalMaterial3Api::class, ExperimentalResourceApi::class)
 @Composable
 fun PrefsPage(
-    pill_menu: PillMenu,
     bottom_padding: Dp,
     category_state: MutableState<PrefsPageCategory?>,
     modifier: Modifier = Modifier,
@@ -117,6 +116,9 @@ fun PrefsPage(
             }
         ).init(Settings.prefs, Settings.Companion::provideDefault)
     }
+
+    val pill_menu = remember { PillMenu() }
+    pill_menu.PillMenu()
 
     var current_category by category_state
     val category_open by remember { derivedStateOf { current_category != null } }

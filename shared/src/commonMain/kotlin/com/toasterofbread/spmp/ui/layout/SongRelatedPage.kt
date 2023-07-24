@@ -35,7 +35,6 @@ import com.toasterofbread.spmp.model.mediaitem.Song
 import com.toasterofbread.spmp.resources.getStringTODO
 import com.toasterofbread.spmp.ui.component.ErrorInfoDisplay
 import com.toasterofbread.spmp.ui.component.mediaitemlayout.MediaItemGrid
-import com.toasterofbread.spmp.ui.component.PillMenu
 import com.toasterofbread.spmp.ui.component.multiselect.MediaItemMultiSelectContext
 import com.toasterofbread.utils.composable.SubtleLoadingIndicator
 import com.toasterofbread.utils.getContrasted
@@ -44,7 +43,6 @@ import com.toasterofbread.utils.modifier.vertical
 
 @Composable
 fun SongRelatedPage(
-    pill_menu: PillMenu,
     song: Song,
     modifier: Modifier = Modifier,
     previous_item: MediaItem? = null,

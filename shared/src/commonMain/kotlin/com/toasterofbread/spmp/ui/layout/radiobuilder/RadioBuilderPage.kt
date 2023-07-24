@@ -3,6 +3,7 @@ package com.toasterofbread.spmp.ui.layout.radiobuilder
 import SpMp
 import androidx.compose.animation.Crossfade
 import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
@@ -38,7 +39,6 @@ const val RADIO_BUILDER_ICON_WIDTH = 35f
 
 @Composable
 fun RadioBuilderPage(
-    pill_menu: PillMenu,
     bottom_padding: Dp,
     modifier: Modifier = Modifier,
     close: () -> Unit
@@ -54,60 +54,74 @@ fun RadioBuilderPage(
         }
     }
 
-    Column(modifier.padding(horizontal = 10.dp)) {
-        MusicTopBar(
-            Settings.KEY_LYRICS_SHOW_IN_RADIOBUILDER,
-            Modifier.fillMaxWidth()
-        )
-
-        Crossfade(selected_artists) { selected ->
-            Column(
-                Modifier.fillMaxSize(),
-                verticalArrangement = Arrangement.spacedBy(10.dp)
-            ) {
-                Column(Modifier.padding(vertical = 10.dp).fillMaxWidth().zIndex(10f)) {
-                    Row(
-                        Modifier.fillMaxWidth(),
-                        horizontalArrangement = Arrangement.SpaceBetween,
-                        verticalAlignment = Alignment.CenterVertically
-                    ) {
-                        RadioBuilderIcon()
-
-                        Text(
-                            getString(
-                                if (selected == null) "radio_builder_artists_title"
-                                else "radio_builder_modifiers_title"
-                            ),
-                            style = MaterialTheme.typography.headlineMedium
-                        )
-
-                        Spacer(Modifier.width(RADIO_BUILDER_ICON_WIDTH.dp))
+    Box {
+        val pill_menu = remember {
+            PillMenu(follow_player = true)
+        }
+        pill_menu.PillMenu()
+        
+        Column(modifier.padding(horizontal = 10.dp)) {
+            MusicTopBar(
+                Settings.KEY_LYRICS_SHOW_IN_RADIOBUILDER,
+                Modifier.fillMaxWidth()
+            )
+    
+            Crossfade(selected_artists) { selected ->
+                Column(
+                    Modifier.fillMaxSize(),
+                    verticalArrangement = Arrangement.spacedBy(10.dp)
+                ) {
+                    Column(Modifier.padding(vertical = 10.dp).fillMaxWidth().zIndex(10f)) {
+                        Row(
+                            Modifier.fillMaxWidth(),
+                            horizontalArrangement = Arrangement.SpaceBetween,
+                            verticalAlignment = Alignment.CenterVertically
+                        ) {
+                            RadioBuilderIcon()
+    
+                            Text(
+                                getString(
+                                    if (selected == null) "radio_builder_artists_title"
+                                    else "radio_builder_modifiers_title"
+                                ),
+                                style = MaterialTheme.typography.headlineMedium
+                            )
+    
+                            Spacer(Modifier.width(RADIO_BUILDER_ICON_WIDTH.dp))
+                        }
+    
+                        if (selected == null) {
+                            WaveBorder(Modifier.fillMaxWidth(), getOffset = { it })
+                        }
                     }
-
+    
                     if (selected == null) {
-                        WaveBorder(Modifier.fillMaxWidth(), getOffset = { it })
-                    }
-                }
-
-                if (selected == null) {
-                    if (artists_result?.isFailure == true) {
-                        // TODO
-                        SpMp.ErrorDisplay(artists_result?.exceptionOrNull())
+                        if (artists_result?.isFailure == true) {
+                            // TODO
+                            SpMp.ErrorDisplay(artists_result?.exceptionOrNull())
+                        }
+                        else {
+                            RadioArtistSelector(artists_result?.getOrNull(), pill_menu, Modifier.fillMaxSize()) { selected ->
+                                if (selected == null) {
+                                    close()
+                                }
+                                else {
+                                    selected_artists = selected.toSet()
+                                }
+                            }
+                        }
                     }
                     else {
-                        RadioArtistSelector(artists_result?.getOrNull(), pill_menu, Modifier.fillMaxSize()) { selected_artists = it.toSet() }
+                        BackHandler {
+                            selected_artists = null
+                        }
+    
+                        FilterSelectionPage(
+                            selected,
+                            artists_result!!.getOrThrow(),
+                            bottom_padding
+                        )
                     }
-                }
-                else {
-                    BackHandler {
-                        selected_artists = null
-                    }
-
-                    FilterSelectionPage(
-                        selected,
-                        artists_result!!.getOrThrow(),
-                        bottom_padding
-                    )
                 }
             }
         }

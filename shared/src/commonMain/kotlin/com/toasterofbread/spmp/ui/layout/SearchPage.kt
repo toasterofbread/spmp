@@ -37,61 +37,196 @@ import com.toasterofbread.spmp.resources.getString
 import com.toasterofbread.spmp.ui.component.ErrorInfoDisplay
 import com.toasterofbread.spmp.ui.component.mediaitemlayout.MediaItemLayout
 import com.toasterofbread.spmp.ui.component.MultiselectAndMusicTopBar
-import com.toasterofbread.spmp.ui.component.PillMenu
 import com.toasterofbread.spmp.ui.component.multiselect.MediaItemMultiSelectContext
 import com.toasterofbread.spmp.ui.theme.Theme
 import com.toasterofbread.utils.*
 import com.toasterofbread.utils.composable.ShapedIconButton
 import com.toasterofbread.utils.composable.SubtleLoadingIndicator
+import com.toasterofbread.utils.composable.rememberKeyboardOpen
 import com.toasterofbread.spmp.ui.layout.nowplaying.LocalNowPlayingExpansion
+import com.toasterofbread.spmp.ui.layout.mainpage.MainPage
+import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.Job
+import kotlinx.coroutines.cancelChildren
 
 val SEARCH_FIELD_FONT_SIZE: TextUnit = 18.sp
 private val SEARCH_BAR_HEIGHT = 45.dp
-private val SEARCH_BAR_PADDING = 15.dp
+private val SEARCH_BAR_V_PADDING = 15.dp
 
-@OptIn(ExperimentalComposeUiApi::class)
-@Composable
-fun SearchPage(
-    pill_menu: PillMenu,
-    bottom_padding: Dp,
-    close: () -> Unit
-) {
-    val focus_state = remember { mutableStateOf(false) }
-    val focus_manager = LocalFocusManager.current
-    val player = LocalPlayerState.current
-    val multiselect_context = remember { MediaItemMultiSelectContext() {} }
-    val coroutine_scope = rememberCoroutineScope()
-    val keyboard_controller = LocalSoftwareKeyboardController.current
+class SearchPage: MainPage() {
+    private val coroutine_scope = CoroutineScope(Job())
+    private val search_lock = Object()
+    
+    private var clearFocus: (() -> Unit)? = null
+    private var multiselect_context: MediaItemMultiSelectContext? = null
 
-    var search_in_progress: Boolean by remember { mutableStateOf(false) }
-    val search_lock = remember { Object() }
+    private var search_in_progress: Boolean by mutableStateOf(false)
+    private var current_results: SearchResults? by mutableStateOf(null)
+    private var current_query: String by mutableStateOf("")
+    private var current_filter: SearchType? by mutableStateOf(null)
+    private var error: Throwable? by mutableStateOf(null)
 
-    var current_results: SearchResults? by remember { mutableStateOf(null) }
-    var current_query: String? by remember { mutableStateOf(null) }
-    var current_filter: SearchType? by remember { mutableStateOf(null) }
+    override fun onOpened() {
+        coroutine_scope.coroutineContext.cancelChildren()
+        search_in_progress = false
+        current_results = null
+        current_query = ""
+        current_filter = null
+        error = null
+    }
+    
+    private fun setFilter(filter: SearchType?) {
+        if (filter == current_filter) {
+            return
+        }
 
-    var error: Throwable? by remember { mutableStateOf(null) }
+        current_filter = filter
+        if (current_results != null || search_in_progress) {
+            performSearch()
+        }
+    }
 
-    fun performSearch(query: String, filter: SearchFilter? = null) {
-        focus_manager.clearFocus()
-        keyboard_controller?.hide()
+    @OptIn(ExperimentalComposeUiApi::class, ExperimentalMaterial3Api::class)
+    @Composable
+    override fun Page(
+        multiselect_context: MediaItemMultiSelectContext, 
+        modifier: Modifier, 
+        content_padding: PaddingValues, 
+        close: () -> Unit
+    ) {
+        val player = LocalPlayerState.current
+        val keyboard_controller = LocalSoftwareKeyboardController.current
+        val focus_manager = LocalFocusManager.current
+        val focus_state = remember { mutableStateOf(false) }
 
+        DisposableEffect(focus_manager, keyboard_controller) {
+            clearFocus = {
+                focus_manager.clearFocus()
+                keyboard_controller?.hide()
+            }
+            this@SearchPage.multiselect_context = multiselect_context
+
+            onDispose {
+                clearFocus = null
+                this@SearchPage.multiselect_context = null
+            }
+        }
+
+        val keyboard_open by rememberKeyboardOpen()
+        LaunchedEffect(keyboard_open) {
+            if (!keyboard_open) {
+                clearFocus?.invoke()
+            }
+        }
+
+        Box(modifier) {
+            Column(Modifier.fillMaxSize()) {
+                val padding = content_padding.copy(
+                    bottom = content_padding.calculateBottomPadding() + SEARCH_BAR_HEIGHT + (SEARCH_BAR_V_PADDING * 2)
+                )
+
+                Crossfade(
+                    error ?: current_results
+                ) { results ->
+                    if (results is SearchResults) {
+                        Results(
+                            results,
+                            padding,
+                            multiselect_context
+                        )
+                    }
+                    else if (results is Throwable) {
+                        Box(
+                            Modifier
+                                .fillMaxSize()
+                                .padding(padding),
+                            contentAlignment = Alignment.Center
+                        ) {
+                            ErrorInfoDisplay(results, Modifier.fillMaxWidth())
+                        }
+                    }
+                    else if (search_in_progress) {
+                        Box(
+                            Modifier.fillMaxSize().padding(padding),
+                            contentAlignment = Alignment.Center
+                        ) {
+                            SubtleLoadingIndicator(getColour = { Theme.on_background }, message = getString("search_results_loading"))
+                        }
+                    }
+                }
+            }
+
+            SearchBar(
+                focus_state,
+                player.nowPlayingTopOffset(Modifier.align(Alignment.BottomCenter)),
+                close
+            )
+        }
+    }
+
+    @OptIn(ExperimentalComposeUiApi::class, ExperimentalMaterial3Api::class)
+    @Composable
+    fun FilterBar(modifier: Modifier = Modifier) {
+        val chip_colours = FilterChipDefaults.filterChipColors(
+            containerColor = Theme.background,
+            labelColor = Theme.on_background,
+            selectedContainerColor = Theme.accent,
+            selectedLabelColor = Theme.on_accent
+        )
+
+        Row(
+            modifier
+                .horizontalScroll(rememberScrollState())
+                .height(SEARCH_BAR_HEIGHT),
+            horizontalArrangement = Arrangement.spacedBy(5.dp),
+            verticalAlignment = Alignment.CenterVertically
+        ) {
+            for (type in listOf(null) + SearchType.values()) {
+                FilterChip(
+                    selected = current_filter == type,
+                    onClick = {
+                        setFilter(type)
+                    },
+                    label = {
+                        Text(when (type) {
+                            null -> getString("search_filter_all")
+                            SearchType.VIDEO -> getString("search_filter_videos")
+                            SearchType.SONG -> MediaItemType.SONG.getReadable(true)
+                            SearchType.ARTIST -> MediaItemType.ARTIST.getReadable(true)
+                            SearchType.PLAYLIST -> PlaylistType.PLAYLIST.getReadable(true)
+                            SearchType.ALBUM -> PlaylistType.ALBUM.getReadable(true)
+                        })
+                    },
+                    colors = chip_colours
+                )
+            }
+        }
+    }
+
+    fun performSearch() {
+        performSearch(current_filter?.let { SearchFilter(it, it.getDefaultParams()) })
+    }
+
+    fun performSearch(filter: SearchFilter?) {
+        clearFocus?.invoke()
+        
         synchronized(search_lock) {
             search_in_progress = true
-
+            
+            val query = current_query
             current_results = null
-            current_query = query
             current_filter = filter?.type
-            multiselect_context.setActive(false)
-
+            multiselect_context?.setActive(false)
+            
             coroutine_scope.launchSingle {
-                searchYoutubeMusic(query, filter?.params).fold(
+                val result = searchYoutubeMusic(query, filter?.params)
+                result.fold(
                     { results ->
                         for (result in results.categories) {
                             if (result.second != null) {
                                 result.first.view_more = MediaItemLayout.ViewMore(
                                     action = {
-                                        performSearch(current_query!!, result.second)
+                                        performSearch(result.second)
                                     }
                                 )
                             }
@@ -113,164 +248,28 @@ fun SearchPage(
         }
     }
 
-    BackHandler(focus_state.value) {
-        focus_manager.clearFocus()
-        keyboard_controller?.hide()
-    }
-
-    LaunchedEffect(Unit) {
-        pill_menu.showing = false
-    }
-
-    Box(Modifier.fillMaxSize()) {
-        Column(Modifier.fillMaxSize()) {
-            val horizontal_padding = SpMp.context.getDefaultHorizontalPadding()
-            val padding = MultiselectAndMusicTopBar(
-                multiselect_context,
-                Modifier.fillMaxWidth().zIndex(1f),
-                padding = PaddingValues(
-                    start = horizontal_padding,
-                    end = horizontal_padding,
-                    top = SpMp.context.getStatusBarHeight(),
-                    bottom = bottom_padding + SEARCH_BAR_HEIGHT
-                )
-            )
-
-            Crossfade(
-                error ?: current_results
-            ) { results ->
-                if (results is SearchResults) {
-                    Results(
-                        results,
-                        padding,
-                        multiselect_context
-                    )
-                }
-                else if (results is Throwable) {
-                    Box(
-                        Modifier
-                            .fillMaxSize()
-                            .padding(padding),
-                        contentAlignment = Alignment.Center
-                    ) {
-                        ErrorInfoDisplay(results, Modifier.fillMaxWidth())
-                    }
-                }
-                else if (search_in_progress) {
-                    Box(
-                        Modifier.fillMaxSize().padding(padding),
-                        contentAlignment = Alignment.Center
-                    ) {
-                        SubtleLoadingIndicator(getColour = { Theme.on_background }, message = getString("search_results_loading"))
-                    }
-                }
-            }
-        }
-
-        SearchBar(
-            search_in_progress,
-            focus_state,
-            current_filter,
-            player.nowPlayingTopOffset(Modifier.align(Alignment.BottomCenter)),
-            { query, filter ->
-                performSearch(query, filter?.let { SearchFilter(it, it.getDefaultParams()) })
-            },
-            { filter ->
-                if (current_query != null) {
-                    performSearch(current_query!!, filter?.let { SearchFilter(it, it.getDefaultParams()) })
-                }
-            },
-            close
-        )
-    }
-}
-
-@Composable
-private fun Results(results: SearchResults, padding: PaddingValues, multiselect_context: MediaItemMultiSelectContext) {
-    LazyColumn(
-        Modifier.fillMaxSize(),
-        contentPadding = padding,
-        verticalArrangement = Arrangement.spacedBy(25.dp)
+    @OptIn(ExperimentalMaterial3Api::class)
+    @Composable
+    private fun SearchBar(
+        focus_state: MutableState<Boolean>,
+        modifier: Modifier = Modifier,
+        close: () -> Unit
     ) {
-        if (results.suggested_correction != null) {
-            item {
-                // TODO
-                Text(results.suggested_correction)
+        val expansion = LocalNowPlayingExpansion.current
+        var query_text by remember { mutableStateOf("") }
+        val focus_requester = remember { FocusRequester() }
+    
+        LaunchedEffect(Unit) {
+            if (expansion.getPage() == 0 && current_results == null && !search_in_progress) {
+                focus_requester.requestFocus()
             }
         }
-
-        for (category in results.categories.withIndex()) {
-            val layout = category.value.first
-            item {
-                (layout.type ?: MediaItemLayout.Type.LIST).Layout(layout, multiselect_context = multiselect_context)
-            }
-        }
-    }
-}
-
-@OptIn(ExperimentalMaterial3Api::class)
-@Composable
-private fun SearchBar(
-    search_in_progress: Boolean,
-    focus_state: MutableState<Boolean>,
-    filter: SearchType?,
-    modifier: Modifier = Modifier,
-    requestSearch: (String, SearchType?) -> Unit,
-    onFilterChanged: (SearchType?) -> Unit,
-    close: () -> Unit
-) {
-    val expansion = LocalNowPlayingExpansion.current
-    var query_text by remember { mutableStateOf("") }
-    val focus_requester = remember { FocusRequester() }
-
-    LaunchedEffect(Unit) {
-        if (expansion.getPage() == 0) {
-            focus_requester.requestFocus()
-        }
-    }
-
-    Column(
-        modifier
-            .fillMaxWidth()
-            .height(IntrinsicSize.Max)
-            .padding(SEARCH_BAR_PADDING)
-    ) {
+    
         Row(
-            Modifier
-                .horizontalScroll(rememberScrollState())
-                .height(SEARCH_BAR_HEIGHT),
-            horizontalArrangement = Arrangement.spacedBy(5.dp),
-            verticalAlignment = Alignment.CenterVertically
-        ) {
-            for (type in listOf(null) + SearchType.values()) {
-                FilterChip(
-                    selected = filter == type,
-                    onClick = {
-                        if (filter != type) {
-                            onFilterChanged(type)
-                        }
-                    },
-                    label = {
-                        Text(when (type) {
-                            null -> getString("search_filter_all")
-                            SearchType.VIDEO -> getString("search_filter_videos")
-                            SearchType.SONG -> MediaItemType.SONG.getReadable(true)
-                            SearchType.ARTIST -> MediaItemType.ARTIST.getReadable(true)
-                            SearchType.PLAYLIST -> PlaylistType.PLAYLIST.getReadable(true)
-                            SearchType.ALBUM -> PlaylistType.ALBUM.getReadable(true)
-                        })
-                    },
-                    colors = FilterChipDefaults.filterChipColors(
-                        containerColor = Theme.background,
-                        labelColor = Theme.on_background,
-                        selectedContainerColor = Theme.accent,
-                        selectedLabelColor = Theme.on_accent
-                    )
-                )
-            }
-        }
-
-        Row(
+            modifier
+                .fillMaxWidth()
+                .padding(vertical = SEARCH_BAR_V_PADDING, horizontal = SpMp.context.getDefaultHorizontalPadding())
+                .height(IntrinsicSize.Max),
             horizontalArrangement = Arrangement.spacedBy(10.dp),
             verticalAlignment = Alignment.Bottom
         ) {
@@ -288,8 +287,8 @@ private fun SearchBar(
             }
 
             BasicTextField(
-                value = query_text,
-                onValueChange = { query_text = it },
+                value = current_query,
+                onValueChange = { current_query = it },
                 singleLine = true,
                 textStyle = LocalTextStyle.current.copy(
                     fontSize = SEARCH_FIELD_FONT_SIZE,
@@ -319,7 +318,7 @@ private fun SearchBar(
                         Box(Modifier.fillMaxWidth(0.9f), contentAlignment = Alignment.CenterStart) {
 
                             // Query hint
-                            if (query_text.isEmpty()) {
+                            if (current_query.isEmpty()) {
                                 Text(getString("search_entry_field_hint"), fontSize = SEARCH_FIELD_FONT_SIZE, color = Theme.on_accent)
                             }
 
@@ -328,7 +327,7 @@ private fun SearchBar(
                         }
 
                         // Clear field button
-                        IconButton(onClick = { query_text = "" }, Modifier.fillMaxWidth()) {
+                        IconButton(onClick = { current_query = "" }, Modifier.fillMaxWidth()) {
                             Icon(Icons.Filled.Clear, null, Modifier, Theme.on_accent)
                         }
 
@@ -337,7 +336,7 @@ private fun SearchBar(
                             if (!in_progress) {
                                 IconButton(onClick = {
                                     if (!search_in_progress) {
-                                        requestSearch(query_text, null)
+                                        performSearch()
                                     }
                                 }) {
                                     Icon(Icons.Filled.Search, null)
@@ -353,14 +352,14 @@ private fun SearchBar(
                 keyboardActions = KeyboardActions(
                     onSearch = {
                         if (!search_in_progress) {
-                            requestSearch(query_text, null)
+                            performSearch()
                         }
                     }
                 )
             )
 
             ShapedIconButton(
-                { requestSearch(query_text, null) },
+                { performSearch() },
                 Modifier
                     .fillMaxHeight()
                     .aspectRatio(1f),
@@ -370,6 +369,29 @@ private fun SearchBar(
                 )
             ) {
                 Icon(Icons.Filled.Search, null)
+            }
+        }
+    }
+}
+
+@Composable
+private fun Results(results: SearchResults, padding: PaddingValues, multiselect_context: MediaItemMultiSelectContext) {
+    LazyColumn(
+        Modifier.fillMaxSize(),
+        contentPadding = padding,
+        verticalArrangement = Arrangement.spacedBy(25.dp)
+    ) {
+        if (results.suggested_correction != null) {
+            item {
+                // TODO
+                Text(results.suggested_correction)
+            }
+        }
+
+        for (category in results.categories.withIndex()) {
+            val layout = category.value.first
+            item {
+                (layout.type ?: MediaItemLayout.Type.LIST).Layout(layout, multiselect_context = multiselect_context)
             }
         }
     }

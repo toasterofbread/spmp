@@ -103,6 +103,23 @@ fun ThumbnailRow(
     val thumbnail_shape = RoundedCornerShape(thumbnail_rounding ?: DEFAULT_THUMBNAIL_ROUNDING)
     var image_size by remember { mutableStateOf(IntSize(1, 1)) }
 
+    var colourpick_callback by remember { mutableStateOf<((Color?) -> Unit)?>(null) }
+    LaunchedEffect(overlay_menu) {
+        colourpick_callback = null
+    }
+
+    val main_overlay_menu = remember {
+        MainOverlayMenu(
+            { overlay_menu = it },
+            { colourpick_callback = it },
+            {
+                setThemeColour(it)
+                overlay_menu = null
+            },
+            { SpMp.context.getScreenWidth() }
+        )
+    }
+
     LaunchedEffect(current_song) {
         current_thumb_image = null
         onThumbnailLoaded(null)
@@ -113,11 +130,6 @@ fun ThumbnailRow(
         verticalAlignment = Alignment.CenterVertically,
         horizontalArrangement = Arrangement.SpaceEvenly
     ) {
-        var colourpick_callback by remember { mutableStateOf<((Color?) -> Unit)?>(null) }
-        LaunchedEffect(overlay_menu) {
-            colourpick_callback = null
-        }
-
         var opened by remember { mutableStateOf(false) }
         val expanded by remember { derivedStateOf {
             (expansion.get() - 1f).absoluteValue <= EXPANDED_THRESHOLD
@@ -156,15 +168,7 @@ fun ThumbnailRow(
                             indication = null
                         ) {
                             if (overlay_menu == null && expansion.get() in 0.9f .. 1.1f) {
-                                overlay_menu = MainOverlayMenu(
-                                    { overlay_menu = it },
-                                    { colourpick_callback = it },
-                                    {
-                                        setThemeColour(it)
-                                        overlay_menu = null
-                                    },
-                                    { SpMp.context.getScreenWidth() }
-                                )
+                                overlay_menu = main_overlay_menu
                             }
                         }
                 )
@@ -216,19 +220,22 @@ fun ThumbnailRow(
                             }),
                         contentAlignment = Alignment.Center
                     ) {
-                        Crossfade(overlay_menu) { menu ->
-                            if (menu != null) {
-                                BackHandler {
-                                    overlay_menu = null
-                                    colourpick_callback = null
-                                }
+                        BackHandler(overlay_menu != null) {
+                            if (overlay_menu == main_overlay_menu) {
+                                overlay_menu = null
                             }
+                            else {
+                                overlay_menu = main_overlay_menu
+                            }
+                            colourpick_callback = null
+                        }
 
+                        Crossfade(overlay_menu) { menu ->
                             CompositionLocalProvider(LocalContentColor provides Color.White) {
                                 menu?.Menu(
                                     { player.status.m_song!! },
                                     { expansion.getAbsolute() },
-                                    { overlay_menu = it },
+                                    { overlay_menu = it ?: main_overlay_menu },
                                     getSeekState
                                 ) { current_thumb_image }
                             }

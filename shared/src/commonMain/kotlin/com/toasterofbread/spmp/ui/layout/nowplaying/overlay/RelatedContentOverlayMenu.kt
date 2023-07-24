@@ -31,13 +31,8 @@ class RelatedContentOverlayMenu : OverlayMenu() {
         getSeekState: () -> Any,
         getCurrentSongThumb: () -> ImageBitmap?
     ) {
-        val pill_menu = remember { PillMenu(
-            _background_colour = Theme.accent_provider
-        ) }
-
         Box(Modifier.fillMaxSize(), contentAlignment = Alignment.BottomEnd) {
             SongRelatedPage(
-                pill_menu,
                 getSong(),
                 Modifier.fillMaxSize(),
                 title_text_style = MaterialTheme.typography.headlineSmall,
@@ -47,6 +42,9 @@ class RelatedContentOverlayMenu : OverlayMenu() {
                 accent_colour = getNPBackground()
             )
 
+            val pill_menu = remember { PillMenu(
+                _background_colour = { getNPBackground() }
+            ) }
             pill_menu.PillMenu(
                 1,
                 { index, _ ->

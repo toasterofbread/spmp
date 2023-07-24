@@ -49,6 +49,7 @@ import com.toasterofbread.spmp.resources.getString
 import com.toasterofbread.spmp.ui.component.mediaitemlayout.MediaItemGrid
 import com.toasterofbread.spmp.ui.component.multiselect.MediaItemMultiSelectContext
 import com.toasterofbread.utils.composable.SubtleLoadingIndicator
+import com.toasterofbread.spmp.ui.layout.mainpage.PinnedItemsRow
 import kotlinx.coroutines.launch
 
 private const val LOCAL_SONGS_PREVIEW_AMOUNT = 5
@@ -206,12 +207,12 @@ internal fun ArtistsRow(
 fun LibraryMainPage(
     downloads: List<PlayerDownloadManager.DownloadStatus>,
     multiselect_context: MediaItemMultiSelectContext,
-    bottom_padding: Dp,
+    content_padding: PaddingValues,
     inline: Boolean,
     openPage: (LibrarySubPage?) -> Unit,
-    topContent: (@Composable () -> Unit)? = null,
     onSongClicked: (songs: List<Song>, song: Song, index: Int) -> Unit
 ) {
+    val player = LocalPlayerState.current
     val spacing = 20.dp
     val heading_text_style = MaterialTheme.typography.headlineSmall
 
@@ -219,10 +220,11 @@ fun LibraryMainPage(
         multiselect_context.InfoDisplay()
     }
 
-    LazyColumn(contentPadding = PaddingValues(bottom = bottom_padding)) {
-        if (topContent != null) {
-            item {
-                topContent.invoke()
+    LazyColumn(contentPadding = content_padding) {
+        item {
+            val pinned_items = player.pinned_items
+            AnimatedVisibility(pinned_items.isNotEmpty()) {
+                PinnedItemsRow(Modifier.padding(bottom = 10.dp), pinned_items)
             }
         }
 

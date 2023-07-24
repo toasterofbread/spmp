@@ -35,7 +35,6 @@ import com.toasterofbread.spmp.resources.getString
 import com.toasterofbread.spmp.resources.uilocalisation.YoutubeUILocalisation
 import com.toasterofbread.spmp.ui.component.mediaitemlayout.MediaItemLayout
 import com.toasterofbread.spmp.ui.component.MusicTopBar
-import com.toasterofbread.spmp.ui.component.PillMenu
 import com.toasterofbread.spmp.ui.component.WaveBorder
 import com.toasterofbread.spmp.ui.component.longpressmenu.LongPressMenuData
 import com.toasterofbread.spmp.ui.component.multiselect.MediaItemMultiSelectContext
@@ -53,7 +52,6 @@ private const val ARTIST_IMAGE_SCROLL_MODIFIER = 0.25f
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun ArtistPage(
-    pill_menu: PillMenu,
     item: Artist,
     previous_item: MediaItem? = null,
     bottom_padding: Dp = 0.dp,

@@ -8,6 +8,8 @@ import androidx.compose.foundation.lazy.LazyRow
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Person
+import androidx.compose.material.icons.filled.Search
+import androidx.compose.material.icons.filled.Close
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Modifier
@@ -20,6 +22,7 @@ import com.toasterofbread.spmp.ui.component.WaveBorder
 import com.toasterofbread.spmp.ui.layout.YoutubeMusicLoginConfirmation
 import com.toasterofbread.spmp.ui.layout.radiobuilder.RadioBuilderIcon
 import com.toasterofbread.spmp.ui.theme.Theme
+import com.toasterofbread.spmp.ui.layout.SearchPage
 
 @Composable
 fun MainPageTopBar(
@@ -78,7 +81,27 @@ fun MainPageTopBar(
                 multiselect_context.InfoDisplay(Modifier.fillMaxWidth())
             }
             else {
-                FilterChipsRow(getFilterChips, getSelectedFilterChip, onFilterChipSelected)
+                Crossfade(player.main_page) { page ->
+                    if (page is SearchPage) {
+                        Row {
+                            IconButton({ player.navigateBack() }) {
+                                Icon(Icons.Default.Close, null)
+                            }
+                            page.FilterBar(Modifier.fillMaxWidth().weight(1f))
+                        }
+                    }
+                    else {
+                        Row {
+                            IconButton({ player.setMainPage(MainPage.Search) }) {
+                                Icon(Icons.Default.Search, null)
+                            }
+                            FilterChipsRow(
+                                getFilterChips, getSelectedFilterChip, onFilterChipSelected, 
+                                Modifier.fillMaxWidth().weight(1f)
+                            )
+                        }
+                    }
+                }
             }
         }
 
@@ -96,11 +119,16 @@ private fun RadioBuilderButton() {
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
-private fun ColumnScope.FilterChipsRow(getFilterChips: () -> List<FilterChip>?, getSelectedFilterChip: () -> Int?, onFilterChipSelected: (Int?) -> Unit) {
+private fun FilterChipsRow(
+    getFilterChips: () -> List<FilterChip>?,
+    getSelectedFilterChip: () -> Int?,
+    onFilterChipSelected: (Int?) -> Unit,
+    modifier: Modifier = Modifier
+) {
     val enabled: Boolean by mutableSettingsState(Settings.KEY_FEED_SHOW_FILTERS)
     val filter_chips = getFilterChips()
 
-    Crossfade(if (enabled) filter_chips else null) { chips ->
+    Crossfade(if (enabled) filter_chips else null, modifier) { chips ->
         if (chips?.isNotEmpty() == true) {
             LazyRow(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.spacedBy(10.dp)) {
                 val selected_filter_chip = getSelectedFilterChip()

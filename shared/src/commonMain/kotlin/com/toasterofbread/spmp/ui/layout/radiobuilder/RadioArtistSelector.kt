@@ -19,6 +19,7 @@ import androidx.compose.foundation.lazy.grid.LazyVerticalGrid
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Refresh
+import androidx.compose.material.icons.filled.Close
 import androidx.compose.material3.Button
 import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.Icon
@@ -49,6 +50,7 @@ import com.toasterofbread.utils.composable.OnChangedEffect
 import com.toasterofbread.utils.composable.SubtleLoadingIndicator
 import com.toasterofbread.utils.composable.crossOut
 import com.toasterofbread.utils.times
+import androidx.compose.ui.graphics.Color
 
 @OptIn(ExperimentalFoundationApi::class)
 @Composable
@@ -56,7 +58,7 @@ internal fun RadioArtistSelector(
     radio_artists: List<RadioBuilderArtist>?,
     pill_menu: PillMenu,
     modifier: Modifier = Modifier,
-    onFinished: (List<Int>) -> Unit
+    onFinished: (List<Int>?) -> Unit
 ) {
     val selected_artists: MutableList<Int> = remember { mutableStateListOf() }
     val player = LocalPlayerState.current
@@ -65,21 +67,20 @@ internal fun RadioArtistSelector(
         val actions = pill_menu.run {
             listOf(
                 addExtraAction(false) {
-                    IconButton(
-                        { selected_artists.clear() },
-                        colors = IconButtonDefaults.iconButtonColors(
-                            containerColor = background_colour,
-                            contentColor = content_colour
-                        )
-                    ) {
-                        Icon(Icons.Filled.Refresh, null)
+                    IconButton({ onFinished(null) }) {
+                        Icon(Icons.Filled.Close, null, tint = content_colour)
+                    }
+                },
+                addExtraAction(false) {
+                    IconButton({ selected_artists.clear() }) {
+                        Icon(Icons.Filled.Refresh, null, tint = content_colour)
                     }
                 },
                 addExtraAction(false) {
                     Button(
                         { if (selected_artists.isNotEmpty()) onFinished(selected_artists) },
                         colors = ButtonDefaults.buttonColors(
-                            containerColor = background_colour,
+                            containerColor = Color.Transparent,
                             contentColor = content_colour
                         ),
                         contentPadding = PaddingValues(0.dp, 0.dp)

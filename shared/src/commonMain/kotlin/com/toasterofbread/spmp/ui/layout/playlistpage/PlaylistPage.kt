@@ -51,7 +51,6 @@ import com.toasterofbread.spmp.platform.getDefaultVerticalPadding
 import com.toasterofbread.spmp.resources.getString
 import com.toasterofbread.spmp.resources.uilocalisation.durationToString
 import com.toasterofbread.spmp.ui.component.MultiselectAndMusicTopBar
-import com.toasterofbread.spmp.ui.component.PillMenu
 import com.toasterofbread.spmp.ui.component.longpressmenu.longPressMenuIcon
 import com.toasterofbread.spmp.ui.component.mediaitempreview.getSongLongPressMenuData
 import com.toasterofbread.spmp.ui.component.multiselect.MediaItemMultiSelectContext
@@ -69,7 +68,6 @@ import org.burnoutcrew.reorderable.reorderable
 
 @Composable
 fun PlaylistPage(
-    pill_menu: PillMenu,
     playlist: Playlist,
     previous_item: MediaItem? = null,
     padding: PaddingValues = PaddingValues(),

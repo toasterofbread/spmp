@@ -8,6 +8,7 @@ import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.width
@@ -38,9 +39,9 @@ import com.toasterofbread.spmp.platform.getDefaultHorizontalPadding
 import com.toasterofbread.spmp.platform.getDefaultVerticalPadding
 import com.toasterofbread.spmp.resources.getString
 import com.toasterofbread.spmp.ui.component.MusicTopBar
-import com.toasterofbread.spmp.ui.component.PillMenu
 import com.toasterofbread.spmp.ui.component.multiselect.MediaItemMultiSelectContext
 import com.toasterofbread.spmp.ui.layout.mainpage.PlayerState
+import com.toasterofbread.spmp.ui.layout.mainpage.MainPage
 import com.toasterofbread.spmp.ui.theme.Theme
 import com.toasterofbread.utils.thenIf
 
@@ -58,14 +59,24 @@ fun LibrarySubPage?.getIcon(): ImageVector =
         LibrarySubPage.SONGS -> Icons.Default.MusicNote
     }
 
+class LibraryMainPage(): MainPage() {
+    @Composable
+    override fun Page(
+        multiselect_context: MediaItemMultiSelectContext,
+        modifier: Modifier, 
+        content_padding: PaddingValues, 
+        close: () -> Unit
+    ) {
+        LibraryPage(content_padding, modifier, true, multiselect_context, close)
+    }
+}
+
 @Composable
 fun LibraryPage(
-    pill_menu: PillMenu,
-    bottom_padding: Dp,
+    content_padding: PaddingValues,
     modifier: Modifier = Modifier,
     inline: Boolean = false,
     outer_multiselect_context: MediaItemMultiSelectContext? = null,
-    mainTopContent: (@Composable () -> Unit)? = null,
     close: () -> Unit
 ) {
     require(inline == (outer_multiselect_context != null))
@@ -149,10 +160,9 @@ fun LibraryPage(
                     null -> LibraryMainPage(
                         downloads,
                         multiselect_context,
-                        bottom_padding,
+                        content_padding,
                         inline,
                         { subpage = it },
-                        mainTopContent,
                     ) { songs, song, index ->
                         onSongClicked(songs, player, song, index)
                     }
@@ -160,7 +170,7 @@ fun LibraryPage(
                     LibrarySubPage.SONGS -> LibrarySongsPage(
                         downloads,
                         multiselect_context,
-                        bottom_padding,
+                        content_padding,
                         inline,
                         { subpage = it }
                     ) { songs, song, index ->

@@ -48,6 +48,8 @@ import com.toasterofbread.utils.launchSingle
 import com.toasterofbread.utils.toFloat
 import kotlinx.coroutines.*
 import java.util.concurrent.locks.ReentrantLock
+import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.Job
 
 enum class FeedLoadState { PREINIT, NONE, LOADING, CONTINUING }
 
@@ -62,7 +64,7 @@ fun getMainPageItemSize(): DpSize {
 
 interface PlayerOverlayPage {
     @Composable
-    fun getPage(pill_menu: PillMenu, previous_item: MediaItemHolder?, bottom_padding: Dp, close: () -> Unit)
+    fun getPage(previous_item: MediaItemHolder?, bottom_padding: Dp, close: () -> Unit)
 
     fun getItem(): MediaItem?
 
@@ -70,19 +72,17 @@ interface PlayerOverlayPage {
         override fun getItem(): MediaItem? = holder.item
 
         @Composable
-        override fun getPage(pill_menu: PillMenu, previous_item: MediaItemHolder?, bottom_padding: Dp, close: () -> Unit) {
+        override fun getPage(previous_item: MediaItemHolder?, bottom_padding: Dp, close: () -> Unit) {
             when (val item = holder.item) {
                 null -> close()
                 is Playlist -> PlaylistPage(
-                    pill_menu,
                     item,
                     previous_item?.item,
                     PaddingValues(top = SpMp.context.getStatusBarHeight(), bottom = bottom_padding),
                     close
                 )
-                is Artist -> ArtistPage(pill_menu, item, previous_item?.item, bottom_padding, close)
+                is Artist -> ArtistPage(item, previous_item?.item, bottom_padding, close)
                 is Song -> SongRelatedPage(
-                    pill_menu,
                     item,
                     Modifier.fillMaxSize(),
                     previous_item?.item,
@@ -103,7 +103,7 @@ interface PlayerOverlayPage {
         override fun getItem(): MediaItem? = null
 
         @Composable
-        override fun getPage(pill_menu: PillMenu, previous_item: MediaItemHolder?, bottom_padding: Dp, close: () -> Unit) {
+        override fun getPage(previous_item: MediaItemHolder?, bottom_padding: Dp, close: () -> Unit) {
             YoutubeMusicLogin(
                 Modifier.fillMaxSize(),
                 manual = manual
@@ -121,7 +121,7 @@ interface PlayerOverlayPage {
         override fun getItem(): MediaItem? = null
 
         @Composable
-        override fun getPage(pill_menu: PillMenu, previous_item: MediaItemHolder?, bottom_padding: Dp, close: () -> Unit) {
+        override fun getPage(previous_item: MediaItemHolder?, bottom_padding: Dp, close: () -> Unit) {
             GenericFeedViewMorePage(browse_id, Modifier.fillMaxSize(), bottom_padding = bottom_padding)
         }
     }
@@ -138,23 +138,10 @@ interface PlayerOverlayPage {
             override fun getItem(): MediaItem? = null
 
             @Composable
-            override fun getPage(pill_menu: PillMenu, previous_item: MediaItemHolder?, bottom_padding: Dp, close: () -> Unit) {
+            override fun getPage(previous_item: MediaItemHolder?, bottom_padding: Dp, close: () -> Unit) {
                 RadioBuilderPage(
-                    pill_menu,
                     bottom_padding,
                     Modifier.fillMaxSize(),
-                    close
-                )
-            }
-        }
-        val SearchPage = object : PlayerOverlayPage {
-            override fun getItem(): MediaItem? = null
-
-            @Composable
-            override fun getPage(pill_menu: PillMenu, previous_item: MediaItemHolder?, bottom_padding: Dp, close: () -> Unit) {
-                SearchPage(
-                    pill_menu,
-                    bottom_padding,
                     close
                 )
             }
@@ -165,16 +152,16 @@ interface PlayerOverlayPage {
             val current_category: MutableState<PrefsPageCategory?> = mutableStateOf(null)
 
             @Composable
-            override fun getPage(pill_menu: PillMenu, previous_item: MediaItemHolder?, bottom_padding: Dp, close: () -> Unit) {
-                PrefsPage(pill_menu, bottom_padding, current_category, Modifier.fillMaxSize(), close)
+            override fun getPage(previous_item: MediaItemHolder?, bottom_padding: Dp, close: () -> Unit) {
+                PrefsPage(bottom_padding, current_category, Modifier.fillMaxSize(), close)
             }
         }
         val LibraryPage = object : PlayerOverlayPage {
             override fun getItem(): MediaItem? = null
 
             @Composable
-            override fun getPage(pill_menu: PillMenu, previous_item: MediaItemHolder?, bottom_padding: Dp, close: () -> Unit) {
-                LibraryPage(pill_menu, bottom_padding, Modifier.fillMaxSize(), close = close)
+            override fun getPage(previous_item: MediaItemHolder?, bottom_padding: Dp, close: () -> Unit) {
+                LibraryPage(PaddingValues(bottom = bottom_padding), Modifier.fillMaxSize(), close = close)
             }
         }
     }
@@ -186,6 +173,7 @@ class PlayerStateImpl(private val context: PlatformContext): PlayerState(null, n
     override val session_started: Boolean get() = _player?.session_started == true
 
     private var now_playing_switch_page: Int by mutableStateOf(-1)
+    private val main_page_undo_stack: MutableList<MainPage?> = mutableStateListOf()
     private val overlay_page_undo_stack: MutableList<Pair<PlayerOverlayPage, MediaItem?>?> = mutableListOf()
     private var main_page_showing: Boolean by mutableStateOf(false)
 
@@ -210,18 +198,39 @@ class PlayerStateImpl(private val context: PlatformContext): PlayerState(null, n
     private val np_swipe_state: MutableState<SwipeableState<Int>> = mutableStateOf(SwipeableState(0))
     private var np_swipe_anchors: Map<Float, Int>? by mutableStateOf(null)
 
-    private val pinned_items: MutableList<MediaItemHolder> = mutableStateListOf()
+    override val pinned_items: MutableList<MediaItemHolder> = mutableStateListOf()
 
     val expansion_state = NowPlayingExpansionState(np_swipe_state, context)
     override var download_manager = PlayerDownloadManager(context)
 
+    private val feed_load_state = mutableStateOf(FeedLoadState.PREINIT)
+    private val feed_load_lock = ReentrantLock()
+    private var feed_continuation: String? by mutableStateOf(null)
+    private val feed_coroutine_scope = CoroutineScope(Job())
+
+    private val main_page_scroll_state = LazyListState()
+    private var main_page_layouts: List<MediaItemLayout>? by mutableStateOf(null)
+    private var main_page_load_error: Throwable? by mutableStateOf(null)
+    private var main_page_filter_chips: List<FilterChip>? by mutableStateOf(null)
+    private var main_page_selected_filter_chip: Int? by mutableStateOf(null)
+
+    private val base_main_page = HomeFeedPage(
+        { feed_load_state.value },
+        { main_page_load_error },
+        { continuation: Boolean ->
+            feed_coroutine_scope.launchSingle {
+                loadFeed(-1, false, continuation, main_page_selected_filter_chip)
+            }
+        },
+        { feed_continuation != null },
+        { main_page_layouts ?: emptyList() },
+        main_page_scroll_state
+    )
+
+    override var main_page: MainPage by mutableStateOf(base_main_page)
     override var overlay_page: Pair<PlayerOverlayPage, MediaItem?>? by mutableStateOf(null)
         private set
     override val bottom_padding: Float get() = bottom_padding_anim.value
-    override val pill_menu = PillMenu(
-        top = false,
-        left = false
-    )
     override val main_multiselect_context: MediaItemMultiSelectContext = getPlayerStateMultiSelectContext()
     override var np_theme_mode: ThemeMode by mutableStateOf(Settings.getEnum(Settings.KEY_NOWPLAYING_THEME_MODE, context.getPrefs()))
     override val np_overlay_menu: MutableState<OverlayMenu?> = mutableStateOf(null)
@@ -330,6 +339,15 @@ class PlayerStateImpl(private val context: PlatformContext): PlayerState(null, n
         return context.getNavigationBarHeightDp()
     }
 
+    override fun setMainPage(page: MainPage?) {
+        val new_page = page ?: base_main_page
+        if (new_page != main_page) {
+            main_page_undo_stack.add(main_page)
+            main_page = new_page
+            main_page.onOpened()
+        }
+    }
+
     override fun setOverlayPage(page: PlayerOverlayPage?, from_current: Boolean) {
         val current = if (from_current) overlay_page?.first?.getItem() else null
         val new_page = page?.let { Pair(page, current) }
@@ -340,7 +358,13 @@ class PlayerStateImpl(private val context: PlatformContext): PlayerState(null, n
     }
 
     override fun navigateBack() {
-        overlay_page = overlay_page_undo_stack.removeLastOrNull()
+        if (overlay_page != null) {
+            overlay_page = overlay_page_undo_stack.removeLastOrNull()
+        }
+        else {
+            main_page = main_page_undo_stack.removeLastOrNull() ?: base_main_page
+            main_page.onOpened()
+        }
     }
 
     override fun onMediaItemClicked(item: MediaItem, multiselect_key: Int?) {
@@ -477,10 +501,6 @@ class PlayerStateImpl(private val context: PlatformContext): PlayerState(null, n
                 now_playing_switch_page = -1
             }
         }
-
-        BackHandler(overlay_page_undo_stack.isNotEmpty()) {
-            navigateBack()
-        }
     }
 
     @Composable
@@ -514,16 +534,6 @@ class PlayerStateImpl(private val context: PlatformContext): PlayerState(null, n
         main_page_filter_chips = null
         main_page_selected_filter_chip = null
     }
-
-    private val main_page_scroll_state = LazyListState()
-    private var main_page_layouts: List<MediaItemLayout>? by mutableStateOf(null)
-    private var main_page_load_error: Throwable? by mutableStateOf(null)
-    private var main_page_filter_chips: List<FilterChip>? by mutableStateOf(null)
-    private var main_page_selected_filter_chip: Int? by mutableStateOf(null)
-
-    private val feed_load_state = mutableStateOf(FeedLoadState.PREINIT)
-    private val feed_load_lock = ReentrantLock()
-    private var feed_continuation: String? by mutableStateOf(null)
 
     private suspend fun loadFeed(
         min_rows: Int,
@@ -579,12 +589,14 @@ class PlayerStateImpl(private val context: PlatformContext): PlayerState(null, n
 
     @Composable
     fun HomePage() {
+        BackHandler(main_page_undo_stack.isNotEmpty() || overlay_page != null) {
+            navigateBack()
+        }
+
         CompositionLocalProvider(LocalContentColor provides Theme.on_background) {
             Crossfade(targetState = overlay_page) { page ->
-                val feed_coroutine_scope = rememberCoroutineScope()
-
                 Column(Modifier.fillMaxSize()) {
-                    if (page != null && page.first !is PlayerOverlayPage.MediaItemPage && page.first != PlayerOverlayPage.SearchPage) {
+                    if (page != null && page.first !is PlayerOverlayPage.MediaItemPage) {
                         Spacer(Modifier.requiredHeight(context.getStatusBarHeight()))
                     }
 
@@ -615,15 +627,8 @@ class PlayerStateImpl(private val context: PlatformContext): PlayerState(null, n
                         pinned_items.removeAll { it.item == null }
 
                         MainPage(
-                            pinned_items,
-                            { main_page_layouts ?: emptyList() },
-                            main_page_scroll_state,
-                            feed_load_state,
-                            main_page_load_error,
-                            remember { derivedStateOf { feed_continuation != null } }.value,
                             { main_page_filter_chips },
                             { main_page_selected_filter_chip },
-                            pill_menu,
                             { filter_chip: Int?, continuation: Boolean ->
                                 feed_coroutine_scope.launchSingle {
                                     loadFeed(-1, false, continuation, filter_chip)
@@ -633,7 +638,6 @@ class PlayerStateImpl(private val context: PlatformContext): PlayerState(null, n
                     }
                     else {
                         page.first.getPage(
-                            pill_menu,
                             page.second,
                             (if (session_started) MINIMISED_NOW_PLAYING_HEIGHT_DP.dp else 0.dp) + MINIMISED_NOW_PLAYING_HEIGHT_DP.dp + SpMp.context.getNavigationBarHeightDp() + SpMp.context.getDefaultVerticalPadding(),
                             close

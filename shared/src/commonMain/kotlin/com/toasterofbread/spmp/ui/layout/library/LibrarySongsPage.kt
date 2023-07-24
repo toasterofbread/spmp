@@ -22,7 +22,7 @@ import com.toasterofbread.spmp.ui.component.multiselect.MediaItemMultiSelectCont
 fun LibrarySongsPage(
     downloads: List<PlayerDownloadManager.DownloadStatus>,
     multiselect_context: MediaItemMultiSelectContext,
-    bottom_padding: Dp,
+    content_padding: PaddingValues,
     inline: Boolean,
     openPage: (LibrarySubPage?) -> Unit,
     onSongClicked: (songs: List<Song>, song: Song, index: Int) -> Unit
@@ -62,7 +62,7 @@ fun LibrarySongsPage(
     CompositionLocalProvider(LocalPlayerState provides remember { player.copy(onClickedOverride = { item, index ->
         onSongClicked(sorted_songs, item as Song, index!!)
     }) }) {
-        LazyColumn(contentPadding = PaddingValues(bottom = bottom_padding)) {
+        LazyColumn(contentPadding = content_padding) {
             itemsIndexed(sorted_songs, { _, item -> item.id }) { index, song ->
                 song.PreviewLong(MediaItemPreviewParams(multiselect_context = multiselect_context), queue_index = index)
             }

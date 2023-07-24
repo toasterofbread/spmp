@@ -16,11 +16,11 @@ import com.toasterofbread.spmp.model.mediaitem.Song
 import com.toasterofbread.spmp.platform.MediaPlayerRepeatMode
 import com.toasterofbread.spmp.platform.MediaPlayerService
 import com.toasterofbread.spmp.platform.PlayerDownloadManager
-import com.toasterofbread.spmp.ui.component.PillMenu
 import com.toasterofbread.spmp.ui.component.longpressmenu.LongPressMenuData
 import com.toasterofbread.spmp.ui.component.multiselect.MediaItemMultiSelectContext
 import com.toasterofbread.spmp.ui.layout.nowplaying.ThemeMode
 import com.toasterofbread.spmp.ui.layout.nowplaying.overlay.OverlayMenu
+import com.toasterofbread.spmp.model.mediaitem.MediaItemHolder
 import com.toasterofbread.utils.indexOfOrNull
 import java.net.URI
 import java.net.URISyntaxException
@@ -96,12 +96,13 @@ open class PlayerState protected constructor(
     private val onLongClickedOverride: ((item: MediaItem, long_press_data: LongPressMenuData?) -> Unit)? = null,
     private val upstream: PlayerState? = null
 ) {
+    open val main_page: MainPage? get() = upstream!!.main_page
     open val overlay_page: Pair<PlayerOverlayPage, MediaItem?>? get() = upstream!!.overlay_page
     open val bottom_padding: Float get() = upstream!!.bottom_padding
-    open val pill_menu: PillMenu get() = upstream!!.pill_menu
     open val main_multiselect_context: MediaItemMultiSelectContext get() = upstream!!.main_multiselect_context
     open val np_theme_mode: ThemeMode get() = upstream!!.np_theme_mode
     open val np_overlay_menu: MutableState<OverlayMenu?> get() = upstream!!.np_overlay_menu
+    open val pinned_items: List<MediaItemHolder> get() = upstream!!.pinned_items
 
     open val player: PlayerService? get() = upstream!!.player
     open fun withPlayer(action: PlayerService.() -> Unit) {
@@ -163,6 +164,7 @@ open class PlayerState protected constructor(
     @Composable
     open fun nowPlayingBottomPadding(include_np: Boolean = false): Dp = upstream!!.nowPlayingBottomPadding(include_np)
 
+    open fun setMainPage(page: MainPage?) { upstream!!.setMainPage(page) }
     open fun setOverlayPage(page: PlayerOverlayPage?, from_current: Boolean = false) { upstream!!.setOverlayPage(page, from_current) }
 
     open fun navigateBack() { upstream!!.navigateBack() }

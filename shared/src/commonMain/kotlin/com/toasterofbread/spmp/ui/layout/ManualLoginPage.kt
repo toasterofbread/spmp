@@ -6,20 +6,24 @@ import androidx.compose.foundation.border
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxHeight
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Done
+import androidx.compose.material.icons.filled.Close
 import androidx.compose.material3.Button
+import androidx.compose.material3.IconButton
+import androidx.compose.material3.Icon
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.LocalContentColor
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextField
 import androidx.compose.runtime.Composable
-import androidx.compose.runtime.DisposableEffect
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
@@ -32,7 +36,7 @@ import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.toasterofbread.spmp.platform.composable.PlatformAlertDialog
-import com.toasterofbread.spmp.platform.getDefaultVerticalPadding
+import com.toasterofbread.spmp.platform.getDefaultPaddingValues
 import com.toasterofbread.spmp.resources.getString
 import com.toasterofbread.spmp.ui.component.PillMenu
 import com.toasterofbread.utils.composable.Marquee
@@ -50,17 +54,9 @@ fun ManualLoginPage(
 ) {
     val player = LocalPlayerState.current
 
-    InfoEntry(entry_label, onFinished)
-
     Column(
         modifier
-            .padding(
-                vertical = SpMp.context.getDefaultVerticalPadding()
-            )
-            .padding(
-                top = 40.dp,
-                bottom = player.nowPlayingBottomPadding(true)
-            )
+            .padding(SpMp.context.getDefaultPaddingValues())
             .fillMaxHeight(),
         verticalArrangement = Arrangement.spacedBy(30.dp)
     ) {
@@ -124,43 +120,43 @@ fun ManualLoginPage(
                 )
             }
         }
+
+        Spacer(Modifier.fillMaxHeight().weight(1f))
+
+        InfoEntry(entry_label, Modifier.fillMaxWidth(), onFinished)
     }
 }
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
-private fun InfoEntry(label: String, onFinished: (String?) -> Pair<String, String>?) {
-    val player = LocalPlayerState.current
+private fun InfoEntry(label: String, modifier: Modifier = Modifier, onFinished: (String?) -> Pair<String, String>?) {
+    var headers_value by mutableStateOf("")
+    
     var parse_error: Pair<String, String>? by remember { mutableStateOf(null) }
-
     parse_error?.also { error ->
         ErrorDialog(error) { parse_error = null }
     }
 
-    DisposableEffect(Unit) {
-        var headers_value by mutableStateOf("")
-        val action: @Composable PillMenu.Action.(Int) -> Unit = {
-            ActionButton(Icons.Default.Done) {
-                parse_error = onFinished(headers_value)
-            }
+    Row(
+        LocalPlayerState.current.nowPlayingTopOffset(modifier),
+        verticalAlignment = Alignment.CenterVertically
+    ) {
+        IconButton({ parse_error = onFinished(null) }) {
+            Icon(Icons.Default.Close, null)
         }
-        val field_action: @Composable PillMenu.Action.() -> Unit = {
-            TextField(
-                headers_value,
-                { headers_value = it },
-                label = {
-                    Text(label)
-                },
-                singleLine = true
-            )
-        }
+        
+        TextField(
+            headers_value,
+            { headers_value = it },
+            Modifier.fillMaxWidth().weight(1f),
+            label = {
+                Text(label)
+            },
+            singleLine = true
+        )
 
-        player.pill_menu.addExtraAction(false, action)
-        player.pill_menu.addAlongsideAction(field_action)
-
-        onDispose {
-            player.pill_menu.removeExtraAction(action)
-            player.pill_menu.removeAlongsideAction(field_action)
+        IconButton({ parse_error = onFinished(headers_value) }) {
+            Icon(Icons.Default.Done, null)
         }
     }
 }

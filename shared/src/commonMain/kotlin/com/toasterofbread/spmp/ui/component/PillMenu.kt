@@ -1,5 +1,6 @@
 package com.toasterofbread.spmp.ui.component
 
+import LocalPlayerState
 import androidx.compose.animation.Animatable
 import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.animation.Crossfade
@@ -48,18 +49,21 @@ import androidx.compose.ui.zIndex
 import com.toasterofbread.utils.addUnique
 import com.toasterofbread.utils.composable.NoRipple
 import com.toasterofbread.utils.getContrasted
+import com.toasterofbread.spmp.ui.theme.Theme
+import com.toasterofbread.utils.thenIf
 
 class PillMenu(
     private val action_count: Int = 0,
     private val getAction: @Composable (Action.(i: Int, action_count: Int) -> Unit) = { _, _ -> },
     private val expand_state: MutableState<Boolean>? = null,
-    private val _background_colour: () -> Color = { Color.Unspecified },
+    private val _background_colour: () -> Color = Theme.accent_provider,
     top: Boolean = false,
     left: Boolean = false,
     vertical: Boolean = false,
     private val container_modifier: Modifier = Modifier,
     private val toggleButton: (@Composable Action.(modifier: Modifier) -> Unit)? = null,
     private val alongsideContent: (@Composable Action.() -> Unit)? = null,
+    private val follow_player: Boolean = false,
     private val modifier: Modifier = Modifier
 ) {
     var top by mutableStateOf(top)
@@ -293,6 +297,7 @@ class PillMenu(
             }
 
             if (visible) {
+                val player = LocalPlayerState.current
                 Box(
                     contentAlignment = alignment,
                     modifier = container_modifier
@@ -335,7 +340,14 @@ class PillMenu(
                             enter = enter,
                             exit = exit
                         ) {
-                            RowOrColumn(!vertical, modifier.background(background_colour, shape = CircleShape)) {
+                            RowOrColumn(
+                                !vertical, 
+                                modifier
+                                    .thenIf(follow_player) {
+                                        player.nowPlayingTopOffset(this)
+                                    }
+                                    .background(background_colour, shape = CircleShape)
+                            ) {
                                 if (align_start) {
                                     for (extra in extra_actions_outer) {
                                         extra(action, action_count)

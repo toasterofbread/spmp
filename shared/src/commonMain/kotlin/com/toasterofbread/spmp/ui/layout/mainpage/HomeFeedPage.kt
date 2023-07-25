@@ -210,7 +210,6 @@ class HomeFeedPage(
                             LibraryPage(
                                 PaddingValues(bottom = LocalPlayerState.current.bottom_padding_dp),
                                 close = {},
-                                inline = true,
                                 outer_multiselect_context = LocalPlayerState.current.main_multiselect_context
                             )
                         }

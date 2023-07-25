@@ -39,8 +39,10 @@ import com.toasterofbread.spmp.platform.vibrateShort
 import com.toasterofbread.spmp.resources.getString
 import com.toasterofbread.spmp.resources.getStringTODO
 import com.toasterofbread.spmp.resources.initResources
-import com.toasterofbread.spmp.resources.uilocalisation.YoutubeUILocalisation
 import com.toasterofbread.spmp.resources.uilocalisation.localised.Languages
+import com.toasterofbread.spmp.resources.uilocalisation.YoutubeUILocalisation
+import com.toasterofbread.spmp.resources.uilocalisation.LocalisedYoutubeString
+import com.toasterofbread.spmp.resources.uilocalisation.UnlocalisedStringCollector
 import com.toasterofbread.spmp.ui.layout.mainpage.PlayerState
 import com.toasterofbread.spmp.ui.layout.mainpage.RootView
 import com.toasterofbread.spmp.ui.theme.ApplicationTheme
@@ -187,6 +189,22 @@ object SpMp {
     }
 
     val app_name: String get() = getString("app_name")
+
+    val unlocalised_string_collector: UnlocalisedStringCollector? = UnlocalisedStringCollector()
+
+    fun onUnlocalisedStringFound(string: UnlocalisedStringCollector.UnlocalisedString) {
+        if (unlocalised_string_collector?.add(string) == true) {
+            Log.warning("String key '${string.key}' of type ${string.type} has not been localised (source lang=${SpMp.getLanguageCode(string.source_language)})")
+        }
+    }
+
+    fun onUnlocalisedStringFound(type: String, key: String?, source_language: Int) =
+    onUnlocalisedStringFound(UnlocalisedStringCollector.UnlocalisedString(type, key, source_language))
+    fun onUnlocalisedStringFound(type: String, key: String?, source_language: String) =
+    onUnlocalisedStringFound(UnlocalisedStringCollector.UnlocalisedString(type, key, getLanguageIndex(source_language)))
+    
+    fun onUnlocalisedStringFound(string: LocalisedYoutubeString) =
+        onUnlocalisedStringFound(UnlocalisedStringCollector.UnlocalisedString.fromLocalised(string))
 }
 
 private data class YoutubeiErrorResponse(val error: Error) {

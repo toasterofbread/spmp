@@ -639,7 +639,7 @@ class PlayerStateImpl(private val context: PlatformContext): PlayerState(null, n
                     else {
                         page.first.getPage(
                             page.second,
-                            (if (session_started) MINIMISED_NOW_PLAYING_HEIGHT_DP.dp else 0.dp) + MINIMISED_NOW_PLAYING_HEIGHT_DP.dp + SpMp.context.getNavigationBarHeightDp() + SpMp.context.getDefaultVerticalPadding(),
+                            (if (session_started) MINIMISED_NOW_PLAYING_HEIGHT_DP.dp else 0.dp) + SpMp.context.getNavigationBarHeightDp() + SpMp.context.getDefaultVerticalPadding(),
                             close
                         )
                     }

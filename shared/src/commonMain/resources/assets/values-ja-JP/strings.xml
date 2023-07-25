@@ -426,6 +426,12 @@
     <string name="s_key_vol_intercept_notification">音量変化の通知</string>
     <string name="s_sub_vol_intercept_notification">アクセシビリティサービスがボリュームボタンをインターセプトした時に画面にメッセージを表示しする</string>
 
+    <string name="s_cat_development">開発</string>
+    
+    <string name="s_group_localisation">ローカリゼーション</string>
+    <string name="s_key_unlocalised_strings">ローカライズされてない文</string>
+    <string name="s_sub_unlocalised_strings">現在のアプリ言語に対してまだ書かれていないストリング</string>
+
     <string name="s_cat_discord_status">Discordステータス</string>
 
     <string name="s_discord_status_text_info">以下のキーワードをテキスト内で使うことで、流れてる曲の情報を表示することができます:&#xA;- $song (曲)&#xA;- $artist (アーティスト)</string>

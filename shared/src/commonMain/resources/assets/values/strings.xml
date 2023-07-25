@@ -433,6 +433,12 @@
     <string name="s_key_vol_intercept_notification">Volume change notification</string>
     <string name="s_sub_vol_intercept_notification">Show an on-screen popup when the service intercepts a volume key press</string>
 
+    <string name="s_cat_development">Development</string>
+
+    <string name="s_group_localisation">Localisation</string>
+    <string name="s_key_unlocalised_strings">Unlocalised strings</string>
+    <string name="s_sub_unlocalised_strings">Strings that have not been localised for the current language</string>
+
     <string name="s_cat_discord_status">Discord status</string>
 
     <string name="s_discord_status_text_info">To display information about the current song, use the strings below:&#xA;- $song&#xA;- $artist</string>

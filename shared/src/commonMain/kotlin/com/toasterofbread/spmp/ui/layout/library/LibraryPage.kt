@@ -32,6 +32,7 @@ import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
 import com.toasterofbread.spmp.model.Settings
 import com.toasterofbread.spmp.model.mediaitem.Song
+import com.toasterofbread.spmp.model.YoutubeMusicAuthInfo
 import com.toasterofbread.spmp.platform.PlayerDownloadManager
 import com.toasterofbread.spmp.platform.PlayerDownloadManager.DownloadStatus
 import com.toasterofbread.spmp.platform.composable.BackHandler
@@ -44,6 +45,7 @@ import com.toasterofbread.spmp.ui.layout.mainpage.PlayerState
 import com.toasterofbread.spmp.ui.layout.mainpage.MainPage
 import com.toasterofbread.spmp.ui.theme.Theme
 import com.toasterofbread.utils.thenIf
+import com.toasterofbread.spmp.ui.layout.prefspage.rememberYtmAuthItem
 
 enum class LibrarySubPage { SONGS }
 
@@ -67,7 +69,7 @@ class LibraryMainPage(): MainPage() {
         content_padding: PaddingValues, 
         close: () -> Unit
     ) {
-        LibraryPage(content_padding, modifier, true, multiselect_context, close)
+        LibraryPage(content_padding, modifier, multiselect_context, close)
     }
 }
 
@@ -75,12 +77,9 @@ class LibraryMainPage(): MainPage() {
 fun LibraryPage(
     content_padding: PaddingValues,
     modifier: Modifier = Modifier,
-    inline: Boolean = false,
     outer_multiselect_context: MediaItemMultiSelectContext? = null,
     close: () -> Unit
 ) {
-    require(inline == (outer_multiselect_context != null))
-
     val player = LocalPlayerState.current
     val multiselect_context = remember(outer_multiselect_context) { outer_multiselect_context ?: MediaItemMultiSelectContext {} }
 
@@ -118,65 +117,24 @@ fun LibraryPage(
         subpage = null
     }
 
-    Column(
-        modifier.thenIf(!inline) {
-            Modifier.padding(
-                horizontal = SpMp.context.getDefaultHorizontalPadding(),
-                vertical = SpMp.context.getDefaultVerticalPadding()
-            )
-        }
-    ) {
-        if (!inline) {
-            MusicTopBar(
-                Settings.KEY_LYRICS_SHOW_IN_LIBRARY,
-                Modifier
-                    .fillMaxWidth()
-                    .padding(bottom = 20.dp)
-            )
-        }
+    Crossfade(subpage, Modifier.fillMaxSize()) { page ->
+        when (page) {
+            null -> LibraryMainPage(
+                content_padding,
+                multiselect_context,
+                downloads,
+                { subpage = it },
+            ) { songs, song, index ->
+                onSongClicked(songs, player, song, index)
+            }
 
-        Crossfade(subpage, Modifier.fillMaxSize()) { page ->
-            Column(
-                Modifier.fillMaxSize(),
-                verticalArrangement = Arrangement.spacedBy(25.dp)
-            ) {
-                // Title bar
-                if (!inline) {
-                    Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.SpaceBetween, verticalAlignment = Alignment.CenterVertically) {
-                        Icon(page.getIcon(), null)
-
-                        Text(
-                            page.getReadable(),
-                            style = MaterialTheme.typography.headlineLarge.copy(
-                                color = Theme.on_background
-                            )
-                        )
-
-                        Spacer(Modifier.width(24.dp))
-                    }
-                }
-
-                when (page) {
-                    null -> LibraryMainPage(
-                        downloads,
-                        multiselect_context,
-                        content_padding,
-                        inline,
-                        { subpage = it },
-                    ) { songs, song, index ->
-                        onSongClicked(songs, player, song, index)
-                    }
-
-                    LibrarySubPage.SONGS -> LibrarySongsPage(
-                        downloads,
-                        multiselect_context,
-                        content_padding,
-                        inline,
-                        { subpage = it }
-                    ) { songs, song, index ->
-                        onSongClicked(songs, player, song, index)
-                    }
-                }
+            LibrarySubPage.SONGS -> LibrarySongsPage(
+                content_padding,    
+                multiselect_context,
+                downloads,
+                { subpage = it }
+            ) { songs, song, index ->
+                onSongClicked(songs, player, song, index)
             }
         }
     }

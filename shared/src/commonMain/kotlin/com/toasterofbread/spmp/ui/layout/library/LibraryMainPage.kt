@@ -20,6 +20,7 @@ import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Add
 import androidx.compose.material.icons.filled.MoreHoriz
 import androidx.compose.material.icons.filled.Refresh
+import androidx.compose.material.icons.filled.Settings
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
@@ -48,11 +49,71 @@ import com.toasterofbread.spmp.platform.PlayerDownloadManager
 import com.toasterofbread.spmp.resources.getString
 import com.toasterofbread.spmp.ui.component.mediaitemlayout.MediaItemGrid
 import com.toasterofbread.spmp.ui.component.multiselect.MediaItemMultiSelectContext
-import com.toasterofbread.utils.composable.SubtleLoadingIndicator
 import com.toasterofbread.spmp.ui.layout.mainpage.PinnedItemsRow
+import com.toasterofbread.utils.composable.SubtleLoadingIndicator
+import com.toasterofbread.utils.composable.ShapedIconButton
+import com.toasterofbread.spmp.ui.layout.mainpage.PlayerOverlayPage
+import com.toasterofbread.spmp.ui.theme.Theme
+import com.toasterofbread.spmp.model.YoutubeMusicAuthInfo
+import com.toasterofbread.spmp.ui.layout.prefspage.rememberYtmAuthItem
 import kotlinx.coroutines.launch
 
 private const val LOCAL_SONGS_PREVIEW_AMOUNT = 5
+
+@Composable
+fun LibraryMainPage(
+    content_padding: PaddingValues,
+    multiselect_context: MediaItemMultiSelectContext,
+    downloads: List<PlayerDownloadManager.DownloadStatus>,
+    openPage: (LibrarySubPage?) -> Unit,
+    onSongClicked: (songs: List<Song>, song: Song, index: Int) -> Unit
+) {
+    val player = LocalPlayerState.current
+    val spacing = 20.dp
+    val heading_text_style = MaterialTheme.typography.headlineSmall
+
+    val ytm_auth = YoutubeMusicAuthInfo.rememberSettingsValueState()
+    val auth_item = rememberYtmAuthItem(ytm_auth, true)
+
+    LazyColumn(contentPadding = content_padding) {
+        item {
+            Column {
+                auth_item.GetItem(
+                    Theme,
+                    {},
+                    {}
+                )
+    
+                Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.End) {
+                    ShapedIconButton({ player.setOverlayPage(PlayerOverlayPage.SettingsPage) }) {
+                        Icon(Icons.Default.Settings, null)
+                    }
+                }
+            }
+        }
+
+        item {
+            val pinned_items = player.pinned_items
+            AnimatedVisibility(pinned_items.isNotEmpty()) {
+                PinnedItemsRow(Modifier.padding(bottom = 10.dp), pinned_items)
+            }
+        }
+
+        // Playlists
+        item {
+            PlaylistsRow(heading_text_style, multiselect_context)
+        }
+
+        item {
+            Spacer(Modifier.height(spacing))
+        }
+
+        // Songs
+        item {
+            ArtistsRow(heading_text_style, multiselect_context, downloads, openPage, onSongClicked)
+        }
+    }
+}
 
 @Composable
 private fun PlaylistsRow(heading_text_style: TextStyle, multiselect_context: MediaItemMultiSelectContext) {
@@ -199,47 +260,6 @@ internal fun ArtistsRow(
             }
         } else {
             Text("No songs downloaded", Modifier.padding(top = 10.dp).align(Alignment.CenterHorizontally))
-        }
-    }
-}
-
-@Composable
-fun LibraryMainPage(
-    downloads: List<PlayerDownloadManager.DownloadStatus>,
-    multiselect_context: MediaItemMultiSelectContext,
-    content_padding: PaddingValues,
-    inline: Boolean,
-    openPage: (LibrarySubPage?) -> Unit,
-    onSongClicked: (songs: List<Song>, song: Song, index: Int) -> Unit
-) {
-    val player = LocalPlayerState.current
-    val spacing = 20.dp
-    val heading_text_style = MaterialTheme.typography.headlineSmall
-
-    AnimatedVisibility(!inline && multiselect_context.is_active) {
-        multiselect_context.InfoDisplay()
-    }
-
-    LazyColumn(contentPadding = content_padding) {
-        item {
-            val pinned_items = player.pinned_items
-            AnimatedVisibility(pinned_items.isNotEmpty()) {
-                PinnedItemsRow(Modifier.padding(bottom = 10.dp), pinned_items)
-            }
-        }
-
-        // Playlists
-        item {
-            PlaylistsRow(heading_text_style, multiselect_context)
-        }
-
-        item {
-            Spacer(Modifier.height(spacing))
-        }
-
-        // Songs
-        item {
-            ArtistsRow(heading_text_style, multiselect_context, downloads, openPage, onSongClicked)
         }
     }
 }

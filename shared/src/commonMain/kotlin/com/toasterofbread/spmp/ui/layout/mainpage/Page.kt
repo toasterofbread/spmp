@@ -5,6 +5,7 @@ import androidx.compose.ui.Modifier
 import androidx.compose.foundation.layout.PaddingValues
 import com.toasterofbread.spmp.ui.component.multiselect.MediaItemMultiSelectContext
 import com.toasterofbread.spmp.ui.layout.SearchPage
+import com.toasterofbread.spmp.ui.layout.library.LibraryMainPage
 
 abstract class MainPage {
     @Composable
@@ -19,5 +20,6 @@ abstract class MainPage {
 
     companion object {
         val Search = SearchPage()
+        val Library = LibraryMainPage()
     }
 }

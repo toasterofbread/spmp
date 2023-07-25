@@ -3,13 +3,15 @@ package com.toasterofbread.spmp.ui.layout.mainpage
 import LocalPlayerState
 import SpMp
 import androidx.compose.animation.Crossfade
+import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyRow
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.filled.Person
+import androidx.compose.material.icons.filled.MusicNote
 import androidx.compose.material.icons.filled.Search
 import androidx.compose.material.icons.filled.Close
+import androidx.compose.material.icons.filled.List
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Modifier
@@ -54,22 +56,20 @@ fun MainPageTopBar(
                 }
             }
 
-            IconButton({
-                if (auth_info.initialised) {
-                    player.onMediaItemClicked(auth_info.own_channel)
-                } else {
-                    show_login_confirmation = true
-                }
-            }) {
-                Crossfade(auth_info) { info ->
-                    if (info.initialised) {
-                        info.own_channel.Thumbnail(
-                            MediaItemThumbnailProvider.Quality.LOW,
-                            Modifier.clip(CircleShape).size(27.dp),
-                            failure_icon = Icons.Default.Person
-                        )
-                    } else {
-                        Icon(Icons.Default.Person, null)
+            Crossfade(player.main_page == MainPage.Library) { library_open ->
+                IconButton({
+                    if (library_open) {
+                        player.navigateBack()
+                    }
+                    else {
+                        player.setMainPage(MainPage.Library)
+                    }
+                }) {
+                    if (library_open) {
+                        Icon(Icons.Default.List, null)
+                    }
+                    else {
+                        Icon(Icons.Default.MusicNote, null)
                     }
                 }
             }
@@ -81,24 +81,28 @@ fun MainPageTopBar(
                 multiselect_context.InfoDisplay(Modifier.fillMaxWidth())
             }
             else {
-                Crossfade(player.main_page) { page ->
-                    if (page is SearchPage) {
-                        Row {
-                            IconButton({ player.navigateBack() }) {
-                                Icon(Icons.Default.Close, null)
+                AnimatedVisibility(player.main_page != MainPage.Library) {
+                    Crossfade(player.main_page) { page ->
+                        when (page) {
+                            is SearchPage -> {
+                                Row {
+                                    IconButton({ player.navigateBack() }) {
+                                        Icon(Icons.Default.Close, null)
+                                    }
+                                    page.FilterBar(Modifier.fillMaxWidth().weight(1f))
+                                }
                             }
-                            page.FilterBar(Modifier.fillMaxWidth().weight(1f))
-                        }
-                    }
-                    else {
-                        Row {
-                            IconButton({ player.setMainPage(MainPage.Search) }) {
-                                Icon(Icons.Default.Search, null)
+                            else -> {
+                                Row {
+                                    IconButton({ player.setMainPage(MainPage.Search) }) {
+                                        Icon(Icons.Default.Search, null)
+                                    }
+                                    FilterChipsRow(
+                                        getFilterChips, getSelectedFilterChip, onFilterChipSelected, 
+                                        Modifier.fillMaxWidth().weight(1f)
+                                    )
+                                }
                             }
-                            FilterChipsRow(
-                                getFilterChips, getSelectedFilterChip, onFilterChipSelected, 
-                                Modifier.fillMaxWidth().weight(1f)
-                            )
                         }
                     }
                 }

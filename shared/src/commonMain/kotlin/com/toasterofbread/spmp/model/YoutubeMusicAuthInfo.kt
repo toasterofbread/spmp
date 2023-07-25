@@ -4,6 +4,8 @@ import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateListOf
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.setValue
+import androidx.compose.runtime.Composable
+import androidx.compose.runtime.remember
 import com.toasterofbread.spmp.api.Api
 import com.toasterofbread.spmp.api.Api.Companion.addYtHeaders
 import com.toasterofbread.spmp.api.Api.Companion.getStream
@@ -13,6 +15,8 @@ import com.toasterofbread.spmp.api.getAccountPlaylists
 import com.toasterofbread.spmp.model.mediaitem.AccountPlaylist
 import com.toasterofbread.spmp.model.mediaitem.Artist
 import com.toasterofbread.spmp.ui.layout.YTAccountMenuResponse
+import com.toasterofbread.spmp.platform.ProjectPreferences
+import com.toasterofbread.composesettings.ui.item.SettingsValueState
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.runBlocking
 import kotlinx.coroutines.withContext
@@ -188,5 +192,16 @@ class YoutubeMusicAuthInfo: Set<String> {
 
             return@withContext fromYTAccountMenuResponse(parsed, headers["cookie"]!!, headers)
         }
+        
+        @Composable
+        fun rememberSettingsValueState(prefs: ProjectPreferences = Settings.prefs) =
+            remember {
+                SettingsValueState(
+                    Settings.KEY_YTM_AUTH.name,
+                    converter = { set ->
+                        set?.let { YoutubeMusicAuthInfo(it as Set<String>) } ?: YoutubeMusicAuthInfo()
+                    }
+                ).init(prefs, Settings.Companion::provideDefault)
+            }
     }
 }

@@ -23,7 +23,7 @@ abstract class SettingsItem {
     lateinit var context: PlatformContext
 
     private var initialised = false
-    fun initialise(context: PlatformContext, prefs: ProjectPreferences, default_provider: (String) -> Any) {
+    fun initialise(context: PlatformContext, prefs: ProjectPreferences = context.getPrefs(), default_provider: (String) -> Any) {
         if (initialised) {
             return
         }
@@ -41,28 +41,30 @@ abstract class SettingsItem {
         openPage: (Int) -> Unit,
         openCustomPage: (SettingsPage) -> Unit
     )
-
-    @Composable
-    protected fun ItemTitleText(text: String?, theme: Theme, modifier: Modifier = Modifier) {
-        if (text?.isNotBlank() == true) {
-            WidthShrinkText(
-                text,
-                modifier,
-                style = MaterialTheme.typography.titleMedium.copy(color = theme.on_background)
-            )
+    
+    companion object {
+        @Composable
+        fun ItemTitleText(text: String?, theme: Theme, modifier: Modifier = Modifier) {
+            if (text?.isNotBlank() == true) {
+                WidthShrinkText(
+                    text,
+                    modifier,
+                    style = MaterialTheme.typography.titleMedium.copy(color = theme.on_background)
+                )
+            }
         }
-    }
-
-    @Composable
-    protected fun ItemText(text: String?, colour: Color) {
-        if (text?.isNotBlank() == true) {
-            Text(text, color = colour, style = MaterialTheme.typography.bodySmall)
+            
+        @Composable
+        fun ItemText(text: String?, theme: Theme) {
+            ItemText(text, theme.on_background.setAlpha(0.75f))
         }
-    }
 
-    @Composable
-    protected fun ItemText(text: String?, theme: Theme) {
-        ItemText(text, theme.on_background.setAlpha(0.75f))
+        @Composable
+        fun ItemText(text: String?, colour: Color) {
+            if (text?.isNotBlank() == true) {
+                Text(text, color = colour, style = MaterialTheme.typography.bodySmall)
+            }
+        }
     }
 }
 

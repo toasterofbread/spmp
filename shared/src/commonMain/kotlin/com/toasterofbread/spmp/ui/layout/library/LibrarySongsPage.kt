@@ -1,7 +1,7 @@
 package com.toasterofbread.spmp.ui.layout.library
 
 import LocalPlayerState
-import androidx.compose.animation.Crossfade
+import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.lazy.LazyColumn
@@ -20,10 +20,9 @@ import com.toasterofbread.spmp.ui.component.multiselect.MediaItemMultiSelectCont
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun LibrarySongsPage(
-    downloads: List<PlayerDownloadManager.DownloadStatus>,
-    multiselect_context: MediaItemMultiSelectContext,
     content_padding: PaddingValues,
-    inline: Boolean,
+    multiselect_context: MediaItemMultiSelectContext,
+    downloads: List<PlayerDownloadManager.DownloadStatus>,
     openPage: (LibrarySubPage?) -> Unit,
     onSongClicked: (songs: List<Song>, song: Song, index: Int) -> Unit
 ) {
@@ -42,20 +41,14 @@ fun LibrarySongsPage(
         }
     }
 
-    Crossfade(multiselect_context.is_active) { active ->
-        if (!inline && active) {
-            multiselect_context.InfoDisplay()
-        }
-        else {
-            TextField(
-                filter ?: "",
-                { filter = it },
-                Modifier.fillMaxWidth(),
-                singleLine = true,
-                enabled = !active,
-                label = { Text("Filter songs") }
-            )
-        }
+    AnimatedVisibility(!multiselect_context.is_active) {
+        TextField(
+            filter ?: "",
+            { filter = it },
+            Modifier.fillMaxWidth(),
+            singleLine = true,
+            label = { Text("Filter songs") }
+        )
     }
 
     val player = LocalPlayerState.current

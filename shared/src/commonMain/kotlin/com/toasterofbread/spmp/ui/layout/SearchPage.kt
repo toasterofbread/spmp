@@ -273,19 +273,6 @@ class SearchPage: MainPage() {
             horizontalArrangement = Arrangement.spacedBy(10.dp),
             verticalAlignment = Alignment.Bottom
         ) {
-            ShapedIconButton(
-                close,
-                Modifier
-                    .fillMaxHeight()
-                    .aspectRatio(1f),
-                colours = IconButtonDefaults.iconButtonColors(
-                    containerColor = Theme.accent,
-                    contentColor = Theme.on_accent
-                )
-            ) {
-                Icon(Icons.Filled.Close, null)
-            }
-
             BasicTextField(
                 value = current_query,
                 onValueChange = { current_query = it },

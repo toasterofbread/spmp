@@ -18,7 +18,12 @@ import com.toasterofbread.spmp.ui.component.PillMenu
 import com.toasterofbread.spmp.ui.theme.Theme
 
 @Composable
-internal fun rememberPrefsPageSettingsInterfade(pill_menu: PillMenu, ytm_auth: SettingsValueState<YoutubeMusicAuthInfo>, getCategory: () -> PrefsPageCategory?, close: () -> Unit): SettingsInterface {
+internal fun rememberPrefsPageSettingsInterface(
+    pill_menu: PillMenu, 
+    ytm_auth: SettingsValueState<YoutubeMusicAuthInfo>, 
+    getCategory: () -> PrefsPageCategory?, 
+    close: () -> Unit
+): SettingsInterface {
     return remember {
         lateinit var settings_interface: SettingsInterface
         val pill_menu_action_overrider: @Composable PillMenu.Action.(i: Int) -> Boolean = { i ->
@@ -67,6 +72,7 @@ internal fun rememberPrefsPageSettingsInterfade(pill_menu: PillMenu, ytm_auth: S
                                 PrefsPageCategory.DOWNLOAD -> getDownloadCategory()
                                 PrefsPageCategory.DISCORD_STATUS -> getDiscordStatusGroup(discord_auth)
                                 PrefsPageCategory.OTHER -> getOtherCategory()
+                                PrefsPageCategory.DEVELOPMENT -> getDevelopmentCategory()
                                 null -> emptyList()
                             }
                         },

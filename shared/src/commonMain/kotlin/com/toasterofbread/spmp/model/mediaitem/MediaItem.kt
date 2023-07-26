@@ -427,7 +427,9 @@ abstract class MediaItem(val id: String, context: PlatformContext): MediaItemHol
                     AccountPlaylist.fromId(id).editPlaylistData { supplyPlaylistType(PlaylistType.fromTypeString(page_type), true) }
                 "MUSIC_PAGE_TYPE_ARTIST", "MUSIC_PAGE_TYPE_USER_CHANNEL" ->
                     Artist.fromId(id)
-                else -> throw NotImplementedError(page_type)
+                "MUSIC_PAGE_TYPE_NON_MUSIC_AUDIO_TRACK_PAGE" ->
+                    Song.fromId(id)
+                else -> throw NotImplementedError("page_type=$page_type, id=$page_type")
             }
         }
 

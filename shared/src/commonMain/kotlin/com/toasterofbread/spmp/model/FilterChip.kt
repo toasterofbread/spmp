@@ -1,4 +1,4 @@
-package com.toasterofbread.spmp.ui.layout.mainpage
+package com.toasterofbread.spmp.model
 
 import com.toasterofbread.spmp.resources.uilocalisation.LocalisedYoutubeString
 

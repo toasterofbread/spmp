@@ -5,7 +5,6 @@ package com.toasterofbread.spmp.ui.layout.prefspage
 import SpMp
 import androidx.compose.animation.Crossfade
 import androidx.compose.foundation.layout.*
-import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
 import androidx.compose.material.icons.Icons
@@ -15,8 +14,6 @@ import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.graphics.Color
-import androidx.compose.ui.graphics.compositeOver
 import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.input.pointer.pointerInput
 import androidx.compose.ui.platform.LocalClipboardManager
@@ -38,7 +35,6 @@ import com.toasterofbread.spmp.ui.layout.*
 import com.toasterofbread.spmp.ui.theme.Theme
 import com.toasterofbread.utils.blendWith
 import com.toasterofbread.utils.modifier.background
-import com.toasterofbread.utils.setAlpha
 import org.jetbrains.compose.resources.*
 
 internal enum class PrefsPageScreen {
@@ -114,8 +110,7 @@ fun PrefsPage(
     modifier: Modifier = Modifier,
     close: () -> Unit,
 ) {
-    val ytm_auth = YoutubeMusicAuthInfo.rememberSettingsValueState()
-
+    val ytm_auth = remember { YoutubeMusicAuthInfo.getSettingsValueState() }
     val pill_menu = remember { PillMenu(follow_player = true) }
 
     var current_category by category_state

@@ -22,28 +22,29 @@ internal fun getDiscordStatusGroup(discord_auth: SettingsValueState<String>): Li
         return emptyList()
     }
 
-    var account_token by mutableStateOf(discord_auth.value)
+    var account_token by mutableStateOf(discord_auth.get())
 
     return listOf(
         SettingsLargeToggleItem(
             object : BasicSettingsValueState<Boolean> {
-                override var value: Boolean
-                    get() = discord_auth.value.isNotEmpty()
-                    set(value) {
-                        if (!value) {
-                            discord_auth.value = ""
-                        }
+                override fun get(): Boolean = discord_auth.get().isNotEmpty()
+                override fun set(value: Boolean) {
+                    if (!value) {
+                        discord_auth.set("")
                     }
+                }
 
                 override fun init(prefs: ProjectPreferences, defaultProvider: (String) -> Any): BasicSettingsValueState<Boolean> = this
+                override fun release(prefs: ProjectPreferences) {}
                 override fun reset() = discord_auth.reset()
                 override fun save() = discord_auth.save()
                 override fun getDefault(defaultProvider: (String) -> Any): Boolean =
                     (defaultProvider(Settings.KEY_DISCORD_ACCOUNT_TOKEN.name) as String).isNotEmpty()
             },
             enabled_content = { modifier ->
-                if (discord_auth.value.isNotEmpty()) {
-                    account_token = discord_auth.value
+                val auth = discord_auth.get()
+                if (auth.isNotEmpty()) {
+                    account_token = auth
                 }
                 if (account_token.isNotEmpty()) {
                     DiscordAccountPreview(account_token, modifier)

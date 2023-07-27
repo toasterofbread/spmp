@@ -57,6 +57,11 @@ class SettingsLargeToggleItem(
     override fun initialiseValueStates(prefs: ProjectPreferences, default_provider: (String) -> Any) {
         state.init(prefs, default_provider)
     }
+
+    override fun releaseValueStates(prefs: ProjectPreferences) {
+        state.release(prefs)
+    }
+
     override fun resetValues() {}
 
     @Composable
@@ -75,7 +80,7 @@ class SettingsLargeToggleItem(
             openPage
         )
 
-        Crossfade(state.value) { enabled ->
+        Crossfade(state.get()) { enabled ->
             CompositionLocalProvider(LocalContentColor provides if (!enabled) theme.on_background else theme.on_accent) {
                 Row(
                     Modifier
@@ -100,7 +105,7 @@ class SettingsLargeToggleItem(
                             else {
                                 onClicked(
                                     !enabled,
-                                    { state.value = it },
+                                    { state.set(it) },
                                     { loading = it },
                                     openPage
                                 )

@@ -8,6 +8,7 @@ import com.toasterofbread.spmp.ui.theme.Theme
 
 class SettingsItemInfoText(val text: String): SettingsItem() {
     override fun initialiseValueStates(prefs: ProjectPreferences, default_provider: (String) -> Any) {}
+    override fun releaseValueStates(prefs: ProjectPreferences) {}
     override fun resetValues() {}
 
     @Composable

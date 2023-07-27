@@ -23,6 +23,10 @@ class SettingsTextFieldItem(
         state.init(prefs, default_provider)
     }
 
+    override fun releaseValueStates(prefs: ProjectPreferences) {
+        state.release(prefs)
+    }
+
     override fun resetValues() {
         state.reset()
     }
@@ -33,7 +37,7 @@ class SettingsTextFieldItem(
         Column(Modifier.fillMaxWidth(), verticalArrangement = Arrangement.spacedBy(5.dp)) {
             ItemTitleText(title, theme)
             ItemText(subtitle, theme)
-            TextField(state.value, { state.value = it }, Modifier.fillMaxWidth(), singleLine = single_line)
+            TextField(state.get(), { state.set(it) }, Modifier.fillMaxWidth(), singleLine = single_line)
         }
     }
 }

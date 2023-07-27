@@ -36,8 +36,9 @@ class WebResourceRequestReader(private val request: WebResourceRequest): WebView
 actual fun WebViewLogin(
     initial_url: String,
     modifier: Modifier,
-    loading_message: String?,
+    onClosed: () -> Unit,
     shouldShowPage: (url: String) -> Boolean,
+    loading_message: String?,
     onRequestIntercepted: (WebViewRequest, openUrl: (String) -> Unit, getCookie: (String) -> String) -> Unit
 ) {
     var web_view: WebView? by remember { mutableStateOf(null) }
@@ -63,7 +64,18 @@ actual fun WebViewLogin(
     }
 
     BackHandler(web_view?.canGoBack() == true) {
-        web_view?.goBack()
+        val wv = web_view ?: return@BackHandler
+
+        val back_forward_list = wv.copyBackForwardList()
+        if (back_forward_list.currentIndex > 0) {
+            val previous_url = back_forward_list.getItemAtIndex(back_forward_list.currentIndex - 1).url
+            if (previous_url == initial_url) {
+                onClosed()
+                return@BackHandler
+            }
+        }
+
+        wv.goBack()
     }
 
     var show_webview by remember { mutableStateOf(false) }

@@ -26,6 +26,7 @@ import com.beust.klaxon.Klaxon
 import com.toasterofbread.spmp.platform.PlatformContext
 import com.toasterofbread.spmp.ui.theme.ApplicationTheme
 import com.toasterofbread.spmp.resources.getString
+import com.toasterofbread.spmp.ui.theme.Theme
 import com.toasterofbread.utils.thenIf
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.delay
@@ -55,7 +56,7 @@ class ErrorReportActivity : ComponentActivity() {
         val context = PlatformContext(this)
 
         setContent {
-            ApplicationTheme(context) {
+            Theme.ApplicationTheme(context) {
                 Surface(modifier = Modifier.fillMaxSize()) {
                     var width by remember { mutableStateOf(0) }
 

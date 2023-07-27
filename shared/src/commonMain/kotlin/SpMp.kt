@@ -124,7 +124,7 @@ object SpMp {
 
     @Composable
     fun App(open_uri: String? = null) {
-        ApplicationTheme(context, getFontFamily(context)) {
+        Theme.ApplicationTheme(context, getFontFamily(context)) {
             Theme.Update(context)
 
             val player = context.player_state

@@ -12,7 +12,7 @@ import androidx.compose.ui.composed
 actual fun Modifier.platformClickable(onClick: (() -> Unit)?, onAltClick: (() -> Unit)?, indication: Indication?): Modifier =
     composed { combinedClickable(
         interactionSource = remember { MutableInteractionSource() },
-        indication = null,
+        indication = indication,
         onClick = onClick ?: {},
         onLongClick = onAltClick
     ) }

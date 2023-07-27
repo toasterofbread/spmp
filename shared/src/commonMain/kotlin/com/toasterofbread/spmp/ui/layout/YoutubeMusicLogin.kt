@@ -139,57 +139,57 @@ fun YoutubeMusicLogin(modifier: Modifier = Modifier, manual: Boolean = false, on
                 MUSIC_URL,
                 Modifier.fillMaxSize(),
                 loading_message = getString("youtube_login_load_message"),
-                onRequestIntercepted = { request, openUrl, getCookie ->
-                    synchronized(lock) {
-                        if (finished) {
+                shouldShowPage = { !it.startsWith(MUSIC_URL) },
+                onClosed = { onFinished(null) }
+            ) { request, openUrl, getCookie ->
+                synchronized(lock) {
+                    if (finished) {
+                        return@WebViewLogin
+                    }
+
+                    val url = URI(request.url)
+                    if (url.host == "music.youtube.com" && url.path?.startsWith("/youtubei/v1/") == true) {
+                        if (!request.requestHeaders.containsKey("Authorization")) {
+                            openUrl(MUSIC_LOGIN_URL)
                             return@WebViewLogin
                         }
 
-                        val url = URI(request.url)
-                        if (url.host == "music.youtube.com" && url.path?.startsWith("/youtubei/v1/") == true) {
-                            if (!request.requestHeaders.containsKey("Authorization")) {
-                                openUrl(MUSIC_LOGIN_URL)
-                                return@WebViewLogin
+                        finished = true
+
+                        val cookie = getCookie(MUSIC_URL)
+                        val account_request = Request.Builder()
+                            .url("https://music.youtube.com/youtubei/v1/account/account_menu")
+                            .addHeader("cookie", cookie)
+                            .apply {
+                                for (header in request.requestHeaders) {
+                                    addHeader(header.key, header.value)
+                                }
                             }
+                            .post(Api.getYoutubeiRequestBody(null))
+                            .build()
 
-                            finished = true
+                        val result = Api.request(account_request)
+                        result.fold(
+                            { response ->
+                                val parsed: YTAccountMenuResponse = Api.klaxon.parse(response.body!!.charStream())!!
+                                response.close()
 
-                            val cookie = getCookie(MUSIC_URL)
-                            val account_request = Request.Builder()
-                                .url("https://music.youtube.com/youtubei/v1/account/account_menu")
-                                .addHeader("cookie", cookie)
-                                .apply {
-                                    for (header in request.requestHeaders) {
-                                        addHeader(header.key, header.value)
-                                    }
+                                val auth_result = YoutubeMusicAuthInfo.fromYTAccountMenuResponse(parsed, cookie, request.requestHeaders)
+                                val auth_error = auth_result.exceptionOrNull()
+                                if (auth_error is YoutubeChannelNotCreatedException) {
+                                    channel_not_created_error = auth_error
+                                    return@fold
                                 }
-                                .post(Api.getYoutubeiRequestBody(null))
-                                .build()
 
-                            val result = Api.request(account_request)
-                            result.fold(
-                                { response ->
-                                    val parsed: YTAccountMenuResponse = Api.klaxon.parse(response.body!!.charStream())!!
-                                    response.close()
-
-                                    val auth_result = YoutubeMusicAuthInfo.fromYTAccountMenuResponse(parsed, cookie, request.requestHeaders)
-                                    val auth_error = auth_result.exceptionOrNull()
-                                    if (auth_error is YoutubeChannelNotCreatedException) {
-                                        channel_not_created_error = auth_error
-                                        return@fold
-                                    }
-
-                                    onFinished(auth_result)
-                                },
-                                {
-                                    onFinished(result.cast())
-                                }
-                            )
-                        }
+                                onFinished(auth_result)
+                            },
+                            {
+                                onFinished(result.cast())
+                            }
+                        )
                     }
-                },
-                shouldShowPage = { !it.startsWith(MUSIC_URL) }
-            )
+                }
+            }
         }
         else {
             // TODO

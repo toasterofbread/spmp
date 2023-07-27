@@ -60,11 +60,14 @@ class SettingsStringSetItem(
     val single_line_content: Boolean = true,
     val max_height: Dp = 300.dp
 ): SettingsItem() {
-    
     override fun initialiseValueStates(prefs: ProjectPreferences, default_provider: (String) -> Any) {
         state.init(prefs, default_provider)
     }
-    
+
+    override fun releaseValueStates(prefs: ProjectPreferences) {
+        state.release(prefs)
+    }
+
     override fun resetValues() {
         state.reset()
     }
@@ -85,7 +88,7 @@ class SettingsStringSetItem(
         var show_add_item_dialog: Boolean by remember { mutableStateOf(false) }
         if (show_add_item_dialog) {
             var new_item_content: String by remember { mutableStateOf("") }
-            val item_already_added = state.value.contains(new_item_content)
+            val item_already_added = state.get().contains(new_item_content)
             val can_add_item = new_item_content.isNotEmpty() && !item_already_added
 
             PlatformAlertDialog(
@@ -94,7 +97,7 @@ class SettingsStringSetItem(
                     Crossfade(can_add_item) { enabled ->
                         ShapedIconButton(
                             {
-                                state.value = state.value.plus(new_item_content)
+                                state.set(state.get().plus(new_item_content))
                                 show_add_item_dialog = false
                             },
                             colours = icon_button_colours,
@@ -149,7 +152,7 @@ class SettingsStringSetItem(
                 }
             }
 
-            Crossfade(state.value, Modifier.fillMaxWidth()) { set ->
+            Crossfade(state.get(), Modifier.fillMaxWidth()) { set ->
                 if (set.isEmpty()) {
                     Text(
                         getString("settings_string_set_item_empty"),
@@ -165,7 +168,7 @@ class SettingsStringSetItem(
                                     Text(item, Modifier.fillMaxWidth().weight(1f))
 
                                     IconButton(
-                                        { state.value = set.minus(item) }
+                                        { state.set(set.minus(item)) }
                                     ) {
                                         Icon(Icons.Default.Remove, null, tint = theme.on_background)
                                     }

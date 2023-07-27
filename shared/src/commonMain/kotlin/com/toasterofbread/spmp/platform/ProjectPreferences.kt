@@ -1,6 +1,5 @@
 package com.toasterofbread.spmp.platform
 
-
 expect class ProjectPreferences {
     fun addListener(listener: Listener): Listener
     fun removeListener(listener: Listener)

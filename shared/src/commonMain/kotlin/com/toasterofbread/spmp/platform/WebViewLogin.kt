@@ -16,7 +16,8 @@ interface WebViewRequest {
 expect fun WebViewLogin(
     initial_url: String,
     modifier: Modifier = Modifier,
-    loading_message: String? = null,
+    onClosed: () -> Unit,
     shouldShowPage: (url: String) -> Boolean,
+    loading_message: String? = null,
     onRequestIntercepted: (WebViewRequest, openUrl: (String) -> Unit, getCookie: (String) -> String) -> Unit
 )

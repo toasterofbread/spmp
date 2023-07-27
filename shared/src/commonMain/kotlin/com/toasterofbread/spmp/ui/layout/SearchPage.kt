@@ -26,17 +26,14 @@ import androidx.compose.ui.platform.LocalFocusManager
 import androidx.compose.ui.platform.LocalSoftwareKeyboardController
 import androidx.compose.ui.text.input.ImeAction
 import androidx.compose.ui.unit.*
-import androidx.compose.ui.zIndex
 import com.toasterofbread.spmp.api.*
 import com.toasterofbread.spmp.model.mediaitem.enums.MediaItemType
 import com.toasterofbread.spmp.model.mediaitem.enums.PlaylistType
 import com.toasterofbread.spmp.model.mediaitem.enums.getReadable
-import com.toasterofbread.spmp.platform.composable.BackHandler
 import com.toasterofbread.spmp.platform.getDefaultHorizontalPadding
 import com.toasterofbread.spmp.resources.getString
 import com.toasterofbread.spmp.ui.component.ErrorInfoDisplay
 import com.toasterofbread.spmp.ui.component.mediaitemlayout.MediaItemLayout
-import com.toasterofbread.spmp.ui.component.MultiselectAndMusicTopBar
 import com.toasterofbread.spmp.ui.component.multiselect.MediaItemMultiSelectContext
 import com.toasterofbread.spmp.ui.theme.Theme
 import com.toasterofbread.utils.*
@@ -45,6 +42,7 @@ import com.toasterofbread.utils.composable.SubtleLoadingIndicator
 import com.toasterofbread.utils.composable.rememberKeyboardOpen
 import com.toasterofbread.spmp.ui.layout.nowplaying.LocalNowPlayingExpansion
 import com.toasterofbread.spmp.ui.layout.mainpage.MainPage
+import com.toasterofbread.spmp.ui.layout.mainpage.MainPageState
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Job
 import kotlinx.coroutines.cancelChildren
@@ -53,7 +51,7 @@ val SEARCH_FIELD_FONT_SIZE: TextUnit = 18.sp
 private val SEARCH_BAR_HEIGHT = 45.dp
 private val SEARCH_BAR_V_PADDING = 15.dp
 
-class SearchPage: MainPage() {
+class SearchPage(state: MainPageState): MainPage(state) {
     private val coroutine_scope = CoroutineScope(Job())
     private val search_lock = Object()
     
@@ -86,7 +84,48 @@ class SearchPage: MainPage() {
         }
     }
 
-    @OptIn(ExperimentalComposeUiApi::class, ExperimentalMaterial3Api::class)
+    @Composable
+    override fun showTopBarContent(): Boolean = true
+
+    @Composable
+    override fun TopBarContent(modifier: Modifier, close: () -> Unit) {
+        Row(modifier) {
+            IconButton(close) {
+                Icon(Icons.Default.Close, null)
+            }
+
+            FilterChipsRow(
+                SearchType.values().size + 1,
+                { index ->
+                    if (current_filter == null) index == 0 else current_filter!!.ordinal == index - 1
+                },
+                { index ->
+                    if (index == 0) {
+                        current_filter = null
+                    }
+                    else {
+                        current_filter = SearchType.values()[index - 1]
+                    }
+                },
+                Modifier
+                    .fillMaxWidth()
+                    .weight(1f)
+                    .height(SEARCH_BAR_HEIGHT),
+                spacing = 5.dp
+            ) { index ->
+                Text(when (if (index == 0) null else SearchType.values()[index - 1]) {
+                    null -> getString("search_filter_all")
+                    SearchType.VIDEO -> getString("search_filter_videos")
+                    SearchType.SONG -> MediaItemType.SONG.getReadable(true)
+                    SearchType.ARTIST -> MediaItemType.ARTIST.getReadable(true)
+                    SearchType.PLAYLIST -> PlaylistType.PLAYLIST.getReadable(true)
+                    SearchType.ALBUM -> PlaylistType.ALBUM.getReadable(true)
+                })
+            }
+        }
+    }
+
+    @OptIn(ExperimentalComposeUiApi::class)
     @Composable
     override fun Page(
         multiselect_context: MediaItemMultiSelectContext, 
@@ -164,45 +203,6 @@ class SearchPage: MainPage() {
         }
     }
 
-    @OptIn(ExperimentalComposeUiApi::class, ExperimentalMaterial3Api::class)
-    @Composable
-    fun FilterBar(modifier: Modifier = Modifier) {
-        val chip_colours = FilterChipDefaults.filterChipColors(
-            containerColor = Theme.background,
-            labelColor = Theme.on_background,
-            selectedContainerColor = Theme.accent,
-            selectedLabelColor = Theme.on_accent
-        )
-
-        Row(
-            modifier
-                .horizontalScroll(rememberScrollState())
-                .height(SEARCH_BAR_HEIGHT),
-            horizontalArrangement = Arrangement.spacedBy(5.dp),
-            verticalAlignment = Alignment.CenterVertically
-        ) {
-            for (type in listOf(null) + SearchType.values()) {
-                FilterChip(
-                    selected = current_filter == type,
-                    onClick = {
-                        setFilter(type)
-                    },
-                    label = {
-                        Text(when (type) {
-                            null -> getString("search_filter_all")
-                            SearchType.VIDEO -> getString("search_filter_videos")
-                            SearchType.SONG -> MediaItemType.SONG.getReadable(true)
-                            SearchType.ARTIST -> MediaItemType.ARTIST.getReadable(true)
-                            SearchType.PLAYLIST -> PlaylistType.PLAYLIST.getReadable(true)
-                            SearchType.ALBUM -> PlaylistType.ALBUM.getReadable(true)
-                        })
-                    },
-                    colors = chip_colours
-                )
-            }
-        }
-    }
-
     fun performSearch() {
         performSearch(current_filter?.let { SearchFilter(it, it.getDefaultParams()) })
     }
@@ -248,7 +248,6 @@ class SearchPage: MainPage() {
         }
     }
 
-    @OptIn(ExperimentalMaterial3Api::class)
     @Composable
     private fun SearchBar(
         focus_state: MutableState<Boolean>,
@@ -256,7 +255,6 @@ class SearchPage: MainPage() {
         close: () -> Unit
     ) {
         val expansion = LocalNowPlayingExpansion.current
-        var query_text by remember { mutableStateOf("") }
         val focus_requester = remember { FocusRequester() }
     
         LaunchedEffect(Unit) {

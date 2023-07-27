@@ -47,7 +47,7 @@ fun PlaylistSelectMenu(
 
     fun refreshAccountPlaylists() {
         coroutine_scope.launchSingle {
-            if (!auth.own_playlists_loaded && auth.initialised) {
+            if (!auth.own_playlists_loaded && auth.is_initialised) {
                 loading = true
                 val result = auth.loadOwnPlaylists()
                 result.onFailure { error ->
@@ -79,7 +79,7 @@ fun PlaylistSelectMenu(
             loading,
             { refreshAccountPlaylists() },
             modifier,
-            swipe_enabled = auth.initialised
+            swipe_enabled = auth.is_initialised
         ) {
             LazyColumn(Modifier.fillMaxSize()) {
                 items(local_playlists) { playlist ->

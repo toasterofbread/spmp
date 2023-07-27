@@ -42,6 +42,8 @@ class SettingsAccessibilityServiceItem(
     }
 
     override fun initialiseValueStates(prefs: ProjectPreferences, default_provider: (String) -> Any) {}
+    override fun releaseValueStates(prefs: ProjectPreferences) {}
+
     override fun resetValues() {}
 
     @Composable

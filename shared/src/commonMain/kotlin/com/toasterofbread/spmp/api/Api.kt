@@ -296,7 +296,7 @@ class Api {
         )
             private set
 
-        val ytm_authenticated: Boolean get() = ytm_auth.initialised
+        val ytm_authenticated: Boolean get() = ytm_auth.is_initialised
 
         private lateinit var youtubei_context: JsonObject
         private lateinit var youtubei_context_alt: JsonObject
@@ -387,7 +387,7 @@ class Api {
 
                 val headers_builder = Headers.Builder().add("user-agent", user_agent)
 
-                if (ytm_auth.initialised) {
+                if (ytm_auth.is_initialised) {
                     headers_builder["cookie"] = ytm_auth.cookie
                     for (header in ytm_auth.headers) {
                         headers_builder[header.key] = header.value

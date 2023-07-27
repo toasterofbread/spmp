@@ -32,7 +32,7 @@ internal fun getYoutubeMusicLoginPage(ytm_auth: SettingsValueState<YoutubeMusicA
         ) {
             YoutubeMusicLogin(Modifier.fillMaxSize(), manual = manual) { auth_info ->
                 auth_info?.fold({
-                    ytm_auth.value = it
+                    ytm_auth.set(it)
                 }, {
                     throw RuntimeException(it)
                 })

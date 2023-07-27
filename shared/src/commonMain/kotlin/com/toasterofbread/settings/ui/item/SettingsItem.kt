@@ -33,6 +33,8 @@ abstract class SettingsItem {
     }
 
     protected abstract fun initialiseValueStates(prefs: ProjectPreferences, default_provider: (String) -> Any)
+    protected abstract fun releaseValueStates(prefs: ProjectPreferences)
+
     abstract fun resetValues()
 
     @Composable
@@ -69,41 +71,60 @@ abstract class SettingsItem {
 }
 
 interface BasicSettingsValueState<T: Any> {
-    var value: T
+    fun get(): T
+    fun set(value: T)
+
     fun init(prefs: ProjectPreferences, defaultProvider: (String) -> Any): BasicSettingsValueState<T>
+    fun release(prefs: ProjectPreferences)
+
     fun reset()
     fun save()
     fun getDefault(defaultProvider: (String) -> Any): T
 }
 
-@Suppress("UNCHECKED_CAST", "IMPLICIT_CAST_TO_ANY")
+@Suppress("UNCHECKED_CAST")
 class SettingsValueState<T: Any>(
     val key: String,
     private val onChanged: ((value: T) -> Unit)? = null,
     private val converter: (Any?) -> T? = { it as T }
-): BasicSettingsValueState<T> {
+): BasicSettingsValueState<T>, State<T> {
     var autosave: Boolean = true
 
     private lateinit var prefs: ProjectPreferences
     private lateinit var defaultProvider: (String) -> Any
+    private var listener: ProjectPreferences.Listener? = null
     private var _value: T? by mutableStateOf(null)
 
-    override var value: T
-        get() = _value!!
-        set(new_value) {
-            if (_value == null) {
-                throw IllegalStateException("State has not been initialised")
-            }
-            if (_value == new_value) {
-                return
-            }
+    override val value: T get() = _value!!
 
-            _value = new_value
-            if (autosave) {
-                save()
-            }
-            onChanged?.invoke(new_value)
+    override fun get(): T = _value!!
+    override fun set(value: T) {
+        if (_value == null) {
+            throw IllegalStateException("State has not been initialised")
         }
+        if (_value == value) {
+            return
+        }
+
+        _value = value
+        if (autosave) {
+            save()
+        }
+        onChanged?.invoke(value)
+    }
+
+    private fun updateValue() {
+        val default = defaultProvider(key) as T
+        _value = converter(when (default) {
+            is Boolean -> prefs.getBoolean(key, default as Boolean)
+            is Float -> prefs.getFloat(key, default as Float)
+            is Int -> prefs.getInt(key, default as Int)
+            is Long -> prefs.getLong(key, default as Long)
+            is String -> prefs.getString(key, default as String)
+            is Set<*> -> prefs.getStringSet(key, default as Set<String>)
+            else -> throw ClassCastException()
+        })
+    }
 
     override fun init(prefs: ProjectPreferences, defaultProvider: (String) -> Any): SettingsValueState<T> {
         if (_value != null) {
@@ -113,18 +134,25 @@ class SettingsValueState<T: Any>(
         this.prefs = prefs
         this.defaultProvider = defaultProvider
 
-        val default = defaultProvider(key) as T
-        _value = converter(when (default!!) {
-            is Boolean -> prefs.getBoolean(key, default as Boolean)
-            is Float -> prefs.getFloat(key, default as Float)
-            is Int -> prefs.getInt(key, default as Int)
-            is Long -> prefs.getLong(key, default as Long)
-            is String -> prefs.getString(key, default as String)
-            is Set<*> -> prefs.getStringSet(key, default as Set<String>)
-            else -> throw ClassCastException()
-        })
+        updateValue()
+
+        listener = object : ProjectPreferences.Listener {
+            override fun onChanged(prefs: ProjectPreferences, key: String) {
+                if (key == this@SettingsValueState.key) {
+                    updateValue()
+                }
+            }
+        }.also {
+            prefs.addListener(it)
+        }
 
         return this
+    }
+
+    override fun release(prefs: ProjectPreferences) {
+        listener?.also {
+            prefs.removeListener(it)
+        }
     }
 
     override fun reset() {
@@ -137,14 +165,15 @@ class SettingsValueState<T: Any>(
 
     override fun save() {
         prefs.edit {
-            when (value!!) {
+            val value = get()
+            when (value) {
                 is Boolean -> putBoolean(key, value as Boolean)
                 is Float -> putFloat(key, value as Float)
                 is Int -> putInt(key, value as Int)
                 is Long -> putLong(key, value as Long)
                 is String -> putString(key, value as String)
                 is Set<*> -> putStringSet(key, value as Set<String>)
-                else -> throw ClassCastException()
+                else -> throw ClassCastException(value::class.toString())
             }
         }
     }

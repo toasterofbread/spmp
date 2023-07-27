@@ -189,7 +189,7 @@ class LocalPlaylist(id: String, context: PlatformContext): Playlist(id, context)
         private val playlists_listeners: MutableList<Listener> = mutableListOf()
 
         fun addPlaylistsListener(listener: Listener) {
-            playlists_listeners.addUnique(listener)
+            playlists_listeners.add(listener)
         }
         fun removePlaylistsListener(listener: Listener) {
             playlists_listeners.remove(listener)
@@ -202,6 +202,7 @@ class LocalPlaylist(id: String, context: PlatformContext): Playlist(id, context)
             LaunchedEffect(Unit) {
                 playlists.addAll(getLocalPlaylists(SpMp.context).toMutableStateList())
             }
+
             DisposableEffect(Unit) {
                 val listener = object : Listener {
                     override fun onAdded(playlist: LocalPlaylist) {

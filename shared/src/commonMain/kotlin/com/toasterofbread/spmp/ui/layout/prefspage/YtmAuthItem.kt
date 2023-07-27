@@ -1,6 +1,5 @@
 package com.toasterofbread.spmp.ui.layout.prefspage
 
-import androidx.compose.runtime.MutableState
 import com.toasterofbread.composesettings.ui.item.BasicSettingsValueState
 import com.toasterofbread.composesettings.ui.item.SettingsItem
 import com.toasterofbread.composesettings.ui.item.SettingsLargeToggleItem
@@ -20,22 +19,22 @@ fun rememberYtmAuthItem(ytm_auth: SettingsValueState<YoutubeMusicAuthInfo>, init
     return remember { 
         SettingsLargeToggleItem(
             object : BasicSettingsValueState<Boolean> {
-                override var value: Boolean
-                    get() = ytm_auth.value.initialised
-                    set(value) {
-                        if (!value) {
-                            ytm_auth.value = YoutubeMusicAuthInfo()
-                        }
+                override fun get(): Boolean = ytm_auth.get().is_initialised
+                override fun set(value: Boolean) {
+                    if (!value) {
+                        ytm_auth.set(YoutubeMusicAuthInfo())
                     }
+                }
 
                 override fun init(prefs: ProjectPreferences, defaultProvider: (String) -> Any): BasicSettingsValueState<Boolean> = this
+                override fun release(prefs: ProjectPreferences) {}
                 override fun reset() = ytm_auth.reset()
                 override fun save() = ytm_auth.save()
                 override fun getDefault(defaultProvider: (String) -> Any): Boolean =
                     defaultProvider(Settings.KEY_YTM_AUTH.name) is YoutubeMusicAuthInfo
             },
             enabled_content = { modifier ->
-                ytm_auth.value.getOwnChannelOrNull()?.also {
+                ytm_auth.get().getOwnChannelOrNull()?.also {
                     own_channel = it
                 }
 

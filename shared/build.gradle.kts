@@ -75,7 +75,7 @@ val buildConfigDebug = tasks.register("buildConfigDebug", GenerateBuildConfig::c
     buildConfig(debug = true)
 }
 val buildConfigRelease = tasks.register("buildConfigRelease", GenerateBuildConfig::class.java) {
-    buildConfig(debug = false)
+    buildConfig(debug = true)
 }
 
 tasks.all {

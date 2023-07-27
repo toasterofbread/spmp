@@ -1,30 +1,37 @@
-package com.toasterofbread.spmp.ui.layout.mainpage
+package com.toasterofbread.spmp.ui.layout.songfeedpage
 
 import LocalPlayerState
 import SpMp
 import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.animation.Crossfade
 import androidx.compose.animation.core.Animatable
-import androidx.compose.animation.core.animateDpAsState
 import androidx.compose.animation.core.tween
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.IntrinsicSize
 import androidx.compose.foundation.layout.PaddingValues
+import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxHeight
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.LazyListState
+import androidx.compose.foundation.lazy.LazyRow
+import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.lazy.itemsIndexed
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.KeyboardDoubleArrowDown
+import androidx.compose.material.icons.filled.Search
 import androidx.compose.material3.CircularProgressIndicator
+import androidx.compose.material3.ElevatedFilterChip
+import androidx.compose.material3.FilterChipDefaults
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
+import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
-import androidx.compose.runtime.MutableState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateListOf
 import androidx.compose.runtime.mutableStateOf
@@ -35,30 +42,91 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.graphicsLayer
 import androidx.compose.ui.unit.DpSize
 import androidx.compose.ui.unit.dp
-import androidx.compose.ui.zIndex
 import com.toasterofbread.spmp.api.Api
+import com.toasterofbread.spmp.api.HomeFeedLoadResult
+import com.toasterofbread.spmp.api.cast
+import com.toasterofbread.spmp.api.getHomeFeed
+import com.toasterofbread.spmp.api.unit
+import com.toasterofbread.spmp.model.FilterChip
+import com.toasterofbread.spmp.model.Settings
 import com.toasterofbread.spmp.model.mediaitem.Artist
-import com.toasterofbread.spmp.model.mediaitem.MediaItemHolder
+import com.toasterofbread.spmp.model.mutableSettingsState
 import com.toasterofbread.spmp.platform.composable.SwipeRefresh
-import com.toasterofbread.spmp.platform.getDefaultHorizontalPadding
 import com.toasterofbread.spmp.platform.getDefaultVerticalPadding
 import com.toasterofbread.spmp.resources.getString
 import com.toasterofbread.spmp.ui.component.ErrorInfoDisplay
-import com.toasterofbread.spmp.ui.component.PillMenu
-import com.toasterofbread.spmp.ui.component.WAVE_BORDER_DEFAULT_HEIGHT
 import com.toasterofbread.spmp.ui.component.mediaitemlayout.MediaItemLayout
-import com.toasterofbread.spmp.ui.layout.library.LibraryPage
-import com.toasterofbread.spmp.ui.theme.Theme
 import com.toasterofbread.spmp.ui.component.multiselect.MediaItemMultiSelectContext
+import com.toasterofbread.spmp.ui.layout.PinnedItemsRow
+import com.toasterofbread.spmp.ui.layout.library.LibraryPage
+import com.toasterofbread.spmp.ui.layout.mainpage.FeedLoadState
+import com.toasterofbread.spmp.ui.layout.mainpage.MainPage
+import com.toasterofbread.spmp.ui.layout.mainpage.MainPageState
+import com.toasterofbread.spmp.ui.layout.mainpage.getMainPageItemSize
+import com.toasterofbread.spmp.ui.theme.Theme
+import com.toasterofbread.utils.launchSingle
+import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.Job
+import kotlinx.coroutines.job
+import kotlinx.coroutines.withContext
+import java.util.concurrent.locks.ReentrantLock
 
-class HomeFeedPage(
-    val getLoadState: () -> FeedLoadState,
-    val getLoadError: () -> Throwable?,
-    val loadFeed: (continuation: Boolean) -> Unit,
-    val getCanContinue: () -> Boolean,
-    val getLayouts: () -> List<MediaItemLayout>,
-    val scroll_state: LazyListState
-): MainPage() {
+class SongFeedPage(state: MainPageState): MainPage(state) {
+    private val scroll_state = LazyListState()
+
+    private var load_state by mutableStateOf(FeedLoadState.PREINIT)
+    private var load_error: Throwable? by mutableStateOf(null)
+    private val load_lock = ReentrantLock()
+    private val coroutine_scope = CoroutineScope(Job())
+
+    private var continuation: String? by mutableStateOf(null)
+    private var layouts: List<MediaItemLayout>? by mutableStateOf(null)
+    private var filter_chips: List<FilterChip>? by mutableStateOf(null)
+    private var selected_filter_chip: Int? by mutableStateOf(null)
+
+    fun resetSongFeed() {
+        layouts = emptyList()
+        filter_chips = null
+        selected_filter_chip = null
+    }
+
+    @Composable
+    override fun showTopBarContent(): Boolean = true
+
+    @Composable
+    override fun TopBarContent(modifier: Modifier, close: () -> Unit) {
+        val player = LocalPlayerState.current
+        Row(modifier, verticalAlignment = Alignment.CenterVertically) {
+            IconButton({ player.setMainPage(player.main_page_state.Search) }) {
+                Icon(Icons.Default.Search, null)
+            }
+
+            val enabled: Boolean by mutableSettingsState(Settings.KEY_FEED_SHOW_FILTERS)
+
+            Crossfade(if (enabled) filter_chips else null, modifier) { chips ->
+                if (chips?.isNotEmpty() == true) {
+                    FilterChipsRow(
+                        chips.size,
+                        { it == selected_filter_chip },
+                        {
+                            if (it == selected_filter_chip) {
+                                selected_filter_chip = null
+                            }
+                            else {
+                                selected_filter_chip = it
+                            }
+                            loadFeed(false)
+                        },
+                        Modifier.fillMaxWidth()
+                    ) { index ->
+                        Text(chips[index].text.getString())
+                    }
+                }
+            }
+        }
+    }
+
     @Composable
     override fun Page(
         multiselect_context: MediaItemMultiSelectContext,
@@ -66,10 +134,7 @@ class HomeFeedPage(
         content_padding: PaddingValues,
         close: () -> Unit
     ) {
-        val load_state = getLoadState()
-        val layouts = getLayouts()
         val player = LocalPlayerState.current
-
         val artists_layout: MediaItemLayout = remember {
             MediaItemLayout(
                 null,
@@ -82,9 +147,20 @@ class HomeFeedPage(
                 }
             )
         }
-    
+
         LaunchedEffect(layouts) {
-            populateArtistsLayout(artists_layout, getLayouts, Api.ytm_auth.getOwnChannelOrNull())
+            populateArtistsLayout(artists_layout, layouts, Api.ytm_auth.getOwnChannelOrNull())
+        }
+
+        LaunchedEffect(Unit) {
+            if (layouts == null) {
+                coroutine_scope.launchSingle {
+                    player.player?.also { player ->
+                        val result = loadFeed(Settings.get(Settings.KEY_FEED_INITIAL_ROWS), allow_cached = true, continue_feed = false)
+                        player.loadPersistentQueue(result.isSuccess)
+                    }
+                }
+            }
         }
 
         // Main scrolling view
@@ -94,7 +170,8 @@ class HomeFeedPage(
             swipe_enabled = load_state == FeedLoadState.NONE,
             indicator = false
         ) {
-            val target_state = if (load_state == FeedLoadState.LOADING || load_state == FeedLoadState.PREINIT) null else layouts.ifEmpty { getLoadError() ?: false }
+            val target_state =
+                if (load_state == FeedLoadState.LOADING || load_state == FeedLoadState.PREINIT) null else layouts?.ifEmpty { load_error } ?: false
             var current_state by remember { mutableStateOf(target_state) }
             val state_alpha = remember { Animatable(1f) }
 
@@ -121,7 +198,7 @@ class HomeFeedPage(
                 when (state) {
                     // Loaded
                     is List<*> -> {
-                        val onContinuationRequested = if (getCanContinue()) {
+                        val onContinuationRequested = if (continuation != null) {
                             { loadFeed(true) }
                         } else null
                         val loading_continuation = load_state != FeedLoadState.NONE
@@ -142,16 +219,16 @@ class HomeFeedPage(
                                 }
                             }
 
-                            itemsIndexed(state as List<MediaItemLayout>) { index, layout ->
+                            items(state as List<MediaItemLayout>) { layout ->
                                 if (layout.items.isEmpty()) {
-                                    return@itemsIndexed
+                                    return@items
                                 }
 
                                 val type = layout.type ?: MediaItemLayout.Type.GRID
                                 type.Layout(
-                                    layout, 
-                                    Modifier.padding(bottom = 20.dp), 
-                                    multiselect_context = player.main_multiselect_context, 
+                                    layout,
+                                    Modifier.padding(top = 20.dp),
+                                    multiselect_context = player.main_multiselect_context,
                                     apply_filter = true
                                 )
                             }
@@ -163,8 +240,7 @@ class HomeFeedPage(
                                     Column(Modifier.fillMaxWidth(), horizontalAlignment = Alignment.Start) {
                                         if (loading) {
                                             CircularProgressIndicator(color = Theme.on_background)
-                                        }
-                                        else if (requestContinuation != null) {
+                                        } else if (requestContinuation != null) {
                                             IconButton({ requestContinuation() }) {
                                                 Icon(Icons.Filled.KeyboardDoubleArrowDown, null, tint = Theme.on_background)
                                             }
@@ -179,7 +255,7 @@ class HomeFeedPage(
                     null -> {
                         Column(Modifier.fillMaxSize()) {
                             TopContent()
-                            MainPageLoadingView(Modifier.graphicsLayer { alpha = state_alpha.value }.fillMaxSize())
+                            SongFeedPageLoadingView(Modifier.graphicsLayer { alpha = state_alpha.value }.fillMaxSize())
                         }
                     }
 
@@ -218,11 +294,75 @@ class HomeFeedPage(
             }
         }
     }
+
+    private fun loadFeed(continuation: Boolean) {
+        coroutine_scope.launchSingle {
+            loadFeed(-1, false, continuation, selected_filter_chip)
+        }
+    }
+
+    private suspend fun loadFeed(
+        min_rows: Int,
+        allow_cached: Boolean,
+        continue_feed: Boolean,
+        filter_chip: Int? = null
+    ): Result<Unit> = withContext(Dispatchers.IO) {
+        selected_filter_chip = filter_chip
+
+        load_lock.lock()
+
+        check(load_state == FeedLoadState.PREINIT || load_state == FeedLoadState.NONE)
+
+        val filter_params = filter_chip?.let { filter_chips!![it].params }
+        load_state = if (continue_feed) FeedLoadState.CONTINUING else FeedLoadState.LOADING
+
+        coroutineContext.job.invokeOnCompletion {
+            load_state = FeedLoadState.NONE
+            load_lock.unlock()
+        }
+
+        val result = loadFeedLayouts(min_rows, allow_cached, filter_params, if (continue_feed) continuation else null)
+
+        result.fold(
+            { data ->
+                val square_item_max_text_rows: Int = Settings.KEY_FEED_SQUARE_PREVIEW_TEXT_LINES.get()
+                val itemSizeProvider: @Composable () -> DpSize = { getMainPageItemSize() }
+                for (layout in data.layouts) {
+                    layout.itemSizeProvider = itemSizeProvider
+                    layout.square_item_max_text_rows = square_item_max_text_rows
+                }
+
+                if (continue_feed) {
+                    layouts = (layouts ?: emptyList()) + data.layouts
+                } else {
+                    layouts = data.layouts
+                    filter_chips = data.filter_chips
+                }
+
+                continuation = data.ctoken
+            },
+            { error ->
+                load_error = error
+                layouts = emptyList()
+                filter_chips = null
+            }
+        )
+
+        load_state = FeedLoadState.NONE
+
+        return@withContext result.unit()
+    }
 }
 
-private fun populateArtistsLayout(artists_layout: MediaItemLayout, layoutsProvider: () -> List<MediaItemLayout>, own_channel: Artist?) {
+private fun populateArtistsLayout(artists_layout: MediaItemLayout, layouts: List<MediaItemLayout>?, own_channel: Artist?) {
+    artists_layout.items.clear()
+    
+    if (layouts?.isNotEmpty() != true) {
+        return
+    }
+    
     val artists_map: MutableMap<Artist, Int?> = mutableMapOf()
-    for (layout in layoutsProvider()) {
+    for (layout in layouts) {
         for (item in layout.items) {
             if (item is Artist) {
                 artists_map[item] = null
@@ -252,8 +392,28 @@ private fun populateArtistsLayout(artists_layout: MediaItemLayout, layoutsProvid
         else Pair(artist.key, artist.value)
     }.sortedByDescending { it.second }
 
-    artists_layout.items.clear()
     for (artist in artists) {
         artists_layout.items.add(artist.first)
     }
+}
+
+private suspend fun loadFeedLayouts(
+    min_rows: Int,
+    allow_cached: Boolean,
+    params: String?,
+    continuation: String? = null,
+): Result<HomeFeedLoadResult> {
+    val result = getHomeFeed(
+        allow_cached = allow_cached,
+        min_rows = min_rows,
+        params = params,
+        continuation = continuation
+    )
+
+    val data = result.getOrNull() ?: return result.cast()
+    return Result.success(
+        data.copy(
+            layouts = data.layouts.filter { it.items.isNotEmpty() }
+        )
+    )
 }

@@ -4,8 +4,6 @@ import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateListOf
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.setValue
-import androidx.compose.runtime.Composable
-import androidx.compose.runtime.remember
 import com.toasterofbread.spmp.api.Api
 import com.toasterofbread.spmp.api.Api.Companion.addYtHeaders
 import com.toasterofbread.spmp.api.Api.Companion.getStream
@@ -30,7 +28,7 @@ class YoutubeChannelNotCreatedException(
 
 class YoutubeMusicAuthInfo: Set<String> {
     enum class ValueType { CHANNEL, COOKIE, HEADER, PLAYLIST }
-    var initialised: Boolean by mutableStateOf(false)
+    var is_initialised: Boolean by mutableStateOf(false)
 
     lateinit var own_channel: Artist
         private set
@@ -46,7 +44,7 @@ class YoutubeMusicAuthInfo: Set<String> {
         own_playlists.remove(playlist.id)
     }
 
-    fun initialisedOrNull(): YoutubeMusicAuthInfo? = if (initialised) this else null
+    fun initialisedOrNull(): YoutubeMusicAuthInfo? = if (is_initialised) this else null
     fun getOwnChannelOrNull(): Artist? = initialisedOrNull()?.own_channel
 
     constructor()
@@ -57,7 +55,7 @@ class YoutubeMusicAuthInfo: Set<String> {
 
         this.cookie = cookie
         this.headers = headers
-        initialised = true
+        is_initialised = true
     }
 
     constructor(set: Set<String>) {
@@ -84,13 +82,13 @@ class YoutubeMusicAuthInfo: Set<String> {
         }
         headers = set_headers
 
-        initialised = true
+        is_initialised = true
     }
 
-    override val size: Int get() = if (initialised) 2 + headers.size + own_playlists.size else 0
+    override val size: Int get() = if (is_initialised) 2 + headers.size + own_playlists.size else 0
     override fun contains(element: String): Boolean = throw NotImplementedError()
     override fun containsAll(elements: Collection<String>): Boolean = throw NotImplementedError()
-    override fun isEmpty(): Boolean = !initialised
+    override fun isEmpty(): Boolean = !is_initialised
 
     override fun iterator(): Iterator<String> = object : Iterator<String> {
         private var i = 0
@@ -111,7 +109,7 @@ class YoutubeMusicAuthInfo: Set<String> {
     }
 
     suspend fun loadOwnPlaylists(): Result<Unit> {
-        check(initialised)
+        check(is_initialised)
 
         val result = getAccountPlaylists()
         return result.fold(
@@ -193,15 +191,12 @@ class YoutubeMusicAuthInfo: Set<String> {
             return@withContext fromYTAccountMenuResponse(parsed, headers["cookie"]!!, headers)
         }
         
-        @Composable
-        fun rememberSettingsValueState(prefs: ProjectPreferences = Settings.prefs) =
-            remember {
-                SettingsValueState(
-                    Settings.KEY_YTM_AUTH.name,
-                    converter = { set ->
-                        set?.let { YoutubeMusicAuthInfo(it as Set<String>) } ?: YoutubeMusicAuthInfo()
-                    }
-                ).init(prefs, Settings.Companion::provideDefault)
-            }
+        fun getSettingsValueState(prefs: ProjectPreferences = Settings.prefs) =
+            SettingsValueState(
+                Settings.KEY_YTM_AUTH.name,
+                converter = { set ->
+                    set?.let { YoutubeMusicAuthInfo(it as Set<String>) } ?: YoutubeMusicAuthInfo()
+                }
+            ).init(prefs, Settings.Companion::provideDefault)
     }
 }

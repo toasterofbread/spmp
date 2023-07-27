@@ -17,7 +17,7 @@ import com.toasterofbread.spmp.model.mediaitem.Song
 import com.toasterofbread.spmp.model.mediaitem.enums.MediaItemType
 import com.toasterofbread.spmp.resources.uilocalisation.LocalisedYoutubeString
 import com.toasterofbread.spmp.ui.component.mediaitemlayout.MediaItemLayout
-import com.toasterofbread.spmp.ui.layout.mainpage.FilterChip
+import com.toasterofbread.spmp.model.FilterChip
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
 import okhttp3.Request

@@ -96,7 +96,9 @@ open class PlayerState protected constructor(
     private val onLongClickedOverride: ((item: MediaItem, long_press_data: LongPressMenuData?) -> Unit)? = null,
     private val upstream: PlayerState? = null
 ) {
-    open val main_page: MainPage? get() = upstream!!.main_page
+    open val main_page_state: MainPageState get() = upstream!!.main_page_state
+    val main_page: MainPage get() = main_page_state.current_page
+
     open val overlay_page: Pair<PlayerOverlayPage, MediaItem?>? get() = upstream!!.overlay_page
     open val bottom_padding: Float get() = upstream!!.bottom_padding
     open val main_multiselect_context: MediaItemMultiSelectContext get() = upstream!!.main_multiselect_context

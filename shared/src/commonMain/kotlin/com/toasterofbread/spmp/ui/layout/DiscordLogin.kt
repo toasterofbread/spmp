@@ -87,14 +87,19 @@ fun DiscordLogin(modifier: Modifier = Modifier, manual: Boolean = false, onFinis
         DiscordManualLogin(modifier, onFinished)
     }
     else if (isWebViewLoginSupported()) {
-        WebViewLogin(DISCORD_LOGIN_URL, modifier, onRequestIntercepted = { request, openUrl, getCookie ->
+        WebViewLogin(
+            DISCORD_LOGIN_URL,
+            modifier,
+            onClosed = { onFinished(null) },
+            shouldShowPage = { it.startsWith(DISCORD_LOGIN_URL) }
+        ) { request, openUrl, getCookie ->
             if (request.url.startsWith(DISCORD_API_URL)) {
                 val auth = request.requestHeaders["Authorization"]
                 if (auth != null) {
                     onFinished(Result.success(auth))
                 }
             }
-        }, shouldShowPage = { it.startsWith(DISCORD_LOGIN_URL) })
+        }
     }
     else {
         // TODO

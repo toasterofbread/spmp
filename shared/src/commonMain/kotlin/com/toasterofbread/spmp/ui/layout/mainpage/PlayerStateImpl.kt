@@ -5,7 +5,6 @@ import androidx.compose.animation.Crossfade
 import androidx.compose.animation.core.Animatable
 import androidx.compose.animation.core.animateDpAsState
 import androidx.compose.foundation.layout.*
-import androidx.compose.foundation.lazy.LazyListState
 import androidx.compose.material.ExperimentalMaterialApi
 import androidx.compose.material.SwipeableState
 import androidx.compose.material.icons.filled.*
@@ -15,10 +14,6 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.unit.*
 import com.toasterofbread.spmp.PlayerService
-import com.toasterofbread.spmp.api.HomeFeedLoadResult
-import com.toasterofbread.spmp.api.cast
-import com.toasterofbread.spmp.api.getHomeFeed
-import com.toasterofbread.spmp.api.unit
 import com.toasterofbread.spmp.model.*
 import com.toasterofbread.spmp.model.mediaitem.*
 import com.toasterofbread.spmp.platform.*
@@ -26,12 +21,13 @@ import com.toasterofbread.spmp.platform.composable.BackHandler
 import com.toasterofbread.spmp.ui.component.*
 import com.toasterofbread.spmp.ui.component.longpressmenu.LongPressMenu
 import com.toasterofbread.spmp.ui.component.longpressmenu.LongPressMenuData
-import com.toasterofbread.spmp.ui.component.mediaitemlayout.MediaItemLayout
 import com.toasterofbread.spmp.ui.component.mediaitempreview.*
 import com.toasterofbread.spmp.ui.component.multiselect.MediaItemMultiSelectContext
 import com.toasterofbread.spmp.ui.layout.*
 import com.toasterofbread.spmp.ui.layout.artistpage.ArtistPage
 import com.toasterofbread.spmp.ui.layout.library.LibraryPage
+import com.toasterofbread.spmp.ui.layout.library.PlaylistsPage
+import com.toasterofbread.spmp.ui.layout.library.SongsPage
 import com.toasterofbread.spmp.ui.layout.nowplaying.NOW_PLAYING_VERTICAL_PAGE_COUNT
 import com.toasterofbread.spmp.ui.layout.nowplaying.NowPlayingExpansionState
 import com.toasterofbread.spmp.ui.layout.nowplaying.ThemeMode
@@ -44,12 +40,8 @@ import com.toasterofbread.spmp.ui.theme.Theme
 import com.toasterofbread.utils.addUnique
 import com.toasterofbread.utils.composable.OnChangedEffect
 import com.toasterofbread.utils.init
-import com.toasterofbread.utils.launchSingle
 import com.toasterofbread.utils.toFloat
 import kotlinx.coroutines.*
-import java.util.concurrent.locks.ReentrantLock
-import kotlinx.coroutines.CoroutineScope
-import kotlinx.coroutines.Job
 
 enum class FeedLoadState { PREINIT, NONE, LOADING, CONTINUING }
 
@@ -64,15 +56,15 @@ fun getMainPageItemSize(): DpSize {
 
 interface PlayerOverlayPage {
     @Composable
-    fun getPage(previous_item: MediaItemHolder?, bottom_padding: Dp, close: () -> Unit)
+    fun Page(previous_item: MediaItemHolder?, bottom_padding: Dp, close: () -> Unit)
 
-    fun getItem(): MediaItem?
+    open fun getItem(): MediaItem? = null
 
     data class MediaItemPage(private val holder: MediaItemHolder): PlayerOverlayPage {
         override fun getItem(): MediaItem? = holder.item
 
         @Composable
-        override fun getPage(previous_item: MediaItemHolder?, bottom_padding: Dp, close: () -> Unit) {
+        override fun Page(previous_item: MediaItemHolder?, bottom_padding: Dp, close: () -> Unit) {
             when (val item = holder.item) {
                 null -> close()
                 is Playlist -> PlaylistPage(
@@ -100,10 +92,8 @@ interface PlayerOverlayPage {
     }
 
     data class YtmLoginPage(private val manual: Boolean = false): PlayerOverlayPage {
-        override fun getItem(): MediaItem? = null
-
         @Composable
-        override fun getPage(previous_item: MediaItemHolder?, bottom_padding: Dp, close: () -> Unit) {
+        override fun Page(previous_item: MediaItemHolder?, bottom_padding: Dp, close: () -> Unit) {
             YoutubeMusicLogin(
                 Modifier.fillMaxSize(),
                 manual = manual
@@ -118,10 +108,8 @@ interface PlayerOverlayPage {
     }
 
     private data class GenericFeedViewMorePage(private val browse_id: String): PlayerOverlayPage {
-        override fun getItem(): MediaItem? = null
-
         @Composable
-        override fun getPage(previous_item: MediaItemHolder?, bottom_padding: Dp, close: () -> Unit) {
+        override fun Page(previous_item: MediaItemHolder?, bottom_padding: Dp, close: () -> Unit) {
             GenericFeedViewMorePage(browse_id, Modifier.fillMaxSize(), bottom_padding = bottom_padding)
         }
     }
@@ -135,10 +123,8 @@ interface PlayerOverlayPage {
         }
 
         val RadioBuilderPage = object : PlayerOverlayPage {
-            override fun getItem(): MediaItem? = null
-
             @Composable
-            override fun getPage(previous_item: MediaItemHolder?, bottom_padding: Dp, close: () -> Unit) {
+            override fun Page(previous_item: MediaItemHolder?, bottom_padding: Dp, close: () -> Unit) {
                 RadioBuilderPage(
                     bottom_padding,
                     Modifier.fillMaxSize(),
@@ -146,24 +132,18 @@ interface PlayerOverlayPage {
                 )
             }
         }
-        val SettingsPage = object : PlayerOverlayPage {
-            override fun getItem(): MediaItem? = null
 
+        val SettingsPage = object : PlayerOverlayPage {
             val current_category: MutableState<PrefsPageCategory?> = mutableStateOf(null)
 
             @Composable
-            override fun getPage(previous_item: MediaItemHolder?, bottom_padding: Dp, close: () -> Unit) {
+            override fun Page(previous_item: MediaItemHolder?, bottom_padding: Dp, close: () -> Unit) {
                 PrefsPage(bottom_padding, current_category, Modifier.fillMaxSize(), close)
             }
         }
-        val LibraryPage = object : PlayerOverlayPage {
-            override fun getItem(): MediaItem? = null
 
-            @Composable
-            override fun getPage(previous_item: MediaItemHolder?, bottom_padding: Dp, close: () -> Unit) {
-                LibraryPage(PaddingValues(bottom = bottom_padding), Modifier.fillMaxSize(), close = close)
-            }
-        }
+        val PlaylistsPage = PlaylistsPage()
+        val SongsPage = SongsPage()
     }
 }
 
@@ -203,31 +183,7 @@ class PlayerStateImpl(private val context: PlatformContext): PlayerState(null, n
     val expansion_state = NowPlayingExpansionState(np_swipe_state, context)
     override var download_manager = PlayerDownloadManager(context)
 
-    private val feed_load_state = mutableStateOf(FeedLoadState.PREINIT)
-    private val feed_load_lock = ReentrantLock()
-    private var feed_continuation: String? by mutableStateOf(null)
-    private val feed_coroutine_scope = CoroutineScope(Job())
-
-    private val main_page_scroll_state = LazyListState()
-    private var main_page_layouts: List<MediaItemLayout>? by mutableStateOf(null)
-    private var main_page_load_error: Throwable? by mutableStateOf(null)
-    private var main_page_filter_chips: List<FilterChip>? by mutableStateOf(null)
-    private var main_page_selected_filter_chip: Int? by mutableStateOf(null)
-
-    private val base_main_page = HomeFeedPage(
-        { feed_load_state.value },
-        { main_page_load_error },
-        { continuation: Boolean ->
-            feed_coroutine_scope.launchSingle {
-                loadFeed(-1, false, continuation, main_page_selected_filter_chip)
-            }
-        },
-        { feed_continuation != null },
-        { main_page_layouts ?: emptyList() },
-        main_page_scroll_state
-    )
-
-    override var main_page: MainPage by mutableStateOf(base_main_page)
+    override val main_page_state = MainPageState()
     override var overlay_page: Pair<PlayerOverlayPage, MediaItem?>? by mutableStateOf(null)
         private set
     override val bottom_padding: Float get() = bottom_padding_anim.value
@@ -238,7 +194,7 @@ class PlayerStateImpl(private val context: PlatformContext): PlayerState(null, n
     init {
         low_memory_listener = {
             if (!main_page_showing) {
-                resetHomeFeed()
+                main_page_state.SongFeed.resetSongFeed()
             }
         }
         SpMp.addLowMemoryListener(low_memory_listener)
@@ -340,11 +296,9 @@ class PlayerStateImpl(private val context: PlatformContext): PlayerState(null, n
     }
 
     override fun setMainPage(page: MainPage?) {
-        val new_page = page ?: base_main_page
-        if (new_page != main_page) {
-            main_page_undo_stack.add(main_page)
-            main_page = new_page
-            main_page.onOpened()
+        val previous_page = main_page_state.current_page
+        if (main_page_state.setPage(page)) {
+            main_page_undo_stack.add(previous_page)
         }
     }
 
@@ -358,12 +312,12 @@ class PlayerStateImpl(private val context: PlatformContext): PlayerState(null, n
     }
 
     override fun navigateBack() {
+        println("NAVBACK $overlay_page $overlay_page_undo_stack")
         if (overlay_page != null) {
             overlay_page = overlay_page_undo_stack.removeLastOrNull()
         }
         else {
-            main_page = main_page_undo_stack.removeLastOrNull() ?: base_main_page
-            main_page.onOpened()
+            main_page_state.setPage(main_page_undo_stack.removeLastOrNull())
         }
     }
 
@@ -529,64 +483,6 @@ class PlayerStateImpl(private val context: PlatformContext): PlayerState(null, n
         }
     }
 
-    private fun resetHomeFeed() {
-        main_page_layouts = emptyList()
-        main_page_filter_chips = null
-        main_page_selected_filter_chip = null
-    }
-
-    private suspend fun loadFeed(
-        min_rows: Int,
-        allow_cached: Boolean,
-        continue_feed: Boolean,
-        filter_chip: Int? = null
-    ): Result<Unit> = withContext(Dispatchers.IO) {
-        main_page_selected_filter_chip = filter_chip
-
-        feed_load_lock.lock()
-
-        check(feed_load_state.value == FeedLoadState.PREINIT || feed_load_state.value == FeedLoadState.NONE)
-
-        val filter_params = filter_chip?.let { main_page_filter_chips!![it].params }
-        feed_load_state.value = if (continue_feed) FeedLoadState.CONTINUING else FeedLoadState.LOADING
-
-        coroutineContext.job.invokeOnCompletion {
-            feed_load_state.value = FeedLoadState.NONE
-            feed_load_lock.unlock()
-        }
-
-        val result = loadFeedLayouts(min_rows, allow_cached, filter_params, if (continue_feed) feed_continuation else null)
-        
-        result.fold(
-            { data ->
-                val square_item_max_text_rows: Int = Settings.KEY_FEED_SQUARE_PREVIEW_TEXT_LINES.get()
-                val itemSizeProvider: @Composable () -> DpSize = { getMainPageItemSize() }
-                for (layout in data.layouts) {
-                    layout.itemSizeProvider = itemSizeProvider
-                    layout.square_item_max_text_rows = square_item_max_text_rows
-                }
-
-                if (continue_feed) {
-                    main_page_layouts = (main_page_layouts ?: emptyList()) + data.layouts
-                } else {
-                    main_page_layouts = data.layouts
-                    main_page_filter_chips = data.filter_chips
-                }
-
-                feed_continuation = data.ctoken
-            },
-            { error ->
-                main_page_load_error = error
-                main_page_layouts = emptyList()
-                main_page_filter_chips = null
-            }
-        )
-
-        feed_load_state.value = FeedLoadState.NONE
-
-        return@withContext result.unit()
-    }
-
     @Composable
     fun HomePage() {
         BackHandler(main_page_undo_stack.isNotEmpty() || overlay_page != null) {
@@ -603,21 +499,10 @@ class PlayerStateImpl(private val context: PlatformContext): PlayerState(null, n
                     val close = remember { { navigateBack() } }
 
                     if (page == null) {
-                        LaunchedEffect(Unit) {
+                        DisposableEffect(Unit) {
                             check(!main_page_showing)
                             main_page_showing = true
 
-                            if (main_page_layouts == null) {
-                                feed_coroutine_scope.launchSingle {
-                                    player?.also { player ->
-                                        val result = loadFeed(Settings.get(Settings.KEY_FEED_INITIAL_ROWS), allow_cached = true, continue_feed = false)
-                                        player.loadPersistentQueue(result.isSuccess)
-                                    }
-                                }
-                            }
-                        }
-
-                        DisposableEffect(Unit) {
                             onDispose {
                                 check(main_page_showing)
                                 main_page_showing = false
@@ -625,19 +510,10 @@ class PlayerStateImpl(private val context: PlatformContext): PlayerState(null, n
                         }
 
                         pinned_items.removeAll { it.item == null }
-
-                        MainPage(
-                            { main_page_filter_chips },
-                            { main_page_selected_filter_chip },
-                            { filter_chip: Int?, continuation: Boolean ->
-                                feed_coroutine_scope.launchSingle {
-                                    loadFeed(-1, false, continuation, filter_chip)
-                                }
-                            }
-                        )
+                        MainPageDisplay()
                     }
                     else {
-                        page.first.getPage(
+                        page.first.Page(
                             page.second,
                             (if (session_started) MINIMISED_NOW_PLAYING_HEIGHT_DP.dp else 0.dp) + SpMp.context.getNavigationBarHeightDp() + SpMp.context.getDefaultVerticalPadding(),
                             close
@@ -667,25 +543,4 @@ class PlayerStateImpl(private val context: PlatformContext): PlayerState(null, n
     override fun isRunningAndFocused(): Boolean {
         return player?.has_focus == true
     }
-}
-
-private suspend fun loadFeedLayouts(
-    min_rows: Int,
-    allow_cached: Boolean,
-    params: String?,
-    continuation: String? = null,
-): Result<HomeFeedLoadResult> {
-    val result = getHomeFeed(
-        allow_cached = allow_cached,
-        min_rows = min_rows,
-        params = params,
-        continuation = continuation
-    )
-
-    val data = result.getOrNull() ?: return result.cast()
-    return Result.success(
-        data.copy(
-            layouts = data.layouts.filter { it.items.isNotEmpty() }
-        )
-    )
 }

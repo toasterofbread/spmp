@@ -38,9 +38,12 @@ class SettingsMultipleChoiceItem(
     val radio_style: Boolean,
     val get_choice: (Int) -> String,
 ): SettingsItem() {
-
     override fun initialiseValueStates(prefs: ProjectPreferences, default_provider: (String) -> Any) {
         state.init(prefs, default_provider)
+    }
+
+    override fun releaseValueStates(prefs: ProjectPreferences) {
+        state.release(prefs)
     }
 
     override fun resetValues() {
@@ -77,10 +80,10 @@ class SettingsMultipleChoiceItem(
                                     .clickable(
                                         remember { MutableInteractionSource() },
                                         null
-                                    ) { state.value = i }
+                                    ) { state.set(i) }
                             ) {
                                 WidthShrinkText(get_choice(i))
-                                RadioButton(i == state.value, onClick = { state.value = i }, colors = RadioButtonDefaults.colors(theme.vibrant_accent))
+                                RadioButton(i == state.get(), onClick = { state.set(i) }, colors = RadioButtonDefaults.colors(theme.vibrant_accent))
                             }
                         }
                     }
@@ -89,9 +92,9 @@ class SettingsMultipleChoiceItem(
                     Column(Modifier.padding(start = 15.dp), verticalArrangement = Arrangement.spacedBy(10.dp)) {
                         for (i in 0 until choice_amount) {
 
-                            val colour = remember(i) { Animatable(if (state.value == i) theme.vibrant_accent else Color.Transparent) }
-                            LaunchedEffect(state.value, theme.vibrant_accent) {
-                                colour.animateTo(if (state.value == i) theme.vibrant_accent else Color.Transparent, TweenSpec(150))
+                            val colour = remember(i) { Animatable(if (state.get() == i) theme.vibrant_accent else Color.Transparent) }
+                            LaunchedEffect(state.get(), theme.vibrant_accent) {
+                                colour.animateTo(if (state.get() == i) theme.vibrant_accent else Color.Transparent, TweenSpec(150))
                             }
 
                             Box(
@@ -105,14 +108,14 @@ class SettingsMultipleChoiceItem(
                                     .fillMaxWidth()
                                     .height(40.dp)
                                     .clickable(remember { MutableInteractionSource() }, null) {
-                                        state.value = i
+                                        state.set(i)
                                     }
                                     .background(colour.value, SETTINGS_ITEM_ROUNDED_SHAPE)
                             ) {
                                 Box(Modifier.padding(horizontal = 10.dp)) {
                                     WidthShrinkText(
                                         get_choice(i),
-                                        style = LocalTextStyle.current.copy(color = if (state.value == i) theme.on_accent else theme.on_background)
+                                        style = LocalTextStyle.current.copy(color = if (state.get() == i) theme.on_accent else theme.on_background)
                                     )
                                 }
                             }

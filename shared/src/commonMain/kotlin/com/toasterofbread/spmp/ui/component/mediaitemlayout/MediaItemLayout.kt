@@ -49,7 +49,7 @@ import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
 import okhttp3.Request
 
-fun getDefaultMediaItemPreviewSize(): DpSize = DpSize(100.dp, 130.dp)
+fun getDefaultMediaItemPreviewSize(): DpSize = DpSize(100.dp, 120.dp)
 
 data class MediaItemLayout(
     val title: LocalisedYoutubeString?,

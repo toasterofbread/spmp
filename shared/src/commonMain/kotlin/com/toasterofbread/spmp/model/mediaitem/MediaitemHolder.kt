@@ -38,7 +38,7 @@ fun isMediaItemHidden(item: MediaItem): Boolean {
 @Composable
 fun List<MediaItemHolder>.rememberFilteredItems(apply_filter: Boolean): List<MediaItemHolder> {
     val hidden_items: Set<String> by Settings.INTERNAL_HIDDEN_ITEMS.rememberMutableState()
-    return remember(apply_filter, hidden_items) {
+    return remember(this, apply_filter, hidden_items) {
         if (apply_filter) mapNotNull {
             val item = it.item
             if (item != null && isMediaItemHidden(item)) {

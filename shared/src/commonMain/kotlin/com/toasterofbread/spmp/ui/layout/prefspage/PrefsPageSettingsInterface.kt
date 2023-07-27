@@ -49,6 +49,20 @@ internal fun rememberPrefsPageSettingsInterface(
         val discord_auth =
             SettingsValueState<String>(Settings.KEY_DISCORD_ACCOUNT_TOKEN.name).init(Settings.prefs, Settings.Companion::provideDefault)
 
+        val categories = mapOf(
+            PrefsPageCategory.GENERAL to lazy { getGeneralCategory() },
+            PrefsPageCategory.FILTER to lazy { getFilterCategory() },
+            PrefsPageCategory.FEED to lazy { getFeedCategory() },
+            PrefsPageCategory.PLAYER to lazy { getPlayerCategory() },
+            PrefsPageCategory.LIBRARY to lazy { getLibraryCategory() },
+            PrefsPageCategory.THEME to lazy { getThemeCategory(Theme) },
+            PrefsPageCategory.LYRICS to lazy { getLyricsCategory() },
+            PrefsPageCategory.DOWNLOAD to lazy { getDownloadCategory() },
+            PrefsPageCategory.DISCORD_STATUS to lazy { getDiscordStatusGroup(discord_auth) },
+            PrefsPageCategory.OTHER to lazy { getOtherCategory() },
+            PrefsPageCategory.DEVELOPMENT to lazy { getDevelopmentCategory() }
+        )
+
         settings_interface = SettingsInterface(
             { Theme },
             PrefsPageScreen.ROOT.ordinal,
@@ -60,22 +74,7 @@ internal fun rememberPrefsPageSettingsInterface(
                 when (PrefsPageScreen.values()[it]) {
                     PrefsPageScreen.ROOT -> SettingsPageWithItems(
                         { getCategory()?.getTitle() },
-                        {
-                            when (getCategory()) {
-                                PrefsPageCategory.GENERAL -> getGeneralCategory()
-                                PrefsPageCategory.FILTER -> getFilterCategory()
-                                PrefsPageCategory.FEED -> getFeedCategory()
-                                PrefsPageCategory.PLAYER -> getPlayerCategory()
-                                PrefsPageCategory.LIBRARY -> getLibraryCategory()
-                                PrefsPageCategory.THEME -> getThemeCategory(Theme)
-                                PrefsPageCategory.LYRICS -> getLyricsCategory()
-                                PrefsPageCategory.DOWNLOAD -> getDownloadCategory()
-                                PrefsPageCategory.DISCORD_STATUS -> getDiscordStatusGroup(discord_auth)
-                                PrefsPageCategory.OTHER -> getOtherCategory()
-                                PrefsPageCategory.DEVELOPMENT -> getDevelopmentCategory()
-                                null -> emptyList()
-                            }
-                        },
+                        { categories[getCategory()]?.value ?: emptyList() },
                         getIcon = {
                             val icon = getCategory()?.getIcon()
                             var current_icon by remember { mutableStateOf(icon) }

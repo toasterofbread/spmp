@@ -37,6 +37,9 @@ class SettingsDropdownItem(
     override fun initialiseValueStates(prefs: ProjectPreferences, default_provider: (String) -> Any) {
         state.init(prefs, default_provider)
     }
+    override fun releaseValueStates(prefs: ProjectPreferences) {
+        state.release(prefs)
+    }
 
     override fun resetValues() {
         state.reset()
@@ -71,7 +74,7 @@ class SettingsDropdownItem(
                     contentColor = theme.on_accent
                 )
             ) {
-                Text(getButtonItem?.invoke(state.value) ?: getItem(state.value))
+                Text(getButtonItem?.invoke(state.get()) ?: getItem(state.get()))
                 Icon(
                     Icons.Filled.ArrowDropDown,
                     null,
@@ -87,11 +90,11 @@ class SettingsDropdownItem(
                         open,
                         { open = false },
                         item_count,
-                        state.value,
+                        state.get(),
                         getItem,
                         selected_item_colour = Theme.vibrant_accent
                     ) {
-                        state.value = it
+                        state.set(it)
                         open = false
                     }
                 }

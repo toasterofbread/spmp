@@ -21,6 +21,7 @@ import androidx.compose.ui.unit.dp
 import com.toasterofbread.composesettings.ui.SettingsPage
 import com.toasterofbread.spmp.platform.ProjectPreferences
 import com.toasterofbread.spmp.ui.theme.Theme
+import com.toasterofbread.utils.composable.RecomposeOnInterval
 import com.toasterofbread.utils.setAlpha
 
 class SettingsToggleItem(
@@ -29,11 +30,14 @@ class SettingsToggleItem(
     val subtitle: String?,
     val checker: ((target: Boolean, setLoading: (Boolean) -> Unit, (allow_change: Boolean) -> Unit) -> Unit)? = null
 ): SettingsItem() {
-
     private var loading: Boolean by mutableStateOf(false)
 
     override fun initialiseValueStates(prefs: ProjectPreferences, default_provider: (String) -> Any) {
         state.init(prefs, default_provider)
+    }
+
+    override fun releaseValueStates(prefs: ProjectPreferences) {
+        state.release(prefs)
     }
 
     override fun resetValues() {
@@ -63,25 +67,25 @@ class SettingsToggleItem(
                 }
                 else {
                     Switch(
-                        state.value,
+                        state.get(),
                         onCheckedChange = null,
                         Modifier.clickable(
                             interactionSource = remember { MutableInteractionSource() },
                             indication = null
                         ) {
                             if (checker == null) {
-                                state.value = !state.value
+                                state.set(!state.get())
                                 return@clickable
                             }
 
                             checker.invoke(
-                                !state.value,
+                                !state.get(),
                                 { l ->
                                     loading = l
                                 }
                             ) { allow_change ->
                                 if (allow_change) {
-                                    state.value = !state.value
+                                    state.set(!state.get())
                                 }
                                 loading = false
                             }

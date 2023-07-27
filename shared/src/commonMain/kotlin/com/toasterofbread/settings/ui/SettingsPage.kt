@@ -14,11 +14,15 @@ import androidx.compose.foundation.layout.requiredHeight
 import androidx.compose.foundation.layout.requiredWidth
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.lazy.LazyColumn
+import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.Refresh
 import androidx.compose.material3.Icon
+import androidx.compose.material3.IconButton
 import androidx.compose.material3.LocalContentColor
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.CompositionLocalProvider
+import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.vector.ImageVector
@@ -30,6 +34,7 @@ import com.toasterofbread.composesettings.ui.item.SettingsItem
 import com.toasterofbread.spmp.platform.composable.BackHandler
 import com.toasterofbread.spmp.ui.component.WaveBorder
 import com.toasterofbread.utils.composable.WidthShrinkText
+import kotlinx.coroutines.launch
 
 abstract class SettingsPage {
     var id: Int? = null
@@ -56,17 +61,23 @@ abstract class SettingsPage {
 
     @Composable
     fun TitleBar(is_root: Boolean, modifier: Modifier = Modifier, goBack: () -> Unit) {
+        val coroutine_scope = rememberCoroutineScope()
+
         Crossfade(title, modifier) { title ->
             Column(Modifier.fillMaxWidth()) {
                 Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.SpaceBetween, verticalAlignment = Alignment.CenterVertically) {
-                    icon?.also {
-                        Icon(it, null)
+                    val ic = icon
+                    if (ic != null) {
+                        Icon(ic, null)
+                    }
+                    else {
+                        Spacer(Modifier.width(24.dp))
                     }
 
                     if (title != null) {
                         WidthShrinkText(
                             title,
-                            Modifier.padding(horizontal = 30.dp),
+                            Modifier.padding(horizontal = 30.dp).weight(1f),
                             style = MaterialTheme.typography.headlineMedium.copy(
                                 color = settings_interface.theme.on_background,
                                 fontWeight = FontWeight.Light,
@@ -75,8 +86,12 @@ abstract class SettingsPage {
                         )
                     }
 
-                    if (icon != null) {
-                        Spacer(Modifier.width(24.dp))
+                    IconButton({
+                        coroutine_scope.launch {
+                            resetKeys()
+                        }
+                    }) {
+                        Icon(Icons.Default.Refresh, null)
                     }
                 }
 

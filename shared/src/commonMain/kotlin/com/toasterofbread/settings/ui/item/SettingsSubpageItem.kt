@@ -16,9 +16,8 @@ class SettingsSubpageItem(
     val subtitle: String?,
     val target_page: Int,
 ): SettingsItem() {
-
     override fun initialiseValueStates(prefs: ProjectPreferences, default_provider: (String) -> Any) {}
-
+    override fun releaseValueStates(prefs: ProjectPreferences) {}
     override fun resetValues() {}
 
     @Composable

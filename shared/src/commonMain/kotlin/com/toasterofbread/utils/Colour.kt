@@ -24,7 +24,7 @@ fun Color.setAlpha(alpha: Float): Color {
     return copy(alpha = alpha)
 }
 
-fun Color.blendWith(other: Color, ratio: Float = 0.5f): Color {
+fun Color.blendWith(other: Color, ratio: Float = 0.075f): Color {
     return copy(alpha = alpha * ratio).compositeOver(other)
 }
 
@@ -84,6 +84,10 @@ fun Color.amplifyPercent(by_percent: Float, opposite_percent: Float = by_percent
 
 fun Color.compare(against: Color): Float {
     return 1f - (((red - against.red).absoluteValue + (green - against.green).absoluteValue + (blue - against.blue).absoluteValue) / 3f)
+}
+
+fun Color.compareLuminance(against: Color): Float {
+    return (luminance() - against.luminance()).absoluteValue
 }
 
 fun ImageBitmap.getThemeColour(): Color? {

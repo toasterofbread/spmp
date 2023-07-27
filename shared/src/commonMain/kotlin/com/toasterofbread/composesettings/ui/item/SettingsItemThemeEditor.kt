@@ -59,6 +59,10 @@ class SettingsItemThemeSelector(
         state.init(prefs, default_provider)
     }
 
+    override fun releaseValueStates(prefs: ProjectPreferences) {
+        state.release(prefs)
+    }
+
     override fun resetValues() {
         state.reset()
         for (i in getThemeCount() - 1 downTo 0) {
@@ -82,36 +86,37 @@ class SettingsItemThemeSelector(
                         .weight(1f)
                 )
 
-                Text("${state.value + 1} / ${getThemeCount()}")
+                Text("${state.get() + 1} / ${getThemeCount()}")
 
                 ShapedIconButton(
-                    { state.value = (state.value - 1).coerceAtLeast(0) },
+                    { state.set((state.get() - 1).coerceAtLeast(0)) },
                     onLongClick = {
                         context.vibrateShort()
-                        state.value = 0
+                        state.set(0)
                     },
-                    enabled = state.value > 0
+                    enabled = state.get() > 0
                 ) {
                     Icon(Icons.Filled.KeyboardArrowLeft, null)
                 }
                 ShapedIconButton(
-                    { state.value = (state.value + 1).coerceAtMost(getThemeCount() - 1) },
+                    { state.set((state.get() + 1).coerceAtMost(getThemeCount() - 1)) },
                     onLongClick = {
                         context.vibrateShort()
-                        state.value = getThemeCount() - 1
+                        state.set(getThemeCount() - 1)
                     },
-                    enabled = state.value + 1 < getThemeCount()
+                    enabled = state.get() + 1 < getThemeCount()
                 ) {
                     Icon(Icons.Filled.KeyboardArrowRight, null)
                 }
                 IconButton({
-                    createTheme(state.value + 1)
-                    state.value++
+                    val index = state.get() + 1
+                    createTheme(index)
+                    state.set(index)
                 }) {
                     Icon(Icons.Filled.Add, null)
                 }
             }
-            Crossfade(state.value) { theme_index ->
+            Crossfade(state.get()) { theme_index ->
                 val theme_data = getTheme(theme_index)
                 val height = 40.dp
                 Row(
@@ -152,7 +157,7 @@ class SettingsItemThemeSelector(
                     ShapedIconButton(
                         {
                             removeTheme(theme_index)
-                            state.value = maxOf(0, theme_index - 1)
+                            state.set(maxOf(0, theme_index - 1))
                         },
                         Modifier.size(height),
                         colours = icon_button_colours,

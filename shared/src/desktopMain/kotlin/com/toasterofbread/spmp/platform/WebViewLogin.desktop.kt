@@ -9,8 +9,9 @@ actual fun isWebViewLoginSupported(): Boolean = false
 actual fun WebViewLogin(
     initial_url: String,
     modifier: Modifier,
-    loading_message: String?,
+    onClosed: () -> Unit,
     shouldShowPage: (url: String) -> Boolean,
+    loading_message: String?,
     onRequestIntercepted: (WebViewRequest, openUrl: (String) -> Unit, getCookie: (String) -> String) -> Unit
 ) {
     throw NotImplementedError("Not supported")

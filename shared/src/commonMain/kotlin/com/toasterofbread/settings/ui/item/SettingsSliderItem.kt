@@ -66,9 +66,9 @@ class SettingsSliderItem(
     fun setValue(value: Float) {
         value_state = value
         if (is_int) {
-            (state as BasicSettingsValueState<Int>).value = value.roundToInt()
+            (state as BasicSettingsValueState<Int>).set(value.roundToInt())
         } else {
-            (state as BasicSettingsValueState<Float>).value = value
+            (state as BasicSettingsValueState<Float>).set(value)
         }
     }
 
@@ -78,7 +78,7 @@ class SettingsSliderItem(
 
     override fun initialiseValueStates(prefs: ProjectPreferences, default_provider: (String) -> Any) {
         state.init(prefs, default_provider)
-        value_state = state.value.toFloat()
+        value_state = state.get().toFloat()
         is_int = when (state.getDefault(default_provider)) {
             is Float -> false
             is Int -> true
@@ -86,9 +86,13 @@ class SettingsSliderItem(
         }
     }
 
+    override fun releaseValueStates(prefs: ProjectPreferences) {
+        state.release(prefs)
+    }
+
     override fun resetValues() {
         state.reset()
-        value_state = state.value.toFloat()
+        value_state = state.get().toFloat()
     }
 
     @OptIn(ExperimentalMaterial3Api::class)

@@ -37,7 +37,7 @@ internal fun getDiscordLoginPage(discord_auth: SettingsValueState<String>, manua
                 auth_info.fold(
                     {
                         if (it != null) {
-                            discord_auth.value = it
+                            discord_auth.set(it)
                         }
                         goBack()
                     },

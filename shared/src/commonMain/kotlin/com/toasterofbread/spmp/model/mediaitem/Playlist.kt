@@ -6,9 +6,9 @@ import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.setValue
 import com.toasterofbread.Database
-import com.toasterofbread.spmp.api.cast
 import com.toasterofbread.spmp.model.mediaitem.enums.MediaItemType
 import com.toasterofbread.spmp.model.mediaitem.enums.PlaylistType
+import com.toasterofbread.spmp.model.mediaitem.loader.MediaItemLoader
 import com.toasterofbread.spmp.ui.component.mediaitemlayout.MediaItemLayout
 
 interface Playlist: MediaItem, WithArtist {
@@ -16,9 +16,14 @@ interface Playlist: MediaItem, WithArtist {
     val playlist_type: PlaylistType?
     val browse_params: String?
     val item_count: Int?
-    val year: Int?
     val total_duration: Long?
+    val year: Int?
+    // Artist via WithArtist
 
+    internal val custom_image_provider: MediaItemThumbnailProvider?
+    val image_width: Float?
+
+    val is_editable: Boolean?
     val continuation: MediaItemLayout.Continuation?
     val item_set_ids: List<String>?
 
@@ -38,45 +43,71 @@ class PlaylistData(
     override var playlist_type: PlaylistType? = null,
     override var browse_params: String? = null,
     override var item_count: Int? = null,
-    override var year: Int? = null,
     override var total_duration: Long? = null,
+    override var year: Int? = null,
 
+    override var custom_image_provider: MediaItemThumbnailProvider? = null,
+    override var image_width: Float? = null,
+
+    override var is_editable: Boolean? = null,
     override var continuation: MediaItemLayout.Continuation? = null,
     override var item_set_ids: List<String>? = null
 ): MediaItemData(), Playlist, DataWithArtist {
 
-    suspend fun loadItems(database: Database): Result<Pair<List<MediaItem>, String?>> {
+    override fun loadFromDatabase(db: Database) {
+        super.loadFromDatabase(db)
+
+        val data = db.playlistQueries.byId(id).executeAsOne()
+        playlist_type = data.playlist_type?.let { PlaylistType.values()[it.toInt()] }
+        browse_params = data.browse_params
+        item_count = data.item_count?.toInt()
+        total_duration = data.total_duration
+        year = data.year?.toInt()
+
+        custom_image_provider = data.custom_image_url_a?.let { url_a ->
+            MediaItemThumbnailProvider(url_a, data.custom_image_url_b)
+        }
+        image_width = data.image_width?.toFloat()
+
+        loadItemsFromDatabase(db)
+    }
+
+    suspend fun loadItems(db: Database): Result<Unit> {
         MediaItemLoader.withPlaylistLock {
-            val current_items: List<MediaItem>? = items ?: database.transactionWithResult {
-                val loaded = database.playlistQueries.areItemsLoadedById(id).executeAsOne().items_loaded != null
-                if (!loaded) {
-                    return@transactionWithResult null
-                }
-
-                database.playlistItemQueries.byPlaylistId(id).executeAsList().map {
-                    SongData(it.song_id)
-                }
+            loadItemsFromDatabase(db)
+            if (items != null) {
+                return Result.success(Unit)
             }
 
-            if (current_items != null) {
-                return Result.success(Pair(current_items, continuation?.token))
+            val load_result = MediaItemLoader.loadPlaylist(this, db)
+            val item = load_result.fold(
+                { it },
+                { return Result.failure(it) }
+            )
+
+            val loaded_items = item.items
+            if (loaded_items == null) {
+                return Result.failure(IllegalStateException("MediaItemLoader.loadPlaylist($id) failed to load items but didn't return an error"))
             }
 
-            val load_result = MediaItemLoader.loadPlaylist(this)
-            val item = load_result.getOrNull() ?: return load_result.cast()
+            items = loaded_items
+            continuation = item.continuation
 
-            return item.items.let { loaded_items ->
-                if (loaded_items == null) {
-                    return@let Result.failure(IllegalStateException("loadPlaylist failed to load items but didn't return an error"))
-                }
-
-                items = loaded_items
-                continuation = item.continuation
-
-                return@let Result.success(Pair(loaded_items, continuation?.token))
-            }
+            return Result.success(Unit)
         }
     }
+
+    private fun loadItemsFromDatabase(db: Database) {
+        if (loaded) {
+            items = db.playlistItemQueries.byPlaylistId(id).executeAsList().map { item ->
+                SongData(item.song_id)
+            }
+        }
+        else {
+            items = null
+        }
+    }
+
 
 //    companion object {
 //        fun loadFromId(database: Database, playlist_id: String): PlaylistData = database.transactionWithResult {

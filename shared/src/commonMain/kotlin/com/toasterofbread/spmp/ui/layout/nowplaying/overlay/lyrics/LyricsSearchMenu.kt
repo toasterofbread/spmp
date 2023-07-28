@@ -206,10 +206,22 @@ fun LyricsSearchMenu(song: Song, modifier: Modifier = Modifier, close: (changed:
                 LyricsSearchResults(results) { index ->
                     if (index != null) {
                         val selected = results.first[index]
-                        if (selected.id != song.song_reg_entry.lyrics_id || results.second != song.song_reg_entry.lyrics_source_idx) {
-                            song.song_reg_entry.updateLyrics(selected.id, results.second)
-                            song.saveRegistry()
+                        val lyrics_source = results.second.toLong()
+
+                        val current_lyrics = SpMp.context.database.songQueries
+                            .lyricsById(song.id)
+                            .executeAsOne()
+
+                        if (selected.id != current_lyrics.lyrics_id || lyrics_source != current_lyrics.lyrics_source) {
+                            SpMp.context.database.songQueries.updateLyricsById(
+                                lyrics_source = lyrics_source,
+                                lyrics_id = selected.id,
+                                id = song.id
+                            )
                             close(true)
+                        }
+                        else {
+                            close(false)
                         }
                     }
                     search_results = null

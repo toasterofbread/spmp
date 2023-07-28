@@ -34,11 +34,8 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clipToBounds
 import androidx.compose.ui.graphics.Color
-import androidx.compose.ui.graphics.Path
 import androidx.compose.ui.graphics.graphicsLayer
 import androidx.compose.ui.platform.LocalDensity
-import androidx.compose.ui.unit.Density
-import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.zIndex
 import com.toasterofbread.spmp.model.MusicTopBarMode
@@ -49,12 +46,10 @@ import com.toasterofbread.spmp.platform.composable.platformClickable
 import com.toasterofbread.spmp.platform.composeScope
 import com.toasterofbread.spmp.resources.getString
 import com.toasterofbread.spmp.ui.layout.nowplaying.overlay.OverlayMenu
-import com.toasterofbread.spmp.ui.theme.Theme
-import com.toasterofbread.utils.composable.rememberSongUpdateLyrics
+import com.toasterofbread.utils.composable.loadLyricsOnSongChange
 import com.toasterofbread.utils.getContrasted
 import kotlinx.coroutines.delay
 import com.toasterofbread.utils.composable.pauseableInfiniteRepeatableAnimation
-import com.toasterofbread.utils.modifier.vertical
 import com.toasterofbread.utils.setAlpha
 
 @Composable
@@ -166,7 +161,7 @@ private fun MusicTopBar(
     onShowingChanged: ((Boolean) -> Unit)? = null
 ) {
     val player = LocalPlayerState.current
-    val song_state by rememberSongUpdateLyrics(song, getTargetMode() == MusicTopBarMode.LYRICS)
+    val song_state by loadLyricsOnSongChange(song, SpMp.context.database, getTargetMode() == MusicTopBarMode.LYRICS)
     var mode_state: MusicTopBarMode by mutableStateOf(getTargetMode())
 
     val visualiser_width: Float by Settings.KEY_TOPBAR_VISUALISER_WIDTH.rememberMutableState()

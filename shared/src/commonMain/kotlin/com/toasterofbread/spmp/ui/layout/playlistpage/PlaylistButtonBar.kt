@@ -15,13 +15,18 @@ import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.getValue
 import androidx.compose.runtime.remember
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.text.style.TextAlign
 import com.toasterofbread.spmp.model.mediaitem.MediaItem
 import com.toasterofbread.spmp.model.mediaitem.Playlist
+import com.toasterofbread.spmp.model.mediaitem.fromSQL
+import com.toasterofbread.spmp.model.mediaitem.observeAsState
+import com.toasterofbread.spmp.model.mediaitem.toSQL
 import com.toasterofbread.spmp.resources.getString
 import com.toasterofbread.spmp.resources.uilocalisation.durationToString
 import com.toasterofbread.utils.composable.WidthShrinkText
@@ -34,6 +39,16 @@ internal fun PlaylistButtonBar(
     setEditingInfo: (Boolean) -> Unit
 ) {
     val player = LocalPlayerState.current
+    val db = SpMp.context.database
+
+    var playlist_pinned by db.mediaItemQueries
+        .pinnedToHomeById(playlist.id)
+        .observeAsState(
+            { it.executeAsOneOrNull()?.pinned_to_home.fromSQL() },
+            { pinned ->
+                db.mediaItemQueries.updatePinnedToHomeById(pinned.toSQL(), playlist.id)
+            }
+        )
 
     Crossfade(editing_info) { editing ->
         if (editing) {
@@ -45,16 +60,16 @@ internal fun PlaylistButtonBar(
                 IconButton({ player.playMediaItem(playlist, true) }) {
                     Icon(Icons.Default.Shuffle, null)
                 }
-                Crossfade(playlist.pinned_to_home) { pinned ->
-                    IconButton({ playlist.setPinnedToHome(!pinned) }) {
+                
+                Crossfade(playlist_pinned) { pinned ->
+                    IconButton({ playlist_pinned = !pinned }) {
                         Icon(if (pinned) Icons.Filled.PushPin else Icons.Outlined.PushPin, null)
                     }
                 }
-                playlist.url?.also { url ->
-                    if (SpMp.context.canShare()) {
-                        IconButton({ SpMp.context.shareText(url, playlist.title!!) }) {
-                            Icon(Icons.Default.Share, null)
-                        }
+
+                if (SpMp.context.canShare()) {
+                    IconButton({ SpMp.context.shareText(playlist.getURL(), playlist.title!!) }) {
+                        Icon(Icons.Default.Share, null)
                     }
                 }
 

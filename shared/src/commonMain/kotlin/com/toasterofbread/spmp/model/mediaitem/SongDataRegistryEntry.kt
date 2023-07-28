@@ -33,7 +33,7 @@ class SongDataRegistryEntry: MediaItemDataRegistry.Entry() {
         lyrics_listeners.call(getLyricsReference())
     }
     fun getLyricsReference(): LyricsReference? =
-        if (lyrics_id != null) LyricsReference(lyrics_id!!, lyrics_source_idx!!)
+        if (lyrics_id != null) LyricsReference(lyrics_source_idx!!, lyrics_id!!)
         else null
 
     fun getLyricsSyncOffset(): Int = (lyrics_sync_offset ?: 0) + SONG_STATIC_LYRICS_SYNC_OFFSET

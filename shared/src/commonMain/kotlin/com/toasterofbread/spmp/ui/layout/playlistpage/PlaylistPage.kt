@@ -34,15 +34,20 @@ import com.toasterofbread.spmp.model.Settings
 import com.toasterofbread.spmp.model.mediaitem.MediaItem
 import com.toasterofbread.spmp.model.mediaitem.MediaItemThumbnailProvider
 import com.toasterofbread.spmp.model.mediaitem.Playlist
+import com.toasterofbread.spmp.model.mediaitem.PlaylistData
 import com.toasterofbread.spmp.model.mediaitem.Song
+import com.toasterofbread.spmp.model.mediaitem.getMediaItemPlayCount
 import com.toasterofbread.spmp.model.mediaitem.mediaItemPreviewInteraction
 import com.toasterofbread.spmp.model.mediaitem.isMediaItemHidden
+import com.toasterofbread.spmp.model.mediaitem.loadMediaItemValue
+import com.toasterofbread.spmp.model.mediaitem.movePlaylistItem
 import com.toasterofbread.spmp.platform.getDefaultHorizontalPadding
 import com.toasterofbread.spmp.platform.getDefaultVerticalPadding
 import com.toasterofbread.spmp.resources.getString
 import com.toasterofbread.spmp.resources.uilocalisation.durationToString
 import com.toasterofbread.spmp.ui.component.MultiselectAndMusicTopBar
 import com.toasterofbread.spmp.ui.component.PillMenu
+import com.toasterofbread.spmp.ui.component.Thumbnail
 import com.toasterofbread.spmp.ui.component.longpressmenu.longPressMenuIcon
 import com.toasterofbread.spmp.ui.component.mediaitempreview.getSongLongPressMenuData
 import com.toasterofbread.spmp.ui.component.multiselect.MediaItemMultiSelectContext
@@ -56,7 +61,7 @@ import org.burnoutcrew.reorderable.*
 @Composable
 fun PlaylistPage(
     pill_menu: PillMenu,
-    playlist: Playlist,
+    playlist: PlaylistData,
     previous_item: MediaItem? = null,
     padding: PaddingValues = PaddingValues(),
     close: () -> Unit
@@ -71,11 +76,15 @@ fun PlaylistPage(
 
         IconButton({ coroutine_scope.launch {
             val items = context.getSelectedItems().sortedByDescending { it.second!! }
+            val playlist_items = playlist.items?.toMutableList()
+            playlist.items = playlist_items
+
             for (item in items) {
-                playlist.removeItem(item.second!!)
+                SpMp.context.database.playlistItemQueries.removeItemAtIndex(playlist.id, item.second!!.toLong())
+                playlist_items?.removeAt(item.second!!)
                 context.setItemSelected(item.first, false, item.second)
             }
-            playlist.saveItems().getOrReport("PlaylistPageRemoveItemSave")
+
         } }) {
             Icon(Icons.Default.PlaylistRemove, null)
         }
@@ -91,7 +100,7 @@ fun PlaylistPage(
 
     LaunchedEffect(playlist) {
         accent_colour = null
-        playlist.getFeedLayouts().getOrReport("PlaylistPageLoad")
+        playlist.loadItems(SpMp.context.database)
     }
 
     Column(Modifier.fillMaxSize()) {
@@ -111,13 +120,8 @@ fun PlaylistPage(
             }
         }
 
-        val thumb_item = playlist.getThumbnailHolder().getHolder()
-
-        LaunchedEffect(thumb_item) {
-            if (thumb_item == playlist) {
-                accent_colour = playlist.getThemeColour() ?: Theme.accent
-            }
-        }
+        // TODO
+        // val thumb_item = playlist.getThumbnailHolder().getHolder()
 
         val sorted_items: MutableList<Pair<MediaItem, Int>> = remember { mutableStateListOf() }
         LaunchedEffect(playlist.items?.size, current_sort_option, current_filter, apply_item_filter) {
@@ -147,12 +151,6 @@ fun PlaylistPage(
             }
         }
 
-        OnChangedEffect(reorderable) {
-            if (!reorderable) {
-                playlist.saveItems().getOrReport("PlaylistPageSaveItems")
-            }
-        }
-
         val items_above = 2
         val list_state = rememberReorderableLazyListState(
             onMove = { from, to ->
@@ -166,7 +164,12 @@ fun PlaylistPage(
             },
             onDragEnd = { from, to ->
                 if (to >= items_above && from >= items_above) {
-                    playlist.moveItem(from - items_above, to - items_above)
+                    SpMp.context.database.playlistItemQueries
+                        .movePlaylistItem(
+                            playlist.id,
+                            from - items_above,
+                            to - items_above
+                        )
                 }
             }
         )
@@ -198,8 +201,8 @@ fun PlaylistPage(
                     accent_colour ?: Theme.accent,
                     editing_info,
                     { editing_info = it }
-                ) {
-                    accent_colour = thumb_item.item?.getThemeColour()
+                ) { image ->
+                    accent_colour = image.getThemeColour()
                 }
             }
 
@@ -222,7 +225,6 @@ fun PlaylistPage(
                     InteractionBar(
                         modifier = Modifier.fillMaxWidth(),
                         playlist = playlist,
-                        items = items,
                         reorderable = reorderable,
                         setReorderable = {
                             reorderable = playlist.is_editable == true && it
@@ -240,14 +242,12 @@ fun PlaylistPage(
                         setSortOption = {
                             check(!reorderable)
                             current_sort_option = it
-                        },
-                        multiselect_context = multiselect_context
+                        }
                     )
                 }
 
                 PlaylistItems(
                     playlist,
-                    items,
                     list_state,
                     sorted_items,
                     multiselect_context,
@@ -262,7 +262,6 @@ fun PlaylistPage(
 
 private fun LazyListScope.PlaylistItems(
     playlist: Playlist,
-    items: MutableList<MediaItem>,
     list_state: ReorderableLazyListState,
     sorted_items: List<Pair<MediaItem, Int>>,
     multiselect_context: MediaItemMultiSelectContext,
@@ -359,7 +358,7 @@ internal enum class SortOption {
                 { if (it is Song) it.duration ?: 0 else 0 }
             }
             PLAY_COUNT -> {
-                { it.registry_entry.getPlayCount(null) }
+                { SpMp.context.database.getMediaItemPlayCount(it.id) }
             }
         }
         return items.sortedWith(if (reversed) compareByDescending(selector) else compareBy(selector))

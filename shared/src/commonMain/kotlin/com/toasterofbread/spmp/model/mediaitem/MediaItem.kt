@@ -1,33 +1,68 @@
 package com.toasterofbread.spmp.model.mediaitem
 
+import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.GridView
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.DisposableEffect
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.MutableState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.graphics.ImageBitmap
+import androidx.compose.ui.graphics.toArgb
+import androidx.compose.ui.graphics.vector.ImageVector
 import app.cash.sqldelight.Query
 import com.toasterofbread.Database
+import com.toasterofbread.spmp.api.DEFAULT_CONNECT_TIMEOUT
 import com.toasterofbread.spmp.api.model.TextRun
 import com.toasterofbread.spmp.model.mediaitem.enums.MediaItemType
 import com.toasterofbread.spmp.model.mediaitem.enums.PlaylistType
-import com.toasterofbread.utils.composable.OnChangedEffect
+import com.toasterofbread.spmp.platform.toImageBitmap
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.withContext
 import mediaitem.ThumbnailProviderById
+import java.net.URL
 
-sealed interface MediaItem {
+val MEDIA_ITEM_RELATED_CONTENT_ICON: ImageVector get() = Icons.Default.GridView
+
+sealed interface MediaItem: MediaItemHolder {
     val id: String
     val loaded: Boolean
     val title: String?
     val original_title: String?
     val description: String?
-    val theme_colour: Color?
+
     val thumbnail_provider: MediaItemThumbnailProvider?
+    val theme_colour: Color?
     val pinned_to_home: Boolean
+    val hidden: Boolean
 
     fun getType(): MediaItemType
     fun getURL(): String
+    fun toData(): MediaItemData
+
+    @Composable
+    fun getThumbnailHolder(): MediaItem = this
+
+    suspend fun downloadThumbnailData(url: String): Result<ImageBitmap> = withContext(Dispatchers.IO) {
+        return@withContext runCatching {
+            val connection = URL(url).openConnection()
+            connection.connectTimeout = DEFAULT_CONNECT_TIMEOUT
+
+            val stream = connection.getInputStream()
+            val bytes = stream.readBytes()
+            stream.close()
+
+            return@runCatching bytes.toImageBitmap()
+        }
+    }
+
+    fun fetchTitle(db: Database): String? = db.mediaItemQueries.titleById(id).executeAsOne().title
+
+    override val item: MediaItem get() = this
 }
 
 sealed class MediaItemData(
@@ -35,9 +70,11 @@ sealed class MediaItemData(
     override var title: String? = null,
     override var original_title: String? = null,
     override var description: String? = null,
-    override var theme_colour: Color? = null,
+
     override var thumbnail_provider: MediaItemThumbnailProvider? = null,
-    override var pinned_to_home: Boolean = false
+    override var theme_colour: Color? = null,
+    override var pinned_to_home: Boolean = false,
+    override var hidden: Boolean = false
 ): MediaItem {
     companion object {
         fun fromBrowseEndpointType(page_type: String, id: String): MediaItemData {
@@ -47,6 +84,35 @@ sealed class MediaItemData(
                 "MUSIC_PAGE_TYPE_ARTIST", "MUSIC_PAGE_TYPE_USER_CHANNEL" ->
                     ArtistData(id)
                 else -> throw NotImplementedError(page_type)
+            }
+        }
+    }
+
+    override fun toData(): MediaItemData = this
+
+    open fun loadFromDatabase(db: Database) {
+        val data = db.mediaItemQueries.byId(id).executeAsOne()
+        loaded = data.loaded.fromSQL()
+        title = data.title
+        original_title = data.original_title
+        description = data.description
+
+        thumbnail_provider = data.thumb_url_a?.let { MediaItemThumbnailProvider(it, data.thumb_url_b) }
+        theme_colour = data.theme_colour?.let { Color(it) }
+        pinned_to_home = data.pinned_to_home.fromSQL()
+    }
+
+    open fun saveToDatabase(db: Database) {
+        db.transaction {
+            with(db.mediaItemQueries) {
+                updateLoadedById(loaded.toSQL(), id)
+                updateTitleById(title, id)
+                updateOriginalTitleById(original_title, id)
+                updateDescriptionById(description, id)
+
+                updateThumbnailProviderById(thumbnail_provider?.url_a, thumbnail_provider?.url_b, id)
+                updatePinnedToHomeById(pinned_to_home.toSQL(), id)
+                updateThemeColourById(theme_colour?.toArgb()?.toLong(), id)
             }
         }
     }
@@ -93,6 +159,10 @@ interface WithArtist {
 interface DataWithArtist: WithArtist {
     override var artist: Artist?
 }
+
+fun ThumbnailProviderById.toThumbnailProvider(): MediaItemThumbnailProvider? =
+    if (thumb_url_a == null) null
+    else MediaItemThumbnailProvider(thumb_url_a, thumb_url_b)
 
 class MediaItemObservableState private constructor (
     val loaded_state: MutableState<Boolean>,
@@ -178,30 +248,33 @@ abstract class ObservableMediaItem internal constructor(
         set(value) {
             pinned_to_home_value = if (value) 0L else null
         }
-
-    open suspend fun loadDataFromYouTube() {
-        TODO()
-    }
 }
 
 @Composable
 fun <T, Q: Any> Query<Q>.observeAsState(
     mapValue: (Query<Q>) -> T = { it as T },
-    onChanged: ((T) -> Unit)?
+    onExternalChange: (suspend (T) -> Unit)?
 ): MutableState<T> {
-    val state = remember { mutableStateOf(mapValue(this)) }
+    val state = remember(this) { mutableStateOf(mapValue(this)) }
+    var current_value by remember(state) { mutableStateOf(state.value) }
 
-    DisposableEffect(Unit) {
-        val listener = Query.Listener { state.value = mapValue(this@observeAsState) }
+    DisposableEffect(state) {
+        val listener = Query.Listener {
+            current_value = mapValue(this@observeAsState)
+            state.value = current_value
+        }
+
         addListener(listener)
-
         onDispose {
             removeListener(listener)
         }
     }
 
-    OnChangedEffect(state.value) {
-        onChanged?.invoke(state.value)
+    LaunchedEffect(state.value) {
+        if (state.value != current_value) {
+            current_value = state.value
+            onExternalChange?.invoke(current_value)
+        }
     }
 
     return state
@@ -371,62 +444,6 @@ fun <T, Q: Any> Query<Q>.observeAsState(
 //
 //    @Composable
 //    open fun getThumbnailHolder(): MediaItem = this
-//
-//    @Composable
-//    open fun Thumbnail(
-//        quality: MediaItemThumbnailProvider.Quality,
-//        modifier: Modifier = Modifier,
-//        failure_icon: ImageVector? = Icons.Default.CloudOff,
-//        contentColourProvider: (() -> Color)? = null,
-//        onLoaded: ((ImageBitmap) -> Unit)? = null
-//    ) {
-//        val thumb_item = getThumbnailHolder()
-//        LaunchedEffect(thumb_item, quality, thumb_item.canLoadThumbnail()) {
-//            if (!thumb_item.canLoadThumbnail()) {
-//                val provider_result = thumb_item.getThumbnailProvider()
-//                if (provider_result.isFailure) {
-//                    thumb_item.thumb_states[quality]!!.loaded = true
-//                    return@LaunchedEffect
-//                }
-//            }
-//            thumb_item.loadThumbnail(quality)
-//        }
-//
-//        var loaded by remember { mutableStateOf(false) }
-//        LaunchedEffect(thumb_item) {
-//            loaded = false
-//        }
-//
-//        val state = thumb_item.thumb_states.values.lastOrNull { state ->
-//            state.quality <= quality && state.image != null
-//        } ?: thumb_item.thumb_states[quality]!!
-//
-//        if (state.loading || (state.image == null && !state.loaded)) {
-//            SubtleLoadingIndicator(modifier.fillMaxSize(), contentColourProvider)
-//        }
-//        else if (state.image != null) {
-//            state.image!!.also { thumbnail ->
-//                if (!loaded) {
-//                    onLoaded?.invoke(thumbnail)
-//                    loaded = true
-//                }
-//
-//                Image(
-//                    thumbnail,
-//                    contentDescription = null,
-//                    contentScale = ContentScale.Crop,
-//                    modifier = modifier
-//                )
-//            }
-//        }
-//        else if (state.loaded) {
-//            if (failure_icon != null) {
-//                Box(modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
-//                    Icon(failure_icon, null)
-//                }
-//            }
-//        }
-//    }
 //
 //    open fun canGetThemeColour(): Boolean = thumb_states.values.any { it.image != null }
 //

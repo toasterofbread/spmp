@@ -21,12 +21,16 @@ import androidx.compose.ui.graphics.ImageBitmap
 import androidx.compose.ui.text.input.ImeAction
 import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
+import com.toasterofbread.spmp.model.mediaitem.MEDIA_ITEM_RELATED_CONTENT_ICON
 import com.toasterofbread.spmp.model.mediaitem.MediaItem
 import com.toasterofbread.spmp.model.mediaitem.MediaItemPreviewParams
 import com.toasterofbread.spmp.model.mediaitem.Song
+import com.toasterofbread.spmp.model.mediaitem.loader.getDefaultThemeColour
+import com.toasterofbread.spmp.model.mediaitem.observeAsState
 import com.toasterofbread.spmp.platform.PlayerDownloadManager
 import com.toasterofbread.spmp.platform.PlayerDownloadManager.DownloadStatus
 import com.toasterofbread.spmp.resources.getStringTODO
+import com.toasterofbread.spmp.ui.component.mediaitempreview.MediaItemPreviewLong
 import com.toasterofbread.spmp.ui.theme.Theme
 import com.toasterofbread.utils.composable.OnChangedEffect
 import kotlinx.coroutines.delay
@@ -49,18 +53,20 @@ class MainOverlayMenu(
         getSeekState: () -> Any,
         getCurrentSongThumb: () -> ImageBitmap?
     ) {
+        val song = getSong()
         val player = LocalPlayerState.current
+        val db = SpMp.context.database
 
         val download_progress = remember { Animatable(0f) }
         var download_progress_target: Float by remember { mutableStateOf(0f) }
         var download_status: DownloadStatus? by remember { mutableStateOf(null) }
 
-        LaunchedEffect(getSong().id) {
+        LaunchedEffect(song.id) {
             download_status = null
             download_progress.snapTo(0f)
             download_progress_target = 0f
 
-            player.download_manager.getDownload(getSong()) {
+            player.download_manager.getDownload(song) {
                 download_status = it
             }
         }
@@ -102,8 +108,6 @@ class MainOverlayMenu(
             verticalArrangement = Arrangement.spacedBy(10.dp),
             horizontalAlignment = Alignment.CenterHorizontally
         ) {
-            val song = getSong()
-
             val button_colour = Theme.on_accent
             val button_size = 42.dp
             val button_modifier = Modifier
@@ -114,13 +118,19 @@ class MainOverlayMenu(
                 .size(button_size)
                 .padding(8.dp)
 
-            song.artist?.PreviewLong(
-                MediaItemPreviewParams(
-                contentColour = { Color.White },
-            )
-            )
+            val artist = song.artist
+            if (artist != null) {
+                MediaItemPreviewLong(artist, contentColour = { Color.White })
+            }
 
-            var edited_song_title by remember(song) { mutableStateOf(song.title!!) }
+            var song_title by db.mediaItemQueries
+                .titleById(song.id)
+                .observeAsState(
+                    { it.executeAsOne().title },
+                    { db.mediaItemQueries.updateTitleById(it, song.id) }
+                )
+
+            var edited_song_title by remember(song) { mutableStateOf(song_title ?: "") }
             OutlinedTextField(
                 edited_song_title,
                 onValueChange = { text ->
@@ -133,9 +143,7 @@ class MainOverlayMenu(
                 },
                 keyboardOptions = KeyboardOptions(imeAction = ImeAction.Done),
                 keyboardActions = KeyboardActions(onDone = {
-                    song.editRegistry {
-                        it.title = edited_song_title
-                    }
+                    song_title = edited_song_title
                 }),
                 colors = TextFieldDefaults.outlinedTextFieldColors(
                     focusedBorderColor = button_colour,
@@ -159,8 +167,7 @@ class MainOverlayMenu(
 
                 Box(
                     button_modifier.clickable {
-                        song.registry_entry.title = edited_song_title
-                        song.saveRegistry()
+                        song_title = edited_song_title
                     },
                     contentAlignment = Alignment.Center
                 ) {
@@ -181,7 +188,7 @@ class MainOverlayMenu(
                         .clickable {
                             setOverlayMenu(
                                 PaletteSelectorOverlayMenu(
-                                    getSong()::getDefaultThemeColour,
+                                    { getSong().thumbnail_provider?.getDefaultThemeColour() },
                                     requestColourPicker,
                                     onColourSelected
                                 )
@@ -192,11 +199,10 @@ class MainOverlayMenu(
                     Icon(Icons.Filled.Palette, null, tint = button_colour)
                 }
 
-                val screen_width = getScreenWidth()
                 Box(
                     button_modifier
                         .clickable { 
-                            setOverlayMenu(OverlayMenu.getLyricsMenu()) 
+                            setOverlayMenu(getLyricsMenu())
                         },
                     contentAlignment = Alignment.Center
                 ) {
@@ -213,7 +219,7 @@ class MainOverlayMenu(
                         },
                     contentAlignment = Alignment.Center
                 ) {
-                    Icon(MediaItem.RELATED_CONTENT_ICON, null, tint = button_colour)
+                    Icon(MEDIA_ITEM_RELATED_CONTENT_ICON, null, tint = button_colour)
                 }
 
                 Box(contentAlignment = Alignment.Center) {

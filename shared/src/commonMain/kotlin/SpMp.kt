@@ -92,10 +92,6 @@ object SpMp {
         context.getPrefs().addListener(prefs_change_listener)
         error_manager = ErrorManager(context)
 
-        thread {
-            MediaItem.init(Settings.prefs)
-        }
-
         val ui_lang: Int = Settings.get(Settings.KEY_LANG_UI)
         initResources(LANGUAGES.elementAt(ui_lang), context)
 
@@ -107,9 +103,6 @@ object SpMp {
         _yt_ui_localisation = YoutubeUILocalisation(language_data)
 
         Api.initialise()
-
-//        val database = createDatabase(context)
-//        database.songQueries.
     }
 
     fun release() {

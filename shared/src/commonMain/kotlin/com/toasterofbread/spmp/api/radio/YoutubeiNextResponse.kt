@@ -2,14 +2,17 @@
 
 package com.toasterofbread.spmp.api.radio
 
-import com.toasterofbread.spmp.api.BrowseEndpoint
-import com.toasterofbread.spmp.api.MusicThumbnailRenderer
-import com.toasterofbread.spmp.api.NavigationEndpoint
-import com.toasterofbread.spmp.api.TextRuns
-import com.toasterofbread.spmp.api.WatchEndpoint
-import com.toasterofbread.spmp.model.mediaitem.PlaylistData
+import com.toasterofbread.Database
+import com.toasterofbread.spmp.api.model.BrowseEndpoint
+import com.toasterofbread.spmp.api.model.MusicThumbnailRenderer
+import com.toasterofbread.spmp.api.model.NavigationEndpoint
+import com.toasterofbread.spmp.api.model.TextRuns
+import com.toasterofbread.spmp.api.model.WatchEndpoint
 import com.toasterofbread.spmp.model.mediaitem.Artist
+import com.toasterofbread.spmp.model.mediaitem.ArtistData
+import com.toasterofbread.spmp.model.mediaitem.PlaylistData
 import com.toasterofbread.spmp.model.mediaitem.Song
+import com.toasterofbread.spmp.model.mediaitem.loadMediaItemValue
 
 data class YoutubeiNextResponse(
     val contents: Contents
@@ -64,26 +67,23 @@ data class YoutubeiNextResponse(
         val menu: Menu,
         val thumbnail: MusicThumbnailRenderer.Thumbnail
     ) {
-        // Artist, certain
-        suspend fun getArtist(host_item: Song): Result<Pair<Artist?, Boolean>> {
+        suspend fun getArtist(host_item: Song, db: Database): Result<Artist?> {
             // Get artist ID directly
             for (run in longBylineText.runs!! + title.runs!!) {
                 if (run.browse_endpoint_type != "MUSIC_PAGE_TYPE_ARTIST" && run.browse_endpoint_type != "MUSIC_PAGE_TYPE_USER_CHANNEL") {
                     continue
                 }
 
-                return Result.success(Pair(
-                    ArtistData(run.navigationEndpoint!!.browseEndpoint!!.browseId).editArtistData { supplyTitle(run.text) },
-                    true
-                ))
+                return Result.success(
+                    ArtistData(run.navigationEndpoint!!.browseEndpoint!!.browseId).apply {
+                        title = run.text
+                    }
+                )
             }
 
             val menu_artist = menu.menuRenderer.getArtist()?.menuNavigationItemRenderer?.navigationEndpoint?.browseEndpoint?.browseId
             if (menu_artist != null) {
-                return Result.success(Pair(
-                    ArtistData(menu_artist),
-                    false
-                ))
+                return Result.success(ArtistData(menu_artist))
             }
 
             // Get artist from album
@@ -92,34 +92,47 @@ data class YoutubeiNextResponse(
                     continue
                 }
 
-                val playlist = PlaylistData(run.navigationEndpoint.browseEndpoint.browseId)
-                return playlist.getArtistOrNull().fold(
-                    { artist ->
-                        Result.success(Pair(artist, false))
-                    },
-                    { Result.failure(it) }
-                )
+                val playlist_id = run.navigationEndpoint.browseEndpoint.browseId
+                var artist = db.playlistQueries.artistById(playlist_id).executeAsOneOrNull()?.artist?.let {
+                    ArtistData(it)
+                }
+
+                if (artist == null) {
+                    val artist_load_result = db.loadMediaItemValue(
+                        PlaylistData(playlist_id),
+                        { artist }
+                    )
+
+                    artist_load_result?.fold(
+                        { artist = it },
+                        { return Result.failure(it) }
+                    )
+                }
+
+                if (artist != null) {
+                    return Result.success(artist)
+                }
             }
 
             // Get title-only artist (Resolves to 'Various artists' when viewed on YouTube)
             val artist_title = longBylineText.runs?.firstOrNull { it.navigationEndpoint == null }
             if (artist_title != null) {
-                return Result.success(Pair(
-                    Artist.createForItem(host_item).editArtistData { supplyTitle(artist_title.text) },
-                    false
-                ))
+                return Result.success(
+                    ArtistData.createForItem(host_item).apply {
+                        title = artist_title.text
+                    }
+                )
             }
 
-            return Result.success(Pair(null, false))
+            return Result.success(null)
         }
     }
     class Menu(val menuRenderer: MenuRenderer)
     class MenuRenderer(val items: List<MenuItem>) {
-        fun getArtist(): MenuItem? {
-            return items.firstOrNull {
+        fun getArtist(): MenuItem? =
+            items.firstOrNull {
                 it.menuNavigationItemRenderer?.icon?.iconType == "ARTIST"
             }
-        }
     }
     class MenuItem(val menuNavigationItemRenderer: MenuNavigationItemRenderer? = null)
     class MenuNavigationItemRenderer(val icon: MenuIcon, val navigationEndpoint: NavigationEndpoint)

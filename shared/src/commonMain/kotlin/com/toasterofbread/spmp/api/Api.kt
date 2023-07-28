@@ -129,7 +129,7 @@ fun <T> Result.Companion.failure(response: Response, is_gzip: Boolean = true): R
     return failure(RuntimeException(body))
 }
 
-fun <I, O> Result<I>.cast(transform: (I) -> O = { it as O }): Result<O> {
+inline fun <I, O> Result<I>.cast(transform: (I) -> O = { it as O }): Result<O> {
     return fold(
         { runCatching { transform(it) } },
         { Result.failure(it) }
@@ -143,14 +143,11 @@ fun <T> Result<T>.unit(): Result<Unit> {
     )
 }
 
-val <T> Result<T>.data get() = getOrThrowHere()
-
-fun <T> Result<T>.getOrThrowHere(): T {
-    if (isFailure) {
-        throw Exception(exceptionOrNull()!!)
-    }
-    return getOrThrow()
-}
+fun <T> Result<T>.getOrThrowHere(): T =
+    fold(
+        { it },
+        { throw Exception(it) }
+    )
 
 fun <T> Result<T>.getOrReport(error_key: String): T? {
     return fold(
@@ -203,73 +200,73 @@ class Api {
                 return "\"${(value as Enum<*>).name}\""
             }
         }
-        private val mediaitem_converter = object : Converter {
-            override fun canConvert(cls: Class<*>): Boolean {
-                return MediaItem::class.java.isAssignableFrom(cls)
-            }
-
-            override fun fromJson(jv: JsonValue): Any? {
-                if (jv.array == null) {
-                    return null
-                }
-
-                try {
-                    return MediaItem.fromDataItems(jv.array!!.toList(), klaxon)
-                }
-                catch (e: Exception) {
-                    throw RuntimeException("Couldn't parse MediaItem (${jv.obj})", e)
-                }
-            }
-
-            override fun toJson(value: Any): String {
-                if (value !is MediaItem) {
-                    throw KlaxonException("Value $value is not a MediaItem")
-                }
-
-                val string = StringBuilder("[${value.type.ordinal},\"${value.id}\"")
-
-                for (item in value.getSerialisedData(klaxon)) {
-                    string.append(',')
-                    string.append(item)
-                }
-
-                string.append(']')
-                return string.toString()
-            }
-        }
-        private val mediaitem_ref_converter = object : Converter {
-            override fun canConvert(cls: Class<*>): Boolean {
-                return MediaItem::class.java.isAssignableFrom(cls)
-            }
-
-            override fun fromJson(jv: JsonValue): Any? {
-                if (jv.array == null) {
-                    return null
-                }
-
-                try {
-                    return MediaItem.fromDataItems(jv.array!!.toList(), klaxon.converter(this))
-                }
-                catch (e: Exception) {
-                    throw RuntimeException("Couldn't parse MediaItem ($jv)", e)
-                }
-            }
-
-            override fun toJson(value: Any): String {
-                if (value !is MediaItem) {
-                    throw KlaxonException("Value $value is not a MediaItem")
-                }
-                return "[${value.type.ordinal},\"${value.id}\"]"
-            }
-        }
+//        private val mediaitem_converter = object : Converter {
+//            override fun canConvert(cls: Class<*>): Boolean {
+//                return MediaItem::class.java.isAssignableFrom(cls)
+//            }
+//
+//            override fun fromJson(jv: JsonValue): Any? {
+//                if (jv.array == null) {
+//                    return null
+//                }
+//
+//                try {
+//                    return MediaItem.fromDataItems(jv.array!!.toList(), klaxon)
+//                }
+//                catch (e: Exception) {
+//                    throw RuntimeException("Couldn't parse MediaItem (${jv.obj})", e)
+//                }
+//            }
+//
+//            override fun toJson(value: Any): String {
+//                if (value !is MediaItem) {
+//                    throw KlaxonException("Value $value is not a MediaItem")
+//                }
+//
+//                val string = StringBuilder("[${value.type.ordinal},\"${value.id}\"")
+//
+//                for (item in value.getSerialisedData(klaxon)) {
+//                    string.append(',')
+//                    string.append(item)
+//                }
+//
+//                string.append(']')
+//                return string.toString()
+//            }
+//        }
+//        private val mediaitem_ref_converter = object : Converter {
+//            override fun canConvert(cls: Class<*>): Boolean {
+//                return MediaItem::class.java.isAssignableFrom(cls)
+//            }
+//
+//            override fun fromJson(jv: JsonValue): Any? {
+//                if (jv.array == null) {
+//                    return null
+//                }
+//
+//                try {
+//                    return MediaItem.fromDataItems(jv.array!!.toList(), klaxon.converter(this))
+//                }
+//                catch (e: Exception) {
+//                    throw RuntimeException("Couldn't parse MediaItem ($jv)", e)
+//                }
+//            }
+//
+//            override fun toJson(value: Any): String {
+//                if (value !is MediaItem) {
+//                    throw KlaxonException("Value $value is not a MediaItem")
+//                }
+//                return "[${value.type.ordinal},\"${value.id}\"]"
+//            }
+//        }
 
         val klaxon: Klaxon get() = Klaxon()
             .converter(enum_converter)
-            .converter(mediaitem_ref_converter)
+//            .converter(mediaitem_ref_converter)
 
-        val mediaitem_klaxon: Klaxon get() = Klaxon()
-            .converter(enum_converter)
-            .converter(mediaitem_converter)
+//        val mediaitem_klaxon: Klaxon get() = Klaxon()
+//            .converter(enum_converter)
+//            .converter(mediaitem_converter)
 
         enum class YoutubeiContextType {
             BASE,

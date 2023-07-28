@@ -1,7 +1,6 @@
 package com.toasterofbread.spmp.api.model
 
 import com.toasterofbread.spmp.api.ChipCloudRendererHeader
-import com.toasterofbread.spmp.api.Header
 import com.toasterofbread.spmp.api.MusicShelfRenderer
 import com.toasterofbread.spmp.api.radio.YoutubeiNextResponse
 import com.toasterofbread.spmp.resources.uilocalisation.LocalisedYoutubeString

@@ -1,6 +1,7 @@
 package com.toasterofbread.spmp.ui.layout.playlistpage
 
 import LocalPlayerState
+import SpMp
 import androidx.compose.animation.Crossfade
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Row
@@ -24,25 +25,46 @@ import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.CompositionLocalProvider
 import androidx.compose.runtime.getValue
-import androidx.compose.runtime.setValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberCoroutineScope
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.unit.dp
 import com.toasterofbread.spmp.api.getOrReport
 import com.toasterofbread.spmp.model.mediaitem.LocalPlaylist
-import com.toasterofbread.spmp.model.mediaitem.MediaItemPreviewParams
+import com.toasterofbread.spmp.model.mediaitem.MediaItemThumbnailProvider
 import com.toasterofbread.spmp.model.mediaitem.Playlist
+import com.toasterofbread.spmp.model.mediaitem.observeAsState
+import com.toasterofbread.spmp.model.mediaitem.toThumbnailProvider
 import com.toasterofbread.spmp.platform.composable.PlatformAlertDialog
 import com.toasterofbread.spmp.resources.getString
+import com.toasterofbread.spmp.ui.component.mediaitempreview.MediaItemPreviewLong
 import com.toasterofbread.utils.composable.SubtleLoadingIndicator
 import com.toasterofbread.utils.getContrasted
 import kotlinx.coroutines.launch
 
 @Composable
 internal fun TopInfoEditButtons(playlist: Playlist, accent_colour: Color, modifier: Modifier = Modifier, onFinished: () -> Unit) {
+    var playlist_image_provider by SpMp.context.database.playlistQueries
+        .customImageProviderById(playlist.id)
+        .observeAsState(
+            mapValue = {
+                val provider = it.executeAsOneOrNull()
+                if (provider?.custom_image_url_a != null)
+                    MediaItemThumbnailProvider(provider.custom_image_url_a, provider.custom_image_url_b)
+                else null
+            },
+            onExternalChange = { provider ->
+                SpMp.context.database.playlistQueries.updateCustomImageProviderById(
+                    provider?.url_a,
+                    provider?.url_b,
+                    playlist.id
+                )
+            }
+        )
+
     Row(modifier) {
         IconButton(onFinished) {
             Icon(Icons.Default.Done, null)
@@ -59,9 +81,9 @@ internal fun TopInfoEditButtons(playlist: Playlist, accent_colour: Color, modifi
                 PlatformAlertDialog(
                     onDismissRequest = { show_thumb_selection = false },
                     confirmButton = {
-                        if (playlist.playlist_reg_entry.image_item_uid != null) {
+                        if (playlist_image_provider != null) {
                             IconButton({
-                                playlist.playlist_reg_entry.image_item_uid = null
+                                playlist_image_provider = null
                                 show_thumb_selection = false
                             }) {
                                 Icon(Icons.Default.Refresh, null)
@@ -84,14 +106,18 @@ internal fun TopInfoEditButtons(playlist: Playlist, accent_colour: Color, modifi
                             CompositionLocalProvider(LocalPlayerState provides remember {
                                 player.copy(
                                     onClickedOverride = { item, _ ->
-                                        playlist.playlist_reg_entry.image_item_uid = item.uid
+                                        playlist_image_provider = SpMp.context.database.mediaItemQueries
+                                            .thumbnailProviderById(item.id)
+                                            .executeAsOneOrNull()
+                                            ?.toThumbnailProvider()
+
                                         show_thumb_selection = false
                                     }
                                 )
                             }) {
                                 LazyColumn(verticalArrangement = Arrangement.spacedBy(10.dp)) {
                                     items(playlist_items) { item ->
-                                        item.PreviewLong(MediaItemPreviewParams())
+                                        MediaItemPreviewLong(item)
                                     }
                                 }
                             }

@@ -1,9 +1,5 @@
 package com.toasterofbread.spmp.api.model
 
-import com.toasterofbread.spmp.api.BrowseEndpoint
-import com.toasterofbread.spmp.api.SearchEndpoint
-import com.toasterofbread.spmp.api.WatchEndpoint
-import com.toasterofbread.spmp.api.WatchPlaylistEndpoint
 import com.toasterofbread.spmp.model.mediaitem.MediaItemData
 import com.toasterofbread.spmp.model.mediaitem.PlaylistData
 import com.toasterofbread.spmp.model.mediaitem.SongData

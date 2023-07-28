@@ -1,7 +1,5 @@
 package com.toasterofbread.spmp.api.model
 
-import com.toasterofbread.spmp.api.HeaderRenderer
-
 data class Header(
     val musicCarouselShelfBasicHeaderRenderer: HeaderRenderer? = null,
     val musicImmersiveHeaderRenderer: HeaderRenderer? = null,

@@ -1,7 +1,5 @@
 package com.toasterofbread.spmp.api.model
 
-import com.toasterofbread.spmp.api.TextRuns
-import com.toasterofbread.spmp.api.ThumbnailRenderer
 import com.toasterofbread.spmp.api.radio.YoutubeiNextResponse
 import com.toasterofbread.spmp.model.mediaitem.ArtistData
 import com.toasterofbread.spmp.model.mediaitem.MediaItemData
@@ -71,7 +69,7 @@ class MusicMultiRowListItemRenderer(
 
             if (podcast_data != null) {
                 podcast_data.playlist_type = PlaylistType.PODCAST
-                song.album_id = podcast_data
+                song.album = podcast_data
             }
 
             for (run in subtitle.runs ?: emptyList()) {

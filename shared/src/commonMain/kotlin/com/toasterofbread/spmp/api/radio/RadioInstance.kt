@@ -169,7 +169,10 @@ class RadioInstance(
                     return@launchSingle
                 }
 
-                val result = state.continuation!!.loadContinuation(state.current_filter?.let { state.filters?.get(it) } ?: emptyList())
+                val result = state.continuation!!.loadContinuation(
+                    database,
+                    state.current_filter?.let { state.filters?.get(it) } ?: emptyList()
+                )
                 val (items, cont) = result.fold(
                     { it },
                     { error ->
@@ -277,9 +280,9 @@ class RadioInstance(
                     return Result.success(emptyList())
                 }
 
-                val layout_item = layout.view_more?.media_item
-                if (layout_item is Playlist) {
-                    state.continuation = MediaItemLayout.Continuation(layout_item.id, MediaItemLayout.Continuation.Type.PLAYLIST_INITIAL, layout.items.size)
+                val view_more = layout.view_more
+                if (view_more is MediaItemLayout.MediaItemViewMore && view_more.media_item is Playlist) {
+                    state.continuation = MediaItemLayout.Continuation(view_more.media_item.id, MediaItemLayout.Continuation.Type.PLAYLIST_INITIAL, layout.items.size)
                 }
                 else {
                     state.continuation = layout.continuation

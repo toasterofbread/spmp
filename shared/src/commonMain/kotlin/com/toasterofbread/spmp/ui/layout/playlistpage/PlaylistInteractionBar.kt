@@ -37,20 +37,18 @@ import com.toasterofbread.spmp.ui.component.multiselect.MediaItemMultiSelectCont
 @Composable
 internal fun InteractionBar(
     playlist: Playlist,
-    items: MutableList<MediaItem>,
     reorderable: Boolean,
     setReorderable: (Boolean) -> Unit,
     filter: String?,
     setFilter: (String?) -> Unit,
     sort_option: SortOption,
     setSortOption: (SortOption) -> Unit,
-    multiselect_context: MediaItemMultiSelectContext,
     modifier: Modifier = Modifier
 ) {
     // 0 -> search, 1 -> sort
     var opened_menu: Int by remember { mutableStateOf(-1) }
 
-    Row(Modifier.fillMaxWidth()) {
+    Row(modifier) {
         // Filter button
         IconButton(
             {

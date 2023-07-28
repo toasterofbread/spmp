@@ -8,6 +8,8 @@ import androidx.compose.ui.graphics.vector.ImageVector
 import com.toasterofbread.spmp.api.Api.Companion.addYtHeaders
 import com.toasterofbread.spmp.api.Api.Companion.getStream
 import com.toasterofbread.spmp.api.Api.Companion.ytUrl
+import com.toasterofbread.spmp.api.model.NavigationEndpoint
+import com.toasterofbread.spmp.api.model.TextRuns
 import com.toasterofbread.spmp.api.model.YoutubeiShelf
 import com.toasterofbread.spmp.model.mediaitem.Artist
 import com.toasterofbread.spmp.model.mediaitem.Playlist
@@ -138,7 +140,7 @@ suspend fun searchYoutubeMusic(query: String, params: String?): Result<SearchRes
                         PlaylistType.ALBUM -> SearchType.ALBUM
                         else -> SearchType.PLAYLIST
                     }
-                    else -> throw NotImplementedError(item.type.toString())
+                    else -> throw NotImplementedError(item.getType().toString())
                 }, it)
             }
         ))

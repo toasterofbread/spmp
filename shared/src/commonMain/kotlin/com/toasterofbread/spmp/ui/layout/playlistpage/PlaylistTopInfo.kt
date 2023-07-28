@@ -69,10 +69,12 @@ import androidx.compose.ui.unit.times
 import com.toasterofbread.spmp.model.mediaitem.MediaItem
 import com.toasterofbread.spmp.model.mediaitem.MediaItemThumbnailProvider
 import com.toasterofbread.spmp.model.mediaitem.Playlist
+import com.toasterofbread.spmp.model.mediaitem.observeAsState
 import com.toasterofbread.spmp.platform.composable.platformClickable
 import com.toasterofbread.spmp.platform.vibrateShort
 import com.toasterofbread.spmp.resources.getString
 import com.toasterofbread.spmp.resources.uilocalisation.durationToString
+import com.toasterofbread.spmp.ui.component.Thumbnail
 import com.toasterofbread.utils.composable.WidthShrinkText
 import com.toasterofbread.utils.getContrasted
 
@@ -85,31 +87,34 @@ internal fun PlaylistTopInfo(
     modifier: Modifier = Modifier,
     onThumbLoaded: (ImageBitmap) -> Unit,
 ) {
+    val player = LocalPlayerState.current
+    val density = LocalDensity.current
+    val db = SpMp.context.database
     val shape = RoundedCornerShape(10.dp)
     val min_height = 120.dp
 
-    val player = LocalPlayerState.current
-    val density = LocalDensity.current
+    var playlist_image_width: Float? by db.playlistQueries
+        .imageWidthById(playlist.id)
+        .observeAsState(
+            { it.executeAsOneOrNull()?.image_width?.toFloat() },
+            { db.playlistQueries.updateImageWidthById(it?.toDouble(), playlist.id) }
+        )
+    var playlist_title: String? by db.mediaItemQueries
+        .titleById(playlist.id)
+        .observeAsState(
+            { it.executeAsOneOrNull()?.title },
+            { db.mediaItemQueries.updateTitleById(it, playlist.id) }
+        )
 
     var edited_title: String by remember { mutableStateOf("") }
 
-    var split_position by remember(playlist) { mutableStateOf(playlist.playlist_reg_entry.playlist_page_thumb_width ?: 0f) }
+    var split_position by remember(playlist) { mutableStateOf(playlist_image_width ?: 0f) }
     var width: Dp by remember(playlist) { mutableStateOf(0.dp) }
     var show_image by remember(playlist) { mutableStateOf(true) }
 
-    DisposableEffect(Unit) {
-        onDispose {
-            if (editing_info) {
-                playlist.saveRegistry()
-            }
-        }
-    }
-
-    LaunchedEffect(editing_info) {
+     LaunchedEffect(editing_info) {
         if (editing_info) {
-            edited_title = playlist.title!!
-        } else {
-            playlist.saveRegistry()
+            edited_title = playlist_title ?: ""
         }
     }
 
@@ -193,7 +198,7 @@ internal fun PlaylistTopInfo(
                                 }
                             }
 
-                            playlist.playlist_reg_entry.playlist_page_thumb_width = split_position
+                            playlist_image_width = split_position
                         }
                     ),
                 contentAlignment = Alignment.Center
@@ -210,7 +215,7 @@ internal fun PlaylistTopInfo(
                 Crossfade(editing_info) { editing ->
                     if (!editing) {
                         Text(
-                            playlist.title!!,
+                            playlist_title ?: "",
                             style = MaterialTheme.typography.headlineSmall,
                             overflow = TextOverflow.Ellipsis,
                             modifier = Modifier.platformClickable(
@@ -229,7 +234,7 @@ internal fun PlaylistTopInfo(
                             edited_title,
                             {
                                 edited_title = it.replace("\n", "")
-                                playlist.registry_entry.title = edited_title.trim()
+                                playlist_title = edited_title.trim()
                             },
                             Modifier
                                 .fillMaxWidth()

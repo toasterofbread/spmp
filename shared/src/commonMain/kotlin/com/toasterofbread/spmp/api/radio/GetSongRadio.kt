@@ -8,6 +8,7 @@ import com.toasterofbread.spmp.api.DataParseException
 import com.toasterofbread.spmp.api.RadioModifier
 import com.toasterofbread.spmp.api.cast
 import com.toasterofbread.spmp.model.mediaitem.Song
+import com.toasterofbread.spmp.model.mediaitem.SongData
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
 import okhttp3.Request
@@ -78,25 +79,17 @@ suspend fun getSongRadio(
                 radio.contents.map { item ->
                     val renderer = item.getRenderer()
                     val song = SongData(renderer.videoId)
-                    val error = song.editSongDataSuspend<Result<RadioData>?> {
-                        supplyTitle(renderer.title.first_text)
 
-                        val artist_result = renderer.getArtist(song)
-                        if (artist_result.isFailure) {
-                            return@editSongDataSuspend artist_result.cast()
-                        }
+                    song.title = renderer.title.first_text
 
-                        val (artist, certain) = artist_result.getOrThrow()
-                        if (artist != null) {
-                            supplyArtist(artist, certain)
-                        }
-
-                        null
-                    }
-
-                    if (error != null) {
-                        return@withContext error
-                    }
+                    renderer.getArtist(song, SpMp.context.database).fold(
+                        { artist ->
+                            if (artist != null) {
+                                song.artist = artist
+                            }
+                        },
+                        { return@withContext Result.failure(it) }
+                    )
 
                     return@map song
                 },

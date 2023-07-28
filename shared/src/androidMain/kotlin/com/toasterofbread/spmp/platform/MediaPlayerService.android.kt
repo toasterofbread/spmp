@@ -53,7 +53,7 @@ actual open class MediaPlayerService {
             var current_song: Song? = null
             override fun onMediaItemTransition(item: ExoMediaItem?, reason: Int) {
                 val song = item?.getSong()
-                if (song == current_song) {
+                if (song?.id == current_song?.id) {
                     return
                 }
                 current_song = song
@@ -174,7 +174,6 @@ actual open class MediaPlayerService {
 
         val item = ExoMediaItem.Builder()
             .setRequestMetadata(ExoMediaItem.RequestMetadata.Builder().setMediaUri(song.id.toUri()).build())
-            .setTag(song)
             .setUri(song.id)
             .setCustomCacheKey(song.id)
             .setMediaMetadata(
@@ -406,13 +405,4 @@ private fun convertState(exo_state: Int): MediaPlayerState {
     return MediaPlayerState.values()[exo_state - 1]
 }
 
-fun ExoMediaItem.getSong(): Song {
-    return when (val tag = localConfiguration?.tag) {
-        is IndexedValue<*> -> tag.value as Song
-        is Song -> tag
-        else -> {
-            check(mediaId.isNotBlank())
-            SongData(mediaId)
-        }
-    }
-}
+fun ExoMediaItem.getSong(): Song = SongData(mediaId)

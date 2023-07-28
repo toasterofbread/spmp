@@ -4,20 +4,25 @@ import androidx.compose.runtime.Composable
 import androidx.compose.runtime.MutableState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.setValue
+import androidx.compose.ui.unit.IntOffset
 import com.toasterofbread.Database
+import com.toasterofbread.spmp.api.lyrics.LyricsReference
 import com.toasterofbread.spmp.model.mediaitem.enums.MediaItemType
 import com.toasterofbread.spmp.model.mediaitem.enums.PlaylistType
 import com.toasterofbread.spmp.model.mediaitem.enums.SongType
 
-
-
 interface Song: MediaItem, WithArtist {
     val song_type: SongType?
     val duration: Long?
+    // artist via WithArtist
     val album: Playlist?
     val related_browse_id: String?
-//    TODO
-//    val lyrics
+
+    val lyrics: LyricsReference?
+    val lyrics_sync_offset: Long?
+    val np_gradient_depth: Double?
+    val notif_image_offset: IntOffset?
+    val liked: SongLikedStatus?
 
     override fun getType(): MediaItemType = MediaItemType.SONG
     override fun getURL(): String = "https://music.youtube.com/watch?v=$id"
@@ -29,8 +34,42 @@ class SongData(
     override var duration: Long? = null,
     override var artist: Artist? = null,
     override var album: Playlist? = null,
-    override var related_browse_id: String? = null
-): MediaItemData(), Song, DataWithArtist
+    override var related_browse_id: String? = null,
+
+    override var lyrics: LyricsReference? = null,
+    override var lyrics_sync_offset: Long? = null,
+    override var np_gradient_depth: Double? = null,
+    override var notif_image_offset: IntOffset? = null,
+    override var liked: SongLikedStatus? = null
+): MediaItemData(), Song, DataWithArtist {
+    override fun loadFromDatabase(db: Database) {
+        super.loadFromDatabase(db)
+
+        val data = db.songQueries.byId(id).executeAsOne()
+        song_type = data.song_type?.let { SongType.values()[it.toInt()] }
+        duration = data.duration
+        artist = data.artist?.let { ArtistData(it) }
+        album = data.album?.let { PlaylistData(it) }
+        related_browse_id = data.related_browse_id
+
+        lyrics_sync_offset = data.lyrics_sync_offset
+        np_gradient_depth = data.np_gradient_depth
+        liked = data.liked.toSongLikedStatus()
+
+        lyrics =
+            if (data.lyrics_source != null && data.lyrics_id != null)
+                LyricsReference(data.lyrics_source.toInt(), data.lyrics_id)
+            else null
+
+        notif_image_offset =
+            if (data.notif_image_offset_x != null || data.notif_image_offset_y != null)
+                IntOffset(
+                    data.notif_image_offset_x?.toInt() ?: 0,
+                    data.notif_image_offset_y?.toInt() ?: 0
+                )
+            else null
+    }
+}
 
 class ObservableSong(
     id: String,

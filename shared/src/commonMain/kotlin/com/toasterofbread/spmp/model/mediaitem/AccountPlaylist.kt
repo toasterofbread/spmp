@@ -8,7 +8,6 @@ import com.toasterofbread.spmp.api.AccountPlaylistEditAction
 import com.toasterofbread.spmp.api.Api
 import com.toasterofbread.spmp.api.deleteAccountPlaylist
 import com.toasterofbread.spmp.api.editAccountPlaylist
-import com.toasterofbread.spmp.model.mediaitem.data.AccountPlaylistItemData
 import com.toasterofbread.spmp.model.mediaitem.enums.PlaylistType
 import com.toasterofbread.spmp.platform.PlatformContext
 

@@ -3,7 +3,8 @@ package com.toasterofbread.spmp.platform
 import com.toasterofbread.spmp.PlayerDownloadService
 import com.toasterofbread.spmp.model.mediaitem.Song
 import com.toasterofbread.spmp.model.mediaitem.SongData
-import com.toasterofbread.spmp.model.mediaitem.enums.SongAudioQuality
+import com.toasterofbread.spmp.model.mediaitem.song.SongAudioQuality
+import com.toasterofbread.spmp.model.mediaitem.song.getSongTargetDownloadQuality
 import java.io.File
 
 actual class PlayerDownloadManager actual constructor(val context: PlatformContext) {
@@ -149,7 +150,7 @@ actual class PlayerDownloadManager actual constructor(val context: PlatformConte
     fun getSongLocalFile(song: Song): File? {
         val files = getDownloadDir(context).listFiles() ?: return null
         for (file in files) {
-            if (PlayerDownloadService.fileMatchesDownload(file.name, song.id, Song.getTargetDownloadQuality()) == true) {
+            if (PlayerDownloadService.fileMatchesDownload(file.name, song.id, getSongTargetDownloadQuality()) == true) {
                 return file
             }
         }

@@ -1,9 +1,13 @@
 CREATE TABLE Artist (
-    id TEXT NOT NULL,
+    id TEXT NOT NULL PRIMARY KEY,
 
     subscribe_channel_id TEXT,
 
-    PRIMARY KEY (id),
+    --
+
+    subscriber_count INTEGER,
+    subscribed INTEGER,
+
     FOREIGN KEY (id) REFERENCES MediaItem(id)
 );
 
@@ -11,3 +15,9 @@ byId: SELECT * FROM Artist WHERE id == ?;
 
 subscribeChannelIdById: SELECT subscribe_channel_id FROM Artist WHERE id == :id;
 updateSubscribeChannelIdById: UPDATE Artist SET subscribe_channel_id = :value WHERE id == :id;
+
+subscriberCountById: SELECT subscriber_count FROM Artist WHERE id == :id;
+updateSubscriberCountById: UPDATE Artist SET subscriber_count = :value WHERE id == :id;
+
+subscribedById: SELECT subscribed FROM Artist WHERE id == :id;
+updateSubscribedById: UPDATE Artist SET subscribed = :value WHERE id == :id;

@@ -33,28 +33,33 @@ import com.toasterofbread.utils.composable.WidthShrinkText
 
 const val ARTIST_THUMB_CORNER_ROUNDING = 50
 
-@Composable
-fun ArtistPreviewSquare(
-    artist: Artist,
-    params: MediaItemPreviewParams
-) {
-    val long_press_menu_data = remember(artist) {
-        getArtistLongPressMenuData(artist, multiselect_context = params.multiselect_context)
-    }
-    MediaItemPreviewSquare(artist, params, long_press_menu_data)
-}
-
-@Composable
-fun ArtistPreviewLong(
-    artist: Artist,
-    params: MediaItemPreviewParams
-) {
-    val long_press_menu_data = remember(artist) {
-        getArtistLongPressMenuData(artist, multiselect_context = params.multiselect_context)
-    }
-
-    MediaItemPreviewLong(artist, params, long_press_menu_data)
-}
+//@Composable
+//fun ArtistPreviewSquare(
+//    artist: Artist,
+//    params: MediaItemPreviewParams
+//) {
+//    val long_press_menu_data = remember(artist) {
+//        getArtistLongPressMenuData(artist, multiselect_context = params.multiselect_context)
+//    }
+//    MediaItemPreviewSquare(artist, params, long_press_menu_data)
+//}
+//
+//@Composable
+//fun ArtistPreviewLong(
+//    artist: Artist,
+//    params: MediaItemPreviewParams
+//) {
+//    val long_press_menu_data = remember(artist) {
+//        getArtistLongPressMenuData(artist, multiselect_context = params.multiselect_context)
+//    }
+//
+//    MediaItemPreviewLong(
+//        artist,
+//        params.modifier,
+//        params.contentColour
+//        long_press_menu_data
+//    )
+//}
 
 fun getArtistLongPressMenuData(
     artist: Artist,

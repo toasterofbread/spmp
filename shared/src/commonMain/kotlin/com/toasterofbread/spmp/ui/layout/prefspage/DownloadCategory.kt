@@ -6,7 +6,7 @@ import com.toasterofbread.composesettings.ui.item.SettingsSliderItem
 import com.toasterofbread.composesettings.ui.item.SettingsToggleItem
 import com.toasterofbread.composesettings.ui.item.SettingsValueState
 import com.toasterofbread.spmp.model.Settings
-import com.toasterofbread.spmp.model.mediaitem.enums.SongAudioQuality
+import com.toasterofbread.spmp.model.mediaitem.song.SongAudioQuality
 import com.toasterofbread.spmp.resources.getString
 
 internal fun getDownloadCategory(): List<SettingsItem> {

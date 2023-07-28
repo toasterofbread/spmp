@@ -1,7 +1,7 @@
 package com.toasterofbread.spmp.platform
 
 import com.toasterofbread.spmp.model.mediaitem.Song
-import com.toasterofbread.spmp.model.mediaitem.enums.SongAudioQuality
+import com.toasterofbread.spmp.model.mediaitem.song.SongAudioQuality
 
 expect class PlayerDownloadManager(context: PlatformContext) {
     class DownloadStatus {

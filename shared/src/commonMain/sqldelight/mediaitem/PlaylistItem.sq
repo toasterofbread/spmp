@@ -11,5 +11,12 @@ CREATE TABLE PlaylistItem (
 byPlaylistId:
 SELECT *
 FROM PlaylistItem
-WHERE playlist_id == ?
+WHERE playlist_id == :playlist_id
 ORDER BY item_index;
+
+removeItemAtIndex:
+DELETE FROM PlaylistItem
+WHERE playlist_id == :playlist_id AND item_index == :item_index;
+
+updateItemIndex:
+UPDATE PlaylistItem SET item_index = :to WHERE item_index == :from AND playlist_id == :playlist_id;

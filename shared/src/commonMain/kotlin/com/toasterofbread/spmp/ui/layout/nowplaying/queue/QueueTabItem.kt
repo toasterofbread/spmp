@@ -21,6 +21,7 @@ import com.toasterofbread.spmp.model.mediaitem.MediaItemPreviewParams
 import com.toasterofbread.spmp.model.mediaitem.Song
 import com.toasterofbread.spmp.resources.getString
 import com.toasterofbread.spmp.resources.uilocalisation.durationToString
+import com.toasterofbread.spmp.ui.component.mediaitempreview.MediaItemPreviewLong
 import com.toasterofbread.spmp.ui.component.multiselect.MediaItemMultiSelectContext
 import com.toasterofbread.utils.getContrasted
 import com.toasterofbread.utils.modifier.background
@@ -96,22 +97,21 @@ class QueueTabItem(val song: Song, val key: Int) {
                 verticalAlignment = Alignment.CenterVertically,
                 modifier = Modifier.padding(start = padding, end = 10.dp)
             ) {
-                song.PreviewLong(
-                    MediaItemPreviewParams(
-                        Modifier
-                            .weight(1f)
-                            .padding(vertical = padding)
-                            .swipeable(
-                                swipe_state,
-                                anchors,
-                                Orientation.Horizontal,
-                                thresholds = { _, _ -> FractionalThreshold(0.2f) }
-                            ),
-                        contentColour = { backgroundColourProvider().getContrasted() },
-                        multiselect_context = multiselect_context,
-                        getInfoText = { getInfoText(index) }
-                    ),
-                    queue_index = index
+                MediaItemPreviewLong(
+                    song,
+                    Modifier
+                        .weight(1f)
+                        .padding(vertical = padding)
+                        .swipeable(
+                            swipe_state,
+                            anchors,
+                            Orientation.Horizontal,
+                            thresholds = { _, _ -> FractionalThreshold(0.2f) }
+                        ),
+                    contentColour = { backgroundColourProvider().getContrasted() },
+                    multiselect_context = multiselect_context,
+                    multiselect_key = index,
+                    getInfoText = { getInfoText(index) }
                 )
 
                 val radio_item_index = player.player?.radio_item_index

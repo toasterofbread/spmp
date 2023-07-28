@@ -1,7 +1,5 @@
 package com.toasterofbread.spmp.api.model
 
-import com.toasterofbread.spmp.api.MoreContentButton
-import com.toasterofbread.spmp.api.SubscriptionButton
 import com.toasterofbread.spmp.model.mediaitem.MediaItemThumbnailProvider
 
 data class HeaderRenderer(

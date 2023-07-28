@@ -59,6 +59,7 @@ actual class PlatformContext(private val context: Context, onInit: ((PlatformCon
         onInit?.invoke(this)
     }
 
+    // TODO This should be a singleton
     actual val player_state = PlayerStateImpl(this)
     actual val database = createDatabase()
 

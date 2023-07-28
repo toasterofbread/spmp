@@ -11,6 +11,7 @@ import com.toasterofbread.spmp.model.mediaitem.Artist
 import com.toasterofbread.spmp.model.mediaitem.MediaItemPreviewParams
 import com.toasterofbread.spmp.platform.ProjectPreferences
 import com.toasterofbread.spmp.resources.getString
+import com.toasterofbread.spmp.ui.component.mediaitempreview.MediaItemPreviewLong
 import com.toasterofbread.spmp.ui.layout.YoutubeMusicLoginConfirmation
 
 internal fun getYtmAuthItem(ytm_auth: SettingsValueState<YoutubeMusicAuthInfo>, own_channel: MutableState<Artist?>): SettingsItem =
@@ -35,12 +36,13 @@ internal fun getYtmAuthItem(ytm_auth: SettingsValueState<YoutubeMusicAuthInfo>, 
                 own_channel.value = it
             }
 
-            own_channel.value?.PreviewLong(
-                MediaItemPreviewParams(
+            own_channel.value?.also { channel ->
+                MediaItemPreviewLong(
+                    channel,
                     modifier,
                     show_type = false
                 )
-            )
+            }
         },
         disabled_text = getString("auth_not_signed_in"),
         enable_button = getString("auth_sign_in"),

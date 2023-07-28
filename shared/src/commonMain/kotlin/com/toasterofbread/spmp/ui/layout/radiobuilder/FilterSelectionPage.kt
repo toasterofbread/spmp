@@ -42,7 +42,9 @@ import com.toasterofbread.spmp.api.buildRadioToken
 import com.toasterofbread.spmp.api.getBuiltRadio
 import com.toasterofbread.spmp.model.mediaitem.MediaItemPreviewParams
 import com.toasterofbread.spmp.model.mediaitem.Playlist
+import com.toasterofbread.spmp.model.mediaitem.PlaylistData
 import com.toasterofbread.spmp.resources.getString
+import com.toasterofbread.spmp.ui.component.mediaitempreview.MediaItemPreviewLong
 import com.toasterofbread.spmp.ui.component.multiselect.MediaItemMultiSelectContext
 import com.toasterofbread.spmp.ui.theme.Theme
 import com.toasterofbread.utils.composable.ShapedIconButton
@@ -59,6 +61,12 @@ fun FilterSelectionPage(
 ) {
     val player = LocalPlayerState.current
 
+    var is_loading by remember { mutableStateOf(false) }
+    var preview_loading by remember { mutableStateOf(false) }
+    var preview_playlist: Playlist? by remember { mutableStateOf(null) }
+    var invalid_modifiers: Boolean by remember { mutableStateOf(false) }
+    val coroutine_scope = rememberCoroutineScope()
+
     val selection_type = remember { mutableStateOf(RadioModifier.SelectionType.BLEND) }
     SelectionTypeRow(selection_type)
 
@@ -70,12 +78,6 @@ fun FilterSelectionPage(
 
     val filter_b: MutableState<RadioModifier.FilterB?> = remember { mutableStateOf(null) }
     FilterBRow(filter_b)
-
-    var is_loading by remember { mutableStateOf(false) }
-    var preview_loading by remember { mutableStateOf(false) }
-    var preview_playlist: Playlist? by remember { mutableStateOf(null) }
-    var invalid_modifiers: Boolean by remember { mutableStateOf(false) }
-    val coroutine_scope = rememberCoroutineScope()
 
     fun loadRadio(preview: Boolean) {
         if (is_loading || preview_loading) {
@@ -100,7 +102,7 @@ fun FilterSelectionPage(
         }
 
         coroutine_scope.launch {
-            val result = getBuiltRadio(radio_token)
+            val result = getBuiltRadio(radio_token, SpMp.context.database)
             result.fold(
                 { playlist ->
                     if (playlist == null) {
@@ -159,30 +161,34 @@ fun FilterSelectionPage(
                             }
                         }
                     }
-                } else if (loading) {
+                }
+                else if (loading) {
                     SubtleLoadingIndicator(Modifier.offset(y = -bottom_padding), { Theme.on_background })
-                } else if (playlist?.feed_layouts?.isNotEmpty() == true) {
-                    val layout = playlist.feed_layouts!!.first()
-                    val multiselect_context = remember { MediaItemMultiSelectContext() {} }
+                }
+                else {
+                    val items = playlist?.items
+                    if (items != null) {
+                        val multiselect_context = remember { MediaItemMultiSelectContext() {} }
 
-                    DisposableEffect(multiselect_context.is_active) {
-                        action_buttons_visible = !multiselect_context.is_active
-                        onDispose {
-                            action_buttons_visible = true
+                        DisposableEffect(multiselect_context.is_active) {
+                            action_buttons_visible = !multiselect_context.is_active
+                            onDispose {
+                                action_buttons_visible = true
+                            }
                         }
-                    }
 
-                    Column {
-                        AnimatedVisibility(multiselect_context.is_active) {
-                            multiselect_context.InfoDisplay()
-                        }
-                        LazyColumn(
-                            Modifier.fillMaxSize(),
-                            contentPadding = PaddingValues(bottom = bottom_padding),
-                            verticalArrangement = Arrangement.spacedBy(10.dp)
-                        ) {
-                            items(layout.items) { item ->
-                                item.PreviewLong(MediaItemPreviewParams(multiselect_context = multiselect_context))
+                        Column {
+                            AnimatedVisibility(multiselect_context.is_active) {
+                                multiselect_context.InfoDisplay()
+                            }
+                            LazyColumn(
+                                Modifier.fillMaxSize(),
+                                contentPadding = PaddingValues(bottom = bottom_padding),
+                                verticalArrangement = Arrangement.spacedBy(10.dp)
+                            ) {
+                                items(items) { item ->
+                                    MediaItemPreviewLong(item, multiselect_context = multiselect_context)
+                                }
                             }
                         }
                     }
@@ -218,7 +224,7 @@ fun FilterSelectionPage(
     }
 }
 
-private fun setRadioMetadata(radio_playlist: Playlist, artists: List<RadioBuilderArtist>, selected_artists: Collection<Int>) {
+private fun setRadioMetadata(radio_playlist: PlaylistData, artists: List<RadioBuilderArtist>, selected_artists: Collection<Int>) {
     assert(selected_artists.isNotEmpty())
 
     val artists_string = StringBuilder()
@@ -231,7 +237,5 @@ private fun setRadioMetadata(radio_playlist: Playlist, artists: List<RadioBuilde
         }
     }
 
-    radio_playlist.editData {
-        supplyTitle(getString("radio_of_\$artists_title").replace("\$artists", artists_string.toString()))
-    }
+    radio_playlist.title = getString("radio_of_\$artists_title").replace("\$artists", artists_string.toString())
 }

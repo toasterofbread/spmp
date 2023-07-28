@@ -7,14 +7,30 @@ import androidx.compose.material.icons.filled.PlaylistPlay
 import androidx.compose.ui.graphics.vector.ImageVector
 import com.beust.klaxon.JsonObject
 import com.toasterofbread.spmp.api.Api
+import com.toasterofbread.spmp.model.mediaitem.Artist
 import com.toasterofbread.spmp.model.mediaitem.ArtistData
+import com.toasterofbread.spmp.model.mediaitem.MediaItem
 import com.toasterofbread.spmp.model.mediaitem.MediaItemData
 import com.toasterofbread.spmp.model.mediaitem.MediaItemDataRegistry
+import com.toasterofbread.spmp.model.mediaitem.ObservableMediaItem
+import com.toasterofbread.spmp.model.mediaitem.Playlist
 import com.toasterofbread.spmp.model.mediaitem.PlaylistData
 import com.toasterofbread.spmp.model.mediaitem.PlaylistDataRegistryEntry
+import com.toasterofbread.spmp.model.mediaitem.Song
 import com.toasterofbread.spmp.model.mediaitem.SongData
 import com.toasterofbread.spmp.model.mediaitem.SongDataRegistryEntry
 import com.toasterofbread.spmp.resources.getString
+
+fun MediaItem.getType(): MediaItemType =
+    when(this) {
+        is Song -> MediaItemType.SONG
+        is Artist -> MediaItemType.ARTIST
+        is Playlist -> {
+            if (playlist_type == PlaylistType.LOCAL) MediaItemType.PLAYLIST_LOC
+            else MediaItemType.PLAYLIST_ACC
+        }
+        else -> throw NotImplementedError(this::class.toString())
+    }
 
 enum class MediaItemType {
     SONG, ARTIST, PLAYLIST_ACC, PLAYLIST_LOC, PLAYLIST_BROWSEPARAMS;

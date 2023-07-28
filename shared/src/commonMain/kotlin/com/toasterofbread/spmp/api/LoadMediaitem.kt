@@ -1,6 +1,7 @@
 package com.toasterofbread.spmp.api
 
 import SpMp
+import com.toasterofbread.Database
 import com.toasterofbread.spmp.api.Api.Companion.addYtHeaders
 import com.toasterofbread.spmp.api.Api.Companion.getStream
 import com.toasterofbread.spmp.api.Api.Companion.ytUrl
@@ -44,86 +45,92 @@ data class VideoDetails(
 
 suspend fun loadMediaItemData(
     item: MediaItemData,
-    item_id: String = item.id,
+    db: Database,
     browse_params: String? = null
 ): Result<Unit> {
-    if (item is Artist && item.is_for_item) {
-        return Result.success(Unit)
-    }
+    val item_id = item.id
 
-    return withContext(Dispatchers.IO) {
-        val url = if (item is Song) "/youtubei/v1/next" else "/youtubei/v1/browse"
-        val body =
-            if (item is Song)
-                mapOf(
-                    "enablePersistentPlaylistPanel" to true,
-                    "isAudioOnly" to true,
-                    "videoId" to item_id,
-                )
-            else
-                mutableMapOf(
-                    "browseId" to item_id
-                ).apply {
-                    if (browse_params != null) {
-                        put("params", browse_params)
+    val result =
+        if (item is Artist && item.is_for_item) Result.success(Unit)
+        else withContext(Dispatchers.IO) {
+            val url = if (item is Song) "/youtubei/v1/next" else "/youtubei/v1/browse"
+            val body =
+                if (item is Song)
+                    mapOf(
+                        "enablePersistentPlaylistPanel" to true,
+                        "isAudioOnly" to true,
+                        "videoId" to item_id,
+                    )
+                else
+                    mutableMapOf(
+                        "browseId" to item_id
+                    ).apply {
+                        if (browse_params != null) {
+                            put("params", browse_params)
+                        }
                     }
-                }
 
-        val hl = SpMp.data_language
-        var request: Request = Request.Builder()
-            .ytUrl(url)
-            .addYtHeaders()
-            .post(Api.getYoutubeiRequestBody(
-                body,
-                if (item is Artist) Api.Companion.YoutubeiContextType.MOBILE
-                else Api.Companion.YoutubeiContextType.BASE
-            ))
-            .build()
+            val hl = SpMp.data_language
+            var request: Request = Request.Builder()
+                .ytUrl(url)
+                .addYtHeaders()
+                .post(Api.getYoutubeiRequestBody(
+                    body,
+                    if (item is Artist) Api.Companion.YoutubeiContextType.MOBILE
+                    else Api.Companion.YoutubeiContextType.BASE
+                ))
+                .build()
 
-        val response = Api.request(request).getOrNull()
-        coroutineContext.job.invokeOnCompletion {
-            response?.close()
-        }
-
-        if (response != null) {
-            val result = processDefaultResponse(item, response, hl)
-            if (result != null) {
-                return@withContext result
+            val response = Api.request(request).getOrNull()
+            coroutineContext.job.invokeOnCompletion {
+                response?.close()
             }
-        }
 
-        // 'next' endpoint has no artist, use 'player' instead
-        request = Request.Builder()
-            .ytUrl("/youtubei/v1/player")
-            .addYtHeaders()
-            .post(Api.getYoutubeiRequestBody(mapOf("videoId" to item_id)))
-            .build()
+            if (response != null) {
+                val result = processDefaultResponse(item, response, hl, db)
+                if (result != null) {
+                    return@withContext result
+                }
+            }
 
-        val result = Api.request(request)
-        if (result.isFailure) {
-            return@withContext result.cast()
-        }
+            // 'next' endpoint has no artist, use 'player' instead
+            request = Request.Builder()
+                .ytUrl("/youtubei/v1/player")
+                .addYtHeaders()
+                .post(Api.getYoutubeiRequestBody(mapOf("videoId" to item_id)))
+                .build()
 
-        val stream = result.getOrThrowHere().getStream()
-        val video_data = Api.klaxon.parse<PlayerData>(stream)!!
-        stream.close()
+            val result = Api.request(request)
+            if (result.isFailure) {
+                return@withContext result.cast()
+            }
 
-        if (video_data.videoDetails == null) {
+            val stream = result.getOrThrowHere().getStream()
+            val video_data = Api.klaxon.parse<PlayerData>(stream)!!
+            stream.close()
+
+            if (video_data.videoDetails == null) {
+                return@withContext Result.success(Unit)
+            }
+
+            item.title = video_data.videoDetails.title
+            if (item is DataWithArtist) {
+                item.artist = ArtistData(video_data.videoDetails.channelId)
+            }
+
             return@withContext Result.success(Unit)
         }
 
-        item.title = video_data.videoDetails.title
-        if (item is DataWithArtist) {
-            item.artist = ArtistData(video_data.videoDetails.channelId)
-        }
-
-        return@withContext Result.success(Unit)
+    result.onSuccess {
+        item.saveToDatabase(db)
     }
+
+    return result
 }
 
 class InvalidRadioException: Throwable()
 
-suspend fun processSong(song: SongData, response_body: InputStream): Result<Unit>? {
+suspend fun processSong(song: SongData, response_body: InputStream, db: Database): Result<Unit>? {
     val tabs: List<YoutubeiNextResponse.Tab> = try {
         Api.klaxon.parse<YoutubeiNextResponse>(response_body)!!
             .contents
@@ -147,27 +154,21 @@ suspend fun processSong(song: SongData, response_body: InputStream): Result<Unit
 
     song.title = video.title.first_text
 
-    val result = video.getArtist(song)
-    if (result.isFailure) {
-        return result.cast()
-    }
-
-    val (artist, certain) = result.getOrThrow()
-    if (artist != null) {
-        song.artist = artist
-        return Result.success(Unit)
-    }
-
-    return null
+    video.getArtist(song, db).fold(
+        { artist ->
+            song.artist = artist
+            return Result.success(Unit)
+        },
+        { return Result.failure(it) }
+    )
 }
 
-//suspend fun processDefaultResponse(item: MediaItemData, response: Response, hl: String): Result<Unit>? {
-suspend fun processDefaultResponse(item: MediaItemData, response: Response, hl: String): Any? {
+suspend fun processDefaultResponse(item: MediaItemData, response: Response, hl: String, db: Database): Result<Unit>? {
     return withContext(Dispatchers.IO) {
         val response_body = response.getStream()
         return@withContext response_body.use {
             if (item is SongData) {
-                return@use processSong(item, response_body)
+                return@use processSong(item, response_body, db)
             }
 
             val parse_result: Result<YoutubeiBrowseResponse> = runCatching {
@@ -292,6 +293,7 @@ suspend fun processDefaultResponse(item: MediaItemData, response: Response, hl: 
                     if (item is PlaylistData) {
                         item.items = items_mapped
                         item.continuation = continuation
+                        item.item_set_ids = if (items.all { it.second != null }) items.map { it.second!! } else null
                         break
                     }
 
@@ -322,10 +324,6 @@ suspend fun processDefaultResponse(item: MediaItemData, response: Response, hl: 
                         )
                     )
 
-                }
-
-                if (item is PlaylistData) {
-                    item.item_set_ids = if (items.all { it.second != null }) items.map { it.second!! } else null
                 }
 
                 when (item) {

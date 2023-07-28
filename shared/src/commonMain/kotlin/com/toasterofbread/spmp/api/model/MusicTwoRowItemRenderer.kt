@@ -1,8 +1,5 @@
 package com.toasterofbread.spmp.api.model
 
-import com.toasterofbread.spmp.api.NavigationEndpoint
-import com.toasterofbread.spmp.api.TextRuns
-import com.toasterofbread.spmp.api.ThumbnailRenderer
 import com.toasterofbread.spmp.api.radio.YoutubeiNextResponse
 import com.toasterofbread.spmp.model.Settings
 import com.toasterofbread.spmp.model.mediaitem.Artist

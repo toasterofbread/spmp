@@ -1,9 +1,5 @@
 package com.toasterofbread.spmp.api.model
 
-import com.toasterofbread.spmp.api.FixedColumn
-import com.toasterofbread.spmp.api.FlexColumn
-import com.toasterofbread.spmp.api.NavigationEndpoint
-import com.toasterofbread.spmp.api.ThumbnailRenderer
 import com.toasterofbread.spmp.api.radio.YoutubeiNextResponse
 import com.toasterofbread.spmp.model.mediaitem.ArtistData
 import com.toasterofbread.spmp.model.mediaitem.MediaItemData

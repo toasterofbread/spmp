@@ -39,6 +39,7 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.toasterofbread.spmp.model.Settings
 import com.toasterofbread.spmp.model.mediaitem.Song
+import com.toasterofbread.spmp.model.mediaitem.observeAsState
 import com.toasterofbread.spmp.platform.generatePalette
 import com.toasterofbread.spmp.resources.getString
 import com.toasterofbread.spmp.ui.layout.nowplaying.getNPBackground
@@ -68,6 +69,8 @@ class PaletteSelectorOverlayMenu(
         getSeekState: () -> Any,
         getCurrentSongThumb: () -> ImageBitmap?
     ) {
+        val db = SpMp.context.database
+
         val song = getSong()
         val thumb_image = getCurrentSongThumb()
         var palette_colours by remember { mutableStateOf<List<Color>?>(null) }
@@ -76,6 +79,19 @@ class PaletteSelectorOverlayMenu(
             containerColor = getNPBackground(),
             contentColor = getNPOnBackground()
         )
+
+        var np_gradient_depth by db.songQueries
+            .npGradientDepthById(song.id)
+            .observeAsState(
+                { it.executeAsOne().np_gradient_depth?.toFloat() },
+                { db.songQueries.updateNpGradientDepthById(it?.toDouble(), song.id) }
+            )
+        var thumbnail_rounding by db.songQueries
+            .thumbnailRoundingById(song.id)
+            .observeAsState(
+                { it.executeAsOne().thumbnail_rounding?.toInt() },
+                { db.songQueries.updateThumbnailRoundingById(it?.toLong(), song.id) }
+            )
 
         LaunchedEffect(thumb_image) {
             palette_colours = null
@@ -130,7 +146,7 @@ class PaletteSelectorOverlayMenu(
                 }
 
                 Column(horizontalAlignment = Alignment.CenterHorizontally) {
-                    val gradient_depth = getSong().song_reg_entry.np_gradient_depth ?: Settings.KEY_NOWPLAYING_DEFAULT_GRADIENT_DEPTH.get()
+                    val gradient_depth = np_gradient_depth ?: Settings.KEY_NOWPLAYING_DEFAULT_GRADIENT_DEPTH.get()
                     Text(
                         getString("song_theme_menu_gradient_depth_\$x")
                             .replace("\$x", gradient_depth.toString().padStart(3, ' ')),
@@ -143,7 +159,7 @@ class PaletteSelectorOverlayMenu(
                         Slider(
                             value = gradient_depth,
                             onValueChange = { value ->
-                                getSong().song_reg_entry.np_gradient_depth =
+                                np_gradient_depth =
                                     if (value == Settings.KEY_NOWPLAYING_DEFAULT_GRADIENT_DEPTH.get()) null else value
                             },
                             colors = SliderDefaults.colors(
@@ -154,7 +170,7 @@ class PaletteSelectorOverlayMenu(
                             modifier = Modifier.weight(1f)
                         )
                         IconButton({
-                            getSong().song_reg_entry.np_gradient_depth = null
+                            np_gradient_depth = null
                         }) {
                             Icon(Icons.Filled.Refresh, null)
                         }
@@ -162,7 +178,7 @@ class PaletteSelectorOverlayMenu(
                 }
 
                 var corner_slider_value by remember { mutableStateOf(
-                    ((song.song_reg_entry.thumbnail_rounding ?: DEFAULT_THUMBNAIL_ROUNDING) - MIN_THUMBNAIL_ROUNDING) / (MAX_THUMBNAIL_ROUNDING - MIN_THUMBNAIL_ROUNDING).toFloat()
+                    ((thumbnail_rounding ?: DEFAULT_THUMBNAIL_ROUNDING) - MIN_THUMBNAIL_ROUNDING) / (MAX_THUMBNAIL_ROUNDING - MIN_THUMBNAIL_ROUNDING).toFloat()
                 ) }
 
                 val anim_state = remember { Animatable(0f) }
@@ -180,15 +196,12 @@ class PaletteSelectorOverlayMenu(
 
                 OnChangedEffect(anim_state.value) {
                     song.apply {
-                        song_reg_entry.thumbnail_rounding = MIN_THUMBNAIL_ROUNDING + ((MAX_THUMBNAIL_ROUNDING - MIN_THUMBNAIL_ROUNDING) * anim_state.value).roundToInt()
-                        if (!anim_state.isRunning) {
-                            saveRegistry()
-                        }
+                        thumbnail_rounding = MIN_THUMBNAIL_ROUNDING + ((MAX_THUMBNAIL_ROUNDING - MIN_THUMBNAIL_ROUNDING) * anim_state.value).roundToInt()
                     }
                 }
 
                 Column(horizontalAlignment = Alignment.CenterHorizontally) {
-                    val radius = (getSong().song_reg_entry.thumbnail_rounding ?: DEFAULT_THUMBNAIL_ROUNDING) * 2
+                    val radius = (thumbnail_rounding ?: DEFAULT_THUMBNAIL_ROUNDING) * 2
                     Text(
                         getString("song_theme_menu_corner_radius_\$x")
                             .replace("\$x", radius.toString().padStart(3, ' ')),

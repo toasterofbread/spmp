@@ -16,6 +16,7 @@ import androidx.compose.ui.unit.dp
 import com.toasterofbread.spmp.model.*
 import com.toasterofbread.spmp.model.mediaitem.MediaItemThumbnailProvider
 import com.toasterofbread.spmp.ui.component.MusicTopBarWithVisualiser
+import com.toasterofbread.spmp.ui.component.Thumbnail
 import com.toasterofbread.spmp.ui.component.WaveBorder
 import com.toasterofbread.spmp.ui.layout.YoutubeMusicLoginConfirmation
 import com.toasterofbread.spmp.ui.layout.radiobuilder.RadioBuilderIcon

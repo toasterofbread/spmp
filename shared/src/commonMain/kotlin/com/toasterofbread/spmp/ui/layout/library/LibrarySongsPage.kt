@@ -15,6 +15,7 @@ import androidx.compose.ui.unit.Dp
 import com.toasterofbread.spmp.model.mediaitem.MediaItemPreviewParams
 import com.toasterofbread.spmp.model.mediaitem.Song
 import com.toasterofbread.spmp.platform.PlayerDownloadManager
+import com.toasterofbread.spmp.ui.component.mediaitempreview.MediaItemPreviewLong
 import com.toasterofbread.spmp.ui.component.multiselect.MediaItemMultiSelectContext
 
 @OptIn(ExperimentalMaterial3Api::class)
@@ -64,7 +65,7 @@ fun LibrarySongsPage(
     }) }) {
         LazyColumn(contentPadding = PaddingValues(bottom = bottom_padding)) {
             itemsIndexed(sorted_songs, { _, item -> item.id }) { index, song ->
-                song.PreviewLong(MediaItemPreviewParams(multiselect_context = multiselect_context), queue_index = index)
+                MediaItemPreviewLong(song, multiselect_context = multiselect_context, multiselect_key = index)
             }
         }
     }

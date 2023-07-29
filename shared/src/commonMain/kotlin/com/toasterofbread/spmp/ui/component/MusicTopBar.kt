@@ -42,6 +42,7 @@ import com.toasterofbread.spmp.model.MusicTopBarMode
 import com.toasterofbread.spmp.model.Settings
 import com.toasterofbread.spmp.model.SongLyrics
 import com.toasterofbread.spmp.model.mediaitem.Song
+import com.toasterofbread.spmp.model.mediaitem.observeAsState
 import com.toasterofbread.spmp.platform.composable.platformClickable
 import com.toasterofbread.spmp.platform.composeScope
 import com.toasterofbread.spmp.resources.getString
@@ -161,18 +162,27 @@ private fun MusicTopBar(
     onShowingChanged: ((Boolean) -> Unit)? = null
 ) {
     val player = LocalPlayerState.current
-    val song_state by loadLyricsOnSongChange(song, SpMp.context.database, getTargetMode() == MusicTopBarMode.LYRICS)
+    val lyrics = loadLyricsOnSongChange(song, SpMp.context, getTargetMode() == MusicTopBarMode.LYRICS)
     var mode_state: MusicTopBarMode by mutableStateOf(getTargetMode())
 
     val visualiser_width: Float by Settings.KEY_TOPBAR_VISUALISER_WIDTH.rememberMutableState()
     check(visualiser_width in 0f .. 1f)
+
+    val sync_offset: Long? = song?.id?.let { id ->
+        SpMp.context.database.songQueries
+            .lyricsSyncOffsetById(id)
+            .observeAsState(
+                { it.executeAsOne().lyrics_sync_offset }, null
+            )
+            .value
+    }
 
     val current_state by remember {
         derivedStateOf {
             val target = getTargetMode()
             for (mode_i in target.ordinal downTo 0) {
                 val mode = MusicTopBarMode.values()[mode_i]
-                val state = getModeState(mode, song_state)
+                val state = getModeState(mode, lyrics)
                 if (state != null) {
                     mode_state = mode
                     return@derivedStateOf state
@@ -218,7 +228,7 @@ private fun MusicTopBar(
                                     state,
                                     {
                                         (player.player?.current_position_ms ?: 0) +
-                                            (song?.song_reg_entry?.getLyricsSyncOffset() ?: 0)
+                                            (sync_offset ?: 0)
                                     },
                                     linger,
                                     show_furigana,
@@ -286,11 +296,9 @@ private fun TopBarEmptyContent() {
     }
 }
 
-private fun getModeState(mode: MusicTopBarMode, song: Song?): Any? {
+private fun getModeState(mode: MusicTopBarMode, lyrics: SongLyrics?): Any? {
     return when (mode) {
-        MusicTopBarMode.LYRICS -> song?.lyrics?.lyrics?.let {  lyrics ->
-            if (lyrics.synced) lyrics else null
-        }
+        MusicTopBarMode.LYRICS -> if (lyrics?.synced == true) lyrics else null
         MusicTopBarMode.VISUALISER -> mode
     }
 }

@@ -2,10 +2,10 @@ CREATE TABLE Artist (
     id TEXT NOT NULL PRIMARY KEY,
 
     subscribe_channel_id TEXT,
+    subscriber_count INTEGER,
 
     --
 
-    subscriber_count INTEGER,
     subscribed INTEGER,
 
     FOREIGN KEY (id) REFERENCES MediaItem(id)

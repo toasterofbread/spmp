@@ -21,9 +21,7 @@ fun MediaItemTitleEditDialog(item: MediaItem, modifier: Modifier = Modifier, clo
     PlatformAlertDialog(
         close,
         { Button({
-            item.editRegistry {
-                it.title = edited_title
-            }
+            SpMp.context.database.mediaItemQueries.updateTitleById(edited_title, item.id)
             close()
         }) {
             Text(getString("action_confirm_action"))
@@ -35,7 +33,7 @@ fun MediaItemTitleEditDialog(item: MediaItem, modifier: Modifier = Modifier, clo
             }
         },
         title = {
-            Text(getString("edit_\$x_title_dialog_title").replace("\$x", item.type.getReadable(false)))
+            Text(getString("edit_\$x_title_dialog_title").replace("\$x", item.getType().getReadable(false)))
         },
         text = {
             TextField(

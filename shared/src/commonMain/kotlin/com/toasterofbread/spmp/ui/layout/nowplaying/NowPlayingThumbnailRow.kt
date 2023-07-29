@@ -55,9 +55,11 @@ import androidx.compose.ui.unit.IntSize
 import androidx.compose.ui.unit.dp
 import com.toasterofbread.spmp.model.mediaitem.MediaItemThumbnailProvider
 import com.toasterofbread.spmp.model.mediaitem.Song
+import com.toasterofbread.spmp.model.mediaitem.observeAsState
 import com.toasterofbread.spmp.platform.composable.BackHandler
 import com.toasterofbread.spmp.platform.getPixel
 import com.toasterofbread.spmp.resources.getString
+import com.toasterofbread.spmp.ui.component.Thumbnail
 import com.toasterofbread.spmp.ui.layout.nowplaying.maintab.OVERLAY_MENU_ANIMATION_DURATION
 import com.toasterofbread.spmp.ui.layout.nowplaying.overlay.DEFAULT_THUMBNAIL_ROUNDING
 import com.toasterofbread.spmp.ui.layout.nowplaying.overlay.MainOverlayMenu
@@ -86,7 +88,7 @@ private fun handleColourPick(image: ImageBitmap, image_size: IntSize, tap_offset
 @Composable
 fun ThumbnailRow(
     modifier: Modifier = Modifier,
-    onThumbnailLoaded: (Song?) -> Unit,
+    onThumbnailLoaded: (Song?, ImageBitmap?) -> Unit,
     setThemeColour: (Color?) -> Unit,
     getSeekState: () -> Float
 ) {
@@ -94,15 +96,23 @@ fun ThumbnailRow(
     val expansion = LocalNowPlayingExpansion.current
     val current_song = player.status.m_song
 
+    val thumbnail_rounding: Int? = current_song?.id?.let { current_id ->
+        SpMp.context.database.songQueries
+            .thumbnailRoundingById(current_id)
+            .observeAsState(
+                { it.executeAsOne().thumbnail_rounding?.toInt() }, null
+            )
+            .value
+    }
+
     var overlay_menu by player.np_overlay_menu
     var current_thumb_image: ImageBitmap? by remember { mutableStateOf(null) }
-    val thumbnail_rounding: Int? = current_song?.song_reg_entry?.thumbnail_rounding
     val thumbnail_shape = RoundedCornerShape(thumbnail_rounding ?: DEFAULT_THUMBNAIL_ROUNDING)
     var image_size by remember { mutableStateOf(IntSize(1, 1)) }
 
     LaunchedEffect(current_song) {
         current_thumb_image = null
-        onThumbnailLoaded(null)
+        onThumbnailLoaded(null, null)
     }
 
     Row(
@@ -140,7 +150,7 @@ fun ThumbnailRow(
                     contentColourProvider = { getNPOnBackground() },
                     onLoaded = {
                         current_thumb_image = it
-                        onThumbnailLoaded(song)
+                        onThumbnailLoaded(song, it)
                     },
                     modifier = Modifier
                         .aspectRatio(1f)

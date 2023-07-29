@@ -1,7 +1,6 @@
 package com.toasterofbread.spmp.api
 
 import SpMp
-import com.beust.klaxon.Json
 import com.toasterofbread.spmp.api.Api.Companion.addYtHeaders
 import com.toasterofbread.spmp.api.Api.Companion.getStream
 import com.toasterofbread.spmp.api.Api.Companion.ytUrl
@@ -15,12 +14,6 @@ import com.toasterofbread.spmp.api.model.YoutubeiShelfContentsItem
 import com.toasterofbread.spmp.api.radio.YoutubeiNextResponse
 import com.toasterofbread.spmp.model.Cache
 import com.toasterofbread.spmp.model.Settings
-import com.toasterofbread.spmp.model.mediaitem.MediaItem
-import com.toasterofbread.spmp.model.mediaitem.MediaItemData
-import com.toasterofbread.spmp.model.mediaitem.MediaItemThumbnailProvider
-import com.toasterofbread.spmp.model.mediaitem.PlaylistData
-import com.toasterofbread.spmp.model.mediaitem.Song
-import com.toasterofbread.spmp.model.mediaitem.SongData
 import com.toasterofbread.spmp.model.mediaitem.enums.MediaItemType
 import com.toasterofbread.spmp.resources.uilocalisation.LocalisedYoutubeString
 import com.toasterofbread.spmp.ui.component.mediaitemlayout.MediaItemLayout
@@ -204,7 +197,7 @@ private suspend fun processRows(rows: List<YoutubeiShelf>, hl: String): List<Med
 
                 val page_type = browse_endpoint.browseEndpointContextSupportedConfigs?.browseEndpointContextMusicConfig?.pageType!!
 
-                val media_item = MediaItemType.fromBrowseEndpointType(page_type)!!.emptyDataFromId(browse_endpoint.browseId).apply {
+                val media_item = MediaItemType.fromBrowseEndpointType(page_type)!!.referenceFromId(browse_endpoint.browseId).apply {
                     title = header.title.runs?.getOrNull(0)?.text
                 }
 

@@ -48,7 +48,10 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.toasterofbread.spmp.model.mediaitem.Artist
 import com.toasterofbread.spmp.model.mediaitem.MediaItem
+import com.toasterofbread.spmp.model.mediaitem.artist.getReadableSubscriberCount
 import com.toasterofbread.spmp.model.mediaitem.enums.MediaItemType
+import com.toasterofbread.spmp.model.mediaitem.observePinnedToHome
+import com.toasterofbread.spmp.model.mediaitem.setPinnedToHome
 import com.toasterofbread.spmp.platform.vibrateShort
 import com.toasterofbread.spmp.resources.getString
 import com.toasterofbread.spmp.resources.getStringTODO
@@ -67,7 +70,9 @@ fun TitleBar(item: MediaItem, modifier: Modifier = Modifier) {
             verticalArrangement = Arrangement.spacedBy(10.dp, Alignment.Bottom)
         ) {
             if (editing) {
-                var edited_title by remember(item) { mutableStateOf(item.title!!) }
+                var edited_title by remember(item) {
+                    mutableStateOf(SpMp.context.database.mediaItemQueries.titleById(item.id).executeAsOne().title ?: "")
+                }
 
                 Column(Modifier.fillMaxWidth().padding(end = horizontal_padding), horizontalAlignment = Alignment.End) {
                     Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.spacedBy(10.dp, Alignment.End)) {
@@ -86,11 +91,11 @@ fun TitleBar(item: MediaItem, modifier: Modifier = Modifier) {
                         }
 
                         Action(Icons.Filled.Close) { editing_title = false }
-                        Action(Icons.Filled.Refresh) { edited_title = item.original_title!! }
+                        Action(Icons.Filled.Refresh) {
+                            edited_title = SpMp.context.database.mediaItemQueries.originalTitleById(item.id).executeAsOne().original_title ?: ""
+                        }
                         Action(Icons.Filled.Done) {
-                            item.editRegistry {
-                                it.title = edited_title
-                            }
+                            SpMp.context.database.mediaItemQueries.updateTitleById(edited_title, item.id)
                             editing_title = false
                         }
                     }
@@ -108,9 +113,7 @@ fun TitleBar(item: MediaItem, modifier: Modifier = Modifier) {
                         },
                         keyboardOptions = KeyboardOptions(imeAction = ImeAction.Done),
                         keyboardActions = KeyboardActions(onDone = {
-                            item.editRegistry {
-                                it.title = edited_title
-                            }
+                            SpMp.context.database.mediaItemQueries.updateTitleById(edited_title, item.id)
                             editing_title = false
                         }),
                         colors = TextFieldDefaults.outlinedTextFieldColors(
@@ -153,7 +156,8 @@ fun TitleBar(item: MediaItem, modifier: Modifier = Modifier) {
                     ArtistSubscribeButton(item)
                 }
 
-                Crossfade(item.pinned_to_home) { pinned ->
+                val item_pinned by item.observePinnedToHome()
+                Crossfade(item_pinned) { pinned ->
                     IconButton({ item.setPinnedToHome(!pinned) }) {
                         Icon(if (pinned) Icons.Filled.PushPin else Icons.Outlined.PushPin, null)
                     }

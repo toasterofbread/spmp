@@ -1,17 +1,18 @@
 package com.toasterofbread.spmp.model.mediaitem.loader
 
+import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.remember
 import com.toasterofbread.Database
 import com.toasterofbread.spmp.api.getOrThrowHere
 import com.toasterofbread.spmp.api.loadMediaItemData
 import com.toasterofbread.spmp.model.mediaitem.ArtistData
+import com.toasterofbread.spmp.model.mediaitem.MediaItem
 import com.toasterofbread.spmp.model.mediaitem.MediaItemData
 import com.toasterofbread.spmp.model.mediaitem.PlaylistData
 import com.toasterofbread.spmp.model.mediaitem.SongData
 import kotlinx.coroutines.Deferred
-import kotlinx.coroutines.async
-import kotlinx.coroutines.coroutineScope
 import java.util.concurrent.locks.ReentrantLock
-import kotlin.concurrent.withLock
 
 internal object MediaItemLoader {
     private val song_lock = ReentrantLock()
@@ -40,10 +41,6 @@ internal object MediaItemLoader {
         return loadItem(playlist, loading_playlists, playlist_lock, db)
     }
 
-    inline fun <T> withSongLock(action: () -> T): T = song_lock.withLock(action)
-    inline fun <T> withArtistLock(action: () -> T): T = artist_lock.withLock(action)
-    inline fun <T> withPlaylistLock(action: () -> T): T = playlist_lock.withLock(action)
-
     private suspend fun <ItemType: MediaItemData> loadItem(
         item: ItemType,
         loading_items: MutableMap<String, Deferred<ItemType>>,
@@ -59,4 +56,15 @@ internal object MediaItemLoader {
             item
         }
     }
+}
+
+@Composable
+fun <I: MediaItem, O: MediaItemData> I.rememberLoadedItem(onLoadingChanged: ((Boolean) -> Unit)? = null): O {
+    val data = remember(this) { toData() }
+    LaunchedEffect(data) {
+        onLoadingChanged?.invoke(false)
+        data.loadData()
+        onLoadingChanged?.invoke(true)
+    }
+    return data as O
 }

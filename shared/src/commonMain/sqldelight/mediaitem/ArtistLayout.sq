@@ -2,53 +2,53 @@ CREATE TABLE ArtistLayout (
     artist_id TEXT NOT NULL,
     layout_index INTEGER NOT NULL,
 
-    type INTEGER NOT NULL,
-
+--  items ArtistLayoutItem
     title_type INTEGER,
     title_key TEXT,
     subtitle_type INTEGER,
     subtitle_key TEXT,
+    type INTEGER,
+    view_more_type INTEGER,
+    view_more_data TEXT,
+    playlist_id TEXT,
 
     PRIMARY KEY (artist_id, layout_index)
 );
 
 byArtistId:
-SELECT *
+SELECT layout_index
 FROM ArtistLayout
 WHERE artist_id == :artist_id
 ORDER BY layout_index;
 
-layoutCountByArtistId:
-SELECT MAX(layout_index) + 1
-FROM ArtistLayout
-WHERE artist_id == :artist_id;
+titleByIndex: SELECT title_type, title_key FROM ArtistLayout WHERE artist_id == :artist_id AND layout_index = :layout_index;
+updateTitleByIndex: UPDATE ArtistLayout SET title_type = :title_type, title_key = :title_key WHERE artist_id == :artist_id AND layout_index = :layout_index;
 
-addLayout:
-INSERT INTO ArtistLayout
-VALUES (:artist_id, :layout_index, :type, :title_type, :title_key, :subtitle_type, :subtitle_key);
+subtitleByIndex: SELECT subtitle_type, subtitle_key FROM ArtistLayout WHERE artist_id == :artist_id AND layout_index = :layout_index;
+updateSubtitleByIndex: UPDATE ArtistLayout SET subtitle_type = :subtitle_type, subtitle_key = :subtitle_key WHERE artist_id == :artist_id AND layout_index = :layout_index;
 
-CREATE TABLE ArtistLayoutItem (
-    item_index INTEGER NOT NULL,
-    item_id TEXT NOT NULL,
-    artist_id TEXT NOT NULL,
-    layout_index INTEGER NOT NULL,
+typeByIndex: SELECT type FROM ArtistLayout WHERE artist_id == :artist_id AND layout_index = :layout_index;
+updateTypeByIndex: UPDATE ArtistLayout SET type = :type WHERE artist_id == :artist_id AND layout_index = :layout_index;
 
-    PRIMARY KEY (item_index, artist_id, layout_index),
-    FOREIGN KEY (artist_id, layout_index) REFERENCES ArtistLayout(artist_id, layout_index),
-    FOREIGN KEY (item_id) REFERENCES MediaItem(id)
-);
+viewMoreByIndex: SELECT view_more_type, view_more_data FROM ArtistLayout WHERE artist_id == :artist_id AND layout_index = :layout_index;
+updateViewMoreByIndex: UPDATE ArtistLayout SET view_more_type = :view_moretype, view_more_data = :view_more_data WHERE artist_id == :artist_id AND layout_index = :layout_index;
 
-layoutItems:
-SELECT item_index, item_id
-FROM ArtistLayoutItem
-WHERE artist_id == :artist_id AND layout_index == :layout_index
-ORDER BY item_index;
+playlistIdByIndex: SELECT playlist_id FROM ArtistLayout WHERE artist_id == :artist_id AND layout_index = :layout_index;
+updatePlaylistIdByIndex: UPDATE ArtistLayout SET playlist_id = :playlist_id WHERE artist_id == :artist_id AND layout_index = :layout_index;
 
-addLayoutItem:
-INSERT INTO ArtistLayoutItem
-VALUES (:item_index, :item_id, :artist_id, :layout_index);
+insertLayoutAtIndex:
+INSERT INTO ArtistLayout(artist_id, layout_index)
+VALUES (:artist_id, :layout_index);
 
-itemCountOfLayout:
-SELECT MAX(item_index) + 1
-FROM ArtistLayoutItem
+removeLayoutAtIndex:
+DELETE FROM ArtistLayout
 WHERE artist_id == :artist_id AND layout_index == :layout_index;
+
+updateLayoutIndex:
+UPDATE ArtistLayout SET layout_index = :to WHERE layout_index == :from AND artist_id == :artist_id;
+
+layoutCount:
+SELECT COUNT(IIF(ArtistLayout.artist_id = :artist_id), 1, NULL) FROM ArtistLayout;
+
+clearLayouts:
+DELETE FROM ArtistLayout WHERE artist_id = :artist_id AND layout_index >= :from_index;

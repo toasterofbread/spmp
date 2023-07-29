@@ -22,7 +22,7 @@ class ArtistBrowseResponse(val header: Header) {
     fun getSubscribed(): Boolean? = header.musicImmersiveHeaderRenderer?.subscriptionButton?.subscribeButtonRenderer?.subscribed
 }
 
-suspend fun isSubscribedToArtist(artist: Artist): Result<Boolean?> = withContext(Dispatchers.IO) {
+suspend fun isSubscribedToArtist(artist: Artist): Result<Boolean> = withContext(Dispatchers.IO) {
     check(!artist.is_for_item)
 
     val request: Request = Request.Builder()
@@ -47,21 +47,29 @@ suspend fun isSubscribedToArtist(artist: Artist): Result<Boolean?> = withContext
         stream.close()
     }
 
-    return@withContext Result.success(parsed.getSubscribed())
+    return@withContext Result.success(parsed.getSubscribed() == true)
 }
 
-suspend fun subscribeOrUnsubscribeArtist(artist: Artist, subscribe: Boolean): Result<Any> = withContext(Dispatchers.IO) {
+suspend fun subscribeOrUnsubscribeArtist(
+    artist: Artist,
+    subscribe: Boolean,
+    db: Database = SpMp.context.database
+): Result<Unit> = withContext(Dispatchers.IO) {
     check(Api.ytm_authenticated)
+
+    val subscribe_channel_id =
+        db.artistQueries.subscribeChannelIdById(artist.id).executeAsOneOrNull()?.subscribe_channel_id
+            ?: artist.id
 
     val request: Request = Request.Builder()
         .url("https://music.youtube.com/youtubei/v1/subscription/${if (subscribe) "subscribe" else "unsubscribe"}")
         .addYtHeaders()
         .post(Api.getYoutubeiRequestBody(
-            mapOf("channelIds" to listOf(artist.subscribe_channel_id))
+            mapOf("channelIds" to listOf(subscribe_channel_id))
         ))
         .build()
 
-    return@withContext Api.request(request)
+    return@withContext Api.request(request).cast()
 }
 
 private data class PlayerLikeResponse(

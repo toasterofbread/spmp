@@ -14,7 +14,10 @@ import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import com.toasterofbread.spmp.api.Api
+import com.toasterofbread.spmp.api.isOwnChannel
 import com.toasterofbread.spmp.model.mediaitem.Artist
+import com.toasterofbread.spmp.model.mediaitem.artist.setSubscribed
+import com.toasterofbread.spmp.model.mediaitem.loader.ArtistSubscribedLoader
 import com.toasterofbread.spmp.resources.getStringTODO
 import com.toasterofbread.utils.composable.ShapedIconButton
 import com.toasterofbread.utils.getContrasted
@@ -33,23 +36,25 @@ fun ArtistSubscribeButton(
 
     val coroutine_scope = rememberCoroutineScope()
 
-    LaunchedEffect(artist, artist.is_own_channel) {
-        if (!artist.is_own_channel) {
+    val subscribed_state = ArtistSubscribedLoader.rememberItemState(artist.id)
+
+    LaunchedEffect(artist.id) {
+        if (!artist.isOwnChannel()) {
             coroutine_scope.launch {
-                artist.updateSubscribed()
+                ArtistSubscribedLoader.loadArtistSubscribed(artist, SpMp.context.database)
             }
         }
     }
 
-    Crossfade(artist.subscribed, modifier) { subscribed ->
+    Crossfade(subscribed_state.value, modifier) { subscribed ->
         if (subscribed != null) {
             ShapedIconButton(
                 {
                     coroutine_scope.launch {
-                        val result = artist.toggleSubscribe(false)
+                        val result = artist.setSubscribed(!subscribed)
                         if (result.isFailure) {
                             SpMp.context.sendToast(getStringTODO(
-                                if (artist.subscribed != true) "Subscribing to ${artist.title} failed"
+                                if (!subscribed) "Subscribing to ${artist.title} failed"
                                 else "Unsubscribing from ${artist.title} failed"
                             ))
                         }

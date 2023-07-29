@@ -53,10 +53,14 @@ import androidx.compose.ui.unit.dp
 import com.toasterofbread.spmp.model.mediaitem.Artist
 import com.toasterofbread.spmp.model.mediaitem.MediaItemPreviewParams
 import com.toasterofbread.spmp.model.mediaitem.MediaItemThumbnailProvider
+import com.toasterofbread.spmp.model.mediaitem.WithArtist
+import com.toasterofbread.spmp.model.mediaitem.setPinnedToHome
 import com.toasterofbread.spmp.platform.composable.platformClickable
 import com.toasterofbread.spmp.platform.getNavigationBarHeightDp
 import com.toasterofbread.spmp.platform.vibrateShort
 import com.toasterofbread.spmp.ui.component.MediaItemTitleEditDialog
+import com.toasterofbread.spmp.ui.component.Thumbnail
+import com.toasterofbread.spmp.ui.component.mediaitempreview.MediaItemPreviewLong
 import com.toasterofbread.spmp.ui.layout.nowplaying.overlay.DEFAULT_THUMBNAIL_ROUNDING
 import com.toasterofbread.spmp.ui.theme.Theme
 import com.toasterofbread.utils.composable.Marquee
@@ -186,7 +190,7 @@ internal fun LongPressMenuContent(
                                 }
 
                                 // Artist
-                                if (data.item !is Artist) {
+                                if (data.item is WithArtist) {
                                     val artist = data.item.artist
                                     if (artist != null) {
                                         Marquee {
@@ -201,7 +205,7 @@ internal fun LongPressMenuContent(
                                                     )
                                                 }
                                             ) {
-                                                artist.PreviewLong(MediaItemPreviewParams(Modifier.fillMaxWidth()))
+                                                MediaItemPreviewLong(artist, Modifier.fillMaxWidth())
                                             }
                                         }
                                     }

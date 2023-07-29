@@ -55,13 +55,15 @@ data class LongPressMenuData(
                         if (item is Song) {
                             callback(item)
                         }
-                        else {
-                            check(item is Playlist)
-                            item.getFeedLayouts().onSuccess { layouts ->
-                                layouts.firstOrNull()?.items?.firstOrNull()?.also {
-                                    callback(it as Song)
+                        else if (item is Playlist) {
+                            item.loadData().onSuccess {
+                                it.items?.firstOrNull()?.also { item ->
+                                    callback(item as Song)
                                 }
                             }
+                        }
+                        else {
+                            throw NotImplementedError(item::class.toString())
                         }
                     }
                 }
@@ -73,7 +75,7 @@ data class LongPressMenuData(
                 ArtistLongPressMenuActions(item)
             }
             else {
-                throw NotImplementedError(item.type.toString())
+                throw NotImplementedError(item.getType().toString())
             }
         }
     }
@@ -83,6 +85,7 @@ data class LongPressMenuData(
         when (item) {
             is Song -> LikeDislikeButton(item, modifier) { background.getContrasted() }
             is Artist -> ArtistSubscribeButton(item, modifier)
+            else -> {}
         }
     }
 }

@@ -35,29 +35,6 @@ import com.toasterofbread.spmp.ui.component.multiselect.MediaItemMultiSelectCont
 import com.toasterofbread.utils.composable.WidthShrinkText
 import kotlinx.coroutines.launch
 
-@Composable
-fun PlaylistPreviewSquare(
-    playlist: Playlist,
-    params: MediaItemPreviewParams
-) {
-    val long_press_menu_data = remember(playlist) {
-        getPlaylistLongPressMenuData(playlist, multiselect_context = params.multiselect_context)
-    }
-    MediaItemPreviewSquare(playlist, params, long_press_menu_data)
-}
-
-@Composable
-fun PlaylistPreviewLong(
-    playlist: Playlist,
-    params: MediaItemPreviewParams
-) {
-    val long_press_menu_data = remember(playlist) {
-        getPlaylistLongPressMenuData(playlist, multiselect_context = params.multiselect_context)
-    }
-
-    MediaItemPreviewLong(playlist, params, long_press_menu_data)
-}
-
 fun getPlaylistLongPressMenuData(
     playlist: Playlist,
     thumb_shape: Shape? = RoundedCornerShape(10.dp),

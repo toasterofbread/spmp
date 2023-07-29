@@ -1,34 +1,63 @@
 package com.toasterofbread.spmp.model.mediaitem
 
-import androidx.compose.runtime.Composable
-import androidx.compose.runtime.MutableState
-import androidx.compose.runtime.getValue
-import androidx.compose.runtime.mutableStateOf
-import androidx.compose.runtime.setValue
-import com.toasterofbread.Database
 import com.toasterofbread.spmp.model.mediaitem.enums.MediaItemType
-import com.toasterofbread.spmp.model.mediaitem.enums.PlaylistType
-import com.toasterofbread.spmp.model.mediaitem.loader.MediaItemLoader
 import com.toasterofbread.spmp.ui.component.mediaitemlayout.MediaItemLayout
+import com.toasterofbread.spmp.model.mediaitem.enums.PlaylistType as PlaylistTypeEnum
 
-interface Playlist: MediaItem, WithArtist {
-    val items: List<MediaItem>?
-    val playlist_type: PlaylistType?
-    val browse_params: String?
-    val item_count: Int?
-    val total_duration: Long?
-    val year: Int?
-    // Artist via WithArtist
+class AccountPlaylistRef(override val id: String): Playlist {
+    override fun getType(): MediaItemType = MediaItemType.PLAYLIST_ACC
+}
+class LocalPlaylistRef(override val id: String): Playlist {
+    override fun getType(): MediaItemType = MediaItemType.PLAYLIST_LOC
+}
 
-    internal val custom_image_provider: MediaItemThumbnailProvider?
-    val image_width: Float?
-
-    val is_editable: Boolean?
-    val continuation: MediaItemLayout.Continuation?
-    val item_set_ids: List<String>?
-
-    override fun getType(): MediaItemType = if (playlist_type == PlaylistType.LOCAL) MediaItemType.PLAYLIST_LOC else MediaItemType.PLAYLIST_ACC
+interface Playlist: MediaItem, MediaItem.WithArtist {
+//    val is_editable: Boolean?
+//    val item_set_ids: List<String>?
+//    val continuation: MediaItemLayout.Continuation?
     override fun getURL(): String = "https://music.youtube.com/playlist?list=$id"
+
+    val Items get() = ListProperty(
+        getQuery = { playlistItemQueries.byPlaylistId(id) },
+        getValue = { this.map { SongRef(it.song_id) } },
+        getSize = { playlistItemQueries.itemCount(id).executeAsOne().toInt() },
+        addItem = { item, index ->
+            playlistItemQueries.insertItemAtIndex(id, item.id, index.toLong())
+        },
+        removeItem = { index ->
+            playlistItemQueries.removeItemAtIndex(id, index.toLong())
+        },
+        setItemIndex = { from, to ->
+            playlistItemQueries.updateItemIndex(from = from.toLong(), to = to.toLong(), playlist_id = id)
+        }
+    )
+    val ItemCount: Property<Int?> get() = SingleProperty(
+        { playlistQueries.itemCountById(id) }, { item_count?.toInt() }, { playlistQueries.updateItemCountById(it?.toLong(), id) }
+    )
+    val PlaylistType: Property<PlaylistTypeEnum?> get() = SingleProperty(
+        { playlistQueries.playlistTypeById(id) },
+        { playlist_type?.let { PlaylistTypeEnum.values()[it.toInt()] } },
+        { playlistQueries.updatePlaylistTypeById(it?.ordinal?.toLong(), id) }
+    )
+    val BrowseParams: Property<String?> get() = SingleProperty(
+        { playlistQueries.browseParamsById(id) }, { browse_params }, { playlistQueries.updateBrowseParamsById(it, id) }
+    )
+    val TotalDuration: Property<Long?> get() = SingleProperty(
+        { playlistQueries.totalDurationById(id) }, { total_duration }, { playlistQueries.updateTotalDurationById(it, id) }
+    )
+    val Year: Property<Int?> get() = SingleProperty(
+        { playlistQueries.yearById(id) }, { year?.toInt() }, { playlistQueries.updateYearById(it?.toLong(), id) }
+    )
+    override val Artist: Property<Artist?> get() = SingleProperty(
+        { playlistQueries.artistById(id) }, { artist?.let { ArtistRef(it) } }, { playlistQueries.updateArtistById(it?.id, id) }
+    )
+
+    val CustomImageProvider: Property<MediaItemThumbnailProvider?> get() = SingleProperty(
+        { playlistQueries.customImageProviderById(id) }, { this.toThumbnailProvider() }, { playlistQueries.updateCustomImageProviderById(it?.url_a, it?.url_b, id) }
+    )
+    val ImageWidth: Property<Float?> get() = SingleProperty(
+        { playlistQueries.imageWidthById(id) }, { image_width?.toFloat() }, { playlistQueries.updateImageWidthById(it?.toDouble(), id) }
+    )
 
     companion object {
         fun formatYoutubeId(id: String): String = id.removePrefix("VL")
@@ -39,133 +68,21 @@ class PlaylistData(
     override var id: String,
     override var artist: Artist? = null,
 
-    override var items: List<MediaItem>? = null,
-    override var playlist_type: PlaylistType? = null,
-    override var browse_params: String? = null,
-    override var item_count: Int? = null,
-    override var total_duration: Long? = null,
-    override var year: Int? = null,
+    var items: List<MediaItem>? = null,
+    var item_count: Int? = null,
+    var playlist_type: PlaylistTypeEnum? = null,
+    var browse_params: String? = null,
+    var total_duration: Long? = null,
+    var year: Int? = null,
 
-    override var custom_image_provider: MediaItemThumbnailProvider? = null,
-    override var image_width: Float? = null,
+    var custom_image_provider: MediaItemThumbnailProvider? = null,
+    var image_width: Float? = null,
 
-    override var is_editable: Boolean? = null,
-    override var continuation: MediaItemLayout.Continuation? = null,
-    override var item_set_ids: List<String>? = null
-): MediaItemData(), Playlist, DataWithArtist {
-
-    override fun loadFromDatabase(db: Database) {
-        super.loadFromDatabase(db)
-
-        val data = db.playlistQueries.byId(id).executeAsOne()
-        playlist_type = data.playlist_type?.let { PlaylistType.values()[it.toInt()] }
-        browse_params = data.browse_params
-        item_count = data.item_count?.toInt()
-        total_duration = data.total_duration
-        year = data.year?.toInt()
-
-        custom_image_provider = data.custom_image_url_a?.let { url_a ->
-            MediaItemThumbnailProvider(url_a, data.custom_image_url_b)
-        }
-        image_width = data.image_width?.toFloat()
-
-        loadItemsFromDatabase(db)
-    }
-
-    suspend fun loadItems(db: Database): Result<Unit> {
-        MediaItemLoader.withPlaylistLock {
-            loadItemsFromDatabase(db)
-            if (items != null) {
-                return Result.success(Unit)
-            }
-
-            val load_result = MediaItemLoader.loadPlaylist(this, db)
-            val item = load_result.fold(
-                { it },
-                { return Result.failure(it) }
-            )
-
-            val loaded_items = item.items
-            if (loaded_items == null) {
-                return Result.failure(IllegalStateException("MediaItemLoader.loadPlaylist($id) failed to load items but didn't return an error"))
-            }
-
-            items = loaded_items
-            continuation = item.continuation
-
-            return Result.success(Unit)
-        }
-    }
-
-    private fun loadItemsFromDatabase(db: Database) {
-        if (loaded) {
-            items = db.playlistItemQueries.byPlaylistId(id).executeAsList().map { item ->
-                SongData(item.song_id)
-            }
-        }
-        else {
-            items = null
-        }
-    }
-
-
-//    companion object {
-//        fun loadFromId(database: Database, playlist_id: String): PlaylistData = database.transactionWithResult {
-//            val data = database.playlistQueries.byId(playlist_id).executeAsOne()
-//            val items = database.playlistItemQueries.byPlaylistId(playlist_id).executeAsList()
-//
-//            PlaylistData(
-//                data.id,
-//                data.artist,
-//                items.map { it.song_id },
-//                data.playlist_type?.let { PlaylistType.values()[it.toInt()] },
-//                data.browse_params,
-//                data.item_count?.toInt(),
-//                data.year?.toInt(),
-//                data.total_duration
-//            )
-//        }
-//    }
-}
-
-class ObservablePlaylist(
-    id: String,
-    db: Database,
-    base: MediaItemObservableState,
-    playlist_type_state: MutableState<PlaylistType?>
-): ObservableMediaItem(id, db, base), Playlist {
-
-    override var playlist_type: PlaylistType? by playlist_type_state
-
-    companion object {
-        @Composable
-        fun create(id: String, db: Database) =
-            with(db.playlistQueries) {
-                ObservablePlaylist(
-                    id,
-                    db,
-                    MediaItemObservableState.create(id, db),
-
-                    playlistTypeById(id).observeAsState(
-                        { it.executeAsOne().playlist_type?.let { type ->
-                            PlaylistType.values()[type.toInt()]
-                        }},
-                        { updatePlaylistTypeById(it?.ordinal?.toLong(), id) }
-                    )
-                )
-            }
-    }
-}
-
-class PlaylistDataRegistryEntry: MediaItemDataRegistry.Entry() {
-    var playlist_page_thumb_width: Float? by mutableStateOf(null)
-    var image_item_uid: String? by mutableStateOf(null)
-
-    override fun clear() {
-        super.clear()
-        playlist_page_thumb_width = null
-        image_item_uid = null
-    }
+    var is_editable: Boolean? = null,
+    var continuation: MediaItemLayout.Continuation? = null,
+    var item_set_ids: List<String>? = null
+): MediaItemData(), Playlist, MediaItem.DataWithArtist {
+    override fun getType(): MediaItemType = if (playlist_type == PlaylistTypeEnum.LOCAL) MediaItemType.PLAYLIST_LOC else MediaItemType.PLAYLIST_ACC
 }
 
 //abstract class Playlist protected constructor (id: String, context: PlatformContext): MediaItem(id, context), MediaItemWithLayouts {

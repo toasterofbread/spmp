@@ -1,131 +1,85 @@
 package com.toasterofbread.spmp.model.mediaitem
 
-import androidx.compose.runtime.Composable
-import androidx.compose.runtime.MutableState
-import androidx.compose.runtime.State
-import androidx.compose.runtime.getValue
-import androidx.compose.runtime.setValue
 import com.toasterofbread.Database
+import com.toasterofbread.spmp.model.mediaitem.artist.ArtistLayout
+import com.toasterofbread.spmp.model.mediaitem.artist.ArtistLayoutData
 import com.toasterofbread.spmp.model.mediaitem.enums.MediaItemType
-import com.toasterofbread.spmp.resources.uilocalisation.LocalisedYoutubeString
 import com.toasterofbread.spmp.ui.component.mediaitemlayout.MediaItemLayout
 
+class ArtistRef(override val id: String): Artist
+
 interface Artist: MediaItem {
-    val subscribe_channel_id: String?
-    val layouts: List<MediaItemLayout>?
-
-    val is_for_item: Boolean
-    val subscriber_count: Int?
-    val subscribed: Boolean?
-
     override fun getType(): MediaItemType = MediaItemType.ARTIST
     override fun getURL(): String = "https://music.youtube.com/channel/$id"
-}
 
-fun Artist.isOwnChannel(): Boolean {
-    TODO()
+    // Properties
+
+    val SubscribeChannelId: Property<String?> get() = SingleProperty(
+        { artistQueries.subscribeChannelIdById(id) }, { subscribe_channel_id }, { artistQueries.updateSubscribeChannelIdById(it, id) }
+    )
+    val Layouts get() = ListProperty(
+        getValue = {
+            this.map { layout ->
+                ArtistLayout(layout.layout_index, id)
+            }
+        },
+        getQuery = { artistLayoutQueries.byArtistId(id) },
+        getSize = { artistLayoutQueries.layoutCount(id).executeAsOne() },
+        addItem = { item, index ->
+            artistLayoutQueries.insertLayoutAtIndex(id, index)
+        },
+        removeItem = { index ->
+            artistLayoutQueries.removeLayoutAtIndex(id, index)
+        },
+        setItemIndex = { from, to ->
+            artistLayoutQueries.updateLayoutIndex(from = from, to = to, artist_id = id)
+        },
+        clearItems = { from_index ->
+            artistLayoutQueries.clearLayouts(id, from_index)
+        }
+    )
+    val SubscriberCount: Property<Int?> get() = SingleProperty(
+        { artistQueries.subscriberCountById(id) }, { subscriber_count?.toInt() }, { artistQueries.updateSubscriberCountById(it?.toLong(), id) }
+    )
+
+    // User properties
+
+    val Subscribed: Property<Boolean?> get() = SingleProperty(
+        { artistQueries.subscribedById(id) },
+        { subscribed.fromNullableSQLBoolean() },
+        { artistQueries.updateSubscriberCountById(it.toNullableSQLBoolean(), id) }
+    )
 }
 
 class ArtistData(
     override var id: String,
-    override var subscribe_channel_id: String? = null,
-    override var layouts: MutableList<MediaItemLayout> = mutableListOf(),
+    var subscribe_channel_id: String? = null,
+    var layouts: MutableList<ArtistLayoutData> = mutableListOf(),
+    var subscriber_count: Int? = null,
 
-    override var is_for_item: Boolean = false,
-    override var subscriber_count: Int? = null,
-    override var subscribed: Boolean? = null
+    var subscribed: Boolean? = null,
+    var is_for_item: Boolean = false
 ): MediaItemData(), Artist {
-    companion object {
-        fun fromId(database: Database, artist_id: String): ArtistData = database.transactionWithResult {
-            val data = database.artistQueries.byId(artist_id).executeAsOne()
-            ArtistData(
-                data.id,
-                data.subscribe_channel_id,
-                database.artistLayoutQueries.byArtistId(artist_id).executeAsList().let { layouts_data ->
-                    val layouts: MutableList<MediaItemLayout> = mutableListOf()
-                    for (layout in layouts_data) {
-                        layouts.add(MediaItemLayout.fromArtistLayoutData(database, layout))
-                    }
-                    return@let layouts
-                }
-            )
-        }
+    override fun saveToDatabase(db: Database) {
+        db.transaction {
+            super.saveToDatabase(db)
 
+            SubscribeChannelId.set(subscribe_channel_id, db)
+
+            Layouts.clearItems(db, 0)
+            for (layout in layouts) {
+
+            }
+
+            Layouts.overwriteItems(layouts, db)
+
+            SubscriberCount.set(subscriber_count, db)
+        }
+    }
+
+    companion object {
         fun createForItem(item: MediaItem): ArtistData =
             ArtistData("", is_for_item = true)
-    }
-}
-
-class ObservableArtist(
-    id: String,
-    db: Database,
-    base: MediaItemObservableState,
-    subscribe_channel_id_state: MutableState<String?>,
-    layouts_state: State<List<MediaItemLayout>>
-): ObservableMediaItem(id, db, base), Artist {
-    override var subscribe_channel_id: String? by subscribe_channel_id_state
-    override val layouts: List<MediaItemLayout> by layouts_state
-    override val is_for_item: Boolean = false
-
-    fun addLayout(type: MediaItemLayout.Type, title: LocalisedYoutubeString?, subtitle: LocalisedYoutubeString?, items: List<MediaItem>? = null): Int {
-        return db.transactionWithResult {
-            val layout_count = db.artistLayoutQueries.layoutCountByArtistId(id).executeAsOne().expr ?: 0
-            db.artistLayoutQueries.addLayout(
-                id,
-                layout_count,
-                type.ordinal.toLong(),
-                title?.type?.ordinal?.toLong(),
-                title?.key,
-                subtitle?.type?.ordinal?.toLong(),
-                subtitle?.key
-            )
-
-            if (items?.isNotEmpty() == true) {
-                addItemsToLayout(layout_count.toInt(), items)
-            }
-
-            layout_count.toInt()
-        }
-    }
-
-    fun addItemsToLayout(layout_index: Int, items: List<MediaItem>): Int {
-        return db.transactionWithResult {
-            val item_count = db.artistLayoutQueries.itemCountOfLayout(id, layout_index.toLong()).executeAsOne().expr ?: 0
-
-            for (item in items.withIndex()) {
-                db.artistLayoutQueries.addLayoutItem(item_count + item.index, item.value.id, id, layout_index.toLong())
-            }
-
-            (item_count + items.size).toInt()
-        }
-    }
-
-    fun addLayout(layout: MediaItemLayout) {
-        db.transaction {
-            val layout_index = addLayout(layout.type!!, layout.title, layout.subtitle)
-            addItemsToLayout(layout_index, layout.items)
-        }
-    }
-
-    companion object {
-        @Composable
-        fun create(id: String, db: Database) =
-            with(db.artistQueries) {
-                ObservableArtist(
-                    id,
-                    db,
-                    MediaItemObservableState.create(id, db),
-
-                    subscribeChannelIdById(id).observeAsState(
-                        { it.executeAsOne().subscribe_channel_id },
-                        { updateSubscribeChannelIdById(it, id) }
-                    ),
-                    db.artistLayoutQueries.byArtistId(id).observeAsState(
-                        { it.executeAsList() },
-                        { throw IllegalStateException() }
-                    )
-                )
-            }
     }
 }
 

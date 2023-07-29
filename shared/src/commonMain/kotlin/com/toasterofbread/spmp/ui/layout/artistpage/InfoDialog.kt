@@ -43,7 +43,7 @@ fun InfoDialog(item: MediaItem, close: () -> Unit) {
         title = { Text(getStringTODO(when (item) {
             is Artist -> "Artist info"
             is Playlist -> "Playlist info"
-            else -> throw NotImplementedError(item.type.toString())
+            else -> throw NotImplementedError(item.getType().toString())
         })) },
         text = {
             @Composable
@@ -86,7 +86,7 @@ fun InfoDialog(item: MediaItem, close: () -> Unit) {
             Column(Modifier.fillMaxWidth(), verticalArrangement = Arrangement.Center) {
                 InfoValue("Name", item.title ?: "")
                 InfoValue("Id", item.id)
-                InfoValue("Url", item.url.toString())
+                InfoValue("Url", item.getURL())
             }
         }
     )

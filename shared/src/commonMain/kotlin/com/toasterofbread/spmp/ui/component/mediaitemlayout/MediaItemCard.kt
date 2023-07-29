@@ -48,12 +48,16 @@ import com.toasterofbread.spmp.model.mediaitem.MediaItemPreviewParams
 import com.toasterofbread.spmp.model.mediaitem.MediaItemThumbnailProvider
 import com.toasterofbread.spmp.model.mediaitem.Playlist
 import com.toasterofbread.spmp.model.mediaitem.Song
+import com.toasterofbread.spmp.model.mediaitem.WithArtist
 import com.toasterofbread.spmp.model.mediaitem.enums.MediaItemType
 import com.toasterofbread.spmp.model.mediaitem.enums.PlaylistType
 import com.toasterofbread.spmp.model.mediaitem.enums.getReadable
 import com.toasterofbread.spmp.model.mediaitem.isMediaItemHidden
+import com.toasterofbread.spmp.model.mediaitem.rememberThemeColour
 import com.toasterofbread.spmp.resources.getString
+import com.toasterofbread.spmp.ui.component.Thumbnail
 import com.toasterofbread.spmp.ui.component.longpressmenu.longPressMenuIcon
+import com.toasterofbread.spmp.ui.component.mediaitempreview.MediaItemPreviewLong
 import com.toasterofbread.spmp.ui.component.mediaitempreview.getArtistLongPressMenuData
 import com.toasterofbread.spmp.ui.component.mediaitempreview.getPlaylistLongPressMenuData
 import com.toasterofbread.spmp.ui.component.mediaitempreview.getSongLongPressMenuData
@@ -74,7 +78,7 @@ fun MediaItemCard(
         return
     }
 
-    var accent_colour: Color? by remember { mutableStateOf(null) }
+    val accent_colour: Color? = item.rememberThemeColour(SpMp.context.database)
     val player = LocalPlayerState.current
 
     val shape = RoundedCornerShape(16.dp)
@@ -85,21 +89,6 @@ fun MediaItemCard(
             is Artist -> getArtistLongPressMenuData(item, multiselect_context = multiselect_context)
             is Playlist -> getPlaylistLongPressMenuData(item, shape, multiselect_context = multiselect_context)
             else -> throw NotImplementedError(item.javaClass.name)
-        }
-    }
-
-    LaunchedEffect(item.canGetThemeColour()) {
-        if (accent_colour != null) {
-            return@LaunchedEffect
-        }
-
-        if (item is Song && item.theme_colour != null) {
-            accent_colour = item.theme_colour
-            return@LaunchedEffect
-        }
-
-        if (item.canGetThemeColour()) {
-            accent_colour = item.getDefaultThemeColour()
         }
     }
 
@@ -126,7 +115,7 @@ fun MediaItemCard(
 
             Text(
                 if (item is Playlist) item.playlist_type.getReadable(false)
-                else item.type.getReadable(false),
+                else item.getType().getReadable(false),
                 fontSize = 15.sp
             )
 
@@ -136,7 +125,7 @@ fun MediaItemCard(
                     is Artist -> Icons.Filled.Person
                     is Playlist -> {
                         when (item.playlist_type) {
-                            PlaylistType.PLAYLIST, null -> Icons.Filled.PlaylistPlay
+                            PlaylistType.PLAYLIST, PlaylistType.LOCAL, null -> Icons.Filled.PlaylistPlay
                             PlaylistType.ALBUM -> Icons.Filled.Album
                             PlaylistType.AUDIOBOOK -> Icons.Filled.Book
                             PlaylistType.PODCAST -> Icons.Filled.Podcasts
@@ -144,7 +133,7 @@ fun MediaItemCard(
                         }
                     }
 
-                    else -> throw NotImplementedError(item.type.toString())
+                    else -> throw NotImplementedError(item::class.toString())
                 },
                 null,
                 Modifier.size(15.dp)
@@ -181,10 +170,12 @@ fun MediaItemCard(
                     softWrap = false,
                     overflow = TextOverflow.Ellipsis
                 )
-                item.artist?.PreviewLong(
-                    MediaItemPreviewParams(
-                        contentColour = { (accent_colour ?: Theme.accent).getContrasted() }
-                    ))
+
+                if (item is WithArtist) {
+                    item.artist?.also { artist ->
+                        MediaItemPreviewLong(artist, contentColour = { (accent_colour ?: Theme.accent).getContrasted() })
+                    }
+                }
             }
         }
 
@@ -204,7 +195,7 @@ fun MediaItemCard(
             ) {
                 Text(
                     getString(
-                        when (item.type) {
+                        when (item.getType()) {
                             MediaItemType.SONG -> "media_play"
                             MediaItemType.ARTIST -> "artist_chip_play"
                             MediaItemType.PLAYLIST_ACC, MediaItemType.PLAYLIST_LOC, MediaItemType.PLAYLIST_BROWSEPARAMS -> "playlist_chip_play"

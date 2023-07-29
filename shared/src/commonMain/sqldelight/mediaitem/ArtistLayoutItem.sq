@@ -1,0 +1,34 @@
+CREATE TABLE ArtistLayoutItem (
+    item_index INTEGER NOT NULL,
+    item_id TEXT NOT NULL,
+    item_type INTEGER NOT NULL,
+    artist_id TEXT NOT NULL,
+    layout_index INTEGER NOT NULL,
+
+    PRIMARY KEY (item_index, artist_id, layout_index),
+    FOREIGN KEY (artist_id, layout_index) REFERENCES ArtistLayout(artist_id, layout_index),
+    FOREIGN KEY (item_id) REFERENCES MediaItem(id)
+);
+
+byLayoutIndex:
+SELECT item_index, item_id, item_type
+FROM ArtistLayoutItem
+WHERE artist_id == :artist_id AND layout_index == :layout_index
+ORDER BY item_index;
+
+insertItemAtIndex:
+INSERT INTO ArtistLayoutItem(artist_id, layout_index, item_id, item_type, item_index)
+VALUES (:artist_id, :layout_index, :item_id, :item_type, :item_index);
+
+removeItemAtIndex:
+DELETE FROM ArtistLayoutItem
+WHERE artist_id == :artist_id AND layout_index == :layout_index AND item_index == :item_index;
+
+updateItemIndex:
+UPDATE ArtistLayoutItem SET item_index = :to WHERE item_index == :from AND artist_id == :artist_id AND layout_index == :layout_index;
+
+itemCount:
+SELECT COUNT(IIF(ArtistLayoutItem.artist_id = :artist_id AND ArtistLayoutItem.layout_index = :layout_index), 1, NULL) FROM ArtistLayoutItem;
+
+clearItems:
+DELETE FROM ArtistLayoutItem WHERE artist_id = :artist_id AND layout_index = :layout_index AND item_index >= :from_index;

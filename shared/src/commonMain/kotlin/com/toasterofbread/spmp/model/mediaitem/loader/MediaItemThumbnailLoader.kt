@@ -1,6 +1,10 @@
 package com.toasterofbread.spmp.model.mediaitem.loader
 
-import androidx.compose.ui.graphics.Color
+import androidx.compose.runtime.Composable
+import androidx.compose.runtime.DisposableEffect
+import androidx.compose.runtime.mutableStateListOf
+import androidx.compose.runtime.mutableStateMapOf
+import androidx.compose.runtime.remember
 import androidx.compose.ui.graphics.ImageBitmap
 import com.toasterofbread.spmp.model.Settings
 import com.toasterofbread.spmp.model.mediaitem.MediaItem
@@ -9,7 +13,7 @@ import com.toasterofbread.spmp.model.mediaitem.toThumbnailProvider
 import com.toasterofbread.spmp.platform.PlatformContext
 import com.toasterofbread.spmp.platform.toByteArray
 import com.toasterofbread.spmp.platform.toImageBitmap
-import com.toasterofbread.utils.getThemeColour
+import com.toasterofbread.utils.addUnique
 import kotlinx.coroutines.Deferred
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
@@ -18,19 +22,14 @@ import java.lang.ref.WeakReference
 import java.util.concurrent.locks.ReentrantLock
 import kotlin.concurrent.withLock
 
-internal object MediaItemThumbnailLoader {
-    private val lock = ReentrantLock()
+internal data class MediaItemThumbnailLoaderKey(
+    val provider: MediaItemThumbnailProvider,
+    val quality: MediaItemThumbnailProvider.Quality,
+    val item_id: String
+)
 
-    private val loaded_images: MutableMap<String, WeakReference<ImageBitmap>> = mutableMapOf()
-    private val loading_items: MutableMap<String, Deferred<ImageBitmap>> = mutableMapOf()
-
-    inline fun <T> withLock(action: () -> T): T = lock.withLock(action)
-
-    fun getLoaded(thumbnail_provider: MediaItemThumbnailProvider, quality: MediaItemThumbnailProvider.Quality): ImageBitmap? {
-        return withLock {
-            loaded_images[thumbnail_provider.getThumbnailUrl(quality)]?.get()
-        }
-    }
+internal object MediaItemThumbnailLoader: BasicLoader<MediaItemThumbnailLoaderKey, ImageBitmap>(), ListenerLoader<MediaItemThumbnailLoaderKey, ImageBitmap> {
+    private val loaded_images: MutableMap<MediaItemThumbnailLoaderKey, WeakReference<ImageBitmap>> = mutableMapOf()
 
     suspend fun loadItemThumbnail(
         item: MediaItem,
@@ -50,28 +49,23 @@ internal object MediaItemThumbnailLoader {
         quality: MediaItemThumbnailProvider.Quality,
         context: PlatformContext
     ): Result<ImageBitmap> {
-        val thumbnail_url = thumbnail_provider.getThumbnailUrl(quality)
-            ?: return Result.failure(RuntimeException("No thumbnail URL available"))
+        val key = MediaItemThumbnailLoaderKey(thumbnail_provider, quality, item.id)
 
-        val loaded = loaded_images[thumbnail_url]?.get()
+        val loaded = loaded_images[key]?.get()
         if (loaded != null) {
             return Result.success(loaded)
         }
 
-        return performResultSafeLoad(
-            thumbnail_url,
-            lock,
-            loading_items
-        ) {
-            val result = performLoad(
+        val thumbnail_url = thumbnail_provider.getThumbnailUrl(quality)
+            ?: return Result.failure(RuntimeException("No thumbnail URL available"))
+
+        return performResultLoad(key) {
+            performLoad(
                 item,
                 quality,
                 thumbnail_url,
                 context
             )
-            result.onSuccess { image ->
-                loaded_images[thumbnail_url] = WeakReference(image)
-            }
         }
     }
 
@@ -104,14 +98,60 @@ internal object MediaItemThumbnailLoader {
 
         return@withContext result
     }
-}
 
-fun MediaItemThumbnailProvider.getDefaultThemeColour(): Color? {
-    for (quality in MediaItemThumbnailProvider.Quality.values()) {
-        val loaded = MediaItemThumbnailLoader.getLoaded(this, quality)
-        if (loaded != null) {
-            return loaded.getThemeColour()
-        }
+    interface ItemState {
+        val loaded_images: Map<MediaItemThumbnailProvider.Quality, ImageBitmap>
+        val loading_images: List<MediaItemThumbnailProvider.Quality>
     }
-    return null
+
+    @Composable
+    fun rememberItemState(item: MediaItem): ItemState {
+        val state = remember(item) {
+            object : ItemState {
+                override val loaded_images: MutableMap<MediaItemThumbnailProvider.Quality, ImageBitmap> = mutableStateMapOf()
+                override val loading_images: MutableList<MediaItemThumbnailProvider.Quality> = mutableStateListOf()
+            }
+        }
+
+        DisposableEffect(state) {
+            val listener = object : ListenerLoader.Listener<MediaItemThumbnailLoaderKey, ImageBitmap> {
+                override fun onLoadStarted(key: MediaItemThumbnailLoaderKey) {
+                    if (key.item_id != item.id) {
+                        return
+                    }
+                    synchronized(state) {
+                        state.loading_images.addUnique(key.quality)
+                    }
+                }
+
+                override fun onLoadFinished(key: MediaItemThumbnailLoaderKey, value: ImageBitmap) {
+                    if (key.item_id != item.id) {
+                        return
+                    }
+                    synchronized(state) {
+                        state.loading_images.remove(key.quality)
+                        state.loaded_images[key.quality] = value
+                    }
+                }
+
+                override fun onLoadFailed(key: MediaItemThumbnailLoaderKey, error: Throwable) {
+                    if (key.item_id != item.id) {
+                        return
+                    }
+                    synchronized(state) {
+                        state.loading_images.remove(key.quality)
+                    }
+                }
+            }
+
+            addListener(listener)
+            onDispose {
+                removeListener(listener)
+            }
+        }
+
+        return state
+    }
+
+    override val listeners: MutableList<ListenerLoader.Listener<MediaItemThumbnailLoaderKey, ImageBitmap>> = mutableListOf()
 }

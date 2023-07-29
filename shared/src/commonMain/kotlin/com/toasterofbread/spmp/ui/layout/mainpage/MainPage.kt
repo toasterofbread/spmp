@@ -40,6 +40,7 @@ import com.toasterofbread.Database
 import com.toasterofbread.spmp.api.Api
 import com.toasterofbread.spmp.model.mediaitem.Artist
 import com.toasterofbread.spmp.model.mediaitem.MediaItemHolder
+import com.toasterofbread.spmp.model.mediaitem.WithArtist
 import com.toasterofbread.spmp.platform.composable.SwipeRefresh
 import com.toasterofbread.spmp.platform.getDefaultHorizontalPadding
 import com.toasterofbread.spmp.platform.getDefaultVerticalPadding
@@ -235,19 +236,21 @@ private fun populateArtistsLayout(artists_layout: MediaItemLayout, layoutsProvid
                 continue
             }
 
-            item.artist?.also { artist ->
-                if (artist == own_channel) {
-                    return@also
-                }
-
-                if (artists_map.containsKey(artist)) {
-                    val current = artists_map[artist]
-                    if (current != null) {
-                        artists_map[artist] = current + 1
+            if (item is WithArtist) {
+                item.artist?.also { artist ->
+                    if (artist == own_channel) {
+                        return@also
                     }
-                }
-                else {
-                    artists_map[artist] = 1
+
+                    if (artists_map.containsKey(artist)) {
+                        val current = artists_map[artist]
+                        if (current != null) {
+                            artists_map[artist] = current + 1
+                        }
+                    }
+                    else {
+                        artists_map[artist] = 1
+                    }
                 }
             }
         }

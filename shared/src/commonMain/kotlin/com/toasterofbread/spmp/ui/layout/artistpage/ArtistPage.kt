@@ -28,9 +28,10 @@ import androidx.compose.ui.text.*
 import androidx.compose.ui.unit.*
 import androidx.compose.ui.zIndex
 import com.toasterofbread.spmp.api.Api
-import com.toasterofbread.spmp.api.getOrReport
 import com.toasterofbread.spmp.model.*
 import com.toasterofbread.spmp.model.mediaitem.*
+import com.toasterofbread.spmp.model.mediaitem.loader.MediaItemThumbnailLoader
+import com.toasterofbread.spmp.model.mediaitem.loader.rememberLoadedItem
 import com.toasterofbread.spmp.resources.getString
 import com.toasterofbread.spmp.resources.uilocalisation.YoutubeUILocalisation
 import com.toasterofbread.spmp.ui.component.mediaitemlayout.MediaItemLayout
@@ -56,11 +57,13 @@ private const val ARTIST_IMAGE_SCROLL_MODIFIER = 0.25f
 fun ArtistPage(
     pill_menu: PillMenu,
     artist: Artist,
-    previous_item: ObservableMediaItem? = null,
+    previous_item: MediaItem? = null,
     bottom_padding: Dp = 0.dp,
     close: () -> Unit
 ) {
     require(!artist.is_for_item)
+
+    // TODO previous_item
 
     val player = LocalPlayerState.current
     val screen_width = SpMp.context.getScreenWidth()
@@ -76,16 +79,15 @@ fun ArtistPage(
     val gradient_size = 0.35f
     var accent_colour: Color? by remember { mutableStateOf(null) }
 
-    LaunchedEffect(artist.id) {
-        artist.getFeedLayouts().getOrReport("ArtistPageLoad")
-    }
-
-    LaunchedEffect(artist, artist.canLoadThumbnail()) {
-        artist.loadThumbnail(MediaItemThumbnailProvider.Quality.HIGH)
+    val artist_data: ArtistData = artist.rememberLoadedItem()
+    LaunchedEffect(artist_data, artist_data.thumbnail_provider) {
+        artist_data.thumbnail_provider?.also { provider ->
+            MediaItemThumbnailLoader.loadItemThumbnail(artist_data, provider, MediaItemThumbnailProvider.Quality.HIGH, SpMp.context)
+        }
     }
 
     if (show_info) {
-        InfoDialog(artist) { show_info = false }
+        InfoDialog(artist_data) { show_info = false }
     }
 
     val top_bar_over_image: Boolean by Settings.KEY_TOPBAR_DISPLAY_OVER_ARTIST_IMAGE.rememberMutableState()
@@ -139,11 +141,13 @@ fun ArtistPage(
                 TopBar()
             }
 
+            val thumbnail_state = MediaItemThumbnailLoader.rememberItemState(artist_data)
+
             // Thumbnail
-            Crossfade(artist.getThumbnail(MediaItemThumbnailProvider.Quality.HIGH)) { thumbnail ->
+            Crossfade(thumbnail_state.loaded_images.values.firstOrNull()) { thumbnail ->
                 if (thumbnail != null) {
                     if (accent_colour == null) {
-                        accent_colour = Theme.makeVibrant(item.getDefaultThemeColour() ?: Theme.accent)
+                        accent_colour = Theme.makeVibrant(thumbnail.getThemeColour() ?: Theme.accent)
                     }
 
                     Image(
@@ -287,7 +291,7 @@ fun ArtistPage(
                                 .padding(content_padding),
                             verticalArrangement = Arrangement.spacedBy(30.dp)
                         ) {
-                            for (layout in artist.feed_layouts!!) {
+                            for (layout in artist_data.layouts ?: emptyList()) {
                                 val is_singles =
                                     Settings.KEY_TREAT_SINGLES_AS_SONG.get() && layout.title?.getID() == YoutubeUILocalisation.StringID.ARTIST_PAGE_SINGLES
 
@@ -339,10 +343,10 @@ fun ArtistPage(
 
 private fun onSinglePlaylistClicked(playlist: Playlist, player: PlayerState) {
     Api.scope.launch {
-        playlist.getFeedLayouts().onSuccess { layouts ->
-            layouts.firstOrNull()?.items?.firstOrNull()?.also {
+        playlist.loadData().onSuccess { data ->
+            data.items?.firstOrNull()?.also { first_item ->
                 withContext(Dispatchers.Main) {
-                    player.onMediaItemClicked(it)
+                    player.onMediaItemClicked(first_item)
                 }
             }
         }

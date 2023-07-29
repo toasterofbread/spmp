@@ -30,6 +30,7 @@ import com.toasterofbread.spmp.model.mediaitem.MediaItem
 import com.toasterofbread.spmp.model.mediaitem.MediaItemPreviewParams
 import com.toasterofbread.spmp.ui.component.MusicTopBar
 import com.toasterofbread.spmp.ui.component.mediaitemlayout.getDefaultMediaItemPreviewSize
+import com.toasterofbread.spmp.ui.component.mediaitempreview.MediaItemPreviewSquare
 import com.toasterofbread.spmp.ui.component.multiselect.MediaItemMultiSelectContext
 import com.toasterofbread.spmp.ui.theme.Theme
 import com.toasterofbread.utils.composable.SubtleLoadingIndicator
@@ -73,10 +74,11 @@ fun GenericFeedViewMorePage(browse_id: String, modifier: Modifier = Modifier, bo
                         horizontalArrangement = item_arrangement
                     ) {
                         items(items) { item ->
-                            item.PreviewSquare(MediaItemPreviewParams(
+                            MediaItemPreviewSquare(
+                                item,
                                 Modifier.size(item_size),
                                 multiselect_context = multiselect_context
-                            ))
+                            )
                         }
                     }
                 }

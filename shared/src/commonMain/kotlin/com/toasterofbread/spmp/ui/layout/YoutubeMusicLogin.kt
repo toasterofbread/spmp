@@ -17,8 +17,12 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
 import com.toasterofbread.spmp.api.*
+import com.toasterofbread.spmp.api.model.MusicThumbnailRenderer
+import com.toasterofbread.spmp.api.model.NavigationEndpoint
+import com.toasterofbread.spmp.api.model.TextRuns
 import com.toasterofbread.spmp.model.YoutubeMusicAuthInfo
 import com.toasterofbread.spmp.model.mediaitem.Artist
+import com.toasterofbread.spmp.model.mediaitem.ArtistData
 import com.toasterofbread.spmp.model.mediaitem.MediaItemThumbnailProvider
 import com.toasterofbread.spmp.platform.WebViewLogin
 import com.toasterofbread.spmp.platform.composable.PlatformAlertDialog
@@ -142,9 +146,9 @@ data class YTAccountMenuResponse(val actions: List<Action>) {
 
     fun getAritst(): Artist? {
         val account = actions.first().openPopupAction.popup.multiPageMenuRenderer.header!!.activeAccountHeaderRenderer
-        return ArtistData(getChannelId() ?: return null).editArtistData {
-            supplyTitle(account.accountName.first_text)
-            supplyThumbnailProvider(MediaItemThumbnailProvider.fromThumbnails(account.accountPhoto.thumbnails))
+        return ArtistData(getChannelId() ?: return null).apply {
+            title = account.accountName.first_text
+            thumbnail_provider = MediaItemThumbnailProvider.fromThumbnails(account.accountPhoto.thumbnails)
         }
     }
 

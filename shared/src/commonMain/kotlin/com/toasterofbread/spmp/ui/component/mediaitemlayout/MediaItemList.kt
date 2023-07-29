@@ -14,7 +14,9 @@ import com.toasterofbread.spmp.model.mediaitem.MediaItemHolder
 import com.toasterofbread.spmp.model.mediaitem.MediaItemPreviewParams
 import com.toasterofbread.spmp.model.mediaitem.rememberFilteredItems
 import com.toasterofbread.spmp.resources.uilocalisation.LocalisedYoutubeString
+import com.toasterofbread.spmp.ui.component.mediaitempreview.MediaItemPreviewLong
 import com.toasterofbread.spmp.ui.component.multiselect.MediaItemMultiSelectContext
+import com.toasterofbread.spmp.ui.layout.artistpage.TitleBar
 
 @Composable
 fun MediaItemList(
@@ -55,8 +57,8 @@ fun MediaItemList(
                     Text((item.index + 1).toString().padStart((filtered_items.size + 1).toString().length, '0'), fontWeight = FontWeight.Light)
                 }
 
-                Column {
-                    item.value.item?.PreviewLong(MediaItemPreviewParams(multiselect_context = multiselect_context))
+                item.value.item?.also {
+                    MediaItemPreviewLong(it, multiselect_context = multiselect_context)
                 }
             }
         }

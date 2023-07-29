@@ -28,6 +28,7 @@ import com.toasterofbread.spmp.model.mediaitem.LocalPlaylist
 import com.toasterofbread.spmp.model.mediaitem.MediaItemPreviewParams
 import com.toasterofbread.spmp.model.mediaitem.Playlist
 import com.toasterofbread.spmp.platform.composable.SwipeRefresh
+import com.toasterofbread.spmp.ui.component.mediaitempreview.MediaItemPreviewLong
 import com.toasterofbread.spmp.ui.theme.Theme
 import com.toasterofbread.utils.addUnique
 import com.toasterofbread.utils.launchSingle
@@ -112,6 +113,6 @@ private fun PlaylistItem(selected: SnapshotStateList<Playlist>, playlist: Playli
                 checkmarkColor = Theme.on_accent
             )
         )
-        playlist.PreviewLong(MediaItemPreviewParams())
+        MediaItemPreviewLong(playlist)
     }
 }

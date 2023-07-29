@@ -7,23 +7,23 @@ import com.toasterofbread.spmp.api.Api.Companion.getStream
 import com.toasterofbread.spmp.api.Api.Companion.ytUrl
 import com.toasterofbread.spmp.api.model.YoutubeiBrowseResponse
 import com.toasterofbread.spmp.api.radio.YoutubeiNextResponse
+import com.toasterofbread.spmp.model.mediaitem.AccountPlaylistRef
 import com.toasterofbread.spmp.model.mediaitem.Artist
 import com.toasterofbread.spmp.model.mediaitem.ArtistData
-import com.toasterofbread.spmp.model.mediaitem.DataWithArtist
+import com.toasterofbread.spmp.model.mediaitem.MediaItem
 import com.toasterofbread.spmp.model.mediaitem.MediaItemData
 import com.toasterofbread.spmp.model.mediaitem.MediaItemThumbnailProvider
 import com.toasterofbread.spmp.model.mediaitem.PlaylistData
 import com.toasterofbread.spmp.model.mediaitem.Song
 import com.toasterofbread.spmp.model.mediaitem.SongData
+import com.toasterofbread.spmp.model.mediaitem.artist.ArtistLayoutData
 import com.toasterofbread.spmp.model.mediaitem.enums.PlaylistType
 import com.toasterofbread.spmp.model.mediaitem.enums.SongType
-import com.toasterofbread.spmp.model.mediaitem.isOwnChannel
 import com.toasterofbread.spmp.resources.uilocalisation.LocalisedYoutubeString
 import com.toasterofbread.spmp.resources.uilocalisation.parseYoutubeDurationString
 import com.toasterofbread.spmp.resources.uilocalisation.parseYoutubeSubscribersString
 import com.toasterofbread.spmp.ui.component.mediaitemlayout.MediaItemLayout
 import kotlinx.coroutines.Dispatchers
-import kotlinx.coroutines.coroutineScope
 import kotlinx.coroutines.job
 import kotlinx.coroutines.withContext
 import okhttp3.Request
@@ -114,7 +114,7 @@ suspend fun loadMediaItemData(
             }
 
             item.title = video_data.videoDetails.title
-            if (item is DataWithArtist) {
+            if (item is MediaItem.DataWithArtist) {
                 item.artist = ArtistData(video_data.videoDetails.channelId)
             }
 
@@ -217,7 +217,7 @@ suspend fun processDefaultResponse(item: MediaItemData, response: Response, hl: 
 
                     header_renderer.subtitle?.runs?.also { subtitle ->
 
-                        if (item is DataWithArtist) {
+                        if (item is MediaItem.DataWithArtist) {
                             val artist_run = subtitle.firstOrNull {
                                 it.navigationEndpoint?.browseEndpoint?.getPageType() == "MUSIC_PAGE_TYPE_USER_CHANNEL"
                             }
@@ -270,14 +270,6 @@ suspend fun processDefaultResponse(item: MediaItemData, response: Response, hl: 
                         continue
                     }
 
-                    val continuation: MediaItemLayout.Continuation? =
-                        row.value.musicPlaylistShelfRenderer?.continuations?.firstOrNull()?.nextContinuationData?.continuation?.let {
-                            MediaItemLayout.Continuation(
-                                it,
-                                MediaItemLayout.Continuation.Type.PLAYLIST
-                            )
-                        }
-
                     val items = row.value.getMediaItemsAndSetIds(hl)
                     val items_mapped = items.map {
                         if (it.first is SongData && item is Artist) {
@@ -290,9 +282,16 @@ suspend fun processDefaultResponse(item: MediaItemData, response: Response, hl: 
                         it.first
                     }
 
+                    val continuation_playlist_id = row.value.musicPlaylistShelfRenderer?.continuations?.firstOrNull()?.nextContinuationData?.continuation
+
                     if (item is PlaylistData) {
                         item.items = items_mapped
-                        item.continuation = continuation
+                        item.continuation = continuation_playlist_id?.let {
+                            MediaItemLayout.Continuation(
+                                it,
+                                MediaItemLayout.Continuation.Type.PLAYLIST
+                            )
+                        }
                         item.item_set_ids = if (items.all { it.second != null }) items.map { it.second!! } else null
                         break
                     }
@@ -306,7 +305,7 @@ suspend fun processDefaultResponse(item: MediaItemData, response: Response, hl: 
                     if (item is ArtistData && view_more is MediaItemLayout.MediaItemViewMore) {
                         val view_more_item = view_more.media_item as MediaItemData
                         view_more_item.title = layout_title?.getString()
-                        if (view_more_item is DataWithArtist) {
+                        if (view_more_item is MediaItem.DataWithArtist) {
                             view_more_item.artist = item
                         }
                     }
@@ -314,13 +313,15 @@ suspend fun processDefaultResponse(item: MediaItemData, response: Response, hl: 
                     check(item is ArtistData)
 
                     item.layouts.add(
-                        MediaItemLayout(
-                            layout_title,
-                            null,
-                            if (row.index == 0) MediaItemLayout.Type.NUMBERED_LIST else MediaItemLayout.Type.GRID,
-                            items_mapped.toMutableList(),
-                            continuation = continuation,
-                            view_more = view_more
+                        ArtistLayoutData(
+                            items = items_mapped.toMutableList(),
+                            title = layout_title,
+                            subtitle = null,
+                            type = if (row.index == 0) MediaItemLayout.Type.NUMBERED_LIST else MediaItemLayout.Type.GRID,
+                            view_more = view_more,
+                            playlist = continuation_playlist_id?.let {
+                                AccountPlaylistRef(it)
+                            }
                         )
                     )
 

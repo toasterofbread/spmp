@@ -34,11 +34,13 @@ import com.toasterofbread.spmp.model.mediaitem.enums.getReadable
 import com.toasterofbread.spmp.platform.composable.BackHandler
 import com.toasterofbread.spmp.platform.getDefaultHorizontalPadding
 import com.toasterofbread.spmp.resources.getString
+import com.toasterofbread.spmp.resources.uilocalisation.LocalisedYoutubeString
 import com.toasterofbread.spmp.ui.component.ErrorInfoDisplay
 import com.toasterofbread.spmp.ui.component.mediaitemlayout.MediaItemLayout
 import com.toasterofbread.spmp.ui.component.MultiselectAndMusicTopBar
 import com.toasterofbread.spmp.ui.component.PillMenu
 import com.toasterofbread.spmp.ui.component.multiselect.MediaItemMultiSelectContext
+import com.toasterofbread.spmp.ui.layout.mainpage.PlayerState
 import com.toasterofbread.spmp.ui.theme.Theme
 import com.toasterofbread.utils.*
 import com.toasterofbread.utils.composable.ShapedIconButton
@@ -88,11 +90,9 @@ fun SearchPage(
                     { results ->
                         for (result in results.categories) {
                             if (result.second != null) {
-                                result.first.view_more = MediaItemLayout.ViewMore(
-                                    action = {
-                                        performSearch(current_query!!, result.second)
-                                    }
-                                )
+                                result.first.view_more = MediaItemLayout.LambdaViewMore { _, _ ->
+                                    performSearch(current_query!!, result.second)
+                                }
                             }
                         }
 

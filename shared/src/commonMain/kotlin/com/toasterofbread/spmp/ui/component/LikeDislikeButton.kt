@@ -22,6 +22,7 @@ import androidx.compose.ui.unit.dp
 import com.toasterofbread.spmp.api.Api
 import com.toasterofbread.spmp.api.loadSongLiked
 import com.toasterofbread.spmp.api.setSongLiked
+import com.toasterofbread.spmp.model.mediaitem.Song
 import com.toasterofbread.spmp.model.mediaitem.SongData
 import com.toasterofbread.spmp.model.mediaitem.SongLikedStatus
 import com.toasterofbread.spmp.model.mediaitem.loader.SongLikedLoader
@@ -34,7 +35,7 @@ import com.toasterofbread.utils.composable.SubtleLoadingIndicator
 @OptIn(ExperimentalFoundationApi::class)
 @Composable
 fun LikeDislikeButton(
-    song: SongData,
+    song: Song,
     modifier: Modifier = Modifier,
     getEnabled: (() -> Boolean)? = null,
     colourProvider: () -> Color
@@ -62,9 +63,9 @@ fun LikeDislikeButton(
         if (liked_status == null) {
             loading = true
 
-            val load_result = SongLikedLoader.loadSongLiked(song)
+            val load_result = SongLikedLoader.loadSongLiked(song.id, SpMp.context.database)
             load_result.onSuccess {
-                liked_status = it.liked
+                liked_status = it
             }
         }
 

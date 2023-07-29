@@ -25,6 +25,7 @@ import androidx.compose.ui.graphics.Color
 import com.toasterofbread.spmp.model.Settings
 import com.toasterofbread.spmp.model.mediaitem.MediaItemThumbnailProvider
 import com.toasterofbread.spmp.model.mediaitem.Song
+import com.toasterofbread.spmp.model.mediaitem.rememberThemeColour
 import com.toasterofbread.spmp.platform.composable.PlatformDialog
 import com.toasterofbread.spmp.ui.layout.nowplaying.overlay.DEFAULT_THUMBNAIL_ROUNDING
 import com.toasterofbread.spmp.ui.theme.Theme
@@ -84,7 +85,7 @@ fun LongPressMenu(
                 enter = EnterTransition.None,
                 exit = slideOutVertically(tween(LONG_PRESS_ICON_MENU_OPEN_ANIM_MS)) { it }
             ) {
-                var accent_colour: Color? by remember { mutableStateOf(null) }
+                var accent_colour: Color? = data.item.rememberThemeColour(SpMp.context.database)
 
                 DisposableEffect(Unit) {
                     if (data.item is Song && data.item.theme_colour != null) {
@@ -94,17 +95,6 @@ fun LongPressMenu(
                     SpMp.context.setNavigationBarColour(Theme.background)
                     onDispose {
                         SpMp.context.setNavigationBarColour(null)
-                    }
-                }
-
-                val thumb_quality = MediaItemThumbnailProvider.Quality.LOW
-                LaunchedEffect(data.item.isThumbnailLoaded(thumb_quality)) {
-                    if (!data.item.isThumbnailLoaded(thumb_quality)) {
-                        data.item.loadThumbnail(MediaItemThumbnailProvider.Quality.LOW)
-                    }
-                    else {
-                        accent_colour = (data.item.getDefaultThemeColour() ?: Theme.background)
-                            .contrastAgainst(Theme.background, 0.2f)
                     }
                 }
 

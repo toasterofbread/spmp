@@ -54,7 +54,6 @@ const val MIN_THUMBNAIL_ROUNDING: Int = 0
 const val MAX_THUMBNAIL_ROUNDING: Int = 50
 
 class PaletteSelectorOverlayMenu(
-    val defaultThemeColourProvider: () -> Color?,
     val requestColourPicker: ((Color?) -> Unit) -> Unit,
     val onColourSelected: (Color) -> Unit
 ): OverlayMenu() {

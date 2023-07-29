@@ -14,6 +14,7 @@ import com.toasterofbread.spmp.api.Api.Companion.getStream
 import com.toasterofbread.spmp.model.Cache
 import com.toasterofbread.spmp.model.Settings
 import com.toasterofbread.spmp.model.YoutubeMusicAuthInfo
+import com.toasterofbread.spmp.model.mediaitem.Artist
 import com.toasterofbread.spmp.model.mediaitem.MediaItem
 import com.toasterofbread.spmp.platform.ProjectPreferences
 import com.toasterofbread.spmp.resources.getString
@@ -483,3 +484,6 @@ class Api {
         }
     }
 }
+
+fun Artist.isOwnChannel(): Boolean =
+    id == Api.ytm_auth.getOwnChannelOrNull()?.id

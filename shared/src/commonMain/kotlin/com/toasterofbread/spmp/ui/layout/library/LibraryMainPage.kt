@@ -47,6 +47,7 @@ import com.toasterofbread.spmp.model.mediaitem.Song
 import com.toasterofbread.spmp.platform.PlayerDownloadManager
 import com.toasterofbread.spmp.resources.getString
 import com.toasterofbread.spmp.ui.component.mediaitemlayout.MediaItemGrid
+import com.toasterofbread.spmp.ui.component.mediaitempreview.MediaItemPreviewLong
 import com.toasterofbread.spmp.ui.component.multiselect.MediaItemMultiSelectContext
 import com.toasterofbread.utils.composable.SubtleLoadingIndicator
 import kotlinx.coroutines.launch
@@ -118,7 +119,7 @@ private fun PlaylistsRow(heading_text_style: TextStyle, multiselect_context: Med
         val show_likes: Boolean by Settings.KEY_SHOW_LIKES_PLAYLIST.rememberMutableState()
 
         for (id in ytm_auth.own_playlists) {
-            if (!show_likes && PlaylistData.formatId(id) == "LM") {
+            if (!show_likes && Playlist.formatYoutubeId(id) == "LM") {
                 continue
             }
             playlists.add(PlaylistData(id))
@@ -178,7 +179,7 @@ internal fun ArtistsRow(
                     }
 
                     val song = download.song
-                    song.PreviewLong(MediaItemPreviewParams(multiselect_context = multiselect_context), queue_index = shown_songs)
+                    MediaItemPreviewLong(song, multiselect_context = multiselect_context, multiselect_key = shown_songs)
 
                     if (++shown_songs == LOCAL_SONGS_PREVIEW_AMOUNT) {
                         break

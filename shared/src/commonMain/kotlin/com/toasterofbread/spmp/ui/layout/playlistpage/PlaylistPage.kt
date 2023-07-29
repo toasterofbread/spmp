@@ -29,7 +29,6 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.*
 import androidx.compose.ui.unit.*
 import androidx.compose.ui.zIndex
-import com.toasterofbread.spmp.api.getOrReport
 import com.toasterofbread.spmp.model.Settings
 import com.toasterofbread.spmp.model.mediaitem.MediaItem
 import com.toasterofbread.spmp.model.mediaitem.MediaItemThumbnailProvider
@@ -39,7 +38,7 @@ import com.toasterofbread.spmp.model.mediaitem.Song
 import com.toasterofbread.spmp.model.mediaitem.getMediaItemPlayCount
 import com.toasterofbread.spmp.model.mediaitem.mediaItemPreviewInteraction
 import com.toasterofbread.spmp.model.mediaitem.isMediaItemHidden
-import com.toasterofbread.spmp.model.mediaitem.loadMediaItemValue
+import com.toasterofbread.spmp.model.mediaitem.loader.rememberLoadedItem
 import com.toasterofbread.spmp.model.mediaitem.movePlaylistItem
 import com.toasterofbread.spmp.platform.getDefaultHorizontalPadding
 import com.toasterofbread.spmp.platform.getDefaultVerticalPadding
@@ -61,7 +60,7 @@ import org.burnoutcrew.reorderable.*
 @Composable
 fun PlaylistPage(
     pill_menu: PillMenu,
-    playlist: PlaylistData,
+    playlist: Playlist,
     previous_item: MediaItem? = null,
     padding: PaddingValues = PaddingValues(),
     close: () -> Unit
@@ -69,15 +68,33 @@ fun PlaylistPage(
     val player = LocalPlayerState.current
     val coroutine_scope = rememberCoroutineScope()
 
+    val apply_item_filter: Boolean by Settings.KEY_FILTER_APPLY_TO_PLAYLIST_ITEMS.rememberMutableState()
+    var accent_colour: Color? by remember { mutableStateOf(null) }
+    var reorderable: Boolean by remember { mutableStateOf(false) }
+    var current_filter: String? by remember { mutableStateOf(null) }
+    var current_sort_option: SortOption by remember { mutableStateOf(SortOption.PLAYLIST) }
+    val vertical_padding = SpMp.context.getDefaultVerticalPadding()
+    val top_padding = padding.calculateTopPadding() + vertical_padding
+
+    var loading by remember { mutableStateOf(false) }
+    val playlist_data: PlaylistData? = playlist.rememberLoadedItem() {
+        loading = it
+    }
+
+    LaunchedEffect(playlist) {
+        accent_colour = null
+    }
+
     val multiselect_context = remember { MediaItemMultiSelectContext() { context ->
-        if (playlist.is_editable != true) {
+        if (playlist_data?.is_editable != true) {
             return@MediaItemMultiSelectContext
         }
 
+        // Remove selected items from playlist
         IconButton({ coroutine_scope.launch {
             val items = context.getSelectedItems().sortedByDescending { it.second!! }
             val playlist_items = playlist.items?.toMutableList()
-            playlist.items = playlist_items
+            playlist_data?.items = playlist_items
 
             for (item in items) {
                 SpMp.context.database.playlistItemQueries.removeItemAtIndex(playlist.id, item.second!!.toLong())
@@ -89,19 +106,6 @@ fun PlaylistPage(
             Icon(Icons.Default.PlaylistRemove, null)
         }
     } }
-
-    val apply_item_filter: Boolean by Settings.KEY_FILTER_APPLY_TO_PLAYLIST_ITEMS.rememberMutableState()
-    var accent_colour: Color? by remember { mutableStateOf(null) }
-    var reorderable: Boolean by remember { mutableStateOf(false) }
-    var current_filter: String? by remember { mutableStateOf(null) }
-    var current_sort_option: SortOption by remember { mutableStateOf(SortOption.PLAYLIST) }
-    val vertical_padding = SpMp.context.getDefaultVerticalPadding()
-    val top_padding = padding.calculateTopPadding() + vertical_padding
-
-    LaunchedEffect(playlist) {
-        accent_colour = null
-        playlist.loadItems(SpMp.context.database)
-    }
 
     Column(Modifier.fillMaxSize()) {
         if (previous_item != null) {
@@ -124,9 +128,9 @@ fun PlaylistPage(
         // val thumb_item = playlist.getThumbnailHolder().getHolder()
 
         val sorted_items: MutableList<Pair<MediaItem, Int>> = remember { mutableStateListOf() }
-        LaunchedEffect(playlist.items?.size, current_sort_option, current_filter, apply_item_filter) {
+        LaunchedEffect(playlist_data?.items?.size, current_sort_option, current_filter, apply_item_filter) {
             sorted_items.clear()
-            playlist.items?.let { items ->
+            playlist_data?.items?.let { items ->
                 val filtered_items = current_filter.let { filter ->
                     items.filter {
                         if (filter != null && !it.title!!.contains(filter, true)) {
@@ -197,7 +201,7 @@ fun PlaylistPage(
         ) {
             item {
                 PlaylistTopInfo(
-                    playlist,
+                    playlist_data ?: playlist,
                     accent_colour ?: Theme.accent,
                     editing_info,
                     { editing_info = it }
@@ -208,54 +212,52 @@ fun PlaylistPage(
 
             item {
                 PlaylistButtonBar(
-                    playlist,
+                    playlist_data ?: playlist,
                     accent_colour ?: Theme.accent,
                     editing_info,
                     { editing_info = it }
                 )
             }
 
-            playlist.items?.also { items ->
-                stickyHeaderWithTopPadding(
-                    list_state.listState,
-                    final_padding.calculateTopPadding(),
-                    Modifier.zIndex(1f),
-                    Theme.background_provider
-                ) {
-                    InteractionBar(
-                        modifier = Modifier.fillMaxWidth(),
-                        playlist = playlist,
-                        reorderable = reorderable,
-                        setReorderable = {
-                            reorderable = playlist.is_editable == true && it
-                            if (reorderable) {
-                                current_sort_option = SortOption.PLAYLIST
-                                current_filter = null
-                            }
-                        },
-                        filter = current_filter,
-                        setFilter = {
-                            check(!reorderable)
-                            current_filter = it
-                        },
-                        sort_option = current_sort_option,
-                        setSortOption = {
-                            check(!reorderable)
-                            current_sort_option = it
+            stickyHeaderWithTopPadding(
+                list_state.listState,
+                final_padding.calculateTopPadding(),
+                Modifier.zIndex(1f),
+                Theme.background_provider
+            ) {
+                InteractionBar(
+                    modifier = Modifier.fillMaxWidth(),
+                    playlist = playlist_data ?: playlist,
+                    reorderable = reorderable,
+                    setReorderable = {
+                        reorderable = playlist_data?.is_editable == true && it
+                        if (reorderable) {
+                            current_sort_option = SortOption.PLAYLIST
+                            current_filter = null
                         }
-                    )
-                }
-
-                PlaylistItems(
-                    playlist,
-                    list_state,
-                    sorted_items,
-                    multiselect_context,
-                    reorderable,
-                    current_sort_option,
-                    player,
+                    },
+                    filter = current_filter,
+                    setFilter = {
+                        check(!reorderable)
+                        current_filter = it
+                    },
+                    sort_option = current_sort_option,
+                    setSortOption = {
+                        check(!reorderable)
+                        current_sort_option = it
+                    }
                 )
             }
+
+            PlaylistItems(
+                playlist_data ?: playlist,
+                list_state,
+                sorted_items,
+                multiselect_context,
+                reorderable,
+                current_sort_option,
+                player,
+            )
         }
     }
 }

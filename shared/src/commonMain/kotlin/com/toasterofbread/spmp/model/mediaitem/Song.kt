@@ -1,125 +1,72 @@
 package com.toasterofbread.spmp.model.mediaitem
 
-import androidx.compose.runtime.Composable
-import androidx.compose.runtime.MutableState
-import androidx.compose.runtime.getValue
-import androidx.compose.runtime.setValue
 import androidx.compose.ui.unit.IntOffset
-import com.toasterofbread.Database
 import com.toasterofbread.spmp.api.lyrics.LyricsReference
+import com.toasterofbread.spmp.api.lyrics.toLyricsReference
 import com.toasterofbread.spmp.model.mediaitem.enums.MediaItemType
-import com.toasterofbread.spmp.model.mediaitem.enums.PlaylistType
-import com.toasterofbread.spmp.model.mediaitem.enums.SongType
+import com.toasterofbread.spmp.model.mediaitem.enums.SongType as SongTypeEnum
 
-interface Song: MediaItem, WithArtist {
-    val song_type: SongType?
-    val duration: Long?
-    // artist via WithArtist
-    val album: Playlist?
-    val related_browse_id: String?
+class SongRef(override val id: String): Song
 
-    val lyrics: LyricsReference?
-    val lyrics_sync_offset: Long?
-    val np_gradient_depth: Double?
-    val notif_image_offset: IntOffset?
-    val liked: SongLikedStatus?
-
+interface Song: MediaItem, MediaItem.WithArtist {
     override fun getType(): MediaItemType = MediaItemType.SONG
     override fun getURL(): String = "https://music.youtube.com/watch?v=$id"
+
+    val SongType: Property<SongTypeEnum?> get() = SingleProperty(
+        { songQueries.songTypeById(id) },
+        { song_type?.let { SongTypeEnum.values()[it.toInt()] } },
+        { songQueries.updateSongTypeById(it?.ordinal?.toLong(), id) }
+    )
+    val Duration: Property<Long?> get() = SingleProperty(
+        { songQueries.durationById(id) }, { duration }, { songQueries.updateDurationById(it, id) }
+    )
+    override val Artist: Property<Artist?> get() = SingleProperty(
+        { songQueries.artistById(id) }, { artist?.let { Artist(it) } }, { songQueries.updateArtistById(it?.id, id) }
+    )
+    val Album: Property<Playlist?> get() = SingleProperty(
+        { songQueries.albumById(id) }, { album?.let { Playlist(it) } }, { songQueries.updateAlbumById(it?.id, id) }
+    )
+    val RelatedBrowseId: Property<String?> get() = SingleProperty(
+        { songQueries.relatedBrowseIdById(id) }, { related_browse_id }, { songQueries.updateRelatedBrowseIdById(it, id) }
+    )
+
+    val Lyrics: Property<LyricsReference?> get() = SingleProperty(
+        { songQueries.lyricsById(id) }, { this.toLyricsReference() }, { songQueries.updateLyricsById(it?.source_idx?.toLong(), it?.id, id) }
+    )
+    val LyricsSyncOffset: Property<Long?> get() = SingleProperty(
+        { songQueries.lyricsSyncOffsetById(id) }, { lyrics_sync_offset }, { songQueries.updateLyricsSyncOffsetById(it, id) }
+    )
+    val PlayerGradientDepth: Property<Float?> get() = SingleProperty(
+        { songQueries.npGradientDepthById(id) }, { np_gradient_depth?.toFloat() }, { songQueries.updateNpGradientDepthById(it?.toDouble(), id) }
+    )
+    val ThumbnailRounding: Property<Int?> get() = SingleProperty(
+        { songQueries.thumbnailRoundingById(id) }, { thumbnail_rounding?.toInt() }, { songQueries.updateThumbnailRoundingById(it?.toLong(), id) }
+    )
+    val NotificationImageOffset: Property<IntOffset?> get() = SingleProperty(
+        { songQueries.notifImageOffsetById(id) },
+        {
+            if (notif_image_offset_x != null || notif_image_offset_y != null) IntOffset(
+                notif_image_offset_x?.toInt() ?: 0,
+                notif_image_offset_y?.toInt() ?: 0
+            )
+            else null
+        },
+        { songQueries.updateNotifImageOffsetById(it?.x?.toLong(), it?.y?.toLong(), id) }
+    )
+    val Liked: Property<SongLikedStatus?> get() = SingleProperty(
+        { songQueries.likedById(id) }, { liked.toSongLikedStatus() }, { songQueries.updatelikedById(it.toLong(), id) }
+    )
 }
 
 class SongData(
     override var id: String,
-    override var song_type: SongType? = null,
-    override var duration: Long? = null,
+
+    var song_type: SongTypeEnum? = null,
+    var duration: Long? = null,
     override var artist: Artist? = null,
-    override var album: Playlist? = null,
-    override var related_browse_id: String? = null,
-
-    override var lyrics: LyricsReference? = null,
-    override var lyrics_sync_offset: Long? = null,
-    override var np_gradient_depth: Double? = null,
-    override var notif_image_offset: IntOffset? = null,
-    override var liked: SongLikedStatus? = null
-): MediaItemData(), Song, DataWithArtist {
-    override fun loadFromDatabase(db: Database) {
-        super.loadFromDatabase(db)
-
-        val data = db.songQueries.byId(id).executeAsOne()
-        song_type = data.song_type?.let { SongType.values()[it.toInt()] }
-        duration = data.duration
-        artist = data.artist?.let { ArtistData(it) }
-        album = data.album?.let { PlaylistData(it) }
-        related_browse_id = data.related_browse_id
-
-        lyrics_sync_offset = data.lyrics_sync_offset
-        np_gradient_depth = data.np_gradient_depth
-        liked = data.liked.toSongLikedStatus()
-
-        lyrics =
-            if (data.lyrics_source != null && data.lyrics_id != null)
-                LyricsReference(data.lyrics_source.toInt(), data.lyrics_id)
-            else null
-
-        notif_image_offset =
-            if (data.notif_image_offset_x != null || data.notif_image_offset_y != null)
-                IntOffset(
-                    data.notif_image_offset_x?.toInt() ?: 0,
-                    data.notif_image_offset_y?.toInt() ?: 0
-                )
-            else null
-    }
-}
-
-class ObservableSong(
-    id: String,
-    db: Database,
-    base: MediaItemObservableState,
-    song_type_state: MutableState<SongType?>,
-    duration_state: MutableState<Long?>,
-    artist_state: MutableState<Artist?>,
-    album_state: MutableState<Playlist?>,
-    related_browse_id_state: MutableState<String?>
-): ObservableMediaItem(id, db, base), Song {
-    override var song_type: SongType? by song_type_state
-    override var duration: Long? by duration_state
-    override var artist: Artist? by artist_state
-    override var album: Playlist? by album_state
-    override var related_browse_id: String? by related_browse_id_state
-
-    companion object {
-        @Composable
-        fun create(id: String, db: Database) =
-            with(db.songQueries) {
-                ObservableSong(
-                    id,
-                    db,
-                    MediaItemObservableState.create(id, db),
-
-                    songTypeById(id).observeAsState(
-                        { it.executeAsOne().song_type?.let { type ->
-                            SongType.values()[type.toInt()]
-                        } },
-                        { updateSongTypeById(it?.ordinal?.toLong(), id) }
-                    ),
-                    durationById(id).observeAsState(
-                        { it.executeAsOne().duration },
-                        { updateDurationById(it, id) }
-                    ),
-                    artistById(id).observeAsState(
-                        { it.executeAsOne().artist?.let { ArtistData(it) } },
-                        { updateArtistById(it?.id, id) }
-                    ),
-                    albumById(id).observeAsState(
-                        { it.executeAsOne().album?.let { PlaylistData(it, playlist_type = PlaylistType.ALBUM) } },
-                        { updateAlbumById(it?.id, id) }
-                    ),
-
-                    TODO()
-                )
-            }
-    }
-}
+    var album: Playlist? = null,
+    var related_browse_id: String? = null
+): MediaItemData(), Song, MediaItem.DataWithArtist
 
 //class Song private constructor(
 //    id: String,

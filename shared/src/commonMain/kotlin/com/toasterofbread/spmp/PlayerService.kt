@@ -534,7 +534,7 @@ class PlayerService: MediaPlayerService() {
                 return
             }
 
-            val song_title = status_song.fetchTitle(context.database)
+            val song_title = context.database.mediaItemQueries.titleById(status_song.id).executeAsOne().title
             if (song_title == null) {
                 close()
                 return

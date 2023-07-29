@@ -1,6 +1,8 @@
 package com.toasterofbread.spmp.model.mediaitem
 
 import androidx.compose.ui.unit.IntSize
+import mediaitem.CustomImageProviderById
+import mediaitem.ThumbnailProviderById
 
 data class MediaItemThumbnailProvider(
     val url_a: String,
@@ -76,3 +78,12 @@ data class MediaItemThumbnailProvider(
         }
     }
 }
+
+fun ThumbnailProviderById.toThumbnailProvider(): MediaItemThumbnailProvider? =
+    if (thumb_url_a == null) null
+    else MediaItemThumbnailProvider(thumb_url_a, thumb_url_b)
+
+fun CustomImageProviderById.toThumbnailProvider(): MediaItemThumbnailProvider? =
+    if (custom_image_url_a == null) null
+    else MediaItemThumbnailProvider(custom_image_url_a, custom_image_url_b)
+

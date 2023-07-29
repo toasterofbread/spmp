@@ -94,7 +94,7 @@ interface PlayerOverlayPage {
                     ),
                     close = close
                 )
-                else -> throw NotImplementedError(item.type.toString())
+                else -> throw NotImplementedError(item::class.toString())
             }
         }
     }
@@ -248,7 +248,7 @@ class PlayerStateImpl(private val context: PlatformContext): PlayerState(null, n
 
         runBlocking {
             for (uid in Settings.INTERNAL_PINNED_ITEMS.get<Set<String>>(prefs)) {
-                val item = MediaItem.fromUid(uid, context)
+                val item = getMediaItemFromUid(uid)
                 pinned_items.add(item.getHolder())
             }
         }

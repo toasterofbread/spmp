@@ -14,9 +14,19 @@ FROM PlaylistItem
 WHERE playlist_id == :playlist_id
 ORDER BY item_index;
 
+insertItemAtIndex:
+INSERT OR REPLACE INTO PlaylistItem(playlist_id, song_id, item_index)
+VALUES(:playlist_id, :song_id, :item_index);
+
 removeItemAtIndex:
 DELETE FROM PlaylistItem
 WHERE playlist_id == :playlist_id AND item_index == :item_index;
 
 updateItemIndex:
 UPDATE PlaylistItem SET item_index = :to WHERE item_index == :from AND playlist_id == :playlist_id;
+
+itemCount:
+SELECT COUNT(IIF(PlaylistItem.playlist_id = :playlist_id), 1, NULL) FROM PlaylistItem;
+
+clearItems:
+DELETE FROM PlaylistItem WHERE playlist_id = :playlist_id AND item_index >= :from_index;

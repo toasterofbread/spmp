@@ -21,31 +21,44 @@ import com.toasterofbread.spmp.api.model.TextRun
 import com.toasterofbread.spmp.model.mediaitem.enums.MediaItemType
 import com.toasterofbread.spmp.model.mediaitem.enums.PlaylistType
 import com.toasterofbread.spmp.platform.toImageBitmap
+import com.toasterofbread.spmp.ui.component.Thumbnail
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
-import mediaitem.ThumbnailProviderById
 import java.net.URL
 
 val MEDIA_ITEM_RELATED_CONTENT_ICON: ImageVector get() = Icons.Default.GridView
 
-sealed interface MediaItem: MediaItemHolder {
+sealed interface MediaItem {
     val id: String
-    val loaded: Boolean
-    val title: String?
-    val original_title: String?
-    val description: String?
-
-    val thumbnail_provider: MediaItemThumbnailProvider?
-    val theme_colour: Color?
-    val pinned_to_home: Boolean
-    val hidden: Boolean
 
     fun getType(): MediaItemType
     fun getURL(): String
-    fun toData(): MediaItemData
 
-    @Composable
-    fun getThumbnailHolder(): MediaItem = this
+    val Loaded: Property<Boolean> get() = SingleProperty(
+        { mediaItemQueries.loadedById(id) }, { loaded.fromSQLBoolean() }, { mediaItemQueries.updateLoadedById(it.toSQLBoolean(), id) }
+    )
+    val Title: Property<String?> get() = SingleProperty(
+        { mediaItemQueries.titleById(id) }, { title }, { mediaItemQueries.updateTitleById(it, id) }
+    )
+    val OriginalTitle: Property<String?> get() = SingleProperty(
+        { mediaItemQueries.originalTitleById(id) }, { original_title }, { mediaItemQueries.updateOriginalTitleById(it, id) }
+    )
+    val Description: Property<String?> get() = SingleProperty(
+        { mediaItemQueries.descriptionById(id) }, { description }, { mediaItemQueries.updateDescriptionById(it, id) }
+    )
+
+    val ThumbnailProvider: Property<MediaItemThumbnailProvider?> get() = SingleProperty(
+        { mediaItemQueries.thumbnailProviderById(id) }, { this.toThumbnailProvider() }, { mediaItemQueries.updateThumbnailProviderById(it?.url_a, it?.url_b, id) }
+    )
+    val ThemeColour: Property<Color?> get() = SingleProperty(
+        { mediaItemQueries.themeColourById(id) }, { theme_colour?.let { Color(it) } }, { mediaItemQueries.updateThemeColourById(it?.toArgb()?.toLong(), id) }
+    )
+    val PinnedToHome: Property<Boolean> get() = SingleProperty(
+        { mediaItemQueries.pinnedToHomeById(id) }, { pinned_to_home.fromSQLBoolean() }, { mediaItemQueries.updatePinnedToHomeById(it.toSQLBoolean(), id) }
+    )
+    val Hidden: Property<Boolean> get() = SingleProperty(
+        { mediaItemQueries.isHiddenById(id) }, { hidden.fromSQLBoolean() }, { mediaItemQueries.updateIsHiddenById(it.toSQLBoolean(), id) }
+    )
 
     suspend fun downloadThumbnailData(url: String): Result<ImageBitmap> = withContext(Dispatchers.IO) {
         return@withContext runCatching {
@@ -60,22 +73,32 @@ sealed interface MediaItem: MediaItemHolder {
         }
     }
 
-    fun fetchTitle(db: Database): String? = db.mediaItemQueries.titleById(id).executeAsOne().title
-
-    override val item: MediaItem get() = this
+    interface WithArtist {
+        val Artist: Property<Artist?>
+    }
+    interface DataWithArtist {
+        var artist: Artist?
+    }
 }
 
-sealed class MediaItemData(
-    override var loaded: Boolean = false,
-    override var title: String? = null,
-    override var original_title: String? = null,
-    override var description: String? = null,
+sealed class MediaItemData: MediaItem {
+    var loaded: Boolean = false
+    var title: String? = null
+        set(value) {
+            field = value
+            original_title = value
+        }
+    var original_title: String? = null
+        set(value) {
+            field = value
+            title = value
+        }
+    var description: String? = null
+    var thumbnail_provider: MediaItemThumbnailProvider? = null
+    var theme_colour: Color? = null
+    var pinned_to_home: Boolean = false
+    var hidden: Boolean = false
 
-    override var thumbnail_provider: MediaItemThumbnailProvider? = null,
-    override var theme_colour: Color? = null,
-    override var pinned_to_home: Boolean = false,
-    override var hidden: Boolean = false
-): MediaItem {
     companion object {
         fun fromBrowseEndpointType(page_type: String, id: String): MediaItemData {
             return when (page_type) {
@@ -88,32 +111,16 @@ sealed class MediaItemData(
         }
     }
 
-    override fun toData(): MediaItemData = this
-
-    open fun loadFromDatabase(db: Database) {
-        val data = db.mediaItemQueries.byId(id).executeAsOne()
-        loaded = data.loaded.fromSQL()
-        title = data.title
-        original_title = data.original_title
-        description = data.description
-
-        thumbnail_provider = data.thumb_url_a?.let { MediaItemThumbnailProvider(it, data.thumb_url_b) }
-        theme_colour = data.theme_colour?.let { Color(it) }
-        pinned_to_home = data.pinned_to_home.fromSQL()
-    }
-
     open fun saveToDatabase(db: Database) {
         db.transaction {
-            with(db.mediaItemQueries) {
-                updateLoadedById(loaded.toSQL(), id)
-                updateTitleById(title, id)
-                updateOriginalTitleById(original_title, id)
-                updateDescriptionById(description, id)
-
-                updateThumbnailProviderById(thumbnail_provider?.url_a, thumbnail_provider?.url_b, id)
-                updatePinnedToHomeById(pinned_to_home.toSQL(), id)
-                updateThemeColourById(theme_colour?.toArgb()?.toLong(), id)
-            }
+            Loaded.set(loaded, db)
+            Title.set(title, db)
+            OriginalTitle.set(original_title, db)
+            Description.set(description, db)
+            ThumbnailProvider.set(thumbnail_provider, db)
+            ThemeColour.set(theme_colour, db)
+            PinnedToHome.set(pinned_to_home, db)
+            Hidden.set(hidden, db)
         }
     }
 
@@ -123,7 +130,7 @@ sealed class MediaItemData(
             val type = run.browse_endpoint_type ?: continue
             when (MediaItemType.fromBrowseEndpointType(type)) {
                 MediaItemType.ARTIST -> {
-                    if (this is DataWithArtist) {
+                    if (this is MediaItem.DataWithArtist) {
                         val item = run.navigationEndpoint?.browseEndpoint?.getMediaItem()
                         if (item is Artist) {
                             artist = item
@@ -145,7 +152,7 @@ sealed class MediaItemData(
             }
         }
 
-        if (!artist_found && this is DataWithArtist) {
+        if (!artist_found && this is MediaItem.DataWithArtist) {
             artist = ArtistData.createForItem(this).also {
                 it.title = runs.getOrNull(1)?.text
             }
@@ -153,106 +160,9 @@ sealed class MediaItemData(
     }
 }
 
-interface WithArtist {
-    val artist: Artist?
-}
-interface DataWithArtist: WithArtist {
-    override var artist: Artist?
-}
-
-fun ThumbnailProviderById.toThumbnailProvider(): MediaItemThumbnailProvider? =
-    if (thumb_url_a == null) null
-    else MediaItemThumbnailProvider(thumb_url_a, thumb_url_b)
-
-class MediaItemObservableState private constructor (
-    val loaded_state: MutableState<Boolean>,
-
-    val title_state: MutableState<String?>,
-    val original_title_state: MutableState<String?>,
-    val description_state: MutableState<String?>,
-
-    val theme_colour_state: MutableState<Long?>,
-    val thumbnail_provider_state: MutableState<ThumbnailProviderById?>,
-    val pinned_to_home_state: MutableState<Long?>
-) {
-    companion object {
-        @Composable
-        internal fun create(id: String, db: Database) =
-            with(db.mediaItemQueries) {
-                MediaItemObservableState(
-                    loadedById(id).observeAsState(
-                        { it.executeAsOne().loaded != null },
-                        { updateLoadedById(if (it) 0 else null, id) }
-                    ),
-                    titleById(id).observeAsState(
-                        { it.executeAsOne().title },
-                        { updateTitleById(it, id) }
-                    ),
-                    originalTitleById(id).observeAsState(
-                        { it.executeAsOne().original_title },
-                        { updateOriginalTitleById(it, id) }
-                    ),
-                    descriptionById(id).observeAsState(
-                        { it.executeAsOne().description },
-                        { updateDescriptionById(it, id) }
-                    ),
-                    themeColourById(id).observeAsState(
-                        { it.executeAsOne().theme_colour },
-                        { updateThemeColourById(it, id) }
-                    ),
-                    thumbnailProviderById(id).observeAsState(
-                        { it.executeAsOne() },
-                        { updateThumbnailProviderById(it?.thumb_url_a, it?.thumb_url_b, id) }
-                    ),
-                    pinnedToHomeById(id).observeAsState(
-                        { it.executeAsOne().pinned_to_home },
-                        { updatePinnedToHomeById(it, id) }
-                    )
-                )
-            }
-    }
-}
-
-abstract class ObservableMediaItem internal constructor(
-    override val id: String,
-    protected val db: Database,
-    state: MediaItemObservableState
-): MediaItem {
-    override var loaded: Boolean by state.loaded_state
-
-    override var title: String? by state.title_state
-    override var original_title: String? by state.original_title_state
-    override var description: String? by state.description_state
-
-    // TODO Move mapping logic to MediaItemObservableState
-    private var theme_colour_value: Long? by state.theme_colour_state
-    override var theme_colour: Color?
-        get() = theme_colour_value?.let { Color(it) }
-        set(value) {
-            theme_colour_value = value?.value?.toLong()
-        }
-
-    private var thumbnail_provider_value: ThumbnailProviderById? by state.thumbnail_provider_state
-    override var thumbnail_provider: MediaItemThumbnailProvider?
-        get() = thumbnail_provider_value?.let {
-            if (it.thumb_url_a == null) null
-            else MediaItemThumbnailProvider(it.thumb_url_a, it.thumb_url_b)
-        }
-        set(value) {
-            db.mediaItemQueries.updateThumbnailProviderById(value?.url_a, value?.url_b, id)
-        }
-
-    private var pinned_to_home_value: Long? by state.pinned_to_home_state
-    override var pinned_to_home: Boolean
-        get() = pinned_to_home_value != null
-        set(value) {
-            pinned_to_home_value = if (value) 0L else null
-        }
-}
-
 @Composable
-fun <T, Q: Any> Query<Q>.observeAsState(
-    mapValue: (Query<Q>) -> T = { it as T },
+fun <T, Q: Query<*>> Q.observeAsState(
+    mapValue: (Q) -> T = { it as T },
     onExternalChange: (suspend (T) -> Unit)?
 ): MutableState<T> {
     val state = remember(this) { mutableStateOf(mapValue(this)) }

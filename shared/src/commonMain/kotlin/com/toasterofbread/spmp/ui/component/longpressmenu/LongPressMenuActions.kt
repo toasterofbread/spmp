@@ -23,6 +23,7 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.toasterofbread.spmp.model.mediaitem.Song
+import com.toasterofbread.spmp.model.mediaitem.setHidden
 import com.toasterofbread.spmp.resources.getString
 import com.toasterofbread.spmp.ui.theme.Theme
 import com.toasterofbread.utils.composable.WidthShrinkText
@@ -34,20 +35,18 @@ const val MENU_ITEM_SPACING: Int = 20
 internal fun ColumnScope.LongPressMenuInfoActions(data: LongPressMenuData, getAccentColour: () -> Color, onAction: () -> Unit) {
     data.infoContent?.invoke(this, getAccentColour)
 
-    data.item.url?.also { url ->
-        // Share
-        if (SpMp.context.canShare()) {
-            LongPressMenuActionProvider.ActionButton(Icons.Filled.Share, getString("lpm_action_share"), getAccentColour, onClick = {
-                SpMp.context.shareText(url, if (data.item is Song) data.item.title else null)
-            }, onAction = onAction)
-        }
+    // Share
+    if (SpMp.context.canShare()) {
+        LongPressMenuActionProvider.ActionButton(Icons.Filled.Share, getString("lpm_action_share"), getAccentColour, onClick = {
+            SpMp.context.shareText(data.item.getURL(), if (data.item is Song) data.item.title else null)
+        }, onAction = onAction)
+    }
 
-        // Open
-        if (SpMp.context.canOpenUrl()) {
-            LongPressMenuActionProvider.ActionButton(Icons.Filled.OpenWith, getString("lpm_action_open_external"), getAccentColour, onClick = {
-                SpMp.context.openUrl(url)
-            }, onAction = onAction)
-        }
+    // Open
+    if (SpMp.context.canOpenUrl()) {
+        LongPressMenuActionProvider.ActionButton(Icons.Filled.OpenWith, getString("lpm_action_open_external"), getAccentColour, onClick = {
+            SpMp.context.openUrl(data.item.getURL())
+        }, onAction = onAction)
     }
 
     if (isDebugBuild()) {
@@ -79,6 +78,6 @@ internal fun ColumnScope.LongPressMenuActions(data: LongPressMenuData, getAccent
 
     // Hide
     LongPressMenuActionProvider.ActionButton(Icons.Filled.VisibilityOff, getString("lpm_action_hide"), getAccentColour, onClick = {
-        data.item.setItemHidden(true)
+        data.item.setHidden(true)
     }, onAction = onAction)
 }

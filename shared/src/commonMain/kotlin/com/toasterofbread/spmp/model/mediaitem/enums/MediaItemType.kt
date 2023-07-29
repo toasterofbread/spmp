@@ -7,18 +7,19 @@ import androidx.compose.material.icons.filled.PlaylistPlay
 import androidx.compose.ui.graphics.vector.ImageVector
 import com.beust.klaxon.JsonObject
 import com.toasterofbread.spmp.api.Api
+import com.toasterofbread.spmp.model.mediaitem.AccountPlaylistRef
 import com.toasterofbread.spmp.model.mediaitem.Artist
 import com.toasterofbread.spmp.model.mediaitem.ArtistData
+import com.toasterofbread.spmp.model.mediaitem.ArtistRef
+import com.toasterofbread.spmp.model.mediaitem.LocalPlaylistRef
 import com.toasterofbread.spmp.model.mediaitem.MediaItem
-import com.toasterofbread.spmp.model.mediaitem.MediaItemData
 import com.toasterofbread.spmp.model.mediaitem.MediaItemDataRegistry
-import com.toasterofbread.spmp.model.mediaitem.ObservableMediaItem
 import com.toasterofbread.spmp.model.mediaitem.Playlist
 import com.toasterofbread.spmp.model.mediaitem.PlaylistData
 import com.toasterofbread.spmp.model.mediaitem.PlaylistDataRegistryEntry
 import com.toasterofbread.spmp.model.mediaitem.Song
-import com.toasterofbread.spmp.model.mediaitem.SongData
 import com.toasterofbread.spmp.model.mediaitem.SongDataRegistryEntry
+import com.toasterofbread.spmp.model.mediaitem.SongRef
 import com.toasterofbread.spmp.resources.getString
 
 fun MediaItem.getType(): MediaItemType =
@@ -70,11 +71,11 @@ enum class MediaItemType {
         }
     }
 
-    fun emptyDataFromId(id: String): MediaItemData = when (this) {
-        SONG -> SongData(id)
-        ARTIST -> ArtistData(id)
-        PLAYLIST_ACC -> PlaylistData(id)
-        PLAYLIST_LOC -> PlaylistData(id, playlist_type = PlaylistType.LOCAL)
+    fun referenceFromId(id: String): MediaItem = when (this) {
+        SONG -> SongRef(id)
+        ARTIST -> ArtistRef(id)
+        PLAYLIST_ACC -> AccountPlaylistRef(id)
+        PLAYLIST_LOC -> LocalPlaylistRef(id)
         PLAYLIST_BROWSEPARAMS -> throw NotImplementedError(id)
     }
 

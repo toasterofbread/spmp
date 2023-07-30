@@ -21,7 +21,7 @@ class MusicTwoRowItemRenderer(
     val thumbnailRenderer: ThumbnailRenderer,
     val menu: YoutubeiNextResponse.Menu? = null
 ) {
-    private fun getArtist(host_item: MediaItem): Artist? {
+    private fun getArtist(host_item: MediaItemData): Artist? {
         for (run in subtitle?.runs ?: emptyList()) {
             val browse_endpoint = run.navigationEndpoint?.browseEndpoint
 
@@ -33,7 +33,7 @@ class MusicTwoRowItemRenderer(
             }
         }
 
-        if (host_item is Song) {
+        if (host_item is SongData) {
             val index = if (host_item.song_type == SongType.VIDEO) 0 else 1
             subtitle?.runs?.getOrNull(index)?.also {
                 return ArtistData.createForItem(host_item).apply {

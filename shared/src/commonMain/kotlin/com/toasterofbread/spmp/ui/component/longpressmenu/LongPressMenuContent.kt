@@ -36,7 +36,6 @@ import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.CompositionLocalProvider
 import androidx.compose.runtime.DisposableEffect
-import androidx.compose.runtime.MutableState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
@@ -51,12 +50,9 @@ import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
 import com.toasterofbread.spmp.model.mediaitem.Artist
-import com.toasterofbread.spmp.model.mediaitem.MediaItemPreviewParams
+import com.toasterofbread.spmp.model.mediaitem.MediaItem
 import com.toasterofbread.spmp.model.mediaitem.MediaItemThumbnailProvider
-import com.toasterofbread.spmp.model.mediaitem.WithArtist
-import com.toasterofbread.spmp.model.mediaitem.setPinnedToHome
 import com.toasterofbread.spmp.platform.composable.platformClickable
-import com.toasterofbread.spmp.platform.getNavigationBarHeightDp
 import com.toasterofbread.spmp.platform.vibrateShort
 import com.toasterofbread.spmp.ui.component.MediaItemTitleEditDialog
 import com.toasterofbread.spmp.ui.component.Thumbnail
@@ -87,6 +83,9 @@ internal fun LongPressMenuContent(
             show_title_edit_dialog = false
         }
     }
+
+    var item_pinned_to_home: Boolean by data.item.PinnedToHome.observe(SpMp.context.database)
+    val item_title: String? by data.item.Title.observe(SpMp.context.database)
 
     Box(
         Modifier
@@ -133,12 +132,12 @@ internal fun LongPressMenuContent(
                         val pin_button_size = 24.dp
                         val pin_button_padding = 15.dp
                         Crossfade(
-                            data.item.pinned_to_home,
+                            item_pinned_to_home,
                             Modifier.align(Alignment.CenterEnd).offset(x = -pin_button_padding, y = pin_button_padding)
                         ) { pinned ->
                             IconButton(
                                 {
-                                    data.item.setPinnedToHome(!pinned)
+                                    item_pinned_to_home = !pinned
                                 },
                                 Modifier.size(pin_button_size)
                             ) {
@@ -182,7 +181,7 @@ internal fun LongPressMenuContent(
                                     )
                                 ) {
                                     Text(
-                                        data.item.title ?: "",
+                                        item_title ?: "",
                                         Modifier.fillMaxWidth(),
                                         softWrap = false,
                                         overflow = TextOverflow.Ellipsis
@@ -190,9 +189,9 @@ internal fun LongPressMenuContent(
                                 }
 
                                 // Artist
-                                if (data.item is WithArtist) {
-                                    val artist = data.item.artist
-                                    if (artist != null) {
+                                if (data.item is MediaItem.WithArtist) {
+                                    val item_artist: Artist? by data.item.Artist.observe(SpMp.context.database)
+                                    item_artist?.also { artist ->
                                         Marquee {
                                             val player = LocalPlayerState.current
                                             CompositionLocalProvider(

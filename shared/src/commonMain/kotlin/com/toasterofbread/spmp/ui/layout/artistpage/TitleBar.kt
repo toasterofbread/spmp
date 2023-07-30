@@ -48,10 +48,8 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.toasterofbread.spmp.model.mediaitem.Artist
 import com.toasterofbread.spmp.model.mediaitem.MediaItem
-import com.toasterofbread.spmp.model.mediaitem.artist.getReadableSubscriberCount
+import com.toasterofbread.spmp.model.mediaitem.artist.toReadableSubscriberCount
 import com.toasterofbread.spmp.model.mediaitem.enums.MediaItemType
-import com.toasterofbread.spmp.model.mediaitem.observePinnedToHome
-import com.toasterofbread.spmp.model.mediaitem.setPinnedToHome
 import com.toasterofbread.spmp.platform.vibrateShort
 import com.toasterofbread.spmp.resources.getString
 import com.toasterofbread.spmp.resources.getStringTODO
@@ -126,8 +124,10 @@ fun TitleBar(item: MediaItem, modifier: Modifier = Modifier) {
                 }
 
             } else {
+                val item_title: String? by item.Title.observe(SpMp.context.database)
+
                 WidthShrinkText(
-                    item.title ?: "",
+                    item_title ?: "",
                     Modifier
                         .combinedClickable(
                             onClick = {},
@@ -146,8 +146,11 @@ fun TitleBar(item: MediaItem, modifier: Modifier = Modifier) {
             }
 
             Row(verticalAlignment = Alignment.CenterVertically) {
-                if (item is Artist && (item.subscriber_count ?: 0) > 0) {
-                    Text(item.getReadableSubscriberCount(), style = MaterialTheme.typography.labelLarge )
+                if (item is Artist) {
+                    val subscriber_count: Int = item.SubscriberCount.observe(SpMp.context.database).value ?: 0
+                    if (subscriber_count > 0) {
+                        Text(subscriber_count.toReadableSubscriberCount(), style = MaterialTheme.typography.labelLarge )
+                    }
                 }
 
                 Spacer(Modifier.fillMaxWidth().weight(1f))
@@ -156,9 +159,9 @@ fun TitleBar(item: MediaItem, modifier: Modifier = Modifier) {
                     ArtistSubscribeButton(item)
                 }
 
-                val item_pinned by item.observePinnedToHome()
+                var item_pinned by item.PinnedToHome.observe(SpMp.context.database)
                 Crossfade(item_pinned) { pinned ->
-                    IconButton({ item.setPinnedToHome(!pinned) }) {
+                    IconButton({ item_pinned = !pinned }) {
                         Icon(if (pinned) Icons.Filled.PushPin else Icons.Outlined.PushPin, null)
                     }
                 }

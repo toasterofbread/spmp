@@ -1,42 +1,70 @@
 package com.toasterofbread.spmp.model.mediaitem
 
+import com.toasterofbread.Database
 import com.toasterofbread.spmp.model.mediaitem.enums.MediaItemType
 import com.toasterofbread.spmp.ui.component.mediaitemlayout.MediaItemLayout
-import com.toasterofbread.spmp.model.mediaitem.enums.PlaylistType as PlaylistTypeEnum
+import com.toasterofbread.spmp.model.mediaitem.enums.PlaylistType
+import mediaitem.PlaylistItem
 
-class AccountPlaylistRef(override val id: String): Playlist {
+sealed interface PlaylistRef: Playlist
+
+class AccountPlaylistRef(override val id: String): PlaylistRef {
     override fun getType(): MediaItemType = MediaItemType.PLAYLIST_ACC
+    override fun getEmptyData(): PlaylistData = PlaylistData(id)
 }
-class LocalPlaylistRef(override val id: String): Playlist {
+class LocalPlaylistRef(override val id: String): PlaylistRef {
     override fun getType(): MediaItemType = MediaItemType.PLAYLIST_LOC
+    override fun getEmptyData(): PlaylistData = PlaylistData(id, playlist_type = PlaylistType.LOCAL)
 }
 
-interface Playlist: MediaItem, MediaItem.WithArtist {
+sealed interface Playlist: MediaItem.WithArtist {
 //    val is_editable: Boolean?
 //    val item_set_ids: List<String>?
 //    val continuation: MediaItemLayout.Continuation?
-    override fun getURL(): String = "https://music.youtube.com/playlist?list=$id"
 
-    val Items get() = ListProperty(
+    override fun getHolder(): PlaylistHolder = PlaylistHolder(this)
+    override fun getURL(): String = "https://music.youtube.com/playlist?list=$id"
+    override fun getEmptyData(): PlaylistData
+
+    override fun populateData(data: MediaItemData, db: Database) {
+        super.populateData(data, db)
+        (data as PlaylistData).apply {
+            items = Items.get(db)
+            item_count = ItemCount.get(db)
+            playlist_type = TypeOfPlaylist.get(db)
+            browse_params = BrowseParams.get(db)
+            total_duration = TotalDuration.get(db)
+            year = Year.get(db)
+        }
+    }
+
+    override suspend fun loadData(db: Database): Result<PlaylistData> {
+        return super.loadData(db) as Result<PlaylistData>
+    }
+
+    val Items get() = ListProperty<Song, PlaylistItem>(
         getQuery = { playlistItemQueries.byPlaylistId(id) },
         getValue = { this.map { SongRef(it.song_id) } },
-        getSize = { playlistItemQueries.itemCount(id).executeAsOne().toInt() },
+        getSize = { playlistItemQueries.itemCount(id).executeAsOne() },
         addItem = { item, index ->
-            playlistItemQueries.insertItemAtIndex(id, item.id, index.toLong())
+            playlistItemQueries.insertItemAtIndex(id, item.id, index)
         },
         removeItem = { index ->
-            playlistItemQueries.removeItemAtIndex(id, index.toLong())
+            playlistItemQueries.removeItemAtIndex(id, index)
         },
         setItemIndex = { from, to ->
-            playlistItemQueries.updateItemIndex(from = from.toLong(), to = to.toLong(), playlist_id = id)
+            playlistItemQueries.updateItemIndex(from = from, to = to, playlist_id = id)
+        },
+        clearItems = { from_index ->
+            playlistItemQueries.clearItems(id, from_index)
         }
     )
     val ItemCount: Property<Int?> get() = SingleProperty(
         { playlistQueries.itemCountById(id) }, { item_count?.toInt() }, { playlistQueries.updateItemCountById(it?.toLong(), id) }
     )
-    val PlaylistType: Property<PlaylistTypeEnum?> get() = SingleProperty(
+    val TypeOfPlaylist: Property<PlaylistType?> get() = SingleProperty(
         { playlistQueries.playlistTypeById(id) },
-        { playlist_type?.let { PlaylistTypeEnum.values()[it.toInt()] } },
+        { playlist_type?.let { PlaylistType.values()[it.toInt()] } },
         { playlistQueries.updatePlaylistTypeById(it?.ordinal?.toLong(), id) }
     )
     val BrowseParams: Property<String?> get() = SingleProperty(
@@ -68,162 +96,32 @@ class PlaylistData(
     override var id: String,
     override var artist: Artist? = null,
 
-    var items: List<MediaItem>? = null,
+    var items: List<Song>? = null,
     var item_count: Int? = null,
-    var playlist_type: PlaylistTypeEnum? = null,
+    var playlist_type: PlaylistType? = null,
     var browse_params: String? = null,
     var total_duration: Long? = null,
     var year: Int? = null,
 
-    var custom_image_provider: MediaItemThumbnailProvider? = null,
-    var image_width: Float? = null,
-
-    var is_editable: Boolean? = null,
     var continuation: MediaItemLayout.Continuation? = null,
     var item_set_ids: List<String>? = null
 ): MediaItemData(), Playlist, MediaItem.DataWithArtist {
-    override fun getType(): MediaItemType = if (playlist_type == PlaylistTypeEnum.LOCAL) MediaItemType.PLAYLIST_LOC else MediaItemType.PLAYLIST_ACC
-}
+    fun isLocalPlaylist(): Boolean = playlist_type == PlaylistType.LOCAL
+    override fun getType(): MediaItemType = if (isLocalPlaylist()) MediaItemType.PLAYLIST_LOC else MediaItemType.PLAYLIST_ACC
 
-//abstract class Playlist protected constructor (id: String, context: PlatformContext): MediaItem(id, context), MediaItemWithLayouts {
-//    abstract override val data: PlaylistItemData
-//    val playlist_reg_entry: PlaylistDataRegistryEntry get() = registry_entry as PlaylistDataRegistryEntry
-//
-//    abstract val is_editable: Boolean?
-//    abstract val playlist_type: PlaylistType?
-//    abstract val total_duration: Long?
-//    abstract val item_count: Int?
-//
-//    override val feed_layouts: List<MediaItemLayout>?
-//        @Composable
-//        get() = getLayout()?.let { listOf(it) }
-//
-//    override suspend fun getFeedLayouts(): Result<List<MediaItemLayout>> =
-//        getGeneralValue {
-//            data.items?.let {
-//                listOf(MediaItemLayout(null, null, MediaItemLayout.Type.LIST, it))
-//            }
-//        }
-//
-//    @Composable
-//    fun getLayout(): MediaItemLayout? {
-//        checkNotDeleted()
-//        return remember(data.items) {
-//            data.items?.let {
-//                MediaItemLayout(null, null, MediaItemLayout.Type.LIST, it)
-//            }
-//        }
-//    }
-//
-//    open val items: MutableList<MediaItem>? get() = checkNotDeleted(data.items)
-//    val year: Int? get() = checkNotDeleted(data.year)
-//
-//    override fun getHolder(): PlaylistHolder = PlaylistHolder(this)
-//
-//    var is_deleted: Boolean = false
-//        private set
-//    fun checkNotDeleted() {
-//        check(!is_deleted) { toString() }
-//    }
-//    fun <T> checkNotDeleted(result: T): T {
-//        check(!is_deleted)
-//        return result
-//    }
-//
-//    open fun addItem(item: MediaItem) {
-//        checkNotDeleted()
-//        check(is_editable == true)
-//        data.items!!.add(item)
-//    }
-//
-//    open fun removeItem(index: Int) {
-//        checkNotDeleted()
-//        check(is_editable == true)
-//        data.items!!.removeAt(index)
-//    }
-//
-//    open fun moveItem(from: Int, to: Int) {
-//        checkNotDeleted()
-//        check(is_editable == true)
-//        data.items!!.add(to, data.items!!.removeAt(from))
-//    }
-//
-//    abstract suspend fun deletePlaylist(): Result<Unit>
-//    abstract suspend fun saveItems(): Result<Unit>
-//
-//    @Composable
-//    override fun getThumbnailHolder(): MediaItem {
-//        checkNotDeleted()
-//        var item: MediaItem by remember { mutableStateOf(this) }
-//        LaunchedEffect(playlist_reg_entry.image_item_uid) {
-//            val uid = playlist_reg_entry.image_item_uid
-//            item = if (uid != null) fromUid(uid)
-//            else this@Playlist
-//        }
-//        return item
-//    }
-//
-//    @Composable
-//    override fun PreviewSquare(params: MediaItemPreviewParams) {
-//        checkNotDeleted()
-//        PlaylistPreviewSquare(this, params)
-//    }
-//
-//    @Composable
-//    override fun PreviewLong(params: MediaItemPreviewParams) {
-//        checkNotDeleted()
-//        PlaylistPreviewLong(this, params)
-//    }
-//
-//    interface Listener {
-//        fun onReplaced(with: Playlist)
-//        fun onDeleted()
-//    }
-//    private val listeners: MutableList<Listener> = mutableListOf()
-//    fun addListener(listener: Listener) {
-//        checkNotDeleted()
-//        listeners.addUnique(listener)
-//    }
-//    fun removeListener(listener: Listener) {
-//        listeners.remove(listener)
-//    }
-//
-//    override fun getDefaultRegistryEntry(): PlaylistDataRegistryEntry = PlaylistDataRegistryEntry()
-//
-//    protected fun onDeleted() {
-//        checkNotDeleted()
-//
-//        if (pinned_to_home) {
-//            setPinnedToHome(false)
-//        }
-//
-//        is_deleted = true
-//        listeners.forEach { it.onDeleted() }
-//        listeners.clear()
-//    }
-//
-//    protected fun onReplaced(with: Playlist) {
-//        checkNotDeleted()
-//
-//        if (pinned_to_home) {
-//            var found = false
-//            val new_pinned = Settings.INTERNAL_PINNED_ITEMS.get<Set<String>>().map {
-//                if (it == uid) {
-//                    found = true
-//                    with.uid
-//                }
-//                else it
-//            }
-//
-//            check(found)
-//            Settings.INTERNAL_PINNED_ITEMS.set(new_pinned.toSet())
-//        }
-//
-//        is_deleted = true
-//
-//        for (listener in listeners) {
-//            listener.onReplaced(with)
-//        }
-//        listeners.clear()
-//    }
-//}
+    override fun getEmptyData(): PlaylistData =
+        PlaylistData(id, playlist_type = if (isLocalPlaylist()) PlaylistType.LOCAL else null)
+
+    override fun saveToDatabase(db: Database, apply_to_item: MediaItem) {
+        db.transaction { with(apply_to_item as Playlist) {
+            super.saveToDatabase(db, apply_to_item)
+
+            Items.overwriteItems(items ?: emptyList(), db)
+            ItemCount.set(item_count, db)
+            TypeOfPlaylist.set(playlist_type, db)
+            BrowseParams.set(browse_params, db)
+            TotalDuration.set(total_duration, db)
+            Year.set(year, db)
+        }}
+    }
+}

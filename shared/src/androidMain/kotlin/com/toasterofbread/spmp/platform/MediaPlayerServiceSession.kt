@@ -124,7 +124,7 @@ private fun formatMediaNotificationImage(
 @UnstableApi
 class MediaPlayerServiceSession: MediaSessionService() {
     private val coroutine_scope = CoroutineScope(Dispatchers.Main)
-    private val context = PlatformContext(this)
+    private lateinit var context: PlatformContext
     private lateinit var player: ExoPlayer
     private lateinit var media_session: MediaSession
     private lateinit var notification_builder: NotificationCompat.Builder
@@ -174,6 +174,8 @@ class MediaPlayerServiceSession: MediaSessionService() {
 
     override fun onCreate() {
         super.onCreate()
+
+        context = PlatformContext(this)
 
         initialiseSessionAndPlayer()
         createNotificationChannel()
@@ -251,8 +253,10 @@ class MediaPlayerServiceSession: MediaSessionService() {
                     else null
                 setLargeIcon(large_icon)
             }
-            setContentTitle(song?.title ?: "")
-            setContentText(song?.artist?.title ?: "")
+
+            val db = context.database
+            setContentTitle(song?.Title?.get(db) ?: "")
+            setContentText(song?.Artist?.get(db)?.Title?.get(db) ?: "")
         }
 
         val manager = getSystemService(NOTIFICATION_SERVICE) as NotificationManager

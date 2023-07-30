@@ -1,5 +1,7 @@
 package com.toasterofbread.spmp.model.mediaitem.artist
 
+import androidx.compose.runtime.Composable
+import androidx.compose.runtime.getValue
 import com.toasterofbread.Database
 import com.toasterofbread.spmp.model.mediaitem.AccountPlaylistRef
 import com.toasterofbread.spmp.model.mediaitem.ListProperty
@@ -14,78 +16,99 @@ import com.toasterofbread.spmp.model.mediaitem.toLocalisedYoutubeString
 import com.toasterofbread.spmp.resources.uilocalisation.LocalisedYoutubeString
 import com.toasterofbread.spmp.ui.component.mediaitemlayout.MediaItemLayout
 
-data class ArtistLayoutData(
-    var items: MutableList<MediaItem> = mutableListOf(),
-    var title: LocalisedYoutubeString? = null,
-    var subtitle: LocalisedYoutubeString? = null,
-    var type: MediaItemLayout.Type? = null,
-    var view_more: MediaItemLayout.ViewMore? = null,
-    var playlist: Playlist? = null
-) {
-    fun saveToDatabase(layout: ArtistLayout, db: Database) {
-        db.transaction {
-            with(layout) {
-                Items.overwriteItems(items, db)
-                Title.set(title, db)
-                Subtitle.set(subtitle, db)
-                Type.set(type, db)
-                ViewMore.set(view_more, db)
-                Playlist.set(playlist, db)
-            }
-        }
-    }
-}
+//data class ArtistLayoutData(
+//    var items: MutableList<MediaItem> = mutableListOf(),
+//    var title: LocalisedYoutubeString? = null,
+//    var subtitle: LocalisedYoutubeString? = null,
+//    var type: MediaItemLayout.Type? = null,
+//    var view_more: MediaItemLayout.ViewMore? = null,
+//    var playlist: Playlist? = null
+//) {
+//    fun saveToDatabase(layout: ArtistLayout, db: Database) {
+//        db.transaction {
+//            with(layout) {
+//                Items.overwriteItems(items, db)
+//                Title.set(title, db)
+//                Subtitle.set(subtitle, db)
+//                Type.set(type, db)
+//                ViewMore.set(view_more, db)
+//                Playlist.set(playlist, db)
+//            }
+//        }
+//    }
+//}
 
-open class ArtistLayout internal constructor(val layout_index: Long, val artist_id: String) {
+open class ArtistLayout internal constructor(var layout_index: Long?, val artist_id: String) {
+    @Composable
+    fun rememberMediaItemLayout(db: Database): MediaItemLayout {
+        val items: List<MediaItem>? by Items.observe(db)
+        val title: LocalisedYoutubeString? by Title.observe(db)
+        val subtitle: LocalisedYoutubeString? by Subtitle.observe(db)
+        val type: MediaItemLayout.Type? by Type.observe(db)
+        val view_more: MediaItemLayout.ViewMore? by ViewMore.observe(db)
+        val playlist: Playlist? by Playlist.observe(db)
+
+        return MediaItemLayout(
+            items ?: emptyList(),
+            title,
+            subtitle,
+            type,
+            view_more,
+            playlist?.id?.let { playlist_id ->
+                MediaItemLayout.Continuation(playlist_id, MediaItemLayout.Continuation.Type.PLAYLIST)
+            }
+        )
+    }
+
     val Items get() = ListProperty(
         getValue = {
             this.map { item ->
                 MediaItemType.values()[item.item_type.toInt()].referenceFromId(item.item_id)
             }
         },
-        getQuery = { artistLayoutItemQueries.byLayoutIndex(artist_id, layout_index) },
-        getSize = { artistLayoutItemQueries.itemCount(artist_id, layout_index).executeAsOne() },
+        getQuery = { artistLayoutItemQueries.byLayoutIndex(artist_id, layout_index!!) },
+        getSize = { artistLayoutItemQueries.itemCount(artist_id, layout_index!!).executeAsOne() },
         addItem = { item, index ->
-            artistLayoutItemQueries.insertItemAtIndex(artist_id, layout_index, item.id, item.getType().ordinal.toLong(), index)
+            artistLayoutItemQueries.insertItemAtIndex(artist_id, layout_index!!, item.id, item.getType().ordinal.toLong(), index)
         },
         removeItem = { index ->
-            artistLayoutItemQueries.removeItemAtIndex(artist_id, layout_index, index)
+            artistLayoutItemQueries.removeItemAtIndex(artist_id, layout_index!!, index)
         },
         setItemIndex = { from, to ->
-            artistLayoutItemQueries.updateItemIndex(from = from, to = to, artist_id = artist_id, layout_index = layout_index)
+            artistLayoutItemQueries.updateItemIndex(from = from, to = to, artist_id = artist_id, layout_index = layout_index!!)
         },
         clearItems = { from_index ->
-            artistLayoutItemQueries.clearItems(artist_id, layout_index, from_index)
+            artistLayoutItemQueries.clearItems(artist_id, layout_index!!, from_index)
         }
     )
 
     val Title: Property<LocalisedYoutubeString?> get() = SingleProperty(
-        { artistLayoutQueries.titleByIndex(artist_id, layout_index) },
+        { artistLayoutQueries.titleByIndex(artist_id, layout_index!!) },
         { title_type.toLocalisedYoutubeString(title_key) },
-        { artistLayoutQueries.updateTitleByIndex(it?.type?.ordinal?.toLong(), it?.key, artist_id, layout_index) }
+        { artistLayoutQueries.updateTitleByIndex(it?.type?.ordinal?.toLong(), it?.key, artist_id, layout_index!!) }
     )
     val Subtitle: Property<LocalisedYoutubeString?> get() = SingleProperty(
-        { artistLayoutQueries.subtitleByIndex(artist_id, layout_index) },
+        { artistLayoutQueries.subtitleByIndex(artist_id, layout_index!!) },
         { subtitle_type.toLocalisedYoutubeString(subtitle_key) },
-        { artistLayoutQueries.updateSubtitleByIndex(it?.type?.ordinal?.toLong(), it?.key, artist_id, layout_index) }
+        { artistLayoutQueries.updateSubtitleByIndex(it?.type?.ordinal?.toLong(), it?.key, artist_id, layout_index!!) }
     )
     val Type: Property<MediaItemLayout.Type?> get() = SingleProperty(
-        { artistLayoutQueries.typeByIndex(artist_id, layout_index) },
+        { artistLayoutQueries.typeByIndex(artist_id, layout_index!!) },
         { type?.let { MediaItemLayout.Type.values()[it.toInt()] } },
-        { artistLayoutQueries.updateTypeByIndex(it?.ordinal?.toLong(), artist_id, layout_index) }
+        { artistLayoutQueries.updateTypeByIndex(it?.ordinal?.toLong(), artist_id, layout_index!!) }
     )
     val ViewMore: Property<MediaItemLayout.ViewMore?> get() = SingleProperty(
-        { artistLayoutQueries.viewMoreByIndex(artist_id, layout_index) },
+        { artistLayoutQueries.viewMoreByIndex(artist_id, layout_index!!) },
         { view_more_type?.let { ViewMoreType.values()[it.toInt()].getViewMore(view_more_data!!) } },
         { view_more ->
             val serialised = view_more?.let { ViewMoreType.fromViewMore(view_more) }
-            artistLayoutQueries.updateViewMoreByIndex(serialised?.first, serialised?.second, artist_id, layout_index)
+            artistLayoutQueries.updateViewMoreByIndex(serialised?.first, serialised?.second, artist_id, layout_index!!)
         }
     )
     val Playlist: Property<Playlist?> get() = SingleProperty(
-        { artistLayoutQueries.playlistIdByIndex(artist_id, layout_index) },
+        { artistLayoutQueries.playlistIdByIndex(artist_id, layout_index!!) },
         { playlist_id?.let { AccountPlaylistRef(it) } },
-        { artistLayoutQueries.updatePlaylistIdByIndex(it?.id, artist_id, layout_index) }
+        { artistLayoutQueries.updatePlaylistIdByIndex(it?.id, artist_id, layout_index!!) }
     )
 
     enum class ViewMoreType {

@@ -14,6 +14,7 @@ import androidx.compose.runtime.*
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.unit.*
+import com.toasterofbread.Database
 import com.toasterofbread.spmp.PlayerService
 import com.toasterofbread.spmp.api.HomeFeedLoadResult
 import com.toasterofbread.spmp.api.cast
@@ -368,7 +369,7 @@ class PlayerStateImpl(private val context: PlatformContext): PlayerState(null, n
     }
 
     override fun openMediaItem(item: MediaItem, from_current: Boolean) {
-        if (item is Artist && item.is_for_item) {
+        if (item is Artist && item.IsForItem.get(context.database)) {
             return
         }
         openPage(PlayerOverlayPage.MediaItemPage(item.getHolder()), from_current)
@@ -545,17 +546,16 @@ class PlayerStateImpl(private val context: PlatformContext): PlayerState(null, n
             feed_load_lock.unlock()
         }
 
-        val result = loadFeedLayouts(min_rows, allow_cached, filter_params, if (continue_feed) feed_continuation else null)
+        val result = loadFeedLayouts(
+            min_rows,
+            allow_cached,
+            filter_params,
+            if (continue_feed) feed_continuation else null,
+            context.database
+        )
         
         result.fold(
             { data ->
-                val square_item_max_text_rows: Int = Settings.KEY_FEED_SQUARE_PREVIEW_TEXT_LINES.get()
-                val itemSizeProvider: @Composable () -> DpSize = { getMainPageItemSize() }
-                for (layout in data.layouts) {
-                    layout.itemSizeProvider = itemSizeProvider
-                    layout.square_item_max_text_rows = square_item_max_text_rows
-                }
-
                 if (continue_feed) {
                     main_page_layouts = (main_page_layouts ?: emptyList()) + data.layouts
                 } else {
@@ -670,8 +670,10 @@ private suspend fun loadFeedLayouts(
     allow_cached: Boolean,
     params: String?,
     continuation: String? = null,
+    db: Database
 ): Result<HomeFeedLoadResult> {
     val result = getHomeFeed(
+        db,
         allow_cached = allow_cached,
         min_rows = min_rows,
         params = params,

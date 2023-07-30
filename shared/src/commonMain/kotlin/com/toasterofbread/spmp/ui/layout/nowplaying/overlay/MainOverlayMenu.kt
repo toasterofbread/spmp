@@ -22,6 +22,7 @@ import androidx.compose.ui.graphics.ImageBitmap
 import androidx.compose.ui.text.input.ImeAction
 import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
+import com.toasterofbread.spmp.model.mediaitem.Artist
 import com.toasterofbread.spmp.model.mediaitem.MEDIA_ITEM_RELATED_CONTENT_ICON
 import com.toasterofbread.spmp.model.mediaitem.Song
 import com.toasterofbread.spmp.model.mediaitem.observeAsState
@@ -51,9 +52,11 @@ class MainOverlayMenu(
         getSeekState: () -> Any,
         getCurrentSongThumb: () -> ImageBitmap?
     ) {
-        val song = getSong()
-        val player = LocalPlayerState.current
         val db = SpMp.context.database
+        val player = LocalPlayerState.current
+        val song = getSong()
+
+        val song_artist: Artist? by song.Artist.observe(db)
 
         val download_progress = remember { Animatable(0f) }
         var download_progress_target: Float by remember { mutableStateOf(0f) }
@@ -116,8 +119,7 @@ class MainOverlayMenu(
                 .size(button_size)
                 .padding(8.dp)
 
-            val artist = song.artist
-            if (artist != null) {
+            song_artist?.also { artist ->
                 MediaItemPreviewLong(artist, contentColour = { Color.White })
             }
 
@@ -156,7 +158,7 @@ class MainOverlayMenu(
             Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.spacedBy(10.dp, Alignment.End)) {
                 Box(
                     button_modifier.clickable {
-                        edited_song_title = song.original_title!!
+                        edited_song_title = song.OriginalTitle.get(db) ?: ""
                     },
                     contentAlignment = Alignment.Center
                 ) {

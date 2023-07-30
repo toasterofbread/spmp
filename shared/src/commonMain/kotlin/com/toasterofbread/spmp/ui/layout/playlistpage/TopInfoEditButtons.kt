@@ -32,11 +32,13 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.unit.dp
+import com.toasterofbread.spmp.api.Api
 import com.toasterofbread.spmp.api.getOrReport
-import com.toasterofbread.spmp.model.mediaitem.LocalPlaylist
+import com.toasterofbread.spmp.model.mediaitem.MediaItem
 import com.toasterofbread.spmp.model.mediaitem.MediaItemThumbnailProvider
 import com.toasterofbread.spmp.model.mediaitem.Playlist
-import com.toasterofbread.spmp.model.mediaitem.observeAsState
+import com.toasterofbread.spmp.model.mediaitem.playlist.LocalPlaylistEditor
+import com.toasterofbread.spmp.model.mediaitem.playlist.PlaylistEditor.Companion.rememberEditorOrNull
 import com.toasterofbread.spmp.model.mediaitem.toThumbnailProvider
 import com.toasterofbread.spmp.platform.composable.PlatformAlertDialog
 import com.toasterofbread.spmp.resources.getString
@@ -47,30 +49,18 @@ import kotlinx.coroutines.launch
 
 @Composable
 internal fun TopInfoEditButtons(playlist: Playlist, accent_colour: Color, modifier: Modifier = Modifier, onFinished: () -> Unit) {
-    var playlist_image_provider by SpMp.context.database.playlistQueries
-        .customImageProviderById(playlist.id)
-        .observeAsState(
-            mapValue = {
-                val provider = it.executeAsOneOrNull()
-                if (provider?.custom_image_url_a != null)
-                    MediaItemThumbnailProvider(provider.custom_image_url_a, provider.custom_image_url_b)
-                else null
-            },
-            onExternalChange = { provider ->
-                SpMp.context.database.playlistQueries.updateCustomImageProviderById(
-                    provider?.url_a,
-                    provider?.url_b,
-                    playlist.id
-                )
-            }
-        )
+    val db = SpMp.context.database
+    val player = LocalPlayerState.current
 
+    var playlist_image_provider: MediaItemThumbnailProvider? by playlist.CustomImageProvider.observe(db)
+    val playlist_editor = playlist.rememberEditorOrNull(db)
+    
     Row(modifier) {
         IconButton(onFinished) {
             Icon(Icons.Default.Done, null)
         }
 
-        if (playlist.is_editable == true) {
+        if (playlist_editor != null) {
             var show_thumb_selection by remember { mutableStateOf(false) }
 
             IconButton({ show_thumb_selection = true }) {
@@ -97,27 +87,28 @@ internal fun TopInfoEditButtons(playlist: Playlist, accent_colour: Color, modifi
                     },
                     title = { Text(getString("playlist_select_image"), style = MaterialTheme.typography.headlineSmall) },
                     text = {
-                        val player = LocalPlayerState.current
-                        val playlist_items = playlist.items ?: emptyList()
+                        val playlist_items: List<MediaItem>? by playlist.Items.observe(db)
+                        playlist_items.also { items ->
+                            if (items.isNullOrEmpty()) {
+                                Text(getString("playlist_empty"))
+                            }
+                            else {
+                                CompositionLocalProvider(LocalPlayerState provides remember {
+                                    player.copy(
+                                        onClickedOverride = { item, _ ->
+                                            playlist_image_provider = db.mediaItemQueries
+                                                .thumbnailProviderById(item.id)
+                                                .executeAsOneOrNull()
+                                                ?.toThumbnailProvider()
 
-                        if (playlist_items.isEmpty()) {
-                            Text(getString("playlist_empty"))
-                        } else {
-                            CompositionLocalProvider(LocalPlayerState provides remember {
-                                player.copy(
-                                    onClickedOverride = { item, _ ->
-                                        playlist_image_provider = SpMp.context.database.mediaItemQueries
-                                            .thumbnailProviderById(item.id)
-                                            .executeAsOneOrNull()
-                                            ?.toThumbnailProvider()
-
-                                        show_thumb_selection = false
-                                    }
-                                )
-                            }) {
-                                LazyColumn(verticalArrangement = Arrangement.spacedBy(10.dp)) {
-                                    items(playlist_items) { item ->
-                                        MediaItemPreviewLong(item)
+                                            show_thumb_selection = false
+                                        }
+                                    )
+                                }) {
+                                    LazyColumn(verticalArrangement = Arrangement.spacedBy(10.dp)) {
+                                        items(items) { item ->
+                                            MediaItemPreviewLong(item)
+                                        }
                                     }
                                 }
                             }
@@ -127,8 +118,10 @@ internal fun TopInfoEditButtons(playlist: Playlist, accent_colour: Color, modifi
             }
         }
 
-        if (playlist is LocalPlaylist) {
-            val coroutine_scope = rememberCoroutineScope()
+        val conversion_coroutine_scope = rememberCoroutineScope()
+        val ytm_auth = Api.ytm_auth.initialisedOrNull()
+
+        if (playlist_editor is LocalPlaylistEditor && ytm_auth != null) {
             var converting by remember { mutableStateOf(false) }
 
             Spacer(Modifier.fillMaxWidth().weight(1f))
@@ -138,9 +131,9 @@ internal fun TopInfoEditButtons(playlist: Playlist, accent_colour: Color, modifi
                     if (converting) {
                         return@Button
                     }
-                    coroutine_scope.launch {
+                    conversion_coroutine_scope.launch {
                         converting = true
-                        playlist.convertToAccountPlaylist().getOrReport("ConvertPlaylistToAccountPlaylist")
+                        playlist_editor.convertToAccountPlaylist(ytm_auth).getOrReport("ConvertPlaylistToAccountPlaylist")
                         converting = false
                     }
                 },

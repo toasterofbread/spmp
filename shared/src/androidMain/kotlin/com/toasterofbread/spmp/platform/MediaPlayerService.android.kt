@@ -27,6 +27,13 @@ import androidx.media3.common.MediaItem as ExoMediaItem
 
 @UnstableApi
 actual open class MediaPlayerService {
+    actual var context: PlatformContext by Delegates.notNull()
+    private lateinit var player: MediaController
+
+    fun init(context: PlatformContext, player: MediaController) {
+        this.context = context
+        this.player = player
+    }
 
     actual interface UndoRedoAction {
         actual fun undo()
@@ -84,8 +91,6 @@ actual open class MediaPlayerService {
         }
     }
 
-    private lateinit var player: MediaController
-//    private lateinit var cache: Cache
     private val listeners: MutableList<Listener> = mutableListOf()
 
     // Undo
@@ -112,7 +117,6 @@ actual open class MediaPlayerService {
     }
 
     actual var session_started: Boolean by mutableStateOf(false)
-    actual var context: PlatformContext by Delegates.notNull()
 
     actual val state: MediaPlayerState get() = convertState(player.playbackState)
     actual val is_playing: Boolean get() = player.isPlaying
@@ -383,8 +387,7 @@ actual open class MediaPlayerService {
             controller_future.addListener(
                 {
                     val controller = instance ?: cls.newInstance()
-                    controller.player = controller_future.get()
-                    controller.context = PlatformContext(ctx)
+                    controller.init(PlatformContext(ctx), controller_future.get())
                     if (instance == null) {
                         controller.onCreate()
                     }

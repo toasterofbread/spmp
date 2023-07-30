@@ -8,7 +8,6 @@ import com.toasterofbread.composesettings.ui.item.SettingsValueState
 import com.toasterofbread.spmp.model.Settings
 import com.toasterofbread.spmp.model.YoutubeMusicAuthInfo
 import com.toasterofbread.spmp.model.mediaitem.Artist
-import com.toasterofbread.spmp.model.mediaitem.MediaItemPreviewParams
 import com.toasterofbread.spmp.platform.ProjectPreferences
 import com.toasterofbread.spmp.resources.getString
 import com.toasterofbread.spmp.ui.component.mediaitempreview.MediaItemPreviewLong
@@ -18,7 +17,7 @@ internal fun getYtmAuthItem(ytm_auth: SettingsValueState<YoutubeMusicAuthInfo>, 
     SettingsLargeToggleItem(
         object : BasicSettingsValueState<Boolean> {
             override var value: Boolean
-                get() = ytm_auth.value.initialised
+                get() = ytm_auth.value.is_initialised
                 set(value) {
                     if (!value) {
                         ytm_auth.value = YoutubeMusicAuthInfo()

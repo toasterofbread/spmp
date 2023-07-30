@@ -17,7 +17,6 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.unit.IntOffset
 import androidx.compose.ui.unit.dp
-import com.toasterofbread.spmp.model.mediaitem.MediaItemPreviewParams
 import com.toasterofbread.spmp.model.mediaitem.Song
 import com.toasterofbread.spmp.resources.getString
 import com.toasterofbread.spmp.resources.uilocalisation.durationToString
@@ -60,14 +59,17 @@ class QueueTabItem(val song: Song, val key: Int) {
         var delta = 0L
         val indices = if (index < playing_index) index + 1 .. playing_index else playing_index until index
         for (i in indices) {
-            delta += service.getSong(i)?.duration ?: return null
+            val duration =
+                service.getSong(i)?.Duration?.observe(SpMp.context.database)?.value
+                ?: return null
+            delta += duration
         }
 
         return remember(delta) {
             (
-                    if (index < playing_index) getString("lpm_song_played_\$x_ago")
-                    else getString("lpm_song_playing_in_\$x")
-                    ).replace("\$x", durationToString(delta, true))
+                if (index < playing_index) getString("lpm_song_played_\$x_ago")
+                else getString("lpm_song_playing_in_\$x")
+            ).replace("\$x", durationToString(delta, true))
         }
     }
 

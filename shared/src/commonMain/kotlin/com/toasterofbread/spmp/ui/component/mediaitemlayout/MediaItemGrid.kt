@@ -19,7 +19,6 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.DpSize
 import androidx.compose.ui.unit.dp
 import com.toasterofbread.spmp.model.mediaitem.MediaItemHolder
-import com.toasterofbread.spmp.model.mediaitem.MediaItemPreviewParams
 import com.toasterofbread.spmp.model.mediaitem.rememberFilteredItems
 import com.toasterofbread.spmp.resources.uilocalisation.LocalisedYoutubeString
 import com.toasterofbread.spmp.ui.component.mediaitempreview.MEDIA_ITEM_PREVIEW_LONG_HEIGHT
@@ -37,6 +36,8 @@ fun MediaItemGrid(
     alt_style: Boolean = false,
     apply_filter: Boolean = false,
     multiselect_context: MediaItemMultiSelectContext? = null,
+    square_item_max_text_rows: Int? = null,
+    itemSizeProvider: @Composable () -> DpSize = { getDefaultMediaItemPreviewSize() },
     startContent: (LazyGridScope.() -> Unit)? = null
 ) {
     MediaItemGrid(
@@ -48,8 +49,8 @@ fun MediaItemGrid(
         layout.view_more,
         alt_style = alt_style,
         apply_filter = apply_filter,
-        square_item_max_text_rows = layout.square_item_max_text_rows,
-        itemSizeProvider = layout.itemSizeProvider,
+        square_item_max_text_rows = square_item_max_text_rows,
+        itemSizeProvider = itemSizeProvider,
         multiselect_context = multiselect_context,
         startContent = startContent
     )

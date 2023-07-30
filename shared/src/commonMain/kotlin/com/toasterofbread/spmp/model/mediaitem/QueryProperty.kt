@@ -1,16 +1,29 @@
 package com.toasterofbread.spmp.model.mediaitem
 
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.MutableState
 import androidx.compose.runtime.State
+import androidx.compose.runtime.derivedStateOf
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
 import app.cash.sqldelight.Query
 import com.toasterofbread.Database
+import kotlin.properties.Delegates
 
 interface Property<T> {
     fun get(db: Database): T
     fun set(value: T, db: Database)
     @Composable
     fun observe(db: Database): MutableState<T>
+
+    @Composable
+    fun <V> observeOn(db: Database, getProperty: (T) -> Property<V>?): V? {
+        val value: T by observe(db)
+        val property: Property<V>? = getProperty(value)
+        return property?.observe(db)?.value
+    }
 }
 
 internal open class PropertyImpl<T, Q: Query<*>>(
@@ -29,30 +42,50 @@ internal open class PropertyImpl<T, Q: Query<*>>(
         )
 }
 
-internal class SingleProperty<T, Q: Query<QueryValue>, QueryValue: Any>(
-    getQuery: Database.() -> Q,
-    getValue: QueryValue.() -> T,
+internal class SingleProperty<T, Q: Any>(
+    getQuery: Database.() -> Query<Q>,
+    getValue: Q.() -> T,
     setValue: Database.(T) -> Unit
-): PropertyImpl<T, Q>(
+): PropertyImpl<T, Query<Q>>(
     getQuery, { getValue(executeAsOne()) }, setValue
 )
 
-class ListProperty<T, Q: Query<QueryValue>, QueryValue: Any>(
-    private val getQuery: Database.() -> Q,
-    private val getValue: List<QueryValue>.() -> List<T>,
+class ListProperty<T, Q: Any>(
+    private val getQuery: Database.() -> Query<Q>,
+    private val getValue: List<Q>.() -> List<T>,
     val getSize: Database.() -> Long,
     private val addItem: Database.(item: T, index: Long) -> Unit,
     private val removeItem: Database.(index: Long) -> Unit,
     private val setItemIndex: Database.(from: Long, to: Long) -> Unit,
-    val clearItems: Database.(from_index: Long) -> Unit
+    val clearItems: Database.(from_index: Long) -> Unit,
+    private val prerequisite: Property<Boolean>? = null
 ) {
-    fun get(db: Database): List<T> = getValue(getQuery(db).executeAsList())
+    fun get(db: Database): List<T>? {
+        if (prerequisite?.get(db) == false) {
+            return null
+        }
+        return getValue(getQuery(db).executeAsList())
+    }
+
     @Composable
-    fun observe(db: Database): State<List<T>> =
-        getQuery(db).observeAsState(
+    fun observe(db: Database): State<List<T>?> {
+        val value_state = getQuery(db).observeAsState(
             { getValue(it.executeAsList()) },
             null
         )
+
+        if (prerequisite != null) {
+            val pr: Boolean by prerequisite.observe(db)
+            return remember {
+                derivedStateOf {
+                    if (!pr) null
+                    else value_state.value
+                }
+            }
+        }
+
+        return value_state
+    }
 
     fun overwriteItems(items: List<T>, db: Database) {
         with(db) { transaction {
@@ -63,12 +96,14 @@ class ListProperty<T, Q: Query<QueryValue>, QueryValue: Any>(
         }}
     }
 
-    fun addItem(item: T, index: Int, db: Database) {
-        require(index >= 0)
+    fun addItem(item: T, index: Int?, db: Database) {
+        if (index != null) {
+            require(index >= 0)
+        }
 
         with(db) { transaction {
             val size = getSize(db)
-            if (index > size) {
+            if (index == null || index > size) {
                 addItem(item, size)
             }
             else {

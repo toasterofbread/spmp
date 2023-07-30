@@ -21,7 +21,6 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.alpha
 import androidx.compose.ui.unit.dp
 import com.toasterofbread.spmp.model.mediaitem.MediaItemHolder
-import com.toasterofbread.spmp.model.mediaitem.setPinnedToHome
 import com.toasterofbread.spmp.ui.component.mediaitemlayout.MediaItemGrid
 
 @Composable
@@ -49,11 +48,15 @@ fun MainPageScrollableTopContent(
                             Box(Modifier.size(30.dp), contentAlignment = Alignment.Center) {
                                 Icon(Icons.Filled.PushPin, null, Modifier.alpha(0.5f))
                             }
-                            IconButton({
-                                for (item in pinned_items.toList()) {
-                                    item.item?.setPinnedToHome(false)
-                                }
-                            }, Modifier.size(30.dp)) {
+                            IconButton(
+                                {
+                                    SpMp.context.database.transaction {
+                                        for (item in pinned_items.toList()) {
+                                            item.item?.PinnedToHome?.set(false, SpMp.context.database)
+                                        }
+                                    }
+                                },
+                                Modifier.size(30.dp)) {
                                 Icon(Icons.Filled.CleaningServices, null)
                             }
                         }

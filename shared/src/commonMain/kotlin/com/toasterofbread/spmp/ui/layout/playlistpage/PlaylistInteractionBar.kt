@@ -30,6 +30,8 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import com.toasterofbread.spmp.model.mediaitem.MediaItem
 import com.toasterofbread.spmp.model.mediaitem.Playlist
+import com.toasterofbread.spmp.model.mediaitem.playlist.PlaylistEditor
+import com.toasterofbread.spmp.model.mediaitem.playlist.PlaylistEditor.Companion.rememberEditorOrNull
 import com.toasterofbread.spmp.platform.LargeDropdownMenu
 import com.toasterofbread.spmp.ui.component.MultiselectAndMusicTopBar
 import com.toasterofbread.spmp.ui.component.multiselect.MediaItemMultiSelectContext
@@ -37,6 +39,7 @@ import com.toasterofbread.spmp.ui.component.multiselect.MediaItemMultiSelectCont
 @Composable
 internal fun InteractionBar(
     playlist: Playlist,
+    playlist_editor: PlaylistEditor?,
     reorderable: Boolean,
     setReorderable: (Boolean) -> Unit,
     filter: String?,
@@ -79,7 +82,7 @@ internal fun InteractionBar(
 
                     Spacer(Modifier.fillMaxWidth().weight(1f))
 
-                    if (playlist.is_editable == true) {
+                    if (playlist_editor != null) {
                         // Reorder
                         IconButton({ setReorderable(!reorderable) }) {
                             Crossfade(reorderable) { reordering ->

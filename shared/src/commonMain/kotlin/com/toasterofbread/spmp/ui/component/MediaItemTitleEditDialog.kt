@@ -17,7 +17,7 @@ import com.toasterofbread.spmp.resources.getString
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun MediaItemTitleEditDialog(item: MediaItem, modifier: Modifier = Modifier, close: () -> Unit) {
-    var edited_title: String by remember { mutableStateOf(item.title ?: "") }
+    var edited_title: String by remember { mutableStateOf(item.Title.get(SpMp.context.database) ?: "") }
     PlatformAlertDialog(
         close,
         { Button({

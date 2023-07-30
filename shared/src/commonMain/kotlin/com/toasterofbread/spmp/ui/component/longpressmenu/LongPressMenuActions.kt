@@ -38,7 +38,7 @@ internal fun ColumnScope.LongPressMenuInfoActions(data: LongPressMenuData, getAc
     // Share
     if (SpMp.context.canShare()) {
         LongPressMenuActionProvider.ActionButton(Icons.Filled.Share, getString("lpm_action_share"), getAccentColour, onClick = {
-            SpMp.context.shareText(data.item.getURL(), if (data.item is Song) data.item.title else null)
+            SpMp.context.shareText(data.item.getURL(), if (data.item is Song) data.item.Title.get(SpMp.context.database) else null)
         }, onAction = onAction)
     }
 

@@ -92,18 +92,17 @@ fun ThumbnailRow(
     setThemeColour: (Color?) -> Unit,
     getSeekState: () -> Float
 ) {
-    val player = LocalPlayerState.current
+    val db = SpMp.context.database
     val expansion = LocalNowPlayingExpansion.current
+    val player = LocalPlayerState.current
     val current_song = player.status.m_song
 
-    val thumbnail_rounding: Int? = current_song?.id?.let { current_id ->
-        SpMp.context.database.songQueries
-            .thumbnailRoundingById(current_id)
-            .observeAsState(
-                { it.executeAsOne().thumbnail_rounding?.toInt() }, null
-            )
-            .value
+    val song_title: String? = current_song?.Title?.observe(db)?.value
+    val song_artist_title: String? = current_song?.Artist?.observeOn(db) {
+        it?.Title
     }
+
+    val thumbnail_rounding: Int? = current_song?.ThumbnailRounding?.observe(db)?.value
 
     var overlay_menu by player.np_overlay_menu
     var current_thumb_image: ImageBitmap? by remember { mutableStateOf(null) }
@@ -259,13 +258,13 @@ fun ThumbnailRow(
 
             Column(Modifier.fillMaxSize().weight(1f), verticalArrangement = Arrangement.SpaceEvenly) {
                 Text(
-                    current_song?.title ?: "",
+                    song_title ?: "",
                     maxLines = 1,
                     color = getNPOnBackground(),
                     overflow = TextOverflow.Ellipsis
                 )
                 Text(
-                    current_song?.artist?.title ?: "",
+                    song_artist_title ?: "",
                     maxLines = 1,
                     color = getNPOnBackground(),
                     overflow = TextOverflow.Ellipsis,

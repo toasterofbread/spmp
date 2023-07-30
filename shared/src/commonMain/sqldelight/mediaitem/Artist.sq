@@ -7,6 +7,7 @@ CREATE TABLE Artist (
     --
 
     subscribed INTEGER,
+    is_for_item INTEGER,
 
     FOREIGN KEY (id) REFERENCES MediaItem(id)
 );
@@ -14,10 +15,13 @@ CREATE TABLE Artist (
 byId: SELECT * FROM Artist WHERE id == ?;
 
 subscribeChannelIdById: SELECT subscribe_channel_id FROM Artist WHERE id == :id;
-updateSubscribeChannelIdById: UPDATE Artist SET subscribe_channel_id = :value WHERE id == :id;
+updateSubscribeChannelIdById: UPDATE Artist SET subscribe_channel_id = :subscribe_channel_id WHERE id == :id;
 
 subscriberCountById: SELECT subscriber_count FROM Artist WHERE id == :id;
-updateSubscriberCountById: UPDATE Artist SET subscriber_count = :value WHERE id == :id;
+updateSubscriberCountById: UPDATE Artist SET subscriber_count = :subscriber_count WHERE id == :id;
 
 subscribedById: SELECT subscribed FROM Artist WHERE id == :id;
-updateSubscribedById: UPDATE Artist SET subscribed = :value WHERE id == :id;
+updateSubscribedById: UPDATE Artist SET subscribed = :subscribed WHERE id == :id;
+
+isForItemById: SELECT is_for_item FROM Artist WHERE id == :id;
+updateIsForItemById: UPDATE Artist SET is_for_item = :is_for_item WHERE id == :id;

@@ -28,8 +28,6 @@ import androidx.compose.ui.unit.coerceAtLeast
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.times
 import com.toasterofbread.spmp.model.mediaitem.Song
-import com.toasterofbread.spmp.model.mediaitem.observeThumbnailProvider
-import com.toasterofbread.spmp.model.mediaitem.toThumbnailProvider
 import com.toasterofbread.spmp.platform.composeScope
 import com.toasterofbread.spmp.ui.layout.mainpage.MINIMISED_NOW_PLAYING_HEIGHT_DP
 import com.toasterofbread.spmp.ui.layout.mainpage.MINIMISED_NOW_PLAYING_V_PADDING_DP
@@ -51,7 +49,9 @@ internal const val SEEK_BAR_GRADIENT_OVERFLOW_RATIO = 0.3f
 
 @Composable
 fun ColumnScope.NowPlayingMainTab() {
+    val db = SpMp.context.database
     val player = LocalPlayerState.current
+
     val current_song: Song? = player.status.m_song
     val expansion = LocalNowPlayingExpansion.current
 
@@ -60,7 +60,7 @@ fun ColumnScope.NowPlayingMainTab() {
         theme_colour = value
 
         current_song?.id?.also { song_id ->
-            SpMp.context.database.mediaItemQueries.updateThemeColourById(theme_colour?.toArgb()?.toLong(), song_id)
+            db.mediaItemQueries.updateThemeColourById(theme_colour?.toArgb()?.toLong(), song_id)
         }
     }
 
@@ -78,16 +78,8 @@ fun ColumnScope.NowPlayingMainTab() {
         if (song == null) {
             theme_colour = null
         }
-        else if (song.theme_colour != null) {
-            theme_colour = song.theme_colour
-        }
         else {
-            val song_theme = SpMp.context.database.mediaItemQueries
-                .themeColourById(song.id)
-                .executeAsOne()
-                .theme_colour
-                ?.let { Color(it) }
-
+            val song_theme = song.ThemeColour.get(db)
             if (song_theme != null) {
                 theme_colour = song_theme
             }

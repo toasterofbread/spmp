@@ -7,6 +7,7 @@ import com.toasterofbread.spmp.api.Api.Companion.ytUrl
 import com.toasterofbread.spmp.model.mediaitem.Artist
 import com.toasterofbread.spmp.model.mediaitem.SongLikedStatus
 import com.toasterofbread.spmp.model.mediaitem.toLong
+import com.toasterofbread.utils.lazyAssert
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
 import okhttp3.HttpUrl.Companion.toHttpUrl
@@ -23,7 +24,9 @@ class ArtistBrowseResponse(val header: Header) {
 }
 
 suspend fun isSubscribedToArtist(artist: Artist): Result<Boolean> = withContext(Dispatchers.IO) {
-    check(!artist.is_for_item)
+    lazyAssert {
+        !artist.IsForItem.get(SpMp.context.database)
+    }
 
     val request: Request = Request.Builder()
         .ytUrl("/youtubei/v1/browse")

@@ -241,7 +241,7 @@ class RadioInstance(
     private fun formatContinuationResult(result: Result<List<Song>>): Result<List<Song>> =
         result.fold(
             { songs ->
-                val filtered = songs.filter { !isMediaItemHidden(it) }
+                val filtered = songs.filter { !isMediaItemHidden(it, database) }
                 Result.success(
                     if (state.shuffle) filtered.shuffled()
                     else filtered

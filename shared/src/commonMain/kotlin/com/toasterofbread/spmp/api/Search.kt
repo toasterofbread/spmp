@@ -12,8 +12,11 @@ import com.toasterofbread.spmp.api.model.NavigationEndpoint
 import com.toasterofbread.spmp.api.model.TextRuns
 import com.toasterofbread.spmp.api.model.YoutubeiShelf
 import com.toasterofbread.spmp.model.mediaitem.Artist
+import com.toasterofbread.spmp.model.mediaitem.ArtistData
 import com.toasterofbread.spmp.model.mediaitem.Playlist
+import com.toasterofbread.spmp.model.mediaitem.PlaylistData
 import com.toasterofbread.spmp.model.mediaitem.Song
+import com.toasterofbread.spmp.model.mediaitem.SongData
 import com.toasterofbread.spmp.model.mediaitem.enums.MediaItemType
 import com.toasterofbread.spmp.model.mediaitem.enums.PlaylistType
 import com.toasterofbread.spmp.model.mediaitem.enums.SongType
@@ -115,9 +118,9 @@ suspend fun searchYoutubeMusic(query: String, params: String?): Result<SearchRes
         if (card != null) {
             category_layouts.add(Pair(
                 MediaItemLayout(
+                    mutableListOf(card.getMediaItem()),
                     LocalisedYoutubeString.Type.SEARCH_PAGE.create(card.header.musicCardShelfHeaderBasicRenderer!!.title!!.first_text),
                     null,
-                    items = mutableListOf(card.getMediaItem()), 
                     type = MediaItemLayout.Type.CARD
                 ),
                 null
@@ -126,17 +129,17 @@ suspend fun searchYoutubeMusic(query: String, params: String?): Result<SearchRes
         }
 
         val shelf = category.value.musicShelfRenderer ?: continue
-        val items = shelf.contents?.mapNotNull { it.toMediaItem(hl)?.first }?.toMutableList() ?: continue
+        val items = shelf.contents?.mapNotNull { it.toMediaItemData(hl)?.first }?.toMutableList() ?: continue
         val search_params = if (category.index == 0) null else chips[category.index - 1].chipCloudChipRenderer.navigationEndpoint.searchEndpoint!!.params
 
         category_layouts.add(Pair(
-            MediaItemLayout(LocalisedYoutubeString.Type.SEARCH_PAGE.create(shelf.title!!.first_text), null, items = items),
+            MediaItemLayout(items, LocalisedYoutubeString.Type.SEARCH_PAGE.create(shelf.title!!.first_text), null),
             search_params?.let {
                 val item = items.firstOrNull() ?: return@let null
                 SearchFilter(when (item) {
-                    is Song -> if (item.song_type == SongType.VIDEO) SearchType.VIDEO else SearchType.SONG
-                    is Artist -> SearchType.ARTIST
-                    is Playlist -> when (item.playlist_type) {
+                    is SongData -> if (item.song_type == SongType.VIDEO) SearchType.VIDEO else SearchType.SONG
+                    is ArtistData -> SearchType.ARTIST
+                    is PlaylistData -> when (item.playlist_type) {
                         PlaylistType.ALBUM -> SearchType.ALBUM
                         else -> SearchType.PLAYLIST
                     }

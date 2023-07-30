@@ -7,11 +7,14 @@ import com.toasterofbread.spmp.api.Api.Companion.ytUrl
 import com.toasterofbread.spmp.api.model.YoutubeiBrowseResponse
 import com.toasterofbread.spmp.model.mediaitem.Playlist
 import com.toasterofbread.spmp.model.mediaitem.PlaylistData
+import com.toasterofbread.spmp.model.mediaitem.isLocalPlaylist
+import com.toasterofbread.spmp.model.mediaitem.playlist.PlaylistEditor.Companion.isPlaylistEditable
+import com.toasterofbread.utils.lazyAssert
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
 import okhttp3.Request
 
-suspend fun getAccountPlaylists(): Result<List<PlaylistData>> = withContext(Dispatchers.IO) {
+suspend fun getAccountPlaylists(): Result<List<Playlist>> = withContext(Dispatchers.IO) {
     val hl = SpMp.data_language
     val request = Request.Builder()
         .ytUrl("/youtubei/v1/browse")
@@ -48,14 +51,14 @@ suspend fun getAccountPlaylists(): Result<List<PlaylistData>> = withContext(Disp
         .gridRenderer!!
         .items
 
-    val playlists: List<PlaylistData> = playlist_data.mapNotNull {
+    val playlists: List<Playlist> = playlist_data.mapNotNull {
         // Skip 'New playlist' item
         if (it.musicTwoRowItemRenderer?.navigationEndpoint?.browseEndpoint == null) {
             return@mapNotNull null
         }
 
-        val item = it.toMediaItem(hl)?.first
-        return@mapNotNull if (item is PlaylistData) item else null
+        val item = it.toMediaItemData(hl)?.first
+        return@mapNotNull if (item is Playlist) item else null
     }
 
     return@withContext Result.success(playlists)
@@ -146,6 +149,9 @@ interface AccountPlaylistEditAction {
 }
 
 suspend fun editAccountPlaylist(playlist: PlaylistData, actions: List<AccountPlaylistEditAction>): Result<Unit> {
+    lazyAssert { !playlist.isLocalPlaylist(SpMp.context.database) }
+    lazyAssert { playlist.isPlaylistEditable(SpMp.context.database) }
+    
     if (actions.isEmpty()) {
         return Result.success(Unit)
     }

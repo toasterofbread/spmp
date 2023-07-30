@@ -33,7 +33,7 @@ fun MediaItem.Thumbnail(
     contentColourProvider: (() -> Color)? = null,
     onLoaded: ((ImageBitmap) -> Unit)? = null
 ) {
-    val thumbnail_holder = getThumbnailHolder()
+    val thumbnail_holder = this//getThumbnailHolder()
     var image: ImageBitmap? by remember { mutableStateOf(null) }
     var loading by remember { mutableStateOf(true) }
 
@@ -43,15 +43,15 @@ fun MediaItem.Thumbnail(
 
         val db = SpMp.context.database
 
-        var provider = db.mediaItemQueries.thumbnailProviderById(thumbnail_holder.id).executeAsOne().toThumbnailProvider()
+        var provider = thumbnail_holder.ThumbnailProvider.get(db)
         if (provider == null) {
-            val loaded = db.mediaItemQueries.loadedById(thumbnail_holder.id).executeAsOne().loaded != null
+            val loaded = thumbnail_holder.Loaded.get(db)
             if (loaded) {
                 loading = false
                 return@LaunchedEffect
             }
 
-            provider = MediaItemLoader.loadUnknown(thumbnail_holder.toData(), db).fold(
+            provider = MediaItemLoader.loadUnknown(thumbnail_holder.getEmptyData(), db).fold(
                 { it.thumbnail_provider },
                 { null }
             )

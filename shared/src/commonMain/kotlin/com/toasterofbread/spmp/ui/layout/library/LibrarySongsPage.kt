@@ -36,7 +36,9 @@ fun LibrarySongsPage(
             if (download.progress != 1f) return@mapNotNull null
 
             filter?.also { filter ->
-                if (download.song.title?.contains(filter, true) != true) return@mapNotNull null
+                if (download.song.Title.get(SpMp.context.database)?.contains(filter, true) != true) {
+                    return@mapNotNull null
+                }
             }
 
             return@mapNotNull download.song

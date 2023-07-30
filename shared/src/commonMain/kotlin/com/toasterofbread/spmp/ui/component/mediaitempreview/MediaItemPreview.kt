@@ -14,6 +14,7 @@ import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.getValue
 import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
@@ -23,17 +24,10 @@ import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.toasterofbread.spmp.model.mediaitem.Artist
-import com.toasterofbread.spmp.model.mediaitem.ArtistData
 import com.toasterofbread.spmp.model.mediaitem.MediaItem
-import com.toasterofbread.spmp.model.mediaitem.MediaItemPreviewParams
 import com.toasterofbread.spmp.model.mediaitem.MediaItemThumbnailProvider
-import com.toasterofbread.spmp.model.mediaitem.ObservableMediaItem
 import com.toasterofbread.spmp.model.mediaitem.Playlist
-import com.toasterofbread.spmp.model.mediaitem.PlaylistData
 import com.toasterofbread.spmp.model.mediaitem.Song
-import com.toasterofbread.spmp.model.mediaitem.SongData
-import com.toasterofbread.spmp.model.mediaitem.WithArtist
-import com.toasterofbread.spmp.model.mediaitem.enums.MediaItemType
 import com.toasterofbread.spmp.model.mediaitem.mediaItemPreviewInteraction
 import com.toasterofbread.spmp.ui.component.Thumbnail
 import com.toasterofbread.spmp.ui.component.longpressmenu.LongPressMenuData
@@ -92,8 +86,10 @@ fun MediaItemPreviewSquare(
             }
         }
 
+        val item_title: String? by item.Title.observe(SpMp.context.database)
+
         Text(
-            item.title ?: "",
+            item_title ?: "",
 //            Modifier.fillMaxSize().weight(1f),
             fontSize = 12.sp,
             color = contentColour?.invoke() ?: Color.Unspecified,
@@ -147,8 +143,9 @@ fun MediaItemPreviewLong(
                 .fillMaxWidth(),
             verticalArrangement = Arrangement.spacedBy(5.dp)
         ) {
+            val item_title: String? by item.Title.observe(SpMp.context.database)
             Text(
-                item.title ?: "",
+                item_title ?: "",
                 fontSize = 15.sp,
                 color = contentColour?.invoke() ?: Color.Unspecified,
                 maxLines = 1,
@@ -160,11 +157,17 @@ fun MediaItemPreviewLong(
                     InfoText(item.getType().getReadable(false), contentColour)
                 }
 
-                if (item is WithArtist && item.artist?.title != null) {
-                    if (show_type) {
-                        InfoText("\u2022", contentColour)
+                if (item is MediaItem.WithArtist) {
+                    val artist_title: String? = item.Artist.observeOn(SpMp.context.database) {
+                        it?.Title
                     }
-                    InfoText(item.artist?.title!!, contentColour)
+
+                    artist_title?.also { title ->
+                        if (show_type) {
+                            InfoText("\u2022", contentColour)
+                        }
+                        InfoText(title, contentColour)
+                    }
                 }
             }
         }

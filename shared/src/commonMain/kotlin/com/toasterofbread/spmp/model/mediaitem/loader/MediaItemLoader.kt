@@ -2,6 +2,8 @@ package com.toasterofbread.spmp.model.mediaitem.loader
 
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.State
+import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import com.toasterofbread.Database
 import com.toasterofbread.spmp.api.getOrThrowHere
@@ -59,12 +61,12 @@ internal object MediaItemLoader {
 }
 
 @Composable
-fun <I: MediaItem, O: MediaItemData> I.rememberLoadedItem(onLoadingChanged: ((Boolean) -> Unit)? = null): O {
-    val data = remember(this) { toData() }
-    LaunchedEffect(data) {
-        onLoadingChanged?.invoke(false)
-        data.loadData()
-        onLoadingChanged?.invoke(true)
+fun MediaItem.loadDataOnChange(db: Database): State<Boolean> {
+    val loading_state = remember(this) { mutableStateOf(false) }
+    LaunchedEffect(this) {
+        loading_state.value = true
+        loadData(db)
+        loading_state.value = false
     }
-    return data as O
+    return loading_state
 }

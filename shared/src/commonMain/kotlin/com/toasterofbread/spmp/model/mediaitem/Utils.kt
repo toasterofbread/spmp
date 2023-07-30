@@ -72,23 +72,23 @@ fun Database.getMediaItemPlayCount(item_id: String, range: ChronoUnit? = null): 
     return entries.sumOf { it.play_count }.toInt()
 }
 
-fun PlaylistItemQueries.movePlaylistItem(playlist_id: String, from: Int, to: Int) = transaction {
-    if (from == to) {
-        return@transaction
-    }
-
-    fun move(from: Int, to: Int) =
-        updateItemIndex(from = from.toLong(), to = to.toLong(), playlist_id = playlist_id)
-
-    move(from, to)
-    if (to > from) {
-        for (i in from until to) {
-            move(i, i - 1)
-        }
-    }
-    else {
-        for (i in to + 1 .. from) {
-            move(i, i + 1)
-        }
-    }
-}
+//fun PlaylistItemQueries.movePlaylistItem(playlist_id: String, from: Int, to: Int) = transaction {
+//    if (from == to) {
+//        return@transaction
+//    }
+//
+//    fun move(from: Int, to: Int) =
+//        updateItemIndex(from = from.toLong(), to = to.toLong(), playlist_id = playlist_id)
+//
+//    move(from, to)
+//    if (to > from) {
+//        for (i in from until to) {
+//            move(i, i - 1)
+//        }
+//    }
+//    else {
+//        for (i in to + 1 .. from) {
+//            move(i, i + 1)
+//        }
+//    }
+//}

@@ -18,6 +18,15 @@ CREATE TABLE Playlist (
 );
 
 byId: SELECT * FROM Playlist WHERE id == :id;
+byType: SELECT id FROM Playlist WHERE playlist_type = :playlist_type;
+
+insertById: INSERT OR FAIL INTO Playlist(id, playlist_type) VALUES(:id, :type);
+removeById: DELETE FROM Playlist WHERE id == :id;
+
+getLargestIdByType:
+SELECT MAX(id)
+FROM Playlist
+WHERE playlist_type = :playlist_type;
 
 browseParamsById: SELECT browse_params FROM Playlist WHERE id == :id;
 updateBrowseParamsById: UPDATE Playlist SET browse_params = :browse_params WHERE id == :id;

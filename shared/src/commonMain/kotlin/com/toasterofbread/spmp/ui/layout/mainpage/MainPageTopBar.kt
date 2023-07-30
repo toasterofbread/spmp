@@ -53,14 +53,14 @@ fun MainPageTopBar(
             }
 
             IconButton({
-                if (auth_info.initialised) {
+                if (auth_info.is_initialised) {
                     player.onMediaItemClicked(auth_info.own_channel)
                 } else {
                     show_login_confirmation = true
                 }
             }) {
                 Crossfade(auth_info) { info ->
-                    if (info.initialised) {
+                    if (info.is_initialised) {
                         info.own_channel.Thumbnail(
                             MediaItemThumbnailProvider.Quality.LOW,
                             Modifier.clip(CircleShape).size(27.dp),

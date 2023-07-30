@@ -3,26 +3,66 @@ package com.toasterofbread.spmp.model.mediaitem
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.setValue
+import java.lang.ref.WeakReference
 
 class PlaylistHolder(initial_playlist: Playlist): MediaItemHolder {
-    private var playlist: Playlist? by mutableStateOf(if (initial_playlist.is_deleted) null else initial_playlist)
-    override val item: Playlist?
-        get() = playlist
+    override val item: Playlist? get() = current_playlist
+    private var current_playlist: Playlist? by mutableStateOf(initial_playlist)
 
-    private val playlist_listener = object : Playlist.Listener {
-        override fun onReplaced(with: Playlist) {
-            check(with != playlist)
-            with.addListener(this)
-            playlist = with
+    private val replacement_listener = object : Listener {
+        override fun onPlaylistDeleted(deleted: Playlist) {
+            if (deleted.id == current_playlist?.id) {
+                current_playlist = null
+            }
         }
 
-        override fun onDeleted() {
-            check(playlist != null)
-            playlist = null
+        override fun onPlaylistReplaced(from: Playlist, to: Playlist) {
+            if (from.id == current_playlist?.id) {
+                current_playlist = to
+            }
         }
     }
 
     init {
-        playlist?.addListener(playlist_listener)
+        addReplacementListener(replacement_listener)
+    }
+
+    private interface Listener {
+        fun onPlaylistDeleted(deleted: Playlist)
+        fun onPlaylistReplaced(from: Playlist, to: Playlist)
+    }
+
+    companion object {
+        private val replacement_listeners: MutableList<WeakReference<Listener>> = mutableListOf()
+        private fun addReplacementListener(listener: Listener) {
+            replacement_listeners.add(WeakReference(listener))
+        }
+
+        fun onPlaylistDeleted(deleted: Playlist) {
+            replacement_listeners.iterateAndRemoveFreed { listener ->
+                listener.onPlaylistDeleted(deleted)
+            }
+        }
+
+        fun onPlaylistReplaced(from: Playlist, to: Playlist) {
+            assert(from.id != to.id)
+
+            replacement_listeners.iterateAndRemoveFreed { listener ->
+                listener.onPlaylistReplaced(from, to)
+            }
+        }
+    }
+}
+
+inline fun <T> MutableCollection<WeakReference<T>>.iterateAndRemoveFreed(action: (T) -> Unit) {
+    val i = iterator()
+    while (i.hasNext()) {
+        val value = i.next().get()
+        if (value == null) {
+            i.remove()
+        }
+        else {
+            action(value)
+        }
     }
 }

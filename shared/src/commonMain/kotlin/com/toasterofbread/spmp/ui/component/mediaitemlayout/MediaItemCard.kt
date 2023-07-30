@@ -1,6 +1,7 @@
 package com.toasterofbread.spmp.ui.component.mediaitemlayout
 
 import LocalPlayerState
+import SpMp
 import androidx.compose.foundation.ExperimentalFoundationApi
 import androidx.compose.foundation.background
 import androidx.compose.foundation.combinedClickable
@@ -31,11 +32,9 @@ import androidx.compose.material3.Icon
 import androidx.compose.material3.LocalTextStyle
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
-import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.State
 import androidx.compose.runtime.getValue
-import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
-import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
@@ -44,11 +43,9 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.toasterofbread.spmp.model.mediaitem.Artist
 import com.toasterofbread.spmp.model.mediaitem.MediaItem
-import com.toasterofbread.spmp.model.mediaitem.MediaItemPreviewParams
 import com.toasterofbread.spmp.model.mediaitem.MediaItemThumbnailProvider
 import com.toasterofbread.spmp.model.mediaitem.Playlist
 import com.toasterofbread.spmp.model.mediaitem.Song
-import com.toasterofbread.spmp.model.mediaitem.WithArtist
 import com.toasterofbread.spmp.model.mediaitem.enums.MediaItemType
 import com.toasterofbread.spmp.model.mediaitem.enums.PlaylistType
 import com.toasterofbread.spmp.model.mediaitem.enums.getReadable
@@ -73,8 +70,8 @@ fun MediaItemCard(
     multiselect_context: MediaItemMultiSelectContext? = null,
     apply_filter: Boolean = false
 ) {
-    val item: MediaItem = layout.items.single()
-    if (apply_filter && isMediaItemHidden(item)) {
+    val item: MediaItem = layout.items.first()
+    if (apply_filter && isMediaItemHidden(item, SpMp.context.database)) {
         return
     }
 
@@ -113,8 +110,12 @@ fun MediaItemCard(
         ) {
             layout.TitleBar(Modifier.fillMaxWidth().weight(1f), multiselect_context = multiselect_context)
 
+            val playlist_type: State<PlaylistType?>? =
+                if (item is Playlist) item.TypeOfPlaylist.observe(SpMp.context.database)
+                else null
+
             Text(
-                if (item is Playlist) item.playlist_type.getReadable(false)
+                if (item is Playlist) playlist_type?.value.getReadable(false)
                 else item.getType().getReadable(false),
                 fontSize = 15.sp
             )
@@ -124,7 +125,7 @@ fun MediaItemCard(
                     is Song -> Icons.Filled.MusicNote
                     is Artist -> Icons.Filled.Person
                     is Playlist -> {
-                        when (item.playlist_type) {
+                        when (playlist_type?.value) {
                             PlaylistType.PLAYLIST, PlaylistType.LOCAL, null -> Icons.Filled.PlaylistPlay
                             PlaylistType.ALBUM -> Icons.Filled.Album
                             PlaylistType.AUDIOBOOK -> Icons.Filled.Book
@@ -164,15 +165,17 @@ fun MediaItemCard(
                     .padding(horizontal = 15.dp, vertical = 5.dp),
                 verticalArrangement = Arrangement.SpaceEvenly
             ) {
+                val item_title: String? by item.Title.observe(SpMp.context.database)
                 Text(
-                    item.title!!,
+                    item_title ?: "",
                     style = LocalTextStyle.current.copy(color = (accent_colour ?: Theme.accent).getContrasted()),
                     softWrap = false,
                     overflow = TextOverflow.Ellipsis
                 )
 
-                if (item is WithArtist) {
-                    item.artist?.also { artist ->
+                if (item is MediaItem.WithArtist) {
+                    val item_artist: Artist? by item.Artist.observe(SpMp.context.database)
+                    item_artist?.also { artist ->
                         MediaItemPreviewLong(artist, contentColour = { (accent_colour ?: Theme.accent).getContrasted() })
                     }
                 }

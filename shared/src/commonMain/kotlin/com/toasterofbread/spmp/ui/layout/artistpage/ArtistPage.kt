@@ -31,7 +31,6 @@ import com.toasterofbread.spmp.api.Api
 import com.toasterofbread.spmp.model.*
 import com.toasterofbread.spmp.model.mediaitem.*
 import com.toasterofbread.spmp.model.mediaitem.loader.MediaItemThumbnailLoader
-import com.toasterofbread.spmp.model.mediaitem.loader.rememberLoadedItem
 import com.toasterofbread.spmp.resources.getString
 import com.toasterofbread.spmp.resources.uilocalisation.YoutubeUILocalisation
 import com.toasterofbread.spmp.ui.component.mediaitemlayout.MediaItemLayout
@@ -61,9 +60,26 @@ fun ArtistPage(
     bottom_padding: Dp = 0.dp,
     close: () -> Unit
 ) {
-    require(!artist.is_for_item)
+    lazyAssert {
+        !artist.IsForItem.get(SpMp.context.database)
+    }
 
-    // TODO previous_item
+    val item_layouts by artist.Layouts.observe(SpMp.context.database)
+    val single_layout = item_layouts?.singleOrNull()?.rememberMediaItemLayout(SpMp.context.database)
+    val thumbnail_provider: MediaItemThumbnailProvider? by artist.ThumbnailProvider.observe(SpMp.context.database)
+
+    LaunchedEffect(artist) {
+        artist.loadData(SpMp.context.database)
+    }
+
+    val thumbnail_state = MediaItemThumbnailLoader.rememberItemState(artist)
+    LaunchedEffect(thumbnail_provider) {
+        thumbnail_provider?.also { provider ->
+            MediaItemThumbnailLoader.loadItemThumbnail(artist, provider, MediaItemThumbnailProvider.Quality.HIGH, SpMp.context)
+        }
+    }
+
+    // TODO display previous_item
 
     val player = LocalPlayerState.current
     val screen_width = SpMp.context.getScreenWidth()
@@ -71,7 +87,6 @@ fun ArtistPage(
     val main_column_state = rememberLazyListState()
     var show_info by remember { mutableStateOf(false) }
     val multiselect_context = remember { MediaItemMultiSelectContext() {} }
-    val feed_layouts = artist.layouts
 
     val apply_filter: Boolean by Settings.KEY_FILTER_APPLY_TO_ARTIST_ITEMS.rememberMutableState()
     val background_modifier = Modifier.background(Theme.background_provider)
@@ -79,15 +94,8 @@ fun ArtistPage(
     val gradient_size = 0.35f
     var accent_colour: Color? by remember { mutableStateOf(null) }
 
-    val artist_data: ArtistData = artist.rememberLoadedItem()
-    LaunchedEffect(artist_data, artist_data.thumbnail_provider) {
-        artist_data.thumbnail_provider?.also { provider ->
-            MediaItemThumbnailLoader.loadItemThumbnail(artist_data, provider, MediaItemThumbnailProvider.Quality.HIGH, SpMp.context)
-        }
-    }
-
     if (show_info) {
-        InfoDialog(artist_data) { show_info = false }
+        InfoDialog(artist) { show_info = false }
     }
 
     val top_bar_over_image: Boolean by Settings.KEY_TOPBAR_DISPLAY_OVER_ARTIST_IMAGE.rememberMutableState()
@@ -140,8 +148,6 @@ fun ArtistPage(
             if (top_bar_over_image) {
                 TopBar()
             }
-
-            val thumbnail_state = MediaItemThumbnailLoader.rememberItemState(artist_data)
 
             // Thumbnail
             Crossfade(thumbnail_state.loaded_images.values.firstOrNull()) { thumbnail ->
@@ -238,7 +244,7 @@ fun ArtistPage(
                             chip(getString("artist_chip_shuffle"), Icons.Outlined.Shuffle) { player.playMediaItem(artist, true) }
 
                             if (SpMp.context.canShare()) {
-                                chip(getString("action_share"), Icons.Outlined.Share) { SpMp.context.shareText(artist.getURL(), artist.title) }
+                                chip(getString("action_share"), Icons.Outlined.Share) { SpMp.context.shareText(artist.getURL(), artist.Title.get(SpMp.context.database) ?: "") }
                             }
                             if (SpMp.context.canOpenUrl()) {
                                 chip(getString("artist_chip_open"), Icons.Outlined.OpenInNew) { SpMp.context.openUrl(artist.getURL()) }
@@ -262,23 +268,21 @@ fun ArtistPage(
                     }
                 }
 
-                if (feed_layouts == null) {
+                if (item_layouts == null) {
                     item {
                         Box(background_modifier.fillMaxSize().padding(content_padding), contentAlignment = Alignment.Center) {
                             CircularProgressIndicator(color = accent_colour ?: Color.Unspecified)
                         }
                     }
-                } else if (feed_layouts.size == 1) {
-                    val layout = feed_layouts.single()
-
+                } else if (single_layout != null) {
                     item {
-                        layout.TitleBar(background_modifier.padding(content_padding).padding(bottom = 5.dp))
+                        single_layout.TitleBar(background_modifier.padding(content_padding).padding(bottom = 5.dp))
                     }
 
-                    items(layout.items.size) { i ->
+                    items(single_layout.items.size) { i ->
                         Row(background_modifier.padding(content_padding), verticalAlignment = Alignment.CenterVertically) {
                             MediaItemPreviewLong(
-                                layout.items[i],
+                                single_layout.items[i],
                                 multiselect_context = multiselect_context
                             )
                         }
@@ -291,7 +295,8 @@ fun ArtistPage(
                                 .padding(content_padding),
                             verticalArrangement = Arrangement.spacedBy(30.dp)
                         ) {
-                            for (layout in artist_data.layouts ?: emptyList()) {
+                            for (artist_layout in item_layouts ?: emptyList()) {
+                                val layout = artist_layout.rememberMediaItemLayout(SpMp.context.database)
                                 val is_singles =
                                     Settings.KEY_TREAT_SINGLES_AS_SONG.get() && layout.title?.getID() == YoutubeUILocalisation.StringID.ARTIST_PAGE_SINGLES
 
@@ -329,9 +334,11 @@ fun ArtistPage(
                                 }
                             }
 
-                            val description = artist.description
-                            if (description?.isNotBlank() == true) {
-                                DescriptionCard(description, { Theme.background }, { accent_colour }) { show_info = !show_info }
+                            val artist_description: String? by artist.Description.observe(SpMp.context.database)
+                            artist_description?.also { description ->
+                                if (description?.isNotBlank() == true) {
+                                    DescriptionCard(description, { Theme.background }, { accent_colour }) { show_info = !show_info }
+                                }
                             }
                         }
                     }
@@ -343,7 +350,7 @@ fun ArtistPage(
 
 private fun onSinglePlaylistClicked(playlist: Playlist, player: PlayerState) {
     Api.scope.launch {
-        playlist.loadData().onSuccess { data ->
+        playlist.loadData(SpMp.context.database).onSuccess { data ->
             data.items?.firstOrNull()?.also { first_item ->
                 withContext(Dispatchers.Main) {
                     player.onMediaItemClicked(first_item)

@@ -41,17 +41,8 @@ fun getInnerSquareSizeOfCircle(radius: Float, corner_percent: Int): Float {
 	return sqrt(I * I * 0.5).toFloat()
 }
 
-fun areAssertionsEnabled(): Boolean {
-	try {
-		assert(false)
-		return false
-	} catch (e: AssertionError) {
-		return true
-	}
-}
-
 fun lazyAssert(message: String? = "Assertion failed", condition: () -> Boolean) {
-	if (areAssertionsEnabled() && !condition()) {
+	if (_Assertions.ENABLED && !condition()) {
 		throw AssertionError(message)
 	}
 }

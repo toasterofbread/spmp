@@ -56,8 +56,8 @@ data class LongPressMenuData(
                             callback(item)
                         }
                         else if (item is Playlist) {
-                            item.loadData().onSuccess {
-                                it.items?.firstOrNull()?.also { item ->
+                            item.loadData(SpMp.context.database).onSuccess {
+                                item.Items.get(SpMp.context.database)?.firstOrNull()?.also { item ->
                                     callback(item as Song)
                                 }
                             }

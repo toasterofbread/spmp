@@ -88,8 +88,9 @@ fun LongPressMenu(
                 var accent_colour: Color? = data.item.rememberThemeColour(SpMp.context.database)
 
                 DisposableEffect(Unit) {
-                    if (data.item is Song && data.item.theme_colour != null) {
-                        accent_colour = data.item.theme_colour!!
+                    val theme_colour = data.item.ThemeColour.get(SpMp.context.database)
+                    if (theme_colour != null) {
+                        accent_colour = theme_colour
                     }
 
                     SpMp.context.setNavigationBarColour(Theme.background)

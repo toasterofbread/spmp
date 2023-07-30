@@ -15,13 +15,12 @@ import com.toasterofbread.spmp.model.mediaitem.Artist
 import com.toasterofbread.spmp.model.mediaitem.ArtistData
 import com.toasterofbread.spmp.ui.layout.YTAccountMenuResponse
 import kotlinx.coroutines.Dispatchers
-import kotlinx.coroutines.runBlocking
 import kotlinx.coroutines.withContext
 import okhttp3.Request
 
 class YoutubeMusicAuthInfo: Set<String> {
     enum class ValueType { CHANNEL, COOKIE, HEADER, PLAYLIST }
-    var initialised: Boolean by mutableStateOf(false)
+    var is_initialised: Boolean by mutableStateOf(false)
 
     lateinit var own_channel: Artist
         private set
@@ -37,7 +36,7 @@ class YoutubeMusicAuthInfo: Set<String> {
         own_playlists.remove(playlist.id)
     }
 
-    fun initialisedOrNull(): YoutubeMusicAuthInfo? = if (initialised) this else null
+    fun initialisedOrNull(): YoutubeMusicAuthInfo? = if (is_initialised) this else null
     fun getOwnChannelOrNull(): Artist? = initialisedOrNull()?.own_channel
 
     constructor()
@@ -46,7 +45,7 @@ class YoutubeMusicAuthInfo: Set<String> {
         this.own_channel = own_channel
         this.cookie = cookie
         this.headers = headers
-        initialised = true
+        is_initialised = true
     }
 
     constructor(set: Set<String>) {
@@ -67,13 +66,13 @@ class YoutubeMusicAuthInfo: Set<String> {
         }
         headers = set_headers
 
-        initialised = true
+        is_initialised = true
     }
 
-    override val size: Int get() = if (initialised) 2 + headers.size + own_playlists.size else 0
+    override val size: Int get() = if (is_initialised) 2 + headers.size + own_playlists.size else 0
     override fun contains(element: String): Boolean = throw NotImplementedError()
     override fun containsAll(elements: Collection<String>): Boolean = throw NotImplementedError()
-    override fun isEmpty(): Boolean = !initialised
+    override fun isEmpty(): Boolean = !is_initialised
 
     override fun iterator(): Iterator<String> = object : Iterator<String> {
         private var i = 0
@@ -94,7 +93,7 @@ class YoutubeMusicAuthInfo: Set<String> {
     }
 
     suspend fun loadOwnPlaylists(): Result<Unit> {
-        check(initialised)
+        check(is_initialised)
 
         val result = getAccountPlaylists()
         return result.fold(

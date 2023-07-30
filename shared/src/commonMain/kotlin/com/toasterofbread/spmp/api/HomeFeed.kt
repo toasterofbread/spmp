@@ -1,6 +1,7 @@
 package com.toasterofbread.spmp.api
 
 import SpMp
+import com.toasterofbread.Database
 import com.toasterofbread.spmp.api.Api.Companion.addYtHeaders
 import com.toasterofbread.spmp.api.Api.Companion.getStream
 import com.toasterofbread.spmp.api.Api.Companion.ytUrl
@@ -33,6 +34,7 @@ data class HomeFeedLoadResult(
 )
 
 suspend fun getHomeFeed(
+    db: Database,
     min_rows: Int = -1,
     allow_cached: Boolean = true,
     params: String? = null,
@@ -94,7 +96,7 @@ suspend fun getHomeFeed(
     try {
         var data = performRequest(continuation).getOrThrow()
 
-        val rows: MutableList<MediaItemLayout> = processRows(data.getShelves(continuation != null), hl).toMutableList()
+        val rows: MutableList<MediaItemLayout> = processRows(data.getShelves(continuation != null), hl, db).toMutableList()
         check(rows.isNotEmpty())
 
         val chips = data.getHeaderChips()
@@ -109,7 +111,7 @@ suspend fun getHomeFeed(
 
             val shelves = data.getShelves(true)
             check(shelves.isNotEmpty())
-            rows.addAll(processRows(shelves, hl))
+            rows.addAll(processRows(shelves, hl, db))
 
             ctoken = data.ctoken
         }
@@ -134,7 +136,7 @@ suspend fun getHomeFeed(
     }
 }
 
-private suspend fun processRows(rows: List<YoutubeiShelf>, hl: String): List<MediaItemLayout> {
+private suspend fun processRows(rows: List<YoutubeiShelf>, hl: String, db: Database): List<MediaItemLayout> {
     val ret = mutableListOf<MediaItemLayout>()
     for (row in rows) {
         if (!row.implemented) {
@@ -156,8 +158,8 @@ private suspend fun processRows(rows: List<YoutubeiShelf>, hl: String): List<Med
 
                     ret.add(
                         MediaItemLayout(
+                            items,
                             title, subtitle,
-                            items = items,
                             view_more = view_more,
                             type = type
                         )
@@ -198,7 +200,7 @@ private suspend fun processRows(rows: List<YoutubeiShelf>, hl: String): List<Med
                 val page_type = browse_endpoint.browseEndpointContextSupportedConfigs?.browseEndpointContextMusicConfig?.pageType!!
 
                 val media_item = MediaItemType.fromBrowseEndpointType(page_type)!!.referenceFromId(browse_endpoint.browseId).apply {
-                    title = header.title.runs?.getOrNull(0)?.text
+                    Title.set(header.title.runs?.getOrNull(0)?.text, db)
                 }
 
                 add(

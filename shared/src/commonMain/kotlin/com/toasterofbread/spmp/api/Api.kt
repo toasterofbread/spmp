@@ -9,13 +9,11 @@ import com.beust.klaxon.Json
 import com.beust.klaxon.JsonObject
 import com.beust.klaxon.JsonValue
 import com.beust.klaxon.Klaxon
-import com.beust.klaxon.KlaxonException
 import com.toasterofbread.spmp.api.Api.Companion.getStream
 import com.toasterofbread.spmp.model.Cache
 import com.toasterofbread.spmp.model.Settings
 import com.toasterofbread.spmp.model.YoutubeMusicAuthInfo
 import com.toasterofbread.spmp.model.mediaitem.Artist
-import com.toasterofbread.spmp.model.mediaitem.MediaItem
 import com.toasterofbread.spmp.platform.ProjectPreferences
 import com.toasterofbread.spmp.resources.getString
 import com.toasterofbread.spmp.resources.getStringArray
@@ -294,7 +292,7 @@ class Api {
         )
             private set
 
-        val ytm_authenticated: Boolean get() = ytm_auth.initialised
+        val ytm_authenticated: Boolean get() = ytm_auth.is_initialised
 
         private lateinit var youtubei_context: JsonObject
         private lateinit var youtubei_context_alt: JsonObject
@@ -380,7 +378,7 @@ class Api {
 
                 val headers_builder = Headers.Builder().add("user-agent", user_agent)
 
-                if (ytm_auth.initialised) {
+                if (ytm_auth.is_initialised) {
                     headers_builder["cookie"] = ytm_auth.cookie
                     for (header in ytm_auth.headers) {
                         headers_builder[header.key] = header.value

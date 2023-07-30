@@ -33,14 +33,13 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.graphicsLayer
-import androidx.compose.ui.unit.DpSize
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.zIndex
 import com.toasterofbread.Database
 import com.toasterofbread.spmp.api.Api
 import com.toasterofbread.spmp.model.mediaitem.Artist
+import com.toasterofbread.spmp.model.mediaitem.MediaItem
 import com.toasterofbread.spmp.model.mediaitem.MediaItemHolder
-import com.toasterofbread.spmp.model.mediaitem.WithArtist
 import com.toasterofbread.spmp.platform.composable.SwipeRefresh
 import com.toasterofbread.spmp.platform.getDefaultHorizontalPadding
 import com.toasterofbread.spmp.platform.getDefaultVerticalPadding
@@ -70,19 +69,20 @@ fun MainPage(
 
     val artists_layout: MediaItemLayout = remember {
         MediaItemLayout(
+            mutableStateListOf(),
             null,
             null,
-            items = mutableStateListOf(),
-            type = MediaItemLayout.Type.ROW,
-            itemSizeProvider = {
-                val size = 80.dp
-                DpSize(size, size + 30.dp)
-            }
+            type = MediaItemLayout.Type.ROW
         )
     }
 
     LaunchedEffect(getLayouts()) {
-        populateArtistsLayout(artists_layout, getLayouts, Api.ytm_auth.getOwnChannelOrNull())
+        populateArtistsLayout(
+            artists_layout.items as MutableList<MediaItem>,
+            getLayouts,
+            Api.ytm_auth.getOwnChannelOrNull(),
+            SpMp.context.database
+        )
     }
 
     Column(Modifier.padding(horizontal = padding)) {
@@ -227,7 +227,12 @@ fun MainPage(
     }
 }
 
-private fun populateArtistsLayout(artists_layout: MediaItemLayout, layoutsProvider: () -> List<MediaItemLayout>, own_channel: Artist?) {
+private fun populateArtistsLayout(
+    artists_layout_items: MutableList<MediaItem>,
+    layoutsProvider: () -> List<MediaItemLayout>,
+    own_channel: Artist?,
+    db: Database
+) {
     val artists_map: MutableMap<Artist, Int?> = mutableMapOf()
     for (layout in layoutsProvider()) {
         for (item in layout.items) {
@@ -236,8 +241,8 @@ private fun populateArtistsLayout(artists_layout: MediaItemLayout, layoutsProvid
                 continue
             }
 
-            if (item is WithArtist) {
-                item.artist?.also { artist ->
+            if (item is MediaItem.WithArtist) {
+                item.Artist.get(db)?.also { artist ->
                     if (artist == own_channel) {
                         return@also
                     }
@@ -261,8 +266,8 @@ private fun populateArtistsLayout(artists_layout: MediaItemLayout, layoutsProvid
         else Pair(artist.key, artist.value)
     }.sortedByDescending { it.second }
 
-    artists_layout.items.clear()
+    artists_layout_items.clear()
     for (artist in artists) {
-        artists_layout.items.add(artist.first)
+        artists_layout_items.add(artist.first)
     }
 }

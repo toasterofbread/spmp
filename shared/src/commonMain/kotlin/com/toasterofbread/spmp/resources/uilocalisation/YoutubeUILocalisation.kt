@@ -4,7 +4,9 @@ import SpMp
 import com.toasterofbread.spmp.model.Settings
 import com.toasterofbread.spmp.model.mediaitem.Artist
 import com.toasterofbread.spmp.model.mediaitem.MediaItem
+import com.toasterofbread.spmp.model.mediaitem.MediaItemData
 import com.toasterofbread.spmp.model.mediaitem.Playlist
+import com.toasterofbread.spmp.model.mediaitem.PlaylistData
 import com.toasterofbread.spmp.model.mediaitem.enums.MediaItemType
 import com.toasterofbread.spmp.resources.getString
 import com.toasterofbread.spmp.resources.uilocalisation.localised.Languages
@@ -84,8 +86,8 @@ class LocalisedYoutubeString(
     companion object {
         private val current_source_language: Int get() = Settings.KEY_LANG_DATA.get()
 
-        fun mediaItemPage(key: String, item: MediaItem): LocalisedYoutubeString {
-            check(item is Artist || (item is Playlist && item.browse_params != null)) {
+        fun mediaItemPage(key: String, item: MediaItemData): LocalisedYoutubeString {
+            check(item is Artist || (item is PlaylistData && item.browse_params != null)) {
                 "$key | $item"
             }
             return Type.ARTIST_PAGE.create(key)

@@ -3,6 +3,7 @@ package com.toasterofbread.spmp.model.mediaitem
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.remember
+import com.toasterofbread.Database
 import com.toasterofbread.spmp.model.Settings
 
 interface MediaItemHolder {
@@ -10,8 +11,8 @@ interface MediaItemHolder {
     val item: MediaItem?
 }
 
-fun isMediaItemHidden(item: MediaItem): Boolean {
-    if (item.hidden) {
+fun isMediaItemHidden(item: MediaItem, db: Database): Boolean {
+    if (item.Hidden.get(db)) {
         return true
     }
 
@@ -19,7 +20,7 @@ fun isMediaItemHidden(item: MediaItem): Boolean {
         return false
     }
 
-    val title = item.title ?: return false
+    val title = item.Title.get(db) ?: return false
 
     if (item is Artist && !Settings.KEY_FILTER_APPLY_TO_ARTISTS.get<Boolean>()) {
         return false
@@ -36,12 +37,12 @@ fun isMediaItemHidden(item: MediaItem): Boolean {
 }
 
 @Composable
-fun List<MediaItemHolder>.rememberFilteredItems(apply_filter: Boolean): List<MediaItemHolder> {
+fun List<MediaItemHolder>.rememberFilteredItems(apply_filter: Boolean, db: Database = SpMp.context.database): List<MediaItemHolder> {
     val hidden_items: Set<String> by Settings.INTERNAL_HIDDEN_ITEMS.rememberMutableState()
     return remember(apply_filter, hidden_items) {
         if (apply_filter) mapNotNull {
             val item = it.item
-            if (item != null && isMediaItemHidden(item)) {
+            if (item != null && isMediaItemHidden(item, db)) {
                 return@mapNotNull null
             }
             return@mapNotNull it

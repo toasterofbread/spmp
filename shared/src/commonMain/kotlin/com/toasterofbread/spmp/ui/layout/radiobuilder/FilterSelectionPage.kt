@@ -63,7 +63,7 @@ fun FilterSelectionPage(
 
     var is_loading by remember { mutableStateOf(false) }
     var preview_loading by remember { mutableStateOf(false) }
-    var preview_playlist: Playlist? by remember { mutableStateOf(null) }
+    var preview_playlist: PlaylistData? by remember { mutableStateOf(null) }
     var invalid_modifiers: Boolean by remember { mutableStateOf(false) }
     val coroutine_scope = rememberCoroutineScope()
 

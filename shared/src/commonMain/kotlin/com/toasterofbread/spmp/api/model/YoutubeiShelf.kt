@@ -47,17 +47,17 @@ data class YoutubeiShelf(
 
     fun getMediaItems(hl: String): List<MediaItemData> =
         (musicShelfRenderer?.contents ?: musicCarouselShelfRenderer?.contents ?: musicPlaylistShelfRenderer?.contents ?: gridRenderer!!.items).mapNotNull {
-            it.toMediaItem(hl)?.first
+            it.toMediaItemData(hl)?.first
         }
 
     fun getMediaItemsOrNull(hl: String): List<MediaItemData>? =
         (musicShelfRenderer?.contents ?: musicCarouselShelfRenderer?.contents ?: musicPlaylistShelfRenderer?.contents ?: gridRenderer?.items)?.mapNotNull {
-            it.toMediaItem(hl)?.first
+            it.toMediaItemData(hl)?.first
         }
 
     fun getMediaItemsAndSetIds(hl: String): List<Pair<MediaItemData, String?>> =
         (musicShelfRenderer?.contents ?: musicCarouselShelfRenderer?.contents ?: musicPlaylistShelfRenderer?.contents ?: gridRenderer?.items ?: emptyList()).mapNotNull {
-            it.toMediaItem(hl)
+            it.toMediaItemData(hl)
         }
 
     fun getRenderer(): Any? =

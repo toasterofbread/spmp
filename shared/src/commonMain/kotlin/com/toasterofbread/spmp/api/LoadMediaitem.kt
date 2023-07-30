@@ -16,7 +16,7 @@ import com.toasterofbread.spmp.model.mediaitem.MediaItemThumbnailProvider
 import com.toasterofbread.spmp.model.mediaitem.PlaylistData
 import com.toasterofbread.spmp.model.mediaitem.Song
 import com.toasterofbread.spmp.model.mediaitem.SongData
-import com.toasterofbread.spmp.model.mediaitem.artist.ArtistLayoutData
+import com.toasterofbread.spmp.model.mediaitem.artist.ArtistLayout
 import com.toasterofbread.spmp.model.mediaitem.enums.PlaylistType
 import com.toasterofbread.spmp.model.mediaitem.enums.SongType
 import com.toasterofbread.spmp.resources.uilocalisation.LocalisedYoutubeString
@@ -51,7 +51,7 @@ suspend fun loadMediaItemData(
     val item_id = item.id
 
     val result =
-        if (item is Artist && item.is_for_item) Result.success(Unit)
+        if (item is ArtistData && item.is_for_item) Result.success(Unit)
         else withContext(Dispatchers.IO) {
             val url = if (item is Song) "/youtubei/v1/next" else "/youtubei/v1/browse"
             val body =
@@ -195,7 +195,11 @@ suspend fun processDefaultResponse(item: MediaItemData, response: Response, hl: 
                     .musicPlaylistShelfRenderer!!
 
                 item.items = playlist_shelf.contents!!.mapNotNull { data ->
-                    return@mapNotNull data.toMediaItem(hl)?.first
+                    val data_item = data.toMediaItemData(hl)?.first
+                    if (data_item is Song) {
+                        return@mapNotNull data_item
+                    }
+                    return@mapNotNull null
                 }
 
                 val continuation = playlist_shelf.continuations?.firstOrNull()?.nextRadioContinuationData?.continuation
@@ -271,15 +275,17 @@ suspend fun processDefaultResponse(item: MediaItemData, response: Response, hl: 
                     }
 
                     val items = row.value.getMediaItemsAndSetIds(hl)
-                    val items_mapped = items.map {
-                        if (it.first is SongData && item is Artist) {
-                            val song_data = it.first as SongData
-                            if (song_data.song_type == SongType.PODCAST) {
-                                song_data.artist = item
-                            }
+                    val items_mapped = items.mapNotNull {
+                        val song_data = it.first
+                        if (song_data !is SongData) {
+                            return@mapNotNull null
                         }
 
-                        it.first
+                        if (item is Artist && song_data.song_type == SongType.PODCAST) {
+                            song_data.artist = item
+                        }
+
+                        song_data
                     }
 
                     val continuation_playlist_id = row.value.musicPlaylistShelfRenderer?.continuations?.firstOrNull()?.nextContinuationData?.continuation
@@ -312,19 +318,24 @@ suspend fun processDefaultResponse(item: MediaItemData, response: Response, hl: 
 
                     check(item is ArtistData)
 
-                    item.layouts.add(
-                        ArtistLayoutData(
-                            items = items_mapped.toMutableList(),
-                            title = layout_title,
-                            subtitle = null,
-                            type = if (row.index == 0) MediaItemLayout.Type.NUMBERED_LIST else MediaItemLayout.Type.GRID,
-                            view_more = view_more,
-                            playlist = continuation_playlist_id?.let {
+                    val new_layout = ArtistLayout.create(item.id, db)
+                    new_layout.apply {
+                        Items.overwriteItems(items_mapped, db)
+                        Title.set(layout_title, db)
+                        Type.set(if (row.index == 0) MediaItemLayout.Type.NUMBERED_LIST else MediaItemLayout.Type.GRID, db)
+                        ViewMore.set(view_more, db)
+                        Playlist.set(
+                            continuation_playlist_id?.let {
                                 AccountPlaylistRef(it)
-                            }
+                            },
+                            db
                         )
-                    )
+                    }
 
+                    if (item.layouts == null) {
+                        item.layouts = mutableListOf()
+                    }
+                    item.layouts!!.add(new_layout)
                 }
 
                 when (item) {

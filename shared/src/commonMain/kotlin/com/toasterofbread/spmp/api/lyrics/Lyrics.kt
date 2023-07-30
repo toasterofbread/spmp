@@ -63,19 +63,9 @@ suspend fun loadLyrics(reference: LyricsReference): Result<SongLyrics> {
 
 suspend fun searchAndLoadSongLyrics(song: Song, db: Database): Result<SongLyrics> {
     val (song_title, artist_title) = db.transactionWithResult {
-        val song_title = song.title ?: db.mediaItemQueries.titleById(song.id).executeAsOneOrNull()?.title
-
-        var artist_title = song.artist?.title
-        if (artist_title == null) {
-            val artist_id = song.artist?.id ?: db.songQueries.artistById(song.id).executeAsOneOrNull()?.artist
-            if (artist_id != null) {
-                artist_title = db.mediaItemQueries.titleById(artist_id).executeAsOneOrNull()?.title
-            }
-        }
-
         Pair(
-            song_title,
-            artist_title
+            song.Title.get(db),
+            song.Artist.get(db)?.Title?.get(db)
         )
     }
 

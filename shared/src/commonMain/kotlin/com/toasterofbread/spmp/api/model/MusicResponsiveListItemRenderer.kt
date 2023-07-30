@@ -2,10 +2,10 @@ package com.toasterofbread.spmp.api.model
 
 import com.toasterofbread.spmp.api.radio.YoutubeiNextResponse
 import com.toasterofbread.spmp.model.mediaitem.ArtistData
+import com.toasterofbread.spmp.model.mediaitem.MediaItem
 import com.toasterofbread.spmp.model.mediaitem.MediaItemData
 import com.toasterofbread.spmp.model.mediaitem.PlaylistData
 import com.toasterofbread.spmp.model.mediaitem.SongData
-import com.toasterofbread.spmp.model.mediaitem.DataWithArtist
 import com.toasterofbread.spmp.model.mediaitem.enums.MediaItemType
 import com.toasterofbread.spmp.model.mediaitem.enums.PlaylistType
 import com.toasterofbread.spmp.model.mediaitem.enums.SongType
@@ -133,7 +133,7 @@ class MusicResponsiveListItemRenderer(
         item_data.title = title
         item_data.thumbnail_provider = thumbnail?.toThumbnailProvider()
 
-        if (item_data is DataWithArtist) {
+        if (item_data is MediaItem.DataWithArtist) {
             item_data.artist = artist
         }
 

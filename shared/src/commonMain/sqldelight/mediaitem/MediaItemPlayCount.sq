@@ -17,3 +17,6 @@ INSERT OR IGNORE INTO MediaItemPlayCount(day, item_id) VALUES (:day, :item_id);
 
 increment:
 UPDATE MediaItemPlayCount SET play_count = play_count + :by WHERE item_id == :item_id AND day == :day;
+
+updateItemId:
+UPDATE MediaItemPlayCount SET item_id = :to_id WHERE item_id = :from_id;

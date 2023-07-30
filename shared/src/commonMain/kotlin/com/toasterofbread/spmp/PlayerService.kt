@@ -378,7 +378,7 @@ class PlayerService: MediaPlayerService() {
 
     // --- Internal ---
 
-    private val radio = RadioInstance(context.database)
+    private lateinit var radio: RadioInstance
     private fun setRadioFilter(filter_index: Int?) = synchronized(radio) {
         if (filter_index == radio.state.current_filter) {
             return
@@ -601,7 +601,9 @@ class PlayerService: MediaPlayerService() {
                     large_image = large_image,
                     large_text = text_c.ifEmpty { null },
                     small_image = small_image,
-                    small_text = if (small_image != null) status_song.artist?.title else null,
+                    small_text =
+                        if (small_image != null) status_song.Artist.get(context.database)?.Title?.get(context.database)
+                        else null,
                     application_id = DISCORD_APPLICATION_ID
                 )
             }
@@ -673,9 +675,8 @@ class PlayerService: MediaPlayerService() {
                 line = reader.readLine()
 
                 val song = SongData(line)
-                song.loadFromDatabase(context.database)
 
-                if (song.loaded) {
+                if (song.Loaded.get(context.database)) {
                     songs.add(song)
                     continue
                 }
@@ -722,6 +723,8 @@ class PlayerService: MediaPlayerService() {
         super.onCreate()
 
         addListener(player_listener)
+
+        radio = RadioInstance(context.database)
 
         val prefs = context.getPrefs()
         prefs.addListener(prefs_listener)
@@ -830,7 +833,8 @@ class PlayerService: MediaPlayerService() {
                             song_marked_as_watched = true
 
                             val song = getSong() ?: return@withContext
-                            context.database.mediaItemQueries.incrementPlayCountById(song.id)
+
+                            context.database.incrementMediaItemPlayCount(song.id)
 
                             if (Settings.KEY_ADD_SONGS_TO_HISTORY.get(context)) {
                                 withContext(Dispatchers.IO) {

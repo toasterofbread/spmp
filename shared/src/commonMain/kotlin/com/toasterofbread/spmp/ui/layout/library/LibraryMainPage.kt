@@ -39,11 +39,12 @@ import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
 import com.toasterofbread.spmp.api.Api
 import com.toasterofbread.spmp.model.Settings
-import com.toasterofbread.spmp.model.mediaitem.PlaylistData
-import com.toasterofbread.spmp.model.mediaitem.LocalPlaylist
-import com.toasterofbread.spmp.model.mediaitem.MediaItemPreviewParams
+import com.toasterofbread.spmp.model.mediaitem.AccountPlaylistRef
+import com.toasterofbread.spmp.model.mediaitem.LocalPlaylistRef
 import com.toasterofbread.spmp.model.mediaitem.Playlist
 import com.toasterofbread.spmp.model.mediaitem.Song
+import com.toasterofbread.spmp.model.mediaitem.createLocalPlaylist
+import com.toasterofbread.spmp.model.mediaitem.rememberLocalPlaylists
 import com.toasterofbread.spmp.platform.PlayerDownloadManager
 import com.toasterofbread.spmp.resources.getString
 import com.toasterofbread.spmp.ui.component.mediaitemlayout.MediaItemGrid
@@ -56,6 +57,7 @@ private const val LOCAL_SONGS_PREVIEW_AMOUNT = 5
 
 @Composable
 private fun PlaylistsRow(heading_text_style: TextStyle, multiselect_context: MediaItemMultiSelectContext) {
+    val db = SpMp.context.database
     val player = LocalPlayerState.current
     val ytm_auth = Api.ytm_auth
     val coroutine_scope = rememberCoroutineScope()
@@ -69,7 +71,7 @@ private fun PlaylistsRow(heading_text_style: TextStyle, multiselect_context: Med
 
             Spacer(Modifier.fillMaxWidth().weight(1f))
 
-            if (ytm_auth.initialised) {
+            if (ytm_auth.is_initialised) {
                 var loading by remember { mutableStateOf(false) }
 
                 fun loadPlaylists(report: Boolean = false) {
@@ -107,22 +109,26 @@ private fun PlaylistsRow(heading_text_style: TextStyle, multiselect_context: Med
 
             IconButton({
                 coroutine_scope.launch {
-                    val playlist = LocalPlaylist.createLocalPlaylist(SpMp.context)
-                    player.openMediaItem(playlist,)
+                    val playlist = createLocalPlaylist(db)
+                    player.openMediaItem(playlist)
                 }
             }) {
                 Icon(Icons.Default.Add, null)
             }
         }
 
-        val playlists: MutableList<Playlist> = LocalPlaylist.rememberLocalPlaylistsListener().toMutableList()
         val show_likes: Boolean by Settings.KEY_SHOW_LIKES_PLAYLIST.rememberMutableState()
 
-        for (id in ytm_auth.own_playlists) {
-            if (!show_likes && Playlist.formatYoutubeId(id) == "LM") {
-                continue
+        val local_playlists: List<LocalPlaylistRef> = rememberLocalPlaylists(db)
+        val account_playlists: List<AccountPlaylistRef> = ytm_auth.own_playlists.mapNotNull { playlist_id ->
+            if (!show_likes && Playlist.formatYoutubeId(playlist_id) == "LM") {
+                return@mapNotNull null
             }
-            playlists.add(PlaylistData(id))
+            return@mapNotNull AccountPlaylistRef(playlist_id)
+        }
+
+        val playlists: List<Playlist> = remember(local_playlists, account_playlists) {
+            local_playlists + account_playlists
         }
 
         if (playlists.isNotEmpty()) {

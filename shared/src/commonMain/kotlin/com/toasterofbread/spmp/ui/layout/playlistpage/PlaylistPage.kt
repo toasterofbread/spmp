@@ -29,17 +29,18 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.*
 import androidx.compose.ui.unit.*
 import androidx.compose.ui.zIndex
+import com.toasterofbread.Database
+import com.toasterofbread.spmp.api.getOrReport
 import com.toasterofbread.spmp.model.Settings
 import com.toasterofbread.spmp.model.mediaitem.MediaItem
 import com.toasterofbread.spmp.model.mediaitem.MediaItemThumbnailProvider
 import com.toasterofbread.spmp.model.mediaitem.Playlist
-import com.toasterofbread.spmp.model.mediaitem.PlaylistData
 import com.toasterofbread.spmp.model.mediaitem.Song
 import com.toasterofbread.spmp.model.mediaitem.getMediaItemPlayCount
 import com.toasterofbread.spmp.model.mediaitem.mediaItemPreviewInteraction
 import com.toasterofbread.spmp.model.mediaitem.isMediaItemHidden
-import com.toasterofbread.spmp.model.mediaitem.loader.rememberLoadedItem
-import com.toasterofbread.spmp.model.mediaitem.movePlaylistItem
+import com.toasterofbread.spmp.model.mediaitem.loader.loadDataOnChange
+import com.toasterofbread.spmp.model.mediaitem.playlist.PlaylistEditor.Companion.rememberEditorOrNull
 import com.toasterofbread.spmp.platform.getDefaultHorizontalPadding
 import com.toasterofbread.spmp.platform.getDefaultVerticalPadding
 import com.toasterofbread.spmp.resources.getString
@@ -65,9 +66,14 @@ fun PlaylistPage(
     padding: PaddingValues = PaddingValues(),
     close: () -> Unit
 ) {
+    val db = SpMp.context.database
     val player = LocalPlayerState.current
     val coroutine_scope = rememberCoroutineScope()
 
+    val loading by playlist.loadDataOnChange(db)
+    val playlist_items: List<MediaItem>? by playlist.Items.observe(db)
+    val playlist_editor = playlist.rememberEditorOrNull(db)
+    
     val apply_item_filter: Boolean by Settings.KEY_FILTER_APPLY_TO_PLAYLIST_ITEMS.rememberMutableState()
     var accent_colour: Color? by remember { mutableStateOf(null) }
     var reorderable: Boolean by remember { mutableStateOf(false) }
@@ -76,32 +82,23 @@ fun PlaylistPage(
     val vertical_padding = SpMp.context.getDefaultVerticalPadding()
     val top_padding = padding.calculateTopPadding() + vertical_padding
 
-    var loading by remember { mutableStateOf(false) }
-    val playlist_data: PlaylistData? = playlist.rememberLoadedItem() {
-        loading = it
-    }
-
     LaunchedEffect(playlist) {
         accent_colour = null
     }
 
     val multiselect_context = remember { MediaItemMultiSelectContext() { context ->
-        if (playlist_data?.is_editable != true) {
+        if (playlist_editor == null) {
             return@MediaItemMultiSelectContext
         }
 
         // Remove selected items from playlist
         IconButton({ coroutine_scope.launch {
-            val items = context.getSelectedItems().sortedByDescending { it.second!! }
-            val playlist_items = playlist.items?.toMutableList()
-            playlist_data?.items = playlist_items
-
-            for (item in items) {
-                SpMp.context.database.playlistItemQueries.removeItemAtIndex(playlist.id, item.second!!.toLong())
-                playlist_items?.removeAt(item.second!!)
+            val selected_items = context.getSelectedItems().sortedByDescending { it.second!! }
+            for (item in selected_items) {
+                playlist_editor.removeItem(item.second!!)
                 context.setItemSelected(item.first, false, item.second)
             }
-
+            playlist_editor.applyItemChanges()
         } }) {
             Icon(Icons.Default.PlaylistRemove, null)
         }
@@ -115,7 +112,10 @@ fun PlaylistPage(
                 }
 
                 Spacer(Modifier.fillMaxWidth().weight(1f))
-                previous_item.title!!.also { Text(it) }
+
+                val previous_item_title: String? by previous_item.Title.observe(db)
+                previous_item_title?.also { Text(it) }
+
                 Spacer(Modifier.fillMaxWidth().weight(1f))
 
                 IconButton({ player.showLongPressMenu(previous_item) }) {
@@ -128,16 +128,16 @@ fun PlaylistPage(
         // val thumb_item = playlist.getThumbnailHolder().getHolder()
 
         val sorted_items: MutableList<Pair<MediaItem, Int>> = remember { mutableStateListOf() }
-        LaunchedEffect(playlist_data?.items?.size, current_sort_option, current_filter, apply_item_filter) {
+        LaunchedEffect(playlist_items, current_sort_option, current_filter, apply_item_filter) {
             sorted_items.clear()
-            playlist_data?.items?.let { items ->
+            playlist_items?.also { items ->
                 val filtered_items = current_filter.let { filter ->
-                    items.filter {
-                        if (filter != null && !it.title!!.contains(filter, true)) {
+                    items.filter { item ->
+                        if (filter != null && item.Title.get(db)?.contains(filter, true) != true) {
                             return@filter false
                         }
 
-                        if (apply_item_filter && !isMediaItemHidden(it)) {
+                        if (apply_item_filter && !isMediaItemHidden(item, db)) {
                             return@filter false
                         }
 
@@ -147,7 +147,7 @@ fun PlaylistPage(
 
                 sorted_items.addAll(
                     current_sort_option
-                        .sortItems(filtered_items)
+                        .sortItems(filtered_items, db)
                         .mapIndexed { index, value ->
                             Pair(value, index)
                         }
@@ -168,12 +168,7 @@ fun PlaylistPage(
             },
             onDragEnd = { from, to ->
                 if (to >= items_above && from >= items_above) {
-                    SpMp.context.database.playlistItemQueries
-                        .movePlaylistItem(
-                            playlist.id,
-                            from - items_above,
-                            to - items_above
-                        )
+                    playlist_editor!!.moveItem(from - items_above, to - items_above)
                 }
             }
         )
@@ -201,7 +196,7 @@ fun PlaylistPage(
         ) {
             item {
                 PlaylistTopInfo(
-                    playlist_data ?: playlist,
+                    playlist,
                     accent_colour ?: Theme.accent,
                     editing_info,
                     { editing_info = it }
@@ -212,7 +207,7 @@ fun PlaylistPage(
 
             item {
                 PlaylistButtonBar(
-                    playlist_data ?: playlist,
+                    playlist,
                     accent_colour ?: Theme.accent,
                     editing_info,
                     { editing_info = it }
@@ -227,13 +222,19 @@ fun PlaylistPage(
             ) {
                 InteractionBar(
                     modifier = Modifier.fillMaxWidth(),
-                    playlist = playlist_data ?: playlist,
+                    playlist = playlist,
+                    playlist_editor = playlist_editor,
                     reorderable = reorderable,
                     setReorderable = {
-                        reorderable = playlist_data?.is_editable == true && it
+                        reorderable = playlist_editor != null && it
                         if (reorderable) {
                             current_sort_option = SortOption.PLAYLIST
                             current_filter = null
+                        }
+                        else {
+                            coroutine_scope.launch {
+                                playlist_editor!!.applyItemChanges().getOrReport("PlaylistPageItemReorder")
+                            }
                         }
                     },
                     filter = current_filter,
@@ -250,13 +251,14 @@ fun PlaylistPage(
             }
 
             PlaylistItems(
-                playlist_data ?: playlist,
+                playlist,
                 list_state,
                 sorted_items,
                 multiselect_context,
                 reorderable,
                 current_sort_option,
                 player,
+                db
             )
         }
     }
@@ -269,7 +271,8 @@ private fun LazyListScope.PlaylistItems(
     multiselect_context: MediaItemMultiSelectContext,
     reorderable: Boolean,
     sort_option: SortOption,
-    player: PlayerState
+    player: PlayerState,
+    db: Database
 ) {
     if (sorted_items.isEmpty()) {
         item {
@@ -316,13 +319,17 @@ private fun LazyListScope.PlaylistItems(
                     Modifier.fillMaxWidth().weight(1f),
                     verticalArrangement = Arrangement.spacedBy(5.dp)
                 ) {
+                    val item_title: String? by item.Title.observe(db)
                     Text(
-                        item.title!!,
+                        item_title ?: "",
                         style = MaterialTheme.typography.titleSmall
                     )
 
-                    val duration_text = remember(item.duration) {
-                        item.duration?.let { duration -> durationToString(duration, true, hl = SpMp.ui_language) }
+                    val item_duration: Long? by item.Duration.observe(db)
+                    val duration_text = remember(item_duration) {
+                        item_duration?.let { duration ->
+                            durationToString(duration, true, hl = SpMp.ui_language)
+                        }
                     }
                     duration_text?.also { text ->
                         Text(text, style = MaterialTheme.typography.labelSmall)
@@ -348,16 +355,16 @@ internal enum class SortOption {
             PLAY_COUNT -> "playlist_sort_option_playcount"
         })
 
-    fun sortItems(items: List<MediaItem>, reversed: Boolean = false): List<MediaItem> {
+    fun sortItems(items: List<MediaItem>, db: Database, reversed: Boolean = false): List<MediaItem> {
         val selector: (MediaItem) -> Comparable<*> = when (this) {
             PLAYLIST ->
                 return if (reversed) items.asReversed()
                 else items
             ALPHABET -> {
-                { it.title!! }
+                { it.Title.get(db) ?: "" }
             }
             DURATION -> {
-                { if (it is Song) it.duration ?: 0 else 0 }
+                { if (it is Song) it.Duration.get(db) ?: 0 else 0 }
             }
             PLAY_COUNT -> {
                 { SpMp.context.database.getMediaItemPlayCount(it.id) }

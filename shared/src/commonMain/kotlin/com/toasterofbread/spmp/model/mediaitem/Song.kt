@@ -1,18 +1,40 @@
 package com.toasterofbread.spmp.model.mediaitem
 
+import androidx.compose.runtime.Composable
+import androidx.compose.runtime.MutableState
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.ui.graphics.ImageBitmap
 import androidx.compose.ui.unit.IntOffset
 import com.toasterofbread.Database
+import com.toasterofbread.spmp.api.DEFAULT_CONNECT_TIMEOUT
 import com.toasterofbread.spmp.api.lyrics.LyricsReference
 import com.toasterofbread.spmp.api.lyrics.toLyricsReference
 import com.toasterofbread.spmp.model.mediaitem.enums.MediaItemType
 import com.toasterofbread.spmp.model.mediaitem.enums.SongType
+import com.toasterofbread.spmp.platform.crop
+import com.toasterofbread.spmp.platform.toImageBitmap
+import com.toasterofbread.utils.lazyAssert
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.withContext
+import java.lang.Exception
+import java.net.URL
 
-class SongRef(override val id: String): Song
+class SongRef(override val id: String): Song {
+    override val creation: Throwable = Exception()
+    override fun toString(): String = "SongRef($id)"
+
+    init {
+        lazyAssert { id.isNotBlank() }
+    }
+}
 
 interface Song: MediaItem.WithArtist {
     override fun getType(): MediaItemType = MediaItemType.SONG
     override fun getURL(): String = "https://music.youtube.com/watch?v=$id"
 
+    override fun createDbEntry(db: Database) {
+        db.songQueries.insertById(id)
+    }
     override fun getEmptyData(): SongData = SongData(id)
     override fun populateData(data: MediaItemData, db: Database) {
         super.populateData(data, db)
@@ -24,8 +46,28 @@ interface Song: MediaItem.WithArtist {
         }
     }
 
-    override suspend fun loadData(db: Database): Result<SongData> {
-        return super.loadData(db) as Result<SongData>
+    override suspend fun loadData(db: Database, populate_data: Boolean): Result<SongData> {
+        return super.loadData(db, populate_data) as Result<SongData>
+    }
+
+    override suspend fun downloadThumbnailData(url: String): Result<ImageBitmap> = withContext(Dispatchers.IO) {
+        return@withContext kotlin.runCatching {
+            val connection = URL(url).openConnection()
+            connection.connectTimeout = DEFAULT_CONNECT_TIMEOUT
+
+            val stream = connection.getInputStream()
+            val bytes = stream.readBytes()
+            stream.close()
+
+            val image = bytes.toImageBitmap()
+            if (image.width == image.height) {
+                return@runCatching image
+            }
+
+            // Crop image to 1:1
+            val size = (image.width * (9f/16f)).toInt()
+            return@runCatching image.crop((image.width - size) / 2, (image.height - size) / 2, size, size)
+        }
     }
 
     val TypeOfSong: Property<SongType?> get() = SingleProperty(
@@ -72,14 +114,51 @@ interface Song: MediaItem.WithArtist {
     val Liked: Property<SongLikedStatus?> get() = SingleProperty(
         { songQueries.likedById(id) }, { liked.toSongLikedStatus() }, { songQueries.updatelikedById(it.toLong(), id) }
     )
+
+    override val ThumbnailProvider: Property<MediaItemThumbnailProvider?>
+        get() = object : Property<MediaItemThumbnailProvider?> {
+            override fun get(db: Database): MediaItemThumbnailProvider =
+                MediaItemThumbnailProvider { quality ->
+                    when (quality) {
+                        MediaItemThumbnailProvider.Quality.LOW -> "https://img.youtube.com/vi/$id/0.jpg"
+                        MediaItemThumbnailProvider.Quality.HIGH -> "https://img.youtube.com/vi/$id/maxresdefault.jpg"
+                    }
+                }
+
+            override fun set(value: MediaItemThumbnailProvider?, db: Database) {}
+
+            @Composable
+            override fun observe(db: Database): MutableState<MediaItemThumbnailProvider?> =
+                mutableStateOf(get(db))
+        }
+
+    val creation: Throwable
 }
 
 class SongData(
     override var id: String,
+    override var artist: Artist? = null,
 
     var song_type: SongType? = null,
     var duration: Long? = null,
-    override var artist: Artist? = null,
     var album: Playlist? = null,
     var related_browse_id: String? = null
-): MediaItemData(), Song, MediaItem.DataWithArtist
+): MediaItem.DataWithArtist(), Song {
+    override val creation: Throwable = Exception()
+    override fun toString(): String = "SongData($id)"
+
+    override fun saveToDatabase(db: Database, apply_to_item: MediaItem) {
+        db.transaction { with(apply_to_item as Song) {
+            super.saveToDatabase(db, apply_to_item)
+            
+            TypeOfSong.setNotNull(song_type, db)
+            Duration.setNotNull(duration, db)
+            Album.setNotNull(album, db)
+            RelatedBrowseId.setNotNull(related_browse_id, db)
+        }}
+    }
+
+    init {
+        lazyAssert { id.isNotBlank() }
+    }
+}

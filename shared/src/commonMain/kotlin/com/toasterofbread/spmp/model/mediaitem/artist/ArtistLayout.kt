@@ -6,6 +6,7 @@ import com.toasterofbread.Database
 import com.toasterofbread.spmp.model.mediaitem.AccountPlaylistRef
 import com.toasterofbread.spmp.model.mediaitem.ListProperty
 import com.toasterofbread.spmp.model.mediaitem.MediaItem
+import com.toasterofbread.spmp.model.mediaitem.MediaItemData
 import com.toasterofbread.spmp.model.mediaitem.Playlist
 import com.toasterofbread.spmp.model.mediaitem.Property
 import com.toasterofbread.spmp.model.mediaitem.SingleProperty
@@ -16,29 +17,42 @@ import com.toasterofbread.spmp.model.mediaitem.toLocalisedYoutubeString
 import com.toasterofbread.spmp.resources.uilocalisation.LocalisedYoutubeString
 import com.toasterofbread.spmp.ui.component.mediaitemlayout.MediaItemLayout
 
-//data class ArtistLayoutData(
-//    var items: MutableList<MediaItem> = mutableListOf(),
-//    var title: LocalisedYoutubeString? = null,
-//    var subtitle: LocalisedYoutubeString? = null,
-//    var type: MediaItemLayout.Type? = null,
-//    var view_more: MediaItemLayout.ViewMore? = null,
-//    var playlist: Playlist? = null
-//) {
-//    fun saveToDatabase(layout: ArtistLayout, db: Database) {
-//        db.transaction {
-//            with(layout) {
-//                Items.overwriteItems(items, db)
-//                Title.set(title, db)
-//                Subtitle.set(subtitle, db)
-//                Type.set(type, db)
-//                ViewMore.set(view_more, db)
-//                Playlist.set(playlist, db)
-//            }
-//        }
-//    }
-//}
+data class ArtistLayoutData(
+    override var layout_index: Long?,
+    override val artist_id: String,
 
-open class ArtistLayout internal constructor(var layout_index: Long?, val artist_id: String) {
+    var items: List<MediaItemData>? = null,
+    var title: LocalisedYoutubeString? = null,
+    var subtitle: LocalisedYoutubeString? = null,
+    var type: MediaItemLayout.Type? = null,
+    var view_more: MediaItemLayout.ViewMore? = null,
+    var playlist: Playlist? = null
+): ArtistLayout {
+    fun saveToDatabase(db: Database) {
+        db.transaction {
+            items?.also { items ->
+                Items.clearItems(db, 0)
+                for (item in items) {
+                    item.saveToDatabase(db)
+                    Items.addItem(item, null, db)
+                }
+            }
+
+            Title.setNotNull(title, db)
+            Subtitle.setNotNull(subtitle, db)
+            Type.setNotNull(type, db)
+            ViewMore.setNotNull(view_more, db)
+            Playlist.setNotNull(playlist, db)
+        }
+    }
+}
+
+data class ArtistLayoutRef(override var layout_index: Long?, override val artist_id: String): ArtistLayout
+
+sealed interface ArtistLayout {
+    var layout_index: Long?
+    val artist_id: String
+
     @Composable
     fun rememberMediaItemLayout(db: Database): MediaItemLayout {
         val items: List<MediaItem>? by Items.observe(db)
@@ -84,13 +98,13 @@ open class ArtistLayout internal constructor(var layout_index: Long?, val artist
 
     val Title: Property<LocalisedYoutubeString?> get() = SingleProperty(
         { artistLayoutQueries.titleByIndex(artist_id, layout_index!!) },
-        { title_type.toLocalisedYoutubeString(title_key) },
-        { artistLayoutQueries.updateTitleByIndex(it?.type?.ordinal?.toLong(), it?.key, artist_id, layout_index!!) }
+        { title_type.toLocalisedYoutubeString(title_key, title_lang) },
+        { artistLayoutQueries.updateTitleByIndex(it?.type?.ordinal?.toLong(), it?.key, it?.source_language?.toLong(), artist_id, layout_index!!) }
     )
     val Subtitle: Property<LocalisedYoutubeString?> get() = SingleProperty(
         { artistLayoutQueries.subtitleByIndex(artist_id, layout_index!!) },
-        { subtitle_type.toLocalisedYoutubeString(subtitle_key) },
-        { artistLayoutQueries.updateSubtitleByIndex(it?.type?.ordinal?.toLong(), it?.key, artist_id, layout_index!!) }
+        { subtitle_type.toLocalisedYoutubeString(subtitle_key, subtitle_lang) },
+        { artistLayoutQueries.updateSubtitleByIndex(it?.type?.ordinal?.toLong(), it?.key, it?.source_language?.toLong(), artist_id, layout_index!!) }
     )
     val Type: Property<MediaItemLayout.Type?> get() = SingleProperty(
         { artistLayoutQueries.typeByIndex(artist_id, layout_index!!) },
@@ -135,13 +149,8 @@ open class ArtistLayout internal constructor(var layout_index: Long?, val artist
     }
 
     companion object {
-        fun create(artist_id: String, db: Database): ArtistLayout {
-            return with(db) { db.transactionWithResult {
-                val layout_index = artistLayoutQueries.layoutCount(artist_id).executeAsOne()
-                artistLayoutQueries.insertLayoutAtIndex(artist_id, layout_index)
-
-                return@transactionWithResult ArtistLayout(layout_index, artist_id)
-            }}
+        fun create(artist_id: String): ArtistLayoutData {
+            return ArtistLayoutData(null, artist_id)
         }
     }
 }

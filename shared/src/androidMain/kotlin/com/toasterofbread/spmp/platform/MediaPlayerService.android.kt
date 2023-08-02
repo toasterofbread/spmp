@@ -19,6 +19,7 @@ import com.google.common.util.concurrent.MoreExecutors
 import com.toasterofbread.spmp.exovisualiser.ExoVisualizer
 import com.toasterofbread.spmp.model.mediaitem.Song
 import com.toasterofbread.spmp.model.mediaitem.SongData
+import com.toasterofbread.spmp.model.mediaitem.SongRef
 import com.toasterofbread.utils.synchronizedBlock
 import kotlin.properties.Delegates
 import androidx.media3.common.MediaItem as ExoMediaItem
@@ -408,4 +409,5 @@ private fun convertState(exo_state: Int): MediaPlayerState {
     return MediaPlayerState.values()[exo_state - 1]
 }
 
-fun ExoMediaItem.getSong(): Song = SongData(mediaId)
+fun ExoMediaItem.getSong(): Song =
+    SongRef(localConfiguration?.uri?.toString() ?: mediaId)

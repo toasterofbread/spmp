@@ -534,7 +534,7 @@ class PlayerService: MediaPlayerService() {
                 return
             }
 
-            val song_title = context.database.mediaItemQueries.titleById(status_song.id).executeAsOne().title
+            val song_title = status_song.Title.get(context.database)
             if (song_title == null) {
                 close()
                 return
@@ -638,85 +638,85 @@ class PlayerService: MediaPlayerService() {
     }
 
     suspend fun loadPersistentQueue(apply: Boolean = true) = withContext(Dispatchers.IO) {
-        if (Platform.is_desktop) {
-            return@withContext
-        }
-
-        if (!apply) {
-            persistent_queue_loaded = true
-            return@withContext
-        }
-
-        queue_lock.withLock {
-            val reader: BufferedReader
-            try {
-                reader = context.openFileInput("persistent_queue").bufferedReader()
-            }
-            catch (_: FileNotFoundException) {
-                SpMp.Log.info("loadPersistentQueue no file found")
-                persistent_queue_loaded = true
-                return@withContext
-            }
-
-            coroutineContext.job.invokeOnCompletion {
-                reader.close()
-            }
-
-            val pos_data = (reader.readLine() ?: return@withLock).split(',')
-
-            val songs: MutableList<Song?> = mutableListOf()
-            val request_limit = Semaphore(10)
-            val jobs: MutableList<Job> = mutableListOf()
-
-            var i = 0
-            var line = reader.readLine()
-            while (line != null) {
-                val index = i++
-                line = reader.readLine()
-
-                val song = SongData(line)
-
-                if (song.Loaded.get(context.database)) {
-                    songs.add(song)
-                    continue
-                }
-
-                songs.add(null)
-
-                jobs.add(
-                    launch {
-                        request_limit.withPermit {
-                            MediaItemLoader.loadSong(song, context.database)
-
-                            synchronized(songs) {
-                                songs[index] = song
-                            }
-                        }
-                    }
-                )
-            }
-
-            jobs.joinAll()
-
-            val to_add = songs.filterIsInstance<Song>()
-            if (to_add.isEmpty()) {
-                return@withContext
-            }
-
-            SpMp.Log.info("loadPersistentQueue adding ${songs.size} songs to $pos_data")
-
-            withContext(Dispatchers.Main) {
-                if (song_count == 0) {
-                    clearQueue(save = false)
-                    addMultipleToQueue(to_add, 0)
-                    seekToSong(pos_data[0].toInt())
-                    seekTo(pos_data[1].toLong())
-                }
-
-                persistent_queue_loaded = true
-                check(queue_lock.isLocked)
-            }
-        }
+//        if (Platform.is_desktop) {
+//            return@withContext
+//        }
+//
+//        if (!apply) {
+//            persistent_queue_loaded = true
+//            return@withContext
+//        }
+//
+//        queue_lock.withLock {
+//            val reader: BufferedReader
+//            try {
+//                reader = context.openFileInput("persistent_queue").bufferedReader()
+//            }
+//            catch (_: FileNotFoundException) {
+//                SpMp.Log.info("loadPersistentQueue no file found")
+//                persistent_queue_loaded = true
+//                return@withContext
+//            }
+//
+//            coroutineContext.job.invokeOnCompletion {
+//                reader.close()
+//            }
+//
+//            val pos_data = (reader.readLine() ?: return@withLock).split(',')
+//
+//            val songs: MutableList<Song?> = mutableListOf()
+//            val request_limit = Semaphore(10)
+//            val jobs: MutableList<Job> = mutableListOf()
+//
+//            var i = 0
+//            var line = reader.readLine()
+//            while (line != null) {
+//                val index = i++
+//                line = reader.readLine()
+//
+//                val song = SongData(line)
+//
+//                if (song.Loaded.get(context.database)) {
+//                    songs.add(song)
+//                    continue
+//                }
+//
+//                songs.add(null)
+//
+//                jobs.add(
+//                    launch {
+//                        request_limit.withPermit {
+//                            MediaItemLoader.loadSong(song, context.database)
+//
+//                            synchronized(songs) {
+//                                songs[index] = song
+//                            }
+//                        }
+//                    }
+//                )
+//            }
+//
+//            jobs.joinAll()
+//
+//            val to_add = songs.filterIsInstance<Song>()
+//            if (to_add.isEmpty()) {
+//                return@withContext
+//            }
+//
+//            SpMp.Log.info("loadPersistentQueue adding ${songs.size} songs to $pos_data")
+//
+//            withContext(Dispatchers.Main) {
+//                if (song_count == 0) {
+//                    clearQueue(save = false)
+//                    addMultipleToQueue(to_add, 0)
+//                    seekToSong(pos_data[0].toInt())
+//                    seekTo(pos_data[1].toLong())
+//                }
+//
+//                persistent_queue_loaded = true
+//                check(queue_lock.isLocked)
+//            }
+//        }
     }
 
     override fun onCreate() {

@@ -7,10 +7,6 @@ import androidx.compose.foundation.*
 import androidx.compose.foundation.interaction.MutableInteractionSource
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.*
-import androidx.compose.foundation.lazy.grid.GridCells
-import androidx.compose.foundation.lazy.grid.LazyGridScope
-import androidx.compose.foundation.lazy.grid.LazyHorizontalGrid
-import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.*
@@ -19,7 +15,6 @@ import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
-import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.DpSize
 import androidx.compose.ui.unit.TextUnit
@@ -47,10 +42,8 @@ import com.toasterofbread.spmp.ui.layout.mainpage.PlayerState
 import com.toasterofbread.spmp.ui.theme.Theme
 import com.toasterofbread.utils.*
 import com.toasterofbread.utils.composable.WidthShrinkText
-import com.toasterofbread.utils.modifier.background
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
-import mediaitem.ArtistLayout
 import okhttp3.Request
 
 fun getDefaultMediaItemPreviewSize(): DpSize = DpSize(100.dp, 130.dp)
@@ -130,72 +123,54 @@ data class MediaItemLayout(
             }
         }
 
-        private suspend fun loadSongContinuation(filters: List<RadioModifier>): Result<Pair<List<MediaItem>, String?>> {
+        private suspend fun loadSongContinuation(filters: List<RadioModifier>): Result<Pair<List<MediaItemData>, String?>> {
             val result = getSongRadio(param as String, token, filters)
             return result.fold(
-                { Result.success(Pair(it.items, it.continuation)) },
+                {Result.success(Pair(it.items, it.continuation)) },
                 { Result.failure(it) }
             )
         }
 
         private suspend fun loadPlaylistContinuation(db: Database, initial: Boolean): Result<Pair<List<MediaItem>, String?>> = withContext(Dispatchers.IO) {
             if (initial) {
-                val playlist_data = PlaylistData(token)
-                val load_result = playlist_data.loadData(db)
+                val playlist = AccountPlaylistRef(token)
+                playlist.loadData(db, false).onFailure {
+                    return@withContext Result.failure(it)
+                }
 
-                return@withContext load_result.fold(
-                    { data ->
-                        Result.success(Pair(
-                            data.items!!.subList(param as Int, data.items!!.size - 1),
-                            data.continuation?.token
-                        ))
-                    },
-                    { Result.failure(it) }
-                )
+                val items = playlist.Items.get(db) ?: return@withContext Result.failure(IllegalStateException("Items for loaded $playlist is null"))
+
+                return@withContext Result.success(Pair(
+                    items.subList(param as Int, items.size - 1),
+                    playlist.Continuation.get(db)?.token
+                ))
             }
 
             val hl = SpMp.data_language
             val request = Request.Builder()
-                .ytUrl(
-                    if (initial) "/youtubei/v1/browse"
-                    else "/youtubei/v1/browse?ctoken=$token&continuation=$token&type=next"
-                )
+                .ytUrl("/youtubei/v1/browse?ctoken=$token&continuation=$token&type=next")
                 .addYtHeaders()
-                .post(Api.getYoutubeiRequestBody(
-                    if (initial) mapOf("browseId" to token)
-                    else null
-                ))
+                .post(Api.getYoutubeiRequestBody())
                 .build()
 
-            val result = Api.request(request)
-            if (result.isFailure) {
-                return@withContext result.cast()
-            }
+            val stream = Api.request(request).fold(
+                { it.getStream() },
+                { return@withContext Result.failure(it) }
+            )
 
-            val stream = result.getOrThrow().getStream()
-            val parsed: YoutubeiBrowseResponse = try {
-                Api.klaxon.parse(stream)!!
-            }
-            catch (e: Throwable) {
-                return@withContext Result.failure(e)
-            }
-            finally {
-                stream.close()
-            }
+            return@withContext runCatching {
+                val parsed: YoutubeiBrowseResponse = stream.use { Api.klaxon.parse(it)!! }
+                val shelf = parsed.continuationContents?.musicPlaylistShelfContinuation ?: return@runCatching Pair(emptyList(), null)
 
-            val shelf =
-                if (initial) parsed.contents!!.singleColumnBrowseResultsRenderer!!.tabs.first().tabRenderer.content!!.sectionListRenderer.contents!!.single().musicPlaylistShelfRenderer!!
-                else parsed.continuationContents!!.musicPlaylistShelfContinuation!!
-
-            return@withContext Result.success(Pair(
-                shelf.contents!!.withIndex().mapNotNull { item ->
-                    if (item.index < param as Int) {
-                        return@mapNotNull null
+                val items: List<MediaItemData> =
+                    shelf.contents!!.mapNotNull { item ->
+                        item.toMediaItemData(hl)?.first
                     }
-                    item.value.toMediaItemData(hl)?.first
-                },
-                shelf.continuations?.firstOrNull()?.nextContinuationData?.continuation
-            ))
+
+                val continuation: String? = shelf.continuations?.firstOrNull()?.nextContinuationData?.continuation
+
+                return@runCatching Pair(items, continuation)
+            }
         }
     }
 

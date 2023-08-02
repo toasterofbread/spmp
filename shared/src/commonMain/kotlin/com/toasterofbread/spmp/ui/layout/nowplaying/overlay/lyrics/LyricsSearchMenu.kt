@@ -43,6 +43,7 @@ import androidx.compose.ui.platform.LocalSoftwareKeyboardController
 import androidx.compose.ui.text.input.ImeAction
 import androidx.compose.ui.text.input.TextFieldValue
 import androidx.compose.ui.unit.dp
+import com.toasterofbread.spmp.api.lyrics.LyricsReference
 import com.toasterofbread.spmp.api.lyrics.LyricsSource
 import com.toasterofbread.spmp.model.Settings
 import com.toasterofbread.spmp.model.mediaitem.Artist
@@ -213,18 +214,12 @@ fun LyricsSearchMenu(song: Song, modifier: Modifier = Modifier, close: (changed:
                 LyricsSearchResults(results) { index ->
                     if (index != null) {
                         val selected = results.first[index]
-                        val lyrics_source = results.second.toLong()
+                        val lyrics_source = results.second
 
-                        val current_lyrics = SpMp.context.database.songQueries
-                            .lyricsById(song.id)
-                            .executeAsOne()
+                        val current_lyrics = song.Lyrics.get(SpMp.context.database)
 
-                        if (selected.id != current_lyrics.lyrics_id || lyrics_source != current_lyrics.lyrics_source) {
-                            SpMp.context.database.songQueries.updateLyricsById(
-                                lyrics_source = lyrics_source,
-                                lyrics_id = selected.id,
-                                id = song.id
-                            )
+                        if (selected.id != current_lyrics?.id || lyrics_source != current_lyrics.source_idx) {
+                            song.Lyrics.set(LyricsReference(lyrics_source, selected.id), SpMp.context.database)
                             close(true)
                         }
                         else {

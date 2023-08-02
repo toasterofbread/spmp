@@ -252,6 +252,7 @@ fun PlaylistPage(
 
             PlaylistItems(
                 playlist,
+                loading,
                 list_state,
                 sorted_items,
                 multiselect_context,
@@ -266,6 +267,7 @@ fun PlaylistPage(
 
 private fun LazyListScope.PlaylistItems(
     playlist: Playlist,
+    loading: Boolean,
     list_state: ReorderableLazyListState,
     sorted_items: List<Pair<MediaItem, Int>>,
     multiselect_context: MediaItemMultiSelectContext,
@@ -276,7 +278,16 @@ private fun LazyListScope.PlaylistItems(
 ) {
     if (sorted_items.isEmpty()) {
         item {
-            Text(getString("playlist_empty"), Modifier.padding(top = 15.dp))
+            Crossfade(loading, Modifier.fillMaxWidth()) {
+                if (it) {
+                    Box(Modifier.fillMaxWidth(), contentAlignment = Alignment.Center) {
+                        SubtleLoadingIndicator()
+                    }
+                }
+                else {
+                    Text(getString("playlist_empty"), Modifier.padding(top = 15.dp))
+                }
+            }
         }
     }
 

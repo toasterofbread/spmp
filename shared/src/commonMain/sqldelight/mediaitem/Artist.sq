@@ -13,6 +13,10 @@ CREATE TABLE Artist (
 );
 
 byId: SELECT * FROM Artist WHERE id == ?;
+insertById {
+    INSERT OR IGNORE INTO MediaItem(id) VALUES(:id);
+    INSERT OR IGNORE INTO Artist(id) VALUES(:id);
+}
 
 subscribeChannelIdById: SELECT subscribe_channel_id FROM Artist WHERE id == :id;
 updateSubscribeChannelIdById: UPDATE Artist SET subscribe_channel_id = :subscribe_channel_id WHERE id == :id;

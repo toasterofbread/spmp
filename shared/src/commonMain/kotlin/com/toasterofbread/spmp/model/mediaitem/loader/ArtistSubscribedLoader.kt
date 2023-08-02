@@ -7,7 +7,7 @@ import com.toasterofbread.spmp.model.mediaitem.toSQLBoolean
 
 internal object ArtistSubscribedLoader: ItemStateLoader<String, Boolean>() {
     suspend fun loadArtistSubscribed(artist: Artist, db: Database): Result<Boolean> {
-        return performResultLoad(artist.id) {
+        return performLoad(artist.id) {
             isSubscribedToArtist(artist).onSuccess { subscribed ->
                 db.artistQueries.updateSubscribedById(subscribed.toSQLBoolean(), artist.id)
             }

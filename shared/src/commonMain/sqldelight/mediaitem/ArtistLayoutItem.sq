@@ -18,7 +18,7 @@ ORDER BY item_index;
 
 insertItemAtIndex:
 INSERT INTO ArtistLayoutItem(artist_id, layout_index, item_id, item_type, item_index)
-VALUES (:artist_id, :layout_index, :item_id, :item_type, :item_index);
+VALUES(:artist_id, :layout_index, :item_id, :item_type, :item_index);
 
 removeItemAtIndex:
 DELETE FROM ArtistLayoutItem
@@ -28,7 +28,7 @@ updateItemIndex:
 UPDATE ArtistLayoutItem SET item_index = :to WHERE item_index == :from AND artist_id == :artist_id AND layout_index == :layout_index;
 
 itemCount:
-SELECT COUNT(IIF(ArtistLayoutItem.artist_id = :artist_id AND ArtistLayoutItem.layout_index = :layout_index), 1, NULL) FROM ArtistLayoutItem;
+SELECT COUNT(IIF(ArtistLayoutItem.artist_id = :artist_id AND ArtistLayoutItem.layout_index = :layout_index, 1, NULL)) FROM ArtistLayoutItem;
 
 clearItems:
 DELETE FROM ArtistLayoutItem WHERE artist_id = :artist_id AND layout_index = :layout_index AND item_index >= :from_index;

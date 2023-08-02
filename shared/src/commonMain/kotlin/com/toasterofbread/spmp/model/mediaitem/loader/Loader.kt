@@ -6,18 +6,20 @@ import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
-import com.toasterofbread.spmp.api.getOrThrowHere
 import kotlinx.coroutines.Deferred
 import kotlinx.coroutines.async
 import kotlinx.coroutines.coroutineScope
 import java.util.concurrent.locks.ReentrantLock
 import kotlin.concurrent.withLock
 
-internal interface ListenerLoader<K, V> {
-    val listeners: MutableList<Listener<K, V>>
+internal abstract class ListenerLoader<K, V>: BasicLoader<K, V>() {
+    abstract val listeners: MutableList<Listener<K, V>>
 
     fun addListener(listener: Listener<K, V>) { listeners.add(listener) }
     fun removeListener(listener: Listener<K, V>) { listeners.remove(listener) }
+
+    override suspend fun performLoad(key: K, performLoad: suspend () -> Result<V>): Result<V> =
+        performSafeLoad(key, lock, loading_items, listeners = listeners, performLoad = performLoad)
 
     interface Listener<K, V> {
         fun onLoadStarted(key: K)
@@ -26,8 +28,8 @@ internal interface ListenerLoader<K, V> {
     }
 }
 
-internal abstract class ItemStateLoader<K, V>: BasicLoader<K, V>(), ListenerLoader<K, V> {
-    override val listeners: MutableList<ListenerLoader.Listener<K, V>> = mutableListOf()
+internal abstract class ItemStateLoader<K, V>: ListenerLoader<K, V>() {
+    override val listeners: MutableList<Listener<K, V>> = mutableListOf()
 
     interface ItemState<V> {
         val loading: Boolean
@@ -44,7 +46,7 @@ internal abstract class ItemStateLoader<K, V>: BasicLoader<K, V>(), ListenerLoad
         }
 
         DisposableEffect(state) {
-            val listener = object : ListenerLoader.Listener<K, V> {
+            val listener = object : Listener<K, V> {
                 override fun onLoadStarted(key: K) {
                     if (key != state_key) {
                         return
@@ -88,76 +90,67 @@ internal abstract class ItemStateLoader<K, V>: BasicLoader<K, V>(), ListenerLoad
 }
 
 internal abstract class BasicLoader<K, V> {
-    private val lock = ReentrantLock()
-    inline fun <T> withLock(action: () -> T): T = lock.withLock(action)
+    protected val lock = ReentrantLock()
 
-    private val loading_items: MutableMap<K, Deferred<V>> = mutableMapOf()
+    protected val loading_items: MutableMap<K, Deferred<Result<V>>> = mutableMapOf()
 
-    protected suspend inline fun performLoad(key: K, noinline performLoad: suspend () -> V): Result<V> =
+    protected open suspend fun performLoad(key: K, performLoad: suspend () -> Result<V>): Result<V> =
         performSafeLoad(key, lock, loading_items, performLoad = performLoad)
-
-    protected suspend inline fun performResultLoad(key: K, noinline performLoad: suspend () -> Result<V>): Result<V> =
-        performResultSafeLoad(key, lock, loading_items, performLoad = performLoad)
 }
-
-internal suspend inline fun <K, V> performResultSafeLoad(
-    instance_key: K,
-    lock: ReentrantLock,
-    running: MutableMap<K, Deferred<V>>,
-    keep_results: Boolean = false,
-    crossinline performLoad: suspend () -> Result<V>
-): Result<V> =
-    performSafeLoad(
-        instance_key,
-        lock,
-        running,
-        keep_results,
-        performLoad = {
-            performLoad().getOrThrowHere()
-        }
-    )
 
 internal suspend inline fun <K, V> performSafeLoad(
     instance_key: K,
     lock: ReentrantLock,
-    running: MutableMap<K, Deferred<V>>,
+    running: MutableMap<K, Deferred<Result<V>>>,
     keep_results: Boolean = false,
-    crossinline performLoad: suspend () -> V
+    listeners: List<ListenerLoader.Listener<K, V>>? = null,
+    crossinline performLoad: suspend () -> Result<V>
 ): Result<V> {
-    val end_with_lock = lock.isHeldByCurrentThread
-    lock.lock()
+    val loading = lock.withLock {
+        running[instance_key]
+    }
 
-    val loading = running[instance_key]
     if (loading != null) {
-        lock.unlock()
+        return loading.await()
+    }
 
-        return runCatching {
-            loading.await()
+    if (listeners != null) {
+        for (listener in listeners) {
+            listener.onLoadStarted(instance_key)
         }
     }
 
-    val load_job: Deferred<V> = coroutineScope {
+    val load_job: Deferred<Result<V>> = coroutineScope {
         async {
             performLoad()
         }
     }
 
-    running[instance_key] = load_job
+    lock.withLock {
+        running[instance_key] = load_job
+    }
 
-    lock.unlock()
+    val result = load_job.await()
 
-    val result = runCatching {
-        load_job.await()
+    if (listeners != null) {
+        result.fold(
+            { value ->
+                for (listener in listeners) {
+                    listener.onLoadFinished(instance_key, value)
+                }
+            },
+            { error ->
+                for (listener in listeners) {
+                    listener.onLoadFailed(instance_key, error)
+                }
+            }
+        )
     }
 
     if (!keep_results || result.isFailure) {
-        lock.lock()
-
         @Suppress("DeferredResultUnused")
-        running.remove(instance_key)
-
-        if (!end_with_lock) {
-            lock.unlock()
+        lock.withLock {
+            running.remove(instance_key)
         }
     }
 

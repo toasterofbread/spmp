@@ -5,6 +5,7 @@ import com.toasterofbread.spmp.model.mediaitem.loader.MediaItemLoader
 import com.toasterofbread.spmp.resources.uilocalisation.LocalisedYoutubeString
 import mediaitem.ByItemId
 import mediaitem.PlaylistItemQueries
+import java.time.Duration
 import java.time.LocalDate
 import java.time.temporal.ChronoUnit
 
@@ -24,8 +25,8 @@ fun Long?.fromNullableSQLBoolean(): Boolean? =
         else -> null
     }
 
-fun Long?.toLocalisedYoutubeString(key: String?): LocalisedYoutubeString? =
-    if (this != null) LocalisedYoutubeString(key!!, LocalisedYoutubeString.Type.values()[this.toInt()])
+fun Long?.toLocalisedYoutubeString(key: String?, source_language: Long?): LocalisedYoutubeString? =
+    if (this != null) LocalisedYoutubeString(key!!, LocalisedYoutubeString.Type.values()[this.toInt()], source_language?.toInt())
     else null
 
 suspend fun <T, ItemType: MediaItemData> Database.loadMediaItemValue(item: ItemType, getValue: ItemType.() -> T?): Result<T>? {
@@ -55,9 +56,9 @@ fun Database.incrementMediaItemPlayCount(item_id: String, by: Int = 1) {
     }
 }
 
-fun Database.getMediaItemPlayCount(item_id: String, range: ChronoUnit? = null): Int {
+fun Database.getMediaItemPlayCount(item_id: String, range: Duration? = null): Int {
     val entries = if (range != null) {
-        val since_day = LocalDate.now().minus(range.duration).toEpochDay()
+        val since_day = LocalDate.now().minusDays(range.toDays()).toEpochDay()
         mediaItemPlayCountQueries.byItemIdSince(
             item_id, since_day,
             { day, play_count ->
@@ -71,24 +72,3 @@ fun Database.getMediaItemPlayCount(item_id: String, range: ChronoUnit? = null): 
 
     return entries.sumOf { it.play_count }.toInt()
 }
-
-//fun PlaylistItemQueries.movePlaylistItem(playlist_id: String, from: Int, to: Int) = transaction {
-//    if (from == to) {
-//        return@transaction
-//    }
-//
-//    fun move(from: Int, to: Int) =
-//        updateItemIndex(from = from.toLong(), to = to.toLong(), playlist_id = playlist_id)
-//
-//    move(from, to)
-//    if (to > from) {
-//        for (i in from until to) {
-//            move(i, i - 1)
-//        }
-//    }
-//    else {
-//        for (i in to + 1 .. from) {
-//            move(i, i + 1)
-//        }
-//    }
-//}

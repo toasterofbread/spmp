@@ -117,10 +117,10 @@ class LongPressMenuActionProvider(
                     }
                 }
 
-                Crossfade(active_queue_item, animationSpec = tween(100)) { active_item ->
-                    CompositionLocalProvider(
-                        LocalPlayerState provides remember { player.copy(onClickedOverride = { item, _ -> player.openMediaItem(item,) }) }
-                    ) {
+                CompositionLocalProvider(
+                    LocalPlayerState provides remember { player.copy(onClickedOverride = { item, _ -> player.openMediaItem(item,) }) }
+                ) {
+                    Crossfade(active_queue_item, animationSpec = tween(100)) { active_item ->
                         if (active_item != null) {
                             MediaItemPreviewLong(active_item, contentColour = getContentColour)
                         }

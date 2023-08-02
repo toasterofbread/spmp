@@ -11,7 +11,7 @@ import com.toasterofbread.spmp.model.mediaitem.enums.PlaylistType
 import com.toasterofbread.spmp.model.mediaitem.enums.SongType
 import com.toasterofbread.spmp.resources.uilocalisation.parseYoutubeDurationString
 
-class MusicResponsiveListItemRenderer(
+data class MusicResponsiveListItemRenderer(
     val playlistItemData: RendererPlaylistItemData? = null,
     val flexColumns: List<FlexColumn>? = null,
     val fixedColumns: List<FixedColumn>? = null,
@@ -71,9 +71,8 @@ class MusicResponsiveListItemRenderer(
                     when (browse_endpoint?.getPageType()) {
                         "MUSIC_PAGE_TYPE_ARTIST", "MUSIC_PAGE_TYPE_USER_CHANNEL" -> {
                             if (artist == null) {
-                                artist = ArtistData(browse_endpoint.browseId).apply {
-                                    title = run.text
-                                }
+                                artist = ArtistData(browse_endpoint.browseId)
+                                artist.title = run.text
                             }
                         }
                     }
@@ -113,9 +112,8 @@ class MusicResponsiveListItemRenderer(
             if (flexColumns != null && flexColumns.size > 1) {
                 val text = flexColumns[1].musicResponsiveListItemFlexColumnRenderer.text
                 if (text.runs != null) {
-                    artist = ArtistData.createForItem(item_data).apply {
-                        title = text.first_text
-                    }
+                    artist = ArtistData.createForItem(item_data)
+                    artist.title = text.first_text
                 }
             }
 
@@ -141,4 +139,4 @@ class MusicResponsiveListItemRenderer(
     }
 }
 
-class RendererPlaylistItemData(val videoId: String, val playlistSetVideoId: String? = null)
+data class RendererPlaylistItemData(val videoId: String, val playlistSetVideoId: String? = null)

@@ -7,7 +7,6 @@ import com.toasterofbread.Database
 import com.toasterofbread.spmp.api.RadioModifier
 import com.toasterofbread.spmp.api.cast
 import com.toasterofbread.spmp.model.mediaitem.MediaItem
-import com.toasterofbread.spmp.model.mediaitem.MediaItemWithLayouts
 import com.toasterofbread.spmp.model.mediaitem.Playlist
 import com.toasterofbread.spmp.model.mediaitem.Song
 import com.toasterofbread.spmp.ui.component.mediaitemlayout.MediaItemLayout
@@ -27,6 +26,9 @@ import com.toasterofbread.spmp.ui.component.ErrorInfoDisplay
 import com.toasterofbread.spmp.resources.getString
 import androidx.compose.material3.Text
 import com.toasterofbread.spmp.model.Settings
+import com.toasterofbread.spmp.model.mediaitem.Artist
+import com.toasterofbread.spmp.model.mediaitem.MediaItemData
+import com.toasterofbread.spmp.model.mediaitem.SongData
 import com.toasterofbread.spmp.model.mediaitem.isMediaItemHidden
 
 class RadioInstance(
@@ -45,6 +47,7 @@ class RadioInstance(
     class RadioState {
         var item: Pair<MediaItem, Int?>? by mutableStateOf(null)
         var continuation: MediaItemLayout.Continuation? by mutableStateOf(null)
+        var initial_songs_loaded = false
         var filters: List<List<RadioModifier>>? by mutableStateOf(null)
         var current_filter: Int? by mutableStateOf(null)
         var shuffle: Boolean = false
@@ -154,6 +157,10 @@ class RadioInstance(
                 onStart?.invoke()
 
                 if (state.continuation == null) {
+                    if (state.initial_songs_loaded) {
+                        return@launchSingle
+                    }
+
                     val initial_songs = getInitialSongs()
                     initial_songs.onFailure { error ->
                         synchronized(lock) {
@@ -166,6 +173,8 @@ class RadioInstance(
 
                     val formatted = formatContinuationResult(initial_songs)
                     callback(formatted, is_retry)
+
+                    state.initial_songs_loaded = true
                     return@launchSingle
                 }
 
@@ -194,7 +203,7 @@ class RadioInstance(
                     state.continuation = null
                 }
 
-                callback(formatContinuationResult(Result.success(items.filterIsInstance<Song>())), is_retry)
+                callback(formatContinuationResult(Result.success(items.filterIsInstance<SongData>())), is_retry)
             }
         }
     }
@@ -241,7 +250,14 @@ class RadioInstance(
     private fun formatContinuationResult(result: Result<List<Song>>): Result<List<Song>> =
         result.fold(
             { songs ->
-                val filtered = songs.filter { !isMediaItemHidden(it, database) }
+                val filtered = database.transactionWithResult {
+                    songs.filter { song ->
+                        if (song is MediaItemData) {
+                            song.saveToDatabase(database)
+                        }
+                        !isMediaItemHidden(song, database)
+                    }
+                }
                 Result.success(
                     if (state.shuffle) filtered.shuffled()
                     else filtered
@@ -269,28 +285,43 @@ class RadioInstance(
                     { Result.failure(it) }
                 )
             }
-            is MediaItemWithLayouts -> {
-                val feed_layouts = item.getFeedLayouts().fold(
-                    { it },
-                    { return Result.failure(it) }
-                )
+            is Artist -> TODO()
+            is Playlist -> {
+                val (items, continuation) = database.transactionWithResult {
+                    Pair(item.Items.get(database), item.Continuation.get(database))
+                }
 
-                val layout = feed_layouts.firstOrNull()
-                if (layout == null) {
+                if (items == null) {
+                    state.continuation = continuation ?: MediaItemLayout.Continuation(item.id, MediaItemLayout.Continuation.Type.PLAYLIST_INITIAL)
                     return Result.success(emptyList())
                 }
 
-                val view_more = layout.view_more
-                if (view_more is MediaItemLayout.MediaItemViewMore && view_more.media_item is Playlist) {
-                    state.continuation = MediaItemLayout.Continuation(view_more.media_item.id, MediaItemLayout.Continuation.Type.PLAYLIST_INITIAL, layout.items.size)
-                }
-                else {
-                    state.continuation = layout.continuation
-                }
+                state.continuation = continuation
 
-                return Result.success(layout.items.filterIsInstance<Song>())
+                return Result.success(items)
             }
-            else -> throw NotImplementedError(item.javaClass.name)
+//            is MediaItemWithLayouts -> {
+//                val feed_layouts = item.getFeedLayouts().fold(
+//                    { it },
+//                    { return Result.failure(it) }
+//                )
+//
+//                val layout = feed_layouts.firstOrNull()
+//                if (layout == null) {
+//                    return Result.success(emptyList())
+//                }
+//
+//                val view_more = layout.view_more
+//                if (view_more is MediaItemLayout.MediaItemViewMore && view_more.media_item is Playlist) {
+//                    state.continuation = MediaItemLayout.Continuation(view_more.media_item.id, MediaItemLayout.Continuation.Type.PLAYLIST_INITIAL, layout.items.size)
+//                }
+//                else {
+//                    state.continuation = layout.continuation
+//                }
+//
+//                return Result.success(layout.items.filterIsInstance<SongData>())
+//            }
+            else -> throw NotImplementedError(item::class.toString())
         }
     }
 }

@@ -32,10 +32,12 @@ sealed interface MediaItem: MediaItemHolder {
     val id: String
     override val item: MediaItem get() = this
 
+    override fun toString(): String
     fun getHolder(): MediaItemHolder = this
     fun getType(): MediaItemType
     fun getURL(): String
 
+    fun createDbEntry(db: Database)
     fun getEmptyData(): MediaItemData
     fun populateData(data: MediaItemData, db: Database) {
         data.apply {
@@ -45,6 +47,15 @@ sealed interface MediaItem: MediaItemHolder {
             description = Description.get(db)
             thumbnail_provider = ThumbnailProvider.get(db)
         }
+    }
+
+    suspend fun loadData(db: Database, populate_data: Boolean = true): Result<MediaItemData> {
+        val data = getEmptyData()
+        if (Loaded.get(db)) {
+            populateData(data, db)
+            return Result.success(data)
+        }
+        return MediaItemLoader.loadUnknown(getEmptyData(), db)
     }
 
     suspend fun downloadThumbnailData(url: String): Result<ImageBitmap> = withContext(Dispatchers.IO) {
@@ -60,39 +71,35 @@ sealed interface MediaItem: MediaItemHolder {
         }
     }
 
-    suspend fun loadData(db: Database): Result<MediaItemData> {
-        val data = getEmptyData()
-        if (Loaded.get(db)) {
-            populateData(data, db)
-            return Result.success(data)
-        }
-        return MediaItemLoader.loadUnknown(getEmptyData(), db)
-    }
-
-    val Loaded: Property<Boolean> get() = SingleProperty(
-        { mediaItemQueries.loadedById(id) }, { loaded.fromSQLBoolean() }, { mediaItemQueries.updateLoadedById(it.toSQLBoolean(), id) }
+    val Loaded: Property<Boolean> get() = singleProperty(
+        { mediaItemQueries.loadedById(id) }, { loaded.fromSQLBoolean() }, { mediaItemQueries.updateLoadedById(it.toSQLBoolean(), id) }, { false }
     )
-    val Title: Property<String?> get() = SingleProperty(
+    val Title: Property<String?> get() = singleProperty(
         { mediaItemQueries.titleById(id) }, { title }, { mediaItemQueries.updateTitleById(it, id) }
     )
-    val OriginalTitle: Property<String?> get() = SingleProperty(
+    val OriginalTitle: Property<String?> get() = singleProperty(
         { mediaItemQueries.originalTitleById(id) }, { original_title }, { mediaItemQueries.updateOriginalTitleById(it, id) }
     )
-    val Description: Property<String?> get() = SingleProperty(
+    val Description: Property<String?> get() = singleProperty(
         { mediaItemQueries.descriptionById(id) }, { description }, { mediaItemQueries.updateDescriptionById(it, id) }
     )
-    val ThumbnailProvider: Property<MediaItemThumbnailProvider?> get() = SingleProperty(
-        { mediaItemQueries.thumbnailProviderById(id) }, { this.toThumbnailProvider() }, { mediaItemQueries.updateThumbnailProviderById(it?.url_a, it?.url_b, id) }
+    val ThumbnailProvider: Property<MediaItemThumbnailProvider?> get() = singleProperty(
+        { mediaItemQueries.thumbnailProviderById(id) },
+        { this.toThumbnailProvider() },
+        {
+            require(it is MediaItemThumbnailProviderImpl?)
+            mediaItemQueries.updateThumbnailProviderById(it?.url_a, it?.url_b, id)
+        }
     )
 
-    val ThemeColour: Property<Color?> get() = SingleProperty(
+    val ThemeColour: Property<Color?> get() = singleProperty(
         { mediaItemQueries.themeColourById(id) }, { theme_colour?.let { Color(it) } }, { mediaItemQueries.updateThemeColourById(it?.toArgb()?.toLong(), id) }
     )
-    val PinnedToHome: Property<Boolean> get() = SingleProperty(
-        { mediaItemQueries.pinnedToHomeById(id) }, { pinned_to_home.fromSQLBoolean() }, { mediaItemQueries.updatePinnedToHomeById(it.toSQLBoolean(), id) }
+    val PinnedToHome: Property<Boolean> get() = singleProperty(
+        { mediaItemQueries.pinnedToHomeById(id) }, { pinned_to_home.fromSQLBoolean() }, { mediaItemQueries.updatePinnedToHomeById(it.toSQLBoolean(), id) }, { false }
     )
-    val Hidden: Property<Boolean> get() = SingleProperty(
-        { mediaItemQueries.isHiddenById(id) }, { hidden.fromSQLBoolean() }, { mediaItemQueries.updateIsHiddenById(it.toSQLBoolean(), id) }
+    val Hidden: Property<Boolean> get() = singleProperty(
+        { mediaItemQueries.isHiddenById(id) }, { hidden.fromSQLBoolean() }, { mediaItemQueries.updateIsHiddenById(it.toSQLBoolean(), id) }, { false }
     )
 
     interface WithArtist: MediaItem {
@@ -105,8 +112,22 @@ sealed interface MediaItem: MediaItemHolder {
             }
         }
     }
-    interface DataWithArtist {
-        var artist: Artist?
+
+    abstract class DataWithArtist: MediaItemData(), WithArtist {
+        abstract var artist: Artist?
+
+        override fun saveToDatabase(db: Database, apply_to_item: MediaItem) {
+            db.transaction { with(apply_to_item as WithArtist) {
+                super.saveToDatabase(db, apply_to_item)
+
+                val artist_data = artist
+                if (artist_data is ArtistData) {
+                    artist_data.saveToDatabase(db)
+                }
+
+                Artist.setNotNull(artist, db)
+            }}
+        }
     }
 }
 
@@ -114,14 +135,13 @@ sealed class MediaItemData: MediaItem {
     var loaded: Boolean = false
     var title: String? = null
         set(value) {
+            if (this !is ArtistData && value == "MIMI") {
+                TODO(this.toString())
+            }
             field = value
-            original_title = value
         }
+
     var original_title: String? = null
-        set(value) {
-            field = value
-            title = value
-        }
     var description: String? = null
     var thumbnail_provider: MediaItemThumbnailProvider? = null
 
@@ -139,11 +159,15 @@ sealed class MediaItemData: MediaItem {
 
     open fun saveToDatabase(db: Database, apply_to_item: MediaItem = this) {
         db.transaction { with(apply_to_item) {
-            Loaded.set(loaded, db)
-            Title.set(title, db)
-            OriginalTitle.set(original_title, db)
-            Description.set(description, db)
-            ThumbnailProvider.set(thumbnail_provider, db)
+            createDbEntry(db)
+
+            if (loaded) {
+                Loaded.set(true, db)
+            }
+            Title.setNotNull(title, db)
+            OriginalTitle.setNotNull(original_title, db)
+            Description.setNotNull(description, db)
+            ThumbnailProvider.setNotNull(thumbnail_provider, db)
         }}
     }
 

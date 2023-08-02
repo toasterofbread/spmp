@@ -16,7 +16,7 @@ import okhttp3.Request
 private const val RADIO_ID_PREFIX = "RDAMVM"
 private const val MODIFIED_RADIO_ID_PREFIX = "RDAT"
 
-data class RadioData(val items: List<Song>, var continuation: String?, val filters: List<List<RadioModifier>>?)
+data class RadioData(val items: List<SongData>, var continuation: String?, val filters: List<List<RadioModifier>>?)
 
 suspend fun getSongRadio(
     video_id: String, 

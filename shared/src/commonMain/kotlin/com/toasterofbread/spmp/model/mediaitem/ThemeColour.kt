@@ -1,5 +1,6 @@
 package com.toasterofbread.spmp.model.mediaitem
 
+import SpMp
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.derivedStateOf
 import androidx.compose.runtime.getValue
@@ -12,12 +13,7 @@ import com.toasterofbread.utils.getThemeColour
 @Composable
 fun MediaItem.rememberThemeColour(db: Database = SpMp.context.database): Color? {
     val thumbnail_state = MediaItemThumbnailLoader.rememberItemState(this)
-    val item_colour by db.mediaItemQueries
-        .themeColourById(id)
-        .observeAsState(
-            { it.executeAsOne().theme_colour?.let { Color(it) } },
-            null
-        )
+    val item_colour: Color? by ThemeColour.observe(db)
 
     val colour: Color? by remember(thumbnail_state, item_colour) { derivedStateOf {
         if (item_colour != null) {

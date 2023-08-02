@@ -16,12 +16,13 @@ import com.toasterofbread.spmp.platform.toImageBitmap
 import com.toasterofbread.utils.lazyAssert
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
-import java.lang.Exception
 import java.net.URL
 
 class SongRef(override val id: String): Song {
     override val creation: Throwable = Exception()
     override fun toString(): String = "SongRef($id)"
+
+    override val property_rememberer: PropertyRememberer = PropertyRememberer()
 
     init {
         lazyAssert { id.isNotBlank() }
@@ -70,37 +71,39 @@ interface Song: MediaItem.WithArtist {
         }
     }
 
-    val TypeOfSong: Property<SongType?> get() = SingleProperty(
+    val TypeOfSong: Property<SongType?> get() = property_rememberer.rememberSingleProperty(
+        "TypeOfSong",
         { songQueries.songTypeById(id) },
         { song_type?.let { SongType.values()[it.toInt()] } },
         { songQueries.updateSongTypeById(it?.ordinal?.toLong(), id) }
     )
-    val Duration: Property<Long?> get() = SingleProperty(
-        { songQueries.durationById(id) }, { duration }, { songQueries.updateDurationById(it, id) }
+    val Duration: Property<Long?> get() = property_rememberer.rememberSingleProperty(
+        "Duration", { songQueries.durationById(id) }, { duration }, { songQueries.updateDurationById(it, id) }
     )
-    override val Artist: Property<Artist?> get() = SingleProperty(
-        { songQueries.artistById(id) }, { artist?.let { ArtistRef(it) } }, { songQueries.updateArtistById(it?.id, id) }
+    override val Artist: Property<Artist?> get() = property_rememberer.rememberSingleProperty(
+        "Artist", { songQueries.artistById(id) }, { artist?.let { ArtistRef(it) } }, { songQueries.updateArtistById(it?.id, id) }
     )
-    val Album: Property<Playlist?> get() = SingleProperty(
-        { songQueries.albumById(id) }, { album?.let { AccountPlaylistRef(it) } }, { songQueries.updateAlbumById(it?.id, id) }
+    val Album: Property<Playlist?> get() = property_rememberer.rememberSingleProperty(
+        "Album", { songQueries.albumById(id) }, { album?.let { AccountPlaylistRef(it) } }, { songQueries.updateAlbumById(it?.id, id) }
     )
-    val RelatedBrowseId: Property<String?> get() = SingleProperty(
-        { songQueries.relatedBrowseIdById(id) }, { related_browse_id }, { songQueries.updateRelatedBrowseIdById(it, id) }
+    val RelatedBrowseId: Property<String?> get() = property_rememberer.rememberSingleProperty(
+        "RelatedBrowseId", { songQueries.relatedBrowseIdById(id) }, { related_browse_id }, { songQueries.updateRelatedBrowseIdById(it, id) }
     )
 
-    val Lyrics: Property<LyricsReference?> get() = SingleProperty(
-        { songQueries.lyricsById(id) }, { this.toLyricsReference() }, { songQueries.updateLyricsById(it?.source_idx?.toLong(), it?.id, id) }
+    val Lyrics: Property<LyricsReference?> get() = property_rememberer.rememberSingleProperty(
+        "Lyrics", { songQueries.lyricsById(id) }, { this.toLyricsReference() }, { songQueries.updateLyricsById(it?.source_idx?.toLong(), it?.id, id) }
     )
-    val LyricsSyncOffset: Property<Long?> get() = SingleProperty(
-        { songQueries.lyricsSyncOffsetById(id) }, { lyrics_sync_offset }, { songQueries.updateLyricsSyncOffsetById(it, id) }
+    val LyricsSyncOffset: Property<Long?> get() = property_rememberer.rememberSingleProperty(
+        "LyricsSyncOffset", { songQueries.lyricsSyncOffsetById(id) }, { lyrics_sync_offset }, { songQueries.updateLyricsSyncOffsetById(it, id) }
     )
-    val PlayerGradientDepth: Property<Float?> get() = SingleProperty(
-        { songQueries.npGradientDepthById(id) }, { np_gradient_depth?.toFloat() }, { songQueries.updateNpGradientDepthById(it?.toDouble(), id) }
+    val PlayerGradientDepth: Property<Float?> get() = property_rememberer.rememberSingleProperty(
+        "PlayerGradientDepth", { songQueries.npGradientDepthById(id) }, { np_gradient_depth?.toFloat() }, { songQueries.updateNpGradientDepthById(it?.toDouble(), id) }
     )
-    val ThumbnailRounding: Property<Int?> get() = SingleProperty(
-        { songQueries.thumbnailRoundingById(id) }, { thumbnail_rounding?.toInt() }, { songQueries.updateThumbnailRoundingById(it?.toLong(), id) }
+    val ThumbnailRounding: Property<Int?> get() = property_rememberer.rememberSingleProperty(
+        "ThumbnailRounding", { songQueries.thumbnailRoundingById(id) }, { thumbnail_rounding?.toInt() }, { songQueries.updateThumbnailRoundingById(it?.toLong(), id) }
     )
-    val NotificationImageOffset: Property<IntOffset?> get() = SingleProperty(
+    val NotificationImageOffset: Property<IntOffset?> get() = property_rememberer.rememberSingleProperty(
+        "NotificationImageOffset",
         { songQueries.notifImageOffsetById(id) },
         {
             if (notif_image_offset_x != null || notif_image_offset_y != null) IntOffset(
@@ -111,8 +114,8 @@ interface Song: MediaItem.WithArtist {
         },
         { songQueries.updateNotifImageOffsetById(it?.x?.toLong(), it?.y?.toLong(), id) }
     )
-    val Liked: Property<SongLikedStatus?> get() = SingleProperty(
-        { songQueries.likedById(id) }, { liked.toSongLikedStatus() }, { songQueries.updatelikedById(it.toLong(), id) }
+    val Liked: Property<SongLikedStatus?> get() = property_rememberer.rememberSingleProperty(
+        "Liked", { songQueries.likedById(id) }, { liked.toSongLikedStatus() }, { songQueries.updatelikedById(it.toLong(), id) }
     )
 
     override val ThumbnailProvider: Property<MediaItemThumbnailProvider?>
@@ -150,13 +153,15 @@ class SongData(
     override fun saveToDatabase(db: Database, apply_to_item: MediaItem) {
         db.transaction { with(apply_to_item as Song) {
             super.saveToDatabase(db, apply_to_item)
-            
+
             TypeOfSong.setNotNull(song_type, db)
             Duration.setNotNull(duration, db)
             Album.setNotNull(album, db)
             RelatedBrowseId.setNotNull(related_browse_id, db)
         }}
     }
+
+    override val property_rememberer: PropertyRememberer = PropertyRememberer()
 
     init {
         lazyAssert { id.isNotBlank() }

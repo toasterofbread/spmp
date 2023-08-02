@@ -8,7 +8,6 @@ import com.toasterofbread.spmp.api.model.MusicThumbnailRenderer
 import com.toasterofbread.spmp.api.model.NavigationEndpoint
 import com.toasterofbread.spmp.api.model.TextRuns
 import com.toasterofbread.spmp.api.model.WatchEndpoint
-import com.toasterofbread.spmp.model.mediaitem.Artist
 import com.toasterofbread.spmp.model.mediaitem.ArtistData
 import com.toasterofbread.spmp.model.mediaitem.PlaylistData
 import com.toasterofbread.spmp.model.mediaitem.Song

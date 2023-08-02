@@ -1,17 +1,13 @@
 package com.toasterofbread.spmp.model.mediaitem
 
 import androidx.compose.runtime.Composable
-import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.MutableState
 import androidx.compose.runtime.State
 import androidx.compose.runtime.derivedStateOf
 import androidx.compose.runtime.getValue
-import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import app.cash.sqldelight.Query
 import com.toasterofbread.Database
-import com.toasterofbread.utils.lazyAssert
-import kotlin.properties.Delegates
 
 interface Property<T> {
     fun get(db: Database): T
@@ -22,7 +18,7 @@ interface Property<T> {
     @Composable
     fun <V> observeOn(db: Database, getProperty: (T) -> Property<V>?): V? {
         val value: T by observe(db)
-        val property: Property<V>? = getProperty(value)
+        val property: Property<V>? = remember(value) { getProperty(value) }
         return property?.observe(db)?.value
     }
 
@@ -43,7 +39,7 @@ internal open class PropertyImpl<T, Q: Query<*>>(
 
     @Composable
     override fun observe(db: Database): MutableState<T> =
-        getQuery(db).observeAsState(
+        remember(this) { getQuery(db) }.observeAsState(
             { getValue(it) },
             { setValue(db, it) }
         )
@@ -166,46 +162,3 @@ open class ListProperty<T, Q: Any>(
         }
     }
 }
-
-internal class SingleMediaItemProperty<T, Q: Any>(
-    val item: MediaItem,
-    getQuery: Database.() -> Query<Q>,
-    getValue: Q.() -> T,
-    setValue: Database.(T) -> Unit,
-    getDefault: () -> T
-): SingleProperty<T, Q>(getQuery, getValue, setValue, getDefault) {
-    override fun get(db: Database): T {
-//        item.createDbEntry(db)
-        return super.get(db)
-    }
-    @Composable
-    override fun observe(db: Database): MutableState<T> {
-//        item.createDbEntry(db)
-        return super.observe(db)
-    }
-}
-
-internal fun <T, Q: Any> MediaItem.singleProperty(
-    getQuery: Database.() -> Query<Q>,
-    getValue: Q.() -> T,
-    setValue: Database.(T) -> Unit,
-    getDefault: () -> T = { null as T }
-): Property<T> =
-    SingleMediaItemProperty(this, getQuery, getValue, setValue, getDefault)
-
-//internal class ListMediaItemProperty<T, Q: Any>(
-//    val item: MediaItem,
-//    getQuery: Database.() -> Query<Q>,
-//    getValue: List<Q>.() -> List<T>,
-//    getSize: Database.() -> Long,
-//    addItem: Database.(item: T, index: Long) -> Unit,
-//    removeItem: Database.(index: Long) -> Unit,
-//    setItemIndex: Database.(from: Long, to: Long) -> Unit,
-//    clearItems: Database.(from_index: Long) -> Unit,
-//    prerequisite: Property<Boolean>? = null
-//): ListProperty<T, Q>(getQuery, getValue, getSize, addItem, removeItem, setItemIndex, clearItems, prerequisite) {
-//    override fun overwriteItems(items: List<T>, db: Database) {
-////        item.createDbEntry(db)
-//        super.overwriteItems(items, db)
-//    }
-//}

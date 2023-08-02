@@ -25,7 +25,6 @@ import androidx.compose.ui.unit.dp
 import com.toasterofbread.spmp.model.mediaitem.Artist
 import com.toasterofbread.spmp.model.mediaitem.MEDIA_ITEM_RELATED_CONTENT_ICON
 import com.toasterofbread.spmp.model.mediaitem.Song
-import com.toasterofbread.spmp.model.mediaitem.observeAsState
 import com.toasterofbread.spmp.platform.PlayerDownloadManager
 import com.toasterofbread.spmp.platform.PlayerDownloadManager.DownloadStatus
 import com.toasterofbread.spmp.resources.getStringTODO
@@ -123,12 +122,7 @@ class MainOverlayMenu(
                 MediaItemPreviewLong(artist, contentColour = { Color.White })
             }
 
-            var song_title by db.mediaItemQueries
-                .titleById(song.id)
-                .observeAsState(
-                    { it.executeAsOne().title },
-                    { db.mediaItemQueries.updateTitleById(it, song.id) }
-                )
+            var song_title: String? by song.Title.observe(db)
 
             var edited_song_title by remember(song) { mutableStateOf(song_title ?: "") }
             OutlinedTextField(

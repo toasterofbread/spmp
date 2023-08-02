@@ -3,7 +3,6 @@ package com.toasterofbread.spmp.ui.layout.playlistpage
 import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.animation.Crossfade
 import androidx.compose.foundation.layout.Box
-import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxWidth
@@ -28,13 +27,9 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
-import com.toasterofbread.spmp.model.mediaitem.MediaItem
 import com.toasterofbread.spmp.model.mediaitem.Playlist
 import com.toasterofbread.spmp.model.mediaitem.playlist.PlaylistEditor
-import com.toasterofbread.spmp.model.mediaitem.playlist.PlaylistEditor.Companion.rememberEditorOrNull
 import com.toasterofbread.spmp.platform.LargeDropdownMenu
-import com.toasterofbread.spmp.ui.component.MultiselectAndMusicTopBar
-import com.toasterofbread.spmp.ui.component.multiselect.MediaItemMultiSelectContext
 
 @Composable
 internal fun InteractionBar(

@@ -1,6 +1,7 @@
 package com.toasterofbread.spmp.ui.layout.mainpage
 
 import LocalPlayerState
+import SpMp
 import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.animation.expandVertically
 import androidx.compose.animation.shrinkVertically
@@ -20,21 +21,25 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.alpha
 import androidx.compose.ui.unit.dp
-import com.toasterofbread.spmp.model.mediaitem.MediaItemHolder
+import com.toasterofbread.spmp.model.mediaitem.MediaItem
+import com.toasterofbread.spmp.model.mediaitem.rememberPinnedItems
 import com.toasterofbread.spmp.ui.component.mediaitemlayout.MediaItemGrid
 
 @Composable
 fun MainPageScrollableTopContent(
-    pinned_items: List<MediaItemHolder>,
-    modifier: Modifier = Modifier,
-    visible: Boolean = pinned_items.isNotEmpty()
+    visible: Boolean,
+    modifier: Modifier = Modifier
 ) {
+    val db = SpMp.context.database
+
     Column(modifier.fillMaxWidth(), verticalArrangement = Arrangement.spacedBy(20.dp)) {
         AnimatedVisibility(
             visible,
             enter = expandVertically(),
             exit = shrinkVertically()
         ) {
+            val pinned_items = rememberPinnedItems(db)
+
             MediaItemGrid(
                 pinned_items,
                 rows = 1,
@@ -50,9 +55,9 @@ fun MainPageScrollableTopContent(
                             }
                             IconButton(
                                 {
-                                    SpMp.context.database.transaction {
+                                    db.transaction {
                                         for (item in pinned_items.toList()) {
-                                            item.item?.PinnedToHome?.set(false, SpMp.context.database)
+                                            item.PinnedToHome.set(false, db)
                                         }
                                     }
                                 },

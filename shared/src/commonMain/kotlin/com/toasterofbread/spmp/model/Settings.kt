@@ -164,10 +164,8 @@ enum class Settings {
     KEY_TREAT_SINGLES_AS_SONG,
 
     // Internal
-    INTERNAL_PINNED_ITEMS,
     INTERNAL_TOPBAR_MODE_HOME,
     INTERNAL_TOPBAR_MODE_NOWPLAYING,
-    INTERNAL_HIDDEN_ITEMS,
 
     ;
 
@@ -344,10 +342,8 @@ enum class Settings {
                 KEY_SPMS_PORT -> 3973
 
                 // Internal
-                INTERNAL_PINNED_ITEMS -> emptySet<String>()
                 INTERNAL_TOPBAR_MODE_HOME -> MusicTopBarMode.LYRICS.ordinal
                 INTERNAL_TOPBAR_MODE_NOWPLAYING -> MusicTopBarMode.LYRICS.ordinal
-                INTERNAL_HIDDEN_ITEMS -> emptySet<String>()
             } as T
         }
 

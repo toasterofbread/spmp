@@ -2,11 +2,10 @@ package com.toasterofbread.spmp.model.mediaitem
 
 import com.toasterofbread.Database
 import com.toasterofbread.spmp.model.mediaitem.enums.MediaItemType
-import com.toasterofbread.spmp.ui.component.mediaitemlayout.MediaItemLayout
 import com.toasterofbread.spmp.model.mediaitem.enums.PlaylistType
+import com.toasterofbread.spmp.ui.component.mediaitemlayout.MediaItemLayout
 import com.toasterofbread.utils.lazyAssert
 import mediaitem.PlaylistItem
-import kotlin.coroutines.Continuation
 
 sealed interface PlaylistRef: Playlist
 
@@ -19,6 +18,7 @@ class AccountPlaylistRef(override val id: String): PlaylistRef {
         db.playlistQueries.insertById(id, null)
     }
 
+    override val property_rememberer: PropertyRememberer = PropertyRememberer()
     init {
         lazyAssert { id.isNotBlank() }
     }
@@ -32,6 +32,7 @@ class LocalPlaylistRef(override val id: String): PlaylistRef {
         db.playlistQueries.insertById(id, PlaylistType.LOCAL.ordinal.toLong())
     }
 
+    override val property_rememberer: PropertyRememberer = PropertyRememberer()
     init {
         lazyAssert { id.isNotBlank() }
     }
@@ -65,7 +66,8 @@ sealed interface Playlist: MediaItem.WithArtist {
         return super.loadData(db, populate_data) as Result<PlaylistData>
     }
 
-    val Items get() = ListProperty<Song, PlaylistItem>(
+    val Items: ListProperty<Song, PlaylistItem> get() = property_rememberer.rememberListProperty(
+        "Items",
         getQuery = { playlistItemQueries.byPlaylistId(id) },
         getValue = { this.map { SongRef(it.song_id) } },
         getSize = { playlistItemQueries.itemCount(id).executeAsOne() },
@@ -82,27 +84,29 @@ sealed interface Playlist: MediaItem.WithArtist {
             playlistItemQueries.clearItems(id, from_index)
         }
     )
-    val ItemCount: Property<Int?> get() = SingleProperty(
-        { playlistQueries.itemCountById(id) }, { item_count?.toInt() }, { playlistQueries.updateItemCountById(it?.toLong(), id) }
+    val ItemCount: Property<Int?> get() = property_rememberer.rememberSingleProperty(
+        "ItemCount", { playlistQueries.itemCountById(id) }, { item_count?.toInt() }, { playlistQueries.updateItemCountById(it?.toLong(), id) }
     )
-    val TypeOfPlaylist: Property<PlaylistType?> get() = SingleProperty(
+    val TypeOfPlaylist: Property<PlaylistType?> get() = property_rememberer.rememberSingleProperty(
+        "TypeOfPlaylist",
         { playlistQueries.playlistTypeById(id) },
         { playlist_type?.let { PlaylistType.values()[it.toInt()] } },
         { playlistQueries.updatePlaylistTypeById(it?.ordinal?.toLong(), id) }
     )
-    val BrowseParams: Property<String?> get() = SingleProperty(
-        { playlistQueries.browseParamsById(id) }, { browse_params }, { playlistQueries.updateBrowseParamsById(it, id) }
+    val BrowseParams: Property<String?> get() = property_rememberer.rememberSingleProperty(
+        "BrowseParams", { playlistQueries.browseParamsById(id) }, { browse_params }, { playlistQueries.updateBrowseParamsById(it, id) }
     )
-    val TotalDuration: Property<Long?> get() = SingleProperty(
-        { playlistQueries.totalDurationById(id) }, { total_duration }, { playlistQueries.updateTotalDurationById(it, id) }
+    val TotalDuration: Property<Long?> get() = property_rememberer.rememberSingleProperty(
+        "TotalDuration", { playlistQueries.totalDurationById(id) }, { total_duration }, { playlistQueries.updateTotalDurationById(it, id) }
     )
-    val Year: Property<Int?> get() = SingleProperty(
-        { playlistQueries.yearById(id) }, { year?.toInt() }, { playlistQueries.updateYearById(it?.toLong(), id) }
+    val Year: Property<Int?> get() = property_rememberer.rememberSingleProperty(
+        "Year", { playlistQueries.yearById(id) }, { year?.toInt() }, { playlistQueries.updateYearById(it?.toLong(), id) }
     )
-    override val Artist: Property<Artist?> get() = SingleProperty(
-        { playlistQueries.artistById(id) }, { artist?.let { ArtistRef(it) } }, { playlistQueries.updateArtistById(it?.id, id) }
+    override val Artist: Property<Artist?> get() = property_rememberer.rememberSingleProperty(
+        "Artist", { playlistQueries.artistById(id) }, { artist?.let { ArtistRef(it) } }, { playlistQueries.updateArtistById(it?.id, id) }
     )
-    val Continuation: Property<MediaItemLayout.Continuation?> get() = SingleProperty(
+    val Continuation: Property<MediaItemLayout.Continuation?> get() = property_rememberer.rememberSingleProperty(
+        "Continuation",
         { playlistQueries.continuationById(id) },
         { continuation_token?.let {
             MediaItemLayout.Continuation(
@@ -113,7 +117,8 @@ sealed interface Playlist: MediaItem.WithArtist {
         { playlistQueries.updateContinuationById(it?.token, it?.type?.ordinal?.toLong(), id) }
     )
 
-    val CustomImageProvider: Property<MediaItemThumbnailProvider?> get() = SingleProperty(
+    val CustomImageProvider: Property<MediaItemThumbnailProvider?> get() = property_rememberer.rememberSingleProperty(
+        "CustomImageProvider",
         { playlistQueries.customImageProviderById(id) },
         { this.toThumbnailProvider() },
         {
@@ -121,8 +126,8 @@ sealed interface Playlist: MediaItem.WithArtist {
             playlistQueries.updateCustomImageProviderById(it?.url_a, it?.url_b, id)
         }
     )
-    val ImageWidth: Property<Float?> get() = SingleProperty(
-        { playlistQueries.imageWidthById(id) }, { image_width?.toFloat() }, { playlistQueries.updateImageWidthById(it?.toDouble(), id) }
+    val ImageWidth: Property<Float?> get() = property_rememberer.rememberSingleProperty(
+        "ImageWidth", { playlistQueries.imageWidthById(id) }, { image_width?.toFloat() }, { playlistQueries.updateImageWidthById(it?.toDouble(), id) }
     )
 
     companion object {
@@ -175,6 +180,7 @@ class PlaylistData(
         }}
     }
 
+    override val property_rememberer: PropertyRememberer = PropertyRememberer()
     init {
         lazyAssert { id.isNotBlank() }
     }

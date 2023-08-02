@@ -16,7 +16,8 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
-import com.toasterofbread.spmp.api.*
+import com.toasterofbread.spmp.api.Api
+import com.toasterofbread.spmp.api.cast
 import com.toasterofbread.spmp.api.model.MusicThumbnailRenderer
 import com.toasterofbread.spmp.api.model.NavigationEndpoint
 import com.toasterofbread.spmp.api.model.TextRuns

@@ -1,5 +1,6 @@
 package com.toasterofbread.spmp.ui.component.longpressmenu
 
+import SpMp
 import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.animation.EnterTransition
 import androidx.compose.animation.core.animateFloatAsState

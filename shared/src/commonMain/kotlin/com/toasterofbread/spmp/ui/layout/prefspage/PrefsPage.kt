@@ -14,7 +14,6 @@ import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.graphics.compositeOver
 import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.input.pointer.pointerInput
 import androidx.compose.ui.platform.LocalClipboardManager
@@ -36,7 +35,6 @@ import com.toasterofbread.spmp.ui.layout.*
 import com.toasterofbread.spmp.ui.theme.Theme
 import com.toasterofbread.utils.blendWith
 import com.toasterofbread.utils.modifier.background
-import com.toasterofbread.utils.setAlpha
 import org.jetbrains.compose.resources.*
 
 internal enum class PrefsPageScreen {

@@ -15,7 +15,9 @@ CREATE TABLE MediaItem (
     hidden INTEGER
 );
 
-byId: SELECT * FROM MediaItem WHERE id == :id;
+anyArePinned: SELECT 1 FROM MediaItem WHERE EXISTS(
+   SELECT 1 FROM MediaItem WHERE pinned_to_home == :pinned
+);
 
 loadedById: SELECT loaded FROM MediaItem WHERE id == :id;
 updateLoadedById: UPDATE MediaItem SET loaded = :loaded WHERE id == :id;

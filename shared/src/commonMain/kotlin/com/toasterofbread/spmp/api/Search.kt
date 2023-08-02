@@ -11,11 +11,8 @@ import com.toasterofbread.spmp.api.Api.Companion.ytUrl
 import com.toasterofbread.spmp.api.model.NavigationEndpoint
 import com.toasterofbread.spmp.api.model.TextRuns
 import com.toasterofbread.spmp.api.model.YoutubeiShelf
-import com.toasterofbread.spmp.model.mediaitem.Artist
 import com.toasterofbread.spmp.model.mediaitem.ArtistData
-import com.toasterofbread.spmp.model.mediaitem.Playlist
 import com.toasterofbread.spmp.model.mediaitem.PlaylistData
-import com.toasterofbread.spmp.model.mediaitem.Song
 import com.toasterofbread.spmp.model.mediaitem.SongData
 import com.toasterofbread.spmp.model.mediaitem.enums.MediaItemType
 import com.toasterofbread.spmp.model.mediaitem.enums.PlaylistType

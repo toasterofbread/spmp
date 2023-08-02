@@ -1,16 +1,20 @@
 package com.toasterofbread.spmp.api.lyrics
 
-import com.toasterofbread.spmp.api.lyrics.petit.*
-import com.toasterofbread.spmp.resources.getString
-import com.toasterofbread.spmp.api.*
+import androidx.compose.ui.graphics.Color
+import com.toasterofbread.spmp.api.Api
+import com.toasterofbread.spmp.api.cast
+import com.toasterofbread.spmp.api.getOrThrowHere
+import com.toasterofbread.spmp.api.lyrics.petit.parseStaticLyrics
+import com.toasterofbread.spmp.api.lyrics.petit.parseTimedLyrics
+import com.toasterofbread.spmp.api.lyrics.petit.searchPetitLyrics
 import com.toasterofbread.spmp.model.SongLyrics
-import kotlinx.coroutines.withContext
+import com.toasterofbread.spmp.resources.getString
 import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.withContext
+import okhttp3.MediaType.Companion.toMediaType
 import okhttp3.Request
 import okhttp3.RequestBody.Companion.toRequestBody
-import okhttp3.MediaType.Companion.toMediaType
-import androidx.compose.ui.graphics.Color
-import java.util.*
+import java.util.Base64
 
 private const val DATA_START = "<lyricsData>"
 private const val DATA_END = "</lyricsData>"

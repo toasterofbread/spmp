@@ -4,10 +4,8 @@ import com.toasterofbread.Database
 import com.toasterofbread.spmp.model.mediaitem.loader.MediaItemLoader
 import com.toasterofbread.spmp.resources.uilocalisation.LocalisedYoutubeString
 import mediaitem.ByItemId
-import mediaitem.PlaylistItemQueries
 import java.time.Duration
 import java.time.LocalDate
-import java.time.temporal.ChronoUnit
 
 fun Boolean.toSQLBoolean(): Long? = if (this) 0L else null
 fun Long?.fromSQLBoolean(): Boolean = this != null

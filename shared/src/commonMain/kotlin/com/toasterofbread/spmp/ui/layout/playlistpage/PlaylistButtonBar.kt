@@ -24,9 +24,6 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.text.style.TextAlign
 import com.toasterofbread.spmp.model.mediaitem.MediaItem
 import com.toasterofbread.spmp.model.mediaitem.Playlist
-import com.toasterofbread.spmp.model.mediaitem.fromSQLBoolean
-import com.toasterofbread.spmp.model.mediaitem.observeAsState
-import com.toasterofbread.spmp.model.mediaitem.toSQLBoolean
 import com.toasterofbread.spmp.resources.getString
 import com.toasterofbread.spmp.resources.uilocalisation.durationToString
 import com.toasterofbread.utils.composable.WidthShrinkText
@@ -41,14 +38,7 @@ internal fun PlaylistButtonBar(
     val db = SpMp.context.database
     val player = LocalPlayerState.current
 
-    var playlist_pinned by db.mediaItemQueries
-        .pinnedToHomeById(playlist.id)
-        .observeAsState(
-            { it.executeAsOneOrNull()?.pinned_to_home.fromSQLBoolean() },
-            { pinned ->
-                db.mediaItemQueries.updatePinnedToHomeById(pinned.toSQLBoolean(), playlist.id)
-            }
-        )
+    var playlist_pinned: Boolean by playlist.PinnedToHome.observe(db)
 
     Crossfade(editing_info) { editing ->
         if (editing) {

@@ -1,5 +1,6 @@
 package com.toasterofbread.spmp.resources.uilocalisation
 
+import SpMp
 import com.toasterofbread.spmp.resources.uilocalisation.localised.getAmountSuffixes
 
 fun parseYoutubeSubscribersString(string: String, hl: String): Int? {

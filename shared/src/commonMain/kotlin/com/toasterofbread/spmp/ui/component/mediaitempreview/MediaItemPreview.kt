@@ -1,5 +1,6 @@
 package com.toasterofbread.spmp.ui.component.mediaitempreview
 
+import SpMp
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column

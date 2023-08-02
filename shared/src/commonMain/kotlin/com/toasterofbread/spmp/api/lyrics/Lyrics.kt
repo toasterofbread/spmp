@@ -1,9 +1,9 @@
 package com.toasterofbread.spmp.api.lyrics
 
-import com.toasterofbread.spmp.model.SongLyrics
 import androidx.compose.ui.graphics.Color
 import com.toasterofbread.Database
 import com.toasterofbread.spmp.model.Settings
+import com.toasterofbread.spmp.model.SongLyrics
 import com.toasterofbread.spmp.model.mediaitem.Song
 import com.toasterofbread.spmp.resources.getStringTODO
 import mediaitem.LyricsById

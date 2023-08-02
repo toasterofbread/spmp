@@ -1,5 +1,6 @@
 package com.toasterofbread.spmp.ui.component.longpressmenu
 
+import SpMp
 import androidx.compose.foundation.layout.ColumnScope
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
@@ -14,8 +15,8 @@ import com.toasterofbread.spmp.model.mediaitem.MediaItem
 import com.toasterofbread.spmp.model.mediaitem.MediaItemPreviewInteractionPressStage
 import com.toasterofbread.spmp.model.mediaitem.Playlist
 import com.toasterofbread.spmp.model.mediaitem.Song
-import com.toasterofbread.spmp.ui.component.mediaitempreview.ArtistLongPressMenuActions
 import com.toasterofbread.spmp.ui.component.LikeDislikeButton
+import com.toasterofbread.spmp.ui.component.mediaitempreview.ArtistLongPressMenuActions
 import com.toasterofbread.spmp.ui.component.mediaitempreview.PlaylistLongPressMenuActions
 import com.toasterofbread.spmp.ui.component.mediaitempreview.SongLongPressMenuActions
 import com.toasterofbread.spmp.ui.component.multiselect.MediaItemMultiSelectContext

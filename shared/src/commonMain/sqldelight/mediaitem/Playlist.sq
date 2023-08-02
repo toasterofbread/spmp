@@ -19,8 +19,10 @@ CREATE TABLE Playlist (
     FOREIGN KEY (id) REFERENCES MediaItem(id)
 );
 
-byId: SELECT * FROM Playlist WHERE id == :id;
 byType: SELECT id FROM Playlist WHERE playlist_type = :playlist_type;
+byPinned: SELECT Playlist.id, playlist_type FROM Playlist, MediaItem WHERE MediaItem.id == Playlist.id AND MediaItem.pinned_to_home == :pinned;
+byHidden: SELECT Playlist.id, playlist_type FROM Playlist, MediaItem WHERE MediaItem.id == Playlist.id AND MediaItem.hidden == :hidden;
+
 insertById {
     INSERT OR IGNORE INTO MediaItem(id) VALUES(:id);
     INSERT OR IGNORE INTO Playlist(id, playlist_type) VALUES(:id, :type);

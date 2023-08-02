@@ -9,7 +9,6 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.unit.Dp
 import com.toasterofbread.spmp.PlayerService
-import com.toasterofbread.spmp.model.mediaitem.Artist
 import com.toasterofbread.spmp.model.mediaitem.ArtistData
 import com.toasterofbread.spmp.model.mediaitem.MediaItem
 import com.toasterofbread.spmp.model.mediaitem.Playlist
@@ -196,8 +195,6 @@ open class PlayerState protected constructor(
     open fun playPlaylist(playlist: Playlist, from_index: Int = 0) { upstream!!.playPlaylist(playlist, from_index) }
     open fun openViewMorePage(browse_id: String) { upstream!!.openViewMorePage(browse_id) }
     open fun openNowPlayingOverlayMenu(menu: OverlayMenu? = null) { upstream!!.openNowPlayingOverlayMenu(menu) }
-
-    open fun onMediaItemPinnedChanged(item: MediaItem, pinned: Boolean) { upstream!!.onMediaItemPinnedChanged(item, pinned) }
 
     open fun showLongPressMenu(data: LongPressMenuData) { upstream!!.showLongPressMenu(data) }
     fun showLongPressMenu(item: MediaItem) { showLongPressMenu(LongPressMenuData(item)) }

@@ -18,6 +18,7 @@ import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
@@ -29,11 +30,10 @@ import com.toasterofbread.spmp.api.lyrics.LyricsSource.SearchResult
 import com.toasterofbread.spmp.model.SongLyrics
 import com.toasterofbread.spmp.platform.composable.BackHandler
 import com.toasterofbread.spmp.resources.getString
+import com.toasterofbread.spmp.resources.getStringTODO
 import com.toasterofbread.spmp.ui.theme.Theme
 import com.toasterofbread.utils.getContrasted
 import com.toasterofbread.utils.setAlpha
-import androidx.compose.runtime.remember
-import com.toasterofbread.spmp.resources.getStringTODO
 
 @Composable
 internal fun ColumnScope.LyricsSearchResults(results_and_source: Pair<List<SearchResult>, Int>, modifier: Modifier = Modifier, onFinished: (Int?) -> Unit) {

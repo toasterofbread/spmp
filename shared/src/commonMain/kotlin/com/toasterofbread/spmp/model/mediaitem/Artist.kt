@@ -1,5 +1,6 @@
 package com.toasterofbread.spmp.model.mediaitem
 
+import SpMp
 import com.toasterofbread.Database
 import com.toasterofbread.spmp.model.mediaitem.artist.ArtistLayout
 import com.toasterofbread.spmp.model.mediaitem.artist.ArtistLayoutData
@@ -10,6 +11,7 @@ import com.toasterofbread.utils.lazyAssert
 class ArtistRef(override val id: String): Artist {
     override fun toString(): String = "ArtistRef($id)"
 
+    override val property_rememberer: PropertyRememberer = PropertyRememberer()
     init {
         lazyAssert { id.isNotBlank() || IsForItem.get(SpMp.context.database) }
     }
@@ -41,12 +43,11 @@ sealed interface Artist: MediaItem {
         return super.loadData(db, populate_data) as Result<ArtistData>
     }
 
-    // Properties
-
-    val SubscribeChannelId: Property<String?> get() = SingleProperty(
-        { artistQueries.subscribeChannelIdById(id) }, { subscribe_channel_id }, { artistQueries.updateSubscribeChannelIdById(it, id) }
+    val SubscribeChannelId: Property<String?> get() = property_rememberer.rememberSingleProperty(
+        "SubscribeChannelId", { artistQueries.subscribeChannelIdById(id) }, { subscribe_channel_id }, { artistQueries.updateSubscribeChannelIdById(it, id) }
     )
-    val Layouts: ListProperty<ArtistLayout, Long> get() = ListProperty(
+    val Layouts: ListProperty<ArtistLayout, Long> get() = property_rememberer.rememberListProperty(
+        "Layouts",
         getValue = {
             this.map { layout_index ->
                 ArtistLayoutRef(layout_index, id)
@@ -70,10 +71,11 @@ sealed interface Artist: MediaItem {
         prerequisite = null
     )
 
-    val SubscriberCount: Property<Int?> get() = SingleProperty(
-        { artistQueries.subscriberCountById(id) }, { subscriber_count?.toInt() }, { artistQueries.updateSubscriberCountById(it?.toLong(), id) }
+    val SubscriberCount: Property<Int?> get() = property_rememberer.rememberSingleProperty(
+        "SubscriberCount", { artistQueries.subscriberCountById(id) }, { subscriber_count?.toInt() }, { artistQueries.updateSubscriberCountById(it?.toLong(), id) }
     )
-    val IsForItem: Property<Boolean> get() = SingleProperty(
+    val IsForItem: Property<Boolean> get() = property_rememberer.rememberSingleProperty(
+        "IsForItem",
         { artistQueries.isForItemById(id) },
         { is_for_item.fromSQLBoolean() },
         { artistQueries.updateIsForItemById(it.toSQLBoolean(), id) }
@@ -81,7 +83,8 @@ sealed interface Artist: MediaItem {
 
     // User properties
 
-    val Subscribed: Property<Boolean?> get() = SingleProperty(
+    val Subscribed: Property<Boolean?> get() = property_rememberer.rememberSingleProperty(
+        "Subscribed",
         { artistQueries.subscribedById(id) },
         { subscribed.fromNullableSQLBoolean() },
         { artistQueries.updateSubscriberCountById(it.toNullableSQLBoolean(), id) }
@@ -116,6 +119,7 @@ class ArtistData(
         }}
     }
 
+    override val property_rememberer: PropertyRememberer = PropertyRememberer()
     init {
         lazyAssert { is_for_item || id.isNotBlank() }
     }

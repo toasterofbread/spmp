@@ -1,5 +1,6 @@
 package com.toasterofbread.spmp.ui.layout.nowplaying.overlay
 
+import SpMp
 import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.animation.core.Animatable
 import androidx.compose.animation.fadeIn
@@ -39,7 +40,6 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.toasterofbread.spmp.model.Settings
 import com.toasterofbread.spmp.model.mediaitem.Song
-import com.toasterofbread.spmp.model.mediaitem.observeAsState
 import com.toasterofbread.spmp.platform.generatePalette
 import com.toasterofbread.spmp.resources.getString
 import com.toasterofbread.spmp.ui.layout.nowplaying.getNPBackground
@@ -79,18 +79,8 @@ class PaletteSelectorOverlayMenu(
             contentColor = getNPOnBackground()
         )
 
-        var np_gradient_depth by db.songQueries
-            .npGradientDepthById(song.id)
-            .observeAsState(
-                { it.executeAsOne().np_gradient_depth?.toFloat() },
-                { db.songQueries.updateNpGradientDepthById(it?.toDouble(), song.id) }
-            )
-        var thumbnail_rounding by db.songQueries
-            .thumbnailRoundingById(song.id)
-            .observeAsState(
-                { it.executeAsOne().thumbnail_rounding?.toInt() },
-                { db.songQueries.updateThumbnailRoundingById(it?.toLong(), song.id) }
-            )
+        var np_gradient_depth: Float? by song.PlayerGradientDepth.observe(db)
+        var thumbnail_rounding: Int? by song.ThumbnailRounding.observe(db)
 
         LaunchedEffect(thumb_image) {
             palette_colours = null

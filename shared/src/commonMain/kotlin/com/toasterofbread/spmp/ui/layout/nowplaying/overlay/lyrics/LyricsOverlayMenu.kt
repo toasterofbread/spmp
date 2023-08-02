@@ -59,7 +59,6 @@ import com.toasterofbread.spmp.model.Settings
 import com.toasterofbread.spmp.model.SongLyrics
 import com.toasterofbread.spmp.model.mediaitem.Song
 import com.toasterofbread.spmp.model.mediaitem.loader.SongLyricsLoader
-import com.toasterofbread.spmp.model.mediaitem.observeAsState
 import com.toasterofbread.spmp.platform.composable.BackHandler
 import com.toasterofbread.spmp.platform.composable.platformClickable
 import com.toasterofbread.spmp.resources.getString
@@ -257,9 +256,7 @@ fun CoreLyricsDisplay(
 ) {
     val player = LocalPlayerState.current
 
-    val lyrics_sync_offset by SpMp.context.database.songQueries
-        .lyricsSyncOffsetById(song.id)
-        .observeAsState({ it.executeAsOne().lyrics_sync_offset ?: 0 }, null)
+    val lyrics_sync_offset: Long = song.LyricsSyncOffset.observe(SpMp.context.database).value ?: 0
 
     val screen_width = SpMp.context.getScreenWidth()
     val size_px = with(LocalDensity.current) { ((screen_width - (NOW_PLAYING_MAIN_PADDING.dp * 2) - (15.dp * getExpansion() * 2)).value * 0.9.dp).toPx() }

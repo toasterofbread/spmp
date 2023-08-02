@@ -1,5 +1,6 @@
 package com.toasterofbread.spmp.ui.component
 
+import SpMp
 import androidx.compose.animation.Crossfade
 import androidx.compose.animation.animateContentSize
 import androidx.compose.foundation.clickable

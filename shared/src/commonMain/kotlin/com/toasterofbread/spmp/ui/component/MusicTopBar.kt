@@ -1,6 +1,7 @@
 package com.toasterofbread.spmp.ui.component
 
 import LocalPlayerState
+import SpMp
 import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.animation.Crossfade
 import androidx.compose.animation.core.Animatable
@@ -42,16 +43,15 @@ import com.toasterofbread.spmp.model.MusicTopBarMode
 import com.toasterofbread.spmp.model.Settings
 import com.toasterofbread.spmp.model.SongLyrics
 import com.toasterofbread.spmp.model.mediaitem.Song
-import com.toasterofbread.spmp.model.mediaitem.observeAsState
 import com.toasterofbread.spmp.platform.composable.platformClickable
 import com.toasterofbread.spmp.platform.composeScope
 import com.toasterofbread.spmp.resources.getString
 import com.toasterofbread.spmp.ui.layout.nowplaying.overlay.OverlayMenu
 import com.toasterofbread.utils.composable.loadLyricsOnSongChange
-import com.toasterofbread.utils.getContrasted
-import kotlinx.coroutines.delay
 import com.toasterofbread.utils.composable.pauseableInfiniteRepeatableAnimation
+import com.toasterofbread.utils.getContrasted
 import com.toasterofbread.utils.setAlpha
+import kotlinx.coroutines.delay
 
 @Composable
 fun MusicTopBarWithVisualiser(

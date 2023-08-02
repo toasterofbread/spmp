@@ -42,7 +42,6 @@ import com.toasterofbread.spmp.ui.layout.prefspage.PrefsPage
 import com.toasterofbread.spmp.ui.layout.prefspage.PrefsPageCategory
 import com.toasterofbread.spmp.ui.layout.radiobuilder.RadioBuilderPage
 import com.toasterofbread.spmp.ui.theme.Theme
-import com.toasterofbread.utils.addUnique
 import com.toasterofbread.utils.composable.OnChangedEffect
 import com.toasterofbread.utils.init
 import com.toasterofbread.utils.launchSingle
@@ -211,8 +210,6 @@ class PlayerStateImpl(private val context: PlatformContext): PlayerState(null, n
     private val np_swipe_state: MutableState<SwipeableState<Int>> = mutableStateOf(SwipeableState(0))
     private var np_swipe_anchors: Map<Float, Int>? by mutableStateOf(null)
 
-    private val pinned_items: MutableList<MediaItemHolder> = mutableStateListOf()
-
     val expansion_state = NowPlayingExpansionState(np_swipe_state, context)
     override var download_manager = PlayerDownloadManager(context)
 
@@ -246,13 +243,6 @@ class PlayerStateImpl(private val context: PlatformContext): PlayerState(null, n
         }
         val prefs = context.getPrefs()
         context.getPrefs().addListener(prefs_listener)
-
-        runBlocking {
-            for (uid in Settings.INTERNAL_PINNED_ITEMS.get<Set<String>>(prefs)) {
-                val item = getMediaItemFromUid(uid)
-                pinned_items.add(item.getHolder())
-            }
-        }
     }
 
     @Composable
@@ -414,15 +404,6 @@ class PlayerStateImpl(private val context: PlatformContext): PlayerState(null, n
                         }
                     }
             )
-        }
-    }
-
-    override fun onMediaItemPinnedChanged(item: MediaItem, pinned: Boolean) {
-        if (pinned) {
-            pinned_items.addUnique(item.getHolder())
-        }
-        else {
-            pinned_items.removeAll { it.item == item }
         }
     }
 
@@ -612,10 +593,7 @@ class PlayerStateImpl(private val context: PlatformContext): PlayerState(null, n
                             }
                         }
 
-                        pinned_items.removeAll { it.item == null }
-
                         MainPage(
-                            pinned_items,
                             { main_page_layouts ?: emptyList() },
                             main_page_scroll_state,
                             feed_load_state,

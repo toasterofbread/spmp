@@ -9,18 +9,14 @@ import androidx.compose.ui.graphics.ImageBitmap
 import com.toasterofbread.spmp.model.Settings
 import com.toasterofbread.spmp.model.mediaitem.MediaItem
 import com.toasterofbread.spmp.model.mediaitem.MediaItemThumbnailProvider
-import com.toasterofbread.spmp.model.mediaitem.toThumbnailProvider
 import com.toasterofbread.spmp.platform.PlatformContext
 import com.toasterofbread.spmp.platform.toByteArray
 import com.toasterofbread.spmp.platform.toImageBitmap
 import com.toasterofbread.utils.addUnique
-import kotlinx.coroutines.Deferred
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
 import java.io.File
 import java.lang.ref.WeakReference
-import java.util.concurrent.locks.ReentrantLock
-import kotlin.concurrent.withLock
 
 internal data class MediaItemThumbnailLoaderKey(
     val provider: MediaItemThumbnailProvider,
@@ -28,7 +24,7 @@ internal data class MediaItemThumbnailLoaderKey(
     val item_id: String
 )
 
-internal object MediaItemThumbnailLoader: BasicLoader<MediaItemThumbnailLoaderKey, ImageBitmap>(), ListenerLoader<MediaItemThumbnailLoaderKey, ImageBitmap> {
+internal object MediaItemThumbnailLoader: ListenerLoader<MediaItemThumbnailLoaderKey, ImageBitmap>() {
     private val loaded_images: MutableMap<MediaItemThumbnailLoaderKey, WeakReference<ImageBitmap>> = mutableMapOf()
 
     suspend fun loadItemThumbnail(
@@ -36,7 +32,7 @@ internal object MediaItemThumbnailLoader: BasicLoader<MediaItemThumbnailLoaderKe
         quality: MediaItemThumbnailProvider.Quality,
         context: PlatformContext
     ): Result<ImageBitmap> {
-        val thumbnail_provider = context.database.mediaItemQueries.thumbnailProviderById(item.id).executeAsOne().toThumbnailProvider()
+        val thumbnail_provider = item.ThumbnailProvider.get(context.database)
         if (thumbnail_provider == null) {
             return Result.failure(RuntimeException("Item has no ThumbnailProvider"))
         }
@@ -59,7 +55,7 @@ internal object MediaItemThumbnailLoader: BasicLoader<MediaItemThumbnailLoaderKe
         val thumbnail_url = thumbnail_provider.getThumbnailUrl(quality)
             ?: return Result.failure(RuntimeException("No thumbnail URL available"))
 
-        return performResultLoad(key) {
+        return performLoad(key) {
             performLoad(
                 item,
                 quality,

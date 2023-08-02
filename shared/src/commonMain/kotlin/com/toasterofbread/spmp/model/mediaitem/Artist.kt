@@ -2,27 +2,43 @@ package com.toasterofbread.spmp.model.mediaitem
 
 import com.toasterofbread.Database
 import com.toasterofbread.spmp.model.mediaitem.artist.ArtistLayout
+import com.toasterofbread.spmp.model.mediaitem.artist.ArtistLayoutData
+import com.toasterofbread.spmp.model.mediaitem.artist.ArtistLayoutRef
 import com.toasterofbread.spmp.model.mediaitem.enums.MediaItemType
+import com.toasterofbread.utils.lazyAssert
 
-class ArtistRef(override val id: String): Artist
+class ArtistRef(override val id: String): Artist {
+    override fun toString(): String = "ArtistRef($id)"
 
-interface Artist: MediaItem {
+    init {
+        lazyAssert { id.isNotBlank() || IsForItem.get(SpMp.context.database) }
+    }
+}
+
+sealed interface Artist: MediaItem {
     override fun getType(): MediaItemType = MediaItemType.ARTIST
     override fun getURL(): String = "https://music.youtube.com/channel/$id"
 
+    override fun createDbEntry(db: Database) {
+        db.artistQueries.insertById(id)
+    }
     override fun getEmptyData(): ArtistData = ArtistData(id)
     override fun populateData(data: MediaItemData, db: Database) {
         super.populateData(data, db)
         (data as ArtistData).apply {
             subscribe_channel_id = SubscribeChannelId.get(db)
-            layouts = Layouts.get(db)?.toMutableList()
+            layouts = mutableListOf<ArtistLayoutData>().apply {
+                for (layout in Layouts.get(db).orEmpty()) {
+                    add(ArtistLayoutData(layout.layout_index, layout.artist_id))
+                }
+            }
             subscriber_count = SubscriberCount.get(db)
             is_for_item = IsForItem.get(db)
         }
     }
 
-    override suspend fun loadData(db: Database): Result<ArtistData> {
-        return super.loadData(db) as Result<ArtistData>
+    override suspend fun loadData(db: Database, populate_data: Boolean): Result<ArtistData> {
+        return super.loadData(db, populate_data) as Result<ArtistData>
     }
 
     // Properties
@@ -30,10 +46,10 @@ interface Artist: MediaItem {
     val SubscribeChannelId: Property<String?> get() = SingleProperty(
         { artistQueries.subscribeChannelIdById(id) }, { subscribe_channel_id }, { artistQueries.updateSubscribeChannelIdById(it, id) }
     )
-    val Layouts get() = ListProperty(
+    val Layouts: ListProperty<ArtistLayout, Long> get() = ListProperty(
         getValue = {
             this.map { layout_index ->
-                ArtistLayout(layout_index, id)
+                ArtistLayoutRef(layout_index, id)
             }
         },
         getQuery = { artistLayoutQueries.byArtistId(id) },
@@ -51,7 +67,7 @@ interface Artist: MediaItem {
         clearItems = { from_index ->
             artistLayoutQueries.clearLayouts(id, from_index)
         },
-        prerequisite = Loaded
+        prerequisite = null
     )
 
     val SubscriberCount: Property<Int?> get() = SingleProperty(
@@ -75,22 +91,33 @@ interface Artist: MediaItem {
 class ArtistData(
     override var id: String,
     var subscribe_channel_id: String? = null,
-    var layouts: MutableList<ArtistLayout>? = null,
+    var layouts: MutableList<ArtistLayoutData>? = null,
     var subscriber_count: Int? = null,
     var is_for_item: Boolean = false,
 
     var subscribed: Boolean? = null
 ): MediaItemData(), Artist {
+    override fun toString(): String = "ArtistData($id)"
+
     override fun saveToDatabase(db: Database, apply_to_item: MediaItem) {
         db.transaction { with(apply_to_item as Artist) {
             super.saveToDatabase(db, apply_to_item)
 
-            SubscribeChannelId.set(subscribe_channel_id, db)
-            layouts?.also {
-                Layouts.overwriteItems(it, db)
+            layouts?.also { layouts ->
+                Layouts.overwriteItems(layouts, db)
+                for (layout in layouts) {
+                    layout.saveToDatabase(db)
+                }
             }
-            SubscriberCount.set(subscriber_count, db)
+
+            SubscribeChannelId.setNotNull(subscribe_channel_id, db)
+            SubscriberCount.setNotNull(subscriber_count, db)
+            IsForItem.setNotNull(is_for_item, db)
         }}
+    }
+
+    init {
+        lazyAssert { is_for_item || id.isNotBlank() }
     }
 
     companion object {

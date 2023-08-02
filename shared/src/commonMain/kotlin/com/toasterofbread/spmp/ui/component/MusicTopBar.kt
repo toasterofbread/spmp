@@ -168,14 +168,7 @@ private fun MusicTopBar(
     val visualiser_width: Float by Settings.KEY_TOPBAR_VISUALISER_WIDTH.rememberMutableState()
     check(visualiser_width in 0f .. 1f)
 
-    val sync_offset: Long? = song?.id?.let { id ->
-        SpMp.context.database.songQueries
-            .lyricsSyncOffsetById(id)
-            .observeAsState(
-                { it.executeAsOne().lyrics_sync_offset }, null
-            )
-            .value
-    }
+    val sync_offset: Long? = song?.LyricsSyncOffset?.observe(SpMp.context.database)?.value
 
     val current_state by remember {
         derivedStateOf {

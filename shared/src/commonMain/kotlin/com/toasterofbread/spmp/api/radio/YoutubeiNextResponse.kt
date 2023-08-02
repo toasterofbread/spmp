@@ -67,7 +67,7 @@ data class YoutubeiNextResponse(
         val menu: Menu,
         val thumbnail: MusicThumbnailRenderer.Thumbnail
     ) {
-        suspend fun getArtist(host_item: Song, db: Database): Result<Artist?> {
+        suspend fun getArtist(host_item: Song, db: Database): Result<ArtistData?> {
             // Get artist ID directly
             for (run in longBylineText.runs!! + title.runs!!) {
                 if (run.browse_endpoint_type != "MUSIC_PAGE_TYPE_ARTIST" && run.browse_endpoint_type != "MUSIC_PAGE_TYPE_USER_CHANNEL") {
@@ -127,20 +127,20 @@ data class YoutubeiNextResponse(
             return Result.success(null)
         }
     }
-    class Menu(val menuRenderer: MenuRenderer)
-    class MenuRenderer(val items: List<MenuItem>) {
+    data class Menu(val menuRenderer: MenuRenderer)
+    data class MenuRenderer(val items: List<MenuItem>) {
         fun getArtist(): MenuItem? =
             items.firstOrNull {
                 it.menuNavigationItemRenderer?.icon?.iconType == "ARTIST"
             }
     }
-    class MenuItem(val menuNavigationItemRenderer: MenuNavigationItemRenderer? = null)
-    class MenuNavigationItemRenderer(val icon: MenuIcon, val navigationEndpoint: NavigationEndpoint)
-    class MenuIcon(val iconType: String)
-    class Continuation(val nextContinuationData: ContinuationData? = null, val nextRadioContinuationData: ContinuationData? = null) {
+    data class MenuItem(val menuNavigationItemRenderer: MenuNavigationItemRenderer? = null)
+    data class MenuNavigationItemRenderer(val icon: MenuIcon, val navigationEndpoint: NavigationEndpoint)
+    data class MenuIcon(val iconType: String)
+    data class Continuation(val nextContinuationData: ContinuationData? = null, val nextRadioContinuationData: ContinuationData? = null) {
         val data: ContinuationData? get() = nextContinuationData ?: nextRadioContinuationData
     }
-    class ContinuationData(val continuation: String)
+    data class ContinuationData(val continuation: String)
 }
 
 data class YoutubeiNextContinuationResponse(

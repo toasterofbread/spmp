@@ -16,6 +16,7 @@ import androidx.core.app.NotificationCompat
 import androidx.media3.common.AudioAttributes
 import androidx.media3.common.C
 import androidx.media3.common.MediaItem
+import androidx.media3.common.MediaMetadata
 import androidx.media3.common.Player
 import androidx.media3.common.util.UnstableApi
 import androidx.media3.datasource.DataSource
@@ -32,7 +33,7 @@ import androidx.media3.exoplayer.source.DefaultMediaSourceFactory
 import androidx.media3.exoplayer.upstream.LoadErrorHandlingPolicy
 import androidx.media3.extractor.mkv.MatroskaExtractor
 import androidx.media3.extractor.mp4.FragmentedMp4Extractor
-import androidx.media3.session.BitmapLoader
+import androidx.media3.common.util.BitmapLoader
 import androidx.media3.session.CommandButton
 import androidx.media3.session.MediaNotification
 import androidx.media3.session.MediaSession
@@ -51,14 +52,14 @@ import com.toasterofbread.spmp.exovisualiser.FFTAudioProcessor
 import com.toasterofbread.spmp.model.mediaitem.loader.MediaItemThumbnailLoader
 import com.toasterofbread.spmp.model.mediaitem.MediaItemThumbnailProvider
 import com.toasterofbread.spmp.model.mediaitem.Song
-import com.toasterofbread.spmp.model.mediaitem.SongData
 import com.toasterofbread.spmp.model.mediaitem.SongLikedStatus
+import com.toasterofbread.spmp.model.mediaitem.SongRef
 import com.toasterofbread.spmp.model.mediaitem.toSongLikedStatus
-import com.toasterofbread.spmp.model.mediaitem.toThumbnailProvider
 import com.toasterofbread.spmp.resources.getStringTODO
 import com.toasterofbread.spmp.shared.R
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.Job
 import kotlinx.coroutines.cancel
 import kotlinx.coroutines.cancelChildren
 import kotlinx.coroutines.launch
@@ -104,13 +105,8 @@ private fun formatMediaNotificationImage(
     song: Song,
     db: Database
 ): Bitmap {
-    val notif_image_offset = db.songQueries.notifImageOffsetById(song.id).executeAsOne()
-
     val dimensions = getMediaNotificationImageSize(image)
-    val offset = IntOffset(
-        notif_image_offset.notif_image_offset_x?.toInt() ?: 0,
-        notif_image_offset.notif_image_offset_y?.toInt() ?: 0
-    )
+    val offset = song.NotificationImageOffset.get(db) ?: IntOffset.Zero
 
     return Bitmap.createBitmap(
         image,
@@ -264,21 +260,16 @@ class MediaPlayerServiceSession: MediaSessionService() {
     }
 
     private suspend fun getCurrentLargeIcon(song: Song): Bitmap? {
-        try {
-            val thumbnail_provider =
-                context.database.mediaItemQueries.thumbnailProviderById(song.id).executeAsOne().toThumbnailProvider()
-                ?: return null
+        val thumbnail_provider = song.ThumbnailProvider.get(context.database) ?: return null
 
-            val result = MediaItemThumbnailLoader.loadItemThumbnail(song, thumbnail_provider, MediaItemThumbnailProvider.Quality.HIGH, context)
-            result.onSuccess { image ->
+        for (quality in MediaItemThumbnailProvider.Quality.byQuality()) {
+            val load_result = MediaItemThumbnailLoader.loadItemThumbnail(song, thumbnail_provider, quality, context)
+            load_result.onSuccess { image ->
                 return formatMediaNotificationImage(image.asAndroidBitmap(), song, context.database)
             }
+        }
 
-            return null
-        }
-        catch (e: IndexOutOfBoundsException) {
-            return null
-        }
+        return null
     }
 
     private fun initialiseSessionAndPlayer() {
@@ -345,15 +336,29 @@ class MediaPlayerServiceSession: MediaSessionService() {
                 }
 
                 override fun loadBitmap(uri: Uri): ListenableFuture<Bitmap> {
-                    val song = SongData(uri.toString())
+                    val song = SongRef(uri.toString())
                     return executor.submit<Bitmap> {
                         runBlocking {
-                            val result = MediaItemThumbnailLoader.loadItemThumbnail(song, MediaItemThumbnailProvider.Quality.HIGH, context)
-                            formatMediaNotificationImage(
-                                result.getOrThrow().asAndroidBitmap(),
-                                song,
-                                context.database
-                            )
+                            var fail_error: Throwable? = null
+                            for (quality in MediaItemThumbnailProvider.Quality.byQuality()) {
+                                val load_result = MediaItemThumbnailLoader.loadItemThumbnail(song, quality, context)
+                                load_result.fold(
+                                    { image ->
+                                        return@runBlocking formatMediaNotificationImage(
+                                            image.asAndroidBitmap(),
+                                            song,
+                                            context.database
+                                        )
+                                    },
+                                    { error ->
+                                        if (fail_error == null) {
+                                            fail_error = error
+                                        }
+                                    }
+                                )
+                            }
+
+                            throw fail_error!!
                         }
                     }
                 }

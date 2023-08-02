@@ -19,89 +19,36 @@ import androidx.compose.ui.graphics.ImageBitmap
 import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.layout.ContentScale
 import com.toasterofbread.spmp.model.mediaitem.MediaItem
-import com.toasterofbread.spmp.model.mediaitem.loader.MediaItemLoader
 import com.toasterofbread.spmp.model.mediaitem.loader.MediaItemThumbnailLoader
 import com.toasterofbread.spmp.model.mediaitem.MediaItemThumbnailProvider
-import com.toasterofbread.spmp.model.mediaitem.toThumbnailProvider
 import com.toasterofbread.utils.composable.SubtleLoadingIndicator
 
 @Composable
 fun MediaItem.Thumbnail(
-    quality: MediaItemThumbnailProvider.Quality,
+    target_quality: MediaItemThumbnailProvider.Quality,
     modifier: Modifier = Modifier,
     failure_icon: ImageVector? = Icons.Default.CloudOff,
     contentColourProvider: (() -> Color)? = null,
     onLoaded: ((ImageBitmap) -> Unit)? = null
 ) {
-    val thumbnail_holder = this//getThumbnailHolder()
     var image: ImageBitmap? by remember { mutableStateOf(null) }
     var loading by remember { mutableStateOf(true) }
 
-    LaunchedEffect(thumbnail_holder, quality) {
+    LaunchedEffect(target_quality) {
         loading = true
         image = null
 
-        val db = SpMp.context.database
-
-        var provider = thumbnail_holder.ThumbnailProvider.get(db)
-        if (provider == null) {
-            val loaded = thumbnail_holder.Loaded.get(db)
-            if (loaded) {
-                loading = false
-                return@LaunchedEffect
-            }
-
-            provider = MediaItemLoader.loadUnknown(thumbnail_holder.getEmptyData(), db).fold(
-                { it.thumbnail_provider },
-                { null }
-            )
-        }
-
-        if (provider != null) {
-            val load_result = MediaItemThumbnailLoader.loadItemThumbnail(this@Thumbnail, provider, quality, SpMp.context)
-            load_result.onSuccess {
-                image = it
-                onLoaded?.invoke(it)
+        for (quality in MediaItemThumbnailProvider.Quality.byQuality(target_quality)) {
+            val load_result = MediaItemThumbnailLoader.loadItemThumbnail(this@Thumbnail, quality, SpMp.context)
+            if (load_result.isSuccess) {
+                image = load_result.getOrThrow()
+                onLoaded?.invoke(image!!)
+                break
             }
         }
 
         loading = false
     }
-//
-//    var loaded by remember { mutableStateOf(false) }
-//    LaunchedEffect(thumbnail_holder) {
-//        loaded = false
-//    }
-//
-//    val state = thumbnail_holder.thumb_states.values.lastOrNull { state ->
-//        state.quality <= quality && state.image != null
-//    } ?: thumbnail_holder.thumb_states[quality]!!
-//
-//    if (state.loading || (state.image == null && !state.loaded)) {
-//        SubtleLoadingIndicator(modifier.fillMaxSize(), contentColourProvider)
-//    }
-//    else if (state.image != null) {
-//        state.image!!.also { thumbnail ->
-//            if (!loaded) {
-//                onLoaded?.invoke(thumbnail)
-//                loaded = true
-//            }
-//
-//            Image(
-//                thumbnail,
-//                contentDescription = null,
-//                contentScale = ContentScale.Crop,
-//                modifier = modifier
-//            )
-//        }
-//    }
-//    else if (state.loaded) {
-//        if (failure_icon != null) {
-//            Box(modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
-//                Icon(failure_icon, null)
-//            }
-//        }
-//    }
 
     if (loading) {
         SubtleLoadingIndicator(modifier.fillMaxSize(), contentColourProvider)

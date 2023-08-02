@@ -104,14 +104,7 @@ fun NowPlaying(swipe_state: SwipeableState<Int>, swipe_anchors: Map<Float, Int>)
             }
 
             val song_gradient_depth: Float? =
-                player.status.m_song?.id?.let { song_id ->
-                    SpMp.context.database.songQueries
-                        .npGradientDepthById(song_id)
-                        .observeAsState(
-                            { it.executeAsOne().np_gradient_depth?.toFloat() }, null
-                        )
-                        .value
-                }
+                player.status.m_song?.PlayerGradientDepth?.observe(SpMp.context.database)?.value
 
             Box(
                 modifier = Modifier

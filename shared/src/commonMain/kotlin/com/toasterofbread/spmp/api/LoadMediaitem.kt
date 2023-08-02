@@ -122,6 +122,7 @@ suspend fun loadMediaItemData(
         }
 
     result.onSuccess {
+        item.loaded = true
         item.saveToDatabase(db)
     }
 
@@ -196,7 +197,7 @@ suspend fun processDefaultResponse(item: MediaItemData, response: Response, hl: 
 
                 item.items = playlist_shelf.contents!!.mapNotNull { data ->
                     val data_item = data.toMediaItemData(hl)?.first
-                    if (data_item is Song) {
+                    if (data_item is SongData) {
                         return@mapNotNull data_item
                     }
                     return@mapNotNull null
@@ -220,7 +221,6 @@ suspend fun processDefaultResponse(item: MediaItemData, response: Response, hl: 
                     item.thumbnail_provider = MediaItemThumbnailProvider.fromThumbnails(header_renderer.getThumbnails())
 
                     header_renderer.subtitle?.runs?.also { subtitle ->
-
                         if (item is MediaItem.DataWithArtist) {
                             val artist_run = subtitle.firstOrNull {
                                 it.navigationEndpoint?.browseEndpoint?.getPageType() == "MUSIC_PAGE_TYPE_USER_CHANNEL"
@@ -258,16 +258,20 @@ suspend fun processDefaultResponse(item: MediaItemData, response: Response, hl: 
                     }
                 }
 
-                val rows = with (parsed.contents!!) {
+                val section_list_renderer = with (parsed.contents!!) {
                     if (singleColumnBrowseResultsRenderer != null) {
-                        singleColumnBrowseResultsRenderer.tabs.first().tabRenderer.content!!.sectionListRenderer.contents!!
+                        singleColumnBrowseResultsRenderer.tabs.first().tabRenderer.content!!.sectionListRenderer
                     }
                     else {
-                        twoColumnBrowseResultsRenderer!!.secondaryContents.sectionListRenderer.contents!!
+                        twoColumnBrowseResultsRenderer!!.secondaryContents.sectionListRenderer
                     }
                 }
 
-                for (row in rows.withIndex()) {
+                if (item is PlaylistData) {
+
+                }
+
+                for (row in section_list_renderer.contents.orEmpty().withIndex()) {
                     val description = row.value.description
                     if (description != null) {
                         item.description = description
@@ -275,40 +279,42 @@ suspend fun processDefaultResponse(item: MediaItemData, response: Response, hl: 
                     }
 
                     val items = row.value.getMediaItemsAndSetIds(hl)
-                    val items_mapped = items.mapNotNull {
-                        val song_data = it.first
-                        if (song_data !is SongData) {
-                            return@mapNotNull null
+                    val items_mapped = items.map {
+                        val list_item = it.first
+                        if (item is Artist && list_item is SongData && list_item.song_type == SongType.PODCAST) {
+                            list_item.artist = item
                         }
-
-                        if (item is Artist && song_data.song_type == SongType.PODCAST) {
-                            song_data.artist = item
-                        }
-
-                        song_data
+                        list_item
                     }
 
-                    val continuation_playlist_id = row.value.musicPlaylistShelfRenderer?.continuations?.firstOrNull()?.nextContinuationData?.continuation
+                    val continuation_token =
+                        section_list_renderer.continuations?.firstOrNull()?.nextContinuationData?.continuation
+                            ?: row.value.musicPlaylistShelfRenderer?.continuations?.firstOrNull()?.nextContinuationData?.continuation
 
                     if (item is PlaylistData) {
-                        item.items = items_mapped
-                        item.continuation = continuation_playlist_id?.let {
+                        item.items = items_mapped.filterIsInstance<SongData>()
+                        item.continuation = continuation_token?.let {
                             MediaItemLayout.Continuation(
                                 it,
                                 MediaItemLayout.Continuation.Type.PLAYLIST
                             )
                         }
                         item.item_set_ids = if (items.all { it.second != null }) items.map { it.second!! } else null
+
+                        println("LOADED CONT ${item.title} ${item.continuation}")
+
                         break
                     }
 
+                    check(item is ArtistData)
+
                     val layout_title = row.value.title?.text?.let {
-                        if (item is Artist && item.isOwnChannel()) LocalisedYoutubeString.Type.OWN_CHANNEL.create(it)
+                        if (item.isOwnChannel()) LocalisedYoutubeString.Type.OWN_CHANNEL.create(it)
                         else LocalisedYoutubeString.mediaItemPage(it, item)
                     }
 
                     val view_more = row.value.getNavigationEndpoint()?.getViewMore()
-                    if (item is ArtistData && view_more is MediaItemLayout.MediaItemViewMore) {
+                    if (view_more is MediaItemLayout.MediaItemViewMore) {
                         val view_more_item = view_more.media_item as MediaItemData
                         view_more_item.title = layout_title?.getString()
                         if (view_more_item is MediaItem.DataWithArtist) {
@@ -316,32 +322,20 @@ suspend fun processDefaultResponse(item: MediaItemData, response: Response, hl: 
                         }
                     }
 
-                    check(item is ArtistData)
-
-                    val new_layout = ArtistLayout.create(item.id, db)
-                    new_layout.apply {
-                        Items.overwriteItems(items_mapped, db)
-                        Title.set(layout_title, db)
-                        Type.set(if (row.index == 0) MediaItemLayout.Type.NUMBERED_LIST else MediaItemLayout.Type.GRID, db)
-                        ViewMore.set(view_more, db)
-                        Playlist.set(
-                            continuation_playlist_id?.let {
-                                AccountPlaylistRef(it)
-                            },
-                            db
-                        )
+                    val new_layout = ArtistLayout.create(item.id).also { layout ->
+                        layout.items = items_mapped.toMutableList()
+                        layout.title = layout_title
+                        layout.type = if (row.index == 0) MediaItemLayout.Type.NUMBERED_LIST else MediaItemLayout.Type.GRID
+                        layout.view_more = view_more
+                        layout.playlist = continuation_token?.let {
+                            AccountPlaylistRef(it)
+                        }
                     }
 
                     if (item.layouts == null) {
                         item.layouts = mutableListOf()
                     }
                     item.layouts!!.add(new_layout)
-                }
-
-                when (item) {
-                    is ArtistData -> TODO()
-                    is PlaylistData -> TODO()
-                    is SongData -> TODO()
                 }
             }
 

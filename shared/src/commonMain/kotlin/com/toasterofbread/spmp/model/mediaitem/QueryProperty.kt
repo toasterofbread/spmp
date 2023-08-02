@@ -10,6 +10,7 @@ import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import app.cash.sqldelight.Query
 import com.toasterofbread.Database
+import com.toasterofbread.utils.lazyAssert
 import kotlin.properties.Delegates
 
 interface Property<T> {
@@ -23,6 +24,12 @@ interface Property<T> {
         val value: T by observe(db)
         val property: Property<V>? = getProperty(value)
         return property?.observe(db)?.value
+    }
+
+    fun setNotNull(value: T, db: Database) {
+        if (value != null) {
+            set(value, db)
+        }
     }
 }
 
@@ -42,15 +49,21 @@ internal open class PropertyImpl<T, Q: Query<*>>(
         )
 }
 
-internal class SingleProperty<T, Q: Any>(
+internal open class SingleProperty<T, Q: Any>(
     getQuery: Database.() -> Query<Q>,
     getValue: Q.() -> T,
-    setValue: Database.(T) -> Unit
+    setValue: Database.(T) -> Unit,
+    getDefault: () -> T = { null as T }
 ): PropertyImpl<T, Query<Q>>(
-    getQuery, { getValue(executeAsOne()) }, setValue
+    getQuery,
+    {
+        val query_result = executeAsOneOrNull()
+        if (query_result == null) getDefault() else getValue(query_result)
+    },
+    setValue
 )
 
-class ListProperty<T, Q: Any>(
+open class ListProperty<T, Q: Any>(
     private val getQuery: Database.() -> Query<Q>,
     private val getValue: List<Q>.() -> List<T>,
     val getSize: Database.() -> Long,
@@ -60,7 +73,7 @@ class ListProperty<T, Q: Any>(
     val clearItems: Database.(from_index: Long) -> Unit,
     private val prerequisite: Property<Boolean>? = null
 ) {
-    fun get(db: Database): List<T>? {
+    open fun get(db: Database): List<T>? {
         if (prerequisite?.get(db) == false) {
             return null
         }
@@ -68,7 +81,7 @@ class ListProperty<T, Q: Any>(
     }
 
     @Composable
-    fun observe(db: Database): State<List<T>?> {
+    open fun observe(db: Database): State<List<T>?> {
         val value_state = getQuery(db).observeAsState(
             { getValue(it.executeAsList()) },
             null
@@ -87,7 +100,7 @@ class ListProperty<T, Q: Any>(
         return value_state
     }
 
-    fun overwriteItems(items: List<T>, db: Database) {
+    open fun overwriteItems(items: List<T>, db: Database) {
         with(db) { transaction {
             clearItems(0)
             for (item in items.withIndex()) {
@@ -96,7 +109,7 @@ class ListProperty<T, Q: Any>(
         }}
     }
 
-    fun addItem(item: T, index: Int?, db: Database) {
+    open fun addItem(item: T, index: Int?, db: Database) {
         if (index != null) {
             require(index >= 0)
         }
@@ -115,7 +128,7 @@ class ListProperty<T, Q: Any>(
         }}
     }
 
-    fun removeItem(index: Int, db: Database) {
+    open fun removeItem(index: Int, db: Database) {
         require(index >= 0)
 
         with(db) { db.transaction {
@@ -127,7 +140,7 @@ class ListProperty<T, Q: Any>(
         }}
     }
 
-    fun moveItem(from: Int, to: Int, db: Database) {
+    open fun moveItem(from: Int, to: Int, db: Database) {
         if (from == to) {
             return
         }
@@ -153,3 +166,46 @@ class ListProperty<T, Q: Any>(
         }
     }
 }
+
+internal class SingleMediaItemProperty<T, Q: Any>(
+    val item: MediaItem,
+    getQuery: Database.() -> Query<Q>,
+    getValue: Q.() -> T,
+    setValue: Database.(T) -> Unit,
+    getDefault: () -> T
+): SingleProperty<T, Q>(getQuery, getValue, setValue, getDefault) {
+    override fun get(db: Database): T {
+//        item.createDbEntry(db)
+        return super.get(db)
+    }
+    @Composable
+    override fun observe(db: Database): MutableState<T> {
+//        item.createDbEntry(db)
+        return super.observe(db)
+    }
+}
+
+internal fun <T, Q: Any> MediaItem.singleProperty(
+    getQuery: Database.() -> Query<Q>,
+    getValue: Q.() -> T,
+    setValue: Database.(T) -> Unit,
+    getDefault: () -> T = { null as T }
+): Property<T> =
+    SingleMediaItemProperty(this, getQuery, getValue, setValue, getDefault)
+
+//internal class ListMediaItemProperty<T, Q: Any>(
+//    val item: MediaItem,
+//    getQuery: Database.() -> Query<Q>,
+//    getValue: List<Q>.() -> List<T>,
+//    getSize: Database.() -> Long,
+//    addItem: Database.(item: T, index: Long) -> Unit,
+//    removeItem: Database.(index: Long) -> Unit,
+//    setItemIndex: Database.(from: Long, to: Long) -> Unit,
+//    clearItems: Database.(from_index: Long) -> Unit,
+//    prerequisite: Property<Boolean>? = null
+//): ListProperty<T, Q>(getQuery, getValue, getSize, addItem, removeItem, setItemIndex, clearItems, prerequisite) {
+//    override fun overwriteItems(items: List<T>, db: Database) {
+////        item.createDbEntry(db)
+//        super.overwriteItems(items, db)
+//    }
+//}

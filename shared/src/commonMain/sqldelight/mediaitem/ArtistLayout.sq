@@ -5,8 +5,10 @@ CREATE TABLE ArtistLayout (
 --  items ArtistLayoutItem
     title_type INTEGER,
     title_key TEXT,
+    title_lang INTEGER,
     subtitle_type INTEGER,
     subtitle_key TEXT,
+    subtitle_lang INTEGER,
     type INTEGER,
     view_more_type INTEGER,
     view_more_data TEXT,
@@ -21,11 +23,11 @@ FROM ArtistLayout
 WHERE artist_id == :artist_id
 ORDER BY layout_index;
 
-titleByIndex: SELECT title_type, title_key FROM ArtistLayout WHERE artist_id == :artist_id AND layout_index = :layout_index;
-updateTitleByIndex: UPDATE ArtistLayout SET title_type = :title_type, title_key = :title_key WHERE artist_id == :artist_id AND layout_index = :layout_index;
+titleByIndex: SELECT title_type, title_key, title_lang FROM ArtistLayout WHERE artist_id == :artist_id AND layout_index = :layout_index;
+updateTitleByIndex: UPDATE ArtistLayout SET title_type = :title_type, title_key = :title_key, title_lang = :title_lang WHERE artist_id == :artist_id AND layout_index = :layout_index;
 
-subtitleByIndex: SELECT subtitle_type, subtitle_key FROM ArtistLayout WHERE artist_id == :artist_id AND layout_index = :layout_index;
-updateSubtitleByIndex: UPDATE ArtistLayout SET subtitle_type = :subtitle_type, subtitle_key = :subtitle_key WHERE artist_id == :artist_id AND layout_index = :layout_index;
+subtitleByIndex: SELECT subtitle_type, subtitle_key, subtitle_lang FROM ArtistLayout WHERE artist_id == :artist_id AND layout_index = :layout_index;
+updateSubtitleByIndex: UPDATE ArtistLayout SET subtitle_type = :subtitle_type, subtitle_key = :subtitle_key, subtitle_lang = :subtitle_lang WHERE artist_id == :artist_id AND layout_index = :layout_index;
 
 typeByIndex: SELECT type FROM ArtistLayout WHERE artist_id == :artist_id AND layout_index = :layout_index;
 updateTypeByIndex: UPDATE ArtistLayout SET type = :type WHERE artist_id == :artist_id AND layout_index = :layout_index;
@@ -48,7 +50,9 @@ updateLayoutIndex:
 UPDATE ArtistLayout SET layout_index = :to WHERE layout_index == :from AND artist_id == :artist_id;
 
 layoutCount:
-SELECT COUNT(IIF(ArtistLayout.artist_id = :artist_id), 1, NULL) FROM ArtistLayout;
+SELECT COUNT(IIF(ArtistLayout.artist_id = :artist_id, 1, NULL)) FROM ArtistLayout;
 
-clearLayouts:
-DELETE FROM ArtistLayout WHERE artist_id = :artist_id AND layout_index >= :from_index;
+clearLayouts {
+    DELETE FROM ArtistLayoutItem WHERE artist_id = :artist_id AND layout_index >= :from_index;
+    DELETE FROM ArtistLayout WHERE artist_id = :artist_id AND layout_index >= :from_index;
+}

@@ -36,7 +36,7 @@ data class YoutubeiBrowseResponse(
     data class Tab(val tabRenderer: TabRenderer)
     data class TabRenderer(val content: Content? = null)
     data class Content(val sectionListRenderer: SectionListRenderer)
-    open class SectionListRenderer(val contents: List<YoutubeiShelf>? = null, val header: ChipCloudRendererHeader? = null, val continuations: List<YoutubeiNextResponse.Continuation>? = null)
+    data class SectionListRenderer(val contents: List<YoutubeiShelf>? = null, val header: ChipCloudRendererHeader? = null, val continuations: List<YoutubeiNextResponse.Continuation>? = null)
 
     class TwoColumnBrowseResultsRenderer(val tabs: List<Tab>, val secondaryContents: SecondaryContents) {
         class SecondaryContents(val sectionListRenderer: SectionListRenderer)

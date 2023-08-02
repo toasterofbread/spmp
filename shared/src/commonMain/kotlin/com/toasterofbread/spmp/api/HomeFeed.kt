@@ -46,21 +46,21 @@ suspend fun getHomeFeed(
     val ctoken_cache_key = "feed_ctoken$suffix"
     val chips_cache_key = "feed_chips$suffix"
 
-    if (allow_cached && continuation == null) {
-        Cache.get(rows_cache_key)?.use { cached_rows ->
-            val rows = Api.klaxon.parseArray<MediaItemLayout>(cached_rows)!!
-
-            val ctoken = Cache.get(ctoken_cache_key)?.use {
-                it.readText()
-            }
-
-            val chips: List<FilterChip>? = Cache.get(chips_cache_key)?.use {
-                Api.klaxon.parseArray(it)!!
-            }
-
-            return@withContext Result.success(HomeFeedLoadResult(rows, ctoken, chips))
-        }
-    }
+//    if (allow_cached && continuation == null) {
+//        Cache.get(rows_cache_key)?.use { cached_rows ->
+//            val rows = Api.klaxon.parseArray<MediaItemLayout>(cached_rows)!!
+//
+//            val ctoken = Cache.get(ctoken_cache_key)?.use {
+//                it.readText()
+//            }
+//
+//            val chips: List<FilterChip>? = Cache.get(chips_cache_key)?.use {
+//                Api.klaxon.parseArray(it)!!
+//            }
+//
+//            return@withContext Result.success(HomeFeedLoadResult(rows, ctoken, chips))
+//        }
+//    }
 
     var last_request: Request? = null
 
@@ -117,9 +117,9 @@ suspend fun getHomeFeed(
         }
 
         if (continuation == null) {
-            Cache.set(rows_cache_key, Api.klaxon.toJsonString(rows).reader(), CACHE_LIFETIME)
-            Cache.set(ctoken_cache_key, ctoken?.reader(), CACHE_LIFETIME)
-            Cache.set(chips_cache_key, Api.klaxon.toJsonString(chips).reader(), CACHE_LIFETIME)
+//            Cache.set(rows_cache_key, Api.klaxon.toJsonString(rows).reader(), CACHE_LIFETIME)
+//            Cache.set(ctoken_cache_key, ctoken?.reader(), CACHE_LIFETIME)
+//            Cache.set(chips_cache_key, Api.klaxon.toJsonString(chips).reader(), CACHE_LIFETIME)
         }
 
         return@withContext Result.success(HomeFeedLoadResult(rows, ctoken, chips))
@@ -136,7 +136,7 @@ suspend fun getHomeFeed(
     }
 }
 
-private suspend fun processRows(rows: List<YoutubeiShelf>, hl: String, db: Database): List<MediaItemLayout> {
+private fun processRows(rows: List<YoutubeiShelf>, hl: String, db: Database): List<MediaItemLayout> {
     val ret = mutableListOf<MediaItemLayout>()
     for (row in rows) {
         if (!row.implemented) {
@@ -155,6 +155,11 @@ private suspend fun processRows(rows: List<YoutubeiShelf>, hl: String, db: Datab
                     type: MediaItemLayout.Type? = null
                 ) {
                     val items = row.getMediaItems(hl).toMutableList()
+                    db.transaction {
+                        for (item in items) {
+                            item.saveToDatabase(db)
+                        }
+                    }
 
                     ret.add(
                         MediaItemLayout(

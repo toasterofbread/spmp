@@ -421,14 +421,15 @@ class Api {
                         .method(request.httpMethod(), request_body).url(url)
                         .addHeader("User-Agent", user_agent)
 
-                    for ((headerName, headerValueList) in request.headers()) {
-                        if (headerValueList.size > 1) {
-                            request_builder.removeHeader(headerName)
-                            for (headerValue in headerValueList) {
-                                request_builder.addHeader(headerName, headerValue)
+                    for ((header_name, header_value_list) in request.headers()) {
+                        if (header_value_list.size > 1) {
+                            request_builder.removeHeader(header_name)
+                            for (headerValue in header_value_list) {
+                                request_builder.addHeader(header_name, headerValue)
                             }
-                        } else if (headerValueList.size == 1) {
-                            request_builder.header(headerName, headerValueList[0])
+                        }
+                        else if (header_value_list.size == 1) {
+                            request_builder.header(header_name, header_value_list[0])
                         }
                     }
 

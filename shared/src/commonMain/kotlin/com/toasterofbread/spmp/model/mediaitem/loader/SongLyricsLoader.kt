@@ -2,7 +2,8 @@ package com.toasterofbread.spmp.model.mediaitem.loader
 
 import androidx.compose.runtime.mutableStateMapOf
 import com.toasterofbread.spmp.api.lyrics.LyricsReference
-import com.toasterofbread.spmp.api.lyrics.toLyricsReference
+import com.toasterofbread.spmp.api.lyrics.loadLyrics
+import com.toasterofbread.spmp.api.lyrics.searchAndLoadSongLyrics
 import com.toasterofbread.spmp.model.SongLyrics
 import com.toasterofbread.spmp.model.mediaitem.Song
 import com.toasterofbread.spmp.platform.PlatformContext
@@ -16,17 +17,14 @@ internal object SongLyricsLoader {
     private val loaded_by_id: MutableMap<String, WeakReference<SongLyrics>> = mutableStateMapOf()
     private val loaded_by_reference: MutableMap<LyricsReference, WeakReference<SongLyrics>> = mutableStateMapOf()
 
-    private val loading_by_id: MutableMap<String, Deferred<SongLyrics>> = mutableStateMapOf()
-    private val loading_by_reference: MutableMap<LyricsReference, Deferred<SongLyrics>> = mutableStateMapOf()
+    private val loading_by_id: MutableMap<String, Deferred<Result<SongLyrics>>> = mutableStateMapOf()
+    private val loading_by_reference: MutableMap<LyricsReference, Deferred<Result<SongLyrics>>> = mutableStateMapOf()
 
     suspend fun loadBySong(
         song: Song,
         context: PlatformContext
     ): Result<SongLyrics> {
-        val lyrics_reference = context.database.songQueries
-            .lyricsById(song.id).executeAsOneOrNull()
-            .toLyricsReference()
-
+        val lyrics_reference: LyricsReference? = song.Lyrics.get(context.database)
         if (lyrics_reference != null) {
             return loadByLyrics(lyrics_reference)
         }
@@ -36,19 +34,14 @@ internal object SongLyricsLoader {
             return Result.success(loaded)
         }
 
-        return performResultSafeLoad(
+        return performSafeLoad(
             song.id,
             lock,
             loading_by_id
         ) {
-            val result = com.toasterofbread.spmp.api.lyrics.searchAndLoadSongLyrics(song, context.database)
+            val result = searchAndLoadSongLyrics(song, context.database)
             result.onSuccess { lyrics ->
-                context.database.songQueries.updateLyricsById(
-                    lyrics.reference.source_idx.toLong(),
-                    lyrics.reference.id,
-                    song.id
-                )
-
+                song.Lyrics.set(lyrics.reference, context.database)
                 loaded_by_id[song.id] = WeakReference(lyrics)
             }
         }
@@ -60,12 +53,12 @@ internal object SongLyricsLoader {
             return Result.success(loaded)
         }
 
-        return performResultSafeLoad(
+        return performSafeLoad(
             lyrics_reference,
             lock,
             loading_by_reference
         ) {
-            val result = com.toasterofbread.spmp.api.lyrics.loadLyrics(lyrics_reference)
+            val result = loadLyrics(lyrics_reference)
             result.onSuccess { lyrics ->
                 loaded_by_reference[lyrics_reference] = WeakReference(lyrics)
             }

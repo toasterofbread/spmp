@@ -6,7 +6,6 @@ import androidx.compose.runtime.State
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import com.toasterofbread.Database
-import com.toasterofbread.spmp.api.getOrThrowHere
 import com.toasterofbread.spmp.api.loadMediaItemData
 import com.toasterofbread.spmp.model.mediaitem.ArtistData
 import com.toasterofbread.spmp.model.mediaitem.MediaItem
@@ -21,9 +20,9 @@ internal object MediaItemLoader {
     private val artist_lock = ReentrantLock()
     private val playlist_lock = ReentrantLock()
 
-    private val loading_songs: MutableMap<String, Deferred<SongData>> = mutableMapOf()
-    private val loading_artists: MutableMap<String, Deferred<ArtistData>> = mutableMapOf()
-    private val loading_playlists: MutableMap<String, Deferred<PlaylistData>> = mutableMapOf()
+    private val loading_songs: MutableMap<String, Deferred<Result<SongData>>> = mutableMapOf()
+    private val loading_artists: MutableMap<String, Deferred<Result<ArtistData>>> = mutableMapOf()
+    private val loading_playlists: MutableMap<String, Deferred<Result<PlaylistData>>> = mutableMapOf()
 
     suspend fun <ItemType: MediaItemData> loadUnknown(item: ItemType, db: Database): Result<ItemType> =
         when (item) {
@@ -45,7 +44,7 @@ internal object MediaItemLoader {
 
     private suspend fun <ItemType: MediaItemData> loadItem(
         item: ItemType,
-        loading_items: MutableMap<String, Deferred<ItemType>>,
+        loading_items: MutableMap<String, Deferred<Result<ItemType>>>,
         lock: ReentrantLock,
         db: Database
     ): Result<ItemType> {
@@ -54,8 +53,10 @@ internal object MediaItemLoader {
             lock,
             loading_items
         ) {
-            loadMediaItemData(item, db).getOrThrowHere()
-            item
+            loadMediaItemData(item, db).fold(
+                { Result.success(item) },
+                { Result.failure(it) }
+            )
         }
     }
 }

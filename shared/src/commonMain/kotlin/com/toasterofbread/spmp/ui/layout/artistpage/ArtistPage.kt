@@ -67,15 +67,20 @@ fun ArtistPage(
     val item_layouts by artist.Layouts.observe(SpMp.context.database)
     val single_layout = item_layouts?.singleOrNull()?.rememberMediaItemLayout(SpMp.context.database)
     val thumbnail_provider: MediaItemThumbnailProvider? by artist.ThumbnailProvider.observe(SpMp.context.database)
+    val thumbnail_load_state = MediaItemThumbnailLoader.rememberItemState(artist)
 
     LaunchedEffect(artist) {
-        artist.loadData(SpMp.context.database)
+        artist.loadData(SpMp.context.database, false)
     }
 
-    val thumbnail_state = MediaItemThumbnailLoader.rememberItemState(artist)
     LaunchedEffect(thumbnail_provider) {
         thumbnail_provider?.also { provider ->
-            MediaItemThumbnailLoader.loadItemThumbnail(artist, provider, MediaItemThumbnailProvider.Quality.HIGH, SpMp.context)
+            MediaItemThumbnailLoader.loadItemThumbnail(
+                artist,
+                provider,
+                MediaItemThumbnailProvider.Quality.HIGH,
+                SpMp.context
+            )
         }
     }
 
@@ -150,7 +155,7 @@ fun ArtistPage(
             }
 
             // Thumbnail
-            Crossfade(thumbnail_state.loaded_images.values.firstOrNull()) { thumbnail ->
+            Crossfade(thumbnail_load_state.loaded_images.values.firstOrNull()) { thumbnail ->
                 if (thumbnail != null) {
                     if (accent_colour == null) {
                         accent_colour = Theme.makeVibrant(thumbnail.getThemeColour() ?: Theme.accent)

@@ -4,17 +4,37 @@ import com.toasterofbread.Database
 import com.toasterofbread.spmp.model.mediaitem.enums.MediaItemType
 import com.toasterofbread.spmp.ui.component.mediaitemlayout.MediaItemLayout
 import com.toasterofbread.spmp.model.mediaitem.enums.PlaylistType
+import com.toasterofbread.utils.lazyAssert
 import mediaitem.PlaylistItem
+import kotlin.coroutines.Continuation
 
 sealed interface PlaylistRef: Playlist
 
 class AccountPlaylistRef(override val id: String): PlaylistRef {
+    override fun toString(): String = "AccountPlaylistRef($id)"
     override fun getType(): MediaItemType = MediaItemType.PLAYLIST_ACC
+
     override fun getEmptyData(): PlaylistData = PlaylistData(id)
+    override fun createDbEntry(db: Database) {
+        db.playlistQueries.insertById(id, null)
+    }
+
+    init {
+        lazyAssert { id.isNotBlank() }
+    }
 }
 class LocalPlaylistRef(override val id: String): PlaylistRef {
+    override fun toString(): String = "LocalPlaylistRef($id)"
     override fun getType(): MediaItemType = MediaItemType.PLAYLIST_LOC
+
     override fun getEmptyData(): PlaylistData = PlaylistData(id, playlist_type = PlaylistType.LOCAL)
+    override fun createDbEntry(db: Database) {
+        db.playlistQueries.insertById(id, PlaylistType.LOCAL.ordinal.toLong())
+    }
+
+    init {
+        lazyAssert { id.isNotBlank() }
+    }
 }
 
 sealed interface Playlist: MediaItem.WithArtist {
@@ -29,17 +49,20 @@ sealed interface Playlist: MediaItem.WithArtist {
     override fun populateData(data: MediaItemData, db: Database) {
         super.populateData(data, db)
         (data as PlaylistData).apply {
-            items = Items.get(db)
+            items = Items.get(db)?.map {
+                SongData(it.id)
+            }
             item_count = ItemCount.get(db)
             playlist_type = TypeOfPlaylist.get(db)
             browse_params = BrowseParams.get(db)
             total_duration = TotalDuration.get(db)
             year = Year.get(db)
+            continuation = Continuation.get(db)
         }
     }
 
-    override suspend fun loadData(db: Database): Result<PlaylistData> {
-        return super.loadData(db) as Result<PlaylistData>
+    override suspend fun loadData(db: Database, populate_data: Boolean): Result<PlaylistData> {
+        return super.loadData(db, populate_data) as Result<PlaylistData>
     }
 
     val Items get() = ListProperty<Song, PlaylistItem>(
@@ -79,9 +102,24 @@ sealed interface Playlist: MediaItem.WithArtist {
     override val Artist: Property<Artist?> get() = SingleProperty(
         { playlistQueries.artistById(id) }, { artist?.let { ArtistRef(it) } }, { playlistQueries.updateArtistById(it?.id, id) }
     )
+    val Continuation: Property<MediaItemLayout.Continuation?> get() = SingleProperty(
+        { playlistQueries.continuationById(id) },
+        { continuation_token?.let {
+            MediaItemLayout.Continuation(
+                it,
+                MediaItemLayout.Continuation.Type.values()[continuation_type!!.toInt()]
+            )
+        }},
+        { playlistQueries.updateContinuationById(it?.token, it?.type?.ordinal?.toLong(), id) }
+    )
 
     val CustomImageProvider: Property<MediaItemThumbnailProvider?> get() = SingleProperty(
-        { playlistQueries.customImageProviderById(id) }, { this.toThumbnailProvider() }, { playlistQueries.updateCustomImageProviderById(it?.url_a, it?.url_b, id) }
+        { playlistQueries.customImageProviderById(id) },
+        { this.toThumbnailProvider() },
+        {
+            require(it is MediaItemThumbnailProviderImpl?)
+            playlistQueries.updateCustomImageProviderById(it?.url_a, it?.url_b, id)
+        }
     )
     val ImageWidth: Property<Float?> get() = SingleProperty(
         { playlistQueries.imageWidthById(id) }, { image_width?.toFloat() }, { playlistQueries.updateImageWidthById(it?.toDouble(), id) }
@@ -96,19 +134,24 @@ class PlaylistData(
     override var id: String,
     override var artist: Artist? = null,
 
-    var items: List<Song>? = null,
+    var items: List<SongData>? = null,
     var item_count: Int? = null,
     var playlist_type: PlaylistType? = null,
     var browse_params: String? = null,
     var total_duration: Long? = null,
     var year: Int? = null,
-
     var continuation: MediaItemLayout.Continuation? = null,
+
     var item_set_ids: List<String>? = null
-): MediaItemData(), Playlist, MediaItem.DataWithArtist {
+): MediaItem.DataWithArtist(), Playlist {
+    override fun toString(): String = "PlaylistData($id, type=$playlist_type)"
+
     fun isLocalPlaylist(): Boolean = playlist_type == PlaylistType.LOCAL
     override fun getType(): MediaItemType = if (isLocalPlaylist()) MediaItemType.PLAYLIST_LOC else MediaItemType.PLAYLIST_ACC
 
+    override fun createDbEntry(db: Database) {
+        db.playlistQueries.insertById(id, playlist_type?.ordinal?.toLong())
+    }
     override fun getEmptyData(): PlaylistData =
         PlaylistData(id, playlist_type = if (isLocalPlaylist()) PlaylistType.LOCAL else null)
 
@@ -116,12 +159,23 @@ class PlaylistData(
         db.transaction { with(apply_to_item as Playlist) {
             super.saveToDatabase(db, apply_to_item)
 
-            Items.overwriteItems(items ?: emptyList(), db)
-            ItemCount.set(item_count, db)
-            TypeOfPlaylist.set(playlist_type, db)
-            BrowseParams.set(browse_params, db)
-            TotalDuration.set(total_duration, db)
-            Year.set(year, db)
+            items?.also { items ->
+                for (item in items) {
+                    item.saveToDatabase(db)
+                }
+                Items.overwriteItems(items, db)
+            }
+
+            ItemCount.setNotNull(item_count, db)
+            TypeOfPlaylist.setNotNull(playlist_type, db)
+            BrowseParams.setNotNull(browse_params, db)
+            TotalDuration.setNotNull(total_duration, db)
+            Year.setNotNull(year, db)
+            Continuation.setNotNull(continuation, db)
         }}
+    }
+
+    init {
+        lazyAssert { id.isNotBlank() }
     }
 }

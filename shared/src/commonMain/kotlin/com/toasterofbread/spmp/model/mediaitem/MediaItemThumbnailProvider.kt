@@ -4,30 +4,25 @@ import androidx.compose.ui.unit.IntSize
 import mediaitem.CustomImageProviderById
 import mediaitem.ThumbnailProviderById
 
-data class MediaItemThumbnailProvider(
-    val url_a: String,
-    val url_b: String?
-) {
-    fun isStatic(): Boolean {
-        return url_b == null || url_b.startsWith("https://")
-    }
+fun interface MediaItemThumbnailProvider {
+    fun getThumbnailUrl(quality: Quality): String?
 
-    fun getThumbnailUrl(quality: Quality): String? {
-        // Set provider
-        if (isStatic()) {
-            if (url_b == null) {
-                return url_a
-            }
+    data class Thumbnail(val url: String, val width: Int, val height: Int)
+    enum class Quality {
+        LOW, HIGH;
 
-            return when (quality) {
-                Quality.HIGH -> url_a
-                Quality.LOW -> url_b
+        fun getTargetSize(): IntSize {
+            return when (this) {
+                LOW -> IntSize(180, 180)
+                HIGH -> IntSize(720, 720)
             }
         }
 
-        // Dynamic provdier
-        val target_size = quality.getTargetSize()
-        return "$url_a${target_size.width}-h${target_size.height}$url_b"
+        companion object {
+            fun byQuality(max: Quality = values().last()): Iterable<Quality> =
+                if (max == HIGH) listOf(HIGH, LOW)
+                else listOf(LOW)
+        }
     }
 
     companion object {
@@ -49,7 +44,7 @@ data class MediaItemThumbnailProvider(
                 }
 
                 // Dynamic provider
-                return MediaItemThumbnailProvider(
+                return MediaItemThumbnailProviderImpl(
                     thumbnail.url.substring(0, w_index + 1),
                     thumbnail.url.substring(h_index + 2 + thumbnail.height.toString().length)
                 )
@@ -59,31 +54,46 @@ data class MediaItemThumbnailProvider(
             val low_url = thumbnails.minByOrNull { it.width * it.height }!!.url
 
             // Set provider
-            return MediaItemThumbnailProvider(
+            return MediaItemThumbnailProviderImpl(
                 high_url,
                 if (high_url == low_url) null else low_url
             )
         }
     }
+}
 
-    data class Thumbnail(val url: String, val width: Int, val height: Int)
-    enum class Quality {
-        LOW, HIGH;
+data class MediaItemThumbnailProviderImpl(
+    val url_a: String,
+    val url_b: String?
+): MediaItemThumbnailProvider {
+    private fun isStatic(): Boolean {
+        return url_b == null || url_b.startsWith("https://")
+    }
 
-        fun getTargetSize(): IntSize {
-            return when (this) {
-                LOW -> IntSize(180, 180)
-                HIGH -> IntSize(720, 720)
+    override fun getThumbnailUrl(quality: MediaItemThumbnailProvider.Quality): String? {
+        // Set provider
+        if (isStatic()) {
+            if (url_b == null) {
+                return url_a
+            }
+
+            return when (quality) {
+                MediaItemThumbnailProvider.Quality.HIGH -> url_a
+                MediaItemThumbnailProvider.Quality.LOW -> url_b
             }
         }
+
+        // Dynamic provdier
+        val target_size = quality.getTargetSize()
+        return "$url_a${target_size.width}-h${target_size.height}$url_b"
     }
 }
 
 fun ThumbnailProviderById.toThumbnailProvider(): MediaItemThumbnailProvider? =
     if (thumb_url_a == null) null
-    else MediaItemThumbnailProvider(thumb_url_a, thumb_url_b)
+    else MediaItemThumbnailProviderImpl(thumb_url_a, thumb_url_b)
 
 fun CustomImageProviderById.toThumbnailProvider(): MediaItemThumbnailProvider? =
     if (custom_image_url_a == null) null
-    else MediaItemThumbnailProvider(custom_image_url_a, custom_image_url_b)
+    else MediaItemThumbnailProviderImpl(custom_image_url_a, custom_image_url_b)
 

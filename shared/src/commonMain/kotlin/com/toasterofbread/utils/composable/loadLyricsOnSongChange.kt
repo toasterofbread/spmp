@@ -43,7 +43,7 @@ fun loadLyricsOnSongChange(song: Song?, context: PlatformContext, load_lyrics: B
             if (load_lyrics && current_song?.id != song.id) {
                 coroutine_scope.launchSingle {
                     val result = SongLyricsLoader.loadBySong(song, context)
-                    result.onSuccess { 
+                    result.onSuccess {
                         lyrics = it
                     }
                 }

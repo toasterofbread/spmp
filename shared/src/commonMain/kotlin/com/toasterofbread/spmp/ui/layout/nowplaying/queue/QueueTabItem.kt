@@ -87,7 +87,6 @@ class QueueTabItem(val song: Song, val key: Int) {
         val anchors = mapOf(-max_offset to 0, 0f to 1, max_offset to 2)
         val player = LocalPlayerState.current
 
-        val density = LocalDensity.current
         Box(
             Modifier
                 .offset { IntOffset(swipe_state.offset.value.roundToInt(), 0) }

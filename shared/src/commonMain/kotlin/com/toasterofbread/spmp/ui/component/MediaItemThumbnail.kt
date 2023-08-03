@@ -39,12 +39,20 @@ fun MediaItem.Thumbnail(
         loading = true
         image = null
 
-        for (quality in MediaItemThumbnailProvider.Quality.byQuality(target_quality)) {
-            val load_result = MediaItemThumbnailLoader.loadItemThumbnail(this@Thumbnail, quality, SpMp.context)
-            if (load_result.isSuccess) {
-                image = load_result.getOrThrow()
-                onLoaded?.invoke(image!!)
-                break
+        var thumbnail_provider = ThumbnailProvider.get(SpMp.context.database)
+        if (thumbnail_provider == null) {
+            loadData(SpMp.context.database)
+            thumbnail_provider = ThumbnailProvider.get(SpMp.context.database)
+        }
+
+        if (thumbnail_provider != null) {
+            for (quality in MediaItemThumbnailProvider.Quality.byQuality(target_quality)) {
+                val load_result = MediaItemThumbnailLoader.loadItemThumbnail(this@Thumbnail, thumbnail_provider, quality, SpMp.context)
+                if (load_result.isSuccess) {
+                    image = load_result.getOrThrow()
+                    onLoaded?.invoke(image!!)
+                    break
+                }
             }
         }
 

@@ -84,8 +84,6 @@ fun MainPage(
             Api.ytm_auth.getOwnChannelOrNull(),
             SpMp.context.database
         )
-
-        println("ALA ${artists_layout.items.toList()}")
     }
 
     Column(Modifier.padding(horizontal = padding)) {

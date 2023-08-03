@@ -7,16 +7,16 @@ import com.toasterofbread.composesettings.ui.item.SettingsValueState
 import com.toasterofbread.spmp.model.Settings
 import com.toasterofbread.spmp.model.YoutubeMusicAuthInfo
 import com.toasterofbread.spmp.model.mediaitem.Artist
-import com.toasterofbread.spmp.model.mediaitem.MediaItemPreviewParams
 import com.toasterofbread.spmp.platform.ProjectPreferences
 import com.toasterofbread.spmp.resources.getString
+import com.toasterofbread.spmp.ui.component.mediaitempreview.MediaItemPreviewLong
 import com.toasterofbread.spmp.ui.layout.YoutubeMusicLoginConfirmation
 import androidx.compose.runtime.*
 
 @Composable
 fun rememberYtmAuthItem(ytm_auth: SettingsValueState<YoutubeMusicAuthInfo>, initialise: Boolean = false): SettingsItem {
     var own_channel: Artist? by remember { mutableStateOf(null) }
-    return remember { 
+    return remember {
         SettingsLargeToggleItem(
             object : BasicSettingsValueState<Boolean> {
                 override fun get(): Boolean = ytm_auth.get().is_initialised
@@ -38,12 +38,9 @@ fun rememberYtmAuthItem(ytm_auth: SettingsValueState<YoutubeMusicAuthInfo>, init
                     own_channel = it
                 }
 
-                own_channel?.PreviewLong(
-                    MediaItemPreviewParams(
-                        modifier,
-                        show_type = false
-                    )
-                )
+                own_channel?.also { channel ->
+                    MediaItemPreviewLong(channel, modifier, show_type = false)
+                }
             },
             disabled_text = getString("auth_not_signed_in"),
             enable_button = getString("auth_sign_in"),
@@ -71,7 +68,7 @@ fun rememberYtmAuthItem(ytm_auth: SettingsValueState<YoutubeMusicAuthInfo>, init
             }
         }.apply {
             if (initialise) {
-                initialise(SpMp.context, Settings.prefs, Settings.Companion::provideDefault) 
+                initialise(SpMp.context, Settings.prefs, Settings.Companion::provideDefault)
             }
         }
     }

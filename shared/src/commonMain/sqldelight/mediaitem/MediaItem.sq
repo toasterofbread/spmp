@@ -1,0 +1,44 @@
+CREATE TABLE MediaItem (
+    id TEXT NOT NULL PRIMARY KEY ,
+
+    loaded INTEGER,
+
+    title TEXT,
+    original_title TEXT,
+    description TEXT,
+
+    thumb_url_a TEXT,
+    thumb_url_b TEXT,
+
+    theme_colour INTEGER,
+    pinned_to_home INTEGER,
+    hidden INTEGER
+);
+
+anyArePinned: SELECT 1 FROM MediaItem WHERE EXISTS(
+   SELECT 1 FROM MediaItem WHERE pinned_to_home == :pinned
+);
+
+loadedById: SELECT loaded FROM MediaItem WHERE id == :id;
+updateLoadedById: UPDATE MediaItem SET loaded = :loaded WHERE id == :id;
+
+titleById: SELECT title FROM MediaItem WHERE id == :id;
+updateTitleById: UPDATE MediaItem SET title = :title WHERE id == :id;
+
+originalTitleById: SELECT original_title FROM MediaItem WHERE id == :id;
+updateOriginalTitleById: UPDATE MediaItem SET original_title = :original_title WHERE id == :id;
+
+descriptionById: SELECT description FROM MediaItem WHERE id == :id;
+updateDescriptionById: UPDATE MediaItem SET description = :description WHERE id == :id;
+
+thumbnailProviderById: SELECT thumb_url_a, thumb_url_b FROM MediaItem WHERE id == :id;
+updateThumbnailProviderById: UPDATE MediaItem SET thumb_url_a = :url_a, thumb_url_b = :url_b WHERE id == :id;
+
+themeColourById: SELECT theme_colour FROM MediaItem WHERE id == :id;
+updateThemeColourById: UPDATE MediaItem SET theme_colour = :theme_colour WHERE id == :id;
+
+pinnedToHomeById: SELECT pinned_to_home FROM MediaItem WHERE id == :id;
+updatePinnedToHomeById: UPDATE MediaItem SET pinned_to_home = :pinned_to_home WHERE id == :id;
+
+isHiddenById: SELECT hidden FROM MediaItem WHERE id == :id;
+updateIsHiddenById: UPDATE MediaItem SET hidden = :hidden WHERE id == :id;

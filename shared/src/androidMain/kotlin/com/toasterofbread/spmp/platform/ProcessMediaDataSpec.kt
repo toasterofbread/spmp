@@ -1,31 +1,32 @@
 package com.toasterofbread.spmp.platform
 
 import SpMp
-import android.content.Context
 import android.net.Uri
 import androidx.media3.common.util.UnstableApi
 import androidx.media3.datasource.DataSpec
 import com.toasterofbread.spmp.model.Settings
-import com.toasterofbread.spmp.model.mediaitem.Song
+import com.toasterofbread.spmp.model.mediaitem.SongRef
+import com.toasterofbread.spmp.model.mediaitem.getMediaItemPlayCount
+import com.toasterofbread.spmp.model.mediaitem.song.getSongStreamFormat
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.runBlocking
 import java.io.File
 import java.io.IOException
-import java.time.temporal.ChronoUnit
+import java.time.Duration
 
 @UnstableApi
-internal fun processMediaDataSpec(data_spec: DataSpec, context: Context, metered: Boolean): DataSpec {
-    val song = Song.fromId(data_spec.uri.toString())
+internal fun processMediaDataSpec(data_spec: DataSpec, context: PlatformContext, metered: Boolean): DataSpec {
+    val song = SongRef(data_spec.uri.toString())
 
     val download_manager = SpMp.context.player_state.download_manager
     var local_file: File? = download_manager.getSongLocalFile(song)
     if (local_file != null) {
-        println("Playing song ${song.title} from local file $local_file")
+        println("Playing song ${song.id} from local file $local_file")
         return data_spec.withUri(Uri.fromFile(local_file))
     }
 
     if (
-        song.registry_entry.getPlayCount(ChronoUnit.WEEKS) >= Settings.KEY_AUTO_DOWNLOAD_THRESHOLD.get<Int>(context)
+        context.database.getMediaItemPlayCount(song.id, Duration.ofDays(7)) >= Settings.KEY_AUTO_DOWNLOAD_THRESHOLD.get<Int>(context)
         && (Settings.KEY_AUTO_DOWNLOAD_ON_METERED.get(context) || !metered)
     ) {
         var done = false
@@ -44,7 +45,7 @@ internal fun processMediaDataSpec(data_spec: DataSpec, context: Context, metered
 
                 val listener = object : PlayerDownloadManager.DownloadStatusListener() {
                     override fun onDownloadChanged(status: PlayerDownloadManager.DownloadStatus) {
-                        if (status.song != song) {
+                        if (status.song.id != song.id) {
                             return
                         }
 
@@ -74,21 +75,21 @@ internal fun processMediaDataSpec(data_spec: DataSpec, context: Context, metered
         }
 
         if (local_file != null) {
-            println("Playing song ${song.title} from local file $local_file")
+            println("Playing song ${song.id} from local file $local_file")
             return data_spec.withUri(Uri.fromFile(local_file))
         }
     }
 
-    val format = song.getStreamFormat()
-    if (format.isFailure) {
-        throw IOException(format.exceptionOrNull()!!)
-    }
+    val format = getSongStreamFormat(song.id).fold(
+        { it },
+        { throw IOException(it) }
+    )
 
     return if (local_file != null) {
-        println("Playing song ${song.title} from local file $local_file")
+        println("Playing song ${song.id} from local file $local_file")
         data_spec.withUri(Uri.fromFile(local_file))
     } else {
-        println("Playing song ${song.title} from external format ${format.getOrThrow()}")
-        data_spec.withUri(Uri.parse(format.getOrThrow().stream_url))
+        println("Playing song ${song.id} from external format $format")
+        data_spec.withUri(Uri.parse(format.stream_url))
     }
 }

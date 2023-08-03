@@ -20,8 +20,13 @@ import androidx.compose.ui.draw.rotate
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.unit.dp
 import com.toasterofbread.spmp.api.Api
+import com.toasterofbread.spmp.api.setSongLiked
 import com.toasterofbread.spmp.model.mediaitem.Song
-import com.toasterofbread.spmp.model.mediaitem.SongLikeStatus
+import com.toasterofbread.spmp.model.mediaitem.SongLikedStatus
+import com.toasterofbread.spmp.model.mediaitem.loader.SongLikedLoader
+import com.toasterofbread.spmp.model.mediaitem.observeAsState
+import com.toasterofbread.spmp.model.mediaitem.toLong
+import com.toasterofbread.spmp.model.mediaitem.toSongLikedStatus
 import com.toasterofbread.spmp.platform.vibrateShort
 import com.toasterofbread.utils.composable.SubtleLoadingIndicator
 
@@ -37,31 +42,44 @@ fun LikeDislikeButton(
         return
     }
 
-    val rotation by animateFloatAsState(if (song.like_status.status == SongLikeStatus.Status.DISLIKED) 180f else 0f)
+    val db = SpMp.context.database
 
-    LaunchedEffect(song) {
-        if (song.like_status.status == SongLikeStatus.Status.UNKNOWN) {
-            song.like_status.updateStatus()
+    var liked_status by db.songQueries
+        .likedById(song.id)
+        .observeAsState(
+            mapValue = { it.executeAsOneOrNull()?.liked.toSongLikedStatus() },
+            onExternalChange = { status ->
+                if (status != null) {
+                    setSongLiked(song.id, status)
+                }
+                db.songQueries.updatelikedById(status.toLong(), song.id)
+            }
+        )
+    var loading by remember { mutableStateOf(false) }
+
+    LaunchedEffect(song.id) {
+        if (liked_status == null) {
+            loading = true
+
+            val load_result = SongLikedLoader.loadSongLiked(song.id, SpMp.context.database)
+            load_result.onSuccess {
+                liked_status = it
+            }
         }
+
+        loading = false
     }
+
+    val rotation by animateFloatAsState(if (liked_status == SongLikedStatus.DISLIKED) 180f else 0f)
 
     Box(
         modifier,
         contentAlignment = Alignment.Center
     ) {
-        Crossfade(
-            Pair(
-                song.like_status.status,
-                song.like_status.loading
-            )
-        ) {
-            val (status, loading) = it
-
-            if (status.is_available) {
-                check(status == SongLikeStatus.Status.LIKED || status == SongLikeStatus.Status.DISLIKED || status == SongLikeStatus.Status.NEUTRAL)
-
+        Crossfade(liked_status) { status ->
+            if (status != null) {
                 Icon(
-                    if (status != SongLikeStatus.Status.NEUTRAL) Icons.Filled.ThumbUp else Icons.Outlined.ThumbUp,
+                    if (status != SongLikedStatus.NEUTRAL) Icons.Filled.ThumbUp else Icons.Outlined.ThumbUp,
                     null,
                     Modifier
                         .rotate(rotation)
@@ -70,18 +88,14 @@ fun LikeDislikeButton(
                             rememberRipple(false),
                             enabled = getEnabled?.invoke() != false,
                             onClick = { when (status) {
-                                SongLikeStatus.Status.LIKED -> song.like_status.setLiked(null)
-                                SongLikeStatus.Status.DISLIKED -> song.like_status.setLiked(null)
-                                SongLikeStatus.Status.NEUTRAL -> song.like_status.setLiked(true)
-                                else -> throw IllegalStateException(status.name)
+                                SongLikedStatus.LIKED, SongLikedStatus.DISLIKED -> liked_status = SongLikedStatus.NEUTRAL
+                                SongLikedStatus.NEUTRAL -> liked_status = SongLikedStatus.LIKED
                             }},
                             onLongClick = {
                                 SpMp.context.vibrateShort()
                                 when (status) {
-                                    SongLikeStatus.Status.LIKED -> song.like_status.setLiked(false)
-                                    SongLikeStatus.Status.DISLIKED -> song.like_status.setLiked(true)
-                                    SongLikeStatus.Status.NEUTRAL -> song.like_status.setLiked(false)
-                                    else -> throw IllegalStateException(status.name)
+                                    SongLikedStatus.LIKED, SongLikedStatus.NEUTRAL -> liked_status = SongLikedStatus.DISLIKED
+                                    SongLikedStatus.DISLIKED -> liked_status = SongLikedStatus.LIKED
                                 }
                             }
                         ),

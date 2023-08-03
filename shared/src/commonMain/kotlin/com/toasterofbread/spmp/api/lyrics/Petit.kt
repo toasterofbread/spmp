@@ -1,16 +1,20 @@
 package com.toasterofbread.spmp.api.lyrics
 
-import com.toasterofbread.spmp.api.lyrics.petit.*
-import com.toasterofbread.spmp.resources.getString
-import com.toasterofbread.spmp.api.*
+import androidx.compose.ui.graphics.Color
+import com.toasterofbread.spmp.api.Api
+import com.toasterofbread.spmp.api.cast
+import com.toasterofbread.spmp.api.getOrThrowHere
+import com.toasterofbread.spmp.api.lyrics.petit.parseStaticLyrics
+import com.toasterofbread.spmp.api.lyrics.petit.parseTimedLyrics
+import com.toasterofbread.spmp.api.lyrics.petit.searchPetitLyrics
 import com.toasterofbread.spmp.model.SongLyrics
-import kotlinx.coroutines.withContext
+import com.toasterofbread.spmp.resources.getString
 import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.withContext
+import okhttp3.MediaType.Companion.toMediaType
 import okhttp3.Request
 import okhttp3.RequestBody.Companion.toRequestBody
-import okhttp3.MediaType.Companion.toMediaType
-import androidx.compose.ui.graphics.Color
-import java.util.*
+import java.util.Base64
 
 private const val DATA_START = "<lyricsData>"
 private const val DATA_END = "</lyricsData>"
@@ -20,36 +24,34 @@ internal class PetitLyricsSource(source_idx: Int): LyricsSource(source_idx) {
     override fun getColour(): Color = Color(0xFFBD0A0F)
     
     override suspend fun getLyrics(lyrics_id: String): Result<SongLyrics> {
-        var fail_result: Result<SongLyrics>? = null
         for (sync_type in SongLyrics.SyncType.byPriority()) {
             val result = getLyricsData(lyrics_id.toInt(), sync_type)
-            if (!result.isSuccess) {
-                if (fail_result == null) {
-                    fail_result = result.cast()
-                }
-                continue
-            }
 
-            if (result.data.startsWith("<wsy>")) {
-                val parse_result = parseTimedLyrics(result.data)
+            val data = result.getOrNull() ?: return result.cast()
+            if (data.startsWith("<wsy>")) {
+                val parse_result = parseTimedLyrics(data)
                 val lyrics = parse_result.getOrNull() ?: return parse_result.cast()
 
-                return Result.success(SongLyrics(
-                    LyricsReference(lyrics_id, source_idx),
-                    sync_type,
-                    lyrics
-                ))
+                return Result.success(
+                    SongLyrics(
+                        LyricsReference(source_idx, lyrics_id),
+                        sync_type,
+                        lyrics
+                    )
+                )
             }
             else {
-                return Result.success(SongLyrics(
-                    LyricsReference(lyrics_id, source_idx),
-                    SongLyrics.SyncType.NONE,
-                    parseStaticLyrics(result.data)
-                ))
+                return Result.success(
+                    SongLyrics(
+                        LyricsReference(source_idx, lyrics_id),
+                        SongLyrics.SyncType.NONE,
+                        parseStaticLyrics(data)
+                    )
+                )
             }
         }
 
-        return fail_result ?: Result.failure(IllegalStateException())
+        return Result.failure(IllegalStateException())
     }
 
     private suspend fun getLyricsData(lyrics_id: Int, sync_type: SongLyrics.SyncType): Result<String> = withContext(Dispatchers.IO) {

@@ -12,9 +12,9 @@ import androidx.compose.material3.TextField
 import androidx.compose.runtime.*
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.Dp
-import com.toasterofbread.spmp.model.mediaitem.MediaItemPreviewParams
 import com.toasterofbread.spmp.model.mediaitem.Song
 import com.toasterofbread.spmp.platform.PlayerDownloadManager
+import com.toasterofbread.spmp.ui.component.mediaitempreview.MediaItemPreviewLong
 import com.toasterofbread.spmp.ui.component.multiselect.MediaItemMultiSelectContext
 
 @OptIn(ExperimentalMaterial3Api::class)
@@ -34,7 +34,9 @@ fun LibrarySongsPage(
             if (download.progress != 1f) return@mapNotNull null
 
             filter?.also { filter ->
-                if (download.song.title?.contains(filter, true) != true) return@mapNotNull null
+                if (download.song.Title.get(SpMp.context.database)?.contains(filter, true) != true) {
+                    return@mapNotNull null
+                }
             }
 
             return@mapNotNull download.song
@@ -57,7 +59,7 @@ fun LibrarySongsPage(
     }) }) {
         LazyColumn(contentPadding = content_padding) {
             itemsIndexed(sorted_songs, { _, item -> item.id }) { index, song ->
-                song.PreviewLong(MediaItemPreviewParams(multiselect_context = multiselect_context), queue_index = index)
+                MediaItemPreviewLong(song, multiselect_context = multiselect_context, multiselect_key = index)
             }
         }
     }

@@ -1,19 +1,16 @@
 package com.toasterofbread.spmp.ui.component.longpressmenu
 
+import SpMp
 import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.animation.EnterTransition
 import androidx.compose.animation.core.animateFloatAsState
 import androidx.compose.animation.core.tween
 import androidx.compose.animation.slideOutVertically
-import androidx.compose.foundation.background
-import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.fillMaxSize
-import androidx.compose.foundation.layout.offset
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.DisposableEffect
 import androidx.compose.runtime.LaunchedEffect
-import androidx.compose.runtime.MutableState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
@@ -23,12 +20,10 @@ import androidx.compose.ui.draw.clip
 import androidx.compose.ui.draw.scale
 import androidx.compose.ui.graphics.Color
 import com.toasterofbread.spmp.model.Settings
-import com.toasterofbread.spmp.model.mediaitem.MediaItemThumbnailProvider
-import com.toasterofbread.spmp.model.mediaitem.Song
+import com.toasterofbread.spmp.model.mediaitem.rememberThemeColour
 import com.toasterofbread.spmp.platform.composable.PlatformDialog
 import com.toasterofbread.spmp.ui.layout.nowplaying.overlay.DEFAULT_THUMBNAIL_ROUNDING
 import com.toasterofbread.spmp.ui.theme.Theme
-import com.toasterofbread.utils.contrastAgainst
 import kotlinx.coroutines.delay
 
 private const val LONG_PRESS_ICON_MENU_OPEN_ANIM_MS: Int = 150
@@ -84,27 +79,17 @@ fun LongPressMenu(
                 enter = EnterTransition.None,
                 exit = slideOutVertically(tween(LONG_PRESS_ICON_MENU_OPEN_ANIM_MS)) { it }
             ) {
-                var accent_colour: Color? by remember { mutableStateOf(null) }
+                var accent_colour: Color? = data.item.rememberThemeColour(SpMp.context.database)
 
                 DisposableEffect(Unit) {
-                    if (data.item is Song && data.item.theme_colour != null) {
-                        accent_colour = data.item.theme_colour!!
+                    val theme_colour = data.item.ThemeColour.get(SpMp.context.database)
+                    if (theme_colour != null) {
+                        accent_colour = theme_colour
                     }
 
                     SpMp.context.setNavigationBarColour(Theme.background)
                     onDispose {
                         SpMp.context.setNavigationBarColour(null)
-                    }
-                }
-
-                val thumb_quality = MediaItemThumbnailProvider.Quality.LOW
-                LaunchedEffect(data.item.isThumbnailLoaded(thumb_quality)) {
-                    if (!data.item.isThumbnailLoaded(thumb_quality)) {
-                        data.item.loadThumbnail(MediaItemThumbnailProvider.Quality.LOW)
-                    }
-                    else {
-                        accent_colour = (data.item.getDefaultThemeColour() ?: Theme.background)
-                            .contrastAgainst(Theme.background, 0.2f)
                     }
                 }
 

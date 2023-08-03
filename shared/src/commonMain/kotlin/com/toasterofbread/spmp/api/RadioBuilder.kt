@@ -1,27 +1,27 @@
 package com.toasterofbread.spmp.api
 
+import com.toasterofbread.Database
 import com.toasterofbread.spmp.api.Api.Companion.addYtHeaders
 import com.toasterofbread.spmp.api.Api.Companion.getStream
 import com.toasterofbread.spmp.api.Api.Companion.ytUrl
-import com.toasterofbread.spmp.model.mediaitem.AccountPlaylist
 import com.toasterofbread.spmp.model.mediaitem.MediaItemThumbnailProvider
-import com.toasterofbread.spmp.model.mediaitem.Playlist
+import com.toasterofbread.spmp.model.mediaitem.PlaylistData
 import com.toasterofbread.spmp.model.mediaitem.enums.PlaylistType
+import com.toasterofbread.spmp.model.mediaitem.loader.MediaItemLoader
 import com.toasterofbread.spmp.resources.getString
 import okhttp3.Request
 
-suspend fun getBuiltRadio(radio_token: String): Result<Playlist?> {
+suspend fun getBuiltRadio(radio_token: String, db: Database): Result<PlaylistData?> {
     require(radio_token.startsWith("VLRDAT"))
     require(radio_token.contains('E'))
 
-    val playlist = AccountPlaylist.fromId(radio_token).editPlaylistData { supplyPlaylistType(PlaylistType.RADIO, true) }
-
-    val thumbnail_provider = playlist.getThumbnailProvider().fold(
-        { it },
-        { return Result.failure(it) }
+    val playlist_result = MediaItemLoader.loadPlaylist(
+        PlaylistData(radio_token, playlist_type = PlaylistType.RADIO),
+        db
     )
+    val playlist = playlist_result.getOrNull() ?: return playlist_result
 
-    val thumb_url = thumbnail_provider.getThumbnailUrl(MediaItemThumbnailProvider.Quality.HIGH)
+    val thumb_url = playlist.thumbnail_provider?.getThumbnailUrl(MediaItemThumbnailProvider.Quality.HIGH)
     if (thumb_url?.contains("fallback") == true) {
         return Result.success(null)
     }

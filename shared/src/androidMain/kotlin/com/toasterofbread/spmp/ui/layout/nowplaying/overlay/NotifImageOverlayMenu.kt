@@ -46,6 +46,7 @@ import com.toasterofbread.spmp.resources.getString
 import com.toasterofbread.utils.composable.SubtleLoadingIndicator
 import com.toasterofbread.utils.launchSingle
 import kotlin.math.roundToInt
+import kotlin.math.roundToLong
 
 actual fun notifImageOverlayMenuButtonText(): String? = getString("song_notif_image_menu_open")
 
@@ -149,10 +150,11 @@ actual class NotifImageOverlayMenu: OverlayMenu() {
                         }
                         IconButton({
                             openMenu(null)
-
-                            song.song_reg_entry.notif_image_offset_x = offset_x.value.takeIf { it != 0f }?.roundToInt()
-                            song.song_reg_entry.notif_image_offset_y = offset_y.value.takeIf { it != 0f }?.roundToInt()
-                            song.saveRegistry()
+                            SpMp.context.database.songQueries.updateNotifImageOffsetById(
+                                offset_x.value.takeIf { it != 0f }?.roundToLong(),
+                                offset_y.value.takeIf { it != 0f }?.roundToLong(),
+                                song.id
+                            )
                         }) {
                             Icon(Icons.Default.Done, null)
                         }

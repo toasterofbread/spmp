@@ -16,10 +16,10 @@ import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.text.KeyboardActions
 import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.ArrowDropDown
 import androidx.compose.material.icons.filled.Close
 import androidx.compose.material.icons.filled.Edit
 import androidx.compose.material.icons.filled.Search
-import androidx.compose.material.icons.filled.ArrowDropDown
 import androidx.compose.material3.Button
 import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.CircularProgressIndicator
@@ -43,9 +43,11 @@ import androidx.compose.ui.platform.LocalSoftwareKeyboardController
 import androidx.compose.ui.text.input.ImeAction
 import androidx.compose.ui.text.input.TextFieldValue
 import androidx.compose.ui.unit.dp
+import com.toasterofbread.spmp.api.lyrics.LyricsReference
 import com.toasterofbread.spmp.api.lyrics.LyricsSource
 import com.toasterofbread.spmp.model.Settings
 import com.toasterofbread.spmp.model.mediaitem.Song
+import com.toasterofbread.spmp.platform.LargeDropdownMenu
 import com.toasterofbread.spmp.resources.getString
 import com.toasterofbread.spmp.ui.theme.Theme
 import com.toasterofbread.utils.composable.OnChangedEffect
@@ -53,13 +55,18 @@ import com.toasterofbread.utils.setAlpha
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
 import java.io.IOException
-import com.toasterofbread.spmp.platform.LargeDropdownMenu
 
 private const val LYRICS_SEARCH_RETRY_COUNT = 3
 
 @OptIn(ExperimentalMaterial3Api::class, ExperimentalComposeUiApi::class)
 @Composable
 fun LyricsSearchMenu(song: Song, modifier: Modifier = Modifier, close: (changed: Boolean) -> Unit) {
+    val db = SpMp.context.database
+
+    val song_title: String? by song.Title.observe(db)
+    val song_artist_title: String? = song.Artist.observeOn(db) {
+        it?.Title
+    }
 
     val on_accent = Theme.on_accent
     val accent = Theme.accent
@@ -82,8 +89,8 @@ fun LyricsSearchMenu(song: Song, modifier: Modifier = Modifier, close: (changed:
     val focus = LocalFocusManager.current
     val keyboard_controller = LocalSoftwareKeyboardController.current
 
-    val title = remember (song.title) { mutableStateOf(TextFieldValue(song.title ?: "")) }
-    val artist = remember (song.artist?.title) { mutableStateOf(TextFieldValue(song.artist?.title ?: "")) }
+    val title = remember (song_title) { mutableStateOf(TextFieldValue(song_title ?: "")) }
+    val artist = remember (song_artist_title) { mutableStateOf(TextFieldValue(song_artist_title ?: "")) }
     var search_state: Boolean by remember { mutableStateOf(false) }
     var selected_source_idx: Int by remember { mutableStateOf(Settings.KEY_LYRICS_DEFAULT_SOURCE.get()) }
 
@@ -206,10 +213,16 @@ fun LyricsSearchMenu(song: Song, modifier: Modifier = Modifier, close: (changed:
                 LyricsSearchResults(results) { index ->
                     if (index != null) {
                         val selected = results.first[index]
-                        if (selected.id != song.song_reg_entry.lyrics_id || results.second != song.song_reg_entry.lyrics_source_idx) {
-                            song.song_reg_entry.updateLyrics(selected.id, results.second)
-                            song.saveRegistry()
+                        val lyrics_source = results.second
+
+                        val current_lyrics = song.Lyrics.get(SpMp.context.database)
+
+                        if (selected.id != current_lyrics?.id || lyrics_source != current_lyrics.source_idx) {
+                            song.Lyrics.set(LyricsReference(lyrics_source, selected.id), SpMp.context.database)
                             close(true)
+                        }
+                        else {
+                            close(false)
                         }
                     }
                     search_results = null

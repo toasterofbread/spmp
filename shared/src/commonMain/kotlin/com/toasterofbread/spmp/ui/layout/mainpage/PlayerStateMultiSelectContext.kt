@@ -26,10 +26,10 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
-import com.toasterofbread.spmp.model.mediaitem.MediaItemPreviewParams
 import com.toasterofbread.spmp.model.mediaitem.Song
 import com.toasterofbread.spmp.platform.vibrateShort
 import com.toasterofbread.spmp.resources.getString
+import com.toasterofbread.spmp.ui.component.mediaitempreview.MediaItemPreviewLong
 import com.toasterofbread.spmp.ui.component.multiselect.MediaItemMultiSelectContext
 
 fun getPlayerStateMultiSelectContext(): MediaItemMultiSelectContext =
@@ -86,10 +86,12 @@ private fun MultiSelectNextRowActions() {
             }
 
         CompositionLocalProvider(LocalPlayerState provides remember {
-            player.copy(onClickedOverride = { item, _ -> player.openMediaItem(item) })
+            player.copy(onClickedOverride = { item, _ -> player.openMediaItem(item,) })
         }) {
-            Crossfade(active_queue_item, animationSpec = tween(100), modifier = Modifier.weight(1f)) {
-                it?.PreviewLong(MediaItemPreviewParams())
+            Crossfade(active_queue_item, animationSpec = tween(100), modifier = Modifier.weight(1f)) { song ->
+                if (song != null) {
+                    MediaItemPreviewLong(song)
+                }
             }
         }
 

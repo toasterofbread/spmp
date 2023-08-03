@@ -30,6 +30,7 @@ import com.toasterofbread.spmp.model.Settings
 import com.toasterofbread.spmp.platform.composable.platformClickable
 import com.toasterofbread.spmp.platform.vibrateShort
 import com.toasterofbread.spmp.ui.component.MusicTopBarWithVisualiser
+import com.toasterofbread.spmp.ui.component.Thumbnail
 import com.toasterofbread.spmp.ui.component.WaveBorder
 import com.toasterofbread.spmp.ui.layout.YoutubeMusicLoginConfirmation
 import com.toasterofbread.spmp.ui.layout.radiobuilder.RadioBuilderIcon

@@ -13,6 +13,7 @@ import androidx.compose.runtime.*
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.unit.*
+import com.toasterofbread.Database
 import com.toasterofbread.spmp.PlayerService
 import com.toasterofbread.spmp.model.*
 import com.toasterofbread.spmp.model.mediaitem.*
@@ -37,7 +38,6 @@ import com.toasterofbread.spmp.ui.layout.prefspage.PrefsPage
 import com.toasterofbread.spmp.ui.layout.prefspage.PrefsPageCategory
 import com.toasterofbread.spmp.ui.layout.radiobuilder.RadioBuilderPage
 import com.toasterofbread.spmp.ui.theme.Theme
-import com.toasterofbread.utils.addUnique
 import com.toasterofbread.utils.composable.OnChangedEffect
 import com.toasterofbread.utils.init
 import com.toasterofbread.utils.toFloat
@@ -86,7 +86,7 @@ interface PlayerOverlayPage {
                     ),
                     close = close
                 )
-                else -> throw NotImplementedError(item.type.toString())
+                else -> throw NotImplementedError(item::class.toString())
             }
         }
     }
@@ -178,12 +178,10 @@ class PlayerStateImpl(private val context: PlatformContext): PlayerState(null, n
     private val np_swipe_state: MutableState<SwipeableState<Int>> = mutableStateOf(SwipeableState(0))
     private var np_swipe_anchors: Map<Float, Int>? by mutableStateOf(null)
 
-    override val pinned_items: MutableList<MediaItemHolder> = mutableStateListOf()
-
     val expansion_state = NowPlayingExpansionState(np_swipe_state, context)
     override var download_manager = PlayerDownloadManager(context)
 
-    override val main_page_state = MainPageState()
+    override val main_page_state = MainPageState(context.database)
     override var overlay_page: Pair<PlayerOverlayPage, MediaItem?>? by mutableStateOf(null)
         private set
     override val bottom_padding: Float get() = bottom_padding_anim.value
@@ -210,13 +208,6 @@ class PlayerStateImpl(private val context: PlatformContext): PlayerState(null, n
         }
         val prefs = context.getPrefs()
         context.getPrefs().addListener(prefs_listener)
-
-        runBlocking {
-            for (uid in Settings.INTERNAL_PINNED_ITEMS.get<Set<String>>(prefs)) {
-                val item = MediaItem.fromUid(uid, context)
-                pinned_items.add(item.getHolder())
-            }
-        }
     }
 
     @Composable
@@ -312,12 +303,11 @@ class PlayerStateImpl(private val context: PlatformContext): PlayerState(null, n
     }
 
     override fun navigateBack() {
-        println("NAVBACK $overlay_page $overlay_page_undo_stack")
         if (overlay_page != null) {
             overlay_page = overlay_page_undo_stack.removeLastOrNull()
         }
         else {
-            main_page_state.setPage(main_page_undo_stack.removeLastOrNull())
+            main_page_state.setPage(main_page_undo_stack.removeLastOrNull(), true)
         }
     }
 
@@ -326,7 +316,7 @@ class PlayerStateImpl(private val context: PlatformContext): PlayerState(null, n
             playMediaItem(item)
         }
         else {
-            openMediaItem(item)
+            openMediaItem(item,)
         }
     }
     override fun onMediaItemLongClicked(item: MediaItem, long_press_data: LongPressMenuData?) {
@@ -346,7 +336,7 @@ class PlayerStateImpl(private val context: PlatformContext): PlayerState(null, n
     }
 
     override fun openMediaItem(item: MediaItem, from_current: Boolean) {
-        if (item is Artist && item.is_for_item) {
+        if (item is Artist && item.IsForItem.get(context.database)) {
             return
         }
         openPage(PlayerOverlayPage.MediaItemPage(item.getHolder()), from_current)
@@ -391,15 +381,6 @@ class PlayerStateImpl(private val context: PlatformContext): PlayerState(null, n
                         }
                     }
             )
-        }
-    }
-
-    override fun onMediaItemPinnedChanged(item: MediaItem, pinned: Boolean) {
-        if (pinned) {
-            pinned_items.addUnique(item.getHolder())
-        }
-        else {
-            pinned_items.removeAll { it.item == item }
         }
     }
 
@@ -509,7 +490,6 @@ class PlayerStateImpl(private val context: PlatformContext): PlayerState(null, n
                             }
                         }
 
-                        pinned_items.removeAll { it.item == null }
                         MainPageDisplay()
                     }
                     else {

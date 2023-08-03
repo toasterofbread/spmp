@@ -35,14 +35,16 @@ import androidx.compose.ui.text.TextStyle
 import androidx.compose.ui.unit.dp
 import com.toasterofbread.spmp.api.Api
 import com.toasterofbread.spmp.model.Settings
-import com.toasterofbread.spmp.model.mediaitem.AccountPlaylist
-import com.toasterofbread.spmp.model.mediaitem.LocalPlaylist
-import com.toasterofbread.spmp.model.mediaitem.MediaItemPreviewParams
+import com.toasterofbread.spmp.model.mediaitem.AccountPlaylistRef
+import com.toasterofbread.spmp.model.mediaitem.LocalPlaylistRef
 import com.toasterofbread.spmp.model.mediaitem.Playlist
 import com.toasterofbread.spmp.model.mediaitem.Song
+import com.toasterofbread.spmp.model.mediaitem.createLocalPlaylist
+import com.toasterofbread.spmp.model.mediaitem.rememberLocalPlaylists
 import com.toasterofbread.spmp.platform.PlayerDownloadManager
 import com.toasterofbread.spmp.resources.getString
 import com.toasterofbread.spmp.ui.component.mediaitemlayout.MediaItemGrid
+import com.toasterofbread.spmp.ui.component.mediaitempreview.MediaItemPreviewLong
 import com.toasterofbread.spmp.ui.component.multiselect.MediaItemMultiSelectContext
 import com.toasterofbread.utils.composable.PartialBorderBox
 import kotlinx.coroutines.launch
@@ -78,19 +80,24 @@ private fun PlaylistsRow(
     multiselect_context: MediaItemMultiSelectContext,
     modifier: Modifier = Modifier
 ) {
+    val db = SpMp.context.database
     val player = LocalPlayerState.current
     val coroutine_scope = rememberCoroutineScope()
     val ytm_auth = Api.ytm_auth
 
     val show_likes: Boolean by Settings.KEY_SHOW_LIKES_PLAYLIST.rememberMutableState()
-    val local_playlists: List<Playlist> = LocalPlaylist.rememberLocalPlaylistsListener()
-    val playlists =
-        local_playlists + ytm_auth.own_playlists.mapNotNull { id ->
-            if (!show_likes && AccountPlaylist.formatId(id) == "LM") {
-                return@mapNotNull null
-            }
-            return@mapNotNull AccountPlaylist.fromId(id)
+
+    val local_playlists: List<LocalPlaylistRef> = rememberLocalPlaylists(db)
+    val account_playlists: List<AccountPlaylistRef> = ytm_auth.own_playlists.mapNotNull { playlist_id ->
+        if (!show_likes && Playlist.formatYoutubeId(playlist_id) == "LM") {
+            return@mapNotNull null
         }
+        return@mapNotNull AccountPlaylistRef(playlist_id)
+    }
+
+    val playlists: List<Playlist> = remember(local_playlists, account_playlists) {
+        local_playlists + account_playlists
+    }
 
     PartialBorderBox(
         {
@@ -119,7 +126,7 @@ private fun PlaylistsRow(
             Box(Modifier.fillMaxHeight(), contentAlignment = Alignment.Center) {
                 IconButton({
                     coroutine_scope.launch {
-                        val new_playlist = LocalPlaylist.createLocalPlaylist(SpMp.context)
+                        val new_playlist = createLocalPlaylist(db)
                         player.openMediaItem(new_playlist)
                     }
                 }) {
@@ -172,7 +179,7 @@ internal fun ArtistsRow(
                     }
 
                     val song = download.song
-                    song.PreviewLong(MediaItemPreviewParams(multiselect_context = multiselect_context), queue_index = shown_songs)
+                    MediaItemPreviewLong(song, multiselect_context = multiselect_context, multiselect_key = shown_songs)
 
                     if (++shown_songs == LOCAL_SONGS_PREVIEW_AMOUNT) {
                         break

@@ -1,12 +1,12 @@
 package com.toasterofbread.spmp.api.lyrics.petit
 
-import com.toasterofbread.spmp.model.SongLyrics
-import com.toasterofbread.spmp.api.lyrics.mergeAndFuriganiseTerms
-import org.xmlpull.v1.XmlPullParser
-import org.xmlpull.v1.XmlPullParserFactory
 import com.atilika.kuromoji.ipadic.Tokenizer
 import com.toasterofbread.spmp.api.lyrics.createTokeniser
+import com.toasterofbread.spmp.api.lyrics.mergeAndFuriganiseTerms
+import com.toasterofbread.spmp.model.SongLyrics
 import com.toasterofbread.spmp.resources.getStringTODO
+import org.xmlpull.v1.XmlPullParser
+import org.xmlpull.v1.XmlPullParserFactory
 
 internal fun parseStaticLyrics(data: String): List<List<SongLyrics.Term>> {
     val tokeniser = Tokenizer()

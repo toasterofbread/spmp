@@ -17,10 +17,10 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.unit.IntOffset
 import androidx.compose.ui.unit.dp
-import com.toasterofbread.spmp.model.mediaitem.MediaItemPreviewParams
 import com.toasterofbread.spmp.model.mediaitem.Song
 import com.toasterofbread.spmp.resources.getString
 import com.toasterofbread.spmp.resources.uilocalisation.durationToString
+import com.toasterofbread.spmp.ui.component.mediaitempreview.MediaItemPreviewLong
 import com.toasterofbread.spmp.ui.component.multiselect.MediaItemMultiSelectContext
 import com.toasterofbread.utils.getContrasted
 import com.toasterofbread.utils.modifier.background
@@ -59,14 +59,17 @@ class QueueTabItem(val song: Song, val key: Int) {
         var delta = 0L
         val indices = if (index < playing_index) index + 1 .. playing_index else playing_index until index
         for (i in indices) {
-            delta += service.getSong(i)?.duration ?: return null
+            val duration =
+                service.getSong(i)?.Duration?.observe(SpMp.context.database)?.value
+                ?: return null
+            delta += duration
         }
 
         return remember(delta) {
             (
-                    if (index < playing_index) getString("lpm_song_played_\$x_ago")
-                    else getString("lpm_song_playing_in_\$x")
-                    ).replace("\$x", durationToString(delta, true))
+                if (index < playing_index) getString("lpm_song_played_\$x_ago")
+                else getString("lpm_song_playing_in_\$x")
+            ).replace("\$x", durationToString(delta, true))
         }
     }
 
@@ -84,7 +87,6 @@ class QueueTabItem(val song: Song, val key: Int) {
         val anchors = mapOf(-max_offset to 0, 0f to 1, max_offset to 2)
         val player = LocalPlayerState.current
 
-        val density = LocalDensity.current
         Box(
             Modifier
                 .offset { IntOffset(swipe_state.offset.value.roundToInt(), 0) }
@@ -96,22 +98,21 @@ class QueueTabItem(val song: Song, val key: Int) {
                 verticalAlignment = Alignment.CenterVertically,
                 modifier = Modifier.padding(start = padding, end = 10.dp)
             ) {
-                song.PreviewLong(
-                    MediaItemPreviewParams(
-                        Modifier
-                            .weight(1f)
-                            .padding(vertical = padding)
-                            .swipeable(
-                                swipe_state,
-                                anchors,
-                                Orientation.Horizontal,
-                                thresholds = { _, _ -> FractionalThreshold(0.2f) }
-                            ),
-                        contentColour = { backgroundColourProvider().getContrasted() },
-                        multiselect_context = multiselect_context,
-                        getInfoText = { getInfoText(index) }
-                    ),
-                    queue_index = index
+                MediaItemPreviewLong(
+                    song,
+                    Modifier
+                        .weight(1f)
+                        .padding(vertical = padding)
+                        .swipeable(
+                            swipe_state,
+                            anchors,
+                            Orientation.Horizontal,
+                            thresholds = { _, _ -> FractionalThreshold(0.2f) }
+                        ),
+                    contentColour = { backgroundColourProvider().getContrasted() },
+                    multiselect_context = multiselect_context,
+                    multiselect_key = index,
+                    getInfoText = { getInfoText(index) }
                 )
 
                 val radio_item_index = player.player?.radio_item_index

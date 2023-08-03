@@ -2,6 +2,8 @@ package com.toasterofbread.spmp.api
 
 import com.toasterofbread.spmp.api.Api.Companion.getStream
 import com.toasterofbread.spmp.api.Api.Companion.ytUrl
+import com.toasterofbread.spmp.api.model.MusicThumbnailRenderer
+import com.toasterofbread.spmp.api.model.TextRuns
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
 import okhttp3.Headers.Companion.toHeaders

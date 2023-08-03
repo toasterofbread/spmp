@@ -1,0 +1,13 @@
+CREATE TABLE Lyrics (
+    source INTEGER NOT NULL,
+    id TEXT NOT NULL,
+
+    lyrics TEXT,
+
+    PRIMARY KEY (source, id)
+);
+
+byId:
+SELECT *
+FROM Lyrics
+WHERE source == :source AND id == :id;

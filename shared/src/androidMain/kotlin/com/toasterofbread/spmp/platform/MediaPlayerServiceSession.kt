@@ -16,7 +16,7 @@ import androidx.core.app.NotificationCompat
 import androidx.media3.common.AudioAttributes
 import androidx.media3.common.C
 import androidx.media3.common.MediaItem
-import androidx.media3.common.PlaybackException
+import androidx.media3.common.MediaMetadata
 import androidx.media3.common.Player
 import androidx.media3.common.util.UnstableApi
 import androidx.media3.datasource.DataSource
@@ -33,7 +33,7 @@ import androidx.media3.exoplayer.source.DefaultMediaSourceFactory
 import androidx.media3.exoplayer.upstream.LoadErrorHandlingPolicy
 import androidx.media3.extractor.mkv.MatroskaExtractor
 import androidx.media3.extractor.mp4.FragmentedMp4Extractor
-import androidx.media3.session.BitmapLoader
+import androidx.media3.common.util.BitmapLoader
 import androidx.media3.session.CommandButton
 import androidx.media3.session.MediaNotification
 import androidx.media3.session.MediaSession
@@ -41,17 +41,25 @@ import androidx.media3.session.MediaSessionService
 import androidx.media3.session.MediaStyleNotificationHelper
 import androidx.media3.session.SessionCommand
 import androidx.media3.session.SessionResult
+import app.cash.sqldelight.Query
 import com.google.common.collect.ImmutableList
 import com.google.common.util.concurrent.Futures
 import com.google.common.util.concurrent.ListenableFuture
 import com.google.common.util.concurrent.MoreExecutors
+import com.toasterofbread.Database
+import com.toasterofbread.spmp.api.setSongLiked
 import com.toasterofbread.spmp.exovisualiser.FFTAudioProcessor
+import com.toasterofbread.spmp.model.mediaitem.loader.MediaItemThumbnailLoader
 import com.toasterofbread.spmp.model.mediaitem.MediaItemThumbnailProvider
 import com.toasterofbread.spmp.model.mediaitem.Song
-import com.toasterofbread.spmp.model.mediaitem.SongLikeStatus
+import com.toasterofbread.spmp.model.mediaitem.SongLikedStatus
+import com.toasterofbread.spmp.model.mediaitem.SongRef
+import com.toasterofbread.spmp.model.mediaitem.toSongLikedStatus
+import com.toasterofbread.spmp.resources.getStringTODO
 import com.toasterofbread.spmp.shared.R
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.Job
 import kotlinx.coroutines.cancel
 import kotlinx.coroutines.cancelChildren
 import kotlinx.coroutines.launch
@@ -95,14 +103,10 @@ fun getMediaNotificationImageSize(image: Bitmap): IntSize {
 private fun formatMediaNotificationImage(
     image: Bitmap,
     song: Song,
+    db: Database
 ): Bitmap {
     val dimensions = getMediaNotificationImageSize(image)
-    val offset = with(song.song_reg_entry) {
-        IntOffset(
-            notif_image_offset_x ?: 0,
-            notif_image_offset_y ?: 0
-        )
-    }
+    val offset = song.NotificationImageOffset.get(db) ?: IntOffset.Zero
 
     return Bitmap.createBitmap(
         image,
@@ -116,36 +120,46 @@ private fun formatMediaNotificationImage(
 @UnstableApi
 class MediaPlayerServiceSession: MediaSessionService() {
     private val coroutine_scope = CoroutineScope(Dispatchers.Main)
+    private lateinit var context: PlatformContext
     private lateinit var player: ExoPlayer
     private lateinit var media_session: MediaSession
     private lateinit var notification_builder: NotificationCompat.Builder
+
     private var current_song: Song? = null
 
     private inner class PlayerListener: Player.Listener {
-        private fun onSongLikeStatusChanged(status: SongLikeStatus?) {
-            if (status?.loading == false) {
-                coroutine_scope.launch {
-                    updatePlayerCustomActions(status.status)
-                }
+        private fun onSongLikeStatusChanged() {
+            val liked_status = current_song?.let { song ->
+                context.database.songQueries.likedById(song.id).executeAsOne().liked.toSongLikedStatus()
             }
+
+            coroutine_scope.launch {
+                updatePlayerCustomActions(liked_status)
+            }
+        }
+
+        val song_liked_listener = Query.Listener {
+
+            onSongLikeStatusChanged()
         }
 
         override fun onMediaItemTransition(media_item: MediaItem?, reason: Int) {
             val song = media_item?.getSong()
-            if (song == current_song) {
+            if (song?.id == current_song?.id) {
                 return
             }
 
-            current_song?.like_status?.listeners?.remove(::onSongLikeStatusChanged)
+            with(context.database.songQueries) {
+                current_song?.also {
+                    likedById(it.id).removeListener(song_liked_listener)
+                }
+                song?.also {
+                    likedById(it.id).addListener(song_liked_listener)
+                }
+            }
 
-            song?.like_status?.listeners?.add(::onSongLikeStatusChanged)
             current_song = song
-
-            onSongLikeStatusChanged(song?.like_status)
-        }
-
-        override fun onPlayerError(error: PlaybackException) {
-            super.onPlayerError(error)
+            onSongLikeStatusChanged()
         }
     }
 
@@ -156,6 +170,8 @@ class MediaPlayerServiceSession: MediaSessionService() {
 
     override fun onCreate() {
         super.onCreate()
+
+        context = PlatformContext(this)
 
         initialiseSessionAndPlayer()
         createNotificationChannel()
@@ -205,16 +221,16 @@ class MediaPlayerServiceSession: MediaSessionService() {
         super.onTaskRemoved(rootIntent)
     }
 
-    private fun updatePlayerCustomActions(like_status: SongLikeStatus.Status?) {
+    private fun updatePlayerCustomActions(liked: SongLikedStatus?) {
         val like_action: CommandButton? =
-            if (like_status != null && like_status.is_available)
+            if (liked != null)
                 CommandButton.Builder()
-                    .setDisplayName("TODO")
+                    .setDisplayName(getStringTODO("TODO"))
                     .setSessionCommand(SessionCommand(
-                        if (like_status == SongLikeStatus.Status.NEUTRAL) COMMAND_SET_LIKE_TRUE else COMMAND_SET_LIKE_NEUTRAL,
+                        if (liked == SongLikedStatus.NEUTRAL) COMMAND_SET_LIKE_TRUE else COMMAND_SET_LIKE_NEUTRAL,
                         Bundle.EMPTY
                     ))
-                    .setIconResId(if (like_status == SongLikeStatus.Status.LIKED) R.drawable.ic_thumb_up else R.drawable.ic_thumb_up_off)
+                    .setIconResId(if (liked == SongLikedStatus.LIKED) R.drawable.ic_thumb_up else R.drawable.ic_thumb_up_off)
                     .build()
             else null
 
@@ -233,8 +249,10 @@ class MediaPlayerServiceSession: MediaSessionService() {
                     else null
                 setLargeIcon(large_icon)
             }
-            setContentTitle(song?.title ?: "")
-            setContentText(song?.artist?.title ?: "")
+
+            val db = context.database
+            setContentTitle(song?.Title?.get(db) ?: "")
+            setContentText(song?.Artist?.get(db)?.Title?.get(db) ?: "")
         }
 
         val manager = getSystemService(NOTIFICATION_SERVICE) as NotificationManager
@@ -242,13 +260,16 @@ class MediaPlayerServiceSession: MediaSessionService() {
     }
 
     private suspend fun getCurrentLargeIcon(song: Song): Bitmap? {
-        try {
-            val image = song.loadThumbnail(MediaItemThumbnailProvider.Quality.HIGH)?.asAndroidBitmap() ?: return null
-            return formatMediaNotificationImage(image, song)
+        val thumbnail_provider = song.ThumbnailProvider.get(context.database) ?: return null
+
+        for (quality in MediaItemThumbnailProvider.Quality.byQuality()) {
+            val load_result = MediaItemThumbnailLoader.loadItemThumbnail(song, thumbnail_provider, quality, context)
+            load_result.onSuccess { image ->
+                return formatMediaNotificationImage(image.asAndroidBitmap(), song, context.database)
+            }
         }
-        catch (e: IndexOutOfBoundsException) {
-            return null
-        }
+
+        return null
     }
 
     private fun initialiseSessionAndPlayer() {
@@ -315,13 +336,29 @@ class MediaPlayerServiceSession: MediaSessionService() {
                 }
 
                 override fun loadBitmap(uri: Uri): ListenableFuture<Bitmap> {
-                    val song = Song.fromId(uri.toString())
+                    val song = SongRef(uri.toString())
                     return executor.submit<Bitmap> {
                         runBlocking {
-                            formatMediaNotificationImage(
-                                song.loadThumbnail(MediaItemThumbnailProvider.Quality.HIGH)!!.asAndroidBitmap(),
-                                song
-                            )
+                            var fail_error: Throwable? = null
+                            for (quality in MediaItemThumbnailProvider.Quality.byQuality()) {
+                                val load_result = MediaItemThumbnailLoader.loadItemThumbnail(song, quality, context)
+                                load_result.fold(
+                                    { image ->
+                                        return@runBlocking formatMediaNotificationImage(
+                                            image.asAndroidBitmap(),
+                                            song,
+                                            context.database
+                                        )
+                                    },
+                                    { error ->
+                                        if (fail_error == null) {
+                                            fail_error = error
+                                        }
+                                    }
+                                )
+                            }
+
+                            throw fail_error!!
                         }
                     }
                 }
@@ -356,9 +393,18 @@ class MediaPlayerServiceSession: MediaSessionService() {
                     customCommand: SessionCommand,
                     args: Bundle
                 ): ListenableFuture<SessionResult> {
-                    when (customCommand.customAction) {
-                        COMMAND_SET_LIKE_TRUE -> current_song?.like_status?.setLiked(true)
-                        COMMAND_SET_LIKE_NEUTRAL -> current_song?.like_status?.setLiked(null)
+                    val song = current_song
+                    if (song != null) {
+                        when (customCommand.customAction) {
+                            COMMAND_SET_LIKE_TRUE ->
+                                coroutine_scope.launch {
+                                    setSongLiked(song.id, SongLikedStatus.LIKED, context.database)
+                                }
+                            COMMAND_SET_LIKE_NEUTRAL ->
+                                coroutine_scope.launch {
+                                    setSongLiked(song.id, SongLikedStatus.NEUTRAL, context.database)
+                                }
+                        }
                     }
                     return Futures.immediateFuture(SessionResult(SessionResult.RESULT_SUCCESS))
                 }
@@ -371,7 +417,7 @@ class MediaPlayerServiceSession: MediaSessionService() {
             DefaultDataSource.Factory(this).createDataSource()
         }) { data_spec: DataSpec ->
             try {
-                return@Factory processMediaDataSpec(data_spec, this, isConnectionMetered())
+                return@Factory processMediaDataSpec(data_spec, context, isConnectionMetered())
             }
             catch (e: Throwable) {
                 throw IOException(e)

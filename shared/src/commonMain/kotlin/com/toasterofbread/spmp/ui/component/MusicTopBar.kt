@@ -1,6 +1,7 @@
 package com.toasterofbread.spmp.ui.component
 
 import LocalPlayerState
+import SpMp
 import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.animation.Crossfade
 import androidx.compose.animation.core.Animatable
@@ -34,11 +35,8 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clipToBounds
 import androidx.compose.ui.graphics.Color
-import androidx.compose.ui.graphics.Path
 import androidx.compose.ui.graphics.graphicsLayer
 import androidx.compose.ui.platform.LocalDensity
-import androidx.compose.ui.unit.Density
-import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.zIndex
 import com.toasterofbread.spmp.model.MusicTopBarMode
@@ -49,13 +47,11 @@ import com.toasterofbread.spmp.platform.composable.platformClickable
 import com.toasterofbread.spmp.platform.composeScope
 import com.toasterofbread.spmp.resources.getString
 import com.toasterofbread.spmp.ui.layout.nowplaying.overlay.OverlayMenu
-import com.toasterofbread.spmp.ui.theme.Theme
-import com.toasterofbread.utils.composable.rememberSongUpdateLyrics
-import com.toasterofbread.utils.getContrasted
-import kotlinx.coroutines.delay
+import com.toasterofbread.utils.composable.loadLyricsOnSongChange
 import com.toasterofbread.utils.composable.pauseableInfiniteRepeatableAnimation
-import com.toasterofbread.utils.modifier.vertical
+import com.toasterofbread.utils.getContrasted
 import com.toasterofbread.utils.setAlpha
+import kotlinx.coroutines.delay
 
 @Composable
 fun MusicTopBarWithVisualiser(
@@ -166,18 +162,20 @@ private fun MusicTopBar(
     onShowingChanged: ((Boolean) -> Unit)? = null
 ) {
     val player = LocalPlayerState.current
-    val song_state by rememberSongUpdateLyrics(song, getTargetMode() == MusicTopBarMode.LYRICS)
+    val lyrics = loadLyricsOnSongChange(song, SpMp.context, getTargetMode() == MusicTopBarMode.LYRICS)
     var mode_state: MusicTopBarMode by mutableStateOf(getTargetMode())
 
     val visualiser_width: Float by Settings.KEY_TOPBAR_VISUALISER_WIDTH.rememberMutableState()
     check(visualiser_width in 0f .. 1f)
+
+    val sync_offset: Long? = song?.LyricsSyncOffset?.observe(SpMp.context.database)?.value
 
     val current_state by remember {
         derivedStateOf {
             val target = getTargetMode()
             for (mode_i in target.ordinal downTo 0) {
                 val mode = MusicTopBarMode.values()[mode_i]
-                val state = getModeState(mode, song_state)
+                val state = getModeState(mode, lyrics)
                 if (state != null) {
                     mode_state = mode
                     return@derivedStateOf state
@@ -223,7 +221,7 @@ private fun MusicTopBar(
                                     state,
                                     {
                                         (player.player?.current_position_ms ?: 0) +
-                                            (song?.song_reg_entry?.getLyricsSyncOffset() ?: 0)
+                                            (sync_offset ?: 0)
                                     },
                                     linger,
                                     show_furigana,
@@ -291,11 +289,9 @@ private fun TopBarEmptyContent() {
     }
 }
 
-private fun getModeState(mode: MusicTopBarMode, song: Song?): Any? {
+private fun getModeState(mode: MusicTopBarMode, lyrics: SongLyrics?): Any? {
     return when (mode) {
-        MusicTopBarMode.LYRICS -> song?.lyrics?.lyrics?.let {  lyrics ->
-            if (lyrics.synced) lyrics else null
-        }
+        MusicTopBarMode.LYRICS -> if (lyrics?.synced == true) lyrics else null
         MusicTopBarMode.VISUALISER -> mode
     }
 }

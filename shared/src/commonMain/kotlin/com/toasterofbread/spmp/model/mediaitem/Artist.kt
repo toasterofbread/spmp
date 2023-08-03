@@ -1,132 +1,132 @@
 package com.toasterofbread.spmp.model.mediaitem
 
 import SpMp
-import androidx.compose.runtime.Composable
-import androidx.compose.runtime.getValue
-import androidx.compose.runtime.mutableStateOf
-import androidx.compose.runtime.setValue
-import com.toasterofbread.spmp.api.Api
-import com.toasterofbread.spmp.api.isSubscribedToArtist
-import com.toasterofbread.spmp.api.subscribeOrUnsubscribeArtist
-import com.toasterofbread.spmp.api.unit
-import com.toasterofbread.spmp.model.mediaitem.data.ArtistItemData
-import com.toasterofbread.spmp.platform.PlatformContext
-import com.toasterofbread.spmp.resources.getString
-import com.toasterofbread.spmp.resources.uilocalisation.amountToString
-import com.toasterofbread.spmp.ui.component.mediaitempreview.ArtistPreviewLong
-import com.toasterofbread.spmp.ui.component.mediaitempreview.ArtistPreviewSquare
-import com.toasterofbread.spmp.ui.component.mediaitemlayout.MediaItemLayout
-import kotlinx.coroutines.Dispatchers
-import kotlinx.coroutines.withContext
+import com.toasterofbread.Database
+import com.toasterofbread.spmp.model.mediaitem.artist.ArtistLayout
+import com.toasterofbread.spmp.model.mediaitem.artist.ArtistLayoutData
+import com.toasterofbread.spmp.model.mediaitem.artist.ArtistLayoutRef
+import com.toasterofbread.spmp.model.mediaitem.enums.MediaItemType
+import com.toasterofbread.utils.lazyAssert
 
-class Artist private constructor (
-    id: String,
-    context: PlatformContext,
-    var is_for_item: Boolean = false,
-): MediaItem(id, context), MediaItemWithLayouts {
+class ArtistRef(override val id: String): Artist {
+    override fun toString(): String = "ArtistRef($id)"
 
-    override val url: String get() = "https://music.youtube.com/channel/$id"
-    override val data: ArtistItemData = ArtistItemData(this)
-
-    val subscribe_channel_id: String? get() = data.subscribe_channel_id
-    val subscriber_count: Int? get() = data.subscriber_count
-
-    var subscribed: Boolean? by mutableStateOf(null)
-    var is_own_channel: Boolean by mutableStateOf(false)
-
-    override val feed_layouts: List<MediaItemLayout>?
-        @Composable
-        get() = data.feed_layouts
-
-    override suspend fun getFeedLayouts(): Result<List<MediaItemLayout>> =
-        getGeneralValue { data.feed_layouts }
-
-    fun getReadableSubscriberCount(): String {
-        return subscriber_count?.let { subs ->
-            getString("artist_x_subscribers").replace("\$x", amountToString(subs, SpMp.ui_language))
-        } ?: ""
+    override val property_rememberer: PropertyRememberer = PropertyRememberer()
+    init {
+        lazyAssert { id.isNotBlank() || IsForItem.get(SpMp.context.database) }
     }
+}
 
-    suspend fun updateSubscribed(): Result<Unit> {
-        if (is_for_item || is_own_channel) {
-            return Result.success(Unit)
-        }
+sealed interface Artist: MediaItem {
+    override fun getType(): MediaItemType = MediaItemType.ARTIST
+    override fun getURL(): String = "https://music.youtube.com/channel/$id"
 
-        val result = isSubscribedToArtist(this)
-        subscribed = result.getOrNull()
-
-        return result.unit()
+    override fun createDbEntry(db: Database) {
+        db.artistQueries.insertById(id)
     }
-
-    suspend fun toggleSubscribe(toggle_before_fetch: Boolean = false): Result<Unit> = withContext(Dispatchers.IO) {
-        check(!is_for_item)
-        check(Api.ytm_authenticated)
-
-        if (subscribed == null) {
-            return@withContext Result.failure(IllegalStateException())
-        }
-
-        val target = !subscribed!!
-        if (toggle_before_fetch) {
-            subscribed = target
-        }
-
-        val result = subscribeOrUnsubscribeArtist(this@Artist, target)
-        return@withContext result.unit()
-    }
-
-    fun editArtistData(action: ArtistItemData.() -> Unit): Artist {
-        if (is_for_item || is_temp) {
-            action(data)
-        }
-        else {
-            editData {
-                action(this as ArtistItemData)
+    override fun getEmptyData(): ArtistData = ArtistData(id)
+    override fun populateData(data: MediaItemData, db: Database) {
+        super.populateData(data, db)
+        (data as ArtistData).apply {
+            subscribe_channel_id = SubscribeChannelId.get(db)
+            layouts = mutableListOf<ArtistLayoutData>().apply {
+                for (layout in Layouts.get(db).orEmpty()) {
+                    add(ArtistLayoutData(layout.layout_index, layout.artist_id))
+                }
             }
+            subscriber_count = SubscriberCount.get(db)
+            is_for_item = IsForItem.get(db)
         }
-        return this
     }
 
-    @Composable
-    override fun PreviewSquare(params: MediaItemPreviewParams) {
-        ArtistPreviewSquare(this, params)
+    override suspend fun loadData(db: Database, populate_data: Boolean): Result<ArtistData> {
+        return super.loadData(db, populate_data) as Result<ArtistData>
     }
 
-    @Composable
-    override fun PreviewLong(params: MediaItemPreviewParams) {
-        ArtistPreviewLong(this, params)
+    val SubscribeChannelId: Property<String?> get() = property_rememberer.rememberSingleProperty(
+        "SubscribeChannelId", { artistQueries.subscribeChannelIdById(id) }, { subscribe_channel_id }, { artistQueries.updateSubscribeChannelIdById(it, id) }
+    )
+    val Layouts: ListProperty<ArtistLayout, Long> get() = property_rememberer.rememberListProperty(
+        "Layouts",
+        getValue = {
+            this.map { layout_index ->
+                ArtistLayoutRef(layout_index, id)
+            }
+        },
+        getQuery = { artistLayoutQueries.byArtistId(id) },
+        getSize = { artistLayoutQueries.layoutCount(id).executeAsOne() },
+        addItem = { item, index ->
+            artistLayoutQueries.insertLayoutAtIndex(id, index)
+            item.layout_index = index
+        },
+        removeItem = { index ->
+            artistLayoutQueries.removeLayoutAtIndex(id, index)
+        },
+        setItemIndex = { from, to ->
+            artistLayoutQueries.updateLayoutIndex(from = from, to = to, artist_id = id)
+        },
+        clearItems = { from_index ->
+            artistLayoutQueries.clearLayouts(id, from_index)
+        },
+        prerequisite = null
+    )
+
+    val SubscriberCount: Property<Int?> get() = property_rememberer.rememberSingleProperty(
+        "SubscriberCount", { artistQueries.subscriberCountById(id) }, { subscriber_count?.toInt() }, { artistQueries.updateSubscriberCountById(it?.toLong(), id) }
+    )
+    val IsForItem: Property<Boolean> get() = property_rememberer.rememberSingleProperty(
+        "IsForItem",
+        { artistQueries.isForItemById(id) },
+        { is_for_item.fromSQLBoolean() },
+        { artistQueries.updateIsForItemById(it.toSQLBoolean(), id) },
+        { false }
+    )
+
+    // User properties
+
+    val Subscribed: Property<Boolean?> get() = property_rememberer.rememberSingleProperty(
+        "Subscribed",
+        { artistQueries.subscribedById(id) },
+        { subscribed.fromNullableSQLBoolean() },
+        { artistQueries.updateSubscriberCountById(it.toNullableSQLBoolean(), id) }
+    )
+}
+
+class ArtistData(
+    override var id: String,
+    var subscribe_channel_id: String? = null,
+    var layouts: MutableList<ArtistLayoutData>? = null,
+    var subscriber_count: Int? = null,
+    var is_for_item: Boolean = false,
+
+    var subscribed: Boolean? = null
+): MediaItemData(), Artist {
+    override fun toString(): String = "ArtistData($id)"
+
+    override fun saveToDatabase(db: Database, apply_to_item: MediaItem) {
+        db.transaction { with(apply_to_item as Artist) {
+            super.saveToDatabase(db, apply_to_item)
+
+            layouts?.also { layouts ->
+                Layouts.overwriteItems(layouts, db)
+                for (layout in layouts) {
+                    layout.saveToDatabase(db)
+                }
+            }
+
+            SubscribeChannelId.setNotNull(subscribe_channel_id, db)
+            SubscriberCount.setNotNull(subscriber_count, db)
+            IsForItem.setNotNull(is_for_item, db)
+        }}
     }
 
-    private val is_temp: Boolean get() = id.isBlank()
+    override val property_rememberer: PropertyRememberer = PropertyRememberer()
+    init {
+        lazyAssert { is_for_item || id.isNotBlank() || IsForItem.get(SpMp.context.database) }
+    }
 
     companion object {
-        private val artists: MutableMap<String, Artist> = mutableMapOf()
-
-        fun fromId(id: String, context: PlatformContext = SpMp.context): Artist {
-            check(id.isNotBlank())
-
-            synchronized(artists) {
-                return artists.getOrPut(id) {
-                    val artist = Artist(id, context)
-                    artist.loadFromCache()
-                    return@getOrPut artist
-                }
-            }
-        }
-
-        fun createForItem(item: MediaItem, context: PlatformContext = SpMp.context): Artist {
-            synchronized(artists) {
-                val id = "FS" + item.id
-                return artists.getOrPut(id) {
-                    val artist = Artist(id, context, true)
-                    artist.loadFromCache()
-                    return@getOrPut artist
-                }
-            }
-        }
-
-        fun createTemp(id: String = ""): Artist {
-            return Artist(id, SpMp.context)
-        }
+        fun createForItem(item: MediaItem): ArtistData =
+            ArtistData("", is_for_item = true)
     }
 }

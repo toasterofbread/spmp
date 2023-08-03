@@ -1,12 +1,14 @@
 package com.toasterofbread.spmp.api.lyrics.petit
 
-import org.jsoup.Jsoup
-import com.toasterofbread.spmp.api.*
-import okhttp3.Request
-import kotlinx.coroutines.withContext
-import kotlinx.coroutines.Dispatchers
-import com.toasterofbread.spmp.model.SongLyrics
+import com.toasterofbread.spmp.api.Api
+import com.toasterofbread.spmp.api.cast
+import com.toasterofbread.spmp.api.getOrThrowHere
 import com.toasterofbread.spmp.api.lyrics.LyricsSource.SearchResult
+import com.toasterofbread.spmp.model.SongLyrics
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.withContext
+import okhttp3.Request
+import org.jsoup.Jsoup
 
 private const val SEARCH_RESULT_START = "<a href=\"/lyrics/"
 private const val SEARCH_RESULT_END = "</a>"

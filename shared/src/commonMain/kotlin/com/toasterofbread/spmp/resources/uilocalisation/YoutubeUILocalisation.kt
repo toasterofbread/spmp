@@ -2,6 +2,10 @@ package com.toasterofbread.spmp.resources.uilocalisation
 
 import SpMp
 import com.toasterofbread.spmp.model.Settings
+import com.toasterofbread.spmp.model.mediaitem.Artist
+import com.toasterofbread.spmp.model.mediaitem.MediaItemData
+import com.toasterofbread.spmp.model.mediaitem.PlaylistData
+import com.toasterofbread.spmp.resources.getString
 import com.toasterofbread.spmp.resources.uilocalisation.localised.Languages
 import com.toasterofbread.spmp.resources.uilocalisation.localised.getYoutubeArtistPageLocalisations
 import com.toasterofbread.spmp.resources.uilocalisation.localised.getYoutubeFilterChipsLocalisations
@@ -17,7 +21,7 @@ class YoutubeUILocalisation(languages: Languages) {
     class LocalisationSet {
         val items: MutableList<Map<Int, Pair<String, String?>>> = mutableListOf()
         val item_ids: MutableMap<Int, StringID> = mutableMapOf()
-        
+
         @Synchronized
         fun add(vararg strings: Pair<Int, String>, id: StringID? = null) {
             if (id != null) {

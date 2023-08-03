@@ -20,9 +20,9 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.unit.dp
 import com.toasterofbread.spmp.api.RadioModifier
 import com.toasterofbread.spmp.model.mediaitem.MediaItem
-import com.toasterofbread.spmp.model.mediaitem.MediaItemPreviewParams
 import com.toasterofbread.spmp.model.mediaitem.Song
 import com.toasterofbread.spmp.resources.getString
+import com.toasterofbread.spmp.ui.component.mediaitempreview.MediaItemPreviewLong
 import com.toasterofbread.spmp.ui.component.multiselect.MediaItemMultiSelectContext
 import com.toasterofbread.utils.getContrasted
 import com.toasterofbread.utils.modifier.background
@@ -90,7 +90,7 @@ fun CurrentRadioIndicator(
                                 .background(RoundedCornerShape(45), accentColourProvider)
                                 .padding(5.dp)
                         ) {
-                            state.PreviewLong(MediaItemPreviewParams())
+                            MediaItemPreviewLong(state)
                         }
                     true ->
                         multiselect_context.InfoDisplay(

@@ -8,7 +8,6 @@ import androidx.compose.animation.core.tween
 import androidx.compose.animation.fadeIn
 import androidx.compose.animation.fadeOut
 import androidx.compose.foundation.Image
-import androidx.compose.foundation.LocalIndication
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.gestures.detectTapGestures
 import androidx.compose.foundation.interaction.MutableInteractionSource
@@ -22,9 +21,7 @@ import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.requiredWidth
 import androidx.compose.foundation.layout.size
-import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.RoundedCornerShape
-import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.rounded.Pause
 import androidx.compose.material.icons.rounded.PlayArrow
@@ -61,6 +58,7 @@ import com.toasterofbread.spmp.model.mediaitem.Song
 import com.toasterofbread.spmp.platform.composable.BackHandler
 import com.toasterofbread.spmp.platform.getPixel
 import com.toasterofbread.spmp.resources.getString
+import com.toasterofbread.spmp.ui.component.Thumbnail
 import com.toasterofbread.spmp.ui.layout.nowplaying.maintab.OVERLAY_MENU_ANIMATION_DURATION
 import com.toasterofbread.spmp.ui.layout.nowplaying.overlay.DEFAULT_THUMBNAIL_ROUNDING
 import com.toasterofbread.spmp.ui.layout.nowplaying.overlay.MainOverlayMenu
@@ -89,17 +87,24 @@ private fun handleColourPick(image: ImageBitmap, image_size: IntSize, tap_offset
 @Composable
 fun ThumbnailRow(
     modifier: Modifier = Modifier,
-    onThumbnailLoaded: (Song?) -> Unit,
+    onThumbnailLoaded: (Song?, ImageBitmap?) -> Unit,
     setThemeColour: (Color?) -> Unit,
     getSeekState: () -> Float
 ) {
-    val player = LocalPlayerState.current
+    val db = SpMp.context.database
     val expansion = LocalNowPlayingExpansion.current
+    val player = LocalPlayerState.current
     val current_song = player.status.m_song
+
+    val song_title: String? = current_song?.Title?.observe(db)?.value
+    val song_artist_title: String? = current_song?.Artist?.observeOn(db) {
+        it?.Title
+    }
+
+    val thumbnail_rounding: Int? = current_song?.ThumbnailRounding?.observe(db)?.value
 
     var overlay_menu by player.np_overlay_menu
     var current_thumb_image: ImageBitmap? by remember { mutableStateOf(null) }
-    val thumbnail_rounding: Int? = current_song?.song_reg_entry?.thumbnail_rounding
     val thumbnail_shape = RoundedCornerShape(thumbnail_rounding ?: DEFAULT_THUMBNAIL_ROUNDING)
     var image_size by remember { mutableStateOf(IntSize(1, 1)) }
 
@@ -122,7 +127,7 @@ fun ThumbnailRow(
 
     LaunchedEffect(current_song) {
         current_thumb_image = null
-        onThumbnailLoaded(null)
+        onThumbnailLoaded(null, null)
     }
 
     Row(
@@ -155,7 +160,7 @@ fun ThumbnailRow(
                     contentColourProvider = { getNPOnBackground() },
                     onLoaded = {
                         current_thumb_image = it
-                        onThumbnailLoaded(song)
+                        onThumbnailLoaded(song, it)
                     },
                     modifier = Modifier
                         .aspectRatio(1f)
@@ -259,13 +264,13 @@ fun ThumbnailRow(
 
             Column(Modifier.fillMaxSize().weight(1f), verticalArrangement = Arrangement.SpaceEvenly) {
                 Text(
-                    current_song?.title ?: "",
+                    song_title ?: "",
                     maxLines = 1,
                     color = getNPOnBackground(),
                     overflow = TextOverflow.Ellipsis
                 )
                 Text(
-                    current_song?.artist?.title ?: "",
+                    song_artist_title ?: "",
                     maxLines = 1,
                     color = getNPOnBackground(),
                     overflow = TextOverflow.Ellipsis,

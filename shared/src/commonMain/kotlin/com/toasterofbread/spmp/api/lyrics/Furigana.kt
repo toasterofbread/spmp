@@ -1,7 +1,7 @@
 package com.toasterofbread.spmp.api.lyrics
 
-import com.toasterofbread.spmp.model.SongLyrics
 import com.atilika.kuromoji.ipadic.Tokenizer
+import com.toasterofbread.spmp.model.SongLyrics
 import com.toasterofbread.utils.hasKanjiAndHiragana
 import com.toasterofbread.utils.isJP
 import com.toasterofbread.utils.isKanji

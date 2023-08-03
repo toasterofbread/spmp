@@ -1,0 +1,58 @@
+CREATE TABLE ArtistLayout (
+    artist_id TEXT NOT NULL,
+    layout_index INTEGER NOT NULL,
+
+--  items ArtistLayoutItem
+    title_type INTEGER,
+    title_key TEXT,
+    title_lang INTEGER,
+    subtitle_type INTEGER,
+    subtitle_key TEXT,
+    subtitle_lang INTEGER,
+    type INTEGER,
+    view_more_type INTEGER,
+    view_more_data TEXT,
+    playlist_id TEXT,
+
+    PRIMARY KEY (artist_id, layout_index)
+);
+
+byArtistId:
+SELECT layout_index
+FROM ArtistLayout
+WHERE artist_id == :artist_id
+ORDER BY layout_index;
+
+titleByIndex: SELECT title_type, title_key, title_lang FROM ArtistLayout WHERE artist_id == :artist_id AND layout_index = :layout_index;
+updateTitleByIndex: UPDATE ArtistLayout SET title_type = :title_type, title_key = :title_key, title_lang = :title_lang WHERE artist_id == :artist_id AND layout_index = :layout_index;
+
+subtitleByIndex: SELECT subtitle_type, subtitle_key, subtitle_lang FROM ArtistLayout WHERE artist_id == :artist_id AND layout_index = :layout_index;
+updateSubtitleByIndex: UPDATE ArtistLayout SET subtitle_type = :subtitle_type, subtitle_key = :subtitle_key, subtitle_lang = :subtitle_lang WHERE artist_id == :artist_id AND layout_index = :layout_index;
+
+typeByIndex: SELECT type FROM ArtistLayout WHERE artist_id == :artist_id AND layout_index = :layout_index;
+updateTypeByIndex: UPDATE ArtistLayout SET type = :type WHERE artist_id == :artist_id AND layout_index = :layout_index;
+
+viewMoreByIndex: SELECT view_more_type, view_more_data FROM ArtistLayout WHERE artist_id == :artist_id AND layout_index = :layout_index;
+updateViewMoreByIndex: UPDATE ArtistLayout SET view_more_type = :view_moretype, view_more_data = :view_more_data WHERE artist_id == :artist_id AND layout_index = :layout_index;
+
+playlistIdByIndex: SELECT playlist_id FROM ArtistLayout WHERE artist_id == :artist_id AND layout_index = :layout_index;
+updatePlaylistIdByIndex: UPDATE ArtistLayout SET playlist_id = :playlist_id WHERE artist_id == :artist_id AND layout_index = :layout_index;
+
+insertLayoutAtIndex:
+INSERT INTO ArtistLayout(artist_id, layout_index)
+VALUES (:artist_id, :layout_index);
+
+removeLayoutAtIndex:
+DELETE FROM ArtistLayout
+WHERE artist_id == :artist_id AND layout_index == :layout_index;
+
+updateLayoutIndex:
+UPDATE ArtistLayout SET layout_index = :to WHERE layout_index == :from AND artist_id == :artist_id;
+
+layoutCount:
+SELECT COUNT(IIF(ArtistLayout.artist_id = :artist_id, 1, NULL)) FROM ArtistLayout;
+
+clearLayouts {
+    DELETE FROM ArtistLayoutItem WHERE artist_id = :artist_id AND layout_index >= :from_index;
+    DELETE FROM ArtistLayout WHERE artist_id = :artist_id AND layout_index >= :from_index;
+}

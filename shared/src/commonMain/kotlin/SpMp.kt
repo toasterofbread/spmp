@@ -35,6 +35,7 @@ import com.toasterofbread.spmp.model.mediaitem.MediaItem
 import com.toasterofbread.spmp.platform.PlatformContext
 import com.toasterofbread.spmp.platform.ProjectPreferences
 import com.toasterofbread.spmp.platform.composable.PlatformAlertDialog
+import com.toasterofbread.spmp.platform.createDatabase
 import com.toasterofbread.spmp.platform.vibrateShort
 import com.toasterofbread.spmp.resources.getString
 import com.toasterofbread.spmp.resources.getStringTODO
@@ -92,10 +93,6 @@ object SpMp {
 
         context.getPrefs().addListener(prefs_change_listener)
         error_manager = ErrorManager(context)
-
-        thread {
-            MediaItem.init(Settings.prefs)
-        }
 
         val ui_lang: Int = Settings.get(Settings.KEY_LANG_UI)
         initResources(LANGUAGES.elementAt(ui_lang), context)

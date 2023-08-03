@@ -1,49 +1,46 @@
 package com.toasterofbread.spmp.ui.component.mediaitemlayout
 
+import LocalPlayerState
 import SpMp
-import androidx.compose.animation.AnimatedVisibility
-import androidx.compose.foundation.Image
-import androidx.compose.foundation.layout.Arrangement
-import androidx.compose.foundation.layout.Column
-import androidx.compose.foundation.layout.IntrinsicSize
-import androidx.compose.foundation.layout.Row
-import androidx.compose.foundation.layout.aspectRatio
-import androidx.compose.foundation.layout.fillMaxHeight
-import androidx.compose.foundation.layout.fillMaxWidth
-import androidx.compose.foundation.layout.height
-import androidx.compose.foundation.shape.CircleShape
-import androidx.compose.material3.MaterialTheme
-import androidx.compose.runtime.Composable
-import androidx.compose.runtime.getValue
-import androidx.compose.runtime.mutableStateOf
-import androidx.compose.runtime.remember
-import androidx.compose.runtime.setValue
+import androidx.compose.animation.*
+import androidx.compose.foundation.*
+import androidx.compose.foundation.interaction.MutableInteractionSource
+import androidx.compose.foundation.layout.*
+import androidx.compose.foundation.lazy.*
+import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.*
+import androidx.compose.material3.*
+import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.draw.clip
-import androidx.compose.ui.graphics.RectangleShape
+import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.DpSize
 import androidx.compose.ui.unit.TextUnit
 import androidx.compose.ui.unit.dp
-import com.beust.klaxon.Json
-import com.toasterofbread.spmp.api.Api
+import androidx.compose.ui.unit.sp
+import com.toasterofbread.Database
+import com.toasterofbread.spmp.api.*
 import com.toasterofbread.spmp.api.Api.Companion.addYtHeaders
 import com.toasterofbread.spmp.api.Api.Companion.getStream
 import com.toasterofbread.spmp.api.Api.Companion.ytUrl
-import com.toasterofbread.spmp.api.RadioModifier
-import com.toasterofbread.spmp.api.YoutubeiBrowseResponse
-import com.toasterofbread.spmp.api.cast
+import com.toasterofbread.spmp.api.model.YoutubeiBrowseResponse
 import com.toasterofbread.spmp.api.radio.getSongRadio
-import com.toasterofbread.spmp.model.mediaitem.AccountPlaylist
-import com.toasterofbread.spmp.model.mediaitem.BrowseParamsPlaylist
-import com.toasterofbread.spmp.model.mediaitem.MediaItem
-import com.toasterofbread.spmp.model.mediaitem.MediaItemThumbnailProvider
+import com.toasterofbread.spmp.model.*
+import com.toasterofbread.spmp.model.mediaitem.*
 import com.toasterofbread.spmp.model.mediaitem.enums.MediaItemType
-import com.toasterofbread.spmp.platform.composable.rememberImagePainter
+import com.toasterofbread.spmp.model.mediaitem.enums.PlaylistType
+import com.toasterofbread.spmp.model.mediaitem.enums.getReadable
+import com.toasterofbread.spmp.resources.getString
 import com.toasterofbread.spmp.resources.uilocalisation.LocalisedYoutubeString
+import com.toasterofbread.spmp.ui.component.Thumbnail
+import com.toasterofbread.spmp.ui.component.longpressmenu.longPressMenuIcon
+import com.toasterofbread.spmp.ui.component.mediaitempreview.*
 import com.toasterofbread.spmp.ui.component.multiselect.MediaItemMultiSelectContext
 import com.toasterofbread.spmp.ui.layout.mainpage.PlayerState
 import com.toasterofbread.spmp.ui.theme.Theme
+import com.toasterofbread.utils.*
 import com.toasterofbread.utils.composable.WidthShrinkText
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
@@ -52,17 +49,12 @@ import okhttp3.Request
 fun getDefaultMediaItemPreviewSize(): DpSize = DpSize(100.dp, 120.dp)
 
 data class MediaItemLayout(
+    val items: List<MediaItem>,
     val title: LocalisedYoutubeString?,
     val subtitle: LocalisedYoutubeString?,
     val type: Type? = null,
-    val items: MutableList<MediaItem> = mutableListOf(),
-    val thumbnail_source: ThumbnailSource? = null,
-    val thumbnail_item_type: MediaItemType? = null,
     var view_more: ViewMore? = null,
-    var continuation: Continuation? = null,
-    var square_item_max_text_rows: Int? = null,
-    @Json(ignored = true)
-    var itemSizeProvider: @Composable () -> DpSize = { getDefaultMediaItemPreviewSize() }
+    val continuation: Continuation? = null
 ) {
     init {
         title?.getString()
@@ -116,11 +108,11 @@ data class MediaItemLayout(
             }
         }
 
-        suspend fun loadContinuation(filters: List<RadioModifier> = emptyList()): Result<Pair<List<MediaItem>, String?>> {
+        suspend fun loadContinuation(database: Database, filters: List<RadioModifier> = emptyList()): Result<Pair<List<MediaItem>, String?>> {
             return when (type) {
                 Type.SONG -> loadSongContinuation(filters)
-                Type.PLAYLIST -> loadPlaylistContinuation(false)
-                Type.PLAYLIST_INITIAL -> loadPlaylistContinuation(true)
+                Type.PLAYLIST -> loadPlaylistContinuation(database, false)
+                Type.PLAYLIST_INITIAL -> loadPlaylistContinuation(database, true)
             }
         }
 
@@ -131,119 +123,93 @@ data class MediaItemLayout(
             }
         }
 
-        private suspend fun loadSongContinuation(filters: List<RadioModifier>): Result<Pair<List<MediaItem>, String?>> {
+        private suspend fun loadSongContinuation(filters: List<RadioModifier>): Result<Pair<List<MediaItemData>, String?>> {
             val result = getSongRadio(param as String, token, filters)
             return result.fold(
-                { Result.success(Pair(it.items, it.continuation)) },
+                {Result.success(Pair(it.items, it.continuation)) },
                 { Result.failure(it) }
             )
         }
 
-        private suspend fun loadPlaylistContinuation(initial: Boolean): Result<Pair<List<MediaItem>, String?>> = withContext(Dispatchers.IO) {
+        private suspend fun loadPlaylistContinuation(db: Database, initial: Boolean): Result<Pair<List<MediaItem>, String?>> = withContext(Dispatchers.IO) {
             if (initial) {
-                val playlist = AccountPlaylist.fromId(token)
-                playlist.data.items?.also { items ->
-                    return@withContext Result.success(Pair(
-                        items.subList(param as Int, items.size - 1),
-                        playlist.data.continuation?.token
-                    ))
+                val playlist = AccountPlaylistRef(token)
+                playlist.loadData(db, false).onFailure {
+                    return@withContext Result.failure(it)
                 }
+
+                val items = playlist.Items.get(db) ?: return@withContext Result.failure(IllegalStateException("Items for loaded $playlist is null"))
+
+                return@withContext Result.success(Pair(
+                    items.subList(param as Int, items.size - 1),
+                    playlist.Continuation.get(db)?.token
+                ))
             }
 
             val hl = SpMp.data_language
             val request = Request.Builder()
-                .ytUrl(
-                    if (initial) "/youtubei/v1/browse"
-                    else "/youtubei/v1/browse?ctoken=$token&continuation=$token&type=next"
-                )
+                .ytUrl("/youtubei/v1/browse?ctoken=$token&continuation=$token&type=next")
                 .addYtHeaders()
-                .post(Api.getYoutubeiRequestBody(
-                    if (initial) mapOf("browseId" to token)
-                    else null
-                ))
+                .post(Api.getYoutubeiRequestBody())
                 .build()
 
-            val result = Api.request(request)
-            if (result.isFailure) {
-                return@withContext result.cast()
-            }
+            val stream = Api.request(request).fold(
+                { it.getStream() },
+                { return@withContext Result.failure(it) }
+            )
 
-            val stream = result.getOrThrow().getStream()
-            val parsed: YoutubeiBrowseResponse = try {
-                Api.klaxon.parse(stream)!!
-            }
-            catch (e: Throwable) {
-                return@withContext Result.failure(e)
-            }
-            finally {
-                stream.close()
-            }
+            return@withContext runCatching {
+                val parsed: YoutubeiBrowseResponse = stream.use { Api.klaxon.parse(it)!! }
+                val shelf = parsed.continuationContents?.musicPlaylistShelfContinuation ?: return@runCatching Pair(emptyList(), null)
 
-            val shelf =
-                if (initial) parsed.contents!!.singleColumnBrowseResultsRenderer!!.tabs.first().tabRenderer.content!!.sectionListRenderer.contents!!.single().musicPlaylistShelfRenderer!!
-                else parsed.continuationContents!!.musicPlaylistShelfContinuation!!
-
-            return@withContext Result.success(Pair(
-                shelf.contents!!.withIndex().mapNotNull { item ->
-                    if (item.index < param as Int) {
-                        return@mapNotNull null
+                val items: List<MediaItemData> =
+                    shelf.contents!!.mapNotNull { item ->
+                        item.toMediaItemData(hl)?.first
                     }
-                    item.value.toMediaItem(hl)?.first
-                },
-                shelf.continuations?.firstOrNull()?.nextContinuationData?.continuation
-            ))
+
+                val continuation: String? = shelf.continuations?.firstOrNull()?.nextContinuationData?.continuation
+
+                return@runCatching Pair(items, continuation)
+            }
         }
     }
 
-    data class ViewMore(
-        val list_page_browse_id: String? = null,
-        val media_item: MediaItem? = null,
-        val action: (() -> Unit)? = null,
+    sealed interface ViewMore {
+        fun execute(player: PlayerState, title: LocalisedYoutubeString?)
+    }
 
-        var layout_type: Type? = null,
-        val browse_params: String? = null
-    ) {
-        var layout: MediaItemLayout? by mutableStateOf(null)
-        
-        init {
-            check(list_page_browse_id != null || media_item != null || action != null) 
-            check(browse_params == null || list_page_browse_id != null)
+    data class LambdaViewMore(
+        val action: (player: PlayerState, title: LocalisedYoutubeString?) -> Unit
+    ): ViewMore {
+        override fun execute(player: PlayerState, title: LocalisedYoutubeString?) = action(player, title)
+    }
+
+    data class MediaItemViewMore(
+        val media_item: MediaItem
+    ): ViewMore {
+        override fun execute(player: PlayerState, title: LocalisedYoutubeString?) {
+            player.openMediaItem(media_item, true)
         }
+    }
 
-        fun openViewMore(player: PlayerState, title: LocalisedYoutubeString?) {
-            if (media_item != null) {
-                player.openMediaItem(media_item, true)
-            }
-            else if (list_page_browse_id != null) {
-                if (browse_params != null) {
-                    player.openMediaItem(
-                        BrowseParamsPlaylist
-                            .fromId(list_page_browse_id, browse_params)
-                            .apply { editData {
-                                supplyTitle(title?.getString() ?: "")
-                            }}
-                    )
-                }
-                else {
-                    player.openViewMorePage(list_page_browse_id)
-                }
-            }
-            else if (action != null) {
-                action.invoke()
+    data class ListPageBrowseIdViewMore(
+        val list_page_browse_id: String,
+        val browse_params: String? = null
+    ): ViewMore {
+        override fun execute(player: PlayerState, title: LocalisedYoutubeString?) {
+            if (browse_params != null) {
+                player.openMediaItem(
+                    PlaylistData(
+                        list_page_browse_id,
+                        browse_params = browse_params
+                    ).also { playlist ->
+                        playlist.title = title?.getString() ?: ""
+                    },
+                )
             }
             else {
-                throw NotImplementedError(toString())
+                player.openViewMorePage(list_page_browse_id)
             }
-        }
-    }
-
-    class ThumbnailSource(val media_item: MediaItem? = null, val url: String? = null) {
-        init {
-            check(media_item != null || url != null)
-        }
-
-        fun getThumbUrl(quality: MediaItemThumbnailProvider.Quality): String? {
-            return url ?: media_item?.getThumbUrl(quality)
         }
     }
 
@@ -253,16 +219,15 @@ data class MediaItemLayout(
         font_size: TextUnit? = null,
         multiselect_context: MediaItemMultiSelectContext? = null
     ) {
-        TitleBar(title, subtitle, modifier, view_more, thumbnail_source, thumbnail_item_type, font_size, multiselect_context)
+        TitleBar(title, subtitle, modifier, view_more, font_size, multiselect_context)
     }
 }
 
 internal fun shouldShowTitleBar(
     title: LocalisedYoutubeString?,
     subtitle: LocalisedYoutubeString?,
-    view_more: MediaItemLayout.ViewMore? = null,
-    thumbnail_source: MediaItemLayout.ThumbnailSource? = null
-): Boolean = thumbnail_source != null || title != null || subtitle != null || view_more != null
+    view_more: MediaItemLayout.ViewMore? = null
+): Boolean = title != null || subtitle != null || view_more != null
 
 @Composable
 internal fun TitleBar(
@@ -270,12 +235,10 @@ internal fun TitleBar(
     subtitle: LocalisedYoutubeString?,
     modifier: Modifier = Modifier,
     view_more: MediaItemLayout.ViewMore? = null,
-    thumbnail_source: MediaItemLayout.ThumbnailSource? = null,
-    thumbnail_item_type: MediaItemType? = null,
     font_size: TextUnit? = null,
     multiselect_context: MediaItemMultiSelectContext? = null
 ) {
-    AnimatedVisibility(shouldShowTitleBar(title, subtitle, view_more, thumbnail_source), modifier) {
+    AnimatedVisibility(shouldShowTitleBar(title, subtitle, view_more), modifier) {
         val title_string: String? = remember { title?.getString() }
         val subtitle_string: String? = remember { subtitle?.getString() }
 
@@ -286,18 +249,6 @@ internal fun TitleBar(
             verticalAlignment = Alignment.CenterVertically,
             horizontalArrangement = Arrangement.spacedBy(10.dp)
         ) {
-            val thumbnail_url = thumbnail_source?.getThumbUrl(MediaItemThumbnailProvider.Quality.LOW)
-            if (thumbnail_url != null) {
-                Image(
-                    rememberImagePainter(thumbnail_url),
-                    null,
-                    Modifier
-                        .fillMaxHeight()
-                        .aspectRatio(1f)
-                        .clip(if (thumbnail_item_type == MediaItemType.ARTIST) CircleShape else RectangleShape)
-                )
-            }
-
             Column(verticalArrangement = Arrangement.Center, modifier = Modifier.weight(1f)) {
                 if (subtitle_string != null) {
                     WidthShrinkText(subtitle_string, style = MaterialTheme.typography.titleSmall.copy(color = Theme.on_background))
@@ -330,3 +281,239 @@ internal fun TitleBar(
         }
     }
 }
+
+@OptIn(ExperimentalFoundationApi::class)
+@Composable
+fun MediaItemCard(
+    layout: MediaItemLayout,
+    modifier: Modifier = Modifier,
+    multiselect_context: MediaItemMultiSelectContext? = null
+) {
+    val player = LocalPlayerState.current
+
+    val item: MediaItem = layout.items.single()
+    val accent_colour: Color? by item.ThemeColour.observe(SpMp.context.database)
+
+    val shape = RoundedCornerShape(16.dp)
+    val long_press_menu_data = remember (item) {
+        // TODO Move to MediaItem
+        when (item) {
+            is Song -> getSongLongPressMenuData(item, shape, multiselect_context = multiselect_context)
+            is Artist -> getArtistLongPressMenuData(item, multiselect_context = multiselect_context)
+            is Playlist -> getPlaylistLongPressMenuData(item, shape, multiselect_context = multiselect_context)
+            else -> throw NotImplementedError(item.javaClass.name)
+        }
+    }
+
+    Column(
+        modifier
+            .padding(10.dp)
+            .combinedClickable(
+                interactionSource = remember { MutableInteractionSource() },
+                indication = null,
+                onClick = {
+                    player.onMediaItemClicked(item)
+                },
+                onLongClick = {
+                    player.showLongPressMenu(long_press_menu_data)
+                }
+            ),
+        verticalArrangement = Arrangement.spacedBy(10.dp)
+    ) {
+        Row(
+            verticalAlignment = Alignment.CenterVertically,
+            horizontalArrangement = Arrangement.spacedBy(5.dp)
+        ) {
+            layout.TitleBar(Modifier.fillMaxWidth().weight(1f), multiselect_context = multiselect_context)
+
+            val item_playlist_type: State<PlaylistType?>? =
+                if (item is Playlist) item.TypeOfPlaylist.observe(SpMp.context.database)
+                else null
+
+            Text(
+                if (item is Playlist) item_playlist_type?.value.getReadable(false)
+                else item.getType().getReadable(false),
+                fontSize = 15.sp
+            )
+
+            Icon(
+                when (item) {
+                    is Song -> Icons.Filled.MusicNote
+                    is Artist -> Icons.Filled.Person
+                    is Playlist -> {
+                        when (item_playlist_type?.value) {
+                            PlaylistType.PLAYLIST, PlaylistType.LOCAL, null -> Icons.Filled.PlaylistPlay
+                            PlaylistType.ALBUM -> Icons.Filled.Album
+                            PlaylistType.AUDIOBOOK -> Icons.Filled.Book
+                            PlaylistType.PODCAST -> Icons.Filled.Podcasts
+                            PlaylistType.RADIO -> Icons.Filled.Radio
+                        }
+                    }
+                    else -> throw NotImplementedError(item::class.toString())
+                },
+                null,
+                Modifier.size(15.dp)
+            )
+        }
+
+        Row(
+            Modifier
+                .fillMaxWidth()
+                .height(IntrinsicSize.Min),
+            horizontalArrangement = Arrangement.spacedBy(10.dp)
+        ) {
+            Box(Modifier.width(IntrinsicSize.Min).height(IntrinsicSize.Min)) {
+                item.Thumbnail(
+                    MediaItemThumbnailProvider.Quality.HIGH,
+                    Modifier
+                        .longPressMenuIcon(long_press_menu_data)
+                        .size(100.dp),
+                )
+
+                multiselect_context?.SelectableItemOverlay(item, Modifier.fillMaxSize())
+            }
+
+            Column(
+                Modifier
+                    .fillMaxSize()
+                    .background(accent_colour ?: Theme.accent, shape)
+                    .padding(horizontal = 15.dp, vertical = 5.dp),
+                verticalArrangement = Arrangement.SpaceEvenly
+            ) {
+                val item_title: String? by item.Title.observe(SpMp.context.database)
+                Text(
+                    item_title ?: "",
+                    style = LocalTextStyle.current.copy(color = (accent_colour ?: Theme.accent).getContrasted()),
+                    softWrap = false,
+                    overflow = TextOverflow.Ellipsis
+                )
+
+                if (item is MediaItem.WithArtist) {
+                    val item_artist: Artist? by item.Artist.observe(SpMp.context.database)
+                    item_artist?.also { artist ->
+                        MediaItemPreviewLong(artist, contentColour = { (accent_colour ?: Theme.accent).getContrasted() })
+                    }
+                }
+            }
+        }
+
+        Row(
+            Modifier.fillMaxWidth(),
+            horizontalArrangement = Arrangement.spacedBy(15.dp),
+            verticalAlignment = Alignment.CenterVertically
+        ) {
+            Button(
+                { player.playMediaItem(item) },
+                Modifier.fillMaxWidth(),
+                shape = shape,
+                colors = ButtonDefaults.buttonColors(
+                    containerColor = accent_colour ?: Theme.vibrant_accent,
+                    contentColor = (accent_colour ?: Theme.vibrant_accent).getContrasted()
+                )
+            ) {
+                Text(getString(when (item.getType()) {
+                    MediaItemType.SONG -> "media_play"
+                    MediaItemType.ARTIST -> "artist_chip_play"
+                    MediaItemType.PLAYLIST_ACC, MediaItemType.PLAYLIST_LOC, MediaItemType.PLAYLIST_BROWSEPARAMS -> "playlist_chip_play"
+                }))
+            }
+        }
+    }
+}
+
+//@OptIn(ExperimentalFoundationApi::class)
+//@Composable
+//fun MediaItemGrid(
+//    items: List<MediaItemHolder>,
+//    modifier: Modifier = Modifier,
+//    rows: Int? = null,
+//    title: LocalisedYoutubeString? = null,
+//    subtitle: LocalisedYoutubeString? = null,
+//    view_more: MediaItemLayout.ViewMore? = null,
+//    alt_style: Boolean = false,
+//    square_item_max_text_rows: Int? = null,
+//    itemSizeProvider: @Composable () -> DpSize = { getDefaultMediaItemPreviewSize() },
+//    multiselect_context: MediaItemMultiSelectContext? = null,
+//    startContent: (LazyGridScope.() -> Unit)? = null
+//) {
+//    val row_count = (rows ?: if (items.size <= 3) 1 else 2) * (if (alt_style) 2 else 1)
+//    val item_spacing = Arrangement.spacedBy(if (alt_style) 7.dp else 15.dp)
+//    val item_size = if (alt_style) DpSize(0.dp, MEDIA_ITEM_PREVIEW_LONG_HEIGHT.dp) else itemSizeProvider()
+//
+//    Column(modifier, verticalArrangement = Arrangement.spacedBy(10.dp)) {
+//        TitleBar(
+//            title,
+//            subtitle,
+//            view_more = view_more,
+//            multiselect_context = multiselect_context
+//        )
+//
+//        BoxWithConstraints(Modifier.fillMaxWidth(), contentAlignment = Alignment.CenterEnd) {
+//            LazyHorizontalGrid(
+//                rows = GridCells.Fixed(row_count),
+//                modifier = Modifier
+//                    .height( item_size.height * row_count + item_spacing.spacing * (row_count - 1) )
+//                    .fillMaxWidth(),
+//                horizontalArrangement = item_spacing,
+//                verticalArrangement = item_spacing
+//            ) {
+//                startContent?.invoke(this)
+//
+//
+//                items(items.size, { items[it].item?.id ?: "" }) { i ->
+//                    val item = items[i].item ?: return@items
+//                    val preview_modifier = Modifier.animateItemPlacement().then(
+//                        if (alt_style) Modifier.width(maxWidth * 0.9f)
+//                        else Modifier.size(item_size)
+//                    )
+//
+//                    if (alt_style) {
+//                        MediaItemPreviewLong(item, preview_modifier, contentColour = Theme.on_background_provider, multiselect_context = multiselect_context)
+//                    }
+//                    else {
+//                        MediaItemPreviewSquare(item, preview_modifier, contentColour = Theme.on_background_provider, multiselect_context = multiselect_context, max_text_rows = square_item_max_text_rows)
+//                    }
+//                }
+//            }
+//
+//            if (multiselect_context != null && !shouldShowTitleBar(title, subtitle)) {
+//                Box(Modifier.background(CircleShape, Theme.background_provider), contentAlignment = Alignment.Center) {
+//                    multiselect_context.CollectionToggleButton(items)
+//                }
+//            }
+//        }
+//    }
+//}
+//
+//@Composable
+//fun MediaItemList(
+//    items: List<MediaItemHolder>,
+//    modifier: Modifier = Modifier,
+//    numbered: Boolean = false,
+//    title: LocalisedYoutubeString? = null,
+//    subtitle: LocalisedYoutubeString? = null,
+//    view_more: MediaItemLayout.ViewMore? = null,
+//    multiselect_context: MediaItemMultiSelectContext? = null
+//) {
+//    Column(modifier, verticalArrangement = Arrangement.spacedBy(10.dp)) {
+//        TitleBar(
+//            title,
+//            subtitle,
+//            Modifier.padding(bottom = 5.dp),
+//            view_more = view_more,
+//            multiselect_context = multiselect_context
+//        )
+//
+//        for (item in items.withIndex()) {
+//            Row(verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(10.dp)) {
+//                if (numbered) {
+//                    Text((item.index + 1).toString().padStart((items.size + 1).toString().length, '0'), fontWeight = FontWeight.Light)
+//                }
+//
+//                    item.value.item?.also { item ->
+//                        MediaItemPreviewLong(item, multiselect_context = multiselect_context)
+//                    }
+//            }
+//        }
+//    }
+//}

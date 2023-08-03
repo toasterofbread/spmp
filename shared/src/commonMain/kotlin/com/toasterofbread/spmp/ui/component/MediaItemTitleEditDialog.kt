@@ -1,5 +1,6 @@
 package com.toasterofbread.spmp.ui.component
 
+import SpMp
 import androidx.compose.material3.Button
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Text
@@ -17,13 +18,11 @@ import com.toasterofbread.spmp.resources.getString
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun MediaItemTitleEditDialog(item: MediaItem, modifier: Modifier = Modifier, close: () -> Unit) {
-    var edited_title: String by remember { mutableStateOf(item.title ?: "") }
+    var edited_title: String by remember { mutableStateOf(item.Title.get(SpMp.context.database) ?: "") }
     PlatformAlertDialog(
         close,
         { Button({
-            item.editRegistry {
-                it.title = edited_title
-            }
+            SpMp.context.database.mediaItemQueries.updateTitleById(edited_title, item.id)
             close()
         }) {
             Text(getString("action_confirm_action"))
@@ -35,7 +34,7 @@ fun MediaItemTitleEditDialog(item: MediaItem, modifier: Modifier = Modifier, clo
             }
         },
         title = {
-            Text(getString("edit_\$x_title_dialog_title").replace("\$x", item.type.getReadable(false)))
+            Text(getString("edit_\$x_title_dialog_title").replace("\$x", item.getType().getReadable(false)))
         },
         text = {
             TextField(

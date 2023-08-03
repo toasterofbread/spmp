@@ -1,21 +1,17 @@
 package com.toasterofbread.spmp.api.model
 
-import com.toasterofbread.spmp.api.FixedColumn
-import com.toasterofbread.spmp.api.FlexColumn
-import com.toasterofbread.spmp.api.NavigationEndpoint
-import com.toasterofbread.spmp.api.ThumbnailRenderer
 import com.toasterofbread.spmp.api.radio.YoutubeiNextResponse
-import com.toasterofbread.spmp.model.mediaitem.AccountPlaylist
-import com.toasterofbread.spmp.model.mediaitem.Artist
+import com.toasterofbread.spmp.model.mediaitem.ArtistData
 import com.toasterofbread.spmp.model.mediaitem.MediaItem
-import com.toasterofbread.spmp.model.mediaitem.Song
-import com.toasterofbread.spmp.model.mediaitem.data.MediaItemData
+import com.toasterofbread.spmp.model.mediaitem.MediaItemData
+import com.toasterofbread.spmp.model.mediaitem.PlaylistData
+import com.toasterofbread.spmp.model.mediaitem.SongData
 import com.toasterofbread.spmp.model.mediaitem.enums.MediaItemType
 import com.toasterofbread.spmp.model.mediaitem.enums.PlaylistType
 import com.toasterofbread.spmp.model.mediaitem.enums.SongType
 import com.toasterofbread.spmp.resources.uilocalisation.parseYoutubeDurationString
 
-class MusicResponsiveListItemRenderer(
+data class MusicResponsiveListItemRenderer(
     val playlistItemData: RendererPlaylistItemData? = null,
     val flexColumns: List<FlexColumn>? = null,
     val fixedColumns: List<FixedColumn>? = null,
@@ -23,13 +19,13 @@ class MusicResponsiveListItemRenderer(
     val navigationEndpoint: NavigationEndpoint? = null,
     val menu: YoutubeiNextResponse.Menu? = null
 ) { 
-    fun toMediaItemAndPlaylistSetVideoId(hl: String): Pair<MediaItem, String?>? {
+    fun toMediaItemAndPlaylistSetVideoId(hl: String): Pair<MediaItemData, String?>? {
         var video_id: String? = playlistItemData?.videoId ?: navigationEndpoint?.watchEndpoint?.videoId
         var video_is_main: Boolean = true
 
         var title: String? = null
-        var artist: Artist? = null
-        var playlist: AccountPlaylist? = null
+        var artist: ArtistData? = null
+        var playlist: PlaylistData? = null
         var duration: Long? = null
 
         if (video_id == null) {
@@ -37,14 +33,13 @@ class MusicResponsiveListItemRenderer(
             when (page_type) {
                 "MUSIC_PAGE_TYPE_ALBUM", "MUSIC_PAGE_TYPE_PLAYLIST" -> {
                     video_is_main = false
-                    playlist = AccountPlaylist.fromId(navigationEndpoint!!.browseEndpoint!!.browseId)
-                        .editPlaylistData {
-                            supplyPlaylistType(PlaylistType.fromTypeString(page_type), true)
-                        }
+                    playlist = PlaylistData(navigationEndpoint!!.browseEndpoint!!.browseId).apply {
+                        playlist_type = PlaylistType.fromTypeString(page_type)
+                    }
                 }
                 "MUSIC_PAGE_TYPE_ARTIST", "MUSIC_PAGE_TYPE_USER_CHANNEL" -> {
                     video_is_main = false
-                    artist = Artist.fromId(navigationEndpoint!!.browseEndpoint!!.browseId)
+                    artist = ArtistData(navigationEndpoint!!.browseEndpoint!!.browseId)
                 }
             }
         }
@@ -76,7 +71,8 @@ class MusicResponsiveListItemRenderer(
                     when (browse_endpoint?.getPageType()) {
                         "MUSIC_PAGE_TYPE_ARTIST", "MUSIC_PAGE_TYPE_USER_CHANNEL" -> {
                             if (artist == null) {
-                                artist = Artist.fromId(browse_endpoint.browseId).editArtistData { supplyTitle(run.text) }
+                                artist = ArtistData(browse_endpoint.browseId)
+                                artist.title = run.text
                             }
                         }
                     }
@@ -97,10 +93,10 @@ class MusicResponsiveListItemRenderer(
 
         val item_data: MediaItemData
         if (video_id != null) {
-            item_data = Song.fromId(video_id).editSongDataManual {
-                supplyDuration(duration, true)
+            item_data = SongData(video_id).also { data ->
+                data.duration = duration
                 thumbnail?.musicThumbnailRenderer?.thumbnail?.thumbnails?.firstOrNull()?.also {
-                    supplySongType(if (it.height == it.width) SongType.SONG else SongType.VIDEO)
+                    data.song_type = if (it.height == it.width) SongType.SONG else SongType.VIDEO
                 }
             }
         }
@@ -108,7 +104,7 @@ class MusicResponsiveListItemRenderer(
             return null
         }
         else {
-            item_data = (playlist?.data?.apply { supplyTotalDuration(duration, true) }) ?: artist?.data ?: return null
+            item_data = (playlist?.apply { total_duration = duration }) ?: artist ?: return null
         }
 
         // Handle songs with no artist (or 'Various artists')
@@ -116,7 +112,8 @@ class MusicResponsiveListItemRenderer(
             if (flexColumns != null && flexColumns.size > 1) {
                 val text = flexColumns[1].musicResponsiveListItemFlexColumnRenderer.text
                 if (text.runs != null) {
-                    artist = Artist.createForItem(item_data.data_item).editArtistData { supplyTitle(text.first_text) }
+                    artist = ArtistData.createForItem(item_data)
+                    artist.title = text.first_text
                 }
             }
 
@@ -124,22 +121,22 @@ class MusicResponsiveListItemRenderer(
                 for (item in menu.menuRenderer.items) {
                     val browse_endpoint = (item.menuNavigationItemRenderer ?: continue).navigationEndpoint.browseEndpoint ?: continue
                     if (browse_endpoint.getMediaItemType() == MediaItemType.ARTIST) {
-                        artist = Artist.fromId(browse_endpoint.browseId)
+                        artist = ArtistData(browse_endpoint.browseId)
                         break
                     }
                 }
             }
         }
 
-        with(item_data) {
-            supplyTitle(title)
-            supplyArtist(artist)
-            supplyThumbnailProvider(thumbnail?.toThumbnailProvider())
-            save()
+        item_data.title = title
+        item_data.thumbnail_provider = thumbnail?.toThumbnailProvider()
+
+        if (item_data is MediaItem.DataWithArtist) {
+            item_data.artist = artist
         }
 
-        return Pair(item_data.data_item, playlistItemData?.playlistSetVideoId)
+        return Pair(item_data, playlistItemData?.playlistSetVideoId)
     }
 }
 
-class RendererPlaylistItemData(val videoId: String, val playlistSetVideoId: String? = null)
+data class RendererPlaylistItemData(val videoId: String, val playlistSetVideoId: String? = null)

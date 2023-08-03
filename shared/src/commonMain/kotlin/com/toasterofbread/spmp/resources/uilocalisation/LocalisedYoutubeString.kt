@@ -4,7 +4,7 @@ import com.toasterofbread.spmp.resources.getString
 import com.toasterofbread.spmp.model.Settings
 import com.toasterofbread.spmp.model.mediaitem.enums.MediaItemType
 
-data class LocalisedYoutubeString private constructor(
+data class LocalisedYoutubeString constructor(
     val key: String,
     val type: Type,
     @Suppress("MemberVisibilityCanBePrivate")

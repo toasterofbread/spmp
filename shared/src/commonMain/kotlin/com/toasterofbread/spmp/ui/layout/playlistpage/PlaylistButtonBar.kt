@@ -15,7 +15,9 @@ import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.getValue
 import androidx.compose.runtime.remember
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
@@ -33,7 +35,10 @@ internal fun PlaylistButtonBar(
     editing_info: Boolean,
     setEditingInfo: (Boolean) -> Unit
 ) {
+    val db = SpMp.context.database
     val player = LocalPlayerState.current
+
+    var playlist_pinned: Boolean by playlist.PinnedToHome.observe(db)
 
     Crossfade(editing_info) { editing ->
         if (editing) {
@@ -45,16 +50,16 @@ internal fun PlaylistButtonBar(
                 IconButton({ player.playMediaItem(playlist, true) }) {
                     Icon(Icons.Default.Shuffle, null)
                 }
-                Crossfade(playlist.pinned_to_home) { pinned ->
-                    IconButton({ playlist.setPinnedToHome(!pinned) }) {
+                
+                Crossfade(playlist_pinned) { pinned ->
+                    IconButton({ playlist_pinned = !pinned }) {
                         Icon(if (pinned) Icons.Filled.PushPin else Icons.Outlined.PushPin, null)
                     }
                 }
-                playlist.url?.also { url ->
-                    if (SpMp.context.canShare()) {
-                        IconButton({ SpMp.context.shareText(url, playlist.title!!) }) {
-                            Icon(Icons.Default.Share, null)
-                        }
+
+                if (SpMp.context.canShare()) {
+                    IconButton({ SpMp.context.shareText(playlist.getURL(), playlist.Title.get(db) ?: "") }) {
+                        Icon(Icons.Default.Share, null)
                     }
                 }
 
@@ -62,8 +67,9 @@ internal fun PlaylistButtonBar(
                     Icon(Icons.Default.Edit, null)
                 }
 
-                playlist.items?.also {
-                    PlaylistInfoText(playlist, it, Modifier.fillMaxWidth().weight(1f))
+                val playlist_items: List<MediaItem>? by playlist.Items.observe(db)
+                playlist_items?.also { items ->
+                    PlaylistInfoText(playlist, items, Modifier.fillMaxWidth().weight(1f))
                 }
             }
         }
@@ -72,17 +78,22 @@ internal fun PlaylistButtonBar(
 
 @Composable
 private fun PlaylistInfoText(playlist: Playlist, items: List<MediaItem>, modifier: Modifier = Modifier) {
+    val db = SpMp.context.database
+
+    val item_count: Int = playlist.ItemCount.observe(db).value ?: items.size
+    val total_duration: Long? by playlist.TotalDuration.observe(db)
+
     Row(modifier, verticalAlignment = Alignment.CenterVertically) {
-        val item_count = playlist.item_count ?: items.size
         if (item_count > 0) {
-            val text = remember(playlist.total_duration, item_count) {
-                val duration_text =
-                    if (playlist.total_duration == null) ""
+            val text = remember(total_duration, item_count) {
+                val duration_text = total_duration.let { duration ->
+                    if (duration == null) ""
                     else durationToString(
-                        playlist.total_duration!!,
+                        duration,
                         short = true,
                         hl = SpMp.ui_language
                     ) + " • "
+                }
 
                 duration_text + getString("playlist_x_songs").replace("\$x", item_count.toString())
             }

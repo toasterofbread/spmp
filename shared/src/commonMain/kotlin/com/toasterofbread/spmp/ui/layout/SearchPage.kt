@@ -26,6 +26,7 @@ import androidx.compose.ui.platform.LocalFocusManager
 import androidx.compose.ui.platform.LocalSoftwareKeyboardController
 import androidx.compose.ui.text.input.ImeAction
 import androidx.compose.ui.unit.*
+import com.toasterofbread.Database
 import com.toasterofbread.spmp.api.*
 import com.toasterofbread.spmp.model.mediaitem.enums.MediaItemType
 import com.toasterofbread.spmp.model.mediaitem.enums.PlaylistType
@@ -33,6 +34,8 @@ import com.toasterofbread.spmp.model.mediaitem.enums.getReadable
 import com.toasterofbread.spmp.platform.getDefaultHorizontalPadding
 import com.toasterofbread.spmp.resources.getString
 import com.toasterofbread.spmp.ui.component.ErrorInfoDisplay
+import com.toasterofbread.spmp.ui.component.MultiselectAndMusicTopBar
+import com.toasterofbread.spmp.ui.component.PillMenu
 import com.toasterofbread.spmp.ui.component.mediaitemlayout.MediaItemLayout
 import com.toasterofbread.spmp.ui.component.multiselect.MediaItemMultiSelectContext
 import com.toasterofbread.spmp.ui.theme.Theme
@@ -51,10 +54,10 @@ val SEARCH_FIELD_FONT_SIZE: TextUnit = 18.sp
 private val SEARCH_BAR_HEIGHT = 45.dp
 private val SEARCH_BAR_V_PADDING = 15.dp
 
-class SearchPage(state: MainPageState): MainPage(state) {
+class SearchPage(state: MainPageState, val db: Database): MainPage(state) {
     private val coroutine_scope = CoroutineScope(Job())
     private val search_lock = Object()
-    
+
     private var clearFocus: (() -> Unit)? = null
     private var multiselect_context: MediaItemMultiSelectContext? = null
 
@@ -72,7 +75,7 @@ class SearchPage(state: MainPageState): MainPage(state) {
         current_filter = null
         error = null
     }
-    
+
     private fun setFilter(filter: SearchType?) {
         if (filter == current_filter) {
             return
@@ -128,9 +131,9 @@ class SearchPage(state: MainPageState): MainPage(state) {
     @OptIn(ExperimentalComposeUiApi::class)
     @Composable
     override fun Page(
-        multiselect_context: MediaItemMultiSelectContext, 
-        modifier: Modifier, 
-        content_padding: PaddingValues, 
+        multiselect_context: MediaItemMultiSelectContext,
+        modifier: Modifier,
+        content_padding: PaddingValues,
         close: () -> Unit
     ) {
         val player = LocalPlayerState.current
@@ -209,26 +212,23 @@ class SearchPage(state: MainPageState): MainPage(state) {
 
     fun performSearch(filter: SearchFilter?) {
         clearFocus?.invoke()
-        
+
         synchronized(search_lock) {
             search_in_progress = true
-            
+
             val query = current_query
             current_results = null
             current_filter = filter?.type
             multiselect_context?.setActive(false)
-            
+
             coroutine_scope.launchSingle {
-                val result = searchYoutubeMusic(query, filter?.params)
-                result.fold(
+                searchYoutubeMusic(query, filter?.params, db).fold(
                     { results ->
                         for (result in results.categories) {
                             if (result.second != null) {
-                                result.first.view_more = MediaItemLayout.ViewMore(
-                                    action = {
-                                        performSearch(result.second)
-                                    }
-                                )
+                                result.first.view_more = MediaItemLayout.LambdaViewMore { _, _ ->
+                                    performSearch(result.second)
+                                }
                             }
                         }
 
@@ -256,13 +256,13 @@ class SearchPage(state: MainPageState): MainPage(state) {
     ) {
         val expansion = LocalNowPlayingExpansion.current
         val focus_requester = remember { FocusRequester() }
-    
+
         LaunchedEffect(Unit) {
             if (expansion.getPage() == 0 && current_results == null && !search_in_progress) {
                 focus_requester.requestFocus()
             }
         }
-    
+
         Row(
             modifier
                 .fillMaxWidth()

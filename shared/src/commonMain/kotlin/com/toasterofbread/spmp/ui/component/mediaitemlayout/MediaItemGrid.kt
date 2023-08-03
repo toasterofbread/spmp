@@ -19,10 +19,11 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.DpSize
 import androidx.compose.ui.unit.dp
 import com.toasterofbread.spmp.model.mediaitem.MediaItemHolder
-import com.toasterofbread.spmp.model.mediaitem.MediaItemPreviewParams
 import com.toasterofbread.spmp.model.mediaitem.rememberFilteredItems
 import com.toasterofbread.spmp.resources.uilocalisation.LocalisedYoutubeString
 import com.toasterofbread.spmp.ui.component.mediaitempreview.MEDIA_ITEM_PREVIEW_LONG_HEIGHT
+import com.toasterofbread.spmp.ui.component.mediaitempreview.MediaItemPreviewLong
+import com.toasterofbread.spmp.ui.component.mediaitempreview.MediaItemPreviewSquare
 import com.toasterofbread.spmp.ui.component.multiselect.MediaItemMultiSelectContext
 import com.toasterofbread.spmp.ui.theme.Theme
 import com.toasterofbread.utils.modifier.background
@@ -35,6 +36,8 @@ fun MediaItemGrid(
     alt_style: Boolean = false,
     apply_filter: Boolean = false,
     multiselect_context: MediaItemMultiSelectContext? = null,
+    square_item_max_text_rows: Int? = null,
+    itemSizeProvider: @Composable () -> DpSize = { getDefaultMediaItemPreviewSize() },
     startContent: (LazyGridScope.() -> Unit)? = null
 ) {
     MediaItemGrid(
@@ -46,8 +49,8 @@ fun MediaItemGrid(
         layout.view_more,
         alt_style = alt_style,
         apply_filter = apply_filter,
-        square_item_max_text_rows = layout.square_item_max_text_rows,
-        itemSizeProvider = layout.itemSizeProvider,
+        square_item_max_text_rows = square_item_max_text_rows,
+        itemSizeProvider = itemSizeProvider,
         multiselect_context = multiselect_context,
         startContent = startContent
     )
@@ -96,20 +99,15 @@ fun MediaItemGrid(
 
                 items(filtered_items.size, { filtered_items[it].item?.id ?: "" }) { i ->
                     val item = filtered_items[i].item ?: return@items
-                    val params = MediaItemPreviewParams(
-                        Modifier.animateItemPlacement().then(
-                            if (alt_style) Modifier.width(maxWidth * 0.9f)
-                            else Modifier.size(item_size)
-                        ),
-                        contentColour = Theme.on_background_provider,
-                        multiselect_context = multiselect_context,
-                        square_item_max_text_rows = square_item_max_text_rows
+                    val preview_modifier = Modifier.animateItemPlacement().then(
+                        if (alt_style) Modifier.width(maxWidth * 0.9f)
+                        else Modifier.size(item_size)
                     )
 
                     if (alt_style) {
-                        item.PreviewLong(params)
+                        MediaItemPreviewLong(item, preview_modifier, contentColour = Theme.on_background_provider, multiselect_context = multiselect_context)
                     } else {
-                        item.PreviewSquare(params)
+                        MediaItemPreviewSquare(item, preview_modifier, contentColour = Theme.on_background_provider, multiselect_context = multiselect_context, max_text_rows = square_item_max_text_rows)
                     }
                 }
             }

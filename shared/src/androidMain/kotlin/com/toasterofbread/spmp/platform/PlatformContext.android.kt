@@ -59,9 +59,10 @@ actual class PlatformContext(private val context: Context, onInit: ((PlatformCon
         onInit?.invoke(this)
     }
 
+    actual val database = createDatabase()
+    // TODO This should be a singleton
     actual val player_state = PlayerStateImpl(this)
 
-//    private val context: WeakReference<Context> = WeakReference(context)
     val ctx: Context get() = context
 
     actual fun getPrefs(): ProjectPreferences = ProjectPreferences.getInstance(ctx)

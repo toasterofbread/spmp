@@ -171,10 +171,8 @@ sealed class MediaItemData: MediaItem {
     var loaded: Boolean = false
     var title: String? = null
         set(value) {
-            if (this !is ArtistData && value == "MIMI") {
-                TODO(this.toString())
-            }
             field = value
+            original_title = value
         }
 
     var original_title: String? = null
